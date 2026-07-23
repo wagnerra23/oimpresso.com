@@ -1,4 +1,5 @@
 ---
+id: requisitos-writebot
 module: Writebot
 alias: writebot
 status: inativo

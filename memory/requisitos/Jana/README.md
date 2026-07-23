@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-readme
 module: Jana
 alias: copiloto
 status: spec-ready

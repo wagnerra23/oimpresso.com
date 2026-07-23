@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-daemon-qrfest
 name: Daemon rebuild = QR-fest (mass re-handshake banido pelo WA)
 description: Cada rebuild daemon Baileys = mass re-handshake = WA remove devices = QR-fest. PR #685 (bootstrap+meta.json) resolve a partir do primeiro pair.
 type: feedback

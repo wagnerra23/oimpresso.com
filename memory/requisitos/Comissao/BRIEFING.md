@@ -1,3 +1,7 @@
+---
+id: requisitos-comissao-briefing
+---
+
 # BRIEFING — Comissao · 🌱 WISH (status: wish)
 
 > **Feature-wish formal — aguarda sinal qualificado** (ADR 0105). Não há código.

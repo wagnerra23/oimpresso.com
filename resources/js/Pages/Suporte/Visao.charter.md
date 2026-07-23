@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-suporte-visao-charter
 page: /suporte/empresas/{business}
 component: resources/js/Pages/Suporte/Visao.tsx
 page_id: suporte-visao

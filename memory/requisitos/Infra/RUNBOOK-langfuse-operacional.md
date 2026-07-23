@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Operação Langfuse self-host (CT 100)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Operação Langfuse self-host (CT 100)
 
 > **ADR 0132** — Langfuse self-host CT 100 docker-host (192.168.0.50). Stack 6 services healthy 2026-05-10.

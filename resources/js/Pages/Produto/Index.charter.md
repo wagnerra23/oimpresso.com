@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-index-charter
 page: /products
 component: resources/js/Pages/Produto/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

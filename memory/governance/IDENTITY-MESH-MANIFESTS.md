@@ -1,4 +1,5 @@
 ---
+id: governance-identity-mesh-manifests
 slug: oimpresso-identity-mesh-manifests
 title: "Identity Mesh — 5 Manifests Canônicos do Time Interno"
 type: governance-spec

@@ -1,4 +1,5 @@
 ---
+id: requisitos-connector-spec
 module: Connector
 version: "1.0"
 last_updated: "2026-05-16"

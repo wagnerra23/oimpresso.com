@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-comparativo-mcp-estado-da-arte-2026-05-13
+---
+
 # MCP Server oimpresso — Comparativo Estado-da-Arte 2026-05-13
 
 > **Auditor:** `mcp-quality-expert` (Opus 4.7) — sessão `nervous-mayer-3ff0da`

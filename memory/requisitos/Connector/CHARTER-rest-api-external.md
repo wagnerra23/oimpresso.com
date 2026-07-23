@@ -1,3 +1,7 @@
+---
+id: requisitos-connector-charter-rest-api-external
+---
+
 # CHARTER — REST API Externa (`Modules/Connector`)
 
 > **Contrato vivo** entre oimpresso e consumidores externos (Delphi WR Comercial, SaaS Woo, futuros).

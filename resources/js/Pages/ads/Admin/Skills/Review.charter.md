@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-skills-review-charter
 page: /ads/admin/skills-review
 component: resources/js/Pages/ads/Admin/Skills/Review.tsx
 related_prototype: n/a (fila de aprovação bespoke — cards + rationale + approve/reject; não casa com um dos 5 Padrões de Tela)

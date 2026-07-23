@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0021-primary-dark-clareado-0190
+---
+
 # ADR UI-0021 · Primary roxo no dark clareado 0.62→0.7 (emenda à ADR 0190)
 
 - **Status**: accepted

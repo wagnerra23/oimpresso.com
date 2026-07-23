@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Ativação Page Charters S4 (C1 P0 Onda 4)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Ativação Page Charters S4 (C1 P0 Onda 4)
 
 > **Data:** 2026-05-13 · **Owner:** Wagner · **Sprint:** S4 (`charter-first` Tier A plena ativação)

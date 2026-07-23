@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-glossary
+---
+
 # Glossário · CRM
 
 ## Campaign

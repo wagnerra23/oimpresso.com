@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-glossary
+---
+
 # Glossário — RecurringBilling
 
 > Vocabulário de billing recorrente brasileiro contextualizado pelo módulo.

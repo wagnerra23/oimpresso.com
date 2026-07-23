@@ -1,3 +1,7 @@
+---
+id: requisitos-accounting-adr-tech-0001-partida-dobrada-aplicada-no-model
+---
+
 # ADR TECH-0001 (Accounting) · Partida dobrada aplicada no Model
 
 - **Status**: accepted

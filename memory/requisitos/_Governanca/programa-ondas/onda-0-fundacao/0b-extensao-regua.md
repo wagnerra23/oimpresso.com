@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-programa-ondas-onda-0-fundacao-0b-extensao-regua
 titulo: Onda 0b — Extensão da régua (casos_coverage + dente de cálculo)
 status: proposto
 owner: W

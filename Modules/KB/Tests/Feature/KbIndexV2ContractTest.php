@@ -22,7 +22,7 @@ use Inertia\Testing\AssertableInertia;
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): NUNCA biz=4 (ROTA LIVRE prod).
  * biz=1 canônico (ADR 0101); biz=99 = cliente fictício cross-tenant.
  *
- * Casos: resources/js/Pages/kb/Index.v2.casos.md (UC-KBV2-01..06)
+ * Casos: resources/js/Pages/kb/Index.v2.casos.md (UC-KBV2-01..06 + UC-KBV2-13)
  *
  * @see resources/js/Pages/kb/Index.v2.charter.md
  * @see Modules/KB/Http/routes.php — Route::get('/v2') + prefix('sops')
@@ -37,6 +37,16 @@ beforeEach(function () {
             'SQLite: rodar no CT 100 (oimpresso-staging MySQL, biz=1). ADR 0101 / ADR 0061.'
         );
     }
+
+    // BLOQUEADOR 1 (lane, não prod): a lane kb-pest NÃO builda o front — stub de manifest
+    // só, sem os .tsx resolvíveis pelo view-finder. `config/inertia.php` tem
+    // `testing.ensure_pages_exist => true` (SEPARADO de `pages.ensure_pages_exist => false`),
+    // então `assertInertia(->component('kb/Index.v2'))` tenta localizar o arquivo em disco e
+    // falha "Inertia page component file [kb/Index.v2] does not exist" (AssertableInertia:110).
+    // O contrato aqui é o NOME do componente Inertia servido pela rota, não que o bundle exista —
+    // desligamos a checagem de disco (padrão canônico pra testar componente sem build). O
+    // arquivo resources/js/Pages/kb/Index.v2.tsx EXISTE e prod renderiza; é artefato de lane.
+    config(['inertia.testing.ensure_pages_exist' => false]);
 
     kbBootstrapSchema();
 });
@@ -181,4 +191,59 @@ it('V6: GET /kb/v2 serve DADO REAL — nodes + categories + business (não mock)
             ->has('subcategories')
             ->has('business.name')       // NOVO-A: rótulo da empresa ativa
     );
+});
+
+// ── UC-KBV2-13 — Fase #5: code_drift_state chega no payload, scopado (Tier 0) ─
+// O sinal doc↔código (kb:drift-detector A1/A2) surface na UI (5º quadrante +
+// badge). Aqui o contrato de BACKEND: o campo já viaja (buildListQuery = select *),
+// e o drift de outro business NÃO vaza (global scope de KbNode, ADR 0093).
+it('V7: payload de biz=1 carrega code_drift_state e nao vaza drift de biz=99 (UC-KBV2-13)', function () use ($permKb) {
+    // nó driftado no tenant fictício biz=99 — NUNCA pode aparecer pra biz=1.
+    // Insert RAW (business_id explícito) — dispensa actingAs(99), então o footprint
+    // de permissão fica idêntico a V6/V3 (1 grant só), sem adicionar churn ao
+    // PermissionRegistrar compartilhado (ver kbActAsUser BLOQUEADOR 2, flake 403).
+    kbCreateBusinessRow(99);
+    DB::table('kb_nodes')->insert([
+        'business_id'      => 99,
+        'type'             => 'article',
+        'slug'             => 'drift-biz99-oculto',
+        'title'            => 'DRIFT BIZ99 OCULTO',
+        'is_editable'      => true,
+        'body_blocks'      => json_encode([['kind' => 'para', 'text' => 'x']]),
+        'status'           => 'ok',
+        'code_drift_state' => json_encode([
+            'checked_at' => now()->toIso8601String(),
+            'refs'       => [['path' => 'ModulesSecretoBiz99.php', 'drift_type' => 'reference_deleted_path']],
+        ]),
+        'created_at'       => now(),
+        'updated_at'       => now(),
+    ]);
+    // nó driftado do PRÓPRIO business (biz=1) — deve chegar no payload com o campo.
+    kbActAsUser(bizId: 1, permissions: $permKb);
+    DB::table('kb_nodes')->insert([
+        'business_id'      => 1,
+        'type'             => 'adr',
+        'slug'             => 'adr-biz1-com-drift',
+        'title'            => 'ADR BIZ1 COM DRIFT',
+        'is_editable'      => false,
+        'status'           => 'ok',
+        'code_drift_state' => json_encode([
+            'checked_at' => now()->toIso8601String(),
+            'refs'       => [['path' => 'memory-decisions-0000-removida.md', 'drift_type' => 'reference_deleted_path']],
+        ]),
+        'created_at'       => now(),
+        'updated_at'       => now(),
+    ]);
+
+    $response = $this->get('/kb/v2');
+
+    $response->assertOk();
+    $response->assertInertia(fn (AssertableInertia $p) => $p->component('kb/Index.v2')->has('nodes.data'));
+
+    // (substrings sem barra "/" pra não depender do escape JSON do data-page)
+    // o path driftado do próprio business viaja serializado no payload:
+    expect($response->getContent())->toContain('memory-decisions-0000-removida.md');
+    // Tier 0: nada do drift de biz=99 (nem título nem path):
+    expect($response->getContent())->not->toContain('DRIFT BIZ99 OCULTO');
+    expect($response->getContent())->not->toContain('ModulesSecretoBiz99.php');
 });

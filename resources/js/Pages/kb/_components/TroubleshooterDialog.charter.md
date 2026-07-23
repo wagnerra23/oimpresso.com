@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-kb-components-troubleshooter-dialog-charter
 page: /kb/decision-trees  # dialog concept — governa TroubleshooterDialog, sem .tsx de página dedicada
 component: resources/js/Pages/kb/_components/TroubleshooterDialog.tsx
 controller: 'Modules\KB\Http\Controllers\KbDecisionTreeController'

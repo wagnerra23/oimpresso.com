@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-adr-arq-arq-0004-risk-engine-formula-e-priors
 slug: ARQ-0004-risk-engine-formula-e-priors
 title: "Risk Engine — Fórmula, fatores, prior hardcoded e calibração"
 status: accepted

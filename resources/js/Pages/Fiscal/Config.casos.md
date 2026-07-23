@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-config-casos
 casos: Configuração Fiscal · /fiscal/config
 irmaos: Config.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)

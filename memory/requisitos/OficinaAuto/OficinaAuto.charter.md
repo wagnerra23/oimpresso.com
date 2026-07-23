@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-oficina-auto-charter
 module: OficinaAuto
 charter_type: module
 status: ativo

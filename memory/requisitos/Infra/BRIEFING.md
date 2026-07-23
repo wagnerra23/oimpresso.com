@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-briefing
 module: Infra
 status: meta-módulo governança (loop META → SINAL → DESVIO → RECÁLCULO — ADR 0105)
 piloto: N/A (loop interno plataforma)

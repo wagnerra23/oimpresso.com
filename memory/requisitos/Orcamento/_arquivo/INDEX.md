@@ -1,3 +1,7 @@
+---
+id: requisitos-orcamento-arquivo-index
+---
+
 # _arquivo — Orcamento (lápides L-22)
 
 > Artefatos aposentados. Nada some sem rastro: cada linha registra **origem → destino + o que substituiu** (LICOES_CC L-22 / L-07). Lembrete: esta pasta inteira é proveniência congelada — domínio Orçamento foi **fundido em Sells** (KL-E2 2026-06-15, ver [`BRIEFING.md`](../BRIEFING.md)).

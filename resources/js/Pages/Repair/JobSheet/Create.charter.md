@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-repair-job-sheet-create-charter
 page: /repair/job-sheet/create
 component: resources/js/Pages/Repair/JobSheet/Create.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

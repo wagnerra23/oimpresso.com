@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-vestuario-etiquetas-index-charter
 page: /vestuario/etiquetas
 component: resources/js/Pages/Vestuario/Etiquetas/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

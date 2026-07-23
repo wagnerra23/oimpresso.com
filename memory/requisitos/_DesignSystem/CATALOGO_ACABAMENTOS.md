@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-catalogo-acabamentos
 status: accepted-historical
 lifecycle: arquivado
 last_reviewed: "2026-06-06"

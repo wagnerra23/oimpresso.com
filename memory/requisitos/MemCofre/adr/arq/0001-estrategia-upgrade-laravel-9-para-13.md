@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0001-estrategia-upgrade-laravel-9-para-13
+---
+
 # ADR ARQ-0001 (MemCofre) · Estratégia de upgrade Laravel 9.51 → 13
 
 - **Status**: accepted

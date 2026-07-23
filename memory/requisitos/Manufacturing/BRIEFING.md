@@ -1,4 +1,5 @@
 ---
+id: requisitos-manufacturing-briefing
 module: Manufacturing
 status: parcial
 status_nota: "Legacy UltimatePOS estável (recipes/BOM + ordens de produção) + migração Inertia parcial — 1 página v2 (Wave J). Sem pilot dedicado próprio; provê custeio/BOM."

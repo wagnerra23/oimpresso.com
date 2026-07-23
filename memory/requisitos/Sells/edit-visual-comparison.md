@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-edit-visual-comparison
 slug: sells-edit-visual-comparison
 title: "Sells/Edit — Visual Comparison F1.5 (MWART gate)"
 type: visual-comparison

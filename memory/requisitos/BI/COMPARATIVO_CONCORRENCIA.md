@@ -1,3 +1,7 @@
+---
+id: requisitos-bi-comparativo-concorrencia
+---
+
 # BI — Comparativo Concorrência (estilo Capterra)
 
 > Módulo perdido na migração 6.x; revisitar.

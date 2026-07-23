@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-tech-0001-numeracao-com-lock-for-update
+---
+
 # ADR TECH-0001 (NfeBrasil) · Numeração sequencial com `lockForUpdate`
 
 - **Status**: accepted

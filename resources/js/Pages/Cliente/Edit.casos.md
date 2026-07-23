@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-edit-casos
 casos: Edição de cliente · /contacts/{id}/edit + autosave inline no drawer
 irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

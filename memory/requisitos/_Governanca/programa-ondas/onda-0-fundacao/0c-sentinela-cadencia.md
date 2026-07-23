@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-programa-ondas-onda-0-fundacao-0c-sentinela-cadencia
 titulo: Onda 0c — Sentinela de cadência (o vigia que faz durar)
 status: proposto
 owner: W

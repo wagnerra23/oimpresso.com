@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-cockpit-charter
 page: /fiscal
 component: resources/js/Pages/Fiscal/Cockpit.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

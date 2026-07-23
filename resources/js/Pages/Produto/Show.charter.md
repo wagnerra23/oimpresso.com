@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-show-charter
 page: /products/{id}
 component: resources/js/Pages/Produto/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)

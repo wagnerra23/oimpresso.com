@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-cockpit-casos
 casos: Cockpit Fiscal · /fiscal
 irmaos: Cockpit.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)

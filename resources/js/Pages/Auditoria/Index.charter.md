@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-auditoria-index-charter
 page: /auditoria
 component: resources/js/Pages/Auditoria/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

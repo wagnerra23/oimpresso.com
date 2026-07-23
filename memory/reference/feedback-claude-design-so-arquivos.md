@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-claude-design-so-arquivos
 name: Claude Design só enxerga ARQUIVOS — nunca o MCP
 description: Tudo que o Claude Design (Cowork) consome (golden, pré-flight, índice, método, ledger) tem que ser arquivo git bem organizado; o MCP é do Claude Code/time, o Design não tem acesso
 type: feedback

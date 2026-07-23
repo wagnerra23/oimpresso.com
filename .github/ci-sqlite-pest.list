@@ -28,6 +28,16 @@ Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
 Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
+# KB drift-detector persiste veredito doc↔código em kb_nodes.code_drift_state (Fase A1) — sqlite-safe (kbBootstrapSchema, coluna json, sem FK/ENUM MySQL-only).
+Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
+# KB code-scan (Fase B, ADR 0350) — gera KbNode reference a partir de AST PHP. sqlite-safe (kbBootstrapSchema, DB::table; php-parser das dev deps).
+Modules/KB/Tests/Feature/KbCodeScanTest.php
+# KB code-graph (Fase D) — kb_edges de dependência (classe usa classe) via AST. sqlite-safe (kbBootstrapSchema cria kb_nodes+kb_edges; php-parser das dev deps).
+Modules/KB/Tests/Feature/KbCodeGraphTest.php
+# NOTA: KbHealthSnapshotTest NÃO entra aqui — é MySQL-only (roda na lane kb-pest.yml).
+# Suas asserções de contagem por-business + multi-tenant divergem no sqlite :memory:
+# da lane compartilhada (o comando enxerga resíduo que a re-query do teste não vê;
+# artefato de conexão, mesmo motivo de estoque-pest/essentials-pest). Passa em MySQL.
 Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
 # Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
 # dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.

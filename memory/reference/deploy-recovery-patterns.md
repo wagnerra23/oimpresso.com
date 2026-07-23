@@ -1,4 +1,5 @@
 ---
+id: reference-deploy-recovery-patterns
 name: Deploy Hostinger + recovery patterns (composer install, cache stale, orphan tables, quick-sync fallback)
 description: Receitas operacionais pós-deploy Hostinger. composer install obrigatório se composer.json/lock muda (quick-sync.yml NÃO faz). Tela branca Inertia pós optimize:clear = cache stale do bundle (hard reload resolve). Recovery tabela órfã (DDL MySQL não-transacional). Quick-sync fallback SSH manual.
 type: reference

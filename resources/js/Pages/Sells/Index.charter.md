@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-sells-index-charter
 page: /sells
 page_id: sells-index
 component: resources/js/Pages/Sells/Index.tsx

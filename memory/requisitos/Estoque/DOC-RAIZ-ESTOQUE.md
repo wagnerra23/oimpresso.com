@@ -1,4 +1,5 @@
 ---
+id: requisitos-estoque-doc-raiz-estoque
 title: "Documento Raiz de Estoque — arquitetura canônica, fluxos e auditoria"
 date: 2026-06-04
 type: reference

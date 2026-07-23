@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-pest-laravel-testcase-uses-explicit
 type: feedback
 domain: testing
 date: 2026-05-28

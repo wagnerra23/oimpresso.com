@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-atendimento-macros-variants-charter
 page: /atendimento/macros/{macro}/variants
 component: resources/js/Pages/Atendimento/Macros/Variants.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

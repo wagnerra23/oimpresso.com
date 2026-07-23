@@ -1,3 +1,7 @@
+---
+id: governance-design-requests-ledger
+---
+
 # Design Request Ledger — registro incremental de pedidos de design (file-based)
 
 > **Pra que serve:** dar a cada pedido de design um número **REQ-NNN** com registro em **arquivo git**,

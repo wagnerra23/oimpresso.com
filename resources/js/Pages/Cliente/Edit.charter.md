@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-edit-charter
 page: /contacts/{id}/edit
 component: resources/js/Pages/Cliente/Edit.tsx
 owner: wagner

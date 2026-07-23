@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-cron-slot-06h15-brt-disputado
 type: feedback
 domain: scheduling
 date: 2026-05-28

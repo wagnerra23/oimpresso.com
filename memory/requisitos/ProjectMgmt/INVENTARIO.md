@@ -1,3 +1,7 @@
+---
+id: requisitos-project-mgmt-inventario
+---
+
 # CAPTERRA-INVENTÁRIO — ProjectMgmt
 
 > **Atualizado 2026-05-08** — Fase 1 + Fase 2 entregues em 7 PRs (#207 #209 #211 #220 #222 #224 #226). Status detalhado por PMG-NNN em [SPEC.md](SPEC.md).

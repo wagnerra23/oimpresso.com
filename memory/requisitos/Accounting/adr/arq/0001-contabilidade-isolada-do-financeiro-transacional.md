@@ -1,3 +1,7 @@
+---
+id: requisitos-accounting-adr-arq-0001-contabilidade-isolada-do-financeiro-transacional
+---
+
 # ADR ARQ-0001 (Accounting) · Contabilidade isolada do financeiro transacional
 
 - **Status**: accepted

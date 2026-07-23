@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-brain-b-status-2026-05-16
+---
+
 # Brain B — Status Diagnóstico (2026-05-16)
 
 > Análise documental zero-custo (sem chamada API IA). CYCLE-06 G3 prep demo Jana V2.

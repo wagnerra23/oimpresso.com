@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-admin-qualidade-index-charter
 page: /ia/admin/qualidade
 component: resources/js/Pages/Jana/Admin/Qualidade/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

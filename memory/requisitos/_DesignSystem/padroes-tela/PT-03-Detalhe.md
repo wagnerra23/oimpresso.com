@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-padroes-tela-pt-03-detalhe
 pattern_id: PT-03
 nome: Detalhe
 camada: 3-padroes-tela

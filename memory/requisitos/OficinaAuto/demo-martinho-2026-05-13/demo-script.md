@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-demo-martinho-2026-05-13-demo-script
+---
+
 # Demo script — Reunião Martinho Caçambas · 13/maio 10h
 
 > Roteiro 15-20min pra Wagner conduzir presencialmente. Ordem importa: começa com o **mockup personalizado** (gancho emocional), passa por **provas concretas em prod** (credibilidade), termina com **roadmap + pricing + descoberta** (próximo passo).

@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-demo-pilot-2026-05-16-jana-v2-mockup-1-pager
+---
+
 # JANA V2 — Mockup UI 1-Pager (descrição textual)
 
 > **Tipo:** Especificação visual textual da tela demo (NÃO cria .tsx novo — descreve UI existente em `resources/js/Pages/Jana/` / `resources/js/Pages/Copiloto/` que já está em produção)

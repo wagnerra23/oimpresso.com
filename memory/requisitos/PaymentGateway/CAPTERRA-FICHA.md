@@ -1,4 +1,5 @@
 ---
+id: requisitos-payment-gateway-capterra-ficha
 slug: paymentgateway-capterra-ficha
 title: "CAPTERRA-FICHA — PaymentGateway"
 type: capterra-ficha

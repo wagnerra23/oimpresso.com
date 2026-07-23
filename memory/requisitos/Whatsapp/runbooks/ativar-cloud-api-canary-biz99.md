@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-runbooks-ativar-cloud-api-canary-biz99
+---
+
 # Runbook — Ativar Cloud API Meta canary em biz=99 sandbox
 
 > **Status:** preparado 2026-05-15, **NÃO executado ainda** — aguarda Wagner ler estudo + decidir

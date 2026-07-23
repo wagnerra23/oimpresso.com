@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-topnav-i18n-pattern
 name: Topnav.php aceita literal e i18n key (resolveLabel)
 description: LegacyMenuAdapter::resolveLabel resolve tanto strings literais quanto chaves "modulo::file.key"; Jana migrou pra i18n em 2026-04-27 e setou precedente
 type: feedback

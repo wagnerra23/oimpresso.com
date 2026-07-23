@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0004-yajra-datatables-inventario-e-migracao
+---
+
 # ADR ARQ-0004 (MemCofre) · `yajra/laravel-datatables-oracle` — inventário e migração
 
 - **Status**: accepted (revisado 2026-04-23 — yajra NÃO é blocker)

@@ -1,4 +1,5 @@
 ---
+id: requisitos-laravel-ai-readme
 module: LaravelAI
 alias: laravel-ai
 status: ativo

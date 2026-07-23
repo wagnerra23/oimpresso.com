@@ -1,3 +1,7 @@
+---
+id: requisitos-governanca-roadmap-t1-mapa-teste-arquivo-per-test
+---
+
 # T1 · Mapa teste↔arquivo (`--coverage-php` per-test)
 
 > ⛔ **CORTADO — 2026-07-12** (decisão Wagner, delegada a Claude "decida todas"). A avaliação adversarial do SDD pontuou T1 em **10/100**: blueprint puro, 0 artefato (`test-map.json` inexistente na órfã), depende de P07/coverage estável (mesmo gargalo OOM da nightly), e per-test coverage em ~11k testes arrisca estourar memory_limit. **Não executar.** Reabrir só com sinal qualificado + reabertura da ADR 0314. Ver `memory/sessions/2026-07-12-sdd-avaliacao-adversarial-processo.md`.

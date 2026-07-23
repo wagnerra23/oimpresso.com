@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-adr-arq-arq-0007-learning-loop-tres-niveis
 slug: ARQ-0007-learning-loop-tres-niveis
 title: "Learning Loop — 3 níveis, cadência, gates de segurança"
 status: accepted

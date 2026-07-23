@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-adr-tech-0001-embeddings-openai-vs-local
+---
+
 # ADR TECH-0001 (LaravelAI) · Embeddings OpenAI `text-embedding-3-small` (com fallback local)
 
 - **Status**: accepted

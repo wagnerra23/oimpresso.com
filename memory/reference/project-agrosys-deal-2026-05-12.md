@@ -1,4 +1,5 @@
 ---
+id: reference-project-agrosys-deal-2026-05-12
 name: Deal Agrosys — R$ [redacted Tier 0]M/ano + R$ [redacted Tier 0]k upfront (em negociação 2026-05-12)
 description: Maior oportunidade comercial do oimpresso até hoje — Agrosys (ERP agro, adquirida pela Aliare) quer revender WhatsApp+NFe pra 4000 clientes. Wagner = Tech Provider Meta. Vendedor Artur (sobrinho).
 type: project

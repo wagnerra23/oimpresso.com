@@ -1,4 +1,5 @@
 ---
+id: governance-identity-mesh
 slug: oimpresso-identity-mesh
 title: "Identity Mesh — actors humanos + IA com manifest (Constituição Art. 6)"
 type: governance-spec

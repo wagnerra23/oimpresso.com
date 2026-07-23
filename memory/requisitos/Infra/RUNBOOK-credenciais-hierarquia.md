@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Hierarquia de credenciais (ADR 0131)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Hierarquia de credenciais (ADR 0131)
 
 > **Onde mora cada tipo de credencial no oimpresso.** Decisão canônica: [ADR 0131](../../decisions/0131-tiering-memoria-canonico-local-segredo.md) — 3 tiers.

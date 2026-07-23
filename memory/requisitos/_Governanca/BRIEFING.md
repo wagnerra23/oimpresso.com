@@ -1,3 +1,7 @@
+---
+id: requisitos-governanca-briefing
+---
+
 # BRIEFING — _Governanca (porta de entrada)
 
 > **O que é esta área:** a casa dos artefatos de governança **executável** do oimpresso —

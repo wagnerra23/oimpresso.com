@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-spec
 slug: compras
 title: "Especificação funcional — Compras"
 type: spec

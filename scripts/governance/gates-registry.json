@@ -12,11 +12,10 @@
   },
   "workflows": {
     "deadlink-gate.yml": {
-      "nome": "deadlink-gate (advisory) — catraca de integridade referencial doc↔doc: links markdown internos mortos no corpo VIVO (memory/** menos história append-only + *.md da raiz). Ratchet POR ARQUIVO vs governance/deadlink-baseline.json (dívida grandfathered; reprova só quem PIORA). Case-sensitive sempre (paridade Linux). GENERALIZA o Check V do memory-health (warn num subconjunto front-facing) pro corpus vivo inteiro com mordida — Check V segue como sentinela do subconjunto; este é a catraca do todo.",
+      "nome": "deadlink-gate (ratchet · integridade referencial) — catraca de integridade referencial doc↔doc: links markdown internos mortos no corpo VIVO (memory/** menos história append-only + *.md da raiz). Ratchet POR ARQUIVO vs governance/deadlink-baseline.json (dívida grandfathered; reprova só quem PIORA). Case-sensitive sempre (paridade Linux). Require-safe (sem paths-filter, roda em todo PR). GENERALIZA o Check V do memory-health (warn num subconjunto front-facing) pro corpus vivo inteiro com mordida — Check V segue como sentinela do subconjunto; este é a catraca do todo.",
       "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-08-06",
-      "anchor": "sinal de custo: medição 2026-07-23 achou ~1.105 links internos mortos em 571 arquivos vivos (7,5% de ~17,9k) — ex.: ADR 0022→requisitos/Copiloto/ (renomeado ADR 0088 sem relink), ADR 0029→auto-mem purgada 2026-06-07. Grade estado-da-arte anti-apodrecimento (sessão 2026-07-23): D1 integridade referencial era a única dimensão vermelha (35/100; padrão lychee/Docusaurus/Antora = link morto falha o build). ADR 0256. Advisory por ADR 0314 (link doc↔doc é quality, não Tier-0); promote_by força a decisão [W] em 14d — promoção pela doutrina de mordidas ADR 0336. PR #4700."
+      "terminal": "required",
+      "anchor": "sinal de custo: medição 2026-07-23 achou ~1.105 links internos mortos em 571 arquivos vivos (7,5% de ~17,9k) — ex.: ADR 0022→requisitos/Copiloto/ (renomeado ADR 0088 sem relink), ADR 0029→auto-mem purgada 2026-06-07. Grade estado-da-arte anti-apodrecimento (sessão 2026-07-23): D1 integridade referencial era a única dimensão vermelha (35/100; padrão lychee/Docusaurus/Antora = link morto falha o build). Promovido a REQUIRED via emenda ADR 0347 à 0314 (exceção consciente 'required = Tier-0 + exceções via emenda', 2ª após 0327) + override de cadência [W] ('promova' 2026-07-23, precedente #3444). Flip do vivo na branch protection = ato [W] (R10 / ADR 0275 §5). ADR 0256. PR #4700."
     },
     "system-map.yml": {
       "nome": "system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md e ONBOARDING-AGENTE-GERADO.md das fontes canônicas. Painel derivado + prompt auxiliar da rota de agentes; nenhum deles redefine a porta global README.md. --check advisory no PR + regen diário commit-back.",
@@ -83,6 +82,12 @@
       "classe": "automacao",
       "terminal": "automacao",
       "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required. | EIXO 5 (2026-07-17, chip F2 da grade 2026-07-17): sinal de custo próprio — AGENTS.md serviu stack REJEITADA (Vizra ADK, rejeitada pela ADR 0048 em 2026-04-29) até auditoria humana pegar (#4017, 2026-07-09); Codex/Cursor não expandem `@CLAUDE.md`, então pra eles o resumo do AGENTS.md É o corpus. Núcleo classifyCodeStaleness reusado (não é motor novo — proibicoes §5 2026-07-09); data DECLARADA obrigatória porque os toques mecânicos de 06-08 (restore de squash + MapaTelas) faziam a data-git medir 30d em vez dos 73d reais (o fallback escapa por 1 dia exato). | EIXO 6 (2026-07-19, fraqueza spec-registry-libs da grade 2026-07-18, nota 5,0): único eixo que olha pra FORA (contrato com libs externas) — régua Tessl Spec Registry. Quando uma lib curada (laravel/ai, laravel/mcp, spatie/laravel-html, nwidart/laravel-modules) sobe de versão no composer.lock, NADA acusava que o doc que descreve a superfície dela ficou stale. Sinal = data-git da transição REAL de versão (pula lock não-parseável do squash) vs data declarada do doc mapeado (mapa curado no script). Núcleo classifyCodeStaleness reusado (mesmo padrão do eixo 5, não é motor novo). Estado real 2026-07-19: 0 drift (1 transição visível, nwidart v9→v10 em 04-23, já refletida nos docs 07-14/07-17); selftest good/bad prova a mordida."
+    },
+    "briefing-coverage-required.yml": {
+      "nome": "Cobertura BRIEFING (required) — modulo backend (Modules/<X>/ com dir requisitos/<X>/) sem BRIEFING.md falha o merge. Sinal = EXISTENCIA (isBriefingCoverageGap), nao data auto-declarada: nao-gameavel, zero-FP, mesma classe do casos-gate G-1. Self-test M/N/O (bite/release) roda dentro do job (test quebrado = job vermelho).",
+      "classe": "gate",
+      "terminal": "required",
+      "anchor": "sinal de custo: incidente #3714 (BRIEFING do Compras 41d/18 commits atras do codigo apesar da regra 'BRIEFING por PR' + skill brief-update soft). O eixo de FRESCOR desse mesmo incidente NAO e require-safe (data auto-declarada = last_validated-teatro, proibicoes §5); a COBERTURA (existencia da porta) e. Promovido a required por override soberano [W] 2026-07-23 ('faca promover com teste agora'), emenda ADR 0348 a 0314. DESVIO CONSCIENTE da DR-2 da ADR 0336: bite-log formal 0 (coverageGaps=[] hoje, gate nunca disparou) — substituido pelo teste M/N/O + framing 0346 (zero-FP + zero-violacao + require-safe + exit-code REAL DR-3.1 + verde no main). Barra de reversao BAIXA (soak pulado): 1o FP real rebaixa a advisory."
     },
     "block-brl-values-selftest.yml": {
       "nome": "block-brl-values selftest (meta-teste do hook Tier-0 dinheiro block-brl-values-in-memory.mjs — bite/release do detector via --selftest + registration test do settings.json; advisory, não bloqueia merge)",
@@ -294,6 +299,13 @@
     "jana-pest.yml": {
       "nome": "Jana · Pest (MySQL)",
       "classe": "gate"
+    },
+    "kb-pest.yml": {
+      "nome": "KB · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-06",
+      "anchor": "sinal de custo: NENHUM teste do Modules/KB rodava no CI por-PR (não está no modules-pest.yml matrix, sem lane própria, só KbDriftPersistenceTest na allowlist sqlite) — regressão do KB só aparecia no CT100 nightly (dia seguinte); o #4715 (Fase A1 doc↔código) mergeou com 91 checks verdes sem exercitar teste nenhum do KB. Nasce com 11 arquivos comprovadamente verdes no MySQL efêmero (probe CT100 @ main 2026-07-23). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); a própria lane já pegou 2 gaps reais que o staging poluído mascarava (kb_categories.sort ausente + grants Spatie 403 no MySQL fresco) → 8 arquivos ratchet-pendentes documentados no workflow. promote_by força a decisão de promoção a required."
     },
     "ponto-pest.yml": {
       "nome": "Ponto · Pest (MySQL)",

@@ -1,3 +1,7 @@
+---
+id: requisitos-srs-deprecation-plan
+---
+
 # DEPRECATION-PLAN — Modules/SRS
 
 > **Status:** 📋 Planejado · **Owner:** Wagner · **Sucessor canônico:** múltiplos (KB primário + Jana + TeamMcp/Governance + MCP server canon)

@@ -1,3 +1,7 @@
+---
+id: requisitos-task-registry-briefing
+---
+
 # BRIEFING — TaskRegistry · ⚰️ FUNDIDO em TeamMcp (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `TeamMcp`** (decisão E1 · frente KL · 2026-06-15).

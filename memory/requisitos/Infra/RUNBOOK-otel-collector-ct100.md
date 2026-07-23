@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Deploy OpenTelemetry Collector + Grafana Tempo CT 100"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Deploy OpenTelemetry Collector + Grafana Tempo CT 100
 
 > **ADR 0162** — observability tracing canônico oimpresso (Wave 26 governance).

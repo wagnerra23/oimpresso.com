@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Pattern consumer migration (accessor preferido + fallback legacy + double-write)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Pattern consumer migration (accessor preferido + fallback legacy + double-write)
 
 > **Use sempre que migrar Producer/Consumer Module pra adotar `Modules/Arquivos` backbone OU qualquer migração de schema legacy → schema novo com convivência temporária.**

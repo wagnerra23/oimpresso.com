@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0005-observabilidade-monolog-v3-e-sentry
+---
+
 # ADR ARQ-0005 (MemCofre) · Observabilidade — Monolog v3 + Sentry
 
 - **Status**: accepted

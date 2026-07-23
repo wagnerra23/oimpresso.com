@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Pattern artisan command oimpresso (multi-tenant + LGPD + DRY-RUN)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Pattern artisan command oimpresso (multi-tenant + LGPD + DRY-RUN)
 
 > **Use sempre que criar command artisan novo em qualquer `Modules/<X>/Console/Commands/`.**

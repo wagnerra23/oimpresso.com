@@ -1,4 +1,5 @@
 ---
+id: requisitos-mwart-onda-1-vendas-pdv-caixa-plano
 module: Mwart
 doc_type: plano-onda
 onda: 1

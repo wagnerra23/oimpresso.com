@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-spec
 slug: infra
 title: "Especificação funcional — Infra (loop de governança fechado)"
 type: spec

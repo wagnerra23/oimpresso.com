@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-sells-index-dsv6-visual-comparison
 slug: sells-index-dsv6-visual-comparison
 title: "Sells — Comparativo visual DS v6 da tela /sells (Index · PR3)"
 type: visual-comparison

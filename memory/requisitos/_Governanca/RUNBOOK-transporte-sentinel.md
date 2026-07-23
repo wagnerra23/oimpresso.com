@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Sentinela de transporte CT100→main (Onda 1)"
+owner: W
+status: ativo
+last_validated: "2026-06-21"
+---
+
 # RUNBOOK — Sentinela de transporte CT100→main (Onda 1)
 
 > Fecha o gap de freshness/drift entre o que está em **GitHub main** e o que cada

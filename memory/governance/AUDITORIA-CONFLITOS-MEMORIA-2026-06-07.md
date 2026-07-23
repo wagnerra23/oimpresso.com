@@ -1,3 +1,7 @@
+---
+id: governance-auditoria-conflitos-memoria-2026-06-07
+---
+
 # Auditoria de Conflitos da Memória — 2026-06-07
 
 > Disparada por Wagner: "revise todas as memórias conflitantes, mesmo que consuma tokens — isso é um erro que pode custar caro. O que eu tenho que me preocupar antes de iniciar errado?"

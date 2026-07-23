@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-freshness-pipeline
 name: Freshness Pipeline (Memory health observability)
 gap: D7 #2
 auditoria: AUDITORIA-MEMORIA-2026-05-15.md

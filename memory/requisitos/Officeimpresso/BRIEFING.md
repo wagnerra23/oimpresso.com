@@ -1,3 +1,7 @@
+---
+id: requisitos-officeimpresso-briefing
+---
+
 # BRIEFING — Officeimpresso
 
 Officeimpresso é a **bridge legacy** entre o ERP desktop Delphi/Firebird histórico (**WR Comercial / WR Sistemas**) e o oimpresso Laravel, no contexto da migração "Martinho". Na prática, o que está em produção hoje é o **licenciamento e auditoria de máquinas desktop** dos clientes legacy: controla licenças por computador (HD/processador/versão), bloqueio/desbloqueio, e registra acessos do Delphi via Passport tokens. É módulo **superadmin-only** (Wagner), sem produto novo — meio de transição, descomissionável quando o último cliente sair do Delphi (ADR 0136/0137).

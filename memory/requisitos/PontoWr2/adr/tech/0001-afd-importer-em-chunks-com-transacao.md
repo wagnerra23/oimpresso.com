@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-wr2-adr-tech-0001-afd-importer-em-chunks-com-transacao
+---
+
 # ADR TECH-0001 (PontoWr2) · AFD importer em chunks com transação
 
 - **Status**: accepted

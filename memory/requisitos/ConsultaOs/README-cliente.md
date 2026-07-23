@@ -1,3 +1,7 @@
+---
+id: requisitos-consulta-os-readme-cliente
+---
+
 # README — Como o cliente externo usa o portal ConsultaOs
 
 > **Audiência:** vendedores oimpresso, operadores que entregam OS a clientes finais.

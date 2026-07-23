@@ -1,4 +1,5 @@
 ---
+id: reference-pattern-incident-response-velocity
 name: PATTERN-INCIDENT-RESPONSE-VELOCITY
 description: Padrão de resposta a incident em prod oimpresso — método 4-DRFV + 6 multiplicadores de velocidade. Catalogado pós-sessão 2026-05-28 (10 PRs em 1 dia: 6 bugs whatsmeow + 2 infra + 2 governança).
 type: reference

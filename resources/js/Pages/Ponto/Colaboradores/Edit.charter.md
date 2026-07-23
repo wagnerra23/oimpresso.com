@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-colaboradores-edit-charter
 page: /ponto/colaboradores/{id}/editar
 component: resources/js/Pages/Ponto/Colaboradores/Edit.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

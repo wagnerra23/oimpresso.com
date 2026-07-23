@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-arq-0004-revenue-modelo-hibrido-subscription-take-rate
+---
+
 # ADR ARQ-0004 (Financeiro) · Revenue híbrido: subscription + take rate sobre boleto/PIX
 
 - **Status**: accepted

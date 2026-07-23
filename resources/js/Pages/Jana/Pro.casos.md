@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-pro-casos
 casos: Jana Pro · paywall/upgrade · /ia/pro
 irmaos: Pro.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável

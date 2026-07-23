@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-retrieval-gotchas
+---
+
 # Retrieval Gotchas — armadilhas que custaram horas (Sprint 9)
 
 > **Lê este doc ANTES de mexer em retrieval/Meilisearch/Ollama/Scout neste projeto.**

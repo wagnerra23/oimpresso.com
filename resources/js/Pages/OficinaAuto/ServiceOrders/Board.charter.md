@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-oficina-auto-service-orders-board-charter
 page: /oficina-auto/ordens-servico
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
 visual_source: oficina-page.jsx

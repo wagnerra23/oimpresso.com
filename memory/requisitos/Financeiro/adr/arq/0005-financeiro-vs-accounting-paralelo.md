@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-arq-0005-financeiro-vs-accounting-paralelo
+---
+
 # ADR ARQ-0005 (Financeiro) · Financeiro paralelo a Accounting (não substitui, não estende)
 
 - **Status**: accepted

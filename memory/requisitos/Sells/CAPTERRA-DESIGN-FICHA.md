@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-capterra-design-ficha
+---
+
 # CAPTERRA-DESIGN-FICHA — Sells/Create (UX/UI)
 
 > **Cruzamento gerado:** 2026-05-13

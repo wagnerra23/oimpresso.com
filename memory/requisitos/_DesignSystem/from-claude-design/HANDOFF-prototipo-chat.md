@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-from-claude-design-handoff-prototipo-chat
+---
+
 # HANDOFF — Protótipo Oimpresso ERP
 
 > **Para:** o próximo Claude (qualquer aba/projeto).

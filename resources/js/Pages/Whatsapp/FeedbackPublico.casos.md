@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-whatsapp-feedback-publico-casos
 casos: Canal público de sinal do cliente · /feedback
 irmaos: FeedbackPublico.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

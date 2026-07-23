@@ -1,3 +1,7 @@
+---
+id: requisitos-project-mgmt-capterra-ficha
+---
+
 # CAPTERRA-FICHA — ProjectMgmt
 
 > **Ficha canônica de benchmark do módulo ProjectMgmt** — fonte de verdade para a skill `comparativo-do-modulo`.

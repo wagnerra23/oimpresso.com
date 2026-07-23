@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-anti-regressao-cadastro-produto-variacao-legacy
 titulo: "Lista anti-regressão — Aba VARIAÇÃO (Grades e Variações · preços e Cores)"
 tipo: anti-regressao
 origem: "Office Comercial 2026 · Versão 2026.1.1.38 · tela 'Grades e Variações preços e Cores'"

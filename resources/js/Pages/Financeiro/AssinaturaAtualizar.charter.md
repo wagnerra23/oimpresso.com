@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-assinatura-atualizar-charter
 page: /financeiro/assinatura/atualizar
 route: financeiro.assinaturas.atualizar.show
 controller: Modules\Financeiro\Http\Controllers\AssinaturaController@showAtualizar

@@ -1,3 +1,7 @@
+---
+id: requisitos-admin-screen-review-runbook
+---
+
 # RUNBOOK — Screen Review (loop PDCA visual `/admin/screen-review`)
 
 > **Tier 0:** Tela Wagner-only via Tailscale (middleware `tailscale-only` + `auth` + `is-wagner`). Acesso fora de Tailscale = 403.

@@ -1,3 +1,7 @@
+---
+id: requisitos-atendimento-briefing
+---
+
 # BRIEFING — Atendimento · ⚰️ FUNDIDO em Whatsapp (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `Whatsapp`** (decisão E1 · frente KL · 2026-06-15).

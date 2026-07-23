@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-adr-arq-0002-conversa-como-entry-point
+---
+
 # ADR ARQ-0002 — Conversa com IA é o entry-point, não o dashboard
 
 **Data:** 2026-04-24

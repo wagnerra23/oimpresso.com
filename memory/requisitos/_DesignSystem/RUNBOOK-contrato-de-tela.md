@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Contrato de Tela (a perna de fidelidade visual do trio-de-tela)"
+owner: W
+status: ativo
+last_validated: "2026-07-13"
+---
+
 # RUNBOOK — Contrato de Tela (a perna de fidelidade visual do trio-de-tela)
 
 > **Data:** 2026-06-18 · **Owner:** Wagner · **Origem:** sessão 2026-06-18 (Wagner: _"o design não está sendo aplicado em produção… o protocolo tem erros na aplicação… crie o mecanismo, não me deixe errar de novo. Crie um adversário e valide tudo antes de aplicar"_).

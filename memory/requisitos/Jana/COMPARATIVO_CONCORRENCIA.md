@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-comparativo-concorrencia
+---
+
 # Jana — Comparativo Concorrência (estilo Capterra)
 
 **Última atualização:** 2026-07-02 | **Próx. revisão:** 2026-10-02

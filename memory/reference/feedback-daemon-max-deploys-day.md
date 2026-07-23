@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-daemon-max-deploys-day
 name: Máximo ~3 deploys daemon Baileys por dia (anti-abuse Multi-Device)
 description: Limite empírico ~3 mass-restarts do daemon Baileys por dia. Acima disso, WhatsApp Multi-Device anti-abuse banem TODAS sessions (mesmo as com meta.json). Anti-ban middleware só protege send, não reconnect.
 type: feedback

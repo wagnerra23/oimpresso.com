@@ -1,4 +1,5 @@
 ---
+id: reference-project-form-shim-migration
 name: Form:: shim — laravelcollective → spatie/laravel-html
 description: Migração do Form:: em 2026-04-23; laravelcollective removido, shim em App\View\Helpers\Form delega pra spatie preservando paridade HTML
 type: project

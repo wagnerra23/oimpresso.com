@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-documents-index-charter
 page: /essentials/document
 component: resources/js/Pages/Essentials/Documents/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

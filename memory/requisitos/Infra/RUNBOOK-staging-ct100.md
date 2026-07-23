@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Ambiente de Staging no CT 100 (`staging.oimpresso.com`)"
+owner: W
+status: ativo
+last_validated: "2026-06-10"
+---
+
 # RUNBOOK — Ambiente de Staging no CT 100 (`staging.oimpresso.com`)
 
 > Como replicar um **clone fiel da produção** (ERP web inteiro) num subdomínio do CT 100,

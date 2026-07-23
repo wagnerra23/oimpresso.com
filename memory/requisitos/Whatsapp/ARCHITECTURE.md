@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-architecture
+---
+
 # ARCHITECTURE — Whatsapp
 
 > Decisão mãe: [ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)

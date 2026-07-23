@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-cliente-import-visual-comparison
+---
+
 # Visual Comparison — Cliente/Import (W1-B3)
 
 ## Divergência (ADR 0149 §"Casos que NÃO se qualificam")

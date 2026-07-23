@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-kb-index-v2-charter
 page: /kb/v2
 component: resources/js/Pages/kb/Index.v2.tsx
 controller: Modules\KB\Http\Controllers\KbController@indexV2
@@ -9,8 +10,8 @@ parent_module: KB
 related_us: [US-KB-001]
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional (1280px balcão) — só quando existir SOP escrito à mão
-charter_version: 4
-charter_at: 2026-07-17
+charter_version: 5
+charter_at: 2026-07-23
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central # proposta
   - 0039-ui-chat-cockpit-padrao
@@ -28,7 +29,18 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "tri-pane sidebar+lista+leitor (port direto JSX→TSX)"
 ---
 
-# Charter — `kb/Index.v2.tsx` · v4 **DRAFT (aguarda [W])**
+# Charter — `kb/Index.v2.tsx` · v5 **DRAFT (aguarda [W])**
+
+> ### 🟢 O que a v5 ACRESCENTA (2026-07-23 — Fase #5 doc↔código, [W]: *"fazer agora, com emenda"*)
+>
+> **Surface do drift doc↔código** — o veredito do `kb:drift-detector` (persistido em
+> `kb_nodes.code_drift_state` pelas Fases A1/A2, [PRs #4715](https://github.com/wagnerra23/oimpresso.com/pull/4715)/[#4720](https://github.com/wagnerra23/oimpresso.com/pull/4720))
+> deixa de morrer no log e aparece na tela: **Goal 11** (5º quadrante do HealthPanel + badge no
+> NodeReader). É **leitura pura** de um campo que **já viaja no payload** (`indexV2` serve `select *`),
+> logo **nenhuma mudança de Controller** e **zero side-effect**. Novo **Anti-hook** garante honestidade
+> epistêmica: só mostra drift **datado** (`checked_at`), nunca afirma *"código ok"* (o `null` é ambíguo —
+> sem drift OU nunca checado). Não regride nada; não depende do bloqueador `category_id` NULL (o
+> HealthPanel recebe a lista inteira `baseNodes`, não a filtrada por categoria).
 
 > **O que mudou da v1.0 (2026-05-16):** a v1.0 descrevia uma tela de **SOPs de gráfica com dados
 > inventados** ("fallback MOCK_NODES" era Goal 7). [W] 2026-07-17: *"eu quero os dados, mas com o
@@ -276,6 +288,11 @@ Corte/Acabamento · Instalação) · `Equipamentos` · `Pré-impressão` · `Ate
 10. **A lateral só mostra categoria que tem documento pra empresa ativa** (NOVO-B) — categoria seeded
     mas vazia (ex.: `Governança` de biz=4, 0 docs) **não aparece**; não promete o que o multi-tenant
     nunca deixa entregar.
+11. **Ver quais documentos citam código que sumiu no git** (Fase #5) — o `HealthPanel` ganha um 5º
+    quadrante *"Cita código que sumiu no git"* (nós com `code_drift_state != null`, com o path quebrado
+    + quando foi detectado), e o `NodeReader` mostra um badge *"cita código removido"* no nó aberto.
+    É o sinal do `kb:drift-detector` (A1/A2) surfaceado — **leitura** do que já vem no payload, sem
+    tocar o banco. O quadrante só aparece **quando há drift** (nunca um estado "limpo" falso).
 
 ## 5. O que a tela NÃO faz (Non-Goals)
 
@@ -301,6 +318,10 @@ Corte/Acabamento · Instalação) · `Equipamentos` · `Pré-impressão` · `Ate
 - **NUNCA afirmar sucesso de uma ação que não aconteceu.** Se o botão não persiste, o aviso diz que
   é demonstração. (Isto está aqui porque **aconteceu**: 4 botões respondiam *"Artigo re-verificado e
   marcado como fresco"* sem gravar nada — ver `casos.md` UC-KBV2-10.)
+- **NUNCA afirmar drift de código sem `checked_at`** (Fase #5) — o quadrante/badge só aparece quando
+  `code_drift_state.refs` existe (veredito **datado** do `kb:drift-detector`). E **NUNCA** renderizar
+  um estado *"código ok / sem drift"*: `null` significa *sem drift **OU** nunca checado* (migration
+  `2026_07_23_100000`) — a tela só reflete drift **positivo**, nunca certifica ausência.
 - NUNCA escrever no banco ao abrir a tela (ler é ler).
 - NUNCA disparar Jobs, e-mail, WhatsApp ou IA ao abrir — IA só na ação explícita "Perguntar ao KB".
 - NUNCA registrar PII em log/auditoria.
@@ -318,6 +339,7 @@ Corte/Acabamento · Instalação) · `Equipamentos` · `Pré-impressão` · `Ate
 | **D2** | **O `/kb` de hoje continua, ou a V2 toma o lugar?** | 🔴 **ABERTA** — o `/kb` tem **histórico de versões, soft-delete e filtro de PII** que a V2 **não tem**. Cutover sem isso **perde função**. Enquanto indefinido: **coexistem** (`/kb` legado · `/kb/v2` novo) — é o estado atual e não bloqueia o Controller. |
 | **D4** | As **68 cores cruas** → tokens (gate visual ADR 0114) | 🔴 **ABERTA** — mudança visual, PR separado, não bloqueia o Controller. **Mas bloqueia a baseline definitiva:** contratar a tela no visreg congela em pixel o que existir na hora (§8-bis). |
 | **D6** | **O template de categorias por vertical** | 🔴 **ABERTA (v2.1)** — as 7 categorias de cliente são de **gráfica** e estão seeded igual em biz=4, que é **vestuário**. [W] define por vertical, ou o agente propõe e [W] corta. **Não bloqueia** o eixo `Governança` — que é 100% do que a tela serve hoje. É onde o **classificador** (§3) entra: a equipe o especifica, não implementa até esta decisão. |
+| **FASE-5** | **Surfacar o drift doc↔código (5º quadrante + badge)** | ✅ **DECIDIDA (v5)** — [W] 2026-07-23: *"fazer agora, com emenda"*. Leitura pura de `code_drift_state` (já no payload), additive, sem tocar Controller, independente do bloqueador `category_id`. Goal 11 + Anti-hook + UC-KBV2-13 + teste V7. **Risco assumido:** se **D2** aposentar a Index.v2, o surface se perde junto — decisão [W] consciente. |
 
 ## 8-bis. O caminho até a tela viva — **v2.1 (a ordem da v2.0 estava errada)**
 
@@ -356,6 +378,8 @@ it('cada categoria RENDERIZA linhas > 0 com dado real')               // v2.1: l
 it('categoria sem documento NÃO renderiza na lateral')                // NOVO-B: docs ≥ 1
 it('o rótulo de busca mostra a empresa ATIVA da sessão')              // NOVO-A: lê business_id da sessão
 it('o KB NÃO renderiza um seletor de empresa próprio')                // NOVO-A: troca é na Sidebar
+it('serve code_drift_state no payload, scopado por business (Fase #5)')     // UC-KBV2-13 / V7
+it('o drift de código de outro business NÃO vaza no payload')               // UC-KBV2-13 / Tier 0
 it('não escreve no banco ao abrir (GET é leitura)')
 it('não dispara Job/IA ao abrir')
 it('nenhuma ação afirma sucesso sem persistir')                   // UC-KBV2-10
@@ -398,6 +422,7 @@ it('abre em 1280px sem scroll horizontal')                        // visual/manu
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-07-23 | [CC] | **v5 (Fase #5 — surface do drift doc↔código)** — [W] escolheu *"fazer agora, com emenda"*. Adiciona **Goal 11** (5º quadrante HealthPanel *"Cita código que sumiu no git"* + badge NodeReader), **Anti-hook** (só drift datado por `checked_at`; nunca certifica "código ok" — `null` é ambíguo), **§7 FASE-5 DECIDIDA** + **§8** dois testes (payload carrega `code_drift_state` scopado; drift de outro business não vaza — Tier 0). UC-KBV2-13 no casos.md; teste V7 no `KbIndexV2ContractTest`. **Pré-flight verificado (LC-08):** o brief supunha "Controller precisa expor o campo" — **falso**, `buildListQuery` é `select *` e o campo já viaja; **nenhuma** mudança de Controller. Additive, sem side-effect, independente do bloqueador `category_id` NULL. Segue **DRAFT** — D2/D4/D6 abertas. |
 | 2026-05-16 | Wave J | Charter draft v1.0 — port Cowork, tela **mock-first** (Goal 7 = "fallback MOCK_NODES"). Nunca saiu de draft; gate visual nunca fechou. |
 | 2026-07-17 | [CC] | **v4 (design + medição fresca)** — [W] decidiu 2 pontos: **NOVO-A** (indicador da empresa ativa ao lado da busca — *rótulo*, não seletor: governança não vaza, `adr` biz=4 = 0 medido; a troca vive no `CompanyPicker` da Sidebar) e **NOVO-B** (categoria vazia não aparece — biz=4 tem `Governança` seeded com 0 docs). Ambas viram Goal (9/10) + Anti-hook + teste (§8). §7 registra as duas como DECIDIDAS; **D6 segue ABERTA**. §3 **mantém** a lei "aponta pro dono + recibo" (não voltou a número solto); o **recibo foi re-medido** no banco de produção `u906587222_oimpresso` via CT 100 (2026-07-17, `aaed49e156`): total 1.415, `category_id` NULL 1.412, `adr` biz=1 498/biz=4 0 — o "1.408/1.405" da v3 ficou stale (acervo sincroniza vivo). Nenhuma linha de código escrita: o classificador (§3) segue gated em D6. |
 | 2026-07-17 | [CC] | **v3 (subtração)** — a v2.1 corrigiu os números **mantendo o lugar onde mentir**. A v3 **remove o lugar**: o charter deixa de guardar contagem e passa a **apontar o dono** (a query em `kb_nodes`) + **recibo datado** (query + resultado + data + sistema declarado). Aplica a lei *"fato derivado não se restateia"* — generalização da lápide 2026-07-16 (*"aponta pro dono, não restateia"*, escrita 24h antes do erro, mas só pra enforcement) e da regra Tier 0 "claim sem evidência" (que exige recibo, mas só cobria prod). Diagnóstico do erro por pesquisa de estado-da-arte ([session](../../../../memory/sessions/2026-07-17-arte-artefatos-por-tela.md)): **não foi alucinação — foi ORÁCULO ERRADO** (mediu o disco pra descrever tela que lê o banco); o mercado inteiro (Spec Kit · Kiro · Tessl · Drift) ancora doc↔código e **ninguém ancora doc↔dado**. É **subtração** (ADR 0271/0314): o doc escreve MENOS. |

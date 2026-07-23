@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-framework-15-dimensoes
 status: ativo
 last_reviewed: "2026-06-06"
 next_review: "2026-09-06"

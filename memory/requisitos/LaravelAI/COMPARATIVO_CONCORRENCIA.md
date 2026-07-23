@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-comparativo-concorrencia
+---
+
 # LaravelAI — Comparativo Concorrência (estilo Capterra)
 
 > Módulo técnico — adapter unified IA pros outros módulos consumirem.

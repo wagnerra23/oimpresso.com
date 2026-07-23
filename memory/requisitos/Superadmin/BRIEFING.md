@@ -1,3 +1,7 @@
+---
+id: requisitos-superadmin-briefing
+---
+
 # BRIEFING — Modules/Superadmin
 
 > **Estado:** ✅ legado UltimatePOS v6 em uso interno Wagner | **Atualizado:** 2026-05-16 (pós-PR3 governance-v3-docs `na_justified` declarado) | **Owner:** [W]

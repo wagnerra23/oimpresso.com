@@ -11,12 +11,16 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 
 /**
- * kb:drift-detector — Wave 23 KB §G4 — drift artigos KB vs git log.
+ * kb:drift-detector — Wave 23 KB §G4 — drift documentos KB vs git log.
  *
- * Cron compara `kb_articles.updated_at` (kb_nodes onde type='article' OR is_editable=true)
- * vs `git log --since=30d` paths citados em body_blocks/sourceDoc.
+ * Cron cruza os nós KB do business (`git log --diff-filter=DR --since=30d`) em
+ * DUAS fontes de texto:
+ *   - editáveis (type=article/is_editable): `kb_nodes.body_blocks`;
+ *   - bridge canônico (ADR/session/charter/…, is_editable=false, Fase A2):
+ *     `mcp_memory_documents.content_md` do doc linkado por `source_doc_id`.
  *
- * Alert se artigo cita arquivo deletado/movido no git nos últimos 30 dias.
+ * Alert (+ persiste `code_drift_state`) se um doc cita arquivo deletado/movido
+ * no git nos últimos 30 dias — é o doc↔código estilo Swimm pro corpus canônico.
  *
  * Tier 0 multi-tenant: roda por business (--business-id obrigatório) —
  * commands CLI fora de HTTP, session() null.
@@ -172,8 +176,22 @@ class KbDriftDetectorCommand extends Command
     }
 
     /**
-     * Procura kb_nodes (article ou is_editable) cujo body_blocks/snippet menciona
-     * qualquer path da lista deletada. Match simples por substring (defense in depth).
+     * Procura kb_nodes que mencionam qualquer path deletado, em DUAS fontes de texto:
+     *   - Editável (type=article/is_editable): varre `kb_nodes.body_blocks`.
+     *   - Bridge canônico (ADR/session/charter/…, is_editable=false): varre o
+     *     `mcp_memory_documents.content_md` do doc linkado por `source_doc_id`
+     *     (o bridge tem body_blocks NULL; o conteúdo vive no doc canônico — ADR 0061).
+     * Match simples por substring (defense in depth) sobre o alias `haystack`.
+     *
+     * Fase A2 (2026-07-23): a cobertura dos bridges é o que faz o doc↔código valer
+     * pro corpus de governança — um ADR/session que cita arquivo deletado acende.
+     *
+     * Efeito colateral (Fase A1): persiste o veredito por nó em
+     * `kb_nodes.code_drift_state` pra surfacar na KB (HealthPanel/NodeReader):
+     *   - com match  → {checked_at, refs:[{path, drift_type}]}
+     *   - sem match  → NULL (limpa flag anterior — self-healing quando o doc é corrigido)
+     * A escrita é raw (DB::table), só quando o CONJUNTO de paths muda, e fica fora
+     * do KbNodeObserver + activity-log (sem ruído de audit por cron).
      *
      * @param  array<int,string>  $deletedPaths
      * @return array<int,array<string,mixed>>
@@ -185,7 +203,10 @@ class KbDriftDetectorCommand extends Command
             return [];
         }
 
-        $candidates = DB::table('kb_nodes')
+        $canPersist = \Illuminate\Support\Facades\Schema::hasColumn('kb_nodes', 'code_drift_state');
+
+        // Fonte 1 — editáveis: o texto a varrer é body_blocks (aliased `haystack`).
+        $editables = DB::table('kb_nodes')
             ->where('business_id', $bizId)
             ->whereNull('deleted_at')
             ->where(function ($q) {
@@ -193,32 +214,101 @@ class KbDriftDetectorCommand extends Command
                   ->orWhere('is_editable', 1)
                   ->orWhere('is_editable', true);
             })
-            ->select('id', 'slug', 'title', 'body_blocks')
+            ->select('id', 'slug', 'title', 'code_drift_state', DB::raw('body_blocks as haystack'))
             ->limit(5000)
             ->get();
 
+        // Fonte 2 — bridges canônicos: o texto vive no mcp_memory_documents.content_md
+        // do doc linkado. Join escopado pelo business_id do NÓ (Tier 0 ADR 0093).
+        $bridges = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('mcp_memory_documents')) {
+            $bridges = DB::table('kb_nodes as n')
+                ->join('mcp_memory_documents as d', 'd.id', '=', 'n.source_doc_id')
+                ->where('n.business_id', $bizId)
+                ->whereNull('n.deleted_at')
+                ->where('n.is_editable', 0)
+                ->whereNotNull('n.source_doc_id')
+                ->select('n.id', 'n.slug', 'n.title', 'n.code_drift_state', DB::raw('d.content_md as haystack'))
+                ->limit(5000)
+                ->get();
+        }
+
+        $candidates = $editables->concat($bridges);
+
+        $now = now()->toIso8601String();
         $drifts = [];
+
         foreach ($candidates as $node) {
-            $body = (string) ($node->body_blocks ?? '');
-            // JSON escape converte '/' em '\/'. Cobrimos ambas variantes pra match robusto.
+            $body = (string) ($node->haystack ?? '');
+
+            // Todos os paths deletados que este nó referencia (não só o 1º).
+            $matched = [];
             foreach ($deletedPaths as $path) {
                 if ($path === '') {
                     continue;
                 }
+                // JSON escape converte '/' em '\/'. Cobrimos ambas variantes.
                 $pathEscaped = str_replace('/', '\/', $path);
                 if (str_contains($body, $path) || str_contains($body, $pathEscaped)) {
-                    $drifts[] = [
-                        'node_id' => (int) $node->id,
-                        'slug' => (string) $node->slug,
-                        'title' => (string) $node->title,
-                        'path' => $path,
-                        'drift_type' => 'reference_deleted_path',
-                    ];
-                    break; // 1 match por node já registra drift
+                    $matched[] = ['path' => $path, 'drift_type' => 'reference_deleted_path'];
                 }
+            }
+
+            if ($canPersist) {
+                $this->persistDriftState($node, $matched, $now);
+            }
+
+            if (! empty($matched)) {
+                // Report/exit-code preservam a forma legada: 1 linha por nó.
+                $drifts[] = [
+                    'node_id' => (int) $node->id,
+                    'slug' => (string) $node->slug,
+                    'title' => (string) $node->title,
+                    'path' => $matched[0]['path'],
+                    'drift_type' => 'reference_deleted_path',
+                ];
             }
         }
 
         return $drifts;
+    }
+
+    /**
+     * Grava o veredito de drift do nó só quando o CONJUNTO de paths mudou
+     * (evita churn de UPDATE a cada cron). checked_at só refresca na mudança.
+     *
+     * @param  object  $node  row com id + code_drift_state (json string|null)
+     * @param  array<int,array{path:string,drift_type:string}>  $matched
+     */
+    private function persistDriftState(object $node, array $matched, string $now): void
+    {
+        // Paths atualmente persistidos.
+        $currentPaths = [];
+        if (! empty($node->code_drift_state)) {
+            $decoded = json_decode((string) $node->code_drift_state, true);
+            foreach ((array) ($decoded['refs'] ?? []) as $ref) {
+                if (isset($ref['path'])) {
+                    $currentPaths[] = (string) $ref['path'];
+                }
+            }
+        }
+
+        $newPaths = array_map(static fn ($m) => $m['path'], $matched);
+
+        $a = $currentPaths;
+        $b = $newPaths;
+        sort($a);
+        sort($b);
+        if ($a === $b) {
+            return; // conjunto idêntico — nada a fazer
+        }
+
+        DB::table('kb_nodes')
+            ->where('id', $node->id)
+            ->update([
+                'code_drift_state' => empty($matched)
+                    ? null
+                    : json_encode(['checked_at' => $now, 'refs' => $matched], JSON_UNESCAPED_UNICODE),
+            ]);
     }
 }

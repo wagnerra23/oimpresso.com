@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Audit DataController/Permissions em todos os módulos"
+owner: W
+status: ativo
+last_validated: "2026-06-13"
+---
+
 # RUNBOOK — Audit DataController/Permissions em todos os módulos
 
 > **Quando usar:** depois de criar/instalar módulo novo, ou quando reportarem "módulo X não aparece no menu" pós-install.

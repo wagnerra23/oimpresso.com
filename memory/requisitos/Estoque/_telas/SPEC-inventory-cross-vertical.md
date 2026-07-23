@@ -1,3 +1,7 @@
+---
+id: requisitos-estoque-telas-spec-inventory-cross-vertical
+---
+
 # SPEC Inventory (cross-vertical) · ⚰️ TOMBADO — cópia deduplicada (Onda 0 · 2026-07-02)
 
 > ⚠️ **Pare aqui — esta era uma cópia duplicada do SPEC Inventory.** O corpo era idêntico (byte-a-byte, salvo frontmatter) ao [`Inventory/SPEC.md`](../../Inventory/SPEC.md), que **divergiu e virou o sobrevivente canônico**: recebeu as **25 âncoras `**Implementado em:** _pendente_`** do backfill anchor-lint ([PR #3654](https://github.com/wagnerra23/oimpresso.com/pull/3654)) — e esta cópia tinha **0**.

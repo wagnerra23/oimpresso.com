@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-capterra-inventario
+---
+
 # CAPTERRA-INVENTÁRIO — NfeBrasil
 
 > Gerado por skill `comparativo-do-modulo` em **2026-05-06**.

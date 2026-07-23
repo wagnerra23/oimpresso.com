@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-architecture
+---
+
 # Arquitetura
 
 ## 1. Objetivo

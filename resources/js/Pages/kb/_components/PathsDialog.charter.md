@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-kb-components-paths-dialog-charter
 page: /kb/paths  # dialog concept — governa PathsDialog, sem .tsx de página dedicada
 component: resources/js/Pages/kb/_components/PathsDialog.tsx
 controller: 'Modules\KB\Http\Controllers\KbPathController'

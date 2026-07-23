@@ -1,3 +1,7 @@
+---
+id: requisitos-essentials-adr-arq-0001-essentials-estende-ultimatepos-sem-modificar-core
+---
+
 # ADR ARQ-0001 (Essentials) · Essentials estende UltimatePOS sem modificar o core
 
 - **Status**: accepted

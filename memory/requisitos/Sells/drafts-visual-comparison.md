@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-drafts-visual-comparison
 slug: sells-drafts-visual-comparison
 title: "Sells/Drafts — Visual Comparison F1.5 (MWART gate)"
 type: visual-comparison

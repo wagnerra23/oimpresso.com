@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-briefing-template
 module: <NomeModulo>
 status: em-construcao # producao|piloto|em-construcao|parcial|backlog|shared-infra|meta|deprecated
 status_nota: "<qualificação curta e verificável>"

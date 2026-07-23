@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-spec
 slug: produto
 title: "Especificação funcional — Produto (cadastro core / catálogo do ERP)"
 type: spec

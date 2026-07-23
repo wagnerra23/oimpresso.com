@@ -1,3 +1,7 @@
+---
+id: requisitos-essentials-architecture
+---
+
 # Arquitetura
 
 ## 1. Objetivo

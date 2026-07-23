@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-adr-arq-arq-0001-ads-escopo-e-papel-unico
 slug: ARQ-0001-ads-escopo-e-papel-unico
 title: "ADS — Escopo, definição e papel único"
 status: accepted

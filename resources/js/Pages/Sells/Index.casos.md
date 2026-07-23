@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-sells-index-casos
 casos: Lista de vendas · /sells
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

@@ -1,4 +1,5 @@
 ---
+id: reference-project-officeimpresso-modulo
 name: Officeimpresso — módulo Laravel licença desktop (3.7 restaurado, evolução 6.7)
 description: Módulo superadmin pra gestão de licenças de desktop (Licenca_Computador) restaurado da 3.7→6.7 em 2026-04-23. Inclui contrato API Delphi (Connector), tela licenca_log v3 machine-centric, armadilha master user e diff técnico 3.7 vs 6.7.
 type: project

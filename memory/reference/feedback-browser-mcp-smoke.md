@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-browser-mcp-smoke
 name: Browser MCP smoke test após cada feature UI
 description: Após implementar feature UI Sells/Repair/etc, sempre rodar Chrome MCP smoke test em prod biz=1 antes de reportar como done — testes Pest estruturais (file_get_contents+regex) NÃO substituem validação visual
 type: feedback

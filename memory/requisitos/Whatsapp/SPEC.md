@@ -1,4 +1,5 @@
 ---
+id: requisitos-whatsapp-spec
 module: Whatsapp
 version: "2.0"
 status: ativo

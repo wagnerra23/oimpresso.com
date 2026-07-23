@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-arq-0003-cert-a1-storage-criptografado
+---
+
 # ADR ARQ-0003 (NfeBrasil) · Certificado A1 com storage criptografado por business
 
 - **Status**: accepted

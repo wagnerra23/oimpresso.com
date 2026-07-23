@@ -1,10 +1,13 @@
 ---
+title: "RUNBOOK — `stock_transfers/create` (FORM CREATE)"
+owner: W
+last_validated: "2026-06-15"
 tela: stock_transfers/create
 modulo: Inventory / StockTransfer
 tipo: FORM CREATE
 generated_at: 2026-05-15
 generated_by: Agent W2-D
-status: F3 implementado
+status: ativo
 adr_refs: [0104, 0093, 0114, 0149]
 blueprint_cowork: prototipo-ui/prototipos/inventario-migracao/visual-source.html
 ---

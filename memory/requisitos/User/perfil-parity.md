@@ -1,4 +1,5 @@
 ---
+id: requisitos-user-perfil-parity
 titulo: Paridade de migração — /perfil (Meu perfil) Blade↔React
 tipo: parity
 status: active

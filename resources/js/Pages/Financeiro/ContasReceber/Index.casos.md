@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-contas-receber-index-casos
 casos: Contas a Receber · /financeiro/contas-receber
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

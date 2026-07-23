@@ -14,7 +14,7 @@ module: KB
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 138 arquivos em 18 papéis.
+**Total mapeado:** 147 arquivos em 18 papéis.
 
 ## Controllers — 14
 
@@ -81,9 +81,11 @@ module: KB
 - [KbBridgeFromMcpJob.php](../../../Modules/KB/Jobs/KbBridgeFromMcpJob.php)
 - [KbEdgeAutoDeriverJob.php](../../../Modules/KB/Jobs/KbEdgeAutoDeriverJob.php)
 
-## Console / Commands — 4
+## Console / Commands — 6
 
 - [KbClassifyCommand.php](../../../Modules/KB/Console/Commands/KbClassifyCommand.php)
+- [KbCodeGraphCommand.php](../../../Modules/KB/Console/Commands/KbCodeGraphCommand.php)
+- [KbCodeScanCommand.php](../../../Modules/KB/Console/Commands/KbCodeScanCommand.php)
 - [KbDriftDetectorCommand.php](../../../Modules/KB/Console/Commands/KbDriftDetectorCommand.php)
 - [KbHealthCommand.php](../../../Modules/KB/Console/Commands/KbHealthCommand.php)
 - [KbReindexCommand.php](../../../Modules/KB/Console/Commands/KbReindexCommand.php)
@@ -96,7 +98,7 @@ module: KB
 
 - [api.php](../../../Modules/KB/Routes/api.php)
 
-## Migrations (schema) — 12
+## Migrations (schema) — 14
 
 - [2026_05_15_100001_create_kb_categories_table.php](../../../Modules/KB/Database/Migrations/2026_05_15_100001_create_kb_categories_table.php)
 - [2026_05_15_100002_create_kb_subcategories_table.php](../../../Modules/KB/Database/Migrations/2026_05_15_100002_create_kb_subcategories_table.php)
@@ -110,6 +112,8 @@ module: KB
 - [2026_05_15_100010_create_kb_favorites_table.php](../../../Modules/KB/Database/Migrations/2026_05_15_100010_create_kb_favorites_table.php)
 - [2026_05_15_100011_create_kb_comments_table.php](../../../Modules/KB/Database/Migrations/2026_05_15_100011_create_kb_comments_table.php)
 - [2026_05_15_100012_create_kb_bridge_state_table.php](../../../Modules/KB/Database/Migrations/2026_05_15_100012_create_kb_bridge_state_table.php)
+- [2026_07_23_100000_add_code_drift_state_to_kb_nodes.php](../../../Modules/KB/Database/Migrations/2026_07_23_100000_add_code_drift_state_to_kb_nodes.php)
+- [2026_07_23_110000_create_kb_health_history_table.php](../../../Modules/KB/Database/Migrations/2026_07_23_110000_create_kb_health_history_table.php)
 
 ## Seeders — 5
 
@@ -159,9 +163,9 @@ module: KB
 
 - [Index.v2.casos.md](../../../resources/js/Pages/kb/Index.v2.casos.md)
 
-## Testes (Pest) — 30
+## Testes (Pest) — 35
 
-- 30 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 35 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 13
 

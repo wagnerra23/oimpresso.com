@@ -1,3 +1,7 @@
+---
+id: requisitos-produto-mapa-vinculos-trava-frescor
+---
+
 # Mapa de vínculos "arquivo → doc obrigatório" — trava de frescor (piloto: módulo Produto)
 
 > **O que é isto.** A matéria-prima da **trava de frescor de documentação** desenhada em

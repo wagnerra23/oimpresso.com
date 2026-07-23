@@ -71,6 +71,7 @@ function kbBootstrapSchema(): void
     // despercebido no CI. withoutForeignKeyConstraints restaura o check no fim
     // (try/finally) mesmo em erro. Só afeta os drops kb_* — CORE nunca é dropada.
     Schema::withoutForeignKeyConstraints(function () {
+        Schema::dropIfExists('kb_health_history');
         Schema::dropIfExists('kb_bridge_state');
         Schema::dropIfExists('kb_comments');
         Schema::dropIfExists('kb_favorites');
@@ -160,12 +161,15 @@ function kbBootstrapSchema(): void
         });
     }
 
-    // Roda as 12 migrations KB em ordem.
+    // Roda TODAS as migrations KB em ordem (as 12 de criação 2026_05_15_1000*
+    // + ALTERs posteriores, ex: code_drift_state 2026_07_23). Todas são
+    // idempotentes (guard hasTable/hasColumn), então re-run é seguro. O glob
+    // largo evita editar este helper a cada migration nova.
     $kbMigrationDir = realpath(__DIR__ . '/../Database/Migrations');
     if ($kbMigrationDir === false) {
         throw new \RuntimeException('Modules/KB/Database/Migrations não encontrado — Agent A já criou? cwd='.getcwd());
     }
-    $files = glob($kbMigrationDir . '/2026_05_15_1000*.php') ?: [];
+    $files = glob($kbMigrationDir . '/2026_*.php') ?: [];
     sort($files);
     foreach ($files as $f) {
         (require $f)->up();
@@ -187,7 +191,7 @@ function kbTeardownSchema(): void
     // de kbBootstrapSchema (ciclo kb_decision_trees ↔ kb_decision_tree_steps +
     // self-FK). Ver comentário lá. Restaura o check no fim (try/finally).
     Schema::withoutForeignKeyConstraints(function () {
-        foreach (['kb_bridge_state', 'kb_comments', 'kb_favorites', 'kb_node_versions',
+        foreach (['kb_health_history', 'kb_bridge_state', 'kb_comments', 'kb_favorites', 'kb_node_versions',
                   'kb_decision_tree_steps', 'kb_decision_trees',
                   'kb_path_steps', 'kb_paths',
                   'kb_edges', 'kb_nodes',
@@ -294,6 +298,16 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         ]);
         $user->givePermissionTo($perm);
     }
+
+    // BLOQUEADOR 2 (lane, phpunit.xml executionOrder="random"): as tabelas Spatie
+    // (permissions/model_has_*) são CORE COMPARTILHADAS e NÃO são resetadas por
+    // kbTeardownSchema, então o PermissionRegistrar acumula estado entre testes no
+    // MySQL persistente-no-run. Em ordem aleatória isso deixava o `can:` middleware
+    // ver um mapa de permissões STALE → 403 intermitente (ex: V2b do KbIndexV2ContractTest,
+    // mesma perm coarse que V3/V4/V5/V6 resolviam OK). Forçar o flush do cache aqui —
+    // depois de conceder — garante que o próximo `->can()` releia fresco do DB. Barato e
+    // idempotente (Spatie já faz isso internamente em cada mutação; aqui blinda a ordem).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     test()->actingAs($user);
     session([

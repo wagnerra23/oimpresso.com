@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0003-migrar-menus-de-laravel-menus-para-react
+---
+
 # ADR ARQ-0003 (MemCofre) · Migrar menus do `nwidart/laravel-menus` para React
 
 - **Status**: accepted

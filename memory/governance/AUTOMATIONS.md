@@ -1,4 +1,5 @@
 ---
+id: governance-automations
 slug: oimpresso-automations
 title: "Inventário canônico de automações — hooks, crons, rotinas"
 type: governance-spec

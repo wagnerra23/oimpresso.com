@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-chat-visual-comparison
 slug: jana-chat-visual-comparison
 title: "Jana/Chat — visual comparison (gate F1.5 layout-only)"
 type: visual-comparison

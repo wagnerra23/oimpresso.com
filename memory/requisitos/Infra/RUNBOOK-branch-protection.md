@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-runbook-branch-protection
 title: "Branch protection main — required checks + janela de force-push segura"
 owner: "W"
 status: "ativo"

@@ -2,7 +2,7 @@
 page: /financeiro/prova-viva
 component: resources/js/Pages/Financeiro/ProvaViva.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-06-07"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md

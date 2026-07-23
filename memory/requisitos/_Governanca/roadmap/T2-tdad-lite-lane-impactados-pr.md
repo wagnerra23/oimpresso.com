@@ -1,3 +1,7 @@
+---
+id: requisitos-governanca-roadmap-t2-tdad-lite-lane-impactados-pr
+---
+
 # T2 · TDAD-lite — lane de impactados-no-PR (modo sombra)
 
 > ⛔ **CORTADO — 2026-07-12** (decisão Wagner, delegada a Claude "decida todas"). A avaliação adversarial do SDD pontuou T2 em **8/100**: depende de T1 (também CORTADO, 0/7 artefatos), e está fora do escopo consciente até R1+C2 fecharem. **Não executar.** Reabrir só com T1 revivido + sinal qualificado + reabertura da ADR 0314. Ver `memory/sessions/2026-07-12-sdd-avaliacao-adversarial-processo.md`.

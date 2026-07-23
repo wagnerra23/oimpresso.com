@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-purchase-index-charter
 page: /purchases
 component: resources/js/Pages/Purchase/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

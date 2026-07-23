@@ -1,4 +1,5 @@
 ---
+id: requisitos-team-mcp-forja-cockpit-visual-comparison
 slug: teammcp-forja-cockpit-visual-comparison
 title: "TeamMcp — Comparativo visual do cockpit Forja (6 abas + projeção do git)"
 type: visual-comparison

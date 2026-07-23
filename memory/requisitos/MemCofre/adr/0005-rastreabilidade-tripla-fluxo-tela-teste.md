@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-0005-rastreabilidade-tripla-fluxo-tela-teste
+---
+
 # ADR 0005 · Rastreabilidade tripla: Fluxo ↔ Tela ↔ Teste
 
 - **Status**: accepted

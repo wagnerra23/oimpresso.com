@@ -1,4 +1,5 @@
 ---
+id: requisitos-cliente-spec
 module: Cliente
 version: "2.4"
 status: ativo

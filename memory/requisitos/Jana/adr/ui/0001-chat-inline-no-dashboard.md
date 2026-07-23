@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-adr-ui-0001-chat-inline-no-dashboard
+---
+
 # ADR UI-0001 — Chat inline como coluna principal, não drawer/modal
 
 **Data:** 2026-04-24

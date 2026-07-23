@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-auditoria-knowledge-architecture-2026-05-13
 title: "Auditoria Knowledge Architecture oimpresso vs estado-da-arte 2026"
 type: auditoria
 status: draft

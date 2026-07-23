@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-nfse-charter
 page: /fiscal/nfse
 component: resources/js/Pages/Fiscal/Nfse.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

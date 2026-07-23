@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-site-blog-post-charter
 page: /c/blog/{slug}-{id}
 component: resources/js/Pages/Site/BlogPost.tsx
 related_prototype: n/a (detalhe de post de blog bespoke — não segue um dos 5 Padrões de Tela do ERP)

@@ -1,4 +1,5 @@
 ---
+id: reference-metodo-precisao-literal
 slug: metodo-precisao-literal
 title: "Método precisão literal — comparação rigorosa pós-implementação vs protótipo"
 type: reference

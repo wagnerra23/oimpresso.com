@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-compliance
+---
+
 # COMPLIANCE — Modules/Whatsapp
 
 > D7 LGPD chat — retention + audit trail + opt-in/opt-out + PII redaction.

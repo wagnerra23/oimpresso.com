@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-oficina-auto-service-orders-create-casos
 casos: Abrir OS · /oficina-auto/service-orders/create
 irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

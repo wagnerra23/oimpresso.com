@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-brain-b-demo-checklist
+---
+
 # Brain B — Checklist Demo Jana V2 (CYCLE-06 G3)
 
 > Pré-requisitos pra acender Brain B em ambiente de demo sem custo descontrolado. Companion de `BRAIN-B-STATUS-2026-05-16.md`.

@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-programa-ondas-plano-mestre
 titulo: Programa de Ondas com Adversário por Módulo + Régua de Correção por Tela
 status: proposto
 owner: W

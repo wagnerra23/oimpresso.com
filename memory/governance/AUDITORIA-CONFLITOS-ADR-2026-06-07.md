@@ -1,3 +1,7 @@
+---
+id: governance-auditoria-conflitos-adr-2026-06-07
+---
+
 # Auditoria Profunda de Conflitos — ADRs (2026-06-07)
 
 > Busca profunda pedida por Wagner ("uma busca profunda sobre conflitos", foco ADR).

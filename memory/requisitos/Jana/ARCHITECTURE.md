@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-architecture
+---
+
 # Arquitetura
 
 ## 1. Objetivo

@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-pii-lgpd
+---
+
 # Repair — PII / LGPD
 
 > Documento canônico de proteção a dados pessoais no módulo Repair (OS).

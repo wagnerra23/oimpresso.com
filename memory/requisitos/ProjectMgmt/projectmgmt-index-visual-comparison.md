@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-projectmgmt-index-visual-comparison
 slug: projectmgmt-index-visual-comparison
 title: "ProjectMgmt — Comparativo visual Triage + Inbox (`/project-mgmt/triage` · `/project-mgmt/inbox`)"
 type: visual-comparison

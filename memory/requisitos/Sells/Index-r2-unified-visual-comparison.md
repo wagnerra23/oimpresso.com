@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-index-r2-unified-visual-comparison
+---
+
 # Sells/Index — Visual Comparison R2 (Unificação Tabs Visão)
 
 > **ADR 0107** — visual-comparison F1.5 obrigatório em PR MWART (Cowork → Inertia/React)

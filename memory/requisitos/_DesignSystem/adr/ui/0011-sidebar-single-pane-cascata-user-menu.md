@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0011-sidebar-single-pane-cascata-user-menu
+---
+
 # ADR UI-0011 · Sidebar single-pane minimalista + user menu cascata lateral
 
 - **Status**: accepted

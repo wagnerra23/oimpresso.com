@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-briefing
 distilled_at: "2026-07-17"
 distilled_by: "manual [CC] — redistilação por releitura (telas + controllers + flags + guards de valor). Substitui o destilado de 2026-07-10, que tinha H1 duplicado, dizia 'canário aguardando' (morto há ~7 semanas) e citava a ADR 0192 errada"
 module: Sells

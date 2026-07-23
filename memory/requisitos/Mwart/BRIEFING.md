@@ -1,4 +1,5 @@
 ---
+id: requisitos-mwart-briefing
 module: Mwart
 status: meta-processo enforcement migração Blade→Inertia/React (ADR 0104 IRREVOGÁVEL)
 piloto: governance interna (todos `Modules/*` migrando passam pelo gate)

@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-arquivo-os-create-charter
 page: /oficina-auto/os/create
 component: resources/js/Pages/OficinaAuto/Os/Create.tsx
 page_id: oficina-os-create

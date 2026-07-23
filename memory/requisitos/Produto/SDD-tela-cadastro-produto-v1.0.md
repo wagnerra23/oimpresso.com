@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-sdd-tela-cadastro-produto-v1-0
 slug: produto-sdd
 title: "SDD — Tela de Cadastro de Produto (domínio Produto / registro-mãe do ERP)"
 type: sdd

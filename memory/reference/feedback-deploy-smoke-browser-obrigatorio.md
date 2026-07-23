@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-deploy-smoke-browser-obrigatorio
 name: feedback-deploy-smoke-browser-obrigatorio
 description: Após deploy/publicação de tela, smoke REAL no browser é OBRIGATÓRIO antes de declarar "funcionando" — curl/HTTP 302/200 NÃO é smoke, só prova roteamento, não render.
 metadata:

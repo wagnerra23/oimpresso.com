@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-adr-ui-0018-canon-visual-vivo-ds-v6-manual-identidade
 slug: UI-0018-canon-visual-vivo-ds-v6-manual-identidade
 adr_ui: 18
 title: "Canon visual VIVO = DS v6 + primitivos + Manual de Identidade; supersede os snapshots zip-cowork (UI-0010, UI-0012)"

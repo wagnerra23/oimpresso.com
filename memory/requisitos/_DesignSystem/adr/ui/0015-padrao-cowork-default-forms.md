@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0015-padrao-cowork-default-forms
+---
+
 # ADR UI-0015 (_DesignSystem) · Padrão Cowork como visual default dos campos de formulário
 
 - **Status**: accepted

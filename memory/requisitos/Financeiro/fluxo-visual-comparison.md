@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-fluxo-visual-comparison
 slug: fluxo-visual-comparison
 title: "Financeiro — Comparativo visual da tela Fluxo de caixa projetado"
 type: visual-comparison

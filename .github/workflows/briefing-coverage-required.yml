@@ -1,0 +1,65 @@
+# Cobertura de BRIEFING por modulo backend — REQUIRED (emenda ADR 0348 a 0314).
+#
+# Por que existe: um modulo de backend (Modules/<X>/) que existe no disco e tem
+# dir memory/requisitos/<X>/ mas NAO tem BRIEFING.md e um gap de COBERTURA — a
+# porta de 1 pagina que o time/Wagner le pra saber o estado do modulo nunca nasceu.
+# A regra "BRIEFING atualizado por PR" + a skill brief-update (Tier B soft) NAO
+# disparam sozinhas (incidente #3714). Este gate garante a EXISTENCIA da porta.
+#
+# Por que e require-SAFE (diferente do FRESCOR, que NUNCA vira required):
+#   - Sinal = EXISTENCIA de dir + arquivo (isBriefingCoverageGap), NAO data
+#     auto-declarada. NAO-gameavel: nao da pra falsear existencia com um bump de
+#     updated_at. E a MESMA classe aceita do casos-gate G-1 (tela nova sem trio).
+#   - Deterministico, headless, zero-LLM, zero-FP (area so-frontend tipo User/Perfil
+#     e escopada FORA — hasBackend=false nao vira gap).
+#   - VERDE no main na promocao (51 modulos avaliados, coverageGaps=[] = 0). Morde
+#     so o que NASCER torto (modulo backend novo sem BRIEFING) — grandfather trivial.
+#
+# NAO e Tier-0 (higiene de doc): promocao a required = EXCECAO SOBERANA [W] (ADR 0238),
+# emenda ADR 0348 a 0314, registrada HONESTAMENTE como desvio consciente da DR-2 da
+# ADR 0336 (bite-log formal nao coletado — mordida 0 hoje) — o gate se apoia em:
+# exit-code REAL (DR-3.1, sem wrapper), zero-FP + zero-violacao + require-safe, e o
+# self-test que PROVA a mordida (casos M/N/O em briefing-code-staleness.test.mjs, a
+# fixture-ruim: backend + SEM porta -> GAP). Modelo 0341 (promover so a familia em
+# zero-violacao) + framing 0346 (desvio soberano, nao cumprimento de criterio).
+#
+# Escopo: falha o merge se QUALQUER modulo backend (Modules/<X>/ com dir requisitos/<X>/)
+# nao tiver memory/requisitos/<X>/BRIEFING.md. Residuo honesto: um Modules/<X>/ SEM
+# nenhum dir requisitos/<X>/ escapa (o scan e ancorado em requisitos/) — RUNBOOK-criar-
+# modulo cria o dir requisitos, entao o caso comum e coberto; o residuo fica pra PR
+# proprio se [W] quiser ancorar em Modules/ direto.
+#
+# Refs: memory/decisions/0348-briefing-coverage-required-emenda-0314.md · ADR 0314 ·
+#   ADR 0336 (DR-3 desembrulho) · ADR 0341/0346 (precedentes de exececao) ·
+#   scripts/governance/briefing-code-staleness.mjs (--strict-coverage) · proibicoes §5.
+name: Cobertura BRIEFING (required)
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: briefing-coverage-required-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  briefing-coverage:
+    name: Modulo backend com BRIEFING (cobertura)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # self-test PRIMEIRO — prova que a sentinela morde/libera certo (casos M/N/O:
+      # backend+porta libera; backend SEM porta MORDE; so-frontend NAO e gap).
+      # Test quebrado = job vermelho ANTES de o gate rodar (o gate nao pode mentir).
+      - name: self-test da sentinela (bite/release · bloqueia se o gate mentir)
+        run: node scripts/governance/briefing-code-staleness.test.mjs
+      # o gate DURO — exit 1 se algum modulo backend nao tiver BRIEFING.md.
+      # Exit-code REAL, sem wrapper/continue-on-error (DR-3.1 da ADR 0336).
+      - name: cobertura de BRIEFING (--strict-coverage falha o merge)
+        run: node scripts/governance/briefing-code-staleness.mjs --strict-coverage

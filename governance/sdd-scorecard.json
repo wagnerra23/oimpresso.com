@@ -15,23 +15,23 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 84,
+      "value": 84.1,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 84,
+        "coverage_pct": 84.1,
         "specs_total": 59,
         "us_total": 981,
-        "anchor_coverage_pct": 84,
+        "anchor_coverage_pct": 84.1,
         "by_state": {
           "sem_campo": 155,
           "placeholder": 0,
           "pendente": 375,
-          "parcial": 115,
+          "parcial": 116,
           "anchored_ok": 334,
-          "anchored_dead": 2,
+          "anchored_dead": 1,
           "anchored_zombie": 0
         },
         "fields_total": 831,
@@ -41,7 +41,7 @@
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
-        "req_sem_covering_test_total": 391,
+        "req_sem_covering_test_total": 392,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 45,
         "behavior_known": false,
@@ -72,16 +72,8 @@
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "2a9efa9a2025291e",
+        "floor_files_hash": "81abe9b62a8c9b37",
         "runs": [
-          {
-            "sha": "c307c3b5",
-            "ts": "20260719-020001",
-            "failed": 587,
-            "errors": 682,
-            "skipped": 2262,
-            "all_shards_measured": true
-          },
           {
             "sha": "d2c5abd7",
             "ts": "20260720-020001",
@@ -91,15 +83,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "26c52cd0",
             "ts": "20260722-020001",
             "failed": 654,
             "errors": 431,
             "skipped": 2262,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260723-020001",
+            "failed": 654,
+            "errors": 465,
+            "skipped": 2245,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260722-020001",
+        "computed_at": "20260723-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -118,22 +118,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 17.4,
+      "value": 17.7,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 41857,
-        "total": 240541,
+        "covered": 42684,
+        "total": 240594,
         "runs": [
-          {
-            "sha": "fc5e94d4",
-            "ts": "20260718-020001",
-            "coverage_pct": 16.9,
-            "covered": 40536,
-            "total": 240317
-          },
           {
             "sha": "c307c3b5",
             "ts": "20260719-020001",
@@ -142,14 +135,21 @@
             "total": 240381
           },
           {
-            "sha": null,
+            "sha": "26c52cd0",
             "ts": "20260722-020001",
             "coverage_pct": 17.4,
             "covered": 41857,
             "total": 240541
+          },
+          {
+            "sha": null,
+            "ts": "20260723-020001",
+            "coverage_pct": 17.7,
+            "covered": 42684,
+            "total": 240594
           }
         ],
-        "computed_at": "20260722-020001",
+        "computed_at": "20260723-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -241,7 +241,7 @@
         "carimbadas": 11,
         "sem_carimbo": 67,
         "stale": 0,
-        "oldest_distilled_at": "2026-07-02"
+        "oldest_distilled_at": "2026-07-17"
       },
       "stream": "MEM"
     },
@@ -280,10 +280,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 36,
+        "entries_aprovadas": 44,
         "max_error_rate_pct": 1.82,
-        "last_pr": 4617,
-        "last_lote": "topicos-vivos-superficies-r4"
+        "last_pr": 4737,
+        "last_lote": "PR6-stale-repair-redistill-r3"
       },
       "stream": "GT"
     }

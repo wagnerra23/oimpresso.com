@@ -1,4 +1,5 @@
 ---
+id: reference-pattern-sidebar-ghost-no-op-modify-admin-menu
 name: Pattern sidebar ghost via NO-OP modifyAdminMenu
 description: Quando módulo X "vira ghost" de hub Y no sidebar, DataController.modifyAdminMenu de X fica vazio + docblock explicando. Hub Y ganha ghost via attribute. Pattern emergente Wagner 2026-05-26, 4 aplicações.
 type: reference

@@ -1,3 +1,7 @@
+---
+id: governance-scorecards-fonte-unica-qualidade-telas
+---
+
 # FONTE ÚNICA — Qualidade de Telas (Screen Quality)
 
 > **Este é o ponto de entrada único sobre "nota de tela / quais telas arrumar".**

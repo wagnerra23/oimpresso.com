@@ -1,3 +1,7 @@
+---
+id: requisitos-infra-plano-migracao-automem
+---
+
 # Plano de migração das 82 auto-mems → git/MCP (ADR 0061)
 
 > Wagner 2026-04-30: *"todos as regras devem ir para team, por favor revise todas"*

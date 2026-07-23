@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-nfse-index-charter
 page: /nfse
 component: resources/js/Pages/Nfse/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

@@ -1,4 +1,5 @@
 ---
+id: requisitos-accounting-spec
 slug: modules-accounting-spec
 title: "Modules/Accounting — SPEC"
 type: spec

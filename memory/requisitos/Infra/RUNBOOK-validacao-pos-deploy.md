@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Validação pós-deploy oimpresso"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Validação pós-deploy oimpresso
 
 > **Use sempre que mergear ≥1 PR que toca `Modules/<X>/Console/Commands/`, `Http/Controllers/`, migrations, Models com FK pra UltimatePOS core (users/business/contacts) ou novo módulo nWidart.**

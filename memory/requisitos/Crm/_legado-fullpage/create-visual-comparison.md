@@ -1,4 +1,5 @@
 ---
+id: requisitos-crm-legado-fullpage-create-visual-comparison
 slug: cliente-create-visual-comparison
 title: "Cliente — Comparativo visual /contacts/create (Blade legacy → Inertia React + bloco BR Slices 2+3)"
 type: visual-comparison

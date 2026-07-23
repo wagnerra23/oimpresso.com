@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-roadmap-p07-instrumentar-pcov-ci-coverage
 roadmap_item: P07
 slug: instrumentar-pcov-ci-coverage
 onda: 3

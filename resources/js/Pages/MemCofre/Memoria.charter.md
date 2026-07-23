@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-mem-cofre-memoria-charter
 page: /memcofre/memoria
 component: resources/js/Pages/MemCofre/Memoria.tsx
 related_prototype: n/a (explorador de arquivos bespoke — árvore + preview markdown, não segue um dos 5 Padrões de Tela)

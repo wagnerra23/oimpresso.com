@@ -41,6 +41,7 @@
         "myfatoorah/laravel-package": "^2.2",
         "nfephp-org/sped-da": "^1.1",
         "nfephp-org/sped-nfe": "dev-master",
+        "nikic/php-parser": "^5.7.0",
         "nwidart/laravel-modules": "^10.0",
         "razorpay/razorpay": "2.*",
         "sentry/sentry-laravel": "^4.25",

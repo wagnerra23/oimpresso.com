@@ -1,4 +1,5 @@
 ---
+id: reference-project-nfebrasil-2026-05-07
 name: NfeBrasil estado 2026-05-07 — US-NFE-002 fechada server-side, biz=1 pronta pra smoke
 description: Estado consolidado pós-sessão noite-2 2026-05-07. Pipeline NFC-e completo, biz=1 (Wagner) pronta pra primeiro smoke real SEFAZ-SC homologação
 type: project
