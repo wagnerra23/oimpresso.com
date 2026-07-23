@@ -109,29 +109,33 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 11: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725).
+        # Os 12: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725 + follow-up).
         #
         # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
         # gaps; investigação com oráculos de schema + config Spatie + run real da lane):
         #
-        #   GAP 1 — bug de /kb/v2 (RESOLVIDO neste PR, mas NÃO ratcheteia sozinho):
-        #     NÃO era coluna faltante no bootstrap. Era BUG DE CONTROLLER —
-        #     KbController::indexV2 fazia `orderBy('sort')` mas a coluna real é
-        #     `sort_order` (migration 100001 + model KbCategory + seeder que mapeia
-        #     'sort'→sort_order + dump mysql-schema.sql; único site no repo). Bug do #4500
-        #     → SQLSTATE 42S22 → 500 VIVO em /kb/v2 + /sops em prod desde 2026-07-17.
-        #     Fix aplicado: orderBy('sort')→orderBy('sort_order'). PROVADO pela lane: o
-        #     caso V3 do KbIndexV2ContractTest (renderiza /kb/v2) passou. Mas o teste
-        #     TODO ainda NÃO entra na allowlist porque atrás do 42S22 havia mais 2
-        #     bloqueadores DE AMBIENTE DE LANE (não de prod):
-        #       (a) V2c/V5/V6: assertInertia com `ensure_pages_exist` não acha a página
-        #           kb/Index.v2 — a lane não builda o front (sem manifest real do Vite).
-        #       (b) V2b: 403 INTERMITENTE de resolução Spatie no MySQL persistente-no-run
-        #           (mesma perm coarse que V3/V4/V5/V6 resolveram OK → order-dependent →
-        #           cache/reset de permissão entre testes; permissions/model_has_* são
-        #           CORE e NÃO são resetadas por kbTeardownSchema).
-        #     → KbIndexV2ContractTest fica RATCHET-PENDENTE junto do GAP 2 (mesma família
-        #       de permissão + ambiente). NÃO ratchetear enquanto não estiver 100% verde.
+        #   GAP 1 — bug de /kb/v2 + 2 bloqueadores de lane (TODOS RESOLVIDOS → KbIndexV2
+        #   ratcheteado no follow-up do #4725):
+        #     (0) NÃO era coluna faltante no bootstrap. Era BUG DE CONTROLLER —
+        #         KbController::indexV2 fazia `orderBy('sort')` mas a coluna real é
+        #         `sort_order` (migration 100001 + model KbCategory + seeder que mapeia
+        #         'sort'→sort_order + dump mysql-schema.sql; único site no repo). Bug do #4500
+        #         → SQLSTATE 42S22 → 500 VIVO em /kb/v2 + /sops em prod desde 2026-07-17.
+        #         Fix: orderBy('sort')→orderBy('sort_order'). Atrás do 42S22 a lane expôs +2
+        #         bloqueadores DE AMBIENTE DE LANE (não de prod), ambos corrigidos:
+        #     (a) V2c/V5/V6: assertInertia com `ensure_pages_exist` não achava a página
+        #         kb/Index.v2 — a lane não builda o front (sem manifest real do Vite) e
+        #         `config/inertia.php` tem `testing.ensure_pages_exist => true`. Fix: o
+        #         beforeEach do KbIndexV2ContractTest seta `inertia.testing.ensure_pages_exist
+        #         => false` (testa o NOME do componente sem build; o .tsx EXISTE e prod renderiza).
+        #     (b) V2b: 403 INTERMITENTE de resolução Spatie no MySQL persistente-no-run
+        #         (mesma perm coarse que V3/V4/V5/V6 resolviam OK → order-dependent, phpunit
+        #         executionOrder="random"; permissions/model_has_* são CORE e NÃO são
+        #         resetadas por kbTeardownSchema). Fix: kbActAsUser chama
+        #         PermissionRegistrar::forgetCachedPermissions() após conceder → o próximo
+        #         `->can()` relê fresco do DB.
+        #     → KbIndexV2ContractTest agora entra na allowlist (12 arquivos), provado verde
+        #       pela lane. GAP 1 fechado.
         #
         #   GAP 2 — os 7 RATCHET-PENDENTE (Http/*ControllerTest + GovernanceInvariantsTest
         #   + CrossTenantIsolationTest): a raiz principal NÃO é guard_name/business_id
@@ -168,7 +172,8 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
-            Modules/KB/Tests/Feature/LgpdComplianceTest.php
+            Modules/KB/Tests/Feature/LgpdComplianceTest.php \
+            Modules/KB/Tests/Feature/KbIndexV2ContractTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
