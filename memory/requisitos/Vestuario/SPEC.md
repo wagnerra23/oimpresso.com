@@ -38,7 +38,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 | Razão social | LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME |
 | CNPJ | 11.222.333/0001-81 <!-- pii-allowlist: CNPJ fake canônico (era PII real do cliente piloto ROTA LIVRE) --> |
 | Endereço único | BL0001 "ROTA LIVRE" — Termas do Gravatal, Gravatal/SC, CEP 88735-0 |
-| Telefone | (48) 3626-4806 |
+| Telefone | (48) 3626-XXXX <!-- redactado — PII cliente real (ROTA LIVRE) --> |
 | Timezone | `America/Sao_Paulo` |
 | `business_id` | 4 |
 | Volume operacional | 17.251+ vendas (~99% do sistema novo Laravel) |

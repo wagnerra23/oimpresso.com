@@ -42,7 +42,7 @@
 
 | Doc | O que é |
 |---|---|
-| **[NORTE-ROI.md](NORTE-ROI.md)** | **Norte único** — meta R$ [redacted Tier 0]M/ano ([ADR 0022](decisions/0022-meta-5mi-ano-financeira.md)). Toda decisão passa por aqui antes de virar trabalho. + [11-metas-negocio.md](11-metas-negocio.md) |
+| **[NORTE-ROI.md](NORTE-ROI.md)** | **Norte único** — meta R$ [redacted Tier 0]M/ano ([ADR 0022](decisions/0022-meta-5mi-ano-financeira.md)). Toda decisão passa por aqui antes de virar trabalho. _(seed histórico, não-normativo: [11-metas-negocio.md](11-metas-negocio.md), snapshot 2026-04-24)_ |
 | **[reference/PROTOCOLO-WAGNER-SEMPRE.md](reference/PROTOCOLO-WAGNER-SEMPRE.md)** | **REGRA ZERO (R1–R11)** — Tier 0 IRREVOGÁVEL, toda sessão DEVE executar. Skill `wagner-protocol-enforce` |
 | **[how-trabalhar.md](how-trabalhar.md)** | Protocolo de sessão: `brief-fetch` → `my-work` → (charter) → trabalhar → `decide` → commit |
 | **Skills Tier A (always-on)** | `brief-first` · `mcp-first` · `memory-first-secret-search` · `multi-tenant-patterns` · `commit-discipline` · `mwart-process` · `wagner-protocol-enforce` — convenção [ADR 0095](decisions/0095-skills-tiers-convencao-interna.md) · audit [s3-skills-audit](sprints/s3-constituicao/03-skills-audit.md) |
