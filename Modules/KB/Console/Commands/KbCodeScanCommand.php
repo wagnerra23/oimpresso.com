@@ -45,6 +45,7 @@ class KbCodeScanCommand extends Command
     protected $signature = 'kb:code-scan
                             {--path= : Arquivo .php OU diretório a varrer (recursivo)}
                             {--business-id= : Business ID (obrigatório — Tier 0 ADR 0093)}
+                            {--project= : Rótulo do projeto/repo — namespaça os nós (evita colisão de FQCN entre repos)}
                             {--dry-run : Mostra os nós que geraria, sem gravar}';
 
     protected $description = 'Gera nós KB (type=reference) a partir da estrutura de arquivos PHP (AST) — auto-document doc↔código.';
@@ -85,6 +86,7 @@ class KbCodeScanCommand extends Command
     private function doHandle(int $bizId, string $path): int
     {
         $dryRun = (bool) $this->option('dry-run');
+        $project = Str::slug((string) $this->option('project')); // '' se ausente
         $files = $this->collectPhpFiles($path);
 
         if (empty($files)) {
@@ -139,7 +141,7 @@ class KbCodeScanCommand extends Command
                     $publicMethods[] = $m->name->toString().'()'.($mDoc !== '' ? " — {$mDoc}" : '');
                 }
 
-                $slug = $this->slugFor($fqcn);
+                $slug = $this->slugFor($fqcn, $project);
                 $rows[] = [
                     'fqcn' => $fqcn,
                     'metodos' => (string) count($publicMethods),
@@ -147,7 +149,7 @@ class KbCodeScanCommand extends Command
                 ];
 
                 if (! $dryRun) {
-                    $this->upsertNode($bizId, $slug, $fqcn, $doc, $publicMethods, $file);
+                    $this->upsertNode($bizId, $slug, $fqcn, $doc, $publicMethods, $file, $project);
                     $written++;
                 }
             }
@@ -208,9 +210,17 @@ class KbCodeScanCommand extends Command
         return '';
     }
 
-    private function slugFor(string $fqcn): string
+    /**
+     * Slug namespaçado por projeto: `code-{project}-{fqcn}` quando há --project,
+     * senão `code-{fqcn}`. Sem o namespace, dois repos com a mesma FQCN colidiriam
+     * no mesmo slug e um sobrescreveria o outro (Fase C — multi-repo).
+     */
+    private function slugFor(string $fqcn, string $project = ''): string
     {
-        return Str::limit('code-'.Str::slug(str_replace('\\', '/', $fqcn)), 180, '');
+        $base = Str::slug(str_replace('\\', '/', $fqcn));
+        $prefix = $project !== '' ? "code-{$project}-" : 'code-';
+
+        return Str::limit($prefix.$base, 180, '');
     }
 
     /**
@@ -218,14 +228,21 @@ class KbCodeScanCommand extends Command
      *
      * @param  array<int,string>  $publicMethods
      */
-    private function upsertNode(int $bizId, string $slug, string $fqcn, string $doc, array $publicMethods, string $file): void
+    private function upsertNode(int $bizId, string $slug, string $fqcn, string $doc, array $publicMethods, string $file, string $project = ''): void
     {
-        $blocks = [
-            ['kind' => 'para', 't' => "Arquivo: {$file}"],
-        ];
+        $blocks = [];
+        if ($project !== '') {
+            $blocks[] = ['kind' => 'para', 't' => "Projeto: {$project}"];
+        }
+        $blocks[] = ['kind' => 'para', 't' => "Arquivo: {$file}"];
         if (! empty($publicMethods)) {
             $blocks[] = ['kind' => 'h2', 't' => 'Métodos públicos'];
             $blocks[] = ['kind' => 'list', 'items' => array_values($publicMethods)];
+        }
+
+        $tags = ['gerado', 'codigo'];
+        if ($project !== '') {
+            $tags[] = "projeto:{$project}";
         }
 
         DB::table('kb_nodes')->updateOrInsert(
@@ -236,7 +253,7 @@ class KbCodeScanCommand extends Command
                 'excerpt' => $doc !== '' ? Str::limit($doc, 480, '…') : null,
                 'body_blocks' => json_encode($blocks, JSON_UNESCAPED_UNICODE),
                 'is_editable' => true, // tem body_blocks inline — invariante ADR 0061 exige is_editable=true
-                'tags' => json_encode(['gerado', 'codigo'], JSON_UNESCAPED_UNICODE),
+                'tags' => json_encode($tags, JSON_UNESCAPED_UNICODE),
                 'status' => 'ok',
                 'updated_at' => now(),
                 'created_at' => now(),
