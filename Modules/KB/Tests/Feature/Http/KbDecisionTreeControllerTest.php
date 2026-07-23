@@ -11,6 +11,10 @@ declare(strict_types=1);
  *
  * Inclui validação FK circular: root_step_id populado em segundo INSERT
  * pós-criação dos steps. Service deve fazer em transação.
+ *
+ * REALIDADE V1 (gate coarse — SCHEMA-DB-V1 §12): middleware REAL é
+ * `can:copiloto.mcp.memory.manage`; kb.publish.troubleshoot ainda é declarativa.
+ * Sucesso concede a coarse; o caso de 403 concede só kb.view (sem coarse).
  */
 
 beforeEach(function () {
@@ -22,7 +26,7 @@ afterEach(function () {
 });
 
 it('POST /kb/decision-trees without kb.publish.troubleshoot returns 403', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['kb.view']);  // sem 'copiloto.mcp.memory.manage' → 403 no gate coarse V1
 
     $response = $this->postJson('/kb/decision-trees', [
         'slug'  => 'no-perm',
@@ -34,7 +38,7 @@ it('POST /kb/decision-trees without kb.publish.troubleshoot returns 403', functi
 });
 
 it('POST /kb/decision-trees creates tree + steps in transaction (root_step_id populated)', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.publish.troubleshoot']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.publish.troubleshoot']);
 
     $response = $this->postJson('/kb/decision-trees', [
         'slug'        => 'plotter-nao-liga',
@@ -76,7 +80,7 @@ it('POST /kb/decision-trees creates tree + steps in transaction (root_step_id po
 });
 
 it('GET /kb/decision-trees lists published troubleshooters of current business', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view']);
 
     \DB::table('kb_decision_trees')->insert([
         ['business_id' => 1, 'slug' => 'pub-1', 'title' => 'Pub 1', 'hue' => 240, 'status' => 'published', 'created_at' => now(), 'updated_at' => now()],
@@ -94,7 +98,7 @@ it('GET /kb/decision-trees lists published troubleshooters of current business',
 });
 
 it('GET /kb/decision-trees/{slug} returns tree with steps ordered', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view']);
 
     $treeId = \DB::table('kb_decision_trees')->insertGetId([
         'business_id' => 1, 'slug' => 'detail-tree', 'title' => 'Detail tree',

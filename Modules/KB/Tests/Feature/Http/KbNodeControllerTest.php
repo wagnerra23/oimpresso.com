@@ -20,6 +20,14 @@ use Inertia\Testing\AssertableInertia;
  * Permissions assumem migração futura pra: kb.view, kb.write, kb.softdelete,
  * kb.restore, kb.publish.path, kb.publish.troubleshoot, kb.favorite, kb.comment,
  * kb.ai.ask, kb.graph.view (SCHEMA §12). TODO[CL]: Agent A registra novas.
+ *
+ * REALIDADE V1 (gate coarse — SCHEMA-DB-V1 §12): o middleware Spatie REAL de todo
+ * controller/request KB é `can:copiloto.mcp.memory.manage`. Os kb.* granulares são
+ * DECLARATIVOS no PermissionRegistry e a §12 declara a coarse CANÔNICA até o "PR de
+ * rename Spatie" (adiado). Por isso os casos de SUCESSO concedem
+ * 'copiloto.mcp.memory.manage'; os kb.* ficam ao lado como intenção futura
+ * (forward-compat: quando o rename landar, kb.write/etc já estão no grant). Casos de
+ * 403 concedem só kb.view (sem a coarse) — o bloqueio vem do gate coarse.
  */
 
 beforeEach(function () {
@@ -31,7 +39,7 @@ afterEach(function () {
 });
 
 it('GET /kb returns Inertia kb/Index component (perm: kb.view)', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view']);
 
     $response = $this->get('/kb');
 
@@ -46,7 +54,7 @@ it('GET /kb returns Inertia kb/Index component (perm: kb.view)', function () {
 // TODO[CL]: remover skip quando Agent A confirmar contrato.
 
 it('GET /kb/nodes?type=adr filters by type', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view']);
 
     $mcpId = kbCreateMcpDoc(1, 'adr', ['slug' => '0093', 'title' => 'ADR 0093']);
     \DB::table('kb_nodes')->insert([
@@ -72,7 +80,7 @@ it('GET /kb/nodes?type=adr filters by type', function () {
 });
 
 it('GET /kb/nodes?q=multi-tenant fuzzy search by title', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view']);
 
     \DB::table('kb_nodes')->insert([
         ['business_id' => 1, 'type' => 'article', 'slug' => 'mt', 'title' => 'Multi-tenant Tier 0 explained',
@@ -92,7 +100,7 @@ it('GET /kb/nodes?q=multi-tenant fuzzy search by title', function () {
 });
 
 it('POST /kb/nodes without kb.write returns 403', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);  // SEM kb.write
+    kbActAsUser(bizId: 1, permissions: ['kb.view']);  // sem 'copiloto.mcp.memory.manage' → 403 no gate coarse V1 (e sem kb.write pós-rename)
 
     $response = $this->postJson('/kb/nodes', [
         'type'    => 'article',
@@ -105,7 +113,7 @@ it('POST /kb/nodes without kb.write returns 403', function () {
 });
 
 it('POST /kb/nodes with kb.write creates node and snapshots initial version', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.write']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.write']);
 
     $response = $this->postJson('/kb/nodes', [
         'type'        => 'article',
@@ -124,7 +132,7 @@ it('POST /kb/nodes with kb.write creates node and snapshots initial version', fu
 });
 
 it('PUT /kb/nodes/{slug} edits node and creates new version snapshot', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.write']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.write']);
 
     $nodeId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'edit-me',
@@ -144,7 +152,7 @@ it('PUT /kb/nodes/{slug} edits node and creates new version snapshot', function 
 });
 
 it('DELETE /kb/nodes/{slug} soft-deletes (perm: kb.softdelete)', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.softdelete']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.softdelete']);
 
     $nodeId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'del-me',
@@ -161,7 +169,7 @@ it('DELETE /kb/nodes/{slug} soft-deletes (perm: kb.softdelete)', function () {
 });
 
 it('POST /kb/nodes/{slug}/restore restores soft-deleted (perm: kb.restore)', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.restore']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.restore']);
 
     $nodeId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'restore-me',
@@ -179,7 +187,7 @@ it('POST /kb/nodes/{slug}/restore restores soft-deleted (perm: kb.restore)', fun
 });
 
 it('POST /kb/nodes/{slug}/reverify updates last_verified_at and zeroes outdated_votes', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.write']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.write']);
 
     $nodeId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 're-me',
@@ -200,7 +208,7 @@ it('POST /kb/nodes/{slug}/reverify updates last_verified_at and zeroes outdated_
 });
 
 it('GET /kb/nodes/{slug} returns detail with JOIN content for bridge nodes', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view']);
 
     $docId = kbCreateMcpDoc(1, 'adr', [
         'slug' => '0093-detail',
