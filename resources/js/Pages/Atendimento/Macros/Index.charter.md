@@ -2,7 +2,7 @@
 page: /atendimento/macros
 component: resources/js/Pages/Atendimento/Macros/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-05-16"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md

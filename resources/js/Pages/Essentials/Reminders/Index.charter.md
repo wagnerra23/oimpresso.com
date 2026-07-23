@@ -2,7 +2,7 @@
 page: /essentials/reminder
 component: resources/js/Pages/Essentials/Reminders/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-05-17"
 parent_module: Essentials
 related_adrs: [93, 94, 101, 104]
