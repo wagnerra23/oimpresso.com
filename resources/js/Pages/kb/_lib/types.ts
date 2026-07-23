@@ -78,6 +78,24 @@ export type KbNodeStatus = 'draft' | 'ok' | 'outdated' | 'deleted' | 'deprecated
 
 export type KbNivel = 'iniciante' | 'intermediario' | 'avancado';
 
+// ──────────────────────────────────────────────────────────────────
+// code_drift_state — veredito do kb:drift-detector (Fase A1/A2 → #5)
+// O nó cita path deletado/movido no git. Shape (migration
+// 2026_07_23_100000_add_code_drift_state_to_kb_nodes):
+//   null            → sem drift OU nunca checado (NÃO afirma "código ok")
+//   {checked_at, refs:[{path, drift_type}]} → drift datado
+// ──────────────────────────────────────────────────────────────────
+
+export interface KbCodeDriftRef {
+  path: string;
+  drift_type: string;
+}
+
+export interface KbCodeDriftState {
+  checked_at: string;
+  refs: KbCodeDriftRef[];
+}
+
 export interface KbNode {
   id: number;
   business_id: number;
@@ -112,6 +130,10 @@ export interface KbNode {
   read_time_min: number | null;
 
   last_verified_at: string | null;
+
+  /** Fase A1 — veredito kb:drift-detector: cita código sumido no git (null = sem drift/nunca checado). */
+  code_drift_state?: KbCodeDriftState | null;
+
   created_at: string | null;
   updated_at: string | null;
   deleted_at: string | null;
