@@ -109,33 +109,44 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 12: provados verdes na DB EFÊMERA do CI. KbIndexV2ContractTest entrou
-        # após o fix do GAP 1 (mesmo PR — ver abaixo).
+        # Os 11: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725).
         #
         # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
-        # gaps; ver investigação com oráculos de schema + config Spatie):
+        # gaps; investigação com oráculos de schema + config Spatie + run real da lane):
         #
-        #   GAP 1 — KbIndexV2ContractTest (RESOLVIDO neste PR):
+        #   GAP 1 — bug de /kb/v2 (RESOLVIDO neste PR, mas NÃO ratcheteia sozinho):
         #     NÃO era coluna faltante no bootstrap. Era BUG DE CONTROLLER —
         #     KbController::indexV2 fazia `orderBy('sort')` mas a coluna real é
         #     `sort_order` (migration 100001 + model KbCategory + seeder que mapeia
         #     'sort'→sort_order + dump mysql-schema.sql; único site no repo). Bug do #4500
         #     → SQLSTATE 42S22 → 500 VIVO em /kb/v2 + /sops em prod desde 2026-07-17.
-        #     Fix: orderBy('sort')→orderBy('sort_order'). O teste (que já concede a perm
-        #     coarse correta) fica verde e vira a regressão. ✅ RATCHETEADO abaixo.
+        #     Fix aplicado: orderBy('sort')→orderBy('sort_order'). PROVADO pela lane: o
+        #     caso V3 do KbIndexV2ContractTest (renderiza /kb/v2) passou. Mas o teste
+        #     TODO ainda NÃO entra na allowlist porque atrás do 42S22 havia mais 2
+        #     bloqueadores DE AMBIENTE DE LANE (não de prod):
+        #       (a) V2c/V5/V6: assertInertia com `ensure_pages_exist` não acha a página
+        #           kb/Index.v2 — a lane não builda o front (sem manifest real do Vite).
+        #       (b) V2b: 403 INTERMITENTE de resolução Spatie no MySQL persistente-no-run
+        #           (mesma perm coarse que V3/V4/V5/V6 resolveram OK → order-dependent →
+        #           cache/reset de permissão entre testes; permissions/model_has_* são
+        #           CORE e NÃO são resetadas por kbTeardownSchema).
+        #     → KbIndexV2ContractTest fica RATCHET-PENDENTE junto do GAP 2 (mesma família
+        #       de permissão + ambiente). NÃO ratchetear enquanto não estiver 100% verde.
         #
         #   GAP 2 — os 7 RATCHET-PENDENTE (Http/*ControllerTest + GovernanceInvariantsTest
-        #   + CrossTenantIsolationTest): NÃO é guard_name/cache/business_id (refutado:
-        #   Spatie `teams` OFF, guards batem 'web', sem team scoping). É NAME MISMATCH +
-        #   design: todo controller/request KB gateia na permissão COARSE
+        #   + CrossTenantIsolationTest): a raiz principal NÃO é guard_name/business_id
+        #   (refutado: Spatie `teams` OFF, guards batem 'web', sem team scoping). É NAME
+        #   MISMATCH + design: todo controller/request KB gateia na permissão COARSE
         #   `copiloto.mcp.memory.manage`, mas esses testes concedem `kb.*` granular
         #   (kb.view/kb.write/kb.comment/kb.publish.path/kb.publish.troubleshoot/
         #   kb.softdelete/kb.restore). Sob o gate coarse os pares read×write são
         #   IRRECONCILIÁVEIS (GET só-kb.view→200 exige a perm; POST-sem-write só-kb.view→403
         #   exige NÃO tê-la; mesma perm). Fechar = implementar o authz granular kb.* que o
         #   módulo adiou ("rename Spatie fica em PR separado") — MUDA autorização em prod
-        #   + risco de lock-out de usuários atuais (exige backfill de permissão/role).
-        #   Decisão [W] — task aberta pro PR de authz granular; NÃO force ratchet aqui.
+        #   + risco de lock-out de usuários atuais (exige backfill de permissão/role). Há
+        #   AINDA a flakiness de cache Spatie (item b acima) por cima, que também pede reset
+        #   de permissão no helper (kbActAsUser/kbBootstrapSchema). Decisão [W] — task aberta
+        #   pro PR de authz granular + reset de cache; NÃO force ratchet aqui.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -157,8 +168,7 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
-            Modules/KB/Tests/Feature/LgpdComplianceTest.php \
-            Modules/KB/Tests/Feature/KbIndexV2ContractTest.php
+            Modules/KB/Tests/Feature/LgpdComplianceTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
