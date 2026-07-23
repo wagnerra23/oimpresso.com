@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-habilitar-modulo-por-business
 name: feedback-habilitar-modulo-por-business
 description: Habilitar/desabilitar módulo por business. 3 CAMADAS — (1) Package nWidart via UI Superadmin/Packages; (2) business.enabled_modules core UltimatePOS via /business/settings; (3) Spatie Permissions por user/role via /roles/{id}/edit. NUNCA hardcode `if ($business_id === N) return`. Wagner regra Tier 0 IRREVOGÁVEL 2026-05-18.
 type: feedback

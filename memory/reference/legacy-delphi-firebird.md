@@ -1,4 +1,5 @@
 ---
+id: reference-legacy-delphi-firebird
 name: Legacy Delphi WR Comercial + bancos Firebird — código fonte, registry, credenciais
 description: Código-fonte Delphi cliente desktop (D:/Programas/WR Comercial, SVN monorepo); fluxo login→registro pro backend oimpresso; 50 bancos Firebird (.FDB) registrados em HKCU; ServidorWR2 = produção Wagner biz=1; credenciais canônicas SYSDBA/masterkey hardcoded em Principal.pas
 type: reference

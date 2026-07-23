@@ -1,4 +1,5 @@
 ---
+id: reference-legacy-audit-modulos-datacontroller-2026-04-26
 name: Audit DataController/Install em todos os 32 módulos (2026-04-26)
 description: 9 módulos críticos sem DataController + 8 sem user_permissions descobertos quando Jana não aparecia no menu; tabela completa de status por módulo
 type: reference

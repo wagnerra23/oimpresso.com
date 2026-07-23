@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-executar-nao-informar
 name: Executar quando pode — não ficar listando opções
 description: Quando ação é executável e Wagner já aprovou o objetivo, EXECUTAR. Não listar URLs, opções, ou caminhos alternativos como substituto pra ação.
 type: feedback

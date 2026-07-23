@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-outbound-markdown-over-mcp
 name: Outbound/sales tracking — markdown canon, sem MCP tasks granulares
 description: Wagner prefere tracking de outbound comercial via markdown editado em git ao invés de criar 30 sub-tasks no MCP (atrito governance > valor tracking granular)
 type: feedback

@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-tenancy-pest-local
 name: Mudanças tenancy exigem Pest local antes de PR
 description: Wagner não autoriza mudanças scope/Controller/Model multi-tenant baseadas em análise estática — exige Pest verde rodado localmente pelo dev
 type: feedback

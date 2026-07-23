@@ -1,4 +1,5 @@
 ---
+id: reference-legacy-officeimpresso-diff-3-7-vs-6-7
 name: Diff 3.7 vs 6.7 — controllers Officeimpresso + Connector (API Delphi)
 description: O que mudou e o que foi mantido idêntico entre a API legada 3.7 e a restaurada 6.7. Base pra decisões de manutenção e troubleshooting.
 type: reference

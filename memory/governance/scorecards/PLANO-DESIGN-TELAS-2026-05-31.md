@@ -1,3 +1,7 @@
+---
+id: governance-scorecards-plano-design-telas-2026-05-31
+---
+
 # PLANO DE DESIGN — subir as 44 telas < 70 e alinhar ao sidebar
 
 > **Origem:** [SCREEN-GRADE BOARD 2026-05-30](SCREEN-GRADE-BOARD-2026-05-30.md) — 222 telas, média **75/100**, método SCREEN-GRADE 9.75.

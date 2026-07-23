@@ -1,4 +1,5 @@
 ---
+id: reference-gotcha-session-business-model
 name: session('business') é Eloquent Model, não array
 description: SetSessionData salva o objeto Business na session. Dot-notation (session('business.x')) não funciona. Para timezone, usar chave dedicada session('business_timezone').
 type: project

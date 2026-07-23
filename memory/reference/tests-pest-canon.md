@@ -1,4 +1,5 @@
 ---
+id: reference-tests-pest-canon
 name: Pest tests no oimpresso — guia consolidado
 description: Como rodar/escrever Pest no oimpresso — workflow Modules Pest CI status, YAML traps, SQLite guard pattern, dual-mode SQLite/MySQL, bridge listeners Event::fake, setup local em worktree
 type: reference

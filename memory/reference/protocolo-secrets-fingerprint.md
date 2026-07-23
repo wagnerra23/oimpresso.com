@@ -1,4 +1,5 @@
 ---
+id: reference-protocolo-secrets-fingerprint
 name: Protocolo Secrets — SCP + SHA-256 fingerprint
 description: Como inserir credenciais Tier 0 (Inter, certs, tokens) no DB Hostinger sem expor valores no chat Claude / logs / git.
 type: reference

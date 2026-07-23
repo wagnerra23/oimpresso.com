@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-inertia-defer-null-guard-first-paint
 slug: feedback-inertia-defer-null-guard-first-paint
 title: "Inertia::defer: null-guard obrigatório no first paint (undefined antes resolver)"
 type: feedback-rule

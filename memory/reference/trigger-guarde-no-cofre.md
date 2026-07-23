@@ -1,4 +1,5 @@
 ---
+id: reference-trigger-guarde-no-cofre
 name: Trigger "guarde no cofre" — comando reservado de Wagner
 description: Quando Wagner disser "guarde no cofre", "salve no cofre" ou variações, salvar evidência/decisão no módulo SRS (ex-MemCofre, Cofre de Memórias). Padrão de comando para virar parte do fluxo natural.
 type: workflow
