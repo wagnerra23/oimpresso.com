@@ -1,4 +1,5 @@
 ---
+id: requisitos-manufacturing-readme
 module: Manufacturing
 alias: manufacturing
 status: ativo

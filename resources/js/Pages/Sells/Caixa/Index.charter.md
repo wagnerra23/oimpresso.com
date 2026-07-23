@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-sells-caixa-index-charter
 page: /vendas/caixa
 component: resources/js/Pages/Sells/Caixa/Index.tsx
 owner: wagner

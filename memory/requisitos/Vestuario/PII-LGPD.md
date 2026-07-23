@@ -1,3 +1,7 @@
+---
+id: requisitos-vestuario-pii-lgpd
+---
+
 # Vestuario — PII / LGPD
 
 > Documento canônico de conformidade LGPD do **Modules/Vestuario** (vertical CNAE 4781-4/00 — varejo de artigos do vestuário). Atualizado 2026-05-16. Vinculado a [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7 e ADR canônica de PII redaction do core.

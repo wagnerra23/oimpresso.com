@@ -1,4 +1,5 @@
 ---
+id: requisitos-comunicacao-visual-matriz-roi
 module: ComunicacaoVisual
 doc_type: matriz_roi
 status: draft

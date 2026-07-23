@@ -1,4 +1,5 @@
 ---
+id: requisitos-comunicacao-visual-comunicacao-visual-charter
 module: ComunicacaoVisual
 charter_type: module
 status: proposto

@@ -1,4 +1,5 @@
 ---
+id: requisitos-kb-capterra-ficha
 modulo: KB
 versao_ficha: 2.1
 formato: capterra-ficha-canonica (ADR 0089)

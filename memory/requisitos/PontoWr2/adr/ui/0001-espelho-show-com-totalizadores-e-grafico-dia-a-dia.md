@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-wr2-adr-ui-0001-espelho-show-com-totalizadores-e-grafico-dia-a-dia
+---
+
 # ADR UI-0001 (PontoWr2) · Espelho Show com totalizadores e gráfico dia-a-dia
 
 - **Status**: accepted

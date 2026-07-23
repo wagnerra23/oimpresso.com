@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-admin-roadmap-charter
 page: /jana/admin/roadmap
 component: resources/js/Pages/Jana/Admin/Roadmap.tsx
 owner: wagner

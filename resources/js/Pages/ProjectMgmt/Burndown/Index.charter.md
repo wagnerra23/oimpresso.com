@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-project-mgmt-burndown-index-charter
 page: /project-mgmt/burndown
 component: resources/js/Pages/ProjectMgmt/Burndown/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

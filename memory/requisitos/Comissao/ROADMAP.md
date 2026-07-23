@@ -1,3 +1,7 @@
+---
+id: requisitos-comissao-roadmap
+---
+
 # ROADMAP — Comissão de Vendedores cross-vertical
 
 > 4 fases sequenciais. Estimates pós-recalibração IA-pair fator 10x ([ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) com margem 2x onde envolve humano (canary, smoke, monitor).

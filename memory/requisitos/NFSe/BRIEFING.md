@@ -1,4 +1,5 @@
 ---
+id: requisitos-nfse-briefing
 module: NFSe
 status: homologação SN-NFSe federal (cert A1 pendente Wagner) — recente 2026-05-01
 piloto: oimpresso biz=1 (Wagner empresa, Tubarão-SC) — cliente único interno

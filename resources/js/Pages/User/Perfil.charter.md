@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-user-perfil-charter
 page: /perfil (canon Inertia) · /user/profile (legacy Blade · intacto)
 component: resources/js/Pages/User/Perfil.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

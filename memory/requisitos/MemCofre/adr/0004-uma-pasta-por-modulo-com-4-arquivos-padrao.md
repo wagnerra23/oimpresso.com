@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-0004-uma-pasta-por-modulo-com-4-arquivos-padrao
+---
+
 # ADR 0004 · Uma pasta por módulo com README + ARCHITECTURE + SPEC + CHANGELOG + ADRs
 
 - **Status**: accepted

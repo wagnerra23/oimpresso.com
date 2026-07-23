@@ -1,4 +1,5 @@
 ---
+id: requisitos-ideias-financeiro-evidencias-conversa-claude-2026-04-mobile
 type: evidencia
 origin_url: https://claude.ai/chat/9e05ee7a-315a-4162-b5e4-adb7f0ae55c6
 origin_title: "Módulo financeiro brasileiro no UltimatePOS"

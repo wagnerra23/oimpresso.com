@@ -1,4 +1,5 @@
 ---
+id: requisitos-asset-management
 module: AssetManagement
 alias: assetmanagement
 status: ativo

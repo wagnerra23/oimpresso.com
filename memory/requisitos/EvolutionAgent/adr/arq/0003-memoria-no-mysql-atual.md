@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-adr-arq-0003-memoria-no-mysql-atual
+---
+
 # ADR ARQ-0003 (EvolutionAgent) · Memória vetorial no MySQL atual
 
 - **Status**: accepted

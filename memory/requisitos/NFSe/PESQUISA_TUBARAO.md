@@ -1,4 +1,5 @@
 ---
+id: requisitos-nfse-pesquisa-tubarao
 name: Pesquisa fiscal NFSe Tubarão-SC
 description: Resultado da US-NFSE-001 — decisão SN-NFSe federal vs ABRASF municipal pra Tubarão, library PHP recomendada, cód LC 116, alíquota ISS, e próximos passos.
 type: requisitos

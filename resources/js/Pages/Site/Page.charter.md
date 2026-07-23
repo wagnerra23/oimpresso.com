@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-site-page-charter
 page: /c/page/{page}
 component: resources/js/Pages/Site/Page.tsx
 related_prototype: n/a (página de conteúdo CMS bespoke — detalhe de artigo, não segue um dos 5 Padrões de Tela do ERP)

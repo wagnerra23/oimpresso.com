@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-show-casos
 casos: Detalhe do cliente (deprecated) · /cliente/{id}
 irmaos: Show.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

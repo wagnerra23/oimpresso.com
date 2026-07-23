@@ -1,3 +1,7 @@
+---
+id: requisitos-template-feature-plan
+---
+
 <!--
   TEMPLATE — copie pra memory/requisitos/<Mod>/features/<slug>/plan.md e cure os {{...}}.
   O plan é o COMO técnico. Decisão arquitetural nova = ADR (append-only), aqui só referência.

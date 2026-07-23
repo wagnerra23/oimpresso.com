@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-0001-mysql-em-vez-de-postgres
+---
+
 # ADR 0001 · MySQL como banco principal (sem PostgreSQL)
 
 - **Status**: accepted

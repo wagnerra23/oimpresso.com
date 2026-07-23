@@ -1,3 +1,7 @@
+---
+id: requisitos-produto-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Produto (capacidade)
 
 > Ficha canônica de benchmark de **capacidade** do domínio **Produto** (cadastro/catálogo/estoque — core UltimatePOS + MWART Inertia parcial). Produto é o **insumo de preço/custo/estoque de TODO o resto** — Sells e Compras dependem dele.

@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-avancado-briefing
+---
+
 # BRIEFING — FinanceiroAvancado · ⚰️ FUNDIDO em Financeiro (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `Financeiro`** (decisão E1 · frente KL · 2026-06-15).

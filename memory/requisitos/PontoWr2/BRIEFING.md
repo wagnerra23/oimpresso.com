@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-wr2-briefing
+---
+
 # BRIEFING — PontoWr2 · ⚰️ FUNDIDO em Ponto (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `Ponto`** (decisão E1 · frente KL · 2026-06-15).

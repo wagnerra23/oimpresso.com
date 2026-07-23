@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-messages-index-charter
 page: /essentials/messages
 component: resources/js/Pages/Essentials/Messages/Index.tsx
 related_prototype: n/a (mural de chat bespoke — bolhas de mensagem + composer com polling; não segue um dos 5 Padrões de Tela)

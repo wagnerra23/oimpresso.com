@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-adr-arq-0002-estende-memcofre-vs-modulo-separado
+---
+
 # ADR ARQ-0002 (LaravelAI) · Estende MemCofre, não duplica
 
 - **Status**: accepted

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-import-charter
 page: /contacts/import
 component: resources/js/Pages/Cliente/Import.tsx
 owner: wagner

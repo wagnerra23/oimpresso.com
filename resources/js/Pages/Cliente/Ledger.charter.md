@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-ledger-charter
 page: /contacts/ledger
 component: resources/js/Pages/Cliente/Ledger.tsx
 owner: wagner

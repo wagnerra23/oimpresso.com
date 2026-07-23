@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-protocolo-comparacao-runtime
 slug: protocolo-comparacao-runtime-prod-prototipo
 title: "Protocolo de comparação RUNTIME — produção × protótipo (v2)"
 type: protocolo

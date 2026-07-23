@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-project-mgmt-my-work-index-charter
 page: /project-mgmt/my-work
 component: resources/js/Pages/ProjectMgmt/MyWork/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

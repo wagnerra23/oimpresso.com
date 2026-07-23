@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-oficina-auto-service-orders-board-casos
 casos: Quadro de OS da Oficina · /oficina-auto/ordens-servico/board
 irmaos: Board.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

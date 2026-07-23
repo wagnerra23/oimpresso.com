@@ -1,3 +1,7 @@
+---
+id: requisitos-suporte-briefing
+---
+
 # BRIEFING — `Suporte` (Modo Suporte)
 
 > **Tipo:** BRIEFING canônico do módulo — 1 página executiva (porta do módulo).

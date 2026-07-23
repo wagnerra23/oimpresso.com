@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0005-product-components-shared
+---
+
 # ADR UI-0005 · Camada de componentes de produto em `Components/shared/`
 
 - **Status**: accepted

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-project-mgmt-activity-index-charter
 page: /project-mgmt/activity
 component: resources/js/Pages/ProjectMgmt/Activity/Index.tsx
 related_prototype: n/a (feed cronologico de atividade bespoke, agrupado por dia — nao segue um dos 5 Padroes de Tela)

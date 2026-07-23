@@ -1,3 +1,7 @@
+---
+id: requisitos-comunicacao-visual-capterra-ficha
+---
+
 # CAPTERRA-FICHA — ComunicacaoVisual
 
 > Ficha canônica de benchmark do módulo vertical ComunicacaoVisual.

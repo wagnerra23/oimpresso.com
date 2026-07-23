@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-policy-charter
 page: /ads/admin/policy
 component: resources/js/Pages/ads/Admin/Policy.tsx
 related_prototype: n/a (display read-only de firewall bespoke — não segue um dos 5 Padrões de Tela)

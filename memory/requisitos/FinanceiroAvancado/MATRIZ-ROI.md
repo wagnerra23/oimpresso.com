@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-avancado-matriz-roi
 title: MATRIZ-ROI FinanceiroAvancado (planejado — não existe)
 date: 2026-05-12
 related_spec: SPEC.md

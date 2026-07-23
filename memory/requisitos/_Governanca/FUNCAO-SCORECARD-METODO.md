@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-funcao-scorecard-metodo
 status: ativo
 last_reviewed: "2026-07-21"
 next_review: "2026-10-21"

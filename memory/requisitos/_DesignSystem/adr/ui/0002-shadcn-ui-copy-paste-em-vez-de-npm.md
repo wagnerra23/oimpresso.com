@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0002-shadcn-ui-copy-paste-em-vez-de-npm
+---
+
 # ADR UI-0002 (_DesignSystem) · shadcn/ui copy-paste em vez de npm package
 
 - **Status**: accepted

@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-roadmap-p08-conectar-metricas-gt-e-fixture-anchor
 roadmap_item: P08
 slug: conectar-metricas-gt-e-fixture-anchor
 onda: 1

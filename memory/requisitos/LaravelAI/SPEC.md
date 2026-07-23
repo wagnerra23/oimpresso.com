@@ -1,4 +1,5 @@
 ---
+id: requisitos-laravel-ai-spec
 module: LaravelAI
 status: historical
 version: "1.0"

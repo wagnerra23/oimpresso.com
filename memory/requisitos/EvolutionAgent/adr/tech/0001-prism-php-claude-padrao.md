@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-adr-tech-0001-prism-php-claude-padrao
+---
+
 # ADR TECH-0001 (EvolutionAgent) · Prism PHP + Claude default + tier por tarefa
 
 - **Status**: accepted

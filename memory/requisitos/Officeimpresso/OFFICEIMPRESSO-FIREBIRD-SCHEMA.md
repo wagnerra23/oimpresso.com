@@ -1,4 +1,5 @@
 ---
+id: requisitos-officeimpresso-officeimpresso-firebird-schema
 title: OfficeImpresso (legacy Delphi WR Comercial) — Firebird schema reference
 status: canon
 date: 2026-05-09

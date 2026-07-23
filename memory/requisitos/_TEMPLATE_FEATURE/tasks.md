@@ -1,3 +1,7 @@
+---
+id: requisitos-template-feature-tasks
+---
+
 <!--
   TEMPLATE — copie pra memory/requisitos/<Mod>/features/<slug>/tasks.md e cure os {{...}}.
   Formato PARSEÁVEL (feature-lint.mjs): header `### T-NN · <título>`, metadados no blockquote,

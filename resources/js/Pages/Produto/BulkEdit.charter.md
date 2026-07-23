@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-bulk-edit-charter
 page: /products/mass-edit
 component: resources/js/Pages/Produto/BulkEdit.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

@@ -1,4 +1,5 @@
 ---
+id: requisitos-fiscal-fiscal-dfe-visual-comparison
 tela: Fiscal/Dfe
 url: /fiscal/dfe
 status: approved

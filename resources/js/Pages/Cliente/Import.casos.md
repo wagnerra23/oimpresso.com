@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-import-casos
 casos: Importar clientes em massa · /contacts/import
 irmaos: Import.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

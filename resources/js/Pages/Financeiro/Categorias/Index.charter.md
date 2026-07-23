@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-categorias-index-charter
 page: /financeiro/categorias
 component: resources/js/Pages/Financeiro/Categorias/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

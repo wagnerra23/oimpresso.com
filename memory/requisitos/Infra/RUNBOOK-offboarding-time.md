@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-runbook-offboarding-time
 title: "RUNBOOK — Offboarding de integrante do time (revogação + rotação)"
 module: Infra
 owner: W

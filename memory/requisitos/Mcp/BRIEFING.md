@@ -1,4 +1,5 @@
 ---
+id: requisitos-mcp-briefing
 module: Mcp
 status: bounded context tools governança server interno (`mcp.oimpresso.com` CT 100)
 piloto: time MCP autenticado (Wagner + Felipe/Maiara/Eliana/Luiz entrantes) + Claude Code

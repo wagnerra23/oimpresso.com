@@ -1,4 +1,5 @@
 ---
+id: requisitos-estoque-spec
 module: Estoque
 title: "SPEC — Estoque (cross-cutting: saldo, reserva, movimentação)"
 status: ativo

@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-spec-complemento
 project: PMG
 default_component: UI
 parent_spec: SPEC.md

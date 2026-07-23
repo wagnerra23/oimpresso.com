@@ -1,3 +1,7 @@
+---
+id: requisitos-comunicacao-visual-pii-lgpd
+---
+
 # PII handling ComunicacaoVisual — LGPD compliance
 
 > Wave 26 (2026-05-17) — D7.a evidence pra rubrica governance.

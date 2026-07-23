@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-kb-index-v2-casos
 casos: KB Unificado V2 (tri-pane) — DADO REAL · /kb/v2 + /sops
 irmaos: Index.v2.charter.md (lei · v4) · Index.charter.md (V3 atual, coexiste)
 tecnica: Caso de uso = narrativa + critério de aceite verificável

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-settings-payment-gateways-cnab-retorno-casos
 casos: Retorno CNAB · /settings/payment-gateways/{id}/cnab-retorno
 irmaos: CnabRetorno.charter.md (lei · draft)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)

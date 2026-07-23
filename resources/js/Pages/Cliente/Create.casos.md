@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-create-casos
 casos: Cadastro de novo cliente · /contacts/create
 irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

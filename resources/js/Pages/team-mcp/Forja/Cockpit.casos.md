@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-team-mcp-forja-cockpit-casos
 casos: Forja · cockpit do cowork loop · /forja
 irmaos: Cockpit.charter.md (lei) · Cockpit.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável

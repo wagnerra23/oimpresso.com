@@ -1,3 +1,7 @@
+---
+id: requisitos-memoria-autonoma-adr-arq-0001-fase-1-sintese-semanal
+---
+
 # ADR ARQ-0001 (MemoriaAutonoma) · Fase 1 — Auto-síntese semanal
 
 - **Status**: accepted

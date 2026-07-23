@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-changelog
 status: ativo
 last_reviewed: "2026-06-21"
 next_review: "2026-09-06"

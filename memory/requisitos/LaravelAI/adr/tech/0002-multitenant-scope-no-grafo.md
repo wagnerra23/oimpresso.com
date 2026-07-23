@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-adr-tech-0002-multitenant-scope-no-grafo
+---
+
 # ADR TECH-0002 (LaravelAI) · Multi-tenant scope no banco, não no agente
 
 - **Status**: accepted

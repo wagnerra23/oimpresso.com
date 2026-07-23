@@ -1,4 +1,5 @@
 ---
+id: requisitos-nfse-adr-tech-0001-service-adapter-dto-pattern
 name: NFSe — Service + Adapter + DTO pattern
 description: Decisão de usar Service/Interface/Adapter para desacoplar a integração SN-NFSe de outras prefeituras futuras
 type: decision

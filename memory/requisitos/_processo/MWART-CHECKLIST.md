@@ -1,3 +1,7 @@
+---
+id: requisitos-processo-mwart-checklist
+---
+
 # MWART — Checklist de Tela Nova (forma válida do processo)
 
 > **Quando usar:** ao criar tela Inertia/React em `resources/js/Pages/<Mod>/<Tela>/Index.tsx` (ou `<Tela>.tsx`) acompanhada de Controller. Vale tanto pra greenfield quanto pra migração Blade→Inertia.

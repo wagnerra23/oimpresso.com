@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-pegadinha-ct100-mcp-git-pull-cron
 slug: pegadinha-ct100-mcp-git-pull-cron
 type: pegadinha
 module: Infra

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-dashboard-index-charter
 page: /financeiro
 component: resources/js/Pages/Financeiro/Dashboard/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

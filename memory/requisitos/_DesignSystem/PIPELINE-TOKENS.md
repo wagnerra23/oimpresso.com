@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-pipeline-tokens
+---
+
 # PIPELINE de tokens do Design System — de onde vêm, como são aplicados, como usar nas telas
 
 > **Pergunta que este doc responde (Wagner 2026-07-08):** *"descreva todo processo e arquivos, de onde vem e como é aplicado, e como deve ser aplicado nas telas."*

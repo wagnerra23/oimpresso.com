@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-prototipo-preco-especial
 name: Preço especial — regra + exceção (F1 protótipo)
 description: Pino visual canônico da aba "Preço especial" do cadastro de produto. Lista de preço = REGRA (%); célula = EXCEÇÃO. Gate F1.5 ADR 0107 antes de F3.
 type: prototype

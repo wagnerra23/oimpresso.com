@@ -1,3 +1,7 @@
+---
+id: requisitos-arquivos-readme-como-cliente-usa
+---
+
 # Modules/Arquivos — Como o cliente usa
 
 > **Wave 18 RETRY D5 SATURATION (2026-05-16)** — guia "do ponto de vista de quem usa" complementando o BRIEFING (estado consolidado) e o SPEC (regras técnicas).

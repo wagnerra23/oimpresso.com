@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-regras-index-charter
 page: /ia/regras
 component: resources/js/Pages/Jana/Regras/Index.tsx
 related_prototype: n/a (tela stub read-only — não segue um dos 5 Padrões de Tela)

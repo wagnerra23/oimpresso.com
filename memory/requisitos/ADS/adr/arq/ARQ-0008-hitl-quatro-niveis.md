@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-adr-arq-arq-0008-hitl-quatro-niveis
 slug: ARQ-0008-hitl-quatro-niveis
 title: "Human-in-the-Loop — 4 níveis de intervenção humana adaptativa"
 status: accepted

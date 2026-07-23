@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-config-charter
 page: /fiscal/config
 component: resources/js/Pages/Fiscal/Config.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

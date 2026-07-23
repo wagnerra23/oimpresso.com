@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-roadmap-p10-sa-a5-a6-batches-ia-fila-wagner
 roadmap_item: P10
 slug: sa-a5-a6-batches-ia-fila-wagner
 onda: 4

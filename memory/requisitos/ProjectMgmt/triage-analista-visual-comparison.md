@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-triage-analista-visual-comparison
 slug: projectmgmt-triage-analista-visual-comparison
 title: "ProjectMgmt — Comparativo visual da Triagem/Analista (Forja PR-5a)"
 type: visual-comparison

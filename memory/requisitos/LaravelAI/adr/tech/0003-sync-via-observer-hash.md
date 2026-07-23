@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-adr-tech-0003-sync-via-observer-hash
+---
+
 # ADR TECH-0003 (LaravelAI) · Sync embeddings via observer + hash
 
 - **Status**: accepted

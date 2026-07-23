@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-create-casos
 casos: Cadastro de produto · /products/create
 irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)

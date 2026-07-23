@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-wr2-architecture
+---
+
 # Arquitetura
 
 ## 1. Objetivo

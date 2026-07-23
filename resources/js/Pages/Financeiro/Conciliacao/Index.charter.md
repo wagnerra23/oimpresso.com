@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-conciliacao-index-charter
 page: /financeiro/conciliacao
 component: resources/js/Pages/Financeiro/Conciliacao/Index.tsx
 owner: wagner

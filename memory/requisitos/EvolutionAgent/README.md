@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-readme
+---
+
 # EvolutionAgent
 
 Ferramenta meta — ajuda Claude Code a propor o **próximo PR de maior ROI** dentro do oimpresso.

@@ -1,3 +1,7 @@
+---
+id: requisitos-project-mgmt-charter-board
+---
+
 # Charter — `/project-mgmt/board` (Kanban Jira-like — em prod)
 
 > **Charter > Spec** ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3).

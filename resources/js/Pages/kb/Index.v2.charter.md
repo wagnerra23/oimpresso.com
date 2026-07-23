@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-kb-index-v2-charter
 page: /kb/v2
 component: resources/js/Pages/kb/Index.v2.tsx
 controller: Modules\KB\Http\Controllers\KbController@indexV2

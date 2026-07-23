@@ -1,4 +1,5 @@
 ---
+id: requisitos-inventory-spec
 module: Inventory
 version: "1.0"
 last_updated: "2026-07-02"

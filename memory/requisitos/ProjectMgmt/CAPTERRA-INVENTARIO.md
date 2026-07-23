@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-capterra-inventario
 title: "CAPTERRA-INVENTARIO — ProjectMgmt"
 slug: capterra-inventario-projectmgmt
 type: inventario

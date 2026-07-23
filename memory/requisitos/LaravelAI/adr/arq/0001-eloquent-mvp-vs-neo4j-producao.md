@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-adr-arq-0001-eloquent-mvp-vs-neo4j-producao
+---
+
 # ADR ARQ-0001 (LaravelAI) · Eloquent + pgvector pro MVP, Neo4j em produção (futuro)
 
 - **Status**: accepted

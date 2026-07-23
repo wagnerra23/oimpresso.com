@@ -1,4 +1,5 @@
 ---
+id: requisitos-estoque-telas-stock-transfer-create-visual-comparison
 tela: stock_transfers/create
 modulo: Inventory / StockTransfer
 tipo: FORM CREATE

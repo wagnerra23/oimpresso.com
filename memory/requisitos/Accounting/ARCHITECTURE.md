@@ -1,3 +1,7 @@
+---
+id: requisitos-accounting-architecture
+---
+
 # Arquitetura
 
 ## 1. Objetivo

@@ -1,3 +1,7 @@
+---
+id: requisitos-nfse-capterra-ficha
+---
+
 # CAPTERRA-FICHA — NFSe (capacidade)
 
 > Ficha canônica de benchmark de **capacidade** do módulo `Modules/NFSe` — emissão de **Nota Fiscal de Serviço eletrônica (ISS municipal)** via **SN-NFSe federal** (LC 214/2025), distinto de `Modules/NfeBrasil` (NF-e/NFC-e produto, ICMS SEFAZ estadual).

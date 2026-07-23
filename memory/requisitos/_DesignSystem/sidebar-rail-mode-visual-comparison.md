@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-sidebar-rail-mode-visual-comparison
 status: superseded
 lifecycle: substituido
 last_reviewed: "2026-06-06"

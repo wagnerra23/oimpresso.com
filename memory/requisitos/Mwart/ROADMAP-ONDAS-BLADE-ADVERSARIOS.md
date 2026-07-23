@@ -1,4 +1,5 @@
 ---
+id: requisitos-mwart-roadmap-ondas-blade-adversarios
 module: Mwart
 doc_type: roadmap
 title: "Rota de migração do backbone Blade (UltimatePOS) — 10 ondas governadas por adversário e contrato de completude"

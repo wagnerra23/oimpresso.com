@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-skills-index-charter
 page: /ads/admin/skills
 component: resources/js/Pages/ads/Admin/Skills/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

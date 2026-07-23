@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-changelog
+---
+
 # Changelog — LaravelAI
 
 Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.

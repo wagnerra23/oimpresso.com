@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-automation-roadmap
 doc: AUTOMATION-ROADMAP
 camada: meta-protocolo
 status: accepted-historical

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-nfse-emitir-charter
 page: /nfse/emitir
 component: resources/js/Pages/Nfse/Emitir.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

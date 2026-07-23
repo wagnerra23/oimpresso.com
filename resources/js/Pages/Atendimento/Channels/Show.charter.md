@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-atendimento-channels-show-charter
 page: /atendimento/canais/{id}
 component: resources/js/Pages/Atendimento/Channels/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)

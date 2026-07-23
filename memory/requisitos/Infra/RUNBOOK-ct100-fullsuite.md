@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-runbook-ct100-fullsuite
 title: "Full-suite Pest MySQL nightly no CT 100 (FV-F3 — diagnostica, nunca required)"
 module: "Infra"
 owner: "W"

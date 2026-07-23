@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-pageheader-matriz-diferencas
+---
+
 # PageHeader Canon — Matriz de Diferenças Técnicas e Pontos Permitidos
 
 > Referência canônica de **o que DEVE ser igual** e **o que PODE variar** entre telas que adotam o pattern do header `os-page-h` (ADR 0180/0182/**0189**/**0190**). Use esta matriz como checklist de revisão de PR e fonte da skill `pageheader-canon`.

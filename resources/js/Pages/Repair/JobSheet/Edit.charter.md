@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-repair-job-sheet-edit-charter
 page: /repair/job-sheet/{id}/edit
 component: resources/js/Pages/Repair/JobSheet/Edit.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

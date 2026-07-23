@@ -1,3 +1,7 @@
+---
+id: requisitos-cms-login-spec-2026-04-26
+---
+
 # Spec: Login + Cadastro profissional — oimpresso.com
 
 > **Criado:** 2026-04-26 via skill `/design-system`

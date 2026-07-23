@@ -1,3 +1,7 @@
+---
+id: resources-js-pages-financeiro-cowork-bundle-readme
+---
+
 # `_cowork-bundle/` — Bundle Cowork Financeiro INTEGRAL (referência canônica)
 
 ## O que é

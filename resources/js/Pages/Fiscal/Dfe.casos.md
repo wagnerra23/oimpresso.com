@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-dfe-casos
 casos: Manifesto DF-e · /fiscal/dfe
 irmaos: Dfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)

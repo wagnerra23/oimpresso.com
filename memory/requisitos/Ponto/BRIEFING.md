@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-briefing
+---
+
 # BRIEFING — Modules/Ponto
 
 > 1-pager executivo do modulo de ponto eletronico do oimpresso.

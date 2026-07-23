@@ -1,4 +1,5 @@
 ---
+id: requisitos-kb-spec
 module: KB
 status: ativo
 version: "1.0"

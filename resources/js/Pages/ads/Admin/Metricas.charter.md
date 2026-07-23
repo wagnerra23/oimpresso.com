@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-metricas-charter
 page: /ads/admin/metricas
 component: resources/js/Pages/ads/Admin/Metricas.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

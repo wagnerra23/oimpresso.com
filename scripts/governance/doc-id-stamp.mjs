@@ -24,6 +24,7 @@
  *   ... [--root <dir>] [--include-toxic] (requisitos/charter — SÓ com ADR PR4 aceita)
  */
 import { readdirSync, readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, resolve, relative, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -81,6 +82,23 @@ function moduleOf(rel) {
 async function parsesYaml(text) {
   if (!_matter) _matter = (await import('gray-matter')).default;
   try { _matter(text); return true; } catch { return false; }
+}
+// SPEC/RUNBOOK com ÂNCORA MORTA pré-existente falha o `anchor-lint --check` (required, L69 do
+// CI) — `dead>0 = fail`, e dead NÃO é grandfatherado pelo baseline (só _pendente_/entry são).
+// Tocar (mesmo só +id:) põe no diff-aware → morde. id: é anchor-neutro, então checa o arquivo
+// ATUAL. Descoberto pelo refutador GT-G5 2026-07-23 (Mwart/SPEC.md, .ps1→.mjs). Só SPEC/RUNBOOK.
+function anchorLintPasses(root, rel) {
+  if (!/\/(SPEC|RUNBOOK[^/]*)\.md$/.test(rel)) return true;
+  try { execFileSync('node', [join(REPO_ROOT, 'scripts/governance/anchor-lint.mjs'), '--check', rel], { cwd: root, stdio: 'ignore' }); return true; }
+  catch { return false; }
+}
+// Charter com `status: live` SEM sinal de prod falha o `charter-live-signal --check` (required,
+// diff-aware, grandfather por não-toque). Tocar acorda. Dar sinal de prod = curadoria, não stamp.
+// Descoberto pelo refutador GT-G5 2026-07-23 (42 charters live legados). Só *.charter.md.
+function charterLiveSignalPasses(root, rel) {
+  if (!/\.charter\.md$/.test(rel)) return true;
+  try { execFileSync('node', [join(REPO_ROOT, 'scripts/governance/charter-live-signal.mjs'), '--check', rel], { cwd: root, stdio: 'ignore' }); return true; }
+  catch { return false; }
 }
 
 const slugify = (v) => v.normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -208,6 +226,8 @@ export async function plan(root, opts = {}) {
     // Frontmatter que JÁ não parseia (YAML quebrado pré-existente, ex. visual-comparison com
     // `status: ... (STEP 4)`): não stampar por cima de dívida — defere (refutador GT-G5 2026-07-23).
     if (hasFrontmatter(text) && !(await parsesYaml(text))) { skipped.yamlBroken++; continue; }
+    if (opts.includeToxic && !anchorLintPasses(root, rel)) { skipped.anchorDead = (skipped.anchorDead || 0) + 1; continue; }
+    if (opts.includeToxic && !charterLiveSignalPasses(root, rel)) { skipped.charterLive = (skipped.charterLive || 0) + 1; continue; }
     const id = idForPath(rel);
     // Schema strict: valida o frontmatter FUTURO (com o id) — inválido hoje = defer.
     const future = stampId(text, id);

@@ -975,6 +975,23 @@
       "pii_hits": 0,
       "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/4719#issuecomment-5059900382",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 4723,
+      "lote_id": "PR6-lote-grande-requisitos-charters-01",
+      "data": "2026-07-23",
+      "tipo": "prosa",
+      "gerador": "opus (doc-id-stamp.mjs deterministico — id=slug-do-path)",
+      "refutador": "fable-5",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 776,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/4723#issuecomment-5060204856",
+      "veredito": "aprovado"
     }
   ]
 }

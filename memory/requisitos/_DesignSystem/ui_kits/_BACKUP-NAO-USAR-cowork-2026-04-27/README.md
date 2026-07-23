@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-ui-kits-backup-nao-usar-cowork-2026-04-27-readme
 slug: ui-kit-cowork-2026-04-27
 title: "UI Kit — Snapshot Cowork 2026-04-27 (canon visual)"
 type: ui_kit

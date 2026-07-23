@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-admin-governanca-index-charter
 page: /copiloto/admin/governanca
 component: resources/js/Pages/Jana/Admin/Governanca/Index.tsx
 owner: wagner

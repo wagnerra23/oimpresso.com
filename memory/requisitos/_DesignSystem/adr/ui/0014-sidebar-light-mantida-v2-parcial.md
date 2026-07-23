@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0014-sidebar-light-mantida-v2-parcial
+---
+
 # ADR UI-0014 · Sidebar light mantida — Constituição UI v2 adotada parcialmente (sem dark sempre)
 
 - **Status**: accepted

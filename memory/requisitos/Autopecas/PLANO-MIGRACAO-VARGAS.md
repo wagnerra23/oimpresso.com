@@ -1,3 +1,7 @@
+---
+id: requisitos-autopecas-plano-migracao-vargas
+---
+
 # Plano Migração Vargas → Autopecas (planejado — não existe) — 2026-05-10
 
 > **Autor:** Claude (sub-agent migration engineer + customer success) sob direção Wagner [W]

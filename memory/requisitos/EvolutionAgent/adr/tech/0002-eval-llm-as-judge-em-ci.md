@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-adr-tech-0002-eval-llm-as-judge-em-ci
+---
+
 # ADR TECH-0002 (EvolutionAgent) · Eval LLM-as-Judge em CI
 
 - **Status**: accepted

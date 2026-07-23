@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-respeitar-prototipo
+---
+
 # Como respeitar o protótipo — a norma (fonte da verdade da tela)
 
 > **O protótipo Cowork aprovado é a fonte da verdade da tela.** O código a segue.

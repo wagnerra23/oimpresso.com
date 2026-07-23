@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0017-design-system-v3-reconciliacao-ui-v2
+---
+
 # ADR UI-0017 · Design System v3 = implementação concreta das camadas 1–3 da Constituição UI v2 (não supersede; instancia)
 
 - **Status**: accepted

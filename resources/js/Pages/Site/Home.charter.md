@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-site-home-charter
 page: /
 component: resources/js/Pages/Site/Home.tsx
 related_prototype: n/a (landing pública bespoke de marketing — não segue um dos 5 Padrões de Tela do ERP)

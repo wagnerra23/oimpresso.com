@@ -1,3 +1,7 @@
+---
+id: requisitos-team-mcp-capterra-design-ficha
+---
+
 # CAPTERRA-DESIGN-FICHA — TeamMcp/Team (UX/UI de governança de tokens MCP)
 
 > **Cruzamento gerado:** 2026-05-25
