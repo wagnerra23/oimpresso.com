@@ -160,12 +160,15 @@ function kbBootstrapSchema(): void
         });
     }
 
-    // Roda as 12 migrations KB em ordem.
+    // Roda TODAS as migrations KB em ordem (as 12 de criação 2026_05_15_1000*
+    // + ALTERs posteriores, ex: code_drift_state 2026_07_23). Todas são
+    // idempotentes (guard hasTable/hasColumn), então re-run é seguro. O glob
+    // largo evita editar este helper a cada migration nova.
     $kbMigrationDir = realpath(__DIR__ . '/../Database/Migrations');
     if ($kbMigrationDir === false) {
         throw new \RuntimeException('Modules/KB/Database/Migrations não encontrado — Agent A já criou? cwd='.getcwd());
     }
-    $files = glob($kbMigrationDir . '/2026_05_15_1000*.php') ?: [];
+    $files = glob($kbMigrationDir . '/2026_*.php') ?: [];
     sort($files);
     foreach ($files as $f) {
         (require $f)->up();

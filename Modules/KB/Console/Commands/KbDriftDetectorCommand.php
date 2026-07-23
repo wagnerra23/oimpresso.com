@@ -175,6 +175,13 @@ class KbDriftDetectorCommand extends Command
      * Procura kb_nodes (article ou is_editable) cujo body_blocks/snippet menciona
      * qualquer path da lista deletada. Match simples por substring (defense in depth).
      *
+     * Efeito colateral (Fase A1): persiste o veredito por nó em
+     * `kb_nodes.code_drift_state` pra surfacar na KB (HealthPanel/NodeReader):
+     *   - com match  → {checked_at, refs:[{path, drift_type}]}
+     *   - sem match  → NULL (limpa flag anterior — self-healing quando o doc é corrigido)
+     * A escrita é raw (DB::table), só quando o CONJUNTO de paths muda, e fica fora
+     * do KbNodeObserver + activity-log (sem ruído de audit por cron).
+     *
      * @param  array<int,string>  $deletedPaths
      * @return array<int,array<string,mixed>>
      */
@@ -185,6 +192,8 @@ class KbDriftDetectorCommand extends Command
             return [];
         }
 
+        $canPersist = \Illuminate\Support\Facades\Schema::hasColumn('kb_nodes', 'code_drift_state');
+
         $candidates = DB::table('kb_nodes')
             ->where('business_id', $bizId)
             ->whereNull('deleted_at')
@@ -193,32 +202,84 @@ class KbDriftDetectorCommand extends Command
                   ->orWhere('is_editable', 1)
                   ->orWhere('is_editable', true);
             })
-            ->select('id', 'slug', 'title', 'body_blocks')
+            ->select('id', 'slug', 'title', 'body_blocks', 'code_drift_state')
             ->limit(5000)
             ->get();
 
+        $now = now()->toIso8601String();
         $drifts = [];
+
         foreach ($candidates as $node) {
             $body = (string) ($node->body_blocks ?? '');
-            // JSON escape converte '/' em '\/'. Cobrimos ambas variantes pra match robusto.
+
+            // Todos os paths deletados que este nó referencia (não só o 1º).
+            $matched = [];
             foreach ($deletedPaths as $path) {
                 if ($path === '') {
                     continue;
                 }
+                // JSON escape converte '/' em '\/'. Cobrimos ambas variantes.
                 $pathEscaped = str_replace('/', '\/', $path);
                 if (str_contains($body, $path) || str_contains($body, $pathEscaped)) {
-                    $drifts[] = [
-                        'node_id' => (int) $node->id,
-                        'slug' => (string) $node->slug,
-                        'title' => (string) $node->title,
-                        'path' => $path,
-                        'drift_type' => 'reference_deleted_path',
-                    ];
-                    break; // 1 match por node já registra drift
+                    $matched[] = ['path' => $path, 'drift_type' => 'reference_deleted_path'];
                 }
+            }
+
+            if ($canPersist) {
+                $this->persistDriftState($node, $matched, $now);
+            }
+
+            if (! empty($matched)) {
+                // Report/exit-code preservam a forma legada: 1 linha por nó.
+                $drifts[] = [
+                    'node_id' => (int) $node->id,
+                    'slug' => (string) $node->slug,
+                    'title' => (string) $node->title,
+                    'path' => $matched[0]['path'],
+                    'drift_type' => 'reference_deleted_path',
+                ];
             }
         }
 
         return $drifts;
+    }
+
+    /**
+     * Grava o veredito de drift do nó só quando o CONJUNTO de paths mudou
+     * (evita churn de UPDATE a cada cron). checked_at só refresca na mudança.
+     *
+     * @param  object  $node  row com id + code_drift_state (json string|null)
+     * @param  array<int,array{path:string,drift_type:string}>  $matched
+     */
+    private function persistDriftState(object $node, array $matched, string $now): void
+    {
+        // Paths atualmente persistidos.
+        $currentPaths = [];
+        if (! empty($node->code_drift_state)) {
+            $decoded = json_decode((string) $node->code_drift_state, true);
+            foreach ((array) ($decoded['refs'] ?? []) as $ref) {
+                if (isset($ref['path'])) {
+                    $currentPaths[] = (string) $ref['path'];
+                }
+            }
+        }
+
+        $newPaths = array_map(static fn ($m) => $m['path'], $matched);
+
+        $a = $currentPaths;
+        $b = $newPaths;
+        sort($a);
+        sort($b);
+        if ($a === $b) {
+            return; // conjunto idêntico — nada a fazer
+        }
+
+        DB::table('kb_nodes')
+            ->where('id', $node->id)
+            ->update([
+                'code_drift_state' => empty($matched)
+                    ? null
+                    : json_encode(['checked_at' => $now, 'refs' => $matched], JSON_UNESCAPED_UNICODE),
+            ]);
     }
 }
