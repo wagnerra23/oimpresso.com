@@ -1,6 +1,8 @@
 # MISSION BRIEF — Claude Opus 4.7 Executor
 ## Implementação completa da Constituição Oimpresso v2
 
+> ⚠️ **FÓSSIL histórico — NÃO usar como estado atual.** Brief de execução da Constituição v2 (mai/2026, já implementada — ver [ADR 0094](decisions/0094-constituicao-v2-7-camadas-8-principios.md)+). Preservado como registro histórico.
+
 > ⚠️ **ATENÇÃO — RENUMERAÇÃO DE SPRINTS (2026-05-06):** este briefing foi
 > escrito antes do Sprint 2 (MWART OS Listagem) ter sido executado, então
 > chamava "Sprint 2 = Constituição". Na prática: **S2 virou MWART OS

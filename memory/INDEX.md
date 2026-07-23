@@ -91,7 +91,7 @@
 **Verticais especializados** ([ADR 0121](decisions/0121-oimpresso-modular-especializado-por-vertical.md)):
 - [Vestuario/](requisitos/Vestuario/) — ✅ em produção (ROTA LIVRE biz=4, CNAE 4781-4/00)
 - [ComunicacaoVisual/](requisitos/ComunicacaoVisual/) — 🟡 em construção (CNAE 1813-0/01)
-- [OficinaAuto/](requisitos/OficinaAuto/) — ⏸️ aguardando sinal (Martinho candidato)
+- [OficinaAuto/](requisitos/OficinaAuto/) — 🟡 piloto LIVE prod (Martinho, biz=164, mecânica pesada)
 - [Autopecas/](requisitos/Autopecas/)
 
 **Core comum:** _(⚰️ = pasta tombstoneada/HISTORICAL — estado vivo está no receptor indicado no BRIEFING da pasta)_
