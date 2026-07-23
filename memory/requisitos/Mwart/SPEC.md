@@ -40,7 +40,7 @@ related_adrs:
 > owner: wagner · priority: p0 · estimate: 1.5h · type: story · origin: adr-0104
 > blocked_by: —
 
-**Implementado em:** _parcial_ · `.claude/hooks/block-mwart-violation.ps1` · `.claude/settings.json` · verificado@8af585a (2026-07-02) — camada 2 (hook PreToolUse) viva e registrada; camada 3 (CI mwart-gate.yml) foi DELETADA pela ADR 0271 onda 2 (era soft continue-on-error — teatro); régua viva de cobertura de tela hoje = casos-gate required (ADR 0264); MwartGateWorkflowTest nunca criado
+**Implementado em:** _parcial_ · `.claude/hooks/block-mwart-violation.mjs` · `.claude/settings.json` · verificado@8af585a (2026-07-02) — camada 2 (hook PreToolUse) viva e registrada; camada 3 (CI mwart-gate.yml) foi DELETADA pela ADR 0271 onda 2 (era soft continue-on-error — teatro); régua viva de cobertura de tela hoje = casos-gate required (ADR 0264); MwartGateWorkflowTest nunca criado
 
 **Contexto.** ADR 0104 define 3 camadas de enforcement. A camada 1 (skill Tier A `mwart-process`) já está ativa. Faltam 2 e 3 — sem elas, o processo depende exclusivamente do agent lembrar (pode falhar em sessão longa, dev humano sem Claude Code, ou agent novo). Esta US implementa as travas em runtime e merge.
 
