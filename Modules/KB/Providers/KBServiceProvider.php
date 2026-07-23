@@ -36,12 +36,32 @@ class KBServiceProvider extends ServiceProvider
      */
     public function boot(Router $router): void
     {
+        $this->registerMigrations();
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
         $this->registerObservers();
         $this->registerCommands();
         $this->registerSchedule();
+    }
+
+    /**
+     * Registra o path de migrations do módulo (padrão nWidart, igual aos demais
+     * módulos — ADS/Arquivos/Admin/…).
+     *
+     * **Por que existia um bug aqui (2026-07-23):** este SP NUNCA chamava
+     * `loadMigrationsFrom`, então o `php artisan migrate --force` do deploy
+     * (deploy.yml:312, path default) **pulava** as migrations de `Modules/KB/`.
+     * As tabelas iniciais (2026_05_15_*) foram aplicadas manualmente no setup,
+     * mas a 1ª migration KB posterior (`2026_07_23_100000_add_code_drift_state_to_kb_nodes`,
+     * Fase A1) ficou **encalhada** — a coluna `code_drift_state` não existia em
+     * prod, e o surface Fase #5 (HealthPanel/NodeReader) não tinha o que renderizar.
+     * Registrar o path alinha KB aos outros módulos: o migrate do deploy passa a
+     * aplicar as pendentes automaticamente (idempotente — só roda as não-aplicadas).
+     */
+    protected function registerMigrations(): void
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 
     /**
