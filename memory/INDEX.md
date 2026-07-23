@@ -67,7 +67,7 @@
 - **[`_INDEX-SECRETS.md`](_INDEX-SECRETS.md)** — índice canon de TODOS secrets do projeto (~20 entradas): Hostinger DNS, Hostinger MySQL, MinIO CT 100, Vaultwarden, Centrifugo, Whatsmeow, Meta Cloud, Asaas, Sicoob, Mailgun, Anthropic, OpenAI, Langfuse, GitHub PAT. Ponteiro (não valor) + status (active/expired/pending/locked) + frequência rotação.
 - Skills correlatas: [`memory-first-secret-search`](../.claude/skills/memory-first-secret-search/SKILL.md) (busca canônica) + [`hostinger-dns-autonomy`](../.claude/skills/hostinger-dns-autonomy/SKILL.md) (autonomia Hostinger).
 
-## 🏛️ Governance & Decisões (~220 ADRs)
+## 🏛️ Governance & Decisões (contagem viva no [PAINEL-SISTEMA](reference/PAINEL-SISTEMA.md))
 
 - **[decisions/](decisions/)** — todas ADRs Nygard, **append-only**. Status: `accepted | proposed | historical | superseded`
 - [decisions/_INDEX-LIFECYCLE.md](decisions/_INDEX-LIFECYCLE.md) — índice oficial por lifecycle
