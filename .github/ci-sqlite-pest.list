@@ -28,6 +28,8 @@ Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
 Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
+# KB drift-detector persiste veredito doc↔código em kb_nodes.code_drift_state (Fase A1) — sqlite-safe (kbBootstrapSchema, coluna json, sem FK/ENUM MySQL-only).
+Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
 Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
 # Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
 # dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.
