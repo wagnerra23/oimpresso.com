@@ -105,18 +105,16 @@ jobs:
         # testes MySQL-only do KB SKIPam (guard `if sqlite markTestSkipped`, falsa
         # cobertura). Exportar aqui faz rodar no MySQL real semeado (biz=1 + biz=99).
         #
-        # CATRACA: a lane roda só os arquivos comprovadamente verdes contra MySQL real
-        # (probe CT100 oimpresso-staging, 2026-07-23). Cada novo verde entra AQUI
-        # (ratchet up). NÃO incluir RefreshDatabase/migrate:fresh — dropam schema+seed.
+        # CATRACA: a lane roda só os arquivos comprovadamente verdes contra MySQL real.
+        # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
+        # migrate:fresh — dropam schema+seed.
         #
-        # PENDENTE DE RATCHET (falharam SÓ na persistência do staging por colisão com
-        # ADRs reais já sincronizados em mcp_memory_documents + permissões kb.* globais
-        # pré-atribuídas; na DB efêmera desta lane a causa não existe — adicionar após
-        # o 1º run desta lane confirmar verde na DB fresca):
-        #   Http/KbNodeControllerTest · Http/KbCommentControllerTest ·
-        #   Http/KbFavoriteControllerTest · Http/KbPathControllerTest ·
-        #   Http/KbDecisionTreeControllerTest · CrossTenantIsolationTest ·
-        #   GovernanceInvariantsTest · KbIndexV2ContractTest
+        # Os 11 primeiros: provados no probe CT100 oimpresso-staging (2026-07-23).
+        # Os 8 seguintes (Http/*ControllerTest + CrossTenant + Governance + KbIndexV2):
+        # falhavam SÓ na persistência do staging (colisão 1062 com ADRs reais já
+        # sincronizados em mcp_memory_documents + permissões kb.* globais pré-atribuídas)
+        # — causa ausente na DB efêmera desta lane; ratcheados após o 1º run desta lane
+        # confirmar os 11 verdes na DB fresca (PR #4725).
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -138,7 +136,15 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
-            Modules/KB/Tests/Feature/LgpdComplianceTest.php
+            Modules/KB/Tests/Feature/LgpdComplianceTest.php \
+            Modules/KB/Tests/Feature/Http/KbNodeControllerTest.php \
+            Modules/KB/Tests/Feature/Http/KbCommentControllerTest.php \
+            Modules/KB/Tests/Feature/Http/KbFavoriteControllerTest.php \
+            Modules/KB/Tests/Feature/Http/KbPathControllerTest.php \
+            Modules/KB/Tests/Feature/Http/KbDecisionTreeControllerTest.php \
+            Modules/KB/Tests/Feature/CrossTenantIsolationTest.php \
+            Modules/KB/Tests/Feature/GovernanceInvariantsTest.php \
+            Modules/KB/Tests/Feature/KbIndexV2ContractTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
