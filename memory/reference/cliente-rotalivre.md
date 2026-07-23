@@ -6,10 +6,13 @@ type: cliente
 ---
 # ROTA LIVRE (business_id = 4)
 
+> ⚠️ **Duplicata — a autoridade de identidade e estado é a porta-mãe [`clientes/rota-livre/PERFIL.md`](../clientes/rota-livre/PERFIL.md)** (ADR 0334); detalhe operacional (versão higienizada) em [`clientes/rota-livre/operacao.md`](../clientes/rota-livre/operacao.md). Este arquivo persiste só porque docs append-only (ADRs, sessions) linkam o path — **use a porta-mãe.**
+
 **Razão social:** LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME
 **CNPJ:** [REDACTED-CNPJ]
 **Localização única:** BL0001 "ROTA LIVRE" — Termas do Gravatal, Gravatal/SC, CEP 88735-0
-**Telefone:** (48) 3626-4806
+**Telefone:** (48) 3626-XXXX <!-- redactado — ver operacao.md -->
+
 **Timezone cadastrado:** `America/Sao_Paulo` (confirmado operacionalmente em 2026-04-24)
 **Cadastro original:** 2021-02-01
 **Volume:** 17.251+ vendas (~99% do total do sistema)
