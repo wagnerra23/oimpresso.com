@@ -1,3 +1,10 @@
+---
+title: "Runbook · NFSe"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # Runbook · NFSe
 
 > **Owner**: Eliana[E]

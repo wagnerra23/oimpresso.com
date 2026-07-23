@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Fiscal/Sped (sub-página 7)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Fiscal/Sped (sub-página 7)
 
 > **Tela:** `/fiscal/sped` · **Permissão:** `fiscal.sped.export` · **PRs origem:** #3 (placeholder) + #1259 Wave 8 (gerador MVP) + #1261 Wave 9 (Bloco E + H)

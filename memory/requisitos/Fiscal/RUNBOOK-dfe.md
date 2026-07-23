@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Fiscal/Dfe (sub-página 4)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Fiscal/Dfe (sub-página 4)
 
 > **Tela:** `/fiscal/dfe` · **Permissão:** `fiscal.dfe.manage` · **PR origem:** PR #3 Wave final

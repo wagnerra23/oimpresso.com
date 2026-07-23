@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Acesso ao CT 100 (oimpresso-mcp + Docker stack)"
+owner: W
+status: ativo
+last_validated: "2026-07-17"
+---
+
 # RUNBOOK — Acesso ao CT 100 (oimpresso-mcp + Docker stack)
 
 > 🔌 **CT 100 inacessível / "offline"? → O CABO DE REDE É RUIM (hardware conhecido, [W] 2026-07-16).**

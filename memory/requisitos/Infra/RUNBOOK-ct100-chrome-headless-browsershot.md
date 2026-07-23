@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — CT 100 Chrome headless pra Browsershot (PDF Transcript Sells)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — CT 100 Chrome headless pra Browsershot (PDF Transcript Sells)
 
 > **Tipo:** receita operacional "como instalar/ativar Chrome headless no CT 100"

@@ -1,3 +1,10 @@
+---
+title: "Runbook · Manufacturing"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # Runbook · Manufacturing
 
 ## Problema: Production order falha "Insufficient stock"

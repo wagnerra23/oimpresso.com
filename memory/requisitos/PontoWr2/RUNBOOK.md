@@ -1,3 +1,10 @@
+---
+title: "Runbook · PontoWr2"
+owner: W
+status: ativo
+last_validated: "2026-06-13"
+---
+
 # Runbook · PontoWr2
 
 ## Problema: `/ponto` retorna 404 ou redireciona pro Blade antigo
