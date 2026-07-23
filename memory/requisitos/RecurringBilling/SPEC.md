@@ -1,4 +1,5 @@
 ---
+id: requisitos-recurring-billing-spec
 module: RecurringBilling
 slug: recurring-billing-spec
 title: Especificação funcional — RecurringBilling

@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-readme
 module: Financeiro
 alias: financeiro
 status: ativo

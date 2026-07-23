@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-ui-0002-monitor-cstat-sugestao-correcao
+---
+
 # ADR UI-0002 (NfeBrasil) · Monitor com cStat → sugestão de correção
 
 - **Status**: accepted

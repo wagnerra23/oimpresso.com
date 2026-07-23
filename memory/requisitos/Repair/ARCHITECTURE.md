@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-architecture
+---
+
 # Arquitetura
 
 ## 1. Objetivo

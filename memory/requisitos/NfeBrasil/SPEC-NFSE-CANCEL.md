@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-spec-nfse-cancel
+---
+
 # SPEC — Cancelamento NFSe (Modelo 56) per-município
 
 **Status:** draft (framework abstrato pronto; drivers per-município pendentes)

@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-dre-visual-comparison
 slug: dre-visual-comparison
 title: "Financeiro — Comparativo visual da tela DRE gerencial"
 type: visual-comparison

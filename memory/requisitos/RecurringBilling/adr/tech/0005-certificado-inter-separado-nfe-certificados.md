@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-tech-0005-certificado-inter-separado-nfe-certificados
+---
+
 # ADR TECH-0005 (RecurringBilling) · Certificado Inter separado de nfe_certificados
 
 - **Status**: accepted

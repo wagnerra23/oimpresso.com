@@ -1,4 +1,5 @@
 ---
+id: requisitos-recurring-billing-features-gateway-ativacao-requirements
 feature: gateway-ativacao
 module: RecurringBilling
 us: ["US-RB-052"]
