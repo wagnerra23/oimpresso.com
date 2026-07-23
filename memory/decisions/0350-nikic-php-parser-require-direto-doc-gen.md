@@ -9,7 +9,7 @@ lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-07-23"
-module: KB
+module: kb
 quarter: 2026-Q3
 tags: [kb, dependencia, php-parser, ast, doc-gen, doc-codigo, swimm]
 supersedes: []
