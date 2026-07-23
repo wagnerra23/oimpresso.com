@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-changelog
+---
+
 # Changelog — Jana
 
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).

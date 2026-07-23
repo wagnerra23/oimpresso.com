@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-evidence-retention-purge-dry-run-2026-07-12
+---
+
 # EVIDENCE — `jana:retention-purge` dry-run staging CT100 + pedido formal de flip (2026-07-12)
 
 > **Objetivo:** fechar o prep agent-executável do item **loop-6** (`.claude/loop-fechar-o-loop.json` — LGPD purge job): provar em staging que o purge funciona, escopado, sem tocar nada — e formalizar o pedido de flip `JANA_RETENTION_ENABLED=true` pro Wagner (único passo HITL).

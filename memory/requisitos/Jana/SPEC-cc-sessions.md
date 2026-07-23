@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-spec-cc-sessions
+---
+
 # SPEC — `/copiloto/admin/cc-sessions` (Memória Claude Code do time)
 
 > **Status:** Proposta — pendente Cycle 02

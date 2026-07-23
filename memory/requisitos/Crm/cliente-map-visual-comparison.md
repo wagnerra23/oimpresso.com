@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-cliente-map-visual-comparison
+---
+
 # Visual Comparison — Cliente/Map (W1-B3)
 
 ## Divergência (ADR 0149)

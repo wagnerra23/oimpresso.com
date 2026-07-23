@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-auditoria-webhook-sync-handlers-2026-05-14
+---
+
 # Auditoria webhook handlers sync→async — 2026-05-14
 
 ## Resumo executivo

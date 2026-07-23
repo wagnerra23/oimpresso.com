@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-pii-redaction
+---
+
 # PII Redaction — Modules/Crm
 
 > Documento D7 LGPD — declara onde e como PII é tratada antes de log/telemetria.

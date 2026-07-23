@@ -2,7 +2,7 @@
 page: /atendimento/canais/jana-templates
 component: resources/js/Pages/Atendimento/JanaTemplates.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-05-12"
 parent_module: Whatsapp
 parent_capterra: memory/requisitos/Whatsapp/CAPTERRA-FICHA.md

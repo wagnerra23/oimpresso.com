@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-audit-cockpit-runbook-create-2026-05-15
 slug: sells-audit-cockpit-runbook-create-2026-05-15
 title: "Sells/Create — Audit Cockpit Runbook modo B (pre-canary biz=4)"
 type: audit

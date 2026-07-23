@@ -2,7 +2,7 @@
 page: /atendimento/channels
 component: resources/js/Pages/Atendimento/Channels/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-05-16"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md

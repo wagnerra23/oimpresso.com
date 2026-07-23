@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-subscriptions-visual-comparison
 slug: sells-subscriptions-visual-comparison
 title: "Sells/Subscriptions — Visual Comparison F1.5 (MWART gate)"
 type: visual-comparison

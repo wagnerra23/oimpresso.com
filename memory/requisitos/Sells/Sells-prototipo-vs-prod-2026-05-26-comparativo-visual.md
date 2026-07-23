@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-sells-prototipo-vs-prod-2026-05-26-comparativo-visual
 session: 2026-05-26 smoke pós-stack 18 PRs KB-9.75 mergeados em prod
 page: /vendas (prototipo Cowork) vs /sells (prod oimpresso.com Hostinger)
 component: resources/js/Pages/Sells/Index.tsx + prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-page.jsx

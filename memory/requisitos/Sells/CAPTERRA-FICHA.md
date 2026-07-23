@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Sells (capacidade)
 
 > Ficha canônica de benchmark de **capacidade** do módulo Sells (venda/PDV — core UltimatePOS + MWART Inertia).

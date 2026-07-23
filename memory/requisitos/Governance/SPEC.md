@@ -1,4 +1,5 @@
 ---
+id: requisitos-governance-spec
 lifecycle: active
 owner: [W]
 module: Governance

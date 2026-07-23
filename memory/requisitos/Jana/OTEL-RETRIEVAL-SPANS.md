@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-otel-retrieval-spans
+---
+
 # OTel GenAI retrieval spans — pipeline Jana
 
 > **D8 gap #3 — Observabilidade retrieval pipeline (2026-05-15)** — fechado pelo audit-implement-expert. Impacto: **+2pp (86 → 88)** rumo a 98 cumulativo.

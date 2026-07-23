@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-settings-visual-comparison
+---
+
 # Visual comparison F1.5 · `/whatsapp/settings` (US-WA-310)
 
 > Skill `mwart-comparative` V4 — Wagner aprova **SCREENSHOT** (não tabela)

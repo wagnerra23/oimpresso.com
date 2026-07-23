@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-casos-uso-create-venda
 doc: casos-uso
 page: /sells/create
 charter: resources/js/Pages/Sells/Create.charter.md

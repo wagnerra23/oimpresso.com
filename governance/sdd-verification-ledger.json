@@ -994,6 +994,23 @@
       "veredito": "aprovado"
     },
     {
+      "pr": 4729,
+      "lote_id": "PR6-fresh6-id-backfill-01",
+      "data": "2026-07-23",
+      "tipo": "prosa",
+      "gerador": "opus (doc-id-stamp.mjs deterministico — id=slug-do-path)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 172,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/4729#issuecomment-5060864410",
+      "veredito": "aprovado"
+    },
+    {
       "pr": 4731,
       "lote_id": "PR6-runbook-frontmatter-cura-01",
       "data": "2026-07-23",

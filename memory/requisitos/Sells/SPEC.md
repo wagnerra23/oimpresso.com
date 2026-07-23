@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-spec
 slug: sells
 title: "Especificação funcional — Sells (migração MWART de /sells/create)"
 type: spec

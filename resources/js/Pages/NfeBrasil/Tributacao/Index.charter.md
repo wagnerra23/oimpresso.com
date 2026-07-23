@@ -2,7 +2,7 @@
 page: /nfe-brasil/tributacao
 component: resources/js/Pages/NfeBrasil/Tributacao/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-05-10"
 parent_module: NfeBrasil
 related_adrs: [29, 93, 94]

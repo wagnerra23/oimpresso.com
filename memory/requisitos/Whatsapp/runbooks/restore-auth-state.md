@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-runbooks-restore-auth-state
+---
+
 # Runbook — Restore auth-state WhatsApp (wuzapi/whatsmeow) CT 100
 
 > Companion do backup automatizado em [`infra/scripts/backup-whatsmeow-auth.sh`](../../../../infra/scripts/backup-whatsmeow-auth.sh).

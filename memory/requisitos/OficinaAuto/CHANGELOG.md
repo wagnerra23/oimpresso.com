@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-changelog
+---
+
 # Changelog — Modules/OficinaAuto
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).

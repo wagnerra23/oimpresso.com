@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-runbooks-onboarding-meta-cloud-embedded-signup
+---
+
 # Runbook — Onboarding Meta Cloud via Embedded Signup v4
 
 > **Status:** canon US-WA-310 Fase 2 (ADR 0202)

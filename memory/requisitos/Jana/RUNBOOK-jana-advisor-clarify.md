@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-runbook-jana-advisor-clarify
 title: "Jana Advisor (Modo Consultor) — Metade A: Clarify reativo"
 module: Jana
 owner: W

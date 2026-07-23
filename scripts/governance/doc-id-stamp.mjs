@@ -190,14 +190,28 @@ async function validatesSchema(root, rel, futureText) {
   return validate(data) ? { ok: true } : { ok: false, why: _ajv.errorsText(validate.errors).slice(0, 200) };
 }
 
-// Módulos de requisitos com porta destilada (BRIEFING carimbado) — intocáveis (ver nota acima).
-function distilledModules(root) {
+// Módulos com porta destilada que STAMPAR HOJE deixaria STALE (>7d vs distilled_at) — esses
+// ficam intocáveis (GT-G3 required morde). Um módulo cuja porta foi destilada DENTRO da janela
+// (distilled_at a ≤7d da data do stamp) é SEGURO carimbar: o doc mais novo vira "hoje", mas a
+// porta segue <7d atrás → distiller_freshness=0. Refinado 2026-07-23 (era presença-only, pulava
+// até porta fresca): freshness-aware, MESMA régua do measureDistillerFreshness (ADR 0291 D-D,
+// STALE=7d). `today` injetável pro selftest ser determinístico. Módulo stale segue intocável até
+// re-destilar via jana:distill-module-truth (CT100) — NUNCA forjar o carimbo à mão.
+const STALE_DAYS_DISTILLER = 7;
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+function distilledModules(root, { today = todayISO(), staleDays = STALE_DAYS_DISTILLER } = {}) {
   const out = new Set();
   const base = join(root, 'memory/requisitos');
   let mods = [];
   try { mods = readdirSync(base, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name); } catch { return out; }
   for (const mod of mods) {
-    try { if (/^distilled_at:/m.test(readFileSync(join(base, mod, 'BRIEFING.md'), 'utf8'))) out.add(mod); } catch { /* sem BRIEFING */ }
+    let text;
+    try { text = readFileSync(join(base, mod, 'BRIEFING.md'), 'utf8'); } catch { continue; /* sem BRIEFING */ }
+    const m = text.match(/^distilled_at:\s*["']?(\d{4}-\d{2}-\d{2})/m);
+    if (!m) continue; // porta sem carimbo → não é módulo destilado; stamp livre
+    // Stampar hoje faz o doc mais novo = hoje. Pula SÓ se isso jogaria a porta >staleDays atrás.
+    const daysAhead = (Date.parse(today) - Date.parse(m[1])) / 86400000;
+    if (daysAhead > staleDays) out.add(mod);
   }
   return out;
 }
@@ -211,7 +225,7 @@ const REQUIRED_SCHEMA_PREFIXES = ['memory/reference/'];
 
 export async function plan(root, opts = {}) {
   const targets = collectTargets(root, opts);
-  const distilled = opts.includeToxic ? distilledModules(root) : new Set();
+  const distilled = opts.includeToxic ? distilledModules(root, { today: opts.today }) : new Set();
   const toStamp = []; const skipped = { hasId: 0, generated: 0, deferredNoFrontmatter: 0, pii: 0, distilledModule: 0, schema: 0, yamlBroken: 0 };
   const schemaDefers = []; const byId = new Map();
   for (const rel of targets) {
@@ -268,9 +282,13 @@ async function runSelftest() {
     writeFileSync(join(fx, 'memory/requisitos/Jana/SPEC.md'), '# SPEC gate-toxic\n');
     // Fixtures dos pré-checks --include-toxic (PR6):
     mkdirSync(join(fx, 'memory/requisitos/ModCarimbado'), { recursive: true });
+    mkdirSync(join(fx, 'memory/requisitos/ModCarimbadoFresco'), { recursive: true });
     mkdirSync(join(fx, 'memory/requisitos/ModLivre'), { recursive: true });
-    writeFileSync(join(fx, 'memory/requisitos/ModCarimbado/BRIEFING.md'), '---\ndistilled_at: 2026-07-10\n---\n# Porta destilada\n');
-    writeFileSync(join(fx, 'memory/requisitos/ModCarimbado/doc.md'), '# Doc de módulo carimbado\n');
+    writeFileSync(join(fx, 'memory/requisitos/ModCarimbado/BRIEFING.md'), '---\ndistilled_at: 2026-07-10\n---\n# Porta destilada STALE (>7d atrás de 2026-07-23)\n');
+    writeFileSync(join(fx, 'memory/requisitos/ModCarimbado/doc.md'), '# Doc de módulo carimbado stale\n');
+    // Porta destilada FRESCA (≤7d): stampar hoje mantém distiller_freshness=0 → SEGURO carimbar.
+    writeFileSync(join(fx, 'memory/requisitos/ModCarimbadoFresco/BRIEFING.md'), '---\ndistilled_at: 2026-07-20\n---\n# Porta destilada fresca\n');
+    writeFileSync(join(fx, 'memory/requisitos/ModCarimbadoFresco/doc.md'), '# Doc de módulo carimbado fresco\n');
     writeFileSync(join(fx, 'memory/requisitos/ModLivre/doc.md'), '# Doc livre (sem schema mapeado)\n');
     // SPEC que VIOLA o schema strict (frontmatter sem os required do spec.schema) → defer:
     writeFileSync(join(fx, 'memory/requisitos/ModLivre/SPEC.md'), '---\ntitulo: X\n---\n# SPEC inválido\n');
@@ -283,9 +301,10 @@ async function runSelftest() {
     ok('plan: pula quem já tem id', p.skipped.hasId === 1 && !p.toStamp.some((t) => t.rel.endsWith('/b.md')));
     ok('plan: pula gerado', p.skipped.generated === 1);
     ok('plan: NÃO toca gate-toxic (requisitos/audits/research) sem --include-toxic', !p.toStamp.some((t) => t.rel.includes('requisitos')));
-    const toxic = await plan(fx, { includeToxic: true });
+    const toxic = await plan(fx, { includeToxic: true, today: '2026-07-23' });
     ok('plan toxic: pega doc livre de módulo sem carimbo', toxic.toStamp.some((t) => t.rel === 'memory/requisitos/ModLivre/doc.md'));
-    ok('plan toxic: PULA módulo inteiro com distilled_at (GT-G3 morderia)', toxic.skipped.distilledModule >= 1 && !toxic.toStamp.some((t) => t.rel.includes('ModCarimbado')));
+    ok('plan toxic: PULA módulo destilado STALE (>7d atrás de hoje — GT-G3 morderia)', toxic.skipped.distilledModule >= 1 && !toxic.toStamp.some((t) => t.rel.startsWith('memory/requisitos/ModCarimbado/')));
+    ok('plan toxic: CARIMBA módulo destilado FRESCO (≤7d — distiller_freshness fica 0)', toxic.toStamp.some((t) => t.rel === 'memory/requisitos/ModCarimbadoFresco/doc.md'));
     ok('plan toxic: DEFERE SPEC que viola schema strict (AJV)', toxic.skipped.schema >= 1 && !toxic.toStamp.some((t) => t.rel === 'memory/requisitos/ModLivre/SPEC.md'));
     ok('plan toxic: SPEC sem frontmatter tb não passa (schema exige campos)', !toxic.toStamp.some((t) => t.rel === 'memory/requisitos/Jana/SPEC.md'));
     const only = await plan(fx, { includeToxic: true, only: 'memory/requisitos/ModLivre/' });
