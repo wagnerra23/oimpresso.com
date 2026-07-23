@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-demo-pilot-2026-05-16-jana-v2-demo-script
+---
+
 # JANA V2 — Roteiro Demo Piloto (15 minutos)
 
 > **Tipo:** Roteiro de apresentação síncrona para 1 cliente piloto

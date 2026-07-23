@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-adr-tech-0001-drivers-apuracao-plugaveis
+---
+
 # ADR TECH-0001 — Drivers de apuração plugáveis (SQL / PHP / HTTP)
 
 **Data:** 2026-04-24

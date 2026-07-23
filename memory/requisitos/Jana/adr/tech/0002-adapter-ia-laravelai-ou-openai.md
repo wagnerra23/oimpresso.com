@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-adr-tech-0002-adapter-ia-laravelai-ou-openai
+---
+
 # ADR TECH-0002 — Adapter de IA (LaravelAI preferido, OpenAI direto como fallback)
 
 **Data:** 2026-04-24

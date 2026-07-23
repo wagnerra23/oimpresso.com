@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-plano-atendimento-automatico
+---
+
 # Plano — Atendimento Automático (WhatsApp / Caixa Unificada)
 
 > **Origem:** pedido [W] 2026-06-20 ("concluir o plano de atendimento automático — abrir suporte") + estado-da-arte [`sessions/2026-06-20-arte-atendimento-automatico-vs-melhor.md`](../../sessions/2026-06-20-arte-atendimento-automatico-vs-melhor.md) + estudo de ROI (este doc, §0).

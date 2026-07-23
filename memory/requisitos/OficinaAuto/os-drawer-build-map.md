@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-os-drawer-build-map
+---
+
 # Mapa de construção — Drawer de OS (OficinaAuto · "Nova Ordem de Serviço")
 
 > **Tipo:** mapa de construção (alvo `OficinaAuto/Os/Create.tsx` NÃO existe — só charter `draft`). NÃO é gap-vs-vivo.

@@ -1,4 +1,5 @@
 ---
+id: requisitos-whatsapp-caixa-unificada-v4-visual-comparison
 slug: caixa-unificada-v4-visual-comparison
 title: "Caixa Unificada V4 — Visual comparison F3 (Cowork → Inertia)"
 type: visual-comparison

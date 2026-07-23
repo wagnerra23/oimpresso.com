@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-pii-redaction
+---
+
 # PII Redaction — Modules/Jana
 
 > Documento D7 LGPD — declara onde e como PII é tratada antes de log/telemetria.

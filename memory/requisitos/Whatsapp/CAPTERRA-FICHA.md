@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Whatsapp transacional (BSP / API providers)
 
 > **Cruzamento gerado:** 2026-05-07

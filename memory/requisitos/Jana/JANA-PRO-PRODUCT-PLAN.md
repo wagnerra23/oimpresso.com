@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-jana-pro-product-plan
+---
+
 # JANA Pro — Product Plan executivo (32 US, 4 sprints, 90 dias)
 
 > **Status:** Aprovado por Wagner 2026-05-11

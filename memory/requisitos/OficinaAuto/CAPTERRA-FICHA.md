@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-capterra-ficha
+---
+
 # CAPTERRA-FICHA — OficinaAuto
 
 > Ficha canônica de benchmark do módulo vertical OficinaAuto.

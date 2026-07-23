@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-cliente-edit-visual-comparison
+---
+
 # Visual Comparison — Cliente/Edit (W1-B3)
 
 ## Pattern reuse (ADR 0149)

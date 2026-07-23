@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-runbook-board
 title: "RUNBOOK — Quadro (Kanban) de OS de Mecânica (OficinaAuto/ServiceOrders/Board)"
 module: OficinaAuto
 tela: OficinaAuto/ServiceOrders/Board

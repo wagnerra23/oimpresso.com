@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-demo-martinho-2026-05-13-plano-paralelizacao
+---
+
 # Plano de paralelização — OficinaAuto Fase 1 (pós-Martinho)
 
 **Gerado por:** `coordenador-paralelo` (agent) · **Data:** 2026-05-13 06:53 BRT

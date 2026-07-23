@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-cobradora-piloto-tasks-batch
+---
+
 # Cobradora piloto ROTA LIVRE — batch de tasks pra criar no MCP
 
 > **Fonte:** [ADR 0145](../../decisions/0145-ia-administradora-pivot-ads-fsm-piloto-cobradora.md) §Decomposição em US

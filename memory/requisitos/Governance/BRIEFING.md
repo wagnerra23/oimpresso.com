@@ -1,4 +1,5 @@
 ---
+id: requisitos-governance-briefing
 distilled_at: "2026-07-17"
 distilled_by: "manual [CC] — redistilação por releitura do módulo (rotas + comandos + config + baseline + gates rodados). Substitui o refresh de 2026-07-09, que ainda carregava a medição de 2026-05-16 como se fosse estado"
 module: Governance

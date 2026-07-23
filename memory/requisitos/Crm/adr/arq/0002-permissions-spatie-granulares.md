@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-adr-arq-0002-permissions-spatie-granulares
+---
+
 # ADR ARQ-0002 (Crm) · Permissões Spatie granulares
 
 - **Status**: accepted

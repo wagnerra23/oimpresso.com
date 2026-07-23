@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-briefing
 distilled_at: "2026-07-17"
 distilled_by: "manual [CC] — redistilação por releitura do módulo (código + SPEC + baseline + flags). Substitui o destilado automático de 2026-07-10, que carimbou META de maio como estado atual (ver §Estado atual)"
 module: Jana

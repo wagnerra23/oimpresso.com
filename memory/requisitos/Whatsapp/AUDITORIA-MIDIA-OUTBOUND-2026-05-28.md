@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-auditoria-midia-outbound-2026-05-28
+---
+
 # AUDITORIA — Mídia + Outbound web UI Inbox (Modules/Whatsapp)
 
 **Data:** 2026-05-28
