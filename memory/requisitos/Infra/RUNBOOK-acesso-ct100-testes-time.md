@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Acesso da equipe (Maiara/Felipe) ao CT 100 pra rodar testes"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Acesso da equipe (Maiara/Felipe) ao CT 100 pra rodar testes
 
 > **Tipo:** runbook reproduzível

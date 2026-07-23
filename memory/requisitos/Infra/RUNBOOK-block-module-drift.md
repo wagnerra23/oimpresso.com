@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — `block-module-drift.ps1` (Mecanismo #3 ENFORCEMENT)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — `block-module-drift.ps1` (Mecanismo #3 ENFORCEMENT)
 
 > Hook PreToolUse local que detecta Controllers fora do `SCOPE.md.contains[]` do módulo proprietário. Implementa **Mecanismo #3** de [memory/governance/ENFORCEMENT.md §2](../../governance/ENFORCEMENT.md) — pré-commit local pra catch drift antes de virar PR. Trabalha em camada **L5 (Module Charter — ADR 0080)** + Constituição v1.1.0 Artigo 7.

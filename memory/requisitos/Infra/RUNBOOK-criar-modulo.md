@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Criar novo módulo no oimpresso ERP"
+owner: W
+status: ativo
+last_validated: "2026-07-10"
+---
+
 # RUNBOOK — Criar novo módulo no oimpresso ERP
 
 > **Tipo:** runbook reproduzível

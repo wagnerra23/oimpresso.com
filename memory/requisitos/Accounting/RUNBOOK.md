@@ -1,3 +1,10 @@
+---
+title: "Runbook · Accounting"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # Runbook · Accounting
 
 ## Problema: Journal Entry não salva ("Unbalanced Entry")

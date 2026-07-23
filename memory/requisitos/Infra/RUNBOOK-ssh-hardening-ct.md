@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — SSH hardening em CT Proxmox (Debian 12 LXC)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — SSH hardening em CT Proxmox (Debian 12 LXC)
 
 > **Tipo:** runbook reproduzível
