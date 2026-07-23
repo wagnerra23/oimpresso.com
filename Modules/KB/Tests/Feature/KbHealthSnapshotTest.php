@@ -15,7 +15,11 @@ declare(strict_types=1);
  *   - sem --snapshot não grava nada
  *   - multi-tenant Tier 0: snapshot biz=1 não cria row de biz=99 (ADR 0093/0101)
  *
- * sqlite-safe: kbBootstrapSchema roda todas migrations 2026_* (incl. kb_health_history).
+ * LANE: MySQL-only (kb-pest.yml) — NÃO na lista sqlite per-PR. As asserções de
+ * contagem por-business + multi-tenant divergem no sqlite :memory: da lane
+ * compartilhada (o comando enxerga resíduo que a re-query do teste não vê —
+ * artefato de conexão, mesmo motivo de estoque-pest/essentials-pest). Em MySQL
+ * (banco compartilhado real) passa. kbBootstrapSchema roda todas migrations 2026_*.
  */
 
 use Illuminate\Support\Facades\DB;

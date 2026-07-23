@@ -34,8 +34,10 @@ Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
 Modules/KB/Tests/Feature/KbCodeScanTest.php
 # KB code-graph (Fase D) — kb_edges de dependência (classe usa classe) via AST. sqlite-safe (kbBootstrapSchema cria kb_nodes+kb_edges; php-parser das dev deps).
 Modules/KB/Tests/Feature/KbCodeGraphTest.php
-# KB health snapshot (régua doc↔código, 2026-07-23) — 3 checks derivados + kb_health_history série temporal. sqlite-safe.
-Modules/KB/Tests/Feature/KbHealthSnapshotTest.php
+# NOTA: KbHealthSnapshotTest NÃO entra aqui — é MySQL-only (roda na lane kb-pest.yml).
+# Suas asserções de contagem por-business + multi-tenant divergem no sqlite :memory:
+# da lane compartilhada (o comando enxerga resíduo que a re-query do teste não vê;
+# artefato de conexão, mesmo motivo de estoque-pest/essentials-pest). Passa em MySQL.
 Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
 # Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
 # dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.
