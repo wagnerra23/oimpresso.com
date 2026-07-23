@@ -227,7 +227,7 @@
     "resources/js/Pages/kb/_components/GraphFilters.tsx": 10,
     "resources/js/Pages/kb/_components/GraphLegend.tsx": 3,
     "resources/js/Pages/kb/_components/GraphNodeDetail.tsx": 11,
-    "resources/js/Pages/kb/_components/HealthPanel.tsx": 2,
+    "resources/js/Pages/kb/_components/HealthPanel.tsx": 3,
     "resources/js/Pages/kb/_components/NodeList.tsx": 6,
     "resources/js/Pages/kb/_components/NodeReader.tsx": 11,
     "resources/js/Pages/kb/_components/PathsDialog.tsx": 5,
