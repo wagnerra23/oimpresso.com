@@ -280,10 +280,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 37,
+        "entries_aprovadas": 38,
         "max_error_rate_pct": 1.82,
-        "last_pr": 4719,
-        "last_lote": "PR6-compras-id-backfill-01"
+        "last_pr": 4723,
+        "last_lote": "PR6-lote-grande-requisitos-charters-01"
       },
       "stream": "GT"
     }
