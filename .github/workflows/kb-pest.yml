@@ -128,16 +128,13 @@ jobs:
             foreach (['copiloto.mcp.memory.manage','kb.view','kb.write','kb.comment','kb.publish.path','kb.publish.troubleshoot','kb.softdelete','kb.restore','kb.favorite'] as \$p) {
               \Spatie\Permission\Models\Permission::firstOrCreate(['name' => \$p, 'guard_name' => 'web']);
             }
-            // Users de teste 42 (biz=1) e 99 (biz=99) COMMITTED — no CT100 eles são reais e o
-            // request HTTP resolve o user comprometido; na lane o kbActAsUser os criava DENTRO
-            // da transação → o guard de sessão do request não enxergava direito o grant → 403.
-            foreach ([[42,1],[99,99]] as [\$id,\$biz]) {
-              if (! \DB::table('users')->where('id',\$id)->exists()) {
-                \DB::table('users')->insert(['id'=>\$id,'username'=>'test_user_'.\$id,'email'=>'test_'.\$id.'@test.local','password'=>bcrypt('test'),'business_id'=>\$biz,'created_at'=>now(),'updated_at'=>now()]);
-              }
-            }
-            echo 'permissions + users KB semeados (committed)'.PHP_EOL;
+            echo 'permissions KB semeadas (committed)'.PHP_EOL;
           "
+        # NOTA (WIP): o KbIndexV2 ainda dá 403 no request HTTP sob DatabaseTransactions na lane
+        # (grant funciona no teste — can=1 — mas o `can:` middleware do request não enxerga).
+        # Diferença provada vs CT100 (onde passa): o user 42 é criado DENTRO da transação na
+        # lane. Fix candidato: semear os users de teste committed (via factory — o insert cru
+        # falha por colunas NOT NULL do users UltimatePOS). Deixado pro follow-up focado.
 
       - name: Zerar baseline do dump (kb_* + CORE de teste) — só na lane efêmera
         # O migrate --force carrega o mysql-schema.sql (dump prod) que traz LINHAS baseline em
