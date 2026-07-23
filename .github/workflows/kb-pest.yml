@@ -137,20 +137,40 @@ jobs:
         #     → KbIndexV2ContractTest agora entra na allowlist (12 arquivos), provado verde
         #       pela lane. GAP 1 fechado.
         #
-        #   GAP 2 — os 7 RATCHET-PENDENTE (Http/*ControllerTest + GovernanceInvariantsTest
-        #   + CrossTenantIsolationTest): a raiz principal NÃO é guard_name/business_id
-        #   (refutado: Spatie `teams` OFF, guards batem 'web', sem team scoping). É NAME
-        #   MISMATCH + design: todo controller/request KB gateia na permissão COARSE
-        #   `copiloto.mcp.memory.manage`, mas esses testes concedem `kb.*` granular
-        #   (kb.view/kb.write/kb.comment/kb.publish.path/kb.publish.troubleshoot/
-        #   kb.softdelete/kb.restore). Sob o gate coarse os pares read×write são
-        #   IRRECONCILIÁVEIS (GET só-kb.view→200 exige a perm; POST-sem-write só-kb.view→403
-        #   exige NÃO tê-la; mesma perm). Fechar = implementar o authz granular kb.* que o
-        #   módulo adiou ("rename Spatie fica em PR separado") — MUDA autorização em prod
-        #   + risco de lock-out de usuários atuais (exige backfill de permissão/role). Há
-        #   AINDA a flakiness de cache Spatie (item b acima) por cima, que também pede reset
-        #   de permissão no helper (kbActAsUser/kbBootstrapSchema). Decisão [W] — task aberta
-        #   pro PR de authz granular + reset de cache; NÃO force ratchet aqui.
+        #   GAP 2 — os 7 (Http/*ControllerTest + GovernanceInvariantsTest +
+        #   CrossTenantIsolationTest). A CAMADA DE TOPO era authz (NAME MISMATCH): todo
+        #   controller/request KB gateia na COARSE `copiloto.mcp.memory.manage` (SCHEMA-DB-V1
+        #   §12 declara CANÔNICA até o "PR de rename Spatie"; os kb.* são DECLARATIVOS, não
+        #   gateiam), mas os testes concediam só `kb.*` → middleware 403 em todo sucesso.
+        #   O PR #4736 (decisão [W], Opção B) ALINHOU os 7 à realidade V1 (sucesso concede a
+        #   coarse; 403 concede só kb.view; cross-tenant/governança/autoria concedem a coarse
+        #   DE PROPÓSITO pra o bloqueio vir do global scope/invariante/autoria).
+        #   MAS 2 runs REAIS da lane provaram que authz era SÓ a superfície — NENHUM dos 7 é
+        #   ratcheteado ainda, por DOIS motivos:
+        #     (i)  5 dos 7 têm BUGS REAIS de comportamento que o 403 mascarava:
+        #          - KbNode: POST não cria snapshot inicial em kb_node_versions (store não
+        #            versiona no create); DELETE exige `confirm=CONFIRMO` (safety guard do
+        #            destroy) que o teste não manda → 422 (bug de TESTE).
+        #          - KbComment: DELETE do próprio autor → 403 (guarda `author_user_id !==
+        #            Auth::id()` estrita — provável string-vs-int).
+        #          - KbFavorite: GET ?favorites=1 não exclui o não-favoritado.
+        #          - Governance: save de KbNodeVersion pra nó bridge NÃO lança (gate de versão
+        #            de bridge não está no nível de Model).
+        #          - CrossTenant: POST /kb/edges cross-tenant → 201 — StoreKbEdgeRequest valida
+        #            `to_node_id` com `exists:kb_nodes,id` SEM escopo de business_id → biz=1
+        #            referencia nó biz=99. POTENCIAL TIER 0, decisão [W] (fix: escopar o exists
+        #            + provar que o read-path da aresta não vaza). + DELETE cross-tenant 422
+        #            (confirm faltando) + bridge job handle() sem args de DI (bug de TESTE).
+        #     (ii) resíduo de flakiness Spatie order-dependent (executionOrder=random):
+        #          permissions/model_has_* são CORE e não resetadas por kbTeardownSchema, o
+        #          user ACUMULA perms entre testes → 403 intermitente. O `forgetCached` que já
+        #          existe no helper não basta pros 7 (têm casos de 403 que herdariam a coarse
+        #          de um sucesso anterior). Fica pro PR de GAP 2: trocar givePermissionTo por
+        #          syncPermissions (perms exatas, zera acúmulo) — testado neste PR mas revertido
+        #          porque, sozinho, regrediu o KbIndexV2 (já ratcheteado) num run → precisa vir
+        #          junto do isolamento robusto, não solto. Ratchetear flaky quebra a lane.
+        #   Fechar GAP 2 = PR dedicado: fix dos 5 bugs + isolamento Spatie robusto (bootstrap/
+        #   teardown + syncPermissions). Os 7 já ficam authz-prontos (este PR). NÃO ratchetear.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1

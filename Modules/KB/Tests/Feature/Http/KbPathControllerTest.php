@@ -8,6 +8,10 @@ declare(strict_types=1);
  *   GET   /kb/paths/{slug}
  *   POST  /kb/paths   (perm: kb.publish.path)
  *   PUT   /kb/paths/{slug}  (perm: kb.publish.path)
+ *
+ * REALIDADE V1 (gate coarse — SCHEMA-DB-V1 §12): middleware REAL é
+ * `can:copiloto.mcp.memory.manage`; kb.publish.path ainda é declarativa. Sucesso
+ * concede a coarse; o caso de 403 concede só kb.view (sem coarse).
  */
 
 beforeEach(function () {
@@ -19,7 +23,7 @@ afterEach(function () {
 });
 
 it('GET /kb/paths lists trilhas of current business', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view']);
 
     \DB::table('kb_paths')->insert([
         ['business_id' => 1, 'slug' => 'wagner-onboard', 'title' => 'Wagner onboarding governança',
@@ -39,7 +43,7 @@ it('GET /kb/paths lists trilhas of current business', function () {
 });
 
 it('POST /kb/paths without kb.publish.path returns 403', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['kb.view']);  // sem 'copiloto.mcp.memory.manage' → 403 no gate coarse V1
 
     $response = $this->postJson('/kb/paths', [
         'slug'  => 'nao-autorizado',
@@ -51,7 +55,7 @@ it('POST /kb/paths without kb.publish.path returns 403', function () {
 });
 
 it('POST /kb/paths with kb.publish.path creates trilha + ordered steps', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.publish.path']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.publish.path']);
 
     // Cria 3 nodes pra serem passos
     $n1 = \DB::table('kb_nodes')->insertGetId(['business_id' => 1, 'type' => 'article', 'slug' => 'p1', 'title' => 'p1', 'is_editable' => true, 'body_blocks' => json_encode([]), 'status' => 'ok', 'created_at' => now(), 'updated_at' => now()]);
@@ -80,7 +84,7 @@ it('POST /kb/paths with kb.publish.path creates trilha + ordered steps', functio
 });
 
 it('GET /kb/paths/{slug} returns trilha detail with steps ordered', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view']);
 
     $pathId = \DB::table('kb_paths')->insertGetId([
         'business_id' => 1, 'slug' => 'detail-trilha', 'title' => 't',

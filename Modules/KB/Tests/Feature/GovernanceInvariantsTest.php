@@ -17,6 +17,13 @@ use Modules\KB\Entities\KbNode;
  *   - mesmo se Controller tenta forçar body_blocks em ADR bridge → falha
  *   - mesmo se Service tenta versionar bridge → falha
  *   - mesmo via HTTP PUT direto → 422 ou rejected
+ *
+ * REALIDADE V1 (gate coarse — SCHEMA-DB-V1 §12): o middleware REAL é
+ * `can:copiloto.mcp.memory.manage`. Todos os casos concedem a coarse DE PROPÓSITO:
+ * assim o usuário PASSA o middleware e a rejeição (422 NODE_NOT_EDITABLE no PUT
+ * bridge) vem da INVARIANTE de governança no controller/observer — não do gate.
+ * Sem a coarse, esses testes dariam 403 no middleware e NÃO exercitariam a invariante
+ * (falso-verde Tier 0).
  */
 
 beforeEach(function () {
@@ -42,7 +49,7 @@ it('keeps ADR bridge nodes body_blocks always NULL (R1 invariante)', function ()
         'status' => 'ok', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.write']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.write']);
 
     // Tenta forçar body_blocks via PUT no slug do ADR bridge
     $response = $this->putJson('/kb/nodes/0093', [
@@ -67,7 +74,7 @@ it('prevents kb_node_versions creation for bridge nodes (governance gate)', func
     ]);
     $bridgeId = \DB::table('kb_nodes')->where('slug', 'sess-1')->value('id');
 
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.write']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.write']);
 
     // Tentar via Model direto
     expect(function () use ($bridgeId) {
@@ -93,7 +100,7 @@ it('PUT on bridge ADR with valid editable-only fields (status reverify) still ok
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.write']);
+    kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.write']);
 
     $response = $this->postJson('/kb/nodes/verify-me/reverify');
     $response->assertOk();

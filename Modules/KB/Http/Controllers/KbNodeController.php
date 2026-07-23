@@ -173,8 +173,15 @@ class KbNodeController extends Controller
     {
         $node = KbNode::query()->where('slug', $slug)->firstOrFail();
         $node->last_verified_at = now();
+        // Dono confirmou frescor (SCHEMA-DB-V1 §11 "dono confirma frescor") → os votos
+        // de "está desatualizado" da comunidade viram moot. Zera o sinal de staleness.
+        $node->outdated_votes = 0;
         $node->save();
 
-        return response()->json(['ok' => true, 'last_verified_at' => $node->last_verified_at]);
+        return response()->json([
+            'ok'                => true,
+            'last_verified_at'  => $node->last_verified_at,
+            'outdated_votes'    => 0,
+        ]);
     }
 }
