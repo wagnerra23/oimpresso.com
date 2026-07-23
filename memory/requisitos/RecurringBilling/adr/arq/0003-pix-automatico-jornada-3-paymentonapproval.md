@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0003-pix-automatico-jornada-3-paymentonapproval
+---
+
 # ADR ARQ-0003 (RecurringBilling) · Pix Automático com Jornada 3 (PAYMENTONAPPROVAL)
 
 - **Status**: accepted

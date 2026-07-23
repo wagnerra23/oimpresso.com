@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-adr-arq-0002-portal-publico-consulta-status-sem-login
+---
+
 # ADR ARQ-0002 (Repair) · Portal público consulta status sem login
 
 - **Status**: accepted

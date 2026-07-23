@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-tech-0004-boleto-drivers-plugaveis-inter-c6-asaas
+---
+
 # ADR TECH-0004 (RecurringBilling) · Drivers de boleto plugáveis — Inter, C6, Asaas
 
 - **Status**: accepted

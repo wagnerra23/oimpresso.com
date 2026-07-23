@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-migration-checklist-legacy
 title: Migração Financeiro Delphi/Firebird → oimpresso — Checklist canônico por cliente
 status: canon
 date: 2026-05-21

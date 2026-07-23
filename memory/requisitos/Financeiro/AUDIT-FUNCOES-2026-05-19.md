@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-audit-funcoes-2026-05-19
+---
+
 # Auditoria de Funções — Módulo Financeiro
 
 **Data:** 2026-05-19

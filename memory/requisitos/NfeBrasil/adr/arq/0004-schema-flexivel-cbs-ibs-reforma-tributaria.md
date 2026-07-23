@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-arq-0004-schema-flexivel-cbs-ibs-reforma-tributaria
+---
+
 # ADR ARQ-0004 (NfeBrasil) · Schema flexível pra Reforma Tributária CBS/IBS
 
 - **Status**: accepted

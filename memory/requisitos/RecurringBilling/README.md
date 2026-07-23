@@ -1,4 +1,5 @@
 ---
+id: requisitos-recurring-billing-readme
 module: RecurringBilling
 alias: recurring-billing
 status: ativo

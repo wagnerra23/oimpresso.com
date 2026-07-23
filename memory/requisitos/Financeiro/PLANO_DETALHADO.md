@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-plano-detalhado
+---
+
 # Plano Detalhado — Módulo Financeiro
 
 > **Última atualização:** 2026-04-25 (sessão maratona — 6 PRs mergeados)

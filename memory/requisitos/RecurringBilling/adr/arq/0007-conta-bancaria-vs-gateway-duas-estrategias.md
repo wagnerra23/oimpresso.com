@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0007-conta-bancaria-vs-gateway-duas-estrategias
+---
+
 # ADR ARQ-0007 (RecurringBilling) · Conta bancária vs gateway — duas estratégias de cobrança
 
 - **Status**: accepted

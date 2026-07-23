@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-glossary
+---
+
 # Glossário · Repair
 
 ## Diagnostic fee
