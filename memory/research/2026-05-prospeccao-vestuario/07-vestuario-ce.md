@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-07-vestuario-ce
+---
+
 # Lojas-alvo Vestuário CE — 2026-05-10
 
 **Universo mapeado:** 26 lojas (8 Tier 1 validadas via WebFetch/site oficial + 10 Tier 2 + 8 Tier 3 long-tail)

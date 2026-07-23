@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-producao-tabelas-producao-produto
 table: PRODUCAO_PRODUTO
 module: producao
 created_at_version: 831

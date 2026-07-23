@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-31-graficas-rr
+---
+
 # Gráficas-alvo Roraima — 2026-05-10
 
 **Universo mapeado:** 11 empresas (2 Tier 1 com sinais sólidos + 4 Tier 2 + 5 Tier 3 long-tail)

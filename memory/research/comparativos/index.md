@@ -1,3 +1,7 @@
+---
+id: research-comparativos-index
+---
+
 # Cofre de Comparativos — Índice
 
 > **O que é:** comparativos competitivos estilo Capterra/G2 do oimpresso.

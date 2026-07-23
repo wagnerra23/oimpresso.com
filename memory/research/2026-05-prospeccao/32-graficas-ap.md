@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-32-graficas-ap
+---
+
 # Gráficas-alvo Amapá (AP) — 2026-05-10
 
 **Universo mapeado:** 9 empresas (3 Tier 1 validadas + 3 Tier 2 + 3 Tier 3 long-tail)

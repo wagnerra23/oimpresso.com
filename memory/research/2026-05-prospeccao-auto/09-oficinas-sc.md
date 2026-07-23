@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-09-oficinas-sc
+---
+
 # Oficinas-alvo SC — 2026-05-10
 
 **Universo mapeado:** 31 oficinas (15 Tier 1 validadas via WebFetch + 10 Tier 2 + 6 Tier 3 long-tail)

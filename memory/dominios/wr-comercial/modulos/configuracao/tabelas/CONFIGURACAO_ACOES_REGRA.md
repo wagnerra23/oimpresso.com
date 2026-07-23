@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-configuracao-tabelas-configuracao-acoes-regra
 table: CONFIGURACAO_ACOES_REGRA
 module: configuracao
 created_at_version: 945

@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-bi-tabelas-dashboards
 table: DASHBOARDS
 module: bi
 created_at_version: 1406

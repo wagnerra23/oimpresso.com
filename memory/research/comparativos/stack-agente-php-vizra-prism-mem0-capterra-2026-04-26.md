@@ -1,3 +1,7 @@
+---
+id: research-comparativos-stack-agente-php-vizra-prism-mem0-capterra-2026-04-26
+---
+
 # Matriz Comparativa estilo Capterra/G2 — Stack completa de agente PHP/Laravel: Vizra ADK + Prism PHP + Mem0 + LangGraph + Letta + Zep + OMEGA (2026-04-26)
 
 > **Assunto:** stack completa pra construir Jana comercializável. Cobre os **3 grupos** de pacote: (A) wrapper de LLM, (B) framework de agente/orquestração, (C) memória especializada. 7 players cobrindo do PHP-nativo (Vizra/Prism) até líder benchmark (OMEGA).

@@ -1,3 +1,7 @@
+---
+id: research-2026-05-sells-grade-heatmap-01-wr2-grade-usage-anonimizada
+---
+
 # Heatmap UI Vendas — `01-wr2` (anonimizado)
 
 > Coletado: 2026-05-11T10:14:30.643520

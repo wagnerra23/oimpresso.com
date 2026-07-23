@@ -1,3 +1,7 @@
+---
+id: research-comparativos-prompt-skill-management-2026-05-05
+---
+
 # Prompt/Skill Management UI — estado-da-arte 2026
 
 > **Assunto:** UIs de gestão de prompts/skills/templates IA — versionamento, governance, history, rationale, testes

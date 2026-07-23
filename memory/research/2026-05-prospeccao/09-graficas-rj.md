@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-09-graficas-rj
+---
+
 # Gráficas-alvo Rio de Janeiro (RJ) — 2026-05-10
 
 **Universo mapeado:** 38 gráficas (10 Tier 1 validadas via WebFetch + 16 Tier 2 + 12 Tier 3 long-tail)

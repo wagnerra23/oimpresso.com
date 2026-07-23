@@ -1,3 +1,7 @@
+---
+id: research-comparativos-copiloto-runtime-memory-vs-mem0-langgraph-letta-zep-capterra-2026-04-26
+---
+
 # Matriz Comparativa estilo Capterra/G2 — Jana runtime memory vs Mem0/LangGraph/Letta/Zep/OMEGA (2026-04-26)
 
 > **Assunto:** memória de **runtime** do agente Jana vs estado-da-arte de memória pra agentes IA (frameworks open-source + comerciais).

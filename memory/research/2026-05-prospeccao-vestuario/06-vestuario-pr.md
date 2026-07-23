@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-06-vestuario-pr
+---
+
 # Lojas vestuário-alvo PR — 2026-05-10
 
 **Universo mapeado:** 28 lojas (10 Tier 1 com sinal forte de operação SMB + 11 Tier 2 + 7 Tier 3 long-tail)

@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-02-concorrentes-zenite-mubisys
+---
+
 # Concorrentes — Zênite Sistemas & Mubisys (Mubi Sistemas)
 
 > Pesquisa competitiva 2026-05-09. Fontes: site oficial dos concorrentes, Reclame Aqui, LinkedIn, CNPJ.biz, Econodata, imprensa setorial (Singrafs/Assingrafs/Infosign/Guia do Gráfico). Apenas conteúdo público — sem engenharia social ou criação de conta em demos.

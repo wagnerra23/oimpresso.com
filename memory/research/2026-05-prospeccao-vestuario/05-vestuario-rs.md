@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-05-vestuario-rs
+---
+
 # Lojas vestuário-alvo Rio Grande do Sul — 2026-05-10
 
 **Universo mapeado:** 30 lojas (8 Tier 1 validadas via WebFetch/site próprio + 12 Tier 2 + 10 Tier 3 long-tail)

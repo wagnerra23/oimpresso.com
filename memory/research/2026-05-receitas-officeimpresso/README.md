@@ -1,3 +1,7 @@
+---
+id: research-2026-05-receitas-officeimpresso-readme
+---
+
 # Análise receitas OfficeImpresso — WR Sistemas
 
 > ⚠️ Pasta **gitignored por default**. Conteúdo é confidencial (números reais) e/ou contém credenciais hardcoded (scripts de conexão Firebird).

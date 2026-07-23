@@ -1,4 +1,5 @@
 ---
+id: research-2026-05-sells-grade-heatmap-heatmap-consolidado
 title: Heatmap consolidado v2 — uso real do grid Delphi vs 13 US Sells Grade Avançada
 status: live
 date: 2026-05-11

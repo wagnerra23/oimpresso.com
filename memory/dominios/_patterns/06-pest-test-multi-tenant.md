@@ -1,3 +1,7 @@
+---
+id: dominios-patterns-06-pest-test-multi-tenant
+---
+
 # Pattern 06 — Pest test multi-tenant Tier 0
 
 **Status**: canônico desde 2026-05-09 (validado em [PR #353](https://github.com/wagnerra23/oimpresso.com/pull/353))

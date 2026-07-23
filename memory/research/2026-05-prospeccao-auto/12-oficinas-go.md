@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-12-oficinas-go
+---
+
 # Oficinas-alvo Goiás (Goiânia + RM + Anápolis + Rio Verde + Catalão + Itumbiara) — 2026-05-10
 
 **Universo mapeado:** 24 oficinas (10 Tier 1 com WebFetch validado + 8 Tier 2 + 6 Tier 3 long-tail)

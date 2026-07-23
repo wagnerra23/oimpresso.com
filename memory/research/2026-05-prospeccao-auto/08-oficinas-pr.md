@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-08-oficinas-pr
+---
+
 # Oficinas-alvo PR — Curitiba + RMC + Maringá + Londrina + Cascavel + Ponta Grossa + Foz — 2026-05-10
 
 **Universo mapeado:** 28 oficinas (10 Tier 1 validadas via WebFetch + 11 Tier 2 + 7 Tier 3 long-tail)

@@ -1,3 +1,7 @@
+---
+id: audits-2026-05-pre-sales-06-pre-sprint-1-saude-prod
+---
+
 # Audit Saúde Prod oimpresso pre-Sprint 1 — 2026-05-10
 
 > Read-only. Branch: `claude/decisao-sem-daas-externo-eliana-estuda`. HEAD: `f810cec1`.

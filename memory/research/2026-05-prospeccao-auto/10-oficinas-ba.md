@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-10-oficinas-ba
+---
+
 # Oficinas-alvo Bahia (Salvador + RM + interior) — 2026-05-10
 
 **Universo mapeado:** 24 oficinas (8 Tier 1 validadas via WebFetch/Instagram + 9 Tier 2 + 7 Tier 3 long-tail)

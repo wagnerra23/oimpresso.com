@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-10-graficas-mg
+---
+
 # Gráficas-alvo Minas Gerais — 2026-05-10
 
 **Universo mapeado:** 38 gráficas (10 Tier 1 validadas via WebFetch + 14 Tier 2 + 14 Tier 3 long-tail)

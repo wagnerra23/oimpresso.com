@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-01-graficas-sp-capital-grande-sp
+---
+
 # Gráficas-alvo SP capital + Grande SP — 2026-05-09
 
 **Universo mapeado:** 42 gráficas (10 Tier 1 validadas via WebFetch + 17 Tier 2 + 15 Tier 3 long-tail)

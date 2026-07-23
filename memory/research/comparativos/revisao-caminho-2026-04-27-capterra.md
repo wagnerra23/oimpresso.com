@@ -1,3 +1,7 @@
+---
+id: research-comparativos-revisao-caminho-2026-04-27-capterra
+---
+
 # Revisão de caminho da Jana — auditoria Capterra (2026-04-27)
 
 > **Assunto:** o caminho percorrido até sprint 6 está certo? Existe alternativa de melhor custo-benefício pra reescrever decisões antes de avançar?

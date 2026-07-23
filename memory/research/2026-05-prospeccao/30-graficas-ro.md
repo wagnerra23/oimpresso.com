@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-30-graficas-ro
+---
+
 # Gráficas-alvo Rondônia (RO) — 2026-05-10
 
 **Universo mapeado:** 13 empresas (3 Tier 1 validadas via WebFetch + 4 Tier 2 + 6 Tier 3 long-tail)

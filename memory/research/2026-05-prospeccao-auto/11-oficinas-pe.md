@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-11-oficinas-pe
+---
+
 # Oficinas-alvo Pernambuco (PE) — 2026-05-10
 
 **Universo mapeado:** 22 oficinas (8 Tier 1 validadas via WebFetch + 8 Tier 2 + 6 Tier 3 long-tail)

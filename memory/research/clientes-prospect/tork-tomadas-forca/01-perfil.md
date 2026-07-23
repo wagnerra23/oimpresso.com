@@ -1,4 +1,5 @@
 ---
+id: research-clientes-prospect-tork-tomadas-forca-01-perfil
 slug: tork-tomadas-forca
 status: prospect
 date_first_analysis: 2026-05-26

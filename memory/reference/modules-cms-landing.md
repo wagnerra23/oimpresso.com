@@ -1,4 +1,5 @@
 ---
+id: reference-modules-cms-landing
 name: Modules/Cms é o landing/blog do oimpresso.com
 description: A landing pública e o blog/CMS do oimpresso.com são servidos pelo Modules/Cms (não-existente no worktree atual, vive na produção). Rotas /, /c/page/{page}, /c/blogs, /c/blog/{slug}-{id}, /c/contact-us; backoffice em /cms/cms-page e /cms/site-details (auth+superadmin).
 type: reference

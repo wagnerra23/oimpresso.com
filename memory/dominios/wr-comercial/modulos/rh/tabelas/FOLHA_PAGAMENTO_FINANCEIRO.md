@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-rh-tabelas-folha-pagamento-financeiro
 table: FOLHA_PAGAMENTO_FINANCEIRO
 module: rh
 created_at_version: 310

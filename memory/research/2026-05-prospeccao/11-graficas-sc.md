@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-11-graficas-sc
+---
+
 # Gráficas-alvo SC — 2026-05-10
 
 **Universo mapeado:** 42 gráficas (12 Tier 1 validadas via WebFetch + 15 Tier 2 + 15 Tier 3 long-tail)

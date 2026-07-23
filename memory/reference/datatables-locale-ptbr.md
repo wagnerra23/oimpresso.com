@@ -1,4 +1,5 @@
 ---
+id: reference-datatables-locale-ptbr
 name: DataTables locale pt-BR
 description: Locale pt-BR do DataTables vive em public/locale/datatables/pt-BR.json. Incluir via language: { url } em toda init de DataTable nova.
 type: reference

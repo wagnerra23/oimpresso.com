@@ -1,3 +1,7 @@
+---
+id: research-2026-05-sells-grade-heatmap-02-vargas-grade-usage-anonimizada
+---
+
 # Heatmap UI Vendas — `02-vargas` (anonimizado)
 
 > Coletado: 2026-05-11T10:14:32.398926

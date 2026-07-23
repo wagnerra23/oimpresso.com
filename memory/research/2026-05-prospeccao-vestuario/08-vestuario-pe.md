@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-08-vestuario-pe
+---
+
 # Lojas vestuário-alvo PE — 2026-05-10
 
 **Universo mapeado:** 22 lojas (8 Tier 1 + 9 Tier 2 + 5 Tier 3)

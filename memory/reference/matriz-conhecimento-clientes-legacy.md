@@ -1,4 +1,5 @@
 ---
+id: reference-matriz-conhecimento-clientes-legacy
 name: Matriz de conhecimento — clientes legacy OfficeImpresso (WR Comercial Delphi) × oimpresso (Laravel)
 description: Cruza 50 bancos Firebird registrados HKCU × 56 businesses oimpresso prod × status migração × vertical real × sinal qualificado. Atualizar quando cliente novo for analisado OU status migração mudar. Calibrada com Martinho biz=164 migrado 2026-05-13.
 type: reference

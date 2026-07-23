@@ -1,4 +1,5 @@
 ---
+id: audits-auditoria-memoria-2026-05-15
 slug: auditoria-memoria-2026-05-15
 title: "Auditoria Memória/Knowledge Architecture 2026-05-15"
 type: audit

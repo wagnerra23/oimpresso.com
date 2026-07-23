@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-04-graficas-rs-pr
+---
+
 # Gráficas-alvo RS + PR — 2026-05-09
 
 **Universo mapeado:** 41 gráficas (RS: 19 · PR: 22)

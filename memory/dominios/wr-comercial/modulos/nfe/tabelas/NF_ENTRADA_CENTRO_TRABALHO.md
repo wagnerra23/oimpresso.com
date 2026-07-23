@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-nfe-tabelas-nf-entrada-centro-trabalho
 table: NF_ENTRADA_CENTRO_TRABALHO
 module: nfe
 created_at_version: 659

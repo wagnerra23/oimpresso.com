@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-00-index-ufs
+---
+
 # Índice prospecção gráficas / comunicação visual — Brasil completo (27 UFs)
 
 **Atualizado:** 2026-05-10

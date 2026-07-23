@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-readme
 title: Inteligência por cliente legacy OfficeImpresso — dossiê estruturado
 status: live
 date: 2026-05-11

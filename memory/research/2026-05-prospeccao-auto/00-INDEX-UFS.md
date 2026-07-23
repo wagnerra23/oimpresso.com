@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-00-index-ufs
+---
+
 # Índice prospecção oficinas mecânicas / centro automotivo — Top 10 UFs
 
 **Atualizado:** 2026-05-10

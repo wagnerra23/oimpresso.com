@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-08-state-of-art-saas-multi-vertical
+---
+
 # State of Art — SaaS Multi-vertical com Análise por Cliente — 2026-05-09
 
 > Pesquisa profunda do estado da arte em SaaS B2B que serve múltiplos verticais com análise por cliente. Foco em frameworks consagrados, tooling moderno e padrões emergentes — calibrado pra realidade oimpresso (5 pessoas, vertical com.visual, ROTA LIVRE como cliente piloto 99% volume).

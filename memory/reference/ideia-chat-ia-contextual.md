@@ -1,4 +1,5 @@
 ---
+id: reference-ideia-chat-ia-contextual
 name: Ideia — Chat IA contextual no AppShell
 description: Wagner quer um chat IA flutuante que sabe EXATAMENTE em qual tela o usuário está, que dados estão carregados, que módulo, e responde sobre o contexto. Diferente de /memcofre/chat (generic), este é embedded na UI.
 type: ideia

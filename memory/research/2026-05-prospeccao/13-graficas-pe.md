@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-13-graficas-pe
+---
+
 # Gráficas-alvo PE — Recife + RM + Interior — 2026-05-10
 
 **Universo mapeado:** 32 gráficas (10 Tier 1 validadas via WebFetch + 12 Tier 2 + 10 Tier 3 long-tail)

@@ -1,3 +1,7 @@
+---
+id: research-comparativos-site-marketing-concorrentes-comunicacao-visual-2026-04-25
+---
+
 # Comparativo de sites de marketing — concorrentes de ERP pra Comunicação Visual (2026-04-25)
 
 > **Fonte:** research executado por agente Claude em 2026-04-25, durante o redesign do site oimpresso.com (ADR 0025).

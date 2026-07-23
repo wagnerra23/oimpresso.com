@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-ondas-cowork-transparencia-de-gaps
 slug: feedback-ondas-cowork-transparencia-de-gaps
 title: "Cópia Cowork em Ondas — transparência de gaps > otimismo"
 type: feedback

@@ -1,3 +1,7 @@
+---
+id: research-comparativos-readme
+---
+
 # Comparativos de mercado (família research)
 
 Comparativos Capterra/mercado/estado-da-arte do oimpresso vs concorrentes.

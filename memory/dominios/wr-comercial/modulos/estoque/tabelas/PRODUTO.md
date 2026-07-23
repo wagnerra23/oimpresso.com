@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-estoque-tabelas-produto
 table: PRODUTO
 module: estoque
 created_at_version: 11

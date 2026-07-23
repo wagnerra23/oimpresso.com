@@ -1,3 +1,7 @@
+---
+id: research-comparativos-qa-eval-ia-estado-arte-capterra-2026-04-28
+---
+
 # Matriz Comparativa estilo Capterra/G2 — QA / Eval de IA, ciclo de vida completo (2026-04-28)
 
 > **Assunto:** estado-da-arte de **garantia de qualidade de IA** — frameworks, plataformas, métricas e processo, do **dataset golden até drift detection em produção**. Cruzado com nossa stack canônica (ADR 0035: laravel/ai + Vizra ADK + Mem0/Meilisearch) pra responder: **como tirar a Jana de fixtures e botar em produção sem queimar a Larissa do ROTA LIVRE**.

@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-vendas-tabelas-venda-produto-baixa-automatica
 table: VENDA_PRODUTO_BAIXA_AUTOMATICA
 module: vendas
 created_at_version: 1231

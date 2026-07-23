@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-financeiro-tabelas-financeiro-boleto-historico
 table: FINANCEIRO_BOLETO_HISTORICO
 module: financeiro
 created_at_version: 9

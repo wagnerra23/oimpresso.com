@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-15-graficas-df
+---
+
 # Gráficas-alvo DF + Entorno (GO próximo) — 2026-05-10
 
 **Universo mapeado:** 32 gráficas (8 Tier 1 validadas via WebFetch + 14 Tier 2 + 10 Tier 3 long-tail)

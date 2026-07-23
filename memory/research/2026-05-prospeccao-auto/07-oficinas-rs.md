@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-07-oficinas-rs
+---
+
 # Oficinas-alvo RS — 2026-05-10
 
 **Universo mapeado:** 27 oficinas (10 Tier 1 validadas via WebFetch + 9 Tier 2 + 8 Tier 3 long-tail)

@@ -1,4 +1,5 @@
 ---
+id: reference-sandbox-hostnames
 name: sandbox-hostnames
 description: Hostnames canônicos do oimpresso — prod único, sem sandbox separado. Evita Claude/dev pegar hostname stale de config files.
 type: reference

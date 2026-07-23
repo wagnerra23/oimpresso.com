@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-vendas-tabelas-venda-produto
 table: VENDA_PRODUTO
 module: vendas
 created_at_version: 20

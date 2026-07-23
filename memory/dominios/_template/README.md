@@ -1,3 +1,7 @@
+---
+id: dominios-template-readme
+---
+
 # Template — sistema externo novo
 
 Skeleton pra adicionar novo sistema externo em `memory/dominios/<sistema>/`. Aplica [ADR 0118](../../decisions/0118-segregacao-dominios-externos-clientes-legacy.md) + [ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md).

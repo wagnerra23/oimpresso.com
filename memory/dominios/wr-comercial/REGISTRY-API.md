@@ -1,3 +1,7 @@
+---
+id: dominios-wr-comercial-registry-api
+---
+
 # Windows Registry API — `HKCU\Software\Rocha`
 
 Como o app Delphi **WR2 Sistemas Office Comercial** persiste configuração de bancos no registry. O **Editor de Registros de Bancos de Dados v3.5** é a UI que manipula essa árvore — qualquer importer/migrador precisa ler dela.

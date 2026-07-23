@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-nfe-tabelas-nf-entrada-tabela-preco
 table: NF_ENTRADA_TABELA_PRECO
 module: nfe
 created_at_version: 827

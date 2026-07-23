@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-00-index-ufs
+---
+
 # Índice prospecção lojas vestuário — Top 10 UFs
 
 **Atualizado:** 2026-05-10

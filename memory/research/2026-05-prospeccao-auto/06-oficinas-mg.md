@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-06-oficinas-mg
+---
+
 # Oficinas-alvo MG (BH+RM + interior) — 2026-05-10
 
 **Universo mapeado:** 32 oficinas (8 Tier 1 validadas via WebFetch + 12 Tier 2 + 12 Tier 3 long-tail)

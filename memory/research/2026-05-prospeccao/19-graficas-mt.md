@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-19-graficas-mt
+---
+
 # Gráficas-alvo Mato Grosso (MT) — 2026-05-10
 
 **Universo mapeado:** 26 gráficas/CVs (8 Tier 1 validadas via WebFetch + 9 Tier 2 + 9 Tier 3 long-tail)

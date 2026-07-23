@@ -1,3 +1,7 @@
+---
+id: dominios-patterns-readme
+---
+
 # Patterns reusáveis — Migration Factory
 
 Patterns extraídos da migração-piloto **Delphi WR Comercial → Laravel oimpresso** (sessão 2026-05-09, Fases 0-6) que se aplicam a **qualquer migração de cliente legacy** pro oimpresso — Bling, Tiny, Sankhya, Microsiga, ERP nicho gráfico (Zênite/Mubisys/Alfa/Visua/Calcgraf/Calcme), etc.

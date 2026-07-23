@@ -1,3 +1,7 @@
+---
+id: dominios-wr-comercial-convencoes
+---
+
 # Convenções de schema — Delphi WR Comercial
 
 Regras implícitas que o time/dev original (Wagner) adotou no schema Firebird.

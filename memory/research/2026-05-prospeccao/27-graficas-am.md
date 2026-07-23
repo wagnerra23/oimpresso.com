@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-27-graficas-am
+---
+
 # Gráficas-alvo Amazonas (AM) — 2026-05-10
 
 **Universo mapeado:** 17 empresas (5 Tier 1 validadas via WebFetch + 6 Tier 2 + 6 Tier 3)

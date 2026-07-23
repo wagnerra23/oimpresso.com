@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-03-concorrentes-alfa-visua-calcgraf-reviews
+---
+
 # Concorrentes: Alfa Networks, Visua, Calcgraf, Calcme + síntese de reviews do setor
 
 **Data:** 2026-05-09

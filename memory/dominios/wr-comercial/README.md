@@ -1,3 +1,7 @@
+---
+id: dominios-wr-comercial-readme
+---
+
 # Domínio externo — Delphi WR Comercial
 
 Conhecimento canônico do **legacy Delphi WR Comercial** que oimpresso precisa entender pra migrar dados dos 50 clientes Firebird → Laravel multi-tenant. Pasta criada por [ADR 0118](../../decisions/0118-segregacao-dominios-externos-clientes-legacy.md) — segregação Bounded Context (Eric Evans, *DDD* 2003).

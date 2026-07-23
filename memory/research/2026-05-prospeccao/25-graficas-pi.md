@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-25-graficas-pi
+---
+
 # Gráficas-alvo Piauí — 2026-05-10
 
 **Universo mapeado:** 17 empresas (3 Tier 1 validadas via WebFetch + 6 Tier 2 + 8 Tier 3 long-tail)

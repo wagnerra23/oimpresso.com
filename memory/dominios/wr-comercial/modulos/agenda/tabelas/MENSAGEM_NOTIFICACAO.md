@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-agenda-tabelas-mensagem-notificacao
 table: MENSAGEM_NOTIFICACAO
 module: agenda
 created_at_version: 1431

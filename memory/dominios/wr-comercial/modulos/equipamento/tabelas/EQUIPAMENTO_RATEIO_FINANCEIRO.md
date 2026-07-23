@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-equipamento-tabelas-equipamento-rateio-financeiro
 table: EQUIPAMENTO_RATEIO_FINANCEIRO
 module: equipamento
 created_at_version: 1119

@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-05-oficinas-rj
+---
+
 # Oficinas-alvo Rio de Janeiro (RJ) — 2026-05-10
 
 **Universo mapeado:** 36 oficinas (10 Tier 1 validadas via WebFetch + 14 Tier 2 + 12 Tier 3 long-tail)

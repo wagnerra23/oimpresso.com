@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-estoque-tabelas-produto-grupo
 table: PRODUTO_GRUPO
 module: estoque
 created_at_version: 25

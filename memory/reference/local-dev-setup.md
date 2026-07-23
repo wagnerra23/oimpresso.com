@@ -1,4 +1,5 @@
 ---
+id: reference-local-dev-setup
 name: Setup local dev — Herd + MySQL + worktrees
 description: Como rodar o projeto localmente (onde é o quê) pra testar/debugar antes de subir pra Hostinger. Credenciais dev no Vaultwarden.
 type: reference

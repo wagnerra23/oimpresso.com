@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-02-vestuario-sc
+---
+
 # Lojas vestuário-alvo SC (vertical Vestuario, piloto ROTA LIVRE) — 2026-05-10
 
 **Universo mapeado:** 33 lojas (10 Tier 1 validadas via WebFetch + 14 Tier 2 + 9 Tier 3 long-tail)

@@ -1,3 +1,7 @@
+---
+id: research-2026-05-sells-grade-heatmap-05-martinho-grade-usage-anonimizada
+---
+
 # Heatmap UI Vendas — `05-martinho` (anonimizado)
 
 > Coletado: 2026-05-11T10:15:03.354417

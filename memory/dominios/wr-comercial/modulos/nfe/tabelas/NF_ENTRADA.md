@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-nfe-tabelas-nf-entrada
 table: NF_ENTRADA
 module: nfe
 created_at_version: 12

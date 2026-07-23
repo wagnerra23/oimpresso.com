@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-24-graficas-al
+---
+
 # Gráficas-alvo Alagoas (AL) — 2026-05-10
 
 **Universo mapeado:** 18 gráficas (5 Tier 1 validadas via WebFetch + 7 Tier 2 + 6 Tier 3 long-tail)

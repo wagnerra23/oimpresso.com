@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-cadastros-tabelas-pessoas
 table: PESSOAS
 module: cadastros
 created_at_version: 189

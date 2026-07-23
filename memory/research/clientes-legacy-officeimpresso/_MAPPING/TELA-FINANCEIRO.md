@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-mapping-tela-financeiro
 title: Mapping canônico — Tela "Financeiro" Delphi → oimpresso.com
 status: live
 date: 2026-05-11

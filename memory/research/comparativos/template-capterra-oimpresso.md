@@ -1,3 +1,7 @@
+---
+id: research-comparativos-template-capterra-oimpresso
+---
+
 # Template Capterra/G2 oimpresso — padrão pra comparativos competitivos
 
 > **Como usar:** copia este template pra um arquivo novo em `memory/comparativos/<assunto>_<data>.md`,

@@ -1,3 +1,7 @@
+---
+id: dominios-patterns-04-metadata-json-denormalized
+---
+
 # Pattern 04 — Metadata JSON denormalized
 
 **Status**: canônico desde 2026-05-09

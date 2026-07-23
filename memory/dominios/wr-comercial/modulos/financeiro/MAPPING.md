@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-financeiro-mapping
 mapping: financeiro/contas-bancarias
 source_domain: wr-comercial-delphi
 source_version: 1468

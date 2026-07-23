@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-pesquisar-versao-lib
 name: Pesquisar versão mais nova quando lib externa dá erro (antes de reverter)
 description: Antes de abandonar/reverter uma library externa que deu erro, pesquisar GitHub issues + changelog + versões intermediárias — pode ter fix conhecido ou workaround documentado
 type: feedback

@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-mapping-tela-producao-kanban
 title: Mapping canônico — Tela "Produção Kanban" Delphi → oimpresso.com
 status: live
 date: 2026-05-11

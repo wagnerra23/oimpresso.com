@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-18-graficas-ms
+---
+
 # Gráficas-alvo Mato Grosso do Sul (MS) — 2026-05-10
 
 **Universo mapeado:** 24 gráficas (6 Tier 1 validadas via WebFetch + 8 Tier 2 + 10 Tier 3 long-tail)

@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-nfe-tabelas-nota-fiscal-produto
 table: NOTA_FISCAL_PRODUTO
 module: nfe
 created_at_version: 807

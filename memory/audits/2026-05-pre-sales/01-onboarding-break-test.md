@@ -1,3 +1,7 @@
+---
+id: audits-2026-05-pre-sales-01-onboarding-break-test
+---
+
 # Auditoria pré-sales — Onboarding break-test
 
 > Análise estática (sem rodar app). Foco: signup → criar business → seed roles → primeiro login → primeira venda.

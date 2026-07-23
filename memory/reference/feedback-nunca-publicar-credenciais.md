@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-nunca-publicar-credenciais
 name: Nunca publicar credenciais no chat
 description: Senhas, tokens, API keys, secrets NUNCA aparecem em texto no chat — mesmo as que já estão em handoff/session log/contexto. Repetir amplifica exposição.
 type: feedback

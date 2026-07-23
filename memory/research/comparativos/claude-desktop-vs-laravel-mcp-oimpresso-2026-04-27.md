@@ -1,3 +1,7 @@
+---
+id: research-comparativos-claude-desktop-vs-laravel-mcp-oimpresso-2026-04-27
+---
+
 # Claude Desktop vs Laravel MCP do oimpresso — comparativo Capterra (2026-04-27)
 
 > **Assunto:** plugins/extensões/configurações de Claude Desktop vs como o **oimpresso** pode se tornar 1 desses plugins via `laravel/mcp`.

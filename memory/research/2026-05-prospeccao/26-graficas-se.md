@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-26-graficas-se
+---
+
 # Gráficas-alvo Sergipe (Aracaju + RM + interior) — 2026-05-10
 
 **Universo mapeado:** 16 gráficas (4 Tier 1 validadas via WebFetch + 6 Tier 2 + 6 Tier 3 long-tail)

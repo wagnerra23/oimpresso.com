@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-29-graficas-to
+---
+
 # Gráficas-alvo Tocantins (TO) — 2026-05-10
 
 **Universo mapeado:** 14 empresas (4 Tier 1 validadas via WebFetch + 5 Tier 2 + 5 Tier 3)

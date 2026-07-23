@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-04-oficinas-sp
+---
+
 # Oficinas-alvo SP capital + Grande SP + Interior — 2026-05-10
 
 **Universo mapeado:** 42 oficinas (10 Tier 1 validadas via WebFetch + 17 Tier 2 + 15 Tier 3 long-tail)

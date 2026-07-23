@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-mapping-tela-compra
 title: Mapping canônico — Tela "Compra / Nota de Entrada" Delphi → oimpresso.com
 status: live
 date: 2026-05-11

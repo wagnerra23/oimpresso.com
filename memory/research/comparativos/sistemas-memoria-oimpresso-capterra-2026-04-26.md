@@ -1,3 +1,7 @@
+---
+id: research-comparativos-sistemas-memoria-oimpresso-capterra-2026-04-26
+---
+
 # Matriz Comparativa estilo Capterra/G2 — Sistemas de Memória do oimpresso (2026-04-26)
 
 > **Assunto:** 9 sistemas de memória do projeto competindo internamente pra ser fonte de verdade

@@ -1,4 +1,5 @@
 ---
+id: audits-2026-05-pre-sales-05-skills-audit-2026-05-09
 name: Audit skills .claude/skills — 2026-05-09
 description: Auditoria pré-sales das 29 skills do projeto oimpresso. Aplica 4 testes ROI da meta-skill (substitui? humano repetitivo? ROI mensurável? acelera ERP autônomo R$ [redacted Tier 0]M/24m?) + cruza convenção tier ADR 0095 + audit anterior s3-constituicao/03-skills-audit.md (que projetava 20 skills, hoje temos 29).
 type: audit

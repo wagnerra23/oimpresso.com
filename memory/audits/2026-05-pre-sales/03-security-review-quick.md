@@ -1,3 +1,7 @@
+---
+id: audits-2026-05-pre-sales-03-security-review-quick
+---
+
 # Security review estático — pré-sales
 
 > Análise estática (sem rodar exploits). Worktree: `amazing-williamson-0c8854`. Branch: `claude/amazing-williamson-0c8854`.

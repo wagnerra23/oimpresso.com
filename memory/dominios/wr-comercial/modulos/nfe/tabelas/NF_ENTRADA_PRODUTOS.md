@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-nfe-tabelas-nf-entrada-produtos
 table: NF_ENTRADA_PRODUTOS
 module: nfe
 created_at_version: 6

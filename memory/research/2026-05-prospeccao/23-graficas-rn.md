@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-23-graficas-rn
+---
+
 # Gráficas-alvo RN — 2026-05-10
 
 **Universo mapeado:** 18 gráficas/empresas de comunicação visual (5 Tier 1 validadas via WebFetch + 7 Tier 2 + 6 Tier 3 long-tail)

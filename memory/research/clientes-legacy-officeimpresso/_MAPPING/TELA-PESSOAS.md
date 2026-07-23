@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-mapping-tela-pessoas
 title: Mapping canônico — Tela "Pessoas / Contatos" Delphi → oimpresso.com
 status: live
 date: 2026-05-11

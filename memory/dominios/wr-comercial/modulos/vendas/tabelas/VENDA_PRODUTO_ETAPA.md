@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-vendas-tabelas-venda-produto-etapa
 table: VENDA_PRODUTO_ETAPA
 module: vendas
 created_at_version: 1231

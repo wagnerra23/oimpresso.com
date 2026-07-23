@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-mapping-tela-lista-vendas
 title: Mapping canônico — Tela "Lista de Vendas" Delphi → oimpresso.com
 status: live
 date: 2026-05-11

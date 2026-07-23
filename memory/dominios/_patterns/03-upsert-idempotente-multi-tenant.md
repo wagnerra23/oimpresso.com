@@ -1,3 +1,7 @@
+---
+id: dominios-patterns-03-upsert-idempotente-multi-tenant
+---
+
 # Pattern 03 — UPSERT idempotente per-tenant
 
 **Status**: canônico desde 2026-05-09

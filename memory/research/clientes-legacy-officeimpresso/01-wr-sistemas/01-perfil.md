@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-01-wr-sistemas-01-perfil
 slug: 01-wr-sistemas
 hash_id: Cliente_498223
 status: empresa-mae

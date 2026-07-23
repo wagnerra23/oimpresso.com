@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-bi-tabelas-bi-kpi
 table: BI_KPI
 module: bi
 created_at_version: 1254

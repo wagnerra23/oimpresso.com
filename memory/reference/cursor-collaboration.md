@@ -1,4 +1,5 @@
 ---
+id: reference-cursor-collaboration
 name: Cursor — outra IA que Wagner usa em paralelo
 description: Cursor também atua neste repo e deixa suas sessões documentadas em memory/sessions/NN.md; integrar com nossa memória
 type: reference

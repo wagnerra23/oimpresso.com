@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-03-pricing-erps-auto-br
+---
+
 # Pricing ERPs oficina auto BR — 2026-05-09
 
 > Pesquisa pública pra calibrar quanto oimpresso poderia cobrar se expandir do nicho gráfica de comunicação visual pro nicho oficina auto BR. Comparar contra `05-pricing-real-concorrentes-horizontais.md` (gráfica vertical) e contra Bling/Conta Azul (horizontal).

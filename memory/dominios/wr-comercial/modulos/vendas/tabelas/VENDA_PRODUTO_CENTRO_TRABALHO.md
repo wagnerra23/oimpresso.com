@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-vendas-tabelas-venda-produto-centro-trabalho
 table: VENDA_PRODUTO_CENTRO_TRABALHO
 module: vendas
 created_at_version: 502

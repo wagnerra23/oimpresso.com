@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-28-graficas-ac
+---
+
 # Gráficas-alvo Acre (AC) — 2026-05-10
 
 **Universo mapeado:** 11 empresas (3 Tier 1 + 4 Tier 2 + 4 Tier 3) — todas em Rio Branco

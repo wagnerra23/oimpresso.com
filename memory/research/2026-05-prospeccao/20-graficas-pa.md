@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-20-graficas-pa
+---
+
 # Gráficas-alvo Pará (Belém + RM + interior) — 2026-05-10
 
 **Universo mapeado:** 26 gráficas (6 Tier 1 validadas via WebFetch + 9 Tier 2 + 11 Tier 3 long-tail)

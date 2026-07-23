@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-agenda-tabelas-email
 table: EMAIL
 module: agenda
 created_at_version: 369

@@ -1,3 +1,7 @@
+---
+id: research-comparativos-oimpresso-vs-concorrentes-capterra-2026-04-25
+---
+
 # Matriz Comparativa estilo Capterra/G2 — oimpresso vs Concorrentes BR (2026-04-25)
 
 > **Fonte:** research executado por agente Claude em 2026-04-25, com WebSearch + WebFetch dos sites oficiais e reviews públicas (App Store, GetApp, Capterra/G2 onde havia dados).

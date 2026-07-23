@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-nfe-tabelas-nf-natureza-operacao-prodgrupo
 table: NF_NATUREZA_OPERACAO_PRODGRUPO
 module: nfe
 created_at_version: 1135

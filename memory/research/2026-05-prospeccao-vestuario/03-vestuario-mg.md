@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-03-vestuario-mg
+---
+
 # Lojas vestuário-alvo MG — 2026-05-10
 
 **Universo mapeado:** 27 lojas (10 Tier 1 com WebFetch parcial + 11 Tier 2 + 6 Tier 3 long-tail)

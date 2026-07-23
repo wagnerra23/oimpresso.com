@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-03-extreme-grafica-01-perfil
 slug: 03-extreme-grafica
 hash_id: Cliente_6928E8
 status: qualificado

@@ -1,3 +1,7 @@
+---
+id: governance-como-pedir-nova-tela-ou-modulo-historico
+---
+
 # Como pedir nova tela ou módulo — guia do Wagner
 
 > [!CAUTION]

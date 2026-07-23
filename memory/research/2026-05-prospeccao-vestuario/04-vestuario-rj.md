@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-04-vestuario-rj
+---
+
 # Prospecção Vestuário — Rio de Janeiro (RJ)
 
 > Mapa SMB CNAE 4781-4/00 (varejo de vestuário) — alvos para Modules/Vestuario do oimpresso (núcleo + ROTA LIVRE como prova de conceito).

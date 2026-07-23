@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-financeiro-tabelas-planocontas
 table: PLANOCONTAS
 module: financeiro
 created_at_version: 305

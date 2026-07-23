@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-05-pricing-real-concorrentes-horizontais
+---
+
 # Pricing real concorrentes horizontais — 2026-05-09
 
 > Pesquisa pública pra validar pricing oimpresso (Starter R$ [redacted Tier 0] / Pro R$ [redacted Tier 0] + setup R$ [redacted Tier 0] / Enterprise R$ [redacted Tier 0] + setup R$ [redacted Tier 0]) contra stack-Frankenstein que dono de gráfica brasileira monta hoje.

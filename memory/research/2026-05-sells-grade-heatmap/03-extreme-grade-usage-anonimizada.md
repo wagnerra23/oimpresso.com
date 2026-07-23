@@ -1,3 +1,7 @@
+---
+id: research-2026-05-sells-grade-heatmap-03-extreme-grade-usage-anonimizada
+---
+
 # Heatmap UI Vendas — `03-extreme` (anonimizado)
 
 > Coletado: 2026-05-11T10:14:43.925132

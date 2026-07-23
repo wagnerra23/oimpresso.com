@@ -1,3 +1,7 @@
+---
+id: audits-2026-05-pre-sales-02-wcag-manual-5-telas
+---
+
 # WCAG 2.1 AA — auditoria manual 5 telas (sem plugin Anthropic Design)
 
 > Auditoria estática (Tailwind class → estimativa contraste/touch/foco).

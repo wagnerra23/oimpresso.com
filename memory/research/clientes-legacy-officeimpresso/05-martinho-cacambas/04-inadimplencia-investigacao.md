@@ -1,3 +1,7 @@
+---
+id: research-clientes-legacy-officeimpresso-05-martinho-cacambas-04-inadimplencia-investigacao
+---
+
 # Investigação adversarial — `Cliente_731814` (Martinho Caçambas) · inadimplência 76,7%
 
 > Coletado: 2026-05-11

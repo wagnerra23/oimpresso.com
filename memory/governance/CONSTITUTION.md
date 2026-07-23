@@ -1,4 +1,5 @@
 ---
+id: governance-constitution
 slug: oimpresso-constitution
 title: "Constituição do Oimpresso ERP"
 type: constitution

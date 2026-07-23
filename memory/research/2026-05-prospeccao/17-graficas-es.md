@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-17-graficas-es
+---
+
 # Gráficas-alvo Espírito Santo (ES) — 2026-05-10
 
 **Universo mapeado:** 26 gráficas (8 Tier 1 validadas via WebFetch + 10 Tier 2 + 8 Tier 3 long-tail)

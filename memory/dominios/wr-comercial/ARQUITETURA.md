@@ -1,3 +1,7 @@
+---
+id: dominios-wr-comercial-arquitetura
+---
+
 # Arquitetura interna — Delphi WR Comercial
 
 Stack do legado. Migrado da auto-mem `reference_delphi_wr_comercial.md` (2026-04-24) — agora canônico no git/MCP ([ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)).

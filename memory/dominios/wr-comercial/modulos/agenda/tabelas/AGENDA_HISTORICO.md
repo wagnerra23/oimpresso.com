@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-agenda-tabelas-agenda-historico
 table: AGENDA_HISTORICO
 module: agenda
 created_at_version: 12

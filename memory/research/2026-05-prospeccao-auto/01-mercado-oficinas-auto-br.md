@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-01-mercado-oficinas-auto-br
+---
+
 # Mercado de oficinas mecânicas/auto BR — pesquisa de viabilidade
 
 > **Status:** desk research / pesquisa de viabilidade — NÃO compromisso de construir.

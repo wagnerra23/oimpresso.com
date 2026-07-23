@@ -1,3 +1,7 @@
+---
+id: research-2026-05-sells-grade-heatmap-04-gold-grade-usage-anonimizada
+---
+
 # Heatmap UI Vendas — `04-gold` (anonimizado)
 
 > Coletado: 2026-05-11T10:14:54.330187

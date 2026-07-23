@@ -1,3 +1,7 @@
+---
+id: dominios-patterns-05-schema-vivo-vs-reconstruido
+---
+
 # Pattern 05 — Schema vivo manda, não reconstruído
 
 **Status**: canônico desde 2026-05-09 (lição aprendida, Fase 6)

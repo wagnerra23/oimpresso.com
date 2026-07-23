@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-09-vestuario-ba
+---
+
 # Lojas vestuário-alvo Bahia (BA) — 2026-05-10
 
 **Universo mapeado:** 24 lojas (10 Tier 1 + 8 Tier 2 + 6 Tier 3)

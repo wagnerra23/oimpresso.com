@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-agenda-tabelas-mensagem-lido
 table: MENSAGEM_LIDO
 module: agenda
 created_at_version: 1286

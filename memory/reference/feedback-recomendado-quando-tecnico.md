@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-recomendado-quando-tecnico
 name: Recomendado quando pergunta é técnica
 description: Wagner prefere que Claude siga o "(Recommended)" sem perguntar quando a decisão é puramente técnica (Wagner não tem como avaliar) — perguntar só quando a decisão é de escopo/intenção/UI
 type: feedback

@@ -1,3 +1,7 @@
+---
+id: audits-2026-05-pre-sales-04-ci-pr-audit-30d
+---
+
 # Audit CI + PRs últimos 30 dias — 2026-05-09
 
 > Escopo: 35 PRs mais recentes (#329-#369), ~100 últimos workflow runs.

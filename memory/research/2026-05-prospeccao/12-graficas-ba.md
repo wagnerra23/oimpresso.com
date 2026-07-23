@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-12-graficas-ba
+---
+
 # Gráficas-alvo Bahia (BA) — 2026-05-10
 
 **Universo mapeado:** 30 empresas (8 Tier 1 validadas via WebFetch + 11 Tier 2 + 11 Tier 3 long-tail)

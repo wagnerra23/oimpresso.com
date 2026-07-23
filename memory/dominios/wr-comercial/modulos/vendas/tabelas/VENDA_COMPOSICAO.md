@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-vendas-tabelas-venda-composicao
 table: VENDA_COMPOSICAO
 module: vendas
 created_at_version: 57

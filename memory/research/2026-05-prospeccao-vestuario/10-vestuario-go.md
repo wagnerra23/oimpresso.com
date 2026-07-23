@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-10-vestuario-go
+---
+
 # Lojas vestuário-alvo GO — 2026-05-10
 
 **Universo mapeado:** 22 lojas (10 Tier 1 validadas via WebFetch + 7 Tier 2 + 5 Tier 3 long-tail)

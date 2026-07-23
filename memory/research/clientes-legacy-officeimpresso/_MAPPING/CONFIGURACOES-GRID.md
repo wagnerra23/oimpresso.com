@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-mapping-configuracoes-grid
 title: Mapping canonico — CONFIGURACOES_GRID (descoberta de uso real por cliente)
 status: live
 date: 2026-05-11

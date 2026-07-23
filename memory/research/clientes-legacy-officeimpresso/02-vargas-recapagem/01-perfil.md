@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-02-vargas-recapagem-01-perfil
 slug: 02-vargas-recapagem
 hash_id: Cliente_874398
 status: qualificado

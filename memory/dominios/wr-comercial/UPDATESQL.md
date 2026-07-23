@@ -1,3 +1,7 @@
+---
+id: dominios-wr-comercial-updatesql
+---
+
 # `UpdateSQL.txt` — schema migrations Delphi
 
 O **`UpdateSQL.txt` é o changelog DDL canônico** do legacy WR Comercial. Equivalente a Laravel migrations / Liquibase / Flyway, mas implementado direto em Delphi.

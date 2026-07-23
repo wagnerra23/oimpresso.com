@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-14-graficas-ce
+---
+
 # Gráficas-alvo Ceará — 2026-05-10
 
 **Universo mapeado:** 32 gráficas (10 Tier 1 com WebFetch + 12 Tier 2 + 10 Tier 3)

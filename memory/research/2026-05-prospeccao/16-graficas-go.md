@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-16-graficas-go
+---
+
 # Gráficas-alvo Goiás (GO) — 2026-05-10
 
 **Universo mapeado:** 30 empresas (10 Tier 1 validadas via WebFetch + 12 Tier 2 + 8 Tier 3)

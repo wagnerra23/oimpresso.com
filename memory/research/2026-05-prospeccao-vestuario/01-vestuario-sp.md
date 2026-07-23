@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-vestuario-01-vestuario-sp
+---
+
 # Lojas de vestuário-alvo SP capital + Grande SP + interior — 2026-05-10
 
 **Vertical alvo:** Modules/Vestuario (em produção com piloto ROTA LIVRE biz=4, vestuário em Termas do Gravatal/SC)

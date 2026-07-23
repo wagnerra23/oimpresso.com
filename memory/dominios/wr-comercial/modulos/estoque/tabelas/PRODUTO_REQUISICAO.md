@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-estoque-tabelas-produto-requisicao
 table: PRODUTO_REQUISICAO
 module: estoque
 created_at_version: 1238

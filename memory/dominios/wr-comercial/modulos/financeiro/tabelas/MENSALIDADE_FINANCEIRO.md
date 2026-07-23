@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-financeiro-tabelas-mensalidade-financeiro
 table: MENSALIDADE_FINANCEIRO
 module: financeiro
 created_at_version: 489

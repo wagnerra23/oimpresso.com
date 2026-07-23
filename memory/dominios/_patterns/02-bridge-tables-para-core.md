@@ -1,3 +1,7 @@
+---
+id: dominios-patterns-02-bridge-tables-para-core
+---
+
 # Pattern 02 — Bridge tables pra core UltimatePOS
 
 **Status**: canônico desde 2026-05-09

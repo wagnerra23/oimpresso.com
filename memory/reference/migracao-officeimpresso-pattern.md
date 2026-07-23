@@ -1,4 +1,5 @@
 ---
+id: reference-migracao-officeimpresso-pattern
 name: Pattern canônico de migração OfficeImpresso (Delphi/Firebird) → oimpresso (Laravel/MySQL)
 description: Receita validada Wagner 2026-05 — Python firebird-driver + pymysql · idempotência por legacy_id · audit JSON · 4 fases (Empresas → Vehicles → Vendas → Financeiro). Calibrada em 3 clientes (WR2 biz=1, Vargas dry-run, Martinho biz=164 live)
 type: reference

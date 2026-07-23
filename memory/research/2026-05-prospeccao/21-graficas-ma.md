@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-21-graficas-ma
+---
+
 # Gráficas-alvo Maranhão (MA) — 2026-05-10
 
 **Universo mapeado:** 18 gráficas (5 Tier 1 validadas via WebFetch + 7 Tier 2 + 6 Tier 3 long-tail)

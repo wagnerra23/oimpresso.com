@@ -1,4 +1,5 @@
 ---
+id: research-clientes-legacy-officeimpresso-04-gold-comvis-01-perfil
 slug: 04-gold-comvis
 hash_id: Cliente_09FEB1
 status: qualificado

@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-07-post-mortem-gold-comunicacao-mubisys
+---
+
 # Post-mortem — Gold Comunicação → Mubisys (R$ [redacted Tier 0]/m) — 2026-05-09
 
 > Análise pública + inferência. Sem dados internos da Gold Comunicação. Output: playbook de prevenção pra próximo prospect que esteja avaliando Mubisys.

@@ -1,3 +1,7 @@
+---
+id: dominios-patterns-07-three-mode-importer
+---
+
 # Pattern 07 — Three-mode importer (dry-run / local / prod)
 
 **Status**: canônico desde 2026-05-09

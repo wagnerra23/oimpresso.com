@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-auto-02-concorrentes-erp-auto-br
+---
+
 # Concorrentes ERPs oficina auto BR — 2026-05-09
 
 > Pesquisa competitiva 2026-05-09 — exploração viabilidade vertical auto. **NÃO é compromisso de construir.** Fontes: site oficial dos concorrentes, Reclame Aqui, LinkedIn, CNPJ.biz/Econodata, blogs setoriais (EV8 Auto, Mercado Veículos, Sindirepa, Onmotor, Doutor-IE, OficinaBrasil), Hotmart, Google Play. Apenas conteúdo público — sem engenharia social ou criação de conta em demos.

@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-ui-metadata-tabelas-atalho-rapido
 table: ATALHO_RAPIDO
 module: ui_metadata
 created_at_version: 994

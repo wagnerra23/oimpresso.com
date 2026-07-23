@@ -1,4 +1,5 @@
 ---
+id: dominios-wr-comercial-modulos-estoque-tabelas-produto-wizard-materia-prima
 table: PRODUTO_WIZARD_MATERIA_PRIMA
 module: estoque
 created_at_version: 381

@@ -1,3 +1,7 @@
+---
+id: dominios-patterns-01-strangler-fig-acl-brownfield-ai
+---
+
 # Pattern 01 — Strangler Fig + Anticorruption Layer + Brownfield AI
 
 **Status**: canônico desde 2026-05-09 (validado em migração WR Comercial)

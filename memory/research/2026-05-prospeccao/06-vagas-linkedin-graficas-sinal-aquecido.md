@@ -1,3 +1,7 @@
+---
+id: research-2026-05-prospeccao-06-vagas-linkedin-graficas-sinal-aquecido
+---
+
 # Vagas LinkedIn em gráficas BR — sinal de prospect aquecido — 2026-05-09
 
 **Pesquisador:** Claude Code — agente prospecção
