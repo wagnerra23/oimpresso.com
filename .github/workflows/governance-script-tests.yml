@@ -32,6 +32,8 @@ jobs:
           node-version: '20'
       - name: Decoder de titulo !!binary (adr-index-generate)
         run: node scripts/governance/adr-index-generate.test.mjs
+      - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
+        run: node scripts/governance/fact-anchor.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)

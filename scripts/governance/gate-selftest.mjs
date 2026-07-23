@@ -148,6 +148,7 @@ function runMemoryHealth(kind) {
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
     cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
+    cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -163,6 +164,7 @@ function runMemoryHealthUs(kind) {
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
     cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
+    cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -176,6 +178,7 @@ function runMemoryHealthAuthority(kind) {
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
     cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
+    cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -194,6 +197,7 @@ function runMemoryHealthRegistryRef(kind) {
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
     cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
+    cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
