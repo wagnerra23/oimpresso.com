@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-repair-job-sheet-index-charter
 page: /repair/job-sheet
 component: resources/js/Pages/Repair/JobSheet/Index.tsx
 owner: wagner

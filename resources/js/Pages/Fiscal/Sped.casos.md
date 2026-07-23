@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-sped-casos
 casos: SPED & Livros · /fiscal/sped
 irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-atendimento-metricas-index-charter
 page: /atendimento/metricas
 component: resources/js/Pages/Atendimento/Metricas/Index.tsx
 owner: wagner

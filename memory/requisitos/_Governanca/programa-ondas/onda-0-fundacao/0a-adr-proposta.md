@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-programa-ondas-onda-0-fundacao-0a-adr-proposta
 titulo: Onda 0a — ADR-proposta (travar o mecanismo antes de código)
 status: proposto
 owner: W

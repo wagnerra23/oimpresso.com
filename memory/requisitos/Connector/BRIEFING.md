@@ -1,3 +1,7 @@
+---
+id: requisitos-connector-briefing
+---
+
 # BRIEFING — Modules/Connector
 
 > **1-pager executivo** · Última atualização: **2026-05-16** · Owner: [F] Felipe + [W] Wagner

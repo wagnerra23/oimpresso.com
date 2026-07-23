@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-recurring-billing-planos-edit-charter
 page: /recurring-billing/planos/{id}/editar
 component: resources/js/Pages/RecurringBilling/Planos/Edit.tsx
 owner: wagner

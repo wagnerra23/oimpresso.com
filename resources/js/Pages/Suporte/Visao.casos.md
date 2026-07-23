@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-suporte-visao-casos
 casos: Suporte Visão · /suporte/empresas/{business}
 irmaos: Visao.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.

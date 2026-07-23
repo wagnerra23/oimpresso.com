@@ -1,4 +1,5 @@
 ---
+id: requisitos-marketplaces-spec
 module: Marketplaces
 status: rascunho
 version: "1.0"

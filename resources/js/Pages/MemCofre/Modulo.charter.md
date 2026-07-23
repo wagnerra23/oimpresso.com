@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-mem-cofre-modulo-charter
 page: /memcofre/modulos/{module}
 component: resources/js/Pages/MemCofre/Modulo.tsx
 related_prototype: n/a (tela de detalhe de módulo bespoke, com abas — não segue um dos 5 Padrões de Tela)

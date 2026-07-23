@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-oficina-auto-service-orders-edit-charter
 page: /oficina-auto/ordens-servico/{id}/edit
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Edit.tsx
 page_id: oficina-auto-ordens-servico-edit

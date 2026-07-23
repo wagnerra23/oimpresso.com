@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-auditoria-detail-charter
 page: /auditoria/{id}
 component: resources/js/Pages/Auditoria/Detail.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)

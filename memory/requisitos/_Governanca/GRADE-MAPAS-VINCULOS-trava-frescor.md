@@ -1,3 +1,7 @@
+---
+id: requisitos-governanca-grade-mapas-vinculos-trava-frescor
+---
+
 # Vínculos "arquivo → doc obrigatório" — mapa pras portas vivas (cross-módulo)
 
 > **O que é isto.** O índice de **"mexeu no arquivo X → qual doc Y deve acompanhar"**, resolvido para as

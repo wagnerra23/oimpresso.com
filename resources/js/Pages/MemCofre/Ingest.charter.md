@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-mem-cofre-ingest-charter
 page: /memcofre/ingest
 component: resources/js/Pages/MemCofre/Ingest.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela de formulário)

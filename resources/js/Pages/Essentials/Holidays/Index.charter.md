@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-holidays-index-charter
 page: /hrm/holiday
 component: resources/js/Pages/Essentials/Holidays/Index.tsx
 owner: wagner

@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-diagrams-flow
+---
+
 # Fluxos principais · MemCofre
 
 ## F1 · Ingestão de evidência

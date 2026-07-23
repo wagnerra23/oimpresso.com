@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-site-register-charter
 page: /register
 component: resources/js/Pages/Site/Register.tsx
 related_prototype: n/a (herda PT-02 Formulário; useForm + <form> presentes — mas é auth público fora do AppShellV2)

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-suporte-empresas-casos
 casos: Suporte Empresas · /suporte/empresas
 irmaos: Empresas.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.

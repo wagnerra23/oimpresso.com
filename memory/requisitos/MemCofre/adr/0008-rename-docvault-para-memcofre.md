@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-0008-rename-docvault-para-memcofre
+---
+
 # ADR 0008 · Renomear DocVault para MemCofre (label "Cofre de Memórias")
 
 - **Status**: accepted

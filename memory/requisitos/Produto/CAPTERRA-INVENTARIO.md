@@ -1,3 +1,7 @@
+---
+id: requisitos-produto-capterra-inventario
+---
+
 # CAPTERRA-INVENTÁRIO — Produto
 
 > Gerado pela skill `comparativo-do-modulo` (v2) em 2026-07-03 — **Passo 2** da onda standalone do programa de ondas ([template](../_Governanca/programa-ondas/template-onda-modulo.md) · fila Produto→Cliente).

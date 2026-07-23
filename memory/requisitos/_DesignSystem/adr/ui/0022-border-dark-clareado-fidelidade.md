@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0022-border-dark-clareado-fidelidade
+---
+
 # ADR UI-0022 · Border/input neutro no dark clareado 0.30→0.335 (emenda à ADR UI-0020)
 
 - **Status**: accepted

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-nfe-brasil-tributacao-config-default-charter
 page: /nfe-brasil/tributacao/config-default
 component: resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

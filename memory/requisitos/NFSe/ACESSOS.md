@@ -1,3 +1,7 @@
+---
+id: requisitos-nfse-acessos
+---
+
 # NFSe — Checklist de acessos (Eliana[E])
 
 > ⚠️ **Este arquivo NÃO contém senhas.** Lista o que Eliana precisa pedir ao Wagner pra liberar via [Vaultwarden](https://vault.oimpresso.com).

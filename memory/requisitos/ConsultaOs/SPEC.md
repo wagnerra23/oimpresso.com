@@ -1,4 +1,5 @@
 ---
+id: requisitos-consulta-os-spec
 module: ConsultaOs
 version: "1.0"
 last_updated: "2026-07-02"

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-kb-index-charter
 page: /kb
 component: resources/js/Pages/kb/Index.tsx
 bundle_source: kb-page.jsx

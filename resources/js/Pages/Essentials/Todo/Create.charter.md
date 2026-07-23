@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-todo-create-charter
 page: /essentials/todo/create
 component: resources/js/Pages/Essentials/Todo/Create.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

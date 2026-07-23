@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-unificado-index-charter
 page: /produto/unificado
 component: resources/js/Pages/Produto/Unificado/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

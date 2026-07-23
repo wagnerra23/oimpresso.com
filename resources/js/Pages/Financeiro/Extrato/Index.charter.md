@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-extrato-index-charter
 page: /financeiro/extrato/{contaId}
 component: resources/js/Pages/Financeiro/Extrato/Index.tsx
 owner: wagner

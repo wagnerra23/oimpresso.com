@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-kb-components-node-reader-charter
 page: /kb/nodes  # drawer concept — governa NodeReader/NodeList, sem .tsx de página dedicada
 component: resources/js/Pages/kb/_components/NodeReader.tsx
 controller: 'Modules\KB\Http\Controllers\KbNodeController'

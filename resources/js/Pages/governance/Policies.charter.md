@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-governance-policies-charter
 page: /governance/policies
 component: resources/js/Pages/governance/Policies.tsx
 owner: wagner

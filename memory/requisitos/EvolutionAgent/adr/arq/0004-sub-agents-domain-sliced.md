@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-adr-arq-0004-sub-agents-domain-sliced
+---
+
 # ADR ARQ-0004 (EvolutionAgent) · Sub-agents fatiados por domínio
 
 - **Status**: accepted

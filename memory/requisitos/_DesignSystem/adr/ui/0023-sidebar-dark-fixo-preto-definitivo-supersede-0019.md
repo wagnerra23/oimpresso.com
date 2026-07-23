@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0023-sidebar-dark-fixo-preto-definitivo-supersede-0019
+---
+
 # ADR UI-0023 · Sidebar DARK-FIXO (preto) DEFINITIVO — supersede UI-0019; erradica o conflito light×black
 
 - **Status**: accepted

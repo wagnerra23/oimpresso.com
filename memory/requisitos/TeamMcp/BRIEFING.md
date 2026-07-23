@@ -1,3 +1,7 @@
+---
+id: requisitos-team-mcp-briefing
+---
+
 # BRIEFING — Modules/TeamMcp
 
 > Estado consolidado 1-pager · Última atualização: 2026-05-16 · nota reconciliada 2026-07-17

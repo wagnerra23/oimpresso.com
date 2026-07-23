@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-admin-custos-index-charter
 page: /ia/admin/custos
 component: resources/js/Pages/Jana/Admin/Custos/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

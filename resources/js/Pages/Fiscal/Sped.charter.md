@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-sped-charter
 page: /fiscal/sped
 component: resources/js/Pages/Fiscal/Sped.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

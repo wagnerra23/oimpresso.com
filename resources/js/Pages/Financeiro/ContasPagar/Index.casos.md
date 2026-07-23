@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-contas-pagar-index-casos
 casos: Contas a Pagar · /financeiro/contas-pagar
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-cobranca-index-charter
 page: /financeiro/cobranca
 component: resources/js/Pages/Financeiro/Cobranca/Index.tsx
 owner: wagner

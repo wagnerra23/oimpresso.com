@@ -1,4 +1,5 @@
 ---
+id: requisitos-accounting-deprecation-plan
 slug: deprecation-plan-accounting
 title: "DEPRECATION-PLAN — Modules/Accounting (consolidar no Modules/Financeiro)"
 status: planejado

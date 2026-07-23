@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-intercorrencias-show-charter
 page: /ponto/intercorrencias/{id}
 component: resources/js/Pages/Ponto/Intercorrencias/Show.tsx
 related_prototype: n/a (tela de detalhe bespoke — ficha de intercorrência com ações por estado; não segue um dos 5 Padrões de Tela)

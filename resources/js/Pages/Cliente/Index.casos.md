@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-index-casos
 casos: Lista de clientes + drawer 760 · /cliente
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

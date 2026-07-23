@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-admin-feature-flags-show-charter
 page: /admin/feature-flags/{key}
 status: draft
 owner: wagner

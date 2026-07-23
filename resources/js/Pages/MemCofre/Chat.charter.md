@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-mem-cofre-chat-charter
 page: /memcofre/chat
 component: resources/js/Pages/MemCofre/Chat.tsx
 related_prototype: n/a (tela de chat conversacional bespoke — não segue um dos 5 Padrões de Tela)

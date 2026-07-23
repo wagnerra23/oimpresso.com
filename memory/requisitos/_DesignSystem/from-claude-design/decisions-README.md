@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-from-claude-design-decisions-readme
 status: superseded
 lifecycle: substituido
 last_reviewed: "2026-06-06"

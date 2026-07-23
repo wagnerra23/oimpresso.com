@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-team-mcp-tasks-index-charter
 page: /team-mcp/tasks
 component: resources/js/Pages/team-mcp/Tasks/Index.tsx
 related_prototype: n/a (herda PT-05 Kanban; segue o Padrão de Tela)

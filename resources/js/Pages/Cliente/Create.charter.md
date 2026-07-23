@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-create-charter
 page: /contacts/create
 component: resources/js/Pages/Cliente/Create.tsx
 owner: wagner

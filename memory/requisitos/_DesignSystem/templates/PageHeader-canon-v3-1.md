@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-templates-page-header-canon-v3-1
+---
+
 # PageHeader Canon v3.1 — Template Oficial
 
 > **Status:** proposto · pending Larissa biz=4 validação 7d

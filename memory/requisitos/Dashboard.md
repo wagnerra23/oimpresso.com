@@ -1,4 +1,5 @@
 ---
+id: requisitos-dashboard
 module: Dashboard
 status: ressuscitado
 phase: F6 Soft wrapper Inertia

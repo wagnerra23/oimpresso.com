@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-ledger-casos
 casos: Extrato financeiro do cliente · /contacts/ledger
 irmaos: Ledger.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

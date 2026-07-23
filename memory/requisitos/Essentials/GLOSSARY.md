@@ -1,3 +1,7 @@
+---
+id: requisitos-essentials-glossary
+---
+
 # Glossário · Essentials
 
 ## Attendance

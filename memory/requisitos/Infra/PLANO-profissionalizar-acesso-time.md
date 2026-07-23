@@ -1,3 +1,7 @@
+---
+id: requisitos-infra-plano-profissionalizar-acesso-time
+---
+
 # Plano · Profissionalizar acesso do time (proteger fonte + controlar novos integrantes)
 
 > **Status:** proposta (doc-only) — **decisão de topologia e execução são do Wagner** (pareia com R10 + regra "habilitar/desabilitar é decisão consciente").

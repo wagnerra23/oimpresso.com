@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-stock-history-casos
 casos: Histórico de estoque (Kardex) · /products/stock-history/{id}
 irmaos: StockHistory.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)

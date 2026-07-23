@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-briefing
 modulo: ProjectMgmt
 status: Fase 1+2 done (2026-05-08) · Fase 3+4 backlog
 last_pr: PR #211 (PMG-001 optimistic-lock)

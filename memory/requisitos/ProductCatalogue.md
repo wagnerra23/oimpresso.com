@@ -1,4 +1,5 @@
 ---
+id: requisitos-product-catalogue
 module: ProductCatalogue
 alias: productcatalogue
 status: ativo

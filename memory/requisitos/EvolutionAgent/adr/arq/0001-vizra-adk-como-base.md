@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-adr-arq-0001-vizra-adk-como-base
+---
+
 # ADR ARQ-0001 (EvolutionAgent) · Vizra ADK como base do agente
 
 - **Status**: accepted

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-admin-governance-v4-charter
 page: /admin/governance/v4
 component: resources/js/Pages/Admin/GovernanceV4.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

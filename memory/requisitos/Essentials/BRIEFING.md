@@ -1,4 +1,5 @@
 ---
+id: requisitos-essentials-briefing
 module: Essentials
 status: shared-infra
 status_nota: "shared infrastructure backend HRM (em prod via biz=4 + cross-business)"

@@ -1,4 +1,5 @@
 ---
+id: requisitos-cms-site-home-charter
 page_id: cms.site.home
 route: GET /c
 controller: Modules\Cms\Http\Controllers\CmsController@index

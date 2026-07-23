@@ -1,3 +1,7 @@
+---
+id: requisitos-cliente-clientes-gap
+---
+
 # Gap map — Cliente/Index vs mockups Cowork (Fase 1 aplicar-prototipo · READ-ONLY)
 
 > Gerado 2026-06-30. Mapeamento de gap entre a **tela viva** e **dois mockups** do bundle Cowork importado pra staging.

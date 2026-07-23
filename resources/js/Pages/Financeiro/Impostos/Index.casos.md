@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-impostos-index-casos
 casos: Impostos & obrigações · /financeiro/impostos
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável

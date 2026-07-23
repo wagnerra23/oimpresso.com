@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-paridade-charter-vs-legado
 titulo: "Paridade — Charters React × Cadastro de Produto legado (mapa de gaps do cutover)"
 tipo: paridade
 module: Produto

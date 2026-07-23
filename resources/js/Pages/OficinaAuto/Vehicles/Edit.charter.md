@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-oficina-auto-vehicles-edit-charter
 page: /oficina-auto/veiculos/{id}/edit
 component: resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx
 page_id: oficina-auto-veiculos-edit

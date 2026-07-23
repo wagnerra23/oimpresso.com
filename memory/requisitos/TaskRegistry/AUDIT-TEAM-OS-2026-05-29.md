@@ -1,4 +1,5 @@
 ---
+id: requisitos-task-registry-audit-team-os-2026-05-29
 title: "Auditoria Team OS — TaskRegistry MCP vs Jira Team '26/Rovo + Claude Agent Teams"
 type: auditoria
 status: draft

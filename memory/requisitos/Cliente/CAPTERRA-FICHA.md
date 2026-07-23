@@ -1,3 +1,7 @@
+---
+id: requisitos-cliente-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Cliente (capacidade)
 
 > Ficha canônica de benchmark de **capacidade** do módulo Cliente (cadastro de clientes/contatos PF+PJ — core UltimatePOS `App\Contact` + MWART Inertia, código em `Modules/Crm/`).

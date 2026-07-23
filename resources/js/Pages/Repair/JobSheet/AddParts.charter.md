@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-repair-job-sheet-add-parts-charter
 page: /repair/job-sheet/add-parts/{id}
 component: resources/js/Pages/Repair/JobSheet/AddParts.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

@@ -1,3 +1,7 @@
+---
+id: requisitos-manufacturing-glossary
+---
+
 # Glossário · Manufacturing
 
 ## BoM (Bill of Materials)

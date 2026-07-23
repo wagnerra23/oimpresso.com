@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-intercorrencias-index-charter
 page: /ponto/intercorrencias
 component: resources/js/Pages/Ponto/Intercorrencias/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

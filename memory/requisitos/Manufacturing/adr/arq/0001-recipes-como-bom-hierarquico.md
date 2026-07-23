@@ -1,3 +1,7 @@
+---
+id: requisitos-manufacturing-adr-arq-0001-recipes-como-bom-hierarquico
+---
+
 # ADR ARQ-0001 (Manufacturing) · Recipes como BoM hierárquico
 
 - **Status**: accepted

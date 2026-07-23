@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-selling-prices-casos
 casos: Tabela de preço do produto · /products/add-selling-prices/{id}
 irmaos: SellingPrices.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-prova-viva-charter
 page: /financeiro/prova-viva
 component: resources/js/Pages/Financeiro/ProvaViva.tsx
 owner: wagner

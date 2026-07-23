@@ -1,3 +1,7 @@
+---
+id: requisitos-arquivos-briefing
+---
+
 # BRIEFING — Modules/Arquivos
 
 > **Estado consolidado** — 1 página executiva. Atualizado por PR mergeado (skill `brief-update` Tier B). Última revisão: 2026-05-16 (Wave M Capterra boost 71→80).

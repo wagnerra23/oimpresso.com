@@ -1,3 +1,7 @@
+---
+id: requisitos-accounting-adr-arq-0002-permissions-spatie-por-recurso
+---
+
 # ADR ARQ-0002 (Accounting) · Permissões Spatie granulares por recurso
 
 - **Status**: accepted

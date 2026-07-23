@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-governance-drift-alerts-charter
 page: /governance/drift
 component: resources/js/Pages/governance/DriftAlerts.tsx
 owner: wagner

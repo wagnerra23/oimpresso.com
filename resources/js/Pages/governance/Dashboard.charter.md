@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-governance-dashboard-charter
 page: /governance
 component: resources/js/Pages/governance/Dashboard.tsx
 owner: wagner

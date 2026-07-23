@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-programa-ondas-onda-0-fundacao-0d-paridade-migracao
 titulo: Onda 0d — Artefato + gate de paridade de migração (Blade↔React)
 status: proposto
 owner: W

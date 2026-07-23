@@ -1,4 +1,5 @@
 ---
+id: requisitos-team-mcp-tasks-visual-comparison
 slug: teammcp-tasks-visual-comparison
 title: "TeamMcp — Comparativo visual da tela Tasks (Backlog + Quadro)"
 type: visual-comparison

@@ -1,4 +1,5 @@
 ---
+id: requisitos-estoque-telas-roadmap
 modulo: Inventory (cross-vertical)
 status: proposed
 created_at: 2026-05-12

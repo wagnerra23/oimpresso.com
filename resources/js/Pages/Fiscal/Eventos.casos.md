@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-eventos-casos
 casos: Eventos Fiscais · /fiscal/eventos
 irmaos: Eventos.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)

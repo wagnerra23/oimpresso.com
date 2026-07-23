@@ -1,3 +1,7 @@
+---
+id: requisitos-fiscal-briefing
+---
+
 # BRIEFING — Modules/Fiscal
 
 > **Última atualização:** 2026-07-03 (US-FISCAL-022 mergeada — health-check proativo cert A1 · PR #3775)

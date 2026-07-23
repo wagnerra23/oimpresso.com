@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-reminders-index-charter
 page: /essentials/reminder
 component: resources/js/Pages/Essentials/Reminders/Index.tsx
 owner: wagner

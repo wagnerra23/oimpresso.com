@@ -1,3 +1,7 @@
+---
+id: requisitos-produto-adr-arq-0001-selling-price-multiplier
+---
+
 # ADR ARQ-0001 (Produto) · `SellingPriceGroup` multiplier: estratégia de preço por tabela
 
 - **Status**: proposed

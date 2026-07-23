@@ -1,4 +1,5 @@
 ---
+id: requisitos-accounting-briefing
 module: Accounting
 status: legacy UltimatePOS contábil (núcleo comum — 70 entities + 12 controllers)
 piloto: N/A (cross-business interno consumido por Vestuario/Financeiro/NfeBrasil/RecurringBilling)

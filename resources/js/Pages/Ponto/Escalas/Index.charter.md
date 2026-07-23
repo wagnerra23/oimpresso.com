@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-escalas-index-charter
 page: /ponto/escalas
 component: resources/js/Pages/Ponto/Escalas/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

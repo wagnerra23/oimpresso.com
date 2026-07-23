@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-governance-audit-charter
 page: /governance/audit
 component: resources/js/Pages/governance/Audit.tsx
 owner: wagner

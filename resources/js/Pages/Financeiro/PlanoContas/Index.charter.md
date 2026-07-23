@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-plano-contas-index-charter
 page: /financeiro/plano-contas
 component: resources/js/Pages/Financeiro/PlanoContas/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

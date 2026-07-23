@@ -1,3 +1,7 @@
+---
+id: requisitos-arquivos-charters-vault-curador
+---
+
 # CHARTERS — Vault Encryption + Curador (Modules/Arquivos)
 
 > **Contrato vivo** dos componentes-chave do módulo. Substitui charters `.charter.md` ao lado de `.tsx` (não aplicável — módulo backend-only no momento). Quando UI Inertia surgir, charters migram pra `resources/js/Pages/Arquivos/<Tela>.charter.md`.

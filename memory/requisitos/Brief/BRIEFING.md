@@ -1,4 +1,5 @@
 ---
+id: requisitos-brief-briefing
 module: Brief
 status: producao
 updated_at: "2026-07-21"

@@ -1,3 +1,7 @@
+---
+id: requisitos-cms-briefing
+---
+
 # BRIEFING — Modules/Cms
 
 > 1-pager executivo. Atualizado por PR (skill `brief-update` Tier B).

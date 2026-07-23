@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-knowledge-index-charter
 page: /essentials/knowledge-base
 component: resources/js/Pages/Essentials/Knowledge/Index.tsx
 owner: wagner

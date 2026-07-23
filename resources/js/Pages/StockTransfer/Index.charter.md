@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-stock-transfer-index-charter
 page: /stock-transfers
 component: resources/js/Pages/StockTransfer/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

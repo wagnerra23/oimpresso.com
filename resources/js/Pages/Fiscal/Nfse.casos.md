@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-nfse-casos
 casos: NFS-e Emitidas · /fiscal/nfse
 irmaos: Nfse.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)

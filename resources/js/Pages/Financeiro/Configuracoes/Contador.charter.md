@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-configuracoes-contador-charter
 page-id: financeiro-configuracoes-contador
 route: /financeiro/configuracoes/contador
 module: Financeiro

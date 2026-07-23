@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-welcome-charter
 page: /ponto/react
 component: resources/js/Pages/Ponto/Welcome.tsx
 related_prototype: n/a (página hub de boas-vindas com atalhos — não segue um dos 5 Padrões de Tela)

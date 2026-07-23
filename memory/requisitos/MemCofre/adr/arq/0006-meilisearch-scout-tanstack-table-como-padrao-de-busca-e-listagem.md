@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0006-meilisearch-scout-tanstack-table-como-padrao-de-busca-e-listagem
+---
+
 # ADR ARQ-0006 (MemCofre) · Meilisearch + Scout + TanStack Table como padrão de busca e listagem
 
 - **Status**: accepted

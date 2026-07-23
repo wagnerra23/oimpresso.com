@@ -1,3 +1,7 @@
+---
+id: requisitos-ads-briefing
+---
+
 # BRIEFING — ADS (Adaptive Decision System)
 
 > Estado consolidado · 1 página executiva · atualizado por PR (skill `brief-update`).

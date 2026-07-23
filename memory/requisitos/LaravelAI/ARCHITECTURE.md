@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-architecture
+---
+
 # Arquitetura — LaravelAI
 
 ## 1. Objetivo

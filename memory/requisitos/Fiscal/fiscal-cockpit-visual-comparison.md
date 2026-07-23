@@ -1,4 +1,5 @@
 ---
+id: requisitos-fiscal-fiscal-cockpit-visual-comparison
 tela: Fiscal/Cockpit
 url: /fiscal
 status: approved

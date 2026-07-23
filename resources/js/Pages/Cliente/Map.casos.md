@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-map-casos
 casos: Mapa dos clientes · /contacts/map
 irmaos: Map.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

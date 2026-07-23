@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-repair-device-models-create-charter
 page: /repair/device-models/create
 component: resources/js/Pages/Repair/DeviceModels/Create.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

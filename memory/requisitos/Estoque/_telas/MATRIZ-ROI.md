@@ -1,4 +1,5 @@
 ---
+id: requisitos-estoque-telas-matriz-roi
 modulo: Inventory (cross-vertical)
 status: proposed
 created_at: 2026-05-12

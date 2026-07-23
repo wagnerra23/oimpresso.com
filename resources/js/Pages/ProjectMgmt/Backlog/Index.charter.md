@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-project-mgmt-backlog-index-charter
 page: /project-mgmt/backlog
 component: resources/js/Pages/ProjectMgmt/Backlog/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

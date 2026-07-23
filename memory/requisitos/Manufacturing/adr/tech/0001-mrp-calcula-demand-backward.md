@@ -1,3 +1,7 @@
+---
+id: requisitos-manufacturing-adr-tech-0001-mrp-calcula-demand-backward
+---
+
 # ADR TECH-0001 (Manufacturing) · MRP calcula demand backward
 
 - **Status**: accepted

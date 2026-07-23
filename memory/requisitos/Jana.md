@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana
 module: Jana
 status: ausente_branch_atual
 action_required: decidir_ressuscitar_ou_deprecar

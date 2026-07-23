@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-roadmap-p12-decay-real-ragas-recall
 roadmap_item: P12
 slug: decay-real-ragas-recall
 onda: 5

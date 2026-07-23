@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-create-charter
 page: /products/create
 component: resources/js/Pages/Produto/Create.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

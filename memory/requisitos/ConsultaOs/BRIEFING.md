@@ -1,3 +1,7 @@
+---
+id: requisitos-consulta-os-briefing
+---
+
 # BRIEFING — ConsultaOs
 
 Portal público (sem auth) onde o cliente final de uma gráfica/oficina consulta o estágio de produção de uma OS pelo número compartilhado pelo vendedor (orçado → aprovação → produção → acabamento → expedição → entregue). Opera **mock-only**: o backend está totalmente cabeado (Controller → Service → Repository, validação anti-enumeration, auditoria LGPD, throttle, OTel), mas a fonte de dados é um dataset estático de 4 OS fake (`MockConsultaOsRepository`) — não toca DB nem integra com `Modules/Repair`. A camada existe para validar UX/segurança antes de ligar na query real.

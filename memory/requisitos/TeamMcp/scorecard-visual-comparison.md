@@ -1,4 +1,5 @@
 ---
+id: requisitos-team-mcp-scorecard-visual-comparison
 slug: teammcp-scorecard-visual-comparison
 title: "TeamMcp — Comparativo visual da tela Scorecard (Saúde)"
 type: visual-comparison

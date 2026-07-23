@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-team-mcp-scorecard-index-casos
 casos: Saúde do MCP · Scorecard Facts+Checks · /team-mcp/scorecard
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável

@@ -1,4 +1,5 @@
 ---
+id: requisitos-cliente-audits-alinhamento-cliente-2026-06-22
 tipo: alinhamento-fidelidade
 tela: Cliente (cadastro)
 modulo: Cliente (código ainda em Modules/Crm)

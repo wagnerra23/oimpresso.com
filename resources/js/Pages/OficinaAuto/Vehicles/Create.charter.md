@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-oficina-auto-vehicles-create-charter
 page: /oficina-auto/veiculos/create
 component: resources/js/Pages/OficinaAuto/Vehicles/Create.tsx
 page_id: oficina-auto-veiculos-create

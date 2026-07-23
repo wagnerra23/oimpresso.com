@@ -1,3 +1,7 @@
+---
+id: requisitos-kb-changelog
+---
+
 # Módulo KB — CHANGELOG
 
 > Mudanças significativas no Módulo KB Unificado. Entries por Wave/PR. Wave mais recente no topo.

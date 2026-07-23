@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-oficina-auto-service-orders-edit-casos
 casos: Editar OS · /oficina-auto/ordens-servico/{id}/edit
 irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

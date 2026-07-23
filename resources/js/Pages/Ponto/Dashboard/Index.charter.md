@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-dashboard-index-charter
 page: /ponto
 component: resources/js/Pages/Ponto/Dashboard/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

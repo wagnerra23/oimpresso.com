@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-manual-css-js
 name: Manual CSS & JS — como deveria ser e como fazer no oimpresso
 description: Manual canônico de administração de CSS/JS (frontend) do oimpresso — arquitetura-alvo comparada com os melhores (Linear/Stripe/Shopify Polaris/GitHub Primer/Vercel), diagnóstico do estado atual com números, as regras duras, o workflow concreto com as ferramentas que já existem (ESLint/Stylelint ratchet, conformance-gate, foundation-guard, ds-report), e o plano de migração pra sair do sprawl de 28k linhas de CSS bespoke.
 type: reference

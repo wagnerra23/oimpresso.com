@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-unificado-index-casos
 casos: Financeiro Unificado · /financeiro/unificado
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)

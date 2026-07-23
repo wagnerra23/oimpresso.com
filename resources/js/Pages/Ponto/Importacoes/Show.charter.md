@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-importacoes-show-charter
 page: /ponto/importacoes/{id}
 component: resources/js/Pages/Ponto/Importacoes/Show.tsx
 related_prototype: n/a (tela de detalhe bespoke — status de processamento de um arquivo AFD; não segue um dos 5 Padrões de Tela)

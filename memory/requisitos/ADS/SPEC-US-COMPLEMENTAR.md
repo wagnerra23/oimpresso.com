@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-spec-us-complementar
 na_justified:
   D5: "ADS está DORMANT por design (ADR 0105 cliente-como-sinal). Module construído mas standby — ativa quando cliente reportar dor real. Penalidade D5 não reflete gap de implementação, é decisão estratégica documentada."
 related_adrs: [0035, 0105, 0153, 0154]

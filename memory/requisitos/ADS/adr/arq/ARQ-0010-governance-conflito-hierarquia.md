@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-adr-arq-arq-0010-governance-conflito-hierarquia
 slug: ARQ-0010-governance-conflito-hierarquia
 title: "Governance — Hierarquia de autoridade e resolução de conflitos entre agentes"
 status: accepted

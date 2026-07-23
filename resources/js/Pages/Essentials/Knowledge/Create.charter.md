@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-knowledge-create-charter
 page: /essentials/knowledge-base/create
 component: resources/js/Pages/Essentials/Knowledge/Create.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

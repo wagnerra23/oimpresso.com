@@ -1,3 +1,7 @@
+---
+id: requisitos-infra-auditoria-ops-dr-2026-07
+---
+
 # Auditoria · Infra / Ops / DR · 2026-07-05
 
 > **Onda 3** do [PLANO-APROFUNDAMENTO-AVALIACOES](../_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md).

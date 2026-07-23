@@ -1,3 +1,7 @@
+---
+id: requisitos-admin-briefing
+---
+
 # BRIEFING — Modules/Admin (Admin Center @ CT 100)
 
 > **Estado consolidado 1-pager** · Atualizado: 2026-05-16 (pós-PR3 governance-v3-docs `na_justified` declarado)

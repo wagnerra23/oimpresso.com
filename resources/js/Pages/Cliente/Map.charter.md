@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-map-charter
 page: /contacts/map
 component: resources/js/Pages/Cliente/Map.tsx
 owner: wagner

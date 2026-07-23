@@ -1,3 +1,7 @@
+---
+id: requisitos-template-feature-briefing
+---
+
 <!--
   USE COMO BASE — NÃO EDITAR (canônico). Este BRIEFING é a porta do diretório (não se copia).
   Copie os 3 templates (requirements.md + plan.md + tasks.md) pra

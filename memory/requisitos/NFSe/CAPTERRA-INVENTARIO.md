@@ -1,3 +1,7 @@
+---
+id: requisitos-nfse-capterra-inventario
+---
+
 # CAPTERRA-INVENTÁRIO — NFSe
 
 > Gerado por skill `comparativo-do-modulo` (v2.0) em 2026-07-03.

@@ -1,3 +1,7 @@
+---
+id: requisitos-cliente-briefing
+---
+
 # BRIEFING — Cliente (cadastro de clientes / contatos)
 
 > **Última atualização:** 2026-06-22 · **Owner:** Wagner · **Status produção:** ✅ usado por biz=4 (ROTA LIVRE — Larissa) e demais tenants.

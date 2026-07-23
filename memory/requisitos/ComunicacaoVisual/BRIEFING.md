@@ -1,3 +1,7 @@
+---
+id: requisitos-comunicacao-visual-briefing
+---
+
 # BRIEFING — ComunicacaoVisual
 
 ERP vertical para gráfica rápida / comunicação visual BR (CNAE 1813-0/01: lona, banner, adesivo, fachada, plotter). **O que de fato roda hoje:** uma calculadora de orçamento por m² — única tela Inertia entregue (`Index.tsx`, hub + calculadora) — apoiada por uma API JSON authoritative server-side (`POST /comunicacao-visual/api/calcular` + persistência em `/orcamentos`) e por uma API de apontamento de produção (spool plotter: iniciar/finalizar/cancelar/em-andamento, com duração e drift m² produzido × orçado). O cálculo de preço (área × preço/m², resolução override→catálogo→erro), o multi-tenant Tier 0 e a observabilidade (spans OTel + PII redaction) são reais e cobertos por ~19 suítes Pest. O resto do escopo (PCP/FSM, materiais, instalação, NFe) é schema e contrato, não fluxo navegável.

@@ -1,3 +1,7 @@
+---
+id: requisitos-essentials-changelog
+---
+
 # Changelog
 
 Histórico congelado do contrato documental de **Essentials**. Mudanças posteriores vivem no histórico Git desta pasta e nas entregas referenciadas pelo `BRIEFING.md`.

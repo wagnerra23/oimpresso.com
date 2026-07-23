@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-glossary
+---
+
 # Glossário · MemCofre
 
 ## ADR

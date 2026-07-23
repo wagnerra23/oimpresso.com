@@ -1,4 +1,5 @@
 ---
+id: requisitos-essentials-readme
 module: Essentials
 alias: essentials
 status: ativo

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-fiscal-nfe-casos
 casos: Notas NF-e / NFC-e · /fiscal/nfe
 irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)

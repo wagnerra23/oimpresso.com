@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-runbook-fase-debate-adversarial
 title: "Fase Debate (AGREE/CHALLENGE/CONNECT/SURFACE) — plugar nos workflows adversariais"
 owner: W
 status: ativo

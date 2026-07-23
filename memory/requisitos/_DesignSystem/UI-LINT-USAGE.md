@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-ui-lint-usage
 doc: UI-LINT-USAGE
 camada: meta-protocolo
 status: ativo

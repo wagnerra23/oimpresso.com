@@ -1,3 +1,7 @@
+---
+id: requisitos-fiscal-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Fiscal
 
 > Ficha canônica de benchmark do módulo **Fiscal** (cockpit / **configuração / orquestração fiscal**).

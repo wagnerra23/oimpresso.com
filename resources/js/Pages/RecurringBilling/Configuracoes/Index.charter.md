@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-recurring-billing-configuracoes-index-charter
 page: /recurring-billing/configuracoes
 component: resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx
 owner: wagner

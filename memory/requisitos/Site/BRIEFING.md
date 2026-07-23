@@ -1,3 +1,7 @@
+---
+id: requisitos-site-briefing
+---
+
 # BRIEFING — Site · ⚰️ FUNDIDO em Cms (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `Cms`** (decisão E1 · frente KL · 2026-06-15).

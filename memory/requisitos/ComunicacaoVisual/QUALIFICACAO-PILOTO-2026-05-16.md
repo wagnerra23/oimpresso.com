@@ -1,4 +1,5 @@
 ---
+id: requisitos-comunicacao-visual-qualificacao-piloto-2026-05-16
 module: ComunicacaoVisual
 doc_type: qualificacao_piloto
 status: draft

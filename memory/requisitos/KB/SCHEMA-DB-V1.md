@@ -1,3 +1,7 @@
+---
+id: requisitos-kb-schema-db-v1
+---
+
 # KB Unificado — Schema DB V1 (contrato técnico)
 
 > **Status:** contrato firme. Mudanças exigem ADR amendment a [0149](../../decisions/proposals/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md).

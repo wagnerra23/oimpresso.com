@@ -1,4 +1,5 @@
 ---
+id: requisitos-vestuario-vestuario-charter
 module: Vestuario
 charter_type: module
 status: piloto
