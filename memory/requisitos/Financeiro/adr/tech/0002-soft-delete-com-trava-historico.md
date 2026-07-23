@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-tech-0002-soft-delete-com-trava-historico
+---
+
 # ADR TECH-0002 (Financeiro) · Soft delete com trava de integridade histórica
 
 - **Status**: accepted

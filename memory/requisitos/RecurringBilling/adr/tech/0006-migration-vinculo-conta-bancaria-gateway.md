@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-tech-0006-migration-vinculo-conta-bancaria-gateway
+---
+
 # ADR TECH-0006 (RecurringBilling) · Migration — vínculo entre fin_contas_bancarias e rb_boleto_credentials
 
 - **Status**: accepted

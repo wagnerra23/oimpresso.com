@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-capterra-ficha
+---
+
 # CAPTERRA-FICHA — RecurringBilling
 
 > **Ficha canônica de benchmark do módulo RecurringBilling** — fonte de verdade para a skill `comparativo-do-modulo`.

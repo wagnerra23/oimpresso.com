@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-tech-0003-mvp-eduardokum-com-mock-cnab
+---
+
 # ADR TECH-0003 (Financeiro) · MVP do `CnabDirectStrategy` via `eduardokum/laravel-boleto` com envio mockado
 
 - **Status**: accepted

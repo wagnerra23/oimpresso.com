@@ -109,85 +109,65 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 11: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725). O GAP 2
-        # NÃO ratcheteou NADA — este PR (#4736) landa só groundwork: alinhamento authz +
-        # hardening do helper + fix do reverify. Motivo em GAP 2: authz era só a camada de
-        # topo; abaixo há 5 bugs REAIS de comportamento + flakiness residual de cache Spatie
-        # (order-dependent) que atinge ATÉ os 2 que pareciam verdes.
+        # Os 12: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725 + follow-up).
         #
         # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
         # gaps; investigação com oráculos de schema + config Spatie + run real da lane):
         #
-        #   GAP 1 — bug de /kb/v2 (RESOLVIDO neste PR, mas NÃO ratcheteia sozinho):
-        #     NÃO era coluna faltante no bootstrap. Era BUG DE CONTROLLER —
-        #     KbController::indexV2 fazia `orderBy('sort')` mas a coluna real é
-        #     `sort_order` (migration 100001 + model KbCategory + seeder que mapeia
-        #     'sort'→sort_order + dump mysql-schema.sql; único site no repo). Bug do #4500
-        #     → SQLSTATE 42S22 → 500 VIVO em /kb/v2 + /sops em prod desde 2026-07-17.
-        #     Fix aplicado: orderBy('sort')→orderBy('sort_order'). PROVADO pela lane: o
-        #     caso V3 do KbIndexV2ContractTest (renderiza /kb/v2) passou. Mas o teste
-        #     TODO ainda NÃO entra na allowlist porque atrás do 42S22 havia mais 2
-        #     bloqueadores DE AMBIENTE DE LANE (não de prod):
-        #       (a) V2c/V5/V6: assertInertia com `ensure_pages_exist` não acha a página
-        #           kb/Index.v2 — a lane não builda o front (sem manifest real do Vite).
-        #       (b) V2b: 403 INTERMITENTE de resolução Spatie no MySQL persistente-no-run
-        #           (mesma perm coarse que V3/V4/V5/V6 resolveram OK → order-dependent →
-        #           cache/reset de permissão entre testes; permissions/model_has_* são
-        #           CORE e NÃO são resetadas por kbTeardownSchema).
-        #     → KbIndexV2ContractTest SEGUE RATCHET-PENDENTE por (a) ensure_pages_exist +
-        #       (b) cache Spatie. O helper MITIGOU (b) (syncPermissions + forgetCached) mas
-        #       NÃO eliminou — o run PR #4736 mostrou 403 order-dependent ainda intermitente
-        #       (ver GAP 2). NÃO ratchetear enquanto (a) e (b) não fecharem de vez.
+        #   GAP 1 — bug de /kb/v2 + 2 bloqueadores de lane (TODOS RESOLVIDOS → KbIndexV2
+        #   ratcheteado no follow-up do #4725):
+        #     (0) NÃO era coluna faltante no bootstrap. Era BUG DE CONTROLLER —
+        #         KbController::indexV2 fazia `orderBy('sort')` mas a coluna real é
+        #         `sort_order` (migration 100001 + model KbCategory + seeder que mapeia
+        #         'sort'→sort_order + dump mysql-schema.sql; único site no repo). Bug do #4500
+        #         → SQLSTATE 42S22 → 500 VIVO em /kb/v2 + /sops em prod desde 2026-07-17.
+        #         Fix: orderBy('sort')→orderBy('sort_order'). Atrás do 42S22 a lane expôs +2
+        #         bloqueadores DE AMBIENTE DE LANE (não de prod), ambos corrigidos:
+        #     (a) V2c/V5/V6: assertInertia com `ensure_pages_exist` não achava a página
+        #         kb/Index.v2 — a lane não builda o front (sem manifest real do Vite) e
+        #         `config/inertia.php` tem `testing.ensure_pages_exist => true`. Fix: o
+        #         beforeEach do KbIndexV2ContractTest seta `inertia.testing.ensure_pages_exist
+        #         => false` (testa o NOME do componente sem build; o .tsx EXISTE e prod renderiza).
+        #     (b) V2b: 403 INTERMITENTE de resolução Spatie no MySQL persistente-no-run
+        #         (mesma perm coarse que V3/V4/V5/V6 resolviam OK → order-dependent, phpunit
+        #         executionOrder="random"; permissions/model_has_* são CORE e NÃO são
+        #         resetadas por kbTeardownSchema). Fix: kbActAsUser chama
+        #         PermissionRegistrar::forgetCachedPermissions() após conceder → o próximo
+        #         `->can()` relê fresco do DB.
+        #     → KbIndexV2ContractTest agora entra na allowlist (12 arquivos), provado verde
+        #       pela lane. GAP 1 fechado.
         #
         #   GAP 2 — os 7 (Http/*ControllerTest + GovernanceInvariantsTest +
-        #   CrossTenantIsolationTest). A CAMADA DE TOPO era authz, alinhada via Opção B
-        #   (2026-07-23, decisão [W]) — mas 2 runs REAIS da lane (PR #4736) PROVARAM que
-        #   authz era só a superfície. NENHUM dos 7 foi ratcheteado, por DOIS motivos:
-        #     (i)  5 dos 7 têm BUGS REAIS de comportamento que o middleware-403 mascarava
-        #          (lista abaixo);
-        #     (ii) os 2 que ficaram verdes num run (KbPath + KbDecisionTree) são FLAKY:
-        #          KbDecisionTree passou no run de 18 arquivos e FALHOU no de 13 com 403
-        #          order-dependent (cache Spatie residual — item b do GAP 1). Ratchetear
-        #          flaky quebra a lane intermitentemente → pior que não ratchetear.
-        #   O helper (syncPermissions + forgetCached) reduziu MUITO a flakiness (os 403 de
-        #   acúmulo sumiram) mas não zerou o resíduo order-dependent. Fechar GAP 2 exige um
-        #   PR dedicado (isolamento Spatie robusto no bootstrap/teardown + fix dos 5 bugs).
-        #
-        #   Fix da camada authz (aplicado aos 7, correto e necessário):
-        #     1. NAME MISMATCH: todo controller/request KB gateia na COARSE
-        #        `copiloto.mcp.memory.manage` (SCHEMA-DB-V1 §12 declara CANÔNICA até o "PR de
-        #        rename Spatie"; os kb.* são DECLARATIVOS, não gateiam). Testes alinhados:
-        #        sucesso concede a coarse (kb.* ao lado, forward-compat); 403 concede só
-        #        kb.view; cross-tenant/governança/autoria concedem a coarse DE PROPÓSITO pra
-        #        o bloqueio vir do global scope / invariante / autoria — não do middleware.
-        #     2. FLAKINESS Spatie: permissions/model_has_* são CORE, não resetadas por
-        #        kbTeardownSchema → user acumulava perms (403 herdava coarse → 200 falso) +
-        #        cache stale. Fix no helper kbActAsUser: syncPermissions + forgetCached.
-        #     + fix não-authz: KbNodeController::reverify passou a zerar outdated_votes.
-        #     NÃO muda autorização em prod. authz granular kb.* segue adiado pro rename.
-        #
-        #   Os 5 pendentes por BUG REAL (não-authz) — precisam de PR de correção do módulo
-        #   KB, NÃO de ratchet. Achados do run PR #4736 (8 asserts falharam sob authz OK):
-        #     - KbNodeControllerTest: (a) POST /kb/nodes NÃO cria snapshot inicial em
-        #       kb_node_versions (store não versiona no create; observer só no update);
-        #       (b) DELETE /kb/nodes exige `confirm=CONFIRMO` (safety guard do destroy) que
-        #       o teste não manda → 422 (bug de TESTE — falta o payload).
-        #     - KbCommentControllerTest: DELETE comment do próprio autor → 403 (guarda de
-        #       autoria: `author_user_id !== Auth::id()` com `!==` estrito — provável
-        #       string-vs-int; investigar).
-        #     - KbFavoriteControllerTest: GET /kb/nodes?favorites=1 não exclui o não-
-        #       favoritado (filtro de favorito por user).
-        #     - GovernanceInvariantsTest: save de KbNodeVersion pra nó bridge NÃO lança
-        #       (gate de governança de versão de bridge não está no nível de Model).
-        #     - CrossTenantIsolationTest: (a) POST /kb/edges cross-tenant → 201: o
-        #       StoreKbEdgeRequest valida `to_node_id` com `exists:kb_nodes,id` SEM escopo
-        #       de business_id → biz=1 cria aresta referenciando nó de biz=99. POTENCIAL
-        #       TIER 0 — decisão [W] (fix: escopar o exists por business_id + provar que o
-        #       read-path da aresta não vaza conteúdo); (b) DELETE cross-tenant → 422 (mesmo
-        #       confirm faltando; a isolação se mantém, mas o status esperado difere);
-        #       (c) bridge job: teste chama handle() sem os args de DI → ArgumentCountError
-        #       (bug de TESTE).
-        #     Enquanto não fecharem, NÃO ratchetear esses 5.
+        #   CrossTenantIsolationTest). A CAMADA DE TOPO era authz (NAME MISMATCH): todo
+        #   controller/request KB gateia na COARSE `copiloto.mcp.memory.manage` (SCHEMA-DB-V1
+        #   §12 declara CANÔNICA até o "PR de rename Spatie"; os kb.* são DECLARATIVOS, não
+        #   gateiam), mas os testes concediam só `kb.*` → middleware 403 em todo sucesso.
+        #   O PR #4736 (decisão [W], Opção B) ALINHOU os 7 à realidade V1 (sucesso concede a
+        #   coarse; 403 concede só kb.view; cross-tenant/governança/autoria concedem a coarse
+        #   DE PROPÓSITO pra o bloqueio vir do global scope/invariante/autoria) + endureceu o
+        #   helper kbActAsUser (givePermissionTo→syncPermissions, mata o ACÚMULO cross-test
+        #   além do forgetCached que já existia).
+        #   MAS 2 runs REAIS da lane provaram que authz era SÓ a superfície — NENHUM dos 7 é
+        #   ratcheteado ainda, por DOIS motivos:
+        #     (i)  5 dos 7 têm BUGS REAIS de comportamento que o 403 mascarava:
+        #          - KbNode: POST não cria snapshot inicial em kb_node_versions (store não
+        #            versiona no create); DELETE exige `confirm=CONFIRMO` (safety guard do
+        #            destroy) que o teste não manda → 422 (bug de TESTE).
+        #          - KbComment: DELETE do próprio autor → 403 (guarda `author_user_id !==
+        #            Auth::id()` estrita — provável string-vs-int).
+        #          - KbFavorite: GET ?favorites=1 não exclui o não-favoritado.
+        #          - Governance: save de KbNodeVersion pra nó bridge NÃO lança (gate de versão
+        #            de bridge não está no nível de Model).
+        #          - CrossTenant: POST /kb/edges cross-tenant → 201 — StoreKbEdgeRequest valida
+        #            `to_node_id` com `exists:kb_nodes,id` SEM escopo de business_id → biz=1
+        #            referencia nó biz=99. POTENCIAL TIER 0, decisão [W] (fix: escopar o exists
+        #            + provar que o read-path da aresta não vaza). + DELETE cross-tenant 422
+        #            (confirm faltando) + bridge job handle() sem args de DI (bug de TESTE).
+        #     (ii) resíduo de flakiness Spatie order-dependent: KbDecisionTree passou num run
+        #          e falhou noutro com 403 (executionOrder=random). syncPermissions reduziu
+        #          MUITO mas não zerou. Ratchetear flaky quebra a lane → pior que não.
+        #   Fechar GAP 2 = PR dedicado: fix dos 5 bugs + isolamento Spatie robusto. Os 7
+        #   testes já ficam authz-prontos (este PR). NÃO force ratchet aqui.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -209,7 +189,8 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
-            Modules/KB/Tests/Feature/LgpdComplianceTest.php
+            Modules/KB/Tests/Feature/LgpdComplianceTest.php \
+            Modules/KB/Tests/Feature/KbIndexV2ContractTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}

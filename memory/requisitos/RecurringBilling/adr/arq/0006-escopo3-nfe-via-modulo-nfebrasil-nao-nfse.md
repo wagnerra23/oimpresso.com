@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0006-escopo3-nfe-via-modulo-nfebrasil-nao-nfse
+---
+
 # ADR ARQ-0006 (RecurringBilling) · Escopo 3 — NFe via Modules/NfeBrasil, não sub-módulo NFSe novo
 
 - **Status**: accepted

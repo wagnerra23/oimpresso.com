@@ -137,3 +137,33 @@ it('exige --business-id (Tier 0)', function () {
 
     $this->artisan('kb:code-scan', ['--path' => $file])->assertExitCode(1);
 });
+
+// ─── Fase C — multi-repo consciente (--project namespaça o slug) ───
+
+it('multi-repo: mesma FQCN em 2 projetos NÃO colide (namespace por --project)', function () {
+    $file = kbWriteTempPhp(kbSampleClassCode());
+
+    $this->artisan('kb:code-scan', ['--path' => $file, '--business-id' => 1, '--project' => 'repo-a'])->assertExitCode(0);
+    $this->artisan('kb:code-scan', ['--path' => $file, '--business-id' => 1, '--project' => 'repo-b'])->assertExitCode(0);
+
+    // 2 nós distintos pra MESMA FQCN — um por projeto, sem sobrescrever.
+    $nodes = DB::table('kb_nodes')->where('business_id', 1)->where('title', 'App\\Sample\\WidgetService')->get();
+    expect($nodes)->toHaveCount(2);
+
+    $slugs = $nodes->pluck('slug')->all();
+    expect($slugs[0])->not->toBe($slugs[1]);
+    expect(collect($slugs)->every(fn ($s) => str_starts_with($s, 'code-repo-')))->toBeTrue();
+
+    // tag de projeto gravada em cada nó.
+    $nodeA = $nodes->first(fn ($n) => str_starts_with($n->slug, 'code-repo-a'));
+    expect(json_decode((string) $nodeA->tags, true))->toContain('projeto:repo-a');
+});
+
+it('sem --project mantém o slug legado code-{fqcn} (back-compat)', function () {
+    $file = kbWriteTempPhp(kbSampleClassCode());
+
+    $this->artisan('kb:code-scan', ['--path' => $file, '--business-id' => 1])->assertExitCode(0);
+
+    $slug = DB::table('kb_nodes')->where('business_id', 1)->where('title', 'App\\Sample\\WidgetService')->value('slug');
+    expect((string) $slug)->toStartWith('code-app-sample-widgetservice');
+});
