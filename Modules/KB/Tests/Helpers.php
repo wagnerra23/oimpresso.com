@@ -291,6 +291,18 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->save();
     }
 
+    // Isolamento do cache de DISCO do Spatie: CACHE_STORE=file → o PermissionRegistrar
+    // cacheia o mapa de permissões EM DISCO e ele PERSISTE entre testes do mesmo run. Sob
+    // executionOrder="random", o `can:copiloto.mcp.memory.manage` do KbController via um
+    // registry STALE de outro teste → 403 intermitente na MESMA coarse (V2b no #4725, V2c
+    // no run 30033223397, PUT do GovernanceInvariantsTest no run 30036318814). Prender o
+    // registry no store `array` (por-app-instance, ZERADO a cada refresh de app = 1×/teste
+    // via TestCase) + forgetInstance pra reconstruir o registrar já lendo o store novo → o
+    // `can:` sempre relê fresco do DB, imune à ordem e ao disco herdado. Test-only, NÃO muda
+    // authz de prod.
+    config(['permission.cache.store' => 'array']);
+    app()->forgetInstance(\Spatie\Permission\PermissionRegistrar::class);
+
     foreach ($permissions as $perm) {
         \Spatie\Permission\Models\Permission::firstOrCreate([
             'name' => $perm,
