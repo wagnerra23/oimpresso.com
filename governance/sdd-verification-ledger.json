@@ -1230,40 +1230,6 @@
       "erros_confirmados": 0,
       "error_rate_pct": 0,
       "veredito": "aprovado"
-    },
-    {
-      "pr": 4734,
-      "data": "2026-07-23",
-      "tipo": "prosa",
-      "gerador": "gpt-4o-mini (~haiku tier — jana:distill-module-truth via laravel/ai, CT100 staging; correções r1→r2 por opus-4.8)",
-      "refutador": "fable-5 (sessao fresca, tier superior)",
-      "sessao_fresca": true,
-      "amostra_pct": 100,
-      "pii_scan": true,
-      "pii_hits": 0,
-      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/4734#issuecomment-5061187008",
-      "lote_id": "PR6-paymentgateway-stale-redistill-r1",
-      "itens_verificados": 16,
-      "erros_confirmados": 3,
-      "error_rate_pct": 18.75,
-      "veredito": "reprovado"
-    },
-    {
-      "pr": 4734,
-      "data": "2026-07-23",
-      "tipo": "prosa",
-      "gerador": "gpt-4o-mini (~haiku tier — jana:distill-module-truth via laravel/ai, CT100 staging; correções r1→r2 por opus-4.8)",
-      "refutador": "fable-5 (sessao fresca, tier superior)",
-      "sessao_fresca": true,
-      "amostra_pct": 100,
-      "pii_scan": true,
-      "pii_hits": 0,
-      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/4734#issuecomment-5061187008",
-      "lote_id": "PR6-paymentgateway-stale-redistill-r2",
-      "itens_verificados": 14,
-      "erros_confirmados": 0,
-      "error_rate_pct": 0,
-      "veredito": "aprovado"
     }
   ]
 }
