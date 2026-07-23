@@ -127,7 +127,7 @@ jobs:
           php artisan tinker --execute="
             if (\DB::getDatabaseName() !== 'oimpresso_test') { throw new \RuntimeException('Recusado: banco não-efêmero ('.\DB::getDatabaseName().')'); }
             \DB::statement('SET FOREIGN_KEY_CHECKS=0');
-            foreach (['kb_health_history','kb_bridge_state','kb_comments','kb_favorites','kb_node_versions','kb_decision_tree_steps','kb_decision_trees','kb_path_steps','kb_paths','kb_edges','kb_nodes','kb_subcategories','kb_categories','mcp_memory_documents','model_has_permissions','model_has_roles'] as \$t) {
+            foreach (['kb_health_history','kb_bridge_state','kb_comments','kb_favorites','kb_node_versions','kb_decision_tree_steps','kb_decision_trees','kb_path_steps','kb_paths','kb_edges','kb_nodes','kb_subcategories','kb_categories','mcp_memory_documents'] as \$t) {
               if (\Illuminate\Support\Facades\Schema::hasTable(\$t)) { \DB::table(\$t)->truncate(); }
             }
             \DB::statement('SET FOREIGN_KEY_CHECKS=1');
