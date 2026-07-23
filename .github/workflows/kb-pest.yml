@@ -109,17 +109,33 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 11: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725).
+        # Os 12: provados verdes na DB EFÊMERA do CI. KbIndexV2ContractTest entrou
+        # após o fix do GAP 1 (mesmo PR — ver abaixo).
         #
-        # RATCHET-PENDENTE por FALHA REAL na DB fresca (o run dos 19 no PR #4725 refutou
-        # a hipótese inicial de "só poluição do staging" — a DB limpa expôs 2 gaps reais,
-        # a serem corrigidos ANTES de entrar na allowlist):
-        #   - KbIndexV2ContractTest → `/kb/v2` faz `order by sort` mas kb_categories NÃO
-        #     tem coluna `sort` no schema montado por kbBootstrapSchema (migração fora do
-        #     glob 2026_*.php OU baseline). SQLSTATE 42S22 1054.
-        #   - Http/*ControllerTest + GovernanceInvariantsTest + CrossTenantIsolationTest →
-        #     grants Spatie de kbActAsUser não resolvem no MySQL fresco (retorna 403 mesmo
-        #     nos testes que concedem a permissão). Setup de permissão a investigar.
+        # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
+        # gaps; ver investigação com oráculos de schema + config Spatie):
+        #
+        #   GAP 1 — KbIndexV2ContractTest (RESOLVIDO neste PR):
+        #     NÃO era coluna faltante no bootstrap. Era BUG DE CONTROLLER —
+        #     KbController::indexV2 fazia `orderBy('sort')` mas a coluna real é
+        #     `sort_order` (migration 100001 + model KbCategory + seeder que mapeia
+        #     'sort'→sort_order + dump mysql-schema.sql; único site no repo). Bug do #4500
+        #     → SQLSTATE 42S22 → 500 VIVO em /kb/v2 + /sops em prod desde 2026-07-17.
+        #     Fix: orderBy('sort')→orderBy('sort_order'). O teste (que já concede a perm
+        #     coarse correta) fica verde e vira a regressão. ✅ RATCHETEADO abaixo.
+        #
+        #   GAP 2 — os 7 RATCHET-PENDENTE (Http/*ControllerTest + GovernanceInvariantsTest
+        #   + CrossTenantIsolationTest): NÃO é guard_name/cache/business_id (refutado:
+        #   Spatie `teams` OFF, guards batem 'web', sem team scoping). É NAME MISMATCH +
+        #   design: todo controller/request KB gateia na permissão COARSE
+        #   `copiloto.mcp.memory.manage`, mas esses testes concedem `kb.*` granular
+        #   (kb.view/kb.write/kb.comment/kb.publish.path/kb.publish.troubleshoot/
+        #   kb.softdelete/kb.restore). Sob o gate coarse os pares read×write são
+        #   IRRECONCILIÁVEIS (GET só-kb.view→200 exige a perm; POST-sem-write só-kb.view→403
+        #   exige NÃO tê-la; mesma perm). Fechar = implementar o authz granular kb.* que o
+        #   módulo adiou ("rename Spatie fica em PR separado") — MUDA autorização em prod
+        #   + risco de lock-out de usuários atuais (exige backfill de permissão/role).
+        #   Decisão [W] — task aberta pro PR de authz granular; NÃO force ratchet aqui.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -141,7 +157,8 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
-            Modules/KB/Tests/Feature/LgpdComplianceTest.php
+            Modules/KB/Tests/Feature/LgpdComplianceTest.php \
+            Modules/KB/Tests/Feature/KbIndexV2ContractTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
