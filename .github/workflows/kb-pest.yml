@@ -109,10 +109,11 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 13: provados verdes na DB EFÊMERA do CI. KbPath + KbDecisionTree entraram após
-        # alinhar os testes ao gate coarse + tornar o helper de permissão determinístico
-        # (ver GAP 2). Os outros 5 do GAP 2 ficam pendentes por bugs REAIS de comportamento
-        # (não-authz) que o alinhamento DESMASCAROU — ver GAP 2.
+        # Os 11: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725). O GAP 2
+        # NÃO ratcheteou NADA — este PR (#4736) landa só groundwork: alinhamento authz +
+        # hardening do helper + fix do reverify. Motivo em GAP 2: authz era só a camada de
+        # topo; abaixo há 5 bugs REAIS de comportamento + flakiness residual de cache Spatie
+        # (order-dependent) que atinge ATÉ os 2 que pareciam verdes.
         #
         # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
         # gaps; investigação com oráculos de schema + config Spatie + run real da lane):
@@ -133,17 +134,24 @@ jobs:
         #           (mesma perm coarse que V3/V4/V5/V6 resolveram OK → order-dependent →
         #           cache/reset de permissão entre testes; permissions/model_has_* são
         #           CORE e NÃO são resetadas por kbTeardownSchema).
-        #     → KbIndexV2ContractTest SEGUE RATCHET-PENDENTE, mas AGORA só pelo item (a):
-        #       o item (b) [cache/acúmulo Spatie] foi resolvido no helper (ver GAP 2). Item
-        #       (a) (assertInertia ensure_pages_exist sem build real do front) é bloqueio de
-        #       AMBIENTE DE LANE, tratado à parte. NÃO ratchetear enquanto (a) não fechar.
+        #     → KbIndexV2ContractTest SEGUE RATCHET-PENDENTE por (a) ensure_pages_exist +
+        #       (b) cache Spatie. O helper MITIGOU (b) (syncPermissions + forgetCached) mas
+        #       NÃO eliminou — o run PR #4736 mostrou 403 order-dependent ainda intermitente
+        #       (ver GAP 2). NÃO ratchetear enquanto (a) e (b) não fecharem de vez.
         #
         #   GAP 2 — os 7 (Http/*ControllerTest + GovernanceInvariantsTest +
-        #   CrossTenantIsolationTest). A CAMADA DE TOPO era authz, resolvida via Opção B
-        #   (2026-07-23, decisão [W]) — mas o run REAL da lane (PR #4736) PROVOU que authz
-        #   era só a superfície: destravado o 403, 5 dos 7 revelaram BUGS REAIS de
-        #   comportamento que o middleware-403 vinha MASCARANDO. RATCHETEADOS só os 2 que
-        #   ficaram 100% verdes (KbPath + KbDecisionTree).
+        #   CrossTenantIsolationTest). A CAMADA DE TOPO era authz, alinhada via Opção B
+        #   (2026-07-23, decisão [W]) — mas 2 runs REAIS da lane (PR #4736) PROVARAM que
+        #   authz era só a superfície. NENHUM dos 7 foi ratcheteado, por DOIS motivos:
+        #     (i)  5 dos 7 têm BUGS REAIS de comportamento que o middleware-403 mascarava
+        #          (lista abaixo);
+        #     (ii) os 2 que ficaram verdes num run (KbPath + KbDecisionTree) são FLAKY:
+        #          KbDecisionTree passou no run de 18 arquivos e FALHOU no de 13 com 403
+        #          order-dependent (cache Spatie residual — item b do GAP 1). Ratchetear
+        #          flaky quebra a lane intermitentemente → pior que não ratchetear.
+        #   O helper (syncPermissions + forgetCached) reduziu MUITO a flakiness (os 403 de
+        #   acúmulo sumiram) mas não zerou o resíduo order-dependent. Fechar GAP 2 exige um
+        #   PR dedicado (isolamento Spatie robusto no bootstrap/teardown + fix dos 5 bugs).
         #
         #   Fix da camada authz (aplicado aos 7, correto e necessário):
         #     1. NAME MISMATCH: todo controller/request KB gateia na COARSE
@@ -201,9 +209,7 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
-            Modules/KB/Tests/Feature/LgpdComplianceTest.php \
-            Modules/KB/Tests/Feature/Http/KbPathControllerTest.php \
-            Modules/KB/Tests/Feature/Http/KbDecisionTreeControllerTest.php
+            Modules/KB/Tests/Feature/LgpdComplianceTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
