@@ -1,4 +1,5 @@
 ---
+id: reference-vaultwarden-credenciais
 name: Vaultwarden — cofre self-hosted no docker-host
 description: ADMIN_TOKEN e instruções de 1ª subida do Vaultwarden no CT 100. Vault em https://vault.oimpresso.com. Token real no próprio Vaultwarden (auto-referência) + cache local oimpresso-local
 type: reference

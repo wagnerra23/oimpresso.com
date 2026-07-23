@@ -1,4 +1,5 @@
 ---
+id: reference-ci-nao-dispara-branch-conflita-main
 name: CI não dispara + mergeStateStatus UNKNOWN = branch conflita com main
 description: PR com 0 check-runs e mergeStateStatus UNKNOWN significa que a branch conflita com main; GitHub não cria refs/pull/N/merge e nenhum workflow pull_request dispara. Fix = git merge origin/main
 type: reference

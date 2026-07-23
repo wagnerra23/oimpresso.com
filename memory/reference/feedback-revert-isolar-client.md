@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-revert-isolar-client
 name: Antes de reverter PR em prod, isolar client-side primeiro
 description: Quando Wagner reporta "travou" pós-merge, NÃO reverter de imediato — primeiro pedir pra abrir incognito/outro browser pra isolar se é client-state ruim vs bug real do código
 type: feedback

@@ -1,4 +1,5 @@
 ---
+id: reference-db-schema-ultimatepos
 name: Estrutura do banco de dados oimpresso (UltimatePOS)
 description: Tabelas críticas do schema UltimatePOS. Multi-tenant por business_id. transactions é o core de vendas/compras/despesas. time_zone vive em business, não em location. Usar pra escrever queries e entender relações.
 type: reference

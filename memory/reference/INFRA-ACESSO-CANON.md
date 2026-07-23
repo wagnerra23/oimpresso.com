@@ -1,4 +1,5 @@
 ---
+id: reference-infra-acesso-canon
 name: INFRA-ACESSO-CANON — mapa único de todas as máquinas, acessos e o que roda onde
 description: Fonte ÚNICA de acesso à infra do oimpresso — Tailscale (CT 100, dev), Hostinger (ERP prod), Proxmox, DNS, secrets. Como conectar em CADA máquina + o que roda onde + deploy. Claude NUNCA deve dizer "não tenho acesso" — está tudo aqui; secrets reais no Vaultwarden.
 type: reference

@@ -1,4 +1,5 @@
 ---
+id: reference-contrato-delphi-inviolavel
 name: Contrato Delphi WR Comercial inviolável — wire imutável (não vai recompilar)
 description: Endpoints Connector + Officeimpresso + Subscription que Delphi WR Comercial consome. Decisão Wagner 2026-05-19 — não vai recompilar/redistribuir Delphi, então wire é IRREVOGÁVEL. Mudanças só ADITIVAS (campos novos no response OK; remover/renomear NÃO).
 type: reference

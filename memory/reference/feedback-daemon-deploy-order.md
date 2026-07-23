@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-daemon-deploy-order
 name: Deploy daemon ANTES (ou junto) quick-sync Hostinger quando payload muda
 description: Quando PR muda payload Laravel→daemon (ex chave renomeada), deploy daemon DEVE ir ANTES (ou simultâneo). quick-sync Hostinger é automático e rápido — janela de dessincronia quebra outbound em segundos.
 type: feedback

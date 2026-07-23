@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-migrate-pos-deploy
 name: Migrate manual obrigatório pós-deploy Hostinger
 description: Migrations NUNCA rolam automaticamente em Hostinger pós-quick-sync.yml — sempre rodar manual após merge PR com migration
 type: feedback

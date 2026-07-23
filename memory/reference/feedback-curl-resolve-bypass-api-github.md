@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-curl-resolve-bypass-api-github
 name: curl --resolve bypassa api.github.com bloqueado lado Wagner
 description: Quando gh CLI falha em api.github.com (4.228.31.149 backbone Azure bloqueado), executar REST direto via curl --resolve apontando pra IP GitHub edge 140.82.*. Bypassa o bloqueio e executa qualquer ação gh teria feito.
 type: reference
