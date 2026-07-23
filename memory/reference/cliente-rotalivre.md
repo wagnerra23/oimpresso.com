@@ -2,7 +2,9 @@
 id: reference-cliente-rotalivre
 name: Cliente ROTA LIVRE — perfil, histórico e sensibilidades
 description: Único cliente ativo com volume real (17k+ vendas, 99% do sistema). Dono operacional Larissa. Endereço Gravatal/SC, mas timezone SP. Histórico de incidentes, comportamento operacional e o que NÃO mexer.
-type: cliente
+type: reference
+authority: canonical
+lifecycle: ativo
 ---
 # ROTA LIVRE (business_id = 4)
 
