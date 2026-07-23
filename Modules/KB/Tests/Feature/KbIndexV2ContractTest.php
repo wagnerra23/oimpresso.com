@@ -199,7 +199,10 @@ it('V6: GET /kb/v2 serve DADO REAL — nodes + categories + business (não mock)
 // e o drift de outro business NÃO vaza (global scope de KbNode, ADR 0093).
 it('V7: payload de biz=1 carrega code_drift_state e nao vaza drift de biz=99 (UC-KBV2-13)', function () use ($permKb) {
     // nó driftado no tenant fictício biz=99 — NUNCA pode aparecer pra biz=1.
-    kbActAsUser(bizId: 99, permissions: $permKb);
+    // Insert RAW (business_id explícito) — dispensa actingAs(99), então o footprint
+    // de permissão fica idêntico a V6/V3 (1 grant só), sem adicionar churn ao
+    // PermissionRegistrar compartilhado (ver kbActAsUser BLOQUEADOR 2, flake 403).
+    kbCreateBusinessRow(99);
     DB::table('kb_nodes')->insert([
         'business_id'      => 99,
         'type'             => 'article',
