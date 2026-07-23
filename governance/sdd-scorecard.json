@@ -280,10 +280,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 39,
+        "entries_aprovadas": 44,
         "max_error_rate_pct": 1.82,
-        "last_pr": 4729,
-        "last_lote": "PR6-fresh6-id-backfill-01"
+        "last_pr": 4737,
+        "last_lote": "PR6-stale-repair-redistill-r3"
       },
       "stream": "GT"
     }
