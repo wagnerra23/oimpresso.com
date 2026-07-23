@@ -126,8 +126,8 @@ Para fatos que um **gerador já possui** (módulos, skills, ADRs) ou que são pu
 (line-count, "até L-NN"): a prosa **não deve carregar o número** — aponta pro dono gerado
 ou vira "lista viva". É a aplicação literal da lápide §5 2026-07-17 (*"aponta pro dono"*).
 
-- "30+ módulos" / "36 módulos" → "ver [`PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md)"
-- "30+ skills" → "ver [`_SKILLS-INDEX.md`](../.claude/skills/_SKILLS-INDEX.md)"
+- "30+ módulos" / "36 módulos" → "ver [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md)"
+- "30+ skills" → "ver [`_SKILLS-INDEX.md`](../../../.claude/skills/_SKILLS-INDEX.md)"
 - "~220 ADRs" → "ver PAINEL-SISTEMA (contagem viva)"
 - "CLAUDE.md ≤100/~110 linhas" e "LICOES_CC até L-27" → **remover o número** (não serve leitor)
 
