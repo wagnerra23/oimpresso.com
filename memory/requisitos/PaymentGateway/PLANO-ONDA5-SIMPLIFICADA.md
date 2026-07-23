@@ -1,4 +1,5 @@
 ---
+id: requisitos-payment-gateway-plano-onda5-simplificada
 modulo: PaymentGateway
 onda: 5
 status: executado-aguardando-smoke

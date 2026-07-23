@@ -1,3 +1,7 @@
+---
+id: requisitos-payment-gateway-auditoria-paymentgateway-2026-07
+---
+
 # AUDITORIA — PaymentGateway (Onda 2 · plano de aprofundamento das avaliações)
 
 > **Por que este doc existe:** o `Check X` do `memory-health` (cobertura de auditoria) flagava PaymentGateway como o **único** módulo Tier-0 sem nenhum `AUDIT*.md` no dir de requisitos. Este doc é a lente que fecha o gap — diagnóstico consolidado, **sem implementação** (ADR 0170 status `proposto`, fase "later" = docs only até Wagner ativar).

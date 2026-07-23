@@ -1,4 +1,5 @@
 ---
+id: requisitos-payment-gateway-runbook-sicoob-api
 slug: runbook-sicoob-api
 title: "RUNBOOK — Sicoob API v3 driver (US-FIN-044)"
 type: runbook
