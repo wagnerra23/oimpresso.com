@@ -134,9 +134,10 @@ it('blocks kb_favorite cross-tenant', function () {
 });
 
 it('bridge job respects business scope (job(1) nao toca docs biz=99)', function () {
-    // Cria mcp_docs em ambos businesses
-    kbCreateMcpDoc(1, 'adr', ['slug' => 'biz1-adr', 'title' => 'biz 1 adr']);
-    kbCreateMcpDoc(99, 'adr', ['slug' => 'biz99-adr', 'title' => 'biz 99 adr']);
+    // Cria mcp_docs em ambos businesses — guardamos os IDs pra escopar o assert
+    // ao PRÓPRIO doc (ver nota de ordem-dependente abaixo).
+    $biz1DocId  = kbCreateMcpDoc(1, 'adr', ['slug' => 'biz1-adr', 'title' => 'biz 1 adr']);
+    $biz99DocId = kbCreateMcpDoc(99, 'adr', ['slug' => 'biz99-adr', 'title' => 'biz 99 adr']);
 
     // Roda job APENAS pra biz=1
     foreach (['Modules\\KB\\Jobs\\KbBridgeFromMcpJob',
@@ -155,8 +156,19 @@ it('bridge job respects business scope (job(1) nao toca docs biz=99)', function 
     // pelo container em vez de chamar handle() sem args (senão ArgumentCountError).
     app()->call([new $jobClass(1), 'handle']);
 
-    // Resultado: kb_nodes só pra biz=1
-    expect(\DB::table('kb_nodes')->where('business_id', 1)->count())->toBe(1)
+    // Assert ESCOPADO ao source_doc_id que ESTE teste criou (não contagem global).
+    //
+    // Por quê escopado: `mcp_memory_documents` é tabela CORE COMPARTILHADA e NÃO é
+    // resetada por kbTeardownSchema (só as kb_* são — ver Helpers.php). Sob
+    // executionOrder="random" (phpunit.xml), docs biz=1 de OUTROS testes (+ docs
+    // globais business_id=NULL, que o job também bridgeia) acumulam no run → a
+    // contagem global `kb_nodes where business_id=1` fica N>1 (3/6 no CI efêmero,
+    // ~1268 no CT 100 staging com dados reais) e o assert antigo `->toBe(1)`
+    // quebrava order-dependent. Escopar ao doc próprio é robusto em QUALQUER
+    // ambiente E prova o contrato real: job(1) bridgeia SEU doc biz=1 e NUNCA
+    // toca o doc biz=99. (ADR 0093 multi-tenant Tier 0 · ADR 0101 biz=1/biz=99.)
+    expect(\DB::table('kb_nodes')->where('source_doc_id', $biz1DocId)->where('business_id', 1)->count())->toBe(1)
+        ->and(\DB::table('kb_nodes')->where('source_doc_id', $biz99DocId)->count())->toBe(0)
         ->and(\DB::table('kb_nodes')->where('business_id', 99)->count())->toBe(0);
 });
 

@@ -124,6 +124,17 @@ function kbBootstrapSchema(): void
         });
     }
 
+    // Limpeza cirúrgica dos docs de TESTE em mcp_memory_documents (CORE COMPARTILHADA,
+    // NÃO dropada). kbCreateMcpDoc carimba git_sha = str_repeat('a',40) (sha sintético —
+    // NENHUM doc real tem 40 chars idênticos), então deletar só esses remove APENAS o que
+    // testes criaram e NUNCA toca dados reais do staging (CT 100). Roda no bootstrap
+    // (beforeEach) pra zerar rows STALE deixadas por runs antigas ANTES do insert deste run
+    // → evita 1062 no unique de slug (ex: 'biz1-adr' re-inserido) e acumulação within-run.
+    // Ver ADR 0093 (multi-tenant) + ADR 0101 (biz=1/biz=99). Casa com o teardown simétrico.
+    if (Schema::hasTable('mcp_memory_documents')) {
+        \DB::table('mcp_memory_documents')->where('git_sha', str_repeat('a', 40))->delete();
+    }
+
     // Spatie tables CORE COMPARTILHADAS (pra middleware can:* nos Controllers).
     foreach (['permissions', 'roles'] as $tbl) {
         if (! Schema::hasTable($tbl)) {
@@ -199,6 +210,13 @@ function kbTeardownSchema(): void
             Schema::dropIfExists($tbl);
         }
     });
+
+    // Limpeza cirúrgica simétrica ao bootstrap: remove os docs de TESTE
+    // (git_sha sintético str_repeat('a',40)) de mcp_memory_documents (CORE, não dropada)
+    // pra não vazar acumulação entre testes/runs. NUNCA toca dados reais (sha real ≠ 'aaa…').
+    if (Schema::hasTable('mcp_memory_documents')) {
+        \DB::table('mcp_memory_documents')->where('git_sha', str_repeat('a', 40))->delete();
+    }
 }
 
 /**
