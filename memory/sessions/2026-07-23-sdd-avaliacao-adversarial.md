@@ -1,5 +1,5 @@
 ---
-date: 2026-07-23
+date: "2026-07-23"
 topic: "Avaliação adversarial do programa SDD — scorecard composto 76/100 (7 streams verificados LIVE em git+gh+CT100)"
 authors: [C]
 related_adrs: [0273-anchor-spec-codigo-formato-canonico-fluxo-novo, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes]
