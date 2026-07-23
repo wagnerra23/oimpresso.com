@@ -12,7 +12,7 @@
 - **46** wirings em `settings.json` (5 eventos) · **42** arquivos de hook distintos wired
 - **43** arquivos de hook no disco (+35 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **33** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **34** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -71,7 +71,7 @@ Nenhum.
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.mjs (wired)
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (33):
+Contexts `classic_protection` (34):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -105,6 +105,7 @@ Contexts `classic_protection` (33):
 - gate selftest (as catracas mordem · GT-G6)
 - screen-coverage-gate
 - visual-regression
+- deadlink-gate (ratchet · integridade referencial)
 
 Contexts `rulesets` (1):
 - Governance Gate (índice + memory-health + meta-teste)
