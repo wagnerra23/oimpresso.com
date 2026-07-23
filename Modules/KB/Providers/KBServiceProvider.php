@@ -80,6 +80,21 @@ class KBServiceProvider extends ServiceProvider
                 ->runInBackground()
                 ->name('kb:drift-detector-weekly')
                 ->description('KB drift detector weekly Sun 03:00 BRT (Wave 27 §G2)');
+
+            // Régua doc↔código (2026-07-23) — snapshot semanal do kb:health-check
+            // em kb_health_history (série temporal, precedente sdd-scorecard/ADR
+            // 0275 GT-G7). Domingo 04:00 = 1h APÓS o drift-detector das 03:00,
+            // pra fotografar o code_drift_flagged fresco do run da mesma noite.
+            // Sem este invocador o --snapshot seria chokepoint fantasma
+            // (proibicoes §5 2026-07-09 — guard em caminho que nada percorre).
+            $schedule->command('kb:health-check --all-businesses --json --snapshot')
+                ->weeklyOn(0, '04:00')       // 0 = domingo
+                ->timezone('America/Sao_Paulo')
+                ->onOneServer()
+                ->withoutOverlapping(30)     // health-check é SQL leve (<1min típico)
+                ->runInBackground()
+                ->name('kb:health-snapshot-weekly')
+                ->description('KB health snapshot weekly Sun 04:00 BRT (régua doc↔código, série kb_health_history)');
         });
     }
 
