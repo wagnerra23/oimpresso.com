@@ -46,6 +46,7 @@ import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { auditDocumentAuthority, CANONICAL_ENTRYPOINT } from './document-authority.mjs';
+import { factAnchorScan } from './fact-anchor.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
@@ -296,30 +297,13 @@ const CURRENT_STATE_DOCS = [
   'memory/why-oimpresso.md',
   'memory/how-trabalhar.md',
 ];
-function majorFrom(range) { const m = String(range).match(/(\d+)/); return m ? m[1] : null; }
 function checkFactAnchor() {
   let pkg = {}; try { pkg = JSON.parse(read('package.json')); } catch {}
   let comp = {}; try { comp = JSON.parse(read('composer.json')); } catch {}
-  const VERSIONS = [
-    { nome: 'React', re: /React\s+(\d+)/g, truth: majorFrom(pkg?.dependencies?.react || pkg?.devDependencies?.react || '') },
-    { nome: 'Laravel', re: /Laravel\s+(\d+)/g, truth: majorFrom(comp?.require?.['laravel/framework'] || '') },
-  ];
-  const hits = [];
-  for (const rel of CURRENT_STATE_DOCS) {
-    let txt = ''; try { txt = read(rel); } catch { continue; }
-    if (!txt) continue;
-    for (const v of VERSIONS) {
-      if (!v.truth) continue;
-      for (const m of txt.matchAll(v.re)) {
-        const after = txt.slice(m.index + m[0].length, m.index + m[0].length + 8);
-        if (/^\s*(?:→|->|to|para|a)\s*\d/.test(after)) continue; // migração "X → Y": X é história, ignora
-        if (m[1] !== v.truth) hits.push({ file: rel, afirma: `${v.nome} ${m[1]}`, verdade: `${v.nome} ${v.truth}` });
-      }
-    }
-    for (const m of txt.matchAll(/Modules\/([A-Z][A-Za-z0-9]+)/g)) { // [A-Z] exige letra → placeholder Modules/<X> não casa; 0-9 evita truncar PontoWr2
-      if (!existsSync(join(ROOT, 'Modules', m[1]))) hits.push({ file: rel, afirma: `Modules/${m[1]}`, verdade: 'dir inexistente (renomeado/removido?)' });
-    }
-  }
+  const docs = CURRENT_STATE_DOCS.map((rel) => { let txt = ''; try { txt = read(rel); } catch {} return { rel, txt }; });
+  // Lógica pura em fact-anchor.mjs (testável hermético). VERSIONS ampliada (Inertia/
+  // Tailwind/Pest/PHPUnit) + regex v? em 2026-07-23 (proposal fatos-derivaveis).
+  const hits = factAnchorScan({ docs, pkg, comp, moduleExists: (n) => existsSync(join(ROOT, 'Modules', n)) });
   if (hits.length) {
     warns.push({ check: 'T', kind: 'fato-ancora-drift', count: hits.length, sample: hits.slice(0, 12),
       msg: `${hits.length} FATO(s) na camada de entrada CONTRADIZ(em) a fonte-de-verdade (package.json/composer.json/Modules/). Corrigir o doc — não é idade, é erro. 🟡 advisory (ADR 0275 — promover a fail quando maduro).` });

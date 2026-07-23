@@ -83,7 +83,7 @@ O **gate de merge é o CI GitHub Actions** (roda a suite + os módulos em parale
 
 ## Documentação canônica
 
-- [`CLAUDE.md`](CLAUDE.md) — primer técnico (≤100 linhas + imports)
+- [`CLAUDE.md`](CLAUDE.md) — primer técnico (enxuto + imports)
 - [`memory/decisions/`](memory/decisions/) — ADRs Nygard (índice vivo: [`_INDEX-GENERATED.md`](memory/decisions/_INDEX-GENERATED.md))
 - [`memory/requisitos/`](memory/requisitos/) — SPEC/RUNBOOK/CAPTERRA por módulo
 - `.claude/skills/` — 30+ skills (Tier A always-on + Tier B/C contextuais)
