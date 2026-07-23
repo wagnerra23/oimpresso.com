@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-briefing
 slug: compras-briefing
 title: "BRIEFING — Modules/Compras"
 type: briefing

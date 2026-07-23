@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-telas-show-visual-comparison
 tela: purchase/show
 modulo: Purchase
 tipo: DETAIL

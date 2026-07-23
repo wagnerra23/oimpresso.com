@@ -50,6 +50,33 @@ const EXCLUDE_PREFIXES = ['memory/governance/audit-', 'memory/governance/shipped
 const CPF_RE = /[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}/;
 const CNPJ_RE = /[0-9]{2}\.[0-9]{3}\.[0-9]{3}\/[0-9]{4}-[0-9]{2}/;
 
+// ── Pré-checks do modo --include-toxic (PR6, 2026-07-23) ─────────────────────
+// (a) Módulo com porta DESTILADA (BRIEFING com distilled_at) é INTOCÁVEL: tocar QUALQUER
+//     doc do módulo o torna "o doc mais novo" e deixa a porta >7d atrás do carimbo →
+//     distiller_freshness sobe do floor 0 → GT-G3 required morde (medido 2026-07-23:
+//     11/78 módulos carimbados). Destravar = re-destilar via jana:distill-module-truth
+//     (CT100) no mesmo bundle — NUNCA forjar o carimbo à mão (métrica-de-forma proibida).
+// (b) Doc sob schema REQUIRED/strict (SPEC/RUNBOOK/topico/charter) só é stampado se o
+//     frontmatter FUTURO (com o id injetado) VALIDA no AJV — mesma engine do CI
+//     (gray-matter + Ajv allErrors, memory-schema-gate.yml). Doc que já viola hoje →
+//     defer (stampar o poria no diff e o required morderia dívida pré-existente).
+// SÓ as famílias STRICT/required do memory-schema-gate. reference e BRIEFING são [grace]
+// (warn-only, não bloqueiam merge) — validá-las aqui deferiria stamp por dívida que NÃO trava
+// (o PR5 stampou 105 references com warnings grace pré-existentes e mergeou verde).
+const SCHEMA_FOR = [
+  [/^memory\/requisitos\/[^/]+\/SPEC\.md$/, 'spec'],
+  [/^memory\/requisitos\/.+\/RUNBOOK[^/]*\.md$/, 'runbook'],
+  [/^memory\/requisitos\/[^/]+\/topicos\/[^/]+\.md$/, 'topico'],
+  [/^resources\/js\/Pages\/.+\.charter\.md$/, 'charter'],
+];
+function schemaNameFor(rel) {
+  for (const [re, name] of SCHEMA_FOR) if (re.test(rel)) return name;
+  return null;
+}
+function moduleOf(rel) {
+  return rel.match(/^memory\/requisitos\/([^/]+)\//)?.[1] ?? null;
+}
+
 const slugify = (v) => v.normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/\.md$/i, '').replace(/([a-z0-9])([A-Z])/g, '$1-$2')
   .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -105,11 +132,50 @@ function walk(rootAbs, relBase, acc) {
   return acc;
 }
 
-export function collectTargets(root, { includeToxic = false } = {}) {
+export function collectTargets(root, { includeToxic = false, only = null } = {}) {
   const prefixes = includeToxic ? [...SAFE_PREFIXES, ...TOXIC_PREFIXES] : SAFE_PREFIXES;
   const all = walk(root, '', []).map((p) => p.replaceAll('\\', '/'));
   return all.filter((p) => prefixes.some((pre) => p.startsWith(pre))
-    && !PROTECTED.has(p) && !EXCLUDE_PREFIXES.some((pre) => p.startsWith(pre)));
+    && !PROTECTED.has(p) && !EXCLUDE_PREFIXES.some((pre) => p.startsWith(pre))
+    && (!only || p.startsWith(only)));
+}
+
+// Valida o frontmatter FUTURO (com id) contra o schema da família — mesma engine do CI.
+// Lazy require (ajv/gray-matter só carregam se algum alvo tiver schema mapeado).
+// Schemas vêm do REPO (onde este script vive), não do corpus `root` — permite fixture hermético.
+const REPO_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
+let _ajv = null; let _matter = null; const _validators = new Map();
+async function validatesSchema(root, rel, futureText) {
+  const name = schemaNameFor(rel);
+  if (!name) return { ok: true };
+  if (!_ajv) {
+    // ajv/dist/2020 + ajv-formats: EXATAMENTE como o CI (memory-schema-gate.yml:176-188).
+    const { default: Ajv } = await import('ajv/dist/2020.js');
+    const { default: addFormats } = await import('ajv-formats');
+    _ajv = new Ajv({ allErrors: true, strict: false });
+    addFormats(_ajv);
+    _matter = (await import('gray-matter')).default;
+  }
+  if (!_validators.has(name)) {
+    const schema = JSON.parse(readFileSync(join(REPO_ROOT, `scripts/memory-schemas/${name}.schema.json`), 'utf8'));
+    _validators.set(name, _ajv.compile(schema));
+  }
+  let data;
+  try { data = _matter(futureText).data; } catch (e) { return { ok: false, why: `YAML parse: ${e.message}` }; }
+  const validate = _validators.get(name);
+  return validate(data) ? { ok: true } : { ok: false, why: _ajv.errorsText(validate.errors).slice(0, 200) };
+}
+
+// Módulos de requisitos com porta destilada (BRIEFING carimbado) — intocáveis (ver nota acima).
+function distilledModules(root) {
+  const out = new Set();
+  const base = join(root, 'memory/requisitos');
+  let mods = [];
+  try { mods = readdirSync(base, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name); } catch { return out; }
+  for (const mod of mods) {
+    try { if (/^distilled_at:/m.test(readFileSync(join(base, mod, 'BRIEFING.md'), 'utf8'))) out.add(mod); } catch { /* sem BRIEFING */ }
+  }
+  return out;
 }
 
 // Famílias sob schema com campos OBRIGATÓRIOS: criar frontmatter só-`id:` num doc que hoje
@@ -119,26 +185,34 @@ export function collectTargets(root, { includeToxic = false } = {}) {
 // required (governance/research/audits/dominios são NÃO-mapeados → id-only é livre lá).
 const REQUIRED_SCHEMA_PREFIXES = ['memory/reference/'];
 
-export function plan(root, opts = {}) {
+export async function plan(root, opts = {}) {
   const targets = collectTargets(root, opts);
-  const toStamp = []; const skipped = { hasId: 0, generated: 0, deferredNoFrontmatter: 0, pii: 0 }; const byId = new Map();
+  const distilled = opts.includeToxic ? distilledModules(root) : new Set();
+  const toStamp = []; const skipped = { hasId: 0, generated: 0, deferredNoFrontmatter: 0, pii: 0, distilledModule: 0, schema: 0 };
+  const schemaDefers = []; const byId = new Map();
   for (const rel of targets) {
     let text = '';
     try { text = readFileSync(join(root, rel), 'utf8'); } catch { continue; }
     if (frontmatterHasId(text)) { skipped.hasId++; continue; }
     if (looksGenerated(text)) { skipped.generated++; continue; }
     if (CPF_RE.test(text) || CNPJ_RE.test(text)) { skipped.pii++; continue; } // tocar acordaria o PII scan
+    const mod = moduleOf(rel);
+    if (mod && distilled.has(mod)) { skipped.distilledModule++; continue; } // porta destilada: GT-G3 morderia
     if (!hasFrontmatter(text) && REQUIRED_SCHEMA_PREFIXES.some((pre) => rel.startsWith(pre))) { skipped.deferredNoFrontmatter++; continue; }
     const id = idForPath(rel);
+    // Schema strict: valida o frontmatter FUTURO (com o id) — inválido hoje = defer.
+    const future = stampId(text, id);
+    const v = await validatesSchema(root, rel, future);
+    if (!v.ok) { skipped.schema++; schemaDefers.push({ rel, why: v.why }); continue; }
     if (!byId.has(id)) byId.set(id, []);
     byId.get(id).push(rel);
     toStamp.push({ rel, id, hadFrontmatter: hasFrontmatter(text) });
   }
   const collisions = [...byId.entries()].filter(([, ps]) => ps.length > 1).map(([id, paths]) => ({ id, paths }));
-  return { toStamp, skipped, collisions, total: targets.length };
+  return { toStamp, skipped, collisions, schemaDefers, total: targets.length };
 }
 
-function runSelftest() {
+async function runSelftest() {
   const cases = [];
   const ok = (n, c) => cases.push({ n, ok: Boolean(c) });
   ok('idForPath: reference', idForPath('memory/reference/feedback-hostinger.md') === 'reference-feedback-hostinger');
@@ -163,7 +237,15 @@ function runSelftest() {
     writeFileSync(join(fx, 'memory/reference/b.md'), '---\nid: reference-b\n---\n# B\n'); // já tem id
     writeFileSync(join(fx, 'memory/reference/gen.md'), '---\nauthority: generated\n---\n# Gerado\n');
     writeFileSync(join(fx, 'memory/requisitos/Jana/SPEC.md'), '# SPEC gate-toxic\n');
-    const p = plan(fx);
+    // Fixtures dos pré-checks --include-toxic (PR6):
+    mkdirSync(join(fx, 'memory/requisitos/ModCarimbado'), { recursive: true });
+    mkdirSync(join(fx, 'memory/requisitos/ModLivre'), { recursive: true });
+    writeFileSync(join(fx, 'memory/requisitos/ModCarimbado/BRIEFING.md'), '---\ndistilled_at: 2026-07-10\n---\n# Porta destilada\n');
+    writeFileSync(join(fx, 'memory/requisitos/ModCarimbado/doc.md'), '# Doc de módulo carimbado\n');
+    writeFileSync(join(fx, 'memory/requisitos/ModLivre/doc.md'), '# Doc livre (sem schema mapeado)\n');
+    // SPEC que VIOLA o schema strict (frontmatter sem os required do spec.schema) → defer:
+    writeFileSync(join(fx, 'memory/requisitos/ModLivre/SPEC.md'), '---\ntitulo: X\n---\n# SPEC inválido\n');
+    const p = await plan(fx);
     ok('plan: carimba reference/a (com frontmatter)', p.toStamp.some((t) => t.rel === 'memory/reference/a.md' && t.id === 'reference-a'));
     ok('plan: DEFERE reference sem frontmatter (evita required parcial)', p.skipped.deferredNoFrontmatter === 1 && !p.toStamp.some((t) => t.rel.endsWith('sem-fm.md')));
     ok('plan: carimba família NÃO-mapeada sem frontmatter (governance)', p.toStamp.some((t) => t.rel === 'memory/governance/notes.md' && t.id === 'governance-notes'));
@@ -172,7 +254,13 @@ function runSelftest() {
     ok('plan: pula quem já tem id', p.skipped.hasId === 1 && !p.toStamp.some((t) => t.rel.endsWith('/b.md')));
     ok('plan: pula gerado', p.skipped.generated === 1);
     ok('plan: NÃO toca gate-toxic (requisitos/audits/research) sem --include-toxic', !p.toStamp.some((t) => t.rel.includes('requisitos')));
-    ok('plan: com --include-toxic pega requisitos', plan(fx, { includeToxic: true }).toStamp.some((t) => t.rel.includes('requisitos/Jana/SPEC')));
+    const toxic = await plan(fx, { includeToxic: true });
+    ok('plan toxic: pega doc livre de módulo sem carimbo', toxic.toStamp.some((t) => t.rel === 'memory/requisitos/ModLivre/doc.md'));
+    ok('plan toxic: PULA módulo inteiro com distilled_at (GT-G3 morderia)', toxic.skipped.distilledModule >= 1 && !toxic.toStamp.some((t) => t.rel.includes('ModCarimbado')));
+    ok('plan toxic: DEFERE SPEC que viola schema strict (AJV)', toxic.skipped.schema >= 1 && !toxic.toStamp.some((t) => t.rel === 'memory/requisitos/ModLivre/SPEC.md'));
+    ok('plan toxic: SPEC sem frontmatter tb não passa (schema exige campos)', !toxic.toStamp.some((t) => t.rel === 'memory/requisitos/Jana/SPEC.md'));
+    const only = await plan(fx, { includeToxic: true, only: 'memory/requisitos/ModLivre/' });
+    ok('plan --only escopa ao prefixo', only.toStamp.every((t) => t.rel.startsWith('memory/requisitos/ModLivre/')) && only.toStamp.length >= 1);
     ok('plan: sem colisão no caso feliz', p.collisions.length === 0);
   } finally { if (fx.startsWith(tmpdir())) rmSync(fx, { recursive: true, force: true }); }
 
@@ -182,15 +270,18 @@ function runSelftest() {
   if (f.length) process.exit(1);
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--selftest')) return runSelftest();
   const rootIdx = args.indexOf('--root');
   const root = resolve(rootIdx >= 0 ? args[rootIdx + 1] : process.cwd());
   const includeToxic = args.includes('--include-toxic');
-  const p = plan(root, { includeToxic });
+  const onlyIdx = args.indexOf('--only');
+  const only = onlyIdx >= 0 ? args[onlyIdx + 1].replaceAll('\\', '/') : null;
+  const p = await plan(root, { includeToxic, only });
 
-  console.log(`[doc-id-stamp] alvos: ${p.total} · a carimbar: ${p.toStamp.length} · já com id: ${p.skipped.hasId} · gerados: ${p.skipped.generated} · PII (pulados): ${p.skipped.pii} · reference sem-fm (deferidos): ${p.skipped.deferredNoFrontmatter}`);
+  console.log(`[doc-id-stamp] alvos: ${p.total} · a carimbar: ${p.toStamp.length} · já com id: ${p.skipped.hasId} · gerados: ${p.skipped.generated} · PII: ${p.skipped.pii} · sem-fm deferidos: ${p.skipped.deferredNoFrontmatter} · módulo destilado: ${p.skipped.distilledModule} · schema inválido: ${p.skipped.schema}`);
+  for (const d of (p.schemaDefers || []).slice(0, 6)) console.log(`   ~schema~ ${d.rel}: ${d.why}`);
   if (p.collisions.length) {
     console.error(`\nCOLISÃO (${p.collisions.length}) — dois paths geram o mesmo id; resolva antes de aplicar:`);
     for (const c of p.collisions) console.error(`  ${c.id}: ${c.paths.join(' , ')}`);
@@ -215,5 +306,5 @@ function main() {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try { main(); } catch (e) { console.error(`DOC-ID-STAMP ERROR: ${e.message}`); process.exit(2); }
+  main().catch((e) => { console.error(`DOC-ID-STAMP ERROR: ${e.message}`); process.exit(2); });
 }

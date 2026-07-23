@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-telas-index-visual-comparison
 tela: purchase/index
 modulo: Purchase
 tipo: LIST
