@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-nfe-brasil-tributacao-index-charter
 page: /nfe-brasil/tributacao
 component: resources/js/Pages/NfeBrasil/Tributacao/Index.tsx
 owner: wagner

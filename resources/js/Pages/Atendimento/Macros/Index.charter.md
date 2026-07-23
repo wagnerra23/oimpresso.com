@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-atendimento-macros-index-charter
 page: /atendimento/macros
 component: resources/js/Pages/Atendimento/Macros/Index.tsx
 owner: wagner

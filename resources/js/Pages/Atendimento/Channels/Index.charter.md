@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-atendimento-channels-index-charter
 page: /atendimento/channels
 component: resources/js/Pages/Atendimento/Channels/Index.tsx
 owner: wagner

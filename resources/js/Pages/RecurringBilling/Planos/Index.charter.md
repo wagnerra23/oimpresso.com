@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-recurring-billing-planos-index-charter
 page: /recurring-billing/planos
 component: resources/js/Pages/RecurringBilling/Planos/Index.tsx
 owner: wagner

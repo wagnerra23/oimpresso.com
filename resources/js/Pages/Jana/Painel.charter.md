@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-jana-painel-charter
 page: /jana/painel
 component: resources/js/Pages/Jana/Painel.tsx
 status: live

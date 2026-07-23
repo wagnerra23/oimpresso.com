@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-repair-status-index-charter
 page: /repair/status
 component: resources/js/Pages/Repair/Status/Index.tsx
 owner: wagner

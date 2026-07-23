@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-whatsapp-settings-charter
 page: /whatsapp/settings
 component: resources/js/Pages/Whatsapp/Settings.tsx
 owner: wagner

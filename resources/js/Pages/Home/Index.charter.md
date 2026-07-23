@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-home-index-charter
 page: /home
 component: resources/js/Pages/Home/Index.tsx
 owner: wagner

@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-oficina-auto-service-orders-create-charter
 page: /oficina-auto/service-orders/create
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Create.tsx
 owner: wagner

@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-recurring-billing-faturas-index-charter
 page: /recurring-billing/faturas
 component: resources/js/Pages/RecurringBilling/Faturas/Index.tsx
 owner: wagner

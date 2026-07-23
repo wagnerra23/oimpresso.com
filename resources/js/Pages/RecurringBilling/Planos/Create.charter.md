@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-recurring-billing-planos-create-charter
 page: /recurring-billing/planos/novo
 component: resources/js/Pages/RecurringBilling/Planos/Create.tsx
 owner: wagner

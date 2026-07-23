@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-settings-payment-gateways-index-charter
 page: /settings/payment-gateways
 component: resources/js/Pages/Settings/PaymentGateways/Index.tsx
 owner: wagner

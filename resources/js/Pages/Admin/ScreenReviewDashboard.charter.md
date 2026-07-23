@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-admin-screen-review-dashboard-charter
 page: /admin/screen-review/dashboard
 component: resources/js/Pages/Admin/ScreenReviewDashboard.tsx
 page_id: admin-screen-review-dashboard

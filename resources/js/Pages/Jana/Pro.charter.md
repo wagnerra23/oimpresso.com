@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-jana-pro-charter
 page: /ia/pro
 component: resources/js/Pages/Jana/Pro.tsx
 owner: wagner

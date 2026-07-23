@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-jana-chat-charter
 page: /jana/chat
 component: resources/js/Pages/Jana/Chat.tsx
 owner: wagner

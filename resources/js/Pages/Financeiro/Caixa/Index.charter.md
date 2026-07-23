@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-financeiro-caixa-index-charter
 page: /financeiro/caixa
 component: resources/js/Pages/Financeiro/Caixa/Index.tsx
 owner: wagner

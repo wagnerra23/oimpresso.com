@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-governance-module-grades-index-charter
 page: /governance/module-grades
 component: resources/js/Pages/governance/ModuleGrades/Index.tsx
 route: /governance/module-grades

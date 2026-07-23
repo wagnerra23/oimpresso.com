@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-sells-create-charter
 page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
 owner: wagner

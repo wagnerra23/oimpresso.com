@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-project-mgmt-board-index-charter
 page: /project-mgmt/board
 component: resources/js/Pages/ProjectMgmt/Board/Index.tsx
 owner: wagner

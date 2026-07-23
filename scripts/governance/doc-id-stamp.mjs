@@ -92,6 +92,14 @@ function anchorLintPasses(root, rel) {
   try { execFileSync('node', [join(REPO_ROOT, 'scripts/governance/anchor-lint.mjs'), '--check', rel], { cwd: root, stdio: 'ignore' }); return true; }
   catch { return false; }
 }
+// Charter com `status: live` SEM sinal de prod falha o `charter-live-signal --check` (required,
+// diff-aware, grandfather por não-toque). Tocar acorda. Dar sinal de prod = curadoria, não stamp.
+// Descoberto pelo refutador GT-G5 2026-07-23 (42 charters live legados). Só *.charter.md.
+function charterLiveSignalPasses(root, rel) {
+  if (!/\.charter\.md$/.test(rel)) return true;
+  try { execFileSync('node', [join(REPO_ROOT, 'scripts/governance/charter-live-signal.mjs'), '--check', rel], { cwd: root, stdio: 'ignore' }); return true; }
+  catch { return false; }
+}
 
 const slugify = (v) => v.normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/\.md$/i, '').replace(/([a-z0-9])([A-Z])/g, '$1-$2')
@@ -219,6 +227,7 @@ export async function plan(root, opts = {}) {
     // `status: ... (STEP 4)`): não stampar por cima de dívida — defere (refutador GT-G5 2026-07-23).
     if (hasFrontmatter(text) && !(await parsesYaml(text))) { skipped.yamlBroken++; continue; }
     if (opts.includeToxic && !anchorLintPasses(root, rel)) { skipped.anchorDead = (skipped.anchorDead || 0) + 1; continue; }
+    if (opts.includeToxic && !charterLiveSignalPasses(root, rel)) { skipped.charterLive = (skipped.charterLive || 0) + 1; continue; }
     const id = idForPath(rel);
     // Schema strict: valida o frontmatter FUTURO (com o id) — inválido hoje = defer.
     const future = stampId(text, id);

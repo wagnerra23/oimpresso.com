@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-nfe-brasil-manifestacao-index-charter
 page: /nfe-brasil/manifestacao
 component: resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx
 owner: wagner

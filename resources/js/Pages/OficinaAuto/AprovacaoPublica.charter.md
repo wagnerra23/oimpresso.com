@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-oficina-auto-aprovacao-publica-charter
 page: /aprovar-os/{token}
 component: resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx
 page_id: oficina-auto-aprovacao-publica

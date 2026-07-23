@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-atendimento-jana-templates-charter
 page: /atendimento/canais/jana-templates
 component: resources/js/Pages/Atendimento/JanaTemplates.tsx
 owner: wagner

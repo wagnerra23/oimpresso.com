@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-oficina-auto-vehicles-index-charter
 page: /oficina-auto/vehicles
 component: resources/js/Pages/OficinaAuto/Vehicles/Index.tsx
 owner: wagner

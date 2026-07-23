@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-jana-memoria-charter
 page: /copiloto/memoria
 component: resources/js/Pages/Jana/Memoria.tsx
 owner: wagner

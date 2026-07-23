@@ -1,5 +1,4 @@
 ---
-id: resources-js-pages-repair-dashboard-index-charter
 page: /repair/dashboard
 component: resources/js/Pages/Repair/Dashboard/Index.tsx
 owner: wagner
