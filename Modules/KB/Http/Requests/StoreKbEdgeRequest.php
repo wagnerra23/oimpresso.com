@@ -32,7 +32,7 @@ class StoreKbEdgeRequest extends FormRequest
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, string|array<int, string|\Illuminate\Validation\Rules\Exists>>
      */
     public function rules(): array
     {
