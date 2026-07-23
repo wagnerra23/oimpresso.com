@@ -298,6 +298,16 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->givePermissionTo($perm);
     }
 
+    // BLOQUEADOR 2 (lane, phpunit.xml executionOrder="random"): as tabelas Spatie
+    // (permissions/model_has_*) são CORE COMPARTILHADAS e NÃO são resetadas por
+    // kbTeardownSchema, então o PermissionRegistrar acumula estado entre testes no
+    // MySQL persistente-no-run. Em ordem aleatória isso deixava o `can:` middleware
+    // ver um mapa de permissões STALE → 403 intermitente (ex: V2b do KbIndexV2ContractTest,
+    // mesma perm coarse que V3/V4/V5/V6 resolviam OK). Forçar o flush do cache aqui —
+    // depois de conceder — garante que o próximo `->can()` releia fresco do DB. Barato e
+    // idempotente (Spatie já faz isso internamente em cada mutação; aqui blinda a ordem).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
     test()->actingAs($user);
     session([
         'user.business_id'         => $bizId,

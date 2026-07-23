@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — block-memory-drift hook"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — block-memory-drift hook
 
 > Hook PreToolUse que protege `memory/<canon>/*.md` contra edits sem workflow PR.

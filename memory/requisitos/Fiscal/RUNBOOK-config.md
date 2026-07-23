@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Fiscal/Config (sub-página 6)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Fiscal/Config (sub-página 6)
 
 > **Tela:** `/fiscal/config` · **Permissão:** `fiscal.config.edit` · **PR origem:** PR #3 Wave final

@@ -1,14 +1,19 @@
 ---
+last_validated: "2026-06-08"
 slug: vestuario-runbook-etiqueta-tag
 title: "RUNBOOK — Etiqueta TAG vestuário (US-VEST-020)"
 type: runbook
 authority: canonical
 lifecycle: ativo
-owner: maira
+owner: W
 last_updated: 2026-05-20
 pii: false
 related_us: [US-VEST-020]
-related_adrs: [0093, 0104, 0107, 0121]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0107-emendation-0104-visual-comparison-gate-f3
+  - 0121-oimpresso-modular-especializado-por-vertical
 ---
 
 # RUNBOOK — Etiqueta TAG vestuário (US-VEST-020)

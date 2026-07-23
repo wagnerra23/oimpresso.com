@@ -1,4 +1,5 @@
 ---
+last_validated: "2026-06-08"
 title: "RUNBOOK · design-deep-analysis — análise contextualizada de tela por persona"
 status: ativo
 version: "1.0"

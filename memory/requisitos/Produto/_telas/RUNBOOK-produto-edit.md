@@ -1,9 +1,11 @@
 ---
+owner: W
+last_validated: "2026-06-15"
 slug: inventory-runbook-produto-edit
 title: "Produto — Runbook da tela Editar produto (migração MWART)"
 type: runbook
 module: Inventory
-status: active
+status: ativo
 date: 2026-05-15
 ---
 

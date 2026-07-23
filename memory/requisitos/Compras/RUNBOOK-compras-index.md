@@ -1,14 +1,15 @@
 ---
+last_validated: "2026-06-08"
 slug: runbook-compras-index
 title: "RUNBOOK — /compras (cockpit)"
 type: runbook
 module: Compras
 page: /compras
 component: resources/js/Pages/Compras/Index.tsx
-status: scaffold
+status: rascunho
 updated_at: 2026-05-21
 version: 0.1
-owner: wagner
+owner: W
 ---
 
 # RUNBOOK — `/compras` (cockpit Inertia)

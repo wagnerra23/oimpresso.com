@@ -3,7 +3,7 @@ title: "RUNBOOK — Memory schema gate EXTENDED (SPEC/Session/Handoff)"
 module: Infra
 owner: W
 status: ativo
-last_validated: 2026-05-15
+last_validated: "2026-05-15"
 preconditions:
   - "GitHub Actions habilitado no repo"
   - "Python 3.x disponível no runner (ubuntu-latest tem default)"

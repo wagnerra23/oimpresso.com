@@ -114,7 +114,11 @@ class KbController extends Controller
                 'id'   => (int) (session('user.business_id') ?? $user?->business_id ?? 0),
                 'name' => (string) (session('business.name') ?? ''),
             ],
-            'categories'    => KbCategory::query()->orderBy('sort')->orderBy('label')->get(),
+            // Coluna real é `sort_order` (migration 100001 + KbCategory model + seeder
+            // que mapeia `'sort'` do array → `sort_order`). `orderBy('sort')` era bug
+            // introduzido no #4500 → SQLSTATE 42S22 "Unknown column 'sort'" → 500 em
+            // /kb/v2 + /sops desde 2026-07-17. Fix segue o schema canônico.
+            'categories'    => KbCategory::query()->orderBy('sort_order')->orderBy('label')->get(),
             'subcategories' => KbSubcategory::query()->get(),
             'nodes'         => $nodes,
             'can' => [
