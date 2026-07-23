@@ -109,12 +109,17 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 11 primeiros: provados no probe CT100 oimpresso-staging (2026-07-23).
-        # Os 8 seguintes (Http/*ControllerTest + CrossTenant + Governance + KbIndexV2):
-        # falhavam SÓ na persistência do staging (colisão 1062 com ADRs reais já
-        # sincronizados em mcp_memory_documents + permissões kb.* globais pré-atribuídas)
-        # — causa ausente na DB efêmera desta lane; ratcheados após o 1º run desta lane
-        # confirmar os 11 verdes na DB fresca (PR #4725).
+        # Os 11: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725).
+        #
+        # RATCHET-PENDENTE por FALHA REAL na DB fresca (o run dos 19 no PR #4725 refutou
+        # a hipótese inicial de "só poluição do staging" — a DB limpa expôs 2 gaps reais,
+        # a serem corrigidos ANTES de entrar na allowlist):
+        #   - KbIndexV2ContractTest → `/kb/v2` faz `order by sort` mas kb_categories NÃO
+        #     tem coluna `sort` no schema montado por kbBootstrapSchema (migração fora do
+        #     glob 2026_*.php OU baseline). SQLSTATE 42S22 1054.
+        #   - Http/*ControllerTest + GovernanceInvariantsTest + CrossTenantIsolationTest →
+        #     grants Spatie de kbActAsUser não resolvem no MySQL fresco (retorna 403 mesmo
+        #     nos testes que concedem a permissão). Setup de permissão a investigar.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -136,15 +141,7 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
-            Modules/KB/Tests/Feature/LgpdComplianceTest.php \
-            Modules/KB/Tests/Feature/Http/KbNodeControllerTest.php \
-            Modules/KB/Tests/Feature/Http/KbCommentControllerTest.php \
-            Modules/KB/Tests/Feature/Http/KbFavoriteControllerTest.php \
-            Modules/KB/Tests/Feature/Http/KbPathControllerTest.php \
-            Modules/KB/Tests/Feature/Http/KbDecisionTreeControllerTest.php \
-            Modules/KB/Tests/Feature/CrossTenantIsolationTest.php \
-            Modules/KB/Tests/Feature/GovernanceInvariantsTest.php \
-            Modules/KB/Tests/Feature/KbIndexV2ContractTest.php
+            Modules/KB/Tests/Feature/LgpdComplianceTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
