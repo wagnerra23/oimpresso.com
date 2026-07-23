@@ -58,6 +58,15 @@ use Illuminate\Support\Facades\Schema;
  */
 function kbBootstrapSchema(): void
 {
+    // NO-OP no MySQL (lane + CT100): o schema kb_* + CORE JÁ vem do `migrate --force` do setup
+    // (mysql-schema.sql + migrations novas). Qualquer create/migration-runner abaixo seria DDL
+    // REDUNDANTE — e DDL dá COMMIT IMPLÍCITO, que quebraria a transação do DatabaseTransactions
+    // (o teste não rolaria back → volta o acúmulo/flakiness). Só o sqlite (fallback; os testes
+    // MySQL-only SKIPam) monta o schema abaixo, onde a DB nasce vazia por processo.
+    if (\DB::connection()->getDriverName() !== 'sqlite' && Schema::hasTable('kb_nodes')) {
+        return;
+    }
+
     // ISOLAMENTO via DatabaseTransactions (ligado em tests/Pest.php pro dir Feature do KB):
     // cada teste roda numa transação com ROLLBACK automático no fim → NÃO precisamos mais
     // dropar+recriar kb_* por teste. O drop foi REMOVIDO (2026-07-23) porque:

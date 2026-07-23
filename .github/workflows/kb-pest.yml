@@ -88,11 +88,13 @@ jobs:
         if: steps.changes.outputs.kb == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
-      - name: Zerar kb_* (baseline do dump) — DatabaseTransactions mantém limpo depois
-        # O migrate --force carrega o mysql-schema.sql (dump prod 2026-06-04) que traz LINHAS
-        # baseline em kb_*. Os testes assumem tabelas VAZIAS (antes vinha do drop+create por
-        # teste, agora removido — isolamento é via DatabaseTransactions). Truncar UMA vez aqui
-        # deixa kb_* vazias; o rollback por-teste mantém assim. Só kb_* (módulo), nunca CORE.
+      - name: Zerar baseline do dump (kb_* + CORE de teste) — só na lane efêmera
+        # O migrate --force carrega o mysql-schema.sql (dump prod) que traz LINHAS baseline em
+        # kb_* E nas CORE que os testes tocam (mcp_memory_documents, model_has_*). Os testes
+        # assumem VAZIO (antes vinha do drop+create por teste, removido — isolamento agora é
+        # DatabaseTransactions). Zerar UMA vez aqui + rollback por-teste mantém. É SEGURO só
+        # porque a DB do CI (oimpresso_test) é EFÊMERA/descartável; o CT100 nightly NÃO roda
+        # este passo (é outra pipeline). Guard extra: aborta se o nome do banco não for de teste.
         if: steps.changes.outputs.kb == 'true'
         env:
           DB_CONNECTION: mysql
@@ -103,12 +105,13 @@ jobs:
           DB_PASSWORD: root
         run: |
           php artisan tinker --execute="
+            if (\DB::getDatabaseName() !== 'oimpresso_test') { throw new \RuntimeException('Recusado: banco não-efêmero ('.\DB::getDatabaseName().')'); }
             \DB::statement('SET FOREIGN_KEY_CHECKS=0');
-            foreach (['kb_health_history','kb_bridge_state','kb_comments','kb_favorites','kb_node_versions','kb_decision_tree_steps','kb_decision_trees','kb_path_steps','kb_paths','kb_edges','kb_nodes','kb_subcategories','kb_categories'] as \$t) {
+            foreach (['kb_health_history','kb_bridge_state','kb_comments','kb_favorites','kb_node_versions','kb_decision_tree_steps','kb_decision_trees','kb_path_steps','kb_paths','kb_edges','kb_nodes','kb_subcategories','kb_categories','mcp_memory_documents','model_has_permissions','model_has_roles'] as \$t) {
               if (\Illuminate\Support\Facades\Schema::hasTable(\$t)) { \DB::table(\$t)->truncate(); }
             }
             \DB::statement('SET FOREIGN_KEY_CHECKS=1');
-            echo 'kb_* truncadas'.PHP_EOL;
+            echo 'baseline zerado (kb_* + CORE de teste)'.PHP_EOL;
           "
 
       - name: Stub Vite manifest (Inertia root view sem build do front)
