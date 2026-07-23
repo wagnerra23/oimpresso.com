@@ -33,6 +33,8 @@ UI humana: `/copiloto/admin/memoria` lista os docs sincronizados (contagem viva 
 
 Session logs `*-mapa-telas-projeto.md` (e os números embutidos em qualquer session log) são **fósseis datados** — snapshot honesto do dia, **history**, nunca "o mapa atual". Se um número datado incomodar, **re-rode o comando** — não edite o número ([lápide §5 2026-07-17](proibicoes.md)).
 
+> 🗺️ **Visão de conjunto (porta única):** [`memory/requisitos/_Governanca/MAPA-DE-ARTEFATOS.md`](requisitos/_Governanca/MAPA-DE-ARTEFATOS.md) — quais artefatos existem por módulo e por tela, qual pergunta cada um responde, o dono canônico de cada, e a tabela de máquinas GERADA do `required-checks-baseline.json`. É o onboarding da arquitetura de arquivos pra IA e time; aponta, não duplica ([ADR 0345](decisions/0345-topicos-vivos-aprendizado-por-critica-revisada.md)).
+
 ## Fallback: filesystem (se sem MCP conectado)
 
 1. **Brief diário fica em** `mcp_briefs` table (consulta SQL como fallback)
