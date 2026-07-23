@@ -7,7 +7,7 @@ relates_to:
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
   - 0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio
   - 0130-handoff-append-only-mcp-first
-  - 0273-anchor-lint-us-implementado-em
+  - 0273-anchor-spec-codigo-formato-canonico-fluxo-novo
   - 0314-poda-gates-onda-2-lei-fusoes
   - 0336-gates-design-promocao-por-mordida-provada-emenda-0314
 ---
