@@ -1,0 +1,149 @@
+name: KB · Pest (MySQL)
+
+# Lane dedicada pra rodar a suíte Pest MySQL-only do Modules/KB contra MySQL REAL
+# + seed mínimo multi-tenant (biz=1 + biz=2 — via .github/actions/pest-mysql-setup).
+#
+# POR QUE existe (descoberto 2026-07-23, Fase A1 do trilho doc↔código na KB):
+# NENHUM teste do Modules/KB rodava no CI por-PR. O modules-pest.yml matrix NÃO
+# inclui KB (só Arquivos/ComunicacaoVisual/Fiscal/NfeBrasil/Repair/Vestuario), não
+# havia lane dedicada, e só 1 arquivo (KbDriftPersistenceTest) tinha sido adicionado
+# à allowlist sqlite (.github/ci-sqlite-pest.list). Resultado: o KB só era validado
+# no CT100 nightly full-suite → uma regressão do KB podia MERGEAR e só aparecer no
+# dia seguinte. O #4715 (Fase A1) mergeou com 91 checks verdes SEM exercitar teste
+# nenhum do KB. Esta lane fecha o gap e vira o HOME do ratchet pra TODO teste
+# MySQL-only do KB. Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1/biz=99,
+# NUNCA biz=4 ROTA LIVRE) · ADR 0271 onda 2 (required-readiness) · ADR 0275
+# (calendário de promoção advisory→required).
+#
+# Os testes do KB montam o schema via kbBootstrapSchema() (Modules/KB/Tests/Helpers.php)
+# — sintético e MySQL-safe (drops kb_* idempotentes com FK checks off; CORE
+# compartilhada NUNCA dropada). NÃO usam RefreshDatabase/migrate:fresh, então não
+# dropam o schema baseline nem limpam o seed biz=1/biz=2. Cross-tenant usa biz=99
+# fictício (kbCreateBusinessRow clona a row-modelo biz=1).
+#
+# Reusa .github/actions/pest-mysql-setup (mesma do jana-pest/estoque-pest/essentials-pest):
+# PHP 8.4 + deps + .env MySQL + migrate (schema baseline) + seed biz=1 (fixture) E
+# biz=2 (Tier 0 cross-tenant). CRÍTICO: o mcp_memory_documents nasce VAZIO e as
+# permissions kb.* NÃO são pré-atribuídas ao user de teste — é isso que faz os testes
+# de contrato/403/governança do KB passarem (na persistência do CT100 staging eles
+# colidiam com ADRs reais já sincronizados + permissões globais; aqui a DB é efêmera).
+
+on:
+  workflow_dispatch: {}
+  # always-run (SEM paths) + skip-as-pass interno (dorny/paths-filter): se nada do
+  # KB mudou, pula o pesado e conclui verde. Promovível a required sem deadlock
+  # "Expected — waiting" (ADR 0271 onda 2). push segue path-filtered (contém custo no main).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/KB/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/kb-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: kb-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (KB · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do KB (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            kb:
+              - 'Modules/KB/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/kb-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do KB mudou)
+        if: steps.changes.outputs.kb == 'false'
+        run: echo "✅ Sem mudanças no Modules/KB — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.kb == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.kb == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (KB · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.kb == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: — se não sobrescrever, os
+        # testes MySQL-only do KB SKIPam (guard `if sqlite markTestSkipped`, falsa
+        # cobertura). Exportar aqui faz rodar no MySQL real semeado (biz=1 + biz=99).
+        #
+        # CATRACA: a lane roda só os arquivos comprovadamente verdes contra MySQL real
+        # (probe CT100 oimpresso-staging, 2026-07-23). Cada novo verde entra AQUI
+        # (ratchet up). NÃO incluir RefreshDatabase/migrate:fresh — dropam schema+seed.
+        #
+        # PENDENTE DE RATCHET (falharam SÓ na persistência do staging por colisão com
+        # ADRs reais já sincronizados em mcp_memory_documents + permissões kb.* globais
+        # pré-atribuídas; na DB efêmera desta lane a causa não existe — adicionar após
+        # o 1º run desta lane confirmar verde na DB fresca):
+        #   Http/KbNodeControllerTest · Http/KbCommentControllerTest ·
+        #   Http/KbFavoriteControllerTest · Http/KbPathControllerTest ·
+        #   Http/KbDecisionTreeControllerTest · CrossTenantIsolationTest ·
+        #   GovernanceInvariantsTest · KbIndexV2ContractTest
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-kb-junit.xml \
+            Modules/KB/Tests/Feature/MultiTenantTraitTest.php \
+            Modules/KB/Tests/Feature/KbRagServiceMultiTenantTest.php \
+            Modules/KB/Tests/Feature/Wave28SaturationTest.php \
+            Modules/KB/Tests/Feature/Wave26KbScaffoldTest.php \
+            Modules/KB/Tests/Feature/Wave26KbSmokeTest.php \
+            Modules/KB/Tests/Feature/KbAutoClassifierTest.php \
+            Modules/KB/Tests/Feature/KbDriftDetectorCommandTest.php \
+            Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
+            Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
+            Modules/KB/Tests/Feature/KbRagasEvalTest.php \
+            Modules/KB/Tests/Feature/LgpdComplianceTest.php
+
+      - name: Upload JUnit (KB · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-kb-junit
+          path: test-results/pest-kb-junit.xml
+          retention-days: 14
