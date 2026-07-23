@@ -38,6 +38,7 @@
         "meilisearch/meilisearch-php": "^1.16",
         "milon/barcode": "^13.1",
         "mpdf/mpdf": "^8.1",
+        "nikic/php-parser": "^5.7.0",
         "myfatoorah/laravel-package": "^2.2",
         "nfephp-org/sped-da": "^1.1",
         "nfephp-org/sped-nfe": "dev-master",
