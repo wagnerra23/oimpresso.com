@@ -85,7 +85,16 @@ it('V2: rotas kb.v2 e sops.index estao registradas nomeadas', function () {
 $permKb = ['copiloto.mcp.memory.manage'];
 
 it('V2b: GET /kb/v2 autenticado renderiza Inertia kb/Index.v2', function () use ($permKb) {
-    kbActAsUser(bizId: 1, permissions: $permKb);
+    $u = kbActAsUser(bizId: 1, permissions: $permKb);
+
+    // DIAGNÓSTICO TEMPORÁRIO — remover:
+    fwrite(STDERR, "\n[DIAG] perm_count=".\Spatie\Permission\Models\Permission::where('name','copiloto.mcp.memory.manage')->count());
+    fwrite(STDERR, " guards=".\Spatie\Permission\Models\Permission::where('name','copiloto.mcp.memory.manage')->pluck('guard_name')->implode(','));
+    fwrite(STDERR, " user_id=".$u->getAuthIdentifier());
+    fwrite(STDERR, " authcheck=".(\Illuminate\Support\Facades\Auth::check()?'1':'0'));
+    fwrite(STDERR, " can=".(\Illuminate\Support\Facades\Auth::user()?->can('copiloto.mcp.memory.manage')?'1':'0'));
+    fwrite(STDERR, " defaultguard=".config('auth.defaults.guard'));
+    fwrite(STDERR, " directperms=".\Illuminate\Support\Facades\Auth::user()?->getDirectPermissions()->pluck('name')->implode(',')."\n");
 
     $response = $this->get('/kb/v2');
 
