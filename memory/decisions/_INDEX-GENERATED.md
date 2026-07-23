@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **353** arquivos · **337** números únicos · máx **0347**
-- **ADRs ATIVOS (lifecycle ativo): 319** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 321 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 319 · arquivado 22 · substituido 12
+- **354** arquivos · **338** números únicos · máx **0348**
+- **ADRs ATIVOS (lifecycle ativo): 320** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 322 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 320 · arquivado 22 · substituido 12
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (353)
+## Todas as ADRs (354)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -392,3 +392,4 @@ _(nenhuma)_
 | 0345 | aceito | ativo | decision | Tópicos vivos e aprendizado por crítica independente revisada |
 | 0346 | aceito | ativo | meta | Promove o gate Tópico a required — override soberano [W] (emenda à 0314; critéri |
 | 0347 | aceito | ativo | decision | Emenda à 0314 — deadlink-gate promovido a REQUIRED (integridade referencial doc↔ |
+| 0348 | aceito | ativo | decision | Emenda à 0314 — cobertura de BRIEFING por módulo backend (briefing-code-stalenes |
