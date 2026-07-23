@@ -38,6 +38,16 @@ beforeEach(function () {
         );
     }
 
+    // BLOQUEADOR 1 (lane, não prod): a lane kb-pest NÃO builda o front — stub de manifest
+    // só, sem os .tsx resolvíveis pelo view-finder. `config/inertia.php` tem
+    // `testing.ensure_pages_exist => true` (SEPARADO de `pages.ensure_pages_exist => false`),
+    // então `assertInertia(->component('kb/Index.v2'))` tenta localizar o arquivo em disco e
+    // falha "Inertia page component file [kb/Index.v2] does not exist" (AssertableInertia:110).
+    // O contrato aqui é o NOME do componente Inertia servido pela rota, não que o bundle exista —
+    // desligamos a checagem de disco (padrão canônico pra testar componente sem build). O
+    // arquivo resources/js/Pages/kb/Index.v2.tsx EXISTE e prod renderiza; é artefato de lane.
+    config(['inertia.testing.ensure_pages_exist' => false]);
+
     kbBootstrapSchema();
 });
 
