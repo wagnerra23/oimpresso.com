@@ -290,22 +290,35 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->save();
     }
 
+    // BLOQUEADOR 2 (lane, phpunit.xml executionOrder="random"): as tabelas Spatie
+    // (permissions/model_has_*) são CORE COMPARTILHADAS e NÃO são resetadas por
+    // kbTeardownSchema, E o CACHE_STORE do app é `file` (persiste em disco ENTRE testes
+    // do mesmo run). O PermissionRegistrar cacheia o mapa de permissões nesse store de
+    // arquivo → em ordem aleatória o `can:copiloto.mcp.memory.manage` do KbController
+    // via um registry STALE e negava 403 intermitente em QUALQUER dos contract-tests
+    // autenticados (V2b/V2c/V3/V4/V5/V6 — todos a MESMA coarse; qual cai depende do seed:
+    // V2b no #4725, V2c no run 30033223397 de main). O `forgetCachedPermissions()` sozinho
+    // (fix do #4735) NÃO bastou porque outro teste re-popula o cache de ARQUIVO logo em
+    // seguida. Fix hermético (test-only, NÃO muda authz de prod):
+    //
+    //   (1) Isolar o registry no store `array` — por-app-instance, ZERADO a cada refresh
+    //       de app (1× por teste, via TestCase). `forgetInstance` reconstrói o registrar
+    //       pra ele ler o store novo → o middleware `can:` sempre relê fresco do DB, imune
+    //       à ordem e ao cache de disco herdado de outro teste.
+    //   (2) `syncPermissions` (conjunto EXATO, escopado só ao user de teste) no lugar de
+    //       `givePermissionTo` (aditivo) — zera o acúmulo de model_has_permissions entre
+    //       testes (sem isso um caso 403 herdava a coarse de um sucesso anterior → 200 falso).
+    config(['permission.cache.store' => 'array']);
+    app()->forgetInstance(\Spatie\Permission\PermissionRegistrar::class);
+
     foreach ($permissions as $perm) {
         \Spatie\Permission\Models\Permission::firstOrCreate([
             'name' => $perm,
             'guard_name' => 'web',
         ]);
-        $user->givePermissionTo($perm);
     }
+    $user->syncPermissions($permissions);
 
-    // BLOQUEADOR 2 (lane, phpunit.xml executionOrder="random"): as tabelas Spatie
-    // (permissions/model_has_*) são CORE COMPARTILHADAS e NÃO são resetadas por
-    // kbTeardownSchema, então o PermissionRegistrar acumula estado entre testes no
-    // MySQL persistente-no-run. Em ordem aleatória isso deixava o `can:` middleware
-    // ver um mapa de permissões STALE → 403 intermitente (ex: V2b do KbIndexV2ContractTest,
-    // mesma perm coarse que V3/V4/V5/V6 resolviam OK). Forçar o flush do cache aqui —
-    // depois de conceder — garante que o próximo `->can()` releia fresco do DB. Barato e
-    // idempotente (Spatie já faz isso internamente em cada mutação; aqui blinda a ordem).
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     test()->actingAs($user);

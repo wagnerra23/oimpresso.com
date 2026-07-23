@@ -128,12 +128,19 @@ jobs:
         #         `config/inertia.php` tem `testing.ensure_pages_exist => true`. Fix: o
         #         beforeEach do KbIndexV2ContractTest seta `inertia.testing.ensure_pages_exist
         #         => false` (testa o NOME do componente sem build; o .tsx EXISTE e prod renderiza).
-        #     (b) V2b: 403 INTERMITENTE de resolução Spatie no MySQL persistente-no-run
+        #     (b) V2b/V2c: 403 INTERMITENTE de resolução Spatie no MySQL persistente-no-run
         #         (mesma perm coarse que V3/V4/V5/V6 resolviam OK → order-dependent, phpunit
         #         executionOrder="random"; permissions/model_has_* são CORE e NÃO são
-        #         resetadas por kbTeardownSchema). Fix: kbActAsUser chama
-        #         PermissionRegistrar::forgetCachedPermissions() após conceder → o próximo
-        #         `->can()` relê fresco do DB.
+        #         resetadas por kbTeardownSchema, E CACHE_STORE=file → o PermissionRegistrar
+        #         cacheia o mapa EM DISCO e ele persiste entre testes do run). O
+        #         forgetCachedPermissions() sozinho (1ª tentativa) NÃO bastou: outro teste
+        #         re-popula o cache de arquivo logo depois → V2c caiu 403 no run de main
+        #         30033223397. FIX HERMÉTICO (kbActAsUser, test-only, NÃO muda authz de prod):
+        #         (1) config['permission.cache.store'=>'array'] + forgetInstance do registrar
+        #         → registry por-app-instance, zerado a cada teste, imune ao cache de disco;
+        #         (2) syncPermissions (conjunto exato, escopado ao user de teste) no lugar de
+        #         givePermissionTo aditivo → zera acúmulo cross-test. Provado verde em 6 seeds
+        #         aleatórios (CT 100, MySQL real).
         #     → KbIndexV2ContractTest agora entra na allowlist (12 arquivos), provado verde
         #       pela lane. GAP 1 fechado.
         #
@@ -162,15 +169,12 @@ jobs:
         #            + provar que o read-path da aresta não vaza). + DELETE cross-tenant 422
         #            (confirm faltando) + bridge job handle() sem args de DI (bug de TESTE).
         #     (ii) resíduo de flakiness Spatie order-dependent (executionOrder=random):
-        #          permissions/model_has_* são CORE e não resetadas por kbTeardownSchema, o
-        #          user ACUMULA perms entre testes → 403 intermitente. O `forgetCached` que já
-        #          existe no helper não basta pros 7 (têm casos de 403 que herdariam a coarse
-        #          de um sucesso anterior). Fica pro PR de GAP 2: trocar givePermissionTo por
-        #          syncPermissions (perms exatas, zera acúmulo) — testado neste PR mas revertido
-        #          porque, sozinho, regrediu o KbIndexV2 (já ratcheteado) num run → precisa vir
-        #          junto do isolamento robusto, não solto. Ratchetear flaky quebra a lane.
-        #   Fechar GAP 2 = PR dedicado: fix dos 5 bugs + isolamento Spatie robusto (bootstrap/
-        #   teardown + syncPermissions). Os 7 já ficam authz-prontos (este PR). NÃO ratchetear.
+        #          RESOLVIDO no fix hermético (b) acima — array-store + forgetInstance +
+        #          syncPermissions no kbActAsUser. Os casos de 403 dos 7 não herdam mais a
+        #          coarse de um sucesso anterior (syncPermissions zera o acúmulo). Sobra só o
+        #          item (i) — os 5 bugs REAIS de comportamento — pra fechar GAP 2.
+        #   Fechar GAP 2 = PR dedicado: fix dos 5 bugs (item i). O isolamento Spatie robusto
+        #   já landou; os 7 ficam authz-prontos. NÃO ratchetear enquanto (i) não fechar.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
