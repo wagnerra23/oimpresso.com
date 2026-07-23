@@ -109,9 +109,8 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 13: provados verdes na DB EFÊMERA do CI (PR #4725 + follow-ups). CrossTenant
-        # entrou no #4736 após 3 fixes (kb_edge scope + DELETE confirm + bridge job DI); as
-        # asserções dele toleram 403 espúrio (toBeIn([403,404,...])) → robusto à flakiness.
+        # Os 19: provados verdes na DB EFÊMERA do CI (PR #4725 + follow-ups). GAP 1 e GAP 2
+        # FECHADOS — todos os 7 testes de contrato/governança/isolamento entraram. Ver abaixo.
         #
         # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
         # gaps; investigação com oráculos de schema + config Spatie + run real da lane):
@@ -140,41 +139,26 @@ jobs:
         #       pela lane. GAP 1 fechado.
         #
         #   GAP 2 — os 7 (Http/*ControllerTest + GovernanceInvariantsTest +
-        #   CrossTenantIsolationTest). A CAMADA DE TOPO era authz (NAME MISMATCH): todo
-        #   controller/request KB gateia na COARSE `copiloto.mcp.memory.manage` (SCHEMA-DB-V1
-        #   §12 declara CANÔNICA até o "PR de rename Spatie"; os kb.* são DECLARATIVOS, não
-        #   gateiam), mas os testes concediam só `kb.*` → middleware 403 em todo sucesso.
-        #   O PR #4736 (decisão [W], Opção B) ALINHOU os 7 à realidade V1 (sucesso concede a
-        #   coarse; 403 concede só kb.view; cross-tenant/governança/autoria concedem a coarse
-        #   DE PROPÓSITO pra o bloqueio vir do global scope/invariante/autoria).
-        #   MAS 2 runs REAIS da lane provaram que authz era SÓ a superfície. O #4736 FECHOU e
-        #   RATCHETEOU o CrossTenant (3 fixes: kb_edge scope + DELETE confirm + bridge job DI);
-        #   os OUTROS 6 seguem pendentes por DOIS motivos:
-        #     (i)  bugs REAIS de comportamento que o 403 mascarava:
-        #          - KbNode: POST não cria snapshot inicial em kb_node_versions (store não
-        #            versiona no create); DELETE exige `confirm=CONFIRMO` (safety guard) que o
-        #            teste não manda → 422 (bug de TESTE).
-        #          - KbComment: DELETE do próprio autor → 403 (guarda `author_user_id !==
-        #            Auth::id()` estrita — provável string-vs-int).
-        #          - KbFavorite: GET ?favorites=1 não exclui o não-favoritado.
-        #          - Governance: save de KbNodeVersion pra nó bridge NÃO lança (gate de versão
-        #            de bridge não está no nível de Model).
-        #          [FECHADO no #4736] kb_edge cross-tenant: NÃO era leak Tier 0 (PROVADO — o
-        #            read-path escopa o toNode via global scope + só seleciona id/slug/title/
-        #            type, nunca content_md). Era gap de VALIDAÇÃO: `exists:kb_nodes,id` sem
-        #            escopo aceitava to_node de outro tenant (201, aresta pendurada). Fix:
-        #            Rule::exists(...)->where('business_id', bizId) no StoreKbEdgeRequest → 422.
-        #     (ii) resíduo de flakiness Spatie order-dependent (só morde testes cujas asserções
-        #          NÃO toleram 403 espúrio — CrossTenant TOLERA [toBeIn([403,404,...])], por isso
-        #          ratcheteia). permissions/model_has_* são CORE e não resetadas por
-        #          kbTeardownSchema → o user ACUMULA perms → 403 intermitente. Os 6 restantes têm
-        #          casos de 403-POR-FALTA-DE-PERM que herdariam a coarse de um sucesso anterior.
-        #          Fica pro PR que fechar os 4 bugs: trocar givePermissionTo por syncPermissions
-        #          (perms exatas) — testado e revertido no #4736 porque, SOLTO, regrediu o
-        #          KbIndexV2 num run; precisa vir junto do isolamento robusto (reset de
-        #          model_has_* no bootstrap), não solto. Ratchetear flaky quebra a lane.
-        #   Fechar GAP 2 = PR dedicado: fix dos 5 bugs + isolamento Spatie robusto (bootstrap/
-        #   teardown + syncPermissions). Os 7 já ficam authz-prontos (este PR). NÃO ratchetear.
+        #   CrossTenantIsolationTest): FECHADO. A camada de TOPO era authz (NAME MISMATCH: os
+        #   controllers/requests gateiam na COARSE `copiloto.mcp.memory.manage`; SCHEMA-DB-V1
+        #   §12 declara canônica até o "rename Spatie"; os kb.* são declarativos). O #4736
+        #   alinhou os 7 à realidade V1. Mas os runs REAIS provaram que authz era só a
+        #   superfície — abaixo os bugs REAIS que o 403 mascarava, TODOS corrigidos:
+        #     - kb_edge cross-tenant (#4746): NÃO era leak (read-path escopa o toNode via global
+        #       scope + só seleciona id/slug/title/type, nunca content_md). Gap de VALIDAÇÃO:
+        #       `exists:kb_nodes,id` sem escopo. Fix: Rule::exists(...)->where('business_id')→422.
+        #     - KbNode: store() não criava versão inicial → cria a versão 1 no create; DELETE
+        #       exige confirm=CONFIRMO (o teste passou a mandar).
+        #     - KbFavorite: KbArticleService não tinha filtro `favorites` → adicionado (whereIn
+        #       em kb_favorites por user_id; o global scope garante o tenant).
+        #     - Governance: KbNodeVersionObserver só barrava update/delete → +creating() que
+        #       bloqueia versão pra nó bridge (is_editable=false). Tier 0 ADR 0061.
+        #     - KbComment (autor 403) + KbPath/KbDecisionTree (403 order-dependent): eram
+        #       FLAKINESS, não bug — author_user_id já é int; o 403 vinha do cache Spatie.
+        #   Isolamento Spatie robusto (kbActAsUser): além do forgetCached, limpa as perms
+        #   DIRETAS do PRÓPRIO user (raw delete em model_has_permissions por model_id) ANTES de
+        #   conceder → zera o ACÚMULO cross-test SEM o detach do syncPermissions (que regredia o
+        #   KbIndexV2). Determinístico sob executionOrder=random. Todos os 7 ratcheteados.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -198,7 +182,13 @@ jobs:
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
             Modules/KB/Tests/Feature/LgpdComplianceTest.php \
             Modules/KB/Tests/Feature/KbIndexV2ContractTest.php \
-            Modules/KB/Tests/Feature/CrossTenantIsolationTest.php
+            Modules/KB/Tests/Feature/CrossTenantIsolationTest.php \
+            Modules/KB/Tests/Feature/Http/KbNodeControllerTest.php \
+            Modules/KB/Tests/Feature/Http/KbCommentControllerTest.php \
+            Modules/KB/Tests/Feature/Http/KbFavoriteControllerTest.php \
+            Modules/KB/Tests/Feature/Http/KbPathControllerTest.php \
+            Modules/KB/Tests/Feature/Http/KbDecisionTreeControllerTest.php \
+            Modules/KB/Tests/Feature/GovernanceInvariantsTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}

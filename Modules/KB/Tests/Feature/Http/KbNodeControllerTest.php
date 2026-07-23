@@ -161,7 +161,8 @@ it('DELETE /kb/nodes/{slug} soft-deletes (perm: kb.softdelete)', function () {
         'status' => 'ok', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    $response = $this->deleteJson('/kb/nodes/del-me');
+    // destroy() exige confirm=CONFIRMO (safety guard contra delete acidental).
+    $response = $this->deleteJson('/kb/nodes/del-me', ['confirm' => 'CONFIRMO']);
 
     $response->assertOk();
     $row = \DB::table('kb_nodes')->where('id', $nodeId)->first();
