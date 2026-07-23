@@ -151,7 +151,9 @@ it('bridge job respects business scope (job(1) nao toca docs biz=99)', function 
         test()->markTestSkipped('KbBridgeFromMcpJob ainda não criado pelo Agent A.');
     }
 
-    (new $jobClass(1))->handle();
+    // handle() recebe serviços via DI (KbBridgeStateService + KbEdgeAutoDeriver) — resolver
+    // pelo container em vez de chamar handle() sem args (senão ArgumentCountError).
+    app()->call([new $jobClass(1), 'handle']);
 
     // Resultado: kb_nodes só pra biz=1
     expect(\DB::table('kb_nodes')->where('business_id', 1)->count())->toBe(1)
@@ -188,7 +190,10 @@ it('DELETE cross-tenant: user biz=1 NAO pode soft-deletar node biz=99', function
 
     kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.softdelete']);
 
-    $response = $this->deleteJson('/kb/nodes/cant-delete');
+    // destroy() exige confirm=CONFIRMO (safety guard); mandamos pra o 422 de validação NÃO
+    // mascarar o teste de isolamento — assim o bloqueio vem do global scope (firstOrFail →
+    // 404), provando a isolação de verdade.
+    $response = $this->deleteJson('/kb/nodes/cant-delete', ['confirm' => 'CONFIRMO']);
 
     expect($response->status())->toBeIn([403, 404]);
     $row = \DB::table('kb_nodes')->where('business_id', 99)->where('slug', 'cant-delete')->first();

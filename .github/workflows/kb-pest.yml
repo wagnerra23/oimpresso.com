@@ -109,7 +109,9 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 12: provados verdes na DB EFÊMERA do CI (run desta lane no PR #4725 + follow-up).
+        # Os 13: provados verdes na DB EFÊMERA do CI (PR #4725 + follow-ups). CrossTenant
+        # entrou no #4736 após 3 fixes (kb_edge scope + DELETE confirm + bridge job DI); as
+        # asserções dele toleram 403 espúrio (toBeIn([403,404,...])) → robusto à flakiness.
         #
         # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
         # gaps; investigação com oráculos de schema + config Spatie + run real da lane):
@@ -145,30 +147,32 @@ jobs:
         #   O PR #4736 (decisão [W], Opção B) ALINHOU os 7 à realidade V1 (sucesso concede a
         #   coarse; 403 concede só kb.view; cross-tenant/governança/autoria concedem a coarse
         #   DE PROPÓSITO pra o bloqueio vir do global scope/invariante/autoria).
-        #   MAS 2 runs REAIS da lane provaram que authz era SÓ a superfície — NENHUM dos 7 é
-        #   ratcheteado ainda, por DOIS motivos:
-        #     (i)  5 dos 7 têm BUGS REAIS de comportamento que o 403 mascarava:
+        #   MAS 2 runs REAIS da lane provaram que authz era SÓ a superfície. O #4736 FECHOU e
+        #   RATCHETEOU o CrossTenant (3 fixes: kb_edge scope + DELETE confirm + bridge job DI);
+        #   os OUTROS 6 seguem pendentes por DOIS motivos:
+        #     (i)  bugs REAIS de comportamento que o 403 mascarava:
         #          - KbNode: POST não cria snapshot inicial em kb_node_versions (store não
-        #            versiona no create); DELETE exige `confirm=CONFIRMO` (safety guard do
-        #            destroy) que o teste não manda → 422 (bug de TESTE).
+        #            versiona no create); DELETE exige `confirm=CONFIRMO` (safety guard) que o
+        #            teste não manda → 422 (bug de TESTE).
         #          - KbComment: DELETE do próprio autor → 403 (guarda `author_user_id !==
         #            Auth::id()` estrita — provável string-vs-int).
         #          - KbFavorite: GET ?favorites=1 não exclui o não-favoritado.
         #          - Governance: save de KbNodeVersion pra nó bridge NÃO lança (gate de versão
         #            de bridge não está no nível de Model).
-        #          - CrossTenant: POST /kb/edges cross-tenant → 201 — StoreKbEdgeRequest valida
-        #            `to_node_id` com `exists:kb_nodes,id` SEM escopo de business_id → biz=1
-        #            referencia nó biz=99. POTENCIAL TIER 0, decisão [W] (fix: escopar o exists
-        #            + provar que o read-path da aresta não vaza). + DELETE cross-tenant 422
-        #            (confirm faltando) + bridge job handle() sem args de DI (bug de TESTE).
-        #     (ii) resíduo de flakiness Spatie order-dependent (executionOrder=random):
-        #          permissions/model_has_* são CORE e não resetadas por kbTeardownSchema, o
-        #          user ACUMULA perms entre testes → 403 intermitente. O `forgetCached` que já
-        #          existe no helper não basta pros 7 (têm casos de 403 que herdariam a coarse
-        #          de um sucesso anterior). Fica pro PR de GAP 2: trocar givePermissionTo por
-        #          syncPermissions (perms exatas, zera acúmulo) — testado neste PR mas revertido
-        #          porque, sozinho, regrediu o KbIndexV2 (já ratcheteado) num run → precisa vir
-        #          junto do isolamento robusto, não solto. Ratchetear flaky quebra a lane.
+        #          [FECHADO no #4736] kb_edge cross-tenant: NÃO era leak Tier 0 (PROVADO — o
+        #            read-path escopa o toNode via global scope + só seleciona id/slug/title/
+        #            type, nunca content_md). Era gap de VALIDAÇÃO: `exists:kb_nodes,id` sem
+        #            escopo aceitava to_node de outro tenant (201, aresta pendurada). Fix:
+        #            Rule::exists(...)->where('business_id', bizId) no StoreKbEdgeRequest → 422.
+        #     (ii) resíduo de flakiness Spatie order-dependent (só morde testes cujas asserções
+        #          NÃO toleram 403 espúrio — CrossTenant TOLERA [toBeIn([403,404,...])], por isso
+        #          ratcheteia). permissions/model_has_* são CORE e não resetadas por
+        #          kbTeardownSchema → o user ACUMULA perms → 403 intermitente. Os 6 restantes têm
+        #          casos de 403-POR-FALTA-DE-PERM que herdariam a coarse de um sucesso anterior.
+        #          Fica pro PR que fechar os 4 bugs: trocar givePermissionTo por syncPermissions
+        #          (perms exatas) — testado e revertido no #4736 porque, SOLTO, regrediu o
+        #          KbIndexV2 num run; precisa vir junto do isolamento robusto (reset de
+        #          model_has_* no bootstrap), não solto. Ratchetear flaky quebra a lane.
         #   Fechar GAP 2 = PR dedicado: fix dos 5 bugs + isolamento Spatie robusto (bootstrap/
         #   teardown + syncPermissions). Os 7 já ficam authz-prontos (este PR). NÃO ratchetear.
         env:
@@ -193,7 +197,8 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
             Modules/KB/Tests/Feature/LgpdComplianceTest.php \
-            Modules/KB/Tests/Feature/KbIndexV2ContractTest.php
+            Modules/KB/Tests/Feature/KbIndexV2ContractTest.php \
+            Modules/KB/Tests/Feature/CrossTenantIsolationTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
