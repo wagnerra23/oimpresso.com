@@ -305,8 +305,8 @@ function checkFactAnchor() {
   // Tailwind/Pest/PHPUnit) + regex v? em 2026-07-23 (proposal fatos-derivaveis).
   const hits = factAnchorScan({ docs, pkg, comp, moduleExists: (n) => existsSync(join(ROOT, 'Modules', n)) });
   if (hits.length) {
-    warns.push({ check: 'T', kind: 'fato-ancora-drift', count: hits.length, sample: hits.slice(0, 12),
-      msg: `${hits.length} FATO(s) na camada de entrada CONTRADIZ(em) a fonte-de-verdade (package.json/composer.json/Modules/). Corrigir o doc — não é idade, é erro. 🟡 advisory (ADR 0275 — promover a fail quando maduro).` });
+    fails.push({ check: 'T', kind: 'fato-ancora-drift', count: hits.length, sample: hits.slice(0, 12),
+      msg: `${hits.length} FATO(s) na camada de entrada CONTRADIZ(em) a fonte-de-verdade (package.json/composer.json/Modules/). Corrigir o doc — não é idade, é erro. 🔴 required (ADR 0349 — promovido a fail: determinístico major-only, zero contradição viva na promoção). Reversível: FP → volta a warns + PR de demoção.` });
   }
 }
 
@@ -999,7 +999,7 @@ checkScorecardFantasma();
 checkSecretsInMemory();
 checkStaleCanon();
 try { checkStaleEntryLayer(); } catch (e) { warns.push({ check: 'S', kind: 'entrada-stale-error', msg: 'entrada-stale falhou (não bloqueia): ' + e.message }); } // Check S (sentinela frescor camada de entrada)
-try { checkFactAnchor(); } catch (e) { warns.push({ check: 'T', kind: 'fato-ancora-error', msg: 'fact-anchor falhou (não bloqueia): ' + e.message }); } // Check T (fact-anchor determinístico)
+try { checkFactAnchor(); } catch (e) { fails.push({ check: 'T', kind: 'fato-ancora-error', msg: 'fact-anchor falhou em modo fail-safe (guardião de fato crashou): ' + e.message }); } // Check T (fact-anchor determinístico — fail-class, ADR 0349, fail-safe como Check Q)
 try { checkLimbo(); } catch (e) { warns.push({ check: 'U', kind: 'limbo-error', msg: 'limbo falhou (não bloqueia): ' + e.message }); } // Check U (limbo: drafts parados + homônimos)
 try { checkDocumentAuthority(); } catch (e) { fails.push({ check: 'Q', kind: 'autoridade-documental-error', msg: 'autoridade documental falhou em modo fail-safe: ' + e.message }); } // Check Q (porta/autoridade únicas)
 try { checkBrokenLinks(); } catch (e) { warns.push({ check: 'V', kind: 'link-quebrado-error', msg: 'link-quebrado falhou (não bloqueia): ' + e.message }); } // Check V (links internos quebrados)
