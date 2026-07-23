@@ -1677,7 +1677,6 @@
     "requisitos-mwart-onda-1-cutover-ledger": "memory/requisitos/Mwart/ONDA-1-CUTOVER-LEDGER.md",
     "requisitos-mwart-onda-1-vendas-pdv-caixa-plano": "memory/requisitos/Mwart/ONDA-1-VENDAS-PDV-CAIXA-PLANO.md",
     "requisitos-mwart-roadmap-ondas-blade-adversarios": "memory/requisitos/Mwart/ROADMAP-ONDAS-BLADE-ADVERSARIOS.md",
-    "requisitos-mwart-spec": "memory/requisitos/Mwart/SPEC.md",
     "requisitos-nfse-acessos": "memory/requisitos/NFSe/ACESSOS.md",
     "requisitos-nfse-adr-arq-0001-cliente-oimpresso-modulo-standalone": "memory/requisitos/NFSe/adr/arq/0001-cliente-oimpresso-modulo-standalone.md",
     "requisitos-nfse-adr-tech-0001-service-adapter-dto-pattern": "memory/requisitos/NFSe/adr/tech/0001-service-adapter-dto-pattern.md",
@@ -2719,6 +2718,7 @@
     "memory/requisitos/MemCofre/RUNBOOK.md",
     "memory/requisitos/MemCofre/UI-CATALOG.md",
     "memory/requisitos/Modules/UI-CATALOG.md",
+    "memory/requisitos/Mwart/SPEC.md",
     "memory/requisitos/NFSe/RUNBOOK.md",
     "memory/requisitos/NFSe/SUPERFICIE.md",
     "memory/requisitos/NFSe/UI-CATALOG.md",
@@ -3192,13 +3192,13 @@
   "collisions": [],
   "stats": {
     "total": 3185,
-    "resolved": 1805,
-    "unstamped": 1380,
+    "resolved": 1804,
+    "unstamped": 1381,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1380,
+      "unstamped": 1381,
       "derived-adr": 355,
-      "stamped": 643,
+      "stamped": 642,
       "derived-handoffs": 298,
       "derived-sessions": 509
     }
