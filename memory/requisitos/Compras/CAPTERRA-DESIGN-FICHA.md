@@ -1,3 +1,7 @@
+---
+id: requisitos-compras-capterra-design-ficha
+---
+
 # CAPTERRA-DESIGN-FICHA — Compras (UX/UI)
 
 > **Cruzamento gerado:** 2026-05-21

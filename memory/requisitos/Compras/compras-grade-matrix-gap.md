@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-compras-grade-matrix-gap
 tela: GradeMatrixInput (bloco "Adicionar item à compra" — NÃO é tela completa)
 prototipo: prototipo-ui/prototipos/compras-grade-matrix/ (page.jsx · page.css · NOTES.md)
 tela_viva_alvo_no_prompt: resources/js/Pages/Compras/Index.tsx

@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-telas-runbook-purchase-create
 title: "RUNBOOK — /purchases/create (Compras · criação Inertia + modo grade)"
 module: Purchase
 tela: Purchase/Create
