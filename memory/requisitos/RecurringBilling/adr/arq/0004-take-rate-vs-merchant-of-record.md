@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0004-take-rate-vs-merchant-of-record
+---
+
 # ADR ARQ-0004 (RecurringBilling) · Take rate vs Merchant of Record
 
 - **Status**: accepted

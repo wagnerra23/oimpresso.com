@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0005-escopo0-payment-gateway-adapter
+---
+
 # ADR ARQ-0005 (RecurringBilling) · Escopo 0 — PaymentGateway: sem sub-módulo separado no MVP
 
 - **Status**: accepted

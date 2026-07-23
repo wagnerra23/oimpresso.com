@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-spec
 slug: financeiro
 title: "Especificação funcional — Financeiro"
 type: spec

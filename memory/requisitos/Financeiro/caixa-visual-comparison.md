@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-caixa-visual-comparison
 slug: caixa-visual-comparison
 title: "Financeiro — Comparativo visual da tela Caixa do turno (F6 Soft wrapper)"
 type: visual-comparison

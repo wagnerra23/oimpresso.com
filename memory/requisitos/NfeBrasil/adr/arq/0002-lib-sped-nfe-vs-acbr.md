@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-arq-0002-lib-sped-nfe-vs-acbr
+---
+
 # ADR ARQ-0002 (NfeBrasil) · Lib base: `eduardokum/sped-nfe`, não ACBr
 
 - **Status**: accepted

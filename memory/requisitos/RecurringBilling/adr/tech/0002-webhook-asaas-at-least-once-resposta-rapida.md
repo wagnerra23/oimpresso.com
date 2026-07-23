@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-tech-0002-webhook-asaas-at-least-once-resposta-rapida
+---
+
 # ADR TECH-0002 (RecurringBilling) · Webhook gateway: resposta rápida + processamento async
 
 - **Status**: accepted

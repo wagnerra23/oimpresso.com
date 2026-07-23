@@ -1,4 +1,5 @@
 ---
+id: requisitos-nfe-brasil-readme
 module: NfeBrasil
 alias: nfe-brasil
 status: ativo

@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-ui-0001-portal-b2c-self-service-white-label
+---
+
 # ADR UI-0001 (RecurringBilling) · Portal B2C self-service white-label
 
 - **Status**: accepted

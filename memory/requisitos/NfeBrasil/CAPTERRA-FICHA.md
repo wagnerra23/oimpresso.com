@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-capterra-ficha
+---
+
 # CAPTERRA-FICHA — NfeBrasil
 
 > Ficha canônica de benchmark do módulo NfeBrasil. Fonte da skill `comparativo-do-modulo`.

@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-plano-fase1-conciliacao-le-extrato-api
+---
+
 # Fase 1 — Conciliação passa a enxergar o extrato da API
 
 > **Origem:** [ADR 0236](../../decisions/0236-extrato-conciliacao-modelo-unificado.md) (proposto 2026-05-31).

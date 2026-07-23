@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-architecture
+---
+
 # Arquitetura — NfeBrasil
 
 ## 1. Objetivo
