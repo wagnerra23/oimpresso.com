@@ -291,6 +291,21 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->save();
     }
 
+    // BLOQUEADOR 3 (cache de DISCO — complemento do #4748): além das tabelas Spatie CORE
+    // (tratadas pelo scoped-delete abaixo), o CACHE_STORE do app é `file` → o
+    // PermissionRegistrar cacheia o mapa de permissões EM DISCO e ele PERSISTE entre testes
+    // do mesmo run. Sob executionOrder="random", o `can:copiloto.mcp.memory.manage` do
+    // KbController via um registry STALE de OUTRO teste e negava 403 intermitente (V2b no
+    // #4725, V2c no run 30033223397, PUT do GovernanceInvariantsTest no run 30036318814 —
+    // TODOS a mesma coarse). O scoped-delete + forgetCachedPermissions limpa o DB e a chave
+    // do cache, mas não impede que um teste SEGUINTE re-popule o cache de arquivo com um mapa
+    // que ainda não enxerga a concessão deste teste. Fix: prender o registry no store `array`
+    // (por-app-instance, ZERADO a cada refresh de app — 1×/teste via TestCase) + forgetInstance
+    // pra reconstruir o registrar já lendo o store novo. Assim o `can:` sempre relê fresco do
+    // DB, imune à ordem e ao disco herdado. Test-only, NÃO muda authz de prod.
+    config(['permission.cache.store' => 'array']);
+    app()->forgetInstance(\Spatie\Permission\PermissionRegistrar::class);
+
     // BLOQUEADOR 1 (acúmulo): model_has_* são CORE e NÃO resetadas por kbTeardownSchema →
     // o MESMO user (42/99) acumula perms entre testes no MySQL persistente-no-run. Um caso
     // de 403-POR-FALTA-DE-PERM (ex: "POST sem kb.write → 403") herdaria a coarse concedida
