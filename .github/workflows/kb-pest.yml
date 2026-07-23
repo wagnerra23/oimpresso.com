@@ -88,6 +88,29 @@ jobs:
         if: steps.changes.outputs.kb == 'true'
         uses: ./.github/actions/pest-mysql-setup
 
+      - name: Zerar kb_* (baseline do dump) — DatabaseTransactions mantém limpo depois
+        # O migrate --force carrega o mysql-schema.sql (dump prod 2026-06-04) que traz LINHAS
+        # baseline em kb_*. Os testes assumem tabelas VAZIAS (antes vinha do drop+create por
+        # teste, agora removido — isolamento é via DatabaseTransactions). Truncar UMA vez aqui
+        # deixa kb_* vazias; o rollback por-teste mantém assim. Só kb_* (módulo), nunca CORE.
+        if: steps.changes.outputs.kb == 'true'
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          php artisan tinker --execute="
+            \DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            foreach (['kb_health_history','kb_bridge_state','kb_comments','kb_favorites','kb_node_versions','kb_decision_tree_steps','kb_decision_trees','kb_path_steps','kb_paths','kb_edges','kb_nodes','kb_subcategories','kb_categories'] as \$t) {
+              if (\Illuminate\Support\Facades\Schema::hasTable(\$t)) { \DB::table(\$t)->truncate(); }
+            }
+            \DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            echo 'kb_* truncadas'.PHP_EOL;
+          "
+
       - name: Stub Vite manifest (Inertia root view sem build do front)
         if: steps.changes.outputs.kb == 'true'
         run: |
