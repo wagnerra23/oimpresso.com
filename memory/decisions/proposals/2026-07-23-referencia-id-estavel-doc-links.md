@@ -66,7 +66,7 @@ Resultado: **o índice `id→path` cobre os 3205 HOJE** — 1163 por derivação
 1. **Schema:** adiciona `id` (opcional agora; required-forward via template) nos memory-schemas. Famílias `additionalProperties:true` aceitam sem reprovar retroativo.
 2. **`scripts/governance/doc-id-index.mjs`** (gerador, modelo `adr-index-generate`): varre `memory/**`, **deriva** id de ADR (número) e session/handoff (date-slug), **lê** `id:` stamped onde houver → emite `memory/_id-index.generated.json` (`id → path atual`). Detecta colisão de id. Imune a move (identidade = id). Selftest hermético.
 3. **Auto-religador** (estende `document-relocation-executor`): num move (git-rename **ou** id que aparece em path novo), reescreve os **links relativos nativos** que apontavam pro path antigo. Append-only/gate-guarded → **tombstone** (nunca edita). Roda em hook/CI. Reusa o engine de relink contexto-consciente + o adversário que já valida completude.
-4. **deadlink-gate estende:** antes de marcar `[x](path-morto.md)` como morto, consulta o `id-index` — se o `id` daquele doc vive em outro path, **resolve e aponta o fix** em vez de só contar morto.
+4. **deadlink-gate estende:** antes de marcar um link `[x](<path-morto>.md)` como morto, consulta o `id-index` — se o `id` daquele doc vive em outro path, **resolve e aponta o fix** em vez de só contar morto.
 5. **Template:** docs novos nascem com `id:` (forward-only, custo zero).
 
 ## 5. Armadilhas §5 a NÃO cometer (auto-imposto)
