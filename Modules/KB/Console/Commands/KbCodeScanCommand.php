@@ -217,7 +217,9 @@ class KbCodeScanCommand extends Command
      */
     private function slugFor(string $fqcn, string $project = ''): string
     {
-        $base = Str::slug(str_replace('\\', '/', $fqcn));
+        // `\` → espaço (Str::slug strippa `/`, colapsando App\Sample→appsample e
+        // colidindo com AppSample). Espaço vira hífen → preserva o namespace.
+        $base = Str::slug(str_replace('\\', ' ', $fqcn));
         $prefix = $project !== '' ? "code-{$project}-" : 'code-';
 
         return Str::limit($prefix.$base, 180, '');
