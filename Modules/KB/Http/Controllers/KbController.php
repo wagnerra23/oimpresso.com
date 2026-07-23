@@ -16,7 +16,7 @@ use Modules\KB\Services\KbArticleService;
  * KbController — Knowledge Base browser dos documentos servidos via MCP server.
  *
  * Tela /kb mostra os docs de mcp_memory_documents (sincronizados de
- * memory/decisions/, memory/sessions/, memory/comparativos/, etc via webhook
+ * memory/decisions/, memory/sessions/, memory/research/comparativos/, etc via webhook
  * git → POST /api/mcp/sync-memory).
  *
  * Histórico (Etapa 2 modularização — 2026-05-03):

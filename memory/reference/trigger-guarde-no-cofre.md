@@ -26,7 +26,7 @@ Wagner construiu o MemCofre — hoje `Modules/SRS` (rename ADR 0088) — como o 
 
 | Contexto | Local |
 |---|---|
-| **Comparativo competitivo (Capterra-style)** | `memory/comparativos/<assunto>_capterra_YYYY_MM_DD.md` (template em `_TEMPLATE_capterra_oimpresso.md` v1.0) — atualizar `_INDEX.md` |
+| **Comparativo competitivo (Capterra-style)** | `memory/research/comparativos/<assunto>_capterra_YYYY_MM_DD.md` (template em `_TEMPLATE_capterra_oimpresso.md` v1.0) — atualizar `_INDEX.md` |
 | Decisão arquitetural transversal (raiz) | `memory/decisions/NNNN-slug.md` (Nygard, ver ADR 0028 pra numeração) |
 | Decisão arquitetural cross-módulo | `memory/requisitos/_DesignSystem/adr/{categoria}/NNNN-...md` |
 | Decisão de um módulo específico | `memory/requisitos/{Modulo}/adr/{categoria}/NNNN-...md` |

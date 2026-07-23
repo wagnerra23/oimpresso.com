@@ -1,11 +1,11 @@
 ---
 tombstone: true
-moved_to: memory/research/index.md
+moved_to: memory/research/comparativos/index.md
 ---
 
 # Documento realocado
 
-Conteudo movido para o local canonico: [memory/research/index.md](../research/index.md).
+Conteudo movido para o local canonico: [memory/research/comparativos/index.md](../research/comparativos/index.md).
 
 > Lapide de realocacao documental (move-with-tombstone). O path antigo permanece
 > porque referencias que nao podem ser reescritas apontam para ca — append-only

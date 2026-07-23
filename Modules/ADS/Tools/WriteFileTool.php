@@ -32,7 +32,7 @@ class WriteFileTool implements Tool
         'memory/sessions/',
         'memory/requisitos/',
         'memory/decisions/',
-        'memory/comparativos/',
+        'memory/research/comparativos/',
         'lang/',
     ];
 

@@ -23,7 +23,7 @@ triggers_on:
   - "capterra {modulo}"
 does_not_trigger_on:
   - editar SPEC.md à mão (use editor direto)
-  - criar comparativo Capterra novo (use template em memory/comparativos/)
+  - criar comparativo Capterra novo (use template em memory/research/comparativos/)
   - criar tasks ad-hoc (use tasks-create direto)
   - comparar 2 produtos genéricos sem módulo do oimpresso (use brainstorm)
 roi_metric:
