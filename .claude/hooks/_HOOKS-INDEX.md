@@ -52,7 +52,7 @@
 | PreToolUse | `DesignSync` | block-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Skill` | block-skill-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Bash/PowerShell` | block-test-fora-ct100.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
-| PreToolUse | `Glob/Grep` | block-instrumento-sem-porta-viva.mjs | node | leitura (pré-Read/Glob/Grep) | exit-2 |
+| PreToolUse | `Glob/Grep/Bash` | block-instrumento-sem-porta-viva.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PostToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | pós-ação (observa, não corta) | exit-2 |
 | PostToolUse | `Write/Edit` | audit-creates-tasks.mjs | node | pós-ação (observa, não corta) | — |
 | Stop | `*` | memory-pending.mjs | node | fim de turno | — |

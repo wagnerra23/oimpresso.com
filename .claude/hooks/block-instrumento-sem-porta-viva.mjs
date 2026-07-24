@@ -85,11 +85,61 @@ export function isPerguntaDeRuntime(pattern, path) {
   return /schedule|environments|runsInEnvironment|->(daily|hourly|cron|weekly)|QUEUE_CONNECTION|Route::(get|post)|config\(/.test(p);
 }
 
+/**
+ * P3 — `git log` perguntando DATA/CRIAÇÃO num repo com a history TRUNCADA.
+ *
+ * Duas pernas, e a 2ª é o que mantém o FP em zero:
+ *  a) o comando pede data/criação (é isso que o piso do clone falsifica) — `git log
+ *     --oneline -5` não pede nada disso e PASSA;
+ *  b) o repo está DE FATO truncado. Em clone completo (o caso normal) nunca morde.
+ */
+export function pedeDataOuCriacao(command) {
+  const c = String(command || '');
+  if (!/\bgit\s+log\b/.test(c)) return false;
+  return /--diff-filter=A|--follow|--date[= ]|--since|--until|--before|--after|%a[dDicrIs]|%c[dDirIs]/.test(c);
+}
+
+/**
+ * A history do HEAD está truncada?
+ *
+ * ESPELHA `scripts/governance/sdd-scorecard.mjs::isShallowHistory()` — o **DONO** desta
+ * regra (mesmo padrão que o `anchor-lint` já adota: espelhar, não importar). E espelha
+ * inclusive a sutileza que o dono documenta: `--is-shallow-repository` sozinho é **grosso
+ * demais** — um `git fetch <ref> --depth 1` marca o repo shallow SEM truncar a history do
+ * HEAD. Só invalida a medição se algum boundary do `.git/shallow` for ANCESTRAL do HEAD.
+ *
+ * Fail-open em qualquer erro: um hook nunca trava a sessão por não conseguir medir.
+ */
+export function historicoTruncado(run = spawnSync, root = process.cwd()) {
+  const git = (args) => {
+    const r = run('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    if (!r || r.status !== 0) throw new Error('git falhou');
+    return String(r.stdout || '').trim();
+  };
+  try {
+    if (git(['rev-parse', '--is-shallow-repository']) !== 'true') return false;
+    const gitDir = git(['rev-parse', '--git-dir']);
+    let boundaries = [];
+    try {
+      boundaries = readFileSync(`${gitDir}/shallow`, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean);
+    } catch { return true; } // marcado shallow e sem conseguir ler os boundaries → conservador
+    for (const sha of boundaries) {
+      const r = run('git', ['merge-base', '--is-ancestor', sha, 'HEAD'], { cwd: root, stdio: 'ignore' });
+      if (r && r.status === 0) return true; // boundary é ancestral do HEAD → history truncada
+    }
+    return false;
+  } catch {
+    return false; // fail-open: não sei medir → não bloqueio
+  }
+}
+
 /** veredito único: qual par mordeu? (null = passa) */
-export function classificar({ pattern, path, glob, output_mode } = {}, env = process.env) {
+export function classificar({ pattern, path, glob, output_mode, command } = {}, env = process.env, deps = {}) {
   if (hasOverride(env)) return null;
   if (isMapaDeTela(pattern, glob, output_mode)) return 'P1';
   if (isPerguntaDeRuntime(pattern, path)) return 'P2';
+  // ordem importa: a perna barata (regex no comando) filtra ANTES de gastar spawn de git.
+  if (pedeDataOuCriacao(command) && (deps.truncado ?? historicoTruncado)()) return 'P3';
   return null;
 }
 
@@ -126,6 +176,28 @@ PERGUNTE AO SISTEMA QUE SABE (no CT 100 — ADR 0062):
 Sem oraculo disponivel? Meca pela CONSEQUENCIA (artefato gerado, fila vazia, log com
 timestamp) — nunca pela declaracao.
 Se voce vai EDITAR o Kernel/rotas (nao perguntar o que roda): OIMPRESSO_PORTA_VIVA_OK=1`,
+
+  P3: `[LC-08 / incidente 2026-07-24] BLOQUEADO: data de \`git log\` em repo com history TRUNCADA.
+
+Este checkout e SHALLOW e algum boundary do .git/shallow e ANCESTRAL do HEAD. Nesse
+estado \`git log\` NAO devolve a historia: devolve o PISO DO CLONE. Toda data de
+--diff-filter=A vira "criado no dia em que o clone comeca", e --follow para no piso.
+
+FOI EXATAMENTE ASSIM QUE ERREI EM 2026-07-24 (8a ocorrencia da LC-08): reportei como
+FATO que 3 casos.md tinham nascido em 23/07 no #4719. Nasceram em 15/07, 19/07 e 22/07
+(#4300, #4417, #4658). A assinatura estava a vista e eu quase deixei passar: o commit
+do piso aparecia como ROOT (zero parents) com 16.081 arquivos "adicionados".
+
+CONSERTE O INSTRUMENTO (nao contorne):
+
+  git rev-parse --is-shallow-repository     # confirme
+  git fetch --unshallow origin <branch>     # e re-meca
+
+Sem poder desrasar? Pergunte ao sistema que sabe — a API do GitHub tem a historia
+inteira: mcp__github__list_commits(owner, repo, path: "<arquivo>").
+
+Ref: LICOES_CODE LC-08 · o DONO da regra e sdd-scorecard.mjs::isShallowHistory().
+Se voce sabe que a data nao sustenta conclusao nenhuma aqui: OIMPRESSO_PORTA_VIVA_OK=1`,
 };
 
 // ── selftest (fixtures BOA/RUIM — controle-negativo prova que morde) ─────────
@@ -159,6 +231,36 @@ function selftest() {
     if (got === esperado) ok++;
     else falhas.push(`  ✗ ${nome}: esperado ${esperado}, veio ${got}`);
   }
+
+  // ── P3: as DUAS pernas, testadas separadamente ────────────────────────────
+  // A perna do repo é injetada (`deps.truncado`) pra o selftest não depender do
+  // estado do checkout de quem roda — senão o resultado muda de máquina pra máquina,
+  // que é o oposto de um controle-negativo.
+  const TRUNCADO = () => true;
+  const COMPLETO = () => false;
+  const p3 = [
+    // RUIM: pede data E o repo está truncado
+    ['P3 diff-filter=A em repo raso', { command: "git log --diff-filter=A --format='%ad' -- x.md" }, TRUNCADO, 'P3'],
+    ['P3 --follow em repo raso', { command: 'git log --follow --date=short -- a/b.md' }, TRUNCADO, 'P3'],
+    ['P3 --since em repo raso', { command: 'git log --since=2026-07-01 --oneline' }, TRUNCADO, 'P3'],
+    // BOA: mesma pergunta, repo COMPLETO → a medida é válida, não morde
+    ['P3 diff-filter=A em repo completo', { command: "git log --diff-filter=A --format='%ad' -- x.md" }, COMPLETO, null],
+    ['P3 --follow em repo completo', { command: 'git log --follow --date=short -- a/b.md' }, COMPLETO, null],
+    // BOA: repo truncado, mas o comando NÃO pergunta data → nada a falsificar
+    ['P3 git log --oneline em repo raso', { command: 'git log --oneline -5' }, TRUNCADO, null],
+    ['P3 git log --format=%s em repo raso', { command: 'git log --format=%s -3' }, TRUNCADO, null],
+    ['P3 git status em repo raso', { command: 'git status --short' }, TRUNCADO, null],
+    ['P3 comando sem git em repo raso', { command: 'npm run casos:report' }, TRUNCADO, null],
+  ];
+  for (const [nome, input, truncado, esperado] of p3) {
+    const got = classificar(input, {}, { truncado });
+    if (got === esperado) ok++;
+    else falhas.push(`  ✗ ${nome}: esperado ${esperado}, veio ${got}`);
+  }
+  // a perna do repo, isolada: fail-open quando o git não responde
+  const semGit = historicoTruncado(() => ({ status: 1, stdout: '' }));
+  if (semGit === false) ok++;
+  else falhas.push('  ✗ historicoTruncado deveria fail-open quando o git falha');
   // controle-negativo do escape
   const comOverride = classificar({ pattern: '**/*.charter.md' }, { OIMPRESSO_PORTA_VIVA_OK: '1' });
   if (comOverride === null) ok++;
@@ -192,7 +294,27 @@ function selftest() {
   if (conteudo.status === 0) ok++;
   else falhas.push(`  ✗ invocacao real (conteudo legitimo): esperado exit 0, veio ${conteudo.status}`);
 
-  const total = casos.length + 5;
+  // 3ª porta (Bash → P3). O `command` vinha de um matcher que o hook NEM TINHA até
+  // 2026-07-24 (era Glob|Grep) — sem este caso, o P3 seria um chokepoint fantasma:
+  // classificador verde, matcher que nunca casa (§5 2026-07-09).
+  //
+  // A perna do repo NÃO é injetável na invocação real (é subprocesso), então o veredito
+  // depende do checkout de quem roda. Por isso o assert é CONDICIONAL: em repo raso tem
+  // que bloquear; em repo completo tem que passar. Nos dois casos o `command` PRECISA
+  // chegar ao classificador — é isso que o caso prova.
+  const rasoAqui = historicoTruncado();
+  const viaBash = roda({ tool_name: 'Bash', tool_input: { command: "git log --diff-filter=A --format='%ad' -- x.md" } });
+  const esperadoBash = rasoAqui ? 2 : 0;
+  if (viaBash.status === esperadoBash) ok++;
+  else falhas.push(`  ✗ invocacao real (porta Bash/P3, repo ${rasoAqui ? 'raso' : 'completo'}): esperado exit ${esperadoBash}, veio ${viaBash.status}`);
+
+  // controle-negativo da MESMA porta: comando sem pergunta-de-data passa SEMPRE.
+  const bashInocente = roda({ tool_name: 'Bash', tool_input: { command: 'git log --oneline -5' } });
+  if (bashInocente.status === 0) ok++;
+  else falhas.push(`  ✗ invocacao real (Bash inocente): esperado exit 0, veio ${bashInocente.status}`);
+
+  // casos (P1/P2) + p3 (as duas pernas) + 1 escape + 1 fail-open + 6 da invocação real
+  const total = casos.length + p3.length + 8;
   console.log(`block-instrumento-sem-porta-viva selftest: ${ok}/${total}`);
   if (falhas.length) { console.error(falhas.join('\n')); process.exit(1); }
   console.log('  MORDE: varredura de charter/casos/scorecard + pergunta-de-runtime em fonte estatica');
@@ -213,7 +335,7 @@ function main() {
     // ficou pra trás 2× (require em ESM; depois glob/output_mode não repassados) e o
     // selftest do classificador seguiu VERDE. Por isso a invocação real cobre cada porta.
     par = classificar(
-      { pattern: inp.pattern, path: inp.path, glob: inp.glob, output_mode: inp.output_mode },
+      { pattern: inp.pattern, path: inp.path, glob: inp.glob, output_mode: inp.output_mode, command: inp.command },
       process.env,
     );
   } catch { process.exit(0); } // fail-open
