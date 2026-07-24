@@ -35,9 +35,9 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 | UC-PEDIT-02 | Tipo (single/variable/combo) não muda após criação | should | Non-Goal charter + AR-PROD (tipo na criação) | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
 | UC-PEDIT-03 | Editar produto de outro business → 404 (não vaza, não 500) | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter Goal | `ProdutoEditContratoTest` (Pest) + e2e stub | 🧪 achado CONFIRMADO + corrigido (`update()` → `firstOrFail`) |
 | UC-PEDIT-04 | Campo monetário no update não infla no parser pt-BR | must `[V0]` | `CU-PROD-01.4` + REGRA MESTRE | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
-| UC-PEDIT-05 | Editar não desliga o controle de estoque (`enable_stock`) | must `[V0]` | `AR-PROD-051/056` + REGRA MESTRE + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) | ⬜ aguarda lane |
-| UC-PEDIT-06 | Editar produto `single` persiste em vez de estourar 500 | must | charter §Goals ("Salvar") | `ProdutoEditPayloadContratoTest` (Pest) | ⬜ aguarda lane |
-| UC-PEDIT-07 | Editar não apaga flags que a tela não envia | must | `AR-PROD-003/042` | `ProdutoEditPayloadContratoTest` (Pest) | ⬜ aguarda lane |
+| UC-PEDIT-05 | Editar não desliga o controle de estoque (`enable_stock`) | must `[V0]` | `AR-PROD-051/056` + REGRA MESTRE + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) | ❌ **CI vermelho** (run 30122611472) |
+| UC-PEDIT-06 | Editar produto `single` persiste em vez de estourar 500 | must | charter §Goals ("Salvar") | `ProdutoEditPayloadContratoTest` (Pest) | ❌ **CI vermelho** (run 30122611472) |
+| UC-PEDIT-07 | Editar não apaga flags que a tela não envia | must | `AR-PROD-003/042` | `ProdutoEditPayloadContratoTest` (Pest) | ❌ **CI vermelho** (run 30122611472) |
 
 > ⚠️ **UC-PEDIT-01/02/04 seguem stub `test.fixme`** (não rodam, satisfazem só a rastreabilidade G-2)
 > — ⬜ até o Pest rodar no CT100 ([ADR 0062]). O **03** nasceu do adversário de 2026-07-24, que pegou
@@ -97,7 +97,7 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 - **Teste:** [`tests/Feature/Produto/ProdutoEditPayloadContratoTest.php`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-05` (Pest, failing-first, lane `Estoque · MySQL`).
 - **Contrato:** `AR-PROD-051`/`AR-PROD-056` (no Delphi, "controla estoque" é atributo do produto — editar a ficha não é o gesto que liga/desliga) + `proibicoes.md` §REGRA MESTRE (valor/estoque) + Edit.charter §Goals.
 - **Regressão que defende:** o writer trata **ausência como zero** (`update()` L76-79: `if (! empty($request->input('enable_stock')) && == 1) {1} else {0}`). A tela não manda a chave → salvar o nome **apagaria o controle de estoque em silêncio**: o save "funciona", a tela não reclama, e o estoque some do produto.
-- **Status: ⬜** — Pest escrito, aguardando a lane publicar o veredito.
+- **Status: ❌ ACHADO CONFIRMADO** pela lane (run 30122611472, 2026-07-24): `enable_stock` foi de **1 → 0** ao editar só o nome. A pré-condição anti-vácuo passou (o save ACONTECEU), então não é ausência-de-escrita: é **zeragem**.
 
 ---
 
@@ -108,7 +108,7 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 - **Contrato:** Edit.charter §Goals — "Salvar" é Goal declarado da tela.
 - **Regressão que defende:** no ramo `single`, `update()` lê `single_variation_id` de um `$request->only([...])` que **não contém a chave** (`:1111-1112`) → `Variation::find(null)` → `null` → atribuição de propriedade em `null` → `\Error`. O `catch (\Exception)` (`:1173`) **não pega `\Error`** → 500. É a mesma família do `UC-PEDIT-03` (o `catch` genérico que mascara o desfecho real).
 - **Defeito INDEPENDENTE do UC-PEDIT-05** (`proibicoes.md` §5, 2026-07-15): consertar um não conserta o outro, e as correções podem brigar — por isso teste próprio, não um "fix da raiz".
-- **Status: ⬜** — Pest escrito, aguardando a lane.
+- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): o PUT com o payload da tela **não persiste** — aborta em `preparation_time_in_minutes` (L1037, sem `??`), o `catch (\Exception)` engole e vira redirect. **Sem 500** — falha silenciosa, pior que erro visível.
 
 ---
 
@@ -118,7 +118,7 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 - **Teste:** [`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-07`.
 - **Contrato:** `AR-PROD-003`/`AR-PROD-042` — no legado, alterar a ficha preserva o que já estava gravado; ausência de um campo no formulário não é "desmarcar".
 - **Regressão que defende:** mesmo padrão ausência→zero do `UC-PEDIT-05`, em `not_for_selling` (`:82`) e `enable_sr_no` (`:101-104`); `sub_unit_ids` (`:71`) vira `null` pela mesma razão. Generaliza o defeito: **não é uma flag, é o contrato do payload**.
-- **Status: ⬜** — Pest escrito, aguardando a lane.
+- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): `not_for_selling` foi de **1 → 0**. Recibo literal: `Failed asserting that 0 is identical to 1` em `ProdutoEditPayloadContratoTest.php:212`.
 
 ---
 
