@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **356** arquivos · **340** números únicos · máx **0350**
-- **ADRs ATIVOS (lifecycle ativo): 322** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 324 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 322 · arquivado 22 · substituido 12
+- **357** arquivos · **341** números únicos · máx **0351**
+- **ADRs ATIVOS (lifecycle ativo): 323** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 325 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 323 · arquivado 22 · substituido 12
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (356)
+## Todas as ADRs (357)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -395,3 +395,4 @@ _(nenhuma)_
 | 0348 | aceito | ativo | decision | Emenda à 0314 — cobertura de BRIEFING por módulo backend (briefing-code-stalenes |
 | 0349 | aceito | ativo | decision | Emenda à 0314 — fact-anchor (Check T) promovido a FAIL-class (fato que contradiz |
 | 0350 | aceito | ativo | decision | nikic/php-parser promovido a dependência direta (auto-document código→KbNode, Fa |
+| 0351 | aceito | ativo | meta | sdd-from-source — agent das 3 camadas (analisa 3 fontes → documenta no padrão →  |
