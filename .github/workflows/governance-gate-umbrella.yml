@@ -46,6 +46,18 @@ jobs:
       - name: Índice de Planos em dia (advisory · ADR 0294 · nasce advisory ADR 0271)
         continue-on-error: true
         run: node scripts/governance/plans-index.mjs --check
+      # 2026-07-24 — FIAÇÃO QUE FALTAVA. O `--check` deste gerador EXISTIA e MORDE (exit 1),
+      # mas não era invocado em lugar nenhum (workflows · hooks · package.json). Resultado
+      # medido no dia: `_BACKLOG-GENERATED.md` estava drifado em +95/−78 linhas, mentindo
+      # sobre 968 US — sem nenhum sinal. É a classe "máquina existe, não está encaixada no
+      # fluxo" (correção-do-mecanismo ≠ invocação · proibicoes §5 2026-07-09).
+      # Casa aqui pelos irmãos: adr-index-generate/palette-generate/plans-index já vivem
+      # neste job, e o padrão canônico é gerador --write + gerador --check no CI.
+      # SEM continue-on-error DE PROPÓSITO: este job NÃO é required, então hard-fail aqui
+      # fica vermelho HONESTO sem bloquear merge — que é o desenho da fase advisory
+      # (§5 2026-07-09: suprimir o vermelho é que reconstrói o gate-de-teatro).
+      - name: Índice de BACKLOG em dia (gerado × commitado — ADR 0070)
+        run: node scripts/governance/tasks-index-generate.mjs --check
       # ENFORCE (GT-G5 · ledger §D — promovido 2026-07-04, avaliação adversarial SDD
       # 2026-07-03 risco sistêmico nº2): refutação adversarial de lote-IA de BRIEFINGs/SPECs
       # (PROTOCOLO-REFUTADOR-BACKFILL). Só dispara em PR com >10 arquivos em memory/requisitos/
