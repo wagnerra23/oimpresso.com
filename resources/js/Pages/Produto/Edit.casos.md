@@ -33,12 +33,13 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 |----|-------------|------|--------|-------|--------|
 | UC-PEDIT-01 | Editar produto variável não apaga as variações existentes | must | `CU-PROD-02` + AR-PROD-021/032 | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
 | UC-PEDIT-02 | Tipo (single/variable/combo) não muda após criação | should | Non-Goal charter + AR-PROD (tipo na criação) | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
-| UC-PEDIT-03 | Editar produto de outro business → 404 (não vaza, não 500) | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter Goal | `e2e/produto-edit.spec.ts` (stub) | 🔶 backlog — achado a verificar no CT100 |
+| UC-PEDIT-03 | Editar produto de outro business → 404 (não vaza, não 500) | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter Goal | `ProdutoEditContratoTest` (Pest) + e2e stub | 🧪 achado CONFIRMADO + corrigido (`update()` → `firstOrFail`) |
 | UC-PEDIT-04 | Campo monetário no update não infla no parser pt-BR | must `[V0]` | `CU-PROD-01.4` + REGRA MESTRE | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
 
-> ⚠️ **Nenhum UC está afirmado ✅** — o trio nasce agora e os testes são stub `test.fixme` (não rodam, não
-> quebram o CI; satisfazem só a rastreabilidade G-2). Afirmar verde sem rodar seria a lápide `proibicoes.md`
-> §5 2026-07-15. O veredito real de cada UC vem quando o Pest rodar no CT100 (não local — [ADR 0062]).
+> ⚠️ **Só o UC-PEDIT-03 tem teste real** (Pest, failing-first) — os outros 3 seguem stub `test.fixme`
+> (não rodam, satisfazem só a rastreabilidade G-2). O 03 nasceu do **adversário de 2026-07-24**, que
+> pegou o que este casos.md v1 tinha deixado como "🔶 não afirmado" (usando LC-08 como escudo pra NÃO
+> ler — quando LC-08 manda ler). Os UC-PEDIT-01/02/04 seguem ⬜ até o Pest rodar no CT100 ([ADR 0062]).
 
 ---
 
@@ -67,10 +68,10 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 ## UC-PEDIT-03 · Editar produto de outro business → 404 (não vaza, não 500) · `must` `[T0]`
 - **Persona:** qualquer tenant. O pior bug do projeto é o catálogo de um business vazar pro outro — aqui pela URL da edição.
 - **Aceite:** Dado `GET /products/{id_de_outro_business}/edit` **ou** `PUT /products/{id_de_outro_business}` · Quando acesso · Então **404** — nenhum dado do produto alheio chega ao form nem é gravado.
-- **Teste:** `e2e/produto-edit.spec.ts` — `UC-PEDIT-03` (stub; Pest cross-tenant biz=1 vs biz=2 no CT100).
+- **Teste:** `tests/Feature/Produto/ProdutoEditContratoTest.php` — `UC-PEDIT-03 · GET edit ...` + `UC-PEDIT-03 · PUT update ...` (Pest, failing-first, lane `Estoque · MySQL` no CT100). O `e2e/produto-edit.spec.ts` mantém o id citado (redundância G-2).
 - **Contrato:** `CU-PROD-10` + Edit.charter Goal *"Multi-tenant: produto cross-tenant retorna 404"* + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
-- **Regressão que defende:** é **exatamente** a família que já nasceu vermelha 2× no Produto — `UC-PCAD-06` (`create()` `find()`→`findOrFail()`, era 500) e `UC-PTAB-04` (`saveSellingPrices` engolia a `ModelNotFoundException` no `catch` genérico → 302, não 404, [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)). `edit()` (L856) e `update()` (L966) precisam ser verificados pelo **mesmo** padrão.
-- **Status: 🔶 backlog — achado a verificar, NÃO afirmado.** Não li `edit()`/`update()` linha a linha o suficiente pra afirmar se é `find` ou `findOrFail`, nem rodei o teste (LC-08 — não afirmo achado sem varredura + sem teste vermelho). Se nascer vermelho, a correção entra failing-first sob decisão [W]. Verificação = Pest no CT100.
+- **Regressão que defende:** é **exatamente** a família que já nasceu vermelha 2× no Produto — `UC-PCAD-06` (`create()` `find()`→`findOrFail()`, era 500) e `UC-PTAB-04` (`saveSellingPrices` engolia a `ModelNotFoundException` no `catch` genérico → 302, não 404, [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)).
+- **Status: 🧪 achado CONFIRMADO + corrigido no mesmo PR (adversário 2026-07-24).** A varredura que faltava (2 linhas): `edit()` (GET) usa `firstOrFail()` (`ProductController.php:872-875`) → **já era 404 ✅**; mas `update()` (PUT) usava `first()` (`:978-981`) → id alheio vira `null` → atribuição em `null` (`:990`) → `\Error` → o `catch (\Exception)` (`:1173`) **não** pega `\Error` → **500** (nunca 404). O `[T0]` estava a um `grep firstOrFail` de distância; o casos.md v1 usou LC-08 como escudo pra NÃO ler, quando LC-08 **manda** ler. **Fix (mesmo PR):** `firstOrFail()` **antes do try** no `update()` (fora do `catch`, pra o 404 não virar 302 como no #4300) → `ProductController.php:972-980`. Vermelho→verde provado pela lane MySQL do CI.
 
 ---
 
@@ -110,8 +111,9 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **Editar produto simples grava os campos do cabeçalho** — o caminho feliz óbvio; vira UC quando o Pest `ProdutoEditContratoTest` existir (hoje seria tautológico contra o `.tsx`).
+- **Editar produto simples grava os campos do cabeçalho** — o caminho feliz óbvio; vira UC quando o Pest `ProdutoEditContratoTest` cobrir o happy-path (hoje só cobre o cross-tenant; o resto seria tautológico contra o `.tsx`).
 - **Editar Custo/Valor/Margem** (`AR-PROD-006..008`) — só quando a aba Custos existir em git ([F], #4403) e sob a REGRA MESTRE `[V0]`.
+- **[V0] risco a verificar — preço-zero no update via React** (achado lateral do adversário 2026-07-24): `update()` só parseia preço no ramo `type=='single'` lendo `single_dpp` de `$request->only([...])`; a Edit.tsx (`useForm`) **não manda** `single_dpp` → chave ausente → `num_uf(null)` → **potencial gravação de preço 0** (mesmo eixo `[V0]` do incidente ×100k). NÃO afirmado como bug — precisa ler `num_uf(null)` + dupla-confirmação (REGRA MESTRE) + decisão [W]/[F]. Vira UC/US quando investigado (não corrigir cego).
 
 ---
 
@@ -127,3 +129,4 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 
 ## Trilha do tempo
 - 2026-07-24 · [CC] nascido pelo piloto do agent `sdd-from-source` (ADR 0351) — trio fechado (charter existia + casos novo + stub e2e), triangulando React+Blade+Delphi. Fecha `trio:missing-casos:Produto/Edit.tsx` do baseline. UCs stubbed (⬜/🔶), veredito honesto até rodar no CT100. Refs: ADR 0351 · 0264 G-1/G-2.
+- 2026-07-24 · [CC] **revisão adversarial** (3 céticos read-only sobre o piloto) — o UC-PEDIT-03, que era 🔶 "não afirmado", virou achado Tier 0 **CONFIRMADO**: `update()` cross-tenant = 500 (`first()` + atribuição em null), não 404. Corrigido no mesmo PR (`firstOrFail` antes do try) + Pest `ProdutoEditContratoTest` (failing-first). Registrado o risco `[V0]` preço-zero via React (backlog). Lição: usei LC-08 como escudo pra NÃO ler — LC-08 manda ler.
