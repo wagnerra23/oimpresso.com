@@ -969,8 +969,22 @@ class ProductController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $business_id = $request->session()->get('user.business_id');
+
+        // Multi-tenant Tier 0 (ADR 0093 · UC-PEDIT-03): guard de 404 FORA do try. Um 404 lançado
+        // DENTRO do try seria engolido pelo catch (\Exception) abaixo → redirect success:0 = 302 (o
+        // mesmo buraco cross-tenant do #4300, SellingPrices). Este firstOrFail propaga a
+        // ModelNotFoundException pro handler → 404 REAL quando o id é de outro business. O edit()
+        // (GET) já fazia isso (:872-875); só o update() ficou pra trás com first() → atribuição de
+        // propriedade em null → 500 (ver resources/js/Pages/Produto/Edit.casos.md · UC-PEDIT-03).
+        // Query separada DE PROPÓSITO — não atribui a $product pra NÃO narrowar o Product|null do
+        // `$product = ...->first()` de baixo (preserva o phpstan-baseline; custo = 1 SELECT indexado
+        // por (business_id, id) num fluxo raro de edição).
+        Product::where('business_id', $business_id)
+                ->where('id', $id)
+                ->firstOrFail();
+
         try {
-            $business_id = $request->session()->get('user.business_id');
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
 
             DB::beginTransaction();
