@@ -5,7 +5,7 @@ created: 2026-07-24
 proposed_by: claude-code
 decided_by: wagner
 parent_adr: 0291 (distiller-modulo-verdade — a peça de análise a religar/aposentar)
-related_adrs: [0291, 0292, 0273, 0264, 0345, 0256, 0275]
+related_adrs: [0291, 0292, 0273, 0264, 0345, 0256, 0275, 0104]
 related_proposals: [2026-07-23-fatos-derivaveis-anti-apodrecimento, 2026-07-23-referencia-id-estavel-doc-links]
 type: mecanismo-de-processo
 ---
@@ -30,9 +30,21 @@ O oimpresso já tem **2 das 3 camadas**, fragmentadas — falta a **1 (análise 
 
 Criar um **agent** (padrão do projeto pra análise — como `capterra-senior`, `wagner-understand`), `sdd-from-source`, que **orquestra** as 3 camadas e **não cria máquina de análise nem tipo de doc novos**:
 
-1. **ANÁLISE** — aponta pro `<Mod>/<Tela>`, lê o fonte real (`.tsx` + Controller + Service + Model) e mapeia o fluxo. **Religa o distiller** como motor (ou o aposenta e nasce aqui — ver Fronteira).
-2. **DOCUMENTAÇÃO** — gera/preenche o `SDD-tela-<x>.md` (§5 fluxo + §6 CU) e chama `criar-tela` pro `casos.md` + stub de teste; propõe as linhas `**Implementado em:**` pro SPEC.
+1. **ANÁLISE** — aponta pro `<Mod>/<Tela>` e lê **as 3 fontes na ordem-de-fonte canônica** ([how-trabalhar §ordem de fonte](../../how-trabalhar.md)), não só o presente. **Religa o distiller** como motor (ou o aposenta e nasce aqui — ver Fronteira).
+2. **DOCUMENTAÇÃO** — gera/preenche o `SDD-tela-<x>.md` (§5 fluxo + §6 CU), o `casos.md` (via `criar-tela`) **e os docs de migração** `ANTI-REGRESSAO-<tela>-legacy.md` (paridade Delphi→React) + `PARIDADE-charter-vs-legado.md` (gaps do cutover); propõe as linhas `**Implementado em:**` pro SPEC.
 3. **CONFERÊNCIA** — roda `casos-gate` + `anchor-lint` e devolve o veredito ✓/🧪/❌ **por US**. Humano confere e corrige — não escreve do zero.
+
+### Camada 1 tem 3 fontes — Blade + Delphi, não só o atual (requisito [W] 2026-07-24 · FUNDAMENTAL)
+
+Documentar só o React atual **reproduz a regressão**: a migração Blade→React já perdeu features em silêncio (o menu de Ações da lista de vendas sumiu no rewrite #1032). O agente TEM que **triangular 3 fontes** — a ordem que o projeto já define:
+
+| Fonte | Onde | Pra quê |
+|---|---|---|
+| **React/Laravel atual** | `.tsx` + Controller + Service + Model | o fluxo vivo (o que existe hoje) |
+| **Blade AdminLTE legada** | `resources/views/<x>/**` | migração MWART ([ADR 0104](../0104-processo-mwart-canonico-unico-caminho.md)) — o que a tela antiga fazia que o React precisa manter |
+| **Delphi / Office Comercial** | `ANTI-REGRESSAO-*.md` (destilado do manual/tela WR Comercial) | **contrato de paridade** — o cliente usou por anos; feature não some sem Non-Goal explícito |
+
+Sem as fontes 2 e 3, o agente documenta um React que **pode já ter perdido features** — e carimba a perda como se fosse o correto. Isso NÃO é opcional; é o que fecha a migração. **Já validado no Produto:** o `ANTI-REGRESSAO-cadastro-produto-legacy.md` é o Office Comercial 2026.1.1.38 (8 abas) destilado à mão — o `sdd-from-source` **derivaria/atualizaria** esse doc, em vez de alguém re-transcrever o manual a cada tela.
 
 **Regra dura anti-duplicação:** o output é SEMPRE um arquivo que já tem dono e gate. Se em qualquer momento o agent for gerar um `ANALISE-*.md`/`FLUXO-*.md` novo, é bug — o fluxo mora no §5 do SDD, não num arquivo paralelo.
 
