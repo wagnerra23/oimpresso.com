@@ -35,11 +35,17 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 | UC-PEDIT-02 | Tipo (single/variable/combo) não muda após criação | should | Non-Goal charter + AR-PROD (tipo na criação) | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
 | UC-PEDIT-03 | Editar produto de outro business → 404 (não vaza, não 500) | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter Goal | `ProdutoEditContratoTest` (Pest) + e2e stub | 🧪 achado CONFIRMADO + corrigido (`update()` → `firstOrFail`) |
 | UC-PEDIT-04 | Campo monetário no update não infla no parser pt-BR | must `[V0]` | `CU-PROD-01.4` + REGRA MESTRE | `e2e/produto-edit.spec.ts` (stub) | ⬜ não verificado |
+| UC-PEDIT-05 | Editar não desliga o controle de estoque (`enable_stock`) | must `[V0]` | `AR-PROD-051/056` + REGRA MESTRE + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) | ⬜ aguarda lane |
+| UC-PEDIT-06 | Editar produto `single` persiste em vez de estourar 500 | must | charter §Goals ("Salvar") | `ProdutoEditPayloadContratoTest` (Pest) | ⬜ aguarda lane |
+| UC-PEDIT-07 | Editar não apaga flags que a tela não envia | must | `AR-PROD-003/042` | `ProdutoEditPayloadContratoTest` (Pest) | ⬜ aguarda lane |
 
-> ⚠️ **Só o UC-PEDIT-03 tem teste real** (Pest, failing-first) — os outros 3 seguem stub `test.fixme`
-> (não rodam, satisfazem só a rastreabilidade G-2). O 03 nasceu do **adversário de 2026-07-24**, que
-> pegou o que este casos.md v1 tinha deixado como "🔶 não afirmado" (usando LC-08 como escudo pra NÃO
-> ler — quando LC-08 manda ler). Os UC-PEDIT-01/02/04 seguem ⬜ até o Pest rodar no CT100 ([ADR 0062]).
+> ⚠️ **UC-PEDIT-01/02/04 seguem stub `test.fixme`** (não rodam, satisfazem só a rastreabilidade G-2)
+> — ⬜ até o Pest rodar no CT100 ([ADR 0062]). O **03** nasceu do adversário de 2026-07-24, que pegou
+> o que este casos.md v1 deixara como "🔶 não afirmado" (usando LC-08 como escudo pra NÃO ler —
+> quando LC-08 manda ler). Os **05/06/07** nasceram do **B1-controle** (1º run real do agent
+> `sdd-from-source`, evidência em [`_b1-controle-Edit.casos.agent.md`](../../../../memory/requisitos/Produto/_b1-controle-Edit.casos.agent.md))
+> e têm Pest failing-first escrito — ficam ⬜ até a lane publicar o veredito, porque **status vem do
+> teste, não da palavra** (G-7).
 
 ---
 
@@ -82,6 +88,37 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 - **Contrato:** `CU-PROD-01` item 4 `[V0]` + REGRA MESTRE valor/estoque (`proibicoes.md`). `ProductController@update` roda `num_uf` em `single_dpp`/`single_dsp`/`profit_percent` (`ProductController.php:1102-1106`) e `alert_quantity` (`:997`) — **o mesmo parser** que inflou 16 vendas ×100k na ROTA LIVRE (incidente 2026-06-05).
 - **⚠️ Achado de paridade (NÃO afirmado como bug — decisão [W]/[F]):** a **Edit React não tem campo de preço** — o `useForm` não manda `single_dpp`/`single_dsp`/`profit_percent`, e o card "Preço & Imposto" só traz `tax`/`tax_type` (mesmo padrão do `Create.tsx`, §Pendência de contrato do `Create.casos.md`). Já o **Delphi edita Custo/Valor/Margem** com binding bidirecional (`AR-PROD-006`/`007`/`008`). Então: (a) o UC defende o **endpoint** (`update()` parseia pt-BR, caminho Blade/legado); (b) a **ausência do preço na Edit React** é gap de paridade Blade/Delphi→React, registrado abaixo — não afirmo se é Non-Goal ou bug (igual à Pendência do Create; segue [F] reconstruindo o cadastro em abas).
 - **Status: ⬜** — stub.
+
+---
+
+## UC-PEDIT-05 · Editar não desliga o controle de estoque (`enable_stock`) · `must` `[V0]`
+- **Persona:** Larissa / ROTA LIVRE — corrige o **nome** de um produto que controla estoque e salva. O produto tem que continuar controlando estoque. Nada na tela disse "desligar estoque".
+- **Aceite:** Dado um produto com `enable_stock = 1` · Quando envio `PUT /products/{id}` com **o payload que a tela React manda** (18 chaves, sem `enable_stock`) · Então `enable_stock` **continua 1**.
+- **Teste:** [`tests/Feature/Produto/ProdutoEditPayloadContratoTest.php`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-05` (Pest, failing-first, lane `Estoque · MySQL`).
+- **Contrato:** `AR-PROD-051`/`AR-PROD-056` (no Delphi, "controla estoque" é atributo do produto — editar a ficha não é o gesto que liga/desliga) + `proibicoes.md` §REGRA MESTRE (valor/estoque) + Edit.charter §Goals.
+- **Regressão que defende:** o writer trata **ausência como zero** (`update()` L76-79: `if (! empty($request->input('enable_stock')) && == 1) {1} else {0}`). A tela não manda a chave → salvar o nome **apagaria o controle de estoque em silêncio**: o save "funciona", a tela não reclama, e o estoque some do produto.
+- **Status: ⬜** — Pest escrito, aguardando a lane publicar o veredito.
+
+---
+
+## UC-PEDIT-06 · Editar produto `single` persiste em vez de estourar 500 · `must`
+- **Persona:** qualquer operador — clicar "Salvar" e receber tela de erro é o pior desfecho possível de um cadastro.
+- **Aceite:** Dado um produto `type='single'` · Quando envio `PUT /products/{id}` com o payload da tela React · Então a resposta **não é 500** e o `name` novo está no banco.
+- **Teste:** [`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-06`.
+- **Contrato:** Edit.charter §Goals — "Salvar" é Goal declarado da tela.
+- **Regressão que defende:** no ramo `single`, `update()` lê `single_variation_id` de um `$request->only([...])` que **não contém a chave** (`:1111-1112`) → `Variation::find(null)` → `null` → atribuição de propriedade em `null` → `\Error`. O `catch (\Exception)` (`:1173`) **não pega `\Error`** → 500. É a mesma família do `UC-PEDIT-03` (o `catch` genérico que mascara o desfecho real).
+- **Defeito INDEPENDENTE do UC-PEDIT-05** (`proibicoes.md` §5, 2026-07-15): consertar um não conserta o outro, e as correções podem brigar — por isso teste próprio, não um "fix da raiz".
+- **Status: ⬜** — Pest escrito, aguardando a lane.
+
+---
+
+## UC-PEDIT-07 · Editar não apaga flags que a tela não envia · `must`
+- **Persona:** operador que marcou o produto como "não disponível para venda" ou "controla número de série" — editar o nome não pode desmarcar.
+- **Aceite:** Dado um produto com `not_for_selling = 1` e `enable_sr_no = 1` · Quando envio `PUT /products/{id}` com o payload da tela React (que não manda nenhuma das duas) · Então **ambas continuam 1**.
+- **Teste:** [`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-07`.
+- **Contrato:** `AR-PROD-003`/`AR-PROD-042` — no legado, alterar a ficha preserva o que já estava gravado; ausência de um campo no formulário não é "desmarcar".
+- **Regressão que defende:** mesmo padrão ausência→zero do `UC-PEDIT-05`, em `not_for_selling` (`:82`) e `enable_sr_no` (`:101-104`); `sub_unit_ids` (`:71`) vira `null` pela mesma razão. Generaliza o defeito: **não é uma flag, é o contrato do payload**.
+- **Status: ⬜** — Pest escrito, aguardando a lane.
 
 ---
 
@@ -130,3 +167,4 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 ## Trilha do tempo
 - 2026-07-24 · [CC] nascido pelo piloto do agent `sdd-from-source` (ADR 0351) — trio fechado (charter existia + casos novo + stub e2e), triangulando React+Blade+Delphi. Fecha `trio:missing-casos:Produto/Edit.tsx` do baseline. UCs stubbed (⬜/🔶), veredito honesto até rodar no CT100. Refs: ADR 0351 · 0264 G-1/G-2.
 - 2026-07-24 · [CC] **revisão adversarial** (3 céticos read-only sobre o piloto) — o UC-PEDIT-03, que era 🔶 "não afirmado", virou achado Tier 0 **CONFIRMADO**: `update()` cross-tenant = 500 (`first()` + atribuição em null), não 404. Corrigido no mesmo PR (`firstOrFail` antes do try) + Pest `ProdutoEditContratoTest` (failing-first). Registrado o risco `[V0]` preço-zero via React (backlog). Lição: usei LC-08 como escudo pra NÃO ler — LC-08 manda ler.
+- 2026-07-24 · [F+CC] **B1-controle** — 1º run REAL do agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)), que a [errata 0352](../../../../memory/decisions/0352-errata-0351-venue-distiller-citacao-taxonomia.md) admitia nunca ter sido executado. Rodado como grupo de controle **nesta tela** (a que já tinha `casos.md` feito à mão), evidência em [`_b1-controle-Edit.casos.agent.md`](../../../../memory/requisitos/Produto/_b1-controle-Edit.casos.agent.md). Veredito: **abaixo do humano no contrato** (perdeu o UC-PEDIT-01 e o log de Atividade), **acima no payload** — a triangulação React×Blade×Delphi rendeu 4 candidatos que a redação à mão não tinha. Daí nascem **UC-PEDIT-05/06/07**, com Pest failing-first ([`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php)) e a lane `Estoque · MySQL` estendida — inclusive adotando o `ProdutoEditContratoTest`, que existia **fora de lane** desde ontem ("verde impossível" do `anchor-lint`). Enquadramento corrigido no mesmo dia: **não é incidente de produção** (as telas React do Produto são inalcançáveis — sidebar usa `<a href>` puro, sem header `X-Inertia`; roda o Blade, confirmado por [F]) e sim **bloqueador de migração** — define quando a tela pode ser ligada (MWART F5, [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)).
