@@ -9,6 +9,8 @@ outcomes:
   - "6 números do transcript corrigidos com recibo (casos.md 4/8 não 2/8; casos-gate 5 gates não 7; distiller 11/78 carimbadas não 0/76; grandfathered 647 não 655)"
   - "Distiller: métrica distiller_freshness=0 é verde-que-não-pode-ficar-vermelho — 67 das 78 portas não têm carimbo pra poder ficar stale"
   - "B1 (rodar sdd-from-source no Produto) sobrevive intacto como próximo passo"
+  - "ERRATA §2: as datas de criação dos casos.md na 1ª redação vieram de clone RASO (piso 23/07) — corrigidas pós --unshallow (57 → 5.682 commits); LC-08 cometido por mim dentro do log que o denuncia"
+  - "Viabilidade medida (§7): Produto faltam 4 telas (~1-2 semanas); os 240 restantes = ~2 anos no ritmo atual (2-3/sem, caindo do pico 15) — e o gargalo é a prova (32/159 UCs execução-backed), não o markdown"
 prs: []
 us: ["US-PROD-020", "US-PROD-023"]
 related_adrs: ["0302-fonte-unica-doneness-anchor-aposenta-status-spec", "0351-sdd-from-source", "0352-errata-0351-venue-distiller-citacao-taxonomia", "0273-anchor-spec-codigo-formato-canonico-fluxo-novo"]
@@ -59,8 +61,31 @@ US-PROD-020/023 — MCP indisponível (hook `brief-fetch` caiu em fallback). Reg
    real **4 de 8**: `Create` (4 UCs), `Edit` (4), `SellingPrices` (4), `StockHistory` (3).
    Charter é **8/8**. O denominador é **8 telas**, não 7.
    *Recibo:* `git ls-tree -r --name-only origin/main resources/js/Pages/Produto/` +
-   `grep -cE '^## UC-'` por arquivo. O `Edit.casos.md` nasceu hoje no #4767; os outros 3
-   em 23/07 (#4719) — ou seja, "2 de 8" já estava stale quando foi escrito.
+   `grep -cE '^## UC-'` por arquivo. Datas reais de criação (medidas em clone COMPLETO —
+   ver errata abaixo): `SellingPrices` 15/07 (#4300) · `Create` 19/07 (#4417, US-PROD-020) ·
+   `StockHistory` 22/07 (#4658) · `Edit` 24/07 (#4767, piloto). Ou seja, **3 dos 4 já
+   existiam antes** do transcript ser escrito — "2 de 8" nasceu stale.
+
+   > ⚠️ **ERRATA (mesma sessão, 2026-07-24 · LC-08 cometido por mim).** A 1ª redação
+   > desta linha dizia *"os outros 3 em 23/07 (#4719)"*. **Falso, e por medir com
+   > instrumento quebrado:** o clone desta sessão era **raso** (`--depth`, 57 commits
+   > alcançáveis, piso em 2026-07-23). O `git log --diff-filter=A` reportava como
+   > "criação" o **fundo do clone**, não a criação real — e o commit-piso `13ec1e06`
+   > aparecia como root com 16.081 arquivos "adicionados", que é a assinatura do
+   > artefato. Corrigido rodando `git fetch --unshallow` (57 → **5.682** commits) e
+   > re-medindo. **A conclusão não muda** (fica mais forte: 3 dos 4 existiam desde 22/07);
+   > o recibo é que estava errado — e recibo errado é exatamente o que este log condena.
+   >
+   > **Corolário perene:** antes de citar data de `git log` como recibo, **conferir
+   > `git rev-parse --is-shallow-repository`**. Num clone raso, toda data de
+   > `--diff-filter=A` é o piso do clone, não a história. Mesma família da lápide §5
+   > 2026-07-17 ("oráculo errado") e de §5 2026-07-17 ("`crontab -l` num host onde o
+   > binário não existe") — medir a fonte errada e chamar de medido.
+   >
+   > **Retratação junto:** na mesma sessão dispensei um *"checkout local estava −5678
+   > commits"* de um plano de [F] como número implausível. **Era correto** — aquela
+   > sessão tinha o mesmo clone raso, e −5678 é exatamente a distância pro histórico
+   > completo. A objeção era minha, não do plano.
 
 2. **"`casos-gate.yml` com 7 gates G-1..G-7"** → o workflow implementa **5**
    (G-1/G-2/G-5/G-6/G-7). **G-3** é o E2E Playwright e **G-4** é o `dominio-gate` —
@@ -180,3 +205,62 @@ distiller que media outra coisa, o "7 gates" lido da ADR e não do workflow).
 O antídoto aplicado aqui foi o canônico: **rodar a porta viva** em vez de olhar a árvore
 (`casos:report`, `screen-coverage:report`, `anchor-lint`, `doneness-lint`), e **pendurar o
 recibo** em cada número.
+
+**E a ironia que fecha o método:** cometi a MESMA classe dentro do log que a denuncia (ver
+a errata do §2 item 1 — clone raso). Rodei a porta viva certa, mas o `git log` estava
+medindo um clone truncado. Fica como o exemplo mais honesto do ponto: *rodar a máquina não
+basta se a máquina está apontada pro lugar errado.*
+
+---
+
+## 7. Viabilidade — "dá pra fazer todo o Produto? e todos?" ([F], mesma sessão)
+
+Medido em clone **completo** (pós-`--unshallow`), 2026-07-24.
+
+### Produto — viável e curto
+
+Faltam **4 telas** (`BulkEdit`, `Index`, `Show`, `Unificado/Index`). As 4 que têm casos
+nasceram em **9 dias**:
+
+| Tela | Data | PR |
+|---|---|---|
+| `SellingPrices` | 2026-07-15 | #4300 |
+| `Create` | 2026-07-19 | #4417 (US-PROD-020) |
+| `StockHistory` | 2026-07-22 | #4658 |
+| `Edit` | 2026-07-24 | #4767 (piloto sdd-from-source) |
+
+O anchor de 11,1% também é pequeno em valor absoluto: das **9 US** do Produto, só a
+**US-PROD-028** carrega `**Implementado em:**`. Chegar a ≥50% = ancorar ~4 US.
+*Recibo:* `git show origin/main:memory/requisitos/Produto/SPEC.md | grep -E '^### US-PROD|^\*\*Implementado em'`.
+
+### Todos os módulos — não no ritmo atual
+
+Taxa real de criação de `casos.md` por semana ISO, desde a 1ª (2026-06-10):
+
+```
+W24: 6 · W25: 2 · W26: 3 · W27: 15 · W28: 10 · W29: 3 · W30: 2     (total 41)
+```
+
+Pico em W27, **caindo a 2-3/semana** nas últimas 3. Restam **240 telas sem `casos.md`**:
+
+| Ritmo | Projeção pras 240 |
+|---|---|
+| atual (2-3/sem) | **~2 anos** |
+| média histórica (6,3/sem) | ~9 meses |
+| pico (15/sem) | ~4 meses |
+
+**Mas o gargalo não é o arquivo — é a prova.** Só **32 dos 159 UCs (20%)** têm execução
+por trás; os outros 127 são string-match. "Fazer todos" de verdade = 240 `casos.md` +
+~940 UCs (média 3,9/tela) + um teste por UC rodando no CT100 ([ADR 0062]). Não é escrever
+markdown, é escrever suíte.
+
+**Contraste que explica a diferença:** `charter` já está em **100% (235/235)** — porque é
+batch-ável (nasceu de lote mecânico). `casos`+teste não é. Daí a assimetria entre as
+dimensões do trio.
+
+### Consequência pro plano
+
+Isso dá a **B1** um peso que ele não tinha: rodar o `sdd-from-source` de verdade não é só
+"validar a ferramenta" — é **a medição que decide se 'todos' custa 4 meses ou 2 anos**,
+porque o que o agent muda é o custo marginal por tela. Enquanto ele não roda num caso
+real, a projeção honesta é a de cima (2 anos), não a esperança.
