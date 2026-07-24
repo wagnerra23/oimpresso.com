@@ -33,6 +33,11 @@ Módulo contábil **CORE UltimatePOS herdado** — núcleo de **70 entities** vi
 
 > **ERRATA 2026-05-20 (US-ACCO-011):** claim "espinha dorsal pra Vestuario/NfeBrasil/RecurringBilling" REFUTADO pela [inspeção forense](INSPECAO-FORENSE-2026-05-20.md#62-quem-importa-namespace-modulesaccounting) — `grep -r "Modules\\Accounting\\" Modules/Vestuario/ Modules/NfeBrasil/ Modules/RecurringBilling/` retorna **ZERO matches**. Acoplamento real cross-módulo = 0 arquivos PHP fora de `Modules/Accounting/` importam o namespace. Realidade verificada: Accounting é **isolado**, não espinha dorsal de nada. Ver [ADR 0172](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md) §motivação.
 
+> **ERRATA 2026-07-24 (o módulo NÃO EXISTE MAIS):** o parágrafo acima fala de "70 entities **vivas** (`Modules/Accounting/Entities/`)" no presente — isso descreve o estado **pré-drop**. A Onda 5 do plano da [ADR 0172](../../decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md) foi **executada**: `Modules/Accounting/` foi removido da árvore.
+> **Recibo (medido 2026-07-24):** `git log --diff-filter=D -- Modules/Accounting` → `aaf5c968b8 chore(accounting): Onda 5 — drop Modules/Accounting + shim retention + statuses=false (#1258)`; `git ls-tree -d origin/main Modules/` → sem `Accounting`.
+> Substituto canônico em produção: **`Modules/Financeiro`**. Este BRIEFING fica como **history** do módulo removido — não é descrição de estado atual.
+> _Achado por varredura `fact-anchor` (doc afirma `Modules/<X>` que não existe na árvore); ver `memory/LICOES_CODE.md` LC-08._
+
 ## Cliente piloto
 
 <!-- FALSO (inspecao forense 2026-05-20): ZERO Listeners/cross-imports detectados — preservado pra histórico append-only -->
