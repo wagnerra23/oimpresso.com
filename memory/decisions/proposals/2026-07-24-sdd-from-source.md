@@ -1,9 +1,11 @@
 ---
 proposal_id: sdd-from-source
-status: proposed
+status: accepted
 created: 2026-07-24
+decided_at: 2026-07-24
 proposed_by: claude-code
 decided_by: wagner
+realized_by: 0351-sdd-from-source
 parent_adr: 0291 (distiller-modulo-verdade — a peça de análise a religar/aposentar)
 related_adrs: [0291, 0292, 0273, 0264, 0345, 0256, 0275, 0104]
 related_proposals: [2026-07-23-fatos-derivaveis-anti-apodrecimento, 2026-07-23-referencia-id-estavel-doc-links]
@@ -12,7 +14,7 @@ type: mecanismo-de-processo
 
 # `sdd-from-source` — as 3 camadas (analisa o fonte → documenta no padrão → confere)
 
-- **Status:** `proposed` — [W] ratifica virando ADR aceita. Nada implementado aqui; é o desenho pra bater o martelo.
+- **Status:** ✅ `accepted` — ratificada por [W] em 2026-07-24, realizada na [ADR 0351](../0351-sdd-from-source.md). Venue confirmado = **agent in-session + `--dry-run` + PR** (cron `clone + auto-PR bot` = follow-up).
 - **Origem ([W] 2026-07-24):** *"sinto falta de runbook/skill que faça igual as três camadas do melhor do ramo: análise do fluxo correto do fonte, documentar no padrão, e poder ser conferido se fez corretamente."* + a dor de escala: *"módulos gigantes onde os arquivos ficam grandes — a máquina que obriga preencher tem que se adaptar."*
 - **Evidência que ancora:** o [scorecard adversarial SDD de 2026-07-23](../../sessions/2026-07-23-sdd-avaliacao-adversarial.md) (76/100) achou o **distiller kill-switched (0/76 portas)** e o **piloto Produto empacado** (charter 7/7, casos 3/7, anchor do SPEC 11,1% — 8 de 9 US `sem_campo`). Escrever SDD à mão não escala; foi por isso que o piloto travou.
 
