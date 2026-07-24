@@ -50,14 +50,27 @@ export function isVarredura(pattern) {
   return /[*?{}]|\*\*/.test(String(pattern || ''));
 }
 
+const ARTEFATO_DE_TELA = /\.charter\.md|\.casos\.md|scorecards[/\\]screens|proto-baseline|visual-comparison/;
+
 /**
  * P1 — pergunta "quais artefatos/arquivos tem a tela?" feita por Glob/Grep.
  * Só morde em VARREDURA: `Produto/Edit.charter.md` (literal) é leitura legítima.
+ *
+ * DUAS PORTAS DE ENTRADA (a 2ª foi um FURO achado testando o próprio hook, 2026-07-24):
+ *  a) `pattern` de path — o Glob do incidente 07-22.
+ *  b) `glob` do Grep — escapava inteiro. Aqui a discriminação é o output_mode:
+ *     pedir a LISTA DE ARQUIVOS (files_with_matches) de charter/casos é inventário
+ *     (= mapa de tela, o antipadrão); buscar CONTEÚDO dentro deles (content/count)
+ *     é pergunta legítima e passa — foi como medi "quais charters citam Odoo".
  */
-export function isMapaDeTela(pattern) {
+export function isMapaDeTela(pattern, glob, outputMode) {
   const p = String(pattern || '');
-  if (!isVarredura(p)) return false;
-  return /\.charter\.md|\.casos\.md|scorecards[/\\]screens|proto-baseline|visual-comparison/.test(p);
+  if (isVarredura(p) && ARTEFATO_DE_TELA.test(p)) return true;
+  const g = String(glob || '');
+  if (!g || !ARTEFATO_DE_TELA.test(g)) return false;
+  // sem output_mode explícito o Grep já devolve files_with_matches (default = inventário)
+  const modo = String(outputMode || 'files_with_matches');
+  return modo === 'files_with_matches';
 }
 
 /**
@@ -73,9 +86,9 @@ export function isPerguntaDeRuntime(pattern, path) {
 }
 
 /** veredito único: qual par mordeu? (null = passa) */
-export function classificar({ pattern, path } = {}, env = process.env) {
+export function classificar({ pattern, path, glob, output_mode } = {}, env = process.env) {
   if (hasOverride(env)) return null;
-  if (isMapaDeTela(pattern)) return 'P1';
+  if (isMapaDeTela(pattern, glob, output_mode)) return 'P1';
   if (isPerguntaDeRuntime(pattern, path)) return 'P2';
   return null;
 }
@@ -125,6 +138,9 @@ function selftest() {
     ['P2 grep schedule no Kernel', { pattern: '->daily\\(', path: 'app/Console/Kernel.php' }, 'P2'],
     ['P2 grep environments', { pattern: 'environments', path: 'app/Console/Kernel.php' }, 'P2'],
     ['P2 config pelo .env', { pattern: 'QUEUE_CONNECTION', path: '.env' }, 'P2'],
+    // FURO achado testando o hook (2026-07-24): Grep entra por `glob`, não por `pattern`
+    ['P1 inventario via glob do Grep', { pattern: 'related_prototype', glob: '**/*.charter.md', output_mode: 'files_with_matches' }, 'P1'],
+    ['P1 glob sem output_mode (default = lista)', { pattern: 'UC-', glob: '**/*.casos.md' }, 'P1'],
     // BOA (deve passar — se qualquer uma bloquear, o hook backfira)
     ['ler UM charter literal', { pattern: 'resources/js/Pages/Produto/Edit.charter.md' }, null],
     ['glob de tsx comum', { pattern: 'resources/js/Pages/**/*.tsx' }, null],
@@ -132,6 +148,9 @@ function selftest() {
     ['grep schedule fora do Kernel', { pattern: 'schedule', path: 'Modules/Jana/README.md' }, null],
     ['glob de migrations', { pattern: '**/Database/Migrations/*.php' }, null],
     ['charter literal em Grep', { pattern: 'Non-Goals', path: 'Produto/Edit.charter.md' }, null],
+    // busca de CONTEUDO dentro de charters e legitima (foi como medi "quais citam Odoo")
+    ['conteudo em charters (count)', { pattern: 'Odoo|Shopify', glob: '**/*.charter.md', output_mode: 'count' }, null],
+    ['conteudo em charters (content)', { pattern: 'Odoo', glob: '**/*.charter.md', output_mode: 'content' }, null],
   ];
   let ok = 0;
   const falhas = [];
@@ -163,7 +182,17 @@ function selftest() {
   if (passagem.status === 0) ok++;
   else falhas.push(`  ✗ invocacao real (controle-negativo): esperado exit 0, veio ${passagem.status}`);
 
-  const total = casos.length + 3;
+  // 2ª porta (glob do Grep) — o furo de 2026-07-24. Sem ESTE caso na invocação real, o
+  // entrypoint pode deixar de repassar `glob` e o selftest do classificador segue verde.
+  const viaGlob = roda({ tool_name: 'Grep', tool_input: { pattern: 'related_prototype', glob: '**/*.charter.md' } });
+  if (viaGlob.status === 2) ok++;
+  else falhas.push(`  ✗ invocacao real (porta glob): esperado exit 2, veio ${viaGlob.status}`);
+
+  const conteudo = roda({ tool_name: 'Grep', tool_input: { pattern: 'Odoo', glob: '**/*.charter.md', output_mode: 'count' } });
+  if (conteudo.status === 0) ok++;
+  else falhas.push(`  ✗ invocacao real (conteudo legitimo): esperado exit 0, veio ${conteudo.status}`);
+
+  const total = casos.length + 5;
   console.log(`block-instrumento-sem-porta-viva selftest: ${ok}/${total}`);
   if (falhas.length) { console.error(falhas.join('\n')); process.exit(1); }
   console.log('  MORDE: varredura de charter/casos/scorecard + pergunta-de-runtime em fonte estatica');
@@ -180,7 +209,13 @@ function main() {
   try {
     const ev = JSON.parse(raw);
     const inp = ev.tool_input || {};
-    par = classificar({ pattern: inp.pattern, path: inp.path }, process.env);
+    // repassar TODOS os campos que o classificador lê — em 2026-07-24 o entrypoint
+    // ficou pra trás 2× (require em ESM; depois glob/output_mode não repassados) e o
+    // selftest do classificador seguiu VERDE. Por isso a invocação real cobre cada porta.
+    par = classificar(
+      { pattern: inp.pattern, path: inp.path, glob: inp.glob, output_mode: inp.output_mode },
+      process.env,
+    );
   } catch { process.exit(0); } // fail-open
   if (!par) process.exit(0);
   console.error(MENSAGENS[par]);
