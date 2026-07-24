@@ -211,6 +211,15 @@
             "command": "node .claude/hooks/block-test-fora-ct100.mjs"
           }
         ]
+      },
+      {
+        "matcher": "Glob|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-instrumento-sem-porta-viva.mjs"
+          }
+        ]
       }
     ],
     "PostToolUse": [

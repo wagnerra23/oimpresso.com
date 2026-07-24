@@ -171,6 +171,10 @@ jobs:
         run: node scripts/governance/settings-figma-registration.test.mjs
       - name: Registro âncora-no-olho em settings.json (incidente #7)
         run: node scripts/governance/settings-ancora-registration.test.mjs
+      - name: Porta-viva morde (LC-08 · fixtures boa/ruim + INVOCAÇÃO real por stdin)
+        run: node .claude/hooks/block-instrumento-sem-porta-viva.mjs --selftest
+      - name: Registro porta-viva em settings.json (LC-08 · matcher Glob E Grep)
+        run: node scripts/governance/settings-porta-viva-registration.test.mjs
       - name: Baseline armado Figma-não-é-fonte (camada L5 · vetores de ataque)
         run: node scripts/evals/design-source-of-truth.eval.mjs
       - name: Lógica + E2E block-design-sync (ADR 0315 · fecha Gap 1 da 0299)
