@@ -2,7 +2,9 @@
   "prontas": [
     "Financeiro/Impostos/Index",
     "Financeiro/ProvaViva",
-    "Financeiro/Unificado/Index"
+    "Financeiro/Unificado/Index",
+    "Produto/SellingPrices",
+    "Sells/Index"
   ],
   "ciclo": [
     {
@@ -40,7 +42,47 @@
     {
       "tela": "Financeiro/Fluxo/Index",
       "status": "1-ciclo",
-      "prototipo": "prototipo Cowork \"Fluxo de Caixa\" (Financeiro.html), aprovado [W] 2026-05-09",
+      "prototipo": "prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaFluxo; corrigido 2026-07-06 — antes apontava pra Financeiro.html que sumiu no refactor SSOT, âncora fantasma pega pelo sentinela)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Jana/Cockpit",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/chat-jana.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Jana/Dashboard",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/chat-jana.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "kb/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/kb-page.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "kb/Index.v2",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/kb-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Sells/Caixa/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)",
       "falta": [
         "casos.md-com-UC"
       ]
@@ -52,7 +94,15 @@
       "falta": [
         "casos.md-com-UC"
       ]
+    },
+    {
+      "tela": "team-mcp/Forja/Cockpit",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/forja-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
     }
   ],
-  "total": 9
+  "total": 17
 }
