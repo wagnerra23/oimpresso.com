@@ -4,7 +4,7 @@ description: |
   ATIVAR quando [W] pedir "gera o SDD da tela X a partir do fonte", "documenta o fluxo real de <Mod>/<Tela>", "faz o SDD/casos de <Mod>/<Tela> analisando o código", "/sdd-from-source <Mod>/<Tela>", "confere se a tela Y tem SDD+casos ancorados", OU como passo de destravar o SDD de um módulo gigante (o piloto Produto empacou em 11% porque escrever à mão não escala).
 
   Agent das 3 camadas do melhor do ramo (ADR 0351, ratificada por [W] 2026-07-24), orquestrador — NÃO cria máquina de análise nem tipo de doc novo:
-   (1) ANÁLISE — triangula 3 fontes na ordem-de-fonte canônica: React/Laravel atual (.tsx+Controller+Service+Model) + Blade AdminLTE legada (resources/views/<x>/**, migração MWART) + Delphi/Office Comercial (ANTI-REGRESSAO-*.md, contrato de paridade). Documentar só o React reproduz a regressão da migração (feature some em silêncio). Religa o distiller como motor via `jana:distill-module-truth --dry-run` (venue in-session, git-backed — NUNCA a árvore deployada).
+   (1) ANÁLISE — triangula 3 fontes na ordem-de-fonte canônica: React/Laravel atual (.tsx+Controller+Service+Model) + Blade AdminLTE legada (resources/views/<x>/**, migração MWART) + Delphi/Office Comercial (ANTI-REGRESSAO-*.md, contrato de paridade). Documentar só o React reproduz a regressão da migração (feature some em silêncio). Reusa código do distiller sob-demanda (o refresh de BRIEFING como MOTOR é follow-up gated na flag `--emit`, [ADR 0352] — a Camada 1.3 nasce desligada).
    (2) DOCUMENTAÇÃO — preenche o que já tem dono e gate: SDD-tela-<x>.md (§5 fluxo + §6 CU), <Tela>.casos.md (via criar-tela.mjs pra tela nova; ao lado do charter pra tela existente), linhas `**Implementado em:**` pro SPEC, ANTI-REGRESSAO-<tela>-legacy.md + PARIDADE-charter-vs-legado.md. ZERO tipo de arquivo novo.
    (3) CONFERÊNCIA — roda casos-gate + anchor-lint e devolve veredito ✓/🧪/❌ por US. Humano confere e corrige — não escreve do zero.
 
@@ -60,24 +60,26 @@ Pra cada rota que a tela dispara, mapeie a cadeia real. Ex:
 
 **Varra TODOS os chamadores/rotas** (`git grep` sem `head_limit`, contado — "achei em N lugares" só vale com a prova de que são N de N; proibicoes §5 2026-07-15). Só afirme o fluxo depois de ver o método real — leitura de 2 de 5 consumidores não é "levantamento".
 
-### Fase 1.3 (opcional) — Religa o distiller como motor, venue in-session
+### Fase 1.3 — refresh de BRIEFING via distiller: DESLIGADA até a flag `--emit` ([ADR 0352])
 
-Se o módulo tem `BRIEFING.md` desatualizado, atualize a porta pela análise — **venue git-backed** ([ADR 0351] D-D):
+> ⚠️ **NÃO tente refrescar o BRIEFING via distiller neste fluxo — não funciona ainda.** O adversário de
+> 2026-07-24 achou o buraco: (1) `jana:distill-module-truth --dry-run` **descarta** o conteúdo destilado
+> (`DistillModuleTruthCommand::reportar` só imprime "N eventos — não escrito"), então não há nada no stdout
+> pra capturar; (2) rodar sem `--dry-run` escreve em `base_path()` do **container CT100**, não no worktree.
+> A "religação como MOTOR de refresh" só fecha quando o comando ganhar uma flag **`--emit`/`--stdout`** que
+> imprima o `content` destilado sem escrever — que **ainda não existe** (follow-up, [ADR 0352]).
 
-```bash
-# CT100 (testes/artisan NÃO rodam local) — captura o conteúdo destilado, ZERO write na árvore viva:
-tailscale ssh root@ct100-mcp "docker exec oimpresso-staging php artisan jana:distill-module-truth --module=<Mod> --dry-run"
-```
-
-- `--dry-run` **calcula e mostra**, não escreve. Você grava o resultado no **worktree** (git-backed) e ele entra no PR — **NUNCA** na árvore deployada (foi o bug do kill-switch: cron no Hostinger, write perdido no redeploy, 0/76 portas).
-- O **cron do `app/Console/Kernel.php` FICA comentado** — não re-descomente. O venue autônomo (clone + auto-PR bot) é follow-up, fora do escopo desta ADR.
-- Se o CT100 não estiver acessível, PULE esta fase (é a única que precisa de artisan) e siga só com a leitura de código.
+- **Até a flag existir:** documente o §5/§6 **por leitura de código** (Fases 1.1/1.2 + Camadas 2/3, que **não
+  dependem** do distiller). O distiller é reuso de código (o collector puro + o padrão de destilação), não um
+  motor de refresh ligado.
+- O **cron do `app/Console/Kernel.php` FICA comentado** — não re-descomente. O venue autônomo (clone + auto-PR
+  bot) e a flag `--emit` são follow-up.
 
 ---
 
 ## Camada 2 — DOCUMENTAÇÃO: preenche o que já tem dono e gate (ZERO tipo novo)
 
-> **Regra dura anti-duplicação:** o output é SEMPRE um arquivo que a [taxonomia ADR 0345] já define. Se você for gerar um `ANALISE-*.md`/`FLUXO-*.md` novo, é **BUG** — o fluxo mora no §5 do SDD, não num arquivo paralelo.
+> **Regra dura anti-duplicação:** o output é SEMPRE um tipo que **já existe no repo** (`SDD-tela-*` · `*.casos.md` · `ANTI-REGRESSAO-*` · `PARIDADE-*` · `SPEC.md` `Implementado em:`), cada um defendido pelo próprio gate — **nenhuma ADR única cataloga os tipos; a fonte é a árvore + os gates** ([ADR 0352] corrige a citação "taxonomia 0345" da 0351: a [ADR 0345] é sobre tópicos vivos, não define esses tipos). Se você for gerar um `ANALISE-*.md`/`FLUXO-*.md` novo, é **BUG** — o fluxo mora no §5 do SDD, não num arquivo paralelo.
 
 ### Fase 2.1 — §5 fluxo + §6 CU no SDD
 
@@ -143,14 +145,14 @@ node scripts/qa/screen-coverage-map.mjs                # ou: npm run screen-cove
 
 ## Travas Tier 0 (inegociáveis — [ADR 0351] D-E)
 
-- **ZERO tipo de arquivo novo** — só preenche a taxonomia [ADR 0345]. `ANALISE-*.md` novo = bug.
+- **ZERO tipo de arquivo novo** — só preenche tipos que **já existem no repo** (defendidos pelos próprios gates). `ANALISE-*.md` novo = bug.
 - **Multi-tenant [ADR 0093]** — todo CU `[T0]` carimba o `business_id` scope; teste **biz=1 nunca biz=4** ([ADR 0101]).
 - **REGRA MESTRE valor/estoque** — CU que toca preço/custo/margem/estoque/`num_uf` nasce `[V0]` (dupla-confirmação 2 caminhos + tabela antes→depois + aprovação humana).
 - **Anti-tautologia** — UC deriva do **contrato** (SDD/CU/SPEC), NUNCA da implementação (proibicoes §5). Teste sem âncora de contrato = rejeitado.
 - **Não afirme achado sem varrer + sem citar contrato + (pra [V0]/[T0]) sem teste vermelho** (proibicoes §5 2026-07-15). Enquanto não tem os três, o vocabulário é **hipótese**, não achado.
 - **PT-BR** no domínio. Inglês só em código/nomes próprios.
 - **PII redactada** antes de qualquer write (herda o `PiiRedactor` do distiller) — repo é PÚBLICO; nunca CPF/CNPJ/nome de cliente ([ADR 0093] · LGPD).
-- **`--dry-run` é o default** da análise (Camada 1.3); write real só no worktree, via PR.
+- **Análise = leitura de código** (Camada 1.3/distiller desligada até `--emit`, [ADR 0352]); todo write vai pro worktree, via PR — nunca a árvore deployada.
 - **Em dúvida ou sem fonte → PERGUNTE ao [W]**, não invente (anti-padrão inventado parece canon).
 
 ## Restrições
@@ -185,6 +187,6 @@ node scripts/qa/screen-coverage-map.mjs                # ou: npm run screen-cove
 - **[ADR 0351](../../memory/decisions/0351-sdd-from-source.md)** — a decisão-mãe (3 camadas + venue in-session)
 - [ADR 0291](../../memory/decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md)/[0292](../../memory/decisions/0292-errata-0291-distiller-freshness-scorecard-deterministico.md) — o distiller religado
 - [ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) MWART · [ADR 0264](../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) casos-gate · [ADR 0273](../../memory/decisions/0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md) anchor-lint
-- [ADR 0345](../../memory/decisions/0345-topicos-vivos-aprendizado-por-critica-revisada.md) taxonomia · [ADR 0256](../../memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md) derivado>escrito
+- [ADR 0352](../../memory/decisions/0352-errata-0351-venue-distiller-citacao-taxonomia.md) errata (venue + citações) · [ADR 0256](../../memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md) derivado>escrito
 - [how-trabalhar §ordem de fonte](../../memory/how-trabalhar.md) · [proibicoes §5 + §Precedência](../../memory/proibicoes.md)
 - Formato-alvo do SDD: [Produto](../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) (não reabrir)
