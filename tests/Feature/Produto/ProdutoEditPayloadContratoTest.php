@@ -91,6 +91,46 @@ function payloadDaTelaReact(Product $produto): array
     ];
 }
 
+/**
+ * Payload da tela + a chave MÍNIMA que destrava o `save()`.
+ *
+ * MEDIDO na 1ª corrida (run 30122144831, 2026-07-24): com o payload puro da tela, o
+ * `update()` **aborta antes de salvar**. `ProductController:1037` faz
+ * `$product_details['preparation_time_in_minutes']` **sem `??`** — diferente dos
+ * `product_custom_field*` logo acima (L1030-1033), que têm. A chave não vem no `only()`,
+ * o acesso vira `ErrorException`, e o `catch (\Exception)` genérico a engole → redirect
+ * **sem 500 e sem gravar**. O log da lane registra 3× `EMERGENCY … Undefined array key
+ * "preparation_time_in_minutes"` na rota `products.update`.
+ *
+ * POR QUE ISSO OBRIGA A MUDAR O DESENHO DO TESTE (e não só o assert):
+ * na 1ª corrida os UC-PEDIT-05/07 passaram **VERDE — no vácuo**. `enable_stock` "sobreviveu"
+ * porque **nada foi escrito**, não porque o writer o preserva. Verde por não-execução é o
+ * verde tautológico que este projeto bane (`proibicoes.md` §5, 2026-06-05): passa mesmo com
+ * o comportamento errado, e trava o desvio em vez de pegá-lo.
+ *
+ * Correção: os UCs de preservação passam a (a) usar um payload que **chega no save** e
+ * (b) carregar uma **pré-condição explícita** — se a persistência não aconteceu, o teste
+ * falha DIZENDO isso, em vez de mentir verde. Assim cada UC isola UMA variável.
+ */
+function payloadQueChegaNoSave(Product $produto): array
+{
+    return payloadDaTelaReact($produto) + ['preparation_time_in_minutes' => ''];
+}
+
+/**
+ * Pré-condição anti-vácuo: o PUT realmente persistiu?
+ * Sem isto, "o campo X sobreviveu" não distingue *preservado* de *nunca escrito*.
+ */
+function exigeQueTenhaPersistido(int $productId, string $nomeEsperado, string $uc): void
+{
+    expect(Product::findOrFail($productId)->name)->toBe(
+        $nomeEsperado,
+        "PRÉ-CONDIÇÃO do {$uc}: o PUT não persistiu — então este UC NÃO foi exercido. "
+        . 'Verde aqui seria vácuo (§5 2026-06-05). Provável aborto antes do save '
+        . '(ver `preparation_time_in_minutes`, ProductController:1037).'
+    );
+}
+
 beforeEach(function () {
     if (! EstoqueFixture::schemaReady()) {
         $this->markTestSkipped('Schema UltimatePOS/seed ausente (sqlite :memory: ou DB vazio) — roda na lane MySQL / CT 100.');
@@ -135,7 +175,11 @@ it('UC-PEDIT-05 · editar produto não desliga o controle de estoque (enable_sto
     expect((int) Product::findOrFail($p->productId)->enable_stock)
         ->toBe(1, 'pré-condição: o produto nasce controlando estoque');
 
-    $this->put("/products/{$p->productId}", payloadDaTelaReact($produto));
+    $payload = payloadQueChegaNoSave($produto);
+    $this->put("/products/{$p->productId}", $payload);
+
+    // anti-vácuo: sem isto, "enable_stock continua 1" não distingue PRESERVADO de NUNCA-ESCRITO
+    exigeQueTenhaPersistido($p->productId, $payload['name'], 'UC-PEDIT-05');
 
     expect((int) Product::findOrFail($p->productId)->enable_stock)->toBe(
         1,
@@ -157,7 +201,11 @@ it('UC-PEDIT-07 · editar não apaga flags que a tela não envia', function () {
     $produto->enable_sr_no = 1;
     $produto->save();
 
-    $this->put("/products/{$p->productId}", payloadDaTelaReact($produto));
+    $payload = payloadQueChegaNoSave($produto);
+    $this->put("/products/{$p->productId}", $payload);
+
+    // anti-vácuo (mesma razão do UC-PEDIT-05)
+    exigeQueTenhaPersistido($p->productId, $payload['name'], 'UC-PEDIT-07');
 
     $depois = Product::findOrFail($p->productId);
 
@@ -173,9 +221,17 @@ it('UC-PEDIT-07 · editar não apaga flags que a tela não envia', function () {
 
 // =============================================================================
 // UC-PEDIT-06 — Edit.charter §Goals: "Salvar" persiste.
-//   Ramo `single`: o writer lê `single_variation_id` de um `only()` que não a contém
-//   → Variation::find(null) → atribuição em null → \Error → 500.
-//   Defeito INDEPENDENTE do UC-PEDIT-05 (§5 2026-07-15) — por isso teste próprio.
+//
+// ⚠️ O MECANISMO PREVISTO ESTAVA ERRADO — o teste corrigiu (run 30122144831).
+//   Previsto: `Variation::find(null)` → atribuição em null → `\Error` → 500.
+//   MEDIDO:   aborta ANTES, em `preparation_time_in_minutes` (L1037, sem `??`), e o
+//             `catch (\Exception)` engole → **redirect, sem 500 e sem gravar**.
+//   O 1º assert (não-500) PASSOU; o que reprovou foi o `name` intacto no banco.
+//   Ou seja: o desfecho é PIOR que 500 — falha SILENCIOSA. O usuário é redirecionado
+//   como se tivesse salvo. 500 ao menos grita.
+//
+//   Este UC usa de propósito o payload PURO da tela (sem a chave que destrava o save):
+//   é exatamente esse payload que a tela manda hoje, e é ele que precisa persistir.
 // =============================================================================
 
 it('UC-PEDIT-06 · editar produto single persiste em vez de estourar 500', function () {
