@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-23**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-24**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -18,42 +18,42 @@ lifecycle: ativo
 
 | Módulo | BRIEFING | Último toque |
 |---|---|---|
-| Admin | [BRIEFING](../requisitos/Admin/BRIEFING.md) | 2026-07-02 |
-| ADS | [BRIEFING](../requisitos/ADS/BRIEFING.md) | 2026-06-08 |
-| Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-06-08 |
-| AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-06-08 |
-| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-15 |
-| Brief | [BRIEFING](../requisitos/Brief/BRIEFING.md) | 2026-07-21 |
-| Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-17 |
-| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-03 |
-| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-06-15 |
-| Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-06-08 |
-| ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-06-15 |
-| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-22 |
-| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-19 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-21 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-03 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-17 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-17 |
-| KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-17 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-19 |
-| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-14 |
-| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-06-08 |
-| Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-06-15 |
-| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-17 |
-| PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-14 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-02 |
-| ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-06-08 |
-| ProjectMgmt | [BRIEFING](../requisitos/ProjectMgmt/BRIEFING.md) | 2026-06-13 |
-| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-07-14 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-14 |
-| Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-06-08 |
-| SRS | [BRIEFING](../requisitos/SRS/BRIEFING.md) | 2026-07-19 |
-| Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-06-08 |
-| TeamMcp | [BRIEFING](../requisitos/TeamMcp/BRIEFING.md) | 2026-07-17 |
-| Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-19 |
-| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-17 |
-| Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-06-08 |
+| Admin | [BRIEFING](../requisitos/Admin/BRIEFING.md) | 2026-07-23 |
+| ADS | [BRIEFING](../requisitos/ADS/BRIEFING.md) | 2026-07-23 |
+| Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-07-23 |
+| AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |
+| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-23 |
+| Brief | [BRIEFING](../requisitos/Brief/BRIEFING.md) | 2026-07-23 |
+| Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
+| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-23 |
+| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-07-23 |
+| Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-07-23 |
+| ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-07-23 |
+| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-23 |
+| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-23 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-23 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-23 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-23 |
+| KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-23 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
+| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-23 |
+| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-07-23 |
+| Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-23 |
+| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-23 |
+| PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-23 |
+| ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
+| ProjectMgmt | [BRIEFING](../requisitos/ProjectMgmt/BRIEFING.md) | 2026-07-23 |
+| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-07-23 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-23 |
+| Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-07-23 |
+| SRS | [BRIEFING](../requisitos/SRS/BRIEFING.md) | 2026-07-23 |
+| Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-07-23 |
+| TeamMcp | [BRIEFING](../requisitos/TeamMcp/BRIEFING.md) | 2026-07-23 |
+| Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-23 |
+| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-23 |
+| Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-07-23 |
 
 ## Programa SDD (governança)
 
@@ -65,7 +65,7 @@ lifecycle: ativo
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 33 required (enforcement: everyone)
+### Bloqueiam merge — 35 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -80,6 +80,7 @@ lifecycle: ativo
 - ESLint · ratchet vs baseline
 - Frontend / Vite build
 - Layout primitives · ratchet
+- Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
 - PHP / Pest (Financeiro · MySQL)
@@ -100,28 +101,29 @@ lifecycle: ativo
 - gate selftest (as catracas mordem · GT-G6)
 - screen-coverage-gate
 - visual-regression
+- deadlink-gate (ratchet · integridade referencial)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 111 workflows por classe
+### Censo — 113 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 81 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 83 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 
 ## Decisões (ADRs)
 
-- **352** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 320 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **356** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 324 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **3** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 39 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 40 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -162,6 +164,7 @@ lifecycle: ativo
 - ~~2026-07-22 — Responder "quais arquivos/artefatos tem a tela" por Glob/leitura em vez da porta viva derivada~~
 - ~~2026-07-22 — Mover os 6 dicionários de `memory/dominio/` (SINGULAR) para `memory/dominios/` (plural) — DOIS DONOS, não pasta duplicada~~
 - ~~2026-07-22 — Blindar candidatos de realocação "por julgamento" sem rodar a máquina + afirmar comportamento de extrator por leitura~~
+- ~~2026-07-23 — Criar um "mapa/porta única da arquitetura de arquivos" (doc + gerador) — os donos JÁ existem; e o 03-architecture.md é fóssil-armadilha~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -169,14 +172,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **299** handoffs · **508** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **299** handoffs · **510** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-23-sdd-avaliacao-adversarial`
+  - `2026-07-23-grade-swimm-vs-kb-doc-codigo`
   - `2026-07-22-realocacao-modulos-veredito-nao-migrar`
   - `2026-07-22-porta-documental-unica-guardiao-duplicatas`
   - `2026-07-22-incidente-mcp-link-flap-ct100`
   - `2026-07-22-ciclo-realocacao-documental-profissional`
-  - `2026-07-22-ciclo-documental-guardiao-fechado`
-  - `2026-07-22-arquitetura-ia-jana-retrato`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-23 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-24 · deriva das fontes canônicas, não as substitui._
