@@ -216,3 +216,47 @@ produção.
 **Colunas confirmadas** (`git grep -n ... -- database/migrations`): `preparation_time_in_minutes`
 (`2022_08_25_132707`), `not_for_selling` (`2019_07_22_152649`), `product_custom_field5..20`
 (`2023_04_17_155216`). Não são campos fantasma.
+
+---
+
+## ⚠️ Correção de severidade — "alcançável em produção" era FALSO (2026-07-24, mesma sessão)
+
+> **Quem errou:** eu ([CC]), no **commit message** que introduziu este arquivo (`e5ff0f39`) e no
+> relato em chat. O corpo deste documento (produzido pelo agent) **não** carrega a afirmação — ele
+> já dizia o certo: *"o Blade legado é o que roda em produção"*. A correção mora aqui porque o
+> histórico não se reescreve (force-push bloqueado por hook, e com razão).
+
+**O que eu afirmei:** *"alcançável em produção — `edit()` só devolve React com header `X-Inertia`, e
+`Produto/Show.tsx:114` tem `<Link>` Inertia pro `/products/{id}/edit`; `<Link>` manda esse header."*
+
+**Por que é falso — varredura parcial apresentada como conclusão.** Verifiquei o salto
+`Show → Edit` e **não verifiquei se o `Show` em si é alcançável**. É a classe LC-08 de novo
+(§5 2026-07-15: *"apresentar achado sem varrer TODOS os consumidores e dizer o número"*).
+
+**Medido depois, e é o que fecha a conta:**
+
+| Fato | Recibo |
+|---|---|
+| As telas do Produto são **duais** — `X-Inertia` → React, senão Blade ("coexistência opt-in", [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) | `ProductController.php:342` (`index`) · `:909` (`edit`) |
+| A sidebar do cockpit usa **`<a href>` puro**, não `<Link>` do Inertia → reload completo → **não manda `X-Inertia`** | `resources/js/Components/cockpit/Sidebar.tsx:489` |
+| Todos os `<Link href="/products">` vivem **dentro das próprias páginas React do Produto** — circular, sem porta de entrada | `grep -rnE 'href=[\"'"'"'`]/products' resources/js/` → 10 hits, **10 em `Pages/Produto/**`** |
+
+**Conclusão correta:** as telas React do Produto são **inalcançáveis hoje**. O que roda em produção
+é o Blade — confirmado por [F] em 2026-07-24: *"no produto o que está funcionando hoje é o blade, e
+vamos migrar para react"*.
+
+### O achado NÃO morre — muda de natureza
+
+Continua real e medido (`Edit.tsx` manda 18 chaves; `update()` lê 33+ via `$request->only()` mais
+`$request->input()`; 4 flags viram zero na ausência — `enable_stock` L76-79, `not_for_selling` L82,
+`enable_sr_no` L101-104, `sub_unit_ids` L71). Mas o status correto é:
+
+> **bloqueador de migração**, não incidente de produção.
+
+É a **definição de pronto** da tela React: enquanto o payload não fechar, ligar a tela significa
+zerar estoque no primeiro save. Encaixa no MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) —
+o cutover F5 só depois da paridade, e este é um item duro dessa paridade.
+
+**Segue valendo a REGRA MESTRE** (`proibicoes.md` §CÁLCULO DE VALOR ou ESTOQUE): leitura de código
+não é prova de runtime. O instrumento que converte isto em fato é o
+`ProdutoEditPayloadContratoTest` failing-first, na lane `PHP / Pest (Estoque · MySQL)` do CI.
