@@ -32,6 +32,8 @@
  *   node scripts/governance/catalog-graph.mjs --write    (grava memory/governance/catalog.json)
  *   node scripts/governance/catalog-graph.mjs --check     (CI advisory: exit 1 se DRIFT ou aresta pendurada)
  *   node scripts/governance/catalog-graph.mjs --json      (imprime o catalog.json no stdout, não grava)
+ *   node scripts/governance/catalog-graph.mjs --mermaid   (VISTA: diagrama de fluxo entre módulos, stdout)
+ *   node scripts/governance/catalog-graph.mjs --mermaid --focus=Financeiro   (vizinhança de 1 salto)
  *
  * Refs: ADR 0256 (survival, fonte única gerada) · ADR 0314/0275 (advisory-primeiro) ·
  *       grade 2026-07-21 (chip #2 "arestas tipadas no catálogo") · irmão `module-surface.mjs`.
@@ -512,6 +514,59 @@ function reportDiagnostics(graph) {
 // main
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Arestas que compõem o FLUXO entre módulos. Deliberadamente um subconjunto:
+ * `hasComponent` (419) e `governedByAdr`/`charteredByAdr` (135) são verdadeiras mas
+ * viram cabelo — um diagrama que mostra tudo não mostra nada.
+ */
+const MERMAID_FLOW_EDGES = new Set(['dependsOn', 'delegatesTo', 'migratesTo']);
+const MERMAID_ARROW = { dependsOn: '-->', delegatesTo: '-.->', migratesTo: '==>' };
+
+/**
+ * VISTA (não fonte) — renderiza o grafo já derivado como mermaid.
+ *
+ * POR QUE EXISTE: o `catalog.json` responde "quem depende de quem" mas só por `jq` —
+ * o dado existe e ninguém consegue OLHAR. Isto não cria fonte nova nem doc paralelo
+ * (lápide §5 2026-07-23): é o MESMO grafo, mesma derivação, outra saída.
+ *
+ * `--focus=<Modulo>` recorta a vizinhança de 1 salto, que é a pergunta que se faz de
+ * verdade ("o que quebra se eu mexer no Financeiro?"). Sem foco, o grafo inteiro.
+ */
+export function toMermaid(graph, { focus = null } = {}) {
+  const isMod = (id) => String(id).startsWith('module:');
+  const nm = (id) => String(id).replace(/^module:/, '');
+
+  let edges = graph.edges.filter((e) => MERMAID_FLOW_EDGES.has(e.type) && isMod(e.from) && isMod(e.to));
+  if (focus) {
+    const f = `module:${focus}`;
+    if (!graph.nodes.some((n) => n.id === f)) return { erro: `módulo não está no grafo: ${focus}` };
+    edges = edges.filter((e) => e.from === f || e.to === f);
+  }
+
+  const usados = new Set();
+  for (const e of edges) { usados.add(nm(e.from)); usados.add(nm(e.to)); }
+
+  const linhas = ['graph LR'];
+  for (const m of [...usados].sort()) linhas.push(`  ${m}["${m}"]`);
+  const vistas = new Set();
+  for (const e of edges.slice().sort((a, b) => (a.from + a.to + a.type).localeCompare(b.from + b.to + b.type))) {
+    const l = `  ${nm(e.from)} ${MERMAID_ARROW[e.type]} ${nm(e.to)}`;
+    if (vistas.has(l)) continue; // 2 SCOPE.md podem declarar a mesma aresta
+    vistas.add(l);
+    linhas.push(l);
+  }
+
+  // Módulos SEM nenhuma aresta de fluxo — o silêncio também é informação.
+  // SÓ faz sentido na vista GLOBAL: sob --focus, "fora do recorte" ≠ "sem aresta"
+  // (eles TÊM arestas, só não com o módulo focado). Reportar ali seria o instrumento
+  // respondendo uma pergunta PARECIDA com a feita — a classe LC-08.
+  const ilhas = focus
+    ? null
+    : graph.nodes.filter((n) => n.type === 'module').map((n) => nm(n.id)).filter((m) => !usados.has(m)).sort();
+
+  return { mermaid: linhas.join('\n'), modulos: usados.size, arestas: vistas.size, ilhas };
+}
+
 function main() {
   const mods = listScopeModules();
   if (!mods.length) {
@@ -524,6 +579,19 @@ function main() {
   const outAbs = join(ROOT, OUT_REL);
 
   if (PRINT_JSON) { process.stdout.write(content); return; }
+  if (args.includes('--mermaid')) {
+    const fi = args.findIndex((a) => a === '--focus' || a.startsWith('--focus='));
+    const focus = fi < 0 ? null : (args[fi].includes('=') ? args[fi].split('=')[1] : args[fi + 1]);
+    const v = toMermaid(graph, { focus: focus || null });
+    if (v.erro) { console.error(`[catalog-graph] ${v.erro}`); process.exit(1); }
+    process.stdout.write(v.mermaid + '\n');
+    console.error(
+      `[catalog-graph] vista mermaid: ${v.modulos} módulos · ${v.arestas} arestas de fluxo` +
+      (focus ? ` (foco: ${focus}, 1 salto)` : '') +
+      (v.ilhas && v.ilhas.length ? ` · ${v.ilhas.length} sem NENHUMA aresta de fluxo: ${v.ilhas.join(', ')}` : ''),
+    );
+    return;
+  }
   const qi = args.indexOf('--query');
   if (qi >= 0) {
     const result = queryGraph(graph, args[qi + 1]);
