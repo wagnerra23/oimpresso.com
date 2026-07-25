@@ -50,12 +50,22 @@ export function threshold(env = process.env) {
  * EXCEÇÃO (ADR 0224 · ADR 0344): advisory declarado terminal/by-design é a decisão FINAL
  * válida pra a classe (não é furo) → NÃO alarma. Marca-se com `terminal`/`by-design`/`0224`.
  * Um nome-de-gate real ("mutation-gate (advisory, ...)") NÃO casa — só o prefixo declarado.
+ *
+ * ⚠️ O marcador da exceção só vale na CABEÇA da declaração (o que vem ANTES do primeiro
+ * travessão), NUNCA no corpo. Bug medido 2026-07-25: o teste rodava sobre a string inteira,
+ * então `Gate: advisory — <hook> … predicado semântico → ADR 0224` **silenciava o alarme**
+ * pela menção à 0224 no meio do texto — e a 0224 é exatamente a ADR que rege advisory, ou
+ * seja, a citação MAIS provável de aparecer era a que desligava a vigilância. Falso-verde
+ * silencioso, família "verde que não pode ficar vermelho" (§5 2026-07-17 drift-sentinel).
+ * Controle negativo no selftest: corpo citando 0224 DEVE seguir alarmando.
  */
 export function semGate(g) {
   if (!g) return true;
   const s = String(g).trim();
   if (/^(none|nenhum|nenhuma|-|n\/a|na)$/i.test(s)) return true;
-  if (/^(advisory|parcial|insuficiente)\b/i.test(s)) return !/\b(terminal|by-design|0224)\b/i.test(s);
+  // cabeça = até o primeiro travessão (— / – / --); sem travessão, a declaração inteira.
+  const cabeca = s.split(/\s(?:—|–|--)\s/)[0];
+  if (/^(advisory|parcial|insuficiente)\b/i.test(s)) return !/\b(terminal|by-design|0224)\b/i.test(cabeca);
   return false;
 }
 

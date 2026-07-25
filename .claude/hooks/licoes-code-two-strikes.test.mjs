@@ -44,6 +44,14 @@ check('formatBanner vazio quando nada', formatBanner([], [], 2) === '');
 check('semGate: advisory/parcial/insuficiente = sem defesa mecanica', semGate('advisory — nudge-x') && semGate('parcial: cobre so X') && semGate('insuficiente'));
 check('semGate: nome de gate real com "(advisory,...)" NAO casa (so o prefixo declarado)', !semGate('mutation-gate (advisory, escopo v1)') && !semGate('block-foo.mjs'));
 check('semGate: advisory-terminal/by-design/0224 NAO alarma (decisao final ADR 0224)', !semGate('advisory-terminal (0224) — nudge-x') && !semGate('advisory by-design: nudge-y') && !semGate('parcial (0224 terminal)'));
+// CONTROLE NEGATIVO (bug medido 2026-07-25): o marcador da excecao so vale na CABECA da
+// declaracao (antes do 1o travessao). Antes do fix, `advisory — <hook> ... ADR 0224` silenciava
+// o alarme pela MENCAO a 0224 no corpo — e a 0224 e a ADR que rege advisory, logo a citacao mais
+// provavel era a que desligava a vigilancia (falso-verde silencioso). LC-09 caiu nisso ao vivo.
+check('semGate: advisory que so CITA 0224/terminal no CORPO segue alarmando (marcador so na cabeca)',
+  semGate('advisory — design-agente-ativa (so eixo design); predicado semantico -> ADR 0224: semantico = advisory')
+  && semGate('advisory — hook-x; o gate terminal do vizinho nao vale aqui')
+  && semGate('parcial (3/8) — cobre 3; resto sem sonda, ver ADR 0224'));
 const MD2 = `# Licoes
 ## LC-90 - Classe de processo com gate advisory que vaza
 **Ocorrências:** 5
