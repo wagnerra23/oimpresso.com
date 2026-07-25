@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-24**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-25**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -57,7 +57,7 @@ lifecycle: ativo
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **346**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **342**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -117,8 +117,8 @@ lifecycle: ativo
 
 ## Decisões (ADRs)
 
-- **356** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 324 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **358** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 326 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **3** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -172,14 +172,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **299** handoffs · **510** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **299** handoffs · **511** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-24-verificacao-transcript-gestao-documentacao`
   - `2026-07-23-sdd-avaliacao-adversarial`
   - `2026-07-23-grade-swimm-vs-kb-doc-codigo`
   - `2026-07-22-realocacao-modulos-veredito-nao-migrar`
   - `2026-07-22-porta-documental-unica-guardiao-duplicatas`
   - `2026-07-22-incidente-mcp-link-flap-ct100`
-  - `2026-07-22-ciclo-realocacao-documental-profissional`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-24 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-25 · deriva das fontes canônicas, não as substitui._
