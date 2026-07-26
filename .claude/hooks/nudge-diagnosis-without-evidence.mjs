@@ -15,7 +15,7 @@
 // Selftest: node .claude/hooks/nudge-diagnosis-without-evidence.mjs --selftest
 
 import { spawnSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readFileSync, existsSync } from 'node:fs';
 
 export const NUDGE = "[R1+ / ADR 0233] Voce AFIRMOU uma causa/diagnostico. Mostre a EVIDENCIA (grep/log/SQL/trace/Read) que prova, antes de cravar. Nao chute (sessao 2026-05-29 chutou causa do 500 2x). Se ainda nao tem evidencia, diga 'hipotese a confirmar'.";
@@ -70,7 +70,7 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--selftest')) {
     const test = new URL('./nudge-diagnosis-without-evidence.test.mjs', import.meta.url);
-    const r = spawnSync(process.execPath, [test.pathname], { stdio: 'inherit' });
+    const r = spawnSync(process.execPath, [fileURLToPath(test)], { stdio: 'inherit' });
     process.exit(r.status ?? 1);
   }
   main();
