@@ -1,0 +1,154 @@
+#!/usr/bin/env node
+/**
+ * Selftest do workflow `.claude/workflows/reguas-do-sistema.js` — PERSISTÊNCIA INCREMENTAL.
+ *
+ * POR QUE EXISTE (defeito MEDIDO, não hipótese): a grade rodava como transação única de ~88
+ * agentes com a fase `Persistir` só no FIM. As duas rodadas de 2026-07-25/26 morreram no meio
+ * (interrupção; depois teto de uso com 27 de 88 agentes falhando) e nas DUAS o trabalho caro
+ * (12 pesquisas web + 24 refutações + 15 integrações) sobreviveu só no journal do run:
+ * `notas` null, `grade` null, `persistencia` null, `memory/reguas/retratos.json` intocado.
+ * O conserto foi persistir por CHECKPOINT (claims após Integração · retrato+fraquezas após a
+ * composição determinística, ANTES da prosa cara). Este selftest trava a ORDEM e a HONESTIDADE
+ * do retrato — sem ele, uma edição futura reintroduz o defeito e nada avisa.
+ *
+ * COMO TESTA O CÓDIGO REAL: o arquivo do workflow é executado pelo tool Workflow dentro de uma
+ * função async com os globals (`args`, `agent`, `parallel`, `phase`, `log`) injetados — por isso
+ * ele tem `return`/`await` de topo e não é importável direto. Aqui o MESMO fonte é embrulhado
+ * nessa função e rodado com um DUBLÊ de `agent()` que devolve payload no formato de cada schema.
+ * ZERO agentes, zero rede, zero LLM — milissegundos. Não é fixture copiada: é o arquivo vivo.
+ *
+ * Advisory por desenho (ADR 0314/0275: required = só Tier-0).
+ */
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+const ALVO = path.join(RAIZ, '.claude/workflows/reguas-do-sistema.js')
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'reguas-wf-'))
+
+const carregar = async (arquivo) => {
+  const src = fs.readFileSync(arquivo, 'utf8').replace(/^export const meta/m, 'const meta')
+  const f = path.join(TMP, `wf-${Math.random().toString(36).slice(2)}.mjs`)
+  fs.writeFileSync(f, 'export default async function (args, agent, parallel, phase, log) {\n' + src + '\n}')
+  return (await import(`file://${f}`)).default
+}
+
+let falhas = 0
+const ok = (cond, msg) => { console.log(`${cond ? '  ok  ' : '  FALHOU  '}${msg}`); if (!cond) falhas++ }
+
+// Dublê: responde por PREFIXO de label (o contrato que o workflow usa pra rotular cada agente).
+const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan } = {}) => {
+  const chamadas = []; const logs = []
+  let nVerif = 0
+  const agent = async (prompt, opts = {}) => {
+    const l = opts.label || ''
+    chamadas.push({ label: l, prompt, model: opts.model, effort: opts.effort })
+    if (l === 'delta-scan') return scan
+    if (l.startsWith('p:')) {
+      const key = l.slice(2)
+      return { dimensao: key, lideres: [], roubar: [],
+        oimpresso_acima: [{ ideia: `acima-${key}`, porque_acima: 'pq' }],
+        oimpresso_atras: [`fraqueza-A-${key}`, `fraqueza-B-${key}`, `fraqueza-C-${key}`] }
+    }
+    if (l.startsWith('canary:') || l.startsWith('r:')) return { veredito: 'REFUTADO', razao: 'peer existe', quem_ja_faz: 'PeerCorp' }
+    if (l.startsWith('i:')) return { veredito: 'DIFERENCIAL_SISTEMA', incremento: 'a cola', razao: 'r' }
+    if (l.startsWith('v:')) { nVerif++; return nVerif <= verificarNulo ? null : { veredito: 'PARCIAL', evidencia: 'arq.mjs:12', nota_sugerida: 6 } }
+    if (l.startsWith('cp-') || l.startsWith('re-')) return { ok: persistOk(l), resumo: 'gravou' }
+    return 'prosa qualquer'
+  }
+  const fn = await carregar(ALVO)
+  const out = await fn(args, agent, (fns) => Promise.all(fns.map((f) => f())), () => {}, (m) => logs.push(String(m)))
+  const labels = chamadas.map((c) => c.label)
+  return { out, chamadas, logs, labels, prompt: (l) => (chamadas.find((c) => c.label === l) || {}).prompt || '' }
+}
+const pos = (labels, l) => labels.indexOf(l)
+// `a` roda ANTES de `b` — exige os DOIS presentes. Sem essa guarda, `indexOf` devolve -1 pro
+// ausente e a comparacao passa VAZIA (o teste diria "ok" num arquivo que nem tem checkpoint).
+// Pego pelo proprio controle-negativo deste selftest rodado contra o arquivo pre-mudanca.
+const ordem = (labels, a, b) => pos(labels, a) > -1 && pos(labels, b) > -1 && pos(labels, a) < pos(labels, b)
+
+console.log('\n[1] full: o ledger recebe o que fechou ANTES da prosa cara')
+{
+  const r = await rodar({ base: '/base' })
+  ok(pos(r.labels, 'cp-claims') > -1 && pos(r.labels, 'cp-retrato') > -1, 'os 2 checkpoints rodam')
+  ok(ordem(r.labels, 'cp-claims', 'v:fraqueza-A-spec-governanca'), 'claims gravam ANTES da fase Verificar')
+  ok(ordem(r.labels, 'cp-retrato', 'grade-final'), 'retrato grava ANTES da grade-final (morte da prosa nao perde a nota)')
+  ok(!r.labels.some((l) => l.startsWith('re-')), 'checkpoint confirmado => 0 agentes de retentativa')
+  ok(r.out.modo === 'full' && (r.out.cobertura || {}).completo === true, 'rodada inteira => modo full, cobertura completa')
+  ok(r.chamadas.filter((c) => c.label.startsWith('cp-')).every((c) => c.effort === 'low'), 'checkpoints sao mecanicos (effort low / modelo barato)')
+}
+
+console.log('\n[2] retrato PARCIAL nunca se passa por completo (restricao dura)')
+{
+  const r = await rodar({ base: '/base' }, { verificarNulo: 5 })
+  ok(r.out.modo === 'full-parcial' && (r.out.cobertura || {}).completo === false, 'perda de agentes => full-parcial')
+  ok(/verificar 19\/24/.test((r.out.cobertura || {}).motivo_parcial || ''), `motivo_parcial nomeia a perda (${(r.out.cobertura || {}).motivo_parcial})`)
+  ok(r.prompt('cp-retrato').includes('"completo":false'), 'o prompt do retrato leva cobertura.completo=false LITERAL')
+  ok(r.prompt('cp-retrato').includes('modo: "full-parcial"'), 'o retrato e gravado como full-parcial')
+}
+
+console.log('\n[3] regras duras do ledger viajam no prompt de persistencia')
+{
+  const p = (await rodar({ base: '/base' })).prompt('cp-retrato')
+  ok(p.includes('NUNCA edite retrato antigo (append-only)'), 'append-only')
+  ok(p.includes('PRESERVE o valor de `indexado`'), 'indexado nunca rebaixa true->false')
+  ok(p.includes('cobertura.assinatura'), 'idempotencia por assinatura (retentativa nao duplica retrato)')
+  ok(p.includes('PROIBIDO recalcular'), 'regra 16: o agente transcreve, nao decide nota')
+}
+
+console.log('\n[4] retentativa: so gasta agente pelo que nao confirmou')
+{
+  const r = await rodar({ base: '/base' }, { persistOk: (l) => l !== 'cp-retrato' })
+  ok(r.labels.includes('re-retrato') && !r.labels.includes('re-claims'), 'retenta so o pendente')
+  ok(r.prompt('re-retrato').startsWith('RETENTATIVA'), 'a retentativa checa idempotencia antes de escrever')
+  const r2 = await rodar({ base: '/base' }, { persistOk: () => false })
+  ok(r2.labels.includes('re-retrato') && r2.labels.includes('re-claims'), 'os DOIS pendentes sao retentados')
+}
+
+console.log('\n[5] rodada menor: args.eixo e args.dimensoes')
+{
+  const r = await rodar({ base: '/base', eixo: 'rodar-e-observar' })
+  ok(r.out.dimensoes === 4, `eixo resolve pras 4 dimensoes do eixo (${r.out.dimensoes})`)
+  ok(r.out.modo === 'full-parcial' && (r.out.cobertura || {}).selecao === 'eixo', 'rodada de 1 eixo NUNCA vira retrato do sistema inteiro')
+  ok(JSON.stringify((r.out.cobertura || {}).eixos_nao_medidos) === '["construir-e-governar","servir-o-negocio"]', 'declara os eixos NAO medidos')
+  const inval = await rodar({ base: '/base', eixo: 'nao-existe' })
+  ok(inval.logs.some((l) => l.includes('eixo sem match')) && inval.out.dimensoes === 12, 'eixo invalido loga e cai pro completo (nunca silencioso)')
+  const dim = await rodar({ base: '/base', dimensoes: ['observabilidade-agente'] })
+  ok(dim.out.dimensoes === 1, 'args.dimensoes (que ja existia) segue funcionando')
+  const str = await rodar(JSON.stringify({ base: '/base', eixo: 'servir-o-negocio' }))
+  ok(str.out.dimensoes === 1, 'args serializado em STRING pela fronteira do tool continua sendo parseado')
+}
+
+console.log('\n[6] delta: mesmos checkpoints, heartbeat intacto')
+{
+  const scan = {
+    ultimo_retrato: { data: '2026-07-18', notas: { 'spec-governanca': 6.5, 'custo-eficiencia': 5 }, integ_hist: { runs: 8 } },
+    dims_delta: { 'spec-governanca': { commits: 9 }, 'custo-eficiencia': { commits: 0 } },
+    claims_vencidas: [{ id: 'c1', titulo: 'claim velha', dimensao: 'spec-governanca', refutador: 'EMPATADO' }],
+    fraquezas: [{ id: 'f1', dimensao: 'spec-governanca', titulo: 'buraco', veredito: 'PARCIAL', nota: 4 }],
+    delta_min_commits: 3,
+  }
+  const r = await rodar({ base: '/base', modo: 'delta' }, { scan })
+  ok(ordem(r.labels, 'cp-retrato-delta', 'prosa-delta'), 'delta grava o retrato ANTES da prosa')
+  ok(r.out.notas['spec-governanca'] === 6 && r.out.notas['custo-eficiencia'] === 5, 'nota re-medida vs herdada preservadas')
+  ok((r.out.cobertura || {}).integracao_nao_rodada === true, 'delta declara que NAO rodou Integracao (integ_hist herdado)')
+  const vazio = await rodar({ base: '/base', modo: 'delta' }, { scan: { ultimo_retrato: { data: '2026-07-18', notas: {}, integ_hist: {} }, dims_delta: { 'spec-governanca': { commits: 0 } }, claims_vencidas: [], fraquezas: [], delta_min_commits: 3 } })
+  ok(vazio.out.nada_a_medir === true && !vazio.labels.some((l) => l.startsWith('cp-')), 'nada a medir => 0 persistencia (heartbeat barato)')
+}
+
+console.log('\n[7] nao-regressao do que ja existia')
+{
+  const r = await rodar({ base: '/base' })
+  ok(r.prompt('grade-final').includes('NÚMEROS JÁ FECHADOS PELA COMPOSIÇÃO DETERMINÍSTICA'), 'regra 16 intacta no prompt da grade')
+  ok(r.chamadas.filter((c) => c.label.startsWith('canary:')).length === 2, 'canarios anti-Goodhart seguem rodando')
+  ok(r.logs.some((l) => l.includes('anti-Goodhart')), 'disclosure do canario intacto')
+  ok(r.chamadas.filter((c) => c.label.startsWith('v:')).length === 24, 'cap estratificado (24) da fase Verificar intacto')
+  ok(r.logs.some((l) => l.includes('CORTE Verificar')), 'corte segue logado (No silent caps)')
+  ok(r.prompt('dossie').includes('/base/memory/decisions/'), 'args.base continua chegando aos prompts')
+}
+
+fs.rmSync(TMP, { recursive: true, force: true })
+console.log(falhas ? `\nFALHOU: ${falhas} assercao(oes)` : '\nOK: selftest do workflow reguas-do-sistema passou')
+process.exit(falhas ? 1 : 0)

@@ -597,5 +597,71 @@
     "degrau": "sensor auto-surfaça drift→cycle_goal",
     "data": "2026-07-18",
     "existia_invisivel": false
+  },
+  {
+    "id": "orq-debate-fase-nao-invocada",
+    "dimensao": "orquestracao-adversarial",
+    "titulo": "MECANISMO EXISTE, NINGUÉM INVOCA — fase Debate (AGREE/CHALLENGE/CONNECT/SURFACE) sem invocador real",
+    "veredito": "PARCIAL",
+    "nota": 7,
+    "evidencia": "grep faseDebate só em debate-adversarial.js + RUNBOOK-fase-debate-adversarial.md — sem invocador em produção",
+    "degrau": null,
+    "data": "2026-07-26",
+    "existia_invisivel": false
+  },
+  {
+    "id": "orq-cross-model-same-vendor",
+    "dimensao": "orquestracao-adversarial",
+    "titulo": "CROSS-MODEL É SAME-VENDOR NA PRÁTICA — reguas-cross-model.mjs desenhado cross-vendor mas uso real same-vendor",
+    "veredito": "PARCIAL",
+    "nota": 6,
+    "evidencia": "repo shallow no momento da checagem; aceita OPENAI_API_KEY mas rodadas reais não usaram 2º vendor",
+    "degrau": null,
+    "data": "2026-07-26",
+    "existia_invisivel": false
+  },
+  {
+    "id": "seg-zero-controle-ambiente",
+    "dimensao": "seguranca-do-agente",
+    "titulo": "GAP Nº1 — ZERO controle de ambiente/sandbox no caminho real",
+    "veredito": "PARCIAL",
+    "nota": 6.5,
+    "evidencia": "settings.json versionado sem chave sandbox alguma (verificado)",
+    "degrau": null,
+    "data": "2026-07-26",
+    "existia_invisivel": false
+  },
+  {
+    "id": "seg-modelo-permissao-nao-versionado",
+    "dimensao": "seguranca-do-agente",
+    "titulo": "O MODELO DE PERMISSÃO (camada 1) não é versionado, não é auditável e não é testado",
+    "veredito": "PARCIAL",
+    "nota": 5.5,
+    "evidencia": "settings.json permissions só tem chave allow (9 entradas), zero deny/ask/defaultMode",
+    "degrau": null,
+    "data": "2026-07-26",
+    "existia_invisivel": false
+  },
+  {
+    "id": "bi-distribuicao-zero",
+    "dimensao": "inteligencia-de-negocio",
+    "titulo": "DISTRIBUIÇÃO ZERO — a Jana-BI nunca chegou na mão do dono do negócio",
+    "veredito": "PARCIAL",
+    "nota": 4,
+    "evidencia": "[W] registrou 'só em teste, não colocou pra cliente usar'",
+    "degrau": null,
+    "data": "2026-07-26",
+    "existia_invisivel": false
+  },
+  {
+    "id": "bi-mock-rota-live",
+    "dimensao": "inteligencia-de-negocio",
+    "titulo": "MOCK EM ROTA LIVE — /ia/dashboard (Cockpit, sidebar) responde mock sem feature-flag",
+    "veredito": "PARCIAL",
+    "nota": 5,
+    "evidencia": "Modules/Jana/Http/Controllers/ChatController.php:533 mockJanaPayload() → Inertia::render('Jana/Cockpit')",
+    "degrau": null,
+    "data": "2026-07-26",
+    "existia_invisivel": false
   }
 ]
