@@ -120,7 +120,7 @@ const ENTREGA_LIMITE_DIAS = Number(process.env.OBRA_PARADA_DIAS || 60);
  */
 const CHAVES_DATA = ['generated_at', 'updated_at', 'last_grade_at', 'last_updated',
   'snapshot_at', 'computed_at', 'reconciled_at', 'distilled_at',
-  'gerado_em', 'atualizado_em', 'gerado_por_em'];
+  'gerado_em', 'atualizado_em', 'gerado_por_em', 'ultima_data'];
 
 /** Artefatos de estado versionados (JSON/YAML sob governance/ e memory/governance/). */
 function arquivosDeEstado() {
@@ -204,6 +204,11 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   ok(dataInterna('{"foo": 1}') === null, 'dataInterna: sem chave de data → null');
   ok(dataInterna('"gerado_em": "2026-07-01"') === '2026-07-01',
     'dataInterna: reconhece chave PT-BR (gerado_em) — o projeto escreve em PT-BR');
+  // Regressão: `governance/route-hits.json` usa `ultima_data` e alimenta DOIS gates
+  // required (charter-live-signal + anchor-lint). Sem esta chave ele era varrido e
+  // classificado como não-datado → invisível pra sempre. Achado da auditoria 07-26.
+  ok(dataInterna('"ultima_data": "2026-07-11"') === '2026-07-11',
+    'dataInterna: reconhece ultima_data (route-hits.json → 2 gates required)');
 
   const ordem = paradosEntre([{ arquivo: 'novo', data: '2026-05-20' }, { arquivo: 'velho', data: '2026-01-01' }], NOW, 60);
   ok(ordem[0].arquivo === 'velho', 'ordena do mais parado pro menos');
