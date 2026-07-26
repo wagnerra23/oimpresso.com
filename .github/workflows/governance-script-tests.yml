@@ -326,3 +326,14 @@ jobs:
       # append-only nunca enforça; dívida grandfathered passa). Sessão 2026-07-23.
       - name: Deadlink-gate (ratchet de links mortos · morde/grandfather/história)
         run: node scripts/governance/deadlink-gate.test.mjs
+      # Persistência INCREMENTAL da grade de réguas (.claude/workflows/reguas-do-sistema.js).
+      # Defeito medido: 2 rodadas mortas no meio (2026-07-25 interrompida · 07-26 teto de uso,
+      # 27 de 88 agentes) perderam TUDO porque a fase Persistir era a última e única escrita —
+      # retratos.json ficou intocado desde 07-18. Este selftest roda o control-flow REAL do
+      # workflow (embrulhado como o tool o executa) com um DUBLÊ de agent(): zero agentes, zero
+      # rede. Trava a ORDEM (checkpoint antes da prosa cara), a HONESTIDADE do retrato (parcial
+      # nunca se passa por completo) e as regras duras do ledger (append-only · `indexado` nunca
+      # rebaixa · regra 16). Controle-negativo conferido: 20 asserções MORDEM no arquivo
+      # pré-mudança e as de não-regressão passam nos dois. Advisory por desenho (ADR 0314/0275).
+      - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
+        run: node scripts/governance/reguas-workflow.test.mjs

@@ -10,9 +10,16 @@ export const meta = {
     { title: 'Verificar', detail: 'toda fraqueza é caçada no REPO VIVO antes da nota — a lição 7/9' },
     { title: 'Grade', detail: 'notas com evidência + próximo degrau + chips sugeridos + rejeitados→§5' },
     { title: 'Delta-scan', detail: 'modo delta: ledger + git log por dimensão → só o que mudou re-mede (ADR proposta reguas-loop)' },
-    { title: 'Persistir', detail: 'grava retrato/claims/fraquezas no ledger memory/reguas/ — o estado do looping' },
+    { title: 'Persistir', detail: 'ledger memory/reguas/ gravado por CHECKPOINT (claims após Integração · retrato+fraquezas após a composição, antes da prosa); esta fase só RETENTA o que não confirmou' },
   ],
 }
+// RETOMÁVEL (2026-07-26): a rodada não é mais uma transação única de 88 agentes com a única
+// escrita no fim. Duas alavancas, independentes:
+//  1. PERSISTÊNCIA INCREMENTAL — o ledger recebe o que já fechou, quando fecha (ver bloco
+//     "PERSISTÊNCIA INCREMENTAL" abaixo). Morreu no meio? o que fechou está no disco, e o
+//     retrato declara `cobertura` (parcial nunca se passa por completo).
+//  2. RODADA MENOR — `args.eixo: 'rodar-e-observar'` (ou `args.dimensoes: [...]`, que já
+//     existia) roda o full em 3 transações de 4-7 dimensões em vez de 1 de 12.
 
 // ── Config (args sobrescrevem) ────────────────────────────────────────────────
 // args: { base?: 'D:/caminho/worktree-fresco-do-main', dimensoes?: [{key,escopo}] }
@@ -35,26 +42,40 @@ const LEDGER_DIR = (A && A.ledger) || 'memory/reguas'
 // porque a composição agora é DETERMINÍSTICA (regra 16): o agente só escreve prosa, não decide nota.
 const MODELO_MECANICO = (A && A.modelo_mecanico) || 'sonnet'
 const DIMS_DEFAULT = [
-  { key: 'spec-governanca', escopo: 'spec-driven development + governança de agentes (Spec Kit, Kiro, Codex, Cursor, Tessl; gates/required; ratchets)' },
-  { key: 'design-to-code', escopo: 'design→code fidelity (Figma Code Connect/Dev Mode, v0, Builder.io; VRT: Chromatic/Applitools/Percy; tokens DTCG/Style Dictionary)' },
-  { key: 'memoria-conhecimento', escopo: 'memória de agente + sobrevivência de conhecimento (Letta, mem0, Zep, LangMem; docs-as-code freshness: Swimm, Dosu; ADR tooling)' },
+  { key: 'spec-governanca', eixo: 'construir-e-governar', escopo: 'spec-driven development + governança de agentes (Spec Kit, Kiro, Codex, Cursor, Tessl; gates/required; ratchets)' },
+  { key: 'design-to-code', eixo: 'construir-e-governar', escopo: 'design→code fidelity (Figma Code Connect/Dev Mode, v0, Builder.io; VRT: Chromatic/Applitools/Percy; tokens DTCG/Style Dictionary)' },
+  { key: 'memoria-conhecimento', eixo: 'construir-e-governar', escopo: 'memória de agente + sobrevivência de conhecimento (Letta, mem0, Zep, LangMem; docs-as-code freshness: Swimm, Dosu; ADR tooling)' },
   // Adicionada 2026-07-21 (pedido [W]: "a régua do sistema deve conter essa nova estrutura"): o catálogo-por-módulo + parecer-de-código-ancorado. DISTINTO de memoria-conhecimento (freshness doc↔código): aqui a régua é a ESTRUTURA (descritor+superfície derivada+opinião-com-rubrica por contexto).
-  { key: 'catalogo-modulo-opiniao-codigo', escopo: 'catálogo de conhecimento POR MÓDULO (descritor schema + superfície de arquivos DERIVADA + índice/resumo que aponta) + PARECER de código ancorado a RUBRICA externa (concordo/não por função, anti-sicofância, citação extrativa — nunca opinião livre). Referência de mercado = IDP/software-catalog + scorecards (Backstage catalog-info+Soundcheck, Cortex/OpsLevel/Port scorecard-as-code) + code-health opinionado contra rubrica validada (CodeScene Code Red, fitness functions). Régua = cada CONTEXTO tem (1) descritor de fronteira, (2) superfície de arquivos derivada-não-escrita, (3) resumo que aponta (não recopia), (4) opinião por função COMPILADA em critérios+evidência (não vibe). Estado (2026-07-21): SCOPE.md (fronteira, scope-guard enforçado) + SUPERFICIE.md (derivada, module-surface.mjs, Classe A+B) + BRIEFING (resumo) + funcao-scorecard (8 critérios ancorados ADR 0093/proibicoes/§5; bite-test 3/3 famílias de defeito achadas + T1 96,9% + 0 over-flag no controle). Fonte: proposals/2026-07-21-taxonomia-arquivos-modulo.md + memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md. Medir o Δ conforme espalha por módulo.' },
-  { key: 'orquestracao-adversarial', escopo: 'multi-agente + verificação adversarial (Anthropic orchestrator-worker, Devin/Cognition, Jules, Amp, Agent HQ)' },
-  { key: 'evals-outcome', escopo: 'evals e medição de outcome de agentes (Braintrust, LangSmith, DORA/DX for AI; goal-based evals; scorecards de processo)' },
-  { key: 'erp-ia-produto', escopo: 'IA embarcada em ERP — o PRODUTO (SAP Joule, Dynamics Copilot, Odoo AI; BR: Bling/Tiny/Omie/Conta Azul)' },
+  { key: 'catalogo-modulo-opiniao-codigo', eixo: 'construir-e-governar', escopo: 'catálogo de conhecimento POR MÓDULO (descritor schema + superfície de arquivos DERIVADA + índice/resumo que aponta) + PARECER de código ancorado a RUBRICA externa (concordo/não por função, anti-sicofância, citação extrativa — nunca opinião livre). Referência de mercado = IDP/software-catalog + scorecards (Backstage catalog-info+Soundcheck, Cortex/OpsLevel/Port scorecard-as-code) + code-health opinionado contra rubrica validada (CodeScene Code Red, fitness functions). Régua = cada CONTEXTO tem (1) descritor de fronteira, (2) superfície de arquivos derivada-não-escrita, (3) resumo que aponta (não recopia), (4) opinião por função COMPILADA em critérios+evidência (não vibe). Estado (2026-07-21): SCOPE.md (fronteira, scope-guard enforçado) + SUPERFICIE.md (derivada, module-surface.mjs, Classe A+B) + BRIEFING (resumo) + funcao-scorecard (8 critérios ancorados ADR 0093/proibicoes/§5; bite-test 3/3 famílias de defeito achadas + T1 96,9% + 0 over-flag no controle). Fonte: proposals/2026-07-21-taxonomia-arquivos-modulo.md + memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md. Medir o Δ conforme espalha por módulo.' },
+  { key: 'orquestracao-adversarial', eixo: 'construir-e-governar', escopo: 'multi-agente + verificação adversarial (Anthropic orchestrator-worker, Devin/Cognition, Jules, Amp, Agent HQ)' },
+  { key: 'evals-outcome', eixo: 'construir-e-governar', escopo: 'evals e medição de outcome de agentes (Braintrust, LangSmith, DORA/DX for AI; goal-based evals; scorecards de processo)' },
+  { key: 'erp-ia-produto', eixo: 'construir-e-governar', escopo: 'IA embarcada em ERP — o PRODUTO (SAP Joule, Dynamics Copilot, Odoo AI; BR: Bling/Tiny/Omie/Conta Azul)' },
   // ── Eixo RODAR-E-OBSERVAR (a IA que o sistema produz, viva em prod — não o loop de construir/governar). ──
   // Adicionadas 2026-07-10: as 9 réguas v1→v3 só mediam CONSTRUIR-E-GOVERNAR; este eixo era ponto cego. Ver ADR 0333 (emenda à 0330).
-  { key: 'observabilidade-agente', escopo: 'traces/custo/latência/alucinação do agente e da IA em produção (Langfuse, LangSmith, Braintrust, OpenTelemetry GenAI semantic conventions; spans + custo por run). Régua = painel vivo + heartbeat que prova o FLUXO (não só a via), não log solto. Estado (2026-07): Langfuse LIVE desde 2026-07-02 + emissão OTel GenAI (LaravelAiSdkDriver::emitirOtelGenAi); heartbeat langfuse_trace_uptime_24h no HealthCheckCommand shipado 2026-07-17 (#4425, lê a fonte real da API /api/public/traces) + fix da prova multi-tenant do OTel biz=1 (#4427) + advisory desligado-prod (#4444). Baseline da dimensão na grade v2 (2026-07-17) = 6,5/10 — medir o Δ pós-chips' },
-  { key: 'qualidade-drift-ia-producao', escopo: 'qualidade + drift da IA-PRODUTO (a Jana) em prod — recall/hallucination gold-set + canary de drift (RAGAS, DeepEval, continuous-eval). DISTINTO de evals-outcome (que é DORA/outcome do agente-DEV): aqui a régua é a resposta da Jana ao cliente. Projeto tem jana-ragas-gate JÁ + #3 P0 drift-sentinel pendente' },
-  { key: 'seguranca-do-agente', escopo: 'defesa a prompt-injection + fronteira instrução-vs-dado + modelo de permissão de tools/hooks (OWASP LLM Top 10, Anthropic agent-safety, Google SAIF). Régua = superfície de tool/hook auditada + injection tratada, não confiança implícita' },
-  { key: 'custo-eficiencia', escopo: 'token/crédito por tarefa como MÉTRICA medida — hoje é só valor cultural do Wagner, sem número (Cursor, Cognition/Devin cost-per-task). Régua = custo por PR/feature observável, não "economize crédito" verbal' },
+  { key: 'observabilidade-agente', eixo: 'rodar-e-observar', escopo: 'traces/custo/latência/alucinação do agente e da IA em produção (Langfuse, LangSmith, Braintrust, OpenTelemetry GenAI semantic conventions; spans + custo por run). Régua = painel vivo + heartbeat que prova o FLUXO (não só a via), não log solto. Estado (2026-07): Langfuse LIVE desde 2026-07-02 + emissão OTel GenAI (LaravelAiSdkDriver::emitirOtelGenAi); heartbeat langfuse_trace_uptime_24h no HealthCheckCommand shipado 2026-07-17 (#4425, lê a fonte real da API /api/public/traces) + fix da prova multi-tenant do OTel biz=1 (#4427) + advisory desligado-prod (#4444). Baseline da dimensão na grade v2 (2026-07-17) = 6,5/10 — medir o Δ pós-chips' },
+  { key: 'qualidade-drift-ia-producao', eixo: 'rodar-e-observar', escopo: 'qualidade + drift da IA-PRODUTO (a Jana) em prod — recall/hallucination gold-set + canary de drift (RAGAS, DeepEval, continuous-eval). DISTINTO de evals-outcome (que é DORA/outcome do agente-DEV): aqui a régua é a resposta da Jana ao cliente. Projeto tem jana-ragas-gate JÁ + #3 P0 drift-sentinel pendente' },
+  { key: 'seguranca-do-agente', eixo: 'rodar-e-observar', escopo: 'defesa a prompt-injection + fronteira instrução-vs-dado + modelo de permissão de tools/hooks (OWASP LLM Top 10, Anthropic agent-safety, Google SAIF). Régua = superfície de tool/hook auditada + injection tratada, não confiança implícita' },
+  { key: 'custo-eficiencia', eixo: 'rodar-e-observar', escopo: 'token/crédito por tarefa como MÉTRICA medida — hoje é só valor cultural do Wagner, sem número (Cursor, Cognition/Devin cost-per-task). Régua = custo por PR/feature observável, não "economize crédito" verbal' },
   // ── Eixo SERVIR-O-NEGÓCIO (a inteligência de negócio do PRODUTO — o ponto cego que o adversário 2026-07-10 expôs). ──
   // A grade media CONSTRUIR-E-GOVERNAR e RODAR-E-OBSERVAR, mas nunca "o sistema serve o negócio (A+B) ou governa a si mesmo (C)?".
-  { key: 'inteligencia-de-negocio', escopo: 'inteligência de negócio embarcada + cliente-como-sinal: a IA responde o DONO do negócio com dado real do tenant (SAP Joule, Odoo AI, Dynamics Copilot) e o backlog nasce de sinal de cliente/uso, não de régua/prazo (product-led: Linear, Productboard, PLG). Régua = (1) equilíbrio entre construir-produto (A+B) e governar-o-processo (C) — fonte interna scripts/governance/negocio-vs-governanca-ratio.mjs; (2) órgão-sensor do sinal do cliente vivo e conectado (loop client_signal→cycle_goal), não apodrecido. DISTINTO de erp-ia-produto (features do ERP) e de qualidade-drift-ia-producao (recall da Jana): aqui a régua é se a ENERGIA do sistema serve o negócio ou a própria governança. Ponto cego confirmado pelo adversário-inteligencia-negocio 2026-07-10.' },
+  { key: 'inteligencia-de-negocio', eixo: 'servir-o-negocio', escopo: 'inteligência de negócio embarcada + cliente-como-sinal: a IA responde o DONO do negócio com dado real do tenant (SAP Joule, Odoo AI, Dynamics Copilot) e o backlog nasce de sinal de cliente/uso, não de régua/prazo (product-led: Linear, Productboard, PLG). Régua = (1) equilíbrio entre construir-produto (A+B) e governar-o-processo (C) — fonte interna scripts/governance/negocio-vs-governanca-ratio.mjs; (2) órgão-sensor do sinal do cliente vivo e conectado (loop client_signal→cycle_goal), não apodrecido. DISTINTO de erp-ia-produto (features do ERP) e de qualidade-drift-ia-producao (recall da Jana): aqui a régua é se a ENERGIA do sistema serve o negócio ou a própria governança. Ponto cego confirmado pelo adversário-inteligencia-negocio 2026-07-10.' },
 ]
 
-// Resolve args.dimensoes pra rodada PARCIAL (re-medir 1 dimensão após um chip). Aceita:
+// ── EIXOS — rótulo declarado (o dado já existia, só em COMENTÁRIO acima e em prosa na SKILL) ──
+// Serve a duas coisas, ambas do chip "incremental e retomável":
+//  (a) `args.eixo` roda o full em 3 transações menores (1 por eixo, ~4-7 dimensões cada) sem o
+//      caller digitar as keys à mão — key errada degrada a pesquisa em SILÊNCIO (incidente
+//      2026-07-17, o mesmo que motivou a resolução por string logo abaixo);
+//  (b) o retrato declara `cobertura.eixos_medidos` / `eixos_nao_medidos`, pra rodada de 1 eixo
+//      NUNCA se passar por retrato do sistema inteiro.
+// NÃO é régua nova nem agrupamento novo: é o MESMO DIMS_DEFAULT com o rótulo que já estava
+// escrito ao lado dele. `args.dimensoes` continua funcionando idêntico (era, e segue sendo, o
+// caminho suficiente pra rodada parcial — o eixo só remove o footgun de digitar 4-7 keys).
+const EIXOS = [...new Set(DIMS_DEFAULT.map((d) => d.eixo))]
+const EIXO_DE = Object.fromEntries(DIMS_DEFAULT.map((d) => [d.key, d.eixo]))
+let SELECAO = 'completa' // 'completa' | 'eixo' | 'dimensoes' — o delta usa pra forçar re-medida
+
+// Resolve args.eixo / args.dimensoes pra rodada PARCIAL (re-medir 1 eixo ou 1 dimensão). Aceita:
 //   ["observabilidade-agente"]            → string: resolve o escopo do DIMS_DEFAULT pela key
 //   [{ key, escopo }]                     → objeto: usa direto (escopo custom)
 // Sem esta resolução uma STRING vira {key:undefined, escopo:undefined} → o prompt do pesquisador
@@ -64,8 +85,22 @@ const DIMS_DEFAULT = [
 // governança executável por 1,77M tokens. String sem match no default: escopo = a própria key +
 // log() (nunca undefined mudo). Regra do tool Workflow: "No silent caps — log() what was dropped".
 const DIMS = (() => {
+  // args.eixo: 'rodar-e-observar' | ['construir-e-governar','servir-o-negocio'] — alias pras keys
+  const eixosPedidos = (A && A.eixo) ? (Array.isArray(A.eixo) ? A.eixo : [A.eixo]).map((e) => String(e).trim().toLowerCase()) : []
+  if (eixosPedidos.length) {
+    const semEixo = eixosPedidos.filter((e) => !EIXOS.includes(e))
+    const dims = DIMS_DEFAULT.filter((d) => eixosPedidos.includes(d.eixo))
+    if (semEixo.length) log(`⚠️ eixo sem match (ignorado): ${semEixo.join(', ')} — eixos válidos: ${EIXOS.join(' · ')}`)
+    if (dims.length) {
+      SELECAO = 'eixo'
+      log(`rodada por EIXO [${eixosPedidos.filter((e) => EIXOS.includes(e)).join(', ')}]: ${dims.length} dimensões — ${dims.map((d) => d.key).join(', ')}`)
+      return dims
+    }
+    log('⚠️ nenhum eixo válido em args.eixo — caindo pro conjunto COMPLETO (o retrato vai declarar cobertura completa; se você queria 1 eixo, aborte e corrija)')
+  }
   const req = A && A.dimensoes
   if (!Array.isArray(req) || req.length === 0) return DIMS_DEFAULT
+  SELECAO = 'dimensoes'
   const semMatch = []
   const resolved = req.map((d) => {
     if (d && typeof d === 'object' && d.key) return d
@@ -188,6 +223,84 @@ const capEstratificado = (nome, items, cap, logFn) => {
 }
 /* CAP-ESTRAT-FIM */
 
+// ── PERSISTÊNCIA INCREMENTAL — checkpoints (2026-07-26) ──────────────────────
+// DEFEITO MEDIDO, não hipótese: `Persistir` era a ÚLTIMA e ÚNICA escrita da transação. As duas
+// rodadas de 2026-07-25/26 morreram no meio — a 1ª interrompida em Refutar/Integração, a 2ª no
+// teto de uso (27 de 88 agentes com "session limit", matando a fase Verificar inteira + a grade
+// + o persistir-full) — e nas DUAS o trabalho CARO (12 pesquisas web + 24 refutações + 15
+// integrações) sobreviveu só no journal do run: `notas` null, `grade` null, `persistencia` null,
+// `retratos.json` intocado desde 2026-07-18. Agora o ledger recebe o que FECHOU, quando fecha:
+//   CP-claims  → logo após Integração        (claims.json — upsert por id)
+//   CP-retrato → após a composição determinística e ANTES da prosa cara (fraquezas.json + retrato)
+// A fase Persistir final vira RETENTATIVA: só gasta agente se algum checkpoint não confirmou.
+// Idempotência: claims/fraquezas são upsert-POR-ID (re-aplicar é seguro) e o retrato leva
+// `cobertura.assinatura` (determinística, derivada das contagens da rodada) pra retentativa/resume
+// não inserir dois retratos da mesma rodada. Append-only preservado: retrato novo entra NO TOPO,
+// retrato antigo NUNCA é editado.
+// Regra 16 INTACTA: os números seguem fechando em JS — o agente de persistência só TRANSCREVE.
+// Os checkpoints não chamam o marcador global phase() (passam phase:'Persistir' no opts do agent),
+// pra não intercalar cabeçalho de fase no meio das fases caras.
+const PERSIST_RESULT = { type: 'object', additionalProperties: false, required: ['ok', 'resumo'], properties: {
+  ok: { type: 'boolean', description: 'true SÓ se os arquivos foram gravados E validados com JSON.parse' },
+  resumo: { type: 'string' }, arquivos: { type: 'array', items: { type: 'string' } }, erro: { type: 'string' } } }
+const persistir = (label, prompt) => agent(prompt, { label, phase: 'Persistir', schema: PERSIST_RESULT, effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' })
+const okPersist = (r) => !!(r && r.ok === true)
+const RETENTAR = (p) => `RETENTATIVA — o checkpoint desta MESMA rodada não confirmou gravação. ⚠️ ANTES DE ESCREVER, cheque idempotência: claims/fraquezas são upsert POR ID (re-aplicar é seguro); o RETRATO não — se o TOPO de retratos.json já for desta rodada (mesma \`cobertura.assinatura\`), NÃO insira outro, só confirme ok:true no resumo.\n\n${p}`
+
+/* COBERTURA-INI */
+// Cobertura HONESTA do retrato — restrição dura do chip: retrato parcial NÃO pode se passar por
+// retrato completo. `etapas` = [{nome, esperado, obtido}] com o `esperado` JÁ pós-cap (o corte do
+// capEstratificado é decisão de custo declarada, não morte de rodada). Função PURA (zero globals)
+// entre marcadores, pro selftest extrair e testar o código REAL do arquivo — mesma convenção do
+// CAP-ESTRAT acima.
+const montarCobertura = ({ modo, etapas = [], notas = {}, dimsAlvo = [], eixoDe = {}, eixosTodos = [], extra = {} }) => {
+  const faltas = etapas.filter((e) => e.obtido < e.esperado)
+  const semNota = dimsAlvo.filter((k) => notas[k] === null || notas[k] === undefined)
+  const eixosMedidos = [...new Set(dimsAlvo.map((k) => eixoDe[k] || '(sem-eixo)'))]
+  return {
+    completo: faltas.length === 0 && dimsAlvo.length > 0,
+    motivo_parcial: faltas.length ? faltas.map((e) => `${e.nome} ${e.obtido}/${e.esperado} (perdidas ${e.esperado - e.obtido})`).join(' · ') : null,
+    etapas: Object.fromEntries(etapas.map((e) => [e.nome, `${e.obtido}/${e.esperado}`])),
+    dimensoes_alvo: dimsAlvo,
+    dimensoes_sem_nota: semNota,
+    eixos_medidos: eixosMedidos,
+    eixos_nao_medidos: eixosTodos.filter((e) => !eixosMedidos.includes(e)),
+    cap_agentes_por_fase: CAP_AGENTES_POR_FASE,
+    assinatura: `${modo}|${dimsAlvo.length}d|${etapas.map((e) => `${e.nome}:${e.obtido}/${e.esperado}`).join(',')}`,
+    ...extra,
+  }
+}
+/* COBERTURA-FIM */
+
+// `fit` vive AQUI (e não mais só na fase Grade) porque a persistência incremental também precisa
+// dele — e um `const` declarado depois estaria em TDZ pro checkpoint que roda antes. Corta com
+// LOG (nunca em silêncio): "No silent caps — log() what was dropped" (regra do tool Workflow).
+const fit = (nome, obj, cap) => {
+  const s = JSON.stringify(obj)
+  if (s.length <= cap) return s
+  log(`⚠️ TRUNCADO ${nome}: ${s.length} → ${cap} chars (-${(((s.length - cap) / s.length) * 100).toFixed(0)}%) — o consumidor NÃO viu tudo`)
+  return s.slice(0, cap)
+}
+
+// Prompts de persistência COMPARTILHADOS entre full e delta (uma fonte só pras regras duras do
+// ledger: append-only no retrato · upsert por id · PRESERVAR `indexado` · validar com JSON.parse).
+const promptClaims = (rows, comId) =>
+  `PERSISTIR (checkpoint incremental) as CLAIMS desta rodada em ${BASE}/${LEDGER_DIR}/claims.json (crie o arquivo se não existir — schema no README.md de lá). Dados JÁ FECHADOS (transcreva, não reinterprete): ${rows}\n` +
+  `Passos EXATOS: (1) upsert POR ID — ${comId ? 'o id vem nos dados; NUNCA crie entrada nova pra id existente' : 'derive o id de dimensao+slug do título e REUSE o id já existente quando a claim já estiver no arquivo (não duplique a mesma claim com id novo)'}; grave refutador, peer, integracao (veredito do teste de integração) e data_veredito = hoje (ISO); ttl_dias = 30 se o veredito do refutador for ACIMA_CONFIRMADO, senão 90. (2) PRESERVE os campos existentes que não vieram nos dados — em especial \`correcao_obrigatoria\` e \`journal\` (a correção viaja COM a claim). (3) valide o arquivo com node (JSON.parse) e só então retorne ok:true. NÃO toque em retratos.json nem em fraquezas.json — outro checkpoint cuida deles.`
+
+const promptRetrato = ({ modoRetrato, notas, proveniencia, cobertura, placar, integHistInstrucao, fraquezasRows, extraRetrato }) =>
+  `PERSISTIR (checkpoint incremental) FRAQUEZAS + RETRATO no ledger ${BASE}/${LEDGER_DIR}/ (crie os arquivos se não existirem — schema no README.md de lá). NÚMEROS JÁ FECHADOS EM JS (transcreva LITERAL; PROIBIDO recalcular, arredondar, fundir ou re-atribuir):\n` +
+  `- notas por dimensão: ${JSON.stringify(notas)}\n- proveniência das notas: ${JSON.stringify(proveniencia)}\n` +
+  (placar ? `- placar: ${JSON.stringify(placar)}\n` : '') +
+  `- COBERTURA REAL desta rodada (transcreva LITERAL — é o campo que impede um retrato PARCIAL de se passar por completo): ${JSON.stringify(cobertura)}\n` +
+  `- fraquezas re-medidas: ${fraquezasRows}\n` +
+  `Passos EXATOS:\n` +
+  `(1) retratos.json — insira NO TOPO do array {data: hoje (ISO), modo: "${modoRetrato}", regra_nota: "media-deterministica-v1", notas, proveniencia_notas, ${placar ? 'placar, ' : ''}cobertura, integ_hist, links: []${extraRetrato ? ', ' + extraRetrato : ''}}. NUNCA edite retrato antigo (append-only). ⚠️ Se o TOPO já for um retrato desta MESMA rodada (mesma \`cobertura.assinatura\`), NÃO insira outro — apenas retorne ok:true dizendo isso no resumo.\n` +
+  `    integ_hist: ${integHistInstrucao}\n` +
+  `(2) fraquezas.json — upsert POR ID (atualize nota/veredito/evidencia/degrau + data = hoje; sete existia_invisivel:true + onde_indexar quando a verificação indicou). ⚠️ PRESERVE o valor de \`indexado\` que JÁ existe na entrada — NUNCA rebaixe indexado:true→false nem crie indexado:false onde não havia campo (mecanismo já indexado não volta pra fila; senão a próxima rodada re-descobre eternamente — bug pego no teste 2026-07-19).\n` +
+  `(3) valide os 2 arquivos com node (JSON.parse) e só então retorne ok:true.\n` +
+  `(4) rode node ${BASE}/scripts/governance/reguas-indexar.mjs (se existir) e cite no resumo a fila de indexação pendente — é o chip mais barato da rodada.`
+
 // ── MODO DELTA (Órgão 2 da máquina — ADR proposta reguas-loop-maquina-evolucao) ──
 // Rodada INCREMENTAL dirigida pelo ledger memory/reguas/ (alvo ≤2,5M tokens vs ~11,4M full):
 // re-verifica SÓ dimensões com Δ material de commits nos paths mapeados (config.paths_por_dimensao)
@@ -223,7 +336,8 @@ if (MODO === 'delta') {
     return { modo: 'delta', erro: (scan && scan.erro) || 'scan falhou', acao: 'rodar full' }
   }
   const minC = scan.delta_min_commits || 3
-  const forcadas = Array.isArray(A && A.dimensoes) && A.dimensoes.length ? DIMS.map((d) => d.key) : []
+  // Seleção explícita (args.dimensoes OU args.eixo) força re-medida mesmo sem Δ de commits.
+  const forcadas = SELECAO !== 'completa' ? DIMS.map((d) => d.key) : []
   const ativas = Object.entries(scan.dims_delta || {})
     .filter(([k, v]) => (v && v.commits >= minC) || forcadas.includes(k)).map(([k]) => k)
   log(`delta desde ${scan.ultimo_retrato && scan.ultimo_retrato.data}: ativas [${ativas.join(', ') || 'nenhuma'}] (≥${minC} commits ou forçadas) · claims vencidas ${scan.claims_vencidas.length}`)
@@ -247,6 +361,14 @@ if (MODO === 'delta') {
   ).then((v) => (v ? { ...c, verdict: v } : null))))).filter(Boolean) : []
   if (scan.claims_vencidas.length) log(`delta-refutação: ${reRefutadas.length} claims re-vereditadas · ${reRefutadas.filter((r) => r.verdict.veredito === 'ACIMA_CONFIRMADO').length} seguem acima`)
 
+  // CHECKPOINT 1 — claims já fecharam: grava AGORA (a prosa e o retrato ainda podem morrer).
+  const cpClaims = reRefutadas.length
+    ? await persistir('cp-claims-delta', promptClaims(JSON.stringify(reRefutadas.map((r) => ({
+        id: r.id, titulo: r.titulo, dimensao: r.dimensao, refutador: r.verdict.veredito, peer: r.verdict.quem_ja_faz || r.verdict.razao || '',
+      }))), true))
+    : null
+  if (reRefutadas.length) log(`checkpoint claims: ${okPersist(cpClaims) ? 'gravado' : '⚠️ NÃO confirmado (retentativa no fim)'}`)
+
   phase('Grade')
   // Regra 16 mecanizada: números fechados AQUI (JS), prosa depois — o agente não altera nota.
   const media1 = (xs) => Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 10) / 10
@@ -259,20 +381,59 @@ if (MODO === 'delta') {
     else { notasNovas[k] = notasAntigas[k]; proveniencia[k] = ativas.includes(k) ? 'herdada (dim ativa mas 0 fraquezas com nota)' : 'herdada (sem Δ material)' }
   }
   const integHist = (scan.ultimo_retrato && scan.ultimo_retrato.integ_hist) || {}
+
+  // CHECKPOINT 2 — notas fechadas (JS). Grava fraquezas + retrato ANTES da prosa: se a prosa
+  // morrer (ou o teto de uso bater), o ledger já tem o retrato desta rodada, com a cobertura real.
+  const dimsAlvoDelta = Object.keys(notasNovas)
+  const reMedidas = dimsAlvoDelta.filter((k) => String(proveniencia[k] || '').startsWith('re-medida'))
+  const coberturaDelta = montarCobertura({
+    modo: 'delta',
+    etapas: [
+      { nome: 'verificar', esperado: Math.min(alvo.length, CAP_AGENTES_POR_FASE), obtido: verificadas.length },
+      { nome: 'refutar', esperado: Math.min(scan.claims_vencidas.length, CAP_AGENTES_POR_FASE), obtido: reRefutadas.length },
+    ],
+    notas: notasNovas, dimsAlvo: dimsAlvoDelta, eixoDe: EIXO_DE, eixosTodos: EIXOS,
+    extra: {
+      dimensoes_re_medidas: reMedidas,
+      dimensoes_herdadas: dimsAlvoDelta.filter((k) => !reMedidas.includes(k)),
+      dims_ativas: ativas,
+      integracao_nao_rodada: true, // delta não roda Integração — integ_hist é HERDADO, não medido
+    },
+  })
+  const cpRetrato = await persistir('cp-retrato-delta', promptRetrato({
+    modoRetrato: coberturaDelta.completo ? 'delta' : 'delta-parcial',
+    notas: notasNovas, proveniencia, cobertura: coberturaDelta, placar: null,
+    integHistInstrucao: 'copie EXATAMENTE do retrato anterior — o delta NÃO roda a fase Integração, então este acumulado é HERDADO, nunca recalculado.',
+    fraquezasRows: JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 250), onde_indexar: v.check.onde_indexar || null }))),
+  }))
+  log(`checkpoint retrato+fraquezas (delta${coberturaDelta.completo ? '' : '-PARCIAL: ' + coberturaDelta.motivo_parcial}): ${okPersist(cpRetrato) ? 'gravado' : '⚠️ NÃO confirmado (retentativa no fim)'}`)
+
   const prosa = await agent(
     `PROSA da rodada DELTA da grade de réguas (PT-BR, ≤450 palavras, datada de hoje). Os NÚMEROS estão FECHADOS pela composição determinística (regra 16 — PROIBIDO alterar, fundir ou re-atribuir nota): ${JSON.stringify({ notasNovas, notasAntigas, proveniencia, dims_ativas: ativas, dims_delta: scan.dims_delta })}.\nFraquezas re-medidas (evidência nova): ${JSON.stringify(verificadas.map((v) => ({ id: v.id, dimensao: v.dimensao, titulo: v.titulo, de: v.nota, para: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 200) })))}.\nClaims re-vereditadas: ${JSON.stringify(reRefutadas.map((r) => ({ id: r.id, de: r.refutador, para: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '' })))}.\nEscreva: (1) o que mudou e por quê (Δ por dimensão re-medida, com a evidência); (2) o que segue herdado; (3) DISCLOSURE OBRIGATÓRIO do placar (regra 17): REFUTADO_TB acumulado ${JSON.stringify(integHist)}. Até 2026-07-19 o braço negativo nunca disparou (0/81) e o valor esteve nas RAZÕES, não no binário; a pergunta de Integração foi reformulada nessa data (emenda §5) pra ganhar braço discriminativo — mas delta NÃO roda Integração, então este número é HERDADO do último full; NÃO afirme que "agora discrimina" antes do placar de um full pós-emenda; (4) próximo degrau mais barato. NADA de nota nova inventada.`,
     { label: 'prosa-delta', phase: 'Grade', effort: 'medium' },
   )
 
+  // Fase Persistir = RETENTATIVA. Se os dois checkpoints confirmaram, não gasta agente nenhum.
   phase('Persistir')
-  const persist = await agent(
-    `PERSISTIR a rodada delta no ledger (${BASE}/${LEDGER_DIR}/). Passos EXATOS:\n` +
-    `1. retratos.json: insira NO TOPO do array um retrato novo {data: hoje (ISO), modo: "delta", regra_nota: "media-deterministica-v1", notas: ${JSON.stringify(notasNovas)}, proveniencia_notas: ${JSON.stringify(proveniencia)}, integ_hist: (copie do retrato anterior — delta não roda Integração), links: []}. NUNCA edite retratos antigos (append-only).\n` +
-    `2. fraquezas.json: pra cada re-medida em ${JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 250), onde_indexar: v.check.onde_indexar || null })))}: atualize nota/veredito/evidencia/data(hoje); se onde_indexar veio preenchido, sete existia_invisivel:true e grave onde_indexar. ⚠️ PRESERVE o valor de \`indexado\` que JÁ existe na entrada — NUNCA rebaixe indexado:true→false nem crie indexado:false onde não havia campo (um mecanismo já indexado no mapa/índice não volta pra fila; senão o próximo delta re-descobre eternamente — bug pego no teste 2026-07-19).\n` +
-    `3. claims.json: pra cada re-vereditada em ${JSON.stringify(reRefutadas.map((r) => ({ id: r.id, veredito: r.verdict.veredito, peer: r.verdict.quem_ja_faz || r.verdict.razao || '' })))}: atualize refutador/peer/data_veredito(hoje); ttl_dias = 30 se o veredito novo for ACIMA_CONFIRMADO, senão 90.\n` +
-    `4. Valide os 3 JSONs com node (JSON.parse) antes de terminar. Retorne resumo: o que gravou, contagens, e a fila de indexação pendente (rode node ${BASE}/scripts/governance/reguas-indexar.mjs se existir).`,
-    { label: 'persistir', phase: 'Persistir', effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
-  )
+  const pendentesDelta = []
+  if (reRefutadas.length && !okPersist(cpClaims)) pendentesDelta.push('claims')
+  if (!okPersist(cpRetrato)) pendentesDelta.push('retrato+fraquezas')
+  const retentativaDelta = {}
+  if (!pendentesDelta.length) log('ledger já gravado pelos checkpoints (claims + fraquezas + retrato) — nada a re-persistir (0 agentes)')
+  else log(`⚠️ checkpoint(s) sem confirmação: ${pendentesDelta.join(' · ')} — retentativa`)
+  if (pendentesDelta.includes('retrato+fraquezas')) {
+    retentativaDelta.retrato = await persistir('re-retrato-delta', RETENTAR(promptRetrato({
+      modoRetrato: coberturaDelta.completo ? 'delta' : 'delta-parcial',
+      notas: notasNovas, proveniencia, cobertura: coberturaDelta, placar: null,
+      integHistInstrucao: 'copie EXATAMENTE do retrato anterior — o delta NÃO roda a fase Integração, então este acumulado é HERDADO, nunca recalculado.',
+      fraquezasRows: JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 250), onde_indexar: v.check.onde_indexar || null }))),
+    })))
+  }
+  if (pendentesDelta.includes('claims')) {
+    retentativaDelta.claims = await persistir('re-claims-delta', RETENTAR(promptClaims(JSON.stringify(reRefutadas.map((r) => ({
+      id: r.id, titulo: r.titulo, dimensao: r.dimensao, refutador: r.verdict.veredito, peer: r.verdict.quem_ja_faz || r.verdict.razao || '',
+    }))), true)))
+  }
   return {
     modo: 'delta',
     dims_ativas: ativas,
@@ -280,8 +441,9 @@ if (MODO === 'delta') {
     claims_re_vereditadas: reRefutadas.length,
     notas: notasNovas,
     proveniencia,
+    cobertura: coberturaDelta,
     prosa,
-    persistencia: persist,
+    persistencia: { claims: cpClaims, retrato: cpRetrato, pendentes: pendentesDelta, retentativa: retentativaDelta },
   }
 }
 
@@ -340,6 +502,21 @@ const integrados = (await parallel(capEstratificado('Integração', derrubadas, 
 ).then((v) => (v ? { ...r, integ: v } : null))))).filter(Boolean)
 log(`integração: ${integrados.filter((i) => i.integ.veredito === 'DIFERENCIAL_SISTEMA').length} diferenciais de sistema · ${integrados.filter((i) => i.integ.veredito === 'REFUTADO_TB').length} o todo também tem par`)
 
+// ── CHECKPOINT 1 — as claims FECHARAM (refutação + integração): grava no ledger AGORA ─────────
+// É exatamente este trabalho que as duas rodadas mortas de 2026-07-25/26 perderam por estar
+// tudo no fim da transação (24 refutações + 15 integrações vivas só no journal do run).
+const cpClaims = refutados.length
+  ? await persistir('cp-claims', promptClaims(fit('claims', refutados.map((r) => {
+      const i = integrados.find((x) => x.ideia === r.ideia && x.dimensao === r.dimensao)
+      return {
+        titulo: r.ideia, dimensao: r.dimensao,
+        refutador: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '',
+        integracao: i ? i.integ.veredito : null, incremento: i ? i.integ.incremento : null,
+      }
+    }), 80_000), false))
+  : null
+log(`checkpoint claims (${refutados.length}): ${okPersist(cpClaims) ? 'gravado no ledger' : '⚠️ NÃO confirmado — retentativa na fase Persistir'}`)
+
 // ── Fase 3 — Verificar FRAQUEZAS no repo vivo (a lição 7/9) ──────────────────
 phase('Verificar')
 const fraquezas = pesquisas.flatMap((p) => p.oimpresso_atras.map((f) => ({ fraqueza: f, dimensao: p.dimensao })))
@@ -355,33 +532,13 @@ const vPar = verificadas.filter((v) => v.check.veredito === 'PARCIAL').length
 const vNao = verificadas.filter((v) => v.check.veredito === 'NAO_EXISTE').length
 log(`verificação: ${verificadas.length}/${fraquezas.length} fraquezas verificadas (resto cortado pelo cap, ver log acima) · JA_EXISTE_TOTAL=${vTot} · PARCIAL=${vPar} · NAO_EXISTE=${vNao} (buracos reais)`)
 
-// ── Fase 4 — Grade final ──────────────────────────────────────────────────────
-phase('Grade')
-// ⚠️ TRUNCAGEM SILENCIOSA (corrigido 2026-07-17) — os `.slice()` cegos que ficavam aqui
-// descartavam ~80% da evidência SEM avisar, e a grade saía com cara de completa.
-// Medido na run wf_5ae5c554-67f: pesquisas 175.975→38.000 (-78%) · verificadas
-// 114.969→18.000 (-84%, só 5 de 24 fraquezas visíveis) · refutados -86% · integrados -83%.
-// Sintoma: 11 dimensões pesquisadas, grade final emitiu nota pra 3 — os eixos RODAR-E-OBSERVAR
-// (ADR 0333) e SERVIR-O-NEGÓCIO (ADR 0334) sumiram, reproduzindo o ponto cego que essas
-// ADRs existem pra fechar. Regra do tool Workflow: "No silent caps — log() what was dropped".
-// Agora: limite folgado (cabe o corpus inteiro) + log do que cortar, se cortar.
-const CAPS = { pesquisas: 400_000, refutados: 160_000, integrados: 160_000, verificadas: 260_000 }
-const fit = (nome, obj, cap) => {
-  const s = JSON.stringify(obj)
-  if (s.length <= cap) return s
-  log(`⚠️ TRUNCADO ${nome}: ${s.length} → ${cap} chars (-${(((s.length - cap) / s.length) * 100).toFixed(0)}%) — a grade NÃO viu tudo`)
-  return s.slice(0, cap)
-}
-const pesquisasStr = fit('pesquisas', pesquisas, CAPS.pesquisas)
-const refutadosStr = fit('refutados', refutados.map((r) => ({ ideia: r.ideia, v: r.verdict })), CAPS.refutados)
-const integradosStr = fit('integrados', integrados.map((i) => ({ ideia: i.ideia, integ: i.integ })), CAPS.integrados)
-const verificadasStr = fit('verificadas', verificadas, CAPS.verificadas)
-log(`Grade vai ler: ${pesquisas.length} pesquisas · ${refutados.length} refutações · ${integrados.length} integrações · ${verificadas.length} verificações (corpus ${(pesquisasStr.length + refutadosStr.length + integradosStr.length + verificadasStr.length) / 1000 | 0}k chars)`)
 // Regra 16 MECANIZADA (composição fiel ao journal — adversário 2026-07-18, 2 strikes da classe
 // composição≠journal: 07-10 e 07-18): os NÚMEROS fecham AQUI, em JS, antes do compositor.
 // Nota da dimensão = média aritmética (1 decimal) das nota_sugerida dos verificadores DELA;
 // dimensão sem fraqueza verificada com nota = null (declarada "sem nota nesta rodada" — nunca
 // inventada nem herdada em silêncio). O compositor escreve prosa em volta e é PROIBIDO de alterar.
+// SUBIU pra ANTES da fase Grade (2026-07-26): a composição é JS instantâneo e o retrato só depende
+// dela — assim o CHECKPOINT 2 grava o retrato ANTES da prosa cara, que é onde a rodada morre.
 const media1 = (xs) => Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 10) / 10
 const notasPorDim = {}
 const rowsPorDim = {}
@@ -400,6 +557,58 @@ const placarJS = {
   refutado_tb: integrados.filter((i) => i.integ.veredito === 'REFUTADO_TB').length,
 }
 log(`notas determinísticas (média por dimensão): ${JSON.stringify(notasPorDim)} · placar JS: ${JSON.stringify(placarJS)}`)
+
+// ── CHECKPOINT 2 — fraquezas + RETRATO, ANTES da prosa cara ──────────────────────────────────
+// A cobertura é declarada no próprio retrato: rodada que perdeu agentes (ou que rodou só 1 eixo)
+// entra como `full-parcial` com o motivo — retrato parcial NUNCA se passa por completo.
+const dimsAlvo = DIMS.map((d) => d.key)
+const cobertura = montarCobertura({
+  modo: 'full',
+  etapas: [
+    { nome: 'pesquisar', esperado: DIMS.length, obtido: pesquisas.length },
+    { nome: 'refutar', esperado: Math.min(claims.length, CAP_AGENTES_POR_FASE), obtido: refutados.length },
+    { nome: 'integracao', esperado: Math.min(derrubadas.length, CAP_AGENTES_POR_FASE), obtido: integrados.length },
+    { nome: 'verificar', esperado: Math.min(fraquezas.length, CAP_AGENTES_POR_FASE), obtido: verificadas.length },
+  ],
+  notas: notasPorDim, dimsAlvo, eixoDe: EIXO_DE, eixosTodos: EIXOS,
+  extra: {
+    selecao: SELECAO, // 'completa' | 'eixo' | 'dimensoes' — rodada por eixo NÃO é retrato do sistema
+    fraquezas_levantadas: fraquezas.length,
+    claims_levantadas: claims.length,
+    canario_refuter: canarioRefuter,
+  },
+})
+if (!cobertura.completo) log(`⚠️ rodada PARCIAL — o retrato vai declarar isso: ${cobertura.motivo_parcial}`)
+if (SELECAO !== 'completa') log(`⚠️ seleção ${SELECAO} (${dimsAlvo.length} de ${DIMS_DEFAULT.length} dimensões) — retrato declara eixos_nao_medidos: [${cobertura.eixos_nao_medidos.join(', ') || 'nenhum'}]`)
+const cpRetrato = await persistir('cp-retrato', promptRetrato({
+  modoRetrato: cobertura.completo && SELECAO === 'completa' ? 'full' : 'full-parcial',
+  notas: notasPorDim,
+  proveniencia: Object.fromEntries(dimsAlvo.map((k) => [k, notasPorDim[k] == null
+    ? 'sem nota nesta rodada (0 fraquezas verificadas com nota) — NÃO herde nem invente'
+    : `medida por fraqueza (${rowsPorDim[k].filter((r) => typeof r.nota === 'number').length} verificações, média determinística 1 decimal)`])),
+  cobertura, placar: placarJS,
+  integHistInstrucao: `some os DESTA rodada ao acumulado do retrato anterior — vereditos_acumulados += ${placarJS.diferencial_sistema + placarJS.refutado_tb}, refutado_tb_acumulado += ${placarJS.refutado_tb}, runs += 1. Se não houver retrato anterior, use exatamente esses valores com runs: 1. (É o disclosure da regra 17 — o placar tem que poder crescer.)`,
+  fraquezasRows: fit('rows', rowsPorDim, 120_000),
+}))
+log(`checkpoint retrato+fraquezas (${cobertura.completo ? 'completo' : 'PARCIAL'}): ${okPersist(cpRetrato) ? 'gravado no ledger' : '⚠️ NÃO confirmado — retentativa na fase Persistir'}`)
+
+// ── Fase 4 — Grade final ──────────────────────────────────────────────────────
+phase('Grade')
+// ⚠️ TRUNCAGEM SILENCIOSA (corrigido 2026-07-17) — os `.slice()` cegos que ficavam aqui
+// descartavam ~80% da evidência SEM avisar, e a grade saía com cara de completa.
+// Medido na run wf_5ae5c554-67f: pesquisas 175.975→38.000 (-78%) · verificadas
+// 114.969→18.000 (-84%, só 5 de 24 fraquezas visíveis) · refutados -86% · integrados -83%.
+// Sintoma: 11 dimensões pesquisadas, grade final emitiu nota pra 3 — os eixos RODAR-E-OBSERVAR
+// (ADR 0333) e SERVIR-O-NEGÓCIO (ADR 0334) sumiram, reproduzindo o ponto cego que essas
+// ADRs existem pra fechar. Regra do tool Workflow: "No silent caps — log() what was dropped".
+// Agora: limite folgado (cabe o corpus inteiro) + log do que cortar, se cortar.
+const CAPS = { pesquisas: 400_000, refutados: 160_000, integrados: 160_000, verificadas: 260_000 }
+// (o helper `fit` subiu pro bloco de persistência — o checkpoint que roda antes desta fase usa ele)
+const pesquisasStr = fit('pesquisas', pesquisas, CAPS.pesquisas)
+const refutadosStr = fit('refutados', refutados.map((r) => ({ ideia: r.ideia, v: r.verdict })), CAPS.refutados)
+const integradosStr = fit('integrados', integrados.map((i) => ({ ideia: i.ideia, integ: i.integ })), CAPS.integrados)
+const verificadasStr = fit('verificadas', verificadas, CAPS.verificadas)
+log(`Grade vai ler: ${pesquisas.length} pesquisas · ${refutados.length} refutações · ${integrados.length} integrações · ${verificadas.length} verificações (corpus ${(pesquisasStr.length + refutadosStr.length + integradosStr.length + verificadasStr.length) / 1000 | 0}k chars)`)
 const grade = await agent(
   `Escreva a GRADE DE RÉGUAS para Wagner (PT-BR, direto, sem ego inflado nem falsa modéstia). Datada de HOJE.\n\n` +
   `⚠️ NÚMEROS JÁ FECHADOS PELA COMPOSIÇÃO DETERMINÍSTICA (regra 16 — adversário 2026-07-18). NOTA POR DIMENSÃO = ${JSON.stringify(notasPorDim)} (média das fraquezas verificadas; null = sem fraqueza-com-nota nesta rodada — declare "sem nota" honestamente, NÃO invente). PLACAR = ${JSON.stringify(placarJS)}. Você é PROIBIDO de alterar, arredondar, fundir ou re-atribuir qualquer número: use EXATAMENTE estes. Seu trabalho é a PROSA (evidência, diferenciais, degraus, leitura fria) em volta dos números fechados.\n\n` +
@@ -408,22 +617,42 @@ const grade = await agent(
   { label: 'grade-final', phase: 'Grade', effort: 'high' }, // era 'max' — composição determinística (regra 16) deixou o agente só com a prosa
 )
 
-// ── Fase Persistir (Órgão 1) — grava o retrato no ledger memory/reguas/ ────────
-// Fecha a pendência da regra 12 da skill ("notas precisam de artefato versionado").
-// O agente só TRANSCREVE os números já fechados (regra 16) + as claims/fraquezas — não decide nota.
+// ── Fase Persistir (Órgão 1) — agora é RETENTATIVA dos checkpoints ────────────
+// O ledger JÁ foi gravado no meio da rodada (CP-claims após Integração · CP-retrato após a
+// composição). Esta fase só gasta agente se algum checkpoint não confirmou — se os dois
+// confirmaram, custa ZERO. Fecha a pendência da regra 12 da skill ("notas precisam de artefato
+// versionado") mesmo quando a rodada morre depois da Verificar (os 2 casos de 2026-07-25/26).
 phase('Persistir')
-const persistencia = await agent(
-  `PERSISTIR o retrato FULL no ledger ${BASE}/${LEDGER_DIR}/ (crie os arquivos se não existirem — schema no README.md de lá). NÚMEROS FECHADOS (transcreva, não recalcule):\n` +
-  `- notas por dimensão: ${JSON.stringify(notasPorDim)}\n- placar: ${JSON.stringify(placarJS)}\n` +
-  `- fraquezas (id derive de dimensao+slug do título): ${fit('rows', rowsPorDim, 120_000)}\n` +
-  `- claims (refutador + integração): ${fit('claims', refutados.map((r) => ({ titulo: r.ideia, dimensao: r.dimensao, refutador: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '' })), 80_000)}\n` +
-  `Passos: (1) retratos.json — insira NO TOPO {data: hoje ISO, modo:"full", regra_nota:"media-deterministica-v1", notas, placar, integ_hist:{...copie do retrato anterior se existir, senão {vereditos_acumulados: ${placarJS.diferencial_sistema + placarJS.refutado_tb}, refutado_tb_acumulado: ${placarJS.refutado_tb}}}, links:[]}; NUNCA edite retrato antigo (append-only). (2) fraquezas.json — upsert por id (nota/veredito/evidencia/degrau/data hoje; existia_invisivel+onde_indexar quando a verificação indicou). ⚠️ PRESERVE o \`indexado\` existente — NUNCA rebaixe indexado:true→false (mecanismo já indexado não volta pra fila). (3) claims.json — upsert por id (data_veredito hoje; ttl 30 se ACIMA_CONFIRMADO senão 90; preserve correcao_obrigatoria existente). (4) valide os 3 com JSON.parse. Retorne resumo + rode node ${BASE}/scripts/governance/reguas-indexar.mjs pra listar a fila de indexação.`,
-  { label: 'persistir-full', phase: 'Persistir', effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
-)
+const pendentes = []
+if (refutados.length && !okPersist(cpClaims)) pendentes.push('claims')
+if (!okPersist(cpRetrato)) pendentes.push('retrato+fraquezas')
+const retentativa = {}
+if (!pendentes.length) log('ledger já gravado pelos checkpoints (claims + fraquezas + retrato) — nada a re-persistir (0 agentes)')
+else log(`⚠️ checkpoint(s) sem confirmação: ${pendentes.join(' · ')} — retentativa`)
+if (pendentes.includes('retrato+fraquezas')) {
+  retentativa.retrato = await persistir('re-retrato', RETENTAR(promptRetrato({
+    modoRetrato: cobertura.completo && SELECAO === 'completa' ? 'full' : 'full-parcial',
+    notas: notasPorDim,
+    proveniencia: Object.fromEntries(dimsAlvo.map((k) => [k, notasPorDim[k] == null
+      ? 'sem nota nesta rodada (0 fraquezas verificadas com nota) — NÃO herde nem invente'
+      : `medida por fraqueza (${rowsPorDim[k].filter((r) => typeof r.nota === 'number').length} verificações, média determinística 1 decimal)`])),
+    cobertura, placar: placarJS,
+    integHistInstrucao: `some os DESTA rodada ao acumulado do retrato anterior — vereditos_acumulados += ${placarJS.diferencial_sistema + placarJS.refutado_tb}, refutado_tb_acumulado += ${placarJS.refutado_tb}, runs += 1. Se não houver retrato anterior, use exatamente esses valores com runs: 1.`,
+    fraquezasRows: fit('rows', rowsPorDim, 120_000),
+  })))
+}
+if (pendentes.includes('claims')) {
+  retentativa.claims = await persistir('re-claims', RETENTAR(promptClaims(fit('claims', refutados.map((r) => {
+    const i = integrados.find((x) => x.ideia === r.ideia && x.dimensao === r.dimensao)
+    return { titulo: r.ideia, dimensao: r.dimensao, refutador: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '', integracao: i ? i.integ.veredito : null, incremento: i ? i.integ.incremento : null }
+  }), 80_000), false)))
+}
+const persistencia = { claims: cpClaims, retrato: cpRetrato, pendentes, retentativa }
 
 return {
-  modo: 'full',
+  modo: cobertura.completo && SELECAO === 'completa' ? 'full' : 'full-parcial',
   dimensoes: pesquisas.length,
+  cobertura, // declara o que MEDIU e o que não mediu — o retorno também não se passa por completo
   notas: notasPorDim,
   placar: placarJS,
   acima_confirmadas: placarJS.acima_confirmadas,
