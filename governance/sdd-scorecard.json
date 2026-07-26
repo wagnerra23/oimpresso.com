@@ -66,40 +66,40 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 342,
+      "value": 345,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "34c2eea8b0144c36",
+        "floor_files_hash": "b191ff87301f14d3",
         "runs": [
           {
-            "sha": "26c52cd0",
-            "ts": "20260722-020001",
-            "failed": 654,
-            "errors": 431,
-            "skipped": 2262,
-            "all_shards_measured": true
-          },
-          {
-            "sha": "db9001b2",
-            "ts": "20260723-020001",
-            "failed": 654,
-            "errors": 465,
-            "skipped": 2245,
-            "all_shards_measured": true
-          },
-          {
-            "sha": null,
+            "sha": "26c26745",
             "ts": "20260724-020001",
             "failed": 620,
             "errors": 528,
             "skipped": 2215,
             "all_shards_measured": true
+          },
+          {
+            "sha": "e0da62c8",
+            "ts": "20260725-020001",
+            "failed": 667,
+            "errors": 424,
+            "skipped": 2226,
+            "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260726-020001",
+            "failed": 661,
+            "errors": 440,
+            "skipped": 2222,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260724-020001",
+        "computed_at": "20260726-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -118,22 +118,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 17.7,
+      "value": 17.6,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 42684,
-        "total": 240594,
+        "covered": 42502,
+        "total": 241024,
         "runs": [
-          {
-            "sha": "c307c3b5",
-            "ts": "20260719-020001",
-            "coverage_pct": 17.1,
-            "covered": 41203,
-            "total": 240381
-          },
           {
             "sha": "26c52cd0",
             "ts": "20260722-020001",
@@ -147,9 +140,16 @@
             "coverage_pct": 17.7,
             "covered": 42684,
             "total": 240594
+          },
+          {
+            "sha": null,
+            "ts": "20260726-020001",
+            "coverage_pct": 17.6,
+            "covered": 42502,
+            "total": 241024
           }
         ],
-        "computed_at": "20260723-020001",
+        "computed_at": "20260726-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -209,22 +209,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 66.7,
+      "value": 75,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 3,
-        "weeks_valid": 2,
+        "weeks_expected": 4,
+        "weeks_valid": 3,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-07-19",
+        "last_week": "2026-07-26",
         "latest": {
-          "gate_status": "pass",
+          "gate_status": "fail",
           "n_evaluated": 51,
-          "faithfulness_avg": 0.7127,
-          "relevancy_avg": 0.8255,
-          "context_recall_avg": 0.4016
+          "faithfulness_avg": 0.6865,
+          "relevancy_avg": 0.8294,
+          "context_recall_avg": 0.3461
         }
       },
       "stream": "MEM"
