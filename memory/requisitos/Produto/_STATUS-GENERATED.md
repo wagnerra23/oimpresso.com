@@ -27,12 +27,22 @@
 | `CU-PROD-04` sem UC | caso de uso que o exercite — Estoque inicial + localização + alerta + validade/lote |
 | `CU-PROD-05` sem UC | caso de uso que o exercite — Combo/kit + BOM |
 | `CU-PROD-06` sem UC | caso de uso que o exercite — Importação Excel + bulk-edit + mass-ops |
-| `US-PROD-021` sem caso | UC que a atenda — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) |
-| `US-PROD-024` sem caso | UC que a atenda — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de desco |
-| `US-PROD-025` sem caso | UC que a atenda — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV |
-| `US-PROD-026` sem caso | UC que a atenda — Fornecedores/cotação por produto (melhor preço no drawer) |
-| `US-PROD-027` sem caso | UC que a atenda — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por  |
-| `US-PROD-028` sem caso | UC que a atenda — Blindar `fixVariationStockMisMatch` com parsing locale-safe |
+| `US-PROD-028` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Blindar `fixVariationStockMisMatch` com parsing locale-safe |
+
+### Backlog — NÃO é lacuna
+
+> US ainda não entregue (`todo`/`backlog`) **não deve** ganhar UC agora: caso sem código vira
+> **UC órfão**, que o `casos-gate` G-2 pune e que bloqueia o merge de quem for implementar
+> ([proibicoes §5](../../proibicoes.md) 2026-07-16 — UC não é canal de pedido). O contrato
+> nasce **junto** com a implementação, não antes.
+
+| US | status | Título |
+|---|---|---|
+| US-PROD-021 | `todo` | [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) |
+| US-PROD-024 | `todo` | [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta prim |
+| US-PROD-025 | `todo` | [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV |
+| US-PROD-026 | `todo` | Fornecedores/cotação por produto (melhor preço no drawer) |
+| US-PROD-027 | `todo` | [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do P |
 
 ## UC por status
 

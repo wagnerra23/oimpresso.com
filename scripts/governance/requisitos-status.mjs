@@ -38,16 +38,41 @@
 
 import { readFileSync, existsSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Guard IS_MAIN (padrao do doc-freshness-score): os extratores sao EXPORTADOS pra teste;
+// sem isto, um `import` do modulo dispara o CLI e polui a saida de quem so queria a funcao.
+const IS_MAIN = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
 const ler = (p) => { try { return readFileSync(join(ROOT, p), 'utf8'); } catch { return ''; } };
 
 // ── extratores (puros — o selftest exercita cada um) ──────────────────────────
+/**
+ * US com o `status:` da linha de metadata logo abaixo do heading.
+ *
+ * POR QUE O STATUS IMPORTA AQUI (falso-positivo corrigido 2026-07-26): a 1ª versão listava
+ * TODA US sem caso como lacuna. Rodado no Produto, 6 das 10 "lacunas" eram US `status: todo`
+ * — feature que **ainda não existe**. Escrever UC para código inexistente cria UC órfão, que
+ * o casos-gate G-2 pune e que BLOQUEIA o merge de quem for implementar (lápide §5 2026-07-16:
+ * UC não é canal de pedido). Lacuna de verdade é **US entregue SEM contrato** (`done`/`doing`
+ * sem caso). US `todo` sem caso é o estado NORMAL do backlog, não dívida.
+ */
 export function extrairUS(specSrc) {
-  return [...specSrc.matchAll(/^###\s+(US-[A-Z]{2,8}-\d{3,4})\s*·?\s*(.*)$/gm)]
-    .map((m) => ({ id: m[1], titulo: m[2].trim() }));
+  const linhas = specSrc.split(/\r?\n/);
+  const out = [];
+  linhas.forEach((ln, i) => {
+    const m = ln.match(/^###\s+(US-[A-Z]{2,8}-\d{3,4})\s*·?\s*(.*)$/);
+    if (!m) return;
+    const meta = linhas.slice(i + 1, i + 4).join(' ');
+    const st = meta.match(/\bstatus:\s*([a-z-]+)/i);
+    out.push({ id: m[1], titulo: m[2].trim(), status: st ? st[1].toLowerCase() : 'desconhecido' });
+  });
+  return out;
 }
+/** Entregue = tem que ter contrato. `todo`/`backlog` = ainda não, e tudo bem. */
+export const US_ENTREGUE = new Set(['done', 'doing', 'review', 'in-progress']);
 export function extrairCU(sddSrc) {
   return [...sddSrc.matchAll(/^####\s+(CU-[A-Z]{2,8}-\d{2,4})\s*—?\s*([^`\n]*)/gm)]
     .map((m) => ({ id: m[1], titulo: m[2].trim() }));
@@ -101,12 +126,21 @@ function sddDoModulo(mod) {
 }
 
 // ── SELFTEST ──────────────────────────────────────────────────────────────────
-if (args.includes('--selftest')) {
+if (IS_MAIN && args.includes('--selftest')) {
   let f = 0;
   const ok = (nome, cond) => { console.log(`${cond ? '  ok  ' : ' FALHA'} ${nome}`); if (!cond) f++; };
 
   ok('extrai US do SPEC', extrairUS('### US-PROD-020 · Governança\ntexto\n### US-PROD-021 · Outra').length === 2);
   ok('não confunde US com prosa', extrairUS('falamos de US-PROD-020 no meio do texto').length === 0);
+
+  // O status separa LACUNA (entregue sem contrato) de BACKLOG (não entregue) — sem isto o
+  // relatório empurra o autor a escrever UC órfão pra feature que não existe.
+  const comStatus = extrairUS('### US-AB-001 · X\n> owner: w · status: done · type: story\n\n### US-AB-002 · Y\n> owner: w · status: todo');
+  ok('lê status: done', comStatus[0].status === 'done');
+  ok('lê status: todo', comStatus[1].status === 'todo');
+  ok('done conta como entregue', US_ENTREGUE.has('done') === true);
+  ok('todo NÃO conta como entregue', US_ENTREGUE.has('todo') === false);
+  ok('sem linha de status → desconhecido', extrairUS('### US-AB-003 · Z\n\ntexto')[0].status === 'desconhecido');
   ok('extrai CU do SDD', extrairCU('#### CU-PROD-01 — Cadastrar `[must]`\n#### CU-PROD-02 — Variável').length === 2);
   ok('extrai UC do casos.md (dedup)', extrairUC('| UC-PSHOW-01 | x |\n UC-PSHOW-01 de novo\n UC-PSHOW-02').length === 2);
 
@@ -121,8 +155,8 @@ if (args.includes('--selftest')) {
 }
 
 // ── relatório ─────────────────────────────────────────────────────────────────
-const mod = args.find((a) => !a.startsWith('--'));
-if (!mod) { console.log('uso: requisitos-status.mjs <Modulo> [--write|--check]'); process.exit(0); }
+const mod = IS_MAIN ? args.find((a) => !a.startsWith('--')) : null;
+if (IS_MAIN && !mod) { console.log('uso: requisitos-status.mjs <Modulo> [--write|--check]'); process.exit(0); }
 
 const specPath = `memory/requisitos/${mod}/SPEC.md`;
 const sddPath = sddDoModulo(mod);
@@ -154,7 +188,10 @@ const statusUC = ucs.map((u) => {
 // LACUNAS = a fila de crescimento (derivada, não inventada)
 const telasSemCasos = telas.filter((t) => !casos.some((c) => c.tela === t));
 const cuSemUC = cu.filter((c) => !casos.some((k) => k.src.includes(c.id)));
-const usSemCaso = us.filter((u) => !casos.some((k) => k.src.includes(u.id)));
+// Só é LACUNA a US já entregue e sem contrato. US `todo` sem caso é backlog normal —
+// listá-la como dívida empurra o autor a escrever UC órfão (ver extrairUS).
+const usSemContrato = us.filter((u) => US_ENTREGUE.has(u.status) && !casos.some((k) => k.src.includes(u.id)));
+const usBacklog = us.filter((u) => !US_ENTREGUE.has(u.status) && !casos.some((k) => k.src.includes(u.id)));
 
 const linhas = [];
 const P = (s = '') => linhas.push(s);
@@ -181,14 +218,28 @@ P(`| UC com teste que os cita | ${statusUC.filter((u) => u.status !== '📝 sem_
 P('');
 P('## Onde a cadeia QUEBRA — esta é a fila de crescimento');
 P('');
-if (!telasSemCasos.length && !cuSemUC.length && !usSemCaso.length) {
-  P('_Nenhuma lacuna estrutural: toda tela tem caso, todo CU é citado, toda US tem caso._');
+if (!telasSemCasos.length && !cuSemUC.length && !usSemContrato.length) {
+  P('_Nenhuma lacuna: toda tela tem caso, todo CU é citado, e toda US **entregue** tem contrato._');
 } else {
   P('| Lacuna | O que falta escrever |');
   P('|---|---|');
   for (const t of telasSemCasos) P(`| Tela \`${t}\` sem \`casos.md\` | o contrato da tela (trio incompleto) |`);
   for (const c of cuSemUC) P(`| \`${c.id}\` sem UC | caso de uso que o exercite — ${c.titulo.slice(0, 70)} |`);
-  for (const u of usSemCaso) P(`| \`${u.id}\` sem caso | UC que a atenda — ${u.titulo.slice(0, 70)} |`);
+  for (const u of usSemContrato) P(`| \`${u.id}\` **entregue sem contrato** (\`status: ${u.status}\`) | UC que prove o que foi entregue — ${u.titulo.slice(0, 60)} |`);
+}
+P('');
+P('### Backlog — NÃO é lacuna');
+P('');
+P('> US ainda não entregue (`todo`/`backlog`) **não deve** ganhar UC agora: caso sem código vira');
+P('> **UC órfão**, que o `casos-gate` G-2 pune e que bloqueia o merge de quem for implementar');
+P('> ([proibicoes §5](../../proibicoes.md) 2026-07-16 — UC não é canal de pedido). O contrato');
+P('> nasce **junto** com a implementação, não antes.');
+P('');
+if (!usBacklog.length) P('_Nenhuma._');
+else {
+  P('| US | status | Título |');
+  P('|---|---|---|');
+  for (const u of usBacklog) P(`| ${u.id} | \`${u.status}\` | ${u.titulo.slice(0, 80)} |`);
 }
 P('');
 P('## UC por status');
