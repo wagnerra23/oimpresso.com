@@ -53,6 +53,19 @@ class GovernanceV4DashboardController extends Controller
     /** Delta absoluto em pts entre snapshots consecutivos pra considerar drift. */
     private const DRIFT_THRESHOLD_PTS = 5;
 
+    /**
+     * Meta por bucket (ADR 0160 §meta-por-bucket). FONTE ÚNICA: consumida pelo payload
+     * `meta.buckets` (UI) e por `buildModulesPayload()` (status ok/warn/crit). Antes o
+     * número vivia duplicado — no array de `meta` e no `target_score` de cada YAML —
+     * e os dois podiam divergir em silêncio.
+     */
+    private const BUCKET_META = [
+        'vertical_client_facing' => 85,
+        'cross_cutting_infra' => 90,
+        'ai_central' => 85,
+        'functional_horizontal' => 80,
+    ];
+
     public function __invoke(Request $request): Response
     {
         $meta = [
@@ -62,10 +75,10 @@ class GovernanceV4DashboardController extends Controller
             'generated_at' => now()->toIso8601String(),
             'drift_threshold_pts' => self::DRIFT_THRESHOLD_PTS,
             'buckets' => [
-                'vertical_client_facing' => ['label' => 'Vertical Client-Facing', 'meta' => 85],
-                'cross_cutting_infra' => ['label' => 'Cross-Cutting Infra', 'meta' => 90],
-                'ai_central' => ['label' => 'AI Central', 'meta' => 85],
-                'functional_horizontal' => ['label' => 'Functional Horizontal', 'meta' => 80],
+                'vertical_client_facing' => ['label' => 'Vertical Client-Facing', 'meta' => self::BUCKET_META['vertical_client_facing']],
+                'cross_cutting_infra' => ['label' => 'Cross-Cutting Infra', 'meta' => self::BUCKET_META['cross_cutting_infra']],
+                'ai_central' => ['label' => 'AI Central', 'meta' => self::BUCKET_META['ai_central']],
+                'functional_horizontal' => ['label' => 'Functional Horizontal', 'meta' => self::BUCKET_META['functional_horizontal']],
             ],
         ];
 
@@ -96,43 +109,69 @@ class GovernanceV4DashboardController extends Controller
                 'functional_horizontal' => [],
             ];
 
-            $yamlDir = base_path('memory/governance/scorecards');
-            if (! is_dir($yamlDir)) {
+            // FONTE VIVA (2026-07-26): a nota vem do snapshot diário
+            // `mcp_module_grades_history` (cron `module:grade-snapshot`, 06:05 BRT),
+            // que cobre TODOS os módulos de Modules/.
+            //
+            // ANTES: lia `memory/governance/scorecards/<mod>.yaml` — 5 arquivos CURADOS
+            // À MÃO que NENHUM comando escrevia (varredura contada 2026-07-26: zero
+            // escritores). Resultado: painel mostrava 5 de 36 módulos com `last_grade_at`
+            // congelado em 2026-05-16 — 71 dias — e ninguém estranhava, porque o header
+            // do _template atribuía a manutenção a um cron que só LÊ (corrigido em #4804).
+            // Detectado pelo eixo ENTREGA do `cron-watchdog` (ADR 0317): o cron rodava
+            // todo dia e não entregava. Liveness verde, entrega parada.
+            //
+            // As LENTES por bucket (`memory/scorecards/<bucket>.yaml`, ADR 0160) seguem
+            // intactas: são RUBRICA (regra), e rubrica congelada está correta. Só as
+            // MEDIÇÕES saíram do YAML.
+            if (! Schema::hasTable('mcp_module_grades_history')) {
                 return $byBucket;
             }
 
             // Pré-carrega p99 30d por módulo (1 query — evita N+1)
             $p99ByModule = $this->loadP99ByModule();
 
-            foreach (glob($yamlDir.'/*.yaml') ?: [] as $path) {
-                $filename = basename($path);
-                if (str_starts_with($filename, '_')) {
-                    continue; // _template.yaml etc
-                }
+            // Última linha por módulo (1 query — sem N+1).
+            $ultimoPorModulo = DB::table('mcp_module_grades_history as h')
+                ->joinSub(
+                    DB::table('mcp_module_grades_history')
+                        ->selectRaw('module, MAX(snapshot_at) as ts')
+                        ->groupBy('module'),
+                    'ult',
+                    fn ($j) => $j->on('h.module', '=', 'ult.module')->on('h.snapshot_at', '=', 'ult.ts')
+                )
+                ->select('h.module', 'h.score')
+                ->get();
 
-                $yaml = $this->safeYamlParse($path);
-                if (! is_array($yaml) || empty($yaml['slug'])) {
+            foreach ($ultimoPorModulo as $row) {
+                $module = (string) $row->module;
+
+                // Bucket ESCOPADO vem de Modules/<X>/module.json (ADR 0160). NÃO usar a
+                // coluna `bucket` do histórico: lá ela é o rótulo de QUALIDADE derivado da
+                // nota (`bucketFor(int $score)` → Ruim/Médio/Bom), não o bucket escopado.
+                $bucketKey = $this->scopedBucketFor($module);
+                if ($bucketKey === null || ! isset($byBucket[$bucketKey])) {
                     continue;
                 }
 
-                $bucketKey = $this->mapBucket($yaml);
-                if (! isset($byBucket[$bucketKey])) {
-                    continue;
-                }
-
-                $slug = (string) $yaml['slug'];
-                $score = $this->resolveCurrentScore($yaml);
-                $metaScore = (int) ($yaml['target_score'] ?? $meta_default = 85);
+                $slug = strtolower($module);
+                $score = (int) $row->score;
+                $metaScore = (int) (self::BUCKET_META[$bucketKey] ?? 85);
                 $trend = $this->resolveTrend30d($slug, $score);
 
                 $byBucket[$bucketKey][] = [
                     'slug' => $slug,
-                    'name' => (string) ($yaml['module'] ?? $slug),
+                    'name' => $module,
                     'score' => $score,
                     'meta' => $metaScore,
                     'status' => $this->computeStatus($score, $metaScore),
                     'trend' => $trend,
-                    'paired_count' => count((array) ($yaml['paired_violations'] ?? [])),
+                    // PERDA DECLARADA: `paired_violations` só existe no retorno de
+                    // gradeV4(), e o snapshot histórico grava o breakdown v3 — a coluna
+                    // não carrega paired. Preferi 0 explícito a reintroduzir leitura de
+                    // YAML stale só por esse campo. Recuperável se o snapshot passar a
+                    // persistir paired (mudança no ModuleGradeSnapshotCommand).
+                    'paired_count' => 0,
                     'p99_ms' => $p99ByModule[$slug] ?? null,
                 ];
             }
@@ -144,6 +183,44 @@ class GovernanceV4DashboardController extends Controller
 
             return $byBucket;
         });
+    }
+
+    /**
+     * Bucket ESCOPADO do módulo (ADR 0160), lido de `Modules/<X>/module.json`.
+     *
+     * É a fonte declarada do bucket — a coluna `bucket` de `mcp_module_grades_history`
+     * NÃO serve: lá ela é o rótulo de qualidade derivado da nota (`bucketFor(int $score)`
+     * → Ruim/Médio/Bom/Excelente), granularidade diferente. Confundir os dois agruparia
+     * o painel por faixa de nota em vez de por natureza do módulo.
+     *
+     * Cache de 1h: são ~36 leituras de arquivo pequeno, e module.json muda por PR.
+     */
+    protected function scopedBucketFor(string $module): ?string
+    {
+        $mapa = Cache::remember('admin.governance_v4.scoped_buckets', 3600, function () {
+            $out = [];
+            $dir = base_path('Modules');
+            if (! is_dir($dir)) {
+                return $out;
+            }
+            foreach (scandir($dir) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                $json = $dir.DIRECTORY_SEPARATOR.$entry.DIRECTORY_SEPARATOR.'module.json';
+                if (! is_file($json)) {
+                    continue;
+                }
+                $data = json_decode((string) @file_get_contents($json), true);
+                if (is_array($data) && ! empty($data['bucket'])) {
+                    $out[strtolower($entry)] = (string) $data['bucket'];
+                }
+            }
+
+            return $out;
+        });
+
+        return $mapa[strtolower($module)] ?? null;
     }
 
     /**
