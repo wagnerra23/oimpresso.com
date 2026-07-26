@@ -26,10 +26,11 @@
       "refutado_tb": 1
     },
     "integ_hist": {
-      "vereditos_acumulados": 81,
-      "refutado_tb_acumulado": 0,
-      "runs": 8,
-      "recontagem": "ledger 2026-07-18 (58 anteriores + 23 desta; '~63' do juiz registrado com proveniência)"
+      "vereditos_acumulados": 104,
+      "refutado_tb_acumulado": 1,
+      "runs": 9,
+      "recontagem": "2026-07-26: 81 anteriores (ledger 07-18) + 23 desta rodada. O 1o REFUTADO_TB do historico entra aqui.",
+      "errata": "CORRIGIDO 2026-07-26 por passe adversarial. O retrato nasceu com integ_hist copiado VERBATIM do 07-18 (81/0/8) porque a rodada usou o script pre-conserto, cuja instrucao era 'copie do anterior' — entao o acumulado nunca crescia. Sem esta correcao o disclosure da regra 17 seguiria imprimindo '0 REFUTADO_TB em 81 vereditos' apesar de o placar desta MESMA rodada registrar refutado_tb=1, e o codigo novo (que ja soma) acumularia a partir do valor errado. Os valores sao derivaveis do campo `placar` deste mesmo retrato — auditavel sem confiar nesta nota."
     },
     "links": []
   },
