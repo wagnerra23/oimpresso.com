@@ -40,6 +40,20 @@ contains:
   # Console
   - "Console/Commands/DriverHealthCheckAllCommand — schedule cron 6h"
   - "Console/Commands/FeedbackLinkCommand — feedback:link {biz}: gera a URL assinada (30d) do canal público web_form (US-INFRA-002)"
+not_contains:
+  - "OS / Kanban de reparo → Modules/Repair (Whatsapp só NOTIFICA status)"
+  - "Boleto / cobrança recorrente → Modules/RecurringBilling + Modules/PaymentGateway"
+  - "Lembrete financeiro (regra de negócio) → Modules/Financeiro"
+  - "Bot / memória conversacional / RAG → Modules/Jana"
+  - "Consulta pública de OS → Modules/ConsultaOs"
+trust_required: L3
+owner: wagner
+permission_prefix: whatsapp.*
+url_prefixes:
+  - /whatsapp/*
+  - /atendimento/*
+  - /feedback/*
+drift_alerts: []
 ---
 
 # SCOPE — Modules/Whatsapp/

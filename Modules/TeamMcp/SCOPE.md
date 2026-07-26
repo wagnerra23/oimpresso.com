@@ -46,11 +46,15 @@ db_tables_owned:
   - mcp_audit_log (mantém append-only com trigger; UI Fase 5 fica em Modules/Governance)
   - cowork_handoffs (NOVA — PR-1 loop handoff zero-paste Fase 0 ADR 0283; append-only por slug/version, cross-tenant)
   - mcp_cc_sessions / mcp_cc_messages / mcp_cc_blobs
+  - mcp_quotas
+  - mcp_workflows
+db_tables_consumed:
+  # Domínio Jira-style pertence a Modules/ProjectMgmt (ADR 0070). Aqui é só
+  # superfície ADMIN do MCP server (TasksAdminController / ForjaController) —
+  # lê e opera, não é dono. Fronteira reconciliada 2026-07-26.
   - mcp_tasks / mcp_epics / mcp_cycles / mcp_jira_projects (Jira-style)
   - mcp_inbox_notifications
   - mcp_components / mcp_views
-  - mcp_quotas
-  - mcp_workflows
 drift_alerts: []
   # Fase 3.7 PR-1 (2026-05-06): 5 controllers absorvidos do Copiloto/ADS.
   # 3 do Copiloto/Mcp/* + 2 do ADS/Admin/.

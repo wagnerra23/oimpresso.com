@@ -58,7 +58,7 @@ db_tables_owned:
   - mcp_dual_brain_decisions
   - mcp_confidence_scores
   - mcp_skills / mcp_skill_versions / mcp_skill_approvals / mcp_skill_test_runs / mcp_skill_labels
-  - mcp_governance_rules (compartilhada com Modules/Governance — Fase 5)
+  - mcp_governance_rules (dono: migration + write das rules de decision flow; Modules/Governance CONSOME — ActionGate lê + CRUD de toggle `enabled`. Fronteira reconciliada 2026-07-26)
 drift_alerts: []
   # Fase 3.7 PR-1 (2026-05-06): 4 drift controllers movidos pros donos corretos.
   # Admin/ProjectsController → Modules/ProjectMgmt
