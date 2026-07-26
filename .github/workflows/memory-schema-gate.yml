@@ -50,6 +50,25 @@ permissions:
   pull-requests: write
 
 jobs:
+  # O validador virou script (scripts/memory-schemas/validate.mjs) pra poder ser
+  # rodado LOCAL — antes ele só existia dentro do heredoc deste workflow, e a skill
+  # `memory-schema-preflight` mandava rodar uma ferramenta que não existia. Script que
+  # o CI usa precisa de teste que o CI roda: sem este job, o selftest seria letra morta
+  # (é o órfão que o próprio selftest-registry-check caça). Job próprio pra rodar 1×,
+  # não 9× pela matriz.
+  selftest:
+    name: validate.mjs — o validador morde e libera
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps do validador
+        run: npm install --no-save ajv@^8.17.1 ajv-formats@^3.0.1 gray-matter@^4.0.3 glob@^11.0.0
+      - name: Selftest (fixture ruim = o frontmatter exato que passou no #4798)
+        run: node scripts/memory-schemas/validate.mjs --selftest
+
   validate:
     name: ${{ matrix.label }}
     runs-on: ubuntu-latest
@@ -164,100 +183,21 @@ jobs:
           echo "$CHANGED" > changed-files.txt
           echo "Total changed: $(wc -l < changed-files.txt)"
 
+      # 2026-07-26 — o validador SAIU deste heredoc pra scripts/memory-schemas/validate.mjs.
+      # POR QUÊ: enquanto ele vivia aqui dentro, era INVOCÁVEL SÓ PELO CI. A skill
+      # `memory-schema-preflight` prometia "roda validator local antes de commit pra zerar
+      # o loop CI fail" — e não havia comando pra rodar. Mesmo disparando, ela não tinha como
+      # cumprir a promessa (chokepoint fantasma, §5 das proibições). Resultado real: o #4798
+      # mergeou session log + handoff fora do schema.
+      # Agora é UM script: o CI chama, o dev chama, um hook pode chamar. Fonte única —
+      # segunda cópia da regra seria a régua paralela que o §5 mata.
+      # Comportamento preservado 1:1 (mesmo diff-aware, mesmo warn pra legacy sem
+      # frontmatter, mesmo ::error/::warning, mesmo violations.json). Coberto por
+      # `--selftest` com fixture boa e ruim — a ruim é o frontmatter exato do #4798.
       - name: Validate frontmatter against schema
         id: validate
         continue-on-error: ${{ steps.strict.outputs.value != 'true' }}
-        run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const path = require('path');
-          const matter = require('gray-matter');
-          const { globSync } = require('glob');
-          const Ajv = require('ajv/dist/2020').default;
-          const addFormats = require('ajv-formats').default;
-
-          const schemaPath = process.env.SCHEMA;
-          const pattern = process.env.GLOB;
-
-          if (!fs.existsSync(schemaPath)) {
-            console.error(`[SKIP] schema não existe: ${schemaPath}`);
-            process.exit(0);
-          }
-
-          const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
-          const ajv = new Ajv({ allErrors: true, strict: false });
-          addFormats(ajv);
-          const validate = ajv.compile(schema);
-
-          // 2026-05-25 (Wagner "endureça"): valida APENAS changed files que
-          // batem o glob da matriz. Legacy debt em ADRs/handoffs antigos não
-          // é re-avaliada (append-only canon — ADR 0095 + Constituição Art. 3
-          // proíbe edição retroativa pra fix de schema).
-          const changedRaw = fs.existsSync('changed-files.txt')
-            ? fs.readFileSync('changed-files.txt', 'utf8').trim().split('\n').filter(Boolean)
-            : [];
-
-          // Glob match — usa globSync com pattern original + intersect com changed
-          const allMatching = globSync(pattern, { ignore: ['**/_*.md', '**/README.md', '**/INDEX.md'] });
-          const allMatchingSet = new Set(allMatching);
-
-          const files = changedRaw.filter(f => allMatchingSet.has(f));
-
-          if (files.length === 0) {
-            console.log(`[OK] nenhum arquivo NOVO/MODIFICADO bate ${pattern}`);
-            console.log(`(${changedRaw.length} arquivos no diff, ${allMatching.length} bateriam glob, mas nenhum interseccão)`);
-            process.exit(0);
-          }
-          console.log(`Validando ${files.length} arquivo(s) novo(s)/modificado(s) que batem ${pattern}`);
-
-          let failed = 0;
-          const violations = [];
-          for (const file of files) {
-            const raw = fs.readFileSync(file, 'utf8');
-            // 2026-06-17: frontmatter YAML malformado (backslash não-escapado,
-            // flow-seq `[W]` com texto colado, multiline key, etc) faz gray-matter
-            // THROW. Sem este try/catch a exceção derruba o job inteiro (exit 1 +
-            // stack trace) em vez de reportar a violação por-arquivo e seguir
-            // validando o resto. Conta como erro (strict bloqueia merge).
-            let data;
-            try {
-              ({ data } = matter(raw));
-            } catch (e) {
-              failed++;
-              const reason = e && e.message ? e.message.split('\n')[0] : String(e);
-              violations.push({ file, level: 'error', errors: [`YAML parse error: ${reason}`] });
-              continue;
-            }
-            // grace period: arquivos sem frontmatter (legacy) — só warning
-            if (!data || Object.keys(data).length === 0) {
-              violations.push({ file, level: 'warn', errors: ['frontmatter ausente (legacy)'] });
-              continue;
-            }
-            const ok = validate(data);
-            if (!ok) {
-              failed++;
-              violations.push({
-                file,
-                level: 'error',
-                errors: validate.errors.map((e) => `${e.instancePath || '/'} ${e.message}`),
-              });
-            }
-          }
-
-          console.log(`Arquivos validados: ${files.length} (apenas novos/modificados)`);
-          console.log(`Falharam (erro): ${failed}`);
-          console.log(`Avisos (legacy sem frontmatter): ${violations.filter((v) => v.level === 'warn').length}`);
-
-          for (const v of violations) {
-            const tag = v.level === 'error' ? '::error file=' + v.file + '::' : '::warning file=' + v.file + '::';
-            console.log(tag + v.errors.join(' | '));
-          }
-
-          // Persist pra job summary + comment PR
-          fs.writeFileSync('violations.json', JSON.stringify(violations, null, 2));
-
-          process.exit(failed > 0 ? 1 : 0);
-          NODE
+        run: node scripts/memory-schemas/validate.mjs --schema "$SCHEMA" --glob "$GLOB"
         env:
           SCHEMA: ${{ matrix.schema }}
           GLOB: ${{ matrix.glob }}

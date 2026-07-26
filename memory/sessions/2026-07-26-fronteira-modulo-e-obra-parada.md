@@ -2,7 +2,7 @@
 date: "2026-07-26"
 hour: "16:49 BRT"
 topic: "Fronteira de módulo + a classe \"obra parada\" — do bucket órfão à sentinela de entrega"
-authors: [W, CC]
+authors: [W, C]
 outcomes:
   - "Whatsapp era 1 de 36 sem owner/trust_required — fechado"
   - "4 tabelas de dono duplo resolvidas (0 conflitos no grafo)"
