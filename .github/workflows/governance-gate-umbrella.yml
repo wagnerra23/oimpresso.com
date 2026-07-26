@@ -74,6 +74,18 @@ jobs:
           # gate mudo é pior que gate ausente, porque parece cobertura.
           git fetch origin main --quiet
           node scripts/governance/sdd-output-lint.mjs --check-novos --base origin/main
+      # 2026-07-26 — CADEIA DE RASTREABILIDADE por módulo (US→CU→UC→teste). Régua da
+      # indústria (Jama Live Traceability · PTC · trace.space 2026): coverage = % de
+      # requisitos com cadeia COMPLETA da origem à evidência. O casos-gate vê UC↔teste e o
+      # anchor-lint vê US↔código; NINGUÉM percorria a cadeia inteira nem dizia ONDE quebra.
+      # O gerado é a FILA DE CRESCIMENTO: cada elo faltante é o próximo requisito a escrever.
+      # Advisory + forward-only: por ora só o Produto (piloto); outros módulos entram quando
+      # ganharem o arquivo (gerar 59 de uma vez seria big-bang de legado · §5 2026-07-12).
+      - name: self-test requisitos-status (extratores + classificador)
+        run: node scripts/governance/requisitos-status.mjs --selftest
+      - name: Cadeia de requisitos em dia (Produto · gerado × commitado)
+        continue-on-error: true
+        run: node scripts/governance/requisitos-status.mjs Produto --check
       # ENFORCE (GT-G5 · ledger §D — promovido 2026-07-04, avaliação adversarial SDD
       # 2026-07-03 risco sistêmico nº2): refutação adversarial de lote-IA de BRIEFINGs/SPECs
       # (PROTOCOLO-REFUTADOR-BACKFILL). Só dispara em PR com >10 arquivos em memory/requisitos/
