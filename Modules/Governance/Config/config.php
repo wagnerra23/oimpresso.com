@@ -216,6 +216,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | FLAG de OBRA PARADA no Daily Brief ("o cron roda" ≠ "o cron entrega")
+    |--------------------------------------------------------------------------
+    | Kill-switch do ObraParadaBriefLineService (eixo 2 do cron-watchdog.mjs —
+    | artefato de estado versionado que envelheceu além do limite). Default ON.
+    |
+    | Origem 2026-07-26: os 5 scorecards do Governance v4 ficaram 71d congelados
+    | com o cron das 07:00 rodando todo dia. Nenhum dos 34 gates required viu —
+    | gate roda sobre diff, e coisa parada não tem diff.
+    |
+    | @see Modules\Governance\Services\ObraParadaBriefLineService
+    | @see scripts/governance/cron-watchdog.mjs (eixo 2 · --json)
+    */
+    'obra_parada_brief_line' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
+
+    /*
+    |--------------------------------------------------------------------------
     | Seção OUTCOME DO AGENTE (7d) no Daily Brief (US-GOV-052 · evals de outcome)
     |--------------------------------------------------------------------------
     | Kill-switch do AgentOutcomeBriefSectionService (DORA dos PRs do agente via
