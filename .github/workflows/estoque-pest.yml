@@ -42,6 +42,21 @@ name: Estoque · Pest (MySQL)
 #   real: os asserts leem colunas do `products` depois do PUT; em sqlite dariam SKIP.
 #   ⚠️ Eixo ESTOQUE → REGRA MESTRE: o teste PROVA, mas o fix é decisão [W] (2 caminhos + tabela
 #   antes→depois). Vermelho aqui é o achado, não bug de teste.
+#
+# 2026-07-26 — +`ProdutoShowContratoTest` (trio Produto/Show, UC-PSHOW-01/02/03/06). Failing-first:
+#   caracteriza a FICHA (`GET /products/{id}` → `Produto/Show`) contra as 3 fontes — o Blade
+#   `view-modal` gateia custo por `@can('view_purchase_price')` e o Delphi faz o campo SUMIR
+#   (AR-PROD-015), enquanto o branch Inertia do `show()` só consulta `product.view/update/delete`.
+#   Precisa de MySQL real: lê props deferidas (partial reload) + insere `product_racks` + exige o
+#   2º business pro cross-tenant; em sqlite daria SKIP ("skipa e mente").
+#
+# 2026-07-26 — +`ProdutoIndexContratoTest` (trio Produto/Index, UC-PIDX-01..06). Failing-first:
+#   caracteriza a LISTA (`GET /products` → `Produto/Index`) contra as 3 fontes. Aqui a Blade legada
+#   é o OUTRO BRANCH DO MESMO MÉTODO `index()` — o branch DataTables gateia preço/custo com
+#   `@can` (index.blade.php:287,294) e pagina server-side; o branch Inertia não consulta permissão
+#   de preço nenhuma e corta em `limit(200)` sem paginação.
+#   Precisa de MySQL real: lê props deferidas (partial reload), insere lote de 206 produtos pro
+#   caso de alcance e exige o 2º business pro cross-tenant; em sqlite daria SKIP ("skipa e mente").
 
 on:
   workflow_dispatch: {}
@@ -157,7 +172,9 @@ jobs:
             tests/Feature/Produto/CadastroProdutoContratoTest.php \
             tests/Feature/Produto/StockHistoryContratoTest.php \
             tests/Feature/Produto/ProdutoEditContratoTest.php \
-            tests/Feature/Produto/ProdutoEditPayloadContratoTest.php
+            tests/Feature/Produto/ProdutoEditPayloadContratoTest.php \
+            tests/Feature/Produto/ProdutoShowContratoTest.php \
+            tests/Feature/Produto/ProdutoIndexContratoTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
