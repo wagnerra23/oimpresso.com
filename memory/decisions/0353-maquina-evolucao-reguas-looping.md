@@ -59,7 +59,7 @@ A Fase Grade deixa de re-ler 270k chars pra decidir números: o **JS monta as ta
 `scripts/governance/reguas-indexar.mjs` (report-only, advisory): consome os payloads `onde_indexar` de `fraquezas.json` (existia-invisível ainda não indexado) → fila legível por alvo (mapa 0330-sucessor / BRIEFINGs) pro zelador/PR humano; `--marcar` fecha itens indexados; `--selftest` com fixture boa/ruim (a casa exige mordida provada). SEM gate novo (lápide 0336: promoção só com mordida).
 
 ### Órgão 5 — O looping (cadência)
-Delta acoplado à cadência existente — **proposta: o Zelador diário** (piloto 14d já em voo) dispara o delta 1×/semana OU quando `git log` acumular N commits nos paths mapeados; full na cadência trimestral da skill. **Wiring é decisão [W]** (1 linha no zelador) — a máquina nasce invocável barata; não crio cron por conta própria.
+Delta acoplado à cadência existente — **proposta: o Zelador diário** (piloto 14d iniciado em 2026-06-12 (janela declarada até 2026-06-26)) dispara o delta 1×/semana OU quando `git log` acumular N commits nos paths mapeados; full na cadência trimestral da skill. **Wiring é decisão [W]** (1 linha no zelador) — a máquina nasce invocável barata; não crio cron por conta própria.
 
 ### Órgão 6 — Treinamento (o loop de aprender mais rápido)
 Cada rodada emite `licoes_candidatas` (NAO_EXISTE reincidente · achado adversarial SUSTENTADO · gap falso re-descoberto) persistidas no ledger → alimentam o fluxo **two-strikes existente** (LICOES_CODE + corpus `origin:incidente` do grade.mjs). Extensão da ponte já pedida nos chips B3/C13 — não motor novo.
@@ -81,7 +81,7 @@ Cada rodada emite `licoes_candidatas` (NAO_EXISTE reincidente · achado adversar
 |---|---|
 | Roadmap/motor paralelo (07-09) | tudo é extensão: workflow canônico + zelador + two-strikes + skill existente |
 | Catraca redundante (07-09) | ledger não é gate; indexador é report-only |
-| `verificado_em` auto-declarado (07-09) | delta usa git-log (oráculo aprovado), nunca campo auto-escrito; TTL é cadência de re-verificação EXTERNA, não frescor auto-declarado |
+| `verificado_em` auto-declarado (07-09) | TTL é cadência de re-verificação EXTERNA, não frescor auto-declarado. ⚠️ **A afirmação original ("delta usa git-log, oráculo aprovado") foi REMOVIDA em 2026-07-26: é falsa neste repo.** O delta manda `git log --since` (linha 328) e o hook `block-instrumento-sem-porta-viva` BLOQUEIA exatamente isso em clone raso — e as duas árvores desta máquina estão rasas. Sem `dims_delta`, o código retorna `nada_a_medir: true` com log "retrato segue válido": **verde por não-execução** (§5 2026-07-24) |
 | Presence-gate (07-09) | zero checagem de presença; selftest é fixture-que-morde |
 | Perseguir nota (0159) | trava explícita acima; metas são da máquina |
 | Chokepoint fantasma (07-09) | invocação provada: delta roda pelo MESMO comando da skill; wiring de cadência declarado como pendência [W], não prometido |
@@ -110,22 +110,37 @@ do [W] / sessão dedicada.
 existe pra matar. Escalar separa **lembrar** (automático, barato) de **gastar**
 (humano, deliberado).
 
-### D3 · Emenda da lápide 07-10 (braço discriminativo na Integração) — **EMENDAR**
+### D3 · Emenda da lápide 07-10 — **JÁ RATIFICADA; o que resta é RECONCILIAÇÃO**
 
-O veredito de Integração deu `DIFERENCIAL_SISTEMA` em **81 de 81** casos. Binário que
-só conhece um valor não discrimina — é a mesma família do `foundation-ratchet`
-("0 failures em 300+ runs") e do drift-sentinel tautológico, que o §5 já enterrou.
+> **Reescrita em 2026-07-26, após passe adversarial sobre esta própria ADR.** A redação
+> original justificava a emenda com *"deu DIFERENCIAL_SISTEMA em 81 de 81"* e a
+> apresentava como decisão pendente. **As duas coisas estavam erradas** — e nenhuma das
+> três verificações que as derrubariam (todas de segundos) havia sido feita.
 
-A emenda (habilitar `REFUTADO_TB` quando o agente não nomeia incremento além da
-IDENTIDADE, ou quando UM peer único monta o todo equivalente) mantém o **guard
-anti-composição inviolável**: peers DIFERENTES cobrindo cada um um eixo continua
-NÃO sendo refutação — somar slices-com-peer é o erro que a lápide-mãe matou.
+**A emenda já está em `main` e já foi ratificada por merge.** A própria lápide §5
+2026-07-19 fecha assim: *"esta emenda + o código vão num PR e merge [W] = ratificação"*.
+Medido: `reguas-do-sistema.js` contém `EMENDA 2026-07-19`, o campo `incremento` é
+`required` no schema `INTEG`, e a skill carrega a emenda em prosa. Não há o que decidir.
 
-**Ressalva honesta que fica registrada:** emendar HABILITA o negativo, não PROVA que
-ele dispara. Proibido afirmar "agora discrimina" antes do placar de um full
-pós-emenda. Critério de reabertura dos dois lados: se seguir 0/N, o medidor continua
-carimbo; se disparar num caso que o [W] julgue diferencial real, a pergunta
-over-corrigiu.
+**A justificativa "81 de 81" está superada por artefato do próprio repo.** O `integ_hist`
+do retrato 2026-07-26 registra `vereditos_acumulados: 104 · refutado_tb_acumulado: 1 ·
+runs: 9`. Restatear 81/81 seria repetir um número que outro artefato sabe melhor
+(§5 2026-07-17, oráculo errado).
+
+**E o critério de sucesso que a versão anterior definia JÁ FOI EXECUTADO — com resultado
+contraditório.** O primeiro full pós-emenda rodou em 2026-07-26, e os dois registros do
+ledger discordam:
+
+| Fonte | rodada 2026-07-26 |
+|---|---|
+| `retratos.json[0].placar` | `refutado_tb: 1` — "o 1º da história" |
+| `claims.json` (24 com `data_veredito: 2026-07-26`) | **24 de 24 `DIFERENCIAL_SISTEMA`** — zero `REFUTADO_TB` |
+
+Portanto **a pergunta viva não é "emendar?"** — é **"o braço disparou, ou o ledger
+mentiu?"**. Reconciliar custa um `node -e`; é a próxima ação, não uma nova decisão.
+
+O guard anti-composição segue inviolável em qualquer cenário: peers DIFERENTES cobrindo
+um eixo cada continua NÃO sendo refutação.
 
 ### D4 · Regras 16-17 (prosa × código) — **CÓDIGO**
 
@@ -138,10 +153,10 @@ aponta pro dono*).
 
 | Órgão | Estado | Recibo |
 |---|---|---|
-| 1 · Ledger `memory/reguas/` | ✅ vivo | `config` 5 · `retratos` 2 · `claims` 49 · `fraquezas` 57 |
+| 1 · Ledger `memory/reguas/` | 🟡 **vivo COM DEFEITO DE FIDELIDADE MEDIDO** | cardinalidade ok (`config` 5 · `retratos` 2 · `claims` 49 · `fraquezas` 57), mas o conteúdo diverge: `claims.json` marca **24/24 DIFERENCIAL_SISTEMA** na rodada 07-26 enquanto o `placar` do retrato marca `refutado_tb: 1`; e `dtc-proveniencia-design-contrato` (refutador `ACIMA_CONFIRMADO`) tem veredito de Integração que a linha 507 **filtra antes da fase**. Causa: `persistir()` grava via `agent(...)` (transcrição por LLM), e o teste de CI só confere que a regra está **no prompt** — presence-gate |
 | 2 · Modo delta | ✅ implementado | 12 pontos de código no workflow canônico |
 | 3 · Composição determinística | 🟡 parcial | `regra_nota` já nos retratos; 4 pontos no workflow |
-| 4 · Indexador `reguas-indexar.mjs` | 🟡 script pronto, 0 invocador executável | **por desenho** — o `ZELADOR.md` declara "sonda, não notificação" |
+| 4 · Indexador `reguas-indexar.mjs` | ✅ invocado diariamente | `ZELADOR.md:56` manda rodá-lo em todo run, e o Zelador tem cron `0 7 * * *` `enabled:true` (`lastRunAt` 2026-07-26). A leitura anterior ("0 invocador") olhou só workflows de CI e **errou** — corrigida no passe adversarial |
 | 5 · Looping (cadência) | ❌ → **D2 resolve** | `ZELADOR.md` descreve o passo; nenhum cron o executa |
 | 6 · Treinamento | ❌ não implementado | `licoes_candidatas` = 0 ocorrências; `fraquezas` sem campo de lição |
 

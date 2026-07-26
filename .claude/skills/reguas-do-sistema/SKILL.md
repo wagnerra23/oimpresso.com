@@ -179,3 +179,18 @@ Selftest da propriedade: `node scripts/governance/reguas-workflow.test.mjs` (zer
   se o `sdd-scorecard.mjs` se recusa a compor com `not_yet_measured`, a grade também se recusa.
 - ❌ Tratar "GATED no Wagner" como categoria preguiçosa (regra 14): checar se a autorização
   já existe registrada e se só o flip é HITL antes de arquivar o item.
+
+## Regras 16-17 — vivem em CÓDIGO, não aqui (ADR 0353 · D4)
+
+As regras 16 (composição fiel ao journal) e 17 (disclosure do placar histórico) **não
+estão escritas nesta skill de propósito**. Elas viraram o **Órgão 3** da máquina de
+evolução: a composição fecha os números em JS (`reguas-do-sistema.js` — 1 fraqueza = 1
+linha, nota = média aritmética 1 decimal, fusão proibida por construção) e o disclosure
+sai do `integ_hist` do ledger automaticamente.
+
+Prosa que restateia o que o código já garante apodrece e diverge — doutrina
+[ADR 0329](../../../memory/decisions/0329-doutrina-executavel-nao-prosa.md) (executável >
+prosa) e lápide §5 2026-07-16 (artefato aponta pro dono, não restateia).
+
+**Dono da regra:** [`.claude/workflows/reguas-do-sistema.js`](../../workflows/reguas-do-sistema.js)
+(fase Grade + Persistir) · **lei:** [ADR 0353](../../../memory/decisions/0353-maquina-evolucao-reguas-looping.md).
