@@ -2,8 +2,12 @@
 id: sessions-2026-07-26-sdd-from-source-loop-avaliacao
 type: session
 date: "2026-07-26"
+topic: "Loop de avaliação da máquina de SDD — 3 corridas do agent sdd-from-source + 3 avaliações céticas independentes (6,9 → 7,4; não chegou a 9)"
+authors: [W, C]
 module: Produto
 owner: W
+prs: [4807, 4808, 4809]
+us: [US-PROD-029, US-PROD-030, US-PROD-031, US-PROD-032]
 related_adrs:
   - 0351-sdd-from-source
   - 0352-errata-0351-venue-distiller-citacao-taxonomia
