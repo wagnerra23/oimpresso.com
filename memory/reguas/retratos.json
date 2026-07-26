@@ -4,17 +4,17 @@
     "modo": "full",
     "regra_nota": "media-deterministica-v1",
     "notas": {
-      "spec-governanca": null,
-      "design-to-code": null,
-      "memoria-conhecimento": null,
-      "catalogo-modulo-opiniao-codigo": null,
+      "spec-governanca": 7.5,
+      "design-to-code": 7.0,
+      "memoria-conhecimento": 6.8,
+      "catalogo-modulo-opiniao-codigo": 7.5,
       "orquestracao-adversarial": 6.5,
-      "evals-outcome": null,
-      "erp-ia-produto": null,
-      "observabilidade-agente": null,
-      "qualidade-drift-ia-producao": null,
-      "seguranca-do-agente": 6,
-      "custo-eficiencia": null,
+      "evals-outcome": 6.0,
+      "erp-ia-produto": 5.0,
+      "observabilidade-agente": 6.3,
+      "qualidade-drift-ia-producao": 6.0,
+      "seguranca-do-agente": 6.0,
+      "custo-eficiencia": 8.0,
       "inteligencia-de-negocio": 4.5
     },
     "placar": {
@@ -32,7 +32,14 @@
       "recontagem": "2026-07-26: 81 anteriores (ledger 07-18) + 23 desta rodada. O 1o REFUTADO_TB do historico entra aqui.",
       "errata": "CORRIGIDO 2026-07-26 por passe adversarial. O retrato nasceu com integ_hist copiado VERBATIM do 07-18 (81/0/8) porque a rodada usou o script pre-conserto, cuja instrucao era 'copie do anterior' — entao o acumulado nunca crescia. Sem esta correcao o disclosure da regra 17 seguiria imprimindo '0 REFUTADO_TB em 81 vereditos' apesar de o placar desta MESMA rodada registrar refutado_tb=1, e o codigo novo (que ja soma) acumularia a partir do valor errado. Os valores sao derivaveis do campo `placar` deste mesmo retrato — auditavel sem confiar nesta nota."
     },
-    "links": []
+    "links": [],
+    "proveniencia_notas": {
+      "regra": "media aritmetica (1 decimal) das nota_sugerida dos verificadores da dimensao — a MESMA media-deterministica-v1 ja aplicada as 3 originais",
+      "rows_por_dimensao": 2,
+      "amostragem": "24 fraquezas VERIFICADAS de 125 levantadas (cap estratificado 24, round-robin: 2 por dimensao nas 12). A amostra e rank-ordenada pelo pesquisador, NAO aleatoria — cada nota e media de N=2.",
+      "recomposicao": "notas recompostas do journal.jsonl do run wf_db242261-298 em 2026-07-26, apos o passe adversarial. Reproducao independente bateu 12/12 com o adversario; 0 verificacoes orfas."
+    },
+    "errata_notas": "CORRIGIDO 2026-07-26 (passe adversarial). O retrato nasceu com 9 de 12 notas `null` e a grade atribuiu isso a decisao de metodo ('compor seria agregacao incomensuravel que o §5 proibe'). ERA BUG: `RESEARCH_SCHEMA.dimensao` e string livre sem enum e a composicao filtra por igualdade exata (`v.dimensao === d.key`); 9 dos 12 pesquisadores devolveram '<key> — <escopo>' e 1 devolveu acentuado (`custo-eficiência` x a key `custo-eficiencia`). As 3 que 'fecharam nota' eram exatamente as 3 que devolveram a key nua. Os 24 verificadores TODOS devolveram nota numerica — o dado existia. Notas anteriores (com os nulls): {\"spec-governanca\": null, \"design-to-code\": null, \"memoria-conhecimento\": null, \"catalogo-modulo-opiniao-codigo\": null, \"orquestracao-adversarial\": 6.5, \"evals-outcome\": null, \"erp-ia-produto\": null, \"observabilidade-agente\": null, \"qualidade-drift-ia-producao\": null, \"seguranca-do-agente\": 6, \"custo-eficiencia\": null, \"inteligencia-de-negocio\": 4.5}. Fix na raiz: o orquestrador carimba `d.key` na origem."
   },
   {
     "data": "2026-07-18",
