@@ -120,6 +120,11 @@ jobs:
   # de CADA workflow com schedule, DESCOBERTOS dinamicamente (cobre cron novo/removido).
   # 🔴 cron morto · 🟡 bootstrap. Generaliza o job cron-liveness de memory-health.yml
   # (1 → 13 crons). Advisory ao nascer (ADR 0271); promover a required depois.
+  # EIXO 2 (2026-07-26) — ENTREGA: o mesmo script passou a checar também os artefatos
+  # de estado versionados que envelheceram. Motivo: liveness só cobre os 24 workflows
+  # do GitHub; os 76 schedules Laravel não têm API de liveness — e o caso real foi um
+  # cron VIVO que não ENTREGAVA (scorecards 71d congelados com o cron das 07:00
+  # rodando todo dia). Medir a consequência pega os dois. Segue advisory.
   crons-watchdog:
     name: crons de governança vivos? (watchdog G6 · ADR 0317)
     if: github.event_name == 'pull_request'

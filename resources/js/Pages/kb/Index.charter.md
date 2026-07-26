@@ -5,7 +5,7 @@ component: resources/js/Pages/kb/Index.tsx
 bundle_source: kb-page.jsx
 controller: Modules\KB\Http\Controllers\KbController@index
 route: kb.index
-status: draft
+status: live
 owner: wagner
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
@@ -114,3 +114,5 @@ A tela emite eventos via tela mãe ou pode disparar:
 | Versão | Data | Mudança |
 |---|---|---|
 | 1.0 | 2026-05-15 | Draft inicial — ONDA 0 fundação. Aguarda port F3 da ONDA 2. |
+
+> _Promovido draft→live em 2026-07-26 por `charter-promote-signal.mjs` — sinal: route-hits:1._

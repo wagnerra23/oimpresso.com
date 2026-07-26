@@ -11,6 +11,7 @@ use Modules\Brief\Services\LeaseBriefSectionService;
 use Modules\Governance\Services\AdrPendenteBriefLineService;
 use Modules\Governance\Services\AdrReviewBriefLineService;
 use Modules\Governance\Services\AgentOutcomeBriefSectionService;
+use Modules\Governance\Services\ObraParadaBriefLineService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 use Modules\Governance\Services\ShippedLogBriefLineService;
 use Modules\Governance\Services\SddBriefLineService;
@@ -81,6 +82,14 @@ final class GenerateBriefCommand extends Command
         // ciclo de ratificação (`🟠 ADR pendente: A:N B:N C:N` só quando N>0).
         // Best-effort: node ausente / 0 pendências → brief intacto.
         $content = app(AdrPendenteBriefLineService::class)->inject($content);
+
+        // 2026-07-26 — FLAG de OBRA PARADA (pós-LLM, determinística) na seção
+        // FLAGS: shell-out de cron-watchdog.mjs --json (eixo 2 — artefato de
+        // estado que envelheceu). Fecha o buraco "o cron roda mas não entrega":
+        // os 5 scorecards do Governance v4 ficaram 71d congelados com o cron das
+        // 07:00 vivo, e nenhum dos 34 required viu (gate roda sobre diff; coisa
+        // parada não tem diff). Best-effort: node ausente / 0 parados → intacto.
+        $content = app(ObraParadaBriefLineService::class)->inject($content);
 
         // US-GOV-052 — seção OUTCOME DO AGENTE (7d) (pós-LLM, determinística)
         // antes de FLAGS: shell-out de agent-pr-outcomes.mjs --json (DORA dos

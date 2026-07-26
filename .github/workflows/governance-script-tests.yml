@@ -263,6 +263,15 @@ jobs:
         run: node scripts/governance/selftest-registry-check.mjs --selftest
       - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
         run: node scripts/governance/selftest-registry-check.mjs
+      # Auditoria 2026-07-26: o sweep acima estava VERDE (125/125 testes registrados)
+      # enquanto 12 de 88 SCRIPTS não-teste não tinham invocador nenhum. Mesma regra,
+      # superfície que faltava. REPORT-ONLY (exit 0 sempre): "0 invocador" não prova
+      # obra parada — CLI manual por design é legítimo aqui (adr-supersede, doc-id-stamp).
+      # Medido: o melhor critério automático dá ~67% de precisão, então quem decide é
+      # humano. O valor é a lista existir; gate heurístico avermelhando legado é o
+      # anti-padrão que o §5 das proibições mata.
+      - name: Script órfão de invocador (report-only · lista candidatos, não julga)
+        run: node scripts/governance/selftest-registry-check.mjs --scripts
       # P15 entrega 3 — desorfanar .test.mjs (sweep selftest-registry-check.mjs, 2026-07-13).
       # Estes 9 tinham .test.mjs no repo mas nenhum step de CI: passavam só na máquina do dev
       # (mesmo gap "test local-only" da Onda 1). Todos verdes em node puro no momento do wiring.
