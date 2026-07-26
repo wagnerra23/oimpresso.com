@@ -42,8 +42,13 @@ routes:
   - "GET  /governance/module-grades/{name}         → ModuleGradeController@show          (governance.module-grades.show)"
   - "GET  /governance/ds-rollout                    → DsRolloutController@index           (governance.ds-rollout.index)"
   - "GET  /governance/install{,/uninstall,/update} → InstallController@*                 (governance.install.*)"
-db_tables_owned:
-  - mcp_governance_rules (compartilha com ADS — ActionGate lê, ADS write rules de decision flow)
+db_tables_owned: []
+db_tables_consumed:
+  # Dono = Modules/ADS (migration 2026_05_03_220001_create_mcp_governance_rules_table
+  # + write das rules de decision flow). Aqui é superfície de LEITURA (ActionGate)
+  # + CRUD de toggle `enabled` via PoliciesController — não define o schema.
+  # Fronteira reconciliada 2026-07-26.
+  - mcp_governance_rules
 drift_alerts:
   # 2026-05-17 — atualizado: Copiloto foi renomeado Jana em Fase 3.7 PR-2 (2026-05-06).
   # Drift ainda VIVO. ETA migração: Fase 5 (próxima sessão dedicada).
