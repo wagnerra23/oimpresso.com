@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { parseLicoes, classificar, semGate, threshold, formatBanner,
+import { parseLicoes, classificar, semGate, threshold, formatBanner, gateJaReprovado,
   parseTombstones, ledgerCitacoesSecao5, computeFrontier, reconcile, formatReconcile } from './licoes-code-two-strikes.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'licoes-code-two-strikes.mjs');
@@ -39,6 +39,35 @@ check('watch = LC-03 (1x sem gate)', watch.length === 1 && watch[0].id === 'LC-0
 check('LC-02 (tem gate) fica de fora', !alarme.concat(watch).some((l) => l.id === 'LC-02'));
 check('formatBanner cita PROMOVER + LC-01', /PROMOVER A DEFESA MECANICA/.test(formatBanner(alarme, watch, 2)) && /LC-01/.test(formatBanner(alarme, watch, 2)));
 check('formatBanner vazio quando nada', formatBanner([], [], 2) === '');
+
+// ── QUEM FAZ + gate ja reprovado (2026-07-26) ───────────────────────────────────
+// CONTRATO: o banner e' a UNICA instrucao que o agente recebe sobre o ledger. Antes
+// ele dizia so "avise o Wagner e proponha o gate" — treinava a escalar o que o header
+// do LICOES_CODE.md ja atribui a quem consertou, e mandava re-propor gate que o §5
+// enterrou por FP. Fixtures derivadas do caso real (LC-08/09/10 tem o marcador).
+const MD_REPROVADO = `# Licoes
+## LC-90 - Classe com gate obvio ja enterrado
+**Ocorrências:** 4
+**Gate:** none
+- Determinismo MEDIDO E REPROVADO 2026-07-25: 25 hits, 25/25 FP.
+## LC-91 - Classe ainda sem tentativa
+**Ocorrências:** 4
+**Gate:** none
+`;
+const lic2 = parseLicoes(MD_REPROVADO);
+check('parseLicoes guarda o corpo da LC', /MEDIDO E REPROVADO/.test(lic2[0].corpo) && !/MEDIDO/.test(lic2[1].corpo));
+check('gateJaReprovado: marcador declarado → true', gateJaReprovado(lic2[0]) === true);
+check('gateJaReprovado: sem marcador → false', gateJaReprovado(lic2[1]) === false);
+check('gateJaReprovado: objeto vazio nao explode', gateJaReprovado(null) === false && gateJaReprovado({}) === false);
+
+const bannerMisto = formatBanner(classificar(lic2, 2).alarme, [], 2);
+check('BITE: banner marca so a LC reprovada', /LC-90.*JA MEDIDO E REPROVADO/.test(bannerMisto) && !/LC-91.*JA MEDIDO/.test(bannerMisto));
+check('BITE: com 1 nao-reprovada, ACAO ainda manda propor MEDINDO o FP', /ACAO: proponha .*MEDINDO o FP/.test(bannerMisto));
+const bannerTodoReprovado = formatBanner([lic2[0]], [], 2);
+check('BITE: todas reprovadas → ACAO manda NAO propor', /ACAO: NAO proponha gate novo/.test(bannerTodoReprovado));
+check('QUEM FAZ: banner atribui o ledger a quem consertou', /QUEM FAZ:.*ledger e SEU/s.test(bannerMisto) && /incremente Ocorrencias/.test(bannerMisto));
+check('QUEM FAZ: banner limita \[W\] a soberania', /\[W\] decide so o que e/.test(bannerMisto) && /podar capacidade/.test(bannerMisto));
+check('CONTROLE: banner sem alarme nao fala de QUEM FAZ', !/QUEM FAZ/.test(formatBanner([], [{ id: 'LC-92', titulo: 'x', ocorr: 1, gate: 'none', corpo: '' }], 2)));
 
 // ── extensão: cobertura só-advisory = "sem defesa mecânica" (proposal two-strikes-cobre-processo) ──
 check('semGate: advisory/parcial/insuficiente = sem defesa mecanica', semGate('advisory — nudge-x') && semGate('parcial: cobre so X') && semGate('insuficiente'));

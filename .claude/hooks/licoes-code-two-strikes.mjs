@@ -77,10 +77,11 @@ export function parseLicoes(text) {
     const h = /^##\s+(LC-\S+)\s*[-—]?\s*(.*)$/.exec(ln);
     if (h) {
       if (cur) licoes.push(cur);
-      cur = { id: h[1], titulo: h[2].trim(), ocorr: 0, gate: '' };
+      cur = { id: h[1], titulo: h[2].trim(), ocorr: 0, gate: '', corpo: '' };
       continue;
     }
     if (!cur) continue;
+    cur.corpo += ln + '\n';
     const oc = /\*\*Ocorr.*?(\d+)/.exec(ln);
     const gt = /\*\*Gate.*?:\s*(.+?)\s*$/.exec(ln);
     if (oc) cur.ocorr = parseInt(oc[1], 10);
@@ -99,13 +100,31 @@ export function classificar(licoes, th) {
 
 const toAscii = (s) => String(s).replace(/[^\x20-\x7E]/g, '.');
 
+/** a própria lição já declara que a máquina óbvia foi MEDIDA e REPROVADA?
+ *  Marcador DECLARADO pelo autor no corpo da LC (não é leitura semântica) — hoje
+ *  vale pra LC-08/09/10. Sem isso o banner manda, toda sessão, "proponha o gate"
+ *  pra classe cujo gate o §5 já enterrou por FP — instrução obsoleta empurrando
+ *  o agente pra uma ação banida. */
+export function gateJaReprovado(l) {
+  return /medid[ao]s?\s+e\s+reprovad[ao]s?/i.test(String((l && (l.corpo + l.gate)) || ''));
+}
+
 export function formatBanner(alarme, watch, th) {
   if (alarme.length === 0 && watch.length === 0) return '';
   const out = ['', '=== LICOES [CODE] - gatilho two-strikes (audit loop de aprendizado) ==='];
   if (alarme.length) {
     out.push(`  [!] ${alarme.length} classe(s) repetiram (>= ${th}x) e NAO tem gate. PROMOVER A DEFESA MECANICA:`);
-    for (const a of alarme) out.push(`      ${a.id} - ${toAscii(a.titulo)}  (${a.ocorr}x, sem gate)`);
-    out.push('  ACAO: avise o Wagner e proponha o gate/hook/baseline que mata essa classe.');
+    for (const a of alarme) {
+      const nota = gateJaReprovado(a) ? '  [gate obvio JA MEDIDO E REPROVADO - nao re-proponha]' : '';
+      out.push(`      ${a.id} - ${toAscii(a.titulo)}  (${a.ocorr}x, sem gate)${nota}`);
+    }
+    const todosReprovados = alarme.every(gateJaReprovado);
+    out.push(todosReprovados
+      ? '  ACAO: NAO proponha gate novo aqui - a forma obvia ja foi medida e reprovada (ver corpo da LC).'
+      : '  ACAO: proponha o gate/hook/baseline que mata essa classe - MEDINDO o FP antes (§5).');
+    out.push('  QUEM FAZ: consertou um erro dessa classe? o ledger e SEU - escreva a lapide §5 e');
+    out.push('            incremente Ocorrencias (header do LICOES_CODE.md). [W] decide so o que e');
+    out.push('            soberania: apagar alarme, promover gate a required, podar capacidade.');
     out.push("  (Quando criar o gate, troque 'Gate: none' pelo nome dele em LICOES_CODE.md - o alarme some.)");
   }
   if (watch.length) out.push(`  [.] ${watch.length} classe(s) em WATCH (sem gate, < ${th}x). Se reincidirem, viram alarme.`);
