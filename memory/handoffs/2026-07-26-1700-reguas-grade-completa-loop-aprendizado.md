@@ -2,7 +2,7 @@
 date: "2026-07-26"
 time: "17:00 BRT"
 slug: reguas-grade-completa-loop-aprendizado
-tldr: "Régua do sistema rodou COMPLETA na 3ª tentativa (88/88 agentes, 4,97M tokens) e o 1º REFUTADO_TB do histórico disparou — a emenda §5 2026-07-19 passou no teste que ela mesma pediu. Placar: 1 acima-de-categoria (âncora de design com gate required; Figma Code Connect tem o issue equivalente ABERTO) · 22 à-frente-por-integração · 12 refutadas. Notas fecharam em 3 de 12 dimensões e as 9 restantes saíram SEM NOTA (não inventadas). No loop de aprendizado: recibo pendurado do LC-08 fechado, LC-10/LC-11 nascem contadas, e um falso-verde real no matcher semGate foi corrigido. Das 4 propostas minhas de 'rotina que aprende mais rápido', 3 morreram por medição."
+tldr: "Régua rodou COMPLETA na 3ª tentativa (88/88 agentes) e o 1º REFUTADO_TB do histórico disparou — a emenda §5 2026-07-19 passou no teste que ela mesma pediu (era 0 em 81 vereditos). Placar: 1 acima-de-categoria · 22 à-frente-por-integração · 12 refutadas. Notas em 3 de 12 dimensões; as 9 restantes SEM NOTA, não zero. Loop de aprendizado: recibo do LC-08 fechado, LC-10/LC-11 nascem contadas, falso-verde real no semGate corrigido. Das 4 propostas de rotina, 3 morreram por medição."
 prs: [4790, 4794]
 decided_by: [F]
 next_steps:
