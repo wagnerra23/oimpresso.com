@@ -476,8 +476,13 @@ class ProductController extends Controller
      */
     protected function buildProdutoIndexCategorias(int $businessId): array
     {
-        $cats = Category::where('business_id', $businessId)
-            ->where('category_type', 'product')
+        // `categories.` explícito: o leftJoin abaixo traz `products`, que TAMBÉM tem
+        // `business_id` — sem qualificar, o MySQL responde
+        // "Column 'business_id' in where clause is ambiguous" (SQLSTATE 23000) e a tela dá 500.
+        // Não estourava porque a lista React é inalcançável hoje (sidebar usa <a href> puro →
+        // cai no Blade); ligá-la sem isto seria 500 na hora. Exposto por UC-PIDX-01/02/03/06.
+        $cats = Category::where('categories.business_id', $businessId)
+            ->where('categories.category_type', 'product')
             ->select('categories.id', 'categories.name')
             ->leftJoin('products', 'products.category_id', '=', 'categories.id')
             ->groupBy('categories.id', 'categories.name')
