@@ -133,7 +133,7 @@ class EssentialsMessageController extends Controller
         $query = EssentialsMessage::where('business_id', $businessId)
             ->where('user_id', '!=', auth()->user()->id)
             ->with(['sender:id,first_name,last_name,username'])
-            ->orderBy('created_at', 'ASC');
+            ->orderBy('created_at', 'asc');
 
         if (! empty($lastChatTime)) {
             $query->where('created_at', '>', $lastChatTime);
@@ -158,7 +158,7 @@ class EssentialsMessageController extends Controller
     {
         $query = EssentialsMessage::where('business_id', $businessId)
             ->with(['sender:id,first_name,last_name,username'])
-            ->orderBy('created_at', 'ASC');
+            ->orderBy('created_at', 'asc');
 
         $permitted = auth()->user()->permitted_locations();
         if ($permitted !== 'all') {
