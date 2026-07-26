@@ -193,6 +193,42 @@ if (args.includes('--measure')) {
   process.exit(0);
 }
 
+// ── CHECK forward-only (é o que MORDE no CI) ──────────────────────────────────
+// Só olha `.casos.md` que NASCEM neste diff (adicionados vs origin/main). Arquivo novo
+// nasce limpo; os 35 refs legados ficam grandfathered — tocar legado NÃO acorda o gate
+// (é a lápide de 2026-07-12: backfill em massa de legado morre no CI e não vale a pena).
+if (args.includes('--check-novos')) {
+  const { execSync } = await import('node:child_process');
+  let novos = [];
+  try {
+    const base = args.includes('--base') ? args[args.indexOf('--base') + 1] : 'origin/main';
+    const out = execSync(`git diff --name-only --diff-filter=A ${base}...HEAD`, { encoding: 'utf8' });
+    novos = out.split(/\r?\n/).map((s) => s.trim()).filter((s) => s.endsWith('.casos.md'));
+  } catch {
+    console.log('  [sdd-output-lint] não consegui resolver o diff — nada a checar (não-bloqueante).');
+    process.exit(0);
+  }
+
+  if (!novos.length) { console.log('  [sdd-output-lint] nenhum .casos.md novo neste diff.'); process.exit(0); }
+
+  let viol = 0;
+  for (const rel of novos) {
+    for (const x of checarRefsDeLinha(rel, ler(join(ROOT, rel)))) {
+      console.log(`  C1  ${rel}:${x.linha}  ref frágil "${x.alvo}" (sem sha)`);
+      viol++;
+    }
+  }
+  if (viol) {
+    console.log(`\n  ✗ ${viol} ref(s) "arquivo:NNN" sem sha em casos.md NOVO(s): ${novos.join(', ')}`);
+    console.log('    Ref de linha apodrece no primeiro refactor. Use SÍMBOLO (`Controller@metodo`)');
+    console.log('    + o grep que o re-localiza; se o número for indispensável, declare o sha');
+    console.log('    (`verificado@abc1234`). Legado NÃO é cobrado — só arquivo que nasce agora.');
+    process.exit(1);
+  }
+  console.log(`  ✓ ${novos.length} casos.md novo(s) sem ref de linha frágil.`);
+  process.exit(0);
+}
+
 // ── modo alvo ─────────────────────────────────────────────────────────────────
 const alvos = args.filter((a) => !a.startsWith('--'));
 if (!alvos.length) {

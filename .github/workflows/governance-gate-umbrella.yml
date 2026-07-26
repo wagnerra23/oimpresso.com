@@ -58,6 +58,22 @@ jobs:
       # (§5 2026-07-09: suprimir o vermelho é que reconstrói o gate-de-teatro).
       - name: Índice de BACKLOG em dia (gerado × commitado — ADR 0070)
         run: node scripts/governance/tasks-index-generate.mjs --check
+      # 2026-07-26 — MESMA CLASSE do plans-index acima: o lint NASCEU sem invocador.
+      # Medido no dia em que foi criado: `grep -rn sdd-output-lint .github/ package.json .claude/`
+      # → 0 hits. Máquina que existe e ninguém chama é chokepoint fantasma (§5 2026-07-09).
+      # A varredura do mesmo dia achou 9 de 89 scripts de governança sem invocador — a maioria
+      # é ferramenta sob demanda (stamper/supersede/relink) ou ESCREVE (charter-promote-signal
+      # promove draft→live: ligar sozinho seria mudar status sem humano). Este é o caso limpo:
+      # mede e não escreve.
+      # FORWARD-ONLY de propósito: `--check-novos` só olha `.casos.md` ADICIONADOS no diff.
+      # Os 35 refs legados ficam grandfathered — cobrar backfill de legado morre no CI e é a
+      # lápide de 2026-07-12. Bite-test provado em branch descartável: ruim→exit 1, bom→exit 0.
+      - name: Refs frágeis em casos.md novo (C1 · sdd-output-lint · forward-only)
+        run: |
+          # fetch explícito da ref: sem ela o script cai no fallback e sai 0 SEMPRE —
+          # gate mudo é pior que gate ausente, porque parece cobertura.
+          git fetch origin main --quiet
+          node scripts/governance/sdd-output-lint.mjs --check-novos --base origin/main
       # ENFORCE (GT-G5 · ledger §D — promovido 2026-07-04, avaliação adversarial SDD
       # 2026-07-03 risco sistêmico nº2): refutação adversarial de lote-IA de BRIEFINGs/SPECs
       # (PROTOCOLO-REFUTADOR-BACKFILL). Só dispara em PR com >10 arquivos em memory/requisitos/
