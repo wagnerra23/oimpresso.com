@@ -317,3 +317,48 @@ heartbeat tri-estado (Grafana/Datadog/Prometheus/Nagios já separam NoData × Er
 ## 9. LEITURA FRIA
 
 O sistema constrói e governa a si mesmo melhor do que qualquer coisa que eu encontrei publicada — 22 dos 24 diferenciais só existem porque estão montados no mesmo contexto, e o único acima-de-categoria (gate required contra âncora de design fantasma) tem o líder do setor com o issue equivalente **aberto** desde antes. O eixo que serve o cliente é o pior do sistema (4,5) e piorou na janela: a Jana-BI nunca chegou na mão da Larissa, duas rotas do hub de IA ainda respondem mock, e o ratio negócio÷governança subiu de 77% para 78% com o alarme ligado e ninguém atuando — sensor sem atuador é dashboard. Dos oito roubos que valem, três custam menos de meia hora somados (12 rótulos seus, 10 linhas de cache hit, 1 comando de snapshot) e destravam respectivamente todo o denominador adversarial, o maior lever de custo e a única métrica de custo que fala em outcome.
+---
+
+## ERRATA 2026-07-26 (pós-passe adversarial) — as 9 notas ausentes eram BUG, não método
+
+> Append, não reescrita: o corpo acima fica como foi emitido (fóssil datado). Esta seção corrige a LEITURA.
+
+O passe adversarial (regra 15, que esta rodada tinha **pulado** antes de publicar) devolveu **9 sustentados · 5 parciais · 4 derrubados**. O achado nº1 invalida a §1 deste log:
+
+**O que este log diz:** *"a composição não fechou nota de dimensão para elas — e compor eu mesmo seria exatamente a agregação de vereditos incomensuráveis que o §5 proíbe."*
+
+**O que era:** bug de comparação de string. `RESEARCH_SCHEMA.dimensao` é `{type:'string'}` **sem enum**, e a composição filtra por igualdade exata (`v.dimensao === d.key`). No journal, **3 pesquisadores devolveram a key nua e 9 devolveram `"<key> — <escopo>"`** (um deles acentuado: `custo-eficiência` × a key `custo-eficiencia`). As 3 que "fecharam nota" são **exatamente** as 3 nuas. Os **24/24 verificadores devolveram `nota_sugerida` numérica** — o dado sempre existiu, e o `capEstratificado` funcionou perfeitamente (2 rows por dimensão nas 12).
+
+A invocação do §5 estava errada por cima: a lápide 2026-07-17 proíbe agregar vereditos **incomensuráveis** do fingerprint (`IDENTICO`/`DIVERGE`/`SO_*`), não a média de notas da **mesma rubrica** — que é o que esta própria rodada fez para 3 dimensões (`regra_nota: media-deterministica-v1`). Usar o canon para não fazer em 9 o que se fez em 3 é racionalização de defeito: **LC-08 aplicado ao próprio medidor**.
+
+**As 12 notas reais** (recompostas do `journal.jsonl` do run `wf_db242261-298`; reprodução independente bateu 12/12 com o adversário, 0 órfãs):
+
+| Dimensão | Nota | | Dimensão | Nota |
+|---|---|---|---|---|
+| custo-eficiencia | **8,0** | | evals-outcome | 6,0 |
+| spec-governanca | 7,5 | | qualidade-drift-ia-producao | 6,0 |
+| catalogo-modulo-opiniao-codigo | 7,5 | | seguranca-do-agente | 6,0 |
+| design-to-code | 7,0 | | erp-ia-produto | 5,0 |
+| memoria-conhecimento | 6,8 | | inteligencia-de-negocio | **4,5** |
+| orquestracao-adversarial | 6,5 | | observabilidade-agente | 6,3 |
+
+**Conclusões deste log que ficam REVOGADAS:**
+
+1. *"o eixo 2 tem duas dimensões medidas e as duas ficam abaixo de 7"* — artefato do bug. Medido inteiro, **custo-eficiencia é 8,0, a melhor nota do sistema**. _(Ressalva: o 5,0 de 07-18 era herdado sem verificação-por-fraqueza, então 8,0 é 1ª medição real, não Δ limpo.)_
+2. A frase sobre §5/incomensurabilidade citada acima.
+3. *"as 9 restantes exigem nova rodada"* — não exigem; os dados estavam no journal e foram recompostos sem gastar agente.
+
+**Denominador honesto que o corpo omitiu:** cada nota é média de **N=2**, sobre **24 fraquezas verificadas de 125 levantadas** (cap 24 → 101 nunca verificadas), e a amostra é **rank-ordenada pelo pesquisador, não aleatória**.
+
+**Outros achados do passe (registrados, nem todos corrigidos):**
+
+| Achado | Estado |
+|---|---|
+| `integ_hist` nasceu byte-idêntico ao de 07-18 → o 1º `REFUTADO_TB` da história gravado como **zero** | corrigido (104/1/9 + errata) |
+| **65% da fase Integração** (15 de 23) degradada por teto de WebSearch, sem disclosure — enviesa o placar para `DIFERENCIAL_SISTEMA` | aberto |
+| **18 das 24** verificações não chegaram ao `fraquezas.json` | aberto |
+| **1 citação fabricada em 24** (`arXiv 2603.17172` resolve para paper real; autor e método atribuídos não existem) | aberto |
+| `base_sha` declarado (`19a903931`) é **27h posterior** às fases caras; 4 PRs no meio | contido (evidência re-testada no HEAD) |
+| Claim ACIMA-DE-CATEGORIA, mecanismo required, anti-Goodhart e os 8 números de máquina | **sobreviveram a ataque direto** |
+
+**Veredito do adversário, assinado:** *"a evidência é boa, a contabilidade é frágil"* — cada número checado no repo bateu (8 de 8), a grade não inflou o próprio sistema, mas a camada de agregação decidiu por acidente o que a prosa apresentou como método.
