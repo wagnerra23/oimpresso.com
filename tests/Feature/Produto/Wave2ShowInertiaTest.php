@@ -63,5 +63,10 @@ it('Charter ao lado existe', function () {
 });
 
 it('RUNBOOK existe', function () {
-    expect(file_exists(repo_path('memory/requisitos/Inventory/RUNBOOK-produto-show.md')))->toBeTrue();
+    // Path corrigido 2026-07-26: apontava para `memory/requisitos/Inventory/RUNBOOK-produto-show.md`,
+    // que NÃO existe (`ls memory/requisitos/Inventory/` = BRIEFING.md + SPEC.md). O RUNBOOK real do
+    // Produto vive em `_telas/` — e o frontmatter do Show.charter.md já apontava o caminho certo.
+    // Como `phpunit.xml` inclui `./tests/Feature` recursivamente, este arquivo RODA no fullsuite
+    // (CT100 nightly): era vermelho real contribuindo pro floor, não "latente".
+    expect(file_exists(repo_path('memory/requisitos/Produto/_telas/RUNBOOK-produto-show.md')))->toBeTrue();
 });

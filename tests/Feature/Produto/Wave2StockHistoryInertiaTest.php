@@ -60,5 +60,5 @@ it('Charter declara divergência blueprint Cowork (ADR 0149)', function () {
 });
 
 it('RUNBOOK existe', function () {
-    expect(file_exists(repo_path('memory/requisitos/Inventory/RUNBOOK-produto-stock-history.md')))->toBeTrue();
+    expect(file_exists(repo_path('memory/requisitos/Produto/_telas/RUNBOOK-produto-stock-history.md')))->toBeTrue();
 });
