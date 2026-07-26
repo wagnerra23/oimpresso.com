@@ -4,9 +4,9 @@ page: /sells/{id}/edit
 component: resources/js/Pages/Sells/Edit.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 owner: wagner
-status: live
+status: draft
 status_detail: wave1-draft
-last_validated: "2026-07-26"
+last_validated: "2026-05-15"
 parent_module: Sells
 related_adrs: [104, 107, 143, 149, 93]
 tier: A
@@ -120,5 +120,3 @@ Editar venda existente — produtos, descontos, pagamento, frete — preservando
 - [RUNBOOK-edit.md](../../../../memory/requisitos/Sells/RUNBOOK-edit.md)
 - [edit-visual-comparison.md](../../../../memory/requisitos/Sells/edit-visual-comparison.md)
 - Parent visual: `resources/js/Pages/Sells/Create.charter.md`
-
-> _Promovido draft→live em 2026-07-26 por `charter-promote-signal.mjs` — sinal: route-hits:1._
