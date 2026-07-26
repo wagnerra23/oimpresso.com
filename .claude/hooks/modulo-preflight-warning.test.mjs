@@ -23,11 +23,39 @@ check('extractModule: fora de Modules → null', extractModule('app/Foo.php') ==
 check('extractModule: vazio → null', extractModule('') === null);
 
 // ── patterns + evidência (puros) ─────────────────────────────────────────────────
-check('buildReadPatterns cita requisitos/<Mod>', buildReadPatterns('Jana').some((p) => p.includes('memory/requisitos/Jana/')));
-check('hasReadEvidence: leu SPEC do modulo → true', hasReadEvidence('...Read memory/requisitos/Jana/SPEC.md...', 'Jana') === true);
-check('hasReadEvidence: leu charter → true', hasReadEvidence('abri o jana charter da tela', 'Jana') === true);
+// Contrato (proibicoes.md FASE 1 PRÉ-FLIGHT): evidência é a LEITURA ter acontecido —
+// registrada no transcript como valor de input de tool. Citar o nome do arquivo numa
+// frase não é leitura. As fixtures ruins abaixo saíram de caso REAL medido (2026-07-26).
+const evento = (name, input) => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', name, input }] } });
+
+check('buildReadPatterns ancora no input da tool (nao em prosa)',
+  buildReadPatterns('Jana').every((p) => /^"(file_path|\(\?:pattern\|path\)|query)":/.test(p)));
+
+// FIXTURE BOA — silencia (leitura de verdade)
+check('hasReadEvidence: Read do SPEC (posix) → true',
+  hasReadEvidence(evento('Read', { file_path: 'D:/oimpresso.com/memory/requisitos/Jana/SPEC.md' }), 'Jana') === true);
+check('hasReadEvidence: Read do SPEC (backslash Windows) → true',
+  hasReadEvidence(evento('Read', { file_path: ['D:', 'oimpresso.com', 'memory', 'requisitos', 'Jana', 'SPEC.md'].join(BS) }), 'Jana') === true);
+check('hasReadEvidence: Read do charter da tela → true',
+  hasReadEvidence(evento('Read', { file_path: 'resources/js/Pages/Jana/Cockpit.charter.md' }), 'Jana') === true);
+check('hasReadEvidence: Glob em requisitos/<Mod> → true',
+  hasReadEvidence(evento('Glob', { pattern: 'memory/requisitos/Jana/*.md' }), 'Jana') === true);
+check('hasReadEvidence: decisions-search do modulo → true',
+  hasReadEvidence(evento('mcp__oimpresso__decisions-search', { query: 'jana' }), 'Jana') === true);
+
+// FIXTURE RUIM — NÃO pode silenciar (o bug de 2026-07-26)
+check('REGRESSAO: system prompt citando o modulo + "charter" adiante → false',
+  hasReadEvidence(JSON.stringify({ type: 'user', message: { content: [{ type: 'text', text:
+    '- financeiro-bridge-auditor: auditor da bridge Sells/Compras (UltimatePOS core) ... '
+    + 'skills: charter-first, charter-write, memory-schema-preflight ... SPEC.md' }] } }), 'Compras') === false);
+check('REGRESSAO: o proprio aviso do hook nao se auto-silencia',
+  hasReadEvidence(warningMessage('Jana'), 'Jana') === false);
+check('REGRESSAO: prosa citando o path nao conta como leitura',
+  hasReadEvidence('vou ler memory/requisitos/Jana/SPEC.md depois', 'Jana') === false);
 check('hasReadEvidence: nada do modulo → false', hasReadEvidence('mexi em app/Foo.php sem ler nada', 'Jana') === false);
 check('hasReadEvidence: content vazio → false', hasReadEvidence('', 'Jana') === false);
+check('CONTROLE: modulo diferente nao herda evidencia',
+  hasReadEvidence(evento('Read', { file_path: 'memory/requisitos/Jana/SPEC.md' }), 'Financeiro') === false);
 
 // ── projectKey (backslash + ':' → '-') ───────────────────────────────────────────
 check('projectKey sanitiza \\ : . / (chave real do Claude Code)', projectKey('D:' + BS + 'oimpresso.com') === 'D--oimpresso-com');
@@ -44,8 +72,11 @@ const w = (file_path, transcript_path) => ({ tool_name: 'Write', tool_input: { f
 const warned = run(w('Modules/Jana/Services/Foo.php', tpVazio));
 check('E2E: Edit em Modules sem evidência → exit 0 + aviso stderr', warned.status === 0 && /PRÉ-FLIGHT MISSING/.test(warned.stderr));
 const tpLeu = join(tmp, 'leu.jsonl');
-writeFileSync(tpLeu, JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'li memory/requisitos/Jana/SPEC.md' }] } }));
+writeFileSync(tpLeu, evento('Read', { file_path: 'D:/oimpresso.com/memory/requisitos/Jana/SPEC.md' }));
 check('E2E: leu o briefing → exit 0 silencioso', (() => { const r = run(w('Modules/Jana/Services/Foo.php', tpLeu)); return r.status === 0 && !/PRÉ-FLIGHT MISSING/.test(r.stderr); })());
+const tpProsa = join(tmp, 'prosa.jsonl');
+writeFileSync(tpProsa, JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'o jana tem charter e spec, vou mexer' }] } }));
+check('E2E BITE: so prosa citando o modulo → volta a AVISAR', (() => { const r = run(w('Modules/Jana/Services/Foo.php', tpProsa)); return r.status === 0 && /PRÉ-FLIGHT MISSING/.test(r.stderr); })());
 check('E2E: arquivo fora de Modules → exit 0 silencioso', (() => { const r = run(w('app/Foo.php', tpVazio)); return r.status === 0 && !r.stderr.trim(); })());
 check('E2E: Read (não Write) → exit 0', run({ tool_name: 'Read', tool_input: { file_path: 'Modules/Jana/x.php' }, transcript_path: tpVazio }).status === 0);
 check('E2E: stdin vazio → exit 0 (fail-open)', spawnSync(process.execPath, [HOOK], { input: '', encoding: 'utf8' }).status === 0);
