@@ -113,3 +113,60 @@ Padrão comum: **deduzir de leitura quando havia oráculo à mão** (LC-08). Em 
 
 - `cycles-active` → nenhum cycle ativo em COPI
 - `my-work` → 6 tasks em REVIEW (US-TR-309, US-TR-310, US-PG-008, US-PROD-027, US-TR-305, US-TR-306)
+
+---
+
+## Continuação (sessão seguinte, mesmo dia) — o controle negativo que fecha o item 1
+
+> Gatilho: o advisory `crons de governança vivos?` falhando em **100% dos PRs** (#4800, #4805,
+> #4815). Escopo pedido: achar quem deveria escrever cada um dos 5 scorecards, por que pararam, e
+> decidir consertar × aposentar. Um doc só pro tema (não abri session log paralelo — §5 2026-06-05).
+
+**Os dois primeiros itens confirmaram o que #4798 já tinha corrigido no `_template.yaml`:**
+varredura contada de escritores → **zero** para `memory/governance/scorecards/*.yaml`;
+`schedule:list` no CT 100 → os crons de 06:05 e 07:00 são **leitores**. E `git log` (clone
+desrasado antes de medir) mostra que os 5 **nunca andaram**: nasceram nas Waves 23-26 e o único
+toque posterior foi a deleção pelo squash do #2413 + restauração.
+
+**O terceiro item trouxe achado novo — o v4 não mede nada.** Rodado no CT 100 com **controle
+negativo** (avaliar cada módulo com o YAML curado × com `[]`), depois de provar por `md5` que os
+5 arquivos do container são idênticos aos do repo:
+
+| módulo | bucket | COM o YAML | SEM o YAML |
+|---|---|---:|---:|
+| Admin · Auditoria · Governance | `cross_cutting_infra` | 17 | **17** |
+| Vestuario | `vertical_client_facing` | 20 | **20** |
+| ComunicacaoVisual | `vertical_client_facing` | 91 | 20 |
+
+**4 dos 5 são irrelevantes** — apagar o arquivo daria o mesmo número. Vocabulário incompatível:
+declaram as dimensões da rubrica **v3** (`D1_models`, `C1_coerencia`) e o `evaluateScorecard()`
+itera as chaves do **bucket** (`multi_tenant`, `pest_coverage`) → cai em `?? 0` / `?? target`.
+
+E o motor que mediria o código está desligado **nas duas pontas**: `detectRule()` (11 detectores)
+tem **zero call sites em produção** (4 chamadas, todas em teste) e os 3 buckets declaram **zero**
+blocos `detect`. Logo o score é constante → o `--alert` de drift `>=5pts` **nunca pode disparar**.
+É a lápide do `jana:drift-sentinel` (§5 2026-07-17) de novo, em outro mecanismo: *todos os pontos
+idênticos ⇒ o problema não é o baseline, é o medidor.* Efeito colateral que ninguém via: o cron
+persiste **todo dia** `17/100` para Governance e `20/100` para Vestuario em `mcp_scorecard_runs`
+(o v3 dá média 80,2) — número falso alimentando `/admin/governance/v4`, tela com **0 hits** no
+ledger `route-hits` (janela até 25/07; export manual, então é sinal de rota fria, não prova).
+
+**O que saiu daqui**
+
+- [`proposals/2026-07-26-deprecar-governance-v4-scoped-scorecards.md`](../decisions/proposals/2026-07-26-deprecar-governance-v4-scoped-scorecards.md)
+  — deprecação faseada F1→F4, alternativas (incl. *ligar o `detectRule`*, viável se [W] preferir),
+  blast radius contado (13 arquivos de teste) e gate de reversão. **Ratificação é ato de [W]** —
+  0160/0161/0163 estão `accepted`.
+- **Errata no `cron-watchdog.mjs`**: a mensagem do eixo 2 dizia *"alguma automação deveria manter
+  vivo"* e mandava *"ache quem deveria escrever"* — afirmação que o watchdog **não pode sustentar**
+  (ele mede idade, e idade não revela autoria). Mandava caçar culpado inexistente. Agora nomeia os
+  3 casos possíveis (cron que parou de entregar · curadoria envelhecida · mecanismo morto) e diz
+  como distinguir (varrer escritores do path). Detecção **idêntica** — nada de allowlist por
+  nome/pasta, que é o critério sintático já morto 4× no §5. Selftest segue 9/9.
+
+**Correção de rota minha, registrada:** ia usar `git log` como recibo de datas num clone **shallow**
+— o hook `block-instrumento-sem-porta-viva` (P3) mordeu e estava certo. Desrasei antes de medir.
+E a 1ª rodada do controle negativo deu `score=0` para os 3 meta-módulos: era o container staging
+em 23/07, **sem** o `cross_cutting_infra.yaml` (nasceu no #4795, hoje). Copiei o bucket, re-medi
+(17), e restaurei o staging ao estado original. O número da 1ª rodada era do ambiente, não do
+mecanismo — a mesma família de "medir a fonte errada" (LC-08).
