@@ -48,7 +48,10 @@ Ordem fixa ([how-trabalhar §ordem de fonte](../../memory/how-trabalhar.md) · [
 |---|---|---|---|
 | 1 | **Documentação canon** | `memory/requisitos/<Mod>/SDD-tela-*.md` (§6 CU existente) + `SPEC.md` (US-*) + `<Tela>.charter.md` | a ÂNCORA do caso (deriva daqui, não do código) |
 | 2 | **React/Laravel atual** | `resources/js/Pages/<Mod>/<Tela>.tsx` + Controller (`grep` o método por rota) + Service/Util + Model | o **fluxo vivo** → vira o §5 do SDD (confirma comportamento, não deriva o caso) |
-| 3 | **Blade AdminLTE legada** | `resources/views/<x>/**` (ex: `resources/views/product/edit.blade.php`) | o que a tela antiga fazia que o React precisa **manter** (MWART, [ADR 0104]) |
+| 3 | **Blade AdminLTE legada** | `resources/views/<x>/**` — ⚠️ **resolva a Blade que o OPERADOR abre, não a homônima do controller** (ver abaixo) | o que a tela antiga fazia que o React precisa **manter** (MWART, [ADR 0104]) |
+
+> ⚠️ **A armadilha da Blade homônima (custou o run B0 quase inteiro).** O `show()` do `ProductController` devolve `show.blade.php` (36 linhas, só rack) — mas a ficha que a Larissa realmente abre é a **modal** `view-modal.blade.php` (184 linhas + 3 partials), servida por outra rota (`/products/view/{id}`). Comparar contra a homônima teria dado **"paridade OK" falsa** e carimbado a perda.
+> **Regra:** antes de eleger a Blade de referência, varra as **ações da lista** e as **rotas** (`routes/web.php`, `grep` do nome do recurso) e escolha a que o usuário alcança pela UI. Se houver **duas ou mais**, documente as duas e diga qual é a de referência — *nunca assuma que o nome do arquivo casa com o nome do método*. (Mesma família da lápide [proibicoes §5](../../memory/proibicoes.md) 2026-07-15: varredura parcial apresentada como levantamento.)
 | 4 | **Delphi / Office Comercial** | `memory/requisitos/<Mod>/ANTI-REGRESSAO-*.md` (destilado do manual WR Comercial) | **contrato de paridade** — feature não some sem Non-Goal explícito |
 
 > **Se a fonte 3 ou 4 não existir**, registre o gap e SIGA com o que há (React + Blade). **Não invente** o comportamento legado — anti-padrão inventado no charter é pior que ausente (parece canon). Em dúvida ou sem fonte → **PERGUNTE ao [W]** (proibicoes §5, 2026-07-16/17).
@@ -60,20 +63,31 @@ Pra cada rota que a tela dispara, mapeie a cadeia real. Ex:
 
 **Varra TODOS os chamadores/rotas** (`git grep` sem `head_limit`, contado — "achei em N lugares" só vale com a prova de que são N de N; proibicoes §5 2026-07-15). Só afirme o fluxo depois de ver o método real — leitura de 2 de 5 consumidores não é "levantamento".
 
-### Fase 1.3 — refresh de BRIEFING via distiller: DESLIGADA até a flag `--emit` ([ADR 0352])
+> 🔴 **"Esse teste roda?" NÃO se responde com `grep` em `.github/workflows/`** — isso é análise *file-scoped* apresentada como *system-scoped*, a classe **LC-08** do projeto. O B0 concluiu *"os testes de Show não rodam em lane nenhuma"* varrendo só os workflows; mas [`phpunit.xml`](../../phpunit.xml) inclui **`./tests/Feature` recursivamente** e [`scripts/tests/shards-plan.mjs`](../../scripts/tests/shards-plan.mjs) enumera os subdiretórios como shards → **rodava no nightly CT100 o tempo todo**, e o "vermelho latente" já era vermelho REAL no floor.
+>
+> **As portas vivas de "roda / é cobrado":**
+>
+> | Pergunta | Porta |
+> |---|---|
+> | roda em algum lugar? | `phpunit.xml` (testsuites) + `scripts/tests/shards-plan.mjs` |
+> | roda no PR? | allowlist + `paths-filter` do workflow da lane |
+> | **bloqueia merge?** | [`governance/required-checks-baseline.json`](../../governance/required-checks-baseline.json) — **dono único de "é required"**; não deduza do nome nem do YAML |
+>
+> Responder com uma porta e concluir sobre outra é o erro. Diga **qual** das três você mediu.
 
-> ⚠️ **NÃO tente refrescar o BRIEFING via distiller neste fluxo — não funciona ainda.** O adversário de
-> 2026-07-24 achou o buraco: (1) `jana:distill-module-truth --dry-run` **descarta** o conteúdo destilado
-> (`DistillModuleTruthCommand::reportar` só imprime "N eventos — não escrito"), então não há nada no stdout
-> pra capturar; (2) rodar sem `--dry-run` escreve em `base_path()` do **container CT100**, não no worktree.
-> A "religação como MOTOR de refresh" só fecha quando o comando ganhar uma flag **`--emit`/`--stdout`** que
-> imprima o `content` destilado sem escrever — que **ainda não existe** (follow-up, [ADR 0352]).
+### Fase 1.3 — distiller: DESLIGADO
 
-- **Até a flag existir:** documente o §5/§6 **por leitura de código** (Fases 1.1/1.2 + Camadas 2/3, que **não
-  dependem** do distiller). O distiller é reuso de código (o collector puro + o padrão de destilação), não um
-  motor de refresh ligado.
-- O **cron do `app/Console/Kernel.php` FICA comentado** — não re-descomente. O venue autônomo (clone + auto-PR
-  bot) e a flag `--emit` são follow-up.
+**Documente o §5/§6 por leitura de código.** O distiller não tem como devolver o conteúdo destilado ainda (`--dry-run` descarta; sem ele escreve no container) — a flag `--emit` é follow-up ([ADR 0352]). Não invoque, não re-descomente o cron do `Kernel.php`.
+
+### Fase 1.4 — reuso entre telas irmãs do mesmo módulo (o que faz isto escalar)
+
+A Camada 1 é a parte cara, e **a maior parte dela é do MÓDULO, não da tela**: o §6 CU existente, o SPEC, o Controller, o `ANTI-REGRESSAO-*`, o dicionário de domínio. Ao rodar numa tela cujo módulo **já foi analisado** (existe `SDD-tela-*.md` com §5.3 preenchido para telas irmãs):
+
+- **Releia o §5.3 do SDD antes de re-varrer o Controller** — os fluxos já mapeados (`F1..Fn`) são o resultado da análise anterior; confirme pontualmente o que a sua tela toca, não refaça o módulo inteiro.
+- **Reuse as âncoras `AR-*` já citadas** por telas irmãs; varra o `ANTI-REGRESSAO` só pela seção da sua tela.
+- **O que NUNCA se reusa:** a resolução da Blade (§1.1 — cada tela tem a sua, e a homônima engana) e a varredura de consumidores do fluxo específico.
+
+Declare na devolutiva o que reusou vs re-varreu. Rodar a 2ª tela de um módulo deve custar sensivelmente menos que a 1ª — se não custou, diga por quê.
 
 ---
 
@@ -83,7 +97,11 @@ Pra cada rota que a tela dispara, mapeie a cadeia real. Ex:
 
 ### Fase 2.1 — §5 fluxo + §6 CU no SDD
 
-- **SDD já existe** (`SDD-tela-*.md` do módulo): preencha/atualize o **§5 (arquitetura/fluxo)** com o que a Fase 1.2 mapeou, e o **§6 (casos de uso)** com os CU derivados da paridade (Blade+Delphi). **NÃO reabra o formato** — é o do [Produto](../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) (não reabrir, imitar).
+> 📐 **O SDD é do MÓDULO/família, nunca da tela.** O fluxo da sua tela entra como **`F<n>` dentro do §5.3 (Fluxos críticos)** — **jamais** crie um §5 novo, um "§5 por tela" ou um `SDD-<tela>.md` paralelo quando o módulo já tem SDD. Mesma regra pro §6: o CU novo entra na numeração existente do módulo.
+
+🔢 **Alocação de id de CU — varra antes, incluindo o não-ratificado.** Antes de escolher `CU-<MOD>-NN`, rode `grep -rn "CU-<MOD>-[0-9]" memory/requisitos/<Mod>/ resources/js/Pages/<Mod>/` **sem corte de resultados** — inclusive artefatos de corrida (`_b1-*`, `*.agent.md`). **Id proposto e não ratificado não se reusa** (fica reservado); pule pro próximo livre e diga na devolutiva qual pulou e por quê.
+
+- **SDD já existe** (`SDD-tela-*.md` do módulo): preencha/atualize o **§5.3** com o `F<n>` que a Fase 1.2 mapeou, e o **§6 (casos de uso)** com os CU derivados da paridade (Blade+Delphi). **NÃO reabra o formato** — é o do [Produto](../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) (não reabrir, imitar), cujo template é [SDD-TEMPLATE.md](../../memory/requisitos/_DesignSystem/SDD-TEMPLATE.md).
 - **SDD não existe**: crie `SDD-tela-<slug>.md` no formato canônico do Produto (§0 base empírica · §1 visão · §2 personas · §3 governança · §4 DS · §5 arquitetura · §6 CU · §7 NFR · §10 roadmap). Marque **badge derivado/curado** (ver Fase 2.5).
 
 ### Fase 2.2 — casos.md (o contrato de teste)
@@ -92,6 +110,33 @@ Pra cada rota que a tela dispara, mapeie a cadeia real. Ex:
 - **Tela que JÁ existe** (`.tsx` + charter): NÃO rode `criar-tela.mjs` (ele erra se o `.tsx` existe, e é pra tela nova). Crie **`<Tela>.casos.md` ao lado do charter**, com UC derivado do **§6 CU do SDD** (nunca do `.tsx` — senão vira tautológico, proibicoes §5 2026-06-05). Cada UC:
   - **Persona** (Larissa/Wagner conforme o SDD §2) · **Aceite** Dado/Quando/Então verificável · **Teste** (path do Pest, mesmo que stub `test.fixme`) citando o UC-id (G-2) · **Regressão que defende** · **Status** ⬜/🧪/✅/❌ honesto.
   - Marcadores: `[T0]` invariante multi-tenant · `[V0]` REGRA MESTRE valor/estoque (dupla-confirmação + antes→depois) · `[must]`/`[should]`.
+  - **`owner:` no frontmatter é obrigatório** — é o que o G-5 do `casos-coverage-guard` lê (`fmField(fm,'owner')`). Dono **por UC** é boa prática, **não é cobrado por gate nenhum**: escreva quando houver dono específico, mas não afirme que "o gate exige".
+
+🛑 **CRITÉRIO DE PARADA (quantos UC gerar) — regra dura, não bom senso:**
+
+| Vira | Quando |
+|---|---|
+| **UC com id** | o comportamento tem contrato em **≥2 fontes** (ex: Blade + Delphi, ou charter + CU do SDD) |
+| **`[BACKLOG] <frase>` sem id** | contrato em 1 fonte só, ou achado que você não conseguiu ancorar |
+
+**Por que a regra é dura:** UC com id **sem teste que o cite é órfão** e o `casos-gate` G-2 (required) **bloqueia o merge de quem for atendê-lo**. Despejar 30 UC de uma `PARIDADE` com ~100 itens não documenta — **trava o próximo PR** (é a lápide [proibicoes §5](../../memory/proibicoes.md) 2026-07-16: UC não é canal de pedido). Prefira **7 UC ancorados a 30 órfãos**.
+
+🔓 **O assert prova COMPORTAMENTO, não a chave literal do payload.** Assert acoplado a nome de campo lido do `.tsx` é tautologia disfarçada — e produz **falso-vermelho que tranca o fix legítimo**:
+
+| ❌ acoplado à chave | ✅ acoplado ao comportamento |
+|---|---|
+| `expect($linha)->toHaveKey('location_name')` | *"alguma chave da linha carrega o nome do local, não-vazio"* |
+| `expect($p)->not->toHaveKey('defaultPurchasePrice')` | *"nenhum valor de custo da variação aparece no payload"* (senão renomear a chave faz o vazamento **passar**) |
+
+**Por quê:** se há 2 fixes válidos (mudar o back pra emitir `location_name` **ou** mudar o front pra ler `rd.name`), o assert por chave literal reprova um dos dois arbitrariamente. O contrato é *"o local aparece"*, não *"a chave se chama X"*.
+
+⚖️ **Declare a FORÇA do veredito no `casos.md`.** Ao citar a lane, diga se ela **bloqueia merge** — consultando o `required-checks-baseline.json`, nunca deduzindo. Ex: *"lane `PHP / Pest (Estoque · MySQL)` — **advisory**: reprova visível, não bloqueia merge"*. Sem isso a prosa do trio soa mais forte que o enforcement real, que é a lápide [proibicoes §5](../../memory/proibicoes.md) 2026-07-16 (artefato afirmando enforcement) pelo avesso.
+
+🔗 **Âncora estável > número de linha.** Cite **símbolo** (`ProductController@show`, `ProductUtil::getRackDetails`) + o `grep` que o re-localiza; reserve `arquivo:NNN` para onde a precisão é indispensável (e aí diga o sha). ~40 citações `:NNN` num doc viram ~40 mentiras no primeiro refactor — o §5 é marcado `derivado`, então tem que ser **re-derivável**, não fotografado.
+
+📅 **`last_run_ci` quando o trio nasce agora** (você não roda teste — CT100): use exatamente
+`"0 UC executado — trio nasce neste PR; veredito pendente da lane <nome-da-lane>"`.
+**Não** invente prosa, **não** escreva data de execução que não houve.
 
 ### Fase 2.3 — Âncoras `**Implementado em:**` pro SPEC
 
@@ -114,6 +159,18 @@ Pra cada US que a análise cobriu, **PROPONHA** a linha no formato [ADR 0273]:
 
 \*enquanto o gate rodar. Torna ~70% do SDD auto-conferível; os ~30% curados seguem foto honesta.
 
+### Fase 2.6 — Reconciliação do charter: FATO sim, INTENÇÃO não
+
+A Camada 3 manda *"corrija o perdedor no MESMO PR"* — e o perdedor é **frequentemente o charter** (no B0 foram 3 dos 5 achados de governança). Sem esta fase você **reporta e o drift fica**. A linha que separa:
+
+| No charter | Pode? | Exemplos |
+|---|---|---|
+| **FATO verificável** — path que não existe, teste prometido que não existe, contagem errada, link podre, ref para arquivo movido | ✅ **corrija**, citando a evidência ao lado (`ls`/`grep` que prova) | §Refs aponta `memory/requisitos/Inventory/RUNBOOK-produto-show.md` que não existe · §Pest GUARD promete 5 testes e há 0 |
+| **INTENÇÃO** — Non-Goals, Anti-hooks, Goals, persona, escopo, "a tela deve/não deve" | ❌ **nunca** — só [W] | "esta tela não faz X" · anti-hook novo |
+| **PROMESSA não cumprida** (charter promete 4 KPIs, a tela tem 0) | ⚠️ **não escolha o vencedor** — registre nos dois lados como divergência aberta e leve pro [W] | podar o charter ou construir a tela é decisão de produto |
+
+**Regra de ouro:** se corrigir exige *saber o que o [W] quis*, pare e pergunte. Se exige só *olhar se existe*, corrija — deixar um path morto no charter é instrução ativa pra regressão ([proibicoes §Precedência](../../memory/proibicoes.md): o charter pode estar ERRADO e ainda é lei).
+
 ### Linkagem por `id` estável (não inventa mapa de conversas)
 
 Carimbe o `id:` no frontmatter do doc gerado (padrão `doc-id-index`) + `related_adrs`/`related_us`. Toda ADR/session/handoff que cite o id fica rastreável. **Não monte "mapa de conversas" à mão.**
@@ -135,11 +192,16 @@ node scripts/qa/screen-coverage-map.mjs                # ou: npm run screen-cove
 
 **Reconciliação (precedência — proibicoes):** rodado o teste, *teste verde > casos > charter > SPEC*. Onde discordam, **corrija o perdedor no MESMO PR**. O trio pode fechar **vermelho** — se o teste prova falha de `[must]`, o ❌ é o achado (com run id de recibo), e a correção é decisão [W], não conserto silencioso.
 
-**Veredito final por US** (tabela):
+**Veredito por UC, agregado por US** (os gates falam por UC/tela; uma US pode cobrir 8 telas — forçar a linha por-US gera veredito genérico):
 
-| US / UC | camada 1 (fonte) | casos-gate | anchor-lint | veredito |
-|---|---|---|---|---|
-| US-PROD-0NN | ✅ 3 fontes lidas | 🧪 stub cita UC | ✓ path existe | 🧪 sem prova (stub) |
+| UC | US que atende | fontes (C1) | casos-gate | anchor-lint | veredito |
+|---|---|---|---|---|---|
+| UC-PSHOW-01 | US-PROD-023 | 4/4 | Pest cita o UC, em lane | âncora proposta | 🧪 sem veredito (não rodei) |
+| **Σ US-PROD-023** | — | — | 7 UC, 0 órfão | 11,1% → proposta | 🧪 pendente da lane |
+
+⚖️ **Vocabulário obrigatório:** você **não roda teste** (CT100). Então **nunca** escreva "vermelho"/"verde" como fato — escreva `🧪 sem veredito` e, se quiser, "vermelho **esperado**" marcado como **predição**. Status vem da lane, não da sua leitura (G-7 · [proibicoes §5](../../memory/proibicoes.md) 2026-07-15).
+
+🚩 **Gate vermelho causado por terceiro** (arquivo que não é seu, drift pré-existente): **reporte, não conserte, não aborte.** Diga qual gate, qual arquivo, e que está fora do seu diff. Consertar artefato de terceiro no meio de uma corrida de documentação mistura escopos e estoura o PR.
 
 ---
 
@@ -163,15 +225,26 @@ node scripts/qa/screen-coverage-map.mjs                # ou: npm run screen-cove
 - **NÃO** roda `php artisan`/`pest`/`phpstan` LOCAL — testes/artisan são CT100 ([ADR 0062]). Gates node (casos/anchor/screen) rodam local.
 - **NÃO** re-descomenta o cron do distiller no `Kernel.php`.
 - **NÃO** edita a tela viva (`.tsx`) sem charter + gate visual [W] — este agent documenta e confere, não redesenha UI.
-- **SIM** lê tudo do projeto (Read/Grep/Glob), roda os gates node (Bash), escreve/edita SDD/casos/SPEC/ANTI-REGRESSAO/PARIDADE (Write/Edit).
+- **SIM** lê tudo do projeto (Read/Grep/Glob), roda os gates node (Bash), e **escreve/edita**:
+  - `memory/requisitos/<Mod>/SDD-tela-*.md` (§5.3 `F<n>` + §6 CU + changelog)
+  - `resources/js/Pages/<Mod>/<Tela>.casos.md`
+  - **`tests/Feature/<Mod>/*Test.php`** — o Pest failing-first que o UC cita (sem ele o UC nasce órfão e trava o G-2)
+  - **o wiring da lane** (`.github/workflows/<lane>.yml`) — só a **entrada do arquivo de teste na allowlist**. Sem isto o teste é "verde impossível" (existe e nunca roda), que é exatamente o defeito que o `anchor-lint` denuncia. **Não** altere gatilhos, matriz, secrets ou `required`.
+  - `ANTI-REGRESSAO-*.md` / `PARIDADE-charter-vs-legado.md`
+  - `<Tela>.charter.md` **apenas para reconciliação factual** (Fase 2.6) — nunca intenção
+  - âncoras `Implementado em:` no `SPEC.md`: **proponha na devolutiva; só aplique se o [W] pedir** (tocar SPEC legado acorda o `anchor-lint` diff-aware sobre dívida grandfathered — lápide 2026-07-12)
 
 ## Devolutiva (turno final ao [W])
 
 1. **Alvo:** `<Mod>/<Tela>` + as 3 fontes resolvidas (React ✅ · Blade ✅/ausente · Delphi ✅/ausente).
 2. **Artefatos tocados:** SDD §5/§6 · `<Tela>.casos.md` · linhas `Implementado em:` propostas pro SPEC · ANTI-REGRESSAO/PARIDADE.
 3. **Veredito da Camada 3** (tabela por US: casos-gate + anchor-lint).
-4. **Gaps que precisam do [W]:** fonte ausente · CU sem teste · `[V0]` sem dupla-confirmação · decisão de Non-Goal.
-5. **Pergunta:** "[W] confere os casos derivados + as âncoras? Aplico as linhas `Implementado em:` no SPEC?"
+4. **Gaps que precisam do [W]:** fonte ausente · CU sem teste · `[V0]` sem dupla-confirmação · decisão de Non-Goal · **promessa de charter não cumprida** (Fase 2.6 linha ⚠️).
+5. **Orçamento da corrida** (pra decidir se escala): arquivos lidos · varreduras feitas · UC gerados (ancorados vs backlog) · achados · **o que reusou da análise do módulo vs re-varreu** (Fase 1.4) · gargalo — o que consumiu mais e por quê.
+6. **Lições de mecanismo** (se houver): o que na sua definição atrapalhou/ficou ambíguo.
+
+> 📝 **Os itens 5 e 6 PRECISAM ser persistidos, não só ditos no chat.** Devolutiva de chat evapora — orçamento que não fica no repo torna a Fase 1.4 (reuso) **incobrável** e o custo/tela inauditável. Grave-os num **session log** (`memory/sessions/YYYY-MM-DD-sdd-<mod>-<tela>.md` — tipo que já existe, **não crie tipo novo**), com o orçamento em tabela. Classe de erro recorrente é decisão do [W] (§5/ledger), não sua.
+7. **Pergunta:** "[W] confere os casos derivados + as âncoras? Aplico as linhas `Implementado em:` no SPEC?"
 
 ## Diferença vs agents irmãos
 
