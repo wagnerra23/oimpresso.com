@@ -1,14 +1,25 @@
 ---
-proposal_id: reguas-loop-maquina-evolucao
-status: ratified
-ratified_as: 0353-maquina-evolucao-reguas-looping
-ratified_at: "2026-07-26"
-created: 2026-07-19
-proposed_by: claude-code
-decided_by: wagner
-parent_adr: 0330 (mapa dos níveis)
-related_adrs: [0329, 0333, 0334, 0159, 0275, 0336]
-type: mecanismo-de-processo
+slug: 0353-maquina-evolucao-reguas-looping
+number: 353
+title: "Maquina de evolucao em looping das reguas — ledger persistente, modo delta, composicao deterministica"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+kind: meta
+decided_by: [W]
+decided_at: "2026-07-26"
+module: governance
+tags: [reguas, evolucao, ledger, delta, adversario, anti-goodhart, governanca, looping, treinamento]
+supersedes: []
+superseded_by: []
+related:
+  - 0330-mapa-dos-niveis-estado-real-2026-07-constituicao
+  - 0329-doutrina-executavel-nao-prosa
+  - 0336-gates-design-promocao-por-mordida-provada-emenda-0314
+  - 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes
+  - 0256-knowledge-survival-meia-vida-catraca-sentinela
+  - 0264-governanca-executavel-trio-dominio-e2e
 ---
 
 # Máquina de evolução em looping das réguas — incremental, barata, auto-persistente
@@ -75,12 +86,71 @@ Cada rodada emite `licoes_candidatas` (NAO_EXISTE reincidente · achado adversar
 | Perseguir nota (0159) | trava explícita acima; metas são da máquina |
 | Chokepoint fantasma (07-09) | invocação provada: delta roda pelo MESMO comando da skill; wiring de cadência declarado como pendência [W], não prometido |
 
-## Pendências de decisão [W]
+## Decisões [W] — 2026-07-26 (merge deste PR = ato)
 
-1. Ratificar esta proposta (merge = ato).
-2. Wiring do looping no Zelador (1 linha) OU cadência manual.
-3. Emenda da lápide 07-10: braço discriminativo na pergunta de Integração (o carimbo 81/81) — OU manter e aceitar que Integração só roda no full para claims novas (o que este desenho já implementa).
-4. O destino das regras 16-17 "de prosa" na skill: esta ADR propõe que NÃO entrem como texto (viraram código — Órgão 3); registrar só o ponteiro.
+As 4 pendências abertas em 2026-07-19 ficam resolvidas assim. A recomendação técnica
+de cada uma foi do [CC]; o merge é o ato do [W].
+
+### D1 · Ratificar — **SIM**
+
+Os Órgãos 1 e 2 já operam em produção sem lei escrita: o ledger tem `claims` 49 ·
+`fraquezas` 57 · `retratos` 2 (série real, `2026-07-18` e `2026-07-26`), e o modo delta
+está implementado no workflow canônico. Ratificar não cria nada — **formaliza o que já roda**.
+
+### D2 · Wiring do looping — **Zelador ESCALA, nunca dispara**
+
+Nem cron automático, nem cadência puramente manual: o meio-termo que o próprio
+`ZELADOR.md` já descreve. O Zelador roda a SONDA (report-only: `reguas-indexar` + idade
+do retrato do topo) e, quando acionável, **escala como resíduo com draft de 1 OK**
+(*"rodar `Workflow reguas-do-sistema {modo:'delta'}`?"*). A execução continua sendo
+do [W] / sessão dedicada.
+
+**Por quê:** um delta custa ~2,5M tokens. Disparo automático gasta sem pedir; cadência
+100% manual devolve o problema pro "você lembra" — que é o labirinto que esta máquina
+existe pra matar. Escalar separa **lembrar** (automático, barato) de **gastar**
+(humano, deliberado).
+
+### D3 · Emenda da lápide 07-10 (braço discriminativo na Integração) — **EMENDAR**
+
+O veredito de Integração deu `DIFERENCIAL_SISTEMA` em **81 de 81** casos. Binário que
+só conhece um valor não discrimina — é a mesma família do `foundation-ratchet`
+("0 failures em 300+ runs") e do drift-sentinel tautológico, que o §5 já enterrou.
+
+A emenda (habilitar `REFUTADO_TB` quando o agente não nomeia incremento além da
+IDENTIDADE, ou quando UM peer único monta o todo equivalente) mantém o **guard
+anti-composição inviolável**: peers DIFERENTES cobrindo cada um um eixo continua
+NÃO sendo refutação — somar slices-com-peer é o erro que a lápide-mãe matou.
+
+**Ressalva honesta que fica registrada:** emendar HABILITA o negativo, não PROVA que
+ele dispara. Proibido afirmar "agora discrimina" antes do placar de um full
+pós-emenda. Critério de reabertura dos dois lados: se seguir 0/N, o medidor continua
+carimbo; se disparar num caso que o [W] julgue diferencial real, a pergunta
+over-corrigiu.
+
+### D4 · Regras 16-17 (prosa × código) — **CÓDIGO**
+
+Não entram como texto na skill. Viraram o Órgão 3 (composição determinística) e a
+skill registra só o ponteiro. É a doutrina 0329 aplicada (*executável > prosa*) e a
+lápide 2026-07-16 (*artefato não restateia o que outro sistema sabe melhor —
+aponta pro dono*).
+
+## Estado dos 6 órgãos no ato da ratificação (medido, não afirmado)
+
+| Órgão | Estado | Recibo |
+|---|---|---|
+| 1 · Ledger `memory/reguas/` | ✅ vivo | `config` 5 · `retratos` 2 · `claims` 49 · `fraquezas` 57 |
+| 2 · Modo delta | ✅ implementado | 12 pontos de código no workflow canônico |
+| 3 · Composição determinística | 🟡 parcial | `regra_nota` já nos retratos; 4 pontos no workflow |
+| 4 · Indexador `reguas-indexar.mjs` | 🟡 script pronto, 0 invocador executável | **por desenho** — o `ZELADOR.md` declara "sonda, não notificação" |
+| 5 · Looping (cadência) | ❌ → **D2 resolve** | `ZELADOR.md` descreve o passo; nenhum cron o executa |
+| 6 · Treinamento | ❌ não implementado | `licoes_candidatas` = 0 ocorrências; `fraquezas` sem campo de lição |
+
+O Órgão 4 **não é obra parada** — é órfão declarado, na mesma classe dos CLI-manuais
+legítimos (`adr-supersede`, `doc-id-stamp`). A ADR original já dizia: *"não crio cron
+por conta própria"*.
+
+O Órgão 6 fica **aberto e assumido**: ratificar não o implementa. Ele é o elo
+achado→lição→two-strikes, e sem ele a máquina mede mas não aprende mais rápido.
 
 ## Reversão
 
