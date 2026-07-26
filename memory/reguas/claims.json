@@ -260,10 +260,11 @@
     "peer": "—",
     "limite": "confirmada por ausência-de-par em buscas dirigidas, não prova exaustiva",
     "correcao_obrigatoria": "ERPFlex é par PARCIAL no pilar redaction; a sub-claim 'categoria publica 0% governança' é FALSA e não re-alegável (erpflex.com.br, 2026-07-18)",
-    "integracao": "DIFERENCIAL_SISTEMA",
     "data_veredito": "2026-07-19",
     "ttl_dias": 30,
-    "journal": "wf_36116d6d (parcial)"
+    "journal": "wf_36116d6d (parcial)",
+    "integracao_removida_em": "2026-07-26",
+    "integracao_removida_por": "reguas-ledger-check V2 — o workflow filtra veredito!=ACIMA_CONFIRMADO ANTES da fase Integracao (linha 507); este veredito nao pode ter sido produzido pelo codigo"
   },
   {
     "id": "medidor-outcome-gaps-json",
@@ -272,10 +273,11 @@
     "refutador": "ACIMA_CONFIRMADO",
     "peer": "—",
     "limite": "ausência-de-par em 4 buscas dirigidas, não exaustiva; reabre se vendor publicar caveat-field per-metric",
-    "integracao": "DIFERENCIAL_SISTEMA",
     "data_veredito": "2026-07-19",
     "ttl_dias": 30,
-    "journal": "wf_36116d6d (parcial)"
+    "journal": "wf_36116d6d (parcial)",
+    "integracao_removida_em": "2026-07-26",
+    "integracao_removida_por": "reguas-ledger-check V2 — o workflow filtra veredito!=ACIMA_CONFIRMADO ANTES da fase Integracao (linha 507); este veredito nao pode ter sido produzido pelo codigo"
   },
   {
     "id": "jana-memoria-per-tenant",
@@ -315,10 +317,11 @@
     "dimensao": "design-to-code",
     "refutador": "ACIMA_CONFIRMADO",
     "peer": "Ninguém no eixo exato; vizinhos não cobrem (Figma Code Connect, Chromatic/Storybook Connect, zeroheight, SLSA/in-toto, design.md lint)",
-    "integracao": "DIFERENCIAL_SISTEMA",
     "data_veredito": "2026-07-26",
     "ttl_dias": 30,
-    "limite": "ausência-de-par em busca dirigida, não prova exaustiva"
+    "limite": "ausência-de-par em busca dirigida, não prova exaustiva",
+    "integracao_removida_em": "2026-07-26",
+    "integracao_removida_por": "reguas-ledger-check V2 — o workflow filtra veredito!=ACIMA_CONFIRMADO ANTES da fase Integracao (linha 507); este veredito nao pode ter sido produzido pelo codigo"
   },
   {
     "id": "mem-negativa-ligada-catraca",
