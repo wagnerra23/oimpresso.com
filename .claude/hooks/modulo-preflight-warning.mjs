@@ -3,6 +3,9 @@
 // AVISA (não bloqueia) quando Edit/Write em Modules/<X>/ sem ter lido o briefing do módulo X nesta sessão.
 // FASE 1 PRÉ-FLIGHT da Regra Primária Tier 0 (proibicoes.md). Par da skill preflight-modulo (ADR 0225).
 // Supersede modulo-preflight-warning.ps1 (US-GOV-052, triagem #17, lote C). ADVISORY: exit 0 sempre; fail-open.
+// 2026-07-26: evidência de leitura passou de regex em texto corrido para âncora estrutural
+//   (valor de input de tool). Antes disso o aviso ficou silencioso em 116 de 116 pares
+//   (sessão, módulo) medidos em 417 sessões — 75% sem leitura real. Ver buildReadPatterns().
 // Selftest: node .claude/hooks/modulo-preflight-warning.mjs --selftest
 
 import { spawnSync } from 'node:child_process';
@@ -25,20 +28,34 @@ export function extractModule(filePath) {
   return m ? m[1] : null;
 }
 
-/** patterns que indicam leitura do briefing do módulo na sessão. */
+/** separador de path como aparece no transcript CRU: '/' ou '\\' (JSON escapa a barra
+ *  invertida do Windows, então no texto do .jsonl ela vem duplicada). */
+const SEP = '[' + BACKSLASH + BACKSLASH + '/]+';
+
+/** patterns que indicam leitura do briefing do módulo na sessão.
+ *  ÂNCORA ESTRUTURAL: cada pattern casa o VALOR DE INPUT de uma tool (file_path/pattern/
+ *  path/query), nunca prosa solta. Medido 2026-07-26 sobre 417 sessões: a versão anterior
+ *  usava `<mod>.*charter` / `<mod>.*spec` SEM âncora, e como cada linha do .jsonl carrega
+ *  o system prompt inteiro (que cita nomes de módulo nas descrições de agents), o `.*`
+ *  atravessava milhares de chars até achar a 2ª palavra — um casamento real medido tinha
+ *  6.490 chars, começando na descrição do agent `financeiro-bridge-auditor`. Resultado:
+ *  116 de 116 pares (sessão, módulo) silenciados, 87 deles (75%) sem leitura nenhuma.
+ *  O próprio warningMessage() também se auto-silenciava (cita o path do SPEC). */
 export function buildReadPatterns(moduleName) {
   const lower = moduleName.toLowerCase();
   return [
-    `memory/requisitos/${moduleName}/`,
-    `Modules/${moduleName}/README`,
-    `${lower}.*charter`,
-    `${lower}.*spec`,
-    `decisions-search.*${lower}`,
-    `como-integrar.*${lower}`,
+    `"file_path":"[^"]*memory${SEP}requisitos${SEP}${moduleName}${SEP}`,
+    `"file_path":"[^"]*Modules${SEP}${moduleName}${SEP}README`,
+    `"file_path":"[^"]*${moduleName}${SEP}[^"]*\\.charter\\.md`,
+    `"(?:pattern|path)":"[^"]*memory${SEP}requisitos${SEP}${moduleName}`,
+    `"query":"[^"]*${lower}`,
   ];
 }
 
-/** o transcript mostra evidência de leitura do briefing do módulo? */
+/** o transcript mostra evidência de leitura do briefing do módulo?
+ *  `content` é o texto CRU do .jsonl (uma linha por evento) — as âncoras acima dependem
+ *  disso: elas casam a chave JSON do input da tool, que é o registro de que a leitura
+ *  ACONTECEU, e não de que alguém escreveu o nome do arquivo numa frase. */
 export function hasReadEvidence(content, moduleName) {
   if (!content) return false;
   return buildReadPatterns(moduleName).some((p) => new RegExp(p, 'i').test(content));
