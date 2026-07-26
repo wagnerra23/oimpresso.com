@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-25**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-26**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -57,7 +57,7 @@ lifecycle: ativo
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **342**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **345**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -123,7 +123,7 @@ lifecycle: ativo
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 40 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 41 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -165,6 +165,7 @@ lifecycle: ativo
 - ~~2026-07-22 — Mover os 6 dicionários de `memory/dominio/` (SINGULAR) para `memory/dominios/` (plural) — DOIS DONOS, não pasta duplicada~~
 - ~~2026-07-22 — Blindar candidatos de realocação "por julgamento" sem rodar a máquina + afirmar comportamento de extrator por leitura~~
 - ~~2026-07-23 — Criar um "mapa/porta única da arquitetura de arquivos" (doc + gerador) — os donos JÁ existem; e o 03-architecture.md é fóssil-armadilha~~
+- ~~2026-07-24 — Citar data de `git log` como recibo sem conferir se o clone é RASO (e o irmão: teste que passa por NÃO-EXECUÇÃO)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -182,4 +183,4 @@ lifecycle: ativo
   - `2026-07-22-incidente-mcp-link-flap-ct100`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-25 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-26 · deriva das fontes canônicas, não as substitui._
