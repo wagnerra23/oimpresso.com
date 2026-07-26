@@ -1,13 +1,23 @@
 # Template canônico de Scorecard governance ([ADR 0156]).
 #
 # 1 YAML por módulo em memory/governance/scorecards/<modulo-lowercase>.yaml.
-# Computado por `php artisan governance:scorecard-snapshot`.
+#
+# ESTE ARQUIVO É CURADO À MÃO — nenhum comando o escreve. Varredura contada
+# 2026-07-26 sobre php/mjs/yml/sh: ZERO escritores. Os dois crons são LEITORES:
+#   · `governance:scorecard-snapshot` (07:00 BRT) lê daqui → grava mcp_scorecard_runs + mcp_alertas
+#   · `module:grade-snapshot`         (06:05 BRT) → grava mcp_module_grades_history
+# Antes desta correção o cabeçalho dizia "Computado por governance:scorecard-snapshot"
+# e o campo abaixo dizia "preenchido por module:grade-snapshot" — as duas FALSAS. Foi
+# essa atribuição errada que deixou 5 scorecards congelados em 2026-05-16 por 71 dias
+# sem ninguém estranhar: quem lia o arquivo achava que um cron o mantinha vivo.
+# Quem MEDE a idade deste arquivo: cron-watchdog.mjs (eixo entrega) e a linha de obra
+# parada do Daily Brief (ObraParadaBriefLineService) — ambos de 2026-07-26.
 
 module: "<Nome do módulo>"
 slug: "<modulo-lowercase>"
 type: "domain | infra | meta"  # meta = Governance/Admin/Auditoria
 fsm_n_a: false                  # true só pra meta-módulos sem entity lifecycle
-last_grade: null                # preenchido por module:grade-snapshot
+last_grade: null                # À MÃO na revisão do scorecard — nenhum comando grava este YAML
 last_grade_at: null             # ISO 8601 BRT
 target_score: 90
 bucket: "Bom"                   # Ruim<60 | Médio 60-74 | Bom 75-89 | Excelente ≥90
