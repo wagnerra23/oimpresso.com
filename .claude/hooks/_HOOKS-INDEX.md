@@ -9,8 +9,8 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **47** wirings em `settings.json` (5 eventos) · **43** arquivos de hook distintos wired
-- **43** arquivos de hook no disco (+35 `*.test.*` — testes, fora da conta de órfãos)
+- **48** wirings em `settings.json` (5 eventos) · **44** arquivos de hook distintos wired
+- **44** arquivos de hook no disco (+35 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **34** classic + **1** ruleset → ponto-de-corte merge
 
@@ -31,6 +31,7 @@
 | PreToolUse | `Write/Edit/MultiEdit` | block-edit-authority-generated.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-brl-values-in-memory.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-memory-drift.mjs | node | geração (pré-Write/Edit) | exit-2 |
+| PreToolUse | `Write/Edit/MultiEdit` | memory-schema-guard.mjs | node | geração (pré-Write/Edit) | deny |
 | PreToolUse | `Write/Edit/MultiEdit` | block-mwart-violation.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | charter-validate.mjs | node | geração (pré-Write/Edit) | deny |
 | PreToolUse | `Write/Edit/MultiEdit` | modulo-preflight-warning.mjs | node | geração (pré-Write/Edit) | — |
