@@ -183,6 +183,17 @@ jobs:
       # settings.json enforça nada — "correção-do-mecanismo ≠ invocação").
       - name: Guard de schema de memory/ morde (fixtures boa/ruim + E2E por stdin)
         run: node .claude/hooks/memory-schema-guard.mjs --selftest
+      # Achado adversarial 2026-07-26 (sobre a ADR 0353): o ledger de réguas contém
+      # vereditos falsos — claims.json × placar do retrato discordam, e há claims com
+      # refutador ACIMA_CONFIRMADO carimbadas com veredito de Integração, que o
+      # workflow FILTRA antes da fase. Causa: `persistir()` é `agent(...)` porque o
+      # runtime de Workflow não expõe filesystem — a fidelidade não pode ser garantida
+      # na escrita, só CONFERIDA. O teste existente (reguas-workflow.test.mjs) só olha
+      # o prompt (presence-gate sobre texto) e por construção não vê o arquivo.
+      - name: Ledger de réguas — o selftest morde os 2 defeitos reais
+        run: node scripts/governance/reguas-ledger-check.mjs --selftest
+      - name: Ledger de réguas — coerência do arquivo (advisory · exit 0)
+        run: node scripts/governance/reguas-ledger-check.mjs
       - name: Registro do guard de schema em settings.json (matcher Write E Edit)
         run: node scripts/governance/settings-memory-schema-registration.test.mjs
       - name: Baseline armado Figma-não-é-fonte (camada L5 · vetores de ataque)
