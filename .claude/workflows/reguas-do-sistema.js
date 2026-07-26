@@ -458,11 +458,24 @@ log('dossiê montado do mapa vivo')
 // ── Fase 1 — Pesquisar (web, 1 por dimensão) ─────────────────────────────────
 phase('Pesquisar')
 const COMUM = `Você pesquisa o ESTADO DA ARTE da sua dimensão (WebSearch/WebFetch — 5-8 buscas reais, fontes dos últimos 12 meses) e compara com o IA OS do oimpresso (dossiê abaixo). Duro nos 2 sentidos: só declare "oimpresso acima" se o mercado comprovadamente NÃO pratica (cite o que os líderes fazem); liste sem dó onde está atrás. NÃO re-proponha o que o dossiê marca como rejeitado (§5).\n\nDOSSIÊ:\n${dossie}`
+// ⚠️ CARIMBO DA KEY CANÔNICA (bug medido 2026-07-26, passe adversarial — impacto MÁXIMO):
+// `RESEARCH_SCHEMA.dimensao` é string LIVRE (sem enum), e a composição de notas filtra por
+// igualdade exata (`v.dimensao === d.key`). Na rodada 07-26, 9 dos 12 pesquisadores devolveram
+// `"<key> — <escopo>"` (ecoando o prompt) e 1 devolveu ACENTUADO (`custo-eficiência` × a key
+// `custo-eficiencia`); só 3 devolveram a key nua. Resultado: **as 3 únicas dimensões que
+// "fecharam nota" foram exatamente as 3 nuas** — as outras 9 saíram `null` com 24/24
+// verificadores tendo devolvido nota numérica. Pior: a prosa da grade vestiu o acidente de
+// princípio ("compor seria agregação incomensurável que o §5 proíbe"), que é a classe LC-08
+// aplicada ao próprio medidor. O orquestrador SEMPRE soube a key (`d.key`) — não há motivo pra
+// confiar na string que o agente devolve. Aqui ela é sobrescrita na origem, então todo consumidor
+// a jusante (claims, fraquezas, composição, ledger) herda a key canônica.
 const pesquisas = (await parallel(DIMS.map((d) => () => agent(
   `${COMUM}\n\nSUA DIMENSÃO: ${d.key} — ${d.escopo}`,
   { label: `p:${d.key}`, phase: 'Pesquisar', schema: RESEARCH_SCHEMA, agentType: 'general-purpose', effort: 'high' },
-)))).filter(Boolean)
+).then((r) => (r ? { ...r, dimensao: d.key, dimensao_reportada: r.dimensao } : null))))).filter(Boolean)
+const divergiu = pesquisas.filter((p) => p.dimensao_reportada !== p.dimensao)
 log(`${pesquisas.length}/${DIMS.length} dimensões pesquisadas`)
+if (divergiu.length) log(`ℹ️ key canônica carimbada em ${divergiu.length}/${pesquisas.length} (o agente devolveu outra string; sem o carimbo a nota da dimensão sairia null): ${divergiu.map((p) => p.dimensao).join(', ')}`)
 
 // ── Fase 2 — Refutar toda claim "acima" (default: derrubar) ──────────────────
 // ⚠️ VERIFICAÇÃO SAME-MODEL (fraqueza 5,0 · orquestracao-adversarial): este refutador roda
