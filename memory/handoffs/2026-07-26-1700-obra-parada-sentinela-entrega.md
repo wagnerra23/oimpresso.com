@@ -1,20 +1,15 @@
 ---
+title: "Obra parada — sentinela de entrega, fronteira de módulo e o loop de charter destravado"
 date: "2026-07-26"
-time: "17:00 BRT"
-slug: "obra-parada-sentinela-entrega"
-tldr: "As 34 catracas required so rodam sobre diff, e coisa parada nao tem diff — foi assim que o Governance v4 ficou 71d congelado com ADR aceita, cron 07:00 vivo e tela. O cron-watchdog passa a medir ENTREGA (artefato de estado que envelheceu), com flag no Daily Brief. Fronteira de modulo fechada (#4795). Loop de charter destravado: em prod ROUTE_HITS_ENABLED=true e o transporte e que estava parado desde 11/07."
-decided_by: [W]
-prs: [4795, 4798]
-next_steps:
-  - "Decidir v3 x v4 do Governance (medicao diz aposentar; exige ADR de supersede das 0160/0161/0163)"
-  - "Resolver os 5 scorecards parados — ate la o advisory fica vermelho em todo PR"
-  - "Declarar related_us de Sells/Drafts, Sells/Edit, Sells/Show, Site/Home"
-  - "Decidir se route-hits:export vira agendado (hoje manual por design)"
-  - "meta_governance.yaml orfao — deletar exige ajustar Wave27GovernanceSaturateTest junto"
-  - "12 scripts sem invocador — decidir caso a caso: ligar ou aposentar com lapide"
+type: handoff
+authority: history
+lifecycle: ativo
+owners: [W]
 related_adrs:
   - 0160-governance-v4-scoped-scorecards-buckets
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
+  - 0317-watchdog-crons-governanca
+pii: false
 ---
 
 # Handoff 2026-07-26 17:00 — a classe "obra parada"
