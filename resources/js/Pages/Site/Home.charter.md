@@ -4,15 +4,15 @@ page: /
 component: resources/js/Pages/Site/Home.tsx
 related_prototype: n/a (landing pública bespoke de marketing — não segue um dos 5 Padrões de Tela do ERP)
 owner: wagner
-status: draft
-last_validated: "2026-07-11"
+status: live
+last_validated: "2026-07-26"
 parent_module: Cms
 related_adrs: [114, 101, 94, 91]
 tier: B
 charter_version: 1
 ---
 
-# Page Charter — / (DRAFT)
+# Page Charter — / (LIVE)
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
@@ -62,3 +62,5 @@ charter_version: 1
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot)
 - [ ] Confirmar copy fallback vs conteúdo CMS real em produção
+
+> _Promovido draft→live em 2026-07-26 por `charter-promote-signal.mjs` — sinal: route-hits:34._

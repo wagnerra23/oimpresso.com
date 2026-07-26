@@ -4,7 +4,7 @@ page: /kb/v2
 component: resources/js/Pages/kb/Index.v2.tsx
 controller: Modules\KB\Http\Controllers\KbController@indexV2
 route: kb.v2
-status: draft
+status: live
 owner: wagner
 parent_module: KB
 related_us: [US-KB-001]
@@ -428,3 +428,5 @@ it('abre em 1280px sem scroll horizontal')                        // visual/manu
 | 2026-07-17 | [CC] | **v3 (subtração)** — a v2.1 corrigiu os números **mantendo o lugar onde mentir**. A v3 **remove o lugar**: o charter deixa de guardar contagem e passa a **apontar o dono** (a query em `kb_nodes`) + **recibo datado** (query + resultado + data + sistema declarado). Aplica a lei *"fato derivado não se restateia"* — generalização da lápide 2026-07-16 (*"aponta pro dono, não restateia"*, escrita 24h antes do erro, mas só pra enforcement) e da regra Tier 0 "claim sem evidência" (que exige recibo, mas só cobria prod). Diagnóstico do erro por pesquisa de estado-da-arte ([session](../../../../memory/sessions/2026-07-17-arte-artefatos-por-tela.md)): **não foi alucinação — foi ORÁCULO ERRADO** (mediu o disco pra descrever tela que lê o banco); o mercado inteiro (Spec Kit · Kiro · Tessl · Drift) ancora doc↔código e **ninguém ancora doc↔dado**. É **subtração** (ADR 0271/0314): o doc escreve MENOS. |
 | 2026-07-17 | [CC] | **v2 (errata)** — a v2.0 mediu o **disco**; a tela lê o **banco**. §3 refeita com `SELECT` no CT 100: 1.408 nós (não 3.016), `runbook` 11 (não 152), `charter`/`briefing`/`handoff` **0** (gap de ingestão). Invariante "categoria = type" **derrubado** — [W] decidiu **1 KB com filtro / 2 eixos**: `Governança` (tipos como subcategorias, `auto_match` já seeded) + conteúdo do cliente. Exposto o bloqueador real: **~1.4k sem `category_id`** ⇒ tela vazia, e o `auto_match` com **zero leitores**. §8-bis reordenada (dado antes do render; 1 F1.5 no fim, não 3) + §8 ganha teste de **linhas renderizadas** e **R1**. D5 sem objeto; **D6 nova** (template por vertical). Origem: adversário 3×"emenda antes do código". |
 | 2026-07-17 | [CC] | **v2.0** — [W]: *"quero os dados, mas com o design do KB"*. Reescrito pro acervo **real** (o bridge já popula `kb_nodes` em prod). Categorias = os `type` do dado (mata o classificador-por-equipamento da v1.0). Persona "operadora de gráfica" removida (não existe no cliente). Anti-hook novo: ação não afirma o que não fez. §7 lista as decisões [W] que bloqueiam `live`. **Aguarda [W]** — nenhum código escrito até D1 ser respondida. |
+
+> _Promovido draft→live em 2026-07-26 por `charter-promote-signal.mjs` — sinal: route-hits:1._

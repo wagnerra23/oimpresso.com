@@ -4,8 +4,8 @@ page: /sells/{id}
 component: resources/js/Pages/Sells/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 owner: wagner
-status: draft
-last_validated: "2026-05-15"
+status: live
+last_validated: "2026-07-26"
 parent_module: Sells
 related_adrs: [104, 107, 110, 143, 149, 93]
 tier: A
@@ -125,3 +125,5 @@ Mostrar detalhe completo de uma venda — linhas, pagamentos, frete, atividades 
 - 🟡 **UC-V05** — campo de transportadora/rastreio, foto de entrega, confirmação de recebimento, tentativas frustradas. _(sem cobertura)_
 - 🟡 **UC-V06** — seleção de tipo de NF, forma de pagamento c/ parcelas, integração fiscal, baixa de estoque/insumos. _(sem cobertura)_
 - 🟡 **UC-V07** — histórico de pedidos no perfil, filtro por período/estado/tipo, repetir pedido, ticket médio/frequência. _(sem cobertura)_
+
+> _Promovido draft→live em 2026-07-26 por `charter-promote-signal.mjs` — sinal: route-hits:1._

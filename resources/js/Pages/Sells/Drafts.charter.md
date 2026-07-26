@@ -4,9 +4,9 @@ page: /sells/drafts
 component: resources/js/Pages/Sells/Drafts.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
-status: draft
+status: live
 status_detail: wave1-draft
-last_validated: "2026-05-15"
+last_validated: "2026-07-26"
 parent_module: Sells
 related_adrs: [104, 110, 149, 93]
 tier: A
@@ -103,3 +103,5 @@ Listar rascunhos de venda (status=draft, sub_status=NULL) — Larissa retoma pra
 - [ADR 0149](../../../../memory/decisions/0149-mwart-screen-pattern-reuse-cowork.md)
 - [RUNBOOK-drafts.md](../../../../memory/requisitos/Sells/RUNBOOK-drafts.md)
 - Parent visual: `resources/js/Pages/Sells/Index.charter.md`
+
+> _Promovido draft→live em 2026-07-26 por `charter-promote-signal.mjs` — sinal: route-hits:1._
