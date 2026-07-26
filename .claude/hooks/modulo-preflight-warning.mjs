@@ -63,8 +63,12 @@ export function hasReadEvidence(content, moduleName) {
 
 export function warningMessage(moduleName) {
   const lower = moduleName.toLowerCase();
+  // O prefixo [modulo-preflight-warning] NÃO é decoração: e' o que torna a emissão
+  // ATRIBUÍVEL no transcript. O Claude Code grava `hookName: "PreToolUse:Edit"` — o
+  // EVENTO, não qual dos 18 hooks falou. Sem tag, silêncio e morte são indistinguíveis
+  // (foi assim que este hook ficou morto sem ninguém ver). Ver scripts/governance/hook-bites.mjs.
   return `
-⚠️  PRÉ-FLIGHT MISSING — Edit/Write em Modules/${moduleName}/ sem ter lido briefing do módulo nesta sessão.
+[modulo-preflight-warning] ⚠️  PRÉ-FLIGHT MISSING — Edit/Write em Modules/${moduleName}/ sem ter lido briefing do módulo nesta sessão.
 
 Regra primária Tier 0 (memory/proibicoes.md): FASE 1 PRÉ-FLIGHT obrigatória ANTES de Edit em Modules/<X>/.
 Leia ANTES: memory/requisitos/${moduleName}/SPEC.md · RUNBOOK*.md · CAPTERRA*.md · charter · decisions-search "${lower}".
