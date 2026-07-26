@@ -597,7 +597,7 @@ class CommonResourceController extends ApiController
     public function getNotifications()
     {
         $user = Auth::user();
-        $notifications = $user->notifications()->orderBy('created_at', 'DESC')->get();
+        $notifications = $user->notifications()->orderBy('created_at', 'desc')->get();
 
         $notifications_data = $this->commonUtil->parseNotifications($notifications);
 
