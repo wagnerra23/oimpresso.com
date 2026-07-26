@@ -156,7 +156,10 @@ class GovernanceV4DashboardController extends Controller
 
                 $slug = strtolower($module);
                 $score = (int) $row->score;
-                $metaScore = (int) (self::BUCKET_META[$bucketKey] ?? 85);
+                // Sem `?? default`: o guard acima ja provou que $bucketKey e uma das 4
+                // chaves de $byBucket, e BUCKET_META tem exatamente as mesmas 4. Fallback
+                // aqui seria codigo morto — PHPStan aponta, e com razao.
+                $metaScore = self::BUCKET_META[$bucketKey];
                 $trend = $this->resolveTrend30d($slug, $score);
 
                 $byBucket[$bucketKey][] = [
