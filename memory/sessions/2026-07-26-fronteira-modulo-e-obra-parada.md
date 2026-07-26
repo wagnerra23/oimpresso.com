@@ -1,16 +1,21 @@
 ---
-title: "Fronteira de módulo + a classe \"obra parada\" — do bucket órfão à sentinela de entrega"
 date: "2026-07-26"
-type: session
-authority: history
-lifecycle: ativo
-owners: [W]
+hour: "16:49 BRT"
+topic: "Fronteira de módulo + a classe \"obra parada\" — do bucket órfão à sentinela de entrega"
+authors: [W, C]
+outcomes:
+  - "Whatsapp era 1 de 36 sem owner/trust_required — fechado"
+  - "4 tabelas de dono duplo resolvidas (0 conflitos no grafo)"
+  - "cron-watchdog ganha eixo 2: mede ENTREGA, não só liveness"
+  - "Flag \"obra parada\" no Daily Brief"
+  - "selftest-registry-check --scripts (12 de 88 scripts sem invocador)"
+  - "Loop de charter destravado: route-hits.json 10 → 32 rotas"
+  - "Premissa do Governance v4 REFUTADA por medição"
+prs: [4795, 4798]
 related_adrs:
   - 0160-governance-v4-scoped-scorecards-buckets
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
   - 0275-calendario-promocao-gates-sdd
-  - 0317-watchdog-crons-governanca
-pii: false
 ---
 
 # Sessão 2026-07-26 — fronteira de módulo e a classe "obra parada"
