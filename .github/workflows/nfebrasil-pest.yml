@@ -146,6 +146,18 @@ jobs:
         #   - Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php
         #   - Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php
         #
+        # RATCHET UP (2026-07-27): + TributacaoIndexContratoTest — trio da tela /nfe-brasil/tributacao
+        #   (UC-NFTR-01..05, Index.casos.md). Cobre o gate per-business de EMISSÃO AUTOMÁTICA de NFe
+        #   (ligado no tenant errado = documento fiscal emitido em nome de quem não pediu), o toggle
+        #   sem config, o template que não pode varrer as regras NCM, e update/destroy cross-tenant —
+        #   os dois que ESCREVEM, e que o TributacaoControllerTest não cobria (só o `edit`).
+        #   Usa actingAs: sem usuário autenticado o ScopeByBusiness no-opa (early-return em
+        #   `! auth()->check()`) e o guard de isolamento passaria vácuo — a mesma causa dos fixes de
+        #   2026-06-24/07-17 registrados acima. Sem RefreshDatabase (limpa só rows de biz=1/biz=2).
+        #   ⚠️ Não pré-provado no CT100: `oimpresso-staging` NÃO TEM as tabelas do NfeBrasil
+        #   (medido 2026-07-27) — a suite SKIPa lá. Conferir a CONTAGEM de passed no JUnit, não só o
+        #   check verde: suite que SKIPa também fica verde (gate mudo, proibicoes.md §5 2026-07-27).
+        #
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
         # limpam o seed biz=1/biz=2, envenenando os demais.
         env:
@@ -168,6 +180,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
             Modules/NfeBrasil/Tests/Feature/ReformaSchemaModoTest.php \
             Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
