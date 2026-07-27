@@ -1,4 +1,6 @@
 <?php
+// @covers-us US-OFICINA-014
+// @covers-us US-AUTO-009
 
 declare(strict_types=1);
 
@@ -55,7 +57,7 @@ it('cenario 1: token malformado (sem ponto) retorna null sem throw', function ()
     expect($svc->validarToken('lixo_sem_ponto_aqui'))->toBeNull();
 });
 
-it('cenario 2: token com signature errada (tamper) retorna null', function () {
+it('UC-OAP-04 · cenario 2: token com signature errada (tamper) retorna null', function () {
     $svc = new AprovacaoOsService();
     $os  = criarOsAprovacao(BIZ_APROV);
 
@@ -67,7 +69,7 @@ it('cenario 2: token com signature errada (tamper) retorna null', function () {
     expect($svc->validarToken($tampered))->toBeNull();
 });
 
-it('cenario 3: PIN bloqueia apos 5 tentativas (lockout)', function () {
+it('UC-OAP-03 · cenario 3: PIN bloqueia apos 5 tentativas (lockout)', function () {
     $svc = new AprovacaoOsService();
     $os  = criarOsAprovacao(BIZ_APROV);
     $svc->gerarTokenAprovacao($os);
@@ -104,7 +106,7 @@ it('cenario 5: PIN nao-numerico (4 letras) conta como tentativa', function () {
     expect($svc->tentativasRestantes($os))->toBe(4);
 });
 
-it('cenario 6: PIN correto invalida cache (one-shot, nao reutilizavel)', function () {
+it('UC-OAP-06 · cenario 6: PIN correto invalida cache (one-shot, nao reutilizavel)', function () {
     $svc = new AprovacaoOsService();
     $os  = criarOsAprovacao(BIZ_APROV);
     $g   = $svc->gerarTokenAprovacao($os);
@@ -114,7 +116,7 @@ it('cenario 6: PIN correto invalida cache (one-shot, nao reutilizavel)', functio
     expect($svc->validarPin($os, $g['pin']))->toBeFalse();
 });
 
-it('cenario 7: token gerado pra biz=1 NAO valida em OS de biz=99 (Tier 0)', function () {
+it('UC-OAP-05 · cenario 7: token gerado pra biz=1 NAO valida em OS de biz=99 (Tier 0)', function () {
     $svc = new AprovacaoOsService();
     $osBiz1 = criarOsAprovacao(BIZ_APROV);
     $g1 = $svc->gerarTokenAprovacao($osBiz1);

@@ -1,4 +1,6 @@
 <?php
+// @covers-us US-OFICINA-001
+// @covers-us US-AUTO-001
 
 declare(strict_types=1);
 
@@ -32,7 +34,7 @@ beforeEach(function () {
     }
 });
 
-it('cria veículo com placa única (caso Martinho — caçamba avulsa)', function () {
+it('UC-OVC-01 · cria veículo com placa única (caso Martinho — caçamba avulsa)', function () {
     session(['user.business_id' => BIZ_WAGNER]);
 
     $vehicle = Vehicle::create([
@@ -51,7 +53,7 @@ it('cria veículo com placa única (caso Martinho — caçamba avulsa)', functio
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST001')->forceDelete();
 });
 
-it('cria veículo multi-placa (caso Vargas — cavalo+reboque)', function () {
+it('UC-OVC-02 · cria veículo multi-placa (caso Vargas — cavalo+reboque)', function () {
     session(['user.business_id' => BIZ_WAGNER]);
 
     $vehicle = Vehicle::create([
@@ -71,7 +73,7 @@ it('cria veículo multi-placa (caso Vargas — cavalo+reboque)', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST002')->forceDelete();
 });
 
-it('lista veículos (Vehicle::all filtrado por scope)', function () {
+it('UC-OVI-01 · lista veículos (Vehicle::all filtrado por scope)', function () {
     session(['user.business_id' => BIZ_WAGNER]);
 
     Vehicle::create([
@@ -86,7 +88,7 @@ it('lista veículos (Vehicle::all filtrado por scope)', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST003')->forceDelete();
 });
 
-it('atualiza veículo', function () {
+it('UC-OVE-01 · atualiza veículo', function () {
     session(['user.business_id' => BIZ_WAGNER]);
 
     $vehicle = Vehicle::create([
@@ -103,7 +105,7 @@ it('atualiza veículo', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST004')->forceDelete();
 });
 
-it('soft delete preserva registro', function () {
+it('UC-OVI-03 · soft delete preserva registro', function () {
     session(['user.business_id' => BIZ_WAGNER]);
 
     $vehicle = Vehicle::create([
@@ -125,7 +127,7 @@ it('soft delete preserva registro', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST005')->forceDelete();
 });
 
-it('preserva legacy_id para futuro importer Firebird (US-OFICINA-002)', function () {
+it('UC-OVE-02 · UC-OIM-03 · preserva legacy_id para futuro importer Firebird (US-OFICINA-002)', function () {
     session(['user.business_id' => BIZ_WAGNER]);
 
     $vehicle = Vehicle::create([

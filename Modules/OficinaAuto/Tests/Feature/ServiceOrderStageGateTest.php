@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-OFICINA-003
 
 declare(strict_types=1);
 
@@ -70,7 +71,7 @@ function sg5_cleanup(string $suffix): void
 
 // ─── Enforcement HTTP ───────────────────────────────────────────────────────
 
-it('bloqueia (422) enviar_orcamento sem DVI/foto/orçamento — gate é servidor', function () {
+it('UC-OSH-10 · bloqueia (422) enviar_orcamento sem DVI/foto/orçamento — gate é servidor', function () {
     session(['user.business_id' => BIZ_GATE5]);
     $user = sg5_user();
     if ($user === null) {
