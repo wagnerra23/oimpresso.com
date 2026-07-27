@@ -99,8 +99,10 @@ related_adrs:
 > pré-condição anti-vácuo satisfeita (o laço rodou; não foi verde-por-não-execução);
 > **(3)** rota fantasma `/products/mass-update` — **decisão [W]: repontar** pro writer real
 > `/products/bulk-update` (sem alias). Charter/RUNBOOK/casos corrigidos aqui; **a linha do `.tsx`
-> vai no PR seguinte** (o hook MWART do project dir bloqueia até o fix de leitura de
-> `related_runbook:`, também neste PR, ser mergeado). **Premissas corrigidas no mesmo PR** (regra de precedência): o item 5 do
+> viaja junto com o `UC-PBULK-05`** — sozinha o ganho é zero (o writer estoura em `dpp_inc_tax` e
+> reverte o lote) e custa um contrato visreg pra tela `POST`-only. Cálculo completo em
+> [`BulkEdit.casos.md`](../../../resources/js/Pages/Produto/BulkEdit.casos.md); tentativa em
+> [#4845](https://github.com/wagnerra23/oimpresso.com/pull/4845) (fechado). **Premissas corrigidas no mesmo PR** (regra de precedência): o item 5 do
 > `CU-PROD-14` e o `UC-PSHOW-05` do `Show.casos.md` descreviam o campo inexistente como *"venda com
 > imposto"*. A feature-flag `enable_product_bulk_edit` segue **`false`** — nada foi religado.
 >
