@@ -19,7 +19,7 @@ charter_version: 1
 
 # Page Charter — `/forja` cockpit (DRAFT · Onda Forja · 6 abas reais)
 
-> Cockpit do cowork loop (humano ↔ agente) — **as 6 abas são reais**: Triagem (proposta + dossiê), Backlog (agrupável Onda/Fase/Papel/Prioridade/Módulo), Quadro (board F0→F3.5), Changelog (PRs/ADRs/sessões), MCP (contrato/tokens/auditoria — **MOCKADO por design**), Saúde (KPIs + WIP por fase + automação). Cada aba projeta `mcp_tasks` project=FORJA + git/ADR/sessão + gates (`ScorecardBuilderService`) — **sem dado fantasma**. **Absorção em TeamMcp** (não é módulo novo). Backend: `ForjaController` + `Modules/TeamMcp/Services/Forja/*Service`. Persona: Wagner [W] (superadmin, `jana.mcp.usage.all`). Ref: [forja-cockpit-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
+> Cockpit do cowork loop (humano ↔ agente) — **as 6 abas são reais**: Triagem (proposta + dossiê), Backlog (agrupável Onda/Fase/Papel/Prioridade/Módulo), Quadro (board F0→F3.5), Changelog (PRs/ADRs/sessões), MCP (contrato/tokens/auditoria — **MOCKADO por design**), Saúde (KPIs + WIP por fase + automação). Cada aba projeta `mcp_tasks` project=FORJA + git/ADR/sessão + gates (`ScorecardBuilderService`) — **sem dado fantasma**. **Absorção em TeamMcp** (não é módulo novo). Backend: `ForjaController` + `Modules/TeamMcp/Services/Forja/*Service`. Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Ref: [forja-cockpit-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
 
 ## Mission
 
@@ -57,7 +57,7 @@ Cockpit **read-only** de observabilidade/governança do próprio loop de desenvo
 
 ## Restrições Tier 0
 
-- Permissão `jana.mcp.usage.all` no construtor do `ForjaController`.
+- Permissão `copiloto.mcp.usage.all` no construtor do `ForjaController`.
 - Repo-wide cross-business INTENCIONAL (ADR 0093) — governança da plataforma.
 - `mcp_*` sem `business_id` por design.
 
@@ -66,6 +66,6 @@ Cockpit **read-only** de observabilidade/governança do próprio loop de desenvo
 - ✅ As 6 rotas `/forja/*` respondem (sem 500 / tela branca).
 - ✅ Entry "Forja" aparece na sidebar e o topnav de 6 abas navega + destaca a ativa.
 - ✅ Sem cor crua / PageHeader canon (conformance/foundation/layout/pageheader verdes).
-- ✅ Acesso negado (403) sem `jana.mcp.usage.all`.
+- ✅ Acesso negado (403) sem `copiloto.mcp.usage.all`.
 - ✅ **Triagem fiel ao protótipo:** após `php artisan db:seed --class="Modules\TeamMcp\Database\Seeders\ForjaDemoTicketsSeeder"`, `/forja` lista FORJA-152 (Tela·KB), FORJA-151 (Bug·Financeiro), FORJA-150 (Refino·Atendimento), cada um com badge de tipo colorido + tag de módulo + selo `[CC]` + botão roxo Analisar; aba mostra badge 3.
 - ✅ **Analisar** abre o dossiê lateral (valor×esforço, risco Tier-0, duplicatas, Aprovar→backlog / Rejeitar / Fundir) — `GET /forja/{id}/dossier` + `POST /forja/{id}/{aprovar,rejeitar,fundir}`.

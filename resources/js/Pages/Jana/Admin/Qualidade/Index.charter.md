@@ -16,7 +16,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/Jana/Http/Controllers/Admin/QualidadeController@index` (rota `jana.admin.qualidade.index`, permissão `jana.mcp.usage.all` — Wagner/superadmin). Trend das métricas de qualidade da memória IA lido de `copiloto_memoria_metricas`.
+> Backend: `Modules/Jana/Http/Controllers/Admin/QualidadeController@index` (rota `jana.admin.qualidade.index`, permissão `copiloto.mcp.usage.all` — Wagner/superadmin). Trend das métricas de qualidade da memória IA lido de `copiloto_memoria_metricas`.
 
 ---
 
@@ -58,7 +58,7 @@ Dar a Wagner/superadmin a leitura ao vivo da qualidade da memória/recuperação
 ## Anti-hooks (NÃO faz automaticamente)
 - ❌ Não faz polling nem auto-refresh — depende do cron externo; troca de filtro é a única re-busca.
 - ❌ Não muta dados em GET — read-only.
-- ❌ Cross-business é intencional aqui (visão superadmin `jana.mcp.usage.all`), NÃO viola scope de tenant — a tela é de plataforma, não do business logado.
+- ❌ Cross-business é intencional aqui (visão superadmin `copiloto.mcp.usage.all`), NÃO viola scope de tenant — a tela é de plataforma, não do business logado.
 
 ---
 

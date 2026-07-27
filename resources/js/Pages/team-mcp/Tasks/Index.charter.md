@@ -21,7 +21,7 @@ charter_version: 1
 
 # Page Charter — `/team-mcp/tasks` (DRAFT)
 
-> Criado no PR **Forja PR-1** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] + time MCP (Felipe/Maiara/Eliana/Luiz), desktop, superadmin `jana.mcp.usage.all`. Backend: `Modules/TeamMcp/Http/Controllers/TasksAdminController.php` (Inertia::defer). Referência visual aprovada: [tasks-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/tasks-visual-comparison.md).
+> Criado no PR **Forja PR-1** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] + time MCP (Felipe/Maiara/Eliana/Luiz), desktop, superadmin `copiloto.mcp.usage.all`. Backend: `Modules/TeamMcp/Http/Controllers/TasksAdminController.php` (Inertia::defer). Referência visual aprovada: [tasks-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/tasks-visual-comparison.md).
 
 ## Mission
 
@@ -64,7 +64,7 @@ Painel **read + drag** de governança de tasks MCP (Jira-style, [ADR 0070](../..
 
 ## Restrições Tier 0
 
-- Permissão `jana.mcp.usage.all` no construtor (todas as ações, incl. `show`).
+- Permissão `copiloto.mcp.usage.all` no construtor (todas as ações, incl. `show`).
 - `mcp_tasks`/`mcp_task_events` são **repo-wide cross-tenant INTENCIONAL** ([ADR 0070](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)) — governança da plataforma, sem `business_id` by design. (Não é dado de negócio.)
 - `mcp_task_events` append-only (read no `show()`).
 

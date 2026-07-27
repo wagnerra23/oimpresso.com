@@ -16,7 +16,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/BoardController@show` — `GET /project-mgmt/board/{taskId}/detail` (rota `project-mgmt.board.show`, permissão `jana.mcp.usage.all`). **Componente**, não página com rota própria: é o drawer slide-in aberto ao clicar num card do Board (`/project-mgmt/board`). História PMG-004 (ADR 0100) — não é ID no formato `US-...`, por isso `related_us` foi omitido. **Silencioso:** sheet de detalhe bespoke — sem `FsmActionPanel`/`Timeline`/`<dl>`/`StatCard`, sem tabela/form/kanban/kpi; nenhum dos 5 Padrões de Tela se aplica.
+> Backend: `Modules/ProjectMgmt/Http/Controllers/BoardController@show` — `GET /project-mgmt/board/{taskId}/detail` (rota `project-mgmt.board.show`, permissão `copiloto.mcp.usage.all`). **Componente**, não página com rota própria: é o drawer slide-in aberto ao clicar num card do Board (`/project-mgmt/board`). História PMG-004 (ADR 0100) — não é ID no formato `US-...`, por isso `related_us` foi omitido. **Silencioso:** sheet de detalhe bespoke — sem `FsmActionPanel`/`Timeline`/`<dl>`/`StatCard`, sem tabela/form/kanban/kpi; nenhum dos 5 Padrões de Tela se aplica.
 
 ---
 
@@ -38,7 +38,7 @@ Ser o painel de detalhe da task no estilo Jira: um `Sheet` que desliza pela dire
 ---
 
 ## Non-Goals — Features (NÃO faz)
-- ❌ Não é multi-tenant por `business_id` — opera sobre `mcp_*` (PM interno do time), gated por `jana.mcp.usage.all`. (inferência pendente de Wagner)
+- ❌ Não é multi-tenant por `business_id` — opera sobre `mcp_*` (PM interno do time), gated por `copiloto.mcp.usage.all`. (inferência pendente de Wagner)
 - ❌ Não edita campos "duros" da task (título/owner/prazo/estimativa) — isso é `tasks-update` via MCP (o próprio footer diz). (inferência pendente de Wagner)
 - ❌ Não é uma rota/página própria — é um componente do Board; `page` aponta pra `/project-mgmt/board`. (inferência pendente de Wagner)
 - ❌ Não segue um dos 5 Padrões de Tela: sheet de detalhe bespoke, deliberadamente silencioso quanto a PT. (inferência pendente de Wagner)

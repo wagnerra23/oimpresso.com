@@ -58,7 +58,7 @@ KB read-only de **atividade do Claude Code do time** (sessões `mcp_cc_*`): feed
 
 ## Restrições Tier 0
 
-- Permissão `jana.cc.read.team` no construtor; `jana.cc.read.all` libera ver todos, senão só próprias (backend `acessivelPara`).
+- Permissão `copiloto.cc.read.team` no construtor; `jana.cc.read.all` libera ver todos, senão só próprias (backend `acessivelPara`).
 - Multi-tenant: scope de acesso é do backend (não reimplementar no front).
 
 ## Métricas de sucesso (validação Wagner)
