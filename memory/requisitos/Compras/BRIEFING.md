@@ -5,9 +5,9 @@ title: "BRIEFING — Modules/Compras"
 type: briefing
 module: Compras
 status: em-construcao
-updated_at: 2026-07-03
+updated_at: "2026-07-03"
 version: 0.2
-owner: wagner
+owner: W
 ---
 
 # BRIEFING — Modules/Compras
