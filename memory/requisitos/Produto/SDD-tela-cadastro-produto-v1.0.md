@@ -88,9 +88,8 @@ related_adrs:
 > variação gravava linha na tabela de preço de **outro business** (`price_group_id=2`), com a
 > pré-condição anti-vácuo satisfeita (o laço rodou; não foi verde-por-não-execução);
 > **(3)** rota fantasma `/products/mass-update` — **decisão [W]: repontar** pro writer real
-> `/products/bulk-update` (sem alias). Charter/RUNBOOK/casos corrigidos aqui; **a linha do `.tsx`
-> vai no PR seguinte** (o hook MWART do project dir bloqueia até o fix de leitura de
-> `related_runbook:`, também neste PR, ser mergeado). **Premissas corrigidas no mesmo PR** (regra de precedência): o item 5 do
+> `/products/bulk-update` (sem alias). Charter/RUNBOOK/casos corrigidos no #4832; a linha do `.tsx`
+> fechou logo em seguida, assim que o fix de leitura de `related_runbook:` entrou em `main`. **Premissas corrigidas no mesmo PR** (regra de precedência): o item 5 do
 > `CU-PROD-14` e o `UC-PSHOW-05` do `Show.casos.md` descreviam o campo inexistente como *"venda com
 > imposto"*. A feature-flag `enable_product_bulk_edit` segue **`false`** — nada foi religado.
 >
@@ -428,8 +427,8 @@ genérico + `rollBack()` + `redirect('products')`.
 > (`mass-delete`, `mass-deactivate`, `bulk-update-location`) **não** têm essa trava.
 > **(2) a tela React não tinha para onde salvar** — `BulkEdit.tsx` fazia `post('/products/mass-update')`;
 > varredura contada do literal no repo: **3** (o `.tsx`, o charter e o RUNBOOK) e **0** em `routes/`.
-> ⚖️ **DECIDIDO [W] 2026-07-27**: repontar pro `/products/bulk-update` (sem alias). Doc corrigido
-> neste PR; a linha do `.tsx` vai no PR seguinte (hook MWART do project dir).
+> ✅ **CORRIGIDO 2026-07-27** (decisão [W]: repontar pro `/products/bulk-update`, sem alias).
+> Doc no #4832; `.tsx` no PR seguinte, ambos em 2026-07-27.
 > **(3) reader e writer não falam a mesma língua** — a Blade (o caller real) manda **5** campos
 > numéricos por variação (`default_purchase_price`, `dpp_inc_tax`, `profit_percent`,
 > `default_sell_price`, `sell_price_inc_tax`) + `group_prices`; o `useForm` do React manda **2**.
@@ -695,7 +694,7 @@ Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que dif
 
 #### CU-PROD-06 — Importação Excel + bulk-edit + mass-ops `[should]` 🟡 **parcial** (era ✅ — ver v1.0.4)
 1. `import-products` + `import-opening-stock` (Excel) + `download-excel`. — ⬜ **não verificado** (nenhum teste cita; fora do escopo do run do BulkEdit).
-2. `bulk-edit`/`bulk-update`/`bulk-update-location` + `mass-deactivate`/`mass-delete`. — 🔴 **a edição em massa não fecha o ciclo**: (a) o botão está atrás de `enable_product_bulk_edit = false` (`config/constants.php:84`, "Will be depreciated in future") → o operador não chega; (b) a tela React submete pra `/products/mass-update`, **rota inexistente** — **decisão [W] 2026-07-27: repontar** pro `/products/bulk-update`; doc já corrigido, `.tsx` no PR seguinte; (c) a tela manda 2 campos por variação e o writer lê 5 **sem `??`** → o lote inteiro reverte com erro genérico. `UC-PBULK-05` (failing-first). As demais mass-ops (`mass-delete`/`mass-deactivate`/`bulk-update-location`) **estão ligadas** e não têm essa trava.
+2. `bulk-edit`/`bulk-update`/`bulk-update-location` + `mass-deactivate`/`mass-delete`. — 🔴 **a edição em massa não fecha o ciclo**: (a) o botão está atrás de `enable_product_bulk_edit = false` (`config/constants.php:84`, "Will be depreciated in future") → o operador não chega; (b) ~~a tela React submete pra `/products/mass-update`, **rota inexistente**~~ — **CORRIGIDO 2026-07-27**: repontada pro `/products/bulk-update` (decisão [W]); (c) a tela manda 2 campos por variação e o writer lê 5 **sem `??`** → o lote inteiro reverte com erro genérico. `UC-PBULK-05` (failing-first). As demais mass-ops (`mass-delete`/`mass-deactivate`/`bulk-update-location`) **estão ligadas** e não têm essa trava.
 3. `[V0]` Import de preço/custo passa pelo mesmo guard `num_uf`. — 🧪 **agora tem contrato no ramo bulk**: `num_uf` é aplicado nos 5 campos de `bulkUpdate`; travado por `UC-PBULK-06` (pt-BR `"1.234,56"` → 1234.56). O ramo **import Excel** segue ⬜.
 4. `[T0]` Bulk valida `business_id` de **cada** ID antes de aplicar. — 🟡 **verdadeiro no resultado, falso no mecanismo**: `bulkEdit` escopa a matriz (`UC-PBULK-02`, verde esperado) e `bulkUpdate` **aplica e depois reverte** — quem garante o "nada meio-gravado" é o `rollBack()` do catch genérico, não uma validação prévia (`UC-PBULK-04`). E o **eixo tabela de preço está aberto**: `VariationGroupPrice::updateOrCreate(['price_group_id' => $k, …])` recebe `$k` **cru da chave do request**, sem o guard `$allowedPriceGroupIds` que o `saveSellingPrices` ganhou no [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — é o mesmo defeito do `UC-PTAB-04`, na tela irmã (`UC-PBULK-03`, failing-first).
 

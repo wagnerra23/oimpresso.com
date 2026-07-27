@@ -135,7 +135,9 @@ function ProdutoBulkEdit(props: ProdutoBulkEditPageProps) {
       setShowConfirm(true);
       return;
     }
-    post('/products/mass-update');
+    // `/products/mass-update` NÃO existe (0 ocorrências em routes/). O writer real é
+    // `POST /products/bulk-update` → ProductController@bulkUpdate (routes/web.php:443).
+    post('/products/bulk-update');
   };
 
   const productCount = props.products.length;

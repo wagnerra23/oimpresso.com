@@ -82,7 +82,7 @@ it('UC-PBULK-02 · produto de outro business não entra na matriz (multi-tenant 
 
 | Promessa do charter | Fato medido | Remédios possíveis (só [W] decide) |
 |---|---|---|
-| §Goals *"Submit POST `/products/bulk-update`"* (corrigido — antes declarava `mass-update`) | a rota `mass-update` **nunca existiu** (0× em `routes/`); o `.tsx` **ainda** posta nela | [W] decidiu 2026-07-27 **repontar a tela** pro `bulk-update` (não criar alias — evita superfície de escrita nova numa feature que o upstream vai depreciar). §Goals já corrigido; `.tsx` no PR seguinte. |
+| ~~§Goals *"Submit POST `/products/mass-update`"*~~ **RESOLVIDO 2026-07-27** | a rota `mass-update` **nunca existiu** (0× em `routes/`) | [W] decidiu **repontar a tela** pro `bulk-update` (não criar alias — evita superfície de escrita nova numa feature que o upstream vai depreciar). §Goals e `.tsx` corrigidos. |
 | §Goals *"Colunas: … Locations (multi) …"* | a tabela React **não renderiza** coluna de localização; o payload só faz round-trip de `productLocations` | construir a coluna · remover do §Goals |
 | Tela existe e é MWART F3 concluído | o botão de entrada está atrás de `config('constants.enable_product_bulk_edit')` = **`false`** (`config/constants.php:84`, nota upstream *"Will be depreciated in future"*) | ligar a flag · manter desligada e declarar Non-Goal/remoção · substituir pelo `/unificado` |
 

@@ -38,7 +38,7 @@ Sem eles, este arquivo soaria mais forte do que a realidade. Medidos em 2026-07-
 | # | Fato | Como re-medir |
 |---|---|---|
 | **1** | **O operador não chega nesta tela.** O botão "Edição em massa" da lista está atrás de `config('constants.enable_product_bulk_edit')`, hardcoded **`false`** — com a nota upstream *"Will be depreciated in future"*. | `grep -n "enable_product_bulk_edit" config/constants.php resources/views/product/partials/product_list.blade.php` |
-| **2** | **O botão Salvar da tela React aponta pra uma rota que não existe.** `BulkEdit.tsx` faz `post('/products/mass-update')`; **0** ocorrências em `routes/`. O writer real é `POST /products/bulk-update` → `ProductController@bulkUpdate` (`routes/web.php:443`). ⚖️ **DECIDIDO [W] 2026-07-27: repontar a tela** (não criar alias). O charter §Goals e o RUNBOOK §3.2 já declaram a rota certa; **a linha do `.tsx` ainda NÃO foi aplicada** — vai no PR seguinte, porque o hook MWART do project dir bloqueia até o fix de leitura de `related_runbook:` (neste PR) ser mergeado. O fato **1** segue valendo: a flag continua `false`. | `grep -rn "mass-update" routes/ resources/js/Pages/Produto/ memory/requisitos/Produto/` |
+| **2** | ~~**O botão Salvar da tela React aponta pra uma rota que não existe.**~~ **RESOLVIDO 2026-07-27.** Era: `BulkEdit.tsx` postava em `/products/mass-update`, literal com **0** ocorrências em `routes/`. [W] decidiu **repontar a tela** (não criar alias); a tela agora posta em `POST /products/bulk-update` → `ProductController@bulkUpdate` (`routes/web.php:443`), e charter §Goals + RUNBOOK §3.2 declaram a mesma rota. O fato **1** segue valendo: a flag continua `false` — repontar **não** religa a tela. | `grep -rn "mass-update" routes/ resources/js/Pages/Produto/ memory/requisitos/Produto/` |
 | **3** | **As telas React do Produto seguem inalcançáveis em prod** (sidebar usa `<a href>` puro, sem `X-Inertia` → cai no Blade). | mesmo enquadramento dos irmãos `Edit`/`Show`/`Index` |
 
 **Consequência para o veredito:** vermelho aqui é **bloqueador de migração** (gate MWART F5,
@@ -248,9 +248,9 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
   RUNBOOK §3.2 declarando a mesma rota fantasma. [W] escolheu **repontar a tela** pro
   `/products/bulk-update` em vez de criar alias — alias abriria superfície de escrita nova numa
   feature que o upstream declara que vai depreciar. Os 3 artefatos foram corrigidos no mesmo PR
-  (regra de precedência), mas **a linha do `.tsx` fica pro PR seguinte** — o hook MWART do project
-  dir bloqueia até o fix de leitura de `related_runbook:` (neste PR) ser mergeado. A flag
-  `enable_product_bulk_edit` segue **`false`**: repontar **não** religa a tela.
+  (regra de precedência), e a linha do `.tsx` foi aplicada em seguida ([#4832](https://github.com/wagnerra23/oimpresso.com/pull/4832)
+  levou doc + os achados 1 e 2; este PR fecha o código do 3). A flag `enable_product_bulk_edit`
+  segue **`false`**: repontar **não** religa a tela.
 - **[BACKLOG] O que a tela React perdeu em relação à Blade legada** (`AR-PROD-*` / MWART) — a Blade
   edita **6 famílias** que o React não tem: (1) **buscar e ADICIONAR produto** à matriz sem voltar
   pra lista (`#search_product` → `/products/get-product-to-edit/{id}`); (2) **custo com imposto**
