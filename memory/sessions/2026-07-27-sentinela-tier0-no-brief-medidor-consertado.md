@@ -135,6 +135,21 @@ Procurei mais defeitos da classe do dia. Quatro candidatos, todos se explicaram:
   "não ligue, escreve estado, é decisão [W]". Triagem fechada.
 - **5 contadores do `casos-guard` sempre zero** → medição real: manifesto
   `scripts/casos-test-results.json` está em `main`, fresco (auto-PR diário, 32 UC `pass`).
+  ⚠️ Mas eu afirmei (no chat e no prompt do chip 5) que **nenhum dos 5 tinha fixture**, medido
+  com `git grep -l <nome_do_contador>` → 0 para cada. **Errado, e pela mesma raiz da errata
+  do §2**: grepei o nome do **contador** (`status_lies`), quando as fixtures exercitam o
+  **comportamento** — a string da violação (`status:lies:`, `meta:missing-owner`) ou o
+  cenário; o contador é só um agregado do `--json` que teste nenhum precisa mencionar.
+  O chip 5 mediu certo ([#4873](https://github.com/wagnerra23/oimpresso.com/pull/4873),
+  mergeado): **4 dos 5 já eram provados**; só `status:stale-results` não era — e o veredito
+  final é **nenhum morto**.
+  **O método dele é superior ao meu e vale copiar**: *bite-test por mutação* — neutraliza cada
+  `violations.push` do guard, um por vez, e conta quantos testes falham. Mede se o detector
+  morde sem depender de vocabulário nenhum. O ramo que faltava é o mais difícil de acordar por
+  acidente: exige as **duas** fontes juntas (data de commit do `.tsx` via git `%cs` **e** o
+  `ran_at` do manifesto), então sem repo git real no tmp o `isShallowRepo()` devolve `true`,
+  `tsxDate` fica `null` e o ramo nem é alcançado — os testes novos montam um repo git de
+  verdade.
 - **G-7 dormindo em CI** (`if (!manifest) return []`) → não dorme. O workflow ainda se
   protege com skip **declarado** (`echo "baseline ausente… — skip"`), não silencioso.
 
