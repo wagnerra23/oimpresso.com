@@ -2,7 +2,7 @@
 id: requisitos-fiscal-briefing
 module: Fiscal
 status: parcial
-updated_at: 2026-07-27
+updated_at: "2026-07-27"
 distilled_at: "2026-07-27"
 distilled_by: "manual [C] — redestilação PARCIAL: o módulo ganhou SDD + contratos de tela no chip do passo 5 (PR #4866). O resto do corpo NÃO foi re-lido."
 ---
