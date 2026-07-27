@@ -109,6 +109,18 @@ jobs:
       - name: Cowork SSOT guard (fonte única · build-only)
         run: node scripts/governance/cowork-ssot-guard.mjs
 
+      # detect-handoff (2026-07-27): ligado aqui porque é AQUI que o sinal nasce — o
+      # workflow já dispara em `prototipo-ui/**`. Estava órfão desde que nasceu (o sweep
+      # `selftest-registry-check --scripts` o listava e ninguém julgava a lista).
+      # REPORT-ONLY por construção: ele PARA no chip-spec (criar a tarefa é `spawn_task`,
+      # tool do assistente) — nenhum estado muda por causa deste step.
+      # MORDIDA PROVADA em sync REAL antes de ligar (não em fixture): `--base f9e116aab7~1`
+      # (export "Preço especial", 17/07) reportou 2 arquivos de `produto-preco-especial`
+      # mudados e SEM nenhum charter com `visual_source:` apontando pra eles — handoff
+      # não-roteável que ninguém tinha visto justamente porque a máquina estava desligada.
+      - name: detect-handoff (export cowork → chip por tela · report-only)
+        run: node scripts/governance/detect-handoff.mjs --base origin/main
+
       # design-diff selftest: prova que o comparador design×prod PEGA o incidente 07/07
       # (center×left + button×div + overflow + roxo escuro×roxinho + texto dark invisível).
       # Se o comparador parar de morder, quebra VERMELHO (é a defesa do strike 2 · LICOES LC-06).

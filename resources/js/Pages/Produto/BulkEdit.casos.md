@@ -248,9 +248,25 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
   RUNBOOK §3.2 declarando a mesma rota fantasma. [W] escolheu **repontar a tela** pro
   `/products/bulk-update` em vez de criar alias — alias abriria superfície de escrita nova numa
   feature que o upstream declara que vai depreciar. Os 3 artefatos foram corrigidos no mesmo PR
-  (regra de precedência), mas **a linha do `.tsx` fica pro PR seguinte** — o hook MWART do project
-  dir bloqueia até o fix de leitura de `related_runbook:` (neste PR) ser mergeado. A flag
+  (regra de precedência). **A linha do `.tsx` viaja junto com o `UC-PBULK-05`** — sozinha não
+  entrega ganho e custa um contrato visreg pra tela `POST`-only (cálculo no bloco abaixo). A flag
   `enable_product_bulk_edit` segue **`false`**: repontar **não** religa a tela.
+
+> 📐 **Por que a linha do `.tsx` não fechou sozinha — cálculo de 2026-07-27.**
+> Repontar a rota **isoladamente não entrega nada**: com o destino certo, o `bulkUpdate` estoura
+> em `dpp_inc_tax` na primeira variação (a tela manda **2** campos, o writer lê **5** sem `??`),
+> o `catch` genérico engole e o lote reverte — é o `UC-PBULK-05`, **vermelho na lane**. O operador
+> sairia de *"rota inexistente"* para *"algo deu errado"*: ganho funcional **zero**.
+> E fechar sozinho **custa caro**: o `visual-regression` (required) cobra contrato visreg porque
+> Page raiz tocada isolada vira `scope: targeted` (`reason: page-inertia`); a tela é **`POST`-only**
+> (1 rota, `web.php:442`, **zero** GET) e o harness navega por GET — o baseline seria um redirect,
+> o *verde vazio* que o próprio canário existe pra impedir.
+> **Decisão: a linha viaja junto com o `UC-PBULK-05`.** Corrigir o payload toca
+> `ProductController@bulkUpdate` → o diff vira `scope: global` → o gate **deixa de cobrar contrato**
+> (provado rodando `classifyChanges` com os dois arquivos: `scope: global`). O obstáculo some
+> sozinho no momento certo — antecipar só pagaria o custo sem colher o ganho.
+> Tentativa registrada em [#4845](https://github.com/wagnerra23/oimpresso.com/pull/4845) (fechado).
+
 - **[BACKLOG] O que a tela React perdeu em relação à Blade legada** (`AR-PROD-*` / MWART) — a Blade
   edita **6 famílias** que o React não tem: (1) **buscar e ADICIONAR produto** à matriz sem voltar
   pra lista (`#search_product` → `/products/get-product-to-edit/{id}`); (2) **custo com imposto**

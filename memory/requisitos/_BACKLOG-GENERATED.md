@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **886 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **889 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -12,8 +12,8 @@
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
+| [`Governance`](#governance) | 45 | 0 | 0 | 3 | 42 |
 | [`Infra`](#infra) | 44 | 0 | 0 | 0 | 44 |
-| [`Governance`](#governance) | 42 | 0 | 0 | 0 | 42 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`Arquivos`](#arquivos) | 26 | 0 | 0 | 0 | 26 |
 | [`NfeBrasil`](#nfebrasil) | 26 | 0 | 0 | 6 | 20 |
@@ -332,6 +332,60 @@
 - **US-FIN-012** — Aging de inadimplência
 - **US-FIN-013** — Dashboard unificado de títulos (4 estados na mesma tela)
 
+## Governance
+
+
+### blocked
+
+- **US-GOV-057** — `handoff-integrity` vermelho há 17d — 3 `PROMPT_PARA_CODE` órfãos da fila Cowork _(`p2` · @wagner)_
+- **US-GOV-058** — Âncora: 65% do `verificado@sha` é cego — carimbo ancestral por construção (forward-only) _(`p2` · @wagner)_
+- **US-GOV-056** — Decidir: `agent-corpus-counterfactual` — dar porta ou aposentar (poda de capacidade) _(`p3` · @wagner)_
+
+### todo
+
+- **US-GOV-011** — [ROI alto] Carregar extension OTel no Herd dev (+2-3pp em 36 módulos D9) _(`p0`)_
+- **US-GOV-012** — Investigar ScopedScorecardEvaluator não captura SATURATION markers Jana (gap 25pp grade real) _(`p1`)_
+- **US-GOV-015** — Zelador diário — piloto 14d (reconciliação + triagem por âncora + subtração de ruído) _(`p1` · @claude)_
+- **US-GOV-016** — Reestruturação SDD — Semana 0 (12 frentes paralelas) _(`p1` · @wagner)_
+- **US-GOV-017** — Reestruturação SDD — Fase 1+2 (medição real, backfill, burn-down) _(`p1` · @wagner)_
+- **US-GOV-019** — Re-triage eixo-FAILURE: 7 bugs (design) + 91 quarentena + 11 unclear _(`p1`)_
+- **US-GOV-031** — MultiTenantScopeChecker em falso-clean (path Windows) + canário anti-falso-clean + promover guards Tier-0 a required _(`p1`)_
+- **US-GOV-034** — sqlite-test-corruptors --strict pega tier S (CORE-drop), não só tier A _(`p1`)_
+- **US-GOV-049** — Ratificar ADR 0329 (doutrina documentação de processo) — flip proposto→aceito _(`p1` · @wagner)_
+- **US-GOV-050** — Ratificar 0314 (por-item) + 0299 e mover 0320 aceita presa em proposals/ _(`p1` · @wagner)_
+- **US-GOV-051** — Review + merge PRs #4009 (tombstones P16) e #4010 (ref-integrity P10) _(`p1` · @wagner)_
+- **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
+- **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
+- **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_
+- **US-GOV-030** — Screen-QA dim16 — adicionar workflow sentinela ausente no CI _(`p2`)_
+- **US-GOV-032** — Criar BRIEFING.md de memory/requisitos/_Governanca/ (front-door) antes de commitar o dir _(`p2`)_
+- **US-GOV-035** — knowledge-drift: isentar _Governanca/roadmap/ (planos citam ghosts legitimamente) _(`p2`)_
+- **US-GOV-036** — Isolar corruptores era-sqlite restantes (lotes 2-3 — 11 de 18) _(`p2`)_
+- **US-GOV-037** — Backfill related_us em 132 charters sem link (join US→tela do SA-A5) _(`p2`)_
+- **US-GOV-038** — Ligar alerta do nightly-diff tripwire (NIGHTLY_DIFF_ALERT=1) pós-floor estável _(`p2`)_
+- **US-GOV-042** — anchor-lint pula status:arquivado + decidir destino do SPEC duplicado MemCofre/SRS _(`p2`)_
+- **US-GOV-044** — Reconciliar dívida anchor-fidelity residual na main (pós-ADR 0303) _(`p2`)_
+- **US-GOV-046** — Triar drafts acumulados em decisions/proposals/ _(`p2`)_
+- **US-GOV-047** — Consertar links internos quebrados na canon _(`p2`)_
+- **US-GOV-052** — Backlog da revisão da memória do processo — consertos M/G restantes _(`p2`)_
+- **US-GOV-053** — recall_eval_violations: transporte versionado do cron dominical pro scorecard SDD _(`p2`)_
+- **US-GOV-054** — Coletar bite-log retroativo dos 3 gates DS required (fechamento empírico ADR 0339 / DR-2a 0336) _(`p2`)_
+- **US-GOV-033** — Corrigir links internos residuais (corpos de ADR append-only + dead-links de alvo incerto) _(`p3`)_
+- **US-GOV-039** — TDAD-lite — lane de testes impactados no PR (test-map via pcov + sombra 14d) _(`p3`)_
+- **US-GOV-040** — Roadmap-v2 — dobrar correção P01/P02 + entries P14/P15/P16 no _ROADMAP.md _(`p3`)_
+- **US-GOV-041** — Limpar governance/sdd-scorecard.json sujo (274 fantasma) no working-tree de main _(`p3`)_
+- **US-GOV-048** — Desambiguar dirs homônimos sob memory/ (dominio/ vs dominios/) _(`p3`)_
+- **US-GOV-001** — Dashboard consolidado `/governance` ✅ DONE
+- **US-GOV-002** — Policies listagem + toggle ativo/inativo 🟡 PARCIAL
+- **US-GOV-003** — Audit log drill-down filtrável 🟡 PARCIAL
+- **US-GOV-004** — Drift alerts (Module Charter Art. 7) 🟡 PARCIAL
+- **US-GOV-005** — ActionGate middleware (modo warn/strict) ✅ DONE (warn)
+- **US-GOV-006** — Module Grade Dashboard `/governance/module-grades` ✅ DONE
+- **US-GOV-007** — Module Grade Drill-down + botão Evoluir ✅ DONE
+- **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
+- **US-GOV-009** — Cron daily snapshot histórico 90d ❌ BACKLOG
+- **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
+
 ## Infra
 
 
@@ -381,54 +435,6 @@
 - **US-INFRA-044** — Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB
 - **US-INFRA-045** — Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
 - **US-INFRA-046** — ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
-
-## Governance
-
-
-### todo
-
-- **US-GOV-011** — [ROI alto] Carregar extension OTel no Herd dev (+2-3pp em 36 módulos D9) _(`p0`)_
-- **US-GOV-012** — Investigar ScopedScorecardEvaluator não captura SATURATION markers Jana (gap 25pp grade real) _(`p1`)_
-- **US-GOV-015** — Zelador diário — piloto 14d (reconciliação + triagem por âncora + subtração de ruído) _(`p1` · @claude)_
-- **US-GOV-016** — Reestruturação SDD — Semana 0 (12 frentes paralelas) _(`p1` · @wagner)_
-- **US-GOV-017** — Reestruturação SDD — Fase 1+2 (medição real, backfill, burn-down) _(`p1` · @wagner)_
-- **US-GOV-019** — Re-triage eixo-FAILURE: 7 bugs (design) + 91 quarentena + 11 unclear _(`p1`)_
-- **US-GOV-031** — MultiTenantScopeChecker em falso-clean (path Windows) + canário anti-falso-clean + promover guards Tier-0 a required _(`p1`)_
-- **US-GOV-034** — sqlite-test-corruptors --strict pega tier S (CORE-drop), não só tier A _(`p1`)_
-- **US-GOV-049** — Ratificar ADR 0329 (doutrina documentação de processo) — flip proposto→aceito _(`p1` · @wagner)_
-- **US-GOV-050** — Ratificar 0314 (por-item) + 0299 e mover 0320 aceita presa em proposals/ _(`p1` · @wagner)_
-- **US-GOV-051** — Review + merge PRs #4009 (tombstones P16) e #4010 (ref-integrity P10) _(`p1` · @wagner)_
-- **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
-- **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
-- **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_
-- **US-GOV-030** — Screen-QA dim16 — adicionar workflow sentinela ausente no CI _(`p2`)_
-- **US-GOV-032** — Criar BRIEFING.md de memory/requisitos/_Governanca/ (front-door) antes de commitar o dir _(`p2`)_
-- **US-GOV-035** — knowledge-drift: isentar _Governanca/roadmap/ (planos citam ghosts legitimamente) _(`p2`)_
-- **US-GOV-036** — Isolar corruptores era-sqlite restantes (lotes 2-3 — 11 de 18) _(`p2`)_
-- **US-GOV-037** — Backfill related_us em 132 charters sem link (join US→tela do SA-A5) _(`p2`)_
-- **US-GOV-038** — Ligar alerta do nightly-diff tripwire (NIGHTLY_DIFF_ALERT=1) pós-floor estável _(`p2`)_
-- **US-GOV-042** — anchor-lint pula status:arquivado + decidir destino do SPEC duplicado MemCofre/SRS _(`p2`)_
-- **US-GOV-044** — Reconciliar dívida anchor-fidelity residual na main (pós-ADR 0303) _(`p2`)_
-- **US-GOV-046** — Triar drafts acumulados em decisions/proposals/ _(`p2`)_
-- **US-GOV-047** — Consertar links internos quebrados na canon _(`p2`)_
-- **US-GOV-052** — Backlog da revisão da memória do processo — consertos M/G restantes _(`p2`)_
-- **US-GOV-053** — recall_eval_violations: transporte versionado do cron dominical pro scorecard SDD _(`p2`)_
-- **US-GOV-054** — Coletar bite-log retroativo dos 3 gates DS required (fechamento empírico ADR 0339 / DR-2a 0336) _(`p2`)_
-- **US-GOV-033** — Corrigir links internos residuais (corpos de ADR append-only + dead-links de alvo incerto) _(`p3`)_
-- **US-GOV-039** — TDAD-lite — lane de testes impactados no PR (test-map via pcov + sombra 14d) _(`p3`)_
-- **US-GOV-040** — Roadmap-v2 — dobrar correção P01/P02 + entries P14/P15/P16 no _ROADMAP.md _(`p3`)_
-- **US-GOV-041** — Limpar governance/sdd-scorecard.json sujo (274 fantasma) no working-tree de main _(`p3`)_
-- **US-GOV-048** — Desambiguar dirs homônimos sob memory/ (dominio/ vs dominios/) _(`p3`)_
-- **US-GOV-001** — Dashboard consolidado `/governance` ✅ DONE
-- **US-GOV-002** — Policies listagem + toggle ativo/inativo 🟡 PARCIAL
-- **US-GOV-003** — Audit log drill-down filtrável 🟡 PARCIAL
-- **US-GOV-004** — Drift alerts (Module Charter Art. 7) 🟡 PARCIAL
-- **US-GOV-005** — ActionGate middleware (modo warn/strict) ✅ DONE (warn)
-- **US-GOV-006** — Module Grade Dashboard `/governance/module-grades` ✅ DONE
-- **US-GOV-007** — Module Grade Drill-down + botão Evoluir ✅ DONE
-- **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
-- **US-GOV-009** — Cron daily snapshot histórico 90d ❌ BACKLOG
-- **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
 
 ## OficinaAuto
 
