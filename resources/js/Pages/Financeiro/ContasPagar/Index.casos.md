@@ -30,8 +30,17 @@ last_run: "2026-07-06"
 - **[BACKLOG] Baixa total quita o título** — Dado título `pagar` `aberto` de R$ X · Quando registro
   baixa de X · Então nasce `TituloBaixa` e o título vira `quitado` com `valor_aberto = 0`.
 - **[BACKLOG] Baixa parcial calcula o aberto ao centavo (D1)** — Dado título de R$ 100 · Quando
-  baixo R$ 30 · Então `valor_aberto = 70,00` e `status = parcial`; uma 2ª baixa de R$ 70 fecha em 0.
-  **É o caso do dente D1** (property + golden + cross-check) — hoje 🔴 indefeso; classe do `num_uf`.
+  baixo R$ 30 · Então o valor **se conserva**: nasce um título FILHO quitado de 30 (`titulo_pai_id`)
+  e o pai reduz para 70, seguindo **aberto** — `Σ(filhos) + pai.valor_aberto == 100`.
+  **É o caso do dente D1** (property + golden + cross-check); classe do `num_uf`.
+  > ⚠️ **Correção factual 2026-07-27 (onda `sdd-from-source`).** Este bullet dizia
+  > *"`valor_aberto = 70,00` e `status = parcial`"*. O código **não usa mais** `status='parcial'`
+  > desde a decisão [W] de 2026-06-04 (*baixa parcial vira SPLIT* — comentário literal em
+  > `UnificadoController@baixar`): o contrato descrito aqui estava **errado sobre o sistema**, e um
+  > teste escrito a partir dele nasceria vermelho por motivo errado. Corrigido o **perdedor**
+  > (precedência: código provado > casos), sem mexer na intenção. O dente D1 deixou de ser
+  > "🔴 indefeso": passou a ser defendido — **na tela onde a baixa realmente mora**, a Visão
+  > Unificada — por `UC-FUNI-01` (`BaixaConservacaoValorContratoTest`, lane `financeiro-pest`).
 - **[BACKLOG] Baixa acima do aberto é recusada** — Quando `valor_baixa > valor_aberto` · Então flash
   `error` "Valor da baixa excede o aberto" e nada é gravado.
 - **[BACKLOG] Título quitado/cancelado não aceita baixa** — Quando o título já está `quitado`/`cancelado`
@@ -49,6 +58,12 @@ last_run: "2026-07-06"
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-07-27 · [CC] onda `sdd-from-source` (passo 5 · Onda 2) — **nenhum UC novo aqui, de propósito**:
+  esta tela está `deprecated` (charter, #3718) e a `US-FIN-064` (`todo`) prevê o redirect pro
+  Unificado; investir contrato numa tela que vai morrer é dívida. O que foi feito: **correção
+  factual** do bullet D1 (o `status='parcial'` descrito não existe desde 2026-06-04) e ponteiro pro
+  UC que passa a defender o cálculo na tela onde a baixa mora (`UC-FUNI-01`, Visão Unificada).
+  Contrato do módulo agora vive em `memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md`.
 - 2026-07-03 · [CC] criado na Onda de correção Financeiro (régua por tela, [ADR 0320]): charter +
   casos retroativos. Cobertura de comportamento e D1 nascem em **débito visível** — a contradição
   UX-alto (70 Advanced) / baixa-de-valor-indefesa que o programa existe pra expor.

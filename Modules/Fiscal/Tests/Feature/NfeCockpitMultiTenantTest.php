@@ -35,12 +35,22 @@ const FISCAL_BIZ_WAGNER = 1;
 const FISCAL_BIZ_FICTICIO = 99;
 const FISCAL_TAG_TEST = 'PR1-FISCAL-NFE-ISO-TEST';
 
-beforeEach(function () {
+/**
+ * Guard de banco — chamado SÓ pelos casos que tocam `nfe_emissoes`.
+ *
+ * Antes isto era um `beforeEach` do arquivo inteiro, e o efeito colateral era caro: o caso do
+ * `sefazCodes` (reflection pura, zero query) **skipava junto**. Como a lane de CI é SQLite e o
+ * staging do CT 100 não tem as migrations do NfeBrasil, ele não executava em lugar nenhum —
+ * cobertura de papel. Movendo o guard pra dentro dos casos que realmente precisam de tabela,
+ * o que é DB-free passa a rodar em qualquer lane.
+ */
+function fiscalNfeCockpitExigeBanco(\Tests\TestCase $t): void
+{
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: NfeBrasil/Fiscal requer schema MySQL UltimatePOS (ADR 0101)');
+        $t->markTestSkipped('SQLite-incompatível: NfeBrasil/Fiscal requer schema MySQL UltimatePOS (ADR 0101)');
     }
     if (! Schema::hasTable('nfe_emissoes')) {
-        $this->markTestSkipped('nfe_emissoes table missing — rode Modules/NfeBrasil migrate primeiro');
+        $t->markTestSkipped('nfe_emissoes table missing — rode Modules/NfeBrasil migrate primeiro');
     }
 
     // O global scope ScopeByBusiness só filtra com usuário AUTENTICADO — faz early-return
@@ -50,8 +60,8 @@ beforeEach(function () {
     // produto: a rota /fiscal/nfe roda atrás do middleware `auth`, onde auth()->check() é
     // sempre true. Autenticamos um usuário biz=1 (semeado pelo pest-mysql-setup; sem role →
     // não é superadmin) espelhando NfeBrasilMultiTenantIsolationTest. ADR 0093 + ADR 0101.
-    $this->actingAs(\App\User::where('business_id', FISCAL_BIZ_WAGNER)->firstOrFail());
-});
+    $t->actingAs(\App\User::where('business_id', FISCAL_BIZ_WAGNER)->firstOrFail());
+}
 
 afterEach(function () {
     // Guard SQLite (Wagner 2026-05-25): cleanup só roda quando tabela existe.
@@ -68,7 +78,9 @@ afterEach(function () {
         ->forceDelete();
 });
 
-it('global scope HasBusinessScope esconde emissões cross-tenant na contagem do cockpit', function () {
+it('UC-FNFE-01 · global scope HasBusinessScope esconde emissões cross-tenant na contagem do cockpit', function () {
+    fiscalNfeCockpitExigeBanco($this);
+
     // Cria 1 emissão biz=1 + 2 emissões biz=99 com mesma chave-tag pra rastreio.
     $base = [
         'modelo'      => '55',
@@ -110,43 +122,15 @@ it('global scope HasBusinessScope esconde emissões cross-tenant na contagem do 
             ->count())->toBe(3);
 });
 
-it('isCancelavel respeita janela legal 24h NFC-e (modelo 65) vs 168h NF-e (modelo 55)', function () {
-    // Helper espelha lógica do NfeCockpitController::isCancelavel sem precisar
-    // instanciar Controller (factory de Request seria pesado pra este teste).
-    $isCancelavel = function (NfeEmissao $e): bool {
-        if ($e->status !== 'autorizada' || ! $e->emitido_em) return false;
-        $prazoHoras = $e->modelo === '65' ? 24 : 168;
-        return $e->emitido_em->diffInHours(now()) <= $prazoHoras;
-    };
+// ⚠️ REMOVIDO 2026-07-27 — o caso `isCancelavel respeita janela legal 24h NFC-e vs 168h NF-e`
+// vivia aqui, mas era TAUTOLÓGICO: declarava um `$isCancelavel = function (...)` que
+// RE-IMPLEMENTAVA a fórmula do Controller dentro do próprio teste, e depois testava esse clone.
+// Se o `NfeCockpitController::isCancelavel` mudasse a janela de 24h para 12h, o teste seguiria
+// verde (lápide §5 2026-06-05). O substituto invoca o método REAL por reflection e está em
+// `AcoesContratoTest::UC-FNFE-02` — com mordida provada (afrouxar a regra deixa o teste vermelho).
 
-    $nfceRecente = new NfeEmissao([
-        'modelo'     => '65',
-        'status'     => 'autorizada',
-        'emitido_em' => now()->subHours(10),
-    ]);
-    $nfceVelha = new NfeEmissao([
-        'modelo'     => '65',
-        'status'     => 'autorizada',
-        'emitido_em' => now()->subHours(30),
-    ]);
-    $nfeDentroPrazo = new NfeEmissao([
-        'modelo'     => '55',
-        'status'     => 'autorizada',
-        'emitido_em' => now()->subHours(48),
-    ]);
-    $nfeForaPrazo = new NfeEmissao([
-        'modelo'     => '55',
-        'status'     => 'autorizada',
-        'emitido_em' => now()->subHours(200),
-    ]);
 
-    expect($isCancelavel($nfceRecente))->toBeTrue('NFC-e 10h < 24h deve ser cancelável')
-        ->and($isCancelavel($nfceVelha))->toBeFalse('NFC-e 30h > 24h NÃO deve ser cancelável')
-        ->and($isCancelavel($nfeDentroPrazo))->toBeTrue('NF-e 48h < 168h deve ser cancelável')
-        ->and($isCancelavel($nfeForaPrazo))->toBeFalse('NF-e 200h > 168h NÃO deve ser cancelável');
-});
-
-it('sefazCodes retorna mapa com pelo menos 100, 110, 220, 539, 691, 778, 999', function () {
+it('UC-FNFE-03 · sefazCodes retorna mapa com pelo menos 100, 110, 220, 539, 691, 778, 999', function () {
     $controller = new \Modules\Fiscal\Http\Controllers\NfeCockpitController();
     $reflection = new ReflectionMethod($controller, 'sefazCodes');
     $reflection->setAccessible(true);
