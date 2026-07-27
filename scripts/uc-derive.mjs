@@ -24,7 +24,7 @@
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
-import { ucScanRe, ucHeadRe } from './lib/uc-regex.mjs';
+import { ucScanRe, ucBlocksInCasos } from './lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
 const argv = process.argv.slice(2);
@@ -35,9 +35,10 @@ const PROPOSE = argv.includes('--propose');
 const PAGES = resolve(ROOT, 'resources/js/Pages');
 const MANIFEST_PATH = resolve(ROOT, 'scripts/casos-test-results.json');
 const TEST_DIRS = ['Modules', 'tests', 'app', 'e2e'];
-// Regex de UC-id vem da fonte ÚNICA (scripts/lib/uc-regex.mjs · ADR 0264) pra não drifar:
-//   ucScanRe() → instância /g fresca (matchAll no corpo + .test() pontual)
-//   ucHeadRe() → âncora ^(...) pra extrair o UC declarado do heading do casos.md
+// Regex E parser de UC vêm da fonte ÚNICA (scripts/lib/uc-regex.mjs · ADR 0264) pra não drifar:
+//   ucScanRe()        → instância /g fresca (matchAll no corpo + .test() pontual)
+//   ucBlocksInCasos() → itera {uc, block} do casos.md (faz o split por `## ` que ANTES era
+//                       copiado aqui — a cópia é a porta pela qual o parser drifou em 2026-07)
 
 if (!MODULE) {
   console.error('uso: node scripts/uc-derive.mjs --module <Mod> [--propose]');
@@ -64,12 +65,10 @@ function declaredUcs() {
   const out = [];
   for (const f of walk(dir, (_f, n) => n.endsWith('.casos.md'))) {
     const content = readFileSync(f, 'utf8');
-    for (const block of content.split(/^##\s+/m).slice(1)) {
-      const head = block.match(ucHeadRe());
-      if (!head) continue;
+    for (const { uc, block } of ucBlocksInCasos(content)) {
       const glyph = block.match(/Status\s*[:：]\s*[^\n]*?([✅❌🧪⬜])/u);
       const testM = block.match(/Teste[^A-Za-z0-9]*[`'"]?([A-Za-z][A-Za-z0-9_]+)/);
-      out.push({ uc: head[1].toUpperCase(), status: glyph ? glyph[1] : '–', intended: testM ? testM[1] : null, casos: norm(f) });
+      out.push({ uc, status: glyph ? glyph[1] : '–', intended: testM ? testM[1] : null, casos: norm(f) });
     }
   }
   return out;
