@@ -122,6 +122,7 @@ jobs:
             Modules/Jana/Tests/Feature/EntitiesFilhasMultiTenantViaParentTest.php \
             Modules/Jana/Tests/Feature/PeriodosControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/FontesControllerCrossTenantTest.php \
+            Modules/Jana/Tests/Feature/JanaAccessGateTest.php \
             Modules/Jana/Tests/Feature/Console/JanaRagasFailuresNoSilentCapTest.php
 
       - name: Upload JUnit (Jana · MySQL)
