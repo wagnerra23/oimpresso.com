@@ -32,7 +32,7 @@ last_run: "2026-07-27"
 - **Aceite:** Dado uma venda que pertence a OUTRO business · Quando abro `/sells/{id}` · Então recebo 404 e nenhum dado da venda alheia viaja no payload.
 - **Âncora:** `Show.charter.md` §Goals ("Multi-tenant Tier 0: scope `business_id` no controller") + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (Tier 0 IRREVOGÁVEL) + `RUNBOOK-show.md` §10 ("NÃO usar `withoutGlobalScopes`").
 - **Teste:** `tests/Feature/Sells/SellsShowContratoTest.php` — lane `sells-pest.yml` (MySQL real, biz=1 vs biz=2).
-- **Status: 🧪** — contrato escrito e rodando na lane MySQL; sobe a ✅ quando `npm run casos:results` regravar o manifesto (G-7, sem fingir prova).
+- **Status: 🧪** — **recibo:** `vendor/bin/pest tests/Feature/Sells/SellsShowContratoTest.php` com `DB_CONNECTION=mysql` na lane `sells-pest.yml`, [run 30292772351](https://github.com/wagnerra23/oimpresso.com/actions/runs/30292772351) (2026-07-27): **7 passed, 37 assertions**, zero skip. Continua 🧪 (não ✅) porque o `casos-results-publish` colhe JUnit só do último run VERDE de **main** — sobe a ✅ quando o manifesto G-7 regravar pós-merge. Sem fingir prova.
 
 ---
 
@@ -104,7 +104,7 @@ last_run: "2026-07-27"
 - **[BACKLOG] Atalhos de teclado E / P / Esc** — charter §Goals; hoje só há assert estrutural (`SellsShowCoworkTest` casa a string `e.key === 'e'`), que não prova o comportamento. Exige E2E Playwright.
 
 ## Como rodar a suíte
-1. **Contrato (MySQL real):** lane `sells-pest.yml` no CI — `vendor/bin/pest tests/Feature/Sells/SellsShowContratoTest.php` com `DB_CONNECTION=mysql` e o seed biz=1/biz=2 da action `pest-mysql-setup`.
+1. **Contrato (MySQL real):** lane `sells-pest.yml` no CI — `vendor/bin/pest tests/Feature/Sells/SellsShowContratoTest.php` com `DB_CONNECTION=mysql` e o seed biz=1/biz=2 da action `pest-mysql-setup`. O JUnit sobe como artifact `pest-sells-junit` e é colhido pelo `casos-results-publish.yml` (manifesto G-7).
 2. ⚠️ **Não roda no container `oimpresso-staging` do CT 100** — medido em 2026-07-27: o banco `oimpresso_staging` tem 15 tabelas (sem o schema UltimatePOS), então `EstoqueFixture::schemaReady()` devolve false e os 7 casos dão `markTestSkipped` (skip gracioso, não falso-verde).
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
