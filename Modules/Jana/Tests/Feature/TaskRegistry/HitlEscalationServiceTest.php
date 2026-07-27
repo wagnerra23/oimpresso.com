@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
 
@@ -29,12 +30,59 @@ function hitlSvc(): HitlEscalationService
     return app(HitlEscalationService::class);
 }
 
-function hitlLimpa(string $taskId = 'HITL-TESTE-CLASSE'): void
+/**
+ * Shim das 2 tabelas que o serviço toca. Só cria se ausente — em MySQL real (CT 100)
+ * a tabela pode já existir; no staging/sqlite não existe. Padrão idêntico ao
+ * `tcEnsureMcpTasksTable` do TaskCrudServiceCanonicalIdTest (irmão desta pasta).
+ * String em vez de enum pra não esbarrar em CHECK constraint do sqlite.
+ */
+function hitlEnsureTabelas(): void
 {
-    McpTask::where('task_id', $taskId)->forceDelete();
+    if (! Schema::hasTable('mcp_tasks')) {
+        Schema::create('mcp_tasks', function ($t) {
+            $t->bigIncrements('id');
+            $t->string('task_id', 40)->unique();
+            $t->string('identifier', 40)->nullable();
+            $t->string('module', 80)->nullable();
+            $t->string('title', 255)->nullable();
+            $t->text('description')->nullable();
+            $t->string('status', 20)->default('todo');
+            $t->string('type', 20)->nullable();
+            $t->string('owner', 60)->nullable();
+            $t->string('sprint', 40)->nullable();
+            $t->string('priority', 8)->nullable();
+            $t->string('source_path', 500)->nullable();
+            $t->timestamp('parsed_at')->nullable();
+            $t->timestamps();
+        });
+    }
+
+    if (! Schema::hasTable('mcp_task_events')) {
+        Schema::create('mcp_task_events', function ($t) {
+            $t->bigIncrements('id');
+            $t->string('task_id', 40);
+            $t->string('event_type', 30);
+            $t->string('from_value', 255)->nullable();
+            $t->string('to_value', 255)->nullable();
+            $t->string('author', 60)->nullable();
+            $t->text('note')->nullable();
+            $t->timestamp('occurred_at')->nullable();
+            $t->timestamp('created_at')->nullable();
+        });
+    }
 }
 
-beforeEach(fn () => hitlLimpa());
+function hitlLimpa(string $taskId = 'HITL-TESTE-CLASSE'): void
+{
+    if (Schema::hasTable('mcp_tasks')) {
+        McpTask::where('task_id', $taskId)->forceDelete();
+    }
+}
+
+beforeEach(function () {
+    hitlEnsureTabelas();
+    hitlLimpa();
+});
 afterEach(fn () => hitlLimpa());
 
 it('MORDE: pendência nova vira task blocked do wagner (o canal que o brief lê)', function () {
