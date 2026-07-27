@@ -9,7 +9,7 @@ module: Fiscal
 status: draft
 created: 2026-05-20
 owner: wagner
-related_us: [US-FISCAL-001]
+related_us: [US-FISCAL-001, US-FISCAL-012, US-FISCAL-013, US-FISCAL-014]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
 prototypes:
   - prototipo-ui/Oimpresso ERP - Chat.html (fiscal-page.jsx §9 FiscalNFePage)
@@ -34,13 +34,23 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 6. **Inertia::defer** em rows (skill `inertia-defer-default`) — tabela carrega só quando solicitada.
 7. **Pest biz=1** (ADR 0101): isolation cross-tenant + permission gate `fiscal.nfe.view`.
 
-## Non-Goals (Wagner aprova explicitamente — NÃO entrar no PR #1)
+## Non-Goals (Wagner aprova explicitamente)
 
-- ❌ **Ações de mutação** (cancelar, retransmitir, CC-e, inutilizar) — botões existem desabilitados; ativação em PR seguintes (cada uma chama Service NfeBrasil existente via Job).
+> ⚠️ **Reconciliado em 2026-07-27.** O Non-Goal "❌ Ações de mutação (cancelar, retransmitir, CC-e,
+> inutilizar) — botões existem desabilitados" **estava stale**: as quatro ações foram entregues em
+> `US-FISCAL-012` (cancelar + manifestar DF-e), `US-FISCAL-013` (CC-e + inutilizar) e
+> `US-FISCAL-014` (retransmitir), e o `NotaDrawer.tsx` já renderiza os botões habilitados
+> (`disabled={busy}`, não `disabled` fixo). Mantê-lo instruiria uma sessão futura a desligar código
+> correto. Precedência aplicada: *teste verde > casos > charter > SPEC* (proibicoes.md). **Nenhum
+> Non-Goal novo foi inventado** — só saiu o que o código refutava; os demais seguem como [W] aprovou.
+>
+> Pelo mesmo motivo saiu "❌ ⌘K palette completa com busca cross-fiscal": entregue em
+> `US-FISCAL-015` e montada no shell desta tela (`FxShell.tsx:142` renderiza `<CmdKPalette />`).
+
+- ❌ **Download de XML e DANFE** pelo drawer — botões seguem desabilitados ("PR seguinte").
 - ❌ **NFS-e** na mesma tela (sub-página 3 separada do design).
-- ❌ **Manifesto DF-e** (sub-página 4 separada).
-- ❌ **Emissão nova** (botão "Emitir" desabilitado — entra com EmitirSheet em PR após cancelar/retransmitir).
-- ❌ **⌘K palette** completa com busca cross-fiscal (PR #3 do cockpit).
+- ❌ **Manifesto DF-e** (sub-página 4 separada — só o contrato da ação vive aqui).
+- ❌ **Emissão nova** (botão "Emitir" desabilitado — entra com EmitirSheet em PR próprio).
 - ❌ **Sparklines, alertas, KPIs** (são do Cockpit sub-página 1 — PR #2).
 - ❌ **Importar XML** entrada de fornecedor (depende endpoint NfeBrasil ainda não exposto).
 - ❌ **Dest_name/CNPJ via JOIN com transactions/contacts** — primeiro PR lê de `metadata` JSON; PR seguinte adiciona join (perf sob carga real).

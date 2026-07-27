@@ -3,7 +3,7 @@
 //   module: TeamMcp (split do Copiloto) — TaskRegistry F2 (US-TR-007)
 //   forja: PR-1 re-skin DS v6 — visual-comparison em
 //          memory/requisitos/TeamMcp/tasks-visual-comparison.md (approved [W] 2026-06-16)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //
 // Atalhos (PT-01):
 //   J / K    navegar linha (próxima / anterior)
