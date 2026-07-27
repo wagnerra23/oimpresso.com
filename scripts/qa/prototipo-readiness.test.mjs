@@ -18,9 +18,16 @@ check('n/a explícito → NÃO real', temPrototipoReal('n/a (sem protótipo Cowo
 check('MIS-ANCHOR → NÃO real', temPrototipoReal('removido related_prototype: oficina.jsx — MIS-ANCHOR') === false);
 check('null → NÃO real', temPrototipoReal(null) === false);
 
-// 3. contaUCs conta só headings ## UC-.
+// 3. contaUCs conta só headings ## UC- — delegando pra fonte única scripts/lib/uc-regex.mjs.
 check('2 UCs contados', contaUCs('## UC-01 x\nprosa\n## UC-02 y\n## Backlog z') === 2);
 check('0 UC (só backlog) → 0', contaUCs('## Backlog de casos\n- item') === 0);
+// CONTROLE-NEGATIVO da delegação (2026-07-27): `## UC-` malformado (sem número) NÃO é UC.
+// É o que MORDE se alguém reintroduzir o `/^UC-/i` permissivo que estava aqui — ele contava
+// qualquer heading começando em "UC-". Delta no corpus real era 0 (batia por ACASO); esta
+// asserção troca o acaso por contrato.
+check('heading `## UC-` solto (malformado) → 0', contaUCs('## UC- rascunho sem número\n- item') === 0);
+// Sufixo de letra (UC-DSR-08b) conta — o caso que o irmão screen-coverage-map PERDIA.
+check('UC com sufixo de letra conta', contaUCs('## UC-DSR-08b acesso\n## UC-DSR-09 outro') === 2);
 
 // 4. classifica — o coração do contrato "aplicar sem se preocupar".
 //    PRONTA exige trio completo + scorecard (o casos+UC é o que trava o comportamento).

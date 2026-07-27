@@ -31,6 +31,7 @@ import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from '
 import { join, relative, sep, basename } from 'node:path';
 import assert from 'node:assert/strict';
 import { isAuxiliaryPagePath, isPageScreenPath } from './page-path.mjs';
+import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -170,14 +171,21 @@ export function resolveArtifact(declaredPath, declaredExists, nameCandidates) {
   return { source: 'name', ...classifyArtifact(nameCandidates) };
 }
 
-/** UCs declarados num casos.md (heading "## UC-XX ..."; ~~UC~~ tachado = retirado, não conta). PURO. */
+/**
+ * UCs declarados num casos.md (heading "## UC-XX ..."; ~~UC~~ tachado = retirado, não conta).
+ * DELEGA pra fonte única `scripts/lib/uc-regex.mjs` — não reimplementar aqui. PURO.
+ *
+ * POR QUE DELEGA (2026-07-27): esta função tinha regex PRÓPRIO
+ * (`/^(UC-[A-Z0-9]{0,8}-?\d{1,3})\b/i`) que DRIFOU da lib — faltava o `[a-zA-Z]?` do
+ * sufixo, então `UC-DSR-08b` não casava NADA (o `\b` falha antes do `b`) e o UC sumia
+ * INTEIRO, não truncado. MEDIDO no corpus (44 .casos.md): lib 181 UC × este 178, 1 arquivo
+ * divergente (governance/DsRollout: UC-DSR-01b/04b/08b invisíveis). Efeito: dois gates
+ * REQUIRED discordando do mesmo fato — o `casos-gate` (que usa a lib) cobrava Status+teste
+ * dos 3, e o `npm run screen:files` não os enxergava. O `git grep ucHeadRe` da migração
+ * anterior não achou este consumidor justamente porque ele NUNCA importou a lib.
+ */
 export function ucsFromCasos(content) {
-  const out = [];
-  for (const block of (content || '').split(/^##\s+/m).slice(1)) {
-    const m = block.match(/^(UC-[A-Z0-9]{0,8}-?\d{1,3})\b/i);
-    if (m) out.push(m[1].toUpperCase());
-  }
-  return out;
+  return ucsDeclaredInCasos(content || '');
 }
 
 const norm = (p) => relative(ROOT, p).replace(/\\/g, '/');
@@ -340,6 +348,14 @@ if (flags.has('--selftest')) {
   assert.equal(screenSlug('Produto/Create.tsx'), 'produto-create');
   // UC: heading conta; tachado ~~UC~~ (retirado, padrão da Maiara em Create.casos.md) NÃO conta.
   assert.deepEqual(ucsFromCasos('## UC-PCAD-01 x\n## ~~UC-PCAD-02~~ retirado\n## UC-PCAD-04 y\n'), ['UC-PCAD-01', 'UC-PCAD-04']);
+  // CONTROLE-NEGATIVO do drift que o regex local tinha (2026-07-27): sufixo de LETRA.
+  // Sem `[a-zA-Z]?` o `\b` falha antes do `b` e o UC some INTEIRO (não truncado) — era o
+  // caso real governance/DsRollout (UC-DSR-01b/04b/08b: 3 invisíveis aqui, visíveis no
+  // casos-gate). Esta asserção é o que faz a delegação pra scripts/lib/uc-regex.mjs MORDER:
+  // reintroduzir regex local sem o sufixo derruba o gate em vez de sumir com UC calado.
+  assert.deepEqual(ucsFromCasos('## UC-DSR-08b acesso\n## UC-DSR-09 outro\n'), ['UC-DSR-08B', 'UC-DSR-09']);
+  // Prefixo hifenado longo (UC-FORJA-01/UC-KBV2-01) — a razão de a lib existir (4 regex drifados).
+  assert.deepEqual(ucsFromCasos('## UC-KBV2-01 x\n## UC-FORJA-01 y\n'), ['UC-KBV2-01', 'UC-FORJA-01']);
   console.log('screen-coverage selftest: aliases Inertia + resolver por-tela (classifyArtifact/screenSlug/ucsFromCasos) passaram');
   process.exit(0);
 }
