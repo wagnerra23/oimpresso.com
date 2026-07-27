@@ -20,14 +20,14 @@ use Modules\Jana\Entities\Mcp\McpCcSession;
  * Schema mcp_cc_* já em prod desde 29-abr (3 tabelas).
  * Tool MCP cc-search consulta as mesmas tabelas.
  *
- * Permissão default: copiloto.cc.read.team (ver time) ou .all (admin).
+ * Permissão default: jana.cc.read.team (ver time) ou .all (admin).
  */
 class CcSessionsController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.cc.read.team');
+        $this->middleware('can:jana.cc.read.team');
     }
 
     public function index(Request $request): Response

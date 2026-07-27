@@ -14,7 +14,7 @@ use Menu;
  *
  * Espelha o topnav declarativo em Modules/TeamMcp/Resources/menus/topnav.php.
  *
- * IMPORTANTE: As permissões `copiloto.mcp.usage.all`, `copiloto.cc.read.team`
+ * IMPORTANTE: As permissões `jana.mcp.usage.all`, `jana.cc.read.team`
  * e `copiloto.cc.read.all` continuam vivendo na seed do Copiloto
  * (Modules/Copiloto/Database/Seeders/McpScopesSeeder.php) — não foram renomeadas
  * nesta etapa pra evitar quebrar usuários já configurados. Rename pra
@@ -40,7 +40,7 @@ class DataController extends Controller
      * Permissões expostas no cadastro de papéis (Roles) do UltimatePOS.
      *
      * NÃO declara permissões — as 3 telas reusam as permissions já existentes
-     * do Copiloto (copiloto.mcp.usage.all, copiloto.cc.read.team). Rename
+     * do Copiloto (jana.mcp.usage.all, jana.cc.read.team). Rename
      * vira ADR + migration de permissões em etapa posterior.
      */
     public function user_permissions()

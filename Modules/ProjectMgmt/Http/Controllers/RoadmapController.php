@@ -16,14 +16,14 @@ use Modules\Jana\Entities\Mcp\McpTask;
  * Visão por quarter: epics agrupados por target_quarter. Cada epic mostra
  * progresso (done/total), owner, target_quarter. Sem epic = "Sem quarter".
  *
- * Permissão: copiloto.mcp.usage.all.
+ * Permissão: jana.mcp.usage.all.
  */
 class RoadmapController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

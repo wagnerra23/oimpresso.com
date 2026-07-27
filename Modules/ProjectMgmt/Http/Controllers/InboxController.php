@@ -26,14 +26,14 @@ use Modules\Jana\Entities\Mcp\McpInboxNotification;
  * leitura/escrita escopa por auth()->id(); markRead/markAllRead nunca tocam
  * notificação de outro usuário (where user_id = auth). Não vaza entre usuários.
  *
- * Permissão: copiloto.mcp.usage.all (mesmo padrão do Board/MyWork).
+ * Permissão: jana.mcp.usage.all (mesmo padrão do Board/MyWork).
  */
 class InboxController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

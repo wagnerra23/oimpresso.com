@@ -12,7 +12,7 @@
  * - `icon` usa nome Lucide
  * - `href` é path relativo (/kb/...)
  *
- * Permissão Spatie real continua sendo `copiloto.mcp.memory.manage` até o
+ * Permissão Spatie real continua sendo `jana.mcp.memory.manage` até o
  * PR de rename (dívida técnica registrada no DataController).
  */
 
@@ -20,9 +20,9 @@ return [
     'label' => 'kb::kb.module_label',
     'icon'  => 'BookOpen',
     'items' => [
-        ['label' => 'kb::kb.menu.adrs',         'href' => '/kb?type=adr',        'icon' => 'FileText',  'can' => 'copiloto.mcp.memory.manage'],
-        ['label' => 'kb::kb.menu.sessions',     'href' => '/kb?type=session',    'icon' => 'History',   'can' => 'copiloto.mcp.memory.manage'],
-        ['label' => 'kb::kb.menu.runbooks',     'href' => '/kb?type=runbook',    'icon' => 'BookOpen',  'can' => 'copiloto.mcp.memory.manage'],
-        ['label' => 'kb::kb.menu.comparativos', 'href' => '/kb?type=comparativo','icon' => 'GitCompare','can' => 'copiloto.mcp.memory.manage'],
+        ['label' => 'kb::kb.menu.adrs',         'href' => '/kb?type=adr',        'icon' => 'FileText',  'can' => 'jana.mcp.memory.manage'],
+        ['label' => 'kb::kb.menu.sessions',     'href' => '/kb?type=session',    'icon' => 'History',   'can' => 'jana.mcp.memory.manage'],
+        ['label' => 'kb::kb.menu.runbooks',     'href' => '/kb?type=runbook',    'icon' => 'BookOpen',  'can' => 'jana.mcp.memory.manage'],
+        ['label' => 'kb::kb.menu.comparativos', 'href' => '/kb?type=comparativo','icon' => 'GitCompare','can' => 'jana.mcp.memory.manage'],
     ],
 ];

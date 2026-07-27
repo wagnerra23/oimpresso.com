@@ -13,7 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *   - Validar 'note' (rotulo opcional do token — ate 120 chars)
  *
  * Responsabilidade NAO COBERTA AQUI (preservada upstream — Tier 0 segredo):
- *   - Permission gate `copiloto.mcp.usage.all` — middleware no Controller construtor
+ *   - Permission gate `jana.mcp.usage.all` — middleware no Controller construtor
  *   - Token NUNCA logado / NUNCA em error message — gerado por McpToken::gerar()
  *     que devolve [$model, $raw], raw apenas no response 1x (response().json([
  *     'aviso' => 'COPIE AGORA — nao sera mostrado de novo.']))
@@ -33,7 +33,7 @@ class IssueActorTokenRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Permission gate (`copiloto.mcp.usage.all`) ja foi aplicada pelo
+        // Permission gate (`jana.mcp.usage.all`) ja foi aplicada pelo
         // middleware do Controller construtor. Aqui so confirmamos user logado.
         // Em fila ou request fora de sessao, retorna false (fail-secure).
         return $this->user() !== null;

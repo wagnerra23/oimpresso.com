@@ -10,7 +10,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * D8 Security — Wave 17 saturação (97% module-grade).
  *
  * FormRequest pra POST /ads/admin/projects (Admin\ProjectsController@store).
- * Endpoint protegido por middleware `auth` + permission `copiloto.mcp.usage.all`
+ * Endpoint protegido por middleware `auth` + permission `jana.mcp.usage.all`
  * (Controller authorize). Esta camada valida fail-fast estrutura do payload.
  *
  * Multi-tenant Tier 0 (ADR 0093): `business_id` é resolvido da session pelo
@@ -24,7 +24,7 @@ class StoreProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Permission `copiloto.mcp.usage.all` enforced upstream pelo middleware
+        // Permission `jana.mcp.usage.all` enforced upstream pelo middleware
         // do Controller. Aqui só estrutura do payload.
         return true;
     }

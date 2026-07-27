@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  * é o consumo do MCP cross-team — cada chamada que CADA dev faz pra MCP
  * server a partir de Claude Code/Desktop fica registrada.
  *
- * Permissão: `copiloto.mcp.usage.all` — só superadmin/Wagner por padrão.
+ * Permissão: `jana.mcp.usage.all` — só superadmin/Wagner por padrão.
  *
  * KPIs:
  *   - total de calls no período + breakdown por status (ok/denied/error/quota)

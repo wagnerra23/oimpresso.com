@@ -44,7 +44,7 @@ use Modules\TeamMcp\Services\HandoffLeverService;
  * Multi-tenant Tier 0: cockpit é repo-wide (governança cross-business do loop)
  * — sem filtro business_id, INTENCIONAL (ADR 0093), igual Scorecard/TriageController.
  *
- * Permissão: copiloto.mcp.usage.all (Wagner/superadmin), igual Scorecard/Team.
+ * Permissão: jana.mcp.usage.all (Wagner/superadmin), igual Scorecard/Team.
  */
 class ForjaController extends Controller
 {
@@ -67,7 +67,7 @@ class ForjaController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function triagem(): Response
@@ -139,7 +139,7 @@ class ForjaController extends Controller
      *
      * MESMA mutação GOVERNADA do tool MCP `handoff-lever` (#2924) — ambos delegam
      * pra {@see HandoffLeverService} (fonte única, in-place, idempotente por estado
-     * de origem). Aqui o ator é o [W] na sessão web (gate copiloto.mcp.usage.all no
+     * de origem). Aqui o ator é o [W] na sessão web (gate jana.mcp.usage.all no
      * __construct); lá é o agente via scope fino jana.mcp.handoff.lever. SEM
      * auto-merge. Audit em mcp_audit_log (origem forja-web).
      *

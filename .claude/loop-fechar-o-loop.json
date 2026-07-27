@@ -72,7 +72,11 @@
         ]
       },
       "done": false,
-      "ref": "AUDIT-SENIOR-2026-05-25 G1 + Config/retention.php"
+      "descartado": true,
+      "descartado_em": "2026-07-27",
+      "razao_descarte": "num ERP nao se apaga PII — controle e por permissao de acesso, nao por retencao",
+      "descarte_nota": "Decisao [W] 2026-07-27, textual: 'em um sistema ERP nao pode apagar o PII' + 'so em arquivos do github' + 'pode conter dados do cliente dela' + 'isso deve ser feito por permissoes de acesso do usuario, controlado pela spatie de permissoes do nivel que o usuario tem'. CONTEXTO MEDIDO na mesma sessao: o purge NAO alcanca dado fiscal — as 15 entidades declaradas em Modules/Jana/Config/retention.php sao todas jana_*/MCP/derivado (zero contacts, transactions, employees, nfe_*, ponto_*). O que ele apagaria e jana_conversas.titulo + jana_mensagens.content, ou seja o que a Larissa DIGITOU no chat — que [W] classificou como podendo conter dado do cliente dela, logo PII de ERP, logo nao se apaga. FICA VIVO o caminho SOB DEMANDA: LgpdEsquecerTitularTool/DsrService (LGPD Art. 18 SVI) e inerte ate um titular exercer o direito — matar a varredura automatica nao mata a obrigacao legal de responder a um pedido. O codigo do purge permanece no repo atras de JANA_RETENTION_ENABLED=false; morreu a intencao de liga-lo, nao o arquivo. Blocker estrutural que reforca: o schedule roda sem --business, entao ligar a flag iteraria biz=4 Larissa (EVIDENCE-retention-purge-dry-run-2026-07-12 §3.1).",
+      "ref": "AUDIT-SENIOR-2026-05-25 G1 + Config/retention.php + EVIDENCE-retention-purge-dry-run-2026-07-12 + proibicoes.md §5 2026-07-27"
     },
     {
       "id": "loop-4-observability",

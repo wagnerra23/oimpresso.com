@@ -28,7 +28,7 @@ Biblioteca compartilhada de ADRs, sessions, runbooks, comparativos. Split do Cop
 Spatie permissions declaradas em `Resources/permissions.php`:
 - `kb.view` · `kb.write` · `kb.softdelete` · `kb.restore` · `kb.history.view`
 
-Legacy: middleware `can:copiloto.mcp.memory.manage` ainda em alguns controllers — dívida técnica pra rename em PR Spatie separado.
+Legacy: middleware `can:jana.mcp.memory.manage` (coarse) ainda em alguns controllers — os `kb.*` granulares acima seguem declarativos. O prefixo `copiloto.` foi corrigido em 2026-07-27: a migration `2026_05_09_140000_rename_copiloto_permissions_to_jana` já tinha renomeado o **banco** em maio e o **código** ficou para trás, checando um nome que não existia mais.
 
 ## Pré-flight obrigatório antes de editar
 

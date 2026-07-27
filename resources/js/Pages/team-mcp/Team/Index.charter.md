@@ -28,7 +28,7 @@ charter_version: 1
 > **Status:** draft criado em 2026-05-25 junto com o PR `feat(team-mcp): drill-down tokens individuais + revoke por token + audit IP/last-used` a partir da [FICHA CAPTERRA](../../../../../memory/requisitos/TeamMcp/CAPTERRA-DESIGN-FICHA.md). Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `Modules/TeamMcp/Http/Controllers/TeamController.php` (Inertia::defer dupla — team rows + stats_globais).
-> Persona ÚNICA: Wagner [W] @ biz=1 (superadmin com `copiloto.mcp.usage.all`). Felipe/Maiara/Eliana/Luiz NÃO usam a tela (consomem MCP, não geram).
+> Persona ÚNICA: Wagner [W] @ biz=1 (superadmin com `jana.mcp.usage.all`). Felipe/Maiara/Eliana/Luiz NÃO usam a tela (consomem MCP, não geram).
 
 ---
 
@@ -88,7 +88,7 @@ Console superadmin Wagner-only de **governança de credenciais MCP Tier 0**: emi
 - McpToken::gerar() helper canônico (computa sha256_token + raw uma vez)
 - McpToken::revogar() helper canônico (revoked_at + revoked_by + audit log Spatie)
 - Soft-delete em revoke preserva `mcp_audit_log` queryable
-- Permission gate `copiloto.mcp.usage.all` no construtor do Controller
+- Permission gate `jana.mcp.usage.all` no construtor do Controller
 
 ---
 

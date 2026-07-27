@@ -31,14 +31,14 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  *   - Inclui coluna `backlog` (ADR 0070 adicionou esse status)
  *   - Inclui `identifier` Linear-style + `due_date` no card
  *
- * Permissão: copiloto.mcp.usage.all (mesmo padrão TeamMcp).
+ * Permissão: jana.mcp.usage.all (mesmo padrão TeamMcp).
  */
 class BoardController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response
@@ -283,7 +283,7 @@ class BoardController extends Controller
      *   - dependencies: lista raw (com target task_id; target detail é separate query)
      *   - dependency_targets: map {task_id => {display_id, title, status}} pra render
      *
-     * Permission: copiloto.mcp.usage.all (middleware controller).
+     * Permission: jana.mcp.usage.all (middleware controller).
      */
     public function show(Request $request, string $taskId): JsonResponse
     {
@@ -435,7 +435,7 @@ class BoardController extends Controller
      * GET /project-mgmt/board/users/suggest?q= — PMG-005 (ADR 0100).
      *
      * Autocomplete users pra MentionInput. Filtra por permission
-     * `copiloto.mcp.usage.all` + LIKE em username/first_name/last_name.
+     * `jana.mcp.usage.all` + LIKE em username/first_name/last_name.
      * Min 1 char, limit 10.
      */
     public function suggestUsers(Request $request): JsonResponse
@@ -455,7 +455,7 @@ class BoardController extends Controller
                     ->orWhere('last_name', 'like', $like);
             })
             ->whereHas('roles.permissions', function ($qb) {
-                $qb->where('name', 'copiloto.mcp.usage.all');
+                $qb->where('name', 'jana.mcp.usage.all');
             })
             ->orderBy('username')
             ->limit(10)
