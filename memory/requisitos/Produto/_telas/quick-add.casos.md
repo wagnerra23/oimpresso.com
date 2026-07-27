@@ -37,11 +37,11 @@ e por **0** telas React:
 
 | Origem | Arquivo |
 |---|---|
-| Compra | `purchase/create.blade.php:240` · `purchase/edit.blade.php:241` |
-| Ordem de compra | `purchase_order/create.blade.php:162` · `purchase_order/edit.blade.php:159` |
-| PDV | `sale_pos/partials/pos_form.blade.php:50` · `pos_form_edit.blade.php:45` · `sale_pos/create_old.blade.php:170` · `sale_pos/edit_old.blade.php:171` |
-| Venda | `sell/create.blade.php:365` · `sell/edit.blade.php:320` |
-| Busca sem resultado (JS) | `public/js/purchase.js:191` → `/products/quick_add?product_name=<termo>` |
+| Compra | `purchase/create.blade.php` · `purchase/edit.blade.php` |
+| Ordem de compra | `purchase_order/create.blade.php` · `purchase_order/edit.blade.php` |
+| PDV | `sale_pos/partials/pos_form.blade.php` · `pos_form_edit.blade.php` · `sale_pos/create_old.blade.php` · `sale_pos/edit_old.blade.php` |
+| Venda | `sell/create.blade.php` · `sell/edit.blade.php` |
+| Busca sem resultado (JS) | `public/js/purchase.js` → `/products/quick_add?product_name=<termo>` |
 
 Re-medir com:
 
@@ -160,7 +160,7 @@ git grep -n "quick_add\|quickAdd" -- resources/js/       # → só cliente/veíc
 - **Teste:** [`QuickAddProdutoContratoTest`](../../../../tests/Feature/Produto/QuickAddProdutoContratoTest.php)
   — `UC-PQCK-04 · SKU vazio no quick-add é gerado pelo servidor (não fica em branco)`.
 - **Contrato:** `CU-PROD-08` item 1 (*"cadastra mínimo (nome+SKU+preço)"*) + `CU-PROD-01` item 2
-  (*"SKU vazio → gerado **server-side**"*) + Blade `quick_add_product.blade.php:22-23` (campo
+  (*"SKU vazio → gerado **server-side**"*) + Blade `quick_add_product.blade.php` (campo
   opcional, com tooltip explicando que será gerado).
 - **Regressão que defende:** o writer grava `sku = ' '` (**um espaço**) como marcador antes do
   `create` e só depois chama `generateProductSku($product->id)` — a geração depende do id, então
@@ -185,7 +185,7 @@ git grep -n "quick_add\|quickAdd" -- resources/js/       # → só cliente/veíc
   Vira UC quando houver spec e2e; hoje seria promessa sem defesa.
 - **[BACKLOG] Estoque inicial no quick-add só existe quando `product_for == 'pos'`.** Medido: a
   Blade inclui `quick_product_opening_stock` **apenas** nesse caso
-  (`quick_add_product.blade.php:227-228`), enquanto o writer aceita `opening_stock` de qualquer
+  (`quick_add_product.blade.php`), enquanto o writer aceita `opening_stock` de qualquer
   origem. Quem cadastra a partir de uma **compra** não informa saldo; quem cadastra a partir do
   **PDV** informa. Assimetria deliberada (na compra o saldo entra pela própria nota) ou omissão?
   Decisão [W] — não vira UC porque o assert escolheria.

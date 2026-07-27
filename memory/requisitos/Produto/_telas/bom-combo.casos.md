@@ -33,7 +33,7 @@ Medidos em 2026-07-27, sha `16606e35c4`, repo completo (`git rev-parse --is-shal
 
 | # | Fato | Como re-medir |
 |---|---|---|
-| **1** | **Não existe tela de composição.** Nos `.tsx` de `resources/js/Pages/Produto/`, `combo` aparece **3×** e as três são a mesma união de tipo TypeScript (`'single' \| 'variable' \| 'combo'` em `Create.tsx:48,79` e `Edit.tsx:38`). A UI drag-drop segue no backlog (ver §Rastreabilidade). | `git grep -n -i "combo" -- 'resources/js/Pages/Produto/*.tsx'` |
+| **1** | **Não existe tela de composição.** Nos `.tsx` de `resources/js/Pages/Produto/`, `combo` aparece **3×** e as três são a mesma união de tipo TypeScript (`'single' \| 'variable' \| 'combo'` em `Create.tsx,79` e `Edit.tsx`). A UI drag-drop segue no backlog (ver §Rastreabilidade). | `git grep -n -i "combo" -- 'resources/js/Pages/Produto/*.tsx'` |
 | **2** | **A cobertura que parecia existir NÃO RODA.** `tests/Feature/Domain/Inventory/{BomResolverTest,ReservarEstoqueBomTest}.php` fazem `markTestSkipped` quando `config('database.default') !== 'sqlite'`; o comentário deles diz *"cobertura real é na lane sqlite (per-PR)"* — mas eles **não estão** em `.github/ci-sqlite-pest.list`, e a varredura contada de `Domain/Inventory` em `.github/` + `scripts/` devolve **0**. O nightly do CT 100 roda `DB_CONNECTION=mysql` → auto-pulam. **Skip-as-pass em todo lugar.** | `git grep -n "Domain/Inventory" -- .github/ scripts/` · `grep -c "Domain/Inventory" .github/ci-sqlite-pest.list` |
 | **3** | **`ProductBomController` tem ZERO testes.** A API de BOM (3 endpoints, guard Tier 0 em cada) nunca foi exercitada por teste algum. | `git grep -rln "ProductBomController" -- tests/ Modules/` |
 

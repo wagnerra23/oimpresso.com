@@ -35,7 +35,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 **Não existe tela React de estoque inicial.** Varredura contada nos **`.tsx`** de
 `resources/js/Pages/Produto/` (2026-07-27, sha `16606e35c4`): o literal `opening_stock` aparece
-**2×**, e as duas são o mesmo **booleano de permissão** nas props (`Edit.tsx:75`, `Index.tsx:29`) —
+**2×**, e as duas são o mesmo **booleano de permissão** nas props (`Edit.tsx`, `Index.tsx`) —
 nenhuma tela informa, edita ou exibe saldo de abertura. Re-medir com:
 
 ```
@@ -162,7 +162,7 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
 - **Teste:** [`EstoqueInicialContratoTest`](../../../../tests/Feature/Produto/EstoqueInicialContratoTest.php)
   — `UC-PINIC-04 · lote informado no estoque inicial persiste na linha de compra`.
 - **Contrato:** `CU-PROD-04` item 3 (*"`enable_product_expiry`/`enable_lot_number` habilitam
-  validade/lote"*) + Blade `opening_stock/form-part.blade.php:98` (o campo existe no payload) +
+  validade/lote"*) + Blade `opening_stock/form-part.blade.php` (o campo existe no payload) +
   DOC-RAIZ §3 (a entrada de abertura cria `purchase_lines` rastreáveis).
 - **Regressão que defende:** o assert é **desacoplado da chave** (lição 2026-07-26): procura o
   **valor** sentinela em qualquer campo da linha, não `toHaveKey('lot_number')`. Assim, renomear

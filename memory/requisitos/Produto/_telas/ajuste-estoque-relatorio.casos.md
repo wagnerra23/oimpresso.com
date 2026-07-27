@@ -36,10 +36,10 @@ last_run_ci: "1 UC já coberto por teste em lane (UC-PFIX-01); UC-PFIX-02/03 nas
 ## ⚠️ O fluxo, medido (2026-07-27, sha `16606e35c4`)
 
 ```
-report/product_stock_details.blade.php:167   ← ÚNICO emissor: <a href> "Fix"
+report/product_stock_details.blade.php   ← ÚNICO emissor: <a href> "Fix"
    │  ?location_id={{$location->id}}&variation_id={{$row->variation_id}}&stock={{$row->total_stock_calculated}}
    ▼
-GET /reports/adjust-product-stock            (routes/web.php:627)
+GET /reports/adjust-product-stock            (routes/web.php)
    ▼
 ReportController@adjustProductStock          ← gate: report.stock_details
    ▼
