@@ -844,3 +844,73 @@ Os 4 vereditos que existiam respondem o **presente**: `dead` (path sumiu) · `zo
 **Resíduo honesto (registrado, não escondido):** quem re-carimbar o sha sem re-verificar zera o sinal. Isto detecta **divergência**, não desonestidade — o custo do gaming é um commit auditável no diff do PR. E hoje o eixo só mede ~40% das âncoras; os 60% `unknown` são, eles próprios, o achado.
 
 **Aceite:** `anchor-lint --stale` reporta os 3 números (stale/fresco/não-medível com motivos) e `anchor-stale.test.mjs` passa contra **repo git real** — bite (path tocado → stale), release (path parado → não-stale), os 2 guards (sha ausente e sha não-ancestral → `unknown`, nunca fresco) e a invariante (sem `--stale`, `anchor_stale_on: false` e `anchor_coverage` inalterado). Mutação verificada: desligar o eixo → 3 FAILs; desligar o guard da ancestralidade → 2 FAILs (incluindo o falso "fresco"). Refs: ADR 0273 · ADR 0303 · ADR 0314 (required = Tier 0; este é higiene) · US-GOV-045 (padrão do teste .mjs)
+
+---
+
+### US-GOV-056 · Decidir: `agent-corpus-counterfactual` — dar porta ou aposentar (poda de capacidade)
+
+> owner: wagner · priority: p3 · estimate: 1h · status: blocked · type: story
+> blocked_by: decisão [W] (soberania — poda de capacidade)
+
+**Implementado em:** _pendente_ — é decisão, não construção; o código a decidir já existe (`scripts/governance/agent-corpus-counterfactual.mjs`).
+
+Sobra da triagem dos 13 scripts órfãos ([PR #4834](https://github.com/wagnerra23/oimpresso.com/pull/4834), 2026-07-27): **13 → 2** sem invocador executável. Este é 1 dos 2 que exigem dono.
+
+É a aritmética de viabilidade do contrafactual de corpus. O harness de execução foi **podado em 2026-07-17 por [W]** (zero invocador + experimento não autorizado, ADR 0105/0334), e o experimento que ela serviria morreu pela própria resposta dela.
+
+Duas saídas, **ambas oferecidas pelo próprio detector** (`selftest-registry-check --scripts`: *"ligar (agendar/step de CI) ou aposentar (remover + lápide no §5)"*):
+
+- **(a)** porta npm `corpus:power` — mantém como ferramenta sob demanda;
+- **(b)** aposentar — deletar + lápide no [§5 de proibicoes.md](../../proibicoes.md).
+
+Poda de capacidade é soberania [W] ([proibicoes.md §Sempre fazer](../../proibicoes.md)). Deixada **de propósito** fora da porta npm no #4834: dar porta a tiraria da lista de órfãos e esconderia esta pendência.
+
+O outro dos 2 (`charter-promote-signal`) **já tem decisão registrada** em 2026-07-26 (`governance-gate-umbrella.yml:73`) — fica manual porque ESCREVE (`draft→live`).
+
+**Aceite:** o `--scripts` para de listar este script (porque ganhou invocador OU porque não existe mais), e a decisão fica registrada — npm script no `package.json` ou lápide no §5.
+
+---
+
+### US-GOV-057 · `handoff-integrity` vermelho há 17d — 3 `PROMPT_PARA_CODE` órfãos da fila Cowork
+
+> owner: wagner · priority: p2 · estimate: 1h · status: blocked · type: story
+> blocked_by: decisão de quem opera o loop Cowork (citar na fila vs arquivar)
+
+**Implementado em:** _pendente_ — dívida de fila, não de código; o gate que a denuncia já existe e já morde (`handoff-integrity-guard`).
+
+Medido 2026-07-27: o check **`handoff integrity` está `failure` no `main` desde 2026-07-22** — 5 runs consecutivos (`43bf8e59`, `71b6c7f1`, `e2572aae`, `600fbc6d`, `67eba4ec`). É advisory, então não bloqueia — **e por isso ninguém agiu**.
+
+Dívida: 3 `PROMPT_PARA_CODE_*.md` existem no dir e não são citados acima da linha d'água do `COWORK_NOTES.md` (= tarefa invisível, [`PROCESSO_MEMORIA_CC.md §16`](../../../prototipo-ui/PROCESSO_MEMORIA_CC.md) regra 1 — *"Criou → cita na fila no mesmo passo"*):
+
+- `PROMPT_PARA_CODE_DS-DOMINIO-RETIRAR-DSV6.md`
+- `PROMPT_PARA_CODE_DS-ESPELHAR-DOMINIO.md`
+- `PROMPT_PARA_CODE_ESTRUTURA-COWORK-ATUALIZADA.md`
+
+Entraram no `main` em 2026-07-10 ([PR #4096](https://github.com/wagnerra23/oimpresso.com/pull/4096)).
+
+Duas saídas que o próprio gate oferece: **(a)** citar na fila ativa do `COWORK_NOTES.md`; **(b)** arquivar (descer abaixo da linha d'água). Se a dívida mudou legitimamente, `npm run handoff:baseline:write` no mesmo PR. Relatório local: `npm run handoff:report`.
+
+Dono do ato = quem opera o loop Cowork. Escalado a [W] porque **17 dias de vermelho sem dono é o sintoma**, não a causa.
+
+**Aceite:** `npm run handoff:report` volta a `órfãos 0/0` (ou o baseline reflete a dívida decidida), e o check fica verde no `main`.
+
+---
+
+### US-GOV-058 · Âncora: 65% do `verificado@sha` é cego — carimbo ancestral por construção (forward-only)
+
+> owner: wagner · priority: p2 · estimate: 2h · status: blocked · type: story
+> blocked_by: decisão [W] — emenda ao ADR 0303
+
+**Implementado em:** _pendente_ — o detector existe (US-GOV-055, `--stale`); falta a decisão sobre a RECEITA de carimbo.
+
+**O ATO que falta da [US-GOV-055](#us-gov-055--âncora-ganha-eixo-temporal-consumir-o-verificadosha-que-a-gramática-já-exigia).** Aquela US já registrou o achado em 2026-07-17 (*"a convenção do carimbo está sistematicamente quebrada… só sobrevive quem carimba sha já na main"*) — **e nada mudou desde então**. Esta US é o ato, não a re-medição.
+
+**Re-medido 2026-07-27** (clone completo, `is-shallow=false`): 428 âncoras carimbam **25 SHAs distintos**; **10 são ancestrais** do HEAD (cobrem 148 âncoras) e **15 não são** (cobrem **280**). 65% do eixo temporal é estruturalmente não-medível — não por falta de reconciliador, mas porque o `verificado@` grava o sha da **branch** e o squash-merge o descarta. Concentrado: **4 SHAs respondem por 236 das 280** (`dd3ed7c`=136 · `176f9bc`=67 · `3b425d8`=21 · `98cae0a`=16).
+
+**A1 — forward-only (proposta):** a receita de carimbo passa a usar sha **ancestral por construção** (`origin/main` no momento da verificação). Âncora nova nasce medível; legado fica grandfathered. Zero mudança de exit code, zero presence-gate, zero gate novo.
+
+**A2 — lote retroativo (opcional), com trava dura:** `--reverify` em massa é **gaming automatizado** — re-carimbar apagaria as 30 `anchor_stale` sem ninguém olhar o código. Só re-carimba o que o lint prova (existe + wired); as 30 stale seguem exigindo olho humano.
+
+**Contexto que mata o pedido original** (investigação 2026-07-27): o eixo `path::simbolo` **não é o problema** — **0 de 469** renames em 180d deixaram âncora apontando path antigo; `anchored_dead=1` e `anchored_zombie=0` em 981 US; símbolo aparece na lista canônica de só 19 dos 447 campos (4,3%) e **0 estão mortos**. O P6 rename-proof já foi **cortado conscientemente** em 2026-06-23 (*"refatoração de pasta é rara num ERP de 5 devs; `anchored_dead` é ruído visível, não mentira silenciosa"*).
+
+**Aceite:** emenda ao [ADR 0303](../../decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md) (dono do testado-check) define a receita; `anchor-lint --stale` mostra `sha_fora_da_ancestralidade` **caindo** nas âncoras novas. Refs: US-GOV-055 · ADR 0273 · ADR 0303.
