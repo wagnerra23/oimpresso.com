@@ -14,7 +14,7 @@ module: Compras
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Compras/**` + `resources/js/Pages/Compras/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 23 arquivos em 10 papéis.
+**Total mapeado:** 25 arquivos em 11 papéis.
 
 ## Controllers — 3
 
@@ -57,6 +57,10 @@ module: Compras
 
 - [Index.charter.md](../../../resources/js/Pages/Compras/Index.charter.md)
 
-## Testes (Pest) — 9
+## Casos (contrato UC) — 1
 
-- 9 arquivos em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [Index.casos.md](../../../resources/js/Pages/Compras/Index.casos.md)
+
+## Testes (Pest) — 10
+
+- 10 arquivos em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.

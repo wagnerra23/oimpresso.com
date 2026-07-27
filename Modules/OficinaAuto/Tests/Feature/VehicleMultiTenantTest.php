@@ -1,4 +1,6 @@
 <?php
+// @covers-us US-OFICINA-001
+// @covers-us US-AUTO-001
 
 declare(strict_types=1);
 
@@ -37,7 +39,7 @@ beforeEach(function () {
     }
 });
 
-it('Vehicle biz=1 NÃO aparece com session biz=99', function () {
+it('UC-OVS-02 · Vehicle biz=1 NÃO aparece com session biz=99', function () {
     session(['user.business_id' => BIZ_WAGNER_VEH]);
 
     $v = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
@@ -72,7 +74,7 @@ it('Vehicle biz=1 aparece com session biz=1', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'MTT002')->forceDelete();
 });
 
-it('creating event auto-popula business_id da sessão', function () {
+it('UC-OVC-03 · creating event auto-popula business_id da sessão', function () {
     session(['user.business_id' => BIZ_WAGNER_VEH]);
 
     // Cria SEM business_id explícito — hook creating deve popular
@@ -86,7 +88,7 @@ it('creating event auto-popula business_id da sessão', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'MTT003')->forceDelete();
 });
 
-it('Vehicle::all() respeita escopo (não vaza cross-business)', function () {
+it('UC-OVI-02 · Vehicle::all() respeita escopo (não vaza cross-business)', function () {
     // Insere em biz=1
     session(['user.business_id' => BIZ_WAGNER_VEH]);
     Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
