@@ -327,7 +327,7 @@ if (strlen($digits) === 11)  return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/
 if (strlen($digits) === 14)  return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $digits);
 ```
 
-`12345678901` sai como `123.456.789-01`. **Nenhum dígito é escondido** — é formatação. O código é honesto sobre isso; o docblock do `ClienteAutosaveController::maskTaxNumber` diz textualmente: *"formata visualmente mas mantem digitos visiveis porque a logica canon UPOS ... faz so formatacao, nao redact ... futura ADR pode endurecer pra realmente censurar."*
+`12345678901` sai como `123.456.789-01`. **Nenhum dígito é escondido** — é formatação. O código é honesto sobre isso; o docblock do `ClienteAutosaveController::maskTaxNumber` diz textualmente: *"formata visualmente mas mantem digitos visiveis porque a logica canon UPOS ... faz so formatacao, nao redact ... futura ADR pode endurecer pra realmente censurar."* <!-- # pii-allowlist: CPF sintetico ilustrativo (nao e dado real) — o exemplo EXISTE para mostrar que maskTaxNumber formata sem esconder digito -->
 
 **A documentação é que não é.** Quatro artefatos canon leem como redação:
 
