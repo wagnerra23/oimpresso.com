@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
  * Extrai validation rules de KbPathController@store preservando contrato exato
  * documentado em memory/requisitos/KB/SCHEMA-DB-V1.md §11 (trilhas).
  *
- * Permissão: 'copiloto.mcp.memory.manage' (kb.publish.path no V2 Spatie rename).
+ * Permissão: 'jana.mcp.memory.manage' (kb.publish.path no V2 Spatie rename).
  *
  * Grafo de conhecimento preservado (ADR 0150): steps[] referenciam kb_nodes.id
  * via exists rule — não duplica conteúdo, apenas ordena nós existentes.
@@ -24,7 +24,7 @@ class StoreKbPathRequest extends FormRequest
     {
         $user = Auth::user();
 
-        return $user !== null && $user->can('copiloto.mcp.memory.manage');
+        return $user !== null && $user->can('jana.mcp.memory.manage');
     }
 
     /**

@@ -14,7 +14,7 @@ use Menu;
  *
  * Espelha o topnav declarativo em Modules/ProjectMgmt/Resources/menus/topnav.php.
  *
- * IMPORTANTE: as permissions reusam `copiloto.mcp.usage.all` (já existente)
+ * IMPORTANTE: as permissions reusam `jana.mcp.usage.all` (já existente)
  * — mesmo padrão do TeamMcp. Rename pra `project-mgmt.*` vira ADR + migration
  * em etapa futura.
  */
@@ -37,7 +37,7 @@ class DataController extends Controller
     /**
      * Permissões expostas no cadastro de papéis (Roles) do UltimatePOS.
      *
-     * NÃO declara permissões — as telas reusam `copiloto.mcp.usage.all`.
+     * NÃO declara permissões — as telas reusam `jana.mcp.usage.all`.
      */
     public function user_permissions()
     {

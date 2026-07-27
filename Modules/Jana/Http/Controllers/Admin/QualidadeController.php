@@ -22,14 +22,14 @@ use Modules\Jana\Entities\MemoriaMetrica;
  *
  * V1: visualização. V2: HITL anotação + drift alerts (Cycle 02).
  *
- * Permissão: copiloto.mcp.usage.all (Wagner/superadmin).
+ * Permissão: jana.mcp.usage.all (Wagner/superadmin).
  */
 class QualidadeController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

@@ -75,7 +75,7 @@ Route::group(
 // 1b) Forja — cockpit do cowork loop (Onda Forja). Prefixo /forja (segmento
 //     PRÓPRIO: useAutoModuleNav casa o topnav por 1º segmento, e /team-mcp já é
 //     do hub Equipe — colidiria). Controller mora aqui no TeamMcp (absorção, não
-//     módulo novo). Permissão copiloto.mcp.usage.all (superadmin), igual Scorecard.
+//     módulo novo). Permissão jana.mcp.usage.all (superadmin), igual Scorecard.
 // ===========================================================================
 Route::group(
     [

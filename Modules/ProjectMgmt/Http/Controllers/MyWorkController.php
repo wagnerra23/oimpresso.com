@@ -21,14 +21,14 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  * por Cycle + Inbox `mcp_inbox_notifications` (mention/assigned/review_requested/
  * status_changed/commented/due_soon/blocked_resolved).
  *
- * Permissão: copiloto.mcp.usage.all (mesmo padrão do Board).
+ * Permissão: jana.mcp.usage.all (mesmo padrão do Board).
  */
 class MyWorkController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

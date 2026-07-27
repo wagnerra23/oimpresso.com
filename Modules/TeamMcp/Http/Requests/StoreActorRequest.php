@@ -12,7 +12,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * Wave 18 D8 SATURATION — pares com IssueActorTokenRequest (já existente)
  * mas pra entity primária `mcp_actors` (criação humano ou IA).
  *
- * **Permissão**: `copiloto.mcp.usage.all` (Wagner/superadmin) — só Wagner
+ * **Permissão**: `jana.mcp.usage.all` (Wagner/superadmin) — só Wagner
  * cria actors novos (Identity Mesh seedado em migration; novo actor é
  * evento de governança raro).
  *
@@ -37,7 +37,7 @@ class StoreActorRequest extends FormRequest
         if ($user->can('superadmin')) {
             return true;
         }
-        return $user->can('copiloto.mcp.usage.all');
+        return $user->can('jana.mcp.usage.all');
     }
 
     public function rules(): array

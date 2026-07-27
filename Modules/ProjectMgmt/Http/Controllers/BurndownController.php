@@ -22,14 +22,14 @@ use Modules\Jana\Entities\Mcp\McpTaskEvent;
  * Reconstrução histórica via `mcp_task_events` (event_type=status_changed,
  * to_value=done). Aceita-se ruído pré-existente.
  *
- * Permissão: copiloto.mcp.usage.all.
+ * Permissão: jana.mcp.usage.all.
  */
 class BurndownController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

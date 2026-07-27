@@ -43,7 +43,7 @@ function trgBootstrapUser(): User
         test()->markTestSkipped('Sem user no banco — rode seeder UltimatePOS antes.');
     }
 
-    Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'jana.mcp.usage.all', 'guard_name' => 'web']);
 
     session([
         'user.business_id' => $user->business_id,
@@ -57,16 +57,16 @@ function trgBootstrapUser(): User
 
 function trgGivePerm(User $user): void
 {
-    Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
-    if (! $user->hasPermissionTo('copiloto.mcp.usage.all')) {
-        $user->givePermissionTo('copiloto.mcp.usage.all');
+    Permission::firstOrCreate(['name' => 'jana.mcp.usage.all', 'guard_name' => 'web']);
+    if (! $user->hasPermissionTo('jana.mcp.usage.all')) {
+        $user->givePermissionTo('jana.mcp.usage.all');
     }
 }
 
 function trgRevokePerm(User $user): void
 {
-    if ($user->hasPermissionTo('copiloto.mcp.usage.all')) {
-        $user->revokePermissionTo('copiloto.mcp.usage.all');
+    if ($user->hasPermissionTo('jana.mcp.usage.all')) {
+        $user->revokePermissionTo('jana.mcp.usage.all');
     }
 }
 

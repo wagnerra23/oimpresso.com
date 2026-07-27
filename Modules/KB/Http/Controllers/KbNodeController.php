@@ -26,7 +26,7 @@ use Modules\KB\Services\KbArticleService;
  *   - DELETE         → kb.softdelete
  *   - POST restore   → kb.restore
  *
- * Dívida técnica preservada (legacy): middleware `can:copiloto.mcp.memory.manage`
+ * Dívida técnica preservada (legacy): middleware `can:jana.mcp.memory.manage`
  * fica no KbController até PR de rename Spatie.
  */
 class KbNodeController extends Controller
@@ -35,9 +35,9 @@ class KbNodeController extends Controller
         private readonly KbArticleService $articles,
     ) {
         $this->middleware('auth');
-        // V1 reusa permission canon "copiloto.mcp.memory.manage" pra .view e ações.
+        // V1 reusa permission canon "jana.mcp.memory.manage" pra .view e ações.
         // TODO[CL]: rename pra `kb.view`/`kb.write`/`kb.softdelete` em PR Spatie separado.
-        $this->middleware('can:copiloto.mcp.memory.manage');
+        $this->middleware('can:jana.mcp.memory.manage');
     }
 
     /**
@@ -80,7 +80,7 @@ class KbNodeController extends Controller
      *
      * Validation via {@see StoreKbNodeRequest} (D8.c Security 2026-05-16) — rules
      * preservadas idênticas ao inline original; authorize() reusa
-     * 'copiloto.mcp.memory.manage'.
+     * 'jana.mcp.memory.manage'.
      */
     public function store(StoreKbNodeRequest $request): JsonResponse
     {

@@ -75,7 +75,7 @@ CRUD de `kb_nodes` (artigos editáveis Larissa Cowork + leitura de bridges canô
 
 ## Automation Hooks
 
-- Middleware `auth` + `can:copiloto.mcp.memory.manage` (dívida técnica — rename pra `kb.write`/`kb.softdelete` em PR Spatie separado)
+- Middleware `auth` + `can:jana.mcp.memory.manage` (dívida técnica — rename pra `kb.write`/`kb.softdelete` em PR Spatie separado)
 - KbNodeObserver::updating() cria snapshot em `kb_node_versions` ANTES de aplicar `save()`
 - `KbArticleService::applyFilters(Builder, Request)` centraliza filter logic (thin extraction)
 - `BelongsToBusinessTrait` no model KbNode → `business_id` global scope (ADR 0093)

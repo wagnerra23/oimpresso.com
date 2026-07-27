@@ -22,7 +22,7 @@ use Modules\TeamMcp\Services\ScorecardBuilderService;
  * Pattern **Facts+Checks** (separar dado de juízo) reduz overhead cognitivo
  * — Wagner vê primeiro "tá tudo verde?" depois entra nos números se preciso.
  *
- * Permissão: `copiloto.mcp.usage.all` (Wagner/superadmin), igual TeamController.
+ * Permissão: `jana.mcp.usage.all` (Wagner/superadmin), igual TeamController.
  *
  * D6 Perf (Inertia::defer DEFAULT — rule pages.md):
  *   - `facts` e `checks` ambos defer (queries N×audit_log + N×schemata).
@@ -51,7 +51,7 @@ class ScorecardController extends Controller
     public function __construct(private ScorecardBuilderService $builder)
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

@@ -41,7 +41,7 @@ function govBootstrapUser(): array
         test()->markTestSkipped('Sem user no business.');
     }
 
-    foreach (['copiloto.access', 'copiloto.mcp.usage.all'] as $name) {
+    foreach (['copiloto.access', 'jana.mcp.usage.all'] as $name) {
         Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
     }
 
@@ -58,7 +58,7 @@ function govBootstrapUser(): array
 
 function govGivePerm(User $user): void
 {
-    $perm = Permission::where('name', 'copiloto.mcp.usage.all')->first();
+    $perm = Permission::where('name', 'jana.mcp.usage.all')->first();
     if ($perm && ! $user->hasPermissionTo($perm)) {
         $user->givePermissionTo($perm);
     }
@@ -66,7 +66,7 @@ function govGivePerm(User $user): void
 
 function govRevokePerm(User $user): void
 {
-    $perm = Permission::where('name', 'copiloto.mcp.usage.all')->first();
+    $perm = Permission::where('name', 'jana.mcp.usage.all')->first();
     if ($perm && $user->hasPermissionTo($perm)) {
         $user->revokePermissionTo($perm);
     }
@@ -103,7 +103,7 @@ afterEach(function () {
     }
 });
 
-it('responde 403 para usuário sem copiloto.mcp.usage.all', function () {
+it('responde 403 para usuário sem jana.mcp.usage.all', function () {
     [, $user] = govBootstrapUser();
 
     if ($user->can('superadmin') || $user->can('jana.mcp.usage.all')) {

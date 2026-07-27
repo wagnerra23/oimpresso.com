@@ -183,7 +183,7 @@ Route::group(
 // Service:     Modules/KB/Services/KbRagService.php (RAG flow + cache)
 // DTOs:        Modules/KB/Services/Dtos/{RagResult,SummaryResult,MetaSuggestion}.php
 // Audit:       mcp_audit_log (append-only via McpAuditLog::registrar())
-// Permission:  can:kb.ai.ask (SCHEMA §12) — fallback temporário copiloto.mcp.memory.manage
+// Permission:  can:kb.ai.ask (SCHEMA §12) — fallback temporário jana.mcp.memory.manage
 // Rate-limit:  throttle 10/min/user (constructor KbAiController)
 // IA stack:    laravel/ai SDK (ADR 0035) via Modules/Jana/Ai/Agents/KbAnswerAgent
 //

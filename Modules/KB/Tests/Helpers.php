@@ -311,7 +311,7 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
 
     // Isolamento do cache de DISCO do Spatie: CACHE_STORE=file → o PermissionRegistrar
     // cacheia o mapa de permissões EM DISCO e ele PERSISTE entre testes do mesmo run. Sob
-    // executionOrder="random", o `can:copiloto.mcp.memory.manage` do KbController via um
+    // executionOrder="random", o `can:jana.mcp.memory.manage` do KbController via um
     // registry STALE de outro teste → 403 intermitente na MESMA coarse (V2b no #4725, V2c
     // no run 30033223397, PUT do GovernanceInvariantsTest no run 30036318814). Prender o
     // registry no store `array` (por-app-instance, ZERADO a cada refresh de app = 1×/teste

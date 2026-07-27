@@ -70,7 +70,7 @@ Trilhas ordenadas de nós KB (`kb_paths` + `kb_path_steps`) que guiam Larissa em
 
 ## Automation Hooks
 
-- Middleware `auth` + `can:copiloto.mcp.memory.manage` (TODO rename `kb.view.path` / `kb.publish.path`)
+- Middleware `auth` + `can:jana.mcp.memory.manage` (TODO rename `kb.view.path` / `kb.publish.path`)
 - `DB::transaction` envolvendo update de steps (atomic)
 - Validação `node_slug exists:kb_nodes,slug` em cada step
 - `$businessId` injetado via `BelongsToBusinessTrait` no model

@@ -10,7 +10,7 @@ declare(strict_types=1);
  * Permission: kb.favorite
  *
  * REALIDADE V1 (gate coarse — SCHEMA-DB-V1 §12): middleware REAL é
- * `can:copiloto.mcp.memory.manage`; kb.favorite ainda é declarativa. Todos os casos
+ * `can:jana.mcp.memory.manage`; kb.favorite ainda é declarativa. Todos os casos
  * (sucesso) concedem a coarse.
  */
 
@@ -23,7 +23,7 @@ afterEach(function () {
 });
 
 it('POST /kb/nodes/{slug}/favorite toggles ON when not favorited yet', function () {
-    kbActAsUser(bizId: 1, userId: 42, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.favorite']);
+    kbActAsUser(bizId: 1, userId: 42, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.favorite']);
 
     $nodeId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'fav-me',
@@ -39,7 +39,7 @@ it('POST /kb/nodes/{slug}/favorite toggles ON when not favorited yet', function 
 });
 
 it('POST /kb/nodes/{slug}/favorite toggles OFF on second call', function () {
-    kbActAsUser(bizId: 1, userId: 42, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.favorite']);
+    kbActAsUser(bizId: 1, userId: 42, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.favorite']);
 
     $nodeId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'fav-toggle',
@@ -56,7 +56,7 @@ it('POST /kb/nodes/{slug}/favorite toggles OFF on second call', function () {
 });
 
 it('GET /kb?favorites=1 returns only favorited nodes of current user', function () {
-    kbActAsUser(bizId: 1, userId: 42, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.favorite']);
+    kbActAsUser(bizId: 1, userId: 42, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.favorite']);
 
     $favId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'fav',

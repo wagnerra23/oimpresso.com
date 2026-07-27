@@ -16,7 +16,7 @@ use Modules\TeamMcp\Entities\McpActor;
  * TaskRegistry Fase 2 (US-TR-007) — Page /team-mcp/tasks.
  *
  * Kanban (todo/doing/review/done) + Backlog filtros.
- * Permissão: copiloto.mcp.usage.all (Wagner/superadmin).
+ * Permissão: jana.mcp.usage.all (Wagner/superadmin).
  *
  * Forja PR-1 (2026-06-16) — re-skin DS v6: payload das linhas ganha
  * `display_id`/`type` (campos reais já em mcp_tasks), `agents` (slugs de atores
@@ -29,7 +29,7 @@ class TasksAdminController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

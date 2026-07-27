@@ -15,7 +15,7 @@ use Modules\KB\Entities\KbEdge;
  * Extrai validation rules de KbEdgeController@store preservando contrato exato
  * documentado em memory/requisitos/KB/SCHEMA-DB-V1.md §11.
  *
- * Permissão: 'copiloto.mcp.memory.manage'.
+ * Permissão: 'jana.mcp.memory.manage'.
  *
  * Grafo KB (ADR 0150): edges manuais respeitam EDGE_TYPES enum + weight 0..1
  * + payload arbitrário JSON. Edges auto-derivadas (bridge_job/tag_overlap/
@@ -28,7 +28,7 @@ class StoreKbEdgeRequest extends FormRequest
     {
         $user = Auth::user();
 
-        return $user !== null && $user->can('copiloto.mcp.memory.manage');
+        return $user !== null && $user->can('jana.mcp.memory.manage');
     }
 
     /**
