@@ -84,7 +84,7 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
         $colab = new Colaborador();
         $colab->forceFill([
             'business_id'    => $businessId,
-            'user_id'        => $this->admin->id,
+            'user_id'        => $this->novoUserDoBusiness()->id,
             'matricula'      => self::MARCADOR . '-' . uniqid(),
             'controla_ponto' => true,
             'usa_banco_horas' => true,
@@ -430,5 +430,21 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
             . 'criadas. O controller lê `linhas_criadas`, que não existe na tabela '
             . '(a coluna é `linhas_sucesso`) — SDD §9 D-8.'
         );
+    }
+
+    /**
+     * Um user NOVO do business logado, para vincular a UM colaborador.
+     *
+     * Por que nao reusar o admin: um Observer cria `ponto_colaborador_config` por
+     * colaborador, e essa tabela tem `user_id` UNIQUE -- dois colaboradores no mesmo
+     * user estouram com Duplicate entry (medido na lane: 17 ocorrencias). O admin
+     * segue sendo quem AUTENTICA; so o vinculo do colaborador muda.
+     */
+    private function novoUserDoBusiness(): User
+    {
+        return User::factory()->create([
+            'business_id' => $this->business->id,
+            'user_type'   => 'user',
+        ]);
     }
 }

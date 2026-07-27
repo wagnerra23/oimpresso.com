@@ -82,7 +82,7 @@ class EspelhoContratoTest extends PontoTestCase
     {
         return Colaborador::create(array_merge([
             'business_id'    => $this->business->id,
-            'user_id'        => $this->admin->id,
+            'user_id'        => $this->novoUserDoBusiness()->id,
             'matricula'      => self::MARCADOR . '-' . uniqid(),
             'controla_ponto' => true,
             'admissao'       => '2019-01-01',
@@ -293,7 +293,7 @@ class EspelhoContratoTest extends PontoTestCase
 
         $alheioId = DB::table('ponto_colaborador_config')->insertGetId([
             'business_id'    => $bizAlheio,
-            'user_id'        => $this->admin->id,
+            'user_id'        => $this->novoUserDoBusiness()->id,
             'matricula'      => self::MARCADOR . '-ALHEIO-' . uniqid(),
             'controla_ponto' => 1,
             'created_at'     => now(),
@@ -403,7 +403,7 @@ class EspelhoContratoTest extends PontoTestCase
 
         $alheioId = DB::table('ponto_colaborador_config')->insertGetId([
             'business_id'    => $bizAlheio,
-            'user_id'        => $this->admin->id,
+            'user_id'        => $this->novoUserDoBusiness()->id,
             'matricula'      => self::MARCADOR . '-ALHEIO-' . uniqid(),
             'controla_ponto' => 1,
             'created_at'     => now(),
@@ -454,5 +454,21 @@ class EspelhoContratoTest extends PontoTestCase
             'O espelho precisa abrir na competência escolhida na lista — conferir o mês '
             . 'errado no fechamento é erro silencioso e caro (CU-PONTO-04).'
         );
+    }
+
+    /**
+     * Um user NOVO do business logado, para vincular a UM colaborador.
+     *
+     * Por que nao reusar o admin: um Observer cria `ponto_colaborador_config` por
+     * colaborador, e essa tabela tem `user_id` UNIQUE -- dois colaboradores no mesmo
+     * user estouram com Duplicate entry (medido na lane: 17 ocorrencias). O admin
+     * segue sendo quem AUTENTICA; so o vinculo do colaborador muda.
+     */
+    private function novoUserDoBusiness(): User
+    {
+        return User::factory()->create([
+            'business_id' => $this->business->id,
+            'user_type'   => 'user',
+        ]);
     }
 }
