@@ -15,18 +15,17 @@
 | US no SPEC | 9 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 7 |
-| Telas com `casos.md` | 6 |
-| UC declarados | 33 |
-| UC com teste que os cita | 33 |
+| Telas com `casos.md` | 7 |
+| UC declarados | 39 |
+| UC com teste que os cita | 39 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `BulkEdit` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `CU-PROD-04` sem UC | caso de uso que o exercite — Estoque inicial + localização + alerta + validade/lote |
 | `CU-PROD-05` sem UC | caso de uso que o exercite — Combo/kit + BOM |
-| `CU-PROD-06` sem UC | caso de uso que o exercite — Importação Excel + bulk-edit + mass-ops |
+| `CU-PROD-08` sem UC | caso de uso que o exercite — Quick-add inline (sem sair do fluxo) |
 | `US-PROD-028` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Blindar `fixVariationStockMisMatch` com parsing locale-safe |
 
 ### Backlog — NÃO é lacuna
@@ -38,7 +37,9 @@
 
 | US | status | Título |
 |---|---|---|
+| US-PROD-020 | `todo` | [G-04] Governança do Produto: casos.md + revisar SPEC |
 | US-PROD-021 | `todo` | [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) |
+| US-PROD-022 | `todo` | [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mul |
 | US-PROD-024 | `todo` | [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta prim |
 | US-PROD-025 | `todo` | [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV |
 | US-PROD-026 | `todo` | Fornecedores/cotação por produto (melhor preço no drawer) |
@@ -48,6 +49,12 @@
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-PBULK-01 | BulkEdit | 🧪 aguarda veredito da lane |
+| UC-PBULK-02 | BulkEdit | 🧪 aguarda veredito da lane |
+| UC-PBULK-03 | BulkEdit | 🧪 aguarda veredito da lane |
+| UC-PBULK-04 | BulkEdit | 🧪 aguarda veredito da lane |
+| UC-PBULK-05 | BulkEdit | 🧪 aguarda veredito da lane |
+| UC-PBULK-06 | BulkEdit | 🧪 aguarda veredito da lane |
 | UC-PCAD-01 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-02 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-03 | Create | 🧪 aguarda veredito da lane |
@@ -70,7 +77,7 @@
 | UC-PSHOW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-03 | Show | 🧪 aguarda veredito da lane |
-| UC-PSHOW-04 | Show | 🧪 stub (não executa) |
+| UC-PSHOW-04 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-05 | Show | 🧪 stub (não executa) |
 | UC-PSHOW-06 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-07 | Show | 🧪 stub (não executa) |

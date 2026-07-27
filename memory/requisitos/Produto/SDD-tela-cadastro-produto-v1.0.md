@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.3
+version: 1.0.4
 last_updated: 2026-07-26
 related_docs:
   - SPEC.md
@@ -18,6 +18,7 @@ related_docs:
   - _telas/RUNBOOK-produto-create.md
   - _telas/RUNBOOK-produto-selling-prices.md
   - _telas/RUNBOOK-produto-stock-history.md
+  - _telas/RUNBOOK-produto-bulk-edit.md
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
@@ -40,6 +41,19 @@ related_adrs:
 >
 > **Documento-modelo:** [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md) — formato canônico **extraído deste SDD** (este é o exemplar de origem). _(Até 2026-07-26 esta linha apontava para `../Sells/SDD-tela-vendas-FINAL-v1.2.md`, que **nunca existiu** no repo — link podre corrigido, não apagado.)_
 
+> ### 🔖 Changelog v1.0.4 (2026-07-26) — a edição em massa entra no SDD (§5.3 F5.1 + §6.1 CU-PROD-06)
+> Run do agent [`sdd-from-source`](../../decisions/0351-sdd-from-source.md) sobre `Produto/BulkEdit`
+> — a **última** tela do módulo sem `casos.md`. Novo **§5.3 F5.1** (o fluxo real `bulkEdit`→`bulkUpdate`,
+> com as 3 medições que mudam a leitura: feature-flag `enable_product_bulk_edit = false` · rota de
+> submit `/products/mass-update` **inexistente** · reader manda 2 campos e writer lê 5 sem `??`) e
+> **`CU-PROD-06` de ✅ → 🟡 parcial** (item 2 🔴, item 4 🟡 com o eixo *tabela de preço* aberto).
+> **Correção de premissa herdada:** o campo `default_sell_price_inc_tax`, que a v1.0.3 e o
+> `CU-PROD-14` descreviam como *"venda com imposto"*, **não é coluna de `variations`** — 4 telas
+> React entregam preço de venda `0`. Contrato executável em
+> [`BulkEdit.casos.md`](../../../resources/js/Pages/Produto/BulkEdit.casos.md) (UC-PBULK-01..06) com
+> `ProdutoBulkEditContratoTest` failing-first na lane `Estoque · MySQL` (**advisory**).
+> **Nenhum item marcado ✅** — não rodei teste (CT 100, ADR 0062); o veredito é da lane.
+>
 > ### 🔖 Changelog v1.0.3 (2026-07-26) — a ficha entra no SDD (§5.3 F7 + §6.1 CU-PROD-14)
 > Run do agent [`sdd-from-source`](../../decisions/0351-sdd-from-source.md) sobre `Produto/Show`,
 > triangulando React + Blade + Delphi. Novos: **§5.3 F7** (fluxo real da ficha + as 6 entradas
@@ -329,7 +343,46 @@ Em 17/07, **nenhum produto** preenchia a decomposição de custo nessas bases. *
 
 **F4 · Cockpit `/unificado`:** 5 sub-views (produtos/insumos·BOM/tabelas/histórico). **KPIs `margem_media`/`sem_giro`/`stockQty` zerados** (TODO) — agregação de valor/custo em estoque ausente (CU-PROD-12 / G-03). Falta `can:product.view` (G-05).
 
-**F5 · Import/bulk:** `import-products` + `import-opening-stock` (Excel) + `bulk-edit`/`bulk-update`/`bulk-update-location` + `mass-deactivate`/`mass-delete` + `download-excel` — **forte** (pareia com Tiny, C08 ✅).
+**F5 · Import/bulk:** `import-products` + `import-opening-stock` (Excel) + `bulk-edit`/`bulk-update`/`bulk-update-location` + `mass-deactivate`/`mass-delete` + `download-excel` — **forte em superfície** (pareia com Tiny, C08 ✅). O ramo **edição em massa** está detalhado em F5.1 e é bem mais frágil do que a lista de rotas sugere.
+
+**F5.1 · Edição em massa (`bulkEdit` → `bulkUpdate`):** <!-- derivado: re-rodável do fonte -->
+`BulkEdit.tsx` → `POST /products/bulk-edit` (`ProductController@bulkEdit`) → gate `product.update` (403)
+→ **branch dual MWART**: com header `X-Inertia` renderiza `Produto/BulkEdit`; sem header devolve
+`view('product.bulk-edit')`. Entrada: `selected_products` (CSV de IDs) — sem ele o método **não
+retorna nada** (`if (! empty(...))` sem `else` → 200 com corpo vazio). Escopo: `Product::where('business_id',
+$biz)->whereIn('id', $selected)` → ID alheio é **descartado em silêncio** (não 404). O writer é outro
+endpoint: `POST /products/bulk-update` (`@bulkUpdate`) — 1 transação pro lote inteiro, `findOrFail`
+escopado por produto, `Variation::where('product_id',…)->findOrFail($key)` por variação, `num_uf` nos
+5 campos numéricos, `VariationGroupPrice::updateOrCreate` pros preços por tabela, `catch (\Exception)`
+genérico + `rollBack()` + `redirect('products')`.
+
+> ⚠️ **Três medições que mudam a leitura desse fluxo** (2026-07-26, sha `6cd0fbc4f2`):
+> **(1) o caminho está DESLIGADO pro operador** — o botão da lista vive atrás de
+> `config('constants.enable_product_bulk_edit')`, hardcoded **`false`** (`config/constants.php:84`,
+> com a nota upstream *"Will be depreciated in future"*). As demais ações em massa da lista
+> (`mass-delete`, `mass-deactivate`, `bulk-update-location`) **não** têm essa trava.
+> **(2) a tela React não tem para onde salvar** — `BulkEdit.tsx` faz `post('/products/mass-update')`;
+> varredura contada do literal no repo: **3** (o `.tsx`, o charter e o RUNBOOK) e **0** em `routes/`.
+> **(3) reader e writer não falam a mesma língua** — a Blade (o caller real) manda **5** campos
+> numéricos por variação (`default_purchase_price`, `dpp_inc_tax`, `profit_percent`,
+> `default_sell_price`, `sell_price_inc_tax`) + `group_prices`; o `useForm` do React manda **2**.
+> O writer lê os 5 **sem `??`** → chave ausente vira `ErrorException` engolida pelo catch → lote
+> inteiro revertido com *"algo deu errado"*. Mesma família do `preparation_time_in_minutes` do
+> `update()` (UC-PEDIT-05/06/07).
+> Achados e contratos: `CU-PROD-06` (§6.1) + [`BulkEdit.casos.md`](../../../resources/js/Pages/Produto/BulkEdit.casos.md)
+> (UC-PBULK-01..06).
+
+> 🐛 **Defeito de MÓDULO descoberto por este fluxo — `default_sell_price_inc_tax` não existe.**
+> Os payloads Inertia de **4 telas** montam `'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0)`
+> — `ProductController@show` (`:841`), `@addSellingPrices` (`:2043`), `@bulkEdit` (`:2452`) e
+> `ProdutoUnificadoController` (`:113`). A tabela `variations` tem `default_sell_price` e
+> `sell_price_inc_tax`; **não** tem `default_sell_price_inc_tax` (varredura contada em `database/`:
+> **0** referências), e `App\Variation` não define accessor nem `$appends`. Logo o Eloquent devolve
+> `null` → `?? 0` → **toda variação chega às quatro telas com preço de venda `0`**.
+> Isto **corrige** a leitura do changelog v1.0.3 e do `CU-PROD-14`, que descreviam o campo como
+> *"venda com imposto"* assumindo que a coluna existisse. A pendência *"qual base usar (exc × inc)"*
+> segue decisão [W]; o que muda é que hoje não é nenhuma das duas. Re-medir com
+> `grep -rn "default_sell_price_inc_tax" app/ database/`.
 
 **F7 · Ficha do produto (`show`):** <!-- derivado: re-rodável do fonte -->
 `Show.tsx` → `GET /products/{id}` → `ProductController@show` (`:801-848`) → gate `product.view` (403)
@@ -430,11 +483,18 @@ Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que dif
 3. `[reg]` Baixa-de-componente do kit no PDV comprovada (Bling tem).
 4. `[T0]` BOM `ScopeByBusiness` + `firstOrFail` cross-tenant.
 
-#### CU-PROD-06 — Importação Excel + bulk-edit + mass-ops `[should]` ✅
-1. `import-products` + `import-opening-stock` (Excel) + `download-excel`.
-2. `bulk-edit`/`bulk-update`/`bulk-update-location` + `mass-deactivate`/`mass-delete`.
-3. `[V0]` Import de preço/custo passa pelo mesmo guard `num_uf`.
-4. `[T0]` Bulk valida `business_id` de **cada** ID antes de aplicar.
+#### CU-PROD-06 — Importação Excel + bulk-edit + mass-ops `[should]` 🟡 **parcial** (era ✅ — ver v1.0.4)
+1. `import-products` + `import-opening-stock` (Excel) + `download-excel`. — ⬜ **não verificado** (nenhum teste cita; fora do escopo do run do BulkEdit).
+2. `bulk-edit`/`bulk-update`/`bulk-update-location` + `mass-deactivate`/`mass-delete`. — 🔴 **a edição em massa não fecha o ciclo**: (a) o botão está atrás de `enable_product_bulk_edit = false` (`config/constants.php:84`, "Will be depreciated in future") → o operador não chega; (b) a tela React submete pra `/products/mass-update`, **rota inexistente** (3 ocorrências do literal no repo, 0 em `routes/`); (c) a tela manda 2 campos por variação e o writer lê 5 **sem `??`** → o lote inteiro reverte com erro genérico. `UC-PBULK-05` (failing-first). As demais mass-ops (`mass-delete`/`mass-deactivate`/`bulk-update-location`) **estão ligadas** e não têm essa trava.
+3. `[V0]` Import de preço/custo passa pelo mesmo guard `num_uf`. — 🧪 **agora tem contrato no ramo bulk**: `num_uf` é aplicado nos 5 campos de `bulkUpdate`; travado por `UC-PBULK-06` (pt-BR `"1.234,56"` → 1234.56). O ramo **import Excel** segue ⬜.
+4. `[T0]` Bulk valida `business_id` de **cada** ID antes de aplicar. — 🟡 **verdadeiro no resultado, falso no mecanismo**: `bulkEdit` escopa a matriz (`UC-PBULK-02`, verde esperado) e `bulkUpdate` **aplica e depois reverte** — quem garante o "nada meio-gravado" é o `rollBack()` do catch genérico, não uma validação prévia (`UC-PBULK-04`). E o **eixo tabela de preço está aberto**: `VariationGroupPrice::updateOrCreate(['price_group_id' => $k, …])` recebe `$k` **cru da chave do request**, sem o guard `$allowedPriceGroupIds` que o `saveSellingPrices` ganhou no [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — é o mesmo defeito do `UC-PTAB-04`, na tela irmã (`UC-PBULK-03`, failing-first).
+
+> ⚠️ **Por que este CU caiu de ✅ pra 🟡 sem o código piorar:** o ✅ da v1.0.0 media **superfície**
+> (as rotas existem) e não **comportamento**. O run do `sdd-from-source` sobre `Produto/BulkEdit`
+> (2026-07-26) triangulou React + Blade + Delphi e mediu: 1 rota fantasma, 1 feature-flag desligada,
+> 1 assimetria reader/writer e 1 buraco Tier 0 já conhecido na tela irmã. Mesmo movimento — e mesma
+> lição — do `CU-PROD-10` na v1.0.1: *o documento parou de afirmar o que não media.* Contrato
+> executável em [`BulkEdit.casos.md`](../../../resources/js/Pages/Produto/BulkEdit.casos.md).
 
 #### CU-PROD-07 — Duplicar produto `[should]` ✅
 1. `?d=N` pré-preenche o form com o produto + `(copy)` no nome.

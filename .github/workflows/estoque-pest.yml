@@ -57,6 +57,16 @@ name: Estoque · Pest (MySQL)
 #   de preço nenhuma e corta em `limit(200)` sem paginação.
 #   Precisa de MySQL real: lê props deferidas (partial reload), insere lote de 206 produtos pro
 #   caso de alcance e exige o 2º business pro cross-tenant; em sqlite daria SKIP ("skipa e mente").
+#
+# 2026-07-26 — +`ProdutoBulkEditContratoTest` (trio Produto/BulkEdit, UC-PBULK-01..06 — a ÚLTIMA
+#   tela do módulo sem casos.md). Failing-first: caracteriza a EDIÇÃO EM MASSA
+#   (`POST /products/bulk-edit` → matriz; `POST /products/bulk-update` → writer) contra as 3 fontes.
+#   Aqui a Blade legada é o OUTRO BRANCH do mesmo `bulkEdit()` — e é ela que define o payload REAL
+#   (5 campos numéricos por variação + `group_prices`), enquanto a tela React manda 2.
+#   Precisa de MySQL real: escreve e RELÊ `variations`/`variation_group_prices` (decimal 22,4),
+#   exige o 2º business pros dois eixos de cross-tenant (produto E tabela de preço) e usa payload
+#   pt-BR pra provar o `num_uf`; em sqlite daria SKIP ("skipa e mente").
+#   ⚠️ Eixo VALOR → REGRA MESTRE: o teste PROVA, o fix é decisão [W] (2 caminhos + antes→depois).
 
 on:
   workflow_dispatch: {}
@@ -174,7 +184,8 @@ jobs:
             tests/Feature/Produto/ProdutoEditContratoTest.php \
             tests/Feature/Produto/ProdutoEditPayloadContratoTest.php \
             tests/Feature/Produto/ProdutoShowContratoTest.php \
-            tests/Feature/Produto/ProdutoIndexContratoTest.php
+            tests/Feature/Produto/ProdutoIndexContratoTest.php \
+            tests/Feature/Produto/ProdutoBulkEditContratoTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
