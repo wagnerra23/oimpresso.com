@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.6
+version: 1.0.7
 last_updated: 2026-07-27
 related_docs:
   - SPEC.md
@@ -45,6 +45,16 @@ related_adrs:
 >
 > **Documento-modelo:** [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md) — formato canônico **extraído deste SDD** (este é o exemplar de origem). _(Até 2026-07-26 esta linha apontava para `../Sells/SDD-tela-vendas-FINAL-v1.2.md`, que **nunca existiu** no repo — link podre corrigido, não apagado.)_
 
+> ### 🔖 Changelog v1.0.7 (2026-07-27) — §5.4.1: as 5 ações em massa do Blade × 1 (quebrada) no React
+> Achado da Camada 1 disparado por [W] (*"existe o bulk do produto na consulta/lista, no blade existe isso"*).
+> Medido: a lista Blade tem **5** ações em massa (excluir · editar · +localização · −localização · desativar),
+> o React tem **1** e ela posta em `/products/mass-update`, **rota inexistente** (a real é `/products/bulk-update`).
+> Separa dois assuntos: a **flag** `enable_product_bulk_edit=false` é do **upstream** ("will be depreciated"),
+> logo ligar é decisão de produto [W] — e as **4 ausentes** são **bloqueador de migração** independente dela
+> (promover as telas a `live` sem portá-las tira função que a persona tem hoje).
+> Declara o não-medido: se o payload do `BulkEdit.tsx` bate com o `bulkUpdate` — não afirmar "1 caractere".
+> **Só §5.4.1 novo — zero CU, fluxo, risco ou roadmap alterado.**
+>
 > ### 🔖 Changelog v1.0.6 (2026-07-27) — badge de proveniência nas 12 seções
 > O [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md) foi **extraído deste exemplar** em 2026-07-26
 > e, ao formalizar, exigiu *"badge obrigatório por seção"* (`⚙️ derivado` = re-rodável do fonte ·
@@ -602,6 +612,25 @@ O `ProductLineCard` (e o cadastro core) conhecem **`qtd × preço unitário − 
 - **Oficina** referencia `product_id` na peça, mas o cadastro core **não tem** aplicação por veículo, OEM, equivalência nem fornecedor — o mockup "Picker Mecânica" desenhou tudo isso, mas é escopo novo (§10.3).
 
 Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que diferencia o cadastro de um PDV genérico.
+
+#### 5.4.1 Ações em massa da lista: 5 no Blade, 1 (quebrada) no React ⚙️ derivado · medido 2026-07-27
+
+A lista Blade (`resources/views/product/partials/product_list.blade.php`, todas sob `@can('product.update')`) oferece **cinco** ações em massa. O React tem **uma**, e ela aponta para uma rota inexistente:
+
+| Ação em massa | Rota real | Blade | React |
+|---|---|---|---|
+| Excluir | `ProductController@massDestroy` | ✅ ativo | ❌ ausente |
+| **Editar em massa** | `POST /products/bulk-edit` → `/products/bulk-update` | ⚠️ atrás de flag | ⚠️ `BulkEdit.tsx:138` posta `/products/mass-update` — **rota inexistente** |
+| Adicionar a localização | `POST /products/bulk-update-location` | ✅ ativo | ❌ ausente |
+| Remover de localização | idem (`data-type="remove"`) | ✅ ativo | ❌ ausente |
+| Desativar | `ProductController@massDeactivate` | ✅ ativo | ❌ ausente |
+
+**Dois assuntos distintos, que não devem andar juntos:**
+
+1. **A flag não é decisão do oimpresso.** `config/constants.php:84` traz `'enable_product_bulk_edit' => false,  //Will be depreciated in future` — o comentário é do **upstream UltimatePOS**. O backend está inteiro (`bulkEdit` + `bulkUpdate` + 3 rotas + `bulk-edit.blade.php` + `bulk_edit_product_row.blade.php`); ligar é **decisão de produto [W]**, e o custo é adotar código que o upstream pretende abandonar. Sinal registrado ([W] 2026-07-27: *"ainda não sei se vou usar mas seria muito bom isso"*) — por [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) isso é **interesse, não sinal qualificado**: nasce feature-wish, não US ativa.
+2. **As 4 ausentes são bloqueador de migração, e independem de (1).** A `US-PROD-023` promove as 8 telas React de `draft` a `live`. Se isso acontecer antes de portá-las, a persona perde excluir/desativar/localização em massa que **tem hoje** no Blade — mesmo padrão do menu de Ações (Blade 10 por linha × React 1, §6.1) que a [auditoria da Camada 1](../../sessions/2026-07-27-auditoria-camada1-sdd-mordida.md) já registrou.
+
+⚠️ **O que NÃO foi medido:** se o payload que o `BulkEdit.tsx` monta corresponde ao que `bulkUpdate` lê. A rota errada é **uma string**, mas neste mesmo módulo o [#4780](https://github.com/wagnerra23/oimpresso.com/pull/4780) provou que `Edit.tsx` manda 18 chaves e `update()` lê 33+, tratando ausência como zero. **Não afirmar "é 1 caractere de conserto" sem o teste de contrato do payload** ([proibicoes §5](../../proibicoes.md) 2026-07-15).
 
 ---
 
