@@ -384,6 +384,66 @@ describe('casos:check — G-7 status derivado do verde (físico)', () => {
 });
 
 // =====================================================================================
+// G-7 (3ª forma) — status:stale-results: ✅ PROVADO, mas a tela mudou DEPOIS do teste
+// =====================================================================================
+// Era o ÚNICO dos 5 contadores do guard sem controle-negativo (metadata_issues, stale_cases,
+// status_lies e status_unverified já são provados nos blocos acima). Sem estes testes, o
+// `"status_stale": 0` do --json não distinguia "corpus limpo" de "ramo que nunca casa".
+// Exige as DUAS fontes ao mesmo tempo — data de commit do .tsx (git `%cs`) E o `ran_at` do
+// manifesto — por isso precisa de repo git REAL no tmp: sem ele isShallowRepo()=true, tsxDate
+// fica null e o ramo nem é alcançado.
+describe('casos:check — G-7 status:stale-results (resultado velho · físico)', () => {
+  const git = (cmd: string) => execSync(`git ${cmd}`, { cwd: tmp, stdio: 'ignore' });
+  // last_run no FUTURO isola o G-6: sem isso o `stale:` do frescor dispararia junto (o .tsx é
+  // commitado HOJE) e o teste passaria pelo motivo errado.
+  const seedCommitted = (dir: string, uc: string) => {
+    write(page(dir), 'x');
+    write(`resources/js/Pages/${dir}/Index.charter.md`, '# c');
+    write(
+      `resources/js/Pages/${dir}/Index.casos.md`,
+      `---\nowner: w\nlast_run: "2099-01-01"\n---\n## ${uc} · caso\n- **Status: ✅**`,
+    );
+    write(`tests/${dir}Test.php`, `<?php // ${uc}`);
+    git('init -q');
+    git('config user.email t@t.co');
+    git('config user.name t');
+    git('config commit.gpgsign false');
+    git('add -A');
+    git('commit -qm init'); // commit do .tsx = hoje
+  };
+  const manifest = (ucs: Record<string, { verdict: string; ran_at?: string }>) =>
+    write('scripts/casos-test-results.json', JSON.stringify({ ucs }));
+
+  it('SENSIBILIDADE: ✅ verdict=pass com ran_at ANTERIOR ao commit da tela → status:stale-results', () => {
+    seedCommitted('SR', 'UC-ZZD01');
+    manifest({ 'UC-ZZD01': { verdict: 'pass', ran_at: '2020-01-01' } });
+    const out = runExpectFail('--json');
+    expect(out).toMatch(/status:stale-results:resources\/js\/Pages\/SR\/Index\.casos\.md#UC-ZZD01/);
+    expect(out).toMatch(/"status_stale": 1/);
+    // Controle de ATRIBUIÇÃO: prova que quem mordeu foi o stale-results, não o G-6 nem as
+    // outras 2 formas do G-7 (senão o ✅ do teste seria por violação vizinha).
+    expect(out).toMatch(/"stale_cases": 0/);
+    expect(out).toMatch(/"status_lies": 0/);
+    expect(out).toMatch(/"status_unverified": 0/);
+  });
+
+  it('ESPECIFICIDADE: ran_at POSTERIOR ao commit da tela → resultado fresco, sem violação', () => {
+    seedCommitted('FR', 'UC-ZZD01');
+    manifest({ 'UC-ZZD01': { verdict: 'pass', ran_at: '2099-01-01' } });
+    const out = run('--json');
+    expect(out).toMatch(/"status_stale": 0/);
+    expect(out).not.toMatch(/status:stale-results/);
+  });
+
+  it('ESPECIFICIDADE: verdict=pass SEM ran_at → não inventa staleness (sem sinal, não acusa)', () => {
+    seedCommitted('NR', 'UC-ZZD01');
+    manifest({ 'UC-ZZD01': { verdict: 'pass' } });
+    const out = run('--json');
+    expect(out).toMatch(/"status_stale": 0/);
+  });
+});
+
+// =====================================================================================
 // MÉTRICA ADVISORY — cobertura "mordida por EXECUÇÃO" (G-2 fase 1, US-GOV-031)
 // =====================================================================================
 // NÃO é gate: não há violação nem mudança de exit code. A métrica só TORNA VISÍVEL quantos
