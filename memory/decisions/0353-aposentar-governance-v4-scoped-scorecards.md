@@ -101,7 +101,7 @@ escrita) ajusta **por dimensão** — mais fino que por bucket.
 |---|---|
 | Cron | `governance:scorecard-snapshot --alert` (07:00) · `governance:initiative-sync` (08:00, fonte era o snapshot) |
 | Motor | `ScopedScorecardEvaluator` · `ModuleGradeV4Command` · `ModuleGradeService::gradeV4()` · `ScorecardSnapshotCommand` · flag `governance.v4_enabled` |
-| Superfície | rota `admin.governance.v4` (+3 endpoints) · `GovernanceV4DashboardController` · 3 FormRequests · `GovernanceV4.tsx` · `GovernanceV4Dashboard.tsx` (+ charters, types, mock) |
+| Superfície | rota `admin.governance.v4` (+3 endpoints) · `GovernanceV4DashboardController` · `GovernanceV4.tsx` · `GovernanceV4Dashboard.tsx` (+ charters, types, mock) · 9 componentes do cluster exclusivo da tela |
 | Dados curados | 5 scorecards YAML + `_template.yaml` + 3 buckets + `buckets/_INDEX.md` |
 | Testes | 8 arquivos 100% v4 removidos; 7 podados cirurgicamente (casos que assertavam sobre os arquivos deletados) |
 
@@ -114,6 +114,11 @@ escrita) ajusta **por dimensão** — mais fino que por bucket.
 - **`AiScorecardJudge`** (Modules/Jana) — resíduo honesto declarado: já era órfão **antes** desta
   ADR (nenhum código de produção o instanciava; o único `@see` estava no controller v4). Removê-lo
   mexe no teste de call sites de LLM (`LlmHttpCallSitesLangfuseTest`) e é outra decisão.
+- **Os 3 FormRequests** (`RemediationRequest`, `CreateInitiativeRequest`, `OverrideBucketRequest`) —
+  ficam com nota de aposentadoria no docblock. Eu os havia deletado e o Pest no CT 100 provou que
+  era escopo alheio: **20 testes** os cobrem (incl. `Wave25CrossTenantIsolationTest` do Superadmin)
+  e `RemediationRequest` é referenciado por `AlertAcknowledgeRequest`, fora do v4. Ficaram sem
+  endpoint — resíduo declarado, não force (§5 2026-07-15 "buraco heterogêneo fica resíduo honesto").
 - **A v3 inteira** — `ModuleGradeCommand`, `ModuleGradeSnapshotCommand`, `module-grades-gate`.
 
 ## Consequências
