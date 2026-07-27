@@ -29,3 +29,14 @@ Cadastro de clientes **PF e PJ** com canon fiscal BR completo (CPF/CNPJ com vali
 - US-078 PR3 — dropdown de endereço salvo na tela de venda (`Sells/Create`; hoje `shipping_address` é texto livre), ~3h.
 - Migrar RUNBOOKs/UI-CATALOG/ARCHITECTURE de `Crm/` → `Cliente/` (execução do plano de separação).
 - Backlog secundário em [SPEC.md §5](SPEC.md).
+
+## Contrato de tela (SDD)
+
+O módulo passou a ter **SDD** em [`SDD-cadastro-cliente-v1.0.md`](SDD-cadastro-cliente-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
+gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4870).
+
+> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
+> `node scripts/governance/requisitos-status.mjs Cliente`
+>
+> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
+> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).
