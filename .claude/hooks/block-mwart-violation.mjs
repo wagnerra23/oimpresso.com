@@ -92,12 +92,17 @@ export function runbookStatus(modulo, kebabCandidatos, root = process.cwd()) {
   }
 }
 
-/** extrai o valor do campo `runbook:` da frontmatter YAML do charter (ou null). */
+/** extrai o valor do campo `runbook:` (ou `related_runbook:`) da frontmatter YAML do charter.
+ *  Aceita as DUAS chaves porque o schema canônico (scripts/memory-schemas/charter.schema.json)
+ *  define `related_runbook` — medido 2026-07-27: 7 charters usam a chave do schema e 5 a curta.
+ *  Ler só a curta cegava o resgate por proveniência justamente pros charters que seguem o canon
+ *  (caso real: Produto/BulkEdit, RUNBOOK existente em _telas/, bloqueado por chave não-lida).
+ *  A validação de EXISTÊNCIA do arquivo segue idêntica — isto amplia a leitura, não afrouxa o gate. */
 function parseRunbookField(text) {
   const norm = String(text || '').replace(/\r\n/g, '\n');
   const fm = /^---\n([\s\S]*?)\n---/.exec(norm);      // limita à frontmatter, se houver
   const scope = fm ? fm[1] : norm;
-  const m = /^[ \t]*runbook:[ \t]*(.+?)[ \t]*$/m.exec(scope);
+  const m = /^[ \t]*(?:related_)?runbook:[ \t]*(.+?)[ \t]*$/m.exec(scope);
   if (!m) return null;
   let v = m[1].replace(/\s+#.*$/, '').trim();          // strip comentário YAML inline (' #...')
   if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {

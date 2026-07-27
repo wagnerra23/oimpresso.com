@@ -28,6 +28,20 @@ const REPO = join(HOOK_DIR, '..', '..');
 export function itemDone(it, repoRoot = REPO, exists = existsSync) {
   if (!it || !it.detect) return false;
   if (it.detect.tipo === 'manual') return Boolean(it.done);
+  // VETO MANUAL (2026-07-27) — `done: false` EXPLÍCITO reabre o item mesmo que os
+  // arquivos do detect existam. Sem isso o escape valve que o PRÓPRIO banner anuncia
+  // ("Para reabrir um item, mude 'done' no manifesto") era letra morta nos itens
+  // file_any — 3 dos 4. Consequência medida: o item #6 (LGPD purge) tinha
+  // `"done": false` no manifesto e o banner imprimia `[OK]` + "LOOP FECHADO", porque
+  // `RetentionPurgeCommand.php` EXISTE. Mas o DoD do #6 não é o arquivo: é
+  // `JANA_RETENTION_ENABLED=true` em prod após canary 7d + sign-off [W] (nota_aprovacao
+  // do próprio item), e a flag segue false — confirmado por 4 fontes independentes
+  // (manifesto · SPEC US-COPI-115 checklist · AUDITORIA-IA-OS-2026-06-06 · o BLOCKER
+  // §3.1 do EVIDENCE-retention-purge-dry-run-2026-07-12).
+  // Classe LC-11 (presence-gate: mede PRESENÇA, não COMPORTAMENTO) em produção.
+  // Escopo do veto: só o `false` EXPLÍCITO derruba. `done` ausente ou true → o detect
+  // decide, como antes (arquivo sumir continua reabrindo o item sozinho).
+  if (it.done === false) return false;
   if (it.detect.tipo === 'file_any' && Array.isArray(it.detect.paths)) {
     return it.detect.paths.some((p) => exists(join(repoRoot, p)));
   }

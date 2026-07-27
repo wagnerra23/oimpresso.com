@@ -114,7 +114,16 @@ last_run_ci: "0 UC executado — trio nasce agora (agent sdd-from-source, ADR 03
 - **Aceite:** Dado a aba Variações · Quando exibe preço de compra e de venda na mesma linha · Então ou usam a **mesma base** de imposto, ou o rótulo **declara** a base de cada um.
 - **Teste:** `e2e/produto-show.spec.ts` — `UC-PSHOW-05` (stub).
 - **Contrato:** Blade `variable_product_details.blade.php:12-20` — o legado exibe **4 colunas explicitamente rotuladas**: compra `(exc_of_tax)`, compra `(inc_of_tax)`, venda `(exc_of_tax)`, venda `(inc_of_tax)`, mais `profit_percent`. A base **nunca** é ambígua. + **REGRA MESTRE** valor ([proibicoes.md](../../../../memory/proibicoes.md)) + `AR-PROD-007` (margem = `((Valor/Custo)−1)×100`, confirmada por 5 caminhos).
-- **⚠️ Por que 🔶 e não achado afirmado:** a varredura mostra que o controller manda `defaultPurchasePrice` ← `default_purchase_price` (**sem** imposto, `:835`) e `defaultSellPrice` ← `default_sell_price_inc_tax` (**com** imposto, `:836`), e o `Show.tsx` rotula as colunas "Preço compra" / "Preço venda" (`:236-237`) — bases diferentes sob rótulos neutros. **Mas** qual base a ficha *deve* usar é **decisão de produto** ([W]), não dedução minha: pode ser "mostrar as 4 como o Blade", "mostrar só inc", ou "rotular". Afirmar "é bug" seria escolher o remédio antes do diagnóstico (`proibicoes.md` §5, 2026-07-15). **Não toquei em cálculo** — a REGRA MESTRE `[V0]` vale pra quem for mexer.
+- **⚠️ Correção de premissa (2026-07-27):** até esta data o parágrafo abaixo afirmava que
+  `defaultSellPrice` vinha de `default_sell_price_inc_tax`, **com** imposto. Esse campo **não existe**
+  em `variations` — o Eloquent devolvia `null → 0`, então a ficha não mostrava preço de venda nenhum,
+  e a "mistura de bases" descrita aqui era **hipotética**. Provado por dois caminhos: schema/migration
+  (`grep` em `database/` = 0) e `UC-PBULK-01` vermelho na lane real
+  ([run 30264246760](https://github.com/wagnerra23/oimpresso.com/actions/runs/30264246760)):
+  *"Nenhum campo da variação carrega o preço de venda corrente (233.11 nem 256.42)"*. Repontado pra
+  `sell_price_inc_tax` por decisão [W] — o que torna este UC um achado **vivo**, não mais mascarado
+  pelo zero.
+- **⚠️ Por que 🔶 e não achado afirmado:** a varredura mostra que o controller manda `defaultPurchasePrice` ← `default_purchase_price` (**sem** imposto, `:835`) e `defaultSellPrice` ← `sell_price_inc_tax` (**com** imposto, `:836`), e o `Show.tsx` rotula as colunas "Preço compra" / "Preço venda" (`:236-237`) — bases diferentes sob rótulos neutros. **Mas** qual base a ficha *deve* usar é **decisão de produto** ([W]), não dedução minha: pode ser "mostrar as 4 como o Blade", "mostrar só inc", ou "rotular". Afirmar "é bug" seria escolher o remédio antes do diagnóstico (`proibicoes.md` §5, 2026-07-15). **Não toquei em cálculo** — a REGRA MESTRE `[V0]` vale pra quem for mexer.
 - **Status: 🔶** — decisão [W]/[F].
 
 ---

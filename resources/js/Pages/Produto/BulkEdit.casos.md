@@ -38,7 +38,7 @@ Sem eles, este arquivo soaria mais forte do que a realidade. Medidos em 2026-07-
 | # | Fato | Como re-medir |
 |---|---|---|
 | **1** | **O operador não chega nesta tela.** O botão "Edição em massa" da lista está atrás de `config('constants.enable_product_bulk_edit')`, hardcoded **`false`** — com a nota upstream *"Will be depreciated in future"*. | `grep -n "enable_product_bulk_edit" config/constants.php resources/views/product/partials/product_list.blade.php` |
-| **2** | **O botão Salvar da tela React aponta pra uma rota que não existe.** `BulkEdit.tsx` faz `post('/products/mass-update')`; o literal aparece **3×** em todo o repo (o `.tsx`, o charter e o RUNBOOK) e **0×** em `routes/`. O writer real é `POST /products/bulk-update` → `ProductController@bulkUpdate`. | `grep -rn "mass-update" routes/ resources/js/Pages/Produto/ memory/requisitos/Produto/` |
+| **2** | **O botão Salvar da tela React aponta pra uma rota que não existe.** `BulkEdit.tsx` faz `post('/products/mass-update')`; **0** ocorrências em `routes/`. O writer real é `POST /products/bulk-update` → `ProductController@bulkUpdate` (`routes/web.php:443`). ⚖️ **DECIDIDO [W] 2026-07-27: repontar a tela** (não criar alias). O charter §Goals e o RUNBOOK §3.2 já declaram a rota certa; **a linha do `.tsx` ainda NÃO foi aplicada** — vai no PR seguinte, porque o hook MWART do project dir bloqueia até o fix de leitura de `related_runbook:` (neste PR) ser mergeado. O fato **1** segue valendo: a flag continua `false`. | `grep -rn "mass-update" routes/ resources/js/Pages/Produto/ memory/requisitos/Produto/` |
 | **3** | **As telas React do Produto seguem inalcançáveis em prod** (sidebar usa `<a href>` puro, sem `X-Inertia` → cai no Blade). | mesmo enquadramento dos irmãos `Edit`/`Show`/`Index` |
 
 **Consequência para o veredito:** vermelho aqui é **bloqueador de migração** (gate MWART F5,
@@ -59,9 +59,9 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
 
 | UC | Caso de uso | Prio | Contrato | Teste | Status |
 |----|-------------|------|----------|-------|--------|
-| UC-PBULK-01 | A matriz entrega o preço de venda corrente da variação | must `[V0]` | Blade `bulk_edit_variation_row` + `AR-PROD-008` | `ProdutoBulkEditContratoTest` | 🧪 (vermelho **esperado** — predição) |
+| UC-PBULK-01 | A matriz entrega o preço de venda corrente da variação | must `[V0]` | Blade `bulk_edit_variation_row` + `AR-PROD-008` | `ProdutoBulkEditContratoTest` | 🧪 (era ⨯ **confirmado** na lane; corrigido 2026-07-27 — veredito deste PR) |
 | UC-PBULK-02 | Produto de outro business não entra na matriz | must `[T0]` | `CU-PROD-06`.4 + `CU-PROD-10` + RUNBOOK §1 | `ProdutoBulkEditContratoTest` | 🧪 (verde esperado) |
-| UC-PBULK-03 | Tabela de preço de outro business não grava row no `bulk-update` | must `[T0][V0]` | `CU-PROD-10`.1 + precedente `UC-PTAB-04` | `ProdutoBulkEditContratoTest` | 🧪 (vermelho **esperado** — predição) |
+| UC-PBULK-03 | Tabela de preço de outro business não grava row no `bulk-update` | must `[T0][V0]` | `CU-PROD-10`.1 + precedente `UC-PTAB-04` | `ProdutoBulkEditContratoTest` | 🧪 (era ⨯ **confirmado** Tier 0; guard aplicado 2026-07-27 — veredito deste PR) |
 | UC-PBULK-04 | Lote com produto alheio não persiste nada (rollback total) | must `[T0]` | `CU-PROD-06`.4 | `ProdutoBulkEditContratoTest` | 🧪 (verde esperado) |
 | UC-PBULK-05 | O payload que a tela React edita persiste sem zerar o resto | must `[V0]` | charter §Goals + Blade (payload real) | `ProdutoBulkEditContratoTest` | 🧪 (vermelho **esperado** — predição) |
 | UC-PBULK-06 | Preço em pt-BR (`"1.234,56"`) persiste 1234.56 — sem inflar | must `[V0]` | `CU-PROD-06`.3 + `AR-PROD-006/008` + REGRA MESTRE | `ProdutoBulkEditContratoTest` | 🧪 (verde esperado) |
@@ -86,7 +86,13 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
   (`Form::text(...[default_sell_price], @num_format($variation->default_sell_price))` e
   `...[sell_price_inc_tax], @num_format($variation->sell_price_inc_tax)`); o Delphi destaca o
   **R$ Valor** como campo editável do cabeçalho (`AR-PROD-008` `[V0]`).
-- **Regressão que defende (o achado):** o branch Inertia monta
+- **✅ CORRIGIDO em 2026-07-27** (decisão [W]: `sell_price_inc_tax`, preservando a intenção do nome
+  quebrado e a paridade com a coluna "venda (inc)" do Blade). Os 4 sites leem a coluna real;
+  `grep -rn "default_sell_price_inc_tax" app/` = **0**. O `UC-PBULK-01` era ⨯ na lane
+  ([run 30264246760](https://github.com/wagnerra23/oimpresso.com/actions/runs/30264246760)) com
+  *"Nenhum campo da variação carrega o preço de venda corrente (233.11 nem 256.42)"* — o veredito
+  novo é da lane deste PR. O texto abaixo fica como **registro do achado**, não do estado atual.
+- **Regressão que defende (o achado):** o branch Inertia montava
   `'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0)` — e
   **`default_sell_price_inc_tax` não é coluna de `variations`** (o schema tem `default_sell_price` e
   `sell_price_inc_tax`; varredura contada em `database/`: **0** referências ao nome). Sem coluna e
@@ -144,9 +150,16 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
   da chave do array do request**, num model (`VariationGroupPrice`) que **não tem global scope**
   (`$guarded = ['id']`) e cuja FK só exige que o grupo **exista**, não que seja seu. Lá o fix foi o
   guard `$allowedPriceGroupIds` (resolvido antes do laço + `skip` + `Log::warning`); aqui
-  `bulkUpdate` faz `VariationGroupPrice::updateOrCreate(['price_group_id' => $k, …])` **sem guard
+  `bulkUpdate` fazia `VariationGroupPrice::updateOrCreate(['price_group_id' => $k, …])` **sem guard
   nenhum**. Uma tela foi corrigida, a irmã não — é exatamente a assimetria que o CU previu.
-- **Status: 🧪** — vermelho **esperado** (predição; veredito da lane).
+- **✅ CORRIGIDO em 2026-07-27** — a predição bateu: o `UC-PBULK-03` reprovou na lane real
+  ([run 30264246760](https://github.com/wagnerra23/oimpresso.com/actions/runs/30264246760)) com
+  *"Gravou preço da MINHA variação numa tabela de preço de OUTRO business (price_group_id 2)"*,
+  e a falha foi no **segundo** assert (`:311`) — a **pré-condição anti-vácuo passou**, provando que
+  o laço de `group_prices` rodou de verdade. Não foi verde-por-não-execução. Fix: guard
+  `$allowedPriceGroupIds` resolvido antes do laço + `continue` + `Log::warning`, **idêntico** ao
+  `saveSellingPrices` ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)).
+- **Status: 🧪 → veredito da lane deste PR** (era vermelho **confirmado**, não mais predição).
 
 ---
 
@@ -230,11 +243,30 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
 > merge de quem for atendê-lo). Contrato em **1 fonte só** ou achado sem âncora fica aqui, como
 > prosa visível.
 
-- **[BACKLOG] O destino do submit da tela não existe** — `BulkEdit.tsx` posta em
-  `/products/mass-update`; o charter §Goals e o RUNBOOK §3.2 declaram a mesma rota; `routes/web.php`
-  só tem `/products/bulk-update`. **Divergência aberta, decisão [W]** — os dois remédios são
-  legítimos (criar a rota `mass-update` como alias, ou repontar a tela pro `bulk-update`) e escolher
-  um seria decidir produto/UI sem mandato. Não vira UC porque o teste teria que encodar o remédio.
+- ~~**[BACKLOG] O destino do submit da tela não existe**~~ — **DECIDIDO [W] 2026-07-27: repontar.**
+  Era: `BulkEdit.tsx` postava em `/products/mass-update` (0× em `routes/`), com o charter §Goals e o
+  RUNBOOK §3.2 declarando a mesma rota fantasma. [W] escolheu **repontar a tela** pro
+  `/products/bulk-update` em vez de criar alias — alias abriria superfície de escrita nova numa
+  feature que o upstream declara que vai depreciar. Os 3 artefatos foram corrigidos no mesmo PR
+  (regra de precedência). **A linha do `.tsx` viaja junto com o `UC-PBULK-05`** — sozinha não
+  entrega ganho e custa um contrato visreg pra tela `POST`-only (cálculo no bloco abaixo). A flag
+  `enable_product_bulk_edit` segue **`false`**: repontar **não** religa a tela.
+
+> 📐 **Por que a linha do `.tsx` não fechou sozinha — cálculo de 2026-07-27.**
+> Repontar a rota **isoladamente não entrega nada**: com o destino certo, o `bulkUpdate` estoura
+> em `dpp_inc_tax` na primeira variação (a tela manda **2** campos, o writer lê **5** sem `??`),
+> o `catch` genérico engole e o lote reverte — é o `UC-PBULK-05`, **vermelho na lane**. O operador
+> sairia de *"rota inexistente"* para *"algo deu errado"*: ganho funcional **zero**.
+> E fechar sozinho **custa caro**: o `visual-regression` (required) cobra contrato visreg porque
+> Page raiz tocada isolada vira `scope: targeted` (`reason: page-inertia`); a tela é **`POST`-only**
+> (1 rota, `web.php:442`, **zero** GET) e o harness navega por GET — o baseline seria um redirect,
+> o *verde vazio* que o próprio canário existe pra impedir.
+> **Decisão: a linha viaja junto com o `UC-PBULK-05`.** Corrigir o payload toca
+> `ProductController@bulkUpdate` → o diff vira `scope: global` → o gate **deixa de cobrar contrato**
+> (provado rodando `classifyChanges` com os dois arquivos: `scope: global`). O obstáculo some
+> sozinho no momento certo — antecipar só pagaria o custo sem colher o ganho.
+> Tentativa registrada em [#4845](https://github.com/wagnerra23/oimpresso.com/pull/4845) (fechado).
+
 - **[BACKLOG] O que a tela React perdeu em relação à Blade legada** (`AR-PROD-*` / MWART) — a Blade
   edita **6 famílias** que o React não tem: (1) **buscar e ADICIONAR produto** à matriz sem voltar
   pra lista (`#search_product` → `/products/get-product-to-edit/{id}`); (2) **custo com imposto**
