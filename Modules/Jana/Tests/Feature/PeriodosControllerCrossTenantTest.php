@@ -91,15 +91,6 @@ beforeEach(function () {
         'origem' => 'manual',
     ]);
 
-    // Pré-condição do gate `can:jana.access` no grupo /ia (2026-07-27): sem a
-    // permissão o middleware corta com 403 ANTES do controller, e o teste mediria
-    // o gate em vez do isolamento cross-tenant que ele existe pra provar.
-    // Conceder aqui NÃO enfraquece nada: o contrato sob teste é "usuário COM acesso
-    // ao módulo ainda não alcança dado de outra empresa".
-    \Spatie\Permission\Models\Permission::findOrCreate('jana.access', 'web');
-    $this->wUser->givePermissionTo('jana.access');
-    $this->wUser->forgetCachedPermissions();
-
     $this->actingAs($this->wUser);
     session([
         'user.business_id' => PERIODOS_BIZ_WAGNER,
