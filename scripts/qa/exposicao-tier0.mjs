@@ -50,7 +50,7 @@
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { ucScanRe, ucHeadRe } from '../lib/uc-regex.mjs';
+import { ucScanRe, ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -175,14 +175,18 @@ function citedUcSet() {
 }
 const CITED_UCS = citedUcSet();
 
-/** UCs declarados num .casos.md (heading `UC-XX ...`). */
+/**
+ * UCs declarados num .casos.md — delega pra fonte única do PARSER (fix 2026-07-27).
+ *
+ * Antes daqui saía uma cópia do split que aplicava `ucHeadRe()` na LINHA CRUA. Como o
+ * regex é ancorado em `^UC-` e o heading canônico é `## UC-CEDI-01 · ...`, nunca casava:
+ * `hasCasosCoverage()` devolvia false pra TODA tela com heading markdown, `covered =
+ * e2e || casos` era de fato `covered = e2e`, e o piso Tier-0 subcontava (4 medidas vs 29
+ * reais). Revelado pela divergência contra `npm run screen:files` no módulo Cliente
+ * (0/7 cobertas tendo 21 UC citados por teste). Ver `ucsDeclaredInCasos` na lib.
+ */
 function ucsDeclaredIn(casosAbs) {
-  const out = [];
-  for (const line of readFileSync(casosAbs, 'utf8').split(/\r?\n/)) {
-    const m = line.match(ucHeadRe());
-    if (m) out.push(m[1].toUpperCase());
-  }
-  return out;
+  return ucsDeclaredInCasos(readFileSync(casosAbs, 'utf8'));
 }
 
 /** Uma tela tem cobertura por casos se seu <Tela>.casos.md declara >=1 UC citado por teste. */
