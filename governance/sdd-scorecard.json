@@ -43,7 +43,7 @@
         "req_sem_aceite_total": 264,
         "req_sem_covering_test_total": 392,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 45,
+        "req_sem_lane_total": 31,
         "behavior_known": false,
         "servido_total": 16,
         "nao_servido_total": 101,
@@ -168,8 +168,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 271,
-        "effectively_guarded": 271
+        "with_manual_ddl": 272,
+        "effectively_guarded": 272
       },
       "stream": "FV"
     },
