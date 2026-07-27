@@ -107,11 +107,46 @@ function listarTestes() {
   return out;
 }
 
+/**
+ * Casos do módulo — DUAS casas, porque o contrato não é só do React ([W] 2026-07-26:
+ * *"1 e 2 são requeridos sim. tem que ter tudo do blade"*).
+ *
+ *   1. `resources/js/Pages/<Mod>/<Tela>.casos.md`     — tela React (governado pelo
+ *      `casos-coverage-guard`, required: G-1 trio + G-2 UC↔teste)
+ *   2. `memory/requisitos/<Mod>/_telas/<fluxo>.casos.md` — fluxo **sem tela React**:
+ *      Blade puro, rota chamada de outro módulo, ou CU que o React ainda não cobre
+ *
+ * POR QUE A 2ª CASA (medido): o `casos-coverage-guard` varre APENAS `Pages/**`
+ * (`listCasosFiles`). Fluxo Blade não tinha onde ancorar contrato — e foi exatamente
+ * o que travou 4 lacunas do Produto: `CU-PROD-04` (estoque inicial, o React não faz),
+ * `CU-PROD-05` (BOM, sem tela), `CU-PROD-08` (quick-add, chamado de Sells/Purchase) e
+ * `US-PROD-028` (Blade via ReportController).
+ *
+ * POR QUE NÃO ESTENDER O GATE REQUIRED: o G-1 exige trio (charter+casos) de TODA página
+ * roteada. Apontá-lo pra `resources/views/**` faria ~600 Blades nascerem em violação de
+ * uma vez — big-bang de legado, a lápide de 2026-07-12. A fronteira fica: o `casos-gate`
+ * governa o React (required); este painel percorre a cadeia inteira, React **e** Blade
+ * (advisory). Nenhum re-julga o que o outro julga.
+ *
+ * `_telas/` já é a casa canônica dos artefatos por-tela do módulo (RUNBOOK-*, *-visual-
+ * comparison) — não é diretório novo.
+ */
 function casosDoModulo(mod) {
-  const dir = `resources/js/Pages/${mod}`;
-  let ents; try { ents = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return []; }
-  return ents.filter((e) => e.isFile() && e.name.endsWith('.casos.md'))
-    .map((e) => ({ tela: e.name.replace('.casos.md', ''), path: `${dir}/${e.name}`, src: ler(`${dir}/${e.name}`) }));
+  const out = [];
+  const coletar = (dir, sufixoTela) => {
+    let ents; try { ents = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return; }
+    for (const e of ents) {
+      if (!e.isFile() || !e.name.endsWith('.casos.md')) continue;
+      out.push({
+        tela: e.name.replace('.casos.md', '') + sufixoTela,
+        path: `${dir}/${e.name}`,
+        src: ler(`${dir}/${e.name}`),
+      });
+    }
+  };
+  coletar(`resources/js/Pages/${mod}`, '');
+  coletar(`memory/requisitos/${mod}/_telas`, ' (blade)');
+  return out;
 }
 function telasDoModulo(mod) {
   const dir = `resources/js/Pages/${mod}`;
@@ -167,8 +202,16 @@ if (IS_MAIN && args.includes('--selftest')) {
     citadoComoAncora('> **Âncora:** `CU-PROD-14` (ficha/consulta) e `CU-PROD-10` `[T0]` do', 'CU-PROD-14') === true);
   ok('NÃO cobre: id parecido (não casa prefixo)',
     citadoComoAncora('| UC-X-01 | y | CU-PROD-061 | z |', 'CU-PROD-06') === false);
+  // 2ª rodada de anti-gaming — o agent dos fluxos Blade citou uma US numa tabela de
+  // CONTEXTO e ela saiu do backlog sem contrato. Só linha que COMEÇA com id conta.
+  ok('NÃO cobre: id em tabela de contexto (1º campo não é id)',
+    citadoComoAncora('| Fluxo | Canon | Blade | Delphi | US-PROD-025 |', 'US-PROD-025') === false);
+  ok('cobre: CU em coluna de linha que começa com UC (rastreabilidade real)',
+    citadoComoAncora('| UC-PBULK-01 | Editar em lote | must | CU-PROD-06 |', 'CU-PROD-06') === true);
+  ok('cobre: 1º campo com backticks',
+    citadoComoAncora('| `UC-PFIX-01` | Ajuste no relatório | must | US-PROD-028 |', 'US-PROD-028') === true);
 
-  const TOTAL = 19;
+  const TOTAL = 22;
   console.log(f === 0 ? `\n✅ selftest ${TOTAL}/${TOTAL} — extratores, classificador e anti-gaming provados` : `\n❌ ${f} falha(s)`);
   process.exit(f === 0 ? 0 : 1);
 }
@@ -229,7 +272,13 @@ const telasSemCasos = telas.filter((t) => !casos.some((c) => c.tela === t));
 export function citadoComoAncora(src, id) {
   const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(
-    `(^\\|[^\\n]*\\b${esc}\\b)`                                   // linha de tabela
+    // Linha de tabela: só conta se a linha for de RASTREABILIDADE — 1º campo é um id
+    // (UC-/US-/CU-). Sem isso, o id citado em QUALQUER coluna de QUALQUER tabela vira
+    // âncora: o agent da corrida dos fluxos Blade gamificou sem querer (citou US-PROD-025
+    // numa tabela de contexto e a US saiu do backlog sem contrato), pegou comparando o
+    // backlog antes/depois, e reportou. A linha `| UC-PBULK-01 | … | CU-PROD-06 |` segue
+    // valendo pro CU — porque ELA começa com id, então é rastreabilidade de verdade.
+    `(^\\|\\s*\`?(UC|US|CU)-[A-Z0-9]{2,10}-\\d{2,4}\`?\\s*\\|[^\\n]*\\b${esc}\\b)`
     + `|(^\\s*(related_us|us|ancora|âncora|covers|cobre)\\s*:[^\\n]*\\b${esc}\\b)` // frontmatter
     + `|(^\\s*[>\\-*\\s]*\\*\\*(Âncora|Ancora|Cobre|Covers)[^\\n]*\\b${esc}\\b)`,  // declaração
     'im',

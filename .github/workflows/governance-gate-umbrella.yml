@@ -53,9 +53,17 @@ jobs:
       # fluxo" (correção-do-mecanismo ≠ invocação · proibicoes §5 2026-07-09).
       # Casa aqui pelos irmãos: adr-index-generate/palette-generate/plans-index já vivem
       # neste job, e o padrão canônico é gerador --write + gerador --check no CI.
-      # SEM continue-on-error DE PROPÓSITO: este job NÃO é required, então hard-fail aqui
-      # fica vermelho HONESTO sem bloquear merge — que é o desenho da fase advisory
-      # (§5 2026-07-09: suprimir o vermelho é que reconstrói o gate-de-teatro).
+      # SEM continue-on-error DE PROPÓSITO — mas ATENÇÃO, a justificativa original estava
+      # FACTUALMENTE ERRADA e induziu erro em quem copiou o padrão (medido 2026-07-27, #4826):
+      # ela dizia "este job NÃO é required". **É** — o context `Governance Gate (índice +
+      # memory-health + meta-teste)` consta em `governance/required-checks-baseline.json`
+      # (o cabeçalho deste arquivo, L7-8, já dizia isso: "o flip JÁ OCORREU").
+      # Consequência real: hard-fail AQUI **bloqueia merge**, não é "vermelho honesto advisory".
+      # Para o `tasks-index-generate` isso é ACEITÁVEL e provavelmente desejado — índice gerado
+      # que drifta é defeito determinístico, de fix trivial (`--write`). O que NÃO se pode é
+      # copiar a justificativa: quem plugar step novo aqui herda BLOQUEIO, não advisory.
+      # (§5 2026-07-09 segue valendo: suprimir vermelho reconstrói gate-de-teatro. A questão
+      # não é suprimir — é saber que neste job o vermelho TRAVA, e decidir com isso à vista.)
       - name: Índice de BACKLOG em dia (gerado × commitado — ADR 0070)
         run: node scripts/governance/tasks-index-generate.mjs --check
       # 2026-07-26 — MESMA CLASSE do plans-index acima: o lint NASCEU sem invocador.
@@ -68,7 +76,16 @@ jobs:
       # FORWARD-ONLY de propósito: `--check-novos` só olha `.casos.md` ADICIONADOS no diff.
       # Os 35 refs legados ficam grandfathered — cobrar backfill de legado morre no CI e é a
       # lápide de 2026-07-12. Bite-test provado em branch descartável: ruim→exit 1, bom→exit 0.
+      # ⚠️ continue-on-error OBRIGATÓRIO aqui, e a razão contradiz o comentário do
+      # tasks-index-generate acima: o job `Governance Gate (índice + memory-health +
+      # meta-teste)` **É REQUIRED** (conferido em governance/required-checks-baseline.json).
+      # Um step hard-fail dentro dele NÃO é "vermelho honesto advisory" — é BLOQUEIO DE MERGE.
+      # Sem esta linha, este lint (declarado advisory na ADR 0275 e no próprio PR que o criou)
+      # viraria gate bloqueante sem flip [W] — LC-10: o artefato afirmava um enforcement que
+      # o comportamento contradizia. Medido no #4826: derrubou o job required do próprio PR
+      # que criou os casos.md. Promover a bloqueante é decisão [W] (ADR 0336, mordida provada).
       - name: Refs frágeis em casos.md novo (C1 · sdd-output-lint · forward-only)
+        continue-on-error: true
         run: |
           # fetch explícito da ref: sem ela o script cai no fallback e sai 0 SEMPRE —
           # gate mudo é pior que gate ausente, porque parece cobertura.

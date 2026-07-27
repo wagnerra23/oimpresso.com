@@ -15,18 +15,16 @@
 | US no SPEC | 9 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 7 |
-| Telas com `casos.md` | 7 |
-| UC declarados | 39 |
-| UC com teste que os cita | 39 |
+| Telas com `casos.md` | 11 |
+| UC declarados | 54 |
+| UC com teste que os cita | 54 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| `CU-PROD-04` sem UC | caso de uso que o exercite — Estoque inicial + localização + alerta + validade/lote |
-| `CU-PROD-05` sem UC | caso de uso que o exercite — Combo/kit + BOM |
-| `CU-PROD-08` sem UC | caso de uso que o exercite — Quick-add inline (sem sair do fluxo) |
-| `US-PROD-028` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Blindar `fixVariationStockMisMatch` com parsing locale-safe |
+| `CU-PROD-09` sem UC | caso de uso que o exercite — Código de barras + etiqueta |
+| `CU-PROD-12` sem UC | caso de uso que o exercite — Correção de valor / agregação de inventário |
 
 ### Backlog — NÃO é lacuna
 
@@ -40,6 +38,7 @@
 | US-PROD-020 | `todo` | [G-04] Governança do Produto: casos.md + revisar SPEC |
 | US-PROD-021 | `todo` | [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) |
 | US-PROD-022 | `todo` | [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mul |
+| US-PROD-023 | `todo` | [G-05] Finalizar + promover as 8 telas React do Produto (draft→live) + `can:prod |
 | US-PROD-024 | `todo` | [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta prim |
 | US-PROD-025 | `todo` | [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV |
 | US-PROD-026 | `todo` | Fornecedores/cotação por produto (melhor preço no drawer) |
@@ -49,6 +48,10 @@
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-PBOM-01 | bom-combo (blade) | 🧪 aguarda veredito da lane |
+| UC-PBOM-02 | bom-combo (blade) | 🧪 aguarda veredito da lane |
+| UC-PBOM-03 | bom-combo (blade) | 🧪 aguarda veredito da lane |
+| UC-PBOM-04 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBULK-01 | BulkEdit | 🧪 aguarda veredito da lane |
 | UC-PBULK-02 | BulkEdit | 🧪 aguarda veredito da lane |
 | UC-PBULK-03 | BulkEdit | 🧪 aguarda veredito da lane |
@@ -68,12 +71,23 @@
 | UC-PEDIT-05 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-06 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-07 | Edit | 🧪 aguarda veredito da lane |
+| UC-PFIX-01 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
+| UC-PFIX-02 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
+| UC-PFIX-03 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
 | UC-PIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-03 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-06 | Index | 🧪 aguarda veredito da lane |
+| UC-PINIC-01 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
+| UC-PINIC-02 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
+| UC-PINIC-03 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
+| UC-PINIC-04 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
+| UC-PQCK-01 | quick-add (blade) | 🧪 aguarda veredito da lane |
+| UC-PQCK-02 | quick-add (blade) | 🧪 aguarda veredito da lane |
+| UC-PQCK-03 | quick-add (blade) | 🧪 aguarda veredito da lane |
+| UC-PQCK-04 | quick-add (blade) | 🧪 aguarda veredito da lane |
 | UC-PSHOW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-03 | Show | 🧪 aguarda veredito da lane |

@@ -67,6 +67,26 @@ name: Estoque · Pest (MySQL)
 #   exige o 2º business pros dois eixos de cross-tenant (produto E tabela de preço) e usa payload
 #   pt-BR pra provar o `num_uf`; em sqlite daria SKIP ("skipa e mente").
 #   ⚠️ Eixo VALOR → REGRA MESTRE: o teste PROVA, o fix é decisão [W] (2 caminhos + antes→depois).
+#
+# 2026-07-27 — +4 contratos de FLUXO SEM TELA REACT do módulo Produto (as 4 lacunas que
+#   sobraram no `_STATUS-GENERATED.md` depois que as 7 telas ganharam trio). Decisão [W]
+#   2026-07-26: *"1 e 2 são requeridos sim. tem que ter tudo do blade"* — o contrato não é só
+#   do React. Os casos moram em `memory/requisitos/Produto/_telas/*.casos.md` (2ª casa lida
+#   pelo `requisitos-status.mjs`), porque o `casos-coverage-guard` varre só `Pages/**`.
+#     · `EstoqueInicialContratoTest`        — CU-PROD-04 (UC-PINIC-01..04). `POST /opening-stock/save`,
+#       fluxo 100% Blade (varredura contada: 0 telas React informam estoque inicial).
+#     · `ProdutoBomContratoTest`            — CU-PROD-05 (UC-PBOM-01..04). API de BOM + `BomResolver`.
+#       ⚠️ Entra AQUI porque os testes que pareciam cobrir isso NÃO RODAM: `tests/Feature/Domain/
+#       Inventory/{BomResolverTest,ReservarEstoqueBomTest}.php` auto-pulam fora do sqlite e não
+#       estão em `.github/ci-sqlite-pest.list` nem em lane nenhuma (varredura contada de
+#       `Domain/Inventory` em `.github/`+`scripts/`: 0) → skip-as-pass em todo lugar.
+#     · `QuickAddProdutoContratoTest`       — CU-PROD-08 (UC-PQCK-01..04). `POST /products/
+#       save_quick_product`, chamado de 10 Blades de venda/compra e de 0 telas React.
+#     · `AjusteEstoqueRelatorioContratoTest` — US-PROD-028 (UC-PFIX-02/03). Eixos TENANT e ALCANCE
+#       do botão "Fix"; o eixo NUMÉRICO (UC-PFIX-01) segue no `EstoqueFixMismatchNumUfTest`.
+#   Todos precisam de MySQL real (schema UltimatePOS + `product_bom` do baseline + 2º business
+#   pro cross-tenant); em sqlite dariam SKIP.
+#   ⚠️ Eixos ESTOQUE e VALOR → REGRA MESTRE: o teste PROVA, o fix é decisão [W].
 
 on:
   workflow_dispatch: {}
@@ -185,7 +205,11 @@ jobs:
             tests/Feature/Produto/ProdutoEditPayloadContratoTest.php \
             tests/Feature/Produto/ProdutoShowContratoTest.php \
             tests/Feature/Produto/ProdutoIndexContratoTest.php \
-            tests/Feature/Produto/ProdutoBulkEditContratoTest.php
+            tests/Feature/Produto/ProdutoBulkEditContratoTest.php \
+            tests/Feature/Produto/EstoqueInicialContratoTest.php \
+            tests/Feature/Produto/ProdutoBomContratoTest.php \
+            tests/Feature/Produto/QuickAddProdutoContratoTest.php \
+            tests/Feature/Produto/AjusteEstoqueRelatorioContratoTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
