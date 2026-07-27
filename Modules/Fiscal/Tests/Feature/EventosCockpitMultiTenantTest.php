@@ -21,6 +21,10 @@ uses(Tests\TestCase::class);
  * biz=1) + CRIA uma linha biz=99 real (bypass do scope) pra o scope ter o que
  * excluir, MAIS um controle positivo biz=1 (garante que o filtro é por-tenant, não
  * "esconde tudo"). ADR 0093 (multi-tenant Tier 0) + ADR 0101 (biz=1).
+ *
+ * @covers-us US-FISCAL-007
+ * (ADR 0273/0303 — este arquivo esta na allowlist da lane que emite JUnit,
+ *  entao o "verde" declarado aqui e alcancavel; ver SDD Fiscal §8.1.)
  */
 
 const EVENTOS_BIZ_WAGNER   = 1;
@@ -65,7 +69,7 @@ afterEach(function () {
     }
 });
 
-it('mapa de TIPOS cobre os 7 códigos SEFAZ canônicos esperados pelo cockpit', function () {
+it('UC-FEVT-03 · mapa de TIPOS cobre os 7 códigos SEFAZ canônicos esperados pelo cockpit', function () {
     $tipos = \Modules\Fiscal\Http\Controllers\EventosController::TIPOS;
 
     expect($tipos)
@@ -76,7 +80,7 @@ it('mapa de TIPOS cobre os 7 códigos SEFAZ canônicos esperados pelo cockpit', 
         ->and($tipos['210200']['kind'])->toBe('manifest');
 });
 
-it('NfeEvento HasBusinessScope esconde cross-tenant — listagem timeline scoped', function () {
+it('UC-FEVT-01 · NfeEvento HasBusinessScope esconde cross-tenant — listagem timeline scoped', function () {
     // Emissão pai + evento CROSS-TENANT (biz=99). nfe_emissoes NÃO tem FK a business ⇒
     // biz fictício OK. numero randômico evita colisão do UNIQUE (business_id,modelo,serie,numero).
     $emissaoCross = DB::table('nfe_emissoes')->insertGetId([
@@ -136,6 +140,6 @@ it('NfeEvento HasBusinessScope esconde cross-tenant — listagem timeline scoped
     expect(NfeEvento::where('id', $eventoOwn)->first())->not->toBeNull();
 });
 
-it('NfeEvento é append-only (UPDATED_AT = null) — eventos não devem ser editados', function () {
+it('UC-FEVT-02 · NfeEvento é append-only (UPDATED_AT = null) — eventos não devem ser editados', function () {
     expect(NfeEvento::UPDATED_AT)->toBeNull();
 });

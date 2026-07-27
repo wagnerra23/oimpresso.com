@@ -42,5 +42,20 @@ Lista navegável de **NFS-e emitidas** (Sistema Nacional NT 2024-001 — substit
 
 - 🚫 Não acessar NfseEmissao sem global scope
 - 🚫 Não usar PHP `is_numeric()` na busca — `preg_replace('/\D/', '', $s)` pra CPF/CNPJ
-- 🚫 Não JOIN com `transactions` ainda — dados já em NfseEmissao->cpf_cnpj_tomador
+- 🚫 Não JOIN com `transactions` ainda — dados já em `NfseEmissao->tomador_cnpj` / `->tomador_cpf` <!-- fato corrigido 2026-07-27: dizia `cpf_cnpj_tomador`, coluna que NÃO existe (schema race, recibo no rodapé). A intenção do anti-hook é literalmente a mesma. -->
 - 🚫 Não mostrar `error_msg` completo na tabela (só hover/title) — pode conter PII
+
+---
+
+## Reconciliação factual — 2026-07-27 (`sdd-from-source`, Fase 2.6)
+
+**Só FATO foi corrigido. Nenhuma intenção (Mission, Goals, Non-Goals, Anti-hooks) foi tocada.**
+
+| O que dizia | O que é | Evidência |
+|---|---|---|
+| anti-hook citava `NfseEmissao->cpf_cnpj_tomador` | a coluna **não existe**; as reais são `tomador_cnpj` e `tomador_cpf` | varredura contada `grep -rn "cpf_cnpj_tomador" Modules/ resources/js/ database/` = **3** ocorrências, e **as outras 2 são comentários explicando que ela não existe** (`NfseCockpitController` docblock + cabeçalho do `NfseCockpitControllerTest`). Colunas reais no `$fillable` de `Modules/NFSe/Models/NfseEmissao.php` |
+
+**Causa:** duelo de duas migrations para `nfse_emissoes` — a nova (com `cpf_cnpj_tomador`, `value_servico`, `emitted_at`) nunca rodou em produção porque a tabela já existia. O Controller foi revertido para o schema antigo, traduzindo os estados PT→EN. O anti-hook ficou congelado no vocabulário do schema que não existe.
+A **intenção** ("não fazer JOIN com `transactions` ainda") continua idêntica — só o nome da coluna foi acertado.
+
+Contexto completo: [`memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md`](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md) §5.2 e §5.4.4 · contrato de teste em [`Nfse.casos.md`](Nfse.casos.md).
