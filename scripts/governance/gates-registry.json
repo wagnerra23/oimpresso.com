@@ -582,13 +582,6 @@
       "classe": "automacao",
       "terminal": "cron",
       "anchor": "ADR 0334 (invariante anti-atrofia da inteligência de negócio) §Consequências — a ADR entregou a sentinela + prometeu o \"wiring do alarme como workflow advisory semanal\" e deixou como decisão de custo do [W]; [W] autorizou 2026-07-17. Sinal de custo MEDIDO: até este PR o único invocador do script fora de memory/ era o próprio .test.mjs (correção-do-mecanismo ≠ invocação, proibicoes §5 2026-07-09) — o crossover de junho (governança 8× negócio) passou silencioso e o 3,4× de 2026-07-17 (1311 merges: 228 negócio × 778 governança, 77% > limiar 65%) só apareceu porque um verificador rodou na mão."
-    },
-    "cliente-pest.yml": {
-      "nome": "Cliente · Pest (MySQL)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-08-27",
-      "anchor": "Lane nascida no chip SDD de Cliente (passo 5, PR #4870). O chip mediu que Modules/Crm/Tests (14 arquivos) NAO esta no phpunit.xml — nao roda nem no nightly; os testes do Cliente vivem em tests/Feature/Cliente/. Eixo Tier 0 do modulo e PII/LGPD. Advisory por nascimento (ADR 0275)."
     }
   }
 }
