@@ -1,6 +1,6 @@
 ---
 id: requisitos-jana-briefing
-distilled_at: "2026-07-17"
+distilled_at: "2026-07-27"
 distilled_by: "manual [CC] — redistilação por releitura do módulo (código + SPEC + baseline + flags). Substitui o destilado automático de 2026-07-10, que carimbou META de maio como estado atual (ver §Estado atual)"
 module: Jana
 status: producao
@@ -66,3 +66,17 @@ Releitura direta em 2026-07-17 — não de sessions/handoffs (o destilado anteri
 - janela: `git log --since=2026-07-10 -- Modules/Jana memory/requisitos/Jana` (21 commits)
 </content>
 </invoke>
+
+---
+
+## Delta 2026-07-27 (não-redistilação — só o que mudou)
+
+**O que entrou no módulo:** `Services/TaskRegistry/HitlEscalationService.php` — o elo **detectar→decidir**. Transporte idempotente que materializa uma pendência já detectada por um sentinela como **1 task `blocked`/`wagner`** em `mcp_tasks`, que é o canal que o `brief-fetch` imprime como *HITL pending Wagner* (procedure `2026_05_06_172445`). Mora aqui porque o Jana é o dono de `mcp_tasks` (ADR 0070) — não em módulo paralelo.
+
+**Por que existia o buraco (medido, não suposto):** varredura dos 12 sentinelas agendados (`handoff:stale-alert`, os 9 `*:health-check`, `governance:detect-drift`, `ads:learn-patterns`) → **12 de 12 criam ZERO task**. Todos notificam ou logam e param. O `handoff-stale` repetiu o mesmo alerta por **38 dias** sem virar decisão de ninguém.
+
+**Regra que impede a máquina de brigar com o humano:** `task_id` determinístico (`HITL-<CHAVE>`) → re-escalar atualiza a MESMA task. `done`/`cancelled` **não reabre**; `todo`/`doing`/`review` **não rebaixa**. Fail-open se `mcp_tasks` não existir — o transporte nunca derruba o sentinela.
+
+**Teste:** `Tests/Feature/TaskRegistry/HitlEscalationServiceTest.php`, 7 casos / 17 assertions, rodados no CT 100 com MySQL real. A 1ª versão dele era **corruptora** (`dropIfExists('mcp_tasks')` + DDL em `activity_log`) e o `sqlite-test-corruptors` reprovou com razão — corrigido para mock de facade + `disableLogging()`.
+
+**O que este delta NÃO fez:** releitura de agents/commands/controllers/config. A leitura de fundo continua sendo a de 2026-07-17 acima.
