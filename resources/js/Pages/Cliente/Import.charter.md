@@ -16,6 +16,7 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "wizard upload XLSX com preview, divergente do Index lista"
 related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-import.md
 related_visual_comparison: memory/requisitos/Crm/cliente-import-visual-comparison.md
+related_us: [US-CRM-082]
 ---
 
 # Page Charter — /contacts/import (LIVE)
