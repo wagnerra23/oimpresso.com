@@ -107,11 +107,46 @@ function listarTestes() {
   return out;
 }
 
+/**
+ * Casos do módulo — DUAS casas, porque o contrato não é só do React ([W] 2026-07-26:
+ * *"1 e 2 são requeridos sim. tem que ter tudo do blade"*).
+ *
+ *   1. `resources/js/Pages/<Mod>/<Tela>.casos.md`     — tela React (governado pelo
+ *      `casos-coverage-guard`, required: G-1 trio + G-2 UC↔teste)
+ *   2. `memory/requisitos/<Mod>/_telas/<fluxo>.casos.md` — fluxo **sem tela React**:
+ *      Blade puro, rota chamada de outro módulo, ou CU que o React ainda não cobre
+ *
+ * POR QUE A 2ª CASA (medido): o `casos-coverage-guard` varre APENAS `Pages/**`
+ * (`listCasosFiles`). Fluxo Blade não tinha onde ancorar contrato — e foi exatamente
+ * o que travou 4 lacunas do Produto: `CU-PROD-04` (estoque inicial, o React não faz),
+ * `CU-PROD-05` (BOM, sem tela), `CU-PROD-08` (quick-add, chamado de Sells/Purchase) e
+ * `US-PROD-028` (Blade via ReportController).
+ *
+ * POR QUE NÃO ESTENDER O GATE REQUIRED: o G-1 exige trio (charter+casos) de TODA página
+ * roteada. Apontá-lo pra `resources/views/**` faria ~600 Blades nascerem em violação de
+ * uma vez — big-bang de legado, a lápide de 2026-07-12. A fronteira fica: o `casos-gate`
+ * governa o React (required); este painel percorre a cadeia inteira, React **e** Blade
+ * (advisory). Nenhum re-julga o que o outro julga.
+ *
+ * `_telas/` já é a casa canônica dos artefatos por-tela do módulo (RUNBOOK-*, *-visual-
+ * comparison) — não é diretório novo.
+ */
 function casosDoModulo(mod) {
-  const dir = `resources/js/Pages/${mod}`;
-  let ents; try { ents = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return []; }
-  return ents.filter((e) => e.isFile() && e.name.endsWith('.casos.md'))
-    .map((e) => ({ tela: e.name.replace('.casos.md', ''), path: `${dir}/${e.name}`, src: ler(`${dir}/${e.name}`) }));
+  const out = [];
+  const coletar = (dir, sufixoTela) => {
+    let ents; try { ents = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return; }
+    for (const e of ents) {
+      if (!e.isFile() || !e.name.endsWith('.casos.md')) continue;
+      out.push({
+        tela: e.name.replace('.casos.md', '') + sufixoTela,
+        path: `${dir}/${e.name}`,
+        src: ler(`${dir}/${e.name}`),
+      });
+    }
+  };
+  coletar(`resources/js/Pages/${mod}`, '');
+  coletar(`memory/requisitos/${mod}/_telas`, ' (blade)');
+  return out;
 }
 function telasDoModulo(mod) {
   const dir = `resources/js/Pages/${mod}`;
