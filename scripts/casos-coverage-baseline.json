@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-07-27T12:52:19.395Z",
+    "generated_at": "2026-07-27T18:22:42.905Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
@@ -9,7 +9,7 @@
       "ucs_declared": 181,
       "missing_charter": 0,
       "missing_casos": 192,
-      "orphan_ucs": 28,
+      "orphan_ucs": 27,
       "metadata_issues": 0,
       "stale_cases": 0,
       "status_lies": 0,
@@ -219,7 +219,6 @@
     "trio:missing-casos:resources/js/Pages/Vestuario/Etiquetas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Whatsapp/Settings.tsx",
     "trio:missing-casos:resources/js/Pages/Whatsapp/Templates/Index.tsx",
-    "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-05",
     "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-07",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-02",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-03",
