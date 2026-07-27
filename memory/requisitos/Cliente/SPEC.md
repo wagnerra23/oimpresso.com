@@ -46,12 +46,17 @@ Gerenciar cadastro de clientes (PF e PJ) com canon BR completo (fiscais + endere
 
 ## §1 — Multi-tenant (Tier 0 IRREVOGÁVEL)
 
-`App\Contact` usa global scope `business_id` (UPOS canon). TODA query passa por scope automático. Cross-tenant retorna 404 (anti-enumeração, não 403). ADR 0093 obrigatório.
+**O contrato:** cross-tenant retorna **404** (anti-enumeração, não 403). [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) obrigatório.
+
+⚠️ **O mecanismo NÃO é global scope** — corrigido 2026-07-27 (chip `sdd-from-source`; a redação anterior afirmava *"`App\Contact` usa global scope `business_id` (UPOS canon). TODA query passa por scope automático"*, e isso é **falso**). Medido: `grep -c "addGlobalScope" app/Contact.php` → **0**; os traits da classe são `Notifiable`, `SoftDeletes`, `LogsActivity`. O padrão canônico existe no repo (`app/Concerns/HasBusinessScope.php`) e **`Contact` não o usa**. O filho `ContactAddress` usa `BelongsToBusinessViaParent` e tem teste cross-tenant; **o pai não**.
+
+O isolamento do cadastro repousa, hoje, em `where('business_id')` escrito **à mão** em cada chamada. É disciplina, não mecanismo — e é exatamente o que a **US-CRM-080** pede pra resolver (o DoD dela já dizia a verdade; era o §1 que estava fora de sincronia). Detalhe e varredura: [SDD §5.4.2](SDD-cadastro-cliente-v1.0.md).
 
 ## §2 — LGPD / PII handling
 
-- `cpf_cnpj`, `ie_rg`, `bank_account_number` **mascarados** via `maskTaxNumber($value)` ANTES do Inertia props
-- Activity log do model `Contact` exclui `tax_number_1`/`cpf_cnpj` via `logOnly`
+- ⚠️ `cpf_cnpj` / `ie_rg`: `maskTaxNumber($value)` é aplicado antes dos props do Inertia, mas **FORMATA, não redige** — corrigido 2026-07-27 (a redação anterior dizia *"mascarados"*, o que se lê como redação). `12345678901` sai `123.456.789-01`: **nenhum dígito é escondido**. As 2 implementações (`ContactController:419` e `ClienteAutosaveController:711`) fazem só `preg_replace` de pontuação, e o docblock da segunda admite: *"mantem digitos visiveis ... nao redact ... futura ADR pode endurecer pra realmente censurar."* **Censurar de verdade é decisão de produto+jurídico, pendente de [W]** — ver [SDD §5.4.3](SDD-cadastro-cliente-v1.0.md).
+- ✅ `bank_account_number`: **redação real** (`'****' . substr($n, -4)`, `ContactController::paymentsJson`). Contratado por **UC-CSHW-03** (`tests/Feature/Cliente/ClientePagamentosPiiTest.php`) desde 2026-07-27. `cheque_number` e `card_transaction_number` saem inteiros no mesmo payload — registrado, sem juízo.
+- Activity log do model `Contact` exclui `tax_number_1`/`cpf_cnpj` via `logOnly` — guard **comportamental** em `tests/Feature/Auditoria/ContactPiiLogsActivityTest.php`
 - Export PDF ledger gera com PII completa (Larissa autorizada via permission)
 - Display "viewed" NÃO logado (privacidade — Charter Anti-hook em todas as Pages)
 
@@ -59,143 +64,145 @@ Gerenciar cadastro de clientes (PF e PJ) com canon BR completo (fiscais + endere
 
 > Formato canon: `### US-XXX-NNN — Título` (compatível com MWART gate regex).
 
-> **Cobertura por US (honesto, pós-revisão adversarial 2026-06-24):** cada US tem `**Testado em:**` com `// @covers-us` no teste citado (gate de covers verde). Mas a *qualidade* varia e está declarada em cada DoD via `_Cob.:_`: **comportamental** (exercita runtime — unit/DB/HTTP/render) = US-072 (schema dos 10 campos + mod-11 do `Rule\BR\CpfCnpj` no unit)·074·075·076·078; **073** = comportamental no primitivo de máscara (`br-inputs.test.tsx`), com lacuna na seção; **065·066·071** = guard estrutural + 1 asserção HTTP que pula sem MySQL no lane sqlite; **063·064·067·068·069·070** = **guard estrutural** (source-grep) — travam o contrato do componente mas não exercitam runtime. ⚠️ Nenhum dos testes citados está hoje numa lane de JUnit do CI; quando o gate "verde" (ADR 0303) armar, vão reportar `ausente` até serem incluídos numa lane.
+> **Cobertura por US (honesto, pós-revisão adversarial 2026-06-24):** cada US tem `**Testado em:**` com `// @covers-us` no teste citado (gate de covers verde). Mas a *qualidade* varia e está declarada em cada DoD via `_Cob.:_`: **comportamental** (exercita runtime — unit/DB/HTTP/render) = US-072 (schema dos 10 campos + mod-11 do `Rule\BR\CpfCnpj` no unit)·074·075·076·078; **073** = comportamental no primitivo de máscara (`br-inputs.test.tsx`), com lacuna na seção; **065·066·071** = guard estrutural + 1 asserção HTTP que pula sem MySQL no lane sqlite; **063·064·067·068·069·070** = **guard estrutural** (source-grep) — travam o contrato do componente mas não exercitam runtime.
+>
+> ⚖️ **Lane (atualizado 2026-07-27).** A frase anterior — *"Nenhum dos testes citados está hoje numa lane de JUnit do CI"* — era **verdadeira e foi parcialmente resolvida**: o `anchor-lint` acusava `15 US com teste-que-cobre fora das lanes de JUnit (verde impossível)`. A lane [`PHP / Pest (Cliente · MySQL)`](../../../.github/workflows/cliente-pest.yml) nasceu em 2026-07-27 com **14 arquivos** na allowlist; ela é **advisory** (não está em [`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json) — reprova visível, não bloqueia merge). Os testes que **seguem fora de lane** são os de US-CRM-066/067/068/069/070/072/073/074/075/078 (guards estruturais e `tests/br-inputs.test.tsx`, que é Vitest, não Pest) — re-rodar `node scripts/governance/anchor-lint.mjs memory/requisitos/Cliente/SPEC.md` para o número do dia, não confiar neste parágrafo.
 
 ### US-CRM-063 — Tab Pagamentos no Show
+> status: done · PR #1298 Wave 5 W-A · 2026-05-21
 
 **Implementado em:** `resources/js/Pages/Cliente/_show/PaymentsTab.tsx` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/Show/PaymentsTabTest.php`
 **DoD:** lista payments paginados do contato (Data/Ref/Valor/Método/Pago por/Ação) via self-fetch `/cliente/{id}/payments-json` scoped `business_id` + permissão `customer.view`; PII bancária mascarada; empty state.
-**Status:** done (PR #1298 Wave 5 W-A · 2026-05-21)
 **Prioridade:** P0
 **Persona:** Larissa
 Self-fetch `/contacts/payments/{id}` exibindo lista paginada de payments (Data/Ref/Valor/Método/Pago por/Ação). Substitui Blade `payments_tab.blade.php`.
 
 ### US-CRM-064 — Tab Ledger inline no Show
+> status: done · PR #1298 Wave 5 W-B · 2026-05-21
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Cliente/_show/LedgerTab.tsx` · `Modules/Crm/Http/Controllers/LedgerController.php` · verificado@3b425d8 (2026-06-24) — render inline 100% pendente (abre Blade legacy ao filtrar)
 **Testado em:** `tests/Feature/Cliente/Show/LedgerTabTest.php`
 **DoD:** filtros range/formato 1·2·3/local, resumos período+total, export PDF/email via `/contacts/send-ledger`, empty state. _Gap conhecido (parcial):_ render inline 100% — ao filtrar ainda abre Blade legacy.
-**Status:** done (PR #1298 Wave 5 W-B · 2026-05-21)
 **Prioridade:** P0
 Range datas + Formato 1/2/3 + filtro localização + export PDF/email via `/contacts/send-ledger`. Gap remanescente: render inline 100% (atualmente abre Blade legacy ao filtrar).
 
 ### US-CRM-065 — Tab Vendas DataTable no Show
+> status: done · PR #1298 Wave 5 W-C · 2026-05-21
 
 **Implementado em:** `resources/js/Pages/Cliente/_show/SalesTab.tsx` · `tests/Feature/Cliente/ClienteSalesJsonEndpointTest.php` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/ClienteSalesJsonEndpointTest.php`
 **DoD:** DataTable de vendas com paginação server-side via partial reload `only:['sales']`, filtros range/status/q; `salesJson($id)` faz `business_id` findOrFail + `customer.view` + delega `buildClienteSalesPaginator`.
-**Status:** done (PR #1298 Wave 5 W-C · 2026-05-21)
 **Prioridade:** P0
 Paginação server-side via Inertia partial reload (`only:['sales']`) + filtros range/status/q. Helper `buildClienteSalesPaginator($id, $filters)`.
 
 ### US-CRM-066 — Tab Documents & Note no Show
+> status: done · PR #1298 Wave 5 W-D · 2026-05-21
 
 **Implementado em:** `resources/js/Pages/Cliente/_show/DocumentsTab.tsx` · `tests/Feature/Cliente/ClienteAnexosEndpointTest.php` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/ClienteAnexosEndpointTest.php`
 **DoD:** upload/list/delete de anexos via `/cliente/{id}/anexos` (GET/POST/DELETE) todos scoped `business_id`; textarea de notas autosave 1500ms via `/note-documents`; contagem viva.
-**Status:** done (PR #1298 Wave 5 W-D · 2026-05-21)
 **Prioridade:** P0
 Upload via `/post-document-upload` + lista + delete + textarea notas autosave 1500ms via `/note-documents`.
 
 ### US-CRM-067 — ActionsMenu + AddDiscountModal no Show
+> status: done · PR #1298 Wave 5 W-E · 2026-05-21
 
 **Implementado em:** `resources/js/Pages/Cliente/_show/ActionsMenu.tsx` · `resources/js/Pages/Cliente/_show/AddDiscountModal.tsx` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/Show/ActionsMenuTest.php`
 **DoD:** dropdown filtrado por permissões (pagar/editar/excluir/ativar-desativar/desconto/atalhos) com endpoints canon (`/contacts/update-status/`, `/ledger-discount`) + CSRF; modal Add Discount com `sub_type`.
-**Status:** done (PR #1298 Wave 5 W-E · 2026-05-21)
 **Prioridade:** P0
 Dropdown 8 itens (Pagar / Editar / Excluir / Activate-Deactivate / Add Discount / ...) filtrado por permissions. Modal Add Discount canon.
 
 ### US-CRM-068 — Tab Pessoas de contato no Show
+> status: done · PR #1305 · 2026-05-19
 
 **Implementado em:** `resources/js/Pages/Cliente/_show/PessoasContatoTab.tsx` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/Show/PessoasContatoTabTest.php`
 **DoD:** componente `_show/PessoasContatoTab.tsx` (5 colunas + "Adicionar pessoa") + injeção `contact_persons` via `Inertia::defer` scoped `business_id`+`crm_contact_id`. _Cob.: guard estrutural sobre a integração em `Show.tsx`_ (superfície dual-render legada; a viva é o drawer — ADR 0179).
-**Status:** done (PR #1305 · 2026-05-19)
 **Prioridade:** P1
 Sub-contatos do cliente (PF dentro de PJ). Listagem + add inline.
 
 ### US-CRM-069 — Tab Assinaturas (subscriptions) no Show
+> status: done · PR #1306 · 2026-05-20
 
 **Implementado em:** `resources/js/Pages/Cliente/_show/SubscriptionsTab.tsx` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/Show/SubscriptionsTabTest.php`
 **DoD:** componente `_show/SubscriptionsTab.tsx` read-only (status ativa/pausada/cancelada) + defer scoped `business_id`+`is_recurring`; self-fetch `/cliente/{id}/subscriptions-json`. _Cob.: guard estrutural sobre a integração em `Show.tsx`_ (superfície legada; a viva é o drawer).
-**Status:** done (PR #1306 · 2026-05-20)
 **Prioridade:** P1
 Recorrência. Listagem read-only com status (ativa/cancelada/pausada).
 
 ### US-CRM-070 — Tab Reward Points no Show
+> status: done · PR #1307 · 2026-05-20
 
 **Implementado em:** `resources/js/Pages/Cliente/_show/RewardPointsTab.tsx` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/Show/RewardPointsTabTest.php`
 **DoD:** componente `_show/RewardPointsTab.tsx` condicional `business.enable_rp` (cards + ledger de pontos) + defer scoped; self-fetch `/cliente/{id}/rewards-json`. _Cob.: guard estrutural sobre a integração em `Show.tsx`_ (superfície legada; a viva é o drawer).
-**Status:** done (PR #1307 · 2026-05-20)
 **Prioridade:** P2
 Tab condicional `rp_enabled`. Ledger inline de pontos + crédito/débito manual.
 
 ### US-CRM-071 — KB-9.75 Slice A no Index
+> status: done · PR #1309 · 2026-05-21
 
 **Implementado em:** `resources/js/Pages/Cliente/Index.tsx` · `tests/Feature/Cliente/ClienteIndexDrawer760CharterTest.php` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/ClienteIndexDrawer760CharterTest.php`
 **DoD:** ⌘K command palette + cheat-sheet (`?`) + navegação J/K + foco busca (`/`); drawer 760px com 6 tabs; PII mascarada; cross-tenant retorna 404.
-**Status:** done (PR #1309 · 2026-05-21)
 **Prioridade:** P0
 ⌘K command palette + Cheat-sheet (`?`) + J/K navigation. Primeiro Page do oimpresso com palette nativo.
 
 ### US-CRM-072 — Restaurar campos fiscais BR perdidos no upgrade UPOS 6.7
+> status: done · PR #1313 · 2026-05-21
 
 **Implementado em:** `database/migrations/2026_05_21_140000_restore_br_fields_to_contacts.php` · `app/Rules/BR/CpfCnpj.php` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Contact/ContactBrFieldsRestoredTest.php` · `tests/Unit/Rules/BR/CpfCnpjTest.php`
 **DoD:** as 10 colunas BR presentes em `contacts` (schema guard `Schema::hasColumn` — `ContactBrFieldsRestoredTest`) + `Rule\BR\CpfCnpj` valida mod-11 (aceita null/válido mascarado+cru, rejeita DV errado/all-equal/curto/letras — `CpfCnpjTest`). _Cob.: schema guard + unit comportamental (mod-11)._
-**Status:** done (PR #1313 · 2026-05-21)
 **Prioridade:** P0
 Migration `2026_05_21_restore_br_fields_to_contacts` restaura 10 campos perdidos: `cpf_cnpj`, `ie_rg`, `rua`, `numero`, `bairro`, `cep`, `consumidor_final`, `contribuinte`, `regime`, `is_sincronizado`. Inclui `Rule\BR\CpfCnpj` (validator mod-11).
 Investigação: [`memory/sessions/2026-05-21-investigar-campos-br-cliente.md`](../../sessions/2026-05-21-investigar-campos-br-cliente.md)
 
 ### US-CRM-073 — UI campos BR em Create/Edit/Show
+> status: done · PR #1316 · 2026-05-21
 
 **Implementado em:** `resources/js/Pages/Cliente/_form/DadosFiscaisBRSection.tsx` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/br-inputs.test.tsx`
 **DoD:** máscaras dinâmicas CPF (11) / CNPJ (14) + validação mod-11 client-side cobertas no primitivo `DocumentInput` (`tests/br-inputs.test.tsx`, Vitest+RTL: máscara progressiva, dígitos crus pra persistir, mod-11 true/false/null, axe). _Cob.: comportamental (primitivo)._ _Lacuna:_ a composição em `_form/DadosFiscaisBRSection.tsx` não tem teste comportamental dedicado.
-**Status:** done (PR #1316 · 2026-05-21)
 **Prioridade:** P0
 Slices 2+3 — sub-components `_form/DadosFiscaisBRSection.tsx` + `_form/EnderecoBRSection.tsx` em Create/Edit (reuso 100%). Bloco fiscal BR na sidebar do Show (`_show/DadosFiscaisBRBlock.tsx`). Máscaras dinâmicas CPF (11 dig) / CNPJ (14 dig).
 > ⚠️ Drift menor: `_form/EnderecoBRSection.tsx` e `_show/DadosFiscaisBRBlock.tsx` citados acima não existem com esse nome em `origin/main@3b425d8` (endereço/fiscal migraram pro drawer ADR 0179). Âncora aponta o que existe: `_form/DadosFiscaisBRSection.tsx`.
 
 ### US-CRM-074 — Comando artisan backfill cpf_cnpj
+> status: done · PR #1319 · 2026-05-21
 
 **Implementado em:** `app/Console/Commands/BackfillCpfCnpjCommand.php` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/BackfillCpfCnpjCommandTest.php`
 **DoD:** comando `cliente:backfill-cpf-cnpj` — dry-run no-op, `--execute` grava só mod-11 válido (dígitos crus), idempotente, `--business-id` isola Tier 0, nunca sobrescreve `cpf_cnpj` existente, log JSON sem PII em claro.
-**Status:** done (PR #1319 · 2026-05-21)
 **Prioridade:** P0
 Slice 4 — `php artisan contacts:backfill-cpf-cnpj` migra `tax_number_1` legacy → `cpf_cnpj` canon. Idempotente (rerunável). Multi-tenant scope (cobre todos os businesses).
 
 ### US-CRM-075 — BrasilAPI lookup CNPJ + botão Buscar
+> status: done · — ⚠️ reconciliado 2026-06-22 (spec dizia "backlog/futuro"; código já existe: `ClienteLookupController::cnpj` + `BrLookupService` + Pest. PR de origem não rastreado)
 
 **Implementado em:** `Modules/Crm/Http/Controllers/ClienteLookupController.php` · `Modules/Crm/Services/BrLookupService.php` · `tests/Feature/Cliente/ClienteLookupCnpjCepTest.php` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/ClienteLookupCnpjCepTest.php`
 **DoD:** `/cliente/lookup/cnpj/{cnpj}` (+ `/cep/`) via `ClienteLookupController` + `BrLookupService` retorna razão social/endereço/IBGE/contatos normalizados; cache hit pula HTTP; 404/429 graceful; auth requerido; formato inválido short-circuit.
-**Status:** done — ⚠️ reconciliado 2026-06-22 (spec dizia "backlog/futuro"; código já existe: `ClienteLookupController::cnpj` + `BrLookupService` + Pest. PR de origem não rastreado)
 **Prioridade:** P1
 Botão "Buscar" ao lado do campo CNPJ chama `https://brasilapi.com.br/api/cnpj/v1/{cnpj}` e preenche razão social + nome fantasia + endereço. Sem auth (público). Fallback se API indisponível.
 
 ### US-CRM-076 — FormRequest backend wirando Rule\BR\CpfCnpj
+> status: done · — ⚠️ reconciliado 2026-06-22 (spec dizia "backlog/futuro"; código já existe: ambos FormRequests aplicam `'cpf_cnpj' => ['nullable', new CpfCnpj]`. PR de origem não rastreado)
 
 **Implementado em:** `app/Http/Requests/Cliente/StoreContactRequest.php` · `app/Http/Requests/Cliente/UpdateContactRequest.php` · verificado@3b425d8 (2026-06-24)
 **Testado em:** `tests/Feature/Cliente/StoreContactRequestTest.php`
 **DoD:** POST `/contacts` (Store) rejeita CPF/CNPJ/indicador_ie/regime inválidos com erros de sessão e aceita válido — mod-11 server-side via `new CpfCnpj`. _Cob.: comportamental (HTTP)._ _Lacuna:_ `UpdateContactRequest` aplica a mesma regra (wirado) mas não há teste dedicado do caminho Update.
-**Status:** done — ⚠️ reconciliado 2026-06-22 (spec dizia "backlog/futuro"; código já existe: ambos FormRequests aplicam `'cpf_cnpj' => ['nullable', new CpfCnpj]`. PR de origem não rastreado)
 **Prioridade:** P0
 `StoreContactRequest` + `UpdateContactRequest` aplicam `Rule\BR\CpfCnpj` no `rules()`. Validação mod-11 server-side obrigatória (defesa em profundidade — não confiar no client).
 
 ### US-CRM-078 — Múltiplos endereços por contato + seletor de endereço na venda
+> status: doing · done (backend + EnderecoTab lista) · PR3 (seletor na venda) pendente — reconciliado 2026-06-22
 
 **Implementado em:** _parcial_ · `database/migrations/2026_06_01_120000_create_contact_addresses_table.php` · `app/ContactAddress.php` · `Modules/Crm/Http/Controllers/ContactAddressController.php` · `resources/js/Pages/Cliente/_drawer/EnderecosEntregaList.tsx` · verificado@3b425d8 (2026-06-24) — PR1+PR2 landed; falta PR3 (seletor escolhe endereço salvo na tela de venda Sells/Create; hoje shipping_address é texto livre)
 **Testado em:** `tests/Feature/Contact/ContactAddressMultiTenantTest.php`
 **DoD:** `contact_addresses` 1:N com `business_id`+FK+scope (cross-tenant biz≠biz isolado, ADR 0093), default+shipping espelhados nos campos inline, `backfillInline` idempotente, store 404 cross-tenant / 403 sem `customer.update`, invariante 1-default. _Gap (parcial):_ PR3 (seletor na venda) pendente.
-**Status:** PR1+PR2 done (backend + EnderecoTab lista) · PR3 (seletor na venda) pendente — reconciliado 2026-06-22
 **Prioridade:** P1 — pedido Wagner 2026-06-01 (cliente cadastra matriz/filial/casa/obra e escolhe na entrega)
 
 **Problema:** hoje o cadastro tem **1 endereço só**, inline em `contacts`
@@ -239,46 +246,46 @@ Pest cross-tenant antes/depois. **PR ≤300 linhas** (faseado PR1/PR2/PR3).
 > Gaps priorizados da [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (nota 65) via [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (Passo 2 do programa de ondas). US **backlog** (`status: todo`, ainda sem código — âncora `_pendente_`). Rastreadas no MCP (`parent_plan=programa-ondas`, tags `capterra-gap`/`onda-cliente`). Segurados (⏸️ sinal pendente ADR 0105, NÃO criados): RFM real, campos custom dinâmicos, Map lib, merge de duplicados, header DS.
 
 ### US-CRM-079 — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
+> status: todo · **Prioridade:** P0 · **Estimate:** 14h
 
 **Implementado em:** _pendente_ — backlog Capterra (G-01), a criar
-**Status:** todo · **Prioridade:** P0 · **Estimate:** 14h
 **DoD:** estender `DsrService::searchableEntityMap()` (+ `LgpdEsquecerTitularTool` anonymize/hard) pra `contacts`: anonimiza PII (nome/CPF/CNPJ/contato) **preservando o registro fiscal** (transactions/NF — retenção legal) + trilha append-only + `business_id` Tier 0. Pest: anonimiza titular biz=1, NF permanece, PII sumiu, cross-tenant isolado.
 Obrigação LGPD Art. 18 §VI + lane de mercado vazia (erasure fiscal-aware — ninguém faz). **Absorve o escopo `contacts` da US-CRM-050** (pipeline depreciado) — não duplicar.
 
 ### US-CRM-080 — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
+> status: todo · **Prioridade:** P0 · **Estimate:** 4h
 
 **Implementado em:** _pendente_ — backlog Capterra (G-02), a criar
-**Status:** todo · **Prioridade:** P0 · **Estimate:** 4h
 **DoD:** Pest prova user@biz=1 não acessa contato@biz=99 (findOrFail → 404) nas rotas de `App\Contact`. Avaliar promover `where('business_id')` manual → global scope (ou documentar). Alinhar o claim SPEC/BRIEFING ("global scope") ao código real. `App\Contact` hoje NÃO tem `addGlobalScope`; só o filho `ContactAddress` tem teste cross-tenant.
 
 ### US-CRM-081 — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
+> status: todo · **Prioridade:** P1 · **Estimate:** 10h
 
 **Implementado em:** _pendente_ — backlog Capterra (G-03), a criar
-**Status:** todo · **Prioridade:** P1 · **Estimate:** 10h
 **DoD:** wirar `TransactionUtil::isCustomerCreditLimitExeeded()` no `store()` da venda com toggle per-business bloqueia/avisa (config, não hardcode). Hoje calcula mas é advisory (não bloqueia). ⚠️ **toca valor → Regra Mestre** (dupla confirmação + antes→depois + aprovação). Pest biz=1: estoura → bloqueia/avisa; dentro → passa.
 
 ### US-CRM-082 — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
+> status: todo · **Prioridade:** P1 · **Estimate:** 12h
 
 **Implementado em:** _pendente_ — backlog Capterra (G-04), a criar
-**Status:** todo · **Prioridade:** P1 · **Estimate:** 12h
 **DoD:** `postImportContacts()` ganha (1) preview antes do commit, (2) detecção de duplicado por CPF/CNPJ + merge/pular, (3) relatório por-linha. `business_id` Tier 0 em todo insert. Hoje parseia direto no DB sem preview/dedupe.
 
 ### US-CRM-083 — UI de consentimento (opt-in/opt-out) + base legal por finalidade
+> status: todo · **Prioridade:** P1 · **Estimate:** 8h
 
 **Implementado em:** _pendente_ — backlog Capterra (G-05), a criar
-**Status:** todo · **Prioridade:** P1 · **Estimate:** 8h
 **DoD:** aba/toggle no drawer pra opt-in/opt-out WhatsApp+email (grava `whatsapp_consent`/`email_consent`/`consent_updated_at`) + base legal Art. 7º. Colunas + guardas `canReceive*` já existem (à frente dos ERPs BR); falta a UI.
 
 ### US-CRM-084 — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
+> status: todo · **Prioridade:** P1 · **Estimate:** 8h
 
 **Implementado em:** _pendente_ — backlog Capterra (fecha gap US-CRM-064), a criar
-**Status:** todo · **Prioridade:** P1 · **Estimate:** 8h
 **DoD:** filtro range/formato/local re-renderiza inline via partial reload (`only:['ledger']`), sem abrir Blade legacy. Preserva export PDF/email. Fecha o gap parcial declarado em US-CRM-064.
 
 ### US-CRM-085 — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
+> status: todo · **Prioridade:** P2 · **Estimate:** 4h
 
 **Implementado em:** _pendente_ — backlog Capterra (G-06), a criar
-**Status:** todo · **Prioridade:** P2 · **Estimate:** 4h
 **DoD:** export do registro completo (cadastro + endereços + transações + documentos + consentimento) CSV/JSON, scoped `business_id`, com permissão + log de auditoria. Par natural do G-01 (US-CRM-079). Hoje portabilidade = só PDF do extrato.
 
 ## §4 — Não-objetivos

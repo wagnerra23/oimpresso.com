@@ -14,6 +14,8 @@ mwart_pattern_reuse:
   blueprint_screenshot_approval: "N/A (divergente)"
   derived_screens: [Import]
   divergence_from_blueprint: "wizard upload XLSX com preview, divergente do Index lista"
+related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-import.md
+related_visual_comparison: memory/requisitos/Crm/cliente-import-visual-comparison.md
 ---
 
 # Page Charter — /contacts/import (LIVE)
