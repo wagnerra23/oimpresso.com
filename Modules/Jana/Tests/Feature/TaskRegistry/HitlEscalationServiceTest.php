@@ -57,24 +57,13 @@ function hitlEnsureTabelas(): void
         });
     }
 
-    // McpTask usa LogsActivity — o create() Eloquent (que é o caminho REAL de produção,
-    // ao contrário do DB::table dos irmãos) grava em activity_log. Mesmo shim do
-    // tests/Pest.php (bloco RecurringBilling), guarded.
-    if (! Schema::hasTable('activity_log')) {
-        Schema::create('activity_log', function ($t) {
-            $t->id();
-            $t->string('log_name')->nullable();
-            $t->text('description')->nullable();
-            $t->unsignedBigInteger('subject_id')->nullable();
-            $t->string('subject_type')->nullable();
-            $t->unsignedBigInteger('causer_id')->nullable();
-            $t->string('causer_type')->nullable();
-            $t->json('properties')->nullable();
-            $t->string('event')->nullable();
-            $t->uuid('batch_uuid')->nullable();
-            $t->timestamps();
-        });
-    }
+    // McpTask usa LogsActivity, e o create() Eloquent (o caminho REAL de produção)
+    // gravaria em `activity_log`. A 1ª versão deste teste CRIAVA a tabela — e o
+    // `sqlite-test-corruptors` reprovou com razão: `activity_log` é ALTO RAIO (dezenas
+    // de models a usam), então DDL manual nela corrompe o MySQL persistente do CT 100
+    // pros testes seguintes. Aqui a gente DESLIGA o log em vez de fabricar a tabela:
+    // o que este teste prova é o contrato do escalonamento, não o activity-log.
+    activity()->disableLogging();
 
     if (! Schema::hasTable('mcp_task_events')) {
         Schema::create('mcp_task_events', function ($t) {
@@ -174,9 +163,13 @@ it('prioridade inválida cai pro default p2 em vez de estourar', function () {
 it('FAIL-OPEN: sem a tabela mcp_tasks o transporte devolve null e NÃO estoura', function () {
     // O sentinela não pode morrer por causa do elo. Cenário real: a lane sqlite do
     // HandoffStaleAlertTest monta cowork_handoffs/mcp_inbox sintéticos e NÃO mcp_tasks.
-    Schema::dropIfExists('mcp_tasks');
+    //
+    // MOCK do facade, NÃO `Schema::dropIfExists('mcp_tasks')`: a 1ª versão dropava a
+    // tabela de verdade e o `sqlite-test-corruptors` reprovou (`corruptsOnMysql`,
+    // score 105, tier S). Estava CERTO — rodando no CT 100 contra MySQL persistente,
+    // aquele drop apagaria a tabela real de tasks. O guard é `Schema::hasTable`;
+    // então é o `hasTable` que se finge de falso, sem tocar em banco nenhum.
+    Schema::shouldReceive('hasTable')->with('mcp_tasks')->andReturnFalse();
 
     expect(hitlSvc()->escalar('TESTE-CLASSE', 'x', 'y', 'TeamMcp', 'p2', 'teste'))->toBeNull();
-
-    hitlEnsureTabelas(); // devolve o estado pros próximos casos
 });
