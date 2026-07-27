@@ -18,6 +18,14 @@ use Tests\TestCase;
  *
  * Tier 0 ADR 0093 — multi-tenant scope coberto por business_id=1 (ADR 0101 NUNCA biz=4).
  * Multi-tenant deep test entra na Wave 3 (MultiTenantIsolationTest).
+ *
+ * Contrato de tela (ADR 0264 G-2 · trio de Compras/Index, 2026-07-27):
+ *   @covers-uc UC-CMP-05 — porta de entrada do cockpit: 403 sem `compras.view`,
+ *     componente Inertia `Compras/Index` com ela, e `permissions.create` resolvido
+ *     por `purchase.create` (convergência C1), não por `compras.create`.
+ *   Âncora: memory/requisitos/Compras/SDD-tela-cockpit-compras-v1.0.md §6.1
+ *           (CU-COM-01 itens 1-2 · CU-COM-07 item 2)
+ *           resources/js/Pages/Compras/Index.casos.md (UC-CMP-05)
  */
 class ComprasIndexTest extends TestCase
 {

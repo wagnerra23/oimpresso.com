@@ -130,6 +130,17 @@ jobs:
         # (não-blind, ADR 0062): SqlGuard (R1 toSql), GapsHardening, GapsP1,
         # ListagemNPlusUm, ComprasIndexTest (5 pass), MultiTenantTest (5 pass —
         # cenários 1-4 de isolamento cross-tenant + sanity, ADR 0093).
+        #
+        # ⚠️ EXCEÇÃO DECLARADA À CATRACA (2026-07-27 · chip S1 do passo 5, ADR 0351):
+        # `ComprasContratoFiltrosTest` entra na allowlist SEM ser verde — é
+        # FAILING-FIRST por desenho (UC-CMP-06/07/08 do Index.casos.md, derivados
+        # do SDD §6 CU-COM-04/05 e da Blade legada, NÃO do Index.tsx). O motivo de
+        # listá-lo mesmo assim: teste fora da allowlist NÃO RODA — é o "verde
+        # impossível" que o anchor-lint denuncia, pior que o vermelho honesto.
+        # Esta lane é ADVISORY (não está em governance/required-checks-baseline.json),
+        # então o vermelho fica VISÍVEL e NÃO bloqueia merge. Se o vermelho vier, ELE
+        # É O ACHADO: a correção é decisão do [W] (proibicoes.md §Precedência), não
+        # conserto silencioso — e aí o arquivo volta pro regime "ratchet up".
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -146,7 +157,8 @@ jobs:
             Modules/Compras/Tests/Feature/GapsP1HardeningTest.php \
             Modules/Compras/Tests/Feature/ComprasListagemNPlusUmTest.php \
             Modules/Compras/Tests/Feature/ComprasIndexTest.php \
-            Modules/Compras/Tests/Feature/MultiTenantTest.php
+            Modules/Compras/Tests/Feature/MultiTenantTest.php \
+            Modules/Compras/Tests/Feature/ComprasContratoFiltrosTest.php
 
       - name: Upload JUnit (veredito por-teste — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.compras == 'true' }}

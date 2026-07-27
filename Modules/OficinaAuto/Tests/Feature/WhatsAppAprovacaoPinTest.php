@@ -1,4 +1,6 @@
 <?php
+// @covers-us US-OFICINA-014
+// @covers-us US-AUTO-009
 
 declare(strict_types=1);
 
@@ -168,7 +170,7 @@ it('Cenário 4 — link aprovação respeita isolamento multi-tenant (biz=1 ≠ 
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP004')->forceDelete();
 });
 
-it('Cenário 5 — rejeição cliente preserva OS em orcamento (idempotente — não muda status)', function () {
+it('UC-OAP-07 · Cenário 5 — rejeição cliente preserva OS em orcamento (idempotente — não muda status)', function () {
     session(['user.business_id' => BIZ_WAGNER_WPP]);
 
     $vehicle = createWppVehicle('WPP005');
@@ -194,7 +196,7 @@ it('Cenário 5 — rejeição cliente preserva OS em orcamento (idempotente — 
 // Wave 4 (US-OFICINA-014) — HTTP integration cenários 6+7
 // ---------------------------------------------------------------------------
 
-it('Cenário 6 — GET /aprovar-os/{token} com token VÁLIDO → 200 + Page renderiza form PIN', function () {
+it('UC-OAP-01 · Cenário 6 — GET /aprovar-os/{token} com token VÁLIDO → 200 + Page renderiza form PIN', function () {
     session(['user.business_id' => BIZ_WAGNER_WPP]);
 
     $vehicle = createWppVehicle('WPP006');
@@ -225,7 +227,7 @@ it('Cenário 6 — GET /aprovar-os/{token} com token VÁLIDO → 200 + Page rend
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP006')->forceDelete();
 });
 
-it('Cenário 7 — POST /aprovar-os/{token} com PIN correto + decisao=aprovar muda status pra aprovada', function () {
+it('UC-OAP-02 · Cenário 7 — POST /aprovar-os/{token} com PIN correto + decisao=aprovar muda status pra aprovada', function () {
     session(['user.business_id' => BIZ_WAGNER_WPP]);
 
     $vehicle = createWppVehicle('WPP007');
