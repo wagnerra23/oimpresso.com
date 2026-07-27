@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 156 arquivos em 18 papéis.
+**Total mapeado:** 158 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -166,9 +166,13 @@ module: NfeBrasil
 - [Index.charter.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.charter.md)
 - [RegraForm.charter.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.charter.md)
 
-## Testes (Pest) — 47
+## Casos (contrato UC) — 1
 
-- 47 arquivos em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
+
+## Testes (Pest) — 48
+
+- 48 arquivos em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 4
 
