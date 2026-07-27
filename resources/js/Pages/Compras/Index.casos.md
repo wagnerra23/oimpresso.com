@@ -160,11 +160,21 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** a whitelist do `ListarComprasRequest` (`all,received,ordered,pending,draft`)
   e os ids das abas (`all,abertas,rascunhos,transito`) são **dois vocabulários diferentes no mesmo
   módulo**. Hoje nada liga um ao outro — nem tipo, nem teste. Qualquer aba nova reabre o mesmo buraco.
-- ⚠️ **Duas correções são válidas** e o UC aceita as duas: alargar a whitelist **ou** fazer a aba
-  emitir o status core (`draft`/`pending`). O contrato é *"a UI não emite valor que o contrato
-  rejeita"*; **se [W] escolher corrigir pelo front, este UC deve ser reescrito com os novos valores** —
-  o assert não pode congelar arbitrariamente um dos dois caminhos
-  ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md) Fase 2.2).
+- ⚠️ **O assert aceita as duas correções — de propósito.** O contrato é *"a UI não emite valor que o
+  contrato rejeita"*, e congelar um dos caminhos no assert seria travar a implementação, não o
+  comportamento ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md) Fase 2.2).
+- ✅ **Caminho decidido (técnico, ancorado — não é escolha de produto):** **a aba emite o status core**
+  (`ordered`/`pending`/`draft`/`received`), *não* se alarga a whitelist. Razão: o
+  [dicionário de domínio](../../../../memory/dominio/compras.md) define o ciclo canônico
+  `ordered` → `pending` → `received`, e ele é a **fonte única** do gate `dominio:check` (required,
+  [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-4).
+  Alargar a whitelist para `abertas|rascunhos|transito` **oficializaria um segundo vocabulário
+  dentro do mesmo módulo** — exatamente a doença que o dicionário cura (a erradicação de `locacao`
+  na OficinaAuto, [proibições §5](../../../../memory/proibicoes.md) 2026-06-09, é o precedente).
+  O rótulo visível para a Larissa continua *"A pagar"*/*"Rascunhos"*/*"Em trânsito"*: muda o **valor
+  emitido**, não a palavra na tela.
+- 📌 **A correção não cabe neste PR** (escopo: contrato, não mudança de comportamento de tela). Vira
+  trabalho próprio, com o vermelho desta lane como recibo de entrada.
 - **Status: 🧪 vermelho esperado** — **predição**, derivada de leitura. Veredito vem da lane.
 
 ---
