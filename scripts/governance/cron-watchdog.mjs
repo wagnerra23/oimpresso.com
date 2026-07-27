@@ -122,12 +122,37 @@ const CHAVES_DATA = ['generated_at', 'updated_at', 'last_grade_at', 'last_update
   'snapshot_at', 'computed_at', 'reconciled_at', 'distilled_at',
   'gerado_em', 'atualizado_em', 'gerado_por_em', 'ultima_data'];
 
+/**
+ * ENTRADA de rubrica ≠ artefato de ESTADO — não acusar (correção 2026-07-26).
+ *
+ * O caso-âncora do eixo 2 (acima) supôs que `governance:scorecard-snapshot --alert`
+ * deveria escrever `memory/governance/scorecards/*.yaml`. **Não deveria — e nunca escreveu.**
+ * Verificado no comando (`Modules/Governance/Console/Commands/ScorecardSnapshotCommand.php`):
+ *   · `DB::table('mcp_scorecard_runs')->insert(...)`  ✓ entrega
+ *   · `file_put_contents` / `Yaml::dump` / `Storage::put`  → **0 ocorrências**
+ * O cron ENTREGA — no banco. Os YAMLs de bucket são a **rubrica de entrada** que o
+ * `module:grade-v4` LÊ pra avaliar (Wave 22+), e um deles é literalmente `_template.yaml`
+ * com `last_grade_at: null`. Envelheceram porque configuração não envelhece: ninguém deve
+ * reescrevê-los sem mudar a rubrica.
+ *
+ * Acusá-los produzia um alarme que NÃO PODIA ficar verde — e alarme que não pode ser
+ * resolvido deixa de ser sinal e vira ruído que mascara o vermelho legítimo (foi o que
+ * aconteceu: 6 PRs seguidos com este check vermelho pelo mesmo motivo). É a lição do
+ * `drift-sentinel` (proibicoes §5 2026-07-17): quando o valor não pode mudar, o problema
+ * não é o baseline — é o medidor.
+ *
+ * ⚠️ Isto NÃO é suprimir vermelho: o eixo segue acusando todo artefato que ALGUMA automação
+ * de fato escreve. Se um dia o snapshot passar a materializar YAML, tire daqui.
+ */
+const RUBRICA_NAO_E_ESTADO = /^memory\/governance\/scorecards\/[^/]+\.ya?ml$/;
+
 /** Artefatos de estado versionados (JSON/YAML sob governance/ e memory/governance/). */
 function arquivosDeEstado() {
   try {
     return execSync('git ls-files', { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
       .split('\n')
-      .filter((p) => /^(memory\/)?governance\/.*\.(json|ya?ml)$/.test(p));
+      .filter((p) => /^(memory\/)?governance\/.*\.(json|ya?ml)$/.test(p))
+      .filter((p) => !RUBRICA_NAO_E_ESTADO.test(p));
   } catch { return []; }
 }
 
