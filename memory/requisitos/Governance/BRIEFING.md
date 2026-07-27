@@ -1,10 +1,10 @@
 ---
 id: requisitos-governance-briefing
-distilled_at: "2026-07-17"
-distilled_by: "manual [CC] — redistilação por releitura do módulo (rotas + comandos + config + baseline + gates rodados). Substitui o refresh de 2026-07-09, que ainda carregava a medição de 2026-05-16 como se fosse estado"
+distilled_at: "2026-07-27"
+distilled_by: "delta [C] — NÃO é redistilação completa: a releitura de fundo é a de 2026-07-17 (abaixo, intacta). Este refresh só re-mede os números que mudaram e acrescenta as 3 US do canal HITL. Dizer 'redistilado' aqui seria teatro"
 module: Governance
 status: producao
-updated_at: "2026-07-17"
+updated_at: "2026-07-27"
 ---
 
 # BRIEFING — Governance (verdade destilada)
@@ -64,3 +64,15 @@ Releitura direta em 2026-07-17 — não de sessions/handoffs (o destilado anteri
 - dono das notas: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) v3.6.0
 - janela: `git log --since=2026-07-09 -- Modules/Governance memory/requisitos/Governance scripts/governance` → 73 commits em 2026-07-17
 </content>
+
+---
+
+## Delta 2026-07-27 (não-redistilação — só o que mudou)
+
+**O que entrou:** 3 US do canal HITL — `US-GOV-056` (poda ou porta do `agent-corpus-counterfactual`), `US-GOV-057` (handoff-integrity vermelho há 17d), `US-GOV-058` (65% do `verificado@sha` cego). Todas `status: blocked` + `owner: wagner`, que é o proxy **documentado** de HITL pending (procedure `2026_05_06_172445`) — o brief as imprime em toda sessão.
+
+**Números re-rodados hoje** (não lidos): SPEC 817 → **916 linhas** · 36 → **40 US com header** · `anchor-lint` Governance **20%** (era 13%) · projeto **84,1%** (era 83,7%).
+
+**Contexto que originou:** varredura dos scripts órfãos de `scripts/governance/` (13 → 2, [PR #4834](https://github.com/wagnerra23/oimpresso.com/pull/4834)) + a medição de que **12 de 12 sentinelas agendados criam ZERO task** — detectam e nunca fecham. O elo detectar→decidir saiu em PR próprio (`HitlEscalationService`).
+
+**O que este delta NÃO fez:** releitura de rotas/controllers/comandos/config. A leitura de fundo continua sendo a de 2026-07-17 acima; se ela apodrecer, o conserto é redistilar de verdade, não empilhar deltas.
