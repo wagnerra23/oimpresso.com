@@ -14,7 +14,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ucScanRe, ucHeadRe, ucsDeclaredInCasos } from './uc-regex.mjs';
+import { ucScanRe, ucHeadRe, ucsDeclaredInCasos, ucBlocksInCasos } from './uc-regex.mjs';
 
 // =====================================================================================
 // ucsDeclaredInCasos — o parser (split por bloco + heading)
@@ -83,6 +83,48 @@ test('tolera CRLF (arquivo escrito no Windows)', () => {
   // a contagem de UC (a classe da lição CRLF em writes).
   const casos = '## UC-CEDI-01 · a\r\nStatus: ✅\r\n\r\n## UC-CEDI-02 · b\r\n';
   assert.deepEqual(ucsDeclaredInCasos(casos), ['UC-CEDI-01', 'UC-CEDI-02']);
+});
+
+// =====================================================================================
+// ucBlocksInCasos — o parser que os consumidores de fato consomem (id + BLOCO)
+// =====================================================================================
+
+test('devolve o BLOCO junto do id, já sem o "## " do heading', () => {
+  // É o que G-5 (`/Status:/`), G-7 (declaredStatus), screen-grade (firstStatusGlyph) e
+  // uc-derive (glyph + teste intencionado) leem. Sem o bloco, eles não migram.
+  const casos = '## UC-CEDI-01 · abrir edição\nStatus: ✅\nTeste: `ClienteEditTest`\n';
+  const blocos = [...ucBlocksInCasos(casos)];
+  assert.equal(blocos.length, 1);
+  assert.equal(blocos[0].uc, 'UC-CEDI-01');
+  assert.match(blocos[0].block, /^UC-CEDI-01 · abrir edição\n/, 'bloco começa no UC, não em "##"');
+  assert.match(blocos[0].block, /Status: ✅/, 'corpo do bloco preservado');
+});
+
+test('o bloco PARA no próximo "## " (não vaza o Status do UC seguinte)', () => {
+  // Se vazasse, um UC sem Status herdaria o do vizinho e o G-5 ficaria cego.
+  const casos = ['## UC-01 · a', 'Status: ✅', '', '## UC-02 · b', 'Status: ❌'].join('\n');
+  const blocos = [...ucBlocksInCasos(casos)];
+  assert.deepEqual(blocos.map((b) => b.uc), ['UC-01', 'UC-02']);
+  assert.doesNotMatch(blocos[0].block, /❌/, 'bloco do UC-01 não pode conter o Status do UC-02');
+  assert.match(blocos[1].block, /❌/);
+});
+
+test('EQUIVALÊNCIA: ucsDeclaredInCasos === ids de ucBlocksInCasos (uma travessia só)', () => {
+  // Trava a derivação: se alguém reimplementar um dos dois "na mão", os dois divergem aqui.
+  const casos = [
+    '## Contexto', 'cita UC-CEDI-09 em prosa', '',
+    '## UC-01 · a', 'Status: ✅', '',
+    '## UC-KBV2-02 · b', 'Status: 🧪', '',
+    '## UC-10b · c', '', '## Non-Goals', 'nada',
+  ].join('\r\n');
+  assert.deepEqual(ucsDeclaredInCasos(casos), [...ucBlocksInCasos(casos)].map((b) => b.uc));
+  assert.deepEqual(ucsDeclaredInCasos(casos), ['UC-01', 'UC-KBV2-02', 'UC-10B']);
+});
+
+test('gerador é fresco a cada chamada (não esgota como iterador reusado)', () => {
+  const casos = '## UC-01 · a\n\n## UC-02 · b\n';
+  assert.equal([...ucBlocksInCasos(casos)].length, 2);
+  assert.equal([...ucBlocksInCasos(casos)].length, 2);
 });
 
 // =====================================================================================
