@@ -88,7 +88,7 @@ O SPEC §1 afirmava: *"`App\Contact` usa global scope `business_id` (UPOS canon)
 
 ### A-2 · O "mascaramento" de CPF/CNPJ **formata**, não redige ⚠️ é o diferencial nº 1 declarado do módulo
 
-`grep -rn "maskTaxNumber" --include=*.php` (fora de `memory/`) → **19 ocorrências, 2 implementações** (`ContactController:419`, `ClienteAutosaveController:711`). As duas só aplicam `preg_replace` de pontuação: `12345678901` → `123.456.789-01`. **Nenhum dígito escondido.**
+`grep -rn "maskTaxNumber" --include=*.php` (fora de `memory/`) → **19 ocorrências, 2 implementações** (`ContactController:419`, `ClienteAutosaveController:711`). As duas só aplicam `preg_replace` de pontuação: `12345678901` → `123.456.789-01`. **Nenhum dígito escondido.** <!-- # pii-allowlist: CPF sintetico ilustrativo (nao e dado real) — o exemplo EXISTE para mostrar que maskTaxNumber formata sem esconder digito -->
 
 O código é honesto — o docblock do segundo diz textualmente *"mantem digitos visiveis … nao redact … futura ADR pode endurecer pra realmente censurar"*. **A documentação não era:** SPEC §2, os Anti-hooks de `Index`/`Show` e a `CAPTERRA-FICHA` C03 (*"à frente de TODO ERP BR"*) leem como redação. E os **4 testes que "provam" o masking** fazem `file_get_contents` do Controller pra checar que **a chamada está escrita** — presença de chamada, nunca efeito (L-24); 2 deles em `@group legacy-quarantine`.
 
