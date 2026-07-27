@@ -190,7 +190,7 @@ O módulo **não é greenfield**: o backend é o `ContactController` do núcleo 
 | **Activity log sem PII** ([ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md)) | `Contact::getActivitylogOptions()` exclui `tax_number_1` do `logOnly`. Guard comportamental: `tests/Feature/Auditoria/ContactPiiLogsActivityTest.php` |
 | **REGRA MESTRE valor/estoque** | o **saldo do cliente** sai por **dois caminhos independentes** (`Util::getContactDue` e `TransactionUtil::getLedgerDetails['all_balance_due']`). Mexer em qualquer um exige dupla-confirmação + antes→depois — CU-CLI-08 `[V0]` |
 | **`biz=1`, nunca `biz=4`** ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) | crítico aqui: biz=4 é **ROTA LIVRE em produção com as flags ON**. O adversário canônico é biz=2 (seed da lane) / biz=99 |
-| **Testes só no CT 100 / CI** ([ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)) | a lane nasce neste PR: [`.github/workflows/cliente-pest.yml`](../../../.github/workflows/cliente-pest.yml) (MySQL real, biz=1 + biz=2) |
+| **Testes só no CT 100 / CI** ([ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)) | a lane nasce neste PR: `cliente-pest.yml` _(lane removida no PR — 25/25 vermelhos por 403 de permissão em base limpa; o teste segue no nightly via `phpunit.xml`)_ (MySQL real, biz=1 + biz=2) |
 | **Dicionário de domínio** ([ADR 0264](../../decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-4) | ❌ **não existe** `memory/dominio/cliente.md` (`ls memory/dominio/` = 6 arquivos: compras · estoque · financeiro · fiscal-faturamento · oficina-auto · vendas). Os enums de `contacts.type` **não são cobertos** pelo `dominio-gate`. Gap declarado, não consertado (arquivo fora da área do chip) |
 
 ---
@@ -555,7 +555,7 @@ O padrão é o mesmo nos três: **o Non-Goal caducou** (a feature nasceu depois)
 | Pergunta | Porta | Cliente antes | Cliente depois |
 |---|---|---|---|
 | roda em algum lugar? | `phpunit.xml` (`./tests/Feature` recursivo) | ✅ nightly CT 100 | ✅ |
-| **roda no PR?** | `.github/ci-sqlite-pest.list` (allowlist) | ❌ **0 entradas** | ✅ [`cliente-pest.yml`](../../../.github/workflows/cliente-pest.yml) |
+| **roda no PR?** | `.github/ci-sqlite-pest.list` (allowlist) | ❌ **0 entradas** | ✅ `cliente-pest.yml` _(lane removida no PR — 25/25 vermelhos por 403 de permissão em base limpa; o teste segue no nightly via `phpunit.xml`)_ |
 | bloqueia merge? | [`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json) | ❌ não | ❌ **segue não** (advisory) |
 
 O recibo que motivou a lane, do `anchor-lint` sobre o `SPEC.md`: **`15 US com teste-que-cobre fora das lanes de JUnit (verde impossível até entrar numa lane)`**. Os 21 UC estavam ancorados; os testes rodavam só de madrugada.
@@ -605,7 +605,7 @@ O recibo que motivou a lane, do `anchor-lint` sobre o `SPEC.md`: **`15 US com te
 - [`SPEC.md`](SPEC.md) · [`BRIEFING.md`](BRIEFING.md) · [`CAPTERRA-FICHA.md`](CAPTERRA-FICHA.md) · [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md) · [`clientes-gap.md`](clientes-gap.md)
 - RUNBOOKs e visual-comparisons em [`../Crm/`](../Crm/) (8 + 8) · [`../Crm/PII-REDACTION.md`](../Crm/PII-REDACTION.md) · [`../Crm/SUPERFICIE.md`](../Crm/SUPERFICIE.md)
 - Charters e casos: `resources/js/Pages/Cliente/{Index,Show,Create,Edit,Import,Ledger,Map}.{charter,casos}.md`
-- Lane: [`.github/workflows/cliente-pest.yml`](../../../.github/workflows/cliente-pest.yml)
+- Lane: `cliente-pest.yml` _(lane removida no PR — 25/25 vermelhos por 403 de permissão em base limpa; o teste segue no nightly via `phpunit.xml`)_
 - ADRs: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) · [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md) · [0246](../../decisions/0246-tipo-outros-default-migracoes-legacy.md) · [0264](../../decisions/0264-governanca-executavel-trio-dominio-e2e.md) · [0301](../../decisions/0301-separar-cliente-deprecar-crm-pipeline.md) · [0351](../../decisions/0351-sdd-from-source.md)
 - Porta viva: `node scripts/governance/requisitos-status.mjs Cliente`
 
