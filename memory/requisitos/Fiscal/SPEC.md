@@ -196,9 +196,16 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - [x] Tabela 5 últimos meses (NfeEmissao autorizadas agregadas)
 - [x] Status heurístico (aberto/pronto/entregue) + prazo entrega
 - [x] Notice claro "em desenvolvimento"
-- [x] Export buttons disabled (anti-hook charter)
-- [x] Pest biz=1 (`SpedControllerTest` — anti-hook: gerador real NÃO existe)
+- [x] Pest biz=1 (`SpedControllerTest` — agregação scoped per business)
 - [x] Charter + RUNBOOK + visual-comparison
+
+> **Errata 2026-07-27.** Dois itens deste DoD ficaram stale quando o gerador chegou: "Export buttons
+> disabled (anti-hook charter)" e "Pest biz=1 — anti-hook: gerador real NÃO existe". O export **existe**
+> desde US-FISCAL-016/017 (rota `fiscal.sped.icms-ipi`), atrás da flag `sped_simples_only_lock`. O guard
+> Pest que afirmava a ausência do gerador foi **revogado** — ele ficava verde só porque testava os nomes
+> `exportSped`/`gerarEFD` enquanto o método real se chama `gerar`. Substituído por `UC-FSPED-03`
+> (`Sped.casos.md`). O charter `Fiscal/Sped` foi reconciliado no mesmo PR (precedência: teste > casos >
+> charter > SPEC).
 
 ### US-FISCAL-013 · CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave
 
