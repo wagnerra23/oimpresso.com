@@ -62,6 +62,17 @@ export function isAuxiliaryScreenPath(relTsx) {
 const isScreen = (f) => isPageScreenPath(relative(PAGES_DIR, f));
 const screens = walk(PAGES_DIR, isScreen);
 
+// Declaração de escopo impressa junto do total: o número sozinho é ambíguo (qual denominador?).
+// MESMO conjunto que o casos-coverage-guard enumera desde a reconciliação 2026-07-27 — as duas
+// portas partilham `isPageScreenPath` (page-path.mjs). Antes divergiam em 45 (280 vs 235), todos
+// arquivos de dir auxiliar que o casos-guard contava como tela. Nenhum número de cobertura de
+// tela deve ser citado sem este escopo ao lado.
+const ESCOPO_TELAS =
+  '  ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao casos:report):\n' +
+  '    inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n' +
+  '    exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n' +
+  '            constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx';
+
 // 2. Corpus de E2E (conteúdo concatenado pra busca de referência).
 const browserFiles = walk(BROWSER_DIR, (f) => f.endsWith('.php'));
 const browserCorpus = browserFiles
@@ -380,6 +391,7 @@ for (const r of rows) {
 
 // --- Relatório stdout ---
 console.log(`\n=== Mapa de cobertura QA-de-tela · ${total} telas ===\n`);
+console.log(ESCOPO_TELAS + '\n');
 console.log(`  CHARTER (contrato)   : ${agg.charter}/${total}  (${pct(agg.charter)}%)`);
 console.log(`  E2E (Pest Browser)   : ${agg.e2e}/${total}  (${pct(agg.e2e)}%)`);
 console.log(`  A11Y (axe no E2E)    : ${agg.a11y}/${total}  (${pct(agg.a11y)}%)`);

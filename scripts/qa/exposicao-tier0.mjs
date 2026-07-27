@@ -51,6 +51,7 @@
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { ucScanRe, ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
+import { isPageScreenPath } from './page-path.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -82,23 +83,23 @@ function walk(dir, acc = []) {
 }
 
 /**
- * Uma TELA é `.tsx` roteável sob Pages/**, excluindo (a) `_components/` e `Partials/`
- * (como o screen-coverage-map) e (b) QUALQUER segmento de pasta começando com `_`
- * (`_Showcase`, `_drawer`, …) — o passo que falta no screen-coverage-map e que separa
- * 279 (com ruído) de 242 (honesto). Também exclui `*.charter.tsx` e `*.test.*`.
+ * Uma TELA é o que `isPageScreenPath` (scripts/qa/page-path.mjs) reconhece como Page Inertia
+ * executável. FONTE ÚNICA compartilhada com casos-coverage-guard + screen-coverage-map +
+ * ciclo-completo.
+ *
+ * ERRATA + reconciliação 2026-07-27 — o texto anterior dizia que o `_`-prefixo era "o passo
+ * que falta no screen-coverage-map": FALSO. O `PAGE_AUX_DIR` da fonte única já cobre `_.*` (e
+ * mais). A divergência era o OPOSTO e era DESTE lado: o `isScreen` local contava 243 contra
+ * 235 das portas de cobertura, porque não excluía `components/` SEM underscore — os 8 extras
+ * eram Compras/components/{AcoesDropdown,Drawer,VisibilidadeColunas}, Jana/components/{FabJana,
+ * JanaAreaHeader,JanaCockpitV2} e Financeiro/{Categorias,ContasBancarias}/components/*Sheet.
+ * Isso importava aqui mais que nos outros: um `components/Drawer.tsx` classificado "dinheiro/
+ * estoque" entrava no CONJUNTO QUENTE Tier-0 e cobrava teste de comportamento de um
+ * componente que não é tela — inflando o débito com alvo errado.
  */
-function isScreen(relTsx) {
-  if (!relTsx.endsWith('.tsx')) return false;
-  if (relTsx.endsWith('.charter.tsx') || relTsx.includes('.test.')) return false;
-  const dirs = relTsx.split('/').slice(0, -1);
-  if (dirs.some((d) => d === '_components' || d === 'Partials')) return false;
-  if (dirs.some((d) => d.startsWith('_'))) return false;
-  return true;
-}
-
 const screenFiles = walk(PAGES_DIR)
   .map((abs) => ({ abs, rel: relative(PAGES_DIR, abs).split(sep).join('/') }))
-  .filter((s) => isScreen(s.rel));
+  .filter((s) => isPageScreenPath(s.rel));
 
 // =====================================================================================
 // 2. EXPOSIÇÃO Tier-0 — categorias (conteúdo + módulo)

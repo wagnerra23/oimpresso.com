@@ -838,7 +838,7 @@ class ProductController extends Controller
                     'name' => (string) $v->name,
                     'sku' => (string) ($v->sub_sku ?? ''),
                     'defaultPurchasePrice' => (float) ($v->default_purchase_price ?? 0),
-                    'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                    'defaultSellPrice' => (float) ($v->sell_price_inc_tax ?? 0),
                 ])->all()),
                 'permissions' => [
                     'update' => auth()->user()->can('product.update'),
@@ -2040,7 +2040,7 @@ class ProductController extends Controller
                     'id' => (int) $v->id,
                     'name' => (string) $v->name,
                     'subSku' => (string) ($v->sub_sku ?? ''),
-                    'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                    'defaultSellPrice' => (float) ($v->sell_price_inc_tax ?? 0),
                 ])->all(),
                 'priceGroups' => $price_groups->map(fn ($pg) => [
                     'id' => (int) $pg->id,
@@ -2449,7 +2449,7 @@ class ProductController extends Controller
                             'name' => (string) $v->name,
                             'subSku' => (string) ($v->sub_sku ?? ''),
                             'defaultPurchasePrice' => (float) ($v->default_purchase_price ?? 0),
-                            'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                            'defaultSellPrice' => (float) ($v->sell_price_inc_tax ?? 0),
                         ])->all(),
                     ])->all(),
                     'categories' => $categories,
@@ -2491,6 +2491,16 @@ class ProductController extends Controller
             $products = $request->input('products');
             $business_id = $request->session()->get('user.business_id');
 
+            // Tier 0 — ADR 0093 / CU-PROD-10.1. Mesmo guard do `saveSellingPrices` (#4300): a
+            // chave do array `group_prices` é o price_group_id e vem CRUA do request. O produto e
+            // a variação são escopados abaixo, mas o GRUPO não — e `VariationGroupPrice` não tem
+            // global scope ($guarded = ['id']), com FK que só exige que o grupo EXISTA, não que
+            // seja seu. Sem isto, produto MEU + tabela ALHEIA grava linha cross-tenant.
+            // Provado por UC-PBULK-03 (BulkEdit.casos.md) — vermelho em CI antes deste guard.
+            $allowedPriceGroupIds = SellingPriceGroup::where('business_id', $business_id)
+                ->pluck('id')
+                ->all();
+
             DB::beginTransaction();
             foreach ($products as $id => $product_data) {
                 $update_data = [
@@ -2526,6 +2536,19 @@ class ProductController extends Controller
                     //Update price groups
                     if (! empty($value['group_prices'])) {
                         foreach ($value['group_prices'] as $k => $v) {
+                            if (! in_array((int) $k, $allowedPriceGroupIds, true)) {
+                                // Tabela de preço de outro business — não grava. Log pra a
+                                // tentativa não ficar invisível (abort() aqui seria engolido
+                                // pelo catch genérico abaixo, virando "algo deu errado" mudo).
+                                \Log::warning('bulkUpdate: price_group_id fora do business — ignorado', [
+                                    'business_id' => $business_id,
+                                    'price_group_id' => $k,
+                                    'product_id' => $product->id,
+                                ]);
+
+                                continue;
+                            }
+
                             VariationGroupPrice::updateOrCreate(
                                 ['price_group_id' => $k, 'variation_id' => $variation->id],
                                 ['price_inc_tax' => $this->productUtil->num_uf($v)]
