@@ -168,6 +168,33 @@ Testes só no CT 100/CI. PR aberto; merge é do [W]."*
 - **Fiscal/NfeBrasil também aparecem no `modules-pest.yml`** (matrix). Se o chip precisar mexer
   lá, é colisão extra — S1 verifica e **reporta**, não resolve.
 
+## O que a Onda 1+2 provou que FALTAVA na definição do chip (2026-07-27)
+
+Sete chips rodaram. Nenhuma revisão do plano teria achado isto — só a execução:
+
+| # | Buraco | Como apareceu | Correção no chip |
+|---|---|---|---|
+| 1 | **BRIEFING não era atualizado** | `distiller_freshness` 0→1 no ratchet **armado** (GT-G3, required) — criar SDD deixa o doc do módulo mais novo que o `distilled_at`. É a armadilha da [lápide §5 2026-07-12](../../../proibicoes.md) | o chip redestila **parcialmente** e declara isso no `distilled_by`. Editar o baseline seria maquiar |
+| 2 | **`SUPERFICIE.md` não era regenerada** | gate `SUPERFICIE == árvore` vermelho em 5 PRs — os arquivos novos mudam a árvore | rodar `module-surface <Mod> --write` |
+| 3 | **Lane nova não era registrada no censo** | `memory-health` (**required**) 🔴 *"workflow NOVO sem registro em `gates-registry.json`"* + o campo `promote_by` que ele cobra em seguida | registrar `nome`/`classe`/`terminal`/`anchor`/`promote_by` |
+| 4 | **Contradição no próprio prompt** | mandei "CRIE a lane" e proibi tocar `scripts/governance/` — que é onde a lane se registra. Erro de desenho meu, não do chip | o parent registra o censo, ou a área do chip inclui só essa chave |
+
+Dois vieram de **três chips independentes** acusando o mesmo defeito de máquina (`Modules/<X>/Tests` invisível), o que é o sinal mais confiável de que o gargalo estava na régua, não no chip.
+
+### Corolário sobre autonomia ([W] 2026-07-27: *"a responsabilidade é do dono fazer da melhor forma"*)
+
+Os chips fecharam pedindo decisão em coisas que **têm fonte no repo** — e o parent repetiu o vício ao
+repassá-las. O corte é: **tem fonte canônica → decide e registra a âncora; não tem → é [W]**.
+
+| Parecia decisão de [W] | Era decisão técnica, e a fonte é |
+|---|---|
+| atualizar BRIEFING? | o gate cobra e o CLAUDE.md exige — não há escolha |
+| consertar o `403` do teste? | teste que falha por não-execução não prova nada; conserta |
+| alargar whitelist × aba emitir status core? | [`memory/dominio/compras.md`](../../../dominio/compras.md) define `ordered→pending→received` e é fonte única do `dominio:check` (required) — alargar criaria 2º vocabulário no módulo |
+
+Continua sendo de [W], e só: **merge** · **Non-Goals/Anti-hooks do charter** (o agente é proibido de
+inferir) · **prioridade de produto** (o bug entra agora ou vira US).
+
 ## Kill-condition
 
 Se **S1 (Fiscal — o mais barato possível)** custar mais que o piloto inteiro do Produto, o
