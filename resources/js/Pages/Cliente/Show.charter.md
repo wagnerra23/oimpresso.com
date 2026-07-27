@@ -19,6 +19,9 @@ mwart_pattern_reuse:
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Show]
   divergence_from_blueprint: "tab-based content area (não no blueprint Cowork original)"
+related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-show.md
+related_visual_comparison: memory/requisitos/Crm/cliente-show-visual-comparison.md
+related_us: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067, US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-073]
 ---
 
 > **⚠️ CHARTER SUPERSEDED 2026-05-21** — Esta versão v2 é mantida pra histórico append-only. O paradigma de detalhe de Cliente foi invertido pela [ADR 0179](../../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md): de página full-page para drawer lateral 760px abrindo de `Index.tsx`. Charter ativo agora é [`Index.charter.md`](Index.charter.md) v3.
