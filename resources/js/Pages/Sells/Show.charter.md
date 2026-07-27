@@ -5,11 +5,14 @@ component: resources/js/Pages/Sells/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 owner: wagner
 status: draft
-last_validated: "2026-05-15"
+last_validated: "2026-07-27"
 parent_module: Sells
 related_adrs: [104, 107, 110, 143, 149, 93]
+# Única US do SPEC de Sells que reivindica ESTA tela por nome: US-SELL-014 §Mudanças
+# correlatas — "UI tela `/sells/{id}` ganha card 'Documentos Fiscais' listando N notas".
+related_us: [US-SELL-014]
 tier: A
-charter_version: 1
+charter_version: 2
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
@@ -93,8 +96,9 @@ Mostrar detalhe completo de uma venda — linhas, pagamentos, frete, atividades 
 
 ## Tests anti-regressão
 
-- [tests/Feature/Sells/Wave1ShowBaselineTest.php](../../../../tests/Feature/Sells/Wave1ShowBaselineTest.php) — 8 estruturais (baseline F2)
-- [tests/Feature/Sells/Wave1ShowInertiaTest.php](../../../../tests/Feature/Sells/Wave1ShowInertiaTest.php) — Inertia render + cross-tenant Tier 0
+- **[Show.casos.md](Show.casos.md)** — contrato de COMPORTAMENTO da tela (UC-VSHOW-01..07), defendido por [tests/Feature/Sells/SellsShowContratoTest.php](../../../../tests/Feature/Sells/SellsShowContratoTest.php) na lane [`sells-pest.yml`](../../../../.github/workflows/sells-pest.yml) (MySQL real, biz=1 vs biz=2)
+- [tests/Feature/Sells/Wave1ShowBaselineTest.php](../../../../tests/Feature/Sells/Wave1ShowBaselineTest.php) — 8 **estruturais** (baseline F2 · `file_get_contents` + match de string)
+- [tests/Feature/Sells/Wave1ShowInertiaTest.php](../../../../tests/Feature/Sells/Wave1ShowInertiaTest.php) — **estruturais**: casam string no `.tsx`/Controller. Provam que o código está ESCRITO, não que a resposta cumpre o contrato — o `.casos.md` acima é a perna que prova comportamento
 
 ---
 
@@ -118,8 +122,10 @@ Mostrar detalhe completo de uma venda — linhas, pagamentos, frete, atividades 
 
 ## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
 
-> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`prototipo-ui/audit/uc-registry.json`](../../../../prototipo-ui/audit/uc-registry.json).
-> ✅ presente+travado · 🟡 gap (acende no `protocol_freshness`). Show é `wave1-draft` — os UCs de gestão pós-venda ainda são gaps.
+> **Contrato executável da tela vive em [Show.casos.md](Show.casos.md)** (UC-VSHOW-01..07, defendidos por `SellsShowContratoTest`): isolamento multi-tenant · gate das 3 permissões · `view_own_sell_only` · KPIs de dinheiro · defer do detalhe · GET é leitura pura · trilha visível ao operador.
+>
+> Abaixo, os UCs de **produto** (gestão pós-venda) amarrados a GUARD Pest `uc-<id>` via [`prototipo-ui/audit/uc-registry.json`](../../../../prototipo-ui/audit/uc-registry.json).
+> ✅ presente+travado · 🟡 gap (acende no `protocol_freshness`). Show é `wave1-draft` — os UCs de gestão pós-venda ainda são gaps (registrados também no §Backlog do `casos.md`).
 
 - 🟡 **UC-V04** — estado "Aguardando aprovação" visível + registro da aprovação do cliente. _(sem cobertura)_
 - 🟡 **UC-V05** — campo de transportadora/rastreio, foto de entrega, confirmação de recebimento, tentativas frustradas. _(sem cobertura)_
