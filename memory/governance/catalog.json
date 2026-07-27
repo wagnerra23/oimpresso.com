@@ -22,11 +22,11 @@
     "migratesTo"
   ],
   "stats": {
-    "modules": 38,
-    "nodes": 630,
+    "modules": 39,
+    "nodes": 631,
     "edges": 968,
     "by_node_type": {
-      "module": 41,
+      "module": 42,
       "table": 88,
       "adr": 36,
       "component": 419,
@@ -3689,6 +3689,19 @@
       "charter_adr": "0091",
       "path": "Modules/Brief/SCOPE.md",
       "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Cliente",
+      "type": "module",
+      "module": "Cliente",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Cliente/SUPERFICIE.md",
+      "catalog_kind": "core-class-b",
       "catalog_status": "catalogued"
     },
     {
