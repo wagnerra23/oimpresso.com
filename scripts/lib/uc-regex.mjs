@@ -34,8 +34,37 @@ export const ucScanRe = () => new RegExp(`\\b${UC_CORE}\\b`, 'g');
 export const ucHeadRe = () => new RegExp(`^(${UC_CORE})\\b`);
 
 /**
+ * Blocos de UC declarados num `<Tela>.casos.md` — split por BLOCO `## `, filtrando os que
+ * têm heading de UC. Gera `{ uc, block }` na ordem de declaração (com duplicatas, se houver):
+ * `uc` em MAIÚSCULO, `block` = o texto do bloco JÁ SEM o `## ` (do heading até o próximo `## `).
+ *
+ * POR QUE ESTE, E NÃO SÓ `ucsDeclaredInCasos` (2026-07-27): dos 5 usos que restavam
+ * espalhados, QUATRO precisam do BLOCO, não só do id — G-5 testa `/Status:/` no bloco, G-7
+ * chama `declaredStatus(block)`, `screen-grade-report` chama `firstStatusGlyph(block)` e
+ * `uc-derive` extrai glyph + teste intencionado do bloco. Uma fonte única que devolvesse só
+ * os ids não seria migrável por eles, e a cópia do `split(...).slice(1)` + `if (!head) continue`
+ * ficaria de pé — que é exatamente a porta pela qual o parser drifou. Esta é a unidade que
+ * os consumidores de fato consomem.
+ *
+ * É GERADOR: itere direto (`for (const { uc, block } of ...)`). Pra contar ou indexar,
+ * materialize com spread (`[...ucBlocksInCasos(c)]`).
+ *
+ * @param {string} content conteúdo bruto do arquivo `.casos.md`
+ * @returns {Generator<{uc: string, block: string}>}
+ */
+export function* ucBlocksInCasos(content) {
+  for (const block of String(content).split(/^##\s+/m).slice(1)) {
+    const m = block.match(ucHeadRe());
+    if (m) yield { uc: m[1].toUpperCase(), block };
+  }
+}
+
+/**
  * UC-ids declarados no conteúdo de um `<Tela>.casos.md` — split por BLOCO `## ` e então
  * `ucHeadRe()`. Devolve MAIÚSCULO, na ordem de declaração (com duplicatas, se houver).
+ *
+ * Açúcar sobre `ucBlocksInCasos` (mesma travessia — o parser é um só). Use quando o bloco
+ * não interessa; se interessar, itere `ucBlocksInCasos` direto em vez de re-parsear.
  *
  * POR QUE EXISTE (2026-07-27): a lib nasceu pra matar "4 regex que deviam ser iguais e
  * drifaram", e conseguiu — mas o USO do regex (o `split(/^##\s+/m).slice(1)` obrigatório
@@ -55,9 +84,6 @@ export const ucHeadRe = () => new RegExp(`^(${UC_CORE})\\b`);
  */
 export function ucsDeclaredInCasos(content) {
   const out = [];
-  for (const block of String(content).split(/^##\s+/m).slice(1)) {
-    const m = block.match(ucHeadRe());
-    if (m) out.push(m[1].toUpperCase());
-  }
+  for (const { uc } of ucBlocksInCasos(content)) out.push(uc);
   return out;
 }

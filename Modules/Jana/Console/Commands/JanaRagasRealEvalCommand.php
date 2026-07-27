@@ -371,7 +371,16 @@ class JanaRagasRealEvalCommand extends Command
             'n_judge_failed' => $judgeFailed,
             'n_passed' => $nEval - count(array_filter($failures, fn ($f) => isset($f['faithfulness']))),
             'n_failed' => count($failures),
-            'failures' => array_slice($failures, 0, 10),
+            // ⚠️ SEM corte silencioso (2026-07-27). Era `array_slice($failures, 0, 10)`:
+            // no domingo 2026-07-26 o run teve `n_failed: 20` e o JSON carregou 10 —
+            // METADE do diagnóstico morria antes de chegar ao log, ao transporte ou a
+            // qualquer humano, e nada declarava a perda. Quem lesse o report concluiria
+            // "10 falhas" olhando um campo que dizia 20 três linhas acima.
+            // A régua do projeto é explícita: se limitar cobertura, DECLARE o que caiu
+            // (CLAUDE.md §"no silent caps"). O JSON é consumo de máquina e 20 itens são
+            // baratos — carrega tudo; quem trunca é a TABELA humana (5, logo abaixo),
+            // e ela já anuncia quantas omitiu.
+            'failures' => $failures,
             'mode' => 'real',
             'cost_usd' => $costUsd,
             'ran_at' => now()->toIso8601String(),
@@ -442,12 +451,35 @@ class JanaRagasRealEvalCommand extends Command
         $this->line("Pisos: {$report['thresholds_fonte']}");
         $this->info("Avaliadas: {$report['n_evaluated']}/{$report['n_questions']} · sem contexto: {$report['n_no_context']} · síntese falhou: {$report['n_synth_failed']}");
         if (! empty($report['failures'])) {
-            $this->warn('Primeiras falhas:');
-            foreach (array_slice($report['failures'], 0, 5) as $f) {
+            $total = count($report['failures']);
+            $mostrar = 5;
+            $this->warn("Falhas ({$total}) — mostrando ".min($mostrar, $total).':');
+            foreach (array_slice($report['failures'], 0, $mostrar) as $f) {
                 $detalhe = $f['reason'] ?? "faith={$f['faithfulness']}, rel={$f['relevancy']}";
                 $this->line(" - [{$f['idx']}] {$f['q']} ({$detalhe})");
             }
+            // DECLARA o corte em vez de esconder: tabela humana trunca, JSON não.
+            if ($aviso = self::avisoDeCorte($total, $mostrar)) {
+                $this->line($aviso);
+            }
         }
+    }
+
+    /**
+     * Linha que DECLARA o truncamento da tabela humana — ou null quando não houve corte.
+     *
+     * Pura de propósito: a regra "se limitar cobertura, declare o que caiu"
+     * (CLAUDE.md §"no silent caps") vira testável sem rodar o eval (que custa LLM).
+     * Testar por grep do `array_slice` no fonte seria presence-gate — mede a FORMA,
+     * não o COMPORTAMENTO (classe LC-11, banida em proibicoes.md §5 2026-07-27).
+     */
+    public static function avisoDeCorte(int $total, int $mostrar): ?string
+    {
+        if ($total <= $mostrar) {
+            return null;
+        }
+
+        return ' … +'.($total - $mostrar).' não exibidas — as '.$total.' estão no --json (campo `failures`).';
     }
 
     /**
