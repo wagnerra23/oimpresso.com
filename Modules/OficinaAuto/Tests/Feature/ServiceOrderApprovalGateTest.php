@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-OFICINA-041
 
 declare(strict_types=1);
 
@@ -86,7 +87,7 @@ it('enviarAprovacao carimba approval_requested_at e o estado vira pending', func
     Queue::assertPushed(EnviarLinkAprovacaoWhatsappJob::class);
 })->afterEach(fn () => gate_cleanup('A'));
 
-it('show() JSON expõe o bloco approval com o estado derivado', function () {
+it('UC-OSH-08 · show() JSON expõe o bloco approval com o estado derivado', function () {
     session(['user.business_id' => BIZ_GATE]);
     $user = gate_user();
     if ($user === null) {
