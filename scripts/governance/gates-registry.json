@@ -576,13 +576,6 @@
       "anchor": "Lane nascida no chip SDD de Sells (passo 5 do programa-ondas, PR #4868). Antes dela tests/Feature/Sells nao rodava em PR nenhum — as 3 portas medidas pelo chip: roda no nightly CT100 SIM, roda no PR NAO, bloqueia merge NAO. Sells e Tier 0 valor/estoque (REGRA MESTRE proibicoes.md) e 71 dos 72 testes do modulo eram grep de source; esta lane executa o 1o teste HTTP/DB real. Advisory por nascimento (ADR 0275): promocao a required e flip [W] com mordida provada (ADR 0336).",
       "promote_by": "2026-08-27"
     },
-    "oficinaauto-pest.yml": {
-      "nome": "OficinaAuto · Pest (MySQL)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "Lane nascida no chip SDD de OficinaAuto (passo 5, PR #4869). Os 44 testes do modulo estavam em phpunit.xml (rodavam no nightly) mas sem lane de PR — mesma classe da proibicao Tier 0 \"Modules/X/Tests sem CI = falsa cobertura\". Modulo e piloto LIVE em producao (Martinho, business_id=164). Advisory por nascimento (ADR 0275).",
-      "promote_by": "2026-08-27"
-    },
     "cliente-pest.yml": {
       "nome": "Cliente · Pest (MySQL)",
       "classe": "gate",
