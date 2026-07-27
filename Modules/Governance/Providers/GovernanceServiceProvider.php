@@ -70,6 +70,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\CicloDiarioGovernancaCommand::class,  // ciclo diário — orquestra estado+frescor+inbox+digest (advisory)
                 \Modules\Governance\Console\Commands\AdrReviewFlushCommand::class,         // ADR 0317 M3 — flush trimestral fila revisão de ADR (Checks O/R)
                 \Modules\Governance\Console\Commands\RecordStagingFreshnessAlertCommand::class, // sink da sentinela de frescor do staging (host → mcp_alertas, ADR 0216)
+                \Modules\Governance\Console\Commands\RecordRagasEvalAlertCommand::class, // sink do eval REAL da Jana medido no CT 100 (staging → mcp_alertas, ADR 0216)
             ]);
         }
     }

@@ -95,6 +95,75 @@ mk_docker 0 0
 RC="$(run_script)"
 if ! grep -q -- "--sample-size" "$TMP/docker-calls.log"; then ok "sample default: NÃO passa --sample-size (gold-set completo)"; else fail "sample default: passou --sample-size indevidamente"; fi
 
+# ── 8-10. ELO DO ALERTA: gate_status fail escala pro HITL ────────────────────
+# O buraco medido em 2026-07-27: o eval dava `fail` e ninguém era avisado (o
+# onFailure do Kernel não dispara — quem invoca é o cron, não o scheduler).
+# Mock que EMITE o JSON do eval, pra exercitar o parse + a escalação.
+mk_docker_json() {
+  local gate="$1" exec_rc="$2"
+  mkdir -p "$TMP/bin"
+  # O .sh REESCREVE o PATH pro POSIX fixo (/usr/bin:/bin:…) — no CT 100 o python3 está
+  # lá, no Git Bash do Windows não. Sem este shim o teste mediria "python3 ausente" em
+  # vez de medir a escalação: verde/vermelho por ambiente, não por comportamento.
+  if [ ! -x "$TMP/bin/python3" ] && command -v python >/dev/null 2>&1; then
+    printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$(command -v python)" > "$TMP/bin/python3"
+    chmod +x "$TMP/bin/python3"
+  fi
+  cat > "$TMP/bin/docker" <<EOF
+#!/usr/bin/env bash
+echo "\$@" >> "$TMP/docker-calls.log"
+case "\$1" in
+  inspect) exit 0 ;;
+  exec)
+    if [[ "\$*" == *"jana:ragas-real-eval"* ]]; then
+      echo '{"ran_at":"2026-07-26T06:06:46-03:00","week":"2026-07-26","gate_status":"$gate","n_evaluated":51,"faithfulness_avg":0.6865,"relevancy_avg":0.8294,"context_recall_avg":0.3461}'
+      exit $exec_rc
+    fi
+    exit 0 ;;
+  *) exit 0 ;;
+esac
+EOF
+  chmod +x "$TMP/bin/docker"
+  : > "$TMP/docker-calls.log"
+}
+
+# 8. MORDE: gate_status=fail → invoca o alerta, no container CERTO, com as flags
+mk_docker_json fail 1
+RC="$(run_script)"
+if grep -q "governance:ragas-eval-alert" "$TMP/docker-calls.log"; then
+  ok "MORDE: gate fail → invoca governance:ragas-eval-alert (o vermelho não morre no log)"
+else
+  fail "gate fail → NÃO escalou (o alerta morreria no log, que é o bug que isto fecha)"
+fi
+if grep -q "exec oimpresso-mcp php artisan governance:ragas-eval-alert" "$TMP/docker-calls.log"; then
+  ok "alerta roda no container oimpresso-mcp (staging não tem mcp_alertas_eventos)"
+else
+  fail "alerta foi pro container errado — staging não tem a tabela de alertas"
+fi
+if grep -q -- "--context-recall=0.3461" "$TMP/docker-calls.log"; then
+  ok "alerta carrega a métrica medida (--context-recall=0.3461)"
+else
+  fail "alerta sem as métricas — obrigaria o humano a cavar o log no CT 100"
+fi
+
+# 9. CONTROLE NEGATIVO: gate_status=pass → NÃO escala (verde não vira alerta)
+mk_docker_json pass 0
+RC="$(run_script)"
+if ! grep -q "governance:ragas-eval-alert" "$TMP/docker-calls.log"; then
+  ok "controle: gate pass → NÃO escala (não polui mcp_alertas com verde)"
+else
+  fail "gate pass escalou — viraria spam diário de alerta verde"
+fi
+
+# 10. FAIL-OPEN: JSON ilegível não escala e NÃO muda o veredito do eval
+mk_docker 0 1   # mock sem JSON — saída vazia
+RC="$(run_script)"
+if [ "$RC" = "1" ] && ! grep -q "governance:ragas-eval-alert" "$TMP/docker-calls.log"; then
+  ok "fail-open: JSON ilegível → não escala e o exit do eval (1) é preservado"
+else
+  fail "fail-open quebrado: rc=$RC (esperado 1) ou escalou sem JSON"
+fi
+
 echo ""
 if [ "$FAILS" -eq 0 ]; then
   echo "ct100-jana-evals.test.sh: TODOS OS CASOS PASSARAM"

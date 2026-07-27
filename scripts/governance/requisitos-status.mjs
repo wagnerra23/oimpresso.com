@@ -42,6 +42,19 @@ import { fileURLToPath } from 'node:url';
 // Fonte ÚNICA de "o que é tela" (reconciliação #4836/#4840) — o mesmo módulo que o
 // casos-coverage-guard e o screen-coverage-map consomem. Ver telasDoModulo().
 import { isPageScreenPath } from '../qa/page-path.mjs';
+/**
+ * Fonte ÚNICA do regex de UC-id (ADR 0264 · `scripts/lib/uc-regex.mjs`).
+ *
+ * ⚠️ Este arquivo tinha DOIS regex próprios (`UC-[A-Z0-9]{2,10}-\d{2,3}`) que exigiam **dois
+ * hífens** e por isso não enxergavam UC de prefixo curto — `UC-F01`, `UC-S11`, `UC-P02`:
+ * **12 ids reais** no repo (Financeiro/Unificado, Sells/Index, Ponto). Efeito: US COM contrato
+ * era acusada de *"entregue sem contrato"* (falso-positivo medido em `US-FIN-031`/`US-FIN-038`).
+ *
+ * A lib existe **exatamente** pra matar "regex que deviam ser iguais e drifam" (o cabeçalho
+ * dela documenta 4 drifts anteriores) — e este arquivo era mais um que drifava, sem importá-la.
+ * Achado pelo chip Financeiro; a correção mora aqui porque `scripts/` é área proibida ao chip.
+ */
+import { ucScanRe } from '../lib/uc-regex.mjs';
 
 // Guard IS_MAIN (padrao do doc-freshness-score): os extratores sao EXPORTADOS pra teste;
 // sem isto, um `import` do modulo dispara o CLI e polui a saida de quem so queria a funcao.
@@ -82,7 +95,7 @@ export function extrairCU(sddSrc) {
 }
 export function extrairUC(casosSrc) {
   const ids = new Set();
-  for (const m of casosSrc.matchAll(/\b(UC-[A-Z0-9]{2,10}-\d{2,3})\b/g)) ids.add(m[1]);
+  for (const m of casosSrc.matchAll(ucScanRe())) ids.add(m[0].toUpperCase());
   return [...ids];
 }
 /** Um UC é "citado por teste" se aparece em qualquer arquivo de teste do repo. */
@@ -107,6 +120,22 @@ function listarTestes() {
     }
   };
   walk('tests'); walk('e2e');
+  /**
+   * `Modules/<X>/Tests` — a casa dos testes dos módulos nWidart (achado do chip S1, 2026-07-27).
+   *
+   * O `casos-coverage-guard` (REQUIRED) já varre `Modules`; esta porta não varria. Contado no
+   * dia: **Compras 10 · Fiscal 20 · Ponto 32 · NfeBrasil 47 · Financeiro 80** arquivos de teste
+   * invisíveis. Efeito: todo módulo nWidart aparecia com "UC com teste: 0" — falso-VERMELHO —
+   * e a lacuna "US entregue sem contrato" nunca fechava, por mais teste que se escrevesse.
+   * Pior no contexto do passo 5, cujo próprio plano manda o chip escrever em
+   * `Modules/<Mod>/Tests/Feature/` (é onde a lane do módulo procura).
+   *
+   * Varre o subdir `Tests` de cada módulo, NUNCA o módulo inteiro: UC citado em comentário de
+   * código de produção não é prova de teste — seria o `includes` cru que este arquivo já
+   * rejeitou pro CU (âncora ≠ prosa).
+   */
+  let mods; try { mods = readdirSync(join(ROOT, 'Modules'), { withFileTypes: true }); } catch { mods = []; }
+  for (const m of mods) if (m.isDirectory()) walk(`Modules/${m.name}/Tests`);
   return out;
 }
 
@@ -268,7 +297,24 @@ if (IS_MAIN && args.includes('--selftest')) {
   ok('controle-negativo: casos.md com UC declarado cobre',
     extrairUC('| UC-FISC-01 | Emitir NFe | must |').length === 1);
 
-  const TOTAL = 27;
+  // (3) corpus de testes: `Modules/<X>/Tests` conta (achado do chip S1). Sem isto, módulo
+  // nWidart aparecia com "UC com teste: 0" mesmo com 80 arquivos de teste no disco.
+  const corpusSelftest = listarTestes();
+  ok('MORDE: Modules/<X>/Tests entra no corpus de testes',
+    corpusSelftest.some((t) => t.path.startsWith('Modules/')));
+  ok('controle-negativo: só o subdir Tests — código de produção do módulo fica fora',
+    corpusSelftest.filter((t) => t.path.startsWith('Modules/')).every((t) => t.path.includes('/Tests/')));
+
+  // (4) UC-id vem da fonte única (achado do chip Financeiro). O regex próprio exigia 2 hífens
+  // e cegava 12 ids reais do repo — US COM contrato saía como "entregue sem contrato".
+  ok('MORDE: UC de prefixo curto conta (UC-F01, UC-S11)',
+    extrairUC('| UC-F01 | Baixa | must |\n| UC-S11 | Menu de ações | must |').length === 2);
+  ok('cobre: as duas formas convivem (UC-F01 + UC-PROD-020)',
+    extrairUC('UC-F01 e UC-PROD-020').length === 2);
+  ok('controle-negativo: "UC-" solto em prosa não vira id',
+    extrairUC('o UC- do caso ainda não foi numerado').length === 0);
+
+  const TOTAL = 32;
   console.log(f === 0 ? `\n✅ selftest ${TOTAL}/${TOTAL} — extratores, classificador e anti-gaming provados` : `\n❌ ${f} falha(s)`);
   process.exit(f === 0 ? 0 : 1);
 }
@@ -290,7 +336,8 @@ const testes = listarTestes();
 // citação em prosa de outra tela não cria um segundo requisito.
 const donoDe = new Map();
 for (const c of casos) {
-  for (const m of c.src.matchAll(/^\|\s*(UC-[A-Z0-9]{2,10}-\d{2,3})\s*\|/gm)) {
+  // 1º campo da linha de tabela = tela DONA do UC. Mesmo core da fonte única (ver import).
+  for (const m of c.src.matchAll(new RegExp(`^\\|\\s*(${ucScanRe().source})\\s*\\|`, 'gm'))) {
     if (!donoDe.has(m[1])) donoDe.set(m[1], c.tela);
   }
 }
