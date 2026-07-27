@@ -21,7 +21,7 @@ beforeEach(function () {
     }
 });
 
-it('agregação de períodos NfeEmissao respeita scope per business', function () {
+it('UC-FSPED-02 · agregação de períodos NfeEmissao respeita scope per business', function () {
     session(['business.id' => 1, 'user.business_id' => 1]);
 
     $crossTenantCount = NfeEmissao::query()

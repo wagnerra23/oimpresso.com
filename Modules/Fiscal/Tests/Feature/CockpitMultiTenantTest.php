@@ -12,6 +12,10 @@ uses(Tests\TestCase::class);
  * PR #2 Wave Cockpit Fiscal — isolation Tier 0 + KPIs scoped + alerts determinísticos.
  *
  * Espelha pattern de NfeCockpitMultiTenantTest (ADR 0093 + ADR 0101).
+ *
+ * @covers-us US-FISCAL-002
+ * (ADR 0273/0303 — este arquivo esta na allowlist da lane que emite JUnit,
+ *  entao o "verde" declarado aqui e alcancavel; ver SDD Fiscal §8.1.)
  */
 
 const COCKPIT_BIZ_WAGNER   = 1;
@@ -49,7 +53,7 @@ afterEach(function () {
         ->forceDelete();
 });
 
-it('computeKpis scope per business: biz=99 não aparece em counts de biz=1', function () {
+it('UC-FCKP-05 · computeKpis scope per business: biz=99 não aparece em counts de biz=1', function () {
     $base = [
         'modelo'      => '55',
         'serie'       => '1',
@@ -97,7 +101,7 @@ it('computeKpis scope per business: biz=99 não aparece em counts de biz=1', fun
                       'faturamentoFiscal', 'dfeAguardando', 'certificadoValidadeDias']);
 });
 
-it('computeAlerts não usa LLM — receitas determinísticas por estado', function () {
+it('UC-FCKP-04 · computeAlerts não usa LLM — receitas determinísticas por estado', function () {
     $controller = new \Modules\Fiscal\Http\Controllers\CockpitController();
 
     // Pós Onda ESTABILIZAR 2026-05-25 (GAP-FISCAL-002): computeAlerts recebe

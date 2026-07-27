@@ -21,6 +21,10 @@ uses(Tests\TestCase::class);
  * biz=1) + CRIA uma linha de OUTRO tenant real (bypass do scope) pra o scope ter o
  * que excluir, MAIS um controle positivo biz=1 (garante que o filtro é por-tenant,
  * não "esconde tudo"). ADR 0093 (multi-tenant Tier 0) + ADR 0101 (biz=1).
+ *
+ * @covers-us US-FISCAL-005
+ * (ADR 0273/0303 — este arquivo esta na allowlist da lane que emite JUnit,
+ *  entao o "verde" declarado aqui e alcancavel; ver SDD Fiscal §8.1.)
  */
 
 const NFSE_COCKPIT_BIZ_WAGNER = 1;
@@ -64,7 +68,7 @@ afterEach(function () {
     }
 });
 
-it('NfseEmissao HasBusinessScope esconde cross-tenant da listagem do cockpit Nfse', function () {
+it('UC-FNFSE-01 · NfseEmissao HasBusinessScope esconde cross-tenant da listagem do cockpit Nfse', function () {
     // idempotency_key é UNIQUE GLOBAL — sufixo randômico evita "Duplicate entry" se um
     // afterEach anterior falhou ou runs concorrem no mesmo banco (o cleanup casa por LIKE %TAG%).
     $suffix = uniqid();
@@ -111,7 +115,7 @@ it('NfseEmissao HasBusinessScope esconde cross-tenant da listagem do cockpit Nfs
     expect(NfseEmissao::where('id', $emissaoOwn)->first())->not->toBeNull();
 });
 
-it('STATUS constants estão definidas no Model — Controller depende delas', function () {
+it('UC-FNFSE-04 · STATUS constants estão definidas no Model — Controller depende delas', function () {
     expect(NfseEmissao::STATUS_AUTHORIZED)->toBe('authorized')
         ->and(NfseEmissao::STATUS_REJECTED)->toBe('rejected')
         ->and(NfseEmissao::STATUS_PENDING)->toBe('pending')

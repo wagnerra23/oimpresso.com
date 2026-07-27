@@ -18,7 +18,7 @@ uses(Tests\TestCase::class);
  *  - Estrutura básica do TXT gerado (registros canônicos)
  */
 
-it('gerar method público existe + signature canônica', function () {
+it('UC-FSPED-01 · gerar method público existe + signature canônica', function () {
     expect(method_exists(SpedIcmsIpiGeneratorService::class, 'gerar'))->toBeTrue();
 
     $reflection = new ReflectionMethod(SpedIcmsIpiGeneratorService::class, 'gerar');
@@ -36,20 +36,20 @@ it('gerar method público existe + signature canônica', function () {
     expect((string) $reflection->getReturnType())->toBe('string');
 });
 
-it('gerar rejeita ano < 2020 (anti-historical garbage)', function () {
+it('UC-FSPED-06 · gerar rejeita ano < 2020 (anti-historical garbage)', function () {
     $service = app(SpedIcmsIpiGeneratorService::class);
     expect(fn () => $service->gerar(1, 2019, 1))
         ->toThrow(InvalidArgumentException::class, 'Ano inválido');
 });
 
-it('gerar rejeita ano > ano atual (anti-future)', function () {
+it('UC-FSPED-06 · gerar rejeita ano > ano atual (anti-future)', function () {
     $service = app(SpedIcmsIpiGeneratorService::class);
     $anoFuturo = (int) date('Y') + 1;
     expect(fn () => $service->gerar(1, $anoFuturo, 1))
         ->toThrow(InvalidArgumentException::class, 'Ano inválido');
 });
 
-it('gerar rejeita mes fora 1-12', function () {
+it('UC-FSPED-06 · gerar rejeita mes fora 1-12', function () {
     $service = app(SpedIcmsIpiGeneratorService::class);
     foreach ([0, 13, -1, 99] as $mesInvalido) {
         expect(fn () => $service->gerar(1, 2026, $mesInvalido))
@@ -57,7 +57,7 @@ it('gerar rejeita mes fora 1-12', function () {
     }
 });
 
-it('gerar lança RuntimeException cross-tenant (session biz ≠ param)', function () {
+it('UC-FSPED-02 · gerar lança RuntimeException cross-tenant (session biz ≠ param)', function () {
     session(['user.business_id' => 1]);
     $service = app(SpedIcmsIpiGeneratorService::class);
     expect(fn () => $service->gerar(99, 2026, 1))
@@ -78,7 +78,7 @@ it('contract: OtelHelper::spanBiz wrap com prefix fiscal.sped', function () {
     expect($src)->toContain("'fiscal.sped.gerar'");
 });
 
-it('contract: 23 registros canon EFD-ICMS/IPI presentes (PR #8 + #9 Waves)', function () {
+it('UC-FSPED-01 · contract: 23 registros canon EFD-ICMS/IPI presentes (PR #8 + #9 Waves)', function () {
     $reflection = new ReflectionClass(SpedIcmsIpiGeneratorService::class);
     $src = file_get_contents($reflection->getFileName());
 
@@ -106,7 +106,7 @@ it('contract: 23 registros canon EFD-ICMS/IPI presentes (PR #8 + #9 Waves)', fun
 // PR #9 Wave — Bloco E (apuração ICMS) + Bloco H (esqueleto inventário)
 // ──────────────────────────────────────────────────────────────────────
 
-it('Bloco E: E110 apuração consolida débitos C190 vl_icms', function () {
+it('UC-FSPED-07 · Bloco E: E110 apuração consolida débitos C190 vl_icms', function () {
     // Defesa estrutural: quando totalizadores C190 têm vl_icms,
     // o E110 deve refletir o sum como VL_TOT_DEBITOS.
     $reflection = new ReflectionClass(SpedIcmsIpiGeneratorService::class);
@@ -115,7 +115,7 @@ it('Bloco E: E110 apuração consolida débitos C190 vl_icms', function () {
     expect($src)->toContain("array_sum(array_column(\$totalizadores, 'vl_icms'))");
 });
 
-it('Bloco E: E116 só emitido quando vl_icms_recolher > 0 (anti-zero-line)', function () {
+it('UC-FSPED-07 · Bloco E: E116 só emitido quando vl_icms_recolher > 0 (anti-zero-line)', function () {
     $reflection = new ReflectionClass(SpedIcmsIpiGeneratorService::class);
     $src = file_get_contents($reflection->getFileName());
 
