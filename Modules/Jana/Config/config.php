@@ -16,6 +16,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Kill-switch — flag de US não atribuída no Daily Brief
+    |--------------------------------------------------------------------------
+    | Liga/desliga o bullet `🟠 US não atribuída: N (M sem dono)` na seção FLAGS
+    | (TasksSemDonoBriefLineService). Literal (não env) pra evitar o larastan
+    | noEnvCallsOutsideOfConfig — toggle via config(), como os irmãos de Governance.
+    */
+    'tasks_sem_dono_brief_line' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Adapter de IA — verdade canônica ADR 0035
     |--------------------------------------------------------------------------
     | 'auto'             — detecta laravel/ai instalado, fallback OpenAiDirect (legado)

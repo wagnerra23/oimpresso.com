@@ -30,6 +30,7 @@
 
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join, sep } from 'node:path';
+import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -54,11 +55,19 @@ export function temPrototipoReal(val) {
   return /\.(jsx|html)\b/i.test(val) || /prototipo\s+cowork|design-handoff|Cowork chat|\.html"/i.test(val);
 }
 
-/** Conta UCs declarados (heading `## UC-`) num casos.md. */
+/**
+ * Conta UCs declarados (heading `## UC-`) num casos.md. DELEGA pra fonte única
+ * `scripts/lib/uc-regex.mjs` — não reimplementar aqui.
+ *
+ * POR QUE DELEGA (2026-07-27): o `/^UC-/i` que estava aqui era PERMISSIVO demais —
+ * aceitava qualquer heading começando em `UC-` (inclusive `## UC-` solto), que a lib
+ * rejeita. MEDIDO no corpus (44 .casos.md): delta **0** — batia por acaso, não por
+ * contrato. A direção do erro era sobre-contar; migrar preserva o número de hoje e
+ * mata a chance de drift. Mesma varredura que achou o drift INVERSO (sub-contar) em
+ * `screen-coverage-map.mjs::ucsFromCasos`, que perdia UC de sufixo-letra.
+ */
 export function contaUCs(casosText) {
-  let n = 0;
-  for (const block of casosText.split(/^##\s+/m).slice(1)) if (/^UC-/i.test(block)) n++;
-  return n;
+  return ucsDeclaredInCasos(casosText).length;
 }
 
 /** Classifica prontidão a partir dos fatos booleanos (pura, testável). */
