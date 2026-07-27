@@ -84,3 +84,14 @@ Fonte viva: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (16 tasks P0-P3, ag
 - [SPEC.md](SPEC.md) (US-COM-001..011) · [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (capacidade 34) · [CAPTERRA-DESIGN-FICHA.md](CAPTERRA-DESIGN-FICHA.md) (design 67) · [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (backlog)
 - [AUDIT-SENIOR-2026-05-25.md](AUDIT-SENIOR-2026-05-25.md) · [DISCOVERY-LARISSA-COMPRAS.md](DISCOVERY-LARISSA-COMPRAS.md) · [RUNBOOK-compras-index.md](RUNBOOK-compras-index.md)
 - Session logs: [2026-05-21 como-integrar](../../sessions/2026-05-21-como-integrar-compras.md) · [2026-07-03 capterra](../../sessions/2026-07-03-capterra-compras.md)
+
+## Contrato de tela (SDD)
+
+O módulo passou a ter **SDD** em [`SDD-tela-cockpit-compras-v1.0.md`](SDD-tela-cockpit-compras-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
+gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4864).
+
+> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
+> `node scripts/governance/requisitos-status.mjs Compras`
+>
+> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
+> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).
