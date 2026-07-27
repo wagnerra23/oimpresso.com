@@ -87,6 +87,13 @@ jobs:
         run: node --test scripts/governance/funcao-scorecard-calibracao.test.mjs
       - name: Função-scorecard gold humano (9/9 obrigatório + K/9 + Cohen kappa)
         run: node --test scripts/governance/funcao-scorecard-humano.test.mjs
+      # Fonte ÚNICA de UC-id (ADR 0264) — a lib existia pra matar "4 regex que drifaram" e
+      # não tinha teste nenhum. O USO dela (split por bloco `## ` antes do ucHeadRe) seguiu
+      # copiado em 6 consumidores e drifou pela mesma porta: exposicao-tier0 aplicava o regex
+      # na LINHA CRUA e media 4 telas cobertas onde havia 29 (perna casos_coverage morta).
+      # Inclui o CONTROLE-NEGATIVO da raiz: linha crua NÃO casa, bloco casa.
+      - name: UC-id fonte única (parser de casos.md · controle-negativo da linha crua)
+        run: node --test scripts/lib/uc-regex.test.mjs
       # Detector ADVISORY de DONO-DE-TEMA (pedido [W] 2026-07-21 "como sei que a Maiara não
       # está duplicando estrutura?"). Consome o catalog.json + tópicos; mede sobreposição de
       # ENTIDADE declarada (não nome de arquivo). O selftest é a MORDIDA: prova que casa por

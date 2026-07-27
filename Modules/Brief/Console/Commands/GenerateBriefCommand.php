@@ -11,6 +11,7 @@ use Modules\Brief\Services\LeaseBriefSectionService;
 use Modules\Governance\Services\AdrPendenteBriefLineService;
 use Modules\Governance\Services\AdrReviewBriefLineService;
 use Modules\Governance\Services\AgentOutcomeBriefSectionService;
+use Modules\Governance\Services\ExposicaoTier0BriefLineService;
 use Modules\Governance\Services\ObraParadaBriefLineService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 use Modules\Governance\Services\ShippedLogBriefLineService;
@@ -63,6 +64,16 @@ final class GenerateBriefCommand extends Command
         // ausente / índice não-deployado → brief intacto. Catraca-irmã do gate CI
         // plan-health-gate.yml (PLANS-INDEX §"Como manter vivo" item 2).
         $content = app(PlanHealthBriefLineService::class)->inject($content);
+
+        // Linha de EXPOSIÇÃO TIER-0 × cobertura de comportamento (pós-LLM,
+        // determinística) na seção FLAGS: shell-out de scripts/qa/exposicao-tier0.mjs
+        // --stdout e injeta "Exposição Tier-0: D/H quentes sem teste · topo: <tela>".
+        // A sentinela (ADR 0256 pilar CADÊNCIA) já ranqueava o débito por peso
+        // (valor/estoque no topo — REGRA MESTRE), mas só publicava na issue semanal do
+        // workflow exposicao-tier0-sentinel.yml; sem esta linha o ranking não chega a
+        // quem abre a sessão e a pergunta "qual tela quente atacar" é refeita à mão.
+        // Best-effort: node ausente / script não-deployado → brief intacto.
+        $content = app(ExposicaoTier0BriefLineService::class)->inject($content);
 
         // Porta de saída do loop (ADR 0294 ext) — linha de SAÚDE DO SHIPPED-LOG
         // (pós-LLM, determinística) na seção FLAGS: shell-out de
