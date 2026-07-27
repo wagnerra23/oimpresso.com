@@ -1,0 +1,164 @@
+name: Sells · Pest (MySQL)
+
+# Lane dedicada pra rodar a suíte Pest de Sells contra MySQL REAL + seed mínimo
+# (biz=1 + biz=2 — via .github/actions/pest-mysql-setup, FV-F2).
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# POR QUE EXISTE (as TRÊS portas, medidas separadamente em 2026-07-27)
+# ─────────────────────────────────────────────────────────────────────────────
+# A pergunta "esse teste roda?" tem três donos distintos, e responder com um
+# deduzindo o outro é a classe de erro LC-08. Medição de `tests/Feature/Sells`
+# (72 arquivos) ANTES desta lane:
+#
+#   | pergunta            | porta consultada                                  | resposta |
+#   |---------------------|---------------------------------------------------|----------|
+#   | roda em ALGUM lugar?| phpunit.xml (<directory>./tests/Feature</directory>)|   SIM    |
+#   |                     | + scripts/tests/shards-plan.mjs (enumera o shard)  |          |
+#   | roda NO PR?         | allowlists dos workflows + ci-sqlite-pest.list     |   NÃO    |
+#   | BLOQUEIA merge?     | governance/required-checks-baseline.json           |   NÃO    |
+#
+# Ou seja: os 72 testes NÃO eram "verde impossível" — eles rodavam o tempo todo
+# no full-suite nightly do CT 100 (ADR 0062). O que faltava era mordida NO PR:
+# `grep -rn "Feature/Sells" .github/` devolvia ZERO. Esta lane fecha essa porta.
+#
+# ⚠️ Esta lane NASCE ADVISORY. Ela NÃO está em governance/required-checks-baseline.json
+# e este workflow NÃO o edita (dono único de "é required" — a promoção é flip do [W],
+# ADR 0275/0336). Reprova visível, não bloqueia merge.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# CATRACA (padrão das lanes Financeiro/Compras)
+# ─────────────────────────────────────────────────────────────────────────────
+# A allowlist é EXPLÍCITA, arquivo a arquivo. Só entra o que foi validado no
+# CT 100 (não-blind, ADR 0062) — cada lote de fix adiciona arquivos aqui
+# (ratchet up). Os 71 arquivos restantes de tests/Feature/Sells NÃO entram de
+# uma vez: a maioria é "Pest estrutural" (lê o source com file_get_contents),
+# e listá-los em bloco importaria vermelho de terceiro pra dentro desta lane.
+#
+# Usa o SCHEMA BASELINE (database/schema/mysql-schema.sql) — `migrate` carrega o
+# schema final num passo só, sem o problema de fresh-install das migrations legacy.
+#
+# Refs: memory/requisitos/Sells/SDD-tela-venda-v1.0.md §8.1 · ADR 0351 (passo 5)
+
+on:
+  workflow_dispatch: {}
+  # ADR 0271 onda 2 (required-readiness): pull_request SEM paths (always-run) pra
+  # ser promovível a required sem deadlock "Expected — waiting". O custo (MySQL +
+  # migrate + Pest) é evitado por skip-as-pass interno via dorny/paths-filter.
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Sells/**'
+      - 'app/Http/Controllers/SellController.php'
+      - 'app/Http/Controllers/SellPosController.php'
+      - 'app/Utils/TransactionUtil.php'
+      - 'tests/Feature/Sells/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/sells-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: sells-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Sells · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças de Sells (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            sells:
+              - 'resources/js/Pages/Sells/**'
+              - 'app/Http/Controllers/SellController.php'
+              - 'app/Http/Controllers/SellPosController.php'
+              - 'app/Utils/TransactionUtil.php'
+              - 'tests/Feature/Sells/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/sells-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada de Sells mudou)
+        if: steps.changes.outputs.sells == 'false'
+        run: echo "✅ Sem mudanças em Sells — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      # FV-F2: setup extraído pra composite action reusável. PHP + Composer + .env
+      # + migrate (schema baseline) + seed mínimo (biz=1 fixture completa + biz=2
+      # cross-tenant Tier 0). O service MySQL fica DECLARADO no job (composite
+      # action não pode declarar services — limitação GitHub Actions).
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.sells == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.sells == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Sells · MySQL) — ALLOWLIST (catraca)
+        if: steps.changes.outputs.sells == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: (sem force=) — se não
+        # sobrescrever, o Pest roda em sqlite VAZIO e os testes que dependem do
+        # schema UltimatePOS dão markTestSkipped (a falsa cobertura). Exportar aqui
+        # faz rodar no MySQL real semeado.
+        #
+        # ⚠️ EXCEÇÃO DECLARADA À CATRACA (2026-07-27 · chip Onda 2 do passo 5, ADR 0351):
+        # `SellsIndexTenantContratoTest` entra na allowlist SEM ter sido validado verde
+        # — é FAILING-FIRST por desenho (UC-SIDX-01/02 do Index.casos.md, derivados do
+        # SDD §6.3 CU-SELL-32/33 e do ADR 0093, NÃO do Index.tsx). O motivo de listá-lo
+        # mesmo assim: teste fora da allowlist NÃO RODA — é o "verde impossível" que o
+        # anchor-lint denuncia, pior que o vermelho honesto.
+        #
+        # O contrato UC-SIDX-01 roda em PAR (controle positivo + contrato):
+        #   (A) devolução do MESMO business ACENDE o indicador  → prova o mecanismo
+        #   (B) devolução de OUTRO business NÃO acende          → o contrato Tier 0
+        # Se (B) vier vermelho, ELE É O ACHADO — a subquery `return_exists` de
+        # inertiaList não filtra `sr.business_id` (medido). A correção é decisão do
+        # [W] (proibicoes.md §Precedência + REGRA MESTRE), NÃO conserto silencioso.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-sells-junit.xml \
+            tests/Feature/Sells/SellsIndexTenantContratoTest.php
+
+      - name: Upload JUnit (veredito por-teste — casos:results)
+        if: ${{ !cancelled() && steps.changes.outputs.sells == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-sells-junit
+          path: test-results/pest-sells-junit.xml
+          retention-days: 14

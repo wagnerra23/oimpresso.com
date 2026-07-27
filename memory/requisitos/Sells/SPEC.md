@@ -1107,6 +1107,8 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase
 
 **Implementado em:** _pendente_ — teste de isolamento multi-tenant REAL (HTTP/DB, nao grep) da tela Sells nao existe; os testes atuais sao grep de source
 
+**Testado em:** `tests/Feature/Sells/SellsIndexTenantContratoTest.php` — **pagamento PARCIAL desta US** (2026-07-27, chip Onda 2 do passo 5 · [ADR 0351](../../decisions/0351-sdd-from-source.md)): primeiro teste de Sells que faz **HTTP+DB real** (`GET /sells-list-json` com `actingAs` biz=1 e uma transação plantada em biz=2), não grep de source. Cobre 2 dos 4 itens do Escopo — o indicador de devolução (`UC-SIDX-01`, com controle positivo pra não passar por não-execução) e o agregado de dinheiro do rodapé (`UC-SIDX-02`, antes→depois). **Continua `_pendente_` de propósito:** faltam `bulk-print`/`bulk-export` com IDs alheios e o DoD "provado mutando". Roda na lane nova `PHP / Pest (Sells · MySQL)` (`.github/workflows/sells-pest.yml`) — **advisory**, não bloqueia merge. Contratos: [`Index.casos.md`](../../../resources/js/Pages/Sells/Index.casos.md) · SDD [§6.3 CU-SELL-32/33](SDD-tela-venda-v1.0.md).
+
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
