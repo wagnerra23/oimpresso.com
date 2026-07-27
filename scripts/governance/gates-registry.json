@@ -102,6 +102,13 @@
       "anchor": "sinal de custo: #3658 introduziu crash em `arquivos:audit-log --suspicious` (DB::table(raw,[bind]) → Expression-to-string em QUALQUER MySQL) + os testes signed_url_consumed são MySQL-only e ficavam skip na modules-pest (SQLite) = falsa cobertura; lane #3666 expôs e fechou o bug. Skip-as-pass já é required-ready (ADR 0271 onda 2).",
       "promote_by": "2026-07-16"
     },
+    "teammcp-pest.yml": {
+      "nome": "TeamMcp · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca allowlist verde, espelha arquivos-pest",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "sinal de custo MEDIDO (2026-07-27, #4887): `ForjaRoutesSmokeTest` existia desde a Onda Forja e NUNCA executou uma vez — TeamMcp fora do matrix do modules-pest.yml (que nem emite JUnit) + só 7 dos 26 arquivos na lista sqlite = 19 sem lane nenhuma. Rodado no CT 100: 7 failed / 5 passed (rota `forja.saude` inexistente + dataset associativo com `it()` de 2 args); o happy-path de UC-FORJA-01 jamais rodou, e UC-FORJA-01/07 eram órfãos no G-2. Sem esta lane o JUnit do módulo não chega ao casos-results-publish (elo do G-7, ADR 0264).",
+      "promote_by": "2026-08-10"
+    },
     "baseline-tamper-guard.yml": {
       "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
       "classe": "gate"

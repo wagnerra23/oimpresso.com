@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-OFICINA-002
 
 declare(strict_types=1);
 
@@ -82,7 +83,7 @@ function w27_writeJson(string $name, array $payload): string
     return $path;
 }
 
-it('exige --business (Tier 0)', function () {
+it('UC-OIM-01 · exige --business (Tier 0)', function () {
     $exit = \Illuminate\Support\Facades\Artisan::call('oficina:import-firebird-martinho');
     expect($exit)->toBe(\Illuminate\Console\Command::INVALID);
 });
@@ -95,7 +96,7 @@ it('falha quando JSON inexistente', function () {
     expect($exit)->toBe(\Illuminate\Console\Command::FAILURE);
 });
 
-it('dry-run não modifica DB mesmo com payload válido', function () {
+it('UC-OIM-02 · dry-run não modifica DB mesmo com payload válido', function () {
     $path = w27_writeJson('dry-run.json', [
         'ordens' => [
             [

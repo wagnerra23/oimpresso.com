@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-OFICINA-001
 
 declare(strict_types=1);
 
@@ -140,7 +141,7 @@ it('OS com transaction → JSON venda_derivada populado (4 campos core ADR 0192 
     }
 });
 
-it('Multi-tenant Tier 0: OS biz=1 com transaction biz=2 retorna venda_derivada null (ADR 0093)', function () {
+it('UC-OSH-11 · Multi-tenant Tier 0: OS biz=1 com transaction biz=2 retorna venda_derivada null (ADR 0093)', function () {
     // Cenário adversarial — alguém forçou FK cross-tenant em DB (race condition
     // ou bug histórico). O `load('transaction:...')` respeita global scope da
     // Transaction model, então biz=1 vendo OS com transaction_id apontando pra
