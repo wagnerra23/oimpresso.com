@@ -457,6 +457,13 @@
       "nome": "Screen Coverage Gate (catraca de cobertura)",
       "classe": "gate"
     },
+    "sells-pest.yml": {
+      "nome": "Sells · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-10",
+      "anchor": "Varredura contada 2026-07-27: NENHUMA das 9 lanes `DB_CONNECTION: mysql` inclui Sells, e 0 dos 214 alvos de .github/ci-sqlite-pest.list é de tests/Feature/Sells/ — os 72 arquivos de teste de Sells não rodavam em CI nenhum (proibição Tier 0 'Tests sem CI = falsa cobertura'). Custo real: Sells/Show.tsx chegou ao TOPO do débito Tier-0 (exposicao-tier0.mjs score 11, dinheiro+estoque+fiscal) com cobertura só ESTRUTURAL (file_get_contents + match de string), e o Wave1ShowInertiaTest está vermelho sem ninguém ver (assere 'vendas-cockpit' num charter que diz 'vendas-page.jsx'). Nasce com SellsShowContratoTest (UC-VSHOW-01..07 de Show.casos.md): isolamento multi-tenant, gate das 3 permissões, view_own_sell_only, KPIs de dinheiro, defer, GET leitura pura, trilha CU-07. Reusa .github/actions/pest-mysql-setup (seed biz=1 + biz=2). Advisory com skip-as-pass (mesmo padrão essentials-pest/estoque-pest); promoção a required é passo [W]. Refs ADR 0093, ADR 0101, ADR 0264, ADR 0271 onda 2, PR #4877"
+    },
     "sdd-scorecard-publish.yml": {
       "nome": "SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279)",
       "classe": "automacao"
@@ -569,26 +576,12 @@
       "terminal": "cron",
       "anchor": "ADR 0334 (invariante anti-atrofia da inteligência de negócio) §Consequências — a ADR entregou a sentinela + prometeu o \"wiring do alarme como workflow advisory semanal\" e deixou como decisão de custo do [W]; [W] autorizou 2026-07-17. Sinal de custo MEDIDO: até este PR o único invocador do script fora de memory/ era o próprio .test.mjs (correção-do-mecanismo ≠ invocação, proibicoes §5 2026-07-09) — o crossover de junho (governança 8× negócio) passou silencioso e o 3,4× de 2026-07-17 (1311 merges: 228 negócio × 778 governança, 77% > limiar 65%) só apareceu porque um verificador rodou na mão."
     },
-    "sells-pest.yml": {
-      "nome": "Sells · Pest (MySQL)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "Lane nascida no chip SDD de Sells (passo 5 do programa-ondas, PR #4868). Antes dela tests/Feature/Sells nao rodava em PR nenhum — as 3 portas medidas pelo chip: roda no nightly CT100 SIM, roda no PR NAO, bloqueia merge NAO. Sells e Tier 0 valor/estoque (REGRA MESTRE proibicoes.md) e 71 dos 72 testes do modulo eram grep de source; esta lane executa o 1o teste HTTP/DB real. Advisory por nascimento (ADR 0275): promocao a required e flip [W] com mordida provada (ADR 0336).",
-      "promote_by": "2026-08-27"
-    },
-    "oficinaauto-pest.yml": {
-      "nome": "OficinaAuto · Pest (MySQL)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "Lane nascida no chip SDD de OficinaAuto (passo 5, PR #4869). Os 44 testes do modulo estavam em phpunit.xml (rodavam no nightly) mas sem lane de PR — mesma classe da proibicao Tier 0 \"Modules/X/Tests sem CI = falsa cobertura\". Modulo e piloto LIVE em producao (Martinho, business_id=164). Advisory por nascimento (ADR 0275).",
-      "promote_by": "2026-08-27"
-    },
     "cliente-pest.yml": {
       "nome": "Cliente · Pest (MySQL)",
       "classe": "gate",
       "terminal": "advisory",
-      "anchor": "Lane nascida no chip SDD de Cliente (passo 5, PR #4870). O chip mediu que Modules/Crm/Tests (14 arquivos) NAO esta no phpunit.xml — nao roda nem no nightly; os testes do Cliente vivem em tests/Feature/Cliente/. Eixo Tier 0 do modulo e PII/LGPD (CPF/CNPJ, 7 telas cobertas pela sentinela exposicao-tier0). Advisory por nascimento (ADR 0275).",
-      "promote_by": "2026-08-27"
+      "promote_by": "2026-08-27",
+      "anchor": "Lane nascida no chip SDD de Cliente (passo 5, PR #4870). O chip mediu que Modules/Crm/Tests (14 arquivos) NAO esta no phpunit.xml — nao roda nem no nightly; os testes do Cliente vivem em tests/Feature/Cliente/. Eixo Tier 0 do modulo e PII/LGPD. Advisory por nascimento (ADR 0275)."
     }
   }
 }
