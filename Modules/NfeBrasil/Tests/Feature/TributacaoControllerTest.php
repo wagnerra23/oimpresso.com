@@ -241,7 +241,11 @@ it('edit() de regra de outro business retorna 404 (multi-tenant)', function () {
         ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 });
 
-it('regras retornam ordenadas por NCM, UF origem, UF destino (NULL primeiro)', function () {
+// UC-NFTR-06 (resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md) — a ordem É a semântica da
+// cascade: dentro do mesmo NCM, Nível 2 (UF destino) e Nível 3 (UF destino NULL) precisam sair
+// numa ordem estável. Provado nesta lane (sqlite) de propósito: ORDER BY + IS NULL DESC são
+// portáveis e não dependem do schema MySQL real.
+it('UC-NFTR-06 · regras retornam ordenadas por NCM, UF origem, UF destino (NULL primeiro)', function () {
     NfeFiscalRule::create([
         'business_id' => 1, 'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => 'RJ',
         'cfop' => '6102', 'csosn' => '102',
