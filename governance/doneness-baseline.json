@@ -13,7 +13,8 @@
       "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes"
     ],
     "escopo": "full-tree",
-    "total": 84
+    "total": 84,
+    "nota_us_crm_078": "US-CRM-078 absorvida 2026-07-27 (PR #4870): divida de 2026-06-22 que o PR tornou DETECTAVEL (o chip moveu o status pra metadata), nao criou. Sai do baseline quando a US for dividida em feita/pendente — decisao [W]."
   },
   "grandfathered": [
     "conflito_aberto_com_ancora:US-COPI-107",
