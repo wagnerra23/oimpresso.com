@@ -32,7 +32,7 @@ beforeEach(function () {
     }
 });
 
-it('UC-FSPED-09 · user comum com fiscal.sped.export é bloqueado por 503 quando flag true', function () {
+it('UC-FSPED-05 · user comum com fiscal.sped.export é bloqueado por 503 quando flag true', function () {
     config(['fiscal.sped_simples_only_lock' => true]);
 
     $user = \App\User::factory()->create(['business_id' => 1]);
@@ -46,7 +46,7 @@ it('UC-FSPED-09 · user comum com fiscal.sped.export é bloqueado por 503 quando
         ->and($r->getContent())->toContain('GAP-FISCAL-003');
 });
 
-it('UC-FSPED-09 · superadmin bypassa flag e consegue download mesmo com flag true', function () {
+it('UC-FSPED-05 · superadmin bypassa flag e consegue download mesmo com flag true', function () {
     config(['fiscal.sped_simples_only_lock' => true]);
 
     $user = \App\User::factory()->create(['business_id' => 1]);
@@ -60,7 +60,7 @@ it('UC-FSPED-09 · superadmin bypassa flag e consegue download mesmo com flag tr
     expect($r->getStatusCode())->not->toBe(503, 'superadmin bypassa o gate simples_only');
 });
 
-it('UC-FSPED-09 · flag false libera download pra user comum', function () {
+it('UC-FSPED-05 · flag false libera download pra user comum', function () {
     config(['fiscal.sped_simples_only_lock' => false]);
 
     $user = \App\User::factory()->create(['business_id' => 1]);
@@ -73,7 +73,7 @@ it('UC-FSPED-09 · flag false libera download pra user comum', function () {
     expect($r->getStatusCode())->not->toBe(503, 'flag false libera o gate');
 });
 
-it('UC-FSPED-09 · user sem permissão fiscal.sped.export recebe 403 (gate de perm é anterior)', function () {
+it('UC-FSPED-05 · user sem permissão fiscal.sped.export recebe 403 (gate de perm é anterior)', function () {
     config(['fiscal.sped_simples_only_lock' => true]);
 
     $user = \App\User::factory()->create(['business_id' => 1]);
