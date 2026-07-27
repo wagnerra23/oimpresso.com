@@ -13,6 +13,18 @@ uses(Tests\TestCase::class);
  * Tests source-grep + contract — rodam em SQLite sem dependência de
  * schema MySQL UPos. Smoke completo (HTTP 429 throttle real) fica em
  * CI MySQL pós-merge.
+ *
+ * @covers-us US-COM-008
+ *   (o `Implementado em:` da US-COM-008 no SPEC já aponta PRA ESTE ARQUIVO; faltava só
+ *   o marcador que o anchor-lint G1a lê — ADR 0273.)
+ *
+ * ⚠️ HONESTIDADE SOBRE A FORÇA DESTE ARQUIVO (SDD §7 · SPEC US-COM-011):
+ * o bloco Gap #4 (L53-142, `ListarComprasRequest`) é COMPORTAMENTAL — instancia o
+ * FormRequest e assere as whitelists `stage`/`sort`/`per_page` + `authorize()`. Os
+ * blocos Gap #2/#3 (L18-51 e L144-154) são SOURCE-GREP (`file_get_contents` +
+ * `str_contains`): provam que o TEXTO existe, não que o comportamento acontece.
+ * Nenhum UC do `Compras/Index.casos.md` se ancora exclusivamente num source-grep —
+ * o 429 comportamental da US-COM-008 segue SEM prova (SDD §9 D11).
  */
 
 it('Gap #2: ComprasController index usa user->business_id do auth (não session direto)', function () {
