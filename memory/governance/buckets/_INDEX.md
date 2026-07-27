@@ -1,7 +1,7 @@
 # Buckets Governance v4 — catálogo canônico
 
 > **Última atualização:** 2026-05-17 (Wave 27 governance saturate ≥95)
-> **Fonte da rubrica:** [ADR 0160 — Governance v4 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-bucket-aware.md)
+> **Fonte da rubrica:** [ADR 0160 — Governance v4 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)
 > **Aposentadoria 3/4 hacks v3:** [ADR 0161](../../decisions/0161-governance-v4-aposentar-hacks-0159-redundantes.md)
 
 ## Por que buckets
@@ -31,7 +31,7 @@ Retrato medido em **2026-07-26** (36 módulos, 36 declarando bucket):
 
 ### O que "YAML ausente" custa
 
-`ScopedScorecardEvaluator::loadBucketConfig()` retorna `[]` quando o arquivo não existe. Sem `core`, o loop de dimensões não roda: o módulo é avaliado com **zero dimensões**, não com pesos padrão. O `BUCKET_META_FALLBACK` do `ModuleGradeV4Command` cobre só o *threshold* (a meta), nunca as dimensões.
+`ScopedScorecardEvaluator::loadBucketConfig()` retorna `[]` quando o arquivo não existe. Sem `core`, o loop de dimensões não roda: o módulo é avaliado com **zero dimensões**, não com pesos padrão. O `BUCKET_META_FALLBACK` cobria só o *threshold* (a meta), nunca as dimensões — e vivia no `ModuleGradeV4Command`, **removido em 2026-07-26**. Quem lê os buckets hoje é o cron `governance:scorecard-snapshot` (07:00) via `ScopedScorecardEvaluator`.
 
 Na prática o dano hoje é limitado, porque `module:grade-v4` pula módulo sem scorecard próprio — e existem **5** scorecards em [`../scorecards/`](../scorecards/): `admin`, `auditoria`, `comunicacaovisual`, `governance`, `vestuario`. Antes desta reconciliação, **3 dos 5** (admin/auditoria/governance) avaliavam com `core` vazio. Agora os 5 têm rubrica.
 
@@ -78,7 +78,7 @@ Implementação canônica em `ScopedScorecardEvaluator::checkPairedViolation()`.
 
 ## Referências
 
-- [ADR 0160 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-bucket-aware.md)
+- [ADR 0160 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)
 - [ADR 0161 Aposentar hacks v3](../../decisions/0161-governance-v4-aposentar-hacks-0159-redundantes.md)
 - [Modules/Governance/Services/ScopedScorecardEvaluator.php](../../../Modules/Governance/Services/ScopedScorecardEvaluator.php)
-- [Modules/Governance/Console/Commands/ModuleGradeV4Command.php](../../../Modules/Governance/Console/Commands/ModuleGradeV4Command.php)
+- ~~`Modules/Governance/Console/Commands/ModuleGradeV4Command.php`~~ — **REMOVIDO em 2026-07-26** (0 invocadores em CI/cron; a nota que morde é a do v3, `module:grade`)
