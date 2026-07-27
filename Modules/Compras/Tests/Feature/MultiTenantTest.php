@@ -41,7 +41,22 @@ use Spatie\Permission\Models\Role;
  *      `contacts` sem scope `contacts.business_id`. US-COM-009 fará hotfix. Este
  *      teste DOCUMENTA o gap e ficará verde quando hotfix landar).
  *
+ * @covers-us US-COM-006
+ *   (o `Implementado em:` da US-COM-006 no SPEC já aponta PRA ESTE ARQUIVO; faltava só
+ *   o marcador que o anchor-lint G1a lê — sem ele a US ficava "IMPLEMENTADA mas NENHUM
+ *   teste declara @covers-us dela". ADR 0273.)
+ *
+ * Contrato de tela (ADR 0264 G-2 · trio de Compras/Index, 2026-07-27) — cada cenário
+ * daqui é citado por um UC do `resources/js/Pages/Compras/Index.casos.md`, que por sua
+ * vez deriva do `CU-COM-02` do SDD (nunca do .tsx):
+ *   @covers-uc UC-CMP-01  cenário 1 — listagem não mostra compra de outro business
+ *   @covers-uc UC-CMP-02  cenários 2 + 2b — detalhe cross-tenant 404 (com controle positivo 200)
+ *   @covers-uc UC-CMP-03  cenário 3 — KPIs agregam só o próprio business
+ *   @covers-uc UC-CMP-04  cenário 4 — filtro ?q= não casa fornecedor de outro business
+ *
  * Refs:
+ *   - memory/requisitos/Compras/SDD-tela-cockpit-compras-v1.0.md §6.1 CU-COM-02
+ *   - resources/js/Pages/Compras/Index.casos.md (UC-CMP-01..04)
  *   - ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL
  *   - ADR 0101 Tests nunca usam business cliente real (biz=1 default)
  *   - AUDIT-SENIOR-2026-05-25 §3.1 + §3.2 + Risk R1

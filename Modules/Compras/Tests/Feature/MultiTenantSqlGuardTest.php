@@ -27,6 +27,18 @@ declare(strict_types=1);
  *   - Defense-in-depth ADR 0093 §G5: business_locations, expense_categories
  *     também receberam scope mesmo pattern (todos têm coluna business_id).
  *
+ * @covers-us US-COM-009
+ * @covers-us US-COM-006
+ *   (os `Implementado em:` de ambas as US no SPEC já apontam PRA ESTE ARQUIVO; faltava
+ *   só o marcador que o anchor-lint G1a lê — ADR 0273.)
+ *
+ * Contrato de tela (ADR 0264 G-2 · trio de Compras/Index, 2026-07-27):
+ *   @covers-uc UC-CMP-04 — o par comportamental (MultiTenantTest cenário 4) + este
+ *     invariante de SQL formam juntos o UC: o guard estrutural sozinho não prova
+ *     comportamento, e o HTTP sozinho pode passar por falta de dado.
+ *   Âncora: memory/requisitos/Compras/SDD-tela-cockpit-compras-v1.0.md §6.1 CU-COM-02 item 4
+ *           resources/js/Pages/Compras/Index.casos.md (UC-CMP-04)
+ *
  * Refs:
  *   - ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL — Garantia 5 (CI lint
  *     detecta JOIN sem scope)

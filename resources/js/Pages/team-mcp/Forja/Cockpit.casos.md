@@ -13,10 +13,10 @@ last_run: "2026-06-17"
 
 > Onda Forja: cockpit do cowork loop, projetando `mcp_tasks` project=FORJA + git/ADR/sessão + gates (sem dado fantasma; contrato/tokens/auditoria da aba MCP seguem MOCKADOS por design). Persona: Wagner [W] (superadmin). A Triagem só muta sob confirmação [W]. Referência: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
 
-> ⚠️ **Errata 2026-07-27 — "as 6 abas" era stale.** A redação anterior afirmava 6 abas próprias incluindo `/forja/saude`. Medido: **5** rotas GET sob `/forja` e **9** itens de topnav (o hub foi fundido com TeamMcp em 2026-06-16, e "Saúde" aponta pro Scorecard). Recibos abaixo em cada UC. A rota `/forja/saude` **nunca existiu** nesta versão — `ForjaRoutesSmokeTest` ainda a lista e por isso falha (ver §Dívida conhecida no fim).
+> ⚠️ **Errata 2026-07-27 — "as 6 abas" era stale.** A redação anterior afirmava 6 abas próprias incluindo `/forja/saude`. Medido: **5** rotas GET sob `/forja` e **9** itens de topnav (o hub foi fundido com TeamMcp em 2026-06-16, e "Saúde" aponta pro Scorecard). Recibos abaixo em cada UC. A rota `/forja/saude` **nunca existiu** nesta versão — `ForjaRoutesSmokeTest` a listava e por isso falhava; removida em [#4887](https://github.com/wagnerra23/oimpresso.com/pull/4887).
 
 ## UC-FORJA-01 — As rotas /forja respondem (shell no ar)
-Status: ⬜ (o Pest existe mas está QUEBRADO e não roda em lane nenhuma — ver §Dívida conhecida)
+Status: 🧪 (o Pest foi consertado e passou a rodar em lane — [#4887](https://github.com/wagnerra23/oimpresso.com/pull/4887). Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI pelo `casos-results-publish` — não se escreve à mão.)
 `ForjaController` serve **5** rotas GET de aba: `/forja` (Triagem), `/forja/backlog`, `/forja/quadro`, `/forja/changelog`, `/forja/mcp`. Não há `/forja/saude` — Saúde foi fundida no Scorecard real (`/team-mcp/scorecard`), conforme o comentário em `Modules/TeamMcp/Http/routes.php`.
 Recibo: `docker exec oimpresso-staging php artisan route:list --path=forja --json` (CT 100, 2026-07-27) devolveu 5 GET de aba + os POST de lever/triagem, **sem** `forja.saude`.
 **Pronto quando:** cada uma das 5 rotas renderiza `team-mcp/Forja/Cockpit` com a prop `tab` certa (sem 500 / tela branca).
@@ -37,7 +37,7 @@ Nenhuma rota desta onda escreve estado; todas são GET de render.
 **Pronto quando:** não há ação na tela que escreva no banco.
 
 ## UC-FORJA-07 — Acesso (auth + permissão)
-Status: ⬜ (o Pest cobre só a perna anônima, e não roda em lane — ver §Dívida conhecida)
+Status: 🧪 (as DUAS pernas cobertas desde [#4887](https://github.com/wagnerra23/oimpresso.com/pull/4887) — anônimo e autenticado-sem-permissão — e o Pest passou a rodar em lane. Segue 🧪 pelo mesmo motivo do UC-FORJA-01: o ✅ é derivado do manifesto, não declarado.)
 `ForjaController` exige login + `jana.mcp.usage.all` (construtor; mesma do Scorecard/Team). Repo-wide cross-business intencional (ADR 0093) pro superadmin.
 **Pronto quando:** usuário autenticado **sem** `jana.mcp.usage.all` recebe 403, e anônimo é barrado pelo `auth`.
 
@@ -92,11 +92,15 @@ O `gate_status` é AUTO-REPORTADO pelo [CC] e pode divergir dos required checks 
 
 > **Rebaixado de `UC-FORJA-11` em 2026-07-27 (justificativa).** O próprio bloco se declarava "nota de fidelidade", não caso de uso: descreve uma **limitação da plataforma**, não um comportamento que o produto promete e que um teste possa defender. Vira prosa honesta — o padrão canônico pra o que não tem teste (ver [how-trabalhar.md §Pedido de tela](../../../../memory/how-trabalhar.md)).
 
-## Dívida conhecida — o Pest das rotas está quebrado E mudo
+## Dívida SALDADA — o Pest das rotas estava quebrado E mudo (resolvido em #4887)
+
+Registro do que era, porque a lição não é o conserto — é **como um teste fica anos parecendo cobertura sem nunca ter executado**.
 
 `Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.php` cobriria `UC-FORJA-01` e `UC-FORJA-07`, mas **nunca rodou uma vez**:
 
-- **Não roda em lane nenhuma.** `TeamMcp` não está no matrix do `modules-pest.yml` (que nem emite JUnit), e da pasta só `ForjaMcpServiceTest.php` está em `.github/ci-sqlite-pest.list`. Varredura contada em 2026-07-27.
-- **Falha se rodar.** Executado no CT 100 (`DB_CONNECTION=mysql`): **7 failed, 5 passed**. Duas causas independentes — (a) `RouteNotFoundException: Route [forja.saude] not defined` (a rota não existe; ver errata no topo); (b) `DatasetArgumentsMismatch: Test expects 2 arguments but dataset only provides 1` ×6 — o dataset é array associativo, que em Pest vira **1** argumento (a chave é nome do caso), mas o `it()` declara dois parâmetros. O happy-path (`assertStatus(200)` + `component(...)`) **jamais executou**.
+- **Não rodava em lane nenhuma.** `TeamMcp` não estava no matrix do `modules-pest.yml` (que nem emite JUnit), e da pasta só 7 dos 26 arquivos estavam em `.github/ci-sqlite-pest.list`. Varredura contada em 2026-07-27.
+- **Falhava se rodasse.** Executado no CT 100 (`DB_CONNECTION=mysql`): **7 failed, 5 passed**. Duas causas independentes — (a) `RouteNotFoundException: Route [forja.saude] not defined` (a rota não existe; ver errata no topo); (b) `DatasetArgumentsMismatch: Test expects 2 arguments but dataset only provides 1` ×6 — o dataset era array associativo, que em Pest vira **1** argumento (a chave é nome do caso), mas o `it()` declarava dois parâmetros. O happy-path (`assertStatus(200)` + `component(...)`) **jamais executou**.
 
-Consertar o teste + fiá-lo a uma lane que rode fica pra PR própria: é outro intent, mexe em config de CI, e não dá pra validar contra o staging do CT 100 (que está em `36432987`, de 2026-07-23, **anterior** ao #4853 — lá a permissão ainda é `copiloto.*`, então o `can:` do teste falharia por motivo alheio). Enquanto isso, `UC-FORJA-01` e `UC-FORJA-07` seguem órfãos **honestos**: têm `Status: ⬜`, não fingem cobertura.
+**Saldado em [#4887](https://github.com/wagnerra23/oimpresso.com/pull/4887)** (2026-07-27), com recibo no mesmo oráculo: `7 failed / 5 passed` → **`0 failed / 5 passed / 10 skipped`**. Rota fantasma removida; dataset virou `nome do caso => [routeName, tab]`; `UC-FORJA-07` ganhou a perna de autenticado-sem-permissão — com o usuário filtrado por **não-admin**, porque o `Gate::before` do `AuthServiceProvider` libera qualquer ability pra quem tem `Admin#{business_id}` e o 403 seria falso-verde. O módulo ganhou lane: +18 alvos na lista sqlite (que emite `pest-ci-junit`, já colhido pelo `casos-results-publish`) + a lane MySQL `teammcp-pest.yml`.
+
+**Limite honesto que permanece:** em sqlite o teste só *pula* (a stack UltimatePOS exige schema MySQL), então quem executa o happy-path é a lane MySQL nova — e ela **não pôde ser validada fora do CI**: o `oimpresso-staging` do CT 100 tem 15 tabelas (`copiloto_*`/`vestuario_*`), sem schema UltimatePOS, e `Business::first()` não existe lá. Enquanto o veredito `pass` de `UC-FORJA-01` não aparecer no manifesto vindo do JUnit, o Status correto destes dois UCs é **🧪**, não ✅.
