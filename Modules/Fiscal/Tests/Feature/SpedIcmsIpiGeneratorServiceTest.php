@@ -18,7 +18,7 @@ uses(Tests\TestCase::class);
  *  - Estrutura básica do TXT gerado (registros canônicos)
  */
 
-it('gerar method público existe + signature canônica', function () {
+it('UC-FSPED-03 · gerar method público existe + signature canônica', function () {
     expect(method_exists(SpedIcmsIpiGeneratorService::class, 'gerar'))->toBeTrue();
 
     $reflection = new ReflectionMethod(SpedIcmsIpiGeneratorService::class, 'gerar');
@@ -36,20 +36,20 @@ it('gerar method público existe + signature canônica', function () {
     expect((string) $reflection->getReturnType())->toBe('string');
 });
 
-it('gerar rejeita ano < 2020 (anti-historical garbage)', function () {
+it('UC-FSPED-02 · gerar rejeita ano < 2020 (anti-historical garbage)', function () {
     $service = app(SpedIcmsIpiGeneratorService::class);
     expect(fn () => $service->gerar(1, 2019, 1))
         ->toThrow(InvalidArgumentException::class, 'Ano inválido');
 });
 
-it('gerar rejeita ano > ano atual (anti-future)', function () {
+it('UC-FSPED-02 · gerar rejeita ano > ano atual (anti-future)', function () {
     $service = app(SpedIcmsIpiGeneratorService::class);
     $anoFuturo = (int) date('Y') + 1;
     expect(fn () => $service->gerar(1, $anoFuturo, 1))
         ->toThrow(InvalidArgumentException::class, 'Ano inválido');
 });
 
-it('gerar rejeita mes fora 1-12', function () {
+it('UC-FSPED-02 · gerar rejeita mes fora 1-12', function () {
     $service = app(SpedIcmsIpiGeneratorService::class);
     foreach ([0, 13, -1, 99] as $mesInvalido) {
         expect(fn () => $service->gerar(1, 2026, $mesInvalido))
@@ -57,7 +57,7 @@ it('gerar rejeita mes fora 1-12', function () {
     }
 });
 
-it('gerar lança RuntimeException cross-tenant (session biz ≠ param)', function () {
+it('UC-FSPED-01 · gerar lança RuntimeException cross-tenant (session biz ≠ param)', function () {
     session(['user.business_id' => 1]);
     $service = app(SpedIcmsIpiGeneratorService::class);
     expect(fn () => $service->gerar(99, 2026, 1))
