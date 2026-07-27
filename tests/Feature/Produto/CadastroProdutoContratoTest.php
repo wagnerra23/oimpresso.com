@@ -1,9 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
-// @covers-us US-PROD-020 (parcial — a rede de casos das telas críticas; a revisão [W] da §2 do
-// SPEC e o fechamento do aceite ficam fora de teste.)
 // Cobre UC-PCAD-01, UC-PCAD-04, UC-PCAD-06 (Create.casos.md) - G-2 rastreabilidade caso-teste.
 // UC-PCAD-02/03 removidos (gaps de paridade, não bugs) · UC-PCAD-05 no backlog (achado Tier 0, US própria) — correção [F] 2026-07-17.
 

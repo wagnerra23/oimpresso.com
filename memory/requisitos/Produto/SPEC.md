@@ -54,9 +54,7 @@ last_updated: "2026-07-27"
 
 > owner: wagner · priority: p0 · status: todo · type: epic · estimate: 6h · origin: onda-produto-passo2-2026-07-03
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Produto/Create.casos.md` · `resources/js/Pages/Produto/SellingPrices.casos.md` · `resources/js/Pages/Produto/StockHistory.casos.md` · `tests/Feature/Produto/CadastroProdutoContratoTest.php` · `tests/Feature/Produto/StockHistoryContratoTest.php` · verificado@b6b5fac (2026-07-27) — as 3 telas críticas do aceite têm `casos.md` com UC-IDs (na verdade as 7 do módulo têm) e os testes de contrato rodam na lane `Estoque · MySQL` citando os UC (G-2); faltam a revisão [W] da §2 e o fechamento do aceite.
-
-**Testado em:** `tests/Feature/Produto/CadastroProdutoContratoTest.php`
+**Implementado em:** _pendente_ — US aberta, aceite não fechado (falta a revisão [W] da §2 + o fechamento formal). Parte do item 1 **já existe por fora desta US**: as 7 telas do módulo têm `casos.md` com UC-IDs e os testes de contrato rodam na lane `Estoque · MySQL`, entregues pelas corridas do agent `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), jul/2026) — fora do escopo desta US.
 
 **Por quê.** Este SPEC (G-04) fundou o contrato; falta a rede de casos que o defende. Sem `casos.md`, teste de valor vira tautológico (proibicoes §5) e o `casos-gate` não tem âncora. Pré-req de US-PROD-022/024.
 
@@ -69,9 +67,7 @@ last_updated: "2026-07-27"
 
 > owner: wagner · priority: p0 · status: todo · type: story · estimate: 10h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
-**Implementado em:** _parcial_ · `app/Http/Controllers/ProductController.php` · `tests/Feature/Produto/StockHistoryContratoTest.php` · verificado@b6b5fac (2026-07-27) — o 1º item do aceite landou (PR #4658, âncora CU-PROD-11): `movements` vem por `Inertia::defer` com data · operação · qty · saldo · ref, e o teste roda na lane `Estoque · MySQL`. Faltam a cor semântica em `StockHistory.tsx`, os hero KPIs 30d e o smoke biz=1 (charter ainda `draft`).
-
-**Testado em:** `tests/Feature/Produto/StockHistoryContratoTest.php`
+**Implementado em:** _pendente_ — US aberta: faltam a cor semântica em `StockHistory.tsx`, os hero KPIs 30d e o smoke biz=1 (charter ainda `draft`, screen-grade 47). O item 1 do aceite **já landou por fora desta US**: `movements` vem por `Inertia::defer` (`ProductController@productStockHistory`) desde o PR #4658 (2026-07-21), ancorado em `CU-PROD-11` e coberto por `StockHistoryContratoTest` na lane `Estoque · MySQL`.
 
 **Por quê (redigido em 2026-07-03; o 1º parágrafo foi superado pelo PR #4658).** ~~Hoje a prop `movements` fica `undefined` no render Inertia — a timeline real só existe no path `request()->ajax()` (Blade `product.stock_history_details`). A tela React é **fachada**.~~ Desde 2026-07-21 o Controller resolve `movements` via `Inertia::defer` e o `StockHistory.tsx` consome com `<Deferred>`. O que segue valendo: a tela ainda não foi para `live` (screen-grade 47, charter `draft`), então Larissa não audita movimento de estoque na UI nova.
 
@@ -202,5 +198,5 @@ Viram US quando houver cliente/sinal ou drift de métrica:
 
 ## 6. Histórico
 
-- **2026-07-27** — Campo `**Implementado em:**` declarado nas 8 US que não o tinham (anchor coverage do módulo 11,1% → 100%). Estado verificado US a US contra o código em `b6b5fac`, não presumido: **6 `_pendente_`** (US-022 `mult` hardcoded · US-023 charters `draft` + `can:` TODO · US-024 spike não iniciado · US-025 sem UI de BOM · US-026 `fornecedor => null` · US-027 sem `UC-PTAB-05`) e **2 `_parcial_`** (US-020 casos.md+testes de contrato já em lane · US-021 `movements` por `Inertia::defer` desde o PR #4658). O 1º parágrafo do "Por quê" da US-021 estava superado pelo #4658 e foi corrigido no mesmo PR (regra de precedência — código provado > SPEC). [CC]
+- **2026-07-27** — Campo `**Implementado em:**` declarado nas 8 US que não o tinham (anchor coverage do módulo 11,1% → 100%). Estado verificado US a US contra o código em `b6b5fac`, não presumido — **8 `_pendente_`**, cada uma com a evidência da não-implementação na razão. Duas delas (US-020 e US-021) têm **código pré-existente entregue por fora da US** (os `casos.md`+testes das corridas `sdd-from-source`; o `movements` por `Inertia::defer` do PR #4658) — isso está **dito na razão**, não convertido em `_parcial_`: pela [ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md), US com `status:` aberto e âncora `parcial` é conflito, e a US em si continua aberta. O 1º parágrafo do "Por quê" da US-021 estava superado pelo #4658 e foi corrigido no mesmo PR (regra de precedência — código provado > SPEC). [CC]
 - **2026-07-03** — SPEC criado (G-04 da onda Produto, Passo 2). Registra as capacidades já em prod (§2, prose) + 7 US de backlog do batch aprovado por Wagner ("ok pode fazer"). Fonte: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md). [CC]
