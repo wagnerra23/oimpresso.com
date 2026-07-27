@@ -161,7 +161,7 @@ afterEach(function () {
 
 // ─── handoffs() · projeção ──────────────────────────────────────────────────
 
-it('exclui superseded da lista', function () {
+it('UC-FORJA-12 · exclui superseded da lista', function () {
     mkForjaHandoff('vivo');
     mkForjaHandoff('morto', ['status' => 'superseded']);
 
@@ -171,7 +171,7 @@ it('exclui superseded da lista', function () {
     expect(forjaFind($out, 'morto'))->toBeNull();
 });
 
-it('pega só a MAIOR version por slug', function () {
+it('UC-FORJA-12 · pega só a MAIOR version por slug', function () {
     mkForjaHandoff('dup', ['version' => 1, 'created_at' => now()->subMinutes(10)]);
     mkForjaHandoff('dup', ['version' => 2, 'created_at' => now()]);
 
@@ -182,7 +182,7 @@ it('pega só a MAIOR version por slug', function () {
     expect($dup[0]['version'])->toBe(2);
 });
 
-it('deriva stale de pending velho (> 3 dias)', function () {
+it('UC-FORJA-12 · deriva stale de pending velho (> 3 dias)', function () {
     mkForjaHandoff('velho', ['created_at' => now()->subDays(5)]);
     mkForjaHandoff('novo', ['created_at' => now()->subDay()]);
 
@@ -194,7 +194,7 @@ it('deriva stale de pending velho (> 3 dias)', function () {
 
 // ─── gate derivado (MESMA regra verde do handoff-ack) ───────────────────────
 
-it('gate verde quando os 3 do gate_status passam', function () {
+it('UC-FORJA-12 · gate verde quando os 3 do gate_status passam', function () {
     mkForjaHandoff('ok', [
         'status'      => 'applied',
         'gate_status' => ['conformance' => true, 'critique_score' => 90, 'a11y' => true],
@@ -203,7 +203,7 @@ it('gate verde quando os 3 do gate_status passam', function () {
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'ok')['gate'])->toBe('verde');
 });
 
-it('gate vermelho quando critique_score < 80', function () {
+it('UC-FORJA-12 · gate vermelho quando critique_score < 80', function () {
     mkForjaHandoff('ruim', [
         'status'      => 'applied',
         'gate_status' => ['conformance' => true, 'critique_score' => 70, 'a11y' => true],
@@ -212,13 +212,13 @@ it('gate vermelho quando critique_score < 80', function () {
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'ruim')['gate'])->toBe('vermelho');
 });
 
-it('gate rodando quando applied sem gate_status', function () {
+it('UC-FORJA-12 · gate rodando quando applied sem gate_status', function () {
     mkForjaHandoff('rodando', ['status' => 'applied', 'gate_status' => null]);
 
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'rodando')['gate'])->toBe('rodando');
 });
 
-it('gate na (não-avaliado) quando pending sem gate_status', function () {
+it('UC-FORJA-12 · gate na (não-avaliado) quando pending sem gate_status', function () {
     mkForjaHandoff('semgate');
 
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'semgate')['gate'])->toBe('na');
@@ -229,7 +229,7 @@ it('gate na (não-avaliado) quando pending sem gate_status', function () {
 // do PR no GitHub (PrChecksResolver). Divergência → 'conflito'. Best-effort: sem
 // token/rede/branch-protection legível → degrada pro ack (comportamento da Fase 1).
 
-it('gate conflito quando ack verde mas um required check do PR está vermelho', function () {
+it('UC-FORJA-13 · gate conflito quando ack verde mas um required check do PR está vermelho', function () {
     config()->set('services.github.token', 'ghp_test');
     Cache::flush();
     forjaFakeGh('failure');
@@ -243,7 +243,7 @@ it('gate conflito quando ack verde mas um required check do PR está vermelho', 
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'mente')['gate'])->toBe('conflito');
 });
 
-it('gate conflito quando ack verde mas um required check ainda está pendente', function () {
+it('UC-FORJA-13 · gate conflito quando ack verde mas um required check ainda está pendente', function () {
     config()->set('services.github.token', 'ghp_test');
     Cache::flush();
     forjaFakeGh('in_progress');
@@ -257,7 +257,7 @@ it('gate conflito quando ack verde mas um required check ainda está pendente', 
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'pendente-pr')['gate'])->toBe('conflito');
 });
 
-it('mantém verde quando ack verde E os required checks do PR estão verdes', function () {
+it('UC-FORJA-13 · mantém verde quando ack verde E os required checks do PR estão verdes', function () {
     config()->set('services.github.token', 'ghp_test');
     Cache::flush();
     forjaFakeGh('success');
@@ -271,7 +271,7 @@ it('mantém verde quando ack verde E os required checks do PR estão verdes', fu
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'honesto')['gate'])->toBe('verde');
 });
 
-it('NÃO cruza com o GitHub quando o ack não é verde (só verde afirma algo)', function () {
+it('UC-FORJA-13 · NÃO cruza com o GitHub quando o ack não é verde (só verde afirma algo)', function () {
     config()->set('services.github.token', 'ghp_test');
     Cache::flush();
     forjaFakeGh('failure'); // se cruzasse, viraria conflito — mas nem deve chamar a API
@@ -286,7 +286,7 @@ it('NÃO cruza com o GitHub quando o ack não é verde (só verde afirma algo)',
     Http::assertNothingSent();
 });
 
-it('degrada pro ack (verde) quando não há token do GitHub', function () {
+it('UC-FORJA-13 · degrada pro ack (verde) quando não há token do GitHub', function () {
     config()->set('services.github.token', '');
     Cache::flush();
     Http::fake(); // grava chamadas — não deve haver nenhuma
@@ -301,7 +301,7 @@ it('degrada pro ack (verde) quando não há token do GitHub', function () {
     Http::assertNothingSent();
 });
 
-it('degrada pro ack (verde) quando a GitHub API falha (best-effort, nunca quebra)', function () {
+it('UC-FORJA-13 · degrada pro ack (verde) quando a GitHub API falha (best-effort, nunca quebra)', function () {
     config()->set('services.github.token', 'ghp_test');
     Cache::flush();
     Http::fake(fn () => Http::response(['message' => 'Bad credentials'], 401));
@@ -315,7 +315,7 @@ it('degrada pro ack (verde) quando a GitHub API falha (best-effort, nunca quebra
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'api-fora')['gate'])->toBe('verde');
 });
 
-it('degrada pro ack quando não dá pra ler a branch protection (evita conflito por check advisory)', function () {
+it('UC-FORJA-13 · degrada pro ack quando não dá pra ler a branch protection (evita conflito por check advisory)', function () {
     config()->set('services.github.token', 'ghp_test');
     Cache::flush();
     Http::fake(function (Request $req) {
@@ -341,7 +341,7 @@ it('degrada pro ack quando não dá pra ler a branch protection (evita conflito 
 
 // ─── serialize ──────────────────────────────────────────────────────────────
 
-it('serializa files_count, signed e resumo (1ª linha do body_md sem md)', function () {
+it('UC-FORJA-12 · serializa files_count, signed e resumo (1ª linha do body_md sem md)', function () {
     mkForjaHandoff('serial', [
         'files_json' => ['a.tsx', 'b.php', 'c.css'],
         'sig'        => str_repeat('c', 64),
@@ -355,7 +355,7 @@ it('serializa files_count, signed e resumo (1ª linha do body_md sem md)', funct
     expect($h['resumo'])->toBe('Migrar tela de venda');
 });
 
-it('marca signed=false quando sig vazia', function () {
+it('UC-FORJA-12 · marca signed=false quando sig vazia', function () {
     mkForjaHandoff('nosig', ['sig' => '']);
 
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'nosig')['signed'])->toBeFalse();
@@ -363,14 +363,14 @@ it('marca signed=false quando sig vazia', function () {
 
 // ─── heartbeat ───────────────────────────────────────────────────────────────
 
-it('heartbeat silent quando não há ingest', function () {
+it('UC-FORJA-12 · heartbeat silent quando não há ingest', function () {
     $hb = (new ForjaMcpService())->heartbeat();
 
     expect($hb['silent'])->toBeTrue();
     expect($hb['last_ingest_at'])->toBeNull();
 });
 
-it('heartbeat não-silent com ingest recente', function () {
+it('UC-FORJA-12 · heartbeat não-silent com ingest recente', function () {
     McpIngestHeartbeat::create(['host' => 'ct100', 'last_ingest_at' => now()]);
 
     $hb = (new ForjaMcpService())->heartbeat();
@@ -379,7 +379,7 @@ it('heartbeat não-silent com ingest recente', function () {
     expect($hb['host'])->toBe('ct100');
 });
 
-it('heartbeat silent quando o último ingest passou do teto (> 60min)', function () {
+it('UC-FORJA-12 · heartbeat silent quando o último ingest passou do teto (> 60min)', function () {
     McpIngestHeartbeat::create(['host' => 'ct100', 'last_ingest_at' => now()->subHours(2)]);
 
     expect((new ForjaMcpService())->heartbeat()['silent'])->toBeTrue();
