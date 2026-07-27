@@ -212,3 +212,8 @@ Modules/Whatsapp/Tests/Feature/FeedbackPublicoSignedUrlTest.php
 # não rodava em NENHUMA lane per-PR (US-COPI-138: guard que nenhum workflow executa = mentira).
 Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php
 Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
+# US-INFRA-043 acceptance #2 (flag de US nao atribuida no Daily Brief): exercita so os
+# nucleos PUROS formatar()/injetarEm() + kill-switch (early-return antes de consultar).
+# ZERO acesso a DB de proposito — mcp_tasks e compartilhada e no CT 100 os testes rodam
+# contra MySQL real, entao assertar contagem vinda de la seria nao-deterministico. Sqlite-safe.
+Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php
