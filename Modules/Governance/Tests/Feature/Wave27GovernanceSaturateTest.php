@@ -9,7 +9,6 @@ use Modules\Governance\Console\Commands\GovernanceHealthCommand;
 use Modules\Governance\Console\Commands\ScorecardSnapshotCommand;
 use Modules\Governance\Http\Controllers\DashboardController;
 use Modules\Governance\Http\Controllers\ModuleGradeController;
-use Modules\Governance\Services\ScopedScorecardEvaluator;
 use Symfony\Component\Yaml\Yaml;
 use Tests\TestCase;
 
@@ -105,30 +104,7 @@ it('GovernanceHealthCommand --detail roda 4 checks sem crashar (otel zero-cost)'
 // D9 OTel — ScopedScorecardEvaluator wrap span (W24+W27)
 // ---------------------------------------------------------------------------
 
-it('ScopedScorecardEvaluator fonte usa OtelHelper::spanBiz pra avaliação', function () {
-    $path = base_path('Modules/Governance/Services/ScopedScorecardEvaluator.php');
-    $content = file_get_contents($path);
 
-    expect($content)->toContain('use App\Util\OtelHelper;');
-    expect($content)->toContain('OtelHelper::spanBiz(');
-    expect($content)->toContain("'governance.scorecard.evaluate'");
-});
-
-it('ScopedScorecardEvaluator evaluateScorecard executa zero-cost com otel desabilitado', function () {
-    config()->set('otel.enabled', false);
-
-    $eval = new ScopedScorecardEvaluator();
-    $scorecard = $eval->loadScorecardForModule('Governance');
-
-    $result = $eval->evaluateScorecard('Governance', $scorecard);
-
-    // Resultado preserva estrutura mesmo com OTel no-op.
-    expect($result)->toHaveKeys(['module', 'bucket', 'score_total', 'core', 'bucket_dimensions', 'paired_violations', 'evaluated_at']);
-    expect($result['module'])->toBe('Governance');
-    expect($result['score_total'])->toBeInt();
-    expect($result['score_total'])->toBeGreaterThanOrEqual(0);
-    expect($result['score_total'])->toBeLessThanOrEqual(100);
-});
 
 // ---------------------------------------------------------------------------
 // D6 Performance — Inertia::defer em Controllers (confirma RUNBOOK)
@@ -164,21 +140,7 @@ it('ModuleGradeController show aplica Inertia::defer em history (sparkline 7d)',
 // C5 Cobertura — buckets/_INDEX.md atualizado W27
 // ---------------------------------------------------------------------------
 
-it('memory/governance/buckets/_INDEX.md existe (catálogo canônico buckets)', function () {
-    $path = base_path('memory/governance/buckets/_INDEX.md');
-    expect(File::exists($path))->toBeTrue();
-});
 
-it('memory/governance/buckets/_INDEX.md lista buckets ativos (meta_governance + vertical_client_facing)', function () {
-    $path = base_path('memory/governance/buckets/_INDEX.md');
-    if (! File::exists($path)) {
-        $this->markTestSkipped('buckets/_INDEX.md ausente — skip até W27 publicar');
-    }
-    $content = file_get_contents($path);
-
-    expect($content)->toContain('meta_governance');
-    expect($content)->toContain('vertical_client_facing');
-});
 
 // ---------------------------------------------------------------------------
 // CHANGELOG Wave 27 entry
@@ -207,24 +169,7 @@ it('_INDEX-LIFECYCLE.md cataloga ADRs 0160 + 0161 W24/W27 governance v4', functi
 // Bucket YAML schema sanity (W27 inclui catálogo de buckets canônicos)
 // ---------------------------------------------------------------------------
 
-it('bucket meta_governance.yaml tem schema canônico (bucket + target_score + core + paired)', function () {
-    $path = base_path('memory/governance/buckets/meta_governance.yaml');
-    expect(File::exists($path))->toBeTrue();
 
-    $data = Yaml::parseFile($path);
-    expect($data)->toHaveKeys(['bucket', 'target_score', 'core', 'bucket_dimensions', 'paired']);
-    expect($data['bucket'])->toBe('meta_governance');
-    expect($data['target_score'])->toBeGreaterThanOrEqual(80);
-});
-
-it('bucket vertical_client_facing.yaml tem F1_pest_e2e + F2_inertia_defer com paired declarado', function () {
-    $path = base_path('memory/governance/buckets/vertical_client_facing.yaml');
-    $data = Yaml::parseFile($path);
-
-    expect($data['bucket_dimensions'])->toHaveKeys(['F1_pest_e2e', 'F2_inertia_defer']);
-    expect($data['paired'])->toBeArray();
-    expect(count($data['paired']))->toBeGreaterThanOrEqual(2);
-});
 
 // ---------------------------------------------------------------------------
 // Auto-saturate guard (W27 fecha gap residual)

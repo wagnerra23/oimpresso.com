@@ -59,9 +59,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\CharterMetricsCommand::class,
                 \Modules\Governance\Console\Commands\GovernanceHealthCommand::class,
                 \Modules\Governance\Console\Commands\ModuleGradeCommand::class,           // v3 (preserva — coexistência)
-                \Modules\Governance\Console\Commands\ModuleGradeV4Command::class,         // v4 (Wave 21 — scoped scorecards por bucket)
                 \Modules\Governance\Console\Commands\ModuleGradeSnapshotCommand::class,
-                \Modules\Governance\Console\Commands\ScorecardSnapshotCommand::class,
                 \Modules\Governance\Console\Commands\SddScorecardSnapshotCommand::class,    // GT-G7 — snapshot diário scorecard SDD (ADR 0275)
                 \Modules\Governance\Console\Commands\ObservabilityAggregateCommand::class,  // Wave 26 Agent 3 — ADR 0162
                 \Modules\Governance\Console\Commands\ScorecardInitiativeSyncCommand::class, // Wave 28 Agent 1 — Initiatives Cortex-style

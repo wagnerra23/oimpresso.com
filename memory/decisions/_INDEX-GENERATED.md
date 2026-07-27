@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **358** arquivos · **342** números únicos · máx **0352**
-- **ADRs ATIVOS (lifecycle ativo): 324** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 326 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 324 · arquivado 22 · substituido 12
+- **359** arquivos · **343** números únicos · máx **0353**
+- **ADRs ATIVOS (lifecycle ativo): 322** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 324 · superseded 15 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 322 · arquivado 22 · substituido 15
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (358)
+## Todas as ADRs (359)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -198,10 +198,10 @@ _(nenhuma)_
 | 0157 | aceito | ativo | decision | module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas |
 | 0158 | aceito | ativo | decision | module-grade-v3 — endurecimento heurística D1 (recursive + scope singular + Job  |
 | 0159 | deprecated | arquivado | decision | module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4 |
-| 0160 | aceito | ativo | decision | module-grade-v4 — Scoped Scorecards (Lens per Module Kind) com 4 buckets + meta  |
-| 0161 | aceito | ativo | decision | Governance v4 — aposentar 3 dos 4 hacks ADR 0159 redundantes com Scoped Scorecar |
+| 0160 | superseded | substituido | decision | module-grade-v4 — Scoped Scorecards (Lens per Module Kind) com 4 buckets + meta  |
+| 0161 | superseded | substituido | decision | Governance v4 — aposentar 3 dos 4 hacks ADR 0159 redundantes com Scoped Scorecar |
 | 0162 | aceito | ativo | decision | OpenTelemetry Collector ativo em prod (CT 100) — destrava D6.b + D9.b governance |
-| 0163 | aceito | ativo | decision | Governance v4 — metas por bucket alcançadas (Ondas 19-28) · 4/4 buckets acima da |
+| 0163 | superseded | substituido | decision | Governance v4 — metas por bucket alcançadas (Ondas 19-28) · 4/4 buckets acima da |
 | 0164 | aceito | ativo | decision | Screen Review PDCA — fase C (Check) automática pós-merge via skill tela-smoke-po |
 | 0165 | deprecated | arquivado | decision | Design System — breakpoints canon + regra mobile-first em todas as Pages Inertia |
 | 0166 | aceito | ativo | decision | Errata ADR 0162 — OTel SDK em require-dev (Hostinger shared sem ext-opentelemetr |
@@ -397,3 +397,4 @@ _(nenhuma)_
 | 0350 | aceito | ativo | decision | nikic/php-parser promovido a dependência direta (auto-document código→KbNode, Fa |
 | 0351 | aceito | ativo | meta | sdd-from-source — agent das 3 camadas (analisa 3 fontes → documenta no padrão →  |
 | 0352 | aceito | ativo | errata | Errata 0351 — o refresh de BRIEFING via distiller (Camada 1.3) é follow-up gated |
+| 0353 | aceito | ativo | decision | Aposentar o Governance v4 (scoped scorecards por bucket) — o score não dependia  |

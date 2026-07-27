@@ -14,25 +14,21 @@ module: Admin
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Admin/**` + `resources/js/Pages/Admin/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 97 arquivos em 13 papéis.
+**Total mapeado:** 89 arquivos em 13 papéis.
 
-## Controllers — 8
+## Controllers — 7
 
 - [DataController.php](../../../Modules/Admin/Http/Controllers/DataController.php)
 - [FeatureFlagsController.php](../../../Modules/Admin/Http/Controllers/FeatureFlagsController.php)
-- [GovernanceV4DashboardController.php](../../../Modules/Admin/Http/Controllers/GovernanceV4DashboardController.php)
 - [IndexController.php](../../../Modules/Admin/Http/Controllers/IndexController.php)
 - [InstallController.php](../../../Modules/Admin/Http/Controllers/InstallController.php)
 - [MutationsController.php](../../../Modules/Admin/Http/Controllers/MutationsController.php)
 - [RagQualityDashboardController.php](../../../Modules/Admin/Http/Controllers/RagQualityDashboardController.php)
 - [ScreenReviewController.php](../../../Modules/Admin/Http/Controllers/ScreenReviewController.php)
 
-## Requests (validação) — 7
+## Requests (validação) — 4
 
 - [AlertAcknowledgeRequest.php](../../../Modules/Admin/Http/Requests/AlertAcknowledgeRequest.php)
-- [CreateInitiativeRequest.php](../../../Modules/Admin/Http/Requests/CreateInitiativeRequest.php)
-- [OverrideBucketRequest.php](../../../Modules/Admin/Http/Requests/OverrideBucketRequest.php)
-- [RemediationRequest.php](../../../Modules/Admin/Http/Requests/RemediationRequest.php)
 - [StoreUserRequest.php](../../../Modules/Admin/Http/Requests/StoreUserRequest.php)
 - [UpdatePermissionRequest.php](../../../Modules/Admin/Http/Requests/UpdatePermissionRequest.php)
 - [UpdateReviewStatusRequest.php](../../../Modules/Admin/Http/Requests/UpdateReviewStatusRequest.php)
@@ -80,12 +76,10 @@ module: Admin
 - [config.php](../../../Modules/Admin/Config/config.php)
 - [retention.php](../../../Modules/Admin/Config/retention.php)
 
-## Telas (Inertia/React) — 8
+## Telas (Inertia/React) — 6
 
 - [Index.tsx](../../../resources/js/Pages/Admin/FeatureFlags/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Admin/FeatureFlags/Show.tsx)
-- [GovernanceV4.tsx](../../../resources/js/Pages/Admin/GovernanceV4.tsx)
-- [GovernanceV4Dashboard.tsx](../../../resources/js/Pages/Admin/GovernanceV4Dashboard.tsx)
 - [Index.tsx](../../../resources/js/Pages/Admin/Index.tsx)
 - [RagQualityDashboard.tsx](../../../resources/js/Pages/Admin/RagQualityDashboard.tsx)
 - [ScreenReview.tsx](../../../resources/js/Pages/Admin/ScreenReview.tsx)
@@ -119,12 +113,10 @@ module: Admin
 - [WidgetSessions.tsx](../../../resources/js/Pages/Admin/_components/WidgetSessions.tsx)
 - [WidgetVaultwarden.tsx](../../../resources/js/Pages/Admin/_components/WidgetVaultwarden.tsx)
 
-## Charters (lei da tela) — 8
+## Charters (lei da tela) — 6
 
 - [Index.charter.md](../../../resources/js/Pages/Admin/FeatureFlags/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Admin/FeatureFlags/Show.charter.md)
-- [GovernanceV4.charter.md](../../../resources/js/Pages/Admin/GovernanceV4.charter.md)
-- [GovernanceV4Dashboard.charter.md](../../../resources/js/Pages/Admin/GovernanceV4Dashboard.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Admin/Index.charter.md)
 - [RagQualityDashboard.charter.md](../../../resources/js/Pages/Admin/RagQualityDashboard.charter.md)
 - [ScreenReview.charter.md](../../../resources/js/Pages/Admin/ScreenReview.charter.md)

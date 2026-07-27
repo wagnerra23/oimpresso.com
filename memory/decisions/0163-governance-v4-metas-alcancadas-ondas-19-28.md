@@ -3,9 +3,9 @@ slug: 0163-governance-v4-metas-alcancadas-ondas-19-28
 number: 163
 title: "Governance v4 — metas por bucket alcançadas (Ondas 19-28) · 4/4 buckets acima da meta"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-17"
 accepted_at: 2026-05-17
@@ -15,7 +15,8 @@ quarter: 2026-Q2
 tags: [governance, v4, scoped-scorecards, metas, ondas-19-28, milestone, dual-mode, aposentar-v3]
 supersedes: []
 supersedes_partially: []
-superseded_by: []
+superseded_by:
+  - 0353-aposentar-governance-v4-scoped-scorecards
 related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0158-module-grade-v3-d1-heuristica-hardening, 0159-module-grade-v3-errata-meta-97-realismo, 0160-governance-v4-scoped-scorecards-buckets, 0161-governance-v4-aposentar-hacks-0159-redundantes, 0162-otel-collector-prod-observability, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar]
 pii: false
 review_triggers:

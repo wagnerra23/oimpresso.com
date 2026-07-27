@@ -11,8 +11,8 @@ import RoundBadge, { type ReviewStatus } from './RoundBadge';
  */
 export interface ScreenRow {
   module: string;
-  path: string; // ex: "Admin/GovernanceV4" (sem .tsx)
-  name: string; // ex: "GovernanceV4"
+  path: string; // ex: "Admin/ScreenReview" (sem .tsx)
+  name: string; // ex: "ScreenReview"
   status: ReviewStatus;
   current_round: number;
   last_review_at: string | null;

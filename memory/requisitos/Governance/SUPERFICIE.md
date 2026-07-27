@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 141 arquivos em 14 papéis.
+**Total mapeado:** 138 arquivos em 14 papéis.
 
 ## Controllers — 8
 
@@ -38,7 +38,7 @@ module: Governance
 
 - [ActionGate.php](../../../Modules/Governance/Http/Middleware/ActionGate.php)
 
-## Services — 31
+## Services — 30
 
 - [AdrPendenteBriefLineService.php](../../../Modules/Governance/Services/AdrPendenteBriefLineService.php)
 - [AdrReviewBriefLineService.php](../../../Modules/Governance/Services/AdrReviewBriefLineService.php)
@@ -68,7 +68,6 @@ module: Governance
 - [ObservabilitySnapshotService.php](../../../Modules/Governance/Services/ObservabilitySnapshotService.php)
 - [PlanHealthBriefLineService.php](../../../Modules/Governance/Services/PlanHealthBriefLineService.php)
 - [PolicyToggleService.php](../../../Modules/Governance/Services/PolicyToggleService.php)
-- [ScopedScorecardEvaluator.php](../../../Modules/Governance/Services/ScopedScorecardEvaluator.php)
 - [SddBriefLineService.php](../../../Modules/Governance/Services/SddBriefLineService.php)
 - [ShippedLogBriefLineService.php](../../../Modules/Governance/Services/ShippedLogBriefLineService.php)
 
@@ -76,7 +75,7 @@ module: Governance
 
 - [Initiative.php](../../../Modules/Governance/Entities/Initiative.php)
 
-## Console / Commands — 17
+## Console / Commands — 15
 
 - [AdrReviewFlushCommand.php](../../../Modules/Governance/Console/Commands/AdrReviewFlushCommand.php)
 - [CharterAuditCommand.php](../../../Modules/Governance/Console/Commands/CharterAuditCommand.php)
@@ -89,11 +88,9 @@ module: Governance
 - [GovernanceHealthCommand.php](../../../Modules/Governance/Console/Commands/GovernanceHealthCommand.php)
 - [ModuleGradeCommand.php](../../../Modules/Governance/Console/Commands/ModuleGradeCommand.php)
 - [ModuleGradeSnapshotCommand.php](../../../Modules/Governance/Console/Commands/ModuleGradeSnapshotCommand.php)
-- [ModuleGradeV4Command.php](../../../Modules/Governance/Console/Commands/ModuleGradeV4Command.php)
 - [ObservabilityAggregateCommand.php](../../../Modules/Governance/Console/Commands/ObservabilityAggregateCommand.php)
 - [RecordStagingFreshnessAlertCommand.php](../../../Modules/Governance/Console/Commands/RecordStagingFreshnessAlertCommand.php)
 - [ScorecardInitiativeSyncCommand.php](../../../Modules/Governance/Console/Commands/ScorecardInitiativeSyncCommand.php)
-- [ScorecardSnapshotCommand.php](../../../Modules/Governance/Console/Commands/ScorecardSnapshotCommand.php)
 - [SddScorecardSnapshotCommand.php](../../../Modules/Governance/Console/Commands/SddScorecardSnapshotCommand.php)
 
 ## Providers — 1

@@ -367,23 +367,12 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // Wave 24 Agent A (2026-05-16) — Scorecard snapshot bucket-scoped + drift detection.
-        // Persiste 1 row/módulo/dia em mcp_scorecard_runs + alerta drifts >=5pts em mcp_alertas.
-        // 07:00 BRT (55min após module:grade-snapshot) — usa scorecards YAML curated
-        // (memory/governance/scorecards/<slug>.yaml + buckets/<bucket>.yaml).
-        // Paired enforcement (cap 50%) canônico Wave 24. Cross-tenant intencional.
-        $schedule->command('governance:scorecard-snapshot --alert')
-            ->dailyAt('07:00')
-            ->timezone('America/Sao_Paulo')
-            ->onOneServer()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule governance:scorecard-snapshot FALHOU — drift detection defasada (Wave 24)'
-                );
-            });
-
+        // Wave 24 (governance:scorecard-snapshot --alert, 07:00 BRT) APOSENTADO em
+        // 2026-07-26 — ADR 0353 (supersede 0160/0161/0163). Ele lia os 5 scorecards
+        // YAML e gravava mcp_scorecard_runs; medido com controle negativo, o score nao
+        // dependia do YAML em 4 dos 5 modulos, entao o drift >=5pts nunca podia
+        // disparar (alarme tautologico) e o cron persistia numero falso todo dia.
+        // A tabela mcp_scorecard_runs fica (historico); ninguem mais a alimenta.
         // GT-G7 (ADR 0275 §1) — snapshot diário do scorecard SDD em
         // mcp_sdd_scorecard_history (composta v1 + alertas) via agregador node
         // determinístico. 1 row/dia, re-run substitui. 07:10 BRT — 10min após
@@ -402,24 +391,11 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // Wave 28 Agent 1 (2026-05-17) — Initiatives Cortex-style.
-        // Sync diário Initiatives ↔ scorecards: abre breach (rule abaixo target),
-        // fecha recuperadas (score_after >= target), expira deadlines passadas.
-        // 08:00 BRT — 60min após governance:scorecard-snapshot (07:00), pra usar
-        // scorecard_runs do dia. Cross-tenant intencional (mcp_governance_initiatives
-        // é repo-wide). Alertas expired persistidos em mcp_alertas business_id=1 superadmin.
-        $schedule->command('governance:initiative-sync')
-            ->dailyAt('08:00')
-            ->timezone('America/Sao_Paulo')
-            ->onOneServer()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule governance:initiative-sync FALHOU — initiatives auto-loop defasado (Wave 28)'
-                );
-            });
-
+        // Wave 28 (governance:initiative-sync, 08:00 BRT) DESLIGADO em 2026-07-26
+        // junto com o v4 (ADR 0353): a fonte dele era o snapshot de scorecard das
+        // 07:00, que parou — rodar sobre mcp_scorecard_runs congelado seria obra
+        // parada nova. O InitiativeService PERMANECE: a tela viva /admin/screen-review
+        // o chama direto (createFromScorecardBreach), sem passar por este cron.
         // Wave 26 Agent 3 (2026-05-17, ADR 0162) — Rollup diário OTel spans.
         // Pega spans crus em mcp_observability_spans, computa p50/p95/p99 + error rate
         // por par (module, span_name) e popula mcp_observability_aggregates_daily.

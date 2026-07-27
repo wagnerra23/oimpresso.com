@@ -97,7 +97,7 @@ it('detectModuleFromCaller identifica módulo via stack trace simulado', functio
     expect(preg_match($regex, 'Modules\\Sells\\Services\\Foo', $m))->toBe(1);
     expect($m[1])->toBe('Sells');
 
-    expect(preg_match($regex, 'Modules\\Governance\\Services\\ScopedScorecardEvaluator', $m))->toBe(1);
+    expect(preg_match($regex, 'Modules\\Governance\\Services\\ModuleGradeService', $m))->toBe(1);
     expect($m[1])->toBe('Governance');
 
     expect(preg_match($regex, 'App\\Util\\OtelHelper', $m))->toBe(0);

@@ -117,13 +117,12 @@ describe('Wave 27 Vestuario — V5 governance CHANGELOG entry', function () {
     });
 });
 
-describe('Wave 27 Vestuario — Tier 0 ADR 0066 format_date shift +3h quadruple-asserted', function () {
+describe('Wave 27 Vestuario — Tier 0 ADR 0066 format_date shift +3h triple-asserted', function () {
 
-    it('BRIEFING + CAPTERRA + scorecard + CHANGELOG todos citam ADR 0066', function () {
+    it('BRIEFING + CAPTERRA + CHANGELOG todos citam ADR 0066', function () {
         $alvos = [
             'memory/requisitos/Vestuario/BRIEFING.md',
             'memory/requisitos/Vestuario/CAPTERRA-FICHA.md',
-            'memory/governance/scorecards/vestuario.yaml',
             'memory/requisitos/Vestuario/CHANGELOG.md',
         ];
         foreach ($alvos as $alvo) {

@@ -3,9 +3,9 @@ slug: 0160-governance-v4-scoped-scorecards-buckets
 number: 160
 title: "module-grade-v4 — Scoped Scorecards (Lens per Module Kind) com 4 buckets + meta por bucket"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-16"
 accepted_at: 2026-05-16
@@ -15,7 +15,8 @@ quarter: 2026-Q2
 tags: [governance, v4, scoped-scorecards, lenses, buckets, meta-por-bucket, anti-gaming, score-as-code]
 supersedes: []
 supersedes_partially: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0159-module-grade-v3-errata-meta-97-realismo]
-superseded_by: []
+superseded_by:
+  - 0353-aposentar-governance-v4-scoped-scorecards
 related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0158-module-grade-v3-d1-heuristica-hardening, 0159-module-grade-v3-errata-meta-97-realismo, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar]
 pii: false
 review_triggers:

@@ -35,18 +35,6 @@ uses(\Tests\TestCase::class);
  */
 describe('Wave 28 Vestuario Polish — saturação final ≥95', function () {
 
-    it('W28 sentry — Scorecard YAML preserva D7_lgpd=10 (regression W25 forense)', function () {
-        $yamlPath = vestuarioW28Path('memory/governance/scorecards/vestuario.yaml');
-
-        // Tolerante a ambientes sem scorecard (CI Pest light), mas se existe DEVE ter D7=10
-        if (! file_exists($yamlPath)) {
-            test()->markTestSkipped('Scorecard YAML Vestuario ausente neste ambiente (CI light).');
-        }
-
-        $conteudo = (string) file_get_contents($yamlPath);
-        expect($conteudo)->toContain('D7_lgpd:');
-        expect($conteudo)->toMatch('/D7_lgpd:\s*\{\s*weight:\s*10\s*,\s*target:\s*10\s*,\s*current:\s*10\b/');
-    });
 
     it('W28 sentry — EtiquetaTag W27 artifact preserva existência (sem boot)', function () {
         // Sentry tolerante: W27 EtiquetaTag pode estar em Entities/ ou Services/

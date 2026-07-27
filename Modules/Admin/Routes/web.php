@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\FeatureFlagsController;
-use Modules\Admin\Http\Controllers\GovernanceV4DashboardController;
 use Modules\Admin\Http\Controllers\IndexController;
 use Modules\Admin\Http\Controllers\InstallController;
 use Modules\Admin\Http\Controllers\MutationsController;
@@ -55,25 +54,11 @@ Route::middleware(['web', 'tailscale-only', 'SetSessionData', 'auth', 'is-wagner
         Route::post('mutations/health-check/run-now',   [MutationsController::class, 'runHealthCheckNow'])
             ->name('admin.mutations.health-check.run-now');
 
-        // Wave 24 Agent B — Governance v4 Dashboard intra-bucket (AI baseline READ-ONLY 30d).
-        // Lista ranking por bucket (vertical/cross-cutting/ai/functional) com sparkline 30d
-        // + paired violations + AI suggestions (NÃO altera score oficial — anti-Goodhart).
-        // @see Modules/Jana/Services/Scorecard/AiScorecardJudge.php
-        Route::get('governance-v4', GovernanceV4DashboardController::class)
-            ->name('admin.governance-v4.index');
-
-        // Wave 29 Agent B — Tri-pane V2 + Initiative endpoints + bucket override.
-        // V2 feature-flagged via governance.v4_enabled; render Page tsx Admin/GovernanceV4.
-        // POST initiative cria via InitiativeService::createFromScorecardBreach (idempotent).
-        // POST override-bucket apenas registra intent + retorna instrução PR manual.
-        // @see Modules/Admin/Http/Controllers/GovernanceV4DashboardController::indexV2
-        Route::get('governance/v4',                  [GovernanceV4DashboardController::class, 'indexV2'])
-            ->name('admin.governance.v4');
-        Route::post('governance/v4/initiative',      [GovernanceV4DashboardController::class, 'createInitiative'])
-            ->name('admin.governance.v4.initiative');
-        Route::post('governance/v4/override-bucket', [GovernanceV4DashboardController::class, 'overrideBucket'])
-            ->name('admin.governance.v4.override-bucket');
-
+        // Governance v4 (scoped scorecards) APOSENTADO em 2026-07-26 (ADR 0353,
+        // supersede 0160/0161/0163): o score nao dependia do scorecard — controle
+        // negativo (com o YAML x com []) deu identico em 4 dos 5 modulos, e o motor
+        // de deteccao (detectRule) tinha zero call sites em producao. A regua viva e
+        // a v3: `module:grade-snapshot` (06:05 BRT) + /admin/governance.
         // Wave 28 §G3 — RAG Quality Dashboard (KB + Jana cross-pipeline observability).
         // 3 sparklines (retrieve/rerank/generate p99), nDCG@5 / recall@5 trend 30d,
         // top 10 queries lentas, fallback rate BGE. Inertia::defer pra props caras.

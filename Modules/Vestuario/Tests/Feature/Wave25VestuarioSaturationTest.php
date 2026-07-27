@@ -39,27 +39,8 @@ function vestuarioW25Path(string $path = ''): string
 
 describe('Wave 25 Vestuario — D7 LGPD regressão FORENSE fix', function () {
 
-    it('scorecard YAML existe em memory/governance/scorecards/vestuario.yaml', function () {
-        $path = vestuarioW25Path('memory/governance/scorecards/vestuario.yaml');
-        expect(file_exists($path))->toBeTrue(
-            'Scorecard YAML obrigatório pra ScopedScorecardEvaluator reportar D7=10 (sem isso, retorna 0 default)'
-        );
-    });
 
-    it('scorecard YAML declara D7_lgpd current=10 (RESTAURADO W25)', function () {
-        $conteudo = (string) file_get_contents(vestuarioW25Path('memory/governance/scorecards/vestuario.yaml'));
-        expect($conteudo)->toContain('D7_lgpd:');
-        // Forma canônica YAML: weight, target, current — todos 10
-        expect($conteudo)->toMatch('/D7_lgpd:\s*\{\s*weight:\s*10\s*,\s*target:\s*10\s*,\s*current:\s*10\b/');
-    });
 
-    it('scorecard YAML cita evidências D7 (4 artifacts + ESTE arquivo)', function () {
-        $conteudo = (string) file_get_contents(vestuarioW25Path('memory/governance/scorecards/vestuario.yaml'));
-        expect($conteudo)->toContain('retention.php');
-        expect($conteudo)->toContain('LgpdComplianceTest.php');
-        expect($conteudo)->toContain('VestuarioSetting.php');
-        expect($conteudo)->toContain('PII-LGPD.md');
-    });
 
     it('PII-LGPD.md declara herança PiiRedactor core (não custom Vestuario)', function () {
         $piiDoc = (string) file_get_contents(vestuarioW25Path('memory/requisitos/Vestuario/PII-LGPD.md'));
@@ -106,13 +87,15 @@ describe('Wave 25 Vestuario — V1 Customer Journey expandido', function () {
     });
 
     it('CustomerJourney persistido cita 5 capacidades em prod (W22 CAPTERRA)', function () {
-        $scorecard = (string) file_get_contents(vestuarioW25Path('memory/governance/scorecards/vestuario.yaml'));
+        // Re-ancorado 2026-07-26 (ADR 0353): o scorecard YAML do v4 foi aposentado.
+        // A fonte canônica das capacidades do módulo é a CAPTERRA-FICHA.
+        $scorecard = (string) file_get_contents(vestuarioW25Path('memory/requisitos/Vestuario/CAPTERRA-FICHA.md'));
         // Capacidades chave do CustomerJourney ROTA LIVRE 2+ anos
         expect($scorecard)->toContain('US-VEST-001');
         expect($scorecard)->toContain('US-VEST-002');
         expect($scorecard)->toContain('US-VEST-005');
         expect($scorecard)->toContain('US-VEST-007');
-        expect($scorecard)->toContain('format_date shift +3h');
+        expect($scorecard)->toContain('ADR 0066'); // format_date shift +3h (Tier 0)
     });
 });
 
@@ -167,7 +150,9 @@ describe('Wave 25 Vestuario — V6 module.json governance bucket', function () {
             $conteudo = (string) file_get_contents(vestuarioW25Path("memory/requisitos/Vestuario/{$doc}"));
             expect($conteudo)->toContain('ADR 0066');
         }
-        $scorecard = (string) file_get_contents(vestuarioW25Path('memory/governance/scorecards/vestuario.yaml'));
+        // Re-ancorado 2026-07-26 (ADR 0353): o scorecard YAML do v4 foi aposentado.
+        // A fonte canônica das capacidades do módulo é a CAPTERRA-FICHA.
+        $scorecard = (string) file_get_contents(vestuarioW25Path('memory/requisitos/Vestuario/CAPTERRA-FICHA.md'));
         expect($scorecard)->toContain('0066');
     });
 });

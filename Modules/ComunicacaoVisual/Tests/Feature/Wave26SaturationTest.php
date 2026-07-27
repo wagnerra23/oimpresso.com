@@ -93,26 +93,6 @@ describe('Wave 26 ComVis — D7 forensic restore (1/10 → 10/10)', function () 
     });
 });
 
-describe('Wave 26 ComVis — D5 scorecard YAML (ScopedScorecardEvaluator)', function () {
-
-    it('memory/governance/scorecards/comunicacaovisual.yaml existe (D5 ≥4 boost)', function () {
-        $sc = comvisW26Path('memory/governance/scorecards/comunicacaovisual.yaml');
-        expect(file_exists($sc))->toBeTrue('Scorecard YAML obrigatório pra ScopedScorecardEvaluator');
-    });
-
-    it('scorecard YAML declara dimensions.lgpd.current=10', function () {
-        $sc = (string) file_get_contents(comvisW26Path('memory/governance/scorecards/comunicacaovisual.yaml'));
-        expect($sc)->toContain('lgpd:');
-        expect($sc)->toMatch('/lgpd:\s*\{\s*peso:\s*10,\s*target:\s*10,\s*current:\s*10/');
-    });
-
-    it('scorecard YAML referencia bucket vertical_client_facing + target_score=85', function () {
-        $sc = (string) file_get_contents(comvisW26Path('memory/governance/scorecards/comunicacaovisual.yaml'));
-        expect($sc)->toContain('bucket_yaml');
-        expect($sc)->toContain('vertical_client_facing');
-        expect($sc)->toContain('target_score: 85');
-    });
-});
 
 describe('Wave 26 ComVis — D8 security FormRequests + D3 docs canon', function () {
 

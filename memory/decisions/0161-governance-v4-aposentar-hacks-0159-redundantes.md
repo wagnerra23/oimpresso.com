@@ -3,9 +3,9 @@ slug: 0161-governance-v4-aposentar-hacks-0159-redundantes
 number: 161
 title: "Governance v4 — aposentar 3 dos 4 hacks ADR 0159 redundantes com Scoped Scorecards"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-16"
 proposed_at: 2026-05-16
@@ -15,7 +15,8 @@ quarter: 2026-Q2
 tags: [governance, deprecation, rubrica, v4, scoped-scorecards, hacks]
 supersedes: []
 supersedes_partially: [0159-module-grade-v3-errata-meta-97-realismo]
-superseded_by: []
+superseded_by:
+  - 0353-aposentar-governance-v4-scoped-scorecards
 related: [0159-module-grade-v3-errata-meta-97-realismo, 0160-governance-v4-scoped-scorecards-buckets, 0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0158-module-grade-v3-d1-heuristica-hardening, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0094-constituicao-v2-7-camadas-8-principios]
 pii: false
 review_triggers:

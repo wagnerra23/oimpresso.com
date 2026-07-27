@@ -204,13 +204,6 @@ it('D2 — IsWagner mensagem 403 PT-BR (Wagner-only)', function () {
 
 // ---------- D6: Inertia patterns canônicos ----------
 
-it('D6 — GovernanceV4Dashboard usa Inertia::defer canônico (3 props caras)', function () {
-    $src = file_get_contents(base_path('Modules/Admin/Http/Controllers/GovernanceV4DashboardController.php'));
-
-    expect($src)->toContain("Inertia::defer(fn () => \$this->buildModulesPayload())");
-    expect($src)->toContain("Inertia::defer(fn () => \$this->buildAiSuggestionsPayload())");
-    expect($src)->toContain("Inertia::defer(fn () => \$this->buildPairedViolationsPayload())");
-});
 
 it('D6 — IndexController preserva eager load (rollback PR #963 lição)', function () {
     $src = file_get_contents(base_path('Modules/Admin/Http/Controllers/IndexController.php'));
@@ -238,12 +231,6 @@ it('D6 — FeatureFlagsController Show usa defer canon (Wave 25 D6 saturação)'
 
 // ---------- D9 (=6): OTel canon ----------
 
-it('D9 — Admin GovernanceV4DashboardController usa OtelHelper::span', function () {
-    $src = file_get_contents(base_path('Modules/Admin/Http/Controllers/GovernanceV4DashboardController.php'));
-
-    expect($src)->toContain('use App\Util\OtelHelper;');
-    expect($src)->toContain("OtelHelper::span('admin.governance_v4");
-});
 
 it('D9 — OtelHelper::spanBiz zero-cost smoke (Admin)', function () {
     config(['otel.enabled' => false]);
