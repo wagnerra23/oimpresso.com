@@ -52,7 +52,9 @@ const PT_META = {
 // slugs / helpers de nome
 // ─────────────────────────────────────────────────────────────────────────────
 const kebab = (s) => s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/[_\s]+/g, '-').toLowerCase();
-// UC prefix: letras do nome da Tela, MAIÚSCULO, ≤6 (bate com ucHeadRe {0,6}-? do casos-guard).
+// UC prefix: letras do nome da Tela, MAIÚSCULO, ≤6 — o teto do prefixo é o `UC_CORE` da
+// fonte única scripts/lib/uc-regex.mjs (1 letra + até 5 alfanuméricos). Se um dia mudar,
+// muda LÁ: aqui é só o gerador do id, não um 2º dono do formato.
 const ucPrefix = (tela) => (tela.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 6) || 'TELA');
 
 // ─────────────────────────────────────────────────────────────────────────────
