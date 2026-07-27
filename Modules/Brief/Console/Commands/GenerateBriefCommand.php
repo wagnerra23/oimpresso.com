@@ -16,6 +16,7 @@ use Modules\Governance\Services\ObraParadaBriefLineService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 use Modules\Governance\Services\ShippedLogBriefLineService;
 use Modules\Governance\Services\SddBriefLineService;
+use Modules\Jana\Services\TasksSemDonoBriefLineService;
 use Throwable;
 
 /**
@@ -101,6 +102,16 @@ final class GenerateBriefCommand extends Command
         // 07:00 vivo, e nenhum dos 34 required viu (gate roda sobre diff; coisa
         // parada não tem diff). Best-effort: node ausente / 0 parados → intacto.
         $content = app(ObraParadaBriefLineService::class)->inject($content);
+
+        // 2026-07-27 — FLAG de US NÃO ATRIBUÍDA (pós-LLM, determinística) na seção
+        // FLAGS: chama McpTasksUnassignedCommand::detectarNaoAtribuidas() (fonte-única
+        // da regra, US-INFRA-043). Fecha a acceptance #2 daquela US ("saída --json pro
+        // Daily Brief"), que nunca foi ligada: a sentinela existia com Pest e ZERO
+        // invocadores. Sem esta linha, ticket nasce sem dono e ninguém cobra — medido
+        // 2026-07-27: ≥50 US sem owner, incl. 10 já `done`. Eixo distinto do
+        // mcp:tasks:health-check (06:20), que mede staleness, não atribuição.
+        // Best-effort: tabela ausente / 0 não-atribuídas → brief intacto.
+        $content = app(TasksSemDonoBriefLineService::class)->inject($content);
 
         // US-GOV-052 — seção OUTCOME DO AGENTE (7d) (pós-LLM, determinística)
         // antes de FLAGS: shell-out de agent-pr-outcomes.mjs --json (DORA dos
