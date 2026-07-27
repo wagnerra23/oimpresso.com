@@ -204,7 +204,7 @@ it('UC-IMP-09 · C2: valor é recalculado server-side — client não injeta val
 });
 
 // ── C3 · UC-IMP-10 ──────────────────────────────────────────────────────────
-it('UC-IMP-10 · C3: costura NF↔título — sem_nf e pct_com_nf derivam de metadata.nfe', function () {
+it('UC-IMP-05 · UC-IMP-10 · C3: costura NF↔título — sem_nf e pct_com_nf derivam de metadata.nfe', function () {
     $user = impContratoBootstrap();
     $bizId = (int) $user->business_id;
     $venc = now()->setDay(15)->toDateString(); // dentro do mês corrente

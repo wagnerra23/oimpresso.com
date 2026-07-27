@@ -2,7 +2,7 @@
 //   tela: /project-mgmt/burndown
 //   module: ProjectMgmt
 //   stories: US-TR-206 (Burndown chart)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
