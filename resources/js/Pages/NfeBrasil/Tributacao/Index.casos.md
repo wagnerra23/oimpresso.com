@@ -103,7 +103,10 @@ last_run: "2026-07-27"
   pra corrigir o Nível 4. As regras que ela cadastrou à mão (Níveis 2/3) não podem ser varridas junto.
 - **Aceite:** Dado 2 regras NCM do business e uma config existente · Quando aplico um template
   (`POST …/templates/{slug}/aplicar`) · Então a config passa a refletir o template **e** as 2 regras NCM
-  continuam lá, intactas. Re-aplicar o mesmo template é **idempotente** (config não muda de novo).
+  continuam lá, intactas. Re-aplicar o mesmo template é **idempotente no sentido semântico** — regime e
+  `tributacao_default` inalterados, sem row duplicada. (A comparação é sobre o JSON **decodificado**, não
+  sobre a string: a coluna é `json` e o MySQL normaliza a ordem das chaves, então comparar bytes mediria
+  o formato de armazenamento em vez do contrato.)
 - **Teste:** [`TributacaoIndexContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php)
   — `UC-NFTR-03 · aplicar template substitui a config e preserva as regras NCM`.
 - **Contrato:** charter §Automation Hooks — *"`aplicarTemplate` (cria/substitui config default; **regras
@@ -122,7 +125,9 @@ last_run: "2026-07-27"
   a do vizinho corrompe a nota dele silenciosamente, e só aparece numa autuação.
 - **Aceite:** Dado uma regra pertencente a biz=2 · Quando biz=1 faz `PUT /…/regras/{id}` ou
   `DELETE /…/regras/{id}` · Então **404** em ambos, **e** a regra de biz=2 continua no banco com os
-  mesmos valores (não basta o 404: o que importa é que nada foi escrito antes dele).
+  mesmos valores (não basta o 404: o que importa é que nada foi escrito antes dele). Controle positivo:
+  as mesmas rotas funcionam na regra do próprio business — e "removida" significa `deleted_at` preenchido
+  (`NfeFiscalRule` usa `SoftDeletes`; regra fiscal não some do histórico), não linha ausente.
 - **Teste:** [`TributacaoIndexContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php)
   — `UC-NFTR-04 · update e destroy de regra de outro business dão 404 e não tocam a regra alheia`.
 - **Contrato:** [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) +

@@ -203,10 +203,20 @@ it('UC-NFTR-03 · aplicar template substitui a config e preserva as regras NCM',
     expect($depoisRegras)->toEqual($antesRegras);
     expect(DB::table('nfe_fiscal_rules')->where('business_id', NFTR_BIZ)->count())->toBe(2);
 
-    // (c) idempotência: re-aplicar o mesmo template não faz um segundo write silencioso.
-    $configAntes = DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->first();
+    // (c) idempotência: re-aplicar o mesmo template é no-op SEMÂNTICO (docblock do
+    //     TributacaoTemplateService::aplicar). Comparo regime + o JSON DECODIFICADO com `==`
+    //     (insensível à ordem das chaves) em vez da row inteira: a coluna é `json` e o MySQL
+    //     NORMALIZA a ordem das chaves de objeto, então comparar a string crua — ou o
+    //     `updated_at` — mediria o formato de armazenamento, não o contrato.
+    $regimeAntes = DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->value('regime');
+    $tdAntes = json_decode(DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->value('tributacao_default'), true);
+
     $this->post("/nfe-brasil/tributacao/templates/".NFTR_TEMPLATE."/aplicar")->assertRedirect();
-    expect(DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->first())->toEqual($configAntes);
+
+    $tdDepois = json_decode(DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->value('tributacao_default'), true);
+    expect(DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->value('regime'))->toBe($regimeAntes);
+    expect($tdDepois == $tdAntes)->toBeTrue();
+    expect(DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->count())->toBe(1);  // não duplicou row
 });
 
 // ---------------------------------------------------------------------------------------
@@ -234,8 +244,11 @@ it('UC-NFTR-04 · update e destroy de regra de outro business dão 404 e não to
     $this->put("/nfe-brasil/tributacao/regras/{$minha}", $payload)->assertRedirect();
     expect(DB::table('nfe_fiscal_rules')->where('id', $minha)->value('cfop'))->toBe('9999');
 
+    // `NfeFiscalRule` usa SoftDeletes: "removida" = `deleted_at` preenchido, a linha PERMANECE.
+    // Afirmar `->exists() === false` seria medir a coisa errada e daria vermelho num
+    // comportamento correto (e desejável: histórico de regra fiscal não se apaga).
     $this->delete("/nfe-brasil/tributacao/regras/{$minha}")->assertRedirect();
-    expect(DB::table('nfe_fiscal_rules')->where('id', $minha)->exists())->toBeFalse();
+    expect(DB::table('nfe_fiscal_rules')->where('id', $minha)->value('deleted_at'))->not->toBeNull();
 });
 
 // ---------------------------------------------------------------------------------------
