@@ -31,7 +31,10 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ucHeadRe } from '../lib/uc-regex.mjs';
+// Parser de UC vem da fonte ÚNICA (scripts/lib/uc-regex.mjs · ADR 0264): `ucBlocksInCasos`
+// faz o split por bloco `## ` que ANTES era copiado aqui — a cópia é a porta pela qual o
+// parser drifou em 2026-07 (sentinela Tier-0 media 4 telas cobertas onde havia 29).
+import { ucBlocksInCasos } from '../lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
 const SCORECARD_DIR = join(ROOT, 'memory', 'governance', 'scorecards', 'screens');
@@ -86,9 +89,8 @@ export function firstStatusGlyph(block) {
 export function deriveBehavior(casosText) {
   const counts = { green: 0, testing: 0, unverified: 0, broken: 0, other: 0 };
   let declared = 0;
-  for (const block of casosText.split(/^##\s+/m).slice(1)) {
-    const head = block.match(ucHeadRe());
-    if (!head) continue; // heading que não é UC (ex: "## Backlog", "## Como rodar")
+  // Headings que não são UC (ex: "## Backlog", "## Como rodar") já são filtrados na lib.
+  for (const { block } of ucBlocksInCasos(casosText)) {
     declared += 1;
     const st = firstStatusGlyph(block) || 'other';
     counts[st] = (counts[st] || 0) + 1;

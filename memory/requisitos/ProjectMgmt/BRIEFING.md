@@ -59,7 +59,7 @@ Ver [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — comparado com Linear, Jira, Click
 - ⛔ **Tabelas `mcp_*` são canônicas pro time** — UPDATE direto via tinker em prod = drift catalogado
 - ⛔ **Stack middlewares completa obrigatória** em Http/routes.php — sem `SetSessionData` o `session('user.business_id')` é null → vazamento
 - ⚠️ **Schema migration** — `mcp_projects` + `mcp_tasks` vivem em Modules/Jana (Jana) — ProjectMgmt é UI sobre essas tabelas, não dono do schema
-- ⚠️ **Permission canônica** — `copiloto.mcp.usage.all` (herdada do Copiloto, igual ao TeamMcp anterior) — não criar permission própria do ProjectMgmt
+- ⚠️ **Permission canônica** — `jana.mcp.usage.all` (herdada do Copiloto, igual ao TeamMcp anterior) — não criar permission própria do ProjectMgmt
 
 ## Wave 18 Saturação (2026-05-16)
 

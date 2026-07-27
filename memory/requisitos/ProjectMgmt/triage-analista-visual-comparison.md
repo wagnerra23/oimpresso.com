@@ -52,7 +52,7 @@ Tudo projeta o que existe: duplicatas (mcp_tasks), atividade (mcp_task_events), 
 
 ## Restrições Tier 0
 
-- Permissão `copiloto.mcp.usage.all` (construtor). `mcp_tasks`/eventos repo-wide by design (ADR 0070/0093). Ações via `TaskCrudService` respeitam FSM (`McpTask::TRANSITIONS`).
+- Permissão `jana.mcp.usage.all` (construtor). `mcp_tasks`/eventos repo-wide by design (ADR 0070/0093). Ações via `TaskCrudService` respeitam FSM (`McpTask::TRANSITIONS`).
 
 ## Pendências / próximos
 - Raw-palette residual nas chips de motivo da lista antiga (bg-amber-100…) — débito DS herdado; não regredido. Limpar num polish dedicado.
