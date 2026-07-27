@@ -2,29 +2,28 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-
 uses(Tests\TestCase::class);
 
 /**
  * PR #4 Wave Ações Mutação Fiscal — guards Tier 0 + permissões + delegação.
  *
  * AcoesController é thin delegate pra NfeService::cancelar (FSM cascade ADR 0143)
- * e ManifestacaoService (4 ações DF-e). Tests focam em validar contratos:
- *  - Permissões obrigatórias (fiscal.nfe.acoes / fiscal.dfe.manage)
- *  - Validação de input (motivo/justificativa ≥15 chars regra CONFAZ)
- *  - Ações DF-e válidas (whitelist)
+ * e ManifestacaoService (4 ações DF-e).
+ *
+ * ⚠️ LIMITE DESTE ARQUIVO (medido 2026-07-27) — 13 dos 18 casos aqui são TAUTOLÓGICOS: montam
+ * um `validator([...], [...])` LOCAL com as regras reescritas à mão, ou assertam um array literal
+ * declarado na linha acima. Eles testam o Laravel (e o próprio teste), não o `AcoesController`:
+ * trocar `min:15` por `min:5` no Controller NÃO os derruba. O contrato REAL das mesmas regras
+ * vive em `AcoesContratoTest` (UC-FNFE-04/05/06/07), que invoca os métodos do Controller e tem
+ * mordida provada. Estes 18 ficam como candidatos a subtração — decisão [W], não do agente.
+ *
+ * Os 5 casos ESTRUTURAIS (métodos/rota/Services existem) tocam produção de verdade e ancoram
+ * `UC-FNFE-08`.
+ *
+ * Guard de banco removido 2026-07-27: nenhum caso deste arquivo consulta tabela (validator local,
+ * `class_exists`, `Route::has`, reflection), mas o `beforeEach` skipava os 18 quando
+ * `nfe_emissoes` faltava — inclusive os 5 estruturais, que passavam a não rodar em lane nenhuma.
  */
-
-beforeEach(function () {
-    if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: NfeBrasil requer schema MySQL (ADR 0101)');
-    }
-    if (! Schema::hasTable('nfe_emissoes') || ! Schema::hasTable('nfe_dfe_recebidos')) {
-        $this->markTestSkipped('Tabelas NfeBrasil ausentes — rodar migrate primeiro');
-    }
-});
 
 it('cancelarNfe rejeita motivo < 15 chars (regra CONFAZ SINIEF 07/2005)', function () {
     // Defesa estrutural: testamos validação direta sem precisar de DB real.
@@ -70,7 +69,7 @@ it('manifestarDfe desconhecer/nao_realizada exigem justificativa, cienciar/confi
     }
 });
 
-it('AcoesController classe existe e tem 5 métodos públicos esperados (Waves 4+5+6)', function () {
+it('UC-FNFE-08 · AcoesController classe existe e tem 5 métodos públicos esperados (Waves 4+5+6)', function () {
     $controller = new \Modules\Fiscal\Http\Controllers\AcoesController();
     // Wave 4 (PR #4)
     expect(method_exists($controller, 'cancelarNfe'))->toBeTrue()
@@ -94,7 +93,7 @@ it('retransmitir contrato: status válidos = rejeitada/denegada/erro_envio', fun
         ->not->toContain('autorizada', 'cancelada', 'inutilizada', 'pendente');
 });
 
-it('retransmitir contrato: NfeService::retransmitir signature int/int → NfeEmissao', function () {
+it('UC-FNFE-08 · retransmitir contrato: NfeService::retransmitir signature int/int → NfeEmissao', function () {
     $reflection = new ReflectionMethod(\Modules\NfeBrasil\Services\NfeService::class, 'retransmitir');
     $params = $reflection->getParameters();
 
@@ -104,7 +103,7 @@ it('retransmitir contrato: NfeService::retransmitir signature int/int → NfeEmi
         ->and((string) $reflection->getReturnType())->toBe('Modules\NfeBrasil\Models\NfeEmissao');
 });
 
-it('retransmitir route POST registrada (acoes.nfe.retransmitir)', function () {
+it('UC-FNFE-08 · retransmitir route POST registrada (acoes.nfe.retransmitir)', function () {
     expect(\Illuminate\Support\Facades\Route::has('fiscal.acoes.nfe.retransmitir'))->toBeTrue();
 });
 
@@ -245,12 +244,12 @@ it('inutilizar aceita payload válido (modelo 55/65, faixa 1..N, just 15-255)', 
     }
 });
 
-it('NfeCartaCorrecaoService classe existe e tem método aplicar público', function () {
+it('UC-FNFE-08 · NfeCartaCorrecaoService classe existe e tem método aplicar público', function () {
     expect(class_exists(\Modules\NfeBrasil\Services\NfeCartaCorrecaoService::class))->toBeTrue()
         ->and(method_exists(\Modules\NfeBrasil\Services\NfeCartaCorrecaoService::class, 'aplicar'))->toBeTrue();
 });
 
-it('NfeInutilizacaoService já existia (delegação Wave 5 não duplica lógica)', function () {
+it('UC-FNFE-08 · NfeInutilizacaoService já existia (delegação Wave 5 não duplica lógica)', function () {
     expect(class_exists(\Modules\NfeBrasil\Services\NfeInutilizacaoService::class))->toBeTrue()
         ->and(method_exists(\Modules\NfeBrasil\Services\NfeInutilizacaoService::class, 'inutilizar'))->toBeTrue();
 });
