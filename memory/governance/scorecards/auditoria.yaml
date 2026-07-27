@@ -1,12 +1,27 @@
 # Scorecard Auditoria — meta-módulo governança transversal (ADR 0156 + ADR 0127).
 
+# -- REVISAO 2026-07-26 (decisao [W] · "terceira via") ------------------------
+# `last_grade` passa a citar a nota do **v3** (`module:grade`), com a fonte declarada
+# em `last_grade_fonte`. Antes era a nota da rubrica v4 (bucket-scoped), semeada a mao
+# em 2026-05-16 e nunca revisada -- 71 dias parados, porque o cabecalho deste arquivo
+# dizia (falsamente) que um cron o mantinha.
+#
+# Por que v3 e nao v4: o `module:grade-v4` foi REMOVIDO nesta mesma revisao (0
+# invocadores em CI/cron). A nota que MORDE e a do v3 -- roda no CI via
+# `module:grade --all` e tem baseline versionado. Trocar a regua em silencio seria
+# pior que a nota velha; por isso a fonte fica escrita ao lado do numero.
+#
+# Este arquivo SEGUE curado a mao (nenhum comando o escreve). Quem mede a idade dele:
+# `cron-watchdog.mjs --entrega` + a flag "obra parada" do Daily Brief.
+
 module: "Auditoria"
 slug: "auditoria"
 type: "meta"
 fsm_n_a: true
 fsm_n_a_reason: "Entries activity_log são append-only (event-sourced) + revert cria nova entry. Não há entity com transição multi-stage."
-last_grade: 72
-last_grade_at: "2026-05-16T00:00:00-03:00"
+last_grade: 81
+last_grade_at: "2026-07-26T00:00:00-03:00"
+last_grade_fonte: "module:grade (v3) - governance/module-grades-baseline.json"
 target_score: 90
 bucket: "Bom"
 
