@@ -67,6 +67,22 @@ related_adrs:
 > `Estoque · MySQL` (**advisory**). **Nenhum item marcado ✅** — não rodei teste (CT 100, ADR 0062).
 >
 > ### 🔖 Changelog v1.0.4 (2026-07-26) — a edição em massa entra no SDD (§5.3 F5.1 + §6.1 CU-PROD-06)
+> ### 🔖 Changelog v1.0.5 (2026-07-27) — os 3 achados Tier 0 do #4823 fechados
+> Os três achados que o #4823 deixou explicitamente para [W] foram provados por **dois caminhos
+> independentes** (estático + lane `Estoque · Pest (MySQL)` real) e corrigidos com decisão [W]:
+> **(1)** `default_sell_price_inc_tax` → `sell_price_inc_tax` nos 4 sites (`UC-PBULK-01`);
+> **(2)** guard de tenant no `bulkUpdate`, espelhando o `saveSellingPrices` de
+> [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — `UC-PBULK-03` provou que a
+> variação gravava linha na tabela de preço de **outro business** (`price_group_id=2`), com a
+> pré-condição anti-vácuo satisfeita (o laço rodou; não foi verde-por-não-execução);
+> **(3)** rota fantasma `/products/mass-update` — **decisão [W]: repontar** pro writer real
+> `/products/bulk-update` (sem alias). Charter/RUNBOOK/casos corrigidos aqui; **a linha do `.tsx`
+> vai no PR seguinte** (o hook MWART do project dir bloqueia até o fix de leitura de
+> `related_runbook:`, também neste PR, ser mergeado). **Premissas corrigidas no mesmo PR** (regra de precedência): o item 5 do
+> `CU-PROD-14` e o `UC-PSHOW-05` do `Show.casos.md` descreviam o campo inexistente como *"venda com
+> imposto"*. A feature-flag `enable_product_bulk_edit` segue **`false`** — nada foi religado.
+>
+> ### 🔖 Changelog v1.0.4 (2026-07-26) — BulkEdit entra no SDD
 > Run do agent [`sdd-from-source`](../../decisions/0351-sdd-from-source.md) sobre `Produto/BulkEdit`
 > — a **última** tela do módulo sem `casos.md`. Novo **§5.3 F5.1** (o fluxo real `bulkEdit`→`bulkUpdate`,
 > com as 3 medições que mudam a leitura: feature-flag `enable_product_bulk_edit = false` · rota de
@@ -386,8 +402,10 @@ genérico + `rollBack()` + `redirect('products')`.
 > `config('constants.enable_product_bulk_edit')`, hardcoded **`false`** (`config/constants.php:84`,
 > com a nota upstream *"Will be depreciated in future"*). As demais ações em massa da lista
 > (`mass-delete`, `mass-deactivate`, `bulk-update-location`) **não** têm essa trava.
-> **(2) a tela React não tem para onde salvar** — `BulkEdit.tsx` faz `post('/products/mass-update')`;
+> **(2) a tela React não tinha para onde salvar** — `BulkEdit.tsx` fazia `post('/products/mass-update')`;
 > varredura contada do literal no repo: **3** (o `.tsx`, o charter e o RUNBOOK) e **0** em `routes/`.
+> ⚖️ **DECIDIDO [W] 2026-07-27**: repontar pro `/products/bulk-update` (sem alias). Doc corrigido
+> neste PR; a linha do `.tsx` vai no PR seguinte (hook MWART do project dir).
 > **(3) reader e writer não falam a mesma língua** — a Blade (o caller real) manda **5** campos
 > numéricos por variação (`default_purchase_price`, `dpp_inc_tax`, `profit_percent`,
 > `default_sell_price`, `sell_price_inc_tax`) + `group_prices`; o `useForm` do React manda **2**.
@@ -408,6 +426,17 @@ genérico + `rollBack()` + `redirect('products')`.
 > *"venda com imposto"* assumindo que a coluna existisse. A pendência *"qual base usar (exc × inc)"*
 > segue decisão [W]; o que muda é que hoje não é nenhuma das duas. Re-medir com
 > `grep -rn "default_sell_price_inc_tax" app/ database/`.
+>
+> ✅ **CORRIGIDO em 2026-07-27** (decisão [W]: `sell_price_inc_tax`). Os 4 sites passaram a ler a
+> coluna real; `grep -rn "default_sell_price_inc_tax" app/` = **0**. Prova por dois caminhos:
+> (a) estático — schema/migration + model sem accessor; (b) dinâmico — `UC-PBULK-01` vermelho na
+> lane `Estoque · Pest (MySQL)` ([run 30264246760](https://github.com/wagnerra23/oimpresso.com/actions/runs/30264246760)),
+> mensagem literal *"Nenhum campo da variação carrega o preço de venda corrente (233.11 nem 256.42)"*.
+> **Raio de explosão medido antes do fix:** `Show`/`SellingPrices`/`BulkEdit` têm branch dual e só
+> renderizam React com header `X-Inertia`; o sidebar (`AdminSidebarMenu.php:157`) usa `<a href>` puro
+> → em prod caía no Blade, que lê as colunas certas. `/products/unificado` é Inertia **direto**
+> (alcançável por URL), porém com **0** links apontando pra ela. Defeito real e provado, **sem
+> vítima em produção** — por isso coube decisão calma em vez de hotfix.
 
 **F7 · Ficha do produto (`show`):** <!-- derivado: re-rodável do fonte -->
 `Show.tsx` → `GET /products/{id}` → `ProductController@show` (`:801-848`) → gate `product.view` (403)
@@ -640,7 +669,7 @@ Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que dif
 
 #### CU-PROD-06 — Importação Excel + bulk-edit + mass-ops `[should]` 🟡 **parcial** (era ✅ — ver v1.0.4)
 1. `import-products` + `import-opening-stock` (Excel) + `download-excel`. — ⬜ **não verificado** (nenhum teste cita; fora do escopo do run do BulkEdit).
-2. `bulk-edit`/`bulk-update`/`bulk-update-location` + `mass-deactivate`/`mass-delete`. — 🔴 **a edição em massa não fecha o ciclo**: (a) o botão está atrás de `enable_product_bulk_edit = false` (`config/constants.php:84`, "Will be depreciated in future") → o operador não chega; (b) a tela React submete pra `/products/mass-update`, **rota inexistente** (3 ocorrências do literal no repo, 0 em `routes/`); (c) a tela manda 2 campos por variação e o writer lê 5 **sem `??`** → o lote inteiro reverte com erro genérico. `UC-PBULK-05` (failing-first). As demais mass-ops (`mass-delete`/`mass-deactivate`/`bulk-update-location`) **estão ligadas** e não têm essa trava.
+2. `bulk-edit`/`bulk-update`/`bulk-update-location` + `mass-deactivate`/`mass-delete`. — 🔴 **a edição em massa não fecha o ciclo**: (a) o botão está atrás de `enable_product_bulk_edit = false` (`config/constants.php:84`, "Will be depreciated in future") → o operador não chega; (b) a tela React submete pra `/products/mass-update`, **rota inexistente** — **decisão [W] 2026-07-27: repontar** pro `/products/bulk-update`; doc já corrigido, `.tsx` no PR seguinte; (c) a tela manda 2 campos por variação e o writer lê 5 **sem `??`** → o lote inteiro reverte com erro genérico. `UC-PBULK-05` (failing-first). As demais mass-ops (`mass-delete`/`mass-deactivate`/`bulk-update-location`) **estão ligadas** e não têm essa trava.
 3. `[V0]` Import de preço/custo passa pelo mesmo guard `num_uf`. — 🧪 **agora tem contrato no ramo bulk**: `num_uf` é aplicado nos 5 campos de `bulkUpdate`; travado por `UC-PBULK-06` (pt-BR `"1.234,56"` → 1234.56). O ramo **import Excel** segue ⬜.
 4. `[T0]` Bulk valida `business_id` de **cada** ID antes de aplicar. — 🟡 **verdadeiro no resultado, falso no mecanismo**: `bulkEdit` escopa a matriz (`UC-PBULK-02`, verde esperado) e `bulkUpdate` **aplica e depois reverte** — quem garante o "nada meio-gravado" é o `rollBack()` do catch genérico, não uma validação prévia (`UC-PBULK-04`). E o **eixo tabela de preço está aberto**: `VariationGroupPrice::updateOrCreate(['price_group_id' => $k, …])` recebe `$k` **cru da chave do request**, sem o guard `$allowedPriceGroupIds` que o `saveSellingPrices` ganhou no [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — é o mesmo defeito do `UC-PTAB-04`, na tela irmã (`UC-PBULK-03`, failing-first).
 
@@ -739,9 +768,17 @@ que a consulta altere nada.
    (`variable_product_details:30`). — 🔴 o controller **carrega** `variations.product_variation`
    (`:812`) e o `map` **descarta** (`:831-837`). `UC-PSHOW-04`.
 5. `[must][V0]` **Base de imposto declarada** — compra e venda na mesma linha usam a mesma base, ou o
-   rótulo diz qual é. O legado exibe **4 colunas rotuladas** (exc/inc × compra/venda). — 🔶 hoje o
-   payload mistura `default_purchase_price` (exc) com `default_sell_price_inc_tax` (inc) sob rótulos
-   neutros; **qual base a ficha deve usar é decisão [W]**, não dedução. `UC-PSHOW-05`.
+   rótulo diz qual é. O legado exibe **4 colunas rotuladas** (exc/inc × compra/venda). — 🔶 o payload
+   mistura `default_purchase_price` (exc) com `sell_price_inc_tax` (inc) sob rótulos neutros;
+   **qual base a ficha deve usar é decisão [W]**, não dedução. `UC-PSHOW-05`.
+   > ⚠️ **Correção de premissa (v1.0.5).** Até 2026-07-27 este item dizia que o payload trazia
+   > `default_sell_price_inc_tax` — **campo que não existe** (ver o bloco 🐛 no §5.3 F5.1). O que
+   > viajava era `null → 0`, então a mistura de bases descrita aqui era **hipotética**: não havia
+   > preço de venda nenhum pra misturar. Com o campo repontado pra `sell_price_inc_tax`
+   > (decisão [W] 2026-07-27 — preserva a intenção do nome quebrado e a paridade com a coluna
+   > "venda (inc)" do Blade), a mistura exc × inc passa a ser **real**, e este 🔶 vira um achado
+   > vivo em vez de mascarado pelo zero. O item segue decisão [W]; o que mudou é que agora ele
+   > tem consequência observável.
 6. `[must]` **GET é leitura pura** — consultar não escreve (charter §Anti-hooks; `AR-PROD-064`
    append-only). O irmão `productStockHistory` **faz** UPDATE dentro de um GET no branch `ajax()`.
    `UC-PSHOW-06`.
