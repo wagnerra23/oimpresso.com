@@ -35,6 +35,25 @@ check('controle: file_any + done:true → detect decide (true)',
 check('controle: file_any + done:true mas arquivo sumiu → false (detect manda, item reabre)',
   itemDone({ detect: { tipo: 'file_any', paths: ['app/falta.php'] }, done: true }, '/r', fakeExists) === false);
 
+// ── TERCEIRO ESTADO: descartado ≠ feito ≠ pendente ──────────────────────────────
+const manifestDesc = { itens: [
+  { ordem: 1, gap: '2', titulo: 'Entregue', prioridade: 'P0', detect: { tipo: 'file_any', paths: ['app/pronto.php'] } },
+  { ordem: 2, gap: '6', titulo: 'LGPD purge', prioridade: 'P0', detect: { tipo: 'file_any', paths: ['app/pronto.php'] },
+    done: false, descartado: true, razao_descarte: 'num ERP nao se apaga PII' },
+] };
+const bDesc = formatBanner(resolverItens(manifestDesc, '/r', fakeExists));
+check('MORDE: item descartado sai da fila (nao vira PROXIMO PENDENTE)', !/PROXIMO PENDENTE/.test(bDesc));
+check('MORDE: descartado NAO imprime [OK] (nao finge entrega)', !/\[OK\] #6/.test(bDesc) && /\[XX\] #6/.test(bDesc));
+check('descartado mostra a razao ao lado', /DESCARTADO por decisao \[W\].*num ERP nao se apaga PII/.test(bDesc));
+check('resumo separa entregue de descartado', /1 entregue\(s\), 1 descartado\(s\)/.test(bDesc));
+check('descartado NAO reabre por causa do veto done:false',
+  itemDone({ detect: { tipo: 'file_any', paths: ['app/pronto.php'] }, done: false, descartado: true }, '/r', fakeExists) === false);
+// controle: sem a flag, o item volta a ser pendente normal
+const bSemDesc = formatBanner(resolverItens(
+  { itens: [{ ordem: 1, gap: '6', titulo: 'X', prioridade: 'P0', detect: { tipo: 'file_any', paths: ['app/pronto.php'] }, done: false }] },
+  '/r', fakeExists));
+check('controle: sem descartado, done:false segue PENDENTE', /PROXIMO PENDENTE: #6/.test(bSemDesc));
+
 // ── E2E de contrato: o escape valve que o banner ANUNCIA precisa funcionar ───────
 // O texto "(Para reabrir um item, mude 'done' no manifesto.)" era falso pros file_any.
 const manifestVeto = { itens: [
