@@ -8,6 +8,9 @@ status: draft
 last_validated: "2026-07-27"
 parent_module: Sells
 related_adrs: [104, 107, 110, 143, 149, 93]
+# Única US do SPEC de Sells que reivindica ESTA tela por nome: US-SELL-014 §Mudanças
+# correlatas — "UI tela `/sells/{id}` ganha card 'Documentos Fiscais' listando N notas".
+related_us: [US-SELL-014]
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
