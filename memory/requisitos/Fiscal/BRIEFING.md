@@ -110,3 +110,14 @@ Fiscal **lê** Models e **chama** Services de NfeBrasil — não duplica backend
 - RUNBOOKs: `RUNBOOK-{cockpit,nfe,nfse,dfe,eventos,config,sped}.md`
 - ADRs canônicas: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant), [0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) (Constituição v2), [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) (tests biz=1), [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) (MWART), [0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) (Cowork loop), [0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) (FSM cancel cascade)
 - Layout SPED: CONFAZ Guia Prático EFD-ICMS/IPI v3.1.1 (Ajuste SINIEF 02/2009)
+
+## Contrato de tela (SDD)
+
+O módulo passou a ter **SDD** em [`SDD-cockpit-fiscal-v1.0.md`](SDD-cockpit-fiscal-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
+gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4866).
+
+> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
+> `node scripts/governance/requisitos-status.mjs Fiscal`
+>
+> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
+> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).
