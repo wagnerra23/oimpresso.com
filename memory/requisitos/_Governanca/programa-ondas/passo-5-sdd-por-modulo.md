@@ -77,11 +77,50 @@ O run maior do piloto ([#4826](https://github.com/wagnerra23/oimpresso.com/pull/
 
 ### Onda 1 — 3 sessões em paralelo, lanes distintas
 
-| Sessão | Módulo | Telas | `casos.md` | US no SPEC | Lane | Por que |
+> ⚠️ **Errata da 1ª versão deste plano (2026-07-27, mesmo dia).** A ordem original punha o
+> Fiscal como "o chip mais barato do repo — contrato de tela já 100%". **Falso.** Os 7
+> `casos.md` do Fiscal são **stubs de 37-41 linhas com ZERO UC** — eu li presença de ARQUIVO
+> como contrato, que é a classe **LC-11** (presence-gate) cometida na montagem do próprio
+> plano. A porta agora acusa isso (ver §Máquina corrigida). Ordem refeita abaixo.
+
+| Sessão | Módulo | Telas | UC reais | US no SPEC | Lane | Por que |
 |---|---|---:|---:|---:|---|---|
-| S1 | **Fiscal** | 7 | **7** | 23 | `nfebrasil-pest` | contrato de tela já 100% → o chip mais barato do repo; **é o teste do desenho** |
-| S2 | **Compras** | 1 | 0 | 21 | `compras-pest` | 1 tela + 1 E2E verde → valida o chip num módulo sem `casos.md` |
+| S1 | **Compras** | 1 | 0 | 21 | `compras-pest` | 1 tela · lacunas já **nomeadas** pela porta (`US-COM-006`/`007` entregues sem contrato) → o menor chip honesto, e o teste do desenho |
+| S2 | **Fiscal** | 7 | **0** (7 stubs) | 23 | `nfebrasil-pest` | chip normal, não barato: os `casos.md` existem mas não declaram contrato |
 | S3 | **Ponto** | 20 | 0 | 10 | `ponto-pest` | volume alto, ambiguidade baixa (Portaria MTP 671/2021 fecha o domínio) |
+
+### O caminho que a Onda 1 percorre NUNCA foi exercitado
+
+`git log --diff-filter=A` (repo completo, `is-shallow=false`): o SDD do Produto **nasceu
+2026-07-14 à mão** ([#4260](https://github.com/wagnerra23/oimpresso.com/pull/4260)) — **10 dias
+antes** de o agent existir ([ADR 0351](../../../decisions/0351-sdd-from-source.md), 24/07). Os 3
+runs do agent (26–27/07) rodaram **com o SDD já pronto**, exercitando só o ramo *"SDD existe →
+preenche §5.3/§6"*. O ramo *"SDD não existe → cria §0–§10"* — que é o de **todos os 39 módulos
+restantes** — tem **zero corridas**. A Onda 1 é a primeira.
+
+## Cronograma (ancorado no único ponto de dados, com a incerteza declarada)
+
+| Fase | Medido / estimado |
+|---|---|
+| Piloto Produto — **fase-agent** | **2 dias** (26→27/07): 3 PRs principais + 5 follow-ups · 9 US · 8 telas · **SDD pré-existente** |
+| Piloto Produto — **total** (com o SDD escrito à mão antes) | 13 dias (14→27/07), 13 commits |
+| **Onda 1** (S1+S2+S3 em paralelo) | **3–5 dias** — os 2 dias da fase-agent **mais** a fase sem precedente de criar SDD do zero. É faixa, não promessa |
+| **Onda 2** (NfeBrasil · Financeiro · Essentials) | só estimável **depois** que a Onda 1 medir a fase nova |
+| 33 módulos restantes | **não estimado** — seria chute sobre chute |
+
+## Máquina corrigida (pré-requisito da Onda 1 — feito 2026-07-27)
+
+A régua que as sessões usam pra dizer "fechei o módulo" — `requisitos-status.mjs` — tinha **dois
+falso-verdes**, ambos medidos e corrigidos antes de abrir os chips:
+
+| Defeito | Recibo | Depois |
+|---|---|---|
+| `telasDoModulo` não recursava (e não usava a fonte única `page-path.mjs`) | subcontava **20 de 40 módulos**: `ads` 19→0 · `Financeiro` 21→2 · `Ponto` 20→1 · `Essentials` 13→0 | consome `isPageScreenPath`; Produto 7→**8** (a 8ª, `Unificado/Index`, era invisível — e o piloto fechou como "7/7") |
+| `casos.md` presente contava como tela coberta | Fiscal: 7 arquivos, **0 UC**, painel imprimia *"Nenhuma lacuna: toda tela tem caso"* | lacuna nova `casos.md existe mas não declara nenhum UC`; Fiscal passa a acusar **7** |
+
+Provado por **bite-test** no `--selftest` (27/27): fixture que morde (`Unificado/Index` na conta ·
+stub sem UC não cobre) **e** controle-negativo (`_components` não vira tela · `casos.md` com UC
+cobre). Sem o par, "consertei" seria afirmação — e afirmação é o que este passo existe pra matar.
 
 ### Onda 2 — depois do merge da 1
 
