@@ -39,6 +39,9 @@
 import { readFileSync, existsSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+// Fonte ÚNICA de "o que é tela" (reconciliação #4836/#4840) — o mesmo módulo que o
+// casos-coverage-guard e o screen-coverage-map consomem. Ver telasDoModulo().
+import { isPageScreenPath } from '../qa/page-path.mjs';
 
 // Guard IS_MAIN (padrao do doc-freshness-score): os extratores sao EXPORTADOS pra teste;
 // sem isto, um `import` do modulo dispara o CLI e polui a saida de quem so queria a funcao.
@@ -133,25 +136,58 @@ function listarTestes() {
  */
 function casosDoModulo(mod) {
   const out = [];
-  const coletar = (dir, sufixoTela) => {
+  // RECURSIVO no lado React pelo mesmo motivo de telasDoModulo(): `Unificado/Index.casos.md`
+  // ficava invisível e a tela irmã aparecia como "sem caso" (ou nem aparecia). O nome da tela
+  // é o caminho relativo ao módulo sem `.casos.md` — casa 1:1 com telasDoModulo().
+  const coletar = (dir, sufixoTela, base = dir, recursivo = false) => {
     let ents; try { ents = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return; }
     for (const e of ents) {
-      if (!e.isFile() || !e.name.endsWith('.casos.md')) continue;
+      const p = `${dir}/${e.name}`;
+      if (e.isDirectory()) { if (recursivo) coletar(p, sufixoTela, base, true); continue; }
+      if (!e.name.endsWith('.casos.md')) continue;
       out.push({
-        tela: e.name.replace('.casos.md', '') + sufixoTela,
-        path: `${dir}/${e.name}`,
-        src: ler(`${dir}/${e.name}`),
+        tela: p.slice(base.length + 1).replace(/\.casos\.md$/, '') + sufixoTela,
+        path: p,
+        src: ler(p),
       });
     }
   };
-  coletar(`resources/js/Pages/${mod}`, '');
+  const pagesDir = `resources/js/Pages/${mod}`;
+  coletar(pagesDir, '', pagesDir, true);
   coletar(`memory/requisitos/${mod}/_telas`, ' (blade)');
   return out;
 }
+/**
+ * Telas do módulo — RECURSIVO, pela fonte única `page-path.mjs`.
+ *
+ * ⚠️ A 1ª versão fazia `readdirSync` + `isFile()` (sem recursão) e por isso **não enxergava
+ * tela em subpasta**. Medido 2026-07-27: subcontava **20 de 40 módulos** — `ads` 19→0,
+ * `Financeiro` 21→2, `Ponto` 20→1, `Essentials` 13→0. Pior que o número: o painel imprimia
+ * **"Nenhuma lacuna"** sobre telas que nem via, e o próprio piloto do Produto fechou como
+ * "7/7" sendo **7 de 8** (`Produto/Unificado/Index.tsx` nunca entrou na conta).
+ *
+ * O escopo de "o que é tela" tem UM dono desde a reconciliação #4836/#4840 —
+ * [`scripts/qa/page-path.mjs`](../qa/page-path.mjs) — que o `casos-coverage-guard` e o
+ * `screen-coverage-map` já consomem. Esta porta ficou de fora; agora consome também.
+ * Um conceito, um número, três lados.
+ *
+ * O nome da tela passa a ser o caminho relativo ao módulo sem extensão (`Unificado/Index`),
+ * pra casar 1:1 com `Unificado/Index.casos.md` — mesma convenção em `casosDoModulo`.
+ */
 function telasDoModulo(mod) {
-  const dir = `resources/js/Pages/${mod}`;
-  let ents; try { ents = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return []; }
-  return ents.filter((e) => e.isFile() && e.name.endsWith('.tsx')).map((e) => e.name.replace('.tsx', ''));
+  const base = `resources/js/Pages/${mod}`;
+  const out = [];
+  const walk = (rel) => {
+    let ents; try { ents = readdirSync(join(ROOT, rel), { withFileTypes: true }); } catch { return; }
+    for (const e of ents) {
+      const p = `${rel}/${e.name}`;
+      if (e.isDirectory()) { walk(p); continue; }
+      if (!e.name.endsWith('.tsx') || !isPageScreenPath(p)) continue;
+      out.push(p.slice(base.length + 1).replace(/\.tsx$/, ''));
+    }
+  };
+  walk(base);
+  return out;
 }
 function sddDoModulo(mod) {
   const dir = `memory/requisitos/${mod}`;
@@ -211,7 +247,28 @@ if (IS_MAIN && args.includes('--selftest')) {
   ok('cobre: 1º campo com backticks',
     citadoComoAncora('| `UC-PFIX-01` | Ajuste no relatório | must | US-PROD-028 |', 'US-PROD-028') === true);
 
-  const TOTAL = 22;
+  // ── BITE-TEST das 2 correções de 2026-07-27 (escopo de tela + casos vazio) ──────────
+  // Regra do projeto: correção de máquina só vale com fixture RUIM que morde e BOA que passa.
+  // Sem controle negativo, "consertei" é afirmação — e afirmação é o que estamos matando aqui.
+
+  // (1) escopo de tela: subpasta CONTA, auxiliar NÃO. Antes do fix, `Unificado/Index` era
+  // invisível e o painel do Produto fechava "7/7" sendo 7 de 8.
+  const telasProduto = telasDoModulo('Produto');
+  ok('MORDE: tela em subpasta entra na conta (Unificado/Index)',
+    telasProduto.includes('Unificado/Index'));
+  ok('controle-negativo: _components NÃO vira tela',
+    !telasProduto.some((t) => t.startsWith('_')));
+  ok('escopo bate com a fonte única (Produto = 8 telas, igual screen-coverage)',
+    telasProduto.length === 8);
+
+  // (2) casos.md sem UC: arquivo presente ≠ tela coberta. Fixture ruim = o stub REAL do
+  // Fiscal (37-41 linhas, 0 UC); fixture boa = um casos.md com UC declarado.
+  ok('MORDE: casos.md sem nenhum UC não cobre',
+    extrairUC('---\nowner: W\n---\n# Casos — Nfe\n\n> stub: contrato a escrever.\n').length === 0);
+  ok('controle-negativo: casos.md com UC declarado cobre',
+    extrairUC('| UC-FISC-01 | Emitir NFe | must |').length === 1);
+
+  const TOTAL = 27;
   console.log(f === 0 ? `\n✅ selftest ${TOTAL}/${TOTAL} — extratores, classificador e anti-gaming provados` : `\n❌ ${f} falha(s)`);
   process.exit(f === 0 ? 0 : 1);
 }
@@ -249,6 +306,19 @@ const statusUC = ucs.map((u) => {
 
 // LACUNAS = a fila de crescimento (derivada, não inventada)
 const telasSemCasos = telas.filter((t) => !casos.some((c) => c.tela === t));
+/**
+ * `casos.md` PRESENTE mas SEM NENHUM UC = lacuna, não cobertura (medido 2026-07-27).
+ *
+ * A 1ª versão só perguntava "existe arquivo `<Tela>.casos.md`?". Rodado no Fiscal, o painel
+ * imprimiu **"Nenhuma lacuna: toda tela tem caso"** — e os 7 arquivos eram **stubs de 37-41
+ * linhas com ZERO UC**. Presença de arquivo tratada como contrato é exatamente a classe
+ * **LC-11** (presence-gate) que este projeto persegue, aqui cometida DENTRO da máquina que
+ * cobra. O irmão disso já tinha sido corrigido acima pro CU (âncora ≠ prosa); faltava o caso
+ * mais grosso: arquivo vazio de UC.
+ *
+ * Não é gate novo nem régua nova — é a MESMA lacuna medindo conteúdo em vez de existência.
+ */
+const casosSemUC = casos.filter((c) => extrairUC(c.src).length === 0);
 /**
  * COBERTO = citado como ÂNCORA, não mencionado em prosa (correção 2026-07-26).
  *
@@ -317,12 +387,13 @@ P(`| UC com teste que os cita | ${statusUC.filter((u) => u.status !== '📝 sem_
 P('');
 P('## Onde a cadeia QUEBRA — esta é a fila de crescimento');
 P('');
-if (!telasSemCasos.length && !cuSemUC.length && !usSemContrato.length) {
-  P('_Nenhuma lacuna: toda tela tem caso, todo CU é citado, e toda US **entregue** tem contrato._');
+if (!telasSemCasos.length && !casosSemUC.length && !cuSemUC.length && !usSemContrato.length) {
+  P('_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._');
 } else {
   P('| Lacuna | O que falta escrever |');
   P('|---|---|');
   for (const t of telasSemCasos) P(`| Tela \`${t}\` sem \`casos.md\` | o contrato da tela (trio incompleto) |`);
+  for (const c of casosSemUC) P(`| \`${c.path.split('/').pop()}\` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |`);
   for (const c of cuSemUC) P(`| \`${c.id}\` sem UC | caso de uso que o exercite — ${c.titulo.slice(0, 70)} |`);
   for (const u of usSemContrato) P(`| \`${u.id}\` **entregue sem contrato** (\`status: ${u.status}\`) | UC que prove o que foi entregue — ${u.titulo.slice(0, 60)} |`);
 }
