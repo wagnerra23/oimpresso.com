@@ -113,3 +113,70 @@ Padrão comum: **deduzir de leitura quando havia oráculo à mão** (LC-08). Em 
 
 - `cycles-active` → nenhum cycle ativo em COPI
 - `my-work` → 6 tasks em REVIEW (US-TR-309, US-TR-310, US-PG-008, US-PROD-027, US-TR-305, US-TR-306)
+
+---
+
+## Continuação (sessão paralela, mesma noite) — a auditoria dos 5 e o que a terceira via não cobre
+
+> Gatilho: o advisory falhando em **100% dos PRs** (#4800, #4805, #4815). Escopo pedido: achar quem
+> deveria escrever cada scorecard, por que pararam, e decidir consertar × aposentar. Rodou **em
+> paralelo** com a sessão que produziu a terceira via (#4817/#4822) — a colisão e como foi resolvida
+> estão no fim desta seção. Um doc só pro tema (não abri session log paralelo — §5 2026-06-05).
+
+**Os dois primeiros itens bateram com o que o #4798 já tinha corrigido no `_template.yaml`:**
+varredura contada de escritores → **zero** para `memory/governance/scorecards/*.yaml`;
+`schedule:list` no CT 100 → os crons de 06:05 e 07:00 são **leitores**. E `git log` (clone
+desrasado antes de medir — o hook P3 mordeu e estava certo) mostra que os 5 **nunca andaram**:
+nasceram nas Waves 23-26 e o único toque posterior foi a deleção pelo squash do #2413 + restauração.
+
+### O achado que sobrevive à terceira via: o cálculo do v4 ignora 4 dos 5 arquivos
+
+Controle negativo no CT 100 — avaliar cada módulo **com** o YAML curado × **com `[]`** —, arquivos
+provados idênticos aos do repo por `md5`:
+
+| módulo | bucket | COM o YAML | SEM o YAML |
+|---|---|---:|---:|
+| Admin · Auditoria · Governance | `cross_cutting_infra` | 17 | **17** |
+| Vestuario | `vertical_client_facing` | 20 | **20** |
+| ComunicacaoVisual | `vertical_client_facing` | 91 | 20 |
+
+Causa: vocabulário incompatível — 4 deles declaram as dimensões da rubrica **v3** (`D1_models`,
+`C1_coerencia`…) e o `evaluateScorecard()` itera as chaves do **bucket** (`multi_tenant`,
+`pest_coverage`…), caindo em `?? 0` no core e `?? target` nas `bucket_dimensions`. Só o
+`comunicacaovisual.yaml` (escrito depois, com as chaves do bucket) é lido de fato.
+
+**Re-medido DEPOIS do #4822, sobre os YAMLs já revisados: o resultado é idêntico.** A revisão
+consertou a data e declarou a procedência (`last_grade_fonte`) — o que apagou o alarme e é ganho
+real —, mas o número que o cron das 07:00 grava em `mcp_scorecard_runs` **não muda com ela**,
+porque não vem desses campos. Fechar esse resíduo seria alinhar as chaves dos 4 ao vocabulário do
+bucket; enquanto isso não acontece, o `--alert` de drift `>=5pts` segue sem poder disparar (score
+constante). Registro, não contra-proposta: a decisão de manter o v4 vivo é [W] e está tomada.
+
+Complemento: `ScopedScorecardEvaluator::detectRule()` — dispatcher de 11 detectores reais
+(`file_exists`, `grep`, `ratio`, `ast_scan`, `ci_health`, `otel_query`…) — tem **zero call sites em
+produção** (4 chamadas no repo, todas em teste) e os buckets declaram **zero** blocos `detect`. É o
+motor que faria o score depender do código; está desligado nas duas pontas.
+
+### Errata no `cron-watchdog`
+
+A mensagem do eixo 2 afirmava *"alguma automação deveria manter vivo"* e mandava *"ache quem
+deveria escrever"* — afirmação que o watchdog **não pode sustentar** (mede idade, e idade não
+revela autoria), e que manda a próxima sessão caçar um culpado inexistente. O #4822 corrigiu o
+mesmo diagnóstico em prosa (*"eu tinha dito 'o cron roda e não entrega'. Errado"*); esta errata
+corrige no **instrumento**. Agora ele nomeia os 3 casos (cron que parou de entregar · curadoria
+envelhecida · mecanismo morto), diz como distinguir (varrer escritores do path) e registra o
+desfecho real deste caso: era curadoria. Detecção **idêntica** — sem allowlist por nome/pasta,
+critério sintático já morto 4× no §5.
+
+### A colisão de sessões paralelas — e o que eu descartei
+
+Trabalhei numa **demolição completa do v4** (ADR 0353 supersedendo 0160/0161/0163; −9.042 linhas;
+Pest no CT 100 com baseline: **93 falhas antes × 85 depois, 0 falha exclusiva do PR**). Enquanto
+isso, a outra sessão mergeou a **terceira via** ([#4817](https://github.com/wagnerra23/oimpresso.com/pull/4817)
++ [#4822](https://github.com/wagnerra23/oimpresso.com/pull/4822)) — *poda o morto, mantém o vivo,
+revisa os 5* —, decidida por [W]. **Descartei a demolição**: reverter decisão do dono mergeada não
+é reconciliação, é atropelo. Do meu PR sobrevive só o que não conflita e continua verdadeiro: a
+errata do instrumento e este registro.
+
+Lição operacional (a que o `whats-active` existe pra evitar): duas sessões atacaram o mesmo alarme
+por caminhos opostos e nenhuma soube da outra até o `mergeStateStatus: DIRTY`.

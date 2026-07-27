@@ -22,14 +22,30 @@
  * impossível; e seria medir a coisa errada de qualquer jeito.
  *
  * O incidente que originou este eixo mostra por quê: `governance:scorecard-snapshot
- * --alert` roda TODO DIA às 07:00 e os 5 scorecards que ele deveria atualizar estavam
- * com `last_grade_at: 2026-05-16` — 71 dias parados. O cron estava VIVO e não
- * ENTREGAVA. Liveness teria dado verde.
+ * --alert` roda TODO DIA às 07:00 e os 5 scorecards do Governance v4 estavam com
+ * `last_grade_at: 2026-05-16` — 71 dias parados. Liveness teria dado verde.
+ *
+ * ⚠️ ERRATA (2026-07-26, auditoria do próprio eixo): a 1ª redação dizia que o cron
+ * "deveria atualizar" esses 5 e não entregava. FALSO, e a correção importa porque o
+ * texto errado manda a próxima sessão caçar um culpado que não existe. Medido:
+ * varredura contada de escritores (php/mjs/js em Modules/·scripts/·app/·.claude/)
+ * achou ZERO que escrevam `memory/governance/scorecards/*.yaml` — os dois crons são
+ * LEITORES (o de 07:00 grava `mcp_scorecard_runs`; o de 06:05, `mcp_module_grades_history`).
+ * Os YAMLs são INPUT curado à mão; `last_grade_at` é carimbo de curadoria humana.
+ * Ver o cabeçalho de `memory/governance/scorecards/_template.yaml` (dono da regra).
+ *
+ * Ou seja: este eixo mede IDADE de artefato, e idade não revela autoria. Ele acerta o
+ * FATO (parou) e não pode concluir a CAUSA — quem investiga é que decide entre cron
+ * quebrado, curadoria envelhecida ou mecanismo morto. Desfecho do caso dos 5 (decisão
+ * [W], #4822): eram CURADORIA ENVELHECIDA — os YAMLs foram revisados e o alarme apagou
+ * por conserto. O cron seguiu vivo e entregando (grava no DB); quem nunca aconteceu foi
+ * a revisão humana.
  *
  * Então este eixo mede a CONSEQUÊNCIA, não a declaração: varre os artefatos de estado
  * versionados que carregam data interna própria e acusa os que envelheceram além do
  * limite. Não precisa de `gh`, não precisa de rede, não precisa saber QUEM deveria
- * ter escrito — se o artefato parou, alguma automação parou de entregar.
+ * ter escrito — mas TAMBÉM NÃO CONCLUI que existe um escritor (ver errata acima): o
+ * que ele entrega é "este artefato de estado parou há Nd", e a causa é da investigação.
  *
  * Cobertura honesta: dos 290 arquivos de estado em `governance/` + `memory/governance/`,
  * só 13 declaram data interna — os outros 277 são baselines sem carimbo e ficam FORA
@@ -177,7 +193,7 @@ function reportarEntrega(r) {
   console.log(`\n📦 entrega — ${r.total_datados} artefato(s) de estado com data interna (de ${r.total_estado}) · limite ${r.limite_dias}d · ${r.parados.length} 🔴 parado(s)`);
   for (const p of r.parados) console.error(`🔴 ${p.arquivo} — parado há ${p.dias}d (última data interna: ${p.data})`);
   if (!r.parados.length) { console.log(`✓ nenhum artefato de estado além do limite.`); return 0; }
-  console.error(`\n✗ ${r.parados.length} artefato(s) que alguma automação deveria manter vivo(s) estão parados. "O cron roda" não prova que ele ENTREGA — foi assim que os scorecards ficaram 71d congelados com o cron das 07:00 rodando todo dia. Ache quem deveria escrever cada um: ou conserta a entrega, ou aposenta o mecanismo.`);
+  console.error(`\n✗ ${r.parados.length} artefato(s) de estado parado(s) além do limite. Este eixo mede IDADE, não autoria — ele não sabe se o artefato tem escritor automático. Ao investigar, o achado cai num dos 3 casos: (a) cron que rodava e parou de ENTREGAR → conserta a entrega; (b) artefato CURADO À MÃO cuja revisão envelheceu → re-cura, ou aposenta quem o consome; (c) mecanismo inteiro parado → aposenta com lápide. Como distinguir: varra os escritores do path (quem faz write nele) — sem escritor, não é (a). Precedente 2026-07-26 (os 5 scorecards do Governance v4): varredura contada achou ZERO escritores — os crons de 06:05/07:00 apenas LEEM —, então NÃO era (a). [W] decidiu (b): revisar os 5 (#4822). Conferir "quem escreve neste path" é o passo que separa os 3 casos.`);
   return 1;
 }
 
