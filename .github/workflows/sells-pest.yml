@@ -1,0 +1,123 @@
+name: Sells · Pest (MySQL)
+
+# Lane dedicada pra rodar teste Pest MySQL-only de Sells contra MySQL REAL.
+#
+# POR QUE EXISTE
+# Nenhuma lane rodava `tests/Feature/Sells/**` em MySQL (varrido em 2026-07-27: as 9 lanes
+# `DB_CONNECTION: mysql` são arquivos/compras/essentials/estoque/financeiro/jana/kb/nfebrasil/
+# ponto — nenhuma inclui Sells). O `ci.yml` roda SQLite :memory:, onde todo teste que depende
+# do schema UltimatePOS + seed biz=1/biz=2 dá `markTestSkipped` — falsa cobertura. Resultado:
+# os 72 arquivos de `tests/Feature/Sells/` eram quase todos ESTRUTURAIS (`file_get_contents` +
+# match de string), e `Sells/Show.tsx` chegou ao topo do débito Tier-0 (`exposicao-tier0.mjs`:
+# score 11, dinheiro+estoque+fiscal) sem um único teste de comportamento.
+#
+# Nasce com `SellsShowContratoTest` (UC-VSHOW-01..07 de `Sells/Show.casos.md`) e é o HOME do
+# ratchet pra TODO teste MySQL-only de Sells — cada novo entra na allowlist abaixo (mesma
+# disciplina de essentials-pest.yml / estoque-pest.yml).
+#
+# Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate (schema
+# baseline) + seed biz=1 (fixture) E biz=2 (Tier 0 cross-tenant — a origem do "outro business"
+# que UC-VSHOW-01 usa).
+# Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1, nunca biz=4) · ADR 0264 (G-2).
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno (dorny/paths-filter):
+  # se nada de Sells mudou, pula o pesado e conclui verde (mesmo padrão do essentials-pest.yml,
+  # ADR 0271 onda 2 — required-ready sem deadlock).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'tests/Feature/Sells/**'
+      - 'app/Http/Controllers/SellController.php'
+      - 'resources/js/Pages/Sells/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/sells-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: sells-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Sells · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças de Sells (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            sells:
+              - 'tests/Feature/Sells/**'
+              - 'app/Http/Controllers/SellController.php'
+              - 'resources/js/Pages/Sells/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/sells-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada de Sells mudou)
+        if: steps.changes.outputs.sells == 'false'
+        run: echo "✅ Sem mudanças em Sells — skip-as-pass (required-ready)."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.sells == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.sells == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.tsx", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Sells · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.sells == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: — sobrescreve aqui pra rodar no
+        # MySQL real semeado (biz=1 + biz=2). Allowlist: só arquivos comprovadamente verdes
+        # MySQL-only. NÃO incluir RefreshDatabase/migrate:fresh (dropam schema + limpam o
+        # seed). Este usa DatabaseTransactions.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-sells-junit.xml \
+            tests/Feature/Sells/SellsShowContratoTest.php
+
+      - name: Upload JUnit (Sells · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.sells == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-sells-junit
+          path: test-results/pest-sells-junit.xml
+          retention-days: 14

@@ -4,7 +4,7 @@
 //   stories: MEM-TEAM-1 (ADR 0055) — self-host equivalent Anthropic Team plan admin
 //   adrs: 0053, 0055
 //   tests: TODO
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //
 // Admin console pra Wagner gerenciar:
 //   - Lista de devs com tokens MCP ativos

@@ -48,7 +48,7 @@ id: requisitos-project-mgmt-inventario
 | **1** | Kanban board drag-drop completo | **P0** | 🟡 | `Board/Index.tsx` 441 LoC + `BoardController::updateStatus(PATCH)` + draggable cards via TaskCard | **droppable column não implementado** + atomic 409 conflict + revert em erro + teste Pest |
 | 2 | Backlog priorização visual + bulk operations | P0 | ✅ | `Backlog/Index.tsx` 390 LoC + `BacklogController::bulk(POST)` + 7 filtros + multi-select | — (pode adicionar audit log mais formal) |
 | 3 | My Work + Inbox unread badges | P0 | ✅ | `MyWork/Index.tsx` 461 LoC + 3 endpoints inbox + grouped by cycle | — |
-| 4 | Multi-tenant + Permissions Spatie cobertas por testes Pest | P0 | 🟡 | Permission `copiloto.mcp.usage.all` checada nas rotas | **0 tests** — `Modules/ProjectMgmt/Tests/` **não existe**, não registrado em `phpunit.xml` |
+| 4 | Multi-tenant + Permissions Spatie cobertas por testes Pest | P0 | 🟡 | Permission `jana.mcp.usage.all` checada nas rotas | **0 tests** — `Modules/ProjectMgmt/Tests/` **não existe**, não registrado em `phpunit.xml` |
 | 5 | Filters URL state-driven | P0 | ✅ | localStorage + URL state implementados em Board + Backlog | — (migrar pra Saved views backend é P1) |
 | **6** | Search global Cmd+K | **P0** | ❌ | `cmdk` lib em package.json, sem uso visível em ProjectMgmt | **CommandPalette component + endpoint /search + atalho global** |
 | **7** | Cycle close UI | P1 | ❌ | Tool MCP `cycles-close --rollover` existe (CLI only) | **Sheet/Page com retro markdown + rollover toggle + endpoint** |

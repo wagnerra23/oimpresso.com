@@ -2,7 +2,7 @@
 //   tela: /project-mgmt/roadmap
 //   module: ProjectMgmt
 //   stories: US-TR-203 (Roadmap epics x quarters)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { type ReactNode } from 'react';

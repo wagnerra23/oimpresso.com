@@ -2,7 +2,7 @@
 //   tela: /copiloto/admin/qualidade
 //   module: Copiloto
 //   stories: MEM-MET-4 (ADR 0050)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //
 // V1: KPIs por business (último valor) + gates verde/vermelho + tabela trend
 // das 8 métricas obrigatórias + 3 RAGAS-aligned. Sem chart libs — sparklines
