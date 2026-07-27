@@ -29,6 +29,10 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  * @see Modules/Fiscal/Http/Controllers/NfeCockpitController.php
  * @see resources/js/Pages/Fiscal/Nfe.charter.md
+ *
+ * @covers-us US-FISCAL-001
+ * (ADR 0273/0303 — este arquivo esta na allowlist da lane que emite JUnit,
+ *  entao o "verde" declarado aqui e alcancavel; ver SDD Fiscal §8.1.)
  */
 
 const FISCAL_BIZ_WAGNER = 1;
@@ -68,7 +72,7 @@ afterEach(function () {
         ->forceDelete();
 });
 
-it('global scope HasBusinessScope esconde emissões cross-tenant na contagem do cockpit', function () {
+it('UC-FNFE-01 · global scope HasBusinessScope esconde emissões cross-tenant na contagem do cockpit', function () {
     // Cria 1 emissão biz=1 + 2 emissões biz=99 com mesma chave-tag pra rastreio.
     $base = [
         'modelo'      => '55',
@@ -110,7 +114,7 @@ it('global scope HasBusinessScope esconde emissões cross-tenant na contagem do 
             ->count())->toBe(3);
 });
 
-it('isCancelavel respeita janela legal 24h NFC-e (modelo 65) vs 168h NF-e (modelo 55)', function () {
+it('UC-FNFE-02 · isCancelavel respeita janela legal 24h NFC-e (modelo 65) vs 168h NF-e (modelo 55)', function () {
     // Helper espelha lógica do NfeCockpitController::isCancelavel sem precisar
     // instanciar Controller (factory de Request seria pesado pra este teste).
     $isCancelavel = function (NfeEmissao $e): bool {
@@ -146,7 +150,7 @@ it('isCancelavel respeita janela legal 24h NFC-e (modelo 65) vs 168h NF-e (model
         ->and($isCancelavel($nfeForaPrazo))->toBeFalse('NF-e 200h > 168h NÃO deve ser cancelável');
 });
 
-it('sefazCodes retorna mapa com pelo menos 100, 110, 220, 539, 691, 778, 999', function () {
+it('UC-FNFE-03 · sefazCodes retorna mapa com pelo menos 100, 110, 220, 539, 691, 778, 999', function () {
     $controller = new \Modules\Fiscal\Http\Controllers\NfeCockpitController();
     $reflection = new ReflectionMethod($controller, 'sefazCodes');
     $reflection->setAccessible(true);

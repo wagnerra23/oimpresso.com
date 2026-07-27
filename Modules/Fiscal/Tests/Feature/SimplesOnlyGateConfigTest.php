@@ -12,7 +12,7 @@ uses(Tests\TestCase::class);
  * provisionada no canon correto.
  */
 
-it('flag default = true em produção (segurança audit sênior R1)', function () {
+it('UC-FSPED-05 · flag default = true em produção (segurança audit sênior R1)', function () {
     expect(config('fiscal.sped_simples_only_lock'))->toBeTrue(
         'default deve ser true até GAP-FISCAL-003 eliminar hardcodes',
     );

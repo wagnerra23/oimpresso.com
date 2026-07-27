@@ -26,7 +26,7 @@ beforeEach(function () {
     }
 });
 
-it('GET /fiscal aborta 403 sem permission superadmin nem fiscal.access', function () {
+it('UC-FCKP-01 · GET /fiscal aborta 403 sem permission superadmin nem fiscal.access', function () {
     $user = \App\User::factory()->create(['business_id' => 1]);
     $this->actingAs($user);
 
@@ -34,7 +34,7 @@ it('GET /fiscal aborta 403 sem permission superadmin nem fiscal.access', functio
     $response->assertStatus(403);
 });
 
-it('GET /fiscal renderiza Inertia component Fiscal/Cockpit com props canon', function () {
+it('UC-FCKP-02 · GET /fiscal renderiza Inertia component Fiscal/Cockpit com props canon', function () {
     $user = \App\User::factory()->create(['business_id' => 1]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
@@ -52,7 +52,7 @@ it('GET /fiscal renderiza Inertia component Fiscal/Cockpit com props canon', fun
     );
 });
 
-it('props.kpis tem shape canon (6 chaves obrigatorias)', function () {
+it('UC-FCKP-03 · props.kpis tem shape canon (6 chaves obrigatorias)', function () {
     $user = \App\User::factory()->create(['business_id' => 1]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
@@ -71,7 +71,7 @@ it('props.kpis tem shape canon (6 chaves obrigatorias)', function () {
     );
 });
 
-it('props.alerts é array de items deterministicos (sem campos LLM tipo thought/reasoning)', function () {
+it('UC-FCKP-04 · props.alerts é array de items deterministicos (sem campos LLM tipo thought/reasoning)', function () {
     $user = \App\User::factory()->create(['business_id' => 1]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);

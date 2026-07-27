@@ -1,41 +1,146 @@
 ---
 id: resources-js-pages-fiscal-sped-casos
 casos: SPED & Livros · /fiscal/sped
-irmaos: Sped.charter.md (lei)
+irmaos: Sped.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md (§6 CU)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-03"
+last_run: "2026-07-27"
+last_run_ci: "0 UC executado nesta corrida — os 7 UC herdam testes que JÁ existem; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
+related_us: [US-FISCAL-010, US-FISCAL-016, US-FISCAL-017, US-FISCAL-020]
 ---
 
 # Casos de Uso & Aceite — SPED & Livros
 
-> Persona: **Eliana (contadora)** — gera/confere EFD-ICMS/IPI mensal (entrega dia 15). Cockpit Fiscal.
-> Passo 3 do template-onda-modulo (régua por tela) — complementa a CAPTERRA-FICHA Fiscal (nota 75).
-> ⚠️ **Tela toca VALOR FISCAL** (regra-mestre cálculo · proibicoes.md): o gerador produz totais ICMS no TXT (Bloco C190/E110). Ver `d1_calculo` no scorecard.
+> Persona: **Eliana [E] (contadora)** — gera o arquivo da competência para entregar no prazo.
 >
-> **Status:** ✅ passa (UC-id citado por teste) · 🧪 tem teste Feature mas **sem UC-id** (débito G-2 · ADR 0264) · ⬜ não verificado · ❌ quebrou.
+> **Âncora:** `CU-FISC-15` `[V0]`, `CU-FISC-12` e `CU-FISC-13` do
+> [SDD §6](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md). Os UC derivam do **CU**, nunca do `.tsx`.
 >
-> ⚠️ **Débito = rastreabilidade, não ausência de teste.** Gerador defendido por **22 testes reais** — `SpedIcmsIpiGeneratorServiceTest` (11 casos: contrato `gerar`, validações input, 23-registros-canon, Bloco E/H) + `SpedMotorTributarioIntegrationTest` (9 casos: motor vs fallback, CFOP interno/interestadual, hardcodes centralizados) + `SpedControllerTest` (2 casos: scope cross-tenant, guard placeholder). Falta G-2: **nenhum teste cita `UC-FISCAL-NN`**. CT100 (ADR 0062).
+> 🔴 **Esta tela é `[V0]` — REGRA MESTRE de valor.** Um CST, CFOP ou alíquota errados no arquivo viram
+> **multa fiscal**, ×150 clientes. Qualquer alteração aqui exige dupla-confirmação por dois caminhos
+> independentes + tabela antes→depois + aprovação [W] ([proibicoes](../../../../memory/proibicoes.md) §REGRA MESTRE).
+>
+> ⚠️ **Divergência aberta entre charter e código — decisão [W] (SDD §5.4.2).** O charter declara
+> `❌ Gerador SPED real` e o anti-hook `🚫 NÃO emitir SPED real até implementação canônica`; o gerador
+> **existe** e a rota de download também. O efeito do anti-hook sobrevive por outro mecanismo — a
+> feature flag que devolve 503 (`UC-FSPED-05`). **Non-Goal é intenção e só [W] altera.**
+>
+> **Status:** ✅ provado por teste verde que cita o UC · 🧪 tem teste, **veredito pendente da lane** · ⬜ não verificado · ❌ quebrou.
 
-## Backlog de casos (sem id — entram quando um teste citar o UC-id)
-- **[BACKLOG · 🧪 tem teste] Gera TXT EFD-ICMS/IPI layout CONFAZ v3.1.1 (perfil A) com 23 registros dos Blocos 0+C+E+H+9** — Dado business com NFes autorizadas no período · Quando contadora baixa o .txt da competência · Então o arquivo tem os 23 registros canônicos (`0000`/`0001`/`0005`/`0150`/`0190`/`0200`/`0990` · `C001`/`C100`/`C170`/`C190`/`C990` · `E001`/`E100`/`E110`/`E116`/`E990` · `H001`/`H990` · `9001`/`9900`/`9990`/`9999`), pipe-delimited `|REG|...|`. _Coberto por `SpedIcmsIpiGeneratorServiceTest::contract: 23 registros canon EFD-ICMS/IPI presentes` (+ `gerar signature canônica`)._
-- **[BACKLOG · 🧪 tem teste · Tier 0] Geração NUNCA vaza NFe de outro business** — Dado session biz=X · Quando gera SPED de biz=Y (X≠Y) · Então lança `RuntimeException: Cross-tenant attempt` antes de qualquer query. _Coberto por `SpedIcmsIpiGeneratorServiceTest::gerar lança RuntimeException cross-tenant` + `SpedControllerTest::agregação de períodos NfeEmissao respeita scope per business`._
-- **[BACKLOG · 🧪 tem teste] Download exige permissão `fiscal.sped.export` (ou superadmin)** — Dado usuário sem a permission · Quando acessa `/fiscal/sped` ou `/fiscal/sped/icms-ipi/{ano}/{mes}` · Então `abort(403)`. _Guard no `SpedController::index`/`gerar`; comportamento verificado estruturalmente por `SpedControllerTest::Controller é placeholder` (garante ausência de gerador solto). Débito: falta teste HTTP que exercite o 403._
-- **[BACKLOG · 🧪 tem teste] Feature-flag `sped_simples_only_lock` bloqueia download (503) até MotorTributario integrado** — Dado flag `true` e usuário não-superadmin · Quando pede o .txt · Então recebe 503 com aviso dos hardcodes (NCM 00000000/CST 102/CFOP 5102), preservando visualização. _Lógica no `SpedController::gerar`; superadmin bypassa. Débito: falta teste HTTP do 503 nesta rota (coberto indiretamente por `SimplesOnlyGateTest`)._
-- **[BACKLOG · 🧪 tem teste] Integração MotorTributarioService calcula ICMS real quando configurado** — Dado motor devolvendo Lucro Presumido (CST 00, CFOP 6102, alíq 18%) · Quando resolve tributo de item de base 1.000 · Então `vl_icms = 180,00` e CST/CFOP/NCM vêm do motor (não do fallback). _Coberto por `SpedMotorTributarioIntegrationTest::resolverTributoItem com motor configurado retornando CST 00 + CFOP 6102 + aliq 18%`._
-- **[BACKLOG · 🧪 tem teste] Fallback Simples Nacional quando motor sem regra/config** — Dado motor lança `NcmObrigatorioException`/`TributacaoNaoConfiguradaException` (caso biz=4 ROTA LIVRE hoje) · Quando resolve tributo · Então cai pra CSOSN 102, alíq 0, vl_icms 0 (log INFO, não ERROR). _Coberto por `SpedMotorTributarioIntegrationTest::resolverTributoItem fallback quando motor lança NcmObrigatorioException` + `instanciação sem motor (legado) ainda funciona`._
-- **[BACKLOG · 🧪 tem teste · Tier 0 risco fiscal] CFOP interno 5102 vs interestadual 6102 conforme UF origem×destino** — Dado venda SC→SC (interna) vs SC→RS (interestadual) · Quando gera fallback · Então CFOP 5102 no primeiro e 6102 no segundo (elimina hardcode 5102 que gerava SPED inválido + multa — R1 audit sênior 2026-05-25). _Coberto por `SpedMotorTributarioIntegrationTest::fallback ... CFOP 5102 (interno)` + `... CFOP 6102 (interestadual) (audit R1)` + `keyTotalizadorC190 não retorna mais hardcode "102"`._
-- **[BACKLOG · 🧪 tem teste] Bloco E consolida débitos ICMS na apuração (E110) e só emite E116 quando há ICMS a recolher** — Dado totalizadores C190 com vl_icms · Quando monta Bloco E · Então E110 reflete `sum(vl_icms)` como VL_TOT_DEBITOS e E116 só aparece se `> 0` (anti-zero-line). _Coberto por `SpedIcmsIpiGeneratorServiceTest::Bloco E: E110 apuração consolida débitos C190` + `Bloco E: E116 só emitido quando ... > 0`._
-- **[BACKLOG · 🧪 tem teste] Rejeita competência inválida (ano < 2020, ano futuro, mês fora 1–12)** — Dado ano/mês inválido · Quando gera · Então `InvalidArgumentException`. _Coberto por `SpedIcmsIpiGeneratorServiceTest::gerar rejeita ano < 2020` + `... > ano atual` + `... mes fora 1-12`._
-- **[BACKLOG · ⬜ sem teste] Panorama dos 5 meses com contagem/valor de NFes autorizadas + status estimado** — Dado 5 competências · Quando abre `/fiscal/sped` · Então lista mês, notas autorizadas, valor, status (aberto/pronto/entregue) e prazo dia 15; export desabilitado sem notas. _Contagem agregada no `SpedController::index`; UI em `Sped.tsx`. Débito: sem teste que asserte o payload das 5 competências._
-- **[BACKLOG · ⬜ sem teste] Bloco H (inventário anual) traz dados reais** — hoje é **esqueleto sempre vazio** (`H001` IND_MOV=1 + `H990`, exige integração Stock/ProductCatalogue, declaração 31/12). _`SpedIcmsIpiGeneratorServiceTest::Bloco H: esqueleto sempre IND_MOV=1` só trava que continua esqueleto._
-- **[BACKLOG · ⬜ sem teste] Smoke PVA-EFD homologação CONFAZ** — validar o TXT gerado no validador oficial (importar sem erro estrutural). Pendente; nenhum teste valida bytes esperados do arquivo (golden ausente).
-- **[BACKLOG · ⬜ sem teste] Entradas (NF-e contra CNPJ via DF-e manifestada), EFD-Contribuições (PIS/COFINS arquivo separado), saldo credor anterior real no E110** — Non-Goals declarados no charter/Service; nenhum teste.
+## Força do veredito
+
+| Teste | Lane | Bloqueia merge? |
+|---|---|---|
+| `SpedIcmsIpiGeneratorServiceTest` · `SpedMotorTributarioIntegrationTest` · `SimplesOnlyGateTest` · `SimplesOnlyGateConfigTest` · `SpedControllerTest` | `Pest Fiscal` (SQLite — os que tocam banco **pulam**) + suíte noturna CT 100 (MySQL) | ❌ **não** — `Pest Fiscal` não está no [baseline](../../../../governance/required-checks-baseline.json): reprova visível, **advisory** |
+
+> 🔴 **Nenhum teste do gerador `[V0]` bloqueia merge hoje.** Para uma superfície de multa fiscal, isso
+> é o achado de governança mais duro do módulo — está no SDD §9 (R7) e o ratchet-up é proposta ao [W] (§8.3).
+
+## Rastreabilidade
+
+| UC | O que defende | Prio | CU (SDD §6) | Teste que o cita | Status |
+|---|---|---|---|---|---|
+| UC-FSPED-01 | o arquivo tem a estrutura da norma | `[must]` `[V0]` | CU-FISC-15 | `SpedIcmsIpiGeneratorServiceTest` | 🧪 |
+| UC-FSPED-02 | não gera com dado de outro business | `[must]` `[T0]` | CU-FISC-12 | `SpedIcmsIpiGeneratorServiceTest` · `SpedControllerTest` | 🧪 |
+| UC-FSPED-03 | tributo real quando há regra | `[must]` `[V0]` | CU-FISC-15 | `SpedMotorTributarioIntegrationTest` | 🧪 |
+| UC-FSPED-04 | CFOP interno ≠ interestadual | `[must]` `[V0]` | CU-FISC-15 | `SpedMotorTributarioIntegrationTest` | 🧪 |
+| UC-FSPED-05 | o freio da flag e a ordem dos gates | `[must]` `[V0]` | CU-FISC-15 | `SimplesOnlyGateTest` · `SimplesOnlyGateConfigTest` | 🧪 |
+| UC-FSPED-06 | competência impossível é recusada | `[must]` | CU-FISC-15 | `SpedIcmsIpiGeneratorServiceTest` | 🧪 |
+| UC-FSPED-07 | apuração consolida e não inventa linha | `[must]` `[V0]` | CU-FISC-15 | `SpedIcmsIpiGeneratorServiceTest` | 🧪 |
+
+---
+
+## UC-FSPED-01 — O arquivo entregue tem a estrutura completa que a norma exige `[must]` `[V0]`
+
+**Dado** uma competência com notas autorizadas
+**Quando** a contadora baixa o arquivo
+**Então** ele contém os 23 registros canônicos dos blocos de abertura, de documentos, de apuração, de inventário e de encerramento, no formato delimitado do layout oficial.
+
+- **Regressão que defende:** o validador oficial recusa o arquivo inteiro por bloco ausente — e a contadora só descobre no dia 15.
+- **Teste:** `Modules/Fiscal/Tests/Feature/SpedIcmsIpiGeneratorServiceTest.php` — `it('UC-FSPED-01 · contract: 23 registros canon EFD-ICMS/IPI presentes (PR #8 + #9 Waves)')` e `it('UC-FSPED-01 · gerar method público existe + signature canônica')`
+- **Status:** 🧪 advisory + noturna.
+- ⚠️ **Limite honesto:** isto prova **estrutura**, não conteúdo. Não existe arquivo de referência validado no programa oficial — ver backlog.
+
+## UC-FSPED-02 — Gerar para outro business é recusado antes de qualquer consulta `[must]` `[T0]`
+
+**Dado** uma sessão de um business
+**Quando** alguém pede a geração para outro business
+**Então** a operação é abortada **antes** de qualquer consulta ao banco.
+
+- **Regressão que defende:** vazamento cross-tenant Tier 0 ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) na forma mais grave possível: exportar as notas de um cliente dentro do arquivo fiscal de outro.
+- **Teste:** `SpedIcmsIpiGeneratorServiceTest` — `it('UC-FSPED-02 · gerar lança RuntimeException cross-tenant (session biz ≠ param)')` · `Modules/Fiscal/Tests/Feature/SpedControllerTest.php` — `it('UC-FSPED-02 · agregação de períodos NfeEmissao respeita scope per business')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FSPED-03 — Com regra tributária configurada, o imposto do arquivo é o real `[must]` `[V0]`
+
+**Dado** um business com regra tributária cadastrada
+**Quando** o gerador resolve o imposto de um item
+**Então** a situação tributária, o CFOP, a alíquota e o valor do imposto vêm do motor tributário — e o valor calculado bate com a base multiplicada pela alíquota.
+
+- **Regressão que defende:** o gerador nasceu com valores fixos que funcionavam **por acidente** para um caso específico (vestuário no Simples). Qualquer outro regime saía errado.
+- **Dupla confirmação `[V0]`:** o teste confere o valor por dois caminhos — o que o motor devolve e o recálculo aritmético a partir da base.
+- **Teste:** `Modules/Fiscal/Tests/Feature/SpedMotorTributarioIntegrationTest.php` — `it('UC-FSPED-03 · resolverTributoItem com motor configurado retornando CST 00 + CFOP 6102 + aliq 18% (Lucro Presumido)')` e `it('UC-FSPED-03 · resolverTributoItem fallback quando motor lança NcmObrigatorioException')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FSPED-04 — Venda para fora do estado nunca sai com CFOP de operação interna `[must]` `[V0]`
+
+**Dado** uma venda cujo destino está em outra unidade da federação
+**Quando** o gerador cai no caminho de contingência (sem regra cadastrada)
+**Então** ele **ainda assim** distingue operação interna de interestadual no CFOP; e a chave de totalização não é mais um valor fixo.
+
+- **Regressão que defende:** este é o **risco R1 do audit sênior** — vender de um estado para outro com CFOP de operação interna gera arquivo inválido e multa. Era um valor fixo no código até a integração do motor.
+- **Teste:** `SpedMotorTributarioIntegrationTest` — `it('UC-FSPED-04 · fallback Simples Nacional retorna CFOP 5102 (interno) quando UF origem = UF destino')`, `it('UC-FSPED-04 · fallback Simples Nacional retorna CFOP 6102 (interestadual) quando UF origem ≠ UF destino (audit R1)')`, `it('UC-FSPED-04 · keyTotalizadorC190 não retorna mais hardcode "102" — chave composta CST|CFOP|ALIQ')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FSPED-05 — O freio existe, o dono passa por cima, e a permissão vem antes de tudo `[must]` `[V0]`
+
+**Dado** a trava de segurança ligada por padrão
+**Quando** um usuário comum, mesmo com permissão de exportar, pede o arquivo
+**Então** recebe uma recusa explicativa em vez do download; o superadministrador passa; com a trava desligada o usuário comum baixa; e quem **não tem a permissão** é barrado **antes** da trava — recebe negação de acesso, não a mensagem da trava.
+
+- **Por que a ordem importa:** trocar a ordem dos dois gates vazaria a existência e o motivo da trava para quem nem devia chegar na rota.
+- **Regressão que defende:** desligar a trava sem que a fase seguinte do motor tributário exista reabre o risco de multa (SDD §9 R2).
+- **Teste:** `Modules/Fiscal/Tests/Feature/SimplesOnlyGateTest.php` — `it('UC-FSPED-05 · user comum com fiscal.sped.export é bloqueado por 503 quando flag true')`, `it('UC-FSPED-05 · superadmin bypassa flag e consegue download mesmo com flag true')`, `it('UC-FSPED-05 · flag false libera download pra user comum')`, `it('UC-FSPED-05 · user sem permissão fiscal.sped.export recebe 403 (gate de perm é anterior)')` · `Modules/Fiscal/Tests/Feature/SimplesOnlyGateConfigTest.php` — `it('UC-FSPED-05 · flag default = true em produção (segurança audit sênior R1)')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FSPED-06 — Competência impossível é recusada `[must]`
+
+**Dado** um pedido de geração
+**Quando** o ano é anterior à existência do layout, está no futuro, ou o mês não é um mês
+**Então** a geração é recusada.
+
+- **Regressão que defende:** arquivo gerado para período inexistente entra na entrega e é rejeitado no validador oficial.
+- **Teste:** `SpedIcmsIpiGeneratorServiceTest` — `it('UC-FSPED-06 · gerar rejeita ano < 2020 (anti-historical garbage)')`, `it('UC-FSPED-06 · gerar rejeita ano > ano atual (anti-future)')`, `it('UC-FSPED-06 · gerar rejeita mes fora 1-12')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FSPED-07 — A apuração consolida os débitos e não inventa linha zerada `[must]` `[V0]`
+
+**Dado** os totalizadores de imposto da competência
+**Quando** o bloco de apuração é montado
+**Então** o total de débitos é a soma dos totalizadores, e a linha de imposto a recolher **só existe** quando há valor a recolher.
+
+- **Regressão que defende:** linha de recolhimento com valor zero é rejeitada pelo validador oficial; e um total de débito que não bate com a soma dos documentos é divergência que a fiscalização acha.
+- **Teste:** `SpedIcmsIpiGeneratorServiceTest` — `it('UC-FSPED-07 · Bloco E: E110 apuração consolida débitos C190 vl_icms')` e `it('UC-FSPED-07 · Bloco E: E116 só emitido quando vl_icms_recolher > 0 (anti-zero-line)')`
+- **Status:** 🧪 advisory + noturna.
+
+---
+
+## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
+
+- **[BACKLOG · ⬜ sem teste · `[V0]`] O arquivo gerado é aceito pelo validador oficial** — Dado o arquivo de uma competência real · Quando é importado no programa validador oficial · Então entra sem erro estrutural. _**Não existe arquivo de referência** no repositório. Este é o buraco `[V0]` mais caro do módulo: hoje se prova a estrutura por contagem de registros, nunca por validação real._
+- **[BACKLOG · ⬜ sem teste] O panorama de 5 competências traz contagem, valor e prazo** — Dado cinco meses · Quando a tela abre · Então lista mês a mês as notas autorizadas, o valor e o prazo. _Sem teste do payload._
+- **[BACKLOG · ⬜ estrutural] O bloco de inventário traz dados reais** — hoje é esqueleto vazio por desenho (exige integração com estoque e declaração anual). O teste existente apenas **trava que continua esqueleto**, o que é honesto mas não é cobertura.
+- **[BACKLOG · ⬜ ausente] Entradas, contribuições (PIS/COFINS) e saldo credor anterior real** — Non-Goals declarados; nenhum teste, nenhum código.
+- **[BACKLOG · ⬜ decisão [W]] Baixar a trava de segurança** depende da fase seguinte do motor tributário (estratégia por regime). Enquanto ela não existir, desligar a flag reabre o risco de multa.
 
 ## Como rodar a suíte
-1. **Pest (MySQL real):** lane Fiscal no CT100 (ADR 0062) — 22 testes (`SpedControllerTest` 2 + `SpedIcmsIpiGeneratorServiceTest` 11 + `SpedMotorTributarioIntegrationTest` 9). Nota: os 2 do Controller pulam em SQLite; o Motor roda em SQLite (reflection/structural).
-2. **Cadência:** rodar ao fim de toda mexida. UC ❌ = regressão fiscal (multa).
+
+1. **Advisory:** `Pest Fiscal` (matrix `modules-pest.yml`) roda `Modules/Fiscal/Tests` em SQLite — os testes que tocam banco **pulam**; os de contrato e validação rodam.
+2. **Noturna CT 100:** `phpunit.xml` inclui `./Modules/Fiscal/Tests/Feature` e o `shards-plan.mjs` a enumera — é onde tudo corre contra MySQL real.
+3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ## Trilha do tempo
-- 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). Débito = UC-traceability; tela toca valor fiscal (d1_calculo aplica). 22 testes reais mapeados, 0 citam UC-FISCAL-NN.
+
+- 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
+- 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **7 UC** derivados do §6 do SDD; **todos** herdam testes existentes — o débito desta tela era rastreabilidade, não ausência de teste. O gate de permissão da rota **já** estava coberto (`UC-FSPED-05`, quarto teste), por isso ela não entrou no `GatesPermissaoFiscalTest` novo. Declarado que **nenhum** teste `[V0]` desta tela bloqueia merge, e que a divergência charter × código é decisão [W].

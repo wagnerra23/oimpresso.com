@@ -47,7 +47,7 @@ beforeEach(function () {
     }
 });
 
-it('GET /fiscal/nfse aborta 403 sem permission superadmin nem fiscal.nfse.view', function () {
+it('UC-FNFSE-02 · GET /fiscal/nfse aborta 403 sem permission superadmin nem fiscal.nfse.view', function () {
     $user = \App\User::factory()->create(['business_id' => 1]);
     $this->actingAs($user);
 
@@ -55,7 +55,7 @@ it('GET /fiscal/nfse aborta 403 sem permission superadmin nem fiscal.nfse.view',
     $response->assertStatus(403);
 });
 
-it('GET /fiscal/nfse renderiza Inertia Fiscal/Nfse com filters/counts canon', function () {
+it('UC-FNFSE-04 · GET /fiscal/nfse renderiza Inertia Fiscal/Nfse com filters/counts canon', function () {
     $user = \App\User::factory()->create(['business_id' => 1]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
@@ -71,7 +71,7 @@ it('GET /fiscal/nfse renderiza Inertia Fiscal/Nfse com filters/counts canon', fu
     );
 });
 
-it('counts shape canon — 6 chaves obrigatorias', function () {
+it('UC-FNFSE-04 · counts shape canon — 6 chaves obrigatorias', function () {
     $user = \App\User::factory()->create(['business_id' => 1]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
@@ -87,7 +87,7 @@ it('counts shape canon — 6 chaves obrigatorias', function () {
     );
 });
 
-it('filtro mes invalido nao crasha (ignora silenciosamente)', function () {
+it('UC-FNFSE-03 · filtro mes invalido nao crasha (ignora silenciosamente)', function () {
     $user = \App\User::factory()->create(['business_id' => 1]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
