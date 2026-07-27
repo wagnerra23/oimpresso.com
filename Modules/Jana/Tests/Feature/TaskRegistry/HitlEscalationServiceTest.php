@@ -57,6 +57,25 @@ function hitlEnsureTabelas(): void
         });
     }
 
+    // McpTask usa LogsActivity — o create() Eloquent (que é o caminho REAL de produção,
+    // ao contrário do DB::table dos irmãos) grava em activity_log. Mesmo shim do
+    // tests/Pest.php (bloco RecurringBilling), guarded.
+    if (! Schema::hasTable('activity_log')) {
+        Schema::create('activity_log', function ($t) {
+            $t->id();
+            $t->string('log_name')->nullable();
+            $t->text('description')->nullable();
+            $t->unsignedBigInteger('subject_id')->nullable();
+            $t->string('subject_type')->nullable();
+            $t->unsignedBigInteger('causer_id')->nullable();
+            $t->string('causer_type')->nullable();
+            $t->json('properties')->nullable();
+            $t->string('event')->nullable();
+            $t->uuid('batch_uuid')->nullable();
+            $t->timestamps();
+        });
+    }
+
     if (! Schema::hasTable('mcp_task_events')) {
         Schema::create('mcp_task_events', function ($t) {
             $t->bigIncrements('id');
