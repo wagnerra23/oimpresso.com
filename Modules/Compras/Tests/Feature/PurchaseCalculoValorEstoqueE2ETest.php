@@ -27,6 +27,23 @@ use Tests\Support\EstoqueFixture;
  * (incidente `num_uf` R$ inflado ×100k). Entrada de compra É write de estoque +
  * write de valor → cai na REGRA-MESTRE Tier 0 valor/estoque (proibicoes.md).
  *
+ * CONTRATO DE TELA (ADR 0264 G-2 · trio de Compras/Index, 2026-07-27)
+ * ===================================================================
+ *   @covers-uc UC-CMP-09 — "Entrada da compra grava valor e move estoque" [V0]
+ *   Âncora: memory/requisitos/Compras/SDD-tela-cockpit-compras-v1.0.md §6.1 CU-COM-08
+ *           resources/js/Pages/Compras/Index.casos.md (UC-CMP-09)
+ *
+ * ONDE ESTE ARQUIVO RODA (medido 2026-07-27 — 3 portas distintas, classe LC-08):
+ *   · roda em algum lugar?  SIM  — phpunit.xml:57 registra ./Modules/Compras/Tests/Feature
+ *                                  (diretório inteiro) e shards-plan.mjs shardeia `Modules`
+ *                                  => full-suite nightly CT 100.
+ *   · roda no PR?           NAO  — o step "Run Pest" do .github/workflows/compras-pest.yml é
+ *                                  allowlist arquivo-a-arquivo e este arquivo NAO está lá
+ *                                  (`git grep PurchaseCalculoValorEstoqueE2E -- .github/` = 0).
+ *   · bloqueia merge?       NAO  — a lane Compras não está no required-checks-baseline.json.
+ *   -> O entregável de uma US [V0] Tier 0 (US-COM-011) não é exercitado por PR nenhum.
+ *      Adicioná-lo à allowlist é decisão do [W]; reportado no session log do chip S1.
+ *
  * O QUE ESTE TESTE ASSERTA (com NÚMEROS CONCRETOS, ancorado em CONTRATO)
  * =====================================================================
  * Submete UMA compra real de produto `variable` com grade tam×cor (2×2) + frete +
