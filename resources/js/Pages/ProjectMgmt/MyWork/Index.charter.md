@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/MyWorkController@index` (rota `project-mgmt.my-work.index`, permissão `copiloto.mcp.usage.all`). Cockpit do operador (ADR 0039): KPIs + minhas tasks ativas + Inbox de notificações.
+> Backend: `Modules/ProjectMgmt/Http/Controllers/MyWorkController@index` (rota `project-mgmt.my-work.index`, permissão `jana.mcp.usage.all`). Cockpit do operador (ADR 0039): KPIs + minhas tasks ativas + Inbox de notificações.
 
 ---
 
@@ -38,7 +38,7 @@ Ser a home page do operador do time: reúne num só cockpit as tasks ativas do p
 ---
 
 ## Non-Goals — Features (NÃO faz)
-- ❌ Não é multi-tenant por `business_id` — a Inbox e as tasks são do usuário interno (`mcp_*`), gated por `copiloto.mcp.usage.all`, não por escopo de negócio. (inferência pendente de Wagner)
+- ❌ Não é multi-tenant por `business_id` — a Inbox e as tasks são do usuário interno (`mcp_*`), gated por `jana.mcp.usage.all`, não por escopo de negócio. (inferência pendente de Wagner)
 - ❌ Não abre o Detail Sheet aqui — clicar numa notif leva ao Board. (inferência pendente de Wagner)
 - ❌ Não mostra tasks `done`/`cancelled` no painel My Work (filtradas). (inferência pendente de Wagner)
 - ❌ Não edita campos da task além de avançar status (título/owner/prazo é MCP/Board). (inferência pendente de Wagner)

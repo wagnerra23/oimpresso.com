@@ -36,7 +36,7 @@ function searchBootstrapUser(): User
         test()->markTestSkipped('Sem user no banco — rode seeder UltimatePOS antes.');
     }
 
-    Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'jana.mcp.usage.all', 'guard_name' => 'web']);
 
     session([
         'user.business_id' => $user->business_id,
@@ -50,16 +50,16 @@ function searchBootstrapUser(): User
 
 function searchGivePerm(User $user): void
 {
-    Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'jana.mcp.usage.all', 'guard_name' => 'web']);
     if (! $user->hasPermissionTo('jana.mcp.usage.all')) {
-        $user->givePermissionTo('copiloto.mcp.usage.all');
+        $user->givePermissionTo('jana.mcp.usage.all');
     }
 }
 
 function searchRevokePerm(User $user): void
 {
     if ($user->hasPermissionTo('jana.mcp.usage.all')) {
-        $user->revokePermissionTo('copiloto.mcp.usage.all');
+        $user->revokePermissionTo('jana.mcp.usage.all');
     }
 }
 

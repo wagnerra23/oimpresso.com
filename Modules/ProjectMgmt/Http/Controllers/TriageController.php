@@ -29,14 +29,14 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  * (sem business_id por design). O escopo aqui é por-projeto (resolveProject),
  * não por business — idêntico ao Board/Backlog/MyWork.
  *
- * Permissão: copiloto.mcp.usage.all (mesmo padrão do Board/MyWork).
+ * Permissão: jana.mcp.usage.all (mesmo padrão do Board/MyWork).
  */
 class TriageController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

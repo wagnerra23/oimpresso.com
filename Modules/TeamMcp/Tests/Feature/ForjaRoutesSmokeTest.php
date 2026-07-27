@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
  * /changelog, /mcp, /saude).
  *
  * Cobertura (Onda Forja — código novo sem teste):
- *   - cada rota autenticada (permission copiloto.mcp.usage.all) responde 200
+ *   - cada rota autenticada (permission jana.mcp.usage.all) responde 200
  *     e renderiza o componente Inertia `team-mcp/Forja/Cockpit` com a prop `tab`
  *     correta (e tabLabel/subtitle/meta sempre presentes).
  *   - acesso anônimo → bloqueado pelo middleware auth (302/401/403).
@@ -45,7 +45,7 @@ function forjaRotasAbas(): array
     ];
 }
 
-/** Bootstrap: tenant canônico + user com copiloto.mcp.usage.all + sessão UltimatePOS. */
+/** Bootstrap: tenant canônico + user com jana.mcp.usage.all + sessão UltimatePOS. */
 function forjaSmokeBootstrap(): User
 {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -72,9 +72,9 @@ function forjaSmokeBootstrap(): User
     }
 
     // Garante a permission canon (Wagner/superadmin) pra passar o can: middleware.
-    Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
-    if (! $user->hasPermissionTo('copiloto.mcp.usage.all')) {
-        $user->givePermissionTo('copiloto.mcp.usage.all');
+    Permission::firstOrCreate(['name' => 'jana.mcp.usage.all', 'guard_name' => 'web']);
+    if (! $user->hasPermissionTo('jana.mcp.usage.all')) {
+        $user->givePermissionTo('jana.mcp.usage.all');
     }
 
     session([

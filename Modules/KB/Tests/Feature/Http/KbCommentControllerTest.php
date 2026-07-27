@@ -10,7 +10,7 @@ declare(strict_types=1);
  * Permission: kb.comment
  *
  * REALIDADE V1 (gate coarse — SCHEMA-DB-V1 §12): o middleware REAL é
- * `can:copiloto.mcp.memory.manage`; kb.comment ainda é declarativa. Casos de sucesso
+ * `can:jana.mcp.memory.manage`; kb.comment ainda é declarativa. Casos de sucesso
  * (e o de bloqueio por AUTORIA, não por middleware) concedem a coarse; o caso de 403
  * por FALTA de permissão concede só kb.view (sem coarse).
  */
@@ -24,7 +24,7 @@ afterEach(function () {
 });
 
 it('POST /kb/nodes/{slug}/comments creates inline comment with block_idx', function () {
-    kbActAsUser(bizId: 1, userId: 42, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.comment']);
+    kbActAsUser(bizId: 1, userId: 42, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.comment']);
 
     $nodeId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'c-me',
@@ -49,7 +49,7 @@ it('POST /kb/nodes/{slug}/comments creates inline comment with block_idx', funct
 });
 
 it('POST /kb/nodes/{slug}/comments without kb.comment returns 403', function () {
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);  // sem 'copiloto.mcp.memory.manage' → 403 no gate coarse V1
+    kbActAsUser(bizId: 1, permissions: ['kb.view']);  // sem 'jana.mcp.memory.manage' → 403 no gate coarse V1
 
     \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'no-perm',
@@ -66,7 +66,7 @@ it('POST /kb/nodes/{slug}/comments without kb.comment returns 403', function () 
 });
 
 it('DELETE /kb/comments/{id} allows author to delete own comment', function () {
-    kbActAsUser(bizId: 1, userId: 42, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.comment']);
+    kbActAsUser(bizId: 1, userId: 42, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.comment']);
 
     $nodeId = \DB::table('kb_nodes')->insertGetId([
         'business_id' => 1, 'type' => 'article', 'slug' => 'del-comm',
@@ -105,7 +105,7 @@ it('DELETE /kb/comments/{id} blocks non-author non-admin from deleting', functio
 
     // Acting as user 99 (não-autor, não-admin) — COM a coarse: passa o middleware,
     // então o 403 tem que vir da guarda de AUTORIA no controller (não do gate).
-    kbActAsUser(bizId: 1, userId: 99, permissions: ['copiloto.mcp.memory.manage', 'kb.view', 'kb.comment']);
+    kbActAsUser(bizId: 1, userId: 99, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.comment']);
 
     $response = $this->deleteJson("/kb/comments/{$commentId}");
 

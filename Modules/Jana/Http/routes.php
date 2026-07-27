@@ -126,13 +126,13 @@ Route::group(
 
         // ---- Administração — Governança MCP (MEM-MCP-1.e, ADR 0053) --------
         // Visão cross-team do consumo do MCP server.
-        // Permission: copiloto.mcp.usage.all (Wagner/superadmin).
+        // Permission: jana.mcp.usage.all (Wagner/superadmin).
         Route::get('/admin/governanca',                    'Admin\GovernancaController@index')
             ->name('jana.admin.governanca.index');
 
         // ---- Team admin / Tasks / CC sessions MOVIDOS pra Modules/TeamMcp/ ----
         // URLs antigas redirecionam via Route::redirect 301 (ver fim deste arquivo).
-        // Permissions copiloto.mcp.usage.all / copiloto.cc.read.team mantidas
+        // Permissions jana.mcp.usage.all / jana.cc.read.team mantidas
         // (rename pra team-mcp.* vira ADR + migration de permissões em etapa
         // futura — não nesta separação). Sub-rotas POST/PATCH/DELETE não
         // têm redirect (UI Inertia foi atualizada pra apontar pras novas URLs).
@@ -161,10 +161,10 @@ Route::group(
 
         // ---- JANA Pro Sprint A (US-COPI-201, ADR 0140) — preview brief diário
         // Endpoint admin pra rodar BriefDiarioService manualmente e ver JSON
-        // antes de configurar Job 8h. Permission: copiloto.superadmin
+        // antes de configurar Job 8h. Permission: jana.superadmin
         // (Wagner inicial — depois jana_pro.preview quando US-COPI-212 entrar).
         Route::get('/admin/jana-pro/preview',              'Admin\JanaProController@preview')
-            ->middleware('can:copiloto.superadmin')
+            ->middleware('can:jana.superadmin')
             ->name('jana.admin.jana_pro.preview');
 
         // (TaskRegistry F2 e MEM-CC-UI-1 movidos pra Modules/TeamMcp/ — ver

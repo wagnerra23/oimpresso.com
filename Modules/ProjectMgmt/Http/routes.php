@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 | Promovido a módulo próprio em 2026-05-04 (ADR 0070) — Jira-style PM
 | sobre tabelas mcp_jira_projects/epics/cycles/tasks.
 |
-| Permissões herdadas do Copiloto (`copiloto.mcp.usage.all`) — mesmo padrão
+| Permissões herdadas do Copiloto (`jana.mcp.usage.all`) — mesmo padrão
 | do TeamMcp pra evitar quebrar usuários com setup atual.
 |
 */

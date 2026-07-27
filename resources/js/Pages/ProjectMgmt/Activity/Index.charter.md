@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/ActivityController@index` (rota `project-mgmt.activity.index`, permissão `copiloto.mcp.usage.all`). Feed cronológico de eventos append-only. **Silenciosa:** o corpo dominante é um feed/timeline bespoke — há um `KpiGrid` de header, mas a tela não é um dos 5 Padrões de Tela; declarar um PT seria ruído. Honestidade > cobertura.
+> Backend: `Modules/ProjectMgmt/Http/Controllers/ActivityController@index` (rota `project-mgmt.activity.index`, permissão `jana.mcp.usage.all`). Feed cronológico de eventos append-only. **Silenciosa:** o corpo dominante é um feed/timeline bespoke — há um `KpiGrid` de header, mas a tela não é um dos 5 Padrões de Tela; declarar um PT seria ruído. Honestidade > cobertura.
 
 ---
 
@@ -37,7 +37,7 @@ Dar uma linha do tempo cronológica de tudo que aconteceu no projeto: eventos de
 ---
 
 ## Non-Goals — Features (NÃO faz)
-- ❌ Não é multi-tenant por `business_id` — opera sobre `mcp_task_events` (log interno do time), gated por `copiloto.mcp.usage.all`. (inferência pendente de Wagner)
+- ❌ Não é multi-tenant por `business_id` — opera sobre `mcp_task_events` (log interno do time), gated por `jana.mcp.usage.all`. (inferência pendente de Wagner)
 - ❌ Não edita nem apaga eventos — `mcp_task_events` é append-only. (inferência pendente de Wagner)
 - ❌ Não abre o Detail Sheet da task a partir do evento. (inferência pendente de Wagner)
 - ❌ Não segue um dos 5 Padrões de Tela: é um feed bespoke, deliberadamente silenciosa quanto a PT. (inferência pendente de Wagner)

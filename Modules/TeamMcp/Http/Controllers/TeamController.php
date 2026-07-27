@@ -32,14 +32,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *   - Editar quota daily/monthly
  *   - Export CSV usage
  *
- * Permissão: `copiloto.mcp.usage.all` (Wagner/superadmin).
+ * Permissão: `jana.mcp.usage.all` (Wagner/superadmin).
  */
 class TeamController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response
@@ -113,7 +113,7 @@ class TeamController extends Controller
      */
     public function gerarToken(IssueActorTokenRequest $request, int $userId)
     {
-        // Permission gate `copiloto.mcp.usage.all` ja aplicada no construtor.
+        // Permission gate `jana.mcp.usage.all` ja aplicada no construtor.
         // IssueActorTokenRequest valida 'note' (nullable|string|max:120) + trim.
         // Tier 0 segredo (ADR 0081): token raw devolvido APENAS no response, 1x,
         // jamais logado nem persistido em raw.
@@ -347,7 +347,7 @@ JS;
      * Multi-tenant Tier 0 (ADR 0093): scope explícito por business_id do user
      * autenticado — tokens de user com business_id != session business_id
      * resultam em 404 (defesa em profundidade). Permission gate
-     * `copiloto.mcp.usage.all` já aplicada no construtor.
+     * `jana.mcp.usage.all` já aplicada no construtor.
      *
      * Reveal-once invariante (ADR 0057 §2): NUNCA expõe `sha256_token` nem raw —
      * apenas metadados. Hidden no Model bloqueia serialização acidental, mas

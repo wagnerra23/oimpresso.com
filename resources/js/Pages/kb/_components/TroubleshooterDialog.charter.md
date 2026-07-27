@@ -72,7 +72,7 @@ governs_controller: Modules/KB/Http/Controllers/KbDecisionTreeController.php
 
 ## Automation Hooks
 
-- Middleware `auth` + `can:copiloto.mcp.memory.manage` (TODO rename `kb.view.tree` / `kb.publish.tree`)
+- Middleware `auth` + `can:jana.mcp.memory.manage` (TODO rename `kb.view.tree` / `kb.publish.tree`)
 - `DB::transaction` envolvendo create/update (atomic — FKs circulares dependem de 2 passes)
 - Validação `yes_next_step_id`/`no_next_step_id` `exists:kb_decision_tree_steps,id` OR null
 - Validação `fix_node_id` `exists:kb_nodes,id` quando step é terminal

@@ -52,9 +52,9 @@ beforeEach(function () {
         $this->markTestSkipped('Sem business em DB.');
     }
 
-    // Wagner-equivalent: user do business com permission copiloto.mcp.usage.all
+    // Wagner-equivalent: user do business com permission jana.mcp.usage.all
     $this->superadmin = User::where('business_id', $this->business->id)
-        ->whereHas('permissions', fn ($q) => $q->where('name', 'copiloto.mcp.usage.all'))
+        ->whereHas('permissions', fn ($q) => $q->where('name', 'jana.mcp.usage.all'))
         ->first();
     if (! $this->superadmin) {
         // fallback: qualquer user do business (ainda valida route + multi-tenant)
@@ -184,7 +184,7 @@ test('revoke idempotente — segunda chamada nao explode nem rev-rev', function 
     $r1 = $this->deleteJson("/team-mcp/team/{$this->devSameBusiness->id}/token/{$token->id}");
     if ($r1->getStatusCode() !== 200) {
         // Sem permission no ambiente — skip resto (já validado em outros tests)
-        $this->markTestSkipped('Sem permission copiloto.mcp.usage.all no ambiente — skip idempotency.');
+        $this->markTestSkipped('Sem permission jana.mcp.usage.all no ambiente — skip idempotency.');
     }
 
     $fresh1 = McpToken::find($token->id);

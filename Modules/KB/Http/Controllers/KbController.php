@@ -27,7 +27,7 @@ use Modules\KB\Services\KbArticleService;
  *   - /copiloto/memoria (runtime facts, LGPD opt-out usuário-final, fica no Copiloto)
  *   - /memcofre/memoria (Cofre de Memórias / DocVault — workflow ingest→inbox)
  *
- * Permissão Spatie atual: `copiloto.mcp.memory.manage` (mantida pra evitar
+ * Permissão Spatie atual: `jana.mcp.memory.manage` (mantida pra evitar
  * migration de rename — dívida técnica registrada pra rename em PR separado
  * pra `kb.manage` ou `kb.softdelete`).
  *
@@ -40,7 +40,7 @@ class KbController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.memory.manage');
+        $this->middleware('can:jana.mcp.memory.manage');
     }
 
     public function index(Request $request): Response

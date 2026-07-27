@@ -19,14 +19,14 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  * status (incluindo done/cancelled quando 'all') e suporta seleção múltipla
  * com ação em lote (status/priority/owner/sprint).
  *
- * Permissão: copiloto.mcp.usage.all.
+ * Permissão: jana.mcp.usage.all.
  */
 class BacklogController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response
