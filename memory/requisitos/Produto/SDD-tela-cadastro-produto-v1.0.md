@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.5
+version: 1.0.6
 last_updated: 2026-07-27
 related_docs:
   - SPEC.md
@@ -45,6 +45,18 @@ related_adrs:
 >
 > **Documento-modelo:** [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md) — formato canônico **extraído deste SDD** (este é o exemplar de origem). _(Até 2026-07-26 esta linha apontava para `../Sells/SDD-tela-vendas-FINAL-v1.2.md`, que **nunca existiu** no repo — link podre corrigido, não apagado.)_
 
+> ### 🔖 Changelog v1.0.6 (2026-07-27) — badge de proveniência nas 12 seções
+> O [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md) foi **extraído deste exemplar** em 2026-07-26
+> e, ao formalizar, exigiu *"badge obrigatório por seção"* (`⚙️ derivado` = re-rodável do fonte ·
+> `🖐 curado` = foto datada que envelhece) — regra que o próprio exemplar de origem **não tinha**
+> (`grep -cE "⚙️|🖐"` → **0**). As 12 seções passam a declarar a sua proveniência, com a fonte que a
+> tabela do template atribui a cada uma: **🖐 curado** em §0/§2/§9/§10 · **⚙️ derivado** em
+> §1/§3/§4/§5/§7/§8/§11 · **⚙️+🖐 misto** em §6 (o enunciado do CU é derivado das 3 fontes; o
+> **estado** ✅/🟡/🔴/⬜ é curado e sai do veredito da lane).
+> **Só forma — zero conteúdo técnico alterado:** nenhum CU, fluxo, risco ou item de roadmap mudou.
+> O *formato de renderização* do badge (blockquote sob o cabeçalho) é escolha deste PR — o template
+> define a tabela e a obrigatoriedade, não a marcação; não havia precedente no repo (`grep` = 0).
+>
 > ### 🔖 Changelog v1.0.5 (2026-07-27) — os 4 fluxos SEM tela React entram no SDD (§5.3 F9–F12)
 > Run do agent [`sdd-from-source`](../../decisions/0351-sdd-from-source.md) sobre as **4 lacunas
 > restantes** do painel [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md), por decisão [W] 2026-07-26:
@@ -116,6 +128,8 @@ related_adrs:
 
 ## 0. Base empírica: benchmark de capacidade + as duas verticais
 
+> 🖐 **curado** — foto datada, deriva de [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) + medição carimbada. Envelhece sozinho: confira a data antes de confiar no número.
+
 Esta seção registra **de onde vem** o material que fundamenta os casos de uso e o roadmap — sem histórico de suporte próprio ainda (o `casos.md` é a US-PROD-020), a base empírica é o benchmark de capacidade e o mockup Cowork das duas verticais.
 
 ### 0.1 Três fontes de verdade cruzadas
@@ -141,6 +155,8 @@ A `module-grade 71` (UX/DS das 8 telas) **esconde** três buracos de valor/estoq
 ---
 
 ## 1. Visão geral
+
+> ⚙️ **derivado** — re-rodável de [BRIEFING.md](BRIEFING.md) + rotas reais (`routes/web.php`). Se as rotas ou o BRIEFING mudaram, re-derive esta seção; não remende à mão.
 
 A tela de cadastro de produto é o **registro-mãe do ERP** — nada em Vendas, Compras, Fiscal ou Produção existe sem um produto cadastrado antes. É um **wrapper Inertia/React sobre `App\Product`** do UltimatePOS legacy, em migração Blade→React via processo MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) — **8 telas React existem, todas `status: draft`/`awaiting-smoke-browser`, zero `live`** (o Blade coexiste como fallback via branch dual no header `X-Inertia`). Finalizar e promover essas telas é a US-PROD-023.
 
@@ -175,6 +191,8 @@ O oimpresso é **dedicado a comunicação visual e oficina** ([ADR 0121](../../d
 
 ## 2. Público-alvo e personas
 
+> 🖐 **curado** — deriva de `memory/clientes/*/personas/`, **[W] valida**. Foto datada: persona só muda por decisão do dono, nunca por inferência do agente.
+
 O design é dirigido por perfis reais (princípio "cliente como sinal qualificado" — [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)).
 
 ### P1 · Larissa — ROTA LIVRE (biz=4, vestuário) — 99% do volume
@@ -197,6 +215,8 @@ O design é dirigido por perfis reais (princípio "cliente como sinal qualificad
 ---
 
 ## 3. Governança aplicável
+
+> ⚙️ **derivado** — re-rodável de [proibicoes.md](../../proibicoes.md) + as ADRs citadas. Se uma ADR nova supersede alguma daqui, esta seção está velha. _(Pendência de reconciliação do §3.1 registrada no Histórico — decisão [W].)_
 
 Camadas em ordem de precedência (Constituição v2 — [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)).
 
@@ -222,6 +242,8 @@ Camadas em ordem de precedência (Constituição v2 — [ADR 0094](../../decisio
 ---
 
 ## 4. Design system aplicável
+
+> ⚙️ **derivado** — re-rodável de `memory/requisitos/_DesignSystem/` + o PT-0X aplicável + os charters de `Pages/Produto/`. Token ou PT que mudar no DS invalida esta seção.
 
 Hierarquia da Constituição UI v2 ([ADR UI-0013](../_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)) — camada superior herda e nunca contradiz. Tokens do **DS v6** (git SSOT, DTCG/Style Dictionary, OKLCH).
 
@@ -307,6 +329,8 @@ Em 17/07, **nenhum produto** preenchia a decomposição de custo nessas bases. *
 ---
 
 ## 5. Arquitetura
+
+> ⚙️ **derivado** — re-rodável do caminho real Controller→Service→Model (fonte 1). Os `arquivo:linha` daqui apodrecem no primeiro refactor: re-derive do fonte, nunca confie no número da linha isolado.
 
 ### 5.1 Visão em camadas
 
@@ -553,6 +577,8 @@ Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que dif
 ---
 
 ## 6. Casos de uso
+
+> ⚙️+🖐 **misto** — o **enunciado** de cada CU é derivado das 3 fontes (React + Blade + Delphi) e é re-rodável; o **estado** (✅/🟡/🔴/⬜) é curado e sai do **veredito da lane**, nunca da leitura do código. [W] confere.
 
 > **Convenção dos testes:** `[must]`/`[should]` prioridade · `[T0]` invariante multi-tenant ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) · `[V0]` **REGRA MESTRE valor/estoque** (dupla-confirmação + antes→depois) · `[perf]` · `[ux]`. Todo CU `must` mapeia pra teste Pest ancorado no SPEC/`casos.md` (nunca na implementação).
 >
@@ -862,6 +888,8 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 
 ## 7. Requisitos não-funcionais
 
+> ⚙️ **derivado** — re-rodável dos `ux_targets` dos charters de `Pages/Produto/` + `OBSERVABILITY.md`. Alvo que mudar no charter manda aqui, não o contrário.
+
 | Categoria | Alvo | Fonte |
 |---|---|---|
 | Performance | p95 first-paint < 800ms (Create/Index) · KPIs `defer` < 600ms · kardex `defer` < 600ms | charters |
@@ -874,6 +902,8 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 ---
 
 ## 8. Estratégia de qualidade e rollout
+
+> ⚙️ **derivado** — re-rodável dos `casos.md` das telas + os gates de CI + a política de canary. Lane nova ou gate promovido a required invalida esta seção.
 
 ### 8.1 Testes
 - **Pest Feature** em `tests/Feature/Produto/`: baseline por página (`Wave2CreateBaselineTest`, `Wave2CreateInertiaTest`), guards de multi-tenant, estruturais de página.
@@ -893,6 +923,8 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 
 ## 9. Riscos e dívidas conhecidas
 
+> 🖐 **curado** — foto datada dos gaps do [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) + os `[BACKLOG]` dos `casos.md`. Risco fechado não some sozinho daqui: some quando alguém curar.
+
 | Item | Risco | Mitigação/Plano |
 |---|---|---|
 | **`num_uf` em preço/custo (mesmo vetor do incidente Sells ×100k)** | **Inflar valor/estoque em todo o ERP** (Produto alimenta Sells+Compras+Fiscal) | `[V0]` guard em todo campo monetário · dupla-confirmação · teste E2E ancorado no SPEC (G-04) |
@@ -907,6 +939,8 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 ---
 
 ## 10. Roadmap de evolução
+
+> 🖐 **curado** — **[W] prioriza**; deriva das US pendentes do [SPEC.md](SPEC.md). A ordem é decisão do dono, não cálculo do agente — foto datada da prioridade de hoje.
 
 > Diagnóstico (FICHA §10): o registro-mãe tem **cadastro/variação/import de nível de mercado** (61/100), mas é fraco nos **eixos de valor/estoque** (kardex fachada, multiplicador oco, valor-em-estoque ausente) e ainda **não expressa as duas verticais** nativamente. Priorização respeita [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — o heatmap Firebird e o mockup Cowork já são sinal.
 
@@ -961,6 +995,8 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 
 ## 11. Referências
 
+> ⚙️ **derivado** — só ponteiros. Link que apodrecer aqui é bug de manutenção, não dívida de conteúdo (foi o caso do `SDD-tela-vendas-FINAL-v1.2.md`, corrigido em 2026-07-26).
+
 - **Specs e operacional:** [SPEC.md](SPEC.md) (US-PROD-020..026) · [BRIEFING.md](BRIEFING.md) · [UI-CATALOG.md](UI-CATALOG.md) · RUNBOOKs `_telas/RUNBOOK-produto-{index,create,edit,show,selling-prices,stock-history,bulk-edit}.md`
 - **Benchmark de capacidade:** [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (61/100, gaps G-01..G-06) · [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (✅6/🟡11/❌1)
 - **Mockup Cowork / gap vertical:** [produtos-gap.md](produtos-gap.md) (Picker Mecânica) · [produto-index-setor-matrix.md](_telas/produto-index-setor-matrix.md)
@@ -975,6 +1011,7 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 
 **Histórico:**
 
+- 2026-07-27 — **Badge de proveniência nas 12 seções** (v1.0.6). Fecha a dívida que o próprio exemplar criou ao virar template: o [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md), extraído daqui em 2026-07-26, passou a exigir badge por seção e este documento tinha **zero** (medido: `grep -cE "⚙️|🖐"` → 0). Badges atribuídos **pela tabela do template**, não por julgamento. Mudança de forma: nenhum CU/fluxo/risco/roadmap tocado. [CC]
 - 2026-07-26 (3ª corrida `sdd-from-source`, tela `Produto/Index`) — **§5.3 novo `F8` (lista do catálogo) + §6.1 novo `CU-PROD-15` (consultar o catálogo)**, derivados por triangulação React + Blade + Delphi ([ADR 0351](../../decisions/0351-sdd-from-source.md)). Particularidade do alvo: a "Blade legada" é o **outro branch do mesmo método** `index()` — a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo **sem consultar permissão**, enquanto a própria lista Blade gateia as duas colunas com `@can` (`index.blade.php:287,294`) e o Delphi faz o campo sumir (`AR-PROD-015`) — mesmo furo do `CU-PROD-14.1`, agora em lote. **Achado de alcance:** `limit(200)` sem paginação com o KPI anunciando o total (perda silenciosa). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0) — todo o isolamento do módulo é `where` manual repetido, o que reclassifica o §3.1 (ver ⚠️ abaixo). Trio fechado em [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md) + `ProdutoIndexContratoTest` (failing-first, lane `Estoque · MySQL`). Nenhum UC ✅ — veredito é da lane. [CC]
   > ⚠️ **Pendência de reconciliação do §3.1 (decisão [W]):** o §3.1 afirma *"`business_id` global scope em `App\Product`"*. Medido nesta corrida: **0** ocorrências de `addGlobalScope` em `app/Product.php` (o model `extends Model` e usa só `LogsActivity`). O §6.1 `CU-PROD-10` já registrou a versão honesta em 2026-07-15 (*"✅ hoje por validação explícita, não por global scope"*) — o §3.1 ficou stale. **Não editei o §3 nesta corrida** (é seção de governança, fora do escopo de escrita do agent); fica proposto pro [W].
 - 2026-07-17 (tarde) — **§4.2: decisão [W] Opção A registrada** (aprovada no [PR #4446](https://github.com/wagnerra23/oimpresso.com/pull/4446)). Os 3 campos Custo/Margem/Valor ficam na **aba geral**; a decomposição (Formação de Preço) fica fora. Flip "pendente → decidido"; as 4 guardas viram contrato de desenho. Implementação = US-PROD-023 via trio. [CC]
