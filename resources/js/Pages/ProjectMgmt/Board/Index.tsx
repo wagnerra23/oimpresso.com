@@ -5,7 +5,7 @@
 //   adrs: 0070 (Jira-style PM), 0039 (cockpit como layout-mae do ERP)
 //   tests: Modules/ProjectMgmt/Tests/Feature/BoardControllerTest (TBD)
 //   status: implementada (PR1)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //
 // Atalhos (DESIGN.md §13):
 //   J / K    navegar cards (próximo / anterior)

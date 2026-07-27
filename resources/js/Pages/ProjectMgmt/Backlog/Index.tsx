@@ -2,7 +2,7 @@
 //   tela: /project-mgmt/backlog
 //   module: ProjectMgmt
 //   stories: US-TR-202 (Backlog filtrável + bulk edit)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';

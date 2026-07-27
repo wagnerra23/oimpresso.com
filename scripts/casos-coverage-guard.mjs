@@ -49,7 +49,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, dirname, basename, relative } from 'node:path';
 import { execSync } from 'node:child_process';
-import { ucHeadRe } from './lib/uc-regex.mjs';
+import { ucsDeclaredInCasos, ucBlocksInCasos } from './lib/uc-regex.mjs';
 import { isPageScreenPath } from './qa/page-path.mjs';
 
 const ROOT = process.cwd();
@@ -136,10 +136,15 @@ function trioViolations(pages) {
 // ---------------------------------------------------------------------------
 // G-2 — rastreabilidade caso↔teste
 // ---------------------------------------------------------------------------
-// O regex de UC-id vem de scripts/lib/uc-regex.mjs (fonte ÚNICA — guard + coletor +
-// head-parsers G-5/G-7). Antes eram 4 cópias que drifaram (2026-06-22): o guard foi pra
-// {0,6}-? mas coletor/head-parsers ficaram em {0,3}. `ucHeadRe()` extrai o UC do heading
-// "## UC-XX"; o corpo {0,6}-? enxerga UC-01 E UC-IMP-01/UC-FORJA-01.
+// O regex E o parser de UC vêm de scripts/lib/uc-regex.mjs (fonte ÚNICA — guard + coletor +
+// head-parsers G-5/G-7 + sentinela Tier-0). Antes eram 4 cópias do REGEX que drifaram
+// (2026-06-22): o guard foi pra {0,6}-? mas coletor/head-parsers ficaram em {0,3}. Depois,
+// a cópia do USO (split por `## ` + `if (!head) continue`) drifou pela mesma porta
+// (2026-07-27: a sentinela aplicava o regex na LINHA CRUA e media 4 telas cobertas onde
+// havia 29). Este arquivo é o DONO do formato (ADR 0264) e sempre parseou certo — por isso
+// a lib foi extraída daqui; agora ele CONSOME a lib, fechando o ciclo:
+//   ucsDeclaredInCasos() → só os ids (G-2)
+//   ucBlocksInCasos()    → {uc, block} pra quem precisa do corpo (G-5 Status:, G-7 verdict)
 
 function listCasosFiles() {
   return walk(PAGES_DIR, (full, name) => name.endsWith('.casos.md')).map(norm).sort();
@@ -152,12 +157,8 @@ function ucsInCasos(casosFiles) {
   const out = [];
   for (const file of casosFiles) {
     const content = readFileSync(resolve(ROOT, file), 'utf8');
-    const found = new Set();
-    for (const block of content.split(/^##\s+/m).slice(1)) {
-      const head = block.match(ucHeadRe());
-      if (head) found.add(head[1].toUpperCase());
-    }
-    for (const uc of found) out.push({ uc, file });
+    // Set dedupe UC repetido no mesmo arquivo, preservando a ordem de 1ª declaração.
+    for (const uc of new Set(ucsDeclaredInCasos(content))) out.push({ uc, file });
   }
   return out;
 }
@@ -228,11 +229,8 @@ function metadataViolations(casosFiles) {
 
     // Status por UC — cada heading "## UC-XX ..." precisa de um "Status:" no bloco
     // (até o próximo "## "). É o "se está ativa / passa" que [W] valoriza.
-    const blocks = content.split(/^##\s+/m).slice(1);
-    for (const block of blocks) {
-      const head = block.match(ucHeadRe());
-      if (!head) continue;
-      if (!/Status\s*[:：]/.test(block)) violations.push(`meta:uc-no-status:${file}#${head[1].toUpperCase()}`);
+    for (const { uc, block } of ucBlocksInCasos(content)) {
+      if (!/Status\s*[:：]/.test(block)) violations.push(`meta:uc-no-status:${file}#${uc}`);
     }
   }
   return violations;
@@ -337,12 +335,8 @@ function statusViolations(casosFiles, manifest) {
     const content = readFileSync(resolve(ROOT, file), 'utf8');
     const tsx = file.replace(/\.casos\.md$/, '.tsx');
     const tsxDate = (!shallow && existsSync(resolve(ROOT, tsx))) ? gitCommitDate(tsx) : null;
-    const blocks = content.split(/^##\s+/m).slice(1);
-    for (const block of blocks) {
-      const head = block.match(ucHeadRe());
-      if (!head) continue;
+    for (const { uc, block } of ucBlocksInCasos(content)) {
       if (declaredStatus(block) !== 'green') continue; // só ✅ precisa de prova
-      const uc = head[1].toUpperCase();
       const entry = ucs[uc];
       if (!entry || !entry.verdict || entry.verdict === 'skip') {
         violations.push(`status:unverified:${file}#${uc}`);

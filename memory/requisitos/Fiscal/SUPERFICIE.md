@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 71 arquivos em 11 papéis.
+**Total mapeado:** 72 arquivos em 11 papéis.
 
 ## Controllers — 11
 
@@ -98,6 +98,6 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 19
+## Testes (Pest) — 20
 
-- 19 arquivos em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 20 arquivos em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.

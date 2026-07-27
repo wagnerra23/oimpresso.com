@@ -5,7 +5,7 @@
 //   adrs: 0053, 0039 (Chat Cockpit — portada 2026-05-05)
 //   tests: Modules/Copiloto/Tests/Feature/Admin/GovernancaControllerTest
 //   status: implementada
-//   permissao: copiloto.mcp.usage.all (Wagner/superadmin)
+//   permissao: jana.mcp.usage.all (Wagner/superadmin)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';

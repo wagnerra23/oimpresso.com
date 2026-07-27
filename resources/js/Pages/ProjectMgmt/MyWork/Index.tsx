@@ -3,7 +3,7 @@
 //   module: ProjectMgmt
 //   stories: US-TR-204 (My Work + Inbox)
 //   adrs: 0070 (Jira-style PM), 0039 (cockpit)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //
 // Atalhos:
 //   J / K       navegar (My Work em foco)
