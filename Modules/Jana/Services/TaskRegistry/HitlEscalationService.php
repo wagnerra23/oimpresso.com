@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Jana\Services\TaskRegistry;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
 
@@ -89,6 +90,19 @@ final class HitlEscalationService
         string $prioridade = 'p2',
         string $origem = 'sentinela',
     ): ?McpTask {
+        // FAIL-OPEN (mesma doutrina dos hooks): o transporte NUNCA derruba o sentinela.
+        // Se `mcp_tasks` não existe (lane sqlite de teste, instalação parcial, ambiente
+        // sem o schema MCP), o alerta original do sentinela segue seu curso e só o
+        // escalonamento é pulado. Um elo que quebra o detector é pior que elo nenhum.
+        if (! Schema::hasTable('mcp_tasks')) {
+            Log::channel('single')->info('hitl.escalation.pulada_sem_schema', [
+                'chave' => $chave,
+                'origem' => $origem,
+            ]);
+
+            return null;
+        }
+
         $taskId = self::PREFIXO . strtoupper(trim($chave));
         $task = McpTask::where('task_id', $taskId)->first();
 

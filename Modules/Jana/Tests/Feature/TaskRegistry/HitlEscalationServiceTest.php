@@ -170,3 +170,13 @@ it('prioridade inválida cai pro default p2 em vez de estourar', function () {
 
     expect($t->priority)->toBe('p2');
 });
+
+it('FAIL-OPEN: sem a tabela mcp_tasks o transporte devolve null e NÃO estoura', function () {
+    // O sentinela não pode morrer por causa do elo. Cenário real: a lane sqlite do
+    // HandoffStaleAlertTest monta cowork_handoffs/mcp_inbox sintéticos e NÃO mcp_tasks.
+    Schema::dropIfExists('mcp_tasks');
+
+    expect(hitlSvc()->escalar('TESTE-CLASSE', 'x', 'y', 'TeamMcp', 'p2', 'teste'))->toBeNull();
+
+    hitlEnsureTabelas(); // devolve o estado pros próximos casos
+});
