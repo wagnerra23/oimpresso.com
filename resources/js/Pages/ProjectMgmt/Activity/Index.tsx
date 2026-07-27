@@ -2,7 +2,7 @@
 //   tela: /project-mgmt/activity
 //   module: ProjectMgmt
 //   stories: US-TR-205 (Activity feed timeline)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';

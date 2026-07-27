@@ -47,6 +47,7 @@ import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { auditDocumentAuthority, CANONICAL_ENTRYPOINT } from './document-authority.mjs';
 import { factAnchorScan } from './fact-anchor.mjs';
+import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
@@ -971,10 +972,14 @@ function checkUcAging() {
   const sample = []; let totalUc = 0; let filesN = 0;
   for (const rel of files) {
     const txt = read(rel);
-    // Conta UCs declarados (heading ## UC-) com Status 🧪 ou ⬜ no bloco.
+    // Conta UCs declarados (heading ## UC-) com Status 🧪 ou ⬜ no bloco. O "é UC?" vem da
+    // fonte única `scripts/lib/uc-regex.mjs` — antes era `/^UC-/i`, permissivo demais (aceita
+    // `## UC-` solto, que a lib rejeita). MEDIDO no corpus 2026-07-27: delta 0 (batia por
+    // acaso, não por contrato); esta linha era um dos 3 regex de UC que ainda drifavam fora
+    // da lib — o irmão em `screen-coverage-map.mjs` estava PERDENDO UC de sufixo-letra.
     let pend = 0;
     for (const block of txt.split(/^##\s+/m).slice(1)) {
-      if (!/^UC-/i.test(block)) continue;
+      if (!ucsDeclaredInCasos(`## ${block}`).length) continue;
       if (/Status\s*[:：][^\n]*(🧪|⬜)/.test(block)) pend++;
     }
     if (!pend) continue;

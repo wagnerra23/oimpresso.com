@@ -3,8 +3,8 @@ id: requisitos-financeiro-briefing
 module: Financeiro
 status: producao
 updated_at: "2026-07-23"
-distilled_at: "2026-07-23"
-distilled_by: jana:distill-module-truth
+distilled_at: "2026-07-27"
+distilled_by: "manual [C] — redestilação PARCIAL: o módulo ganhou SDD + contratos de tela no chip do passo 5 (PR #4867). O resto do corpo NÃO foi re-lido; só a seção Contrato de tela é nova."
 ---
 
 # BRIEFING — Financeiro (verdade destilada)
@@ -38,3 +38,14 @@ As ações em lote na Visão Unificada (`POST /unificado/bulk`, ≤500 títulos 
 - handoff `handoffs/2026-07-08-1044-financeiro-fidelidade-fingerprint-furos.md` (2026-07-08) — 2026-07-08-1044-financeiro-fidelidade-fingerprint-furos.md
 - handoff `handoffs/2026-07-08-1431-financeiro-borda-dark-token-ui0022.md` (2026-07-08) — 2026-07-08-1431-financeiro-borda-dark-token-ui0022.md
 - handoff `handoffs/2026-07-07-1746-financeiro-fidelidade-dark-mecanismos-comparacao.md` (2026-07-07) — 2026-07-07-1746-financeiro-fidelidade-dark-mecanismos-comparacao.md
+
+## Contrato de tela (SDD)
+
+O módulo passou a ter **SDD** em [`SDD-tela-financeiro-v1.0.md`](SDD-tela-financeiro-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
+gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4867).
+
+> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
+> `node scripts/governance/requisitos-status.mjs Financeiro`
+>
+> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
+> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).
