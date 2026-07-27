@@ -437,9 +437,44 @@ function laneEntries() {
   }
   return _laneEntries;
 }
-// lanes de módulo que PRODUZEM junit-summary (financeiro/jana/nfebrasil-pest.yml). Conservador: o
-// resto (modules-pest etc.) NÃO alimenta o verde gate hoje; ci-sqlite-pest.list cobre o avulso.
-const JUNIT_MODULE_LANES = ['Modules/Financeiro/Tests', 'Modules/Jana/Tests', 'Modules/NfeBrasil/Tests'];
+/**
+ * Lanes que PRODUZEM junit-summary — DERIVADO dos workflows, não lista à mão.
+ *
+ * ⚠️ Era `['Modules/Financeiro/Tests','Modules/Jana/Tests','Modules/NfeBrasil/Tests']` — 3 nomes
+ * escritos à mão, e ficaram **stale**: medido 2026-07-27, **10 lanes** emitem `--log-junit`.
+ * Faltavam `Modules/{Fiscal,Compras,Ponto,KB,Arquivos,Essentials}/Tests` e
+ * `tests/Feature/{Produto,Estoque,Calculo,Middleware,TravaSegunda}`.
+ *
+ * Efeito do stale: `inLane()` devolvia false e a US era carimbada **"verde impossível"** (teste
+ * fora das lanes de JUnit) com a lane existindo e emitindo junit. Falso-positivo **em gate
+ * REQUIRED**. Reportado 2× no mesmo dia por corridas independentes (sessão B3 do Produto sobre
+ * `US-PROD-028`/`estoque-pest`, e o chip S2 sobre `Modules/Fiscal/Tests`/`nfebrasil-pest`), as
+ * duas vezes sem conserto porque o arquivo estava fora do diff de quem achou.
+ *
+ * Lista escrita à mão apodrece; derivada acompanha (ADR 0256 — derivado+enforçado sobrevive).
+ * Critério: o workflow contém `--log-junit` E cita o path fora de comentário. A união com a
+ * lista antiga é deliberada — este cálculo nunca reconhece MENOS lane do que já reconhecia.
+ */
+const JUNIT_LANES_LEGADO = ['Modules/Financeiro/Tests', 'Modules/Jana/Tests', 'Modules/NfeBrasil/Tests'];
+let _junitLanes = null;
+function junitModuleLanes() {
+  if (_junitLanes) return _junitLanes;
+  const out = new Set(JUNIT_LANES_LEGADO);
+  const dir = join(ROOT, '.github', 'workflows');
+  let ents; try { ents = readdirSync(dir, { withFileTypes: true }); } catch { ents = []; }
+  for (const e of ents) {
+    if (!e.isFile() || !/\.ya?ml$/.test(e.name)) continue;
+    let src; try { src = readFileSync(join(dir, e.name), 'utf8'); } catch { continue; }
+    if (!src.includes('--log-junit')) continue;
+    for (const ln of src.split(/\r?\n/)) {
+      if (/^\s*#/.test(ln)) continue; // comentário não é invocação
+      for (const m of ln.matchAll(/(Modules\/[A-Za-z]+\/Tests|tests\/Feature\/[A-Za-z]+)/g)) out.add(m[1]);
+    }
+  }
+  _junitLanes = [...out];
+  return _junitLanes;
+}
+const JUNIT_MODULE_LANES = junitModuleLanes();
 function inLane(rel) {
   const r = String(rel).replace(/\\/g, '/');
   if (JUNIT_MODULE_LANES.some((d) => r === d || r.startsWith(`${d}/`))) return true;
