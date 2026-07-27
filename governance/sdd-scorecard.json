@@ -238,8 +238,8 @@
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
         "portas": 78,
-        "carimbadas": 11,
-        "sem_carimbo": 67,
+        "carimbadas": 14,
+        "sem_carimbo": 64,
         "stale": 0,
         "oldest_distilled_at": "2026-07-17"
       },
