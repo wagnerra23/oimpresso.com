@@ -27,4 +27,37 @@ export const ucScanRe = () => new RegExp(`\\b${UC_CORE}\\b`, 'g');
 
 // Heading — âncora `^(...)`, pra extrair o UC declarado de um bloco "UC-XX ..." (G-5/G-7 +
 // ucsInCasos). Sem `g` (uso com .match). Instância fresca por chamada.
+//
+// ATENÇÃO — o `^` casa o início do BLOCO, não da linha do markdown. O heading canônico é
+// `## UC-CEDI-01 · ...`, que começa em `##`; aplicar este regex na LINHA CRUA nunca casa.
+// Use `ucsDeclaredInCasos()` abaixo em vez de reimplementar o split.
 export const ucHeadRe = () => new RegExp(`^(${UC_CORE})\\b`);
+
+/**
+ * UC-ids declarados no conteúdo de um `<Tela>.casos.md` — split por BLOCO `## ` e então
+ * `ucHeadRe()`. Devolve MAIÚSCULO, na ordem de declaração (com duplicatas, se houver).
+ *
+ * POR QUE EXISTE (2026-07-27): a lib nasceu pra matar "4 regex que deviam ser iguais e
+ * drifaram", e conseguiu — mas o USO do regex (o `split(/^##\s+/m).slice(1)` obrigatório
+ * antes do match) ficou copiado em 6 consumidores e drifou pela MESMA porta: a sentinela
+ * `scripts/qa/exposicao-tier0.mjs` aplicava `ucHeadRe()` na linha crua, então
+ * `hasCasosCoverage()` dava false pra TODA tela com heading markdown — a perna
+ * casos_coverage estava morta e o piso Tier-0 subcontava (4 cobertas medidas vs 29 reais).
+ * Sintoma: Cliente aparecia 0/7 tendo 21 UC citados por teste, divergindo de
+ * `npm run screen:files`. Fonte única do PARSER, não só do regex.
+ *
+ * Comportamento extraído de casos-coverage-guard.mjs (o dono do formato, ADR 0264
+ * G-2/G-5/G-7), que sempre fez o split certo. Os demais consumidores podem migrar pra cá
+ * — o guard é gate REQUIRED, então migrá-lo é PR próprio, não carona.
+ *
+ * @param {string} content conteúdo bruto do arquivo `.casos.md`
+ * @returns {string[]} UC-ids em MAIÚSCULO
+ */
+export function ucsDeclaredInCasos(content) {
+  const out = [];
+  for (const block of String(content).split(/^##\s+/m).slice(1)) {
+    const m = block.match(ucHeadRe());
+    if (m) out.push(m[1].toUpperCase());
+  }
+  return out;
+}
