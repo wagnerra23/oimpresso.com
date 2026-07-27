@@ -5,7 +5,7 @@
 //          inclusive nas telas TeamMcp absorvidas). Eyebrow removido (Wagner 2026-06-16).
 //          Abas: Triagem/Backlog/Quadro/Changelog/MCP (próprias) + Tarefas/Equipe/
 //          CC Sessions/Saúde (telas ricas /team-mcp/* reusadas).
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //
 // Projeta estado que JÁ existe (mcp_tasks + git/PR/ADR/sessão + gates) — sem dado fantasma.
 

@@ -5,7 +5,7 @@
 //   module: ProjectMgmt
 //   stories: US-TR-304 (lista unread) · US-TR-305 (marcar lido individual + todas) · US-TR-306 (deep-link task)
 //   adrs: 0070 (Jira-style PM), UI-0013 (Constituição UI v2), 0039 (cockpit)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //   paridade: lista = tool MCP `my-inbox` (user_id=me, unread por default)
 //
 // Marca lido otimista → PATCH /inbox/{id}/read (rollback em erro). Deep-link

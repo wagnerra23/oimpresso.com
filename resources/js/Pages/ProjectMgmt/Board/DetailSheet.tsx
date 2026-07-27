@@ -1,7 +1,7 @@
 // @memcofre
 //   componente: ProjectMgmt/Board/DetailSheet
 //   stories: PMG-004 (ADR 0100) — Detail Sheet Jira-style
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //
 // Sheet slide-in à direita ao clicar num card do Kanban. Tabs
 // state-driven (sem lib Tabs nova): Description / Comments / Activity / Subtasks.
