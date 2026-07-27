@@ -38,7 +38,7 @@ it('refactor elimina hardcodes ESPALHADOS — apenas constantes private FALLBACK
         ->and(substr_count($src, "'00000000'"))->toBeLessThanOrEqual(2, "NCM '00000000' não deve estar espalhado — só na constante FALLBACK_NCM");
 });
 
-it('refactor define constantes FALLBACK_* centralizadas (audit sênior GAP-3)', function () {
+it('UC-FSPED-08 · refactor define constantes FALLBACK_* centralizadas (audit sênior GAP-3)', function () {
     $ref = new ReflectionClass(SpedIcmsIpiGeneratorService::class);
     $constants = $ref->getConstants();
 
@@ -71,7 +71,7 @@ it('constructor aceita MotorTributarioService DI opcional (back-compat)', functi
     expect((string) $type)->toContain('MotorTributarioService');
 });
 
-it('instanciação sem motor (legado) ainda funciona — usa fallback Simples Nacional', function () {
+it('UC-FSPED-06 · instanciação sem motor (legado) ainda funciona — usa fallback Simples Nacional', function () {
     $service = new SpedIcmsIpiGeneratorService;
     expect($service)->toBeInstanceOf(SpedIcmsIpiGeneratorService::class);
 });
@@ -93,7 +93,7 @@ it('container resolve service e MotorTributarioService é injetável', function 
     expect($reflProp->getValue($serviceComMotor))->toBeInstanceOf(MotorTributarioService::class);
 });
 
-it('fallback Simples Nacional retorna CFOP 5102 (interno) quando UF origem = UF destino', function () {
+it('UC-FSPED-04 · fallback Simples Nacional retorna CFOP 5102 (interno) quando UF origem = UF destino', function () {
     $service = new SpedIcmsIpiGeneratorService;
 
     $reflMethod = new ReflectionMethod($service, 'fallbackSimplesNacional');
@@ -108,7 +108,7 @@ it('fallback Simples Nacional retorna CFOP 5102 (interno) quando UF origem = UF 
         ->and($result['ncm'])->toBe('00000000');
 });
 
-it('fallback Simples Nacional retorna CFOP 6102 (interestadual) quando UF origem ≠ UF destino (audit R1)', function () {
+it('UC-FSPED-04 · fallback Simples Nacional retorna CFOP 6102 (interestadual) quando UF origem ≠ UF destino (audit R1)', function () {
     // Caso real audit sênior 2026-05-25: Larissa biz=4 vestuário SC vendendo
     // pra RS (CFOP 6102). Pré-refactor o hardcode '5102' gerava SPED inválido
     // e disparava multa fiscal (R1 risk register).
@@ -124,7 +124,7 @@ it('fallback Simples Nacional retorna CFOP 6102 (interestadual) quando UF origem
         ->and($result['ncm'])->toBe('61091000', 'NCM real preservado quando informado (não fallback 00000000)');
 });
 
-it('resolverTributoItem com motor configurado retornando CST 00 + CFOP 6102 + aliq 18% (Lucro Presumido)', function () {
+it('UC-FSPED-05 · resolverTributoItem com motor configurado retornando CST 00 + CFOP 6102 + aliq 18% (Lucro Presumido)', function () {
     // Mock motor que retorna Lucro Presumido CST 00 (tributada integral) CFOP 6102 ICMS 18%
     $motorMock = new class extends MotorTributarioService
     {
@@ -168,7 +168,7 @@ it('resolverTributoItem com motor configurado retornando CST 00 + CFOP 6102 + al
         ->and($tributo['ncm'])->toBe('61091000');
 });
 
-it('resolverTributoItem fallback quando motor lança NcmObrigatorioException', function () {
+it('UC-FSPED-06 · resolverTributoItem fallback quando motor lança NcmObrigatorioException', function () {
     $motorMock = new class extends MotorTributarioService
     {
         public function calcular(ProdutoFiscalContext $produto, int $businessId, string $ufOrigem, string $ufDestino): TributoCalculado
@@ -194,7 +194,7 @@ it('resolverTributoItem fallback quando motor lança NcmObrigatorioException', f
         ->and($tributo['cfop'])->toBe('5102', 'fallback CFOP interno');
 });
 
-it('keyTotalizadorC190 não retorna mais hardcode "102" — chave composta CST|CFOP|ALIQ', function () {
+it('UC-FSPED-07 · keyTotalizadorC190 não retorna mais hardcode "102" — chave composta CST|CFOP|ALIQ', function () {
     $service = new SpedIcmsIpiGeneratorService;
     $emissao = new \Modules\NfeBrasil\Models\NfeEmissao;
     $emissao->id = 1;
