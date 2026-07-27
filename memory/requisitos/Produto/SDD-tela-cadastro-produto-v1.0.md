@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.4
-last_updated: 2026-07-26
+version: 1.0.5
+last_updated: 2026-07-27
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -19,6 +19,10 @@ related_docs:
   - _telas/RUNBOOK-produto-selling-prices.md
   - _telas/RUNBOOK-produto-stock-history.md
   - _telas/RUNBOOK-produto-bulk-edit.md
+  - _telas/estoque-inicial.casos.md
+  - _telas/bom-combo.casos.md
+  - _telas/quick-add.casos.md
+  - _telas/ajuste-estoque-relatorio.casos.md
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
@@ -41,6 +45,27 @@ related_adrs:
 >
 > **Documento-modelo:** [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md) — formato canônico **extraído deste SDD** (este é o exemplar de origem). _(Até 2026-07-26 esta linha apontava para `../Sells/SDD-tela-vendas-FINAL-v1.2.md`, que **nunca existiu** no repo — link podre corrigido, não apagado.)_
 
+> ### 🔖 Changelog v1.0.5 (2026-07-27) — os 4 fluxos SEM tela React entram no SDD (§5.3 F9–F12)
+> Run do agent [`sdd-from-source`](../../decisions/0351-sdd-from-source.md) sobre as **4 lacunas
+> restantes** do painel [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md), por decisão [W] 2026-07-26:
+> *"1 e 2 são requeridos sim. tem que ter tudo do blade"*. As 7 telas do módulo já tinham trio; o
+> que faltava eram os fluxos que **não têm `.tsx` nenhum** — e por isso ficavam fora do alcance do
+> `casos-coverage-guard` (que varre só `Pages/**`).
+> **Novos §5.3 F9–F12:** estoque inicial (`OpeningStockController`) · BOM/kit (`ProductBomController`
+> + `BomResolver`) · quick-add (`saveQuickProduct`, chamado de **10 Blades** de venda/compra e de
+> **0** telas React) · ajuste "Fix" do relatório (`adjustProductStock`).
+> **`CU-PROD-04` e `CU-PROD-08` de ✅ → 🟡 parcial**; `CU-PROD-05` item 4 de ⬜ → 🔴 medido.
+> **Dois achados de bookkeeping:** (a) `tests/Feature/Domain/Inventory/{BomResolverTest,
+> ReservarEstoqueBomTest}.php` **não rodam em lugar nenhum** — auto-pulam fora do sqlite e não
+> constam de `.github/ci-sqlite-pest.list` nem de lane alguma (as 3 portas medidas na nota do F10);
+> (b) os **dois writers de estoque inicial parseiam a validade de formas diferentes** (`uf_date` ×
+> `Carbon::createFromFormat('d-m-Y')`).
+> **Quarta instância da família `UC-PTAB-04`** (id cru do request gravado sem checar tenant):
+> agora em `component_variation_id` (BOM) e em `category_id`/`brand_id`/`unit_id`/`tax` (quick-add).
+> Contratos executáveis em [`_telas/*.casos.md`](_telas/) (UC-PINIC/PBOM/PQCK/PFIX — 14 UC, 0 órfão),
+> com 3 Pest failing-first + 1 citação no `EstoqueFixMismatchNumUfTest`, todos na lane
+> `Estoque · MySQL` (**advisory**). **Nenhum item marcado ✅** — não rodei teste (CT 100, ADR 0062).
+>
 > ### 🔖 Changelog v1.0.4 (2026-07-26) — a edição em massa entra no SDD (§5.3 F5.1 + §6.1 CU-PROD-06)
 > Run do agent [`sdd-from-source`](../../decisions/0351-sdd-from-source.md) sobre `Produto/BulkEdit`
 > — a **última** tela do módulo sem `casos.md`. Novo **§5.3 F5.1** (o fluxo real `bulkEdit`→`bulkUpdate`,
@@ -427,6 +452,93 @@ Saídas contadas em React: **2** `<Link>` (`:160` novo produto · `:423` card �
 > sem uso**; a filtragem roda no cliente (`Index.tsx:117-133`), *depois* do corte de 200.
 > Gaps e achados: `CU-PROD-15` (§6.1) + [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md).
 
+---
+
+> 🧭 **F9–F12 são os fluxos SEM TELA REACT do módulo.** As 8 famílias acima têm `.tsx` e contrato
+> ao lado do arquivo (`Pages/Produto/*.casos.md`, governado pelo `casos-coverage-guard`, required).
+> As quatro abaixo **não têm tela React nenhuma** — são Blade pura, ou rota chamada de dentro de
+> outro módulo. Decisão [W] 2026-07-26: *"1 e 2 são requeridos sim. tem que ter tudo do blade"*.
+> O contrato delas mora em `memory/requisitos/Produto/_telas/<fluxo>.casos.md` — a 2ª casa lida
+> pelo [`requisitos-status.mjs`](../../../scripts/governance/requisitos-status.mjs). Não é
+> diretório novo: `_telas/` já abriga os `RUNBOOK-*` e os `*-visual-comparison` do módulo.
+
+**F9 · Estoque inicial (saldo de abertura):** <!-- derivado: re-rodável do fonte -->
+Botão da lista (gated por `product.opening_stock`) → `GET /opening-stock/add/{product_id}` →
+`OpeningStockController@add` → `opening_stock/add.blade.php` (ou `ajax_add` no branch
+`request()->ajax()`) + `form-part.blade.php` → `POST /opening-stock/save` →
+`OpeningStockController@save`. O payload é `stocks[location_id][variation_id][k][quantity |
+purchase_price | exp_date | lot_number | transaction_date | purchase_line_note |
+purchase_line_id]`, **tudo como texto formatado** (`@format_quantity`/`@num_format`).
+O writer cria `Transaction type='opening_stock'` + `purchase_lines` e chama
+`ProductUtil::updateProductQuantity(..., $uf_data = false)` — o `num_uf` é aplicado **antes**, no
+controller.
+**Consumidores React: 0.** Varredura contada nos **`.tsx`** de `resources/js/Pages/Produto/`:
+`opening_stock` aparece 2×, e as duas são o mesmo **booleano de permissão** nas props
+(`Edit.tsx:75`, `Index.tsx:29`) — nenhuma tela informa, edita ou exibe saldo de abertura.
+(Sem o filtro `*.tsx` o grep pega mais 2 menções em `.md` de contrato — prosa não é código.)
+Contrato: `CU-PROD-04` (§6.1) + [`_telas/estoque-inicial.casos.md`](_telas/estoque-inicial.casos.md).
+
+> ⚠️ **Há DOIS writers de estoque inicial, e eles divergem na validade.**
+> `OpeningStockController@save` parseia `exp_date` com `ProductUtil::uf_date()` (que lê
+> `session('business.date_format')`); `ProductUtil::addSingleProductOpeningStock` — o caminho do
+> `store()` e do quick-add — usa `\Carbon::createFromFormat('d-m-Y', …)`, **formato fixo**. Num
+> business configurado fora de `d-m-Y`, a mesma data grava valores diferentes conforme o caminho.
+> Medido 2026-07-27; remédio é decisão [W] (registrado no §Backlog do casos.md).
+
+**F10 · Combo/kit + BOM:** <!-- derivado: re-rodável do fonte -->
+`GET|POST /api/products/{id}/bom` + `DELETE /api/products/{id}/bom/{bom_id}` →
+`Inventory\ProductBomController` (gate `product.update`, Tier 0 manual por
+`session('user.business_id')`) → tabela `product_bom` → consumo por
+`App\Domain\Inventory\Services\BomResolver::resolve($biz, $productId, $variationId, $qtyParent)`,
+que decompõe o kit em componentes-folha (recursivo, `MAX_DEPTH = 5`, anti-ciclo por `visited`) e
+tem **fallback legado** pro `type='combo'` do UltimatePOS (`variations.combo_variations`, ainda
+produzido por `ProductController@store/@update` a partir de
+`product/partials/combo_product_form_part.blade.php`).
+**Consumidores React: 0.** `combo` aparece 3× nos `.tsx` de `Pages/Produto/` e as três são a mesma
+união de tipo TypeScript (`'single' | 'variable' | 'combo'`). A UI drag-drop é a `US-PROD-025` (`todo`).
+Contrato: `CU-PROD-05` (§6.1) + [`_telas/bom-combo.casos.md`](_telas/bom-combo.casos.md).
+
+> 🔴 **A cobertura que parecia existir não roda — medido, com a porta nomeada.**
+> `tests/Feature/Domain/Inventory/{BomResolverTest,ReservarEstoqueBomTest}.php` fazem
+> `markTestSkipped` fora do sqlite e **não estão** em `.github/ci-sqlite-pest.list` (varredura
+> contada de `Domain/Inventory` em `.github/` + `scripts/`: **0**). *"Roda em algum lugar?"* — sim,
+> o `phpunit.xml` inclui `./tests/Feature` recursivamente e o `shards-plan.mjs` os enumera no
+> nightly do CT 100; mas o nightly roda `DB_CONNECTION=mysql`, então lá eles **se auto-pulam**.
+> *"Roda no PR?"* — não. *"Bloqueia merge?"* — não (não estão no `required-checks-baseline.json`).
+> Resultado: **skip-as-pass em todo lugar**. E o `ProductBomController` tem **0** testes.
+
+**F11 · Quick-add inline (cadastro rápido no meio da venda/compra):** <!-- derivado: re-rodável do fonte -->
+`GET /products/quick_add?product_name=&product_for=` → `ProductController@quickAdd` →
+`product/partials/quick_add_product.blade.php` (modal) → `POST /products/save_quick_product` →
+`ProductController@saveQuickProduct` → `Product::create($request->only($form_fields))` (34 campos)
++ `generateProductSku` se o SKU vier vazio + `ProductUtil::createSingleProductVariation` (é aqui
+que o `num_uf` mora) + `addSingleProductOpeningStock` **só quando** `product_for == 'pos'` renderiza
+o partial de saldo. Devolve array JSON (`product` + `variation` + `locations`) que o
+`public/js/pos.js`/`purchase.js` injeta na venda/compra aberta.
+**Entradas contadas: 10 Blades** (`purchase/create|edit` · `purchase_order/create|edit` ·
+`sale_pos/{partials/pos_form,partials/pos_form_edit,create_old,edit_old}` · `sell/create|edit`) +
+1 chamada JS (`public/js/purchase.js:191`). **Consumidores React: 0** — o `quickAdd` que existe em
+`Pages/Sells/` é de **cliente** e de **veículo**, não de produto.
+Contrato: `CU-PROD-08` (§6.1) + [`_telas/quick-add.casos.md`](_telas/quick-add.casos.md).
+
+**F12 · Ajuste de saldo pelo relatório de estoque ("Fix"):** <!-- derivado: re-rodável do fonte -->
+`report/product_stock_details.blade.php` (único emissor) → `<a href>` com
+`?location_id&variation_id&stock={{$row->total_stock_calculated}}` →
+**`GET`** `/reports/adjust-product-stock` → `ReportController@adjustProductStock` (gate
+`report.stock_details`) → `ProductUtil::fixVariationStockMisMatch` → `UPDATE
+variation_location_details.qty_available = num_uf($stock)` + `DELETE` das linhas duplicadas do par.
+**Consumidores React: 0.**
+Contrato: `US-PROD-028` + `CU-PROD-10` + [`_telas/ajuste-estoque-relatorio.casos.md`](_telas/ajuste-estoque-relatorio.casos.md).
+
+> ⚠️ **É o único ponto do ecossistema que SOBRESCREVE saldo** (`= X`, não `+= delta`), **dentro de
+> um `GET`**, com os três parâmetros vindos da querystring e **sem deixar movimentação no kardex**
+> (`AR-PROD-064` exige origem + usuário em cada movimento). O eixo numérico foi blindado pela
+> `US-PROD-028` ([#4636](https://github.com/wagnerra23/oimpresso.com/pull/4636)); os eixos
+> GET→POST/CSRF e recomputação server-side ficaram **explicitamente fora de escopo** por decisão
+> [W] registrada na própria US — não se reabre por dentro de um UC.
+
+---
+
 **F6 (vertical comvis) · Material como insumo de preço:** cadastro do material em `comvis_materiais` (m²) → `OrcamentoCalculator::calcular()` resolve preço (override do operador → `preco_venda_m2` do catálogo → erro), calcula `area_m2 = L × A × qtd` e `subtotal = area_m2 × preço/m²` **server-side authoritative** (frontend descartado). Alvo: expor esse material no cadastro core como tipo de linha "material/m²" (CV-01).
 
 ### 5.4 Onde os dois mundos ainda não se conversam (dívida central)
@@ -470,18 +582,61 @@ Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que dif
 3. `[V0]` Markup aplicado recalcula preço da tabela sem divergir do financeiro.
 4. `[T0]` Tabelas só do business atual.
 
-#### CU-PROD-04 — Estoque inicial + localização + alerta + validade/lote `[must]` ✅
-1. `[must]` Opening stock por localização grava `variation_location_details`.
-2. `alert_quantity` dispara alerta de estoque baixo.
-3. `enable_product_expiry`/`enable_lot_number` habilitam validade/lote quando ligados no business.
-4. `[V0]` Quantidade fracionada respeita a unidade; `num_uf` não strippa decimal.
-5. `[T0]` Estoque no local do business correto.
+#### CU-PROD-04 — Estoque inicial + localização + alerta + validade/lote `[must]` 🟡 **parcial** (era ✅ — ver v1.0.5)
+
+<!-- derivado: re-rodável do fonte (F9 · OpeningStockController@add/@save · opening_stock/form-part.blade.php · AR-PROD-05*) -->
+
+1. `[must]` Opening stock por localização grava `variation_location_details`. — 🧪 **agora tem
+   contrato**: `UC-PINIC-01` (o local é validado contra o dropdown do business) + `UC-EST-07`
+   (a entrada em si, via o writer irmão `addSingleProductOpeningStock`).
+2. `alert_quantity` dispara alerta de estoque baixo. — ⬜ **não verificado.** O campo é do cadastro
+   do produto (`store`/`update`/`saveQuickProduct`), não deste fluxo, e nenhum teste o exercita.
+   Paridade em aberto: o legado tem **dois** limiares (`AR-PROD-053`, Estoque Máx. **e** Mín.); o
+   oimpresso tem um (`alert_quantity`).
+3. `enable_product_expiry`/`enable_lot_number` habilitam validade/lote. — 🟡 **lote sim, validade
+   em aberto**: `UC-PINIC-04` trava o lote; a **validade** fica fora do assert porque os **dois
+   writers a parseiam de formas diferentes** (`uf_date` no controller × `Carbon::createFromFormat
+   ('d-m-Y')` no `addSingleProductOpeningStock` — ver a nota do **F9** em §5.3). Decisão [W].
+4. `[V0]` Quantidade fracionada respeita a unidade; `num_uf` não strippa decimal. — 🧪 `UC-PINIC-03`
+   cobre os **dois** lados (milhar `"1.500"` → 1500 **e** fracionado `"1,5"` → 1.5), porque um
+   remédio que conserte um quebrando o outro tem que reprovar.
+5. `[T0]` Estoque no local do business correto. — 🧪 `UC-PINIC-01` (eixo **local**) + `UC-PINIC-02`
+   (eixo **produto/variação**). Os dois guards existiam no código e **nunca tiveram teste**.
+
+> ⚠️ **Por que caiu de ✅ pra 🟡 sem o código piorar:** o ✅ da v1.0.0 media **superfície** (a rota
+> existe e grava). Ao triangular as 3 fontes (2026-07-27), dois itens ficaram sem prova (`2` e a
+> metade "validade" do `3`) e um comportamento apareceu: produto alheio / sem `enable_stock` /
+> inexistente devolvem **a mesma mensagem de sucesso** de uma operação que não ocorreu. Mesmo
+> movimento — e mesma lição — do `CU-PROD-06` e do `CU-PROD-10`: *o documento parou de afirmar o
+> que não media.* Contrato executável em [`_telas/estoque-inicial.casos.md`](_telas/estoque-inicial.casos.md).
 
 #### CU-PROD-05 — Combo/kit + BOM `[should]` 🟡 (UI pendente — G-06)
-1. Combo (`type='combo'`) monta produto de variações-filho.
-2. BOM (`ProductBom`) CRUD API multi-tenant funciona; **UI drag-drop pendente**.
-3. `[reg]` Baixa-de-componente do kit no PDV comprovada (Bling tem).
-4. `[T0]` BOM `ScopeByBusiness` + `firstOrFail` cross-tenant.
+
+<!-- derivado: re-rodável do fonte (F10 · ProductBomController · BomResolver · AR-PROD-150..168) -->
+
+1. Combo (`type='combo'`) monta produto de variações-filho. — ⬜ **não verificado.** O caminho
+   legado segue vivo (`ProductController@store/@update` monta `combo_variations`; o `BomResolver`
+   o aceita por fallback), mas nenhum teste em lane o exercita.
+2. BOM (`ProductBom`) CRUD API multi-tenant funciona; **UI drag-drop pendente**. — 🧪 `UC-PBOM-03`
+   prova o **ida-e-volta** (o que a API grava é o que o resolver baixa, com a quantidade
+   multiplicada e fracionária). A UI segue `US-PROD-025` (`todo`) — e **não ganha UC agora**: caso
+   sem código é órfão ([proibicoes §5](../../proibicoes.md) 2026-07-16).
+3. `[reg]` Baixa-de-componente do kit no PDV comprovada (Bling tem). — 🟡 o **consumo** é coberto
+   por `UC-EST-08` (`EstoqueFabricacaoTest`, em lane); a **resolução** que o alimenta passou a ter
+   contrato em `UC-PBOM-03`. O elo PDV→resolver→baixa ponta-a-ponta segue sem prova única.
+4. `[T0]` BOM `ScopeByBusiness` + `firstOrFail` cross-tenant. — 🔴 **parcial, e o buraco é o mesmo
+   de sempre.** O **produto** componente é validado contra o business (`UC-PBOM-01`, `UC-PBOM-04`),
+   mas `component_variation_id` e `parent_variation_id` passam só por `'nullable|integer'` e vão
+   diretos pro `ProductBom::create` — varredura contada no controller: **4** `where('business_id')`
+   / **4** `firstOrFail()`, **0** sobre `variations`. É a **terceira instância** da família
+   `UC-PTAB-04` ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)) → `UC-PBULK-03` →
+   `UC-PBOM-02` (failing-first). O item 4 saiu de ⬜ ("valia por leitura de código") para 🔴 medido.
+
+> 🔴 **Correção de bookkeeping (2026-07-27):** este CU parecia coberto por
+> `tests/Feature/Domain/Inventory/{BomResolverTest,ReservarEstoqueBomTest}.php`. **Não está** —
+> os dois auto-pulam fora do sqlite e não constam de lane nenhuma (detalhe e as 3 portas medidas
+> na nota do **F10** em §5.3). Contrato executável, em MySQL real, em
+> [`_telas/bom-combo.casos.md`](_telas/bom-combo.casos.md).
 
 #### CU-PROD-06 — Importação Excel + bulk-edit + mass-ops `[should]` 🟡 **parcial** (era ✅ — ver v1.0.4)
 1. `import-products` + `import-opening-stock` (Excel) + `download-excel`. — ⬜ **não verificado** (nenhum teste cita; fora do escopo do run do BulkEdit).
@@ -500,10 +655,36 @@ Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que dif
 1. `?d=N` pré-preenche o form com o produto + `(copy)` no nome.
 2. `[T0]` Só duplica produto do business atual (externo → 404).
 
-#### CU-PROD-08 — Quick-add inline (sem sair do fluxo) `[should]` ✅
-1. `quick_add`/`save_quick_product` cadastra mínimo (nome+SKU+preço) de dentro da venda/compra.
-2. `[reg]` Não perde o contexto de origem (venda/OC) ao voltar.
-3. `[T0]` Produto criado no business atual.
+#### CU-PROD-08 — Quick-add inline (sem sair do fluxo) `[should]` 🟡 **parcial** (era ✅ — ver v1.0.5)
+
+<!-- derivado: re-rodável do fonte (F11 · ProductController@quickAdd/@saveQuickProduct · quick_add_product.blade.php) -->
+
+1. `quick_add`/`save_quick_product` cadastra mínimo (nome+SKU+preço) de dentro da venda/compra. —
+   🧪 `UC-PQCK-04` (SKU vazio → gerado server-side, no produto **e** na variação) + `UC-PQCK-03`
+   `[V0]` (preço pt-BR não infla). Entradas contadas: **10 Blades** de venda/compra + 1 chamada JS;
+   **0** consumidores React.
+2. `[reg]` Não perde o contexto de origem (venda/OC) ao voltar. — 🟡 **só a metade provável em
+   servidor.** `UC-PQCK-01` trava "volta **utilizável**" (produto nasce com variação — sem ela não
+   entra na venda que o originou); a reinjeção na tela é `public/js/pos.js`/`purchase.js` e exige
+   e2e sobre a Blade legada — registrado no §Backlog, não vira UC como promessa sem defesa.
+3. `[T0]` Produto criado no business atual. — 🟡 **verdadeiro no produto, falso nas chaves
+   estrangeiras.** `UC-PQCK-01` trava o carimbo do `business_id` (que vem da sessão e sobrescreve
+   o payload); mas `category_id`/`brand_id`/`unit_id`/`tax` entram via
+   `$request->only($form_fields)` (34 campos) direto no `Product::create`, **sem nenhuma consulta
+   de tenant** (varredura contada em `saveQuickProduct`: 0). É a **quarta instância** da família
+   `UC-PTAB-04`/`UC-PBULK-03`/`UC-PBOM-02` — `UC-PQCK-02` (failing-first). Impacto honesto:
+   contaminação de **taxonomia**, não vazamento de dado (o produto criado é meu).
+
+> ⚠️ **Por que caiu de ✅ pra 🟡 sem o código piorar:** mesmo movimento dos irmãos — o ✅ media que
+> a rota existe e cadastra. Medido, o caminho é o de **menor validação do módulo** (varredura
+> contada: **0** `$request->validate`/`FormRequest` em `saveQuickProduct`; o `required` de
+> `name`/`unit_id`/`barcode_type`/`tax_type` vive **só** no jQuery Validate da Blade) e roda no
+> meio de uma venda. Contrato executável em [`_telas/quick-add.casos.md`](_telas/quick-add.casos.md).
+>
+> 📌 **Sem paridade Delphi — e isso é informação, não lacuna.** O Office Comercial não tem cadastro
+> rápido separado (o operador abre a ficha completa), então **não existe `AR-PROD-*` para este
+> fluxo**. A régua aqui é o mercado (Bling/Tiny têm), não o legado. Registrado pra impedir que uma
+> sessão futura invente um anti-padrão legado que nunca existiu ([proibicoes §5](../../proibicoes.md) 2026-07-16).
 
 #### CU-PROD-09 — Código de barras + etiqueta `[should]` 🟡
 1. `barcode_types` (C128 etc) + etiquetas ZPL/PDF (`LabelsController`).

@@ -202,8 +202,16 @@ if (IS_MAIN && args.includes('--selftest')) {
     citadoComoAncora('> **Âncora:** `CU-PROD-14` (ficha/consulta) e `CU-PROD-10` `[T0]` do', 'CU-PROD-14') === true);
   ok('NÃO cobre: id parecido (não casa prefixo)',
     citadoComoAncora('| UC-X-01 | y | CU-PROD-061 | z |', 'CU-PROD-06') === false);
+  // 2ª rodada de anti-gaming — o agent dos fluxos Blade citou uma US numa tabela de
+  // CONTEXTO e ela saiu do backlog sem contrato. Só linha que COMEÇA com id conta.
+  ok('NÃO cobre: id em tabela de contexto (1º campo não é id)',
+    citadoComoAncora('| Fluxo | Canon | Blade | Delphi | US-PROD-025 |', 'US-PROD-025') === false);
+  ok('cobre: CU em coluna de linha que começa com UC (rastreabilidade real)',
+    citadoComoAncora('| UC-PBULK-01 | Editar em lote | must | CU-PROD-06 |', 'CU-PROD-06') === true);
+  ok('cobre: 1º campo com backticks',
+    citadoComoAncora('| `UC-PFIX-01` | Ajuste no relatório | must | US-PROD-028 |', 'US-PROD-028') === true);
 
-  const TOTAL = 19;
+  const TOTAL = 22;
   console.log(f === 0 ? `\n✅ selftest ${TOTAL}/${TOTAL} — extratores, classificador e anti-gaming provados` : `\n❌ ${f} falha(s)`);
   process.exit(f === 0 ? 0 : 1);
 }
@@ -264,7 +272,13 @@ const telasSemCasos = telas.filter((t) => !casos.some((c) => c.tela === t));
 export function citadoComoAncora(src, id) {
   const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp(
-    `(^\\|[^\\n]*\\b${esc}\\b)`                                   // linha de tabela
+    // Linha de tabela: só conta se a linha for de RASTREABILIDADE — 1º campo é um id
+    // (UC-/US-/CU-). Sem isso, o id citado em QUALQUER coluna de QUALQUER tabela vira
+    // âncora: o agent da corrida dos fluxos Blade gamificou sem querer (citou US-PROD-025
+    // numa tabela de contexto e a US saiu do backlog sem contrato), pegou comparando o
+    // backlog antes/depois, e reportou. A linha `| UC-PBULK-01 | … | CU-PROD-06 |` segue
+    // valendo pro CU — porque ELA começa com id, então é rastreabilidade de verdade.
+    `(^\\|\\s*\`?(UC|US|CU)-[A-Z0-9]{2,10}-\\d{2,4}\`?\\s*\\|[^\\n]*\\b${esc}\\b)`
     + `|(^\\s*(related_us|us|ancora|âncora|covers|cobre)\\s*:[^\\n]*\\b${esc}\\b)` // frontmatter
     + `|(^\\s*[>\\-*\\s]*\\*\\*(Âncora|Ancora|Cobre|Covers)[^\\n]*\\b${esc}\\b)`,  // declaração
     'im',
