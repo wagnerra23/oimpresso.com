@@ -1,12 +1,41 @@
 # Scorecard Admin Center — meta-módulo Wagner-only @ CT 100 (ADR 0156 + ADR 0122).
 
+# ── REVISÃO 2026-07-26 (decisão [W] · "terceira via") ────────────────────────
+# `last_grade` passa a citar a nota do **v3** (`module:grade`), com a fonte declarada
+# no campo `last_grade_fonte`. Antes era a nota da rubrica v4 (bucket-scoped), semeada
+# à mão em 2026-05-16 e nunca revisada — 71 dias parados, porque o cabeçalho deste
+# arquivo dizia (falsamente) que um cron o mantinha.
+#
+# Por que v3 e não v4: o `module:grade-v4` foi REMOVIDO nesta mesma revisão (0
+# invocadores em CI/cron). A nota que MORDE é a do v3 — roda no CI via
+# `module:grade --all` e tem baseline versionado. Trocar a régua em silêncio seria
+# pior que a nota velha; por isso a fonte fica escrita ao lado do número.
+#
+# Este arquivo SEGUE curado à mão (nenhum comando o escreve). Quem mede a idade dele:
+# `cron-watchdog.mjs --entrega` + a flag "obra parada" do Daily Brief.
+
+# -- REVISAO 2026-07-26 (decisao [W] · "terceira via") ------------------------
+# `last_grade` passa a citar a nota do **v3** (`module:grade`), com a fonte declarada
+# em `last_grade_fonte`. Antes era a nota da rubrica v4 (bucket-scoped), semeada a mao
+# em 2026-05-16 e nunca revisada -- 71 dias parados, porque o cabecalho deste arquivo
+# dizia (falsamente) que um cron o mantinha.
+#
+# Por que v3 e nao v4: o `module:grade-v4` foi REMOVIDO nesta mesma revisao (0
+# invocadores em CI/cron). A nota que MORDE e a do v3 -- roda no CI via
+# `module:grade --all` e tem baseline versionado. Trocar a regua em silencio seria
+# pior que a nota velha; por isso a fonte fica escrita ao lado do numero.
+#
+# Este arquivo SEGUE curado a mao (nenhum comando o escreve). Quem mede a idade dele:
+# `cron-watchdog.mjs --entrega` + a flag "obra parada" do Daily Brief.
+
 module: "Admin"
 slug: "admin"
 type: "meta"
 fsm_n_a: true
 fsm_n_a_reason: "Painel read-mostly sem entidade de negócio. 3 mutations (curador apply, MCP token regen, run health-check) são atômicas double-confirmation, não fluxos multi-stage."
-last_grade: 86
-last_grade_at: "2026-05-16T00:00:00-03:00"
+last_grade: 81
+last_grade_at: "2026-07-26T00:00:00-03:00"
+last_grade_fonte: "module:grade (v3) — governance/module-grades-baseline.json"
 target_score: 90
 bucket: "Bom"
 
