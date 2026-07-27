@@ -5,6 +5,7 @@ namespace Modules\Ponto\Tests\Feature;
 use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -70,12 +71,26 @@ abstract class PontoTestCase extends TestCase
             Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
         }
         $role = Role::where('name', "Admin#{$businessId}")->first();
-        if ($role) {
-            foreach ($perms as $name) {
-                $p = Permission::where('name', $name)->first();
-                if ($p && !$role->hasPermissionTo($p)) $role->givePermissionTo($p);
-            }
+        // A role PODE não existir na lane de CI (banco sem o seeder do UltimatePOS).
+        // A 1ª versão fazia `if ($role) {...}` e, sem role, saía em silêncio SEM conceder
+        // permissão nenhuma — todo teste que exige `ponto.*` caía em 403 e a lane inteira
+        // ficava vermelha por SETUP, não por comportamento. Medido 2026-07-27 na lane
+        // `PHP / Pest (Ponto · MySQL)`: 12+ testes falhando em ~0,19s cada, todos 403.
+        //
+        // Criar a role aqui segue a proibição Tier 0 de roles Spatie no UltimatePOS:
+        // `roles.business_id` é NOT NULL com FK, e o nome leva o sufixo `#{business_id}`
+        // (role global sem business_id viola a FK — lição do hotfix #624).
+        if (!$role) {
+            $attrs = ['name' => "Admin#{$businessId}", 'guard_name' => 'web'];
+            if (Schema::hasColumn('roles', 'business_id')) $attrs['business_id'] = $businessId;
+            $role = Role::firstOrCreate($attrs);
         }
+        foreach ($perms as $name) {
+            $p = Permission::where('name', $name)->first();
+            if ($p && !$role->hasPermissionTo($p)) $role->givePermissionTo($p);
+        }
+        // Sem isto o usuário continua sem a permissão mesmo com a role povoada.
+        if ($this->admin && !$this->admin->hasRole($role)) $this->admin->assignRole($role);
     }
 
     /**
