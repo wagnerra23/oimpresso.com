@@ -14,7 +14,7 @@ module: OficinaAuto
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 163 arquivos em 18 papéis.
+**Total mapeado:** 168 arquivos em 18 papéis.
 
 ## Controllers — 9
 
@@ -174,12 +174,17 @@ module: OficinaAuto
 - [Index.charter.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Show.charter.md)
 
-## Casos (contrato UC) — 4
+## Casos (contrato UC) — 9
 
+- [AprovacaoPublica.casos.md](../../../resources/js/Pages/OficinaAuto/AprovacaoPublica.casos.md)
 - [Board.casos.md](../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/OficinaAuto/ServiceOrders/Create.casos.md)
 - [Edit.casos.md](../../../resources/js/Pages/OficinaAuto/ServiceOrders/Edit.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/OficinaAuto/ServiceOrders/Show.casos.md)
+- [Create.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Create.casos.md)
+- [Edit.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Edit.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Index.casos.md)
+- [Show.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Show.casos.md)
 
 ## Testes (Pest) — 44
 

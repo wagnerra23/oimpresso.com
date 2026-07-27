@@ -98,11 +98,17 @@ Cobertos em `Modules/Compras/Tests/Feature/ComprasIndexTest.php`:
 2. ✅ `index renderiza Inertia component Compras/Index`
 3. ✅ `sem permission compras.view → 403`
 
-Wave 7 adicionará:
+Já cobertos (item 4 saiu de "Wave 7 adicionará" — o teste NASCEU; correção factual 2026-07-27):
 
-4. `Multi-tenant — não vaza compras de outro business` (invariante ADR 0093)
-5. `KPIs calculam correto — aberto/transito/mes/fornec batem queries diretas`
-6. `Filtro stage=transito só retorna transactions.status='ordered'+'pending'`
+4. ✅ `Multi-tenant — não vaza compras de outro business` (invariante ADR 0093) —
+   `Modules/Compras/Tests/Feature/MultiTenantTest.php` (cenários 1-4, biz=1 vs biz=99) +
+   `MultiTenantSqlGuardTest.php` (invariante SQL do JOIN, US-COM-009). Ambos na allowlist da lane
+   `PHP / Pest (Compras · MySQL)` — **advisory**, não bloqueia merge.
+
+Ainda pendentes:
+
+5. `KPIs calculam correto — aberto/transito/mes/fornec batem queries diretas` (o isolamento cross-tenant dos KPIs já é coberto pelo cenário 3 do `MultiTenantTest`; falta o cálculo em si)
+6. `Filtro stage=transito só retorna transactions.status='ordered'+'pending'` — ⚠️ ver `UC-CMP-06` em [`Index.casos.md`](Index.casos.md): `stage=transito` hoje **não passa** na whitelist do `ListarComprasRequest`
 7. `Inertia::defer renderiza skeleton + completa em <800ms` (smoke timing)
 
 ---
@@ -121,6 +127,8 @@ Wave 7 adicionará:
 
 ## Refs
 
+- [Index.casos.md](Index.casos.md) — **contrato de teste da tela** (UC-CMP-01..08), irmão do trio. Nasceu 2026-07-27 (chip S1 do passo 5)
+- [memory/requisitos/Compras/SDD-tela-cockpit-compras-v1.0.md](../../../../memory/requisitos/Compras/SDD-tela-cockpit-compras-v1.0.md) — **SDD do domínio** (§5 fluxos · §6 CU-COM-01..09), de onde os UC derivam
 - [memory/requisitos/Compras/SPEC.md](../../../../memory/requisitos/Compras/SPEC.md) — US-COM-001
 - [memory/requisitos/Compras/RUNBOOK-compras-index.md](../../../../memory/requisitos/Compras/RUNBOOK-compras-index.md)
 - [memory/requisitos/Compras/BRIEFING.md](../../../../memory/requisitos/Compras/BRIEFING.md)

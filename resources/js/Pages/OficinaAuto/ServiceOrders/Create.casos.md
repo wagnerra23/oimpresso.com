@@ -5,7 +5,10 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-03"
+last_run: "2026-07-27"
+last_run_ci: "0 UC executado neste PR — os 4 UC já existiam; veredito pendente da lane PHP / Pest (OficinaAuto · MySQL)"
+related_us: [US-OFICINA-001, US-OFICINA-003, US-AUTO-005]
+related_cu: [CU-OFI-04, CU-OFI-07, CU-OFI-15, CU-OFI-19]
 ---
 
 # Casos de Uso & Aceite — Abrir OS (Create)
@@ -41,6 +44,25 @@ last_run: "2026-07-03"
 - **Aceite:** Dado vehicle/contact do business B · Quando um usuário do business A tenta vincular na criação · Então rejeitado server-side (ADR 0093).
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php`
 - **Status: 🧪**
+
+---
+
+## Rastreabilidade (âncora no SDD §6 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md))
+
+| UC | Peso | Âncora (CU/US) |
+|---|---|---|
+| UC-OCR-01 | must | CU-OFI-04 · US-OFICINA-001 · US-AUTO-005 |
+| UC-OCR-02 | must `[T0]` | CU-OFI-19 · US-OFICINA-001 |
+| UC-OCR-03 | must | CU-OFI-07 · US-OFICINA-003 |
+| UC-OCR-04 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
+
+> `UC-OCR-02` é o caso que **prova a erradicação de domínio** da
+> [ADR 0265](../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md): a oficina é
+> reparo, e o backend recusa o tipo de ordem que não pertence a esse domínio. É o contrato
+> executável do que o dicionário `memory/dominio/oficina-auto.md` declara.
+>
+> ⚖️ **Força do veredito:** lane `PHP / Pest (OficinaAuto · MySQL)`, criada em 2026-07-27 —
+> **ADVISORY**: reprova visível, **não bloqueia merge**.
 
 ---
 

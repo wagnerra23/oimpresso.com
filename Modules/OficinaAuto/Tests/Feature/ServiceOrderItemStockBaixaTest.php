@@ -1,9 +1,16 @@
 <?php
+// @covers-us US-OFICINA-001
 
 declare(strict_types=1);
 
 // casos (G-2 rastreabilidade · ADR 0264): defende
-//   UC-OED-03 (OficinaAuto/ServiceOrders/Edit) — adicionar peça baixa estoque (peça×qty)
+//   UC-OED-03 (OficinaAuto/ServiceOrders/Edit) — peça baixa estoque AO CONCLUIR a OS (peça×qty)
+//     ⚠️ correção 2026-07-27 (chip SDD): este comentário dizia "adicionar peça baixa estoque",
+//     contradizendo o próprio contrato descrito logo abaixo (§"Contrato implementado" item 1) e o
+//     que os casos de teste deste arquivo provam. Corrigido o TEXTO, não o comportamento.
+//   UC-OED-06 — concluir 2× não baixa em dobro (idempotência)
+//   UC-OED-07 — mão-de-obra / serviço de terceiro não mexem em estoque
+//   UC-OED-08 — peça de catálogo de outro business é recusada (Tier 0)
 
 use App\Contact;
 use App\Product;
@@ -124,7 +131,7 @@ beforeEach(function () {
 // 1. Baixa de estoque ao concluir OS (núcleo do P0-2)
 // ---------------------------------------------------------------------------
 
-it('peça da OS com product_id stock-managed → baixa estoque pela quantidade ao concluir OS', function () {
+it('UC-OED-03 · peça da OS com product_id stock-managed → baixa estoque pela quantidade ao concluir OS', function () {
     $resolved = stockBaixa_resolveProdutoComEstoque(BIZ_STOCK_BAIXA, 5.0);
     if ($resolved === null) {
         $this->markTestSkipped('Sem produto stock-managed com VLD >= 5 no biz piloto.');
@@ -156,7 +163,7 @@ it('peça da OS com product_id stock-managed → baixa estoque pela quantidade a
 // 2. Mão-de-obra (sem product_id) NÃO mexe estoque — guard anti-over-decrement
 // ---------------------------------------------------------------------------
 
-it('item mão-de-obra (product_id null) NÃO altera estoque ao concluir OS', function () {
+it('UC-OED-07 · item mão-de-obra (product_id null) NÃO altera estoque ao concluir OS', function () {
     $resolved = stockBaixa_resolveProdutoComEstoque(BIZ_STOCK_BAIXA, 1.0);
     if ($resolved === null) {
         $this->markTestSkipped('Sem produto stock-managed pra medir baseline.');
@@ -186,7 +193,7 @@ it('item mão-de-obra (product_id null) NÃO altera estoque ao concluir OS', fun
 // 3. Tier 0 (ADR 0093) — product_id de OUTRO business é rejeitado
 // ---------------------------------------------------------------------------
 
-it('addItem rejeita product_id de produto de outro business (Tier 0)', function () {
+it('UC-OED-08 · addItem rejeita product_id de produto de outro business (Tier 0)', function () {
     $foreign = Product::withoutGlobalScopes()
         ->where('business_id', '!=', BIZ_STOCK_BAIXA)
         ->first();
@@ -223,7 +230,7 @@ it('addItem rejeita product_id de produto de outro business (Tier 0)', function 
 // 4. Idempotência — concluir 2× não baixa estoque em dobro
 // ---------------------------------------------------------------------------
 
-it('concluir a OS duas vezes não baixa estoque em dobro (idempotência)', function () {
+it('UC-OED-06 · concluir a OS duas vezes não baixa estoque em dobro (idempotência)', function () {
     $resolved = stockBaixa_resolveProdutoComEstoque(BIZ_STOCK_BAIXA, 5.0);
     if ($resolved === null) {
         $this->markTestSkipped('Sem produto stock-managed com VLD >= 5 no biz piloto.');
