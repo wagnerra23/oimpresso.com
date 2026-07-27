@@ -3,7 +3,7 @@
 //   module: TeamMcp — G1 FICHA W22 (Facts + Checks)
 //   forja: PR-3 — CRIA a Page (rota existia mas o componente não; route quebrada).
 //          visual-comparison em memory/requisitos/TeamMcp/scorecard-visual-comparison.md
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //
 // Padrão Facts+Checks (ADR 0091): Facts = números sem juízo · Checks = semáforo ok/fail.
 // SEM dado fantasma: projeta só o que ScorecardBuilderService retorna (sem sparkline —

@@ -1,15 +1,18 @@
 ---
 id: requisitos-project-mgmt-briefing
+module: ProjectMgmt
 modulo: ProjectMgmt
-status: Fase 1+2 done (2026-05-08) · Fase 3+4 backlog
+status: parcial
+status_nota: Fase 1+2 done (2026-05-08) · Fase 3+4 backlog
 last_pr: PR #211 (PMG-001 optimistic-lock)
 nota_atual: 32/100 (Crítico) — D1 10/30 · D2 8/20 · D3 6/15
-owner: Wagner [W]
+owner: W
 piloto: time interno oimpresso (uso próprio)
 adr_mae: ADR 0100 (UI redesign) · ADR 0070 (Jira-style tasks)
 charter: CHARTER-board.md
 spec: SPEC.md + SPEC-COMPLEMENTO.md
 capterra: CAPTERRA-FICHA.md (24 capacidades) · CAPTERRA-INVENTARIO.md
+updated_at: "2026-05-16"
 updated: 2026-05-16
 ---
 
