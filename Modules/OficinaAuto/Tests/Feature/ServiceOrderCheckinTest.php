@@ -1,4 +1,6 @@
 <?php
+// @covers-us US-OFICINA-038
+// @covers-us US-OFICINA-039
 
 declare(strict_types=1);
 
@@ -58,7 +60,7 @@ function checkin_cleanup(string $suffix): void
 // Entity — fillable + casts (combustível int, avarias array JSON roundtrip)
 // ---------------------------------------------------------------------------
 
-it('persiste fuel_level_at_entry e entry_damages (cast array roundtrip)', function () {
+it('UC-OSH-05 · persiste fuel_level_at_entry e entry_damages (cast array roundtrip)', function () {
     session(['user.business_id' => BIZ_CHECKIN]);
     $vehicle = checkin_criaVeiculo('A');
 

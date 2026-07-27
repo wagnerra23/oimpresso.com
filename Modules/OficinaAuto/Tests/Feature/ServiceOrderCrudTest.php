@@ -1,4 +1,7 @@
 <?php
+// @covers-us US-OFICINA-001
+// @covers-us US-OFICINA-017
+// @covers-us US-AUTO-003
 
 declare(strict_types=1);
 
@@ -88,7 +91,7 @@ it('relaciona OS → Vehicle (eager load)', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'SOC002')->forceDelete();
 });
 
-it('relaciona Vehicle → ServiceOrders (hasMany)', function () {
+it('UC-OVS-01 · relaciona Vehicle → ServiceOrders (hasMany)', function () {
     session(['user.business_id' => BIZ_WAGNER_SO]);
 
     $vehicle = createTestVehicle('SOC003');

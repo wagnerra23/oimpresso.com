@@ -1,4 +1,6 @@
 <?php
+// @covers-us US-OFICINA-004
+// @covers-us US-AUTO-005
 
 declare(strict_types=1);
 
