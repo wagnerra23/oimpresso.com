@@ -146,6 +146,17 @@ jobs:
         #   - Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php
         #   - Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php
         #
+        # RATCHET UP (2026-07-27): + ConfigDefaultContratoTest — trio da tela
+        #   /nfe-brasil/tributacao/config-default (UC-NFCD-01..06, ConfigDefault.casos.md).
+        #   Entra JUNTO com o teste (não depois): metade dos UCs é de REJEIÇÃO pelo
+        #   UpsertConfigDefaultRequest, e validação só roda no caminho HTTP real — provar isso
+        #   exige a lane com schema+seed. Sem RefreshDatabase (limpa só as próprias rows de
+        #   biz=1/biz=2). NÃO foi possível pré-provar no CT100: o `oimpresso-staging` NÃO TEM
+        #   as tabelas do NfeBrasil (nfe_business_configs/nfe_fiscal_rules/nfe_emissoes ausentes,
+        #   medido 2026-07-27) — lá a suite SKIPa inteira. Esta lane é o único lugar que a executa.
+        #   ⚠️ Ao ler o resultado: conferir "6 passed" no JUnit, não só o check verde — suite que
+        #   SKIPa também fica verde (gate mudo, proibicoes.md §5 2026-07-27).
+        #
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
         # limpam o seed biz=1/biz=2, envenenando os demais.
         env:
@@ -168,6 +179,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
             Modules/NfeBrasil/Tests/Feature/ReformaSchemaModoTest.php \
             Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
+            Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \

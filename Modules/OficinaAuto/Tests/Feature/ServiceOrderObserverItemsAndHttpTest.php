@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-OFICINA-001
 
 declare(strict_types=1);
 
@@ -95,7 +96,7 @@ function us027_cleanup(string $suffix): void
 // Wave 1.2 — Observer recalc final_total via items() (manutenção)
 // ---------------------------------------------------------------------------
 
-it('Observer: OS manutenção com 3 items lançados → Transaction.final_total = soma valor_total', function () {
+it('UC-OSH-09 · Observer: OS manutenção com 3 items lançados → Transaction.final_total = soma valor_total', function () {
     session(['user.business_id' => BIZ_US027_A]);
     $os = us027_criaOs('A');
 
