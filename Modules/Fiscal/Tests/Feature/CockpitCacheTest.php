@@ -34,7 +34,7 @@ it('cache key segue padrão fiscal:cockpit:kpis:biz:{id}', function () {
         ->and($controller->kpisCacheKey(999))->toBe('fiscal:cockpit:kpis:biz:999');
 });
 
-it('cache key prefix bate com InvalidaCockpitCacheListener (consistency contract)', function () {
+it('UC-FCKP-06 · cache key prefix bate com InvalidaCockpitCacheListener (consistency contract)', function () {
     $controller = new CockpitController;
     $listenerPrefix = InvalidaCockpitCacheListener::KEY_PREFIX;
 
@@ -68,7 +68,7 @@ it('Cache::remember não re-executa callback quando key existe', function () {
     Cache::forget($key);
 });
 
-it('cache keys de businesses diferentes são INDEPENDENTES (multi-tenant ADR 0093)', function () {
+it('UC-FCKP-06 · cache keys de businesses diferentes são INDEPENDENTES (multi-tenant ADR 0093)', function () {
     $controller = new CockpitController;
 
     Cache::put($controller->kpisCacheKey(1), ['emitidas' => 1], 60);
@@ -83,7 +83,7 @@ it('cache keys de businesses diferentes são INDEPENDENTES (multi-tenant ADR 009
         ->and(Cache::get($controller->kpisCacheKey(4)))->not->toBeNull();
 });
 
-it('Listener invalida a key correta dado um event com business_id', function () {
+it('UC-FCKP-06 · Listener invalida a key correta dado um event com business_id', function () {
     $controller = new CockpitController;
     $key = $controller->kpisCacheKey(1);
     Cache::put($key, ['fake' => 'kpis'], 60);
