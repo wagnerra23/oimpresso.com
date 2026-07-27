@@ -150,7 +150,26 @@ if (IS_MAIN && args.includes('--selftest')) {
   ok('UC só em test.fixme → stub', ucSoStub('UC-PSHOW-04', corpus) === true);
   ok('UC em teste real → NÃO stub', ucSoStub('UC-PSHOW-01', corpus) === false);
 
-  console.log(f === 0 ? '\n✅ selftest 8/8 — extratores e classificador provados' : `\n❌ ${f} falha(s)`);
+  // ANTI-GAMING — achado do agent na corrida do BulkEdit, que testou e reportou honestamente:
+  // com `includes` cru, citar o id em QUALQUER parágrafo fechava a lacuna sem contrato nenhum.
+  // Presence-gate clássico (L-24: presença ≠ correção). Cobertura agora exige ÂNCORA estrutural.
+  ok('NÃO cobre: id em prosa solta',
+    citadoComoAncora('Falamos sobre CU-PROD-06 aqui no meio do texto.', 'CU-PROD-06') === false);
+  ok('cobre: linha de tabela de rastreabilidade',
+    citadoComoAncora('| UC-PBULK-01 | Editar em lote | must | CU-PROD-06 | teste |', 'CU-PROD-06') === true);
+  ok('cobre: frontmatter related_us',
+    citadoComoAncora('related_us: [US-PROD-023, US-PROD-020]', 'US-PROD-023') === true);
+  ok('cobre: bullet de Âncora',
+    citadoComoAncora('- **Âncora:** CU-PROD-06 do SDD §6.1', 'CU-PROD-06') === true);
+  // A forma REAL do corpus — blockquote + backticks. A 1ª versão do regex não a aceitava e
+  // acusou 3 CU legítimos (08/14/15). Este caso é o controle que faltava.
+  ok('cobre: blockquote + backticks (forma real dos casos.md)',
+    citadoComoAncora('> **Âncora:** `CU-PROD-14` (ficha/consulta) e `CU-PROD-10` `[T0]` do', 'CU-PROD-14') === true);
+  ok('NÃO cobre: id parecido (não casa prefixo)',
+    citadoComoAncora('| UC-X-01 | y | CU-PROD-061 | z |', 'CU-PROD-06') === false);
+
+  const TOTAL = 19;
+  console.log(f === 0 ? `\n✅ selftest ${TOTAL}/${TOTAL} — extratores, classificador e anti-gaming provados` : `\n❌ ${f} falha(s)`);
   process.exit(f === 0 ? 0 : 1);
 }
 
@@ -187,11 +206,42 @@ const statusUC = ucs.map((u) => {
 
 // LACUNAS = a fila de crescimento (derivada, não inventada)
 const telasSemCasos = telas.filter((t) => !casos.some((c) => c.tela === t));
-const cuSemUC = cu.filter((c) => !casos.some((k) => k.src.includes(c.id)));
+/**
+ * COBERTO = citado como ÂNCORA, não mencionado em prosa (correção 2026-07-26).
+ *
+ * A 1ª versão usava `src.includes(id)`. O agent da corrida do BulkEdit testou o gaming e
+ * reportou honestamente: *"bastaria citar o id na prosa pra lacuna sumir do painel — fiz,
+ * vi fechar, desfiz"*. Um `includes` cru transforma o painel em **presence-gate**: escrever
+ * o id num parágrafo qualquer "fecha" a lacuna sem contrato nenhum. É a família L-24
+ * (presença ≠ correção), a mesma que este projeto mata desde 2026-07-01.
+ *
+ * Âncora estrutural aceita — as formas MEDIDAS no corpus, não supostas:
+ *   · linha de TABELA        → `| UC-X-01 | … | CU-PROD-06 | …`  (rastreabilidade)
+ *   · campo de frontmatter   → `related_us: [US-PROD-023]` / `us:` / `âncora:`
+ *   · declaração de Âncora   → `> **Âncora:** \`CU-PROD-14\` …`  ← forma REAL dos casos.md
+ *                              (blockquote, bullet ou linha nua; id entre backticks ou não)
+ * Menção solta em parágrafo NÃO cobre — e é isso que impede o painel de mentir.
+ *
+ * ⚠️ A 1ª versão desta regra só aceitava BULLET (`- **Âncora:**`) e deu falso-positivo em 3 CU
+ * (`CU-PROD-08/14/15`): o corpus usa BLOCKQUOTE (`> **Âncora:**`). Medido contra os arquivos
+ * reais antes de fechar — o padrão vem do que o projeto escreve, não do que eu imaginei.
+ */
+export function citadoComoAncora(src, id) {
+  const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(
+    `(^\\|[^\\n]*\\b${esc}\\b)`                                   // linha de tabela
+    + `|(^\\s*(related_us|us|ancora|âncora|covers|cobre)\\s*:[^\\n]*\\b${esc}\\b)` // frontmatter
+    + `|(^\\s*[>\\-*\\s]*\\*\\*(Âncora|Ancora|Cobre|Covers)[^\\n]*\\b${esc}\\b)`,  // declaração
+    'im',
+  ).test(src);
+}
+const cobreAncorado = (id) => casos.some((k) => citadoComoAncora(k.src, id));
+
+const cuSemUC = cu.filter((c) => !cobreAncorado(c.id));
 // Só é LACUNA a US já entregue e sem contrato. US `todo` sem caso é backlog normal —
 // listá-la como dívida empurra o autor a escrever UC órfão (ver extrairUS).
-const usSemContrato = us.filter((u) => US_ENTREGUE.has(u.status) && !casos.some((k) => k.src.includes(u.id)));
-const usBacklog = us.filter((u) => !US_ENTREGUE.has(u.status) && !casos.some((k) => k.src.includes(u.id)));
+const usSemContrato = us.filter((u) => US_ENTREGUE.has(u.status) && !cobreAncorado(u.id));
+const usBacklog = us.filter((u) => !US_ENTREGUE.has(u.status) && !cobreAncorado(u.id));
 
 const linhas = [];
 const P = (s = '') => linhas.push(s);
