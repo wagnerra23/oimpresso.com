@@ -71,6 +71,31 @@ copiado em 6 consumidores e drifou pela mesma porta. Varredura contada: **6 cons
 5 corretos, 1 com o bug**. O `casos-coverage-guard.mjs` (dono do formato, gate required)
 sempre fez o split certo e **não foi tocado** — migrá-lo é PR próprio, não carona.
 
+> ### ⚠️ ERRATA (mesmo dia, ~19h) — a varredura acima está INCOMPLETA
+>
+> Aqueles "6 consumidores" saíram de `git grep -ln ucHeadRe`, isto é, **por SÍMBOLO da
+> lib** — que por construção **só acha quem já importa**. As cópias **inline** do regex,
+> que nunca importaram, são invisíveis a essa busca.
+>
+> A sessão do chip 4 achou o que eu perdi ([PR #4885](https://github.com/wagnerra23/oimpresso.com/pull/4885)):
+> **3 regex de UC fora da fonte única**, e um deles **perdia UC inteiro**. O do
+> `screen-coverage-map.mjs:177` é `/^(UC-[A-Z0-9]{0,8}-?\d{1,3})\b/i` — **sem o
+> `[a-zA-Z]?`** do `UC_CORE`, então o `\b` falha antes do `b` e `UC-DSR-08b` **não casa
+> nada**: o UC desaparece, não é truncado.
+>
+> Re-medido por mim para confirmar (44 `.casos.md`): **lib 181 × regex do map 178 →
+> diferença 3** (`UC-DSR-01b/04b/08b`, todos com heading canônico e teste que os cita).
+> Consequência: **dois gates required discordando do mesmo fato** — o `casos-gate` (usa a
+> lib) cobrava Status+teste dos 3, e `npm run screen:files` não os enxergava.
+>
+> Varredura correta é **por comportamento** (o regex), não pelo nome da função:
+> `git grep -lnE "UC-\(\?|UC-\[A-Z|'UC-" -- 'scripts/**/*.mjs'` → **6 arquivos**, incluindo
+> `scripts/governance/requisitos-status.mjs`, que eu nunca vi.
+>
+> Lição fina, e é a 5ª instância de LC-08 desta sessão: **varredura "contada" por símbolo
+> não é varredura por comportamento** — o número 6/5/1 era honesto no que mediu e
+> enganoso no que sugeria. Cometida enquanto eu investigava exatamente esta classe.
+
 ## 3. Convergência com sessão paralela
 
 No meio do trabalho, os PRs #4836/#4840 corrigiram o **universo** da mesma sentinela
@@ -143,9 +168,17 @@ não apagados. Ledger incrementado 13 → 14 em [`LICOES_CODE.md`](../LICOES_COD
    sentinela já ranqueava por exposição da **tela** em 4 categorias.
 4. **`grep` com padrão que não casa o nome real** → `casos-result` não casa
    `casos-test-**results**.json`; concluí que um gate required dormia sempre.
+5. **Varredura "contada" por SÍMBOLO em vez de comportamento** → `git grep ucHeadRe` só acha
+   quem já importa a lib; as 3 cópias inline (uma perdendo 3 UC) ficaram invisíveis. Achadas
+   pela sessão do chip 4 ([#4885](https://github.com/wagnerra23/oimpresso.com/pull/4885)) e
+   re-confirmadas por mim (181 × 178). Ver errata em §2.
 
-Corolário que vale guardar: *quando o resultado de um filtro sustenta uma conclusão forte,
-teste o filtro contra um caso que você SABE que existe antes de concluir a ausência.*
+Dois corolários, ambos sobre o mesmo vício:
+
+- *Quando o resultado de um filtro sustenta uma conclusão forte, teste o filtro contra um caso
+  que você SABE que existe antes de concluir a ausência.* (erros 4 e 5)
+- *Varredura por símbolo prova o que ele nomeia, não a classe. Para achar cópias que drifaram,
+  procure o **comportamento** (o regex, a operação), nunca o nome da função.* (erro 5)
 
 ## 8. Sobre a pergunta original (ANTI-REGRESSAO)
 
