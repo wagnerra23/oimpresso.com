@@ -5,7 +5,7 @@
 //   module: ProjectMgmt
 //   stories: US-TR-301 (lista órfãs) · US-TR-302 (atribuir owner+prio inline) · US-TR-303 (mover cycle/epic)
 //   adrs: 0070 (Jira-style PM), UI-0013 (Constituição UI v2), 0039 (cockpit)
-//   permissao: copiloto.mcp.usage.all
+//   permissao: jana.mcp.usage.all
 //   paridade: lista = tool MCP `triage` (McpTask::triage scope)
 //
 // UI otimista: select inline → PATCH /triage/{id}/assign (reusa tasks-update,

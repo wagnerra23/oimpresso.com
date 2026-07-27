@@ -91,7 +91,20 @@ owner: wagner
 **Quero** baixar título quando recebo o pagamento (parcial ou total) com data, valor, conta bancária e meio
 **Para** atualizar saldo da conta + status do título sem dupla digitação
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasReceber/Show.tsx` modal de baixa não construída)
+**Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `UnificadoController::baixar` · `resources/js/Pages/Financeiro/Unificado/_components/FinBaixaSheet.tsx` · verificado@6f8f1cc (2026-07-27)
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/BaixaConservacaoValorContratoTest.php` (UC-FUNI-01..04, lane `financeiro-pest`) · `Modules/Financeiro/Tests/Feature/UnificadoBaixaDialogGuardTest.php`
+
+> ⚠️ **Reconciliação factual 2026-07-27 (onda `sdd-from-source`).** A âncora dizia *"`_pendente_` —
+> tela planejada, `ContasReceber/Show.tsx` modal de baixa não construída"*: **estava stale**. A baixa
+> (parcial e total) está **construída e viva desde 2026-06-03**, só que **noutra tela** — o
+> `FinBaixaSheet` da Visão Unificada, não a `ContasReceber/Show` (que nunca existiu; a própria
+> ContasReceber está `deprecated`, US-FIN-064). O DoD abaixo também descreve
+> `status = parcial`, que **o código não usa desde 2026-06-04**: a baixa parcial faz **SPLIT**
+> (filho quitado + pai reduzido, `titulo_pai_id`) — decisão [W], comentário literal em `baixar()`.
+> O contrato vivo passou a ser `CU-FIN-02..05` do
+> [SDD do Financeiro](SDD-tela-financeiro-v1.0.md#61-núcleo-do-dinheiro-cu-fin). Os checkboxes do DoD
+> ficam como estão (append-only do registro histórico) — quem manda hoje é o SDD + `casos.md`.
 
 **Definition of Done:**
 - [ ] FormRequest valida: `valor_baixa > 0`, `valor_baixa <= titulo.valor_aberto`, `data_baixa <= hoje`, `conta_bancaria_id` exists business, `meio_pagamento` enum
@@ -1850,6 +1863,8 @@ Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — US `todo`: redirect CR/CP -> Unificado ainda nao aplicado (telas seguem servidas).
+
 Follow-up das PRs #3712 (régua) + #3718 (deprecação charters). Decisão [W] 2026-07-03: as telas standalone /financeiro/contas-receber e /financeiro/contas-pagar são superadas pelo Unificado (lentes A receber/A pagar + FinBaixaSheet + emitirBoletoTitulo Banco Inter). Charters já em status: deprecated.
 
 **Escopo (mudança de UX/rota — PR próprio com smoke, ADR 0271 subtração segura):**
@@ -1867,6 +1882,8 @@ Follow-up das PRs #3712 (régua) + #3718 (deprecação charters). Decisão [W] 2
 > owner: — · priority: p2 · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — US `todo`: `Unificado/Novo` segue stub picker; form unificado real nao construido.
+
 Achado Onda 1 (re-grade telas stale). `Financeiro/Unificado/Novo` = **65 (Developing)**, é a única das 5 telas fracas no caminho de valor.
 
 Gaps do scorecard (`memory/governance/scorecards/screens/financeiro-unificado-novo.yaml`):
@@ -1881,6 +1898,8 @@ DoD: nota ≥70 no re-grade + `screen-grades-ratchet` verde. ⚠️ Toca criaç�
 > owner: — · priority: p3 · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — US `todo`: `AssinaturaAtualizar` nao migrada pro PageHeader canon nem ganhou preview de valor.
+
 Achado Onda 1 (re-grade telas stale). `Financeiro/AssinaturaAtualizar` = **64 (Developing)**.
 
 Gaps (`financeiro-assinaturaatualizar.yaml`):
@@ -1894,6 +1913,8 @@ DoD: nota ≥70 + ratchet verde. ⚠️ Mexe em valor de assinatura → REGRA ME
 
 > owner: — · priority: p3 · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — US `todo`: `Advisor/Login` segue com input/os-btn crus, sem tokens v4 nem charter.
 
 Achado Onda 1 (re-grade telas stale). `Financeiro/Advisor/Login` = **68 (Developing)**. Tela de login do portal contador (apoio, baixa urgência).
 
