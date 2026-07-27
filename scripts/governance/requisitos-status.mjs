@@ -81,8 +81,29 @@ export function extrairUS(specSrc) {
   linhas.forEach((ln, i) => {
     const m = ln.match(/^###\s+(US-[A-Z]{2,8}-\d{3,4})\s*·?\s*(.*)$/);
     if (!m) return;
-    const meta = linhas.slice(i + 1, i + 4).join(' ');
-    const st = meta.match(/\bstatus:\s*([a-z-]+)/i);
+    /**
+     * O status vive no BLOCO da US (até o próximo heading), não nas 3 primeiras linhas.
+     *
+     * ⚠️ A 1ª versão lia `linhas.slice(i+1, i+4)` e casava só `status:` cru. Medido 2026-07-27
+     * (achado do chip Cliente, que bateu no caso e corrigiu o DADO; o defeito da PORTA ficou):
+     *   · 283 US — status na janela de 3 linhas ....... lidas ✅
+     *   · **228 US — status FORA da janela** .......... liam `desconhecido` ❌
+     *   · 353 US — sem status nenhum .................. `desconhecido` é correto (ausência de dado)
+     * Os 228 estão em 10 módulos: Whatsapp 57 · Infra 44 · **Sells 42** · Jana 38 · Pcp 20 ·
+     * **Ponto 10** · PaymentGateway 7 · ProjectMgmt 6 · Fiscal 3 · NFSe 1.
+     *
+     * Efeito: `desconhecido` não entra em `US_ENTREGUE`, logo a US **nunca** era acusada de
+     * "entregue sem contrato" — falso-VERDE de módulo inteiro. No Cliente o painel imprimia
+     * literalmente *"Nenhuma lacuna"* com 12 US entregues sem contrato.
+     *
+     * Aceita `status:` e `**Status:**` (negrito markdown — a forma que 228 US usam). Pega a
+     * PRIMEIRA ocorrência do bloco: é a linha de metadata, e não a palavra "status" que possa
+     * aparecer adiante em prosa/tabela sobre status de pedido.
+     */
+    let fim = i + 1;
+    while (fim < linhas.length && !/^#{1,3}\s/.test(linhas[fim])) fim++;
+    const meta = linhas.slice(i + 1, fim).join('\n');
+    const st = meta.match(/(?:^|\s|\*)status:\s*\*{0,2}\s*([a-z-]+)/i);
     out.push({ id: m[1], titulo: m[2].trim(), status: st ? st[1].toLowerCase() : 'desconhecido' });
   });
   return out;
@@ -314,7 +335,18 @@ if (IS_MAIN && args.includes('--selftest')) {
   ok('controle-negativo: "UC-" solto em prosa não vira id',
     extrairUC('o UC- do caso ainda não foi numerado').length === 0);
 
-  const TOTAL = 32;
+  // (5) status da US: bloco inteiro, não 3 linhas (achado do chip Cliente). 228 US liam
+  // `desconhecido` e por isso NUNCA eram acusadas de "entregue sem contrato" — falso-verde.
+  ok('MORDE: status fora da janela de 3 linhas é lido',
+    extrairUS('### US-CRM-001 · Ficha\ntexto\ntexto\ntexto\ntexto\n**Status:** done\n')[0].status === 'done');
+  ok('cobre: forma clássica na metadata (não regrediu)',
+    extrairUS('### US-PROD-020 · G\n\n> owner: wagner · status: todo · type: epic')[0].status === 'todo');
+  ok('controle-negativo: US sem status nenhum segue desconhecido',
+    extrairUS('### US-ARQ-001 · Scaffold\n**Implementado em:** `x.php`\n')[0].status === 'desconhecido');
+  ok('controle-negativo: status da US seguinte não vaza pra anterior',
+    extrairUS('### US-AA-001 · Um\ntexto\n### US-AA-002 · Dois\n> status: done')[0].status === 'desconhecido');
+
+  const TOTAL = 36;
   console.log(f === 0 ? `\n✅ selftest ${TOTAL}/${TOTAL} — extratores, classificador e anti-gaming provados` : `\n❌ ${f} falha(s)`);
   process.exit(f === 0 ? 0 : 1);
 }
