@@ -107,6 +107,22 @@ function listarTestes() {
     }
   };
   walk('tests'); walk('e2e');
+  /**
+   * `Modules/<X>/Tests` — a casa dos testes dos módulos nWidart (achado do chip S1, 2026-07-27).
+   *
+   * O `casos-coverage-guard` (REQUIRED) já varre `Modules`; esta porta não varria. Contado no
+   * dia: **Compras 10 · Fiscal 20 · Ponto 32 · NfeBrasil 47 · Financeiro 80** arquivos de teste
+   * invisíveis. Efeito: todo módulo nWidart aparecia com "UC com teste: 0" — falso-VERMELHO —
+   * e a lacuna "US entregue sem contrato" nunca fechava, por mais teste que se escrevesse.
+   * Pior no contexto do passo 5, cujo próprio plano manda o chip escrever em
+   * `Modules/<Mod>/Tests/Feature/` (é onde a lane do módulo procura).
+   *
+   * Varre o subdir `Tests` de cada módulo, NUNCA o módulo inteiro: UC citado em comentário de
+   * código de produção não é prova de teste — seria o `includes` cru que este arquivo já
+   * rejeitou pro CU (âncora ≠ prosa).
+   */
+  let mods; try { mods = readdirSync(join(ROOT, 'Modules'), { withFileTypes: true }); } catch { mods = []; }
+  for (const m of mods) if (m.isDirectory()) walk(`Modules/${m.name}/Tests`);
   return out;
 }
 
@@ -268,7 +284,15 @@ if (IS_MAIN && args.includes('--selftest')) {
   ok('controle-negativo: casos.md com UC declarado cobre',
     extrairUC('| UC-FISC-01 | Emitir NFe | must |').length === 1);
 
-  const TOTAL = 27;
+  // (3) corpus de testes: `Modules/<X>/Tests` conta (achado do chip S1). Sem isto, módulo
+  // nWidart aparecia com "UC com teste: 0" mesmo com 80 arquivos de teste no disco.
+  const corpusSelftest = listarTestes();
+  ok('MORDE: Modules/<X>/Tests entra no corpus de testes',
+    corpusSelftest.some((t) => t.path.startsWith('Modules/')));
+  ok('controle-negativo: só o subdir Tests — código de produção do módulo fica fora',
+    corpusSelftest.filter((t) => t.path.startsWith('Modules/')).every((t) => t.path.includes('/Tests/')));
+
+  const TOTAL = 29;
   console.log(f === 0 ? `\n✅ selftest ${TOTAL}/${TOTAL} — extratores, classificador e anti-gaming provados` : `\n❌ ${f} falha(s)`);
   process.exit(f === 0 ? 0 : 1);
 }
