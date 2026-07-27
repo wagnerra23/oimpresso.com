@@ -51,8 +51,16 @@ const PT_FILE = {
 // ─────────────────────────────────────────────────────────────────────────────
 const relRoot = (p, root) => resolve(p).replace(resolve(root), '').replace(/^[\\/]/, '').replace(/\\/g, '/');
 
-// "Página roteada" = .tsx em Pages/** fora de _components/_partials, sem .test/.charter.tsx
-// (mesma heurística do casos-coverage-guard.mjs — G-1).
+// "Página roteada" = .tsx em Pages/** fora de _components/_partials, sem .test/.charter.tsx.
+//
+// ⚠️ DIVERGE das duas portas que contam tela. Medido 2026-07-27: esta função enumera 280;
+// `casos-coverage-guard` e `screen-coverage-map` enumeram 235 (fonte única compartilhada
+// `isPageScreenPath`, scripts/qa/page-path.mjs). Os 45 a mais são arquivos de dir auxiliar
+// que o repo usa e este filtro não conhece (`_show`, `_drawer`, `_shared`, `_form`, `_lib`,
+// `components` sem underscore). O casos-guard tinha o MESMO buraco e foi reconciliado; esta
+// cópia ficou de fora conscientemente (catraca advisory com baseline próprio — migrar exige
+// regravar `ciclo-completo-baseline.json`, decisão [W]). NÃO cite o número daqui como
+// "telas do projeto": o dono desse número é `npm run screen-coverage:report`.
 function walkPages(pagesDir) {
   const out = [];
   if (!existsSync(pagesDir)) return out;

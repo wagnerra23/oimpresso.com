@@ -74,10 +74,17 @@ function walk(dir, acc = []) {
 }
 
 /**
- * Uma TELA é `.tsx` roteável sob Pages/**, excluindo (a) `_components/` e `Partials/`
- * (como o screen-coverage-map) e (b) QUALQUER segmento de pasta começando com `_`
- * (`_Showcase`, `_drawer`, …) — o passo que falta no screen-coverage-map e que separa
- * 279 (com ruído) de 242 (honesto). Também exclui `*.charter.tsx` e `*.test.*`.
+ * Uma TELA é `.tsx` roteável sob Pages/**, excluindo (a) `_components/` e `Partials/`,
+ * (b) QUALQUER segmento de pasta começando com `_` (`_Showcase`, `_drawer`, …). Também
+ * exclui `*.charter.tsx` e `*.test.*`.
+ *
+ * ⚠️ ERRATA 2026-07-27 — o texto anterior dizia que o `_`-prefixo era "o passo que falta no
+ * screen-coverage-map": FALSO hoje. O `PAGE_AUX_DIR` de scripts/qa/page-path.mjs já cobre
+ * `_.*` (e mais). A divergência hoje é o OPOSTO e é DESTE lado: medido 2026-07-27, este
+ * filtro conta 243 e as duas portas de cobertura contam 235 — os 8 a mais são `components/`
+ * SEM underscore (Compras, Jana, Financeiro/*), que `PAGE_AUX_DIR` exclui e este `isScreen`
+ * não. Migrar pra fonte única exige regravar `exposicao-tier0-baseline.json` (catraca
+ * advisory) — decisão [W], fora do escopo da reconciliação das duas portas.
  */
 function isScreen(relTsx) {
   if (!relTsx.endsWith('.tsx')) return false;

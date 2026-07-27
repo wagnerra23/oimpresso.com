@@ -83,6 +83,39 @@ describe('casos:check — G-1 trio-de-tela (físico)', () => {
     const out = run('');
     expect(out).toMatch(/Sem violações novas/);
   });
+
+  // ── Reconciliação 2026-07-27 (divergência 280 vs 235 entre casos:report e screen-coverage) ──
+  // O guard filtrava só a string literal `/_components/`; o repo usa outras convenções de dir
+  // auxiliar. 45 NÃO-telas (Cliente/_form/Field.tsx, Fiscal/_lib/linkify.tsx, …) eram cobradas
+  // de charter+casos e inflavam o denominador. Fix: `isPageScreenPath` (scripts/qa/page-path.mjs),
+  // a MESMA fonte única do screen-coverage-map. Fixtures usam os dirs REAIS achados no repo —
+  // não inventados: sem isto, a correção podia quebrar calada num rename de PAGE_AUX_DIR.
+  it('ESPECIFICIDADE: dirs auxiliares REAIS do repo (_show/_drawer/_shared/_form/_lib/components) NÃO são página', () => {
+    for (const rel of [
+      'resources/js/Pages/Cliente/_show/SalesTab.tsx',      // 13 arquivos assim no repo
+      'resources/js/Pages/Cliente/_drawer/AuditoriaTab.tsx', // 10
+      'resources/js/Pages/Compras/components/Drawer.tsx',    // 8 (sem underscore!)
+      'resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx', // 7
+      'resources/js/Pages/Cliente/_form/Field.tsx',          // 4
+      'resources/js/Pages/Fiscal/_lib/linkify.tsx',          // 1
+    ]) write(rel, 'export default () => null');
+    // Nenhum é tela → nenhum exige trio → baseline vazio e check verde SEM absorver nada.
+    const out = run('--json');
+    expect(out).toMatch(/"pages": 0/);
+    expect(out).not.toMatch(/trio:missing/);
+  });
+
+  it('CONTROLE POSITIVO: tela REAL ao lado dos auxiliares CONTINUA exigindo trio (não afrouxou)', () => {
+    // O risco de trocar o filtro é excluir demais e o gate parar de morder. Esta fixture põe
+    // uma tela legítima na MESMA árvore dos auxiliares: ela tem que seguir sendo cobrada.
+    write('resources/js/Pages/Cliente/_form/Field.tsx', 'export default () => null');
+    write('resources/js/Pages/Cliente/Index.tsx', 'export default function Index() { return null }');
+    const out = runExpectFail('--json'); // sem baseline → violação nova
+    expect(out).toMatch(/"pages": 1/); // 1 tela, não 2
+    expect(out).toMatch(/trio:missing-charter:resources\/js\/Pages\/Cliente\/Index\.tsx/);
+    expect(out).toMatch(/trio:missing-casos:resources\/js\/Pages\/Cliente\/Index\.tsx/);
+    expect(out).not.toMatch(/_form\/Field/); // o auxiliar NÃO é cobrado
+  });
 });
 
 describe('casos:check — G-2 rastreabilidade caso↔teste (físico)', () => {
