@@ -17,17 +17,19 @@ tier: A
 charter_version: 1
 ---
 
-# Page Charter — `/forja` cockpit (DRAFT · Onda Forja · 6 abas reais)
+# Page Charter — `/forja` cockpit (DRAFT · Onda Forja)
 
-> Cockpit do cowork loop (humano ↔ agente) — **as 6 abas são reais**: Triagem (proposta + dossiê), Backlog (agrupável Onda/Fase/Papel/Prioridade/Módulo), Quadro (board F0→F3.5), Changelog (PRs/ADRs/sessões), MCP (contrato/tokens/auditoria — **MOCKADO por design**), Saúde (KPIs + WIP por fase + automação). Cada aba projeta `mcp_tasks` project=FORJA + git/ADR/sessão + gates (`ScorecardBuilderService`) — **sem dado fantasma**. **Absorção em TeamMcp** (não é módulo novo). Backend: `ForjaController` + `Modules/TeamMcp/Services/Forja/*Service`. Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Ref: [forja-cockpit-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
+> Cockpit do cowork loop (humano ↔ agente) — abas: Triagem (proposta + dossiê), Backlog (agrupável Onda/Fase/Papel/Prioridade/Módulo), Quadro (board F0→F3.5), Changelog (PRs/ADRs/sessões), MCP (contrato/tokens/auditoria — **MOCKADO por design**), Saúde (KPIs + WIP por fase + automação). Cada aba projeta `mcp_tasks` project=FORJA + git/ADR/sessão + gates (`ScorecardBuilderService`) — **sem dado fantasma**. **Absorção em TeamMcp** (não é módulo novo). Backend: `ForjaController` + `Modules/TeamMcp/Services/Forja/*Service`. Persona: Wagner [W] (superadmin, `jana.mcp.usage.all`). Ref: [forja-cockpit-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
+
+> ⚠️ **Errata 2026-07-27.** Este charter afirmava "6 abas reais" incluindo `/forja/saude`, e a permissão `copiloto.mcp.usage.all`. Ambas ficaram stale. Medido em 2026-07-27: **5** rotas GET de aba sob `/forja` (`route:list --path=forja` no CT 100 — sem `forja.saude`; Saúde foi fundida no `/team-mcp/scorecard`) e **9** itens de topnav em `config/core_topnavs.php['Forja']` desde a fusão com o hub TeamMcp (2026-06-16). A permissão virou `jana.mcp.usage.all` no [#4853](https://github.com/wagnerra23/oimpresso.com/pull/4853) — `git grep -l "copiloto.mcp.usage.all" -- '*.php'` = **0**. Detalhe e recibos no [Cockpit.casos.md](Cockpit.casos.md).
 
 ## Mission
 
-Cockpit **read-only** de observabilidade/governança do próprio loop de desenvolvimento. **Projeta** estado que já existe (`mcp_tasks` + git/PR/ADR/sessão + gates/memory-health) — **sem dado fantasma**. Header fixo (Forja + subtítulo do loop) + 6 abas: Triagem · Backlog · Quadro (F0→F4) · Changelog · MCP · Saúde.
+Cockpit **read-only** de observabilidade/governança do próprio loop de desenvolvimento. **Projeta** estado que já existe (`mcp_tasks` + git/PR/ADR/sessão + gates/memory-health) — **sem dado fantasma**. Header fixo (Forja + subtítulo do loop) + as abas do hub: Triagem · Backlog · Quadro (F0→F4) · Changelog · MCP (próprias) + Tarefas · Equipe · CC Sessions · Saúde (TeamMcp absorvido).
 
 ## Goals — Features (faz)
 
-- **Shell navegável** (PR-A): entry "Forja" na sidebar + topnav de 6 abas + rotas `/forja`, `/forja/{backlog,quadro,changelog,mcp,saude}` + landing (Triagem).
+- **Shell navegável** (PR-A): entry "Forja" na sidebar + topnav do hub + rotas `/forja`, `/forja/{backlog,quadro,changelog,mcp}` + landing (Triagem).
 - Cada rota renderiza o mesmo shell `Cockpit.tsx` com a aba ativa via prop `tab` (topnav highlight por URL).
 - **Triagem REAL** (esta PR): a aba Triagem (`/forja`) projeta `mcp_tasks` project=FORJA em estado de triagem (`McpTask::triage()`: sem owner OU sem priority OU backlog) via `Inertia::defer` (`tickets`/`triagemCount`). Linha = ID mono · badge de tipo (Tela=roxo `bg-primary/10`, Bug=âmbar, Refino=azul) · título · tag de módulo · selo `[CC]` · botão roxo **Analisar** → **dossiê lateral** (`ForjaDossier`, reusa o padrão Analista de ProjectMgmt) com **Aprovar→backlog / Rejeitar / Fundir** (`/forja/{taskId}/{dossier,aprovar,rejeitar,fundir}`). Navegação `J/K` + `Enter` (abre dossiê). Header: sino com badge, busca **⌘K** (trigger do command palette do AppShellV2), primária roxa **Novo issue**. Eyebrow: `DESENVOLVIMENTO · MCP · PROJEÇÃO DO GIT`.
 - Abas reais restantes entregues incrementalmente (B Saúde · C Changelog · D Backlog · E Quadro · G MCP).
@@ -57,15 +59,15 @@ Cockpit **read-only** de observabilidade/governança do próprio loop de desenvo
 
 ## Restrições Tier 0
 
-- Permissão `copiloto.mcp.usage.all` no construtor do `ForjaController`.
+- Permissão `jana.mcp.usage.all` no construtor do `ForjaController`.
 - Repo-wide cross-business INTENCIONAL (ADR 0093) — governança da plataforma.
 - `mcp_*` sem `business_id` por design.
 
 ## Métricas de sucesso (validação Wagner)
 
-- ✅ As 6 rotas `/forja/*` respondem (sem 500 / tela branca).
-- ✅ Entry "Forja" aparece na sidebar e o topnav de 6 abas navega + destaca a ativa.
+- ✅ As **5** rotas de aba `/forja/*` respondem (sem 500 / tela branca) — Saúde não tem rota própria (fundida no `/team-mcp/scorecard`).
+- ✅ Entry "Forja" aparece na sidebar e o topnav do hub (9 itens: 5 próprios + 4 do TeamMcp absorvido) navega + destaca o ativo.
 - ✅ Sem cor crua / PageHeader canon (conformance/foundation/layout/pageheader verdes).
-- ✅ Acesso negado (403) sem `copiloto.mcp.usage.all`.
+- ✅ Acesso negado (403) sem `jana.mcp.usage.all`.
 - ✅ **Triagem fiel ao protótipo:** após `php artisan db:seed --class="Modules\TeamMcp\Database\Seeders\ForjaDemoTicketsSeeder"`, `/forja` lista FORJA-152 (Tela·KB), FORJA-151 (Bug·Financeiro), FORJA-150 (Refino·Atendimento), cada um com badge de tipo colorido + tag de módulo + selo `[CC]` + botão roxo Analisar; aba mostra badge 3.
 - ✅ **Analisar** abre o dossiê lateral (valor×esforço, risco Tier-0, duplicatas, Aprovar→backlog / Rejeitar / Fundir) — `GET /forja/{id}/dossier` + `POST /forja/{id}/{aprovar,rejeitar,fundir}`.
