@@ -35,6 +35,13 @@ function bxCleanup(Titulo $t): void
  *  (G3) baixa PARCIAL: valor < aberto → status 'parcial' + valor_aberto reduzido
  *  (G4) conta cross-tenant/inexistente rejeitada (não cria baixa)
  *  (G5) body vazio = comportamento legacy (baixa instantânea) preservado
+ *
+ * ⚠️ 2026-07-27 — a descrição do G3 ("marca parcial") é STALE: o corpo asserte o
+ * SPLIT correto (filho quitado + pai reduzido) desde 2026-06-04. Mantida como está
+ * nesta onda pra não misturar escopo; o contrato canônico é o SDD §6.1 CU-FIN-02
+ * (`UC-FUNI-01`, `BaixaConservacaoValorContratoTest`).
+ *
+ * @covers-us US-FIN-003
  */
 
 function bxBootstrap(): array

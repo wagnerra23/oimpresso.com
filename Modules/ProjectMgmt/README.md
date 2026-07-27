@@ -7,7 +7,7 @@
 ## Status
 - **Versão:** 0.1 (em construção)
 - **Stack:** Laravel 13.6 + Inertia v3 + React 19 + Tailwind 4
-- **Permissão:** `copiloto.mcp.usage.all` (herdada do TeamMcp legacy)
+- **Permissão:** `jana.mcp.usage.all` (herdada do TeamMcp legacy)
 - **Tenant:** Multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
 
 ## Como o cliente usa
