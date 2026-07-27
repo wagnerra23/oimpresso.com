@@ -107,7 +107,7 @@ interface BoardPageProps {
 type Status = 'backlog' | 'todo' | 'doing' | 'review' | 'done' | 'blocked' | 'cancelled';
 ```
 
-**Server-side query rule (Tier 0 multi-tenant):** todas queries scoped por `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)). Permission `copiloto.mcp.usage.all` (pattern UltimatePOS).
+**Server-side query rule (Tier 0 multi-tenant):** todas queries scoped por `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)). Permission `jana.mcp.usage.all` (pattern UltimatePOS).
 
 ## 5. Fluxos críticos (golden path + edge — incluindo gaps a fechar)
 
@@ -165,7 +165,7 @@ Documentado no top do `Board/Index.tsx` mas NÃO implementado:
 | Esc | Fechar Sheet | 🟡 dependente do gap 5.3 |
 | ? | Overlay help shortcuts | ❌ não impl |
 
-### 5.6. Edge — sem permissão `copiloto.mcp.usage.all`
+### 5.6. Edge — sem permissão `jana.mcp.usage.all`
 
 - Usuário sem perm → middleware UltimatePOS bloqueia rota → redirect /home com flash error
 - Usuário com perm mas sem `tasks.write` (granular) → cards são read-only (drag desabilitado), botões `+ add` escondidos

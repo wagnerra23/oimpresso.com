@@ -20,6 +20,14 @@ uses(Tests\TestCase::class);
  *  5. `?limit` clamped em [10, 200]
  *
  * Skip gracioso (Financeiro convention) quando DB greenfield ou subscription gate.
+ *
+ * 2026-07-27 (onda sdd-from-source) — os `it()` passam a CITAR o UC do contrato
+ * (`resources/js/Pages/Financeiro/Caixa/Index.casos.md`, derivado do SDD §6.3
+ * CU-FIN-20..22). Só o TÍTULO mudou: nenhum corpo/asserção foi tocado.
+ *
+ * Sem `@covers-us`: a tela Caixa NÃO tem US própria no SPEC (o docblock antigo
+ * inventava "US-FIN-CAIXA", que não existe). Ancorar num US alheio seria âncora
+ * falsa — o contrato vive no SDD §6.3 e no casos.md. Gap declarado, não inventado.
  */
 function caixaBootstrap(): User
 {
@@ -52,7 +60,7 @@ function caixaBootstrap(): User
     return $user;
 }
 
-it('renderiza Inertia component Financeiro/Caixa/Index com shape esperado', function () {
+it('UC-FCX-01 · renderiza Inertia component Financeiro/Caixa/Index com shape esperado', function () {
     $user = caixaBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/caixa');
@@ -70,7 +78,7 @@ it('renderiza Inertia component Financeiro/Caixa/Index com shape esperado', func
     );
 });
 
-it('bloqueia user sem permission view_cash_register (403)', function () {
+it('UC-FCX-05 · bloqueia user sem permission view_cash_register (403)', function () {
     $business = Business::first();
     if (! $business) {
         $this->markTestSkipped('Sem business.');
@@ -96,7 +104,7 @@ it('bloqueia user sem permission view_cash_register (403)', function () {
     expect($response->status())->toBeIn([403, 302]); // 403 forbidden ou redirect login
 });
 
-it('aplica filtro ?status=open na query', function () {
+it('UC-FCX-02 · aplica filtro ?status=open na query', function () {
     $user = caixaBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/caixa?status=open');
@@ -107,7 +115,7 @@ it('aplica filtro ?status=open na query', function () {
     );
 });
 
-it('clamp ?limit acima de 200 vira 200', function () {
+it('UC-FCX-03 · clamp ?limit acima de 200 vira 200', function () {
     $user = caixaBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/caixa?limit=9999');
@@ -118,7 +126,7 @@ it('clamp ?limit acima de 200 vira 200', function () {
     );
 });
 
-it('clamp ?limit abaixo de 10 vira 10', function () {
+it('UC-FCX-03 · clamp ?limit abaixo de 10 vira 10', function () {
     $user = caixaBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/caixa?limit=1');
@@ -129,7 +137,7 @@ it('clamp ?limit abaixo de 10 vira 10', function () {
     );
 });
 
-it('Tier 0 multi-tenant — não vaza caixa de outro business', function () {
+it('UC-FCX-04 · Tier 0 multi-tenant — não vaza caixa de outro business', function () {
     $userA = caixaBootstrap();
     $businessA = Business::find($userA->business_id);
     $businessB = Business::where('id', '!=', $businessA->id)->first();

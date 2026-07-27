@@ -112,6 +112,15 @@ jobs:
         # memory/sessions/2026-06-04-financeiro-suite-landscape.md.
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — eles dropam o
         # schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
+        #
+        # 2026-07-27 (onda sdd-from-source · passo 5): +2 arquivos.
+        #   · BaixaConservacaoValorContratoTest — NOVO, contrato [V0] da baixa
+        #     (UC-FUNI-01..04 / SDD §6.1 CU-FIN-02..05). Sem RefreshDatabase; cria e
+        #     limpa os próprios títulos; pré-condição anti-vácuo antes de cada invariante.
+        #   · CaixaControllerTest — JÁ EXISTIA e não rodava em lane nenhuma (UC-FCX-01..05).
+        #     Read-only (só GET), sem RefreshDatabase, skip-guarded. Entrou SEM run prévio
+        #     no CT 100 — este PR é a 1ª execução real; se avermelhar, o ❌ é o achado
+        #     (decisão de [W]), não conserto silencioso.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -146,7 +155,9 @@ jobs:
             Modules/Financeiro/Tests/Feature/UnificadoConferirTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoUpdateTest.php \
             Modules/Financeiro/Tests/Feature/AccountTransactionIdorTest.php \
-            Modules/Financeiro/Tests/Feature/ImpostosGuardTest.php
+            Modules/Financeiro/Tests/Feature/ImpostosGuardTest.php \
+            Modules/Financeiro/Tests/Feature/BaixaConservacaoValorContratoTest.php \
+            Modules/Financeiro/Tests/Feature/CaixaControllerTest.php
 
       # Onda Q2 (G-7 / Salto #2): o JUnit do Pest alimenta o manifesto por-UC
       # (casos:results MERGE per-UC — vereditos UC-F01..03 do RetencaoLoopE2ETest).
