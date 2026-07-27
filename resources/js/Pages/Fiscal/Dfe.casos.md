@@ -1,4 +1,4 @@
----
+| _(backlog)_ |undefined| — | — | — | 📝 sem teste que o cubra hoje |
 id: resources-js-pages-fiscal-dfe-casos
 casos: Manifesto DF-e · /fiscal/dfe
 irmaos: Dfe.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md (§6 CU)
@@ -59,7 +59,12 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - **Teste:** `DfeControllerTest` — `it('UC-FDFE-02 · isPendenteManifestacao retorna true pra status PENDENTE e CIENCIA')` e `it('UC-FDFE-02 · STATUS constants estão definidas — Controller depende delas pra filtros')`
 - **Status:** 🧪 advisory + noturna.
 
-## UC-FDFE-03 — Só existem quatro manifestações, e elas são as da SEFAZ `[must]`
+## [BACKLOG] Só existem quatro manifestações, e elas são as da SEFAZ `[must]`
+
+> **Era `UC-FDFE-03`, rebaixado a `[BACKLOG]` em 2026-07-27.** Nenhum teste o citava —
+> UC órfão não é contrato: o G-2 pune e o merge de quem for implementar TRAVA
+> (proibicoes §5 2026-07-16). O comportamento fica descrito aqui e volta a ser UC
+> com id assim que ganhar um teste que o exercite.
 
 **Dado** uma nota recebida
 **Quando** a contadora escolhe o que fazer
@@ -69,7 +74,12 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - **Teste:** `Modules/Fiscal/Tests/Feature/AcoesControllerTest.php` — `it('UC-FDFE-03 · manifestarDfe whitelist exatamente 4 ações canon SEFAZ')`
 - **Status:** 🧪 advisory + noturna.
 
-## UC-FDFE-04 — Desconhecer e "não realizada" exigem justificativa; ciência e confirmação não `[must]`
+## [BACKLOG] Desconhecer e "não realizada" exigem justificativa; ciência e confirmação não `[must]`
+
+> **Era `UC-FDFE-04`, rebaixado a `[BACKLOG]` em 2026-07-27.** Nenhum teste o citava —
+> UC órfão não é contrato: o G-2 pune e o merge de quem for implementar TRAVA
+> (proibicoes §5 2026-07-16). O comportamento fica descrito aqui e volta a ser UC
+> com id assim que ganhar um teste que o exercite.
 
 **Dado** a ação escolhida
 **Quando** é desconhecer ou declarar operação não realizada
