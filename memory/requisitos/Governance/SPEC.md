@@ -892,6 +892,8 @@ Duas saídas que o próprio gate oferece: **(a)** citar na fila ativa do `COWORK
 
 Dono do ato = quem opera o loop Cowork. Escalado a [W] porque **17 dias de vermelho sem dono é o sintoma**, não a causa.
 
+**Levantado em 2026-07-27 — evidência PARCIAL, não fecha a decisão:** dos 3, **2 já pousaram no essencial** — `cockpit_domains.css` existe (`scripts/design-sync/mirror-snapshot/`) e os tokens de domínio estão no SSOT (`resources/css/tokens/semantic.tokens.json`, ex. `kind-*-soft`). **Mas o objetivo final não se cumpriu:** `prototipo-ui/cowork/ds-v6/tokens.css` **ainda está no git**, e deletá-lo era justamente o ponto dos dois prompts. Por isso não foi arquivado como "pousado" — seria afirmar conclusão sem prova completa. O 3º (`ESTRUTURA-COWORK-ATUALIZADA`, toca `CLAUDE.md`) não foi verificado. Complicador: a fila do `COWORK_NOTES.md` está **🧊 congelada pra novos itens** (Onda B, [W] 2026-06-16), então "citar na fila ativa" contraria o congelamento — a saída provavelmente é GitHub Issue ou `_arquivo/`, e essa escolha é do dono do loop Cowork.
+
 **Aceite:** `npm run handoff:report` volta a `órfãos 0/0` (ou o baseline reflete a dívida decidida), e o check fica verde no `main`.
 
 ---
