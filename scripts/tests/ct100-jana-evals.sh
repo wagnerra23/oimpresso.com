@@ -116,7 +116,69 @@ log "=== ct100-jana-evals (US-COPI-140) · container=$CONTAINER · sample=$SAMPL
 # em prod pelo scheduler do hPanel (log copiloto-ai 05/07 e 12/07 06:01). Invocá-lo
 # daqui rodaria o canary DUAS vezes por semana, uma delas contra o corpus errado.
 run_eval "recall-eval" jana:recall-eval --mode=real
-run_eval "ragas-real-eval" jana:ragas-real-eval --json "${SAMPLE_ARG[@]}"
+
+# ── ragas-real-eval + ELO DO ALERTA ─────────────────────────────────────────────
+# Captura o JSON pra poder ESCALAR. Sem isto o vermelho morre aqui: o `onFailure` do
+# app/Console/Kernel.php NÃO dispara (quem invoca é este cron, não o scheduler do
+# Laravel), e no read-side o `measureRagasRealUptime` conta semana `fail` como VÁLIDA
+# de propósito (a métrica é uptime, não qualidade). Medido no domingo 2026-07-26:
+# gate_status=fail, context_recall 0.3461 < piso 0.36, e ninguém foi avisado.
+#
+# tee = o log segue com a saída COMPLETA (não mascara nada); a cópia é só pro parse.
+RAGAS_OUT="$(mktemp)"
+trap 'rm -f "$RAGAS_OUT"' EXIT
+log "--- ragas-real-eval: início"
+set +e
+docker exec -e DB_CONNECTION=mysql "$CONTAINER" php artisan jana:ragas-real-eval --json "${SAMPLE_ARG[@]}" 2>&1 | tee "$RAGAS_OUT"
+rc_ragas=${PIPESTATUS[0]}
+set -e
+if [ "$rc_ragas" -eq 0 ]; then
+  log "--- ragas-real-eval: OK (exit 0)"
+else
+  log "--- ragas-real-eval: FALHOU (exit $rc_ragas) — ver saída acima. NÃO mascarado."
+  rc_total=1
+fi
+
+# Escala pro canal HITL do brief (mcp_alertas_eventos) reusando a régua canônica
+# PersistsDriftAlert (ADR 0216): idempotência diária + escalonamento >3d.
+# ⚠️ O artisan do ALERTA roda no container `oimpresso-mcp`, NÃO no de staging: o banco
+# do staging tem 15 tabelas e não tem `mcp_alertas_eventos`. Mesmo split do
+# staging-freshness — detecção onde o dado está, persistência onde o alerta vive.
+# Fail-open: problema no elo NUNCA muda o veredito do eval (rc_total intocado).
+escalar_alerta() {
+  command -v python3 >/dev/null 2>&1 || { log "--- alerta: python3 ausente no host — pulado (fail-open)"; return 0; }
+  local args
+  args="$(python3 - "$RAGAS_OUT" <<'PY' 2>/dev/null || true
+import json, re, sys, shlex
+raw = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+i, j = raw.find("{"), raw.rfind("}")
+if i < 0 or j <= i:
+    sys.exit(1)
+d = json.loads(raw[i:j+1])
+if str(d.get("gate_status", "")).lower() != "fail":
+    sys.exit(2)   # pass/skipped: nada a escalar
+out = ["--gate-status=fail"]
+for flag, key in (("--week", "week"), ("--faithfulness", "faithfulness_avg"),
+                  ("--relevancy", "relevancy_avg"), ("--context-recall", "context_recall_avg"),
+                  ("--n-evaluated", "n_evaluated")):
+    v = d.get(key)
+    if v is not None:
+        out.append("%s=%s" % (flag, v))
+print(" ".join(shlex.quote(a) for a in out))
+PY
+)"
+  [ -z "$args" ] && { log "--- alerta: gate_status != fail (ou JSON ilegível) — nada a escalar"; return 0; }
+  log "--- alerta: escalando pro HITL (mcp_alertas_eventos) — $args"
+  set +e
+  # shellcheck disable=SC2086
+  docker exec oimpresso-mcp php artisan governance:ragas-eval-alert $args
+  local rca=$?
+  set -e
+  [ $rca -eq 0 ] && log "--- alerta: persistido (ou idempotente no dia)" \
+                 || log "--- alerta: FALHOU (exit $rca) — eval segue valendo, elo é fail-open"
+  return 0
+}
+escalar_alerta
 
 if [ $rc_total -eq 0 ]; then
   log "=== todos os evals invocados sem erro ==="
