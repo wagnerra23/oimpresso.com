@@ -919,7 +919,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-INFRA-043 · Sentinela tasks:unassigned — flag US todo sem cycle/owner (fecha furo do roadmap)
 
-**Implementado em:** `Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php` · `Modules/Jana/Tests/Feature/TaskRegistry/McpTasksUnassignedCommandTest.php` · verificado@8af585a (2026-07-02) — comando `mcp:tasks:unassigned` (espelha orphans) com Pest
+**Implementado em:** `Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php` · `Modules/Jana/Tests/Feature/TaskRegistry/McpTasksUnassignedCommandTest.php` · verificado@8af585a (2026-07-02) — comando `mcp:tasks:unassigned` (espelha orphans) com Pest · **wiring 2026-07-27:** `app/Console/Kernel.php` (schedule 06:45 BRT) · `Modules/Jana/Services/TasksSemDonoBriefLineService.php` + `Modules/Brief/Console/Commands/GenerateBriefCommand.php` (acceptance #2) · `Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php`
 
 > owner: — · priority: p2 · estimate: 5h · status: done · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
@@ -929,9 +929,11 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Achado:** toda US criada por `tasks-create` nasce `todo`/`unowned`/sem-cycle → invisível no roadmap (Jana filtra por `cycle_id`, ProjectMgmt por `epic_id`) e nada cobra a triagem. Foi exatamente o que aconteceu com as 6 US desta auditoria (PR #3164).
 
 **Acceptance:**
-- Comando `mcp:tasks:unassigned` (espelha `mcp:tasks:orphans` + `plan-health.mjs`): lista US `status=todo` AND (`cycle_id IS NULL` OR `owner IS NULL`) há > N dias.
-- Saída `--json` pro Daily Brief.
-- Opção de virar ratchet (exit 1) quando estabilizar.
+- ✅ Comando `mcp:tasks:unassigned` (espelha `mcp:tasks:orphans` + `plan-health.mjs`): lista US `status=todo` AND (`cycle_id IS NULL` OR `owner IS NULL`) há > N dias.
+- ✅ Saída `--json` pro Daily Brief. _(entregue só em 2026-07-27 — ver correção abaixo)_
+- ⏳ Opção de virar ratchet (exit 1) quando estabilizar. — o `--strict` EXISTE no comando, mas **não está ligado em lugar nenhum**, e ligar hoje seria prematuro (medição 2026-07-27: ≥50 US não atribuídas). Promoção a ratchet é flip [W] com mordida provada ([ADR 0336](../../decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)); o cron das 06:45 existe pra produzir a série que sustenta essa decisão.
+
+**Correção de honestidade (2026-07-27):** esta US esteve `status: done` por ~1 mês com a acceptance #2 **não entregue**. O comando existia com Pest, mas a varredura contada (`git grep "tasks:unassigned"` — 14 ocorrências, 7 arquivos) mostrou **ZERO invocadores**: nada em `app/Console/Kernel.php`, workflow, `package.json` ou `.claude/`. Máquina órfã — existia, mordia em teste, não rodava. Consequência medida no mesmo dia via `triage`: **≥50 US sem owner** (teto da consulta), incluindo `US-AUDIT-001..010` já `done` que nunca tiveram dono — e a própria US-INFRA-043 com `owner: —`. Ligada agora (schedule + linha no brief). Classe catalogada em [proibicoes.md §"Sempre fazer"](../../proibicoes.md) — *máquina que existe e ninguém invoca é bug, não neutralidade*.
 
 ### US-INFRA-044 · Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB
 
