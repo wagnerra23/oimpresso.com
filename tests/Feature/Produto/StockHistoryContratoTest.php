@@ -1,6 +1,9 @@
 <?php
 
 declare(strict_types=1);
+
+// @covers-us US-PROD-021 (parcial — só o 1º item do aceite: `movements` via Inertia::defer.
+// Cor semântica, hero KPIs 30d e smoke biz=1 seguem fora deste teste.)
 // Cobre UC-PSTK-01, UC-PSTK-02, UC-PSTK-03 (StockHistory.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
