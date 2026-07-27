@@ -33,6 +33,14 @@
  *   node scripts/qa/exposicao-tier0.mjs --json     # + grava baseline (uso consciente)
  *   node scripts/qa/exposicao-tier0.mjs --trend    # tendência vs baseline (cron semanal)
  *   node scripts/qa/exposicao-tier0.mjs --check     # exit 1 se o PISO quente regredir
+ *   node scripts/qa/exposicao-tier0.mjs --stdout   # JSON puro no stdout (NÃO grava nada)
+ *
+ * `--stdout` existe pro Daily Brief: o brief é PHP e a sentinela é Node, então
+ * ExposicaoTier0BriefLineService faz shell-out + json_decode (mesmo idioma de
+ * PlanHealthBriefLineService). Precisa de JSON LIMPO — o modo default imprime o
+ * relatório de texto e `--json` GRAVA o baseline, nenhum dos dois serve pra ser
+ * consumido 6x/dia pelo cron do brief. Inclui `trend` (delta vs baseline) para o
+ * cálculo do delta viver AQUI, na sentinela, e não ser reimplementado em PHP.
  *
  * BASELINE: memory/governance/exposicao-tier0-baseline.json (o que a catraca lê).
  *
@@ -312,7 +320,33 @@ function report() {
 // =====================================================================================
 // MODOS
 // =====================================================================================
-report();
+
+// `--stdout` = JSON puro pro consumo do Daily Brief (PHP). Suprime o relatório de
+// texto — senão o stdout vira "texto + JSON" e o json_decode do lado PHP falha.
+// NÃO grava baseline (só `--json` grava) e NÃO altera exit code.
+if (flags.has('--stdout')) {
+  // `trend` fica AQUI (e não no PHP) pela mesma razão do PlanHealth: quem conta é a
+  // sentinela. Delta calculado à parte do bloco `--trend` de propósito — mexer naquele
+  // caminho arriscaria o cron semanal que já roda, e são 3 subtrações.
+  let trend = null;
+  if (existsSync(BASELINE)) {
+    try {
+      const prev = JSON.parse(readFileSync(BASELINE, 'utf8')).aggregates ?? {};
+      trend = {
+        hot_debt_delta: aggregates.hot_debt - (prev.hot_debt ?? aggregates.hot_debt),
+        hot_covered_delta: aggregates.hot_covered - (prev.hot_covered ?? aggregates.hot_covered),
+        tier0_hot_delta: aggregates.tier0_hot - (prev.tier0_hot ?? aggregates.tier0_hot),
+      };
+      // Piso Tier-0 só sobe (ADR 0256): cobertura menor que o baseline = regressão.
+      trend.piso_regrediu = trend.hot_covered_delta < 0;
+    } catch {
+      trend = null; // baseline corrompido → sem delta, mas o snapshot atual ainda serve.
+    }
+  }
+  console.log(JSON.stringify({ ...snapshot, trend }));
+} else {
+  report();
+}
 
 if (flags.has('--json')) {
   writeFileSync(BASELINE, JSON.stringify(snapshot, null, 2) + '\n');
