@@ -2,6 +2,7 @@
 
 namespace Modules\Ponto\Tests\Feature;
 
+use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Ponto\Entities\BancoHorasMovimento;
