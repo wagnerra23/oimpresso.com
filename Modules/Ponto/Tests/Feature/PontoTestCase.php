@@ -70,6 +70,7 @@ abstract class PontoTestCase extends TestCase
         foreach ($perms as $name) {
             Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
         }
+        $role = Role::where('name', "Admin#{$businessId}")->first();
         // A role PODE não existir na lane de CI (banco sem o seeder do UltimatePOS).
         // A 1ª versão fazia `if ($role) {...}` e, sem role, saía em silêncio SEM conceder
         // permissão nenhuma — todo teste que exige `ponto.*` caía em 403 e a lane inteira
