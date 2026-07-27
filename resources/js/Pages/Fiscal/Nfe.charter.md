@@ -11,9 +11,7 @@ created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-001]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
-prototypes:
-  - prototipo-ui/Oimpresso ERP - Chat.html (fiscal-page.jsx §9 FiscalNFePage)
-  - prototipo-ui/fiscal-page.css
+prototypes: []   # corrigido 2026-07-27 — os 2 paths declarados aqui não existem (recibo no rodapé)
 ---
 
 # Charter — `Fiscal/Nfe`
@@ -73,3 +71,18 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 - **R1:** lista carrega lenta se business tem >10k notas — mitigação: defer + paginate 50 + index em `emitido_em DESC`.
 - **R2:** metadata->dest_name pode estar vazio em notas antigas pré-Sprint 3 ARQ-019 — fallback "—".
 - **R3:** janela 24h vs UTC vs America/Sao_Paulo — Controller usa `now()` (timezone do app); pílula JS usa `Date.now()` (browser timezone). Risco baixo porque comparação é minutos antes da deadline, não horas; futuro: passar `nowMs` server-rendered pra precisão.
+
+---
+
+## Reconciliação factual — 2026-07-27 (`sdd-from-source`, Fase 2.6)
+
+**Só FATO foi corrigido. Nenhuma intenção (Mission, Goals, Non-Goals, Anti-hooks, UX targets) foi tocada** — intenção é de [W].
+
+| O que dizia | O que é | Evidência |
+|---|---|---|
+| `prototypes: prototipo-ui/Oimpresso ERP - Chat.html` · `prototipo-ui/fiscal-page.css` | **nenhum dos dois existe**, e não há protótipo fiscal algum no repositório | `ls "prototipo-ui/Oimpresso ERP - Chat.html"` e `ls prototipo-ui/fiscal-page.css` → *No such file or directory*; `find prototipo-ui -maxdepth 2 -iname "*fiscal*"` → **0 resultados** |
+
+O campo `related_prototype` desta tela **já** declarava `n/a (herda PT-01 Lista; segue o Padrão de Tela)` — a lista `prototypes:` era o resíduo que contradizia. Os dois campos agora concordam.
+Consequência que **não** é dívida: sem protótipo, esta tela não é ancorável por `proto-baseline`; é o caso "nasce do Design System" (SDD §4).
+
+Contexto completo: [`memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md`](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md) §4 · contrato de teste em [`Nfe.casos.md`](Nfe.casos.md).
