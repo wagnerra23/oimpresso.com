@@ -67,6 +67,7 @@ jobs:
             "jana-pest.yml:pest-jana-junit" \
             "nfebrasil-pest.yml:pest-nfebrasil-junit" \
             "arquivos-pest.yml:pest-arquivos-junit" \
+            "sells-pest.yml:pest-sells-junit" \
             "teammcp-pest.yml:pest-teammcp-junit" \
             "e2e-gate.yml:casos-test-results" \
           ; do

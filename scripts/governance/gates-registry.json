@@ -464,6 +464,13 @@
       "nome": "Screen Coverage Gate (catraca de cobertura)",
       "classe": "gate"
     },
+    "sells-pest.yml": {
+      "nome": "Sells · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-10",
+      "anchor": "Varredura contada 2026-07-27: NENHUMA das 9 lanes `DB_CONNECTION: mysql` inclui Sells, e 0 dos 214 alvos de .github/ci-sqlite-pest.list é de tests/Feature/Sells/ — os 72 arquivos de teste de Sells não rodavam em CI nenhum (proibição Tier 0 'Tests sem CI = falsa cobertura'). Custo real: Sells/Show.tsx chegou ao TOPO do débito Tier-0 (exposicao-tier0.mjs score 11, dinheiro+estoque+fiscal) com cobertura só ESTRUTURAL (file_get_contents + match de string), e o Wave1ShowInertiaTest está vermelho sem ninguém ver (assere 'vendas-cockpit' num charter que diz 'vendas-page.jsx'). Nasce com SellsShowContratoTest (UC-VSHOW-01..07 de Show.casos.md): isolamento multi-tenant, gate das 3 permissões, view_own_sell_only, KPIs de dinheiro, defer, GET leitura pura, trilha CU-07. Reusa .github/actions/pest-mysql-setup (seed biz=1 + biz=2). Advisory com skip-as-pass (mesmo padrão essentials-pest/estoque-pest); promoção a required é passo [W]. Refs ADR 0093, ADR 0101, ADR 0264, ADR 0271 onda 2, PR #4877"
+    },
     "sdd-scorecard-publish.yml": {
       "nome": "SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279)",
       "classe": "automacao"
