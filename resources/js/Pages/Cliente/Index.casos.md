@@ -10,7 +10,9 @@ last_run: "2026-07-15"
 
 # Casos de Uso & Aceite — Lista de clientes
 
-> Fase 2 (lanes do Cliente). Tela principal do módulo. UCs ancorados em testes da lane ativa (Pest, CT100): `ClienteTypeOtherRouteTest` (render HTTP real), `ClientePaginacaoServerSideTest`, `ClienteSortServerSideTest`, `ClienteKpisServerSideTest`. Onde o teste é guard estrutural do query (a semântica É a corretude), o **número real** vira ✅ só com smoke — por isso os status são 🧪.
+> Fase 2 (lanes do Cliente). Tela principal do módulo. UCs ancorados em `ClienteTypeOtherRouteTest` (render HTTP real), `ClientePaginacaoServerSideTest`, `ClienteSortServerSideTest`, `ClienteKpisServerSideTest`. Onde o teste é guard estrutural do query (a semântica É a corretude), o **número real** vira ✅ só com smoke — por isso os status são 🧪.
+>
+> ⚖️ **Onde estes UC rodam, e com que força** (medido 2026-07-27): lane `PHP / Pest (Cliente · MySQL)` — [`.github/workflows/cliente-pest.yml`](../../../../.github/workflows/cliente-pest.yml), criada 2026-07-27, **advisory** (não está em [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json): reprova visível, **não bloqueia merge**). **Antes dela** estes testes rodavam só no full-suite nightly do CT 100 e em **nenhuma** lane de PR — o `anchor-lint` do SPEC acusava `15 US com teste-que-cobre fora das lanes de JUnit (verde impossível)`. Onde as linhas abaixo dizem "passa no CI", leia-se **passava no nightly**; agora passa a valer também no PR. Ver [SDD Cliente §8](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md).
 >
 > **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC e passa (manifesto não regravado / prova de render = smoke) · ⬜ não verificado · ❌ quebrou.
 >
@@ -58,6 +60,18 @@ last_run: "2026-07-15"
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.
 - **[BACKLOG] Abrir o drawer 760 ao clicar na linha + autosave on blur** — spec Playwright (o cadastro em si é coberto por Edit.casos UC-CEDI-04).
 - **[BACKLOG] 6 dropdowns de filtro (Tipo/Status/UF/Tags/Sem compra/Saldo) filtram** — e2e.
+- **[BACKLOG] A LISTAGEM não devolve cliente de outro tenant** — hoje o cross-tenant do módulo é coberto no `edit` (UC-CEDI-03), no mapa (UC-CMAP-02), no saldo (UC-CLED-04) e nos pagamentos (UC-CSHW-03), mas **não** em `GET /cliente`. O `ClienteKpisServerSideTest` cobre os KPIs por *source-grep*, não a lista. É a lacuna Tier 0 que sobra, e pesa mais aqui porque **`App\Contact` não tem global scope** (0 ocorrências de `addGlobalScope` em `app/Contact.php` — SDD §5.4.2): o isolamento é `where('business_id')` manual. É exatamente o que **US-CRM-080** pede; vira UC quando a US for atendida.
+
+## Rastreabilidade (UC → CU do SDD → US do SPEC)
+
+| UC | CU (SDD §6) | US (SPEC) |
+|---|---|---|
+| UC-CIDX-01 | CU-CLI-05 | — |
+| UC-CIDX-02 | CU-CLI-06 | — |
+| UC-CIDX-03 | CU-CLI-06 | — |
+| UC-CIDX-04 | CU-CLI-07 · CU-CLI-11 | — |
+
+> Coluna US vazia de propósito: a US-CRM-071 (KB-9.75 Slice A no Index) declara `ClienteIndexDrawer760CharterTest` como `**Testado em:**`, não estes 4. Vínculo por tema não conta.
 
 ## Como rodar a suíte
 1. **Pest:** `docker exec oimpresso-staging php artisan test --filter="ClienteTypeOtherRouteTest|ClientePaginacaoServerSideTest|ClienteSortServerSideTest|ClienteKpisServerSideTest"` no CT100.
@@ -65,5 +79,6 @@ last_run: "2026-07-15"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito** — os 4 seguem como estavam (o módulo já tinha contrato). Duas correções factuais no cabeçalho: (a) "lane ativa" era falso (não havia lane de PR pro Cliente; `ci-sqlite-pest.list` = 0 entradas), (b) a força do veredito agora está declarada (**advisory**, lida do `required-checks-baseline.json`, não deduzida). **+1 `[BACKLOG]`**: cross-tenant da listagem, a lacuna Tier 0 que sobra (US-CRM-080). Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) §5.4.2/§8 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-15 · [CC] revalidação (mudança cosmética DS) — troca de contorno/divisórias hardcoded (`oklch(0.93/0.9 0.004 90)`) por `var(--border)` dark-aware no header + KPI cards. Puramente visual (token de borda); NÃO altera rota/query/KPI backend — os 4 UCs (type=other, paginação, sort, KPIs) seguem válidos, status 🧪 mantidos. `last_run` bumpado (G-6). PR #4285.
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente), tela principal. 4 UCs ancorados em `ClienteTypeOtherRouteTest` / `ClientePaginacaoServerSideTest` / `ClienteSortServerSideTest` / `ClienteKpisServerSideTest`. Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · [ADR 0246](../../../../memory/decisions/0246-tipo-outros-default-migracoes-legacy.md) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).

@@ -10,7 +10,9 @@ last_run: "2026-07-08"
 
 # Casos de Uso & Aceite — Extrato financeiro do cliente (Ledger)
 
-> Primeira lane acesa do módulo Cliente (casos_coverage era 0%). Tela que toca **VALOR** (saldo débito/crédito) — cada UC é ancorado no dente de cálculo `CalculoValorClienteTest` (CT100, já passa), que caracteriza e trava o saldo ATUAL sob a REGRA MESTRE (dupla confirmação por dois caminhos).
+> Primeiro trio aceso do módulo Cliente (casos_coverage era 0%). Tela que toca **VALOR** (saldo débito/crédito) — cada UC é ancorado no dente de cálculo `CalculoValorClienteTest`, que caracteriza e trava o saldo ATUAL sob a REGRA MESTRE (dupla confirmação por dois caminhos). Derivam do SDD [§6.2 CU-CLI-08/09](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md).
+>
+> ⚖️ **Onde estes UC rodam, e com que força** (medido 2026-07-27): lane `PHP / Pest (Cliente · MySQL)` — [`cliente-pest.yml`](../../../../.github/workflows/cliente-pest.yml), criada 2026-07-27, **advisory** (não está em [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json): reprova visível, **não bloqueia merge**). **Antes dela** o `CalculoValorClienteTest` rodava só no full-suite nightly do CT 100 e em **nenhuma** lane de PR — apesar de ser o dente `[V0]` do saldo do cliente. Onde as linhas abaixo dizem "passa no CI", leia-se **passava no nightly**. A frase "primeira lane acesa" da redação original era figurada; **lane de CI mesmo, só agora**.
 >
 > **Status:** ✅ passa (com prova no manifesto G-7) · 🧪 em teste/prova (teste cita o UC mas manifesto não regravado) · ⬜ não verificado · ❌ quebrou.
 
@@ -64,8 +66,20 @@ last_run: "2026-07-08"
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
 
 - **[BACKLOG] Filtros de data/formato aplicam via full-page reload preservando o deep-link** — exige spec Playwright (harness e2e-gate) que carregue `/contacts/ledger?...` e assere URL + linhas.
-- **[BACKLOG] Export PDF abre em nova aba / Excel baixa** — exige stub de download no harness (mesmo padrão UC-11 Oficina).
+- **[BACKLOG] Export PDF abre em nova aba / Excel baixa** — exige stub de download no harness (mesmo padrão do caso de export da OficinaAuto). ⚠️ O id daquele UC foi **removido desta linha em 2026-07-27**: o `requisitos-status.mjs` extrai UC varrendo o TEXTO INTEIRO do `casos.md`, então citar o id de um UC de **outro módulo** em prosa o fazia entrar na contagem do Cliente (22 → 23) e ser dado como "coberto por teste" porque algum teste da Oficina contém a string. Falso-positivo do gerador, reportado ao dono do script; aqui só tirei o gatilho.
 - **[BACKLOG] Os 3 KPI cards (débitos, créditos, saldo) somam a tabela** — render test da `Ledger.tsx` ancorado no payload de `getLedgerDetails`.
+
+## Rastreabilidade (UC → CU do SDD → US do SPEC)
+
+| UC | CU (SDD §6) | US (SPEC) |
+|---|---|---|
+| UC-CLED-01 | CU-CLI-08 | — |
+| UC-CLED-02 | CU-CLI-08 | — |
+| UC-CLED-03 | CU-CLI-08 | — |
+| UC-CLED-04 | CU-CLI-09 · CU-CLI-11 | — |
+| UC-CLED-05 | CU-CLI-08 | — |
+
+> Coluna US vazia de propósito: o saldo do cliente (`getContactDue`/`getLedgerDetails`) **não tem US no SPEC** — o dente nasceu como onda de cálculo, não como US. É registro honesto de que a régua de valor mais crítica do módulo está fora do escopo declarado.
 
 ## Como rodar a suíte
 1. **Pest (cálculo):** `docker exec oimpresso-staging php artisan test --filter=CalculoValorClienteTest` no CT100 (nunca local/Hostinger — proibições Tier 0).
@@ -73,4 +87,5 @@ last_run: "2026-07-08"
 3. **Cadência:** rodar ao fim de toda mexida em `Ledger.tsx` ou nos métodos de saldo (`getContactDue`/`getLedgerDetails`). UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito** — o dente `[V0]` segue intacto (mexer em `getContactDue`/`getLedgerDetails` é US separada sob REGRA MESTRE). Correção factual: o dente de valor do saldo do cliente rodava **só no nightly**, em nenhuma lane de PR; lane criada agora, **advisory**, com a força declarada. + ponteiro pro SDD §6.2. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — 1ª lane do módulo Cliente (casos_coverage 0% → trio Ledger fechado). 5 UCs ancorados no dente `CalculoValorClienteTest` (getContactDue + getLedgerDetails all_balance_due + dupla confirmação + multi-tenant), parte de "ligar a máquina do protocolo" (SDD anti-fachada). Statuses 🧪 (teste cita o UC e passa; manifesto per-UC regrava depois). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · REGRA MESTRE cálculo de valor (proibicoes.md).

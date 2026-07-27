@@ -56,6 +56,8 @@ drawer_pattern:
   tabs: [identificacao, contato, endereco, comercial, classificacao, operacoes]
   header_chips: [placas, ia]   # auditoria saiu do chip → sub-aba de operacoes (2026-06-13)
   operacoes_subtabs: [ledger, sales, payments, documents, persons, subscriptions, rewards, auditoria]
+related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-index.md
+related_visual_comparison: memory/requisitos/Crm/cliente-index-visual-comparison.md
 ---
 
 # Page Charter — /cliente (Index + Drawer 760px)

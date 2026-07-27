@@ -10,7 +10,9 @@ last_run: "2026-07-08"
 
 # Casos de Uso & Aceite — Importar clientes em massa
 
-> Fase 2 (lanes do Cliente). Âncora comportamental REAL escrita nesta onda (`ClienteImportInertiaTest`, Pest/CT100) — **não** o `Wave1ImportInertiaTest` (source-grep + `@group legacy-quarantine`, fora de lane).
+> Fase 2 (lanes do Cliente). Âncora comportamental REAL (`ClienteImportInertiaTest`, Pest/CT100) — **não** o `Wave1ImportInertiaTest` (source-grep + `@group legacy-quarantine`). Deriva do SDD [§6.4 CU-CLI-13](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md).
+>
+> ⚖️ **Onde este UC roda, e com que força** (medido 2026-07-27): lane `PHP / Pest (Cliente · MySQL)` — [`cliente-pest.yml`](../../../../.github/workflows/cliente-pest.yml), criada 2026-07-27, **advisory** (não está em [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json): reprova visível, **não bloqueia merge**). **Antes dela** o teste rodava só no nightly do CT 100 e em nenhuma lane de PR. Onde a linha abaixo diz "passa no CI", leia-se **passava no nightly**.
 >
 > **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC e passa (manifesto não regravado) · ⬜ não verificado · ❌ quebrou.
 
@@ -31,10 +33,19 @@ last_run: "2026-07-08"
 - **[BACKLOG] Upload valida extensão + retorna count de sucesso/erro** — `postImportContacts` (multipart) exige teste de upload dedicado.
 - **[BACKLOG] Banner de erro quando o PHP Zip não está disponível** — assertar `zip_available=false` num ambiente sem a extensão.
 
+## Rastreabilidade (UC → CU do SDD → US do SPEC)
+
+| UC | CU (SDD §6) | US (SPEC) |
+|---|---|---|
+| UC-CIMP-01 | CU-CLI-13 | — |
+
+> Coluna US vazia: a US de import (US-CRM-082, com dedupe/preview) está `todo` — o que existe hoje é o assistente básico, sem US própria.
+
 ## Como rodar a suíte
 1. **Pest:** `docker exec oimpresso-staging php artisan test --filter=ClienteImportInertiaTest` no CT100 (nunca local/Hostinger).
 2. **Manifesto:** `npm run casos:results` → 🧪 vira ✅.
 3. **Cadência:** rodar ao fim de toda mexida em `Import.tsx` / `ContactController::getImportContacts`.
 
 ## Trilha do tempo
+- 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Lane `PHP / Pest (Cliente · MySQL)` criada (**advisory**) — antes o teste não rodava em lane de PR nenhuma; + ponteiro pro SDD §6.4. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). Teste-âncora `ClienteImportInertiaTest` escrito nesta onda (o Wave1* era quarentena/source-grep). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2.
