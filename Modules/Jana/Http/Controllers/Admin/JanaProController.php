@@ -16,7 +16,7 @@ use Modules\Jana\Services\BriefDiarioService;
  * Sprint A foundation. Sprint B adiciona pricing page + Asaas subscription
  * + Job + WhatsApp delivery + email HTML. Este controller é só preview.
  *
- * Permissão: copiloto.superadmin (Wagner inicial). Sprint B muda pra
+ * Permissão: jana.superadmin (Wagner inicial). Sprint B muda pra
  * jana_pro.preview quando granular permission entrar.
  *
  * @see memory/decisions/0140-jana-pro-produto-comercial-saas.md
@@ -43,7 +43,7 @@ class JanaProController extends Controller
         $businessId = (int) ($request->get('business_id') ?? session('user.business_id', 1));
 
         // Tier 0 defense (ADR 0093): superadmin pode passar qualquer biz,
-        // user comum só vê o próprio business. Middleware can:copiloto.superadmin
+        // user comum só vê o próprio business. Middleware can:jana.superadmin
         // já garante mas defense-in-depth não custa.
         $isSuper = $request->user()?->user_type === 'superadmin'
             || $request->user()?->user_type === 'user_oimpresso';

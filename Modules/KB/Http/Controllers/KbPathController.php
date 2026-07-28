@@ -29,7 +29,7 @@ class KbPathController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.memory.manage');
+        $this->middleware('can:jana.mcp.memory.manage');
     }
 
     public function index(Request $request): JsonResponse
@@ -58,7 +58,7 @@ class KbPathController extends Controller
     public function store(StoreKbPathRequest $request): JsonResponse
     {
         // Validation via StoreKbPathRequest (D8.c Security 2026-05-16) — rules
-        // idênticas ao inline original; authorize() reusa 'copiloto.mcp.memory.manage'.
+        // idênticas ao inline original; authorize() reusa 'jana.mcp.memory.manage'.
         $data = $request->validated();
 
         $path = DB::transaction(function () use ($data) {

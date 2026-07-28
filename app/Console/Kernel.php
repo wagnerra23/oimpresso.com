@@ -597,6 +597,37 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-INFRA-043 (2026-07-27) — mcp:tasks:unassigned daily 06:45 BRT.
+        // Flagga US `todo` sem `cycle_id` e/ou sem `owner` — ticket que nasce órfão e
+        // fica invisível no roadmap (Jana filtra por cycle_id). Eixo DIFERENTE do
+        // mcp:tasks:health-check das 06:20, que mede staleness (tempo sem movimento):
+        // uma US pode ser fresquinha pro health-check e órfã desde o nascimento.
+        //
+        // A sentinela existia desde 2026-06-24 (#3302) com Pest e ZERO invocadores —
+        // varredura contada: 14 ocorrências, 7 arquivos, nada em Kernel/workflow/.claude.
+        // Máquina órfã é bug, não neutralidade (proibicoes.md §"Sempre fazer").
+        //
+        // ADVISORY de propósito (sem --strict): com ≥50 pendências medidas em
+        // 2026-07-27, ligar o ratchet agora seria o anti-padrão foundation-ratchet.
+        // O valor deste cron é a SÉRIE no log — é ela que, com o tempo, permite ao [W]
+        // decidir com mordida provada se promove a --strict (ADR 0336). A visibilidade
+        // diária de quem lê o brief vem do TasksSemDonoBriefLineService (6x/dia).
+        //
+        // Slot 06:45: 06:15 disputado (4), 06:20/06:30/06:35 ocupados — canon em
+        // memory/reference/feedback-cron-slot-06h15-brt-disputado.md (verificado hoje).
+        $schedule->command('mcp:tasks:unassigned')
+            ->dailyAt('06:45')
+            ->timezone('America/Sao_Paulo')
+            ->environments(['live'])
+            ->onOneServer()
+            ->withoutOverlapping(60)
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule mcp:tasks:unassigned FALHOU — US órfãs deixam de ser ' .
+                    'contadas; investigar entries "mcp:tasks:unassigned" em laravel.log'
+                );
+            });
+
         // US-COPI-100 — Brain A narrador horário do Cockpit Saúde do Ecossistema.
         // Lê snapshot via HealthSnapshotService + invoca HealthNarratorService
         // (gpt-4o-mini canônico ADR 0035) → persiste em jana_health_narratives.

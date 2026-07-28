@@ -15,7 +15,7 @@ use Modules\Jana\Services\CustosService;
  * mês anterior, últimos 90 dias ou range custom). Mostra KPIs, breakdown
  * por usuário e gráfico de gasto diário.
  *
- * Permissão: copiloto.admin.custos.view (independente de copiloto.superadmin).
+ * Permissão: jana.admin.custos.view (independente de jana.superadmin).
  * Scope:     business_id da sessão.
  *
  * Ver ADR Copiloto/adr/arq/0003 (Onda 1 — ROI direto).
@@ -25,7 +25,7 @@ class CustosController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.admin.custos.view');
+        $this->middleware('can:jana.admin.custos.view');
     }
 
     public function index(Request $request, CustosService $service): Response

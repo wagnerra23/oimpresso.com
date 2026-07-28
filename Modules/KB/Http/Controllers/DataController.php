@@ -34,7 +34,7 @@ class DataController extends Controller
      * Permissões expostas no cadastro de papéis (Roles) do UltimatePOS.
      *
      * NOTA: a permissão Spatie real usada pelo KbController continua sendo
-     * `copiloto.mcp.memory.manage` (mantida pra evitar migration de rename).
+     * `jana.mcp.memory.manage` (mantida pra evitar migration de rename).
      * As chaves abaixo são placeholders pra agregação visual no
      * PermissionRegistry novo (pacote contracts em flight). Rename em PR
      * separado com migration própria.
@@ -87,7 +87,7 @@ class DataController extends Controller
             return;
         }
 
-        // Visibilidade: superadmin OU permission Spatie atual `copiloto.mcp.memory.manage`.
+        // Visibilidade: superadmin OU permission Spatie atual `jana.mcp.memory.manage`.
         $usuario_pode_ver = auth()->user()->can('superadmin')
             || auth()->user()->can('jana.mcp.memory.manage');
 

@@ -1,40 +1,111 @@
 ---
 id: resources-js-pages-fiscal-dfe-casos
 casos: Manifesto DF-e · /fiscal/dfe
-irmaos: Dfe.charter.md (lei)
+irmaos: Dfe.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md (§6 CU)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-15"
+last_run: "2026-07-27"
+last_run_ci: "0 UC executado nesta corrida — 4 UC herdam testes que JÁ existem e 1 nasce com teste novo; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
+related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 
 # Casos de Uso & Aceite — Manifesto DF-e
 
-> Persona: **Eliana (contadora)** — leitura/conferência fiscal. Tela do cockpit Fiscal (agregador thin sobre NfeBrasil/NFSe).
-> Passo 3 do template-onda-modulo (régua por tela) — complementa a CAPTERRA-FICHA Fiscal (nota 75) sem roadmap paralelo.
+> Persona: **Eliana [E] (contadora)** — manifesta as NF-e que terceiros emitiram **contra** o CNPJ, dentro do prazo legal.
 >
-> **Status:** ✅ passa (UC-id citado por teste) · 🧪 tem teste Feature mas **sem UC-id** (débito G-2 · ADR 0264) · ⬜ não verificado · ❌ quebrou.
+> **Âncora:** `CU-FISC-07`, `CU-FISC-12` e `CU-FISC-13` do
+> [SDD §6](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md). Os UC derivam do **CU**, nunca do `.tsx`.
 >
-> ⚠️ **Débito = rastreabilidade, não ausência de teste.** Comportamento defendido por `DfeControllerTest` e `AcoesControllerTest` (Modules/Fiscal/Tests/Feature). Falta G-2: nenhum teste cita `UC-FISCAL-NN`. Cada item vira UC no mesmo PR que adicionar o id ao teste. CT100 (ADR 0062).
+> **Status:** ✅ provado por teste verde que cita o UC · 🧪 tem teste, **veredito pendente da lane** · ⬜ não verificado · ❌ quebrou.
 
-## Backlog de casos (sem id — entram quando um teste citar o UC-id)
-- **[BACKLOG · 🧪 tem teste · Tier 0] Isolamento multi-tenant na listagem de DF-e** — Dado Eliana logada no business dela · Quando a lista de NF-e recebidas carrega · Então nenhuma NF-e recebida contra outro business aparece (`HasBusinessScope`, ADR 0093). _Coberto por `DfeControllerTest::NfeDfeRecebido HasBusinessScope esconde cross-tenant da listagem DF-e`._
-- **[BACKLOG · 🧪 tem teste] Contrato dos 5 status de manifestação** — Dado o Model NfeDfeRecebido · Quando o Controller filtra por status · Então as constantes pendente/ciencia/confirmada/desconhecida/nao_realizada existem e batem. _Coberto por `DfeControllerTest::STATUS constants estão definidas — Controller depende delas pra filtros`._
-- **[BACKLOG · 🧪 tem teste] Definição do que é "pendente de manifestação"** — Dado uma NF-e recebida · Quando o status é PENDENTE ou CIENCIA · Então conta como pendente de manifestação; CONFIRMADA não. _Coberto por `DfeControllerTest::isPendenteManifestacao retorna true pra status PENDENTE e CIENCIA`._ (Reflete os chips "pendentes" = pendente+ciencia e o KPI `valorPendente` do Controller.)
-- **[BACKLOG · 🧪 tem teste] As 4 ações de manifestação SEFAZ (whitelist)** — Dado Eliana vai manifestar uma NF-e · Quando escolhe a ação · Então só valem exatamente Ciência (`cienciar`), Confirmação (`confirmar`), Desconhecimento (`desconhecer`) e Não Realizada (`nao_realizada`) — cancelar/aprovar/rejeitar são rejeitados. _Coberto por `AcoesControllerTest::manifestarDfe whitelist exatamente 4 ações canon SEFAZ`._
-- **[BACKLOG · 🧪 tem teste] Justificativa exigida só em Desconhecimento e Não Realizada** — Dado a ação escolhida · Quando é `desconhecer`/`nao_realizada` · Então exige justificativa; `cienciar`/`confirmar` não exigem. _Coberto por `AcoesControllerTest::manifestarDfe desconhecer/nao_realizada exigem justificativa, cienciar/confirmar não`._
-- **[BACKLOG · 🧪 tem teste] Superfície de ações fiscais existe (contrato do Controller)** — Dado o AcoesController · Quando inspecionado · Então expõe `manifestarDfe` (+ `cancelarNfe`, `cartaCorrecao`, `inutilizar`, `retransmitir` das ondas NFe). _Coberto por `AcoesControllerTest::AcoesController classe existe e tem 5 métodos públicos esperados (Waves 4+5+6)`._
-- **[BACKLOG · ⬜ sem teste] Pílula de prazo legal com 3 níveis de urgência** — Dado uma NF-e recebida com `prazo_confirmacao_em` · Quando Eliana lê a linha · Então vê os dias restantes (`prazoDias`) sinalizados como crítico (<7d) / atenção (<30d) / ok — dentro do prazo legal de manifestação (NT 2014.002; charter fala 90d, mas a fonte de verdade é `prazo_confirmacao_em` do SEFAZ). _`prazoDias` é calculado em `buildRowsPayload`, mas nenhum teste valida o cálculo/níveis._
-- **[BACKLOG · ⬜ sem teste] Filtro por status via chips** (pendentes=pendente+ciencia / confirmadas / desconhecidas / nao_realizadas / todas) — Dado Eliana clica num chip · Quando a lista recarrega · Então mostra só as NF-e daquele status. _`match` em `buildRowsPayload` existe, sem teste de resultado._
-- **[BACKLOG · ⬜ sem teste] Busca por chave 44 / CNPJ emitente / nome emitente** — Dado Eliana digita um termo · Quando busca · Então filtra por `chave_44`, `cnpj_emitente` (dígitos via `preg_replace`) ou `nome_emitente`. _Sem teste de resultado da busca._
-- **[BACKLOG · ⬜ sem teste · débito conhecido] Aba Histórico de manifestações processadas** — Dado Eliana abre a aba Histórico · Quando lê · Então vê manifestações já processadas (ação, ator, quando, obs). _Hoje é `mockHistorico()` no Controller (`TODO[CL]`: trocar por query real `status_manifestacao IN (confirmada/desconhecida/nao_realizada)` ordenada por `manifestado_em DESC`). Dado mockado → não é comportamento durável ainda._
+## Força do veredito
 
-> Nota de escopo (charter): esta tela é **leitura + filtros**; o *dispatch* real das 4 ações (mutação) vem em PR futuro. Os testes de `AcoesControllerTest` validam **contratos** (whitelist, regra de justificativa, existência de métodos, validação ≥15 chars CONFAZ), não a persistência ponta-a-ponta.
+| Teste | Lane | Bloqueia merge? |
+|---|---|---|
+| `DfeControllerTest` · `AcoesControllerTest` · `GatesPermissaoFiscalTest` | `Pest Fiscal` (SQLite — os que tocam banco **pulam**) + suíte noturna CT 100 (MySQL) | ❌ **não** — `Pest Fiscal` não está no [baseline](../../../../governance/required-checks-baseline.json): reprova visível, **advisory** |
+
+> Nenhum teste desta tela está na lane **required** (`PHP / Pest (NfeBrasil · MySQL)`). O ratchet-up é proposta ao [W] (SDD §8.3).
+
+## Rastreabilidade
+
+| UC | O que defende | Prio | CU (SDD §6) | Teste que o cita | Status |
+|---|---|---|---|---|---|
+| UC-FDFE-01 | isolamento da listagem | `[must]` `[T0]` | CU-FISC-12 | `DfeControllerTest` | 🧪 |
+| UC-FDFE-02 | o que conta como pendente | `[must]` | CU-FISC-07 | `DfeControllerTest` | 🧪 |
+| UC-FDFE-03 | só as 4 ações SEFAZ | `[must]` | CU-FISC-07 | `AcoesControllerTest` | 🧪 |
+| UC-FDFE-04 | quando a justificativa é exigida | `[must]` | CU-FISC-07 | `AcoesControllerTest` | 🧪 |
+| UC-FDFE-05 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
+
+---
+
+## UC-FDFE-01 — A lista nunca mostra nota recebida por outro business `[must]` `[T0]`
+
+**Dado** notas recebidas do business ativo e de outro business
+**Quando** a lista de DF-e carrega
+**Então** só as do business ativo aparecem.
+
+- **Regressão que defende:** vazamento cross-tenant Tier 0 ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) — aqui expondo **fornecedor de terceiro**, que é PII de outra empresa.
+- **Teste:** `Modules/Fiscal/Tests/Feature/DfeControllerTest.php` — `it('UC-FDFE-01 · NfeDfeRecebido HasBusinessScope esconde cross-tenant da listagem DF-e')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FDFE-02 — "Pendente de manifestação" inclui a nota que só teve ciência dada `[must]`
+
+**Dado** uma nota recebida
+**Quando** o estado dela é *pendente* ou *ciência*
+**Então** ela conta como pendente de manifestação; nota já confirmada, não.
+
+- **Por que importa:** dar ciência **não** encerra a obrigação — só suspende o prazo. Tratar ciência como resolvida esconde nota que ainda precisa de confirmação e faz o valor pendente da tela mentir.
+- **Teste:** `DfeControllerTest` — `it('UC-FDFE-02 · isPendenteManifestacao retorna true pra status PENDENTE e CIENCIA')` e `it('UC-FDFE-02 · STATUS constants estão definidas — Controller depende delas pra filtros')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FDFE-03 — Só existem quatro manifestações, e elas são as da SEFAZ `[must]`
+
+**Dado** uma nota recebida
+**Quando** a contadora escolhe o que fazer
+**Então** as únicas opções aceitas são dar ciência, confirmar a operação, desconhecer a operação e declarar que a operação não foi realizada. Qualquer outro verbo é recusado.
+
+- **Regressão que defende:** inventar ação intermediária ("aprovar", "arquivar") que a SEFAZ não conhece — o evento sai errado e o prazo continua correndo. A whitelist é dupla: a rota restringe e o Controller re-checa.
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesControllerTest.php` — `it('UC-FDFE-03 · manifestarDfe whitelist exatamente 4 ações canon SEFAZ')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FDFE-04 — Desconhecer e "não realizada" exigem justificativa; ciência e confirmação não `[must]`
+
+**Dado** a ação escolhida
+**Quando** é desconhecer ou declarar operação não realizada
+**Então** a justificativa é obrigatória (mínimo 15 caracteres); nas outras duas, não é pedida.
+
+- **Por que importa:** as duas ações que **negam** a operação são as que geram disputa com o fornecedor — a justificativa é a defesa documental do business.
+- **Teste:** `AcoesControllerTest` — `it('UC-FDFE-04 · manifestarDfe desconhecer/nao_realizada exigem justificativa, cienciar/confirmar não')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FDFE-05 — A tela exige `fiscal.dfe.manage` `[must]` `[T0]`
+
+**Dado** um usuário sem `fiscal.dfe.manage` e sem `superadmin`
+**Quando** abre `/fiscal/dfe`
+**Então** recebe 403.
+
+- **Âncora de contrato:** `R-FISCAL-003` do [SPEC.md](../../../../memory/requisitos/Fiscal/SPEC.md) §3 + guard em `DfeController@index`.
+- **Regressão que defende:** a tela expõe razão social e CNPJ de **fornecedores** — quem não gerencia DF-e não precisa dessa lista.
+- **Teste:** `Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php` — `it('UC-FDFE-05 · GET /fiscal/dfe aborta 403 sem fiscal.dfe.manage nem superadmin')`
+- **Status:** 🧪 teste nasce nesta corrida; veredito pendente.
+
+---
+
+## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
+
+- **[BACKLOG · ⬜ sem teste] O prazo aparece com três níveis de urgência, vindo do prazo que a SEFAZ calculou** — Dado uma nota recebida com prazo definido · Quando a contadora lê a linha · Então vê quantos dias restam, sinalizado como crítico, atenção ou tranquilo. _O charter é explícito: a fonte de verdade é o prazo gravado pela SEFAZ, **não** um "90 dias" fixo no código. O cálculo existe; nenhum teste valida os níveis._
+- **[BACKLOG · ⬜ sem teste] Os chips filtram por estado de manifestação** — pendentes (pendente + ciência), confirmadas, desconhecidas, não realizadas, todas. _Existe no Controller; sem teste do resultado._
+- **[BACKLOG · ⬜ sem teste] A busca aceita chave, CNPJ do emitente e nome do emitente** — inclusive digitando o CNPJ com pontuação. _Sem teste do resultado._
+- **[BACKLOG · ⬜ sem teste · decisão [W]] A aba Histórico mostra manifestações reais** — hoje ela é servida por **dado de demonstração** com ator e observação inventados (`CU-FISC-16` do SDD §6.5 · §5.4.1). A consulta real está declarada como pendência no próprio código. **Precisa de decisão [W]** sobre marcar procedência, esconder atrás de flag ou declarar Non-Goal.
 
 ## Como rodar a suíte
-1. **Pest (MySQL real):** lane Fiscal no CT100 (ADR 0062) — `DfeControllerTest` + `AcoesControllerTest` verdes.
-2. **Cadência:** rodar ao fim de toda mexida. UC ❌ = regressão.
+
+1. **Advisory:** `Pest Fiscal` (matrix `modules-pest.yml`) roda `Modules/Fiscal/Tests` em SQLite — os testes que exigem schema MySQL **pulam**.
+2. **Noturna CT 100:** `phpunit.xml` inclui `./Modules/Fiscal/Tests/Feature`; é onde eles realmente correm contra MySQL.
+3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ## Trilha do tempo
-- 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). Débito = UC-traceability.
-- 2026-07-15 · [CC] revalidado após DS Onda 3 — abas Pendente/Histórico viraram navegação por rota (`?tab=`, `PageHeaderTabs`). A aba Histórico e o filtro por status seguem descritos como antes (comportamento preservado); só `last_run` bumpado.
+
+- 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
+- 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **5 UC** derivados do §6 do SDD; 4 herdam testes existentes, 1 nasce com teste novo. Nota de escopo mantida: os testes de ação provam **contrato de entrada** (whitelist, regra de justificativa), não a persistência ponta-a-ponta.

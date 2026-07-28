@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * dataset inteiro em memória (segura pra audit log com milhões de rows).
  *
  * **D7 LGPD considerations**: CSV contém `user_email` + `tool_or_resource` —
- * download é restrito a `copiloto.mcp.usage.all` (superadmin) e auditado via
+ * download é restrito a `jana.mcp.usage.all` (superadmin) e auditado via
  * `mcp_audit_log` (request → tool=team-export → user_id=Wagner).
  *
  * @see Modules\TeamMcp\Http\Controllers\TeamController::exportCsv (uses this)

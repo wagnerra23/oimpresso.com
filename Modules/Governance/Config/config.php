@@ -183,6 +183,17 @@ return [
     'plan_health_brief_line' => env('GOVERNANCE_PLAN_HEALTH_BRIEF_LINE', true),
 
     /*
+     * Kill-switch (default ON) — linha de EXPOSIÇÃO TIER-0 × cobertura no Daily
+     * Brief (shell-out de scripts/qa/exposicao-tier0.mjs --stdout).
+     * `GOVERNANCE_EXPOSICAO_TIER0_BRIEF_LINE=false` no .env desliga o inject() sem
+     * deploy: ExposicaoTier0BriefLineService devolve o brief intacto (zero linha,
+     * zero shell-out). Útil em host sem Node ou pra silenciar a linha.
+     * @see Modules\Governance\Services\ExposicaoTier0BriefLineService
+     * @see scripts/qa/exposicao-tier0.mjs (sentinela · ADR 0256 pilar CADÊNCIA)
+     */
+    'exposicao_tier0_brief_line' => env('GOVERNANCE_EXPOSICAO_TIER0_BRIEF_LINE', true),
+
+    /*
     |--------------------------------------------------------------------------
     | Linha de saúde do SHIPPED-LOG no Daily Brief (porta de saída, ADR 0294 ext)
     |--------------------------------------------------------------------------

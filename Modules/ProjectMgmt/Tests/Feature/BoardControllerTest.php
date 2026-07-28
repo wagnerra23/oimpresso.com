@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
  * Project Mgmt UI Redesign — Fase 1 (PMG-003 / ADR 0100).
  *
  * Cobertura mínima do BoardController:
- *  - GET /project-mgmt/board sem permission `copiloto.mcp.usage.all` → 403
+ *  - GET /project-mgmt/board sem permission `jana.mcp.usage.all` → 403
  *  - GET com permission → 200 + Inertia component 'ProjectMgmt/Board/Index' + props canônicas
  *  - PATCH /project-mgmt/board/{taskId}/status sem permission → 403
  *  - PATCH happy path → 200 + ok=true + DB atualiza + cria mcp_task_events row
@@ -40,7 +40,7 @@ function pmgBootstrapUser(): User
         test()->markTestSkipped('Sem user no banco — rode seeder UltimatePOS antes.');
     }
 
-    Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'jana.mcp.usage.all', 'guard_name' => 'web']);
 
     session([
         'user.business_id' => $user->business_id,
@@ -54,16 +54,16 @@ function pmgBootstrapUser(): User
 
 function pmgGivePerm(User $user): void
 {
-    Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
-    if (! $user->hasPermissionTo('copiloto.mcp.usage.all')) {
-        $user->givePermissionTo('copiloto.mcp.usage.all');
+    Permission::firstOrCreate(['name' => 'jana.mcp.usage.all', 'guard_name' => 'web']);
+    if (! $user->hasPermissionTo('jana.mcp.usage.all')) {
+        $user->givePermissionTo('jana.mcp.usage.all');
     }
 }
 
 function pmgRevokePerm(User $user): void
 {
-    if ($user->hasPermissionTo('copiloto.mcp.usage.all')) {
-        $user->revokePermissionTo('copiloto.mcp.usage.all');
+    if ($user->hasPermissionTo('jana.mcp.usage.all')) {
+        $user->revokePermissionTo('jana.mcp.usage.all');
     }
 }
 

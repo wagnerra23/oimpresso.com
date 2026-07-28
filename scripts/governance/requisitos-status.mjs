@@ -39,6 +39,22 @@
 import { readFileSync, existsSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+// Fonte ÚNICA de "o que é tela" (reconciliação #4836/#4840) — o mesmo módulo que o
+// casos-coverage-guard e o screen-coverage-map consomem. Ver telasDoModulo().
+import { isPageScreenPath } from '../qa/page-path.mjs';
+/**
+ * Fonte ÚNICA do regex de UC-id (ADR 0264 · `scripts/lib/uc-regex.mjs`).
+ *
+ * ⚠️ Este arquivo tinha DOIS regex próprios (`UC-[A-Z0-9]{2,10}-\d{2,3}`) que exigiam **dois
+ * hífens** e por isso não enxergavam UC de prefixo curto — `UC-F01`, `UC-S11`, `UC-P02`:
+ * **12 ids reais** no repo (Financeiro/Unificado, Sells/Index, Ponto). Efeito: US COM contrato
+ * era acusada de *"entregue sem contrato"* (falso-positivo medido em `US-FIN-031`/`US-FIN-038`).
+ *
+ * A lib existe **exatamente** pra matar "regex que deviam ser iguais e drifam" (o cabeçalho
+ * dela documenta 4 drifts anteriores) — e este arquivo era mais um que drifava, sem importá-la.
+ * Achado pelo chip Financeiro; a correção mora aqui porque `scripts/` é área proibida ao chip.
+ */
+import { ucScanRe } from '../lib/uc-regex.mjs';
 
 // Guard IS_MAIN (padrao do doc-freshness-score): os extratores sao EXPORTADOS pra teste;
 // sem isto, um `import` do modulo dispara o CLI e polui a saida de quem so queria a funcao.
@@ -65,8 +81,29 @@ export function extrairUS(specSrc) {
   linhas.forEach((ln, i) => {
     const m = ln.match(/^###\s+(US-[A-Z]{2,8}-\d{3,4})\s*·?\s*(.*)$/);
     if (!m) return;
-    const meta = linhas.slice(i + 1, i + 4).join(' ');
-    const st = meta.match(/\bstatus:\s*([a-z-]+)/i);
+    /**
+     * O status vive no BLOCO da US (até o próximo heading), não nas 3 primeiras linhas.
+     *
+     * ⚠️ A 1ª versão lia `linhas.slice(i+1, i+4)` e casava só `status:` cru. Medido 2026-07-27
+     * (achado do chip Cliente, que bateu no caso e corrigiu o DADO; o defeito da PORTA ficou):
+     *   · 283 US — status na janela de 3 linhas ....... lidas ✅
+     *   · **228 US — status FORA da janela** .......... liam `desconhecido` ❌
+     *   · 353 US — sem status nenhum .................. `desconhecido` é correto (ausência de dado)
+     * Os 228 estão em 10 módulos: Whatsapp 57 · Infra 44 · **Sells 42** · Jana 38 · Pcp 20 ·
+     * **Ponto 10** · PaymentGateway 7 · ProjectMgmt 6 · Fiscal 3 · NFSe 1.
+     *
+     * Efeito: `desconhecido` não entra em `US_ENTREGUE`, logo a US **nunca** era acusada de
+     * "entregue sem contrato" — falso-VERDE de módulo inteiro. No Cliente o painel imprimia
+     * literalmente *"Nenhuma lacuna"* com 12 US entregues sem contrato.
+     *
+     * Aceita `status:` e `**Status:**` (negrito markdown — a forma que 228 US usam). Pega a
+     * PRIMEIRA ocorrência do bloco: é a linha de metadata, e não a palavra "status" que possa
+     * aparecer adiante em prosa/tabela sobre status de pedido.
+     */
+    let fim = i + 1;
+    while (fim < linhas.length && !/^#{1,3}\s/.test(linhas[fim])) fim++;
+    const meta = linhas.slice(i + 1, fim).join('\n');
+    const st = meta.match(/(?:^|\s|\*)status:\s*\*{0,2}\s*([a-z-]+)/i);
     out.push({ id: m[1], titulo: m[2].trim(), status: st ? st[1].toLowerCase() : 'desconhecido' });
   });
   return out;
@@ -79,7 +116,7 @@ export function extrairCU(sddSrc) {
 }
 export function extrairUC(casosSrc) {
   const ids = new Set();
-  for (const m of casosSrc.matchAll(/\b(UC-[A-Z0-9]{2,10}-\d{2,3})\b/g)) ids.add(m[1]);
+  for (const m of casosSrc.matchAll(ucScanRe())) ids.add(m[0].toUpperCase());
   return [...ids];
 }
 /** Um UC é "citado por teste" se aparece em qualquer arquivo de teste do repo. */
@@ -104,6 +141,22 @@ function listarTestes() {
     }
   };
   walk('tests'); walk('e2e');
+  /**
+   * `Modules/<X>/Tests` — a casa dos testes dos módulos nWidart (achado do chip S1, 2026-07-27).
+   *
+   * O `casos-coverage-guard` (REQUIRED) já varre `Modules`; esta porta não varria. Contado no
+   * dia: **Compras 10 · Fiscal 20 · Ponto 32 · NfeBrasil 47 · Financeiro 80** arquivos de teste
+   * invisíveis. Efeito: todo módulo nWidart aparecia com "UC com teste: 0" — falso-VERMELHO —
+   * e a lacuna "US entregue sem contrato" nunca fechava, por mais teste que se escrevesse.
+   * Pior no contexto do passo 5, cujo próprio plano manda o chip escrever em
+   * `Modules/<Mod>/Tests/Feature/` (é onde a lane do módulo procura).
+   *
+   * Varre o subdir `Tests` de cada módulo, NUNCA o módulo inteiro: UC citado em comentário de
+   * código de produção não é prova de teste — seria o `includes` cru que este arquivo já
+   * rejeitou pro CU (âncora ≠ prosa).
+   */
+  let mods; try { mods = readdirSync(join(ROOT, 'Modules'), { withFileTypes: true }); } catch { mods = []; }
+  for (const m of mods) if (m.isDirectory()) walk(`Modules/${m.name}/Tests`);
   return out;
 }
 
@@ -133,25 +186,58 @@ function listarTestes() {
  */
 function casosDoModulo(mod) {
   const out = [];
-  const coletar = (dir, sufixoTela) => {
+  // RECURSIVO no lado React pelo mesmo motivo de telasDoModulo(): `Unificado/Index.casos.md`
+  // ficava invisível e a tela irmã aparecia como "sem caso" (ou nem aparecia). O nome da tela
+  // é o caminho relativo ao módulo sem `.casos.md` — casa 1:1 com telasDoModulo().
+  const coletar = (dir, sufixoTela, base = dir, recursivo = false) => {
     let ents; try { ents = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return; }
     for (const e of ents) {
-      if (!e.isFile() || !e.name.endsWith('.casos.md')) continue;
+      const p = `${dir}/${e.name}`;
+      if (e.isDirectory()) { if (recursivo) coletar(p, sufixoTela, base, true); continue; }
+      if (!e.name.endsWith('.casos.md')) continue;
       out.push({
-        tela: e.name.replace('.casos.md', '') + sufixoTela,
-        path: `${dir}/${e.name}`,
-        src: ler(`${dir}/${e.name}`),
+        tela: p.slice(base.length + 1).replace(/\.casos\.md$/, '') + sufixoTela,
+        path: p,
+        src: ler(p),
       });
     }
   };
-  coletar(`resources/js/Pages/${mod}`, '');
+  const pagesDir = `resources/js/Pages/${mod}`;
+  coletar(pagesDir, '', pagesDir, true);
   coletar(`memory/requisitos/${mod}/_telas`, ' (blade)');
   return out;
 }
+/**
+ * Telas do módulo — RECURSIVO, pela fonte única `page-path.mjs`.
+ *
+ * ⚠️ A 1ª versão fazia `readdirSync` + `isFile()` (sem recursão) e por isso **não enxergava
+ * tela em subpasta**. Medido 2026-07-27: subcontava **20 de 40 módulos** — `ads` 19→0,
+ * `Financeiro` 21→2, `Ponto` 20→1, `Essentials` 13→0. Pior que o número: o painel imprimia
+ * **"Nenhuma lacuna"** sobre telas que nem via, e o próprio piloto do Produto fechou como
+ * "7/7" sendo **7 de 8** (`Produto/Unificado/Index.tsx` nunca entrou na conta).
+ *
+ * O escopo de "o que é tela" tem UM dono desde a reconciliação #4836/#4840 —
+ * [`scripts/qa/page-path.mjs`](../qa/page-path.mjs) — que o `casos-coverage-guard` e o
+ * `screen-coverage-map` já consomem. Esta porta ficou de fora; agora consome também.
+ * Um conceito, um número, três lados.
+ *
+ * O nome da tela passa a ser o caminho relativo ao módulo sem extensão (`Unificado/Index`),
+ * pra casar 1:1 com `Unificado/Index.casos.md` — mesma convenção em `casosDoModulo`.
+ */
 function telasDoModulo(mod) {
-  const dir = `resources/js/Pages/${mod}`;
-  let ents; try { ents = readdirSync(join(ROOT, dir), { withFileTypes: true }); } catch { return []; }
-  return ents.filter((e) => e.isFile() && e.name.endsWith('.tsx')).map((e) => e.name.replace('.tsx', ''));
+  const base = `resources/js/Pages/${mod}`;
+  const out = [];
+  const walk = (rel) => {
+    let ents; try { ents = readdirSync(join(ROOT, rel), { withFileTypes: true }); } catch { return; }
+    for (const e of ents) {
+      const p = `${rel}/${e.name}`;
+      if (e.isDirectory()) { walk(p); continue; }
+      if (!e.name.endsWith('.tsx') || !isPageScreenPath(p)) continue;
+      out.push(p.slice(base.length + 1).replace(/\.tsx$/, ''));
+    }
+  };
+  walk(base);
+  return out;
 }
 function sddDoModulo(mod) {
   const dir = `memory/requisitos/${mod}`;
@@ -211,7 +297,56 @@ if (IS_MAIN && args.includes('--selftest')) {
   ok('cobre: 1º campo com backticks',
     citadoComoAncora('| `UC-PFIX-01` | Ajuste no relatório | must | US-PROD-028 |', 'US-PROD-028') === true);
 
-  const TOTAL = 22;
+  // ── BITE-TEST das 2 correções de 2026-07-27 (escopo de tela + casos vazio) ──────────
+  // Regra do projeto: correção de máquina só vale com fixture RUIM que morde e BOA que passa.
+  // Sem controle negativo, "consertei" é afirmação — e afirmação é o que estamos matando aqui.
+
+  // (1) escopo de tela: subpasta CONTA, auxiliar NÃO. Antes do fix, `Unificado/Index` era
+  // invisível e o painel do Produto fechava "7/7" sendo 7 de 8.
+  const telasProduto = telasDoModulo('Produto');
+  ok('MORDE: tela em subpasta entra na conta (Unificado/Index)',
+    telasProduto.includes('Unificado/Index'));
+  ok('controle-negativo: _components NÃO vira tela',
+    !telasProduto.some((t) => t.startsWith('_')));
+  ok('escopo bate com a fonte única (Produto = 8 telas, igual screen-coverage)',
+    telasProduto.length === 8);
+
+  // (2) casos.md sem UC: arquivo presente ≠ tela coberta. Fixture ruim = o stub REAL do
+  // Fiscal (37-41 linhas, 0 UC); fixture boa = um casos.md com UC declarado.
+  ok('MORDE: casos.md sem nenhum UC não cobre',
+    extrairUC('---\nowner: W\n---\n# Casos — Nfe\n\n> stub: contrato a escrever.\n').length === 0);
+  ok('controle-negativo: casos.md com UC declarado cobre',
+    extrairUC('| UC-FISC-01 | Emitir NFe | must |').length === 1);
+
+  // (3) corpus de testes: `Modules/<X>/Tests` conta (achado do chip S1). Sem isto, módulo
+  // nWidart aparecia com "UC com teste: 0" mesmo com 80 arquivos de teste no disco.
+  const corpusSelftest = listarTestes();
+  ok('MORDE: Modules/<X>/Tests entra no corpus de testes',
+    corpusSelftest.some((t) => t.path.startsWith('Modules/')));
+  ok('controle-negativo: só o subdir Tests — código de produção do módulo fica fora',
+    corpusSelftest.filter((t) => t.path.startsWith('Modules/')).every((t) => t.path.includes('/Tests/')));
+
+  // (4) UC-id vem da fonte única (achado do chip Financeiro). O regex próprio exigia 2 hífens
+  // e cegava 12 ids reais do repo — US COM contrato saía como "entregue sem contrato".
+  ok('MORDE: UC de prefixo curto conta (UC-F01, UC-S11)',
+    extrairUC('| UC-F01 | Baixa | must |\n| UC-S11 | Menu de ações | must |').length === 2);
+  ok('cobre: as duas formas convivem (UC-F01 + UC-PROD-020)',
+    extrairUC('UC-F01 e UC-PROD-020').length === 2);
+  ok('controle-negativo: "UC-" solto em prosa não vira id',
+    extrairUC('o UC- do caso ainda não foi numerado').length === 0);
+
+  // (5) status da US: bloco inteiro, não 3 linhas (achado do chip Cliente). 228 US liam
+  // `desconhecido` e por isso NUNCA eram acusadas de "entregue sem contrato" — falso-verde.
+  ok('MORDE: status fora da janela de 3 linhas é lido',
+    extrairUS('### US-CRM-001 · Ficha\ntexto\ntexto\ntexto\ntexto\n**Status:** done\n')[0].status === 'done');
+  ok('cobre: forma clássica na metadata (não regrediu)',
+    extrairUS('### US-PROD-020 · G\n\n> owner: wagner · status: todo · type: epic')[0].status === 'todo');
+  ok('controle-negativo: US sem status nenhum segue desconhecido',
+    extrairUS('### US-ARQ-001 · Scaffold\n**Implementado em:** `x.php`\n')[0].status === 'desconhecido');
+  ok('controle-negativo: status da US seguinte não vaza pra anterior',
+    extrairUS('### US-AA-001 · Um\ntexto\n### US-AA-002 · Dois\n> status: done')[0].status === 'desconhecido');
+
+  const TOTAL = 36;
   console.log(f === 0 ? `\n✅ selftest ${TOTAL}/${TOTAL} — extratores, classificador e anti-gaming provados` : `\n❌ ${f} falha(s)`);
   process.exit(f === 0 ? 0 : 1);
 }
@@ -233,7 +368,8 @@ const testes = listarTestes();
 // citação em prosa de outra tela não cria um segundo requisito.
 const donoDe = new Map();
 for (const c of casos) {
-  for (const m of c.src.matchAll(/^\|\s*(UC-[A-Z0-9]{2,10}-\d{2,3})\s*\|/gm)) {
+  // 1º campo da linha de tabela = tela DONA do UC. Mesmo core da fonte única (ver import).
+  for (const m of c.src.matchAll(new RegExp(`^\\|\\s*(${ucScanRe().source})\\s*\\|`, 'gm'))) {
     if (!donoDe.has(m[1])) donoDe.set(m[1], c.tela);
   }
 }
@@ -249,6 +385,19 @@ const statusUC = ucs.map((u) => {
 
 // LACUNAS = a fila de crescimento (derivada, não inventada)
 const telasSemCasos = telas.filter((t) => !casos.some((c) => c.tela === t));
+/**
+ * `casos.md` PRESENTE mas SEM NENHUM UC = lacuna, não cobertura (medido 2026-07-27).
+ *
+ * A 1ª versão só perguntava "existe arquivo `<Tela>.casos.md`?". Rodado no Fiscal, o painel
+ * imprimiu **"Nenhuma lacuna: toda tela tem caso"** — e os 7 arquivos eram **stubs de 37-41
+ * linhas com ZERO UC**. Presença de arquivo tratada como contrato é exatamente a classe
+ * **LC-11** (presence-gate) que este projeto persegue, aqui cometida DENTRO da máquina que
+ * cobra. O irmão disso já tinha sido corrigido acima pro CU (âncora ≠ prosa); faltava o caso
+ * mais grosso: arquivo vazio de UC.
+ *
+ * Não é gate novo nem régua nova — é a MESMA lacuna medindo conteúdo em vez de existência.
+ */
+const casosSemUC = casos.filter((c) => extrairUC(c.src).length === 0);
 /**
  * COBERTO = citado como ÂNCORA, não mencionado em prosa (correção 2026-07-26).
  *
@@ -317,12 +466,13 @@ P(`| UC com teste que os cita | ${statusUC.filter((u) => u.status !== '📝 sem_
 P('');
 P('## Onde a cadeia QUEBRA — esta é a fila de crescimento');
 P('');
-if (!telasSemCasos.length && !cuSemUC.length && !usSemContrato.length) {
-  P('_Nenhuma lacuna: toda tela tem caso, todo CU é citado, e toda US **entregue** tem contrato._');
+if (!telasSemCasos.length && !casosSemUC.length && !cuSemUC.length && !usSemContrato.length) {
+  P('_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._');
 } else {
   P('| Lacuna | O que falta escrever |');
   P('|---|---|');
   for (const t of telasSemCasos) P(`| Tela \`${t}\` sem \`casos.md\` | o contrato da tela (trio incompleto) |`);
+  for (const c of casosSemUC) P(`| \`${c.path.split('/').pop()}\` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |`);
   for (const c of cuSemUC) P(`| \`${c.id}\` sem UC | caso de uso que o exercite — ${c.titulo.slice(0, 70)} |`);
   for (const u of usSemContrato) P(`| \`${u.id}\` **entregue sem contrato** (\`status: ${u.status}\`) | UC que prove o que foi entregue — ${u.titulo.slice(0, 60)} |`);
 }

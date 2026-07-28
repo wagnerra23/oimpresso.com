@@ -74,6 +74,8 @@ Modules/Governance/Tests/Feature/AdrPendenteBriefLineServiceTest.php
 Modules/Governance/Tests/Feature/AgentOutcomeBriefSectionServiceTest.php
 # FLAG de OBRA PARADA no brief (cron-watchdog eixo 2 — "roda" ≠ "entrega") — Process::fake, sem DB.
 Modules/Governance/Tests/Feature/ObraParadaBriefLineServiceTest.php
+# FLAG de EXPOSIÇÃO TIER-0 × cobertura no brief (sentinela ADR 0256 → canal brief) — Process::fake, sem DB.
+Modules/Governance/Tests/Feature/ExposicaoTier0BriefLineServiceTest.php
 tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
 # Emissão OTel GenAI (MEM-OTEL-1 · ADR 0051) — Log::shouldReceive + reflexão, sem DB.
 # Nenhum workflow rodava este arquivo: a asserção biz=4 (cliente ROTA LIVRE, viola
@@ -210,3 +212,58 @@ Modules/Whatsapp/Tests/Feature/FeedbackPublicoSignedUrlTest.php
 # não rodava em NENHUMA lane per-PR (US-COPI-138: guard que nenhum workflow executa = mentira).
 Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php
 Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
+
+# ---------------------------------------------------------------------------
+# Modules/TeamMcp — o módulo NÃO tinha lane (2026-07-27)
+# ---------------------------------------------------------------------------
+# Estado medido em 2026-07-27 (contado, sem head_limit): `git ls-files
+# "Modules/TeamMcp/Tests/**Test.php"` = 26 arquivos; DESTES só 7 estavam aqui e
+# `grep -c TeamMcp .github/workflows/modules-pest.yml` = 0 (o módulo não está no
+# matrix, e aquela lane nem emite JUnit). Logo 19 arquivos não rodavam em lane
+# NENHUMA — "guard que nenhum workflow executa = mentira" (US-COPI-138), a mesma
+# doença do JudgeTraceOnlineJobTest acima.
+#
+# Consequência que fechou o elo: nenhum resultado do TeamMcp chegava ao manifesto
+# scripts/casos-test-results.json (o casos-results-publish colhe o artifact
+# `pest-ci-junit` DESTA lane), então o veredito por UC do G-7 era mudo pro módulo.
+#
+# Verde PROVADO antes de entrar (CT 100, DB_CONNECTION=sqlite :memory:, 2026-07-27):
+#   1) isolado   — `pest Modules/TeamMcp/Tests` → 8 failed / 60 skipped / 130 passed,
+#      e as 8 falhas eram só 2 arquivos: ForjaRoutesSmokeTest (6× DatasetArgumentsMismatch,
+#      consertado nesta PR) e CicloAtivoEndpointTest (2× QueryException, NÃO entra).
+#   2) COMBINADO — a lane inteira desta lista + estes 18 alvos numa ÚNICA invocação do
+#      pest (reproduzindo o `vendor/bin/pest "${PEST_TARGETS[@]}"` do ci.yml), que é o
+#      que mede contaminação cruzada de conexão/resíduo — o motivo pelo qual o
+#      KbHealthSnapshotTest ficou de fora lá em cima. Zero falha vinda do TeamMcp.
+#
+# FORA DE PROPÓSITO: Modules/TeamMcp/Tests/Feature/CicloAtivoEndpointTest.php —
+# 2 QueryException em sqlite ("cycle null quando nenhum ativo" / "retorna o cycle
+# ATIVO com token"). Entrar vermelho aqui travaria merge de TODO mundo (lane
+# required). Fica como dívida honesta: ou vira sqlite-safe, ou vai pra lane MySQL.
+Modules/TeamMcp/Tests/Feature/ActorPermissionMatrixTest.php
+Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php
+Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php
+Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php
+Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php
+# Skip-as-pass em sqlite (stack UltimatePOS exige MySQL) — mas o VALOR aqui é outro:
+# o `DatasetArgumentsMismatch` que manteve este arquivo quebrado desde que nasceu é
+# erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
+# execução real do happy-path (UC-FORJA-01) mora na lane MySQL teammcp-pest.yml.
+Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.php
+Modules/TeamMcp/Tests/Feature/HandoffStaleAlertTest.php
+Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php
+Modules/TeamMcp/Tests/Feature/LgpdComplianceTest.php
+Modules/TeamMcp/Tests/Feature/McpActorsSeederTest.php
+Modules/TeamMcp/Tests/Feature/MultiTenantTokenIsolationTest.php
+Modules/TeamMcp/Tests/Feature/ScaffoldTest.php
+Modules/TeamMcp/Tests/Feature/SmokeRoutesTest.php
+Modules/TeamMcp/Tests/Feature/TokensListAndRevokeTest.php
+Modules/TeamMcp/Tests/Feature/Wave18RetryTeamMcpSaturationTest.php
+Modules/TeamMcp/Tests/Feature/Wave18ServicesExtractionTest.php
+Modules/TeamMcp/Tests/Feature/Wave23ScorecardRotateTest.php
+Modules/TeamMcp/Tests/Feature/Wave28PolishTest.php
+# US-INFRA-043 acceptance #2 (flag de US nao atribuida no Daily Brief): exercita so os
+# nucleos PUROS formatar()/injetarEm() + kill-switch (early-return antes de consultar).
+# ZERO acesso a DB de proposito — mcp_tasks e compartilhada e no CT 100 os testes rodam
+# contra MySQL real, entao assertar contagem vinda de la seria nao-deterministico. Sqlite-safe.
+Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php

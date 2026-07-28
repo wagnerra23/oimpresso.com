@@ -21,7 +21,7 @@ beforeEach(function () {
     }
 });
 
-it('NfeDfeRecebido HasBusinessScope esconde cross-tenant da listagem DF-e', function () {
+it('UC-FDFE-01 · NfeDfeRecebido HasBusinessScope esconde cross-tenant da listagem DF-e', function () {
     session(['business.id' => 1, 'user.business_id' => 1]);
 
     $crossTenantCount = NfeDfeRecebido::query()
@@ -31,7 +31,7 @@ it('NfeDfeRecebido HasBusinessScope esconde cross-tenant da listagem DF-e', func
     expect($crossTenantCount)->toBe(0, 'Global scope deve esconder cross-tenant');
 });
 
-it('STATUS constants estão definidas — Controller depende delas pra filtros', function () {
+it('UC-FDFE-02 · STATUS constants estão definidas — Controller depende delas pra filtros', function () {
     expect(NfeDfeRecebido::STATUS_PENDENTE)->toBe('pendente')
         ->and(NfeDfeRecebido::STATUS_CIENCIA)->toBe('ciencia')
         ->and(NfeDfeRecebido::STATUS_CONFIRMADA)->toBe('confirmada')
@@ -39,7 +39,7 @@ it('STATUS constants estão definidas — Controller depende delas pra filtros',
         ->and(NfeDfeRecebido::STATUS_NAO_REALIZADA)->toBe('nao_realizada');
 });
 
-it('isPendenteManifestacao retorna true pra status PENDENTE e CIENCIA', function () {
+it('UC-FDFE-02 · isPendenteManifestacao retorna true pra status PENDENTE e CIENCIA', function () {
     $pendente = new NfeDfeRecebido(['status_manifestacao' => NfeDfeRecebido::STATUS_PENDENTE]);
     $ciencia  = new NfeDfeRecebido(['status_manifestacao' => NfeDfeRecebido::STATUS_CIENCIA]);
     $conf     = new NfeDfeRecebido(['status_manifestacao' => NfeDfeRecebido::STATUS_CONFIRMADA]);

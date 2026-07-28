@@ -33,8 +33,9 @@
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, rmSync } from 'node:fs';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, resolve, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isPageScreenPath } from '../qa/page-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
@@ -51,16 +52,24 @@ const PT_FILE = {
 // ─────────────────────────────────────────────────────────────────────────────
 const relRoot = (p, root) => resolve(p).replace(resolve(root), '').replace(/^[\\/]/, '').replace(/\\/g, '/');
 
-// "Página roteada" = .tsx em Pages/** fora de _components/_partials, sem .test/.charter.tsx
-// (mesma heurística do casos-coverage-guard.mjs — G-1).
-function walkPages(pagesDir) {
+// "Página roteada" = o que `isPageScreenPath` (scripts/qa/page-path.mjs) reconhece como Page
+// Inertia executável. FONTE ÚNICA compartilhada com casos-coverage-guard + screen-coverage-map.
+//
+// Reconciliação 2026-07-27 (2ª onda, PR desta branch): este filtro conhecia só `_components`
+// e `_partials`, mas o repo usa `_show`(13) `_drawer`(10) `components`(8, sem underscore)
+// `_shared`(7) `_form`(4) `_Showcase`(2) `_lib`(1) — contava 280 contra 235 das portas de
+// cobertura. Como o gate é "a tela tem charter+PT+casos+teste?", cada NÃO-tela contada
+// entrava como tela INCOMPLETA e virava débito legado no baseline — ruído que escondia a
+// dívida real. O `walk` agora só PODA `node_modules`-like implicitamente (nada a podar) e
+// deixa a decisão de "é tela?" com a fonte única, aplicada ao path relativo a `pagesDir`
+// (não a ROOT) — o selftest monta um `pagesDir` temporário e precisa da mesma resposta.
+function walkPages(pagesDir, rootDir = pagesDir) {
   const out = [];
   if (!existsSync(pagesDir)) return out;
   for (const e of readdirSync(pagesDir)) {
     const p = join(pagesDir, e);
-    const st = statSync(p);
-    if (st.isDirectory()) { if (e !== '_components' && e !== '_partials') out.push(...walkPages(p)); }
-    else if (e.endsWith('.tsx') && !e.endsWith('.charter.tsx') && !e.includes('.test.')) out.push(p);
+    if (statSync(p).isDirectory()) out.push(...walkPages(p, rootDir));
+    else if (isPageScreenPath(relative(rootDir, p).split(sep).join('/'))) out.push(p);
   }
   return out;
 }
@@ -179,6 +188,15 @@ if (process.argv.includes('--selftest')) {
     // Mod/SemPT — charter não declara PT
     wr('resources/js/Pages/Mod/SemPT.tsx', '<DataTable/>');
     wr('resources/js/Pages/Mod/SemPT.charter.md', `---\ncomponent: x\n---\n`);
+    // Dirs AUXILIARES não são tela (fonte única isPageScreenPath — reconciliação 2026-07-27).
+    // Antes só `_components`/`_partials` eram podados: `components/` (sem underscore), `_show`,
+    // `_drawer`, `_shared`, `_form`, `_lib` entravam como tela INCOMPLETA e viravam débito
+    // fantasma. Estes 4 usam os dirs REAIS do repo — se alguém reintroduzir filtro local, a
+    // contagem abaixo passa de 6 e este selftest morde.
+    wr('resources/js/Pages/Mod/components/Drawer.tsx', 'export default () => null');
+    wr('resources/js/Pages/Mod/_drawer/AuditoriaTab.tsx', 'export default () => null');
+    wr('resources/js/Pages/Mod/_shared/SubNav.tsx', 'export default () => null');
+    wr('resources/js/Pages/Mod/_form/Field.tsx', 'export default () => null');
 
     const ptMap = new Map([
       ['resources/js/Pages/Mod/Completa.tsx', 'CONFORME'],
@@ -195,6 +213,8 @@ if (process.argv.includes('--selftest')) {
     t(!by('SemTeste').completo && by('SemTeste').faltando.includes('teste'), 'casos sem ref de teste = INCOMPLETA (falta teste)');
     t(!by('GoldenDraft').completo && by('GoldenDraft').faltando.join() === 'golden_live', 'golden DRAFT sozinho reprova (GOLDEN-LIVE)');
     t(!by('SemPT').completo && by('SemPT').faltando.includes('pt_declarado'), 'charter sem PT declarado = INCOMPLETA');
+    t(rows.length === 5, `dirs auxiliares (components/_drawer/_shared/_form) NÃO contam como tela (${rows.length} linhas, esperado 5)`);
+    t(!rows.some((r) => /\/(components|_drawer|_shared|_form)\//.test(r.page)), 'nenhum arquivo de dir auxiliar entrou nas linhas');
     const completoAtual = rows.filter((r) => r.completo).length;
     t(completoAtual === 1, 'catraca conta 1 completa nas fixtures');
     // catraca (--check): baseline > atual ⇒ regressão bloqueia. Prova a comparação pura.

@@ -25,7 +25,7 @@ class KbCommentController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.memory.manage');
+        $this->middleware('can:jana.mcp.memory.manage');
     }
 
     public function store(StoreKbCommentRequest $request, string $slug): JsonResponse

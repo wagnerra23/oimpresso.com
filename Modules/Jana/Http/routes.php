@@ -25,9 +25,29 @@ use Illuminate\Support\Facades\Route;
 // label do sidebar v3 é "IA" → URL casa. Route names `jana.*` preservados
 // (route('jana.x') resolve automático pro novo prefix). Redirect 301
 // /jana/* → /ia/* no fim deste arquivo cobre bookmarks externos.
+// ── `can:jana.access` — a permissão que EXISTIA e não valia nada (2026-07-27) ──
+// Medido antes de ligar: as 5 permissões da Jana estavam DECLARADAS em 3 lugares
+// (Resources/permissions.php · DataController::user_permissions · topnav.php) e
+// aplicadas em ZERO. O grupo `/ia` não tinha `can:` nenhum; `'can' => 'jana.chat'`
+// no topnav só ESCONDE o item do menu. Quem soubesse a URL entrava.
+//
+// O que já protegia (e segue protegendo — isto não substitui nada):
+//   · `business_id` scope (Tier 0, ADR 0093) — nada cruza empresa;
+//   · dono-da-conversa: `abort_unless($conversa->user_id === auth()->id(), 403)`
+//     em 4 pontos do ChatController — ninguém lê a conversa de outro, nem admin.
+// O que faltava é o que [W] pediu: o NÍVEL do usuário controlar o acesso.
+//
+// ⚠️ ALCANCE HONESTO — isto NÃO afeta o dono do negócio. `Gate::before` em
+// app/Providers/AuthServiceProvider.php:34-47 devolve `true` em qualquer ability
+// pra quem tem `Admin#{business_id}`. Larissa é admin da biz=4 → passa aqui e em
+// qualquer permissão futura. Permissão de IA só morde FUNCIONÁRIO.
+//
+// ⚠️ ROLLOUT — `jana.access` nasce `default => false` no registry. Marcar nos papéis
+// (UI /roles/{id}/edit) vem ANTES do merge deste PR, senão funcionária sem o
+// checkbox perde a Jana no instante do deploy.
 Route::group(
     [
-        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:120,1'],
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:120,1', 'can:jana.access'],
         'prefix'     => 'ia',
         'namespace'  => 'Modules\Jana\Http\Controllers',
     ],
@@ -126,13 +146,13 @@ Route::group(
 
         // ---- Administração — Governança MCP (MEM-MCP-1.e, ADR 0053) --------
         // Visão cross-team do consumo do MCP server.
-        // Permission: copiloto.mcp.usage.all (Wagner/superadmin).
+        // Permission: jana.mcp.usage.all (Wagner/superadmin).
         Route::get('/admin/governanca',                    'Admin\GovernancaController@index')
             ->name('jana.admin.governanca.index');
 
         // ---- Team admin / Tasks / CC sessions MOVIDOS pra Modules/TeamMcp/ ----
         // URLs antigas redirecionam via Route::redirect 301 (ver fim deste arquivo).
-        // Permissions copiloto.mcp.usage.all / copiloto.cc.read.team mantidas
+        // Permissions jana.mcp.usage.all / jana.cc.read.team mantidas
         // (rename pra team-mcp.* vira ADR + migration de permissões em etapa
         // futura — não nesta separação). Sub-rotas POST/PATCH/DELETE não
         // têm redirect (UI Inertia foi atualizada pra apontar pras novas URLs).
@@ -161,10 +181,10 @@ Route::group(
 
         // ---- JANA Pro Sprint A (US-COPI-201, ADR 0140) — preview brief diário
         // Endpoint admin pra rodar BriefDiarioService manualmente e ver JSON
-        // antes de configurar Job 8h. Permission: copiloto.superadmin
+        // antes de configurar Job 8h. Permission: jana.superadmin
         // (Wagner inicial — depois jana_pro.preview quando US-COPI-212 entrar).
         Route::get('/admin/jana-pro/preview',              'Admin\JanaProController@preview')
-            ->middleware('can:copiloto.superadmin')
+            ->middleware('can:jana.superadmin')
             ->name('jana.admin.jana_pro.preview');
 
         // (TaskRegistry F2 e MEM-CC-UI-1 movidos pra Modules/TeamMcp/ — ver

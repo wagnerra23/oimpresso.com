@@ -54,8 +54,8 @@ class KbAiController extends Controller
 
         // Permission canônica do SCHEMA §12. Dívida técnica preservada:
         // se PermissionRegistry ainda não promoveu kb.ai.ask pra Spatie real,
-        // fallback temporário pra copiloto.mcp.memory.manage (mesma roda do KbController).
-        $this->middleware('can:kb.ai.ask|copiloto.mcp.memory.manage');
+        // fallback temporário pra jana.mcp.memory.manage (mesma roda do KbController).
+        $this->middleware('can:kb.ai.ask|jana.mcp.memory.manage');
 
         // Throttle: 10/min por user. Bucket nomeado pra audit.
         $this->middleware('throttle:10,1')->only(['ask', 'summarize', 'suggestMeta']);

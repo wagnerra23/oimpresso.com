@@ -3,7 +3,9 @@ slug: jana-runbook-qualidade-admin
 title: "Jana — Runbook da tela Qualidade IA (Admin)"
 type: runbook
 module: Jana
-status: active
+status: ativo
+owner: W
+last_validated: "2026-05-09"
 date: 2026-05-09
 ---
 
@@ -12,7 +14,7 @@ date: 2026-05-09
 > **Tipo:** runbook reproduzível
 > **Refs:** [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0036](../../decisions/0036-replanejamento-meilisearch-first.md), [ADR 0049](../../decisions/0049-camadas-memoria-agente-fase-por-fase.md), [ADR 0050](../../decisions/0050-metricas-obrigatorias-memoria-table.md), [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
 > **Status:** implementada V1 (visualização) — `/copiloto/admin/qualidade`. V2 (HITL + alerts) no Cycle 02.
-> **Permissão:** `copiloto.mcp.usage.all` (Wagner/superadmin)
+> **Permissão:** `jana.mcp.usage.all` (Wagner/superadmin)
 > **Story:** MEM-MET-4 ([ADR 0050](../../decisions/0050-metricas-obrigatorias-memoria-table.md))
 
 Painel de **trend 7-90d das 8 métricas obrigatórias + 3 RAGAS** lido de `copiloto_memoria_metricas` (alimentado pelo cron `copiloto:metrics:apurar` daily 23:55 + `copiloto:eval --persist` contra gabarito `jana_memoria_gabarito`). KPIs por business (última leitura) + gates verde/vermelho do [ADR 0049](../../decisions/0049-camadas-memoria-agente-fase-por-fase.md) + tabela trend com sparklines SVG inline + tabela detalhada de runs recentes. Persona: Wagner avaliando se Recall@3 está acima do gate (≥0.80) pra calibrar HyDE/Reranker/RRF da camada de retrieval.
@@ -21,7 +23,7 @@ Painel de **trend 7-90d das 8 métricas obrigatórias + 3 RAGAS** lido de `copil
 
 | Verificação | Como conferir |
 |---|---|
-| Tela renderiza em `/copiloto/admin/qualidade` | Login com `copiloto.mcp.usage.all` → URL → header "Qualidade IA" + filtros |
+| Tela renderiza em `/copiloto/admin/qualidade` | Login com `jana.mcp.usage.all` → URL → header "Qualidade IA" + filtros |
 | AppShellV2 envolvendo via Persistent Layout | Inspetor: `<div class="cockpit">` ao redor; breadcrumb "Copiloto / Qualidade IA" |
 | Filtro Janela (7/30/60/90d) + Business + Aplicar | `<Select>` shadcn no top |
 | 1 Card por business com 8 KpiCards de gate | Verde quando `kpi.recall_at_3 >= gates.recall_at_3.alvo` |
@@ -53,7 +55,7 @@ V1 hoje: visualização read-only. V2 (Cycle 02): HITL "essa resposta foi boa?" 
 ## 2. Pré-condições
 
 - [ ] Módulo `Jana` instalado em `/manage-modules` (ADR 0024)
-- [ ] Permissão `copiloto.mcp.usage.all` atribuída ao role do usuário (geralmente Wagner/superadmin)
+- [ ] Permissão `jana.mcp.usage.all` atribuída ao role do usuário (geralmente Wagner/superadmin)
 - [ ] Rota `Route::get('/admin/qualidade', 'Admin\QualidadeController@index')->name('jana.admin.qualidade.index')` em [`Modules/Jana/Http/routes.php:106`](../../../Modules/Jana/Http/routes.php) — dentro do prefix `/copiloto`
 - [ ] Page Inertia em [`resources/js/Pages/Jana/Admin/Qualidade/Index.tsx`](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx)
 - [ ] Tabela `copiloto_memoria_metricas` (Entity `MemoriaMetrica`) com scope `ultimosDias($dias)` — alimentada pelo cron `copiloto:metrics:apurar` (daily 23:55) E pelo command `copiloto:eval --persist`
@@ -73,7 +75,7 @@ class QualidadeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response
@@ -410,7 +412,7 @@ interface Props {
 - [x] Estados cobertos: default + empty (sparkline) + empty (trend) + null (metric) — loading/error pendentes
 - [x] Bundle Inertia: `npm run build:inertia` + `Pages/Jana/Admin/Qualidade/Index` no manifest
 - [x] Multi-tenant: Controller filtra opcional por `business_id`; séries agrupadas por `bizKey` (plataforma quando NULL)
-- [x] Permissão: middleware `can:copiloto.mcp.usage.all`
+- [x] Permissão: middleware `can:jana.mcp.usage.all`
 - [x] Clamp defensivo `dias` ∈ [7, 90]
 
 ## 10. Pegadinhas

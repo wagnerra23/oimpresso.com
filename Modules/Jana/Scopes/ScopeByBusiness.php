@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Scope;
  *
  * Padrão:
  * - Usuário comum vê apenas rows com business_id = session('user.business_id').
- * - Superadmin (permissão copiloto.superadmin) vê do próprio business
+ * - Superadmin (permissão jana.superadmin) vê do próprio business
  *   MAIS rows com business_id NULL (metas da plataforma).
  *
  * Toda query que deliberadamente queira sair desse escopo precisa chamar

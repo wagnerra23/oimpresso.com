@@ -3,17 +3,21 @@ page: /nfe-brasil/tributacao
 component: resources/js/Pages/NfeBrasil/Tributacao/Index.tsx
 owner: wagner
 status: draft
-last_validated: "2026-05-10"
+last_validated: "2026-07-27"
 parent_module: NfeBrasil
 related_adrs: [29, 93, 94]
 related_us: [US-NFE-010, US-NFE-061]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /nfe-brasil/tributacao
 
 > **Status:** live em 2026-05-10. Charter criado por skill `charter-write` disparado pela auditoria de completude (US-NFE-061 P0). Non-Goals + Anti-hooks aprovados por Wagner em 2026-05-10.
+>
+> **Contrato executável:** [`Index.casos.md`](Index.casos.md) — UC-NFTR-01..06, defendidos por [`TributacaoIndexContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php) (lane MySQL) e [`TributacaoControllerTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php) (ordenação).
+>
+> **v2 (2026-07-27) — errata:** dois pontos ficaram para trás do código (AuditLog das mutações de regra; §Pest GUARD prometendo arquivo inexistente). Corrigidos abaixo (⚠️). Precedência: *teste verde > casos > charter > SPEC*.
 
 ---
 
@@ -34,7 +38,7 @@ Configurar **tributação default + regras NCM específicas** do business — ú
 - Botões linkados: Editar regra, Remover regra (com confirm), Nova regra, Importar CSV
 - Toast feedback em todas mutações (sonner)
 - Multi-tenant Tier 0: query usa `business_id` em todas operações + HasBusinessScope no `NfeFiscalRule` e `NfeBusinessConfig`
-- AuditLog em mutações sensíveis: `activity('nfe.tributacao')->log('auto_emission.toggled')` no toggleAutoEmission (já implementado, linha 105-112 do Controller)
+- AuditLog em mutações sensíveis: `activity('nfe.tributacao')->log(...)` em `toggleAutoEmission` (`auto_emission.toggled`), `store` (`regra.created`), `update` (`regra.updated`) e `destroy` (`regra.deleted`) — ⚠️ v1 citava `linha 105-112 do Controller`; referência de linha apodrece no primeiro refactor (hoje já são 123-130), então a âncora passa a ser o **símbolo** + o log-name
 - Cascade defaults NCM→produto (ADR satélite arq/0006)
 
 ---
@@ -93,7 +97,7 @@ Configurar **tributação default + regras NCM específicas** do business — ú
 - `POST /nfe-brasil/tributacao/import/aplicar` → aplicar CSV em batch
 - Cascade NCM→produto: ao salvar config default, listeners propagam pra cálculos posteriores (ADR satélite arq/0006)
 - Multi-tenant: HasBusinessScope no `NfeFiscalRule` + `NfeBusinessConfig`
-- Audit: `activity('nfe.tributacao')->log()` no toggleAutoEmission ✅ implementado; expansão pra store/update/destroy regras + aplicarTemplate via US-NFE-062 P1
+- Audit: ⚠️ **v1 desatualizada** — dizia que só o `toggleAutoEmission` logava e que store/update/destroy viriam pela US-NFE-062 P1. Verificado 2026-07-27: `store`/`update`/`destroy` **já logam** (`regra.created`/`regra.updated`/`regra.deleted`). O único caminho de mutação **sem** `activity()` é o **`aplicarTemplate`** — que é a ação mais destrutiva da tela (substitui regime + tributação default inteira) e segue no escopo da US-NFE-062
 
 ---
 
@@ -111,23 +115,19 @@ Configurar **tributação default + regras NCM específicas** do business — ú
 
 ---
 
-## Métricas vivas (Pest GUARD — a escrever em F1.5)
+## Métricas vivas (Pest GUARD)
 
-```php
-// Modules/NfeBrasil/Tests/Charters/TributacaoCharterTest.php
+⚠️ **v2 — errata:** a v1 listava 11 `it(...)` num arquivo `Modules/NfeBrasil/Tests/Charters/TributacaoCharterTest.php` que **nunca existiu** (nem o diretório `Tests/Charters/` existe — só `Feature/` e `Unit/`). Charter que promete teste inexistente deve ser revogado, não mantido como decoração (`how-trabalhar.md`: *"§Pest GUARD que promete teste inexistente = revogar (grep antes de confiar)"*).
 
-it('renders under 1500ms p95 with regras + config + templates')
-it('does not emit emails on render or any POST')
-it('does not call SEFAZ on render or toggle auto-emission')
-it('does not write to DB on render (only on POSTs)')
-it('isolates regras and config by business_id (cross-tenant 404)')
-it('blocks toggle auto-emission when config does not exist (flash error)')
-it('logs activity on toggle auto-emission with business_id')
-it('renders at 1280px without horizontal scroll')
-it('formats alíquotas with 2 decimals PT-BR (vírgula not period)')
-it('formats NCM as XXXX.XX.XX')
-it('confirms destructively when applying template over existing config')
-```
+**Escritos** — rastreados por UC em [`Index.casos.md`](Index.casos.md):
+
+| Promessa da v1 | Onde vive agora |
+|---|---|
+| `isolates regras and config by business_id (cross-tenant 404)` | `UC-NFTR-04` (update/destroy) · `UC-NFTR-05` (listagem) |
+| `blocks toggle auto-emission when config does not exist (flash error)` | `UC-NFTR-02` |
+| — (não estava na v1) | `UC-NFTR-01` gate per-business · `UC-NFTR-03` template preserva regras NCM · `UC-NFTR-06` ordenação |
+
+**Não escritos, e honestamente em aberto** (sem teste ⇒ sem afirmação): p95 de render, ausência de e-mail/SEFAZ, "não escreve no render", 1280px sem scroll, formatação de alíquota (`pct()`) e de NCM, `confirm` destrutivo do template, e o log de `activity` no toggle. Os três de comportamento de cliente (formatação + confirm) precisariam de e2e Playwright — a tela não tem spec e2e hoje. Viram UC quando ganharem teste que os cite (G-2).
 
 ---
 
@@ -147,3 +147,4 @@ it('confirms destructively when applying template over existing config')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-10 | [CC] charter-write skill + [W] | Draft criado por US-NFE-061 (auditoria de completude module-completeness-audit). Wagner aprovou Non-Goals + Anti-hooks no mesmo dia → status:live. |
+| 2026-07-27 | [CC] | **v2 — trio fechado + errata.** Nasce `Index.casos.md` (UC-NFTR-01..06) + `TributacaoIndexContratoTest`. Corrigido o AuditLog (store/update/destroy já logam; o único sem `activity()` é o `aplicarTemplate`) e a referência de linha do Controller (trocada por símbolo — linha apodrece). §Pest GUARD revogado (arquivo prometido nunca existiu) e substituído pelo mapa promessa→UC. |

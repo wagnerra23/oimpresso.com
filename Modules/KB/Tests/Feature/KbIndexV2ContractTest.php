@@ -15,7 +15,7 @@ use Inertia\Testing\AssertableInertia;
  * Estado (2026-07-17): `kb.v2` e o alias `sops.index` agora roteiam pra
  * `KbController@indexV2`, que serve DADO REAL de kb_nodes (charter §8-bis passo 2).
  * A tela saiu do mock (`usingMock = !props.nodes` → false). Este teste blinda o
- * contrato da rota: auth + permissão (`copiloto.mcp.memory.manage`, do constructor),
+ * contrato da rota: auth + permissão (`jana.mcp.memory.manage`, do constructor),
  * render, read-only, sem side-effects, e Tier 0 FORTE (V5: o payload serve nodes e
  * o global scope isola biz=99). UC-06 (fallback mock) foi REVOGADO com o Controller.
  *
@@ -79,10 +79,10 @@ it('V2: rotas kb.v2 e sops.index estao registradas nomeadas', function () {
     expect(\Route::has('sops.index'))->toBeTrue();
 });
 
-// NOTA: o Controller `KbController@indexV2` exige `can:copiloto.mcp.memory.manage`
+// NOTA: o Controller `KbController@indexV2` exige `can:jana.mcp.memory.manage`
 // (constructor do KbController — MESMA permissão da V3 /kb, consistente). Por isso os
 // testes autenticados concedem a permissão ao user biz=1.
-$permKb = ['copiloto.mcp.memory.manage'];
+$permKb = ['jana.mcp.memory.manage'];
 
 it('V2b: GET /kb/v2 autenticado renderiza Inertia kb/Index.v2', function () use ($permKb) {
     kbActAsUser(bizId: 1, permissions: $permKb);

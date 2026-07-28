@@ -14,7 +14,7 @@
 |---|---:|
 | US no SPEC | 9 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 7 |
+| Telas (.tsx) | 8 |
 | Telas com `casos.md` | 11 |
 | UC declarados | 54 |
 | UC com teste que os cita | 54 |
@@ -23,6 +23,7 @@
 
 | Lacuna | O que falta escrever |
 |---|---|
+| Tela `Unificado/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `CU-PROD-09` sem UC | caso de uso que o exercite — Código de barras + etiqueta |
 | `CU-PROD-12` sem UC | caso de uso que o exercite — Correção de valor / agregação de inventário |
 

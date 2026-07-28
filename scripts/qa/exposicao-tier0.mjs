@@ -33,6 +33,14 @@
  *   node scripts/qa/exposicao-tier0.mjs --json     # + grava baseline (uso consciente)
  *   node scripts/qa/exposicao-tier0.mjs --trend    # tendência vs baseline (cron semanal)
  *   node scripts/qa/exposicao-tier0.mjs --check     # exit 1 se o PISO quente regredir
+ *   node scripts/qa/exposicao-tier0.mjs --stdout   # JSON puro no stdout (NÃO grava nada)
+ *
+ * `--stdout` existe pro Daily Brief: o brief é PHP e a sentinela é Node, então
+ * ExposicaoTier0BriefLineService faz shell-out + json_decode (mesmo idioma de
+ * PlanHealthBriefLineService). Precisa de JSON LIMPO — o modo default imprime o
+ * relatório de texto e `--json` GRAVA o baseline, nenhum dos dois serve pra ser
+ * consumido 6x/dia pelo cron do brief. Inclui `trend` (delta vs baseline) para o
+ * cálculo do delta viver AQUI, na sentinela, e não ser reimplementado em PHP.
  *
  * BASELINE: memory/governance/exposicao-tier0-baseline.json (o que a catraca lê).
  *
@@ -42,7 +50,8 @@
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { ucScanRe, ucHeadRe } from '../lib/uc-regex.mjs';
+import { ucScanRe, ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
+import { isPageScreenPath } from './page-path.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -74,23 +83,23 @@ function walk(dir, acc = []) {
 }
 
 /**
- * Uma TELA é `.tsx` roteável sob Pages/**, excluindo (a) `_components/` e `Partials/`
- * (como o screen-coverage-map) e (b) QUALQUER segmento de pasta começando com `_`
- * (`_Showcase`, `_drawer`, …) — o passo que falta no screen-coverage-map e que separa
- * 279 (com ruído) de 242 (honesto). Também exclui `*.charter.tsx` e `*.test.*`.
+ * Uma TELA é o que `isPageScreenPath` (scripts/qa/page-path.mjs) reconhece como Page Inertia
+ * executável. FONTE ÚNICA compartilhada com casos-coverage-guard + screen-coverage-map +
+ * ciclo-completo.
+ *
+ * ERRATA + reconciliação 2026-07-27 — o texto anterior dizia que o `_`-prefixo era "o passo
+ * que falta no screen-coverage-map": FALSO. O `PAGE_AUX_DIR` da fonte única já cobre `_.*` (e
+ * mais). A divergência era o OPOSTO e era DESTE lado: o `isScreen` local contava 243 contra
+ * 235 das portas de cobertura, porque não excluía `components/` SEM underscore — os 8 extras
+ * eram Compras/components/{AcoesDropdown,Drawer,VisibilidadeColunas}, Jana/components/{FabJana,
+ * JanaAreaHeader,JanaCockpitV2} e Financeiro/{Categorias,ContasBancarias}/components/*Sheet.
+ * Isso importava aqui mais que nos outros: um `components/Drawer.tsx` classificado "dinheiro/
+ * estoque" entrava no CONJUNTO QUENTE Tier-0 e cobrava teste de comportamento de um
+ * componente que não é tela — inflando o débito com alvo errado.
  */
-function isScreen(relTsx) {
-  if (!relTsx.endsWith('.tsx')) return false;
-  if (relTsx.endsWith('.charter.tsx') || relTsx.includes('.test.')) return false;
-  const dirs = relTsx.split('/').slice(0, -1);
-  if (dirs.some((d) => d === '_components' || d === 'Partials')) return false;
-  if (dirs.some((d) => d.startsWith('_'))) return false;
-  return true;
-}
-
 const screenFiles = walk(PAGES_DIR)
   .map((abs) => ({ abs, rel: relative(PAGES_DIR, abs).split(sep).join('/') }))
-  .filter((s) => isScreen(s.rel));
+  .filter((s) => isPageScreenPath(s.rel));
 
 // =====================================================================================
 // 2. EXPOSIÇÃO Tier-0 — categorias (conteúdo + módulo)
@@ -167,14 +176,18 @@ function citedUcSet() {
 }
 const CITED_UCS = citedUcSet();
 
-/** UCs declarados num .casos.md (heading `UC-XX ...`). */
+/**
+ * UCs declarados num .casos.md — delega pra fonte única do PARSER (fix 2026-07-27).
+ *
+ * Antes daqui saía uma cópia do split que aplicava `ucHeadRe()` na LINHA CRUA. Como o
+ * regex é ancorado em `^UC-` e o heading canônico é `## UC-CEDI-01 · ...`, nunca casava:
+ * `hasCasosCoverage()` devolvia false pra TODA tela com heading markdown, `covered =
+ * e2e || casos` era de fato `covered = e2e`, e o piso Tier-0 subcontava (4 medidas vs 29
+ * reais). Revelado pela divergência contra `npm run screen:files` no módulo Cliente
+ * (0/7 cobertas tendo 21 UC citados por teste). Ver `ucsDeclaredInCasos` na lib.
+ */
 function ucsDeclaredIn(casosAbs) {
-  const out = [];
-  for (const line of readFileSync(casosAbs, 'utf8').split(/\r?\n/)) {
-    const m = line.match(ucHeadRe());
-    if (m) out.push(m[1].toUpperCase());
-  }
-  return out;
+  return ucsDeclaredInCasos(readFileSync(casosAbs, 'utf8'));
 }
 
 /** Uma tela tem cobertura por casos se seu <Tela>.casos.md declara >=1 UC citado por teste. */
@@ -312,7 +325,33 @@ function report() {
 // =====================================================================================
 // MODOS
 // =====================================================================================
-report();
+
+// `--stdout` = JSON puro pro consumo do Daily Brief (PHP). Suprime o relatório de
+// texto — senão o stdout vira "texto + JSON" e o json_decode do lado PHP falha.
+// NÃO grava baseline (só `--json` grava) e NÃO altera exit code.
+if (flags.has('--stdout')) {
+  // `trend` fica AQUI (e não no PHP) pela mesma razão do PlanHealth: quem conta é a
+  // sentinela. Delta calculado à parte do bloco `--trend` de propósito — mexer naquele
+  // caminho arriscaria o cron semanal que já roda, e são 3 subtrações.
+  let trend = null;
+  if (existsSync(BASELINE)) {
+    try {
+      const prev = JSON.parse(readFileSync(BASELINE, 'utf8')).aggregates ?? {};
+      trend = {
+        hot_debt_delta: aggregates.hot_debt - (prev.hot_debt ?? aggregates.hot_debt),
+        hot_covered_delta: aggregates.hot_covered - (prev.hot_covered ?? aggregates.hot_covered),
+        tier0_hot_delta: aggregates.tier0_hot - (prev.tier0_hot ?? aggregates.tier0_hot),
+      };
+      // Piso Tier-0 só sobe (ADR 0256): cobertura menor que o baseline = regressão.
+      trend.piso_regrediu = trend.hot_covered_delta < 0;
+    } catch {
+      trend = null; // baseline corrompido → sem delta, mas o snapshot atual ainda serve.
+    }
+  }
+  console.log(JSON.stringify({ ...snapshot, trend }));
+} else {
+  report();
+}
 
 if (flags.has('--json')) {
   writeFileSync(BASELINE, JSON.stringify(snapshot, null, 2) + '\n');

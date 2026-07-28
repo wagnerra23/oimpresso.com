@@ -9,11 +9,9 @@ module: Fiscal
 status: draft
 created: 2026-05-20
 owner: wagner
-related_us: [US-FISCAL-001]
+related_us: [US-FISCAL-001, US-FISCAL-012, US-FISCAL-013, US-FISCAL-014]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
-prototypes:
-  - prototipo-ui/Oimpresso ERP - Chat.html (fiscal-page.jsx §9 FiscalNFePage)
-  - prototipo-ui/fiscal-page.css
+prototypes: []   # corrigido 2026-07-27 — os 2 paths declarados aqui não existem (recibo no rodapé)
 ---
 
 # Charter — `Fiscal/Nfe`
@@ -34,13 +32,23 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 6. **Inertia::defer** em rows (skill `inertia-defer-default`) — tabela carrega só quando solicitada.
 7. **Pest biz=1** (ADR 0101): isolation cross-tenant + permission gate `fiscal.nfe.view`.
 
-## Non-Goals (Wagner aprova explicitamente — NÃO entrar no PR #1)
+## Non-Goals (Wagner aprova explicitamente)
 
-- ❌ **Ações de mutação** (cancelar, retransmitir, CC-e, inutilizar) — botões existem desabilitados; ativação em PR seguintes (cada uma chama Service NfeBrasil existente via Job).
+> ⚠️ **Reconciliado em 2026-07-27.** O Non-Goal "❌ Ações de mutação (cancelar, retransmitir, CC-e,
+> inutilizar) — botões existem desabilitados" **estava stale**: as quatro ações foram entregues em
+> `US-FISCAL-012` (cancelar + manifestar DF-e), `US-FISCAL-013` (CC-e + inutilizar) e
+> `US-FISCAL-014` (retransmitir), e o `NotaDrawer.tsx` já renderiza os botões habilitados
+> (`disabled={busy}`, não `disabled` fixo). Mantê-lo instruiria uma sessão futura a desligar código
+> correto. Precedência aplicada: *teste verde > casos > charter > SPEC* (proibicoes.md). **Nenhum
+> Non-Goal novo foi inventado** — só saiu o que o código refutava; os demais seguem como [W] aprovou.
+>
+> Pelo mesmo motivo saiu "❌ ⌘K palette completa com busca cross-fiscal": entregue em
+> `US-FISCAL-015` e montada no shell desta tela (`FxShell.tsx:142` renderiza `<CmdKPalette />`).
+
+- ❌ **Download de XML e DANFE** pelo drawer — botões seguem desabilitados ("PR seguinte").
 - ❌ **NFS-e** na mesma tela (sub-página 3 separada do design).
-- ❌ **Manifesto DF-e** (sub-página 4 separada).
-- ❌ **Emissão nova** (botão "Emitir" desabilitado — entra com EmitirSheet em PR após cancelar/retransmitir).
-- ❌ **⌘K palette** completa com busca cross-fiscal (PR #3 do cockpit).
+- ❌ **Manifesto DF-e** (sub-página 4 separada — só o contrato da ação vive aqui).
+- ❌ **Emissão nova** (botão "Emitir" desabilitado — entra com EmitirSheet em PR próprio).
 - ❌ **Sparklines, alertas, KPIs** (são do Cockpit sub-página 1 — PR #2).
 - ❌ **Importar XML** entrada de fornecedor (depende endpoint NfeBrasil ainda não exposto).
 - ❌ **Dest_name/CNPJ via JOIN com transactions/contacts** — primeiro PR lê de `metadata` JSON; PR seguinte adiciona join (perf sob carga real).
@@ -73,3 +81,18 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 - **R1:** lista carrega lenta se business tem >10k notas — mitigação: defer + paginate 50 + index em `emitido_em DESC`.
 - **R2:** metadata->dest_name pode estar vazio em notas antigas pré-Sprint 3 ARQ-019 — fallback "—".
 - **R3:** janela 24h vs UTC vs America/Sao_Paulo — Controller usa `now()` (timezone do app); pílula JS usa `Date.now()` (browser timezone). Risco baixo porque comparação é minutos antes da deadline, não horas; futuro: passar `nowMs` server-rendered pra precisão.
+
+---
+
+## Reconciliação factual — 2026-07-27 (`sdd-from-source`, Fase 2.6)
+
+**Só FATO foi corrigido. Nenhuma intenção (Mission, Goals, Non-Goals, Anti-hooks, UX targets) foi tocada** — intenção é de [W].
+
+| O que dizia | O que é | Evidência |
+|---|---|---|
+| `prototypes: prototipo-ui/Oimpresso ERP - Chat.html` · `prototipo-ui/fiscal-page.css` | **nenhum dos dois existe**, e não há protótipo fiscal algum no repositório | `ls "prototipo-ui/Oimpresso ERP - Chat.html"` e `ls prototipo-ui/fiscal-page.css` → *No such file or directory*; `find prototipo-ui -maxdepth 2 -iname "*fiscal*"` → **0 resultados** |
+
+O campo `related_prototype` desta tela **já** declarava `n/a (herda PT-01 Lista; segue o Padrão de Tela)` — a lista `prototypes:` era o resíduo que contradizia. Os dois campos agora concordam.
+Consequência que **não** é dívida: sem protótipo, esta tela não é ancorável por `proto-baseline`; é o caso "nasce do Design System" (SDD §4).
+
+Contexto completo: [`memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md`](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md) §4 · contrato de teste em [`Nfe.casos.md`](Nfe.casos.md).

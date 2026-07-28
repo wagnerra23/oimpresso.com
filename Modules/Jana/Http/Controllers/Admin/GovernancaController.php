@@ -15,7 +15,7 @@ use Modules\Jana\Services\GovernancaService;
  * pra quais tools, com qual latência e custo. Diferente de CustosController
  * (US-COPI-070) que mostra IA do CHAT por business — aqui é MCP cross-team.
  *
- * Permissão: copiloto.mcp.usage.all (Wagner/superadmin por padrão).
+ * Permissão: jana.mcp.usage.all (Wagner/superadmin por padrão).
  *
  * Fontes de dados:
  *   - mcp_audit_log: cada chamada MCP (append-only, 1 ano retenção)
@@ -26,7 +26,7 @@ class GovernancaController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request, GovernancaService $service): Response
