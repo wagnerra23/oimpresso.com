@@ -283,9 +283,17 @@ it('UC-PEDIT-08 · a tela Blade declara o desligamento das 3 flags (hidden 0)', 
     // "a Blade não declara" de "a resposta nem era a Blade". A 1ª corrida (run
     // 30383633898) devolveu uma página com `<html lang="en" class="auto">` — que não é
     // nem o `layouts.app` (Blade) nem o `layouts.inertia`; provavelmente página de erro.
+    // A run 30384071699 devolveu 500 — e o número sozinho não separa "ambiente de teste
+    // incompleto" de "eu quebrei a Blade". A causa vem da exceção que o handler capturou.
+    $causa = $resposta->exception
+        ? get_class($resposta->exception) . ': ' . $resposta->exception->getMessage()
+          . ' @ ' . $resposta->exception->getFile() . ':' . $resposta->exception->getLine()
+        : '(sem exceção capturada)';
+
     expect($resposta->getStatusCode())->toBe(
         200,
-        'PRÉ-CONDIÇÃO: GET /products/{id}/edit tem que abrir a tela. Outro status = o UC não foi exercido.'
+        'PRÉ-CONDIÇÃO: GET /products/{id}/edit tem que abrir a tela. Outro status = o UC não foi '
+        . 'exercido. CAUSA REAL: ' . $causa
     );
     expect($html)->toContain(
         'product_add_form',
