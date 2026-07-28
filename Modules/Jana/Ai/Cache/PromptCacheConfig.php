@@ -102,19 +102,25 @@ final class PromptCacheConfig
      * Indica se cache está habilitado globalmente (kill-switch operacional).
      * Default ON — desliga via env `COPILOTO_PROMPT_CACHE_ENABLED=false`
      * em caso de regressão observada.
+     *
+     * Lê de `config('copiloto.prompt_cache.enabled')` (Modules/Jana/Config/config.php),
+     * NÃO de `env()` direto: com `config:cache` ligado em produção o `.env` não é
+     * carregado e `env()` aqui devolveria sempre o default — kill-switch morto.
      */
     public static function isEnabled(): bool
     {
-        return (bool) env('COPILOTO_PROMPT_CACHE_ENABLED', true);
+        return (bool) config('copiloto.prompt_cache.enabled', true);
     }
 
     /**
      * Tamanho mínimo (chars) abaixo do qual NÃO vale marcar pra cache.
      * Anthropic exige conteúdo mínimo (1024 tokens pra Sonnet/Opus, 2048 pra Haiku)
      * — usamos heurística conservadora: ~4 chars/token → 4096 chars mínimos.
+     *
+     * Mesma razão do `isEnabled()` pra ler de config e não de env.
      */
     public static function minCacheableChars(): int
     {
-        return (int) env('COPILOTO_PROMPT_CACHE_MIN_CHARS', 4096);
+        return (int) config('copiloto.prompt_cache.min_chars', 4096);
     }
 }
