@@ -51,6 +51,14 @@ import { stdin } from 'node:process';
 // ── Padrões (o gatilho de BLOCK e o sentinela de redação) ────────────────────
 // Estrito: "R$" seguido de 0-ou-1 espaço e um dígito. Mesmo padrão do git filter-repo.
 const BRL_STRICT = /R\$\s?\d/;
+// EXCEÇÃO DE ZERO (2026-07-28) — `R$ 0` / `R$ 0,00` NÃO é valor de negócio: é o buraco de
+// cálculo conhecido ("o total da OS mecânica retorna R$ 0 hoje"). Bloquear isso é
+// falso-positivo puro — não vaza dinheiro de ninguém, e força o autor a redigir um zero,
+// apagando informação técnica útil.
+// MEDIDO no passivo ANTES de instalar: 6 dos 84 tokens da árvore e 7 das 61 linhas da
+// janela de 90d são `R$ 0` — ~11% do ruído do predicado sai com uma regra de 1 linha.
+// Zero seguido de dígito significativo (R$ 0,50 · R$ 01) segue bloqueado.
+const BRL_ZERO = /R\$\s?0+(?:[.,]0+)?(?!\d)(?![.,]\d*[1-9])/;
 // Sentinela canônico de redação — a linha que o tem está OK (é o remédio, não a doença).
 const REDACTION = '[redacted Tier 0]';
 // Advisory (NÃO bloqueia): termos financeiros específicos. "receita" solta fica de fora
@@ -59,17 +67,30 @@ const KEYWORD_ADVISORY = /\b(mrr|arr|faturamento|meta financeira|valor por m[êe
 // Marcador de bloco de código cercado (abre/fecha alternadamente).
 const FENCE = /^\s*(```|~~~)/;
 
-// ── isMemoryMarkdownPath: alvo = memory/**/*.md do git canônico ──────────────
+// ── isMemoryMarkdownPath: alvo = memory/** (arquivo de TEXTO) do git canônico ─
 // (lógica pura — importada pelo selftest). Exclui a auto-mem privada do ~/.claude/projects
 // (block-automem já cuida daquilo) e o oimpresso-local (zona pessoal, ADR 0131).
+//
+// EXTENSÕES ampliadas em 2026-07-28 (auditoria adversarial da defesa BRL). Era só `.md`,
+// e `.yaml` passava — não é teórico: `memory/governance/scorecards/screens/
+// oficinaauto-serviceorders-show.yaml` tem hits vivos, e 3 das 61 linhas com R$ da janela
+// de 90 dias entraram por `.yaml`.
+// FP MEDIDO ANTES de ampliar: o único arquivo não-`.md` de memory/ com hit na árvore é
+// aquele scorecard, e os 2 hits dele são `R$ 0` — que a exceção de zero libera. FP = 0.
+// Contagem por extensão em memory/ hoje: .md 3346 · .yaml 239 · .json 33 · .yml 10
+// (nenhum .txt/.csv — entram como cobertura preventiva de custo zero).
+// Código e binário seguem FORA (.php/.jsx/.py/.html): não são conhecimento, e um valor
+// ali é dado de fixture, não vazamento de negócio.
+const EXT_TEXTO = /\.(md|mdx|ya?ml|json|csv|txt)$/;
+
 export function isMemoryMarkdownPath(filePath) {
   if (!filePath) return false;
   const p = String(filePath).replace(/\\/g, '/').toLowerCase();
-  if (!p.endsWith('.md')) return false;
+  if (!EXT_TEXTO.test(p)) return false;
   if (p.includes('.claude/projects/')) return false; // auto-mem legada (home) — outro hook
   if (p.includes('.claude/oimpresso-local/')) return false; // zona pessoal (ADR 0131)
   // "memory" como SEGMENTO de path em qualquer profundidade (evita casar "memory-bank/").
-  return /(^|\/)memory\/.+\.md$/.test(p);
+  return /(^|\/)memory\/./.test(p);
 }
 
 // ── scanBrlLeak: varre o texto novo linha-a-linha, respeitando fences ────────
@@ -88,10 +109,25 @@ export function scanBrlLeak(text) {
     }
     if (inFence) continue; // exemplo didático em ``` … ``` — whitelist
     if (BRL_STRICT.test(line)) {
-      if (!line.includes(REDACTION)) {
+      // Neutraliza o que é LEGÍTIMO e testa o que SOBRA. A ordem importa:
+      //   1) tira as ocorrências já redigidas (`R$ [redacted Tier 0]`)
+      //   2) tira os zeros (`R$ 0`, `R$ 0,00` — buraco de cálculo, não dinheiro)
+      // Se ainda restar um R$<número>, é valor cru → bloqueia.
+      //
+      // ⚠️ ISTO CORRIGE UM BYPASS REAL (auditoria 2026-07-28). A versão anterior fazia
+      // `if (!line.includes(REDACTION))` — ou seja, a presença do sentinela em QUALQUER
+      // ponto dava passe à LINHA INTEIRA. O remédio virava a porta:
+      //     | MRR | R$ [redacted Tier 0] | R$ 5.000,00 |
+      // passava, e essa é a forma canônica de escrever antes→depois de valor. Caminho
+      // natural, não adversarial.
+      // FP MEDIDO ANTES: 3 linhas em 3.347 .md de memory/ mudam de veredito, e as 3
+      // carregam valor cru real ao lado do sentinela → true-positives pelo contrato.
+      const resto = line
+        .replace(new RegExp(REDACTION.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '')
+        .replace(new RegExp(BRL_ZERO.source, 'g'), '');
+      if (BRL_STRICT.test(resto)) {
         return { blocked: true, lineNumber: i + 1, line: line.trim(), advisory };
       }
-      // tem R$<número> MAS também o sentinela na linha → considerado redigido (passa).
     } else if (KEYWORD_ADVISORY.test(line)) {
       advisory.push({ lineNumber: i + 1, line: line.trim() });
     }
@@ -231,7 +267,31 @@ function selftest() {
   ok('worktree/.../memory/x.md é alvo', isMemoryMarkdownPath('D:/o/.claude/worktrees/w/memory/sessions/x.md'));
   ok('memory-bank/x.md NÃO é alvo (segmento diferente)', !isMemoryMarkdownPath('resources/memory-bank/x.md'));
   ok('Modules/X/Foo.php NÃO é alvo (só memory/*.md)', !isMemoryMarkdownPath('Modules/X/Foo.php'));
-  ok('memory/x.txt NÃO é alvo (só .md)', !isMemoryMarkdownPath('memory/x.txt'));
+  // 2026-07-28 — o contrato MUDOU de propósito: era "só .md", agora é "texto sob memory/".
+  // O caso antigo afirmava `.txt NÃO é alvo`; virou o oposto junto com a ampliação.
+  ok('memory/x.txt É alvo (texto sob memory/)', isMemoryMarkdownPath('memory/x.txt'));
+  ok('memory/x.yaml É alvo (o furo medido — hit vivo em governance/scorecards)', isMemoryMarkdownPath('memory/x.yaml'));
+  ok('memory/x.yml É alvo', isMemoryMarkdownPath('memory/x.yml'));
+  ok('memory/x.json É alvo', isMemoryMarkdownPath('memory/x.json'));
+  ok('memory/x.php NÃO é alvo (código, não conhecimento)', !isMemoryMarkdownPath('memory/x.php'));
+  ok('memory/x.jsx NÃO é alvo (código)', !isMemoryMarkdownPath('memory/x.jsx'));
+  // exceção de zero — R$ 0 é buraco de cálculo conhecido, não valor de negócio
+  ok('R$ 0 NÃO bloqueia', !scanBrlLeak('o total retorna R$ 0 hoje').blocked);
+  ok('R$ 0,00 NÃO bloqueia', !scanBrlLeak('soma R$ 0,00').blocked);
+  ok('R$ 0,50 BLOQUEIA (zero seguido de significativo)', scanBrlLeak('taxa R$ 0,50').blocked);
+  ok('R$ 01 BLOQUEIA', scanBrlLeak('cod R$ 01').blocked);
+  ok('R$ 0 + valor real na MESMA linha BLOQUEIA', scanBrlLeak('de R$ 0 para R$ 1.234,56').blocked);
+  // BYPASS DO SENTINELA (auditoria 2026-07-28) — a versão anterior dava passe à LINHA
+  // inteira quando `[redacted Tier 0]` aparecia em qualquer ponto. O remédio virava porta,
+  // e a forma canônica de escrever antes→depois de valor passava batido.
+  ok('sentinela + valor CRU na mesma linha BLOQUEIA (bypass fechado)',
+    scanBrlLeak('| MRR | R$ [redacted Tier 0] | R$ 5.000,00 |').blocked);
+  ok('só sentinela PASSA (o remédio legítimo segue funcionando)',
+    !scanBrlLeak('valor: R$ [redacted Tier 0]').blocked);
+  ok('sentinela + R$ 0 PASSA (ambos benignos)',
+    !scanBrlLeak('| de R$ [redacted Tier 0] para R$ 0 |').blocked);
+  ok('dois sentinelas sem cru PASSA',
+    !scanBrlLeak('R$ [redacted Tier 0] e R$ [redacted Tier 0]').blocked);
   ok('auto-mem ~/.claude/projects/.../memory/x.md NÃO é alvo (block-automem cuida)',
     !isMemoryMarkdownPath('C:/Users/w/.claude/projects/D--o/memory/x.md'));
 

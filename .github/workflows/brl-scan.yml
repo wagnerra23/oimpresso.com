@@ -1,0 +1,81 @@
+name: BRL scan (valor monetário em linha nova)
+
+# Defesa Tier 0 "dinheiro" no CI — a camada que o hook local NÃO alcança.
+#
+# POR QUE EXISTE (medido, não suposto):
+# `.claude/hooks/block-brl-values-in-memory.mjs` defende a mesma regra desde 2026-07-09.
+# Mesmo assim 4 commits levaram ~22 linhas com R$ para memory/ depois disso — e a causa
+# não é indisciplina: Bash escreve sem passar por hook, e dos 56 worktrees do repo 7 não
+# têm .claude/settings.json e 1 não registra o hook. A escape valve foi usada 0 vezes.
+# O hook mora no runtime do agente; este job mora no CI: independe de worktree, de runtime
+# e de autor — cobre PR de outra pessoa, worktree Codex e commit direto.
+#
+# Comparação que motivou (auditoria adversarial 2026-07-28): multi-tenant, PII e segredo
+# têm gate required. Dinheiro tinha ZERO camada de CI, sendo o Tier 0 com precedente de
+# `git filter-repo` em 5.033 commits + force-push em main.
+#
+# DIFF-ONLY: varre só linhas `+` de base...HEAD. O passivo (84 tokens em 27 arquivos)
+# fica intocado — big-bang de legado morre no CI (§5 proibicoes 2026-07-12).
+#
+# ADVISORY DE NASCENÇA (ADR 0271/0275): não entra em branch protection. Sai vermelho
+# quando acha (sinal honesto — hard-fail em job advisory é o desenho, §5 2026-07-09),
+# mas não bloqueia merge. Promoção a required exige bite-log (ADR 0336 DR-2).
+#
+# PROVAS na instalação (2026-07-28):
+#   - bite-test: roda contra os 4 commits que vazaram → 11 + 3 + 4 + 14 = 32 hits
+#   - FP: 0 em 38.324 linhas adicionadas dos últimos 120 commits de main
+#   - selftest 12/12 (linha removida/contexto não conta, R$ 0 e redacted não acusam)
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: brl-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: BRL scan (advisory · linhas novas do PR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # A lógica pura primeiro: se o selftest cair, o resultado do scan não vale nada.
+      - name: Selftest (o scanner morde e libera)
+        run: node scripts/governance/brl-scan-diff.mjs --selftest
+
+      # Fonte ÚNICA do predicado: o scanner importa scanBrlLeak do próprio hook.
+      # Se o hook quebrar, isto acusa antes de o scan dar falso-verde.
+      - name: Selftest do hook (predicado compartilhado)
+        run: node .claude/hooks/block-brl-values-in-memory.mjs --selftest
+
+      - name: Varre as linhas ADICIONADAS do PR
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/governance/brl-scan-diff.mjs --base "$BASE_SHA"
+
+      # A regra nomeia 4 superfícies (memory/, *.md canon, PR body, commit message).
+      # O hook cobre 1. Estas duas fecham as outras duas — e a assimetria justifica:
+      # vazamento em ARQUIVO se conserta com um commit pra frente; em commit subject
+      # só sai reescrevendo história, que é o que o projeto tem lápide contra.
+      - name: Varre o corpo do PR
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: printf '%s' "$PR_BODY" | node scripts/governance/brl-scan-diff.mjs --stdin
+
+      - name: Varre os subjects dos commits do PR
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: git log --format='%s' "$BASE_SHA"..HEAD | node scripts/governance/brl-scan-diff.mjs --stdin

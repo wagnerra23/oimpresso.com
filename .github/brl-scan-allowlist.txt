@@ -1,0 +1,21 @@
+# brl-scan-allowlist — substrings que ISENTAM uma linha do brl-scan-diff.
+#
+# Precedente literal: .github/pii-scan-allowlist.txt (mesmo formato, mesmo espírito).
+# Uma substring por linha. Linha começando com `#` é comentário.
+# A isenção é por SUBSTRING da linha, não por arquivo — de propósito: isentar um
+# arquivo inteiro esconderia um vazamento novo no meio de fixtures antigas.
+#
+# QUANDO USAR (e é o caso majoritário do ruído medido):
+#   - vetor de teste / fixture que PRECISA do número pra ser asserção verificável.
+#     Precedente doloroso: handoffs/2026-06-13-1923 registra que uma passada de
+#     redação CORROMPEU assertions de Pest ao trocar fixtures pelo sentinela.
+#   - mock/protótipo com valor ilustrativo que não é dado de cliente.
+#
+# QUANDO **NÃO** USAR:
+#   - valor real de cliente, faturamento, MRR, meta financeira, a-receber.
+#     Para esses o remédio é `R$ [redacted Tier 0]` ou comunicar fora-banda.
+#     Isentar dado real aqui é burlar a regra Tier 0, não configurá-la.
+#
+# Nasce VAZIO de propósito: o gate é diff-only (só linhas novas), então o passivo
+# de 84 tokens não dispara nada. Entrada aqui só quando um PR real acusar algo que
+# seja comprovadamente fixture — com o motivo escrito ao lado.
