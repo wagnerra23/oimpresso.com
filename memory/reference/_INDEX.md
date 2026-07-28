@@ -22,7 +22,8 @@
 - [infra-rede-empresa.md](infra-rede-empresa.md) — TP-Link 192.168.0.1, IP público 177.74.67.30, DHCP reservas, 16 port forwards, Issabel VoIP CentOS 7 EOL
 - [vaultwarden-credenciais.md](vaultwarden-credenciais.md) — vault.oimpresso.com self-hosted, fonte canônica de TODAS senhas/tokens infra
 - [local-dev-setup.md](local-dev-setup.md) — Herd 8.4 + MySQL Laragon + worktrees
-- [gotcha-worktree-junction-vendor-rm.md](gotcha-worktree-junction-vendor-rm.md) — **Pegadinha 2026-05-26:** `git worktree remove --force` segue `mklink /J` e deleta vendor real. Prevenção: remover junção antes do worktree remove. Recovery: `composer install` ~5min
+- [gotcha-gitattributes-aspas-diretiva-inerte.md](gotcha-gitattributes-aspas-diretiva-inerte.md) — **Pegadinha 2026-07-28:** linha inteira entre aspas em `.gitattributes` vira *pattern* sem atributo — a política de fim de linha fica inerte, sem erro nenhum (ficou assim 14 meses). Oráculo é `git check-attr`, nunca ler o arquivo. Corrigir NÃO renormaliza nada (medido)
+- [gotcha-worktree-junction-vendor-rm.md](gotcha-worktree-junction-vendor-rm.md) — **Pegadinha 2026-05-11 + 2026-07-14:** `git worktree remove` (**com ou sem `--force`** — a flag NÃO é a causa) segue a junction NTFS e apaga o `vendor/` **ou** `node_modules/` REAL do repo principal. Defesa: remover a junction antes com método que o MSYS não mangleia + confirmar o alvo intacto. Recovery: `composer install`/`npm ci` ~3-5min
 
 ## Stack & integração
 
@@ -34,6 +35,7 @@
 ## MCP & Jana
 
 - [mcp-endpoints.md](mcp-endpoints.md) — `mcp.oimpresso.com` (CT 100/FrankenPHP) canônico; `oimpresso.com/api/mcp` (Hostinger) só CRUD admin
+- [como-escrever-doc-para-o-rag.md](como-escrever-doc-para-o-rag.md) — **Ler ANTES de escrever doc que precisa ser recuperável pela IA.** Regras derivadas do código do indexador + chunker: o PATH decide `type`/`module`; `memory/requisitos/<Mod>/` só indexa 9 nomes exatos (o resto é invisível ao RAG); cada `##` vira chunk isolado de ~3200 chars com overlap ZERO e Contextual Retrieval OFF em prod — auto-suficiência de seção é responsabilidade de quem escreve
 
 ## LGPD & Privacidade
 

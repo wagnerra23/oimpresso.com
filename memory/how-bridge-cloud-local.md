@@ -87,7 +87,7 @@ git branch -D proto/<slug>               # local
 ## Gotchas
 
 - **Signing server da nuvem pode estar bugado** ("missing source" 400). `--no-gpg-sign` é aceitável **apenas** em branch descartável (`proto/`) que vai ser squash-mergeada — o commit final em `main` fica assinado pela GitHub web key via squash. **Nunca** `--no-gpg-sign` em commit que vai direto pra `main`/`feat/`/`fix/`.
-- **PAT no chat = nunca** ([`feedback_nunca_publicar_credenciais_no_chat`](../../.claude/projects/D--oimpresso-com/memory/feedback_nunca_publicar_credenciais_no_chat.md) — regra dura). Device flow não expõe credencial.
+- **PAT no chat = nunca** ([`feedback-nunca-publicar-credenciais`](reference/feedback-nunca-publicar-credenciais.md) — regra dura). Device flow não expõe credencial.
 - **`gh auth setup-git` é essencial** depois do device flow — senão `git push` ainda tenta HTTPS password e falha com "could not read Password".
 - **PR sempre do lado local** — só local enxerga `memory/`, ADRs, charters, gates Tier 0 (`mwart-gate`, `multi-tenant-patterns`, `commit-discipline`). Nuvem abre `--draft` no máximo.
 - **Prefixo de branch importa:** `proto/<slug>` (descartável, será deletada) ≠ `claude/<slug>` (worktree Claude Code) ≠ `feat/fix/docs/<slug>` (PR sério). Facilita cleanup em massa: `git branch -D proto/*`.

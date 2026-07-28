@@ -153,6 +153,7 @@ const PAGES_NS = {
   KB: 'kb',
   NFSe: 'Nfse',
   Superadmin: 'superadmin',
+  TeamMcp: 'team-mcp',   // faltava — o requisitos-status via 0 telas em 5 e 14 UC orfaos (achado do chip TeamMcp, 2026-07-28)
 };
 
 /**

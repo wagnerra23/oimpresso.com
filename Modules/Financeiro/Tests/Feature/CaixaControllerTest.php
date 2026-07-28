@@ -88,6 +88,15 @@ it('UC-FCX-05 · bloqueia user sem permission view_cash_register (403)', functio
         $this->markTestSkipped('Sem user.');
     }
 
+    // A permission precisa EXISTIR pra poder ser consultada: hasPermissionTo() LANÇA
+    // PermissionDoesNotExist quando ela não existe no banco (não retorna false).
+    // Quem a criava era o caixaBootstrap() dos outros casos — dependência de ordem que
+    // só aparece em banco fresco: phpunit.xml usa executionOrder="random", e no CI o
+    // seed (CurrenciesTableSeeder + PermissionsTableSeeder) não cria view_cash_register
+    // (só o DummyBusinessSeeder, que a lane não roda). Sorteado antes dos irmãos, este
+    // caso quebrava com PermissionDoesNotExist — run 30304546533, 2026-07-27.
+    Permission::firstOrCreate(['name' => 'view_cash_register', 'guard_name' => 'web']);
+
     // Garante que NÃO tem a permission
     if ($user->hasPermissionTo('view_cash_register')) {
         $user->revokePermissionTo('view_cash_register');
