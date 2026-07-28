@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **875 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **874 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -23,7 +23,7 @@
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 23 | 0 | 0 | 0 | 23 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
-| [`Vestuario`](#vestuario) | 20 | 0 | 0 | 0 | 20 |
+| [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
 | [`Compras`](#compras) | 17 | 0 | 0 | 0 | 16 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
@@ -732,7 +732,6 @@
 
 ### todo
 
-- **US-VEST-020** — Etiqueta/código de barras com tamanho+cor (impressão térmica) `p0` _(`p0`)_
 - **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
 - **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
 - **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
