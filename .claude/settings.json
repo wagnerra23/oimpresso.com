@@ -78,6 +78,15 @@
         ]
       },
       {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/charter-da-tela-que-o-controller-serve.mjs"
+          }
+        ]
+      },
+      {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {

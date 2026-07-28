@@ -285,7 +285,26 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // Receber) ainda acessível via /dashboard-legacy se precisar. Name `home`
     // preservado pra compat com `route('home')` chamado em ~30 lugares
     // (post-login redirect, breadcrumbs, links externos UltimatePOS core).
-    Route::get('/home', fn () => redirect('/ia/dashboard', 302))->name('home');
+    //
+    // ── PORTA DE ENTRADA NÃO PODE ESTAR ATRÁS DE PERMISSÃO DE FEATURE ──────────
+    // Incidente 2026-07-28 (Maiara trancada em 403 logo após o login): o #4859
+    // ligou `can:jana.access` no grupo `/ia` (Modules/Jana/Http/routes.php:50) e a
+    // permissão nasce `default => false`. Como `/home` — alvo do post-login
+    // (`LoginController::redirectTo()`) e de `route('home')` — redirecionava
+    // INCONDICIONALMENTE pra dentro do grupo gateado, quem não tinha o checkbox
+    // não "perdia a Jana" (alcance que o #4859 previu): perdia o ERP INTEIRO,
+    // porque a única porta que o login abre caía em 403. Dono do negócio não
+    // sentia — `Gate::before` (AuthServiceProvider:34-47) devolve `true` pra
+    // `Admin#{business_id}`; só funcionário via o 403.
+    //
+    // O gate do #4859 fica de pé (é o que [W] pediu: nível do usuário decide o
+    // acesso à IA). O que muda é só o DESTINO: quem não tem `jana.access` cai no
+    // dashboard legado UltimatePOS, que não tem `can:` nenhum — some o 403, e
+    // ninguém ganha acesso que não tinha.
+    Route::get('/home', fn () => auth()->user()?->can('jana.access')
+        ? redirect('/ia/dashboard', 302)
+        : redirect('/dashboard-legacy', 302)
+    )->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);

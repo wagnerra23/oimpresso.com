@@ -51,6 +51,7 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process'; // SÓ pro eixo --stale (C8) — ver bloco "eixo TEMPORAL"
 import { join, dirname, resolve, relative } from 'node:path';
+import { particionarSpecs } from './lib/spec-encerrado.mjs';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
@@ -811,6 +812,19 @@ if (args.length) {
   specs = readdirSync(REQ, { withFileTypes: true })
     .filter((e) => e.isDirectory() && existsSync(join(REQ, e.name, 'SPEC.md')))
     .map((e) => join(REQ, e.name, 'SPEC.md')).sort();
+}
+
+// ── SPEC encerrado não é dívida: sai do corpus (medido 2026-07-28) ───────────
+// Uniforme entre full-tree e diff-aware — contrato morto não vira dívida por ter sido
+// tocado. Aviso em STDERR de propósito: o STDOUT do `--json` alimenta o sdd-scorecard.
+// Racional completo + predicado em lib/spec-encerrado.mjs.
+{
+  const { vivos, encerrados } = particionarSpecs(specs);
+  if (encerrados.length) {
+    specs = vivos;
+    console.error(`  ⚰️  ${encerrados.length} SPEC(s) FORA do gate (frontmatter status: historical|arquivado): `
+      + encerrados.map(([p, s]) => `${dirname(p).split(/[\\/]/).pop()}(${s})`).join(' · '));
+  }
 }
 
 const modules = specs.map((f) => ({ module: dirname(f).split(/[\\/]/).pop(), ...lintSpec(f) }));

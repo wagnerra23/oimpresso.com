@@ -91,6 +91,19 @@ jobs:
           echo "Linhas JSON capturadas:"
           wc -l /tmp/grades/current.json || true
 
+      # A MEDIÇÃO vira artefato. Sem isto, o único jeito de saber a nota de um módulo é
+      # parsear a tabela markdown do comentário — prosa renderizada, que quebra com
+      # layout/emoji/truncagem. Quem for fechar o passo 3 (registrar módulo novo no
+      # baseline) baixa daqui a FONTE PRIMÁRIA:
+      #   gh run download <run-id> -n module-grades-current -D /tmp
+      - name: Publicar a medição (fonte primária pro passo 3)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: module-grades-current
+          path: /tmp/grades/current.json
+          retention-days: 30
+
       - name: Detectar override via label
         id: override
         run: |
@@ -365,7 +378,12 @@ jobs:
                 `### Como resolver`,
                 `1. Confirmar que a entrada do novo módulo é intencional (não foi acidente de scan/heurística)`,
                 `2. Aplicar label \`module-grades-new-module-allowed\` no PR (Wagner aprova entrada na rubrica)`,
-                `3. Após merge, atualizar baseline incluindo o novo módulo via \`composer module-grades-update-baseline\` ou edição manual de \`governance/module-grades-baseline.json\``,
+                `3. Após merge, registrar o módulo em \`governance/module-grades-baseline.json\` com a nota MEDIDA POR ESTE JOB — baixe a fonte primária, NÃO parseie a tabela acima:`,
+                `   \`\`\`bash`,
+                `   gh run download ${context.runId} -n module-grades-current -D /tmp`,
+                `   jq -r '.[] | select(.module=="<Modulo>") | .score' /tmp/current.json   # a nota, do JSON`,
+                `   \`\`\``,
+                `   (o comando \`composer module-grades-update-baseline\` que esta mensagem citava até 2026-07-28 NUNCA EXISTIU — grep no composer.json volta vazio. Era comando fantasma, e é por isso que este passo 3 vivia pendente.)`,
                 ``,
                 `Justificativa do bloqueio: módulo crítico (Admin/Connector/Arquivos/Essentials) entrando sem nota mínima passava silencioso (gap P1 — ADR 0155 emenda).`
               ].join('\n');

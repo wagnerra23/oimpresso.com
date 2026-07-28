@@ -56,6 +56,19 @@ import { isPageScreenPath } from '../qa/page-path.mjs';
  */
 import { ucScanRe } from '../lib/uc-regex.mjs';
 
+/**
+ * Namespace Inertia !== nome do modulo. FONTE UNICA: module-surface.mjs::PAGES_NS.
+ *
+ * Achado do chip TeamMcp (2026-07-28): esta porta resolvia `Pages/${mod}` cru. Pra
+ * TeamMcp a pasta e `team-mcp`, entao ela imprimia "0 telas / nenhuma lacuna" sobre
+ * 5 telas e 14 UC orfaos — METADE do debito de orfaos do repo. Medido: 6 modulos tem
+ * o nome divergente (ADS/Governance/KB/NFSe/Superadmin/TeamMcp), e o mapa ja existia
+ * no module-surface; faltava esta porta consumi-lo. Duplicar o mapa aqui reintroduziria
+ * a doenca que a lib de UC ja documenta: "regex que deviam ser iguais e drifam".
+ */
+import { PAGES_NS } from './module-surface.mjs';
+const pagesNsDe = (mod) => PAGES_NS[mod] || mod;
+
 // Guard IS_MAIN (padrao do doc-freshness-score): os extratores sao EXPORTADOS pra teste;
 // sem isto, um `import` do modulo dispara o CLI e polui a saida de quem so queria a funcao.
 const IS_MAIN = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
@@ -202,7 +215,7 @@ function casosDoModulo(mod) {
       });
     }
   };
-  const pagesDir = `resources/js/Pages/${mod}`;
+  const pagesDir = `resources/js/Pages/${pagesNsDe(mod)}`;
   coletar(pagesDir, '', pagesDir, true);
   coletar(`memory/requisitos/${mod}/_telas`, ' (blade)');
   return out;
@@ -225,7 +238,7 @@ function casosDoModulo(mod) {
  * pra casar 1:1 com `Unificado/Index.casos.md` — mesma convenção em `casosDoModulo`.
  */
 function telasDoModulo(mod) {
-  const base = `resources/js/Pages/${mod}`;
+  const base = `resources/js/Pages/${pagesNsDe(mod)}`;
   const out = [];
   const walk = (rel) => {
     let ents; try { ents = readdirSync(join(ROOT, rel), { withFileTypes: true }); } catch { return; }

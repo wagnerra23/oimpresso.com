@@ -27,6 +27,17 @@
 //     FP conhecido e ACEITO: quem vai EDITAR o Kernel também grepa por schedule.
 //     Mitigação = escape na própria mensagem (1 env var). Reversível: se der FP em
 //     série, estreitar o pattern ou demover o par — não apagar o hook.
+//  P3 data/criação por `git log` em history TRUNCADA → `git fetch --unshallow` ou a API
+//     do GitHub. Incidente 2026-07-24. DUAS PERNAS, e a 2ª zera o FP: o comando pede
+//     data E o repo está de fato truncado (espelha sdd-scorecard::isShallowHistory).
+//  P4 contagem com pathspec cru quando o número MUDA → `:(glob)` (ou rodar o glob na
+//     própria linguagem). Incidente 2026-07-28 (LC-08 #23, errei 2× no mesmo dia — a
+//     2ª no PR que corrigia a 1ª: 1.011/743/144 → 715/455 → real 744/481/125).
+//     DUAS PERNAS, e a 2ª é MEDIÇÃO, não heurística: o hook RODA as duas formas e só
+//     morde se divergirem. FP = 0 POR CONSTRUÇÃO — `Modules/*x/module.json` (37 vs 37)
+//     e `memory/requisitos/*x/SPEC.md` (59 vs 59) passam calados. `**` explícito passa
+//     sempre (recursão intencional). Sem contagem no comando, não morde (listar pra
+//     ler é uso legítimo). População de gatilho medida em 2.203 transcripts: 29.
 //
 // Fail-open: qualquer erro/parse-fail → exit 0 (NUNCA trava sessão).
 // Escape valve: OIMPRESSO_PORTA_VIVA_OK=1 (quando o instrumento cru É mesmo o certo).
@@ -133,6 +144,59 @@ export function historicoTruncado(run = spawnSync, root = process.cwd()) {
   }
 }
 
+/**
+ * P4 — perna BARATA: `git ls-files` medindo CONTAGEM com pattern multinível cru.
+ *
+ * No pathspec do git, `*` ATRAVESSA `/` (wildmatch). Em `glob()` do PHP, `glob` do
+ * Python e no `paths:` do Actions, NÃO atravessa. Quem mede a cobertura de um glob
+ * que vive em código com o pathspec cru conta subpasta que aquele código nunca vê —
+ * e o número sai MAIOR e plausível, que é o pior tipo de erro.
+ *
+ * Devolve os patterns candidatos (ou [] se não se aplica). Exclui:
+ *  - `:(glob)` já presente  → o autor já igualou a semântica
+ *  - `**` no comando        → recursão EXPLÍCITA, é o que ele quer
+ *  - sem contagem           → listar arquivos pra ler é uso legítimo, não medição
+ */
+export function pedeContagemDeGlob(command) {
+  const c = String(command || '');
+  if (!/git\s+(?:-C\s+\S+\s+)?ls-files\b/.test(c)) return [];
+  if (/:\(glob\)/.test(c)) return [];
+  if (/\*\*/.test(c)) return [];
+  if (!/\|\s*wc\b|\bcount\b|\|\s*sort\s*\|\s*uniq\s+-c/.test(c)) return [];
+  const out = [];
+  for (const m of c.matchAll(/(['"])([^'"]*\*\/[^'"]*)\1/g)) out.push(m[2]);
+  return out;
+}
+
+/**
+ * P4 — perna CARA, e é ela que zera o FP: RODA as duas formas e compara.
+ *
+ * Nada de heurística sintática (o §5 tem 4 lápides de guard que reprovava o legítimo).
+ * Só morde quando o número REALMENTE muda. Medido no repo em 2026-07-28:
+ *   `memory/requisitos/*x/*x.md`  1046 vs 744  → diverge (morde)
+ *   `memory/requisitos/*x/SPEC.md`  59 vs  59  → igual   (silêncio)
+ *   `Modules/*x/module.json`        37 vs  37  → igual   (silêncio)
+ *
+ * Fail-open em qualquer erro. Devolve {pattern, wild, glob} do 1º que divergir, ou null.
+ */
+export function globDiverge(patterns, run = spawnSync, root = process.cwd()) {
+  try {
+    for (const pat of patterns || []) {
+      const conta = (arg) => {
+        const r = run('git', ['ls-files', arg], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+        if (!r || r.status !== 0) throw new Error('git falhou');
+        return String(r.stdout || '').split('\n').filter(Boolean).length;
+      };
+      const wild = conta(pat);
+      const strict = conta(`:(glob)${pat}`);
+      if (wild !== strict) return { pattern: pat, wild, glob: strict };
+    }
+    return null;
+  } catch {
+    return null; // fail-open: não sei medir → não bloqueio
+  }
+}
+
 /** veredito único: qual par mordeu? (null = passa) */
 export function classificar({ pattern, path, glob, output_mode, command } = {}, env = process.env, deps = {}) {
   if (hasOverride(env)) return null;
@@ -140,6 +204,8 @@ export function classificar({ pattern, path, glob, output_mode, command } = {}, 
   if (isPerguntaDeRuntime(pattern, path)) return 'P2';
   // ordem importa: a perna barata (regex no comando) filtra ANTES de gastar spawn de git.
   if (pedeDataOuCriacao(command) && (deps.truncado ?? historicoTruncado)()) return 'P3';
+  const cands = pedeContagemDeGlob(command);
+  if (cands.length && (deps.diverge ?? globDiverge)(cands)) return 'P4';
   return null;
 }
 
@@ -198,6 +264,39 @@ inteira: mcp__github__list_commits(owner, repo, path: "<arquivo>").
 
 Ref: LICOES_CODE LC-08 · o DONO da regra e sdd-scorecard.mjs::isShallowHistory().
 Se voce sabe que a data nao sustenta conclusao nenhuma aqui: OIMPRESSO_PORTA_VIVA_OK=1`,
+
+  P4: `[LC-08 / proibicoes §5 2026-07-28] BLOQUEADO: contagem com pathspec cru — o numero MUDA.
+
+No pathspec do git, \`*\` ATRAVESSA \`/\` (wildmatch). Em glob() do PHP, glob do Python e
+no paths: do Actions, NAO atravessa. Medir a cobertura de um glob que vive em CODIGO
+com o pathspec cru conta subpasta que aquele codigo nunca enxerga.
+
+Isto NAO e heuristica: o hook RODOU as duas formas e elas deram numeros DIFERENTES.
+Quando dao o mesmo numero, ele fica calado.
+
+FOI ASSIM QUE ERREI 2x EM 2026-07-28 (LC-08 #23), e a 2a vez no PR que corrigia a 1a:
+publiquei 1.011/743/144 e depois 715/455 — o real era 744/481/125. Os 19 RUNBOOK-* a
+mais viviam em _telas/ e _legado-fullpage/, profundidade >=2, FORA do alcance do
+indexador. A acao que eu recomendava nunca os destravaria.
+
+CONSERTE O INSTRUMENTO:
+
+  git ls-files ':(glob)<pattern>'      # iguala a semantica de glob() do PHP
+  # ou rode o glob NA PROPRIA LINGUAGEM que o consome e conte a saida
+
+E CONFIRA ONDE ESTA MEDINDO — foi o 2o erro do mesmo dia:
+
+  git branch --show-current
+  git rev-list --count HEAD..origin/main    # 0 = em dia; N = esta N commits atras
+
+\`git ls-files\` lista o indice DAQUELE worktree, nao de main. Com worktrees paralelos,
+o repo principal costuma estar numa branch de outra sessao, dezenas de commits atras.
+
+Assinatura desta armadilha: o numero errado sai MAIOR e plausivel — nao parece erro,
+parece achado, e por isso atravessa revisao.
+
+Quer mesmo a semantica recursiva? Use \`**\` explicito (o hook nao morde nesse caso).
+Se a divergencia e conhecida e intencional: OIMPRESSO_PORTA_VIVA_OK=1`,
 };
 
 // ── selftest (fixtures BOA/RUIM — controle-negativo prova que morde) ─────────
@@ -261,6 +360,51 @@ function selftest() {
   const semGit = historicoTruncado(() => ({ status: 1, stdout: '' }));
   if (semGit === false) ok++;
   else falhas.push('  ✗ historicoTruncado deveria fail-open quando o git falha');
+
+  // ── P4: perna barata (extração de candidatos) ─────────────────────────────
+  const p4barata = [
+    ['P4 extrai pattern multinível com contagem',
+      "git ls-files 'memory/requisitos/*/*.md' | wc -l", ['memory/requisitos/*/*.md']],
+    ['P4 IGNORA quando já usa :(glob)',
+      "git ls-files ':(glob)memory/requisitos/*/*.md' | wc -l", []],
+    ['P4 IGNORA `**` (recursão explícita é o que o autor quer)',
+      "git ls-files 'scripts/**/*.mjs' | wc -l", []],
+    ['P4 IGNORA sem contagem (listar pra ler é legítimo)',
+      "git ls-files 'memory/requisitos/*/*.md'", []],
+    ['P4 IGNORA pattern de nível único',
+      "git ls-files 'memory/*.md' | wc -l", []],
+  ];
+  for (const [nome, cmd, esperado] of p4barata) {
+    const got = pedeContagemDeGlob(cmd);
+    if (JSON.stringify(got) === JSON.stringify(esperado)) ok++;
+    else falhas.push(`  ✗ ${nome}: esperado ${JSON.stringify(esperado)}, veio ${JSON.stringify(got)}`);
+  }
+
+  // ── P4: perna CARA — é ela que zera o FP ──────────────────────────────────
+  // Fake determinístico: 1046 no wildmatch, 744 no :(glob) → diverge.
+  const runDiverge = (_c, args) => ({
+    status: 0,
+    stdout: Array.from({ length: String(args[1]).startsWith(':(glob)') ? 744 : 1046 }, (_, i) => `f${i}`).join('\n'),
+  });
+  const d = globDiverge(['memory/requisitos/*/*.md'], runDiverge);
+  if (d && d.wild === 1046 && d.glob === 744) ok++;
+  else falhas.push(`  ✗ globDiverge deveria achar 1046 vs 744, veio ${JSON.stringify(d)}`);
+
+  // CONTROLE-NEGATIVO da perna cara: mesmo número nos dois → NÃO morde.
+  // É este caso que impede o guard sintático que o §5 mata 4x.
+  const runIgual = () => ({ status: 0, stdout: Array.from({ length: 59 }, (_, i) => `f${i}`).join('\n') });
+  if (globDiverge(['memory/requisitos/*/SPEC.md'], runIgual) === null) ok++;
+  else falhas.push('  ✗ globDiverge NAO devia morder quando as duas formas dao o mesmo numero');
+
+  // fail-open da perna cara
+  if (globDiverge(['x/*/y'], () => ({ status: 1, stdout: '' })) === null) ok++;
+  else falhas.push('  ✗ globDiverge deveria fail-open quando o git falha');
+
+  // classificar: só vira P4 com as DUAS pernas
+  const clsP4 = classificar({ command: "git ls-files 'a/*/*.md' | wc -l" }, {}, { diverge: () => ({ pattern: 'a/*/*.md', wild: 9, glob: 4 }) });
+  if (clsP4 === 'P4') ok++; else falhas.push(`  ✗ classificar deveria dar P4, veio ${clsP4}`);
+  const clsP4nao = classificar({ command: "git ls-files 'a/*/*.md' | wc -l" }, {}, { diverge: () => null });
+  if (clsP4nao === null) ok++; else falhas.push(`  ✗ classificar NAO devia morder sem divergencia, veio ${clsP4nao}`);
   // controle-negativo do escape
   const comOverride = classificar({ pattern: '**/*.charter.md' }, { OIMPRESSO_PORTA_VIVA_OK: '1' });
   if (comOverride === null) ok++;
@@ -313,13 +457,36 @@ function selftest() {
   if (bashInocente.status === 0) ok++;
   else falhas.push(`  ✗ invocacao real (Bash inocente): esperado exit 0, veio ${bashInocente.status}`);
 
-  // casos (P1/P2) + p3 (as duas pernas) + 1 escape + 1 fail-open + 6 da invocação real
-  const total = casos.length + p3.length + 8;
+  // ── INVOCAÇÃO REAL do P4 — sem isto o par seria chokepoint fantasma ───────
+  // O P4 mede de verdade contra ESTE repo. `memory/requisitos/*x/*x.md` diverge
+  // (medido 2026-07-28: 1046 vs 744); `Modules/*x/module.json` não (37 vs 37).
+  const p4bloqueio = roda({ tool_name: 'Bash', tool_input: { command: "git ls-files 'memory/requisitos/*/*.md' | wc -l" } });
+  if (p4bloqueio.status === 2 && /pathspec cru/.test(p4bloqueio.stderr || '')) ok++;
+  else falhas.push(`  ✗ invocacao real (P4 divergente): esperado exit 2 + razao, veio exit ${p4bloqueio.status}`);
+
+  // e o RECIBO: a mensagem tem que trazer o delta medido, não só prosa
+  if (/MEDIDO AGORA neste repo/.test(p4bloqueio.stderr || '')) ok++;
+  else falhas.push('  ✗ invocacao real (P4): mensagem deveria trazer o delta MEDIDO');
+
+  // controle-negativo REAL: pattern que NÃO diverge tem que passar limpo
+  const p4igual = roda({ tool_name: 'Bash', tool_input: { command: "git ls-files 'Modules/*/module.json' | wc -l" } });
+  if (p4igual.status === 0) ok++;
+  else falhas.push(`  ✗ invocacao real (P4 nao-divergente): esperado exit 0, veio ${p4igual.status}`);
+
+  // controle-negativo REAL: `**` explícito passa mesmo divergindo
+  const p4doubleStar = roda({ tool_name: 'Bash', tool_input: { command: "git ls-files 'memory/requisitos/**/*.md' | wc -l" } });
+  if (p4doubleStar.status === 0) ok++;
+  else falhas.push(`  ✗ invocacao real (P4 com **): esperado exit 0, veio ${p4doubleStar.status}`);
+
+  // casos (P1/P2) + p3 + 1 escape + 1 fail-open + 6 invocação real
+  //   + 5 P4-barata + 3 P4-cara + 2 P4-classificar + 4 P4-invocação real
+  const total = casos.length + p3.length + 8 + 14;
   console.log(`block-instrumento-sem-porta-viva selftest: ${ok}/${total}`);
   if (falhas.length) { console.error(falhas.join('\n')); process.exit(1); }
   console.log('  MORDE: varredura de charter/casos/scorecard + pergunta-de-runtime em fonte estatica');
   console.log('  PASSA: path literal, glob comum, grep de negocio, escape valve');
   console.log('  INVOCACAO REAL: exit 2 com razao no bloqueio, exit 0 na passagem');
+  console.log('  P4: morde SO quando as duas formas do glob dao numeros diferentes (FP=0 por construcao)');
   process.exit(0);
 }
 
@@ -340,7 +507,17 @@ function main() {
     );
   } catch { process.exit(0); } // fail-open
   if (!par) process.exit(0);
-  console.error(MENSAGENS[par]);
+  let msg = MENSAGENS[par];
+  // P4 mostra o DELTA REAL medido — recibo, não afirmação genérica. Custa 2 spawns,
+  // e só acontece quando já vai bloquear (raro). Fail-open se não conseguir remedir.
+  if (par === 'P4') {
+    try {
+      const ev = JSON.parse(raw);
+      const d = globDiverge(pedeContagemDeGlob(ev.tool_input?.command));
+      if (d) msg += `\n\nMEDIDO AGORA neste repo:\n  ${d.pattern}\n    pathspec cru : ${d.wild}\n    :(glob)      : ${d.glob}\n    delta        : ${d.wild - d.glob} arquivo(s) que o glob do codigo NAO enxerga`;
+    } catch { /* fail-open: bloqueia com a mensagem base */ }
+  }
+  console.error(msg);
   process.exit(2);
 }
 
