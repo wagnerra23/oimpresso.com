@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **360** arquivos · **344** números únicos · máx **0354**
+- **362** arquivos · **346** números únicos · máx **0356**
 - **ADRs ATIVOS (lifecycle ativo): 326** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 328 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 326 · arquivado 22 · substituido 12
+- Por status: aceito 328 · superseded 14 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 326 · arquivado 22 · substituido 14
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (360)
+## Todas as ADRs (362)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -346,7 +346,7 @@ _(nenhuma)_
 | 0299 | aceito | ativo | decision | Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (C |
 | 0300 | aceito | ativo | decision | Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resou |
 | 0301 | aceito | ativo | decision | Separar Cliente (cadastro) do CRM (pipeline) e deprecar o pipeline |
-| 0302 | aceito | ativo | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
+| 0302 | superseded | substituido | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
 | 0303 | aceito | ativo | decision | Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar viv |
 | 0304 | aceito | ativo | decision | Alocação de número (ADR/US) ciente de trabalho em voo + Check N (colisão de US-I |
 | 0305 | aceito | ativo | decision | Modo Suporte: acesso cross-tenant da equipe, exceto a empresa operadora (biz=1) |
@@ -381,7 +381,7 @@ _(nenhuma)_
 | 0334 | aceito | ativo | meta | Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia |
 | 0335 | aceito | ativo | decision | Fechamento do loop diff-first DS-sync: nota honesta (B−/C+ vs SOTA A−), régua re |
 | 0336 | aceito | ativo | decision | Emenda à 0314 — gates de design PODEM virar required quando provarem mordida REA |
-| 0337 | aceito | ativo | decision | Emenda à 0144 — o sync FECHA-pra-frente um card quando a âncora está verificada  |
+| 0337 | superseded | substituido | decision | Emenda à 0144 — o sync FECHA-pra-frente um card quando a âncora está verificada  |
 | 0338 | aceito | ativo | decision | DS lint — eixo valor-vs-token fecha por FORMA (completo por construção); compone |
 | 0339 | aceito | ativo | decision | Emenda à 0336/0314 — promoção SOBERANA [W] de 3 gates ratchet DS (layout/styleli |
 | 0340 | aceito | ativo | decision | O tema colapsa em direções OPOSTAS no mesmo request — `auto`→dark no Blade × `au |
@@ -399,3 +399,5 @@ _(nenhuma)_
 | 0352 | aceito | ativo | errata | Errata 0351 — o refresh de BRIEFING via distiller (Camada 1.3) é follow-up gated |
 | 0353 | aceito | ativo | meta | Maquina de evolucao em looping das reguas — ledger persistente, modo delta, comp |
 | 0354 | aceito | ativo | decision | Emenda à 0314 — teammcp-pest promovido a REQUIRED (as rotas /forja executam de v |
+| 0355 | aceito | ativo | decision | Done-ness consolidada — a âncora fecha, o DoD aberto veta, o `status:` morre de  |
+| 0356 | aceito | ativo | errata | Errata à 0355 — o limiar do gate de reversão era um número inventado; troca por  |

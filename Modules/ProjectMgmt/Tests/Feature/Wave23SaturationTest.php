@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Artisan;
 use Modules\ProjectMgmt\Console\Commands\ProjectMgmtHealthCommand;
 use Modules\ProjectMgmt\Http\Controllers\Admin\ProjectsController;
 use Modules\ProjectMgmt\Services\ProjectService;
@@ -85,6 +86,13 @@ it('F3 Perf: ProjectsController admin magro <300 linhas (single responsibility)'
 });
 
 it('F6 ProjectMgmtHealthCommand registrado + signature canon', function () {
+    // O assert que faltava. `app(Class::class)` NÃO prova registro — o container
+    // resolve qualquer classe concreta do disco. Este teste ficou verde de
+    // 2026-05-16 a 2026-07-28 enquanto o artisan respondia "There are no commands
+    // defined in the project-mgmt namespace". Artisan::all() é o oráculo do
+    // registro; sem o $this->commands() no ServiceProvider, esta linha falha.
+    expect(array_keys(Artisan::all()))->toContain('project-mgmt:health');
+
     $cmd = app(ProjectMgmtHealthCommand::class);
     expect($cmd)->toBeInstanceOf(ProjectMgmtHealthCommand::class);
 

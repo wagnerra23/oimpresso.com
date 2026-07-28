@@ -3,6 +3,7 @@
 namespace Modules\ProjectMgmt\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\ProjectMgmt\Console\Commands\ProjectMgmtHealthCommand;
 
 /**
  * ServiceProvider do módulo ProjectMgmt.
@@ -21,6 +22,16 @@ class ProjectMgmtServiceProvider extends ServiceProvider
     {
         $this->registerTranslations();
         $this->registerConfig();
+
+        // Sem isto o comando existe no disco mas NUNCA chega ao Artisan — medido
+        // 2026-07-28: `artisan project-mgmt:health` respondia "There are no commands
+        // defined in the project-mgmt namespace" desde 2026-05-16 (Wave 17).
+        // Padrão canônico: Modules/Vestuario/Providers/VestuarioServiceProvider.
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ProjectMgmtHealthCommand::class,
+            ]);
+        }
     }
 
     public function register(): void

@@ -55,6 +55,15 @@ const runNode = (file, argv, cwd, env = {}) => spawnSync(process.execPath, [file
   cwd, encoding: 'utf8', env: { ...process.env, GITHUB_STEP_SUMMARY: '', ...env },
 });
 
+// Deps compartilhadas de `scripts/governance/lib/` viajam junto pro sandbox. Sem isto o
+// script copiado morre com ERR_MODULE_NOT_FOUND — foi assim que este selftest pegou a
+// introducao de lib/spec-encerrado.mjs em 2026-07-28, ANTES do CI. Copia o diretorio
+// inteiro (nao um arquivo) pra que lib futura entre sozinha, sem editar 20 sandboxes.
+const copiarLibGovernanca = (sb) => {
+  const src = join(ROOT, 'scripts', 'governance', 'lib');
+  if (existsSync(src)) cpSync(src, join(sb, 'scripts', 'governance', 'lib'), { recursive: true });
+};
+
 // sdd-scorecard mede via cwd (e exec'a knowledge-drift relativo a ele) → sandbox temp
 // com a fixture + os scripts REAIS copiados. Fixture em git fica só dados.
 function runScorecard(kind) {
@@ -62,6 +71,7 @@ function runScorecard(kind) {
   try {
     cpSync(join(FIX, 'sdd-scorecard', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
     // sdd-scorecard agora delega anchor_coverage a anchor-lint.mjs (ledger §A · ADR 0273 §2) — copia essa dep tb.
@@ -80,6 +90,7 @@ function runScorecardFloor(fixture) {
     try {
       cpSync(join(FIX, fixture, kind), sb, { recursive: true });
       mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
       cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
       cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
       cpSync(join(ROOT, 'scripts', 'governance', 'anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
@@ -103,6 +114,7 @@ function runScorecardCorruptors(kind) {
     const corruptorTxt = join(sb, 'tests', 'Feature', 'CorruptorDemoTest.php.txt');
     if (existsSync(corruptorTxt)) renameSync(corruptorTxt, join(sb, 'tests', 'Feature', 'CorruptorDemoTest.php'));
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     mkdirSync(join(sb, 'scripts', 'audit'), { recursive: true });
     cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
@@ -125,6 +137,7 @@ function runProtectionStaleFloor(kind) {
   try {
     mkdirSync(join(sb, 'governance'), { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('protection-drift', 'scripts/governance/protection-drift.mjs'), join(sb, 'scripts', 'governance', 'protection-drift.mjs'));
     cpSync(join(fx, 'required-checks-baseline.json'), join(sb, 'governance', 'required-checks-baseline.json'));
     cpSync(join(fx, 'sdd-scorecard-baseline.json'), join(sb, 'governance', 'sdd-scorecard-baseline.json'));
@@ -146,6 +159,7 @@ function runMemoryHealth(kind) {
   try {
     cpSync(join(FIX, 'memory-health', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
     cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
@@ -164,6 +178,7 @@ function runMemoryHealthUs(kind) {
   try {
     cpSync(join(FIX, 'memory-health-us', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
     cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
@@ -180,6 +195,7 @@ function runMemoryHealthAuthority(kind) {
   try {
     cpSync(join(FIX, 'memory-health-authority', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
     cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
@@ -201,6 +217,7 @@ function runMemoryHealthRegistryRef(kind) {
   try {
     cpSync(join(FIX, 'memory-health-registry-ref', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
     cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
     cpSync(join(ROOT, 'scripts', 'governance', 'fact-anchor.mjs'), join(sb, 'scripts', 'governance', 'fact-anchor.mjs')); // dep do Check T (fact-anchor)
@@ -228,6 +245,7 @@ function runTamperGuard(kind) {
     g(['config', 'commit.gpgsign', 'false']);
     mkdirSync(join(sb, 'governance'), { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('baseline-tamper-guard', 'scripts/governance/baseline-tamper-guard.mjs'), join(sb, 'scripts', 'governance', 'baseline-tamper-guard.mjs'));
     // commit base — baseline apertado
     cpSync(join(fx, 'base', 'sdd-scorecard-baseline.json'), join(sb, 'governance', 'sdd-scorecard-baseline.json'));
@@ -256,6 +274,7 @@ function runTamperGrow(kind) {
     g(['config', 'user.name', 'gate-selftest']);
     g(['config', 'commit.gpgsign', 'false']);
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('baseline-tamper-guard', 'scripts/governance/baseline-tamper-guard.mjs'), join(sb, 'scripts', 'governance', 'baseline-tamper-guard.mjs'));
     // commit base — casos-coverage com 1 violação legada
     cpSync(join(fx, 'base', 'casos-coverage-baseline.json'), join(sb, 'scripts', 'casos-coverage-baseline.json'));
@@ -282,6 +301,7 @@ function runAnchorLintWired(kind) {
   try {
     cpSync(join(FIX, 'anchor-lint-wired', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'), ['--check', 'memory/requisitos/SelftestAnchor/SPEC.md'], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
@@ -296,6 +316,7 @@ function runAnchorLintCovers(kind) {
   try {
     cpSync(join(FIX, 'anchor-lint-covers', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'), ['--check-covers', 'memory/requisitos/SelftestCovers/SPEC.md'], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
@@ -309,6 +330,7 @@ function runAnchorLintEntry(kind) {
   try {
     cpSync(join(FIX, 'anchor-lint-entry', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'), ['--check-entry', 'memory/requisitos/SelftestEntry/SPEC.md'], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
@@ -325,6 +347,7 @@ function runAnchorLintVerde(kind) {
   try {
     cpSync(join(FIX, 'anchor-lint-verde', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
       ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
@@ -343,6 +366,7 @@ function runAnchorLintVerdeResilient(kind) {
     cpSync(join(FIX, 'anchor-lint-verde', 'good'), sb, { recursive: true }); // SPEC+Service+Test compartilhados
     cpSync(join(FIX, 'anchor-lint-verde-resilient', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do junit da variante
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
       ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
@@ -361,6 +385,7 @@ function runAnchorLintVerdeNightly(kind) {
     cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + junit skipped + lane list
     if (kind === 'good') rmSync(join(sb, '.github', 'ci-sqlite-pest.list'), { force: true }); // fora de lane = nightly-only
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
       ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
@@ -377,6 +402,7 @@ function runAnchorLintVerdeSharded(kind) {
     cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + lane list
     cpSync(join(FIX, 'anchor-lint-verde-sharded', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do summary sharded
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
       ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
@@ -392,6 +418,7 @@ function runAnchorLintVerdePartial(kind) {
     cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + lane list
     cpSync(join(FIX, 'anchor-lint-verde-partial', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do summary parcial/completo
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
       ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
@@ -407,6 +434,7 @@ function runAnchorLintEntryBaseline(kind) {
   try {
     cpSync(join(FIX, 'anchor-lint-entry-baseline', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
       ['--check-entry', '--baseline', 'governance/anchor-entry-baseline.json', 'memory/requisitos/SelftestEntryBaseline/SPEC.md'], sb);
@@ -423,6 +451,7 @@ function runDonenessBaseline(kind) {
   try {
     cpSync(join(FIX, 'doneness-baseline', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    copiarLibGovernanca(sb);
     cpSync(script('doneness-lint', 'scripts/governance/doneness-lint.mjs'), join(sb, 'scripts', 'governance', 'doneness-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'doneness-lint.mjs'),
       ['--check', '--baseline', 'governance/doneness-baseline.json', 'memory/requisitos/SelftestDonenessBaseline/SPEC.md'], sb);

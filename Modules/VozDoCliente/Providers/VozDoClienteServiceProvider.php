@@ -3,6 +3,7 @@
 namespace Modules\VozDoCliente\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\VozDoCliente\Console\Commands\HabilitarVozDoClienteCommand;
 
 class VozDoClienteServiceProvider extends ServiceProvider
 {
@@ -11,7 +12,17 @@ class VozDoClienteServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerTranslations();
         $this->registerViews();
+        $this->registerCommands();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+    }
+
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                HabilitarVozDoClienteCommand::class,
+            ]);
+        }
     }
 
     public function register(): void

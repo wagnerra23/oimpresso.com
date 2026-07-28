@@ -87,6 +87,33 @@ it('não-admin COM jana.access NÃO leva 403 (o gate libera quem tem o nível)',
     expect($status)->not->toBe(403);
 });
 
+/**
+ * Guard do ALCANCE — o gate não pode trancar o ERP inteiro.
+ *
+ * Incidente 2026-07-28 (Maiara): `/home` é o alvo do post-login
+ * (`LoginController::redirectTo()`) e de `route('home')` em ~30 lugares. Enquanto ele
+ * redirecionava INCONDICIONALMENTE pra `/ia/dashboard`, funcionário sem `jana.access`
+ * (que nasce `default => false`) não perdia só a Jana — levava 403 na única porta que
+ * o login abre, ficando sem ERP nenhum. O gate acima segue mordendo em `/ia`; este
+ * caso trava o LIMITE dele: a porta de entrada continua entrando.
+ */
+it('NÃO TRANCA O ERP: sem jana.access, /home leva ao dashboard legado — nunca 403', function () {
+    $this->user->revokePermissionTo('jana.access');
+    $this->user->forgetCachedPermissions();
+
+    $response = $this->actingAs($this->user)->get('/home');
+
+    expect($response->status())->not->toBe(403);
+    $response->assertRedirect('/dashboard-legacy');
+});
+
+it('com jana.access, /home segue levando ao dashboard da Jana (destino canon intacto)', function () {
+    $this->user->givePermissionTo('jana.access');
+    $this->user->forgetCachedPermissions();
+
+    $this->actingAs($this->user)->get('/home')->assertRedirect('/ia/dashboard');
+});
+
 it('LIMITE HONESTO: admin passa MESMO sem a permissão (Gate::before)', function () {
     $admin = User::where('business_id', $this->business->id)
         ->get()

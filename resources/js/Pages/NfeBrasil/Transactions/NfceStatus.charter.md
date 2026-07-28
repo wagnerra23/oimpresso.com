@@ -21,15 +21,30 @@ charter_version: 1
 
 ## Mission
 
-Acompanhar o **status fiscal pós-venda NFC-e** de uma `Transaction` individual — única tela onde o operador POS (Larissa-caixa) consulta o resultado da emissão SEFAZ após clicar "Finalizar venda" no `/sells/create`. Polling 2s até cStat final (100=autorizado / rejeitado / pendente), com fallback Centrifugo CT 100 quando broadcast vier.
+Acompanhar o **status fiscal pós-venda de TODOS os documentos gerados** para uma `Transaction` individual — NF-e (modelo 55), NFC-e (modelo 65), NFS-e e demais documentos fiscais da venda. É a tela onde o operador POS (Larissa-caixa) consulta o resultado da emissão SEFAZ após clicar "Finalizar venda" no `/sells/create`. Polling 2s até cStat final (100=autorizado / rejeitado / pendente), com fallback Centrifugo CT 100 quando broadcast vier.
+
+> **Emenda de Mission — [W] 2026-07-28.** Palavras textuais: *"a tela deve exibir nfe e nfse [nfce] e todos os documentos gerados. isso deve"*. A Mission anterior escopava a tela a **NFC-e apenas** ("status fiscal pós-venda NFC-e"), e era essa Mission — não um bug — que sustentava o filtro `modelo 65`. Decisão de produto do dono; transcrita, não inferida.
+>
+> **O diagnóstico técnico, e a errata da minha 1ª redação.** O [SDD de emissão fiscal](../../../../../memory/requisitos/NfeBrasil/SDD-emissao-fiscal-v1.0.md) **§5.3 F3 já continha o diagnóstico correto e completo**, textual: *"O `NfeEmissaoController@listar` existe justamente para cobrir os dois modelos, e o docblock dele diz 'Substituiu o GET nfe-status que retornava só modelo 65' — mas a **tela `NfceStatus` continua no endpoint antigo**."*
+>
+> ⚠️ **A 1ª versão desta emenda afirmou que o SDD estava "errado nas duas metades". FALSO — e fica registrado, não apagado.** Eu li a linha-resumo do §9 (*"a tela só enxerga NFC-e 65"*) e o corpo do [#4913](https://github.com/wagnerra23/oimpresso.com/pull/4913), e **não li o §5.3**, que é onde o corpo do documento estava certo. Classe **LC-08** (afirmar a partir da fonte errada) — cometida dentro de uma sessão que catalogava essa mesma classe. O que sobrevive da crítica é só metade, e nem era do SDD: o rótulo **A4 do corpo do #4913** (*"o teste fixa o defeito como correto — catraca contra o conserto"*) está errado, porque migrar a tela pro endpoint largo **não exige tocar** `NfeStatusControllerTest::'modelo 55 é ignorado pelo endpoint NFC-e'` — esse teste é o contrato correto do endpoint estreito de polling do POS (US-NFE-002).
+>
+> Os fatos medidos em `origin/main` 2026-07-28 (esses seguem valendo):
+> - `NfeEmissaoController::listar` (`GET transactions/{tx}/emissoes`) **não filtra modelo nenhum** — já devolve 55/65/67, e o enum da tabela é `['55','65','67']` desde a migration original.
+> - `useEmissoesPorTransaction.ts` declara no cabeçalho *"substitui useNfceStatus (que só pegava modelo 65)"* e já roda em `Sells/FiscalSection` + `Sells/Index`. **Esta tela é a que não migrou** (`NfceStatus.tsx:59`).
+>
+> **Consequência de implementação** (medida, não estimada): trocar `useNfceStatus` → `useEmissoesPorTransaction` cobre 55/65/67 **sem tocar backend**. Já a **NFS-e vive em outra tabela e outro módulo** (`nfse_emissoes`, `Modules/NFSe/Models/NfseEmissao`), então exige uma 2ª fonte — e o precedente canônico a imitar ([ADR 0011](../../../../../memory/decisions/0011-alinhamento-padrao-jana.md)) é o `Modules/Fiscal/Http/Controllers/CockpitController.php`, que já importa `NfeEmissao` **e** `NfseEmissao` no mesmo controller.
+>
+> **Não promovido a `status: live`** por esta emenda — o gate `charter status:live precisa de sinal de prod` exige evidência de produção, e a tela ainda não foi reimplementada.
 
 ---
 
 ## Goals — Features (faz)
 
-- AppShellV2 + Head `Status NFC-e — Venda #{tx}` (PT-BR)
-- Componente único `NfceStatusBadge` recebe `transactionId` e centraliza polling/transport (separação de UI vs transport — ADR 0058)
-- Polling default 2s via `useNfceStatus` hook interno até cStat final
+- AppShellV2 + Head `Status fiscal — Venda #{tx}` (PT-BR) — _era `Status NFC-e`; alargado pela emenda de Mission [W] 2026-07-28_
+- **Lista os documentos fiscais da venda** (NF-e 55 · NFC-e 65 · 67 · NFS-e), cada um com seu próprio status/badge — não um documento só. _Goal novo pela emenda [W] 2026-07-28; a implementação segue pendente (a tela hoje renderiza um card singular)._
+- `NfceStatusBadge` por documento, recebendo a emissão — centraliza polling/transport (separação de UI vs transport — ADR 0058)
+- Polling default 2s via `useEmissoesPorTransaction` até cStat final de todos — _era `useNfceStatus` (estreito, só modelo 65); a troca é a implementação da emenda_
 - Transport-agnostic: hoje HTTP fetch; mañana Centrifugo broadcast (Page não muda, só hook)
 - Link "Voltar para vendas" → `/sells` (navegação clara)
 - Texto explicativo curto (~1 linha) sobre o que a página faz

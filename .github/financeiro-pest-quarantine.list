@@ -1,0 +1,119 @@
+# Quarentena da lane "PHP / Pest (Financeiro · MySQL)" — .github/workflows/financeiro-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em Modules/Financeiro/Tests/**/*Test.php
+# MENOS o que este arquivo lista. A partição é TOTAL: todo arquivo da árvore está
+# em exatamente um dos dois lados, e arquivo NOVO entra RODANDO. Não existe um
+# terceiro estado "escuro" — que é o bug que esta lista substitui (a allowlist
+# inline nomeava 24 de 80; os outros 56 não rodavam em lane nenhuma).
+#
+# A lane é REQUIRED (governance/required-checks-baseline.json) — vermelho aqui
+# bloqueia todo merge no main. Por isso a quarentena nasce CONSERVADORA: entra
+# tudo que não foi PROVADO verde.
+#
+# 1 path por linha · '#' comenta · merge=union no .gitattributes (PRs concorrentes
+# que adicionam linhas são unidos sem conflito — mesma receita do irmão
+# .github/ci-sqlite-pest.list, cujo cabeçalho explica por que não é linha inline).
+#
+# TIRAR DAQUI é o movimento desejado (a lista deve encolher). PÔR aqui exige
+# motivo escrito na linha — sem isso vira gaveta de silenciar vermelho.
+#
+# BASELINE (2026-07-28): medido no CT 100 container oimpresso-staging, UM ARQUIVO
+# POR PROCESSO (attribution limpa), + avaliação estática das asserções
+# file_get_contents/toContain conferida contra o fonte do main. Os 56 fora da
+# allowlist deram 23 passa · 30 falha · 3 zero-assertion.
+# RESSALVA QUE NÃO CADUCA: CT 100 != CI (banco persiste lá, é fresco aqui) e o
+# baseline rodou 1 arquivo por processo enquanto a lane roda TODOS num processo
+# só. Portanto isto é CANDIDATO; quem prova é o run da lane.
+
+# ─────────────────────────────────────────────────────────────────────────
+# A) TESTE PODRE — asserta TEXTO LITERAL do fonte, e o fonte drifou (10)
+#    Não são flaky: são grep de string em .tsx/.css/charter. O recurso
+#    geralmente AINDA EXISTE; o que quebrou foi a forma escrita.
+#    Ex: os botões viraram array data-driven { key, label, onClick: () => … },
+#    então 'onClick={() => setPresentOpen(true)}' (sintaxe JSX) não existe mais.
+#    Ex: asserta 'charter_version: 3' num campo que o processo OBRIGA a subir
+#        (Index.charter.md está em 22) — desenhado pra apodrecer.
+#    Ex: Onda6 exige FinMonthDigest importado, mas ele foi REMOVIDO de
+#        propósito na Onda 12 como não-canon — o teste cobra o oposto de uma
+#        decisão aceita.
+#    ENCAMINHAMENTO: reescrever como teste de COMPORTAMENTO ou deletar.
+#    Consertar a string só reinicia o relógio do apodrecimento. Decisão [W].
+Modules/Financeiro/Tests/Feature/CoworkBundleIntegralTest.php  # 9 failed, 8 passed (27 assertions)
+Modules/Financeiro/Tests/Feature/DrawerCoworkV2Test.php  # 12 skipped (0 assertions)
+Modules/Financeiro/Tests/Feature/Onda5CuradoriaR1Test.php  # 12 skipped (0 assertions)
+Modules/Financeiro/Tests/Feature/Onda6IaR2Test.php  # 3 failed, 6 passed (38 assertions)
+Modules/Financeiro/Tests/Feature/Onda7OutputR3Test.php  # 2 failed, 7 passed (56 assertions)
+Modules/Financeiro/Tests/Feature/Onda7bTroubleshootPresentTest.php  # 1 failed, 11 passed (44 assertions)
+Modules/Financeiro/Tests/Feature/Onda7cTranscriptFavsTest.php  # 2 failed, 16 passed (55 assertions)
+Modules/Financeiro/Tests/Feature/Onda8CoworkRewriteTest.php  # 3 failed, 6 passed (41 assertions)
+Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 passed (25 assertions)
+Modules/Financeiro/Tests/Feature/Onda9ResumirMesTest.php  # 1 failed, 13 passed (42 assertions)
+
+# ─────────────────────────────────────────────────────────────────────────
+# B) RefreshDatabase — incompatível com o processo compartilhado da lane (11)
+#    A própria lane já documentava: dropam o schema (FK) e LIMPAM o biz=1
+#    seedado, envenenando os demais. Três deles PASSAM isolados
+#    (ConciliacaoMatchScore, ConciliacaoUploadDedupe, ExtratoNavRedirect) e
+#    ficam aqui só por causa do compartilhamento.
+#    ENCAMINHAMENTO: job separado com banco próprio — não é defeito do teste.
+Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 failed (0 assertions)
+Modules/Financeiro/Tests/Feature/ConciliacaoAuditReabrirTest.php  # 1 failed, 4 passed (15 assertions)
+Modules/Financeiro/Tests/Feature/ConciliacaoMatchScoreTest.php  # 3 passed (15 assertions)
+Modules/Financeiro/Tests/Feature/ConciliacaoUploadDedupeTest.php  # 4 passed (24 assertions)
+Modules/Financeiro/Tests/Feature/ExtratoControllerTest.php  # 1 failed, 2 passed (2 assertions)
+Modules/Financeiro/Tests/Feature/ExtratoNavRedirectTest.php  # 4 passed (11 assertions)
+Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions)
+Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # 1 failed, 11 passed (24 assertions)
+Modules/Financeiro/Tests/Feature/ProvaVivaContractTest.php  # 1 failed, 1 passed (10 assertions)
+Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions)
+Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions)
+
+# ─────────────────────────────────────────────────────────────────────────
+# C) DB-dependente FALHANDO — defeito real a investigar (14)
+#    Estes são o achado de maior valor: falham contra MySQL semeado, não por
+#    formatação. Podem ser regressão de produto OU teste desatualizado —
+#    exige olhar caso a caso, não conserto em lote.
+Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php  # 6 failed, 2 passed (2 assertions)
+Modules/Financeiro/Tests/Feature/CobrancaControllerTest.php  # 4 failed, 11 passed (51 assertions)
+Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
+Modules/Financeiro/Tests/Feature/FluxoControllerTest.php  # 3 failed, 3 passed (39 assertions)
+Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
+Modules/Financeiro/Tests/Feature/Onda26InterWebhookIntegrationTest.php  # 2 failed (0 assertions)
+Modules/Financeiro/Tests/Feature/ProvaVivaControllerTest.php  # 1 failed, 1 passed (3 assertions)
+Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
+Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions)
+Modules/Financeiro/Tests/Feature/TituloCriadoEventTest.php  # 1 failed, 1 passed (3 assertions)
+Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
+Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
+Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
+Modules/Financeiro/Tests/Feature/Wave23SaturationTest.php  # 1 failed, 6 passed (17 assertions)
+
+# ─────────────────────────────────────────────────────────────────────────
+# D) SKIP TOTAL — 'passa' com ZERO assertions, logo não prova nada (1)
+#    exit 0 sem assertar é o verde-por-não-execução. Fica fora até alguém
+#    decidir se o skip-guard é legítimo ou se o teste deve rodar de fato.
+Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php  # 3 skipped (0 assertions)
+
+# ─────────────────────────────────────────────────────────────────────────
+# E) FLAKE POR DEPENDÊNCIA DE ORDEM — passa isolado, falha conforme o sorteio (1)
+#    phpunit.xml usa executionOrder="random": com 46 arquivos num processo, a
+#    ordem muda a cada run. Este entrou verde no PR #4963 e ficou VERMELHO no
+#    primeiro push em main — com a MESMA árvore de código (o único arquivo
+#    diferente entre os dois runs era memory/how-bridge-cloud-local.md).
+#
+#    CAUSA-RAIZ DIAGNOSTICADA (não é teste podre, é isolamento):
+#    BackfillExtratoOfxCommand.php:213 insere `accounts.account_number =
+#    'OFX-AVULSO'` com insertGetId cru. O tearDown do teste (linhas 84-91) só
+#    remove essa linha de `accounts` ATRAVÉS do join com fin_contas_bancarias
+#    (procura banco_codigo='OFX' + beneficiario_razao_social='OFX avulso') e é
+#    guardado por `if ($this->business && $this->pfx !== '')`. Se a linha de
+#    accounts sobrevive ao join — ou o guard não roda — o próximo insert colide:
+#    UniqueConstraintViolationException em "linha ofx sem conta usa conta avulso".
+#
+#    FIX CONHECIDO E PEQUENO (só teste, não toca produção): o tearDown deve
+#    apagar accounts por account_number='OFX-AVULSO' + business_id de forma
+#    incondicional, em vez de depender do join. NÃO aplicado aqui de propósito:
+#    a ordem que reproduz a falha é sorteada, então eu não conseguiria PROVAR o
+#    fix neste PR — e um fix não provado deixaria o main vermelho se errasse.
+#    Quarentena restaura o verde de forma determinística; o fix é decisão [W].
+Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado · 1 failed em main (run 30378571902)

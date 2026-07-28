@@ -86,13 +86,28 @@ class TaskParserService
     protected SpecAnchorClassifier $anchorClassifier;
 
     /**
-     * Mapa task_id → veredito de âncora do último parseSpec (ADR 0337). Populado em
+     * Mapa task_id → veredito de âncora do último parseSpec (ADR 0337, hoje 0355). Populado em
      * parseSpec, consumido no forward-close de syncAllInternal. Vive só em memória —
      * NUNCA entra no payload persistido (não é coluna de mcp_tasks).
      *
-     * @var array<string, array{state: string, sha: ?string, paths: list<string>}>
+     * @var array<string, array{state: string, sha: ?string, paths: list<string>, data: ?string}>
      */
     protected array $anchorPorTask = [];
+
+    /**
+     * Mapa task_id → nº de checkboxes ABERTOS (`- [ ]`) no bloco da US (ADR 0355).
+     * Populado em parseSpec, consumido pelo veto do forward-close. Só memória.
+     *
+     * @var array<string, int>
+     */
+    protected array $dodAbertoPorTask = [];
+
+    /**
+     * Recorte FORWARD-ONLY do forward-close (ADR 0355 §4) — data de aceitação da ADR.
+     * Âncora carimbada ANTES disto não fecha automaticamente: o legado é backlog
+     * enumerado, decidido por humano, nunca fechado em massa por mudança de regra.
+     */
+    public const FORWARD_CLOSE_DESDE = '2026-07-28';
 
     public function __construct(?SpecAnchorClassifier $anchorClassifier = null)
     {
@@ -170,11 +185,11 @@ class TaskParserService
                         $atualizadas++;
                     }
 
-                    // ADR 0337 (emenda cirúrgica à 0144) — forward-close por âncora
+                    // ADR 0355 (supersede 0337) — forward-close por âncora
                     // verificada, INDEPENDENTE do update descritivo. O DB segue canon
                     // de estado vivo, MAS a âncora `**Implementado em:** ...verificado@sha`
                     // é a fonte de done-ness (ADR 0302/0273): carrega o veredito do git
-                    // pro card quando o SPEC declara done + a âncora prova. Só fecha-pra-
+                    // pro card quando a âncora prova e nada a desprova. Só fecha-pra-
                     // frente; nunca reabre, nunca toca owner/sprint/priority.
                     if ($this->fecharPorAncoraSeElegivel($existente, $cand)) {
                         $fechadasPorAncora++;
@@ -259,13 +274,23 @@ class TaskParserService
                 : strlen($conteudo);
             $bloco = substr($conteudo, $offsetInicio, $offsetFim - $offsetInicio);
 
-            // ADR 0337 — veredito de âncora (fonte de done-ness, ADR 0302/0273) por
+            // ADR 0355 — veredito de âncora (fonte de done-ness, ADR 0273) por
             // task, consumido pelo forward-close de syncAllInternal. NÃO entra no
             // payload persistido (vive só em memória). Path-existence contra o disco.
             $this->anchorPorTask[$taskId] = $this->anchorClassifier->classify(
                 $bloco,
                 static fn (string $p): bool => file_exists(base_path($p)),
             );
+
+            // ADR 0355 — checkbox ABERTO veta o forward-close. O DoD entra como
+            // FALSIFICADOR (desprova), nunca como confirmador: um `[x]` e ato de 1
+            // caractere, sem revisor (provado no commit 7ebe9ea5d7, que marcou [x] numa
+            // linha cujo texto diz "parcial ... nao ha autoprint"). Desprovar e barato
+            // e honesto; provar nao.
+            // Escopo DELIBERADAMENTE mais largo que o do doneness-lint (que so olha a
+            // secao DoD/aceite): contamos QUALQUER `- [ ]` do bloco. E estritamente mais
+            // conservador — so pode IMPEDIR fechamento, nunca causar um errado.
+            $this->dodAbertoPorTask[$taskId] = preg_match_all('/^\s*[-*]\s*\[ \]/m', $bloco);
 
             $meta = $this->parseFrontmatterInline($bloco);
             $description = $this->extrairDescription($bloco);
@@ -659,7 +684,7 @@ class TaskParserService
     }
 
     /**
-     * ADR 0337 — decide + aplica o forward-close por âncora. Retorna true se fechou.
+     * ADR 0355 — decide + aplica o forward-close por âncora. Retorna true se fechou.
      *
      * Gatilho (TODAS obrigatórias, fail-closed) via {@see deveFecharPorAncora()}:
      *   1. card ainda ATIVO (não done/cancelled);
@@ -679,9 +704,10 @@ class TaskParserService
 
         if (! $this->deveFecharPorAncora(
             (string) $existente->status,
-            $cand['status'] ?? null,
             $ancora['state'] ?? null,
             $ancora['sha'] ?? null,
+            $ancora['data'] ?? null,
+            (int) ($this->dodAbertoPorTask[$taskId] ?? 0),
         )) {
             return false;
         }
@@ -695,7 +721,7 @@ class TaskParserService
         if (! is_string($acceptance) || trim($acceptance) === '') {
             $acceptance = "âncora verificada@{$sha}"
                 . ($paths !== '' ? " · {$paths}" : '')
-                . ' (forward-close ADR 0337/0302)';
+                . ' (forward-close ADR 0355)';
         }
 
         $existente->status = 'done';
@@ -711,11 +737,12 @@ class TaskParserService
             from: $de,
             to: 'done',
             author: 'webhook-sync',
-            note: "Forward-close por âncora verificada@{$sha} (ADR 0337, emenda 0144): "
-                . 'SPEC declara done + âncora anchored_ok. Estado vivo carregado do git pro card.',
+            note: "Forward-close por âncora verificada@{$sha} (ADR 0355): "
+                . 'âncora anchored_ok + zero DoD aberto + carimbo forward-only. '
+                . 'Estado vivo carregado do git pro card.',
         );
 
-        Log::channel('copiloto-ai')->info('TaskParser forward-close por âncora (ADR 0337)', [
+        Log::channel('copiloto-ai')->info('TaskParser forward-close por âncora (ADR 0355)', [
             'task_id' => $existente->task_id,
             'de' => $de,
             'para' => 'done',
@@ -727,26 +754,41 @@ class TaskParserService
     }
 
     /**
-     * Núcleo PURO do gatilho de forward-close (ADR 0337) — sem I/O, determinístico,
+     * Núcleo PURO do gatilho de forward-close (ADR 0355) — sem I/O, determinístico,
      * testável sem DB (espelha o padrão de núcleo puro do TasksReconciler::analisar).
      *
      * @param  string  $dbStatus     status atual do card no DB.
-     * @param  ?string $specStatus   status declarado no SPEC (`status:` do blockquote).
+     * @param  ?string $anchorData   data `(AAAA-MM-DD)` da âncora — recorte forward-only.
+     * @param  int     $dodAberto    nº de checkboxes `- [ ]` no bloco da US (>0 VETA).
      * @param  ?string $anchorState  estado da âncora (SpecAnchorClassifier::classify).
      * @param  ?string $anchorSha    sha `verificado@` da âncora (null se não-verificada).
      */
-    public function deveFecharPorAncora(string $dbStatus, ?string $specStatus, ?string $anchorState, ?string $anchorSha): bool
-    {
-        // 1. card ainda ativo (nunca reabre done/cancelled — preserva estado terminal do DB)
+    public function deveFecharPorAncora(
+        string $dbStatus,
+        ?string $anchorState,
+        ?string $anchorSha,
+        ?string $anchorData,
+        int $dodAberto = 0,
+    ): bool {
+        // 1. card ainda ativo — NUNCA reabre done/cancelled (estado terminal do DB é
+        //    canon, ADR 0144 via 0337).
         if (in_array($dbStatus, ['done', 'cancelled'], true)) {
             return false;
         }
-        // 2. SPEC declara done — decisão humana explícita (1 dos 2 sinais; sozinho o
-        //    `status:` NÃO basta, ADR 0144 desconfia dele — por isso exigimos a âncora)
-        if ($specStatus !== 'done') {
+        // 2. âncora VERIFICADA com sha (ADR 0273/0302 — prova no disco). É o único
+        //    sinal POSITIVO: o que fecha é verificável, não declarado.
+        if ($anchorState !== 'anchored_ok' || ! is_string($anchorSha) || $anchorSha === '') {
             return false;
         }
-        // 3. âncora verificada anchored_ok com sha (ADR 0273/0302 — prova no disco)
-        return $anchorState === 'anchored_ok' && is_string($anchorSha) && $anchorSha !== '';
+        // 3. DoD aberto VETA (ADR 0355). Falsificador, nunca confirmador — o `[x]` não
+        //    prova aceite, mas o `[ ]` desprova. Fail-closed.
+        if ($dodAberto > 0) {
+            return false;
+        }
+        // 4. FORWARD-ONLY (ADR 0355 §4): só âncora carimbada a partir da decisão. O
+        //    legado medido (85 US) NÃO fecha em massa — vira backlog enumerado, porque
+        //    fechar 85 de uma vez trocaria invisibilidade-por-aberto por
+        //    invisibilidade-por-fechado. Data ausente = não fecha (fail-closed).
+        return is_string($anchorData) && $anchorData !== '' && $anchorData >= self::FORWARD_CLOSE_DESDE;
     }
 }
