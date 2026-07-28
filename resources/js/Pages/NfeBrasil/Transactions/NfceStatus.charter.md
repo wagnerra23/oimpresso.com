@@ -21,15 +21,27 @@ charter_version: 1
 
 ## Mission
 
-Acompanhar o **status fiscal pós-venda NFC-e** de uma `Transaction` individual — única tela onde o operador POS (Larissa-caixa) consulta o resultado da emissão SEFAZ após clicar "Finalizar venda" no `/sells/create`. Polling 2s até cStat final (100=autorizado / rejeitado / pendente), com fallback Centrifugo CT 100 quando broadcast vier.
+Acompanhar o **status fiscal pós-venda de TODOS os documentos gerados** para uma `Transaction` individual — NF-e (modelo 55), NFC-e (modelo 65), NFS-e e demais documentos fiscais da venda. É a tela onde o operador POS (Larissa-caixa) consulta o resultado da emissão SEFAZ após clicar "Finalizar venda" no `/sells/create`. Polling 2s até cStat final (100=autorizado / rejeitado / pendente), com fallback Centrifugo CT 100 quando broadcast vier.
+
+> **Emenda de Mission — [W] 2026-07-28.** Palavras textuais: *"a tela deve exibir nfe e nfse [nfce] e todos os documentos gerados. isso deve"*. A Mission anterior escopava a tela a **NFC-e apenas** ("status fiscal pós-venda NFC-e"), e era essa Mission — não um bug — que sustentava o filtro `modelo 65`. Decisão de produto do dono; transcrita, não inferida.
+>
+> **Correção do diagnóstico que motivou a emenda:** o risco **R3** do [SDD de emissão fiscal](../../../../../memory/requisitos/NfeBrasil/SDD-emissao-fiscal-v1.0.md) (§9) descrevia o defeito como *"a tela só enxerga NFC-e 65"* + *"o teste `it('modelo 55 é ignorado')` é catraca contra o conserto"*. **As duas metades estavam erradas**, medido em `origin/main` 2026-07-28:
+> - `NfeEmissaoController::listar` (`GET transactions/{tx}/emissoes`) **não filtra modelo nenhum** — já devolve 55/65/67, e o enum da tabela é `['55','65','67']` desde a migration original.
+> - O hook largo **já existe e já está em uso**: `useEmissoesPorTransaction.ts` declara no cabeçalho *"substitui useNfceStatus (que só pegava modelo 65)"*, e roda em `Sells/FiscalSection` + `Sells/Index`. **Esta tela é a que não migrou** (`NfceStatus.tsx:59` ainda chama `useNfceStatus`).
+> - O teste `NfeStatusControllerTest::'modelo 55 é ignorado pelo endpoint NFC-e'` **não trava conserto nenhum** — ele é o contrato correto do endpoint estreito de polling do POS (US-NFE-002), que não precisa ser tocado. Alargar aquele controller teria sido consertar o lugar errado.
+>
+> **Consequência de implementação** (medida, não estimada): trocar `useNfceStatus` → `useEmissoesPorTransaction` cobre 55/65/67 **sem tocar backend**. Já a **NFS-e vive em outra tabela e outro módulo** (`nfse_emissoes`, `Modules/NFSe/Models/NfseEmissao`), então exige uma 2ª fonte — e o precedente canônico a imitar ([ADR 0011](../../../../../memory/decisions/0011-alinhamento-padrao-jana.md)) é o `Modules/Fiscal/Http/Controllers/CockpitController.php`, que já importa `NfeEmissao` **e** `NfseEmissao` no mesmo controller.
+>
+> **Não promovido a `status: live`** por esta emenda — o gate `charter status:live precisa de sinal de prod` exige evidência de produção, e a tela ainda não foi reimplementada.
 
 ---
 
 ## Goals — Features (faz)
 
-- AppShellV2 + Head `Status NFC-e — Venda #{tx}` (PT-BR)
-- Componente único `NfceStatusBadge` recebe `transactionId` e centraliza polling/transport (separação de UI vs transport — ADR 0058)
-- Polling default 2s via `useNfceStatus` hook interno até cStat final
+- AppShellV2 + Head `Status fiscal — Venda #{tx}` (PT-BR) — _era `Status NFC-e`; alargado pela emenda de Mission [W] 2026-07-28_
+- **Lista os documentos fiscais da venda** (NF-e 55 · NFC-e 65 · 67 · NFS-e), cada um com seu próprio status/badge — não um documento só. _Goal novo pela emenda [W] 2026-07-28; a implementação segue pendente (a tela hoje renderiza um card singular)._
+- `NfceStatusBadge` por documento, recebendo a emissão — centraliza polling/transport (separação de UI vs transport — ADR 0058)
+- Polling default 2s via `useEmissoesPorTransaction` até cStat final de todos — _era `useNfceStatus` (estreito, só modelo 65); a troca é a implementação da emenda_
 - Transport-agnostic: hoje HTTP fetch; mañana Centrifugo broadcast (Page não muda, só hook)
 - Link "Voltar para vendas" → `/sells` (navegação clara)
 - Texto explicativo curto (~1 linha) sobre o que a página faz
