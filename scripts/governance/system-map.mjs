@@ -19,7 +19,7 @@
 //
 // Node puro (fs + git via execSync). Sem deps, sem DB, sem PHP. Molde: sdd-scorecard.mjs.
 // Uso (na raiz do repo):
-//   node scripts/governance/system-map.mjs            # gera memory/reference/PAINEL-SISTEMA.md
+//   node scripts/governance/system-map.mjs            # gera PAINEL + PLANTA-IA + onboarding
 //   node scripts/governance/system-map.mjs --stdout    # imprime, não escreve
 //   node scripts/governance/system-map.mjs --check      # exit 1 se o .md commitado difere do gerado (CI)
 
@@ -33,12 +33,27 @@ const ROOT = process.cwd();
 // (ex: onboarding-paths-check.mjs reusa deadLinks) NÃO dispara escrita nem process.exit.
 const IS_DIRECT_RUN = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 const OUT = join(ROOT, 'memory', 'reference', 'PAINEL-SISTEMA.md');
+const OUT_AI = join(ROOT, 'memory', 'reference', 'PLANTA-IA.md');
 const MODE_STDOUT = process.argv.includes('--stdout');
 const MODE_CHECK = process.argv.includes('--check');
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 const read = (p) => { try { return readFileSync(p, 'utf8'); } catch { return ''; } };
 const ls = (p) => { try { return readdirSync(p); } catch { return []; } };
+function walkRel(relDir) {
+  const rows = [];
+  const visit = (rel) => {
+    let entries = [];
+    try { entries = readdirSync(join(ROOT, rel), { withFileTypes: true }); } catch { return; }
+    for (const entry of entries) {
+      const child = `${rel}/${entry.name}`.replaceAll('\\', '/');
+      if (entry.isDirectory()) visit(child);
+      else if (entry.isFile()) rows.push(child);
+    }
+  };
+  visit(relDir.replaceAll('\\', '/').replace(/\/$/, ''));
+  return rows;
+}
 function frontmatter(txt) {
   const m = txt.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return {};
@@ -169,9 +184,86 @@ function measureGates() {
   return { total: Object.keys(registry).length, byClass, required, enforcement, capturado };
 }
 
+// ── fonte 7: IA derivada do código (agentes, tools registradas e compose) ─────
+// Não consulta runtime e não lê docs narrativos. A página gerada separa explicitamente
+// "declarado no repo" de "saudável agora" para não transformar compose em falso uptime.
+function composeServices(rel) {
+  const rows = [];
+  let inside = false;
+  for (const line of read(join(ROOT, rel)).split(/\r?\n/)) {
+    if (/^services:\s*$/.test(line)) { inside = true; continue; }
+    if (inside && /^[^\s#]/.test(line)) break;
+    const m = inside ? line.match(/^  ([A-Za-z0-9_-]+):\s*(?:#.*)?$/) : null;
+    if (m) rows.push(m[1]);
+  }
+  return rows;
+}
+
+function measureAi() {
+  const modulePhp = walkRel('Modules').filter((p) => p.endsWith('.php'));
+  const productionPhp = [
+    ...modulePhp,
+    ...walkRel('app').filter((p) => p.endsWith('.php')),
+    ...walkRel('routes').filter((p) => p.endsWith('.php')),
+    ...walkRel('config').filter((p) => p.endsWith('.php')),
+  ].filter((p) => !p.includes('/Tests/'));
+  const productionText = new Map(productionPhp.map((p) => [p, read(join(ROOT, p))]));
+
+  const agentFiles = modulePhp.filter((p) => /\/Ai\/Agents\/[^/]+Agent\.php$/.test(p));
+  const agents = agentFiles.map((file) => {
+    const source = read(join(ROOT, file));
+    const cls = source.match(/\bclass\s+([A-Za-z0-9_]+Agent)\s+implements\s+Agent\b/);
+    if (!cls) throw new Error(`[system-map] agente sem contrato "implements Agent": ${file}`);
+    const module = file.split('/')[1];
+    const refRe = new RegExp(`\\b${cls[1]}\\b`);
+    const references = [...productionText].filter(([candidate, txt]) => candidate !== file && refRe.test(txt)).map(([candidate]) => candidate);
+    return { module, name: cls[1], file, references };
+  }).sort((a, b) => a.module.localeCompare(b.module) || a.name.localeCompare(b.name));
+
+  const agentNames = new Set();
+  for (const agent of agents) {
+    if (agentNames.has(agent.name)) throw new Error(`[system-map] nome de agente duplicado: ${agent.name}`);
+    agentNames.add(agent.name);
+  }
+
+  const serverPath = 'Modules/Jana/Mcp/OimpressoMcpServer.php';
+  const server = read(join(ROOT, serverPath));
+  const toolsBlock = server.match(/protected array \$tools = \[([\s\S]*?)\n\s*\];/);
+  if (!toolsBlock) throw new Error(`[system-map] bloco $tools não encontrado: ${serverPath}`);
+  const tools = [];
+  for (const line of toolsBlock[1].split(/\r?\n/)) {
+    const m = line.match(/^\s*(?:(?:\\Modules\\([A-Za-z0-9]+)\\Mcp\\Tools\\)|Tools\\)([A-Za-z0-9_]+Tool)::class,/);
+    if (!m) continue;
+    const module = m[1] || 'Jana';
+    const name = m[2];
+    const file = `Modules/${module}/Mcp/Tools/${name}.php`;
+    if (!existsSync(join(ROOT, file))) throw new Error(`[system-map] tool MCP registrada sem arquivo: ${file}`);
+    tools.push({ module, name, file });
+  }
+  const toolNames = new Set();
+  for (const tool of tools) {
+    const identity = `${tool.module}\\${tool.name}`;
+    if (toolNames.has(identity)) throw new Error(`[system-map] tool MCP duplicada no registro: ${identity}`);
+    toolNames.add(identity);
+  }
+
+  const dataTools = walkRel('Modules/Jana/Ai/Tools/BriefDiario')
+    .filter((p) => p.endsWith('Tool.php'))
+    .map((file) => ({ file, name: file.split('/').pop().replace(/\.php$/, '') }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const compose = walkRel('docker')
+    .filter((p) => p.endsWith('/docker-compose.yml'))
+    .map((file) => ({ file, services: composeServices(file) }))
+    .sort((a, b) => a.file.localeCompare(b.file));
+
+  const engineeringAgents = ls(join(ROOT, '.claude', 'agents')).filter((f) => f.endsWith('.md')).sort();
+  return { agents, tools, dataTools, compose, engineeringAgents, serverPath };
+}
+
 // ── render ────────────────────────────────────────────────────────────────────
 function render(data) {
-  const { adr, proib, mods, sc, cnt, gates } = data;
+  const { adr, proib, mods, sc, cnt, gates, ai } = data;
 
   const L = [];
   L.push('---');
@@ -200,6 +292,17 @@ function render(data) {
     const link = m.brief ? `[BRIEFING](../${m.brief.replace('memory/', '')})` : '_sem BRIEFING_';
     L.push(`| ${m.modulo} | ${link} | ${m.atualizado || '—'} |`);
   }
+  L.push('');
+
+  // IA — resumo derivado; o detalhe vive na página gerada pela MESMA matriz.
+  const agentModules = new Set(ai.agents.map((a) => a.module)).size;
+  const orphanAgents = ai.agents.filter((a) => a.references.length === 0).length;
+  L.push('## IA & automação');
+  L.push('');
+  L.push(`- **${ai.agents.length} agentes PHP** em **${agentModules} módulos** · **${orphanAgents} sem referência de produção**.`);
+  L.push(`- **${ai.tools.length} tools registradas** no único servidor MCP · **${ai.dataTools.length} tools SQL** do Brief Diário.`);
+  L.push(`- **${ai.engineeringAgents.length} agentes de engenharia** em \`.claude/agents/\` — catálogo diferente dos agentes PHP.`);
+  L.push(`- Planta completa, fontes e probes: [\`PLANTA-IA.md\`](PLANTA-IA.md) — gerada por esta mesma máquina.`);
   L.push('');
 
   // SDD scorecard
@@ -281,6 +384,156 @@ function render(data) {
 // ── main ──────────────────────────────────────────────────────────────────────
 // ── ONBOARDING-AGENTE-GERADO.md — artefato da rota de agentes. A porta global é
 // README.md; este arquivo só oferece um prompt estável + ponteiros vivos. ──
+// PLANTA-IA.md — página documental gerada pela mesma máquina matriz.
+function renderAiPlant(data) {
+  const { ai, gates } = data;
+  const groupBy = (rows, key) => rows.reduce((acc, row) => {
+    const value = row[key];
+    (acc[value] = acc[value] || []).push(row);
+    return acc;
+  }, {});
+  const agentsByModule = groupBy(ai.agents, 'module');
+  const toolsByModule = groupBy(ai.tools, 'module');
+  const orphanAgents = ai.agents.filter((a) => a.references.length === 0);
+  const composeServicesTotal = ai.compose.reduce((sum, row) => sum + row.services.length, 0);
+
+  const L = [];
+  L.push('---');
+  L.push('name: PLANTA-IA — topologia e inventário gerados');
+  L.push('description: Página documental da IA do oimpresso, derivada do código por system-map.mjs. Separa inventário versionado de estado vivo.');
+  L.push('type: reference');
+  L.push('authority: generated');
+  L.push('lifecycle: ativo');
+  L.push('---');
+  L.push('');
+  L.push('# Onde a IA vive no oimpresso');
+  L.push('');
+  L.push(`> ⚙️ **Gerado por \`scripts/governance/system-map.mjs\` em ${NOW}.** NÃO edite à mão.`);
+  L.push('> Esta página deriva o que o repositório consegue provar. Saúde de máquina é verificada por probe — compose existente não significa container vivo.');
+  L.push('> Resumo do sistema inteiro: [`PAINEL-SISTEMA.md`](PAINEL-SISTEMA.md). Decisões donas: [ADR 0035](../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0048](../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md) e [ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md).');
+  L.push('');
+
+  L.push('## Planta lógica');
+  L.push('');
+  L.push('> “Hostinger” e “CT 100” são **zonas operacionais**, não promessa de contagem física. O MySQL gerenciado da Hostinger pode residir em host distinto do web shared.');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart LR');
+  L.push('  subgraph HOST["Hostinger · plano gerenciado"]');
+  L.push('    WEB["ERP web · PHP-FPM · filas curtas"]');
+  L.push('    PRODDB[("MySQL de produção")]');
+  L.push('    WEB --> PRODDB');
+  L.push('  end');
+  L.push('  subgraph CT["CT 100 · containers"]');
+  L.push('    MCP["Servidor MCP"]');
+  L.push('    STAGE["Staging"]');
+  L.push('    STAGEDB[("Banco isolado de staging")]');
+  L.push('    SEARCH["Meilisearch + Ollama"]');
+  L.push('    OBS["Langfuse stack"]');
+  L.push('    STAGE --> STAGEDB');
+  L.push('  end');
+  L.push('  MODEL["OpenAI · provedor externo"]');
+  L.push('  CLIENT["Clientes MCP · Claude/Codex"]');
+  L.push('  WEB --> MODEL');
+  L.push('  WEB --> SEARCH');
+  L.push('  WEB --> OBS');
+  L.push('  MCP --> PRODDB');
+  L.push('  MCP --> SEARCH');
+  L.push('  MCP --> CLIENT');
+  L.push('  STAGE --> SEARCH');
+  L.push('  STAGE --> OBS');
+  L.push('```');
+  L.push('');
+  L.push('O desenho mostra **quem chama quem**. Ele não multiplica um serviço compartilhado por consumidor: produção e MCP apontam para o mesmo banco de produção; Meilisearch, Ollama e Langfuse aparecem uma vez.');
+  L.push('');
+
+  L.push('## Inventário derivado do código');
+  L.push('');
+  L.push('| Medida | Valor derivado | Fonte dona |');
+  L.push('|---|---:|---|');
+  L.push(`| Agentes PHP de produto | **${ai.agents.length}** | \`Modules/*/Ai/Agents/*Agent.php\` + contrato \`implements Agent\` |`);
+  L.push(`| Módulos com agentes PHP | **${Object.keys(agentsByModule).length}** | árvore \`Modules/\` |`);
+  L.push(`| Agentes sem referência de produção | **${orphanAgents.length}** | referências PHP fora de \`Tests/\` |`);
+  L.push(`| Tools registradas no MCP | **${ai.tools.length}** | [\`OimpressoMcpServer.php\`](../../${ai.serverPath}) |`);
+  L.push(`| Tools SQL do Brief Diário | **${ai.dataTools.length}** | \`Modules/Jana/Ai/Tools/BriefDiario/\` |`);
+  L.push(`| Agentes de engenharia | **${ai.engineeringAgents.length}** | \`.claude/agents/*.md\` — outra camada, não runtime PHP |`);
+  L.push(`| Serviços em compose versionado | **${composeServicesTotal}** | \`docker/**/docker-compose.yml\` — declaração, não uptime |`);
+  L.push(`| Checks no baseline versionado de merge | **${gates.required.length}** | \`governance/required-checks-baseline.json\` — o probe vivo é \`protection-drift.mjs\` |`);
+  L.push('');
+
+  L.push('## Agentes PHP por módulo');
+  L.push('');
+  L.push('| Módulo | Qtd. | Classes |');
+  L.push('|---|---:|---|');
+  for (const [module, rows] of Object.entries(agentsByModule).sort(([a], [b]) => a.localeCompare(b))) {
+    const names = rows.map((row) => `[${row.name}](../../${row.file})`).join(' · ');
+    L.push(`| ${module} | ${rows.length} | ${names} |`);
+  }
+  L.push('');
+  if (orphanAgents.length) {
+    L.push(`> ⚠️ Sem referência de produção: ${orphanAgents.map((a) => `\`${a.module}/${a.name}\``).join(' · ')}.`);
+  } else {
+    L.push('> ✅ Nenhuma classe de agente ficou sem referência PHP de produção.');
+  }
+  L.push('');
+
+  L.push('## Tools do servidor MCP');
+  L.push('');
+  L.push('| Módulo dono | Qtd. | Registro |');
+  L.push('|---|---:|---|');
+  for (const [module, rows] of Object.entries(toolsByModule).sort(([a], [b]) => a.localeCompare(b))) {
+    L.push(`| ${module} | ${rows.length} | ${rows.map((row) => row.name).join(' · ')} |`);
+  }
+  L.push('');
+  L.push(`As **${ai.tools.length}** entradas acima são classes efetivamente registradas no array \`$tools\`. Uma classe \`*Tool.php\` solta não entra na contagem.`);
+  L.push('');
+
+  L.push('## Stacks Docker versionados');
+  L.push('');
+  L.push('> Esta tabela responde “o que o repo declara?”. Para responder “o que está vivo agora?”, use os probes da seção seguinte.');
+  L.push('');
+  L.push('| Compose | Serviços declarados | Qtd. |');
+  L.push('|---|---|---:|');
+  for (const row of ai.compose) {
+    L.push(`| [\`${row.file}\`](../../${row.file}) | ${row.services.length ? row.services.join(' · ') : '_nenhum detectado_'} | ${row.services.length} |`);
+  }
+  L.push('');
+
+  L.push('## Estado vivo: medir, não copiar');
+  L.push('');
+  L.push('| Superfície | Probe/recibo | O que prova |');
+  L.push('|---|---|---|');
+  L.push('| Web live | [`https://oimpresso.com/login`](https://oimpresso.com/login) | aplicação responde agora |');
+  L.push('| MCP | [`https://mcp.oimpresso.com/api/mcp/health`](https://mcp.oimpresso.com/api/mcp/health) | servidor MCP responde agora |');
+  L.push('| Staging | [`https://staging.oimpresso.com/login`](https://staging.oimpresso.com/login) | runtime de homologação responde agora |');
+  L.push('| Langfuse | [`https://langfuse.oimpresso.com/api/public/health`](https://langfuse.oimpresso.com/api/public/health) | observabilidade responde agora |');
+  L.push('| CT 100 | `tailscale ssh root@ct100-mcp "docker ps"` | containers realmente em execução |');
+  L.push('| Hostinger | `php artisan schedule:list` + processo `queue:work` | cron e filas realmente carregados |');
+  L.push('');
+  L.push('A página **não grava “verde”** no Markdown: esse estado venceria no minuto seguinte. Ela preserva o probe reproduzível.');
+  L.push('');
+
+  L.push('## Como esta página continua viva');
+  L.push('');
+  L.push('1. `system-map.mjs` varre agentes, registro MCP, tools de dados e arquivos compose.');
+  L.push('2. `node scripts/governance/system-map.mjs --check` compara o Markdown commitado com a geração atual.');
+  L.push('3. [`.github/workflows/system-map.yml`](../../.github/workflows/system-map.yml) roda no PR quando uma fonte muda e também diariamente.');
+  L.push('4. O job diário regenera e abre auto-PR; ninguém precisa editar contagem à mão.');
+  L.push('5. Fatos de runtime ficam como probes. Se for necessário histórico de uptime, o dono deve ser monitoramento/telemetria — nunca esta página.');
+  L.push('');
+  L.push('### O que ainda é humano');
+  L.push('');
+  L.push('- explicar **por que** as camadas existem;');
+  L.push('- decidir se um serviço em standby deve ser ativado ou removido;');
+  L.push('- registrar mudança arquitetural em ADR;');
+  L.push('- interpretar falha de probe e impacto no negócio.');
+  L.push('');
+  L.push('---');
+  L.push(`_Gerado por \`scripts/governance/system-map.mjs\` · ${NOW} · referência derivada, não substitui os donos canônicos._`);
+  L.push('');
+  return L.join('\n');
+}
+
 const OUT_ONBOARDING = join(ROOT, 'memory', 'reference', 'ONBOARDING-AGENTE-GERADO.md');
 function renderOnboardingAgent(data) {
   const { adr, mods } = data;
@@ -385,25 +638,31 @@ export function assertLinksLive(pairs) {
 if (IS_DIRECT_RUN) {
   const data = {
     adr: measureAdrs(), proib: measureProibicoes(), mods: measureModules(),
-    sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(),
+    sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(), ai: measureAi(),
   };
   const outPainel = render(data);
+  const outAi = renderAiPlant(data);
   const outOnboarding = renderOnboardingAgent(data);
   // REGRA: prova que TODO path emitido resolve, antes de qualquer coisa (fail-closed)
-  assertLinksLive([[outPainel, OUT], [outOnboarding, OUT_ONBOARDING]]);
+  assertLinksLive([[outPainel, OUT], [outAi, OUT_AI], [outOnboarding, OUT_ONBOARDING]]);
   // ignora a linha de data (volátil) do PAINEL na comparação de conteúdo
-  const strip = (s) => s.replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**').replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
+  const strip = (s) => s
+    .replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**')
+    .replace(/em \d{4}-\d{2}-\d{2}/g, 'em DATE')
+    .replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
   if (MODE_STDOUT) {
-    process.stdout.write(outPainel + '\n\n' + outOnboarding);
+    process.stdout.write(outPainel + '\n\n' + outAi + '\n\n' + outOnboarding);
   } else if (MODE_CHECK) {
     let stale = false;
     if (strip(read(OUT)) !== strip(outPainel)) { console.error('[system-map] PAINEL-SISTEMA.md desatualizado'); stale = true; }
+    if (strip(read(OUT_AI)) !== strip(outAi)) { console.error('[system-map] PLANTA-IA.md desatualizado'); stale = true; }
     if (strip(read(OUT_ONBOARDING)) !== strip(outOnboarding)) { console.error('[system-map] ONBOARDING-AGENTE-GERADO.md desatualizado'); stale = true; }
     if (stale) { console.error('  → rode: node scripts/governance/system-map.mjs'); process.exit(1); }
-    console.log('[system-map] PAINEL + ONBOARDING-AGENTE-GERADO em dia.');
+    console.log('[system-map] PAINEL + PLANTA-IA + ONBOARDING-AGENTE-GERADO em dia.');
   } else {
     writeFileSync(OUT, outPainel);
+    writeFileSync(OUT_AI, outAi);
     writeFileSync(OUT_ONBOARDING, outOnboarding);
-    console.log(`[system-map] escrito: ${OUT} + ${OUT_ONBOARDING}`);
+    console.log(`[system-map] escrito: ${OUT} + ${OUT_AI} + ${OUT_ONBOARDING}`);
   }
 }

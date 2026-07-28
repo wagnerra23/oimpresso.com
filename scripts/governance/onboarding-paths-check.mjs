@@ -5,7 +5,8 @@
 // MESMO alvo deram 88 e 78 — juízes diferentes têm rigor diferente). Um placar que
 // oscila ±10 não é máquina confiável. Os ACHADOS concretos (paths quebrados), sim.
 // Então este script decide o veredito ANTES do juiz, MECANICAMENTE: todo path que o
-// ONBOARDING-AGENTE-GERADO.md e PAINEL-SISTEMA.md citam (link markdown OU `code` inline de repo)
+// ONBOARDING-AGENTE-GERADO.md, PAINEL-SISTEMA.md e PLANTA-IA.md citam
+// (link markdown OU `code` inline de repo)
 // tem que existir no disco. Path morto = FAIL determinístico, sem depender do juiz.
 //
 // REUSA deadLinks() do system-map.mjs — MESMA lógica que já guarda a geração do painel
@@ -22,8 +23,12 @@ import { deadLinks } from './system-map.mjs';
 
 const ROOT = process.cwd();
 const JSON_MODE = process.argv.includes('--json');
-// os dois artefatos derivados que o canário testa (ambos GERADOS por system-map.mjs)
-const DOCS = ['memory/reference/ONBOARDING-AGENTE-GERADO.md', 'memory/reference/PAINEL-SISTEMA.md'];
+// os artefatos derivados que o canário testa (todos GERADOS por system-map.mjs)
+const DOCS = [
+  'memory/reference/ONBOARDING-AGENTE-GERADO.md',
+  'memory/reference/PAINEL-SISTEMA.md',
+  'memory/reference/PLANTA-IA.md',
+];
 
 const dead = [];
 for (const rel of DOCS) {
