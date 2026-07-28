@@ -41,6 +41,18 @@ flowchart LR
 
 **Definição de aprendizado neste plano:** uma observação só vira aprendizado quando deixa uma proteção reproduzível — caso no golden set, teste, regra operacional ou decisão revisável — e uma mudança posterior demonstra resultado melhor que o incumbente. Trace, nota ou comentário isolado é apenas sinal.
 
+### Donos — sem duplicação
+
+| Assunto | Fonte dona |
+|---|---|
+| Intenção do produto e decisões abertas | [`BRIEFING.md`](BRIEFING.md#doutrina-do-produto-e-decisões-abertas) |
+| Topologia e inventário derivável | [`ARCHITECTURE.md`](ARCHITECTURE.md) + [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md) |
+| Diagnóstico e alvo dos deltas D1–D6 | [proposta atual→alvo](../../decisions/proposals/2026-07-28-camada-ia-atual-x-alvo-e-doutrina-resgatada.md) |
+| Etapas, testes, aceite, rollback e métricas do ciclo | **este documento** |
+| Estado de runtime | `jana:health-check --json` + destino Langfuse; documento não substitui probe |
+
+As tabelas abaixo resumem somente o necessário para executar. Quando houver divergência de diagnóstico, a proposta é corrigida; quando houver divergência de execução, este plano é corrigido. Números de inventário nunca são recopiados aqui.
+
 ## Estado real de partida — 2026-07-28
 
 | Elo | Estado verificável | Fonte dona | Lacuna |
@@ -174,7 +186,7 @@ Ela descrevia o estado anterior ao listener global entregue em 2026-07-02. O có
    - jobs pós-resposta despachados.
 8. Propagar o contexto para spans filhos de contexto, recall, reranker e modelo.
 9. Substituir o erro convertido silenciosamente em markdown por um resultado terminal estruturado — texto, usage, path, status e erro sanitizado — ou callback equivalente. O cliente pode continuar recebendo mensagem amigável, mas a telemetria não pode classificar o turno como sucesso.
-10. Corrigir junto a desconexão de tokens já medida: a resposta atual precisa existir antes de receber `tokens_in/tokens_out`, ou o driver deve devolver usage para o controller persistir atomicamente.
+10. Corrigir junto o D1 diagnosticado na [proposta atual→alvo](../../decisions/proposals/2026-07-28-camada-ia-atual-x-alvo-e-doutrina-resgatada.md#d1--tokens-do-chat-vão-para-a-mensagem-errada--defeito): a resposta atual precisa existir antes de receber `tokens_in/tokens_out`, ou o driver deve devolver usage para o controller persistir atomicamente.
 
 **Restrição técnica importante**
 
