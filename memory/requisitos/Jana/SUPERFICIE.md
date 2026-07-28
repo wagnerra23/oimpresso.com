@@ -255,7 +255,7 @@ module: Jana
 
 - [JanaServiceProvider.php](../../../Modules/Jana/Providers/JanaServiceProvider.php)
 
-## Migrations (schema) — 77
+## Migrations (schema) — 78
 
 - [2026_04_24_000001_create_copiloto_metas_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000001_create_copiloto_metas_table.php)
 - [2026_04_24_000002_create_copiloto_meta_periodos_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000002_create_copiloto_meta_periodos_table.php)
@@ -334,6 +334,7 @@ module: Jana
 - [2026_06_23_120000_add_confidence_to_jana_ui_judge_runs.php](../../../Modules/Jana/Database/Migrations/2026_06_23_120000_add_confidence_to_jana_ui_judge_runs.php)
 - [2026_07_18_120000_add_model_to_mcp_cc_messages.php](../../../Modules/Jana/Database/Migrations/2026_07_18_120000_add_model_to_mcp_cc_messages.php)
 - [2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php)
+- [2026_07_28_120000_create_mcp_handoff_drafts_table.php](../../../Modules/Jana/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php)
 
 ## Seeders — 4
 
