@@ -77,7 +77,7 @@ Ver [`adr/arq/0001-tenancy-hibrida.md`](adr/arq/0001-tenancy-hibrida.md).
 
 ## Índice
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** — camadas, entidades, fluxos
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — topologia, agentes, MCP, runtime e probes; gerado do código
 - **[SPEC.md](SPEC.md)** — user stories e regras Gherkin
 - **[GLOSSARY.md](GLOSSARY.md)** — vocabulário canônico
 - **[RUNBOOK.md](RUNBOOK.md)** — operação: job, debug, seed

@@ -66,6 +66,8 @@ lifecycle: ativo
 - **Provedores** declarados em `config/ai.php`: **15** · default = `openai` — anthropic, azure, bedrock, cohere, deepseek, eleven, gemini, groq, jina, mistral, ollama, openai, openrouter, voyageai, xai. _Declarado ≠ com chave_: a credencial mora no ambiente.
 - **Implementações de `MemoriaContrato`**: McpMemoriaDriver · MeilisearchDriver · NullMemoriaDriver · RetrievalTelemetryDecorator
 - **Rerankers** (`implements Reranker`): BgeReranker · LlmRerankerAdapter · NullReranker · RrfReranker
+- **Tools SQL do Brief Diário**: **5** · **agentes de engenharia**: **24** — catálogo separado do runtime PHP.
+- Arquitetura completa, topologia, compose e probes: [`Jana/ARCHITECTURE.md`](../requisitos/Jana/ARCHITECTURE.md) — gerada por esta mesma máquina.
 
 > Não derivável e por isso NÃO listado aqui: quais pipelines de retrieval existem e qual está ligado — isso mora na config e no BRIEFING da Jana, e um número inventado aqui seria pior que a ausência.
 
@@ -204,7 +206,7 @@ lifecycle: ativo
 
 ## Rastro
 
-- **324** handoffs · **546** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **324** handoffs · **548** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-28-sdd-vestuario-etiquetas`
   - `2026-07-28-sdd-teammcp-hub`

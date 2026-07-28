@@ -21,6 +21,7 @@ const REFRESHERS = Object.freeze({
     command: Object.freeze(['node', 'scripts/governance/system-map.mjs']),
     outputs: Object.freeze([
       'memory/reference/PAINEL-SISTEMA.md',
+      'memory/requisitos/Jana/ARCHITECTURE.md',
       'memory/reference/ONBOARDING-AGENTE-GERADO.md',
     ]),
   }),
@@ -273,7 +274,11 @@ function selftest() {
   let unknownRefreshRejected = false;
   try { affectedPaths({ operations: [], refresh: ['comando-arbitrario'] }); } catch { unknownRefreshRejected = true; }
   check('regenerador arbitrario e rejeitado', unknownRefreshRejected);
-  check('outputs gerados entram no escopo transacional', affectedPaths({ operations: [], refresh: ['system-map'] }).includes('memory/reference/PAINEL-SISTEMA.md'));
+  const systemMapOutputs = affectedPaths({ operations: [], refresh: ['system-map'] });
+  check('outputs gerados entram no escopo transacional',
+    systemMapOutputs.includes('memory/reference/PAINEL-SISTEMA.md')
+      && systemMapOutputs.includes('memory/requisitos/Jana/ARCHITECTURE.md')
+      && systemMapOutputs.includes('memory/reference/ONBOARDING-AGENTE-GERADO.md'));
   check('relink exato conta ocorrencias', replaceExact('a X b X', 'X', 'Y').count === 2);
   const fixture = mkdtempSync(join(tmpdir(), 'oimpresso-doc-executor-'));
   try {
