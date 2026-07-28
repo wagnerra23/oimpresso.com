@@ -293,9 +293,9 @@ php artisan mcp:tasks:sync
 # 7. Atribuir permissões novas a Admin#1
 php artisan tinker
 > Spatie\Permission\Models\Role::findByName('Admin#1')->givePermissionTo([
->   'copiloto.mcp.tasks.write',
->   'copiloto.mcp.cycles.manage',
->   'copiloto.mcp.projects.manage',
+>   'jana.mcp.tasks.write',
+>   'jana.mcp.cycles.manage',
+>   'jana.mcp.projects.manage',
 > ]);
 
 # 8. Validar via tools MCP

@@ -197,7 +197,7 @@ afterEach(function () {
 
 it('McpScope grava + lê + matchesTool/matchesResource funcionam', function () {
     $scope = McpScope::create([
-        'slug'              => 'copiloto.mcp.tasks.read',
+        'slug'              => 'jana.mcp.tasks.read',
         'nome'              => 'Ler tasks atuais',
         'descricao'         => 'Permite chamar tools tasks.*',
         'resources_pattern' => 'oimpresso://memory/current',
@@ -206,7 +206,7 @@ it('McpScope grava + lê + matchesTool/matchesResource funcionam', function () {
         'business_required' => true,
     ]);
 
-    expect($scope->slug)->toBe('copiloto.mcp.tasks.read');
+    expect($scope->slug)->toBe('jana.mcp.tasks.read');
     expect($scope->matchesTool('tasks.current'))->toBeTrue();
     expect($scope->matchesTool('decisions.fetch'))->toBeFalse();
     expect($scope->matchesResource('oimpresso://memory/current'))->toBeTrue();

@@ -101,7 +101,7 @@ Token revogado ou inválido. Gera novo em `/copiloto/admin/team`.
 
 ### "HTTP 403 Forbidden"
 
-User não tem permission `copiloto.cc.ingest.self` ou `copiloto.mcp.use`. Wagner atribui via tinker.
+User não tem permission `copiloto.cc.ingest.self` ou `jana.mcp.use`. Wagner atribui via tinker.
 
 ### "HTTP 429 Quota Exceeded"
 
