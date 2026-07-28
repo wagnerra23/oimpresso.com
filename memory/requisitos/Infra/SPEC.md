@@ -66,7 +66,15 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-002 · Client Signal — entidade + canal estruturado
 
-**Implementado em:** _pendente_ — não construído: sem tabela `mcp_client_signals`, sem `Pages/Feedback/Form.tsx`, sem endpoint `POST /api/feedback` nem tools MCP `client-signals-*` (grep zero por client_signal em Modules/app/database). O feature de feedback do Whatsapp (`clients_feedbacks`) é outra coisa
+**Implementado em:** _parcial_ · `Modules/VozDoCliente/Entities/Sinal.php` · `Modules/VozDoCliente/Http/Controllers/SinalController.php` · `Modules/VozDoCliente/Database/Migrations/2026_07_28_100000_create_voz_sinais_table.php` — falta: roteamento ao módulo pelo dicionário de domínio, triagem que vira US, contagem no brief, tools MCP, wire erro→sinal (US-INFRA-003)
+
+**Testado em:** `Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php` — isolamento cross-tenant Tier 0 (biz=1 × biz=99) + dedup por hash
+
+> **Duas divergências deliberadas vs o escopo escrito abaixo** (corrigidas aqui pela regra de precedência — `memory/proibicoes.md`):
+> 1. **Canal: dentro do login, não público.** O escopo previa `/feedback?biz=X&token=Y` "sem login, token por biz expira em 30d". Decisão [W] 2026-07-28: o canal vive DENTRO do sistema, autenticado. Consequência: `business_id` volta a vir da sessão (padrão canônico do global scope) e morrem a expiração de 30d, o endpoint anônimo e a superfície de spam.
+> 2. **Tabela `voz_sinais`, não `mcp_client_signals`.** O prefixo `mcp_` é do MCP server (governança interna: `mcp_audit_log`, `mcp_tasks`). Isto virou módulo de produto vendável por business, então segue o padrão de prefixo por módulo (`fin_*` do Financeiro).
+>
+> Decisão [W] 2026-07-28 de que isto é **módulo**, não script de infra: add-on vendável (`default => false` no pacote superadmin). Ver [`Modules/VozDoCliente/SCOPE.md`](../../../Modules/VozDoCliente/SCOPE.md).
 
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: adr-0105
 > blocked_by: US-INFRA-001

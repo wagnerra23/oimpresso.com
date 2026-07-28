@@ -1,0 +1,21 @@
+{
+    "name": "VozDoCliente",
+    "alias": "vozdocliente",
+    "description": "Voz do Cliente — canal de sinal dentro do sistema. Quem usa o ERP relata a dor na tela em que ela acontece; o sinal é gravado com contexto (tela, severidade, quem), roteado ao módulo dono e triado até virar melhoria rastreável. Implementa ADR 0105 'cliente como sinal qualificado'.",
+    "keywords": ["voz-do-cliente", "voc", "sinal", "feedback", "triagem", "backlog"],
+    "priority": 0,
+    "providers": [
+        "Modules\\VozDoCliente\\Providers\\VozDoClienteServiceProvider"
+    ],
+    "files": [],
+    "grade": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "O sinal tem ciclo linear de triagem (pending → triaged → closed) sem ramificação, papel ou side-effect de estoque/valor — não é pipeline FSM (ADR 0143). Transição é append de campo, não ação com RBAC."
+    },
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-07-28",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Canal de voz do cliente é útil em qualquer empresa BR com ERP, independente de vertical (gráfica, vestuário, oficina). Add-on vendável — default false no pacote."
+    }
+}
