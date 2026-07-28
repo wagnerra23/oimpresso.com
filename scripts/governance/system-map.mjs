@@ -503,7 +503,11 @@ function renderOnboardingAgent(data) {
   L.push('---');
   L.push('name: Onboarding de agente — prompt gerado');
   L.push('description: Artefato auxiliar da rota de agentes declarada no README.md. GERADO por system-map.mjs — prompt estável + ponteiros pras fontes vivas.');
-  L.push('type: generated-prompt');
+  // `guide` (não `generated-prompt`): o enum de reference.schema.json só aceita
+  // reference|feedback|protocol|guide|index — quem diz que é gerado é `authority`,
+  // como o irmão PAINEL-SISTEMA já fazia. Ficava fora do enum desde que nasceu; só
+  // apareceu quando a regeneração tocou o arquivo e acordou o gate diff-aware.
+  L.push('type: guide');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
   L.push('---');

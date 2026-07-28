@@ -1,7 +1,7 @@
 ---
 name: Onboarding de agente — prompt gerado
 description: Artefato auxiliar da rota de agentes declarada no README.md. GERADO por system-map.mjs — prompt estável + ponteiros pras fontes vivas.
-type: generated-prompt
+type: guide
 authority: generated
 lifecycle: ativo
 ---
