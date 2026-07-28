@@ -1,7 +1,7 @@
 ---
 id: reference-feedback-testes-no-ct100-nao-local
 name: Testes rodam no CT 100 (container staging), NUNCA na máquina local / Hostinger
-description: Suíte Pest (e qualquer teste pesado / que precise do stack completo — OTel SDK, Meilisearch, serviços) roda no CT 100 via `docker exec oimpresso-staging php artisan test`. A máquina local do Wagner e o Hostinger NÃO têm recursos pra isso. CT 100 (Proxmox docker-host) é o lugar correto — tem CPU/RAM + o stack . ATENÇÃO (medido 2026-07-27) — o CT 100 NÃO tem o schema do núcleo; a suíte roda em sqlite em memória e todo teste que exige `business` PULA com exit 0. Quem executa contra MySQL real com biz=1+biz=2 são as 9 lanes de CI que usam a action pest-mysql-setup.
+description: Suíte Pest (e qualquer teste pesado / que precise do stack completo — OTel SDK, Meilisearch, serviços) roda no CT 100 via `docker exec oimpresso-staging php artisan test`. A máquina local do Wagner e o Hostinger NÃO têm recursos pra isso. CT 100 (Proxmox docker-host) é o lugar correto — tem CPU/RAM + o stack . PROVISIONADO em 2026-07-28 — a suíte roda contra o MySQL de staging (database oimpresso_staging), agora com schema completo (377 tabelas) e seed biz=1/biz=2 pela receita do CI. Duas ressalvas — skip continua saindo exit 0 (leia assertions, nunca a contagem de falhas), e a database PERSISTE entre runs, então verde aqui NÃO substitui o CI como gate de merge.
 type: feedback
 authority: canonical
 date_captured: 2026-06-01
@@ -27,19 +27,25 @@ smoke — roda **no CT 100**, não na máquina local do Wagner nem no Hostinger.
   (3000+ testes, 40+ módulos). Pode travar/derreter.
 - ❌ **NÃO** rodar no Hostinger (shared hosting, sem recursos + runtime errado — ADR 0062).
 - ✅ **SIM** no CT 100, container **`oimpresso-staging`** (tem Pest + todos os pacotes
-  incl. `require-dev`/OTel SDK) — em **sqlite `:memory:`**, ver a ressalva abaixo.
+  incl. `require-dev`/OTel SDK), contra o **MySQL de staging** — ver ressalvas abaixo.
 - ✅ CI (GitHub Actions) continua sendo o gate canônico de merge — mas a validação
   local-do-dev acontece no CT 100, não na workstation.
 
-> ⚠️ **Ressalva que muda como ler o resultado (medido 2026-07-27).** O CT 100 **não
-> tem o schema do núcleo**. A suíte roda em **sqlite `:memory:`**
-> ([`phpunit.xml:75`](../../phpunit.xml)) e o override `-e DB_CONNECTION=mysql` aponta
-> pra database `oimpresso_staging`, que nessa data tinha **15 tabelas**
-> (só `copiloto_*`/`vestuario_*`) e **nenhuma `business`**. Nos dois caminhos, teste que
-> exige o núcleo **pula** — e **skip sai exit 0**. Portanto **"0 failed" aqui não prova
-> execução**: leia a contagem de *assertions*. Só **85** dos **1443** arquivos de teste
-> usam `RefreshDatabase` (que constrói o próprio schema no sqlite); **562** têm guarda
-> `markTestSkipped` por schema ausente.
+> ⚠️ **Como ler o resultado (medido 2026-07-28).** A suíte roda contra o **MySQL**
+> `oimpresso-staging-db` / database `oimpresso_staging` — e **sempre rodou**. O
+> `<env name="DB_CONNECTION" value="sqlite"/>` do [`phpunit.xml:75`](../../phpunit.xml)
+> **não** tem `force="true"`, então não sobrepõe a env `DB_CONNECTION=mysql` do container.
+> Sonda dentro do processo de teste: `driver=mysql name=mysql database=oimpresso_staging`.
+> Logo o `-e DB_CONNECTION=mysql` é **no-op**.
+>
+> O que faltava era o **schema** — até 07-27 a database tinha 15 tabelas e nenhuma
+> `business`, e tudo do núcleo **pulava**. **Provisionado em 07-28** (377 tabelas · 820
+> migrations · `biz=1`+`biz=2`).
+>
+> **1. Skip continua saindo exit 0** — `"0 failed"` não prova execução; leia *assertions*.
+> **2. CT 100 ≠ CI** — lá o DB é fresco por lane, aqui ele **persiste**: teste que assume
+> estado vazio, depende de ordem, ou limpa por `delete` se comporta diferente. Verde aqui
+> **não substitui** o CI como gate de merge.
 
 ## Como rodar (canônico)
 
@@ -50,7 +56,7 @@ cd /opt/oimpresso-staging/code
 git fetch origin && git checkout origin/main -- <arquivos>   # ou git pull
 
 # 2. rodar o teste DENTRO do container (recursos + stack completo):
-#    NÃO passe -e DB_CONNECTION=mysql — aponta pra uma database sem o núcleo (skip silencioso).
+#    -e DB_CONNECTION=mysql e' no-op (a env do container ja e' mysql) — pode omitir.
 docker exec oimpresso-staging php artisan test tests/Feature/Otel/OtelServiceProviderTest.php
 docker exec oimpresso-staging php artisan test --filter=AlgumFiltro
 ```
@@ -64,15 +70,18 @@ Tests:  4 passed (17 assertions)   # ← validou
 
 ## Segurança (por que é OK rodar no CT 100)
 
-- O container é **isolado de prod** (Hostinger é outro host) e a suíte roda em
-  **sqlite `:memory:`**, então nenhum test run toca dado real.
+- O container é **isolado de prod** (Hostinger é outro host); a database
+  `oimpresso_staging` é de teste, semeada com fixture sintética (`CI Biz`), não com
+  dado de cliente — nenhum test run toca dado real.
 - Usar **`oimpresso-staging`**, não `oimpresso-mcp` (este é o MCP server LIVE que o
   time consome — não carregar com test runs).
-- ⚠️ A database `oimpresso_staging` do MariaDB do CT 100 **não é** um clone de prod
-  com `biz=1`. Bugs reais de schema/integração (`businesses`→`business` UPos, CSRF 419,
-  FK sintética) só afloram nas **9 lanes de CI** que usam
-  [`pest-mysql-setup`](../../.github/actions/pest-mysql-setup/action.yml) — MySQL real,
-  schema baseline + seed `biz=1` (fixture "CI Biz") e `biz=2` (Tier 0 cross-tenant).
+- ⚠️ `oimpresso_staging` **não é clone de prod** — desde 07-28 tem o mesmo schema
+  baseline + seed das lanes de CI (`biz=1` = fixture "CI Biz", `biz=2` = Tier 0
+  cross-tenant), via [`pest-mysql-setup`](../../.github/actions/pest-mysql-setup/action.yml).
+  Fixture sintética, não dado de cliente.
+- ⚠️ O checkout montado no container (`/opt/oimpresso-staging/code`) fica **atrás do
+  `main`** e costuma ter alterações não-commitadas de outra sessão. **Não dê `git pull`
+  lá sem combinar** — e lembre que o resultado reflete aquele checkout, não o `main`.
 
 ## Por que erramos
 
@@ -101,10 +110,44 @@ Fica registrado em vez de apagado: é a classe **LC-08** (afirmar a partir da fo
 errada) — o doc descreveu a *intenção* do CT 100, não o que ele fazia, e a afirmação
 atemporal apodreceu calada por ~2 meses.
 
-**Pendente (precisa de janela combinada):** provisionar o núcleo em `oimpresso_staging`
-pela receita do CI. Não foi feito aqui porque o baseline
-[`database/schema/mysql-schema.sql`](../../database/schema/mysql-schema.sql) recria 3 das
-tabelas vivas de lá, e havia sessão paralela com dados de 2026-07-27 nelas.
+## Errata 2026-07-28 — a correção de 07-27 também errou: nunca foi sqlite
+
+A errata acima consertou o "biz=1 dogfooding", mas **introduziu outra afirmação falsa**:
+que a suíte rodava em **sqlite `:memory:`** por default. Não rodava. Eu li o
+`phpunit.xml` em vez de medir o processo — e `<env>` **sem `force="true"` não sobrepõe**
+env já existente, que no container é `DB_CONNECTION=mysql`.
+
+Sonda dentro do próprio processo de teste (2026-07-28), com e sem o override:
+
+```
+>>> SONDA driver=mysql name=mysql database=oimpresso_staging env='mysql' config=mysql
+```
+
+Consequências: (a) o `-e DB_CONNECTION=mysql` do caminho canônico **sempre foi no-op**;
+(b) o [`block-test-fora-ct100.mjs`](../../.claude/hooks/block-test-fora-ct100.mjs), que
+eu havia declarado "o artefato correto", também estava errado — dizia "DB sqlite
+:memory:" e foi corrigido junto. Os **dois** artefatos erravam, em direções opostas.
+
+Classe: **LC-08** de novo — derivar do config estático em vez de perguntar ao runtime.
+
+**Provisionado em 2026-07-28** (a pendência da errata anterior). Receita do CI, sem
+inventar um 3º jeito de semear: baseline + `migrate` + seed `biz=1`/`biz=2`.
+
+| Antes (07-27) | Depois (07-28) |
+|---|---|
+| 15 tabelas, sem `business` | **377 tabelas**, 820 migrations, `business=2` |
+| `ImpostosGuardTest` → `4 skipped (0 assertions)` | → **`4 passed (30 assertions)`** |
+| `Modules/Financeiro/Tests/Feature` → tudo pulando | **418 passed · 90 failed · 52 skipped (2133 assertions)** |
+
+As 2 linhas que uma sessão paralela tinha em `vestuario_creditos_cliente`/
+`vestuario_devolucoes` foram salvas antes (o baseline recria essas 2 tabelas) e
+restauradas depois — conferido, sem perda de coluna.
+
+**As 90 falhas não são 90 regressões.** Concentram causas de ambiente: baseline de
+junho/2026 defasado do código (`transactions.deleted_at` inexistente), bundle CSS
+ausente no checkout, e limpeza por `delete` barrada por regra de domínio
+(`fin_titulos não permite delete`) — o CI cria DB fresco por lane, aqui ele persiste.
+Triagem dessas falhas segue em aberto.
 
 ## Refs
 
