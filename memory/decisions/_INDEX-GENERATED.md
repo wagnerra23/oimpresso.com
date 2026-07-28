@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **360** arquivos · **344** números únicos · máx **0354**
-- **ADRs ATIVOS (lifecycle ativo): 326** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 328 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 326 · arquivado 22 · substituido 12
+- **361** arquivos · **345** números únicos · máx **0355**
+- **ADRs ATIVOS (lifecycle ativo): 327** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 329 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 327 · arquivado 22 · substituido 12
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -27,8 +27,9 @@
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
 - **0294** ×2: 0294-mcp-audit-log-hash-chain-tamper-evident · 0294-metodo-dual-track-shapeup-catraca
 
-## Integridade de supersessão (0 alertas)
-_(íntegra)_
+## Integridade de supersessão (2 alertas)
+- ⚠️ 0355 supersedes 0302 → 0302 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0355 supersedes 0337 → 0337 NÃO está marcada substituido/superseded ⚠️
 
 ## Supersessão declarada em prosa sem o campo (0) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
 _(nenhuma)_
@@ -36,7 +37,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (360)
+## Todas as ADRs (361)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -399,3 +400,4 @@ _(nenhuma)_
 | 0352 | aceito | ativo | errata | Errata 0351 — o refresh de BRIEFING via distiller (Camada 1.3) é follow-up gated |
 | 0353 | aceito | ativo | meta | Maquina de evolucao em looping das reguas — ledger persistente, modo delta, comp |
 | 0354 | aceito | ativo | decision | Emenda à 0314 — teammcp-pest promovido a REQUIRED (as rotas /forja executam de v |
+| 0355 | aceito | ativo | decision | Done-ness consolidada — a âncora fecha, o DoD aberto veta, o `status:` morre de  |
