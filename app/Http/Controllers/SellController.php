@@ -1294,7 +1294,13 @@ class SellController extends Controller
                 // rewrite Cowork #1032 (incidente 2026-07-03, biz=4 ROTA LIVRE). Critério
                 // canônico do UltimatePOS: existe uma transação sell_return apontando pra esta
                 // venda via return_parent_id (ver TransactionUtil::getSellsCurrentFy join SR).
-                \DB::raw("(SELECT COUNT(*) FROM transactions sr WHERE sr.return_parent_id = transactions.id AND sr.type = 'sell_return') as return_exists"),
+                // Tier 0 (ADR 0093) — o `sr.business_id` foi ADICIONADO em 2026-07-28: a
+                // subquery é CRUA e `App\Transaction` não tem global scope (medido: 0
+                // `addGlobalScope`), então nada supria o escopo. Sem o filtro, uma devolução
+                // de OUTRO business acendia a setinha de retorno nesta lista. Provado pelo par
+                // `UC-SIDX-01` (A controle positivo ✓ / B contrato ⨯) de
+                // SellsIndexTenantContratoTest, que ficou ~24h no repo sem lane que o rodasse.
+                \DB::raw("(SELECT COUNT(*) FROM transactions sr WHERE sr.return_parent_id = transactions.id AND sr.business_id = transactions.business_id AND sr.type = 'sell_return') as return_exists"),
                 // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75): coluna Origem.
                 // COALESCE pra default 'balcao' retroativo (vendas legacy sem source).
                 \DB::raw("COALESCE(transactions.source, 'balcao') as source"),
