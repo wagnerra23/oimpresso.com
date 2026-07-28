@@ -29,8 +29,23 @@ use PHPUnit\Framework\Assert;
  */
 trait WithSeededTenant
 {
-    /** id canônico do tenant de teste (ADR 0101) — biz=1 (WR2/Wagner), NUNCA cliente real. */
-    public const SEEDED_TENANT_ID = 1;
+    /**
+     * id canônico do tenant de teste — biz=99, empresa FICTÍCIA não-operadora.
+     *
+     * MUDOU de 1 para 99 em 2026-07-28 (decisão [W], via [M]). Razão medida: biz=1 é a
+     * WR2 Sistemas, empresa REAL em operação; no CT 100 a base é clone de prod e NÃO se
+     * limpa entre runs, então teste rodando em biz=1 semeia dado dentro do espelho da
+     * empresa de verdade. Em CI (DB descartável) era inofensivo — no CT 100 não é.
+     *
+     * O 99 já existia no canon como SUPPORT_CLIENT_TENANT_ID (abaixo) e NUNCA foi criado
+     * por seed nenhum: constante declarada, zero consumidores, zero materialização.
+     * Este PR faz o 99 existir (seed CI + CT 100) e o promove a tenant principal.
+     *
+     * ⚠️ Fallback preservado: se o 99 não existir (schema montado pelo próprio teste),
+     * `resolveSeededTenant` continua caindo no primeiro business — sem quebrar quem monta
+     * o próprio schema.
+     */
+    public const SEEDED_TENANT_ID = 99;
 
     /**
      * id do CLIENTE fictício de teste (ADR 0101) — biz=99 (empresa NÃO-operadora), NUNCA biz=4

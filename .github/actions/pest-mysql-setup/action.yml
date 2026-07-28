@@ -153,6 +153,17 @@ runs:
             DB::table('users')->where('id', \$uid)->update(['business_id'=>\$bid]);
             echo 'seed biz='.\$bid.' user='.\$uid.PHP_EOL;
           }
+          // biz=99 — TENANT CANÔNICO DE TESTE (decisão [W] 2026-07-28). Empresa FICTÍCIA,
+          // não-operadora. Substitui o biz=1 nesse papel porque o 1 é a WR2 Sistemas, empresa
+          // REAL em operação — e no CT 100 a base é clone de prod que NÃO se limpa entre runs,
+          // então teste rodando em biz=1 semeia dado dentro do espelho da empresa de verdade.
+          // A constante SUPPORT_CLIENT_TENANT_ID=99 já existia no canon sem nunca ser criada.
+          if (! DB::table('business')->where('id', 99)->exists()) {
+            \$uid99 = DB::table('users')->insertGetId(['first_name'=>'CI Tenant99','username'=>'ci_admin_t99','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('business')->insert(['id'=>99,'name'=>'CI Tenant 99 (ficticio)','currency_id'=>\$curId,'owner_id'=>\$uid99,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('users')->where('id', \$uid99)->update(['business_id'=>99]);
+            echo 'seed biz99=99 user='.\$uid99.PHP_EOL;
+          }
           if (! DB::table('business')->where('id', 2)->exists()) {
             \$uid2 = DB::table('users')->insertGetId(['first_name'=>'CI Biz2','username'=>'ci_admin_b2','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
             DB::table('business')->insert(['id'=>2,'name'=>'CI Biz 2','currency_id'=>\$curId,'owner_id'=>\$uid2,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);

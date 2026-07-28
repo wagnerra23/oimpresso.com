@@ -63,7 +63,17 @@ final class EstoqueFixture
     /** Business piloto (menor id semeado = biz=1 dogfood, ADR 0101). */
     public static function businessId(): int
     {
-        return (int) DB::table('business')->orderBy('id')->value('id');
+        // Tenant canônico = biz=99 (fictício). Antes era "o primeiro id do banco", que caía
+        // na WR2 Sistemas (empresa real) sempre que a base tinha dado de prod — CT 100.
+        // Fallback pro primeiro id preservado: schema montado pelo próprio teste pode não
+        // ter o 99.
+        $canonico = (int) DB::table('business')
+            ->where('id', WithSeededTenant::SEEDED_TENANT_ID)
+            ->value('id');
+
+        return $canonico > 0
+            ? $canonico
+            : (int) DB::table('business')->orderBy('id')->value('id');
     }
 
     /** Segundo tenant (pra INV-6 cross-tenant). null se só houver 1 business semeado. */

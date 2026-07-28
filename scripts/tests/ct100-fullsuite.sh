@@ -145,7 +145,7 @@ echo "--- [5/7] migrate (schema baseline) + seed minimo multi-tenant"
 docker exec -i "$MYSQL_CONTAINER" sh -c "MYSQL_PWD=\$(cat /run/secrets/mysql_root) exec mysql -uroot $DB_DATABASE" \
   < "$CODE/database/schema/mysql-schema.sql"
 dphp artisan migrate --force
-# seed identico ao canon CI (.github/actions/pest-mysql-setup): biz=1 fixture + biz=2 Tier 0
+# seed identico ao canon CI (.github/actions/pest-mysql-setup): biz=99 canonico + biz=1 + biz=2 Tier 0
 cat > "$CODE/storage/fullsuite-seed.php" <<'PHPEOF'
 <?php
 use Illuminate\Support\Facades\DB;
@@ -155,6 +155,15 @@ if (! DB::table('business')->where('id', 1)->exists()) {
     $bid = DB::table('business')->insertGetId(['name'=>'CI Biz','currency_id'=>$curId,'owner_id'=>$uid,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
     DB::table('users')->where('id', $uid)->update(['business_id'=>$bid]);
     echo 'seed biz='.$bid.' user='.$uid.PHP_EOL;
+}
+// biz=99 — TENANT CANONICO DE TESTE (decisao [W] 2026-07-28). Empresa FICTICIA.
+// Aqui importa MAIS que no CI: a base do CT 100 e clone de prod e NAO se limpa entre
+// runs, entao teste em biz=1 (WR2 Sistemas, empresa real) semeia dado no espelho dela.
+if (! DB::table('business')->where('id', 99)->exists()) {
+    $uid99 = DB::table('users')->insertGetId(['first_name'=>'CI Tenant99','username'=>'ci_admin_t99','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
+    DB::table('business')->insert(['id'=>99,'name'=>'CI Tenant 99 (ficticio)','currency_id'=>$curId,'owner_id'=>$uid99,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
+    DB::table('users')->where('id', $uid99)->update(['business_id'=>99]);
+    echo 'seed biz99=99 user='.$uid99.PHP_EOL;
 }
 if (! DB::table('business')->where('id', 2)->exists()) {
     $uid2 = DB::table('users')->insertGetId(['first_name'=>'CI Biz2','username'=>'ci_admin_b2','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
