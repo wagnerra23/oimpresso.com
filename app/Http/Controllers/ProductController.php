@@ -1130,17 +1130,37 @@ class ProductController extends Controller
 
             if ($product->type == 'single') {
                 $single_data = $request->only(['single_variation_id', 'single_dpp', 'single_dpp_inc_tax', 'single_dsp_inc_tax', 'profit_percent', 'single_dsp']);
-                $variation = Variation::find($single_data['single_variation_id']);
 
-                $variation->sub_sku = $product->sku;
-                $variation->default_purchase_price = $this->productUtil->num_uf($single_data['single_dpp']);
-                $variation->dpp_inc_tax = $this->productUtil->num_uf($single_data['single_dpp_inc_tax']);
-                $variation->profit_percent = $this->productUtil->num_uf($single_data['profit_percent']);
-                $variation->default_sell_price = $this->productUtil->num_uf($single_data['single_dsp']);
-                $variation->sell_price_inc_tax = $this->productUtil->num_uf($single_data['single_dsp_inc_tax']);
-                $variation->save();
+                // UC-PEDIT-06 — 2ª instância da mesma classe do `preparation_time_in_minutes`:
+                // o payload da tela React não manda `single_variation_id` nem os `single_*`, e o
+                // acesso cru estourava `Undefined array key` -> ErrorException -> `catch (\Exception)`
+                // -> `DB::rollBack()`: a edição INTEIRA sumia (inclusive o nome já gravado acima).
+                // ⚠️ Estes campos são PREÇO/custo (REGRA MESTRE, eixo VALOR) — ausência NÃO pode
+                // virar `num_uf(null)` = 0. Ausência = "o formulário não declarou" -> PRESERVA.
+                // O Blade (product/edit.blade.php) manda os 6, então nada muda pra ele.
+                if (array_key_exists('single_variation_id', $single_data)) {
+                    $variation = Variation::find($single_data['single_variation_id']);
 
-                Media::uploadMedia($product->business_id, $variation, $request, 'variation_images');
+                    $variation->sub_sku = $product->sku;
+                    if (array_key_exists('single_dpp', $single_data)) {
+                        $variation->default_purchase_price = $this->productUtil->num_uf($single_data['single_dpp']);
+                    }
+                    if (array_key_exists('single_dpp_inc_tax', $single_data)) {
+                        $variation->dpp_inc_tax = $this->productUtil->num_uf($single_data['single_dpp_inc_tax']);
+                    }
+                    if (array_key_exists('profit_percent', $single_data)) {
+                        $variation->profit_percent = $this->productUtil->num_uf($single_data['profit_percent']);
+                    }
+                    if (array_key_exists('single_dsp', $single_data)) {
+                        $variation->default_sell_price = $this->productUtil->num_uf($single_data['single_dsp']);
+                    }
+                    if (array_key_exists('single_dsp_inc_tax', $single_data)) {
+                        $variation->sell_price_inc_tax = $this->productUtil->num_uf($single_data['single_dsp_inc_tax']);
+                    }
+                    $variation->save();
+
+                    Media::uploadMedia($product->business_id, $variation, $request, 'variation_images');
+                }
             } elseif ($product->type == 'variable') {
                 //Update existing variations
                 $input_variations_edit = $request->get('product_variation_edit');
