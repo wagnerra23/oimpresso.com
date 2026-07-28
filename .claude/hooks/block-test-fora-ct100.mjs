@@ -63,7 +63,7 @@ export const BLOCK_MESSAGE = `[FEEDBACK 2026-06-01 / ADR 0062] BLOQUEADO: teste/
 Wagner (textual): "os testes nao devem ser feito local, as maquinas nao
 suportariam, faca no ct 100 obrigatoriamente la tem recursos para isso."
 
-RODE NO CT 100 (container oimpresso-staging, DB sqlite :memory: isolado):
+RODE NO CT 100 (container oimpresso-staging, MySQL de staging isolado):
 
   # Pest (filtro ou arquivo):
   tailscale ssh root@ct100-mcp "docker exec oimpresso-staging php artisan test --filter=NomeDoTeste"
