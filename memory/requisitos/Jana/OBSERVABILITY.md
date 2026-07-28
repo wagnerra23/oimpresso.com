@@ -209,6 +209,18 @@ Não envolver `responderChatStream()` ingenuamente em `OtelHelper::spanBiz()`: o
 - cache hit e erro parcial continuam observáveis;
 - zero duplicação de generation Langfuse.
 
+**Estado verificado em 2026-07-28:** 🟡 raiz e correlação implementadas; granularidade interna ainda parcial.
+
+- `ChatController::sendStream()` passou a abrir a raiz Langfuse e o span OTel `jana.chat.stream` depois da validação de ownership e antes da primeira persistência; a callback consumiu o generator, persistiu a resposta e encerrou ambas as raízes em `finally`;
+- o UUID devolvido pelo `LangfuseClient` foi reutilizado como atributo de correlação OTel e no request scope — não foi criado um segundo ID nem um segundo contexto;
+- `LangfuseAgentTelemetryListener` anexou **uma** `generation-create` à raiz quando ela existiu e preservou `traceComGeneration()` somente como fallback fora do chat;
+- `RetrievalTelemetryDecorator` anexou o span `jana.retrieval.query` à mesma raiz já existente; os subspans internos de Hyde/BM25/rerank continuaram dependendo de hooks que o driver ainda não expôs, portanto essa granularidade não foi declarada como concluída;
+- `AiAdapter::ultimoResultadoStream()` expôs apenas o desfecho estrutural que os chunks não carregavam (`path`, cache, recall, jobs e erro); modelo, duração e usage continuaram com seus donos atuais;
+- o erro convertido em markdown deixou de parecer sucesso: `error`/`partial_error` marcaram OTel e Langfuse, somente a classe do erro foi exportada e a mensagem do provider não foi enviada ao cliente nem à telemetria;
+- abandono marcou `cancelled`, fechou exatamente uma raiz e preservou o trecho já entregue; cache hit gerou raiz sem inventar `generation`;
+- `ChatStreamObservabilityTest.php`, `LangfuseAgentTelemetryListenerTest.php` e `RetrievalTelemetryDecoratorTest.php` entraram na allowlist SQLite já existente. Os testes cobriram span ativo durante chunks, PII, cache, erro parcial, cancelamento, correlação de generation e correlação de retrieval;
+- a ativação/medição real no CT 100 continuou pertencendo à Etapa 0; nenhum resultado de produção foi inferido dos testes.
+
 **Rollback**
 
 - kill-switch OTel existente;

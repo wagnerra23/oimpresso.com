@@ -96,38 +96,48 @@ class LangfuseAgentTelemetryListener
                 ? (int) round((microtime(true) - $startedAt) * 1000)
                 : null;
 
-            $traceId = $this->client->traceComGeneration(
-                trace: [
-                    'name' => $nome,
+            $trace = [
+                'name' => $nome,
+                'business_id' => $contexto['business_id'],
+                'user_id' => $contexto['user_id'],
+                'conversation_id' => $contexto['conversation_id'],
+                'tool' => $nome,
+                'input' => $event->prompt->prompt,
+                'metadata' => [
+                    'stream' => $event instanceof AgentStreamed,
+                    'invocation_id' => $event->invocationId,
+                ],
+            ];
+            $generation = [
+                'name' => "{$nome}:llm",
+                'model' => (string) $model,
+                'input' => $event->prompt->prompt,
+                'output' => (string) $event->response,
+                'usage' => $usage !== null ? [
+                    'input' => (int) $usage->promptTokens,
+                    'output' => (int) $usage->completionTokens,
+                ] : null,
+                'duration_ms' => $durationMs,
+                'metadata' => array_filter([
+                    'provider' => $event->response->meta->provider ?? null,
                     'business_id' => $contexto['business_id'],
-                    'user_id' => $contexto['user_id'],
-                    'conversation_id' => $contexto['conversation_id'],
-                    'tool' => $nome,
-                    'input' => $event->prompt->prompt,
-                    'metadata' => [
-                        'stream' => $event instanceof AgentStreamed,
-                        'invocation_id' => $event->invocationId,
-                    ],
-                ],
-                generation: [
-                    'name' => "{$nome}:llm",
-                    'model' => (string) $model,
-                    'input' => $event->prompt->prompt,
-                    'output' => (string) $event->response,
-                    'usage' => $usage !== null ? [
-                        'input' => (int) $usage->promptTokens,
-                        'output' => (int) $usage->completionTokens,
-                    ] : null,
-                    'duration_ms' => $durationMs,
-                    'metadata' => array_filter([
-                        'provider' => $event->response->meta->provider ?? null,
-                        'business_id' => $contexto['business_id'],
-                        'cache_read_input_tokens' => $usage?->cacheReadInputTokens,
-                        'cache_write_input_tokens' => $usage?->cacheWriteInputTokens,
-                        'reasoning_tokens' => $usage?->reasoningTokens,
-                    ], fn ($v) => $v !== null && $v !== 0),
-                ],
-            );
+                    'cache_read_input_tokens' => $usage?->cacheReadInputTokens,
+                    'cache_write_input_tokens' => $usage?->cacheWriteInputTokens,
+                    'reasoning_tokens' => $usage?->reasoningTokens,
+                ], fn ($v) => $v !== null && $v !== 0),
+            ];
+
+            // Dentro do chat SSE, a raiz já foi criada pelo controller. Anexa
+            // somente a generation ao trace existente; fora dele preserva o
+            // fallback global trace+generation. Assim há um único emissor e
+            // exatamente uma generation por chamada LLM.
+            $parentTraceId = $this->requestTraceId();
+            if ($parentTraceId !== null) {
+                $this->client->recordGeneration($parentTraceId, $generation);
+                $traceId = $parentTraceId;
+            } else {
+                $traceId = $this->client->traceComGeneration($trace, $generation);
+            }
 
             // US-COPI-137: amostra ~5% dos traces reais pra eval online (RAGAS no
             // tráfego do cliente). Gate 1 (enabled) OFF por default; a redação PII e o
@@ -151,6 +161,21 @@ class LangfuseAgentTelemetryListener
             Log::channel('copiloto-ai')->debug(
                 'LangfuseAgentTelemetryListener falhou: ' . $e->getMessage()
             );
+        }
+    }
+
+    private function requestTraceId(): ?string
+    {
+        try {
+            if (! app()->bound('request')) {
+                return null;
+            }
+
+            $traceId = request()->attributes->get('jana_trace_id');
+
+            return is_string($traceId) && $traceId !== '' ? $traceId : null;
+        } catch (\Throwable) {
+            return null;
         }
     }
 

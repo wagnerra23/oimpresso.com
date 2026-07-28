@@ -35,10 +35,26 @@ class LaravelAiSdkDriver implements AiAdapter
      */
     protected array $ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
 
+    /** @var array{path:string,status:string,cache_hit:bool,recall_count:int,jobs_dispatched:int,error_class:?string} */
+    protected array $ultimoResultadoStream = [
+        'path' => 'idle',
+        'status' => 'idle',
+        'cache_hit' => false,
+        'recall_count' => 0,
+        'jobs_dispatched' => 0,
+        'error_class' => null,
+    ];
+
     /** {@inheritDoc} */
     public function ultimoUsoTokens(): array
     {
         return $this->ultimoUso;
+    }
+
+    /** {@inheritDoc} */
+    public function ultimoResultadoStream(): array
+    {
+        return $this->ultimoResultadoStream;
     }
 
     public function gerarBriefing(ContextoNegocio $ctx): string
@@ -143,8 +159,18 @@ class LaravelAiSdkDriver implements AiAdapter
         // Zera: saídas curtas (dry-run, cache hit, clarify, erro) não têm consumo
         // e não podem herdar o usage de uma chamada anterior desta instância.
         $this->ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+        $this->ultimoResultadoStream = [
+            'path' => 'llm',
+            'status' => 'running',
+            'cache_hit' => false,
+            'recall_count' => 0,
+            'jobs_dispatched' => 0,
+            'error_class' => null,
+        ];
 
         if (config('copiloto.dry_run')) {
+            $this->ultimoResultadoStream['path'] = 'dry_run';
+            $this->ultimoResultadoStream['status'] = 'ok';
             $fake = "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
             foreach (str_split($fake, 8) as $chunk) {
                 usleep(50_000);
@@ -159,6 +185,9 @@ class LaravelAiSdkDriver implements AiAdapter
         if (config('copiloto.cache.enabled', true)) {
             $cacheService = app(\Modules\Jana\Services\Cache\SemanticCacheService::class);
             if ($cached = $cacheService->buscar($conv, $mensagem)) {
+                $this->ultimoResultadoStream['path'] = 'semantic_cache';
+                $this->ultimoResultadoStream['status'] = 'ok';
+                $this->ultimoResultadoStream['cache_hit'] = true;
                 Log::channel('copiloto-ai')->info('responderChatStream: CACHE HIT', [
                     'conversa_id' => $conv->id,
                     'cache_id' => $cached->id,
@@ -180,6 +209,8 @@ class LaravelAiSdkDriver implements AiAdapter
         // intenção, a Jana devolve a pergunta de maior ganho em vez de chutar. Flag
         // default-OFF; fail-open → segue normal. A pergunta vai como 1 chunk e termina.
         if ($pergunta = $this->talvezClarificar($conv, $mensagem, $mensagemPraLlm, $ctx)) {
+            $this->ultimoResultadoStream['path'] = 'clarify';
+            $this->ultimoResultadoStream['status'] = 'ok';
             yield $pergunta;
             return;
         }
@@ -188,6 +219,7 @@ class LaravelAiSdkDriver implements AiAdapter
         $recall = $this->recallMemoria($conv, $mensagem);
         $memoriaContexto = $recall['texto'];
         $memoriaIds = $recall['ids'];
+        $this->ultimoResultadoStream['recall_count'] = count($memoriaIds);
         $agent = new ChatCopilotoAgent($conv, $memoriaContexto, $ctx);
 
         $startedAt = microtime(true);
@@ -268,6 +300,7 @@ class LaravelAiSdkDriver implements AiAdapter
                     businessId: (int) $conv->business_id,
                     userId: (int) $conv->user_id,
                 );
+                $this->ultimoResultadoStream['jobs_dispatched']++;
             }
 
             // MEM-S8-2 — comprime histórico se passou threshold de turnos (>15)
@@ -279,7 +312,10 @@ class LaravelAiSdkDriver implements AiAdapter
                     Log::channel('copiloto-ai')->warning('Summarizer: falhou (não-crítico): ' . $e->getMessage());
                 }
             }
+            $this->ultimoResultadoStream['status'] = 'ok';
         } catch (\Throwable $e) {
+            $this->ultimoResultadoStream['status'] = $textoCompleto !== '' ? 'partial_error' : 'error';
+            $this->ultimoResultadoStream['error_class'] = $e::class;
             // D7 LGPD (Wave 10) — redact provider exception (Anthropic/OpenAI
             // pode echo system message + user content). Output user-facing
             // já é truncado a 100 chars, mas reservamos PiiRedactor canônico.

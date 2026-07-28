@@ -29,10 +29,26 @@ class OpenAiDirectDriver implements AiAdapter
      */
     protected array $ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
 
+    /** @var array{path:string,status:string,cache_hit:bool,recall_count:int,jobs_dispatched:int,error_class:?string} */
+    protected array $ultimoResultadoStream = [
+        'path' => 'idle',
+        'status' => 'idle',
+        'cache_hit' => false,
+        'recall_count' => 0,
+        'jobs_dispatched' => 0,
+        'error_class' => null,
+    ];
+
     /** {@inheritDoc} */
     public function ultimoUsoTokens(): array
     {
         return $this->ultimoUso;
+    }
+
+    /** {@inheritDoc} */
+    public function ultimoResultadoStream(): array
+    {
+        return $this->ultimoResultadoStream;
     }
 
     public function gerarBriefing(ContextoNegocio $ctx): string
@@ -233,8 +249,18 @@ class OpenAiDirectDriver implements AiAdapter
     {
         // Zera — ver responderChat().
         $this->ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+        $this->ultimoResultadoStream = [
+            'path' => 'llm',
+            'status' => 'running',
+            'cache_hit' => false,
+            'recall_count' => 0,
+            'jobs_dispatched' => 0,
+            'error_class' => null,
+        ];
 
         if (config('copiloto.dry_run')) {
+            $this->ultimoResultadoStream['path'] = 'dry_run';
+            $this->ultimoResultadoStream['status'] = 'ok';
             // Simula stream em dry-run pra UX dev (sem custo).
             $fake = "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
             foreach (str_split($fake, 8) as $chunk) {
@@ -284,7 +310,10 @@ class OpenAiDirectDriver implements AiAdapter
                 'tokens_out'  => $tokensOut,
                 'chars_out'   => mb_strlen($textoCompleto),
             ]);
+            $this->ultimoResultadoStream['status'] = 'ok';
         } catch (\Throwable $e) {
+            $this->ultimoResultadoStream['status'] = $textoCompleto !== '' ? 'partial_error' : 'error';
+            $this->ultimoResultadoStream['error_class'] = $e::class;
             Log::channel('copiloto-ai')->error('responderChatStream error: ' . $e->getMessage());
             yield "\n\n_(Erro de IA: " . substr($e->getMessage(), 0, 100) . ")_";
         }

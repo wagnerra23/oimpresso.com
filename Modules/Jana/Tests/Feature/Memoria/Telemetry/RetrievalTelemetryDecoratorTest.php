@@ -10,6 +10,7 @@ use Modules\Jana\Services\Memoria\Telemetry\RetrievalSpan;
 use Modules\Jana\Services\Memoria\Telemetry\RetrievalSpanBuilder;
 use Modules\Jana\Services\Memoria\Telemetry\RetrievalTelemetryDecorator;
 use Modules\Jana\Services\Memoria\NullMemoriaDriver;
+use Modules\Jana\Services\Telemetry\LangfuseClient;
 
 uses(Tests\TestCase::class);
 
@@ -69,6 +70,32 @@ it('test 1: decorator preserva API MemoriaContrato sem alterar resultado', funct
     expect($result)->toHaveCount(2);
     expect($result[0])->toBeInstanceOf(MemoriaPersistida::class);
     expect($result[0]->id)->toBe(1);
+});
+
+it('test 1b: retrieval do chat reutiliza o trace raiz do request', function () {
+    config()->set('langfuse.enabled', true);
+    request()->attributes->set('jana_trace_id', 'trace-raiz-retrieval-123');
+
+    $inner = Mockery::mock(MemoriaContrato::class);
+    $inner->shouldReceive('buscar')
+        ->once()
+        ->with(23, 7, 'consulta', 5)
+        ->andReturn([spansMakePersistida(1, 23, 7)]);
+
+    $langfuse = Mockery::mock(LangfuseClient::class);
+    $langfuse->shouldReceive('recordSpan')
+        ->once()
+        ->with('trace-raiz-retrieval-123', Mockery::on(
+            fn (array $attrs) => $attrs['name'] === 'jana.retrieval.query'
+                && $attrs['metadata']['oimpresso.business_id'] === 23
+        ));
+
+    $decorator = new RetrievalTelemetryDecorator(
+        $inner,
+        new RetrievalSpanBuilder($langfuse),
+    );
+
+    expect($decorator->buscar(23, 7, 'consulta', 5))->toHaveCount(1);
 });
 
 it('test 2: root span jana.retrieval.query tem atributos OTel GenAI canônicos', function () {

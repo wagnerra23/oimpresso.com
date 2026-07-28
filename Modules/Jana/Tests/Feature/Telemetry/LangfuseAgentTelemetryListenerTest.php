@@ -163,6 +163,23 @@ it('Agent::stream consumido percorre SDK, subscriber e um único batch Langfuse'
     });
 });
 
+it('anexa uma única generation ao trace raiz já aberto pelo chat SSE', function () {
+    Bus::fake([LangfuseTraceJob::class]);
+    request()->attributes->set('jana_trace_id', 'trace-raiz-chat-123');
+
+    $base = makeAgentPromptedEvent(businessId: 23, invocationId: 'inv-parent-1');
+    event(new AgentStreamed($base->invocationId, $base->prompt, $base->response));
+
+    Bus::assertDispatchedTimes(LangfuseTraceJob::class, 1);
+    Bus::assertDispatched(LangfuseTraceJob::class, function (LangfuseTraceJob $job) {
+        expect($job->events)->toHaveCount(1)
+            ->and($job->events[0]['type'])->toBe('generation-create')
+            ->and($job->events[0]['body']['traceId'])->toBe('trace-raiz-chat-123');
+
+        return true;
+    });
+});
+
 it('mede duration_ms entre PromptingAgent e AgentPrompted (mesmo invocationId)', function () {
     Bus::fake();
 
