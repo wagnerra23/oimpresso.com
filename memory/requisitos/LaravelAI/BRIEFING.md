@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-briefing
+---
+
 # BRIEFING — LaravelAI · ⚰️ FUNDIDO em Jana (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `Jana`** (decisão E1 · frente KL · 2026-06-15).

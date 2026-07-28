@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0007-topbar-desktop-removida-breadcrumb-primeira-linha
+---
+
 # ADR UI-0007 · Topbar desktop removida, breadcrumb vira a primeira linha
 
 > ⚠️ **PARCIALMENTE DEPRECADA em 2026-04-27** — superseded by [UI-0008 Cockpit layout-mãe](0008-cockpit-layout-mae-do-erp.md).

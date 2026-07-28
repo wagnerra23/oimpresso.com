@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-repair-visual-comparison
+---
+
 # Visual Comparison — Repair/Show Wave 3 B6 MWART
 
 > **Wave:** W3-B6 Repair · **Tela:** Repair/Show (venda-de-reparo)

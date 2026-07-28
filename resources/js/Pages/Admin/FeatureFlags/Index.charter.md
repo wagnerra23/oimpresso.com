@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-admin-feature-flags-index-charter
 page: /admin/feature-flags
 component: resources/js/Pages/Admin/FeatureFlags/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

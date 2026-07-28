@@ -1,3 +1,7 @@
+---
+id: requisitos-mcp-spec-us-mcp-017-module-state-projection
+---
+
 # US-MCP-017 — Tool MCP `module-state <modulo>` (CQRS projection per bounded context)
 
 > **Convenção do ID:** `US-MCP-NNN` — convenção herdada de [Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md](../Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md) (US-MCP-001..016 já tomadas).

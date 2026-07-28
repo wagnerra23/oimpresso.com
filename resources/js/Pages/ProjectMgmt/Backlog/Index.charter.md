@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-project-mgmt-backlog-index-charter
 page: /project-mgmt/backlog
 component: resources/js/Pages/ProjectMgmt/Backlog/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
@@ -16,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/BacklogController@index` (rota `project-mgmt.backlog.index`, permissão `copiloto.mcp.usage.all`). Lista densa filtrável com bulk edit sobre as tabelas internas `mcp_*` do PM Jira-style do time.
+> Backend: `Modules/ProjectMgmt/Http/Controllers/BacklogController@index` (rota `project-mgmt.backlog.index`, permissão `jana.mcp.usage.all`). Lista densa filtrável com bulk edit sobre as tabelas internas `mcp_*` do PM Jira-style do time.
 
 ---
 
@@ -37,7 +38,7 @@ Dar ao operador do time uma visão tabular densa de TODAS as tasks do projeto (`
 ---
 
 ## Non-Goals — Features (NÃO faz)
-- ❌ Não é multi-tenant por `business_id` — opera sobre as tabelas internas `mcp_*` (PM do time oimpresso), gated por permissão `copiloto.mcp.usage.all`, não por escopo de negócio. (inferência pendente de Wagner)
+- ❌ Não é multi-tenant por `business_id` — opera sobre as tabelas internas `mcp_*` (PM do time oimpresso), gated por permissão `jana.mcp.usage.all`, não por escopo de negócio. (inferência pendente de Wagner)
 - ❌ Não cria task nova aqui (criação é via tools MCP `tasks-create`). (inferência pendente de Wagner)
 - ❌ Não abre o Detail Sheet da task nesta tela (o drawer de detalhe vive no Board). (inferência pendente de Wagner)
 - ❌ Não pagina server-side além do limite fixo de 500 linhas; acima disso o operador filtra. (inferência pendente de Wagner)
@@ -66,4 +67,4 @@ Dar ao operador do time uma visão tabular densa de TODAS as tasks do projeto (`
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot)
-- [ ] Confirmar posture de escopo: tabelas `mcp_*` são internas do time (não business_id) — validar que a permissão `copiloto.mcp.usage.all` é o gate correto.
+- [ ] Confirmar posture de escopo: tabelas `mcp_*` são internas do time (não business_id) — validar que a permissão `jana.mcp.usage.all` é o gate correto.

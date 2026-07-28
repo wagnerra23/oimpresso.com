@@ -1,3 +1,7 @@
+---
+id: requisitos-cms-pii-redaction
+---
+
 # PII Redaction — Modules/Cms
 
 > Documento D7 LGPD — declara onde e como PII é tratada em Cms (site público + admin).

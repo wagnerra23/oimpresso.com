@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-adr-tech-0001-auto-sms-em-mudanca-de-status-critico
+---
+
 # ADR TECH-0001 (Repair) · Auto-SMS em mudança de status crítico
 
 - **Status**: accepted

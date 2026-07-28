@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-impostos-index-charter
 page: /financeiro/impostos
 component: resources/js/Pages/Financeiro/Impostos/Index.tsx
 owner: wagner

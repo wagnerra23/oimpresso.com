@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-audits-2026-04-25-bugs-integration-test
+---
+
 # Auditoria · Financeiro · 2026-04-25 (bugs descobertos pelo integration test)
 
 - **Score**: N/A (audit pontual de bugs, não estrutural)

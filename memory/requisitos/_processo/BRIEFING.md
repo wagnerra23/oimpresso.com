@@ -1,3 +1,7 @@
+---
+id: requisitos-processo-briefing
+---
+
 # BRIEFING — _processo · hub de processo/backlog (VIVO, cross-cutting)
 
 > ✅ **Pasta VIVA — não é lápide.** A decisão E1 (2026-06-15) marcou `_processo` como "FUNDIDO em Mwart" quando ela tinha 1 doc (`MWART-CHECKLIST.md`). **A realidade divergiu:** a pasta virou um hub de processo cross-cutting e hoje é **Fonte de US aprovadas citada por 8 SPECs vivos**. A lápide anterior era falsa e foi revertida (conferência adversarial 2026-07-02) — mover o conteúdo quebraria os 8 SPECs que citam o caminho.

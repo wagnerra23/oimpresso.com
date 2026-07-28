@@ -1,3 +1,7 @@
+---
+id: requisitos-garantia-briefing
+---
+
 # BRIEFING — Garantia · 🌱 WISH (status: wish)
 
 > **Feature-wish formal — aguarda sinal qualificado** (ADR 0105). Não há código.

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-mem-cofre-dashboard-charter
 page: /memcofre
 component: resources/js/Pages/MemCofre/Dashboard.tsx
 related_prototype: n/a (herda PT-01 Lista; painel de cobertura com tabela por módulo)

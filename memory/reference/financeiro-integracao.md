@@ -1,4 +1,5 @@
 ---
+id: reference-financeiro-integracao
 name: Financeiro × UltimatePOS — pattern de integração
 description: Hooks DataController + Observer Transaction + retro-vínculo transaction_payment + 4 estados na mesma tela; armadilhas timezone/session; status spec-ready com scaffold em Modules/Financeiro
 type: reference

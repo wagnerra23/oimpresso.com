@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-programa-ondas-plano-mestre
 titulo: Programa de Ondas com Adversário por Módulo + Régua de Correção por Tela
 status: proposto
 owner: W
@@ -58,8 +59,9 @@ related_adrs:
 | 6.2 Gaps+backlog Fiscal | (template) | ✅ US-FISCAL-021 (P0 IBS/CBS) + 022 (P1 health-check cert) | ✅ INVENTARIO (✅12·🟡4·❌5) + SPEC; dedup pegou US-FISCAL-019 (cache já done) (#3753) | ~2h |
 | 6.3 Régua telas Fiscal | (template) | — | ✅ 7 scorecards (Nfe UX 84 · Sped UX 68 **d1 aplica ✔** cross_check/golden✘ · casos 0% G-2; 4 agents) (#3761) | ~3h (4 agents) |
 | 6.4 Catraca+sentinela Fiscal | (template) | — | ✅ emergente — verificado 2026-07-03: ratchet bloqueia `fiscal-sped` 68→50 (exit 1 · "PR bloqueado"); sentinela `exposicao-tier0` cobre telas fiscal-Tier0 (peso 3); casos-gate vê 7 casos.md (débito −13) (sem gate novo) | ~1h |
+| **Passo 5 — SDD por módulo** (transversal · [W] "pode fazer" 2026-07-27) | [passo-5-sdd-por-modulo.md](passo-5-sdd-por-modulo.md) | — | 🔜 Onda 1 = Fiscal · Compras · Ponto (3 sessões paralelas) | custo do chip **não medido** (a Onda 1 é a medição) |
 
-> Onda 3 (Financeiro) **encaixa no `_Roadmap_Faturamento.md`** por [ADR 0320](../../decisions/0320-programa-ondas-regua-correcao.md) (T6 — Faturamento é canon macro; correção transversal ancora lá, status vivo aqui). Não é doc paralelo. Mesmo padrão valerá pra NfeBrasil/RecurringBilling.
+> Onda 3 (Financeiro) **encaixa no `_Roadmap_Faturamento.md`** por [ADR 0320](../../../decisions/0320-programa-ondas-regua-correcao.md) (T6 — Faturamento é canon macro; correção transversal ancora lá, status vivo aqui). Não é doc paralelo. Mesmo padrão valerá pra NfeBrasil/RecurringBilling.
 
 > Estimativas em horas-agente IA-pair (fator 10x ADR 0106); tarefas humano-limitadas (OK [W], canary) seguem relógio real.
 
@@ -99,7 +101,7 @@ O insight: **D8=70 vs D1=15**. A máquina de governança é de classe mundial, m
 segurança (multi-tenant/PII/secrets) e é cega no cálculo de dinheiro. O caminho é
 **reapontar**, não reconstruir — coerente com a fase de subtração da [ADR 0271](../../../decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md).
 
-## O ciclo-padrão de UMA onda (4 passos)
+## O ciclo-padrão de UMA onda (4 passos + passo 5 desde 2026-07-27)
 
 Cada onda de módulo roda estes 4 passos, reusando ferramentas que já existem:
 
@@ -107,6 +109,7 @@ Cada onda de módulo roda estes 4 passos, reusando ferramentas que já existem:
 2. **Gaps + backlog + changelog** — skill `/comparativo <Mod>` → `CAPTERRA-INVENTARIO.md` (3 buckets ✅🟡❌) + batch `tasks-create` (MCP) + US no SPEC + changelog.
 3. **Régua por tela (com a dimensão que falta plugada)** — `screen-grade` (UX) **+ `casos_coverage`** (UCs que defendem + status) **+ dente de cálculo** (D1) se toca valor.
 4. **Catraca** — trava nota + `casos-gate` + a sentinela de cadência reporta o débito das 3 camadas.
+5. **SDD derivado do fonte** — agent [`sdd-from-source`](../../../../.claude/agents/sdd-from-source.md) → `SDD-tela-*.md` (§5 fluxo + §6 CU) + `<Tela>.casos.md` + contrato Pest + `Implementado em:` no SPEC. **Passo novo** (o programa é de 2026-07-02; o agent só existe desde a [ADR 0351](../../../decisions/0351-sdd-from-source.md), 2026-07-24). Plano de execução em sessões paralelas — chip = **módulo**, telas seriais dentro dele: **[passo-5-sdd-por-modulo.md](passo-5-sdd-por-modulo.md)**.
 
 ## Fila de ondas (T6 — encaixar, não duplicar)
 

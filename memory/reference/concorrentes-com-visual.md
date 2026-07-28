@@ -1,4 +1,5 @@
 ---
+id: reference-concorrentes-com-visual
 name: "Concorrentes ERP Comunicação Visual — research 2026-04-25"
 description: "Mapeamento dos sites de marketing dos concorrentes BR no nicho de gráficas/comunicação visual. Top players: Zênite, Mubisys, Alfa Networks, Visua, Calcgraf, Calcme."
 type: reference

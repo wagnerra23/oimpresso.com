@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-claude-aprova-merge-verde-criticos-nao
 name: Claude aprova e mergeia PR verde — críticos não
 description: Wagner delegou a APROVAÇÃO de merge ao Claude para PRs verdes (CI passando) em módulos não-críticos. Claude mergeia sozinho sem chamar Wagner. Módulos críticos (dinheiro/fiscal/LGPD) continuam exigindo OK explícito do Wagner mesmo verdes.
 type: feedback

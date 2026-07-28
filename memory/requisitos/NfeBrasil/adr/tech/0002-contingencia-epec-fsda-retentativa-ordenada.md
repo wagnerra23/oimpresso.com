@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-tech-0002-contingencia-epec-fsda-retentativa-ordenada
+---
+
 # ADR TECH-0002 (NfeBrasil) · Contingência EPEC/FS-DA com retentativa ordenada
 
 - **Status**: accepted

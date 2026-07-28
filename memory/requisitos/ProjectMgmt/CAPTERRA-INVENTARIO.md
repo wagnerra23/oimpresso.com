@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-capterra-inventario
 title: "CAPTERRA-INVENTARIO — ProjectMgmt"
 slug: capterra-inventario-projectmgmt
 type: inventario
@@ -57,7 +58,7 @@ source_spec: SPEC.md
 
 | Capacidade | Score | Evidência | Gap |
 |---|---|---|---|
-| **Multi-tenant + Permissions Spatie cobertas por testes Pest** | P0 | Todos controllers checam `can:copiloto.mcp.usage.all`; UI esconde botões; [`BoardControllerTest.php`](../../../Modules/ProjectMgmt/Tests/Feature/BoardControllerTest.php) cobre 403 GET/PATCH; SearchControllerTest cobre permission gate. R-PMG-002 documenta que `mcp_*` são governance (sem business_id). | Falta `Modules/ProjectMgmt/Tests/Feature/PermissionsTest.php` dedicado com matriz cross-controller (Backlog/MyWork/Roadmap/Activity/Burndown sem permission → 403); falta cenário cross-tenant explícito (mesmo que governance, permission gate é Tier 0). |
+| **Multi-tenant + Permissions Spatie cobertas por testes Pest** | P0 | Todos controllers checam `can:jana.mcp.usage.all`; UI esconde botões; [`BoardControllerTest.php`](../../../Modules/ProjectMgmt/Tests/Feature/BoardControllerTest.php) cobre 403 GET/PATCH; SearchControllerTest cobre permission gate. R-PMG-002 documenta que `mcp_*` são governance (sem business_id). | Falta `Modules/ProjectMgmt/Tests/Feature/PermissionsTest.php` dedicado com matriz cross-controller (Backlog/MyWork/Roadmap/Activity/Burndown sem permission → 403); falta cenário cross-tenant explícito (mesmo que governance, permission gate é Tier 0). |
 | **Filters URL state-driven (compartilhável + back button)** | P0 | [`Board/Index.tsx`](../../../resources/js/Pages/ProjectMgmt/Board/Index.tsx#L86) usa `router.get` com query params + localStorage como cache (`oimpresso.board.cycle/epic/owner/search`); `aplicar()` reescreve URL. | Sem teste E2E cobrindo back/forward preservando filters; localStorage e URL podem divergir; sem aplicação consistente em Backlog/MyWork/Roadmap (cada page reimplementa o pattern). Falta lib compartilhada (ex: `useUrlState()`). |
 | **Atalhos keyboard (J/K/E/A + /)** | P1 | [`Board/Index.tsx`](../../../resources/js/Pages/ProjectMgmt/Board/Index.tsx#L278) implementa J/K (next/prev card), E (advance status), A (back status), / (focus search). Doc do header lista todos. | Falta `?` overlay help, `c` create, `Esc` close sheet (apenas Sheet shadcn nativo), shortcut hub global (não só Board); `e` documentado como "abre Detail Sheet em modo edit" — não implementado. PMG-008 pendente. |
 | **Activity feed timeline (filtros + permalinks)** | P1 | [`ActivityController`](../../../Modules/ProjectMgmt/Http/Controllers/ActivityController.php) com filtros type/author/task/days (1-90); KPIs last_24h/last_7d/created/completed; limit 300. Page [`Activity/Index.tsx`](../../../resources/js/Pages/ProjectMgmt/Activity/Index.tsx) renderiza timeline. | Sem permalink clicável pra task referenciada (só `task_id` mostrado, sem link `/project-mgmt/board?task=ID`); sem lazy load se >100 (limit hardcoded 300); sem range custom (slider days fixo 1-90). |
@@ -116,7 +117,7 @@ Backlog não-priorizado P2/P3 (já listado em SPEC § "Fase 5 — Diferenciaçã
 
 - `tasks-create` PMG-026 — `chore(test): PermissionsTest cross-controller ProjectMgmt`
   - priority: p0 · estimate: 2h · type: chore · cycle: current
-  - acceptance: matriz Backlog/MyWork/Roadmap/Activity/Burndown sem `copiloto.mcp.usage.all` → 403; suite verde em CI
+  - acceptance: matriz Backlog/MyWork/Roadmap/Activity/Burndown sem `jana.mcp.usage.all` → 403; suite verde em CI
 - `tasks-create` PMG-027 — `feat(ui): useUrlState hook compartilhado + teste E2E back/forward`
   - priority: p0 · estimate: 4h · type: feature · cycle: next
   - acceptance: hook em `resources/js/Hooks/useUrlState.ts` com sync URL+localStorage; aplicado em Board+Backlog+MyWork; teste Pest cobrindo navegação back/forward

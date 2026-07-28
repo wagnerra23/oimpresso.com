@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-onda-5-dossier-2026-05-13
 title: "Onda 5 — Dossier executável pré-implementação (95% → 98% maturidade)"
 type: dossier
 status: draft

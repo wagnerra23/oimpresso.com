@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-telas-runbook-purchase-index
 title: "RUNBOOK — /purchases (Compras · listagem Inertia)"
 module: Purchase
 tela: Purchase/Index

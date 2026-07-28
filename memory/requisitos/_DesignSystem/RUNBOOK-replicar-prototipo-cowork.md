@@ -1,13 +1,20 @@
 ---
+owner: W
+last_validated: "2026-06-08"
 slug: runbook-replicar-prototipo-cowork
 title: "RUNBOOK — Replicar protótipo Cowork pra Inertia React (caso Kanban Caçambas validado 2026-05-13)"
 type: runbook
-status: live
+status: ativo
 authority: canonical
 module: _DesignSystem
 created: 2026-05-13
 related_skill: cowork-prototype-replication
-related_adrs: [0114, 0107, 0104, 0093, 0143]
+related_adrs:
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0107-emendation-0104-visual-comparison-gate-f3
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0093-multi-tenant-isolation-tier-0
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 caso_real: PRs #735→#740 — Kanban Producao Oficina Caçambas pré-Martinho
 ---
 

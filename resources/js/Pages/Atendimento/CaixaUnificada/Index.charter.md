@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-atendimento-caixa-unificada-index-charter
 page: /atendimento/caixa-unificada
 component: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 owner: wagner

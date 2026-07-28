@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-migracao-auto-mem-2026-05-13
 title: Migração auto-mem legacy → git canon (G1 P0)
 date: 2026-05-13
 agent: G1

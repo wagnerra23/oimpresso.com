@@ -1,4 +1,5 @@
 ---
+id: reference-mcp-endpoints
 name: MCP endpoints oimpresso — canônico vs fallback
 description: Diferencia mcp.oimpresso.com (CT 100/FrankenPHP, canônico produção) de oimpresso.com/api/mcp (Hostinger, dev/CRUD apenas — não suporta fluxo HTTP/SSE persistente). ADR 0053
 type: reference

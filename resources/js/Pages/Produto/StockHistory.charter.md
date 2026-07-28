@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-stock-history-charter
 page: /products/stock-history/{id}
 component: resources/js/Pages/Produto/StockHistory.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)

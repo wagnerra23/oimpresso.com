@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-vendas-index-gap
+---
+
 # Gap map — Sells/Index (Lista de Vendas) × mockup Cowork `vendas-page.jsx`
 
 > Fase 1 (read-only) da skill `aplicar-prototipo`. Compara a tela VIVA com o mockup do bundle Cowork importado pra staging.

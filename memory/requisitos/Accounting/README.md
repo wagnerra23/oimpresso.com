@@ -1,4 +1,5 @@
 ---
+id: requisitos-accounting-readme
 module: Accounting
 alias: accounting
 status: ativo

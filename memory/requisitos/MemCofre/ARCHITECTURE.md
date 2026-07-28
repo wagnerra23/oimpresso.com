@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-architecture
+---
+
 # Arquitetura · MemCofre
 
 ## Stack

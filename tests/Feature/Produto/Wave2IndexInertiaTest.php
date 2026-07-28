@@ -103,9 +103,9 @@ it('Charter declara mwart_pattern_reuse (ADR 0149)', function () {
 });
 
 it('RUNBOOK existe (MWART F1 requisito)', function () {
-    expect(file_exists(repo_path('memory/requisitos/Inventory/RUNBOOK-produto-index.md')))->toBeTrue();
+    expect(file_exists(repo_path('memory/requisitos/Produto/_telas/RUNBOOK-produto-index.md')))->toBeTrue();
 });
 
 it('Visual comparison existe', function () {
-    expect(file_exists(repo_path('memory/requisitos/Inventory/produto-index-visual-comparison.md')))->toBeTrue();
+    expect(file_exists(repo_path('memory/requisitos/Produto/_telas/produto-index-visual-comparison.md')))->toBeTrue();
 });

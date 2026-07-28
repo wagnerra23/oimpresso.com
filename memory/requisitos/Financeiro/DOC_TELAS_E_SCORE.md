@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-doc-telas-e-score
+---
+
 # Documentação completa + Score das 5 telas do Financeiro
 
 > **Última atualização:** 2026-04-25

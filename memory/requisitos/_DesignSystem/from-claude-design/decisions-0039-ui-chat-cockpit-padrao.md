@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-from-claude-design-decisions-0039-ui-chat-cockpit-padrao
+---
+
 # ADR 0039 — Padrão de UI "Chat Cockpit" (3 colunas) para o ERP
 
 **Status:** ✅ Aceita

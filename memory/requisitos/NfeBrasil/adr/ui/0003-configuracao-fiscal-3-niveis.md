@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-ui-0003-configuracao-fiscal-3-niveis
+---
+
 # ADR UI-0003 (NfeBrasil) · Configuração fiscal em 3 níveis (Defaults / Regras / Por Produto)
 
 - **Status**: accepted

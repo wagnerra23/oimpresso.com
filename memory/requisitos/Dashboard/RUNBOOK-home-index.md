@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Tela `/home` (Dashboard pós-login)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Tela `/home` (Dashboard pós-login)
 
 > **Tipo:** RUNBOOK MWART (ADR 0104 §F1 PLAN) — fase F6 Soft wrapper

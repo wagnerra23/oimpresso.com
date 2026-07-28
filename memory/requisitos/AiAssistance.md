@@ -1,4 +1,5 @@
 ---
+id: requisitos-ai-assistance
 module: AiAssistance
 alias: aiassistance
 status: inativo

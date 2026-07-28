@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-maiara-guia-coleta-cliente
 title: Guia Maiara — Coleta de dados pra migração Financeiro Delphi→oimpresso
 status: canon
 date: 2026-05-21

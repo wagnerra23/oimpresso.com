@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-demo-pilot-2026-05-16-screenshot-guide
+---
+
 # Screenshot Guide — Jana Demo Pilot 2026-05-16
 
 > **Contexto:** demo CYCLE-06 G3 — tela polida `/copiloto/dashboard` (`resources/js/Pages/Jana/Dashboard.tsx`).

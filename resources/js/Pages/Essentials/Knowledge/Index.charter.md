@@ -2,7 +2,7 @@
 page: /essentials/knowledge-base
 component: resources/js/Pages/Essentials/Knowledge/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-06-17"
 parent_module: Essentials
 related_adrs: [93, 94, 101, 104]

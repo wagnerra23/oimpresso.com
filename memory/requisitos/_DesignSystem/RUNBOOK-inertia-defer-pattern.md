@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Inertia::defer pattern (SPA-feel default cross-módulo)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Inertia::defer pattern (SPA-feel default cross-módulo)
 
 > **Tipo:** RUNBOOK canon Tier 0 — pattern obrigatório em TODA `Inertia::render(...)` do oimpresso

@@ -15,7 +15,7 @@
 // Selftest: node .claude/hooks/nudge-test-contract-anchor.mjs --selftest
 
 import { spawnSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /** dispara só em arquivo de teste PHP (*Test.php, qualquer caminho). */
 export function isTestFile(filePath) {
@@ -58,7 +58,7 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--selftest')) {
     const test = new URL('./nudge-test-contract-anchor.test.mjs', import.meta.url);
-    const r = spawnSync(process.execPath, [test.pathname], { stdio: 'inherit' });
+    const r = spawnSync(process.execPath, [fileURLToPath(test)], { stdio: 'inherit' });
     process.exit(r.status ?? 1);
   }
   main();

@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-vendas-create-gap
+---
+
 # Gap — Sells/Create (tela viva) vs vendas-create-page.jsx (mockup Cowork)
 
 > Fase 1 da skill `aplicar-prototipo` (READ-ONLY). Mapeamento **semântico**, não diff textual.

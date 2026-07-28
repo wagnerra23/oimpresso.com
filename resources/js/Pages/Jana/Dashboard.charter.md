@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-dashboard-charter
 page: /copiloto/dashboard
 component: resources/js/Pages/Jana/Dashboard.tsx
 related_prototype: prototipo-ui/cowork/chat-jana.jsx

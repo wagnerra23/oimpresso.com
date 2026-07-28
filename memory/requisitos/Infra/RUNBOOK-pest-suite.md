@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Adicionar módulo à suite Pest (`phpunit.xml`)"
+owner: W
+status: ativo
+last_validated: "2026-06-13"
+---
+
 # RUNBOOK — Adicionar módulo à suite Pest (`phpunit.xml`)
 
 > **Erro recorrente**: criar `Modules/X/Tests/Feature/*Test.php` SEM registrar o diretório em `phpunit.xml` → testes existem no repo mas **CI nunca roda**, dando falsa sensação de cobertura.

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-site-blogs-charter
 page: /c/blogs
 component: resources/js/Pages/Site/Blogs.tsx
 related_prototype: n/a (herda PT-01 Lista; grid de cards de post — assinatura de lista presente, mas é lista pública fora do ERP)

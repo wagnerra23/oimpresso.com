@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-admin-rag-quality-dashboard-charter
 page: /admin/rag-quality
 component: resources/js/Pages/Admin/RagQualityDashboard.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

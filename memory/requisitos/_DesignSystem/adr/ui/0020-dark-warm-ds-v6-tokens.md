@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0020-dark-warm-ds-v6-tokens
+---
+
 # ADR UI-0020 · Dark mode WARM (hue 282, DS-v6) — retune dos tokens dark azulados
 
 - **Status**: accepted

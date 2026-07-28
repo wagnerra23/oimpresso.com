@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-todo-show-charter
 page: /essentials/todo/{id}
 component: resources/js/Pages/Essentials/Todo/Show.tsx
 related_prototype: n/a (tela de detalhe bespoke — dados da tarefa + tabs comentários/anexos/atividades; não segue um dos 5 Padrões de Tela)

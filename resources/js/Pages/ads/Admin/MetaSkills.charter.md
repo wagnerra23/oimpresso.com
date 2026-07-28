@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-meta-skills-charter
 page: /ads/admin/meta-skills
 component: resources/js/Pages/ads/Admin/MetaSkills.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

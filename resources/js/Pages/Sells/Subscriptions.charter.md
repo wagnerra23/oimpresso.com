@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-sells-subscriptions-charter
 page: /sells/subscriptions
 component: resources/js/Pages/Sells/Subscriptions.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

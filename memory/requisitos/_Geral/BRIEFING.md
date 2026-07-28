@@ -1,4 +1,5 @@
 ---
+id: requisitos-geral-briefing
 module: _Geral
 status: shared-infra
 status_nota: "Porta transversal para herança e reuso entre módulos"

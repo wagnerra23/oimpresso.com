@@ -1,3 +1,7 @@
+---
+id: requisitos-kb-kb-gap
+---
+
 # KB — Gap mockup (Cowork) × tela viva
 
 > **Fase 1 (read-only) skill `aplicar-prototipo`.** Mapeamento do que o protótipo Cowork propõe que a tela VIVA não tem, e do que está STALE no mockup.

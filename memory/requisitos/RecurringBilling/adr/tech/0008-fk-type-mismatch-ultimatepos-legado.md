@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-tech-0008-fk-type-mismatch-ultimatepos-legado
+---
+
 # ADR TECH-0008 (RecurringBilling) · FK type-mismatch em tabelas UltimatePOS legadas + migrations idempotentes
 
 - **Status**: accepted

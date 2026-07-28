@@ -1,4 +1,5 @@
 ---
+id: requisitos-nfse-spec
 slug: modules-nfse-spec
 title: "Modules/NFSe — SPEC"
 type: spec

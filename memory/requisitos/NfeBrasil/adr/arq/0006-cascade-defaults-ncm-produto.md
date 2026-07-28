@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-arq-0006-cascade-defaults-ncm-produto
+---
+
 # ADR ARQ-0006 (NfeBrasil) · Cascade tributário em 4 níveis (default → estado → NCM → exceção)
 
 - **Status**: accepted

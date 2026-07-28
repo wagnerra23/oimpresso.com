@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-roadmap-mv2-cron-metabolismo
 roadmap_item: MV2
 slug: cron-metabolismo
 onda: 0

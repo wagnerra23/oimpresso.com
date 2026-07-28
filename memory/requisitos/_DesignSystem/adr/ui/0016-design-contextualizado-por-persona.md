@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0016-design-contextualizado-por-persona
+---
+
 # ADR UI-0016 (_DesignSystem) · Design contextualizado por persona como processo canon
 
 - **Status**: accepted

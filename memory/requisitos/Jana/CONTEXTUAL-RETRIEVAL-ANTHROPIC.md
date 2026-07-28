@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-contextual-retrieval-anthropic
+---
+
 # Contextual Retrieval Anthropic — implementação oimpresso
 
 > **GAP D3 #1 — Auditoria memoria-senior 2026-05-15** — fechamento +5pp (de 86 → 91).

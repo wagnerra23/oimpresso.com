@@ -11,7 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * Wave 18 D8 SATURATION — extraido de TeamController::exportCsv (request->input direto).
  *
- * **Permissão**: `copiloto.mcp.usage.all` (Wagner/superadmin).
+ * **Permissão**: `jana.mcp.usage.all` (Wagner/superadmin).
  *
  * Rules:
  *   - de / ate: datas YYYY-MM-DD (formato strict pra prevenir injection no whereBetween)
@@ -31,7 +31,7 @@ class ExportUsageCsvRequest extends FormRequest
             return true;
         }
 
-        return $user->can('copiloto.mcp.usage.all');
+        return $user->can('jana.mcp.usage.all');
     }
 
     public function rules(): array

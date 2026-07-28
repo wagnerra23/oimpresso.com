@@ -1,3 +1,7 @@
+---
+id: requisitos-project-mgmt-capterra-ficha
+---
+
 # CAPTERRA-FICHA — ProjectMgmt
 
 > **Ficha canônica de benchmark do módulo ProjectMgmt** — fonte de verdade para a skill `comparativo-do-modulo`.
@@ -52,7 +56,7 @@ capacidades:
 
   - nome: "Multi-tenant + Permissions Spatie cobertas por testes Pest"
     score: P0
-    descricao: "Permission `copiloto.mcp.usage.all` (pattern UltimatePOS); todos controllers checam + UI esconde botões sem perm + tests cobrindo 403/404 cross-tenant."
+    descricao: "Permission `jana.mcp.usage.all` (pattern UltimatePOS); todos controllers checam + UI esconde botões sem perm + tests cobrindo 403/404 cross-tenant."
     quem_tem: ["Jira (project roles)", "Asana", "ClickUp", "Linear (workspace)"]
     evidencia_de_pronto: "Modules/ProjectMgmt/Tests/Feature/PermissionsTest.php (a criar) + suite verde em CI + isolation cross-tenant 404"
 
@@ -216,7 +220,7 @@ capacidades:
 - SPEC funcional histórico: `memory/requisitos/TaskRegistry/SPEC.md` (US-TR-NNN — nome legado, content vivo)
 - Tabelas: `mcp_jira_projects`, `mcp_epics`, `mcp_cycles`, `mcp_cycle_goals`, `mcp_tasks`, `mcp_task_attachments`, `mcp_task_comments`, `mcp_task_dependencies`, `mcp_task_events`, `mcp_task_memory_links`, `mcp_task_watchers`, `mcp_components`, `mcp_views`, `mcp_inbox_notifications`, `mcp_issue_templates`
 - Tools MCP relacionados: `tasks-list`, `tasks-detail`, `tasks-create`, `tasks-update`, `cycles-active`, `cycles-close`, `cycle-goals-track`, `my-work`, `my-inbox`, `triage`
-- Permission: `copiloto.mcp.usage.all`
+- Permission: `jana.mcp.usage.all`
 - Tests: `Modules/ProjectMgmt/Tests/` (a criar — diretório atualmente sem registro em `phpunit.xml`)
 
 **Critérios customizados de classificação (resumo — detalhe completo no INVENTARIO.md):**

@@ -42,7 +42,7 @@ function copiCustosBootstrapBusinessUser(): array
         test()->markTestSkipped('Sem user no business.');
     }
 
-    foreach (['copiloto.access', 'copiloto.admin.custos.view'] as $name) {
+    foreach (['copiloto.access', 'jana.admin.custos.view'] as $name) {
         Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
     }
 
@@ -59,7 +59,7 @@ function copiCustosBootstrapBusinessUser(): array
 
 function copiCustosGiveAdminPerm(int $businessId, User $user): void
 {
-    $perm = Permission::where('name', 'copiloto.admin.custos.view')->first();
+    $perm = Permission::where('name', 'jana.admin.custos.view')->first();
     if (! $user->hasPermissionTo($perm)) {
         $user->givePermissionTo($perm);
     }
@@ -67,7 +67,7 @@ function copiCustosGiveAdminPerm(int $businessId, User $user): void
 
 function copiCustosRevokeAdminPerm(User $user): void
 {
-    $perm = Permission::where('name', 'copiloto.admin.custos.view')->first();
+    $perm = Permission::where('name', 'jana.admin.custos.view')->first();
     if ($perm && $user->hasPermissionTo($perm)) {
         $user->revokePermissionTo($perm);
     }
@@ -111,7 +111,7 @@ it('calcula R$ corretamente a partir de tokens × pricing × câmbio', function 
     expect($svc->calcularCustoBrl(1_000_000, 1_000_000))->toBe(3.75);
 });
 
-it('responde 403 para usuário sem a permissão copiloto.admin.custos.view', function () {
+it('responde 403 para usuário sem a permissão jana.admin.custos.view', function () {
     [, $user] = copiCustosBootstrapBusinessUser();
 
     if ($user->can('superadmin') || $user->can('jana.admin.custos.view')) {

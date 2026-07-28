@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-briefing
+---
+
 # BRIEFING — MemCofre · ⚰️ LÁPIDE (módulo renomeado + zumbi)
 
 > ⚠️ **Pare aqui. Não invista neste módulo.** Esta pasta está **congelada em ~2026-04-25** e o nome **mente**.

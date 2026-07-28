@@ -1,4 +1,5 @@
 ---
+id: requisitos-team-mcp-team-visual-comparison
 slug: teammcp-team-visual-comparison
 title: "TeamMcp — Comparativo visual da tela Team (painel MCP)"
 type: visual-comparison

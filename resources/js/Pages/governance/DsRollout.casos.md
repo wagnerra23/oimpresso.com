@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-governance-ds-rollout-casos
 casos: DS Rollout · Ledger de Conformidade DS · /governance/ds-rollout
 irmaos: DsRollout.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável

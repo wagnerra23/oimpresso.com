@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-telas-produto-index-setor-matrix
 tela: Produto/Index.charter.md
 gerado_por: scripts/governance/reconcile-triplet.mjs (v1 heurístico)
 gerado_em: "2026-06-22"

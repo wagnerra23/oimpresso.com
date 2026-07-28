@@ -6,6 +6,7 @@ namespace Modules\KB\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Modules\KB\Entities\KbEdge;
 
 /**
@@ -14,7 +15,7 @@ use Modules\KB\Entities\KbEdge;
  * Extrai validation rules de KbEdgeController@store preservando contrato exato
  * documentado em memory/requisitos/KB/SCHEMA-DB-V1.md §11.
  *
- * Permissão: 'copiloto.mcp.memory.manage'.
+ * Permissão: 'jana.mcp.memory.manage'.
  *
  * Grafo KB (ADR 0150): edges manuais respeitam EDGE_TYPES enum + weight 0..1
  * + payload arbitrário JSON. Edges auto-derivadas (bridge_job/tag_overlap/
@@ -27,17 +28,25 @@ class StoreKbEdgeRequest extends FormRequest
     {
         $user = Auth::user();
 
-        return $user !== null && $user->can('copiloto.mcp.memory.manage');
+        return $user !== null && $user->can('jana.mcp.memory.manage');
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, string|array<int, string|\Illuminate\Validation\Rules\Exists>>
      */
     public function rules(): array
     {
+        // Tier 0 (ADR 0093): o nó referenciado DEVE ser do mesmo business. `exists:kb_nodes,id`
+        // cru é GLOBAL (ignora o global scope) → aceitaria from/to_node_id de OUTRO tenant,
+        // criando aresta pendurada cross-tenant (não vaza conteúdo — o read-path escopa o
+        // toNode — mas é integridade referencial furada). Escopar o exists pelo business_id
+        // da sessão fecha o gap: nó de outro tenant → validação falha (422).
+        $bizId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+        $sameBusinessNode = Rule::exists('kb_nodes', 'id')->where('business_id', $bizId);
+
         return [
-            'from_node_id' => 'required|integer|exists:kb_nodes,id|different:to_node_id',
-            'to_node_id'   => 'required|integer|exists:kb_nodes,id',
+            'from_node_id' => ['required', 'integer', $sameBusinessNode, 'different:to_node_id'],
+            'to_node_id'   => ['required', 'integer', $sameBusinessNode],
             'edge_type'    => 'required|string|in:'.implode(',', KbEdge::EDGE_TYPES),
             'weight'       => 'nullable|numeric|min:0|max:1',
             'payload'      => 'nullable|array',

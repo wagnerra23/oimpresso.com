@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0019-sidebar-light-definitivo-supersede-0009-0014
+---
+
 # ADR UI-0019 · Sidebar light DEFINITIVO — supersede (consolida) UI-0009 + UI-0014; dark-sidebar de protótipo rejeitado permanentemente
 
 - **Status**: accepted

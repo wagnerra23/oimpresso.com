@@ -1,4 +1,5 @@
 ---
+id: reference-meta-whatsapp-tech-provider
 name: Meta WhatsApp Tech Provider + Embedded Signup — guia técnico 2026
 description: Caminho canônico pra oimpresso revender WhatsApp Business em escala (4000+ clientes) — Wagner vira Tech Provider Meta direto, Embedded Signup elimina cadastro manual, custo R$ [redacted Tier 0]/msg utility BR.
 type: reference

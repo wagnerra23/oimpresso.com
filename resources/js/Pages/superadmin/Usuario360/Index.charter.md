@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-superadmin-usuario360-index-charter
 page-id: superadmin/Usuario360/Index
 status: draft
 owner: wagner

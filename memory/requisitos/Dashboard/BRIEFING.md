@@ -1,3 +1,7 @@
+---
+id: requisitos-dashboard-briefing
+---
+
 # BRIEFING — Dashboard `/home`
 
 > Landing page pós-login do oimpresso. Welcome banner + 4 KPI cards de operação (Total Sells / Net / Invoice Due / Total Expense) + filtro loja. **Persona Larissa [L]** (dona PME vestuário ROTA LIVRE biz=4) + qualquer user logado UPOS.

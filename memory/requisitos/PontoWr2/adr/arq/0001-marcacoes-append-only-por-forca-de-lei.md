@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-wr2-adr-arq-0001-marcacoes-append-only-por-forca-de-lei
+---
+
 # ADR ARQ-0001 (PontoWr2) · Marcações append-only por força de lei
 
 - **Status**: accepted

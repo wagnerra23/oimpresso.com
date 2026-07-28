@@ -55,5 +55,5 @@ it('Charter ao lado existe', function () {
 });
 
 it('RUNBOOK existe', function () {
-    expect(file_exists(repo_path('memory/requisitos/Inventory/RUNBOOK-produto-edit.md')))->toBeTrue();
+    expect(file_exists(repo_path('memory/requisitos/Produto/_telas/RUNBOOK-produto-edit.md')))->toBeTrue();
 });

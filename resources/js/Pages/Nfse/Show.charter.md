@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-nfse-show-charter
 page: /nfse/{id}
 component: resources/js/Pages/Nfse/Show.tsx
 related_prototype: n/a (tela de Detalhe bespoke — layout InfoRow/Card; não segue um dos 5 Padrões de Tela)

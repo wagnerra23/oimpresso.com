@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Ingestão de documentos no oimpresso"
+owner: W
+status: ativo
+last_validated: "2026-06-13"
+---
+
 # RUNBOOK — Ingestão de documentos no oimpresso
 
 > **Use sempre que for ingerir qualquer arquivo no oimpresso (NFe XML, DANFE PDF, fotos OS, contratos, anexos ticket, comprovantes pagamento, etc).**

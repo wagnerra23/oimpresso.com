@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Registrar tool MCP `brief-fetch` no servidor CT 100"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Registrar tool MCP `brief-fetch` no servidor CT 100
 
 > **Quando rodar:** depois do PR Sprint 1 implementação ser mergeado.

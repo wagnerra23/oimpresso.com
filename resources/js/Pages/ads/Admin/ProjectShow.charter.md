@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-project-show-charter
 page: /ads/admin/projects/{id}
 component: resources/js/Pages/ads/Admin/ProjectShow.tsx
 related_prototype: n/a (detalhe bespoke — banda de KPIs + decomposição em <ol>; sem FsmActionPanel/<dl>/Timeline, assinatura PT-03 ausente)

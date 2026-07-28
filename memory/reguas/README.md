@@ -8,7 +8,7 @@
 | Arquivo | O que guarda | Quem escreve |
 |---|---|---|
 | `config.json` | TTLs + `paths_por_dimensao` (o mapa dimensão→código do modo delta) | humano/PR |
-| `retratos.json` | série temporal de notas por dimensão, com proveniência e regra de composição DECLARADAS por retrato | fase Persistir do workflow (via PR) |
+| `retratos.json` | série temporal de notas por dimensão, com proveniência, regra de composição e **cobertura** DECLARADAS por retrato | checkpoints do workflow (via PR) |
 | `claims.json` | claims de superioridade com **ID persistente**, veredito, peer, TTL, correção obrigatória | fase Persistir (via PR) |
 | `fraquezas.json` | fraquezas com nota/evidência/degrau + flag `existia_invisivel` + `onde_indexar` | fase Persistir (via PR) |
 | `cross-model/` | verdicts de um 2º modelo (não-Opus) + relatório do controle-negativo (ver §Cross-model) | passe cross-model (sob demanda) |
@@ -30,6 +30,24 @@ re-ataca **BLIND** (contexto-zero, sem ver o veredito/peer do Opus) as claims qu
 - 1ª rodada (2026-07-19, `claude-sonnet-5` web-blind): **5/8 claims mantidas foram derrubadas** (as 2
   `ACIMA_CONFIRMADO` incluídas) — evidência em `cross-model/relatorio.md`. NÃO reverte o ledger sozinho;
   cada `DIVERGE_DERRUBA` é insumo pra [W] decidir re-refutar/rebaixar na próxima rodada.
+
+## Retrato PARCIAL — `modo: "full-parcial"` + `cobertura` (2026-07-26)
+
+O ledger é gravado **por checkpoint no meio da rodada** (claims após a Integração; fraquezas +
+retrato após a composição determinística, **antes** da prosa cara), e não mais só no fim — duas
+rodadas mortas no meio (2026-07-25 interrompida · 07-26 teto de uso com 27 de 88 agentes
+falhando) perderam 12 pesquisas + 24 refutações + 15 integrações e deixaram este arquivo parado
+em 07-18. Consequência de leitura: **um retrato pode ser honestamente parcial.**
+
+- `modo: "full"` / `"delta"` = a rodada mediu tudo que planejou. `"full-parcial"` / `"delta-parcial"`
+  = perdeu agentes **ou** rodou seleção menor (`args.eixo`/`args.dimensoes`).
+- `cobertura` diz o que foi medido, sem eufemismo: `completo` · `motivo_parcial` (qual etapa
+  perdeu quantos) · `etapas` (obtido/esperado por fase) · `dimensoes_sem_nota` ·
+  `eixos_medidos`/`eixos_nao_medidos` · `selecao` · `assinatura` (idempotência da retentativa).
+- **Nota de dimensão não medida é `null`** — nunca herdada em silêncio no modo full. No delta a
+  herança é explícita em `proveniencia_notas` ("herdada (sem Δ material)").
+- Comparar dois retratos exige olhar a `cobertura` dos dois: Δ entre um `full` e um `full-parcial`
+  de 1 eixo não é Δ de capacidade (é a regra 12 da skill em forma de campo).
 
 **Regras duras:**
 - Nota histórica NUNCA é editada — retrato novo entra no TOPO de `retratos.json` (append-only na prática).

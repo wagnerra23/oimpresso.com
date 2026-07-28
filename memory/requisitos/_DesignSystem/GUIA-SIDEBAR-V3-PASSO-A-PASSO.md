@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-guia-sidebar-v3-passo-a-passo
 status: accepted-historical
 lifecycle: arquivado
 last_reviewed: "2026-06-06"

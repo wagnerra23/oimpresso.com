@@ -1,7 +1,7 @@
 // @memcofre
 //   componente: MentionInput
 //   stories: PMG-005 (ADR 0100) — @mentions em comments
-//   permissao: copiloto.mcp.usage.all (endpoint suggest)
+//   permissao: jana.mcp.usage.all (endpoint suggest)
 //
 // Textarea com autocomplete de @username quando user digita "@". Após
 // trigger, mostra dropdown com sugestões fetched de

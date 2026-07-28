@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-admin-custos-index-charter
 page: /ia/admin/custos
 component: resources/js/Pages/Jana/Admin/Custos/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
@@ -16,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/Jana/Http/Controllers/Admin/CustosController@index` (rota `jana.admin.custos.index`, permissão `copiloto.admin.custos.view`). Dashboard admin de custo de IA do Copiloto por período, scopado ao `business_id` da sessão.
+> Backend: `Modules/Jana/Http/Controllers/Admin/CustosController@index` (rota `jana.admin.custos.index`, permissão `jana.admin.custos.view`). Dashboard admin de custo de IA do Copiloto por período, scopado ao `business_id` da sessão.
 
 ---
 

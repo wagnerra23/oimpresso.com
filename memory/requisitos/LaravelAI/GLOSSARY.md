@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-glossary
+---
+
 # Glossário — LaravelAI
 
 > Vocabulário de IA + grafo + RAG contextualizado pelo módulo.

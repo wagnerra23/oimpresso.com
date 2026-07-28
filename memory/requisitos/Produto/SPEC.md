@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-spec
 slug: produto
 title: "Especificação funcional — Produto (cadastro core / catálogo do ERP)"
 type: spec
@@ -6,7 +7,7 @@ module: Produto
 status: ativo
 owner: wagner
 version: "1.0.0"
-last_updated: "2026-07-21"
+last_updated: "2026-07-27"
 ---
 
 # Especificação funcional — Produto (cadastro core / catálogo do ERP)
@@ -53,6 +54,8 @@ last_updated: "2026-07-21"
 
 > owner: wagner · priority: p0 · status: todo · type: epic · estimate: 6h · origin: onda-produto-passo2-2026-07-03
 
+**Implementado em:** _pendente_ — US aberta, aceite não fechado (falta a revisão [W] da §2 + o fechamento formal). Parte do item 1 **já existe por fora desta US**: as 7 telas do módulo têm `casos.md` com UC-IDs e os testes de contrato rodam na lane `Estoque · MySQL`, entregues pelas corridas do agent `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), jul/2026) — fora do escopo desta US.
+
 **Por quê.** Este SPEC (G-04) fundou o contrato; falta a rede de casos que o defende. Sem `casos.md`, teste de valor vira tautológico (proibicoes §5) e o `casos-gate` não tem âncora. Pré-req de US-PROD-022/024.
 
 **Aceite:**
@@ -64,7 +67,9 @@ last_updated: "2026-07-21"
 
 > owner: wagner · priority: p0 · status: todo · type: story · estimate: 10h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
-**Por quê.** Hoje a prop `movements` fica `undefined` no render Inertia — a timeline real só existe no path `request()->ajax()` (Blade `product.stock_history_details`). A tela React (`resources/js/Pages/Produto/StockHistory.tsx`) é **fachada** (screen-grade 47). Larissa não audita movimento de estoque na UI nova.
+**Implementado em:** _pendente_ — US aberta: faltam a cor semântica em `StockHistory.tsx`, os hero KPIs 30d e o smoke biz=1 (charter ainda `draft`, screen-grade 47). O item 1 do aceite **já landou por fora desta US**: `movements` vem por `Inertia::defer` (`ProductController@productStockHistory`) desde o PR #4658 (2026-07-21), ancorado em `CU-PROD-11` e coberto por `StockHistoryContratoTest` na lane `Estoque · MySQL`.
+
+**Por quê (redigido em 2026-07-03; o 1º parágrafo foi superado pelo PR #4658).** ~~Hoje a prop `movements` fica `undefined` no render Inertia — a timeline real só existe no path `request()->ajax()` (Blade `product.stock_history_details`). A tela React é **fachada**.~~ Desde 2026-07-21 o Controller resolve `movements` via `Inertia::defer` e o `StockHistory.tsx` consome com `<Deferred>`. O que segue valendo: a tela ainda não foi para `live` (screen-grade 47, charter `draft`), então Larissa não audita movimento de estoque na UI nova.
 
 **Aceite:**
 - [ ] Controller (`ProductController@productStockHistory`) passa `movements` (JSON) via `Inertia::defer` — data · operação · qty · stock_before · stock_after · ref clicável (OS/Compra/Venda).
@@ -75,6 +80,8 @@ last_updated: "2026-07-21"
 
 > owner: wagner · priority: p1 · status: todo · type: story · estimate: 14h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
+**Implementado em:** _pendente_ — não iniciada: `ProdutoUnificadoController.php:186` ainda devolve `'mult' => 1.00` hardcoded e a [ADR ARQ-0001](adr/arq/0001-selling-price-multiplier.md) segue `proposed`.
+
 **Por quê.** "Preço por tabela" aparenta funcionar mas é **1:1** (`ProdutoUnificadoController@tabelas` retorna `'mult' => 1.00` hardcoded, l.183; [ADR ARQ-0001](adr/arq/0001-selling-price-multiplier.md)). Conta Azul (markup auto) e Linx (tabela por loja) têm. Desbloqueia F3 do `/unificado`.
 
 **⚠️ Tier 0 valor** — resolver ADR ARQ-0001 (coluna `multiplier` OU cálculo via `VariationGroupPrice`); implementação exige **dupla-confirmação (2 caminhos numéricos) + tabela antes→depois + aprovação Wagner** antes de mergear. Teste E2E ancorado no contrato (não na implementação).
@@ -82,6 +89,8 @@ last_updated: "2026-07-21"
 ### US-PROD-023 · [G-05] Finalizar + promover as 8 telas React do Produto (draft→live) + `can:product.view`
 
 > owner: wagner · priority: p1 · status: todo · type: epic · estimate: 6h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
+
+**Implementado em:** _pendente_ — não iniciada: 7 dos 8 charters do Produto seguem `draft` e o `can:product.view` do `/products/unificado` continua TODO (`routes/web.php:427`). O único `live` (`Index.charter.md`) foi promovido pelo passe de governança `charter-promote-signal` (PR #4155), fora do escopo desta US.
 
 **Por quê (Wagner 2026-07-03).** O React do Produto **ainda precisa ser feito**: as 8 telas em `resources/js/Pages/Produto/` existem como `.tsx` mas nenhuma é `live` (todas `awaiting-smoke-browser`, 0 `review.md`). Unificado 56 + StockHistory 47 puxam a nota. Falta o gate `can:product.view` no `/products/unificado` (TODO no código).
 
@@ -94,6 +103,8 @@ last_updated: "2026-07-21"
 ### US-PROD-024 · [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro
 
 > owner: wagner · priority: p2 · status: todo · type: epic · estimate: 24h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
+
+**Implementado em:** _pendente_ — não iniciada: o SPIKE (Fase 1) não produziu inventário algum em `memory/requisitos/Produto/`; as menções a custo médio no módulo são as pré-US (CAPTERRA-FICHA/INVENTARIO + SDD), não entrega desta.
 
 **Por quê (Wagner 2026-07-03: "estudar melhor o custo médio, muita coisa já tem pronta").** NÃO é greenfield — o UltimatePOS já calcula custo por compra. Antes de construir agregação, **mapear a máquina de custo que já roda**.
 
@@ -109,17 +120,23 @@ last_updated: "2026-07-21"
 
 > owner: wagner · priority: p2 · status: todo · type: story · estimate: 14h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
+**Implementado em:** _pendente_ — não iniciada: não há UI de BOM em `resources/js/Pages/Produto/` (o `/unificado` só exibe o contador `bomCount` e o rótulo da sub-view) nem baixa-de-componente no PDV. O CRUD API `products.bom.*` é pré-US (§2), não entrega desta.
+
 **Por quê.** `ProductBom` (`Inventory/ProductBomController.php`) tem CRUD API mas sem UI. Bling tem kit com estoque de componente. Comprovar baixa-de-componente do kit no PDV.
 
 ### US-PROD-026 · Fornecedores/cotação por produto (melhor preço no drawer)
 
 > owner: wagner · priority: p3 · status: todo · type: story · estimate: 12h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
+**Implementado em:** _pendente_ — não iniciada: `ProdutoUnificadoController.php:167` ainda devolve `'fornecedor' => null` (TODO no código).
+
 **Por quê.** Feature do drawer rico do mockup Cowork ([produtos-gap.md](produtos-gap.md) Parte 6): melhor cotação por fornecedor destacada. Hoje `ProdutoUnificadoController::insumos()` retorna `fornecedor => null` (TODO). Único ❌ AUSENTE do inventário.
 
 ### US-PROD-027 · [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP
 
 > owner: wagner · priority: p1 · status: todo · type: story · estimate: 3h · origin: adversario-tabela-preco-2026-07-15
+
+**Implementado em:** _pendente_ — não iniciada: `UC-PTAB-05` não existe nem em [`SellingPrices.casos.md`](../../../resources/js/Pages/Produto/SellingPrices.casos.md) nem em teste algum; segue como bullet do §Backlog de casos, sem id.
 
 **Por quê.** Uma row em `variation_group_prices` com `price_inc_tax = 0` + `price_type = 'fixed'` é **inofensiva no PDV** — mas por **coincidência de semântica do PHP**, não por invariante desenhado. O `SellPosController:1791` faz `if (! empty($variation_group_prices['price_inc_tax']))`, e `!empty(0)` é `false` → cai no preço padrão. Um refactor razoável (`isset()`, `!== null`, tipar `?float`) **destrava venda a preço zero** em todo produto que já tem 0 gravado. **Nada testa esse acidente.**
 
@@ -181,4 +198,5 @@ Viram US quando houver cliente/sinal ou drift de métrica:
 
 ## 6. Histórico
 
+- **2026-07-27** — Campo `**Implementado em:**` declarado nas 8 US que não o tinham (anchor coverage do módulo 11,1% → 100%). Estado verificado US a US contra o código em `b6b5fac`, não presumido — **8 `_pendente_`**, cada uma com a evidência da não-implementação na razão. Duas delas (US-020 e US-021) têm **código pré-existente entregue por fora da US** (os `casos.md`+testes das corridas `sdd-from-source`; o `movements` por `Inertia::defer` do PR #4658) — isso está **dito na razão**, não convertido em `_parcial_`: pela [ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md), US com `status:` aberto e âncora `parcial` é conflito, e a US em si continua aberta. O 1º parágrafo do "Por quê" da US-021 estava superado pelo #4658 e foi corrigido no mesmo PR (regra de precedência — código provado > SPEC). [CC]
 - **2026-07-03** — SPEC criado (G-04 da onda Produto, Passo 2). Registra as capacidades já em prod (§2, prose) + 7 US de backlog do batch aprovado por Wagner ("ok pode fazer"). Fonte: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md). [CC]

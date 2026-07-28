@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-glossary
+---
+
 # Glossário — Jana
 
 Vocabulário canônico. Sempre usar estes termos em código, UI e conversas com o módulo.

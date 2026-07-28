@@ -1,4 +1,5 @@
 ---
+id: requisitos-mcp-spec
 module: Mcp
 version: "1.0"
 last_updated: "2026-06-13"

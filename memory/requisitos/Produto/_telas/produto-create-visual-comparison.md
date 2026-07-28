@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-telas-produto-create-visual-comparison
 slug: inventory-produto-create-visual-comparison
 title: "Produto — Comparativo visual da tela Novo produto"
 type: visual-comparison

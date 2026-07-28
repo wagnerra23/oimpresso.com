@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-ui-0001-fluxo-emissao-1-clique-no-pos
+---
+
 # ADR UI-0001 (NfeBrasil) · Fluxo de emissão 1-clique no POS, async via broadcast
 
 - **Status**: accepted

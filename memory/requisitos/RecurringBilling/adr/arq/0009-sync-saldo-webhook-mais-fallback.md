@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0009-sync-saldo-webhook-mais-fallback
+---
+
 # ADR ARQ-0009 (RecurringBilling) · Sync de saldo e boletos — webhook + fallback periódico
 
 - **Status**: accepted

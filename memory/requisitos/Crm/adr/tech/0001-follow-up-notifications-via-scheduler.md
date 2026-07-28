@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-adr-tech-0001-follow-up-notifications-via-scheduler
+---
+
 # ADR TECH-0001 (Crm) · Follow-up notifications via Scheduler
 
 - **Status**: accepted

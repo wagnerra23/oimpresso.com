@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-anti-regressao-cadastro-produto-legacy
 titulo: "Lista anti-regressão — Cadastro de Produto (legado Office Comercial 2026)"
 tipo: anti-regressao
 origem: "Office Comercial 2026 · Versão 2026.1.1.38 · tela 'Todos Produtos'"

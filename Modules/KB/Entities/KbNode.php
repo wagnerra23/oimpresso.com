@@ -57,6 +57,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null    $author_user_id
  * @property int|null    $read_time_min
  * @property \Illuminate\Support\Carbon|null $last_verified_at
+ * @property array|null  $code_drift_state  Fase A1 — veredito kb:drift-detector {checked_at, refs[]}
  */
 class KbNode extends Model
 {
@@ -110,6 +111,10 @@ class KbNode extends Model
         'author_user_id'   => 'integer',
         'read_time_min'    => 'integer',
         'last_verified_at' => 'datetime',
+        // Fase A1 — leitura do veredito de drift. NÃO está em $fillable de propósito:
+        // a escrita é raw (DB::table) no KbDriftDetectorCommand pra ficar fora do
+        // KbNodeObserver + activity-log (não polui audit LGPD com ruído de cron).
+        'code_drift_state' => 'array',
     ];
 
     // ------------------------------------------------------------------

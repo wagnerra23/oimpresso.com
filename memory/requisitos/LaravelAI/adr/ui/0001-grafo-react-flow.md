@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-adr-ui-0001-grafo-react-flow
+---
+
 # ADR UI-0001 (LaravelAI) · React Flow para visualização de grafo
 
 - **Status**: accepted

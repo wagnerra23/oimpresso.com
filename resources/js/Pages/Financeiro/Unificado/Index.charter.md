@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-unificado-index-charter
 page: /financeiro/unificado
 component: resources/js/Pages/Financeiro/Unificado/Index.tsx
 owner: wagner

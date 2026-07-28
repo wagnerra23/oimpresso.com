@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Repair
 
 > Ficha canônica de benchmark do módulo shared Repair (Kanban OS — infraestrutura entre verticais).

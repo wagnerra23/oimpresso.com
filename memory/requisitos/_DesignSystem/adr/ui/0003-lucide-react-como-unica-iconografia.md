@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0003-lucide-react-como-unica-iconografia
+---
+
 # ADR UI-0003 (_DesignSystem) · lucide-react como única iconografia
 
 - **Status**: accepted

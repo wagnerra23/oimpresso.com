@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0012-zip-cowork-2026-05-09-canon-visual
+---
+
 > ⚰️ **SUPERSEDED em 2026-06-06 por [UI-0018](0018-canon-visual-vivo-ds-v6-manual-identidade.md).**
 > Este zip-snapshot de 2026-05-09 **deixou de ser canon visual** — a verdade viva é DS v6 + primitivos
 > (ADR 0253) + Manual de Identidade. Preservado como **histórico** (append-only); NÃO copiar.

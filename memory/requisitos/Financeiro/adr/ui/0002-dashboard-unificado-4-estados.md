@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-ui-0002-dashboard-unificado-4-estados
+---
+
 # ADR UI-0002 (Financeiro) · Dashboard unificado com 4 estados (KPI grid + tabela única)
 
 - **Status**: accepted

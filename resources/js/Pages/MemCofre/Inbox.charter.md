@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-mem-cofre-inbox-charter
 page: /memcofre/inbox
 component: resources/js/Pages/MemCofre/Inbox.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela de lista paginada com abas)

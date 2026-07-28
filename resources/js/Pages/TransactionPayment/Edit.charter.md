@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-transaction-payment-edit-charter
 page: /payments/v2/{id}/edit
 component: resources/js/Pages/TransactionPayment/Edit.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

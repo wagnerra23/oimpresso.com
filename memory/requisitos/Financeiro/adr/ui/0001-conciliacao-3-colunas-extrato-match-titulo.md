@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-ui-0001-conciliacao-3-colunas-extrato-match-titulo
+---
+
 # ADR UI-0001 (Financeiro) · Conciliação OFX em 3 colunas (extrato · match · título)
 
 - **Status**: accepted

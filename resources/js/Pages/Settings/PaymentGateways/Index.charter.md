@@ -2,7 +2,7 @@
 page: /settings/payment-gateways
 component: resources/js/Pages/Settings/PaymentGateways/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: '2026-05-27'
 parent_module: PaymentGateway
 related_adrs:

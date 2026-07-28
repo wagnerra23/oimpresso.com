@@ -1,3 +1,7 @@
+---
+id: requisitos-index
+---
+
 # Índice — Requisitos funcionais por módulo
 
 > Documentação viva, complementa `memory/modulos/` (spec técnica)

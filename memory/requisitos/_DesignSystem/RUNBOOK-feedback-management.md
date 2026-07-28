@@ -1,4 +1,5 @@
 ---
+last_validated: "2026-06-08"
 title: "RUNBOOK · feedback-management — gerenciar feedback de cliente real"
 status: ativo
 version: "1.0"

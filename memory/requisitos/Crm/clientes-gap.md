@@ -1,4 +1,5 @@
 ---
+id: requisitos-crm-clientes-gap
 tela: Clientes (Index + Drawer 760px)
 prototipo: prototipo-ui/prototipos/clientes/ (HTML + 13 .jsx · KB-9.75 9,4/10 · 2026-05-22)
 tela_viva: resources/js/Pages/Cliente/ (Index.tsx 114KB + Show.tsx + _drawer/* + _show/* + _components/*)

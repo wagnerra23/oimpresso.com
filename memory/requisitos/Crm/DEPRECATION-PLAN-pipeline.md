@@ -1,4 +1,5 @@
 ---
+id: requisitos-crm-deprecation-plan-pipeline
 tipo: deprecation-plan
 alvo: Pipeline CRM pré-venda (Modules/Crm parte B)
 preserva: Cadastro de Cliente (parte A) — intocável

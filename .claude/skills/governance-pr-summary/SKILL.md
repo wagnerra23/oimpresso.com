@@ -1,6 +1,6 @@
 ---
 name: governance-pr-summary
-description: Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. Lê módulos afetados via `git diff --name-only origin/main...HEAD`, infere bucket de cada módulo, executa `php artisan module:grade-v4 --bucket=<inferido> --json` (Wave 27, scoped scorecards) com fallback automático pra v3 se v4_enabled=false ou ScopedScorecardEvaluator ausente, computa Module Grade v4 (core + bucket dimensions + paired cap 50%) e INJETA seção `## Module Grade v4 (Scoped Scorecards)` na descrição do PR. Reduz adoption time de "Wagner precisa abrir 3 dashboards" pra "PR já vem com módulo + nota + bucket + meta + status". APÓS o merge do PR (o tool só atribui custo a PR mergeado), injeta também — LOCAL, porque o CI não enxerga o JSONL — um bloco idempotente `<!-- agent-cost-per-pr -->` com o custo USD estimado DESTE PR via `node scripts/governance/agent-cost-per-pr.mjs --pr <N>` (advisory · RELATO, nunca gate · sem valores em R$). Tier B auto-trigger.
+description: Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. Lê módulos afetados via `git diff --name-only origin/main...HEAD`, infere bucket de cada módulo, executa `php artisan module:grade <X> --json` e INJETA a seção `## Module Grade` na descrição do PR. (O `module:grade-v4` foi REMOVIDO em 2026-07-26 — tinha 0 invocadores em CI/cron; a nota que morde é a do v3, que roda no CI via `module:grade --all` e tem baseline em `governance/module-grades-baseline.json`.) Reduz adoption time de "Wagner precisa abrir 3 dashboards" pra "PR já vem com módulo + nota + bucket + meta + status". APÓS o merge do PR (o tool só atribui custo a PR mergeado), injeta também — LOCAL, porque o CI não enxerga o JSONL — um bloco idempotente `<!-- agent-cost-per-pr -->` com o custo USD estimado DESTE PR via `node scripts/governance/agent-cost-per-pr.mjs --pr <N>` (advisory · RELATO, nunca gate · sem valores em R$). Tier B auto-trigger.
 trust_level: L1
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
@@ -55,15 +55,18 @@ canônico:
 | `ai_central` | Jana, Brief | ≥85 |
 | `functional_horizontal` | Financeiro, NfeBrasil, RecurringBilling, Whatsapp, Accounting, ADS | ≥80 |
 
-### 3. Computar nota atual (v4 preferida com fallback v3)
+### 3. Computar nota atual
+
+O `module:grade-v4` foi REMOVIDO em 2026-07-26 (0 invocadores em CI/cron, e nem
+passava pelo `ModuleGradeService`). A nota canônica é a do v3 — é ela que roda no
+CI (`module:grade --all`) e tem baseline versionado em
+`governance/module-grades-baseline.json`.
 
 ```bash
-# v4 (Wave 21+, scoped scorecards — preferida quando ScopedScorecardEvaluator existe):
-php artisan module:grade-v4 <X> --json 2>/dev/null \
-  || php artisan module:grade <X> --json  # fallback v3
+php artisan module:grade <X> --json
 
-# Múltiplos do mesmo bucket de uma vez:
-php artisan module:grade-v4 --bucket=<inferido> --json
+# Todos de uma vez (é o que o module-grades-gate usa):
+php artisan module:grade --all --json
 
 # Tool MCP (cache 5min, quando rede CT 100 disponível):
 mcp__oimpresso__module-grade module:<X>

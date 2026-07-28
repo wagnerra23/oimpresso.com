@@ -1,4 +1,5 @@
 ---
+id: reference-clientes-ativos
 name: Clientes ativos e dormentes no oimpresso.com
 description: Mapeamento dos 56 businesses — só 7 têm vendas; ROTA LIVRE concentra 99% do volume. Todos em America/Sao_Paulo. Usar pra priorizar fixes e comunicação.
 type: reference

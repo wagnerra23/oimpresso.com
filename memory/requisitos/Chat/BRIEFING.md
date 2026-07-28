@@ -1,3 +1,7 @@
+---
+id: requisitos-chat-briefing
+---
+
 # BRIEFING — Chat · ⚰️ FUNDIDO em Jana (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `Jana`** (decisão E1 · frente KL · 2026-06-15).

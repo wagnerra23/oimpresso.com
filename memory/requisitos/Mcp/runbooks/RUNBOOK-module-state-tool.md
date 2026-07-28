@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Implementar tool MCP `module-state <modulo>` (US-MCP-017)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Implementar tool MCP `module-state <modulo>` (US-MCP-017)
 
 > **Tipo:** runbook executável.

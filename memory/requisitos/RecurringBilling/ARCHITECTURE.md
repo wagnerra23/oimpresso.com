@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-architecture
+---
+
 # Arquitetura — RecurringBilling
 
 ## 1. Objetivo

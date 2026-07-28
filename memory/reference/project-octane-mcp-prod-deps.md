@@ -1,4 +1,5 @@
 ---
+id: reference-project-octane-mcp-prod-deps
 name: laravel/octane + laravel/mcp em prod-deps — ADR estrutural pendente
 description: composer.json tem laravel/octane e laravel/mcp em require (não require-dev); são prod-core hoje, mover quebra config:cache no Hostinger; exige ADR estrutural Wagner
 type: project

@@ -19,10 +19,28 @@
 // letra morta). ADVISORY de nascença (lei ADR 0314: required = só Tier-0): exit 0 no modo
 // default; --check (exit 1) é o primitivo de promoção futura por calendário (ADR 0275).
 //
+// ── MODO --scripts (2026-07-26): órfão de SCRIPT, não de teste ──────────────────
+// Auditoria adversarial 07-26 achou o ponto cego: este guard estava VERDE com 0 órfãos
+// (125/125 testes registrados) enquanto 12 de 88 scripts não-teste em scripts/governance/
+// não têm invocador executável nenhum. Regra certa, superfície errada — o mesmo mecanismo
+// (varre dir, cruza com corpus, reporta) só não olhava os scripts.
+//
+// POR QUE report-only (exit 0 SEMPRE, sem --check): "0 invocador" NÃO é sinônimo de obra
+// parada. MEDIDO nos 12: 6+ são CLI manual POR DESIGN (`adr-supersede` é transacional do
+// autor da ADR; `doc-id-stamp` é stamper de um PR nomeado; `funcao-scorecard-humano` fecha
+// rodada humana) — ter invocador em CI seria ERRADO pra eles. Testei o critério sugerido
+// ("header declara gate/cadência + implementa --check"): acusa 3, dos quais 1 é falso
+// positivo (`doc-id-stamp`) → precisão 67%. Regex sobre prosa não discrimina "repetível"
+// de "execução única", e gate heurístico que avermelha legado é o anti-padrão que o §5
+// das proibições mata (allowlist-de-pasta 06-30, guard @scope 07-09).
+// Então: lista candidatos COM os sinais medidos e deixa o julgamento pro humano — mesmo
+// desenho do `component-registry-check --roles` (report-only aceito pelo projeto).
+//
 // USO (na raiz do repo):
 //   node scripts/governance/selftest-registry-check.mjs             # relatório advisory (exit 0)
 //   node scripts/governance/selftest-registry-check.mjs --json      # JSON determinístico
-//   node scripts/governance/selftest-registry-check.mjs --check     # exit 1 se houver órfão
+//   node scripts/governance/selftest-registry-check.mjs --check     # exit 1 se houver TESTE órfão
+//   node scripts/governance/selftest-registry-check.mjs --scripts   # SCRIPTS sem invocador (report-only)
 //   node scripts/governance/selftest-registry-check.mjs --selftest  # fixtures herméticas (CI)
 //
 // Node puro (fs). Sem deps, sem DB, sem PHP. Idioma: clone de doneness-lint.mjs (ADR 0302).
@@ -30,7 +48,7 @@
 import { readdirSync, readFileSync, existsSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, execSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 const posix = (p) => p.replace(/\\/g, '/');
@@ -71,6 +89,108 @@ export function collectWorkflowText(root) {
 /** órfão = test file cujo path literal não aparece em nenhum workflow. */
 export function findOrphans(testFiles, workflowText) {
   return testFiles.filter((f) => !workflowText.includes(f));
+}
+
+// ── SCRIPTS órfãos (report-only) ────────────────────────────────────────────────
+
+/** Prefixos onde um invocador EXECUTÁVEL pode viver (doc não conta — .md só cita). */
+const PREFIXOS_INVOCADOR = ['.github/', 'package.json', 'composer.json', '.claude/hooks/',
+  '.claude/settings', 'scripts/', 'tools/', 'docker/', 'bin/', 'app/', 'Modules/'];
+
+/** Scripts não-teste de scripts/governance/ (paths relativos posix). */
+export function collectScriptFiles(root) {
+  try {
+    return readdirSync(join(root, 'scripts', 'governance'))
+      .filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs')).sort();
+  } catch { return []; }
+}
+
+/**
+ * NÚCLEO PURO: dado o basename e um mapa path→conteúdo, quais arquivos o citam.
+ * Separa executável (yml/json/mjs/sh/php…) de doc (.md) — doc citar não é invocar.
+ */
+export function acharInvocadores(base, conteudo) {
+  const self = `scripts/governance/${base}`;
+  const selfTest = `scripts/governance/${base.replace('.mjs', '.test.mjs')}`;
+  const exec = [], doc = [];
+  for (const [p, txt] of conteudo) {
+    if (p === self || p === selfTest || !txt.includes(base)) continue;
+    (p.endsWith('.md') ? doc : exec).push(p);
+  }
+  return { exec, doc };
+}
+
+/** Lê o corpus de invocadores sem shell (pathspec com aspas quebra no cmd.exe do Windows). */
+function lerCorpus(root) {
+  const conteudo = new Map();
+  let todos = [];
+  try {
+    todos = execSync('git ls-files', { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      .split('\n').filter(Boolean);
+  } catch { return conteudo; }
+  for (const p of todos) {
+    if (!PREFIXOS_INVOCADOR.some((pre) => p.startsWith(pre))) continue;
+    if (!/\.(ya?ml|json|mjs|js|cjs|sh|ps1|php|md|toml)$/.test(p)) continue;
+    try { conteudo.set(p, readFileSync(join(root, p), 'utf8')); } catch { /* ignora */ }
+  }
+  return conteudo;
+}
+
+function reportScripts(root, { json = false } = {}) {
+  const scripts = collectScriptFiles(root);
+  const conteudo = lerCorpus(root);
+
+  // GUARDA ANTI-VÁCUO. Sem ela, qualquer falha ao montar o corpus (git ausente, erro
+  // de leitura, import faltando) vira "corpus vazio" → NENHUM script tem invocador →
+  // 100% acusado de órfão. Foi exatamente o que aconteceu ao escrever este modo:
+  // `execSync` não estava importado, o try/catch engoliu o ReferenceError e a saída
+  // dizia "88 de 88 órfãos" com toda a cara de resultado legítimo. Medir a AUSÊNCIA de
+  // algo exige provar que a fonte foi lida — senão o instrumento reporta o próprio
+  // defeito como achado. (§5: `cmd || echo "não tem"` mente quando o cmd nem roda.)
+  if (conteudo.size === 0) {
+    console.error('✗ corpus de invocadores VAZIO — `git ls-files` falhou ou nenhum arquivo foi lido.');
+    console.error('  NÃO é "todos órfãos": é o instrumento quebrado. Rode na raiz de um clone git.');
+    process.exit(2);
+  }
+
+  const orfaos = [];
+  for (const f of scripts) {
+    const { exec, doc } = acharInvocadores(f, conteudo);
+    if (exec.length) continue;
+    let txt = '';
+    try { txt = readFileSync(join(root, 'scripts', 'governance', f), 'utf8'); } catch { /* ignora */ }
+    const header = txt.split('\n').slice(0, 45).join('\n').toLowerCase();
+    orfaos.push({
+      script: f,
+      citado_em_doc: doc.length,
+      // SINAIS (não veredito): ajudam o humano a separar "CLI manual por design" de
+      // "foi construído pra rodar sozinho e não roda". Precisão medida ~67% — por isso
+      // report-only. Ver docblock do modo.
+      implementa_check: /--check/.test(txt),
+      header_cita_gate: /\b(gate|sentinela|advisory|catraca|watchdog|cron|nightly)\b/.test(header),
+    });
+  }
+  const out = {
+    _meta: {
+      guard: 'script órfão de invocador (report-only · auditoria 2026-07-26)',
+      generator: 'scripts/governance/selftest-registry-check.mjs --scripts',
+      regra: 'órfão = .mjs não-teste em scripts/governance/ que nenhum arquivo executável (yml/json/mjs/sh/php) cita. Citação só em .md NÃO conta como invocador.',
+      fase: 'REPORT-ONLY — exit 0 sempre. "0 invocador" não é sinônimo de obra parada: CLI manual por design é legítimo. Os campos implementa_check/header_cita_gate são SINAIS, não veredito.',
+    },
+    summary: { scripts_total: scripts.length, orfaos: orfaos.length },
+    orfaos,
+  };
+  if (json) { process.stdout.write(JSON.stringify(out, null, 2) + '\n'); return out; }
+  console.log(`\n  SCRIPT ÓRFÃO (report-only) · ${scripts.length} scripts não-teste · ${orfaos.length} sem invocador executável\n`);
+  for (const o of orfaos) {
+    const sinais = [o.implementa_check ? '--check' : null, o.header_cita_gate ? 'header cita gate/cadência' : null]
+      .filter(Boolean).join(' · ') || 'sem sinal de automação';
+    console.log(`  ⚪ ${o.script.padEnd(38)} ${sinais}`);
+  }
+  console.log(`\n  Os 2 sinais juntos sugerem "construído pra rodar sozinho e não roda" — mas é PALPITE,`);
+  console.log(`  não veredito (medido: ~67% de precisão). CLI manual por design é legítimo e comum aqui.`);
+  console.log(`  Decisão é humana: ligar (agendar/step de CI) ou aposentar (remover + lápide no §5).\n`);
+  return out;
 }
 
 function report(root, { json = false } = {}) {
@@ -134,6 +254,31 @@ function selftest() {
   const j = JSON.parse(run('--json').stdout);
   check('--json determinístico com summary', j.summary.tests_total === 3 && j.summary.orfaos === 0, JSON.stringify(j.summary));
 
+  // ── modo --scripts (report-only): núcleo puro acharInvocadores ──────────────
+  const corpus = new Map([
+    ['.github/workflows/ci.yml', 'run: node scripts/governance/usado.mjs --check\n'],
+    ['memory/reference/doc.md', 'o `orfao-citado-em-doc.mjs` faz X\n'],
+    ['scripts/governance/usado.mjs', '// self — deve ser ignorado\n'],
+  ]);
+  check('--scripts: script citado por workflow NÃO é órfão',
+    acharInvocadores('usado.mjs', corpus).exec.length === 1);
+  check('--scripts: citação só em .md NÃO conta como invocador (doc ≠ execução)',
+    acharInvocadores('orfao-citado-em-doc.mjs', corpus).exec.length === 0
+    && acharInvocadores('orfao-citado-em-doc.mjs', corpus).doc.length === 1);
+  check('--scripts: script sem nenhuma citação → 0 exec e 0 doc',
+    acharInvocadores('inexistente.mjs', corpus).exec.length === 0);
+  check('--scripts: self-referência não conta como invocador',
+    !acharInvocadores('usado.mjs', corpus).exec.includes('scripts/governance/usado.mjs'));
+  // CONTROLE-NEGATIVO da guarda anti-vácuo: o tmp NÃO é repo git, então o corpus não
+  // pode ser montado. O certo é sair 2 ("instrumento quebrado"), JAMAIS reportar
+  // "todos órfãos" — que foi o bug real ao escrever este modo (execSync não importado
+  // → catch engoliu → 88 de 88 acusados, com cara de resultado legítimo).
+  const semCorpus = run('--scripts');
+  check('--scripts: sem corpus (fora de repo git) → exit 2, não "todos órfãos"',
+    semCorpus.status === 2, `status=${semCorpus.status}`);
+  check('--scripts: a mensagem diz que é o INSTRUMENTO, não achado',
+    /instrumento quebrado/i.test(semCorpus.stderr || ''), (semCorpus.stderr || '').slice(0, 80));
+
   rmSync(tmp, { recursive: true, force: true });
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — órfão morde em --check, registrado solta; advisory default exit 0 (P15 entrega 3 · ADR 0314).');
   process.exit(fails ? 1 : 0);
@@ -142,7 +287,11 @@ function selftest() {
 // ── entry-point ──────────────────────────────────────────────────────────────────
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--selftest')) selftest();
-  else {
+  else if (process.argv.includes('--scripts')) {
+    // report-only: exit 0 SEMPRE, mesmo com órfãos (ver docblock do modo).
+    reportScripts(process.cwd(), { json: process.argv.includes('--json') });
+    process.exit(0);
+  } else {
     const out = report(process.cwd(), { json: process.argv.includes('--json') });
     process.exit(process.argv.includes('--check') && out.summary.orfaos > 0 ? 1 : 0);
   }

@@ -1,4 +1,5 @@
 ---
+id: requisitos-product-catalogue-spec
 module: ProductCatalogue
 version: "1.0"
 last_updated: "2026-06-13"

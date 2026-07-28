@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-pesquisa-paralela-antes-pacote-grande
 name: Pesquisa paralela antes de implementar pacote grande
 description: Antes de spawnar implementação de pacote ≥3 itens similares (drivers de bancos, batch de US, ondas de migração, refactor de N módulos), SEMPRE spawnar audit-research-experts em paralelo PRIMEIRO pra mapear viabilidade técnica, esforço real recalibrado, gotchas catalogados e ordem ótima de execução
 type: feedback

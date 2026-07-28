@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-nfe-brasil-tributacao-import-csv-charter
 page: /nfe-brasil/tributacao/import
 component: resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

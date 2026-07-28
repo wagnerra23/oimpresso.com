@@ -1,4 +1,5 @@
 ---
+id: governance-trust-tiers
 slug: oimpresso-trust-tiers
 title: "Trust Tiers Operacional — L0-L4 (Constituição Art. 5)"
 type: governance-spec

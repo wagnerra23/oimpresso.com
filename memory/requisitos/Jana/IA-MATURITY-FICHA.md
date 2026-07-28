@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-ia-maturity-ficha
 modulo: Jana (bucket ai_central)
 versao_ficha: 1.0
 formato: ia-maturity-ficha-canonica (variante CAPTERRA-FICHA ADR 0089 — dimensões específicas IA/LLM)

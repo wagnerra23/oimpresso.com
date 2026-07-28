@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-auditoria-modo-c-2026-05-09
 slug: jana-auditoria-modo-c-2026-05-09
 title: "Jana — Auditoria Modo C (7 telas Inertia/React) baseline 2026-05-09"
 type: auditoria

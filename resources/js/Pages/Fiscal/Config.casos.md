@@ -1,37 +1,99 @@
 ---
+id: resources-js-pages-fiscal-config-casos
 casos: Configuração Fiscal · /fiscal/config
-irmaos: Config.charter.md (lei)
+irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md (§6 CU)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-15"
+last_run: "2026-07-27"
+last_run_ci: "0 UC executado nesta corrida — 2 UC herdam testes que JÁ existem e 1 nasce com teste novo; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
+related_us: [US-FISCAL-009]
 ---
 
 # Casos de Uso & Aceite — Configuração Fiscal
 
-> Persona: **Eliana (contadora)** — leitura/conferência fiscal. Cockpit Fiscal (agregador thin).
-> Passo 3 do template-onda-modulo (régua por tela) — complementa a CAPTERRA-FICHA Fiscal (nota 75).
+> Persona: **Wagner [W]** (admin) — confere certificado, regime, série e ambiente sem abrir o módulo NfeBrasil.
 >
-> **Status:** ✅ passa (UC-id citado por teste) · 🧪 tem teste Feature mas **sem UC-id** (débito G-2 · ADR 0264) · ⬜ não verificado · ❌ quebrou.
+> **Âncora:** `CU-FISC-06`, `CU-FISC-12`, `CU-FISC-13` e `CU-FISC-14` do
+> [SDD §6](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md). Os UC derivam do **CU**, nunca do `.tsx`.
 >
-> ⚠️ **Débito = rastreabilidade, não ausência de teste.** Comportamento defendido por `ConfigControllerTest` + `SimplesOnlyGateConfigTest` + `SimplesOnlyGateTest`. Falta G-2: nenhum teste cita `UC-FISCAL-NN`. CT100 (ADR 0062).
+> **Status:** ✅ provado por teste verde que cita o UC · 🧪 tem teste, **veredito pendente da lane** · ⬜ não verificado · ❌ quebrou.
 
-## Backlog de casos (sem id — entram quando um teste citar o UC-id)
-- **[BACKLOG · 🧪 tem teste · Tier 0] Senha do certificado A1 nunca vaza no payload** — Dado um cert A1 com `encrypted_password` · Quando a tela serializa o certificado pro Inertia · Então a senha encriptada está em `$hidden` e não aparece. _Coberto por `ConfigControllerTest::'NfeCertificado encrypted_password é hidden'`._
-- **[BACKLOG · 🧪 tem teste · Tier 0] Certificados de outros tenants nunca aparecem** — Dado que Eliana está no business 1 · Quando a Config lista o cert ativo · Então só vê cert do business 1 (HasBusinessScope ADR 0093). _Coberto por `ConfigControllerTest::'NfeCertificado HasBusinessScope esconde certs de outros tenants'`._
-- **[BACKLOG · 🧪 tem teste · feature-gate · Tier 0] SimplesOnly bloqueia export SPED de user comum com 503** — Dado a flag `fiscal.sped_simples_only_lock=true` e user com `fiscal.sped.export` · Quando pede `/fiscal/sped/icms-ipi/2026/5` · Então recebe 503 com "temporariamente bloqueado" + "GAP-FISCAL-003". _Coberto por `SimplesOnlyGateTest::'user comum com fiscal.sped.export é bloqueado por 503'`._
-- **[BACKLOG · 🧪 tem teste · feature-gate] Superadmin bypassa o gate SimplesOnly** — Dado a flag true e user superadmin · Quando pede o SPED · Então NÃO recebe 503 (bypass Wagner). _Coberto por `SimplesOnlyGateTest::'superadmin bypassa flag'`._
-- **[BACKLOG · 🧪 tem teste · feature-gate] Flag false libera o export pra user comum** — Dado `fiscal.sped_simples_only_lock=false` e user com permissão · Quando pede o SPED · Então NÃO recebe 503. _Coberto por `SimplesOnlyGateTest::'flag false libera download'`._
-- **[BACKLOG · 🧪 tem teste · Tier 0] Gate de permissão é anterior ao gate de flag** — Dado user sem `fiscal.sped.export` · Quando pede o SPED (flag true) · Então recebe 403 (permissão), não 503. _Coberto por `SimplesOnlyGateTest::'user sem permissão recebe 403'`._
-- **[BACKLOG · 🧪 tem teste] Flag SimplesOnly default = true e vive em config canon** — Dado a config do módulo · Quando checada · Então `fiscal.sped_simples_only_lock` é `true` por default e vive em `config/fiscal.php` (env `FISCAL_SPED_SIMPLES_ONLY_LOCK`), não hardcoded; `SpedController::gerar` referencia a flag. _Coberto por `SimplesOnlyGateConfigTest::'flag default = true'`, `'config key vive em config/fiscal.php'`, `'SpedController referencia a flag'`._
-- **[BACKLOG · ⬜ sem teste] Gate `fiscal.config.edit` no acesso à tela** — Dado user sem `fiscal.config.edit` nem `superadmin` · Quando abre `/fiscal/config` · Então recebe 403 (`ConfigController::index` linha 29). _Comportamento no Controller, sem teste Feature dedicado._
-- **[BACKLOG · ⬜ sem teste] Pílula de vencimento do cert (vencido / ≤30d proximo_vencimento / ok)** — Dado cert com `valido_ate` · Quando renderiza · Então `dias<0`→vencido, `dias<=30`→proximo_vencimento, senão ok. _Comportamento no Controller (`index`), sem teste._
-- **[BACKLOG · ⬜ sem teste] Tributação default (CFOP/CSOSN/CST) exibida read-only** — Dado `NfeBusinessConfig.tributacao_default` · Quando o painel monta · Então mostra CFOP/CSOSN/CST + regime + série NFe + próximo número, sem permitir edição (edição vive em NfeBrasil canon). _Comportamento em `montarPainelFiscal`, sem teste; nota: `seriesMock` ainda é mock (Onda 2 I, TODO real)._
+> ⚠️ **Divergência aberta entre charter e código — decisão [W] (SDD §5.4.3).** O charter declara
+> `❌ Edição inline (upload novo cert, mudar regime, editar tributação)` e o anti-hook
+> `🚫 esta tela é read-only por design`. Medido em `Config.tsx`: existem **dois formulários de
+> mutação** — envio de certificado e troca de ambiente SEFAZ. A **letra** do anti-hook está honrada
+> (nenhum controlador de escrita nasceu no Fiscal; os formulários postam para os endpoints do
+> NfeBrasil), mas o Non-Goal, não. **Non-Goal é intenção e só [W] altera** — o agente não tocou no
+> charter. Nenhum UC abaixo cobre o caminho de mutação, justamente porque o contrato dele está em disputa.
+
+## Força do veredito
+
+| Teste | Lane | Bloqueia merge? |
+|---|---|---|
+| `ConfigControllerTest` · `GatesPermissaoFiscalTest` | `Pest Fiscal` (**pulam** em SQLite) + suíte noturna CT 100 | ❌ **não** — advisory |
+
+> Nenhum teste desta tela está na lane **required**. O ratchet-up é proposta ao [W] (SDD §8.3).
+
+## Rastreabilidade
+
+| UC | O que defende | Prio | CU (SDD §6) | Teste que o cita | Status |
+|---|---|---|---|---|---|
+| UC-FCFG-01 | segredo do certificado não viaja | `[must]` `[T0]` | CU-FISC-14 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-02 | certificado de outro business não aparece | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-03 | gate de permissão da tela | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
+
+---
+
+## UC-FCFG-01 — A senha do certificado A1 nunca chega à tela `[must]` `[T0]`
+
+**Dado** um certificado A1 cadastrado, cuja senha fica cifrada no banco
+**Quando** a tela serializa o certificado para o navegador
+**Então** **nenhum valor de senha do certificado viaja no payload** — nem cifrado.
+
+- **Regressão que defende:** vazamento de segredo por serialização automática do modelo. É o caso clássico em que "adicionar um campo ao payload" abre um buraco sem nenhum erro aparecer.
+- **Contrato, não chave:** o que se defende é *"nenhum valor de senha aparece"* — não *"a chave se chama X"*. Renomear o campo não pode fazer o vazamento passar.
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-01 · NfeCertificado encrypted_password é hidden — não vaza no payload Inertia')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FCFG-02 — O certificado de outro business não aparece `[must]` `[T0]`
+
+**Dado** certificados ativos de mais de um business
+**Quando** a tela busca o certificado vigente
+**Então** só o do business ativo é encontrado.
+
+- **Regressão que defende:** vazamento cross-tenant Tier 0 ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) — aqui expondo o CNPJ titular e a validade do certificado de outro cliente.
+- **Teste:** `ConfigControllerTest` — `it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenants')`
+- **Status:** 🧪 advisory + noturna.
+
+## UC-FCFG-03 — A tela exige `fiscal.config.edit` `[must]` `[T0]`
+
+**Dado** um usuário sem `fiscal.config.edit` e sem `superadmin`
+**Quando** abre `/fiscal/config`
+**Então** recebe 403.
+
+- **Âncora de contrato:** `R-FISCAL-003` do [SPEC.md](../../../../memory/requisitos/Fiscal/SPEC.md) §3 + guard em `ConfigController@index`.
+- **Regressão que defende:** esta tela mostra CNPJ titular, regime, numeração fiscal e o ambiente SEFAZ em uso — e, hoje, **oferece dois formulários de mutação** (ver aviso acima). O gate é a única barreira.
+- **Teste:** `Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php` — `it('UC-FCFG-03 · GET /fiscal/config aborta 403 sem fiscal.config.edit nem superadmin')`
+- **Status:** 🧪 teste nasce nesta corrida; veredito pendente.
+
+---
+
+## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
+
+- **[BACKLOG · ⬜ sem teste] A validade do certificado aparece com três tons de urgência** — vencido, perto de vencer (até 30 dias) e tranquilo. _O cálculo existe no Controller; sem teste dos limiares._
+- **[BACKLOG · ⬜ sem teste] O painel mostra regime, série, próximo número e tributação padrão** — leitura consolidada do que o NfeBrasil guarda. _Sem teste; note que esses dados são lidos por consulta direta à tabela, **fora** do escopo automático de business — o escopo é aplicado à mão a partir da sessão (SDD §5.2)._
+- **[BACKLOG · ⬜ sem teste · decisão [W]] A aba de séries mostra séries reais** — hoje ela é servida por **dado de demonstração** com uma filial inventada (`CU-FISC-16` do SDD §6.5 · §5.4.1). **Precisa de decisão [W].**
+- **[BACKLOG · ⬜ sem contrato · decisão [W]] Trocar o ambiente SEFAZ e enviar certificado a partir desta tela** — os dois formulários existem, mas o charter diz que a tela é read-only. **Sem contrato até [W] resolver a divergência** (ver aviso no topo). Escrever UC aqui seria escolher o vencedor de uma disputa de intenção.
+- **[BACKLOG · 🧪 coberto em outra tela] O bloqueio do download de SPED por feature flag** tem contrato em [`Sped.casos.md`](Sped.casos.md) (`UC-FSPED-05`) — a aba "sped" desta tela apenas aponta para lá.
 
 ## Como rodar a suíte
-1. **Pest (MySQL real):** lane Fiscal no CT100 (ADR 0062) — `ConfigControllerTest` + `SimplesOnlyGateTest` verdes; `SimplesOnlyGateConfigTest` roda sempre (config puro, sem DB). (SQLite skipa os que tocam `nfe_certificados`/`nfe_emissoes`/users, ADR 0101.)
-2. **Cadência:** rodar ao fim de toda mexida. UC ❌ = regressão.
+
+1. **Advisory:** `Pest Fiscal` (matrix `modules-pest.yml`) roda `Modules/Fiscal/Tests` em SQLite — estes testes **pulam** lá.
+2. **Noturna CT 100:** `phpunit.xml` inclui `./Modules/Fiscal/Tests/Feature`; é onde eles correm contra MySQL real.
+3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ## Trilha do tempo
-- 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). Débito = UC-traceability.
-- 2026-07-15 · [CC] revalidado após DS Onda 3 — abas cert/series/ambiente/sped viraram navegação por rota (`?tab=`, `PageHeaderTabs`). Nenhum dos casos acima toca a barra de abas (cert/tenant/SPED/permissão) — comportamento preservado; só `last_run` bumpado.
+
+- 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
+- 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **3 UC** derivados do §6 do SDD; 2 herdam testes existentes, 1 nasce com teste novo. Os 5 itens de backlog que citavam a feature flag do SPED foram **movidos** para a tela dona (`Sped`) em vez de duplicados. Divergência charter × código registrada, **não** resolvida (intenção é de [W]).

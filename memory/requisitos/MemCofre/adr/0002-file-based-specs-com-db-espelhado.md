@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-0002-file-based-specs-com-db-espelhado
+---
+
 # ADR 0002 · Specs vivem em arquivos .md + DB espelhado
 
 - **Status**: accepted

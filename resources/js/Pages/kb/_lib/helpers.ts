@@ -9,6 +9,7 @@ import type {
   FreshnessInfo,
   KbBlock,
   KbCategory,
+  KbCodeDriftRef,
   KbNode,
   KbNodeType,
 } from './types';
@@ -239,4 +240,19 @@ export function extractHeadings(blocks: KbBlock[] | null): string[] {
 
 export function isNodeOutdated(node: KbNode): boolean {
   return node.status === 'outdated' || node.outdated_votes >= 2;
+}
+
+// ──────────────────────────────────────────────────────────────────
+// code_drift — o nó cita código sumido no git (kb_nodes.code_drift_state,
+// veredito do kb:drift-detector, Fase A1/A2). Só refletimos drift POSITIVO:
+// ausência (null/[]) NÃO significa "código ok" (null = sem drift OU nunca
+// checado — charter §6 Anti-hook).
+// ──────────────────────────────────────────────────────────────────
+
+export function codeDriftRefs(node: KbNode): KbCodeDriftRef[] {
+  return node.code_drift_state?.refs ?? [];
+}
+
+export function nodeHasCodeDrift(node: KbNode): boolean {
+  return codeDriftRefs(node).length > 0;
 }

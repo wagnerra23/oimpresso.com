@@ -1,3 +1,10 @@
+---
+title: "Runbook · Essentials"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # Runbook · Essentials
 
 ## Problema: botão "Criar Todo" não aparece

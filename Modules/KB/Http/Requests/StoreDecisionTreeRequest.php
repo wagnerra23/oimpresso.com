@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
  * Extrai validation rules de KbDecisionTreeController@store preservando contrato
  * exato documentado em memory/requisitos/KB/SCHEMA-DB-V1.md §11 (troubleshooters).
  *
- * Permissão: 'copiloto.mcp.memory.manage' (kb.publish.tree no V2 Spatie rename).
+ * Permissão: 'jana.mcp.memory.manage' (kb.publish.tree no V2 Spatie rename).
  *
  * Grafo de conhecimento preservado (ADR 0150): steps formam DAG via
  * yes_next_position/no_next_position (1-based, linkado em 2ª passe pelo
@@ -26,7 +26,7 @@ class StoreDecisionTreeRequest extends FormRequest
     {
         $user = Auth::user();
 
-        return $user !== null && $user->can('copiloto.mcp.memory.manage');
+        return $user !== null && $user->can('jana.mcp.memory.manage');
     }
 
     /**

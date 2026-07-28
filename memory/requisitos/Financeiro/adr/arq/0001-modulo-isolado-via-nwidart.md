@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-arq-0001-modulo-isolado-via-nwidart
+---
+
 # ADR ARQ-0001 (Financeiro) · Módulo isolado via nwidart, sem monkey-patch no core
 
 - **Status**: accepted

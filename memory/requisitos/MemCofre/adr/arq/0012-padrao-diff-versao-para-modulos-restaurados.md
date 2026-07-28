@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0012-padrao-diff-versao-para-modulos-restaurados
+---
+
 # ADR 0012 (arq) — Padrão "Diff de versão" para módulos restaurados após upgrade
 
 **Status:** Aceito

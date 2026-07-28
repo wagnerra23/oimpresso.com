@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-capterra-inventario
+---
+
 # CAPTERRA-INVENTÁRIO — Whatsapp
 
 > **Última atualização 2026-05-15 14:00 BRT** (refresh via D-11 governance backfill — sincroniza com [COMPARATIVO-MERCADO-2026-05-12-v2.md](COMPARATIVO-MERCADO-2026-05-12-v2.md) pós-16-PRs CYCLE-07).

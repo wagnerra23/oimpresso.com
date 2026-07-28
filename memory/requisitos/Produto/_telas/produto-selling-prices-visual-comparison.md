@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-telas-produto-selling-prices-visual-comparison
 slug: inventory-produto-selling-prices-visual-comparison
 title: "Produto — Comparativo visual da tela Tabelas de preço"
 type: visual-comparison

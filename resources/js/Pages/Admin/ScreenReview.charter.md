@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-admin-screen-review-charter
 page: /admin/screen-review
 component: resources/js/Pages/Admin/ScreenReview.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

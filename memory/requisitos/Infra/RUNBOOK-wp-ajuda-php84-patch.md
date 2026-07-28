@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Patch WP /ajuda/ pra PHP 8.4 (`create_function` removido)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Patch WP /ajuda/ pra PHP 8.4 (`create_function` removido)
 
 > **Quando usar:** se `oimpresso.com/ajuda/` voltar a dar HTTP 500 com erro `Call to undefined function create_function()`.

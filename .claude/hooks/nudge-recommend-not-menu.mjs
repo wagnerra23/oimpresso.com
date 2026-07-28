@@ -15,7 +15,7 @@
 // Selftest: node .claude/hooks/nudge-recommend-not-menu.mjs --selftest
 
 import { spawnSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readFileSync, existsSync } from 'node:fs';
 
 export const NUDGE = "[R13] Sua resposta parece terminar com MENU de decisao. Se for calculo tecnico (ROI/prioridade/sequencia/arquitetura), CRAVE uma recomendacao com razao e peca so validacao (Wagner valida, nao calcula). Menu so vale pra gosto/preferencia. Ref: memory/reference/feedback-recomendar-nao-menu.md";
@@ -71,7 +71,7 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--selftest')) {
     const test = new URL('./nudge-recommend-not-menu.test.mjs', import.meta.url);
-    const r = spawnSync(process.execPath, [test.pathname], { stdio: 'inherit' });
+    const r = spawnSync(process.execPath, [fileURLToPath(test)], { stdio: 'inherit' });
     process.exit(r.status ?? 1);
   }
   main();

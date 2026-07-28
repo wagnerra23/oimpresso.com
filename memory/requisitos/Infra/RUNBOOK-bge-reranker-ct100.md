@@ -1,9 +1,11 @@
 ---
+owner: W
+last_validated: "2026-06-08"
 slug: infra-runbook-bge-reranker-ct100
 title: "Infra — Runbook deploy BGE-v2-m3 reranker FastAPI (CT 100) + ativação driver bge no Jana"
 type: runbook
 module: Infra
-status: active
+status: ativo
 date: 2026-05-13
 ---
 

@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-enterprise
+---
+
 # Jana — Enterprise Architecture & Operations Overview
 
 > **Audiência:** decisor técnico (CIO/CTO/Arquiteto), comprador de ERP enterprise, auditor de compliance (LGPD/ISO 27001), próximo Wagner numa empresa que herde o projeto.

@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-charter-s4-dossier-2026-05-20
 title: "US-COPI-109 — Dossier executável Charter S4 ativos via charter-fetch Tier A"
 type: dossier
 status: draft

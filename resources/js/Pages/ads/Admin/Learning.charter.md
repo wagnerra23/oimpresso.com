@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-learning-charter
 page: /ads/admin/learning
 component: resources/js/Pages/ads/Admin/Learning.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

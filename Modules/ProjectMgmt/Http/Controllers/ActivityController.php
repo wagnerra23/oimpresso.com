@@ -16,14 +16,14 @@ use Modules\Jana\Entities\Mcp\McpTaskEvent;
  * Timeline cronológica de eventos em `mcp_task_events` (append-only).
  * Filtros: type, author, task_id, days.
  *
- * Permissão: copiloto.mcp.usage.all.
+ * Permissão: jana.mcp.usage.all.
  */
 class ActivityController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-matriz-roi
 module: OficinaAuto
 artefato: matriz-roi
 status: draft (discovery 2026-05-12, aguarda Wagner)

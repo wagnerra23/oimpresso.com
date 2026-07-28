@@ -1,4 +1,5 @@
 ---
+id: requisitos-mem-cofre-readme
 module: MemCofre
 alias: docvault
 status: ativo

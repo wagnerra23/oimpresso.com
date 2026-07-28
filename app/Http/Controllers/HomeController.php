@@ -541,7 +541,7 @@ class HomeController extends Controller
 
     public function loadMoreNotifications()
     {
-        $notifications = auth()->user()->notifications()->orderBy('created_at', 'DESC')->paginate(10);
+        $notifications = auth()->user()->notifications()->orderBy('created_at', 'desc')->paginate(10);
 
         if (request()->input('page') == 1) {
             auth()->user()->unreadNotifications->markAsRead();

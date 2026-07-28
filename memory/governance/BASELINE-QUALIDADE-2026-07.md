@@ -1,4 +1,5 @@
 ---
+id: governance-baseline-qualidade-2026-07
 slug: baseline-qualidade-2026-07
 title: "Baseline de qualidade — lentes de avaliação consolidadas (Onda 0)"
 date: "2026-07-05"

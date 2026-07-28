@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Fiscal/Eventos (sub-página 5)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Fiscal/Eventos (sub-página 5)
 
 > **Tela:** `/fiscal/eventos`

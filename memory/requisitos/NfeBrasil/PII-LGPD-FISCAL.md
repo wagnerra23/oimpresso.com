@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-pii-lgpd-fiscal
+---
+
 # PII-LGPD-FISCAL — exceção fiscal CONFAZ no módulo NfeBrasil
 
 > Documento canônico que justifica por que `PiiRedactor` **NÃO se aplica** ao módulo NfeBrasil, e como a conformidade LGPD é preservada por base legal fiscal + audit-trail técnico.

@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-prompt-caching-live
+---
+
 # Prompt Caching Live — Anthropic (GAP D4 #5)
 
 > Status: implementado 2026-05-15. Validação 2 semanas pós-deploy via aggregation `prompt_cache_event` no log channel `copiloto-ai`.

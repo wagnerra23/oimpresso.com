@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-0006-analise-de-melhorias-e-roadmap-docvault
+---
+
 # ADR 0006 · Análise de melhorias e roadmap do MemCofre
 
 - **Status**: accepted

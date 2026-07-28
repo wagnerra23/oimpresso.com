@@ -1,4 +1,5 @@
 ---
+id: reference-project-sessao-2026-05-12-23-prs
 name: Sessão recorde 2026-05-12 — 23 PRs WhatsApp/omnichannel deployed em 1 dia
 description: Maratona de PRs (10 estabilidade Baileys + 7 CYCLE-07 P0/P1 + 6 CYCLE-08 + auth state MySQL LIVE em prod). Score CAPTERRA 78% → 91%. Setup técnico pro deal Agrosys.
 type: project

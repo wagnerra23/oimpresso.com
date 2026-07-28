@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-arq-0002-eventos-em-vez-de-chamadas-diretas
+---
+
 # ADR ARQ-0002 (Financeiro) · Comunicação cross-módulo via eventos, não chamadas diretas
 
 - **Status**: accepted

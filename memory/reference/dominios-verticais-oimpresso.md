@@ -1,4 +1,5 @@
 ---
+id: reference-dominios-verticais-oimpresso
 name: Domínios canônicos verticais oimpresso (não confundir vocabulário)
 description: Mapa rápido das verticais oimpresso com unidades primárias + clientes piloto + o que NÃO confundir entre elas. Wagner pediu 2026-05-13 após quase confundir m³ (caçamba) com ComVis (gráfica usa m²). Atualizado 2026-05-26 com correção domínio Martinho via ADR 0194.
 type: reference

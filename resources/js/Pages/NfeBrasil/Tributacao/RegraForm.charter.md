@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-nfe-brasil-tributacao-regra-form-charter
 page: /nfe-brasil/tributacao/regras/create
 component: resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

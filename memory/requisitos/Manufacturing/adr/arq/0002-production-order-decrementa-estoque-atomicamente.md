@@ -1,3 +1,7 @@
+---
+id: requisitos-manufacturing-adr-arq-0002-production-order-decrementa-estoque-atomicamente
+---
+
 # ADR ARQ-0002 (Manufacturing) · Production order decrementa estoque atomicamente
 
 - **Status**: accepted

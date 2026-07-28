@@ -1,3 +1,7 @@
+---
+id: requisitos-asset-management-briefing
+---
+
 # BRIEFING — Modules/AssetManagement
 
 > Estado consolidado executivo (1 página) — atualizado por PR que toque o módulo. Skill `brief-update` Tier B regenera automaticamente.

@@ -1,4 +1,5 @@
 ---
+id: reference-observability-jaeger-ct100
 name: Observability — Jaeger CT 100 (deploy, OTel daemon Baileys, troubleshoot, pegadinhas)
 description: Jaeger all-in-one no CT 100 (UI + OTLP receiver in-memory) — onde mora, como conecta com daemon Baileys via network observability, comandos canônicos, pegadinhas catalogadas, evolução pra storage persistente (Tempo+S3 ou ES). Deploy 2026-05-14 (US-WA-083 OTel ponta-a-ponta).
 type: reference

@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Deploy Langfuse v3 self-host CT 100 + wire PHP client"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Deploy Langfuse v3 self-host CT 100 + wire PHP client
 
 > **ADR 0132** — Langfuse v3 self-host docker-host CT 100 (192.168.0.50). Status atual: STACK LIVE 2026-05-10 (vide [RUNBOOK-langfuse-operacional.md](RUNBOOK-langfuse-ct100-operacional.md)).

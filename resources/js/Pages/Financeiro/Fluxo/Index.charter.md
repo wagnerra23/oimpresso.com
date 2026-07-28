@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-fluxo-index-charter
 page: /financeiro/fluxo
 component: resources/js/Pages/Financeiro/Fluxo/Index.tsx
 owner: wagner

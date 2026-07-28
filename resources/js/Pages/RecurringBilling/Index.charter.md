@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-recurring-billing-index-charter
 page: /recurring-billing
 component: resources/js/Pages/RecurringBilling/Index.tsx
 bundle_source: cobranca-recorrente-page.jsx

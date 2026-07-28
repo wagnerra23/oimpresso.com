@@ -1,3 +1,7 @@
+---
+id: requisitos-purchase-briefing
+---
+
 # BRIEFING — Purchase · ⚰️ REPARTIDO (KL-E2)
 
 > ⚠️ **Pare aqui — os docs desta pasta foram repartidos** (decisão E1 · frente KL · 2026-06-15).

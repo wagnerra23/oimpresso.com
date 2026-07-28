@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-gh-cli-vs-git-push-rotas-rede
 name: gh CLI api.github.com ≠ git push github.com — rotas diferentes podem cair separado
 description: gh pr merge/create falha quando api.github.com timeout, mas git push em github.com:443 continua funcionando. UI navegador usa rota DNS diferente, geralmente passa.
 type: feedback

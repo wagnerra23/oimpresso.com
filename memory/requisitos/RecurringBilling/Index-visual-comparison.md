@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-index-visual-comparison
+---
+
 # Visual canon — Recurring/Index (Cobrança recorrente)
 
 > **Status:** Cowork output renderizado e validado em 2026-05-16. Match exato com 2 screenshots Wagner.

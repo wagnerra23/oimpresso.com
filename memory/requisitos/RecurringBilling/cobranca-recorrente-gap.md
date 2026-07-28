@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-cobranca-recorrente-gap
+---
+
 # Gap — Cobrança Recorrente (mockup Cowork vs tela viva)
 
 > **Fase 1 da skill `aplicar-prototipo` — read-only.** Mapeia o que o mockup PROPÕE que a tela viva não tem, e onde está STALE (atrás do vivo).

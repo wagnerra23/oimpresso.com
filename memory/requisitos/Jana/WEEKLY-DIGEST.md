@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-weekly-digest
+---
+
 # Jana Weekly Digest — guia operacional
 
 > **Status:** ✅ ATIVO em prod desde 2026-05-13 (AUDITORIA G8 P2 — geração arquivo+DB) → 2026-05-15 (D8 #6 — entrega por email)

@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-tech-0001-idempotencia-charge-attempts-e-webhooks
+---
+
 # ADR TECH-0001 (RecurringBilling) · Idempotência em charge_attempts e webhooks
 
 - **Status**: accepted

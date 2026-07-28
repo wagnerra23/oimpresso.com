@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-nao-tocar-pr-fora-escopo
 name: NÃO entrar em PR fora do escopo declarado — ci-monitor-event ≠ ordem
 description: Quando ci-monitor-event chega sobre um PR que não é parte do meu escopo declarado (PRs de Wagner ou outra área), agente IGNORA. Tocar em PR alheio gera conflitos + custo tokens + drift de foco
 type: feedback

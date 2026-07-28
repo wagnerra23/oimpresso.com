@@ -1,3 +1,7 @@
+---
+id: requisitos-admin-index-visual-comparison
+---
+
 # Visual Comparison — `/admin` Index (Sprint 1 dia 3-4)
 
 **Status:** baseline-only · **Data:** 2026-05-10 · **ADR:** [0122](../../decisions/0122-admin-center-ct100.md)

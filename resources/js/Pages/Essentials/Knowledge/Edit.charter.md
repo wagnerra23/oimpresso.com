@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-knowledge-edit-charter
 page: /essentials/knowledge-base/{id}/edit
 component: resources/js/Pages/Essentials/Knowledge/Edit.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

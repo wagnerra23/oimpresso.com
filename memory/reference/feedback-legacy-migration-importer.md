@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-legacy-migration-importer
 name: Legacy Delphi → oimpresso = Python importer canônico
 description: Migração de dados de WR Comercial Delphi (Firebird) pra oimpresso (MySQL) sempre via scripts/legacy-migration/ Python — idempotente com bridge legacy_map. Nunca tinker direto.
 type: feedback

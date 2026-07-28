@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-settings-payment-gateways-cnab-retorno-charter
 page_id: settings-payment-gateways-cnab-retorno
 status: draft
 owner: wagner

@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-discovery-larissa-compras
 name: Discovery cliente-sinal Larissa @ ROTA LIVRE — Compras
 description: Script de call discovery pra Wagner validar dor real de compras com Larissa (biz=4 vestuário) antes de ativar Onda 1 do roadmap Compras. Aplica ADR 0105 (cliente-como-sinal).
 type: discovery

@@ -14,7 +14,7 @@
  * IMPORTANTE — dívida técnica preservada:
  *
  * As chaves abaixo são DECLARATIVAS pro PermissionRegistry / UI de roles.
- * O middleware Spatie `can:` real continua usando `copiloto.mcp.memory.manage`
+ * O middleware Spatie `can:` real continua usando `jana.mcp.memory.manage`
  * nos controllers KB (V1). Rename real é PR separado (Spatie migration +
  * roles refresh).
  *

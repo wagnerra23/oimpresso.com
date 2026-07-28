@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-advisor-dashboard-charter
 page: /advisor/dashboard
 route: /advisor
 controller: Modules\Financeiro\Http\Controllers\Advisor\AdvisorPortalController@index

@@ -49,7 +49,8 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, dirname, basename, relative } from 'node:path';
 import { execSync } from 'node:child_process';
-import { ucHeadRe } from './lib/uc-regex.mjs';
+import { ucsDeclaredInCasos, ucBlocksInCasos } from './lib/uc-regex.mjs';
+import { isPageScreenPath } from './qa/page-path.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = resolve(ROOT, 'resources/js/Pages');
@@ -86,16 +87,35 @@ function walk(dir, filter, acc = []) {
   return acc;
 }
 
-// "Página roteada" = .tsx em Pages/** que NÃO está sob /_components/ e não é um arquivo
-// de teste/charter/casos. É a heurística literal do handoff (ADR 0264 G-1). O refino de
-// "roteada de verdade" (cruzar com routes) é F3 — por ora o baseline absorve o conjunto.
+// "Página roteada" = o que `isPageScreenPath` (scripts/qa/page-path.mjs) reconhece como
+// Page Inertia executável. FONTE ÚNICA compartilhada com screen-coverage-map.mjs — as duas
+// portas que contam tela agora enumeram o MESMO conjunto (ver ESCOPO_TELAS abaixo).
+//
+// Reconciliação 2026-07-27: este guard filtrava só a string literal `/_components/`, mas o
+// repo usa outras convenções de dir auxiliar (`_show`, `_drawer`, `_shared`, `_form`, `_lib`,
+// `components`). Resultado: 45 NÃO-telas contadas como página roteada — `Cliente/_form/Field.tsx`
+// e `Fiscal/_lib/linkify.tsx` eram cobrados de charter+casos. Isso inflava o denominador
+// (280 vs 235) e enchia 90 das 316 entradas do baseline com dívida-fantasma. O conjunto do
+// screen-coverage era subconjunto ESTRITO deste (só-em-B = 0), o que prova filtro a menos aqui
+// — não universos diferentes. Ver memory/sessions/2026-07-27-*.
+//
+// Delta consciente da adoção: `page-path.mjs` também exige >=1 subdiretório (um `.tsx` solto
+// na RAIZ de Pages/ não é tela) e ignora `*.charter.tsx` / `*.test.tsx`. Hoje isso não muda
+// nada (zero arquivos assim), e é a regra que o `screen-coverage-gate` (required) já aplica.
 function listPages() {
-  const tsx = walk(PAGES_DIR, (full, name) => name.endsWith('.tsx') && !name.endsWith('.d.ts'));
-  return tsx
-    .filter((f) => !norm(f).includes('/_components/'))
+  return walk(PAGES_DIR, (full, name) => name.endsWith('.tsx') && !name.endsWith('.d.ts'))
     .map((f) => norm(f))
+    .filter((rel) => isPageScreenPath(rel))
     .sort((a, b) => a.localeCompare(b));
 }
+
+// Declaração de escopo impressa na saída: o número sozinho é ambíguo (qual denominador?).
+// Toda porcentagem de cobertura de tela do projeto se apoia neste conjunto — ele diz de si.
+const ESCOPO_TELAS =
+  'ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n' +
+  '  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n' +
+  '  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n' +
+  '          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx';
 
 // ---------------------------------------------------------------------------
 // G-1 — trio-de-tela
@@ -116,10 +136,15 @@ function trioViolations(pages) {
 // ---------------------------------------------------------------------------
 // G-2 — rastreabilidade caso↔teste
 // ---------------------------------------------------------------------------
-// O regex de UC-id vem de scripts/lib/uc-regex.mjs (fonte ÚNICA — guard + coletor +
-// head-parsers G-5/G-7). Antes eram 4 cópias que drifaram (2026-06-22): o guard foi pra
-// {0,6}-? mas coletor/head-parsers ficaram em {0,3}. `ucHeadRe()` extrai o UC do heading
-// "## UC-XX"; o corpo {0,6}-? enxerga UC-01 E UC-IMP-01/UC-FORJA-01.
+// O regex E o parser de UC vêm de scripts/lib/uc-regex.mjs (fonte ÚNICA — guard + coletor +
+// head-parsers G-5/G-7 + sentinela Tier-0). Antes eram 4 cópias do REGEX que drifaram
+// (2026-06-22): o guard foi pra {0,6}-? mas coletor/head-parsers ficaram em {0,3}. Depois,
+// a cópia do USO (split por `## ` + `if (!head) continue`) drifou pela mesma porta
+// (2026-07-27: a sentinela aplicava o regex na LINHA CRUA e media 4 telas cobertas onde
+// havia 29). Este arquivo é o DONO do formato (ADR 0264) e sempre parseou certo — por isso
+// a lib foi extraída daqui; agora ele CONSOME a lib, fechando o ciclo:
+//   ucsDeclaredInCasos() → só os ids (G-2)
+//   ucBlocksInCasos()    → {uc, block} pra quem precisa do corpo (G-5 Status:, G-7 verdict)
 
 function listCasosFiles() {
   return walk(PAGES_DIR, (full, name) => name.endsWith('.casos.md')).map(norm).sort();
@@ -132,12 +157,8 @@ function ucsInCasos(casosFiles) {
   const out = [];
   for (const file of casosFiles) {
     const content = readFileSync(resolve(ROOT, file), 'utf8');
-    const found = new Set();
-    for (const block of content.split(/^##\s+/m).slice(1)) {
-      const head = block.match(ucHeadRe());
-      if (head) found.add(head[1].toUpperCase());
-    }
-    for (const uc of found) out.push({ uc, file });
+    // Set dedupe UC repetido no mesmo arquivo, preservando a ordem de 1ª declaração.
+    for (const uc of new Set(ucsDeclaredInCasos(content))) out.push({ uc, file });
   }
   return out;
 }
@@ -208,11 +229,8 @@ function metadataViolations(casosFiles) {
 
     // Status por UC — cada heading "## UC-XX ..." precisa de um "Status:" no bloco
     // (até o próximo "## "). É o "se está ativa / passa" que [W] valoriza.
-    const blocks = content.split(/^##\s+/m).slice(1);
-    for (const block of blocks) {
-      const head = block.match(ucHeadRe());
-      if (!head) continue;
-      if (!/Status\s*[:：]/.test(block)) violations.push(`meta:uc-no-status:${file}#${head[1].toUpperCase()}`);
+    for (const { uc, block } of ucBlocksInCasos(content)) {
+      if (!/Status\s*[:：]/.test(block)) violations.push(`meta:uc-no-status:${file}#${uc}`);
     }
   }
   return violations;
@@ -317,12 +335,8 @@ function statusViolations(casosFiles, manifest) {
     const content = readFileSync(resolve(ROOT, file), 'utf8');
     const tsx = file.replace(/\.casos\.md$/, '.tsx');
     const tsxDate = (!shallow && existsSync(resolve(ROOT, tsx))) ? gitCommitDate(tsx) : null;
-    const blocks = content.split(/^##\s+/m).slice(1);
-    for (const block of blocks) {
-      const head = block.match(ucHeadRe());
-      if (!head) continue;
+    for (const { uc, block } of ucBlocksInCasos(content)) {
       if (declaredStatus(block) !== 'green') continue; // só ✅ precisa de prova
-      const uc = head[1].toUpperCase();
       const entry = ucs[uc];
       if (!entry || !entry.verdict || entry.verdict === 'skip') {
         violations.push(`status:unverified:${file}#${uc}`);
@@ -453,13 +467,14 @@ function main() {
     const baseline = loadBaseline();
     const baseSet = new Set(baseline?.violations || []);
     const novos = violations.filter((v) => !baseSet.has(v));
-    console.log(JSON.stringify({ stats, total: violations.length, baseline: baseSet.size, novos, ok: novos.length === 0 }, null, 2));
+    console.log(JSON.stringify({ escopo_telas: ESCOPO_TELAS, stats, total: violations.length, baseline: baseSet.size, novos, ok: novos.length === 0 }, null, 2));
     process.exit(novos.length === 0 ? 0 : 1);
   }
 
   if (MODE_REPORT) {
     console.log('# Relatório de dívida — casos:check (ADR 0264 G-1/G-2)\n');
-    console.log(`Páginas roteadas (Pages/**, excl _components/): ${stats.pages}`);
+    console.log(ESCOPO_TELAS + '\n');
+    console.log(`Páginas roteadas: ${stats.pages}`);
     console.log(`Arquivos casos.md: ${stats.casos_files} · UCs declarados: ${stats.ucs_declared}\n`);
     console.log(`Telas SEM charter.md: ${stats.missing_charter}`);
     console.log(`Telas SEM casos.md:   ${stats.missing_casos}`);
@@ -486,6 +501,7 @@ function main() {
       _meta: {
         generated_at: new Date().toISOString(),
         gate: 'casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)',
+        escopo_telas: ESCOPO_TELAS,
         stats,
         nota: 'Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write',
         refs: ['ADR 0264', 'ADR 0261', 'ADR 0256'],
@@ -499,6 +515,7 @@ function main() {
 
   // VALIDATE
   console.log(`casos:check · ${violations.length} violações (telas: ${stats.pages}, casos.md: ${stats.casos_files})`);
+  console.log(ESCOPO_TELAS);
   const baseline = loadBaseline();
   if (!baseline) {
     console.error(`\n❌ Baseline ausente (${norm(BASELINE_PATH)}). Rode: npm run casos:baseline:write`);

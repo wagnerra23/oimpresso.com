@@ -1,3 +1,7 @@
+---
+id: requisitos-ads-ui-admin-skills-proposta
+---
+
 # Proposta — UI `/ads/admin/skills` e `/ads/admin/policies`
 
 > **Status:** rascunho · pendente aceite Wagner

@@ -77,5 +77,5 @@ it('Charter declara pattern_reuse', function () {
 });
 
 it('RUNBOOK existe', function () {
-    expect(file_exists(repo_path('memory/requisitos/Inventory/RUNBOOK-produto-create.md')))->toBeTrue();
+    expect(file_exists(repo_path('memory/requisitos/Produto/_telas/RUNBOOK-produto-create.md')))->toBeTrue();
 });

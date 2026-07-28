@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-skills-test-charter
 page: /ads/admin/skills/{slug}/test
 component: resources/js/Pages/ads/Admin/Skills/Test.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0008-asaas-como-conta-bancaria-virtual
+---
+
 # ADR ARQ-0008 (RecurringBilling) · Asaas como conta bancária virtual — supersede ARQ-0007 parcialmente
 
 - **Status**: accepted

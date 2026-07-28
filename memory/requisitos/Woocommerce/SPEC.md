@@ -1,4 +1,5 @@
 ---
+id: requisitos-woocommerce-spec
 module: Woocommerce
 version: "1.0"
 last_updated: "2026-06-13"

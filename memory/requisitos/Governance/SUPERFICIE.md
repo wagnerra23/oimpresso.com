@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 139 arquivos em 14 papéis.
+**Total mapeado:** 143 arquivos em 14 papéis.
 
 ## Controllers — 8
 
@@ -38,7 +38,7 @@ module: Governance
 
 - [ActionGate.php](../../../Modules/Governance/Http/Middleware/ActionGate.php)
 
-## Services — 30
+## Services — 32
 
 - [AdrPendenteBriefLineService.php](../../../Modules/Governance/Services/AdrPendenteBriefLineService.php)
 - [AdrReviewBriefLineService.php](../../../Modules/Governance/Services/AdrReviewBriefLineService.php)
@@ -62,8 +62,10 @@ module: Governance
 - [DriftCheckResult.php](../../../Modules/Governance/Services/DriftCheckResult.php)
 - [DriftCheckerRegistry.php](../../../Modules/Governance/Services/DriftCheckerRegistry.php)
 - [DriftFinding.php](../../../Modules/Governance/Services/DriftFinding.php)
+- [ExposicaoTier0BriefLineService.php](../../../Modules/Governance/Services/ExposicaoTier0BriefLineService.php)
 - [InitiativeService.php](../../../Modules/Governance/Services/InitiativeService.php)
 - [ModuleGradeService.php](../../../Modules/Governance/Services/ModuleGradeService.php)
+- [ObraParadaBriefLineService.php](../../../Modules/Governance/Services/ObraParadaBriefLineService.php)
 - [ObservabilitySnapshotService.php](../../../Modules/Governance/Services/ObservabilitySnapshotService.php)
 - [PlanHealthBriefLineService.php](../../../Modules/Governance/Services/PlanHealthBriefLineService.php)
 - [PolicyToggleService.php](../../../Modules/Governance/Services/PolicyToggleService.php)
@@ -88,8 +90,8 @@ module: Governance
 - [GovernanceHealthCommand.php](../../../Modules/Governance/Console/Commands/GovernanceHealthCommand.php)
 - [ModuleGradeCommand.php](../../../Modules/Governance/Console/Commands/ModuleGradeCommand.php)
 - [ModuleGradeSnapshotCommand.php](../../../Modules/Governance/Console/Commands/ModuleGradeSnapshotCommand.php)
-- [ModuleGradeV4Command.php](../../../Modules/Governance/Console/Commands/ModuleGradeV4Command.php)
 - [ObservabilityAggregateCommand.php](../../../Modules/Governance/Console/Commands/ObservabilityAggregateCommand.php)
+- [RecordRagasEvalAlertCommand.php](../../../Modules/Governance/Console/Commands/RecordRagasEvalAlertCommand.php)
 - [RecordStagingFreshnessAlertCommand.php](../../../Modules/Governance/Console/Commands/RecordStagingFreshnessAlertCommand.php)
 - [ScorecardInitiativeSyncCommand.php](../../../Modules/Governance/Console/Commands/ScorecardInitiativeSyncCommand.php)
 - [ScorecardSnapshotCommand.php](../../../Modules/Governance/Console/Commands/ScorecardSnapshotCommand.php)
@@ -136,9 +138,9 @@ module: Governance
 
 - [DsRollout.casos.md](../../../resources/js/Pages/governance/DsRollout.casos.md)
 
-## Testes (Pest) — 52
+## Testes (Pest) — 54
 
-- 52 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 54 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 3
 

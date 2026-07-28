@@ -1,4 +1,5 @@
 ---
+id: reference-gotcha-worktree-junction-vendor-rm
 name: Gotcha — git worktree remove --force segue mklink junction e deleta vendor real
 description: Junção Windows criada pra rodar Pest em worktree filho aponta pro vendor do repo pai. `git worktree remove --force` segue o link e deleta o vendor real, quebrando todo `php artisan` local. Custo recovery ~5min composer install.
 type: reference

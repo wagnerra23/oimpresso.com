@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-unificado-3-lentes-visual-comparison
+---
+
 # Visual Comparison (MWART) — Unificado "3 lentes" (US-FIN-029)
 
 ---

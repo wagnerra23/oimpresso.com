@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-edit-charter
 page: /contacts/{id}/edit
 component: resources/js/Pages/Cliente/Edit.tsx
 owner: wagner
@@ -14,6 +15,8 @@ mwart_pattern_reuse:
   blueprint_screenshot_approval: "Wagner 2026-05-29 — PR-A Onda F (espelho do Create via ClienteForm)"
   derived_screens: [Edit]
   divergence_from_blueprint: "none"
+related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-edit.md
+related_visual_comparison: memory/requisitos/Crm/cliente-edit-visual-comparison.md
 ---
 
 # Page Charter — /contacts/{id}/edit (LIVE)

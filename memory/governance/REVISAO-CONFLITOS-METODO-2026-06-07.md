@@ -1,3 +1,7 @@
+---
+id: governance-revisao-conflitos-metodo-2026-06-07
+---
+
 # Revisão de Conflitos — método de remoção definitiva (2026-06-07)
 
 > Pedido por Wagner: "está na hora de revisão, saber o que melhorar e remover os conflitos definitivamente — tem método?".

@@ -11,9 +11,12 @@ use Modules\Brief\Services\LeaseBriefSectionService;
 use Modules\Governance\Services\AdrPendenteBriefLineService;
 use Modules\Governance\Services\AdrReviewBriefLineService;
 use Modules\Governance\Services\AgentOutcomeBriefSectionService;
+use Modules\Governance\Services\ExposicaoTier0BriefLineService;
+use Modules\Governance\Services\ObraParadaBriefLineService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 use Modules\Governance\Services\ShippedLogBriefLineService;
 use Modules\Governance\Services\SddBriefLineService;
+use Modules\Jana\Services\TasksSemDonoBriefLineService;
 use Throwable;
 
 /**
@@ -63,6 +66,16 @@ final class GenerateBriefCommand extends Command
         // plan-health-gate.yml (PLANS-INDEX §"Como manter vivo" item 2).
         $content = app(PlanHealthBriefLineService::class)->inject($content);
 
+        // Linha de EXPOSIÇÃO TIER-0 × cobertura de comportamento (pós-LLM,
+        // determinística) na seção FLAGS: shell-out de scripts/qa/exposicao-tier0.mjs
+        // --stdout e injeta "Exposição Tier-0: D/H quentes sem teste · topo: <tela>".
+        // A sentinela (ADR 0256 pilar CADÊNCIA) já ranqueava o débito por peso
+        // (valor/estoque no topo — REGRA MESTRE), mas só publicava na issue semanal do
+        // workflow exposicao-tier0-sentinel.yml; sem esta linha o ranking não chega a
+        // quem abre a sessão e a pergunta "qual tela quente atacar" é refeita à mão.
+        // Best-effort: node ausente / script não-deployado → brief intacto.
+        $content = app(ExposicaoTier0BriefLineService::class)->inject($content);
+
         // Porta de saída do loop (ADR 0294 ext) — linha de SAÚDE DO SHIPPED-LOG
         // (pós-LLM, determinística) na seção FLAGS: shell-out de
         // shipped-log-generate.mjs --json. Best-effort: node ausente / registro
@@ -81,6 +94,24 @@ final class GenerateBriefCommand extends Command
         // ciclo de ratificação (`🟠 ADR pendente: A:N B:N C:N` só quando N>0).
         // Best-effort: node ausente / 0 pendências → brief intacto.
         $content = app(AdrPendenteBriefLineService::class)->inject($content);
+
+        // 2026-07-26 — FLAG de OBRA PARADA (pós-LLM, determinística) na seção
+        // FLAGS: shell-out de cron-watchdog.mjs --json (eixo 2 — artefato de
+        // estado que envelheceu). Fecha o buraco "o cron roda mas não entrega":
+        // os 5 scorecards do Governance v4 ficaram 71d congelados com o cron das
+        // 07:00 vivo, e nenhum dos 34 required viu (gate roda sobre diff; coisa
+        // parada não tem diff). Best-effort: node ausente / 0 parados → intacto.
+        $content = app(ObraParadaBriefLineService::class)->inject($content);
+
+        // 2026-07-27 — FLAG de US NÃO ATRIBUÍDA (pós-LLM, determinística) na seção
+        // FLAGS: chama McpTasksUnassignedCommand::detectarNaoAtribuidas() (fonte-única
+        // da regra, US-INFRA-043). Fecha a acceptance #2 daquela US ("saída --json pro
+        // Daily Brief"), que nunca foi ligada: a sentinela existia com Pest e ZERO
+        // invocadores. Sem esta linha, ticket nasce sem dono e ninguém cobra — medido
+        // 2026-07-27: ≥50 US sem owner, incl. 10 já `done`. Eixo distinto do
+        // mcp:tasks:health-check (06:20), que mede staleness, não atribuição.
+        // Best-effort: tabela ausente / 0 não-atribuídas → brief intacto.
+        $content = app(TasksSemDonoBriefLineService::class)->inject($content);
 
         // US-GOV-052 — seção OUTCOME DO AGENTE (7d) (pós-LLM, determinística)
         // antes de FLAGS: shell-out de agent-pr-outcomes.mjs --json (DORA dos

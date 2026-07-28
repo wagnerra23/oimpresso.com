@@ -1,3 +1,7 @@
+---
+id: requisitos-admin-ui-catalog
+---
+
 # Admin — UI Catalog
 
 > Gerado por `php artisan admin:ui-catalog-generate Admin` — daily 09:30 BRT.

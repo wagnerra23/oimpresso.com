@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-ui-0001-chat-usa-bolha-a-direita-pro-usuario
+---
+
 # ADR UI-0001 · Chat usa bolha à direita pro usuário, esquerda pro assistente
 
 - **Status**: accepted

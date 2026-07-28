@@ -1,4 +1,6 @@
-# Comparativo — Telas Blade (AdminLTE) vs React (Inertia+shadcn)
+# Comparativo — Telas Blade (AdminLTE) vs React (Inertia+shadcn) ⚰️ histórico
+
+> ⚠️ **FÓSSIL PontoWr2-era (abr/2026) — histórico, NÃO usar como estado atual.** Análise da migração Blade→React do módulo Ponto original; preservado como registro. Classificado "seguro pra arquivar" em [`governance/AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md`](governance/AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md).
 
 > Análise tela a tela do módulo PontoWR2 após a migração para React.
 > Identifica funcionalidades perdidas, ganhos de usabilidade e o que vale recriar.

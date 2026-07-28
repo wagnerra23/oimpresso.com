@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0007-docvault-como-framework-de-program-comprehension
+---
+
 # ADR ARQ-0007 (MemCofre) · MemCofre como framework de program comprehension (software archaeology)
 
 - **Status**: accepted

@@ -42,7 +42,7 @@
 
 | Doc | O que é |
 |---|---|
-| **[NORTE-ROI.md](NORTE-ROI.md)** | **Norte único** — meta R$ [redacted Tier 0]M/ano ([ADR 0022](decisions/0022-meta-5mi-ano-financeira.md)). Toda decisão passa por aqui antes de virar trabalho. + [11-metas-negocio.md](11-metas-negocio.md) |
+| **[NORTE-ROI.md](NORTE-ROI.md)** | **Norte único** — meta R$ [redacted Tier 0]M/ano ([ADR 0022](decisions/0022-meta-5mi-ano-financeira.md)). Toda decisão passa por aqui antes de virar trabalho. _(seed histórico, não-normativo: [11-metas-negocio.md](11-metas-negocio.md), snapshot 2026-04-24)_ |
 | **[reference/PROTOCOLO-WAGNER-SEMPRE.md](reference/PROTOCOLO-WAGNER-SEMPRE.md)** | **REGRA ZERO (R1–R11)** — Tier 0 IRREVOGÁVEL, toda sessão DEVE executar. Skill `wagner-protocol-enforce` |
 | **[how-trabalhar.md](how-trabalhar.md)** | Protocolo de sessão: `brief-fetch` → `my-work` → (charter) → trabalhar → `decide` → commit |
 | **Skills Tier A (always-on)** | `brief-first` · `mcp-first` · `memory-first-secret-search` · `multi-tenant-patterns` · `commit-discipline` · `mwart-process` · `wagner-protocol-enforce` — convenção [ADR 0095](decisions/0095-skills-tiers-convencao-interna.md) · audit [s3-skills-audit](sprints/s3-constituicao/03-skills-audit.md) |
@@ -67,7 +67,7 @@
 - **[`_INDEX-SECRETS.md`](_INDEX-SECRETS.md)** — índice canon de TODOS secrets do projeto (~20 entradas): Hostinger DNS, Hostinger MySQL, MinIO CT 100, Vaultwarden, Centrifugo, Whatsmeow, Meta Cloud, Asaas, Sicoob, Mailgun, Anthropic, OpenAI, Langfuse, GitHub PAT. Ponteiro (não valor) + status (active/expired/pending/locked) + frequência rotação.
 - Skills correlatas: [`memory-first-secret-search`](../.claude/skills/memory-first-secret-search/SKILL.md) (busca canônica) + [`hostinger-dns-autonomy`](../.claude/skills/hostinger-dns-autonomy/SKILL.md) (autonomia Hostinger).
 
-## 🏛️ Governance & Decisões (~220 ADRs)
+## 🏛️ Governance & Decisões (contagem viva no [PAINEL-SISTEMA](reference/PAINEL-SISTEMA.md))
 
 - **[decisions/](decisions/)** — todas ADRs Nygard, **append-only**. Status: `accepted | proposed | historical | superseded`
 - [decisions/_INDEX-LIFECYCLE.md](decisions/_INDEX-LIFECYCLE.md) — índice oficial por lifecycle
@@ -91,7 +91,7 @@
 **Verticais especializados** ([ADR 0121](decisions/0121-oimpresso-modular-especializado-por-vertical.md)):
 - [Vestuario/](requisitos/Vestuario/) — ✅ em produção (ROTA LIVRE biz=4, CNAE 4781-4/00)
 - [ComunicacaoVisual/](requisitos/ComunicacaoVisual/) — 🟡 em construção (CNAE 1813-0/01)
-- [OficinaAuto/](requisitos/OficinaAuto/) — ⏸️ aguardando sinal (Martinho candidato)
+- [OficinaAuto/](requisitos/OficinaAuto/) — 🟡 piloto LIVE prod (Martinho, biz=164, mecânica pesada)
 - [Autopecas/](requisitos/Autopecas/)
 
 **Core comum:** _(⚰️ = pasta tombstoneada/HISTORICAL — estado vivo está no receptor indicado no BRIEFING da pasta)_

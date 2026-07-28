@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0006-padrao-tela-operacional
+---
+
 # ADR UI-0006 · Padrão de tela operacional (template page)
 
 > 📐 **CONTINUA VÁLIDA em 2026-04-27** — convive com [UI-0008 Cockpit](0008-cockpit-layout-mae-do-erp.md).

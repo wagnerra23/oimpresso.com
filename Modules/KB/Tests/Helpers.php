@@ -71,6 +71,7 @@ function kbBootstrapSchema(): void
     // despercebido no CI. withoutForeignKeyConstraints restaura o check no fim
     // (try/finally) mesmo em erro. Só afeta os drops kb_* — CORE nunca é dropada.
     Schema::withoutForeignKeyConstraints(function () {
+        Schema::dropIfExists('kb_health_history');
         Schema::dropIfExists('kb_bridge_state');
         Schema::dropIfExists('kb_comments');
         Schema::dropIfExists('kb_favorites');
@@ -123,6 +124,17 @@ function kbBootstrapSchema(): void
         });
     }
 
+    // Limpeza cirúrgica dos docs de TESTE em mcp_memory_documents (CORE COMPARTILHADA,
+    // NÃO dropada). kbCreateMcpDoc carimba git_sha = str_repeat('a',40) (sha sintético —
+    // NENHUM doc real tem 40 chars idênticos), então deletar só esses remove APENAS o que
+    // testes criaram e NUNCA toca dados reais do staging (CT 100). Roda no bootstrap
+    // (beforeEach) pra zerar rows STALE deixadas por runs antigas ANTES do insert deste run
+    // → evita 1062 no unique de slug (ex: 'biz1-adr' re-inserido) e acumulação within-run.
+    // Ver ADR 0093 (multi-tenant) + ADR 0101 (biz=1/biz=99). Casa com o teardown simétrico.
+    if (Schema::hasTable('mcp_memory_documents')) {
+        \DB::table('mcp_memory_documents')->where('git_sha', str_repeat('a', 40))->delete();
+    }
+
     // Spatie tables CORE COMPARTILHADAS (pra middleware can:* nos Controllers).
     foreach (['permissions', 'roles'] as $tbl) {
         if (! Schema::hasTable($tbl)) {
@@ -160,12 +172,15 @@ function kbBootstrapSchema(): void
         });
     }
 
-    // Roda as 12 migrations KB em ordem.
+    // Roda TODAS as migrations KB em ordem (as 12 de criação 2026_05_15_1000*
+    // + ALTERs posteriores, ex: code_drift_state 2026_07_23). Todas são
+    // idempotentes (guard hasTable/hasColumn), então re-run é seguro. O glob
+    // largo evita editar este helper a cada migration nova.
     $kbMigrationDir = realpath(__DIR__ . '/../Database/Migrations');
     if ($kbMigrationDir === false) {
         throw new \RuntimeException('Modules/KB/Database/Migrations não encontrado — Agent A já criou? cwd='.getcwd());
     }
-    $files = glob($kbMigrationDir . '/2026_05_15_1000*.php') ?: [];
+    $files = glob($kbMigrationDir . '/2026_*.php') ?: [];
     sort($files);
     foreach ($files as $f) {
         (require $f)->up();
@@ -187,7 +202,7 @@ function kbTeardownSchema(): void
     // de kbBootstrapSchema (ciclo kb_decision_trees ↔ kb_decision_tree_steps +
     // self-FK). Ver comentário lá. Restaura o check no fim (try/finally).
     Schema::withoutForeignKeyConstraints(function () {
-        foreach (['kb_bridge_state', 'kb_comments', 'kb_favorites', 'kb_node_versions',
+        foreach (['kb_health_history', 'kb_bridge_state', 'kb_comments', 'kb_favorites', 'kb_node_versions',
                   'kb_decision_tree_steps', 'kb_decision_trees',
                   'kb_path_steps', 'kb_paths',
                   'kb_edges', 'kb_nodes',
@@ -195,6 +210,13 @@ function kbTeardownSchema(): void
             Schema::dropIfExists($tbl);
         }
     });
+
+    // Limpeza cirúrgica simétrica ao bootstrap: remove os docs de TESTE
+    // (git_sha sintético str_repeat('a',40)) de mcp_memory_documents (CORE, não dropada)
+    // pra não vazar acumulação entre testes/runs. NUNCA toca dados reais (sha real ≠ 'aaa…').
+    if (Schema::hasTable('mcp_memory_documents')) {
+        \DB::table('mcp_memory_documents')->where('git_sha', str_repeat('a', 40))->delete();
+    }
 }
 
 /**
@@ -287,6 +309,18 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->save();
     }
 
+    // Isolamento do cache de DISCO do Spatie: CACHE_STORE=file → o PermissionRegistrar
+    // cacheia o mapa de permissões EM DISCO e ele PERSISTE entre testes do mesmo run. Sob
+    // executionOrder="random", o `can:jana.mcp.memory.manage` do KbController via um
+    // registry STALE de outro teste → 403 intermitente na MESMA coarse (V2b no #4725, V2c
+    // no run 30033223397, PUT do GovernanceInvariantsTest no run 30036318814). Prender o
+    // registry no store `array` (por-app-instance, ZERADO a cada refresh de app = 1×/teste
+    // via TestCase) + forgetInstance pra reconstruir o registrar já lendo o store novo → o
+    // `can:` sempre relê fresco do DB, imune à ordem e ao disco herdado. Test-only, NÃO muda
+    // authz de prod.
+    config(['permission.cache.store' => 'array']);
+    app()->forgetInstance(\Spatie\Permission\PermissionRegistrar::class);
+
     foreach ($permissions as $perm) {
         \Spatie\Permission\Models\Permission::firstOrCreate([
             'name' => $perm,
@@ -294,6 +328,16 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         ]);
         $user->givePermissionTo($perm);
     }
+
+    // BLOQUEADOR 2 (lane, phpunit.xml executionOrder="random"): as tabelas Spatie
+    // (permissions/model_has_*) são CORE COMPARTILHADAS e NÃO são resetadas por
+    // kbTeardownSchema, então o PermissionRegistrar acumula estado entre testes no
+    // MySQL persistente-no-run. Em ordem aleatória isso deixava o `can:` middleware
+    // ver um mapa de permissões STALE → 403 intermitente (ex: V2b do KbIndexV2ContractTest,
+    // mesma perm coarse que V3/V4/V5/V6 resolviam OK). Forçar o flush do cache aqui —
+    // depois de conceder — garante que o próximo `->can()` releia fresco do DB. Barato e
+    // idempotente (Spatie já faz isso internamente em cada mutação; aqui blinda a ordem).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     test()->actingAs($user);
     session([

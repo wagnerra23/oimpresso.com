@@ -1,37 +1,100 @@
 ---
+id: resources-js-pages-fiscal-eventos-casos
 casos: Eventos Fiscais · /fiscal/eventos
-irmaos: Eventos.charter.md (lei)
+irmaos: Eventos.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md (§6 CU)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-03"
+last_run: "2026-07-27"
+last_run_ci: "0 UC executado nesta corrida — 3 UC herdam testes da lane required e 1 nasce com teste novo; veredito pendente das lanes"
+related_us: [US-FISCAL-007]
 ---
 
 # Casos de Uso & Aceite — Eventos Fiscais
 
-> Persona: **Eliana (contadora)** — leitura/conferência fiscal. Cockpit Fiscal (agregador thin).
-> Passo 3 do template-onda-modulo (régua por tela) — complementa a CAPTERRA-FICHA Fiscal (nota 75).
+> Persona: **Eliana [E] (contadora)** — auditoria. A timeline é o registro append-only do que foi feito com cada nota.
 >
-> **Status:** ✅ passa (UC-id citado por teste) · 🧪 tem teste Feature mas **sem UC-id** (débito G-2 · ADR 0264) · ⬜ não verificado · ❌ quebrou.
+> **Âncora:** `CU-FISC-05`, `CU-FISC-12` e `CU-FISC-13` do
+> [SDD §6](../../../../memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0.md). Os UC derivam do **CU**, nunca do `.tsx`.
 >
-> ⚠️ **Débito = rastreabilidade, não ausência de teste.** Comportamento defendido por `EventosCockpitMultiTenantTest` + `AcoesControllerTest` (mutações que geram os eventos). Falta G-2: nenhum teste cita `UC-FISCAL-NN`. CT100 (ADR 0062).
+> **Status:** ✅ provado por teste verde que cita o UC · 🧪 tem teste, **veredito pendente da lane** · ⬜ não verificado · ❌ quebrou.
 
-## Backlog de casos (sem id — entram quando um teste citar o UC-id)
-- **[BACKLOG · 🧪 tem teste · Tier 0] Timeline nunca mostra eventos de outro tenant** — Dado que Eliana está no business 1 · Quando abre a timeline de eventos · Então só vê `NfeEvento` do business 1 (HasBusinessScope ADR 0093), nunca cross-tenant. _Coberto por `EventosCockpitMultiTenantTest::'NfeEvento HasBusinessScope esconde cross-tenant — listagem timeline scoped'`._
-- **[BACKLOG · 🧪 tem teste] Timeline é append-only — evento não é editável** — Dado um evento SEFAZ já registrado · Quando a tela renderiza a timeline · Então nenhuma linha oferece edição (`NfeEvento::UPDATED_AT = null`). _Coberto por `EventosCockpitMultiTenantTest::'NfeEvento é append-only (UPDATED_AT = null)'`._
-- **[BACKLOG · 🧪 tem teste] Os 7 tipos SEFAZ canônicos são reconhecidos e rotulados** — Dado eventos de tipos 110110/110111/110140/210200/210210/210220/210240 · Quando Eliana filtra por categoria · Então cada tipo é mapeado ao seu `kind` (cce/cancel/epec/manifest) e label PT-BR. _Coberto por `EventosCockpitMultiTenantTest::'mapa de TIPOS cobre os 7 códigos SEFAZ canônicos'`._
-- **[BACKLOG · 🧪 tem teste · gera evento] Carta de Correção (CC-e 110110) exige texto 15–1000 chars + n_seq 1–20** — Dado que Eliana pede uma CC-e · Quando o texto tem <15 ou >1000 chars, ou a sequência está fora de 1–20 (CONFAZ Art. 14) · Então a ação é rejeitada; texto válido gera o evento na timeline. _Coberto por `AcoesControllerTest::'cartaCorrecao rejeita <15'`, `'rejeita >1000'`, `'rejeita n_seq fora de 1-20'`, `'aceita texto válido'`._
-- **[BACKLOG · 🧪 tem teste · gera evento] Cancelamento de NF-e exige motivo ≥15 chars (CONFAZ SINIEF 07/2005)** — Dado um cancelamento · Quando o motivo tem <15 chars · Então é rejeitado; motivo válido gera evento de cancelamento (110111). _Coberto por `AcoesControllerTest::'cancelarNfe rejeita motivo < 15 chars'` + `'aceita motivo válido ≥15'`._
-- **[BACKLOG · 🧪 tem teste · gera evento] Inutilização de faixa valida modelo 55/65 + faixa coerente + justificativa 15–255** — Dado uma inutilização de faixa numérica · Quando modelo ∉ {55,65}, ou `numero_ate < numero_de`, ou justificativa <15 chars · Então é rejeitada; payload válido é aceito. _Coberto por `AcoesControllerTest::'inutilizar valida modelo'`, `'rejeita faixa inválida'`, `'rejeita justificativa <15'`, `'aceita payload válido'`. (Nota: inutilização vive em `NfeInutilizacao`, não em `NfeEvento` — sub-página separada.)_
-- **[BACKLOG · 🧪 tem teste · gera evento] Retransmitir só vale pra rejeitada/denegada/erro_envio** — Dado uma NF-e · Quando o status ∈ {rejeitada, denegada, erro_envio} · Então a retransmissão é permitida; nunca pra autorizada/cancelada/inutilizada/pendente. _Coberto por `AcoesControllerTest::'retransmitir contrato: status válidos'` + `'route POST registrada (acoes.nfe.retransmitir)'` + `'NfeService::retransmitir signature'`._
-- **[BACKLOG · 🧪 tem teste · gera evento] Manifestação DF-e restrita às 4 ações SEFAZ; desconhecer/nao_realizada exigem justificativa** — Dado uma nota de terceiro · Quando Eliana manifesta · Então só {cienciar, confirmar, desconhecer, nao_realizada}; desconhecer/nao_realizada exigem justificativa (gera evento 210200/210/220/240). _Coberto por `AcoesControllerTest::'manifestarDfe whitelist exatamente 4 ações'` + `'desconhecer/nao_realizada exigem justificativa'`._
-- **[BACKLOG · ⬜ sem teste] Gate `fiscal.access` no acesso à timeline** — Dado um user sem `fiscal.access` nem `superadmin` · Quando abre `/fiscal/eventos` · Então recebe 403 (`EventosController::index` linha 39). _Comportamento no Controller, sem teste Feature dedicado._
-- **[BACKLOG · ⬜ sem teste] Filtro por `kind` e janela temporal (7/30/90d, default 30d)** — Dado Eliana em conferência · Quando escolhe categoria + período · Então `buildRowsPayload` restringe por `kind` e `created_at >= cutoff`. _Comportamento no Controller, sem teste Feature dedicado._
-- **[BACKLOG · ⬜ sem teste] Justificativa truncada em 200 chars (anti-PII no xMotivo)** — Dado evento com justificativa longa · Quando renderiza a linha · Então mostra no máx. 200 chars (`mapRow`). _Anti-hook do charter, sem teste._
+## Força do veredito
+
+| Teste | Lane | Bloqueia merge? |
+|---|---|---|
+| `EventosCockpitMultiTenantTest` | `PHP / Pest (NfeBrasil · MySQL)` | ✅ **sim** — required no [baseline](../../../../governance/required-checks-baseline.json) e na allowlist do workflow |
+| `GatesPermissaoFiscalTest` (novo) | `Pest Fiscal` (**pula** em SQLite) + suíte noturna CT 100 | ❌ **não** — advisory |
+
+## Rastreabilidade
+
+| UC | O que defende | Prio | CU (SDD §6) | Teste que o cita | Status |
+|---|---|---|---|---|---|
+| UC-FEVT-01 | isolamento da timeline | `[must]` `[T0]` | CU-FISC-12 | `EventosCockpitMultiTenantTest` | 🧪 |
+| UC-FEVT-02 | timeline é append-only | `[must]` `[reg]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
+| UC-FEVT-03 | os 7 tipos SEFAZ rotulados | `[must]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
+| UC-FEVT-04 | gate de acesso à timeline | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
+
+---
+
+## UC-FEVT-01 — A timeline nunca mostra evento de outro business `[must]` `[T0]`
+
+**Dado** eventos do business ativo e de outro business
+**Quando** a timeline carrega
+**Então** só os do business ativo aparecem.
+
+- **Regressão que defende:** vazamento cross-tenant Tier 0 ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) na superfície mais sensível — a trilha de auditoria de quem cancelou e corrigiu o quê.
+- **Teste:** `Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php` — `it('UC-FEVT-01 · NfeEvento HasBusinessScope esconde cross-tenant — listagem timeline scoped')`
+- **Status:** 🧪 lane **required**; veredito pendente.
+
+## UC-FEVT-02 — Evento registrado não se edita `[must]` `[reg]`
+
+**Dado** um evento SEFAZ já registrado
+**Quando** a timeline renderiza
+**Então** nenhuma linha oferece edição — o registro é append-only, sem carimbo de atualização.
+
+- **Âncora legal:** CONFAZ SINIEF 07/2005 Art. 14 + LGPD Art. 37 (registro de operações). Corrigir um evento é **emitir outro**, nunca reescrever o anterior.
+- **Regressão que defende:** transformar auditoria em rascunho editável.
+- **Teste:** `EventosCockpitMultiTenantTest` — `it('UC-FEVT-02 · NfeEvento é append-only (UPDATED_AT = null) — eventos não devem ser editados')`
+- **Status:** 🧪 lane **required**; veredito pendente.
+
+## UC-FEVT-03 — Os sete eventos SEFAZ chegam rotulados em português `[must]`
+
+**Dado** eventos de carta de correção, cancelamento, contingência e as quatro manifestações do destinatário
+**Quando** a contadora filtra por categoria
+**Então** cada tipo é reconhecido, agrupado na categoria certa e exibido com rótulo legível.
+
+- **Regressão que defende:** tipo novo (ou renomeado) cair no rótulo genérico e sumir do filtro — a contadora deixa de ver a categoria inteira sem nenhum erro aparecer.
+- **Teste:** `EventosCockpitMultiTenantTest` — `it('UC-FEVT-03 · mapa de TIPOS cobre os 7 códigos SEFAZ canônicos esperados pelo cockpit')`
+- **Status:** 🧪 lane **required**; veredito pendente.
+- **Fronteira declarada:** inutilização de faixa **não** é evento desta timeline — vive em registro próprio. O código documenta isso explicitamente; não é lacuna.
+
+## UC-FEVT-04 — A timeline exige `fiscal.access` `[must]` `[T0]`
+
+**Dado** um usuário sem `fiscal.access` e sem `superadmin`
+**Quando** abre `/fiscal/eventos`
+**Então** recebe 403.
+
+- **Âncora de contrato:** `R-FISCAL-003` do [SPEC.md](../../../../memory/requisitos/Fiscal/SPEC.md) §3 + guard em `EventosController@index`.
+- **Teste:** `Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php` — `it('UC-FEVT-04 · GET /fiscal/eventos aborta 403 sem fiscal.access nem superadmin')`
+- **Status:** 🧪 teste nasce nesta corrida; veredito pendente.
+
+---
+
+## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
+
+- **[BACKLOG · ⬜ sem teste] A justificativa exibida é truncada, para não vazar PII do XML** — Dado um evento com justificativa longa · Quando a linha renderiza · Então só um trecho inicial aparece. _Anti-hook do charter (o texto do motivo da SEFAZ pode conter dado pessoal); o corte existe no Controller, sem teste._
+- **[BACKLOG · ⬜ sem teste] Filtro por categoria e por janela de tempo** — 7, 30 ou 90 dias, com 30 como padrão. _Existe no Controller; sem teste do resultado._
+- **[BACKLOG · ⬜ sem teste] A nota de origem vem junto sem multiplicar consultas** — o charter limita a **um** relacionamento carregado; nenhum teste guarda esse limite.
+- **[BACKLOG · 🧪 coberto em outra tela] As ações que GERAM evento** (cancelamento, carta de correção, inutilização, retransmissão, manifestação) têm contrato em [`Nfe.casos.md`](Nfe.casos.md) (`UC-FNFE-04..07`) e [`Dfe.casos.md`](Dfe.casos.md) (`UC-FDFE-03/04`) — o dispatch vive lá, esta tela só **lê** o resultado. Não se duplica UC entre telas irmãs.
 
 ## Como rodar a suíte
-1. **Pest (MySQL real):** lane Fiscal no CT100 (ADR 0062) — `EventosCockpitMultiTenantTest` + `AcoesControllerTest` verdes. (SQLite skipa: `nfe_eventos`/`nfe_emissoes` exigem schema MySQL, ADR 0101.)
-2. **Cadência:** rodar ao fim de toda mexida. UC ❌ = regressão.
+
+1. **Lane required:** `PHP / Pest (NfeBrasil · MySQL)` roda `EventosCockpitMultiTenantTest` em todo PR que toque `Modules/Fiscal/Tests/**`.
+2. **Advisory + noturna:** `Pest Fiscal` (SQLite, pula) e a suíte noturna CT 100 (MySQL, roda).
+3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ## Trilha do tempo
-- 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). Débito = UC-traceability.
+
+- 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
+- 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **4 UC** derivados do §6 do SDD. Os 8 itens de backlog que citavam ações de mutação foram **movidos** para as telas donas (`Nfe`/`Dfe`) em vez de duplicados — UC não se repete entre telas irmãs.

@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-wr2-glossary
+---
+
 # Glossário · PontoWr2
 
 Termos técnicos e legais do domínio de ponto eletrônico brasileiro.

@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-glossary
+---
+
 # Glossário — NfeBrasil
 
 > Vocabulário fiscal brasileiro contextualizado pelo módulo.

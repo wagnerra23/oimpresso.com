@@ -1,4 +1,7 @@
 ---
+title: "Runbook — Recuperação cliente on-prem (oimpresso Laravel)"
+owner: W
+last_validated: "2026-07-04"
 type: runbook
 module: Officeimpresso
 status: ativo

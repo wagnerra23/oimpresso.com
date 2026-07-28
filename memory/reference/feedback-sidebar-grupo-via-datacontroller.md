@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-sidebar-grupo-via-datacontroller
 slug: feedback-sidebar-grupo-via-datacontroller
 title: "Sidebar: grupo via DataController, nunca hardcode label no frontend"
 type: feedback-rule

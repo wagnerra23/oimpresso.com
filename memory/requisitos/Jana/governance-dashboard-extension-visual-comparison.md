@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-governance-dashboard-extension-visual-comparison
 slug: jana-governance-dashboard-extension-visual-comparison
 title: "Governance — Extensão Cockpit Saúde do Ecossistema (governance/Dashboard.tsx)"
 type: visual-comparison

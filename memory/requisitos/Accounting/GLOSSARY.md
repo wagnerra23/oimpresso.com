@@ -1,3 +1,7 @@
+---
+id: requisitos-accounting-glossary
+---
+
 # Glossário · Accounting
 
 ## Ativo (Asset)

@@ -14,9 +14,11 @@ import {
   History,
   Edit3,
   ExternalLink,
+  Unlink,
 } from 'lucide-react';
 import type { KbCategory, KbNode } from '../_lib/types';
 import {
+  codeDriftRefs,
   extractHeadings,
   findCategory,
   fmtRelative,
@@ -168,6 +170,8 @@ export default function NodeReader({
   const cat = findCategory(categories, node.category_id);
   const hue = cat?.hue ?? 240;
   const outdated = isNodeOutdated(node);
+  const driftRefs = codeDriftRefs(node);
+  const driftCheckedAt = node.code_drift_state?.checked_at ?? null;
   const fresh = freshnessLevel(node.updated_at);
   const headings = extractHeadings(node.body_blocks);
   // `related` movido pra antes do early return (linhas 113-117) — fix React #310
@@ -221,6 +225,16 @@ export default function NodeReader({
           {outdated && (
             <span className="text-[9.5px] font-semibold lowercase text-warning-fg bg-warning-soft px-1.5 py-px rounded-sm">
               precisa revisão
+            </span>
+          )}
+          {driftRefs.length > 0 && (
+            <span
+              className="inline-flex items-center gap-0.5 text-[9.5px] font-semibold lowercase text-destructive bg-destructive/10 px-1.5 py-px rounded-sm"
+              title={`Cita código removido do git: ${driftRefs
+                .map((r) => r.path)
+                .join(', ')}${driftCheckedAt ? ` (detectado ${fmtRelative(driftCheckedAt)})` : ''}`}
+            >
+              <Unlink size={9} aria-hidden /> cita código removido
             </span>
           )}
           <span

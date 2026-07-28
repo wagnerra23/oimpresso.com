@@ -33,7 +33,7 @@
 // Exit: 0 = continua | 2 = bloqueia (stderr vira a razão pro Claude).
 
 import { spawnSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /** normaliza espaços múltiplos pra regex consistente (fidelidade ao .ps1). */
 export function normalizeCmd(cmd) {
@@ -157,7 +157,7 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--selftest')) {
     const test = new URL('./block-destructive.test.mjs', import.meta.url);
-    const r = spawnSync(process.execPath, [test.pathname], { stdio: 'inherit' });
+    const r = spawnSync(process.execPath, [fileURLToPath(test)], { stdio: 'inherit' });
     process.exit(r.status ?? 1);
   }
   main();

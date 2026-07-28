@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-edit-charter
 page: /products/{id}/edit
 component: resources/js/Pages/Produto/Edit.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

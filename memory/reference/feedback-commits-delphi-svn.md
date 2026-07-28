@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-commits-delphi-svn
 name: SVN read-only em D:\Programas — Claude NÃO comita Delphi
 description: Regra Wagner 2026-05-27 — D:\Programas (working copy SVN compartilhada pelo time em servidor-crm:8777, Delphi WR Comercial/Office Comercial/OficinaAuto + componentes) é READ-ONLY pro Claude. Comitar source Delphi é regra sem ROI (princípio 4 Constituição v2 Loop fechado por métrica) porque Wagner não recompila/redistribui .exe (ADR 0113 + contrato-delphi-inviolavel.md). svn.exe (SlikSvn) instalado só pra LEITURA (info/log/status/diff/blame). Wagner comita manual quando decidir recompilar+distribuir.
 type: feedback

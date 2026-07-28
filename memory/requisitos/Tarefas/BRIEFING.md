@@ -1,3 +1,7 @@
+---
+id: requisitos-tarefas-briefing
+---
+
 # BRIEFING — Tarefas · ⚰️ LÁPIDE (planejado, não existe)
 
 > ⚠️ **MATAR — `Pages/Tarefas/Index.tsx` é stub sem controller/backend. Tarefas do TIME = MCP/TaskRegistry (ADR 0070); de CLIENTE = `ProjectMgmt`/`Essentials`.**

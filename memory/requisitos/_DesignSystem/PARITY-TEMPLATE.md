@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-parity-template
 titulo: Template canônico — Paridade de migração Blade↔React (-parity.md)
 tipo: template
 status: active

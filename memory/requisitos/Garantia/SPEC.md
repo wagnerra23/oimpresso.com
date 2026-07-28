@@ -1,4 +1,5 @@
 ---
+id: requisitos-garantia-spec
 slug: garantia-spec
 module: Garantia
 type: spec

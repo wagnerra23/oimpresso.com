@@ -1,4 +1,5 @@
 ---
+id: reference-ultimatepos-integracao
 name: UltimatePOS — integração + DB schema + frontend patterns (consolidado)
 description: Como módulos novos se plugam no core UltimatePOS — DataController hooks (user_permissions/modifyAdminMenu/superadmin_package), multi-tenant via session('user.business_id'), tabelas core (business/transactions/users/contacts/products/roles), FK pra business.id é unsignedInteger (legacy), DataTables locale pt-BR, payload SellPosController@store, events do core, armadilhas.
 type: reference

@@ -1,3 +1,7 @@
+---
+id: requisitos-fiscal-capterra-inventario
+---
+
 # CAPTERRA-INVENTÁRIO — Fiscal
 
 > Gerado por skill `comparativo-do-modulo` (`/comparativo Fiscal`) em **2026-07-03**.

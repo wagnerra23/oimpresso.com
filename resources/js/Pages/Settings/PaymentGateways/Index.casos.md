@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-settings-payment-gateways-index-casos
 casos: Gateways de Pagamento · /settings/payment-gateways
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)

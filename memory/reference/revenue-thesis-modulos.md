@@ -1,4 +1,5 @@
 ---
+id: reference-revenue-thesis-modulos
 name: Revenue thesis dos módulos spec-ready
 description: Pricing tiers + take rate model + posicionamento dos módulos promovidos em 2026-04-24 (4 originais + Copiloto)
 type: reference

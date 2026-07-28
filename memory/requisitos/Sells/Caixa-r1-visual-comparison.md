@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-caixa-r1-visual-comparison
 session: 2026-05-25 Onda 6 — /vendas/caixa coexiste (seção "Por origem")
 page: /vendas/caixa
 component: resources/js/Pages/Sells/Caixa/Index.tsx

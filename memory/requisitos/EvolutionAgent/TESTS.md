@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-tests
+---
+
 # EvolutionAgent — Plano de testes
 
 > Cada user story do [SPEC.md](SPEC.md) tem ≥1 teste Pest que protege seu contrato. Testes seguem regra do Wagner: "Função/endpoint/migration nova sempre sai com teste Pest que proteja o contrato".

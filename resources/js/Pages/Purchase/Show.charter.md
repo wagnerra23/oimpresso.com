@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-purchase-show-charter
 page: /purchases/{id}
 component: resources/js/Pages/Purchase/Show.tsx
 related_prototype: n/a (tela de detalhe bespoke — não segue um dos 5 Padrões de Tela)

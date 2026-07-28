@@ -1,3 +1,7 @@
+---
+id: requisitos-vestuario-changelog
+---
+
 # Changelog — Modules/Vestuario
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).

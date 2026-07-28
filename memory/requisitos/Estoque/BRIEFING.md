@@ -1,3 +1,7 @@
+---
+id: requisitos-estoque-briefing
+---
+
 # BRIEFING — Estoque · 🧭 porta (domínio cross-cutting)
 
 > Domínio **cross-cutting** de estoque (núcleo). Estado: porta leve.

@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-consultar-indice-derivado-hooks
 name: Consultar o índice DERIVADO de hooks antes de re-derivar com Read/Grep
 description: O estado dos hooks Claude Code (quais existem, wiring do settings.json, runtime node/powershell, gates CI, órfãos/fantasmas) já vive num índice AUTO-GERADO e drift-checado — `.claude/hooks/_HOOKS-INDEX.md` (via `hooks-manifest-generate.mjs`, invariante 0 fantasmas). E "a migração .ps1→.mjs funciona?" já tem suíte pronta (31 `.test.mjs` + 2 wiring `settings-portlote*-registration.test.mjs` + `hooks-manifest-generate --check`). Quando perguntarem sobre hooks/migração, CONSULTAR/RODAR esses artefatos — NÃO re-derivar catando arquivo por arquivo com Read/Grep.
 date_captured: 2026-07-20

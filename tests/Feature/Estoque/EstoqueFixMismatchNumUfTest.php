@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 // @covers-us US-PROD-028
+// Cobre UC-PFIX-01 (memory/requisitos/Produto/_telas/ajuste-estoque-relatorio.casos.md):
+// o eixo NUMÉRICO do botão "Fix" do relatório de estoque. Os eixos TENANT e ALCANCE são
+// UC-PFIX-02/03, em tests/Feature/Produto/AjusteEstoqueRelatorioContratoTest.php.
 
 use App\Utils\ProductUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;

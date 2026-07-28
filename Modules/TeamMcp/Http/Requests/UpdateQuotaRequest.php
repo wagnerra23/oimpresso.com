@@ -11,7 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * Wave 18 D8 SATURATION — extraido de TeamController::atualizarQuota (validate inline).
  *
- * **Permissão**: `copiloto.mcp.usage.all` (Wagner/superadmin).
+ * **Permissão**: `jana.mcp.usage.all` (Wagner/superadmin).
  * **Tier 0 segredo**: nunca expor limit em log de erro de validação.
  *
  * Rules:
@@ -33,7 +33,7 @@ class UpdateQuotaRequest extends FormRequest
             return true;
         }
 
-        return $user->can('copiloto.mcp.usage.all');
+        return $user->can('jana.mcp.usage.all');
     }
 
     public function rules(): array

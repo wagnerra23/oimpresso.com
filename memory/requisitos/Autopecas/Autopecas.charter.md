@@ -1,4 +1,5 @@
 ---
+id: requisitos-autopecas-autopecas-charter
 module: Autopecas
 charter_type: module
 status: proposto

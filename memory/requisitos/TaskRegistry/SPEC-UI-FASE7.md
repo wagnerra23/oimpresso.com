@@ -1,4 +1,5 @@
 ---
+id: requisitos-task-registry-spec-ui-fase7
 module: TaskRegistry
 title: "SPEC — Completar UI do Team OS (Triage + Inbox + polish) sobre Modules/ProjectMgmt"
 type: spec

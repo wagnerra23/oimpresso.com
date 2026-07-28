@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-user-perfil-casos
 casos: User Perfil · /perfil
 irmaos: Perfil.charter.md (lei)
 tecnica: Caso de uso = narrativa do usuário + critério de aceite verificável (Dado/Quando/Então)

@@ -1,4 +1,5 @@
 ---
+id: reference-whatsapp-baileys-messages-canonical
 name: WhatsApp Baileys mensagens — protocolo, history sync, inbox queue, idempotência, anti-ban, webhook security, observability, gotchas
 description: Conhecimento canônico operacional sobre mensagens Baileys WhatsApp no oimpresso — POR QUE cada decisão foi tomada (incidentes catalogados), as pegadinhas que custaram cara, e o caminho certo pra evoluir. Complementa whatsapp-daemon-ct100.md (foco daemon/deploy) e meta-whatsapp-tech-provider.md (foco Meta Cloud).
 type: reference

@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-vendas-gap
 tela: Sells/Index
 prototipo: prototipo-ui/cowork/vendas-page.jsx
 tela_viva: resources/js/Pages/Sells/Index.tsx

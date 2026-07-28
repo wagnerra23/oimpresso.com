@@ -1,4 +1,5 @@
 ---
+id: requisitos-ideias-laravel-ai-evidencias-conversa-claude-2026-04-mobile
 type: evidencia
 origin_url: https://claude.ai/chat/78c2af50-ffd7-4fea-97fd-bb92700fcac1
 origin_title: "Laravel AI SDK com knowledge graph e RAG"

@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Blade T1 Migration Wave D (Reminders + Holidays + Knowledge)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Blade T1 Migration Wave D (Reminders + Holidays + Knowledge)
 
 > **Migração Blade → Inertia/React** das 3 telas index do módulo Essentials que ainda renderizavam via FullCalendar/DataTable/Bootstrap modal jQuery. Coexistência opt-in: rota canônica agora aponta pra Inertia; Blade legado preservado em `Resources/views/` como referência.

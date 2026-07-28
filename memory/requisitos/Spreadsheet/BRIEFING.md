@@ -1,3 +1,7 @@
+---
+id: requisitos-spreadsheet-briefing
+---
+
 # BRIEFING — Modules/Spreadsheet
 
 > **Estado:** 🟡 legado UltimatePOS, pouco uso, manutenção bug-fix only | **Atualizado:** 2026-05-17 (Wave 26 polish 74 → ≥85 +11pp · D1 LogsActivity + D6 Controller DI canon + D4 Service contract preservado) | **Owner:** sem owner ativo

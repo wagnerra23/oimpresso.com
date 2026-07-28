@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-prova-viva-casos
 casos: Prova viva (primitivos) · /financeiro/prova-viva
 irmaos: ProvaViva.charter.md (lei) · RUNBOOK-prova-viva.md
 tecnica: Caso de uso = narrativa + critério de aceite verificável

@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-sells-create-visual-comparison
 slug: sells-sells-create-visual-comparison
 title: "Sells — Comparativo visual da tela Adicionar venda"
 type: visual-comparison

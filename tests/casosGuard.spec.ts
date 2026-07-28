@@ -83,6 +83,39 @@ describe('casos:check — G-1 trio-de-tela (físico)', () => {
     const out = run('');
     expect(out).toMatch(/Sem violações novas/);
   });
+
+  // ── Reconciliação 2026-07-27 (divergência 280 vs 235 entre casos:report e screen-coverage) ──
+  // O guard filtrava só a string literal `/_components/`; o repo usa outras convenções de dir
+  // auxiliar. 45 NÃO-telas (Cliente/_form/Field.tsx, Fiscal/_lib/linkify.tsx, …) eram cobradas
+  // de charter+casos e inflavam o denominador. Fix: `isPageScreenPath` (scripts/qa/page-path.mjs),
+  // a MESMA fonte única do screen-coverage-map. Fixtures usam os dirs REAIS achados no repo —
+  // não inventados: sem isto, a correção podia quebrar calada num rename de PAGE_AUX_DIR.
+  it('ESPECIFICIDADE: dirs auxiliares REAIS do repo (_show/_drawer/_shared/_form/_lib/components) NÃO são página', () => {
+    for (const rel of [
+      'resources/js/Pages/Cliente/_show/SalesTab.tsx',      // 13 arquivos assim no repo
+      'resources/js/Pages/Cliente/_drawer/AuditoriaTab.tsx', // 10
+      'resources/js/Pages/Compras/components/Drawer.tsx',    // 8 (sem underscore!)
+      'resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx', // 7
+      'resources/js/Pages/Cliente/_form/Field.tsx',          // 4
+      'resources/js/Pages/Fiscal/_lib/linkify.tsx',          // 1
+    ]) write(rel, 'export default () => null');
+    // Nenhum é tela → nenhum exige trio → baseline vazio e check verde SEM absorver nada.
+    const out = run('--json');
+    expect(out).toMatch(/"pages": 0/);
+    expect(out).not.toMatch(/trio:missing/);
+  });
+
+  it('CONTROLE POSITIVO: tela REAL ao lado dos auxiliares CONTINUA exigindo trio (não afrouxou)', () => {
+    // O risco de trocar o filtro é excluir demais e o gate parar de morder. Esta fixture põe
+    // uma tela legítima na MESMA árvore dos auxiliares: ela tem que seguir sendo cobrada.
+    write('resources/js/Pages/Cliente/_form/Field.tsx', 'export default () => null');
+    write('resources/js/Pages/Cliente/Index.tsx', 'export default function Index() { return null }');
+    const out = runExpectFail('--json'); // sem baseline → violação nova
+    expect(out).toMatch(/"pages": 1/); // 1 tela, não 2
+    expect(out).toMatch(/trio:missing-charter:resources\/js\/Pages\/Cliente\/Index\.tsx/);
+    expect(out).toMatch(/trio:missing-casos:resources\/js\/Pages\/Cliente\/Index\.tsx/);
+    expect(out).not.toMatch(/_form\/Field/); // o auxiliar NÃO é cobrado
+  });
 });
 
 describe('casos:check — G-2 rastreabilidade caso↔teste (físico)', () => {
@@ -347,6 +380,66 @@ describe('casos:check — G-7 status derivado do verde (físico)', () => {
     manifest({ 'UC-ZZA01': { verdict: 'fail' }, 'UC-ZZB02': { verdict: 'fail' } });
     const out = runExpectFail('');
     expect(out).toMatch(/status:lies:resources\/js\/Pages\/R\/Index\.casos\.md#UC-ZZB02/);
+  });
+});
+
+// =====================================================================================
+// G-7 (3ª forma) — status:stale-results: ✅ PROVADO, mas a tela mudou DEPOIS do teste
+// =====================================================================================
+// Era o ÚNICO dos 5 contadores do guard sem controle-negativo (metadata_issues, stale_cases,
+// status_lies e status_unverified já são provados nos blocos acima). Sem estes testes, o
+// `"status_stale": 0` do --json não distinguia "corpus limpo" de "ramo que nunca casa".
+// Exige as DUAS fontes ao mesmo tempo — data de commit do .tsx (git `%cs`) E o `ran_at` do
+// manifesto — por isso precisa de repo git REAL no tmp: sem ele isShallowRepo()=true, tsxDate
+// fica null e o ramo nem é alcançado.
+describe('casos:check — G-7 status:stale-results (resultado velho · físico)', () => {
+  const git = (cmd: string) => execSync(`git ${cmd}`, { cwd: tmp, stdio: 'ignore' });
+  // last_run no FUTURO isola o G-6: sem isso o `stale:` do frescor dispararia junto (o .tsx é
+  // commitado HOJE) e o teste passaria pelo motivo errado.
+  const seedCommitted = (dir: string, uc: string) => {
+    write(page(dir), 'x');
+    write(`resources/js/Pages/${dir}/Index.charter.md`, '# c');
+    write(
+      `resources/js/Pages/${dir}/Index.casos.md`,
+      `---\nowner: w\nlast_run: "2099-01-01"\n---\n## ${uc} · caso\n- **Status: ✅**`,
+    );
+    write(`tests/${dir}Test.php`, `<?php // ${uc}`);
+    git('init -q');
+    git('config user.email t@t.co');
+    git('config user.name t');
+    git('config commit.gpgsign false');
+    git('add -A');
+    git('commit -qm init'); // commit do .tsx = hoje
+  };
+  const manifest = (ucs: Record<string, { verdict: string; ran_at?: string }>) =>
+    write('scripts/casos-test-results.json', JSON.stringify({ ucs }));
+
+  it('SENSIBILIDADE: ✅ verdict=pass com ran_at ANTERIOR ao commit da tela → status:stale-results', () => {
+    seedCommitted('SR', 'UC-ZZD01');
+    manifest({ 'UC-ZZD01': { verdict: 'pass', ran_at: '2020-01-01' } });
+    const out = runExpectFail('--json');
+    expect(out).toMatch(/status:stale-results:resources\/js\/Pages\/SR\/Index\.casos\.md#UC-ZZD01/);
+    expect(out).toMatch(/"status_stale": 1/);
+    // Controle de ATRIBUIÇÃO: prova que quem mordeu foi o stale-results, não o G-6 nem as
+    // outras 2 formas do G-7 (senão o ✅ do teste seria por violação vizinha).
+    expect(out).toMatch(/"stale_cases": 0/);
+    expect(out).toMatch(/"status_lies": 0/);
+    expect(out).toMatch(/"status_unverified": 0/);
+  });
+
+  it('ESPECIFICIDADE: ran_at POSTERIOR ao commit da tela → resultado fresco, sem violação', () => {
+    seedCommitted('FR', 'UC-ZZD01');
+    manifest({ 'UC-ZZD01': { verdict: 'pass', ran_at: '2099-01-01' } });
+    const out = run('--json');
+    expect(out).toMatch(/"status_stale": 0/);
+    expect(out).not.toMatch(/status:stale-results/);
+  });
+
+  it('ESPECIFICIDADE: verdict=pass SEM ran_at → não inventa staleness (sem sinal, não acusa)', () => {
+    seedCommitted('NR', 'UC-ZZD01');
+    manifest({ 'UC-ZZD01': { verdict: 'pass' } });
+    const out = run('--json');
+    expect(out).toMatch(/"status_stale": 0/);
   });
 });
 

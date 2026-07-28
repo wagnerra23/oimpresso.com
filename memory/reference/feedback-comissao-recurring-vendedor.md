@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-comissao-recurring-vendedor
 name: Comissão recurring perpétua a vendedor = suicídio financeiro
 description: Artur (sobrinho Wagner) propôs metade da comissão no deal Agrosys (R$ [redacted Tier 0]M/ano). 50% MRR perpétuo = R$ [redacted Tier 0]M/ano pra Artur pra sempre. Padrão mercado SaaS = 10-20% upfront + decay anos seguintes.
 type: feedback

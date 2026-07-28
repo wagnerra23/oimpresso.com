@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-repair-device-models-edit-charter
 page: /repair/device-models/{id}/edit
 component: resources/js/Pages/Repair/DeviceModels/Edit.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

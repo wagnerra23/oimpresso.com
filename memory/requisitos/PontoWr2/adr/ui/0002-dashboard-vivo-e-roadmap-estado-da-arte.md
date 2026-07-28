@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-wr2-adr-ui-0002-dashboard-vivo-e-roadmap-estado-da-arte
+---
+
 # ADR UI-0002 (PontoWr2) · Dashboard vivo + roadmap de evolução ao estado da arte
 
 - **Status**: proposed

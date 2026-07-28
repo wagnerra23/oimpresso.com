@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0008-p3-inventario-gateways-charts-pdf-uso-real
+---
+
 # ADR ARQ-0008 (MemCofre) · P3 inventário final — gateways, charts, PDF estão todos em uso
 
 - **Status**: accepted

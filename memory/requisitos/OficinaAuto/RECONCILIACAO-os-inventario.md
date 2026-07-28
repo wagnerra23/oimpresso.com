@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-reconciliacao-os-inventario
+---
+
 # Inventário de reconciliação — OS / Kanban da OficinaAuto
 
 > 🛑 **ERRATA 2026-06-30 (musing-elion) — A CONCLUSÃO "C É DUPLICATA → DEPRECAR" ESTAVA ERRADA.**

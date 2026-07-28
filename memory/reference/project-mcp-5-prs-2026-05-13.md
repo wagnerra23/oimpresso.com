@@ -1,4 +1,5 @@
 ---
+id: reference-project-mcp-5-prs-2026-05-13
 name: MCP server — 5 PRs consolidados 2026-05-13 (62% → roadmap 88%)
 description: Sessão nervous-mayer-3ff0da entregou 5 PRs em main fixing 4 bugs sync MCP + 2 auditorias estado-da-arte. ADR 0144 aceita. 6 agents paralelos coordenados.
 type: project

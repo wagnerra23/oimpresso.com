@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-comparativo-mercado-2026-05-12-v2
+---
+
 # COMPARATIVO-MERCADO Whatsapp/Atendimento — v2 (reavaliação pós-16-PRs)
 
 > **Geração:** 2026-05-12 (final do dia, pós-deploys)

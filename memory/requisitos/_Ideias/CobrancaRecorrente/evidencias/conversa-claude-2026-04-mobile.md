@@ -1,4 +1,5 @@
 ---
+id: requisitos-ideias-cobranca-recorrente-evidencias-conversa-claude-2026-04-mobile
 type: evidencia
 origin_url: https://claude.ai/chat/dda41749-c416-4e78-9a3a-e5255d7282c0
 origin_title: "Estado da arte em módulos de cobrança recorrente"

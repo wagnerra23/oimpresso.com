@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-padroes-tela-pt-05-kanban
 pattern_id: PT-05
 nome: Kanban
 camada: 3-padroes-tela

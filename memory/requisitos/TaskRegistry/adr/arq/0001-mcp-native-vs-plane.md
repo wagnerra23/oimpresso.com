@@ -1,3 +1,7 @@
+---
+id: requisitos-task-registry-adr-arq-0001-mcp-native-vs-plane
+---
+
 # ADR ARQ-0001 (TaskRegistry) · Sistema de tasks MCP-native, não Plane self-host
 
 - **Status**: accepted

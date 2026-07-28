@@ -1,4 +1,5 @@
 ---
+id: reference-cert-a1-icp-brasil-multi-uso
 name: Certificado A1 ICP-Brasil multi-uso (single source NfeCertificado)
 description: Padrão arquitetural canon — TODOS os drivers REST PJ BR (NFe SEFAZ + Sicoob API + Bradesco/Inter/BB/Itaú/Santander futuros) exigem cert ICP-Brasil A1 do CNPJ da empresa e reusam o mesmo `NfeCertificado` canon, NÃO criam storage próprio.
 type: reference

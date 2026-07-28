@@ -1,4 +1,5 @@
 ---
+id: requisitos-atendimento-caixa-unificada-gap
 tela: /atendimento/caixa-unificada
 prototipo: prototipo-ui/cowork/inbox-page.jsx + inbox-page.css + inbox-cur.jsx + inbox-ai.jsx + inbox-extras.jsx # path corrigido 2026-07-10 — espelho consolidado em cowork/ (visual_source do charter); lista = arquivos ancorados pelo map.json
 tela_viva: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx (+ _components ComposerV4/ConversationListV4/ConversationThreadV4/ContextSidebarV4/ChannelsDrawer/QueuesSheet/BroadcastSheet/ChannelHealthBanner/ReconnectModal/...)

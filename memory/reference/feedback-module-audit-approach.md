@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-module-audit-approach
 name: Auditoria de completude de módulo — skill module-completeness-audit
 description: Skill module-completeness-audit v0.1.0 Tier B advise (8 dims). Complementa /comparativo (gaps mercado). Hook bloqueador é P1 quando ROI provado.
 type: feedback

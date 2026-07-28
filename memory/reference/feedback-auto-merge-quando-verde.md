@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-auto-merge-quando-verde
 name: Auto-merge sempre quando CI verde
 description: Wagner não quer ser bottleneck em revisar/clicar merge — habilitar auto-merge em todo PR aberto pelo Claude assim que conteúdo estiver aprovado por ele
 type: feedback

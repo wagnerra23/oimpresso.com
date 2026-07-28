@@ -57,6 +57,22 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
 — guard de base-freshness existe por isso). `args.dimensoes` opcional pra rodada parcial
 (re-medir só a dimensão de um chip concluído).
 
+**Rodada menor — o full em 3 transações em vez de 1** (2026-07-26): `args.eixo` aceita
+`'construir-e-governar'` (7 dims) · `'rodar-e-observar'` (4) · `'servir-o-negocio'` (1), ou um
+array delas. É alias das keys — `args.dimensoes` continua igual; o eixo só evita digitar 4-7
+keys (key errada degrada a pesquisa quase em silêncio, incidente 2026-07-17). **Rodada por eixo
+grava retrato `full-parcial`, com `cobertura.eixos_nao_medidos` — nunca "o retrato do sistema".**
+
+**A rodada é RETOMÁVEL — o ledger é gravado no meio, não no fim** (2026-07-26): a fase
+`Persistir` deixou de ser a única escrita. `claims.json` é gravado logo após a Integração e
+`fraquezas.json` + o retrato logo após a composição determinística, **antes** da prosa cara; a
+fase final só re-tenta o que não confirmou (checkpoints ok = 0 agentes ali). Motivo medido: as
+rodadas de 2026-07-25 (interrompida) e 07-26 (teto de uso, 27 de 88 agentes) morreram no meio e
+perderam 12 pesquisas + 24 refutações + 15 integrações — `retratos.json` ficou parado em 07-18.
+Se uma rodada morrer, **leia `retratos.json`/`claims.json` antes de re-rodar**: o que fechou já
+está lá, e o retrato declara em `cobertura` exatamente o que mediu e o que não mediu.
+Selftest da propriedade: `node scripts/governance/reguas-workflow.test.mjs` (zero agentes).
+
 ## As 7 regras duras do método (violou = grade rejeitada)
 
 1. **Dossiê do mapa VIVO, nunca de memória** — a Fase 0 lê o `mapa-dos-niveis` corrente
@@ -163,3 +179,18 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
   se o `sdd-scorecard.mjs` se recusa a compor com `not_yet_measured`, a grade também se recusa.
 - ❌ Tratar "GATED no Wagner" como categoria preguiçosa (regra 14): checar se a autorização
   já existe registrada e se só o flip é HITL antes de arquivar o item.
+
+## Regras 16-17 — vivem em CÓDIGO, não aqui (ADR 0353 · D4)
+
+As regras 16 (composição fiel ao journal) e 17 (disclosure do placar histórico) **não
+estão escritas nesta skill de propósito**. Elas viraram o **Órgão 3** da máquina de
+evolução: a composição fecha os números em JS (`reguas-do-sistema.js` — 1 fraqueza = 1
+linha, nota = média aritmética 1 decimal, fusão proibida por construção) e o disclosure
+sai do `integ_hist` do ledger automaticamente.
+
+Prosa que restateia o que o código já garante apodrece e diverge — doutrina
+[ADR 0329](../../../memory/decisions/0329-doutrina-executavel-nao-prosa.md) (executável >
+prosa) e lápide §5 2026-07-16 (artefato aponta pro dono, não restateia).
+
+**Dono da regra:** [`.claude/workflows/reguas-do-sistema.js`](../../workflows/reguas-do-sistema.js)
+(fase Grade + Persistir) · **lei:** [ADR 0353](../../../memory/decisions/0353-maquina-evolucao-reguas-looping.md).

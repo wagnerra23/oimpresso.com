@@ -1,4 +1,5 @@
 ---
+id: requisitos-srs-briefing
 module: SRS
 status: parcial
 status_nota: "legado uso interno raro (backoffice Wagner); deprecação PLANEJADA (DEPRECATION-PLAN 2026-05-17, Caminho 1 aprovado) mas NÃO executada — módulo 100% presente e servindo em prod. Sucessor prático: MCP server canon."

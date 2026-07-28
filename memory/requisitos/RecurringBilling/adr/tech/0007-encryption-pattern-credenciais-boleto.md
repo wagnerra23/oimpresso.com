@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-tech-0007-encryption-pattern-credenciais-boleto
+---
+
 # ADR TECH-0007 (RecurringBilling) · Encryption pattern de credenciais boleto
 
 - **Status**: accepted

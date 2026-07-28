@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-briefing
+---
+
 # BRIEFING — _DesignSystem · 🧭 porta (índice meta)
 
 > Pasta **meta** do Design System (62 docs): tokens de cor/tipo/espaço, ADRs UI, padrões de tela.

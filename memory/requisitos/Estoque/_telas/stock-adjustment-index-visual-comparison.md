@@ -1,4 +1,5 @@
 ---
+id: requisitos-estoque-telas-stock-adjustment-index-visual-comparison
 tela: stock_adjustment/index
 modulo: Inventory / StockAdjustment
 tipo: LIST

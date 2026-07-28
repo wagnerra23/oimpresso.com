@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-sells-quotations-charter
 page: /sells/quotations
 component: resources/js/Pages/Sells/Quotations.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

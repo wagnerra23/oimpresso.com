@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-boletos-visual-comparison
 slug: boletos-visual-comparison
 title: "Financeiro — Comparativo visual da tela Boletos (refator Cockpit V2)"
 type: visual-comparison

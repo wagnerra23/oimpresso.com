@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-runbook-index
 title: "RUNBOOK — ProjectMgmt Triage + Inbox (`/project-mgmt/triage` · `/project-mgmt/inbox`)"
 module: ProjectMgmt
 tela: ProjectMgmt/Triage/Index + ProjectMgmt/Inbox/Index
@@ -6,10 +7,10 @@ owner: W
 status: ativo
 last_validated: "2026-05-29"
 preconditions:
-  - "Usuário autenticado com permission `copiloto.mcp.usage.all` (Spatie UPOS canon — mesmo gate do Board/MyWork)"
+  - "Usuário autenticado com permission `jana.mcp.usage.all` (Spatie UPOS canon — mesmo gate do Board/MyWork)"
   - "Modules/ProjectMgmt + Modules/Jana ativos (tabelas mcp_tasks / mcp_inbox_notifications)"
   - "Projeto default `COPI` resolvível (config `projectmgmt.default_project_key`) — Triage"
-preconditions_short: copiloto.mcp.usage.all, ProjectMgmt+Jana ativos, projeto COPI (Triage)
+preconditions_short: jana.mcp.usage.all, ProjectMgmt+Jana ativos, projeto COPI (Triage)
 steps:
   - "GET /project-mgmt/triage carrega lista de tasks órfãs + 4 KPIs (Inertia::defer)"
   - "Triage: select inline owner/prioridade/cycle/epic → PATCH /triage/{taskId}/assign (otimista, rollback em erro)"
@@ -53,7 +54,7 @@ Ambas substituem a necessidade de operar via CLI/MCP pra membros não-técnicos 
 
 ## 3. Pré-requisitos
 
-- Permission `copiloto.mcp.usage.all` (middleware `can:` no constructor de ambos os Controllers) — sem ela: **403**
+- Permission `jana.mcp.usage.all` (middleware `can:` no constructor de ambos os Controllers) — sem ela: **403**
 - `auth` middleware (sem sessão → redirect login)
 - **Triage:** projeto resolvível via `?project=KEY` (default `COPI` por `config('projectmgmt.default_project_key')`). Sem projeto → `project=null`, lista vazia.
 - **Inbox:** `auth()->id()` válido (a query base é `WHERE user_id = me`)
@@ -167,7 +168,7 @@ curl -sv https://oimpresso.com/project-mgmt/inbox -H "Cookie: laravel_session=<s
 curl -sv 'https://oimpresso.com/project-mgmt/triage' -H 'X-Inertia: true' -H 'X-Inertia-Partial-Data: kpis,tasks' \
   -H 'Cookie: laravel_session=<sess>' 2>&1 | jq '.props.kpis'
 
-# 4. Permissão: usuário SEM copiloto.mcp.usage.all → 403
+# 4. Permissão: usuário SEM jana.mcp.usage.all → 403
 # 5. Tier 0 Inbox: sessão de user A não enxerga notificação de user B (markRead de id alheio → 404)
 # 6. Smoke INTERATIVO (Chrome MCP, quando ligar): J/K move foco, Enter abre Board, ⌘K abre palette, atribuir owner some da lista
 ```
@@ -201,7 +202,7 @@ curl -sv 'https://oimpresso.com/project-mgmt/triage' -H 'X-Inertia: true' -H 'X-
 
 | Sintoma | Causa provável | Fix |
 |---|---|---|
-| 403 ao abrir Triage/Inbox | Usuário sem `copiloto.mcp.usage.all` | Conceder permission (Spatie UPOS) |
+| 403 ao abrir Triage/Inbox | Usuário sem `jana.mcp.usage.all` | Conceder permission (Spatie UPOS) |
 | Triage vazia mas há tasks órfãs | `project` não resolveu (KEY errada / sem COPI) | Conferir `?project=` e `config('projectmgmt.default_project_key')` |
 | Atribuir não persiste / 422 | priority/cycle/epic inválido | Ver resposta JSON `error`; priority deve ∈ `McpTask::PRIORITIES`, cycle/epic devem existir |
 | Atribuir → 404 | `task_id` inexistente (TaskCrudService lança) | Recarregar lista (task pode ter sido removida) |

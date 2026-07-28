@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — sessões Claude Code paralelas via git worktree"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — sessões Claude Code paralelas via git worktree
 
 > **Problema:** 2-3 sessões Claude Code abertas simultâneas em `D:\oimpresso.com\` se atrapalham — commits caem na branch errada, `git add` captura arquivos de sessão vizinha, branch muda sem aviso.

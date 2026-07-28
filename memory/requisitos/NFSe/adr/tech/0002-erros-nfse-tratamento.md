@@ -1,4 +1,5 @@
 ---
+id: requisitos-nfse-adr-tech-0002-erros-nfse-tratamento
 name: NFSe — Hierarquia de exceções e retry policy
 description: Top 10 erros SN-NFSe mapeados, exceções tipadas, retry com backoff, idempotência
 type: decision

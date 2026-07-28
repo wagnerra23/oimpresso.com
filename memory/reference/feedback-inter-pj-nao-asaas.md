@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-inter-pj-nao-asaas
 name: Inter PJ é o caminho de cliente — Asaas fica como blueprint de referência
 description: Cliente cobra via Inter PJ. Asaas fica no repo como referência educacional (driver/webhook bem documentado), mas Claude não propõe Asaas pra cliente — só Inter.
 type: feedback

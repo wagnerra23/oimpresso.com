@@ -6,17 +6,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/Components/ui/dialog';
-import { AlertTriangle, Clock, TrendingUp, GhostIcon } from 'lucide-react';
+import { AlertTriangle, Clock, TrendingUp, GhostIcon, Unlink } from 'lucide-react';
 import type { KbNode } from '../_lib/types';
-import { fmtRelative, isNodeOutdated } from '../_lib/helpers';
+import { codeDriftRefs, fmtRelative, isNodeOutdated, nodeHasCodeDrift } from '../_lib/helpers';
 import { cn } from '@/Lib/utils';
 
 /**
- * HealthPanel — modal de saúde do KB (4 quadrantes)
+ * HealthPanel — modal de saúde do KB (5 quadrantes)
  *
- * Port do `kb-page.jsx::HealthPanel` (Cowork [CC]).
+ * Port do `kb-page.jsx::HealthPanel` (Cowork [CC]) + Fase #5 (doc↔código).
  *
  * Quadrantes:
+ *  - drift: cita código sumido no git (code_drift_state != null) — Fase A1/A2/#5.
+ *           Full-width, só aparece quando há drift (nunca afirma "código ok").
  *  - bad: marcados como desatualizados (status=outdated OU outdated_votes>=2)
  *  - warn: sem atualização há mais de 30 dias
  *  - ok: top-5 mais lidos do mês
@@ -31,6 +33,7 @@ interface Props {
 
 export default function HealthPanel({ open, onOpenChange, nodes, onPickNode }: Props) {
   const buckets = React.useMemo(() => {
+    const drift = nodes.filter(nodeHasCodeDrift);
     const outdated = nodes.filter(isNodeOutdated);
     const now = Date.now();
     const stale = nodes
@@ -43,7 +46,7 @@ export default function HealthPanel({ open, onOpenChange, nodes, onPickNode }: P
       .slice(0, 6);
     const popular = [...nodes].sort((a, b) => b.reads_count - a.reads_count).slice(0, 5);
     const lonely = nodes.filter((n) => n.reads_count < 50 && !n.pinned).slice(0, 5);
-    return { outdated, stale, popular, lonely };
+    return { drift, outdated, stale, popular, lonely };
   }, [nodes]);
 
   return (
@@ -55,10 +58,56 @@ export default function HealthPanel({ open, onOpenChange, nodes, onPickNode }: P
           </small>
           <DialogTitle>Saúde do KB</DialogTitle>
           <DialogDescription>
-            Visão dos artigos que precisam de atenção, dos mais consumidos e dos
-            esquecidos.
+            Documentos que citam código sumido no git, os que precisam de atenção,
+            os mais consumidos e os esquecidos.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Drift doc↔código (Fase #5) — full-width, só quando há drift.
+            Nunca mostra estado "limpo" (null = sem drift OU nunca checado). */}
+        {buckets.drift.length > 0 && (
+          <section className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+            <header className="flex items-center justify-between mb-2">
+              <b className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-destructive">
+                <Unlink size={14} /> Cita código que sumiu no git
+              </b>
+              <span className="font-mono text-[10.5px] text-muted-foreground">
+                {buckets.drift.length}
+              </span>
+            </header>
+            <ul className="space-y-0.5 list-none m-0 p-0">
+              {buckets.drift.map((n) => {
+                const refs = codeDriftRefs(n);
+                const checkedAt = n.code_drift_state?.checked_at ?? null;
+                return (
+                  <li key={n.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onPickNode(n.id);
+                        onOpenChange(false);
+                      }}
+                      className="w-full text-left rounded-md px-2 py-1 hover:bg-background/60"
+                    >
+                      <span className="block text-[12px] font-medium text-foreground truncate">
+                        {n.title}
+                      </span>
+                      <span className="block font-mono text-[10px] text-destructive truncate">
+                        {refs.map((r) => r.path).join(' · ')}
+                      </span>
+                      {checkedAt && (
+                        <span className="block text-[10px] text-muted-foreground">
+                          detectado {fmtRelative(checkedAt)}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-3">
           <Quadrant
             title="Marcados como desatualizados"

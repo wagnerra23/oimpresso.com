@@ -1,4 +1,5 @@
 ---
+id: requisitos-brief-governance-maturity-ficha
 modulo: Brief (Daily Brief MCP-tool)
 wave: 22
 agente: governance-maturity-ficha-brief

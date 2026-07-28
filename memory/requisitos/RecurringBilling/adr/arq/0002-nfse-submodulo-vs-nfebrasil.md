@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0002-nfse-submodulo-vs-nfebrasil
+---
+
 # ADR ARQ-0002 (RecurringBilling) · NFSe é sub-módulo dedicado, não estende NfeBrasil direto
 
 - **Status**: ⚠️ parcialmente superseded em 2026-04-30

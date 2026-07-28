@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-selling-prices-charter
 page: /products/add-selling-prices/{id}
 component: resources/js/Pages/Produto/SellingPrices.tsx
 page_id: produto-tabela-preco

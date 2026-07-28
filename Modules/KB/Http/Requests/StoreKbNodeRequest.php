@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
  * Extrai validation rules de KbNodeController@store preservando contrato exato
  * documentado em memory/requisitos/KB/SCHEMA-DB-V1.md §11.
  *
- * Permissão: 'copiloto.mcp.memory.manage' (V1 reusa permission canon; rename
+ * Permissão: 'jana.mcp.memory.manage' (V1 reusa permission canon; rename
  * Spatie pra kb.write fica em PR separado — ver KbNodeController docblock).
  *
  * Grafo de conhecimento preservado (ADR 0150 KB Unificado): regras de
@@ -25,7 +25,7 @@ class StoreKbNodeRequest extends FormRequest
     {
         $user = Auth::user();
 
-        return $user !== null && $user->can('copiloto.mcp.memory.manage');
+        return $user !== null && $user->can('jana.mcp.memory.manage');
     }
 
     /**

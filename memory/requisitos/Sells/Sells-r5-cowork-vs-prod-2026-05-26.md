@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-sells-r5-cowork-vs-prod-2026-05-26
+---
+
 # Sells/Index — Comparativo Cowork chat-jana vs Prod (2026-05-26)
 
 > Onda follow-up do P5 (Insights Jana tab). Wagner reportou "CSS não aplicado / tabs não aplicadas / tipografia errada" após o merge do PR #1684. Smoke test prod oimpresso.com/sells confirma que **tabs FUNCIONAM** e **CSS está aplicado** — porém há **gaps reais** entre a versão simplificada que entregamos e o protótipo Cowork `chat-jana.jsx` 2026-05-26.

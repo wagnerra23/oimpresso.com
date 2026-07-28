@@ -1,6 +1,8 @@
 ---
 proposal_id: reguas-loop-maquina-evolucao
-status: proposed
+status: ratified
+ratified_as: 0353-maquina-evolucao-reguas-looping
+ratified_at: "2026-07-26"
 created: 2026-07-19
 proposed_by: claude-code
 decided_by: wagner

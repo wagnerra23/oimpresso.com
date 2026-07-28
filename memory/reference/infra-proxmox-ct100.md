@@ -1,4 +1,5 @@
 ---
+id: reference-infra-proxmox-ct100
 name: Proxmox + CT 100 — acesso, hardening, runtime
 description: Servidor Proxmox empresa (192.168.0.2) + CT 100 docker-host (192.168.0.50) — credenciais (no Vaultwarden), SSH key-only + fail2ban systemd backend, Tailscale 100.99.207.66, stack Docker (22 containers — Traefik/Portainer/Vaultwarden/Centrifugo/Meilisearch/Langfuse/Jaeger/GrowthBook/staging/whatsmeow), bootstrap services, Traefik labels pattern, autossh tunnel pra Hostinger MySQL
 type: reference

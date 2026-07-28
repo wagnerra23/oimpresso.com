@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-ui-0003-amendment-0002-visao-unificada-cockpit-v2
+---
+
 # ADR UI-0003 (Financeiro) · Amendment 0002 — Visão Unificada Cockpit V2 (PR #349)
 
 - **Status**: accepted

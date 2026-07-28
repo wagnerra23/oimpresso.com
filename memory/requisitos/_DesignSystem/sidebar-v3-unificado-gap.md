@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-sidebar-v3-unificado-gap
 tipo: gap-spec
 tela: Shell / Sidebar (AppShellV2)
 prototipo: prototipo-ui/prototipos/sidebar-v3-unificado/visual-source.html

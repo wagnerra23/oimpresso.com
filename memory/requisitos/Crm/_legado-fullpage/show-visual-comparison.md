@@ -1,4 +1,5 @@
 ---
+id: requisitos-crm-legado-fullpage-show-visual-comparison
 slug: cliente-show-visual-comparison
 title: "Cliente — Comparativo visual /cliente/{id} React vs /contacts/{id} Blade (Wave 5 paralela + Slice 3 bloco BR)"
 type: visual-comparison

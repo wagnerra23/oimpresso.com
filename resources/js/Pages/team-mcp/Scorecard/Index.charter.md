@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-team-mcp-scorecard-index-charter
 page: /team-mcp/scorecard
 component: resources/js/Pages/team-mcp/Scorecard/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
@@ -19,7 +20,7 @@ charter_version: 1
 
 # Page Charter — `/team-mcp/scorecard` (DRAFT)
 
-> Criado no PR **Forja PR-3** (2026-06-16). **A Page não existia** — `ScorecardController@index` renderizava `team-mcp/Scorecard/Index` sem componente correspondente (rota quebrada). Este PR cria a Page em DS v6. Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Backend: `ScorecardController` + `ScorecardBuilderService` (Inertia::defer facts/checks). Ref: [scorecard-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/scorecard-visual-comparison.md).
+> Criado no PR **Forja PR-3** (2026-06-16). **A Page não existia** — `ScorecardController@index` renderizava `team-mcp/Scorecard/Index` sem componente correspondente (rota quebrada). Este PR cria a Page em DS v6. Persona: Wagner [W] (superadmin, `jana.mcp.usage.all`). Backend: `ScorecardController` + `ScorecardBuilderService` (Inertia::defer facts/checks). Ref: [scorecard-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/scorecard-visual-comparison.md).
 
 ## Mission
 
@@ -51,7 +52,7 @@ Painel **read-only** de saúde do MCP no padrão **Facts + Checks** (ADR 0091): 
 
 ## Restrições Tier 0
 
-- Permissão `copiloto.mcp.usage.all` no construtor.
+- Permissão `jana.mcp.usage.all` no construtor.
 - Repo-wide cross-business INTENCIONAL (ADR 0093) — governança da plataforma.
 
 ## Métricas de sucesso (validação Wagner)

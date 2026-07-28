@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-financeiro-unificado-visual-comparison
 slug: financeiro-unificado-visual-comparison
 title: "Financeiro — Comparativo visual da tela Visão Unificada"
 type: visual-comparison

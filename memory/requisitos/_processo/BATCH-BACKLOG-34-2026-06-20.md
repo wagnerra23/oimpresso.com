@@ -1,4 +1,5 @@
 ---
+id: requisitos-processo-batch-backlog-34-2026-06-20
 title: "Batch backlog — 34 perdidas com sinal qualificado (pronto pra tasks-create)"
 owner: W
 created: "2026-06-20"

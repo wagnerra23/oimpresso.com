@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-adr-arq-0003-administracao-roi-governance
+---
+
 # ADR ARQ-0003 — Camada administrativa, governança e ROI
 
 **Data:** 2026-04-26

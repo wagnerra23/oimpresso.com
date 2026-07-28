@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-transaction-payment-index-charter
 page: /payments/v2
 component: resources/js/Pages/TransactionPayment/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

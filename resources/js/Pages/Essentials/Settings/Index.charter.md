@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-settings-index-charter
 page: /hrm/settings
 component: resources/js/Pages/Essentials/Settings/Index.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

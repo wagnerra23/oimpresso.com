@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-runbook-cockpit
 slug: jana-runbook-cockpit
 title: "Jana — Runbook da tela Cockpit V2 Analista IA (/ia/cockpit)"
 type: runbook

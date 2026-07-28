@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-roadmap-gantt-dossier-2026-05-20
 title: "US-COPI-111 Roadmap Gantt — Dossier executável (V1 conclusão + V2 hierarchy/drag-drop)"
 type: dossier
 status: draft

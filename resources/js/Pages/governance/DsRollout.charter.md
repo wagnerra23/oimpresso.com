@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-governance-ds-rollout-charter
 page: /governance/ds-rollout
 component: resources/js/Pages/governance/DsRollout.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

@@ -2,7 +2,7 @@
 
 > **Sempre comece com `mcp__oimpresso__brief-fetch` (skill `brief-first` — auto-trigger no SessionStart, ADR 0225).**
 > Documento canônico — mudanças via ADR (ver "Como propor mudança" abaixo).
-> Best-practice 2026: enxuto (~110 linhas) + `@imports` recursivos pra detalhes.
+> Best-practice 2026: enxuto + `@imports` recursivos pra detalhes.
 
 > ⚠️ **CONTEXTO DE EXECUÇÃO:** Claude aqui roda como **agente desktop (GUI)**, NÃO CLI interativo.
 > - `gh` autenticado, `git push`/`gh pr create`/`gh pr merge` funcionam
@@ -21,7 +21,7 @@
 2. `my-work` → minhas tasks ativas
 3. (S4+) `charter-fetch <page-id>` antes de editar `.tsx` que tenha `.charter.md` ao lado
 4. **Antes de tocar UI** (Pages/Components/css): ler [Constituição UI v2 · ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [PT aplicável](memory/requisitos/_DesignSystem/padroes-tela/) + rodar [PRE-MERGE-UI](memory/requisitos/_DesignSystem/PRE-MERGE-UI.md)
-4b. **Antes de tocar design-memory** (`prototipo-ui/**` · charters · `*.casos.md` · build visual): ler [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](prototipo-ui/PROCESSO_MEMORIA_CC.md) (raiz do método anti-regressão — §5 REGRESSÕES PROIBIDAS + NÚCLEO 13 invariantes) + [`memory/LICOES_CC.md`](memory/LICOES_CC.md) (L-01… — lista viva, hoje até L-27). No fim da build, rodar `node prototipo-ui/ds-guard.mjs <arquivos tocados>` (§8) e, ao formalizar, `node prototipo-ui/integrity-check.mjs` (§15). _REGRESSÃO É INACEITÁVEL._
+4b. **Antes de tocar design-memory** (`prototipo-ui/**` · charters · `*.casos.md` · build visual): ler [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](prototipo-ui/PROCESSO_MEMORIA_CC.md) (raiz do método anti-regressão — §5 REGRESSÕES PROIBIDAS + NÚCLEO 13 invariantes) + [`memory/LICOES_CC.md`](memory/LICOES_CC.md) (L-01… — lista viva). No fim da build, rodar `node prototipo-ui/ds-guard.mjs <arquivos tocados>` (§8) e, ao formalizar, `node prototipo-ui/integrity-check.mjs` (§15). _REGRESSÃO É INACEITÁVEL._
 5. Trabalhar (ler código, edit, test)
 6. (S5+) `decide(domain, intent, payload)` se mudança custosa
 7. Commit conventional + `Refs: SPRINT-N PASSO M` (skill `commit-discipline` Tier A)

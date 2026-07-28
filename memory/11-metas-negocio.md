@@ -1,4 +1,6 @@
-# 11 — Metas de Negócio & Plano de Execução
+# 11 — Metas de Negócio & Plano de Execução ⚰️ snapshot histórico
+
+> ⚠️ **SNAPSHOT histórico (2026-04-24) — NÃO usar como norte atual.** Números e cenários datados podem divergir do norte vivo (ex: nº de enterprise diverge do NORTE-ROI). **Norte canônico:** [`NORTE-ROI.md`](NORTE-ROI.md) + meta [ADR 0022](decisions/0022-meta-5mi-ano-financeira.md). Preservado como seed histórico das metas Jana.
 
 > **Meta-âncora:** R$ [redacted Tier 0] milhões/ano de faturamento (ADR 0022)
 > **Status do prazo:** ⚠️ pendente — Wagner precisa fixar horizonte (12/24/36 meses)

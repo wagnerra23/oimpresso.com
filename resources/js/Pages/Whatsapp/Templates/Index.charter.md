@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-whatsapp-templates-index-charter
 page: /whatsapp/templates
 component: resources/js/Pages/Whatsapp/Templates/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

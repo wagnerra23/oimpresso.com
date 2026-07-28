@@ -1,20 +1,25 @@
 ---
+id: resources-js-pages-nfe-brasil-tributacao-config-default-charter
 page: /nfe-brasil/tributacao/config-default
 component: resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 owner: wagner
 status: draft
-last_validated: "2026-05-16"
+last_validated: "2026-07-27"
 parent_module: NfeBrasil
 related_adrs: [29, 93, 94]
 related_us: [US-NFE-010]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /nfe-brasil/tributacao/config-default
 
 > **Status:** draft em 2026-05-16. Charter criado pelo Wave M boost (auditoria NfeBrasil 71→82, gap D3.c charters 30%). Non-Goals + Anti-hooks aguardam aprovação Wagner antes de promover pra `status:live`.
+>
+> **Contrato executável:** [`ConfigDefault.casos.md`](ConfigDefault.casos.md) — UC-NFCD-01..06, defendidos por [`ConfigDefaultContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php).
+>
+> **v2 (2026-07-27) — errata de fatos:** a v1 nomeava um model, uma tabela, um FormRequest, dois métodos de controller e um service que **não existem** no repo; e dava como pendente um AuditLog que já estava implementado. Corrigido abaixo (⚠️ marca cada ponto). Precedência: *teste verde > casos > charter > SPEC* — o charter é lei de intenção, não garantia de correção ([`proibicoes.md`](../../../../../memory/proibicoes.md) §Regra de precedência).
 
 ---
 
@@ -32,10 +37,10 @@ Configurar os **defaults tributários por business** (regime fiscal, CSOSN/CST, 
 - Toggle CSOSN vs CST automático pelo regime (Simples/MEI=CSOSN, Lucro Pres/Real=CST)
 - Inputs ICMS, PIS, COFINS, IPI (decimal 0.0000 — 4 casas pra precisão fiscal)
 - Save via `useForm` Inertia POST `/nfe-brasil/tributacao/config-default`
-- Validação backend `ConfigDefaultRequest::authorize` (`nfe.tributacao.manage`)
+- Validação backend `UpsertConfigDefaultRequest::authorize` (`nfe.tributacao.manage`) — ⚠️ v1 dizia `ConfigDefaultRequest` (classe inexistente)
 - Toast feedback (sonner) — success em save, error em 4xx/5xx
 - Link "Voltar" → `/nfe-brasil/tributacao` (Index)
-- Multi-tenant Tier 0: `NfeTributacaoConfig::where('business_id', $businessId)` global scope (ADR 0093)
+- Multi-tenant Tier 0: `NfeBusinessConfig::where('business_id', $businessId)` + trait `HasBusinessScope` (ADR 0093) — ⚠️ v1 dizia `NfeTributacaoConfig` (model inexistente)
 - Defaults conservadores SP (ICMS 18%) — outros estados ajustam via regras NCM Nível 2/3
 - Hint visual no Select regime mostra defaults aplicados (educacional)
 
@@ -52,7 +57,7 @@ Configurar os **defaults tributários por business** (regime fiscal, CSOSN/CST, 
 - ❌ Calcular tributação de venda exemplo (motor calcula via `MotorTributarioService`, não preview UI)
 - ❌ Histórico de mudanças de defaults (audit via `activity_log`, não UI aqui)
 - ❌ Toggle ICMS-ST/MVA nessa tela (escopo cascata Nível 4 é defaults básicos; ST é regra NCM)
-- ❌ Save sem confirmação de mudança crítica (regime alterado afeta TODAS emissões posteriores — confirm UI)
+- ⚠️ ❌ Save sem confirmação de mudança crítica (regime alterado afeta TODAS emissões posteriores — confirm UI) — **DIVERGE do código: o `ConfigDefault.tsx` não confirma nada no submit.** Não virou UC de propósito: este charter é `draft` e os Non-Goals **nunca foram aprovados por [W]** (ver cabeçalho), e `charter-write` é proibida de inferir Non-Goal. Registrado como `[BACKLOG]` em [`ConfigDefault.casos.md`](ConfigDefault.casos.md) §Backlog. **Decisão [W]:** vira UC (e a UI ganha o confirm) — ou sai do charter.
 
 ---
 
@@ -86,12 +91,12 @@ Configurar os **defaults tributários por business** (regime fiscal, CSOSN/CST, 
 
 ## Automation Hooks
 
-- `GET /nfe-brasil/tributacao/config-default` → `ConfigDefaultController::edit` (Inertia render com config atual)
-- `POST /nfe-brasil/tributacao/config-default` → `ConfigDefaultController::update` (FormRequest valida regime+permissão; service persiste em `nfe_tributacao_config.tributacao_default` JSON)
-- Multi-tenant: `NfeTributacaoConfig` usa `HasBusinessScope` (ADR 0093) — 1 row por business
-- Service: `TributacaoConfigService::aplicarDefaults(regime)` retorna constante REGIME_DEFAULTS server-side espelhando client (consistência cascata)
-- Motor tributário downstream: `MotorTributarioService::calcular(item)` usa `tributacao_default` como fallback Nível 4 quando NCM regra não casa
-- Audit: `activity('nfe.tributacao.config')->log()` em save (mudança afeta emissões posteriores) — US-NFE-062 P1
+- `GET /nfe-brasil/tributacao/config-default` → `ConfigDefaultController::show` (Inertia render com config atual) — ⚠️ v1 dizia `::edit`; a rota nomeada é `nfe-brasil.tributacao.config.show`
+- `POST /nfe-brasil/tributacao/config-default` → `ConfigDefaultController::upsert` (FormRequest valida regime+permissão; o **próprio controller** persiste via `NfeBusinessConfig::updateOrCreate` em `nfe_business_configs.tributacao_default` JSON) — ⚠️ v1 dizia `::update` + tabela `nfe_tributacao_config` (inexistente) + "service persiste" (não há service neste caminho)
+- Multi-tenant: `NfeBusinessConfig` usa `HasBusinessScope` (ADR 0093) — 1 row por business (`business_id` UNIQUE)
+- ⚠️ **Revogado na v2:** *"Service `TributacaoConfigService::aplicarDefaults(regime)` espelha REGIME_DEFAULTS server-side"* — **essa classe não existe**. O `REGIME_DEFAULTS` vive **só no cliente** (`ConfigDefault.tsx`), e o wizard "Aplicar pelo regime" apenas pré-preenche o form; o servidor grava o que for submetido. Quem tem defaults server-side é o `TributacaoTemplateService` (outro caminho, disparado pelo Index). Afirmar o espelhamento é anti-padrão inventado que parece canon (`proibicoes.md` §5 2026-07-16)
+- Motor tributário downstream: `MotorTributarioService::calcular(item)` usa `tributacao_default` como fallback Nível 4 quando NCM regra não casa — lê a chave **`cfop`** (não `cfop_default`); ver `UC-NFCD-02`
+- Audit: ✅ **implementado** — `activity('nfe.tributacao')->log('config_default.upserted')` no `upsert` (com `business_id` + `regime` + `ncm_default`). ⚠️ v1 dava como pendente em US-NFE-062 P1 e usava o log-name `nfe.tributacao.config`, que não é o emitido
 - Validation: ICMS/PIS/COFINS/IPI ∈ [0, 1] (alíquotas decimais — 0.18 = 18%)
 
 ---
@@ -112,24 +117,21 @@ Configurar os **defaults tributários por business** (regime fiscal, CSOSN/CST, 
 
 ---
 
-## Métricas vivas (Pest GUARD — a escrever em F1.5)
+## Métricas vivas (Pest GUARD)
 
-```php
-// Modules/NfeBrasil/Tests/Charters/ConfigDefaultCharterTest.php
+⚠️ **v2 — errata:** a v1 listava 12 `it(...)` num arquivo `Modules/NfeBrasil/Tests/Charters/ConfigDefaultCharterTest.php` que **nunca existiu** (nem o diretório `Tests/Charters/`). Charter que promete teste inexistente deve ser revogado, não mantido como decoração (`how-trabalhar.md` §"Quando [W] pede o contrato da tela": *"§Pest GUARD que promete teste inexistente = revogar (grep antes de confiar)"*).
 
-it('renders under 1200ms p95 with form + current config')
-it('does not emit emails on render or save')
-it('does not call SEFAZ on save (config is internal)')
-it('does not write to DB on render (only on POST update)')
-it('isolates config by business_id (cross-tenant 404)')
-it('rejects regime outside enum {mei, simples, lucro_presumido, lucro_real}')
-it('rejects aliquota outside [0, 1] range')
-it('does not modify existing nfe_emissoes (append-only fiscal)')
-it('renders at 1280px without horizontal scroll')
-it('logs activity on save with business_id and regime change')
-it('preserveScroll true on save (no reload)')
-it('wizard preview shows REGIME_DEFAULTS before apply')
-```
+**Escritos** — [`Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php`](../../../../../Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php), rastreados por UC em [`ConfigDefault.casos.md`](ConfigDefault.casos.md):
+
+| Promessa da v1 | Onde vive agora |
+|---|---|
+| `isolates config by business_id` | `UC-NFCD-01` |
+| `rejects regime outside enum {…}` | `UC-NFCD-03` |
+| `rejects aliquota outside [0, 1] range` | `UC-NFCD-04` |
+| `does not modify existing nfe_emissoes (append-only fiscal)` | `UC-NFCD-05` |
+| — (não estava na v1; achado ao ler o motor) | `UC-NFCD-02` (alias `cfop`) · `UC-NFCD-06` (CSOSN⊕CST) |
+
+**Não escritos, e honestamente em aberto** (sem teste ⇒ sem afirmação): p95 de render, ausência de e-mail/SEFAZ no save, "não escreve no render", 1280px sem scroll, `preserveScroll`, preview do wizard, e o log de `activity` no save (implementado, mas nenhum teste prova). Viram UC quando ganharem teste que os cite (G-2) — enquanto isso não contam como cobertura.
 
 ---
 
@@ -150,3 +152,4 @@ it('wizard preview shows REGIME_DEFAULTS before apply')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | [CC] Wave M boost | Draft criado pelo Wave M auditoria (NfeBrasil 71→82, gap D3.c charters 30%). Non-Goals + Anti-hooks aguardam aprovação Wagner. |
+| 2026-07-27 | [CC] | **v2 — errata de fatos + trio fechado.** Corrigidos 6 pontos que nomeavam artefatos inexistentes (`NfeTributacaoConfig`, `nfe_tributacao_config`, `ConfigDefaultRequest`, `::edit`/`::update`, `TributacaoConfigService`) ou davam por pendente o AuditLog já implementado. §Pest GUARD revogado (arquivo prometido nunca existiu) e substituído pelo mapa promessa→UC. Nasce `ConfigDefault.casos.md` (UC-NFCD-01..06) + `ConfigDefaultContratoTest`. Non-Goal do "confirm no save" marcado como divergente e devolvido a [W] — segue **não aprovado**, então não virou `[must]`. |

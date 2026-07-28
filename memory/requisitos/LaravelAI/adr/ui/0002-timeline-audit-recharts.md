@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-adr-ui-0002-timeline-audit-recharts
+---
+
 # ADR UI-0002 (LaravelAI) · Timeline de auditoria via Recharts
 
 - **Status**: accepted

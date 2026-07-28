@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-from-claude-design-sessions-2026-04-27-prototipo-chat-cockpit
+---
+
 # Sessão 2026-04-27 — Protótipo "Chat Cockpit" + ADR 0039
 
 **Worktree:** Cowork (projeto "Oimpresso ERP Comunicação Visual")

@@ -1,4 +1,5 @@
 ---
+id: governance-architecture
 slug: oimpresso-architecture
 title: "Arquitetura e Escopo do Oimpresso ERP — estado atual e estado-alvo"
 type: architecture

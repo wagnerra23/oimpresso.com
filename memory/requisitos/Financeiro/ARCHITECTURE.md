@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-architecture
+---
+
 # Arquitetura — Financeiro
 
 ## 1. Objetivo

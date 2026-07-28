@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-agent-write-verification
 name: Agent pode alucinar Write/Edit — sempre verificar com ls
 description: Subagent reporta ter criado/editado arquivo mas o disk não tem. Verificar `ls -la <path>` + `wc -l` antes de confiar. Descoberto 2026-05-13.
 type: feedback

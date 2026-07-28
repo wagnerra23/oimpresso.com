@@ -1,4 +1,5 @@
 ---
+id: requisitos-vestuario-briefing
 module: Vestuario
 status: piloto
 status_nota: "live em produção via ROTA LIVRE biz=4 desde 2024-Q1"

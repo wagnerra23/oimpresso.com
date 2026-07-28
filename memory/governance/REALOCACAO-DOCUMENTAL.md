@@ -1,3 +1,7 @@
+---
+id: governance-realocacao-documental
+---
+
 # Realocação documental — runbook
 
 > Porta operacional única para classificar, mover e religar documentos. O fluxo

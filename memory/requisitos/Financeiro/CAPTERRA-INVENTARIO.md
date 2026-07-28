@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-capterra-inventario
 slug: capterra-inventario-financeiro
 title: "Inventário Capterra-style — Financeiro (pós-Ondas 12-21)"
 type: audit

@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-spec-fsm-wireup
+---
+
 # SPEC-FSM-WIREUP — Modules/Repair adoção do FSM canônico
 
 > **Status:** DRAFT — discovery + proposta. **NÃO IMPLEMENTAR** sem aprovação Wagner.

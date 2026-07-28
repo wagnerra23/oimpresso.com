@@ -46,6 +46,63 @@ jobs:
       - name: Índice de Planos em dia (advisory · ADR 0294 · nasce advisory ADR 0271)
         continue-on-error: true
         run: node scripts/governance/plans-index.mjs --check
+      # 2026-07-24 — FIAÇÃO QUE FALTAVA. O `--check` deste gerador EXISTIA e MORDE (exit 1),
+      # mas não era invocado em lugar nenhum (workflows · hooks · package.json). Resultado
+      # medido no dia: `_BACKLOG-GENERATED.md` estava drifado em +95/−78 linhas, mentindo
+      # sobre 968 US — sem nenhum sinal. É a classe "máquina existe, não está encaixada no
+      # fluxo" (correção-do-mecanismo ≠ invocação · proibicoes §5 2026-07-09).
+      # Casa aqui pelos irmãos: adr-index-generate/palette-generate/plans-index já vivem
+      # neste job, e o padrão canônico é gerador --write + gerador --check no CI.
+      # SEM continue-on-error DE PROPÓSITO — mas ATENÇÃO, a justificativa original estava
+      # FACTUALMENTE ERRADA e induziu erro em quem copiou o padrão (medido 2026-07-27, #4826):
+      # ela dizia "este job NÃO é required". **É** — o context `Governance Gate (índice +
+      # memory-health + meta-teste)` consta em `governance/required-checks-baseline.json`
+      # (o cabeçalho deste arquivo, L7-8, já dizia isso: "o flip JÁ OCORREU").
+      # Consequência real: hard-fail AQUI **bloqueia merge**, não é "vermelho honesto advisory".
+      # Para o `tasks-index-generate` isso é ACEITÁVEL e provavelmente desejado — índice gerado
+      # que drifta é defeito determinístico, de fix trivial (`--write`). O que NÃO se pode é
+      # copiar a justificativa: quem plugar step novo aqui herda BLOQUEIO, não advisory.
+      # (§5 2026-07-09 segue valendo: suprimir vermelho reconstrói gate-de-teatro. A questão
+      # não é suprimir — é saber que neste job o vermelho TRAVA, e decidir com isso à vista.)
+      - name: Índice de BACKLOG em dia (gerado × commitado — ADR 0070)
+        run: node scripts/governance/tasks-index-generate.mjs --check
+      # 2026-07-26 — MESMA CLASSE do plans-index acima: o lint NASCEU sem invocador.
+      # Medido no dia em que foi criado: `grep -rn sdd-output-lint .github/ package.json .claude/`
+      # → 0 hits. Máquina que existe e ninguém chama é chokepoint fantasma (§5 2026-07-09).
+      # A varredura do mesmo dia achou 9 de 89 scripts de governança sem invocador — a maioria
+      # é ferramenta sob demanda (stamper/supersede/relink) ou ESCREVE (charter-promote-signal
+      # promove draft→live: ligar sozinho seria mudar status sem humano). Este é o caso limpo:
+      # mede e não escreve.
+      # FORWARD-ONLY de propósito: `--check-novos` só olha `.casos.md` ADICIONADOS no diff.
+      # Os 35 refs legados ficam grandfathered — cobrar backfill de legado morre no CI e é a
+      # lápide de 2026-07-12. Bite-test provado em branch descartável: ruim→exit 1, bom→exit 0.
+      # ⚠️ continue-on-error OBRIGATÓRIO aqui, e a razão contradiz o comentário do
+      # tasks-index-generate acima: o job `Governance Gate (índice + memory-health +
+      # meta-teste)` **É REQUIRED** (conferido em governance/required-checks-baseline.json).
+      # Um step hard-fail dentro dele NÃO é "vermelho honesto advisory" — é BLOQUEIO DE MERGE.
+      # Sem esta linha, este lint (declarado advisory na ADR 0275 e no próprio PR que o criou)
+      # viraria gate bloqueante sem flip [W] — LC-10: o artefato afirmava um enforcement que
+      # o comportamento contradizia. Medido no #4826: derrubou o job required do próprio PR
+      # que criou os casos.md. Promover a bloqueante é decisão [W] (ADR 0336, mordida provada).
+      - name: Refs frágeis em casos.md novo (C1 · sdd-output-lint · forward-only)
+        continue-on-error: true
+        run: |
+          # fetch explícito da ref: sem ela o script cai no fallback e sai 0 SEMPRE —
+          # gate mudo é pior que gate ausente, porque parece cobertura.
+          git fetch origin main --quiet
+          node scripts/governance/sdd-output-lint.mjs --check-novos --base origin/main
+      # 2026-07-26 — CADEIA DE RASTREABILIDADE por módulo (US→CU→UC→teste). Régua da
+      # indústria (Jama Live Traceability · PTC · trace.space 2026): coverage = % de
+      # requisitos com cadeia COMPLETA da origem à evidência. O casos-gate vê UC↔teste e o
+      # anchor-lint vê US↔código; NINGUÉM percorria a cadeia inteira nem dizia ONDE quebra.
+      # O gerado é a FILA DE CRESCIMENTO: cada elo faltante é o próximo requisito a escrever.
+      # Advisory + forward-only: por ora só o Produto (piloto); outros módulos entram quando
+      # ganharem o arquivo (gerar 59 de uma vez seria big-bang de legado · §5 2026-07-12).
+      - name: self-test requisitos-status (extratores + classificador)
+        run: node scripts/governance/requisitos-status.mjs --selftest
+      - name: Cadeia de requisitos em dia (Produto · gerado × commitado)
+        continue-on-error: true
+        run: node scripts/governance/requisitos-status.mjs Produto --check
       # ENFORCE (GT-G5 · ledger §D — promovido 2026-07-04, avaliação adversarial SDD
       # 2026-07-03 risco sistêmico nº2): refutação adversarial de lote-IA de BRIEFINGs/SPECs
       # (PROTOCOLO-REFUTADOR-BACKFILL). Só dispara em PR com >10 arquivos em memory/requisitos/
@@ -108,6 +165,11 @@ jobs:
   # de CADA workflow com schedule, DESCOBERTOS dinamicamente (cobre cron novo/removido).
   # 🔴 cron morto · 🟡 bootstrap. Generaliza o job cron-liveness de memory-health.yml
   # (1 → 13 crons). Advisory ao nascer (ADR 0271); promover a required depois.
+  # EIXO 2 (2026-07-26) — ENTREGA: o mesmo script passou a checar também os artefatos
+  # de estado versionados que envelheceram. Motivo: liveness só cobre os 24 workflows
+  # do GitHub; os 76 schedules Laravel não têm API de liveness — e o caso real foi um
+  # cron VIVO que não ENTREGAVA (scorecards 71d congelados com o cron das 07:00
+  # rodando todo dia). Medir a consequência pega os dois. Segue advisory.
   crons-watchdog:
     name: crons de governança vivos? (watchdog G6 · ADR 0317)
     if: github.event_name == 'pull_request'

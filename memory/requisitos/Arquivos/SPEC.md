@@ -1,4 +1,5 @@
 ---
+id: requisitos-arquivos-spec
 slug: modules-arquivos-spec
 title: "Modules/Arquivos — SPEC"
 type: spec

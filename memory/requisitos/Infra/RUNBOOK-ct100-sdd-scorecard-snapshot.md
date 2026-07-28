@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-runbook-ct100-sdd-scorecard-snapshot
 title: "Snapshot diário do scorecard SDD no CT 100 (SDD P06 / GT-G7)"
 module: "Infra"
 owner: "W"

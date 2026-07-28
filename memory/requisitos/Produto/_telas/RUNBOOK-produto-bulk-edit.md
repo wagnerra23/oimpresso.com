@@ -1,9 +1,11 @@
 ---
+owner: W
+last_validated: "2026-06-15"
 slug: inventory-runbook-produto-bulk-edit
 title: "Produto — Runbook da tela Edição em massa (migração MWART)"
 type: runbook
 module: Inventory
-status: active
+status: ativo
 date: 2026-05-15
 ---
 
@@ -77,7 +79,7 @@ if (! empty($selected_products_string)) {
 - AppShellV2
 - PageHeader "Edição em massa · {N} produtos"
 - Tabela densa edit-in-place: cada linha = 1 produto + colunas editáveis (Categoria, Sub-categoria, Brand, Tax, Locations, preços por variação)
-- Submit POST `/products/mass-update`
+- Submit POST `/products/bulk-update` (writer real — `ProductController@bulkUpdate`, `routes/web.php:443`). A rota `mass-update` que este RUNBOOK declarava **nunca existiu**; [W] decidiu repontar a tela em 2026-07-27; charter e este RUNBOOK já declaram o writer real, e a linha do `.tsx` é aplicada junto com a correção do payload (`UC-PBULK-05`) — sozinha não faz a tela salvar.
 - Aviso: alterações afetam N produtos simultaneamente
 
 ### 3.3 Divergência blueprint declarada

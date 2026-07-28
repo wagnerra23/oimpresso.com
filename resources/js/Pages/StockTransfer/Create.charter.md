@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-stock-transfer-create-charter
 page: /stock-transfers/create
 component: resources/js/Pages/StockTransfer/Create.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

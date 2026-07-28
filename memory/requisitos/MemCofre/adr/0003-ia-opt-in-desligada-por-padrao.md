@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-0003-ia-opt-in-desligada-por-padrao
+---
+
 # ADR 0003 · IA opt-in, desligada por padrão
 
 - **Status**: accepted

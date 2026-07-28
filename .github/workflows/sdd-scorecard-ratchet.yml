@@ -51,9 +51,10 @@ jobs:
       # P14 (avaliação 2026-07-01, defeito nº 1): sem esta materialização o ratchet
       # lia not_yet_measured (governance/nightly-floor.json é gitignored, ausente no
       # checkout de PR) e PULAVA a métrica armada em silêncio — floor=298 era lei só
-      # no papel. Ramo do floor é HARD (full_suite está armed:true no baseline; fetch
-      # falho = vermelho, re-run resolve transiente). Coverage fica soft enquanto
-      # coverage_pct estiver armed:false — endurecer no PR que armar C2.
+      # no papel. Ramo do floor: full_suite está armed:FALSE desde 2026-07-13 (regime
+      # v1->v2 + janela envenenada; re-arme pendente — ver nota_armamento no baseline).
+      # Enquanto armed:false o floor drifta no canal warn (exit 0), NÃO bloqueia; ao
+      # re-armar vira HARD (fetch falho = vermelho). Coverage idem (coverage_pct armed:false).
       - name: Materializa floor + coverage da órfã governance/nightly-floor (P14 · ADR 0279/0275)
         run: |
           git fetch origin governance/nightly-floor --depth 1

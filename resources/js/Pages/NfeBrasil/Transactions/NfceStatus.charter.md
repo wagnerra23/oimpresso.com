@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-nfe-brasil-transactions-nfce-status-charter
 page: /nfe-brasil/transactions/{tx}/status
 component: resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)

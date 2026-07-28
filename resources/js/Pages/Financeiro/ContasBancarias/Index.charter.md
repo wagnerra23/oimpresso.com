@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-contas-bancarias-index-charter
 page: /financeiro/contas-bancarias
 component: resources/js/Pages/Financeiro/ContasBancarias/Index.tsx
 owner: wagner

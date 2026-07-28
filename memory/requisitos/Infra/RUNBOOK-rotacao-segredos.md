@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-runbook-rotacao-segredos
 title: "RUNBOOK — Rotação de segredos do repo público (US-INFRA-042)"
 module: Infra
 owner: W

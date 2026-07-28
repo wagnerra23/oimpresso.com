@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-briefing
+---
+
 # BRIEFING — EvolutionAgent · ⚰️ LÁPIDE (planejado, não existe)
 
 > ⚠️ **MATAR — planejado, nunca construído (ranqueador-de-ROI). Conceito absorvido pelo decisor canônico.**

@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-check-main-antes-pr
 name: Sempre fetch + log origin/main..HEAD antes de abrir PR
 description: Worktree de Claude pode estar baseada em commit antigo de main; check obrigatório evita duplicar trabalho do time e introduzir conflito
 type: feedback

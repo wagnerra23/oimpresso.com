@@ -1,4 +1,5 @@
 ---
+id: requisitos-manufacturing-spec
 module: Manufacturing
 owner: wagner
 version: "1.0"

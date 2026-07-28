@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
  * Extrai validation rules de KbCommentController@store preservando contrato exato
  * documentado em memory/requisitos/KB/SCHEMA-DB-V1.md §11.
  *
- * Permissão: 'copiloto.mcp.memory.manage' (V1 reusa permission canon — ver
+ * Permissão: 'jana.mcp.memory.manage' (V1 reusa permission canon — ver
  * StoreKbNodeRequest pra contexto sobre rename Spatie futuro).
  *
  * Comentários inline ancorados em block_idx; max 5000 chars por comentário.
@@ -24,7 +24,7 @@ class StoreKbCommentRequest extends FormRequest
     {
         $user = Auth::user();
 
-        return $user !== null && $user->can('copiloto.mcp.memory.manage');
+        return $user !== null && $user->can('jana.mcp.memory.manage');
     }
 
     /**

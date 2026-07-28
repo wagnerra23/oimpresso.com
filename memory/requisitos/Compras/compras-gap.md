@@ -1,3 +1,7 @@
+---
+id: requisitos-compras-compras-gap
+---
+
 # Gap — Compras/Index.tsx (vivo) × compras-page.jsx (mockup Cowork)
 
 > Fase 1 (READ-ONLY) da skill `aplicar-prototipo`. Mapeia o que o mockup propõe que a tela viva NÃO tem, e onde o vivo já passou na frente (stale).

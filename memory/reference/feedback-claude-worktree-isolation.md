@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-claude-worktree-isolation
 name: Claude edita canon do oimpresso via atomic Bash chain (worktrees ad-hoc não servem)
 description: Regra Wagner 2026-05-27 — quando Claude edita arquivos canon (memory/decisions, memory/reference, .claude/skills, ADRs etc) do oimpresso, e working dir é o main repo D:/oimpresso.com onde Wagner trabalha em paralelo trocando branches, SEMPRE usar atomic Bash chain (stash + checkout + edit + commit + push + checkout + stash pop em sequência sem janela pro Wagner intervir). Worktrees ad-hoc do harness ficam em .claude/worktrees que é gitignored — NÃO servem como isolation real. 3 incidentes documentados + pegadinha worktree ignored.
 type: feedback

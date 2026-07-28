@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-programa-ondas-template-onda-modulo
 titulo: Template de Onda por Módulo (gabarito reusável)
 status: proposto
 owner: W

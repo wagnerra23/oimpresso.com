@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-tech-0001-scoring-adr-pesa-1-2x-no-chat
+---
+
 # ADR TECH-0001 · Scoring de ADR pesa 1.2x no assistente
 
 - **Status**: accepted

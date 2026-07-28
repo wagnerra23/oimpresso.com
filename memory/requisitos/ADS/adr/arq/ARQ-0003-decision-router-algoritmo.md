@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-adr-arq-arq-0003-decision-router-algoritmo
 slug: ARQ-0003-decision-router-algoritmo
 title: "Decision Router — Algoritmo de roteamento e hierarquia de precedência"
 status: accepted

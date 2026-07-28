@@ -1,4 +1,5 @@
 ---
+id: requisitos-crm-briefing
 distilled_at: "2026-07-22"
 distilled_by: jana:distill-module-truth
 module: Crm

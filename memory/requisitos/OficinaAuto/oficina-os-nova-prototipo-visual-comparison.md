@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-oficina-os-nova-prototipo-visual-comparison
 slug: oficinaauto-oficina-os-nova-prototipo-visual-comparison
 title: "OficinaAuto — Comparativo visual Nova OS (prototipo oficina-os-page.jsx)"
 type: visual-comparison

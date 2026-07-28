@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-brave-mcp-primeiro-sempre
 name: feedback-brave-mcp-primeiro-sempre
 description: Wagner SEMPRE prefere Claude controlar Brave/Chrome MCP pra olhar UI ao vivo em vez de pedir validação humana ou deploy precoce. Não perguntar mais.
 type: feedback

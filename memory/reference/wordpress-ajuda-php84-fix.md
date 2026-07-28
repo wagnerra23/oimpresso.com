@@ -1,4 +1,5 @@
 ---
+id: reference-wordpress-ajuda-php84-fix
 name: WP /ajuda/ fix create_function PHP 8.4
 description: O WordPress 6.1.10 em /ajuda/ quebrou com PHP 8.4 porque o plugin ht-knowledge-base usa create_function() (removido no PHP 8.0). Patch aplicado 2026-04-25 trocando 6 ocorrências por closures em widget-kb-{toc,categories,articles,search,authors}.php + exits/php/widget-kb-exits.php. Backup em ht-knowledge-base.bak.20260425-195657. ATENÇÃO: atualizar o plugin pelo wp-admin sobrescreve o patch.
 type: reference

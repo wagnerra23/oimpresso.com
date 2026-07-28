@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-adr-arq-arq-0002-dual-brain-papeis
 slug: ARQ-0002-dual-brain-papeis
 title: "Dual Brain — Papéis de Brain A (Ollama) e Brain B (Claude API)"
 status: accepted

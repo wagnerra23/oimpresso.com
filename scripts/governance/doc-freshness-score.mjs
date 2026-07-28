@@ -217,7 +217,14 @@ function walkReq() {
     for (const e of entries) {
       const p = `${rel}/${e.name}`;
       if (e.isDirectory()) walk(p);
-      else if (/^(SPEC|BRIEFING|RUNBOOK[^/]*)\.md$/.test(e.name)) out.push(p);
+      // 2026-07-26 — `SDD-*` entra no corpus. O SDD é o doc que descreve o fluxo e os casos
+      // de uso de uma família de telas (ADR 0351) e ENVELHECE como qualquer outro: aponta
+      // paths de Controller/Service que somem no refactor. Medido no dia: o radar cobria
+      // 363 docs e ZERO SDD — o artefato central do programa SDD era o único sem sentinela
+      // de frescor. (Os `casos.md` NÃO entram aqui de propósito: já têm vigilância própria
+      // e mais forte no `casos-gate` G-6, required — "tela mudou depois do last_run".
+      // Duplicar seria dois juízes pro mesmo tema · proibicoes §5 2026-07-09.)
+      else if (/^(SPEC|BRIEFING|RUNBOOK[^/]*|SDD[^/]*)\.md$/.test(e.name)) out.push(p);
     }
   };
   walk('memory/requisitos');

@@ -1,9 +1,11 @@
 ---
+owner: W
+last_validated: "2026-06-08"
 slug: infra-runbook-growthbook-deploy
 title: "Infra — Runbook deploy GrowthBook self-hosted (CT 100)"
 type: runbook
 module: Infra
-status: active
+status: ativo
 date: 2026-05-08
 ---
 

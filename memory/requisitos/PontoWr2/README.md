@@ -1,4 +1,5 @@
 ---
+id: requisitos-ponto-wr2-readme
 module: PontoWr2
 alias: pontowr2
 status: ativo

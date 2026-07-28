@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-spec
 module: ProjectMgmt
 owner: wagner
 version: "2.0.0"
@@ -54,7 +55,7 @@ Module Jira-style já em prod desde 2026-05-04 (PRs #91/#92). Redesign UI em **4
 
 ✅ **concluída 2026-05-07** ([PR #209](https://github.com/wagnerra23/oimpresso.com/pull/209))
 
-- [x] `Modules/ProjectMgmt/Http/Controllers/SearchController.php` — `GET /project-mgmt/search?q=` busca cross-resource (mcp_tasks/epics/cycles/projects), permission `copiloto.mcp.usage.all`, LIKE simples, agrupa por tipo, limita 10/5/5/5
+- [x] `Modules/ProjectMgmt/Http/Controllers/SearchController.php` — `GET /project-mgmt/search?q=` busca cross-resource (mcp_tasks/epics/cycles/projects), permission `jana.mcp.usage.all`, LIKE simples, agrupa por tipo, limita 10/5/5/5
 - [x] `resources/js/Components/CommandPalette.tsx` — `CommandDialog` shadcn (cmdk lib) + fetch debounced 220ms + grupos com prioridade dot + status badges
 - [x] Atalho global Cmd/Ctrl+K em `AppShellV2` toggle palette (listener com cleanup)
 - [x] 4 cenários Pest cobrindo permission/empty/shape/match
@@ -97,7 +98,7 @@ Module Jira-style já em prod desde 2026-05-04 (PRs #91/#92). Redesign UI em **4
 
 - [x] **Backend foundation já existia** em `TaskCrudService::comment()` (regex `/@([a-z][a-z0-9_-]+)/i` + `McpInboxNotification::notify()` dispatch)
 - [x] `BoardController::addComment` — `POST /project-mgmt/board/{taskId}/comment`, validação body required/min:1/max:5000
-- [x] `BoardController::suggestUsers` — `GET /project-mgmt/board/users/suggest?q=`, autocomplete users com permission `copiloto.mcp.usage.all`, LIKE em username/first_name/last_name, limit 10
+- [x] `BoardController::suggestUsers` — `GET /project-mgmt/board/users/suggest?q=`, autocomplete users com permission `jana.mcp.usage.all`, LIKE em username/first_name/last_name, limit 10
 - [x] `resources/js/Components/MentionInput.tsx` — textarea com trigger '@' + autocomplete debounced 180ms + ↑↓ navegar + Enter/Tab completar + Esc fechar + Cmd+Enter enviar
 - [x] DetailSheet tab Comments com form inline + Button Send + handlePostComment otimista
 - [x] 5 cenários Pest
@@ -277,15 +278,15 @@ Vejo no card os **ADRs/SPECs relacionados** (diferencial memory-linked): `mcp_ta
 
 ## Regras de negócio (Gherkin)
 
-### R-PMG-001 · Permission gate `copiloto.mcp.usage.all`
+### R-PMG-001 · Permission gate `jana.mcp.usage.all`
 
 ```gherkin
-Dado que um usuário NÃO tem permission `copiloto.mcp.usage.all`
+Dado que um usuário NÃO tem permission `jana.mcp.usage.all`
 Quando ele acessa qualquer endpoint do BoardController/SearchController
 Então recebe 403 Unauthorized
 ```
 
-**Implementado em:** Middleware `can:copiloto.mcp.usage.all` no constructor dos Controllers.
+**Implementado em:** Middleware `can:jana.mcp.usage.all` no constructor dos Controllers.
 **Testado em:** 6+ cenários `BoardControllerTest::*sem permission*`.
 
 ### R-PMG-002 · Multi-tenant não aplicável (governance)

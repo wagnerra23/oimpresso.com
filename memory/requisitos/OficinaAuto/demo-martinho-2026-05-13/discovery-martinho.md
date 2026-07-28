@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-demo-martinho-2026-05-13-discovery-martinho
+---
+
 # Discovery — Reunião Martinho Caçambas (2026-05-13 10h)
 
 > **Tipo:** registro pós-reunião · piloto qualificado #1 Modules/OficinaAuto

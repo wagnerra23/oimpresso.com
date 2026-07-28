@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-manual-identidade
 title: "Manual de Identidade Visual — Clareza Confiante"
 owner: wagner
 last_reviewed: "2026-06-06"

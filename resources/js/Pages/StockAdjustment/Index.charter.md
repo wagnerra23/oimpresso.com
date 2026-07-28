@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-stock-adjustment-index-charter
 page: /stock-adjustments
 component: resources/js/Pages/StockAdjustment/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

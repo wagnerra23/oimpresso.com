@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-consulta-os-index-charter
 page: /consulta-os
 component: resources/js/Pages/ConsultaOs/Index.tsx
 related_prototype: n/a (página pública de acompanhamento — bespoke; não segue um dos 5 Padrões de Tela)

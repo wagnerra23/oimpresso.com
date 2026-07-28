@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-suporte-empresas-charter
 page: /suporte/empresas
 component: resources/js/Pages/Suporte/Empresas.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-observability
+---
+
 # OBSERVABILITY — Modules/Financeiro
 
 > Declaração canônica de pontos de hook OTel (D9.a Observability v3 — 2026-05-16).

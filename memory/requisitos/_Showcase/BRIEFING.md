@@ -1,3 +1,7 @@
+---
+id: requisitos-showcase-briefing
+---
+
 # BRIEFING — _Showcase · ⚰️ FUNDIDO em _DesignSystem (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `_DesignSystem`** (decisão E1 · frente KL · 2026-06-15).

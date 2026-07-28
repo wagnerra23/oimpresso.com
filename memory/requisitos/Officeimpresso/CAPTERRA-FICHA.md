@@ -1,3 +1,7 @@
+---
+id: requisitos-officeimpresso-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Officeimpresso
 
 > Ficha canônica de benchmark do módulo bridge Officeimpresso.

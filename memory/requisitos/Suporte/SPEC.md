@@ -1,4 +1,5 @@
 ---
+id: requisitos-suporte-spec
 module: Suporte
 version: "1.2"
 last_updated: "2026-06-24"

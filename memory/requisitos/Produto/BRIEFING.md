@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-briefing
 module: Produto
 status: parcial
 updated_at: "2026-07-20"

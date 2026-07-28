@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-design-literal-copy-quando-aprovado
 slug: feedback-design-literal-copy-quando-aprovado
 title: Quando Wagner aprova screenshot do prototype → COPIAR literal, não fatiar
 type: feedback

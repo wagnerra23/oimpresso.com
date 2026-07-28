@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-auditoria-reconciliacao-tripla-analise-por-setor-2026-06-22
+---
+
 # AUDITORIA — Reconciliação protótipo≡spec≡produção + Análise POR SETOR (SOTA Ângulo 1)
 
 > **Tema:** método para manter os **três** artefatos do loop Cowork→code em SINCRONIA (protótipo · spec/charter · produção) e formalizar a **análise por setor/região** (comparar parte-por-parte, não tela-inteira).

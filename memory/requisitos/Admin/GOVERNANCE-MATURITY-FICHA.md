@@ -1,3 +1,7 @@
+---
+id: requisitos-admin-governance-maturity-ficha
+---
+
 # GOVERNANCE-MATURITY-FICHA — Modules/Admin
 
 > Auditoria comparativa Admin Center (Wagner-only @ CT 100) vs InfoSec/Ops dashboards líderes 2026.

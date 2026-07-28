@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0001-tailwind-4-como-fundacao-css
+---
+
 # ADR UI-0001 (_DesignSystem) · Tailwind 4 como fundação de CSS
 
 - **Status**: accepted

@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-chat-header-tabs-visual-comparison
 slug: jana-chat-header-tabs-visual-comparison
 title: "Jana/Chat — header sticky com tabs Dashboard | Chat (gate F1.5 escopo Wagner 2026-05-18)"
 type: visual-comparison

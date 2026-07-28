@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-todo-edit-charter
 page: /essentials/todo/{id}/edit
 component: resources/js/Pages/Essentials/Todo/Edit.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

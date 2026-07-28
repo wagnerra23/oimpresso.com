@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-arq-0001-6-modulos-event-driven
+---
+
 # ADR ARQ-0001 (RecurringBilling) · 6 sub-módulos event-driven, não monolito
 
 - **Status**: accepted

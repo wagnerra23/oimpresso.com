@@ -328,12 +328,21 @@ jobs:
   # ── AGREGADOR REQUIRED: DS gate ────────────────────────────────────────────
   # Único contexto required do workflow. Bloqueia SÓ nos 2 sub-checks LEI (cor-crua + UI Lint).
   # Os 5 advisory rodam em paralelo e NÃO entram aqui (não são `needs`) — vermelho deles não
-  # bloqueia merge. `if: always()` garante que o agregador roda mesmo quando um needs falhou,
-  # pra reportar exit 1 real (sem isso, job skipado vira required pendente — deadlock).
+  # bloqueia merge. `if: !cancelled()` garante que o agregador roda mesmo quando um needs
+  # FALHOU, pra reportar exit 1 real (sem isso, job skipado vira required pendente —
+  # deadlock) — MAS não roda quando o próprio run está sendo CANCELADO.
+  #
+  # 2026-07-24 — era `always()`, e isso confundia CANCELADO com FALHO. MEDIDO 2× em 10min
+  # (PR #4779 job 89577342183 · PR #4780 job 89578563195): ao empurrar commit de follow-up,
+  # o `concurrency: cancel-in-progress` cancela o run anterior; com `always()` o agregador
+  # ainda rodava, lia `needs.ui-lint.result == 'cancelled'` e cuspia
+  # "🔴 DS gate BLOQUEADO — LEI UI Lint falhou". Vermelho FALSO num run SUPERSEDIDO, e do
+  # pior tipo: acusa a lei ERRADA (o UI Lint estava íntegro — só não chegou a rodar).
+  # Run cancelado não é veredito; quem vale é o run do SHA novo.
   ds-gate:
     name: DS gate
     needs: [conformance, ui-lint]
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - name: Agregar sub-checks LEI (cor-crua + UI Lint bloqueiam)
@@ -341,6 +350,17 @@ jobs:
           echo "conformance (cor-crua): ${{ needs.conformance.result }}"
           echo "ui-lint:                ${{ needs.ui-lint.result }}"
           fail=0
+          # 2ª camada (o `if: !cancelled()` do job é a 1ª): cobre o caso em que UM need é
+          # cancelado sem o run inteiro ser. `cancelled` NÃO é veredito — o sub-check não
+          # chegou a rodar, então não há lei violada pra acusar. Reporta e sai 0; o run do
+          # SHA novo é quem decide. Confundir os dois foi o falso-vermelho de 2026-07-24.
+          for r in "${{ needs.conformance.result }}" "${{ needs.ui-lint.result }}"; do
+            if [ "$r" = "cancelled" ]; then
+              echo "⚪ DS gate NEUTRO — sub-check cancelado (run supersedido por commit novo)."
+              echo "   Cancelado != falho: nenhuma lei foi violada, o job não rodou."
+              exit 0
+            fi
+          done
           if [ "${{ needs.conformance.result }}" != "success" ]; then
             echo "::error::LEI cor-crua falhou (ex-Conformance · cor-crua ratchet vs baseline)"; fail=1
           fi

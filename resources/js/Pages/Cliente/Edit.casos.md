@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-edit-casos
 casos: Edição de cliente · /contacts/{id}/edit + autosave inline no drawer
 irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
@@ -9,7 +10,11 @@ last_run: "2026-07-08"
 
 # Casos de Uso & Aceite — Edição de cliente
 
-> Fase 2 (lanes do Cliente). UCs ancorados em feature tests HTTP reais (Pest, CT100, lane ativa): `ClienteEditInertiaTest` (edit/update Inertia + Tier 0) e `ClienteDrawerCadastroAutosaveTest` (PATCH autosave inline do drawer 760).
+> Fase 2 (lanes do Cliente). UCs ancorados em feature tests HTTP reais (Pest, CT100): `ClienteEditInertiaTest` (edit/update Inertia + Tier 0) e `ClienteDrawerCadastroAutosaveTest` (PATCH autosave inline do drawer 760). Derivam do SDD [§6.1 CU-CLI-02/03](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md).
+>
+> ⚖️ **Onde estes UC rodam, e com que força** (medido 2026-07-27): lane `PHP / Pest (Cliente · MySQL)` — [`cliente-pest.yml`](../../../../.github/workflows/cliente-pest.yml), criada 2026-07-27, **advisory** (não está em [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json): reprova visível, **não bloqueia merge**). **Antes dela** os 2 testes rodavam só no nightly do CT 100 e em nenhuma lane de PR — a redação anterior dizia "lane ativa" e era falsa. Onde as linhas abaixo dizem "passa no CI", leia-se **passava no nightly**.
+>
+> ⚠️ **Contexto Tier 0 do UC-CEDI-03:** o 404 cross-tenant **não** vem de global scope — `app/Contact.php` tem **0** ocorrências de `addGlobalScope` (SDD §5.4.2). Vem do `where('business_id')` manual do controller. O UC defende o **efeito**; o **mecanismo** é decisão aberta (US-CRM-080).
 >
 > **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC e passa (manifesto não regravado) · ⬜ não verificado · ❌ quebrou.
 
@@ -54,10 +59,22 @@ last_run: "2026-07-08"
 - **[BACKLOG] `opening_balance` exibido já descontado do pago** (via `getTotalAmountPaid`) — anchor em teste de payload dedicado.
 - **[BACKLOG] Autosave dos outros tabs (contato/endereço/comercial/classificação)** — expandir citando `ClienteDrawerCadastroAutosaveTest` casos restantes.
 
+## Rastreabilidade (UC → CU do SDD → US do SPEC)
+
+| UC | CU (SDD §6) | US (SPEC) |
+|---|---|---|
+| UC-CEDI-01 | CU-CLI-02 | — |
+| UC-CEDI-02 | CU-CLI-02 | — |
+| UC-CEDI-03 | CU-CLI-02 · CU-CLI-11 | — |
+| UC-CEDI-04 | CU-CLI-03 | — |
+
+> Coluna US **vazia de propósito**: nenhuma das 22 US do SPEC declara estes dois testes no seu `**Testado em:**` (a US-CRM-073, a mais próxima, aponta pra `tests/br-inputs.test.tsx`). Declarar vínculo por semelhança de tema tiraria a US do backlog sem prova — é a gamificação que o `citadoComoAncora` foi endurecido pra impedir.
+
 ## Como rodar a suíte
 1. **Pest:** `docker exec oimpresso-staging php artisan test --filter="ClienteEditInertiaTest|ClienteDrawerCadastroAutosaveTest"` no CT100.
 2. **Manifesto:** `npm run casos:results` → 🧪 vira ✅.
 3. **Cadência:** rodar ao fim de toda mexida em `Edit.tsx` / `_form/ClienteForm` / `ClienteAutosaveController`.
 
 ## Trilha do tempo
+- 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Correções factuais: "lane ativa" era falso (lane criada agora, **advisory**, força declarada) + o 404 do UC-CEDI-03 **não** vem de global scope (`app/Contact.php` tem 0 `addGlobalScope` — medido), vem do `where()` manual. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) §5.4.2/§6.1 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). 4 UCs ancorados em `ClienteEditInertiaTest` (edit/update + Tier 0 404) e `ClienteDrawerCadastroAutosaveTest` (PATCH autosave mod 11). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0179](../../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md).

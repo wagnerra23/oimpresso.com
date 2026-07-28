@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-importacoes-index-charter
 page: /ponto/importacoes
 component: resources/js/Pages/Ponto/Importacoes/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

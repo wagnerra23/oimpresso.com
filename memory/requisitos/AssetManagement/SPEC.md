@@ -1,4 +1,5 @@
 ---
+id: requisitos-asset-management-spec
 module: AssetManagement
 version: "1.0"
 last_updated: "2026-07-02"

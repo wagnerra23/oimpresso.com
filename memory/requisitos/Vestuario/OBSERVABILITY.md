@@ -1,3 +1,7 @@
+---
+id: requisitos-vestuario-observability
+---
+
 # Vestuario — Observability (OTel / logs / métricas)
 
 > Documento canônico de observabilidade do **Modules/Vestuario**. Atualizado 2026-05-16. D9 dim v3.

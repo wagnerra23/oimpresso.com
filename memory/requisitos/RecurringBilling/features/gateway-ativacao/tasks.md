@@ -1,4 +1,5 @@
 ---
+id: requisitos-recurring-billing-features-gateway-ativacao-tasks
 feature: gateway-ativacao
 module: RecurringBilling
 ---

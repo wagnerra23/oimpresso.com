@@ -7,6 +7,9 @@
         "nao_e": "NAO e a lista de telas que EXISTEM (isso e charter/anchor). E a lista das que estao LIVE pra tenant real. existir != estar live."
     },
     "live": {
+        "Admin/ScreenReviewDashboard": [
+            "1"
+        ],
         "Cliente/Create": [
             "*"
         ],
@@ -28,6 +31,12 @@
         "Cliente/Show": [
             "*"
         ],
+        "Financeiro/Caixa/Index": [
+            "4"
+        ],
+        "Financeiro/Cobranca/Index": [
+            "4"
+        ],
         "Financeiro/Conciliacao/Index": [
             "1"
         ],
@@ -46,21 +55,95 @@
         "Financeiro/Unificado/Index": [
             "4"
         ],
+        "Home/Index": [
+            "1",
+            "4"
+        ],
+        "Jana/Chat": [
+            "1",
+            "4"
+        ],
         "Jana/Dashboard": [
             "1",
             "4"
         ],
+        "OficinaAuto/AprovacaoPublica": [
+            "164"
+        ],
         "OficinaAuto/ServiceOrders/Board": [
+            "164"
+        ],
+        "OficinaAuto/ServiceOrders/Create": [
+            "164"
+        ],
+        "OficinaAuto/ServiceOrders/Edit": [
             "164"
         ],
         "OficinaAuto/ServiceOrders/Show": [
             "164"
         ],
+        "OficinaAuto/Vehicles/Create": [
+            "164"
+        ],
+        "OficinaAuto/Vehicles/Edit": [
+            "164"
+        ],
+        "OficinaAuto/Vehicles/Index": [
+            "164"
+        ],
+        "ProjectMgmt/Board/Index": [
+            "1"
+        ],
+        "RecurringBilling/Configuracoes/Index": [
+            "4"
+        ],
+        "RecurringBilling/Faturas/Index": [
+            "4"
+        ],
         "RecurringBilling/Index": [
+            "4"
+        ],
+        "RecurringBilling/Planos/Create": [
+            "4"
+        ],
+        "RecurringBilling/Planos/Edit": [
+            "4"
+        ],
+        "RecurringBilling/Planos/Index": [
+            "4"
+        ],
+        "Repair/Dashboard/Index": [
+            "1"
+        ],
+        "Repair/JobSheet/Index": [
+            "1"
+        ],
+        "Repair/Status/Index": [
+            "1"
+        ],
+        "Sells/Create": [
             "4"
         ],
         "Sells/Index": [
             "4"
+        ],
+        "governance/Audit": [
+            "1"
+        ],
+        "governance/Dashboard": [
+            "1"
+        ],
+        "governance/DriftAlerts": [
+            "1"
+        ],
+        "governance/ModuleGrades/Index": [
+            "1"
+        ],
+        "governance/ModuleGrades/Show": [
+            "1"
+        ],
+        "governance/Policies": [
+            "1"
         ]
     }
 }

@@ -98,6 +98,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/memory-schema-guard.mjs"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/block-mwart-violation.mjs"
           },
           {
@@ -209,6 +213,15 @@
           {
             "type": "command",
             "command": "node .claude/hooks/block-test-fora-ct100.mjs"
+          }
+        ]
+      },
+      {
+        "matcher": "Glob|Grep|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-instrumento-sem-porta-viva.mjs"
           }
         ]
       }

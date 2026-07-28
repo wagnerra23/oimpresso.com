@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-sells-create-vs-edit-prod-2026-05-26-comparativo
 session: 2026-05-26 smoke test prod Hostinger pós KB-9.75 P0-P3 + fix #1646
 page: /sells/create + /sells/{id}/edit
 component: resources/js/Pages/Sells/Create.tsx + resources/js/Pages/Sells/Edit.tsx

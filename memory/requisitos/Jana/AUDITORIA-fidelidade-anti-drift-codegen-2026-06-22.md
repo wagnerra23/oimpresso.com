@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-auditoria-fidelidade-anti-drift-codegen-2026-06-22
+---
+
 # AUDITORIA — Fidelidade & Anti-Drift no codegen AI→produção (SOTA Ângulo 3)
 
 > **Tema:** como medir/garantir fidelidade visual e travar drift entre o que a IA gera (protótipo Claude Design) e o que vai pra produção (`resources/js/Pages/<Mod>/<Tela>.tsx`).

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-team-mcp-scorecard-index-casos
 casos: Saúde do MCP · Scorecard Facts+Checks · /team-mcp/scorecard
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
@@ -48,6 +49,6 @@ Nenhuma ação edita estado; o único efeito é recarregar os dados deferidos (b
 **Pronto quando:** não há nenhuma ação na tela que escreva no banco.
 
 ## UC-SC-08 — Acesso (auth + permissão)
-Status: ⬜ (manual — rota sob `auth` + `copiloto.mcp.usage.all`)
-`/team-mcp/scorecard` exige login + `copiloto.mcp.usage.all` (mesma do TeamController). Repo-wide cross-business intencional (ADR 0093) pro superadmin ver saúde global.
-**Pronto quando:** usuário sem `copiloto.mcp.usage.all` recebe 403.
+Status: ⬜ (manual — rota sob `auth` + `jana.mcp.usage.all`)
+`/team-mcp/scorecard` exige login + `jana.mcp.usage.all` (mesma do TeamController). Repo-wide cross-business intencional (ADR 0093) pro superadmin ver saúde global.
+**Pronto quando:** usuário sem `jana.mcp.usage.all` recebe 403.

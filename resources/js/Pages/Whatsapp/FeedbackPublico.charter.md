@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-whatsapp-feedback-publico-charter
 page: /feedback
 component: resources/js/Pages/Whatsapp/FeedbackPublico.tsx
 owner: wagner

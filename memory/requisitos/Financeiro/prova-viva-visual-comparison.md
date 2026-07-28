@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-prova-viva-visual-comparison
 slug: prova-viva-visual-comparison
 title: "Financeiro — Comparativo visual da tela Prova Viva (primitivos de layout)"
 type: visual-comparison

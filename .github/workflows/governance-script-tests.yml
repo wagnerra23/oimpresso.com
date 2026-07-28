@@ -32,6 +32,8 @@ jobs:
           node-version: '20'
       - name: Decoder de titulo !!binary (adr-index-generate)
         run: node scripts/governance/adr-index-generate.test.mjs
+      - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
+        run: node scripts/governance/fact-anchor.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
@@ -85,6 +87,13 @@ jobs:
         run: node --test scripts/governance/funcao-scorecard-calibracao.test.mjs
       - name: Função-scorecard gold humano (9/9 obrigatório + K/9 + Cohen kappa)
         run: node --test scripts/governance/funcao-scorecard-humano.test.mjs
+      # Fonte ÚNICA de UC-id (ADR 0264) — a lib existia pra matar "4 regex que drifaram" e
+      # não tinha teste nenhum. O USO dela (split por bloco `## ` antes do ucHeadRe) seguiu
+      # copiado em 6 consumidores e drifou pela mesma porta: exposicao-tier0 aplicava o regex
+      # na LINHA CRUA e media 4 telas cobertas onde havia 29 (perna casos_coverage morta).
+      # Inclui o CONTROLE-NEGATIVO da raiz: linha crua NÃO casa, bloco casa.
+      - name: UC-id fonte única (parser de casos.md · controle-negativo da linha crua)
+        run: node --test scripts/lib/uc-regex.test.mjs
       # Detector ADVISORY de DONO-DE-TEMA (pedido [W] 2026-07-21 "como sei que a Maiara não
       # está duplicando estrutura?"). Consome o catalog.json + tópicos; mede sobreposição de
       # ENTIDADE declarada (não nome de arquivo). O selftest é a MORDIDA: prova que casa por
@@ -169,6 +178,31 @@ jobs:
         run: node scripts/governance/settings-figma-registration.test.mjs
       - name: Registro âncora-no-olho em settings.json (incidente #7)
         run: node scripts/governance/settings-ancora-registration.test.mjs
+      - name: Porta-viva morde (LC-08 · fixtures boa/ruim + INVOCAÇÃO real por stdin)
+        run: node .claude/hooks/block-instrumento-sem-porta-viva.mjs --selftest
+      - name: Registro porta-viva em settings.json (LC-08 · matcher Glob E Grep)
+        run: node scripts/governance/settings-porta-viva-registration.test.mjs
+      # Incidente 2026-07-26 (#4798): session log + handoff com frontmatter fora do schema
+      # mergearam no main — a skill não disparou, o validador não existia como comando, e os
+      # jobs dessas 2 famílias são advisory (auto-merge não espera advisory). Este hook é o
+      # backstop determinístico. Os 2 steps são o par que o projeto exige: o selftest prova
+      # que a LÓGICA morde/libera; o de registro prova que ela está INVOCADA (hook fora do
+      # settings.json enforça nada — "correção-do-mecanismo ≠ invocação").
+      - name: Guard de schema de memory/ morde (fixtures boa/ruim + E2E por stdin)
+        run: node .claude/hooks/memory-schema-guard.mjs --selftest
+      # Achado adversarial 2026-07-26 (sobre a ADR 0353): o ledger de réguas contém
+      # vereditos falsos — claims.json × placar do retrato discordam, e há claims com
+      # refutador ACIMA_CONFIRMADO carimbadas com veredito de Integração, que o
+      # workflow FILTRA antes da fase. Causa: `persistir()` é `agent(...)` porque o
+      # runtime de Workflow não expõe filesystem — a fidelidade não pode ser garantida
+      # na escrita, só CONFERIDA. O teste existente (reguas-workflow.test.mjs) só olha
+      # o prompt (presence-gate sobre texto) e por construção não vê o arquivo.
+      - name: Ledger de réguas — o selftest morde os 2 defeitos reais
+        run: node scripts/governance/reguas-ledger-check.mjs --selftest
+      - name: Ledger de réguas — coerência do arquivo (advisory · exit 0)
+        run: node scripts/governance/reguas-ledger-check.mjs
+      - name: Registro do guard de schema em settings.json (matcher Write E Edit)
+        run: node scripts/governance/settings-memory-schema-registration.test.mjs
       - name: Baseline armado Figma-não-é-fonte (camada L5 · vetores de ataque)
         run: node scripts/evals/design-source-of-truth.eval.mjs
       - name: Lógica + E2E block-design-sync (ADR 0315 · fecha Gap 1 da 0299)
@@ -257,6 +291,54 @@ jobs:
         run: node scripts/governance/selftest-registry-check.mjs --selftest
       - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
         run: node scripts/governance/selftest-registry-check.mjs
+      # Auditoria 2026-07-26: o sweep acima estava VERDE (125/125 testes registrados)
+      # enquanto 12 de 88 SCRIPTS não-teste não tinham invocador nenhum. Mesma regra,
+      # superfície que faltava. REPORT-ONLY (exit 0 sempre): "0 invocador" não prova
+      # obra parada — CLI manual por design é legítimo aqui (adr-supersede, doc-id-stamp).
+      # Medido: o melhor critério automático dá ~67% de precisão, então quem decide é
+      # humano. O valor é a lista existir; gate heurístico avermelhando legado é o
+      # anti-padrão que o §5 das proibições mata.
+      - name: Script órfão de invocador (report-only · lista candidatos, não julga)
+        run: node scripts/governance/selftest-registry-check.mjs --scripts
+      # ── TRIAGEM DOS 13 (2026-07-27, [W]: "eu quero que ligue... faça todos") ────────
+      # O sweep acima nasceu em 26/07 e AVISOU corretamente; o que faltava era o ato de
+      # julgar a lista (ele é report-only por design — precisão medida do critério
+      # automático = 67%, então quem decide é humano). Veredito dos 13, pela taxonomia
+      # de proibicoes.md §"Sempre fazer" (medidor → liga · sob-demanda → porta · escreve
+      # /decide → não liga):
+      #
+      #   LIGADOS AQUI (medidor, report-only, corpus existe, rodam em segundos):
+      #     feature-lint · reguas-indexar · doc-auto-relink --detect · outcome-probe
+      #   LIGADO no design-memory-gate.yml (path-scoped `prototipo-ui/**`, onde nasce):
+      #     detect-handoff — bite-test em sync REAL (--base f9e116aab7~1) já achou 2
+      #     arquivos de `produto-preco-especial` sem `visual_source:` em charter nenhum.
+      #   PORTA npm, NÃO CI (CLI sob-demanda por design — invocador em CI seria ERRADO):
+      #     adr-supersede (transacional do autor da ADR) · doc-id-stamp (stamper de um PR
+      #     nomeado) · funcao-scorecard-humano (fecha rodada humana) · resolver-reclamacao
+      #     (recebe pergunta em NL) · agent-corpus-counterfactual (calculadora; o
+      #     experimento que ela ia servir foi podado em 07-17 por [W])
+      #   PORTA npm, NÃO CI (corpus não existe no runner — ligar aqui seria gate MUDO):
+      #     hook-replay — lê `~/.claude/projects` (transcript real). É a lição do
+      #     `modulo-preflight-warning`: fixture irreal engana, e job que não pode falhar
+      #     por falta de input é pior que job ausente.
+      #   NÃO LIGADO — escreve/decide, é ato de [W], não de cron:
+      #     charter-promote-signal (promove charter draft→live) · normalize-adr-frontmatter
+      #     (--write em ADR; exige label `adr-metadata-normalization` e backfill em massa
+      #     de legado é proibido — §5 2026-07-12).
+      #
+      # Todos advisory de nascença (ADR 0314/0275). Nenhum entra em branch protection.
+      - name: feature-lint sweep (trio requirements/plan/tasks · advisory)
+        run: node scripts/governance/feature-lint.mjs
+      - name: reguas-indexar CATRACA morde/solta (fixture boa/ruim)
+        run: node scripts/governance/reguas-indexar.mjs --selftest
+      - name: reguas-indexar fila (existia-mas-invisível não indexado · report-only)
+        run: node scripts/governance/reguas-indexar.mjs
+      - name: doc-auto-relink CATRACA morde/solta (fixture boa/ruim)
+        run: node scripts/governance/doc-auto-relink.mjs --selftest
+      - name: doc-auto-relink --detect (link-rot doc↔doc · DRY-RUN, nunca --apply em CI)
+        run: node scripts/governance/doc-auto-relink.mjs --detect
+      - name: funcao-scorecard outcome-probe (nota × defeito real · advisory read-only)
+        run: node scripts/governance/funcao-scorecard-outcome-probe.mjs
       # P15 entrega 3 — desorfanar .test.mjs (sweep selftest-registry-check.mjs, 2026-07-13).
       # Estes 9 tinham .test.mjs no repo mas nenhum step de CI: passavam só na máquina do dev
       # (mesmo gap "test local-only" da Onda 1). Todos verdes em node puro no momento do wiring.
@@ -320,3 +402,14 @@ jobs:
       # append-only nunca enforça; dívida grandfathered passa). Sessão 2026-07-23.
       - name: Deadlink-gate (ratchet de links mortos · morde/grandfather/história)
         run: node scripts/governance/deadlink-gate.test.mjs
+      # Persistência INCREMENTAL da grade de réguas (.claude/workflows/reguas-do-sistema.js).
+      # Defeito medido: 2 rodadas mortas no meio (2026-07-25 interrompida · 07-26 teto de uso,
+      # 27 de 88 agentes) perderam TUDO porque a fase Persistir era a última e única escrita —
+      # retratos.json ficou intocado desde 07-18. Este selftest roda o control-flow REAL do
+      # workflow (embrulhado como o tool o executa) com um DUBLÊ de agent(): zero agentes, zero
+      # rede. Trava a ORDEM (checkpoint antes da prosa cara), a HONESTIDADE do retrato (parcial
+      # nunca se passa por completo) e as regras duras do ledger (append-only · `indexado` nunca
+      # rebaixa · regra 16). Controle-negativo conferido: 20 asserções MORDEM no arquivo
+      # pré-mudança e as de não-regressão passam nos dois. Advisory por desenho (ADR 0314/0275).
+      - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
+        run: node scripts/governance/reguas-workflow.test.mjs

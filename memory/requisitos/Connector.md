@@ -1,4 +1,5 @@
 ---
+id: requisitos-connector
 module: Connector
 alias: connector
 status: ativo

@@ -1,10 +1,13 @@
 ---
+id: resources-js-pages-oficina-auto-service-orders-board-casos
 casos: Quadro de OS da Oficina · /oficina-auto/ordens-servico/board
 irmaos: Board.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
 last_run: "2026-07-16"
+related_us: [US-OFICINA-004, US-AUTO-005]
+related_cu: [CU-OFI-14, CU-OFI-07]
 ---
 
 # Casos de Uso & Aceite — Quadro de OS da Oficina
@@ -23,6 +26,19 @@ last_run: "2026-07-16"
 > foram **re-provados**, não re-declarados: o E2E Playwright rodou contra este código no CI
 > (`E2E Playwright · UCs críticos` verde) e o veredito real foi coletado do JUnit pro manifesto
 > — **9/9 UCs do Board `pass`, `ran_at: 2026-07-16`**. Nenhum `last_run` bumpado no escuro.
+
+> 🔎 **Nota do chip SDD (2026-07-27) — dívida de id, reportada e NÃO consertada.**
+> Os 9 UC abaixo usam ids **sem prefixo de tela** (`UC-01`…`UC-09`). Consequências **medidas**:
+> o `casos-coverage-guard` (**required**) aceita o formato e os 9 estão provados pelo Playwright;
+> mas a porta `requisitos-status.mjs` exige um segmento no meio do id e por isso imprime
+> *"`Board.casos.md` existe mas não declara nenhum UC"* — **falso-negativo da porta**, não
+> ausência de contrato. Ids curtos também **colidem entre módulos** (já causaram um caso de UC de
+> outra tela contando como coberto por um e2e desta).
+> **Por que não renomeei:** `UC-OBD-NN` exigiria editar `e2e/oficina-uc06-gate-etapa.spec.ts`,
+> **fora da área deste chip**; renomear só aqui deixaria os 9 órfãos e **quebraria o `casos-gate`
+> required**. Registrado como **D-5** no
+> [SDD §8.2](../../../../memory/requisitos/OficinaAuto/SDD-tela-ordem-servico-v1.0.md) — decisão [W].
+> Enquanto isso, o `related_us`/`related_cu` do frontmatter ancora esta tela ao `CU-OFI-14`.
 
 ---
 

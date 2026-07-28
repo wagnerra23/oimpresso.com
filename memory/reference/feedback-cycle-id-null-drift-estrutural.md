@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-cycle-id-null-drift-estrutural
 name: cycle_id NULL escondia drift estrutural — cycles-close --rollover move 0 tasks
 description: Tasks com cycle_id NULL não rolam automaticamente entre cycles. Drift detectado pelo brief não tem mecanismo de correção em massa.
 type: feedback

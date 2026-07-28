@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-conflicts-charter
 page: /ads/admin/conflicts
 component: resources/js/Pages/ads/Admin/Conflicts.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

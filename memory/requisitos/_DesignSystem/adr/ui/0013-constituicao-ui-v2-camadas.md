@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0013-constituicao-ui-v2-camadas
+---
+
 # ADR UI-0013 · Constituição UI v2 — hierarquia de 4 camadas (Fundações → Shell → Padrão de Tela → Módulo)
 
 - **Status**: accepted

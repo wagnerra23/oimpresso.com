@@ -1,4 +1,5 @@
 ---
+id: requisitos-financeiro-avancado-spec
 title: SPEC — FinanceiroAvancado (planejado — não existe)
 status: historical
 date: 2026-05-12

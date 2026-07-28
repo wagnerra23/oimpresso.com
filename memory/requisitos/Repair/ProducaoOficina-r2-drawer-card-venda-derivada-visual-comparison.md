@@ -1,4 +1,5 @@
 ---
+id: requisitos-repair-producao-oficina-r2-drawer-card-venda-derivada-visual-comparison
 tela: /repair/producao-oficina (drawer · adição cirúrgica)
 componente: resources/js/Pages/Repair/ProducaoOficina/Index.tsx (JobDrawer)
 onda: Onda 5 — Integração Vendas × Oficina (A1 KB-9.75)

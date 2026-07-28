@@ -1,4 +1,5 @@
 ---
+id: reference-whatsapp-permissions-spatie
 name: Whatsapp Permissions Spatie — bug histórico + comando register canônico
 description: whatsapp.* permissions nunca foram registradas em prod (Spatie cria on-demand, ninguém atribuiu); PR #665 comando whatsapp:register-permissions resolve; UltimatePOS Spatie schema permissions GLOBAL, roles per-business (Admin#{biz})
 type: reference

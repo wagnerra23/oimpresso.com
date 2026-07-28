@@ -1,3 +1,7 @@
+---
+id: requisitos-compras-capterra-inventario
+---
+
 # CAPTERRA-INVENTÁRIO — Compras
 
 > Gerado por skill `comparativo-do-modulo` (`/comparativo Compras`) em **2026-07-03** — Passo 2 da Onda 2.1 do programa de ondas.

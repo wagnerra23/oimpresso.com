@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-decisoes-charter
 page: /ads/admin/decisoes
 component: resources/js/Pages/ads/Admin/Decisoes.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

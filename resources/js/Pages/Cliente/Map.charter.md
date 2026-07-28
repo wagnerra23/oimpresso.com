@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-map-charter
 page: /contacts/map
 component: resources/js/Pages/Cliente/Map.tsx
 owner: wagner
@@ -13,6 +14,8 @@ mwart_pattern_reuse:
   blueprint_screenshot_approval: "N/A (divergente)"
   derived_screens: [Map]
   divergence_from_blueprint: "split-screen com Leaflet/Google Maps lateral, divergente do Index lista"
+related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-map.md
+related_visual_comparison: memory/requisitos/Crm/cliente-map-visual-comparison.md
 ---
 
 # Page Charter — /contacts/map (LIVE)

@@ -1,3 +1,7 @@
+---
+id: requisitos-cliente-capterra-inventario
+---
+
 # CAPTERRA-INVENTÁRIO — Cliente
 
 > Gerado por skill `comparativo-do-modulo` (`/comparativo Cliente`) em **2026-07-03** — Passo 2 da onda standalone Cliente do programa de ondas.

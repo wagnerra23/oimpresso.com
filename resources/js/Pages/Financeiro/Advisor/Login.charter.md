@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-advisor-login-charter
 page-id: financeiro-advisor-login
 status: draft
 owner: eliana

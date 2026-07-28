@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-0007-estrutura-expandida-glossario-runbook-diagramas-contratos-auditorias
+---
+
 # ADR 0007 · Estrutura expandida: Glossário + Runbook + Diagramas + Contratos + Auditorias
 
 - **Status**: accepted

@@ -1,4 +1,5 @@
 ---
+id: requisitos-kb-briefing
 module: KB
 status: parcial
 status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); a tela /kb/v2 ainda roda 100% MOCK — o Controller nunca ligou o dado ao frontend"

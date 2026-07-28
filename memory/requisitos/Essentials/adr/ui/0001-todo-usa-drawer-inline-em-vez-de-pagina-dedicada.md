@@ -1,3 +1,7 @@
+---
+id: requisitos-essentials-adr-ui-0001-todo-usa-drawer-inline-em-vez-de-pagina-dedicada
+---
+
 # ADR UI-0001 (Essentials) · Todo usa drawer inline em vez de página dedicada
 
 - **Status**: proposed

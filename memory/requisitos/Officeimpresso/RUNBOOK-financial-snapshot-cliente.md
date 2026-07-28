@@ -1,6 +1,8 @@
 ---
+owner: W
+last_validated: "2026-06-08"
 title: Runbook — Snapshot financeiro de cliente OfficeImpresso
-status: live
+status: ativo
 date: 2026-05-09
 audience: Wagner / Felipe / Maiara / Eliana / IA-pair
 duration: 5-15min por cliente (depende de volume de dados)

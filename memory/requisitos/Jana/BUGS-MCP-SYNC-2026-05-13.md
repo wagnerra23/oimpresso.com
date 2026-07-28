@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-bugs-mcp-sync-2026-05-13
+---
+
 # MCP server — bugs de sincronização catalogados (2026-05-13)
 
 > **Contexto:** Sessão `nervous-mayer-3ff0da` 2026-05-13 madrugada — Wagner reportou "MCP desincronizado, muitos bugs". Sincronizamos 9 US done manualmente via `tasks-update`, descobrimos várias outras já marcadas (assignment notifications da inbox enganaram). Investigação revelou 4 bugs root cause.

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-essentials-knowledge-show-charter
 page: /essentials/knowledge-base/{id}
 component: resources/js/Pages/Essentials/Knowledge/Show.tsx
 related_prototype: n/a (tela de detalhe bespoke — livro/seção/artigo com sidebar de navegação; não segue um dos 5 Padrões de Tela)

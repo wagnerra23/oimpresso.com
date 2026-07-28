@@ -1,4 +1,5 @@
 ---
+id: reference-cliente-martinho-cacambas
 name: Cliente Martinho Caçambas — perfil, migração concluída, contexto competitivo
 description: Perfil do prospect Martinho Caçambas (business_id=164, CNPJ [REDACTED]). Migração legacy WR2 Firebird → oimpresso CONCLUÍDA 2026-05-16 (91 caçambas + 9.988 contatos + 44k vendas + 83k títulos). HiSoft é competidor. Aging real: 90% fóssil pré-2020.
 type: project

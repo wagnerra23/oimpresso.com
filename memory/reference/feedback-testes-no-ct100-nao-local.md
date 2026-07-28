@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-testes-no-ct100-nao-local
 name: Testes rodam no CT 100 (container staging), NUNCA na máquina local / Hostinger
 description: Suíte Pest (e qualquer teste pesado / que precise do stack completo — OTel SDK, Meilisearch, serviços) roda no CT 100 via `docker exec oimpresso-staging php artisan test`. A máquina local do Wagner e o Hostinger NÃO têm recursos pra isso. CT 100 (Proxmox docker-host) é o lugar correto — tem CPU/RAM + o stack + DB de staging isolado. Roda contra o MySQL real do staging (`oimpresso-staging-db`, anonimizado + isolado de prod) via `-e DB_CONNECTION=mysql` — MySQL real do staging, anonimizado e isolado de prod.
 date_captured: 2026-06-01

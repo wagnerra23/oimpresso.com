@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-runbooks-archive-baileys-troubleshoot-ban
+---
+
 > ⚠️ **ARQUIVADO 2026-05-27** — BaileysDriver descontinuado por [ADR 0202](../../../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md).
 > Conteúdo preservado como lição histórica. **NÃO aplicar em produção.**
 

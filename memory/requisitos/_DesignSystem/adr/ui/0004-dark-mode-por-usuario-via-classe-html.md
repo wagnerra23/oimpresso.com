@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0004-dark-mode-por-usuario-via-classe-html
+---
+
 # ADR UI-0004 (_DesignSystem) · Dark mode por usuário via classe no <html>
 
 - **Status**: accepted

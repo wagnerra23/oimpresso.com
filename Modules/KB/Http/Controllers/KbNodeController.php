@@ -26,7 +26,7 @@ use Modules\KB\Services\KbArticleService;
  *   - DELETE         → kb.softdelete
  *   - POST restore   → kb.restore
  *
- * Dívida técnica preservada (legacy): middleware `can:copiloto.mcp.memory.manage`
+ * Dívida técnica preservada (legacy): middleware `can:jana.mcp.memory.manage`
  * fica no KbController até PR de rename Spatie.
  */
 class KbNodeController extends Controller
@@ -35,9 +35,9 @@ class KbNodeController extends Controller
         private readonly KbArticleService $articles,
     ) {
         $this->middleware('auth');
-        // V1 reusa permission canon "copiloto.mcp.memory.manage" pra .view e ações.
+        // V1 reusa permission canon "jana.mcp.memory.manage" pra .view e ações.
         // TODO[CL]: rename pra `kb.view`/`kb.write`/`kb.softdelete` em PR Spatie separado.
-        $this->middleware('can:copiloto.mcp.memory.manage');
+        $this->middleware('can:jana.mcp.memory.manage');
     }
 
     /**
@@ -80,7 +80,7 @@ class KbNodeController extends Controller
      *
      * Validation via {@see StoreKbNodeRequest} (D8.c Security 2026-05-16) — rules
      * preservadas idênticas ao inline original; authorize() reusa
-     * 'copiloto.mcp.memory.manage'.
+     * 'jana.mcp.memory.manage'.
      */
     public function store(StoreKbNodeRequest $request): JsonResponse
     {
@@ -95,6 +95,28 @@ class KbNodeController extends Controller
             'author_user_id' => Auth::id(),
         ]));
         $node->save();
+
+        // Versão inicial (o histórico começa em 1). O KbNodeObserver::updating() só versiona
+        // em UPDATE — o create registra a versão 1 aqui (contrato SCHEMA-DB-V1 §11). Nó novo é
+        // is_editable=true, então o gate de bridge do KbNodeVersionObserver permite.
+        KbNodeVersion::create([
+            'business_id'    => $node->business_id,
+            'node_id'        => $node->id,
+            'version_at'     => now(),
+            'author_user_id' => Auth::id(),
+            'snapshot'       => [
+                'title'          => $node->title,
+                'excerpt'        => $node->excerpt,
+                'body_blocks'    => $node->body_blocks,
+                'tags'           => $node->tags,
+                'status'         => $node->status,
+                'category_id'    => $node->category_id,
+                'subcategory_id' => $node->subcategory_id,
+                'nivel'          => $node->nivel,
+                'equip'          => $node->equip,
+            ],
+            'change_reason'  => 'Criação inicial',
+        ]);
 
         return response()->json(['node' => $node], 201);
     }
@@ -173,8 +195,15 @@ class KbNodeController extends Controller
     {
         $node = KbNode::query()->where('slug', $slug)->firstOrFail();
         $node->last_verified_at = now();
+        // Dono confirmou frescor (SCHEMA-DB-V1 §11 "dono confirma frescor") → os votos
+        // de "está desatualizado" da comunidade viram moot. Zera o sinal de staleness.
+        $node->outdated_votes = 0;
         $node->save();
 
-        return response()->json(['ok' => true, 'last_verified_at' => $node->last_verified_at]);
+        return response()->json([
+            'ok'                => true,
+            'last_verified_at'  => $node->last_verified_at,
+            'outdated_votes'    => 0,
+        ]);
     }
 }

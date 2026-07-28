@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-project-mgmt-roadmap-index-charter
 page: /project-mgmt/roadmap
 component: resources/js/Pages/ProjectMgmt/Roadmap/Index.tsx
 related_prototype: n/a (roadmap de colunas por quarter com cards de epic, bespoke — nao segue um dos 5 Padroes de Tela)
@@ -16,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/RoadmapController@index` (rota `project-mgmt.roadmap.index`, permissão `copiloto.mcp.usage.all`). **Silenciosa:** o corpo dominante é um layout de colunas por quarter com cards de epic (roadmap bespoke); há `KpiGrid` de header, mas a tela não é um dos 5 Padrões de Tela — não há dnd (não é Kanban) nem tabela/grid de lista. Honestidade > cobertura.
+> Backend: `Modules/ProjectMgmt/Http/Controllers/RoadmapController@index` (rota `project-mgmt.roadmap.index`, permissão `jana.mcp.usage.all`). **Silenciosa:** o corpo dominante é um layout de colunas por quarter com cards de epic (roadmap bespoke); há `KpiGrid` de header, mas a tela não é um dos 5 Padrões de Tela — não há dnd (não é Kanban) nem tabela/grid de lista. Honestidade > cobertura.
 
 ---
 
@@ -35,7 +36,7 @@ Dar a visão de planejamento por quarter: epics do projeto (`mcp_epics`) agrupad
 ---
 
 ## Non-Goals — Features (NÃO faz)
-- ❌ Não é multi-tenant por `business_id` — opera sobre `mcp_epics`/`mcp_tasks` (PM interno do time), gated por `copiloto.mcp.usage.all`. (inferência pendente de Wagner)
+- ❌ Não é multi-tenant por `business_id` — opera sobre `mcp_epics`/`mcp_tasks` (PM interno do time), gated por `jana.mcp.usage.all`. (inferência pendente de Wagner)
 - ❌ Não edita epic aqui — mover `target_quarter` é `epics-update` via MCP (a própria tela diz isso no rodapé). (inferência pendente de Wagner)
 - ❌ Não é Kanban: as colunas por quarter NÃO têm drag-and-drop. (inferência pendente de Wagner)
 - ❌ Não segue um dos 5 Padrões de Tela: roadmap de colunas bespoke, deliberadamente silenciosa quanto a PT. (inferência pendente de Wagner)

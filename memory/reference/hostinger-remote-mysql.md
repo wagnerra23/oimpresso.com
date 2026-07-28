@@ -1,4 +1,5 @@
 ---
+id: reference-hostinger-remote-mysql
 name: Hostinger Remote MySQL direto — srv1818.hstgr.io:3306
 description: Caminho canônico CT 100 → Hostinger MySQL. autossh REJEITADO 29-abr-2026 (Connection timed out 65002). Solução Remote MySQL whitelist hPanel + DIRETO srv1818.hstgr.io:3306. Senha real no Vaultwarden.
 type: reference

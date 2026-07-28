@@ -38,7 +38,7 @@ ERP brasileiro **multi-tenant**, **modular especializado por vertical**: um **n�
 ┌─────────────────────────────────────────────────────────────┐
 │  GOVERNANÇA   Constituição v2 · ADRs · Skills · Trust Tiers  │  ← "as leis"
 ├─────────────────────────────────────────────────────────────┤
-│  VERTICAIS    Vestuario ✅ · ComunicacaoVisual 🟡 · OficinaAuto ⏸│  ← produto vendável por setor
+│  VERTICAIS    Vestuario ✅ · ComunicacaoVisual 🟡 · OficinaAuto 🟡│  ← produto vendável por setor
 ├─────────────────────────────────────────────────────────────┤
 │  NÚCLEO       Jana IA · Financeiro · NFe/NFSe · Repair(OS) ·  │  ← comum a todos
 │               RecurringBilling · PaymentGateway · FSM Pipeline│
@@ -71,7 +71,7 @@ Acesso/deploy detalhado: [reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESS
 |---|---|---|---|
 | **Vestuario** | 4781-4/00 | ✅ em produção | **ROTA LIVRE** (Larissa, `business_id=4`, 99% do volume) |
 | **ComunicacaoVisual** | 1813-0/01 | 🟡 em construção | 6 candidatos OfficeImpresso |
-| **OficinaAuto** | 4520-0/01 | ⏸️ aguarda sinal | Martinho (a confirmar) — é **reparo/mecânica**, nunca locação ([ADR 0265](decisions/0265-oficina-reparo-erradica-locacao.md)) |
+| **OficinaAuto** | 4520-0/01 | 🟡 piloto LIVE (prod biz=164) | Martinho (mecânica pesada, ~91 veículos) — é **reparo/mecânica**, nunca locação ([ADR 0265](decisions/0265-oficina-reparo-erradica-locacao.md)) |
 
 > ROTA LIVRE não é exceção — é o **caso piloto validado em prod há 2+ anos**. Testes/smoke usam **biz=1** (dogfooding), nunca biz=4 do cliente ([ADR 0101](decisions/0101-tests-business-id-1-nunca-cliente.md)).
 

@@ -1,4 +1,5 @@
 ---
+id: requisitos-ideias-readme
 nome: _Ideias — incubadora de módulos
 description: Pasta cross-cutting onde nascem ideias de módulos novos antes de virarem `memory/requisitos/{Nome}/` formais. Cada subpasta é uma ideia em algum estágio do ciclo de vida (idea → researching → spec-ready → in-progress → shipped).
 type: meta

@@ -1,3 +1,7 @@
+---
+id: requisitos-woocommerce-briefing
+---
+
 # BRIEFING — Modules/Woocommerce
 
 > **Estado:** 🟡 scaffold preservado, sem cliente ativo hoje, manutenção dormente | **Atualizado:** 2026-05-16 | **Owner:** sem owner ativo

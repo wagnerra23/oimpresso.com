@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-admin-governanca-index-charter
 page: /copiloto/admin/governanca
 component: resources/js/Pages/Jana/Admin/Governanca/Index.tsx
 owner: wagner
@@ -14,7 +15,7 @@ related_specs:
   - memory/requisitos/Jana/SPEC.md (MEM-MCP-1.e)
 tier: A
 charter_version: 1
-permissao: copiloto.mcp.usage.all
+permissao: jana.mcp.usage.all
 superadmin_only: true
 ---
 
@@ -30,7 +31,7 @@ superadmin_only: true
 
 Cockpit de **governança do MCP server** ([ADR 0053](../../../../../../memory/decisions/0053-mcp-server-governanca-como-produto.md)) — único ERP BR com MCP exposto como produto. Wagner monitora: quem usa, quanto custa, quais docs sincronizam, quais tokens estão ativos, quais skills foram publicadas.
 
-Audiência primária: **Wagner (superadmin único)**. Eventualmente Felipe quando promovido. Larissa NÃO acessa (sem permissão `copiloto.mcp.usage.all`).
+Audiência primária: **Wagner (superadmin único)**. Eventualmente Felipe quando promovido. Larissa NÃO acessa (sem permissão `jana.mcp.usage.all`).
 
 ---
 

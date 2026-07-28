@@ -1,4 +1,6 @@
-# 06 — Glossário de Domínio
+# 06 — Glossário de Domínio (módulo Ponto)
+
+> ℹ️ **Escopo: módulo Ponto** (controle de ponto CLT — módulo **ATIVO**, não fóssil). Glossário CLT/REP/AFD juridicamente atemporal; **não** é o glossário de domínio do ERP (esses são os dicionários por vertical em [`dominio/`](dominio/)). Dono natural futuro: `requisitos/Ponto/`.
 
 Termos de legislação trabalhista brasileira e do ecossistema UltimatePOS usados no projeto.
 
@@ -88,7 +90,7 @@ Termos de legislação trabalhista brasileira e do ecossistema UltimatePOS usado
 
 | Nome | O que é |
 |---|---|
-| `PontoWr2` | Este módulo inteiro |
+| `Ponto` (ex-`PontoWr2`) | Este módulo inteiro |
 | `ponto_colaborador_config` | Bridge table — configuração de ponto por user do UltimatePOS |
 | `ponto_marcacoes` | Tabela append-only de todas as marcações |
 | `ponto_apuracao_dia` | Resultado consolidado diário |

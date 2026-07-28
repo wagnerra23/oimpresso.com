@@ -1,4 +1,5 @@
 ---
+id: requisitos-team-mcp-cc-sessions-visual-comparison
 slug: teammcp-cc-sessions-visual-comparison
 title: "TeamMcp — Comparativo visual da tela CcSessions (Atividade CC)"
 type: visual-comparison

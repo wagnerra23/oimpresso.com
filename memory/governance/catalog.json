@@ -22,26 +22,26 @@
     "migratesTo"
   ],
   "stats": {
-    "modules": 38,
-    "nodes": 627,
-    "edges": 950,
+    "modules": 39,
+    "nodes": 631,
+    "edges": 968,
     "by_node_type": {
-      "module": 41,
+      "module": 42,
       "table": 88,
       "adr": 36,
       "component": 419,
-      "api": 43
+      "api": 46
     },
     "by_edge_type": {
-      "ownsTable": 79,
+      "ownsTable": 75,
       "ownsLegacyView": 13,
-      "consumesTable": 4,
-      "providesApi": 43,
+      "consumesTable": 8,
+      "providesApi": 46,
       "charteredByAdr": 35,
       "governedByAdr": 100,
       "hasComponent": 419,
-      "dependsOn": 131,
-      "delegatesTo": 125,
+      "dependsOn": 140,
+      "delegatesTo": 131,
       "migratesTo": 1
     },
     "dangling": 0
@@ -348,6 +348,14 @@
       ]
     },
     {
+      "id": "api:/atendimento/*",
+      "type": "api",
+      "prefix": "/atendimento/*",
+      "providers": [
+        "Whatsapp"
+      ]
+    },
+    {
       "id": "api:/auditoria/*",
       "type": "api",
       "prefix": "/auditoria/*",
@@ -417,6 +425,14 @@
       "prefix": "/essentials/*",
       "providers": [
         "Essentials"
+      ]
+    },
+    {
+      "id": "api:/feedback/*",
+      "type": "api",
+      "prefix": "/feedback/*",
+      "providers": [
+        "Whatsapp"
       ]
     },
     {
@@ -633,6 +649,14 @@
       "prefix": "/webhooks/pagarme",
       "providers": [
         "PaymentGateway"
+      ]
+    },
+    {
+      "id": "api:/whatsapp/*",
+      "type": "api",
+      "prefix": "/whatsapp/*",
+      "providers": [
+        "Whatsapp"
       ]
     },
     {
@@ -3668,6 +3692,19 @@
       "catalog_status": "catalogued"
     },
     {
+      "id": "module:Cliente",
+      "type": "module",
+      "module": "Cliente",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Cliente/SUPERFICIE.md",
+      "catalog_kind": "core-class-b",
+      "catalog_status": "catalogued"
+    },
+    {
       "id": "module:Cms",
       "type": "module",
       "module": "Cms",
@@ -4088,9 +4125,9 @@
       "type": "module",
       "module": "Whatsapp",
       "purpose": "Whatsapp transacional unificado (Z-API default + Meta Cloud fallback obrigatório; BaileysDriver custom autorizado Sprint 3; Evolution PROIBIDO permanente) — status OS Repair, boleto/NFe RecurringBilling, lembrete Financeiro, ConsultaOs acompanhamento, bot Jana HITL",
-      "trust": "",
-      "owner": "",
-      "permission_prefix": "",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "whatsapp.*",
       "charter_adr": "",
       "path": "Modules/Whatsapp/SCOPE.md",
       "catalog_kind": "scope",
@@ -4644,12 +4681,13 @@
       "type": "table",
       "name": "mcp_components",
       "owners": [
-        "ProjectMgmt",
+        "ProjectMgmt"
+      ],
+      "consumers": [
         "TeamMcp"
       ],
-      "consumers": [],
       "legacy_views": [],
-      "ownership_mode": "shared-declared"
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_confidence_scores",
@@ -4726,24 +4764,26 @@
       "type": "table",
       "name": "mcp_governance_rules",
       "owners": [
-        "ADS",
+        "ADS"
+      ],
+      "consumers": [
         "Governance"
       ],
-      "consumers": [],
       "legacy_views": [],
-      "ownership_mode": "shared-declared"
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_inbox_notifications",
       "type": "table",
       "name": "mcp_inbox_notifications",
       "owners": [
-        "ProjectMgmt",
+        "ProjectMgmt"
+      ],
+      "consumers": [
         "TeamMcp"
       ],
-      "consumers": [],
       "legacy_views": [],
-      "ownership_mode": "shared-declared"
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_issue_templates",
@@ -4904,14 +4944,14 @@
       "type": "table",
       "name": "mcp_tasks",
       "owners": [
-        "ProjectMgmt",
-        "TeamMcp"
+        "ProjectMgmt"
       ],
       "consumers": [
-        "Brief"
+        "Brief",
+        "TeamMcp"
       ],
       "legacy_views": [],
-      "ownership_mode": "shared-declared"
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_tokens",
@@ -5882,13 +5922,6 @@
       "type": "dependsOn",
       "source": "db_tables_consumed→db_tables_owned",
       "note": "mcp_audit_log"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_tasks"
     },
     {
       "from": "module:Brief",
@@ -7404,6 +7437,12 @@
     },
     {
       "from": "module:Governance",
+      "to": "table:mcp_governance_rules",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
       "to": "module:Admin",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -7464,6 +7503,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Decision flow (Risk/Confidence/Policy Engine)"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_governance_rules"
     },
     {
       "from": "module:Governance",
@@ -7577,12 +7623,6 @@
       "to": "component:Governance/PoliciesController",
       "type": "hasComponent",
       "source": "contains"
-    },
-    {
-      "from": "module:Governance",
-      "to": "table:mcp_governance_rules",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
     },
     {
       "from": "module:Governance",
@@ -10376,6 +10416,24 @@
     },
     {
       "from": "module:TeamMcp",
+      "to": "table:mcp_components",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "table:mcp_inbox_notifications",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "table:mcp_tasks",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:TeamMcp",
       "to": "module:ADS",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -10450,6 +10508,27 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Knowledge browsing"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_components"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_inbox_notifications"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_tasks"
     },
     {
       "from": "module:TeamMcp",
@@ -10604,18 +10683,6 @@
     },
     {
       "from": "module:TeamMcp",
-      "to": "table:mcp_components",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_inbox_notifications",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
       "to": "table:mcp_quotas",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -10623,12 +10690,6 @@
     {
       "from": "module:TeamMcp",
       "to": "table:mcp_scopes",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_tasks",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -10769,6 +10830,90 @@
       "to": "api:/vestuario/*",
       "type": "providesApi",
       "source": "url_prefixes"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:ConsultaOs",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Consulta pública de OS"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Lembrete financeiro (regra de negócio)"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Bot / memória conversacional / RAG"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:PaymentGateway",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Boleto / cobrança recorrente"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:RecurringBilling",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Boleto / cobrança recorrente"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:Repair",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "OS / Kanban de reparo"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:ConsultaOs",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Consulta pública de OS"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Lembrete financeiro (regra de negócio)"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Bot / memória conversacional / RAG"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:PaymentGateway",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Boleto / cobrança recorrente"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:RecurringBilling",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Boleto / cobrança recorrente"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:Repair",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "OS / Kanban de reparo"
     },
     {
       "from": "module:Whatsapp",
@@ -10957,6 +11102,24 @@
       "source": "contains"
     },
     {
+      "from": "module:Whatsapp",
+      "to": "api:/atendimento/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "api:/feedback/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "api:/whatsapp/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
       "from": "module:Woocommerce",
       "to": "adr:0080",
       "type": "charteredByAdr",
@@ -11065,35 +11228,6 @@
     "dangling_module_refs": [],
     "dangling_adr_refs": [],
     "consumed_tables_without_catalog_owner": [],
-    "tables_owned_by_multiple": [
-      {
-        "table": "mcp_components",
-        "owners": [
-          "ProjectMgmt",
-          "TeamMcp"
-        ]
-      },
-      {
-        "table": "mcp_governance_rules",
-        "owners": [
-          "ADS",
-          "Governance"
-        ]
-      },
-      {
-        "table": "mcp_inbox_notifications",
-        "owners": [
-          "ProjectMgmt",
-          "TeamMcp"
-        ]
-      },
-      {
-        "table": "mcp_tasks",
-        "owners": [
-          "ProjectMgmt",
-          "TeamMcp"
-        ]
-      }
-    ]
+    "tables_owned_by_multiple": []
   }
 }

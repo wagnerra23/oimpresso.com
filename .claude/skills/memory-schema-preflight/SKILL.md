@@ -38,11 +38,11 @@ slug: <kebab>
 title: "Especificação funcional — <Modulo>"
 type: spec
 module: <Modulo>
-status: ativo                       # enum: ativo|aceito|rascunho|arquivado|historical
+status: ativo                       # enum: rascunho|ativo|arquivado|historical (NÃO existe "aceito")
 version: "X.Y.Z"                    # STRING quoted (nunca numero)
 last_updated: "YYYY-MM-DD"          # STRING quoted (nunca date type)
 updated_at: "YYYY-MM-DD"            # idem
-owner: wagner                       # SPEC aceita user string
+owners: [W]                         # array enum W/F/M/L/E (canônico do _TEMPLATE_SPEC)
 pii: false                          # boolean
 related_adrs:                       # LIST de slugs, NUNCA integers
   - "NNNN-kebab-slug"               # pattern ^[0-9]{4}-[a-z0-9-]+$

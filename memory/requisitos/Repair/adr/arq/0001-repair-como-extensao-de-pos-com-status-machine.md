@@ -1,3 +1,7 @@
+---
+id: requisitos-repair-adr-arq-0001-repair-como-extensao-de-pos-com-status-machine
+---
+
 # ADR ARQ-0001 (Repair) · Repair como extensão de POS com state machine
 
 - **Status**: accepted

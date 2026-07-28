@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-transaction-payment-show-charter
 page: /payments/v2/{id}
 component: resources/js/Pages/TransactionPayment/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)

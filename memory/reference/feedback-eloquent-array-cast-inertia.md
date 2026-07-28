@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-eloquent-array-cast-inertia
 name: Eloquent `(array) $model` quebra Inertia — sempre `->toArray()`
 description: PHP cast `(array)` em Eloquent\Model expõe propriedades protected com prefixo null-byte (`\x00*\x00attributes`, ~30 chaves estranhas). Inertia serializa, mas o JSON no JS não permite acesso direto aos campos — frontend recebe undefined. Aparece quando Collection→map(fn ($a) => (array) $a). Fix: $a->toArray().
 type: feedback

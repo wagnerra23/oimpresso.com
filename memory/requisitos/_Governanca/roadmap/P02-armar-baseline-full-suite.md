@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-roadmap-p02-armar-baseline-full-suite
 roadmap_item: P02
 slug: P02-armar-baseline-full-suite
 onda: 0

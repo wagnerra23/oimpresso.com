@@ -1,4 +1,5 @@
 ---
+id: requisitos-dashboard-spec
 module: Dashboard
 status: ativo
 phase: F6 Soft wrapper (entrega 2026-05-21)

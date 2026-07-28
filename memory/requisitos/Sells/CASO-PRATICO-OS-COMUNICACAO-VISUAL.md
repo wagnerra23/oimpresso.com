@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-caso-pratico-os-comunicacao-visual
+---
+
 # Caso prático — OS Comunicação Visual com 2 documentos fiscais
 
 > Documento de referência citado por: US-SELL-011, US-SELL-012, US-SELL-013, US-SELL-014, US-NFE-059, US-NFE-060.

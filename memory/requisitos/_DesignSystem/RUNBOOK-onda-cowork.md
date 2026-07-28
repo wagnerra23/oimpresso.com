@@ -1,10 +1,19 @@
 ---
+owner: W
+last_validated: "2026-06-08"
 slug: runbook-onda-cowork
 title: "RUNBOOK — Ondas de Cópia Cowork → Inertia (playbook canônico reusável)"
 type: runbook
-status: canon
+status: ativo
 date: 2026-05-17
-related_adrs: [0094, 0104, 0107, 0109, 0114, 0141, 0143, 0168]
+related_adrs:
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0107-emendation-0104-visual-comparison-gate-f3
+  - 0109-claude-design-plugin-integrado-processo-mwart
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0141-skill-migracao-blade-react
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 related_skills: [mwart-process, mwart-comparative, cowork-prototype-replication, charter-first, preflight-modulo, wagner-protocol-enforce, smoke-prod-evidence, brief-update, migracao-blade-react]
 related_runbooks:
   - memory/requisitos/_DesignSystem/RUNBOOK-replicar-prototipo-cowork.md

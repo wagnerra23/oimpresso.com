@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-espelho-index-charter
 page: /ponto/espelho
 component: resources/js/Pages/Ponto/Espelho/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

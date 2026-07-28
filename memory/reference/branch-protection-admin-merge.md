@@ -1,4 +1,5 @@
 ---
+id: reference-branch-protection-admin-merge
 name: Branch protection main — estado vivo e como mergear
 description: Fonte enforced do required = governance/required-checks-baseline.json (protection-drift.mjs). enforce_admins:true desde ADR 0271 — gh --admin MORTO; merge = gh pr merge --squash com checks required verdes; reviews:0
 type: reference

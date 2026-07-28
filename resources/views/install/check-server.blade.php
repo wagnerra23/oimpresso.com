@@ -15,7 +15,7 @@
             <div class="box-body">
               <table class="table">
                 <tr>
-                  <td>PHP >= 7.1</td>
+                  <td>PHP >= 8.3</td>
                   <td>
                     @if($output['php'])
                       <i class="fa fa-check-circle-o text-success" aria-hidden="true"></i>

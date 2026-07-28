@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-pii-redaction
+---
+
 # PII Redaction — Modules/Whatsapp
 
 > Documento D7 LGPD — declara onde e como PII é tratada antes de log/telemetria.

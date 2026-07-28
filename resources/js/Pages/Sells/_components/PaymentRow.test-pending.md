@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-sells-components-payment-row-test-pending
 component: resources/js/Pages/Sells/_components/PaymentRow.tsx
 status: test-pending
 reason: Vitest não configurado no projeto (package.json sem vitest/jest scripts);

@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Fiscal/Nfe (cockpit NF-e · NFC-e)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Fiscal/Nfe (cockpit NF-e · NFC-e)
 
 > **Tela:** `/fiscal/nfe`

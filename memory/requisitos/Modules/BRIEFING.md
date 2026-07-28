@@ -1,3 +1,7 @@
+---
+id: requisitos-modules-briefing
+---
+
 # BRIEFING — Modules · ⚰️ FUNDIDO em Admin (2026-06)
 
 > ⚠️ **Pare aqui — esta pasta foi FUNDIDA em `Admin`** (decisão E1 · frente KL · 2026-06-15).

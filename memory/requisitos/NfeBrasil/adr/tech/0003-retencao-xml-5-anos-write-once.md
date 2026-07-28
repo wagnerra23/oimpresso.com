@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-tech-0003-retencao-xml-5-anos-write-once
+---
+
 # ADR TECH-0003 (NfeBrasil) · Retenção XML 5 anos write-once com hash SHA256
 
 - **Status**: accepted

@@ -1,7 +1,7 @@
 # Buckets Governance v4 — catálogo canônico
 
 > **Última atualização:** 2026-05-17 (Wave 27 governance saturate ≥95)
-> **Fonte da rubrica:** [ADR 0160 — Governance v4 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-bucket-aware.md)
+> **Fonte da rubrica:** [ADR 0160 — Governance v4 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)
 > **Aposentadoria 3/4 hacks v3:** [ADR 0161](../../decisions/0161-governance-v4-aposentar-hacks-0159-redundantes.md)
 
 ## Por que buckets
@@ -10,14 +10,38 @@ Módulos do oimpresso têm naturezas distintas — `Vestuario` é produto vendá
 
 Solução **Scoped Scorecards bucket-aware** (ADR 0160): cada módulo é classificado num bucket, e o evaluator (`Modules\Governance\Services\ScopedScorecardEvaluator`) aplica pesos D1..D9 + dimensões extras específicas do bucket.
 
-## Buckets ativos (W27 deltas)
+## Buckets ativos
 
-| Bucket | YAML | Target score | Módulos canônicos | Wave intro |
-|---|---|---|---|---|
-| `meta_governance` | [meta_governance.yaml](./meta_governance.yaml) | 90 | Governance, Auditoria, Admin | W24 Agent A |
-| `vertical_client_facing` | [vertical_client_facing.yaml](./vertical_client_facing.yaml) | 85 | Vestuario, ComunicacaoVisual, OficinaAuto, Repair | W24 Agent A |
+> ⚠️ **Fonte da verdade = `governance.bucket` no `Modules/<X>/module.json`** (declarado e datado por `bucket_assigned_by`), **não** esta tabela. Ela é um retrato; para recontar, rode:
+>
+> ```bash
+> for f in Modules/*/module.json; do node -e "const j=require('./$f');if(j.governance?.bucket)console.log(j.governance.bucket)"; done | sort | uniq -c
+> ```
 
-> Buckets adicionais previstos (W26+ OTel Collector + W28+ catalogue): `ai_central` (Jana, Brief), `functional_horizontal` (Crm, Financeiro, NfeBrasil, RecurringBilling, Whatsapp), `consultive_listing` (KB, ProductCatalogue), `external_integration` (Connector, Officeimpresso). Hoje (W27) ainda heuristic-only no `ModuleGradeV4Command`.
+Retrato medido em **2026-07-26** (36 módulos, 36 declarando bucket):
+
+| Bucket | Módulos | YAML de rubrica | Target |
+|---|--:|---|--:|
+| `functional_horizontal` | 21 | ❌ **ausente** | 80 (fallback no comando) |
+| `cross_cutting_infra` | 7 | ✅ [cross_cutting_infra.yaml](./cross_cutting_infra.yaml) | 80 |
+| `vertical_client_facing` | 5 | ✅ [vertical_client_facing.yaml](./vertical_client_facing.yaml) | 85 |
+| `ai_central` | 2 | ❌ **ausente** | 85 (fallback no comando) |
+| `process_horizontal` | 1 | ❌ **ausente** | — (sem fallback) |
+| `meta_governance` | **0** | ⚠️ [meta_governance.yaml](./meta_governance.yaml) — **órfão** | 90 |
+
+### O que "YAML ausente" custa
+
+`ScopedScorecardEvaluator::loadBucketConfig()` retorna `[]` quando o arquivo não existe. Sem `core`, o loop de dimensões não roda: o módulo é avaliado com **zero dimensões**, não com pesos padrão. O `BUCKET_META_FALLBACK` cobria só o *threshold* (a meta), nunca as dimensões — e vivia no `ModuleGradeV4Command`, **removido em 2026-07-26**. Quem lê os buckets hoje é o cron `governance:scorecard-snapshot` (07:00) via `ScopedScorecardEvaluator`.
+
+Na prática o dano hoje é limitado, porque `module:grade-v4` pula módulo sem scorecard próprio — e existem **5** scorecards em [`../scorecards/`](../scorecards/): `admin`, `auditoria`, `comunicacaovisual`, `governance`, `vestuario`. Antes desta reconciliação, **3 dos 5** (admin/auditoria/governance) avaliavam com `core` vazio. Agora os 5 têm rubrica.
+
+### `meta_governance` — por que está órfão
+
+Escrito na W24 (2026-05-16) para "Governance, Auditoria, Admin". Na W27 (2026-05-17) o [W] atribuiu esses mesmos 3 módulos a `cross_cutting_infra` no `module.json`, com justificativa por módulo. O nome mudou nos `module.json` e não no arquivo de rubrica. A reconciliação de 2026-07-26 levou a rubrica pro nome declarado (`cross_cutting_infra.yaml`, pesos core copiados sem alteração) e **manteve** `meta_governance.yaml` no lugar — ele é referenciado por [`Wave27GovernanceSaturateTest.php`](../../../Modules/Governance/Tests/Feature/Wave27GovernanceSaturateTest.php). Deletar é decisão do [W], e exige ajustar o teste no mesmo PR.
+
+### Rubricas faltantes
+
+`functional_horizontal` (21 módulos), `ai_central` (2) e `process_horizontal` (1) seguem sem YAML. Nenhum deles tem scorecard hoje, então nada é silenciosamente mal-avaliado — mas qualquer scorecard novo nesses buckets nasce sem dimensões até a rubrica existir.
 
 ## Paired indicators (cap 50% canônico W24)
 
@@ -54,7 +78,7 @@ Implementação canônica em `ScopedScorecardEvaluator::checkPairedViolation()`.
 
 ## Referências
 
-- [ADR 0160 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-bucket-aware.md)
+- [ADR 0160 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)
 - [ADR 0161 Aposentar hacks v3](../../decisions/0161-governance-v4-aposentar-hacks-0159-redundantes.md)
 - [Modules/Governance/Services/ScopedScorecardEvaluator.php](../../../Modules/Governance/Services/ScopedScorecardEvaluator.php)
-- [Modules/Governance/Console/Commands/ModuleGradeV4Command.php](../../../Modules/Governance/Console/Commands/ModuleGradeV4Command.php)
+- ~~`Modules/Governance/Console/Commands/ModuleGradeV4Command.php`~~ — **REMOVIDO em 2026-07-26** (0 invocadores em CI/cron; a nota que morde é a do v3, `module:grade`)

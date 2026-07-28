@@ -1,4 +1,5 @@
 ---
+id: governance-module-drift-migration-plan
 slug: module-drift-migration-plan
 title: "Plano consolidado de migração de drift entre módulos"
 type: governance-spec

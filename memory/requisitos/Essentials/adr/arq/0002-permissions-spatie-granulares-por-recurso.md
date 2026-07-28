@@ -1,3 +1,7 @@
+---
+id: requisitos-essentials-adr-arq-0002-permissions-spatie-granulares-por-recurso
+---
+
 # ADR ARQ-0002 (Essentials) · Permissões Spatie granulares por recurso
 
 - **Status**: accepted

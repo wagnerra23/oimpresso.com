@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-charter-template
+---
+
 # CHARTER-TEMPLATE.md — Template canônico de Page Charter (Inertia .tsx)
 
 > **Append-only** — novos blocos podem ser adicionados; blocos existentes NUNCA removidos sem ADR mãe ([ADR 0101](../../decisions/0101-sistema-charter-capterra-governanca-escopo.md) + [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §princípio #3 Charter > Spec).

@@ -73,7 +73,12 @@ class Transaction extends Model
 
     public function sell_lines()
     {
-        return $this->hasMany(\App\TransactionSellLine::class);
+        // orderBy('id') preserva a ordem de bipagem/inserção (Rota Livre 2026-07-24:
+        // recibo/romaneio saía ordenado por código do produto em vez da ordem que a
+        // peça foi escaneada). Sem order explícito, o SELECT fica sujeito ao plano
+        // de execução do MySQL — id ASC é a única ordem que corresponde à sequência
+        // de saveMany() em TransactionUtil::createOrUpdateSellLines().
+        return $this->hasMany(\App\TransactionSellLine::class)->orderBy('transaction_sell_lines.id');
     }
 
     public function contact()

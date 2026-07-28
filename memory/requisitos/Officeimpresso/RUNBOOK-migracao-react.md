@@ -1,9 +1,11 @@
 ---
+owner: W
+last_validated: "2026-06-08"
 slug: officeimpresso-runbook-migracao-react
 title: "Officeimpresso — Runbook migração Blade → Inertia/React (MWART aplicado a módulo superadmin)"
 type: runbook
 module: Officeimpresso
-status: active
+status: ativo
 date: 2026-05-10
 related:
   - 0104  # Processo MWART canônico (mãe)

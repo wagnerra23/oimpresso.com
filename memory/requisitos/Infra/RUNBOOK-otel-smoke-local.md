@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Smoke local OpenTelemetry Collector + Tempo + Grafana"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Smoke local OpenTelemetry Collector + Tempo + Grafana
 
 > **Wave 28 Agent 6** — valida pipeline OTel localmente ANTES de deploy CT 100 ([RUNBOOK-otel-collector-ct100.md](RUNBOOK-otel-collector-ct100.md), ADR 0162).

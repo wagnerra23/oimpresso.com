@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-demo-martinho-2026-05-13-modos-verbais-reuniao
+---
+
 # Modos verbais — Reunião Martinho 10h (2026-05-13)
 
 > **Cheat-sheet pra Wagner consultar AO VIVO** durante reunião. 2 frases gatilho com comportamentos pré-definidos do Claude Code.

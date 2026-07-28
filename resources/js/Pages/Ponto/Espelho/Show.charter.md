@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-espelho-show-charter
 page: /ponto/espelho/{colaborador}
 component: resources/js/Pages/Ponto/Espelho/Show.tsx
 related_prototype: n/a (tela de detalhe bespoke — espelho mensal com heatmap + totalizadores + tabela dia-a-dia; não segue um dos 5 Padrões de Tela)

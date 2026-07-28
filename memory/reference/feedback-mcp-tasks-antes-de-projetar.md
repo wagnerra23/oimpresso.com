@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-mcp-tasks-antes-de-projetar
 slug: feedback-mcp-tasks-antes-de-projetar
 title: "Consultar o MCP (brief-fetch + tasks-list + decisions-search) ANTES de projetar/auditar/propor feature"
 type: feedback

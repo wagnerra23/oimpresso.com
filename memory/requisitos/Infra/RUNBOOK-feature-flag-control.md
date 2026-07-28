@@ -1,7 +1,8 @@
 ---
+last_validated: "2026-06-08"
 title: "Infra — RUNBOOK Feature Flag Control (3 canais)"
 us: US-INFRA-008
-owner: Wagner
+owner: W
 created: 2026-05-13
 relacionadas:
   - US-INFRA-001 (GrowthBook self-hosted)

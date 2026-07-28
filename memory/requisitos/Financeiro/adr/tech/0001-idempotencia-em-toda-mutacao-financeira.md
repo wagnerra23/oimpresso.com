@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-tech-0001-idempotencia-em-toda-mutacao-financeira
+---
+
 # ADR TECH-0001 (Financeiro) · Idempotência obrigatória em toda mutação financeira
 
 - **Status**: accepted

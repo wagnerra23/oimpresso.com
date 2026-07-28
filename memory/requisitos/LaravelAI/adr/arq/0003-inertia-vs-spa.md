@@ -1,3 +1,7 @@
+---
+id: requisitos-laravel-ai-adr-arq-0003-inertia-vs-spa
+---
+
 # ADR ARQ-0003 (LaravelAI) · Inertia v2 + React (não SPA separada)
 
 - **Status**: accepted

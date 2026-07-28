@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-telas-purchase-create-visual-comparison
 tela: purchase/create
 modulo: Purchase
 tipo: FORM CREATE

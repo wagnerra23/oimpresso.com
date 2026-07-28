@@ -169,7 +169,7 @@ function loadBaseline() {
 }
 
 // ── modos ────────────────────────────────────────────────────────────────────
-const mode = argv.find((a) => ['--scan', '--check', '--write-baseline'].includes(a)) || '--scan';
+const mode = argv.find((a) => ['--scan', '--check', '--write-baseline', '--triage'].includes(a)) || '--scan';
 const { vivo, hist, totalLinks } = scan();
 
 if (mode === '--write-baseline') {
@@ -192,6 +192,42 @@ if (mode === '--scan') {
   console.log(`  HISTORIA: ${count(hist)} mortos em ${hist.size} arquivos (append-only — nunca enforça)`);
   const sample = [...vivo.entries()].slice(0, 10);
   for (const [rel, targets] of sample) console.log(`    ${rel}  ->  ${targets[0]}${targets.length > 1 ? `  (+${targets.length - 1})` : ''}`);
+  process.exit(0);
+}
+
+// --triage (PR3 do design 2026-07-23): classifica os mortos VIVOS em redirectable (o alvo
+// mudou de PASTA — existe .md de mesmo basename em outro lugar) vs purged (sumiu de vez).
+// Heurística por BASENAME: o move histórico (Copiloto→Jana etc.) NÃO foi rastreado por id,
+// então não há prova — basename comum (SPEC.md/README.md) dá match ambíguo, sinalizado.
+// Serve pra triar a dívida de 1105: redirectable = auto-religável; purged = allowlist/remover.
+if (mode === '--triage') {
+  const byBasename = new Map();
+  for (const f of corpus()) {
+    const rel = relative(ROOT, f).split(sep).join('/');
+    const base = rel.split('/').pop().toLowerCase();
+    if (!byBasename.has(base)) byBasename.set(base, []);
+    byBasename.get(base).push(rel);
+  }
+  let redir = 0; let purged = 0; let ambiguous = 0;
+  const rows = [];
+  for (const [rel, targets] of vivo.entries()) {
+    for (const t of targets) {
+      if (!/\.(md|markdown)$/i.test(t)) { purged++; rows.push({ rel, t, verdict: 'purged', cands: [] }); continue; }
+      const cands = (byBasename.get(t.split('/').pop().toLowerCase()) || []).filter((c) => `/${c.toLowerCase()}` !== `/${t.replace(/^\.?\//, '').toLowerCase()}`);
+      if (!cands.length) { purged++; rows.push({ rel, t, verdict: 'purged', cands: [] }); }
+      else if (cands.length > 3) { ambiguous++; redir++; rows.push({ rel, t, verdict: 'redirectable', cands: cands.slice(0, 3), ambiguous: true }); }
+      else { redir++; rows.push({ rel, t, verdict: 'redirectable', cands }); }
+    }
+  }
+  console.log(`[deadlink-gate --triage] ${count(vivo)} link(s) morto(s) vivo(s) triados:`);
+  console.log(`  redirectable (alvo existe em outra pasta → auto-religável): ${redir}${ambiguous ? ` (${ambiguous} ambíguos por basename comum)` : ''}`);
+  console.log(`  purged (não existe em lugar nenhum → allowlist/remover): ${purged}`);
+  for (const r of rows.filter((r) => r.verdict === 'redirectable' && !r.ambiguous).slice(0, 8)) {
+    console.log(`   ~ ${r.rel} -> ${r.t}   ⇒   ${r.cands[0]}`);
+  }
+  for (const r of rows.filter((r) => r.verdict === 'purged').slice(0, 5)) {
+    console.log(`   ✗ ${r.rel} -> ${r.t}   (purgado)`);
+  }
   process.exit(0);
 }
 

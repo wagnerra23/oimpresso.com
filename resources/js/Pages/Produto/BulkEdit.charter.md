@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-bulk-edit-charter
 page: /products/mass-edit
 component: resources/js/Pages/Produto/BulkEdit.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
@@ -7,6 +8,7 @@ status: draft
 last_validated: "2026-05-15"
 parent_module: Produto
 related_adrs: [104, 149, 93, 107]
+related_us: [US-PROD-020, US-PROD-023]
 related_runbook: memory/requisitos/Produto/_telas/RUNBOOK-produto-bulk-edit.md
 related_visual_comparison: memory/requisitos/Produto/_telas/produto-bulk-edit-visual-comparison.md
 tier: A
@@ -32,7 +34,7 @@ Editar atributos comuns (Category/Sub/Brand/Tax/Locations + preços variations) 
 - Colunas: Categoria (select) · Sub-categoria · Brand · Tax · Locations (multi) · Variations prices (sub-rows)
 - Botão "Atualizar {N} produtos" sticky topo (primary destructive)
 - Multi-tenant: `business_id` scope nas queries
-- Submit POST `/products/mass-update`
+- Submit POST `/products/bulk-update` (writer real — `ProductController@bulkUpdate`, `routes/web.php:443`)
 
 ## Non-Goals
 
@@ -56,16 +58,42 @@ Editar atributos comuns (Category/Sub/Brand/Tax/Locations + preços variations) 
 ## Pest GUARD
 
 ```php
-it('Page Inertia existe em Pages/Produto/BulkEdit.tsx')
-it('Page declara matriz products × atributos')
-it('Page tem banner aviso destrutivo')
-it('Controller cross-tenant não inclui produtos biz=99')
+// Estáticos (grep no fonte) — tests/Feature/Produto/Wave2BulkEdit{Inertia,Baseline}Test.php
+it('Page existe em Pages/Produto/BulkEdit.tsx')                 // ✅ existe
+it('Page declara interface ProdutoBulkEditPageProps')           // ✅ existe (matriz products × atributos)
+it('Page tem banner aviso destrutivo (UX anti-pattern)')        // ✅ existe
+
+// Comportamento (request real, MySQL) — tests/Feature/Produto/ProdutoBulkEditContratoTest.php
+it('UC-PBULK-02 · produto de outro business não entra na matriz (multi-tenant Tier 0)')
 ```
+
+> 📌 **Correção factual 2026-07-26 (agent `sdd-from-source`).** Até esta data o §Pest GUARD prometia
+> `it('Controller cross-tenant não inclui produtos biz=99')` — teste que **não existia**: varredura
+> contada nos dois arquivos Wave2 da tela devolveu **0** ocorrências de cross-tenant/biz, e ambos só
+> fazem `grep` de string no fonte (nenhum dispara request). O guard Tier 0 agora existe de fato como
+> `UC-PBULK-02`. Re-medir com
+> `grep -rn "it(" tests/Feature/Produto/Wave2BulkEdit*.php tests/Feature/Produto/ProdutoBulkEditContratoTest.php`.
+
+## Divergências abertas (decisão [W] — registradas, NÃO resolvidas aqui)
+
+> Fatos medidos em 2026-07-26 (sha `6cd0fbc4f2`) que contradizem promessas deste charter. O agente
+> **não escolhe o vencedor** quando a correção exige saber o que [W] quis
+> ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md) Fase 2.6).
+
+| Promessa do charter | Fato medido | Remédios possíveis (só [W] decide) |
+|---|---|---|
+| §Goals *"Submit POST `/products/bulk-update`"* (corrigido — antes declarava `mass-update`) | a rota `mass-update` **nunca existiu** (0× em `routes/`); o `.tsx` **ainda** posta nela | [W] decidiu 2026-07-27 **repontar a tela** pro `bulk-update` (não criar alias — evita superfície de escrita nova numa feature que o upstream vai depreciar). §Goals já corrigido; a linha do `.tsx` **viaja junto com o `UC-PBULK-05`** (sozinha: ganho zero + custo de contrato visreg pra tela `POST`-only — cálculo no `casos.md`). |
+| §Goals *"Colunas: … Locations (multi) …"* | a tabela React **não renderiza** coluna de localização; o payload só faz round-trip de `productLocations` | construir a coluna · remover do §Goals |
+| Tela existe e é MWART F3 concluído | o botão de entrada está atrás de `config('constants.enable_product_bulk_edit')` = **`false`** (`config/constants.php:84`, nota upstream *"Will be depreciated in future"*) | ligar a flag · manter desligada e declarar Non-Goal/remoção · substituir pelo `/unificado` |
+
+Detalhe + contrato executável: [`BulkEdit.casos.md`](BulkEdit.casos.md) §"Três fatos medidos" e §Backlog.
 
 ## Refs
 
-- RUNBOOK: `memory/requisitos/Inventory/RUNBOOK-produto-bulk-edit.md`
-- Visual comparison: `memory/requisitos/Inventory/produto-bulk-edit-visual-comparison.md`
+- Casos (contrato): [`BulkEdit.casos.md`](BulkEdit.casos.md) — UC-PBULK-01..06
+- RUNBOOK: [`memory/requisitos/Produto/_telas/RUNBOOK-produto-bulk-edit.md`](../../../../memory/requisitos/Produto/_telas/RUNBOOK-produto-bulk-edit.md)
+- Visual comparison: [`memory/requisitos/Produto/_telas/produto-bulk-edit-visual-comparison.md`](../../../../memory/requisitos/Produto/_telas/produto-bulk-edit-visual-comparison.md)
+- SDD: [`SDD-tela-cadastro-produto-v1.0.md`](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) §5.3 **F5.1** + §6.1 `CU-PROD-06`
 - ADR 0149
 
 ## Histórico
@@ -73,3 +101,4 @@ it('Controller cross-tenant não inclui produtos biz=99')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
+| 2026-07-26 | [CC] `sdd-from-source` | **Só fatos** (nenhuma intenção tocada): §Refs apontava pra `memory/requisitos/Inventory/…`, path que **não existe** (`ls memory/requisitos/Inventory/` = só `BRIEFING.md` + `SPEC.md`) → corrigido pros paths reais em `Produto/_telas/`, que o próprio frontmatter já usava. §Pest GUARD prometia teste cross-tenant inexistente → reconciliado com os testes que existem + o novo `UC-PBULK-02`. Nova §Divergências abertas registra 3 promessas não cumpridas **sem** escolher remédio. Link pro `casos.md` (trio). |

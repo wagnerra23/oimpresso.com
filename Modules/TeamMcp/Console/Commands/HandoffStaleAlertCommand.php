@@ -7,6 +7,7 @@ namespace Modules\TeamMcp\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpInboxNotification;
+use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
 use Modules\TeamMcp\Entities\CoworkHandoff;
 
 /**
@@ -40,7 +41,12 @@ final class HandoffStaleAlertCommand extends Command
         {--days=3 : Idade mínima (dias) pra considerar um pending velho}
         {--dry-run : Mostra o que alertaria, não grava notificação}';
 
-    protected $description = 'Alerta no inbox ops handoffs de design pendentes há > N dias (anti feedback-void, ADR 0283). Idempotente: 1 digest/dia.';
+    protected $description = 'Alerta no inbox ops handoffs de design pendentes há > N dias (anti feedback-void, ADR 0283). Idempotente: 1 digest/dia + 1 item HITL no brief.';
+
+    public function __construct(private readonly HitlEscalationService $escalador)
+    {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -89,6 +95,28 @@ final class HandoffStaleAlertCommand extends Command
         }
 
         $opsUser = (int) config('admin.wagner_user_id', 1);
+
+        // ── HITL (2026-07-27) ────────────────────────────────────────────────
+        // A notificação abaixo é NAG: ela repetiu o mesmo alerta por 38 dias
+        // (30d → 33d → 35d → 36d → 38d) sem virar decisão de ninguém, porque o
+        // inbox não é o canal que o [W] lê pra decidir. O canal é o brief, e o
+        // brief lê `mcp_tasks WHERE status='blocked' AND owner='wagner'`.
+        //
+        // ANTES do guard `alreadyToday` DE PROPÓSITO: aquele guard dá `return`
+        // cedo, então escalar depois só funcionaria no 1º dia — o item ficaria
+        // congelado com a contagem do dia da estreia. O serviço tem idempotência
+        // própria (task_id determinístico), então re-escalar atualiza a MESMA
+        // task; nunca cria a segunda.
+        $this->escalador->escalar(
+            chave: 'HANDOFF-STALE',
+            titulo: sprintf('%d handoff(s) de design Cowork→Code pendente(s) há > %dd', $stale->count(), $days),
+            descricao: $body . "\n\nSaídas: reauditar contra o main e aplicar, OU rejeitar com note. "
+                . 'Enquanto o handoff ficar `pending`, este item volta a ser atualizado todo dia. '
+                . 'Fechar esta task (done/cancelled) SILENCIA o escalonamento — o sentinela não reabre.',
+            modulo: 'TeamMcp',
+            prioridade: 'p2',
+            origem: 'handoff:stale-alert',
+        );
 
         // Idempotência: 1 digest por dia (evita spam). Re-alerta amanhã se persistir.
         $alreadyToday = McpInboxNotification::query()

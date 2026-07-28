@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-telas-purchase-edit-visual-comparison
 tela: purchase/edit
 modulo: Purchase
 tipo: FORM EDIT

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-patterns-charter
 page: /ads/admin/patterns
 component: resources/js/Pages/ads/Admin/Patterns.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

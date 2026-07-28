@@ -1,4 +1,5 @@
 ---
+id: requisitos-whatsapp-auditoria-whatsmeow-daemon-2026-05-28
 tipo: auditoria
 modulo: whatsapp
 tema: whatsmeow-daemon-go-wuzapi

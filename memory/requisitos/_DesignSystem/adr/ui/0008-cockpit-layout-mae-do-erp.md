@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0008-cockpit-layout-mae-do-erp
+---
+
 # ADR UI-0008 · Cockpit é o layout-mãe do ERP (3 colunas + Apps Vinculados)
 
 - **Status**: accepted

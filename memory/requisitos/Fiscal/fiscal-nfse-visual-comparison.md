@@ -1,4 +1,5 @@
 ---
+id: requisitos-fiscal-fiscal-nfse-visual-comparison
 tela: Fiscal/Nfse
 url: /fiscal/nfse
 status: approved

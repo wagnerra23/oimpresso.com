@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **352** arquivos · **336** números únicos · máx **0346**
-- **ADRs ATIVOS (lifecycle ativo): 318** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 320 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 318 · arquivado 22 · substituido 12
+- **359** arquivos · **343** números únicos · máx **0353**
+- **ADRs ATIVOS (lifecycle ativo): 325** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 327 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 325 · arquivado 22 · substituido 12
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (352)
+## Todas as ADRs (359)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -391,3 +391,10 @@ _(nenhuma)_
 | 0344 | aceito | ativo | meta | Loop two-strikes cobre erro de PROCESSO (não só de código); cobertura só-advisor |
 | 0345 | aceito | ativo | decision | Tópicos vivos e aprendizado por crítica independente revisada |
 | 0346 | aceito | ativo | meta | Promove o gate Tópico a required — override soberano [W] (emenda à 0314; critéri |
+| 0347 | aceito | ativo | decision | Emenda à 0314 — deadlink-gate promovido a REQUIRED (integridade referencial doc↔ |
+| 0348 | aceito | ativo | decision | Emenda à 0314 — cobertura de BRIEFING por módulo backend (briefing-code-stalenes |
+| 0349 | aceito | ativo | decision | Emenda à 0314 — fact-anchor (Check T) promovido a FAIL-class (fato que contradiz |
+| 0350 | aceito | ativo | decision | nikic/php-parser promovido a dependência direta (auto-document código→KbNode, Fa |
+| 0351 | aceito | ativo | meta | sdd-from-source — agent das 3 camadas (analisa 3 fontes → documenta no padrão →  |
+| 0352 | aceito | ativo | errata | Errata 0351 — o refresh de BRIEFING via distiller (Camada 1.3) é follow-up gated |
+| 0353 | aceito | ativo | meta | Maquina de evolucao em looping das reguas — ledger persistente, modo delta, comp |

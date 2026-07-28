@@ -1,3 +1,7 @@
+---
+id: requisitos-vestuario-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Vestuario
 
 > Ficha canônica de benchmark do módulo vertical Vestuario.

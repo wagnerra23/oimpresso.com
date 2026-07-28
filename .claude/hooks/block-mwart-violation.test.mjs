@@ -47,6 +47,20 @@ mkdirSync(join(root, 'resources', 'js', 'Pages', 'Kb', 'Fantasma'), { recursive:
 writeFileSync(join(root, 'resources', 'js', 'Pages', 'Kb', 'Fantasma', 'Index.charter.md'),
   '---\npage: /kb/fantasma\nrunbook: memory/requisitos/Kb/RUNBOOK-nao-existe.md\n---\n# Charter mentiroso');
 
+// ── fixture ANINHADA #4: chave CANÔNICA do schema (`related_runbook:`) ───────────
+// charter.schema.json define `related_runbook` (não a curta `runbook`); medido 2026-07-27:
+// 7 charters usam a do schema e 5 a curta. Ler só a curta cegava o resgate justamente pros
+// charters que seguem o canon (caso real: Produto/BulkEdit). O arquivo EXISTE → resgata.
+mkdirSync(join(root, 'resources', 'js', 'Pages', 'Kb', 'Canonico'), { recursive: true });
+writeFileSync(join(root, 'resources', 'js', 'Pages', 'Kb', 'Canonico', 'Index.charter.md'),
+  '---\npage: /kb/canonico\nrelated_runbook: memory/requisitos/Kb/RUNBOOK-base-de-conhecimento.md\n---\n# Charter');
+
+// ── fixture ANINHADA #5 (CASO-ATAQUE da chave nova): `related_runbook:` FANTASMA ──
+// Ampliar a leitura NÃO pode afrouxar o gate: a validação de existência vale igual.
+mkdirSync(join(root, 'resources', 'js', 'Pages', 'Kb', 'CanonicoFantasma'), { recursive: true });
+writeFileSync(join(root, 'resources', 'js', 'Pages', 'Kb', 'CanonicoFantasma', 'Index.charter.md'),
+  '---\npage: /kb/canonico-fantasma\nrelated_runbook: memory/requisitos/Kb/RUNBOOK-nao-existe.md\n---\n# Charter mentiroso');
+
 // ── BLOCK: F1 ausente (ADR 0104 — não há 2º caminho) ────────────────────────────
 check('BLOCK: tela sem RUNBOOK (pasta existe)', decide('Edit', 'resources/js/Pages/Sells/Create.tsx', root) !== null);
 check('BLOCK: módulo sem pasta de requisitos (F1 nunca rolou)', decide('Write', 'resources/js/Pages/Financeiro/Painel.tsx', root) !== null);
@@ -95,6 +109,10 @@ check('charterRunbookExists: charter com runbook: válido → true (resgata)',
   charterRunbookExists('resources/js/Pages/Kb/Artigos/Index.tsx', root) === true);
 check('charterRunbookExists: charter com runbook: FANTASMA → false (não resgata)',
   charterRunbookExists('resources/js/Pages/Kb/Fantasma/Index.tsx', root) === false);
+check('charterRunbookExists: charter com related_runbook: (chave do schema) válido → true (resgata)',
+  charterRunbookExists('resources/js/Pages/Kb/Canonico/Index.tsx', root) === true);
+check('charterRunbookExists: related_runbook: FANTASMA → false (ampliar leitura não afrouxa)',
+  charterRunbookExists('resources/js/Pages/Kb/CanonicoFantasma/Index.tsx', root) === false);
 check('charterRunbookExists: sem charter ao lado → false',
   charterRunbookExists('resources/js/Pages/Sells/Create.tsx', root) === false);
 check('mensagem cita ADR 0104 + /cockpit-runbook + override', (() => {
@@ -111,6 +129,8 @@ check('E2E: tela sem RUNBOOK → exit 2 (BLOQUEIA)', runHook(j('Edit', 'resource
 check('E2E: RUNBOOK existe → exit 0', runHook(j('Edit', 'resources/js/Pages/Sells/Index.tsx')) === 0);
 check('E2E: tela aninhada c/ RUNBOOK-<subdir> → exit 0', runHook(j('Edit', 'resources/js/Pages/governance/ModuleGrades/Index.tsx')) === 0);
 check('E2E: charter fantasma (aninhada) → exit 2 (BLOQUEIA)', runHook(j('Edit', 'resources/js/Pages/Kb/Fantasma/Index.tsx')) === 2);
+check('E2E: charter com related_runbook: válido → exit 0 (resgata)', runHook(j('Edit', 'resources/js/Pages/Kb/Canonico/Index.tsx')) === 0);
+check('E2E: related_runbook: fantasma → exit 2 (BLOQUEIA)', runHook(j('Edit', 'resources/js/Pages/Kb/CanonicoFantasma/Index.tsx')) === 2);
 check('E2E: fora de escopo → exit 0', runHook(j('Edit', 'Modules/Jana/Services/Foo.php')) === 0);
 check('E2E: stdin vazio → exit 0 (fail-open)', runHook('') === 0);
 check('E2E: JSON inválido → exit 0 (fail-open, NUNCA trava sessão)', runHook('{lixo') === 0);

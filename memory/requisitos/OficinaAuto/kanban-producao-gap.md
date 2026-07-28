@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-kanban-producao-gap
+---
+
 # Gap — Kanban "Oficina Auto" (mockup Cowork × tela viva)
 
 > **Fase 1 read-only** da skill `aplicar-prototipo`. Mapa do que o mockup propõe que a tela viva não tem.

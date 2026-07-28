@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-drawer-760-canon-style
 name: feedback-drawer-760-canon-style
 description: Wagner preferência forte — Drawer 760 é o estilo canônico de edição/cadastro de entidades cadastrais do oimpresso. "Eu adoro esse estilo" 2026-05-22.
 metadata:

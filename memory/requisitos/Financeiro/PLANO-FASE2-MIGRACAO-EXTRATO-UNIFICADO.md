@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-plano-fase2-migracao-extrato-unificado
+---
+
 # Fase 2 — Migração de dados: unificar extrato OFX → tabela canônica
 
 > **Origem:** [ADR 0236](../../decisions/0236-extrato-conciliacao-modelo-unificado.md) (aceita 2026-05-31).

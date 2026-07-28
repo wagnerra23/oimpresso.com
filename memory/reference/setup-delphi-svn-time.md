@@ -1,4 +1,5 @@
 ---
+id: reference-setup-delphi-svn-time
 name: Setup Delphi/SVN READ-ONLY pra time remoto (Felipe etc)
 description: Runbook de provisionar máquina de dev remoto pra trabalhar com Delphi WR Comercial em modo READ-ONLY conforme feedback-commits-delphi-svn.md. Atualmente provisionado pra Felipe (Wagner 2026-05-27); outros devs sob demanda. URL canon SVN wr2.com.br:8777 (split-DNS — LAN resolve direto, remoto precisa Tailscale/VPN/presencial OU hosts file override). Cobre install SlikSvn + checkout completo D:\Programas + validação + credenciais SVN + troubleshoot. Aplica regra Wagner READ-ONLY (princípio 4 Constituição v2 + ADR 0113 + PEGADINHAS:182).
 type: reference

@@ -1,3 +1,7 @@
+---
+id: requisitos-ponto-wr2-adr-arq-0002-bridge-colaborador-config-sem-mexer-no-core
+---
+
 # ADR ARQ-0002 (PontoWr2) · Bridge `ponto_colaborador_config` em vez de estender `users/employees`
 
 - **Status**: accepted

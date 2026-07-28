@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-tech-0003-proration-mid-cycle
+---
+
 # ADR TECH-0003 (RecurringBilling) · Proração mid-cycle (upgrade/downgrade)
 
 - **Status**: accepted

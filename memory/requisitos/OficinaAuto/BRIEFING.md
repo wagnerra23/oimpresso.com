@@ -1,6 +1,7 @@
 ---
-distilled_at: "2026-07-17"
-distilled_by: "manual [CC] — redistilação por releitura (rotas + comandos + seeder FSM + charter + baseline). Substitui o carimbo de 2026-07-09, que herdou gaps já entregues do CAPTERRA-FICHA e um 'meta 2026-Q3' 2 meses errado"
+id: requisitos-oficina-auto-briefing
+distilled_at: "2026-07-27"
+distilled_by: "manual [C] — redestilação PARCIAL: o módulo ganhou SDD + contratos de tela no chip do passo 5 (PR #4869). O resto do corpo NÃO foi re-lido; só a seção Contrato de tela é nova."
 module: OficinaAuto
 status: piloto
 updated_at: "2026-07-17"
@@ -67,3 +68,14 @@ Releitura direta em 2026-07-17 (o destilado anterior citava 8 fontes, a mais nov
 - contrato: [SPEC.md](SPEC.md) (US-OFICINA-001..046) · [OficinaAuto.charter.md](OficinaAuto.charter.md) · [RUNBOOK-erradicacao-locacao.md](RUNBOOK-erradicacao-locacao.md)
 - números: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) (80) · [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (63) · [discovery-martinho.md](demo-martinho-2026-05-13/discovery-martinho.md) (piloto, medido 2026-05-13)
 - janela: `git log --since=2026-07-09 …` (6 commits)
+
+## Contrato de tela (SDD)
+
+O módulo passou a ter **SDD** em [`SDD-tela-ordem-servico-v1.0.md`](SDD-tela-ordem-servico-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
+gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4869).
+
+> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
+> `node scripts/governance/requisitos-status.mjs OficinaAuto`
+>
+> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
+> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).

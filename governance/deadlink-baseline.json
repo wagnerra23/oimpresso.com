@@ -1,7 +1,7 @@
 {
   "_doc": "Baseline RATCHET do deadlink-gate (so-desce). Dívida grandfathered de links mortos por arquivo VIVO. NAO editar a mao: regenerar com `node scripts/governance/deadlink-gate.mjs --write-baseline` (idealmente quando a divida DIMINUI). Historia (handoffs/sessions/sprints/audits/research/reguas) fica fora por ser append-only.",
-  "generated_at": "2026-07-23",
-  "total_vivo": 1105,
+  "generated_at": "2026-07-27",
+  "total_vivo": 1101,
   "files": {
     "INFRA.md": 2,
     "memory/08-handoff.md": 12,
@@ -371,7 +371,6 @@
     "memory/dominios/wr-comercial/modulos/wr_metadata/tabelas/WR_OBRIGATORIO.md": 1,
     "memory/dominios/wr-comercial/modulos/wr_metadata/tabelas/WR_VALOR_INICIAL.md": 1,
     "memory/governance/REALOCACAO-DOCUMENTAL.md": 1,
-    "memory/governance/buckets/_INDEX.md": 2,
     "memory/governance/scorecards/PLANO-DESIGN-TELAS-2026-05-31.md": 2,
     "memory/how-bridge-cloud-local.md": 1,
     "memory/proibicoes.md": 2,
@@ -489,7 +488,6 @@
     "memory/requisitos/Pcp/ADR-PROPOSAL.md": 10,
     "memory/requisitos/Pcp/SPEC.md": 1,
     "memory/requisitos/Produto/PROTOTIPO-preco-especial.md": 1,
-    "memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md": 2,
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-bulk-edit.md": 4,
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-create.md": 4,
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-edit.md": 4,

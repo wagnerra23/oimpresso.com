@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-adr-arq-0005-tax-rates-core-vs-fiscal-rules
+---
+
 # ADR ARQ-0005 (NfeBrasil) · `tax_rates` core e `nfe_fiscal_rules` convivem (bridge)
 
 - **Status**: accepted

@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-glossary
+---
+
 # Glossário — Financeiro
 
 > Vocabulário do domínio financeiro brasileiro, contextualizado pelo módulo.

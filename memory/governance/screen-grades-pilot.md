@@ -1,3 +1,7 @@
+---
+id: governance-screen-grades-pilot
+---
+
 # Screen-Grade — Ledger do Piloto (evoluções gravadas)
 
 > **Método:** [SCREEN-GRADE-METODO.md](../requisitos/_DesignSystem/SCREEN-GRADE-METODO.md) §7. 6 telas-piloto × 3 simulações (S0 atual → S1 próxima onda → S2 Champion), 6 agentes especialistas em paralelo (ADR 0231), code-first/READ-ONLY.

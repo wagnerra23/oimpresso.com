@@ -2,7 +2,7 @@
 page: /copiloto/memoria
 component: resources/js/Pages/Jana/Memoria.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-05-16"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md

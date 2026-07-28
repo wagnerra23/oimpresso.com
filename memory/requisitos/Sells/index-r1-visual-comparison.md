@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-index-r1-visual-comparison
 slug: sells-index-r1-visual-comparison
 title: "Sells / Index — Cópia visual integral KB-9.75 (substitui R1-slice)"
 type: visual-comparison

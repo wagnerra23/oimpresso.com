@@ -110,7 +110,7 @@ class ProdutoUnificadoController extends Controller
 
         return $q->orderBy('name')->limit(500)->get()->map(function (Product $p) {
             $defaultVar = $p->variations->firstWhere('name', 'DUMMY') ?? $p->variations->first();
-            $price = (float) ($defaultVar->default_sell_price_inc_tax ?? 0);
+            $price = (float) ($defaultVar->sell_price_inc_tax ?? 0);
             $cost  = (float) ($defaultVar->default_purchase_price ?? 0);
             return [
                 'id'         => $p->id,

@@ -1,40 +1,35 @@
 ---
-distilled_at: "2026-07-02"
-distilled_by: jana:distill-module-truth
+id: requisitos-repair-briefing
 module: Repair
 status: shared-infra
-updated_at: "2026-07-02"
+updated_at: "2026-07-23"
+distilled_at: "2026-07-23"
+distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Repair (verdade destilada)
 
-# Repair — BRIEFING (estado consolidado)
-
-> Última atualização: 2026-06-13
+> Última atualização: 2026-07-02
 
 ## Estado atual
-O módulo "Repair" gerencia ordens de serviço por meio de uma infraestrutura compartilhada entre múltiplas verticais, sendo consumido por módulos como `OficinaAuto`, `ComunicacaoVisual` e `Vestuario`. Atualmente, a integração e testes estão em andamento após a última atualização significativa, focando em auditoria e validação de dados.
+O módulo "Repair" gerencia ordens de serviço em infraestrutura compartilhada, usado por verticais como `OficinaAuto`, `ComunicacaoVisual` e `Vestuario`. O Kanban `ProducaoOficina` e o FSM Pipeline de OS (13 estágios) rodam em prod; o SPEC do próprio módulo é um placeholder (US-REPA-001 `_pendente_`) — as capacidades vivas foram construídas fora dele.
 
 ## Capacidades
-- **JobSheet** como entidade central para gerenciamento de ordens.
-- **RepairStatus** personalizável com 5 colunas fixas de progresso: Recepção, Diagnóstico, Aguardando peças, Em execução e Pronto.
-- Interface **ProducaoOficina** com funcionalidades drag-and-drop para manipulação visual das ordens.
-- Integração com protocolo de automação para faturamento de ordens de serviço ao final do processo.
-- Implementação de **FSM Pipeline** que orquestra as transições entre diferentes estágios de uma ordem de serviço.
-- Suporte a múltiplas verticais com vocabulário genérico e configurações específicas por negócio.
+- **JobSheet** para gerenciamento de ordens de serviço.
+- Kanban com 5 colunas fixas (Recepção, Diagnóstico, Aguardando peças, Em execução, Pronto); os `repair_statuses` em si são configuráveis por business.
+- Interface **ProducaoOficina** com recursos de drag-and-drop para organização visual das ordens.
+- Integração com automação de faturamento ao término do serviço.
+- Implementação de **FSM Pipeline** para orquestramento dos estágios de ordem de serviço.
+- Suporte a múltiplas verticais, permitindo vocabulário genérico e ajustes específicos por negócio.
 
 ## Gaps
-- Implementação do **Smoke browser MCP** para garantir compatibilidade e performance.
-- Extração da camada de serviços em `KanbanProductionService` para maior escalabilidade.
-- Desenvolvimento de teste multi-tenant dedicado para o módulo de reparos.
-- Migração das vendas legadas para o pipeline FSM para atualização do fluxo de trabalho.
+- Top-5 da FICHA (US-REP-005..009): KPIs/dashboard, app mobile, comissão, catálogo, retention-purge.
+- Bulk-start de OS legadas pro FSM: comando `repair:fsm:bulk-start` inexistente (US-REP-FSM-006).
 
 ## Última mudança
-Na auditoria recente, foram identificados e testados potenciais corrompimentos de dados no SQLite, com foco nas integrações e no mapeamento das telas do projeto, visando garantir a estabilidade e confiabilidade do módulo.
+Perf D-14 partial reload no Kanban `ProducaoOficina` (PR #3901, 2026-07-06) e draft de charter da OS (PR #4123, 2026-07-12).
 
 ## Proveniência (destilado de)
 
 - audit `requisitos/Repair/CAPTERRA-FICHA.md` — CAPTERRA-FICHA.md
-- session `sessions/2026-06-13-audit-sqlite-test-corruptors.md` (2026-06-13) — 2026-06-13-audit-sqlite-test-corruptors.md
-- session `sessions/2026-06-13-auditoria-adversarial-sdd-f2b-floor.md` (2026-06-13) — 2026-06-13-auditoria-adversarial-sdd-f2b-floor.md
-- session `sessions/2026-06-08-mapa-telas-projeto.md` (2026-06-08) — 2026-06-08-mapa-telas-projeto.md
+- session `sessions/2026-07-02-dossie-triagem-onda4-revisao-adr.md` (2026-07-02) — 2026-07-02-dossie-triagem-onda4-revisao-adr.md

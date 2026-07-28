@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-unificado-novo-charter
 page: /financeiro/unificado/novo
 component: resources/js/Pages/Financeiro/Unificado/Novo.tsx
 related_prototype: n/a (tela-stub picker/hub de 2 cards de link — não é formulário; não casa a assinatura de um dos 5 Padrões de Tela)

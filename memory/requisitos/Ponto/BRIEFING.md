@@ -1,3 +1,12 @@
+---
+id: requisitos-ponto-briefing
+module: Ponto
+status: parcial
+updated_at: "2026-07-27"
+distilled_at: "2026-07-27"
+distilled_by: "manual [C] — redestilação PARCIAL: o módulo ganhou SDD + contratos de tela no chip do passo 5 (PR #4865). O resto do corpo NÃO foi re-lido."
+---
+
 # BRIEFING — Modules/Ponto
 
 > 1-pager executivo do modulo de ponto eletronico do oimpresso.
@@ -100,3 +109,14 @@ Ponto eletronico CLT-compliance (Portaria MTP 671/2021) com **marcacao append-on
 ## Fusões absorvidas (KL-E2)
 
 Este módulo **absorveu** (fusão FUNDIR, KL-E2) a pasta tombstoneada **PontoWr2** — redireciona pra cá. As 12 US-PONT órfãs ficaram `status: historical` in-place com ponteiro pra Ponto. Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).
+
+## Contrato de tela (SDD)
+
+O módulo passou a ter **SDD** em [`SDD-espelho-e-jornada-v1.0.md`](SDD-espelho-e-jornada-v1.0.md) — §5 fluxos + §6 casos de uso — e `casos.md` por tela,
+gerados pelo chip `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md), PR #4865).
+
+> **Contagem viva — não copiada aqui** (CU · UC · telas cobertas · onde a cadeia quebra):
+> `node scripts/governance/requisitos-status.mjs Ponto`
+>
+> O painel derivado fica em [`_STATUS-GENERATED.md`](_STATUS-GENERATED.md). Número escrito à mão apodrece —
+> este doc aponta para o dono, não restateia (proibições §5, 2026-07-17).

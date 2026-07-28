@@ -1,10 +1,14 @@
+---
+id: requisitos-team-mcp-capterra-design-ficha
+---
+
 # CAPTERRA-DESIGN-FICHA — TeamMcp/Team (UX/UI de governança de tokens MCP)
 
 > **Cruzamento gerado:** 2026-05-25
 > **Skill aplicada:** `design-arte` (input pra CAPTERRA-DESIGN-INVENTARIO.md futuro)
 > **Alvo:** `resources/js/Pages/team-mcp/Team/Index.tsx` (~521 LOC, live em prod, biz=1 superadmin Wagner — único cliente real desta tela)
 > **Controller:** `Modules/TeamMcp/Http/Controllers/TeamController.php` (Inertia::defer 2 props pesadas, OTel spans em token.issue/revoke)
-> **Persona:** Wagner [W] @ biz=1 (superadmin, dev sênior, monitor 1920px, **técnico**, opera várias vezes/dia onboarding de Felipe/Maiara/Eliana/Luiz no MCP server). **NÃO é Larissa** — esta tela é superadmin-only com `can: copiloto.mcp.usage.all`.
+> **Persona:** Wagner [W] @ biz=1 (superadmin, dev sênior, monitor 1920px, **técnico**, opera várias vezes/dia onboarding de Felipe/Maiara/Eliana/Luiz no MCP server). **NÃO é Larissa** — esta tela é superadmin-only com `can: jana.mcp.usage.all`.
 > **Charter:** ❌ ausente (`Team/Index.charter.md` não existe — gerar quando entrar em ciclo de refactor)
 > **Visual-comparison prévio:** ❌ ausente
 > **RUNBOOK:** ❌ ausente
@@ -67,7 +71,7 @@ Legenda: ✅ tem completo · 🟡 parcial / divergente · ❌ ausente · ⚪ N/A
 |---|---|:-:|:-:|:-:|
 | **G-01** | Listagem de devs (lista paginável) | ✅ | ✅ tabela 9 colunas + Deferred skeleton 5 rows | OK |
 | **G-02** | KPIs globais no topo (custo hoje/mês/calls/usuários ativos) | 🟡 (Stripe sim, GitHub não) | ✅ 4 KpiCard com tone semântico (info/default/warning/success) | OK |
-| **G-03** | Permission gate `copiloto.mcp.usage.all` enforced | ✅ | ✅ middleware + DataController gates | OK |
+| **G-03** | Permission gate `jana.mcp.usage.all` enforced | ✅ | ✅ middleware + DataController gates | OK |
 | **G-04** | PageHeader canon roxo 295 aplicado (ADR 0180/0182/0189/0190) | ⚪ N/A | ✅ icon="users" + title + description + action slot | OK |
 | **G-05** | Inertia::defer em props caras (`team`, `stats_globais` — ~30 queries) | ⚪ N/A | ✅ closure dupla + fallback skeleton coerente | OK |
 | **G-06** | Token raw exibido 1× só no momento da criação | ✅ Stripe canon | ✅ Dialog com `<Input readOnly>` + aviso "COPIE AGORA" + onClick select | OK |
@@ -251,7 +255,7 @@ Gap pro topo: -23 pts. Causa principal:
 - **Reveal-once invariante ([ADR 0057](../../decisions/0057-tela-team-admin-regras-governanca-tokens-mcp.md) §2 + §10):** raw mostrado 1× só, hash SHA256 gravado. Nenhuma feature pode adicionar "ver token novamente" — incentivo correto à rotação.
 - **Soft-delete em revoke ([ADR 0057](../../decisions/0057-tela-team-admin-regras-governanca-tokens-mcp.md) §6):** preserva `mcp_audit_log` queryable. Nunca `forceDelete()` em `mcp_tokens` linha exceto LGPD `esquecer-me` (cycle 02).
 - **PageHeader canon roxo 295 ([ADR 0180/0182/0189/0190](../../decisions/)):** redesign NÃO pode trocar cor primária. PageHeader é Camada 2 (Shell) na Constituição UI v2, imutável via ADR.
-- **Permission gate `copiloto.mcp.usage.all`:** middleware no construtor — toda rota nova herda. Pegar com `can:copiloto.mcp.usage.all` ou superadmin role.
+- **Permission gate `jana.mcp.usage.all`:** middleware no construtor — toda rota nova herda. Pegar com `can:jana.mcp.usage.all` ou superadmin role.
 - **OTel span obrigatório em ações Tier 0:** `teammcp.token.issue`, `teammcp.token.revoke`, `teammcp.tokens.list` (nova). Atributos NUNCA incluem `raw`.
 - **Charter > Spec ([Constituição v2](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)):** PR de redesign **DEVE** criar `Index.charter.md` ao lado declarando: status `live`, charter_version 1, persona Wagner [W], goals (drill-down tokens individual + governança Tier 0), non-goals (self-service token-by-dev — Cycle 02 ADR 0057 §C; chart de evolução custo — Cycle 03 dataviz), invariantes (reveal-once, multi-tenant, soft-delete).
 - **Cliente como sinal ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)):** persona aqui é Wagner solo + mercado SaaS (Vercel breach 2026 = sinal externo qualificado). Gaps "porque Linear faz" sem dor de Wagner viram ADR feature-wish, não US ativa. Os 6 Tier 0 acima TÊM sinal (ADR 0057 explicita, mercado pressiona, ou Wagner já reportou tinker manual).

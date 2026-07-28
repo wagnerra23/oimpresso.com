@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-screen-review-pdca
 title: Screen Review PDCA — pattern doc canon (templates + exemplo round)
 description: Pattern doc canônico do ciclo PDCA aplicado a telas Inertia/React (fase C/A do MWART). Templates dos 3 artefatos por tela + exemplo round real mock. Cross-ref ADR 0104 (MWART original) + ADR 0164 (PDCA emenda).
 type: pattern-doc

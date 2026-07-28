@@ -1,4 +1,5 @@
 ---
+id: requisitos-estoque-telas-stock-transfer-index-visual-comparison
 tela: stock_transfers/index
 modulo: Inventory / StockTransfer
 tipo: LIST

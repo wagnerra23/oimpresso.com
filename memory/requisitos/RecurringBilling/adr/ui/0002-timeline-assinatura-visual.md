@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-adr-ui-0002-timeline-assinatura-visual
+---
+
 # ADR UI-0002 (RecurringBilling) · Timeline visual da assinatura
 
 - **Status**: accepted

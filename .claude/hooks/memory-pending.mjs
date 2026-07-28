@@ -16,7 +16,7 @@
 // Selftest: node .claude/hooks/memory-pending.mjs --selftest
 
 import { spawnSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // Paths canônicos de memória/governança (mesmos do .ps1 legado).
 export const CANON_PATHS = ['memory/', 'MEMORY.md', 'TEAM.md', 'CLAUDE.md', 'DESIGN.md', 'INFRA.md', 'MANUAL_CLAUDE_CODE.md'];
@@ -67,7 +67,7 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--selftest')) {
     const test = new URL('./memory-pending.test.mjs', import.meta.url);
-    const r = spawnSync(process.execPath, [test.pathname], { stdio: 'inherit' });
+    const r = spawnSync(process.execPath, [fileURLToPath(test)], { stdio: 'inherit' });
     process.exit(r.status ?? 1);
   }
   main();

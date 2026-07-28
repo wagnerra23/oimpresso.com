@@ -2,7 +2,7 @@
 page: /whatsapp/settings
 component: resources/js/Pages/Whatsapp/Settings.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-05-27"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md

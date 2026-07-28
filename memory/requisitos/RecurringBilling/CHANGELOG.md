@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-changelog
+---
+
 # Changelog — RecurringBilling
 
 Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.

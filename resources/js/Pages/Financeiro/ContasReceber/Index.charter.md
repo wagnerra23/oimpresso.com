@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-contas-receber-index-charter
 page: /financeiro/contas-receber
 component: resources/js/Pages/Financeiro/ContasReceber/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

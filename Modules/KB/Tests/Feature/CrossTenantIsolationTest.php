@@ -18,6 +18,12 @@ use Modules\KB\Entities\KbNode;
  *
  * Wagner palavras textuais (ADR 0093): "vazar dados entre tenants é o pior
  * bug possível neste projeto". biz=4 (ROTA LIVRE prod) NUNCA em tests.
+ *
+ * REALIDADE V1 (gate coarse — SCHEMA-DB-V1 §12): o middleware REAL é
+ * `can:jana.mcp.memory.manage`. O user de biz=1 recebe a coarse DE PROPÓSITO:
+ * assim ele PASSA o middleware e o bloqueio cross-tenant tem que vir do GLOBAL SCOPE
+ * `business_id` (firstOrFail → 404), provando isolamento de verdade. Sem a coarse, o
+ * 403 viria do middleware e o teste NÃO exercitaria o isolamento (falso-verde Tier 0).
  */
 
 beforeEach(function () {
@@ -39,7 +45,7 @@ it('blocks kb_node read across businesses (R5)', function () {
         'status' => 'ok', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    kbActAsUser(bizId: 1, permissions: ['kb.view']);
+    kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view']);
 
     // Via Eloquent (global scope)
     expect(KbNode::all())->toHaveCount(0);
@@ -73,7 +79,7 @@ it('blocks kb_edge creation across businesses (R5)', function () {
     ]);
 
     // User de biz=1 admin tenta criar edge from=a1 (biz=1) → to=a99 (biz=99)
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.write']);
+    kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.write']);
 
     // Via HTTP — espera-se 403 ou 422 (validação de business_id)
     // TODO[CL]: confirmar endpoint com Agent A. Provavelmente POST /kb/edges.
@@ -100,7 +106,7 @@ it('blocks kb_comment cross-tenant (user biz=1 nao comenta node biz=99)', functi
         'status' => 'ok', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.comment']);
+    kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.comment']);
 
     $response = $this->postJson('/kb/nodes/biz99-comm/comments', [
         'block_idx' => 0,
@@ -119,7 +125,7 @@ it('blocks kb_favorite cross-tenant', function () {
         'status' => 'ok', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.favorite']);
+    kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.favorite']);
 
     $response = $this->postJson('/kb/nodes/biz99-fav/favorite');
 
@@ -128,9 +134,10 @@ it('blocks kb_favorite cross-tenant', function () {
 });
 
 it('bridge job respects business scope (job(1) nao toca docs biz=99)', function () {
-    // Cria mcp_docs em ambos businesses
-    kbCreateMcpDoc(1, 'adr', ['slug' => 'biz1-adr', 'title' => 'biz 1 adr']);
-    kbCreateMcpDoc(99, 'adr', ['slug' => 'biz99-adr', 'title' => 'biz 99 adr']);
+    // Cria mcp_docs em ambos businesses — guardamos os IDs pra escopar o assert
+    // ao PRÓPRIO doc (ver nota de ordem-dependente abaixo).
+    $biz1DocId  = kbCreateMcpDoc(1, 'adr', ['slug' => 'biz1-adr', 'title' => 'biz 1 adr']);
+    $biz99DocId = kbCreateMcpDoc(99, 'adr', ['slug' => 'biz99-adr', 'title' => 'biz 99 adr']);
 
     // Roda job APENAS pra biz=1
     foreach (['Modules\\KB\\Jobs\\KbBridgeFromMcpJob',
@@ -145,10 +152,23 @@ it('bridge job respects business scope (job(1) nao toca docs biz=99)', function 
         test()->markTestSkipped('KbBridgeFromMcpJob ainda não criado pelo Agent A.');
     }
 
-    (new $jobClass(1))->handle();
+    // handle() recebe serviços via DI (KbBridgeStateService + KbEdgeAutoDeriver) — resolver
+    // pelo container em vez de chamar handle() sem args (senão ArgumentCountError).
+    app()->call([new $jobClass(1), 'handle']);
 
-    // Resultado: kb_nodes só pra biz=1
-    expect(\DB::table('kb_nodes')->where('business_id', 1)->count())->toBe(1)
+    // Assert ESCOPADO ao source_doc_id que ESTE teste criou (não contagem global).
+    //
+    // Por quê escopado: `mcp_memory_documents` é tabela CORE COMPARTILHADA e NÃO é
+    // resetada por kbTeardownSchema (só as kb_* são — ver Helpers.php). Sob
+    // executionOrder="random" (phpunit.xml), docs biz=1 de OUTROS testes (+ docs
+    // globais business_id=NULL, que o job também bridgeia) acumulam no run → a
+    // contagem global `kb_nodes where business_id=1` fica N>1 (3/6 no CI efêmero,
+    // ~1268 no CT 100 staging com dados reais) e o assert antigo `->toBe(1)`
+    // quebrava order-dependent. Escopar ao doc próprio é robusto em QUALQUER
+    // ambiente E prova o contrato real: job(1) bridgeia SEU doc biz=1 e NUNCA
+    // toca o doc biz=99. (ADR 0093 multi-tenant Tier 0 · ADR 0101 biz=1/biz=99.)
+    expect(\DB::table('kb_nodes')->where('source_doc_id', $biz1DocId)->where('business_id', 1)->count())->toBe(1)
+        ->and(\DB::table('kb_nodes')->where('source_doc_id', $biz99DocId)->count())->toBe(0)
         ->and(\DB::table('kb_nodes')->where('business_id', 99)->count())->toBe(0);
 });
 
@@ -160,7 +180,7 @@ it('PUT cross-tenant: user biz=1 NAO pode editar node biz=99 mesmo conhecendo sl
         'status' => 'ok', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.write']);
+    kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.write']);
 
     $response = $this->putJson('/kb/nodes/shared-slug', [
         'title'       => 'HACKED biz 1',
@@ -180,9 +200,12 @@ it('DELETE cross-tenant: user biz=1 NAO pode soft-deletar node biz=99', function
         'status' => 'ok', 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    kbActAsUser(bizId: 1, permissions: ['kb.view', 'kb.softdelete']);
+    kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.softdelete']);
 
-    $response = $this->deleteJson('/kb/nodes/cant-delete');
+    // destroy() exige confirm=CONFIRMO (safety guard); mandamos pra o 422 de validação NÃO
+    // mascarar o teste de isolamento — assim o bloqueio vem do global scope (firstOrFail →
+    // 404), provando a isolação de verdade.
+    $response = $this->deleteJson('/kb/nodes/cant-delete', ['confirm' => 'CONFIRMO']);
 
     expect($response->status())->toBeIn([403, 404]);
     $row = \DB::table('kb_nodes')->where('business_id', 99)->where('slug', 'cant-delete')->first();

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-estoque-movimentacao-casos
 casos: Movimentação de estoque (domínio) · núcleo UltimatePOS + Modules
 irmaos: memory/requisitos/Estoque/DOC-RAIZ-ESTOQUE.md (contrato — matriz §3 + invariantes §7)
 tecnica: Caso de uso = fluxo de negócio que MOVE saldo + critério de aceite (Dado/Quando/Então) verificável por Pest que QUEBRA quando o saldo não move certo.

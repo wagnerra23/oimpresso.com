@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-project-mgmt-burndown-index-charter
 page: /project-mgmt/burndown
 component: resources/js/Pages/ProjectMgmt/Burndown/Index.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
@@ -16,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/BurndownController@index` (rota `project-mgmt.burndown.index`, permissão `copiloto.mcp.usage.all`). Dashboard de burndown do cycle: KPIs + gráfico SVG ideal vs real.
+> Backend: `Modules/ProjectMgmt/Http/Controllers/BurndownController@index` (rota `project-mgmt.burndown.index`, permissão `jana.mcp.usage.all`). Dashboard de burndown do cycle: KPIs + gráfico SVG ideal vs real.
 
 ---
 
@@ -36,7 +37,7 @@ Mostrar o progresso de queima (burndown) do cycle ativo (ou de um cycle escolhid
 ---
 
 ## Non-Goals — Features (NÃO faz)
-- ❌ Não é multi-tenant por `business_id` — opera sobre `mcp_cycles`/`mcp_tasks`/`mcp_task_events` (PM interno do time), gated por `copiloto.mcp.usage.all`. (inferência pendente de Wagner)
+- ❌ Não é multi-tenant por `business_id` — opera sobre `mcp_cycles`/`mcp_tasks`/`mcp_task_events` (PM interno do time), gated por `jana.mcp.usage.all`. (inferência pendente de Wagner)
 - ❌ Não cria/edita cycle aqui (isso é `cycles-create`/`cycles-close` via MCP). (inferência pendente de Wagner)
 - ❌ Não reconstrói histórico perfeito: tasks movidas pra `done` sem evento contam no KPI `done` mas não no histórico do gráfico — ruído pré-existente aceito. (inferência pendente de Wagner)
 - ❌ Não plota cycle com menos de 2 pontos (mostra aviso "cycle muito curto"). (inferência pendente de Wagner)

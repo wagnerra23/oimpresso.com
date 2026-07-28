@@ -101,7 +101,13 @@ class InstallController extends Controller
         $output = [];
 
         //Check for php version
-        $output['php'] = (PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 1) ? true : false;
+        // O mínimo real é `require php ^8.3` no composer.json (laravel/ai 0.10 exige).
+        // Comparar aqui seria tautológico: se o PHP não atendesse, o composer não teria
+        // instalado e o app não bootaria — nunca chegaria a renderizar esta tela.
+        // Mantido no output só pra tela check-server continuar listando o requisito.
+        // O check antigo (MAJOR >= 7 && MINOR >= 1) era obsoleto E furado: reprovava
+        // PHP 8.0 (minor 0 >= 1 é false) e aprovava 7.1.
+        $output['php'] = true;
         $output['php_version'] = PHP_VERSION;
 
         //Check for php extensions

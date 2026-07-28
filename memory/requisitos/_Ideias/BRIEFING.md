@@ -1,3 +1,7 @@
+---
+id: requisitos-ideias-briefing
+---
+
 # BRIEFING — _Ideias · 🧭 porta (índice da incubadora)
 
 > Índice da **incubadora** de ideias/conceitos não-priorizados (12 docs): comparativos, wishes arquivados, hipóteses.

@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-spec
 slug: design-system
 title: "Especificação funcional · Design System"
 type: spec

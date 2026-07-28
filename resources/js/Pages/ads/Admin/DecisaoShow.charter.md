@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-decisao-show-charter
 page: /ads/admin/decisoes/{id}
 component: resources/js/Pages/ads/Admin/DecisaoShow.tsx
 related_prototype: n/a (tela de detalhe bespoke — não segue um dos 5 Padrões de Tela)

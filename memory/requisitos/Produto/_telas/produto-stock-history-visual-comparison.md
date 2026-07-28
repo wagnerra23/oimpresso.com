@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-telas-produto-stock-history-visual-comparison
 slug: inventory-produto-stock-history-visual-comparison
 title: "Produto — Comparativo visual da tela Histórico de estoque"
 type: visual-comparison

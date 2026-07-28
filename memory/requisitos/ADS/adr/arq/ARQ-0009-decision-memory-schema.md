@@ -1,4 +1,5 @@
 ---
+id: requisitos-ads-adr-arq-arq-0009-decision-memory-schema
 slug: ARQ-0009-decision-memory-schema
 title: "Decision Memory — Schema, retenção LGPD e uso pelo Learning Loop"
 status: accepted

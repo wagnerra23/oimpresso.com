@@ -52,10 +52,11 @@ class KbHealthCommand extends Command
                             {--business-id= : Business ID (obrigatório se --all-businesses ausente)}
                             {--all-businesses : Itera Business::active() — usar em cron daily}
                             {--bridge-threshold-h=24 : Threshold horas pra bridge stale alert}
+                            {--snapshot : Persiste 1 row/(business,dia) em kb_health_history (série temporal — evolução)}
                             {--detail : Log detalhado por check}
                             {--json : Output JSON estruturado (cron-friendly)}';
 
-    protected $description = 'Health-check KB — corpus size + bridge freshness + retrieval latency + ratio curadoria.';
+    protected $description = 'Health-check KB — corpus + bridge + latency + curadoria + régua doc↔código (drift/nós/arestas de código).';
 
     public function handle(KbBridgeStateService $bridgeState): int
     {
@@ -73,6 +74,10 @@ class KbHealthCommand extends Command
             'module'      => 'KB',
             'business_id' => $bizId,
         ], fn () => $this->runChecks($bizId, $bridgeState));
+
+        if ($this->option('snapshot')) {
+            $this->persistSnapshot($result);
+        }
 
         return $this->emit($result);
     }
@@ -101,6 +106,9 @@ class KbHealthCommand extends Command
             ], fn () => $this->runChecks($bizId, $bridgeState));
 
             $aggregate[$bizId] = $result;
+            if ($this->option('snapshot')) {
+                $this->persistSnapshot($result);
+            }
             if (($result['overall'] ?? 'ok') === 'fail') {
                 $exit = 1;
             }
@@ -143,6 +151,12 @@ class KbHealthCommand extends Command
 
         // 4. editable_ratio — % editable vs bridge (saúde curadoria)
         $checks['editable_ratio'] = $this->checkEditableRatio($bizId);
+
+        // 5-7. Régua doc↔código (trilho A1–D, 2026-07-23) — métricas DERIVADAS
+        // do banco, nunca julgadas (ADR 0256). Evolução via --snapshot.
+        $checks['code_drift_flagged'] = $this->checkCodeDriftFlagged($bizId);
+        $checks['code_nodes'] = $this->checkCodeNodes($bizId);
+        $checks['code_edges'] = $this->checkCodeEdges($bizId);
 
         $overall = 'ok';
         foreach ($checks as $c) {
@@ -302,6 +316,127 @@ class KbHealthCommand extends Command
             ];
         } catch (\Throwable $e) {
             return ['status' => 'fail', 'value' => 0.0, 'note' => 'Erro: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Régua doc↔código #1 — nós (editáveis OU bridge) cujo code_drift_state
+     * está setado = docs citando código deletado/movido AGORA (kb:drift-detector
+     * A1/A2 grava; self-heal limpa). `warn` quando >0: pede olho humano.
+     *
+     * NOTA de honestidade (LC-08): NULL significa "sem drift" OU "nunca checado"
+     * (design A1 — self-heal). Logo "% checado" NÃO é derivável; o que se deriva
+     * é o nº de drifts ATIVOS. Não inventar coverage aqui.
+     *
+     * @return array{status:string,value:int,note:string}
+     */
+    protected function checkCodeDriftFlagged(int $bizId): array
+    {
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasColumn('kb_nodes', 'code_drift_state')) {
+                return ['status' => 'warn', 'value' => 0, 'note' => 'coluna code_drift_state ausente (migration A1 não aplicada)'];
+            }
+
+            $count = (int) DB::table('kb_nodes')
+                ->where('business_id', $bizId)
+                ->whereNull('deleted_at')
+                ->whereNotNull('code_drift_state')
+                ->count();
+
+            return [
+                'status' => $count > 0 ? 'warn' : 'ok',
+                'value'  => $count,
+                'note'   => $count > 0
+                    ? "{$count} doc(s) citando código deletado/movido — revisar (kb:drift-detector)"
+                    : 'Nenhum doc citando código morto',
+            ];
+        } catch (\Throwable $e) {
+            return ['status' => 'fail', 'value' => 0, 'note' => 'Erro DB: '.$e->getMessage()];
+        }
+    }
+
+    /**
+     * Régua doc↔código #2 — nós gerados DO código (kb:code-scan B/C):
+     * type=reference + slug prefixado 'code-' (com ou sem --project).
+     * Informativo (ok sempre): 0 é legítimo — o scan é comando manual.
+     *
+     * @return array{status:string,value:int,note:string}
+     */
+    protected function checkCodeNodes(int $bizId): array
+    {
+        try {
+            $count = (int) DB::table('kb_nodes')
+                ->where('business_id', $bizId)
+                ->whereNull('deleted_at')
+                ->where('type', 'reference')
+                ->where('slug', 'like', 'code-%')
+                ->count();
+
+            return [
+                'status' => 'ok',
+                'value'  => $count,
+                'note'   => "{$count} nó(s) auto-gerados do código (kb:code-scan)",
+            ];
+        } catch (\Throwable $e) {
+            return ['status' => 'fail', 'value' => 0, 'note' => 'Erro DB: '.$e->getMessage()];
+        }
+    }
+
+    /**
+     * Régua doc↔código #3 — arestas de dependência "classe usa classe"
+     * (kb:code-graph D, generated_by=code_scan). Informativo (ok sempre).
+     *
+     * @return array{status:string,value:int,note:string}
+     */
+    protected function checkCodeEdges(int $bizId): array
+    {
+        try {
+            $count = (int) DB::table('kb_edges')
+                ->where('business_id', $bizId)
+                ->where('generated_by', 'code_scan')
+                ->count();
+
+            return [
+                'status' => 'ok',
+                'value'  => $count,
+                'note'   => "{$count} aresta(s) de dependência do código (kb:code-graph)",
+            ];
+        } catch (\Throwable $e) {
+            return ['status' => 'fail', 'value' => 0, 'note' => 'Erro DB: '.$e->getMessage()];
+        }
+    }
+
+    /**
+     * Persiste o resultado do run em kb_health_history (1 row por business+dia;
+     * re-run no mesmo dia ATUALIZA — updateOrInsert no UNIQUE biz+snapshot_date).
+     * Série temporal consultável por SQL — a "evolução gravada" que [W] pediu
+     * (2026-07-23), no precedente do mcp_sdd_scorecard_history (ADR 0275 GT-G7).
+     * Escrita RAW, fora de Observer; graceful skip se a tabela não existir.
+     */
+    protected function persistSnapshot(array $result): void
+    {
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('kb_health_history')) {
+                return;
+            }
+
+            DB::table('kb_health_history')->updateOrInsert(
+                [
+                    'business_id'   => (int) $result['business_id'],
+                    'snapshot_date' => now()->toDateString(),
+                ],
+                [
+                    'overall'    => (string) $result['overall'],
+                    'checks'     => json_encode($result['checks'], JSON_UNESCAPED_UNICODE),
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('[kb:health-check] snapshot falhou', [
+                'business_id' => $result['business_id'] ?? null,
+                'error'       => $e->getMessage(),
+            ]);
         }
     }
 

@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0010-sidebar-accordion-decisao-final-navegacao
+---
+
 # ADR ARQ-0010 (MemCofre) · Sidebar accordion como navegação principal (decisão final)
 
 - **Status**: accepted

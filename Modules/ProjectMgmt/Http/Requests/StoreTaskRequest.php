@@ -30,7 +30,7 @@ class StoreTaskRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Permission `copiloto.mcp.usage.all` upstream
+        return true; // Permission `jana.mcp.usage.all` upstream
     }
 
     public function rules(): array

@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-spec-retrieval-tools-mcp-unificado
 title: "SPEC — Unificar retrieval das tools MCP no pipeline bom (gap #2)"
 type: spec
 status: proposed

@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-adr-tech-0003-tres-tiers-de-autonomia
+---
+
 # ADR TECH-0003 (EvolutionAgent) · 3 tiers de autonomia (read → comment → PR-draft)
 
 - **Status**: accepted

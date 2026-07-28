@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-configuracoes-index-charter
 page: /ponto/configuracoes
 component: resources/js/Pages/Ponto/Configuracoes/Index.tsx
 related_prototype: n/a (tela de painel de parâmetros read-only — não segue um dos 5 Padrões de Tela)

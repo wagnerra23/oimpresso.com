@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-checklist-us-nfe-059-smoke-prod
+---
+
 # Checklist — US-NFE-059 smoke prod end-to-end auto-emissão NFe55
 
 > **Para Wagner executar.** Não automatizável (humano-limitado: cliente real + SEFAZ-prod + cert A1).

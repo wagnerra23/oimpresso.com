@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-proposta-loop-design-code-diff-first
 slug: proposta-loop-design-code-diff-first
 title: "Proposta — Loop design→code otimizado: 1 SSOT git + espelhos gerados + diff-first automático"
 type: proposal

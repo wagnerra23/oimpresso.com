@@ -1,4 +1,5 @@
 ---
+id: requisitos-crm-legado-fullpage-index-visual-comparison
 slug: cliente-index-visual-comparison
 title: "Cliente — Comparativo visual /cliente (Blade legacy → Inertia React + Cockpit V2)"
 type: visual-comparison

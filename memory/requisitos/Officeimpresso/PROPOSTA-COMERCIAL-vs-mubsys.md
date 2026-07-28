@@ -1,4 +1,5 @@
 ---
+id: requisitos-officeimpresso-proposta-comercial-vs-mubsys
 type: template-proposta-comercial
 module: Officeimpresso
 status: template

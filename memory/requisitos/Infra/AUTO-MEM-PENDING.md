@@ -1,3 +1,7 @@
+---
+id: requisitos-infra-auto-mem-pending
+---
+
 # Manifesto AUTO-MEM-PENDING — auto-mems aguardando migração
 
 > **Tipo:** manifesto vivo (atualizar a cada decisão)

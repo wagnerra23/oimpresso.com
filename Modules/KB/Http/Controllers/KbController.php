@@ -27,7 +27,7 @@ use Modules\KB\Services\KbArticleService;
  *   - /copiloto/memoria (runtime facts, LGPD opt-out usuário-final, fica no Copiloto)
  *   - /memcofre/memoria (Cofre de Memórias / DocVault — workflow ingest→inbox)
  *
- * Permissão Spatie atual: `copiloto.mcp.memory.manage` (mantida pra evitar
+ * Permissão Spatie atual: `jana.mcp.memory.manage` (mantida pra evitar
  * migration de rename — dívida técnica registrada pra rename em PR separado
  * pra `kb.manage` ou `kb.softdelete`).
  *
@@ -40,7 +40,7 @@ class KbController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.memory.manage');
+        $this->middleware('can:jana.mcp.memory.manage');
     }
 
     public function index(Request $request): Response
@@ -114,7 +114,11 @@ class KbController extends Controller
                 'id'   => (int) (session('user.business_id') ?? $user?->business_id ?? 0),
                 'name' => (string) (session('business.name') ?? ''),
             ],
-            'categories'    => KbCategory::query()->orderBy('sort')->orderBy('label')->get(),
+            // Coluna real é `sort_order` (migration 100001 + KbCategory model + seeder
+            // que mapeia `'sort'` do array → `sort_order`). `orderBy('sort')` era bug
+            // introduzido no #4500 → SQLSTATE 42S22 "Unknown column 'sort'" → 500 em
+            // /kb/v2 + /sops desde 2026-07-17. Fix segue o schema canônico.
+            'categories'    => KbCategory::query()->orderBy('sort_order')->orderBy('label')->get(),
             'subcategories' => KbSubcategory::query()->get(),
             'nodes'         => $nodes,
             'can' => [

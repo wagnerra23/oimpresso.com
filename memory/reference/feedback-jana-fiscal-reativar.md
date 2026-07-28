@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-jana-fiscal-reativar
 name: Jana IA fiscal — reativar (foi removida por mal-entendido)
 description: Wagner quer IA dentro do Fiscal (briefing mensal Jana + receita SEFAZ não-mapeada via Brain B + Q&A NL no ⌘K). Foi removida no PR #1605 por interpretação errada do Claude. Próxima tarefa fiscal — REATIVAR.
 type: feedback

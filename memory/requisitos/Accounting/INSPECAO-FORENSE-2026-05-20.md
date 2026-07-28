@@ -1,4 +1,5 @@
 ---
+id: requisitos-accounting-inspecao-forense-2026-05-20
 slug: inspecao-forense-accounting-vs-financeiro-2026-05-20
 title: "INSPEÇÃO FORENSE — Accounting vs Financeiro: hipótese 'Financeiro substitui Accounting' é PARCIAL"
 date: 2026-05-20

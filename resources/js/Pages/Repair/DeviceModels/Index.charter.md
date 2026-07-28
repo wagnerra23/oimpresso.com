@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-repair-device-models-index-charter
 page: /repair/device-models
 component: resources/js/Pages/Repair/DeviceModels/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)

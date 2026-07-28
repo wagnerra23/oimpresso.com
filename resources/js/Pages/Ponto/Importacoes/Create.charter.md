@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ponto-importacoes-create-charter
 page: /ponto/importacoes/novo
 component: resources/js/Pages/Ponto/Importacoes/Create.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

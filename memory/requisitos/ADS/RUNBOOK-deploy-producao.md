@@ -1,9 +1,11 @@
 ---
+owner: W
+last_validated: "2026-06-08"
 slug: ads-runbook-deploy-producao
 title: "ADS — Runbook de deploy em produção (Hostinger app + CT 100 daemon)"
 type: runbook
 module: ADS
-status: active
+status: ativo
 date: 2026-05-03
 ---
 

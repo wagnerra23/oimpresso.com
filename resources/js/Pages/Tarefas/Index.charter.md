@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-tarefas-index-charter
 page: /tarefas
 component: resources/js/Pages/Tarefas/Index.tsx
 related_prototype: n/a (stub visual — cockpit master/detail; ainda não segue um dos 5 Padrões de Tela)

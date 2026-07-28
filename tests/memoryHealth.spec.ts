@@ -185,10 +185,10 @@ describe('memory-health — Check M: teto de governança (ADR 0298, físico)', (
 });
 
 describe('memory-health — Check T: fact-anchor determinístico (fato vs fonte-de-verdade, físico)', () => {
-  it('SENSIBILIDADE: doc current-state afirma versão != package.json → 🟡 fato-ancora-drift', () => {
+  it('SENSIBILIDADE: doc current-state afirma versão != package.json → 🔴 fato-ancora-drift (fail-class, ADR 0349)', () => {
     write('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }));
     write('README.md', '# proj\n\n<!-- documentation-entrypoint: canonical -->\n\nUsa Inertia v3 + React 18 aqui.\n');
-    const out = run();
+    const out = runExpectFail();
     expect(out).toMatch(/fato-ancora-drift/);
     expect(out).toMatch(/React 18/);
   });
@@ -207,9 +207,9 @@ describe('memory-health — Check T: fact-anchor determinístico (fato vs fonte-
     expect(out).not.toMatch(/fato-ancora-drift/);
   });
 
-  it('SENSIBILIDADE: Modules/<X> com dir inexistente em doc current-state → 🟡', () => {
+  it('SENSIBILIDADE: Modules/<X> com dir inexistente em doc current-state → 🔴 (fail-class, ADR 0349)', () => {
     write('README.md', '# proj\n\n<!-- documentation-entrypoint: canonical -->\n\nImite Modules/Fantasma/ antes de criar.\n');
-    const out = run();
+    const out = runExpectFail();
     expect(out).toMatch(/fato-ancora-drift/);
     expect(out).toMatch(/Modules\/Fantasma/);
   });

@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-runbook-screen-smoke-ativacao
 title: "Ativar o smoke visual pós-deploy (Playwright + OpenAI, runner GitHub)"
 module: Governance
 owner: W

@@ -1,4 +1,5 @@
 ---
+id: requisitos-ideias-tools-readme
 type: meta
 description: Ferramentas de manutenção do incubador `_Ideias/`
 last_updated: 2026-04-24

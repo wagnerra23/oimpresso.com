@@ -183,6 +183,17 @@ return [
     'plan_health_brief_line' => env('GOVERNANCE_PLAN_HEALTH_BRIEF_LINE', true),
 
     /*
+     * Kill-switch (default ON) — linha de EXPOSIÇÃO TIER-0 × cobertura no Daily
+     * Brief (shell-out de scripts/qa/exposicao-tier0.mjs --stdout).
+     * `GOVERNANCE_EXPOSICAO_TIER0_BRIEF_LINE=false` no .env desliga o inject() sem
+     * deploy: ExposicaoTier0BriefLineService devolve o brief intacto (zero linha,
+     * zero shell-out). Útil em host sem Node ou pra silenciar a linha.
+     * @see Modules\Governance\Services\ExposicaoTier0BriefLineService
+     * @see scripts/qa/exposicao-tier0.mjs (sentinela · ADR 0256 pilar CADÊNCIA)
+     */
+    'exposicao_tier0_brief_line' => env('GOVERNANCE_EXPOSICAO_TIER0_BRIEF_LINE', true),
+
+    /*
     |--------------------------------------------------------------------------
     | Linha de saúde do SHIPPED-LOG no Daily Brief (porta de saída, ADR 0294 ext)
     |--------------------------------------------------------------------------
@@ -213,6 +224,22 @@ return [
     | @see Modules\Governance\Services\AdrPendenteBriefLineService
     */
     'adr_pendente_brief_line' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
+
+    /*
+    |--------------------------------------------------------------------------
+    | FLAG de OBRA PARADA no Daily Brief ("o cron roda" ≠ "o cron entrega")
+    |--------------------------------------------------------------------------
+    | Kill-switch do ObraParadaBriefLineService (eixo 2 do cron-watchdog.mjs —
+    | artefato de estado versionado que envelheceu além do limite). Default ON.
+    |
+    | Origem 2026-07-26: os 5 scorecards do Governance v4 ficaram 71d congelados
+    | com o cron das 07:00 rodando todo dia. Nenhum dos 34 gates required viu —
+    | gate roda sobre diff, e coisa parada não tem diff.
+    |
+    | @see Modules\Governance\Services\ObraParadaBriefLineService
+    | @see scripts/governance/cron-watchdog.mjs (eixo 2 · --json)
+    */
+    'obra_parada_brief_line' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
 
     /*
     |--------------------------------------------------------------------------

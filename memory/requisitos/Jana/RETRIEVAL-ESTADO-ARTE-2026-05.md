@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-retrieval-estado-arte-2026-05
+---
+
 # Estado da arte — Retrieval híbrido PT-BR (mai/2026)
 
 > Pesquisa profunda 2026-05-04 sobre embeddings multilingual + Meilisearch hybrid + rerankers.

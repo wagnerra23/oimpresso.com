@@ -1,4 +1,5 @@
 ---
+id: requisitos-essentials-spec
 slug: modules-essentials-spec
 title: "Modules/Essentials — SPEC"
 type: spec

@@ -1,4 +1,5 @@
 ---
+id: governance-enforcement
 slug: oimpresso-enforcement
 title: "Enforcement — 8 mecanismos NIST/Cedar/OPA aplicados às 7 camadas"
 type: governance-spec

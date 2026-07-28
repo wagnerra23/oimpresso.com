@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-handoff-cliente-drawer-760-canon
+---
+
 # HANDOFF — Cliente (Drawer 760 canon)
 
 > **Pós-Wave A-G prod biz=1.** Refinamento Claude Design 2026-05-22 + Wagner "registre o padrão eu adoro esse estilo".

@@ -1,4 +1,5 @@
 ---
+id: requisitos-project-mgmt-spec-complemento
 project: PMG
 default_component: UI
 parent_spec: SPEC.md
@@ -131,7 +132,7 @@ Cada task já tem `estimate_hours` em `mcp_tasks`. Falta tracking real.
 > owner: wagner · priority: p2 · estimate: 4-6h · status: backlog · type: feature
 > blocked_by: —
 
-Hoje permission é binária (`copiloto.mcp.usage.all`). Time MCP entra em breve
+Hoje permission é binária (`jana.mcp.usage.all`). Time MCP entra em breve
 (Felipe/Maiara/Eliana/Luiz) — precisa scope por projeto.
 
 - [ ] Migration `mcp_project_members` (project_id, user_id, role: viewer/contributor/admin)

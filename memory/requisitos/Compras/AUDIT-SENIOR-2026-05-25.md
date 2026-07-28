@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-audit-senior-2026-05-25
 date: 2026-05-25
 modulo: Compras
 nota_atual: 38

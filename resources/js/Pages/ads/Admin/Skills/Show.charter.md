@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-skills-show-charter
 page: /ads/admin/skills/{slug}
 component: resources/js/Pages/ads/Admin/Skills/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)

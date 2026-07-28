@@ -1,4 +1,5 @@
 ---
+id: governance-automations
 slug: oimpresso-automations
 title: "Inventário canônico de automações — hooks, crons, rotinas"
 type: governance-spec
@@ -135,6 +136,7 @@ Tipo ADR 0234: `cron`. Todos os schedules são ambientes `live` salvo indicaçã
 | `observability:aggregate-daily` | `dailyAt('02:00')` BRT | Rollup diário OTel spans: computa p50/p95/p99 + error rate por (module, span_name). ADR 0162. |
 | `jana:system-audit --notify` | `dailyAt('06:15')` | Audit 5 dimensões: observability, evals, ADR-stale, cost-agg, test-coverage. SQL+FS only, ZERO LLM. ADR 0133. |
 | `mcp:tasks:health-check` | `dailyAt('06:20')` BRT | Flagga tasks dormentes em `mcp_tasks`: stale_todo >21d, stale_blocked >30d, stale_doing >7d sem commit, stale_review >5d. |
+| `mcp:tasks:unassigned` | `dailyAt('06:45')` BRT | Flagga US `todo` sem `cycle_id` e/ou sem `owner` — ticket órfão, invisível no roadmap. Eixo de ATRIBUIÇÃO (o `health-check` das 06:20 mede staleness). Advisory (sem `--strict`): a série no log é o que permite decidir a promoção a ratchet com mordida provada (ADR 0336). Visibilidade diária via `TasksSemDonoBriefLineService` no brief. US-INFRA-043. |
 | `NarrarSaudeEcosistemaJob` (Job) | `hourlyAt(30)` | Brain A narrador horário do Cockpit Saúde: HealthSnapshotService + HealthNarratorService (gpt-4o-mini). ~R$ [redacted Tier 0]/dia. US-COPI-100. |
 | `charter:health --notify` | `dailyAt('06:30')` | Drift detector daily de Page Charters. Métrica M6 anti-hallucination ratchet. S6 F2. |
 | `arquivos:health-check --alert` | `dailyAt('06:30')` BRT | 5 sinais compliance LGPD + integridade DMS: orphan_files, dedupe_inconsistent, audit_log_lag, retention_overdue, vault_encryption_ratio. ADR 0123. |

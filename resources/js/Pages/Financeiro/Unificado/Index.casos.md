@@ -1,10 +1,13 @@
 ---
+id: resources-js-pages-financeiro-unificado-index-casos
 casos: Financeiro Unificado · /financeiro/unificado
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-14"
+last_run: "2026-07-27"
+last_run_ci: "0 UC executado — UC-FUNI-01..04 nascem neste PR; veredito pendente da lane PHP / Pest (Financeiro · MySQL)"
+sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ---
 
 # Casos de Uso & Aceite — Financeiro Unificado
@@ -52,6 +55,74 @@ last_run: "2026-07-14"
 
 ---
 
+## Rastreabilidade UC → CU → US
+
+> **Âncora:** `CU-FIN-01` · `CU-FIN-02` · `CU-FIN-03` · `CU-FIN-04` · `CU-FIN-05` · `CU-FIN-06` · `CU-FIN-07` · `CU-FIN-08` ([SDD do Financeiro](../../../../../memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md) §6.1)
+>
+> **Cobre:** `US-FIN-003` (baixa) · `US-FIN-013` (visão unificada) · `US-FIN-031` (lote, via UC-F04) · `US-FIN-038` (conta indefinida, via UC-F05)
+
+| UC | Comportamento | Força | Âncora de contrato | Teste | Status |
+|---|---|---|---|---|---|
+| UC-FUNI-01 | Baixa parcial faz SPLIT e conserva o valor | must `[V0]` | `CU-FIN-02` + `US-FIN-003` | `BaixaConservacaoValorContratoTest` | 🧪 |
+| UC-FUNI-02 | Baixa acima do aberto quita exatamente o aberto | must `[V0]` | `CU-FIN-03` + `US-FIN-003` | `BaixaConservacaoValorContratoTest` | 🧪 |
+| UC-FUNI-03 | Quitado/cancelado recusa baixa | must | `CU-FIN-04` + `US-FIN-003` | `BaixaConservacaoValorContratoTest` | 🧪 |
+| UC-FUNI-04 | Conta de outro business recusada | must `[T0]` | `CU-FIN-05` + ADR 0093 | `BaixaConservacaoValorContratoTest` | 🧪 |
+| UC-F01 (legado) | Venda a prazo gera título a receber | must `[V0]` | `CU-FIN-01` + `US-FIN-013` | `RetencaoLoopE2ETest` | ✅ |
+| UC-F02 (legado) | Recebimento baixa o título e entra no caixa | must `[V0]` | `CU-FIN-08` + `US-FIN-003` | `RetencaoLoopE2ETest` | ✅ |
+| UC-F04 (legado) | Ações em lote respeitam tenant/limite/contabilidade | must `[V0][T0]` | `CU-FIN-07` + `US-FIN-031` | `UnificadoBulkGuardTest` | 🧪 |
+| UC-F05 (legado) | Pill "Conta indefinida" na baixa sem conta | should | `CU-FIN-06` + `US-FIN-038` | `UnificadoContaIndefinidaGuardTest` | 🧪 |
+
+> ⚠️ Os ids legados `UC-F0N` **não casam** com a régua estrita do `requisitos-status.mjs`
+> (`UC-[A-Z0-9]{2,10}-\d{2,3}` exige o 2º hífen). Por isso esta tabela os cita **nominalmente**
+> e a linha `> **Âncora:**` acima é o que liga os CU — renomeá-los exigiria editar
+> `tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php`, fora da área deste chip.
+
+---
+
+## Contrato da BAIXA (SDD §6.1 · onda `sdd-from-source` 2026-07-27)
+
+> Estes 4 UC derivam do **SDD `§6.1 CU-FIN-02..05`** (`memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md`),
+> que por sua vez deriva de `US-FIN-003` + charter v12 + a decisão [W] 2026-06-04 (*"baixa parcial
+> vira SPLIT"*) — **não** da leitura do `.tsx` nem do corpo do teste.
+>
+> ⚠️ **Todos são `[V0]`/`[T0]`** (REGRA MESTRE valor · multi-tenant). O assert é da **invariante de
+> conservação**, não do nome do campo: `Σ(filhos.valor_total) + pai.valor_aberto == valor original`.
+> Um assert em `status == 'parcial'` — o que o contrato antigo pedia — **já estaria falso hoje**.
+>
+> **Lane:** `PHP / Pest (Financeiro · MySQL)` — **required** (consta em
+> `governance/required-checks-baseline.json`): reprovar aqui **bloqueia merge**.
+> **Veredito:** 🧪 em todos — o trio nasce neste PR e quem dá o veredito é a lane, não esta leitura (G-7).
+
+## UC-FUNI-01 · Baixa parcial faz SPLIT e conserva o valor `[V0]` `[must]`
+- **Persona:** Eliana [E] — recebeu metade hoje; o que falta tem que continuar cobrável, ao centavo.
+- **Aceite:** Dado título aberto de R$ V · Quando entra baixa de R$ B < V · Então nasce um título **FILHO** quitado de B (`titulo_pai_id` = pai), o **pai reduz** para `V − B` e **segue aberto**; e o valor fecha por **DOIS caminhos independentes**: (a) `Σ(filhos.valor_total) + pai.valor_aberto == V` e (b) `Σ(fin_titulo_baixas.valor_baixa) == B`. Não existe mais `status='parcial'`.
+- **Teste:** `BaixaConservacaoValorContratoTest` ("UC-FUNI-01 · baixa parcial conserva o valor no split") — MySQL real, com **pré-condição anti-vácuo** (`cvExigeQueTenhaBaixado`: sem linha de baixa gravada o caso FALHA em vez de passar no vácuo).
+- **Regressão que defende:** baixa parcial que "some" com centavo no arredondamento do split, ou split que duplica o valor (pai não reduz).
+- **Status: 🧪**
+
+## UC-FUNI-02 · Baixa acima do aberto quita exatamente o aberto `[V0]` `[must]`
+- **Persona:** Larissa — digitou o valor errado no balcão; o sistema não pode inventar crédito.
+- **Aceite:** Dado título aberto de R$ V · Quando a baixa pedida é > V · Então o registrado é **exatamente V** (`clamp` superior), `valor_aberto = 0`, **nunca negativo**, e o excesso **não** vira título-filho de crédito.
+- **Teste:** `BaixaConservacaoValorContratoTest` ("UC-FUNI-02 · baixa acima do aberto quita exatamente o aberto").
+- **Regressão que defende:** excesso virando crédito fantasma ou `valor_aberto` negativo contaminando KPI/DRE.
+- **Status: 🧪**
+
+## UC-FUNI-03 · Título quitado/cancelado recusa baixa `[must]`
+- **Persona:** Eliana [E] — o histórico contábil é append-only; título fechado não se reabre por baixa.
+- **Aceite:** Dado título `cancelado` (idem `quitado`) · Quando chega POST de baixa · Então **nenhuma** `fin_titulo_baixas` é criada, o `status` permanece, o `valor_aberto` **não muda**, e o usuário recebe flash `error`.
+- **Teste:** `BaixaConservacaoValorContratoTest` ("UC-FUNI-03 · título cancelado recusa baixa").
+- **Regressão que defende:** dupla-baixa do mesmo título inflando o recebido do mês.
+- **Status: 🧪**
+
+## UC-FUNI-04 · Conta bancária de outro business é recusada `[T0]` `[must]`
+- **Persona:** qualquer — é invariante de plataforma, não de usuário ([ADR 0093]).
+- **Aceite:** Dado `conta_bancaria_id` que pertence a **outro** business · Quando a baixa é submetida · Então a operação é recusada **fail-closed**: zero `fin_titulo_baixas`, `valor_aberto` e `status` intactos.
+- **Teste:** `BaixaConservacaoValorContratoTest` ("UC-FUNI-04 · Tier 0: conta bancária de outro business é recusada") — precisa de 2 businesses semeados (a lane semeia biz=1 + biz=2).
+- **Regressão que defende:** dinheiro de um tenant caindo na conta de outro.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -65,6 +136,17 @@ last_run: "2026-07-14"
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-07-27 · [CC] onda `sdd-from-source` (passo 5 · Onda 2): nasce o **SDD do módulo**
+  (`memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md` — o Financeiro tinha 0 CU) e os UC de
+  contrato da baixa **UC-FUNI-01..04** (`[V0]`/`[T0]`), derivados de `§6.1 CU-FIN-02..05`, com teste novo
+  `BaixaConservacaoValorContratoTest` na allowlist da lane. Nenhum status promovido a ✅ — o veredito é
+  da lane (G-7). **2 drifts registrados, não escondidos:** (a) os `it()` dos UC legados usam id no formato
+  `UC-F0N`, que a régua estrita do `requisitos-status.mjs` (`UC-[A-Z0-9]{2,10}-\d{2,3}`) **não enxerga** —
+  por isso a porta imprimia *"casos.md existe mas não declara nenhum UC"* para esta tela e acusava
+  US-FIN-031/038 como "entregue sem contrato"; **não renomeei** porque UC-F01..03 são citados por
+  `tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php`, fora da área deste chip. (b) o `it()` do
+  `UnificadoBaixaDialogGuardTest` **G3** ainda se chama *"reduz valor_aberto e marca parcial"* embora o
+  corpo asserte o SPLIT correto — descrição stale, corpo certo.
 - 2026-07-13 · [Codex] revalidado (bump `last_run`): criação por empty state e por Cmd+K deixam de navegar para a rota legada e abrem o mesmo `TituloCreateSheet` do menu “Novo título”. Os UCs F01..F04 continuam sendo provas backend (venda→título→caixa e lote); a nova prova de intenção da tela é o contrato com cinco fluxos, validado pelos auditores estático e adversarial. Nenhum status ✅ foi promovido sem teste verde.
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE): UC-F01..03 espelham o RetencaoLoopE2ETest (CU-3→CU-5) no manifesto G-7; RetencaoLoop entrou na allowlist do financeiro-pest + JUnit artifact.
 - 2026-06-16 · [CL] revalidado (bump last_run) na onda "Financeiro adversário Wave 1": mudança é só de UI no hero/audit trail (% pt-BR + cor de saldo negativo); UC-F01..03 são do fluxo backend venda→título→caixa, intocados — seguem ✅ pelo mesmo RetencaoLoopE2ETest.

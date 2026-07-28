@@ -1,3 +1,7 @@
+---
+id: requisitos-evolution-agent-adr-arq-0002-cc-permanece-ux-primaria
+---
+
 # ADR ARQ-0002 (EvolutionAgent) · Claude Code permanece como UX primária
 
 - **Status**: accepted

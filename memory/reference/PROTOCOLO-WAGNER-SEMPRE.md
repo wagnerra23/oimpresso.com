@@ -1,4 +1,5 @@
 ---
+id: reference-protocolo-wagner-sempre
 slug: protocolo-wagner-sempre
 title: "PROTOCOLO WAGNER SEMPRE — checklist canônico de execução automática"
 type: protocol

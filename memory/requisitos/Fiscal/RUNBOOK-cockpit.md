@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Fiscal/Cockpit (sub-página 1)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Fiscal/Cockpit (sub-página 1)
 
 > **Tela:** `/fiscal`

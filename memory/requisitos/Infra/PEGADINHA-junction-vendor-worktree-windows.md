@@ -1,3 +1,7 @@
+---
+id: requisitos-infra-pegadinha-junction-vendor-worktree-windows
+---
+
 # PEGADINHA — `git worktree remove` (COM OU SEM `--force`) apaga o alvo real via junction (Windows)
 
 > **Severidade:** alta — esvazia o alvo REAL do repo principal (`vendor/` 318MB, `node_modules/` ~700 pacotes) em segundos.

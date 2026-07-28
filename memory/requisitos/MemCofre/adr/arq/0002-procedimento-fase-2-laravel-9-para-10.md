@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0002-procedimento-fase-2-laravel-9-para-10
+---
+
 # ADR ARQ-0002 (MemCofre) · Procedimento Fase 2 · Laravel 9.51 → 10.x
 
 - **Status**: blocked (revisado 2026-04-23 — 2 dos 3 P0 eram P1 trivial)

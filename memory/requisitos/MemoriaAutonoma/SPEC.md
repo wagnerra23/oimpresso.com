@@ -1,4 +1,5 @@
 ---
+id: requisitos-memoria-autonoma-spec
 module: MemoriaAutonoma
 slug: memoriaautonoma-spec
 title: "MemoriaAutonoma — SPEC"

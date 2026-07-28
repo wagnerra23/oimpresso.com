@@ -1,4 +1,5 @@
 ---
+id: requisitos-evolution-agent-spec
 module: EvolutionAgent
 version: "1.0"
 last_updated: "2026-06-13"

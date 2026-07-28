@@ -476,8 +476,13 @@ class ProductController extends Controller
      */
     protected function buildProdutoIndexCategorias(int $businessId): array
     {
-        $cats = Category::where('business_id', $businessId)
-            ->where('category_type', 'product')
+        // `categories.` explícito: o leftJoin abaixo traz `products`, que TAMBÉM tem
+        // `business_id` — sem qualificar, o MySQL responde
+        // "Column 'business_id' in where clause is ambiguous" (SQLSTATE 23000) e a tela dá 500.
+        // Não estourava porque a lista React é inalcançável hoje (sidebar usa <a href> puro →
+        // cai no Blade); ligá-la sem isto seria 500 na hora. Exposto por UC-PIDX-01/02/03/06.
+        $cats = Category::where('categories.business_id', $businessId)
+            ->where('categories.category_type', 'product')
             ->select('categories.id', 'categories.name')
             ->leftJoin('products', 'products.category_id', '=', 'categories.id')
             ->groupBy('categories.id', 'categories.name')
@@ -833,7 +838,7 @@ class ProductController extends Controller
                     'name' => (string) $v->name,
                     'sku' => (string) ($v->sub_sku ?? ''),
                     'defaultPurchasePrice' => (float) ($v->default_purchase_price ?? 0),
-                    'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                    'defaultSellPrice' => (float) ($v->sell_price_inc_tax ?? 0),
                 ])->all()),
                 'permissions' => [
                     'update' => auth()->user()->can('product.update'),
@@ -969,8 +974,22 @@ class ProductController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $business_id = $request->session()->get('user.business_id');
+
+        // Multi-tenant Tier 0 (ADR 0093 · UC-PEDIT-03): guard de 404 FORA do try. Um 404 lançado
+        // DENTRO do try seria engolido pelo catch (\Exception) abaixo → redirect success:0 = 302 (o
+        // mesmo buraco cross-tenant do #4300, SellingPrices). Este firstOrFail propaga a
+        // ModelNotFoundException pro handler → 404 REAL quando o id é de outro business. O edit()
+        // (GET) já fazia isso (:872-875); só o update() ficou pra trás com first() → atribuição de
+        // propriedade em null → 500 (ver resources/js/Pages/Produto/Edit.casos.md · UC-PEDIT-03).
+        // Query separada DE PROPÓSITO — não atribui a $product pra NÃO narrowar o Product|null do
+        // `$product = ...->first()` de baixo (preserva o phpstan-baseline; custo = 1 SELECT indexado
+        // por (business_id, id) num fluxo raro de edição).
+        Product::where('business_id', $business_id)
+                ->where('id', $id)
+                ->firstOrFail();
+
         try {
-            $business_id = $request->session()->get('user.business_id');
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
 
             DB::beginTransaction();
@@ -2021,7 +2040,7 @@ class ProductController extends Controller
                     'id' => (int) $v->id,
                     'name' => (string) $v->name,
                     'subSku' => (string) ($v->sub_sku ?? ''),
-                    'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                    'defaultSellPrice' => (float) ($v->sell_price_inc_tax ?? 0),
                 ])->all(),
                 'priceGroups' => $price_groups->map(fn ($pg) => [
                     'id' => (int) $pg->id,
@@ -2430,7 +2449,7 @@ class ProductController extends Controller
                             'name' => (string) $v->name,
                             'subSku' => (string) ($v->sub_sku ?? ''),
                             'defaultPurchasePrice' => (float) ($v->default_purchase_price ?? 0),
-                            'defaultSellPrice' => (float) ($v->default_sell_price_inc_tax ?? 0),
+                            'defaultSellPrice' => (float) ($v->sell_price_inc_tax ?? 0),
                         ])->all(),
                     ])->all(),
                     'categories' => $categories,
@@ -2472,6 +2491,16 @@ class ProductController extends Controller
             $products = $request->input('products');
             $business_id = $request->session()->get('user.business_id');
 
+            // Tier 0 — ADR 0093 / CU-PROD-10.1. Mesmo guard do `saveSellingPrices` (#4300): a
+            // chave do array `group_prices` é o price_group_id e vem CRUA do request. O produto e
+            // a variação são escopados abaixo, mas o GRUPO não — e `VariationGroupPrice` não tem
+            // global scope ($guarded = ['id']), com FK que só exige que o grupo EXISTA, não que
+            // seja seu. Sem isto, produto MEU + tabela ALHEIA grava linha cross-tenant.
+            // Provado por UC-PBULK-03 (BulkEdit.casos.md) — vermelho em CI antes deste guard.
+            $allowedPriceGroupIds = SellingPriceGroup::where('business_id', $business_id)
+                ->pluck('id')
+                ->all();
+
             DB::beginTransaction();
             foreach ($products as $id => $product_data) {
                 $update_data = [
@@ -2507,6 +2536,19 @@ class ProductController extends Controller
                     //Update price groups
                     if (! empty($value['group_prices'])) {
                         foreach ($value['group_prices'] as $k => $v) {
+                            if (! in_array((int) $k, $allowedPriceGroupIds, true)) {
+                                // Tabela de preço de outro business — não grava. Log pra a
+                                // tentativa não ficar invisível (abort() aqui seria engolido
+                                // pelo catch genérico abaixo, virando "algo deu errado" mudo).
+                                \Log::warning('bulkUpdate: price_group_id fora do business — ignorado', [
+                                    'business_id' => $business_id,
+                                    'price_group_id' => $k,
+                                    'product_id' => $product->id,
+                                ]);
+
+                                continue;
+                            }
+
                             VariationGroupPrice::updateOrCreate(
                                 ['price_group_id' => $k, 'variation_id' => $variation->id],
                                 ['price_inc_tax' => $this->productUtil->num_uf($v)]

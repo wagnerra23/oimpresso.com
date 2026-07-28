@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-audit-senior-2026-05-25
 title: "Auditoria sênior módulo Jana — onda 6 (chat IA + memória + MCP)"
 type: auditoria
 status: draft

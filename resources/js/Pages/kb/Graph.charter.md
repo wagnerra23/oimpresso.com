@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-kb-graph-charter
 page: /kb/graph
 component: resources/js/Pages/kb/Graph.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela — visualizador especial de grafo, ver dúvida no charter)

@@ -1,3 +1,7 @@
+---
+id: requisitos-design-system-adr-ui-0009-cockpit-sidebar-light-padrao
+---
+
 # ADR UI-0009 · Sidebar do Cockpit segue tema do usuário (light por padrão)
 
 - **Status**: accepted

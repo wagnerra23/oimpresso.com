@@ -1,4 +1,5 @@
 ---
+id: requisitos-produto-telas-produto-bulk-edit-visual-comparison
 slug: inventory-produto-bulk-edit-visual-comparison
 title: "Produto — Comparativo visual da tela Edição em massa"
 type: visual-comparison

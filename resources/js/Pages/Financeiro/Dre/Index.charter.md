@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-dre-index-charter
 slug: financeiro-dre-index
 page: /financeiro/dre
 component: resources/js/Pages/Financeiro/Dre/Index.tsx

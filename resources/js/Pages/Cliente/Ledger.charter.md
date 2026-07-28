@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-ledger-charter
 page: /contacts/ledger
 component: resources/js/Pages/Cliente/Ledger.tsx
 owner: wagner
@@ -13,6 +14,9 @@ mwart_pattern_reuse:
   blueprint_screenshot_approval: "N/A (divergente)"
   derived_screens: [Ledger]
   divergence_from_blueprint: "tabela financeira densa diferente do Index card layout"
+related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-ledger.md
+related_visual_comparison: memory/requisitos/Crm/cliente-ledger-visual-comparison.md
+related_us: [US-CRM-084]
 ---
 
 # Page Charter — /contacts/ledger (LIVE)

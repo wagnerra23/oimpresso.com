@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-produto-show-charter
 page: /products/{id}
 component: resources/js/Pages/Produto/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
@@ -7,6 +8,7 @@ status: draft
 last_validated: "2026-05-15"
 parent_module: Produto
 related_adrs: [104, 149, 93, 107]
+related_us: [US-PROD-020, US-PROD-023]
 related_runbook: memory/requisitos/Produto/_telas/RUNBOOK-produto-show.md
 related_visual_comparison: memory/requisitos/Produto/_telas/produto-show-visual-comparison.md
 tier: A
@@ -55,7 +57,13 @@ Mostrar detalhe completo do produto com Hero KPIs + tabs (Resumo · Composição
 ## Automation Hooks
 
 - GET `/products/{id}`
-- `business_id` global scope
+- Isolamento por `business_id` via `where` **explícito** no controller (`->where('business_id', …)->findOrFail`)
+<!-- Reconciliação factual 2026-07-26 (Fase 2.6): esta linha dizia "`business_id` global scope".
+     Medido: `grep -c addGlobalScope app/Product.php` = 0 — NÃO há global scope em `App\Product`.
+     A contenção é manual e repetida query a query (mesma correção já aplicada no Index.charter).
+     Consequência registrada em `Show.casos.md` UC-PSHOW-02 e no §6.1 CU-PROD-10 do SDD.
+     Só FATO corrigido; nenhuma intenção (Goals/Non-Goals/Anti-hooks) tocada. -->
+
 
 ## Anti-hooks
 
@@ -65,18 +73,32 @@ Mostrar detalhe completo do produto com Hero KPIs + tabs (Resumo · Composição
 ## Pest GUARD
 
 ```php
-it('Page Inertia existe em Pages/Produto/Show.tsx')
-it('Page importa AppShellV2')
-it('Page declara interface ProdutoShowPageProps')
-it('Controller cross-tenant retorna 404')
-it('Page tem Hero KPIs (Estoque/Custo/Preço/Vendas)')
+it('Page Inertia existe em Pages/Produto/Show.tsx')              // ✅ Wave2ShowInertiaTest (string-match)
+it('Page importa AppShellV2')                                     // ✅ Wave2ShowInertiaTest (string-match)
+it('Page declara interface ProdutoShowPageProps')                 // ✅ Wave2ShowInertiaTest (string-match)
+it('Controller cross-tenant retorna 404')                         // ✅ defesa REAL: ProdutoShowContratoTest (UC-PSHOW-02)
+it('Page tem Hero KPIs (Estoque/Custo/Preço/Vendas)')             // ⬜ SEM LASTRO — a tela tem 0 KPIs
 ```
+
+<!-- Reconciliação factual 2026-07-26 (Fase 2.6): o bloco prometia 5 testes sem dizer quais
+     existem. Medido (`ls tests/Feature/Produto/` + grep dos nomes): 3 existem como string-match
+     no fonte (passariam com o isolamento quebrado e o preço vazando), 1 ganhou defesa real de
+     comportamento em `ProdutoShowContratoTest`, e o último não tem lastro — o charter promete
+     4 Hero KPIs e a tela renderiza 0 (divergência aberta, ver Show.casos.md §Divergências).
+     A lista de INTENÇÃO fica preservada (é do [W]) — só foi anotado o que tem defesa real. -->
+
 
 ## Refs
 
 - Blueprint drawer: `produto-cockpit/produto-cockpit-page.jsx::DrawerView`
-- RUNBOOK: `memory/requisitos/Inventory/RUNBOOK-produto-show.md`
-- Visual comparison: `memory/requisitos/Inventory/produto-show-visual-comparison.md`
+- RUNBOOK: `memory/requisitos/Produto/_telas/RUNBOOK-produto-show.md`
+- Visual comparison: `memory/requisitos/Produto/_telas/produto-show-visual-comparison.md`
+<!-- Reconciliação factual 2026-07-26 (Fase 2.6 do sdd-from-source): os dois paths apontavam para
+     `memory/requisitos/Inventory/`, que não contém nenhum dos dois arquivos
+     (`ls memory/requisitos/Inventory/` = BRIEFING.md, SPEC.md). Os arquivos reais estão em
+     `Produto/_telas/` — e o `related_runbook:` do frontmatter (L11) já apontava o certo, ou seja,
+     o charter se contradizia. Só FATO corrigido; nenhuma intenção (Goals/Non-Goals) tocada. -->
+
 - ADR 0149
 
 ## Histórico

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-skills-edit-charter
 page: /ads/admin/skills/{slug}/edit
 component: resources/js/Pages/ads/Admin/Skills/Edit.tsx
 related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)

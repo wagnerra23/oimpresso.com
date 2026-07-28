@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-changelog
+---
+
 # Changelog · MemCofre
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/lang/pt-BR/).

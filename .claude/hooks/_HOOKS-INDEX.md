@@ -9,10 +9,10 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **46** wirings em `settings.json` (5 eventos) · **42** arquivos de hook distintos wired
-- **43** arquivos de hook no disco (+35 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **32** classic + **1** ruleset → ponto-de-corte merge
+- **48** wirings em `settings.json` (5 eventos) · **44** arquivos de hook distintos wired
+- **44** arquivos de hook no disco (+35 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
+- Gates CI no baseline: **34** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -31,6 +31,7 @@
 | PreToolUse | `Write/Edit/MultiEdit` | block-edit-authority-generated.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-brl-values-in-memory.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-memory-drift.mjs | node | geração (pré-Write/Edit) | exit-2 |
+| PreToolUse | `Write/Edit/MultiEdit` | memory-schema-guard.mjs | node | geração (pré-Write/Edit) | deny |
 | PreToolUse | `Write/Edit/MultiEdit` | block-mwart-violation.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | charter-validate.mjs | node | geração (pré-Write/Edit) | deny |
 | PreToolUse | `Write/Edit/MultiEdit` | modulo-preflight-warning.mjs | node | geração (pré-Write/Edit) | — |
@@ -52,6 +53,7 @@
 | PreToolUse | `DesignSync` | block-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Skill` | block-skill-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Bash/PowerShell` | block-test-fora-ct100.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
+| PreToolUse | `Glob/Grep/Bash` | block-instrumento-sem-porta-viva.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PostToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | pós-ação (observa, não corta) | exit-2 |
 | PostToolUse | `Write/Edit` | audit-creates-tasks.mjs | node | pós-ação (observa, não corta) | — |
 | Stop | `*` | memory-pending.mjs | node | fim de turno | — |
@@ -68,10 +70,10 @@
 Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
-- ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.mjs (wired)
+Nenhum.
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (32):
+Contexts `classic_protection` (34):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -84,6 +86,7 @@ Contexts `classic_protection` (32):
 - ESLint · ratchet vs baseline
 - Frontend / Vite build
 - Layout primitives · ratchet
+- Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
 - PHP / Pest (Financeiro · MySQL)
@@ -104,6 +107,7 @@ Contexts `classic_protection` (32):
 - gate selftest (as catracas mordem · GT-G6)
 - screen-coverage-gate
 - visual-regression
+- deadlink-gate (ratchet · integridade referencial)
 
 Contexts `rulesets` (1):
 - Governance Gate (índice + memory-health + meta-teste)

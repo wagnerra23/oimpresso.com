@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-sells-create-ds-v3-conformance
 slug: sells-create-ds-v3-conformance
 title: "Sells — Auditoria de conformidade DS v3 ↔ /sells/create"
 type: conformance-audit

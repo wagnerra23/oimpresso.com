@@ -1,3 +1,7 @@
+---
+id: requisitos-nfse-adr-arq-0001-cliente-oimpresso-modulo-standalone
+---
+
 # ADR ARQ-0001 (NFSe) · Cliente é oimpresso (não ROTA LIVRE) + módulo standalone
 
 - **Status**: accepted

@@ -31,6 +31,62 @@ name: Estoque · Pest (MySQL)
 # Mesmo motivo do anterior: o UC-PCAD-05/06 provam isolamento cross-tenant (precisa de biz=1 E
 # biz=2 via `EstoqueFixture::secondBusinessId()`) e o UC-PCAD-04 assere `default_purchase_price`
 # na `variations` (precisa do schema real). Em sqlite dariam SKIP — "skipa e mente" de novo.
+#
+# 2026-07-24 — +`ProdutoEditContratoTest` e +`ProdutoEditPayloadContratoTest` (trio Produto/Edit).
+#   O `ProdutoEditContratoTest` nasceu em 2026-07-24 e estava **fora de lane nenhuma** — o
+#   `anchor-lint` reportava exatamente isso ("teste-que-cobre fora das lanes de JUnit → verde
+#   impossível"). Teste que não roda é cobertura falsa; entra aqui.
+#   O `ProdutoEditPayloadContratoTest` é failing-first (UC-PEDIT-05/06/07): prova o contrato do
+#   PAYLOAD do `PUT /products/{id}` — a tela React manda 18 chaves, o `update()` lê 33+, e o writer
+#   trata ausência como zero (`enable_stock`, `not_for_selling`, `enable_sr_no`). Precisa de MySQL
+#   real: os asserts leem colunas do `products` depois do PUT; em sqlite dariam SKIP.
+#   ⚠️ Eixo ESTOQUE → REGRA MESTRE: o teste PROVA, mas o fix é decisão [W] (2 caminhos + tabela
+#   antes→depois). Vermelho aqui é o achado, não bug de teste.
+#
+# 2026-07-26 — +`ProdutoShowContratoTest` (trio Produto/Show, UC-PSHOW-01/02/03/06). Failing-first:
+#   caracteriza a FICHA (`GET /products/{id}` → `Produto/Show`) contra as 3 fontes — o Blade
+#   `view-modal` gateia custo por `@can('view_purchase_price')` e o Delphi faz o campo SUMIR
+#   (AR-PROD-015), enquanto o branch Inertia do `show()` só consulta `product.view/update/delete`.
+#   Precisa de MySQL real: lê props deferidas (partial reload) + insere `product_racks` + exige o
+#   2º business pro cross-tenant; em sqlite daria SKIP ("skipa e mente").
+#
+# 2026-07-26 — +`ProdutoIndexContratoTest` (trio Produto/Index, UC-PIDX-01..06). Failing-first:
+#   caracteriza a LISTA (`GET /products` → `Produto/Index`) contra as 3 fontes. Aqui a Blade legada
+#   é o OUTRO BRANCH DO MESMO MÉTODO `index()` — o branch DataTables gateia preço/custo com
+#   `@can` (index.blade.php:287,294) e pagina server-side; o branch Inertia não consulta permissão
+#   de preço nenhuma e corta em `limit(200)` sem paginação.
+#   Precisa de MySQL real: lê props deferidas (partial reload), insere lote de 206 produtos pro
+#   caso de alcance e exige o 2º business pro cross-tenant; em sqlite daria SKIP ("skipa e mente").
+#
+# 2026-07-26 — +`ProdutoBulkEditContratoTest` (trio Produto/BulkEdit, UC-PBULK-01..06 — a ÚLTIMA
+#   tela do módulo sem casos.md). Failing-first: caracteriza a EDIÇÃO EM MASSA
+#   (`POST /products/bulk-edit` → matriz; `POST /products/bulk-update` → writer) contra as 3 fontes.
+#   Aqui a Blade legada é o OUTRO BRANCH do mesmo `bulkEdit()` — e é ela que define o payload REAL
+#   (5 campos numéricos por variação + `group_prices`), enquanto a tela React manda 2.
+#   Precisa de MySQL real: escreve e RELÊ `variations`/`variation_group_prices` (decimal 22,4),
+#   exige o 2º business pros dois eixos de cross-tenant (produto E tabela de preço) e usa payload
+#   pt-BR pra provar o `num_uf`; em sqlite daria SKIP ("skipa e mente").
+#   ⚠️ Eixo VALOR → REGRA MESTRE: o teste PROVA, o fix é decisão [W] (2 caminhos + antes→depois).
+#
+# 2026-07-27 — +4 contratos de FLUXO SEM TELA REACT do módulo Produto (as 4 lacunas que
+#   sobraram no `_STATUS-GENERATED.md` depois que as 7 telas ganharam trio). Decisão [W]
+#   2026-07-26: *"1 e 2 são requeridos sim. tem que ter tudo do blade"* — o contrato não é só
+#   do React. Os casos moram em `memory/requisitos/Produto/_telas/*.casos.md` (2ª casa lida
+#   pelo `requisitos-status.mjs`), porque o `casos-coverage-guard` varre só `Pages/**`.
+#     · `EstoqueInicialContratoTest`        — CU-PROD-04 (UC-PINIC-01..04). `POST /opening-stock/save`,
+#       fluxo 100% Blade (varredura contada: 0 telas React informam estoque inicial).
+#     · `ProdutoBomContratoTest`            — CU-PROD-05 (UC-PBOM-01..04). API de BOM + `BomResolver`.
+#       ⚠️ Entra AQUI porque os testes que pareciam cobrir isso NÃO RODAM: `tests/Feature/Domain/
+#       Inventory/{BomResolverTest,ReservarEstoqueBomTest}.php` auto-pulam fora do sqlite e não
+#       estão em `.github/ci-sqlite-pest.list` nem em lane nenhuma (varredura contada de
+#       `Domain/Inventory` em `.github/`+`scripts/`: 0) → skip-as-pass em todo lugar.
+#     · `QuickAddProdutoContratoTest`       — CU-PROD-08 (UC-PQCK-01..04). `POST /products/
+#       save_quick_product`, chamado de 10 Blades de venda/compra e de 0 telas React.
+#     · `AjusteEstoqueRelatorioContratoTest` — US-PROD-028 (UC-PFIX-02/03). Eixos TENANT e ALCANCE
+#       do botão "Fix"; o eixo NUMÉRICO (UC-PFIX-01) segue no `EstoqueFixMismatchNumUfTest`.
+#   Todos precisam de MySQL real (schema UltimatePOS + `product_bom` do baseline + 2º business
+#   pro cross-tenant); em sqlite dariam SKIP.
+#   ⚠️ Eixos ESTOQUE e VALOR → REGRA MESTRE: o teste PROVA, o fix é decisão [W].
 
 on:
   workflow_dispatch: {}
@@ -144,7 +200,16 @@ jobs:
             tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php \
             tests/Feature/Produto/TabelaPrecoContratoTest.php \
             tests/Feature/Produto/CadastroProdutoContratoTest.php \
-            tests/Feature/Produto/StockHistoryContratoTest.php
+            tests/Feature/Produto/StockHistoryContratoTest.php \
+            tests/Feature/Produto/ProdutoEditContratoTest.php \
+            tests/Feature/Produto/ProdutoEditPayloadContratoTest.php \
+            tests/Feature/Produto/ProdutoShowContratoTest.php \
+            tests/Feature/Produto/ProdutoIndexContratoTest.php \
+            tests/Feature/Produto/ProdutoBulkEditContratoTest.php \
+            tests/Feature/Produto/EstoqueInicialContratoTest.php \
+            tests/Feature/Produto/ProdutoBomContratoTest.php \
+            tests/Feature/Produto/QuickAddProdutoContratoTest.php \
+            tests/Feature/Produto/AjusteEstoqueRelatorioContratoTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}

@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-runbook-erradicacao-locacao
 title: "RUNBOOK — Erradicação de order_type=locacao (ADR 0265, parte backend coupled)"
 owner: W
 last_validated: "2026-06-09"

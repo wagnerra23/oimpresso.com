@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0009-topnav-declarativo-por-modulo-resources-menus
+---
+
 # ADR ARQ-0009 (MemCofre) · TopNav declarativo por módulo em `Resources/menus/topnav.php`
 
 - **Status**: superseded-by-arq/0010 (2026-04-23 — mesmo dia, Wagner preferiu sidebar accordion)

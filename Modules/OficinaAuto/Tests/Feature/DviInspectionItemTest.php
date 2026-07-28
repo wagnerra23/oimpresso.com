@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-OFICINA-035
 
 declare(strict_types=1);
 
@@ -209,7 +210,7 @@ it('Service::totalRecomendado soma apenas atencao + critico (ignora ok)', functi
     expect($service->totalRecomendado($os->id))->toBe(350.50);
 })->afterEach(fn () => dvi_cleanup('H'));
 
-it('Service::listarOrdenado coloca críticos no topo', function () {
+it('UC-OSH-06 · Service::listarOrdenado coloca críticos no topo', function () {
     session(['user.business_id' => BIZ_DVI]);
     $os = dvi_criaOs('I');
     $service = new DviInspectionService();

@@ -1,4 +1,5 @@
 ---
+id: requisitos-fiscal-fiscal-eventos-visual-comparison
 tela: Fiscal/Eventos
 url: /fiscal/eventos
 status: approved

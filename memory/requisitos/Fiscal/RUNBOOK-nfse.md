@@ -1,3 +1,10 @@
+---
+title: "RUNBOOK — Fiscal/Nfse (sub-página 3)"
+owner: W
+status: ativo
+last_validated: "2026-06-08"
+---
+
 # RUNBOOK — Fiscal/Nfse (sub-página 3)
 
 > **Tela:** `/fiscal/nfse`

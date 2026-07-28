@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-diagrams-er
+---
+
 # Entity-Relationship · MemCofre
 
 Diagrama ER das tabelas criadas pelo módulo MemCofre. Sintaxe Mermaid — renderizável no GitHub, VS Code e no viewer do MemCofre.

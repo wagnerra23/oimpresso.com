@@ -1,3 +1,7 @@
+---
+id: requisitos-nfe-brasil-changelog
+---
+
 # Changelog — NfeBrasil
 
 Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.

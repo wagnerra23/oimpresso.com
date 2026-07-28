@@ -1,4 +1,5 @@
 ---
+id: requisitos-estoque-telas-stock-adjustment-create-visual-comparison
 tela: stock_adjustment/create
 modulo: Inventory / StockAdjustment
 tipo: FORM CREATE

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-relatorios-index-charter
 page: /financeiro/relatorios
 component: resources/js/Pages/Financeiro/Relatorios/Index.tsx
 related_prototype: n/a (tela de relatório com abas + KPI strip bespoke — não casa a assinatura de um dos 5 Padrões de Tela)

@@ -15,38 +15,38 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 84,
+      "value": 85.4,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 84,
+        "coverage_pct": 85.4,
         "specs_total": 59,
-        "us_total": 981,
-        "anchor_coverage_pct": 84,
+        "us_total": 984,
+        "anchor_coverage_pct": 85.4,
         "by_state": {
-          "sem_campo": 155,
+          "sem_campo": 143,
           "placeholder": 0,
-          "pendente": 375,
-          "parcial": 115,
-          "anchored_ok": 334,
-          "anchored_dead": 2,
+          "pendente": 389,
+          "parcial": 116,
+          "anchored_ok": 335,
+          "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 831,
+        "fields_total": 846,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 784,
+        "fields_grammar_ok": 799,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
-        "req_sem_covering_test_total": 391,
+        "req_sem_covering_test_total": 377,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 45,
+        "req_sem_lane_total": 46,
         "behavior_known": false,
-        "servido_total": 3,
-        "nao_servido_total": 114,
+        "servido_total": 16,
+        "nao_servido_total": 101,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -66,40 +66,40 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 346,
+      "value": 345,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "81abe9b62a8c9b37",
+        "floor_files_hash": "148b04fc0c4ab1e9",
         "runs": [
           {
-            "sha": "d2c5abd7",
-            "ts": "20260720-020001",
-            "failed": 604,
-            "errors": 624,
-            "skipped": 2223,
+            "sha": "e0da62c8",
+            "ts": "20260725-020001",
+            "failed": 667,
+            "errors": 424,
+            "skipped": 2226,
             "all_shards_measured": true
           },
           {
-            "sha": "26c52cd0",
-            "ts": "20260722-020001",
-            "failed": 654,
-            "errors": 431,
-            "skipped": 2262,
+            "sha": "afb9f347",
+            "ts": "20260726-020001",
+            "failed": 661,
+            "errors": 440,
+            "skipped": 2222,
             "all_shards_measured": true
           },
           {
             "sha": null,
-            "ts": "20260723-020001",
-            "failed": 654,
-            "errors": 465,
-            "skipped": 2245,
+            "ts": "20260727-020001",
+            "failed": 637,
+            "errors": 475,
+            "skipped": 2229,
             "all_shards_measured": true
           }
         ],
-        "computed_at": "20260723-020001",
+        "computed_at": "20260727-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -118,38 +118,38 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 17.7,
+      "value": 17.8,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 42684,
-        "total": 240594,
+        "covered": 42870,
+        "total": 240778,
         "runs": [
           {
-            "sha": "c307c3b5",
-            "ts": "20260719-020001",
-            "coverage_pct": 17.1,
-            "covered": 41203,
-            "total": 240381
-          },
-          {
-            "sha": "26c52cd0",
-            "ts": "20260722-020001",
-            "coverage_pct": 17.4,
-            "covered": 41857,
-            "total": 240541
-          },
-          {
-            "sha": null,
+            "sha": "db9001b2",
             "ts": "20260723-020001",
             "coverage_pct": 17.7,
             "covered": 42684,
             "total": 240594
+          },
+          {
+            "sha": "afb9f347",
+            "ts": "20260726-020001",
+            "coverage_pct": 17.6,
+            "covered": 42502,
+            "total": 241024
+          },
+          {
+            "sha": null,
+            "ts": "20260727-020001",
+            "coverage_pct": 17.8,
+            "covered": 42870,
+            "total": 240778
           }
         ],
-        "computed_at": "20260723-020001",
+        "computed_at": "20260727-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -168,8 +168,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 271,
-        "effectively_guarded": 271
+        "with_manual_ddl": 272,
+        "effectively_guarded": 272
       },
       "stream": "FV"
     },
@@ -209,22 +209,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 66.7,
+      "value": 75,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 3,
-        "weeks_valid": 2,
+        "weeks_expected": 4,
+        "weeks_valid": 3,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-07-19",
+        "last_week": "2026-07-26",
         "latest": {
-          "gate_status": "pass",
+          "gate_status": "fail",
           "n_evaluated": 51,
-          "faithfulness_avg": 0.7127,
-          "relevancy_avg": 0.8255,
-          "context_recall_avg": 0.4016
+          "faithfulness_avg": 0.6865,
+          "relevancy_avg": 0.8294,
+          "context_recall_avg": 0.3461
         }
       },
       "stream": "MEM"
@@ -238,10 +238,10 @@
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
         "portas": 78,
-        "carimbadas": 11,
-        "sem_carimbo": 67,
+        "carimbadas": 14,
+        "sem_carimbo": 64,
         "stale": 0,
-        "oldest_distilled_at": "2026-07-02"
+        "oldest_distilled_at": "2026-07-17"
       },
       "stream": "MEM"
     },
@@ -280,10 +280,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 36,
+        "entries_aprovadas": 44,
         "max_error_rate_pct": 1.82,
-        "last_pr": 4617,
-        "last_lote": "topicos-vivos-superficies-r4"
+        "last_pr": 4737,
+        "last_lote": "PR6-stale-repair-redistill-r3"
       },
       "stream": "GT"
     }

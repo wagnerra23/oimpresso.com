@@ -1,4 +1,5 @@
 ---
+id: reference-hostinger
 name: Hostinger — acesso, API, SSH, DNS e análise DB consolidado
 description: Cluster único Hostinger (shared hosting prod oimpresso.com). SSH credenciais + receita warm-up + hPanel humano + API autorizada + DNS endpoint canônico + receita análise DB via SSH+MySQL/heredoc PHP. Tokens reais no Vaultwarden.
 type: reference

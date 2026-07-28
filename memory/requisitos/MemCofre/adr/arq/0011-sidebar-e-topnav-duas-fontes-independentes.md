@@ -1,3 +1,7 @@
+---
+id: requisitos-mem-cofre-adr-arq-0011-sidebar-e-topnav-duas-fontes-independentes
+---
+
 # ADR ARQ-0011 (MemCofre) · Sidebar e TopNav como duas fontes independentes
 
 - **Status**: accepted

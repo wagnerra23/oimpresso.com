@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-spec
 slug: sells
 title: "Especificação funcional — Sells (migração MWART de /sells/create)"
 type: spec
@@ -1105,6 +1106,10 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase
 ### US-SELL-047 · Teste de isolamento multi-tenant REAL da tela Sells (ADR 0093) — gap mascarado por grep
 
 **Implementado em:** _pendente_ — teste de isolamento multi-tenant REAL (HTTP/DB, nao grep) da tela Sells nao existe; os testes atuais sao grep de source
+
+**Testado em:** `tests/Feature/Sells/SellsIndexTenantContratoTest.php` — **pagamento PARCIAL desta US** (2026-07-27, chip Onda 2 do passo 5): primeiro teste de Sells que faz **HTTP+DB real** (GET sells-list-json com actingAs biz=1 e uma transacao plantada em biz=2), nao grep de source. Cobre 2 dos 4 itens do Escopo — o indicador de devolucao (UC-SIDX-01, com controle positivo pra nao passar por nao-execucao) e o agregado de dinheiro do rodape (UC-SIDX-02, antes->depois). **Continua _pendente_ de proposito:** faltam bulk-print/bulk-export com IDs alheios e o DoD "provado mutando".
+
+> Lane: `PHP / Pest (Sells - MySQL)` — **advisory**, nao bloqueia merge. Contratos em Index.casos.md e no SDD §6.3 (CU-SELL-32/33). _(Os ponteiros sairam da linha `Testado em:` de proposito: o `anchor entry/covers gate` extrai TODO path daquela linha e cobra `@covers-us` nele — casos.md e workflow nao sao arquivo de teste.)_
 
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 > blocked_by: —

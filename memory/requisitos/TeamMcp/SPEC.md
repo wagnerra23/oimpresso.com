@@ -1,4 +1,5 @@
 ---
+id: requisitos-team-mcp-spec
 module: TeamMcp
 version: "1.0"
 last_updated: "2026-06-13"

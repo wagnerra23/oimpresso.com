@@ -1,4 +1,5 @@
 ---
+id: requisitos-whatsapp-readme
 module: Whatsapp
 alias: whatsapp
 status: spec-ready

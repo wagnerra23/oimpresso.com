@@ -1,3 +1,7 @@
+---
+id: requisitos-kb-ia-maturity-ficha
+---
+
 # KB — IA-MATURITY-FICHA (Wave 22)
 
 **Data:** 2026-05-16 · **Auditor:** Wave 22 agent · **Branch:** `claude/governance-wave-21-22-mega`

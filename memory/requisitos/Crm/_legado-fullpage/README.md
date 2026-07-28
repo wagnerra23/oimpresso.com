@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-legado-fullpage-readme
+---
+
 # `_legado-fullpage/` — docs da UI antiga de Cliente (pré-drawer 760px)
 
 > **2026-06-01:** consolidado da pasta duplicada `memory/requisitos/Cliente/` (removida). São os RUNBOOKs + visual-comparisons do antigo **Cliente/Show full-page**, anteriores ao paradigma **drawer 760px** (ADR 0179, Wave A-G 2026-05-21).

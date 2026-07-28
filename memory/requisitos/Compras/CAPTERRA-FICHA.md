@@ -1,3 +1,7 @@
+---
+id: requisitos-compras-capterra-ficha
+---
+
 # CAPTERRA-FICHA — Compras (capacidade)
 
 > Ficha canônica de benchmark de **capacidade** do módulo Compras (compra/nota de entrada — `Modules/Compras` wrapper Inertia sobre `transactions` polimórfica).

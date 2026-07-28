@@ -1,3 +1,7 @@
+---
+id: requisitos-manufacturing-architecture
+---
+
 # Arquitetura
 
 ## 1. Objetivo

@@ -1,4 +1,5 @@
 ---
+id: requisitos-woocommerce
 module: Woocommerce
 alias: woocommerce
 status: ativo

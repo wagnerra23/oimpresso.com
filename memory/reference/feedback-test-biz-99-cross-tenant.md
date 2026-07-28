@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-test-biz-99-cross-tenant
 name: Cross-tenant tests biz=99 (não 4)
 description: Refinamento ADR 0101 — biz=1 default, biz=99 cross-tenant (não biz=4 que é cliente real ROTA LIVRE). Guard BusinessIdGuardTest detecta violações
 type: feedback

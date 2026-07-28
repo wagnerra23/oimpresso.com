@@ -1,4 +1,5 @@
 ---
+id: reference-atendimento-inbox-state-2026-05-12
 name: Estado funcional Atendimento Whatsapp 2026-05-12
 description: O que faz e o que não faz pós-CYCLE-05 (11 PRs + #685/#686/#687/#688/#692 PR-rush 2026-05-12); auto-link Contact CRM = MANUAL (32 convs biz=1 com linked=0); ordenação por last_message_at mistura inbound+outbound; backlog WA-041/047/048/049/050/051/052/058/059
 type: reference

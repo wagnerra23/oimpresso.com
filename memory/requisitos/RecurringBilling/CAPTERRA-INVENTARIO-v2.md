@@ -1,3 +1,7 @@
+---
+id: requisitos-recurring-billing-capterra-inventario-v2
+---
+
 # CAPTERRA-INVENTÁRIO v2 — RecurringBilling
 
 > Gerado por skill `comparativo-do-modulo` v2.0 em **2026-05-08**.

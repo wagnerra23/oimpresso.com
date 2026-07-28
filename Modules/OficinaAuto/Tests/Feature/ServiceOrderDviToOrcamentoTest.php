@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-OFICINA-040
 
 declare(strict_types=1);
 
@@ -78,7 +79,7 @@ function dto_cleanup(string $suffix): void
     }
 }
 
-it('converte item DVI em ServiceOrderItem (valor sugerido vira valor unitário)', function () {
+it('UC-OSH-07 · converte item DVI em ServiceOrderItem (valor sugerido vira valor unitário)', function () {
     session(['user.business_id' => BIZ_DTO]);
     $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DTO)->first();
     if ($user === null) {

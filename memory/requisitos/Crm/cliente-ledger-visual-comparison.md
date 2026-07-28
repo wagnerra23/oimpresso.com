@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-cliente-ledger-visual-comparison
+---
+
 # Visual Comparison — Cliente/Ledger (W1-B3)
 
 ## Divergência (ADR 0149)

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-cliente-create-charter
 page: /contacts/create
 component: resources/js/Pages/Cliente/Create.tsx
 owner: wagner
@@ -14,6 +15,8 @@ mwart_pattern_reuse:
   blueprint_screenshot_approval: "Wagner 2026-05-29 — PR-A Onda F (componentes aprovados; Create elevado pendente)"
   derived_screens: [Create]
   divergence_from_blueprint: "none"
+related_runbook: memory/requisitos/Crm/RUNBOOK-cliente-create.md
+related_visual_comparison: memory/requisitos/Crm/cliente-create-visual-comparison.md
 ---
 
 # Page Charter — /contacts/create (LIVE)

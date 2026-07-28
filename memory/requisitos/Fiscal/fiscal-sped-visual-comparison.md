@@ -1,4 +1,5 @@
 ---
+id: requisitos-fiscal-fiscal-sped-visual-comparison
 tela: Fiscal/Sped
 url: /fiscal/sped
 status: approved

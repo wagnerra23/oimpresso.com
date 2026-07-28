@@ -1,4 +1,5 @@
 ---
+id: requisitos-governance-governance-maturity-ficha
 modulo: Governance
 versao_ficha: 1.0 (MATURITY variante CAPTERRA — bucket cross_cutting_infra)
 formato: governance-maturity-ficha-canonica (variante ADR 0089 — auditoria reflexiva)

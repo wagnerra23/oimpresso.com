@@ -1,4 +1,5 @@
 ---
+id: reference-escala-migracao-carteira-delphi
 name: Escala de design = carteira Delphi (~150 clientes) migrando pro online, NÃO 1 cliente
 description: A escala de DESIGN do oimpresso é a carteira legacy (~150 clientes Delphi WR Comercial em migração pro ERP online), não o 1 cliente online atual (ROTA LIVRE). Corrige a premissa "cliente único" que análises de design usaram pra justificar não investir em robustez. Drive de risco Tier 0: fragilidade escala por cliente.
 type: reference

@@ -1,4 +1,5 @@
 ---
+id: requisitos-cms-page-charter
 page_id: cms.site.page
 route: GET /c/page/{slug}
 controller: Modules\Cms\Http\Controllers\CmsPageController@showPage

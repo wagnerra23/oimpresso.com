@@ -1,4 +1,5 @@
 ---
+id: requisitos-infra-runbook-module-grades-gate-ci
 slug: runbook-module-grades-gate-ci
 title: "RUNBOOK — Module Grades Gate CI (anti-regressão module-grade v3)"
 type: runbook

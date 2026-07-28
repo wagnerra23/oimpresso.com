@@ -1,4 +1,5 @@
 ---
+id: requisitos-whatsapp-auditoria-realtime-webhook-ui-2026-05-28
 slug: whatsapp-auditoria-realtime-webhook-ui
 title: "Whatsapp — Auditoria realtime webhook → UI (Centrifugo, queue, Inertia defer)"
 type: auditoria

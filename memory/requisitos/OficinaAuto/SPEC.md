@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-spec
 module: OficinaAuto
 version: "0.2.0"
 last_updated: "2026-06-09"
@@ -40,6 +41,8 @@ Ver §V0 logo abaixo — convenção `US-OFICINA-NNN` ([ADR 0134](../../decision
 
 **Implementado em:** `Modules/OficinaAuto/Entities/Vehicle.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` · verificado@dd3ed7c (2026-07-01)
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/VehicleCrudTest.php` · `Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderCrudTest.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemTest.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderObserverItemsAndHttpTest.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 Scaffold completo conforme [ADR 0137 §"Escopo arquitetural V0"](../../decisions/0137-modules-oficinaauto-qualificada.md):
 - 8 peças nWidart canônicas (module.json + composer + Config + ServiceProvider + RouteServiceProvider + InstallController + DataController + Routes)
 - Migrations `vehicles` (multi-placa nullable) + `service_orders` (vehicle_id FK + transaction_id nullable) — multi-tenant Tier 0 ADR 0093
@@ -58,6 +61,8 @@ Scaffold completo conforme [ADR 0137 §"Escopo arquitetural V0"](../../decisions
 
 **Implementado em:** `Modules/OficinaAuto/Console/Commands/ImportFirebirdMartinhoCommand.php` · `Modules/OficinaAuto/Tests/Feature/ImportFirebirdMartinhoCommandTest.php` · verificado@dd3ed7c (2026-07-01) — comando real é `oficina:import-firebird-martinho` (JSON export → import, biz=164 Martinho), não o `officeimpresso:import-vehicles {dsn}` do texto; cleanup rules ficaram em US-OFICINA-005
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ImportFirebirdMartinhoCommandTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 Artisan command `officeimpresso:import-vehicles {business_id} {firebird_dsn}` que:
 - Conecta Firebird cliente OfficeImpresso (ex: Martinho Caçambas — 91 veículos piloto V0)
 - Lê `EQUIPAMENTO_VEICULO` (mapping em [_MAPPING/TELA-LISTA-VENDAS.md §9.4](../../research/clientes-legacy-officeimpresso/_MAPPING/TELA-LISTA-VENDAS.md))
@@ -73,6 +78,8 @@ Artisan command `officeimpresso:import-vehicles {business_id} {firebird_dsn}` qu
 
 **Implementado em:** `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `Modules/OficinaAuto/Services/ServiceOrderPipelineStarter.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · verificado@dd3ed7c (2026-07-01) — FSM canônica `oficina_mecanica_os` (ADR 0143/0265), não os 2 processos Simples/Complexa literais do texto
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderStageGateTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 2 processos seed por business pra `service_orders` ([ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md) FSM tabular):
 - **OS Simples** (Martinho · sub-vertical 4 mecânica pesada caminhão basculante · ADR 0194 — pré-correção dizia "caçamba avulsa"): `aberta` → `em_servico` → `concluida`
 - **OS Complexa** (Vargas recapagem multi-item · sub-vertical 2 V1): `aberta` → `orcamento` → `aprovada` → `em_producao` → `concluida` → `entregue`
@@ -85,6 +92,8 @@ Importer legacy mapeia `VENDA_ESTAGIO` Firebird → estado FSM correspondente. P
 > blocked_by: US-OFICINA-003
 
 **Implementado em:** `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/ServiceOrderKanbanCard.tsx` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderBoardTest.php` · verificado@dd3ed7c (2026-07-01) — Kanban OS data-driven pelo FSM (drag→ExecuteStageActionService); WR_KANBAN importer legado é US-OFICINA-020
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderBoardTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
 
 Aproveitar **pré-arte Delphi** ([Controller.Producao.Kanban.pas](../../research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md)) — Wagner descobriu Kanban industrial built-in com 8 agrupadores + drag-drop. Replicar via @dnd-kit React + persistir estado UI em tabela equivalente a `WR_KANBAN(CHAVE, COLUNA, ORDEM, COLUNA_FECHADA)`. Caso piloto V1: **Vargas** (multi-item média 3 itens/OS).
 
@@ -453,6 +462,8 @@ Tabela `oa_temparios` + seed manual 100 serviços frequentes (troca óleo, alinh
 
 **Implementado em:** `Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php` · `Modules/OficinaAuto/Services/AprovacaoOsService.php` · `Modules/OficinaAuto/Jobs/EnviarLinkAprovacaoWhatsappJob.php` · `resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx` · `Modules/OficinaAuto/Tests/Feature/AprovacaoOsTokenTest.php` · verificado@dd3ed7c (2026-07-01) — rota real é `/aprovar-os/{token}` (não `/oficina/aprovar/{token}`); token HMAC + PIN 4 dígitos + lockout
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/AprovacaoOsTokenTest.php` · `Modules/OficinaAuto/Tests/Feature/WhatsAppAprovacaoPinTest.php` · `Modules/OficinaAuto/Tests/Feature/EnviarLinkAprovacaoWhatsappJobTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 Endpoint público `/oficina/aprovar/{token}` mostra orçamento mobile-first + PIN 4 dígitos via SMS/WhatsApp. Webhook dispara FSM action `cliente_aprovou` ou `cliente_rejeitou` com role `public.token`. Rate-limit + LGPD consentimento.
 
 ### US-OFICINA-015 · App PWA mecânico campo (V0 — minhas OS + foto + clock-in) — **P2**
@@ -479,6 +490,8 @@ Job daily compara `oa_garantias.expira_em - 7d` → dispara WhatsApp template "S
 > blocked_by: US-OFICINA-006
 
 **Implementado em:** _parcial_ · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `resources/js/Pages/OficinaAuto/Vehicles/Show.tsx` · verificado@dd3ed7c (2026-07-01) — Show carrega `serviceOrders` e renderiza a seção "Histórico de OS" (status badge por linha); falta a soma de km entre revisões + foto antes/depois por OS + export PDF "passaporte" + integração Jana
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderCrudTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
 
 Page `Vehicles/Show.tsx` aba "Histórico" lista todas OS daquele veículo + foto antes/depois + soma km percorrido entre revisões. Útil Vargas (mesmo caminhão volta a cada 6m recapagem).
 
@@ -589,6 +602,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 
 **Implementado em:** `Modules/OficinaAuto/Entities/Vehicle.php` · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `Modules/OficinaAuto/Database/Migrations/2026_05_11_000010_create_vehicles_table.php` · `resources/js/Pages/OficinaAuto/Vehicles/Create.tsx` · verificado@dd3ed7c (2026-07-01) — realizado como US-OFICINA-001 (tabela `vehicles`, permissões `oficinaauto.vehicle.*`; nomes do anexo antecipatório `oficina_auto_veiculos`/`auto.veiculo.*` divergem)
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/VehicleCrudTest.php` · `Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 **Como** atendimento da oficina
 **Quero** cadastrar veículo do cliente uma única vez (placa unique por business, chassi 17 chars, ano, marca/modelo, cor, km_atual)
 **Para** não recadastrar a cada OS + ter histórico completo do veículo
@@ -637,6 +652,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 
 **Implementado em:** _parcial_ · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `resources/js/Pages/OficinaAuto/Vehicles/Show.tsx` · verificado@dd3ed7c (2026-07-01) — realizado parcialmente como US-OFICINA-017: Show tem seção "Histórico de OS"; falta filtro por período, export PDF "passaporte" e integração Jana
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderCrudTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 **Como** dono/mecânico
 **Quero** ver linha do tempo de todas OS daquele veículo (data, mecânico, defeito, peças trocadas, custo)
 **Para** decidir manutenção próxima sem adivinhar (ex: "última troca correia 50.000 km, agora está 95.000 — vence")
@@ -682,6 +699,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) `JobSheet` + Kanban PR #363 + `repair_statuses` configurável
 
 **Implementado em:** `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderBoardTest.php` · verificado@dd3ed7c (2026-07-01) — realizado como US-OFICINA-004/006 sobre FSM próprio `oficina_mecanica_os` (ADR 0143), não sobre JobSheet/repair_statuses do Repair
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderBoardTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
 
 **Como** atendente/PCP
 **Quero** Kanban com 5+ colunas configuráveis mostrando OS em cada etapa, drag-drop pra mover
@@ -773,6 +792,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Reusa:** WhatsApp Cloud API (token Meta já no projeto)
 
 **Implementado em:** `Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php` · `Modules/OficinaAuto/Services/AprovacaoOsService.php` · `Modules/OficinaAuto/Jobs/EnviarLinkAprovacaoWhatsappJob.php` · `resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx` · verificado@dd3ed7c (2026-07-01) — realizado como US-OFICINA-014 (rota real `/aprovar-os/{token}` + PIN 4 dígitos + lockout)
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/AprovacaoOsTokenTest.php` · `Modules/OficinaAuto/Tests/Feature/WhatsAppAprovacaoPinTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
 
 **Como** atendimento
 **Quero** enviar link "Olá Sr João, sua OS-1234 está orçada em R$ [redacted Tier 0] — clique pra ver detalhes e aprovar com PIN" pelo WhatsApp do cliente
@@ -1346,6 +1367,8 @@ Quando os pré-requisitos forem satisfeitos, **abrir ADR canon** "OficinaAuto-at
 
 **Implementado em:** `Modules/OficinaAuto/Entities/OaInspectionItem.php` · `Modules/OficinaAuto/Services/DviInspectionService.php` · `Modules/OficinaAuto/Http/Controllers/DviInspectionController.php` · `Modules/OficinaAuto/Database/Migrations/2026_05_26_120002_create_oa_inspection_items_table.php` · `Modules/OficinaAuto/Tests/Feature/DviInspectionItemTest.php` · verificado@dd3ed7c (2026-07-01) — backend DVI completo (schema + Service + HTTP API); UI drawer integrada via ProducaoOficina/_components/DviInlineEditor
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/DviInspectionItemTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 Wedge competitivo vs RepairShopr/mHelpDesk catalogado em [CAPTERRA-FICHA Repair gap #3](../Repair/CAPTERRA-FICHA.md). Mecânico registra itens vistoriados na OS com semáforo verde/amarelo/vermelho (ok/atencao/critico) + recomendação + valor + foto opcional. Card UI proposto (screenshot Wagner 2026-05-26): "VISTORIA DIGITAL · DVI" com badges contadores ("8 ok · 2 atenção · 1 crítico"), lista de 5 items com semáforo + valor, e bloco "TOTAL RECOMENDADO · CLIENTE" agregando atencao+critico.
 
 **DoD (entregue Wave 3):**
@@ -1389,6 +1412,8 @@ Delta do protótipo Cowork "Nova OS" embarcado — ver [oficina-os-nova-prototip
 
 **Implementado em:** `Modules/OficinaAuto/Database/Migrations/2026_06_02_000010_add_checkin_fields_to_service_orders.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/EntryCheckinFields.tsx` · verificado@dd3ed7c (2026-07-01) — coluna `entry_damages` (json) + chips no Create/Edit + read-only no Show; fotos de entrada ficaram pra US futura
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderCheckinTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 **DoD:**
 - [x] Coluna `entry_damages` (json nullable) em `service_orders` — migration idempotente `2026_06_02_000010`
 - [x] `ServiceOrder` fillable + cast `array` + activitylog `logOnly`
@@ -1407,6 +1432,8 @@ Delta #7 do protótipo Cowork "Nova OS" — barra de combustível no hero do ve�
 
 **Implementado em:** `Modules/OficinaAuto/Database/Migrations/2026_06_02_000010_add_checkin_fields_to_service_orders.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/EntryCheckinFields.tsx` · verificado@dd3ed7c (2026-07-01) — coluna `fuel_level_at_entry` (0–100) + barra no Create/Edit/Show
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderCheckinTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
+
 **DoD:**
 - [x] Coluna `fuel_level_at_entry` (unsignedTinyInteger nullable 0–100) em `service_orders` — migration `2026_06_02_000010`
 - [x] `ServiceOrder` fillable + cast `integer` + activitylog `logOnly`
@@ -1422,6 +1449,8 @@ Delta #7 do protótipo Cowork "Nova OS" — barra de combustível no hero do ve�
 Delta #4 do protótipo Cowork "Nova OS" — botão **"+ orçamento"** na inspeção. Item DVI reprovado/atenção vira `ServiceOrderItem` (mão-de-obra) com 1 clique; o valor recomendado entra como valor unitário. Backend DVI (`oa_inspection_items` + `DviInspectionService`) já existia (US-OFICINA-035) — esta US faz o **wire-up de UI** (Wave 3b pendente) no fluxo Show.
 
 **Implementado em:** `Modules/OficinaAuto/Http/Controllers/DviInspectionController.php` · `Modules/OficinaAuto/Services/ServiceOrderItemService.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/DviBudgetSection.tsx` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderDviToOrcamentoTest.php` · verificado@dd3ed7c (2026-07-01) — rota POST dvi/{item}/to-orcamento (idempotência via metadata.budget_item_id → 409)
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderDviToOrcamentoTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
 
 **DoD:**
 - [x] `DviInspectionController::toOrcamento` cria `ServiceOrderItem` via `ServiceOrderItemService` + Policy `update` + cross-OS guard
@@ -1439,6 +1468,8 @@ Delta #4 do protótipo Cowork "Nova OS" — botão **"+ orçamento"** na inspeç
 Delta #5 do protótipo Cowork "Nova OS" (card "Aprovação do cliente"). O mecânico envia o orçamento pro cliente aprovar com 1 clique; a execução não inicia até aprovar. **Reusa o pipeline automático existente** (US-OFICINA-014): transicionar status → `orcamento` faz o `ServiceOrderObserver` despachar o `EnviarLinkAprovacaoWhatsappJob` (link público + PIN). O gate visual no Show reflete aguardando→aprovado.
 
 **Implementado em:** `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ApprovalGateCard.tsx` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderEnviarAprovacaoTest.php` · verificado@dd3ed7c (2026-07-01) — `enviarAprovacao` (status→orcamento dispara Observer WhatsApp) + rota `POST enviar-aprovacao` + gate 3 estados no Show
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderApprovalGateTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
 
 **DoD:**
 - [x] `ServiceOrderController::enviarAprovacao` — status → orcamento (dispara Observer WhatsApp); Policy update; rejeita estados terminais

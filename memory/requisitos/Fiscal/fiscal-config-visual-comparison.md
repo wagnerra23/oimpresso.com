@@ -1,4 +1,5 @@
 ---
+id: requisitos-fiscal-fiscal-config-visual-comparison
 tela: Fiscal/Config
 url: /fiscal/config
 status: approved

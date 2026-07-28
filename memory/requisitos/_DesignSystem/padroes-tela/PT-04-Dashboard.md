@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-padroes-tela-pt-04-dashboard
 pattern_id: PT-04
 nome: Dashboard
 camada: 3-padroes-tela

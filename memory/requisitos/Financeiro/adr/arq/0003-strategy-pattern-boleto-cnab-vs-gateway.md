@@ -1,3 +1,7 @@
+---
+id: requisitos-financeiro-adr-arq-0003-strategy-pattern-boleto-cnab-vs-gateway
+---
+
 # ADR ARQ-0003 (Financeiro) · Boleto via Strategy: CNAB direto OU gateway
 
 - **Status**: accepted

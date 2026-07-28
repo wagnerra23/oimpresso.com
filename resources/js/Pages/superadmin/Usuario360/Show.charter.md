@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-superadmin-usuario360-show-charter
 page: /superadmin/usuarios/{id}/360
 owner: wagner
 status: draft

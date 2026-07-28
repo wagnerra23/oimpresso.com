@@ -1,4 +1,5 @@
 ---
+id: reference-feedback-mcp-tools-worktree-filho
 name: Tools MCP do oimpresso não carregam automaticamente em worktree filho
 description: Worktrees Claude criadas pelo harness não recebem tools mcp__Oimpresso_MCP__* — só o brief-fetch vem via hook SessionStart. Pra usar cycles-close, my-inbox, tasks-update etc, ToolSearch pra carregar schemas.
 type: feedback

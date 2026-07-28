@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-roadmap-pfr-promover-foundation-ratchet-required
 roadmap_item: Pfr
 slug: promover-foundation-ratchet-required
 onda: 0

@@ -1,3 +1,7 @@
+---
+id: requisitos-copiloto-jana-pro-product-plan
+---
+
 # ⚰️ LÁPIDE — Product Plan movido pra `requisitos/Jana/`
 
 > O **JANA Pro — Product Plan executivo (32 US, 4 sprints)** foi movido pra o dir canônico

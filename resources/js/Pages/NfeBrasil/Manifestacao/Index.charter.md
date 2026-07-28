@@ -2,7 +2,7 @@
 page: /nfe-brasil/manifestacao
 component: resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-05-10"
 parent_module: NfeBrasil
 related_adrs: [29, 39, 93, 94, 116]

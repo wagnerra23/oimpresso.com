@@ -1,4 +1,5 @@
 ---
+id: requisitos-auditoria-briefing
 module: Auditoria
 status: governança transversal cross-tenant (sprint 3 em curso)
 piloto: N/A (governança transversal — todos businesses sem cliente externo direto)

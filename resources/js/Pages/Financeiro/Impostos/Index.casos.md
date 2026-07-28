@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-financeiro-impostos-index-casos
 casos: Impostos & obrigações · /financeiro/impostos
 irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
@@ -38,7 +39,7 @@ Título de guia quitado no Unificado aparece na tabela com status **paga** e sai
 A recolher e do calendário.
 
 ## UC-IMP-05 — Costura NF↔título (aviso pré-fechamento)
-Status: ⬜ (manual — depende de títulos sem NF no ambiente)
+Status: 🧪 (ImpostosContractTest C3 — o teste do UC-IMP-10, que refina este, passou a citar UC-IMP-05 no título; lane `financeiro-pest`)
 Recebíveis do mês sem `metadata.nfe_numero/nfe_chave` listam no painel NF↔título (até 5) com o
 aviso "sem NF a base do DAS sai distorcida". 100% com NF → check verde "base consistente".
 

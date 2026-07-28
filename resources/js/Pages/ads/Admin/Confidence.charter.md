@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-confidence-charter
 page: /ads/admin/confidence
 component: resources/js/Pages/ads/Admin/Confidence.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)

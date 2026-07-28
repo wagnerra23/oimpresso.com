@@ -1,4 +1,5 @@
 ---
+id: requisitos-ideias-automacao-cc-evidencias-conversa-claude-2026-04-mobile
 type: evidencia
 origin_url: https://claude.ai/chat/c113a681-899d-4d92-9012-b9f4784086fe
 origin_title: "(sem título)"

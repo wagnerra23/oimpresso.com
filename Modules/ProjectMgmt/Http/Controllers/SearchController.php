@@ -18,7 +18,7 @@ use Modules\Jana\Entities\Mcp\McpTask;
  * GET /project-mgmt/search?q={query}
  *
  * Busca cross-resource em tasks/epics/cycles/projects (mcp_*),
- * limitada a `copiloto.mcp.usage.all`. Resultados agrupados por tipo
+ * limitada a `jana.mcp.usage.all`. Resultados agrupados por tipo
  * pra renderização em cmdk/CommandPalette.
  *
  * Query LIKE simples (não Meilisearch — escopo MVP). Multi-tenant não
@@ -29,7 +29,7 @@ class SearchController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('can:copiloto.mcp.usage.all');
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): JsonResponse

@@ -1,0 +1,65 @@
+# Bucket config canônico — cross_cutting_infra (ADR 0160).
+#
+# 2026-07-26 — reconciliação bucket declarado ⇔ rubrica existente.
+#
+# ORIGEM DESTE ARQUIVO (não é rubrica nova, é a rubrica ÓRFÃ ganhando o nome certo):
+# a Wave 24 (2026-05-16) escreveu `meta_governance.yaml` explicitamente para
+# "Governance, Auditoria, Admin". No dia seguinte, a Wave 27 (2026-05-17) o [W]
+# atribuiu esses MESMOS 3 módulos a `bucket: cross_cutting_infra` nos respectivos
+# module.json (`bucket_assigned_by: "[W]"`, com justificativa por módulo) e ampliou
+# o escopo do bucket pra 7 módulos. O nome mudou nos module.json e não mudou no
+# arquivo de rubrica — resultado: `meta_governance.yaml` ficou órfão (0 módulos o
+# declaram) e os 3 módulos ficaram SEM rubrica (loadBucketConfig retorna [] quando
+# o YAML não existe → `core` vazio → nenhuma dimensão avaliada).
+#
+# A fonte da verdade do bucket é o `module.json` (decisão declarada e datada do [W]),
+# não o nome do arquivo. Por isso a rubrica veio pro nome, e não o contrário.
+# Pesos core copiados de meta_governance.yaml SEM alteração (mesma semântica:
+# módulo interno, cross-tenant by design, foco em coerência/reflexividade).
+#
+# Módulos neste bucket (7, todos declarando em module.json):
+#   Admin, Auditoria, Brief, Connector, Governance, Superadmin, TeamMcp
+# Critério: infra interna cross-tenant sem cliente vendável — read-mostly,
+# depende-de-tudo, consumida pelo time interno (não pelo cliente final).
+#
+# Consumido por ScopedScorecardEvaluator quando module.json declara
+# bucket="cross_cutting_infra".
+
+bucket: "cross_cutting_infra"
+description: "Infra interna cross-tenant sem cliente vendável (Admin Center, Auditoria, Brief, Connector, Governance, Superadmin, TeamMcp). fsm_n_a=true por design — não há entity de negócio com lifecycle de stages."
+target_score: 80
+adr: "0160"
+
+# Dimensões core — cópia literal de meta_governance.yaml (mesma natureza de módulo).
+# multi_tenant com peso reduzido: cross-tenant é DESIGN aqui (Constituição Art. 6+8),
+# não violação. client_real reduzido: módulo interno não tem cliente pagante.
+# documentation + observability aumentados: reflexividade é o produto destes módulos.
+core:
+  multi_tenant:  { peso: 15, target: 15 }
+  pest_coverage: { peso: 17, target: 17 }
+  documentation: { peso: 15, target: 15 }
+  architecture:  { peso: 12, target: 12 }
+  client_real:   { peso:  5, target:  5 }
+  performance:   { peso: 10, target: 10 }
+  lgpd:          { peso:  8, target:  8 }
+  security:      { peso:  8, target:  8 }
+  observability: { peso: 10, target: 10 }
+
+bucket_dimensions:
+  C_coerencia:
+    peso: 10
+    target: 10
+    descricao: "Coerência entre Constituição + ADRs + código + skills"
+  C_reflexividade:
+    peso: 10
+    target: 10
+    descricao: "Módulo audita a si mesmo (ex Governance audita policies)"
+    regras:
+      C_a: { peso: 5, descricao: "Velocidade audit (rodam <1s)" }
+      C_b: { peso: 5, descricao: "Qualidade evidências (link ADR + artefato)" }
+
+paired:
+  - velocidade: "C_reflexividade.C_a"
+    qualidade:  "C_reflexividade.C_b"
+    rule: "Audit rápido sem evidências robustas -> cap 50%"
+    racional: "Audit veloz sem link ADR + artefato é teatro"

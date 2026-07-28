@@ -1,3 +1,7 @@
+---
+id: governance-scorecards-screen-grade-board-2026-05-30
+---
+
 # SCREEN-GRADE BOARD — estado da arte das 223 telas
 
 > **Método:** [SCREEN-GRADE 9.75](../../requisitos/_DesignSystem/SCREEN-GRADE-METODO.md) (16 dimensões · nota 0-100 · níveis Beginner→Champion) · **grade ESTÁTICO** (lido do `.tsx`, sem render) · **19 agentes paralelos** (workflow `screen-grade-estado-arte`) · 2026-05-30.

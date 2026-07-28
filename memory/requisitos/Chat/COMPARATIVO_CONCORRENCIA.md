@@ -1,3 +1,7 @@
+---
+id: requisitos-chat-comparativo-concorrencia
+---
+
 # Chat — Comparativo Concorrência (estilo Capterra)
 
 > Módulo perdido na migração 6.x; revisitar quando reanimar.

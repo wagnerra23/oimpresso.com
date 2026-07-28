@@ -1,3 +1,7 @@
+---
+id: requisitos-grow-comparativo-concorrencia
+---
+
 # Grow — Comparativo Concorrência (estilo Capterra)
 
 **Última atualização:** 2026-04-25 | **Próx. revisão:** 2026-07-25

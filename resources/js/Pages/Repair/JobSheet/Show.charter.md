@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-repair-job-sheet-show-charter
 page: /repair/job-sheet/{id}
 component: resources/js/Pages/Repair/JobSheet/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)

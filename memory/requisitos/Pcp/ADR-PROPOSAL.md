@@ -1,4 +1,5 @@
 ---
+id: requisitos-pcp-adr-proposal
 slug: NNNN-pcp-camada-fina-apontamento-cross-vertical
 number: NNNN
 title: "PCP / Apontamento de Produção — camada fina cross-vertical (proposta)"

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-ads-admin-team-scopes-charter
 page: /ads/admin/team-scopes
 component: resources/js/Pages/ads/Admin/TeamScopes.tsx
 related_prototype: n/a (herda PT-01 Lista; matriz de permissões em tabela — segue o Padrão de Tela)

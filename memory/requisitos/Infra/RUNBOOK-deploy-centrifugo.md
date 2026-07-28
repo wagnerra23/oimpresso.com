@@ -1,9 +1,11 @@
 ---
+owner: W
+last_validated: "2026-06-08"
 slug: infra-runbook-deploy-centrifugo
 title: "Infra — Runbook deploy Centrifugo público (CT 100) + ativação Whatsapp real-time"
 type: runbook
 module: Infra
-status: active
+status: ativo
 date: 2026-05-08
 ---
 

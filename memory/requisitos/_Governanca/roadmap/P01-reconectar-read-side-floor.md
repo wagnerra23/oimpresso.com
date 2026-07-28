@@ -1,4 +1,5 @@
 ---
+id: requisitos-governanca-roadmap-p01-reconectar-read-side-floor
 roadmap_item: P01
 slug: reconectar-read-side-floor
 onda: 0

@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-stock-adjustment-create-charter
 page: /stock-adjustments/create
 component: resources/js/Pages/StockAdjustment/Create.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)

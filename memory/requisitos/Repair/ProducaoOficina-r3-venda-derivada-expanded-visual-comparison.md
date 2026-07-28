@@ -1,4 +1,5 @@
 ---
+id: requisitos-repair-producao-oficina-r3-venda-derivada-expanded-visual-comparison
 tela: /repair/producao-oficina (drawer · VendaDerivadaCard evolution)
 componente: resources/js/Pages/Repair/ProducaoOficina/Index.tsx (VendaDerivadaCard)
 fase: FASE B — pós Wave Z-2 backend W2 (`2f6f10fc8`)

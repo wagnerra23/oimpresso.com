@@ -1,3 +1,7 @@
+---
+id: requisitos-template-feature-requirements
+---
+
 <!--
   TEMPLATE — copie pra memory/requisitos/<Mod>/features/<slug>/requirements.md e cure os {{...}}.
   Validado por: node scripts/governance/feature-lint.mjs (advisory).

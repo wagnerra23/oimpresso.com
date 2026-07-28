@@ -1,4 +1,5 @@
 ---
+id: requisitos-design-system-readme
 module: _DesignSystem
 alias: design-system
 status: ativo

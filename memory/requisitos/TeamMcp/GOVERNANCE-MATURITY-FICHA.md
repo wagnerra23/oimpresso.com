@@ -1,3 +1,7 @@
+---
+id: requisitos-team-mcp-governance-maturity-ficha
+---
+
 # GOVERNANCE-MATURITY-FICHA — Modules/TeamMcp
 
 > Wave 22 Auditoria Governance Maturity · 2026-05-16 · Owner: Wagner [W]

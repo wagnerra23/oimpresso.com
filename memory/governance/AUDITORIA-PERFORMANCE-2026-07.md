@@ -1,3 +1,7 @@
+---
+id: governance-auditoria-performance-2026-07
+---
+
 # Auditoria de Performance — 2026-07 (Onda 4 · lente 5b)
 
 > Entregável da **Onda 4** do [PLANO-APROFUNDAMENTO-AVALIACOES](../requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md) (PR #3820).

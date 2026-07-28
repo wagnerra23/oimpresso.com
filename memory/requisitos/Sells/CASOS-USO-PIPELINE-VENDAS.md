@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-casos-uso-pipeline-vendas
+---
+
 # Casos de uso — Pipeline de Vendas (Orçamento → Produção → Venda → Faturamento)
 
 > **Origem:** sessão 2026-05-12 — Wagner pediu auditoria do pipeline canônico após dores recorrentes:

@@ -1,3 +1,7 @@
+---
+id: requisitos-comissao-matriz-roi
+---
+
 # MATRIZ-ROI — Comissão de Vendedores (cross-vertical)
 
 > 15 features × concorrentes × esforço × valor estratégico. Top 5 priorizadas pro P0/P1.

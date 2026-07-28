@@ -1,4 +1,5 @@
 ---
+id: reference-infra-rede-empresa
 name: Rede empresa — router TP-Link, DHCP, NAT, VoIP Issabel
 description: Mapa completo da rede empresa em 192.168.0.0/24 — router TP-Link, reservas DHCP, port forwards (NAT), IPs livres, central VoIP Issabel/Asterisk em 192.168.0.21. Senhas no Vaultwarden.
 type: reference

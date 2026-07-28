@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-roadmap
 module: OficinaAuto
 artefato: roadmap
 status: em-uso (V0+Fase 1 done · Fase 2 parcial · Fase 3 ATIVA via ADR 0171 canary)

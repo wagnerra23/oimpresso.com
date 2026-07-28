@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-jana-cockpit-charter
 page: /jana/cockpit
 component: resources/js/Pages/Jana/Cockpit.tsx
 owner: wagner

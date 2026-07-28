@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-sells-create-casos
 casos: Venda balcão (Sells/Create V2) · /sells/create
 irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
