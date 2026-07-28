@@ -253,3 +253,62 @@ it('UC-PEDIT-06 · editar produto single persiste em vez de estourar 500', funct
         'Edit.charter §Goals: se a tela diz que salvou, o banco tem que refletir.'
     );
 });
+
+// =============================================================================
+// UC-PEDIT-08 `[V0]` — A COMPENSAÇÃO: desligar as 3 flags continua possível pela Blade.
+//
+//   POR QUE ESTE UC EXISTE (e por que ele é o par obrigatório do UC-PEDIT-05/07):
+//   os UC-05/07 exigem que AUSÊNCIA preserve. Sozinho, esse contrato tornaria
+//   IMPOSSÍVEL desligar as flags na tela que roda em produção — checkbox desmarcado
+//   não envia chave nenhuma (`spatie/laravel-html::checkbox()` não emite hidden, ao
+//   contrário do Laravel Collective). A correção só é completa com o par:
+//     (a) o writer preserva quando a chave está AUSENTE  → UC-PEDIT-05/07
+//     (b) a tela DECLARA o desligamento com `hidden 0`   → ESTE UC
+//   Sem (b), o operador clica em desmarcar, salva, e a caixa volta marcada.
+//
+//   ⚠️ O que este UC NÃO cobre: a camada JS do navegador (o plugin `input-icheck`
+//   embrulha o checkbox). Isso é browser real — smoke em biz=1 pós-merge, não Pest.
+// =============================================================================
+
+it('UC-PEDIT-08 · a tela Blade declara o desligamento das 3 flags (hidden 0)', function () {
+    $p = EstoqueFixture::singleProduct($this->business->id, enableStock: true);
+
+    Permission::findOrCreate('product.view', 'web');
+    $this->user->givePermissionTo(['product.view']);
+
+    $html = $this->get("/products/{$p->productId}/edit")->getContent();
+
+    foreach (['enable_stock', 'not_for_selling', 'enable_sr_no'] as $flag) {
+        expect($html)->toContain(
+            '<input type="hidden" name="' . $flag . '" value="0">'
+        );
+    }
+});
+
+it('UC-PEDIT-08 · `0` explícito DESLIGA a flag (o writer não trava em "só liga")', function () {
+    $p = EstoqueFixture::singleProduct($this->business->id, enableStock: true);
+
+    $produto = Product::findOrFail($p->productId);
+    $produto->enable_stock = 1;
+    $produto->not_for_selling = 1;
+    $produto->enable_sr_no = 1;
+    $produto->save();
+
+    // Payload da BLADE: manda as 3 chaves com `0` explícito (é o que o hidden produz
+    // quando o operador desmarca). Contrasta com o payload da React, que as omite.
+    $payload = payloadQueChegaNoSave($produto) + [
+        'enable_stock' => '0',
+        'not_for_selling' => '0',
+        'enable_sr_no' => '0',
+    ];
+
+    $this->put("/products/{$p->productId}", $payload);
+
+    exigeQueTenhaPersistido($p->productId, $payload['name'], 'UC-PEDIT-08');
+
+    $depois = Product::findOrFail($p->productId);
+
+    expect((int) $depois->enable_stock)->toBe(0, 'desmarcar na Blade tem que desligar o controle de estoque');
+    expect((int) $depois->not_for_selling)->toBe(0, 'desmarcar na Blade tem que desligar `not_for_selling`');
+    expect((int) $depois->enable_sr_no)->toBe(0, 'desmarcar na Blade tem que desligar `enable_sr_no`');
+});
