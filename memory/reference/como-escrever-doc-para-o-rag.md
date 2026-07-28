@@ -48,12 +48,14 @@ A allowlist aceita **nome exato**, sem prefixo nem sufixo: `SPEC`, `BRIEFING`, `
 Medido em 2026-07-28 (re-rodar antes de citar):
 
 ```bash
-for f in $(git ls-files 'memory/requisitos/*/*.md'); do n=$(basename "$f" .md); \
+for f in $(git ls-files ':(glob)memory/requisitos/*/*.md'); do n=$(basename "$f" .md); \
   case "$n" in SPEC|BRIEFING|RUNBOOK|ARCHITECTURE|GLOSSARY|CHANGELOG|README|COMPARATIVO_CONCORRENCIA|SUPERFICIE) ;; \
   *) echo "$f";; esac; done | wc -l
 ```
 
-Resultado naquele dia: **743 de 1.011 fora do RAG**, incluindo **144 arquivos `RUNBOOK-*`**.
+Resultado naquele dia: **481 de 744 fora do RAG**, incluindo **125 arquivos `RUNBOOK-*`**.
+
+> ⚠️ **O `:(glob)` no pathspec é obrigatório e não é detalhe.** Sem ele, o `git ls-files 'memory/requisitos/*/*.md'` usa wildmatch, onde `*` **atravessa `/`** — e passa a contar `_telas/`, `_legado-fullpage/` e qualquer subpasta. O `glob()` do PHP, que é o que o indexador realmente usa, **não recursa**. A primeira versão desta seção citava 743/1.011/144 por causa disso; os 19 `RUNBOOK-*` a mais viviam em profundidade ≥2 e **nunca estiveram ao alcance do indexador**. Quando for medir cobertura de um glob de código, replique a semântica **daquela linguagem**, não a do seu shell.
 
 **O que fazer:** conhecimento que precisa ser recuperável pela IA vai em `memory/reference/` (cobertura recursiva). Conhecimento que é anexo de um módulo e só o agente lê por path pode ficar em `memory/requisitos/<Mod>/` — sabendo que está fora da busca.
 
@@ -67,17 +69,25 @@ if (str_starts_with($name, '_') || $name === 'README') continue;
 
 Isso é intencional (templates e índices não devem poluir o recall), mas surpreende quem nomeia um doc de conteúdo como `_INDEX-ALGO.md` achando que ganha destaque. Ganha o oposto: some.
 
-## Regra 4 — cada `##` ou `###` vira um chunk separado, e ele viaja sozinho
+## Regra 4 — hoje NÃO há chunking; o que chega ao LLM são os primeiros ~400 chars
 
-O [`DocumentChunker`](../../Modules/Jana/Services/Memoria/Contextual/DocumentChunker.php) quebra o markdown assim:
+Esta é a regra que mais surpreende, e a que mais muda como se escreve.
 
-- alvo de **~3200 chars** (~800 tokens) por chunk;
-- quebra preferencial em heading **`##` ou `###`** — o heading abre a seção nova e é preservado no chunk;
-- `#` (h1) **não** quebra nada;
-- seção maior que o alvo cai pro fallback por parágrafo, e aí **o heading fica só no primeiro pedaço**;
-- **overlap = 0**.
+O [`DocumentChunker`](../../Modules/Jana/Services/Memoria/Contextual/DocumentChunker.php) existe e quebra markdown por heading `##`/`###` em ~3200 chars com overlap zero. **Mas ele não roda.** Ele só é instanciado dentro de `aplicarContextualRetrieval()` (`IndexarMemoryGitParaDb.php:818`), e essa função retorna na primeira linha quando a flag está desligada (`:810`) — que é o estado em produção (Regra 5).
 
-O que a IA recebe numa busca é **um chunk**, não o documento. Se a seção diz *"essa correção resolve o problema acima"*, o leitor do chunk não tem "acima" nenhum.
+Consequência: **o documento é indexado inteiro, como uma unidade.** Não existe chunk.
+
+O que efetivamente chega ao modelo é outra coisa: `renderFontes()` monta o contexto com `extrairExcerpt(content_md, 400)` — os **primeiros ~400 caracteres** do corpo, depois de remover o frontmatter. Um documento de 30 KB entra na resposta como título mais o primeiro parágrafo.
+
+**O que fazer com isso:**
+
+- Os **primeiros 400 chars depois do frontmatter** são o ativo mais valioso do documento. Se eles forem `# Título` seguido de `> Tela: | Module: | Charter:`, o modelo recebe metadado e nada mais.
+- Abra o corpo com a **resposta**, não com preâmbulo: o que este doc afirma, para quem, e o que muda. Cabeçalho decorativo desperdiça o orçamento inteiro.
+- Continue estruturando em `##` auto-suficientes — mas por dois outros motivos: o leitor humano, e o dia em que a flag da Regra 5 ligar. Hoje isso não é o que decide o que a IA vê.
+
+## Regra 4-bis — as seções ainda precisam se sustentar sozinhas
+
+Mesmo sem chunking ativo, escreva cada `##` como se ele viajasse isolado. Custo zero e três razões: a Regra 5 pode ser ligada a qualquer momento (e aí a estrutura passa a valer de imediato, sem reescrever nada); o humano que abre o doc pelo índice cai direto numa seção; e prosa que depende de "como vimos acima" é pior mesmo lida inteira.
 
 ## Regra 5 — Contextual Retrieval está DESLIGADO em produção
 
@@ -103,9 +113,41 @@ A migration `add_typed_cols_to_mcp_memory_documents` promove campos do frontmatt
 
 Isso é o que permite `decisions-search status:aceito authority:canonical` funcionar como filtro em vez de busca textual. Um doc sem frontmatter só é alcançável por similaridade — o caminho mais caro e menos preciso.
 
-O campo `description` tem função específica, declarada no próprio schema: *"1 linha — usada pra decidir relevância no recall"*. Escreva-o como **resumo que responde**, não como título repetido.
+⚠️ **Sobre o `description`, com uma ressalva medida.** O schema declara que ele é *"1 linha — usada pra decidir relevância no recall"*, e ele é útil para quem lê o índice e para as tools MCP. Mas `McpMemoryDocument::toSearchableArray()` **não o envia ao índice de busca** — o que vai é `title`, `content_md`, `content_excerpt`, `type`, `module`, `status` e `tags`. Escreva-o bem (é a vitrine do doc), sem contar com ele para ser encontrado: quem faz esse trabalho é o **título** e os **primeiros 400 chars do corpo** (Regra 4).
 
 Famílias com schema validado por AJV no CI vivem em `scripts/memory-schemas/`. Para `memory/reference/`, o schema exige `name`, `description`, `type` (`reference|feedback|protocol|guide|index`) e `authority` (`canonical|generated`).
+
+## Regra 6-bis — o campo `status` decide se o doc é ACHÁVEL, e hoje o vocabulário é só de ADR
+
+Estar indexado não é o mesmo que ser encontrável. Os dois caminhos de retrieval filtram por `status`, **mas leem fontes diferentes — e é isso que separa o caminho são do doente**:
+
+| caminho | de onde lê o `status` | efeito |
+|---|---|---|
+| **híbrido/Meilisearch** (primário, `docs_pipeline=true` em prod) | **coluna tipada** — `toSearchableArray()` manda `$this->status ?? 'aceito'` | valor desconhecido vira `NULL` na coluna → indexado como `aceito` → **passa** |
+| **FULLTEXT** (fallback, quando o Meilisearch falha) | **`metadata->status` cru** — `scopePorStatusAtivo()` | valor fora do vocabulário de ADR → **descartado** |
+
+Medido no banco de produção em 2026-07-28:
+
+```
+híbrido  : 1.958 de 2.015 visíveis (97,2%) — dos 57 fora, 47 são deprecated/rascunho/superseded (corretos) + 10 'proposto'
+FULLTEXT :  1.727 de 2.012 visíveis        — 285 descartados
+```
+
+> ⚠️ **Errata da primeira redação desta seção.** Ela afirmava que "os dois caminhos" descartam e que **285 de 2.012 (14%)** eram invisíveis à busca, citando 85% dos SPECs. Esse número é do **fallback**, medido com uma query que reproduzia o `scopePorStatusAtivo` — e foi generalizado indevidamente para "a busca". No caminho que efetivamente atende, o descasamento custa **10 documentos**, e os 47 restantes estão fora por decisão correta. Fica registrado, não apagado: medir um caminho e concluir sobre o sistema é a mesma classe de erro que este documento cataloga no passo 6 da fórmula.
+
+O descasamento **existe** e é real no fallback. Os schemas canônicos definem enums que não intersectam o vocabulário aceito:
+
+| schema | enum de `status` | interseção com o filtro |
+|---|---|---|
+| `runbook.schema.json` | `rascunho, ativo, arquivado, historical` | **vazia** |
+| `briefing.schema.json` | `producao, piloto, em-construcao, parcial, backlog, shared-infra, meta, deprecated` | **vazia** |
+| `reference.schema.json` | *não define `status`* | — |
+
+No fallback isso produz uma inversão perversa: **o documento que obedece ao schema do seu tipo é descartado; o que não declara `status` passa.** É parte do motivo de `memory/reference/` funcionar bem nos dois caminhos — o schema dele não tem o campo.
+
+**Para quem escreve, hoje, a orientação é curta:** não se preocupe. O caminho primário normaliza, então `status: ativo` num RUNBOOK ou `status: producao` num BRIEFING **não** impede que o doc seja achado. Siga o schema do tipo.
+
+**Para quem for consertar:** o defeito é do `scopePorStatusAtivo`, que lê `metadata->status` cru enquanto a coluna tipada — já normalizada, já preenchida, já usada pelo caminho híbrido — está ao lado. É troca de fonte no filtro, **não** normalização de documento. Backfill de frontmatter em massa aqui seria o big-bang de legado que o §5 de `proibicoes.md` já enterrou. Decisão do dono do módulo Jana (matriz §3 do `TEAM.md`).
 
 ## Regra 7 — o corpo passa por redação de PII antes de ser indexado
 
@@ -117,10 +159,15 @@ Antes de escrever qualquer doc que deva ser recuperável:
 
 1. **Procure o dono do tema** — `git ls-files | grep -i <tema>` e leia `memory/reference/_INDEX.md`. Se já existe doc do assunto, **edite-o**. Dois docs do mesmo tema divergem e o RAG passa a servir a versão errada (aconteceu — ver Regra 9).
 2. **Escolha o path pela Regra 1 e 2**, não pela estética da pasta.
-3. **Escreva o frontmatter primeiro**, com `description` que funcione como resposta curta.
+3. **Escreva o frontmatter primeiro**, com `description` que funcione como resposta curta — e confira a Regra 6-bis antes de preencher `status`, porque esse campo pode tornar o doc inencontrável.
 4. **Estruture em `##` auto-suficientes** — cada seção nomeia seu sujeito e cabe em ~3200 chars.
 5. **Não restateie número que outro sistema sabe melhor** — aponte para o comando que o produz e, se precisar do valor, carimbe com data e diga qual sistema foi medido.
-6. **Verifique que entrou**: depois do merge e do webhook, `memoria-search query:"<termo do doc>"` deve devolvê-lo.
+6. **Ao medir cobertura de um glob que vive em código, replique a semântica da linguagem daquele código — e meça no diretório certo.** Duas armadilhas independentes, que este documento já pisou nas duas:
+   - `git ls-files 'a/*/*.md'` não é `glob("a/*/*.md")` do PHP: o pathspec do git deixa `*` atravessar `/`, o `glob()` não recursa. Use `:(glob)` para igualar.
+   - `git ls-files` lista o **índice da branch daquele diretório**, não de `main`. Num projeto com worktrees paralelos, o repo principal costuma estar numa branch de outra sessão, dezenas ou centenas de commits atrás. Confira antes: `git branch --show-current` e `git rev-list --count HEAD..origin/main`.
+
+   Nos dois casos o número errado sai **maior e plausível** — o pior tipo de erro, porque não parece erro.
+7. **Verifique que entrou E que é achável** — são coisas diferentes. Estar em `mcp_memory_documents` não basta: o filtro de `status` (Regra 6-bis) pode descartar o doc na consulta. Confirme com uma busca real pelo termo do doc, não com a presença da linha na tabela.
 
 ## Regra 8 — teste de auto-suficiência antes de commitar
 
