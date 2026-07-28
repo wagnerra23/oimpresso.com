@@ -10,7 +10,9 @@ last_run: "2026-07-08"
 
 # Casos de Uso & Aceite — Cadastro de novo cliente
 
-> Fase 2 (lanes do Cliente). UCs ancorados no `StoreContactRequestTest` (Pest, CT100, lane ativa) — validação fiscal SEFAZ (mod 11) do `StoreContactRequest` wirado em `ContactController@store`.
+> Fase 2 (lanes do Cliente). UCs ancorados no `StoreContactRequestTest` (Pest, CT100) — validação fiscal SEFAZ (mod 11) do `StoreContactRequest` wirado em `ContactController@store`. Derivam do SDD [§6.1 CU-CLI-01](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md).
+>
+> ⚖️ **Onde estes UC rodam, e com que força** (medido 2026-07-27): lane `PHP / Pest (Cliente · MySQL)` — [`cliente-pest.yml`](../../../../.github/workflows/cliente-pest.yml), criada 2026-07-27, **advisory** (não está em [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json): reprova visível, **não bloqueia merge**). **Antes dela** o teste rodava só no nightly do CT 100 e em nenhuma lane de PR — a redação anterior dizia "lane ativa" e era falsa. Onde as linhas abaixo dizem "passa no CI", leia-se **passava no nightly**.
 >
 > **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC e passa (manifesto não regravado) · ⬜ não verificado · ❌ quebrou.
 
@@ -49,10 +51,21 @@ last_run: "2026-07-08"
 - **[BACKLOG] Lookup CNPJ (BrasilAPI) autopreenche razão/fantasia** — anchor em `BrasilApiLookupTest` num passe dedicado.
 - **[BACKLOG] Segmented PF/PJ troca os campos exibidos** — render test do `_form/ClienteForm`.
 
+## Rastreabilidade (UC → CU do SDD → US do SPEC)
+
+| UC | CU (SDD §6) | US (SPEC) |
+|---|---|---|
+| UC-CCRE-01 | CU-CLI-01 | US-CRM-076 |
+| UC-CCRE-02 | CU-CLI-01 | US-CRM-076 |
+| UC-CCRE-03 | CU-CLI-01 | US-CRM-076 |
+
+> A US é declarada porque o `StoreContactRequestTest` **é** o `**Testado em:**` da US-CRM-076 no SPEC e carrega `// @covers-us US-CRM-076` — não por semelhança de tema. Onde o vínculo não é verificável assim, a coluna fica vazia (US sem UC segue aparecendo como lacuna no `requisitos-status.mjs`, que é o certo).
+
 ## Como rodar a suíte
 1. **Pest:** `docker exec oimpresso-staging php artisan test --filter=StoreContactRequestTest` no CT100 (nunca local/Hostinger).
 2. **Manifesto:** `npm run casos:results` regrava `scripts/casos-test-results.json` → 🧪 vira ✅.
 3. **Cadência:** rodar ao fim de toda mexida em `Create.tsx` / `_form/ClienteForm` / `StoreContactRequest`.
 
 ## Trilha do tempo
+- 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Correção factual: "lane ativa" era falso (0 entradas de Cliente em `ci-sqlite-pest.list`) — lane criada no mesmo PR, **advisory**, força declarada; + ponteiro pro SDD §6.1. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). 3 UCs ancorados no `StoreContactRequestTest` (validação fiscal mod 11). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · US-CRM-076.

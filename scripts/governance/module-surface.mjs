@@ -78,6 +78,28 @@ const CORE_APP_MODULES = {
     ],
     tabelas: ['transactions', 'transaction_sell_lines', 'transaction_payments'],
   },
+  /**
+   * Cliente — HÍBRIDO, e por isso estava saindo errado (achado do `anti-ghost ratchet`
+   * no PR #4870, 2026-07-27). O gerador assumia `Modules/<Mod>` a partir do nome em
+   * `memory/requisitos/`, e `Modules/Cliente` **não existe** — o resultado era um
+   * `SUPERFICIE.md` com **0 arquivos** e um texto afirmando um diretório fantasma.
+   *
+   * O código do domínio Cliente mora em DOIS lugares: o núcleo UltimatePOS
+   * (`ContactController`, `app/Contact.php`) e o módulo `Modules/Crm` — cujo nome
+   * diverge do nome do requisito. Declarar aqui resolve as duas coisas de uma vez:
+   * o texto passa a ser o da CLASSE B ("sem diretório modular homônimo", que é
+   * verdade) e os arquivos voltam a ser listados.
+   */
+  Cliente: {
+    prefixos: [
+      'app/Http/Controllers/ContactController.php',   // 3.558 LOC — o controller do domínio
+      'app/Contact.php',                              // ⚠️ SEM global scope (medido: addGlobalScope = 0)
+      'app/CustomerGroup.php',
+      'Modules/Crm',                                  // o módulo existe, com OUTRO nome
+      'resources/views/contact',                      // 25 Blades VIVAS (dual-render por flag MWART_CLIENTE_*)
+    ],
+    tabelas: ['contacts', 'customer_groups'],
+  },
   Produto: {
     prefixos: [
       // Controllers do domínio Produto no core (sem Modules/Produto homônimo).

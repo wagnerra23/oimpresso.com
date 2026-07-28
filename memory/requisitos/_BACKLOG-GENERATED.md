@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **889 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **875 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -22,7 +22,6 @@
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 23 | 0 | 0 | 0 | 23 |
-| [`Cliente`](#cliente) | 22 | 0 | 0 | 0 | 22 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 20 | 0 | 0 | 0 | 20 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
@@ -42,6 +41,7 @@
 | [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`AssetManagement`](#assetmanagement) | 8 | 0 | 0 | 0 | 8 |
+| [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`ProjectMgmt`](#projectmgmt) | 8 | 0 | 1 | 0 | 7 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
@@ -701,34 +701,6 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
-## Cliente
-
-
-### todo
-
-- **US-CRM-063** — Tab Pagamentos no Show
-- **US-CRM-064** — Tab Ledger inline no Show
-- **US-CRM-065** — Tab Vendas DataTable no Show
-- **US-CRM-066** — Tab Documents & Note no Show
-- **US-CRM-067** — ActionsMenu + AddDiscountModal no Show
-- **US-CRM-068** — Tab Pessoas de contato no Show
-- **US-CRM-069** — Tab Assinaturas (subscriptions) no Show
-- **US-CRM-070** — Tab Reward Points no Show
-- **US-CRM-071** — KB-9.75 Slice A no Index
-- **US-CRM-072** — Restaurar campos fiscais BR perdidos no upgrade UPOS 6.7
-- **US-CRM-073** — UI campos BR em Create/Edit/Show
-- **US-CRM-074** — Comando artisan backfill cpf_cnpj
-- **US-CRM-075** — BrasilAPI lookup CNPJ + botão Buscar
-- **US-CRM-076** — FormRequest backend wirando Rule\BR\CpfCnpj
-- **US-CRM-078** — Múltiplos endereços por contato + seletor de endereço na venda
-- **US-CRM-079** — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
-- **US-CRM-080** — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
-- **US-CRM-081** — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
-- **US-CRM-082** — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
-- **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
-- **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
-- **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
-
 ## Pcp
 
 
@@ -1098,6 +1070,23 @@
 - **US-ASSET-006** — Notificações de manutenção (mail) `✅ done`
 - **US-ASSET-007** — Settings per-business (prefix, notification) `✅ done`
 - **US-ASSET-008** — Multi-tenant isolation test biz=1 vs biz=99 (Tier 0) `✅ done`
+
+## Cliente
+
+
+### doing
+
+- **US-CRM-078** — Múltiplos endereços por contato + seletor de endereço na venda
+
+### todo
+
+- **US-CRM-079** — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
+- **US-CRM-080** — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
+- **US-CRM-081** — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
+- **US-CRM-082** — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
+- **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
+- **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
+- **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
 
 ## Produto
 
