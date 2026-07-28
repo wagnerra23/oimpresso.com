@@ -21,7 +21,7 @@ beforeEach(function () {
     }
 });
 
-it('NfeCertificado encrypted_password é hidden — não vaza no payload Inertia', function () {
+it('UC-FCFG-01 · NfeCertificado encrypted_password é hidden — não vaza no payload Inertia', function () {
     $cert = new NfeCertificado([
         'business_id'        => 1,
         'cnpj_titular'       => '00000000000000',
@@ -34,7 +34,7 @@ it('NfeCertificado encrypted_password é hidden — não vaza no payload Inertia
         ->not->toHaveKey('encrypted_password', 'Senha encriptada DEVE estar em $hidden');
 });
 
-it('NfeCertificado HasBusinessScope esconde certs de outros tenants', function () {
+it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenants', function () {
     session(['business.id' => 1, 'user.business_id' => 1]);
 
     $crossTenantCount = NfeCertificado::query()

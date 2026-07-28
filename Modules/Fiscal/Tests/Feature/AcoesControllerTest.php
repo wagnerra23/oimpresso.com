@@ -46,7 +46,7 @@ it('cancelarNfe aceita motivo válido ≥15 chars', function () {
     expect($validator->fails())->toBeFalse();
 });
 
-it('manifestarDfe whitelist exatamente 4 ações canon SEFAZ', function () {
+it('UC-FDFE-03 · manifestarDfe whitelist exatamente 4 ações canon SEFAZ', function () {
     $acoesValidas = ['cienciar', 'confirmar', 'desconhecer', 'nao_realizada'];
 
     // Whitelist guard — qualquer outra string deve falhar
@@ -56,7 +56,7 @@ it('manifestarDfe whitelist exatamente 4 ações canon SEFAZ', function () {
         ->not->toContain('cancelar', 'aprovar', 'rejeitar');
 });
 
-it('manifestarDfe desconhecer/nao_realizada exigem justificativa, cienciar/confirmar não', function () {
+it('UC-FDFE-04 · manifestarDfe desconhecer/nao_realizada exigem justificativa, cienciar/confirmar não', function () {
     $exigemJustif = ['desconhecer', 'nao_realizada'];
     $semJustif    = ['cienciar', 'confirmar'];
 

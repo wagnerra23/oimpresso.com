@@ -111,11 +111,26 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
+        #
+        # Trio SDD (chip S3 da Onda 1 do passo 5 — agent `sdd-from-source`, ADR 0351):
+        # os 3 *ContratoTest citam os UC dos `*.casos.md` do módulo (G-2 do casos-gate).
+        # Entram aqui porque teste fora da allowlist é "verde impossível" — existe e
+        # nunca roda por PR (achado #7 do piloto Produto).
+        #
+        # ⚠️ DOIS UC nascem FAILING-FIRST por desenho, denunciando regressão medida:
+        #   UC-ESPSHOW-01 → SDD §9 D-1 (espelho lê `tem_divergencia`, campo inexistente)
+        #   UC-IMPSHOW-04 → SDD §9 D-8 (importação lê `linhas_criadas`, campo inexistente)
+        # Vermelho neles é o ACHADO, não defeito do teste. A lane é ADVISORY (não está
+        # em governance/required-checks-baseline.json), então reprova VISÍVEL sem
+        # bloquear merge. Correção é decisão [W].
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-ponto-junit.xml \
-            Modules/Ponto/Tests/Feature/Wave27CrossTenantEscalaTest.php
+            Modules/Ponto/Tests/Feature/Wave27CrossTenantEscalaTest.php \
+            Modules/Ponto/Tests/Feature/EspelhoContratoTest.php \
+            Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php \
+            Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php
 
       - name: Upload JUnit (Ponto · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.ponto == 'true' }}

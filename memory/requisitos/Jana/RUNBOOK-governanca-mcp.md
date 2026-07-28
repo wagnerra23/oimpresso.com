@@ -3,7 +3,9 @@ slug: copiloto-runbook-governanca-mcp
 title: "Jana — Runbook da tela Governança MCP"
 type: runbook
 module: Jana
-status: active
+status: ativo
+owner: W
+last_validated: "2026-05-05"
 date: 2026-05-05
 ---
 
@@ -13,7 +15,7 @@ date: 2026-05-05
 > **Refs:** [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md), [_DS ADR 0008](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)
 > **Validado:** portado Cockpit em 2026-05-05
 
-Tela de observabilidade admin do MCP server `mcp.oimpresso.com`. Exibe KPIs de consumo cross-team (calls, latência, custo, taxa de sucesso), gráfico temporal, distribuição por status, denied por error_code e ranking de top tools/users. Acessível apenas para Wagner/superadmin (`copiloto.mcp.usage.all`). Não tem contexto vinculado a entidade específica — coluna direita "Apps Vinculados" omitida (ADR 0039 §3 — sem context vinculado, coluna some).
+Tela de observabilidade admin do MCP server `mcp.oimpresso.com`. Exibe KPIs de consumo cross-team (calls, latência, custo, taxa de sucesso), gráfico temporal, distribuição por status, denied por error_code e ranking de top tools/users. Acessível apenas para Wagner/superadmin (`jana.mcp.usage.all`). Não tem contexto vinculado a entidade específica — coluna direita "Apps Vinculados" omitida (ADR 0039 §3 — sem context vinculado, coluna some).
 
 ## Estado final esperado
 
@@ -34,7 +36,7 @@ Dashboard de governança para Wagner acompanhar consumo do MCP server em tempo r
 ## 2. Pré-condições
 
 - [ ] Módulo `Jana` instalado em `/manage-modules`
-- [ ] Permissão `copiloto.mcp.usage.all` atribuída ao role do usuário (somente Wagner/superadmin)
+- [ ] Permissão `jana.mcp.usage.all` atribuída ao role do usuário (somente Wagner/superadmin)
 - [ ] Rota registrada em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Routes/web.php) como `GET /copiloto/admin/governanca`
 - [ ] Page Inertia em [`resources/js/Pages/Jana/Admin/Governanca/Index.tsx`](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx)
 - [ ] Tabela `mcp_audit_log` existindo e com dados (ADR 0053)
@@ -47,7 +49,7 @@ Dashboard de governança para Wagner acompanhar consumo do MCP server em tempo r
 ```php
 // Modules/Jana/Routes/web.php
 Route::prefix('copiloto/admin')
-    ->middleware(['web', 'auth', 'copiloto.mcp.usage.all'])
+    ->middleware(['web', 'auth', 'jana.mcp.usage.all'])
     ->group(function () {
         Route::get('governanca', [GovernancaController::class, 'index'])
              ->name('copiloto.admin.governanca');
