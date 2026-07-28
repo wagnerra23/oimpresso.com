@@ -4,6 +4,7 @@ namespace Modules\ProductCatalogue\Providers;
 
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\ServiceProvider;
+use Modules\ProductCatalogue\Console\Commands\ProductCatalogueHealthCommand;
 
 class ProductCatalogueServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,15 @@ class ProductCatalogueServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+
+        // Sem isto o comando existe no disco mas NUNCA chega ao Artisan — mesmo
+        // defeito medido em ProjectMgmt (2026-07-28). Eram os 2 únicos de 33
+        // módulos que não registravam os próprios comandos.
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ProductCatalogueHealthCommand::class,
+            ]);
+        }
     }
 
     /**
