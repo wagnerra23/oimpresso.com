@@ -66,6 +66,10 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `OrcamentoController@calcular` · `Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php` · verificado@0bb65dd (2026-07-02) — cálculo base + rota `comvis.api.calcular` vivos; falta acabamentos[] no cálculo (Entity `Acabamento` existe mas o calculator não a usa; `extras` é input flat), mínimo cobrado configurável (`material.minimo_m2` — hoje só há `estoque_minimo_m2`), preview PDF + envio WhatsApp 1-clique
 
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCalculatorTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoControllerTest.php`
+
+> Contrato: SDD §6 `CU-CV-02`/`CU-CV-03` · `UC-CV-01`/`UC-CV-02`/`UC-CV-03` do `Index.casos.md`. ⚠️ o `OrcamentoControllerTest` **pula inteiro na lane sqlite do PR** — veredito real vem da full-suite noturna (SDD §9 D-7).
+
 **Como** vendedor de gráfica
 **Quero** informar largura × altura + material + acabamento + instalação e ver preço calculado
 **Para** entregar orçamento ao cliente em <2min sem abrir Excel paralelo
@@ -89,6 +93,11 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `MaterialController`
 
 **Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Entities/Material.php` · `Modules/ComunicacaoVisual/Database/Seeders/MaterialSeeder.php` · verificado@0bb65dd (2026-07-02) — model + seed existem; falta CRUD controller/UI, bulk-update Jana (US-013), import XML NFe, histórico de preço
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/MaterialSeederTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/ContratoTelaOrcamentoTest.php`
+
+> Contrato: SDD §6 `CU-CV-07`/`CU-CV-09` · `UC-CV-04`/`UC-CV-07` do `Index.casos.md`.
+> ⚠️ **O catálogo não chega à calculadora:** a única rota que renderiza a tela do hub passa só `bizName`, então o seletor de material fica desabilitado ("Sem catálogo") e a operadora digita o preço/m² à mão — SDD §5.4.1 / `CU-CV-09`. **Vermelho esperado** nesse caso (predição declarada, não veredito — nenhum teste rodou neste PR).
 
 **Como** dono/financeiro
 **Quero** cadastrar material (lona front-light 440g, blackout 510g, vinil adesivo, calandrado, perfurado, ACM 3mm, telas) com preço/m² e markup
@@ -137,6 +146,10 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Http/Controllers/ApontamentoController.php` · `Modules/ComunicacaoVisual/Services/ApontamentoTracker.php` · verificado@0bb65dd (2026-07-02) — API JSON (iniciar/finalizar/cancelar/em-andamento) viva; falta form mobile-first + dashboard máquina (ocupação/m² dia)
 
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/ApontamentoTrackerTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/ApontamentoControllerTest.php`
+
+> Contrato: SDD §6 `CU-CV-06` · `UC-CV-06` do `Index.casos.md`.
+
 **Como** operador de plotter
 **Quero** registrar início/fim do trabalho + m² impresso + consumo tinta (CMYK ml)
 **Para** alimentar pós-cálculo (custo real vs orçado) e relatório produtividade máquina
@@ -183,6 +196,10 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Reusa:** [Modules/NfeBrasil](../NfeBrasil/SPEC.md)
 
 **Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Database/Migrations/2026_05_12_000010_create_cv_substratos_table.php` · verificado@0bb65dd (2026-07-02) — colunas ncm/cfop_padrao/csosn_padrao existem no schema; falta seed tributária CNAE 1813 populada + wizard onboarding Jana
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/ContratoTelaOrcamentoTest.php`
+
+> Contrato: SDD §6 `CU-CV-10` · `UC-CV-09` do `Index.casos.md`. Cobre **só o item 1** (o schema carrega os campos fiscais); seed tributária e wizard seguem `[BACKLOG]`.
 
 **Como** dono novo onboarding
 **Quero** que materiais cadastrados em US-COMVIS-002 já venham com CFOP/CSOSN/NCM corretos pra impresso publicitário

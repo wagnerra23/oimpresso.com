@@ -20,8 +20,17 @@ uses(Tests\TestCase::class);
  * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa produção) — conforme ADR 0101.
  * Tests usam biz=1 (Wagner WR2) e biz=99 (fictício, sem dados).
  *
+ * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
+ *   UC-CV-05 — orçamento, OS e apontamento de outro business não aparecem (CU-CV-04) [T0]
+ *
+ * ⚠️ Aborta INTEIRO em SQLite: a lane do PR (`modules-pest.yml`) roda sqlite :memory: sem
+ * migrate, então o verde dela NÃO prova este isolamento — prova que ele foi pulado. O veredito
+ * real vem da full-suite noturna (MySQL). Ver SDD §6 (3 portas) e §9 D-7.
+ *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
+ * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-04
+ * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
  */
 
 // Guard SQLite: Models CV com BusinessScope + global scope requerem schema MySQL UltimatePOS.

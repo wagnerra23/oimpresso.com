@@ -18,8 +18,18 @@ uses(Tests\TestCase::class);
  *
  * Tests biz=1 (Wagner WR2) conforme ADR 0101 — nunca biz=4 (cliente ROTA LIVRE).
  *
+ * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
+ *   UC-CV-01 — o total oficial é o do servidor, não o da tela   (CU-CV-02)
+ *   UC-CV-02 — medida inválida vira 422 em PT-BR                 (CU-CV-02 item 5)
+ *   UC-CV-03 — o preço/m² tem origem única e explícita           (CU-CV-03)
+ *   UC-CV-04 — material de outro business não precifica nada     (CU-CV-03 item 4) [T0]
+ *
+ * @covers-us US-COMVIS-001
+ *
  * @see Modules\ComunicacaoVisual\Services\OrcamentoCalculator
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-001
+ * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-02/CU-CV-03
+ * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 

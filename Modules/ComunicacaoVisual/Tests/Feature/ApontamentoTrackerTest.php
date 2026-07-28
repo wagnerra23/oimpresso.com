@@ -18,8 +18,15 @@ uses(Tests\TestCase::class);
  * Tests biz=1 (Wagner WR2) conforme ADR 0101 — nunca biz=4 (cliente ROTA LIVRE).
  * Multi-tenant Tier 0 (ADR 0093): global scope obrigatório.
  *
+ * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
+ *   UC-CV-06 — um operador nunca tem dois spools abertos; drift vem do servidor (CU-CV-06)
+ *
+ * @covers-us US-COMVIS-004
+ *
  * @see Modules\ComunicacaoVisual\Services\ApontamentoTracker
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-004
+ * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-06
+ * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */

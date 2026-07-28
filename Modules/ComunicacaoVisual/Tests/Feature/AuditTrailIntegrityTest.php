@@ -18,9 +18,14 @@ declare(strict_types=1);
  *
  * Wave 25 — saturação D7 forensic regressão (rubrica scoped vertical_client_facing.yaml).
  *
+ * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
+ *   UC-CV-08 — o rastro de auditoria não carrega PII (CU-CV-08 itens 1-3, 5) [reg]
+ *
  * @see Modules/ComunicacaoVisual/Entities/Orcamento.php
  * @see Modules/ComunicacaoVisual/Entities/Os.php
  * @see Modules/ComunicacaoVisual/Entities/Apontamento.php
+ * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-08
+ * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
  */
 
 use Modules\ComunicacaoVisual\Entities\Apontamento;
