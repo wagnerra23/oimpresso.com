@@ -41,9 +41,9 @@
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 252,
-        "req_sem_covering_test_total": 363,
+        "req_sem_covering_test_total": 358,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 51,
+        "req_sem_lane_total": 56,
         "behavior_known": false,
         "servido_total": 16,
         "nao_servido_total": 102,
@@ -168,8 +168,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 272,
-        "effectively_guarded": 272
+        "with_manual_ddl": 273,
+        "effectively_guarded": 273
       },
       "stream": "FV"
     },
