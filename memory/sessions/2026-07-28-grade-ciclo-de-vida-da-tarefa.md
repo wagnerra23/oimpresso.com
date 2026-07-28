@@ -98,6 +98,39 @@ Isso também reenquadra o que fiz hoje nas 17: adicionar `> status: done` **func
 - **(a)** a 0337 larga a condição #2 → o fechamento passa a ser só âncora, e some a trava humana que ela existe pra ter (o receio da 0144); ou
 - **(b)** a 0302 é emendada → o `status:` renasce como *declaração de aceite* (não como done-ness), e aí o template volta a emiti-lo.
 
+## 2ª proposta — DoD como sinal mecânico — TAMBÉM rejeitada
+
+[W] cobrou: *"qual máquina deveria verificar isso? não pode depender de humano?"* — cobrança justa, eu tinha delegado demais. Proposta nova: trocar o 2º sinal do forward-close de `status: done` (abolido pela 0302) por **DoD 100% marcado**. Escapava da objeção anterior, é legível por máquina, e o `doneness-lint` já lê checkbox.
+
+**Morreu com prova literal.** O `[x]` é auto-certificação — o autor marca, ninguém verifica. Evidência de **ontem**, commit `7ebe9ea5d7` (PR #4906, autor `[C]` = agente), que no **mesmo commit** gravou a âncora e virou 5 checkboxes:
+
+```
++- [x] Impressão direta via `escpos-php` ou navegador (PDF + autoprint) — **parcial**:
+      entregue como download `.zpl` … **não há autoprint**
+```
+
+Um `[x]` cujo próprio texto diz *parcial* e *não há*. É a família já morta no §5: catraca sobre **campo auto-declarado** (`last_validated` 2026-07-01 · `verificado_em` 2026-07-09). E o `doneness-lint` usa DoD só como **falsificador** (`if (DONE.has(status) && dodOpen > 0)`) — inverter a seta pra usá-lo como **confirmador** destrói a justificativa que o isenta da lápide presence-gate.
+
+Cobertura, medida: DoD 100% em **13 de 114** — e 12 são de um módulo só (Fiscal). Não é classe; é dívida pontual.
+
+**Correção ao adversário (não aceitei tudo):** ele apresentou como escândalo que 4 shas concentram 327 âncoras (`dd3ed7c` 137 · `8af585a` 89 · `176f9bc` 67 · `dad0b11` 34), sendo commits de docs/sessions sem relação com as US. **Não é abuso — é a semântica documentada.** O `_TEMPLATE_SPEC.md` define `verificado@<sha7>` como *"commit de origin/main **em que o path foi verificado**"*, não o commit que implementou. Carimbar N US num HEAD é uso correto. O que o dado mostra é mais estreito: a âncora prova **existência de arquivo naquele commit**, não revisão individual da US.
+
+### A linha epistêmica que resolve a pergunta do [W]
+
+A máquina **pode** decidir sem humano — mas só se o 2º sinal for algo que ela **verifica**, não algo que o autor **escreve**:
+
+| candidato a 2º sinal | natureza | serve? |
+|---|---|---|
+| `status: done` | autor escreve | não — e a 0302 aboliu |
+| `- [x]` do DoD | autor escreve | **não** — provado auto-certificado ontem |
+| `**Testado em:**` | **máquina verifica** (path existe, `anchor-lint` já linta via `TESTADO_RE`, já required no `entry/covers`) | **sim** |
+
+Medido: `**Testado em:**` existe em **197 US / 23 SPECs**, e cobre **28 das 114** (25%) — o dobro do DoD, e epistemicamente de outra categoria.
+
+**Mas continua sendo emenda de ADR**, não refactor de lint: a condição #2 é canon aceito ([ADR 0337](../decisions/0337-emenda-0144-forward-close-por-ancora-verificada.md), `decided_by: [W]`), e canon é append-only. Caminho: ADR nova citando a 0337, com medição própria — não este PR.
+
+**Conclusão honesta:** a dependência do humano hoje não é porque julgamento exige gente. É porque **o repo não tem sinal de aceite verificável com cobertura**. Enquanto o único sinal universal for auto-declarado, tirar o humano é trocar revisão por carimbo.
+
 ## O que É acionável agora, sem tomar partido
 
 Medido por mim: **56 US** vivem em **8 SPECs** com frontmatter `historical` ou `arquivado` — e contam nos denominadores de dois gates **required**.
