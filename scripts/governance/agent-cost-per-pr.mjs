@@ -209,7 +209,68 @@ export function extractPrMentions(text) {
   return [...out];
 }
 
+/**
+ * US citadas no título/corpo de um PR (`Refs: US-INFRA-002`, `(US-WA-042)`, `closes COPI-42`).
+ *
+ * Gramática DELIBERADAMENTE a mesma de `GitTaskLinkerService::REF_PATTERN` (o dono
+ * do tema commit↔task, Modules/Jana) — duas gramáticas para a mesma coisa é drift
+ * garantido. Normaliza para `US-<KEY>-<NUM>`, que é o formato canônico do SPEC.
+ *
+ * Por que isto existe: "custo por PR" responde QUANTO, não EM QUÊ. Agrupado por US,
+ * o mesmo dado responde a pergunta que paga a conta — *onde foi o dinheiro de
+ * desenvolvimento*. E quando o sinal de cliente existir (`voz_sinais.triado_para_us`),
+ * a mesma chave diz se a US nasceu de pedido real ou de hipótese (ADR 0105).
+ */
+export function extractUsMentions(text) {
+  const out = new Set();
+  const re = /(?:(?:refs|fixes|closes|resolves|fix|close|resolve):?\s+|[([])(?:US-)?([A-Z]{2,8})-(\d+)(?:[)\]])?/gi;
+  let m;
+  while ((m = re.exec(String(text))) !== null) {
+    out.add(`US-${m[1].toUpperCase()}-${m[2]}`);
+  }
+  return [...out];
+}
+
+/**
+ * Custo agregado por US declarada. Um PR que cita N US divide o custo entre elas
+ * (mesma regra do rateio sessão→PR, G2) — atribuir o total a cada uma inflaria a soma.
+ * PR sem US declarada cai em `sem_us`: resíduo HONESTO, não buraco a fechar (G11).
+ */
+export function aggregatePorUs(itens) {
+  const porUs = new Map();
+  let semUs = 0;
+  let custoSemUs = 0;
+
+  for (const it of itens) {
+    // Só PR com custo casado entra (mesma regra do G3): PR sem sessão local tem
+    // usd null e não pode pesar em nenhum dos lados.
+    if (it.usd == null) continue;
+
+    const us = extractUsMentions(it.texto ?? '');
+    const usd = Number(it.usd) || 0;
+    if (us.length === 0) {
+      semUs += 1;
+      custoSemUs += usd;
+      continue;
+    }
+    const fatia = usd / us.length;
+    for (const u of us) {
+      const acc = porUs.get(u) ?? { us: u, usd: 0, prs: [] };
+      acc.usd += fatia;
+      acc.prs.push(it.pr);
+      porUs.set(u, acc);
+    }
+  }
+
+  const lista = [...porUs.values()]
+    .map((a) => ({ ...a, usd: round2(a.usd) }))
+    .sort((a, b) => b.usd - a.usd);
+
+  return { por_us: lista, sem_us: semUs, custo_sem_us: round2(custoSemUs) };
+}
+
 const GAPS = [
+  'G11 custo por US usa a US DECLARADA no PR (`Refs:`/`(US-X-N)`) — auto-declarado pelo autor, não derivado do código. PR sem Refs cai em `sem_us`: é overhead REAL (chore, higiene, infra), não buraco de join a fechar. PR que cita N US divide o custo entre elas (mesma regra do rateio sessão→PR, G2) — atribuir o total a cada uma inflaria a soma. Enquanto `voz_sinais.triado_para_us` não tiver dado, este corte diz ONDE o dinheiro foi, ainda NÃO diz se a US nasceu de pedido de cliente ou de hipótese (ADR 0105).',
   'G1 sinal-branch (gitBranch==headRefName): o gitBranch é gravado POR MENSAGEM, e o padrão real do projeto é gastar na branch da worktree e criar a branch de tópico só no fim — o branch do PR marca apenas a CAUDA da sessão. Por isso a unidade de custo é a SESSÃO, não a mensagem (G2).',
   'G2 a SESSÃO é a unidade: o custo inteiro dela vai pros PRs que ela produziu (dividido igualmente). Superconta exploração descartada dentro de sessão que também entregou PR.',
   'G3 fonte = JSONL desta máquina: cloud/CI/outros devs não aparecem → subconta.',
@@ -391,6 +452,15 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
   };
   const porPR = exibidos.map(linhaPR);
   const todosPR = universo.map(linhaPR);
+
+  // EM QUÊ o custo foi gasto (não só QUANTO). Texto vem do PR bruto — `linhaPR`
+  // não propaga `body` de propósito (incharia o JSON de saída por PR).
+  const custoPorPr = new Map(todosPR.map((p) => [p.pr, p.usd]));
+  const porUs = aggregatePorUs(universo.map((p) => ({
+    pr: p.number,
+    usd: custoPorPr.get(p.number),
+    texto: `${p.title ?? ''}\n${p.body ?? ''}`,
+  })));
   const sobrevivencia = costPerSurvivingPR(todosPR, falhados);
 
   const matched = todosPR.filter((p) => p.matched);
@@ -470,6 +540,7 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
       precos_atualizados_em: PRECOS_ATUALIZADOS_EM,
     },
     por_pr: porPR,
+    por_us: porUs,
     confianca: 'proxy (JSONL local → SESSÃO → PR por branch OU citação /pull/N; ver gaps)',
     gaps: GAPS,
   };
