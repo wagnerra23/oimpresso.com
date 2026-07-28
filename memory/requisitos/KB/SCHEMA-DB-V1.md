@@ -469,7 +469,7 @@ Adicionar em `Modules/KB/Resources/permissions.php`:
 ['key' => 'kb.ai.ask',               'label' => 'KB: Perguntar à IA (RAG)',           'risk' => 'medium', 'requires' => ['kb.view']],
 ```
 
-**Dívida técnica preservada:** middleware `can:copiloto.mcp.memory.manage` continua canônica até PR de rename. Novas permissions são declarativas no PermissionRegistry; mapping real fica no `KbController->middleware()`.
+**Errata 2026-07-28:** a dívida foi paga. O middleware canônico é `can:jana.mcp.memory.manage` desde o [#4853](https://github.com/wagnerra23/oimpresso.com/pull/4853) (`632c5182e2`) — medido em 2026-07-28: `git grep -F "copiloto.mcp.memory.manage" -- '*.php'` = **0**. A frase original dizia que `copiloto.mcp.memory.manage` continuava canônica até PR de rename. Novas permissions são declarativas no PermissionRegistry; mapping real fica no `KbController->middleware()`.
 
 ## 13. Seeders V1 (Onda 1)
 

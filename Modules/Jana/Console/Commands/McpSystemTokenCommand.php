@@ -21,11 +21,11 @@ use Modules\Jana\Entities\Mcp\McpToken;
  *     COPILOTO_MCP_SYSTEM_TOKEN=mcp_xxxxxxxx
  *
  * Permission requerida no user (default: Admin#1 via McpScopesSeeder):
- *   - copiloto.mcp.use
- *   - copiloto.mcp.tasks.read (pra outras tools, se quiser)
+ *   - jana.mcp.use
+ *   - jana.mcp.tasks.read (pra outras tools, se quiser)
  *
  * Se quiser scope reduzido pra system token (só read memória), revoga e gera
- * novo via Team Admin com permission scope=copiloto.mcp.memoria.read (pendente
+ * novo via Team Admin com permission scope=jana.mcp.memoria.read (pendente
  * implementar essa permission específica).
  */
 class McpSystemTokenCommand extends Command

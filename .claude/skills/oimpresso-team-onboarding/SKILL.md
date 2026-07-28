@@ -101,7 +101,7 @@ Se o user colar o token (`mcp_<hex>`):
    ```
 
 4. **Se HTTP 401:** token errado — peça pra confirmar com Wagner
-5. **Se HTTP 403:** token OK mas sem permissão — Wagner precisa atribuir `copiloto.mcp.use` na role do user
+5. **Se HTTP 403:** token OK mas sem permissão — Wagner precisa atribuir `jana.mcp.use` na role do user
 6. **Se timeout/connection refused:** MCP server pode estar com problema — checar status em https://mcp.oimpresso.com/api/mcp/health
 
 ## 3. Modo B — Token errado (placeholder não substituído)
@@ -206,7 +206,7 @@ mcp call claude-code-usage-self
 |---|---|---|
 | `mcp.oimpresso.com` 503 | CT 100 Proxmox down | avisar Wagner |
 | HTTP 401 | token expirado/errado | pedir novo no admin |
-| HTTP 403 + `no_permission` | sem `copiloto.mcp.use` | Wagner atribui via Spatie |
+| HTTP 403 + `no_permission` | sem `jana.mcp.use` | Wagner atribui via Spatie |
 | HTTP 429 | quota diária excedida | esperar reset 00:00 BRT ou Wagner aumenta |
 | HTTP 200 mas tools/list vazio | bug — reportar Wagner | — |
 
