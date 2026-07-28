@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/voz-do-cliente",
+    "description": "Voz do Cliente — canal de sinal dentro do sistema (ADR 0105)",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\VozDoCliente\\Providers\\VozDoClienteServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\VozDoCliente\\": ""
+        }
+    }
+}

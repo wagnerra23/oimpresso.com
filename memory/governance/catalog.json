@@ -22,14 +22,14 @@
     "migratesTo"
   ],
   "stats": {
-    "modules": 39,
-    "nodes": 631,
-    "edges": 968,
+    "modules": 40,
+    "nodes": 637,
+    "edges": 973,
     "by_node_type": {
-      "module": 42,
+      "module": 43,
       "table": 88,
       "adr": 36,
-      "component": 419,
+      "component": 424,
       "api": 46
     },
     "by_edge_type": {
@@ -39,7 +39,7 @@
       "providesApi": 46,
       "charteredByAdr": 35,
       "governedByAdr": 100,
-      "hasComponent": 419,
+      "hasComponent": 424,
       "dependsOn": 140,
       "delegatesTo": 131,
       "migratesTo": 1
@@ -3356,6 +3356,41 @@
       "desc": "settings JSON per business cache 5min (Sprint 2 ADR 0121)"
     },
     {
+      "id": "component:VozDoCliente/Database/Migrations",
+      "type": "component",
+      "module": "VozDoCliente",
+      "name": "Database/Migrations",
+      "desc": "tabela voz_sinais"
+    },
+    {
+      "id": "component:VozDoCliente/DataController",
+      "type": "component",
+      "module": "VozDoCliente",
+      "name": "DataController",
+      "desc": "3 hooks UltimatePOS (pacote superadmin, permissões, sidebar)"
+    },
+    {
+      "id": "component:VozDoCliente/Entities/Sinal",
+      "type": "component",
+      "module": "VozDoCliente",
+      "name": "Entities/Sinal",
+      "desc": "global scope business_id Tier 0 + dedup por hash + limiar de triagem"
+    },
+    {
+      "id": "component:VozDoCliente/InstallController",
+      "type": "component",
+      "module": "VozDoCliente",
+      "name": "InstallController",
+      "desc": "instalação 1-clique (ADR 0024)"
+    },
+    {
+      "id": "component:VozDoCliente/SinalController",
+      "type": "component",
+      "module": "VozDoCliente",
+      "name": "SinalController",
+      "desc": "grava o sinal (store) e mostra a caixa de triagem (index)"
+    },
+    {
       "id": "component:Whatsapp/Admin/BroadcastController",
       "type": "component",
       "module": "Whatsapp",
@@ -4117,6 +4152,19 @@
       "permission_prefix": "vestuario.*",
       "charter_adr": "0121",
       "path": "Modules/Vestuario/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:VozDoCliente",
+      "type": "module",
+      "module": "VozDoCliente",
+      "purpose": "Voz do Cliente — canal de sinal dentro do sistema. Quem usa o ERP relata a dor na tela em que ela acontece; o sinal é gravado com contexto, roteado ao módulo dono e triado até virar melhoria rastreável. Implementa ADR 0105 'cliente como sinal qualificado'.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "Modules/VozDoCliente/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -10830,6 +10878,36 @@
       "to": "api:/vestuario/*",
       "type": "providesApi",
       "source": "url_prefixes"
+    },
+    {
+      "from": "module:VozDoCliente",
+      "to": "component:VozDoCliente/Database/Migrations",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:VozDoCliente",
+      "to": "component:VozDoCliente/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:VozDoCliente",
+      "to": "component:VozDoCliente/Entities/Sinal",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:VozDoCliente",
+      "to": "component:VozDoCliente/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:VozDoCliente",
+      "to": "component:VozDoCliente/SinalController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Whatsapp",
