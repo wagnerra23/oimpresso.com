@@ -246,7 +246,7 @@ it('UC-FNFE-06 · inutilizar ACEITA payload válido nos dois modelos', function 
 // UC-FNFE-07 · Manifestação DF-e: whitelist de 4 ações + justificativa condicional
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-FNFE-07 · manifestarDfe REJEITA ação fora da whitelist canon SEFAZ', function () {
+it('UC-FNFE-07 · UC-FDFE-03 · manifestarDfe REJEITA ação fora da whitelist canon SEFAZ', function () {
     fiscalUsuarioAutorizado();
 
     foreach (['cancelar', 'aprovar', 'rejeitar'] as $acao) {
@@ -261,7 +261,7 @@ it('UC-FNFE-07 · manifestarDfe REJEITA ação fora da whitelist canon SEFAZ', f
     }
 });
 
-it('UC-FNFE-07 · manifestarDfe EXIGE justificativa em desconhecer/nao_realizada', function () {
+it('UC-FNFE-07 · UC-FDFE-04 · manifestarDfe EXIGE justificativa em desconhecer/nao_realizada', function () {
     fiscalUsuarioAutorizado();
 
     foreach (['desconhecer', 'nao_realizada'] as $acao) {
@@ -277,7 +277,7 @@ it('UC-FNFE-07 · manifestarDfe EXIGE justificativa em desconhecer/nao_realizada
     }
 });
 
-it('UC-FNFE-07 · manifestarDfe NÃO exige justificativa em cienciar/confirmar', function () {
+it('UC-FNFE-07 · UC-FDFE-04 · manifestarDfe NÃO exige justificativa em cienciar/confirmar', function () {
     fiscalUsuarioAutorizado();
 
     foreach (['cienciar', 'confirmar'] as $acao) {
