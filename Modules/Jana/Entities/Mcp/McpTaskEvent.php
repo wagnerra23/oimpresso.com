@@ -9,7 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * TaskRegistry Fase 1 (US-TR-006) — evento de audit por task.
  *
- * Append-only: nunca atualizar ou deletar registros desta tabela.
+ * Append-only GARANTIDO PELO BANCO: os triggers `trg_mcp_task_events_no_update`
+ * e `trg_mcp_task_events_no_delete` fazem SIGNAL em qualquer UPDATE/DELETE.
+ * Não é convenção — é uma das duas únicas tabelas da camada com essa garantia
+ * (a outra é `mcp_audit_log`).
  *
  * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — eventos de tasks
  * repo-wide. Sem `business_id` by design (audit trail da governança MCP).
