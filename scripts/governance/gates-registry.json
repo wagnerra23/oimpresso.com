@@ -11,17 +11,196 @@
     }
   },
   "workflows": {
+    "a11y-axe-gate.yml": {
+      "nome": "A11y axe runtime (jsdom · componentes canon)",
+      "classe": "gate"
+    },
+    "a11y-gate.yml": {
+      "nome": "A11y ratchet (acessibilidade = categoria protegida)",
+      "classe": "gate"
+    },
+    "adr-index-gate.yml": {
+      "nome": "ADR Index Gate — ADR 0258",
+      "classe": "gate"
+    },
+    "adr-lint.yml": {
+      "nome": "ADR frontmatter lint",
+      "classe": "gate"
+    },
+    "agent-cost-per-pr.yml": {
+      "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de ALOCAÇÃO do dinheiro + resíduo decomposto · calibração derivada do dado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12; revisado 2026-07-17)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "Ranking adversarial 2026-07-12 item #7: fecha a última régua 'só verbal' — custo-eficiência nota 3 porque 'economize crédito' não tinha NÚMERO. Fonte Langfuse DERRUBADA pelo adversário; fonte viável = JSONL local do Claude Code (mesma do cc-watcher). DECONFLITO com agent-pr-outcomes (DORA) — este mede o CUSTO do mesmo transporte. Revisão 2026-07-17 (grade evals-outcome): a unidade de custo é a SESSÃO (o gasto vive na branch da worktree; o branch do PR só marca a cauda — atribuir por mensagem descartava o corpo); cobertura passou a ser do lado do DINHEIRO (atribuído/escaneado, FinOps) e não do lado do PR (que dizia 0% enquanto 88% do dinheiro não tinha dono); janela coerente pros dois lados; cap do fetch declarado; resíduo (sessão sem PR) decomposto — NÃO é buraco de join (medido: 5/6 branches de maior resíduo sem PR algum → casar por SHA não recupera, lápide §5). Calibração (limiar de idade, velocidade) DERIVADA do dado, não cravada. Honestidade: CI só roda selftest + renderiza snapshot commitado com staleness DECLARADA e limiar derivado da janela (G5, anti-teatro ADR 0271); USD/tokens apenas, sem R$ (Tier 0). Self-test hermético na suíte governance-script-tests.",
+      "promote_by": "2026-09-30"
+    },
+    "agent-pr-outcomes.yml": {
+      "nome": "Agent PR outcomes (advisory · DORA dos PRs do agente · change-failure-rate + accept-rate + time-to-merge via gh pr list · weekly schedule + dispatch · card #0 grade-das-réguas 2026-07-09)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "Dossiê grade-das-réguas card #0 'Evals de outcome' (Roubo #4): substituir 'zero evals de outcome' por número real (régua Codex/Cognition). DECONFLITO com outcome-metrics (design-loop) — eixo DORA-de-PR, não fidelidade de tela. Self-test hermético (CFR morde/libera) na suíte governance-script-tests.",
+      "promote_by": "2026-09-30"
+    },
+    "anchor-content-required.yml": {
+      "nome": "Ancora de design nao-shell — REQUIRED (F2/F6 revisão adversarial 2026-07-08: related_prototype do charter != shell/fantasma; anchor-content-check --check hard-fail; emenda à ADR 0314 'required = só Tier-0', Wagner autorizou)",
+      "classe": "gate",
+      "terminal": "required",
+      "anchor": "incidente âncora podre REINCIDENTE (2026-07-06 pego pelo Wagner, charter corrigido; voltou 2026-07-08 — o gate advisory NÃO preveniu) + revisão adversarial F2/F6 (RUNBOOK-fidelidade-fingerprint) + emenda 0327-anchor-content-required-emenda-0314.md (exceção consciente à 'required = só Tier-0', Wagner 'resolva todos, eu autorizo')"
+    },
+    "anchor-drift.yml": {
+      "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
+      "classe": "gate"
+    },
+    "arquivos-pest.yml": {
+      "nome": "Arquivos · Pest (MySQL) — audit-log/download/enum rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "sinal de custo: #3658 introduziu crash em `arquivos:audit-log --suspicious` (DB::table(raw,[bind]) → Expression-to-string em QUALQUER MySQL) + os testes signed_url_consumed são MySQL-only e ficavam skip na modules-pest (SQLite) = falsa cobertura; lane #3666 expôs e fechou o bug. Skip-as-pass já é required-ready (ADR 0271 onda 2).",
+      "promote_by": "2026-07-16"
+    },
+    "baseline-tamper-guard.yml": {
+      "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
+      "classe": "gate"
+    },
+    "block-brl-values-selftest.yml": {
+      "nome": "block-brl-values selftest (meta-teste do hook Tier-0 dinheiro block-brl-values-in-memory.mjs — bite/release do detector via --selftest + registration test do settings.json; advisory, não bloqueia merge)",
+      "classe": "meta",
+      "terminal": "automacao",
+      "anchor": "sinal de custo: a regra Tier-0 'NUNCA commitar valores BRL' (proibicoes.md, Wagner 2026-06-08) estava defendida só por prosa — vazar valor custou redact de 5.033 commits via git filter-repo + force-push em main; a própria proibicoes.md registrava 'considerar hook block-brl-values-in-memory' como follow-up nunca construído (conserto P26 revisão-memória-processo). O ENFORCEMENT é o hook PreToolUse LOCAL (bloqueia Write/Edit em memory/**/*.md no runtime do agente); este workflow só protege o detector de quebrar calado + prova o registro no settings.json. NUNCA required — virar required-check exige reabrir a ADR 0314 (append-only), não merge no calado; por isso terminal=automacao (fora da esteira de promoção, sem promote_by)."
+    },
+    "briefing-code-staleness.yml": {
+      "nome": "Staleness reporters (advisory · 6 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-parado.mjs · RADAR de frescor por doc doc-freshness-score.mjs score 0-100 Dosu, agregador/Roubo #5 · AGENTS.md×CLAUDE.md∪@imports agents-md-staleness.mjs · DOC de lib×versão composer.lock spec-lib-staleness.mjs régua Tessl Spec Registry · todos com self-test bite/release)",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required. | EIXO 5 (2026-07-17, chip F2 da grade 2026-07-17): sinal de custo próprio — AGENTS.md serviu stack REJEITADA (Vizra ADK, rejeitada pela ADR 0048 em 2026-04-29) até auditoria humana pegar (#4017, 2026-07-09); Codex/Cursor não expandem `@CLAUDE.md`, então pra eles o resumo do AGENTS.md É o corpus. Núcleo classifyCodeStaleness reusado (não é motor novo — proibicoes §5 2026-07-09); data DECLARADA obrigatória porque os toques mecânicos de 06-08 (restore de squash + MapaTelas) faziam a data-git medir 30d em vez dos 73d reais (o fallback escapa por 1 dia exato). | EIXO 6 (2026-07-19, fraqueza spec-registry-libs da grade 2026-07-18, nota 5,0): único eixo que olha pra FORA (contrato com libs externas) — régua Tessl Spec Registry. Quando uma lib curada (laravel/ai, laravel/mcp, spatie/laravel-html, nwidart/laravel-modules) sobe de versão no composer.lock, NADA acusava que o doc que descreve a superfície dela ficou stale. Sinal = data-git da transição REAL de versão (pula lock não-parseável do squash) vs data declarada do doc mapeado (mapa curado no script). Núcleo classifyCodeStaleness reusado (mesmo padrão do eixo 5, não é motor novo). Estado real 2026-07-19: 0 drift (1 transição visível, nwidart v9→v10 em 04-23, já refletida nos docs 07-14/07-17); selftest good/bad prova a mordida."
+    },
+    "briefing-coverage-required.yml": {
+      "nome": "Cobertura BRIEFING (required) — modulo backend (Modules/<X>/ com dir requisitos/<X>/) sem BRIEFING.md falha o merge. Sinal = EXISTENCIA (isBriefingCoverageGap), nao data auto-declarada: nao-gameavel, zero-FP, mesma classe do casos-gate G-1. Self-test M/N/O (bite/release) roda dentro do job (test quebrado = job vermelho).",
+      "classe": "gate",
+      "terminal": "required",
+      "anchor": "sinal de custo: incidente #3714 (BRIEFING do Compras 41d/18 commits atras do codigo apesar da regra 'BRIEFING por PR' + skill brief-update soft). O eixo de FRESCOR desse mesmo incidente NAO e require-safe (data auto-declarada = last_validated-teatro, proibicoes §5); a COBERTURA (existencia da porta) e. Promovido a required por override soberano [W] 2026-07-23 ('faca promover com teste agora'), emenda ADR 0348 a 0314. DESVIO CONSCIENTE da DR-2 da ADR 0336: bite-log formal 0 (coverageGaps=[] hoje, gate nunca disparou) — substituido pelo teste M/N/O + framing 0346 (zero-FP + zero-violacao + require-safe + exit-code REAL DR-3.1 + verde no main). Barra de reversao BAIXA (soak pulado): 1o FP real rebaixa a advisory."
+    },
+    "brl-scan.yml": {
+      "nome": "BRL scan (advisory · valor monetário em linha NOVA do PR · diff-only · arquivos + PR body + commit subjects)",
+      "classe": "qualidade",
+      "terminal": "advisory",
+      "anchor": "Auditoria adversarial da defesa Tier 0 dinheiro (2026-07-28). MEDIDO: o hook block-brl-values-in-memory está armado desde 2026-07-09 (PR #4004) e MESMO ASSIM 4 commits levaram ~22 linhas com valor pra memory/ — 715f4187f9, be53b247a1, cf64b2878a, f9e116aab7. Causa medida e NÃO é indisciplina: Bash escreve sem passar por hook (heredoc/tee/sed/python), e dos 56 worktrees do repo 7 não têm .claude/settings.json e 1 não registra o hook; escape valve OIMPRESSO_BRL_OK usada 0 vezes. Enquanto multi-tenant, PII e segredo têm gate required, dinheiro tinha ZERO camada de CI — sendo o Tier 0 com precedente de git filter-repo em 5.033 commits + force-push em main (incidente 2026-06-08). Este job é a única camada que independe de worktree, runtime e autor. Bite-test: 32 hits nos 4 commits que vazaram (11+3+4+14). FP: 0 em 38.324 linhas adicionadas dos últimos 120 commits de main. Fonte única do predicado: importa scanBrlLeak do próprio hook.",
+      "promote_by": "2026-09-30"
+    },
+    "casos-gate.yml": {
+      "nome": "Casos-coverage ratchet (trio-de-tela + caso↔teste)",
+      "classe": "gate"
+    },
+    "casos-results-publish.yml": {
+      "nome": "Casos results publish — colhe o JUnit das lanes (que já emitem --log-junit) e aterrissa o veredito por-UC em scripts/casos-test-results.json, fonte do G-7 do casos-gate; auto-PR + auto-merge (main protegido = GH013)",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "ADR 0264 (G-7: Status do UC vem do veredito REAL do teste) · custo medido 2026-07-16: manifesto alimentado À MÃO fazia exec_backed_pct medir CADÊNCIA DE BOOKKEEPING, não qualidade — UC-F04/UC-F05 com Pest verde na lane required financeiro-pest valiam 0, e UC-S02 (vetor da venda inflada ×100k, fix #2279) idem; colheita real dos 7 JUnits: 15 → 25 UCs (10% → 17%)"
+    },
+    "catalog-graph.yml": {
+      "nome": "Catalog graph (advisory) — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exercita consulta real por módulo e arestas dependsOn/providesApi.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-04",
+      "anchor": "sinal de custo: grade do catálogo 2026-07-21 identificou descritores isolados sem grafo consultável; uma IA não conseguia responder mecanicamente que módulos dependem de uma fronteira alterada. Deriva 38 módulos/627 nós/950 arestas dos donos existentes, sem criar segunda fonte. Advisory por ADR 0314; promote_by força revisão após janela de falsos positivos, sem promoção silenciosa."
+    },
+    "charter-refs-gate.yml": {
+      "nome": "Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256)",
+      "classe": "gate"
+    },
+    "charter-us-gate.yml": {
+      "nome": "Charter ↔ US join (advisory · related_us nos Page Charters · charter-us-lint.mjs --check diff-aware no PR + cobertura full-tree no cron)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Frente SA do SDD (join US→tela · SA-A5/P10) · auditoria das máquinas 2026-06-24 achou a correspondência charter→US SEM gate (charter-us-lint.mjs existia mas fora de todo workflow) · cobertura 10.4% (15/144), 129 charters sem related_us = backfill IA futuro (roadmap SDD P10) · grandfather por não-toque (sem baseline JSON)",
+      "promote_by": "2026-09-30"
+    },
+    "ci.yml": {
+      "nome": "CI",
+      "classe": "gate"
+    },
+    "ciclo-completo.yml": {
+      "nome": "ciclo-completo (advisory) — catraca do CICLO-DE-TELA por tela: quantas telas roteadas têm o conjunto obrigatório (charter + Padrão de Tela declarado + pt-conforme via pt-conformance --json + casos.md + ref de teste + golden do PT `live`/GOLDEN-LIVE). `completo` só sobe. NÃO duplica: consome pt-conformance --json e ecoa o trio do casos-guard numa visão por-tela + a dimensão nova (PT declarado + golden-live). Par do gerador criar-tela.mjs (a máquina de nascimento de tela).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "Wagner 2026-07-11: 'fazer na mão é sorteio e não garante funcionamento'. Máquina de nascimento de tela (ADR proposta 2026-07-11-maquina-nascimento-tela): toda tela nasce carimbada do PT (criar-tela.mjs) + este gate garante o ciclo obrigatório. Estado @seed: 3/279 completas (276 débito legado absorvido). Advisory por ADR 0314 (cobertura de ciclo é quality, não Tier-0); promote_by força a decisão em 14d."
+    },
+    "components-tree-guard.yml": {
+      "nome": "Components tree guard (árvore canônica de Components/)",
+      "classe": "gate"
+    },
+    "composer-lock-sync.yml": {
+      "nome": "Composer lock sync",
+      "classe": "automacao"
+    },
+    "compras-pest.yml": {
+      "nome": "Compras · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-17",
+      "anchor": "Proibição Tier 0 'Modules/X/Tests sem CI = falsa cobertura' — Modules/Compras/Tests registrado em phpunit.xml sem lane que o execute (MultiTenant/PII skip no sqlite = verde mente). Lane MySQL real reusa .github/actions/pest-mysql-setup; required-ready (ADR 0271 onda 2), promoção a required é passo Wagner. Refs ADR 0093 (multi-tenant Tier 0), ADR 0062 (testes CT100), PR #3723"
+    },
+    "contrato-de-tela.yml": {
+      "nome": "Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md)",
+      "classe": "gate"
+    },
     "deadlink-gate.yml": {
       "nome": "deadlink-gate (ratchet · integridade referencial) — catraca de integridade referencial doc↔doc: links markdown internos mortos no corpo VIVO (memory/** menos história append-only + *.md da raiz). Ratchet POR ARQUIVO vs governance/deadlink-baseline.json (dívida grandfathered; reprova só quem PIORA). Case-sensitive sempre (paridade Linux). Require-safe (sem paths-filter, roda em todo PR). GENERALIZA o Check V do memory-health (warn num subconjunto front-facing) pro corpus vivo inteiro com mordida — Check V segue como sentinela do subconjunto; este é a catraca do todo.",
       "classe": "gate",
       "terminal": "required",
       "anchor": "sinal de custo: medição 2026-07-23 achou ~1.105 links internos mortos em 571 arquivos vivos (7,5% de ~17,9k) — ex.: ADR 0022→requisitos/Copiloto/ (renomeado ADR 0088 sem relink), ADR 0029→auto-mem purgada 2026-06-07. Grade estado-da-arte anti-apodrecimento (sessão 2026-07-23): D1 integridade referencial era a única dimensão vermelha (35/100; padrão lychee/Docusaurus/Antora = link morto falha o build). Promovido a REQUIRED via emenda ADR 0347 à 0314 (exceção consciente 'required = Tier-0 + exceções via emenda', 2ª após 0327) + override de cadência [W] ('promova' 2026-07-23, precedente #3444). Flip do vivo na branch protection = ato [W] (R10 / ADR 0275 §5). ADR 0256. PR #4700."
     },
-    "system-map.yml": {
-      "nome": "system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md e ONBOARDING-AGENTE-GERADO.md das fontes canônicas. Painel derivado + prompt auxiliar da rota de agentes; nenhum deles redefine a porta global README.md. --check advisory no PR + regen diário commit-back.",
-      "classe": "automacao",
-      "terminal": "automacao",
-      "anchor": "Wagner 2026-07-12: 'deveria ser a máquina matriz que não quebra e sempre mantém atualizado'. Reusa o padrão brief/scorecard/índice-ADR (ADR 0091/0275/0258). proposal painel-sistema-matriz-gerada.md."
+    "deploy.yml": {
+      "nome": "Deploy to Hostinger",
+      "classe": "deploy"
+    },
+    "design-coverage.yml": {
+      "nome": "ds-design-coverage (advisory) — catraca da cobertura de DESIGN por tela: quantas telas DECLARAM a fonte de design (protótipo via related_prototype ou 'segue DS' explícito). Consome ancora.mjs --list --json (não duplica o resolvedor). `declared` só sobe. Complementa screen-coverage (UI-0013 herança de Padrão de Tela).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "inventário 'design para todas as páginas' (Wagner 2026-07-11): 88% das 144 telas com charter estão SILENCIOSAS sobre a fonte de design (só 18 declaram). A catraca trava o piso pra fechar por módulo sem regredir. Advisory por ADR 0314 (cobertura de design é quality, não Tier-0); promote_by força a decisão em 14d."
+    },
+    "design-identity-gate.yml": {
+      "nome": "Design Identity Gate (soft)",
+      "classe": "gate"
+    },
+    "design-memory-gate.yml": {
+      "nome": "Design-memory gate (advisory · FUNDIDO ADR 0314 F2 de 3 workflows: registry-check ex-component-registry O2 + gates ex-design-memory-gates §8/§15 + prove ex-dtcg-equivalence Onda DTCG; 1 job por sub-check, todos os self-tests preservados)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "ADR 0314 F2 (poda onda 2 · fusão de 3 advisory de design-memory) sobre: Onda O2 (registro bloco→componente) + prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 (ds-guard + integrity-check) + ADR 0239/0249 (DTCG ↔ CSS canônico). Custo: drift de tradução handoff Cowork + paleta inventada + token DTCG divergente.",
+      "promote_by": "2026-09-30"
+    },
+    "design-return-gate.yml": {
+      "nome": "Design return gate (§10.2 pós-merge)",
+      "classe": "automacao"
+    },
+    "design-spec-gate.yml": {
+      "nome": "Design-spec por-tela (contrato estrutural determinístico)",
+      "classe": "gate"
+    },
+    "detect-ui-drift.yml": {
+      "nome": "detect-ui-drift — M1 (advisory) — eixo de AUTORIZAÇÃO: quando uma .tsx de tela muda num PR, exige sinal FRESCO no mesmo PR (divergence_from_blueprint com razão real no charter irmão · OU related_prototype mudou pra protótipo real · OU entrada nova no SYNC_LOG citando a tela). Sem sinal → 🚩 mudança não-declarada. Mede VALOR SEMÂNTICO do campo (não presença — L-24). Self-test morde/libera; ::warning:: + job summary (visível). Detecção-only, nunca edita a tela.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-26",
+      "anchor": "Wagner 2026-07-11/12 (dor textual): 'cada customização não é pega como alteração da máquina — parece que não sabe que alterou.' Custo provado: desastre do Financeiro (PRs #1085→#1091→#1092 — cores erradas, abas faltando, textos colados) — telas quebradas por cherry-pick sem declaração. As máquinas existentes respondem 'o QUE mudou' (design-spec ADR 0255) / 'está bonito' (design-diff ADR 0299), NENHUMA respondia 'foi AUTORIZADA?'. Interseção vazia (mapa como-integrar 2026-07-11). Advisory por ADR 0314 (autorização de UI é quality, não Tier-0 dinheiro/PII/multi-tenant/fiscal); promote_by força decisão de promoção a --strict em 14d. Reusa fmScalar (reconcile-triplet:68) + forma diff-aware (design-return-gate.yml) + SYNC_LOG (loop Cowork↔Code) — zero vocabulário novo. Norma defendida: RESPEITAR-PROTOTIPO.md."
+    },
+    "devcontainer-firewall.yml": {
+      "nome": "devcontainer firewall (egress default-deny · chip C7) — prova que o firewall do devcontainer do agente MORDE (corta host fora da allowlist) e SOLTA (deixa passar github/anthropic/oimpresso/CT100/Hostinger que o trabalho exige). 3 steps: (1) controle do probe — SEM firewall example.com responde 200, senao o 'bloqueado' do step 2 nao distingue firewall de rede quebrada; (2) bite+release com firewall; (3) fail-loud — sem NET_ADMIN o script morre em vez de rodar com a rede aberta se achando protegido.",
+      "classe": "meta",
+      "terminal": "cron",
+      "anchor": "sinal de custo: dimensao seguranca-do-agente 5,0/10 na grade 2026-07-17 — '30 hooks PreToolUse com exit 2 (forte) + ZERO controle de ambiente (fraco)'. Toda a defesa e SINTATICA (regex sobre o comando) e regex nao enumera a classe que nao conhece: o corpus de injection documenta 4 caminhos UNGUARDED (curl exfil, gh api, gh pr merge, node -e) que nenhum hook cobre. Este e o UNICO controle de TIPO diferente (corta a saida, nao adivinha o comando). Ref: devcontainer do Claude Code + sandbox Anthropic (gVisor + MITM). Decisao [W] 2026-07-17 (faseado: portar hooks #4416 primeiro, C7 depois sobre base cross-plataforma — fazer antes deixaria os .ps1 no-op silencioso em Linux). terminal=cron (NAO advisory, sem promote_by): o fim-de-vida E path-filter + cron; virar required exige reabrir a ADR 0314 (egress de devcontainer nao e Tier-0 de merge). Provado em CI porque o Docker Desktop do [W] estava PARADO em 2026-07-17 — sem o CI o firewall nasceria sem nunca ter sido visto funcionar. Alvo do controle e example.com (resolve/responde), NUNCA .example: TLD reservado falharia por DNS mesmo sem firewall — o falso-verde que matou a ADR 0290. Hard-fail intencional: nao adicionar continue-on-error (lapide §5 2026-07-09)."
+    },
+    "dominio-gate.yml": {
+      "nome": "Dominio-dict ratchet (coerência de domínio)",
+      "classe": "gate"
+    },
+    "ds-gate.yml": {
+      "nome": "DS gate (fusão F1 — cor/UI/css/index/bundle/scorer · ADR 0314)",
+      "classe": "gate"
     },
     "ds-mirror-drift.yml": {
       "nome": "ds-mirror-drift (advisory) — sentinela de drift git↔espelho do Design System: compara os _generated-*.css do git contra o snapshot commitado do espelho claude.ai/design (scripts/design-sync/mirror-snapshot/), reusa o motor ds-token-diff.mjs; ::warning:: quando drift > baseline. CI do GH Actions não tem login claude.ai → compara snapshot, não o espelho vivo.",
@@ -44,175 +223,8 @@
       "promote_by": "2026-07-25",
       "anchor": "gap nº1 da auditoria de cobertura do loop diff-first (2026-07-11): não existia gate provando que o _generated commitado bate com a fonte. Verificado em sincronia na criação. Advisory por ADR 0314 (integridade de tokens é quality/visual, não dinheiro/PII/multi-tenant/fiscal); promote_by força a decisão em 14d."
     },
-    "design-coverage.yml": {
-      "nome": "ds-design-coverage (advisory) — catraca da cobertura de DESIGN por tela: quantas telas DECLARAM a fonte de design (protótipo via related_prototype ou 'segue DS' explícito). Consome ancora.mjs --list --json (não duplica o resolvedor). `declared` só sobe. Complementa screen-coverage (UI-0013 herança de Padrão de Tela).",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-07-25",
-      "anchor": "inventário 'design para todas as páginas' (Wagner 2026-07-11): 88% das 144 telas com charter estão SILENCIOSAS sobre a fonte de design (só 18 declaram). A catraca trava o piso pra fechar por módulo sem regredir. Advisory por ADR 0314 (cobertura de design é quality, não Tier-0); promote_by força a decisão em 14d."
-    },
-    "ciclo-completo.yml": {
-      "nome": "ciclo-completo (advisory) — catraca do CICLO-DE-TELA por tela: quantas telas roteadas têm o conjunto obrigatório (charter + Padrão de Tela declarado + pt-conforme via pt-conformance --json + casos.md + ref de teste + golden do PT `live`/GOLDEN-LIVE). `completo` só sobe. NÃO duplica: consome pt-conformance --json e ecoa o trio do casos-guard numa visão por-tela + a dimensão nova (PT declarado + golden-live). Par do gerador criar-tela.mjs (a máquina de nascimento de tela).",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-07-25",
-      "anchor": "Wagner 2026-07-11: 'fazer na mão é sorteio e não garante funcionamento'. Máquina de nascimento de tela (ADR proposta 2026-07-11-maquina-nascimento-tela): toda tela nasce carimbada do PT (criar-tela.mjs) + este gate garante o ciclo obrigatório. Estado @seed: 3/279 completas (276 débito legado absorvido). Advisory por ADR 0314 (cobertura de ciclo é quality, não Tier-0); promote_by força a decisão em 14d."
-    },
-    "screen-smoke-after-merge.yml": {
-      "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
-      "classe": "automacao",
-      "terminal": "automacao",
-      "anchor": "sinal de custo: ADR 0164 §9.4 (pendência nunca feita — a skill tela-smoke-pos-merge referenciava ESTE workflow inexistente, então o smoke visual dependia de um humano-no-loop) + gap PR #3945 (item de menu 'Suporte' não é uma tela → mudança de navegação não disparava smoke) + feedback-deploy-smoke-browser-obrigatorio §6 INCONDICIONAL (Wagner 2026-07-08: 'nemme pergunte mais isso é sempre sim automatize isso'). Mecanismo Playwright + OpenAI vision em runner ubuntu (Wagner 2026-07-08 'use o openai') — supersede o browser-MCP-CT100 da 1ª versão (ADR 0164 §3, emenda append-only follow-up); ADR 0062 intacto (runner efêmero ≠ daemon no host errado). NUNCA required (roda pós-deploy, não valida PR); nunca cria task/merge sem HITL (único HITL = merge R10)."
-    },
-    "screen-grades-ratchet.yml": {
-      "nome": "Screen grades ratchet (nota 16-dim de tela não desce vs origin/main · advisory · robusto contra burla do baseline_anterior)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-07-20",
-      "anchor": "sinal de custo: adversário de arquitetura 2026-07-06 achado V4·alta — o script scripts/qa/screen-grades-ratchet.mjs existia mas NENHUM workflow o rodava; nota podia descer/inflar em silêncio enquanto vital-signs.mjs:30 e os 224 YAMLs afirmavam que a catraca defendia (mentira estrutural). A fila do metabolismo MV prioriza por essa nota. Advisory por lei (ADR 0314 — nota de tela é quality, não Tier-0); promote_by força a decisão de promoção em 14d em vez de advisory eterno."
-    },
-    "mv-metabolismo.yml": {
-      "nome": "MV metabolismo (batimento nightly do Módulo Vivo · stream MV · sinais vitais + proposta de batch via auto-PR SEM auto-merge — merge Wagner = aprova batch)",
-      "classe": "automacao",
-      "terminal": "automacao",
-      "anchor": "sinal de custo: decisão Wagner 2026-07-05 ('o software deve amadurecer e se tornar vivo por módulo') — hoje Wagner é o único agregador/despachante manual da frota (234 telas, 25 casos.md); arte memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.3-§3.6 + roadmap SDD stream MV (MV2). Determinístico zero-LLM; NUNCA cria task/merge (publication-policy); nunca entra em required (lei ADR 0314)."
-    },
-    "briefing-code-staleness.yml": {
-      "nome": "Staleness reporters (advisory · 6 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-parado.mjs · RADAR de frescor por doc doc-freshness-score.mjs score 0-100 Dosu, agregador/Roubo #5 · AGENTS.md×CLAUDE.md∪@imports agents-md-staleness.mjs · DOC de lib×versão composer.lock spec-lib-staleness.mjs régua Tessl Spec Registry · todos com self-test bite/release)",
-      "classe": "automacao",
-      "terminal": "automacao",
-      "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required. | EIXO 5 (2026-07-17, chip F2 da grade 2026-07-17): sinal de custo próprio — AGENTS.md serviu stack REJEITADA (Vizra ADK, rejeitada pela ADR 0048 em 2026-04-29) até auditoria humana pegar (#4017, 2026-07-09); Codex/Cursor não expandem `@CLAUDE.md`, então pra eles o resumo do AGENTS.md É o corpus. Núcleo classifyCodeStaleness reusado (não é motor novo — proibicoes §5 2026-07-09); data DECLARADA obrigatória porque os toques mecânicos de 06-08 (restore de squash + MapaTelas) faziam a data-git medir 30d em vez dos 73d reais (o fallback escapa por 1 dia exato). | EIXO 6 (2026-07-19, fraqueza spec-registry-libs da grade 2026-07-18, nota 5,0): único eixo que olha pra FORA (contrato com libs externas) — régua Tessl Spec Registry. Quando uma lib curada (laravel/ai, laravel/mcp, spatie/laravel-html, nwidart/laravel-modules) sobe de versão no composer.lock, NADA acusava que o doc que descreve a superfície dela ficou stale. Sinal = data-git da transição REAL de versão (pula lock não-parseável do squash) vs data declarada do doc mapeado (mapa curado no script). Núcleo classifyCodeStaleness reusado (mesmo padrão do eixo 5, não é motor novo). Estado real 2026-07-19: 0 drift (1 transição visível, nwidart v9→v10 em 04-23, já refletida nos docs 07-14/07-17); selftest good/bad prova a mordida."
-    },
-    "briefing-coverage-required.yml": {
-      "nome": "Cobertura BRIEFING (required) — modulo backend (Modules/<X>/ com dir requisitos/<X>/) sem BRIEFING.md falha o merge. Sinal = EXISTENCIA (isBriefingCoverageGap), nao data auto-declarada: nao-gameavel, zero-FP, mesma classe do casos-gate G-1. Self-test M/N/O (bite/release) roda dentro do job (test quebrado = job vermelho).",
-      "classe": "gate",
-      "terminal": "required",
-      "anchor": "sinal de custo: incidente #3714 (BRIEFING do Compras 41d/18 commits atras do codigo apesar da regra 'BRIEFING por PR' + skill brief-update soft). O eixo de FRESCOR desse mesmo incidente NAO e require-safe (data auto-declarada = last_validated-teatro, proibicoes §5); a COBERTURA (existencia da porta) e. Promovido a required por override soberano [W] 2026-07-23 ('faca promover com teste agora'), emenda ADR 0348 a 0314. DESVIO CONSCIENTE da DR-2 da ADR 0336: bite-log formal 0 (coverageGaps=[] hoje, gate nunca disparou) — substituido pelo teste M/N/O + framing 0346 (zero-FP + zero-violacao + require-safe + exit-code REAL DR-3.1 + verde no main). Barra de reversao BAIXA (soak pulado): 1o FP real rebaixa a advisory."
-    },
-    "block-brl-values-selftest.yml": {
-      "nome": "block-brl-values selftest (meta-teste do hook Tier-0 dinheiro block-brl-values-in-memory.mjs — bite/release do detector via --selftest + registration test do settings.json; advisory, não bloqueia merge)",
-      "classe": "meta",
-      "terminal": "automacao",
-      "anchor": "sinal de custo: a regra Tier-0 'NUNCA commitar valores BRL' (proibicoes.md, Wagner 2026-06-08) estava defendida só por prosa — vazar valor custou redact de 5.033 commits via git filter-repo + force-push em main; a própria proibicoes.md registrava 'considerar hook block-brl-values-in-memory' como follow-up nunca construído (conserto P26 revisão-memória-processo). O ENFORCEMENT é o hook PreToolUse LOCAL (bloqueia Write/Edit em memory/**/*.md no runtime do agente); este workflow só protege o detector de quebrar calado + prova o registro no settings.json. NUNCA required — virar required-check exige reabrir a ADR 0314 (append-only), não merge no calado; por isso terminal=automacao (fora da esteira de promoção, sem promote_by)."
-    },
-    "arquivos-pest.yml": {
-      "nome": "Arquivos · Pest (MySQL) — audit-log/download/enum rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "sinal de custo: #3658 introduziu crash em `arquivos:audit-log --suspicious` (DB::table(raw,[bind]) → Expression-to-string em QUALQUER MySQL) + os testes signed_url_consumed são MySQL-only e ficavam skip na modules-pest (SQLite) = falsa cobertura; lane #3666 expôs e fechou o bug. Skip-as-pass já é required-ready (ADR 0271 onda 2).",
-      "promote_by": "2026-07-16"
-    },
-    "teammcp-pest.yml": {
-      "nome": "TeamMcp · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca allowlist verde, espelha arquivos-pest",
-      "classe": "gate",
-      "terminal": "required",
-      "anchor": "REQUIRED via emenda ADR 0354 à 0314 (3ª exceção formal à regra 'required = só Tier-0', mesmo processo da 0327/0347: emenda + flip [W] explícito — [W] 2026-07-27: 'Promova'). Override de cadência CONSCIENTE: a 0336 DR-2 pede ≥2 mordidas reais e esta lane tem ZERO (nasceu 2026-07-27 com 1 corrida verde) — promovida por argumento estrutural, não por evidência de mordida; risco residual mitigado por skip-as-pass (blast radius só em PR que toca TeamMcp) + catraca de allowlist de 1 arquivo + gate de reversão da 0354. Precedente de classe: `PHP / Pest (Financeiro · MySQL)` e `(NfeBrasil · MySQL)` já são required. || sinal de custo MEDIDO (2026-07-27, #4887): `ForjaRoutesSmokeTest` existia desde a Onda Forja e NUNCA executou uma vez — TeamMcp fora do matrix do modules-pest.yml (que nem emite JUnit) + só 7 dos 26 arquivos na lista sqlite = 19 sem lane nenhuma. Rodado no CT 100: 7 failed / 5 passed (rota `forja.saude` inexistente + dataset associativo com `it()` de 2 args); o happy-path de UC-FORJA-01 jamais rodou, e UC-FORJA-01/07 eram órfãos no G-2. Sem esta lane o JUnit do módulo não chega ao casos-results-publish (elo do G-7, ADR 0264)."
-    },
-    "baseline-tamper-guard.yml": {
-      "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
-      "classe": "gate"
-    },
-    "jana-logica-pura-pest.yml": {
-      "nome": "Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295)",
-      "classe": "gate"
-    },
-    "nfebrasil-pest.yml": {
-      "nome": "NfeBrasil · Pest (MySQL) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b",
-      "classe": "gate",
-      "terminal": "required",
-      "anchor": "âncora improvada G1b verde-real (memory/sessions/2026-06-23-robustez-anchor-reavaliada-150-clientes.md) — risco fiscal ×150 clientes: 34/45 testes pulam no sqlite, verde@ mentiria · required mantido LEI pela ADR 0314; nome sem \"advisory\" desde o rename P14 2026-07-01"
-    },
-    "gitleaks-history.yml": {
-      "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
-      "classe": "automacao"
-    },
-    "a11y-axe-gate.yml": {
-      "nome": "A11y axe runtime (jsdom · componentes canon)",
-      "classe": "gate"
-    },
-    "a11y-gate.yml": {
-      "nome": "A11y ratchet (acessibilidade = categoria protegida)",
-      "classe": "gate"
-    },
-    "anchor-content-required.yml": {
-      "nome": "Ancora de design nao-shell — REQUIRED (F2/F6 revisão adversarial 2026-07-08: related_prototype do charter != shell/fantasma; anchor-content-check --check hard-fail; emenda à ADR 0314 'required = só Tier-0', Wagner autorizou)",
-      "classe": "gate",
-      "terminal": "required",
-      "anchor": "incidente âncora podre REINCIDENTE (2026-07-06 pego pelo Wagner, charter corrigido; voltou 2026-07-08 — o gate advisory NÃO preveniu) + revisão adversarial F2/F6 (RUNBOOK-fidelidade-fingerprint) + emenda 0327-anchor-content-required-emenda-0314.md (exceção consciente à 'required = só Tier-0', Wagner 'resolva todos, eu autorizo')"
-    },
-    "anchor-drift.yml": {
-      "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
-      "classe": "gate"
-    },
-    "plan-health-gate.yml": {
-      "nome": "Plan Health Gate (advisory · planos órfãos/podres · sentinela plan-health.mjs --check · ADR 0294 Onda 1)",
-      "classe": "gate"
-    },
-    "adr-index-gate.yml": {
-      "nome": "ADR Index Gate — ADR 0258",
-      "classe": "gate"
-    },
-    "adr-lint.yml": {
-      "nome": "ADR frontmatter lint",
-      "classe": "gate"
-    },
-    "casos-gate.yml": {
-      "nome": "Casos-coverage ratchet (trio-de-tela + caso↔teste)",
-      "classe": "gate"
-    },
-    "guards-meta-gate.yml": {
-      "nome": "Guards meta-gate (vitest · casos + domínio · funde casos-meta + dominio-meta)",
-      "classe": "meta"
-    },
-    "charter-refs-gate.yml": {
-      "nome": "Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256)",
-      "classe": "gate"
-    },
-    "charter-us-gate.yml": {
-      "nome": "Charter ↔ US join (advisory · related_us nos Page Charters · charter-us-lint.mjs --check diff-aware no PR + cobertura full-tree no cron)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "Frente SA do SDD (join US→tela · SA-A5/P10) · auditoria das máquinas 2026-06-24 achou a correspondência charter→US SEM gate (charter-us-lint.mjs existia mas fora de todo workflow) · cobertura 10.4% (15/144), 129 charters sem related_us = backfill IA futuro (roadmap SDD P10) · grandfather por não-toque (sem baseline JSON)",
-      "promote_by": "2026-09-30"
-    },
-    "ci.yml": {
-      "nome": "CI",
-      "classe": "gate"
-    },
-    "components-tree-guard.yml": {
-      "nome": "Components tree guard (árvore canônica de Components/)",
-      "classe": "gate"
-    },
-    "composer-lock-sync.yml": {
-      "nome": "Composer lock sync",
-      "classe": "automacao"
-    },
-    "contrato-de-tela.yml": {
-      "nome": "Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md)",
-      "classe": "gate"
-    },
-    "xss-content-gate.yml": {
-      "nome": "XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo)",
-      "classe": "gate"
-    },
-    "deploy.yml": {
-      "nome": "Deploy to Hostinger",
-      "classe": "deploy"
-    },
-    "design-identity-gate.yml": {
-      "nome": "Design Identity Gate (soft)",
-      "classe": "gate"
-    },
-    "design-return-gate.yml": {
-      "nome": "Design return gate (§10.2 pós-merge)",
-      "classe": "automacao"
-    },
-    "design-spec-gate.yml": {
-      "nome": "Design-spec por-tela (contrato estrutural determinístico)",
-      "classe": "gate"
-    },
-    "dominio-gate.yml": {
-      "nome": "Dominio-dict ratchet (coerência de domínio)",
+    "dup-detector-gate.yml": {
+      "nome": "Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate)",
       "classe": "gate"
     },
     "e2e-gate.yml": {
@@ -223,12 +235,25 @@
       "nome": "ESLint 9 (ADR 0209)",
       "classe": "gate"
     },
+    "essentials-pest.yml": {
+      "nome": "Essentials · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-31",
+      "anchor": "Essentials (folha/RH) não tinha lane MySQL de PR (modules-pest.yml matrix não inclui, sem *-pest.yml próprio) — testes cross-tenant Tier 0 só rodavam no CT100 nightly, invisíveis a todo merge. Nasce com SalesTargetShiftCrossTenantTest (follow-up #4474 ScopeByBusinessViaParent): fecha IDOR de write com id cru do body em SalesTarget::saveSalesTarget/Shift::postAssignUsers (o backstop de scope não cobre INSERT). Advisory (skip-as-pass, mesmo padrão jana-pest/ponto-pest)."
+    },
     "estoque-pest.yml": {
       "nome": "Estoque · Pest (MySQL) — movimentação de saldo (venda/compra/devolução) roda no MySQL real; skip no sqlite = verde mente",
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2026-07-16",
       "anchor": "PR #3686 — cobertura real de estoque (Wagner 2026-07-02 'todo teste de estoque skipa e mente'); seed CI mínimo faz a suíte de estoque pular no sqlite → verde mentiria. DOC-RAIZ-ESTOQUE §3 matriz + §7 invariantes. Nasce advisory; promover a required quando PR2/PR3 (ajuste/transfer/opening/fab + INV-2/3/5/6) estabilizarem o allowlist verde."
+    },
+    "exposicao-tier0-sentinel.yml": {
+      "nome": "Exposição Tier-0 — sentinela de cadência (Onda 0c · débito Tier-0 por tela dinheiro/estoque/PII/fiscal × cobertura de comportamento · cron semanal + tendência + issue durável)",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "sinal de custo: incidente num_uf R$ inflado ×100k (2026-06-05, REGRA MESTRE valor/estoque) + diagnóstico programa-ondas (211 telas Tier-0 sem teste de comportamento, E2E 4/242) — pilar CADÊNCIA da ADR 0256; avisa quando o débito Tier-0 cresce apesar da catraca 0b (casos-coverage-guard)."
     },
     "fin-hero-gate.yml": {
       "nome": "Fin Hero Gate — KPI hero claro (anti-regressão Onda 28)",
@@ -237,34 +262,6 @@
     "fin-subnav-gate.yml": {
       "nome": "Fin SubNav Gate — abas seguem a entry do active (anti-regressão ADR 0180 split)",
       "classe": "gate"
-    },
-    "pageheader-tabs-fidelity-gate.yml": {
-      "nome": "PageHeaderTabs Fidelity — aba ativa fiel ao protótipo (radius 0 · accent · font 600)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "ADR proposta 2026-07-15-tab-nav-canonico-e-componente-por-papel (máquina d) + bug tab-nav 2026-07 (rounded-md + dark quebrado, [W] pegou no olho). DS é qualidade/higiene, não Tier-0 → advisory (ADR 0271/0314). Custo: regressão de fidelidade da barra de abas de topo sem alarme.",
-      "promote_by": "2026-09-30"
-    },
-    "status-badge-fidelity-gate.yml": {
-      "nome": "StatusBadge Fidelity — pílula de status fiel ao protótipo (rounded-full · token -soft/-fg dark-aware)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "ADR proposta 2026-07-15-tab-nav-canonico-e-componente-por-papel — Onda status-badge (mesmo tripé da máquina d do tab-nav). Trava o contrato dark-aware do <Badge variant> (cor mora em token -soft/-fg, nunca palette cru) vs .cli-status-pill do protótipo Cowork; controle-negativo do detector de cor-crua (ADR 0258). DS é qualidade/higiene, não Tier-0 → advisory (ADR 0271/0314). Custo: regressão de cor de status em palette cru quebra o dark sem alarme (mesmo vetor do bug tab-nav 2026-07).",
-      "promote_by": "2026-09-30"
-    },
-    "compras-pest.yml": {
-      "nome": "Compras · Pest (MySQL)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-07-17",
-      "anchor": "Proibição Tier 0 'Modules/X/Tests sem CI = falsa cobertura' — Modules/Compras/Tests registrado em phpunit.xml sem lane que o execute (MultiTenant/PII skip no sqlite = verde mente). Lane MySQL real reusa .github/actions/pest-mysql-setup; required-ready (ADR 0271 onda 2), promoção a required é passo Wagner. Refs ADR 0093 (multi-tenant Tier 0), ADR 0062 (testes CT100), PR #3723"
-    },
-    "essentials-pest.yml": {
-      "nome": "Essentials · Pest (MySQL)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-07-31",
-      "anchor": "Essentials (folha/RH) não tinha lane MySQL de PR (modules-pest.yml matrix não inclui, sem *-pest.yml próprio) — testes cross-tenant Tier 0 só rodavam no CT100 nightly, invisíveis a todo merge. Nasce com SalesTargetShiftCrossTenantTest (follow-up #4474 ScopeByBusinessViaParent): fecha IDOR de write com id cru do body em SalesTarget::saveSalesTarget/Shift::postAssignUsers (o backstop de scope não cobre INSERT). Advisory (skip-as-pass, mesmo padrão jana-pest/ponto-pest)."
     },
     "financeiro-pest.yml": {
       "nome": "Financeiro · Pest (MySQL)",
@@ -282,6 +279,10 @@
       "nome": "Gate selftest (advisory · quem vigia os vigias — fixtures boa/ruim por catraca, SDD GT-G6)",
       "classe": "meta"
     },
+    "gitleaks-history.yml": {
+      "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
+      "classe": "automacao"
+    },
     "governance-drift.yml": {
       "nome": "Governance Drift Framework — ADR 0216",
       "classe": "gate"
@@ -298,27 +299,33 @@
       "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1; inclui agent-corpus-counterfactual.test.mjs, chip C1 da grade 2026-07-17: prova por Monte Carlo determinístico que a aritmética de viabilidade CUMPRE o poder que promete e não grita vencedor sob H0 — o harness de 3 arms que ela servia foi podado em 2026-07-17, autorizado [W])",
       "classe": "gate"
     },
+    "guards-meta-gate.yml": {
+      "nome": "Guards meta-gate (vitest · casos + domínio · funde casos-meta + dominio-meta)",
+      "classe": "meta"
+    },
+    "handoff-integrity.yml": {
+      "nome": "Handoff Integrity (advisory · fila ↔ prompts)",
+      "classe": "gate"
+    },
+    "handoff-scope-guard.yml": {
+      "nome": "Handoff Scope Guard (files_json · escopo duro do handoff de design, ADR 0283 Fase 0)",
+      "classe": "gate"
+    },
+    "handoff-sign-submit.yml": {
+      "nome": "Handoff Sign & Submit (on-push · assina HMAC + POST handoff-submit → pending; advisory · PR-6b ADR 0283)",
+      "classe": "automacao"
+    },
     "infra-contract-required.yml": {
       "nome": "Infra Contract Required",
+      "classe": "gate"
+    },
+    "jana-logica-pura-pest.yml": {
+      "nome": "Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295)",
       "classe": "gate"
     },
     "jana-pest.yml": {
       "nome": "Jana · Pest (MySQL)",
       "classe": "gate"
-    },
-    "kb-pest.yml": {
-      "nome": "KB · Pest (MySQL)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-08-06",
-      "anchor": "sinal de custo: NENHUM teste do Modules/KB rodava no CI por-PR (não está no modules-pest.yml matrix, sem lane própria, só KbDriftPersistenceTest na allowlist sqlite) — regressão do KB só aparecia no CT100 nightly (dia seguinte); o #4715 (Fase A1 doc↔código) mergeou com 91 checks verdes sem exercitar teste nenhum do KB. Nasce com 11 arquivos comprovadamente verdes no MySQL efêmero (probe CT100 @ main 2026-07-23). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); a própria lane já pegou 2 gaps reais que o staging poluído mascarava (kb_categories.sort ausente + grants Spatie 403 no MySQL fresco) → 8 arquivos ratchet-pendentes documentados no workflow. promote_by força a decisão de promoção a required."
-    },
-    "ponto-pest.yml": {
-      "nome": "Ponto · Pest (MySQL)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-07-31",
-      "anchor": "sinal de custo: Ponto não tinha lane MySQL de PR nenhuma — o guard Tier 0 cross-tenant do Ponto (ADR 0093 · Wave27CrossTenantEscalaTest) só rodava na nightly não-required (invisível a todo merge). A triagem #4454→#4474 provou que testes Tier-0 mascarados por FK-1452 ficavam vermelhos invisíveis por ~2 meses (inclusive o vazamento real ScopeByBusinessViaParent). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); promote_by força a decisão de promoção a required em 14d em vez de advisory eterno."
     },
     "jana-ragas-canary.yml": {
       "nome": "Jana RAGAS Canary (daily 06:00 UTC)",
@@ -336,6 +343,13 @@
       "nome": "jscpd ratchet (anti-duplicação de bloco copy-paste)",
       "classe": "gate"
     },
+    "kb-pest.yml": {
+      "nome": "KB · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-06",
+      "anchor": "sinal de custo: NENHUM teste do Modules/KB rodava no CI por-PR (não está no modules-pest.yml matrix, sem lane própria, só KbDriftPersistenceTest na allowlist sqlite) — regressão do KB só aparecia no CT100 nightly (dia seguinte); o #4715 (Fase A1 doc↔código) mergeou com 91 checks verdes sem exercitar teste nenhum do KB. Nasce com 11 arquivos comprovadamente verdes no MySQL efêmero (probe CT100 @ main 2026-07-23). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); a própria lane já pegou 2 gaps reais que o staging poluído mascarava (kb_categories.sort ausente + grants Spatie 403 no MySQL fresco) → 8 arquivos ratchet-pendentes documentados no workflow. promote_by força a decisão de promoção a required."
+    },
     "knowledge-ghost-gate.yml": {
       "nome": "Knowledge Ghost Gate (catraca anti-ghost · baseline por módulo · ADVISORY — KL-A2)",
       "classe": "gate"
@@ -347,12 +361,6 @@
     "mcp-drift-sentinel.yml": {
       "nome": "MCP Drift Sentinel — servido vs main (ADR 0256 + 0062)",
       "classe": "automacao"
-    },
-    "exposicao-tier0-sentinel.yml": {
-      "nome": "Exposição Tier-0 — sentinela de cadência (Onda 0c · débito Tier-0 por tela dinheiro/estoque/PII/fiscal × cobertura de comportamento · cron semanal + tendência + issue durável)",
-      "classe": "automacao",
-      "terminal": "cron",
-      "anchor": "sinal de custo: incidente num_uf R$ inflado ×100k (2026-06-05, REGRA MESTRE valor/estoque) + diagnóstico programa-ondas (211 telas Tier-0 sem teste de comportamento, E2E 4/242) — pilar CADÊNCIA da ADR 0256; avisa quando o débito Tier-0 cresce apesar da catraca 0b (casos-coverage-guard)."
     },
     "memory-health.yml": {
       "nome": "Memory Health — ADR 0256",
@@ -373,13 +381,6 @@
       "promote_by": "2026-08-04",
       "anchor": "sinal de custo: dor [W] 2026-07-21 'não sei os arquivos de cada contexto, dificulta a busca da IA' (memory/sessions/2026-07-21-arte-contexto-vivo-descoberta.md, Gap 2 — único sobrevivente do adversário) + PR #4607. Advisory por ADR 0314 (índice de arquivos é qualidade/descoberta, não Tier-0) na adoção; promote_by força a decisão required/enforce em 14d (quando N módulos adotarem + FP medido = 0), não advisory eterno."
     },
-    "catalog-graph.yml": {
-      "nome": "Catalog graph (advisory) — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exercita consulta real por módulo e arestas dependsOn/providesApi.",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-08-04",
-      "anchor": "sinal de custo: grade do catálogo 2026-07-21 identificou descritores isolados sem grafo consultável; uma IA não conseguia responder mecanicamente que módulos dependem de uma fronteira alterada. Deriva 38 módulos/627 nós/950 arestas dos donos existentes, sem criar segunda fonte. Advisory por ADR 0314; promote_by força revisão após janela de falsos positivos, sem promoção silenciosa."
-    },
     "modules-pest.yml": {
       "nome": "Modules Pest",
       "classe": "gate"
@@ -392,17 +393,45 @@
       "nome": "Mutation Gate (advisory)",
       "classe": "gate"
     },
+    "mv-metabolismo.yml": {
+      "nome": "MV metabolismo (batimento nightly do Módulo Vivo · stream MV · sinais vitais + proposta de batch via auto-PR SEM auto-merge — merge Wagner = aprova batch)",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "sinal de custo: decisão Wagner 2026-07-05 ('o software deve amadurecer e se tornar vivo por módulo') — hoje Wagner é o único agregador/despachante manual da frota (234 telas, 25 casos.md); arte memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.3-§3.6 + roadmap SDD stream MV (MV2). Determinístico zero-LLM; NUNCA cria task/merge (publication-policy); nunca entra em required (lei ADR 0314)."
+    },
+    "negocio-vs-governanca-ratio.yml": {
+      "nome": "Ratio negócio × governança (sentinela anti-atrofia) — mede o FLUXO de merges (first-parent, janela 4 semanas) classificado em NEGÓCIO (A+B) × GOVERNANÇA-META (C) × INFRA, e emite ::warning + summary quando governança domina. Cron semanal (seg 09h50 UTC). NÃO bloqueia: a ADR 0334 §5 rejeitou o teto rígido ≤35% (criminalizaria CAPEX legítimo) — é trend-alarm, aponta onde olhar.",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "ADR 0334 (invariante anti-atrofia da inteligência de negócio) §Consequências — a ADR entregou a sentinela + prometeu o \"wiring do alarme como workflow advisory semanal\" e deixou como decisão de custo do [W]; [W] autorizou 2026-07-17. Sinal de custo MEDIDO: até este PR o único invocador do script fora de memory/ era o próprio .test.mjs (correção-do-mecanismo ≠ invocação, proibicoes §5 2026-07-09) — o crossover de junho (governança 8× negócio) passou silencioso e o 3,4× de 2026-07-17 (1311 merges: 228 negócio × 778 governança, 77% > limiar 65%) só apareceu porque um verificador rodou na mão."
+    },
+    "nfebrasil-pest.yml": {
+      "nome": "NfeBrasil · Pest (MySQL) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b",
+      "classe": "gate",
+      "terminal": "required",
+      "anchor": "âncora improvada G1b verde-real (memory/sessions/2026-06-23-robustez-anchor-reavaliada-150-clientes.md) — risco fiscal ×150 clientes: 34/45 testes pulam no sqlite, verde@ mentiria · required mantido LEI pela ADR 0314; nome sem \"advisory\" desde o rename P14 2026-07-01"
+    },
     "no-mock-gate.yml": {
       "nome": "No-mock-in-prod ratchet (stub/mock em controller)",
       "classe": "gate"
+    },
+    "outcome-metrics.yml": {
+      "nome": "Outcome metrics (advisory · medidor de aceitação Cowork→code · rework/revert/first-pass via SYNC_LOG proxy + git Pages/*.tsx · Onda O1)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "ADR 0294 (loop/porta de saída) + ADR 0105 (sinal qualificado) — Onda O1 medidor de aceitação",
+      "promote_by": "2026-09-30"
     },
     "pageheader-gate.yml": {
       "nome": "PageHeader migration guard (F4 · congela header antigo)",
       "classe": "gate"
     },
-    "handoff-integrity.yml": {
-      "nome": "Handoff Integrity (advisory · fila ↔ prompts)",
-      "classe": "gate"
+    "pageheader-tabs-fidelity-gate.yml": {
+      "nome": "PageHeaderTabs Fidelity — aba ativa fiel ao protótipo (radius 0 · accent · font 600)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "ADR proposta 2026-07-15-tab-nav-canonico-e-componente-por-papel (máquina d) + bug tab-nav 2026-07 (rounded-md + dark quebrado, [W] pegou no olho). DS é qualidade/higiene, não Tier-0 → advisory (ADR 0271/0314). Custo: regressão de fidelidade da barra de abas de topo sem alarme.",
+      "promote_by": "2026-09-30"
     },
     "phpstan-baseline-regen.yml": {
       "nome": "PHPStan baseline regen (manual)",
@@ -412,18 +441,30 @@
       "nome": "PHPStan / Larastan (ADR 0208)",
       "classe": "gate"
     },
+    "plan-health-gate.yml": {
+      "nome": "Plan Health Gate (advisory · planos órfãos/podres · sentinela plan-health.mjs --check · ADR 0294 Onda 1)",
+      "classe": "gate"
+    },
+    "ponto-pest.yml": {
+      "nome": "Ponto · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-31",
+      "anchor": "sinal de custo: Ponto não tinha lane MySQL de PR nenhuma — o guard Tier 0 cross-tenant do Ponto (ADR 0093 · Wave27CrossTenantEscalaTest) só rodava na nightly não-required (invisível a todo merge). A triagem #4454→#4474 provou que testes Tier-0 mascarados por FK-1452 ficavam vermelhos invisíveis por ~2 meses (inclusive o vazamento real ScopeByBusinessViaParent). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); promote_by força a decisão de promoção a required em 14d em vez de advisory eterno."
+    },
+    "pr-critic-precisao.yml": {
+      "nome": "pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + por severidade · via bloco machine-readable no comentário + commits · weekly schedule + dispatch)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "Grade v3 — fecha a última fraqueza 'critic no loop de PR' (3→6): sem medir a própria precisão, ninguém sabe se o critic ajuda ou vira ruído ignorado (lição #4038 adr-proposto-parado). DECONFLITO (4 medidores, 1 fato=1 lugar): NÃO é outcome-metrics (design-loop) nem agent-pr-outcomes (DORA) nem casos-gate (cobertura) — mede se o CRÍTICO acerta. Taxa-de-AÇÃO, não taxa-de-verdade (critic é advisory). Self-test hermético (agiu/ignorado morde) na suíte governance-script-tests.",
+      "promote_by": "2026-09-30"
+    },
     "pr-critic.yml": {
       "nome": "pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/casos/gap/map — coleta.mjs determinístico testado); um FINDER contexto-ZERO propõe se o diff CONTRADIZ o contrato citado (trava mecânica de citação literal descarta achado sem âncora) e cada candidato passa por VERIFICAÇÃO POR LENTES DIVERSAS (3 lentes cegas votam; sobrevive quem a maioria confirma — reduz falso-positivo que a citação sozinha não pega). NÃO valida cobertura (casos-gate) nem estética (pr-ui-judge-manual). Sem kill-switch dormente: chave = presença do secret ANTHROPIC_API_KEY/OPENAI_API_KEY; sem secret roda só a parte determinística + ::notice. Precisão do próprio critic medida por pr-critic-precisao.yml (loop fechado, grade v3).",
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2026-07-23",
       "anchor": "sinal de custo: grade-das-réguas 2026-07-09 ataque ① — única fraqueza CONFIRMADA 3/10 na re-verificação (zero critic automático em PR de agente; pr-ui-judge.yml deletado na ADR 0271 onda 2 como teatro dormente; ultrareview é manual). Implementa arte 2026-06-22 §3 gap #5. Advisory por ADR 0314 (crítica LLM é quality, não Tier-0); promote_by cobra a decisão em 14d — promover a required exige reabrir a 0314 pro item (lei das proibições)."
-    },
-    "devcontainer-firewall.yml": {
-      "nome": "devcontainer firewall (egress default-deny · chip C7) — prova que o firewall do devcontainer do agente MORDE (corta host fora da allowlist) e SOLTA (deixa passar github/anthropic/oimpresso/CT100/Hostinger que o trabalho exige). 3 steps: (1) controle do probe — SEM firewall example.com responde 200, senao o 'bloqueado' do step 2 nao distingue firewall de rede quebrada; (2) bite+release com firewall; (3) fail-loud — sem NET_ADMIN o script morre em vez de rodar com a rede aberta se achando protegido.",
-      "classe": "meta",
-      "terminal": "cron",
-      "anchor": "sinal de custo: dimensao seguranca-do-agente 5,0/10 na grade 2026-07-17 — '30 hooks PreToolUse com exit 2 (forte) + ZERO controle de ambiente (fraco)'. Toda a defesa e SINTATICA (regex sobre o comando) e regex nao enumera a classe que nao conhece: o corpus de injection documenta 4 caminhos UNGUARDED (curl exfil, gh api, gh pr merge, node -e) que nenhum hook cobre. Este e o UNICO controle de TIPO diferente (corta a saida, nao adivinha o comando). Ref: devcontainer do Claude Code + sandbox Anthropic (gVisor + MITM). Decisao [W] 2026-07-17 (faseado: portar hooks #4416 primeiro, C7 depois sobre base cross-plataforma — fazer antes deixaria os .ps1 no-op silencioso em Linux). terminal=cron (NAO advisory, sem promote_by): o fim-de-vida E path-filter + cron; virar required exige reabrir a ADR 0314 (egress de devcontainer nao e Tier-0 de merge). Provado em CI porque o Docker Desktop do [W] estava PARADO em 2026-07-17 — sem o CI o firewall nasceria sem nunca ter sido visto funcionar. Alvo do controle e example.com (resolve/responde), NUNCA .example: TLD reservado falharia por DNS mesmo sem firewall — o falso-verde que matou a ADR 0290. Hard-fail intencional: nao adicionar continue-on-error (lapide §5 2026-07-09)."
     },
     "prompt-injection-corpus.yml": {
       "nome": "prompt-injection corpus (red-team do agente · OWASP LLM01) — invoca .claude/governance-eval/prompt-injection-corpus.mjs: alimenta aos hooks REAIS as ações induzidas por injection vinda de dado que o agente LÊ (db-row, WhatsApp inbound, doc do MCP, WebFetch) e assere o backstop. Camada A = ratchet (6 cenários; exit 1 se block-destructive/pii-redactor pararem de morder). Camada B = 4 caminhos UNGUARDED reportados, não falham (exfil via curl, gh api, gh pr merge, node -e) — fechá-los toca o modelo de permissão = decisão [W]. Step 2 (settings-backstop-registration.test.mjs) prova que o backstop segue REGISTRADO no settings.json: sem ele o step 1 fica VERDE com a defesa desligada (medido 2026-07-17 — o corpus invoca o hook pelo caminho do arquivo, então prova a lógica e não a ativação).",
@@ -435,9 +476,23 @@
       "nome": "Protection Drift — baseline de required checks + watchdog de staleness (advisory PERENE · cron diário 10:10 UTC — GT-G4, ADR 0275 §5/§3)",
       "classe": "meta"
     },
+    "pt-conformance.yml": {
+      "nome": "ds-pt-conformance (advisory) — torna 'herda PT-0X' no charter FALSIFICÁVEL: verifica que a tela tem a assinatura estrutural do Padrão de Tela declarado (PT-02 exige <form>, PT-05 exige board dnd-kit). Mismatch grosso dos 5 arquétipos; complementa reconcile-triplet (slot-parity fino do PT-01).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "revisão adversarial 2026-07-11 (decisão B do Wagner): declarar PT no charter sem verificar a tela é count-pump (design-coverage conta a string). Este gate faz a declaração falsificável — pré-requisito pra a cobertura de design ser correção, não forma. Advisory por ADR 0314; promote_by força decisão em 14d."
+    },
     "quick-sync.yml": {
       "nome": "Quick Sync (manual escape — auto-deploy agora é deploy.yml)",
       "classe": "deploy"
+    },
+    "reconcile-triplet.yml": {
+      "nome": "Reconcile triplet (advisory · paridade por setor 3-way charter↔protótipo↔produção · 6 slots PT-01 · reconcile-triplet.mjs --all + charter-blueprint-pointers.mjs · self-test que morde)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Onda reconcile-triplet (o loop design→code comparava 2-way protótipo×código e o CHARTER não era coluna · quando o protótipo contradiz o charter o conflito SOME e o diff vira lixo · custo provado: Produto · charter MANDA card-grid, produção É card-grid, mas protótipo Cowork de hoje é lista densa + 3 ponteiros de protótipo apontam pro vácuo). PT-01-Lista.md (6 slots canônicos) + DesignIngestPlanner.php (conceito do diff por content-sha).",
+      "promote_by": "2026-09-20"
     },
     "repair-shared-vocab.yml": {
       "nome": "Repair shared vocabulary guard",
@@ -451,24 +506,22 @@
       "nome": "Scope Guard (anti-drift)",
       "classe": "gate"
     },
-    "handoff-scope-guard.yml": {
-      "nome": "Handoff Scope Guard (files_json · escopo duro do handoff de design, ADR 0283 Fase 0)",
-      "classe": "gate"
-    },
-    "handoff-sign-submit.yml": {
-      "nome": "Handoff Sign & Submit (on-push · assina HMAC + POST handoff-submit → pending; advisory · PR-6b ADR 0283)",
-      "classe": "automacao"
-    },
     "screen-coverage-gate.yml": {
       "nome": "Screen Coverage Gate (catraca de cobertura)",
       "classe": "gate"
     },
-    "sells-pest.yml": {
-      "nome": "Sells · Pest (MySQL)",
+    "screen-grades-ratchet.yml": {
+      "nome": "Screen grades ratchet (nota 16-dim de tela não desce vs origin/main · advisory · robusto contra burla do baseline_anterior)",
       "classe": "gate",
       "terminal": "advisory",
-      "promote_by": "2026-08-10",
-      "anchor": "Varredura contada 2026-07-27: NENHUMA das 9 lanes `DB_CONNECTION: mysql` inclui Sells, e 0 dos 214 alvos de .github/ci-sqlite-pest.list é de tests/Feature/Sells/ — os 72 arquivos de teste de Sells não rodavam em CI nenhum (proibição Tier 0 'Tests sem CI = falsa cobertura'). Custo real: Sells/Show.tsx chegou ao TOPO do débito Tier-0 (exposicao-tier0.mjs score 11, dinheiro+estoque+fiscal) com cobertura só ESTRUTURAL (file_get_contents + match de string), e o Wave1ShowInertiaTest está vermelho sem ninguém ver (assere 'vendas-cockpit' num charter que diz 'vendas-page.jsx'). Nasce com SellsShowContratoTest (UC-VSHOW-01..07 de Show.casos.md): isolamento multi-tenant, gate das 3 permissões, view_own_sell_only, KPIs de dinheiro, defer, GET leitura pura, trilha CU-07. Reusa .github/actions/pest-mysql-setup (seed biz=1 + biz=2). Advisory com skip-as-pass (mesmo padrão essentials-pest/estoque-pest); promoção a required é passo [W]. Refs ADR 0093, ADR 0101, ADR 0264, ADR 0271 onda 2, PR #4877"
+      "promote_by": "2026-07-20",
+      "anchor": "sinal de custo: adversário de arquitetura 2026-07-06 achado V4·alta — o script scripts/qa/screen-grades-ratchet.mjs existia mas NENHUM workflow o rodava; nota podia descer/inflar em silêncio enquanto vital-signs.mjs:30 e os 224 YAMLs afirmavam que a catraca defendia (mentira estrutural). A fila do metabolismo MV prioriza por essa nota. Advisory por lei (ADR 0314 — nota de tela é quality, não Tier-0); promote_by força a decisão de promoção em 14d em vez de advisory eterno."
+    },
+    "screen-smoke-after-merge.yml": {
+      "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "sinal de custo: ADR 0164 §9.4 (pendência nunca feita — a skill tela-smoke-pos-merge referenciava ESTE workflow inexistente, então o smoke visual dependia de um humano-no-loop) + gap PR #3945 (item de menu 'Suporte' não é uma tela → mudança de navegação não disparava smoke) + feedback-deploy-smoke-browser-obrigatorio §6 INCONDICIONAL (Wagner 2026-07-08: 'nemme pergunte mais isso é sempre sim automatize isso'). Mecanismo Playwright + OpenAI vision em runner ubuntu (Wagner 2026-07-08 'use o openai') — supersede o browser-MCP-CT100 da 1ª versão (ADR 0164 §3, emenda append-only follow-up); ADR 0062 intacto (runner efêmero ≠ daemon no host errado). NUNCA required (roda pós-deploy, não valida PR); nunca cria task/merge sem HITL (único HITL = merge R10)."
     },
     "sdd-scorecard-publish.yml": {
       "nome": "SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279)",
@@ -482,9 +535,43 @@
       "nome": "SDD Scorecard meta-catraca (advisory · determinismo + staleness + ratchet vs baseline — GT-G3, ADR 0275)",
       "classe": "meta"
     },
+    "sells-pest.yml": {
+      "nome": "Sells · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-10",
+      "anchor": "Varredura contada 2026-07-27: NENHUMA das 9 lanes `DB_CONNECTION: mysql` inclui Sells, e 0 dos 214 alvos de .github/ci-sqlite-pest.list é de tests/Feature/Sells/ — os 72 arquivos de teste de Sells não rodavam em CI nenhum (proibição Tier 0 'Tests sem CI = falsa cobertura'). Custo real: Sells/Show.tsx chegou ao TOPO do débito Tier-0 (exposicao-tier0.mjs score 11, dinheiro+estoque+fiscal) com cobertura só ESTRUTURAL (file_get_contents + match de string), e o Wave1ShowInertiaTest está vermelho sem ninguém ver (assere 'vendas-cockpit' num charter que diz 'vendas-page.jsx'). Nasce com SellsShowContratoTest (UC-VSHOW-01..07 de Show.casos.md): isolamento multi-tenant, gate das 3 permissões, view_own_sell_only, KPIs de dinheiro, defer, GET leitura pura, trilha CU-07. Reusa .github/actions/pest-mysql-setup (seed biz=1 + biz=2). Advisory com skip-as-pass (mesmo padrão essentials-pest/estoque-pest); promoção a required é passo [W]. Refs ADR 0093, ADR 0101, ADR 0264, ADR 0271 onda 2, PR #4877"
+    },
+    "shipped-log-cron.yml": {
+      "nome": "Shipped log cron (auto-PR + auto-merge · regenera registro de entrega do cycle · porta de saída ADR 0294)",
+      "classe": "automacao"
+    },
+    "shipped-log-gate.yml": {
+      "nome": "Shipped log gate (advisory · freshness do registro de entrega via --check · porta de saída ADR 0294)",
+      "classe": "gate"
+    },
+    "status-badge-fidelity-gate.yml": {
+      "nome": "StatusBadge Fidelity — pílula de status fiel ao protótipo (rounded-full · token -soft/-fg dark-aware)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "ADR proposta 2026-07-15-tab-nav-canonico-e-componente-por-papel — Onda status-badge (mesmo tripé da máquina d do tab-nav). Trava o contrato dark-aware do <Badge variant> (cor mora em token -soft/-fg, nunca palette cru) vs .cli-status-pill do protótipo Cowork; controle-negativo do detector de cor-crua (ADR 0258). DS é qualidade/higiene, não Tier-0 → advisory (ADR 0271/0314). Custo: regressão de cor de status em palette cru quebra o dark sem alarme (mesmo vetor do bug tab-nav 2026-07).",
+      "promote_by": "2026-09-30"
+    },
     "stylelint-gate.yml": {
       "nome": "Stylelint CSS anti-drift (G5 · ADR 0209)",
       "classe": "gate"
+    },
+    "system-map.yml": {
+      "nome": "system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md e ONBOARDING-AGENTE-GERADO.md das fontes canônicas. Painel derivado + prompt auxiliar da rota de agentes; nenhum deles redefine a porta global README.md. --check advisory no PR + regen diário commit-back.",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "Wagner 2026-07-12: 'deveria ser a máquina matriz que não quebra e sempre mantém atualizado'. Reusa o padrão brief/scorecard/índice-ADR (ADR 0091/0275/0258). proposal painel-sistema-matriz-gerada.md."
+    },
+    "teammcp-pest.yml": {
+      "nome": "TeamMcp · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca allowlist verde, espelha arquivos-pest",
+      "classe": "gate",
+      "terminal": "required",
+      "anchor": "REQUIRED via emenda ADR 0354 à 0314 (3ª exceção formal à regra 'required = só Tier-0', mesmo processo da 0327/0347: emenda + flip [W] explícito — [W] 2026-07-27: 'Promova'). Override de cadência CONSCIENTE: a 0336 DR-2 pede ≥2 mordidas reais e esta lane tem ZERO (nasceu 2026-07-27 com 1 corrida verde) — promovida por argumento estrutural, não por evidência de mordida; risco residual mitigado por skip-as-pass (blast radius só em PR que toca TeamMcp) + catraca de allowlist de 1 arquivo + gate de reversão da 0354. Precedente de classe: `PHP / Pest (Financeiro · MySQL)` e `(NfeBrasil · MySQL)` já são required. || sinal de custo MEDIDO (2026-07-27, #4887): `ForjaRoutesSmokeTest` existia desde a Onda Forja e NUNCA executou uma vez — TeamMcp fora do matrix do modules-pest.yml (que nem emite JUnit) + só 7 dos 26 arquivos na lista sqlite = 19 sem lane nenhuma. Rodado no CT 100: 7 failed / 5 passed (rota `forja.saude` inexistente + dataset associativo com `it()` de 2 args); o happy-path de UC-FORJA-01 jamais rodou, e UC-FORJA-01/07 eram órfãos no G-2. Sem esta lane o JUnit do módulo não chega ao casos-results-publish (elo do G-7, ADR 0264)."
     },
     "tier0-guards-advisory.yml": {
       "nome": "Tier-0 guards (WithoutGlobalScopes + BusinessId)",
@@ -498,89 +585,9 @@
       "nome": "Visual Regression (Pest 4 Browser)",
       "classe": "gate"
     },
-    "shipped-log-cron.yml": {
-      "nome": "Shipped log cron (auto-PR + auto-merge · regenera registro de entrega do cycle · porta de saída ADR 0294)",
-      "classe": "automacao"
-    },
-    "shipped-log-gate.yml": {
-      "nome": "Shipped log gate (advisory · freshness do registro de entrega via --check · porta de saída ADR 0294)",
+    "xss-content-gate.yml": {
+      "nome": "XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo)",
       "classe": "gate"
-    },
-    "dup-detector-gate.yml": {
-      "nome": "Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate)",
-      "classe": "gate"
-    },
-    "outcome-metrics.yml": {
-      "nome": "Outcome metrics (advisory · medidor de aceitação Cowork→code · rework/revert/first-pass via SYNC_LOG proxy + git Pages/*.tsx · Onda O1)",
-      "classe": "automacao",
-      "terminal": "advisory",
-      "anchor": "ADR 0294 (loop/porta de saída) + ADR 0105 (sinal qualificado) — Onda O1 medidor de aceitação",
-      "promote_by": "2026-09-30"
-    },
-    "agent-pr-outcomes.yml": {
-      "nome": "Agent PR outcomes (advisory · DORA dos PRs do agente · change-failure-rate + accept-rate + time-to-merge via gh pr list · weekly schedule + dispatch · card #0 grade-das-réguas 2026-07-09)",
-      "classe": "automacao",
-      "terminal": "advisory",
-      "anchor": "Dossiê grade-das-réguas card #0 'Evals de outcome' (Roubo #4): substituir 'zero evals de outcome' por número real (régua Codex/Cognition). DECONFLITO com outcome-metrics (design-loop) — eixo DORA-de-PR, não fidelidade de tela. Self-test hermético (CFR morde/libera) na suíte governance-script-tests.",
-      "promote_by": "2026-09-30"
-    },
-    "agent-cost-per-pr.yml": {
-      "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de ALOCAÇÃO do dinheiro + resíduo decomposto · calibração derivada do dado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12; revisado 2026-07-17)",
-      "classe": "automacao",
-      "terminal": "advisory",
-      "anchor": "Ranking adversarial 2026-07-12 item #7: fecha a última régua 'só verbal' — custo-eficiência nota 3 porque 'economize crédito' não tinha NÚMERO. Fonte Langfuse DERRUBADA pelo adversário; fonte viável = JSONL local do Claude Code (mesma do cc-watcher). DECONFLITO com agent-pr-outcomes (DORA) — este mede o CUSTO do mesmo transporte. Revisão 2026-07-17 (grade evals-outcome): a unidade de custo é a SESSÃO (o gasto vive na branch da worktree; o branch do PR só marca a cauda — atribuir por mensagem descartava o corpo); cobertura passou a ser do lado do DINHEIRO (atribuído/escaneado, FinOps) e não do lado do PR (que dizia 0% enquanto 88% do dinheiro não tinha dono); janela coerente pros dois lados; cap do fetch declarado; resíduo (sessão sem PR) decomposto — NÃO é buraco de join (medido: 5/6 branches de maior resíduo sem PR algum → casar por SHA não recupera, lápide §5). Calibração (limiar de idade, velocidade) DERIVADA do dado, não cravada. Honestidade: CI só roda selftest + renderiza snapshot commitado com staleness DECLARADA e limiar derivado da janela (G5, anti-teatro ADR 0271); USD/tokens apenas, sem R$ (Tier 0). Self-test hermético na suíte governance-script-tests.",
-      "promote_by": "2026-09-30"
-    },
-    "pr-critic-precisao.yml": {
-      "nome": "pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + por severidade · via bloco machine-readable no comentário + commits · weekly schedule + dispatch)",
-      "classe": "automacao",
-      "terminal": "advisory",
-      "anchor": "Grade v3 — fecha a última fraqueza 'critic no loop de PR' (3→6): sem medir a própria precisão, ninguém sabe se o critic ajuda ou vira ruído ignorado (lição #4038 adr-proposto-parado). DECONFLITO (4 medidores, 1 fato=1 lugar): NÃO é outcome-metrics (design-loop) nem agent-pr-outcomes (DORA) nem casos-gate (cobertura) — mede se o CRÍTICO acerta. Taxa-de-AÇÃO, não taxa-de-verdade (critic é advisory). Self-test hermético (agiu/ignorado morde) na suíte governance-script-tests.",
-      "promote_by": "2026-09-30"
-    },
-    "design-memory-gate.yml": {
-      "nome": "Design-memory gate (advisory · FUNDIDO ADR 0314 F2 de 3 workflows: registry-check ex-component-registry O2 + gates ex-design-memory-gates §8/§15 + prove ex-dtcg-equivalence Onda DTCG; 1 job por sub-check, todos os self-tests preservados)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "ADR 0314 F2 (poda onda 2 · fusão de 3 advisory de design-memory) sobre: Onda O2 (registro bloco→componente) + prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 (ds-guard + integrity-check) + ADR 0239/0249 (DTCG ↔ CSS canônico). Custo: drift de tradução handoff Cowork + paleta inventada + token DTCG divergente.",
-      "promote_by": "2026-09-30"
-    },
-    "reconcile-triplet.yml": {
-      "nome": "Reconcile triplet (advisory · paridade por setor 3-way charter↔protótipo↔produção · 6 slots PT-01 · reconcile-triplet.mjs --all + charter-blueprint-pointers.mjs · self-test que morde)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "Onda reconcile-triplet (o loop design→code comparava 2-way protótipo×código e o CHARTER não era coluna · quando o protótipo contradiz o charter o conflito SOME e o diff vira lixo · custo provado: Produto · charter MANDA card-grid, produção É card-grid, mas protótipo Cowork de hoje é lista densa + 3 ponteiros de protótipo apontam pro vácuo). PT-01-Lista.md (6 slots canônicos) + DesignIngestPlanner.php (conceito do diff por content-sha).",
-      "promote_by": "2026-09-20"
-    },
-    "ds-gate.yml": {
-      "nome": "DS gate (fusão F1 — cor/UI/css/index/bundle/scorer · ADR 0314)",
-      "classe": "gate"
-    },
-    "pt-conformance.yml": {
-      "nome": "ds-pt-conformance (advisory) — torna 'herda PT-0X' no charter FALSIFICÁVEL: verifica que a tela tem a assinatura estrutural do Padrão de Tela declarado (PT-02 exige <form>, PT-05 exige board dnd-kit). Mismatch grosso dos 5 arquétipos; complementa reconcile-triplet (slot-parity fino do PT-01).",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-07-25",
-      "anchor": "revisão adversarial 2026-07-11 (decisão B do Wagner): declarar PT no charter sem verificar a tela é count-pump (design-coverage conta a string). Este gate faz a declaração falsificável — pré-requisito pra a cobertura de design ser correção, não forma. Advisory por ADR 0314; promote_by força decisão em 14d."
-    },
-    "detect-ui-drift.yml": {
-      "nome": "detect-ui-drift — M1 (advisory) — eixo de AUTORIZAÇÃO: quando uma .tsx de tela muda num PR, exige sinal FRESCO no mesmo PR (divergence_from_blueprint com razão real no charter irmão · OU related_prototype mudou pra protótipo real · OU entrada nova no SYNC_LOG citando a tela). Sem sinal → 🚩 mudança não-declarada. Mede VALOR SEMÂNTICO do campo (não presença — L-24). Self-test morde/libera; ::warning:: + job summary (visível). Detecção-only, nunca edita a tela.",
-      "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-07-26",
-      "anchor": "Wagner 2026-07-11/12 (dor textual): 'cada customização não é pega como alteração da máquina — parece que não sabe que alterou.' Custo provado: desastre do Financeiro (PRs #1085→#1091→#1092 — cores erradas, abas faltando, textos colados) — telas quebradas por cherry-pick sem declaração. As máquinas existentes respondem 'o QUE mudou' (design-spec ADR 0255) / 'está bonito' (design-diff ADR 0299), NENHUMA respondia 'foi AUTORIZADA?'. Interseção vazia (mapa como-integrar 2026-07-11). Advisory por ADR 0314 (autorização de UI é quality, não Tier-0 dinheiro/PII/multi-tenant/fiscal); promote_by força decisão de promoção a --strict em 14d. Reusa fmScalar (reconcile-triplet:68) + forma diff-aware (design-return-gate.yml) + SYNC_LOG (loop Cowork↔Code) — zero vocabulário novo. Norma defendida: RESPEITAR-PROTOTIPO.md."
-    },
-    "casos-results-publish.yml": {
-      "nome": "Casos results publish — colhe o JUnit das lanes (que já emitem --log-junit) e aterrissa o veredito por-UC em scripts/casos-test-results.json, fonte do G-7 do casos-gate; auto-PR + auto-merge (main protegido = GH013)",
-      "classe": "automacao",
-      "terminal": "cron",
-      "anchor": "ADR 0264 (G-7: Status do UC vem do veredito REAL do teste) · custo medido 2026-07-16: manifesto alimentado À MÃO fazia exec_backed_pct medir CADÊNCIA DE BOOKKEEPING, não qualidade — UC-F04/UC-F05 com Pest verde na lane required financeiro-pest valiam 0, e UC-S02 (vetor da venda inflada ×100k, fix #2279) idem; colheita real dos 7 JUnits: 15 → 25 UCs (10% → 17%)"
-    },
-    "negocio-vs-governanca-ratio.yml": {
-      "nome": "Ratio negócio × governança (sentinela anti-atrofia) — mede o FLUXO de merges (first-parent, janela 4 semanas) classificado em NEGÓCIO (A+B) × GOVERNANÇA-META (C) × INFRA, e emite ::warning + summary quando governança domina. Cron semanal (seg 09h50 UTC). NÃO bloqueia: a ADR 0334 §5 rejeitou o teto rígido ≤35% (criminalizaria CAPEX legítimo) — é trend-alarm, aponta onde olhar.",
-      "classe": "automacao",
-      "terminal": "cron",
-      "anchor": "ADR 0334 (invariante anti-atrofia da inteligência de negócio) §Consequências — a ADR entregou a sentinela + prometeu o \"wiring do alarme como workflow advisory semanal\" e deixou como decisão de custo do [W]; [W] autorizou 2026-07-17. Sinal de custo MEDIDO: até este PR o único invocador do script fora de memory/ era o próprio .test.mjs (correção-do-mecanismo ≠ invocação, proibicoes §5 2026-07-09) — o crossover de junho (governança 8× negócio) passou silencioso e o 3,4× de 2026-07-17 (1311 merges: 228 negócio × 778 governança, 77% > limiar 65%) só apareceu porque um verificador rodou na mão."
     }
   }
 }

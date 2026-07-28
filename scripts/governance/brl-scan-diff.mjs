@@ -57,6 +57,31 @@ export function carregarAllowlist(path = ALLOWLIST) {
     .filter((l) => l && !l.startsWith('#'));
 }
 
+/**
+ * Arquivos da PRÓPRIA ferramenta — isentos por construção.
+ *
+ * Precedente literal: o job `pii-scan` do governance-gate.yml exclui
+ * `.github/scripts/pii-scan.sh` e `.github/pii-scan-allowlist.txt` do que ele varre.
+ * Mesma razão aqui, e ela apareceu na 1ª execução real: o hook e este scanner
+ * DOCUMENTAM o predicado com exemplos (`| MRR | R$ [redacted Tier 0] | R$ 5.000,00 |`
+ * é o comentário que explica o bypass corrigido). Sem esta isenção o gate acusa a
+ * própria documentação — 16 hits, todos falso-positivo.
+ *
+ * É isenção estreita e nomeada, NÃO allowlist de pasta: só os 4 arquivos que
+ * implementam ou configuram a defesa. Qualquer outro arquivo segue varrido.
+ */
+const ARQUIVOS_DA_FERRAMENTA = [
+  '.claude/hooks/block-brl-values-in-memory.mjs',
+  'scripts/governance/brl-scan-diff.mjs',
+  '.github/brl-scan-allowlist.txt',
+  '.github/workflows/brl-scan.yml',
+];
+
+export function ehArquivoDaFerramenta(arquivo) {
+  const p = String(arquivo || '').replace(/\\/g, '/');
+  return ARQUIVOS_DA_FERRAMENTA.includes(p);
+}
+
 /** Extrai só as linhas ADICIONADAS de um diff unificado, com o arquivo de origem. */
 export function linhasAdicionadas(diffText) {
   const out = [];
@@ -65,15 +90,21 @@ export function linhasAdicionadas(diffText) {
     if (raw.startsWith('+++ b/')) { arquivo = raw.slice(6); continue; }
     if (raw.startsWith('+++') || raw.startsWith('---')) continue;
     if (!raw.startsWith('+')) continue;
-    out.push({ arquivo, linha: raw.slice(1) });
+    out.push({ arquivo, linha: raw.slice(1), isento: ehArquivoDaFerramenta(arquivo) });
   }
   return out;
+}
+
+/** As que efetivamente vão ao predicado (tira os arquivos da própria ferramenta). */
+export function varriveis(adicionadas) {
+  return (adicionadas || []).filter((a) => !a.isento);
 }
 
 /** Aplica o predicado do HOOK (fonte única) + allowlist. */
 export function acharVazamentos(adicionadas, allow = []) {
   const hits = [];
-  for (const { arquivo, linha } of adicionadas) {
+  for (const { arquivo, linha, isento } of adicionadas) {
+    if (isento) continue; // a defesa documenta a si mesma
     if (allow.some((a) => linha.includes(a))) continue;
     // scanBrlLeak espera texto; passamos a linha isolada. Fence não se aplica a
     // linha solta de diff — e isso é DELIBERADO: um fence aberto noutro hunk não
@@ -99,6 +130,12 @@ function selftest() {
     ['acha em .yaml tambem', '+++ b/memory/g/x.yaml\n+t: R$ 999,00', 1],
     ['acha FORA de memory/ (gate cobre o repo, nao so memory)', '+++ b/README.md\n+preco R$ 50,00', 1],
     ['multiplas linhas', '+++ b/a.md\n+R$ 1,00\n+ok\n+R$ 2,00', 2],
+    // A defesa documenta a si mesma — sem isto o gate acusa o próprio comentário.
+    // Achado na 1ª execução real (16 FP, todos comentário do hook/scanner).
+    ['ISENTA o hook (documenta o predicado)', '+++ b/.claude/hooks/block-brl-values-in-memory.mjs\n+// exemplo: R$ 5.000,00', 0],
+    ['ISENTA o proprio scanner', '+++ b/scripts/governance/brl-scan-diff.mjs\n+// exemplo: R$ 1,00', 0],
+    ['ISENTA o allowlist e o workflow', '+++ b/.github/brl-scan-allowlist.txt\n+R$ 9,99', 0],
+    ['NAO isenta outro arquivo de .claude/hooks', '+++ b/.claude/hooks/outro.mjs\n+R$ 9,99', 1],
   ];
   let ok = 0;
   const falhas = [];
@@ -143,6 +180,20 @@ function main() {
       console.error('brl-scan-diff: falta --base <sha> (ou --stdin). Falha visível, não exit 0 silencioso.');
       process.exit(2);
     }
+    // O base tem que ser ALCANÇÁVEL. Num checkout shallow ele não é, e aí o
+    // `git diff` devolve vazio SEM erro — o gate reportaria "0 linhas varridas"
+    // e sairia 0. Falso-verde: parece que varreu, não varreu nada.
+    // Achado testando este próprio script (2026-07-28). "Gate mudo é pior que gate
+    // ausente, porque parece cobertura."
+    try {
+      execFileSync('git', ['cat-file', '-e', `${base}^{commit}`], { stdio: 'ignore' });
+    } catch {
+      console.error(`brl-scan-diff: base ${base} NÃO é alcançável neste checkout.`);
+      console.error('Provável causa: clone shallow. No CI use `fetch-depth: 0`.');
+      console.error('Falha VISÍVEL de propósito — exit 0 aqui seria falso-verde.');
+      process.exit(2);
+    }
+
     let diff;
     try {
       diff = execFileSync('git', ['diff', '--unified=0', `${base}...HEAD`], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
@@ -151,10 +202,24 @@ function main() {
       process.exit(2);
     }
     adicionadas = linhasAdicionadas(diff);
+
+    // Diff vazio com HEAD != base é sinal de instrumento quebrado, não de PR limpo.
+    // Conta o TOTAL adicionado (inclui isentos) — um PR que só toca a própria
+    // ferramenta é legítimo e teria 0 varríveis sem estar cego.
+    if (adicionadas.length === 0) {
+      let head = '';
+      try { head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { /* ignore */ }
+      if (head && !head.startsWith(String(base).slice(0, 7))) {
+        console.error(`brl-scan-diff: 0 linhas adicionadas entre ${String(base).slice(0, 10)} e HEAD — suspeito.`);
+        console.error('Um PR com commits sempre tem linha adicionada. Instrumento provavelmente cego.');
+        process.exit(2);
+      }
+    }
   }
 
   const hits = acharVazamentos(adicionadas, allow);
-  console.log(`brl-scan-diff: ${adicionadas.length} linha(s) adicionada(s) varrida(s); allowlist com ${allow.length} entrada(s).`);
+  const nIsentas = adicionadas.filter((a) => a.isento).length;
+  console.log(`brl-scan-diff: ${adicionadas.length} linha(s) adicionada(s); ${adicionadas.length - nIsentas} varrida(s), ${nIsentas} isenta(s) (arquivos da própria ferramenta); allowlist com ${allow.length} entrada(s).`);
 
   if (!hits.length) {
     console.log('OK — nenhum valor BRL não-redigido nas linhas novas.');
