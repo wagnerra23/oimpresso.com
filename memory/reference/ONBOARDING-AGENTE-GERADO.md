@@ -43,7 +43,7 @@ quebrar. Se algum bullet estiver vago, releia a fonte.
 
 ## Estado vivo (não apodrece — é derivado)
 
-- **37 módulos** · **360 ADRs** — detalhe + frescor no [PAINEL-SISTEMA.md](PAINEL-SISTEMA.md) (gerado junto deste).
+- **37 módulos** · **361 ADRs** — detalhe + frescor no [PAINEL-SISTEMA.md](PAINEL-SISTEMA.md) (gerado junto deste).
 - Estado consolidado agora: rode `brief-fetch`.
 - Regras Tier 0 + o que já falhou: [proibicoes.md](../proibicoes.md).
 - Como o sistema é construído: `CLAUDE.md` (carrega automático) + `memory/why-oimpresso.md` / `what-oimpresso.md` / `how-trabalhar.md`.
