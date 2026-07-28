@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 160 arquivos em 19 papéis.
+**Total mapeado:** 167 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -166,14 +166,18 @@ module: NfeBrasil
 - [Index.charter.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.charter.md)
 - [RegraForm.charter.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.charter.md)
 
-## Casos (contrato UC) — 2
+## Casos (contrato UC) — 6
 
+- [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Manifestacao/Index.casos.md)
+- [NfceStatus.casos.md](../../../resources/js/Pages/NfeBrasil/Transactions/NfceStatus.casos.md)
 - [ConfigDefault.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.casos.md)
+- [ImportCsv.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
+- [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 49
+## Testes (Pest) — 52
 
-- 49 arquivos em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 52 arquivos em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 4
 

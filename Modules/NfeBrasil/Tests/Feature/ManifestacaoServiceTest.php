@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 // @covers-us US-NFE-008 — manifestar NF-e recebida: ciência/confirmação/desconhecimento, justificativa ≥15 chars, idempotência (ManifestacaoService).
+// @covers-us US-NFE-050 — a MESMA superfície pelo lado da entrega: os 4 eventos NT 2014.002
+//   (210210/210200/210220/210240), justificativa ≥15 chars e idempotência são, literalmente, os
+//   acceptance criteria da US-NFE-050 (`ManifestacaoService`). A US-008 é a narrativa do operador;
+//   a 050 é o service que a entrega — e este arquivo cobre as duas sem caso novo.
 
 use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Models\NfeDfeEvento;

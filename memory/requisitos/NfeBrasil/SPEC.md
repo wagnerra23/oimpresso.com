@@ -660,6 +660,14 @@ Resgatar arquivos legados UltimatePOS órfãos e migrar pro padrão `Modules/Nfe
 
 **Implementado em:** `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` · verificado@3b425d8 (2026-06-24) — eventos 210/220/230/240 via sped-nfe (cienciar/confirmar/desconhecer/naoRealizada)
 
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ManifestacaoServiceTest.php` (covers US-NFE-050)
+
+> Os 4 eventos, a justificativa ≥15 chars (NT 2014.002) e a idempotência já eram exercitados por
+> esse arquivo desde 2026-05; faltava a declaração `@covers-us US-NFE-050` — adicionada em
+> 2026-07-28 pela corrida do [SDD](SDD-emissao-fiscal-v1.0.md). Nenhum caso novo foi escrito: a
+> US-NFE-008 é a narrativa do operador e a US-NFE-050 é o service que a entrega, e o mesmo teste
+> cobre as duas.
+
 Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` envolvendo `eduardokum/sped-nfe::Tools::sefazManifesta($chave, $tpEvento, $xJust='')`.
 
 **Acceptance criteria:**
@@ -710,6 +718,19 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php`
 > code-complete: 2026-05-09 (PR pendente) — RUNBOOK + visual-comparison approved + ManifestacaoController + Page Inertia + 3 LinkedApps + 7 testes Pest
 
 **Implementado em:** `Modules/NfeBrasil/Http/Controllers/ManifestacaoController.php` · `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` · `Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php` · verificado@3b425d8 (2026-06-24) — UI listagem XMLs recebidos + 4 botões manifestar + alerta prazo 180d
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ManifestacaoContratoTest.php` (covers US-NFE-052)
+
+> O `ManifestacaoControllerTest.php` também exercita esta superfície, mas declara `@covers-us`
+> apenas da US-NFE-008 — **não** foi reivindicado aqui: citar teste que não declara a cobertura
+> deixa o `anchor-lint` acusando *"teste existe mas não declara @covers-us"*, e reivindicar
+> cobertura que o arquivo não assume é o falso-verde que este processo existe pra matar.
+>
+> Contrato da tela em [`Index.casos.md`](../../../resources/js/Pages/NfeBrasil/Manifestacao/Index.casos.md)
+> (`UC-NFMA-01..06`). ⚠️ O `ManifestacaoContratoTest` **não** está na allowlist da lane required
+> `PHP / Pest (NfeBrasil · MySQL)` — ela é catraca por prova verde e a corrida que o escreveu não
+> roda teste ([ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)). Ratchet-up
+> proposto em [SDD §8.3](SDD-emissao-fiscal-v1.0.md).
 
 Página Inertia `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` listando NFes recebidas com ações de manifestação.
 
