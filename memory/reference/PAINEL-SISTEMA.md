@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-27**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-28**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -25,39 +25,40 @@ lifecycle: ativo
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-23 |
 | Brief | [BRIEFING](../requisitos/Brief/BRIEFING.md) | 2026-07-23 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
-| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-23 |
-| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-07-23 |
+| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-27 |
+| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-07-28 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-07-23 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-07-23 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-23 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-23 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-23 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-23 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-23 |
-| KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-23 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-27 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-27 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-27 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-27 |
+| KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-28 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
-| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-23 |
+| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-07-23 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-23 |
-| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-23 |
+| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-27 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-23 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-27 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
-| ProjectMgmt | [BRIEFING](../requisitos/ProjectMgmt/BRIEFING.md) | 2026-07-23 |
-| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-07-23 |
+| ProjectMgmt | [BRIEFING](../requisitos/ProjectMgmt/BRIEFING.md) | 2026-07-28 |
+| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-07-28 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-23 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-07-23 |
 | SRS | [BRIEFING](../requisitos/SRS/BRIEFING.md) | 2026-07-23 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-07-23 |
-| TeamMcp | [BRIEFING](../requisitos/TeamMcp/BRIEFING.md) | 2026-07-23 |
-| Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-23 |
+| TeamMcp | [BRIEFING](../requisitos/TeamMcp/BRIEFING.md) | 2026-07-28 |
+| Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
+| VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-07-28 |
 | Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-23 |
 | Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-07-23 |
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **345**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **339**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -104,26 +105,26 @@ lifecycle: ativo
 - deadlink-gate (ratchet · integridade referencial)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 113 workflows por classe
+### Censo — 115 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 83 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 85 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 
 ## Decisões (ADRs)
 
-- **359** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 327 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **360** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 328 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **3** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 48 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 55 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -172,7 +173,14 @@ lifecycle: ativo
 - ~~2026-07-26 — Comparar `node --check` de dois arquivos em CONTEXTOS DE RESOLUÇÃO DE MÓDULO diferentes (ESM × CJS) e concluir "o agente quebrou"~~
 - ~~2026-07-26 — Presence-gate que ENVELHECEU EM PRODUÇÃO: critério de "evidência" por string solta (reincidência LC-11, e a primeira que não morreu na origem)~~
 - ~~2026-07-26 — Lint que acusa `toHaveKey` em teste de contrato como "assert acoplado à chave" (100% FP medido)~~
+- ~~2026-07-27 — Decidir "o gap P0 está fechado?" por `existsSync` do artefato — o banner do PRÓPRIO loop IA-OS dizia "LOOP FECHADO" com item aberto~~
 - ~~2026-07-27 — Grade de máquina com denominador INVENTADO + métrica de outro universo lida como veredito (e a hipótese adversarial que a própria auditoria refutou)~~
+- ~~2026-07-27 — `git stash pop` (ou qualquer consumo de estado GLOBAL do repo) presumindo que a entry do topo é sua~~
+- ~~2026-07-27 — Ligar o `jana:retention-purge` (varredura automática que anonimiza PII por TTL) — DESCARTADO por [W]: num ERP não se apaga PII~~
+- ~~2026-07-27 — EMENDA da lápide 2026-07-12: a classe "tocar legado acorda gate diff-aware" tem 3 EIXOS, não só o SPEC~~
+- ~~2026-07-28 — Declarar "a máquina NÃO existe" a partir de grep estreito — e a resposta NÃO é índice novo~~
+- ~~2026-07-28 — Validar um gate rodando UM dos modos que o CI roda, e chamar de verde~~
+- ~~2026-07-28 — Lint que detecte "mensagem passada como NEEDLE" em `toContain` (o defeito é real; o lint cai na lápide do `toHaveKey`)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -180,14 +188,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **304** handoffs · **518** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **316** handoffs · **542** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-07-27-sdd-produto-fluxos-sem-tela`
-  - `2026-07-27-auditoria-camada1-sdd-mordida`
-  - `2026-07-26-upgrade-stack-ia-laravel-mcp-ai`
-  - `2026-07-26-sdd-produto-bulkedit`
-  - `2026-07-26-sdd-from-source-loop-avaliacao`
-  - `2026-07-26-reguas-grade-completa`
+  - `2026-07-28-sdd-vestuario-etiquetas`
+  - `2026-07-28-sdd-teammcp-hub`
+  - `2026-07-28-sdd-recurringbilling-cobranca-recorrente`
+  - `2026-07-28-sdd-nfebrasil-emissao-fiscal`
+  - `2026-07-28-sdd-kb-index`
+  - `2026-07-28-sdd-faltantes-fila-derivada-e-merges`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-27 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-28 · deriva das fontes canônicas, não as substitui._
