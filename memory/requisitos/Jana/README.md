@@ -81,6 +81,7 @@ Ver [`adr/arq/0001-tenancy-hibrida.md`](adr/arq/0001-tenancy-hibrida.md).
 - **[SPEC.md](SPEC.md)** — user stories e regras Gherkin
 - **[GLOSSARY.md](GLOSSARY.md)** — vocabulário canônico
 - **[RUNBOOK.md](RUNBOOK.md)** — operação: job, debug, seed
+- **[OBSERVABILITY.md](OBSERVABILITY.md)** — spans, exportadores e plano vivo do ciclo observar → avaliar → aprender
 - **[CHANGELOG.md](CHANGELOG.md)** — histórico
 - **[adr/](adr/)** — decisões por categoria (arq / tech / ui)
 
