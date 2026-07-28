@@ -276,7 +276,13 @@ it('UC-PEDIT-08 · a tela Blade declara o desligamento das 3 flags (hidden 0)', 
     Permission::findOrCreate('product.view', 'web');
     $this->user->givePermissionTo(['product.view']);
 
-    $resposta = $this->get("/products/{$p->productId}/edit");
+    // CAUSA MEDIDA (run 30384389834): sem isto o GET dava 500 —
+    // `Undefined array key "REMOTE_ADDR"` em `layouts/app.blade.php`. Requisição de Pest
+    // não tem peer de rede, e o layout legado lê `$_SERVER['REMOTE_ADDR']` direto.
+    // É limitação do ARRANJO (nenhuma relação com os 3 hidden deste PR): em prod o
+    // servidor sempre popula a variável. ARRANGE, não assert.
+    $resposta = $this->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+        ->get("/products/{$p->productId}/edit");
     $html = $resposta->getContent();
 
     // Degraus de diagnóstico: sem eles, "não achou o hidden" não distingue
