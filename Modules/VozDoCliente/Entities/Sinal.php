@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Sinal — uma dor relatada por quem usa o sistema (ADR 0105 "cliente como sinal").
  *
+ * @property int         $id
+ * @property int         $business_id
+ * @property int|null    $user_id
+ * @property string|null $autor_nome
+ * @property string      $canal
+ * @property string      $texto
+ * @property int|null    $severidade
+ * @property string|null $url_vista
+ * @property string|null $modulo_sugerido
+ * @property string      $status
+ * @property string|null $triado_para_us
+ * @property int|null    $triado_por
+ * @property string      $hash_origem
+ *
  * Tier 0 ({@see ADR 0093}): global scope de `business_id` obrigatório. O scope
  * segue o padrão canônico ({@see Modules\Arquivos\Entities\Arquivo}) — quando
  * NÃO há business em sessão (CLI, job, superadmin) ele não filtra, e a proteção

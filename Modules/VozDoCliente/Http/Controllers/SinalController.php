@@ -31,12 +31,20 @@ class SinalController extends Controller
             403
         );
 
-        // Global scope já limita ao business da sessão (Sinal::booted).
+        // Tier 0 (ADR 0093): o filtro por `business_id` vem do global scope
+        // declarado em Sinal::booted() — `where('voz_sinais.business_id', <sessão>)`.
+        // Está provado por SinalCrossTenantTest (biz=1 × biz=99), não afirmado.
+        // O `where` explícito abaixo é REDUNDANTE com o scope de propósito:
+        // defesa em profundidade, pra que a consulta continue escopada mesmo se
+        // alguém remover o scope do Model um dia sem rodar o teste.
         //
         // Ordenação portável de propósito: `FIELD()` é MySQL-only e quebraria a
         // suíte em SQLite. O CASE funciona nos dois e diz a mesma coisa —
         // pendente primeiro, fechado por último.
+        $businessId = session('user.business_id') ?? session('business.id');
+
         $sinais = Sinal::query()
+            ->where('business_id', $businessId)
             ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'triaged' THEN 1 ELSE 2 END")
             ->orderByDesc('created_at')
             ->paginate(30);
@@ -77,6 +85,18 @@ class SinalController extends Controller
             ]
         );
 
-        return back()->with('status_ok', 'Recebemos seu relato. Obrigado — ele vai pra triagem.');
+        // Convenção UltimatePOS `status` => ['success', 'msg'] — é a ÚNICA que o
+        // flash bag lê (HandleInertiaRequests: 'status.msg' + 'status.success').
+        // Eu tinha escrito `->with('status_ok', ...)`, chave que aparecia 1× no
+        // repo inteiro: aqui. Gravava o sinal e a tela não dizia nada — o mesmo
+        // modo de falha silenciosa catalogado em 2026-06-04 (venda bloqueada sem
+        // aviso). Achado pela revisão de design, não por gate.
+        //
+        // Copy sem jargão: "triagem" é vocabulário interno, não de quem opera a
+        // loja. E não promete resposta que não existe — o canal não é suporte.
+        return back()->with('status', [
+            'success' => 1,
+            'msg'     => 'Recebido. Obrigado — isso ajuda a melhorar o sistema.',
+        ]);
     }
 }
