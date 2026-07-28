@@ -33,6 +33,13 @@ uses(Tests\TestCase::class);
  *   - UPDATE direto em current_stage_id BLOQUEADO via GuardsFsmTransitions
  *   - Action critical sem role → UnauthorizedActionException (fail-secure)
  *
+ * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
+ *   UC-CV-05 — as 5 entidades do PCP também não vazam entre businesses (CU-CV-04 item 2) [T0]
+ *
+ * ⚠️ Aborta INTEIRO em SQLite — o verde da lane do PR não prova este isolamento (SDD §6 / §9 D-7).
+ *
+ * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-04
+ * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md §11 + §15 (US-COMVIS-NEW-012)
  * @see memory/requisitos/ComunicacaoVisual/ComunicacaoVisual.charter.md §7
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
