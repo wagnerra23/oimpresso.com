@@ -49,6 +49,10 @@ use Modules\Jana\Services\CharterHealthChecker;
  *      no git AUSENTE de mcp_memory_documents OU vivo sem heartbeat de sync
  *      (indexed_at >7d). Classe do incidente BRIEFINGs: -11pp recall@5
  *      invisível por semanas (#3815). Fonte única: slugsEsperados() do sync.
+ *  10f. MCP token sem gate (incidente 2026-07-28) — user com token MCP ativo
+ *      (não revogado/expirado) que NÃO tem a permission `jana.mcp.use` que o
+ *      McpAuthMiddleware exige. Toda chamada dele vira 403. A classe ficou
+ *      INVISÍVEL por ~6h porque o cache do Spatie segurava o estado antigo.
  *  11. Lesson ledger graduation (ADVISORY · Reflexion runtime) — toda lição de
  *      operação em LICOES-OPERACAO.md nasceu graduada (MEC→check / JULG→regra);
  *      acende amarelo se há entrada malformada ou `status:pendente`.
@@ -124,6 +128,7 @@ class HealthCheckCommand extends Command
             $this->checkDbWriteCanary(),
             $this->checkDbStorageQuota(),
             $this->checkMcpIndexSyncGap(),
+            $this->checkMcpTokenSemPermission(),
             $this->checkLessonLedgerGraduation(),
             $this->checkGovernancaGraduationRatio(),
             $this->checkProtocolFreshness(),
@@ -994,6 +999,85 @@ class HealthCheckCommand extends Command
      * Skip silencioso se `GH_TOKEN` ausente OU `COPILOTO_MCP_WEBHOOK_ID` não setado
      * (dev/CI/test environments — só faz sentido em prod live).
      */
+    /**
+     * Check 10f — MCP token ativo SEM o gate `jana.mcp.use` (incidente 2026-07-28).
+     *
+     * Detecta a classe: o user tem token MCP válido mas perdeu a permission que o
+     * McpAuthMiddleware exige, então TODA chamada dele volta 403
+     * "User não tem permission `jana.mcp.use`".
+     *
+     * Por que existe: em 2026-07-28 um save da role `Operacional#1` deixou 4 users
+     * (biz=1) sem o gate. O efeito ficou invisível por ~6h porque o cache de
+     * permissions do Spatie servia o estado antigo — só apareceu quando o container
+     * reiniciou e limpou o cache. Não havia sinal nenhum pra essa condição.
+     *
+     * A atribuição role→permission é operação de UI (`/roles/{id}/edit`, Camada 3 —
+     * multi-tenant: cada business tem seus próprios roles). O git NÃO é a fonte
+     * desse dado, então este check apenas DETECTA a divergência e nomeia quem caiu;
+     * o conserto segue sendo humano na UI.
+     *
+     * Bite-test medido em prod ANTES de instalar (2026-07-28):
+     *   - árvore limpa (pós-fix) ....................... 0 users → zero falso-positivo
+     *   - contrafactual (role sem a permission) ........ 4 users → morde o incidente
+     */
+    protected function checkMcpTokenSemPermission(): array
+    {
+        $gate = 'jana.mcp.use';
+
+        try {
+            $userClass = config('auth.providers.users.model', \App\User::class);
+            $morph = (new $userClass)->getMorphClass();
+
+            $rows = DB::select(
+                'SELECT DISTINCT t.user_id
+                   FROM mcp_tokens t
+                  WHERE t.revoked_at IS NULL
+                    AND t.deleted_at IS NULL
+                    AND (t.expires_at IS NULL OR t.expires_at > NOW())
+                    AND NOT EXISTS (
+                        SELECT 1 FROM model_has_permissions mhp
+                          JOIN permissions p ON p.id = mhp.permission_id
+                         WHERE mhp.model_id = t.user_id
+                           AND mhp.model_type = ?
+                           AND p.name = ?
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM model_has_roles mhr
+                          JOIN role_has_permissions rhp ON rhp.role_id = mhr.role_id
+                          JOIN permissions p2 ON p2.id = rhp.permission_id
+                         WHERE mhr.model_id = t.user_id
+                           AND mhr.model_type = ?
+                           AND p2.name = ?
+                    )
+                  ORDER BY t.user_id',
+                [$morph, $gate, $morph, $gate]
+            );
+
+            $ids = array_map(static fn ($r) => (int) $r->user_id, $rows);
+            $count = count($ids);
+
+            return [
+                'name' => 'mcp_token_sem_permission',
+                'ok' => $count === 0,
+                'value' => $count,
+                'threshold' => '== 0',
+                'message' => $count === 0
+                    ? "Todos os tokens MCP ativos têm `{$gate}`"
+                    : "BLOQUEADOS: {$count} user(s) com token ativo sem `{$gate}` "
+                        . '(ids: ' . implode(', ', array_slice($ids, 0, 10)) . ') — '
+                        . 'atribua na role do business via /roles/{id}/edit',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => 'mcp_token_sem_permission',
+                'ok' => false,
+                'value' => null,
+                'threshold' => '== 0',
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
     protected function checkMcpWebhookHealth2h(): array
     {
         $webhookId = env('COPILOTO_MCP_WEBHOOK_ID');
