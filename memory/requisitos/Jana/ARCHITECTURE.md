@@ -50,6 +50,99 @@ flowchart LR
 
 O desenho mostra **quem chama quem**. Ele não multiplica um serviço compartilhado por consumidor: produção e MCP apontam para o mesmo banco de produção; Meilisearch, Ollama e Langfuse aparecem uma vez.
 
+## As três camadas de IA
+
+```mermaid
+flowchart TB
+  subgraph B["B · agentes do projeto"]
+    AG["22 agentes PHP"]
+    DATA["5 tools SQL do Brief Diário"]
+    DATA --> AG
+  end
+  subgraph A["A · acesso aos modelos"]
+    CONTRACT["AiAdapter"]
+    SDK["LaravelAiSdkDriver · laravel/ai"]
+    LEGACY["OpenAiDirectDriver · alternativa legada"]
+    CONTRACT --> SDK
+    CONTRACT -.-> LEGACY
+  end
+  subgraph C["C · memória e recuperação"]
+    MEMORY["MemoriaContrato"]
+    MEMIMPL["4 implementações disponíveis"]
+    SEARCH["MeilisearchDriver"]
+    RERANK["Reranker · 4 implementações"]
+    MEMORY --> MEMIMPL
+    MEMORY --> SEARCH --> RERANK
+  end
+  AG --> CONTRACT --> PROVIDERS["15 provedores declarados"]
+  AG --> MEMORY
+```
+
+A camada A isola o SDK/provedor, a B contém comportamento do produto e a C contém persistência e recuperação. As quantidades vêm do mesmo censo por contrato usado no inventário abaixo; não são números mantidos no desenho.
+
+## Fluxo principal: uma pergunta no chat
+
+```mermaid
+flowchart TB
+  IN["mensagem do usuário"] --> OWN{"conversa pertence ao usuário?"}
+  OWN -->|não| DENY["nega acesso"]
+  OWN -->|sim| SAVEQ["persiste a pergunta"]
+  SAVEQ --> BRIEF{"pedido de Brief Diário?"}
+  BRIEF -->|sim| BRIEFOUT["BriefDiarioChatTrigger"]
+  BRIEF -->|não| CACHE{"cache semântico encontrou?"}
+  CACHE -->|sim| STREAM["SSE até o navegador"]
+  CACHE -->|não| PII["mascara PII"]
+  PII --> CONTEXT["snapshot do negócio"]
+  CONTEXT --> CLARIFY{"precisa clarificar?"}
+  CLARIFY -->|sim| STREAM
+  CLARIFY -->|não| RECALL["recall de memória"]
+  RECALL --> AGENT["ChatCopilotoAgent"] --> MODEL["laravel/ai"] --> STREAM
+  BRIEFOUT --> STREAM
+  STREAM --> SAVEA["persiste a resposta"] --> END["evento SSE end"]
+  MODEL --> SIDE["uso · cache · fatos · resumo"]
+  SIDE --> SAVEA
+```
+
+Fontes donas: [`ChatController.php`](../../../Modules/Jana/Http/Controllers/ChatController.php), [`LaravelAiSdkDriver.php`](../../../Modules/Jana/Services/Ai/LaravelAiSdkDriver.php) e [`ChatCopilotoAgent.php`](../../../Modules/Jana/Ai/Agents/ChatCopilotoAgent.php). Pergunta e resposta são persistidas pelo controller; cache, recall e efeitos posteriores vivem no driver.
+
+## Dentro do recall de memória
+
+```mermaid
+flowchart TB
+  Q["pergunta + business_id + user_id"] --> NEG{"negative cache?"}
+  NEG -->|sim| EMPTY["sem fatos"]
+  NEG -->|não| HYDE["HyDE: original + hipótese"]
+  HYDE --> SEARCH["busca híbrida no Meilisearch"]
+  SEARCH --> RRF["fusão por posição"]
+  RRF --> DECAY["time-decay"]
+  DECAY --> WEIGHT["Peso Real, quando habilitado"]
+  WEIGHT --> RERANK["Reranker por contrato"]
+  RERANK --> TOP["top-K fatos no prompt"]
+  SEARCH -->|vazio| MARK["marca negative cache"] --> EMPTY
+```
+
+O filtro multi-tenant é aplicado dentro da consulta. O chamador do chat transforma falha de recall em contexto vazio, preservando a conversa. Fonte dona: [`MeilisearchDriver.php`](../../../Modules/Jana/Services/Memoria/MeilisearchDriver.php) e método `recallMemoria()` do driver do chat.
+
+## RAG sobre a memória canônica do projeto
+
+```mermaid
+flowchart TB
+  Q["pergunta sobre o projeto"] --> HYBRID{"pipeline híbrido habilitado?"}
+  HYBRID -->|sim| INDEX["buscarHybrid"]
+  HYBRID -->|não| SQL["FULLTEXT no MySQL"]
+  INDEX -->|erro ou vazio| SQL
+  INDEX --> DOCS["documentos autorizados"]
+  SQL --> DOCS
+  DOCS -->|vazio| LOW["sem conclusão · confiança baixa"]
+  DOCS --> SOURCES["fontes: título · path · trecho"]
+  SOURCES --> SYNTH["KbAnswerAgent sintetiza"]
+  SYNTH -->|formato válido| ANSWER["resposta com citações"]
+  SYNTH -->|erro ou formato inválido| FALLBACK["snippets recuperados · confiança baixa"]
+  EVAL["RAGAS real-eval"] -.-> SERVICE["mesmo KbAnswerService"] --> HYBRID
+```
+
+A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de teste que mede a si próprio. Fontes donas: [`KbAnswerService.php`](../../../Modules/Jana/Services/Kb/KbAnswerService.php) e [`KbAnswerTool.php`](../../../Modules/Jana/Mcp/Tools/KbAnswerTool.php).
+
 ## Inventário derivado do código
 
 | Medida | Valor derivado | Fonte dona |
@@ -76,6 +169,17 @@ O desenho mostra **quem chama quem**. Ele não multiplica um serviço compartilh
 | Whatsapp | 1 | [InboxAssistAgent](../../../Modules/Whatsapp/Ai/Agents/InboxAssistAgent.php) |
 
 > ✅ Nenhuma classe de agente ficou sem referência PHP de produção.
+
+## O que está conectado — e o que a árvore não prova
+
+| Relação | Resultado desta geração | Limite honesto |
+|---|---|---|
+| Agentes → uso em produção | **todos têm referência PHP fora de testes** | referência estática não prova execução em runtime |
+| Arquivos de tool → registro MCP | **registro e arquivos têm a mesma quantidade** | igualdade de quantidade não substitui o gate de exposição em runtime |
+| Tokens do streaming → resposta do turno | ⚠️ **desconectado: o driver atualiza a última resposta antes de o controller criar a resposta atual** | medidor estrutural; um teste de integração deve validar os valores persistidos |
+| Compose → serviço vivo | **não provado pela árvore** | use os probes; arquivo versionado só prova intenção de subir |
+| Provider declarado → credencial válida | **não provado pela árvore** | `config/ai.php` não prova segredo, rede nem quota |
+| Diagrama → ordem do código | **ancorado por marcadores ordenados** | mudança estrutural faz o gerador falhar e exige revisão humana da explicação |
 
 ## Tools do servidor MCP
 
@@ -116,10 +220,11 @@ A página **não grava “verde”** no Markdown: esse estado venceria no minuto
 ## Como esta página continua viva
 
 1. `system-map.mjs` varre agentes, registro MCP, tools de dados e arquivos compose.
-2. `node scripts/governance/system-map.mjs --check` compara o Markdown commitado com a geração atual.
-3. [`.github/workflows/system-map.yml`](../../../.github/workflows/system-map.yml) roda no PR quando uma fonte muda e também diariamente.
-4. O job diário regenera e abre auto-PR; ninguém precisa editar contagem à mão.
-5. Fatos de runtime ficam como probes. Se for necessário histórico de uptime, o dono deve ser monitoramento/telemetria — nunca esta página.
+2. Os fluxos acima têm conjuntos de âncoras ordenadas nos arquivos donos; se uma etapa some ou troca de ordem, a geração falha em vez de preservar um desenho mentiroso.
+3. `node scripts/governance/system-map.mjs --check` compara o Markdown commitado com a geração atual.
+4. [`.github/workflows/system-map.yml`](../../../.github/workflows/system-map.yml) roda no PR quando uma fonte muda e também diariamente.
+5. O job diário regenera e abre auto-PR; ninguém precisa editar contagem à mão.
+6. Fatos de runtime ficam como probes. Se for necessário histórico de uptime, o dono deve ser monitoramento/telemetria — nunca esta página.
 
 ### O que ainda é humano
 

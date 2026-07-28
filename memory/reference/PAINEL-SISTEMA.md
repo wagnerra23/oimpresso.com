@@ -206,7 +206,7 @@ lifecycle: ativo
 
 ## Rastro
 
-- **324** handoffs · **548** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **324** handoffs · **549** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-28-sdd-vestuario-etiquetas`
   - `2026-07-28-sdd-teammcp-hub`

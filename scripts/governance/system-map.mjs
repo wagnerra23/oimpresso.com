@@ -40,6 +40,104 @@ const MODE_CHECK = process.argv.includes('--check');
 // ── helpers ──────────────────────────────────────────────────────────────────
 const read = (p) => { try { return readFileSync(p, 'utf8'); } catch { return ''; } };
 const ls = (p) => { try { return readdirSync(p); } catch { return []; } };
+/**
+ * Âncora estrutural mínima para explicações de fluxo. O diagrama continua sendo
+ * explicação humana, mas deixa de sobreviver silenciosamente quando o caminho do
+ * código muda: cada marcador precisa existir e aparecer na ordem declarada.
+ *
+ * @param {string} source
+ * @param {string[]} markers
+ * @param {string} label
+ */
+export function assertOrderedMarkers(source, markers, label) {
+  let cursor = 0;
+  for (const marker of markers) {
+    const found = source.indexOf(marker, cursor);
+    if (found < 0) {
+      throw new Error(`[system-map] fluxo "${label}" perdeu a âncora ou a ordem: ${marker}`);
+    }
+    cursor = found + marker.length;
+  }
+}
+
+function assertAiFlowAnchors() {
+  assertOrderedMarkers(
+    read(join(ROOT, 'Modules', 'Jana', 'Http', 'Controllers', 'ChatController.php')),
+    [
+      '$msgUser = Mensagem::create([',
+      'if ($this->briefTrigger->matches($userInput))',
+      'foreach ($this->ai->responderChatStream',
+      "'role'        => 'assistant'",
+    ],
+    'chat SSE',
+  );
+  assertOrderedMarkers(
+    read(join(ROOT, 'Modules', 'Jana', 'Services', 'Ai', 'LaravelAiSdkDriver.php')),
+    [
+      'SemanticCacheService::class',
+      '$mensagemPraLlm = $this->mascararDocumentos',
+      '$ctx = $this->snapshotContexto',
+      '$this->talvezClarificar',
+      '$recall = $this->recallMemoria',
+      'new ChatCopilotoAgent',
+      '$agent->stream',
+      '$stream->usage',
+      'ExtrairFatosDaConversaJob::dispatch',
+    ],
+    'driver do chat',
+  );
+  assertOrderedMarkers(
+    read(join(ROOT, 'Modules', 'Jana', 'Services', 'Memoria', 'MeilisearchDriver.php')),
+    [
+      '$negCache->ehNegativo',
+      '$hyde->expandir',
+      'MemoriaFato::search',
+      '$this->rrfMerge',
+      '$this->applyTimeDecay',
+      '$this->applyPesoReal',
+      '$reranker->reranquear',
+    ],
+    'recall de memória',
+  );
+  assertOrderedMarkers(
+    read(join(ROOT, 'Modules', 'Jana', 'Services', 'Kb', 'KbAnswerService.php')),
+    [
+      "config('copiloto.mcp_search.docs_pipeline'",
+      'McpMemoryDocument::buscarHybrid',
+      'McpMemoryDocument::query()',
+      '->buscarTexto',
+      'public function renderFontes',
+      'public function synthesize',
+      'public function fallbackSemIa',
+    ],
+    'RAG da memória canônica',
+  );
+}
+
+function measureAiFlowGaps() {
+  const controller = read(join(ROOT, 'Modules', 'Jana', 'Http', 'Controllers', 'ChatController.php'));
+  const driver = read(join(ROOT, 'Modules', 'Jana', 'Services', 'Ai', 'LaravelAiSdkDriver.php'));
+  const controllerStream = controller.slice(
+    controller.indexOf('public function sendStream'),
+    controller.indexOf('public function escolher'),
+  );
+  const driverStream = driver.slice(
+    driver.indexOf('public function responderChatStream'),
+    driver.indexOf('public function responderChat(', driver.indexOf('public function responderChatStream') + 1),
+  );
+  const streamCall = controllerStream.indexOf('responderChatStream');
+  const assistantCreate = controllerStream.indexOf('$msgAssistant = Mensagem::create');
+  const updatesLatestAssistant = driverStream.includes("->where('role', 'assistant')")
+    && driverStream.includes("->latest('created_at')")
+    && driverStream.includes("->update(['tokens_in'");
+
+  return {
+    streamingTokenTargetBeforeInsert: updatesLatestAssistant
+      && streamCall >= 0
+      && assistantCreate > streamCall,
+  };
+}
+
 function walkRel(relDir) {
   const rows = [];
   const visit = (rel) => {
@@ -597,6 +695,8 @@ function render(data) {
 // Jana/ARCHITECTURE.md — arquitetura documental gerada pela mesma máquina matriz.
 function renderAiPlant(data) {
   const { ai, ia, gates } = data;
+  assertAiFlowAnchors();
+  const flowGaps = measureAiFlowGaps();
   const groupBy = (rows, key) => rows.reduce((acc, row) => {
     const value = row[key];
     (acc[value] = acc[value] || []).push(row);
@@ -662,6 +762,103 @@ function renderAiPlant(data) {
   L.push('O desenho mostra **quem chama quem**. Ele não multiplica um serviço compartilhado por consumidor: produção e MCP apontam para o mesmo banco de produção; Meilisearch, Ollama e Langfuse aparecem uma vez.');
   L.push('');
 
+  L.push('## As três camadas de IA');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart TB');
+  L.push('  subgraph B["B · agentes do projeto"]');
+  L.push(`    AG["${ai.agents.length} agentes PHP"]`);
+  L.push(`    DATA["${ai.dataTools.length} tools SQL do Brief Diário"]`);
+  L.push('    DATA --> AG');
+  L.push('  end');
+  L.push('  subgraph A["A · acesso aos modelos"]');
+  L.push('    CONTRACT["AiAdapter"]');
+  L.push('    SDK["LaravelAiSdkDriver · laravel/ai"]');
+  L.push('    LEGACY["OpenAiDirectDriver · alternativa legada"]');
+  L.push('    CONTRACT --> SDK');
+  L.push('    CONTRACT -.-> LEGACY');
+  L.push('  end');
+  L.push('  subgraph C["C · memória e recuperação"]');
+  L.push('    MEMORY["MemoriaContrato"]');
+  L.push(`    MEMIMPL["${ia.memoria.length} implementações disponíveis"]`);
+  L.push('    SEARCH["MeilisearchDriver"]');
+  L.push(`    RERANK["Reranker · ${ia.reranker.length} implementações"]`);
+  L.push('    MEMORY --> MEMIMPL');
+  L.push('    MEMORY --> SEARCH --> RERANK');
+  L.push('  end');
+  L.push(`  AG --> CONTRACT --> PROVIDERS["${ia.provs.length} provedores declarados"]`);
+  L.push('  AG --> MEMORY');
+  L.push('```');
+  L.push('');
+  L.push('A camada A isola o SDK/provedor, a B contém comportamento do produto e a C contém persistência e recuperação. As quantidades vêm do mesmo censo por contrato usado no inventário abaixo; não são números mantidos no desenho.');
+  L.push('');
+
+  L.push('## Fluxo principal: uma pergunta no chat');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart TB');
+  L.push('  IN["mensagem do usuário"] --> OWN{"conversa pertence ao usuário?"}');
+  L.push('  OWN -->|não| DENY["nega acesso"]');
+  L.push('  OWN -->|sim| SAVEQ["persiste a pergunta"]');
+  L.push('  SAVEQ --> BRIEF{"pedido de Brief Diário?"}');
+  L.push('  BRIEF -->|sim| BRIEFOUT["BriefDiarioChatTrigger"]');
+  L.push('  BRIEF -->|não| CACHE{"cache semântico encontrou?"}');
+  L.push('  CACHE -->|sim| STREAM["SSE até o navegador"]');
+  L.push('  CACHE -->|não| PII["mascara PII"]');
+  L.push('  PII --> CONTEXT["snapshot do negócio"]');
+  L.push('  CONTEXT --> CLARIFY{"precisa clarificar?"}');
+  L.push('  CLARIFY -->|sim| STREAM');
+  L.push('  CLARIFY -->|não| RECALL["recall de memória"]');
+  L.push('  RECALL --> AGENT["ChatCopilotoAgent"] --> MODEL["laravel/ai"] --> STREAM');
+  L.push('  BRIEFOUT --> STREAM');
+  L.push('  STREAM --> SAVEA["persiste a resposta"] --> END["evento SSE end"]');
+  L.push('  MODEL --> SIDE["uso · cache · fatos · resumo"]');
+  L.push('  SIDE --> SAVEA');
+  L.push('```');
+  L.push('');
+  L.push('Fontes donas: [`ChatController.php`](../../../Modules/Jana/Http/Controllers/ChatController.php), [`LaravelAiSdkDriver.php`](../../../Modules/Jana/Services/Ai/LaravelAiSdkDriver.php) e [`ChatCopilotoAgent.php`](../../../Modules/Jana/Ai/Agents/ChatCopilotoAgent.php). Pergunta e resposta são persistidas pelo controller; cache, recall e efeitos posteriores vivem no driver.');
+  L.push('');
+
+  L.push('## Dentro do recall de memória');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart TB');
+  L.push('  Q["pergunta + business_id + user_id"] --> NEG{"negative cache?"}');
+  L.push('  NEG -->|sim| EMPTY["sem fatos"]');
+  L.push('  NEG -->|não| HYDE["HyDE: original + hipótese"]');
+  L.push('  HYDE --> SEARCH["busca híbrida no Meilisearch"]');
+  L.push('  SEARCH --> RRF["fusão por posição"]');
+  L.push('  RRF --> DECAY["time-decay"]');
+  L.push('  DECAY --> WEIGHT["Peso Real, quando habilitado"]');
+  L.push('  WEIGHT --> RERANK["Reranker por contrato"]');
+  L.push('  RERANK --> TOP["top-K fatos no prompt"]');
+  L.push('  SEARCH -->|vazio| MARK["marca negative cache"] --> EMPTY');
+  L.push('```');
+  L.push('');
+  L.push('O filtro multi-tenant é aplicado dentro da consulta. O chamador do chat transforma falha de recall em contexto vazio, preservando a conversa. Fonte dona: [`MeilisearchDriver.php`](../../../Modules/Jana/Services/Memoria/MeilisearchDriver.php) e método `recallMemoria()` do driver do chat.');
+  L.push('');
+
+  L.push('## RAG sobre a memória canônica do projeto');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart TB');
+  L.push('  Q["pergunta sobre o projeto"] --> HYBRID{"pipeline híbrido habilitado?"}');
+  L.push('  HYBRID -->|sim| INDEX["buscarHybrid"]');
+  L.push('  HYBRID -->|não| SQL["FULLTEXT no MySQL"]');
+  L.push('  INDEX -->|erro ou vazio| SQL');
+  L.push('  INDEX --> DOCS["documentos autorizados"]');
+  L.push('  SQL --> DOCS');
+  L.push('  DOCS -->|vazio| LOW["sem conclusão · confiança baixa"]');
+  L.push('  DOCS --> SOURCES["fontes: título · path · trecho"]');
+  L.push('  SOURCES --> SYNTH["KbAnswerAgent sintetiza"]');
+  L.push('  SYNTH -->|formato válido| ANSWER["resposta com citações"]');
+  L.push('  SYNTH -->|erro ou formato inválido| FALLBACK["snippets recuperados · confiança baixa"]');
+  L.push('  EVAL["RAGAS real-eval"] -.-> SERVICE["mesmo KbAnswerService"] --> HYBRID');
+  L.push('```');
+  L.push('');
+  L.push('A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de teste que mede a si próprio. Fontes donas: [`KbAnswerService.php`](../../../Modules/Jana/Services/Kb/KbAnswerService.php) e [`KbAnswerTool.php`](../../../Modules/Jana/Mcp/Tools/KbAnswerTool.php).');
+  L.push('');
+
   L.push('## Inventário derivado do código');
   L.push('');
   L.push('| Medida | Valor derivado | Fonte dona |');
@@ -693,6 +890,19 @@ function renderAiPlant(data) {
   } else {
     L.push('> ✅ Nenhuma classe de agente ficou sem referência PHP de produção.');
   }
+  L.push('');
+
+  L.push('## O que está conectado — e o que a árvore não prova');
+  L.push('');
+  L.push('| Relação | Resultado desta geração | Limite honesto |');
+  L.push('|---|---|---|');
+  L.push(`| Agentes → uso em produção | ${orphanAgents.length === 0 ? '**todos têm referência PHP fora de testes**' : `**${orphanAgents.length} sem referência**`} | referência estática não prova execução em runtime |`);
+  const toolDrift = ia.registro.ok && ia.arquivosTool !== ia.registro.total;
+  L.push(`| Arquivos de tool → registro MCP | ${toolDrift ? `⚠️ **${ia.arquivosTool} arquivos para ${ia.registro.total} registros**` : '**registro e arquivos têm a mesma quantidade**'} | igualdade de quantidade não substitui o gate de exposição em runtime |`);
+  L.push(`| Tokens do streaming → resposta do turno | ${flowGaps.streamingTokenTargetBeforeInsert ? '⚠️ **desconectado: o driver atualiza a última resposta antes de o controller criar a resposta atual**' : '**o padrão antigo de ordem incorreta não foi detectado**'} | medidor estrutural; um teste de integração deve validar os valores persistidos |`);
+  L.push('| Compose → serviço vivo | **não provado pela árvore** | use os probes; arquivo versionado só prova intenção de subir |');
+  L.push('| Provider declarado → credencial válida | **não provado pela árvore** | `config/ai.php` não prova segredo, rede nem quota |');
+  L.push('| Diagrama → ordem do código | **ancorado por marcadores ordenados** | mudança estrutural faz o gerador falhar e exige revisão humana da explicação |');
   L.push('');
 
   L.push('## Tools do servidor MCP');
@@ -734,10 +944,11 @@ function renderAiPlant(data) {
   L.push('## Como esta página continua viva');
   L.push('');
   L.push('1. `system-map.mjs` varre agentes, registro MCP, tools de dados e arquivos compose.');
-  L.push('2. `node scripts/governance/system-map.mjs --check` compara o Markdown commitado com a geração atual.');
-  L.push('3. [`.github/workflows/system-map.yml`](../../../.github/workflows/system-map.yml) roda no PR quando uma fonte muda e também diariamente.');
-  L.push('4. O job diário regenera e abre auto-PR; ninguém precisa editar contagem à mão.');
-  L.push('5. Fatos de runtime ficam como probes. Se for necessário histórico de uptime, o dono deve ser monitoramento/telemetria — nunca esta página.');
+  L.push('2. Os fluxos acima têm conjuntos de âncoras ordenadas nos arquivos donos; se uma etapa some ou troca de ordem, a geração falha em vez de preservar um desenho mentiroso.');
+  L.push('3. `node scripts/governance/system-map.mjs --check` compara o Markdown commitado com a geração atual.');
+  L.push('4. [`.github/workflows/system-map.yml`](../../../.github/workflows/system-map.yml) roda no PR quando uma fonte muda e também diariamente.');
+  L.push('5. O job diário regenera e abre auto-PR; ninguém precisa editar contagem à mão.');
+  L.push('6. Fatos de runtime ficam como probes. Se for necessário histórico de uptime, o dono deve ser monitoramento/telemetria — nunca esta página.');
   L.push('');
   L.push('### O que ainda é humano');
   L.push('');
