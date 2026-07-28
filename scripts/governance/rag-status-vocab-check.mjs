@@ -3,13 +3,23 @@
  * rag-status-vocab-check — detecta documento que ENTRA no índice do RAG mas
  * é DESCARTADO na consulta por descasamento de vocabulário de `status`.
  *
- * O DEFEITO QUE ISTO MATA (medido 2026-07-28 no DB de prod `u906587222_oimpresso`):
- * os dois caminhos de retrieval filtram por um vocabulário de `status` que é o das
- * ADRs — {aceito, accepted, accepted-historical, recusado} ou ausente — mas aplicam
- * a TODO tipo de documento. Os schemas canônicos dos outros tipos definem enums que
- * não intersectam. Resultado: 285 de 2.012 docs indexados (14%) invisíveis à busca,
- * entre eles 53 dos 62 SPECs (85%), 31 dos 79 BRIEFINGs (39%), 6 dos 11 RUNBOOKs.
- * Inversão perversa: o doc que OBEDECE ao schema some; o que não declara `status` aparece.
+ * O DEFEITO QUE ISTO VIGIA (medido 2026-07-28 no DB de prod `u906587222_oimpresso`):
+ * o filtro de `status` aceita só o vocabulário de ADR — {aceito, accepted,
+ * accepted-historical, recusado} ou ausente — mas vale pra TODO tipo, e os schemas
+ * canônicos dos outros tipos definem enums que não intersectam.
+ *
+ * ⚠️ MAGNITUDE — a 1ª redação deste cabeçalho dizia "285 de 2.012 (14%) invisíveis à
+ * busca". ERRADO por generalização: esse número é do caminho FULLTEXT, que é FALLBACK.
+ * Os dois caminhos leem FONTES DIFERENTES:
+ *   híbrido (primário, docs_pipeline=true): lê a COLUNA TIPADA via toSearchableArray
+ *     (`$this->status ?? 'aceito'`) — desconhecido vira NULL vira 'aceito' → PASSA.
+ *     Medido: 1.958 de 2.015 visíveis (97,2%); dos 57 fora, 47 são
+ *     deprecated/rascunho/superseded (corretos) + 10 'proposto'.
+ *   FULLTEXT (fallback): lê `metadata->status` CRU em scopePorStatusAtivo → descarta.
+ *     Medido: 285 de 2.012.
+ * Ou seja: o descasamento é REAL mas custa ~10 docs no caminho que atende, não 285.
+ * O conserto é trocar a FONTE do filtro (coluna tipada, que já existe ao lado) —
+ * jamais normalizar documento em massa (big-bang de legado, §5 proibicoes 2026-07-12).
  *
  * POR QUE O PREDICADO É LEGÍTIMO (e não um presence-gate dos proibidos em §5):
  * não mede presença de texto nem campo auto-declarado. É comparação de CONJUNTOS entre
