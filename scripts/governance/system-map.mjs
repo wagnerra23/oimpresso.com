@@ -19,7 +19,7 @@
 //
 // Node puro (fs + git via execSync). Sem deps, sem DB, sem PHP. Molde: sdd-scorecard.mjs.
 // Uso (na raiz do repo):
-//   node scripts/governance/system-map.mjs            # gera PAINEL + PLANTA-IA + onboarding
+//   node scripts/governance/system-map.mjs            # gera PAINEL + arquitetura Jana + onboarding
 //   node scripts/governance/system-map.mjs --stdout    # imprime, não escreve
 //   node scripts/governance/system-map.mjs --check      # exit 1 se o .md commitado difere do gerado (CI)
 
@@ -33,7 +33,7 @@ const ROOT = process.cwd();
 // (ex: onboarding-paths-check.mjs reusa deadLinks) NÃO dispara escrita nem process.exit.
 const IS_DIRECT_RUN = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 const OUT = join(ROOT, 'memory', 'reference', 'PAINEL-SISTEMA.md');
-const OUT_AI = join(ROOT, 'memory', 'reference', 'PLANTA-IA.md');
+const OUT_AI = join(ROOT, 'memory', 'requisitos', 'Jana', 'ARCHITECTURE.md');
 const MODE_STDOUT = process.argv.includes('--stdout');
 const MODE_CHECK = process.argv.includes('--check');
 
@@ -302,7 +302,7 @@ function render(data) {
   L.push(`- **${ai.agents.length} agentes PHP** em **${agentModules} módulos** · **${orphanAgents} sem referência de produção**.`);
   L.push(`- **${ai.tools.length} tools registradas** no único servidor MCP · **${ai.dataTools.length} tools SQL** do Brief Diário.`);
   L.push(`- **${ai.engineeringAgents.length} agentes de engenharia** em \`.claude/agents/\` — catálogo diferente dos agentes PHP.`);
-  L.push(`- Planta completa, fontes e probes: [\`PLANTA-IA.md\`](PLANTA-IA.md) — gerada por esta mesma máquina.`);
+  L.push(`- Arquitetura completa, fontes e probes: [\`Jana/ARCHITECTURE.md\`](../requisitos/Jana/ARCHITECTURE.md) — gerada por esta mesma máquina.`);
   L.push('');
 
   // SDD scorecard
@@ -384,7 +384,7 @@ function render(data) {
 // ── main ──────────────────────────────────────────────────────────────────────
 // ── ONBOARDING-AGENTE-GERADO.md — artefato da rota de agentes. A porta global é
 // README.md; este arquivo só oferece um prompt estável + ponteiros vivos. ──
-// PLANTA-IA.md — página documental gerada pela mesma máquina matriz.
+// Jana/ARCHITECTURE.md — arquitetura documental gerada pela mesma máquina matriz.
 function renderAiPlant(data) {
   const { ai, gates } = data;
   const groupBy = (rows, key) => rows.reduce((acc, row) => {
@@ -399,21 +399,26 @@ function renderAiPlant(data) {
 
   const L = [];
   L.push('---');
-  L.push('name: PLANTA-IA — topologia e inventário gerados');
-  L.push('description: Página documental da IA do oimpresso, derivada do código por system-map.mjs. Separa inventário versionado de estado vivo.');
-  L.push('type: reference');
+  L.push('id: requisitos-jana-architecture');
+  L.push('name: Jana — arquitetura viva');
+  L.push('description: Arquitetura canônica da Jana, derivada do código por system-map.mjs. Separa topologia versionada, inventário e estado vivo.');
+  L.push('type: architecture');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
   L.push('---');
   L.push('');
-  L.push('# Onde a IA vive no oimpresso');
+  L.push('# Arquitetura viva da Jana');
   L.push('');
   L.push(`> ⚙️ **Gerado por \`scripts/governance/system-map.mjs\` em ${NOW}.** NÃO edite à mão.`);
   L.push('> Esta página deriva o que o repositório consegue provar. Saúde de máquina é verificada por probe — compose existente não significa container vivo.');
-  L.push('> Resumo do sistema inteiro: [`PAINEL-SISTEMA.md`](PAINEL-SISTEMA.md). Decisões donas: [ADR 0035](../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0048](../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md) e [ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md).');
+  L.push('> Resumo do sistema inteiro: [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md). Decisões donas: [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md) e [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md).');
+  L.push('');
+  L.push('## Responsabilidade deste documento');
+  L.push('');
+  L.push('Este é o **dono canônico da arquitetura da Jana**: mostra onde a IA vive, como as zonas se conectam e quais componentes o código realmente registra. Regras funcionais continuam em [`SPEC.md`](SPEC.md), intenção do produto em [`BRIEFING.md`](BRIEFING.md), operação em [`RUNBOOK.md`](RUNBOOK.md) e decisões em ADRs.');
   L.push('');
 
-  L.push('## Planta lógica');
+  L.push('## Topologia lógica');
   L.push('');
   L.push('> “Hostinger” e “CT 100” são **zonas operacionais**, não promessa de contagem física. O MySQL gerenciado da Hostinger pode residir em host distinto do web shared.');
   L.push('');
@@ -454,7 +459,7 @@ function renderAiPlant(data) {
   L.push(`| Agentes PHP de produto | **${ai.agents.length}** | \`Modules/*/Ai/Agents/*Agent.php\` + contrato \`implements Agent\` |`);
   L.push(`| Módulos com agentes PHP | **${Object.keys(agentsByModule).length}** | árvore \`Modules/\` |`);
   L.push(`| Agentes sem referência de produção | **${orphanAgents.length}** | referências PHP fora de \`Tests/\` |`);
-  L.push(`| Tools registradas no MCP | **${ai.tools.length}** | [\`OimpressoMcpServer.php\`](../../${ai.serverPath}) |`);
+  L.push(`| Tools registradas no MCP | **${ai.tools.length}** | [\`OimpressoMcpServer.php\`](../../../${ai.serverPath}) |`);
   L.push(`| Tools SQL do Brief Diário | **${ai.dataTools.length}** | \`Modules/Jana/Ai/Tools/BriefDiario/\` |`);
   L.push(`| Agentes de engenharia | **${ai.engineeringAgents.length}** | \`.claude/agents/*.md\` — outra camada, não runtime PHP |`);
   L.push(`| Serviços em compose versionado | **${composeServicesTotal}** | \`docker/**/docker-compose.yml\` — declaração, não uptime |`);
@@ -466,7 +471,7 @@ function renderAiPlant(data) {
   L.push('| Módulo | Qtd. | Classes |');
   L.push('|---|---:|---|');
   for (const [module, rows] of Object.entries(agentsByModule).sort(([a], [b]) => a.localeCompare(b))) {
-    const names = rows.map((row) => `[${row.name}](../../${row.file})`).join(' · ');
+    const names = rows.map((row) => `[${row.name}](../../../${row.file})`).join(' · ');
     L.push(`| ${module} | ${rows.length} | ${names} |`);
   }
   L.push('');
@@ -495,7 +500,7 @@ function renderAiPlant(data) {
   L.push('| Compose | Serviços declarados | Qtd. |');
   L.push('|---|---|---:|');
   for (const row of ai.compose) {
-    L.push(`| [\`${row.file}\`](../../${row.file}) | ${row.services.length ? row.services.join(' · ') : '_nenhum detectado_'} | ${row.services.length} |`);
+    L.push(`| [\`${row.file}\`](../../../${row.file}) | ${row.services.length ? row.services.join(' · ') : '_nenhum detectado_'} | ${row.services.length} |`);
   }
   L.push('');
 
@@ -517,7 +522,7 @@ function renderAiPlant(data) {
   L.push('');
   L.push('1. `system-map.mjs` varre agentes, registro MCP, tools de dados e arquivos compose.');
   L.push('2. `node scripts/governance/system-map.mjs --check` compara o Markdown commitado com a geração atual.');
-  L.push('3. [`.github/workflows/system-map.yml`](../../.github/workflows/system-map.yml) roda no PR quando uma fonte muda e também diariamente.');
+  L.push('3. [`.github/workflows/system-map.yml`](../../../.github/workflows/system-map.yml) roda no PR quando uma fonte muda e também diariamente.');
   L.push('4. O job diário regenera e abre auto-PR; ninguém precisa editar contagem à mão.');
   L.push('5. Fatos de runtime ficam como probes. Se for necessário histórico de uptime, o dono deve ser monitoramento/telemetria — nunca esta página.');
   L.push('');
@@ -529,7 +534,7 @@ function renderAiPlant(data) {
   L.push('- interpretar falha de probe e impacto no negócio.');
   L.push('');
   L.push('---');
-  L.push(`_Gerado por \`scripts/governance/system-map.mjs\` · ${NOW} · referência derivada, não substitui os donos canônicos._`);
+  L.push(`_Gerado por \`scripts/governance/system-map.mjs\` · ${NOW} · arquitetura derivada das fontes canônicas._`);
   L.push('');
   return L.join('\n');
 }
@@ -655,10 +660,10 @@ if (IS_DIRECT_RUN) {
   } else if (MODE_CHECK) {
     let stale = false;
     if (strip(read(OUT)) !== strip(outPainel)) { console.error('[system-map] PAINEL-SISTEMA.md desatualizado'); stale = true; }
-    if (strip(read(OUT_AI)) !== strip(outAi)) { console.error('[system-map] PLANTA-IA.md desatualizado'); stale = true; }
+    if (strip(read(OUT_AI)) !== strip(outAi)) { console.error('[system-map] Jana/ARCHITECTURE.md desatualizado'); stale = true; }
     if (strip(read(OUT_ONBOARDING)) !== strip(outOnboarding)) { console.error('[system-map] ONBOARDING-AGENTE-GERADO.md desatualizado'); stale = true; }
     if (stale) { console.error('  → rode: node scripts/governance/system-map.mjs'); process.exit(1); }
-    console.log('[system-map] PAINEL + PLANTA-IA + ONBOARDING-AGENTE-GERADO em dia.');
+    console.log('[system-map] PAINEL + Jana/ARCHITECTURE + ONBOARDING-AGENTE-GERADO em dia.');
   } else {
     writeFileSync(OUT, outPainel);
     writeFileSync(OUT_AI, outAi);

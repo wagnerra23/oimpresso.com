@@ -18,6 +18,8 @@ related_adrs:
 
 # Session log 2026-07-28 — planta de IA viva
 
+> **Realocação posterior, 2026-07-28 15:28 BRT:** o artefato descrito neste recibo foi consolidado em [`memory/requisitos/Jana/ARCHITECTURE.md`](../requisitos/Jana/ARCHITECTURE.md). As menções a `PLANTA-IA.md` abaixo registram o endereço intermediário desta sessão.
+
 ## TL;DR
 
 A planta deixou de ser inventário manual: `system-map.mjs` agora deriva agentes, tools MCP, tools SQL e serviços declarados em compose, gera `memory/reference/PLANTA-IA.md` e atualiza o painel. Estado de máquina não é copiado como “verde”; a página mantém probes reproduzíveis.
@@ -75,7 +77,7 @@ Wagner pediu uma página documental e perguntou como mantê-la sempre viva. A au
 
 ## Referências
 
-- [PLANTA-IA.md](../reference/PLANTA-IA.md)
+- [Arquitetura viva da Jana](../requisitos/Jana/ARCHITECTURE.md)
 - [PAINEL-SISTEMA.md](../reference/PAINEL-SISTEMA.md)
 - [ADR 0035](../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)
 - [ADR 0048](../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md)

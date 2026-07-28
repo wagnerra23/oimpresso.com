@@ -61,7 +61,7 @@ lifecycle: ativo
 - **22 agentes PHP** em **4 módulos** · **0 sem referência de produção**.
 - **44 tools registradas** no único servidor MCP · **5 tools SQL** do Brief Diário.
 - **24 agentes de engenharia** em `.claude/agents/` — catálogo diferente dos agentes PHP.
-- Planta completa, fontes e probes: [`PLANTA-IA.md`](PLANTA-IA.md) — gerada por esta mesma máquina.
+- Arquitetura completa, fontes e probes: [`Jana/ARCHITECTURE.md`](../requisitos/Jana/ARCHITECTURE.md) — gerada por esta mesma máquina.
 
 ## Programa SDD (governança)
 
@@ -198,7 +198,7 @@ lifecycle: ativo
 
 ## Rastro
 
-- **324** handoffs · **547** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **324** handoffs · **548** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-28-sdd-vestuario-etiquetas`
   - `2026-07-28-sdd-teammcp-hub`
