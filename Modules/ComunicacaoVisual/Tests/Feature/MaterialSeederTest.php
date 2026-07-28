@@ -20,9 +20,19 @@ uses(Tests\TestCase::class);
  * - Cleanup via afterEach deletando rows inseridas pelos testes
  * - withoutGlobalScopes com comentário // SUPERADMIN: (ADR 0093)
  *
+ * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
+ *   UC-CV-04 — material de outro business não precifica nada (CU-CV-03 item 4 / CU-CV-04) [T0]
+ *   UC-CV-12 — o catálogo de partida nasce completo, idempotente e isolado (CU-CV-07)
+ *
+ * ⚠️ Aborta INTEIRO em SQLite — veredito real vem da full-suite noturna (SDD §6 / §9 D-7).
+ *
+ * @covers-us US-COMVIS-002
+ *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
- * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-001
+ * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-001 · US-COMVIS-002
+ * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-07
+ * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
  */
 
 // Guard SQLite: tabela comvis_materiais requer migration MySQL do módulo.

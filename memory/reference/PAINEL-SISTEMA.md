@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-26**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-27**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -117,13 +117,13 @@ lifecycle: ativo
 
 ## Decisões (ADRs)
 
-- **358** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 326 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **359** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 327 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **3** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 41 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 48 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -166,6 +166,13 @@ lifecycle: ativo
 - ~~2026-07-22 — Blindar candidatos de realocação "por julgamento" sem rodar a máquina + afirmar comportamento de extrator por leitura~~
 - ~~2026-07-23 — Criar um "mapa/porta única da arquitetura de arquivos" (doc + gerador) — os donos JÁ existem; e o 03-architecture.md é fóssil-armadilha~~
 - ~~2026-07-24 — Citar data de `git log` como recibo sem conferir se o clone é RASO (e o irmão: teste que passa por NÃO-EXECUÇÃO)~~
+- ~~2026-07-25 — Índice de "porta viva por PERGUNTA" como acelerador do loop de aprendizado (a porta preexistia e não preveniu)~~
+- ~~2026-07-25 — Detectar "importou solução externa sem checar a premissa" (LC-09) por vocabulário de sistema externo em doc canon~~
+- ~~2026-07-26 — Medir REINCIDÊNCIA PÓS-GATE comparando data de ocorrência (prosa do ledger) com nascimento do gate (git)~~
+- ~~2026-07-26 — Comparar `node --check` de dois arquivos em CONTEXTOS DE RESOLUÇÃO DE MÓDULO diferentes (ESM × CJS) e concluir "o agente quebrou"~~
+- ~~2026-07-26 — Presence-gate que ENVELHECEU EM PRODUÇÃO: critério de "evidência" por string solta (reincidência LC-11, e a primeira que não morreu na origem)~~
+- ~~2026-07-26 — Lint que acusa `toHaveKey` em teste de contrato como "assert acoplado à chave" (100% FP medido)~~
+- ~~2026-07-27 — Grade de máquina com denominador INVENTADO + métrica de outro universo lida como veredito (e a hipótese adversarial que a própria auditoria refutou)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -173,14 +180,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **299** handoffs · **511** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **304** handoffs · **518** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-07-24-verificacao-transcript-gestao-documentacao`
-  - `2026-07-23-sdd-avaliacao-adversarial`
-  - `2026-07-23-grade-swimm-vs-kb-doc-codigo`
-  - `2026-07-22-realocacao-modulos-veredito-nao-migrar`
-  - `2026-07-22-porta-documental-unica-guardiao-duplicatas`
-  - `2026-07-22-incidente-mcp-link-flap-ct100`
+  - `2026-07-27-sdd-produto-fluxos-sem-tela`
+  - `2026-07-27-auditoria-camada1-sdd-mordida`
+  - `2026-07-26-upgrade-stack-ia-laravel-mcp-ai`
+  - `2026-07-26-sdd-produto-bulkedit`
+  - `2026-07-26-sdd-from-source-loop-avaliacao`
+  - `2026-07-26-reguas-grade-completa`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-26 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-27 · deriva das fontes canônicas, não as substitui._

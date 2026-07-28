@@ -14,7 +14,7 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 62 arquivos em 13 papéis.
+**Total mapeado:** 64 arquivos em 14 papéis.
 
 ## Controllers — 4
 
@@ -94,6 +94,10 @@ module: ComunicacaoVisual
 
 - [Index.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Index.charter.md)
 
-## Testes (Pest) — 20
+## Casos (contrato UC) — 1
 
-- 20 arquivos em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
+
+## Testes (Pest) — 21
+
+- 21 arquivos em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.

@@ -24,7 +24,12 @@ declare(strict_types=1);
  *  - `uses(Tests\TestCase::class)` necessário pra `base_path()` resolver
  *    (Container::basePath() exige app() bootstrapped).
  *
+ * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
+ *   UC-CV-08 — retenção declarada + apontamento append-only (CU-CV-08 itens 6-7) [reg]
+ *
  * @see Modules/ComunicacaoVisual/Config/retention.php
+ * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-08
+ * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
  * @see https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm
  */
 

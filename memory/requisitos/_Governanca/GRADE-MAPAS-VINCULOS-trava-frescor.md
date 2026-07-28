@@ -32,7 +32,7 @@ esta grade herda e **não reabre**:
 | 3 | Q-noise — BRIEFING super-dispara | **Resolvido pela porta** | O BRIEFING **não** dispara em todo `.tsx`; frescor dele é medido **doc↔código** por `briefing-code-staleness` (não em CSS puro). |
 | 4 | Onde a trava mora / codar o gate | **É do [W]** (outro mecanismo) | Aqui só se **declara qual porta viva** cobre cada vínculo. |
 | 5 | Formato dos 35 mapas | **Opção B — portas vivas, não 35 `.md`** ([F] 2026-07-22) | Esta grade vira índice→porta + gaps. |
-| 6 | Backend → SDD só existe no Produto (1/41) — quando os outros módulos ganham SDD? | **[W] aprovou SDD pra TODOS os módulos** (relato direto Felipe↔Wagner, 2026-07-23) | Deixa de ser "sem decisão"; vira "aprovado, aguardando ordem de rollout". Ver §3. |
+| 6 | Backend → SDD só existe no Produto (1/41) — quando os outros módulos ganham SDD? | **[W] aprovou SDD pra TODOS os módulos** (relato direto Maiara↔Wagner, 2026-07-23) | Deixa de ser "sem decisão"; vira "aprovado, aguardando ordem de rollout". Ver §3. |
 
 ---
 
@@ -107,3 +107,4 @@ _Append-only. Autor: Claude (Opus 4.8) + Felipe [F]. Opção B (portas vivas, n�
 | 2026-07-21 | [F]/[CC] | Grade criada como roteiro de 35 mapas à mão (4 ondas P0-P3). |
 | 2026-07-22 | [F]/[CC] | **Reescrita — Opção B:** vínculos apontam pras portas vivas (ADR 0256); tabelas de contagem à mão removidas (deriváveis por `screen-coverage:report`); §3 isola os 2 gaps reais (`.decisoes.md` vazio + SDD dormente) pro mecanismo do [W]. |
 | 2026-07-23 | Felipe/[CC] | §0 item 6 + §3: Wagner aprovou SDD pra **todos** os módulos (relato direto Felipe↔Wagner) — o gap "SDD dormente" deixa de ser "sem decisão" e vira "aprovado, aguardando rollout". Abertas US-GOV-056 (`.decisoes.md`) e US-GOV-057 (priorização do rollout de SDD). |
+| 2026-07-23 | Maiara/[CC] | **Correção de atribuição:** §0 item 6 dizia "relato direto Felipe↔Wagner" — errado, quem relatou a conversa com Wagner foi Maiara, não Felipe. Corrigido no §0 item 6; esta linha do Histórico permanece (append-only) com o texto original pra rastro. |

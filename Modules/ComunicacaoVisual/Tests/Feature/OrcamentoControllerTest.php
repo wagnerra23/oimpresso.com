@@ -32,7 +32,20 @@ beforeEach(function () {
  * Tests biz=1 (Wagner WR2) conforme ADR 0101 — nunca biz=4 (cliente ROTA LIVRE).
  * Multi-tenant Tier 0: biz=99 não deve ver orçamentos do biz=1.
  *
+ * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
+ *   UC-CV-02 — medida inválida vira 422 em PT-BR                       (CU-CV-02 item 5)
+ *   UC-CV-05 — orçamento de outro business responde 404, não 403       (CU-CV-04 item 3) [T0]
+ *   UC-CV-11 — salvar grava os valores do servidor, atomicamente       (CU-CV-05)
+ *
+ * ⚠️ Este arquivo ABORTA INTEIRO em SQLite (beforeEach). A lane do PR
+ * (`modules-pest.yml`) roda sqlite :memory: sem migrate — logo o veredito real destes casos
+ * vem da full-suite noturna (MySQL), não do PR. Ver SDD §6 (tabela das 3 portas) e §9 D-7.
+ *
+ * @covers-us US-COMVIS-001
+ *
  * @see Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController
+ * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-02/CU-CV-04/CU-CV-05
+ * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
