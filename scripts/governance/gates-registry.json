@@ -105,9 +105,8 @@
     "teammcp-pest.yml": {
       "nome": "TeamMcp · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca allowlist verde, espelha arquivos-pest",
       "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "sinal de custo MEDIDO (2026-07-27, #4887): `ForjaRoutesSmokeTest` existia desde a Onda Forja e NUNCA executou uma vez — TeamMcp fora do matrix do modules-pest.yml (que nem emite JUnit) + só 7 dos 26 arquivos na lista sqlite = 19 sem lane nenhuma. Rodado no CT 100: 7 failed / 5 passed (rota `forja.saude` inexistente + dataset associativo com `it()` de 2 args); o happy-path de UC-FORJA-01 jamais rodou, e UC-FORJA-01/07 eram órfãos no G-2. Sem esta lane o JUnit do módulo não chega ao casos-results-publish (elo do G-7, ADR 0264).",
-      "promote_by": "2026-08-10"
+      "terminal": "required",
+      "anchor": "REQUIRED via emenda ADR 0354 à 0314 (3ª exceção formal à regra 'required = só Tier-0', mesmo processo da 0327/0347: emenda + flip [W] explícito — [W] 2026-07-27: 'Promova'). Override de cadência CONSCIENTE: a 0336 DR-2 pede ≥2 mordidas reais e esta lane tem ZERO (nasceu 2026-07-27 com 1 corrida verde) — promovida por argumento estrutural, não por evidência de mordida; risco residual mitigado por skip-as-pass (blast radius só em PR que toca TeamMcp) + catraca de allowlist de 1 arquivo + gate de reversão da 0354. Precedente de classe: `PHP / Pest (Financeiro · MySQL)` e `(NfeBrasil · MySQL)` já são required. || sinal de custo MEDIDO (2026-07-27, #4887): `ForjaRoutesSmokeTest` existia desde a Onda Forja e NUNCA executou uma vez — TeamMcp fora do matrix do modules-pest.yml (que nem emite JUnit) + só 7 dos 26 arquivos na lista sqlite = 19 sem lane nenhuma. Rodado no CT 100: 7 failed / 5 passed (rota `forja.saude` inexistente + dataset associativo com `it()` de 2 args); o happy-path de UC-FORJA-01 jamais rodou, e UC-FORJA-01/07 eram órfãos no G-2. Sem esta lane o JUnit do módulo não chega ao casos-results-publish (elo do G-7, ADR 0264)."
     },
     "baseline-tamper-guard.yml": {
       "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
