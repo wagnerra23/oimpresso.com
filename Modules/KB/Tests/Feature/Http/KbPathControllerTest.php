@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 /**
+ * @covers-us US-KB-004
+ *   Cobre os endpoints da trilha de aprendizado (kb_paths + kb_path_steps, ordem por
+ *   position). ⚠️ NÃO está na allowlist do kb-pest.yml — bloqueio de ISOLAMENTO de
+ *   teste documentado no próprio YAML (GAP 2), não de código. "Verde impossível" até
+ *   o PR de test-infra. Estado declarado: SDD §8.1.
+ *
  * Feature specs — Trilhas (SCHEMA-DB-V1 §11):
  *   GET   /kb/paths
  *   GET   /kb/paths/{slug}
