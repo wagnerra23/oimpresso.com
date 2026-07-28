@@ -10,7 +10,7 @@ parent_module: Sells
 related_adrs: [93, 104, 143, 149, 192]
 related_us: [US-SELL-COWORK-R4-DISTRIBUICAO]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — drawer da venda (`SaleSheet`)
@@ -62,17 +62,36 @@ No header do protótipo: `#id` · total · status · **Editar** · fechar. **Uma
 
 ---
 
-## Non-Goals — ⚠️ PENDENTE [W]
+## Non-Goals — respondidos 2026-07-28
 
-> A skill `charter-write` **proíbe** o agente de inferir Non-Goals e Anti-hooks — cada item
-> vira Pest GUARD no CI, e anti-padrão inventado é pior que ausente porque parece canon
-> (`memory/proibicoes.md` §5 2026-07-16). Os itens abaixo são **perguntas**, não lei.
-> Viram `❌` quando [W] responder.
+> A skill `charter-write` proíbe o agente de INFERIR Non-Goals (cada um vira Pest GUARD;
+> anti-padrão inventado parece canon — `proibicoes` §5 2026-07-16). Então a procedência de
+> cada item fica explícita: **[W]** = decisão do dono · **[W→CC]** = [W] delegou dizendo
+> *"não sei dizer, quero usabilidade"*, e o agente decidiu com fundamento citado.
 
-- ❓ O drawer deve **editar** a venda, ou só exibir e mandar pro `/sells/{id}/edit`?
-- ❓ "Emitir cobrança" pertence ao drawer, ou só à tela cheia?
-- ❓ "Apresentar" (fullscreen) e "Transcript" (A4) são do drawer, ou de outro lugar?
-- ❓ A aba `✦ IA` do protótipo entra nesta onda, ou fica pra depois?
+- ❌ **Editar a venda dentro do drawer** — `Editar` NAVEGA pra `/sells/{id}/edit`. _[W→CC]_
+  Fundamento: a irmã full-page **já** carrega esse Non-Goal (`Show.charter.md` §Non-Goals:
+  "❌ Edição inline (vai pra /sells/{id}/edit)"). Drawer editável + tela cheia não-editável =
+  dois modelos mentais pra mesma venda. Coerência entre as duas > conveniência de um clique.
+- ❌ **Ação de dinheiro fora da aba Pagamento** — `Emitir cobrança` e `+ Adicionar` moram
+  JUNTOS. _[W→CC]_ Fundamento: respondem a mesma pergunta do operador ("como esse dinheiro
+  entra?"); separá-las É o defeito D-3.
+- ❌ **Botão solto pra cada formato de documento** — `Transcript`/`Apresentar`/`Imprimir`
+  viram um menu único `Documento ▾`. _[W→CC]_ Fundamento: 3 formas de gerar a mesma coisa
+  ocupando 3 slots que competem com ações de dinheiro (D-5).
+- ❌ **Esconder a mensagem ao cliente atrás de scroll ou aba** — vai pro header, sempre
+  visível. _[W→CC + W]_ [W] decidiu que a Mensagem FICA no drawer; o agente decidiu o LUGAR:
+  mandar mensagem é ação frequente, não leitura — pôr numa aba só mudaria o D-2 de lugar.
+- ✅ **Aba `✦ IA` entra nesta onda** (não é Non-Goal — é escopo confirmado). _[W]_
+
+### Ainda aberto — [W] marcou *"não tenho certeza ainda"*
+
+Nenhum destes vira GUARD até haver decisão; ficam como pergunta honesta:
+
+- ❓ `Devolução` fica na aba **Itens** (proposta do agente: devolve-se um item) ou vira ação
+  de header? [W] confirmou que FICA no drawer; falta o lugar.
+- ❓ O drawer deve mostrar cobranças pagas que hoje só existem em `fin_titulos` (D-4)?
+  Depende da Onda 0 — ver §Risco.
 
 ---
 
@@ -104,14 +123,47 @@ Não é bug de UI — mas é a UI que convida ao erro.
 
 ---
 
-## UX Anti-patterns — ⚠️ PENDENTE [W]
+## O alvo — como o drawer fica (decidido 2026-07-28)
 
-> Mesma regra dos Non-Goals: só [W] preenche. Os candidatos vêm da divergência medida acima,
-> **não** de opinião do agente:
->
-> - ❓ "ação de um assunto fora do bloco do assunto" vira `❌` (mataria D-3)?
-> - ❓ "ação primária abaixo da dobra" vira `❌` (mataria D-2)?
-> - ❓ "contador que ignora fonte de dado paralela" vira `❌` (mataria D-4)?
+```
+┌──────────────────────────────────────────────────────────────┐
+│ #V-9284   R$ 500,00   [A receber]                            │  ← identidade + dinheiro
+│                    [Mensagem] [Documento ▾] [Editar →]  [×]  │  ← 3 ações, não 7
+├──────────────────────────────────────────────────────────────┤
+│  Itens (1) │ Fiscal │ Pagamento │ Timeline │ ✦ IA            │  ← 5 abas do protótipo
+├──────────────────────────────────────────────────────────────┤
+│  (conteúdo da aba ativa — cada ação junto do seu assunto)    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+| Aba | Conteúdo | Ação que vive nela |
+|---|---|---|
+| **Itens** | linhas da venda + resumo de valores | `Devolução` (lugar ainda ❓) |
+| **Fiscal** | NF-e / NFS-e + status | emitir/reenviar documento fiscal |
+| **Pagamento** | saldo devedor + recebimentos | `Emitir cobrança` **e** `+ Adicionar` — juntos |
+| **Timeline** | histórico + pipeline FSM | ações FSM ([ADR 0143](../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)) |
+| **✦ IA** | `SaleAiPanel` (`/sells/{id}/ai-ask`) | perguntar sobre a venda |
+
+`Mensagem` (header) abre os 3 templates + `Copiar` / `Abrir no WhatsApp`.
+
+**O que isso mata:** D-1 (7 seções → 5 abas) · D-2 (mensagem sempre visível no header) ·
+D-3 (dinheiro reunido em Pagamento) · D-5 (7 ações → 3 no header + contextuais nas abas).
+**D-4 não é resolvido por UI** — é a Onda 0 (ver §Risco).
+
+---
+
+## UX Anti-patterns
+
+> Procedência explícita, como nos Non-Goals. Derivam das divergências MEDIDAS, não de gosto.
+
+- ❌ **Ação de um assunto fora do bloco do assunto** _[W→CC]_ — mata D-3. Ex: cobrança no
+  rodapé enquanto o pagamento está numa seção.
+- ❌ **Ação primária abaixo da dobra** _[W→CC]_ — mata D-2. Se a ação principal de um bloco
+  exige rolar pra aparecer, o bloco está errado.
+- ❌ **Empilhar seção nova sem aba** _[W→CC]_ — mata D-1/D-6. Assunto novo entra numa das 5
+  abas ou vira aba; nunca vira 8ª seção na coluna.
+- ❌ **Mais de 1 ação primária visível ao mesmo tempo** _[W→CC]_ — mata D-5.
+- ❌ Cor crua (`bg-blue-500` etc.) — token do DS sempre ([UI-0013](../../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md))
 
 ---
 
@@ -146,6 +198,12 @@ Não é bug de UI — mas é a UI que convida ao erro.
 
 ## Trilha do tempo
 
-- 2026-07-28 · [CC] criado a pedido de [W] (*"até a interface está errada. confusa."*). Descreve
+- 2026-07-28 (v2) · [CC] Non-Goals e Anti-patterns FECHADOS. [W] decidiu: aba ✦ IA entra;
+  Devolução e Mensagem ficam no drawer. Onde disse *"não sei dizer, quero usabilidade"*, o
+  agente decidiu com fundamento citado e marcou `[W→CC]` — a procedência de cada `❌` fica
+  auditável (a skill `charter-write` proíbe INFERIR em silêncio, não proíbe decidir quando o
+  dono delega o critério). §O alvo desenha o resultado. 2 pontos seguem ❓ por [W] ter dito
+  "não tenho certeza": o lugar da Devolução e o D-4. `.tsx` continua intocado.
+- 2026-07-28 (v1) · [CC] criado a pedido de [W] (*"até a interface está errada. confusa."*). Descreve
   o ALVO (protótipo Cowork) e mede 6 divergências vs produção. Non-Goals e Anti-patterns ficam
   como PERGUNTAS — a skill `charter-write` proíbe o agente de inferi-los. Nenhum `.tsx` tocado.
