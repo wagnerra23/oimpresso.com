@@ -14,7 +14,7 @@ module: Vestuario
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Vestuario/**` + `resources/js/Pages/Vestuario/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 37 arquivos em 14 papéis.
+**Total mapeado:** 39 arquivos em 15 papéis.
 
 ## Controllers — 3
 
@@ -77,6 +77,10 @@ module: Vestuario
 
 - [Index.charter.md](../../../resources/js/Pages/Vestuario/Etiquetas/Index.charter.md)
 
-## Testes (Pest) — 15
+## Casos (contrato UC) — 1
 
-- 15 arquivos em [Modules/Vestuario/Tests/Feature/](../../../Modules/Vestuario/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [Index.casos.md](../../../resources/js/Pages/Vestuario/Etiquetas/Index.casos.md)
+
+## Testes (Pest) — 16
+
+- 16 arquivos em [Modules/Vestuario/Tests/Feature/](../../../Modules/Vestuario/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.

@@ -90,16 +90,16 @@ Manifestar (cienciar / confirmar / desconhecer / não realizada) **NFes recebida
 ## Automation Hooks
 
 - `GET /nfe-brasil/manifestacao` → `ManifestacaoController::index` (Inertia render com itens paginated + kpis + nsuState + permissions)
-- `POST /nfe-brasil/manifestacao/{id}/cienciar` → evento 210 SEFAZ
-- `POST /nfe-brasil/manifestacao/{id}/confirmar` → **evento 220 SEFAZ** (confirmação operação)
-- `POST /nfe-brasil/manifestacao/{id}/desconhecer` → evento 220 com justificativa (NT 2014.002)
-- `POST /nfe-brasil/manifestacao/{id}/nao-realizada` → evento 220 com justificativa
-- `POST /nfe-brasil/manifestacao/bulk/confirmar` → batch evento 220
+- `POST /nfe-brasil/manifestacao/{id}/cienciar` → **tpEvento 210210** (Ciência da Operação)
+- `POST /nfe-brasil/manifestacao/{id}/confirmar` → **tpEvento 210200** (Confirmação da Operação)
+- `POST /nfe-brasil/manifestacao/{id}/desconhecer` → **tpEvento 210220** com justificativa (NT 2014.002)
+- `POST /nfe-brasil/manifestacao/{id}/nao-realizada` → **tpEvento 210240** com justificativa
+- `POST /nfe-brasil/manifestacao/bulk/confirmar` → batch de **210200**
 - `POST /nfe-brasil/manifestacao/sync-now` → dispatch `BuscarDfesRecebidosJob` (consome NSU SEFAZ → cria/atualiza DFes pendentes)
 - `GET /nfe-brasil/manifestacao/{id}/itens` → JSON pra LinkedItens lazy-fetch
 - `GET /nfe-brasil/manifestacao/{id}/eventos` → JSON pra LinkedHistorico lazy-fetch
 - Job: `BuscarDfesRecebidosJob` rodado em schedule + on-demand
-- Service: `ManifestacaoService::aplicarEvento(id, type)` orquestra build XML + sign cert A1 + POST SEFAZ + parse retorno + persist `NfeDfeEvento`
+- Service: a API pública é `ManifestacaoService::{cienciar,confirmar,desconhecer,naoRealizada}(NfeDfeRecebido $dfe[, string $justificativa])` — o `aplicarEvento(NfeDfeRecebido, string $tipo, string $justificativa = '')` é **privado** e orquestra build XML + sign cert A1 + `Tools::sefazManifesta` + parse retorno + persist `NfeDfeEvento` (autorizado = cStat **135** ou **136**)
 - Multi-tenant: `HasBusinessScope` no `NfeDfeRecebido` + `NfeDfeEvento` + `NfeDfeNsuState`; cross-tenant guard explícito (`where('business_id', $businessId)`) nos POSTs
 - Audit: mutações (cienciar/confirmar/desconhecer/naoRealizada/bulkConfirmar/syncNow) precisam `activity('nfe.manifestacao')->log()` — implementação via US-NFE-062 P1
 
@@ -124,8 +124,17 @@ Manifestar (cienciar / confirmar / desconhecer / não realizada) **NFes recebida
 
 ## Métricas vivas (Pest GUARD — a escrever em F1.5)
 
+> ⚠️ **Correção factual 2026-07-28** (agent `sdd-from-source`, Fase 2.6 — fato, não intenção):
+> o arquivo abaixo **nunca existiu**. `find Modules/NfeBrasil/Tests -iname "*Charter*"` devolve
+> **0** e o diretório `Tests/Charters/` não existe. Os testes **reais** desta tela hoje são
+> [`ManifestacaoControllerTest.php`](../../../../../Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php),
+> [`ManifestacaoServiceTest.php`](../../../../../Modules/NfeBrasil/Tests/Feature/ManifestacaoServiceTest.php)
+> e [`ManifestacaoContratoTest.php`](../../../../../Modules/NfeBrasil/Tests/Feature/ManifestacaoContratoTest.php)
+> (contrato — `UC-NFMA-01..06`, ver [`Index.casos.md`](Index.casos.md)). A lista abaixo fica como
+> **desejo de cobertura**, não como inventário.
+
 ```php
-// Modules/NfeBrasil/Tests/Charters/ManifestacaoCharterTest.php
+// DESEJADO (não existe): Modules/NfeBrasil/Tests/Charters/ManifestacaoCharterTest.php
 
 it('renders under 1500ms p95 with paginated DFes + KPIs')
 it('does not emit emails on render, manifestation or sync')
@@ -174,3 +183,4 @@ it('logs activity on each manifestation event with business_id')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-10 | [CC] charter-write skill + [W] | Draft criado por US-NFE-061 (auditoria de completude module-completeness-audit). Tela já tinha visual-comparison + RUNBOOK aprovados; charter formaliza no padrão. Wagner aprovou Non-Goals + Anti-hooks no mesmo dia → status:live. |
+| 2026-07-28 | [C] `sdd-from-source` | **Só correção factual** (Fase 2.6): tpEvento por ação corrigido para os códigos reais do `NfeDfeEvento` (210210/210200/210220/210240 — o charter dizia "220" para três ações distintas); assinatura real do `ManifestacaoService` (a API pública são os 4 métodos; `aplicarEvento` é privado) + cStat autorizado 135/136; §Métricas vivas marcada como desejo, não inventário. ⚠️ **O conflito entre `status: draft` no frontmatter e "live em 2026-05-10" no corpo NÃO foi resolvido** — `draft → live` é promoção (muda o que vira `[must]`), logo decisão [W]. Registrado em [SDD §5.4.5](../../../../../memory/requisitos/NfeBrasil/SDD-emissao-fiscal-v1.0.md). |

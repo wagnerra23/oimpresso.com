@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato — sync de saldo Inter PJ via Banking API v2 (SDD §5.3 F9 · CU-RB-13).
+ * Fluxo de job, sem tela própria neste módulo (a tela de extrato mora no Financeiro).
+ *
+ * @covers-us US-RB-045
+ */
+
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;

@@ -7,7 +7,7 @@ piloto: ROTA LIVRE — LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME
 piloto_inicio: 2024-Q1
 cnae_principal: "4781-4/00"
 last_review: 2026-05-16
-updated_at: "2026-07-18"
+updated_at: "2026-07-28"
 owner: W
 parent_adr: 0121
 related_adrs: [0011-alinhamento-padrao-jana, 0066-format-date-shift-3h-preservado-legacy-clientes, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical]
@@ -60,7 +60,12 @@ Vertical **em produção há 2+ anos** via cliente piloto ROTA LIVRE (biz=4, Lar
 ## Capacidades implementadas (código landed — cutover/validação pendente)
 
 Os 2 gaps P0 saíram do backlog (código + Pest; ROTA LIVRE ainda não cortou):
-- **US-VEST-020** Etiqueta térmica TAM-COR-COLEÇÃO — `EtiquetaTagController` (ZPL Argox/Zebra + PDF A4 grid 4×8, EAN-13 + QR) + `EtiquetaTagService` + Page `Vestuario/Etiquetas/Index.tsx` (DS/AppShellV2) + `DataController` sidebar (#2673) + `RUNBOOK-etiqueta-tag.md`. Charter **draft** — Wagner aprova Non-Goals/Anti-hooks antes de `live` (#4125).
+- **US-VEST-020** Etiqueta térmica TAM-COR-COLEÇÃO — `EtiquetaTagController` (ZPL Argox/Zebra + PDF A4 grid 4×8, EAN-13 + QR) + `EtiquetaTagService` + Page `Vestuario/Etiquetas/Index.tsx` (DS/AppShellV2) + `DataController` sidebar (#2673) + `RUNBOOK-etiqueta-tag.md`. Charter **draft** — Wagner aprova Non-Goals/Anti-hooks antes de `live` (#4125). **Contrato formalizado 2026-07-28** ([`SDD-tela-etiqueta-tag-v1.0.md`](SDD-tela-etiqueta-tag-v1.0.md) §5.3 F1–F6 + §6 `CU-VEST-01..08` · [`Index.casos.md`](../../../resources/js/Pages/Vestuario/Etiquetas/Index.casos.md) `UC-VET-01..09`, 0 órfãos · SPEC reconciliada `todo → done`).
+  > 📍 **Recibo de adoção (datado, não atemporal):** `anchor-lint` classificou a tela como
+  > *"wired porém NÃO-SERVIDO — 0 hits na janela do ledger"* (`governance/route-hits.json`,
+  > janela 30d, medido 2026-07-28). Ou seja: existe, está roteada, e **ninguém a usou** — o que
+  > confirma por medição que o cutover ainda não ocorreu. Re-rodar
+  > `node scripts/governance/anchor-lint.mjs memory/requisitos/Vestuario/SPEC.md` para atualizar.
 - **US-VEST-021** Devolução/troca CDC + crédito-ficha — `DevolucaoService` append-only + tabelas `vestuario_devolucoes`/`vestuario_creditos_cliente`; reintegra estoque via `ProductUtil` auditável, guard cross-tenant fail-secure (UC-EST-04, Tier 0 valor/estoque, #3691). Sem UI dedicada ainda.
 
 ## Capacidades faltantes (backlog priorizado)
@@ -141,6 +146,17 @@ P2/P3 (2027+ ou sob sinal qualificado):
 
 ---
 
-**Atualizado:** 2026-07-18 — refresh de frescor briefing↔código [CC]. Reconciliado com o código: **US-VEST-021 devolução reintegra estoque** (`DevolucaoService` via `ProductUtil` auditável, UC-EST-04 Tier 0, #3691) + **US-VEST-020 etiquetas térmicas** (ZPL/PDF + EAN-13/QR, charter draft #4125, `DataController`+sidebar #2673) saíram do backlog P0. Nota W25 mantida (stale — não re-medida hoje). DS/AppShellV2 na Page de etiquetas.
+**Atualizado:** 2026-07-28 — chip **Onda 4 do passo 5** (agent `sdd-from-source`): nasce o
+[`SDD-tela-etiqueta-tag-v1.0.md`](SDD-tela-etiqueta-tag-v1.0.md) (3 fontes trianguladas; **fonte 4
+Delphi declarada AUSENTE** — não existe `ANTI-REGRESSAO-*` no Vestuario) + trio da tela fechado
+(`Index.casos.md`, 9 UC, 9 com teste, 0 órfão) + `EtiquetaTagContratoTest` + âncoras
+`Implementado em:`/`Testado em:` na US-VEST-020. `anchor_coverage` do módulo **42,9% → 47,6%**;
+lacunas da porta viva **1 → 0**. Achados abertos que precisam de [W]: permissão anunciada que não
+bloqueia (SDD §9 D-1) · promessa de preview no charter sem implementação (§9 D-2) · US-VEST-021
+com código `[V0]` sem tela nem contrato (§9 R-3). **Sem `distilled_at`** — este módulo nunca foi
+carimbado pelo distiller e o chip não o carimbou (carimbar armaria a métrica `distiller_freshness`
+sem redestilar de verdade).
+
+**Histórico:** 2026-07-18 — refresh de frescor briefing↔código [CC]. Reconciliado com o código: **US-VEST-021 devolução reintegra estoque** (`DevolucaoService` via `ProductUtil` auditável, UC-EST-04 Tier 0, #3691) + **US-VEST-020 etiquetas térmicas** (ZPL/PDF + EAN-13/QR, charter draft #4125, `DataController`+sidebar #2673) saíram do backlog P0. Nota W25 mantida (stale — não re-medida hoje). DS/AppShellV2 na Page de etiquetas.
 
 **Histórico:** 2026-05-16 Wave 25 SATURATION — D7 LGPD forense fix (criou `vestuario.yaml` scorecard; causa raiz da regressão D7=3 W17→W18→W23, o `ScopedScorecardEvaluator` retornava `[]` sem o YAML). Wave Massive criou BRIEFING inicial + 3 Pest (Grade cross-tenant, Smoke routes, Scaffold).

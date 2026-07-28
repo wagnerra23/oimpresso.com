@@ -5,7 +5,7 @@ irmaos: Dfe.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-07-28"
 last_run_ci: "0 UC executado nesta corrida — 4 UC herdam testes que JÁ existem e 1 nasce com teste novo; veredito pendente da lane Pest Fiscal + suíte noturna CT 100"
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
@@ -66,7 +66,7 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 **Então** as únicas opções aceitas são dar ciência, confirmar a operação, desconhecer a operação e declarar que a operação não foi realizada. Qualquer outro verbo é recusado.
 
 - **Regressão que defende:** inventar ação intermediária ("aprovar", "arquivar") que a SEFAZ não conhece — o evento sai errado e o prazo continua correndo. A whitelist é dupla: a rota restringe e o Controller re-checa.
-- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesControllerTest.php` — `it('UC-FDFE-03 · manifestarDfe whitelist exatamente 4 ações canon SEFAZ')`
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesContratoTest.php` — `it('UC-FNFE-07 · UC-FDFE-03 · manifestarDfe REJEITA ação fora da whitelist canon SEFAZ')`. _Reapontado em 2026-07-28: o teste anterior vivia no `AcoesControllerTest` e era tautológico — assertava um array literal escrito na própria linha acima, sem tocar o Controller. O atual invoca `AcoesController::manifestarDfe` e verifica o 404._
 - **Status:** 🧪 advisory + noturna.
 
 ## UC-FDFE-04 — Desconhecer e "não realizada" exigem justificativa; ciência e confirmação não `[must]`
@@ -76,7 +76,7 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 **Então** a justificativa é obrigatória (mínimo 15 caracteres); nas outras duas, não é pedida.
 
 - **Por que importa:** as duas ações que **negam** a operação são as que geram disputa com o fornecedor — a justificativa é a defesa documental do business.
-- **Teste:** `AcoesControllerTest` — `it('UC-FDFE-04 · manifestarDfe desconhecer/nao_realizada exigem justificativa, cienciar/confirmar não')`
+- **Teste:** `Modules/Fiscal/Tests/Feature/AcoesContratoTest.php` — `it('UC-FNFE-07 · UC-FDFE-04 · manifestarDfe EXIGE justificativa em desconhecer/nao_realizada')` + `it('UC-FNFE-07 · UC-FDFE-04 · manifestarDfe NÃO exige justificativa em cienciar/confirmar')`. _Reapontado em 2026-07-28: o anterior assertava `in_array($acao, ['desconhecer','nao_realizada'])` sobre arrays locais — nunca chamava o Controller. O atual dispara `ValidationException` no campo `justificativa` de verdade._
 - **Status:** 🧪 advisory + noturna.
 
 ## UC-FDFE-05 — A tela exige `fiscal.dfe.manage` `[must]` `[T0]`

@@ -10,8 +10,19 @@ use Modules\Vestuario\Services\VestuarioSettingsResolver;
 
 uses(Tests\TestCase::class);
 
+// @covers-us US-VEST-020
+
 /**
  * W27 — EtiquetaTagService + GradeCurvaService smoke tests
+ *
+ * RASTREABILIDADE (adicionada 2026-07-28 pelo chip SDD do Vestuario — só docblock, zero
+ * mudança de asserção):
+ *
+ *   UC-VET-03 ← CU-VEST-03 — EAN-13 válido pelo check digit GS1 (vetores conhecidos)
+ *   UC-VET-04 ← CU-VEST-02 itens 1-3 — lote de N itens gera N etiquetas; vazio é rejeitado
+ *
+ * Os casos de `GradeCurvaService` neste arquivo pertencem a outro domínio (grade/curva,
+ * sem tela) e por isso NÃO recebem UC aqui — CU sem contrato de tela nasceria órfão.
  *
  * Cobertura:
  * - EAN-13 check digit válido (algoritmo GS1 — vetores conhecidos)

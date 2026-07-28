@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/*
+ * Fundação do domínio recorrente — Plan · Subscription · Invoice · ChargeAttempt
+ * com HasBusinessScope (SDD §5.2). Não é contrato de tela: é o alicerce que os CU
+ * de tela assumem existir.
+ *
+ * @covers-us US-RB-043
+ */
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\ChargeAttempt;

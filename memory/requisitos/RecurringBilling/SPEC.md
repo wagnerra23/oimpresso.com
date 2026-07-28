@@ -317,7 +317,16 @@ Quando o job InvoiceGenerator roda 2x no mesmo dia
 Então apenas 1 fatura é criada para a competência 2026-05
 ```
 **Implementação:** UNIQUE `(contract_id, competencia_yyyy_mm)` em `rb_invoices`.
-**Testado em:** _lacuna — InvoiceGeneratorIdempotenciaTest não existe (reconciliação 2026-07-01; cobertura a criar)_.
+**Testado em:** `Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php`
+
+> **Correção factual 2026-07-28** (agent `sdd-from-source`): a linha dizia *"lacuna — cobertura a
+> criar"*. **A cobertura existe** — só não com o nome imaginado na reconciliação de 2026-07-01. O
+> caso `2. Idempotência: 2x run() nao duplica invoice` prova exatamente este Gherkin. Contrato de UC:
+> `UC-RBFAT-08` (`resources/js/Pages/RecurringBilling/Faturas/Index.casos.md`), âncora `CU-RB-03`.
+> ⚠️ A idempotência real é por **competência `YYYY-MM`** consultada em query, **não** por índice
+> UNIQUE no banco — a linha `Implementação:` acima descreve um índice que
+> `2026_05_06_001002_create_rb_invoices_table` não cria. Reportado, não corrigido: mudar de query pra
+> constraint é decisão de schema `[V0]` de [W] (a janela de corrida existe e é real).
 
 ### R-RB-004 · Webhook idempotente por event_id
 ```gherkin
@@ -326,7 +335,14 @@ Quando chega de novo (at-least-once)
 Então o segundo é descartado (200 OK sem efeito)
 ```
 **Implementação:** UNIQUE `(provider, event_id)` em `pg_webhook_events`.
-**Testado em:** _lacuna — WebhookIdempotenciaTest não existe (reconciliação 2026-07-01; cobertura a criar)_.
+**Testado em:** `Modules/RecurringBilling/Tests/Feature/AsaasWebhookIdempotencyTest.php` · `Modules/RecurringBilling/Tests/Feature/InterWebhookControllerTest.php`
+
+> **Correção factual 2026-07-28** (agent `sdd-from-source`): a linha dizia *"lacuna — cobertura a
+> criar"*. **A cobertura existe nos dois gateways.** Asaas: `rejeita 2ª chamada com mesmo event_id
+> sem dispatchar job` + `UNIQUE constraint pg_webhook_events(provider, event_id) é enforced no DB`.
+> Inter: `idempotência: 2× mesmo endToEndId → 1 row, 1 dispatch` (a chave lá é o `endToEndId`, não o
+> `event_id` — diferença que vale registrar). Contrato de UC: `UC-RBCFG-07` e `UC-RBCFG-08`
+> (`resources/js/Pages/RecurringBilling/Configuracoes/Index.casos.md`), âncora `CU-RB-07`.
 
 ### R-RB-005 · Charge attempt idempotente
 ```gherkin

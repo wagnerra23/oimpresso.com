@@ -85,12 +85,12 @@ Acompanhar o **status fiscal pós-venda NFC-e** de uma `Transaction` individual 
 
 ## Automation Hooks
 
-- `GET /nfe-brasil/transactions/{tx}/status` → `NfceStatusController::show` (Inertia render só com `transaction_id`)
-- `GET /nfe-brasil/transactions/{tx}/nfce/status` → JSON polling endpoint (cStat, xMotivo, chave_acesso quando autorizado)
+- `GET /nfe-brasil/transactions/{tx}/status` → `NfeStatusController::showPage` (Inertia render só com `transaction_id`)
+- `GET /nfe-brasil/api/transactions/{tx}/nfe-status` → JSON polling endpoint (status, cstat, motivo, chave_44, numero/serie quando autorizado)
 - Hook `useNfceStatus(transactionId)` interno do `NfceStatusBadge` — polling 2s + abort controller no unmount
 - Multi-tenant: `Transaction` usa `HasBusinessScope` (ADR 0093) — cross-tenant retorna 404
 - Job upstream: `EmitirNfceJob` dispara após `Sells::store` finalizar (background queue), grava status em `nfe_emissoes.cstat` + `chave_acesso`
-- Service: `NfeService::consultarStatusEmissao(transaction_id)` lê estado do `NfeEmissao` model
+- Quem lê o estado é o próprio `NfeStatusController::show`, consultando `NfeEmissao` direto (`where business_id + transaction_id + modelo 65`, `orderByDesc('id')`) — **não** existe `NfeService::consultarStatusEmissao`
 - Transport futuro: Centrifugo channel `nfce.business.{biz}.tx.{tx}` (ADR 0058 — CT 100 only)
 - Audit: leitura pura, sem activity log (read-only não precisa)
 
@@ -114,8 +114,18 @@ Acompanhar o **status fiscal pós-venda NFC-e** de uma `Transaction` individual 
 
 ## Métricas vivas (Pest GUARD — a escrever em F1.5)
 
+> ⚠️ **Correção factual 2026-07-28** (agent `sdd-from-source`, Fase 2.6 — fato, não intenção):
+> o arquivo abaixo **nunca existiu**. `find Modules/NfeBrasil/Tests -iname "*Charter*"` devolve
+> **0** e o diretório `Tests/Charters/` não existe. Os testes **reais** desta tela hoje são
+> [`Modules/NfeBrasil/Tests/Feature/NfeStatusControllerTest.php`](../../../../../Modules/NfeBrasil/Tests/Feature/NfeStatusControllerTest.php)
+> (forma do payload) e
+> [`Modules/NfeBrasil/Tests/Feature/NfeStatusContratoTest.php`](../../../../../Modules/NfeBrasil/Tests/Feature/NfeStatusContratoTest.php)
+> (contrato — `UC-NFST-01..05`, ver [`NfceStatus.casos.md`](NfceStatus.casos.md)), mais o
+> characterization `tests/Browser/NfeBrasil/NfceStatusTest.php`. A lista abaixo fica como
+> **desejo de cobertura**, não como inventário.
+
 ```php
-// Modules/NfeBrasil/Tests/Charters/NfceStatusCharterTest.php
+// DESEJADO (não existe): Modules/NfeBrasil/Tests/Charters/NfceStatusCharterTest.php
 
 it('renders under 1200ms p95 with badge + title only')
 it('does not emit emails on render or status change')
@@ -149,3 +159,4 @@ it('does not redirect after authorization (user decides)')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | [CC] Wave M boost | Draft criado pelo Wave M auditoria (NfeBrasil 71→82, gap D3.c charters 30%). Non-Goals + Anti-hooks aguardam aprovação Wagner. |
+| 2026-07-28 | [C] `sdd-from-source` | **Só correção factual** (Fase 2.6 — fato sim, intenção não): classe `NfceStatusController`→`NfeStatusController::showPage`; rota de polling `/transactions/{tx}/nfce/status`→`/api/transactions/{tx}/nfe-status`; removida a referência a `NfeService::consultarStatusEmissao`, método inexistente (`grep` no repo: 1 ocorrência, esta linha); §Métricas vivas marcada como desejo, não inventário. **Nenhum Non-Goal, Anti-hook, Goal, persona ou escopo tocado** — o `status: draft` segue, e a divergência entre os Non-Goals `❌ Reemissão`/`❌ Download DANFE` e o que o `.tsx` faz está registrada como decisão [W] em [`NfceStatus.casos.md`](NfceStatus.casos.md) §Backlog + [SDD §6.6](../../../../../memory/requisitos/NfeBrasil/SDD-emissao-fiscal-v1.0.md). |

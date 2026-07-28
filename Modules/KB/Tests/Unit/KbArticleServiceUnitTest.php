@@ -7,6 +7,12 @@ use Modules\KB\Services\KbArticleService;
 /**
  * KbArticleServiceUnitTest — Wave 18 RETRY (KB D4 boost +9).
  *
+ * @covers-us US-KB-002
+ *   Cobre o contrato público do KbArticleService, o serviço por onde o artigo
+ *   editável (US-KB-002) é listado/paginado. ⚠️ Este arquivo NÃO está em lane
+ *   nenhuma (nem kb-pest.yml nem ci-sqlite-pest.list) — "verde impossível" até
+ *   entrar. Estado declarado, não escondido: SDD §8.1.
+ *
  * Smoke tests de instanciação + assinatura pública do Service. Tests
  * de query real estão em KbRagServiceMultiTenantTest (que usa kbBootstrapSchema).
  *

@@ -7,6 +7,12 @@ use Modules\KB\Entities\KbNode;
 /**
  * Cross-tenant isolation specs (Tier 0 IRREVOGÁVEL — ADR 0093).
  *
+ * @covers-us US-KB-001
+ *   Cobre o critério multi-tenant da US-KB-001 (bridge canon dos ADRs): o caso
+ *   "bridge job respects business scope (job(1) nao toca docs biz=99)" prova que
+ *   KbBridgeFromMcpJob não cruza tenant. NÃO cobre a US inteira (idempotência e
+ *   derivação de arestas vivem em Tests/Unit/KbBridgeFromMcpJobTest.php, fora de lane).
+ *
  * Cobre especificamente o RISCO R5 da ADR 0149:
  *   "Multi-tenant leak via bridge cross-business"
  *

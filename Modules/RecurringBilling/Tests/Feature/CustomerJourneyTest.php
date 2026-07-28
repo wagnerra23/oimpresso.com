@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato de tela — RecurringBilling/Index (ciclo de vida da assinatura no drawer).
+ *
+ * @covers-us US-RB-005
+ *
+ * UC (resources/js/Pages/RecurringBilling/Index.casos.md · CU-RB-05 do SDD §6.1):
+ *   UC-RBSUB-08 — cancelar/pausar/reativar percorre o ciclo de vida sem vazar tenant [T0]
+ */
+
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;

@@ -2,6 +2,17 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato de tela — RecurringBilling/Faturas/Index (cancelar fatura no gateway).
+ *
+ * @covers-us US-RB-042
+ *
+ * UC (resources/js/Pages/RecurringBilling/Faturas/Index.casos.md · CU-RB-06 do SDD §6.1):
+ *   UC-RBFAT-05 — fatura PAGA nunca é cancelada — 422 "use estorno" [V0]
+ *   UC-RBFAT-06 — cancelar de novo é no-op, não chama o gateway [V0]
+ *   UC-RBFAT-07 — fatura que nunca foi ao gateway cancela local
+ */
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\Invoice;

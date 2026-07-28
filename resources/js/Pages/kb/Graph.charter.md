@@ -3,8 +3,8 @@ id: resources-js-pages-kb-graph-charter
 page: /kb/graph
 component: resources/js/Pages/kb/Graph.tsx
 related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela — visualizador especial de grafo, ver dúvida no charter)
-controller: Modules\KB\Http\Controllers\KbGraphController@index (TODO Agent A — ONDA 5 backend)
-route: kb.graph
+controller: "_pendente_ — a rota é closure Inertia::render sem props; KbGraphController@index NÃO existe (medido 2026-07-28, git grep contado)"
+route: kb.graph.page
 status: draft
 owner: wagner
 persona_principal: Wagner / governança (1440px desktop)
@@ -24,6 +24,15 @@ related_index_charter: ./Index.charter.md
 ---
 
 # Charter — `resources/js/Pages/kb/Graph.tsx`
+
+> 🔧 **Reconciliação factual 2026-07-28** (`sdd-from-source`, [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md) —
+> só FATO, nenhuma intenção tocada): (1) `route:` dizia **`kb.graph`**, nome que **não existe**
+> (`Modules/KB/Http/routes.php` registra `kb.graph.page` e `kb.graph.data`) — corrigido, e agora há
+> teste travando o nome real (`UC-KBG-02`); (2) `controller:` apontava `KbGraphController@index`,
+> classe **inexistente** (`git grep -n "GraphController" -- '*.php'` sem corte = 4 linhas, nenhuma a
+> declara; a rota é closure sem props) — vira `_pendente_`, que é o estado verdadeiro.
+> Contrato executável: [`Graph.casos.md`](Graph.casos.md) · design/fluxo: [SDD §5.3 F7 · §9 D-3](../../../../memory/requisitos/KB/SDD-tela-kb-unificado-v1.0.md).
+> **Goals, Non-Goals e anti-padrões abaixo NÃO foram tocados** — são intenção, e intenção é de [W].
 
 ## Mission
 

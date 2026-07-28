@@ -14,7 +14,7 @@ module: KB
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 147 arquivos em 18 papéis.
+**Total mapeado:** 151 arquivos em 18 papéis.
 
 ## Controllers — 14
 
@@ -159,13 +159,15 @@ module: KB
 - [PathsDialog.charter.md](../../../resources/js/Pages/kb/_components/PathsDialog.charter.md)
 - [TroubleshooterDialog.charter.md](../../../resources/js/Pages/kb/_components/TroubleshooterDialog.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 3
 
+- [Graph.casos.md](../../../resources/js/Pages/kb/Graph.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/kb/Index.casos.md)
 - [Index.v2.casos.md](../../../resources/js/Pages/kb/Index.v2.casos.md)
 
-## Testes (Pest) — 35
+## Testes (Pest) — 37
 
-- 35 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 37 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 13
 

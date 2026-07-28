@@ -138,8 +138,12 @@ it('UC-CV-07 — a pagina do hub entrega o catalogo de materiais do business a c
 
         $payload = json_encode($pagina['props'] ?? [], JSON_UNESCAPED_UNICODE) ?: '';
 
-        expect($payload)->toContain(
-            $marcador,
+        // `toContain(...$needles)` é VARIÁDICO no Pest (Mixins/Expectation.php:184 —
+        // `foreach ($needles as $needle)`). Passar a explicação como 2º argumento fazia o
+        // Pest procurar a FRASE INTEIRA no payload: falha garantida, e o erro dizia
+        // "To contain: <a explicação>", despistando pro lado do código. Quem aceita
+        // mensagem é `toBeTrue(string $message = '')` (linha 88 do mesmo arquivo).
+        expect(str_contains($payload, $marcador))->toBeTrue(
             'O catálogo do business não chega à calculadora: a página renderiza sem nenhum ' .
             'material, então o seletor fica desabilitado ("Sem catálogo") e a operadora precisa ' .
             'digitar o preço/m² à mão em toda peça. Ver SDD §5.4.1 / CU-CV-09.'
@@ -207,9 +211,12 @@ it('UC-CV-09 — o schema de substratos carrega ncm, cfop_padrao e csosn_padrao 
 
     $fonte = (string) file_get_contents($migration);
 
+    // Mesmo defeito da linha ~141: a explicação ia como 2º NEEDLE, não como mensagem.
+    // Este caso é o que derrubou a lane em 2026-07-28 — e acusava a migration, que está
+    // CORRETA (3.260 bytes, os 3 campos presentes). Falso-vermelho: o assert é que estava
+    // errado. Ver `vendor/pestphp/pest/src/Mixins/Expectation.php:184`.
     foreach (['ncm', 'cfop_padrao', 'csosn_padrao'] as $campoFiscal) {
-        expect($fonte)->toContain(
-            $campoFiscal,
+        expect(str_contains($fonte, $campoFiscal))->toBeTrue(
             "O substrato precisa carregar `{$campoFiscal}` pra emitir NFC-e/NFe de impresso " .
             'publicitário sem contador configurar item a item (US-COMVIS-006 DoD / CU-CV-10 item 1).'
         );

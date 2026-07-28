@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato de tela — RecurringBilling/Index (carteira de assinaturas).
+ *
+ * @covers-us US-RB-002
+ *
+ * UC (resources/js/Pages/RecurringBilling/Index.casos.md · CU-RB-14 do SDD §6.1):
+ *   UC-RBSUB-06 — MRR normaliza o ciclo e churn ignora trial [V0]
+ *   UC-RBSUB-07 — status visual deriva do estado do banco (5 estados)
+ */
+
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Modules\RecurringBilling\Http\Presenters\SubscriptionIndexPresenter;

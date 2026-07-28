@@ -9,8 +9,23 @@ use Modules\Vestuario\Services\VestuarioSettingsResolver;
 
 uses(Tests\TestCase::class);
 
+// @covers-us US-VEST-020
+
 /**
  * US-VEST-020 — Etiqueta TAG Controller + QR Code + Settings configurable + PDF.
+ *
+ * RASTREABILIDADE (adicionada 2026-07-28 pelo chip SDD do Vestuario — só docblock, zero
+ * mudança de asserção): estes casos já defendiam contratos que só agora ganharam id no
+ * `Index.casos.md`. O vínculo é o que o `casos-gate` G-2 (required) lê.
+ *
+ *   UC-VET-01 ← CU-VEST-01 item 3 · CU-VEST-05 item 3 — settings/QR de um business não vazam
+ *   UC-VET-02 ← CU-VEST-01 itens 2 e 4 — defaults quando o business não configurou nada
+ *   UC-VET-07 ← CU-VEST-05 itens 1 e 2 — QR opcional ligado por settings
+ *   UC-VET-08 ← CU-VEST-06 — PDF A4 com os mesmos campos do ZPL
+ *   UC-VET-09 ← CU-VEST-08 item 3 — endpoints de lote exigem sessão autenticada
+ *
+ * @see memory/requisitos/Vestuario/SDD-tela-etiqueta-tag-v1.0.md §6
+ * @see resources/js/Pages/Vestuario/Etiquetas/Index.casos.md
  *
  * Cobre acceptance criteria pendentes (Wave 27 já cobriu ZPL base + EAN-13):
  * - QR Code presente no ZPL quando settings.etiqueta.qr_enabled = true
@@ -271,7 +286,8 @@ it('blade pdf renderiza 10 etiquetas em grid (acceptance criteria)', function ()
     // 10 etiquetas devem aparecer.
     // NOTA: Pest `toContain(...$needles)` aceita N needles como variadic, NÃO
     // mensagem custom (sintaxe difere de PHPUnit assertStringContainsString).
-    // Antes: `expect($html)->toContain("Produto {$i}", "etiqueta #{$i} ausente...")` —
+    // FALHA AQUI SIGNIFICA: etiqueta #{$i} ausente...
+    // Antes: `expect($html)->toContain("Produto {$i}")` —
     // o 2º arg virava needle adicional ("etiqueta #1 ausente no PDF render") que
     // o HTML obviamente não continha → fail SEMPRE. Mascarado porque o EAN13
     // disparava WrongCheckDigitException ANTES da assertion. Fix: 1 needle por chamada.
