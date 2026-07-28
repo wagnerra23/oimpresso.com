@@ -6,9 +6,9 @@
 
 ## Resumo
 - **361** arquivos · **345** números únicos · máx **0355**
-- **ADRs ATIVOS (lifecycle ativo): 327** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 329 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 327 · arquivado 22 · substituido 12
+- **ADRs ATIVOS (lifecycle ativo): 325** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 327 · superseded 14 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 325 · arquivado 22 · substituido 14
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -27,9 +27,8 @@
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
 - **0294** ×2: 0294-mcp-audit-log-hash-chain-tamper-evident · 0294-metodo-dual-track-shapeup-catraca
 
-## Integridade de supersessão (2 alertas)
-- ⚠️ 0355 supersedes 0302 → 0302 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0355 supersedes 0337 → 0337 NÃO está marcada substituido/superseded ⚠️
+## Integridade de supersessão (0 alertas)
+_(íntegra)_
 
 ## Supersessão declarada em prosa sem o campo (0) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
 _(nenhuma)_
@@ -347,7 +346,7 @@ _(nenhuma)_
 | 0299 | aceito | ativo | decision | Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (C |
 | 0300 | aceito | ativo | decision | Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resou |
 | 0301 | aceito | ativo | decision | Separar Cliente (cadastro) do CRM (pipeline) e deprecar o pipeline |
-| 0302 | aceito | ativo | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
+| 0302 | superseded | substituido | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
 | 0303 | aceito | ativo | decision | Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar viv |
 | 0304 | aceito | ativo | decision | Alocação de número (ADR/US) ciente de trabalho em voo + Check N (colisão de US-I |
 | 0305 | aceito | ativo | decision | Modo Suporte: acesso cross-tenant da equipe, exceto a empresa operadora (biz=1) |
@@ -382,7 +381,7 @@ _(nenhuma)_
 | 0334 | aceito | ativo | meta | Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia |
 | 0335 | aceito | ativo | decision | Fechamento do loop diff-first DS-sync: nota honesta (B−/C+ vs SOTA A−), régua re |
 | 0336 | aceito | ativo | decision | Emenda à 0314 — gates de design PODEM virar required quando provarem mordida REA |
-| 0337 | aceito | ativo | decision | Emenda à 0144 — o sync FECHA-pra-frente um card quando a âncora está verificada  |
+| 0337 | superseded | substituido | decision | Emenda à 0144 — o sync FECHA-pra-frente um card quando a âncora está verificada  |
 | 0338 | aceito | ativo | decision | DS lint — eixo valor-vs-token fecha por FORMA (completo por construção); compone |
 | 0339 | aceito | ativo | decision | Emenda à 0336/0314 — promoção SOBERANA [W] de 3 gates ratchet DS (layout/styleli |
 | 0340 | aceito | ativo | decision | O tema colapsa em direções OPOSTAS no mesmo request — `auto`→dark no Blade × `au |
