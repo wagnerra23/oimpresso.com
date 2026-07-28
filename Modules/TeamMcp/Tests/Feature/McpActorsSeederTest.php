@@ -28,6 +28,13 @@ uses(Tests\TestCase::class);
  *   - mcp_actors é cross-tenant (sem business_id) — apenas count actors humanos
  *   - PII Tier 0: nenhum email/credencial nos testes
  *
+ * @covers-us US-TEAM-001
+ *
+ * Os casos abaixo cobrem, um a um, os bullets de aceite da US-TEAM-001 (SPEC.md):
+ * seeder idempotente (2× = 5 rows) · tier hierarchy L0/L2/L3 · Felipe write em
+ * legacy-delphi/* · Eliana write em NfeBrasil · Maiara blocked em NfeBrasil ·
+ * parent_actor_id de não-Wagner apontando pra wagner.id.
+ *
  * @see Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php
  * @see memory/decisions/0081-identity-mesh-mcp-actors.md
  * @see memory/decisions/0086-fase-5-mvp-governance-actiongate-warn.md

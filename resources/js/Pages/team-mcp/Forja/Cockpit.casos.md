@@ -22,7 +22,7 @@ Recibo: `docker exec oimpresso-staging php artisan route:list --path=forja --jso
 **Pronto quando:** cada uma das 5 rotas renderiza `team-mcp/Forja/Cockpit` com a prop `tab` certa (sem 500 / tela branca).
 
 ## UC-FORJA-02 — Topnav do hub aparece e navega
-Status: ⬜ (manual/visual)
+Status: 🧪 (2 testes de `ForjaRoutesSmokeTest` citam este UC — a contagem de **9** itens e, mais importante, que **todo `href` resolve pra rota registrada**. Este segundo cruza DUAS fontes independentes — `config/core_topnavs.php` × registro de rotas do Laravel — e é exatamente a classe do `forja.saude`, item fantasma que sobreviveu meses. Testar o config contra ele mesmo seria tautologia. Rodam em qualquer driver: leem config e router, sem DB. A perna visual — "aparece no header e destaca o ativo" — segue manual.)
 O topnav vem de `config/core_topnavs.php['Forja']` via `useAutoModuleNav`. São **9** itens, não 6: 5 próprios (`Triagem · Backlog · Quadro · Changelog · MCP`) + 4 do hub TeamMcp absorvido (`Tarefas · Equipe · CC Sessions · Saúde→/team-mcp/scorecard`). Desde a fusão de 2026-06-16 este é o ÚNICO topnav que casa `/team-mcp/*` — a nav é a mesma em todo o hub.
 **Pronto quando:** os 9 itens aparecem no header, navegam e destacam o ativo por URL.
 
@@ -32,7 +32,7 @@ Status: ⬜ (manual/visual)
 **Pronto quando:** "Forja" aparece na sidebar e leva ao cockpit; os ghosts batem 1:1 com `config/core_topnavs.php['Forja']['items']`.
 
 ## UC-FORJA-05 — Read-only (o shell não muta nada)
-Status: ⬜ (manual)
+Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC — cada uma das 5 rotas de aba é GET-only, lido do registro de rotas. Roda em qualquer driver, inclusive sqlite, ao contrário dos casos de request que só pulam. Escopo honesto: prova que **a aba** não escreve; as rotas POST dedicadas — lever/aprovar/rejeitar/fundir — existem por design e são cobertas pelo `UC-FORJA-09`/`UC-FORJA-10`.)
 Nenhuma rota desta onda escreve estado; todas são GET de render.
 **Pronto quando:** não há ação na tela que escreva no banco.
 

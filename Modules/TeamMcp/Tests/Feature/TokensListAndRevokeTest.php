@@ -33,6 +33,13 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * Skip-graceful em sqlite :memory: (CI sem schema UPOS).
  * Pattern copia tests/Feature/Cliente/ClienteIaTabTest.php (canon).
  *
+ * @covers-us US-TEAM-003
+ *
+ * US-TEAM-003 (revoke) pelo caminho da ROTA: `DELETE …/token/{tokenId}` marca
+ * `revoked_at`, é idempotente na segunda chamada, e o drill-down preserva o
+ * histórico. As pernas cross-tenant/cross-user (404) defendem o mesmo contrato
+ * pelo lado Tier 0 — revogar não pode virar vetor de acesso a token alheio.
+ *
  * @see Modules\TeamMcp\Http\Controllers\TeamController::listTokens
  * @see Modules\TeamMcp\Http\Controllers\TeamController::revokeToken
  * @see memory/decisions/0057-tela-team-admin-regras-governanca-tokens-mcp.md

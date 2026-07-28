@@ -28,8 +28,22 @@ uses(Tests\TestCase::class);
  *   - SQLite guard pra mcp_actors table
  *   - PII Tier 0: zero email/credencial real
  *
+ * @covers-us US-TEAM-005
+ * @covers-us US-TEAM-006
+ *
+ * US-TEAM-005 — matriz 5 humanos × módulos críticos: `canWriteModule()` respeitando
+ * write/blocked/wildcard e `isActionBlocked()` consultando `actions_blocked`.
+ * ⚠️ Cobre a metade que existe: a regra vive no ENTITY e é testada aqui, mas o
+ * enforce de runtime (`ActionGate`, ADR 0086) está aplicado a ZERO rotas — por isso
+ * a US é `_parcial_` no SPEC e o `CU-TEAM-05` do SDD está 🔴, não ⬜. Este arquivo
+ * NÃO prova que a permissão barra execução em produção.
+ *
+ * US-TEAM-006 — IA pareada: `effectiveHumanSlug()` resolvendo IA→parent, e o
+ * fallback pro próprio slug quando o parent está revogado (degradação graciosa).
+ *
  * @see Modules/TeamMcp/Entities/McpActor.php
  * @see Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php
+ * @see memory/requisitos/TeamMcp/SDD-tela-hub-team-mcp-v1.0.md (§5.4.2 · CU-TEAM-05)
  * @see memory/decisions/0081-identity-mesh-mcp-actors.md
  * @see memory/decisions/0086-fase-5-mvp-governance-actiongate-warn.md
  */

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
@@ -227,3 +229,71 @@ it('UC-FORJA-07 · autenticado SEM jana.mcp.usage.all leva 403 na rota Forja', f
     // governança de TODOS os businesses pra qualquer funcionário logado.
     $this->actingAs($user)->get(route($routeName))->assertStatus(403);
 })->with(forjaRotasNomes());
+
+// -------------------------------------------------------------------------
+// UC-FORJA-05 — read-only: as abas do shell não mutam nada
+// -------------------------------------------------------------------------
+//
+// Roda em QUALQUER driver (inclusive sqlite): inspeciona o registro de rotas,
+// não faz request. É de propósito — os casos acima só PULAM em sqlite, e skip
+// não é cobertura (o veredito que chega ao manifesto por-UC é `skip`, nunca
+// `pass`). Este prova o contrato na lane que de fato executa.
+
+it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado)', function (string $routeName) {
+    $route = Route::getRoutes()->getByName($routeName);
+
+    expect($route)->not->toBeNull("rota {$routeName} deve estar registrada");
+
+    // HEAD é derivado do GET pelo próprio Laravel — não conta como verbo de escrita.
+    $verbos = array_values(array_diff($route->methods(), ['HEAD']));
+
+    expect($verbos)->toBe(['GET'],
+        "A aba {$routeName} aceita ".implode('/', $verbos).'. As abas do cockpit são de '.
+        'LEITURA (UC-FORJA-05): qualquer mutação tem que passar pelas rotas POST '.
+        'dedicadas (lever/aprovar/rejeitar/fundir), sob confirmação [W] — nunca por um GET '.
+        'de render, que navegador e prefetch disparam sozinhos.'
+    );
+})->with(forjaRotasNomes());
+
+// -------------------------------------------------------------------------
+// UC-FORJA-02 — topnav do hub: 9 itens, nenhum apontando pra rota fantasma
+// -------------------------------------------------------------------------
+//
+// NÃO é tautológico: cruza DUAS fontes independentes — `config/core_topnavs.php`
+// (o que a nav promete) contra o registro de rotas do Laravel (o que existe de
+// fato). É exatamente a classe do `forja.saude`, que ficou listado num teste por
+// meses apontando pra uma rota que nunca existiu (#4887). Testar o config contra
+// ele mesmo é que seria tautologia (§5 proibicoes.md, 2026-06-05).
+
+it('UC-FORJA-02 · topnav do hub tem 9 itens (5 Forja + 4 TeamMcp absorvidos)', function () {
+    $items = config('core_topnavs.Forja.items');
+
+    expect($items)->toBeArray();
+    expect($items)->toHaveCount(9,
+        'Fusão de 2026-06-16: `config/core_topnavs.php[Forja]` é o ÚNICO grupo que casa '.
+        '/team-mcp/* no useAutoModuleNav, então carrega as 5 abas próprias MAIS as 4 telas '.
+        'absorvidas (Tarefas · Equipe · CC Sessions · Saúde). Mudou a conta? O hub ganhou ou '.
+        'perdeu tela — atualize Cockpit.casos.md e o §5.3 F6 do SDD junto.'
+    );
+});
+
+it('UC-FORJA-02 · todo href do topnav resolve pra uma rota GET registrada', function () {
+    $items = config('core_topnavs.Forja.items');
+
+    foreach ($items as $item) {
+        $href = $item['href'] ?? null;
+        $label = $item['label'] ?? '(sem label)';
+
+        expect($href)->not->toBeNull("item '{$label}' do topnav sem href");
+
+        try {
+            Route::getRoutes()->match(Request::create($href, 'GET'));
+        } catch (\Throwable $e) {
+            $this->fail(
+                "Item '{$label}' do topnav aponta pra {$href}, que NÃO resolve pra rota ".
+                'registrada ('.$e::class.'). Item fantasma na nav = 404 no clique do [W]. '.
+                'Foi assim que `forja.saude` sobreviveu meses num teste que nunca rodou (#4887).'
+            );
+        }
+    }
+});
