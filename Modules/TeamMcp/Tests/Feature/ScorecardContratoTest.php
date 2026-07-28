@@ -51,7 +51,12 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  */
 
 /** Permissão exigida pelo construtor do ScorecardController (#4853 renomeou de copiloto.*). */
-const SCORECARD_PERMISSION = 'jana.mcp.usage.all';
+function scorecardPermission(): string
+{
+    // Era `const` no nivel de arquivo — o parser do Pest quebrou com
+    // 'unexpected token const' (o arquivo ja usa funcao pro mesmo fim logo abaixo).
+    return 'jana.mcp.usage.all';
+}
 
 /** As 7 chaves que o frontend consome de `facts` (Index.tsx + casos.md UC-SC-03). */
 function scorecardFactsKeys(): array
@@ -242,11 +247,11 @@ it('UC-SC-08 · a rota do scorecard exige auth + can:jana.mcp.usage.all no regis
     expect($middleware)->toContain('auth');
 
     $exigePermissao = collect($middleware)
-        ->contains(fn ($m): bool => is_string($m) && str_contains($m, SCORECARD_PERMISSION));
+        ->contains(fn ($m): bool => is_string($m) && str_contains($m, scorecardPermission()));
 
     expect($exigePermissao)->toBeTrue(
         'O scorecard é repo-wide cross-business por design (ADR 0093): sem o `can:'.
-        SCORECARD_PERMISSION.'` ele serve a saúde do MCP de TODOS os businesses pra '.
+        scorecardPermission().'` ele serve a saúde do MCP de TODOS os businesses pra '.
         'qualquer funcionário logado. Middleware visto: '.json_encode($middleware)
     );
 });
@@ -287,8 +292,8 @@ it('UC-SC-08 · autenticado SEM jana.mcp.usage.all leva 403 no scorecard', funct
         );
     }
 
-    Permission::findOrCreate(SCORECARD_PERMISSION, 'web');
-    $user->revokePermissionTo(SCORECARD_PERMISSION);
+    Permission::findOrCreate(scorecardPermission(), 'web');
+    $user->revokePermissionTo(scorecardPermission());
     $user->forgetCachedPermissions();
 
     session(['user.id' => $user->id]);
