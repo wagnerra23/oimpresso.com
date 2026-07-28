@@ -413,3 +413,14 @@ jobs:
       # pré-mudança e as de não-regressão passam nos dois. Advisory por desenho (ADR 0314/0275).
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         run: node scripts/governance/reguas-workflow.test.mjs
+
+      # O oráculo deste hook é o parser do PHP — sem `php` no runner, o bite-test
+      # pularia a mordida e imprimiria verde: verde por NÃO-EXECUÇÃO (§5 2026-07-24).
+      # Por isso o setup é explícito e o teste FALHA se CI=true sem PHP.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: none
+          coverage: none
+      - name: php -l no Write (latência do lint: 7min no CI → ~0,3s onde o arquivo nasce)
+        run: node .claude/hooks/php-syntax-after-write.test.mjs
