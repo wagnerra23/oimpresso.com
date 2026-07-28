@@ -5,7 +5,7 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-07-28"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
@@ -27,7 +27,7 @@ apoiada em "17 casos reais". A medição desmontou as duas metades:
 
 | Afirmação anterior | O que a medição mostrou |
 |---|---|
-| "17 casos reais defendem o comportamento" | **13 dos 18** casos do `AcoesControllerTest` são **tautológicos** — montam um `validator([...], [...])` LOCAL com as regras reescritas à mão, ou assertam um array literal declarado na linha acima. Não tocam o `AcoesController`: trocar `min:15` por `min:5` **não os derruba**. |
+| "17 casos reais defendem o comportamento" | **13 dos 18** casos do `AcoesControllerTest` eram **tautológicos** — montavam um `validator([...], [...])` LOCAL com as regras reescritas à mão, ou assertavam um array literal declarado na linha acima. Não tocavam o `AcoesController`: trocar `min:15` por `min:5` **não os derrubava**. _(11 removidos em 2026-07-28 por decisão [W]; 2 ficaram por ancorarem UCs da tela `Fiscal/Dfe` — ver §Trilha do tempo.)_ |
 | "o comportamento de leitura já é defendido" | O caso `isCancelavel` declarava um `$isCancelavel = function (...)` que **re-implementava a fórmula do Controller** e testava esse clone. |
 | "os de validação/whitelist rodam sempre" | **Falso.** Medido: `NfeCockpitMultiTenantTest` + `AcoesControllerTest` = **21 skipped, 0 passed** no CT 100 — um `beforeEach` de arquivo skipava tudo quando faltava `nfe_emissoes`, inclusive os casos que nunca consultam banco. |
 
@@ -119,7 +119,7 @@ Fiscal). Âncora: US-FISCAL-013/014.
 
 - **[BACKLOG · ⬜ sem teste · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. O guard existe no `NfeCockpitController::index` e o charter (Goal 7) e o SPEC dão como coberto, mas **nenhum teste o exercita** — inclusive o docblock do `NfeCockpitMultiTenantTest` prometia esse caso e ele não existe. Precisa de lane com `users`+`permissions` (o teste de contrato daqui isola o gate justamente pra não depender delas).
 - **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
-- **[BACKLOG · tautológico] Whitelist de status retransmissíveis (`rejeitada`/`denegada`/`erro_envio`)** — o caso existente asserta um array literal escrito no próprio teste. Vira UC quando exercitar o `retransmitir` do Controller com uma nota em cada status.
+- **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). Vira UC quando houver lane com as migrations do NfeBrasil.
 - **[BACKLOG · ⬜ sem teste] Drawer: mapa "Jana sugere" por cstat rejeitado, atalhos J/K + Enter, pílula temporal na linha** — comportamento de UI; sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`).
 
 ## Como rodar a suíte
@@ -135,3 +135,11 @@ Fiscal). Âncora: US-FISCAL-013/014.
   falsas da versão anterior deste arquivo ("17 casos reais" e "validação/whitelist rodam sempre").
   Prefixo `UC-FNFE-` em vez do `UC-FISCAL-` planejado: as 6 telas Fiscal compartilhariam o id e a G-2
   casa por substring — colisão viraria cobertura falsa cruzada.
+- 2026-07-28 · [CC] poda de **11** casos tautológicos do `AcoesControllerTest` (decisão [W]). Dez
+  têm substituto com mordida provada no `AcoesContratoTest`; o 11º (whitelist de status do
+  `retransmitir`) não tem — a checagem vive depois do `firstOrFail()` e exige `nfe_emissoes`,
+  então virou item de backlog declarado em vez de teste que não defende nada. **Dois** casos
+  tautológicos ficaram de propósito: os de manifestação DF-e ancoram `UC-FDFE-03`/`UC-FDFE-04` da
+  tela `Fiscal/Dfe` (anotados por outra sessão enquanto este trabalho corria) — removê-los
+  orfanaria UC de tela alheia. O comportamento real deles já é provado por `UC-FNFE-07`;
+  re-apontar o DF-e pra lá é decisão do dono daquela tela. Nenhum UC perdeu lastro.
