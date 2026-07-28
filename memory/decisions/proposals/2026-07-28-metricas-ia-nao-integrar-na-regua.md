@@ -123,11 +123,56 @@ cataloga quatro vezes. Fica registrado como achado.
    métrica de IA nova entra numa fila parada. Fazer essa medir é o que destrava a promoção do
    scorecard por bucket que [W] já aprovou em maio.
 
+## O gargalo já tem causa declarada — e não é código
+
+Ao fechar esta proposta, fui ver **por que** `recall_eval_violations` nunca mediu. A razão está
+escrita no próprio gerador:
+
+```
+recall_eval_violations: notYet('down', 0,
+  'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR')
+```
+
+E o cabeçalho de `.github/workflows/jana-recall-eval.yml` completa:
+
+> *"O caminho real fica pronto-pra-ligar via schedule em `app/Console/Kernel.php`
+> (`environments=['live']`, CT 100). **Liga quando o índice `mcp_memory_documents` for alcançável do
+> cron prod.** Depende de janela CT 100 (decisão de infra), NÃO de secret."*
+
+Hoje o comando roda em `--mode=mock` como gate de PR. O caminho real está **pronto-pra-ligar** e
+espera uma janela de infraestrutura.
+
+Isso muda a pergunta. Não é *"vale investir em fazer medir?"* — o trabalho de código já foi feito.
+É **"vale abrir a janela CT 100 para o cron de produção alcançar o índice?"**
+
+## Como esta proposta se encaixa com o plano do Codex
+
+O [PR #4981](https://github.com/wagnerra23/oimpresso.com/pull/4981) criou
+[`Jana/OBSERVABILITY.md`](../../requisitos/Jana/OBSERVABILITY.md) — 631 linhas, dez etapas do ciclo
+observar→aprender, com aceite e rollback por etapa. É um bom plano e **não conflita**: ele declarou os
+donos por PR (dedup-ack) e estendeu, em vez de abrir paralelo.
+
+Os dois cobrem coisas diferentes, e vale não confundir:
+
+| | Cobre |
+|---|---|
+| `OBSERVABILITY.md` (Codex) | o ciclo de **runtime**: trace raiz, avaliação online com juiz local, feedback humano, golden set, rollout |
+| esta proposta | a **régua de governança**: por que as métricas de IA não entram no scorecard required, e o que destrava |
+
+A Etapa 3 dele — *"ativar e provar a avaliação online local"* — é sobre `faithfulness` online com juiz
+no CT 100. **Não é** a mesma coisa que `recall_eval_violations`, que vem de `jana:recall-eval` e
+alimenta o scorecard. Medido: o `OBSERVABILITY.md` não menciona `recall_eval_violations`,
+`ragas_real_uptime`, o scorecard nem o bucket `ai_central` — zero ocorrências de cada.
+
+Ou seja: **há uma ponte que nenhum dos dois planos atravessa**, e ela é a mesma janela CT 100.
+
 ## O que esta proposta pede a [W]
 
-Nada de novo a decidir sobre integração — a recomendação é não fazer. O que precisa de decisão:
-**vale investir em fazer `recall_eval_violations` medir?** Se sim, a promoção do `jana.yaml` deixa de
-ser hipótese e vira trabalho com pré-requisito claro.
+1. **Não integrar** a grade nem as notas — recomendação, não pergunta.
+2. **A decisão real:** abrir a janela CT 100 para o cron de produção alcançar `mcp_memory_documents`.
+   É o que faz `recall_eval_violations` sair de `mock` para real — e é pré-requisito tanto do
+   scorecard por bucket (aprovado em maio) quanto da Etapa 3 do plano de observabilidade.
+3. Decisão de **infraestrutura**, não de código. O código está pronto dos dois lados.
 
 ## Lição de método — e um erro meu que entra nela
 
