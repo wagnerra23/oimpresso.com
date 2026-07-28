@@ -61,6 +61,15 @@ final class EstoqueFixture
     }
 
     /** Business piloto (menor id semeado = biz=1 dogfood, ADR 0101). */
+    /**
+     * Espelha `WithSeededTenant::SEEDED_TENANT_ID` (= 99). Constante PRÓPRIA porque
+     * `WithSeededTenant` é TRAIT: `Trait::CONST` direto é fatal no PHP
+     * ("Cannot access trait constant ... directly") — medido na run 30398633248, que
+     * derrubou 61 testes em 20 arquivos por este acesso, não pelo tenant.
+     * Dono do valor segue sendo o trait; aqui é cópia declarada, não fonte nova.
+     */
+    private const TENANT_CANONICO_ID = 99;
+
     public static function businessId(): int
     {
         // Tenant canônico = biz=99 (fictício). Antes era "o primeiro id do banco", que caía
@@ -68,7 +77,7 @@ final class EstoqueFixture
         // Fallback pro primeiro id preservado: schema montado pelo próprio teste pode não
         // ter o 99.
         $canonico = (int) DB::table('business')
-            ->where('id', WithSeededTenant::SEEDED_TENANT_ID)
+            ->where('id', self::TENANT_CANONICO_ID)
             ->value('id');
 
         return $canonico > 0
