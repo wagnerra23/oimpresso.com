@@ -20,41 +20,22 @@ uses(Tests\TestCase::class);
  * SEM substituto — no Controller a whitelist de status é checada DEPOIS do `firstOrFail()`, então
  * exige `nfe_emissoes`, indisponível nas lanes de hoje. A lacuna está no backlog de `Nfe.casos.md`.
  *
- * O que FICA (7 casos):
- *  - 5 ESTRUTURAIS (métodos/rota/Services existem, via reflection) → ancoram `UC-FNFE-08`;
- *  - 2 de manifestação DF-e → ancoram `UC-FDFE-03`/`UC-FDFE-04` (tela `Fiscal/Dfe`). Estes DOIS
- *    seguem tautológicos (assertam arrays locais), mas NÃO foram removidos porque são a cobertura
- *    G-2 declarada por outra tela. O comportamento real já é provado por
- *    `AcoesContratoTest::UC-FNFE-07`; re-apontar os UCs do DF-e pra lá é trabalho do dono daquela
- *    tela, não carona deste PR.
+ * ⚠️ SEGUNDA PODA 2026-07-28 — saíram também os 2 casos de manifestação DF-e, que eram
+ * tautológicos pelo mesmo motivo (`expect(['cienciar','confirmar',...])->toHaveCount(4)` sobre um
+ * array escrito na linha acima). Eles ancoravam `UC-FDFE-03`/`UC-FDFE-04` da tela `Fiscal/Dfe`, e
+ * por isso a primeira poda os preservou. Agora os dois ids foram **movidos para os testes que
+ * realmente provam o comportamento** — `AcoesContratoTest::UC-FNFE-07 · UC-FDFE-03 · …` e
+ * `· UC-FDFE-04 · …`, que invocam `AcoesController::manifestarDfe` e verificam o 404 da whitelist e
+ * a exigência condicional de justificativa. O DF-e trocou lastro de fachada por lastro real; o
+ * `Dfe.casos.md` foi reapontado no mesmo PR.
+ *
+ * O que FICA aqui (5 casos): só os ESTRUTURAIS (métodos/rota/Services existem, via reflection),
+ * que ancoram `UC-FNFE-08`.
  *
  * Guard de banco removido 2026-07-27: nenhum caso deste arquivo consulta tabela (`class_exists`,
  * `Route::has`, reflection), mas o `beforeEach` skipava todos quando `nfe_emissoes` faltava —
  * inclusive os estruturais, que passavam a não rodar em lane nenhuma.
  */
-
-it('UC-FDFE-03 · manifestarDfe whitelist exatamente 4 ações canon SEFAZ', function () {
-    $acoesValidas = ['cienciar', 'confirmar', 'desconhecer', 'nao_realizada'];
-
-    // Whitelist guard — qualquer outra string deve falhar
-    expect($acoesValidas)
-        ->toHaveCount(4)
-        ->toContain('cienciar', 'confirmar', 'desconhecer', 'nao_realizada')
-        ->not->toContain('cancelar', 'aprovar', 'rejeitar');
-});
-
-it('UC-FDFE-04 · manifestarDfe desconhecer/nao_realizada exigem justificativa, cienciar/confirmar não', function () {
-    $exigemJustif = ['desconhecer', 'nao_realizada'];
-    $semJustif    = ['cienciar', 'confirmar'];
-
-    foreach ($exigemJustif as $acao) {
-        expect(in_array($acao, ['desconhecer', 'nao_realizada'], true))->toBeTrue("$acao deve exigir justificativa");
-    }
-
-    foreach ($semJustif as $acao) {
-        expect(in_array($acao, ['desconhecer', 'nao_realizada'], true))->toBeFalse("$acao NÃO exige justificativa");
-    }
-});
 
 it('UC-FNFE-08 · AcoesController classe existe e tem 5 métodos públicos esperados (Waves 4+5+6)', function () {
     $controller = new \Modules\Fiscal\Http\Controllers\AcoesController();
