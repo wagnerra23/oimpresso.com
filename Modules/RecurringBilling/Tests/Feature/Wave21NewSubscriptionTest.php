@@ -2,6 +2,17 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato de tela — RecurringBilling/Index (criar assinatura pelo drawer).
+ *
+ * @covers-us US-RB-002
+ *
+ * UC (resources/js/Pages/RecurringBilling/Index.casos.md · CU-RB-02 do SDD §6.1):
+ *   UC-RBSUB-01 — cria assinatura mapeando forma de pagamento PT → payment_method
+ *   UC-RBSUB-02 — validação recusa contato ausente, enum inválido e data no passado
+ *   UC-RBSUB-03 — busca de cliente não vaza outro business nem tipo errado [T0]
+ */
+
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;

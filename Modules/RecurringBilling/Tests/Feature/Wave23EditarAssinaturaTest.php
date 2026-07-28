@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato de tela — RecurringBilling/Index (editar cobrança pelo drawer).
+ *
+ * @covers-us US-RB-002
+ *
+ * UC (resources/js/Pages/RecurringBilling/Index.casos.md · CU-RB-04 do SDD §6.1):
+ *   UC-RBSUB-04 — editar cobrança: 404 cross-tenant · 422 se cancelada [T0][V0]
+ */
+
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;

@@ -2,6 +2,17 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato — webhook PIX do Inter PJ (rota pública, mesma doutrina do Asaas: o
+ * isolamento é o secret daquele business, não o global scope).
+ *
+ * @covers-us US-RB-047
+ * @covers-us US-RB-051
+ *
+ * UC (resources/js/Pages/RecurringBilling/Configuracoes/Index.casos.md · CU-RB-07 do SDD §6.1):
+ *   UC-RBCFG-08 — o webhook do Inter tem as mesmas garantias do Asaas [T0][V0]
+ */
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;

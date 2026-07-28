@@ -2,6 +2,21 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato — geração das faturas do ciclo (fluxo sem tela própria; o artefato que
+ * ele produz é a fatura, então o casos.md dele mora na tela de Faturas).
+ *
+ * @covers-us US-RB-003
+ *
+ * UC (resources/js/Pages/RecurringBilling/Faturas/Index.casos.md · CU-RB-03 do SDD §6.1):
+ *   UC-RBFAT-08 — uma fatura por competência: 2× o job não duplica [V0]
+ *   UC-RBFAT-09 — vencimento avança sem transbordar o mês (addMonthsNoOverflow) [V0]
+ *   UC-RBFAT-10 — pausada/cancelada não faturam · dry-run não escreve · lead antecipa
+ *   UC-RBFAT-11 — o job de um business não toca o outro [T0]
+ *
+ * Cross-check [V0] por 2º caminho independente: tests/Feature/Calculo/CalculoRecurringBillingTest.php
+ */
+
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\Invoice;
