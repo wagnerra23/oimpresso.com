@@ -1792,7 +1792,12 @@ class HealthCheckCommand extends Command
             if (! is_file($charterAbs)) {
                 $charterAusente[] = "{$s['id']}:{$s['charter']}";
             } else {
-                preg_match_all('/UC-[A-Z0-9]+/', (string) file_get_contents($charterAbs), $m);
+                // Formato do UC-id = fonte única scripts/lib/uc-regex.mjs (UC_CORE · ADR 0264).
+                // Duplicação CONSCIENTE: PHP não roda Node. Espelha prototipo-ui/audit/
+                // protocol-freshness.mjs::ucsCitadosNoCharter — mude os DOIS juntos.
+                // Era '/UC-[A-Z0-9]+/', que truncava no hífen (UC-VSHOW-01 -> UC-VSHOW) e
+                // reportava UC morto com id inexistente. Ver 2026-07-27.
+                preg_match_all('/UC-(?:[A-Z][A-Z0-9]{0,5})?-?\d{1,3}[a-zA-Z]?/', (string) file_get_contents($charterAbs), $m);
                 foreach (array_unique($m[0] ?? []) as $cit) {
                     if (! isset($idsRegistro[$cit])) {
                         $ucMorto[] = "{$s['id']}:{$cit}";

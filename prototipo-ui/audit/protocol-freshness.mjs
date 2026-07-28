@@ -56,8 +56,19 @@ function ucTag(id) {
 }
 
 // extrai tokens UC-xxx citados num charter (pra detectar UC morto — item c).
+//
+// O FORMATO vem da fonte única `scripts/lib/uc-regex.mjs` (UC_CORE · ADR 0264). Este arquivo
+// NÃO a importa de propósito: ele é o ORIGINAL do espelho PHP em HealthCheckCommand.php
+// (`checkProtocolFreshness`), e o espelho não roda Node — importar aqui faria os dois lados
+// divergirem de forma invisível. Mantenha os DOIS em sincronia com o UC_CORE ao mudar.
+//
+// POR QUE MUDOU (2026-07-27): era `/UC-[A-Z0-9]+/`, que TRUNCA no hífen — `UC-VSHOW-01` virava
+// `UC-VSHOW` e `UC-FORJA-01` virava `UC-FORJA`. Medido: com o charter Sells/Show citando
+// `UC-VSHOW-01`, o check acusava `uc_morto: UC-VSHOW` — um id que não existe em arquivo NENHUM
+// (0 hits com lookahead no repo). Vetor de falso-verde: quem seguisse a mensagem e cadastrasse
+// `UC-VSHOW` no registry APAGAVA o alarme com o `UC-VSHOW-01` real ainda descoberto.
 function ucsCitadosNoCharter(src) {
-  const m = src.match(/UC-[A-Z0-9]+/g) || [];
+  const m = src.match(/UC-(?:[A-Z][A-Z0-9]{0,5})?-?\d{1,3}[a-zA-Z]?/g) || [];
   return [...new Set(m)];
 }
 
