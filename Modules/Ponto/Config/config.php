@@ -93,6 +93,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Features de IA do Ponto (plano de flags próprio — separado da Jana)
+    |--------------------------------------------------------------------------
+    | `enabled` é o master switch; as três abaixo ligam features específicas.
+    | Todas nascem DESLIGADAS — o default false é o comportamento vigente e
+    | NÃO muda com esta migração.
+    |
+    | Consumidores:
+    |  - `Modules\Ponto\Services\IntercorrenciaAIClassifier` (classificação)
+    |  - `app/Http/Middleware/HandleInertiaRequests` — expõe como prop Inertia
+    |    `ai.*` (hook `useAiFlags()` em resources/js/Hooks/usePageProps.ts)
+    |
+    | Estavam em `env()`/`getenv()` DENTRO desses consumidores, fora de config/.
+    | Com `config:cache` ligado em produção o `.env` não chega a ser carregado
+    | (`LoadEnvironmentVariables::bootstrap()` retorna cedo quando
+    | `configurationIsCached()`), então as flags eram INOPERANTES: ligar
+    | `AI_ENABLED=true` no .env de prod não ligava nada. Medido 2026-07-28 —
+    | `configurationIsCached: true` e, como controle, `env('APP_ENV')` → NULL
+    | (a chave existe no .env). Avaliadas aqui, rodam durante o próprio
+    | `php artisan config:cache`, quando o .env ainda está carregado.
+    |
+    | `model` idem — era `env('OPENAI_MODEL', 'gpt-4o-mini')` no classifier.
+    | A API key NÃO é duplicada aqui: vem de `config('ai.providers.openai.key')`
+    | (dono do tema é o config do laravel/ai).
+    */
+    'ai' => [
+        'enabled'                      => env('AI_ENABLED', false),
+        'classificacao_intercorrencia' => env('AI_CLASSIFICACAO_INTERCORRENCIA', false),
+        'explicacao_divergencia'       => env('AI_EXPLICACAO_DIVERGENCIA', false),
+        'geracao_justificativa'        => env('AI_GERACAO_JUSTIFICATIVA', false),
+        'model'                        => env('OPENAI_MODEL', 'gpt-4o-mini'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Integração com UltimatePOS (bridge)
     |--------------------------------------------------------------------------
     */

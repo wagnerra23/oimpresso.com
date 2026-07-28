@@ -83,11 +83,18 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'business' => $businessPayload,
+            // Flags de IA do Ponto expostas ao React (hook `useAiFlags()`).
+            // Fonte: Modules/Ponto/Config/config.php (namespace `pontowr2`).
+            // Eram `env()` aqui, fora de config/ — e em produção o `config:cache`
+            // está ligado, então o `.env` não é carregado e `env()` devolvia
+            // sempre o default: ligar a flag no .env de prod não ligava nada
+            // (medido 2026-07-28). O default `false` do call-site é o mesmo de
+            // antes, e cobre também o caso do módulo Ponto não estar carregado.
             'ai' => [
-                'enabled'                      => (bool) env('AI_ENABLED', false),
-                'classificacao_intercorrencia' => (bool) env('AI_CLASSIFICACAO_INTERCORRENCIA', false),
-                'explicacao_divergencia'       => (bool) env('AI_EXPLICACAO_DIVERGENCIA', false),
-                'geracao_justificativa'        => (bool) env('AI_GERACAO_JUSTIFICATIVA', false),
+                'enabled'                      => (bool) config('pontowr2.ai.enabled', false),
+                'classificacao_intercorrencia' => (bool) config('pontowr2.ai.classificacao_intercorrencia', false),
+                'explicacao_divergencia'       => (bool) config('pontowr2.ai.explicacao_divergencia', false),
+                'geracao_justificativa'        => (bool) config('pontowr2.ai.geracao_justificativa', false),
             ],
             'flash' => [
                 // UltimatePOS retorna ->with('status', ['success'=>0|1, 'msg'=>...]).

@@ -490,6 +490,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Prompt caching Anthropic — kill-switch + threshold (GAP D4 #5)
+    |--------------------------------------------------------------------------
+    | Consumido por `Modules\Jana\Ai\Cache\PromptCacheConfig`. Estava em `env()`
+    | DENTRO do service (fora de config/) — o que, com `config:cache` ligado em
+    | produção, tornava as duas chaves INOPERANTES: o `.env` nem chega a ser
+    | carregado (`LoadEnvironmentVariables::bootstrap()` retorna cedo quando
+    | `configurationIsCached()`), então `env()` devolvia sempre o default e
+    | escrever a chave no `.env` de prod não surtia efeito nenhum.
+    |
+    | Medido em prod 2026-07-28: `configurationIsCached: true` e, como controle,
+    | `env('APP_ENV')` → NULL (a chave existe no .env). Avaliadas aqui, as env()
+    | rodam durante o próprio `php artisan config:cache` — quando o .env AINDA
+    | está carregado — e o valor fica congelado no cache. Kill-switch volta a
+    | funcionar: editar .env + `config:cache` (o deploy já roda).
+    |
+    | enabled   — desliga o prompt caching em caso de regressão observada.
+    | min_chars — abaixo disto não vale marcar bloco (Anthropic exige mínimo;
+    |             heurística ~4 chars/token → 4096 chars).
+    */
+    'prompt_cache' => [
+        'enabled'   => env('COPILOTO_PROMPT_CACHE_ENABLED', true),
+        'min_chars' => env('COPILOTO_PROMPT_CACHE_MIN_CHARS', 4096),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | MEM-S8-2 — ConversationSummarizer (ADR 0037 Sprint 8)
     |--------------------------------------------------------------------------
     | Comprime histórico de conversas longas (>15 turnos): resume msgs antigas

@@ -41,7 +41,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
     public function retorna_erro_quando_ai_desativada(): void
     {
         config(['app.env' => 'testing']);
-        putenv('AI_ENABLED=false');
+        config(['pontowr2.ai.enabled' => false]);
 
         $r = $this->ai->classificar('tive consulta médica às 14h, retornei às 17h');
         $this->assertFalse($r['success']);
@@ -106,15 +106,18 @@ class IntercorrenciaAIClassifierTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function ai_habilitada_exige_flags_e_api_key(): void
     {
-        putenv('AI_ENABLED=true');
-        putenv('AI_CLASSIFICACAO_INTERCORRENCIA=true');
-        putenv('OPENAI_API_KEY=');
+        // Flags vêm de config (`pontowr2.ai.*`) e a key do config do laravel/ai —
+        // mesmo caminho que a produção percorre com `config:cache` ligado. Antes
+        // isto era `putenv()`, que só funcionava em teste (ver aiHabilitada()).
+        config(['pontowr2.ai.enabled' => true]);
+        config(['pontowr2.ai.classificacao_intercorrencia' => true]);
+        config(['ai.providers.openai.key' => '']);
         $this->assertFalse($this->ai->aiHabilitada(), 'Sem API key deve retornar false');
 
-        putenv('OPENAI_API_KEY=sk-fake');
+        config(['ai.providers.openai.key' => 'sk-fake']);
         $this->assertTrue($this->ai->aiHabilitada());
 
-        putenv('AI_CLASSIFICACAO_INTERCORRENCIA=false');
+        config(['pontowr2.ai.classificacao_intercorrencia' => false]);
         $this->assertFalse($this->ai->aiHabilitada());
     }
 }

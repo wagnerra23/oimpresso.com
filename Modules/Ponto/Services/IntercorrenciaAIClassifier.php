@@ -82,7 +82,7 @@ class IntercorrenciaAIClassifier
             }
 
             $response = \OpenAI\Laravel\Facades\OpenAI::chat()->create([
-                'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+                'model' => config('pontowr2.ai.model', 'gpt-4o-mini'),
                 'response_format' => ['type' => 'json_object'],
                 'temperature' => 0.2,
                 'max_tokens' => 500,
@@ -117,10 +117,14 @@ class IntercorrenciaAIClassifier
 
     public function aiHabilitada(): bool
     {
-        // `env()` em runtime não reflete bem alterações via `putenv()` em testes.
-        $aiEnabled = filter_var((string) getenv('AI_ENABLED'), FILTER_VALIDATE_BOOL);
-        $aiClassificacao = filter_var((string) getenv('AI_CLASSIFICACAO_INTERCORRENCIA'), FILTER_VALIDATE_BOOL);
-        $apiKey = (string) getenv('OPENAI_API_KEY');
+        // Lê de config, NÃO de getenv()/env(): em produção o `config:cache` está
+        // ligado e o `.env` nem chega a ser carregado, então getenv() devolvia
+        // sempre `false` aqui — as flags eram inoperantes (medido 2026-07-28).
+        // O `getenv()` original existia pra acomodar `putenv()` nos testes; hoje
+        // o teste liga a flag com `config([...])`, que é o mesmo caminho da prod.
+        $aiEnabled = filter_var(config('pontowr2.ai.enabled', false), FILTER_VALIDATE_BOOL);
+        $aiClassificacao = filter_var(config('pontowr2.ai.classificacao_intercorrencia', false), FILTER_VALIDATE_BOOL);
+        $apiKey = (string) config('ai.providers.openai.key', '');
 
         return (bool) $aiEnabled && (bool) $aiClassificacao && $apiKey !== '';
     }
