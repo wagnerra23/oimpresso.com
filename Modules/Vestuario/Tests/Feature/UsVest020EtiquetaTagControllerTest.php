@@ -286,7 +286,8 @@ it('blade pdf renderiza 10 etiquetas em grid (acceptance criteria)', function ()
     // 10 etiquetas devem aparecer.
     // NOTA: Pest `toContain(...$needles)` aceita N needles como variadic, NÃO
     // mensagem custom (sintaxe difere de PHPUnit assertStringContainsString).
-    // Antes: `expect($html)->toContain("Produto {$i}", "etiqueta #{$i} ausente...")` —
+    // FALHA AQUI SIGNIFICA: etiqueta #{$i} ausente...
+    // Antes: `expect($html)->toContain("Produto {$i}")` —
     // o 2º arg virava needle adicional ("etiqueta #1 ausente no PDF render") que
     // o HTML obviamente não continha → fail SEMPRE. Mascarado porque o EAN13
     // disparava WrongCheckDigitException ANTES da assertion. Fix: 1 needle por chamada.

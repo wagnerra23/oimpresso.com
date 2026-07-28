@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato — estorno (refund) de cobrança Asaas. Fluxo sem tela própria; desfaz o
+ * artefato da tela de Faturas, então o casos.md dele mora lá.
+ *
+ * UC (resources/js/Pages/RecurringBilling/Faturas/Index.casos.md · CU-RB-08 do SDD §6.1):
+ *   UC-RBFAT-12 — sem a flag ASAAS_REFUND_ENABLED o estorno NÃO sai [V0]
+ *   UC-RBFAT-13 — estorno é idempotente e recusa documento alheio [V0][T0]
+ */
+
 use App\Domain\Fsm\Models\TransactionDocument;
 use App\User;
 use Illuminate\Database\Eloquent\Model;

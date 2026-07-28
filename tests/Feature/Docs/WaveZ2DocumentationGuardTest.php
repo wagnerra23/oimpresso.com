@@ -94,10 +94,14 @@ it('smoke checklist menciona ADR 0192 + multi-tenant Tier 0', function () {
 
     $content = (string) file_get_contents($checklist);
 
-    expect($content)->toContain('0192', 'Checklist deve referenciar ADR 0192')
-        ->and($content)->toContain('Multi-tenant', 'Checklist deve mencionar multi-tenant Tier 0')
-        ->and($content)->toContain('biz=1', 'Checklist deve documentar canary biz=1')
-        ->and($content)->toContain('biz=4', 'Checklist deve mencionar biz=4 Larissa pós-canary');
+    // FALHA AQUI SIGNIFICA: Checklist deve referenciar ADR 0192
+    expect($content)->toContain('0192')
+        // FALHA AQUI SIGNIFICA: Checklist deve mencionar multi-tenant Tier 0
+        ->and($content)->toContain('Multi-tenant')
+        // FALHA AQUI SIGNIFICA: Checklist deve documentar canary biz=1
+        ->and($content)->toContain('biz=1')
+        // FALHA AQUI SIGNIFICA: Checklist deve mencionar biz=4 Larissa pós-canary
+        ->and($content)->toContain('biz=4');
 });
 
 it('script deploy menciona rollback + backup MySQL', function () {
@@ -109,8 +113,12 @@ it('script deploy menciona rollback + backup MySQL', function () {
 
     $content = (string) file_get_contents($script);
 
-    expect($content)->toContain('mysqldump', 'Script deve dump MySQL antes de migrate')
-        ->and($content)->toContain('rollback', 'Script deve documentar rollback')
-        ->and($content)->toContain('migrate', 'Script deve rodar migrate')
-        ->and($content)->toContain('npm run build', 'Script deve rebuildar frontend');
+    // FALHA AQUI SIGNIFICA: Script deve dump MySQL antes de migrate
+    expect($content)->toContain('mysqldump')
+        // FALHA AQUI SIGNIFICA: Script deve documentar rollback
+        ->and($content)->toContain('rollback')
+        // FALHA AQUI SIGNIFICA: Script deve rodar migrate
+        ->and($content)->toContain('migrate')
+        // FALHA AQUI SIGNIFICA: Script deve rebuildar frontend
+        ->and($content)->toContain('npm run build');
 });

@@ -72,6 +72,18 @@ check('CONTROLE: banner sem alarme nao fala de QUEM FAZ', !/QUEM FAZ/.test(forma
 // ── extensão: cobertura só-advisory = "sem defesa mecânica" (proposal two-strikes-cobre-processo) ──
 check('semGate: advisory/parcial/insuficiente = sem defesa mecanica', semGate('advisory — nudge-x') && semGate('parcial: cobre so X') && semGate('insuficiente'));
 check('semGate: nome de gate real com "(advisory,...)" NAO casa (so o prefixo declarado)', !semGate('mutation-gate (advisory, escopo v1)') && !semGate('block-foo.mjs'));
+// MORDE: `none — <justificativa>` (forma usada por LC-12/LC-13 pra registrar o par
+// candidato medido). Antes lia a prosa como NOME de gate e silenciava a classe.
+check('semGate: MORDE none com justificativa anexada (none — <prosa>)',
+  semGate('none — par candidato MEDIDO e pronto, nao armado por two-strikes (ADR 0344)')
+  && semGate('none -- strike 2 atingido, mas NAO armo sem medir FP')
+  && semGate('nenhum — sem chokepoint que alcance leitura de output'));
+// CONTROLE NEGATIVO: gate REAL cuja descricao contem a palavra none/nenhum nao pode virar
+// "sem gate" — so a CABECA da declaracao decide.
+check('semGate: gate real com "none" no corpo NAO vira sem-gate (controle negativo)',
+  !semGate('block-foo.mjs — substitui o none anterior')
+  && !semGate('gate-selftest.mjs — nenhum FP medido em arvore limpa')
+  && !semGate('none-of-the-above-gate.mjs'));
 check('semGate: advisory-terminal/by-design/0224 NAO alarma (decisao final ADR 0224)', !semGate('advisory-terminal (0224) — nudge-x') && !semGate('advisory by-design: nudge-y') && !semGate('parcial (0224 terminal)'));
 // CONTROLE NEGATIVO (bug medido 2026-07-25): o marcador da excecao so vale na CABECA da
 // declaracao (antes do 1o travessao). Antes do fix, `advisory — <hook> ... ADR 0224` silenciava

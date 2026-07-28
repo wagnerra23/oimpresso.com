@@ -65,7 +65,8 @@ dataset('crm_entities_com_logs_activity', [
 it('Entity Crm tem trait LogsActivity (D7 LGPD compliance)', function (string $entityClass) {
     expect(class_exists($entityClass))->toBeTrue("Entity {$entityClass} deve existir");
     $traits = class_uses_recursive($entityClass);
-    expect($traits)->toContain(LogsActivity::class, "Entity {$entityClass} sem LogsActivity — LGPD audit trail quebrado");
+    // FALHA AQUI SIGNIFICA: Entity {$entityClass} sem LogsActivity — LGPD audit trail quebrado
+    expect($traits)->toContain(LogsActivity::class);
 })->with('crm_entities_com_logs_activity');
 
 it('Entity Crm declara getActivitylogOptions (configuração explícita Spatie)', function (string $entityClass) {

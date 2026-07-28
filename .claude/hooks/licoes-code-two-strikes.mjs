@@ -64,7 +64,12 @@ export function semGate(g) {
   const s = String(g).trim();
   if (/^(none|nenhum|nenhuma|-|n\/a|na)$/i.test(s)) return true;
   // cabeça = até o primeiro travessão (— / – / --); sem travessão, a declaração inteira.
-  const cabeca = s.split(/\s(?:—|–|--)\s/)[0];
+  const cabeca = s.split(/\s(?:—|–|--)\s/)[0].trim();
+  // `none — <justificativa>` é a MESMA declaração de "sem defesa mecânica", só que com o
+  // porquê anexado (LC-12/LC-13 usam essa forma pra registrar o par candidato medido).
+  // Sem esta linha o alarme lia a prosa como se fosse o NOME de um gate e silenciava a
+  // classe — registro que não alarma é decorativo (o próprio LC-13 que ele deveria surfar).
+  if (/^(none|nenhum|nenhuma|n\/a)$/i.test(cabeca)) return true;
   if (/^(advisory|parcial|insuficiente)\b/i.test(s)) return !/\b(terminal|by-design|0224)\b/i.test(cabeca);
   return false;
 }

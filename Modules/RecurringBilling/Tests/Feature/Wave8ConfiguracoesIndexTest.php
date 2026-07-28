@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato de tela — RecurringBilling/Configuracoes/Index.
+ *
+ * UC (resources/js/Pages/RecurringBilling/Configuracoes/Index.casos.md · CU-RB-12 do SDD §6.1):
+ *   UC-RBCFG-01 — lista os gateways sem vazar o config_json cifrado [T0]
+ *   UC-RBCFG-02 — mostra a régua de dunning com as 3 retentativas
+ *   UC-RBCFG-03 — gateway de um business não aparece pro outro [T0]
+ *   UC-RBCFG-04 — a URL de webhook reflete o business da sessão [T0][V0]
+ */
+
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
 use Modules\RecurringBilling\Http\Controllers\ConfiguracoesController;

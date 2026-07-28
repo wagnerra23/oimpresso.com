@@ -47,8 +47,10 @@ it('controller usa Inertia::defer em pelo menos uma prop', function (string $nam
     $source = readGovernanceController($name);
 
     expect($source)
-        ->toContain('Inertia::defer(', "{$name} deveria usar Inertia::defer() pra props caras (skill inertia-defer-default). Pattern: Inertia::defer(fn () => \$this->buildXxxPayload(...))")
-        ->toContain('Inertia::render(', "{$name} deveria retornar Inertia::render() — sanity check do dataset");
+        // FALHA AQUI SIGNIFICA: {$name} deveria usar Inertia::defer() pra props caras (skill inertia-defer-default). Pattern: Inertia::defer(fn () => \$this->buildXxxPayload(...))
+        ->toContain('Inertia::defer(')
+        // FALHA AQUI SIGNIFICA: {$name} deveria retornar Inertia::render() — sanity check do dataset
+        ->toContain('Inertia::render(');
 })->with('controllers_inertia_render');
 
 it('controller tem pelo menos um método privado buildXxxPayload', function (string $name) {
@@ -66,17 +68,22 @@ it('DashboardController não deixa pending_adrs/audit_highlights eager (regressi
     // Props que costumavam ser eager (queries DB pesadas) devem agora estar dentro
     // de uma chamada Inertia::defer.
     expect($source)
-        ->toContain("'pending_adrs'      => Inertia::defer(", 'pending_adrs deveria ser deferred (DB query mcp_memory_documents)')
-        ->toContain("'audit_highlights'  => Inertia::defer(", 'audit_highlights deveria ser deferred (DB query mcp_audit_log 24h)')
-        ->toContain("'kpis'              => Inertia::defer(", 'kpis deveria ser deferred (5 COUNT queries agregadas)');
+        // FALHA AQUI SIGNIFICA: pending_adrs deveria ser deferred (DB query mcp_memory_documents)
+        ->toContain("'pending_adrs'      => Inertia::defer(")
+        // FALHA AQUI SIGNIFICA: audit_highlights deveria ser deferred (DB query mcp_audit_log 24h)
+        ->toContain("'audit_highlights'  => Inertia::defer(")
+        // FALHA AQUI SIGNIFICA: kpis deveria ser deferred (5 COUNT queries agregadas)
+        ->toContain("'kpis'              => Inertia::defer(");
 });
 
 it('AuditController defere entries + kpis mas mantém filters eager (UI state)', function () {
     $source = readGovernanceController('AuditController');
 
     expect($source)
-        ->toContain("'entries'             => Inertia::defer(", 'entries deveria ser deferred (DB query mcp_audit_log)')
-        ->toContain("'kpis'                => Inertia::defer(", 'kpis deveria ser deferred (agregação derivada de entries)');
+        // FALHA AQUI SIGNIFICA: entries deveria ser deferred (DB query mcp_audit_log)
+        ->toContain("'entries'             => Inertia::defer(")
+        // FALHA AQUI SIGNIFICA: kpis deveria ser deferred (agregação derivada de entries)
+        ->toContain("'kpis'                => Inertia::defer(");
 
     // filters é state da UI — deve ficar eager (não pode ter Inertia::defer próximo).
     // Heurística: linha "'filters'" não pode conter "Inertia::defer" na mesma linha.

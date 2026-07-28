@@ -74,8 +74,8 @@ it('DataController.modifyAdminMenu chama isModuleInstalled com nome novo (não l
         $content = file_get_contents($path);
 
         expect($content)
-            ->toContain("isModuleInstalled('{$names['new']}')",
-                "{$path} deveria chamar isModuleInstalled('{$names['new']}')")
+            // FALHA AQUI SIGNIFICA: {$path} deveria chamar isModuleInstalled('{$names['new']}')
+            ->toContain("isModuleInstalled('{$names['new']}')")
             ->not->toContain("isModuleInstalled('{$names['legacy']}')",
                 "{$path} NÃO deveria chamar isModuleInstalled com nome legacy '{$names['legacy']}' — sidebar quebra silenciosa.");
     }
@@ -147,7 +147,7 @@ it('composer.json autoload PSR-4 aponta pro namespace novo', function () {
 
     foreach ($cases as $path => $expectedNamespace) {
         $content = file_get_contents(base_path($path));
-        expect($content)->toContain($expectedNamespace,
-            "{$path}: PSR-4 autoload deveria mapear `{$expectedNamespace}`.");
+        // FALHA AQUI SIGNIFICA: {$path}: PSR-4 autoload deveria mapear `{$expectedNamespace}`.
+        expect($content)->toContain($expectedNamespace);
     }
 });

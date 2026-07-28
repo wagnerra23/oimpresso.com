@@ -2,6 +2,18 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato — autenticidade do webhook Asaas. Rota PÚBLICA: numa rota sem sessão o
+ * global scope é no-op, quem isola o tenant é o hash_equals contra o webhook_secret
+ * daquele business. O casos.md mora na tela de Configurações — é ela que exibe a URL.
+ *
+ * @covers-us US-RB-012
+ *
+ * UC (resources/js/Pages/RecurringBilling/Configuracoes/Index.casos.md · CU-RB-07 do SDD §6.1):
+ *   UC-RBCFG-05 — webhook sem token ou com token errado NÃO credita [T0][V0]
+ *   UC-RBCFG-06 — token de um business não credita no outro [T0][V0]
+ */
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;

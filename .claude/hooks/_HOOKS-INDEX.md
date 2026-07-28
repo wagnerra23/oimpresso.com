@@ -9,8 +9,8 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **48** wirings em `settings.json` (5 eventos) · **44** arquivos de hook distintos wired
-- **44** arquivos de hook no disco (+35 `*.test.*` — testes, fora da conta de órfãos)
+- **49** wirings em `settings.json` (5 eventos) · **45** arquivos de hook distintos wired
+- **45** arquivos de hook no disco (+36 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **34** classic + **1** ruleset → ponto-de-corte merge
 
@@ -55,6 +55,7 @@
 | PreToolUse | `Bash/PowerShell` | block-test-fora-ct100.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Glob/Grep/Bash` | block-instrumento-sem-porta-viva.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PostToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | pós-ação (observa, não corta) | exit-2 |
+| PostToolUse | `Write/Edit/MultiEdit` | php-syntax-after-write.mjs | node | pós-ação (observa, não corta) | exit-2 |
 | PostToolUse | `Write/Edit` | audit-creates-tasks.mjs | node | pós-ação (observa, não corta) | — |
 | Stop | `*` | memory-pending.mjs | node | fim de turno | — |
 | Stop | `*` | nudge-recommend-not-menu.mjs | node | fim de turno | — |
