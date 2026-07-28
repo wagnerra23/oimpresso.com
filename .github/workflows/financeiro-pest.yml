@@ -100,27 +100,30 @@ jobs:
           }
           EOF
 
-      - name: Run Pest (Financeiro · MySQL) — ALLOWLIST VERDE (catraca)
+      - name: Selecionar alvos (DIRETÓRIO − QUARENTENA) e rodar Pest
         if: steps.changes.outputs.fin == 'true'
         # phpunit.xml força DB_CONNECTION=sqlite :memory: (sem force=) — se não
         # sobrescrever, o Pest roda em sqlite VAZIO e os testes (Business::first())
         # SKIPam (a falsa cobertura). Exportar aqui faz rodar no MySQL real semeado.
         #
-        # CATRACA (US-FIN-053): a lane roda só os arquivos comprovadamente verdes
-        # contra o baseline. Cada lote de fix adiciona arquivos AQUI (ratchet up).
-        # Diagnóstico completo da suíte (172f/270p/133s · 2026-06-04) em
-        # memory/sessions/2026-06-04-financeiro-suite-landscape.md.
-        # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — eles dropam o
-        # schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
+        # SELEÇÃO POR QUARENTENA (supersede a allowlist inline de 24 paths):
+        # a lane roda TUDO que existe em Modules/Financeiro/Tests, MENOS o que a
+        # quarentena lista com motivo. A partição é TOTAL por construção — todo
+        # arquivo da árvore está em exatamente um dos dois lados, e arquivo NOVO
+        # entra rodando (fail-closed pra código novo, legado grandfathered).
         #
-        # 2026-07-27 (onda sdd-from-source · passo 5): +2 arquivos.
-        #   · BaixaConservacaoValorContratoTest — NOVO, contrato [V0] da baixa
-        #     (UC-FUNI-01..04 / SDD §6.1 CU-FIN-02..05). Sem RefreshDatabase; cria e
-        #     limpa os próprios títulos; pré-condição anti-vácuo antes de cada invariante.
-        #   · CaixaControllerTest — JÁ EXISTIA e não rodava em lane nenhuma (UC-FCX-01..05).
-        #     Read-only (só GET), sem RefreshDatabase, skip-guarded. Entrou SEM run prévio
-        #     no CT 100 — este PR é a 1ª execução real; se avermelhar, o ❌ é o achado
-        #     (decisão de [W]), não conserto silencioso.
+        # POR QUE MUDOU (medido 2026-07-28): a allowlist inline nomeava 24 de 80
+        # arquivos; os outros 56 NÃO rodavam em lane nenhuma, apesar de
+        # Modules/Financeiro/Tests/Feature estar registrado no phpunit.xml. O
+        # default silencioso de "arquivo novo = escuro" deixou
+        # CoworkBundleIntegralTest vermelho desde 2026-06-02 (o CSS que ele exige
+        # foi deletado no #2127) sem nenhum sinal. Com quarentena esse estado é
+        # impossível: não há terceiro lado onde um arquivo se esconda.
+        #
+        # A LISTA É ARQUIVO (não linha inline no yml) pelo mesmo motivo do irmão
+        # .github/ci-sqlite-pest.list: a linha inline era editada por TODO PR que
+        # adiciona teste → todo par de PRs conflitava. O .list é `merge=union` no
+        # .gitattributes, então PRs concorrentes são unidos sem conflito.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -129,35 +132,38 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: root
         run: |
+          set -uo pipefail
           mkdir -p test-results
+          QUAR_FILE=.github/financeiro-pest-quarantine.list
+
+          # remove comentário de linha INTEIRA e comentário INLINE (path  # motivo)
+          sed 's/#.*//; s/[[:space:]]*$//' "$QUAR_FILE" | grep -vE '^$' | sort -u > /tmp/quar.txt
+
+          # A quarentena NÃO pode apodrecer: path que não existe mais vira erro.
+          # (sem isso a lista viraria o mesmo ponto cego que ela substitui)
+          RC=0
+          while read -r q; do
+            [ -f "$q" ] || { echo "::error::quarentena aponta arquivo inexistente: $q"; RC=1; }
+          done < /tmp/quar.txt
+          [ "$RC" -eq 0 ] || { echo "Limpe $QUAR_FILE — arquivo removido continua listado."; exit 1; }
+
+          find Modules/Financeiro/Tests -name '*Test.php' | sort > /tmp/all.txt
+          comm -23 /tmp/all.txt /tmp/quar.txt > /tmp/run.txt
+
+          # Extras FORA da árvore do módulo (nomeados: não há como ficarem escuros)
+          echo 'tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php' >> /tmp/run.txt
+          echo 'tests/Feature/Middleware/SetSessionDataRebuildTest.php' >> /tmp/run.txt
+
+          # Visibilidade obrigatória: quarentena silenciosa vira cobertura fingida.
+          echo "Árvore: $(wc -l < /tmp/all.txt) · quarentena: $(wc -l < /tmp/quar.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
+          echo "--- em quarentena (NÃO rodam) ---"; cat /tmp/quar.txt
+
+          mapfile -t TARGETS < /tmp/run.txt
+          [ "${#TARGETS[@]}" -gt 0 ] || { echo "::error::run-set vazio"; exit 1; }
+
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-financeiro-junit.xml \
-            tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php \
-            tests/Feature/Middleware/SetSessionDataRebuildTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoCanceladoArquivadosKpiTest.php \
-            Modules/Financeiro/Tests/Feature/Advisor/Onda31AdvisorPortalTest.php \
-            Modules/Financeiro/Tests/Feature/AccountsLegacyMapMultiTenantTest.php \
-            Modules/Financeiro/Tests/Feature/BankStatementLineModelTest.php \
-            Modules/Financeiro/Tests/Feature/Onda10Canon100PercentTest.php \
-            Modules/Financeiro/Tests/Feature/Onda8cSparklineRealTest.php \
-            Modules/Financeiro/Tests/Feature/PluggyIntegrationTest.php \
-            Modules/Financeiro/Tests/Feature/TituloRepositoryWave18Test.php \
-            Modules/Financeiro/Tests/Feature/Wave27PolishTest.php \
-            Modules/Financeiro/Tests/Feature/Wave28PolishTest.php \
-            Modules/Financeiro/Tests/Feature/CaixaMovimentoFreshnessTest.php \
-            Modules/Financeiro/Tests/Feature/MultiTenantComprehensiveTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoFormaPagamentoGuardTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoBaixaDialogGuardTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoBulkGuardTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoContaIndefinidaGuardTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoEditPlanoContaTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoCommentsAuditTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoConferirTest.php \
-            Modules/Financeiro/Tests/Feature/UnificadoUpdateTest.php \
-            Modules/Financeiro/Tests/Feature/AccountTransactionIdorTest.php \
-            Modules/Financeiro/Tests/Feature/ImpostosGuardTest.php \
-            Modules/Financeiro/Tests/Feature/BaixaConservacaoValorContratoTest.php \
-            Modules/Financeiro/Tests/Feature/CaixaControllerTest.php
+            "${TARGETS[@]}"
 
       # Onda Q2 (G-7 / Salto #2): o JUnit do Pest alimenta o manifesto por-UC
       # (casos:results MERGE per-UC — vereditos UC-F01..03 do RetencaoLoopE2ETest).
