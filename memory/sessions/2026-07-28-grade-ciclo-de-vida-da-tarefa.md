@@ -131,6 +131,36 @@ Medido: `**Testado em:**` existe em **197 US / 23 SPECs**, e cobre **28 das 114*
 
 **Conclusão honesta:** a dependência do humano hoje não é porque julgamento exige gente. É porque **o repo não tem sinal de aceite verificável com cobertura**. Enquanto o único sinal universal for auto-declarado, tirar o humano é trocar revisão por carimbo.
 
+## Errata da ADR 0355 — inventei o limiar do gate de reversão
+
+[W] perguntou: *"qual nível para tentar de novo, como calcula?"* — e a pergunta expôs defeito meu, de horas antes.
+
+A §"Gate de reversão" da [ADR 0355](../decisions/0355-doneness-consolidada-ancora-fecha-dod-veta.md) diz *"se a taxa de fechamento errado passar de **~5%** numa janela de 30d"*. **Eu inventei o 5%.** Zero medição atrás. E pior: **nada no repo calcula essa taxa** — varrido, a única "reabertura" agregada é do `Modules/Repair` (OS, outro domínio). Limiar sem derivação e sem máquina é a classe que este mesmo corpus condena.
+
+### A forma correta: não é número escolhido, é comparação com o incumbente
+
+A pergunta certa não é *"qual porcentagem?"* — é ***"a máquina erra mais que o humano que ela substitui?"***. Isso é **derivável**, e o dado bruto **já existe**: `mcp_task_events` grava `status_changed` com `from_value`/`to_value` e `author`.
+
+| termo | de onde sai |
+|---|---|
+| denominador | cards fechados por `author: webhook-sync` na janela (o forward-close se identifica) |
+| numerador | quantos desses receberam depois um `status_changed` `done→review` |
+| **linha de base** | a MESMA razão para cards fechados por **humano** na mesma janela |
+| dispara | taxa da máquina **materialmente acima** da do humano |
+
+A máquina não precisa ser perfeita — precisa não ser **pior que quem ela substituiu**. Se o humano reabre 12% e a máquina 13%, não há regressão; há ruído.
+
+**Estado honesto:** essa razão **não é computada hoje**. Enquanto não for, o "gate de reversão" da 0355 é um **procedimento manual**, não um gate — chamá-lo de gate seria inflar.
+
+### Decisão pendente [W] (o hook nomeia você, não é eu empurrando)
+
+O `block-memory-drift` bloqueia editar ADR `aceito` inline. Falso-positivo aqui — a 0355 **ainda não mergeou**, logo não é canon — mas o hook não distingue, e o override é `OIMPRESSO_MEMORY_OVERRIDE=1`, declarado "Tier 0 Wagner". Dois caminhos:
+
+- **(a)** você autoriza o override → corrijo a §"Gate de reversão" **antes** do merge, e a 0355 nasce sem o número inventado;
+- **(b)** merge como está → escrevo ADR de errata em seguida, e o 5% fica no histórico como fato datado.
+
+Prefiro **(a)**: número inventado dentro de canon é pior que errata, porque a próxima sessão o lê como derivado.
+
 ## O que É acionável agora, sem tomar partido
 
 Medido por mim: **56 US** vivem em **8 SPECs** com frontmatter `historical` ou `arquivado` — e contam nos denominadores de dois gates **required**.

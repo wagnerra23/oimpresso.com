@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **361** arquivos · **345** números únicos · máx **0355**
-- **ADRs ATIVOS (lifecycle ativo): 325** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 327 · superseded 14 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 325 · arquivado 22 · substituido 14
+- **362** arquivos · **346** números únicos · máx **0356**
+- **ADRs ATIVOS (lifecycle ativo): 326** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 328 · superseded 14 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 326 · arquivado 22 · substituido 14
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (361)
+## Todas as ADRs (362)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -400,3 +400,4 @@ _(nenhuma)_
 | 0353 | aceito | ativo | meta | Maquina de evolucao em looping das reguas — ledger persistente, modo delta, comp |
 | 0354 | aceito | ativo | decision | Emenda à 0314 — teammcp-pest promovido a REQUIRED (as rotas /forja executam de v |
 | 0355 | aceito | ativo | decision | Done-ness consolidada — a âncora fecha, o DoD aberto veta, o `status:` morre de  |
+| 0356 | aceito | ativo | errata | Errata à 0355 — o limiar do gate de reversão era um número inventado; troca por  |

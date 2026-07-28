@@ -29,11 +29,14 @@ namespace Modules\Jana\Services\TaskRegistry;
  * (`\`path\`(  · \`path\`)* · verificado@<7hex> (YYYY-MM-DD)`) E todos os paths
  * existentes no disco. `_pendente_`/`_parcial_`/placeholder/path-morto NUNCA
  * habilitam (fail-closed). Zumbi (Page desligada — ADR 0273 SA-A2-bis) NÃO é
- * reavaliado aqui: o gatilho do forward-close exige TAMBÉM o `status: done`
- * declarado à mão no SPEC, que é a decisão humana que cobre esse resíduo.
+ * reavaliado aqui. ATÉ 2026-07-28 o gatilho exigia TAMBÉM `status: done` no SPEC;
+ * a ADR 0355 removeu essa condição (a 0302 já havia ABOLIDO o campo — as duas se
+ * contradiziam e travavam 85 US). Hoje o resíduo é coberto por outro par: checkbox
+ * `- [ ]` aberto VETA o fechamento, e o recorte é forward-only pela data da âncora.
  *
  * Refs: ADR 0273 (gramática anchor) · ADR 0302 (âncora = fonte de done-ness) ·
- *       ADR 0337 (emenda 0144 — forward-close por âncora) · ADR 0144 (DB canon).
+ *       ADR 0355 (done-ness consolidada — supersede 0302+0337) · ADR 0356 (errata do
+ *       limiar) · ADR 0144 (DB canon).
  */
 final class SpecAnchorClassifier
 {
@@ -55,30 +58,30 @@ final class SpecAnchorClassifier
      *
      * @param  string  $block       Corpo da US (do heading até a próxima US).
      * @param  callable(string): bool  $pathExists  path repo-relativo → existe no disco?
-     * @return array{state: string, sha: ?string, paths: list<string>}
+     * @return array{state: string, sha: ?string, paths: list<string>, data: ?string}
      *         state ∈ sem_campo | pendente | parcial | placeholder | anchored_dead | anchored_ok
      */
     public function classify(string $block, callable $pathExists): array
     {
         $rest = $this->extractRest($block);
         if ($rest === null) {
-            return ['state' => 'sem_campo', 'sha' => null, 'paths' => []];
+            return ['state' => 'sem_campo', 'sha' => null, 'paths' => [], 'data' => null];
         }
 
         if (str_starts_with($rest, '_pendente_')) {
-            return ['state' => 'pendente', 'sha' => null, 'paths' => []];
+            return ['state' => 'pendente', 'sha' => null, 'paths' => [], 'data' => null];
         }
         if (str_starts_with($rest, '_parcial_')) {
             // Coberta mas NÃO done — não habilita forward-close (fail-closed).
-            return ['state' => 'parcial', 'sha' => null, 'paths' => []];
+            return ['state' => 'parcial', 'sha' => null, 'paths' => [], 'data' => null];
         }
         if (preg_match(self::PLACEHOLDER_RE, $rest) === 1) {
-            return ['state' => 'placeholder', 'sha' => null, 'paths' => []];
+            return ['state' => 'placeholder', 'sha' => null, 'paths' => [], 'data' => null];
         }
 
         if (preg_match(self::GRAMMAR_OK_RE, $rest, $m) !== 1) {
             // Preenchido mas fora da forma canônica verificada → não confiável.
-            return ['state' => 'anchored_dead', 'sha' => null, 'paths' => []];
+            return ['state' => 'anchored_dead', 'sha' => null, 'paths' => [], 'data' => null];
         }
 
         $sha = $m[1];
@@ -89,15 +92,19 @@ final class SpecAnchorClassifier
 
         if ($paths === []) {
             // Gramática exige ≥1 segmento-path (ADR 0273 §1).
-            return ['state' => 'anchored_dead', 'sha' => null, 'paths' => []];
+            return ['state' => 'anchored_dead', 'sha' => null, 'paths' => [], 'data' => null];
         }
 
         $mortos = array_values(array_filter($paths, static fn (string $p): bool => ! $pathExists($p)));
         if ($mortos !== []) {
-            return ['state' => 'anchored_dead', 'sha' => null, 'paths' => $mortos];
+            return ['state' => 'anchored_dead', 'sha' => null, 'paths' => $mortos, 'data' => null];
         }
 
-        return ['state' => 'anchored_ok', 'sha' => $sha, 'paths' => $paths];
+        // `data` (ADR 0355/0356) — a gramática do ADR 0273 §1 já exigia a data e o regex
+        // já a capturava no grupo 2; ela só nunca era devolvida. O forward-close usa pra
+        // aplicar o recorte FORWARD-ONLY (só fecha âncora carimbada a partir da 0355).
+        // Aditivo: consumidores que leem state/sha/paths seguem intactos.
+        return ['state' => 'anchored_ok', 'sha' => $sha, 'paths' => $paths, 'data' => $m[2]];
     }
 
     /** Extrai o `rest` do campo `**Implementado em:**` (primeira ocorrência) ou null. */
