@@ -31,11 +31,15 @@ related_adrs: [0011-alinhamento-padrao-jana, 0093-multi-tenant-isolation-tier-0,
 
 ### US-ASSET-001 · Cadastro de ativo (asset registry) `✅ done`
 
+> status: done
+
 `Asset::create` com `business_id` + `asset_code` auto-gerado sequencial per-biz via `setAndGetReferenceCount` quando vazio (sem constraint de unicidade no schema/request).
 
 **Implementado em:** `Modules/AssetManagement/Http/Controllers/AssetController.php` · `AssetController@store` · `Modules/AssetManagement/Entities/Asset.php` · verificado@dad0b11 (2026-07-02)
 
 ### US-ASSET-002 · Alocação de ativo a colaborador (`transaction_type=allocate`) `✅ done`
+
+> status: done
 
 Vincula `receiver` (colaborador) + `quantity` reservada via `AssetTransaction` (schema real usa coluna `receiver`, não `user_id`).
 
@@ -43,11 +47,15 @@ Vincula `receiver` (colaborador) + `quantity` reservada via `AssetTransaction` (
 
 ### US-ASSET-003 · Revogação/devolução de alocação (`transaction_type=revoke`) `✅ done`
 
+> status: done
+
 Restaura quantidade disponível.
 
 **Implementado em:** `Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php` · verificado@dad0b11 (2026-07-02)
 
 ### US-ASSET-004 · Log de manutenções `✅ done`
+
+> status: done
 
 `AssetMaintenance` com `status` + `priority` + `details` + `assigned_to` (schema real da migration `2022_03_26_062215_create_asset_maintenances_table.php` — **sem** colunas `maintenance_date`/`completion_date`/`cost`; o texto legado que as citava foi corrigido em 2026-07-02).
 
@@ -55,21 +63,29 @@ Restaura quantidade disponível.
 
 ### US-ASSET-005 · Garantia/warranty (período + custo adicional) `✅ done`
 
+> status: done
+
 `AssetWarranty` com `start_date`/`end_date` + `additional_cost`/`additional_note`, accessor `is_in_warranty` em `Asset` (schema real da migration warranty — **não há** coluna `supplier`/fornecedor; texto legado corrigido em 2026-07-02).
 
 **Implementado em:** `Modules/AssetManagement/Entities/AssetWarranty.php` · `Modules/AssetManagement/Entities/Asset.php` · `Asset::is_in_warranty` · verificado@dad0b11 (2026-07-02)
 
 ### US-ASSET-006 · Notificações de manutenção (mail) `✅ done`
 
+> status: done
+
 **Implementado em:** `Modules/AssetManagement/Notifications/AssetAssignedForMaintenance.php` · `Modules/AssetManagement/Notifications/AssetSentForMaintenance.php` · verificado@dad0b11 (2026-07-02)
 
 ### US-ASSET-007 · Settings per-business (prefix, notification) `✅ done`
+
+> status: done
 
 Coluna `asset_settings` em `business` table.
 
 **Implementado em:** `Modules/AssetManagement/Http/Controllers/AssetSettingsController.php` · verificado@dad0b11 (2026-07-02)
 
 ### US-ASSET-008 · Multi-tenant isolation test biz=1 vs biz=99 (Tier 0) `✅ done`
+
+> status: done
 
 Owner [Claude] — Wave I-W 2026-05-16.
 
