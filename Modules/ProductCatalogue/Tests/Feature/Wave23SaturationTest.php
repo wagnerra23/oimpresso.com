@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Artisan;
 use Modules\ProductCatalogue\Console\Commands\ProductCatalogueHealthCommand;
 use Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController;
 use Modules\ProductCatalogue\Repositories\ProductCatalogueRepository;
@@ -94,6 +95,11 @@ it('F3 Perf: ProductCatalogueController metodos <30 linhas (single responsibilit
 });
 
 it('F6 ProductCatalogueHealthCommand registrado + signature canon', function () {
+    // O assert que faltava — mesmo defeito medido em ProjectMgmt (2026-07-28):
+    // `app(Class::class)` resolve qualquer classe concreta do disco e NÃO prova
+    // registro no Artisan. Sem o $this->commands() no ServiceProvider, falha.
+    expect(array_keys(Artisan::all()))->toContain('product-catalogue:health');
+
     $cmd = app(ProductCatalogueHealthCommand::class);
     expect($cmd)->toBeInstanceOf(ProductCatalogueHealthCommand::class);
 
