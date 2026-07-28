@@ -90,7 +90,7 @@ class TaskParserService
      * parseSpec, consumido no forward-close de syncAllInternal. Vive só em memória —
      * NUNCA entra no payload persistido (não é coluna de mcp_tasks).
      *
-     * @var array<string, array{state: string, sha: ?string, paths: list<string>}>
+     * @var array<string, array{state: string, sha: ?string, paths: list<string>, data: ?string}>
      */
     protected array $anchorPorTask = [];
 
