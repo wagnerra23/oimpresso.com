@@ -33,6 +33,8 @@ on:
       - 'app/Http/Controllers/AccountController.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/financeiro-pest.yml'
+      # A quarentena DECIDE o run-set — mexer nela sem rodar a lane é falso verde.
+      - '.github/financeiro-pest-quarantine.list'
       - '.github/actions/pest-mysql-setup/**'
 
 concurrency:
@@ -74,6 +76,9 @@ jobs:
               - 'app/Http/Controllers/AccountController.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/financeiro-pest.yml'
+              # sem esta linha, PR que só mexe na quarentena dá skip-as-pass:
+              # verde sem ter rodado nada (incidente 2026-07-28, PR #4965)
+              - '.github/financeiro-pest-quarantine.list'
               - '.github/actions/pest-mysql-setup/**'
 
       - name: Skip-as-pass (nada do Financeiro mudou)
