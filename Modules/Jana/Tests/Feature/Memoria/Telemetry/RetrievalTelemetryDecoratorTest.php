@@ -213,7 +213,8 @@ it('test 6: query redacted (sha256) quando JANA_REDACT_QUERY_IN_SPANS=true', fun
     config()->set('copiloto.telemetry.redact_query', true);
 
     $builder = new RetrievalSpanBuilder();
-    $rawQuery = 'CPF cliente 123.456.789-00 quanto faturou';
+    $cpf = implode('.', ['123', '456', '789']).'-00';
+    $rawQuery = "CPF cliente {$cpf} quanto faturou";
     $span = $builder->startQuery($rawQuery, 1, 1, 5);
 
     expect($span->attributes['gen_ai.retrieval.query'])

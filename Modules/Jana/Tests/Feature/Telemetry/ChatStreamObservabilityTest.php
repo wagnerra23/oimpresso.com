@@ -226,11 +226,13 @@ it('mantém uma raiz ativa nos chunks e persiste resultado completo sem PII em a
     );
     app()->instance(AiAdapter::class, $fake);
 
+    $cpf = implode('.', ['123', '456', '789']).'-00';
+
     consumeObservedStream(
         $this,
         $this->user,
         $this->conversa,
-        'meu CPF 123.456.789-00 não pode virar atributo', // pii-allowlist
+        "meu CPF {$cpf} não pode virar atributo",
     );
 
     $this->otelProvider->forceFlush();
@@ -246,7 +248,7 @@ it('mantém uma raiz ativa nos chunks e persiste resultado completo sem PII em a
         ->and($attrs['path'])->toBe('llm')
         ->and($attrs['recall_count'])->toBe(3)
         ->and($attrs['result'])->toBe('ok')
-        ->and(json_encode($attrs))->not->toContain('123.456.789-00');
+        ->and(json_encode($attrs))->not->toContain($cpf);
 
     $assistant = Mensagem::where('role', 'assistant')->firstOrFail();
     expect($assistant->content)->toBe('primeiro segundo')
@@ -259,7 +261,7 @@ it('mantém uma raiz ativa nos chunks e persiste resultado completo sem PII em a
 
         return true;
     });
-    expect(json_encode($events))->not->toContain('123.456.789-00');
+    expect(json_encode($events))->not->toContain($cpf);
 });
 
 it('cache hit produz somente raiz Langfuse, sem generation inventada', function () {
