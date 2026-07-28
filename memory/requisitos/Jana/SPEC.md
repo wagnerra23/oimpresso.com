@@ -1935,3 +1935,45 @@ Escopo:
 - ATENÇÃO: o mesmo `sells-cowork-insights.css` alimenta a tab Insights do Sells (tela-DONA, legítima) — não quebrar essa; a migração é só do lado Jana.
 
 **Refs:** PT-04-Dashboard L80 (enforçado) · ADR UI-0013 · ADR 0256 · `Jana/Dashboard.charter.md` · PR #4582
+
+### US-COPI-147 · Higiene de schema da camada de IA — 2 resíduos reais, 4 falsos positivos e 1 promessa que não pode virar trigger
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/Jana/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php` · `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (2026-07-28) — a tabela fantasma foi fechada. O resto desta US é **decisão [W]**, por isso a US fica `todo`.
+
+**Origem:** varredura de higiene de schema da camada de IA (2026-07-28), levantada por leitura de código. Ao verificar cada item com o oráculo certo — `git grep` contado no repo inteiro + `SHOW TABLES`/`COUNT(*)` no **banco** — 4 dos achados não sobreviveram, e 2 achados novos apareceram.
+
+**Medição (recibos).** Existência e contagem vieram do banco, não do grep — a pergunta "a tabela existe / tem dado" é do banco:
+`mariadb -N -e "SELECT ... FROM information_schema.TABLES"` em `oimpresso_staging` (CT 100) e `mysql -N -e "SELECT COUNT(*)"` em produção (Hostinger), ambos em 2026-07-28. Produção: `jana_negative_cache`=0 · `mcp_views`=0 · `mcp_issue_templates`=0 · `mcp_task_attachments`=0 · `mcp_task_memory_links`=0 · `mcp_workflows`=1 · `mcp_skill_versions`=16 · `mcp_automation_runs`=0 · `mcp_memory_documents_history`=39.188. Números são **medição datada**, não afirmação atemporal — para saber hoje, re-rode a query.
+
+**✅ Entregue — `mcp_handoff_drafts` era tabela FANTASMA.** `HandoffDraftTool::trackCusto()` fazia `insert` numa tabela que migration nenhuma criava (confirmado no banco: ausente em staging **e** não consta no baseline `mysql-schema.sql`). O `catch` logava em `debug` e seguia, então o custo de gerar rascunho de handoff **nunca** foi persistido em produção. Fechado com migration idempotente espelhando as duas irmãs vivas (`mcp_handoff_summaries`/`mcp_handoff_diffs`), usando o schema que o `HandoffDraftToolTest` já declarava; o `catch` virou `warning` com a exceção — ausência da tabela passou a ser anomalia, não estado esperado. Sem `business_id` **by-design** ([ADR 0280](../../decisions/0280-postura-multi-tenant-tabelas-mcp-governanca.md): governança de plataforma é repo-wide; não é vazamento).
+
+**❌ NÃO dropar — 4 "órfãs" são schema à frente do código, e não são da Jana.** Só as *migrations* moram em `Modules/Jana/`, por herança. O dono declarado (`catalog.json`, derivado dos `SCOPE.md`) é **`ProjectMgmt`** para `mcp_views` · `mcp_issue_templates` · `mcp_task_attachments` · `mcp_task_memory_links`, e **`TeamMcp`** para `mcp_workflows`. Há roadmap ativo que as **pressupõe**: `PMG-012` (status `todo`) diz literalmente *"Migration: nada (tabela `mcp_views` já existe)"*, e `mcp_task_memory_links` é o **diferencial D1** do TaskRegistry ("Memory-linked tasks", vs Linear/Jira). Dropar destruiria pré-condição declarada de trabalho planejado.
+
+**❌ `mcp_workflows` não é "só-seeder".** Tem **1 row em produção** e é **lida** por duas seed-migrations para popular `mcp_jira_projects.default_workflow_id`, que é `fillable` e vai ao activity log do `McpProject` (Entity viva). É dado-semente referenciado por FK lógica.
+
+**❌ O baseline NÃO perde o trigger de `mcp_task_events`.** O dump é de 2026-06-08 e a migration do trigger é de 2026-06-15 — posterior, logo não marcada como aplicada, logo roda após `schema:load` (e é idempotente). **Provado empiricamente:** `trg_mcp_task_events_no_update/no_delete` estão **vivos** em `oimpresso_staging`, que foi provisionado por baseline + migrate. Não há gap a corrigir.
+
+**⚠️ Promessa append-only: rebaixar a redação, NÃO promover trigger.** As tabelas com trigger real são 3 no repo inteiro (`mcp_audit_log`, `mcp_task_events`, `ponto_marcacoes`). Outras afirmam append-only só em docblock — o que é pior que não afirmar. Mas ao medir caso a caso, **nenhuma das 3 candidatas aceita trigger**:
+- `mcp_memory_documents_history` — `MemoryHistoryPruneCommand` faz `->delete()` **a cada poucas horas**, e existe por causa de incidente real (a tabela inflou a ~5 GB, estourou a cota da Hostinger e o provedor auto-revogou a escrita do ERP). Trigger de no-DELETE **reincidiria o incidente**.
+- `mcp_skill_versions` — `PublicarSkillNoGitService:123` faz `$version->update()` gravando `pr_number`/`published_to_git_at`, e o comentário promete outro update no merge. A promessa real é *"nunca update do **body**"*, não da row.
+- `mcp_automation_runs` — ver abaixo: ninguém escreve nela; trigger travaria o nada.
+
+  **Ação recomendada:** corrigir os docblocks para "convenção, sem enforcement de banco" (ou, em `mcp_skill_versions`, "body imutável; metadados de publicação são atualizados"). Não editado aqui porque `Entities/Mensagem.php` e `Config/retention.php` estão fora do escopo desta sessão.
+
+**🔴 2 resíduos genuínos — drop é decisão [W] (nada foi dropado):**
+- `jana_negative_cache` (owned pela Jana, `db_tables_owned` do SCOPE) — **0 rows em produção**. A migration desenhou persistência com contador `hits_negativos`, mas o `NegativeCacheService` — que está **vivo** e é usado pelo `MeilisearchDriver` — implementou com a facade `Cache::`. A funcionalidade roda; a tabela nunca recebeu row.
+- `mcp_automation_runs` (**achado novo**, não estava no levantamento) — **0 rows em produção** e **zero escritores**: `git grep McpAutomationRun` fora da própria Entity devolve vazio. A Onda 1.1 da [ADR 0234](../../decisions/0234-automation-registry-mcp.md) criou schema + Entity e nunca conectou o gravador.
+
+**⚠️ Contradição a resolver junto:** `jana_mensagens` promete append-only (`const UPDATED_AT = null`) enquanto `Modules/Jana/Config/retention.php` a declara `hard_delete`. O purge foi **descartado** por [W] em 2026-07-27 (num ERP não se apaga PII), mas a config segue afirmando o contrário — os dois não podem estar certos.
+
+**Escopo (decisão [W]):**
+- [ ] **A** — dropar `jana_negative_cache` + `mcp_automation_runs` (migrations idempotentes com `down()` que recria), ou conectar o gravador que falta em cada uma.
+- [ ] **B** — rebaixar a redação append-only dos docblocks listados acima.
+- [ ] **C** — reconciliar `jana_mensagens`: retirar `hard_delete` do `retention.php` (coerente com a decisão de 2026-07-27) ou retirar a promessa append-only.
+
+**DoD:** nenhuma tabela da camada de IA promete no docblock o que o banco não garante, e nenhum código escreve em tabela que não existe.
+
+**Refs:** [ADR 0084](../../decisions/0084-triggers-mysql-imutabilidade-mcp-audit-log.md) · [ADR 0280](../../decisions/0280-postura-multi-tenant-tabelas-mcp-governanca.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · `ProjectMgmt/SPEC.md` PMG-012 · `TaskRegistry/SPEC.md` D1 · proibicoes.md §5 2026-07-17 (recibo datado, não número atemporal)
