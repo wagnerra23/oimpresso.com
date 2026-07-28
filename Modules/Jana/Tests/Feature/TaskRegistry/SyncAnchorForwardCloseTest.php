@@ -10,13 +10,23 @@ use Modules\Jana\Services\TaskRegistry\TaskParserService;
 uses(Tests\TestCase::class);
 
 /**
- * ADR 0337 (emenda cirúrgica à 0144) — forward-close por âncora verificada.
+ * ADR 0355 (supersede 0302 + 0337) — forward-close por âncora verificada.
  *
  * O DB é canon de estado vivo (ADR 0144), MAS a âncora `**Implementado em:**
- * ...verificado@sha` é a fonte de done-ness (ADR 0302/0273). Quando o SPEC declara
- * `status: done` E a âncora é `anchored_ok`, o sync CARREGA o veredito do git pro
- * card (todo/doing/review → done) — só fecha-pra-frente, nunca reabre. Fecha o
- * split-brain que deixou a US-FIN-031 8 dias `todo` no MCP com o código já em prod.
+ * ...verificado@sha` é a fonte ÚNICA de done-ness (ADR 0273/0302 → 0355).
+ *
+ * ATÉ 2026-07-28 o gatilho exigia TAMBÉM `status: done` no SPEC. A ADR 0355 removeu:
+ * a 0302 havia ABOLIDO esse campo ("deixa de existir", "US nova nasce sem status:")
+ * enquanto a 0337 o EXIGIA — logo, US nascida CERTA sob a 0302 era incapaz, por
+ * construção, de fechar sob a 0337. Efeito medido: 85 US ancoradas paradas.
+ *
+ * A regra hoje tem 4 condições, e o 2º sinal deixou de ser algo que o autor ESCREVE
+ * pra ser algo que a máquina VERIFICA:
+ *   1. card ativo (nunca reabre)          3. checkbox `- [ ]` aberto VETA
+ *   2. âncora anchored_ok + sha           4. forward-only pela data da âncora
+ * O DoD é FALSIFICADOR, nunca confirmador: um `[x]` é ato de 1 caractere sem revisor
+ * (commit 7ebe9ea5d7 marcou `[x]` numa linha cujo texto diz "parcial … não há
+ * autoprint"). Desprovar é barato e honesto; provar não.
  *
  * Cobertura em 2 modos (espelha TaskParserPreservaEstadoVivoTest / ADR 0144):
  *  - Unit (sem DB) — travam o classificador puro + o gatilho puro. Rodam em qualquer lugar.
@@ -78,30 +88,68 @@ it('classifica anchored_dead quando preenchido fora da forma canônica (sem veri
 
 // ─── Unit: gatilho puro deveFecharPorAncora (sem I/O) ────────────────────────
 
-it('deveFecharPorAncora: fecha só com card ativo + SPEC done + anchored_ok + sha', function () {
+it('deveFecharPorAncora: fecha com card ativo + anchored_ok + sha + zero DoD aberto + forward-only', function () {
     $svc = new TaskParserService();
+    $hoje = TaskParserService::FORWARD_CLOSE_DESDE;
 
-    // ✓ casos que FECHAM (qualquer estado ativo)
-    expect($svc->deveFecharPorAncora('todo', 'done', 'anchored_ok', 'ec17185'))->toBeTrue();
-    expect($svc->deveFecharPorAncora('doing', 'done', 'anchored_ok', 'ec17185'))->toBeTrue();
-    expect($svc->deveFecharPorAncora('review', 'done', 'anchored_ok', 'ec17185'))->toBeTrue();
-    expect($svc->deveFecharPorAncora('blocked', 'done', 'anchored_ok', 'ec17185'))->toBeTrue();
+    // ✓ FECHAM — qualquer estado ativo, âncora verificada, nada aberto, data no recorte
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', 'ec17185', $hoje, 0))->toBeTrue();
+    expect($svc->deveFecharPorAncora('doing', 'anchored_ok', 'ec17185', $hoje, 0))->toBeTrue();
+    expect($svc->deveFecharPorAncora('review', 'anchored_ok', 'ec17185', $hoje, 0))->toBeTrue();
+    expect($svc->deveFecharPorAncora('blocked', 'anchored_ok', 'ec17185', '2026-09-01', 0))->toBeTrue();
 
-    // ✗ nunca reabre estado terminal do DB (ADR 0144)
-    expect($svc->deveFecharPorAncora('done', 'done', 'anchored_ok', 'ec17185'))->toBeFalse();
-    expect($svc->deveFecharPorAncora('cancelled', 'done', 'anchored_ok', 'ec17185'))->toBeFalse();
+    // ✗ NUNCA reabre estado terminal do DB (ADR 0144 via 0355 §6)
+    expect($svc->deveFecharPorAncora('done', 'anchored_ok', 'ec17185', $hoje, 0))->toBeFalse();
+    expect($svc->deveFecharPorAncora('cancelled', 'anchored_ok', 'ec17185', $hoje, 0))->toBeFalse();
 
-    // ✗ SPEC não declara done → não fecha (âncora sozinha não basta; é a decisão humana)
-    expect($svc->deveFecharPorAncora('todo', 'todo', 'anchored_ok', 'ec17185'))->toBeFalse();
-    expect($svc->deveFecharPorAncora('todo', null, 'anchored_ok', 'ec17185'))->toBeFalse();
+    // ✗ âncora não-verificada → não fecha (fail-closed; o sinal positivo é o único)
+    expect($svc->deveFecharPorAncora('todo', 'pendente', null, $hoje, 0))->toBeFalse();
+    expect($svc->deveFecharPorAncora('todo', 'parcial', null, $hoje, 0))->toBeFalse();
+    expect($svc->deveFecharPorAncora('todo', 'anchored_dead', null, $hoje, 0))->toBeFalse();
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', null, $hoje, 0))->toBeFalse();
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', '', $hoje, 0))->toBeFalse();
+    expect($svc->deveFecharPorAncora('todo', null, null, $hoje, 0))->toBeFalse();
 
-    // ✗ âncora não-verificada → não fecha (fail-closed)
-    expect($svc->deveFecharPorAncora('todo', 'done', 'pendente', null))->toBeFalse();
-    expect($svc->deveFecharPorAncora('todo', 'done', 'parcial', null))->toBeFalse();
-    expect($svc->deveFecharPorAncora('todo', 'done', 'anchored_dead', null))->toBeFalse();
-    expect($svc->deveFecharPorAncora('todo', 'done', 'anchored_ok', null))->toBeFalse();
-    expect($svc->deveFecharPorAncora('todo', 'done', 'anchored_ok', ''))->toBeFalse();
-    expect($svc->deveFecharPorAncora('todo', 'done', null, null))->toBeFalse();
+    // ✗ DoD ABERTO veta, mesmo com tudo o mais perfeito (ADR 0355 §3 — falsificador)
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', 'ec17185', $hoje, 1))->toBeFalse();
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', 'ec17185', $hoje, 9))->toBeFalse();
+
+    // ✗ FORWARD-ONLY: âncora anterior à decisão não fecha — o legado é backlog
+    //   enumerado, não fechamento em massa por mudança de regra (ADR 0355 §4)
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', 'ec17185', '2026-07-27', 0))->toBeFalse();
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', 'ec17185', '2026-07-02', 0))->toBeFalse();
+    // data ausente/vazia = fail-closed
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', 'ec17185', null, 0))->toBeFalse();
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', 'ec17185', '', 0))->toBeFalse();
+});
+
+it('deveFecharPorAncora: o `status:` do SPEC NÃO tem leitor (ADR 0355 §2)', function () {
+    $svc = new TaskParserService();
+    $hoje = TaskParserService::FORWARD_CLOSE_DESDE;
+
+    // A assinatura não recebe mais `specStatus` — este teste trava a REGRESSÃO de
+    // alguém re-introduzir o campo que a 0302 aboliu e a 0337 exigia (a contradição
+    // que travou 85 US). Se voltar, a aridade muda e isto quebra.
+    $params = (new ReflectionMethod(TaskParserService::class, 'deveFecharPorAncora'))->getParameters();
+    $nomes = array_map(static fn ($p) => $p->getName(), $params);
+
+    expect($nomes)->not->toContain('specStatus')
+        ->and($nomes)->toBe(['dbStatus', 'anchorState', 'anchorSha', 'anchorData', 'dodAberto']);
+
+    // E o comportamento: âncora sozinha (sem declaração nenhuma) FECHA.
+    expect($svc->deveFecharPorAncora('todo', 'anchored_ok', 'ec17185', $hoje, 0))->toBeTrue();
+});
+
+it('SpecAnchorClassifier devolve a data da âncora (ADR 0355 §4 — recorte forward-only)', function () {
+    $c = new SpecAnchorClassifier();
+    $ok = $c->classify(anchorBlock('**Implementado em:** `composer.json` · verificado@abc1234 (2026-07-28)'), static fn () => true);
+
+    expect($ok['state'])->toBe('anchored_ok')
+        ->and($ok['data'])->toBe('2026-07-28');
+
+    // shape uniforme: quem não ancora devolve data null (aditivo, não quebra consumidor)
+    $pend = $c->classify(anchorBlock('**Implementado em:** _pendente_'), static fn () => true);
+    expect($pend)->toHaveKey('data')->and($pend['data'])->toBeNull();
 });
 
 it('relatorio de sync expõe o contador fechadas_por_ancora', function () {
@@ -139,7 +187,7 @@ function faCleanup(): void
     }
 }
 
-it('integração: fecha card todo quando SPEC declara done + âncora anchored_ok', function () {
+it('integração: fecha card todo com âncora anchored_ok dentro do recorte forward-only', function () {
     afterEach(fn () => faCleanup());
     $module = '__TestAdr0337_ADR0337A';
 
@@ -151,7 +199,7 @@ it('integração: fecha card todo quando SPEC declara done + âncora anchored_ok
 
     > owner: wagner · status: done · priority: p1
 
-    **Implementado em:** `{$p1}` · `{$p2}` · verificado@abc1234 (2026-07-06) — entregue
+    **Implementado em:** `{$p1}` · `{$p2}` · verificado@abc1234 (2026-07-28) — entregue
 
     Descrição.
     MD);
@@ -171,7 +219,7 @@ it('integração: fecha card todo quando SPEC declara done + âncora anchored_ok
         ->and($rel['fechadas_por_ancora'])->toBeGreaterThanOrEqual(1);
 })->skip('requer MySQL — UltimatePOS migration ALTER TABLE MODIFY ENUM não roda em SQLite. Rodar em CT 100 (Tailscale). Unit acima trava o núcleo.');
 
-it('integração: NÃO fecha quando âncora é _pendente_ mesmo com SPEC status done', function () {
+it('integração: NÃO fecha quando âncora é _pendente_ (âncora é o único sinal positivo)', function () {
     afterEach(fn () => faCleanup());
     $module = '__TestAdr0337_ADR0337B';
 
