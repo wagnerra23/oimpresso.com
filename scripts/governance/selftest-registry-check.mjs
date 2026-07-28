@@ -109,13 +109,45 @@ export function collectScriptFiles(root) {
  * NÚCLEO PURO: dado o basename e um mapa path→conteúdo, quais arquivos o citam.
  * Separa executável (yml/json/mjs/sh/php…) de doc (.md) — doc citar não é invocar.
  */
+/**
+ * Uma linha é COMENTÁRIO no idioma do arquivo que a contém?
+ *
+ * Isto existe porque a versão anterior classificava por EXTENSÃO
+ * (`p.endsWith('.md') ? doc : exec`): qualquer menção dentro de um `.mjs`/`.yml`/`.php`
+ * contava como invocador EXECUTÁVEL, mesmo sendo comentário. Medido em 2026-07-28 no
+ * corpus real: o detector ficava verde para 3 scripts cujo único "invocador" era um
+ * comentário — `governance-audit.mjs` (comentário em app/Console/Kernel.php:461),
+ * `hook-bites.mjs` (comentário em .claude/hooks/modulo-preflight-warning.mjs:69) e
+ * `reguas-cross-model.mjs` (docblock em scripts/pr-critic/critica.mjs:320).
+ * Custo real: na triagem dos 13 de 2026-07-27 ([W]: "eu quero que ligue... faça todos"),
+ * esses 3 NUNCA chegaram à mesa — e um deles é o `hook-bites`, o dead-man's-switch dos
+ * hooks, ele próprio morto. Mesma família do `plans-index` (2026-07-24).
+ */
+export function ehComentario(linha, path) {
+  const t = linha.trim();
+  if (t === '') return true;
+  if (/\.(ya?ml|toml|sh|ps1)$/.test(path)) return t.startsWith('#');
+  if (/\.(mjs|js|cjs|php)$/.test(path)) return t.startsWith('//') || t.startsWith('*') || t.startsWith('/*');
+  return false;                                   // .json/.md: sem sintaxe de comentário
+}
+
+/**
+ * Invocadores de `base`, separados em EXECUTÁVEL vs DOC.
+ *
+ * Regra: a menção precisa aparecer em pelo menos uma linha que NÃO seja comentário —
+ * e o arquivo não pode ser `.md` (doc nunca executa). Sem isso, "tem invocador" mede
+ * a presença do nome no repo, não a invocação.
+ */
 export function acharInvocadores(base, conteudo) {
   const self = `scripts/governance/${base}`;
   const selfTest = `scripts/governance/${base.replace('.mjs', '.test.mjs')}`;
   const exec = [], doc = [];
   for (const [p, txt] of conteudo) {
     if (p === self || p === selfTest || !txt.includes(base)) continue;
-    (p.endsWith('.md') ? doc : exec).push(p);
+    if (p.endsWith('.md')) { doc.push(p); continue; }
+    const linhas = txt.split(/\r?\n/).filter((l) => l.includes(base));
+    const executavel = linhas.some((l) => !ehComentario(l, p));
+    (executavel ? exec : doc).push(p);            // menção só-em-comentário => DOC
   }
   return { exec, doc };
 }
@@ -259,6 +291,17 @@ function selftest() {
     ['.github/workflows/ci.yml', 'run: node scripts/governance/usado.mjs --check\n'],
     ['memory/reference/doc.md', 'o `orfao-citado-em-doc.mjs` faz X\n'],
     ['scripts/governance/usado.mjs', '// self — deve ser ignorado\n'],
+    // ── fixtures do bug de 2026-07-28: menção SÓ em comentário ────────────────
+    // A versão anterior classificava por EXTENSÃO, então estes 3 davam "tem invocador
+    // executável" e o script sumia do relatório. Custo real: 3 órfãos (incl. o
+    // `hook-bites`, dead-man's-switch dos hooks) ficaram fora da triagem que [W] mandou
+    // fazer em 2026-07-27. Cada linha abaixo é um dos idiomas onde isso acontecia.
+    ['app/Console/Kernel.php', "        // roda via so-em-comentario-php.mjs no cron\n"],
+    ['.claude/hooks/algum-hook.mjs', '// pareado com so-em-comentario-js.mjs (ver ADR)\n'],
+    ['.github/workflows/x.yml', '      # so-em-comentario-yml.mjs roda na nightly\n'],
+    // controle POSITIVO no mesmo idioma: código real na mesma linguagem TEM que contar
+    ['.claude/hooks/outro-hook.mjs', "spawnSync('node', ['scripts/governance/exec-real-js.mjs']);\n"],
+    ['.github/workflows/y.yml', '      - run: node scripts/governance/exec-real-yml.mjs\n'],
   ]);
   check('--scripts: script citado por workflow NÃO é órfão',
     acharInvocadores('usado.mjs', corpus).exec.length === 1);
@@ -269,6 +312,25 @@ function selftest() {
     acharInvocadores('inexistente.mjs', corpus).exec.length === 0);
   check('--scripts: self-referência não conta como invocador',
     !acharInvocadores('usado.mjs', corpus).exec.includes('scripts/governance/usado.mjs'));
+
+  // ── MORDIDA do fix 2026-07-28 (classificar por LINHA, não por extensão) ─────
+  for (const [nome, idioma] of [['so-em-comentario-php.mjs', 'PHP //'],
+    ['so-em-comentario-js.mjs', 'JS //'], ['so-em-comentario-yml.mjs', 'YAML #']]) {
+    const r = acharInvocadores(nome, corpus);
+    check(`--scripts: menção só em comentário ${idioma} NÃO é invocador executável`,
+      r.exec.length === 0 && r.doc.length === 1, JSON.stringify(r));
+  }
+  // CONTROLE POSITIVO — sem ele o teste acima passaria com um classificador que diz
+  // "tudo é comentário", que é o erro simétrico e igualmente inútil.
+  for (const [nome, idioma] of [['exec-real-js.mjs', 'JS'], ['exec-real-yml.mjs', 'YAML']]) {
+    check(`--scripts: código REAL em ${idioma} continua contando como invocador`,
+      acharInvocadores(nome, corpus).exec.length === 1);
+  }
+  // Guarda de idioma: `#` é comentário em YAML/sh, NÃO em JS (lá é privado de classe).
+  check('--scripts: `#` no meio de JS não vira comentário (idioma importa)',
+    !ehComentario('  this.#privado = usa.mjs;', 'x.mjs'));
+  check('--scripts: linha vazia conta como comentário (não é invocação)',
+    ehComentario('   ', 'x.yml'));
   // CONTROLE-NEGATIVO da guarda anti-vácuo: o tmp NÃO é repo git, então o corpus não
   // pode ser montado. O certo é sair 2 ("instrumento quebrado"), JAMAIS reportar
   // "todos órfãos" — que foi o bug real ao escrever este modo (execSync não importado
