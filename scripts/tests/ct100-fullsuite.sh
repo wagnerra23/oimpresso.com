@@ -172,7 +172,7 @@ if (! DB::table('business')->where('id', 2)->exists()) {
     echo 'seed biz2=2 user='.$uid2.PHP_EOL;
 }
 DB::statement('SET FOREIGN_KEY_CHECKS=0');
-$bizId = optional(DB::table('business')->first())->id;
+$bizId = optional(DB::table('business')->where('id', 99)->first())->id ?: optional(DB::table('business')->first())->id;
 if ($bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id', $bizId)->exists()) {
     \Modules\Financeiro\Models\ContaBancaria::create([
         'business_id'=>$bizId,'account_id'=>999001,'agencia'=>'0001','carteira'=>'0',
