@@ -76,6 +76,27 @@ last_run: "2026-07-27"
 
 ---
 
+## UC-NFTR-07 · Ligar o toggle é CONFIGURAR, nunca EMITIR · `must` `[T0]` `[fiscal]`
+
+- **Regra de domínio ([W] 2026-07-28, textual):** *"As notas não podem sair automáticas em
+  todos os clientes. Não é assim que funciona. O cliente escolhe se quer emitir ou não. E
+  **tem configuração por empresa** se isso é automático."*
+- **Persona:** a empresa decide, no seu próprio tenant, que quer NFC-e automática depois de
+  validar o smoke fiscal. Nada é emitido nesse instante — a escolha fica gravada em
+  `nfe_business_configs.auto_emission_enabled` e só passa a valer **quando houver venda
+  finalizada**, via `EmitirNfceAoFinalizarVenda` → `EmitirNfceJob`.
+- **Aceite:** Dado config do business com `auto_emission_enabled = false` · Quando faz
+  `POST /nfe-brasil/tributacao/auto-emission/toggle` com `enabled=true` · Então a flag fica
+  `true` (**pré-condição anti-vácuo**: prova que a operação aconteceu) **e nenhum**
+  `EmitirNfceJob`/`EmitirNFSeJob` é despachado.
+- **Por que este caso existe:** o charter já declarava a regra em §Automation Anti-hooks
+  (*"Não dispara Job de emissão quando toggleAutoEmission=true"*) e prometia que *"cada item
+  vira Pest GUARD test"* — mas **não havia guard**. Regra escrita e indefesa: um agente
+  futuro lendo só o controller poderia "otimizar" emitindo no toggle, e nada quebraria.
+- **Teste:** [`TributacaoIndexContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php)
+  — `UC-NFTR-07 · ligar a emissão automática grava a escolha da empresa e NÃO despacha emissão`.
+- **Status:** 🧪 existe teste que cita o UC — veredito é da lane (CT 100/CI, ADR 0062).
+
 ## UC-NFTR-02 · Toggle sem config é recusado e não cria config · `must` `[fiscal]`
 
 - **Persona:** Larissa recém-configurada, ainda sem tributação default. Ligar a emissão automática antes
