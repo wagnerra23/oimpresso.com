@@ -234,55 +234,126 @@ export function parseProvidersAi(txt) {
  */
 export function linhaAgentes(ia) {
   if (ia.semInstrumento) {
-    return `- **Agentes**: _não medido nesta geração_ — \`git grep\` indisponível. A varredura por pasta \`Ai/Agents/\` acha **${ia.agentesPorPasta}**, mas ela não enxerga agente fora da convenção.`;
+    return '- **Agentes**: _não medido nesta geração_ — `git grep` falhou. Sem o contrato não há censo: a varredura por pasta acharia só quem segue a convenção.';
   }
+  const fora = ia.foraDaConvencao || [];
   return `- **Agentes** (\`implements Agent\`, fora de \`Tests/\`): **${ia.agentes}**`
-    + (ia.agentes === ia.agentesPorPasta
-      ? ' — a varredura por pasta `Ai/Agents/` dá o mesmo número, convenção íntegra.'
-      : ` — ⚠️ a varredura por pasta \`Ai/Agents/\` dá **${ia.agentesPorPasta}**: a convenção drifou, tem agente fora do lugar canônico.`);
+    + (fora.length === 0
+      ? ' — todos em `Ai/Agents/`, convenção íntegra.'
+      : ` — ⚠️ **${fora.length}** fora de \`Ai/Agents/\`: ${fora.join(', ')}.`);
 }
+/**
+ * NÚCLEO PURO: a linha de tools. Fonte = REGISTRO; a pasta é contra-medida. O rótulo
+ * diz "registradas", nunca "expostas": exposição é runtime (`MCP_TOOLS_EXPOSED`, default
+ * false — no Hostinger o número exposto é ZERO), e afirmar runtime a partir de arquivo é
+ * a classe presence-gate que esta seção declara evitar.
+ */
+export function linhaTools(ia) {
+  const r = ia.registro || {};
+  if (!r.ok) return '- **Tools MCP**: _não medido_ — não achei o array `$tools` do `OimpressoMcpServer`.';
+  const quebra = Object.entries(r.porModulo).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  return `- **Tools MCP registradas** no \`OimpressoMcpServer\`: **${r.total}**`
+    + (quebra.length ? ` — ${quebra.map(([m, n]) => `${m} ${n}`).join(' · ')}` : '')
+    + (ia.arquivosTool === r.total
+      ? '. Bate com os arquivos `*Tool.php` em `Modules/*/Mcp/Tools/`.'
+      : ` — ⚠️ existem **${ia.arquivosTool}** arquivos \`*Tool.php\`: tool escrita e não registrada não sobe.`)
+    + ' _Registrada ≠ exposta_: a exposição é gated por `MCP_TOOLS_EXPOSED` (`config/mcp.php`), estado de runtime que a árvore não sabe.';
+}
+/**
+ * NÚCLEO PURO: lê o REGISTRO de tools do `OimpressoMcpServer` — a lista que o servidor
+ * de fato publica. Fonte deliberadamente diferente da PASTA: um `*Tool.php` que ninguém
+ * registrou não sobe, e um registro pode apontar pra outro módulo. Duas formas convivem
+ * no array: FQN (`\Modules\Brief\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
+ * resolve no namespace do próprio servidor, Jana).
+ *
+ * Foi aqui que a 1ª versão desta seção errou: contou a pasta de UM módulo (39) pra
+ * descrever o que o servidor registra em TRÊS (44) — o mesmo "oráculo errado" que a
+ * seção existe pra matar, agora com selo de derivado. Refutado por revisão adversarial.
+ * @param {string} txt conteúdo de OimpressoMcpServer.php
+ * @param {string} [donoDoArquivo] módulo do servidor, pro qual a forma relativa resolve
+ */
+export function parseToolsRegistry(txt, donoDoArquivo = 'Jana') {
+  const src = String(txt);
+  const ini = src.indexOf('$tools = [');
+  if (ini < 0) return { ok: false, total: 0, porModulo: {} };
+  // até o primeiro fechamento de array no nível da propriedade (`    ];`)
+  const resto = src.slice(ini);
+  const fim = resto.search(/\n\s{0,4}\];/);
+  const bloco = (fim > 0 ? resto.slice(0, fim) : resto)
+    .replace(/\/\/[^\n]*/g, '')          // comentário de linha citaria ::class em prosa
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const porModulo = {};
+  let total = 0;
+  for (const m of bloco.matchAll(/([\\\w]+)::class/g)) {
+    const fqn = m[1];
+    const mod = (fqn.match(/^\\?Modules\\(\w+)\\/) || [])[1] || donoDoArquivo;
+    porModulo[mod] = (porModulo[mod] || 0) + 1;
+    total++;
+  }
+  return { ok: true, total, porModulo };
+}
+/**
+ * `{ok:false}` distingue "o instrumento falhou" de "rodou e não casou nada" — colapsar
+ * os dois faz um repo genuinamente sem agentes ser reportado como "não medido", que é
+ * o inverso exato do erro que o guard existe pra evitar.
+ */
 function gitGrepFiles(padrao) {
   try {
     const out = execSync(`git grep -lE "${padrao}" -- "Modules"`, {
       cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
     });
+    return { ok: true, files: out.split('\n').map((s) => s.trim()).filter(Boolean) };
+  } catch (e) {
+    // git grep sai 1 quando não casa NADA (não é erro) e >1 quando falha de verdade
+    if (e && e.status === 1) return { ok: true, files: [] };
+    return { ok: false, files: [] };
+  }
+}
+function gitLsFiles(pathspec) {
+  try {
+    const out = execSync(`git ls-files "${pathspec}"`, {
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    });
     return out.split('\n').map((s) => s.trim()).filter(Boolean);
-  } catch { return []; } // git grep sai 1 quando não casa nada — não é erro
+  } catch { return []; }
 }
 function measureIa() {
   // 1 chamada de git grep para os 3 contratos; a classificação fina é em JS (lendo
   // os ~35 candidatos), porque `\b` não é ERE POSIX e o git grep -E não o honra.
-  const cands = gitGrepFiles('implements (Agent|MemoriaContrato|Reranker)');
-  const porContrato = classificarIa(cands.map((rel) => ({ rel, txt: read(join(ROOT, rel)) })));
-  // FAIL-HONESTO: sem git (ou fora de repo) o grep devolve [] e a seção diria
-  // "0 agentes · ⚠️ a pasta dá 22, a convenção drifou" — alarme FALSO por ausência
-  // de instrumento. Zero-por-não-medi nunca pode passar por zero-medido.
-  const semInstrumento = cands.length === 0;
+  const grep = gitGrepFiles('implements (Agent|MemoriaContrato|Reranker)');
+  const porContrato = classificarIa(grep.files.map((rel) => ({ rel, txt: read(join(ROOT, rel)) })));
+  const semInstrumento = !grep.ok;
   // agentes agrupados por módulo (Modules/<X>/...)
   const porModulo = {};
   for (const rel of porContrato.agente) {
     const m = rel.match(/^Modules\/([^/]+)\//);
     if (m) porModulo[m[1]] = (porModulo[m[1]] || 0) + 1;
   }
-  // contra-medida por PASTA — se divergir do contrato, a convenção drifou
-  const modDir = join(ROOT, 'Modules');
-  let porPasta = 0;
-  for (const m of ls(modDir)) {
-    porPasta += ls(join(modDir, m, 'Ai', 'Agents')).filter((f) => f.endsWith('.php')).length;
-  }
-  // tools MCP: `*Tool.php` DIRETO na pasta (subpasta Concerns/ é trait, não tool)
-  const tools = ls(join(ROOT, 'Modules', 'Jana', 'Mcp', 'Tools')).filter((f) => f.endsWith('Tool.php')).length;
+  // CONTRA-MEDIDA sobre o MESMO conjunto (não sobre o disco): quais agentes reais estão
+  // fora da pasta canônica. Contar `.php` da pasta comparava maçã com laranja — o
+  // contrato pula `abstract`, então uma classe-base ali dentro fabricava um alarme
+  // dizendo "tem agente fora do lugar" justamente sobre um arquivo que está no lugar.
+  const foraDaConvencao = porContrato.agente
+    .filter((p) => !p.includes('/Ai/Agents/'))
+    .map((p) => p.split('/').pop().replace('.php', ''))
+    .sort();
+  // tools MCP: REGISTRO do servidor (o que sobe), com a pasta como contra-medida
+  const registro = parseToolsRegistry(read(join(ROOT, 'Modules', 'Jana', 'Mcp', 'OimpressoMcpServer.php')));
+  const arquivosTool = gitLsFiles(':(glob)Modules/*/Mcp/Tools/*Tool.php').length;
   // provedores: cada bloco de provider tem exatamente um `'driver' => '<nome>'`;
   // o default global é o PRIMEIRO `'default'` do arquivo, antes do bloco `providers`.
-  const { provs, defaultProv } = parseProvidersAi(read(join(ROOT, 'config', 'ai.php')));
+  const cfgTxt = read(join(ROOT, 'config', 'ai.php'));
+  const { provs, defaultProv } = parseProvidersAi(cfgTxt);
   return {
     semInstrumento,
     agentes: porContrato.agente.length,
-    agentesPorPasta: porPasta,
+    foraDaConvencao,
+    registro,
+    arquivosTool,
+    semConfigAi: cfgTxt === '',
     porModulo,
     memoria: porContrato.memoria.map((p) => p.split('/').pop().replace('.php', '')).sort(),
     reranker: porContrato.reranker.map((p) => p.split('/').pop().replace('.php', '')).sort(),
-    tools,
     provs,
     defaultProv,
   };
@@ -329,10 +400,15 @@ function render(data) {
   L.push(linhaAgentes(ia));
   const modsIa = Object.entries(ia.porModulo).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   if (modsIa.length) L.push(`  - por módulo: ${modsIa.map(([m, n]) => `${m} ${n}`).join(' · ')}`);
-  L.push(`- **Tools MCP** expostas (\`*Tool.php\` em \`Modules/Jana/Mcp/Tools\`): **${ia.tools}**`);
-  L.push(`- **Provedores** declarados em \`config/ai.php\`: **${ia.provs.length}**`
-    + (ia.defaultProv ? ` · default = \`${ia.defaultProv}\`` : '')
-    + (ia.provs.length ? ` — ${ia.provs.join(', ')}` : ''));
+  L.push(linhaTools(ia));
+  if (ia.semConfigAi) {
+    L.push('- **Provedores**: _não medido_ — `config/ai.php` ausente ou ilegível.');
+  } else {
+    L.push(`- **Provedores** declarados em \`config/ai.php\`: **${ia.provs.length}**`
+      + (ia.defaultProv ? ` · default = \`${ia.defaultProv}\`` : '')
+      + (ia.provs.length ? ` — ${ia.provs.join(', ')}` : '')
+      + '. _Declarado ≠ com chave_: a credencial mora no ambiente.');
+  }
   // "implementações", não "drivers": o contrato também é implementado por decorator
   // (RetrievalTelemetryDecorator) — chamar tudo de driver seria rótulo errado.
   if (ia.memoria.length) L.push(`- **Implementações de \`MemoriaContrato\`**: ${ia.memoria.join(' · ')}`);
