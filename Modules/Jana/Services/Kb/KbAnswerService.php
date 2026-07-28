@@ -36,6 +36,21 @@ class KbAnswerService
     /** Tipos canônicos persistidos em `mcp_memory_documents.type`. */
     public const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'all'];
 
+    /** Retrieval veio do hybrid (semântico + lexical) — caminho pleno. */
+    public const RETRIEVAL_HYBRID = 'hybrid';
+
+    /** FULLTEXT por desenho: flag desligada, OU hybrid respondeu vazio (2ª opinião legítima). */
+    public const RETRIEVAL_FULLTEXT = 'fulltext';
+
+    /** FULLTEXT porque o hybrid CAIU (infra) — recall menor que o normal. É o caso visível. */
+    public const RETRIEVAL_FULLTEXT_DEGRADADO = 'fulltext_degradado';
+
+    /**
+     * Frase única de degradação — mesma redação pra toda superfície (tool, eval, log).
+     * Constante pra ninguém reescrever "quase igual" em outro lugar.
+     */
+    public const AVISO_DEGRADADO = '⚠️ Busca semântica indisponível no momento — esta resposta usou apenas busca textual, que tem recall menor. Ausência de fonte aqui NÃO prova ausência na KB: repita em alguns minutos.';
+
     /**
      * FASE 1 — Retrieval híbrido determinístico (Princípio 2 Constituição v2:
      * tiered cost — SQL primeiro, IA só na síntese).
@@ -43,6 +58,13 @@ class KbAnswerService
      * Reusa exatamente os mesmos scopes de DecisionsSearchTool / MemoriaSearchTool —
      * invariante "MCP server (Proxmox) só lê de mcp_memory_documents" (ADR 0053).
      *
+     * O fallback pro FULLTEXT acontece em TODOS os casos (disponibilidade acima de tudo —
+     * degradação silenciosa foi escolha deliberada). O que o `$status` acrescenta é
+     * VISIBILIDADE: o chamador passa a distinguir "o hybrid caiu, isto aqui é o plano B"
+     * de "a busca rodou inteira e a KB não tem o assunto" — duas coisas que produziam
+     * exatamente a mesma resposta ao usuário ("não encontrei nada · confiança: baixa").
+     *
+     * @param  string|null  $status  saída por referência: RETRIEVAL_HYBRID|RETRIEVAL_FULLTEXT|RETRIEVAL_FULLTEXT_DEGRADADO
      * @return Collection<int,McpMemoryDocument>
      */
     public function retrieve(
@@ -51,12 +73,15 @@ class KbAnswerService
         string $categoria = 'all',
         string $module = '',
         int $topK = 10,
+        ?string &$status = null,
     ): Collection {
         $businessId = (int) data_get($user, 'business_id', 0);
+        $status = self::RETRIEVAL_FULLTEXT;
 
         // Gap #2 (US-RET-001) — recall HYBRID atrás de flag, fallback FULLTEXT.
         // Corpus MCP é GLOBAL (sem filtro business_id — verificado no índice CT 100).
         if (config('copiloto.mcp_search.docs_pipeline', false)) {
+            $statusHybrid = null;
             try {
                 $hybrid = McpMemoryDocument::buscarHybrid(
                     $pergunta,
@@ -65,12 +90,22 @@ class KbAnswerService
                     $categoria !== 'all' ? $categoria : null,
                     $module !== '' ? $module : null,
                     $businessId, // Tier 0 — simétrico ao FULLTEXT (revisão 2026-05-29)
+                    $statusHybrid,
                 );
                 if ($hybrid->isNotEmpty()) {
+                    $status = self::RETRIEVAL_HYBRID;
+
                     return $hybrid;
                 }
             } catch (\Throwable $e) {
                 Log::channel('copiloto-ai')->warning('kb-answer: hybrid falhou, fallback FULLTEXT: '.$e->getMessage());
+                $statusHybrid = McpMemoryDocument::HYBRID_INDISPONIVEL;
+            }
+
+            // Vazio com o índice VIVO não é degradação — o FULLTEXT abaixo é 2ª opinião
+            // legítima. Só marca degradado quando o hybrid não pôde responder.
+            if ($statusHybrid === McpMemoryDocument::HYBRID_INDISPONIVEL) {
+                $status = self::RETRIEVAL_FULLTEXT_DEGRADADO;
             }
         }
 
@@ -94,6 +129,28 @@ class KbAnswerService
         return $query->limit($topK)->get([
             'id', 'slug', 'title', 'type', 'module', 'content_md', 'git_path',
         ]);
+    }
+
+    /**
+     * O retrieval rodou capenga? (única leitura autorizada do status — ninguém compara
+     * a string crua por aí).
+     */
+    public static function degradado(?string $status): bool
+    {
+        return $status === self::RETRIEVAL_FULLTEXT_DEGRADADO;
+    }
+
+    /**
+     * Sufixo a anexar na resposta — string vazia quando o retrieval foi pleno.
+     *
+     * Pura de propósito, pelo mesmo motivo do `JanaRagasRealEvalCommand::avisoDeCorte`:
+     * a regra "degradação tem que ser VISÍVEL" fica testável sem DB, sem Meilisearch e
+     * sem LLM. Testar por grep do texto no fonte seria presence-gate — mede a FORMA, não
+     * o COMPORTAMENTO (classe LC-11, banida em proibicoes.md §5 2026-07-27).
+     */
+    public static function avisoDegradacao(?string $status): string
+    {
+        return self::degradado($status) ? "\n\n".self::AVISO_DEGRADADO : '';
     }
 
     /**

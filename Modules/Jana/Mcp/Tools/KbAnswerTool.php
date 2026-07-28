@@ -115,15 +115,35 @@ class KbAnswerTool extends Tool
         // v2: tiered cost — SQL primeiro, IA só na síntese final).
         // Pegamos top 10 docs no DB pra dar margem ao LLM filtrar relevância,
         // mas limitamos citações finais em max_citacoes.
+        // $retrievalStatus (por referência) separa DEGRADAÇÃO de AUSÊNCIA. Antes, índice
+        // fora do ar e "a KB não tem isso" produziam a MESMA resposta abaixo — quem lesse
+        // "não encontrei nada · confiança: baixa" concluía ausência quando era infra caída.
+        $retrievalStatus = null;
         $docs = $svc->retrieve(
             user: $appUser,
             pergunta: $pergunta,
             categoria: $categoria,
             module: $module,
             topK: max(5, $maxCitacoes * 2),
+            status: $retrievalStatus,
         );
 
         if ($docs->isEmpty()) {
+            // Vazio COM o hybrid caído não autoriza concluir ausência — o pouco que sabemos
+            // é que o plano B (textual) não achou. Dizer isso é o ponto de toda a mudança.
+            if (KbAnswerService::degradado($retrievalStatus)) {
+                Log::channel('copiloto-ai')->warning('kb-answer: zero docs COM retrieval degradado (hybrid fora) — resposta declara indisponibilidade', [
+                    'pergunta_chars' => strlen($pergunta),
+                    'retrieval_status' => $retrievalStatus,
+                ]);
+
+                return Response::text(
+                    "Resposta: Não posso afirmar que a KB não tenha isso — a busca semântica está indisponível agora, e a busca textual (plano B) não achou nada sobre \"{$pergunta}\". Repita em alguns minutos; se persistir, o índice Meilisearch pode estar fora (veja o canal de log `copiloto-ai`).\n\n"
+                    . "Citações:\n- (nenhuma fonte recuperada — retrieval DEGRADADO, não vazio)\n\n"
+                    . "Confiança: baixa"
+                );
+            }
+
             return Response::text(
                 "Resposta: Não encontrei nada conclusivo na KB sobre \"{$pergunta}\". Tente reformular ou rodar `decisions-search` com termos diferentes.\n\n"
                 . "Citações:\n- (nenhuma fonte recuperada)\n\n"
@@ -133,6 +153,11 @@ class KbAnswerTool extends Tool
 
         // FASE 2 — Síntese IA (laravel/ai SDK, gpt-4o-mini).
         $blocoFontes = $svc->renderFontes($docs);
+
+        // Anexado DEPOIS do summarize (o auto-summary pode cortar o miolo da resposta;
+        // o aviso não pode sumir junto) e no FIM, pra não quebrar o `Resposta:` inicial
+        // que o sanity-check abaixo e os consumidores esperam.
+        $aviso = KbAnswerService::avisoDegradacao($retrievalStatus);
 
         try {
             $texto = $svc->synthesize($pergunta, $blocoFontes, $maxCitacoes);
@@ -144,6 +169,7 @@ class KbAnswerTool extends Tool
                 'docs_recuperados' => $docs->count(),
                 'max_citacoes' => $maxCitacoes,
                 'business_id' => (int) data_get($user, 'business_id', 0),
+                'retrieval_status' => $retrievalStatus,
             ]);
 
             // Sanity check: se LLM não seguiu formato, faz fallback determinístico.
@@ -151,7 +177,7 @@ class KbAnswerTool extends Tool
                 return Response::text(
                     AutoSummarizerHelper::summarizeAndRender(
                         $svc->fallbackSemIa($pergunta, $docs, $maxCitacoes)
-                    )
+                    ).$aviso
                 );
             }
 
@@ -159,17 +185,18 @@ class KbAnswerTool extends Tool
             // KB synthesis 10+ citações pode estourar quando fontes longas
             // vazam pra resposta (anti-padrão LLM). Helper passthrough abaixo
             // do threshold (caso comum: 2-3KB).
-            return Response::text(AutoSummarizerHelper::summarizeAndRender($texto));
+            return Response::text(AutoSummarizerHelper::summarizeAndRender($texto).$aviso);
         } catch (Throwable $e) {
             Log::channel('copiloto-ai')->warning('kb-answer falhou (degradação)', [
                 'error' => $e->getMessage(),
                 'pergunta_chars' => strlen($pergunta),
+                'retrieval_status' => $retrievalStatus,
             ]);
 
             return Response::text(
                 AutoSummarizerHelper::summarizeAndRender(
                     $svc->fallbackSemIa($pergunta, $docs, $maxCitacoes)
-                )
+                ).$aviso
             );
         }
     }
