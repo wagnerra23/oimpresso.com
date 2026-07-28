@@ -55,10 +55,10 @@ class IntercorrenciaAIClassifierTest extends TestCase
             public function exposeMascarar(string $t): string { return $this->mascararPII($t); }
         };
 
-        $input = 'Wagner CPF 123.456.789-00 PIS 123.45678.90-1 email wagner@exemplo.com tel (11) 91234-5678';
+        $input = 'Wagner CPF 123.456.789-00 PIS 123.45678.90-1 email wagner@exemplo.com tel (11) 91234-5678'; // pii-allowlist (fixture sintética — o teste existe pra provar que ELA é mascarada)
         $output = $mask->exposeMascarar($input);
 
-        $this->assertStringNotContainsString('123.456.789-00', $output);
+        $this->assertStringNotContainsString('123.456.789-00', $output); // pii-allowlist (mesma fixture sintética da linha do $input)
         $this->assertStringNotContainsString('wagner@exemplo.com', $output);
         $this->assertStringNotContainsString('91234-5678', $output);
         // Wave 11 D7.a — delegação ao PiiRedactor canônico (Modules/Jana/Services/Privacy)
