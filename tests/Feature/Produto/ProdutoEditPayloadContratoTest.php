@@ -319,9 +319,23 @@ it('UC-PEDIT-08 · a tela Blade declara o desligamento das 3 flags (hidden 0)', 
         'PRÉ-CONDIÇÃO: GET /products/{id}/edit tem que abrir a tela. Outro status = o UC não foi '
         . 'exercido. CAUSA REAL: ' . $causa
     );
+    // A run 30396925504 devolveu 200 SEM o form — ou seja, a tela abriu e é OUTRA página.
+    // "Não contém o form" não diz QUAL página veio; a assinatura abaixo diz.
+    preg_match('/<title>(.*?)<\/title>/s', $html, $t);
+    $assinatura = sprintf(
+        'titulo=%s | tamanho=%d | tem_form=%s | tem_inertia=%s | tem_login=%s | tem_app_id=%s | inicio=%s',
+        trim($t[1] ?? '(sem title)'),
+        strlen($html),
+        str_contains($html, '<form') ? 'sim' : 'nao',
+        str_contains($html, 'data-page') || str_contains($html, 'id="app"') ? 'sim' : 'nao',
+        str_contains($html, '/login') ? 'sim' : 'nao',
+        str_contains($html, 'product_add_form') ? 'sim' : 'nao',
+        str_replace(["\n", "\r"], ' ', mb_substr(strip_tags($html), 0, 200))
+    );
+
     expect($html)->toContain(
         'product_add_form',
-        'PRÉ-CONDIÇÃO: a resposta tem que ser o FORM da Blade (`product_add_form`), não página de erro nem outra view.'
+        'PRÉ-CONDIÇÃO: a resposta tem que ser o FORM da Blade. VEIO OUTRA PÁGINA → ' . $assinatura
     );
 
     foreach (['enable_stock', 'not_for_selling', 'enable_sr_no'] as $flag) {
