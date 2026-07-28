@@ -79,14 +79,20 @@ class DataController extends Controller
             return;
         }
 
+        $segmento_ativo = request()->segment(1) === 'voz-do-cliente';
+
+        // `url()` literal, NÃO `action([Controller::class, 'index'])`: este método
+        // roda em TODA request da sidebar, e `action()` lança se a rota não
+        // resolver (módulo desabilitado, cache de rota velho) — derrubaria o app
+        // inteiro, não só o menu. Espelha Modules/Auditoria.
+        //
         // Label PT-BR literal: LegacyMenuAdapter lê a string crua e NÃO resolve
         // __('alias::file.key') — chave de tradução aqui sai crua em produção.
-        Menu::modify('admin-sidebar-menu', function ($menu) {
-            $menu->url(
-                action([\Modules\VozDoCliente\Http\Controllers\SinalController::class, 'index']),
-                'Voz do Cliente',
-                ['icon' => 'fa fas fa-comment-dots', 'active' => request()->segment(1) === 'voz-do-cliente']
-            )->order(85);
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
+            $menu->url(url('/voz-do-cliente'), 'Voz do Cliente', [
+                'icon'   => 'fa fa-comment',
+                'active' => $segmento_ativo,
+            ]);
         });
     }
 }
