@@ -136,6 +136,79 @@ Criar a casa de teste de **Sells · Cliente · OficinaAuto · RecurringBilling**
 entrada no `ci-sqlite-pest.list`). Sem isso esses 4 não são chips válidos — o teste nasceria
 sem lane, que é exatamente o achado #7 do piloto (*"verde impossível"* no `anchor-lint`).
 
+> ⚠️ **Errata da Onda 0 (medida 2026-07-28, `origin/main`).** A lista dos 4 acima estava
+> **errada nos dois sentidos**, e a Onda 0 nunca foi paga:
+> **Sells JÁ tinha lane** (`sells-pest.yml` roda `tests/Feature/Sells/**`, 74 arquivos) e
+> **Repair também** (`modules-pest.yml`, por *matrix* — não por path literal). Em compensação,
+> **6 módulos fora da lista** estão órfãos, e **Cliente + OficinaAuto tiveram o chip mergeado
+> mesmo assim** — a regra *"sem lane não é chip válido"* não foi enforçada por máquina nenhuma.
+> Números na tabela §Fila abaixo. Método da medição: `grep -rlE "Modules/<M>/Tests|tests/Feature/<M>"
+> .github/workflows/` + leitura das matrizes; contar por glob `Modules/<M>/Tests/**/*.php`
+> **subconta** (perde arquivo direto no diretório) — foi o que me fez errar Sells na 1ª passada.
+
+### Fila derivada dos 32 restantes (medida 2026-07-28 · re-rodar antes de usar)
+
+> **Recibo, não afirmação atemporal.** Colunas `telas` e `testes` derivadas de
+> `git ls-files 'resources/js/Pages/**/*.tsx'` (excluindo `_components/`) e
+> `git ls-files Modules/<M>/Tests tests/Feature/<M>`; coluna `lane` do `grep` acima.
+> Os números envelhecem — **re-rode, não edite** ([lápide §5 2026-07-17](../../../proibicoes.md)).
+> A ordem abaixo é derivada de dois fatos medidos (tem lane? quantas telas?), **não** de
+> julgamento de valor de produto — priorizar por valor é decisão [W].
+
+**Estado em 2026-07-28:** 40 módulos com tela React · **8 com SDD** (Cliente · Compras ·
+Financeiro · Fiscal · OficinaAuto · Ponto · Produto · Sells) · **32 sem**.
+
+| # | Módulo | Telas | Testes | Lane | Chip válido hoje? |
+|---|---|---:|---:|---|---|
+| 1 | **NfeBrasil** | 6 | 49 | `nfebrasil-pest` + `modules-pest` | ✅ — é o **S4 declarado** da Onda 2 |
+| 2 | **Essentials** | 13 | 15 | `essentials-pest` | ✅ — **S6 declarado** |
+| 3 | **Jana** | 16 | 150 | `jana-pest` + `jana-logica-pura` + sqlite | ✅ (92 US — chip caro) |
+| 4 | **Repair** | 13 | 22 | `modules-pest` (matrix) | ✅ |
+| 5 | **Whatsapp** | 3 | 121 | `ci-sqlite-list` | ✅ |
+| 6 | **ComunicacaoVisual** | 1 | 20 | `modules-pest` (matrix) | ✅ |
+| 7 | **Vestuario** | 1 | 15 | `modules-pest` (matrix) | ✅ |
+| — | **RecurringBilling** | 6 | 39 | ❌ | ⛔ Onda 0 |
+| — | **Admin** | 8 | 19 | ❌ | ⛔ Onda 0 |
+| — | **Manufacturing** | 1 | 17 | ❌ | ⛔ Onda 0 |
+| — | **ProjectMgmt** | 9 | 13 | ❌ | ⛔ Onda 0 |
+| — | **ConsultaOs** | 1 | 11 | ❌ | ⛔ Onda 0 |
+| — | **Auditoria** | 2 | 18 | ❌ | ⛔ Onda 0 |
+| — | ads · Atendimento · Site · governance · MemCofre · team-mcp · Purchase · Nfse · TransactionPayment · kb · Settings · StockAdjustment · StockTransfer · Suporte · superadmin · Home · Modules · Tarefas · User | 1–19 | **0** | — | 🟡 chip **sem perna de teste**: o trio nasceria sem `ContratoTest`. Precisa de decisão de desenho antes (ver abaixo) |
+
+### A dívida real da Onda 0 — **225 arquivos de teste que nenhum job roda**
+
+| Módulo | Arquivos órfãos | Tem SDD? |
+|---|---:|---|
+| **Cliente** | 64 (`tests/Feature/Cliente`) | ✅ chip mergeado **sem lane** |
+| **OficinaAuto** | 44 (`Modules/OficinaAuto/Tests`) | ✅ chip mergeado **sem lane** |
+| RecurringBilling | 39 | — |
+| Admin | 19 | — |
+| Auditoria | 18 | — |
+| Manufacturing | 17 | — |
+| ProjectMgmt | 13 | — |
+| ConsultaOs | 11 | — |
+
+Cliente e OficinaAuto são o caso mais duro: o chip **entregou contrato + teste e mergeou**, e o
+teste é decorativo por construção — é o defeito #7 do piloto reaparecendo *depois* de nomeado.
+A lane existia na branch da sessão irmã (`cliente-pest.yml`/`oficinaauto-pest.yml` em
+`claude/sdds-pendentes-c3a697`) e **não chegou ao main**. Isto é dívida de **entrega**, não de
+plano — e nenhuma máquina a acusou, porque *"teste sem lane"* não é gate.
+
+### Os 19 módulos com 0 testes — pergunta de desenho, não de execução
+
+Metade da fila restante não tem `Modules/<X>/Tests` nem `tests/Feature/<X>`. Para eles o chip,
+como definido hoje, entrega **SDD + `casos.md` + UC sem nenhum teste que os cite** — que é
+exatamente o que o **G-2 do `casos-gate` (required) reprova**. Três saídas possíveis, e a
+escolha é de [W] porque muda o contrato do chip:
+
+1. **Onda 0 estendida** — criar lane + primeiro teste antes do SDD (caro: 19 lanes).
+2. **Chip de 2 tempos** — SDD + `casos.md` com os UC marcados `[BACKLOG]` (prosa honesta sem
+   gate, forma já canon em [how-trabalhar](../../../how-trabalhar.md)), teste em run seguinte.
+3. **Fora do denominador** — vários não são módulo de negócio (`Home`, `Settings`, `User`,
+   `Modules`, `superadmin`): declarar que SDD-de-tela não se aplica, com a razão registrada.
+
+Enquanto não houver corte, **a fila executável é de 7 módulos**, não 32.
+
 ## Contrato do prompt de cada sessão
 
 ```
