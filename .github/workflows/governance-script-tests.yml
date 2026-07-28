@@ -34,6 +34,8 @@ jobs:
         run: node scripts/governance/adr-index-generate.test.mjs
       - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
         run: node scripts/governance/fact-anchor.test.mjs
+      - name: System-map camada de IA (censo derivado · morde no caching.embeddings que a mao contou errado)
+        run: node scripts/governance/system-map-ia.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)

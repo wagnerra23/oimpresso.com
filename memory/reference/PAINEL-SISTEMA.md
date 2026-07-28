@@ -56,6 +56,19 @@ lifecycle: ativo
 | Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-23 |
 | Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-07-23 |
 
+## Camada de IA
+
+> Contagem DERIVADA da árvore (contrato `implements`, não pasta). Isto conta **arquivo que implementa contrato** — não é nota, não é status e não prova que a peça roda. O que cada agente faz e se está ligado vive no BRIEFING do módulo e na config; aqui só existe o censo. Antes disto, estes números viviam à mão num diagrama e já tinham errado (`16 provedores` era 15).
+
+- **Agentes** (`implements Agent`, fora de `Tests/`): **22** — todos em `Ai/Agents/`, convenção íntegra.
+  - por módulo: Jana 14 · ADS 4 · Crm 3 · Whatsapp 1
+- **Tools MCP registradas** no `OimpressoMcpServer`: **44** — Jana 39 · TeamMcp 4 · Brief 1. Bate com os arquivos `*Tool.php` em `Modules/*/Mcp/Tools/`. _Registrada ≠ exposta_: a exposição é gated por `MCP_TOOLS_EXPOSED` (`config/mcp.php`), estado de runtime que a árvore não sabe.
+- **Provedores** declarados em `config/ai.php`: **15** · default = `openai` — anthropic, azure, bedrock, cohere, deepseek, eleven, gemini, groq, jina, mistral, ollama, openai, openrouter, voyageai, xai. _Declarado ≠ com chave_: a credencial mora no ambiente.
+- **Implementações de `MemoriaContrato`**: McpMemoriaDriver · MeilisearchDriver · NullMemoriaDriver · RetrievalTelemetryDecorator
+- **Rerankers** (`implements Reranker`): BgeReranker · LlmRerankerAdapter · NullReranker · RrfReranker
+
+> Não derivável e por isso NÃO listado aqui: quais pipelines de retrieval existem e qual está ligado — isso mora na config e no BRIEFING da Jana, e um número inventado aqui seria pior que a ausência.
+
 ## Programa SDD (governança)
 
 - Scorecard: **12/13** métricas medidas · floor full-suite = **339**.
@@ -105,7 +118,7 @@ lifecycle: ativo
 - deadlink-gate (ratchet · integridade referencial)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 115 workflows por classe
+### Censo — 116 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
@@ -115,16 +128,17 @@ lifecycle: ativo
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
+| qualidade | 1 | brl-scan |
 
 ## Decisões (ADRs)
 
-- **360** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 328 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
-- **3** reversões de rota (ADR com `supersedes:`).
+- **362** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 328 · superseded: 14 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **4** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 55 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 57 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -181,6 +195,8 @@ lifecycle: ativo
 - ~~2026-07-28 — Declarar "a máquina NÃO existe" a partir de grep estreito — e a resposta NÃO é índice novo~~
 - ~~2026-07-28 — Validar um gate rodando UM dos modos que o CI roda, e chamar de verde~~
 - ~~2026-07-28 — Lint que detecte "mensagem passada como NEEDLE" em `toContain` (o defeito é real; o lint cai na lápide do `toHaveKey`)~~
+- ~~2026-07-28 — Teste que afirma "registrado" medindo `app(Class::class)` — 2 comandos mortos escondidos por 2,4 meses (3ª instância LC-11 em produção)~~
+- ~~2026-07-28 — Medir cobertura de um glob de CÓDIGO com o pathspec do git (`*` atravessa `/`, `glob()` do PHP não)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -188,7 +204,7 @@ lifecycle: ativo
 
 ## Rastro
 
-- **316** handoffs · **542** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **324** handoffs · **546** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-28-sdd-vestuario-etiquetas`
   - `2026-07-28-sdd-teammcp-hub`

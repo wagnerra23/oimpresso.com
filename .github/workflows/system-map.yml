@@ -23,6 +23,18 @@ on:
       - 'governance/required-checks-baseline.json'
       - 'scripts/governance/system-map.mjs'
       - '.github/workflows/system-map.yml'
+      # Camada de IA (2026-07-28): sem estes paths o --check só acordava no cron do dia
+      # seguinte — agente/tool/provider novo entrava e o painel ficava stale em silêncio.
+      # Cirúrgico de propósito: `Modules/**` inteiro rodaria em quase todo PR (ruído).
+      # RESÍDUO DECLARADO: o extrator lê `Modules/**` inteiro via `git grep` do contrato,
+      # então o caso que o contrato existe pra pegar — agente FORA de `Ai/Agents/` — não
+      # dispara este check; quem conserta é o cron das 07:30. É teto conhecido, não bug.
+      - 'Modules/*/Ai/Agents/**'
+      - 'Modules/*/Mcp/Tools/**'
+      - 'Modules/Jana/Mcp/OimpressoMcpServer.php'
+      - 'Modules/Jana/Services/Memoria/**'
+      - 'Modules/Jana/Services/Retrieval/**'
+      - 'config/ai.php'
   schedule:
     - cron: '30 10 * * *' # 07:30 BRT diário (pós-scorecard 06:50)
   workflow_dispatch:

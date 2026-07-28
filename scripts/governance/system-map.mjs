@@ -169,9 +169,199 @@ function measureGates() {
   return { total: Object.keys(registry).length, byClass, required, enforcement, capturado };
 }
 
+// ── fonte 7: camada de IA (agentes · tools MCP · provedores) ──────────────────
+// POR QUE EXISTE (2026-07-28): os números da camada de IA viviam ESCRITOS À MÃO num
+// diagrama de arquitetura ("22 agentes", "39 tools", "16 provedores" — este último
+// ERRADO: são 15, o bloco extra contado era `caching.embeddings`, que não é provider).
+// É a lápide §5 2026-07-17 em pessoa: doc canônico NÃO repete número que outro sistema
+// sabe melhor. Aqui o dono é a ÁRVORE, e o cron de system-map.yml mantém sozinho.
+//
+// O QUE ESTA SEÇÃO **NÃO** É — e a distinção importa (§5 LC-11, presence-gate):
+// ela conta ARQUIVO QUE IMPLEMENTA CONTRATO, não capacidade. "4 agentes no ADS" não
+// diz que o ADS é bom, nem que rodam; diz que existem 4 classes. Por isso a seção
+// emitida não tem nota, não tem status e não tem veredito — só contagem + ponteiro.
+//
+// FONTE PREFERIDA = CONTRATO (`implements X`), não pasta. Varredura por diretório
+// (`Modules/*/Ai/Agents/`) é a convenção de HOJE; um agente fora dela seria invisível.
+// As duas medidas são cruzadas e a DIVERGÊNCIA é emitida — detector de drift de
+// convenção de graça. Em 2026-07-28 as duas batem: 22 e 22.
+const IA_CONTRATOS = {
+  agente: /implements\s+Agent\b/,
+  memoria: /implements\s+MemoriaContrato\b/,
+  reranker: /implements\s+Reranker\b/,
+};
+/**
+ * NÚCLEO PURO (testável hermético, molde de fact-anchor.mjs): classifica candidatos
+ * já lidos por contrato. Exportado pra que o self-test prove a mordida com fixture
+ * boa/ruim, sem git e sem FS.
+ * @param {{rel:string,txt:string}[]} arquivos
+ */
+export function classificarIa(arquivos) {
+  const out = { agente: [], memoria: [], reranker: [] };
+  for (const { rel, txt } of arquivos) {
+    if (rel.includes('/Tests/')) continue;              // fake/dublê de teste não é peça viva
+    if (/^\s*abstract\s+class\s/m.test(txt)) continue;  // base abstrata não é implementação
+    for (const [tipo, re] of Object.entries(IA_CONTRATOS)) if (re.test(txt)) out[tipo].push(rel);
+  }
+  return out;
+}
+/**
+ * NÚCLEO PURO: lê provedores de config/ai.php. Cada bloco de provider tem exatamente
+ * um `'driver' => '<nome>'`; o default GLOBAL é o primeiro `'default'` do arquivo,
+ * buscado só no trecho ANTES de `'providers'` — senão casaria `models.text.default`.
+ * O bloco `caching.embeddings` NÃO tem `driver` e por isso não conta: foi exatamente
+ * o erro da contagem à mão ("16 provedores", eram 15).
+ * @param {string} txt conteúdo de config/ai.php
+ */
+export function parseProvidersAi(txt) {
+  const partes = String(txt).split("'providers'");
+  const antes = partes[0] || '';
+  // só o trecho DEPOIS de `'providers'`: um `'driver' =>` que apareça noutra chave
+  // do config (cache, log, fila) não é provedor e inflaria a conta em silêncio.
+  const depois = partes.length > 1 ? partes.slice(1).join("'providers'") : '';
+  return {
+    provs: [...depois.matchAll(/'driver'\s*=>\s*'([a-z0-9_]+)'/g)].map((x) => x[1]).sort(),
+    defaultProv: (antes.match(/'default'\s*=>\s*'([a-z0-9_]+)'/) || [])[1] || null,
+  };
+}
+/**
+ * NÚCLEO PURO: a linha de agentes do painel. Três estados, e o terceiro é o que
+ * importa — sem `git grep` o contrato devolve [] e escrever "0 agentes · ⚠️ a pasta
+ * dá 22" seria alarme FALSO por ausência de instrumento. Zero-por-não-medi jamais
+ * pode passar por zero-medido (§5 2026-07-17: `crontab` que não existe não prova
+ * que não há cron). Exportado pra que os três estados sejam provados em fixture.
+ * @param {{semInstrumento:boolean, agentes:number, agentesPorPasta:number}} ia
+ */
+export function linhaAgentes(ia) {
+  if (ia.semInstrumento) {
+    return '- **Agentes**: _não medido nesta geração_ — `git grep` falhou. Sem o contrato não há censo: a varredura por pasta acharia só quem segue a convenção.';
+  }
+  const fora = ia.foraDaConvencao || [];
+  return `- **Agentes** (\`implements Agent\`, fora de \`Tests/\`): **${ia.agentes}**`
+    + (fora.length === 0
+      ? ' — todos em `Ai/Agents/`, convenção íntegra.'
+      : ` — ⚠️ **${fora.length}** fora de \`Ai/Agents/\`: ${fora.join(', ')}.`);
+}
+/**
+ * NÚCLEO PURO: a linha de tools. Fonte = REGISTRO; a pasta é contra-medida. O rótulo
+ * diz "registradas", nunca "expostas": exposição é runtime (`MCP_TOOLS_EXPOSED`, default
+ * false — no Hostinger o número exposto é ZERO), e afirmar runtime a partir de arquivo é
+ * a classe presence-gate que esta seção declara evitar.
+ */
+export function linhaTools(ia) {
+  const r = ia.registro || {};
+  if (!r.ok) return '- **Tools MCP**: _não medido_ — não achei o array `$tools` do `OimpressoMcpServer`.';
+  const quebra = Object.entries(r.porModulo).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  return `- **Tools MCP registradas** no \`OimpressoMcpServer\`: **${r.total}**`
+    + (quebra.length ? ` — ${quebra.map(([m, n]) => `${m} ${n}`).join(' · ')}` : '')
+    + (ia.arquivosTool === r.total
+      ? '. Bate com os arquivos `*Tool.php` em `Modules/*/Mcp/Tools/`.'
+      : ` — ⚠️ existem **${ia.arquivosTool}** arquivos \`*Tool.php\`: tool escrita e não registrada não sobe.`)
+    + ' _Registrada ≠ exposta_: a exposição é gated por `MCP_TOOLS_EXPOSED` (`config/mcp.php`), estado de runtime que a árvore não sabe.';
+}
+/**
+ * NÚCLEO PURO: lê o REGISTRO de tools do `OimpressoMcpServer` — a lista que o servidor
+ * de fato publica. Fonte deliberadamente diferente da PASTA: um `*Tool.php` que ninguém
+ * registrou não sobe, e um registro pode apontar pra outro módulo. Duas formas convivem
+ * no array: FQN (`\Modules\Brief\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
+ * resolve no namespace do próprio servidor, Jana).
+ *
+ * Foi aqui que a 1ª versão desta seção errou: contou a pasta de UM módulo (39) pra
+ * descrever o que o servidor registra em TRÊS (44) — o mesmo "oráculo errado" que a
+ * seção existe pra matar, agora com selo de derivado. Refutado por revisão adversarial.
+ * @param {string} txt conteúdo de OimpressoMcpServer.php
+ * @param {string} [donoDoArquivo] módulo do servidor, pro qual a forma relativa resolve
+ */
+export function parseToolsRegistry(txt, donoDoArquivo = 'Jana') {
+  const src = String(txt);
+  const ini = src.indexOf('$tools = [');
+  if (ini < 0) return { ok: false, total: 0, porModulo: {} };
+  // até o primeiro fechamento de array no nível da propriedade (`    ];`)
+  const resto = src.slice(ini);
+  const fim = resto.search(/\n\s{0,4}\];/);
+  const bloco = (fim > 0 ? resto.slice(0, fim) : resto)
+    .replace(/\/\/[^\n]*/g, '')          // comentário de linha citaria ::class em prosa
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const porModulo = {};
+  let total = 0;
+  for (const m of bloco.matchAll(/([\\\w]+)::class/g)) {
+    const fqn = m[1];
+    const mod = (fqn.match(/^\\?Modules\\(\w+)\\/) || [])[1] || donoDoArquivo;
+    porModulo[mod] = (porModulo[mod] || 0) + 1;
+    total++;
+  }
+  return { ok: true, total, porModulo };
+}
+/**
+ * `{ok:false}` distingue "o instrumento falhou" de "rodou e não casou nada" — colapsar
+ * os dois faz um repo genuinamente sem agentes ser reportado como "não medido", que é
+ * o inverso exato do erro que o guard existe pra evitar.
+ */
+function gitGrepFiles(padrao) {
+  try {
+    const out = execSync(`git grep -lE "${padrao}" -- "Modules"`, {
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return { ok: true, files: out.split('\n').map((s) => s.trim()).filter(Boolean) };
+  } catch (e) {
+    // git grep sai 1 quando não casa NADA (não é erro) e >1 quando falha de verdade
+    if (e && e.status === 1) return { ok: true, files: [] };
+    return { ok: false, files: [] };
+  }
+}
+function gitLsFiles(pathspec) {
+  try {
+    const out = execSync(`git ls-files "${pathspec}"`, {
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return out.split('\n').map((s) => s.trim()).filter(Boolean);
+  } catch { return []; }
+}
+function measureIa() {
+  // 1 chamada de git grep para os 3 contratos; a classificação fina é em JS (lendo
+  // os ~35 candidatos), porque `\b` não é ERE POSIX e o git grep -E não o honra.
+  const grep = gitGrepFiles('implements (Agent|MemoriaContrato|Reranker)');
+  const porContrato = classificarIa(grep.files.map((rel) => ({ rel, txt: read(join(ROOT, rel)) })));
+  const semInstrumento = !grep.ok;
+  // agentes agrupados por módulo (Modules/<X>/...)
+  const porModulo = {};
+  for (const rel of porContrato.agente) {
+    const m = rel.match(/^Modules\/([^/]+)\//);
+    if (m) porModulo[m[1]] = (porModulo[m[1]] || 0) + 1;
+  }
+  // CONTRA-MEDIDA sobre o MESMO conjunto (não sobre o disco): quais agentes reais estão
+  // fora da pasta canônica. Contar `.php` da pasta comparava maçã com laranja — o
+  // contrato pula `abstract`, então uma classe-base ali dentro fabricava um alarme
+  // dizendo "tem agente fora do lugar" justamente sobre um arquivo que está no lugar.
+  const foraDaConvencao = porContrato.agente
+    .filter((p) => !p.includes('/Ai/Agents/'))
+    .map((p) => p.split('/').pop().replace('.php', ''))
+    .sort();
+  // tools MCP: REGISTRO do servidor (o que sobe), com a pasta como contra-medida
+  const registro = parseToolsRegistry(read(join(ROOT, 'Modules', 'Jana', 'Mcp', 'OimpressoMcpServer.php')));
+  const arquivosTool = gitLsFiles(':(glob)Modules/*/Mcp/Tools/*Tool.php').length;
+  // provedores: cada bloco de provider tem exatamente um `'driver' => '<nome>'`;
+  // o default global é o PRIMEIRO `'default'` do arquivo, antes do bloco `providers`.
+  const cfgTxt = read(join(ROOT, 'config', 'ai.php'));
+  const { provs, defaultProv } = parseProvidersAi(cfgTxt);
+  return {
+    semInstrumento,
+    agentes: porContrato.agente.length,
+    foraDaConvencao,
+    registro,
+    arquivosTool,
+    semConfigAi: cfgTxt === '',
+    porModulo,
+    memoria: porContrato.memoria.map((p) => p.split('/').pop().replace('.php', '')).sort(),
+    reranker: porContrato.reranker.map((p) => p.split('/').pop().replace('.php', '')).sort(),
+    provs,
+    defaultProv,
+  };
+}
+
 // ── render ────────────────────────────────────────────────────────────────────
 function render(data) {
-  const { adr, proib, mods, sc, cnt, gates } = data;
+  const { adr, proib, mods, sc, cnt, gates, ia } = data;
 
   const L = [];
   L.push('---');
@@ -200,6 +390,31 @@ function render(data) {
     const link = m.brief ? `[BRIEFING](../${m.brief.replace('memory/', '')})` : '_sem BRIEFING_';
     L.push(`| ${m.modulo} | ${link} | ${m.atualizado || '—'} |`);
   }
+  L.push('');
+
+  // Camada de IA
+  L.push('## Camada de IA');
+  L.push('');
+  L.push('> Contagem DERIVADA da árvore (contrato `implements`, não pasta). Isto conta **arquivo que implementa contrato** — não é nota, não é status e não prova que a peça roda. O que cada agente faz e se está ligado vive no BRIEFING do módulo e na config; aqui só existe o censo. Antes disto, estes números viviam à mão num diagrama e já tinham errado (`16 provedores` era 15).');
+  L.push('');
+  L.push(linhaAgentes(ia));
+  const modsIa = Object.entries(ia.porModulo).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  if (modsIa.length) L.push(`  - por módulo: ${modsIa.map(([m, n]) => `${m} ${n}`).join(' · ')}`);
+  L.push(linhaTools(ia));
+  if (ia.semConfigAi) {
+    L.push('- **Provedores**: _não medido_ — `config/ai.php` ausente ou ilegível.');
+  } else {
+    L.push(`- **Provedores** declarados em \`config/ai.php\`: **${ia.provs.length}**`
+      + (ia.defaultProv ? ` · default = \`${ia.defaultProv}\`` : '')
+      + (ia.provs.length ? ` — ${ia.provs.join(', ')}` : '')
+      + '. _Declarado ≠ com chave_: a credencial mora no ambiente.');
+  }
+  // "implementações", não "drivers": o contrato também é implementado por decorator
+  // (RetrievalTelemetryDecorator) — chamar tudo de driver seria rótulo errado.
+  if (ia.memoria.length) L.push(`- **Implementações de \`MemoriaContrato\`**: ${ia.memoria.join(' · ')}`);
+  if (ia.reranker.length) L.push(`- **Rerankers** (\`implements Reranker\`): ${ia.reranker.join(' · ')}`);
+  L.push('');
+  L.push('> Não derivável e por isso NÃO listado aqui: quais pipelines de retrieval existem e qual está ligado — isso mora na config e no BRIEFING da Jana, e um número inventado aqui seria pior que a ausência.');
   L.push('');
 
   // SDD scorecard
@@ -288,7 +503,11 @@ function renderOnboardingAgent(data) {
   L.push('---');
   L.push('name: Onboarding de agente — prompt gerado');
   L.push('description: Artefato auxiliar da rota de agentes declarada no README.md. GERADO por system-map.mjs — prompt estável + ponteiros pras fontes vivas.');
-  L.push('type: generated-prompt');
+  // `guide` (não `generated-prompt`): o enum de reference.schema.json só aceita
+  // reference|feedback|protocol|guide|index — quem diz que é gerado é `authority`,
+  // como o irmão PAINEL-SISTEMA já fazia. Ficava fora do enum desde que nasceu; só
+  // apareceu quando a regeneração tocou o arquivo e acordou o gate diff-aware.
+  L.push('type: guide');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
   L.push('---');
@@ -386,6 +605,7 @@ if (IS_DIRECT_RUN) {
   const data = {
     adr: measureAdrs(), proib: measureProibicoes(), mods: measureModules(),
     sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(),
+    ia: measureIa(),
   };
   const outPainel = render(data);
   const outOnboarding = renderOnboardingAgent(data);
