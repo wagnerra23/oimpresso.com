@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **874 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **875 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -13,7 +13,7 @@
 | [`Sells`](#sells) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
 | [`Governance`](#governance) | 45 | 0 | 0 | 3 | 42 |
-| [`Infra`](#infra) | 44 | 0 | 0 | 0 | 44 |
+| [`Infra`](#infra) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`Arquivos`](#arquivos) | 26 | 0 | 0 | 0 | 26 |
 | [`NfeBrasil`](#nfebrasil) | 26 | 0 | 0 | 6 | 20 |
@@ -435,6 +435,7 @@
 - **US-INFRA-044** — Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB
 - **US-INFRA-045** — Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
 - **US-INFRA-046** — ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+- **US-INFRA-047** — Voz do Cliente — do sinal gravado ao loop fechado
 
 ## OficinaAuto
 

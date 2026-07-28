@@ -66,29 +66,46 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-002 · Client Signal — entidade + canal estruturado
 
-**Implementado em:** _pendente_ — não construído: sem tabela `mcp_client_signals`, sem `Pages/Feedback/Form.tsx`, sem endpoint `POST /api/feedback` nem tools MCP `client-signals-*` (grep zero por client_signal em Modules/app/database). O feature de feedback do Whatsapp (`clients_feedbacks`) é outra coisa
+**Implementado em:** `Modules/VozDoCliente/Entities/Sinal.php` · `Modules/VozDoCliente/Http/Controllers/SinalController.php` · `Modules/VozDoCliente/Database/Migrations/2026_07_28_100000_create_voz_sinais_table.php`
 
-> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: adr-0105
+**Testado em:** `Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php` — isolamento cross-tenant Tier 0 (biz=1 × biz=99) + dedup por hash
+
+> **Duas divergências deliberadas vs o escopo escrito abaixo** (corrigidas aqui pela regra de precedência — `memory/proibicoes.md`):
+> 1. **Canal: dentro do login, não público.** O escopo previa `/feedback?biz=X&token=Y` "sem login, token por biz expira em 30d". Decisão [W] 2026-07-28: o canal vive DENTRO do sistema, autenticado. Consequência: `business_id` volta a vir da sessão (padrão canônico do global scope) e morrem a expiração de 30d, o endpoint anônimo e a superfície de spam.
+> 2. **Tabela `voz_sinais`, não `mcp_client_signals`.** O prefixo `mcp_` é do MCP server (governança interna: `mcp_audit_log`, `mcp_tasks`). Isto virou módulo de produto vendável por business, então segue o padrão de prefixo por módulo (`fin_*` do Financeiro).
+>
+> Decisão [W] 2026-07-28 de que isto é **módulo**, não script de infra: add-on vendável (`default => false` no pacote superadmin). Ver [`Modules/VozDoCliente/SCOPE.md`](../../../Modules/VozDoCliente/SCOPE.md).
+
+> owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: adr-0105
 > blocked_by: US-INFRA-001
+
+> **Escopo fechado no título, resto extraído.** Esta US entrega o que o título promete —
+> **entidade + canal**. Os itens do escopo original que NÃO são entidade nem canal (tool MCP,
+> contagem no brief, triagem automática pelo ADS) foram movidos para **US-INFRA-047**, em vez de
+> deixar esta US aberta com âncora viva. Marcar `done` com metade do escopo pendente seria
+> declarar pronto o que não está; deixar `todo` com o código no disco seria negar o que existe.
 
 **Contexto.** ADR 0105 estabelece "cliente como sinal" como princípio canônico. Hoje Larissa (ROTA LIVRE biz=4) reporta dor via WhatsApp pra Wagner — sinal não rastreável, vira backlog mental. Esta US formaliza: tabela `client_signals` no MCP, URL pública `/feedback?biz=X&token=Y` simplificada, ADS triage (mesmo manual em 2026-Q2), virar US automática se passar threshold.
 
-**Escopo:**
-- [ ] Migration `mcp_client_signals` no MCP DB: id, business_id, reporter_name, signal_text, severity_self_reported, url_seen, browser_console_dump, screenshot_url, status (pending/triaged/closed), triaged_to_us_id, created_at
-- [ ] Form simples Inertia em `Pages/Feedback/Form.tsx` (sem login — token único por biz expiraja em 30d)
-- [ ] Endpoint `POST /api/feedback` valida token + grava signal + dispara webhook MCP
-- [ ] Tool MCP `client-signals-list` + `client-signals-triage` (mesmo workflow das tasks)
-- [ ] Brief diário inclui: "client_signals 24h: N pendentes" — entra junto das outras métricas
-- [ ] Quando ADS S5 chegar (ADR 0106 antecipa pra ~30/maio): triage automática vira US se confidence ≥ HIGH
-- [ ] Manual hoje: Wagner/Maíra fazem `triage` no `my-inbox` semanalmente
+**Escopo (entidade + canal — o que o título promete):**
+- [x] Migration da tabela do sinal: business_id, user_id, autor_nome, canal, texto, severidade, url_vista, modulo_sugerido, status (pending/triaged/closed), triado_para_us, hash_origem, created_at — entregue como `voz_sinais` (ver divergência 2 acima)
+- [x] Canal de entrada estruturado — entregue **dentro do login** (`POST /voz-do-cliente/sinal`), não como form público com token (ver divergência 1 acima)
+- [x] Caixa onde os sinais aparecem, pendentes primeiro (`GET /voz-do-cliente`, permissão `vozdocliente.triar`)
+- [x] Isolamento multi-tenant Tier 0 provado por teste (biz=1 × biz=99)
 
 **Acceptance criteria:**
-- [ ] Larissa abre URL `oimpresso.com/feedback?token=ROTA_LIVRE_2026` → vê form simples 1 campo
-- [ ] Submit → row em `mcp_client_signals` + Wagner vê em `my-inbox`
-- [ ] Brief mostra contagem 24h
-- [ ] Tool MCP `client-signals-triage` permite anotar + virar US-X-NNN
+- [x] Pessoa logada com `vozdocliente.reportar` envia relato → grava linha com a URL da tela junto
+- [x] Reenvio do mesmo texto no mesmo business **não** cria segunda linha (dedup por hash normalizado)
+- [x] Sinal de um business nunca aparece na sessão de outro
 
-**Refs:** [ADR 0105 §princípio 1](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [skill ads-decision-flow](../../../.claude/skills/ads-decision-flow/SKILL.md)
+> ⚠️ **`done` aqui significa CÓDIGO entregue e provado por teste — não "rodando em produção".**
+> O módulo ainda não foi instalado em nenhum business, então **não existe smoke real** e nada
+> disso pode ser declarado "funcionando" (R1). O smoke é pré-requisito da US-INFRA-047, que é
+> onde o módulo passa a ser usado de verdade.
+
+**Extraído para US-INFRA-047:** tool MCP `client-signals-*`, contagem no brief diário, triagem automática via ADS, botão de relatar nas telas, **e o smoke real pós-instalação**.
+
+**Refs:** [ADR 0105 §princípio 1](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [skill ads-decision-flow](../../../.claude/skills/ads-decision-flow/SKILL.md), [`Modules/VozDoCliente/SCOPE.md`](../../../Modules/VozDoCliente/SCOPE.md)
 
 ### US-INFRA-003 · APM full-stack — captura "lento aqui" automaticamente
 
@@ -981,3 +998,34 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Origem:** rodada adversarial completa do ADR 0296 (PR #3153) — 24 riscos confirmados (7 critical), veredicto `nao-prova-de-falhas-ainda`. Gate p/ aceitar o plano de capacidade e rodar P1/P2. Detalhe dos bloqueadores e das 10 decisões do Wagner no ADR §RODADA ADVERSARIAL.
 
 Refs: ADR 0296 · PR #3153.
+
+### US-INFRA-047 · Voz do Cliente — do sinal gravado ao loop fechado
+
+**Implementado em:** _pendente_
+
+> owner: wagner · priority: p2 · estimate: 3h · status: todo · type: story · origin: adr-0105
+> blocked_by: US-INFRA-002
+
+**Contexto.** A US-INFRA-002 entregou o que o título dela promete: a entidade e o canal. O sinal
+já é gravado com contexto de tela e já pode ser visto numa caixa. O que falta é o que transforma
+sinal em melhoria — e é aqui que o [KCS](https://library.serviceinnovation.org/KCS/KCS_v6/KCS_v6_Practices_Guide/030/040)
+concentra o ganho: não no item isolado, mas no padrão entre eles.
+
+**Escopo:**
+- [ ] Tool MCP `client-signals-list` + `client-signals-triage` (mesmo workflow das tasks) — triar sem sair do fluxo
+- [ ] Brief diário inclui "sinais 24h: N pendentes" junto das outras métricas — sem isso a caixa depende de alguém lembrar de abrir
+- [ ] Triagem que vira US com um clique (preenche `triado_para_us`) — fecha o loop que a ADR 0105 exige
+- [ ] Roteamento do sinal ao módulo dono pelo vocabulário do dicionário de domínio (`memory/dominio/<mod>.md`) — determinístico, casando com termo canônico e sinônimo proibido; **medir taxa de erro contra o que já entrou ANTES de ligar**
+- [ ] Botão de relatar acessível de qualquer tela — hoje o canal existe e nenhuma tela o oferece
+
+**Acceptance criteria:**
+- [ ] **Smoke real pós-instalação** — módulo instalado, pacote habilitado, relato gravado em prod com evidência HTTP literal (R1); é o que a US-INFRA-002 não pôde fechar
+- [ ] Sinal com severidade ≥ limiar aparece no brief do dia seguinte
+- [ ] `client-signals-triage` anota e vincula a US, e o vínculo sobrevive no `triado_para_us`
+- [ ] Roteamento acerta o módulo em amostra medida, com o erro publicado — não ligado no escuro
+
+**Não fazer aqui:** ler padrão entre N sinais (o *Evolve Loop*). Construir isso antes de ter
+volume é inventar sinal — e a ADR 0105 já diz que item só entra com cliente reportando ou métrica
+detectando.
+
+**Refs:** [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) · [`Modules/VozDoCliente/SCOPE.md`](../../../Modules/VozDoCliente/SCOPE.md) · US-INFRA-002
