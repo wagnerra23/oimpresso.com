@@ -135,6 +135,10 @@ function consumeObservedStream(object $test, User $user, Conversa $conversa, str
 }
 
 beforeEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('Teste estrutural exclusivo da lane SQLite.');
+    }
+
     foreach (['jana_mensagens', 'jana_conversas', 'users'] as $table) {
         Schema::dropIfExists($table);
     }
