@@ -68,7 +68,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 **Quero** cadastrar SKU "Camiseta Básica Algodão" com matriz tamanho (PP/P/M/G/GG) × cor (preta/branca/azul) gerando 15 variations
 **Para** controlar estoque por combinação tamanho+cor sem criar 15 produtos separados
 
-**Definition of Done (em prod):**
+**Definition of Done:** (em prod)
 - [x] Modelo `Variation` filho de `ProductVariation` (parent) com SKU+sub_sku independentes
 - [x] `VariationTemplate` reutilizável (ex: "tamanhos PP-GG", "cores básicas") por business
 - [x] `VariationLocationDetails` mantém estoque por (variation_id, location_id) — multi-location
@@ -85,7 +85,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 **Quero** abrir POS, bipar código de barras da etiqueta, escolher tamanho+cor da peça, finalizar com cartão/dinheiro/pix
 **Para** atender cliente balcão em ≤30 segundos sem digitação
 
-**Definition of Done (em prod):**
+**Definition of Done:** (em prod)
 - [x] `default_location` da role pré-seleciona BL0001
 - [x] Busca produto por `sub_sku` (código de barras) ou nome
 - [x] Múltiplos meios de pagamento na mesma venda (split tender)
@@ -109,7 +109,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 **Quero** listar vendas filtrando por data, cliente, status pagamento, vendedor
 **Para** auditar fechamento mensal e responder dúvida de cliente (ex: "comprei dia 15, qual valor?")
 
-**Definition of Done (em prod):**
+**Definition of Done:** (em prod)
 - [x] DataTables 21 colunas com `columnDefs` escondendo 5 default (monitor 1280px Larissa)
 - [x] Locale pt-BR DataTables (`public/locale/datatables/pt-BR.json`)
 - [x] Coluna `transaction_date` aceita retroativo (Larissa registra em lote)
@@ -125,7 +125,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 **Quero** ver tabela "Camiseta Básica" com 15 linhas (5 tamanhos × 3 cores) mostrando qty disponível em BL0001
 **Para** decidir o que repor antes da próxima compra
 
-**Definition of Done (em prod):**
+**Definition of Done:** (em prod)
 - [x] Tabela `variation_location_details` com qty_available indexed por (variation_id, location_id)
 - [x] Movimentações via `Transaction::sell|purchase|opening_stock` ajustam automaticamente
 - [x] `OpeningStock` permite carga inicial sem afetar `purchase`/`sell` históricos
@@ -140,7 +140,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 **Quero** registrar compra de fornecedor "Confecção XYZ" com 50 peças (5 tam × 2 cor × 5un cada) entrando em BL0001
 **Para** ter estoque atualizado e rastrear contas a pagar
 
-**Definition of Done (em prod):**
+**Definition of Done:** (em prod)
 - [x] FormRequest valida fornecedor pertence ao business
 - [x] Linha de purchase grava por (variation_id, qty, unit_cost)
 - [x] Atualiza estoque + cria payable em `Modules/Financeiro` (via Observer Transaction)
@@ -162,7 +162,7 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 **Quero** rodar 2 schemes em paralelo (legacy `17NNN` antigo + `2026/NNNN` novo)
 **Para** não quebrar referência cruzada com ERPs/contadores antigos
 
-**Definition of Done (em prod):**
+**Definition of Done:** (em prod)
 - [x] Vários `invoice_schemes` por business (UltimatePOS core)
 - [x] Default scheme por location/role configurável
 - [x] Rebuild de número em transferência interna funciona
@@ -183,17 +183,29 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 
 ### US-VEST-020 · Etiqueta/código de barras com tamanho+cor (impressão térmica) `p0`
 
-> owner: — · priority: p0 · estimate: 12h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 12h · status: done · type: story
 > blocked_by: —
+> **Implementado em:** `Modules/Vestuario/Http/Controllers/EtiquetaTagController.php` · `Modules/Vestuario/Services/EtiquetaTagService.php` · `Modules/Vestuario/Services/VestuarioSettingsResolver.php` · `Modules/Vestuario/Resources/views/etiquetas/pdf.blade.php` · `resources/js/Pages/Vestuario/Etiquetas/Index.tsx` · verificado@9a7e10f (2026-07-28) — cutover ROTA LIVRE pendente (coexiste com `/labels/show`); ver [SDD §0.3](SDD-tela-etiqueta-tag-v1.0.md)
+> **Testado em:** `Modules/Vestuario/Tests/Feature/EtiquetaTagContratoTest.php` · `Modules/Vestuario/Tests/Feature/UsVest020EtiquetaTagControllerTest.php` · `Modules/Vestuario/Tests/Feature/W27EtiquetaGradeTest.php`
 
 **Contexto.** Hoje ROTA LIVRE imprime etiqueta padrão UltimatePOS (apenas SKU+nome+preço). Concorrentes verticais (Linx Microvix, ProMoz) imprimem etiqueta com **TAM-COR-COLEÇÃO** legível humano + código barras + QR pra consulta estoque. Sem isso, balcão precisa ler barcode tiny e perde 5-10s por peça.
 
+> **Contrato de uso desta US:** o design e os casos de uso vivem no
+> [SDD §5.3/§6](SDD-tela-etiqueta-tag-v1.0.md) (`CU-VEST-01`…`CU-VEST-08`); o contrato de teste
+> vive em [`Index.casos.md`](../../../resources/js/Pages/Vestuario/Etiquetas/Index.casos.md)
+> (`UC-VET-01`…`UC-VET-09`). O RUNBOOK MWART é [`RUNBOOK-etiqueta-tag.md`](RUNBOOK-etiqueta-tag.md).
+
 **Acceptance criteria:**
-- [ ] Layout etiqueta térmica (Argox/Zebra padrão) com campos: nome, tamanho, cor, valor, código barras, QR
-- [ ] Geração lote: selecionar produto + variação → imprime N etiquetas
-- [ ] Configurável por business (largura/altura/margem)
-- [ ] Impressão direta via `escpos-php` ou navegador (PDF + autoprint)
-- [ ] Test Pest: gera PDF com 10 etiquetas, valida campos presentes
+- [x] Layout etiqueta térmica (Argox/Zebra padrão) com campos: nome, tamanho, cor, valor, código barras, QR — `EtiquetaTagService::buildZpl`
+- [x] Geração lote: selecionar produto + variação → imprime N etiquetas — `EtiquetaTagController::storeZpl` (⚠️ hoje o operador digita o `product_id`; buscar a peça por nome é gap de adoção, SDD §5.4 D-1)
+- [x] Configurável por business (largura/altura/margem) — `vestuario_settings.etiqueta.*` via `VestuarioSettingsResolver`
+- [x] Impressão direta via `escpos-php` ou navegador (PDF + autoprint) — **parcial**: entregue como download `.zpl` (envio TCP/USB pelo operador) + PDF download; **não há autoprint**
+- [x] Test Pest: gera PDF com 10 etiquetas, valida campos presentes — `UsVest020EtiquetaTagControllerTest`
+
+> ⚠️ **`status: done` = código entregue e coberto por teste, NÃO "em uso pelo cliente".** O
+> cutover da ROTA LIVRE não ocorreu (o [`BRIEFING.md`](BRIEFING.md) é o dono desse estado). A
+> reconciliação `todo → done` foi feita em 2026-07-28 porque o código, os testes e o BRIEFING já
+> diziam entregue enquanto esta linha ainda dizia backlog.
 
 ### US-VEST-021 · Devolução/troca com prazo CDC + crédito em conta-cliente `p0`
 
