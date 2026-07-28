@@ -3,11 +3,22 @@ slug: sells-runbook-show
 title: "Sells — Runbook da tela Detalhar venda /sells/{id} (migração MWART)"
 type: runbook
 module: Sells
-status: active
+# 2026-07-28 — dívida de schema paga oportunisticamente (proibicoes §5 2026-07-12: tocar
+# arquivo legado acorda o gate diff-aware que o protegia por grandfather; o certo é pagar
+# quando o trabalho real já está tocando o arquivo, nunca em big-bang de backfill).
+# `status: active` não é valor do enum (rascunho|ativo|arquivado|historical) e faltavam
+# `owner`/`last_validated` — os 3 required do runbook.schema.json.
+status: ativo
+owner: W
+last_validated: "2026-07-28"
 date: 2026-05-15
 wave: W1-A (Bucket B1 Sells)
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/vendas-cockpit/"
+  # Corrigido 2026-07-28: `prototipo-ui/prototipos/vendas-cockpit/` NÃO EXISTE no repo
+  # (path fantasma herdado da ADR 0149). O blueprint real é o que o charter sempre
+  # declarou — verificado no disco, 92 KB. Agora travado pelo Pest `Wave1ShowInertiaTest`
+  # ("Charter declara blueprint Cowork que EXISTE no disco").
+  blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149 aceita 2026-05-15)"
   derived_from: "Sells/Index (mesma entidade transactions)"
   divergence_from_blueprint: "Show é detail full-page (não drawer SaleSheet) — pattern derivado mas seções espelham o drawer"

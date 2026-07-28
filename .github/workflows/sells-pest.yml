@@ -32,6 +32,8 @@ on:
     paths:
       - 'tests/Feature/Sells/**'
       - 'app/Http/Controllers/SellController.php'
+      - 'app/Http/Controllers/SellPosController.php'
+      - 'app/Utils/TransactionUtil.php'
       - 'resources/js/Pages/Sells/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/sells-pest.yml'
@@ -70,6 +72,8 @@ jobs:
           filters: |
             sells:
               - 'tests/Feature/Sells/**'
+              - 'app/Http/Controllers/SellPosController.php'
+              - 'app/Utils/TransactionUtil.php'
               - 'app/Http/Controllers/SellController.php'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
@@ -101,6 +105,16 @@ jobs:
         # MySQL real semeado (biz=1 + biz=2). Allowlist: só arquivos comprovadamente verdes
         # MySQL-only. NÃO incluir RefreshDatabase/migrate:fresh (dropam schema + limpam o
         # seed). Este usa DatabaseTransactions.
+        #
+        # 2026-07-28 — allowlist 1 → 4. Os 3 novos JÁ EXISTIAM no repo e não rodavam em
+        # lugar nenhum (a falsa cobertura que esta lane nasceu pra curar):
+        #   · SellsIndexTenantContratoTest (#4868) — ficou órfão quando o merge das duas
+        #     sessões paralelas resolveu o conflito da lane pela versão que não o citava;
+        #   · Wave1ShowBaselineTest / Wave1ShowInertiaTest — estruturais, no repo desde
+        #     05-15. O Inertia estava VERMELHO há 2 meses (assert exigia `vendas-cockpit`,
+        #     diretório inexistente) e ninguém via, porque nada os executava.
+        # Os 2 Wave1 não precisam de MySQL (leem arquivo), mas entram aqui em vez da lane
+        # sqlite porque é onde o gatilho por-path de Sells já existe — 1 chokepoint, não 2.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -112,7 +126,10 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-sells-junit.xml \
-            tests/Feature/Sells/SellsShowContratoTest.php
+            tests/Feature/Sells/SellsShowContratoTest.php \
+            tests/Feature/Sells/SellsIndexTenantContratoTest.php \
+            tests/Feature/Sells/Wave1ShowBaselineTest.php \
+            tests/Feature/Sells/Wave1ShowInertiaTest.php
 
       - name: Upload JUnit (Sells · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.sells == 'true' }}
