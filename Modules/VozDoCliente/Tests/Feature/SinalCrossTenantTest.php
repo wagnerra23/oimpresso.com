@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\VozDoCliente\Entities\Sinal;
 
@@ -66,6 +67,18 @@ function criarSinal(int $businessId, string $texto, string $status = 'pending'):
 }
 
 beforeEach(function () {
+    // GUARDA obrigatória antes de QUALQUER DDL (US-GOV-021): este setup dropa e
+    // recria `voz_sinais`. No CT 100 os testes rodam contra MySQL REAL e
+    // PERSISTENTE — dropar lá corromperia o banco compartilhado de outras suítes.
+    //
+    // Eu tinha copiado a estratégia de tabela sintética dos testes irmãos e
+    // ESQUECIDO justamente esta linha; o ratchet `sqlite_corruptors` pegou
+    // (baseline 0 → 1, e o detector nomeou este arquivo). 273 dos 274 testes com
+    // DDL manual têm a guarda — este era o único fora.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('DDL destrutivo — só roda em sqlite (US-GOV-021: não corromper o MySQL persistente do CT 100).');
+    }
+
     ensureVozSinaisTable();
     session()->flush();
 });
