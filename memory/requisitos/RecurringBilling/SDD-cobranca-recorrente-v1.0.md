@@ -18,7 +18,7 @@ related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0101-tests-business-id-1-nunca-cliente
   - 0104-processo-mwart-canonico-unico-caminho
-  - 0170-extracao-paymentgateway-recurringbilling
+  - 0170-paymentgateway-extracao-camada-cobranca
   - 0264-governanca-executavel-trio-dominio-e2e
   - 0273-anchor-spec-codigo-formato-canonico-fluxo-novo
   - 0351-sdd-from-source
@@ -86,7 +86,7 @@ related_us:
 - **A recorrência nasceu depois da cobrança avulsa.** O módulo começou como emissor de boleto
   (drivers Inter/C6/Asaas) e ganhou o domínio recorrente (`rb_plans`/`rb_subscriptions`/`rb_invoices`/
   `rb_charge_attempts`) na **US-RB-043**. Isso explica a costura irregular do §5.4.
-- **O gateway saiu de casa.** A [ADR 0170](../../decisions/0170-extracao-paymentgateway-recurringbilling.md)
+- **O gateway saiu de casa.** A [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md)
   extraiu `Modules/PaymentGateway`; hoje ele tem código real (drivers + webhooks + testes) mas
   **flags OFF em prod**. Ver §5.5 — o que já mora lá **não se duplica aqui**.
 
@@ -385,7 +385,7 @@ direto, mTLS com certificado **separado** do certificado de NFe — [ADR tech/00
 | D7 | **Sem proração** em upgrade/downgrade mid-cycle (US-RB-006) e sem reajuste no aniversário | `SPEC.md` US-RB-003/006 |
 | D8 | `InvoiceController@cancel` lê `session('business.id')`; **todo o resto do módulo** lê `session('user.business_id')`. Ambas as chaves existem (`SetSessionData` grava as duas) — **não é bug medido**, é inconsistência de vocabulário que confunde quem lê | `InvoiceController@cancel` × `RecurringBillingController`/`PlanController` |
 
-### 5.5 Fronteira com `Modules/PaymentGateway` ([ADR 0170](../../decisions/0170-extracao-paymentgateway-recurringbilling.md))
+### 5.5 Fronteira com `Modules/PaymentGateway` ([ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md))
 
 O PaymentGateway foi **extraído deste módulo**. O que **já mora lá** — e portanto **não se duplica
 aqui**: o processamento genérico de webhook com linkage `cobranca_id`
@@ -712,7 +712,7 @@ merge de quem for atendê-lo — G-2).
 - [`SPEC.md`](SPEC.md) — as 29 US · [`BRIEFING.md`](BRIEFING.md) · [`SUPERFICIE.md`](SUPERFICIE.md) · [`RUNBOOK-inter-pj.md`](RUNBOOK-inter-pj.md)
 - Charters: `resources/js/Pages/RecurringBilling/**/*.charter.md` (6)
 - ADRs de módulo: [`adr/arq/`](adr/arq) (9) · [`adr/tech/`](adr/tech) (8) · [`adr/ui/`](adr/ui) (3)
-- [ADR 0170](../../decisions/0170-extracao-paymentgateway-recurringbilling.md) — fronteira com PaymentGateway
+- [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md) — fronteira com PaymentGateway
 - [ADR 0351](../../decisions/0351-sdd-from-source.md) — o método que produziu este doc · [SDD-TEMPLATE](../_DesignSystem/SDD-TEMPLATE.md)
 - Formato imitado (não reaberto): [`Produto/SDD-tela-cadastro-produto-v1.0.md`](../Produto/SDD-tela-cadastro-produto-v1.0.md)
 
