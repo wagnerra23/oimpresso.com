@@ -285,6 +285,14 @@ it('UC-PEDIT-08 · a tela Blade declara o desligamento das 3 flags (hidden 0)', 
     // ARRANGE puro, sem relação com os 3 hidden: em prod o servidor sempre popula.
     $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
+    // O layout legado precisa de MUITA coisa na sessão (moeda, negócio, ano fiscal...).
+    // Remendar peça por peça já custou 3 corridas de CI — e sempre faltava a próxima.
+    // Causa real: o `beforeEach` monta a sessão à mão, e `SetSessionData` só reconstrói
+    // quando NÃO existe o bloco `user` (SetSessionData.php:29). Esquecendo esse bloco, o
+    // middleware faz o que faz num login de verdade e popula TUDO de uma vez — a mesma
+    // raiz do PR #4953 (estoque inicial), resolvida no mecanismo em vez de campo a campo.
+    session()->forget('user');
+
     $resposta = $this->get("/products/{$p->productId}/edit");
     $html = $resposta->getContent();
 
