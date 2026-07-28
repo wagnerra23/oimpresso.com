@@ -26,6 +26,7 @@ final class SummaryResult
      * @param  int                   $tokensOut
      * @param  float                 $costEstimatedBrl
      * @param  bool                  $cacheHit
+     * @param  array<int,string>     $degradations     Razões de degradação; vazio = resumo realmente gerado pelo LLM
      */
     public function __construct(
         public readonly string $tldr,
@@ -39,7 +40,20 @@ final class SummaryResult
         public readonly int $tokensOut,
         public readonly float $costEstimatedBrl,
         public readonly bool $cacheHit = false,
+        public readonly array $degradations = [],
     ) {}
+
+    /**
+     * true se o LLM falhou e o TL;DR é o fallback (excerpt do próprio node).
+     *
+     * Sem esta marca o fallback é indistinguível de um resumo real: quando o node
+     * TEM excerpt, o usuário recebe um texto plausível e nada indica que a IA
+     * não rodou.
+     */
+    public function degraded(): bool
+    {
+        return $this->degradations !== [];
+    }
 
     /**
      * @return array<string,mixed>
@@ -61,6 +75,8 @@ final class SummaryResult
                 'tokens_out'         => $this->tokensOut,
                 'cost_estimated_brl' => $this->costEstimatedBrl,
                 'cache_hit'          => $this->cacheHit,
+                'degraded'           => $this->degraded(),
+                'degradation'        => $this->degradations,
             ],
         ];
     }
