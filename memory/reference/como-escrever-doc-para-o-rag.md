@@ -69,17 +69,25 @@ if (str_starts_with($name, '_') || $name === 'README') continue;
 
 Isso é intencional (templates e índices não devem poluir o recall), mas surpreende quem nomeia um doc de conteúdo como `_INDEX-ALGO.md` achando que ganha destaque. Ganha o oposto: some.
 
-## Regra 4 — cada `##` ou `###` vira um chunk separado, e ele viaja sozinho
+## Regra 4 — hoje NÃO há chunking; o que chega ao LLM são os primeiros ~400 chars
 
-O [`DocumentChunker`](../../Modules/Jana/Services/Memoria/Contextual/DocumentChunker.php) quebra o markdown assim:
+Esta é a regra que mais surpreende, e a que mais muda como se escreve.
 
-- alvo de **~3200 chars** (~800 tokens) por chunk;
-- quebra preferencial em heading **`##` ou `###`** — o heading abre a seção nova e é preservado no chunk;
-- `#` (h1) **não** quebra nada;
-- seção maior que o alvo cai pro fallback por parágrafo, e aí **o heading fica só no primeiro pedaço**;
-- **overlap = 0**.
+O [`DocumentChunker`](../../Modules/Jana/Services/Memoria/Contextual/DocumentChunker.php) existe e quebra markdown por heading `##`/`###` em ~3200 chars com overlap zero. **Mas ele não roda.** Ele só é instanciado dentro de `aplicarContextualRetrieval()` (`IndexarMemoryGitParaDb.php:818`), e essa função retorna na primeira linha quando a flag está desligada (`:810`) — que é o estado em produção (Regra 5).
 
-O que a IA recebe numa busca é **um chunk**, não o documento. Se a seção diz *"essa correção resolve o problema acima"*, o leitor do chunk não tem "acima" nenhum.
+Consequência: **o documento é indexado inteiro, como uma unidade.** Não existe chunk.
+
+O que efetivamente chega ao modelo é outra coisa: `renderFontes()` monta o contexto com `extrairExcerpt(content_md, 400)` — os **primeiros ~400 caracteres** do corpo, depois de remover o frontmatter. Um documento de 30 KB entra na resposta como título mais o primeiro parágrafo.
+
+**O que fazer com isso:**
+
+- Os **primeiros 400 chars depois do frontmatter** são o ativo mais valioso do documento. Se eles forem `# Título` seguido de `> Tela: | Module: | Charter:`, o modelo recebe metadado e nada mais.
+- Abra o corpo com a **resposta**, não com preâmbulo: o que este doc afirma, para quem, e o que muda. Cabeçalho decorativo desperdiça o orçamento inteiro.
+- Continue estruturando em `##` auto-suficientes — mas por dois outros motivos: o leitor humano, e o dia em que a flag da Regra 5 ligar. Hoje isso não é o que decide o que a IA vê.
+
+## Regra 4-bis — as seções ainda precisam se sustentar sozinhas
+
+Mesmo sem chunking ativo, escreva cada `##` como se ele viajasse isolado. Custo zero e três razões: a Regra 5 pode ser ligada a qualquer momento (e aí a estrutura passa a valer de imediato, sem reescrever nada); o humano que abre o doc pelo índice cai direto numa seção; e prosa que depende de "como vimos acima" é pior mesmo lida inteira.
 
 ## Regra 5 — Contextual Retrieval está DESLIGADO em produção
 
@@ -105,18 +113,29 @@ A migration `add_typed_cols_to_mcp_memory_documents` promove campos do frontmatt
 
 Isso é o que permite `decisions-search status:aceito authority:canonical` funcionar como filtro em vez de busca textual. Um doc sem frontmatter só é alcançável por similaridade — o caminho mais caro e menos preciso.
 
-O campo `description` tem função específica, declarada no próprio schema: *"1 linha — usada pra decidir relevância no recall"*. Escreva-o como **resumo que responde**, não como título repetido.
+⚠️ **Sobre o `description`, com uma ressalva medida.** O schema declara que ele é *"1 linha — usada pra decidir relevância no recall"*, e ele é útil para quem lê o índice e para as tools MCP. Mas `McpMemoryDocument::toSearchableArray()` **não o envia ao índice de busca** — o que vai é `title`, `content_md`, `content_excerpt`, `type`, `module`, `status` e `tags`. Escreva-o bem (é a vitrine do doc), sem contar com ele para ser encontrado: quem faz esse trabalho é o **título** e os **primeiros 400 chars do corpo** (Regra 4).
 
 Famílias com schema validado por AJV no CI vivem em `scripts/memory-schemas/`. Para `memory/reference/`, o schema exige `name`, `description`, `type` (`reference|feedback|protocol|guide|index`) e `authority` (`canonical|generated`).
 
 ## Regra 6-bis — o campo `status` decide se o doc é ACHÁVEL, e hoje o vocabulário é só de ADR
 
-Estar indexado não é o mesmo que ser encontrável. Os **dois** caminhos de retrieval descartam documentos pelo campo `status` do frontmatter:
+Estar indexado não é o mesmo que ser encontrável. Os dois caminhos de retrieval filtram por `status`, **mas leem fontes diferentes — e é isso que separa o caminho são do doente**:
 
-- FULLTEXT — `McpMemoryDocument::scopePorStatusAtivo()`
-- híbrido/Meilisearch — o filtro `status IN [...]` no mesmo model
+| caminho | de onde lê o `status` | efeito |
+|---|---|---|
+| **híbrido/Meilisearch** (primário, `docs_pipeline=true` em prod) | **coluna tipada** — `toSearchableArray()` manda `$this->status ?? 'aceito'` | valor desconhecido vira `NULL` na coluna → indexado como `aceito` → **passa** |
+| **FULLTEXT** (fallback, quando o Meilisearch falha) | **`metadata->status` cru** — `scopePorStatusAtivo()` | valor fora do vocabulário de ADR → **descartado** |
 
-Ambos aceitam apenas `aceito`, `accepted`, `accepted-historical`, `recusado` — **ou `status` ausente**. Esse vocabulário é o das ADRs, mas é aplicado a **todo tipo de documento**. Os schemas canônicos dos outros tipos definem enums que não intersectam:
+Medido no banco de produção em 2026-07-28:
+
+```
+híbrido  : 1.958 de 2.015 visíveis (97,2%) — dos 57 fora, 47 são deprecated/rascunho/superseded (corretos) + 10 'proposto'
+FULLTEXT :  1.727 de 2.012 visíveis        — 285 descartados
+```
+
+> ⚠️ **Errata da primeira redação desta seção.** Ela afirmava que "os dois caminhos" descartam e que **285 de 2.012 (14%)** eram invisíveis à busca, citando 85% dos SPECs. Esse número é do **fallback**, medido com uma query que reproduzia o `scopePorStatusAtivo` — e foi generalizado indevidamente para "a busca". No caminho que efetivamente atende, o descasamento custa **10 documentos**, e os 47 restantes estão fora por decisão correta. Fica registrado, não apagado: medir um caminho e concluir sobre o sistema é a mesma classe de erro que este documento cataloga no passo 6 da fórmula.
+
+O descasamento **existe** e é real no fallback. Os schemas canônicos definem enums que não intersectam o vocabulário aceito:
 
 | schema | enum de `status` | interseção com o filtro |
 |---|---|---|
@@ -124,11 +143,11 @@ Ambos aceitam apenas `aceito`, `accepted`, `accepted-historical`, `recusado` —
 | `briefing.schema.json` | `producao, piloto, em-construcao, parcial, backlog, shared-infra, meta, deprecated` | **vazia** |
 | `reference.schema.json` | *não define `status`* | — |
 
-A consequência é uma inversão perversa: **o documento que obedece ao schema do seu tipo fica invisível; o que não declara `status` aparece.** É por isso que `memory/reference/` funciona bem — o schema dele simplesmente não tem o campo.
+No fallback isso produz uma inversão perversa: **o documento que obedece ao schema do seu tipo é descartado; o que não declara `status` passa.** É parte do motivo de `memory/reference/` funcionar bem nos dois caminhos — o schema dele não tem o campo.
 
-Medido no banco de produção do MCP em 2026-07-28 (`u906587222_oimpresso`): **285 de 2.012 documentos indexados (14%) são invisíveis à busca**, entre eles **53 dos 62 SPECs (85%)**, **31 dos 79 BRIEFINGs (39%)** e **6 dos 11 RUNBOOKs (55%)**.
+**Para quem escreve, hoje, a orientação é curta:** não se preocupe. O caminho primário normaliza, então `status: ativo` num RUNBOOK ou `status: producao` num BRIEFING **não** impede que o doc seja achado. Siga o schema do tipo.
 
-Enquanto isso não for reconciliado, ao escrever um doc que precisa ser encontrado: **ou omita `status`, ou use um dos quatro valores aceitos** — e saiba que omitir conflita com o schema do tipo quando ele exige o campo. Não há saída limpa hoje; a saída é o conserto do filtro, que é decisão do dono do módulo Jana.
+**Para quem for consertar:** o defeito é do `scopePorStatusAtivo`, que lê `metadata->status` cru enquanto a coluna tipada — já normalizada, já preenchida, já usada pelo caminho híbrido — está ao lado. É troca de fonte no filtro, **não** normalização de documento. Backfill de frontmatter em massa aqui seria o big-bang de legado que o §5 de `proibicoes.md` já enterrou. Decisão do dono do módulo Jana (matriz §3 do `TEAM.md`).
 
 ## Regra 7 — o corpo passa por redação de PII antes de ser indexado
 
