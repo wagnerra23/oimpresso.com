@@ -53,7 +53,7 @@ for f in $(git ls-files ':(glob)memory/requisitos/*/*.md'); do n=$(basename "$f"
   *) echo "$f";; esac; done | wc -l
 ```
 
-Resultado naquele dia: **455 de 715 fora do RAG**, incluindo **125 arquivos `RUNBOOK-*`**.
+Resultado naquele dia: **481 de 744 fora do RAG**, incluindo **125 arquivos `RUNBOOK-*`**.
 
 > ⚠️ **O `:(glob)` no pathspec é obrigatório e não é detalhe.** Sem ele, o `git ls-files 'memory/requisitos/*/*.md'` usa wildmatch, onde `*` **atravessa `/`** — e passa a contar `_telas/`, `_legado-fullpage/` e qualquer subpasta. O `glob()` do PHP, que é o que o indexador realmente usa, **não recursa**. A primeira versão desta seção citava 743/1.011/144 por causa disso; os 19 `RUNBOOK-*` a mais viviam em profundidade ≥2 e **nunca estiveram ao alcance do indexador**. Quando for medir cobertura de um glob de código, replique a semântica **daquela linguagem**, não a do seu shell.
 
@@ -143,7 +143,11 @@ Antes de escrever qualquer doc que deva ser recuperável:
 3. **Escreva o frontmatter primeiro**, com `description` que funcione como resposta curta — e confira a Regra 6-bis antes de preencher `status`, porque esse campo pode tornar o doc inencontrável.
 4. **Estruture em `##` auto-suficientes** — cada seção nomeia seu sujeito e cabe em ~3200 chars.
 5. **Não restateie número que outro sistema sabe melhor** — aponte para o comando que o produz e, se precisar do valor, carimbe com data e diga qual sistema foi medido.
-6. **Ao medir cobertura de um glob que vive em código, replique a semântica da linguagem daquele código.** `git ls-files 'a/*/*.md'` não é `glob("a/*/*.md")` do PHP: o pathspec do git deixa `*` atravessar `/`, o `glob()` não recursa. Use `:(glob)` para igualar. Errar isso produz um número maior e plausível — o pior tipo de erro, porque não parece erro.
+6. **Ao medir cobertura de um glob que vive em código, replique a semântica da linguagem daquele código — e meça no diretório certo.** Duas armadilhas independentes, que este documento já pisou nas duas:
+   - `git ls-files 'a/*/*.md'` não é `glob("a/*/*.md")` do PHP: o pathspec do git deixa `*` atravessar `/`, o `glob()` não recursa. Use `:(glob)` para igualar.
+   - `git ls-files` lista o **índice da branch daquele diretório**, não de `main`. Num projeto com worktrees paralelos, o repo principal costuma estar numa branch de outra sessão, dezenas ou centenas de commits atrás. Confira antes: `git branch --show-current` e `git rev-list --count HEAD..origin/main`.
+
+   Nos dois casos o número errado sai **maior e plausível** — o pior tipo de erro, porque não parece erro.
 7. **Verifique que entrou E que é achável** — são coisas diferentes. Estar em `mcp_memory_documents` não basta: o filtro de `status` (Regra 6-bis) pode descartar o doc na consulta. Confirme com uma busca real pelo termo do doc, não com a presença da linha na tabela.
 
 ## Regra 8 — teste de auto-suficiência antes de commitar
