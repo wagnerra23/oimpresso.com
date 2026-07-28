@@ -10,8 +10,11 @@ declare(strict_types=1);
 // teste derivado do código é tautológico (proibicoes.md §5 2026-06-05).
 
 use App\User;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\NfeBrasil\Jobs\EmitirNFSeJob;
+use Modules\NfeBrasil\Jobs\EmitirNfceJob;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
@@ -159,6 +162,46 @@ it('UC-NFTR-01 · toggle de emissão automática não atravessa para outro busin
 
     expect((bool) DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->value('auto_emission_enabled'))->toBeFalse();
     expect((bool) DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ_OUTRO)->value('auto_emission_enabled'))->toBeTrue();
+});
+
+// ---------------------------------------------------------------------------------------
+// UC-NFTR-07 · Ligar o toggle NÃO emite nada — é configuração, não gatilho  [T0] [fiscal]
+// ---------------------------------------------------------------------------------------
+//
+// POR QUE ESTE CASO EXISTE (regra de domínio, [W] 2026-07-28)
+// -----------------------------------------------------------
+// "As notas não podem sair automáticas em todos os clientes. Não é assim que funciona.
+//  O cliente escolhe se quer emitir ou não. E TEM CONFIGURAÇÃO POR EMPRESA se isso é
+//  automático."
+//
+// A emissão automática é OPT-IN POR EMPRESA (`nfe_business_configs.auto_emission_enabled`).
+// O toggle apenas GRAVA a escolha da empresa; quem emite é o listener de venda finalizada
+// (`EmitirNfceAoFinalizarVenda` → `EmitirNfceJob`), e só para quem ligou.
+//
+// O charter da tela JÁ declarava isso — §Automation Anti-hooks, literal: "Não dispara Job
+// de emissão quando toggleAutoEmission=true (Job é disparado por listener de venda
+// finalizada)". E o mesmo charter promete "cada item vira Pest GUARD test". Este item não
+// tinha guard: a regra estava ESCRITA e INDEFESA. Um agente futuro lendo só o controller
+// pode "otimizar" emitindo no toggle — e nada quebraria. Agora quebra.
+//
+// Anti-vácuo: o caso afirma uma AUSÊNCIA (nada foi despachado), então precisa provar antes
+// que a operação de fato aconteceu — senão mede não-execução e chama de contrato satisfeito
+// (proibicoes.md §5 2026-07-24).
+it('UC-NFTR-07 · ligar a emissão automática grava a escolha da empresa e NÃO despacha emissão', function () {
+    Bus::fake();
+
+    nftrConfig(NFTR_BIZ, 'simples', auto: false);
+
+    $this->post(NFTR_TOGGLE_URL, ['enabled' => true])->assertRedirect();
+
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: a escolha PRECISA ter sido gravada. Sem isto, um "não
+    // despachou" poderia significar apenas que a request morreu antes de fazer qualquer coisa.
+    expect((bool) DB::table('nfe_business_configs')->where('business_id', NFTR_BIZ)->value('auto_emission_enabled'))
+        ->toBeTrue();
+
+    // O CONTRATO: configurar ≠ emitir. Nenhum documento fiscal sai daqui.
+    Bus::assertNotDispatched(EmitirNfceJob::class);
+    Bus::assertNotDispatched(EmitirNFSeJob::class);
 });
 
 // ---------------------------------------------------------------------------------------
