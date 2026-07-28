@@ -283,7 +283,14 @@ it('UC-PEDIT-08 · a tela Blade declara o desligamento das 3 flags (hidden 0)', 
     // — não `request()->server()`. `withServerVariables` popula o server bag do Request,
     // que é outro objeto. Só setar a superglobal resolve.
     // ARRANGE puro, sem relação com os 3 hidden: em prod o servidor sempre popula.
+    // Superglobais lidas CRUAS no caminho desta tela. Varredura contada (2 de 2) em
+    // `app/Http/helpers.php` + `resources/views/layouts/` + `resources/views/product/`:
+    //   $_SERVER['REMOTE_ADDR']      → app.blade.php:56  (whitelist de localhost)
+    //   $_SERVER['HTTP_USER_AGENT']  → app/Http/helpers.php:72
+    // Nenhum middleware alcança superglobal; em prod o servidor sempre popula as duas.
+    // Enumeradas de uma vez pra parar de descobrir uma por corrida de CI.
     $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+    $_SERVER['HTTP_USER_AGENT'] = 'Pest/CI';
 
     // O layout legado precisa de MUITA coisa na sessão (moeda, negócio, ano fiscal...).
     // Remendar peça por peça já custou 3 corridas de CI — e sempre faltava a próxima.
