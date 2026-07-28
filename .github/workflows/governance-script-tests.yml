@@ -87,6 +87,17 @@ jobs:
         run: node --test scripts/governance/funcao-scorecard-calibracao.test.mjs
       - name: Função-scorecard gold humano (9/9 obrigatório + K/9 + Cohen kappa)
         run: node --test scripts/governance/funcao-scorecard-humano.test.mjs
+      # Descasamento de vocabulário de `status` entre schema canônico e filtro de retrieval
+      # (2026-07-28). Medido no DB de prod: 285 de 2.012 docs indexados (14%) são invisíveis
+      # à busca — 85% dos SPECs, 39% dos BRIEFINGs — porque o filtro só aceita o vocabulário
+      # de ADR e os outros schemas definem enums que não intersectam. O selftest é a MORDIDA:
+      # prova que casa por interseção de CONJUNTOS (não por nome), que ignora tipo não-indexado
+      # (o FP medido antes de instalar) e que o extrator acha os tipos vistos no índice real —
+      # âncora contra o falso-negativo que a 1ª versão tinha (perdia `runbook`).
+      - name: RAG status-vocab (schema × retrieval · interseção de conjuntos)
+        run: node scripts/governance/rag-status-vocab-check.mjs --selftest
+      - name: RAG status-vocab — relatório (advisory, não piorar vs baseline)
+        run: node scripts/governance/rag-status-vocab-check.mjs --check
       # Fonte ÚNICA de UC-id (ADR 0264) — a lib existia pra matar "4 regex que drifaram" e
       # não tinha teste nenhum. O USO dela (split por bloco `## ` antes do ucHeadRe) seguiu
       # copiado em 6 consumidores e drifou pela mesma porta: exposicao-tier0 aplicava o regex

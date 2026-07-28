@@ -48,12 +48,14 @@ A allowlist aceita **nome exato**, sem prefixo nem sufixo: `SPEC`, `BRIEFING`, `
 Medido em 2026-07-28 (re-rodar antes de citar):
 
 ```bash
-for f in $(git ls-files 'memory/requisitos/*/*.md'); do n=$(basename "$f" .md); \
+for f in $(git ls-files ':(glob)memory/requisitos/*/*.md'); do n=$(basename "$f" .md); \
   case "$n" in SPEC|BRIEFING|RUNBOOK|ARCHITECTURE|GLOSSARY|CHANGELOG|README|COMPARATIVO_CONCORRENCIA|SUPERFICIE) ;; \
   *) echo "$f";; esac; done | wc -l
 ```
 
-Resultado naquele dia: **743 de 1.011 fora do RAG**, incluindo **144 arquivos `RUNBOOK-*`**.
+Resultado naquele dia: **455 de 715 fora do RAG**, incluindo **125 arquivos `RUNBOOK-*`**.
+
+> ⚠️ **O `:(glob)` no pathspec é obrigatório e não é detalhe.** Sem ele, o `git ls-files 'memory/requisitos/*/*.md'` usa wildmatch, onde `*` **atravessa `/`** — e passa a contar `_telas/`, `_legado-fullpage/` e qualquer subpasta. O `glob()` do PHP, que é o que o indexador realmente usa, **não recursa**. A primeira versão desta seção citava 743/1.011/144 por causa disso; os 19 `RUNBOOK-*` a mais viviam em profundidade ≥2 e **nunca estiveram ao alcance do indexador**. Quando for medir cobertura de um glob de código, replique a semântica **daquela linguagem**, não a do seu shell.
 
 **O que fazer:** conhecimento que precisa ser recuperável pela IA vai em `memory/reference/` (cobertura recursiva). Conhecimento que é anexo de um módulo e só o agente lê por path pode ficar em `memory/requisitos/<Mod>/` — sabendo que está fora da busca.
 
@@ -107,6 +109,27 @@ O campo `description` tem função específica, declarada no próprio schema: *"
 
 Famílias com schema validado por AJV no CI vivem em `scripts/memory-schemas/`. Para `memory/reference/`, o schema exige `name`, `description`, `type` (`reference|feedback|protocol|guide|index`) e `authority` (`canonical|generated`).
 
+## Regra 6-bis — o campo `status` decide se o doc é ACHÁVEL, e hoje o vocabulário é só de ADR
+
+Estar indexado não é o mesmo que ser encontrável. Os **dois** caminhos de retrieval descartam documentos pelo campo `status` do frontmatter:
+
+- FULLTEXT — `McpMemoryDocument::scopePorStatusAtivo()`
+- híbrido/Meilisearch — o filtro `status IN [...]` no mesmo model
+
+Ambos aceitam apenas `aceito`, `accepted`, `accepted-historical`, `recusado` — **ou `status` ausente**. Esse vocabulário é o das ADRs, mas é aplicado a **todo tipo de documento**. Os schemas canônicos dos outros tipos definem enums que não intersectam:
+
+| schema | enum de `status` | interseção com o filtro |
+|---|---|---|
+| `runbook.schema.json` | `rascunho, ativo, arquivado, historical` | **vazia** |
+| `briefing.schema.json` | `producao, piloto, em-construcao, parcial, backlog, shared-infra, meta, deprecated` | **vazia** |
+| `reference.schema.json` | *não define `status`* | — |
+
+A consequência é uma inversão perversa: **o documento que obedece ao schema do seu tipo fica invisível; o que não declara `status` aparece.** É por isso que `memory/reference/` funciona bem — o schema dele simplesmente não tem o campo.
+
+Medido no banco de produção do MCP em 2026-07-28 (`u906587222_oimpresso`): **285 de 2.012 documentos indexados (14%) são invisíveis à busca**, entre eles **53 dos 62 SPECs (85%)**, **31 dos 79 BRIEFINGs (39%)** e **6 dos 11 RUNBOOKs (55%)**.
+
+Enquanto isso não for reconciliado, ao escrever um doc que precisa ser encontrado: **ou omita `status`, ou use um dos quatro valores aceitos** — e saiba que omitir conflita com o schema do tipo quando ele exige o campo. Não há saída limpa hoje; a saída é o conserto do filtro, que é decisão do dono do módulo Jana.
+
 ## Regra 7 — o corpo passa por redação de PII antes de ser indexado
 
 O indexador aplica redação e marca `has_pii` no registro. Isso é rede de segurança, **não** licença para escrever dado sensível: valores em R$ são proibidos em `memory/**` por decisão do dono (o time amplo tem acesso de leitura ao git), e CPF/CNPJ de cliente nunca entram.
@@ -117,10 +140,11 @@ Antes de escrever qualquer doc que deva ser recuperável:
 
 1. **Procure o dono do tema** — `git ls-files | grep -i <tema>` e leia `memory/reference/_INDEX.md`. Se já existe doc do assunto, **edite-o**. Dois docs do mesmo tema divergem e o RAG passa a servir a versão errada (aconteceu — ver Regra 9).
 2. **Escolha o path pela Regra 1 e 2**, não pela estética da pasta.
-3. **Escreva o frontmatter primeiro**, com `description` que funcione como resposta curta.
+3. **Escreva o frontmatter primeiro**, com `description` que funcione como resposta curta — e confira a Regra 6-bis antes de preencher `status`, porque esse campo pode tornar o doc inencontrável.
 4. **Estruture em `##` auto-suficientes** — cada seção nomeia seu sujeito e cabe em ~3200 chars.
 5. **Não restateie número que outro sistema sabe melhor** — aponte para o comando que o produz e, se precisar do valor, carimbe com data e diga qual sistema foi medido.
-6. **Verifique que entrou**: depois do merge e do webhook, `memoria-search query:"<termo do doc>"` deve devolvê-lo.
+6. **Ao medir cobertura de um glob que vive em código, replique a semântica da linguagem daquele código.** `git ls-files 'a/*/*.md'` não é `glob("a/*/*.md")` do PHP: o pathspec do git deixa `*` atravessar `/`, o `glob()` não recursa. Use `:(glob)` para igualar. Errar isso produz um número maior e plausível — o pior tipo de erro, porque não parece erro.
+7. **Verifique que entrou E que é achável** — são coisas diferentes. Estar em `mcp_memory_documents` não basta: o filtro de `status` (Regra 6-bis) pode descartar o doc na consulta. Confirme com uma busca real pelo termo do doc, não com a presença da linha na tabela.
 
 ## Regra 8 — teste de auto-suficiência antes de commitar
 
