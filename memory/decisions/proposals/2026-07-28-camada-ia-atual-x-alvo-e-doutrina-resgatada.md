@@ -37,34 +37,18 @@ que a doutrina sumiu até alguém propor o que ela proibia.
 O próprio arquivo gerado admite a lacuna, na seção *"O que ainda é humano"*: explicar **por que** as
 camadas existem, decidir se serviço em standby entra ou sai, registrar mudança em ADR.
 
-## Parte 1 — resgate (o que precisa de casa)
+## Parte 1 — resgate consolidado
 
-### 1.1 A doutrina de posicionamento
+A casa foi definida na integração de 2026-07-28:
 
-Preservada **verbatim** do documento de 2026-04-24. É a peça que impede a próxima sessão de
-transformar a Jana em outra coisa:
+- doutrina de posicionamento e decisões ainda abertas vivem em
+  [`memory/requisitos/Jana/BRIEFING.md`](../../requisitos/Jana/BRIEFING.md#doutrina-do-produto-e-decisões-abertas);
+- topologia e inventário derivável vivem em `Jana/ARCHITECTURE.md` e `PAINEL-SISTEMA.md`;
+- execução do ciclo observar→aprender vive em `Jana/OBSERVABILITY.md`;
+- esta proposta preserva a proveniência e os seis deltas, sem repetir os conteúdos donos.
 
-- **Não é BI tradicional.** Não há OLAP, cubo, nem data warehouse.
-- **Não é dashboard genérico.** A tela existe para sustentar a conversa, não o contrário.
-- **É agente de IA orientado a decisão.** O valor está na proposta aceita e acompanhada, não no gráfico.
-
-**Proposta de casa:** `memory/requisitos/Jana/BRIEFING.md` — o gerado aponta para lá como dono da
-intenção do produto, e o BRIEFING é curado.
-
-### 1.2 As cinco decisões em aberto
-
-Era o único lugar do repositório onde o **raciocínio** delas estava escrito:
-
-| Dúvida | O que estava registrado |
-|---|---|
-| Trajetória projetada | Linear é o padrão simples, mas sazonalidade pode ser obrigatória (varejo em dezembro). O enum já prevê `sazonal`, `exponencial` e `manual`; o código escolheu linear **por omissão** — ninguém decidiu, só não implementou. |
-| Alertas por WhatsApp | Custo de API. Adiado, continua adiado. |
-| Multi-idioma na conversa | Português apenas; o modelo precisa ser instruído a respeitar. |
-| Cache do retrato do negócio | O snapshot é caro; a avaliação de cache curto nunca foi feita. |
-| Guardrails | A Jana não deve sugerir meta ilegal ou tributariamente inadequada. Continua sendo instrução de prompt, **não trava**. |
-
-**Proposta de casa:** ADR de decisão aberta, ou seção no BRIEFING. Decisão de [W] — o ponto é que
-hoje não têm casa nenhuma.
+Quando uma decisão aberta for tomada por [W], ela sai do BRIEFING e ganha ADR. A proposta não mantém
+uma segunda cópia da doutrina.
 
 ## Parte 2 — os seis deltas: como está × como deveria ficar
 
@@ -87,16 +71,21 @@ Verificar o caminho bloqueante à parte — a ordem lá é outra e pode estar co
 
 **Estado:** sessão aberta.
 
-### D2 · O caminho que o cliente usa não emite rastro — `lacuna`
+### D2 · O trace do streaming é parcial — `lacuna`
 
-**Hoje:** Langfuse e OpenTelemetry cobrem o caminho bloqueante. O streaming — que é o caminho real —
-não emite nada. Somado às degradações silenciosas do mesmo fluxo (recall, contexto e resumo falham
-sem erro), o sistema piora sem avisar.
+> **Errata 2026-07-28:** a redação inicial dizia que o streaming “não emite nada”. Isso estava vencido:
+> `LangfuseAgentTelemetryListener` já assina `StreamingAgent`/`AgentStreamed` e cria trace + generation.
 
-**Alvo:** streaming instrumentado com os mesmos rastros. **Depende de D1** — mesmo método; paralelizar
-os dois é conflito garantido.
+**Hoje:** a chamada ao modelo do streaming possui emissor Langfuse no código. O residual é outro:
+cache hit, clarificação, persistência, erro parcial e término SSE não compartilham um trace raiz; a
+emissão OTel explícita continua restrita ao caminho bloqueante; runtime precisa ser provado pelo
+destino.
 
-**Estado:** bloqueado por D1.
+**Alvo:** trace raiz generator-aware, com a generation existente como filha e sem duplicá-la. O
+diagnóstico arquitetural fica neste delta; ações, testes, aceite e rollback vivem apenas em
+[`Jana/OBSERVABILITY.md` Etapas 1–2](../../requisitos/Jana/OBSERVABILITY.md#etapa-1--criar-o-trace-raiz-ponta-a-ponta-do-chat-sse).
+
+**Estado:** proposto; a execução deve coordenar com D1 porque toca o mesmo fluxo.
 
 ### D3 · Falha de infraestrutura é indistinguível de "não achei" — `defeito`
 
@@ -148,10 +137,11 @@ não é higiene, é bug latente. Esse é o achado mais valioso possível neste i
 
 ## O que esta proposta pede a [W]
 
-1. **Onde a doutrina (1.1) e as decisões em aberto (1.2) devem morar.** Sugestão: BRIEFING para a
-   primeira, ADR ou BRIEFING para a segunda. Sem casa, elas continuam fora do repositório.
-2. **Quais dos seis deltas viram trabalho** e em que ordem. Cinco já têm sessão aberta; D2 espera D1.
-3. Nada aqui é decisão tomada. Adotar é chamada de [W].
+1. **Quais dos seis deltas viram trabalho** e em que ordem. D1–D2 já apontam para o plano de
+   observabilidade; D3–D6 continuam como proposta.
+2. A casa documental deixou de ser pergunta: BRIEFING = intenção; ARCHITECTURE/PAINEL = derivável;
+   OBSERVABILITY = execução.
+3. Os alvos de produto e as decisões abertas continuam dependendo de [W].
 
 ## Lição de método (vale além deste caso)
 

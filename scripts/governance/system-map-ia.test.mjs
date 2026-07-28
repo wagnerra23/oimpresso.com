@@ -21,7 +21,14 @@
  * Determinístico: strings inline, zero I/O.
  * Uso: node scripts/governance/system-map-ia.test.mjs
  */
-import { classificarIa, parseProvidersAi, linhaAgentes, parseToolsRegistry, linhaTools } from './system-map.mjs';
+import {
+  assertOrderedMarkers,
+  classificarIa,
+  parseProvidersAi,
+  linhaAgentes,
+  parseToolsRegistry,
+  linhaTools,
+} from './system-map.mjs';
 
 let fails = 0;
 const ok = (cond, msg) => { if (cond) console.log(`  ✓ ${msg}`); else { console.error(`  ✗ ${msg}`); fails++; } };
@@ -174,6 +181,19 @@ class OimpressoMcpServer {
   const nada = linhaTools({ registro: { ok: false, total: 0, porModulo: {} }, arquivosTool: 0 });
   ok(nada.includes('não medido') && !nada.includes('**0**'),
     'LIBERA: sem o array → "não medido", nunca "0 tools"');
+}
+
+// ── J) diagramas explicativos mordem drift de ordem, não só presença ─────────
+{
+  const source = 'persistir usuário\nredigir PII\nchamar modelo\npersistir resposta';
+  let mordeu = false;
+  assertOrderedMarkers(source, ['persistir usuário', 'redigir PII', 'chamar modelo'], 'fixture íntegra');
+  try {
+    assertOrderedMarkers(source, ['persistir usuário', 'persistir resposta', 'chamar modelo'], 'fixture fora de ordem');
+  } catch {
+    mordeu = true;
+  }
+  ok(mordeu, 'MORDE: âncora existente mas fora de ordem invalida o fluxo');
 }
 
 console.log(fails === 0 ? '\n  OK — núcleo da camada de IA morde e não falsa-positiva.\n' : `\n  ${fails} FALHA(S)\n`);
