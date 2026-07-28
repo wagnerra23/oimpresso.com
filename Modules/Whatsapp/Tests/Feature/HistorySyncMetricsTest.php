@@ -244,8 +244,8 @@ it('R-WA-METRICS-005 — PII redact: chunk_failed log NÃO contém phone/E.164',
         'trace_id', 'parent_span_id', 'sampled', // OTel context propagado
     ];
     foreach (array_keys($captured) as $key) {
-        expect($allowedKeys)->toContain($key,
-            "Key '{$key}' não está no whitelist PII-safe — possível vazamento phone/JID");
+        // FALHA AQUI SIGNIFICA: Key '{$key}' não está no whitelist PII-safe — possível vazamento phone/JID
+        expect($allowedKeys)->toContain($key);
     }
     // Defensive: log inteiro serializado não pode conter phone E.164 BR
     $serialized = json_encode($captured);

@@ -308,8 +308,8 @@ it('R-WA-INCIDENT-CONV-01 — ConversationContactLinker NÃO contém $tail4 (reg
         'REGRESSÃO: LIKE com $tail4 detectado no SQL. Use suffix-8 (PR #854).');
 
     // Garante que suffix-8 está presente
-    expect($source)->toContain('mb_substr($phoneDigits, -8)',
-        'suffix-8 (8 dígitos finais) deve estar presente — caminho canônico anti-cross-contact.');
+    // FALHA AQUI SIGNIFICA: suffix-8 (8 dígitos finais) deve estar presente — caminho canônico anti-cross-contact.
+    expect($source)->toContain('mb_substr($phoneDigits, -8)');
 });
 
 // ============================================================================
@@ -321,8 +321,8 @@ it('R-WA-INCIDENT-CONV-02 — MessagePersister importa e usa LidPhoneResolver (r
         base_path('Modules/Whatsapp/Services/Webhook/MessagePersister.php')
     );
 
-    expect($source)->toContain('use Modules\Whatsapp\Services\Contacts\LidPhoneResolver;',
-        'REGRESSÃO: import LidPhoneResolver removido. P0-3 incident 14/mai exige consulta no history-sync.');
+    // FALHA AQUI SIGNIFICA: REGRESSÃO: import LidPhoneResolver removido. P0-3 incident 14/mai exige consulta no history-sync.
+    expect($source)->toContain('use Modules\Whatsapp\Services\Contacts\LidPhoneResolver;');
 
     expect($source)->toMatch('/app\(LidPhoneResolver::class\)|app\(\\\\?Modules\\\\Whatsapp\\\\Services\\\\Contacts\\\\LidPhoneResolver::class\)/',
         'REGRESSÃO: invocação LidPhoneResolver removida. Persister precisa consultar cache no history-sync.');
@@ -352,11 +352,11 @@ it('R-WA-INCIDENT-CONV-03 — LidPhoneResolver bloqueia source=manual sem webhoo
 it('R-WA-INCIDENT-CONV-04 — memory/proibicoes.md contém proibição Baileys 6.7.9 (feedback Wagner 13-15/mai)', function () {
     $proibicoes = file_get_contents(base_path('memory/proibicoes.md'));
 
-    expect($proibicoes)->toContain('Baileys 6.7.9',
-        'Proibição Baileys 6.7.9 removida — Wagner cortou 3x. Ver feedback-baileys-7x-decisao-irreversivel.md');
+    // FALHA AQUI SIGNIFICA: Proibição Baileys 6.7.9 removida — Wagner cortou 3x. Ver feedback-baileys-7x-decisao-irreversivel.md
+    expect($proibicoes)->toContain('Baileys 6.7.9');
 
-    expect($proibicoes)->toContain('feedback-baileys-7x-decisao-irreversivel',
-        'Link pra feedback canon deve estar preservado em proibicoes.md');
+    // FALHA AQUI SIGNIFICA: Link pra feedback canon deve estar preservado em proibicoes.md
+    expect($proibicoes)->toContain('feedback-baileys-7x-decisao-irreversivel');
 });
 
 // ============================================================================

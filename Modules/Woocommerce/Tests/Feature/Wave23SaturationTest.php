@@ -82,7 +82,8 @@ it('D9 spans canon: SyncService declara 3 spans observability', function () {
     $source = file_get_contents(base_path('Modules/Woocommerce/Services/WoocommerceSyncService.php'));
 
     foreach (['woocommerce.sync.categories', 'woocommerce.sync.products', 'woocommerce.sync.orders'] as $span) {
-        expect($source)->toContain("'{$span}'", "Span '{$span}' deveria estar declarado em SyncService");
+        // FALHA AQUI SIGNIFICA: Span '{$span}' deveria estar declarado em SyncService
+        expect($source)->toContain("'{$span}'");
     }
 });
 

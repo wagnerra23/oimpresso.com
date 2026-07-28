@@ -148,8 +148,8 @@ it('R-WA-CONTACT-CACHE-CONV-01 — ContactObserver source NUNCA deleta nem trunc
     expect($source)->not->toMatch('/->delete\(\)/',
         'REGRESSÃO: Observer ganhou ->delete(). Wagner regra Tier 0 "nunca perca mensagem" preservativo.');
     expect($source)->not->toMatch('/->truncate\(\)/', 'truncate proibido em observer.');
-    expect($source)->toContain('forgetAttemptLinkCache',
-        'REGRESSÃO: chamada forgetAttemptLinkCache removida — fix cache invalidation desfeito.');
+    // FALHA AQUI SIGNIFICA: REGRESSÃO: chamada forgetAttemptLinkCache removida — fix cache invalidation desfeito.
+    expect($source)->toContain('forgetAttemptLinkCache');
 });
 
 it('R-WA-CONTACT-CACHE-CONV-02 — Observer registrado em WhatsappServiceProvider', function () {
@@ -157,6 +157,6 @@ it('R-WA-CONTACT-CACHE-CONV-02 — Observer registrado em WhatsappServiceProvide
         base_path('Modules/Whatsapp/Providers/WhatsappServiceProvider.php')
     );
 
-    expect($providerSrc)->toContain('Contact::observe(\Modules\Whatsapp\Observers\ContactObserver::class)',
-        'REGRESSÃO: ContactObserver não registrado — fix dormente, cache stale volta a vazar.');
+    // FALHA AQUI SIGNIFICA: REGRESSÃO: ContactObserver não registrado — fix dormente, cache stale volta a vazar.
+    expect($providerSrc)->toContain('Contact::observe(\Modules\Whatsapp\Observers\ContactObserver::class)');
 });

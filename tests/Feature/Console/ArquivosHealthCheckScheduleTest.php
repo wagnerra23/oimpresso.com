@@ -50,7 +50,8 @@ it('schedule tem flag --alert no command', function () {
         ->filter(fn ($e) => str_contains($e->command ?? '', 'arquivos:health-check'));
 
     expect($events)->not->toBeEmpty();
-    expect($events->first()->command)->toContain('--alert', '--alert é obrigatório para integração com monitoring (exit code 2=FAIL / 1=WARN)');
+    // FALHA AQUI SIGNIFICA: --alert é obrigatório para integração com monitoring (exit code 2=FAIL / 1=WARN)
+    expect($events->first()->command)->toContain('--alert');
 });
 
 it('schedule arquivos:health-check só roda em ambiente live', function () {

@@ -312,11 +312,8 @@ it('UC-CMP-08 · compra de local não permitido não aparece no cockpit', functi
     // PRÉ-CONDIÇÃO ANTI-VÁCUO: a compra do local PERMITIDO tem que aparecer.
     // Sem isto, um "não vazou" poderia significar "a listagem veio vazia" —
     // ausência de execução travestida de contrato satisfeito.
-    expect($refs)->toContain(
-        $refPermitida,
-        'PRÉ-CONDIÇÃO FALHOU: a compra do local PERMITIDO não apareceu. O teste não '
-        .'exercitou o contrato — conferir fixture/permissão antes de ler o resultado.'
-    );
+    // FALHA AQUI SIGNIFICA: PRÉ-CONDIÇÃO FALHOU: a compra do local PERMITIDO não apareceu. O teste não exercitou o contrato — conferir fixture/permissão antes de ler o resultado.
+    expect($refs)->toContain($refPermitida);
 
     expect($refs)->not->toContain(
         $refProibida,

@@ -148,11 +148,13 @@ it('cenário 4 — evidence em sub-itens N/A mostra "N/A justificado: {razão}"'
 
     $d4b = collect($grade['dimensions']['architecture']['breakdown'])->firstWhere('key', 'D4.b');
     expect($d4b['evidence'])->toStartWith('N/A justificado:');
-    expect($d4b['evidence'])->toContain('state machine', 'Evidence inclui razão do SPEC.md');
+    // FALHA AQUI SIGNIFICA: Evidence inclui razão do SPEC.md
+    expect($d4b['evidence'])->toContain('state machine');
 
     $d1a = collect($grade['dimensions']['multi_tenant']['breakdown'])->firstWhere('key', 'D1.a');
     expect($d1a['evidence'])->toStartWith('N/A justificado:');
-    expect($d1a['evidence'])->toContain('cross-tenant', 'Evidence D1.a contém razão BusinessScope cross-tenant');
+    // FALHA AQUI SIGNIFICA: Evidence D1.a contém razão BusinessScope cross-tenant
+    expect($d1a['evidence'])->toContain('cross-tenant');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

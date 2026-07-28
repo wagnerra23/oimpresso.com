@@ -202,8 +202,8 @@ it('R-WA-AUTH-DRIFT-05 — Tier 0 (ADR 0093): --biz=1 não vê drift em biz=99',
 it('R-WA-AUTH-DRIFT-CONV-01 — comando registrado no Console Kernel via Whatsapp ServiceProvider', function () {
     $commands = collect(\Artisan::all());
 
-    expect($commands->keys())->toContain('whatsapp:auth-state-drift-check',
-        'REGRESSÃO: comando whatsapp:auth-state-drift-check removido — drift Baileys voltará silencioso.');
+    // FALHA AQUI SIGNIFICA: REGRESSÃO: comando whatsapp:auth-state-drift-check removido — drift Baileys voltará silencioso.
+    expect($commands->keys())->toContain('whatsapp:auth-state-drift-check');
 });
 
 it('R-WA-AUTH-DRIFT-CONV-02 — comando NUNCA deleta rows (regra Wagner Tier 0 "nunca perca mensagem" preventivo)', function () {
