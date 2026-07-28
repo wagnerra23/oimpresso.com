@@ -30,6 +30,14 @@ uses(Tests\TestCase::class);
  *   - PII Tier 0: zero email/credencial real
  *
  * @see Modules/TeamMcp/Entities/McpActor.php
+ * @covers-us US-TEAM-004
+ * @covers-us US-TEAM-003
+ *
+ * US-TEAM-004 (isolamento A vs B) é o alvo principal: `byId(A)` nunca devolve B,
+ * `modules_write`/`modules_blocked` não vazam entre actors, e `slug` unique impede
+ * duplicação. US-TEAM-003 (revoke) é coberta na perna que o SPEC nomeia: actor com
+ * `revoked_at` preenchido NÃO resolve — nem por `byId`, nem por `bySlug`.
+ *
  * @see Modules/TeamMcp/Services/ActorResolver.php
  * @see memory/decisions/0081-identity-mesh-mcp-actors.md
  * @see memory/decisions/0053-mcp-server-governanca-como-produto.md

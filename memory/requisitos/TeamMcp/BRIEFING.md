@@ -4,7 +4,7 @@ id: requisitos-team-mcp-briefing
 
 # BRIEFING — Modules/TeamMcp
 
-> Estado consolidado 1-pager · Última atualização: 2026-05-16 · nota reconciliada 2026-07-17
+> Estado consolidado 1-pager · Última atualização: 2026-07-28 (SDD + contratos) · nota reconciliada 2026-07-17
 > Owner: Wagner [W] · Trust: L1 · Status prod: ✅ live
 > **Module grade: 79/100 (Bom) em 2026-07-17.** Dono do número: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) — recomputar com `php artisan module:grade TeamMcp`. Era **29/100 (Crítico)** em 2026-05-16, quando este 1-pager nasceu: a rubrica evoluiu pra v3 ([ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)) e o módulo recebeu PRs desde então. Os gaps listados abaixo são de 2026-05-16 e podem estar fechados.
 
@@ -28,6 +28,30 @@ Self-host equivalente ao Anthropic Team plan adaptado pra **LGPD + custo + custo
 | Kanban Jira-style admin (`mcp_tasks` em `/team-mcp/tasks`) | ✅ live | TR-007 |
 | ActionGate runtime enforce | ⏸️ Fase 5 (planejado) | US-TEAM-005 + ADR 0086 |
 | UI dashboard audit log | ⏸️ vai pra `Modules/Governance` | per SCOPE.md |
+
+## Contrato & cobertura (2026-07-28 — chip Onda 4 do passo 5)
+
+O módulo ganhou **[SDD-tela-hub-team-mcp-v1.0.md](SDD-tela-hub-team-mcp-v1.0.md)** — 13 CU
+(`CU-TEAM-01..13`) derivados das 7 US + dos 18 UC já contratados nas telas.
+
+| Elo | Antes | Depois |
+|---|---:|---:|
+| SDD do módulo | ausente | §0–§11, 13 CU |
+| UC com teste que os cita | 4/18 | **12/18** |
+| US com `@covers-us` declarado | 0/7 | **5/7** |
+
+**As 3 fontes:** documentação canon ✅ · React/Laravel ✅ · Blade ❌ e Delphi ❌ —
+**não existem** neste módulo (nasceu nativo Inertia, sem migração do Office Comercial).
+Logo não há contrato de paridade a defender; ver §0.2 do SDD.
+
+**Os 6 UC que seguem órfãos são honestos, não esquecimento:** 4 dependem de DB semeado ou de
+juízo visual (`UC-FORJA-03/08/09/10`) e 2 são conformidade cujo dono é gate, não teste
+(`UC-SC-02/06`). As 2 US sem teste (`US-TEAM-002` emissão pela rota, `US-TEAM-007` trigger
+append-only) estão marcadas `_lacuna_` no SPEC — o próprio aceite da 007 já dizia "SPEC-only".
+
+⚠️ **Maior gap de segurança, medido:** `ActionGate` tem alias registrado e está aplicado a
+**zero rotas**; nenhum código de produção chama `canWriteModule`/`isActionBlocked`. A permissão
+por módulo é hoje **decorativa em runtime** (`CU-TEAM-05` 🔴 · US-TEAM-005 `_parcial_`).
 
 ## Tabelas DB owned
 
