@@ -221,6 +221,14 @@ Não envolver `responderChatStream()` ingenuamente em `OtelHelper::spanBiz()`: o
 
 **Pergunta:** uma mudança no SDK/listener consegue matar o streaming sem o CI perceber?
 
+**Estado verificado em 2026-07-28:** ✅ implementada no dono existente.
+
+- `LangfuseAgentTelemetryListenerTest.php` passou a consumir `Agent::stream()` com o gateway fake do próprio `laravel/ai`, sem criar listener, client, job ou suíte paralela;
+- o teste prova `StreamingAgent` → `AgentStreamed` → subscriber → um único `LangfuseTraceJob`, incluindo `stream=true`, `business_id`, output, usage e duração;
+- o mesmo arquivo entrou em `.github/ci-sqlite-pest.list`, a allowlist da lane `PHP / Pest (Unit)` executada em PR;
+- controle negativo executado: remover o registro de `AgentStreamed` fez o caso integrado falhar com zero jobs em vez de um;
+- o heartbeat `200 e mudo → vermelho` permaneceu no teste e na lane que já eram donos dessa garantia.
+
 **Ações**
 
 1. Colocar `LangfuseAgentTelemetryListenerTest.php` numa lane executada por PR.
