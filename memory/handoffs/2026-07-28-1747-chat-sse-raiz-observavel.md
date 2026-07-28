@@ -45,7 +45,7 @@ O código do PR #4985 passou a manter uma raiz OTel/Langfuse durante o streaming
 ## Validação local
 
 - Pest: 48 passed, 214 assertions;
-- PHPStan: sem erros nos oito arquivos de produção alterados;
+- PHPStan: sem erros nos nove arquivos de produção alterados;
 - plan-health: 0 vermelho, 16 amarelos preexistentes;
 - plans-index: arquivo gerado em dia;
 - diff-check: sem whitespace inválido.

@@ -14,6 +14,7 @@ use Laravel\Ai\Events\StreamingAgent;
 use Modules\Jana\Ai\Agents\ChatCopilotoAgent;
 use Modules\Jana\Jobs\Telemetry\JudgeTraceOnlineJob;
 use Modules\Jana\Services\Telemetry\LangfuseClient;
+use Modules\Jana\Services\Telemetry\TraceContext;
 
 /**
  * LangfuseAgentTelemetryListener — observabilidade LLM global via events
@@ -131,7 +132,7 @@ class LangfuseAgentTelemetryListener
             // somente a generation ao trace existente; fora dele preserva o
             // fallback global trace+generation. Assim há um único emissor e
             // exatamente uma generation por chamada LLM.
-            $parentTraceId = $this->requestTraceId();
+            $parentTraceId = TraceContext::current();
             if ($parentTraceId !== null) {
                 $this->client->recordGeneration($parentTraceId, $generation);
                 $traceId = $parentTraceId;
@@ -161,21 +162,6 @@ class LangfuseAgentTelemetryListener
             Log::channel('copiloto-ai')->debug(
                 'LangfuseAgentTelemetryListener falhou: ' . $e->getMessage()
             );
-        }
-    }
-
-    private function requestTraceId(): ?string
-    {
-        try {
-            if (! app()->bound('request')) {
-                return null;
-            }
-
-            $traceId = request()->attributes->get('jana_trace_id');
-
-            return is_string($traceId) && $traceId !== '' ? $traceId : null;
-        } catch (\Throwable) {
-            return null;
         }
     }
 

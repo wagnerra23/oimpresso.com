@@ -20,6 +20,7 @@ use Modules\Jana\Services\BriefDiarioChatTrigger;
 use Modules\Jana\Services\ContextSnapshotService;
 use Modules\Jana\Services\SuggestionEngine;
 use Modules\Jana\Services\Telemetry\LangfuseClient;
+use Modules\Jana\Services\Telemetry\TraceContext;
 
 /**
  * Chat é o entry-point do módulo (ver adr/arq/0002).
@@ -395,9 +396,7 @@ class ChatController extends Controller
                 'metadata' => ['stream' => true],
             ]);
 
-            $request = request();
-            $previousTraceId = $request->attributes->get('jana_trace_id');
-            $request->attributes->set('jana_trace_id', $traceId);
+            $previousTraceId = TraceContext::activate($traceId);
 
             $result = 'error';
             $path = 'llm';
@@ -554,11 +553,7 @@ class ChatController extends Controller
                     ],
                 ]);
 
-                if ($previousTraceId !== null) {
-                    $request->attributes->set('jana_trace_id', $previousTraceId);
-                } else {
-                    $request->attributes->remove('jana_trace_id');
-                }
+                TraceContext::restore($previousTraceId);
                 ignore_user_abort($previousIgnoreUserAbort !== 0);
             }
         });

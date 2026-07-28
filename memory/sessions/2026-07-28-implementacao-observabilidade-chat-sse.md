@@ -45,7 +45,7 @@ O plano anterior havia medido que o listener global já emitia a chamada LLM do 
 ## Evidência
 
 - 48 testes passaram com 214 assertions nos seis arquivos relevantes;
-- PHPStan dos oito arquivos de produção alterados passou sem erros;
+- PHPStan dos nove arquivos de produção alterados passou sem erros;
 - `plans-index --check` passou;
 - `plan-health` permaneceu com 0 vermelho e 16 amarelos preexistentes;
 - teste contrafactual da Etapa 2 já havia provado que remover `AgentStreamed → onEnd` derrubava a catraca;
