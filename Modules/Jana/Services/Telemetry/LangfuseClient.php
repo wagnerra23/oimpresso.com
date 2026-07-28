@@ -155,7 +155,12 @@ class LangfuseClient
     /**
      * Atualiza trace existente com output (e/ou status erro).
      *
-     * @param array<string,mixed> $attrs { output?: mixed, level?: 'DEFAULT'|'ERROR', status_message?: string }
+     * @param array<string,mixed> $attrs {
+     *   output?: mixed,
+     *   level?: 'DEFAULT'|'ERROR',
+     *   status_message?: string,
+     *   metadata?: array<string,mixed>
+     * }
      */
     public function endTrace(string $traceId, array $attrs = []): void
     {
@@ -172,6 +177,7 @@ class LangfuseClient
                 'output' => $this->maybeRedact($attrs['output'] ?? null),
                 'level' => $attrs['level'] ?? null,
                 'statusMessage' => $attrs['status_message'] ?? null,
+                'metadata' => $attrs['metadata'] ?? null,
             ], fn ($v) => $v !== null),
         ];
 

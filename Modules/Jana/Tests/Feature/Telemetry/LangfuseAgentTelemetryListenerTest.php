@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\Providers\TextProvider;
 use Laravel\Ai\Events\AgentPrompted;
 use Laravel\Ai\Events\AgentStreamed;
 use Laravel\Ai\Events\PromptingAgent;
+use Laravel\Ai\Events\StreamingAgent;
 use Laravel\Ai\Prompts\AgentPrompt;
 use Laravel\Ai\Responses\AgentResponse;
 use Laravel\Ai\Responses\Data\Meta;
@@ -115,6 +117,64 @@ it('AgentStreamed (subclass) também emite — registro explícito no subscriber
     Bus::assertDispatched(LangfuseTraceJob::class, function (LangfuseTraceJob $job) {
         expect($job->events[0]['body']['metadata']['business_id'])->toBe(7)
             ->and($job->events[0]['body']['metadata']['stream'])->toBeTrue();
+
+        return true;
+    });
+});
+
+it('Agent::stream consumido percorre SDK, subscriber e um único batch Langfuse', function () {
+    Bus::fake([LangfuseTraceJob::class]);
+
+    $eventos = ['start' => 0, 'end' => 0];
+    Event::listen(StreamingAgent::class, function () use (&$eventos): void {
+        $eventos['start']++;
+    });
+    Event::listen(AgentStreamed::class, function () use (&$eventos): void {
+        $eventos['end']++;
+    });
+
+    FakeTelemetryAgent::fake(['resposta streaming integrada'])->preventStrayPrompts();
+
+    $agent = new FakeTelemetryAgent(23);
+    foreach ($agent->stream('pergunta integrada') as $_event) {
+        // Consumir o generator é o que dispara StreamingAgent + AgentStreamed.
+    }
+
+    expect($eventos)->toBe(['start' => 1, 'end' => 1]);
+
+    Bus::assertDispatchedTimes(LangfuseTraceJob::class, 1);
+    Bus::assertDispatched(LangfuseTraceJob::class, function (LangfuseTraceJob $job) {
+        expect($job->events)->toHaveCount(2);
+
+        [$trace, $generation] = $job->events;
+
+        expect($trace['type'])->toBe('trace-create')
+            ->and($trace['body']['metadata']['business_id'])->toBe(23)
+            ->and($trace['body']['metadata']['stream'])->toBeTrue()
+            ->and($trace['body']['input'])->toBe('pergunta integrada')
+            ->and($generation['type'])->toBe('generation-create')
+            ->and($generation['body']['traceId'])->toBe($trace['body']['id'])
+            ->and($generation['body']['output'])->toBe('resposta streaming integrada')
+            ->and($generation['body']['usage']['input'])->toBe(0)
+            ->and($generation['body']['usage']['output'])->toBe(0)
+            ->and($generation['body'])->toHaveKey('endTime');
+
+        return true;
+    });
+});
+
+it('anexa uma única generation ao trace raiz já aberto pelo chat SSE', function () {
+    Bus::fake([LangfuseTraceJob::class]);
+    request()->attributes->set('jana_trace_id', 'trace-raiz-chat-123');
+
+    $base = makeAgentPromptedEvent(businessId: 23, invocationId: 'inv-parent-1');
+    event(new AgentStreamed($base->invocationId, $base->prompt, $base->response));
+
+    Bus::assertDispatchedTimes(LangfuseTraceJob::class, 1);
+    Bus::assertDispatched(LangfuseTraceJob::class, function (LangfuseTraceJob $job) {
+        expect($job->events)->toHaveCount(1)
+            ->and($job->events[0]['type'])->toBe('generation-create')
+            ->and($job->events[0]['body']['traceId'])->toBe('trace-raiz-chat-123');
 
         return true;
     });
