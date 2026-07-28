@@ -9,8 +9,23 @@ use Modules\Vestuario\Services\VestuarioSettingsResolver;
 
 uses(Tests\TestCase::class);
 
+// @covers-us US-VEST-020
+
 /**
  * US-VEST-020 — Etiqueta TAG Controller + QR Code + Settings configurable + PDF.
+ *
+ * RASTREABILIDADE (adicionada 2026-07-28 pelo chip SDD do Vestuario — só docblock, zero
+ * mudança de asserção): estes casos já defendiam contratos que só agora ganharam id no
+ * `Index.casos.md`. O vínculo é o que o `casos-gate` G-2 (required) lê.
+ *
+ *   UC-VET-01 ← CU-VEST-01 item 3 · CU-VEST-05 item 3 — settings/QR de um business não vazam
+ *   UC-VET-02 ← CU-VEST-01 itens 2 e 4 — defaults quando o business não configurou nada
+ *   UC-VET-07 ← CU-VEST-05 itens 1 e 2 — QR opcional ligado por settings
+ *   UC-VET-08 ← CU-VEST-06 — PDF A4 com os mesmos campos do ZPL
+ *   UC-VET-09 ← CU-VEST-08 item 3 — endpoints de lote exigem sessão autenticada
+ *
+ * @see memory/requisitos/Vestuario/SDD-tela-etiqueta-tag-v1.0.md §6
+ * @see resources/js/Pages/Vestuario/Etiquetas/Index.casos.md
  *
  * Cobre acceptance criteria pendentes (Wave 27 já cobriu ZPL base + EAN-13):
  * - QR Code presente no ZPL quando settings.etiqueta.qr_enabled = true
