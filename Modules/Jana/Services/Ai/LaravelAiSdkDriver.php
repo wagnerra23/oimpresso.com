@@ -10,7 +10,6 @@ use Modules\Jana\Ai\Agents\SugestoesMetasAgent;
 use Modules\Jana\Contracts\AiAdapter;
 use Modules\Jana\Contracts\MemoriaContrato;
 use Modules\Jana\Entities\Conversa;
-use Modules\Jana\Entities\Mensagem;
 use Modules\Jana\Jobs\ExtrairFatosDaConversaJob;
 use Modules\Jana\Services\ContextSnapshotService;
 use Modules\Jana\Support\ContextoNegocio;
@@ -28,6 +27,20 @@ use Modules\Jana\Support\ContextoNegocio;
  */
 class LaravelAiSdkDriver implements AiAdapter
 {
+    /**
+     * Uso da última chamada de chat. Ver AiAdapter::ultimoUsoTokens() —
+     * quem persiste é o caller, não o driver.
+     *
+     * @var array{tokens_in: int|null, tokens_out: int|null}
+     */
+    protected array $ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+
+    /** {@inheritDoc} */
+    public function ultimoUsoTokens(): array
+    {
+        return $this->ultimoUso;
+    }
+
     public function gerarBriefing(ContextoNegocio $ctx): string
     {
         // D9.a Observability — span zero-cost ao redor do call LLM.
@@ -127,6 +140,10 @@ class LaravelAiSdkDriver implements AiAdapter
      */
     public function responderChatStream(Conversa $conv, string $mensagem): \Generator
     {
+        // Zera: saídas curtas (dry-run, cache hit, clarify, erro) não têm consumo
+        // e não podem herdar o usage de uma chamada anterior desta instância.
+        $this->ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+
         if (config('copiloto.dry_run')) {
             $fake = "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
             foreach (str_split($fake, 8) as $chunk) {
@@ -201,11 +218,10 @@ class LaravelAiSdkDriver implements AiAdapter
 
             $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
 
-            Mensagem::where('conversa_id', $conv->id)
-                ->where('role', 'assistant')
-                ->latest('created_at')
-                ->first()
-                ?->update(['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut]);
+            // NÃO gravar aqui. Este trecho roda durante o `next()` do foreach do
+            // caller — ANTES do controller criar a Mensagem assistant do turno.
+            // Ver AiAdapter::ultimoUsoTokens(). O caller persiste.
+            $this->ultimoUso = ['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut];
 
             Log::channel('copiloto-ai')->info('responderChatStream', [
                 'conversa_id'           => $conv->id,
@@ -275,6 +291,9 @@ class LaravelAiSdkDriver implements AiAdapter
 
     public function responderChat(Conversa $conv, string $mensagem): string
     {
+        // Zera — ver responderChatStream().
+        $this->ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+
         if (config('copiloto.dry_run')) {
             return "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
         }
@@ -330,14 +349,12 @@ class LaravelAiSdkDriver implements AiAdapter
 
             $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
 
-            Mensagem::where('conversa_id', $conv->id)
-                ->where('role', 'assistant')
-                ->latest('created_at')
-                ->first()
-                ?->update([
-                    'tokens_in' => $response->usage->promptTokens ?? null,
-                    'tokens_out' => $response->usage->completionTokens ?? null,
-                ]);
+            // NÃO gravar aqui: este método retorna ANTES do controller criar a
+            // Mensagem assistant do turno (ChatController::send). O caller persiste.
+            $this->ultimoUso = [
+                'tokens_in' => $response->usage->promptTokens ?? null,
+                'tokens_out' => $response->usage->completionTokens ?? null,
+            ];
 
             Log::channel('copiloto-ai')->info('responderChat', [
                 'conversa_id' => $conv->id,

@@ -338,10 +338,18 @@ class ChatController extends Controller
             }
         }
 
+        // Tokens DESTE turno. O driver não grava mais sozinho — ele retornava
+        // antes desta linha, então o UPDATE dele caía no turno ANTERIOR.
+        // Ver AiAdapter::ultimoUsoTokens(). No atalho do brief o adapter nem é
+        // chamado, e aí vem null/null (correto: não houve consumo por aqui).
+        $uso = $this->ai->ultimoUsoTokens();
+
         $msgAssistant = Mensagem::create([
             'conversa_id' => $conversa->id,
             'role'        => 'assistant',
             'content'     => $resposta,
+            'tokens_in'   => $uso['tokens_in'] ?? null,
+            'tokens_out'  => $uso['tokens_out'] ?? null,
         ]);
 
         return back();
@@ -420,13 +428,19 @@ class ChatController extends Controller
                 }
             }
 
-            // Persiste mensagem assistant ao fim do stream.
-            // OpenAiDirectDriver atualiza tokens_in/tokens_out via segunda query
-            // ao final do stream — depende de UPDATE na latest assistant.
+            // Persiste mensagem assistant ao fim do stream + os tokens DESTE turno.
+            // O driver não grava mais sozinho: o corpo do generator após o último
+            // `yield` roda durante o `next()` deste foreach, ou seja ANTES desta
+            // linha — então o UPDATE dele caía na mensagem do turno ANTERIOR.
+            // Ver AiAdapter::ultimoUsoTokens().
+            $uso = $this->ai->ultimoUsoTokens();
+
             $msgAssistant = Mensagem::create([
                 'conversa_id' => $conversa->id,
                 'role'        => 'assistant',
                 'content'     => $textoCompleto,
+                'tokens_in'   => $uso['tokens_in'] ?? null,
+                'tokens_out'  => $uso['tokens_out'] ?? null,
             ]);
 
             $write([

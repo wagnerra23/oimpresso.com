@@ -6,7 +6,6 @@ use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\AiAdapter;
 use Modules\Jana\Entities\Conversa;
-use Modules\Jana\Entities\Mensagem;
 use Modules\Jana\Support\ContextoNegocio;
 use OpenAI\Laravel\Facades\OpenAI;
 
@@ -22,6 +21,20 @@ use OpenAI\Laravel\Facades\OpenAI;
  */
 class OpenAiDirectDriver implements AiAdapter
 {
+    /**
+     * Uso da última chamada de chat. Ver AiAdapter::ultimoUsoTokens() —
+     * quem persiste é o caller, não o driver.
+     *
+     * @var array{tokens_in: int|null, tokens_out: int|null}
+     */
+    protected array $ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+
+    /** {@inheritDoc} */
+    public function ultimoUsoTokens(): array
+    {
+        return $this->ultimoUso;
+    }
+
     public function gerarBriefing(ContextoNegocio $ctx): string
     {
         if (config('copiloto.dry_run')) {
@@ -166,6 +179,9 @@ class OpenAiDirectDriver implements AiAdapter
 
     public function responderChat(Conversa $conv, string $mensagem): string
     {
+        // Zera — saída curta (dry-run/erro) não herda usage de chamada anterior.
+        $this->ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+
         if (config('copiloto.dry_run')) {
             return "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
         }
@@ -184,12 +200,10 @@ class OpenAiDirectDriver implements AiAdapter
             $tokensIn  = $response->usage->promptTokens ?? 0;
             $tokensOut = $response->usage->completionTokens ?? 0;
 
-            // Logar tokens na última mensagem assistant (se existir) ou criar registro
-            Mensagem::where('conversa_id', $conv->id)
-                ->where('role', 'assistant')
-                ->latest('created_at')
-                ->first()
-                ?->update(['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut]);
+            // NÃO gravar aqui: este método retorna ANTES do controller criar a
+            // Mensagem assistant do turno. O caller persiste — ver
+            // AiAdapter::ultimoUsoTokens().
+            $this->ultimoUso = ['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut];
 
             Log::channel('copiloto-ai')->info('responderChat', [
                 'conversa_id' => $conv->id,
@@ -217,6 +231,9 @@ class OpenAiDirectDriver implements AiAdapter
      */
     public function responderChatStream(Conversa $conv, string $mensagem): \Generator
     {
+        // Zera — ver responderChat().
+        $this->ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+
         if (config('copiloto.dry_run')) {
             // Simula stream em dry-run pra UX dev (sem custo).
             $fake = "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
@@ -256,13 +273,10 @@ class OpenAiDirectDriver implements AiAdapter
                 }
             }
 
-            // Persiste tokens na ÚLTIMA mensagem assistant criada
-            // (controller cria a Mensagem com texto acumulado ao fim do stream).
-            Mensagem::where('conversa_id', $conv->id)
-                ->where('role', 'assistant')
-                ->latest('created_at')
-                ->first()
-                ?->update(['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut]);
+            // NÃO gravar aqui. Este trecho roda durante o `next()` do foreach do
+            // caller — ANTES do controller criar a Mensagem assistant do turno.
+            // O caller persiste — ver AiAdapter::ultimoUsoTokens().
+            $this->ultimoUso = ['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut];
 
             Log::channel('copiloto-ai')->info('responderChatStream', [
                 'conversa_id' => $conv->id,
