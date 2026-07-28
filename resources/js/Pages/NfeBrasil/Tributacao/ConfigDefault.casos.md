@@ -181,15 +181,13 @@ last_run: "2026-07-27"
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
 
-- `[BACKLOG]` **Confirmação antes de salvar mudança de regime.** O charter lista, em §Non-Goals,
-  *"❌ Save sem confirmação de mudança crítica (regime alterado afeta TODAS emissões posteriores —
-  confirm UI)"*, e o `ConfigDefault.tsx` **não** confirma nada no submit. Não virou UC de propósito:
-  este charter está `status: draft` e o próprio cabeçalho dele diz *"Non-Goals + Anti-hooks aguardam
-  aprovação Wagner"* — ou seja, **este item nunca foi aprovado por [W]**, e a skill `charter-write` é
-  proibida de inferir Non-Goal. Transformá-lo em `[must]` seria promover a lei um anti-padrão que talvez
-  seja invenção de agente ([`proibicoes.md`](../../../../../memory/proibicoes.md) §5 2026-07-16:
-  *"anti-padrão inventado é pior que ausente, porque parece canon"*). **Decisão de [W]:** vira UC
-  (e a UI ganha o confirm) — ou sai do charter.
+- ~~`[BACKLOG]` **Confirmação antes de salvar mudança de regime.**~~ — **RESOLVIDO em 2026-07-28: o Non-Goal SAIU do charter (v3), por decisão [W].**
+  Motivo: ele **contradizia** o §UX Anti-patterns do próprio charter (*"❌ Modal pra confirmar save… modal só pra destrutivo"*).
+  Os dois itens nasceram na mesma passada de agente em 2026-05-16 e **nenhum** foi aprovado por [W] — não era lei, era rascunho.
+  O risco que o item imaginava já está coberto por [`UC-NFCD-05`](#uc-nfcd-05--salvar-config-não-reescreve-nfe-já-emitida--must-t0-fiscal):
+  salvar **não** reescreve NFe já emitida; o efeito é só sobre emissões futuras, corrigível voltando na tela.
+  **Não virou UC** — não há comportamento novo a defender. Se [W] quiser rede de segurança no futuro, o caminho coerente com
+  o charter é **aviso inline** ao trocar o regime (não modal), e aí sim nasce UC com teste.
 
 ---
 

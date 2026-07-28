@@ -5,12 +5,12 @@ component: resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx
 related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 owner: wagner
 status: draft
-last_validated: "2026-07-27"
+last_validated: "2026-07-28"
 parent_module: NfeBrasil
 related_adrs: [29, 93, 94]
 related_us: [US-NFE-010]
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Page Charter — /nfe-brasil/tributacao/config-default
@@ -57,7 +57,6 @@ Configurar os **defaults tributários por business** (regime fiscal, CSOSN/CST, 
 - ❌ Calcular tributação de venda exemplo (motor calcula via `MotorTributarioService`, não preview UI)
 - ❌ Histórico de mudanças de defaults (audit via `activity_log`, não UI aqui)
 - ❌ Toggle ICMS-ST/MVA nessa tela (escopo cascata Nível 4 é defaults básicos; ST é regra NCM)
-- ⚠️ ❌ Save sem confirmação de mudança crítica (regime alterado afeta TODAS emissões posteriores — confirm UI) — **DIVERGE do código: o `ConfigDefault.tsx` não confirma nada no submit.** Não virou UC de propósito: este charter é `draft` e os Non-Goals **nunca foram aprovados por [W]** (ver cabeçalho), e `charter-write` é proibida de inferir Non-Goal. Registrado como `[BACKLOG]` em [`ConfigDefault.casos.md`](ConfigDefault.casos.md) §Backlog. **Decisão [W]:** vira UC (e a UI ganha o confirm) — ou sai do charter.
 
 ---
 
@@ -85,6 +84,7 @@ Configurar os **defaults tributários por business** (regime fiscal, CSOSN/CST, 
 - ❌ Validar apenas no backend (canon = validação client-side básica + backend canônico)
 - ❌ Esconder hint de regime após primeiro uso (canon = sempre visível — operação rara, contexto importa)
 - ❌ Modal pra confirmar save (canon = toast pós-save + flash message; modal só pra destrutivo)
+  - _(v3 2026-07-28: esta regra é a que vale. O §Non-Goals tinha um item oposto — "❌ Save sem confirmação de mudança crítica" — que **contradizia** esta linha no mesmo charter. Removido por decisão [W]; ver §Histórico.)_
 - ❌ Aceitar regime ∉ {mei, simples, lucro_presumido, lucro_real} (canon = enum estrito)
 
 ---
@@ -153,3 +153,4 @@ Configurar os **defaults tributários por business** (regime fiscal, CSOSN/CST, 
 |---|---|---|
 | 2026-05-16 | [CC] Wave M boost | Draft criado pelo Wave M auditoria (NfeBrasil 71→82, gap D3.c charters 30%). Non-Goals + Anti-hooks aguardam aprovação Wagner. |
 | 2026-07-27 | [CC] | **v2 — errata de fatos + trio fechado.** Corrigidos 6 pontos que nomeavam artefatos inexistentes (`NfeTributacaoConfig`, `nfe_tributacao_config`, `ConfigDefaultRequest`, `::edit`/`::update`, `TributacaoConfigService`) ou davam por pendente o AuditLog já implementado. §Pest GUARD revogado (arquivo prometido nunca existiu) e substituído pelo mapa promessa→UC. Nasce `ConfigDefault.casos.md` (UC-NFCD-01..06) + `ConfigDefaultContratoTest`. Non-Goal do "confirm no save" marcado como divergente e devolvido a [W] — segue **não aprovado**, então não virou `[must]`. |
+| 2026-07-28 | [W] + [CC] | **v3 — Non-Goal do `confirm` REMOVIDO.** O item "❌ Save sem confirmação de mudança crítica" **contradizia** o §UX Anti-patterns do mesmo charter ("❌ Modal pra confirmar save… modal só pra destrutivo"): os dois foram escritos pelo mesmo agente na mesma passada de 2026-05-16 e **nenhum** foi aprovado por [W]. Não era lei, era rascunho. O risco que ele imaginava já está coberto por `UC-NFCD-05` (salvar **não** reescreve NFe emitida — o efeito é só sobre emissões futuras, corrigível voltando na tela). Fica valendo a regra irmã: sem modal; feedback é toast + flash. Se um dia [W] quiser rede de segurança, o caminho coerente é **aviso inline** ao trocar o regime (vira UC com teste), não modal. |
