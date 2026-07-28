@@ -1142,8 +1142,8 @@
 - **US-KB-003** — Pergunta IA RAG sobre grafo (ONDA 4, ✅ LIVE)
 - **US-KB-004** — Trilha de aprendizado Larissa (ONDA 3+5)
 - **US-KB-005** — Troubleshooter Q→Sim/Não→Fix (ONDA 3)
-- **US-KB-006** — Visualização-grafo Cytoscape (ONDA 5)
-- **US-KB-007** — Imprimir SOP balcão físico (ONDA 5)
+- **US-KB-006** — Visualização-grafo (ONDA 5) — 🔴 **FACHADA: front sem backend**
+- **US-KB-007** — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
 
 ## TeamMcp
 
