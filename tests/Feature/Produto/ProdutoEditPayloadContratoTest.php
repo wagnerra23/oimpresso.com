@@ -333,8 +333,12 @@ it('UC-PEDIT-08 · a tela Blade declara o desligamento das 3 flags (hidden 0)', 
         str_replace(["\n", "\r"], ' ', mb_substr(strip_tags($html), 0, 200))
     );
 
-    expect($html)->toContain(
-        'product_add_form',
+    // ⚠️ `toContain` é VARIÁDICO no Pest (Mixins/Expectation.php:184): um 2º argumento vira
+    // OUTRO needle, não mensagem — o assert passa a procurar a frase inteira no HTML e
+    // falha SEMPRE. É a lápide de 2026-07-28 em proibicoes.md §5, e eu caí nela mesmo assim:
+    // a assinatura da run 30397195624 dizia `product_add_form` PRESENTE enquanto o assert
+    // reprovava. Mensagem vai no `expect(...)->and()`/`toBeTrue`, nunca dentro do toContain.
+    expect(str_contains($html, 'product_add_form'))->toBeTrue(
         'PRÉ-CONDIÇÃO: a resposta tem que ser o FORM da Blade. VEIO OUTRA PÁGINA → ' . $assinatura
     );
 
