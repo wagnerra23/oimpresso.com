@@ -164,15 +164,12 @@ it('backward compat — fallback pra size_bytes=0 quando coluna ausente (simulad
     );
 
     expect($commandContent)
-        ->toContain("Schema::hasColumn('arquivos', 'metadata_recalculated_at')",
-            'Command deve verificar existência da coluna para backward compat'
-        )
-        ->toContain("where('size_bytes', 0)",
-            'Command deve ter fallback pra heurística legada size_bytes=0'
-        )
-        ->toContain("whereNull('metadata_recalculated_at')",
-            'Command deve usar filtro primário via coluna quando disponível'
-        );
+        // FALHA AQUI SIGNIFICA: Command deve verificar existência da coluna para backward compat
+        ->toContain("Schema::hasColumn('arquivos', 'metadata_recalculated_at')")
+        // FALHA AQUI SIGNIFICA: Command deve ter fallback pra heurística legada size_bytes=0
+        ->toContain("where('size_bytes', 0)")
+        // FALHA AQUI SIGNIFICA: Command deve usar filtro primário via coluna quando disponível
+        ->toContain("whereNull('metadata_recalculated_at')");
 });
 
 it('--dry-run não preenche metadata_recalculated_at', function () {

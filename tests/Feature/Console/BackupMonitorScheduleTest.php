@@ -49,7 +49,8 @@ it('backup:monitor tem withoutOverlapping e só roda em live', function () {
         $prop->setAccessible(true);
         $envs = $prop->getValue($event);
 
-        expect($envs)->toContain('live', 'monitor só faz sentido em produção (onde backup:run roda)');
+        // FALHA AQUI SIGNIFICA: monitor só faz sentido em produção (onde backup:run roda)
+        expect($envs)->toContain('live');
         expect($envs)->not->toContain('testing', 'não deve rodar em testing (evita ruído no CI)');
     }
 });
