@@ -71,7 +71,7 @@ export function resolvePhp(env = process.env, home = homedir()) {
   for (const c of cand) {
     if (c !== 'php' && !existsSync(c)) continue;
     const shell = /\.(bat|cmd)$/i.test(c);
-    const r = spawnSync(c, ['-v'], { encoding: 'utf8', timeout: 8000, shell, windowsHide: true });
+    const r = spawnSync(c, ['-v'], { encoding: 'utf8', timeout: 8000, shell, windowsHide: true, env });
     if (r.status === 0 && /^PHP \d/.test(String(r.stdout || ''))) return c;
   }
   return null;
