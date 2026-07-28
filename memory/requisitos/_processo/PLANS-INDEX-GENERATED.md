@@ -4,7 +4,7 @@
 > Fonte única: o plano é a verdade, este índice é derivado ([ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Execução mora no MCP via `parent_plan` ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). Frescor/órfão = sentinela `plan-health` (memory-health Check J).
 
 ## Saúde (derivada)
-- **3** planos registrados (com `## Status vivo`) · **17** pendentes de backfill (arquivo *plan* sem bloco)
+- **3** planos registrados (com `## Status vivo`) · **20** pendentes de backfill (arquivo *plan* sem bloco)
 - reviewed_at preenchido: **2/3** · vinculados a MCP (`parent_plan`): **2/3**
 - Por status: ativo 2 · (vazio) 1
 - Inconsistências de schema: 2 — ver final
@@ -16,7 +16,7 @@
 | [PLANO MESTRE — Programa de Ondas com Adversário por Módulo](../_Governanca/programa-ondas/PLANO-MESTRE.md) | _Governanca | ativo | W | 2026-07-03 | `programa-ondas` | ✅ **BATIDO 2026-07-03** — dente de cálculo red/green no CT10 |
 | [Plano — Atendimento Automático (WhatsApp / Caixa Unificada)](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | ativo | W | 2026-06-20 | `plano-atendimento-automatico` | E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR |
 
-## Pendentes de `## Status vivo` (17) — backfill dirigido pela sentinela
+## Pendentes de `## Status vivo` (20) — backfill dirigido pela sentinela
 | Plano | Módulo |
 |---|---|
 | [DEPRECATION-PLAN — Accounting](../Accounting/DEPRECATION-PLAN.md) | Accounting |
@@ -29,13 +29,16 @@
 | [Plano Detalhado — Módulo Financeiro](../Financeiro/PLANO_DETALHADO.md) | Financeiro |
 | [Plano de Testes Fiscal — Ondas 1-7](../Fiscal/PLANO-TESTES-FISCAL.md) | Fiscal |
 | [Plano de migração das 82 auto-mems → git/MCP (ADR 0061)](../Infra/PLANO-MIGRACAO-AUTOMEM.md) | Infra |
+| [Plano · Profissionalizar acesso do time (proteger fonte + controlar no](../Infra/PLANO-profissionalizar-acesso-time.md) | Infra |
 | [JANA Pro — Product Plan executivo (32 US, 4 sprints, 90 dias)](../Jana/JANA-PRO-PRODUCT-PLAN.md) | Jana |
 | [PLAN MWART — `metas/*` (Jana)](../Jana/PLAN-MWART-metas.md) | Jana |
 | [Onda 1 — Vendas, PDV & Caixa · PLANO (MWART Fase 1)](../Mwart/ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) | Mwart |
 | [Plano de paralelização — OficinaAuto Fase 1 (pós-Martinho)](../OficinaAuto/demo-martinho-2026-05-13/plano-paralelizacao.md) | OficinaAuto |
 | [PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via gateway adici](../PaymentGateway/PLANO-ONDA5-SIMPLIFICADA.md) | PaymentGateway |
+| [Plan — Ativar gateway nas assinaturas dormentes](../RecurringBilling/features/gateway-ativacao/plan.md) | RecurringBilling |
 | [DEPRECATION-PLAN — SRS](../SRS/DEPRECATION-PLAN.md) | SRS |
 | [ADR ARQ-0001 (TaskRegistry) · Sistema de tasks MCP-native, não Plane s](../TaskRegistry/adr/arq/0001-mcp-native-vs-plane.md) | TaskRegistry |
+| [Plan — {{título curto da feature}}](../_TEMPLATE_FEATURE/plan.md) | _TEMPLATE_FEATURE |
 
 ## Inconsistências de schema (2)
 - ⚠️ memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md: status inválido "(vazio)" (enum ADR 0294)

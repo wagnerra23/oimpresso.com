@@ -190,6 +190,18 @@ jobs:
       # settings.json enforça nada — "correção-do-mecanismo ≠ invocação").
       - name: Guard de schema de memory/ morde (fixtures boa/ruim + E2E por stdin)
         run: node .claude/hooks/memory-schema-guard.mjs --selftest
+      # Permissão renomeada (família `copiloto.mcp.*` → `jana.mcp.*`, #4853). [W] cobrou
+      # 2026-07-28: "chato já retornou 3 vezes isso". A recorrência tinha causa mecânica —
+      # `MEMORY_TEAM_ONBOARDING.md` e `TaskRegistry/SPEC.md` mandavam rodar
+      # `givePermissionTo('copiloto.mcp.use')`, permissão que NÃO existe → todo onboarding
+      # reencontrava o bug. Canon DERIVADO do seeder (ADR 0256), não denylist à mão.
+      # ADVISORY de nascença (ADR 0275/0336) — promoção só com mordida provada.
+      # O --diff é forward-only: legado fica grandfatherado (lápide §5 2026-07-12).
+      - name: Permissão renomeada — o lint morde nome velho em linha NOVA
+        run: node scripts/governance/permissao-renomeada-lint.mjs --selftest
+      - name: Permissão renomeada — diff-aware no PR (advisory)
+        continue-on-error: true
+        run: node scripts/governance/permissao-renomeada-lint.mjs --diff origin/${{ github.base_ref || 'main' }}
       # Achado adversarial 2026-07-26 (sobre a ADR 0353): o ledger de réguas contém
       # vereditos falsos — claims.json × placar do retrato discordam, e há claims com
       # refutador ACIMA_CONFIRMADO carimbadas com veredito de Integração, que o

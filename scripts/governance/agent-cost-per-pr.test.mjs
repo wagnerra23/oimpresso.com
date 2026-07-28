@@ -15,6 +15,7 @@ import {
   PR_FETCH_LIMIT, DEFAULT_DAYS, renderHuman, renderBriefMd, renderPrBlockMd,
   linhaIdade, avisoSnapshot, IDADE_SUSPEITA_DIAS,
   derivaLimiarIdade, TOLERANCIA_STALENESS, isFonteTruncada, costPerSurvivingPR,
+  extractUsMentions, aggregatePorUs,
 } from './agent-cost-per-pr.mjs';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -420,6 +421,47 @@ const blocoDePe = renderPrBlockMd(rs2, rs2.por_pr.find((p) => p.pr === 201));
 check('--pr do PR de pé: diz "de pé", não "revertido"', /de p[ée]/.test(blocoDePe) && !/revertido/.test(blocoDePe));
 check('--pr sobrevivência é RELATO — não fala em bloquear/gate/falhar', !/\b(bloqueia merge|reprova|falha o PR)\b/i.test(blocoFalhou) && !/R\$/.test(blocoFalhou));
 check('SOBREVIV: aparece no brief E no texto humano (não só no --json)', renderBriefMd(rs2, 0).includes('sobrevivente') && renderHuman(rs2, 0).includes('SOBREVIVENTE'));
+
+// ── custo POR US (G11): "onde foi o dinheiro de desenvolvimento" ────────────────
+{
+  // MORDE: as 3 formas reais do repo (Refs:, bracket, closes) viram a mesma chave
+  check('US: `Refs: US-INFRA-002` é reconhecido',
+    extractUsMentions('feat(x): algo\n\nRefs: US-INFRA-002').includes('US-INFRA-002'));
+  check('US: bracket `(US-WA-042)` é reconhecido',
+    extractUsMentions('fix(wa): trecho (US-WA-042)').includes('US-WA-042'));
+  check('US: `closes COPI-42` normaliza pra US-COPI-42',
+    extractUsMentions('closes COPI-42').includes('US-COPI-42'));
+
+  // LIBERA (controle negativo): o que NÃO é US não pode virar US
+  check('US: `(#707)` (número de PR) NÃO vira US',
+    extractUsMentions('merge do (#707)').length === 0);
+  check('US: prosa sem ref não inventa US',
+    extractUsMentions('mexi no controller e no teste').length === 0);
+
+  // RATEIO: PR que cita 2 US divide — atribuir o total a cada uma inflaria a soma
+  const r = aggregatePorUs([
+    { pr: 1, usd: 10, texto: 'Refs: US-INFRA-002' },
+    { pr: 2, usd: 10, texto: 'Refs: US-INFRA-002 · (US-INFRA-047)' },
+    { pr: 3, usd: 7, texto: 'chore: higiene sem ref' },
+    { pr: 4, usd: null, texto: 'Refs: US-INFRA-002' },
+  ]);
+  const soma = r.por_us.reduce((a, x) => a + x.usd, 0) + r.custo_sem_us;
+  check('US: soma por-US + sem-US CONSERVA o total casado (não infla)',
+    Math.abs(soma - 27) < 0.01);
+  check('US: PR com 2 US divide o custo (INFRA-002 = 10 + 5)',
+    r.por_us.find((x) => x.us === 'US-INFRA-002')?.usd === 15);
+  check('US: PR sem ref vira resíduo honesto, não erro',
+    r.sem_us === 1 && r.custo_sem_us === 7);
+  check('US: PR sem custo casado (usd null) não pesa em nenhum lado',
+    !r.por_us.find((x) => x.prs.includes(4)));
+
+  // LIMITE REAL da gramática (herdado do GitTaskLinkerService, de propósito): cada
+  // ocorrência precisa de verbo OU bracket. `Refs: A · B` captura só A — o `· B` fica
+  // de fora. É o preço de não inventar uma segunda gramática; quem quer as duas
+  // contadas escreve `Refs: A · (B)`. Documentado como teste pra não virar surpresa.
+  check('US: `Refs: A · B` captura só A (limite herdado, não bug)',
+    extractUsMentions('Refs: US-INFRA-002 · US-INFRA-047').length === 1);
+}
 
 console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — join 2-sinais morde (branch com $ certo de cache; citação diluída) e libera (sem match declarado, sem dupla contagem, modelo sem preço não inventa USD). Contabilidade fecha (cobertura ≤100, conservação, decomposição), o custo-por-PR-SOBREVIVENTE cruza com o change-failure do irmão (denominador vira outcome, sobretaxa de falha explícita) e o entry-point real é exercitado (snapshot escrito, forma antiga não crasha).');
 process.exit(fails ? 1 : 0);

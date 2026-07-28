@@ -249,13 +249,13 @@ Se falhar: avisar Wagner — pode ser CT 100 Proxmox com problema.
 Token errado ou expirado. Pede novo no `/copiloto/admin/team`.
 
 ### "HTTP 403 Forbidden — no_permission"
-Token OK mas user não tem `copiloto.mcp.use`. Wagner precisa atribuir:
+Token OK mas user não tem `jana.mcp.use`. Wagner precisa atribuir:
 ```bash
 ssh hostinger
 cd ~/domains/oimpresso.com/public_html
 php artisan tinker
 > $user = App\User::where('email', 'felipe@...')->first();
-> $user->givePermissionTo('copiloto.mcp.use');
+> $user->givePermissionTo('jana.mcp.use');
 ```
 
 ### "HTTP 429 Quota Exceeded"

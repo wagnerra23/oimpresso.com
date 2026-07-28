@@ -39,6 +39,7 @@
     "Superadmin": true,
     "TeamMcp": true,
     "Vestuario": true,
+    "VozDoCliente": true,
     "Whatsapp": true,
     "Woocommerce": true
 }

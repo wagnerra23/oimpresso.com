@@ -267,3 +267,9 @@ Modules/TeamMcp/Tests/Feature/Wave28PolishTest.php
 # ZERO acesso a DB de proposito — mcp_tasks e compartilhada e no CT 100 os testes rodam
 # contra MySQL real, entao assertar contagem vinda de la seria nao-deterministico. Sqlite-safe.
 Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php
+
+# US-INFRA-002 (Voz do Cliente) — isolamento cross-tenant Tier 0 do sinal.
+# Sqlite-safe de proposito: monta a tabela sintetica no beforeEach, sem
+# RefreshDatabase, e nao usa sintaxe MySQL-only (o CASE do controller substitui
+# FIELD() justamente pra rodar nas duas lanes).
+Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php

@@ -21,7 +21,7 @@ use Modules\Jana\Contracts\MemoriaPersistida;
  *   - Trilha de auditoria pra compliance LGPD
  *
  * Token: usa `COPILOTO_MCP_SYSTEM_TOKEN` (server-side, não-user). Token tem
- * scope `copiloto.mcp.use` + `copiloto.mcp.memoria.read`. Wagner gera 1×
+ * scope `jana.mcp.use` + `jana.mcp.memoria.read`. Wagner gera 1×
  * via /copiloto/admin/team e seta no .env.
  *
  * Fallback: se MCP indisponível (timeout/erro 5xx), degrada silenciosamente
@@ -36,9 +36,9 @@ class McpMemoriaDriver implements MemoriaContrato
 
     public function __construct(?MemoriaContrato $fallback = null)
     {
-        $this->baseUrl = (string) config('copiloto.mcp.url', 'https://mcp.oimpresso.com/api/mcp');
-        $this->token = (string) config('copiloto.mcp.system_token', env('COPILOTO_MCP_SYSTEM_TOKEN', ''));
-        $this->timeoutSeconds = (int) config('copiloto.mcp.timeout_seconds', 5);
+        $this->baseUrl = (string) config('jana.mcp.url', 'https://mcp.oimpresso.com/api/mcp');
+        $this->token = (string) config('jana.mcp.system_token', env('COPILOTO_MCP_SYSTEM_TOKEN', ''));
+        $this->timeoutSeconds = (int) config('jana.mcp.timeout_seconds', 5);
         $this->fallbackDriver = $fallback;
     }
 

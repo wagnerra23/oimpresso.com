@@ -193,7 +193,7 @@ Permission `copiloto.cc.read.all` = ver todas; `cc.read.team` = ver team mas nã
 ## 6. Permissions Spatie
 
 ```php
-'copiloto.cc.read.self'   // ver SUAS sessões (default todos com copiloto.mcp.use)
+'copiloto.cc.read.self'   // ver SUAS sessões (default todos com jana.mcp.use)
 'copiloto.cc.read.team'   // ver sessões do time (Felipe, Maiara)
 'copiloto.cc.read.all'    // tudo (Wagner, superadmin)
 'copiloto.cc.curate'      // marcar useful/noise/duplicate (Wagner only)
