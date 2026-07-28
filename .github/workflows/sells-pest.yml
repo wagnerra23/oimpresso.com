@@ -128,6 +128,7 @@ jobs:
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
+            tests/Feature/Sells/SellsFyTotalTenantContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php
 
