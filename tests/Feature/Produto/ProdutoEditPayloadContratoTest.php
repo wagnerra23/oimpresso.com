@@ -276,7 +276,21 @@ it('UC-PEDIT-08 · a tela Blade declara o desligamento das 3 flags (hidden 0)', 
     Permission::findOrCreate('product.view', 'web');
     $this->user->givePermissionTo(['product.view']);
 
-    $html = $this->get("/products/{$p->productId}/edit")->getContent();
+    $resposta = $this->get("/products/{$p->productId}/edit");
+    $html = $resposta->getContent();
+
+    // Degraus de diagnóstico: sem eles, "não achou o hidden" não distingue
+    // "a Blade não declara" de "a resposta nem era a Blade". A 1ª corrida (run
+    // 30383633898) devolveu uma página com `<html lang="en" class="auto">` — que não é
+    // nem o `layouts.app` (Blade) nem o `layouts.inertia`; provavelmente página de erro.
+    expect($resposta->getStatusCode())->toBe(
+        200,
+        'PRÉ-CONDIÇÃO: GET /products/{id}/edit tem que abrir a tela. Outro status = o UC não foi exercido.'
+    );
+    expect($html)->toContain(
+        'product_add_form',
+        'PRÉ-CONDIÇÃO: a resposta tem que ser o FORM da Blade (`product_add_form`), não página de erro nem outra view.'
+    );
 
     foreach (['enable_stock', 'not_for_selling', 'enable_sr_no'] as $flag) {
         expect($html)->toContain(
