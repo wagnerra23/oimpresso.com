@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **875 tarefas abertas** em **51 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **858 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -35,12 +35,10 @@
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
-| [`Auditoria`](#auditoria) | 10 | 0 | 0 | 0 | 10 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
 | [`Ponto`](#ponto) | 10 | 0 | 0 | 0 | 10 |
 | [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
-| [`AssetManagement`](#assetmanagement) | 8 | 0 | 0 | 0 | 8 |
 | [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`ProjectMgmt`](#projectmgmt) | 8 | 0 | 1 | 0 | 7 |
@@ -56,6 +54,7 @@
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
+| [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
 | [`Manufacturing`](#manufacturing) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
 | [`Repair`](#repair) | 1 | 0 | 0 | 0 | 1 |
@@ -975,22 +974,6 @@
 - **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - **US-ESSE-001** — [TODO — título]
 
-## Auditoria
-
-
-### todo
-
-- **US-AUDIT-001** — Trait LogsActivity em App\Transaction `done`
-- **US-AUDIT-002** — Trait em TransactionSellLine + TransactionPayment `done`
-- **US-AUDIT-003** — Trait em Product + VariationLocationDetails `done`
-- **US-AUDIT-004** — Trait em App\Contact (sem PII) `done`
-- **US-AUDIT-005** — Migration causer_kind + revert em activity_log `done`
-- **US-AUDIT-006** — Resolver de causer (user/agent/system/api) `done`
-- **US-AUDIT-007** — Scaffold Modules/Auditoria `done`
-- **US-AUDIT-008** — RevertService com registry UNREVERTIBLE `done`
-- **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
-- **US-AUDIT-010** — AuditoriaController + permissões + redirect 301 `done`
-
 ## Cms
 
 
@@ -1056,20 +1039,6 @@
 - **US-TR-205** — Activity feed timeline _(`p2` · @wagner)_
 - **US-TR-206** — Burndown chart _(`p2` · @wagner)_
 - **US-TR-302** — tasks-suggest-* (D2 AI-native) _(`p2` · @wagner)_
-
-## AssetManagement
-
-
-### todo
-
-- **US-ASSET-001** — Cadastro de ativo (asset registry) `✅ done`
-- **US-ASSET-002** — Alocação de ativo a colaborador (`transaction_type=allocate`) `✅ done`
-- **US-ASSET-003** — Revogação/devolução de alocação (`transaction_type=revoke`) `✅ done`
-- **US-ASSET-004** — Log de manutenções `✅ done`
-- **US-ASSET-005** — Garantia/warranty (período + custo adicional) `✅ done`
-- **US-ASSET-006** — Notificações de manutenção (mail) `✅ done`
-- **US-ASSET-007** — Settings per-business (prefix, notification) `✅ done`
-- **US-ASSET-008** — Multi-tenant isolation test biz=1 vs biz=99 (Tier 0) `✅ done`
 
 ## Cliente
 
@@ -1244,6 +1213,13 @@
 ### todo
 
 - **US-ADM-001** — ..010
+
+## Auditoria
+
+
+### todo
+
+- **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
 
 ## Manufacturing
 
