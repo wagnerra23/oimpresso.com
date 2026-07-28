@@ -17,7 +17,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *
  * Cobre os UC de `resources/js/Pages/team-mcp/Scorecard/Index.casos.md` que estavam
  * ÓRFÃOS — nenhum teste do repo citava `UC-SC-*` (medido 2026-07-28, `git grep -l`
- * sobre `Modules/*/Tests/*` + `tests/*` + `e2e/*`: 0 ocorrências pros 8).
+ * sobre os dirs de teste (Modules, tests, e2e): 0 ocorrências pros 8.
  *
  *   - UC-SC-01 — a rota existe E o componente Inertia que ela renderiza existe
  *   - UC-SC-03 — Facts: as 7 chaves canônicas, com os tipos certos
@@ -49,14 +49,6 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * @see memory/requisitos/TeamMcp/SDD-tela-hub-team-mcp-v1.0.md (§5.3 F3 · CU-TEAM-08)
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
-
-/** Permissão exigida pelo construtor do ScorecardController (#4853 renomeou de copiloto.*). */
-function scorecardPermission(): string
-{
-    // Era `const` no nivel de arquivo — o parser do Pest quebrou com
-    // 'unexpected token const' (o arquivo ja usa funcao pro mesmo fim logo abaixo).
-    return 'jana.mcp.usage.all';
-}
 
 /** As 7 chaves que o frontend consome de `facts` (Index.tsx + casos.md UC-SC-03). */
 function scorecardFactsKeys(): array
@@ -247,11 +239,11 @@ it('UC-SC-08 · a rota do scorecard exige auth + can:jana.mcp.usage.all no regis
     expect($middleware)->toContain('auth');
 
     $exigePermissao = collect($middleware)
-        ->contains(fn ($m): bool => is_string($m) && str_contains($m, scorecardPermission()));
+        ->contains(fn ($m): bool => is_string($m) && str_contains($m, 'jana.mcp.usage.all'));
 
     expect($exigePermissao)->toBeTrue(
         'O scorecard é repo-wide cross-business por design (ADR 0093): sem o `can:'.
-        scorecardPermission().'` ele serve a saúde do MCP de TODOS os businesses pra '.
+        'jana.mcp.usage.all'.'` ele serve a saúde do MCP de TODOS os businesses pra '.
         'qualquer funcionário logado. Middleware visto: '.json_encode($middleware)
     );
 });
@@ -292,8 +284,8 @@ it('UC-SC-08 · autenticado SEM jana.mcp.usage.all leva 403 no scorecard', funct
         );
     }
 
-    Permission::findOrCreate(scorecardPermission(), 'web');
-    $user->revokePermissionTo(scorecardPermission());
+    Permission::findOrCreate('jana.mcp.usage.all', 'web');
+    $user->revokePermissionTo('jana.mcp.usage.all');
     $user->forgetCachedPermissions();
 
     session(['user.id' => $user->id]);
