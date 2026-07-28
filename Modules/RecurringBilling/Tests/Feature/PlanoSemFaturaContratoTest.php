@@ -84,6 +84,56 @@ function rbSemPlanoBootstrapSchema(): void
         $t->date('billing_anchor_date')->nullable();
         $t->string('payment_method')->nullable();
         $t->json('metadata')->nullable();
+        // v9.75 (2026_05_16_120000_recurring_v975_schema): o Model usa SoftDeletes e o
+        // schema real tem os 3 contadores. Sem eles a fixture morria em
+        // "no such column: rb_subscriptions.deleted_at" ANTES de alcançar o branch sob
+        // teste — vermelho pelo motivo errado, que é pior que vermelho nenhum: quem lesse
+        // a cor confirmaria a predição do casos.md sem que o caso tivesse rodado.
+        // As TRÊS moram em rb_subscriptions (migration 2026_05_16_120000_recurring_v975_schema
+        // linhas 71-81), com estes tipos exatos. O gerador faz UPDATE nelas ao faturar —
+        // sem elas o try/catch engole "no such column: total_revenue_cached" e o sintoma
+        // aparece como generated=0, que parece comportamento e é infra.
+        $t->unsignedSmallInteger('total_paid_cached')->default(0);
+        $t->unsignedSmallInteger('failed_count_cached')->default(0);
+        $t->decimal('total_revenue_cached', 14, 2)->default(0);
+        $t->timestamps();
+        $t->softDeletes();
+    });
+
+    // Invoice e Subscription usam Spatie LogsActivity: todo create/update escreve em
+    // `activity_log`. Sem a tabela, o insert lança — e o gerador tem try/catch que
+    // converte a exceção em `errors++` (InvoiceGeneratorService:89-95), então a falha
+    // aparece como "generated=0" e parece comportamento, não infra.
+    // CONDICIONAL de propósito: o `tests/Pest.php` do projeto JÁ provisiona esta tabela
+    // (idioma do bloco RecurringBilling, citado na .github/ci-sqlite-pest.list). Criar
+    // incondicionalmente derruba tudo com "table already exists" — medido no CT 100.
+    if (! Schema::hasTable('activity_log')) {
+        Schema::create('activity_log', function ($t): void {
+            $t->increments('id');
+            $t->string('log_name')->nullable();
+            $t->text('description')->nullable();
+            $t->nullableMorphs('subject', 'subject');
+            $t->nullableMorphs('causer', 'causer');
+            $t->json('properties')->nullable();
+            $t->string('event')->nullable();
+            $t->uuid('batch_uuid')->nullable();
+            $t->timestamps();
+        });
+    }
+
+    // O gerador registra evento de timeline ao faturar. Colunas espelham a migration
+    // v9.75 (linhas 176-186): `kind`/`by_actor`/`body`/`occurred_at` — NÃO invente nomes,
+    // errar aqui reaparece como "generated=0" porque o try/catch do gerador engole o
+    // "has no column named X" (foi o que aconteceu com `tipo` em vez de `kind`).
+    Schema::create('rb_subscription_events', function ($t): void {
+        $t->increments('id');
+        $t->unsignedInteger('business_id');
+        $t->unsignedInteger('subscription_id');
+        $t->string('kind', 32)->nullable();
+        $t->string('by_actor', 64)->nullable();
+        $t->text('body')->nullable();
+        $t->dateTime('occurred_at')->nullable();
+        $t->json('metadata')->nullable();
         $t->timestamps();
     });
 
@@ -99,6 +149,7 @@ function rbSemPlanoBootstrapSchema(): void
         $t->date('vencimento')->nullable();
         $t->json('metadata')->nullable();
         $t->timestamps();
+        $t->softDeletes();   // Model Invoice usa SoftDeletes — idem rb_subscriptions
     });
 }
 
