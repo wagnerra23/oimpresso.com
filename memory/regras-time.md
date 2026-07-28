@@ -22,11 +22,15 @@
 
 ## Matriz "quem pode pegar qual tipo de task"
 
-Detalhada em [`TEAM.md`](../TEAM.md) raiz do projeto. 4 níveis:
-- ✅ owner (responsável principal)
+**Fonte única de ownership por módulo = a matriz §3 de [`TEAM.md`](../TEAM.md)** ([ADR 0070](decisions/0070-jira-style-task-management-current-md-removed.md): *"TEAM.md continua canônico — perfis + WIP + matriz"*). 4 níveis:
+- ✅ **owner — pode haver mais de um por linha** (co-donos, ambos autoritativos)
 - 🟢 pode pegar
 - 🟡 com supervisão
 - ❌ não-pegar
+
+> ⚠️ **`✅` é plural, não "o responsável principal".** Medido 2026-07-28: **15 das 24 linhas** da matriz têm 2+ ✅ (ex.: Financeiro relatório/tela = [M] **e** [E]). Ler `✅` como dono único inventa um desempate que a tabela nunca fez.
+>
+> ⚠️ **`owner:` do frontmatter de SPEC NÃO é fonte de ownership** — é boilerplate legado (`owner: wagner` idêntico em 46 dos 91 SPECs, no vocabulário do schema errado, sem consumidor). Detalhe + recibo em [`TEAM.md` §3.1](../TEAM.md).
 
 ## Convenção em commits
 

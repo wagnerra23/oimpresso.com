@@ -77,7 +77,13 @@
 
 ## 3. Matriz de quem-pode-fazer-o-quê
 
-**Legenda:** ✅ owner típico · 🟢 pode pegar · 🟡 com supervisão · ❌ não pegar (risco)
+**Legenda:** ✅ owner · 🟢 pode pegar · 🟡 com supervisão · ❌ não pegar (risco)
+
+> **✅ é plural.** Uma linha pode ter mais de um ✅ — são **co-donos**, ambos autoritativos pra aquele tipo de task. Não é ambiguidade a resolver no desempate: é co-ownership declarado. Medido em 2026-07-28 (`awk` contando ✅ por linha desta tabela): **15 das 24 linhas** têm 2+ ✅. A redação anterior dizia "owner típico", que lia como singular e contradizia 62% da própria tabela.
+>
+> **Alinhado com o schema canônico:** [`scripts/memory-schemas/spec.schema.json`](scripts/memory-schemas/spec.schema.json) define `owners` como **array** (`minItems: 1`), e o caso real `memory/requisitos/Ponto/SPEC.md` já usa `owners: [W, E]`. (Os schemas de charter/runbook/BRIEFING ainda usam `owner` string singular — divergência conhecida, ver §3.1.)
+>
+> **Fonte única de ownership por módulo = esta matriz.** [ADR 0070](memory/decisions/0070-jira-style-task-management-current-md-removed.md) §"TEAM.md · Continua canônico — perfis + WIP + matriz". Quem precisar do dono aponta pra cá, não restateia.
 
 | Tipo de task | W | M | F | L | E |
 |---|---|---|---|---|---|
@@ -113,6 +119,30 @@
 3. **Maiara NÃO faz deploy produção sozinha.** Sempre supervisão Wagner ou Felipe.
 4. **Wagner deve evitar virar bottleneck** — delegar code review pra Felipe quando puder.
 5. **PIIs reais (CPF/CNPJ de clientes) NUNCA aparecem em PR ou commit.** Logs de teste com `[REDACTED]` mesmo em dev.
+
+---
+
+## 3.1 O campo `owner:` do frontmatter NÃO é fonte de ownership
+
+> ⚠️ **Não leia `owner:` de `memory/requisitos/<Mod>/SPEC.md` como "quem é o dono do módulo".** Ele é boilerplate legado, não afirmação de posse — e quem o lê como posse fabrica um conflito que não existe.
+
+**Recibo (medido 2026-07-28, varrendo os 91 `memory/requisitos/*/SPEC.md` de `origin/main`):**
+
+| forma no frontmatter | SPECs | leitura honesta |
+|---|---|---|
+| `owner: wagner` | 46 | default pré-schema, idêntico em todos — não distingue módulo nenhum |
+| *(campo ausente)* | 32 | nunca teve |
+| `owner: [W]` | 6 | híbrido: chave velha, valor novo |
+| `owners: [W]` | 4 | canônico |
+| `owners: [W, E]` | 1 | canônico e **plural** (Ponto) |
+| `owners:` (vazio) | 1 | viola `minItems: 1` do próprio schema |
+| `owner: "[E] Eliana"` | 1 | texto livre (NFSe) |
+
+Três sinais de que `owner: wagner` não é declaração de posse: **(a)** aparece em 46 dos 91 SPECs com o mesmo valor; **(b)** `wagner` é o vocabulário de [`charter.schema.json`](scripts/memory-schemas/charter.schema.json) (`wagner|felipe|…`), não o de [`spec.schema.json`](scripts/memory-schemas/spec.schema.json) (`W|F|M|L|E`), e a chave canônica de SPEC nem é `owner` — é `owners`; **(c)** varredura em `scripts/`, `.github/`, `.claude/`, `Modules/`, `app/` não achou consumidor desse campo pra decisão de ownership (o `owners` do `catalog-graph.mjs` é posse de **tabela por módulo**, outro eixo).
+
+**Corolário — não normalize isso em massa.** O codemod que trocava `owner: wagner` → `owners: [W]` nos 52 SPECs legados já foi tentado e **reprovado** ([PR #4156](https://github.com/wagnerra23/oimpresso.com/pull/4156), lápide §5 2026-07-12 em [`memory/proibicoes.md`](memory/proibicoes.md)): tocar SPEC legado acorda gate diff-aware que o grandfather protegia. O caminho é **forward-only** (arquivo novo nasce certo) **+ oportunístico** (normaliza só quando trabalho real já vai tocar aquele arquivo e paga a dívida dele).
+
+**Divergência conhecida, ainda aberta:** os 4 schemas usam 3 vocabulários e 2 cardinalidades — `spec` = `owners` array `W|F|M|L|E`; `briefing` e `runbook` = `owner` string `W|F|M|L|E`; `charter` = `owner` string `wagner|felipe|…`. Unificar é decisão [W] (ADR), não normalização silenciosa.
 
 ---
 
@@ -188,5 +218,8 @@ E atualizar a matriz §3 + capacidade §2.
 
 ---
 
-> **Última atualização:** 2026-04-28 (Cycle 01 — criação inicial do TEAM.md, time de 5)
-> **Próxima revisão:** após Cycle 01 fechar (12-mai-2026) — ajustar WIP/matriz com base em o que funcionou
+> **Frescor deste doc = derivado, não escrito aqui.** Rode `node scripts/governance/doc-freshness-score.mjs` — ele deriva a data do commit git que tocou o arquivo, que é o oráculo. Uma linha "Última atualização" mantida à mão apodrece calada (lei-mãe [ADR 0256](memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md): *derivado+enforçado sobrevive; escrito+lembrado apodrece*) — e apodreceu: ficou 2,5 meses cravada em `2026-04-28` prometendo revisão em `12-mai-2026`.
+>
+> **Trilha de mudanças** (fato datado em passado, não afirmação em presente):
+> - **2026-07-28** — legenda `✅` corrigida pra plural (co-donos) + §3.1 desarmando `owner:` de SPEC como falsa fonte de ownership. Não mexeu em quem é dono de quê: a matriz já declarava co-ownership em 15 das 24 linhas.
+> - **2026-04-28** — criação inicial (Cycle 01, time de 5).
