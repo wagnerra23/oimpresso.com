@@ -321,12 +321,12 @@ class OpenAiDirectDriver implements AiAdapter
 
     // ─── Sanitização ─────────────────────────────────────────────────────────
 
-    /** Mascara CPF (000.000.000-00) e CNPJ (00.000.000/0000-00) em strings. */
+    /** Mascara CPF (000.000.000-00) e CNPJ (00.000.000/0000-00) em strings. # pii-allowlist (placeholder de formato, não PII real) */
     public function mascararDocumentos(string $texto): string
     {
-        // CPF: 000.000.000-00 ou 00000000000
+        // CPF: 000.000.000-00 ou 00000000000  # pii-allowlist (placeholder de formato)
         $texto = preg_replace('/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/', 'XXX.XXX.XXX-NN', $texto);
-        // CNPJ: 00.000.000/0000-00 ou 00000000000000
+        // CNPJ: 00.000.000/0000-00 ou 00000000000000  # pii-allowlist (placeholder de formato)
         $texto = preg_replace('/\b\d{2}\.?\d{3}\.?\d{3}\/?0001-?\d{2}\b/', 'XX.XXX.XXX/0001-NN', $texto);
 
         return $texto;
