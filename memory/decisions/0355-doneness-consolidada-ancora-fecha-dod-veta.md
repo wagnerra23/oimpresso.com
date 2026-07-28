@@ -15,7 +15,7 @@ quarter: 2026-Q3
 tags: [governance, tasks, mcp, taskregistry, doneness, ancora, forward-close, dod, indexacao, contradicao-de-canon]
 supersedes: [0302-fonte-unica-doneness-anchor-aposenta-status-spec, 0337-emenda-0144-forward-close-por-ancora-verificada]
 superseded_by: []
-related: [0144-tasks-db-canonico-spec-template, 0273-anchor-spec-codigo-gramatica, 0070-jira-style-task-management-current-md-removed, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes, 0264-governanca-executavel-trio-dominio-e2e]
+related: [0144-tasks-db-canonico-spec-template, 0273-anchor-spec-codigo-formato-canonico-fluxo-novo, 0070-jira-style-task-management-current-md-removed, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes, 0264-governanca-executavel-trio-dominio-e2e]
 ---
 
 # ADR 0355 — Done-ness consolidada: a âncora fecha, o DoD aberto veta
@@ -57,7 +57,7 @@ O problema nunca foi de detector. Era de canon.
 
 ## Decisão
 
-1. **Fonte única de done-ness = a âncora.** `**Implementado em:** \`path\`(· \`path\`)* · verificado@<sha7> (<AAAA-MM-DD>)` com **todos os paths existentes no disco** (`anchored_ok`, gramática da [ADR 0273](0273-anchor-spec-codigo-gramatica.md)). Herdado da 0302, sem mudança.
+1. **Fonte única de done-ness = a âncora.** `**Implementado em:** \`path\`(· \`path\`)* · verificado@<sha7> (<AAAA-MM-DD>)` com **todos os paths existentes no disco** (`anchored_ok`, gramática da [ADR 0273](0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md)). Herdado da 0302, sem mudança.
 
 2. **O `status:` do blockquote não tem leitor.** Nenhum mecanismo o consulta pra decidir done-ness. A 0302 já dizia; a 0337 abriu exceção; a exceção acaba aqui. O campo pode existir em SPEC legado — é inerte.
 
