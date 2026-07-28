@@ -56,12 +56,20 @@ lifecycle: ativo
 | Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-23 |
 | Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-07-23 |
 
-## IA & automação
+## Camada de IA
 
-- **22 agentes PHP** em **4 módulos** · **0 sem referência de produção**.
-- **44 tools registradas** no único servidor MCP · **5 tools SQL** do Brief Diário.
-- **24 agentes de engenharia** em `.claude/agents/` — catálogo diferente dos agentes PHP.
-- Arquitetura completa, fontes e probes: [`Jana/ARCHITECTURE.md`](../requisitos/Jana/ARCHITECTURE.md) — gerada por esta mesma máquina.
+> Contagem DERIVADA da árvore (contrato `implements`, não pasta). Isto conta **arquivo que implementa contrato** — não é nota, não é status e não prova que a peça roda. O que cada agente faz e se está ligado vive no BRIEFING do módulo e na config; aqui só existe o censo. Antes disto, estes números viviam à mão num diagrama e já tinham errado (`16 provedores` era 15).
+
+- **Agentes** (`implements Agent`, fora de `Tests/`): **22** — todos em `Ai/Agents/`, convenção íntegra.
+  - por módulo: Jana 14 · ADS 4 · Crm 3 · Whatsapp 1
+- **Tools MCP registradas** no `OimpressoMcpServer`: **44** — Jana 39 · TeamMcp 4 · Brief 1. Bate com os arquivos `*Tool.php` em `Modules/*/Mcp/Tools/`. _Registrada ≠ exposta_: a exposição é gated por `MCP_TOOLS_EXPOSED` (`config/mcp.php`), estado de runtime que a árvore não sabe.
+- **Provedores** declarados em `config/ai.php`: **15** · default = `openai` — anthropic, azure, bedrock, cohere, deepseek, eleven, gemini, groq, jina, mistral, ollama, openai, openrouter, voyageai, xai. _Declarado ≠ com chave_: a credencial mora no ambiente.
+- **Implementações de `MemoriaContrato`**: McpMemoriaDriver · MeilisearchDriver · NullMemoriaDriver · RetrievalTelemetryDecorator
+- **Rerankers** (`implements Reranker`): BgeReranker · LlmRerankerAdapter · NullReranker · RrfReranker
+- **Tools SQL do Brief Diário**: **5** · **agentes de engenharia**: **24** — catálogo separado do runtime PHP.
+- Arquitetura completa, topologia, compose e probes: [`Jana/ARCHITECTURE.md`](../requisitos/Jana/ARCHITECTURE.md) — gerada por esta mesma máquina.
+
+> Não derivável e por isso NÃO listado aqui: quais pipelines de retrieval existem e qual está ligado — isso mora na config e no BRIEFING da Jana, e um número inventado aqui seria pior que a ausência.
 
 ## Programa SDD (governança)
 

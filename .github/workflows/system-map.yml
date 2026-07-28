@@ -21,12 +21,19 @@ on:
       - 'governance/sdd-scorecard.json'
       - 'scripts/governance/gates-registry.json'
       - 'governance/required-checks-baseline.json'
-      - 'Modules/**/Ai/Agents/**/*.php'
-      - 'Modules/**/Mcp/Tools/**/*.php'
+      # Camada de IA: fontes lidas pelo censo e pela arquitetura gerada.
+      # Agente fora de Ai/Agents/ é encontrado pelo cron diário via contrato; este
+      # filtro cirúrgico evita rodar a matriz em toda alteração de Modules/**.
+      - 'Modules/*/Ai/Agents/**'
+      - 'Modules/*/Mcp/Tools/**'
       - 'Modules/Jana/Ai/Tools/BriefDiario/*.php'
       - 'Modules/Jana/Mcp/OimpressoMcpServer.php'
+      - 'Modules/Jana/Services/Memoria/**'
+      - 'Modules/Jana/Services/Retrieval/**'
+      - 'config/ai.php'
       - 'docker/**/docker-compose.yml'
       - 'scripts/governance/system-map.mjs'
+      - 'scripts/governance/system-map-ia.test.mjs'
       - '.github/workflows/system-map.yml'
       - 'memory/reference/PAINEL-SISTEMA.md'
       - 'memory/requisitos/Jana/ARCHITECTURE.md'

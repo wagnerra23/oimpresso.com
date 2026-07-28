@@ -59,6 +59,9 @@ O desenho mostra **quem chama quem**. Ele não multiplica um serviço compartilh
 | Agentes sem referência de produção | **0** | referências PHP fora de `Tests/` |
 | Tools registradas no MCP | **44** | [`OimpressoMcpServer.php`](../../../Modules/Jana/Mcp/OimpressoMcpServer.php) |
 | Tools SQL do Brief Diário | **5** | `Modules/Jana/Ai/Tools/BriefDiario/` |
+| Provedores declarados | **15** · default `openai` | `config/ai.php` — declaração, não credencial viva |
+| Implementações de `MemoriaContrato` | **4** | contrato PHP, fora de `Tests/` |
+| Implementações de `Reranker` | **4** | contrato PHP, fora de `Tests/` |
 | Agentes de engenharia | **24** | `.claude/agents/*.md` — outra camada, não runtime PHP |
 | Serviços em compose versionado | **14** | `docker/**/docker-compose.yml` — declaração, não uptime |
 | Checks no baseline versionado de merge | **35** | `governance/required-checks-baseline.json` — o probe vivo é `protection-drift.mjs` |
