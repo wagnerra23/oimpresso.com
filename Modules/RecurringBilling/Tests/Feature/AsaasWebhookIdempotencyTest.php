@@ -2,6 +2,17 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato — idempotência do webhook Asaas (at-least-once: o gateway REENVIA em prod).
+ * O casos.md mora na tela de Configurações — é ela que exibe a URL do webhook.
+ *
+ * @covers-us US-RB-041
+ * @covers-us US-RB-012
+ *
+ * UC (resources/js/Pages/RecurringBilling/Configuracoes/Index.casos.md · CU-RB-07 do SDD §6.1):
+ *   UC-RBCFG-07 — evento repetido não é reprocessado (UNIQUE no banco, não só SELECT) [V0]
+ */
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;

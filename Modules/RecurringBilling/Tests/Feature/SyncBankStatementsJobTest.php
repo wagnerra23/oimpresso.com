@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato — sync diário do extrato Inter PJ (SDD §5.3 F9 · CU-RB-13).
+ * Idempotência (2× as mesmas transações não duplicam lançamento) + Tier 0.
+ *
+ * @covers-us US-RB-046
+ */
+
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;

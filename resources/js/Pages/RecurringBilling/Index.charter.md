@@ -113,7 +113,20 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 
 ## Tests anti-regressão
 
-- Modules/RecurringBilling/Tests/Feature/Wave4PagesIndexTest.php — 5 cenários:
+> ⚠️ **Correção factual 2026-07-28** (agent `sdd-from-source`, Fase 2.6 — só FATO, nunca intenção):
+> este bloco prometia `Wave4PagesIndexTest.php`, que **nunca existiu**
+> (`ls Modules/RecurringBilling/Tests/Feature/Wave4PagesIndexTest.php` → *No such file*).
+> O arquivo real é [`Wave4PresenterIndexTest.php`](../../../../Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php),
+> e ele cobre **derivação de status / KPIs / payload do drawer** — não os 5 cenários HTTP abaixo.
+> Os 5 cenários ficam registrados como **promessa não cumprida** (charter promete, código não tem):
+> ver `Index.casos.md` §Backlog. **Podar a promessa ou construir os testes é decisão de [W]** — o
+> agente não escolhe vencedor em divergência de intenção.
+>
+> **Contrato executável de verdade:** [`Index.casos.md`](Index.casos.md) — UC-RBSUB-01..07.
+
+- Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php — cobre derivação de status
+  visual (5 estados), MRR com normalização de ciclo, churn sobre não-trialing e payload do drawer.
+- **Prometido e ausente** (5 cenários HTTP originais deste charter, mantidos como registro):
   1. `/recurring-billing` retorna 200 + Inertia render correto biz=1 autenticado com permission `recurringbilling.access`
   2. Cross-tenant isolation: subscription biz=1 NÃO aparece quando user biz=99
   3. `Inertia::defer` partial reload `only:[subscriptions]` returna só esse prop

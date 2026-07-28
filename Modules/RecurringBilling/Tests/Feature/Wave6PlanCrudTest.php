@@ -2,6 +2,21 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato das 3 telas de Plano (Index · Create · Edit) — CU-RB-01 do SDD §6.1.
+ *
+ * @covers-us US-RB-001
+ *
+ * UC (resources/js/Pages/RecurringBilling/Planos/*.casos.md):
+ *   UC-RBPLN-01 — excluir plano é soft delete, nunca hard          (Index.casos.md)
+ *   UC-RBPLN-02 — plano com assinatura ativa não pode ser excluído [V0] (Index.casos.md)
+ *   UC-RBPLN-03 — plano de outro business é invisível e intocável [T0]  (Index.casos.md)
+ *   UC-RBPNC-01 — plano nasce no business da sessão com slug derivado [T0] (Create.casos.md)
+ *   UC-RBPNC-02 — slug é único POR BUSINESS, nunca global [T0]          (Create.casos.md)
+ *   UC-RBPNE-01 — editar valor/ciclo preserva os demais campos [V0]     (Edit.casos.md)
+ *   UC-RBPNE-02 — editar plano de outro business é 404 [T0]             (Edit.casos.md)
+ */
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Http\Controllers\PlanController;

@@ -2,6 +2,18 @@
 
 declare(strict_types=1);
 
+/*
+ * Contrato de tela — RecurringBilling/Faturas/Index (lista de faturas).
+ *
+ * @covers-us US-RB-042
+ *
+ * UC (resources/js/Pages/RecurringBilling/Faturas/Index.casos.md · CU-RB-11 do SDD §6.1):
+ *   UC-RBFAT-01 — filtros de status · gateway · período · busca combinam
+ *   UC-RBFAT-02 — KPIs agregam pago-mês, pendente, atrasado e total
+ *   UC-RBFAT-03 — fatura de outro business não aparece [T0]
+ *   UC-RBFAT-04 — paginação reporta meta correta
+ */
+
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
