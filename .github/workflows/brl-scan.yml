@@ -23,8 +23,16 @@ name: BRL scan (valor monetário em linha nova)
 #
 # PROVAS na instalação (2026-07-28):
 #   - bite-test: roda contra os 4 commits que vazaram → 11 + 3 + 4 + 14 = 32 hits
-#   - FP: 0 em 38.324 linhas adicionadas dos últimos 120 commits de main
-#   - selftest 12/12 (linha removida/contexto não conta, R$ 0 e redacted não acusam)
+#   - FP medido (história COMPLETA, worktree desrasado): 20 commits → 0 hits / 2.410
+#     linhas · 60 → 3 / 16.260 · 120 → 6 / 38.442. Os 6 são valor de CENÁRIO DE TESTE
+#     (4 em *.casos.md, 1 em teste Pest do RecurringBilling) — a classe que o
+#     .github/brl-scan-allowlist.txt existe pra absorver. FP ≈ 0,016%, NÃO zero.
+#     ⚠️ ERRATA: a 1ª redação dizia "FP: 0 em 38.324 linhas". Era FALSO — o comando
+#     fazia `git checkout origin/main`, o que REMOVIA este script (novo, só na branch),
+#     o node falhava e o `grep -c` contava 0. Falha silenciosa lida como resultado.
+#     Pior: o worktree era shallow com 7 commits — 120 nunca esteve ao alcance.
+#   - selftest 16/16 (linha removida/contexto não conta, R$ 0 e redacted não acusam,
+#     arquivos da própria ferramenta isentos)
 
 on:
   pull_request:
