@@ -1039,17 +1039,32 @@ class ProductController extends Controller
 
             $product->product_description = $product_details['product_description'];
             $product->sub_unit_ids = ! empty($product_details['sub_unit_ids']) ? $product_details['sub_unit_ids'] : null;
-            $product->preparation_time_in_minutes = $product_details['preparation_time_in_minutes'];
+            // UC-PEDIT-06: a chave pode NÃO vir no payload — o `only()` acima só devolve o que o
+            // request mandou, e a tela React envia 18 das 33+ chaves que este writer lê. O acesso
+            // cru gerava `Undefined array key` → ErrorException → engolida pelo `catch (\Exception)`
+            // do fim do método → redirect SEM gravar nada (falha silenciosa, pior que 500).
+            // Ver resources/js/Pages/Produto/Edit.casos.md · UC-PEDIT-06.
+            if (array_key_exists('preparation_time_in_minutes', $product_details)) {
+                $product->preparation_time_in_minutes = $product_details['preparation_time_in_minutes'];
+            }
             $product->warranty_id = ! empty($request->input('warranty_id')) ? $request->input('warranty_id') : null;
             $product->secondary_unit_id = ! empty($request->input('secondary_unit_id')) ? $request->input('secondary_unit_id') : null;
 
-            if (! empty($request->input('enable_stock')) && $request->input('enable_stock') == 1) {
-                $product->enable_stock = 1;
-            } else {
-                $product->enable_stock = 0;
+            // UC-PEDIT-05 `[V0]` — AR-PROD-051/056 + REGRA MESTRE (memory/proibicoes.md, eixo
+            // ESTOQUE): editar a ficha do produto NÃO é o gesto que liga/desliga o controle de
+            // estoque. Ausência da chave = "o formulário não declarou nada sobre isto" → PRESERVA.
+            // O desligar continua possível porque o form DECLARA o valor: o Blade manda
+            // `<input type="hidden" name="enable_stock" value="0">` antes do checkbox
+            // (resources/views/product/edit.blade.php), então desmarcar envia 0 explícito.
+            if ($request->has('enable_stock')) {
+                $product->enable_stock = $request->input('enable_stock') == 1 ? 1 : 0;
             }
 
-            $product->not_for_selling = (! empty($request->input('not_for_selling')) && $request->input('not_for_selling') == 1) ? 1 : 0;
+            // UC-PEDIT-07 — AR-PROD-003/042: ausência não é "desmarcar". Mesmo contrato do
+            // enable_stock acima (hidden 0 no Blade declara o desligamento).
+            if ($request->has('not_for_selling')) {
+                $product->not_for_selling = $request->input('not_for_selling') == 1 ? 1 : 0;
+            }
 
             if (! empty($request->input('sub_category_id'))) {
                 $product->sub_category_id = $request->input('sub_category_id');
@@ -1068,10 +1083,10 @@ class ProductController extends Controller
                 }
             }
 
-            if (! empty($request->input('enable_sr_no')) && $request->input('enable_sr_no') == 1) {
-                $product->enable_sr_no = 1;
-            } else {
-                $product->enable_sr_no = 0;
+            // UC-PEDIT-07 — mesmo contrato do enable_stock/not_for_selling: ausência preserva,
+            // hidden 0 do Blade declara o desligamento.
+            if ($request->has('enable_sr_no')) {
+                $product->enable_sr_no = $request->input('enable_sr_no') == 1 ? 1 : 0;
             }
 
             //upload document
