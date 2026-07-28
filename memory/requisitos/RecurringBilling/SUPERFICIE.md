@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 138 arquivos em 19 papéis.
+**Total mapeado:** 145 arquivos em 20 papéis.
 
 ## Controllers — 11
 
@@ -155,9 +155,18 @@ module: RecurringBilling
 - [Edit.charter.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.charter.md)
 
-## Testes (Pest) — 39
+## Casos (contrato UC) — 6
 
-- 39 arquivos em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Configuracoes/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Faturas/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Index.casos.md)
+- [Create.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Create.casos.md)
+- [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
+
+## Testes (Pest) — 40
+
+- 40 arquivos em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 10
 
