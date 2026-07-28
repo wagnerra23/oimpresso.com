@@ -14,7 +14,7 @@ module: VozDoCliente
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/VozDoCliente/**` + `resources/js/Pages/VozDoCliente/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 12 arquivos em 9 papéis.
+**Total mapeado:** 13 arquivos em 10 papéis.
 
 ## Controllers — 3
 
@@ -29,6 +29,10 @@ module: VozDoCliente
 ## Models / Entities — 1
 
 - [Sinal.php](../../../Modules/VozDoCliente/Entities/Sinal.php)
+
+## Console / Commands — 1
+
+- [HabilitarVozDoClienteCommand.php](../../../Modules/VozDoCliente/Console/Commands/HabilitarVozDoClienteCommand.php)
 
 ## Providers — 2
 
