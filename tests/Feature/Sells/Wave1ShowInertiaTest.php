@@ -126,7 +126,30 @@ it('Controller show() expõe current_stage_key MAS NÃO seta (FSM safety ADR 014
     expect($method)->not->toMatch('/\$\w+->current_stage_id\s*=/');
 });
 
-it('Charter declara screen-pattern reuse de Sells/Index/SaleSheet (ADR 0149)', function () {
+/**
+ * O blueprint Cowork declarado no charter tem que EXISTIR no disco (ADR 0149).
+ *
+ * Este caso já reprovou por 2 meses sem ninguém ver — nenhuma lane rodava
+ * `tests/Feature/Sells/**` (medido 2026-07-27: 0 dos 214 alvos sqlite, 0 das 9 lanes
+ * MySQL). A versão anterior casava a string literal `vendas-cockpit`, um diretório que
+ * NÃO EXISTE no repo: `prototipo-ui/prototipos/vendas-cockpit/` nunca foi criado; o que
+ * existe é `prototipo-ui/cowork/vendas-page.jsx` (92 KB), exatamente o que o charter
+ * declara. O charter estava certo e o assert é que apontava pro fantasma — o RUNBOOK-show
+ * carregava o mesmo path morto e foi corrigido junto.
+ *
+ * Agora o assert mede o CONTRATO (o blueprint declarado resolve num arquivo/diretório
+ * real), não a string — então sobrevive a rename e pega o caso que importa: charter
+ * apontando pra lugar nenhum.
+ */
+it('Charter declara blueprint Cowork que EXISTE no disco (ADR 0149)', function () {
     $charter = file_get_contents(base_path(SHOW_CHARTER_PATH));
-    expect($charter)->toContain('vendas-cockpit');
+
+    preg_match('/blueprint_cowork:\s*"([^"]+)"/', $charter, $m);
+    $blueprint = $m[1] ?? '';
+
+    expect($blueprint)->not->toBeEmpty('Charter sem `blueprint_cowork` — ADR 0149 exige o screen-pattern reuse declarado.');
+    expect(file_exists(base_path($blueprint)))->toBeTrue(
+        "Charter declara blueprint_cowork `{$blueprint}`, que não existe no repo — "
+        . 'âncora de design apontando pra lugar nenhum (a próxima sessão "segue o blueprint" e não acha nada).'
+    );
 });

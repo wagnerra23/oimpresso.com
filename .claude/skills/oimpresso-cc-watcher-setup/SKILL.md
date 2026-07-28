@@ -33,7 +33,7 @@ test -f .claude/settings.local.json && grep -c "Bearer mcp_" .claude/settings.lo
 node --version  # esperado: ≥18
 
 # 3. Permission `copiloto.cc.ingest.self`?
-# (default: vem com `copiloto.mcp.use` que todos com token têm)
+# (default: vem com `jana.mcp.use` que todos com token têm)
 
 # 4. Schema MCP do CT 100 está ativo?
 curl -fsS https://mcp.oimpresso.com/api/cc/health 2>/dev/null
