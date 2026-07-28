@@ -109,14 +109,25 @@ export function scanBrlLeak(text) {
     }
     if (inFence) continue; // exemplo didático em ``` … ``` — whitelist
     if (BRL_STRICT.test(line)) {
-      // Se TODO R$<número> da linha for zero (R$ 0 / R$ 0,00), passa — ver BRL_ZERO.
-      // Basta UM valor não-zero na mesma linha para o bloqueio valer.
-      const semZeros = line.replace(new RegExp(BRL_ZERO.source, 'g'), '');
-      if (!BRL_STRICT.test(semZeros)) continue;
-      if (!line.includes(REDACTION)) {
+      // Neutraliza o que é LEGÍTIMO e testa o que SOBRA. A ordem importa:
+      //   1) tira as ocorrências já redigidas (`R$ [redacted Tier 0]`)
+      //   2) tira os zeros (`R$ 0`, `R$ 0,00` — buraco de cálculo, não dinheiro)
+      // Se ainda restar um R$<número>, é valor cru → bloqueia.
+      //
+      // ⚠️ ISTO CORRIGE UM BYPASS REAL (auditoria 2026-07-28). A versão anterior fazia
+      // `if (!line.includes(REDACTION))` — ou seja, a presença do sentinela em QUALQUER
+      // ponto dava passe à LINHA INTEIRA. O remédio virava a porta:
+      //     | MRR | R$ [redacted Tier 0] | R$ 5.000,00 |
+      // passava, e essa é a forma canônica de escrever antes→depois de valor. Caminho
+      // natural, não adversarial.
+      // FP MEDIDO ANTES: 3 linhas em 3.347 .md de memory/ mudam de veredito, e as 3
+      // carregam valor cru real ao lado do sentinela → true-positives pelo contrato.
+      const resto = line
+        .replace(new RegExp(REDACTION.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '')
+        .replace(new RegExp(BRL_ZERO.source, 'g'), '');
+      if (BRL_STRICT.test(resto)) {
         return { blocked: true, lineNumber: i + 1, line: line.trim(), advisory };
       }
-      // tem R$<número> MAS também o sentinela na linha → considerado redigido (passa).
     } else if (KEYWORD_ADVISORY.test(line)) {
       advisory.push({ lineNumber: i + 1, line: line.trim() });
     }
@@ -270,6 +281,17 @@ function selftest() {
   ok('R$ 0,50 BLOQUEIA (zero seguido de significativo)', scanBrlLeak('taxa R$ 0,50').blocked);
   ok('R$ 01 BLOQUEIA', scanBrlLeak('cod R$ 01').blocked);
   ok('R$ 0 + valor real na MESMA linha BLOQUEIA', scanBrlLeak('de R$ 0 para R$ 1.234,56').blocked);
+  // BYPASS DO SENTINELA (auditoria 2026-07-28) — a versão anterior dava passe à LINHA
+  // inteira quando `[redacted Tier 0]` aparecia em qualquer ponto. O remédio virava porta,
+  // e a forma canônica de escrever antes→depois de valor passava batido.
+  ok('sentinela + valor CRU na mesma linha BLOQUEIA (bypass fechado)',
+    scanBrlLeak('| MRR | R$ [redacted Tier 0] | R$ 5.000,00 |').blocked);
+  ok('só sentinela PASSA (o remédio legítimo segue funcionando)',
+    !scanBrlLeak('valor: R$ [redacted Tier 0]').blocked);
+  ok('sentinela + R$ 0 PASSA (ambos benignos)',
+    !scanBrlLeak('| de R$ [redacted Tier 0] para R$ 0 |').blocked);
+  ok('dois sentinelas sem cru PASSA',
+    !scanBrlLeak('R$ [redacted Tier 0] e R$ [redacted Tier 0]').blocked);
   ok('auto-mem ~/.claude/projects/.../memory/x.md NÃO é alvo (block-automem cuida)',
     !isMemoryMarkdownPath('C:/Users/w/.claude/projects/D--o/memory/x.md'));
 
