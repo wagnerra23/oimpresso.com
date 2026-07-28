@@ -2,8 +2,9 @@
 id: requisitos-kb-briefing
 module: KB
 status: parcial
-status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); a tela /kb/v2 ainda roda 100% MOCK — o Controller nunca ligou o dado ao frontend"
-updated_at: "2026-07-17"
+status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); /kb/v2 SAIU do mock em 2026-07-17 (KbController@indexV2 serve kb_nodes reais) mas o leitor ainda não mostra o corpo (bridge copia metadata, não body_blocks); /kb/graph SEGUE em mock (closure sem props, /kb/graph/data hardcoded vazio)"
+updated_at: "2026-07-28"
+distilled_by: "sdd-from-source (ADR 0351) — redestilação PARCIAL: só o status_nota + §Estado das telas foram reconciliados contra o código vivo neste run; o resto do BRIEFING segue com a foto de 2026-07-17"
 owner: W
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
@@ -25,8 +26,11 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 
 **Status honesto:** `parcial`.
 - ✅ **Backend LIVE em prod (biz=1):** schema `kb_*`, `KbBridgeFromMcpJob` populando `kb_nodes` a cada 15 min, taxonomia seeded, CRUD de artigo editável, permissions.
-- 🔴 **A tela `/kb/v2` NÃO serve o dado — roda MOCK.** A rota passa zero props → `usingMock=true` → mostra `MOCK_NODES`. Falta o Controller `indexV2` injetar `props.nodes` filtrado por `business_id`.
-- 🔴 **Mesmo ligada ao banco, nasceria vazia por categoria** para governança (biz=1): o filtro ancora em `category_id`, e a quase totalidade dos nós está com `category_id` NULL (ver §Bloqueador). Falta o **classificador** que lê `auto_match` — hoje com **zero leitores em PHP**.
+- ✅ **`/kb/v2` SAIU do mock (2026-07-17).** `KbController@indexV2` serve `kb_nodes` reais (+ categorias, subcategorias, `business.name`) e `KbIndexV2ContractTest` V5/V6 travam o payload. ⚠️ *A linha anterior deste briefing dizia "roda MOCK / falta o Controller `indexV2`" — ficou **stale** por 11 dias; reconciliado em 2026-07-28 pelo `sdd-from-source` contra `Modules/KB/Http/routes.php` + `KbController::indexV2`.*
+- 🟡 **O leitor da V2 ainda não mostra o corpo** do documento bridgeado: `KbBridgeFromMcpJob` copia **metadata, não `body_blocks`** (limite declarado no docblock do `indexV2`). Título + excerpt, não o texto.
+- 🔴 **`/kb/graph` continua fachada:** a rota é closure `Inertia::render('kb/Graph')` **sem props** e `/kb/graph/data` devolve `{nodes:[],edges:[],kpis:null}` hardcoded → cai em `_lib/mockGraphData.ts`. Nenhum Controller do KB a serve.
+- 🔴 **Categoria: a lista de governança (biz=1) nasce vazia por categoria** — o filtro ancora em `category_id` e a quase totalidade dos nós está NULL (ver §Bloqueador). Falta o **classificador** que lê `auto_match` — hoje com **zero leitores em PHP**.
+- 🟡 **A tela `/kb` (V3, o browser do acervo canon) ganhou seu 1º contrato executável em 2026-07-28** — antes disso não tinha nenhum. Ver [SDD](SDD-tela-kb-unificado-v1.0.md) + [`Index.casos.md`](../../../resources/js/Pages/kb/Index.casos.md).
 
 ---
 

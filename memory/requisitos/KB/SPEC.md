@@ -16,6 +16,14 @@ owner: wagner
 > Schema técnico: **[SCHEMA-DB-V1.md](SCHEMA-DB-V1.md)**.
 > Estado consolidado 1-pager: **[BRIEFING.md](BRIEFING.md)**.
 > Benchmark de mercado: **[CAPTERRA-FICHA.md](CAPTERRA-FICHA.md)** (Bench v5 ~9,55-9,70/10).
+> **Design/fluxos/casos de uso: [SDD-tela-kb-unificado-v1.0.md](SDD-tela-kb-unificado-v1.0.md)** (§5.3 fluxos `F1..F9` · §6 `CU-KB-01..10`).
+
+> ⚠️ **Cobertura destas US ≠ cobertura do módulo (medido 2026-07-28).** A tela `/kb` (`kb/Index`,
+> o browser do acervo canon sobre `mcp_memory_documents`) **não é coberta por nenhuma US-KB-***: ela
+> descende de `MEM-KB-1` / [ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md),
+> anterior a esta numeração (ver o cabeçalho `@memcofre` de `resources/js/Pages/kb/Index.tsx`).
+> Seu contrato executável vive em [`Index.casos.md`](../../../resources/js/Pages/kb/Index.casos.md)
+> (`UC-KB-01..06`) e no SDD §6.1 — **não** aqui. Criar uma US pra ela é decisão de [W], não do agente.
 
 ## 1. Missão
 
@@ -30,7 +38,9 @@ Cérebro consultável da empresa sobre TODO conhecimento (ADRs, sessions, charte
 **quero** ver os 143 ADRs do projeto como nós navegáveis no grafo KB,
 **para** poder consultar dependências (supersedes/related/charter-of) sem grep cego em filesystem.
 
-Critérios:
+**Testado em:** `Modules/KB/Tests/Feature/CrossTenantIsolationTest.php`
+
+**Critérios de aceite:**
 - `KbBridgeFromMcpJob` cria `kb_nodes` (type=adr, is_editable=false, source_doc_id=mcp_memory_documents.id)
 - Frontmatter `supersedes:` vira aresta `kb_edges` tipo `supersedes` (auto-derivada)
 - Cross-link `#kb-NNN` em body vira aresta `cross-link`
@@ -44,7 +54,9 @@ Critérios:
 **quero** criar artigo "Como trocar tinta Roland VS-540" com blocks (h1/p/img/code),
 **para** consolidar SOP do balcão sem depender de Wagner editar manualmente git.
 
-Critérios:
+**Testado em:** `Modules/KB/Tests/Unit/KbArticleServiceUnitTest.php`
+
+**Critérios de aceite:**
 - `kb_nodes.type=article` + `is_editable=true` + `body_blocks=array`
 - Block editor frontend (Composer.tsx) com tipos: paragraph, heading, image, code, callout
 - Versionamento via `kb_node_versions` (snapshot append-only por save)
@@ -58,7 +70,9 @@ Critérios:
 **quero** perguntar "qual ADR rege multi-tenant aqui?" e receber resposta com citações,
 **para** descobrir conhecimento sem precisar memorizar 143 slugs ADR.
 
-Critérios:
+**Testado em:** `Modules/KB/Tests/Feature/KbRagServiceMultiTenantTest.php`
+
+**Critérios de aceite:**
 - `KbRagService` roteia via `Modules/Jana/Ai/` (laravel/ai SDK + MeilisearchDriver hybrid embedder)
 - Retorna `RagResult` DTO com summary + array de `CitationResult` (node_id + score)
 - Reranker BGE (`KbBgeRerankerService`) ordena resultados por relevância semântica
@@ -72,7 +86,9 @@ Critérios:
 **quero** trilha "Como abrir OS no balcão" com 7 passos em ordem,
 **para** treinar Mateus novo funcionário sem retrabalho de explicar oralmente.
 
-Critérios:
+**Testado em:** `Modules/KB/Tests/Feature/Http/KbPathControllerTest.php`
+
+**Critérios de aceite:**
 - `kb_paths` + `kb_path_steps` (UNIQUE position) ordenam nós
 - Persona-target (audience: larissa|wagner|mateus|eliana)
 - Progresso por dispositivo via localStorage `oimpresso.kb.paths`
@@ -85,30 +101,55 @@ Critérios:
 **quero** decision-tree "Roland não imprime?" com bifurcações até Fix,
 **para** resolver problema sem ligar pra Wagner.
 
-Critérios:
+**Testado em:** `Modules/KB/Tests/Feature/Http/KbDecisionTreeControllerTest.php`
+
+**Critérios de aceite:**
 - `kb_decision_trees` + `kb_decision_tree_steps` (yes_next/yes_fix + no_next/no_fix)
 - Invariante: cada step tem EXATAMENTE UM de (next_step OR fix) por branch (Observer)
 - Fix pode linkar artigo kb_node via `yes_fix_node_id` → edge `fix-of-decision`
 
-### US-KB-006 — Visualização-grafo Cytoscape (ONDA 5)
+### US-KB-006 — Visualização-grafo (ONDA 5) — 🔴 **FACHADA: front sem backend**
 
-**Implementado em:** `Modules/KB/Http/Controllers/Admin/GraphController.php` · `resources/js/Pages/kb/Graph.tsx` · `resources/js/Pages/kb/_components/GraphCanvas.tsx` · `resources/js/Pages/kb/_components/GraphFilters.tsx` · `resources/js/Pages/kb/_components/GraphLegend.tsx` · `resources/js/Pages/kb/_components/GraphNodeDetail.tsx` · `Modules/KB/Entities/KbEdge.php` · verificado@98cae0a (2026-06-18)
+**Implementado em:** `resources/js/Pages/kb/Graph.tsx` · `resources/js/Pages/kb/_components/GraphCanvas.tsx` · `resources/js/Pages/kb/_components/GraphFilters.tsx` · `resources/js/Pages/kb/_components/GraphLegend.tsx` · `resources/js/Pages/kb/_components/GraphNodeDetail.tsx` · `Modules/KB/Entities/KbEdge.php` · verificado@98cae0a (2026-06-18) — **backend `_pendente_`**
+
+> ⚠️ **Errata de âncora (2026-07-28, `sdd-from-source`).** A v1 desta linha citava
+> `Modules/KB/Http/Controllers/Admin/GraphController.php` como implementação. **Ele não serve esta
+> tela.** Varredura contada (`git grep -n "GraphController" -- '*.php'`, sem corte): 4 linhas, e a
+> **única** rota que o instancia está em `Modules/ADS/Routes/web.php` → `ads.admin.graph.index`
+> (`/ads/admin/graph`), montando o grafo Memory↔Skills↔Policy↔Tools do ADS. A rota `/kb/graph`
+> (`Modules/KB/Http/routes.php`) é uma **closure `Inertia::render('kb/Graph')` sem props**, e
+> `/kb/graph/data` devolve `{nodes:[],edges:[],kpis:null}` **hardcoded** → `Graph.tsx` cai em
+> `_lib/mockGraphData.ts` com badge "modo mock". O `anchor-lint` já acusava por outro caminho
+> (*"US-KB-006 wired porém NÃO-SERVIDO — 0 hits na janela do ledger"*). O arquivo existia, então a
+> âncora passava no gate — **path existente não é implementação da US**. Construir o
+> `KbGraphController` real é decisão de produto de [W]. Ver [SDD §9 D-3](SDD-tela-kb-unificado-v1.0.md).
+>
+> Nota de doc: o critério abaixo diz **Cytoscape**; o código escolheu **Reactflow 11** (justificativa
+> registrada no cabeçalho de `Graph.tsx`). Divergência não reconciliada — decisão de [W].
+
 **Como** Wagner,
-**quero** ver os 143 ADRs num grafo navegável (Cytoscape.js) com edges supersedes/related,
+**quero** ver os 143 ADRs num grafo navegável com edges supersedes/related,
 **para** entender dependências arquiteturais visualmente.
 
-Critérios:
+**Critérios de aceite:**
 - `Pages/kb/Graph.tsx` renderiza JSON do `KbGraphController` via Cytoscape
 - Filtros por type (adr/session/charter), por business, por categoria
 - Performance: paginação server-side se >500 nós
 - Densidade Larissa 1280px (sem rounded-xl, sem padding wasted)
 
-### US-KB-007 — Imprimir SOP balcão físico (ONDA 5)
+### US-KB-007 — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
+
+**Implementado em:** _pendente_
+
+> Varredura contada 2026-07-28 (`git grep -n "KBPrintSOP\|PrintSop\|print-sop" -- '*.tsx' '*.php'`):
+> **2 ocorrências, ambas comentário** — a rota `print-sop` está comentada em
+> `Modules/KB/Http/routes.php` e o componente é `TODO[CL]` no `Index.v2.tsx`. Nenhum código.
+
 **Como** Larissa,
 **quero** imprimir artigo "Setup tinta Roland" no layout oficial Oimpresso,
 **para** colar ao lado da impressora física como referência rápida.
 
-Critérios:
+**Critérios de aceite:**
 - `KBPrintSOP` component CSS print media query
 - Header com logo + business name + última edição + autor
 - Footer com URL canon `oimpresso.com/kb/{slug}` (QR Code)

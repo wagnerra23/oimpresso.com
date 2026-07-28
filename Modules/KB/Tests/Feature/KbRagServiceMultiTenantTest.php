@@ -7,6 +7,11 @@ use Modules\KB\Services\KbRagService;
 /**
  * Wave 12 — KbRagService multi-tenant Tier 0 (ADR 0093) + cross-tenant biz=1 vs biz=99.
  *
+ * @covers-us US-KB-003
+ *   Cobre o critério "pergunta de biz=1 nunca recupera nós de biz=4" da US-KB-003
+ *   (com biz=99 fictício — ADR 0101) + o contrato de cache por (biz, pergunta).
+ *   NÃO cobre a qualidade da resposta RAG (dono: KbRagasEvalTest / ADR 0318).
+ *
  * Cobertura nova:
  *   1. assertBusinessId rejeita business_id inválido (0, negativo)
  *   2. cache keys são isoladas por business_id (biz=1 NUNCA reusa cache biz=99)

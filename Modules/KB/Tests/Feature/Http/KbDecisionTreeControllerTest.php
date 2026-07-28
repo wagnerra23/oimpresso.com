@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 /**
+ * @covers-us US-KB-005
+ *   Cobre os endpoints do troubleshooter (kb_decision_trees + steps) incluindo a FK
+ *   circular root_step_id. ⚠️ NÃO está na allowlist do kb-pest.yml — bloqueio de
+ *   ISOLAMENTO de teste (GAP 2 do YAML), não de código. "Verde impossível" até o PR
+ *   de test-infra. Estado declarado: SDD §8.1.
+ *
  * Feature specs — Troubleshooters (SCHEMA-DB-V1 §11):
  *   GET   /kb/decision-trees
  *   GET   /kb/decision-trees/{slug}
