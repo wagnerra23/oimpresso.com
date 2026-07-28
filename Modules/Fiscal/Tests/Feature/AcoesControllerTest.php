@@ -10,41 +10,28 @@ uses(Tests\TestCase::class);
  * AcoesController é thin delegate pra NfeService::cancelar (FSM cascade ADR 0143)
  * e ManifestacaoService (4 ações DF-e).
  *
- * ⚠️ LIMITE DESTE ARQUIVO (medido 2026-07-27) — 13 dos 18 casos aqui são TAUTOLÓGICOS: montam
- * um `validator([...], [...])` LOCAL com as regras reescritas à mão, ou assertam um array literal
- * declarado na linha acima. Eles testam o Laravel (e o próprio teste), não o `AcoesController`:
- * trocar `min:15` por `min:5` no Controller NÃO os derruba. O contrato REAL das mesmas regras
- * vive em `AcoesContratoTest` (UC-FNFE-04/05/06/07), que invoca os métodos do Controller e tem
- * mordida provada. Estes 18 ficam como candidatos a subtração — decisão [W], não do agente.
+ * ⚠️ PODA 2026-07-28 (decisão [W]) — 11 casos foram REMOVIDOS por serem TAUTOLÓGICOS: montavam um
+ * `validator([...], [...])` LOCAL com as regras reescritas à mão, ou assertavam um array literal
+ * declarado uma linha acima. Testavam o Laravel (e o próprio teste), não o `AcoesController` —
+ * trocar `min:15` por `min:5` no Controller NÃO os derrubava. Todos têm substituto com mordida
+ * provada em `AcoesContratoTest` (UC-FNFE-04/05/06), que invoca os métodos do Controller.
  *
- * Os 5 casos ESTRUTURAIS (métodos/rota/Services existem) tocam produção de verdade e ancoram
- * `UC-FNFE-08`.
+ * Exceção declarada: `retransmitir contrato: status válidos` também era tautológico e foi removido
+ * SEM substituto — no Controller a whitelist de status é checada DEPOIS do `firstOrFail()`, então
+ * exige `nfe_emissoes`, indisponível nas lanes de hoje. A lacuna está no backlog de `Nfe.casos.md`.
  *
- * Guard de banco removido 2026-07-27: nenhum caso deste arquivo consulta tabela (validator local,
- * `class_exists`, `Route::has`, reflection), mas o `beforeEach` skipava os 18 quando
- * `nfe_emissoes` faltava — inclusive os 5 estruturais, que passavam a não rodar em lane nenhuma.
+ * O que FICA (7 casos):
+ *  - 5 ESTRUTURAIS (métodos/rota/Services existem, via reflection) → ancoram `UC-FNFE-08`;
+ *  - 2 de manifestação DF-e → ancoram `UC-FDFE-03`/`UC-FDFE-04` (tela `Fiscal/Dfe`). Estes DOIS
+ *    seguem tautológicos (assertam arrays locais), mas NÃO foram removidos porque são a cobertura
+ *    G-2 declarada por outra tela. O comportamento real já é provado por
+ *    `AcoesContratoTest::UC-FNFE-07`; re-apontar os UCs do DF-e pra lá é trabalho do dono daquela
+ *    tela, não carona deste PR.
+ *
+ * Guard de banco removido 2026-07-27: nenhum caso deste arquivo consulta tabela (`class_exists`,
+ * `Route::has`, reflection), mas o `beforeEach` skipava todos quando `nfe_emissoes` faltava —
+ * inclusive os estruturais, que passavam a não rodar em lane nenhuma.
  */
-
-it('cancelarNfe rejeita motivo < 15 chars (regra CONFAZ SINIEF 07/2005)', function () {
-    // Defesa estrutural: testamos validação direta sem precisar de DB real.
-    // Smoke completo via Pest browser MCP pós-merge biz=1.
-    $validator = validator(
-        ['motivo' => 'curto'],
-        ['motivo' => ['required', 'string', 'min:15', 'max:255']]
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('motivo'))->toBeTrue();
-});
-
-it('cancelarNfe aceita motivo válido ≥15 chars', function () {
-    $validator = validator(
-        ['motivo' => 'Cliente desistiu pós-emissão, refaturado V-1234'],
-        ['motivo' => ['required', 'string', 'min:15', 'max:255']]
-    );
-
-    expect($validator->fails())->toBeFalse();
-});
 
 it('UC-FDFE-03 · manifestarDfe whitelist exatamente 4 ações canon SEFAZ', function () {
     $acoesValidas = ['cienciar', 'confirmar', 'desconhecer', 'nao_realizada'];
@@ -81,18 +68,6 @@ it('UC-FNFE-08 · AcoesController classe existe e tem 5 métodos públicos esper
     expect(method_exists($controller, 'retransmitir'))->toBeTrue();
 });
 
-// ──────────────────────────────────────────────────────────────────────
-// PR #6 Wave — Retransmitir NFe rejeitada/denegada
-// ──────────────────────────────────────────────────────────────────────
-
-it('retransmitir contrato: status válidos = rejeitada/denegada/erro_envio', function () {
-    $statusRetransmissiveis = ['rejeitada', 'denegada', 'erro_envio'];
-    expect($statusRetransmissiveis)
-        ->toHaveCount(3)
-        ->toContain('rejeitada', 'denegada', 'erro_envio')
-        ->not->toContain('autorizada', 'cancelada', 'inutilizada', 'pendente');
-});
-
 it('UC-FNFE-08 · retransmitir contrato: NfeService::retransmitir signature int/int → NfeEmissao', function () {
     $reflection = new ReflectionMethod(\Modules\NfeBrasil\Services\NfeService::class, 'retransmitir');
     $params = $reflection->getParameters();
@@ -105,143 +80,6 @@ it('UC-FNFE-08 · retransmitir contrato: NfeService::retransmitir signature int/
 
 it('UC-FNFE-08 · retransmitir route POST registrada (acoes.nfe.retransmitir)', function () {
     expect(\Illuminate\Support\Facades\Route::has('fiscal.acoes.nfe.retransmitir'))->toBeTrue();
-});
-
-// ──────────────────────────────────────────────────────────────────────
-// PR #5 Wave — CCe (Carta de Correção Eletrônica) + Inutilização faixa
-// ──────────────────────────────────────────────────────────────────────
-
-it('cartaCorrecao rejeita texto correção <15 chars (CONFAZ Art. 14)', function () {
-    $validator = validator(
-        ['texto_correcao' => 'curto', 'n_seq_evento' => 1],
-        [
-            'texto_correcao' => ['required', 'string', 'min:15', 'max:1000'],
-            'n_seq_evento'   => ['required', 'integer', 'min:1', 'max:20'],
-        ],
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('texto_correcao'))->toBeTrue();
-});
-
-it('cartaCorrecao rejeita texto correção >1000 chars (limite SEFAZ)', function () {
-    $textoLongo = str_repeat('a', 1001);
-    $validator = validator(
-        ['texto_correcao' => $textoLongo, 'n_seq_evento' => 1],
-        [
-            'texto_correcao' => ['required', 'string', 'min:15', 'max:1000'],
-            'n_seq_evento'   => ['required', 'integer', 'min:1', 'max:20'],
-        ],
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('texto_correcao'))->toBeTrue();
-});
-
-it('cartaCorrecao rejeita n_seq_evento fora de 1-20 (CONFAZ Art. 14)', function () {
-    foreach ([0, 21, -1, 100] as $seqInvalida) {
-        $validator = validator(
-            ['texto_correcao' => str_repeat('a', 20), 'n_seq_evento' => $seqInvalida],
-            [
-                'texto_correcao' => ['required', 'string', 'min:15', 'max:1000'],
-                'n_seq_evento'   => ['required', 'integer', 'min:1', 'max:20'],
-            ],
-        );
-        expect($validator->fails())->toBeTrue("seq={$seqInvalida} deve falhar")
-            ->and($validator->errors()->has('n_seq_evento'))->toBeTrue();
-    }
-});
-
-it('cartaCorrecao aceita texto válido (15-1000) + seq 1-20', function () {
-    $validator = validator(
-        ['texto_correcao' => 'Endereço do destinatário corrigido pra Rua A, 1234', 'n_seq_evento' => 1],
-        [
-            'texto_correcao' => ['required', 'string', 'min:15', 'max:1000'],
-            'n_seq_evento'   => ['required', 'integer', 'min:1', 'max:20'],
-        ],
-    );
-
-    expect($validator->fails())->toBeFalse();
-});
-
-it('inutilizar valida modelo (whitelist 55/65)', function () {
-    foreach (['54', '56', 'abc', '5'] as $modeloInvalido) {
-        $validator = validator(
-            [
-                'modelo' => $modeloInvalido,
-                'serie' => '1', 'numero_de' => 1, 'numero_ate' => 1,
-                'justificativa' => str_repeat('x', 20),
-            ],
-            [
-                'modelo'        => ['required', 'string', 'in:55,65'],
-                'serie'         => ['required', 'string', 'max:3'],
-                'numero_de'     => ['required', 'integer', 'min:1'],
-                'numero_ate'    => ['required', 'integer', 'min:1', 'gte:numero_de'],
-                'justificativa' => ['required', 'string', 'min:15', 'max:255'],
-            ],
-        );
-        expect($validator->fails())->toBeTrue("modelo={$modeloInvalido} deve falhar");
-    }
-});
-
-it('inutilizar rejeita faixa inválida (numero_ate < numero_de)', function () {
-    $validator = validator(
-        [
-            'modelo' => '55', 'serie' => '1',
-            'numero_de' => 100, 'numero_ate' => 50,
-            'justificativa' => str_repeat('x', 20),
-        ],
-        [
-            'modelo'        => ['required', 'string', 'in:55,65'],
-            'serie'         => ['required', 'string', 'max:3'],
-            'numero_de'     => ['required', 'integer', 'min:1'],
-            'numero_ate'    => ['required', 'integer', 'min:1', 'gte:numero_de'],
-            'justificativa' => ['required', 'string', 'min:15', 'max:255'],
-        ],
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('numero_ate'))->toBeTrue();
-});
-
-it('inutilizar rejeita justificativa <15 chars (regra SEFAZ)', function () {
-    $validator = validator(
-        [
-            'modelo' => '55', 'serie' => '1',
-            'numero_de' => 1, 'numero_ate' => 5,
-            'justificativa' => 'curto',
-        ],
-        [
-            'modelo'        => ['required', 'string', 'in:55,65'],
-            'serie'         => ['required', 'string', 'max:3'],
-            'numero_de'     => ['required', 'integer', 'min:1'],
-            'numero_ate'    => ['required', 'integer', 'min:1', 'gte:numero_de'],
-            'justificativa' => ['required', 'string', 'min:15', 'max:255'],
-        ],
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('justificativa'))->toBeTrue();
-});
-
-it('inutilizar aceita payload válido (modelo 55/65, faixa 1..N, just 15-255)', function () {
-    foreach (['55', '65'] as $modelo) {
-        $validator = validator(
-            [
-                'modelo' => $modelo, 'serie' => '1',
-                'numero_de' => 100, 'numero_ate' => 105,
-                'justificativa' => 'NFe rejeitada SEFAZ cstat 539 — inutilizando faixa.',
-            ],
-            [
-                'modelo'        => ['required', 'string', 'in:55,65'],
-                'serie'         => ['required', 'string', 'max:3'],
-                'numero_de'     => ['required', 'integer', 'min:1'],
-                'numero_ate'    => ['required', 'integer', 'min:1', 'gte:numero_de'],
-                'justificativa' => ['required', 'string', 'min:15', 'max:255'],
-            ],
-        );
-        expect($validator->fails())->toBeFalse("modelo={$modelo} deve passar");
-    }
 });
 
 it('UC-FNFE-08 · NfeCartaCorrecaoService classe existe e tem método aplicar público', function () {
