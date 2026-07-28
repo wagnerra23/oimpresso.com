@@ -170,10 +170,29 @@ function main() {
   let adicionadas = [];
 
   if (argv.includes('--stdin')) {
-    // PR body / commit subjects — cada linha conta como "adicionada".
+    // PR body / commit subjects.
+    //
+    // O texto vai INTEIRO ao scanBrlLeak, não linha a linha — senão o fence nunca
+    // fecha e a whitelist de bloco de código (que o hook honra desde sempre) fica
+    // morta aqui. Sem isso, um PR que DOCUMENTA o predicado dispara o predicado:
+    // aconteceu neste próprio PR, com `R$ 0,50` citado como exemplo do que bloqueia.
+    // Mesmo trade-off que o hook já aceita: exemplo didático vai em ``` … ```.
     const txt = readFileSync(0, 'utf8');
-    adicionadas = txt.split('\n').map((l) => ({ arquivo: '(texto)', linha: l }));
-  } else {
+    const r = scanBrlLeak(txt);
+    const allowTxt = carregarAllowlist();
+    if (r.blocked && !allowTxt.some((a) => r.line.includes(a))) {
+      console.error('\n1 linha com valor BRL não-redigido no texto (valor MASCARADO):\n');
+      console.error(`  linha ${r.lineNumber}: ${mascarar(r.line)}`);
+      console.error('\nSe for EXEMPLO didático, ponha em bloco de código (``` … ```) — igual ao hook.');
+      console.error('Se for valor real: R$ [redacted Tier 0], ou comunique fora-banda.');
+      console.error('\nADVISORY: não bloqueia merge (ADR 0271/0275).');
+      process.exit(1);
+    }
+    console.log(`brl-scan-diff: texto varrido (${txt.split('\n').length} linhas); fence respeitado.`);
+    console.log('OK — nenhum valor BRL não-redigido.');
+    process.exit(0);
+  }
+  {
     const i = argv.indexOf('--base');
     const base = i >= 0 ? argv[i + 1] : null;
     if (!base) {
