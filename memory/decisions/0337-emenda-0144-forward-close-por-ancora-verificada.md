@@ -3,9 +3,9 @@ slug: 0337-emenda-0144-forward-close-por-ancora-verificada
 number: 337
 title: "Emenda à 0144 — o sync FECHA-pra-frente um card quando a âncora está verificada (anchored_ok) + SPEC declara done; nunca reabre"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 kind: decision
 decided_by: [W]
 decided_at: "2026-07-14"
@@ -16,7 +16,7 @@ quarter: 2026-Q3
 tags: [governance, tasks, mcp, taskregistry, sync, ancora, done-ness, forward-close, reconciliacao]
 supersedes: []
 supersedes_partially: []
-superseded_by: []
+superseded_by: [0355-doneness-consolidada-ancora-fecha-dod-veta]
 related:
   - 0144-tasks-db-canonico-spec-template
   - 0237-jana-reconcile-loop-unico

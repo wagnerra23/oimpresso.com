@@ -3,9 +3,9 @@ slug: 0302-fonte-unica-doneness-anchor-aposenta-status-spec
 number: 302
 title: "Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pronta; o status: do blockquote é aposentado como sinal de done-ness e a contradição vira catraca"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 kind: decision
 decided_by: [W]
 decided_at: "2026-06-22"
@@ -13,7 +13,7 @@ module: governance
 quarter: 2026-Q2
 tags: [sdd, spec, done-ness, dual-source, fonte-unica, status, anchor, implementado-em, gate, ratchet, governanca]
 supersedes: []
-superseded_by: []
+superseded_by: [0355-doneness-consolidada-ancora-fecha-dod-veta]
 related: ["0273-anchor-spec-codigo-formato-canonico-fluxo-novo", "0271-revisao-gates-ci-estado-real-required-e-subtracao-segura", "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes", "0256-knowledge-survival-meia-vida-catraca-sentinela", "0258-processo-adr-estado-arte-indice-gerado-supersede-atomico", "0070-jira-style-task-management-current-md-removed"]
 pii: false
 ---

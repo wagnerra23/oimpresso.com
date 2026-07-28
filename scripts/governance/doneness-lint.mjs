@@ -43,7 +43,8 @@
 // Node puro (fs). Sem deps, sem DB, sem PHP. Idioma: clone de anchor-lint.mjs (ADR 0273).
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, resolve, basename } from 'node:path';
+import { particionarSpecs } from './lib/spec-encerrado.mjs';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
@@ -195,6 +196,18 @@ if (args.length) {
   specs = readdirSync(REQ, { withFileTypes: true })
     .filter((e) => e.isDirectory() && existsSync(join(REQ, e.name, 'SPEC.md')))
     .map((e) => join(REQ, e.name, 'SPEC.md')).sort();
+}
+
+// SPEC encerrado (frontmatter status: historical|arquivado) sai do corpus — 56 US de 8
+// SPECs mortos inflavam este gate required. Uniforme full-tree/diff-aware; aviso em
+// STDERR (o stdout serve report). Racional em lib/spec-encerrado.mjs.
+{
+  const { vivos, encerrados } = particionarSpecs(specs);
+  if (encerrados.length) {
+    specs = vivos;
+    console.error(`  ⚰️  ${encerrados.length} SPEC(s) FORA do gate (status: historical|arquivado): `
+      + encerrados.map(([p, s]) => `${basename(dirname(p))}(${s})`).join(' · '));
+  }
 }
 
 const modules = specs.map((f) => ({ module: dirname(f).split(/[\\/]/).pop(), ...lintSpec(f) }));

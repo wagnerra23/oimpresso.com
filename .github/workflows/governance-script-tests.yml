@@ -310,6 +310,12 @@ jobs:
       # todas advisory (lei ADR 0314): doneness v2 (done×DoD aberto) + sweep de teste órfão.
       - name: Doneness-lint v2 morde/solta (P15 · done × DoD checkbox aberto · fixtures)
         run: node scripts/governance/doneness-lint.test.mjs
+      # SPEC encerrado (status: historical|arquivado) fora do corpus de anchor-lint +
+      # doneness-lint. Par bite/release em cada caso: o controle-negativo (`rascunho`/`ativo`
+      # seguem DENTRO) é o que impede o filtro de virar exclusão cega. Mutantes mortos na
+      # origem: filtro-desligado → 5 FAIL · filtro-exagerado → 5 FAIL.
+      - name: SPEC encerrado sai do gate morde/solta (contrato morto ≠ dívida)
+        run: node scripts/governance/spec-encerrado.test.mjs
       - name: Selftest-registry CATRACA morde/solta (P15 · fixtures herméticas)
         run: node scripts/governance/selftest-registry-check.mjs --selftest
       - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
