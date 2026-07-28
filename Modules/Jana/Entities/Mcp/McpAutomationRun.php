@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Espelha McpSkillVersion (append-only puro): cada run é um INSERT, nunca
  * UPDATE/DELETE. Segue a imutabilidade de audit (ENFORCEMENT.md §L7).
  *
+ * ⚠️ Isso é CONVENÇÃO deste código, **não garantia do banco**: não há trigger
+ * de imutabilidade nesta tabela — só `mcp_audit_log` e `mcp_task_events` têm.
+ * "Nunca UPDATE/DELETE" descreve o que o código faz, não o que o banco impede.
+ *
  * Sem business_id by design — herda a natureza global de McpAutomation (infra
  * de plataforma, ADR 0093 exceção). O registry não lê dados de tenant.
  *

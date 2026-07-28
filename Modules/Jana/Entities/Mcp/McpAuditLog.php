@@ -11,7 +11,9 @@ use Modules\Jana\Services\Mcp\AuditChainService;
 /**
  * MEM-MCP-1.a (ADR 0053) — Audit log IMUTÁVEL de chamadas MCP.
  *
- * Append-only: nunca UPDATE/DELETE. Para LGPD, retenção mínima 1 ano.
+ * Append-only GARANTIDO PELO BANCO: os triggers `trg_mcp_audit_log_no_update` e
+ * `trg_mcp_audit_log_no_delete` fazem SIGNAL em qualquer UPDATE/DELETE — não é
+ * convenção. Para LGPD, retenção mínima 1 ano.
  * Cada chamada gera 1 linha com request_id UUID. Usar `registrar()`
  * factory pra criação consistente; nunca instanciar direto.
  *
