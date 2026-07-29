@@ -16,6 +16,7 @@ use Laravel\Ai\Responses\AgentResponse;
 use Laravel\Ai\Responses\Data\Meta;
 use Laravel\Ai\Responses\Data\Usage;
 use Modules\Jana\Jobs\Telemetry\LangfuseTraceJob;
+use Modules\Jana\Jobs\Telemetry\JudgeTraceOnlineJob;
 
 uses(Tests\TestCase::class);
 
@@ -79,6 +80,21 @@ beforeEach(function () {
     config()->set('langfuse.sample_rate', 1.0);
     config()->set('langfuse.redact_pii', false);
     config()->set('langfuse.dispatch', 'queue');
+    config()->set('copiloto.online_eval.enabled', false);
+});
+
+it('online eval ativo despacha o judge na fila exclusiva do CT 100', function () {
+    config()->set('copiloto.online_eval.enabled', true);
+    config()->set('copiloto.online_eval.sample_rate', 1.0);
+    Bus::fake();
+
+    event(makeAgentPromptedEvent(businessId: 1));
+
+    Bus::assertDispatched(JudgeTraceOnlineJob::class, function (JudgeTraceOnlineJob $job) {
+        return $job->businessId === 1
+            && $job->connection === 'database'
+            && $job->queue === 'jana-online-eval';
+    });
 });
 
 it('AgentPrompted emite trace + generation num único batch com business_id', function () {

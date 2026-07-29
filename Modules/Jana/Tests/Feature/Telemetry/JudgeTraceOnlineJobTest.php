@@ -55,14 +55,23 @@ it('shouldSample: ~5% sobre 10k traces (não 0%, não 100%)', function () {
 
 // ── 2. WIRING — o bloco online_eval mora onde o código lê (copiloto.*) ────────
 
-it('config default: online_eval resolve em copiloto.* (o namespace que o código lê)', function () {
+it('config ativa: online_eval resolve em copiloto.* (o namespace que o código lê)', function () {
     // O Job/Listener leem `copiloto.online_eval.*`. Antes do fix liam `jana.online_eval.*`,
     // que NÃO existe → enabled=true no config.php não ligava nada. Este teste morde isso.
-    expect(config('copiloto.online_eval.enabled'))->toBeFalse();
+    expect(config('copiloto.online_eval.enabled'))->toBeTrue();
     expect(config('copiloto.online_eval.judge'))->toBe('local');
     expect(config('copiloto.online_eval.sample_rate'))->toBe(0.05);
     // A prova negativa: o namespace antigo é vazio (era o bug).
     expect(config('jana.online_eval.enabled'))->toBeNull();
+});
+
+it('roteia o judge para a fila database exclusiva do CT 100', function () {
+    $job = new JudgeTraceOnlineJob('trace-route', 1, 'contexto', 'resposta');
+
+    expect($job->connection)->toBe('database')
+        ->and($job->queue)->toBe('jana-online-eval')
+        ->and($job->tries)->toBe(1)
+        ->and($job->timeout)->toBe(180);
 });
 
 // ── 3. judge=local (default) → juiz Ollama, PII redigida ANTES do juiz ────────
