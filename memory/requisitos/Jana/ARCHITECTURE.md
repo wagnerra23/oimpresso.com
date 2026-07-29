@@ -155,8 +155,8 @@ A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de te
 | Provedores declarados | **15** · default `openai` | `config/ai.php` — declaração, não credencial viva |
 | Implementações de `MemoriaContrato` | **4** | contrato PHP, fora de `Tests/` |
 | Implementações de `Reranker` | **4** | contrato PHP, fora de `Tests/` |
-| Agentes de engenharia | **24** | `.claude/agents/*.md` — outra camada, não runtime PHP |
-| Serviços em compose versionado | **14** | `docker/**/docker-compose.yml` — declaração, não uptime |
+| Agentes de engenharia | **25** | `.claude/agents/*.md` — outra camada, não runtime PHP |
+| Serviços em compose versionado | **15** | `docker/**/docker-compose.yml` — declaração, não uptime |
 | Checks no baseline versionado de merge | **35** | `governance/required-checks-baseline.json` — o probe vivo é `protection-drift.mjs` |
 
 ## Agentes PHP por módulo
@@ -198,7 +198,7 @@ As **44** entradas acima são classes efetivamente registradas no array `$tools`
 | Compose | Serviços declarados | Qtd. |
 |---|---|---:|
 | [`docker/langfuse/docker-compose.yml`](../../../docker/langfuse/docker-compose.yml) | postgres-langfuse · clickhouse-langfuse · minio-langfuse · redis-langfuse · langfuse-web · langfuse-worker | 6 |
-| [`docker/oimpresso-mcp/docker-compose.yml`](../../../docker/oimpresso-mcp/docker-compose.yml) | mcp | 1 |
+| [`docker/oimpresso-mcp/docker-compose.yml`](../../../docker/oimpresso-mcp/docker-compose.yml) | mcp · jana-online-eval-worker | 2 |
 | [`docker/oimpresso-staging/docker-compose.yml`](../../../docker/oimpresso-staging/docker-compose.yml) | staging | 1 |
 | [`docker/oimpresso-workers/docker-compose.yml`](../../../docker/oimpresso-workers/docker-compose.yml) | oimpresso-workers · oimpresso-workers-horizon · oimpresso-workers-scheduler · oimpresso-workers-redis | 4 |
 | [`docker/ollama-embedder/docker-compose.yml`](../../../docker/ollama-embedder/docker-compose.yml) | ollama-embedder | 1 |
