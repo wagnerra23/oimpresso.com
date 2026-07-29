@@ -63,11 +63,16 @@ queries:
     expected: ["0235-staging-ct100-clone-anonimizado"]
     violations: []
 
-  - id: colisao-0101-tests-business-id
+  # Era um caso de COLISÃO no número 0101. Deixou de ser: a ADR
+  # `0101-tests-business-id-1-nunca-cliente` foi DELETADA quando a 0358 a
+  # superseded, então o 0101 passou a ter arquivo único (não colide mais) e o
+  # slug antigo não existe no disco — o que reprovava o gate em TODO PR.
+  # Vira caso de recall simples apontando pra doutrina vigente.
+  # O slug antigo NÃO pode entrar em `violations`: o checker exige que todo
+  # slug de `expected`+`violations` exista no disco.
+  - id: doutrina-teste-tenant
     query: "Qual business_id os testes Pest devem usar?"
-    collision_number: "0101"
-    must_resolve_slug: "0101-tests-business-id-1-nunca-cliente"
-    expected: ["0101-tests-business-id-1-nunca-cliente"]
+    expected: ["0358-doutrina-de-teste-tenant-98-supersede-0101"]
     violations: []
 
   - id: colisao-0180-sidebar
