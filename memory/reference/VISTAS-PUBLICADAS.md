@@ -59,10 +59,24 @@ E, visível na página:
 
 ## Confiabilidade desta classificação
 
-Das 23 vistas, **2 foram lidas** (marcadas 👁). As outras 21 foram agrupadas **pelo título**, o que é
-hipótese, não medição — pode haver surpresa ao abrir. Quem ler uma delas, corrija a linha aqui.
+Das 24 vistas, **3 são conhecidas por dentro** (marcadas 👁): duas foram lidas e uma nasceu já dentro
+do padrão. As outras 21 foram agrupadas **pelo título**, o que é hipótese, não medição — pode haver
+surpresa ao abrir. Quem ler uma delas, corrija a linha aqui.
 
 ---
+
+## Tema: navegação da documentação
+
+Dono em git: [`README.md`](../../README.md) — a porta documental única. Esta vista **renderiza** a rota
+dela; não compete com ela.
+
+| Data | Vista | Estado |
+|---|---|---|
+| 2026-07-29 | 👁 [Documentação do oimpresso — por onde entrar](https://claude.ai/code/artifact/20588245-f612-448d-8b7e-c6614024f607) | **viva** |
+
+> Primeira vista nascida **dentro** do padrão: carrega o bloco `<!-- vista: -->`, banner de estado,
+> recibo de procedência e a linha de precedência. Não repete o censo de propósito — aponta pro
+> [`PAINEL-SISTEMA.md`](PAINEL-SISTEMA.md), que é gerado e mantido por rotina diária.
 
 ## Tema: sistema inteiro
 
