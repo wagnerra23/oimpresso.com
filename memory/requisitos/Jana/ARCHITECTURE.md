@@ -9,7 +9,7 @@ lifecycle: ativo
 
 # Arquitetura viva da Jana
 
-> ⚙️ **Gerado por `scripts/governance/system-map.mjs` em 2026-07-28.** NÃO edite à mão.
+> ⚙️ **Gerado por `scripts/governance/system-map.mjs` em 2026-07-29.** NÃO edite à mão.
 > Esta página deriva o que o repositório consegue provar. Saúde de máquina é verificada por probe — compose existente não significa container vivo.
 > Resumo do sistema inteiro: [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md). Decisões donas: [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md) e [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md).
 
@@ -176,7 +176,7 @@ A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de te
 |---|---|---|
 | Agentes → uso em produção | **todos têm referência PHP fora de testes** | referência estática não prova execução em runtime |
 | Arquivos de tool → registro MCP | **registro e arquivos têm a mesma quantidade** | igualdade de quantidade não substitui o gate de exposição em runtime |
-| Tokens do streaming → resposta do turno | ⚠️ **desconectado: o driver atualiza a última resposta antes de o controller criar a resposta atual** | medidor estrutural; um teste de integração deve validar os valores persistidos |
+| Tokens do streaming → resposta do turno | **o padrão antigo de ordem incorreta não foi detectado** | medidor estrutural; um teste de integração deve validar os valores persistidos |
 | Compose → serviço vivo | **não provado pela árvore** | use os probes; arquivo versionado só prova intenção de subir |
 | Provider declarado → credencial válida | **não provado pela árvore** | `config/ai.php` não prova segredo, rede nem quota |
 | Diagrama → ordem do código | **ancorado por marcadores ordenados** | mudança estrutural faz o gerador falhar e exige revisão humana da explicação |
@@ -234,4 +234,4 @@ A página **não grava “verde”** no Markdown: esse estado venceria no minuto
 - interpretar falha de probe e impacto no negócio.
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-28 · arquitetura derivada das fontes canônicas._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-29 · arquitetura derivada das fontes canônicas._

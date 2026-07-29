@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-28**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-29**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -18,43 +18,43 @@ lifecycle: ativo
 
 | Módulo | BRIEFING | Último toque |
 |---|---|---|
-| Admin | [BRIEFING](../requisitos/Admin/BRIEFING.md) | 2026-07-23 |
-| ADS | [BRIEFING](../requisitos/ADS/BRIEFING.md) | 2026-07-23 |
-| Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-07-23 |
-| AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |
-| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-23 |
-| Brief | [BRIEFING](../requisitos/Brief/BRIEFING.md) | 2026-07-23 |
-| Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
-| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-27 |
+| Admin | [BRIEFING](../requisitos/Admin/BRIEFING.md) | 2026-07-28 |
+| ADS | [BRIEFING](../requisitos/ADS/BRIEFING.md) | 2026-07-28 |
+| Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-07-28 |
+| AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-28 |
+| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-28 |
+| Brief | [BRIEFING](../requisitos/Brief/BRIEFING.md) | 2026-07-28 |
+| Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-28 |
+| Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-28 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-07-28 |
-| Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-07-23 |
-| ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-07-23 |
-| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-23 |
-| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-27 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-27 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-27 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-27 |
+| Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-07-28 |
+| ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-07-28 |
+| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-28 |
+| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-28 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-28 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-28 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-28 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-28 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-28 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-28 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
-| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-07-23 |
-| Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-23 |
-| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-27 |
-| PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-27 |
-| ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
+| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-07-28 |
+| Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-28 |
+| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-28 |
+| PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-28 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-28 |
+| ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-28 |
 | ProjectMgmt | [BRIEFING](../requisitos/ProjectMgmt/BRIEFING.md) | 2026-07-28 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-07-28 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-23 |
-| Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-07-23 |
-| SRS | [BRIEFING](../requisitos/SRS/BRIEFING.md) | 2026-07-23 |
-| Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-07-23 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-28 |
+| Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-07-28 |
+| SRS | [BRIEFING](../requisitos/SRS/BRIEFING.md) | 2026-07-28 |
+| Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-07-28 |
 | TeamMcp | [BRIEFING](../requisitos/TeamMcp/BRIEFING.md) | 2026-07-28 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
 | VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-07-28 |
-| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-23 |
-| Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-07-23 |
+| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-28 |
+| Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-07-28 |
 
 ## Camada de IA
 
@@ -140,7 +140,7 @@ lifecycle: ativo
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 57 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 58 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -199,6 +199,7 @@ lifecycle: ativo
 - ~~2026-07-28 — Lint que detecte "mensagem passada como NEEDLE" em `toContain` (o defeito é real; o lint cai na lápide do `toHaveKey`)~~
 - ~~2026-07-28 — Teste que afirma "registrado" medindo `app(Class::class)` — 2 comandos mortos escondidos por 2,4 meses (3ª instância LC-11 em produção)~~
 - ~~2026-07-28 — Medir cobertura de um glob de CÓDIGO com o pathspec do git (`*` atravessa `/`, `glob()` do PHP não)~~
+- ~~2026-07-29 — Âncora "estrutural" que compara LITERAL DE FORMATAÇÃO (e o vão "rodou e falhou" que a escondeu por baixo do watchdog)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -206,7 +207,7 @@ lifecycle: ativo
 
 ## Rastro
 
-- **325** handoffs · **551** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **328** handoffs · **554** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-28-sdd-vestuario-etiquetas`
   - `2026-07-28-sdd-teammcp-hub`
@@ -216,4 +217,4 @@ lifecycle: ativo
   - `2026-07-28-sdd-faltantes-fila-derivada-e-merges`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-28 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-29 · deriva das fontes canônicas, não as substitui._
