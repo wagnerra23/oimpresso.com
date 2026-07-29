@@ -38,15 +38,22 @@ use Modules\Compras\Services\ComprasService;
  * Refs:
  *   - CAPTERRA-FICHA.md C15 + AUDIT-SENIOR-2026-05-25 §D6.c Gap #6
  *   - app/Utils/TransactionUtil.php::getListPurchases (JOIN canônico)
- *   - ADR 0093 Multi-tenant Tier 0 (biz=1, ADR 0101 nunca cliente real)
+ *   - ADR 0093 Multi-tenant Tier 0 (tenant canonico via WithSeededTenant, ADR 0101 nunca cliente real)
  *   - ADR 0062 Testes no CT 100
  */
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 beforeEach(function () {
+    // Tenant canônico de teste — resolvido pela constante, NÃO fixado em 1.
+    // O id literal aqui era dívida latente: o arranjo abaixo só funcionava porque o seed
+    // do CI criava `business_locations` justamente para o tenant seedado. Quando o tenant
+    // saiu de 1 para 99, o biz=1 ficou sem location, o ramo de insert passou a rodar e
+    // estourou a FK `business_locations_invoice_scheme_id_foreign`.
+    $tenantId = \Tests\Support\WithSeededTenant::SEEDED_TENANT_ID;
+
     try {
-        $this->biz = Business::find(1) ?? Business::forceCreate([
-            'id' => 1,
+        $this->biz = Business::find($tenantId) ?? Business::forceCreate([
+            'id' => $tenantId,
             'name' => 'Test Biz Primary (auto)',
             'currency_id' => 1,
             'start_date' => Carbon::now()->toDateString(),
@@ -65,12 +72,27 @@ beforeEach(function () {
         'username' => 'compras_nplus1_' . uniqid(),
     ]);
 
-    // Location de biz=1 pra satisfazer o INNER JOIN `business_locations AS BS`.
+    // Location do tenant pra satisfazer o INNER JOIN `business_locations AS BS`.
     $this->location = DB::table('business_locations')
         ->where('business_id', $this->biz->id)->first();
     if (! $this->location) {
+        // `business_locations.invoice_scheme_id` é `int unsigned NOT NULL` COM FK para
+        // `invoice_schemes.id` (schema UltimatePOS). Omitir a coluna deixa o default 0,
+        // que não existe na tabela pai → 1452. Nem dá pra passar NULL: a coluna é NOT NULL.
+        // Logo o esquema tem que existir de verdade antes da location.
+        $invoiceSchemeId = DB::table('invoice_schemes')
+            ->where('business_id', $this->biz->id)->value('id')
+            ?? DB::table('invoice_schemes')->insertGetId([
+                'business_id' => $this->biz->id,
+                'name' => 'Default NPlus1',
+                'scheme_type' => 'blank',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
         $locId = DB::table('business_locations')->insertGetId([
             'business_id' => $this->biz->id,
+            'invoice_scheme_id' => $invoiceSchemeId,
             'name' => 'Loc NPlus1',
             'location_id' => 'LOCN1',
             'is_active' => 1,
@@ -80,7 +102,7 @@ beforeEach(function () {
         $this->location = DB::table('business_locations')->find($locId);
     }
 
-    // Fornecedor real em biz=1 → `contact_id` populado faz o leftJoin `contacts`
+    // Fornecedor real no tenant → `contact_id` populado faz o leftJoin `contacts`
     // devolver `supplier_business_name` (cenário FIEL ao cockpit renderizando a
     // coluna "Fornecedor" por linha — que é onde a FICHA suspeitou de N+1).
     $this->contactId = DB::table('contacts')->insertGetId([
@@ -96,7 +118,7 @@ beforeEach(function () {
 });
 
 /**
- * Cria $n compras (type=purchase) ligadas ao fornecedor+location de biz=1.
+ * Cria $n compras (type=purchase) ligadas ao fornecedor+location do tenant canonico.
  */
 function comprasNPlus1Seed(object $t, int $n): void
 {
