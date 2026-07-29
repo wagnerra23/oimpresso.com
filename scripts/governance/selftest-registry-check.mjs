@@ -36,10 +36,26 @@
 // Então: lista candidatos COM os sinais medidos e deixa o julgamento pro humano — mesmo
 // desenho do `component-registry-check --roles` (report-only aceito pelo projeto).
 //
+// ── SELFTEST EMBUTIDO (2026-07-29): a segunda FORMA do mesmo órfão ──────────────
+// Selftest vem em duas formas, e este guard só via uma: arquivo `*.test.mjs` (via) e
+// MODO `--selftest` dentro do próprio script (não via). Medido: 78 scripts implementam
+// o modo embutido. O `cron-watchdog` era um deles — 9 asserts que nenhum workflow
+// rodava — e foi justamente por isso que o eixo 1 dele pôde afirmar "todos os crons
+// vivos" tendo medido ZERO (proibicoes §5 2026-07-29). Regra certa, superfície
+// faltando: estendido o dono, sem abrir régua paralela (§5 2026-07-09).
+//
+// A REGRA DO IRMÃO é o que torna isto usável, e foi MEDIDA antes de armar: acusar todo
+// script com `--selftest` sem invocador dá 46 acusados, dos quais 39 (85%) são FALSO-
+// POSITIVO — já cobertos por um `*.test.mjs` irmão wirado. Ela é CONSERVADORA de
+// propósito: prefere deixar passar a acusar o legítimo, que é a direção certa pra um
+// detector que não pode gritar lobo (§5 mata 4 guards sintáticos que reprovavam o
+// legítimo). Fila zerada no mesmo PR que a criou → `--check` cobre as duas formas sem
+// grandfathering: a catraca nasce segurando a linha, não perdoando dívida.
+//
 // USO (na raiz do repo):
 //   node scripts/governance/selftest-registry-check.mjs             # relatório advisory (exit 0)
 //   node scripts/governance/selftest-registry-check.mjs --json      # JSON determinístico
-//   node scripts/governance/selftest-registry-check.mjs --check     # exit 1 se houver TESTE órfão
+//   node scripts/governance/selftest-registry-check.mjs --check     # exit 1 se houver órfão (arquivo OU embutido)
 //   node scripts/governance/selftest-registry-check.mjs --scripts   # SCRIPTS sem invocador (report-only)
 //   node scripts/governance/selftest-registry-check.mjs --selftest  # fixtures herméticas (CI)
 //
@@ -89,6 +105,86 @@ export function collectWorkflowText(root) {
 /** órfão = test file cujo path literal não aparece em nenhum workflow. */
 export function findOrphans(testFiles, workflowText) {
   return testFiles.filter((f) => !workflowText.includes(f));
+}
+
+// ── SELFTEST EMBUTIDO órfão (2026-07-29) ───────────────────────────────────────
+// O ponto cego: selftest vem em DUAS formas — arquivo `*.test.mjs` (o que este guard já
+// via) e MODO `--selftest` dentro do próprio script (que ele não via). Medido no corpus
+// real: 77 scripts implementam o modo embutido. O `cron-watchdog` era um deles, com 9
+// asserts que nunca rodaram em CI — e foi por isso que o eixo 1 dele pôde afirmar "todos
+// os crons vivos" tendo medido zero (proibicoes §5 2026-07-29). Mesma regra do guard,
+// superfície que faltava — estender o dono, não abrir paralelo (§5 2026-07-09).
+
+/**
+ * O script IMPLEMENTA um modo `--selftest`? Casa o DESPACHO (leitura de argv), nunca a
+ * palavra solta: quase todo script cita `--selftest` no bloco USO do cabeçalho, e contar
+ * a menção classificaria como "tem selftest" quem só documenta.
+ */
+export function implementaSelftest(src) {
+  return /(?:ARGS|args|flags)\s*\.has\(\s*['"]--selftest['"]\s*\)/.test(src)
+    || /argv[\s\S]{0,40}?\.includes\(\s*['"]--selftest['"]\s*\)/.test(src);
+}
+
+/** Scripts NÃO-teste (scripts/** + .claude/hooks/*) que implementam o modo embutido. */
+export function collectEmbeddedSelftests(root, lerArquivo = (p) => readFileSync(join(root, p), 'utf8')) {
+  const cands = [];
+  const walk = (dir) => {
+    let entries;
+    try { entries = readdirSync(join(root, dir), { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      if (e.name === 'node_modules' || e.name.startsWith('.git')) continue;
+      const rel = dir ? `${dir}/${e.name}` : e.name;
+      if (e.isDirectory()) walk(rel);
+      else if (e.name.endsWith('.mjs') && !e.name.endsWith('.test.mjs')) cands.push(posix(rel));
+    }
+  };
+  walk('scripts');
+  try {
+    for (const e of readdirSync(join(root, '.claude', 'hooks'))) {
+      if (e.endsWith('.mjs') && !e.endsWith('.test.mjs')) cands.push(`.claude/hooks/${e}`);
+    }
+  } catch { /* sem hooks dir — ok */ }
+  const out = [];
+  for (const p of cands) {
+    let src; try { src = lerArquivo(p); } catch { continue; }
+    if (implementaSelftest(src)) out.push(p);
+  }
+  return out.sort();
+}
+
+/**
+ * `<path> --selftest` aparece numa linha NÃO-COMENTADA de algum invocador executável?
+ * Comment-aware pelo mesmo motivo do `ehComentario`: um `# node x.mjs --selftest` dentro
+ * de comentário de YAML documenta, não invoca.
+ */
+export function invocaSelftest(path, arquivos) {
+  for (const { path: p, conteudo } of arquivos) {
+    for (const linha of conteudo.split('\n')) {
+      if (ehComentario(linha, p)) continue;
+      const i = linha.indexOf(path);
+      if (i >= 0 && linha.slice(i + path.length).includes('--selftest')) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Órfão = implementa `--selftest` E ninguém o invoca com `--selftest` E não há
+ * `.test.mjs` irmão que o CI rode.
+ *
+ * ⚠️ A REGRA DO IRMÃO É O QUE TORNA ISTO USÁVEL — e ela foi MEDIDA, não suposta. Sem
+ * ela: 48 acusados de 77, dos quais 40 são FALSO-POSITIVO (83%) — scripts cujo núcleo
+ * já é coberto por um `.test.mjs` irmão wirado (ex.: `module-group-resolve`,
+ * `lapide-recheck`). Um gate com 83% de ruído é o guard sintático que o §5 das
+ * proibições mata quatro vezes (allowlist-de-pasta · @scope · vocabulário · toHaveKey).
+ */
+export function findEmbeddedOrphans(scripts, arquivos, workflowText, existeIrmao) {
+  return scripts.filter((p) => {
+    if (invocaSelftest(p, arquivos)) return false;
+    const irmao = p.replace(/\.mjs$/, '.test.mjs');
+    if (existeIrmao(irmao) && workflowText.includes(irmao)) return false;
+    return true;
+  });
 }
 
 // ── SCRIPTS órfãos (report-only) ────────────────────────────────────────────────
@@ -225,29 +321,64 @@ function reportScripts(root, { json = false } = {}) {
   return out;
 }
 
+/** Corpus de invocadores executáveis, por arquivo (comment-aware precisa da linha + idioma). */
+function arquivosInvocadores(root) {
+  const out = [];
+  const dir = join(root, '.github', 'workflows');
+  if (existsSync(dir)) {
+    for (const f of readdirSync(dir).filter((x) => /\.ya?ml$/.test(x)).sort()) {
+      out.push({ path: `.github/workflows/${f}`, conteudo: readFileSync(join(dir, f), 'utf8') });
+    }
+  }
+  for (const f of ['package.json', 'composer.json']) {
+    try { out.push({ path: f, conteudo: readFileSync(join(root, f), 'utf8') }); } catch { /* opcional */ }
+  }
+  return out;
+}
+
 function report(root, { json = false } = {}) {
   const tests = collectTestFiles(root);
   const wfText = collectWorkflowText(root);
   const orphans = findOrphans(tests, wfText);
+  const arquivos = arquivosInvocadores(root);
+  const embutidos = collectEmbeddedSelftests(root);
+  const embOrfaos = findEmbeddedOrphans(embutidos, arquivos, wfText, (p) => existsSync(join(root, p)));
   const out = {
     _meta: {
       guard: 'selftest-registry — teste .mjs órfão de workflow (P15 entrega 3). Reencarnação .mjs do "Tests/ sem phpunit.xml = falsa cobertura" (proibicoes §Código).',
       generator: 'scripts/governance/selftest-registry-check.mjs',
       regra: 'órfão = *.test.mjs em scripts/** ou .claude/hooks/ cujo path NÃO aparece em .github/workflows/*.yml. Registrado = path literal no YAML.',
+      regra_embutido: 'órfão embutido = script que IMPLEMENTA modo --selftest, ninguém o invoca com --selftest (linha não-comentada) e não há *.test.mjs irmão invocado. A regra do irmão é CONSERVADORA de propósito: prefere deixar passar a acusar o legítimo (sem ela, 85% de falso-positivo no corpus real).',
       fase: 'ADVISORY (lei ADR 0314) — exit 0 no default; --check (exit 1) é o primitivo de promoção (calendário ADR 0275).',
       determinismo: 'sem timestamps/sha — re-run sem mudança = diff vazio',
     },
-    summary: { tests_total: tests.length, registrados: tests.length - orphans.length, orfaos: orphans.length },
+    summary: {
+      tests_total: tests.length, registrados: tests.length - orphans.length, orfaos: orphans.length,
+      selftest_embutido_total: embutidos.length, orfaos_embutidos: embOrfaos.length,
+    },
     orfaos: orphans,
+    orfaos_embutidos: embOrfaos,
   };
   if (json) { process.stdout.write(JSON.stringify(out, null, 2) + '\n'); return out; }
-  console.log(`\n  SELFTEST-REGISTRY — teste .mjs órfão de workflow (P15) · ${tests.length} testes · ${orphans.length} órfão(s)\n`);
+  console.log(`\n  SELFTEST-REGISTRY — selftest órfão de workflow (P15) · ${tests.length} arquivo(s) *.test.mjs · ${embutidos.length} modo(s) --selftest embutido\n`);
   if (orphans.length) {
     for (const o of orphans) console.log(`  🔴 ÓRFÃO: ${o} — existe no repo, nenhum workflow invoca (cobertura narrada, não testada)`);
     console.log(`\n  Fix: adicionar step em .github/workflows/governance-script-tests.yml (\`run: node <path>\`)`);
     console.log(`  ou remover o teste morto. Origem: proibicoes §"Tests/ sem phpunit.xml" + P15 entrega 3.`);
   } else {
-    console.log('  🟢 zero órfãos — todo *.test.mjs está invocado em algum workflow.');
+    console.log('  🟢 zero órfãos de arquivo — todo *.test.mjs está invocado em algum workflow.');
+  }
+  if (embOrfaos.length) {
+    console.log('');
+    for (const o of embOrfaos) {
+      const irmao = o.replace(/\.mjs$/, '.test.mjs');
+      const nota = existsSync(join(root, irmao)) ? ' (o irmão .test.mjs também está órfão — listado acima)' : '';
+      console.log(`  🔴 ÓRFÃO EMBUTIDO: ${o} — implementa --selftest e nenhum workflow o roda${nota}`);
+    }
+    console.log(`\n  Fix: \`run: node <path> --selftest\`. Se o script depender de npm (gray-matter/ajv),`);
+    console.log(`  a casa é um job que já instala — governance-script-tests.yml não instala nada de propósito.`);
+  } else {
+    console.log('  🟢 zero órfãos embutidos — todo modo --selftest é rodado por alguém.');
   }
   console.log('');
   return out;
@@ -341,6 +472,54 @@ function selftest() {
   check('--scripts: a mensagem diz que é o INSTRUMENTO, não achado',
     /instrumento quebrado/i.test(semCorpus.stderr || ''), (semCorpus.stderr || '').slice(0, 80));
 
+  // ── SELFTEST EMBUTIDO órfão (2026-07-29) ─────────────────────────────────────
+  // O `cron-watchdog` tinha 9 asserts que nenhum workflow rodava, e foi por isso que ele
+  // pôde afirmar "todos os crons vivos" sem ter medido nada (proibicoes §5 2026-07-29).
+  // Detectar a FORMA (implementa o modo) tem que ser separado de detectar a MENÇÃO.
+  check('embutido: despacho por ARGS.has() é implementação',
+    implementaSelftest("const ARGS = new Set(argv);\nif (ARGS.has('--selftest')) rodar();"));
+  check('embutido: despacho por argv.includes() é implementação',
+    implementaSelftest("if (process.argv.includes('--selftest')) rodar();"));
+  // CONTROLE NEGATIVO — quase todo script CITA `--selftest` no bloco USO do cabeçalho.
+  // Contar a menção classificaria "documenta" como "tem selftest" e inflaria o universo.
+  check('embutido: só CITAR --selftest no cabeçalho NÃO é implementar',
+    !implementaSelftest('// USO:\n//   node x.mjs --selftest   # fixtures herméticas\n'));
+
+  const arqs = (pares) => pares.map(([path, conteudo]) => ({ path, conteudo }));
+  const wfTexto = (objs) => objs.map((o) => o.conteudo).join('\n');
+
+  // BITE: implementa, ninguém roda, sem irmão → acusado.
+  const soOrfao = arqs([['.github/workflows/ci.yml', 'run: node scripts/governance/outro.mjs\n']]);
+  check('BITE embutido: implementa --selftest e ninguém invoca → órfão',
+    findEmbeddedOrphans(['scripts/governance/solto.mjs'], soOrfao, wfTexto(soOrfao), () => false).length === 1);
+
+  // LIBERA 1: invocado com --selftest.
+  const invocado = arqs([['.github/workflows/ci.yml', '        run: node scripts/governance/solto.mjs --selftest\n']]);
+  check('LIBERA embutido: invocado com --selftest → não é órfão',
+    findEmbeddedOrphans(['scripts/governance/solto.mjs'], invocado, wfTexto(invocado), () => false).length === 0);
+
+  // LIBERA 2: a regra do irmão (o que mata 85% de FP) — irmão existe E é invocado.
+  const irmao = arqs([['.github/workflows/ci.yml', '        run: node scripts/governance/solto.test.mjs\n']]);
+  check('LIBERA embutido: irmão .test.mjs invocado cobre o script (regra que mata 85% de FP)',
+    findEmbeddedOrphans(['scripts/governance/solto.mjs'], irmao, wfTexto(irmao), (p) => p === 'scripts/governance/solto.test.mjs').length === 0);
+
+  // CONTROLE NEGATIVO da regra do irmão: irmão que EXISTE mas ninguém roda não cobre
+  // nada. Sem este assert, a regra viraria perdão cego — "tem arquivo irmão, então tá
+  // coberto" é presença, não comportamento (LC-11).
+  check('embutido: irmão que EXISTE mas NÃO é invocado não absolve (presença ≠ cobertura)',
+    findEmbeddedOrphans(['scripts/governance/solto.mjs'], soOrfao, wfTexto(soOrfao), () => true).length === 1);
+
+  // Comment-aware: `# node x --selftest` dentro de comentário documenta, não invoca.
+  const soComentario = arqs([['.github/workflows/ci.yml', '      # run: node scripts/governance/solto.mjs --selftest\n']]);
+  check('embutido: invocação só em COMENTÁRIO de YAML não conta',
+    findEmbeddedOrphans(['scripts/governance/solto.mjs'], soComentario, wfTexto(soComentario), () => false).length === 1);
+
+  // Ordem importa: o `--selftest` tem que vir DEPOIS do path na mesma linha, senão
+  // "node a.mjs --selftest && node b.mjs" absolveria o b.mjs de carona.
+  const carona = arqs([['.github/workflows/ci.yml', '        run: node scripts/governance/outro.mjs --selftest && node scripts/governance/solto.mjs\n']]);
+  check('embutido: --selftest de OUTRO comando na mesma linha não absolve por carona',
+    findEmbeddedOrphans(['scripts/governance/solto.mjs'], carona, wfTexto(carona), () => false).length === 1);
+
   rmSync(tmp, { recursive: true, force: true });
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — órfão morde em --check, registrado solta; advisory default exit 0 (P15 entrega 3 · ADR 0314).');
   process.exit(fails ? 1 : 0);
@@ -355,6 +534,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(0);
   } else {
     const out = report(process.cwd(), { json: process.argv.includes('--json') });
-    process.exit(process.argv.includes('--check') && out.summary.orfaos > 0 ? 1 : 0);
+    // `--check` cobre as DUAS formas de selftest órfão. O embutido entrou junto porque a
+    // fila dele foi zerada no mesmo PR (2026-07-29): sem legado pendurado, não há nada a
+    // grandfatherizar — a catraca nasce segurando a linha, não perdoando dívida.
+    const divida = out.summary.orfaos + out.summary.orfaos_embutidos;
+    process.exit(process.argv.includes('--check') && divida > 0 ? 1 : 0);
   }
 }

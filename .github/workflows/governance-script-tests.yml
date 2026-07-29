@@ -330,6 +330,23 @@ jobs:
         run: node scripts/governance/selftest-registry-check.mjs --selftest
       - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
         run: node scripts/governance/selftest-registry-check.mjs
+      # ── DESORFANADOS 2026-07-29 (Rodada 3) ────────────────────────────────────────
+      # O sweep acima listava 5 `*.test.mjs` órfãos havia tempo, e o detector novo de
+      # `--selftest` EMBUTIDO achou mais. Todos rodados antes de wirar: 9 verdes. Estes
+      # são os dependency-free; os que precisam de gray-matter/ajv foram pro job que já
+      # paga o install (memory-schema-gate.yml), porque este workflow não instala nada.
+      - name: charter-da-tela-que-o-controller-serve — o hook morde e libera
+        run: node .claude/hooks/charter-da-tela-que-o-controller-serve.test.mjs
+      - name: php-syntax-after-write — o hook morde e libera
+        run: node .claude/hooks/php-syntax-after-write.test.mjs
+      - name: hook-bites — o dead-man's-switch dos hooks morde e libera
+        run: node scripts/governance/hook-bites.test.mjs
+      - name: hook-replay — o replay morde e libera
+        run: node scripts/governance/hook-replay.test.mjs
+      - name: permission-drift — a sentinela de permissão morde e libera
+        run: node scripts/governance/permission-drift.test.mjs
+      - name: doc-id-index — o índice de doc-id morde e libera
+        run: node scripts/governance/doc-id-index.mjs --selftest
       # Auditoria 2026-07-26: o sweep acima estava VERDE (125/125 testes registrados)
       # enquanto 12 de 88 SCRIPTS não-teste não tinham invocador nenhum. Mesma regra,
       # superfície que faltava. REPORT-ONLY (exit 0 sempre): "0 invocador" não prova
