@@ -141,9 +141,42 @@ PASS  Modules\KB\Tests\Feature\KbNodeBodyReaderTest
 
 Conferido que os 4 **rodaram** (não pularam) — a leitura que a **LC-13** exige.
 
+## Desfecho — os dois itens que este log deixou abertos fecharam
+
+> Adicionado no fim da sessão. O corpo acima é o retrato de quando o #5018 mergeou; isto é o que veio depois.
+
+### O smoke pós-deploy achou 2 defeitos que o CI não podia achar ([#5029](https://github.com/wagnerra23/oimpresso.com/pull/5029) `211e837a4b`)
+
+1. **`"Sem conteúdo ainda"` aparecia junto com o corpo** — o `BlockRenderer` seguia sendo chamado no ramo bridge (`body_blocks` sempre `null`) e renderizava o próprio empty state **embaixo de 6.237 chars de conteúdo**.
+2. **O excerpt ecoava o começo do corpo** — o bridge o gera cortando o `content_md` em 400 chars, markdown cru incluso, então `# Título` + `**TL;DR:**` apareciam crus acima do mesmo trecho já renderizado.
+
+**Por que nenhum gate pegou, e não é acaso:** os checks olham **prop**, **tipo** e **pixel-baseline** — nenhum **renderiza a tela com dado real**. É a razão estrutural de a R1 existir, e nesta sessão ela pagou por si.
+
+Re-smoke pós-deploy: `corpo 8.029 chars · 13 headings · link GitHub ✓ · DEFEITO_1 false · DEFEITO_2 false`.
+
+### O loop de aprendizado fechou como EMENDA, não como classe nova ([#5035](https://github.com/wagnerra23/oimpresso.com/pull/5035) `fe0f714170`)
+
+[W] autorizou escrever a lápide. **Testada contra o ledger antes de virar canon, a hipótese não sobreviveu como classe nova** — e esse é o resultado mais útil da sessão.
+
+A lápide §5 **2026-07-28** já proíbe o mesmo: *afirmar AUSÊNCIA (**"não existe máquina/gate/teste/consumidor pra X"**) exige varredura no repo inteiro **+** dono do inventário*. O brief dizia *"não existe rota `show` da V2"* — claim negativa, **mesma classe** (`afirmar-sem-medir-fonte-certa`).
+
+O que faltava na mãe era o **alcance**: a lista de donos dela cobre workflow/hook/skill/ledger e **nenhum responde "existe endpoint pra X?"**. A emenda registra três donos pro eixo rota/endpoint — `routes.php` + `route:list` (runtime é o oráculo), o **`SCOPE.md`** do módulo, e **o charter**, que declara o contrato do endpoint e que **ninguém tinha nomeado como inventário**.
+
+- **Ledger:** LC-08 `28 → 29`. **14 classes antes e depois** — nenhuma criada.
+- **Zero gate novo, zero índice novo** — a própria mãe já mediu 2× que índice não previne (§5 07-23 e 07-25; o índice-por-pergunta existia **4 dias antes** do erro de 07-22 e não preveniu).
+- **Reconciliação rodada em `main`:** `frontier 2026-07-29` · `recibos 23/23` · `0 pendurado` · `0 surface`.
+
+### O que fiz questão de registrar contra mim
+
+**O crédito é do instrumento barato.** O que pegou a rota inexistente-que-existia foi o **`Read` do `routes.php` no pré-flight** — não a medição em prod, que veio depois e só elevou *"está registrada"* a *"responde 200 com o corpo"*. A tentação era creditar o instrumento caro.
+
+**A claim veio no brief, não desta sessão.** Está escrito assim na lápide: o contador é da **classe**, não de quem errou.
+
 ## Refs
 
 - [PR #5018](https://github.com/wagnerra23/oimpresso.com/pull/5018) · squash `7bbbde2022`
+- [PR #5029](https://github.com/wagnerra23/oimpresso.com/pull/5029) `211e837a4b` (acabamento) · [PR #5035](https://github.com/wagnerra23/oimpresso.com/pull/5035) `fe0f714170` (emenda §5 + LC-08)
+- [Handoff de fechamento do loop](../handoffs/2026-07-29-1615-kb-leitor-fecha-loop-aprendizado.md)
 - [`Index.v2.casos.md`](../../resources/js/Pages/kb/Index.v2.casos.md) UC-KBV2-14
 - [`NodeReader.charter.md`](../../resources/js/Pages/kb/_components/NodeReader.charter.md) Goal 2 — o contrato que já existia
 - [ADR 0061](../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) · [ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0101](../decisions/0101-tests-business-id-1-nunca-cliente.md) · [ADR 0253](../decisions/0253-primitivos-layout.md)
