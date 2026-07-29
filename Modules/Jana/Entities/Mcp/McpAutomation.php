@@ -62,7 +62,7 @@ class McpAutomation extends Model
         'last_run_at' => 'datetime',
     ];
 
-    /** Execuções append-only (audit). */
+    /** Execuções append-only por convenção do código — sem trigger no banco (ver McpAutomationRun). */
     public function runs(): HasMany
     {
         return $this->hasMany(McpAutomationRun::class, 'automation_id');

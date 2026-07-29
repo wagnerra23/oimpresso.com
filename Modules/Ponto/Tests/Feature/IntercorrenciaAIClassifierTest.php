@@ -41,7 +41,7 @@ class IntercorrenciaAIClassifierTest extends TestCase
     public function retorna_erro_quando_ai_desativada(): void
     {
         config(['app.env' => 'testing']);
-        putenv('AI_ENABLED=false');
+        config(['pontowr2.ai.enabled' => false]);
 
         $r = $this->ai->classificar('tive consulta médica às 14h, retornei às 17h');
         $this->assertFalse($r['success']);
@@ -55,10 +55,10 @@ class IntercorrenciaAIClassifierTest extends TestCase
             public function exposeMascarar(string $t): string { return $this->mascararPII($t); }
         };
 
-        $input = 'Wagner CPF 123.456.789-00 PIS 123.45678.90-1 email wagner@exemplo.com tel (11) 91234-5678';
+        $input = 'Wagner CPF 123.456.789-00 PIS 123.45678.90-1 email wagner@exemplo.com tel (11) 91234-5678'; // pii-allowlist (fixture sintética — o teste existe pra provar que ELA é mascarada)
         $output = $mask->exposeMascarar($input);
 
-        $this->assertStringNotContainsString('123.456.789-00', $output);
+        $this->assertStringNotContainsString('123.456.789-00', $output); // pii-allowlist (mesma fixture sintética da linha do $input)
         $this->assertStringNotContainsString('wagner@exemplo.com', $output);
         $this->assertStringNotContainsString('91234-5678', $output);
         // Wave 11 D7.a — delegação ao PiiRedactor canônico (Modules/Jana/Services/Privacy)
@@ -106,15 +106,18 @@ class IntercorrenciaAIClassifierTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function ai_habilitada_exige_flags_e_api_key(): void
     {
-        putenv('AI_ENABLED=true');
-        putenv('AI_CLASSIFICACAO_INTERCORRENCIA=true');
-        putenv('OPENAI_API_KEY=');
+        // Flags vêm de config (`pontowr2.ai.*`) e a key do config do laravel/ai —
+        // mesmo caminho que a produção percorre com `config:cache` ligado. Antes
+        // isto era `putenv()`, que só funcionava em teste (ver aiHabilitada()).
+        config(['pontowr2.ai.enabled' => true]);
+        config(['pontowr2.ai.classificacao_intercorrencia' => true]);
+        config(['ai.providers.openai.key' => '']);
         $this->assertFalse($this->ai->aiHabilitada(), 'Sem API key deve retornar false');
 
-        putenv('OPENAI_API_KEY=sk-fake');
+        config(['ai.providers.openai.key' => 'sk-fake']);
         $this->assertTrue($this->ai->aiHabilitada());
 
-        putenv('AI_CLASSIFICACAO_INTERCORRENCIA=false');
+        config(['pontowr2.ai.classificacao_intercorrencia' => false]);
         $this->assertFalse($this->ai->aiHabilitada());
     }
 }

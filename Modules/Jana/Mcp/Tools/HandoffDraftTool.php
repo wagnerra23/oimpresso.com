@@ -487,8 +487,15 @@ class HandoffDraftTool extends Tool
     }
 
     /**
-     * Tracking de custo (sem cache — tabela mcp_handoff_drafts opcional).
-     * Best-effort: se tabela não existe, só loga.
+     * Tracking de custo do draft em `mcp_handoff_drafts` (sem cache — draft não
+     * é deduplicável por conteúdo, diferente de summaries/diffs).
+     *
+     * A tabela é criada por 2026_07_28_120000_create_mcp_handoff_drafts_table.
+     * Até 2026-07-28 ela NÃO existia e este insert falhava sempre em produção —
+     * o custo nunca era persistido. O try/catch continua (falha de tracking
+     * secundário não pode derrubar a geração do handoff), mas a ausência da
+     * tabela virou ANOMALIA, não estado esperado: por isso `warning`, não
+     * `debug`, e a exceção é registrada em vez de descartada.
      */
     protected function trackCusto(string $filename, float $costBrl): void
     {
@@ -501,10 +508,12 @@ class HandoffDraftTool extends Tool
                 'updated_at' => now(),
             ]);
         } catch (\Throwable $e) {
-            // Tabela ainda não migrada — não bloqueia (tracking secundário)
-            Log::debug('HandoffDraftTool: tabela mcp_handoff_drafts ausente', [
+            // Não bloqueia a geração do draft — mas não silencia: se caiu aqui,
+            // ou a migration não rodou neste ambiente, ou o schema divergiu.
+            Log::warning('HandoffDraftTool: falha ao gravar custo em mcp_handoff_drafts', [
                 'filename' => $filename,
                 'cost_brl' => $costBrl,
+                'error' => $e->getMessage(),
             ]);
         }
     }

@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * ADR 0076 — versão append-only de skill.
  *
+ * ⚠️ Append-only é CONVENÇÃO deste código, **não garantia do banco**: não há
+ * trigger de imutabilidade nesta tabela — só `mcp_audit_log` e `mcp_task_events`
+ * têm (`trg_*_no_update` / `trg_*_no_delete`).
+ *
  * Multi-tenant Tier 0 (ADR 0093) — Wave 15: tenancy herdada via parent `skill`
  * (mcp_skills.business_id). Skills com business_id NULL (plataforma) só
  * aparecem pra superadmin (ScopeByBusinessViaParent respeita).

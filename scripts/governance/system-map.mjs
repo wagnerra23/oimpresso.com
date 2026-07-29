@@ -19,7 +19,7 @@
 //
 // Node puro (fs + git via execSync). Sem deps, sem DB, sem PHP. Molde: sdd-scorecard.mjs.
 // Uso (na raiz do repo):
-//   node scripts/governance/system-map.mjs            # gera memory/reference/PAINEL-SISTEMA.md
+//   node scripts/governance/system-map.mjs            # gera PAINEL + arquitetura Jana + onboarding
 //   node scripts/governance/system-map.mjs --stdout    # imprime, não escreve
 //   node scripts/governance/system-map.mjs --check      # exit 1 se o .md commitado difere do gerado (CI)
 
@@ -33,12 +33,125 @@ const ROOT = process.cwd();
 // (ex: onboarding-paths-check.mjs reusa deadLinks) NÃO dispara escrita nem process.exit.
 const IS_DIRECT_RUN = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 const OUT = join(ROOT, 'memory', 'reference', 'PAINEL-SISTEMA.md');
+const OUT_AI = join(ROOT, 'memory', 'requisitos', 'Jana', 'ARCHITECTURE.md');
 const MODE_STDOUT = process.argv.includes('--stdout');
 const MODE_CHECK = process.argv.includes('--check');
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 const read = (p) => { try { return readFileSync(p, 'utf8'); } catch { return ''; } };
 const ls = (p) => { try { return readdirSync(p); } catch { return []; } };
+/**
+ * Âncora estrutural mínima para explicações de fluxo. O diagrama continua sendo
+ * explicação humana, mas deixa de sobreviver silenciosamente quando o caminho do
+ * código muda: cada marcador precisa existir e aparecer na ordem declarada.
+ *
+ * @param {string} source
+ * @param {string[]} markers
+ * @param {string} label
+ */
+export function assertOrderedMarkers(source, markers, label) {
+  let cursor = 0;
+  for (const marker of markers) {
+    const found = source.indexOf(marker, cursor);
+    if (found < 0) {
+      throw new Error(`[system-map] fluxo "${label}" perdeu a âncora ou a ordem: ${marker}`);
+    }
+    cursor = found + marker.length;
+  }
+}
+
+function assertAiFlowAnchors() {
+  assertOrderedMarkers(
+    read(join(ROOT, 'Modules', 'Jana', 'Http', 'Controllers', 'ChatController.php')),
+    [
+      '$msgUser = Mensagem::create([',
+      'if ($this->briefTrigger->matches($userInput))',
+      'foreach ($this->ai->responderChatStream',
+      "'role'        => 'assistant'",
+    ],
+    'chat SSE',
+  );
+  assertOrderedMarkers(
+    read(join(ROOT, 'Modules', 'Jana', 'Services', 'Ai', 'LaravelAiSdkDriver.php')),
+    [
+      'SemanticCacheService::class',
+      '$mensagemPraLlm = $this->mascararDocumentos',
+      '$ctx = $this->snapshotContexto',
+      '$this->talvezClarificar',
+      '$recall = $this->recallMemoria',
+      'new ChatCopilotoAgent',
+      '$agent->stream',
+      '$stream->usage',
+      'ExtrairFatosDaConversaJob::dispatch',
+    ],
+    'driver do chat',
+  );
+  assertOrderedMarkers(
+    read(join(ROOT, 'Modules', 'Jana', 'Services', 'Memoria', 'MeilisearchDriver.php')),
+    [
+      '$negCache->ehNegativo',
+      '$hyde->expandir',
+      'MemoriaFato::search',
+      '$this->rrfMerge',
+      '$this->applyTimeDecay',
+      '$this->applyPesoReal',
+      '$reranker->reranquear',
+    ],
+    'recall de memória',
+  );
+  assertOrderedMarkers(
+    read(join(ROOT, 'Modules', 'Jana', 'Services', 'Kb', 'KbAnswerService.php')),
+    [
+      "config('copiloto.mcp_search.docs_pipeline'",
+      'McpMemoryDocument::buscarHybrid',
+      'McpMemoryDocument::query()',
+      '->buscarTexto',
+      'public function renderFontes',
+      'public function synthesize',
+      'public function fallbackSemIa',
+    ],
+    'RAG da memória canônica',
+  );
+}
+
+function measureAiFlowGaps() {
+  const controller = read(join(ROOT, 'Modules', 'Jana', 'Http', 'Controllers', 'ChatController.php'));
+  const driver = read(join(ROOT, 'Modules', 'Jana', 'Services', 'Ai', 'LaravelAiSdkDriver.php'));
+  const controllerStream = controller.slice(
+    controller.indexOf('public function sendStream'),
+    controller.indexOf('public function escolher'),
+  );
+  const driverStream = driver.slice(
+    driver.indexOf('public function responderChatStream'),
+    driver.indexOf('public function responderChat(', driver.indexOf('public function responderChatStream') + 1),
+  );
+  const streamCall = controllerStream.indexOf('responderChatStream');
+  const assistantCreate = controllerStream.indexOf('$msgAssistant = Mensagem::create');
+  const updatesLatestAssistant = driverStream.includes("->where('role', 'assistant')")
+    && driverStream.includes("->latest('created_at')")
+    && driverStream.includes("->update(['tokens_in'");
+
+  return {
+    streamingTokenTargetBeforeInsert: updatesLatestAssistant
+      && streamCall >= 0
+      && assistantCreate > streamCall,
+  };
+}
+
+function walkRel(relDir) {
+  const rows = [];
+  const visit = (rel) => {
+    let entries = [];
+    try { entries = readdirSync(join(ROOT, rel), { withFileTypes: true }); } catch { return; }
+    for (const entry of entries) {
+      const child = `${rel}/${entry.name}`.replaceAll('\\', '/');
+      if (entry.isDirectory()) visit(child);
+      else if (entry.isFile()) rows.push(child);
+    }
+  };
+  visit(relDir.replaceAll('\\', '/').replace(/\/$/, ''));
+  return rows;
+}
 function frontmatter(txt) {
   const m = txt.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return {};
@@ -169,9 +282,280 @@ function measureGates() {
   return { total: Object.keys(registry).length, byClass, required, enforcement, capturado };
 }
 
+// ── fonte 7: IA derivada do código (agentes, tools registradas e compose) ─────
+// Não consulta runtime e não lê docs narrativos. A página gerada separa explicitamente
+// "declarado no repo" de "saudável agora" para não transformar compose em falso uptime.
+function composeServices(rel) {
+  const rows = [];
+  let inside = false;
+  for (const line of read(join(ROOT, rel)).split(/\r?\n/)) {
+    if (/^services:\s*$/.test(line)) { inside = true; continue; }
+    if (inside && /^[^\s#]/.test(line)) break;
+    const m = inside ? line.match(/^  ([A-Za-z0-9_-]+):\s*(?:#.*)?$/) : null;
+    if (m) rows.push(m[1]);
+  }
+  return rows;
+}
+
+function measureAi(contractAgentFiles = null) {
+  const modulePhp = walkRel('Modules').filter((p) => p.endsWith('.php'));
+  const productionPhp = [
+    ...modulePhp,
+    ...walkRel('app').filter((p) => p.endsWith('.php')),
+    ...walkRel('routes').filter((p) => p.endsWith('.php')),
+    ...walkRel('config').filter((p) => p.endsWith('.php')),
+  ].filter((p) => !p.includes('/Tests/'));
+  const productionText = new Map(productionPhp.map((p) => [p, read(join(ROOT, p))]));
+
+  // O censo por contrato é a fonte preferida; o fallback por pasta só existe para
+  // manter a geração útil quando o instrumento git não estiver disponível.
+  const agentFiles = contractAgentFiles
+    || modulePhp.filter((p) => /\/Ai\/Agents\/[^/]+Agent\.php$/.test(p));
+  const agents = agentFiles.map((file) => {
+    const source = read(join(ROOT, file));
+    const cls = source.match(/\bclass\s+([A-Za-z0-9_]+Agent)\s+implements\s+Agent\b/);
+    if (!cls) throw new Error(`[system-map] agente sem contrato "implements Agent": ${file}`);
+    const module = file.split('/')[1];
+    const refRe = new RegExp(`\\b${cls[1]}\\b`);
+    const references = [...productionText].filter(([candidate, txt]) => candidate !== file && refRe.test(txt)).map(([candidate]) => candidate);
+    return { module, name: cls[1], file, references };
+  }).sort((a, b) => a.module.localeCompare(b.module) || a.name.localeCompare(b.name));
+
+  const agentNames = new Set();
+  for (const agent of agents) {
+    if (agentNames.has(agent.name)) throw new Error(`[system-map] nome de agente duplicado: ${agent.name}`);
+    agentNames.add(agent.name);
+  }
+
+  const serverPath = 'Modules/Jana/Mcp/OimpressoMcpServer.php';
+  const server = read(join(ROOT, serverPath));
+  const toolsBlock = server.match(/protected array \$tools = \[([\s\S]*?)\n\s*\];/);
+  if (!toolsBlock) throw new Error(`[system-map] bloco $tools não encontrado: ${serverPath}`);
+  const tools = [];
+  for (const line of toolsBlock[1].split(/\r?\n/)) {
+    const m = line.match(/^\s*(?:(?:\\Modules\\([A-Za-z0-9]+)\\Mcp\\Tools\\)|Tools\\)([A-Za-z0-9_]+Tool)::class,/);
+    if (!m) continue;
+    const module = m[1] || 'Jana';
+    const name = m[2];
+    const file = `Modules/${module}/Mcp/Tools/${name}.php`;
+    if (!existsSync(join(ROOT, file))) throw new Error(`[system-map] tool MCP registrada sem arquivo: ${file}`);
+    tools.push({ module, name, file });
+  }
+  const toolNames = new Set();
+  for (const tool of tools) {
+    const identity = `${tool.module}\\${tool.name}`;
+    if (toolNames.has(identity)) throw new Error(`[system-map] tool MCP duplicada no registro: ${identity}`);
+    toolNames.add(identity);
+  }
+
+  const dataTools = walkRel('Modules/Jana/Ai/Tools/BriefDiario')
+    .filter((p) => p.endsWith('Tool.php'))
+    .map((file) => ({ file, name: file.split('/').pop().replace(/\.php$/, '') }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const compose = walkRel('docker')
+    .filter((p) => p.endsWith('/docker-compose.yml'))
+    .map((file) => ({ file, services: composeServices(file) }))
+    .sort((a, b) => a.file.localeCompare(b.file));
+
+  const engineeringAgents = ls(join(ROOT, '.claude', 'agents')).filter((f) => f.endsWith('.md')).sort();
+  return { agents, tools, dataTools, compose, engineeringAgents, serverPath };
+}
+
+// ── fonte 7: camada de IA (agentes · tools MCP · provedores) ──────────────────
+// POR QUE EXISTE (2026-07-28): os números da camada de IA viviam ESCRITOS À MÃO num
+// diagrama de arquitetura ("22 agentes", "39 tools", "16 provedores" — este último
+// ERRADO: são 15, o bloco extra contado era `caching.embeddings`, que não é provider).
+// É a lápide §5 2026-07-17 em pessoa: doc canônico NÃO repete número que outro sistema
+// sabe melhor. Aqui o dono é a ÁRVORE, e o cron de system-map.yml mantém sozinho.
+//
+// O QUE ESTA SEÇÃO **NÃO** É — e a distinção importa (§5 LC-11, presence-gate):
+// ela conta ARQUIVO QUE IMPLEMENTA CONTRATO, não capacidade. "4 agentes no ADS" não
+// diz que o ADS é bom, nem que rodam; diz que existem 4 classes. Por isso a seção
+// emitida não tem nota, não tem status e não tem veredito — só contagem + ponteiro.
+//
+// FONTE PREFERIDA = CONTRATO (`implements X`), não pasta. Varredura por diretório
+// (`Modules/*/Ai/Agents/`) é a convenção de HOJE; um agente fora dela seria invisível.
+// As duas medidas são cruzadas e a DIVERGÊNCIA é emitida — detector de drift de
+// convenção de graça. Em 2026-07-28 as duas batem: 22 e 22.
+const IA_CONTRATOS = {
+  agente: /implements\s+Agent\b/,
+  memoria: /implements\s+MemoriaContrato\b/,
+  reranker: /implements\s+Reranker\b/,
+};
+/**
+ * NÚCLEO PURO (testável hermético, molde de fact-anchor.mjs): classifica candidatos
+ * já lidos por contrato. Exportado pra que o self-test prove a mordida com fixture
+ * boa/ruim, sem git e sem FS.
+ * @param {{rel:string,txt:string}[]} arquivos
+ */
+export function classificarIa(arquivos) {
+  const out = { agente: [], memoria: [], reranker: [] };
+  for (const { rel, txt } of arquivos) {
+    if (rel.includes('/Tests/')) continue;              // fake/dublê de teste não é peça viva
+    if (/^\s*abstract\s+class\s/m.test(txt)) continue;  // base abstrata não é implementação
+    for (const [tipo, re] of Object.entries(IA_CONTRATOS)) if (re.test(txt)) out[tipo].push(rel);
+  }
+  return out;
+}
+/**
+ * NÚCLEO PURO: lê provedores de config/ai.php. Cada bloco de provider tem exatamente
+ * um `'driver' => '<nome>'`; o default GLOBAL é o primeiro `'default'` do arquivo,
+ * buscado só no trecho ANTES de `'providers'` — senão casaria `models.text.default`.
+ * O bloco `caching.embeddings` NÃO tem `driver` e por isso não conta: foi exatamente
+ * o erro da contagem à mão ("16 provedores", eram 15).
+ * @param {string} txt conteúdo de config/ai.php
+ */
+export function parseProvidersAi(txt) {
+  const partes = String(txt).split("'providers'");
+  const antes = partes[0] || '';
+  // só o trecho DEPOIS de `'providers'`: um `'driver' =>` que apareça noutra chave
+  // do config (cache, log, fila) não é provedor e inflaria a conta em silêncio.
+  const depois = partes.length > 1 ? partes.slice(1).join("'providers'") : '';
+  return {
+    provs: [...depois.matchAll(/'driver'\s*=>\s*'([a-z0-9_]+)'/g)].map((x) => x[1]).sort(),
+    defaultProv: (antes.match(/'default'\s*=>\s*'([a-z0-9_]+)'/) || [])[1] || null,
+  };
+}
+/**
+ * NÚCLEO PURO: a linha de agentes do painel. Três estados, e o terceiro é o que
+ * importa — sem `git grep` o contrato devolve [] e escrever "0 agentes · ⚠️ a pasta
+ * dá 22" seria alarme FALSO por ausência de instrumento. Zero-por-não-medi jamais
+ * pode passar por zero-medido (§5 2026-07-17: `crontab` que não existe não prova
+ * que não há cron). Exportado pra que os três estados sejam provados em fixture.
+ * @param {{semInstrumento:boolean, agentes:number, agentesPorPasta:number}} ia
+ */
+export function linhaAgentes(ia) {
+  if (ia.semInstrumento) {
+    return '- **Agentes**: _não medido nesta geração_ — `git grep` falhou. Sem o contrato não há censo: a varredura por pasta acharia só quem segue a convenção.';
+  }
+  const fora = ia.foraDaConvencao || [];
+  return `- **Agentes** (\`implements Agent\`, fora de \`Tests/\`): **${ia.agentes}**`
+    + (fora.length === 0
+      ? ' — todos em `Ai/Agents/`, convenção íntegra.'
+      : ` — ⚠️ **${fora.length}** fora de \`Ai/Agents/\`: ${fora.join(', ')}.`);
+}
+/**
+ * NÚCLEO PURO: a linha de tools. Fonte = REGISTRO; a pasta é contra-medida. O rótulo
+ * diz "registradas", nunca "expostas": exposição é runtime (`MCP_TOOLS_EXPOSED`, default
+ * false — no Hostinger o número exposto é ZERO), e afirmar runtime a partir de arquivo é
+ * a classe presence-gate que esta seção declara evitar.
+ */
+export function linhaTools(ia) {
+  const r = ia.registro || {};
+  if (!r.ok) return '- **Tools MCP**: _não medido_ — não achei o array `$tools` do `OimpressoMcpServer`.';
+  const quebra = Object.entries(r.porModulo).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  return `- **Tools MCP registradas** no \`OimpressoMcpServer\`: **${r.total}**`
+    + (quebra.length ? ` — ${quebra.map(([m, n]) => `${m} ${n}`).join(' · ')}` : '')
+    + (ia.arquivosTool === r.total
+      ? '. Bate com os arquivos `*Tool.php` em `Modules/*/Mcp/Tools/`.'
+      : ` — ⚠️ existem **${ia.arquivosTool}** arquivos \`*Tool.php\`: tool escrita e não registrada não sobe.`)
+    + ' _Registrada ≠ exposta_: a exposição é gated por `MCP_TOOLS_EXPOSED` (`config/mcp.php`), estado de runtime que a árvore não sabe.';
+}
+/**
+ * NÚCLEO PURO: lê o REGISTRO de tools do `OimpressoMcpServer` — a lista que o servidor
+ * de fato publica. Fonte deliberadamente diferente da PASTA: um `*Tool.php` que ninguém
+ * registrou não sobe, e um registro pode apontar pra outro módulo. Duas formas convivem
+ * no array: FQN (`\Modules\Brief\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
+ * resolve no namespace do próprio servidor, Jana).
+ *
+ * Foi aqui que a 1ª versão desta seção errou: contou a pasta de UM módulo (39) pra
+ * descrever o que o servidor registra em TRÊS (44) — o mesmo "oráculo errado" que a
+ * seção existe pra matar, agora com selo de derivado. Refutado por revisão adversarial.
+ * @param {string} txt conteúdo de OimpressoMcpServer.php
+ * @param {string} [donoDoArquivo] módulo do servidor, pro qual a forma relativa resolve
+ */
+export function parseToolsRegistry(txt, donoDoArquivo = 'Jana') {
+  const src = String(txt);
+  const ini = src.indexOf('$tools = [');
+  if (ini < 0) return { ok: false, total: 0, porModulo: {} };
+  // até o primeiro fechamento de array no nível da propriedade (`    ];`)
+  const resto = src.slice(ini);
+  const fim = resto.search(/\n\s{0,4}\];/);
+  const bloco = (fim > 0 ? resto.slice(0, fim) : resto)
+    .replace(/\/\/[^\n]*/g, '')          // comentário de linha citaria ::class em prosa
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const porModulo = {};
+  let total = 0;
+  for (const m of bloco.matchAll(/([\\\w]+)::class/g)) {
+    const fqn = m[1];
+    const mod = (fqn.match(/^\\?Modules\\(\w+)\\/) || [])[1] || donoDoArquivo;
+    porModulo[mod] = (porModulo[mod] || 0) + 1;
+    total++;
+  }
+  return { ok: true, total, porModulo };
+}
+/**
+ * `{ok:false}` distingue "o instrumento falhou" de "rodou e não casou nada" — colapsar
+ * os dois faz um repo genuinamente sem agentes ser reportado como "não medido", que é
+ * o inverso exato do erro que o guard existe pra evitar.
+ */
+function gitGrepFiles(padrao) {
+  try {
+    const out = execSync(`git grep -lE "${padrao}" -- "Modules"`, {
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return { ok: true, files: out.split('\n').map((s) => s.trim()).filter(Boolean) };
+  } catch (e) {
+    // git grep sai 1 quando não casa NADA (não é erro) e >1 quando falha de verdade
+    if (e && e.status === 1) return { ok: true, files: [] };
+    return { ok: false, files: [] };
+  }
+}
+function gitLsFiles(pathspec) {
+  try {
+    const out = execSync(`git ls-files "${pathspec}"`, {
+      cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return out.split('\n').map((s) => s.trim()).filter(Boolean);
+  } catch { return []; }
+}
+function measureIa() {
+  // 1 chamada de git grep para os 3 contratos; a classificação fina é em JS (lendo
+  // os ~35 candidatos), porque `\b` não é ERE POSIX e o git grep -E não o honra.
+  const grep = gitGrepFiles('implements (Agent|MemoriaContrato|Reranker)');
+  const porContrato = classificarIa(grep.files.map((rel) => ({ rel, txt: read(join(ROOT, rel)) })));
+  const semInstrumento = !grep.ok;
+  // agentes agrupados por módulo (Modules/<X>/...)
+  const porModulo = {};
+  for (const rel of porContrato.agente) {
+    const m = rel.match(/^Modules\/([^/]+)\//);
+    if (m) porModulo[m[1]] = (porModulo[m[1]] || 0) + 1;
+  }
+  // CONTRA-MEDIDA sobre o MESMO conjunto (não sobre o disco): quais agentes reais estão
+  // fora da pasta canônica. Contar `.php` da pasta comparava maçã com laranja — o
+  // contrato pula `abstract`, então uma classe-base ali dentro fabricava um alarme
+  // dizendo "tem agente fora do lugar" justamente sobre um arquivo que está no lugar.
+  const foraDaConvencao = porContrato.agente
+    .filter((p) => !p.includes('/Ai/Agents/'))
+    .map((p) => p.split('/').pop().replace('.php', ''))
+    .sort();
+  // tools MCP: REGISTRO do servidor (o que sobe), com a pasta como contra-medida
+  const registro = parseToolsRegistry(read(join(ROOT, 'Modules', 'Jana', 'Mcp', 'OimpressoMcpServer.php')));
+  const arquivosTool = gitLsFiles(':(glob)Modules/*/Mcp/Tools/*Tool.php').length;
+  // provedores: cada bloco de provider tem exatamente um `'driver' => '<nome>'`;
+  // o default global é o PRIMEIRO `'default'` do arquivo, antes do bloco `providers`.
+  const cfgTxt = read(join(ROOT, 'config', 'ai.php'));
+  const { provs, defaultProv } = parseProvidersAi(cfgTxt);
+  return {
+    semInstrumento,
+    agentes: porContrato.agente.length,
+    agentFiles: porContrato.agente,
+    foraDaConvencao,
+    registro,
+    arquivosTool,
+    semConfigAi: cfgTxt === '',
+    porModulo,
+    memoria: porContrato.memoria.map((p) => p.split('/').pop().replace('.php', '')).sort(),
+    reranker: porContrato.reranker.map((p) => p.split('/').pop().replace('.php', '')).sort(),
+    provs,
+    defaultProv,
+  };
+}
+
 // ── render ────────────────────────────────────────────────────────────────────
 function render(data) {
-  const { adr, proib, mods, sc, cnt, gates } = data;
+  const { adr, proib, mods, sc, cnt, gates, ai, ia } = data;
 
   const L = [];
   L.push('---');
@@ -200,6 +584,33 @@ function render(data) {
     const link = m.brief ? `[BRIEFING](../${m.brief.replace('memory/', '')})` : '_sem BRIEFING_';
     L.push(`| ${m.modulo} | ${link} | ${m.atualizado || '—'} |`);
   }
+  L.push('');
+
+  // Camada de IA
+  L.push('## Camada de IA');
+  L.push('');
+  L.push('> Contagem DERIVADA da árvore (contrato `implements`, não pasta). Isto conta **arquivo que implementa contrato** — não é nota, não é status e não prova que a peça roda. O que cada agente faz e se está ligado vive no BRIEFING do módulo e na config; aqui só existe o censo. Antes disto, estes números viviam à mão num diagrama e já tinham errado (`16 provedores` era 15).');
+  L.push('');
+  L.push(linhaAgentes(ia));
+  const modsIa = Object.entries(ia.porModulo).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  if (modsIa.length) L.push(`  - por módulo: ${modsIa.map(([m, n]) => `${m} ${n}`).join(' · ')}`);
+  L.push(linhaTools(ia));
+  if (ia.semConfigAi) {
+    L.push('- **Provedores**: _não medido_ — `config/ai.php` ausente ou ilegível.');
+  } else {
+    L.push(`- **Provedores** declarados em \`config/ai.php\`: **${ia.provs.length}**`
+      + (ia.defaultProv ? ` · default = \`${ia.defaultProv}\`` : '')
+      + (ia.provs.length ? ` — ${ia.provs.join(', ')}` : '')
+      + '. _Declarado ≠ com chave_: a credencial mora no ambiente.');
+  }
+  // "implementações", não "drivers": o contrato também é implementado por decorator
+  // (RetrievalTelemetryDecorator) — chamar tudo de driver seria rótulo errado.
+  if (ia.memoria.length) L.push(`- **Implementações de \`MemoriaContrato\`**: ${ia.memoria.join(' · ')}`);
+  if (ia.reranker.length) L.push(`- **Rerankers** (\`implements Reranker\`): ${ia.reranker.join(' · ')}`);
+  L.push(`- **Tools SQL do Brief Diário**: **${ai.dataTools.length}** · **agentes de engenharia**: **${ai.engineeringAgents.length}** — catálogo separado do runtime PHP.`);
+  L.push(`- Arquitetura completa, topologia, compose e probes: [\`Jana/ARCHITECTURE.md\`](../requisitos/Jana/ARCHITECTURE.md) — gerada por esta mesma máquina.`);
+  L.push('');
+  L.push('> Não derivável e por isso NÃO listado aqui: quais pipelines de retrieval existem e qual está ligado — isso mora na config e no BRIEFING da Jana, e um número inventado aqui seria pior que a ausência.');
   L.push('');
 
   // SDD scorecard
@@ -281,6 +692,277 @@ function render(data) {
 // ── main ──────────────────────────────────────────────────────────────────────
 // ── ONBOARDING-AGENTE-GERADO.md — artefato da rota de agentes. A porta global é
 // README.md; este arquivo só oferece um prompt estável + ponteiros vivos. ──
+// Jana/ARCHITECTURE.md — arquitetura documental gerada pela mesma máquina matriz.
+function renderAiPlant(data) {
+  const { ai, ia, gates } = data;
+  assertAiFlowAnchors();
+  const flowGaps = measureAiFlowGaps();
+  const groupBy = (rows, key) => rows.reduce((acc, row) => {
+    const value = row[key];
+    (acc[value] = acc[value] || []).push(row);
+    return acc;
+  }, {});
+  const agentsByModule = groupBy(ai.agents, 'module');
+  const toolsByModule = groupBy(ai.tools, 'module');
+  const orphanAgents = ai.agents.filter((a) => a.references.length === 0);
+  const composeServicesTotal = ai.compose.reduce((sum, row) => sum + row.services.length, 0);
+
+  const L = [];
+  L.push('---');
+  L.push('id: requisitos-jana-architecture');
+  L.push('name: Jana — arquitetura viva');
+  L.push('description: Arquitetura canônica da Jana, derivada do código por system-map.mjs. Separa topologia versionada, inventário e estado vivo.');
+  L.push('type: architecture');
+  L.push('authority: generated');
+  L.push('lifecycle: ativo');
+  L.push('---');
+  L.push('');
+  L.push('# Arquitetura viva da Jana');
+  L.push('');
+  L.push(`> ⚙️ **Gerado por \`scripts/governance/system-map.mjs\` em ${NOW}.** NÃO edite à mão.`);
+  L.push('> Esta página deriva o que o repositório consegue provar. Saúde de máquina é verificada por probe — compose existente não significa container vivo.');
+  L.push('> Resumo do sistema inteiro: [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md). Decisões donas: [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md) e [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md).');
+  L.push('');
+  L.push('## Responsabilidade deste documento');
+  L.push('');
+  L.push('Este é o **dono canônico da arquitetura da Jana**: mostra onde a IA vive, como as zonas se conectam e quais componentes o código realmente registra. Regras funcionais continuam em [`SPEC.md`](SPEC.md), intenção do produto em [`BRIEFING.md`](BRIEFING.md), operação em [`RUNBOOK.md`](RUNBOOK.md) e decisões em ADRs.');
+  L.push('');
+
+  L.push('## Topologia lógica');
+  L.push('');
+  L.push('> “Hostinger” e “CT 100” são **zonas operacionais**, não promessa de contagem física. O MySQL gerenciado da Hostinger pode residir em host distinto do web shared.');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart LR');
+  L.push('  subgraph HOST["Hostinger · plano gerenciado"]');
+  L.push('    WEB["ERP web · PHP-FPM · filas curtas"]');
+  L.push('    PRODDB[("MySQL de produção")]');
+  L.push('    WEB --> PRODDB');
+  L.push('  end');
+  L.push('  subgraph CT["CT 100 · containers"]');
+  L.push('    MCP["Servidor MCP"]');
+  L.push('    STAGE["Staging"]');
+  L.push('    STAGEDB[("Banco isolado de staging")]');
+  L.push('    SEARCH["Meilisearch + Ollama"]');
+  L.push('    OBS["Langfuse stack"]');
+  L.push('    STAGE --> STAGEDB');
+  L.push('  end');
+  L.push('  MODEL["OpenAI · provedor externo"]');
+  L.push('  CLIENT["Clientes MCP · Claude/Codex"]');
+  L.push('  WEB --> MODEL');
+  L.push('  WEB --> SEARCH');
+  L.push('  WEB --> OBS');
+  L.push('  MCP --> PRODDB');
+  L.push('  MCP --> SEARCH');
+  L.push('  MCP --> CLIENT');
+  L.push('  STAGE --> SEARCH');
+  L.push('  STAGE --> OBS');
+  L.push('```');
+  L.push('');
+  L.push('O desenho mostra **quem chama quem**. Ele não multiplica um serviço compartilhado por consumidor: produção e MCP apontam para o mesmo banco de produção; Meilisearch, Ollama e Langfuse aparecem uma vez.');
+  L.push('');
+
+  L.push('## As três camadas de IA');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart TB');
+  L.push('  subgraph B["B · agentes do projeto"]');
+  L.push(`    AG["${ai.agents.length} agentes PHP"]`);
+  L.push(`    DATA["${ai.dataTools.length} tools SQL do Brief Diário"]`);
+  L.push('    DATA --> AG');
+  L.push('  end');
+  L.push('  subgraph A["A · acesso aos modelos"]');
+  L.push('    CONTRACT["AiAdapter"]');
+  L.push('    SDK["LaravelAiSdkDriver · laravel/ai"]');
+  L.push('    LEGACY["OpenAiDirectDriver · alternativa legada"]');
+  L.push('    CONTRACT --> SDK');
+  L.push('    CONTRACT -.-> LEGACY');
+  L.push('  end');
+  L.push('  subgraph C["C · memória e recuperação"]');
+  L.push('    MEMORY["MemoriaContrato"]');
+  L.push(`    MEMIMPL["${ia.memoria.length} implementações disponíveis"]`);
+  L.push('    SEARCH["MeilisearchDriver"]');
+  L.push(`    RERANK["Reranker · ${ia.reranker.length} implementações"]`);
+  L.push('    MEMORY --> MEMIMPL');
+  L.push('    MEMORY --> SEARCH --> RERANK');
+  L.push('  end');
+  L.push(`  AG --> CONTRACT --> PROVIDERS["${ia.provs.length} provedores declarados"]`);
+  L.push('  AG --> MEMORY');
+  L.push('```');
+  L.push('');
+  L.push('A camada A isola o SDK/provedor, a B contém comportamento do produto e a C contém persistência e recuperação. As quantidades vêm do mesmo censo por contrato usado no inventário abaixo; não são números mantidos no desenho.');
+  L.push('');
+
+  L.push('## Fluxo principal: uma pergunta no chat');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart TB');
+  L.push('  IN["mensagem do usuário"] --> OWN{"conversa pertence ao usuário?"}');
+  L.push('  OWN -->|não| DENY["nega acesso"]');
+  L.push('  OWN -->|sim| SAVEQ["persiste a pergunta"]');
+  L.push('  SAVEQ --> BRIEF{"pedido de Brief Diário?"}');
+  L.push('  BRIEF -->|sim| BRIEFOUT["BriefDiarioChatTrigger"]');
+  L.push('  BRIEF -->|não| CACHE{"cache semântico encontrou?"}');
+  L.push('  CACHE -->|sim| STREAM["SSE até o navegador"]');
+  L.push('  CACHE -->|não| PII["mascara PII"]');
+  L.push('  PII --> CONTEXT["snapshot do negócio"]');
+  L.push('  CONTEXT --> CLARIFY{"precisa clarificar?"}');
+  L.push('  CLARIFY -->|sim| STREAM');
+  L.push('  CLARIFY -->|não| RECALL["recall de memória"]');
+  L.push('  RECALL --> AGENT["ChatCopilotoAgent"] --> MODEL["laravel/ai"] --> STREAM');
+  L.push('  BRIEFOUT --> STREAM');
+  L.push('  STREAM --> SAVEA["persiste a resposta"] --> END["evento SSE end"]');
+  L.push('  MODEL --> SIDE["uso · cache · fatos · resumo"]');
+  L.push('  SIDE --> SAVEA');
+  L.push('```');
+  L.push('');
+  L.push('Fontes donas: [`ChatController.php`](../../../Modules/Jana/Http/Controllers/ChatController.php), [`LaravelAiSdkDriver.php`](../../../Modules/Jana/Services/Ai/LaravelAiSdkDriver.php) e [`ChatCopilotoAgent.php`](../../../Modules/Jana/Ai/Agents/ChatCopilotoAgent.php). Pergunta e resposta são persistidas pelo controller; cache, recall e efeitos posteriores vivem no driver.');
+  L.push('');
+
+  L.push('## Dentro do recall de memória');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart TB');
+  L.push('  Q["pergunta + business_id + user_id"] --> NEG{"negative cache?"}');
+  L.push('  NEG -->|sim| EMPTY["sem fatos"]');
+  L.push('  NEG -->|não| HYDE["HyDE: original + hipótese"]');
+  L.push('  HYDE --> SEARCH["busca híbrida no Meilisearch"]');
+  L.push('  SEARCH --> RRF["fusão por posição"]');
+  L.push('  RRF --> DECAY["time-decay"]');
+  L.push('  DECAY --> WEIGHT["Peso Real, quando habilitado"]');
+  L.push('  WEIGHT --> RERANK["Reranker por contrato"]');
+  L.push('  RERANK --> TOP["top-K fatos no prompt"]');
+  L.push('  SEARCH -->|vazio| MARK["marca negative cache"] --> EMPTY');
+  L.push('```');
+  L.push('');
+  L.push('O filtro multi-tenant é aplicado dentro da consulta. O chamador do chat transforma falha de recall em contexto vazio, preservando a conversa. Fonte dona: [`MeilisearchDriver.php`](../../../Modules/Jana/Services/Memoria/MeilisearchDriver.php) e método `recallMemoria()` do driver do chat.');
+  L.push('');
+
+  L.push('## RAG sobre a memória canônica do projeto');
+  L.push('');
+  L.push('```mermaid');
+  L.push('flowchart TB');
+  L.push('  Q["pergunta sobre o projeto"] --> HYBRID{"pipeline híbrido habilitado?"}');
+  L.push('  HYBRID -->|sim| INDEX["buscarHybrid"]');
+  L.push('  HYBRID -->|não| SQL["FULLTEXT no MySQL"]');
+  L.push('  INDEX -->|erro ou vazio| SQL');
+  L.push('  INDEX --> DOCS["documentos autorizados"]');
+  L.push('  SQL --> DOCS');
+  L.push('  DOCS -->|vazio| LOW["sem conclusão · confiança baixa"]');
+  L.push('  DOCS --> SOURCES["fontes: título · path · trecho"]');
+  L.push('  SOURCES --> SYNTH["KbAnswerAgent sintetiza"]');
+  L.push('  SYNTH -->|formato válido| ANSWER["resposta com citações"]');
+  L.push('  SYNTH -->|erro ou formato inválido| FALLBACK["snippets recuperados · confiança baixa"]');
+  L.push('  EVAL["RAGAS real-eval"] -.-> SERVICE["mesmo KbAnswerService"] --> HYBRID');
+  L.push('```');
+  L.push('');
+  L.push('A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de teste que mede a si próprio. Fontes donas: [`KbAnswerService.php`](../../../Modules/Jana/Services/Kb/KbAnswerService.php) e [`KbAnswerTool.php`](../../../Modules/Jana/Mcp/Tools/KbAnswerTool.php).');
+  L.push('');
+
+  L.push('## Inventário derivado do código');
+  L.push('');
+  L.push('| Medida | Valor derivado | Fonte dona |');
+  L.push('|---|---:|---|');
+  L.push(`| Agentes PHP de produto | **${ai.agents.length}** | \`Modules/*/Ai/Agents/*Agent.php\` + contrato \`implements Agent\` |`);
+  L.push(`| Módulos com agentes PHP | **${Object.keys(agentsByModule).length}** | árvore \`Modules/\` |`);
+  L.push(`| Agentes sem referência de produção | **${orphanAgents.length}** | referências PHP fora de \`Tests/\` |`);
+  L.push(`| Tools registradas no MCP | **${ai.tools.length}** | [\`OimpressoMcpServer.php\`](../../../${ai.serverPath}) |`);
+  L.push(`| Tools SQL do Brief Diário | **${ai.dataTools.length}** | \`Modules/Jana/Ai/Tools/BriefDiario/\` |`);
+  L.push(`| Provedores declarados | **${ia.provs.length}** · default \`${ia.defaultProv || 'não medido'}\` | \`config/ai.php\` — declaração, não credencial viva |`);
+  L.push(`| Implementações de \`MemoriaContrato\` | **${ia.memoria.length}** | contrato PHP, fora de \`Tests/\` |`);
+  L.push(`| Implementações de \`Reranker\` | **${ia.reranker.length}** | contrato PHP, fora de \`Tests/\` |`);
+  L.push(`| Agentes de engenharia | **${ai.engineeringAgents.length}** | \`.claude/agents/*.md\` — outra camada, não runtime PHP |`);
+  L.push(`| Serviços em compose versionado | **${composeServicesTotal}** | \`docker/**/docker-compose.yml\` — declaração, não uptime |`);
+  L.push(`| Checks no baseline versionado de merge | **${gates.required.length}** | \`governance/required-checks-baseline.json\` — o probe vivo é \`protection-drift.mjs\` |`);
+  L.push('');
+
+  L.push('## Agentes PHP por módulo');
+  L.push('');
+  L.push('| Módulo | Qtd. | Classes |');
+  L.push('|---|---:|---|');
+  for (const [module, rows] of Object.entries(agentsByModule).sort(([a], [b]) => a.localeCompare(b))) {
+    const names = rows.map((row) => `[${row.name}](../../../${row.file})`).join(' · ');
+    L.push(`| ${module} | ${rows.length} | ${names} |`);
+  }
+  L.push('');
+  if (orphanAgents.length) {
+    L.push(`> ⚠️ Sem referência de produção: ${orphanAgents.map((a) => `\`${a.module}/${a.name}\``).join(' · ')}.`);
+  } else {
+    L.push('> ✅ Nenhuma classe de agente ficou sem referência PHP de produção.');
+  }
+  L.push('');
+
+  L.push('## O que está conectado — e o que a árvore não prova');
+  L.push('');
+  L.push('| Relação | Resultado desta geração | Limite honesto |');
+  L.push('|---|---|---|');
+  L.push(`| Agentes → uso em produção | ${orphanAgents.length === 0 ? '**todos têm referência PHP fora de testes**' : `**${orphanAgents.length} sem referência**`} | referência estática não prova execução em runtime |`);
+  const toolDrift = ia.registro.ok && ia.arquivosTool !== ia.registro.total;
+  L.push(`| Arquivos de tool → registro MCP | ${toolDrift ? `⚠️ **${ia.arquivosTool} arquivos para ${ia.registro.total} registros**` : '**registro e arquivos têm a mesma quantidade**'} | igualdade de quantidade não substitui o gate de exposição em runtime |`);
+  L.push(`| Tokens do streaming → resposta do turno | ${flowGaps.streamingTokenTargetBeforeInsert ? '⚠️ **desconectado: o driver atualiza a última resposta antes de o controller criar a resposta atual**' : '**o padrão antigo de ordem incorreta não foi detectado**'} | medidor estrutural; um teste de integração deve validar os valores persistidos |`);
+  L.push('| Compose → serviço vivo | **não provado pela árvore** | use os probes; arquivo versionado só prova intenção de subir |');
+  L.push('| Provider declarado → credencial válida | **não provado pela árvore** | `config/ai.php` não prova segredo, rede nem quota |');
+  L.push('| Diagrama → ordem do código | **ancorado por marcadores ordenados** | mudança estrutural faz o gerador falhar e exige revisão humana da explicação |');
+  L.push('');
+
+  L.push('## Tools do servidor MCP');
+  L.push('');
+  L.push('| Módulo dono | Qtd. | Registro |');
+  L.push('|---|---:|---|');
+  for (const [module, rows] of Object.entries(toolsByModule).sort(([a], [b]) => a.localeCompare(b))) {
+    L.push(`| ${module} | ${rows.length} | ${rows.map((row) => row.name).join(' · ')} |`);
+  }
+  L.push('');
+  L.push(`As **${ai.tools.length}** entradas acima são classes efetivamente registradas no array \`$tools\`. Uma classe \`*Tool.php\` solta não entra na contagem.`);
+  L.push('');
+
+  L.push('## Stacks Docker versionados');
+  L.push('');
+  L.push('> Esta tabela responde “o que o repo declara?”. Para responder “o que está vivo agora?”, use os probes da seção seguinte.');
+  L.push('');
+  L.push('| Compose | Serviços declarados | Qtd. |');
+  L.push('|---|---|---:|');
+  for (const row of ai.compose) {
+    L.push(`| [\`${row.file}\`](../../../${row.file}) | ${row.services.length ? row.services.join(' · ') : '_nenhum detectado_'} | ${row.services.length} |`);
+  }
+  L.push('');
+
+  L.push('## Estado vivo: medir, não copiar');
+  L.push('');
+  L.push('| Superfície | Probe/recibo | O que prova |');
+  L.push('|---|---|---|');
+  L.push('| Web live | [`https://oimpresso.com/login`](https://oimpresso.com/login) | aplicação responde agora |');
+  L.push('| MCP | [`https://mcp.oimpresso.com/api/mcp/health`](https://mcp.oimpresso.com/api/mcp/health) | servidor MCP responde agora |');
+  L.push('| Staging | [`https://staging.oimpresso.com/login`](https://staging.oimpresso.com/login) | runtime de homologação responde agora |');
+  L.push('| Langfuse | [`https://langfuse.oimpresso.com/api/public/health`](https://langfuse.oimpresso.com/api/public/health) | observabilidade responde agora |');
+  L.push('| CT 100 | `tailscale ssh root@ct100-mcp "docker ps"` | containers realmente em execução |');
+  L.push('| Hostinger | `php artisan schedule:list` + processo `queue:work` | cron e filas realmente carregados |');
+  L.push('');
+  L.push('A página **não grava “verde”** no Markdown: esse estado venceria no minuto seguinte. Ela preserva o probe reproduzível.');
+  L.push('');
+
+  L.push('## Como esta página continua viva');
+  L.push('');
+  L.push('1. `system-map.mjs` varre agentes, registro MCP, tools de dados e arquivos compose.');
+  L.push('2. Os fluxos acima têm conjuntos de âncoras ordenadas nos arquivos donos; se uma etapa some ou troca de ordem, a geração falha em vez de preservar um desenho mentiroso.');
+  L.push('3. `node scripts/governance/system-map.mjs --check` compara o Markdown commitado com a geração atual.');
+  L.push('4. [`.github/workflows/system-map.yml`](../../../.github/workflows/system-map.yml) roda no PR quando uma fonte muda e também diariamente.');
+  L.push('5. O job diário regenera e abre auto-PR; ninguém precisa editar contagem à mão.');
+  L.push('6. Fatos de runtime ficam como probes. Se for necessário histórico de uptime, o dono deve ser monitoramento/telemetria — nunca esta página.');
+  L.push('');
+  L.push('### O que ainda é humano');
+  L.push('');
+  L.push('- explicar **por que** as camadas existem;');
+  L.push('- decidir se um serviço em standby deve ser ativado ou removido;');
+  L.push('- registrar mudança arquitetural em ADR;');
+  L.push('- interpretar falha de probe e impacto no negócio.');
+  L.push('');
+  L.push('---');
+  L.push(`_Gerado por \`scripts/governance/system-map.mjs\` · ${NOW} · arquitetura derivada das fontes canônicas._`);
+  L.push('');
+  return L.join('\n');
+}
+
 const OUT_ONBOARDING = join(ROOT, 'memory', 'reference', 'ONBOARDING-AGENTE-GERADO.md');
 function renderOnboardingAgent(data) {
   const { adr, mods } = data;
@@ -288,7 +970,11 @@ function renderOnboardingAgent(data) {
   L.push('---');
   L.push('name: Onboarding de agente — prompt gerado');
   L.push('description: Artefato auxiliar da rota de agentes declarada no README.md. GERADO por system-map.mjs — prompt estável + ponteiros pras fontes vivas.');
-  L.push('type: generated-prompt');
+  // `guide` (não `generated-prompt`): o enum de reference.schema.json só aceita
+  // reference|feedback|protocol|guide|index — quem diz que é gerado é `authority`,
+  // como o irmão PAINEL-SISTEMA já fazia. Ficava fora do enum desde que nasceu; só
+  // apareceu quando a regeneração tocou o arquivo e acordou o gate diff-aware.
+  L.push('type: guide');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
   L.push('---');
@@ -383,27 +1069,36 @@ export function assertLinksLive(pairs) {
 }
 
 if (IS_DIRECT_RUN) {
+  const ia = measureIa();
   const data = {
     adr: measureAdrs(), proib: measureProibicoes(), mods: measureModules(),
     sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(),
+    ai: measureAi(ia.semInstrumento ? null : ia.agentFiles),
+    ia,
   };
   const outPainel = render(data);
+  const outAi = renderAiPlant(data);
   const outOnboarding = renderOnboardingAgent(data);
   // REGRA: prova que TODO path emitido resolve, antes de qualquer coisa (fail-closed)
-  assertLinksLive([[outPainel, OUT], [outOnboarding, OUT_ONBOARDING]]);
+  assertLinksLive([[outPainel, OUT], [outAi, OUT_AI], [outOnboarding, OUT_ONBOARDING]]);
   // ignora a linha de data (volátil) do PAINEL na comparação de conteúdo
-  const strip = (s) => s.replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**').replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
+  const strip = (s) => s
+    .replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**')
+    .replace(/em \d{4}-\d{2}-\d{2}/g, 'em DATE')
+    .replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
   if (MODE_STDOUT) {
-    process.stdout.write(outPainel + '\n\n' + outOnboarding);
+    process.stdout.write(outPainel + '\n\n' + outAi + '\n\n' + outOnboarding);
   } else if (MODE_CHECK) {
     let stale = false;
     if (strip(read(OUT)) !== strip(outPainel)) { console.error('[system-map] PAINEL-SISTEMA.md desatualizado'); stale = true; }
+    if (strip(read(OUT_AI)) !== strip(outAi)) { console.error('[system-map] Jana/ARCHITECTURE.md desatualizado'); stale = true; }
     if (strip(read(OUT_ONBOARDING)) !== strip(outOnboarding)) { console.error('[system-map] ONBOARDING-AGENTE-GERADO.md desatualizado'); stale = true; }
     if (stale) { console.error('  → rode: node scripts/governance/system-map.mjs'); process.exit(1); }
-    console.log('[system-map] PAINEL + ONBOARDING-AGENTE-GERADO em dia.');
+    console.log('[system-map] PAINEL + Jana/ARCHITECTURE + ONBOARDING-AGENTE-GERADO em dia.');
   } else {
     writeFileSync(OUT, outPainel);
+    writeFileSync(OUT_AI, outAi);
     writeFileSync(OUT_ONBOARDING, outOnboarding);
-    console.log(`[system-map] escrito: ${OUT} + ${OUT_ONBOARDING}`);
+    console.log(`[system-map] escrito: ${OUT} + ${OUT_AI} + ${OUT_ONBOARDING}`);
   }
 }

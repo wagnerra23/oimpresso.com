@@ -6,7 +6,6 @@ use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Contracts\AiAdapter;
 use Modules\Jana\Entities\Conversa;
-use Modules\Jana\Entities\Mensagem;
 use Modules\Jana\Support\ContextoNegocio;
 use OpenAI\Laravel\Facades\OpenAI;
 
@@ -22,6 +21,36 @@ use OpenAI\Laravel\Facades\OpenAI;
  */
 class OpenAiDirectDriver implements AiAdapter
 {
+    /**
+     * Uso da última chamada de chat. Ver AiAdapter::ultimoUsoTokens() —
+     * quem persiste é o caller, não o driver.
+     *
+     * @var array{tokens_in: int|null, tokens_out: int|null}
+     */
+    protected array $ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+
+    /** @var array{path:string,status:string,cache_hit:bool,recall_count:int,jobs_dispatched:int,error_class:?string} */
+    protected array $ultimoResultadoStream = [
+        'path' => 'idle',
+        'status' => 'idle',
+        'cache_hit' => false,
+        'recall_count' => 0,
+        'jobs_dispatched' => 0,
+        'error_class' => null,
+    ];
+
+    /** {@inheritDoc} */
+    public function ultimoUsoTokens(): array
+    {
+        return $this->ultimoUso;
+    }
+
+    /** {@inheritDoc} */
+    public function ultimoResultadoStream(): array
+    {
+        return $this->ultimoResultadoStream;
+    }
+
     public function gerarBriefing(ContextoNegocio $ctx): string
     {
         if (config('copiloto.dry_run')) {
@@ -166,6 +195,9 @@ class OpenAiDirectDriver implements AiAdapter
 
     public function responderChat(Conversa $conv, string $mensagem): string
     {
+        // Zera — saída curta (dry-run/erro) não herda usage de chamada anterior.
+        $this->ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+
         if (config('copiloto.dry_run')) {
             return "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
         }
@@ -184,12 +216,10 @@ class OpenAiDirectDriver implements AiAdapter
             $tokensIn  = $response->usage->promptTokens ?? 0;
             $tokensOut = $response->usage->completionTokens ?? 0;
 
-            // Logar tokens na última mensagem assistant (se existir) ou criar registro
-            Mensagem::where('conversa_id', $conv->id)
-                ->where('role', 'assistant')
-                ->latest('created_at')
-                ->first()
-                ?->update(['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut]);
+            // NÃO gravar aqui: este método retorna ANTES do controller criar a
+            // Mensagem assistant do turno. O caller persiste — ver
+            // AiAdapter::ultimoUsoTokens().
+            $this->ultimoUso = ['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut];
 
             Log::channel('copiloto-ai')->info('responderChat', [
                 'conversa_id' => $conv->id,
@@ -217,7 +247,20 @@ class OpenAiDirectDriver implements AiAdapter
      */
     public function responderChatStream(Conversa $conv, string $mensagem): \Generator
     {
+        // Zera — ver responderChat().
+        $this->ultimoUso = ['tokens_in' => null, 'tokens_out' => null];
+        $this->ultimoResultadoStream = [
+            'path' => 'llm',
+            'status' => 'running',
+            'cache_hit' => false,
+            'recall_count' => 0,
+            'jobs_dispatched' => 0,
+            'error_class' => null,
+        ];
+
         if (config('copiloto.dry_run')) {
+            $this->ultimoResultadoStream['path'] = 'dry_run';
+            $this->ultimoResultadoStream['status'] = 'ok';
             // Simula stream em dry-run pra UX dev (sem custo).
             $fake = "(dry-run) Recebi: \"{$mensagem}\". Quando a IA estiver plugada, eu respondo de verdade.";
             foreach (str_split($fake, 8) as $chunk) {
@@ -256,13 +299,10 @@ class OpenAiDirectDriver implements AiAdapter
                 }
             }
 
-            // Persiste tokens na ÚLTIMA mensagem assistant criada
-            // (controller cria a Mensagem com texto acumulado ao fim do stream).
-            Mensagem::where('conversa_id', $conv->id)
-                ->where('role', 'assistant')
-                ->latest('created_at')
-                ->first()
-                ?->update(['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut]);
+            // NÃO gravar aqui. Este trecho roda durante o `next()` do foreach do
+            // caller — ANTES do controller criar a Mensagem assistant do turno.
+            // O caller persiste — ver AiAdapter::ultimoUsoTokens().
+            $this->ultimoUso = ['tokens_in' => $tokensIn, 'tokens_out' => $tokensOut];
 
             Log::channel('copiloto-ai')->info('responderChatStream', [
                 'conversa_id' => $conv->id,
@@ -270,7 +310,10 @@ class OpenAiDirectDriver implements AiAdapter
                 'tokens_out'  => $tokensOut,
                 'chars_out'   => mb_strlen($textoCompleto),
             ]);
+            $this->ultimoResultadoStream['status'] = 'ok';
         } catch (\Throwable $e) {
+            $this->ultimoResultadoStream['status'] = $textoCompleto !== '' ? 'partial_error' : 'error';
+            $this->ultimoResultadoStream['error_class'] = $e::class;
             Log::channel('copiloto-ai')->error('responderChatStream error: ' . $e->getMessage());
             yield "\n\n_(Erro de IA: " . substr($e->getMessage(), 0, 100) . ")_";
         }
@@ -307,12 +350,12 @@ class OpenAiDirectDriver implements AiAdapter
 
     // ─── Sanitização ─────────────────────────────────────────────────────────
 
-    /** Mascara CPF (000.000.000-00) e CNPJ (00.000.000/0000-00) em strings. */
+    /** Mascara CPF (000.000.000-00) e CNPJ (00.000.000/0000-00) em strings. # pii-allowlist (placeholder de formato, não PII real) */
     public function mascararDocumentos(string $texto): string
     {
-        // CPF: 000.000.000-00 ou 00000000000
+        // CPF: 000.000.000-00 ou 00000000000  # pii-allowlist (placeholder de formato)
         $texto = preg_replace('/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/', 'XXX.XXX.XXX-NN', $texto);
-        // CNPJ: 00.000.000/0000-00 ou 00000000000000
+        // CNPJ: 00.000.000/0000-00 ou 00000000000000  # pii-allowlist (placeholder de formato)
         $texto = preg_replace('/\b\d{2}\.?\d{3}\.?\d{3}\/?0001-?\d{2}\b/', 'XX.XXX.XXX/0001-NN', $texto);
 
         return $texto;

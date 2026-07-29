@@ -1,7 +1,7 @@
 ---
 name: Onboarding de agente — prompt gerado
 description: Artefato auxiliar da rota de agentes declarada no README.md. GERADO por system-map.mjs — prompt estável + ponteiros pras fontes vivas.
-type: generated-prompt
+type: guide
 authority: generated
 lifecycle: ativo
 ---
@@ -43,7 +43,7 @@ quebrar. Se algum bullet estiver vago, releia a fonte.
 
 ## Estado vivo (não apodrece — é derivado)
 
-- **37 módulos** · **360 ADRs** — detalhe + frescor no [PAINEL-SISTEMA.md](PAINEL-SISTEMA.md) (gerado junto deste).
+- **37 módulos** · **362 ADRs** — detalhe + frescor no [PAINEL-SISTEMA.md](PAINEL-SISTEMA.md) (gerado junto deste).
 - Estado consolidado agora: rode `brief-fetch`.
 - Regras Tier 0 + o que já falhou: [proibicoes.md](../proibicoes.md).
 - Como o sistema é construído: `CLAUDE.md` (carrega automático) + `memory/why-oimpresso.md` / `what-oimpresso.md` / `how-trabalhar.md`.

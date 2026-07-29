@@ -122,6 +122,15 @@ class McpMemoryDocument extends Model
         );
     }
 
+    /** Hybrid respondeu e devolveu documentos. */
+    public const HYBRID_OK = 'ok';
+
+    /** Hybrid respondeu, zero hits — AUSÊNCIA legítima (a KB não tem o assunto). */
+    public const HYBRID_VAZIO = 'vazio';
+
+    /** Hybrid NÃO respondeu (config ausente, rede, HTTP≠2xx) — DEGRADAÇÃO, não ausência. */
+    public const HYBRID_INDISPONIVEL = 'indisponivel';
+
     /**
      * Busca HYBRID (semantic + full-text) no índice Meilisearch — para as tools MCP
      * decisions-search/kb-answer recuperarem com a qualidade do pipeline do chat.
@@ -135,10 +144,21 @@ class McpMemoryDocument extends Model
      * + acessiveisPara (permissão Spatie). Embedder/ratio do config (qwen3_local / 0.6).
      * `shouldBeSearchable` já exclui superseded/deprecated do índice.
      *
+     * DEGRADAÇÃO ≠ AUSÊNCIA (2026-07-28). Os 4 caminhos abaixo devolviam a MESMA
+     * Collection vazia: host não-configurado · exceção HTTP · resposta failed() · zero
+     * hits. Pro chamador (e pro usuário final) "índice fora do ar" ficava idêntico a
+     * "a KB não tem isso" — e a única pista era um warning em log que ninguém lê quando
+     * está avaliando a confiança de uma resposta. O `$status` por referência (opcional,
+     * último parâmetro) separa os dois SEM mudar o tipo de retorno: `DecisionsSearchTool`
+     * — o outro chamador de produção — segue byte-a-byte, não passa nada e não vê nada.
+     * Continua fail-open: quem falha aqui devolve vazio e deixa o caller cair no FULLTEXT.
+     *
+     * @param  string|null  $status  saída por referência: HYBRID_OK|HYBRID_VAZIO|HYBRID_INDISPONIVEL
      * @return \Illuminate\Database\Eloquent\Collection<int, static>
      */
-    public static function buscarHybrid(string $query, int $limit, ?\App\User $user, ?string $tipo = null, ?string $module = null, int $businessId = 0): \Illuminate\Database\Eloquent\Collection
+    public static function buscarHybrid(string $query, int $limit, ?\App\User $user, ?string $tipo = null, ?string $module = null, int $businessId = 0, ?string &$status = null): \Illuminate\Database\Eloquent\Collection
     {
+        $status = self::HYBRID_INDISPONIVEL; // pessimista: só vira OK/VAZIO com resposta do índice
         // Embedder do índice mcp_memory_documents (verificado live CT 100: nomic_local +
         // qwen3_local). NÃO usar copiloto.memoria.meilisearch.embedder — essa é a do chat
         // (jana_memoria_facts), que no prod resolve 'openai' e NÃO existe neste índice.
@@ -171,7 +191,11 @@ class McpMemoryDocument extends Model
         $index = 'mcp_memory_documents'; // searchableAs() — constante deste índice
 
         // Collection vazia (tipo static, sem carregar linhas) — dispara o fallback FULLTEXT no caller.
+        // Era o mais silencioso dos 4 caminhos: nem log emitia. Config ausente é INDISPONÍVEL
+        // (infra/config), nunca "a KB não tem o assunto".
         if ($host === '') {
+            Log::channel('copiloto-ai')->warning('buscarHybrid: scout.meilisearch.host vazio — hybrid INDISPONÍVEL, fallback FULLTEXT');
+
             return static::query()->whereRaw('1 = 0')->get();
         }
 
@@ -211,6 +235,9 @@ class McpMemoryDocument extends Model
             (array) $resp->json('hits', [])
         )));
         if ($ids === []) {
+            // O índice RESPONDEU e não tem nada: AUSÊNCIA legítima, não degradação.
+            $status = self::HYBRID_VAZIO;
+
             return static::query()->whereRaw('1 = 0')->get();
         }
 
@@ -218,13 +245,27 @@ class McpMemoryDocument extends Model
         // relevância do Meilisearch (whereIn não preserva a ordem dos ids).
         $pos = array_flip($ids);
 
-        return static::query()
+        $docs = static::query()
             ->whereIn('id', $ids)
             ->acessiveisPara($user)
             ->when($businessId > 0, static fn ($q) => $q->doBusiness($businessId)) // Tier 0 — ADR 0093
             ->get()
             ->sortBy(static fn ($doc) => $pos[(int) $doc->getKey()] ?? PHP_INT_MAX)
             ->values();
+
+        // Hits > 0 mas hidratação 0: o índice está à frente do banco (doc apagado/soft-deleted)
+        // OU os scopes Tier 0 barraram tudo (permissão/tenant). NÃO é indisponibilidade — a
+        // busca funcionou; é ausência DESTE usuário. Loga porque índice stale é acionável.
+        if ($docs->isEmpty()) {
+            Log::channel('copiloto-ai')->warning('buscarHybrid: '.count($ids).' hits no índice, 0 após scopes Tier 0/hidratação (índice stale ou sem permissão)');
+            $status = self::HYBRID_VAZIO;
+
+            return $docs;
+        }
+
+        $status = self::HYBRID_OK;
+
+        return $docs;
     }
 
     /**

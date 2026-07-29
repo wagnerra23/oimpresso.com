@@ -7,6 +7,7 @@ namespace Modules\Jana\Services\Memoria\Telemetry;
 use Modules\Jana\Contracts\MemoriaContrato;
 use Modules\Jana\Contracts\MemoriaPersistida;
 use Modules\Jana\Entities\Mcp\McpAuditLog;
+use Modules\Jana\Services\Telemetry\TraceContext;
 use Throwable;
 
 /**
@@ -61,8 +62,9 @@ final class RetrievalTelemetryDecorator implements MemoriaContrato
     public function buscar(int $businessId, int $userId, string $query, int $topK = 5): array
     {
         $rootSpan = $this->spans->startQuery($query, $businessId, $userId, $topK);
-        $traceId = null; // sem trace pai por enquanto — futuro: extrair de
-                         // Request scope ($request->attributes->get('jana_trace_id'))
+        // Chat SSE publica o trace raiz no request scope. Fora de HTTP continua
+        // null e o decorator mantém o comportamento anterior (log/audit apenas).
+        $traceId = TraceContext::current();
         $error = null;
         $result = [];
 

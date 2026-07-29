@@ -101,7 +101,14 @@ class OtelHelper
 
         try {
             $result = $callback();
-            $span->setStatus(\OpenTelemetry\API\Trace\StatusCode::STATUS_OK);
+            // Não sobrescreve erro marcado explicitamente por um fluxo que
+            // converte a falha em resposta amigável (ex.: SSE parcial).
+            $alreadyError = $span instanceof \OpenTelemetry\SDK\Trace\ReadableSpanInterface
+                && $span->toSpanData()->getStatus()->getCode()
+                    === \OpenTelemetry\API\Trace\StatusCode::STATUS_ERROR;
+            if (! $alreadyError) {
+                $span->setStatus(\OpenTelemetry\API\Trace\StatusCode::STATUS_OK);
+            }
 
             return $result;
         } catch (\Throwable $e) {
@@ -111,6 +118,44 @@ class OtelHelper
         } finally {
             $scope->detach();
             $span->end();
+        }
+    }
+
+    /**
+     * Acrescenta resultado ao span ativo sem criar outro span/emissor.
+     *
+     * Útil para callbacks longas cujo resultado só existe no fim (streaming).
+     * `$error=true` marca STATUS_ERROR sem registrar mensagem potencialmente PII;
+     * a classe sanitizada deve vir em `error_class`.
+     *
+     * @param array<string, mixed> $attributes
+     */
+    public static function annotateCurrent(array $attributes, bool $error = false): void
+    {
+        if (! config('otel.enabled', false)
+            || config('otel.sdk_disabled', false)
+            || ! class_exists(\OpenTelemetry\API\Trace\Span::class)
+        ) {
+            return;
+        }
+
+        $span = \OpenTelemetry\API\Trace\Span::getCurrent();
+        if (! $span->isRecording()) {
+            return;
+        }
+
+        foreach ($attributes as $key => $value) {
+            if (self::isPiiSensitive($key)) {
+                continue;
+            }
+            $span->setAttribute($key, $value);
+        }
+
+        if ($error) {
+            $description = isset($attributes['error_class'])
+                ? (string) $attributes['error_class']
+                : 'stream_error';
+            $span->setStatus(\OpenTelemetry\API\Trace\StatusCode::STATUS_ERROR, $description);
         }
     }
 

@@ -3,6 +3,7 @@
 namespace Modules\Jana\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -18,6 +19,8 @@ use Modules\Jana\Jobs\ApurarMetaJob;
 use Modules\Jana\Services\BriefDiarioChatTrigger;
 use Modules\Jana\Services\ContextSnapshotService;
 use Modules\Jana\Services\SuggestionEngine;
+use Modules\Jana\Services\Telemetry\LangfuseClient;
+use Modules\Jana\Services\Telemetry\TraceContext;
 
 /**
  * Chat é o entry-point do módulo (ver adr/arq/0002).
@@ -29,6 +32,7 @@ class ChatController extends Controller
         protected SuggestionEngine $suggestions,
         protected AiAdapter $ai,
         protected BriefDiarioChatTrigger $briefTrigger,
+        protected LangfuseClient $langfuse,
     ) {
     }
 
@@ -338,10 +342,18 @@ class ChatController extends Controller
             }
         }
 
+        // Tokens DESTE turno. O driver não grava mais sozinho — ele retornava
+        // antes desta linha, então o UPDATE dele caía no turno ANTERIOR.
+        // Ver AiAdapter::ultimoUsoTokens(). No atalho do brief o adapter nem é
+        // chamado, e aí vem null/null (correto: não houve consumo por aqui).
+        $uso = $this->ai->ultimoUsoTokens();
+
         $msgAssistant = Mensagem::create([
             'conversa_id' => $conversa->id,
             'role'        => 'assistant',
             'content'     => $resposta,
+            'tokens_in'   => $uso['tokens_in'] ?? null,
+            'tokens_out'  => $uso['tokens_out'] ?? null,
         ]);
 
         return back();
@@ -368,72 +380,182 @@ class ChatController extends Controller
         $conversa = Conversa::findOrFail($id);
         abort_unless($conversa->user_id === auth()->id(), 403);
 
-        // Persiste mensagem do user IMEDIATAMENTE (antes do stream).
-        $msgUser = Mensagem::create([
-            'conversa_id' => $conversa->id,
-            'role'        => 'user',
-            'content'     => $request->input('content'),
-        ]);
+        $userInput = (string) $request->input('content');
+        $businessId = (int) $conversa->business_id;
+        $userId = (int) $conversa->user_id;
 
-        $userInput = $request->input('content');
+        $response = new StreamedResponse(function () use ($conversa, $userInput, $businessId, $userId) {
+            $startedAt = microtime(true);
+            $traceId = $this->langfuse->startTrace([
+                'name' => 'jana-chat-stream',
+                'business_id' => $businessId,
+                'user_id' => $userId,
+                'conversation_id' => (int) $conversa->id,
+                'tool' => 'chat-sse',
+                'input' => $userInput,
+                'metadata' => ['stream' => true],
+            ]);
 
-        $response = new StreamedResponse(function () use ($conversa, $userInput, $msgUser) {
-            // Disable output buffering em todos os layers PHP/nginx pra SSE real-time
-            @ini_set('zlib.output_compression', '0');
-            @ini_set('output_buffering', 'off');
-            @ini_set('implicit_flush', '1');
-            while (ob_get_level() > 0) {
-                @ob_end_flush();
-            }
-            ob_implicit_flush(true);
+            $previousTraceId = TraceContext::activate($traceId);
 
-            $write = function (array $payload) {
-                echo 'data: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n\n";
-                @flush();
-            };
-
-            $write(['type' => 'start', 'user_message_id' => $msgUser->id]);
-
+            $result = 'error';
+            $path = 'llm';
+            $errorClass = null;
             $textoCompleto = '';
+            $msgAssistant = null;
+            $previousIgnoreUserAbort = ignore_user_abort(true);
 
-            // US-COPI-203: brief shortcut pre-empta stream normal. Como agent
-            // responde tudo de uma vez (não streaming nativo), enviamos como
-            // 1 único chunk grande + end (UX: spinner curto → texto inteiro).
-            if ($this->briefTrigger->matches($userInput)) {
-                $textoCompleto = $this->briefTrigger->gerar($conversa);
-                $write(['type' => 'chunk', 'content' => $textoCompleto]);
-            } else {
-                try {
-                    foreach ($this->ai->responderChatStream($conversa, $userInput) as $chunk) {
-                        if ($chunk === '') {
-                            continue;
-                        }
-                        $textoCompleto .= $chunk;
-                        $write(['type' => 'chunk', 'content' => $chunk]);
-                    }
-                } catch (\Throwable $e) {
-                    $write([
-                        'type'    => 'error',
-                        'message' => 'Erro ao gerar resposta: ' . substr($e->getMessage(), 0, 200),
+            try {
+                OtelHelper::span('jana.chat.stream', [
+                    'business_id' => $businessId,
+                    'oimpresso.tenant_id' => (string) $businessId,
+                    'user_id' => $userId,
+                    'conversation_id' => (int) $conversa->id,
+                    'jana.trace_id' => $traceId,
+                    'stream' => true,
+                ], function () use (
+                    $conversa,
+                    $userInput,
+                    &$result,
+                    &$path,
+                    &$errorClass,
+                    &$textoCompleto,
+                    &$msgAssistant,
+                    $startedAt
+                ): void {
+                    // A raiz já está ativa: a persistência do user e toda a
+                    // iteração do Generator ficam no mesmo lifecycle.
+                    $msgUser = Mensagem::create([
+                        'conversa_id' => $conversa->id,
+                        'role' => 'user',
+                        'content' => $userInput,
                     ]);
-                    $textoCompleto = $textoCompleto !== '' ? $textoCompleto : '_(erro)_';
-                }
+
+                    // Disable output buffering em todos os layers PHP/nginx pra SSE real-time.
+                    @ini_set('zlib.output_compression', '0');
+                    @ini_set('output_buffering', 'off');
+                    @ini_set('implicit_flush', '1');
+                    while (ob_get_level() > 0) {
+                        @ob_end_flush();
+                    }
+                    ob_implicit_flush(true);
+
+                    $write = function (array $payload): void {
+                        echo 'data: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n\n";
+                        @flush();
+                    };
+
+                    $write(['type' => 'start', 'user_message_id' => $msgUser->id]);
+                    $cancelled = false;
+                    $controllerError = null;
+
+                    try {
+                        // US-COPI-203: brief shortcut pre-empta stream normal.
+                        if ($this->briefTrigger->matches($userInput)) {
+                            $path = 'brief';
+                            $textoCompleto = $this->briefTrigger->gerar($conversa);
+                            $write(['type' => 'chunk', 'content' => $textoCompleto]);
+                            $cancelled = $this->connectionAborted();
+                        } else {
+                            foreach ($this->ai->responderChatStream($conversa, $userInput) as $chunk) {
+                                if ($chunk === '') {
+                                    continue;
+                                }
+                                $textoCompleto .= $chunk;
+                                $write(['type' => 'chunk', 'content' => $chunk]);
+                                if ($this->connectionAborted()) {
+                                    $cancelled = true;
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        $controllerError = $e;
+                        $errorClass = $e::class;
+                        $write([
+                            'type' => 'error',
+                            'message' => 'Não foi possível concluir a resposta.',
+                        ]);
+                        $textoCompleto = $textoCompleto !== '' ? $textoCompleto : '_(erro)_';
+                    }
+
+                    $outcome = $path === 'brief'
+                        ? [
+                            'path' => 'brief',
+                            'status' => 'ok',
+                            'cache_hit' => false,
+                            'recall_count' => 0,
+                            'jobs_dispatched' => 0,
+                            'error_class' => null,
+                        ]
+                        : $this->ai->ultimoResultadoStream();
+
+                    $path = $outcome['path'];
+                    $adapterStatus = $outcome['status'];
+                    $errorClass ??= $outcome['error_class'];
+                    $result = $cancelled
+                        ? 'cancelled'
+                        : ($controllerError !== null
+                            ? ($textoCompleto !== '_(erro)_' ? 'partial_error' : 'error')
+                            : $adapterStatus);
+
+                    // Persiste a resposta parcial inclusive no abandono: o que
+                    // já foi mostrado não desaparece e o ciclo pode aprender.
+                    $uso = $path === 'brief'
+                        ? ['tokens_in' => null, 'tokens_out' => null]
+                        : $this->ai->ultimoUsoTokens();
+                    $msgAssistant = Mensagem::create([
+                        'conversa_id' => $conversa->id,
+                        'role' => 'assistant',
+                        'content' => $textoCompleto,
+                        'tokens_in' => $uso['tokens_in'] ?? null,
+                        'tokens_out' => $uso['tokens_out'] ?? null,
+                    ]);
+
+                    if (! $cancelled) {
+                        $write([
+                            'type' => 'end',
+                            'assistant_message_id' => $msgAssistant->id,
+                            'chars' => mb_strlen($textoCompleto),
+                        ]);
+                    }
+
+                    OtelHelper::annotateCurrent([
+                        'user_message_id' => (int) $msgUser->id,
+                        'assistant_message_id' => (int) $msgAssistant->id,
+                        'path' => $path,
+                        'cache_hit' => $outcome['cache_hit'],
+                        'recall_count' => $outcome['recall_count'],
+                        'usage_input' => (int) ($uso['tokens_in'] ?? 0),
+                        'usage_output' => (int) ($uso['tokens_out'] ?? 0),
+                        'jobs_dispatched' => $outcome['jobs_dispatched'],
+                        'chars_out' => mb_strlen($textoCompleto),
+                        'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+                        'result' => $result,
+                        'response_partial' => in_array($result, ['partial_error', 'cancelled'], true),
+                        'error_class' => $errorClass,
+                    ], in_array($result, ['error', 'partial_error'], true));
+                });
+            } catch (\Throwable $e) {
+                $errorClass = $e::class;
+                $result = $textoCompleto !== '' ? 'partial_error' : 'error';
+                throw $e;
+            } finally {
+                $this->langfuse->endTrace($traceId, [
+                    'output' => $textoCompleto,
+                    'level' => in_array($result, ['error', 'partial_error'], true) ? 'ERROR' : 'DEFAULT',
+                    'status_message' => $errorClass,
+                    'metadata' => [
+                        'path' => $path,
+                        'result' => $result,
+                        'assistant_message_id' => $msgAssistant?->id,
+                        'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+                    ],
+                ]);
+
+                TraceContext::restore($previousTraceId);
+                ignore_user_abort($previousIgnoreUserAbort !== 0);
             }
-
-            // Persiste mensagem assistant ao fim do stream.
-            // OpenAiDirectDriver atualiza tokens_in/tokens_out via segunda query
-            // ao final do stream — depende de UPDATE na latest assistant.
-            $msgAssistant = Mensagem::create([
-                'conversa_id' => $conversa->id,
-                'role'        => 'assistant',
-                'content'     => $textoCompleto,
-            ]);
-
-            $write([
-                'type'                  => 'end',
-                'assistant_message_id'  => $msgAssistant->id,
-                'chars'                 => mb_strlen($textoCompleto),
-            ]);
         });
 
         $response->headers->set('Content-Type', 'text/event-stream; charset=utf-8');
@@ -443,6 +565,15 @@ class ChatController extends Controller
         $response->headers->set('X-Accel-Buffering', 'no');
 
         return $response;
+    }
+
+    /**
+     * Ponto estreito para detectar abandono real do socket e permitir teste
+     * determinístico sem fabricar um segundo pipeline de streaming.
+     */
+    protected function connectionAborted(): bool
+    {
+        return connection_aborted() === 1;
     }
 
     /**

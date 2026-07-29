@@ -58,8 +58,8 @@ it('R-COPI-D4-5-004 — cacheControlMarker retorna shape Anthropic exato', funct
 
 it('R-COPI-D4-5-005 — ChatCopilotoAgent->providerOptions(Anthropic) injeta cache_control no system', function () {
     // Garante cache habilitado pra este teste
-    putenv('COPILOTO_PROMPT_CACHE_ENABLED=true');
-    putenv('COPILOTO_PROMPT_CACHE_MIN_CHARS=10'); // forçar passar threshold
+    config(['copiloto.prompt_cache.enabled' => true]);
+    config(['copiloto.prompt_cache.min_chars' => 10]); // forçar passar threshold
 
     // ContextoNegocio mínimo válido (sem PII real — biz=1 ADR 0101)
     $ctx = new ContextoNegocio(
@@ -99,8 +99,8 @@ it('R-COPI-D4-5-005 — ChatCopilotoAgent->providerOptions(Anthropic) injeta cac
 });
 
 it('R-COPI-D4-5-006 — providerOptions(OpenAI) retorna [] — só Anthropic ativa cache', function () {
-    putenv('COPILOTO_PROMPT_CACHE_ENABLED=true');
-    putenv('COPILOTO_PROMPT_CACHE_MIN_CHARS=10');
+    config(['copiloto.prompt_cache.enabled' => true]);
+    config(['copiloto.prompt_cache.min_chars' => 10]);
 
     $conv = new Conversa();
     $conv->id = 1;
@@ -117,8 +117,8 @@ it('R-COPI-D4-5-006 — providerOptions(OpenAI) retorna [] — só Anthropic ati
 });
 
 it('R-COPI-D4-5-007 — kill-switch env=false desliga cache (regressão emergencial)', function () {
-    putenv('COPILOTO_PROMPT_CACHE_ENABLED=false');
-    putenv('COPILOTO_PROMPT_CACHE_MIN_CHARS=10');
+    config(['copiloto.prompt_cache.enabled' => false]);
+    config(['copiloto.prompt_cache.min_chars' => 10]);
 
     expect(PromptCacheConfig::isEnabled())->toBeFalse();
 
@@ -134,12 +134,12 @@ it('R-COPI-D4-5-007 — kill-switch env=false desliga cache (regressão emergenc
     expect($agent->providerOptions(Lab::Anthropic))->toBe([]);
 
     // Restaura pro próximo test
-    putenv('COPILOTO_PROMPT_CACHE_ENABLED=true');
+    config(['copiloto.prompt_cache.enabled' => true]);
 });
 
 it('R-COPI-D4-5-008 — BriefingAgent também implementa HasProviderOptions', function () {
-    putenv('COPILOTO_PROMPT_CACHE_ENABLED=true');
-    putenv('COPILOTO_PROMPT_CACHE_MIN_CHARS=10');
+    config(['copiloto.prompt_cache.enabled' => true]);
+    config(['copiloto.prompt_cache.min_chars' => 10]);
 
     $ctx = new ContextoNegocio(
         businessId: 1,
@@ -161,8 +161,8 @@ it('R-COPI-D4-5-008 — BriefingAgent também implementa HasProviderOptions', fu
 });
 
 it('R-COPI-D4-5-009 — abaixo do mínimo de chars, NÃO marca cache (overhead inútil)', function () {
-    putenv('COPILOTO_PROMPT_CACHE_ENABLED=true');
-    putenv('COPILOTO_PROMPT_CACHE_MIN_CHARS=999999'); // threshold gigante → não passa
+    config(['copiloto.prompt_cache.enabled' => true]);
+    config(['copiloto.prompt_cache.min_chars' => 999999]); // threshold gigante → não passa
 
     $conv = new Conversa();
     $conv->id = 1;
@@ -176,5 +176,5 @@ it('R-COPI-D4-5-009 — abaixo do mínimo de chars, NÃO marca cache (overhead i
     expect($agent->providerOptions(Lab::Anthropic))->toBe([]);
 
     // Restaura
-    putenv('COPILOTO_PROMPT_CACHE_MIN_CHARS=4096');
+    config(['copiloto.prompt_cache.min_chars' => 4096]);
 });

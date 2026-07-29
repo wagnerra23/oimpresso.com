@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 563 arquivos em 19 papéis.
+**Total mapeado:** 566 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -255,7 +255,7 @@ module: Jana
 
 - [JanaServiceProvider.php](../../../Modules/Jana/Providers/JanaServiceProvider.php)
 
-## Migrations (schema) — 77
+## Migrations (schema) — 78
 
 - [2026_04_24_000001_create_copiloto_metas_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000001_create_copiloto_metas_table.php)
 - [2026_04_24_000002_create_copiloto_meta_periodos_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000002_create_copiloto_meta_periodos_table.php)
@@ -334,6 +334,7 @@ module: Jana
 - [2026_06_23_120000_add_confidence_to_jana_ui_judge_runs.php](../../../Modules/Jana/Database/Migrations/2026_06_23_120000_add_confidence_to_jana_ui_judge_runs.php)
 - [2026_07_18_120000_add_model_to_mcp_cc_messages.php](../../../Modules/Jana/Database/Migrations/2026_07_18_120000_add_model_to_mcp_cc_messages.php)
 - [2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php)
+- [2026_07_28_120000_create_mcp_handoff_drafts_table.php](../../../Modules/Jana/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php)
 
 ## Seeders — 4
 
@@ -394,9 +395,9 @@ module: Jana
 
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 150
+## Testes (Pest) — 152
 
-- 150 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 152 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 78
 

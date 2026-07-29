@@ -1,10 +1,10 @@
 ---
 id: requisitos-jana-briefing
-distilled_at: "2026-07-27"
-distilled_by: "manual [CC] — redistilação por releitura do módulo (código + SPEC + baseline + flags). Substitui o destilado automático de 2026-07-10, que carimbou META de maio como estado atual (ver §Estado atual)"
+distilled_at: "2026-07-28"
+distilled_by: "manual [W/C] — consolidação de donos: intenção e decisões abertas ficam aqui; topologia/inventário ficam nos artefatos gerados; execução de observabilidade fica em OBSERVABILITY.md"
 module: Jana
 status: producao
-updated_at: "2026-07-17"
+updated_at: "2026-07-28"
 ---
 
 # BRIEFING — Jana (verdade destilada)
@@ -17,14 +17,36 @@ Camada de IA do oimpresso: chat com memória persistente, brief diário, sugest�
 
 > ⛔ **Errata do destilado de 2026-07-10 — não re-alegar.** Ele dizia *"85% das funcionalidades operacionais"*. **Esse número era META, não estado**: sai dos audits de maio ([`AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md:198`](AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) *"Payoff: 73% → ~85% maturidade"* · [`AUDIT-SENIOR-2026-05-25.md:24`](AUDIT-SENIOR-2026-05-25.md) *"73→85%+ maturidade global"*). O destilador leu um **alvo** e carimbou como retrato. O único número de estado com dono é a nota **73** acima. Mesma família da lápide *"claims REFUTADAS"* ([proibicoes.md](../../proibicoes.md) §5, 2026-07-09): claim sem data+fonte é tom inflado.
 
+## Doutrina do produto e decisões abertas
+
+Esta é a casa curada da intenção da Jana. Topologia e inventário não são repetidos aqui: vivem em [`ARCHITECTURE.md`](ARCHITECTURE.md) e [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md), ambos gerados por `system-map.mjs`. O plano operacional de observabilidade vive em [`OBSERVABILITY.md`](OBSERVABILITY.md). A proveniência dos deltas atual→alvo permanece na [proposta de 2026-07-28](../../decisions/proposals/2026-07-28-camada-ia-atual-x-alvo-e-doutrina-resgatada.md).
+
+### Posicionamento
+
+- **Não é BI tradicional.** Não há OLAP, cubo nem data warehouse como centro do produto.
+- **Não é dashboard genérico.** A tela sustenta a conversa; não substitui a decisão.
+- **É agente de IA orientado a decisão.** O valor está na proposta aceita e acompanhada, não no gráfico isolado.
+
+### Decisões ainda abertas
+
+| Tema | Estado da decisão |
+|---|---|
+| Trajetória projetada | linear é a omissão atual; sazonalidade pode ser obrigatória no varejo; enums `sazonal`, `exponencial` e `manual` ainda não constituem decisão de produto |
+| Alertas por WhatsApp | adiados pelo custo da API |
+| Multi-idioma | português permanece o único idioma definido |
+| Cache do retrato do negócio | cache curto ainda não foi avaliado |
+| Guardrails | restrição contra meta ilegal ou tributariamente inadequada continua em prompt, sem trava determinística |
+
+Quando [W] decidir um desses temas, ele sai desta lista e ganha ADR. Decisão aberta não é copiada para `ARCHITECTURE.md` nem para o plano de observabilidade.
+
 ## Capacidades
 
 Contagens varridas em 2026-07-17 (`git ls-files` — arquivos, não testes verdes; rodar Pest é CT 100, [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)):
 
-- **14 Agents** em `Modules/Jana/Ai/Agents/` (BriefDiario · Briefing · ChatCopiloto · Clarificador · DetectarSupersede · ExtrairFatos · HealthNarrator · KbAnswer · PrUiJudge · ProximaPergunta · SaleInsight · SinteseSemanal · SugestoesMetas · WeeklyDigest). ⚠️ [`memory/what-oimpresso.md:21`](../../what-oimpresso.md) ainda diz **"4 Agents"** — drift de 10 num arquivo importado pelo CLAUDE.md.
+- **Agentes, provedores, memória e rerankers:** consultar [`ARCHITECTURE.md`](ARCHITECTURE.md) ou regenerar com `node scripts/governance/system-map.mjs`; este briefing não mantém uma segunda contagem.
 - **45 comandos artisan** (incl. `jana:health-check`, `jana:distill-module-truth`, `jana:recall-eval`, `jana:ragas-real-eval`, `jana:retention-purge`) · **16 controllers** · **138 arquivos de teste**.
 - **Memória**: `MeilisearchDriver` — desde o [#4207](https://github.com/wagnerra23/oimpresso.com/pull/4207) o time-decay **reordena** o recall (antes só pontuava, não reordenava).
-- **Telemetria**: Langfuse **LIVE desde 2026-07-02**, com `business_id` como tag no trace ([#4145](https://github.com/wagnerra23/oimpresso.com/pull/4145), Tier 0) e **4 call-sites LLM `Http::` instrumentados** ([#4208](https://github.com/wagnerra23/oimpresso.com/pull/4208) — fecha checkbox que a US-COPI-108 marcava sem cobrir).
+- **Telemetria**: mecanismo Langfuse, listener global e heartbeat foram construídos; estado de runtime e lacunas atuais são medidos pelo `jana:health-check` e catalogados em [`OBSERVABILITY.md`](OBSERVABILITY.md), nunca inferidos deste briefing.
 - **Porta de memória**: o distiller que escreve os `BRIEFING.md` do projeto é deste módulo (`jana:distill-module-truth`, [ADR 0291](../../decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md) D-D) — desde o [#4268](https://github.com/wagnerra23/oimpresso.com/pull/4268) emite `status`/`updated_at` no frontmatter.
 
 ## Gaps
@@ -35,8 +57,8 @@ Cada linha **aponta pro dono do número** em vez de repeti-lo ([proibicoes.md](.
 |---|---|---|
 | **Mock em rota LIVE** — `/ia/cockpit` responde mock no chat **e** no payload, sem feature-flag, e está no sidebar | `Cockpit.tsx:707` define / `:780` chama `startMockStream`; `ChatController.php:533` chama `mockJanaPayload()` (`:555`) | US-COPI-123 `todo` · [RUNBOOK-cockpit.md](RUNBOOK-cockpit.md) §10 |
 | `context_recall` **baixo** — o piso já não deixa degradar calado (landou 2026-07-17), mas o valor segue baixo | rodar `jana:ragas-real-eval`; piso vive em `thresholds_regressao` | [`governance/jana-ragas-real-baseline.json`](../../../governance/jana-ragas-real-baseline.json) · US-COPI-136 **`done`** ([#4412](https://github.com/wagnerra23/oimpresso.com/pull/4412)) |
-| Zero eval no tráfego real | — | US-COPI-137 `todo` |
-| Langfuse live **sem heartbeat** de uptime | — | US-COPI-138 `todo` |
+| Eval online construído, mas dark | `copiloto.online_eval.enabled=false`; ativação exige decisão [W], calibração humana e juiz local saudável | [`OBSERVABILITY.md`](OBSERVABILITY.md) Etapa 3 · US-COPI-137 |
+| Fluxo Langfuse | heartbeat do destino já foi construído; recibo atual vem de `jana:health-check --json`, não de texto estático | [`OBSERVABILITY.md`](OBSERVABILITY.md) Etapa 0 · US-COPI-138 |
 | Sem cadeia de fallback de provider (*"se o provider cai, a Jana cai"*) | — | US-COPI-135 `todo` |
 | Ratio negócio/governança **em alarme** — o cron que dispara landou 2026-07-17 ([#4410](https://github.com/wagnerra23/oimpresso.com/pull/4410)); falta o **badalo no `brief-fetch`** | rodar `node scripts/governance/negocio-vs-governanca-ratio.mjs` pro valor do dia | [`scripts/governance/negocio-vs-governanca-ratio.mjs`](../../../scripts/governance/negocio-vs-governanca-ratio.mjs) · US-COPI-139 `todo` · [ADR 0334](../../decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md) |
 | **6 flags OFF por default** | `JANA_RETENTION_ENABLED` · `JANA_CLARIFY_ENABLED` · `COPILOTO_HYDE_ENABLED` · `COPILOTO_NEGATIVE_CACHE_ENABLED` | `Config/retention.php:58` · `config.php:527/234/462/631/673` |
