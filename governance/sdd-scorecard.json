@@ -175,13 +175,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 7,
+      "value": 8,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 10
+        "citing_modules": 12
       },
       "stream": "KL"
     },
@@ -280,10 +280,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 44,
+        "entries_aprovadas": 45,
         "max_error_rate_pct": 1.82,
-        "last_pr": 4737,
-        "last_lote": "PR6-stale-repair-redistill-r3"
+        "last_pr": 5036,
+        "last_lote": "SRS-E5E6-saneamento-ghost-05"
       },
       "stream": "GT"
     }
