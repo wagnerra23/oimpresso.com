@@ -20,6 +20,12 @@ use Illuminate\Support\Facades\File;
  *   php artisan memcofre:sync-memories
  *   php artisan memcofre:sync-memories --dry
  *   php artisan memcofre:sync-memories --commit  (faz git commit após sync)
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             ⚠️ O schedule deste comando (daily 23:00) foi **DESATIVADO em 2026-06-07** por
+ *             vazar credencial em claro pro git (viola ADR 0061) — ver `app/Console/Kernel.php`.
+ *             NÃO reativar. Sucessor: webhook git→DB do MCP (`mcp_memory_documents`).
+ *             DEPRECATION-PLAN §Fase 2 item 21 (o risco R3 do plano já caducou).
  */
 class SyncMemoriesCommand extends Command
 {

@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\File;
  * Uso:
  *   php artisan memcofre:install-hooks
  *   php artisan memcofre:install-hooks --force  (sobrescreve existente)
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor — hooks de Install saem junto com o módulo.
+ *             DEPRECATION-PLAN §Fase 2 item 24.
  */
 class InstallHooksCommand extends Command
 {

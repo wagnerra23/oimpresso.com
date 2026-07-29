@@ -2,6 +2,21 @@
 
 Append-only. Cada PR mergeado que toca `Modules/SRS/` deve adicionar 1 linha na entrada do Wave/data.
 
+## E2 (conclusão) + pré-flight da E3 — 2026-07-29
+
+### Changed
+
+- PHPDoc `@deprecated` nos **12** restantes (8 Console Commands + 4 FormRequests) — fecha a varredura em **33 de 33 classes**. Zero mudança de comportamento (52 linhas, todas em docblock). O `SrsServiceProvider` fica **deliberadamente sem marcação**: é plumbing de registro, não capacidade com sucessor, e tocá-lo dispara `infra-contract-required`.
+
+### Measured
+
+- **As 7 tabelas `docs_*` estão VAZIAS em produção** (medido 2026-07-29 contra `APP_ENV=live` / `u906587222_oimpresso`, com controle positivo `transactions=75.254`). Única exceção: `docs_pages` com 14 linhas de um seed de 2026-04-26 apontando pra rotas que já não existem. **O módulo nunca foi usado em prod.**
+- Consequência: os riscos Tier 0 do plano (**R1** PII/LGPD · **R2** cross-tenant · **R4** rebuild de FULLTEXT) **não existem**; a **E3 vira no-op** e os DROPs migram para a E5, onde a ordem é segura.
+- Acoplamento externo real: **6 arquivos**, não "40+". `/memcofre` como URL e `memcofre_module` como permission têm **0 ocorrências** fora do módulo.
+- Pegada não catalogada: **149 anotações `@memcofre`** em 148 arquivos fora do módulo, consumidas só pelo próprio SRS.
+
+Recibo completo em [DEPRECATION-PLAN §Reconciliação 2026-07-29](../../memory/requisitos/SRS/DEPRECATION-PLAN.md).
+
 ## E2 (deprecação) — 2026-07-29
 
 ### Changed

@@ -16,6 +16,10 @@ use Illuminate\Foundation\Http\FormRequest;
  * em Read seguinte.
  *
  * @see Modules\SRS\Http\Controllers\ChatController::newSession
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Jana` (chat IA canônico), junto do `ChatController`.
+ *             DEPRECATION-PLAN §Fase 2 item 1.
  */
 class NewChatSessionRequest extends FormRequest
 {

@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\File;
  * Uso:
  *   php artisan memcofre:migrate-module PontoWr2
  *   php artisan memcofre:migrate-module PontoWr2 --force
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor — migração de schema doc-ingest perde a utilidade com a deprecação.
+ *             DEPRECATION-PLAN §Fase 2 item 25.
  */
 class MigrateModuleCommand extends Command
 {

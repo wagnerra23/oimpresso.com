@@ -12,6 +12,10 @@ use Modules\SRS\Services\DocValidator;
  *   php artisan memcofre:validate                  (global)
  *   php artisan memcofre:validate --module=PontoWr2
  *   php artisan memcofre:validate --only=warning
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Governance` (drift detection canônico —
+ *             `DriftAlertsController`). DEPRECATION-PLAN §Fase 2 item 27.
  */
 class ValidateCommand extends Command
 {

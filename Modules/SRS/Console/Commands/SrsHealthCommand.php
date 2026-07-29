@@ -24,6 +24,10 @@ use Illuminate\Support\Facades\Schema;
  *   php artisan srs:health --notify
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `php artisan jana:health-check` (canônico, daily 06:00 BRT).
+ *             DEPRECATION-PLAN §Fase 2 item 26.
  */
 class SrsHealthCommand extends Command
 {

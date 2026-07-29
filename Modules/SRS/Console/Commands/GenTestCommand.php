@@ -14,6 +14,10 @@ use Modules\SRS\Services\RequirementsFileReader;
  *   php artisan memcofre:gen-test R-PONTO-002
  *   php artisan memcofre:gen-test R-DOCVAULT-001 --style=phpunit
  *   php artisan memcofre:gen-test R-DOCVAULT-001 --out=custom/path.php
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor — code-gen experimental sem uso documentado, a descontinuar.
+ *             DEPRECATION-PLAN §Fase 2 item 23.
  */
 class GenTestCommand extends Command
 {

@@ -13,6 +13,10 @@ use Modules\SRS\Services\RequirementsFileReader;
  *   php artisan memcofre:audit-module MemCofre
  *   php artisan memcofre:audit-module PontoWr2 --save
  *   php artisan memcofre:audit-module --all
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `php artisan module:grade <X>` (`Modules\Governance`) — os 15 checks
+ *             são subset das dimensões D1-D9. DEPRECATION-PLAN §Fase 2 item 22.
  */
 class AuditModuleCommand extends Command
 {

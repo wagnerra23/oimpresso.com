@@ -8,6 +8,102 @@ id: requisitos-srs-deprecation-plan
 > **Atualizado:** 2026-05-17 · **Gerado por:** agent `deprecar-modulo`
 > **Decisão Wagner:** Caminho 1 (deprecar SRS) — BRIEFING.md 2026-05-16 já declarou "Substituído na prática pelo MCP server canon. ❌ Não investir em features novas."
 
+---
+
+## ⚠️ RECONCILIAÇÃO 2026-07-29 — LEIA ANTES DO CORPO DO PLANO
+
+> O corpo abaixo é de **2026-05-17** e foi escrito **sem acesso ao banco** — todas as linhas de volume da Fase 3 têm `?`. Em 2026-07-29, durante a E2, os números foram medidos contra **produção**. **O resultado muda o plano.** Onde esta seção e o corpo discordarem, **esta seção vence** — o corpo fica preservado como registro do que se supunha em maio.
+
+### O que foi medido (recibo)
+
+**Query:** `SELECT COUNT(*)` em cada `docs_*` + `information_schema.tables`, via PDO lendo o `.env` de `~/domains/oimpresso.com/public_html`.
+**Sistema medido:** produção — `APP_ENV=live`, `APP_URL=https://oimpresso.com`, database `u906587222_oimpresso`, **392 tabelas**.
+**Data:** 2026-07-29.
+**Controle positivo** (prova de que é o banco vivo, não um vazio): `business=82` · `users=124` · `transactions=75.254` · `contacts=30.057` · `products=16.262` · ROTA LIVRE `biz=4` com **21.029** transactions, a última em **2026-07-28 17:45:37**.
+
+| Tabela | Linhas em prod | Businesses | Mais recente | Disco |
+|---|---:|---|---|---:|
+| `docs_sources` | **0** | 0 | — | 96 KB |
+| `docs_evidences` | **0** | 0 | — | 144 KB |
+| `docs_requirements` | **0** | 0 | — | 96 KB |
+| `docs_links` | **0** | repo-wide | — | 64 KB |
+| `docs_chat_messages` | **0** | 0 | — | 80 KB |
+| `docs_pages` | **14** | repo-wide | 2026-04-26 22:34:48 | 64 KB |
+| `docs_validation_runs` | **0** | repo-wide | — | 48 KB |
+
+As **14 linhas** de `docs_pages` são um **seed único** (todas com o mesmo timestamp de 2026-04-26) apontando para rotas que **já não existem**: `/docs/memoria`, `/docs/chat`, `/docs/inbox`, `/docs/ingest`, `/docs`, `/docs/modulos/{module}` (o módulo serve em `/memcofre/*`) e `/copiloto`, `/copiloto/dashboard`, `/copiloto/memoria` (renomeados para Jana/KB). Nunca foi re-sincronizado.
+
+### Consequência 1 — o módulo nunca foi usado em produção
+
+Zero fontes ingeridas, zero evidências, zero mensagens de chat, zero corridas de validação. O único dado é um seed de catálogo morto. Isso **fortalece** a decisão da [ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md) e remove a maior fonte de risco da saída.
+
+### Consequência 2 — os riscos Tier 0 da Fase 5 evaporam
+
+| Risco do plano | Estado real |
+|---|---|
+| **R1** PII em `docs_chat_messages` (LGPD Art. 16) | **NÃO EXISTE** — 0 linhas. Não há PII para redigir, migrar ou arquivar. |
+| **R2** cross-tenant em 7 entities | **NÃO EXISTE** — 0 linhas nas 6 tenant-scoped; a 7ª é repo-wide com 14 linhas de seed. |
+| **R4** rebuild do FULLTEXT em `mcp_memory_documents` | **NÃO EXISTE** — 0 linhas em `docs_evidences` para inserir. |
+| **R3** cron `memcofre:sync-memories` | **JÁ CADUCOU** — desativado em 2026-06-07 por vazar credencial (a 0357 já registrava). |
+| **R9** merge conflict no `CHANGELOG.md` | **JÁ NÃO EXISTE** — 0 marcadores na árvore. |
+| **R7** re-atribuição de pontos de module-grade | segue de pé (não foi medido aqui). |
+
+### Consequência 3 — a E3 colapsa, e as decisões T1..T7 mudam
+
+Não há migração de dados a fazer. As decisões da Fase 3 ficam assim:
+
+| # | Tabela | Decisão de maio | **Decisão 2026-07-29** | Por quê |
+|---|---|---|---|---|
+| T1 | `docs_sources` | MIGRATE → `kb_sources` | **DROP** | 0 linhas — não há o que migrar; `kb_sources` não precisa nascer |
+| T2 | `docs_evidences` | MIGRATE → `mcp_memory_documents` | **DROP** | 0 linhas — e o FULLTEXT do destino não é tocado |
+| T3 | `docs_chat_messages` | MIGRATE + PiiRedactor | **DROP** | 0 linhas — sem PII, sem redação, sem dump |
+| T4 | `docs_validation_runs` | ARCHIVE + MIGRATE → `mcp_audit_log` | **DROP** | 0 linhas — arquivar 0 linhas é cerimônia vazia |
+| T5 | `docs_requirements` | ARCHIVE (❓ decisão [W] pendente) | **DROP** | 0 linhas — **a decisão pendente fica resolvida por medição**, não por preferência |
+| T6 | `docs_links` | ARCHIVE (segue T5) | **DROP** | 0 linhas |
+| T7 | `docs_pages` | DROP após dump | **DROP sem dump** | 14 linhas de cache regenerável apontando pra rotas mortas — dump preserva lixo |
+
+> A pergunta que a 0357 deixou explicitamente em aberto — *o destino de `docs_requirements` e `docs_links`* — **está respondida: DROP, sem archive**, porque não há linha alguma para preservar. A hipótese de maio (ARCHIVE por precaução de governança) pressupunha volume desconhecido; o volume é zero.
+
+### Consequência 4 — a ORDEM muda (e isto é o mais importante)
+
+O plano põe os DROPs na **E3**, antes do refactor de código da E4. **Isso quebraria produção.** Os Models Eloquent seguem vivos e as rotas `/memcofre/*` seguem servindo; dropar as tabelas antes de o código parar de consultá-las derruba telas em produção — mesmo com as tabelas vazias.
+
+**Roadmap corrigido:**
+
+| Etapa | Antes (maio) | **Agora** |
+|---|---|---|
+| E3 | migração de dados, ~280 LOC, **5-7 dias** | **no-op** — nada a migrar; a etapa some |
+| E4 | refactor de namespace, 7-10 dias | segue, mas **muito menor** (ver Consequência 5) |
+| E5 | `git rm` + drop, após 30d | **absorve os DROPs** — as tabelas caem junto com o código, na ordem certa |
+
+### Consequência 5 — o acoplamento externo é 6 arquivos, não "40+"
+
+O corpo estima *"40+ arquivos PHP citando `Modules\SRS` ou `memcofre`"*. Medido por padrão literal, com o módulo, `memory/` e `prototipo-ui/` excluídos:
+
+| Padrão | Ocorrências fora do módulo |
+|---|---|
+| `/memcofre` (URL) | **0** — nenhum outro lugar linka pras telas do SRS |
+| `memcofre_module` (permission) | **0** — o gate vive só no `DataController` do próprio módulo |
+| `Modules\SRS` (namespace) | **1 arquivo de código** (`tests/Feature/Modules/RenameRegressionTest.php`) |
+| tabelas `docs_*` | só `database/schema/mysql-schema.sql` (baseline gerado) + `bin/git-hooks/pre-commit` |
+
+**A lista de trabalho real da E4/E5 é esta:**
+
+1. `app/Console/Commands/MemSyncStatusCommand.php` — wrapper sobre `memcofre:sync-memories`; morre junto (o cron que ele embrulha já está desativado)
+2. `tests/Feature/Memory/MirrorSyncTest.php` — Testes 6 e 7 invocam `memcofre:sync-memories --dry`; **quebram** quando o comando morrer
+3. `tests/Feature/Modules/RenameRegressionTest.php` — referencia `Modules\SRS\...\InstallController::class`
+4. `bin/git-hooks/pre-commit` — chama `memcofre:sync-pages --dry`
+5. `app/Console/Kernel.php` — hoje só **comentários** (o schedule está comentado desde 07/06); limpar junto
+6. `scripts/governance/memory-health.mjs:533` — sentinela que vigia se o cron foi **re-ativado**; fica inócua, decidir se sai
+
+### Consequência 6 — a pegada `@memcofre` que o plano não mencionou
+
+**149 ocorrências em 148 arquivos** fora do módulo, na forma `// @memcofre tela=/x module=Y` no topo de páginas `.tsx`. São metadados consumidos **só pelo próprio SRS** (`SyncPagesCommand` → `docs_pages`, `DocValidator` check `PAGE_NO_META`, `ModuleAuditor` check `C09 PAGES_ANNOTATED`). Quando o módulo morrer, viram **anotação órfã que ninguém lê**. Decidir em E5: remover em varredura ou deixar como fóssil inofensivo. **Não é bloqueador** — nenhum gate de CI as consome.
+
+### Correção de contagem
+
+O corpo fala em **15 classes** para a E2 e **9 Console Commands**. Contado na árvore: **33 classes** — 8 Controllers + 6 Services + 7 Entities (a E2 marcou estas 21) + **8** Console Commands + 4 FormRequests (marcados no mesmo dia). O `SrsServiceProvider` ficou **deliberadamente sem marcação**: é plumbing de registro, não capacidade com sucessor, e tocá-lo dispara o gate `infra-contract-required` (`Modules/**/Providers/*ServiceProvider.php`), que exigiria uma seção de contrato de infra com evidência `curl` para um docblock.
+
 ## TL;DR
 
 Plano de 6 etapas (~47 dias úteis, com 30d wait E5) pra deprecar `Modules/SRS` (estado: ZUMBI — SCOPE 2026-05-05 prevê repurpose SRS browser nunca executado; BRIEFING 2026-05-16 admite substituição prática pelo MCP server). **Sucessor primário:** `Modules/KB` (já dono de `mcp_memory_documents` + ingest webhook git→DB). **Sucessores secundários:** `Modules/Jana` (ChatAssistant + chat_messages), `Modules/Governance` (validation/audit), `mcp_audit_log` canon (validation_runs append-only). **Dados:** 7 tabelas `docs_*` (2 MIGRATE → KB · 2 PRESERVE→view legacy bookmarks · 2 ARCHIVE→`governance/archive/` · 1 MIGRATE+ARCHIVE híbrido). **Risks Tier 0:** 4 críticos (multi-tenant cross-tenant em 7 entities, PII em `docs_chat_messages.content` LGPD, FULLTEXT index re-criação custosa em `mcp_memory_documents`, cron `memcofre:sync-memories` daily 23:00 em `app/Console/Kernel.php` quebraria silenciosamente).
