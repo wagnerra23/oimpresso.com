@@ -24,7 +24,7 @@ Ferramenta **interna** (não-cliente, só Wagner) que ingere evidências (screen
 
 ## Por que esta pasta mente (sintoma de "não preparado pro tempo")
 
-- Os 33 docs aqui são **anteriores ao rename pra SRS** (2026-05-06) → ainda falavam do nome morto da pasta `MemCofre` (já corrigidos pro nome real `SRS/` via codemod ghost-fix, P11 KL-E2). O código real sempre foi `SRS/`.
+- Os 33 docs aqui são **anteriores ao rename pra SRS** (2026-05-06) → ainda falavam do nome morto da pasta `MemCofre`, e foram corrigidos na época pelo codemod ghost-fix (P11 KL-E2) para o nome que então era o real: a pasta `SRS` sob a raiz de módulos. Essa pasta **foi removida em 2026-07-29** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — hoje o caminho não existe, e por isso aparece aqui sem o prefixo de raiz.
 - **Identidade tripla não-propagada:** pasta `SRS` · namespace `SRS` · mas URLs/permissions/Pages/config/lang todos `memcofre.*`.
 - **Dois grades elogiam o cadáver:** module-grade **73/100** · auto-audit **97/100** (medem doc/forma, não se o módulo está vivo).
 

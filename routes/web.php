@@ -942,7 +942,8 @@ Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'AdminSideb
 | `/memcofre/install*` e `/srs/install*` NÃO ganham 301: instalar/desinstalar
 | um módulo que não existe mais não tem destino equivalente.
 |
-| Ordem importa: a rota mais específica precede o catch-all `/memcofre/{any?}`.
+| Não há catch-all `/memcofre/*` — cada rota é declarada explicitamente, e o
+| que não está aqui (ex.: `/memcofre/install*`) passa a 404 por decisão.
 */
 Route::redirect('/memcofre/memoria', '/ia/memoria', 301);
 Route::redirect('/memcofre/chat', '/ia', 301);
