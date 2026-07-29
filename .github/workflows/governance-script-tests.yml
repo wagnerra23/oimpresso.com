@@ -36,6 +36,8 @@ jobs:
         run: node scripts/governance/fact-anchor.test.mjs
       - name: System-map camada de IA (censo derivado · morde no caching.embeddings que a mao contou errado)
         run: node scripts/governance/system-map-ia.test.mjs
+      - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
+        run: node scripts/governance/module-group-resolve.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
@@ -256,6 +258,12 @@ jobs:
         run: node scripts/governance/ui-impact.mjs --selftest
       - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)
         run: node scripts/governance/knowledge-drift.mjs --selftest
+      # O selftest do watchdog existia e NINGUÉM invocava — os asserts do eixo 2 nunca
+      # rodaram em CI, e por isso o eixo 1 pôde afirmar "✓ todos os crons com heartbeat
+      # < limite" tendo medido zero (cego lido como bootstrap). Ver proibicoes §"LIGUE A
+      # MÁQUINA" item 2: máquina que ninguém invoca é bug, não neutralidade.
+      - name: cron-watchdog — cego ≠ bootstrap, e entrega parada morde (eixo 1 + eixo 2)
+        run: node scripts/governance/cron-watchdog.mjs --selftest
       - name: Ciclo documental — recibo antes→depois morde/solta (ADR 0270 · ZELADOR)
         run: node scripts/governance/documentation-loop.test.mjs
       - name: Adversario de realocacao documental (plano seguro solta; historia/relink/path ruim mordem)
@@ -322,6 +330,23 @@ jobs:
         run: node scripts/governance/selftest-registry-check.mjs --selftest
       - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
         run: node scripts/governance/selftest-registry-check.mjs
+      # ── DESORFANADOS 2026-07-29 (Rodada 3) ────────────────────────────────────────
+      # O sweep acima listava 5 `*.test.mjs` órfãos havia tempo, e o detector novo de
+      # `--selftest` EMBUTIDO achou mais. Todos rodados antes de wirar: 9 verdes. Estes
+      # são os dependency-free; os que precisam de gray-matter/ajv foram pro job que já
+      # paga o install (memory-schema-gate.yml), porque este workflow não instala nada.
+      - name: charter-da-tela-que-o-controller-serve — o hook morde e libera
+        run: node .claude/hooks/charter-da-tela-que-o-controller-serve.test.mjs
+      - name: php-syntax-after-write — o hook morde e libera
+        run: node .claude/hooks/php-syntax-after-write.test.mjs
+      - name: hook-bites — o dead-man's-switch dos hooks morde e libera
+        run: node scripts/governance/hook-bites.test.mjs
+      - name: hook-replay — o replay morde e libera
+        run: node scripts/governance/hook-replay.test.mjs
+      - name: permission-drift — a sentinela de permissão morde e libera
+        run: node scripts/governance/permission-drift.test.mjs
+      - name: doc-id-index — o índice de doc-id morde e libera
+        run: node scripts/governance/doc-id-index.mjs --selftest
       # Auditoria 2026-07-26: o sweep acima estava VERDE (125/125 testes registrados)
       # enquanto 12 de 88 SCRIPTS não-teste não tinham invocador nenhum. Mesma regra,
       # superfície que faltava. REPORT-ONLY (exit 0 sempre): "0 invocador" não prova

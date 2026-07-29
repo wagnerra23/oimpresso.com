@@ -68,6 +68,14 @@ jobs:
         run: npm install --no-save ajv@^8.17.1 ajv-formats@^3.0.1 gray-matter@^4.0.3 glob@^11.0.0
       - name: Selftest (fixture ruim = o frontmatter exato que passou no #4798)
         run: node scripts/memory-schemas/validate.mjs --selftest
+      # Estes dois têm `--selftest` embutido e MORAM AQUI, não no governance-script-tests:
+      # dependem de gray-matter/ajv, e aquele workflow não instala nada de propósito
+      # (todos os scripts wirados lá são dependency-free). Era exatamente por isso que
+      # eram órfãos — a casa certa é o job que já paga o install.
+      - name: doc-id-stamp — o stamper morde e libera
+        run: node scripts/governance/doc-id-stamp.mjs --selftest
+      - name: resolver-reclamacao — o resolvedor morde e libera
+        run: node scripts/governance/resolver-reclamacao.mjs --selftest
 
   validate:
     name: ${{ matrix.label }}

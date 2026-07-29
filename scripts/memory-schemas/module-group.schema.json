@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "module-group.schema.json",
+  "title": "Grupo de memória de um módulo — CONTRATO DE FORMA (os papéis), nunca a lista por módulo",
+
+  "_doc": [
+    "IRMÃO dos 9 schemas por TIPO de documento que já vivem aqui (spec, briefing, runbook,",
+    "charter, adr, topico, session, handoff, reference). Aqueles validam UM arquivo; este",
+    "descreve o CONJUNTO — 'o que forma a memória do módulo X'.",
+    "",
+    "POR QUE EXISTE: sem uma definição de grupo, todo agente/RAG que precisa 'saber tudo do",
+    "módulo' ADIVINHA o corpus. Adivinhar o corpus é LC-08 (afirmar/medir a partir da fonte",
+    "errada) esperando acontecer — a classe que mais reincide neste projeto.",
+    "",
+    "O QUE ESTE ARQUIVO **NÃO** É — e não pode virar:",
+    "  · NÃO é a lista de arquivos de cada módulo. Lista à mão apodrece (ADR 0256:",
+    "    'derivado+enforçado sobrevive; escrito+lembrado apodrece'). Aqui ficam os PAPÉIS;",
+    "    quem resolve os arquivos é module-group-resolve.mjs, lendo a árvore.",
+    "  · NÃO é mapa/índice/painel do sistema. Esses donos já existem (PAINEL-SISTEMA,",
+    "    governance/ARCHITECTURE, GUIA-DO-SISTEMA) e criar paralelo está lapidado no",
+    "    §5 2026-07-23.",
+    "  · NÃO é gate. Nasce report-only; promoção exige mordida provada + FP medido",
+    "    (regra 'LIGUE A MÁQUINA' item 4 · ADR 0336).",
+    "",
+    "PRESENÇA ≠ QUALIDADE: resolver um papel prova que o arquivo EXISTE e casa o schema do",
+    "tipo dele. Não prova que o conteúdo está correto nem fresco — isso é dos gates de",
+    "conteúdo (anchor-lint, casos-gate, briefing-code-staleness). Confundir os dois é LC-11."
+  ],
+
+  "type": "object",
+  "required": ["versao", "papeis"],
+  "additionalProperties": false,
+
+  "properties": {
+    "versao": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "SemVer do contrato de forma. Papel novo = minor; papel removido/renomeado = major."
+    },
+
+    "resolucao": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Regras que o resolver DEVE seguir ao casar o nome do módulo entre árvores.",
+      "properties": {
+        "case_insensitive": {
+          "type": "boolean",
+          "description": "OBRIGATÓRIO true. As árvores divergem no case e no separador: Pages/kb ↔ requisitos/KB, Pages/team-mcp ↔ requisitos/TeamMcp. Casamento string-exata perde esses módulos EM SILÊNCIO — foi exatamente assim que um nudge morreu (§5 2026-07-17, 'nudge morto por case')."
+        },
+        "normaliza_separador": {
+          "type": "boolean",
+          "description": "OBRIGATÓRIO true. Remove '-' e '_' antes de comparar (team-mcp → teammcp)."
+        }
+      }
+    },
+
+    "papeis": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Os papéis que compõem o grupo. Cada papel responde uma PERGUNTA distinta sobre o módulo — dois papéis que respondem a mesma pergunta é sinal de duplicação, não de cobertura.",
+      "items": {
+        "type": "object",
+        "required": ["papel", "pergunta", "onde", "cardinalidade"],
+        "additionalProperties": false,
+        "properties": {
+          "papel": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Slug estável. Renomear é major — há consumidores."
+          },
+          "pergunta": {
+            "type": "string",
+            "minLength": 10,
+            "description": "A pergunta que SÓ este papel responde. Se você não consegue escrever a pergunta sem repetir a de outro papel, o papel não existe."
+          },
+          "onde": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Globs com o token {mod}, resolvido pelas regras de `resolucao`. Vários globs = o mesmo papel mora em lugares diferentes conforme o módulo."
+          },
+          "cardinalidade": {
+            "enum": ["exatamente-um", "zero-ou-um", "zero-ou-muitos"],
+            "description": "'exatamente-um' NÃO significa obrigatório-por-gate — significa que, se existir, é UM só. Ausência é reportada, não reprovada (report-only por desenho)."
+          },
+          "schema_do_tipo": {
+            "type": "string",
+            "description": "Schema irmão que valida CADA arquivo deste papel, quando existe. Deixa explícito que grupo (forma) e tipo (conteúdo) são camadas separadas."
+          },
+          "nota": { "type": "string" }
+        }
+      }
+    }
+  }
+}
