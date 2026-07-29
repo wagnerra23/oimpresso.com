@@ -10,8 +10,8 @@ parent_module: KB
 related_us: [US-KB-001]
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional (1280px balcão) — só quando existir SOP escrito à mão
-charter_version: 5
-charter_at: 2026-07-23
+charter_version: 6
+charter_at: 2026-07-29
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central # proposta
   - 0039-ui-chat-cockpit-padrao
@@ -71,7 +71,10 @@ mwart_pattern_reuse:
 > certo:
 >
 > 1. **A quase totalidade dos nós tem `category_id` NULL** (recibo §3) → a tela nasceria **vazia**.
-> 2. **O `auto_match` já existe como dado e tem ZERO leitores** → falta o classificador, não o modelo.
+> 2. **O `auto_match` já existe como dado** → falta aplicar a taxonomia, não modelá-la. ⚠️ *A redação
+>    anterior dizia "e tem ZERO leitores → falta o classificador": **falso desde 2026-07-17**, o
+>    classificador existe (#4465). O que faltava era invocação + 2 subcategorias no banco. Corrigido
+>    e medido em 2026-07-29 — ver o bloco ✅ na §3.*
 > 3. **O gate NÃO reprovaria o Controller** → a ordem da §8-bis estava invertida e custaria 3
 >    aprovações [W] onde 1 basta.
 >
@@ -251,17 +254,27 @@ Corte/Acabamento · Instalação) · `Equipamentos` · `Pré-impressão` · `Ate
 > tipo de conteúdo do cliente? eu quero dois KB ou 1 com esse filtro"* → **1 KB com filtro**: são a
 > mesma árvore, `Governança` é uma categoria como as outras.)
 
-> ### ⚠️ O gap NÃO é o modelo — é que **`auto_match` tem ZERO leitores**
+> ### ✅ RESOLVIDO em 2026-07-29 — e o diagnóstico "ZERO leitores" estava errado
 >
-> A regra existe como **dado** e nenhuma linha de PHP a lê. `KbBridgeFromMcpJob::bridgeDocument()`
-> preenche 9 campos e **nenhum deles é `category_id`**. Por isso 1.412 nós sem categoria: não falta
-> taxonomia, falta **o classificador que aplica a taxonomia**.
+> ⚠️ Este bloco afirmava *"`auto_match` tem ZERO leitores / falta o classificador"*. Era **falso
+> desde 2026-07-17** e ficou 12 dias no ar — a mesma frase foi copiada pro BRIEFING e mandou uma
+> sessão inteira construir o que já existia. Fica registrado como erro corrigido, não apagado.
 >
-> **Fechar isso = (a)** serviço que lê `auto_match` e escreve `category_id`; **(b)** backfill dos
-> 1.412; **(c)** o bridge passa a classificar no fill; **(d)** corrigir `KbArticleService:49`
-> (`$request->integer('category')` espera int, a tela manda **slug** → `where('category_id',0)` →
-> zero **em silêncio**). Isso é **pré-requisito do Controller**, não paralelo. **A equipe especifica
-> o classificador; não o implementa aqui** (gated em D6).
+> **O que era verdade:** os nós estavam sem `category_id` — `bridgeDocument()` preenche 9 campos e
+> nenhum é `category_id`. **O que era falso:** que faltasse o classificador. `KbAutoClassifierService`
+> + `kb:classify` existem desde 2026-07-17 ([#4465](https://github.com/wagnerra23/oimpresso.com/pull/4465)),
+> com 7 testes. Faltava **invocação** (`git grep "kb:classify"` não achava chamador algum) e **2
+> subcategorias** (`reference`/`comparativo`) que tinham regra no seeder mas nunca chegaram ao banco.
+>
+> **Recibo (CT 100 `oimpresso-mcp`, banco de prod, biz=1, 2026-07-29)** — a projeção bateu exata:
+> `1224 classificáveis / 404 sem casa` → após re-rodar o seeder (idempotente, 18→20 subcats)
+> `1628 / 0` → após `kb:classify --apply`: **1628 de 1628 classificados, zero NULL**.
+> Para não decair (o bridge cria nós NULL a cada 15 min), o Job passou a chamar o classificador no
+> fim do run — [#5017](https://github.com/wagnerra23/oimpresso.com/pull/5017), com bite-test.
+>
+> **Segue aberto, e é outro eixo:** `KbArticleService:49` — `$request->integer('category')` espera
+> int e a tela manda **slug** → `where('category_id',0)` → zero **em silêncio**. Não bloqueia a
+> lista (o filtro por categoria é client-side sobre `props.nodes`), mas é via morta a fechar.
 
 > ### 🔴 Decisão [W] ABERTA — o template por vertical
 >
@@ -422,6 +435,7 @@ it('abre em 1280px sem scroll horizontal')                        // visual/manu
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-07-29 | [CC] | **v6 (errata — o bloqueador `category_id` NULL está FECHADO)** — a §3 afirmava *"`auto_match` tem ZERO leitores → falta o classificador"*. **Falso desde 2026-07-17**: `KbAutoClassifierService` + `kb:classify` existem desde o [#4465](https://github.com/wagnerra23/oimpresso.com/pull/4465), com 7 testes. A frase ficou 12 dias no ar, foi copiada pro BRIEFING e mandou uma sessão construir o que já existia — classe **LC-08** (afirmar a partir da fonte errada), agora com recibo. As causas reais eram **invocação zero** (`git grep "kb:classify"` não achava chamador) + **drift de seed** (`reference`/`comparativo` tinham regra no seeder e nunca chegaram ao banco de biz=1 → 404 nós "sem casa"). Medido e resolvido em prod (CT 100 `oimpresso-mcp`, biz=1): dry-run `1224/404` → seeder idempotente 18→20 subcats → `1628/0` → `--apply` = **1628 de 1628 classificados**. Smoke: lateral `Governança 0` → **1589** (1628 − 39 `deleted`), filtro por categoria responde. Anti-decaimento no [#5017](https://github.com/wagnerra23/oimpresso.com/pull/5017) (o bridge classifica no fill, com bite-test + controle negativo). Blocos §1 e §3 reescritos com a errata **visível**, não apagada. Permanece aberto e é **outro eixo**: `KbArticleService:49` (`integer('category')` vs slug → filtra por 0 em silêncio) e `body_blocks` (invariante Tier 0 — o corpo vem do JOIN com `mcp_memory_documents`). D2/D4/D6 seguem abertas. |
 | 2026-07-23 | [CC] | **v5 (Fase #5 — surface do drift doc↔código)** — [W] escolheu *"fazer agora, com emenda"*. Adiciona **Goal 11** (5º quadrante HealthPanel *"Cita código que sumiu no git"* + badge NodeReader), **Anti-hook** (só drift datado por `checked_at`; nunca certifica "código ok" — `null` é ambíguo), **§7 FASE-5 DECIDIDA** + **§8** dois testes (payload carrega `code_drift_state` scopado; drift de outro business não vaza — Tier 0). UC-KBV2-13 no casos.md; teste V7 no `KbIndexV2ContractTest`. **Pré-flight verificado (LC-08):** o brief supunha "Controller precisa expor o campo" — **falso**, `buildListQuery` é `select *` e o campo já viaja; **nenhuma** mudança de Controller. Additive, sem side-effect, independente do bloqueador `category_id` NULL. Segue **DRAFT** — D2/D4/D6 abertas. |
 | 2026-05-16 | Wave J | Charter draft v1.0 — port Cowork, tela **mock-first** (Goal 7 = "fallback MOCK_NODES"). Nunca saiu de draft; gate visual nunca fechou. |
 | 2026-07-17 | [CC] | **v4 (design + medição fresca)** — [W] decidiu 2 pontos: **NOVO-A** (indicador da empresa ativa ao lado da busca — *rótulo*, não seletor: governança não vaza, `adr` biz=4 = 0 medido; a troca vive no `CompanyPicker` da Sidebar) e **NOVO-B** (categoria vazia não aparece — biz=4 tem `Governança` seeded com 0 docs). Ambas viram Goal (9/10) + Anti-hook + teste (§8). §7 registra as duas como DECIDIDAS; **D6 segue ABERTA**. §3 **mantém** a lei "aponta pro dono + recibo" (não voltou a número solto); o **recibo foi re-medido** no banco de produção `u906587222_oimpresso` via CT 100 (2026-07-17, `aaed49e156`): total 1.415, `category_id` NULL 1.412, `adr` biz=1 498/biz=4 0 — o "1.408/1.405" da v3 ficou stale (acervo sincroniza vivo). Nenhuma linha de código escrita: o classificador (§3) segue gated em D6. |
