@@ -22,26 +22,26 @@
     "migratesTo"
   ],
   "stats": {
-    "modules": 40,
-    "nodes": 637,
-    "edges": 973,
+    "modules": 39,
+    "nodes": 622,
+    "edges": 947,
     "by_node_type": {
       "module": 43,
-      "table": 88,
+      "table": 84,
       "adr": 36,
-      "component": 424,
-      "api": 46
+      "component": 414,
+      "api": 45
     },
     "by_edge_type": {
-      "ownsTable": 75,
+      "ownsTable": 71,
       "ownsLegacyView": 13,
       "consumesTable": 8,
-      "providesApi": 46,
-      "charteredByAdr": 35,
-      "governedByAdr": 100,
-      "hasComponent": 424,
-      "dependsOn": 140,
-      "delegatesTo": 131,
+      "providesApi": 45,
+      "charteredByAdr": 34,
+      "governedByAdr": 98,
+      "hasComponent": 414,
+      "dependsOn": 136,
+      "delegatesTo": 127,
       "migratesTo": 1
     },
     "dangling": 0
@@ -481,14 +481,6 @@
       "prefix": "/manufacturing/*",
       "providers": [
         "Manufacturing"
-      ]
-    },
-    {
-      "id": "api:/memcofre/*",
-      "type": "api",
-      "prefix": "/memcofre/*",
-      "providers": [
-        "SRS"
       ]
     },
     {
@@ -3069,76 +3061,6 @@
       "desc": ""
     },
     {
-      "id": "component:SRS/(futuro) SRS browser repurposing controllers acima",
-      "type": "component",
-      "module": "SRS",
-      "name": "(futuro) SRS browser repurposing controllers acima",
-      "desc": ""
-    },
-    {
-      "id": "component:SRS/ChatController",
-      "type": "component",
-      "module": "SRS",
-      "name": "ChatController",
-      "desc": "chat com cofre"
-    },
-    {
-      "id": "component:SRS/DashboardController",
-      "type": "component",
-      "module": "SRS",
-      "name": "DashboardController",
-      "desc": "dashboard MemCofre"
-    },
-    {
-      "id": "component:SRS/DataController + InstallController",
-      "type": "component",
-      "module": "SRS",
-      "name": "DataController + InstallController",
-      "desc": ""
-    },
-    {
-      "id": "component:SRS/Entities/Doc*",
-      "type": "component",
-      "module": "SRS",
-      "name": "Entities/Doc*",
-      "desc": "entidades (a renomear pra SRS* na Fase 3.7)"
-    },
-    {
-      "id": "component:SRS/InboxController",
-      "type": "component",
-      "module": "SRS",
-      "name": "InboxController",
-      "desc": "inbox de evidências"
-    },
-    {
-      "id": "component:SRS/IngestController",
-      "type": "component",
-      "module": "SRS",
-      "name": "IngestController",
-      "desc": "ingestão de novos docs"
-    },
-    {
-      "id": "component:SRS/MemoriaController",
-      "type": "component",
-      "module": "SRS",
-      "name": "MemoriaController",
-      "desc": "admin do cofre"
-    },
-    {
-      "id": "component:SRS/ModuloController",
-      "type": "component",
-      "module": "SRS",
-      "name": "ModuloController",
-      "desc": "gerenciamento por módulo"
-    },
-    {
-      "id": "component:SRS/Services/*",
-      "type": "component",
-      "module": "SRS",
-      "name": "Services/*",
-      "desc": "ingestão evidências (legacy — manter durante transição, depois deprecar)"
-    },
-    {
       "id": "component:Superadmin/BaseController",
       "type": "component",
       "module": "Superadmin",
@@ -4107,14 +4029,14 @@
       "id": "module:SRS",
       "type": "module",
       "module": "SRS",
-      "purpose": "System Rules Spec — regras imutáveis pra IA programar. Append-only por trigger MySQL. Toda IA L2+ lê SRS antes de qualquer ação no código. Renomeado de MemCofre em Fase 3.7 PR-2 (2026-05-06) — rename PHP-only; URLs/permissions/config keys mantêm prefixo legacy `memcofre.*`. Repurpose funcional (cofre→SRS) ainda em transição via tabelas srs_entries futuras.",
-      "trust": "L1",
-      "owner": "wagner",
-      "permission_prefix": "memcofre.*",
-      "charter_adr": "0080",
-      "path": "Modules/SRS/SCOPE.md",
-      "catalog_kind": "scope",
-      "catalog_status": "catalogued"
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
     },
     {
       "id": "module:Superadmin",
@@ -4193,17 +4115,6 @@
       "path": "Modules/Woocommerce/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
-    },
-    {
-      "id": "table:append",
-      "type": "table",
-      "name": "append",
-      "owners": [
-        "SRS"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
     },
     {
       "id": "table:cobrancas",
@@ -4376,17 +4287,6 @@
       "name": "cross",
       "owners": [
         "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:docs_evidences",
-      "type": "table",
-      "name": "docs_evidences",
-      "owners": [
-        "SRS"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -5139,28 +5039,6 @@
       "name": "payment_gateway_credentials",
       "owners": [
         "PaymentGateway"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:srs_entries",
-      "type": "table",
-      "name": "srs_entries",
-      "owners": [
-        "SRS"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:srs_entries_history",
-      "type": "table",
-      "name": "srs_entries_history",
-      "owners": [
-        "SRS"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -10143,170 +10021,6 @@
       "source": "url_prefixes"
     },
     {
-      "from": "module:SRS",
-      "to": "adr:0080",
-      "type": "charteredByAdr",
-      "source": "charter_adr"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills (.claude/skills/*)"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:Governance",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Regras de policy runtime"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:KB",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Knowledge browsing (ADRs/sessions/specs canônicos)"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tokens MCP"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills (.claude/skills/*)"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:Governance",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Regras de policy runtime"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:KB",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Knowledge browsing (ADRs/sessions/specs canônicos)"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tokens MCP"
-    },
-    {
-      "from": "module:SRS",
-      "to": "adr:0079",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:SRS",
-      "to": "adr:0080",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/(futuro) SRS browser repurposing controllers acima",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/ChatController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/DashboardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/DataController + InstallController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/Entities/Doc*",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/InboxController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/IngestController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/MemoriaController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/ModuloController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/Services/*",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "table:append",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:SRS",
-      "to": "table:docs_evidences",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:SRS",
-      "to": "table:srs_entries_history",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:SRS",
-      "to": "table:srs_entries",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:SRS",
-      "to": "api:/memcofre/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
       "from": "module:Superadmin",
       "to": "adr:0080",
       "type": "charteredByAdr",
@@ -11300,6 +11014,10 @@
       },
       {
         "module": "Project",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
+      },
+      {
+        "module": "SRS",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       }
     ],

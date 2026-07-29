@@ -367,7 +367,14 @@ class CharterHealthChecker
     {
         [$fm] = $this->splitFrontmatter((string) @file_get_contents($path));
         $out = [];
-        foreach (preg_split('/\R/', $fm) ?: [] as $line) {
+        // `/u` obrigatório: sem ele o `\R` do PCRE casa o BYTE 0x85 (NEL), que é byte de
+        // CONTINUAÇÃO de vários caracteres UTF-8 (`✅` = E2 9C 85) — parte o caractere ao
+        // meio e o valor sai com UTF-8 inválido. Foi o que derrubou `/memcofre/memoria`
+        // em produção (2026-07-29): `json_encode()` do payload devolvia false e o Inertia
+        // recebia `page = null` → tela branca. Aqui o mesmo `split` roda sobre frontmatter
+        // de charter, onde `✅` é comum. Exposição medida HOJE = 0/238 charters — este `/u`
+        // é higiene preventiva, não conserto de bug ativo.
+        foreach (preg_split('/\R/u', $fm) ?: [] as $line) {
             if (preg_match('/^([a-zA-Z_][\w-]*):\s*(.*)$/', $line, $m)) {
                 $out[$m[1]] = trim(trim($m[2]), '"\'');
             }

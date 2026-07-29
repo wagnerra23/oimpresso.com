@@ -27,7 +27,7 @@ it('InstallController.moduleName retorna nome novo do módulo (regressão Fase 3
     $cases = [
         \Modules\Jana\Http\Controllers\InstallController::class  => 'Jana',
         \Modules\Ponto\Http\Controllers\InstallController::class => 'Ponto',
-        \Modules\SRS\Http\Controllers\InstallController::class   => 'SRS',
+        // SRS saiu na E5 da deprecação (ADR 0357) — o módulo não existe mais.
     ];
 
     foreach ($cases as $class => $expected) {
@@ -44,7 +44,7 @@ it('InstallController.moduleSystemKey retorna key lowercase nova', function () {
     $cases = [
         \Modules\Jana\Http\Controllers\InstallController::class  => 'jana',
         \Modules\Ponto\Http\Controllers\InstallController::class => 'ponto',
-        \Modules\SRS\Http\Controllers\InstallController::class   => 'srs',
+        // SRS saiu na E5 da deprecação (ADR 0357) — o módulo não existe mais.
     ];
 
     foreach ($cases as $class => $expected) {
@@ -81,19 +81,15 @@ it('DataController.modifyAdminMenu chama isModuleInstalled com nome novo (não l
     }
 });
 
-it('SRS DataController não aponta pra URL legacy /docs (DocVault, 3 renames atrás)', function () {
-    $content = file_get_contents(base_path('Modules/SRS/Http/Controllers/DataController.php'));
-
-    // /docs era a URL do DocVault (renomeado pra MemCofre em 2026-04-24, depois SRS em 2026-05-06).
-    // Menu::modify chamando $sub->url('/docs', ...) gera 404 ao clicar.
-    expect($content)
-        ->not->toContain("\$sub->url('/docs',",
-            'SRS/DataController não pode apontar pra URL legacy /docs (DocVault) — gera 404.');
-});
+// O caso "SRS DataController não aponta pra /docs" saiu na E5 (ADR 0357): o módulo
+// foi removido, e um teste que lê um arquivo inexistente falha por ausência, não por
+// regressão. A URL legacy `/docs` deixou de ter dono no sidebar.
 
 it('modules_statuses.json não contém keys legacy renomeadas', function () {
     $json = json_decode(file_get_contents(base_path('modules_statuses.json')), true);
-    $legacy = ['Copiloto', 'PontoWr2', 'MemCofre'];
+    // SRS entra na lista de legacy: removido na E5 (ADR 0357). Se a key voltar,
+    // o nWidart lista módulo fantasma em /manage-modules.
+    $legacy = ['Copiloto', 'PontoWr2', 'MemCofre', 'SRS'];
 
     foreach ($legacy as $key) {
         expect($json)->not->toHaveKey($key,
@@ -103,15 +99,14 @@ it('modules_statuses.json não contém keys legacy renomeadas', function () {
     // Sanity: keys novas têm que estar lá
     expect($json)
         ->toHaveKey('Jana')
-        ->toHaveKey('Ponto')
-        ->toHaveKey('SRS');
+        ->toHaveKey('Ponto');
 });
 
-it('module.json dos 3 módulos renomeados tem name/alias com nome novo', function () {
+it('module.json dos módulos renomeados tem name/alias com nome novo', function () {
     $cases = [
         'Modules/Jana/module.json'  => ['name' => 'Jana',  'alias' => 'jana'],
         'Modules/Ponto/module.json' => ['name' => 'Ponto', 'alias' => 'ponto'],
-        'Modules/SRS/module.json'   => ['name' => 'SRS',   'alias' => 'srs'],
+        // SRS removido na E5 (ADR 0357).
     ];
 
     foreach ($cases as $path => $expected) {
@@ -126,7 +121,7 @@ it('ServiceProvider class names refletem nome novo do módulo', function () {
     $cases = [
         'Modules/Jana/Providers/JanaServiceProvider.php'  => 'class JanaServiceProvider',
         'Modules/Ponto/Providers/PontoServiceProvider.php' => 'class PontoServiceProvider',
-        'Modules/SRS/Providers/SrsServiceProvider.php'   => 'class SrsServiceProvider',
+        // SRS removido na E5 (ADR 0357).
     ];
 
     foreach ($cases as $path => $expectedClass) {
@@ -142,7 +137,7 @@ it('composer.json autoload PSR-4 aponta pro namespace novo', function () {
     $cases = [
         'Modules/Jana/composer.json'  => 'Modules\\\\Jana\\\\',
         'Modules/Ponto/composer.json' => 'Modules\\\\Ponto\\\\',
-        'Modules/SRS/composer.json'   => 'Modules\\\\SRS\\\\',
+        // SRS removido na E5 (ADR 0357).
     ];
 
     foreach ($cases as $path => $expectedNamespace) {

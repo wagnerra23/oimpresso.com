@@ -46,7 +46,6 @@
             <directory>./Modules/Connector/Tests/Feature</directory>
             <directory>./Modules/Superadmin/Tests/Feature</directory>
             <directory>./Modules/Officeimpresso/Tests/Feature</directory>
-            <directory>./Modules/SRS/Tests/Feature</directory>
             <directory>./Modules/AssetManagement/Tests/Feature</directory>
             <directory>./Modules/Governance/Tests/Feature</directory>
             <directory>./Modules/Spreadsheet/Tests/Feature</directory>
