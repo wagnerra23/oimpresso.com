@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — editar o cadastro não pode perder o que a tela velha (Blade + Delphi) preservava.
 owner: wagner
-last_run: "2026-07-24"
-last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0351); UCs stubbed citando e2e/produto-edit.spec.ts (test.fixme), veredito ⬜/🔶 honesto até rodar no CT100"
+last_run: "2026-07-29"
+last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29: UC-PEDIT-05/06/07 ❌ vermelhos (3 defeitos independentes, recibo literal por UC); UC-PEDIT-03 🧪; UC-PEDIT-01/02/04 ⬜ stub test.fixme. Remédio diagnosticado e NÃO aplicado — decisão [W] sob a REGRA MESTRE (eixo estoque)"
 ---
 
 # Casos de Uso & Aceite — Editar produto
@@ -97,7 +97,7 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 - **Teste:** [`tests/Feature/Produto/ProdutoEditPayloadContratoTest.php`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-05` (Pest, failing-first, lane `Estoque · MySQL`).
 - **Contrato:** `AR-PROD-051`/`AR-PROD-056` (no Delphi, "controla estoque" é atributo do produto — editar a ficha não é o gesto que liga/desliga) + `proibicoes.md` §REGRA MESTRE (valor/estoque) + Edit.charter §Goals.
 - **Regressão que defende:** o writer trata **ausência como zero** (`update()` L76-79: `if (! empty($request->input('enable_stock')) && == 1) {1} else {0}`). A tela não manda a chave → salvar o nome **apagaria o controle de estoque em silêncio**: o save "funciona", a tela não reclama, e o estoque some do produto.
-- **Status: ❌ ACHADO CONFIRMADO** pela lane (run 30122611472, 2026-07-24): `enable_stock` foi de **1 → 0** ao editar só o nome. A pré-condição anti-vácuo passou (o save ACONTECEU), então não é ausência-de-escrita: é **zeragem**.
+- **Status: ❌ ACHADO CONFIRMADO** pela lane (run 30122611472, 2026-07-24): `enable_stock` foi de **1 → 0** ao editar só o nome. A pré-condição anti-vácuo passou (o save ACONTECEU), então não é ausência-de-escrita: é **zeragem**. Re-confirmado no run 30366164436 (2026-07-29). ⚠️ **O remédio não é o óbvio** — ver [§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada): fazer o writer preservar a ausência **quebra o desligar no Blade**, que é o que roda em prod.
 
 ---
 
@@ -108,7 +108,7 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 - **Contrato:** Edit.charter §Goals — "Salvar" é Goal declarado da tela.
 - **Regressão que defende:** no ramo `single`, `update()` lê `single_variation_id` de um `$request->only([...])` que **não contém a chave** (`:1111-1112`) → `Variation::find(null)` → `null` → atribuição de propriedade em `null` → `\Error`. O `catch (\Exception)` (`:1173`) **não pega `\Error`** → 500. É a mesma família do `UC-PEDIT-03` (o `catch` genérico que mascara o desfecho real).
 - **Defeito INDEPENDENTE do UC-PEDIT-05** (`proibicoes.md` §5, 2026-07-15): consertar um não conserta o outro, e as correções podem brigar — por isso teste próprio, não um "fix da raiz".
-- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): o PUT com o payload da tela **não persiste** — aborta em `preparation_time_in_minutes` (L1037, sem `??`), o `catch (\Exception)` engole e vira redirect. **Sem 500** — falha silenciosa, pior que erro visível.
+- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): o PUT com o payload da tela **não persiste** — aborta em `preparation_time_in_minutes` (hoje `ProductController:1042`, sem `??`), o `catch (\Exception)` engole e vira redirect. **Sem 500** — falha silenciosa, pior que erro visível. Re-confirmado no run 30366164436 (2026-07-29). ⚠️ **Não consertar isoladamente:** este abort é o que hoje impede a zeragem do UC-PEDIT-05 — destravar o `save()` sozinho **piora** o eixo estoque ([§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada)).
 
 ---
 
@@ -118,7 +118,56 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 - **Teste:** [`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-07`.
 - **Contrato:** `AR-PROD-003`/`AR-PROD-042` — no legado, alterar a ficha preserva o que já estava gravado; ausência de um campo no formulário não é "desmarcar".
 - **Regressão que defende:** mesmo padrão ausência→zero do `UC-PEDIT-05`, em `not_for_selling` (`:82`) e `enable_sr_no` (`:101-104`); `sub_unit_ids` (`:71`) vira `null` pela mesma razão. Generaliza o defeito: **não é uma flag, é o contrato do payload**.
-- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): `not_for_selling` foi de **1 → 0**. Recibo literal: `Failed asserting that 0 is identical to 1` em `ProdutoEditPayloadContratoTest.php:212`.
+- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): `not_for_selling` foi de **1 → 0**. Recibo literal: `Failed asserting that 0 is identical to 1` em `ProdutoEditPayloadContratoTest.php:212`. Re-confirmado no run 30366164436 (2026-07-29). Mesmo remédio do UC-PEDIT-05 — ver [§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada).
+
+---
+
+## Diagnóstico do remédio (2026-07-29) — a correção óbvia é a errada
+
+> **Decisão [W] 2026-07-29: só diagnóstico.** Nenhum código de correção aqui — o eixo é ESTOQUE
+> (`proibicoes.md` §REGRA MESTRE) e a escolha do remédio é dele. Esta seção grava **o dado que
+> decide**, pra próxima sessão não "consertar" o writer e derrubar produção.
+
+**Recibo da medição** — lane `Estoque · MySQL`, [run 30366164436](https://github.com/wagnerra23/oimpresso.com/actions/runs/30366164436) do [#4953](https://github.com/wagnerra23/oimpresso.com/pull/4953), lido em 2026-07-29:
+`UC-PINIC-01..04` **passaram** (o #4953 destravou as pré-condições do estoque inicial);
+`UC-PEDIT-05/06/07` seguem vermelhos, com os recibos literais citados em cada UC acima.
+
+### O writer não está simplesmente errado — ele serve dois clientes com semânticas opostas
+
+| Cliente | O que "chave ausente" significa | Prova (medida, não lida no olho) |
+|---|---|---|
+| **Blade** — o que roda em prod hoje | *o operador desmarcou* | `edit.blade.php:125/221/231` usa `Form::checkbox` e **não existe hidden** para nenhum dos 3 flags (grep: "NENHUM hidden"). Checkbox desmarcado não é enviado pelo browser — spec HTML, não implementação. Sem hidden, ausência **é** o gesto de desligar. |
+| **React** — `Edit.tsx` (draft) | *a tela não gerencia esse campo* | `grep -E "enable_stock\|not_for_selling\|enable_sr_no"` no `Edit.tsx` → **zero ocorrências**. A tela não oferece o gesto. |
+
+**Consequência dura:** trocar o `update()` para "ausência = preservar" **tira da Larissa a capacidade
+de desligar controle de estoque pelo Blade** — regressão Tier 0 no eixo estoque, produzida por um fix
+que se apresenta como correção. Via descartada **por medição**, não por opinião.
+
+### ⚠️ Ordem das correções: o `??` sozinho PIORA o estoque
+
+Hoje o abort do `preparation_time_in_minutes` (UC-PEDIT-06) é o que **impede** a zeragem do
+`enable_stock`: nada é escrito. Consertar só o `??` destrava o `save()` e a zeragem passa a acontecer
+**de verdade**. É a lápide `proibicoes.md` §5 2026-07-15 em ato — três defeitos independentes cujas
+correções **brigam entre si**. Qualquer PR que toque o `??` fecha o contrato do payload no mesmo
+movimento, ou piora o que veio consertar.
+
+### Não é incidente de produção (re-verificado nesta data)
+
+`preparation_time_in_minutes` é **incondicional** no Blade (`edit.blade.php:316-317`, fora de qualquer
+`@if`) → prod sempre manda a chave e o abort não a atinge. Somado à inalcançabilidade das telas React
+(sidebar `<a href>` puro, sem header `X-Inertia`), isto segue **bloqueador de migração MWART F5**
+([ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)) — não incêndio.
+
+### Remédios avaliados (para quando [W] decidir)
+
+| Via | O que faz | Risco em prod | Fecha |
+|---|---|---|---|
+| **A** — tela React envia o que não gerencia (pass-through) **+** `?? null` no writer | `enableStock`/`subUnitIds` **já** estão nos props do `edit()` (`ProductController` ~L929); faltam `not_for_selling`, `enable_sr_no`, `preparation_time_in_minutes` | **zero** — writer do Blade intacto | 05 · 06 · 07 |
+| **B** — writer preserva quando a chave falta | inverte o padrão ausência→zero | **ALTO — quebra o desligar no Blade** | ⛔ descartada acima |
+| **D** — writer discrimina por cliente (o `update()` já é dual, `X-Inertia` em `:342/909`) | ramo Inertia preserva; ramo Blade mantém como hoje | baixo, mas bifurca um writer Tier 0 | 05 · 07 |
+
+Nenhuma das vias altera linha existente: o efeito é só sobre edições futuras vindas da tela React —
+**sem backfill, sem UPDATE retroativo**.
 
 ---
 
@@ -168,3 +217,4 @@ last_run_ci: "0 UC executado — trio nasce agora (piloto sdd-from-source, ADR 0
 - 2026-07-24 · [CC] nascido pelo piloto do agent `sdd-from-source` (ADR 0351) — trio fechado (charter existia + casos novo + stub e2e), triangulando React+Blade+Delphi. Fecha `trio:missing-casos:Produto/Edit.tsx` do baseline. UCs stubbed (⬜/🔶), veredito honesto até rodar no CT100. Refs: ADR 0351 · 0264 G-1/G-2.
 - 2026-07-24 · [CC] **revisão adversarial** (3 céticos read-only sobre o piloto) — o UC-PEDIT-03, que era 🔶 "não afirmado", virou achado Tier 0 **CONFIRMADO**: `update()` cross-tenant = 500 (`first()` + atribuição em null), não 404. Corrigido no mesmo PR (`firstOrFail` antes do try) + Pest `ProdutoEditContratoTest` (failing-first). Registrado o risco `[V0]` preço-zero via React (backlog). Lição: usei LC-08 como escudo pra NÃO ler — LC-08 manda ler.
 - 2026-07-24 · [F+CC] **B1-controle** — 1º run REAL do agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)), que a [errata 0352](../../../../memory/decisions/0352-errata-0351-venue-distiller-citacao-taxonomia.md) admitia nunca ter sido executado. Rodado como grupo de controle **nesta tela** (a que já tinha `casos.md` feito à mão), evidência em [`_b1-controle-Edit.casos.agent.md`](../../../../memory/requisitos/Produto/_b1-controle-Edit.casos.agent.md). Veredito: **abaixo do humano no contrato** (perdeu o UC-PEDIT-01 e o log de Atividade), **acima no payload** — a triangulação React×Blade×Delphi rendeu 4 candidatos que a redação à mão não tinha. Daí nascem **UC-PEDIT-05/06/07**, com Pest failing-first ([`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php)) e a lane `Estoque · MySQL` estendida — inclusive adotando o `ProdutoEditContratoTest`, que existia **fora de lane** desde ontem ("verde impossível" do `anchor-lint`). Enquadramento corrigido no mesmo dia: **não é incidente de produção** (as telas React do Produto são inalcançáveis — sidebar usa `<a href>` puro, sem header `X-Inertia`; roda o Blade, confirmado por [F]) e sim **bloqueador de migração** — define quando a tela pode ser ligada (MWART F5, [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)).
+- 2026-07-29 · [C] **diagnóstico do remédio, sem correção** — [W] mandou atacar o eixo estoque; a medição mudou o remédio e a decisão dele foi *"só diagnóstico agora"*. O achado que faltava: o `update()` **serve dois clientes com semânticas opostas** para "chave ausente" (Blade = *desmarcou*, provado pela ausência de hidden nos 3 `Form::checkbox`; React = *não gerencia*, provado por zero ocorrência dos flags no `Edit.tsx`) — logo o fix intuitivo (writer preservar) **quebraria o desligar em produção**, e o `??` isolado **pioraria** a zeragem hoje contida pelo abort. Recibo: run 30366164436 (PR [#4953](https://github.com/wagnerra23/oimpresso.com/pull/4953)), onde `UC-PINIC-01..04` passaram e os 05/06/07 seguem vermelhos. Nada de código de produção tocado. Refs: `proibicoes.md` §REGRA MESTRE · §5 2026-07-15 (correções que brigam entre si).
