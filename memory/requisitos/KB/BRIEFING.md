@@ -2,9 +2,9 @@
 id: requisitos-kb-briefing
 module: KB
 status: parcial
-status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); /kb/v2 SAIU do mock em 2026-07-17 (KbController@indexV2 serve kb_nodes reais) mas o leitor ainda não mostra o corpo (bridge copia metadata, não body_blocks); /kb/graph SEGUE em mock (closure sem props, /kb/graph/data hardcoded vazio)"
-updated_at: "2026-07-28"
-distilled_by: "sdd-from-source (ADR 0351) — redestilação PARCIAL: só o status_nota + §Estado das telas foram reconciliados contra o código vivo neste run; o resto do BRIEFING segue com a foto de 2026-07-17"
+status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); /kb/v2 serve kb_nodes reais desde 2026-07-17; classificação por categoria RESOLVIDA em 2026-07-29 (1628/1628 de biz=1 classificados; o classificador existia desde 07-17 mas nada o invocava, e 2 subcategorias nunca chegaram ao banco) e o bridge passou a classificar no fill (#5017); SEGUEM abertos: o leitor não mostra o corpo (body_blocks é invariante Tier 0 — vem do JOIN com mcp_memory_documents) e /kb/graph é fachada (closure sem props, /kb/graph/data hardcoded vazio)"
+updated_at: "2026-07-29"
+distilled_by: "reconciliação MEDIDA contra prod (CT 100 oimpresso-mcp, biz=1, 2026-07-29): §Bloqueador + §Estado real + status_nota reescritos com recibo de query. Corrige a afirmação 'auto_match tem ZERO leitores em PHP', que era falsa desde 2026-07-17 e permaneceu 12 dias — ela mandou uma sessão inteira na direção errada antes de ser medida. O resto do BRIEFING segue com a foto de 2026-07-17."
 owner: W
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
@@ -29,7 +29,7 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 - ✅ **`/kb/v2` SAIU do mock (2026-07-17).** `KbController@indexV2` serve `kb_nodes` reais (+ categorias, subcategorias, `business.name`) e `KbIndexV2ContractTest` V5/V6 travam o payload. ⚠️ *A linha anterior deste briefing dizia "roda MOCK / falta o Controller `indexV2`" — ficou **stale** por 11 dias; reconciliado em 2026-07-28 pelo `sdd-from-source` contra `Modules/KB/Http/routes.php` + `KbController::indexV2`.*
 - 🟡 **O leitor da V2 ainda não mostra o corpo** do documento bridgeado: `KbBridgeFromMcpJob` copia **metadata, não `body_blocks`** (limite declarado no docblock do `indexV2`). Título + excerpt, não o texto.
 - 🔴 **`/kb/graph` continua fachada:** a rota é closure `Inertia::render('kb/Graph')` **sem props** e `/kb/graph/data` devolve `{nodes:[],edges:[],kpis:null}` hardcoded → cai em `_lib/mockGraphData.ts`. Nenhum Controller do KB a serve.
-- 🔴 **Categoria: a lista de governança (biz=1) nasce vazia por categoria** — o filtro ancora em `category_id` e a quase totalidade dos nós está NULL (ver §Bloqueador). Falta o **classificador** que lê `auto_match` — hoje com **zero leitores em PHP**.
+- ✅ **Categoria: RESOLVIDO em 2026-07-29.** A lista por categoria servia vazia porque **100% do acervo de biz=1 estava com `category_id` NULL** — não porque faltasse classificador. ⚠️ *As linhas anteriores diziam "falta o classificador — **zero leitores em PHP**"; era **stale**. O `KbAutoClassifierService` + `kb:classify` existem desde 2026-07-17 ([#4465](https://github.com/wagnerra23/oimpresso.com/pull/4465)); o que faltava era **invocação** (`git grep "kb:classify"` no repo inteiro não achava schedule nem chamador) e **2 subcategorias que nunca chegaram ao banco**.* Ver §Bloqueador pro recibo.
 - 🟡 **A tela `/kb` (V3, o browser do acervo canon) ganhou seu 1º contrato executável em 2026-07-28** — antes disso não tinha nenhum. Ver [SDD](SDD-tela-kb-unificado-v1.0.md) + [`Index.casos.md`](../../../resources/js/Pages/kb/Index.casos.md).
 
 ---
@@ -49,8 +49,9 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 | CRUD de artigo editável + versões + permissions | ✅ existe | `Modules/KB/Http` / `Entities` |
 | Global scope `business_id` (Tier 0) | ✅ provado (governança não vaza pro cliente) | `BelongsToBusinessTrait` |
 | Troca de empresa (herda o tenant) | ✅ via `CompanyPicker` na Sidebar | `resources/js/Components/cockpit/Sidebar.tsx` |
-| **Tela `/kb/v2` servindo o dado** | 🔴 **MOCK — Controller não ligou** | `Modules/KB/Http/routes.php` / `Index.v2.tsx` |
-| **Classificador `auto_match` → `category_id`** | 🔴 **zero leitores em PHP** | (a construir) |
+| **Tela `/kb/v2` servindo o dado** | ✅ **serve `kb_nodes` reais** desde 2026-07-17 | `KbController@indexV2` / `Index.v2.tsx` |
+| **Classificador `auto_match` → `category_id`** | ✅ **existe (2026-07-17) E é invocado (2026-07-29)** | `Services/KbAutoClassifierService` · `kb:classify` · chamado no fill pelo `KbBridgeFromMcpJob` |
+| **Corpo do documento no leitor (`body_blocks`)** | 🔴 **não chega à tela** — invariante Tier 0, ver §Gap aberto | `KbNodeObserver` / `Index.v2.tsx` |
 | Template de categorias por vertical | 🟡 **D6 ABERTA — [W] decide** | charter §3 |
 
 ## Os números do acervo — **este briefing NÃO os guarda** (fato derivado não se restateia)
@@ -69,13 +70,34 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 
 ## Bloqueador — dois níveis, sem maquiar
 
-**Nível 0 — a tela nem lê o banco hoje.** `Modules/KB/Http/routes.php` renderiza `kb/Index.v2` com **zero props** → `Index.v2.tsx` cai em `usingMock` → mostra `MOCK_NODES`. É o gate visual pra [W] aprovar screenshot (ADR 0114), **não** está fiado ao DB. Falta o Controller `indexV2` injetar `props.nodes` escopado por `business_id`.
+> ⚠️ **Esta seção descrevia dois "níveis" que NÃO existiam mais.** O "Nível 0 — a tela nem lê o banco" já era falso desde 2026-07-17 (o próprio topo deste briefing o corrigia, mas a seção seguia intacta). A "causa-raiz — `auto_match` tem ZERO leitores em PHP" era falsa desde o mesmo dia. Ambas ficam registradas aqui como **erro corrigido**, não apagadas.
 
-**Nível 1 — fiada ao DB, o filtro por categoria vem vazio pra governança (biz=1).** O filtro ancora em `n.category_id === cat.id`, mas a **quase totalidade dos nós de governança está com `category_id` NULL** (structural: `category_id` NULL corresponde a **exatamente todo o biz=1** — medido 2026-07-17, contagem no recibo do charter §3). Clicar qualquer categoria em biz=1 → 0 linhas. (biz=4 é a exceção: seus 3 articles estão categorizados → funcionam.)
+**O que era verdade (medido, 2026-07-29):** o filtro ancora em `n.category_id === cat.id` e **100% do acervo de biz=1 estava com `category_id` NULL** — logo, clicar qualquer categoria dava 0 linhas.
 
-**Causa-raiz — `auto_match` tem ZERO leitores em PHP.** A regra de classificação (`{"field":"type","op":"=","value":"adr"}` etc.) já existe como **dado** seeded em `kb_subcategories`, mas **nenhuma linha de runtime a lê**: `KbBridgeFromMcpJob::bridgeDocument()` preenche ~9 campos e **não** seta `category_id`/`subcategory_id`; os únicos writers de `category_id` são seeders. O eixo "Governança" está pronto como dado e **morto como comportamento**.
+```
+-- CT 100 (docker exec oimpresso-mcp), banco de prod, 2026-07-29
+SELECT COUNT(*) FROM kb_nodes WHERE business_id = 1;                        -- 1628
+SELECT COUNT(*) FROM kb_nodes WHERE business_id = 1 AND category_id IS NULL;-- 1628
+```
 
-**Fechar isso** (próximo passo de CÓDIGO, gated em D6): (a) serviço que lê `auto_match` e escreve `category_id`; (b) backfill dos nós NULL; (c) o bridge passa a classificar no fill; (d) corrigir `KbArticleService` (`->integer('category')` espera int, a tela manda slug → filtra por 0 em silêncio). É **pré-requisito** do Controller, não paralelo. **A equipe especifica o classificador; não o implementa neste briefing.**
+**A causa real eram DUAS, e nenhuma era "falta o classificador":**
+
+1. **Zero invocação.** `KbAutoClassifierService` + `kb:classify` existem desde 2026-07-17 ([#4465](https://github.com/wagnerra23/oimpresso.com/pull/4465)), com 7 testes e registro no `KBServiceProvider`. Mas `git grep "kb:classify"` no repo inteiro não achava **nenhum** schedule ou chamador — o `--apply` era manual e nunca tinha rodado. Mecanismo correto, ninguém puxava o gatilho.
+2. **Drift de seed.** As subcategorias `reference` e `comparativo` tinham regra `auto_match` no `KbSubcategoriesSeeder` desde 2026-07-17 (decisão [W] registrada em comentário no próprio seeder) mas **nunca chegaram ao banco de biz=1** — logo 404 nós (376 `reference` + 28 `comparativo`) eram reportados como *"nenhuma regra casa"*, o que parecia dívida de taxonomia e era drift prod↔git.
+
+**Resolvido em 2026-07-29** — recibo do dry-run, com a projeção batendo exata:
+
+| momento | classificáveis | sem casa |
+|---|---:|---:|
+| antes | 1224 | 404 (`reference` 376 + `comparativo` 28) |
+| após re-rodar o `KbSubcategoriesSeeder` (idempotente, 18→20 subcats) | 1628 | **0** |
+| após `kb:classify --business=1 --apply` | **1628 classificados** | 0 NULL |
+
+Smoke em prod: a lateral saiu de `Governança 0` para `Governança 1589` (1628 − 39 `status=deleted`), com ADR 500 · Session 557 · Referência 366 · Briefing 79 · Spec 59 · Comparativo 19, e o filtro por categoria responde.
+
+**Para não decair:** o `KbBridgeFromMcpJob` roda a cada 15 min criando nós novos, e `bridgeDocument()` nunca setou `category_id` — sem intervenção a lista voltaria a esvaziar sozinha. O Job passou a chamar o `KbAutoClassifierService` no fim do run ([#5017](https://github.com/wagnerra23/oimpresso.com/pull/5017)), com bite-test e controle negativo.
+
+**Segue aberto (não é sobre categoria):** `KbArticleService` recebe `->integer('category')` mas a tela manda slug → filtra por 0 em silêncio. Não bloqueia a lista (o filtro por categoria é client-side sobre `props.nodes`), mas é uma via morta a fechar.
 
 ## Taxonomia — 1 KB com filtro, dois eixos ([W] 2026-07-17)
 
