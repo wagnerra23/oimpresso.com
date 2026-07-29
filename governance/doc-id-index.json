@@ -365,6 +365,7 @@
     "0356-errata-0355-limiar-de-reversao-derivado-nao-escolhido": "memory/decisions/0356-errata-0355-limiar-de-reversao-derivado-nao-escolhido.md",
     "0357-deprecar-srs-sucessor-kb-jana-governance": "memory/decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md",
     "0358-doutrina-de-teste-tenant-98-supersede-0101": "memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md",
+    "0359-errata-0358-numero-0101-nao-virou-inequivoco": "memory/decisions/0359-errata-0358-numero-0101-nao-virou-inequivoco.md",
     "2026-04-18-session-01": "memory/sessions/2026-04-18-session-01.md",
     "2026-04-18-session-02": "memory/sessions/2026-04-18-session-02.md",
     "2026-04-19-session-03": "memory/sessions/2026-04-19-session-03.md",
@@ -1241,7 +1242,9 @@
     "2026-07-29-1150-diagnostico-ponto-kb-pos-tenant": "memory/handoffs/2026-07-29-1150-diagnostico-ponto-kb-pos-tenant.md",
     "2026-07-29-1333-srs-e2-phpdoc-deprecated": "memory/handoffs/2026-07-29-1333-srs-e2-phpdoc-deprecated.md",
     "2026-07-29-1410-kb-categoria-classificada-backfill": "memory/handoffs/2026-07-29-1410-kb-categoria-classificada-backfill.md",
+    "2026-07-29-1435-kb-v2-leitor-do-corpo-live": "memory/handoffs/2026-07-29-1435-kb-v2-leitor-do-corpo-live.md",
     "2026-07-29-ativacao-online-eval-local-ct100": "memory/sessions/2026-07-29-ativacao-online-eval-local-ct100.md",
+    "2026-07-29-kb-v2-leitor-do-corpo": "memory/sessions/2026-07-29-kb-v2-leitor-do-corpo.md",
     "2026-07-29-srs-e2-phpdoc-deprecated": "memory/sessions/2026-07-29-srs-e2-phpdoc-deprecated.md",
     "2026-07-29-varredura-de-populacao-tres-rodadas": "memory/sessions/2026-07-29-varredura-de-populacao-tres-rodadas.md",
     "2026-07-29-vistas-publicadas-lidas-e-reagrupadas": "memory/sessions/2026-07-29-vistas-publicadas-lidas-e-reagrupadas.md",
@@ -3320,16 +3323,16 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3314,
-    "resolved": 2217,
+    "total": 3317,
+    "resolved": 2220,
     "unstamped": 1097,
     "collisions": 0,
     "by_source": {
       "unstamped": 1097,
-      "derived-adr": 363,
+      "derived-adr": 364,
       "stamped": 973,
-      "derived-handoffs": 336,
-      "derived-sessions": 545
+      "derived-handoffs": 337,
+      "derived-sessions": 546
     }
   }
 }

@@ -141,7 +141,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 - [Index-visual-comparison.md](../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — visual canon mapeado pixel-perfect Onda 0
 - [BRIEFING.md](../../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado RecurringBilling (atualizar pós-merge via skill brief-update)
 - [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
+- [ADR 0358 Doutrina de teste — tenant biz=98](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
 - [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - [ADR 0107 Visual comparison gate](../../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
 - [ADR 0110 Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
