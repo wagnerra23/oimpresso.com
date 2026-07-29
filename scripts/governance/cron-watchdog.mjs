@@ -12,7 +12,12 @@
  * sem lista que drifta). Real-time DE PROPÓSITO (liveness ≠ conteúdo reproduzível, ao
  * contrário dos Checks de memory-health).
  *
- * 🔴 cron morto (última run agendada > limite por cadência) · 🟡 bootstrap (sem run ainda).
+ * 🔴 cron morto (última run agendada > limite por cadência) · 🟡 bootstrap (perguntei e
+ * não houve run) · ⛔ NÃO MEDIDO (não consegui perguntar — `gh` ausente/sem auth/sem
+ * `actions:read`/API fora). Os dois últimos eram a MESMA coisa até 2026-07-29, e o
+ * colapso fazia o relatório afirmar "✓ todos os N crons com heartbeat < limite" tendo
+ * medido ZERO: sem `gh`, os 24 saíam 🟡 e o exit era 0 — enquanto `system-map.yml`, um
+ * deles, tinha 16 runs agendadas reais. Ausência de medição não é estado do cron.
  * Limite: semanal 10d · mensal 35d · diário/frequente 3d.
  *
  * ── EIXO 2 (2026-07-26): ENTREGA — "roda" ≠ "entrega" ───────────────────────
@@ -104,21 +109,69 @@ function thresholdDays(cron) {
   return 3;
 }
 
+// `ok` separa "perguntei" de "não consegui perguntar". Sem essa distinção, `gh` ausente,
+// sem auth, sem escopo `actions:read` ou API fora devolvia `''` — indistinguível de "zero
+// runs" (ver classificarLiveness).
 function gh(args) {
   try {
-    return execSync(`gh ${args}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return { ok: true, out: execSync(`gh ${args}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() };
   } catch {
-    return '';
+    return { ok: false, out: '' };
   }
+}
+
+/**
+ * Interpreta a resposta do `gh` preservando as TRÊS respostas possíveis:
+ *   { ok:true,  at:'2026-07-28…' } → perguntei e HOUVE run agendada
+ *   { ok:true,  at:'' }            → perguntei e NÃO houve run (bootstrap de verdade)
+ *   { ok:false }                   → NÃO consegui perguntar (cego)
+ * Resposta ilegível conta como CEGO, nunca como ausência: JSON quebrado é falha de
+ * consulta, e tratá-lo como "sem run" inventaria um estado do cron a partir de um
+ * defeito do consultante.
+ */
+export function interpretarResposta(r) {
+  if (!r || r.ok !== true) return { ok: false };
+  if (!r.out) return { ok: true, at: '' };
+  try { return { ok: true, at: JSON.parse(r.out)[0]?.createdAt || '' }; } catch { return { ok: false }; }
 }
 
 // Última run AGENDADA (event=schedule, qualquer conclusão — liveness ≠ sucesso).
 // Filtra o JSON em JS (sem `--jq`): evita o quoting de aspas simples que o cmd.exe do
 // Windows quebra (execSync usa cmd no Win, sh no CI) — cross-platform + testável local.
 function lastScheduledRun(file) {
-  const raw = gh(`run list --workflow ${file} --event schedule --status completed --limit 1 --json createdAt`);
-  if (!raw) return '';
-  try { return JSON.parse(raw)[0]?.createdAt || ''; } catch { return ''; }
+  return interpretarResposta(gh(`run list --workflow ${file} --event schedule --status completed --limit 1 --json createdAt`));
+}
+
+/**
+ * Classifica UMA porta de liveness. O estado `cego` existe porque ele NÃO é um estado
+ * do cron — é a ausência de medição. Colapsá-lo em `bootstrap` (🟡 benigno) fazia o
+ * watchdog imprimir "✓ todos os N crons com heartbeat < limite" tendo medido ZERO.
+ * Medido 2026-07-29 sem `gh` no host: 8 workflows saíram como "sem run agendada ainda",
+ * e `system-map.yml` — um deles — tem 16 runs agendadas de verdade.
+ */
+export function classificarLiveness(cron, consulta, nowMs) {
+  const limite = thresholdDays(cron);
+  if (!consulta || consulta.ok !== true) return { estado: 'cego', limite };
+  if (!consulta.at) return { estado: 'bootstrap', limite };
+  const dias = Math.floor((nowMs - new Date(consulta.at).getTime()) / 86400000);
+  return { estado: dias > limite ? 'morto' : 'vivo', dias, limite, at: consulta.at };
+}
+
+/**
+ * Agrega os estados e decide o que o relatório PODE afirmar.
+ *  · `afirmaVerde` só quando houve medição de todos e nenhum morreu — a frase "todos com
+ *    heartbeat < limite" é sobre os crons, e não pode ser dita sobre os não medidos.
+ *  · `exit=1` quando há morto (alarme original) OU quando a cegueira é TOTAL: um watchdog
+ *    que não mediu NADA não pode sair verde. Cegueira PARCIAL fica visível sem derrubar —
+ *    falha transitória de API num único workflow não vale um vermelho (e o job é advisory).
+ */
+export function resumoLiveness(estados) {
+  const cont = { vivo: 0, bootstrap: 0, cego: 0, morto: 0 };
+  for (const e of estados) if (e in cont) cont[e]++;
+  const total = estados.length;
+  const cegoTotal = total > 0 && cont.cego === total;
+  return { ...cont, total, medidos: total - cont.cego, cegoTotal,
+    afirmaVerde: cont.morto === 0 && cont.cego === 0, exit: (cont.morto > 0 || cegoTotal) ? 1 : 0 };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -229,6 +282,39 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   const ordem = paradosEntre([{ arquivo: 'novo', data: '2026-05-20' }, { arquivo: 'velho', data: '2026-01-01' }], NOW, 60);
   ok(ordem[0].arquivo === 'velho', 'ordena do mais parado pro menos');
 
+  // ── EIXO 1: "não consegui perguntar" ≠ "nunca rodou" (defeito medido 2026-07-29) ──
+  // Sem `gh` no host, os 8 workflows saíam como 🟡 bootstrap e o relatório terminava em
+  // "✓ todos os 24 crons com heartbeat < limite" — tendo medido ZERO. `system-map.yml`,
+  // um dos 8, tem 16 runs agendadas reais. Falso por construção, não por dado velho.
+  ok(interpretarResposta({ ok: false }).ok === false,
+    'consulta que FALHOU → ok:false (não vira ausência de run)');
+  ok(interpretarResposta({ ok: true, out: '[]' }).at === '',
+    'consulta OK com zero runs → bootstrap de verdade (at vazio)');
+  ok(interpretarResposta({ ok: true, out: '[{"createdAt":"2026-07-28T12:19:54Z"}]' }).at === '2026-07-28T12:19:54Z',
+    'consulta OK com run → devolve o timestamp');
+  ok(interpretarResposta({ ok: true, out: 'nao é json' }).ok === false,
+    'resposta ILEGÍVEL → cego, nunca ausência (defeito do consultante ≠ estado do cron)');
+
+  ok(classificarLiveness('30 10 * * *', { ok: false }, NOW).estado === 'cego',
+    'BITE: consulta falhou → estado CEGO (antes virava bootstrap benigno)');
+  ok(classificarLiveness('30 10 * * *', { ok: true, at: '' }, NOW).estado === 'bootstrap',
+    'LIBERA: bootstrap legítimo continua bootstrap (não virou cego ao contrário)');
+  ok(classificarLiveness('30 10 * * *', { ok: true, at: '2026-07-25T10:00:00Z' }, NOW).estado === 'vivo',
+    'LIBERA: run de 1d no cron diário segue viva');
+  ok(classificarLiveness('30 10 * * *', { ok: true, at: '2026-07-01T10:00:00Z' }, NOW).estado === 'morto',
+    'MORDE: run de 25d no cron diário (limite 3d) segue MORTA — alarme original intacto');
+
+  const cegoTotal = resumoLiveness(['cego', 'cego', 'cego']);
+  ok(cegoTotal.exit === 1 && cegoTotal.afirmaVerde === false,
+    'BITE: cegueira TOTAL → exit 1 e proibido afirmar verde (antes: exit 0 + "✓ todos")');
+  const cegoParcial = resumoLiveness(['vivo', 'vivo', 'cego']);
+  ok(cegoParcial.exit === 0 && cegoParcial.afirmaVerde === false && cegoParcial.medidos === 2,
+    'cegueira PARCIAL → não derruba (transitório), mas também não afirma verde');
+  ok(resumoLiveness(['vivo', 'vivo', 'bootstrap']).afirmaVerde === true,
+    'LIBERA: tudo medido e ninguém morto → pode afirmar verde (não virou carimbo ao contrário)');
+  ok(resumoLiveness(['vivo', 'morto']).exit === 1,
+    'MORDE: um morto entre medidos → exit 1 (o alarme que já existia)');
+
   console.log(falhas ? `\n✗ selftest: ${falhas} falha(s)` : '\n✓ selftest: núcleo morde e libera certo');
   process.exit(falhas ? 1 : 0);
 }
@@ -254,23 +340,31 @@ if (!wfs.length) {
   process.exit(reportarEntrega(checarEntrega(Date.now())));
 }
 
-const dead = [], boot = [], alive = [];
+const dead = [], boot = [], alive = [], cego = [], estados = [];
 const nowMs = Date.now(); // liveness real (não determinístico de propósito)
 for (const { file, cron } of wfs) {
-  const thr = thresholdDays(cron);
-  const last = lastScheduledRun(file);
-  if (!last) { boot.push(`${file} (cron '${cron}') — sem run agendada ainda (bootstrap; arma na 1ª execução)`); continue; }
-  const age = Math.floor((nowMs - new Date(last).getTime()) / 86400000);
-  if (age > thr) dead.push(`${file} (cron '${cron}') MORTO há ${age}d (limite ${thr}d) — última agendada: ${last}`);
-  else alive.push(`${file} ${age}d/${thr}d`);
+  const c = classificarLiveness(cron, lastScheduledRun(file), nowMs);
+  estados.push(c.estado);
+  if (c.estado === 'cego') cego.push(`${file} (cron '${cron}') — NÃO CONSULTÁVEL (gh ausente/sem auth/sem 'actions:read'/API fora): este cron NÃO foi medido`);
+  else if (c.estado === 'bootstrap') boot.push(`${file} (cron '${cron}') — sem run agendada ainda (bootstrap; arma na 1ª execução)`);
+  else if (c.estado === 'morto') dead.push(`${file} (cron '${cron}') MORTO há ${c.dias}d (limite ${c.limite}d) — última agendada: ${c.at}`);
+  else alive.push(`${file} ${c.dias}d/${c.limite}d`);
 }
+const r = resumoLiveness(estados);
 
-console.log(`🩺 cron-watchdog — ${wfs.length} crons agendados · ${alive.length} vivos · ${boot.length} bootstrap · ${dead.length} 🔴 mortos`);
+console.log(`🩺 cron-watchdog — ${wfs.length} crons agendados · ${alive.length} vivos · ${boot.length} bootstrap · ${cego.length} ⛔ não medidos · ${dead.length} 🔴 mortos`);
+for (const c of cego) console.error(`⛔ ${c}`);
 for (const b of boot) console.log(`🟡 ${b}`);
 for (const a of alive) console.log(`   ✓ ${a}`);
 for (const d of dead) console.error(`🔴 ${d}`);
 if (dead.length) {
   console.error(`\n✗ ${dead.length} cron(s) de governança MORTO(s) — o GitHub desabilitou o schedule (60d sem atividade) ou o workflow quebra na origem. Um push no repo re-ativa; confirme run agendada nova. (ADR 0317 §2 — o heartbeat que vigia os heartbeats).`);
+} else if (r.cegoTotal) {
+  // Um watchdog que não mediu NADA não pode sair verde — seria o "gate mudo" que parece
+  // cobertura. Fora do CI (host sem `gh`), o caminho honesto é `--entrega`, que não usa rede.
+  console.error(`\n⛔ cron-watchdog CEGO: nenhum dos ${wfs.length} crons pôde ser consultado — nada foi medido, então NADA pode ser afirmado sobre heartbeat. Em CI: confira 'gh' + GH_TOKEN + permissions.actions=read. Fora do CI: use --entrega (eixo 2, sem rede).`);
+} else if (cego.length) {
+  console.log(`✓ os ${r.medidos} cron(s) MEDIDOS estão com heartbeat < limite — ⚠️ ${cego.length} não foi(ram) medido(s) (acima): sobre esse(s) o watchdog não afirma nada.`);
 } else {
   console.log(`✓ todos os ${wfs.length} crons de governança com heartbeat < limite.`);
 }
@@ -279,6 +373,6 @@ if (dead.length) {
 // independentes (um cron pode estar vivo e não entregar, e vice-versa) e esconder
 // a segunda atrás da primeira faria o relatório mentir por omissão.
 const falhouEntrega = reportarEntrega(checarEntrega(nowMs));
-process.exit(dead.length || falhouEntrega ? 1 : 0);
+process.exit(r.exit || falhouEntrega ? 1 : 0);
 
 }
