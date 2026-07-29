@@ -14,7 +14,7 @@ module: Officeimpresso
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 81 arquivos em 15 papéis.
+**Total mapeado:** 82 arquivos em 15 papéis.
 
 ## Controllers — 7
 
@@ -97,9 +97,9 @@ module: Officeimpresso
 
 - 18 arquivos em [Modules/Officeimpresso/Resources/views/catalogue/](../../../Modules/Officeimpresso/Resources/views/catalogue) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Testes (Pest) — 13
+## Testes (Pest) — 14
 
-- 13 arquivos em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 14 arquivos em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 9
 

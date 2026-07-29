@@ -1,0 +1,123 @@
+name: Officeimpresso · Pest (MySQL)
+
+# Lane dedicada pra rodar teste Pest MySQL-only do Modules/Officeimpresso contra
+# MySQL REAL. Existe porque ci.yml roda SQLite :memory: (os testes do módulo dão
+# markTestSkipped lá — schema UltimatePOS + seed biz=1/biz=2 obrigatórios) e o
+# modules-pest.yml matrix NÃO inclui Officeimpresso.
+#
+# Antes desta lane NENHUMA workflow mencionava o módulo: os testes estavam
+# registrados no phpunit.xml mas não rodavam em PR nenhum — a falsa cobertura que
+# a proibição "não criar Modules/X/Tests/ sem CI que rode" descreve. Descoberto
+# em 2026-07-29, ao adicionar o teste de autorização das telas de licença.
+#
+# Nasce com LicencasAcessoPermissionTest (gate de permissão do grupo
+# /officeimpresso/*, que até então pedia só `auth`). É o HOME do ratchet pra TODO
+# teste MySQL-only do módulo — cada novo entra na allowlist abaixo (mesma
+# disciplina do jana-pest.yml / essentials-pest.yml).
+#
+# ClientesLiberarPermissionTest (irmão, pré-existente) NÃO entra na allowlist
+# ainda: nunca rodou em CI, então seu estado é desconhecido. Entra num PR
+# próprio, depois de verificado — allowlist é catraca de verde comprovado, não
+# lista de desejos.
+#
+# Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate
+# (schema baseline) + seed biz=1 (fixture completa) E biz=2 (Tier 0 cross-tenant).
+# Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1 nunca biz=4).
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno (dorny/paths-filter):
+  # se nada do Officeimpresso mudou, pula o pesado e conclui verde (mesmo padrão
+  # do essentials-pest.yml, ADR 0271 onda 2 — required-ready sem deadlock).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Officeimpresso/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/officeimpresso-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: officeimpresso-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Officeimpresso · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Officeimpresso (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            officeimpresso:
+              - 'Modules/Officeimpresso/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/officeimpresso-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Officeimpresso mudou)
+        if: steps.changes.outputs.officeimpresso == 'false'
+        run: echo "✅ Sem mudanças no Modules/Officeimpresso — skip-as-pass (required-ready)."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.officeimpresso == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.officeimpresso == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Officeimpresso · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.officeimpresso == 'true'
+        # phpunit.xml não força mysql — sobrescreve aqui pra rodar no MySQL real
+        # semeado (biz=1 + biz=2). Allowlist: só arquivos comprovadamente verdes
+        # MySQL-only. NÃO incluir RefreshDatabase/migrate:fresh (dropam schema +
+        # limpam o seed).
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-officeimpresso-junit.xml \
+            Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php
+
+      - name: Upload JUnit (Officeimpresso · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.officeimpresso == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-officeimpresso-junit
+          path: test-results/pest-officeimpresso-junit.xml
+          retention-days: 14
