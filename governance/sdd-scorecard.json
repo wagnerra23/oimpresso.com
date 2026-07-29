@@ -23,25 +23,25 @@
       "detail": {
         "coverage_pct": 87.8,
         "specs_total": 51,
-        "us_total": 929,
+        "us_total": 930,
         "anchor_coverage_pct": 87.8,
         "by_state": {
           "sem_campo": 112,
-          "placeholder": 0,
+          "placeholder": 1,
           "pendente": 379,
           "parcial": 114,
-          "anchored_ok": 323,
-          "anchored_dead": 1,
+          "anchored_ok": 324,
+          "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 822,
-        "fields_placeholder": 0,
+        "fields_total": 823,
+        "fields_placeholder": 1,
         "fields_grammar_ok": 773,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 248,
-        "req_sem_covering_test_total": 352,
+        "req_sem_covering_test_total": 353,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 56,
         "behavior_known": false,
@@ -66,22 +66,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 339,
+      "value": 332,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "15c64fbabc5119fd",
+        "floor_files_hash": "bc7060d514a54eee",
         "runs": [
-          {
-            "sha": "afb9f347",
-            "ts": "20260726-020001",
-            "failed": 661,
-            "errors": 440,
-            "skipped": 2222,
-            "all_shards_measured": true
-          },
           {
             "sha": "8ae17699",
             "ts": "20260727-020001",
@@ -91,15 +83,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "92b0f655",
             "ts": "20260728-020001",
             "failed": 673,
             "errors": 493,
             "skipped": 2229,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260729-020001",
+            "failed": 682,
+            "errors": 426,
+            "skipped": 2260,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260728-020001",
+        "computed_at": "20260729-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -168,8 +168,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 274,
-        "effectively_guarded": 274
+        "with_manual_ddl": 275,
+        "effectively_guarded": 275
       },
       "stream": "FV"
     },
