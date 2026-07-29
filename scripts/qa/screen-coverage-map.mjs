@@ -25,6 +25,8 @@
  *                                                              #   (resolver: trio+scorecard+e2e+UC↔teste+
  *                                                              #    RUNBOOK/visual-comparison/proto-baseline com
  *                                                              #    FLAG de ambiguidade — reporta, não adivinha)
+ *                                                              #   + PODE LIGAR? (charter `status:` × sinal de prod,
+ *                                                              #     regra importada de scripts/lib/charter-signal.mjs)
  */
 
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
@@ -32,6 +34,11 @@ import { join, relative, sep, basename } from 'node:path';
 import assert from 'node:assert/strict';
 import { isAuxiliaryPagePath, isPageScreenPath } from './page-path.mjs';
 import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
+// Fonte ÚNICA da regra "o charter tem sinal de prod?" — a MESMA que o gate
+// `charter-live-signal` (pune live sem sinal) e o `charter-promote-signal`
+// (promove draft com sinal) consomem. Importada, nunca reimplementada: 3 cópias
+// da mesma regra é a doença que `uc-regex.mjs` já documenta (4 drifts).
+import { frontmatterDe, campo, sinalDe, carregarFontes, temPlaceholderAberto } from '../lib/charter-signal.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -245,11 +252,20 @@ export function resolveScreenFiles(relTsx) {
 
   // O charter DECLARA seus artefatos? (proveniência explícita > adivinhação por nome).
   let relatedPrototype = null, declared = { runbook: null, visual_comparison: null, proto_baseline: null };
+  // Eixo "pode ligar?" — status do charter + sinal de prod (regra importada, ver import).
+  let prontidao = prontidaoDeLigar({ temCharter: false });
   if (trio.charter) {
     const ch = readFileSync(charterPath, 'utf8');
     const field = (k) => { const m = ch.match(new RegExp(`^${k}:\\s*(.+)$`, 'm')); return m ? m[1].trim() : null; };
     relatedPrototype = field('related_prototype') || '(ausente)';
     declared = { runbook: field('related_runbook'), visual_comparison: field('related_visual_comparison'), proto_baseline: field('related_proto_baseline') };
+    const fm = frontmatterDe(ch);
+    prontidao = prontidaoDeLigar({
+      temCharter: true,
+      status: campo(fm, 'status'),
+      sinal: sinalDe(fm, carregarFontes(ROOT)),
+      placeholder: temPlaceholderAberto(ch),
+    });
   }
 
   // Resolução: DECLARAÇÃO primeiro (autoritativa; pega declaração QUEBRADA); fallback name-match + FLAG.
@@ -260,7 +276,51 @@ export function resolveScreenFiles(relTsx) {
   const visualcomp = resolveArtifact(declared.visual_comparison, declExists(declared.visual_comparison), modFiles.filter((f) => /visual-comparison\.md$/.test(f) && nameHas(f)));
   const protobaseline = resolveArtifact(declared.proto_baseline, declExists(declared.proto_baseline), modFiles.filter((f) => /\.proto-baseline\.json$/.test(f) && nameHas(f)));
 
-  return { screen: relTsx, mod, trio, scorecard, e2eBrowser, ucLink, runbook, visualcomp, protobaseline, relatedPrototype };
+  return { screen: relTsx, mod, trio, scorecard, e2eBrowser, ucLink, runbook, visualcomp, protobaseline, relatedPrototype, prontidao };
+}
+
+/**
+ * prontidaoDeLigar — "a tela pode ir pro ar?" no eixo CHARTER × SINAL DE PROD. PURO/testável.
+ *
+ * POR QUE AQUI: esta porta já responde "quais arquivos a tela tem"; o que faltava era o
+ * eixo de ROLLOUT — `status:` do charter cruzado com o sinal de prod. As duas metades já
+ * tinham dono (o trio/artefatos aqui; o sinal no `charter-live-signal`/`charter-promote-signal`),
+ * mas ninguém cruzava as duas POR TELA — e responder isso à mão custava ler 4 fontes.
+ * Estende o dono do tema em vez de abrir painel paralelo (é a regra do §5 2026-07-23).
+ *
+ * NÃO É GATE e NÃO AFIRMA VERDE: `--screen` continua saindo 0 em qualquer estado. "Ligada"
+ * aqui significa *o charter diz live E a máquina tem sinal de prod* — nunca "funciona"
+ * (isso é veredito de lane/smoke, que nenhum gerador pode afirmar).
+ *
+ * @returns {{estado:string, rotulo:string, comoDestravar:string|null}}
+ */
+export function prontidaoDeLigar({ temCharter, status = null, sinal = null, placeholder = false }) {
+  if (!temCharter) {
+    return { estado: 'sem_charter', rotulo: '✗ sem charter', comoDestravar: 'criar o charter da tela (node scripts/governance/criar-tela.mjs)' };
+  }
+  const fonte = sinal && sinal.fonte;
+  const detalhe = !fonte ? ''
+    : fonte === 'prod-flags' ? `prod-flags:biz=${sinal.biz.join(',')}`
+    : fonte === 'route-hits' ? `route-hits:${sinal.hits}hit@${sinal.ultima_data}`
+    : `smoke:${sinal.smoke}`;
+  if (status === 'live') {
+    return fonte
+      ? { estado: 'ligada', rotulo: `✓ LIGADA (charter live · sinal ${detalhe})`, comoDestravar: null }
+      // Mesmo buraco que o gate `charter-live-signal` persegue: diz live, a máquina não tem prova.
+      : { estado: 'live_sem_sinal', rotulo: '⚠ diz LIVE mas SEM sinal de prod', comoDestravar: 'node scripts/governance/charter-live-signal.mjs --check <charter>' };
+  }
+  if (!fonte) {
+    return {
+      estado: 'sem_sinal',
+      rotulo: `✗ NÃO pode ligar (charter \`${status ?? 'sem status'}\` · zero sinal de prod)`,
+      comoDestravar: 'um dos 3: governance/prod-flags.json `live[<key>]` · hits>0 em governance/route-hits.json (route-hits:export) · campo `smoke:` datado no charter',
+    };
+  }
+  if (placeholder) {
+    // Mesma trava do promote: placeholder aberto espera revisão humana dos Non-Goals/Anti-hooks.
+    return { estado: 'bloqueado_placeholder', rotulo: `⚠ tem sinal (${detalhe}) mas o charter tem placeholder aberto`, comoDestravar: '[W] preencher Non-Goals/Anti-hooks (TODO Wagner / ❌ TODO) antes de promover' };
+  }
+  return { estado: 'promovivel', rotulo: `→ PROMOVÍVEL (sinal ${detalhe})`, comoDestravar: 'node scripts/governance/charter-promote-signal.mjs --apply <charter>' };
 }
 
 // --screen <Mod/Tela> — resolve UMA tela e imprime tudo + linkagem, depois sai.
@@ -294,6 +354,10 @@ if (flags.has('--screen')) {
   for (const u of r.ucLink) console.log(`    ${mark(u.tested)} ${u.uc}${u.tested ? '' : '  ← ÓRFÃO (nenhum teste cita o id)'}`);
   console.log('');
   console.log(`  LINKAGEM charter → related_prototype: ${r.relatedPrototype ?? '(sem charter)'}`);
+  console.log('');
+  console.log('  PODE LIGAR? (charter × sinal de prod — NÃO é veredito de funcionamento):');
+  console.log(`    ${r.prontidao.rotulo}`);
+  if (r.prontidao.comoDestravar) console.log(`    destrava com: ${r.prontidao.comoDestravar}`);
   // Veredito honesto de COMPLETUDE + o que a máquina NÃO resolve sozinha.
   const artefatos = [['RUNBOOK', r.runbook], ['visual-comparison', r.visualcomp], ['proto-baseline', r.protobaseline]];
   const ambiguos = artefatos.filter(([, a]) => a.status === 'ambiguous').map(([n]) => n);
@@ -344,6 +408,30 @@ if (flags.has('--selftest')) {
   assert.equal(resolveArtifact('memory/requisitos/X/RUNBOOK-x.md', false, []).status, 'declared-missing'); // CONTROLE-NEGATIVO: charter aponta pra arquivo inexistente = linkagem quebrada
   assert.equal(resolveArtifact(null, false, ['a', 'b']).status, 'ambiguous'); // sem declaração → cai pro name-match (2 = ambíguo)
   assert.equal(resolveArtifact(null, false, ['a', 'b']).source, 'name');
+  // --- PODE LIGAR? (charter × sinal) — o eixo de rollout, com bite-test e controles ---
+  const semSinal = { fonte: null, biz: [], hits: null, ultima_data: null, smoke: null };
+  const comHit = { fonte: 'route-hits', biz: [], hits: 20, ultima_data: '2026-07-25', smoke: null };
+  const comFlag = { fonte: 'prod-flags', biz: ['1'], hits: null, ultima_data: null, smoke: null };
+  // MORDE: o estado REAL de 7 das 8 telas do Produto — charter draft, zero sinal → não pode ligar.
+  assert.equal(prontidaoDeLigar({ temCharter: true, status: 'draft', sinal: semSinal }).estado, 'sem_sinal');
+  // CONTROLE-NEGATIVO 1: draft COM sinal é promovível — se caísse em 'sem_sinal', o painel
+  // esconderia tela pronta e viraria carimbo de "nada pode ligar".
+  assert.equal(prontidaoDeLigar({ temCharter: true, status: 'draft', sinal: comHit }).estado, 'promovivel');
+  // CONTROLE-NEGATIVO 2: live COM sinal é o estado bom (Produto/Index hoje) — não pode alarmar.
+  assert.equal(prontidaoDeLigar({ temCharter: true, status: 'live', sinal: comFlag }).estado, 'ligada');
+  // MORDE: live SEM sinal é o buraco que o gate charter-live-signal persegue — não pode virar '✓'.
+  assert.equal(prontidaoDeLigar({ temCharter: true, status: 'live', sinal: semSinal }).estado, 'live_sem_sinal');
+  // CONTROLE-NEGATIVO 3: placeholder aberto trava a promoção mesmo COM sinal (mesma regra do promote).
+  assert.equal(prontidaoDeLigar({ temCharter: true, status: 'draft', sinal: comHit, placeholder: true }).estado, 'bloqueado_placeholder');
+  assert.equal(prontidaoDeLigar({ temCharter: false }).estado, 'sem_charter');
+  // O rótulo NUNCA afirma funcionamento — só charter+sinal (o veredito de verde é da lane).
+  assert.equal(/funciona|verde|testad/i.test(prontidaoDeLigar({ temCharter: true, status: 'live', sinal: comFlag }).rotulo), false);
+  // A regra de sinal vem da lib (fonte única) — 3 fontes, ordem prod-flags > route-hits > smoke.
+  assert.equal(sinalDe('component: resources/js/Pages/X/Y.tsx\nsmoke: 2026-07-01', { live: {}, hits: {} }).fonte, 'smoke');
+  assert.equal(sinalDe('component: resources/js/Pages/X/Y.tsx', { live: { 'X/Y': ['1'] }, hits: { 'X/Y': { hits: 3 } } }).fonte, 'prod-flags');
+  assert.equal(sinalDe('component: resources/js/Pages/X/Y.tsx', { live: {}, hits: { 'X/Y': { hits: 0 } } }).fonte, null); // hits:0 NÃO é sinal
+  assert.equal(temPlaceholderAberto('## Non-Goals\n- TODO Wagner\n'), true);
+  assert.equal(temPlaceholderAberto('## Non-Goals\n- ❌ CRUD inline\n'), false); // ❌ sozinho é Non-Goal preenchido, não placeholder
   assert.equal(screenSlug('Financeiro/Unificado/Index.tsx'), 'financeiro-unificado-index');
   assert.equal(screenSlug('Produto/Create.tsx'), 'produto-create');
   // UC: heading conta; tachado ~~UC~~ (retirado, padrão da Maiara em Create.casos.md) NÃO conta.

@@ -28,6 +28,7 @@
 
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
+import { frontmatterDe, campo, sinalDe, carregarFontes, temPlaceholderAberto } from '../lib/charter-signal.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
@@ -38,14 +39,13 @@ const DATE = dateIdx >= 0 && process.argv[dateIdx + 1]
   : new Date().toISOString().slice(0, 10);
 const PAGES = join(ROOT, 'resources', 'js', 'Pages');
 
-function loadJson(rel, prop) {
-  const p = join(ROOT, rel);
-  if (!existsSync(p)) return {};
-  try { return JSON.parse(readFileSync(p, 'utf8'))[prop] || {}; }
-  catch (e) { console.error(`charter-promote-signal: ${rel} não parseia (${e.message})`); process.exit(2); }
-}
-const LIVE = loadJson('governance/prod-flags.json', 'live');
-const HITS = loadJson('governance/route-hits.json', 'pages');
+// FONTE ÚNICA da regra de sinal — a MESMA lib que o `charter-live-signal` (o inverso deste
+// script) e o `screen-coverage-map --screen` consomem. Este arquivo dizia no cabeçalho
+// "FONTES DE SINAL (idênticas ao charter-live-signal)" e mantinha uma 2ª cópia pra provar:
+// agora a identidade é estrutural, não uma promessa de comentário.
+let FONTES;
+try { FONTES = carregarFontes(ROOT); }
+catch (e) { console.error(`charter-promote-signal: ${e.message}`); process.exit(2); }
 
 function walk(dir, acc = []) {
   if (!existsSync(dir)) return acc;
@@ -56,22 +56,14 @@ function walk(dir, acc = []) {
   }
   return acc;
 }
-const fm = (body) => (body.match(/^---\n([\s\S]*?)\n---/) || [null, ''])[1];
-const field = (block, k) => {
-  const m = block.match(new RegExp('^' + k + ':\\s*(.+)$', 'm'));
-  return m ? m[1].trim().replace(/^["']|["']$/g, '') : null;
-};
-function compKey(component) {
-  if (!component) return null;
-  const m = component.replace(/\\/g, '/').match(/resources\/js\/Pages\/(.+)\.tsx$/);
-  return m ? m[1] : null;
-}
+const fm = frontmatterDe;
+const field = campo;
+/** Rótulo deste consumidor (o gate irmão formata `route-hits:Nhit@data`; aqui, só N). */
 function signalOf(block) {
-  const key = compKey(field(block, 'component'));
-  const biz = key && Array.isArray(LIVE[key]) ? LIVE[key] : [];
-  if (biz.length) return `prod-flags:biz=${biz.join(',')}`;
-  if (key && HITS[key] && HITS[key].hits > 0) return `route-hits:${HITS[key].hits}`;
-  if (field(block, 'smoke')) return `smoke:${field(block, 'smoke')}`;
+  const s = sinalDe(block, FONTES);
+  if (s.fonte === 'prod-flags') return `prod-flags:biz=${s.biz.join(',')}`;
+  if (s.fonte === 'route-hits') return `route-hits:${s.hits}`;
+  if (s.fonte === 'smoke') return `smoke:${s.smoke}`;
   return null;
 }
 
@@ -87,7 +79,7 @@ for (const f of files.sort()) {
   const rel = relative(ROOT, f).replace(/\\/g, '/');
   if (field(block, 'status') !== 'draft') { nao_draft.push(rel); continue; }
   const signal = signalOf(block);
-  const placeholder = /TODO Wagner|❌ TODO/.test(body);
+  const placeholder = temPlaceholderAberto(body);
   if (signal && !placeholder) promovivel.push({ rel, signal });
   else bloqueado.push({ rel, motivo: signal ? 'placeholder-nao-preenchido' : 'sem-sinal-de-prod' });
 }

@@ -29,19 +29,16 @@
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
+// FONTE ÚNICA da regra de sinal (3 fontes: prod-flags · route-hits · smoke:) — a MESMA que o
+// `charter-promote-signal` (o inverso deste gate) e o `screen-coverage-map --screen` consomem.
+// Era código DUPLICADO entre os dois primeiros, com drift já instalado (este lia `ultima_data`,
+// o outro ignorava). A lib devolve DADO; o rótulo continua sendo formatado aqui.
+import { frontmatterDe, campo, sinalDe, carregarFontes } from '../lib/charter-signal.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
 const CHECK = process.argv.includes('--check');
 const PAGES = join(ROOT, 'resources', 'js', 'Pages');
-const FLAGS_PATH = join(ROOT, 'governance', 'prod-flags.json');
-
-function loadLive() {
-  if (!existsSync(FLAGS_PATH)) return {};
-  try { return JSON.parse(readFileSync(FLAGS_PATH, 'utf8')).live || {}; }
-  catch (e) { console.error(`charter-live-signal: prod-flags.json não parseia (${e.message})`); process.exit(2); }
-}
-const LIVE = loadLive();
 
 // 3ª FONTE de sinal (2026-07-09 · grade v3 "verificação runtime"): ledger de
 // execução real governance/route-hits.json (`php artisan route-hits:export
@@ -49,13 +46,9 @@ const LIVE = loadLive();
 // com hits>0 na janela = a tela foi de fato SERVIDA — sinal mais forte que
 // flag ligada (flag diz "pode servir"; hit diz "serviu"). Aditivo: só cria
 // caminho NOVO pra live_ok, nunca avermelha o que hoje passa. Ausente = {}.
-const HITS_PATH = join(ROOT, 'governance', 'route-hits.json');
-function loadHitsPages() {
-  if (!existsSync(HITS_PATH)) return {};
-  try { return JSON.parse(readFileSync(HITS_PATH, 'utf8')).pages || {}; }
-  catch (e) { console.error(`charter-live-signal: route-hits.json não parseia (${e.message})`); process.exit(2); }
-}
-const HITS_PAGES = loadHitsPages();
+let FONTES;
+try { FONTES = carregarFontes(ROOT); }
+catch (e) { console.error(`charter-live-signal: ${e.message}`); process.exit(2); }
 
 function walk(dir, acc = []) {
   if (!existsSync(dir)) return acc;
@@ -67,21 +60,6 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-function frontmatter(body) {
-  const m = body.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  return m ? m[1] : '';
-}
-function field(fm, key) {
-  const m = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
-  return m ? m[1].trim().replace(/^["']|["']$/g, '') : null;
-}
-// component (resources/js/Pages/X.tsx) -> key "X"
-function compKey(component) {
-  if (!component) return null;
-  const m = component.replace(/\\/g, '/').match(/resources\/js\/Pages\/(.+)\.tsx$/);
-  return m ? m[1] : null;
-}
-
 // seleção: args posicionais (diff-aware) ou full-tree
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const files = args.length
@@ -90,16 +68,14 @@ const files = args.length
 
 const rows = [];
 for (const f of files.sort()) {
-  const fm = frontmatter(readFileSync(f, 'utf8'));
-  if (field(fm, 'status') !== 'live') continue; // só status:live entra
-  const key = compKey(field(fm, 'component'));
-  const smoke = field(fm, 'smoke');
-  const biz = key && Array.isArray(LIVE[key]) ? LIVE[key] : [];
-  const hit = key && HITS_PAGES[key] && HITS_PAGES[key].hits > 0 ? HITS_PAGES[key] : null;
-  const signal = biz.length
-    ? `prod-flags:biz=${biz.join(',')}`
-    : (hit ? `route-hits:${hit.hits}hit@${hit.ultima_data}` : (smoke ? `smoke:${smoke}` : null));
-  rows.push({ rel: relative(ROOT, f).replace(/\\/g, '/'), key, signal, state: signal ? 'live_ok' : 'live_sem_sinal' });
+  const fm = frontmatterDe(readFileSync(f, 'utf8'));
+  if (campo(fm, 'status') !== 'live') continue; // só status:live entra
+  const s = sinalDe(fm, FONTES);
+  const signal = s.fonte === 'prod-flags' ? `prod-flags:biz=${s.biz.join(',')}`
+    : s.fonte === 'route-hits' ? `route-hits:${s.hits}hit@${s.ultima_data}`
+    : s.fonte === 'smoke' ? `smoke:${s.smoke}`
+    : null;
+  rows.push({ rel: relative(ROOT, f).replace(/\\/g, '/'), key: s.key, signal, state: signal ? 'live_ok' : 'live_sem_sinal' });
 }
 const semSinal = rows.filter((r) => r.state === 'live_sem_sinal');
 
