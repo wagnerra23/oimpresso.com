@@ -5,11 +5,12 @@
   "scope": "memory/requisitos/**/*.md — só referências na forma 'Modules/<Nome>' (mesma regex token-boundary do knowledge-drift.mjs); forma namespace 'Modules\\<Nome>' fica fora do v1",
   "renames": {
     "Copiloto": { "to": "Jana", "class": "A", "evidence": ["ADR 0088 memory/decisions/0088-module-rename-php-only.md", "commit b502ea5c3 (Fase 3.7 PR-2)", "ADR 0092 (tabelas copiloto_*->jana_*)"] },
-    "PontoWr2": { "to": "Ponto", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"] },
-    "MemCofre": { "to": "SRS", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"] },
-    "DocVault": { "to": "SRS", "class": "A", "evidence": ["commit a80f31115 (DocVault->MemCofre)", "ADR 0088 + commit b502ea5c3 (MemCofre->SRS)"], "note": "cadeia transitiva DocVault->MemCofre->SRS" }
+    "PontoWr2": { "to": "Ponto", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"] }
   },
   "excluded": {
+    "MemCofre": { "class": "C", "reason": "era rename A -> SRS, mas o ALVO deixou de existir: Modules/SRS foi REMOVIDO em 2026-07-29 (ADR 0357, E5 — 63 arquivos + drop das 7 tabelas docs_*). Reescrever MemCofre->SRS agora produziria referencia pra modulo inexistente. Sucessores por capacidade: acervo/busca->KB, chat->Jana, validacao->Governance+mcp_audit_log; nao ha destino 1:1, entao e reescrita com revisao humana" },
+    "DocVault": { "class": "C", "reason": "cadeia DocVault->MemCofre->SRS terminou em REMOCAO (ADR 0357, 2026-07-29) — o fim da cadeia nao existe mais no disco; mesma razao do MemCofre" },
+    "SRS": { "class": "C", "reason": "REMOVIDO, nao renomeado (ADR 0357, E5 2026-07-29) — mesmo caso do LaravelAI abaixo. memory/requisitos/SRS/ sobrevive como canon HISTORICO; /memcofre/* preservado por 301 em routes/web.php. Nao recriar: lapide em memory/proibicoes.md §5" },
     "Accounting": { "class": "C", "reason": "FUSAO no Financeiro (ADR 0172, drop Onda 5 commit 1611d3485) — nao e rename 1:1; subpaths Accounting/* nao existem sob Financeiro/*; reescrita com revisao humana" },
     "Sells": { "class": "C", "reason": "nunca foi Modules/Sells — telas de venda legacy UltimatePOS vivem em app/ + resources/views (ADRs 0136/0178/0248 tratam Sells como TELA); corrigir referencia manualmente" },
     "Project": { "class": "AMBIGUO", "reason": "Modules/Project legacy UltimatePOS foi DELETADO (commit f341a146f, Fase 3.8); ProjectMgmt foi criado NOVO (#91) — citacao pode ser o modulo morto OU abreviacao de ProjectMgmt; fila humana" },
