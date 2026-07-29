@@ -13,6 +13,7 @@ use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Contracts\MemoriaContrato;
 use Modules\Jana\Contracts\MemoriaPersistida;
 use Modules\Jana\Services\Memoria\MeilisearchDriver;
+use Modules\Jana\Support\RetrievalStatus;
 
 /**
  * MEM-MEM-MCP-1 (ADR 0056) — Tool MCP que busca fatos persistentes da memória
@@ -32,6 +33,18 @@ use Modules\Jana\Services\Memoria\MeilisearchDriver;
  */
 class MemoriaSearchTool extends Tool
 {
+    /** Pipeline respondeu e trouxe fatos (o método devolve a Response direto). */
+    public const PIPELINE_OK = 'ok';
+
+    /** Pipeline respondeu, zero fatos — AUSÊNCIA legítima na memória do business. */
+    public const PIPELINE_VAZIO = 'vazio';
+
+    /** Pipeline CAIU (exceção do driver) — DEGRADAÇÃO. É o único que merece aviso. */
+    public const PIPELINE_DEGRADADO = 'degradado';
+
+    /** Driver sem `buscarBusiness` (Null/Mcp em dev/CI) — desenho, não falha. */
+    public const PIPELINE_NAO_SUPORTADO = 'nao_suportado';
+
     protected string $name = 'memoria-search';
 
     protected string $title = 'Buscar memória do Copiloto';
@@ -94,12 +107,18 @@ class MemoriaSearchTool extends Tool
         // fallback gracioso pro FULLTEXT. memoria-search recupera memória da EMPRESA
         // (todos os fatos do business, SEM user_id — ADR 0093/0056). DEFAULT OFF =
         // comportamento abaixo idêntico.
+        // DEGRADAÇÃO ≠ AUSÊNCIA (2026-07-28, 2ª onda). O `null` abaixo tinha TRÊS causas
+        // — driver sem suporte (dev/CI), pipeline vazio, e pipeline que CAIU — e as três
+        // levavam à mesma frase "Nenhum fato encontrado". Só a terceira é degradação.
+        $degradado = false;
         if (config('copiloto.mcp_search.memoria_pipeline', false)) {
-            $viaPipeline = $this->buscarViaPipeline($bizParaBusca, $query, $limit);
+            $statusPipeline = null;
+            $viaPipeline = $this->buscarViaPipeline($bizParaBusca, $query, $limit, $statusPipeline);
             if ($viaPipeline !== null) {
                 return $viaPipeline;
             }
             // null = pipeline indisponível/vazio/erro → cai no FULLTEXT abaixo.
+            $degradado = $statusPipeline === self::PIPELINE_DEGRADADO;
         }
 
         // Busca via FULLTEXT em copiloto_memoria_facts
@@ -118,6 +137,18 @@ class MemoriaSearchTool extends Tool
             ->get(['id', 'fato', 'metadata', 'valid_from', 'created_at']);
 
         if ($rows->isEmpty()) {
+            if ($degradado) {
+                Log::channel('copiloto-ai')->warning('memoria-search: zero fatos COM retrieval degradado (pipeline fora) — resposta declara indisponibilidade', [
+                    'business_id' => $bizParaBusca,
+                    'query_chars' => strlen($query),
+                ]);
+
+                return Response::text(
+                    "Não posso afirmar que não exista fato sobre \"$query\" — a busca semântica da memória está indisponível agora, e a busca textual (plano B) não achou nada. "
+                    ."Repita em alguns minutos; se persistir, veja o canal de log `copiloto-ai`."
+                );
+            }
+
             return Response::text("Nenhum fato encontrado pra: \"$query\".");
         }
 
@@ -135,7 +166,7 @@ class MemoriaSearchTool extends Tool
             $output .= "_Persistido em: {$r->valid_from}_\n\n";
         }
 
-        return Response::text($output);
+        return Response::text($output.RetrievalStatus::aviso($degradado));
     }
 
     /**
@@ -144,9 +175,14 @@ class MemoriaSearchTool extends Tool
      * Retorna Response formatada, ou null (= fallback FULLTEXT) se o driver não
      * suportar (Null/Mcp em dev/CI), vazio, ou erro.
      *
+     * O `$status` (por referência, opcional — último parâmetro) diz QUAL dos três
+     * motivos gerou o `null`, porque só um deles é degradação. Retrocompatível: quem
+     * chama com 3 args (o teste que exercita os 3 caminhos) segue idêntico.
+     *
+     * @param  string|null  $status  saída: PIPELINE_OK|PIPELINE_VAZIO|PIPELINE_DEGRADADO|PIPELINE_NAO_SUPORTADO
      * @return Response|null
      */
-    protected function buscarViaPipeline(int $businessId, string $query, int $limit): ?Response
+    protected function buscarViaPipeline(int $businessId, string $query, int $limit, ?string &$status = null): ?Response
     {
         /** @var MemoriaContrato $driver */
         $driver = app(MemoriaContrato::class);
@@ -154,6 +190,8 @@ class MemoriaSearchTool extends Tool
         // buscarBusiness é específico do MeilisearchDriver — outros drivers
         // (Null/Mcp em dev/CI, resolvidos por config) caem no FULLTEXT.
         if (! $driver instanceof MeilisearchDriver) {
+            $status = self::PIPELINE_NAO_SUPORTADO;
+
             return null;
         }
 
@@ -164,13 +202,19 @@ class MemoriaSearchTool extends Tool
             Log::channel('copiloto-ai')->warning(
                 'memoria-search: pipeline business falhou, fallback FULLTEXT: '.$e->getMessage()
             );
+            $status = self::PIPELINE_DEGRADADO;
 
             return null;
         }
 
         if ($hits === []) {
+            // O pipeline RESPONDEU e a memória não tem: ausência legítima, sem alarme.
+            $status = self::PIPELINE_VAZIO;
+
             return null;
         }
+
+        $status = self::PIPELINE_OK;
 
         $output = sprintf("Encontrados %d fato(s) na memória pra \"%s\" (pipeline):\n\n", count($hits), $query);
         foreach ($hits as $h) {

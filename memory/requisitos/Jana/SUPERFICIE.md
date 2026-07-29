@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 568 arquivos em 19 papéis.
+**Total mapeado:** 570 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -396,11 +396,11 @@ module: Jana
 
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 153
+## Testes (Pest) — 154
 
-- 153 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 154 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 78
+## Outros (raiz/misc) — 79
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -479,4 +479,5 @@ module: Jana
 - [ScopeByBusinessViaParent.php](../../../Modules/Jana/Scopes/ScopeByBusinessViaParent.php)
 - [ClarifyResult.php](../../../Modules/Jana/Support/ClarifyResult.php)
 - [ContextoNegocio.php](../../../Modules/Jana/Support/ContextoNegocio.php)
+- [RetrievalStatus.php](../../../Modules/Jana/Support/RetrievalStatus.php)
 - [start.php](../../../Modules/Jana/start.php)

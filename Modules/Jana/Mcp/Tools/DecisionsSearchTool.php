@@ -10,6 +10,7 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Support\RetrievalStatus;
 
 /**
  * MEM-MCP-1.c (ADR 0053) — Tool decisions-search.
@@ -64,16 +65,28 @@ class DecisionsSearchTool extends Tool
         // Gap #2 (US-RET-001) — pipeline bom HYBRID atrás de flag, fallback FULLTEXT.
         // Corpus MCP é GLOBAL (sem filtro business_id — verificado no índice CT 100).
         // Só no caminho ativo (índice exclui superseded; archived continua FULLTEXT).
+        // DEGRADAÇÃO ≠ AUSÊNCIA (2026-07-28, 2ª onda — a 1ª cobriu só o kb-answer/#4979):
+        // sem o `$statusHybrid`, "índice fora do ar" e "não existe ADR sobre isso" produziam
+        // a MESMA resposta lá embaixo ("Nenhum ADR encontrado"). O fallback FULLTEXT continua
+        // acontecendo nos dois casos — o que muda é o usuário PODER saber em qual está.
         $rows = null;
+        $degradado = false;
         if (! $includeArchived && config('copiloto.mcp_search.docs_pipeline', false)) {
+            $statusHybrid = null;
             try {
-                $hybrid = McpMemoryDocument::buscarHybrid($query, $limit, $user instanceof \App\User ? $user : null, 'adr', null, $businessId);
+                $hybrid = McpMemoryDocument::buscarHybrid($query, $limit, $user instanceof \App\User ? $user : null, 'adr', null, $businessId, $statusHybrid);
                 if ($hybrid->isNotEmpty()) {
                     $rows = $hybrid;
                 }
             } catch (\Throwable $e) {
                 Log::channel('copiloto-ai')->warning('decisions-search: hybrid falhou, fallback FULLTEXT: '.$e->getMessage());
+                $statusHybrid = McpMemoryDocument::HYBRID_INDISPONIVEL;
             }
+
+            // Vazio com o índice VIVO não é degradação — o FULLTEXT abaixo é 2ª opinião
+            // legítima. Só marca quando o hybrid não pôde responder (senão o aviso vira
+            // ruído permanente e ninguém lê).
+            $degradado = $statusHybrid === McpMemoryDocument::HYBRID_INDISPONIVEL;
         }
 
         // FULLTEXT (default / fallback). Filtra permissão Spatie + status lifecycle.
@@ -91,6 +104,19 @@ class DecisionsSearchTool extends Tool
         }
 
         if ($rows->isEmpty()) {
+            // Vazio COM o hybrid caído não autoriza concluir que o ADR não existe — o
+            // pouco que se sabe é que o plano B (textual) não achou.
+            if ($degradado) {
+                Log::channel('copiloto-ai')->warning('decisions-search: zero ADRs COM retrieval degradado (hybrid fora) — resposta declara indisponibilidade', [
+                    'query_chars' => strlen($query),
+                ]);
+
+                return Response::text(
+                    "Não posso afirmar que não exista ADR sobre \"$query\" — a busca semântica está indisponível agora, e a busca textual (plano B) não achou nada. "
+                    ."Repita em alguns minutos; se persistir, o índice Meilisearch pode estar fora (veja o canal de log `copiloto-ai`)."
+                );
+            }
+
             $hint = $includeArchived
                 ? ''
                 : "\n\n💡 Dica: tente `include_archived: true` se procura ADR superseded/deprecated.";
@@ -110,7 +136,9 @@ class DecisionsSearchTool extends Tool
             $output .= "_Use `decisions-fetch slug={$doc->slug}` pra ler completo._\n\n";
         }
 
-        return Response::text($output);
+        // Achou ADRs, mas pelo plano B: a lista pode estar incompleta. Aviso no FIM pra
+        // não empurrar o conteúdo pra baixo em quem lê só o começo.
+        return Response::text($output.RetrievalStatus::aviso($degradado));
     }
 
     /**
