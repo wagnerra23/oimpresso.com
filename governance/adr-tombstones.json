@@ -14,7 +14,7 @@
       "died_reason": "Fixava business_id=1 como tenant default de teste. biz=1 e a WR2 Sistemas, empresa REAL; no CT 100 a base e clone de prod e nao se limpa entre runs, entao teste semeava dado no espelho da empresa de verdade. Tenant canonico passou a 98 (ficticio) em #4974.",
       "superseded_by": "0358-doutrina-de-teste-tenant-98-supersede-0101",
       "last_sha": "c26aa5fb1f88c12c4f553d3271ef41320c102233",
-      "forgotten_in_pr": "PENDENTE"
+      "forgotten_in_pr": "#5028"
     }
   ]
 }
