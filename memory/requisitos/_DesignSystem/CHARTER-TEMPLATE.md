@@ -167,7 +167,7 @@ ux_targets:
 
 ### Catálogo UI por módulo (auto-gerado)
 
-Command `php artisan admin:ui-catalog-generate <modulo>` varre `resources/js/Pages/<Mod>/**/*.tsx` + lê irmãos `.charter.md` + `.review.md` e gera `memory/requisitos/<Mod>/UI-CATALOG.md` (tabela + pendências + cross-ref).
+Command `php artisan governance:ui-catalog-generate <modulo>` varre `resources/js/Pages/<Mod>/**/*.tsx` + lê irmãos `.charter.md` + `.review.md` e gera `memory/requisitos/<Mod>/UI-CATALOG.md` (tabela + pendências + cross-ref).
 
 Schedule daily 09:30 BRT (depois cron smoke 09:00). Auditável via `cycles-active` + Wagner monitor.
 
@@ -183,7 +183,7 @@ Schedule daily 09:30 BRT (depois cron smoke 09:00). Auditável via `cycles-activ
 - [RUNBOOK-charters-s4-ativacao.md](RUNBOOK-charters-s4-ativacao.md) — workflow draft→live
 - Skill `charter-first` (Tier A) · `charter-write` (Tier C) · `tela-smoke-pos-merge` (Tier B — W30)
 - Tool MCP `charter-fetch` ([Modules/Jana/Mcp/Tools/CharterFetchTool.php](../../../Modules/Jana/Mcp/Tools/CharterFetchTool.php))
-- Command `admin:ui-catalog-generate` ([Modules/Admin/Console/Commands/ScreenCatalogGenerateCommand.php](../../../Modules/Admin/Console/Commands/ScreenCatalogGenerateCommand.php))
+- Command `governance:ui-catalog-generate` ([Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php](../../../Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php)) — invocação manual; resgatado de `Modules/Admin` em 2026-07-29, onde vivia sem registro no ServiceProvider
 
 ## Histórico
 

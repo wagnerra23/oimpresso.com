@@ -2,18 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Modules\Admin\Console\Commands;
+namespace Modules\Governance\Console\Commands;
 
 use Illuminate\Console\Command;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * admin:ui-catalog-generate — Gera memory/requisitos/<Modulo>/UI-CATALOG.md
+ * governance:ui-catalog-generate — Gera memory/requisitos/<Modulo>/UI-CATALOG.md
  *
  * Varre resources/js/Pages/<Modulo>/**\/*.tsx + lê irmãos .charter.md + .review.md
  * e produz tabela canônica de telas com status review + UX targets met + pendências.
  *
- * Schedule: daily 09:30 BRT (depois cron smoke 09:00) em app/Console/Kernel.php.
+ * Invocação MANUAL. Medido em 2026-07-29: `grep "admin:" app/Console/Kernel.php`
+ * devolvia 0 linhas e `php artisan list` (CT 100) não conhecia o comando — ele
+ * vivia em Modules/Admin SEM registro no ServiceProvider de lá. Resgatado pra cá
+ * na depreciação do Admin Center; quem quiser cadência, registra no Kernel.
  *
  * Multi-tenant Tier 0 (ADR 0093): governance é repo-wide (não scoped business).
  * Catálogo UI é estrutural — varre filesystem, não DB.
@@ -24,10 +27,10 @@ use Symfony\Component\Yaml\Yaml;
  * @see memory/decisions/0164-screen-review-pdca.md (W30-A)
  * @see memory/decisions/0101-sistema-charter-capterra-governanca-escopo.md
  */
-class ScreenCatalogGenerateCommand extends Command
+class UiCatalogGenerateCommand extends Command
 {
-    protected $signature = 'admin:ui-catalog-generate
-        {modulo? : Nome do módulo (ex: Admin, Financeiro). Omitir + --all pra todos.}
+    protected $signature = 'governance:ui-catalog-generate
+        {modulo? : Nome do módulo (ex: Financeiro, Sells). Omitir + --all pra todos.}
         {--all : Varre todos módulos com Pages Inertia}
         {--detail : Log detalhado por tela escaneada}
         {--dry-run : Imprime catálogo sem escrever arquivo}';
@@ -45,7 +48,7 @@ class ScreenCatalogGenerateCommand extends Command
         $dryRun = (bool) $this->option('dry-run');
 
         if (! $all && ! $modulo) {
-            $this->error('Informe {modulo} OU use --all. Ex: php artisan admin:ui-catalog-generate Admin');
+            $this->error('Informe {modulo} OU use --all. Ex: php artisan governance:ui-catalog-generate Financeiro');
             return self::FAILURE;
         }
 
@@ -56,7 +59,7 @@ class ScreenCatalogGenerateCommand extends Command
             return self::SUCCESS;
         }
 
-        $this->info('admin:ui-catalog-generate — ' . now()->toDateTimeString());
+        $this->info('governance:ui-catalog-generate — ' . now()->toDateTimeString());
         $this->line('Módulos alvo: ' . implode(', ', $modules));
         $this->newLine();
 
@@ -177,17 +180,28 @@ class ScreenCatalogGenerateCommand extends Command
 
             $hasCharter = is_file($charterPath);
             $charterStatus = $hasCharter ? $this->parseStatus($charterPath) : 'no-charter';
-            $reviewMeta = is_file($reviewPath) ? $this->parseReviewMeta($reviewPath) : null;
+            // `[]` e não `null`: a linha do `ux_targets_met` abaixo indexa o array
+            // SEM `??` e estourava "Trying to access array offset on null" em toda
+            // tela sem `.review.md` — que hoje é 100% delas (`git ls-files '*.review.md'`
+            // devolve 0 no repo inteiro). Defeito herdado do Modules/Admin: o comando
+            // nunca tinha rodado porque nunca esteve registrado no Artisan.
+            $reviewMeta = (is_file($reviewPath) ? $this->parseReviewMeta($reviewPath) : null) ?? [];
+
+            $reviewStatus = $reviewMeta['status'] ?? 'no-review';
 
             $screens[] = [
                 'relative_path' => str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file->getPathname()),
                 'tela_id' => $telaId,
                 'has_charter' => $hasCharter,
                 'charter_status' => $charterStatus,
-                'review_status' => $reviewMeta['status'] ?? 'no-review',
+                'review_status' => $reviewStatus,
                 'current_round' => $reviewMeta['current_round'] ?? '-',
                 'last_smoke' => $reviewMeta['approved_at'] ?? ($reviewMeta['created_at'] ?? '-'),
-                'ux_targets_met' => $reviewMeta['status'] === 'approved' ? '✓' : ($reviewMeta['status'] === 'rejected' ? '✗' : '⏸'),
+                'ux_targets_met' => match ($reviewStatus) {
+                    'approved' => '✓',
+                    'rejected' => '✗',
+                    default    => '⏸',
+                },
             ];
         }
 
@@ -246,7 +260,7 @@ class ScreenCatalogGenerateCommand extends Command
         $now = now()->toDateString();
 
         $md = "# {$modulo} — UI Catalog\n\n";
-        $md .= "> Gerado por `php artisan admin:ui-catalog-generate {$modulo}` — daily 09:30 BRT.\n";
+        $md .= "> Gerado por `php artisan governance:ui-catalog-generate {$modulo}`. Regenerar ao mudar as telas do módulo.\n";
         $md .= "> Última geração: {$now}\n\n";
         $md .= "## Telas ({$total})\n\n";
         $md .= "| Tela | Charter | Status review | Round | Última smoke | UX targets |\n";
