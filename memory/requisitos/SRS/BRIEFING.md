@@ -1,17 +1,19 @@
 ---
 id: requisitos-srs-briefing
 module: SRS
-status: parcial
-status_nota: "legado uso interno raro (backoffice Wagner); deprecação PLANEJADA (DEPRECATION-PLAN 2026-05-17, Caminho 1 aprovado) mas NÃO executada — módulo 100% presente e servindo em prod. Sucessor prático: MCP server canon."
-updated_at: "2026-07-18"
+status: deprecated
+status_nota: "deprecação EM CURSO — E1 (ADR 0357) e E2 (@deprecated nas 33 classes) executadas em 2026-07-29. Módulo 100% presente e SERVINDO em prod (deprecating ≠ removido); E3-E6 gated por [W]. Medido em prod 2026-07-29: as 7 tabelas docs_* estão VAZIAS (só docs_pages tem 14 linhas de seed morto de 2026-04-26) — o módulo nunca foi usado. Sucessores: KB (acervo) · Jana (chat) · Governance (validação)."
+updated_at: "2026-07-29"
 owner: W
-related_adrs: [0053-mcp-server-governanca-como-produto, 0061-conhecimento-canonico-git-mcp-zero-automem, 0093-multi-tenant-isolation-tier-0]
+related_adrs: [0357-deprecar-srs-sucessor-kb-jana-governance, 0053-mcp-server-governanca-como-produto, 0061-conhecimento-canonico-git-mcp-zero-automem, 0093-multi-tenant-isolation-tier-0]
 lifecycle: ativo
 ---
 
 # BRIEFING — Modules/SRS
 
-> **Estado:** 🟡 legado uso interno raro (Wagner only) — deprecação PLANEJADA, não executada | **Atualizado:** 2026-07-18 | **Owner:** [W]
+> **Estado:** 🔻 **em deprecação** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md), E1+E2 feitas em 2026-07-29) — segue **servindo em prod**, `deprecating` ≠ removido | **Atualizado:** 2026-07-29 | **Owner:** [W]
+>
+> ⛔ **Não abrir feature nova aqui.** Sucessores: `Modules\KB` (acervo) · `Modules\Jana` (chat) · `Modules\Governance` + `mcp_audit_log` (validação).
 
 ## O que é
 
@@ -21,16 +23,23 @@ lifecycle: ativo
 
 Antes da Constituição v2 ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)) + MCP server canon ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md)), Wagner usava SRS pra trackear cobertura de requisitos do oimpresso. Hoje **substituído na prática** pelo MCP server (`mcp.oimpresso.com`) que sincroniza `memory/*` automaticamente.
 
-## Capacidades hoje
+## Capacidades — o código existe, o uso é ZERO
 
-- ✅ Cadastrar Doc Source (URL/file/folder)
-- ✅ Ingest jobs (artisan commands `Sync*`)
-- ✅ Indexação FULLTEXT MySQL nativa
-- ✅ Cadastrar requirements + linkar evidências (M2M com confidence)
-- ✅ Chat assistido sobre corpus (`ChatAssistant` service)
-- ✅ Audit trail em `docs_validation_runs`
-- ✅ Compat layer `memcofre.*` (bookmarks legados)
-- ✅ Multi-tenant (`business_id` em todas tabelas)
+⚠️ **Correção de 2026-07-29.** A lista abaixo descrevia capacidades *implementadas*, e isso segue verdadeiro — mas dava a impressão de capacidade *em uso*. Medido contra produção (`APP_ENV=live`, DB `u906587222_oimpresso`, com controle positivo `transactions=75.254`), **nenhuma delas foi exercida uma única vez**:
+
+| Capacidade (código presente) | Uso real em prod |
+|---|---|
+| Cadastrar Doc Source (URL/file/folder) | `docs_sources` = **0 linhas** |
+| Ingest jobs (artisan `Sync*`) | `docs_evidences` = **0 linhas** |
+| Indexação FULLTEXT MySQL nativa | índice existe, **0 documentos indexados** |
+| Requirements + link de evidências (M2M) | `docs_requirements` = **0** · `docs_links` = **0** |
+| Chat assistido sobre corpus (`ChatAssistant`) | `docs_chat_messages` = **0 linhas** — ninguém nunca perguntou nada |
+| Audit trail em `docs_validation_runs` | **0 linhas** — nenhuma validação jamais rodou |
+| Catálogo de páginas (`docs_pages`) | **14 linhas**, seed único de 2026-04-26 apontando pra rotas que já não existem |
+| Compat layer `memcofre.*` (bookmarks) | rotas servem; **0 links** pra elas em qualquer outro lugar do repo |
+| Multi-tenant (`business_id`) | correto por construção, mas **0 linhas** para isolar |
+
+Recibo e detalhe em [DEPRECATION-PLAN §Reconciliação 2026-07-29](DEPRECATION-PLAN.md).
 
 ## Diferencial vs concorrentes
 

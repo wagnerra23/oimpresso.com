@@ -24,6 +24,12 @@ use Modules\SRS\Entities\DocPage;
  * Uso:
  *   php artisan memcofre:sync-pages
  *   php artisan memcofre:sync-pages --dry  (só mostra, não grava)
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor — alimenta `docs_pages`, que será DROPADA (T7). Em prod a tabela
+ *             tem 14 linhas de um seed de 2026-04-26 apontando pra rotas que já não existem
+ *             (`/docs/*`, `/copiloto/*`); nunca foi re-sincronizada.
+ *             DEPRECATION-PLAN §Fase 2 item 28 + §Fase 3 T7.
  */
 class SyncPagesCommand extends Command
 {

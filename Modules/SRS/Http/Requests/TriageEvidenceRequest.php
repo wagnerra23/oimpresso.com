@@ -18,6 +18,10 @@ use Illuminate\Validation\Rule;
  * `where('business_id', $businessId)->findOrFail($evidenceId)` no Controller.
  *
  * @see Modules\SRS\Http\Controllers\InboxController::triage
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\KB` (triagem vira draft de `kb_nodes`), junto do `InboxController`.
+ *             DEPRECATION-PLAN §Fase 2 item 4.
  */
 class TriageEvidenceRequest extends FormRequest
 {

@@ -15,6 +15,10 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * D7 LGPD — content da pergunta passa por PiiRedactor no ChatAssistant
  * antes de log/LLM (defense-in-depth).
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Jana` (chat IA canônico), junto do `ChatController`.
+ *             DEPRECATION-PLAN §Fase 2 item 1.
  */
 class ChatAskRequest extends FormRequest
 {

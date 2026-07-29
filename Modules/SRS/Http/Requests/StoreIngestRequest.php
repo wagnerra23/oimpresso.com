@@ -16,6 +16,10 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * Multi-tenant Tier 0 (ADR 0093) — `business_id` é injetado no Controller
  * via session, NUNCA aceito do request body.
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\KB` (acervo), junto do `IngestController`.
+ *             DEPRECATION-PLAN §Fase 2 item 3.
  */
 class StoreIngestRequest extends FormRequest
 {
