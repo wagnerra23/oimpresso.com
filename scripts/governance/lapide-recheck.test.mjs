@@ -52,6 +52,46 @@ check('drift: flag reivindica_defesa_mecanica pega "agora é máquina"', drift.r
 check('sem âncora → sem-ancora-de-arquivo (não classifica como drift)',
   classifyTombstone({ date: '2026-03-03', title: 't3', body: 'só prosa, zero path' }, resolver).veredito === 'sem-ancora-de-arquivo');
 
+// ── FP MEDIDOS NO REPO VIVO (2026-07-29): 4 de 4 "REVISAR" eram falso-positivo ─
+// Alarme 100% ruído é alarme que se aprende a ignorar. Cada check abaixo mata uma
+// das 4 causas — e o BITE logo em seguida prova que matar o ruído não matou o sinal.
+{
+  writeFileSync(join(tmp, 'memory', 'why.md'), '# why\n');
+
+  // FP 1: '@memory/x.md' é sintaxe de IMPORT do CLAUDE.md — o arquivo existe.
+  const imp = extractPaths('herda de `@memory/why.md`');
+  check('FP1 @import: tira o "@" e vira path real', imp.includes('memory/why.md'), JSON.stringify(imp));
+
+  // FP 2 e 3: paths que NUNCA foram do repo não são âncora — não viram nem candidato.
+  const ext = extractPaths('rodei `/tmp/wf-baseline.js` e li `vendor/pestphp/pest/src/Mixins/Expectation.php`');
+  check('FP2 absoluto: /tmp/... não é extraído como âncora', !ext.some((p) => p.startsWith('/tmp')), JSON.stringify(ext));
+  check('FP3 dependência: vendor/... não é extraído como âncora', !ext.some((p) => p.includes('vendor/')), JSON.stringify(ext));
+  check('FP2/3: nenhum path externo sobra', ext.length === 0, JSON.stringify(ext));
+
+  // FP 4: lápide que registra um REVERT — a ausência do arquivo É o desfecho dela.
+  const revertida = classifyTombstone(
+    { date: '2026-04-04', title: 't4', body: 'PR fechado + git revert de `scripts/governance/sumido.mjs`' },
+    resolver,
+  );
+  check('FP4 sem reivindicação: âncora sumida → citacao-nao-resolvida, NÃO revisar',
+    revertida.veredito === 'citacao-nao-resolvida', JSON.stringify(revertida));
+
+  // ── BITE: matar o ruído não pode matar o sinal ──────────────────────────────
+  // Se REVISAR não puder mais ficar > 0, o check virou carimbo — a mesma tautologia
+  // que o §5 condena no drift-sentinel. Este par prova que ele ainda morde.
+  const mordeu = classifyTombstone(
+    { date: '2026-05-05', title: 't5', body: 'agora é máquina: `scripts/governance/sumido.mjs`' },
+    resolver,
+  );
+  check('BITE: reivindica defesa + âncora sumida → revisar-drift-de-ancora (o alarme AINDA toca)',
+    mordeu.veredito === 'revisar-drift-de-ancora', JSON.stringify(mordeu));
+  check('BITE: e com a âncora PRESENTE a mesma lápide fica intacta (não é carimbo ao contrário)',
+    classifyTombstone(
+      { date: '2026-05-06', title: 't6', body: 'agora é máquina: `scripts/governance/vivo.mjs`' },
+      resolver,
+    ).veredito === 'ancoras-intactas');
+}
+
 // ── makeResolverFromIndex: mata os 3 FALSOS-POSITIVOS reais (do §5 vivo) ──────
 // Índice sintético espelhando os caminhos reais que causaram FP na 1ª corrida.
 const idx = [
