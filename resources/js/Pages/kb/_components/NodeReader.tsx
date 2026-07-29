@@ -342,13 +342,20 @@ export default function NodeReader({
       >
         {isBridge ? (
           <BridgeBody node={node} />
-        ) : node.excerpt ? (
-          <p className="mb-4 text-[14.5px] leading-relaxed text-muted-foreground font-medium border-l-2 border-primary/30 pl-3">
-            {node.excerpt}
-          </p>
-        ) : null}
-
-        <BlockRenderer blocks={node.body_blocks} onPickRef={onPickByRef} />
+        ) : (
+          <>
+            {node.excerpt && (
+              <p className="mb-4 text-[14.5px] leading-relaxed text-muted-foreground font-medium border-l-2 border-primary/30 pl-3">
+                {node.excerpt}
+              </p>
+            )}
+            {/* Só artigo editável tem body_blocks. Em bridge o BlockRenderer receberia
+                `null` e renderizaria o próprio empty state ("Sem conteúdo ainda") LOGO
+                ABAIXO do corpo real — contradizendo a tela. Pego no smoke em prod
+                (2026-07-29), não pelo CI. */}
+            <BlockRenderer blocks={node.body_blocks} onPickRef={onPickByRef} />
+          </>
+        )}
 
         {/* Tags */}
         {node.tags && node.tags.length > 0 && (
@@ -502,9 +509,16 @@ export default function NodeReader({
 function BridgeBody({ node }: { node: KbNode }) {
   const { status, body, error } = useKbNodeBody(node.slug, true);
 
+  // O excerpt é PRÉVIA do mesmo texto (o bridge o gera cortando o `content_md` em 400
+  // chars, markdown cru inclusive). Com o corpo na tela ele vira eco do próprio começo —
+  // visto no smoke em prod (2026-07-29): o `# Título` + `**TL;DR:**` apareciam crus logo
+  // acima do mesmo trecho já renderizado. Serve enquanto carrega ou quando o fetch falha
+  // (aí é a única coisa que o leitor tem pra mostrar); some quando o corpo chega.
+  const mostrarExcerpt = !!node.excerpt && status !== 'ok';
+
   return (
     <div className="mb-4">
-      {node.excerpt && (
+      {mostrarExcerpt && (
         <p className="mb-4 text-[14.5px] leading-relaxed text-muted-foreground font-medium border-l-2 border-primary/30 pl-3">
           {node.excerpt}
         </p>
