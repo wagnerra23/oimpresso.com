@@ -14,7 +14,7 @@ module: Admin
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Admin/**` + `resources/js/Pages/Admin/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 97 arquivos em 13 papéis.
+**Total mapeado:** 96 arquivos em 13 papéis.
 
 ## Controllers — 8
 
@@ -57,11 +57,10 @@ module: Admin
 - [SessionsReader.php](../../../Modules/Admin/Services/SessionsReader.php)
 - [VaultwardenReader.php](../../../Modules/Admin/Services/VaultwardenReader.php)
 
-## Console / Commands — 3
+## Console / Commands — 2
 
 - [AdminHealthCommand.php](../../../Modules/Admin/Console/Commands/AdminHealthCommand.php)
 - [ExportAuditCommand.php](../../../Modules/Admin/Console/Commands/ExportAuditCommand.php)
-- [ScreenCatalogGenerateCommand.php](../../../Modules/Admin/Console/Commands/ScreenCatalogGenerateCommand.php)
 
 ## Providers — 1
 

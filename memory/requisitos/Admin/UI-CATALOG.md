@@ -4,8 +4,11 @@ id: requisitos-admin-ui-catalog
 
 # Admin — UI Catalog
 
-> Gerado por `php artisan admin:ui-catalog-generate Admin` — daily 09:30 BRT.
-> Última geração: 2026-05-17 (seed manual W30 — próximas gerações automáticas via cron Schedule).
+> Gerado por `php artisan governance:ui-catalog-generate Admin`. Regenerar ao mudar as telas do módulo.
+> Última geração: 2026-05-17 (seed manual W30). O cron prometido aqui nunca existiu — medido em
+> 2026-07-29: `grep "admin:" app/Console/Kernel.php` = 0 linhas, e o comando nem estava registrado
+> no AdminServiceProvider (`php artisan list` no CT 100 não o conhecia). Por isso esta tabela
+> lista 4 telas enquanto o módulo tem 8.
 
 ## Telas (4)
 
@@ -31,7 +34,7 @@ id: requisitos-admin-ui-catalog
 - ADR 0101 — Sistema Charter-Capterra
 - ADR 0094 — Constituição V2 §princípio #3 Charter > Spec
 - Skill `charter-first` (Tier A) · `charter-write` (Tier C) · `tela-smoke-pos-merge` (Tier B — W30)
-- Command `admin:ui-catalog-generate` ([Modules/Admin/Console/Commands/ScreenCatalogGenerateCommand.php](../../../Modules/Admin/Console/Commands/ScreenCatalogGenerateCommand.php))
+- Command `governance:ui-catalog-generate` ([Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php](../../../Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php))
 
 ## Estatísticas
 
