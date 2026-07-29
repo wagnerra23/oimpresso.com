@@ -145,7 +145,7 @@ echo "--- [5/7] migrate (schema baseline) + seed minimo multi-tenant"
 docker exec -i "$MYSQL_CONTAINER" sh -c "MYSQL_PWD=\$(cat /run/secrets/mysql_root) exec mysql -uroot $DB_DATABASE" \
   < "$CODE/database/schema/mysql-schema.sql"
 dphp artisan migrate --force
-# seed identico ao canon CI (.github/actions/pest-mysql-setup): biz=99 canonico + biz=1 + biz=2 Tier 0
+# seed identico ao canon CI (.github/actions/pest-mysql-setup): biz=98 canonico + biz=1 + biz=2 Tier 0
 cat > "$CODE/storage/fullsuite-seed.php" <<'PHPEOF'
 <?php
 use Illuminate\Support\Facades\DB;
@@ -156,14 +156,15 @@ if (! DB::table('business')->where('id', 1)->exists()) {
     DB::table('users')->where('id', $uid)->update(['business_id'=>$bid]);
     echo 'seed biz='.$bid.' user='.$uid.PHP_EOL;
 }
-// biz=99 — TENANT CANONICO DE TESTE (decisao [W] 2026-07-28). Empresa FICTICIA.
+// biz=98 — TENANT CANONICO DE TESTE (decisao [W] 2026-07-28). Empresa FICTICIA.
+// NAO usar 99 aqui: 99 e o SUPPORT_CLIENT_TENANT_ID (cliente do Modo Suporte).
 // Aqui importa MAIS que no CI: a base do CT 100 e clone de prod e NAO se limpa entre
 // runs, entao teste em biz=1 (WR2 Sistemas, empresa real) semeia dado no espelho dela.
-if (! DB::table('business')->where('id', 99)->exists()) {
-    $uid99 = DB::table('users')->insertGetId(['first_name'=>'CI Tenant99','username'=>'ci_admin_t99','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
-    DB::table('business')->insert(['id'=>99,'name'=>'CI Tenant 99 (ficticio)','currency_id'=>$curId,'owner_id'=>$uid99,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
-    DB::table('users')->where('id', $uid99)->update(['business_id'=>99]);
-    echo 'seed biz99=99 user='.$uid99.PHP_EOL;
+if (! DB::table('business')->where('id', 98)->exists()) {
+    $uid98 = DB::table('users')->insertGetId(['first_name'=>'CI Tenant98','username'=>'ci_admin_t98','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
+    DB::table('business')->insert(['id'=>98,'name'=>'CI Tenant 98 (ficticio)','currency_id'=>$curId,'owner_id'=>$uid98,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
+    DB::table('users')->where('id', $uid98)->update(['business_id'=>98]);
+    echo 'seed biz98=98 user='.$uid98.PHP_EOL;
 }
 if (! DB::table('business')->where('id', 2)->exists()) {
     $uid2 = DB::table('users')->insertGetId(['first_name'=>'CI Biz2','username'=>'ci_admin_b2','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
@@ -172,7 +173,7 @@ if (! DB::table('business')->where('id', 2)->exists()) {
     echo 'seed biz2=2 user='.$uid2.PHP_EOL;
 }
 DB::statement('SET FOREIGN_KEY_CHECKS=0');
-$bizId = optional(DB::table('business')->where('id', 99)->first())->id ?: optional(DB::table('business')->first())->id;
+$bizId = optional(DB::table('business')->where('id', 98)->first())->id ?: optional(DB::table('business')->first())->id;
 if ($bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id', $bizId)->exists()) {
     \Modules\Financeiro\Models\ContaBancaria::create([
         'business_id'=>$bizId,'account_id'=>999001,'agencia'=>'0001','carteira'=>'0',

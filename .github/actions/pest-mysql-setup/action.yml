@@ -153,16 +153,18 @@ runs:
             DB::table('users')->where('id', \$uid)->update(['business_id'=>\$bid]);
             echo 'seed biz='.\$bid.' user='.\$uid.PHP_EOL;
           }
-          // biz=99 — TENANT CANÔNICO DE TESTE (decisão [W] 2026-07-28). Empresa FICTÍCIA,
+          // biz=98 — TENANT CANÔNICO DE TESTE (decisão [W] 2026-07-28). Empresa FICTÍCIA,
           // não-operadora. Substitui o biz=1 nesse papel porque o 1 é a WR2 Sistemas, empresa
           // REAL em operação — e no CT 100 a base é clone de prod que NÃO se limpa entre runs,
           // então teste rodando em biz=1 semeia dado dentro do espelho da empresa de verdade.
-          // A constante SUPPORT_CLIENT_TENANT_ID=99 já existia no canon sem nunca ser criada.
-          if (! DB::table('business')->where('id', 99)->exists()) {
-            \$uid99 = DB::table('users')->insertGetId(['first_name'=>'CI Tenant99','username'=>'ci_admin_t99','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
-            DB::table('business')->insert(['id'=>99,'name'=>'CI Tenant 99 (ficticio)','currency_id'=>\$curId,'owner_id'=>\$uid99,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
-            DB::table('users')->where('id', \$uid99)->update(['business_id'=>99]);
-            echo 'seed biz99=99 user='.\$uid99.PHP_EOL;
+          // NÃO usar 99 aqui: 99 é o SUPPORT_CLIENT_TENANT_ID (empresa-CLIENTE do Modo
+          // Suporte). Agente e cliente no mesmo id fariam o cross-tenant ficar verde sem
+          // provar isolamento. Os dois papéis exigem ids DISTINTOS.
+          if (! DB::table('business')->where('id', 98)->exists()) {
+            \$uid98 = DB::table('users')->insertGetId(['first_name'=>'CI Tenant98','username'=>'ci_admin_t98','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('business')->insert(['id'=>98,'name'=>'CI Tenant 98 (ficticio)','currency_id'=>\$curId,'owner_id'=>\$uid98,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('users')->where('id', \$uid98)->update(['business_id'=>98]);
+            echo 'seed biz98=98 user='.\$uid98.PHP_EOL;
           }
           if (! DB::table('business')->where('id', 2)->exists()) {
             \$uid2 = DB::table('users')->insertGetId(['first_name'=>'CI Biz2','username'=>'ci_admin_b2','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
@@ -171,7 +173,7 @@ runs:
             echo 'seed biz2=2 user='.\$uid2.PHP_EOL;
           }
           DB::statement('SET FOREIGN_KEY_CHECKS=0'); // conta usa account_id fake (sem row em accounts)
-          \$bizId = optional(DB::table('business')->where('id', 99)->first())->id ?: optional(DB::table('business')->first())->id;
+          \$bizId = optional(DB::table('business')->where('id', 98)->first())->id ?: optional(DB::table('business')->first())->id;
           if (\$bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',\$bizId)->exists()) {
             \Modules\Financeiro\Models\ContaBancaria::create([
               'business_id'=>\$bizId,'account_id'=>999001,'agencia'=>'0001','carteira'=>'0',

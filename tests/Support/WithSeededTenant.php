@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Assert;
 
 /**
- * Tenant canônico de teste — biz=1 (ADR 0101: tests SEMPRE business_id=1, nunca cliente real).
+ * Tenant canônico de teste — biz=98 (empresa FICTÍCIA não-operadora).
  *
  * Substitui o `Business::first` cru espalhado pelos testes da raiz (FV-B4, plano SDD
  * 2026-06-12): resolução explícita do tenant seedado + mensagem acionável quando o seed
@@ -30,22 +30,26 @@ use PHPUnit\Framework\Assert;
 trait WithSeededTenant
 {
     /**
-     * id canônico do tenant de teste — biz=99, empresa FICTÍCIA não-operadora.
+     * id canônico do tenant de teste — biz=98, empresa FICTÍCIA não-operadora.
      *
-     * MUDOU de 1 para 99 em 2026-07-28 (decisão [W], via [M]). Razão medida: biz=1 é a
+     * MUDOU de 1 para 98 em 2026-07-28 (decisão [W], via [M]). Razão medida: biz=1 é a
      * WR2 Sistemas, empresa REAL em operação; no CT 100 a base é clone de prod e NÃO se
      * limpa entre runs, então teste rodando em biz=1 semeia dado dentro do espelho da
      * empresa de verdade. Em CI (DB descartável) era inofensivo — no CT 100 não é.
      *
-     * O 99 já existia no canon como SUPPORT_CLIENT_TENANT_ID (abaixo) e NUNCA foi criado
-     * por seed nenhum: constante declarada, zero consumidores, zero materialização.
-     * Este PR faz o 99 existir (seed CI + CT 100) e o promove a tenant principal.
+     * ⚠️ POR QUE 98 E NÃO 99: o 99 já é o SUPPORT_CLIENT_TENANT_ID (abaixo) — a
+     * empresa-CLIENTE que a suíte do Modo Suporte acessa a partir do tenant do agente
+     * (~33 call-sites de `seededSupportClientTenant()` em 6 arquivos). Apontar os dois
+     * para 99 faria agente e cliente virarem a MESMA empresa, e o cross-tenant passaria
+     * a ficar verde sem provar isolamento algum — verde tautológico. Os dois papéis
+     * exigem ids DISTINTOS por construção. 98 está livre: prod tem 82 businesses,
+     * nenhum entre 95 e 105 (medido 2026-07-28).
      *
      * ⚠️ Fallback preservado: se o 99 não existir (schema montado pelo próprio teste),
      * `resolveSeededTenant` continua caindo no primeiro business — sem quebrar quem monta
      * o próprio schema.
      */
-    public const SEEDED_TENANT_ID = 99;
+    public const SEEDED_TENANT_ID = 98;
 
     /**
      * id do CLIENTE fictício de teste (ADR 0101) — biz=99 (empresa NÃO-operadora), NUNCA biz=4
@@ -54,9 +58,9 @@ trait WithSeededTenant
     public const SUPPORT_CLIENT_TENANT_ID = 99;
 
     /**
-     * Resolve o tenant seedado: biz=1 quando existe (seed canônico); senão o primeiro
+     * Resolve o tenant seedado: biz=98 quando existe (seed canônico); senão o primeiro
      * business do DB (paridade com o antigo `Business::first` em schemas montados pelo
-     * próprio teste, onde o id pode não ser 1). Null = seed não rodou.
+     * próprio teste, onde o id pode não ser 98). Null = seed não rodou.
      */
     public static function resolveSeededTenant(): ?Business
     {
@@ -77,7 +81,7 @@ trait WithSeededTenant
 
         if ($tenant === null) {
             Assert::markTestSkipped(
-                'Tenant canônico de teste ausente (tabela business vazia). Seed mínimo biz=1: '
+                'Tenant canônico de teste ausente (tabela business vazia). Seed mínimo biz=98: '
                 . '.github/actions/pest-mysql-setup (CI MySQL) · scripts/tests/ct100-fullsuite.sh '
                 . '(nightly CT 100). Ver ADR 0101.'
             );
