@@ -258,6 +258,12 @@ jobs:
         run: node scripts/governance/ui-impact.mjs --selftest
       - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)
         run: node scripts/governance/knowledge-drift.mjs --selftest
+      # O selftest do watchdog existia e NINGUÉM invocava — os asserts do eixo 2 nunca
+      # rodaram em CI, e por isso o eixo 1 pôde afirmar "✓ todos os crons com heartbeat
+      # < limite" tendo medido zero (cego lido como bootstrap). Ver proibicoes §"LIGUE A
+      # MÁQUINA" item 2: máquina que ninguém invoca é bug, não neutralidade.
+      - name: cron-watchdog — cego ≠ bootstrap, e entrega parada morde (eixo 1 + eixo 2)
+        run: node scripts/governance/cron-watchdog.mjs --selftest
       - name: Ciclo documental — recibo antes→depois morde/solta (ADR 0270 · ZELADOR)
         run: node scripts/governance/documentation-loop.test.mjs
       - name: Adversario de realocacao documental (plano seguro solta; historia/relink/path ruim mordem)
