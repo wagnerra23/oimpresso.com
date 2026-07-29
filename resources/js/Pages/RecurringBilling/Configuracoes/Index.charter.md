@@ -5,6 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-05-17"
 parent_module: RecurringBilling
+related_us: [US-RB-012, US-RB-041]
 related_adrs: [93, 94, 101, 104, 107, 110, 114, 143]
 tier: A
 charter_version: 1
@@ -99,7 +100,7 @@ Centralizar tudo que afeta como o módulo Cobrança Recorrente cobra clientes do
 - [BRIEFING.md](../../../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado RecurringBilling
 - [RUNBOOK-inter-pj.md](../../../../../memory/requisitos/RecurringBilling/RUNBOOK-inter-pj.md) — onboarding Inter PJ inclui colar webhook
 - [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
+- [ADR 0358 Doutrina de teste — tenant biz=98](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
 - [ADR 0104 MWART](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - Skill [inertia-defer-default](../../../../../.claude/skills/inertia-defer-default/SKILL.md) — gateways DB query
 - Skill [sidebar-menu-arch](../../../../../.claude/skills/sidebar-menu-arch/SKILL.md)
