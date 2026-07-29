@@ -134,18 +134,41 @@ it('L2: nó bridgeado continua não-editável depois de servir o corpo (UC-KBV2-
 });
 
 // ── Tier 0 — o corpo de outro business NUNCA é servido (ADR 0093) ───────────
-it('L3: biz=1 nao le o corpo de um no de biz=99 — 404, nunca conteudo (ADR 0093)', function () use ($permKb) {
+//
+// O que este caso mede é o CONTRATO ("cross-tenant não devolve o corpo"), não o
+// código exato da negativa. Aceita 403 OU 404 de propósito — as duas são fail-secure
+// e a escolha entre elas depende de QUAL camada barra primeiro (o `can:` do
+// constructor ou o `firstOrFail()` sob global scope). Essa ordem é sensível ao cache
+// do Spatie no MySQL persistente-no-run com `executionOrder="random"` — a flakiness
+// GAP 2 já catalogada no header do kb-pest.yml. Cravar 404 acoplaria o teste ao
+// timing do PermissionRegistrar, não ao isolamento (medido: em 2 runs seguidos a
+// vítima do 403 mudou de teste). O que NÃO se afrouxa: 200 reprova, e o segredo
+// não pode aparecer na resposta.
+//
+// CONTROLE POSITIVO obrigatório: sem ele, um cenário onde TUDO devolve 403 passaria
+// verde sem provar isolamento nenhum — seria verde por não-execução (LC-13). O caso
+// só passa se a sessão do próprio business consegue LER de fato.
+it('L3: biz=1 nao le o corpo de um no de biz=99 — nunca conteudo, e le o seu (ADR 0093)', function () use ($permKb) {
     // Nó + doc no tenant fictício biz=99 (NUNCA biz=4 — ROTA LIVRE prod).
     kbCreateBusinessRow(99);
     kbSeedBridgedNode(99, 'adr-9003-segredo-biz99', "# Segredo\n\nCONTEUDO-SECRETO-BIZ99\n");
 
     kbActAsUser(bizId: 1, permissions: $permKb);
+    $meu = kbSeedBridgedNode(1, 'adr-9003b-meu-doc-visivel', "# Meu\n\nCORPO-DO-MEU-BUSINESS\n");
 
+    // (a) CONTROLE POSITIVO — a sessão está funcional e serve o corpo do PRÓPRIO business.
+    //     Se isto falhar, o (b) abaixo não prova nada (403-em-tudo não é isolamento).
+    $meuResp = $this->getJson("/kb/nodes/{$meu['slug']}");
+    $meuResp->assertOk();
+    expect($meuResp->json('content_md'))->toContain('CORPO-DO-MEU-BUSINESS');
+
+    // (b) Tier 0 — o nó do outro tenant não devolve corpo.
     $response = $this->getJson('/kb/nodes/adr-9003-segredo-biz99');
 
-    // O global scope de KbNode faz o firstOrFail() não achar → 404 (fail-secure).
-    $response->assertNotFound();
+    expect($response->status())->not->toBe(200);
+    expect(in_array($response->status(), [403, 404], true))->toBeTrue();
     expect($response->getContent())->not->toContain('CONTEUDO-SECRETO-BIZ99');
+    expect($response->getContent())->not->toContain('adr-9003-segredo-biz99');
 });
 
 // ── Piso da rota — anônimo não lê corpo nenhum ─────────────────────────────
