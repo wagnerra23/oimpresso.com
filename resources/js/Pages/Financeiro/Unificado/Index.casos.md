@@ -27,19 +27,19 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **Persona:** Kamila (financeiro) — confiança de que NENHUMA venda a prazo fica sem cobrança.
 - **Aceite:** Dado venda final a prazo 30 dias · Então nasce `fin_titulos` tipo `receber`, status `aberto`, valor total = valor da venda, vencimento +30d da data da venda.
 - **Teste:** `RetencaoLoopE2ETest` ("UC-F01 · CU-3→CU-5") — Observer da venda, DB MySQL real.
-- **Status: ✅**
+- **Status: 🧪** (o teste existe e é real, mas **pulou** na captura do manifesto — `verdict: skip`. Vira ✅ quando o manifesto trouxer `pass`.)
 
 ## UC-F02 · Recebimento baixa o título e entra no caixa (CU-5)
 - **Persona:** Kamila — o "recebi" do balcão tem que virar baixa + caixa sem digitação dupla.
 - **Aceite:** Dado título aberto · Quando o pagamento total entra (`TransactionPayment`) · Então o título quita (`valor_aberto = 0`), nasce a `fin_titulo_baixas` ligada ao pagamento e o `fin_caixa_movimentos` registra `entrada` ligada à baixa.
 - **Teste:** `RetencaoLoopE2ETest` ("UC-F02 · CU-5") — TransactionPaymentObserver no DB real.
-- **Status: ✅**
+- **Status: 🧪** (o teste existe e é real, mas **pulou** na captura do manifesto — `verdict: skip`. Vira ✅ quando o manifesto trouxer `pass`.)
 
 ## UC-F03 · Wire fiscal da venda existe (CU-4)
 - **Persona:** Larissa — o botão "Emitir NF-e" da venda não pode apontar pro vazio.
 - **Aceite:** Dado a rota da tela de venda · Então os endpoints fiscais que ela dispara (NF-e emitir) existem e respondem (a emissão SEFAZ em si é coberta com stub pelas suítes NfeBrasil/NFSe — não reduplicado aqui).
 - **Teste:** `RetencaoLoopE2ETest` ("UC-F03 · CU-4").
-- **Status: ✅**
+- **Status: 🧪** (o teste existe e é real, mas **pulou** na captura do manifesto — `verdict: skip`. Vira ✅ quando o manifesto trouxer `pass`.)
 
 ## UC-F04 · Ações em lote respeitam o tenant e a contabilidade (US-FIN-031)
 - **Persona:** Eliana [E] — fechamento do mês com 200+ títulos sem 200 cliques; e NUNCA um lote pode vazar pra outro negócio nem apagar registro contábil.
