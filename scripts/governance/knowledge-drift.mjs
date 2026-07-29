@@ -281,6 +281,21 @@ if (IS_MAIN && SELFTEST) {
   ok('MOD_REF_RE: path de teste tests/Unit/Modules/Foo NÃO vira módulo (ghost falso)',
      !modsIn('roda tests/Unit/Modules/Foo/BarTest.php').includes('Foo'));
 
+  // ── CONTRATO DA MENSAGEM DE FAIL: nenhum marcador em PROSA resgata um ghost ─────
+  // O --check mandava «marque "(planejado — não existe)"» desde 2026-06-12 (commit
+  // cab11a2caa) — escape valve que o código NUNCA implementou. O detector é este regex
+  // sobre o texto cru; ele não enxerga disclaimer nenhum. Estes asserts existem pra que
+  // a promessa não possa ser reintroduzida em silêncio: se alguém voltar a anunciar um
+  // marcador, tem que fazê-lo funcionar aqui primeiro. (proibicoes.md §5 2026-07-27:
+  // "mecanismo que anuncia escape valve que não implementa é pior que mudo".)
+  ok('BITE: marcador "(planejado — não existe)" ao lado NÃO desarma o detector',
+     modsIn('cita Modules/SRS/Services/X.php (planejado — não existe)').includes('SRS'));
+  ok('BITE: disclaimer "removido/histórico" em prosa também NÃO desarma',
+     modsIn('os `Modules/SRS/...` citados são históricos: código REMOVIDO em 2026-07-29').includes('SRS'));
+  // RELEASE — o único jeito que de fato solta é o TOKEN deixar de ser Modules/<X>.
+  ok('RELEASE: falar do módulo SEM o token de path (`o módulo SRS`) não é ghost',
+     modsIn('o módulo SRS foi removido em 2026-07-29 (ADR 0357)').length === 0);
+
   // ── triagem de ghost de MÓDULO: separa "já decidido" de "pede olho" ─────────
   // Custo medido 2026-07-29: uma sessão inteira re-investigou Project/NfseBrasil e
   // chegou à MESMA conclusão que o ghost-rename-map já registrava — porque o relatório
@@ -388,10 +403,37 @@ if (IS_MAIN && CHECK) {
     }
   }
   console.log(`\n  CATRACA ANTI-GHOST — ${current.size} módulos citantes · ${legacy} ghosts legados (baseline) · ${news.length} NOVOS\n`);
-  for (const n of news) console.log(`  FAIL ${n.mod}: cita Modules/${n.g} que NÃO existe e NÃO está no baseline.`);
+  // A triagem curada (ghost-rename-map) já existe e o RELATÓRIO a mostra — mas o --check
+  // não a mostrava, então um FAIL de nome JÁ DECIDIDO parecia idêntico a um nome inédito.
+  // Custo medido 2026-07-29 (mesma doença que motivou classifyModuleGhost): sessão gasta
+  // re-investigando. Informação apenas — NÃO muda exit code (o escopo do que passa é
+  // política, flip [W]).
+  const triagem = loadModuleTriage();
+  for (const n of news) {
+    const cls = classifyModuleGhost(n.g, triagem);
+    const nota = cls.status === 'corrigivel' ? ` [JÁ TRIADO: rename curado → ${cls.to}; rode ghost-fix]`
+      : cls.status === 'triado' ? ` [JÁ TRIADO: classe ${cls.classe} — decisão registrada no ghost-rename-map, não re-litigar]`
+      : ' [NÃO TRIADO — este pede olho humano]';
+    console.log(`  FAIL ${n.mod}: cita Modules/${n.g} que NÃO existe e NÃO está no baseline.${nota}`);
+  }
   for (const c of cleanups) console.log(`  aviso ${c} — não é mais ghost; rode --write-baseline pra encolher a catraca.`);
   if (news.length) {
-    console.log('\n  Corrija o doc (nome real do módulo) ou marque "(planejado — não existe)" — NUNCA adicione ao baseline.\n');
+    // POR QUE ESTE TEXTO MUDOU (2026-07-29): a redação anterior mandava «marque
+    // "(planejado — não existe)"» — um escape valve que NUNCA existiu no código. Nasceu
+    // com a catraca (commit cab11a2caa, PR #2591, 2026-06-12) e foi aspiracional desde o
+    // dia 1: o detector é o MOD_REF_RE sobre o texto cru, não lê prosa nenhuma ao lado do
+    // token. Provado por bite-test (marcador injetado → exit 1 igual) + varredura
+    // repo-wide (zero código parseia "planejado"). Mecanismo que ANUNCIA um escape que não
+    // implementa é pior que mudo: convida a confiar (proibicoes.md §5 2026-07-27). O
+    // contrato agora é pinado no --selftest — se alguém reintroduzir a promessa, o assert
+    // do marcador cai.
+    console.log('\n  O QUE FAZER (o detector casa o TOKEN literal Modules/<X>; prosa ao lado NÃO limpa):');
+    console.log('    1. nome errado/typo  → corrija pro nome real do módulo (o token muda, o check solta);');
+    console.log('    2. rename curado     → rode scripts/governance/ghost-fix.mjs (classe A do ghost-rename-map);');
+    console.log('    3. módulo removido / nunca construído → a citação como PATH é falsa: reescreva a prosa');
+    console.log('       pra não afirmar caminho vivo. Se o nome já está em `excluded` como classe C/AMBIGUO,');
+    console.log('       o tratamento é decisão humana registrada — leve pro [W], não invente escape.');
+    console.log('    ⛔ NUNCA adicione ao baseline (o --write-baseline recusa ghost novo, por design).\n');
     process.exit(1);
   }
   console.log('  OK — nenhum ghost novo fora do baseline.\n');
