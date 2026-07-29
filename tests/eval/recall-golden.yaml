@@ -63,12 +63,14 @@ queries:
     expected: ["0235-staging-ct100-clone-anonimizado"]
     violations: []
 
-  # DEIXOU de ser caso de colisão: o par 0101 foi desfeito FISICAMENTE em 2026-07-29
-  # (a `0101-tests-business-id-1-nunca-cliente` foi esquecida via ADR 0316 — `git rm` +
-  # lápide). Sobrou só a `0101-sistema-charter-capterra-governanca-escopo`, então não há
-  # mais irmão pra resolver. Vira caso de recall simples, agora apontando pra sucessora.
-  # A resposta certa também MUDOU: o tenant de teste é biz=98, não mais biz=1.
-  - id: tenant-canonico-de-teste
+  # Era um caso de COLISÃO no número 0101. Deixou de ser: a ADR
+  # `0101-tests-business-id-1-nunca-cliente` foi DELETADA quando a 0358 a
+  # superseded, então o 0101 passou a ter arquivo único (não colide mais) e o
+  # slug antigo não existe no disco — o que reprovava o gate em TODO PR.
+  # Vira caso de recall simples apontando pra doutrina vigente.
+  # O slug antigo NÃO pode entrar em `violations`: o checker exige que todo
+  # slug de `expected`+`violations` exista no disco.
+  - id: doutrina-teste-tenant
     query: "Qual business_id os testes Pest devem usar?"
     expected: ["0358-doutrina-de-teste-tenant-98-supersede-0101"]
     violations: []
