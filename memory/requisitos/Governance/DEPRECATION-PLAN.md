@@ -8,7 +8,7 @@ id: requisitos-governance-deprecation-plan
 > **Medido em:** 2026-07-29 contra `origin/main` @ `9090ab9852` · **Pedido por:** [W] ("inventário de quem usa e para onde deve ir as funções, para poder apagar o módulo")
 >
 > ⚠️ **Reconciliação no mesmo dia.** A primeira redação mediu contra `be04516c96` e contou **19 arquivos
-> em 8 módulos**, incluindo **8 do `Modules/SRS`**. Horas depois o SRS foi **removido do repositório**
+> em 8 módulos**, incluindo **8 do módulo `SRS`**. Horas depois o SRS foi **removido do repositório**
 > ([#5036](https://github.com/wagnerra23/oimpresso.com/pull/5036) — E5+E6: módulo apagado, 7 tabelas dropadas).
 > Os números abaixo foram **re-rodados** contra a base nova: **11 arquivos em 6 módulos + 1 teste**.
 > O veredito **não muda** — o bloqueador sempre foi Brief + Admin + o contrato `DriftChecker`, nunca o SRS.
@@ -129,7 +129,7 @@ exposição Tier 0), o que engorda um módulo cujo escopo é montar e servir o b
 | 5 tabelas + `module:grade*`, `scorecard*`, `initiative-sync`, `detect-drift`, `ciclo-diario`, `adr-review-flush` | **Governance** (declarar posse) | é quem cria, escreve via cron e lê nas telas |
 | `InitiativeService` + `mcp_governance_initiatives` | **Governance** dono · **Admin** consome | mesmo padrão que ADS↔Governance usa para `mcp_governance_rules` |
 | `charter:audit\|health\|metrics` | **Governance** | **não existe** módulo DesignSystem — `_DesignSystem` é pasta de memória |
-| `observability:aggregate-daily` + `mcp_observability_spans` | **Governance** | não existe `Modules/Observability`. O `RagQualityDashboard` do Admin é observabilidade **de RAG**, tema distinto |
+| `observability:aggregate-daily` + `mcp_observability_spans` | **Governance** | não existe um módulo `Observability` (planejado — não existe). O `RagQualityDashboard` do Admin é observabilidade **de RAG**, tema distinto |
 | Telas `audit`, `policies`, `drift`, `module-grades`, `ds-rollout` | **Governance** | 5 rotas vivas |
 | `DriftChecker` + Registry + Checkers | **Governance** | contrato público (§3.1) |
 | 8 `*BriefLineService` | **Governance** produz · **Brief** consome | §3.2 |
