@@ -180,17 +180,28 @@ class UiCatalogGenerateCommand extends Command
 
             $hasCharter = is_file($charterPath);
             $charterStatus = $hasCharter ? $this->parseStatus($charterPath) : 'no-charter';
-            $reviewMeta = is_file($reviewPath) ? $this->parseReviewMeta($reviewPath) : null;
+            // `[]` e não `null`: a linha do `ux_targets_met` abaixo indexa o array
+            // SEM `??` e estourava "Trying to access array offset on null" em toda
+            // tela sem `.review.md` — que hoje é 100% delas (`git ls-files '*.review.md'`
+            // devolve 0 no repo inteiro). Defeito herdado do Modules/Admin: o comando
+            // nunca tinha rodado porque nunca esteve registrado no Artisan.
+            $reviewMeta = (is_file($reviewPath) ? $this->parseReviewMeta($reviewPath) : null) ?? [];
+
+            $reviewStatus = $reviewMeta['status'] ?? 'no-review';
 
             $screens[] = [
                 'relative_path' => str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file->getPathname()),
                 'tela_id' => $telaId,
                 'has_charter' => $hasCharter,
                 'charter_status' => $charterStatus,
-                'review_status' => $reviewMeta['status'] ?? 'no-review',
+                'review_status' => $reviewStatus,
                 'current_round' => $reviewMeta['current_round'] ?? '-',
                 'last_smoke' => $reviewMeta['approved_at'] ?? ($reviewMeta['created_at'] ?? '-'),
-                'ux_targets_met' => $reviewMeta['status'] === 'approved' ? '✓' : ($reviewMeta['status'] === 'rejected' ? '✗' : '⏸'),
+                'ux_targets_met' => match ($reviewStatus) {
+                    'approved' => '✓',
+                    'rejected' => '✗',
+                    default    => '⏸',
+                },
             ];
         }
 
