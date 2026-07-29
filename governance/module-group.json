@@ -1,0 +1,90 @@
+{
+  "_meta": {
+    "doc": "Instância do contrato scripts/memory-schemas/module-group.schema.json. Define OS PAPÉIS que formam a memória de um módulo. NÃO lista arquivos nem módulos — quem resolve é scripts/governance/module-group-resolve.mjs, lendo a árvore.",
+    "papeis_derivados_de": "varredura da árvore real em 2026-07-29 (não inventados): memory/requisitos/<X>/, Modules/<X>/, resources/js/Pages/<X>/, memory/dominio/",
+    "regra": "papel novo só entra se responder uma pergunta que NENHUM papel existente responde. Ver `pergunta` de cada um."
+  },
+
+  "versao": "1.0.0",
+
+  "resolucao": {
+    "case_insensitive": true,
+    "normaliza_separador": true
+  },
+
+  "papeis": [
+    {
+      "papel": "contrato",
+      "pergunta": "O que este módulo PROMETE entregar? (US-*, escopo acordado)",
+      "onde": ["memory/requisitos/{mod}/SPEC.md"],
+      "cardinalidade": "zero-ou-um",
+      "schema_do_tipo": "spec.schema.json"
+    },
+    {
+      "papel": "estado",
+      "pergunta": "Em que pé o módulo está HOJE? (capacidades, diferenciais, gaps)",
+      "onde": ["memory/requisitos/{mod}/BRIEFING.md"],
+      "cardinalidade": "zero-ou-um",
+      "schema_do_tipo": "briefing.schema.json"
+    },
+    {
+      "papel": "responsabilidade",
+      "pergunta": "O que é DESTE módulo e o que é de outro? (fronteira, anti-duplicação)",
+      "onde": ["Modules/{mod}/SCOPE.md"],
+      "cardinalidade": "zero-ou-um",
+      "nota": "Só faz sentido pra módulo com backend nWidart. Módulo sem Modules/<X>/ não tem — ausência aqui não é dívida."
+    },
+    {
+      "papel": "operacao",
+      "pergunta": "Como se OPERA isto na mão? (passo-a-passo reproduzível)",
+      "onde": ["memory/requisitos/{mod}/RUNBOOK*.md", "memory/requisitos/{mod}/**/RUNBOOK*.md"],
+      "cardinalidade": "zero-ou-muitos",
+      "schema_do_tipo": "runbook.schema.json"
+    },
+    {
+      "papel": "arquitetura",
+      "pergunta": "Como as peças do módulo se conectam por dentro?",
+      "onde": ["memory/requisitos/{mod}/ARCHITECTURE.md"],
+      "cardinalidade": "zero-ou-um",
+      "nota": "Raro por desenho — só módulo com topologia própria (ex.: Jana). Ausência NÃO é dívida no módulo comum."
+    },
+    {
+      "papel": "mercado",
+      "pergunta": "Como o módulo se compara com quem faz isso lá fora?",
+      "onde": ["memory/requisitos/{mod}/CAPTERRA-FICHA.md", "memory/requisitos/{mod}/CAPTERRA-INVENTARIO.md"],
+      "cardinalidade": "zero-ou-muitos"
+    },
+    {
+      "papel": "dominio",
+      "pergunta": "Que palavras deste negócio têm significado FIXO? (enum ⇔ dicionário, gate G-4)",
+      "onde": ["memory/dominio/{mod}.md"],
+      "cardinalidade": "zero-ou-um",
+      "nota": "PASTA SINGULAR, contrato de path IMÓVEL — memory/dominios/ (plural) é outro dono (corpus Migration Factory). Mover está lapidado no §5 2026-07-22 e é barrado por máquina."
+    },
+    {
+      "papel": "telas",
+      "pergunta": "Que telas o módulo tem, e qual o contrato de cada uma?",
+      "onde": [
+        "resources/js/Pages/{mod}/**/*.charter.md",
+        "resources/js/Pages/{mod}/**/*.casos.md"
+      ],
+      "cardinalidade": "zero-ou-muitos",
+      "schema_do_tipo": "charter.schema.json",
+      "nota": "É AQUI que o case morde: Pages/kb ↔ requisitos/KB, Pages/team-mcp ↔ requisitos/TeamMcp. Resolver case-insensitive + separador normalizado é obrigatório (§5 2026-07-17)."
+    },
+    {
+      "papel": "topicos",
+      "pergunta": "Que assuntos vivos do módulo têm dono e recibo?",
+      "onde": ["memory/requisitos/{mod}/topicos/*.md"],
+      "cardinalidade": "zero-ou-muitos",
+      "schema_do_tipo": "topico.schema.json"
+    },
+    {
+      "papel": "superficie",
+      "pergunta": "Que arquivos o módulo REALMENTE tem? (censo derivado, anti-drift)",
+      "onde": ["memory/requisitos/{mod}/SUPERFICIE.md"],
+      "cardinalidade": "zero-ou-um",
+      "nota": "Gerado por module-surface.mjs — é saída de máquina, não curadoria."
+    }
+  ]
+}
