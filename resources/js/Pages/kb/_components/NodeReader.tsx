@@ -34,6 +34,7 @@ import {
 } from '../_lib/helpers';
 import BlockRenderer from './BlockRenderer';
 import KbFavStar from './KbFavStar';
+import { Inline } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 
 /**
@@ -510,14 +511,15 @@ function BridgeBody({ node }: { node: KbNode }) {
       )}
 
       {(status === 'idle' || status === 'loading') && (
-        <div
-          className="flex items-center gap-2 text-[12px] text-muted-foreground py-4"
+        <Inline
+          gap={2}
+          className="text-[12px] text-muted-foreground py-4"
           role="status"
           aria-live="polite"
         >
           <Loader2 size={13} className="animate-spin" aria-hidden />
           Carregando o conteúdo do documento…
-        </div>
+        </Inline>
       )}
 
       {status === 'error' && (
@@ -525,10 +527,10 @@ function BridgeBody({ node }: { node: KbNode }) {
           className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-[12.5px] text-destructive"
           role="alert"
         >
-          <div className="flex items-center gap-2 font-medium">
+          <Inline gap={2} className="font-medium">
             <AlertTriangle size={13} aria-hidden />
             {error}
-          </div>
+          </Inline>
           <p className="m-0 mt-1 text-[11.5px] text-muted-foreground">
             O texto canônico continua no git — abra pela fonte, abaixo.
           </p>
@@ -583,7 +585,7 @@ function BridgeBody({ node }: { node: KbNode }) {
             </p>
           )}
 
-          <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
+          <Inline gap={2} wrap className="mt-6 border-t border-border pt-3 text-[11px] text-muted-foreground">
             <ExternalLink size={11} aria-hidden />
             <span>
               Documento canônico — a fonte é o git; esta tela é leitura.
@@ -598,7 +600,7 @@ function BridgeBody({ node }: { node: KbNode }) {
                 <Github size={11} aria-hidden /> Ver no GitHub
               </a>
             )}
-          </div>
+          </Inline>
         </>
       )}
     </div>
