@@ -2,18 +2,22 @@
 id: requisitos-srs-briefing
 module: SRS
 status: deprecated
-status_nota: "deprecação EM CURSO — E1 (ADR 0357) e E2 (@deprecated nas 33 classes) executadas em 2026-07-29. Módulo 100% presente e SERVINDO em prod (deprecating ≠ removido); E3-E6 gated por [W]. Medido em prod 2026-07-29: as 7 tabelas docs_* estão VAZIAS (só docs_pages tem 14 linhas de seed morto de 2026-04-26) — o módulo nunca foi usado. Sucessores: KB (acervo) · Jana (chat) · Governance (validação)."
+status_nota: "REMOVIDO em 2026-07-29 (ADR 0357). Ciclo completo no mesmo dia: E1 decidiu · E2 marcou 33 classes · E3 COLAPSOU por medição (0 linhas, nada a migrar) · E4 desacoplou · E5 removeu 63 arquivos e dropou as 7 tabelas docs_* por migration · E6 registrou. O código NÃO existe mais; esta pasta é canon HISTÓRICO. Bookmarks /memcofre/* preservados por 301. Sucessores: KB (acervo) · Jana (chat) · Governance + mcp_audit_log (validação)."
 updated_at: "2026-07-29"
 owner: W
 related_adrs: [0357-deprecar-srs-sucessor-kb-jana-governance, 0053-mcp-server-governanca-como-produto, 0061-conhecimento-canonico-git-mcp-zero-automem, 0093-multi-tenant-isolation-tier-0]
-lifecycle: ativo
+lifecycle: arquivado
 ---
 
-# BRIEFING — Modules/SRS
+# BRIEFING — Modules/SRS (REMOVIDO)
 
-> **Estado:** 🔻 **em deprecação** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md), E1+E2 feitas em 2026-07-29) — segue **servindo em prod**, `deprecating` ≠ removido | **Atualizado:** 2026-07-29 | **Owner:** [W]
+> **Estado:** ⚰️ **REMOVIDO em 2026-07-29** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — 63 arquivos deletados, 7 tabelas `docs_*` dropadas por migration. **O código não existe mais.** | **Owner:** [W]
 >
-> ⛔ **Não abrir feature nova aqui.** Sucessores: `Modules\KB` (acervo) · `Modules\Jana` (chat) · `Modules\Governance` + `mcp_audit_log` (validação).
+> ⛔ **Não recriar.** Sucessores canônicos: `Modules\KB` (acervo/busca) · `Modules\Jana` (chat) · `Modules\Governance` + `mcp_audit_log` (validação). Se faltar capacidade de acervo, **estenda o KB** — não abra um segundo dono do mesmo tema. Lápide em [`proibicoes.md` §5](../../proibicoes.md).
+>
+> Esta pasta sobrevive como **canon histórico**: registra por que o módulo existiu e por que saiu. Encontrá-la **não é** sinal de que ele deve voltar.
+>
+> **Bookmarks preservados** — os 6 redirects 301 de `/memcofre/*` vivem em [`routes/web.php`](../../../routes/web.php) e apontam pros sucessores reais.
 
 ## O que é
 
