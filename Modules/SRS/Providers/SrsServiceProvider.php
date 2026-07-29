@@ -33,7 +33,10 @@ class SrsServiceProvider extends ServiceProvider
                 \Modules\SRS\Console\Commands\GenTestCommand::class,
                 \Modules\SRS\Console\Commands\SyncMemoriesCommand::class,
                 \Modules\SRS\Console\Commands\AuditModuleCommand::class,
-                \Modules\SRS\Console\Commands\InstallHooksCommand::class,
+                // InstallHooksCommand removido na E4 (ADR 0357): existia só pra copiar
+                // `bin/git-hooks/` pro `.git/hooks`, e aquele hook chamava `docvault:*`
+                // — nome de 3 renames atrás, com ZERO signatures registradas. Instalava
+                // um hook que não executava nada e imprimia "✓ pre-commit OK".
                 \Modules\SRS\Console\Commands\SrsHealthCommand::class,
             ]);
         }

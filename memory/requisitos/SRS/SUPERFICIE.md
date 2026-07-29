@@ -14,7 +14,7 @@ module: SRS
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/SRS/**` + `resources/js/Pages/SRS/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 56 arquivos em 10 papéis.
+**Total mapeado:** 55 arquivos em 10 papéis.
 
 ## Controllers — 8
 
@@ -53,11 +53,10 @@ module: SRS
 - [DocSource.php](../../../Modules/SRS/Entities/DocSource.php)
 - [DocValidationRun.php](../../../Modules/SRS/Entities/DocValidationRun.php)
 
-## Console / Commands — 8
+## Console / Commands — 7
 
 - [AuditModuleCommand.php](../../../Modules/SRS/Console/Commands/AuditModuleCommand.php)
 - [GenTestCommand.php](../../../Modules/SRS/Console/Commands/GenTestCommand.php)
-- [InstallHooksCommand.php](../../../Modules/SRS/Console/Commands/InstallHooksCommand.php)
 - [MigrateModuleCommand.php](../../../Modules/SRS/Console/Commands/MigrateModuleCommand.php)
 - [SrsHealthCommand.php](../../../Modules/SRS/Console/Commands/SrsHealthCommand.php)
 - [SyncMemoriesCommand.php](../../../Modules/SRS/Console/Commands/SyncMemoriesCommand.php)
