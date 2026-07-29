@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **363** arquivos · **348** números únicos · máx **0358**
-- **ADRs ATIVOS (lifecycle ativo): 327** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 328 · superseded 14 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 327 · arquivado 22 · substituido 14
+- **364** arquivos · **349** números únicos · máx **0359**
+- **ADRs ATIVOS (lifecycle ativo): 328** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 329 · superseded 14 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 328 · arquivado 22 · substituido 14
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (363)
+## Todas as ADRs (364)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -401,3 +401,4 @@ _(nenhuma)_
 | 0356 | aceito | ativo | errata | Errata à 0355 — o limiar do gate de reversão era um número inventado; troca por  |
 | 0357 | proposto | ativo | decision | Deprecar Modules/SRS — sucessores KB (acervo) + Jana (chat) + Governance (valida |
 | 0358 | aceito | ativo | decision | Doutrina de teste do sistema — tenant canônico biz=98 (fictício); supersede a 01 |
+| 0359 | aceito | ativo | errata | Errata à 0358 — remover a ADR resolveu a colisão NO DISCO, mas o número 0101 não |
