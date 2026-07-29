@@ -172,6 +172,72 @@ it('respects business scope (biz=1 NAO toca docs biz=99)', function () {
 });
 
 /**
+ * Classificação no fill (2026-07-29).
+ *
+ * Antes deste par de specs o job bridgeava o nó e o deixava com `category_id` NULL —
+ * medido em prod: 1.628 de 1.628 nós de biz=1 sem categoria, e a lista por categoria
+ * da /kb/v2 renderizava vazia. O backfill manual (`kb:classify --apply`) resolvia o
+ * acervo existente, mas decaía: este job roda a cada 15 min criando nós NULL de novo.
+ *
+ * O 1º spec é o bite — sem a chamada ao KbAutoClassifierService no handle(), `category_id`
+ * volta a ser NULL e ele falha. O 2º é o controle negativo: type sem regra continua NULL
+ * (dívida de taxonomia honesta), provando que o passo não inventa categoria.
+ */
+it('classifica o nó no fill — bridge + auto_match preenchem category_id/subcategory_id', function () {
+    kbCreateBusinessRow(1);
+
+    $catId = \DB::table('kb_categories')->insertGetId([
+        'business_id' => 1, 'slug' => 'governanca', 'label' => 'Governança',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $subId = \DB::table('kb_subcategories')->insertGetId([
+        'business_id' => 1, 'category_id' => $catId, 'slug' => 'adr', 'label' => 'ADR',
+        'auto_match' => json_encode(['field' => 'type', 'op' => '=', 'value' => 'adr']),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $docId = kbCreateMcpDoc(1, 'adr', ['slug' => '0093-multi-tenant', 'title' => 'ADR 0093']);
+
+    $jobClass = guessKbBridgeJobClass();
+    app()->call([new $jobClass(1), 'handle']);
+
+    $node = \DB::table('kb_nodes')->where('source_doc_id', $docId)->first();
+
+    expect($node)->not->toBeNull()
+        ->and((int) $node->category_id)->toBe($catId)
+        ->and((int) $node->subcategory_id)->toBe($subId)
+        // a invariante Tier 0 do bridge segue de pé — classificar não escreve corpo
+        ->and($node->body_blocks)->toBeNull()
+        ->and((int) $node->is_editable)->toBe(0);
+});
+
+it('type SEM regra auto_match continua NULL após o bridge (não inventa categoria)', function () {
+    kbCreateBusinessRow(1);
+
+    // Só existe regra pra 'adr'; o doc bridgeado é 'session' → fica sem casa.
+    $catId = \DB::table('kb_categories')->insertGetId([
+        'business_id' => 1, 'slug' => 'governanca', 'label' => 'Governança',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    \DB::table('kb_subcategories')->insert([
+        'business_id' => 1, 'category_id' => $catId, 'slug' => 'adr', 'label' => 'ADR',
+        'auto_match' => json_encode(['field' => 'type', 'op' => '=', 'value' => 'adr']),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $docId = kbCreateMcpDoc(1, 'session', ['slug' => '2026-07-29-x', 'title' => 'Session X']);
+
+    $jobClass = guessKbBridgeJobClass();
+    app()->call([new $jobClass(1), 'handle']);
+
+    $node = \DB::table('kb_nodes')->where('source_doc_id', $docId)->first();
+
+    expect($node)->not->toBeNull()
+        ->and($node->category_id)->toBeNull()
+        ->and($node->subcategory_id)->toBeNull();
+});
+
+/**
  * Helper local — tenta encontrar a classe do Job em namespaces possíveis.
  *
  * TODO[CL]: substituir por FQCN definitivo quando Agent A merge.

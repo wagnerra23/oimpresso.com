@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Modules\KB\Entities\KbNode;
+use Modules\KB\Services\KbAutoClassifierService;
 use Modules\KB\Services\KbBridgeStateService;
 use Modules\KB\Services\KbEdgeAutoDeriver;
 
@@ -31,6 +32,10 @@ use Modules\KB\Services\KbEdgeAutoDeriver;
  *     - status = doc.deleted_at ? 'deleted' : 'ok'
  *     - save (KbNodeObserver valida invariant)
  *     - KbEdgeAutoDeriver: supersedes, related-by-tag, charter-of, cross-link
+ *   ao fim do run (se processou algo):
+ *     - KbAutoClassifierService: preenche category_id/subcategory_id dos nós NULL
+ *       via `auto_match`. Sem isto o nó nasce sem categoria e a lista da /kb/v2
+ *       esvazia sozinha (2026-07-29: 1.628/1.628 de biz=1 estavam NULL).
  *
  * Tipos de doc que viram kb_nodes (mapping):
  *   doc.type = 'adr'       → kb_nodes.type = 'adr'
@@ -76,6 +81,7 @@ class KbBridgeFromMcpJob implements ShouldQueue
     public function handle(
         KbBridgeStateService $stateService,
         KbEdgeAutoDeriver $edgeDeriver,
+        KbAutoClassifierService $classifier,
     ): void {
         $docsProcessed = 0;
         $edgesDerived = 0;
@@ -119,6 +125,34 @@ class KbBridgeFromMcpJob implements ShouldQueue
                     }
                 }
             });
+
+            // Classifica os nós recém-bridgeados. `bridgeDocument()` NÃO seta category_id
+            // (nunca setou), então sem este passo todo nó novo nasce com category_id NULL e
+            // a lista por categoria da /kb/v2 volta a esvaziar sozinha — o backfill manual
+            // decai porque este job roda a cada 15 min criando nós NULL.
+            //
+            // Reusa o KbAutoClassifierService (dono da regra `auto_match`) em vez de duplicar
+            // o matching aqui. Ele varre só `category_id IS NULL` do MESMO business, então
+            // após o backfill isto toca apenas o delta do batch — e é idempotente (2ª rodada = 0).
+            //
+            // Só roda se houve doc processado: bridge sem novidade não paga varredura.
+            //
+            // Falha do classificador NÃO é engolida — propaga pro catch abaixo, que registra
+            // em kb_bridge_state.last_error e re-tenta. O retry é seguro porque tanto
+            // bridgeDocument() quanto classify() são idempotentes.
+            if ($docsProcessed > 0) {
+                $classificacao = $classifier->classify($this->businessId, apply: true);
+
+                if ($classificacao['classified'] > 0 || $classificacao['homeless'] > 0) {
+                    Log::info('KbBridgeFromMcpJob: nós classificados no fill', [
+                        'business_id' => $this->businessId,
+                        'classified'  => $classificacao['classified'],
+                        // homeless = type sem regra auto_match seedada. Dívida de taxonomia
+                        // visível (não erro) — se subir, falta subcategoria pro type novo.
+                        'homeless'    => $classificacao['homeless'],
+                    ]);
+                }
+            }
 
             $stateService->markRun($this->businessId, $docsProcessed, $edgesDerived, null);
         } catch (\Throwable $e) {
