@@ -26,7 +26,7 @@ charter_adr: 0080
 lifecycle: deprecating
 deprecated_by: 0357-deprecar-srs-sucessor-kb-jana-governance
 deprecation_plan: memory/requisitos/SRS/DEPRECATION-PLAN.md
-deprecation_nota: "E1 executada em 2026-07-29 (ADR 0357). Módulo SEGUE SERVINDO em prod — deprecating ≠ removido. Sucessores: KB (acervo) · Jana (chat) · Governance (validação). NÃO abrir feature nova aqui. Etapas E2-E6 gated por [W]. ⚠️ `charter_adr: 0080` acima está ERRADO — a 0080 é Trust Tiers/Architecture, não charter deste módulo; corrigir em E4."
+deprecation_nota: "E1, E2 e E4 executadas em 2026-07-29 (ADR 0357). Módulo SEGUE SERVINDO em prod — deprecating ≠ removido. Sucessores: KB (acervo) · Jana (chat) · Governance (validação). NÃO abrir feature nova aqui. E5 (git rm + DROP das 7 tabelas) e E6 gated por [W]. ✅ ERRATA à ADR 0357 (append-only, corrigido aqui): a 0357 afirmou que `charter_adr: 0080` estava ERRADO — não está. A 0080 é 'Trust Tiers operacional + Architecture & Scope + audit findings', menciona SCOPE.md/charter 15× e é o charter_adr de 24 dos 37 módulos. É a convenção do repo, não defeito deste módulo. Nada a corrigir."
 related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
