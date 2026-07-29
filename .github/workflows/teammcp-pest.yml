@@ -132,10 +132,22 @@ jobs:
             --log-junit test-results/pest-teammcp-junit.xml \
             Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.php
 
+      # Corpus de assertions (LC-13 · #5003). REPORT-ONLY de propósito: `continue-on-error`
+      # porque a lane NÃO pode mudar de veredito por um passo observacional — o summary sai
+      # 1/2 em XML ausente/incoerente, e isso é diagnóstico do artefato, não regressão do
+      # módulo. Roda sob `!cancelled()` pra somar TAMBÉM run vermelho: é justamente onde
+      # "0 assertions" separa "falhou" de "nem rodou". Sem este passo o corpus não existe,
+      # e sem corpus não há FP a medir — que é o que mantém o --check-assertions desarmado.
+      - name: Summary JUnit (teammcp — assertions, corpus do 0-assertions)
+        if: ${{ !cancelled() && steps.changes.outputs.tmcp == 'true' }}
+        continue-on-error: true
+        run: node scripts/tests/junit-summary.mjs test-results/pest-teammcp-junit.xml --out test-results/pest-teammcp-junit.summary.json
       - name: Upload JUnit (TeamMcp · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.tmcp == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: pest-teammcp-junit
-          path: test-results/pest-teammcp-junit.xml
+          path: |
+            test-results/pest-teammcp-junit.xml
+            test-results/pest-teammcp-junit.summary.json
           retention-days: 14

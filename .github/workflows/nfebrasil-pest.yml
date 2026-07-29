@@ -198,10 +198,22 @@ jobs:
             Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php
 
+      # Corpus de assertions (LC-13 · #5003). REPORT-ONLY de propósito: `continue-on-error`
+      # porque a lane NÃO pode mudar de veredito por um passo observacional — o summary sai
+      # 1/2 em XML ausente/incoerente, e isso é diagnóstico do artefato, não regressão do
+      # módulo. Roda sob `!cancelled()` pra somar TAMBÉM run vermelho: é justamente onde
+      # "0 assertions" separa "falhou" de "nem rodou". Sem este passo o corpus não existe,
+      # e sem corpus não há FP a medir — que é o que mantém o --check-assertions desarmado.
+      - name: Summary JUnit (nfebrasil — assertions, corpus do 0-assertions)
+        if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
+        continue-on-error: true
+        run: node scripts/tests/junit-summary.mjs test-results/pest-nfebrasil-junit.xml --out test-results/pest-nfebrasil-junit.summary.json
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: pest-nfebrasil-junit
-          path: test-results/pest-nfebrasil-junit.xml
+          path: |
+            test-results/pest-nfebrasil-junit.xml
+            test-results/pest-nfebrasil-junit.summary.json
           retention-days: 14
