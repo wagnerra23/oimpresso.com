@@ -36,7 +36,7 @@
         },
         "fields_total": 823,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 773,
+        "fields_grammar_ok": 772,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -46,7 +46,7 @@
         "req_sem_lane_total": 56,
         "behavior_known": false,
         "servido_total": 16,
-        "nao_servido_total": 90,
+        "nao_servido_total": 89,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -60,7 +60,7 @@
           "covers": 0
         },
         "v1_files": 5,
-        "v1_violations": "0"
+        "v1_violations": "0[object Object]"
       },
       "stream": "SA"
     },
