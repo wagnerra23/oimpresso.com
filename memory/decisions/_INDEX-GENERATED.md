@@ -7,7 +7,7 @@
 ## Resumo
 - **364** arquivos · **349** números únicos · máx **0359**
 - **ADRs ATIVOS (lifecycle ativo): 328** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 329 · superseded 14 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
+- Por status: aceito 330 · superseded 14 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 328 · arquivado 22 · substituido 14
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -399,6 +399,6 @@ _(nenhuma)_
 | 0354 | aceito | ativo | decision | Emenda à 0314 — teammcp-pest promovido a REQUIRED (as rotas /forja executam de v |
 | 0355 | aceito | ativo | decision | Done-ness consolidada — a âncora fecha, o DoD aberto veta, o `status:` morre de  |
 | 0356 | aceito | ativo | errata | Errata à 0355 — o limiar do gate de reversão era um número inventado; troca por  |
-| 0357 | proposto | ativo | decision | Deprecar Modules/SRS — sucessores KB (acervo) + Jana (chat) + Governance (valida |
+| 0357 | aceito | ativo | decision | Deprecar Modules/SRS — sucessores KB (acervo) + Jana (chat) + Governance (valida |
 | 0358 | aceito | ativo | decision | Doutrina de teste do sistema — tenant canônico biz=98 (fictício); supersede a 01 |
 | 0359 | aceito | ativo | errata | Errata à 0358 — remover a ADR resolveu a colisão NO DISCO, mas o número 0101 não |

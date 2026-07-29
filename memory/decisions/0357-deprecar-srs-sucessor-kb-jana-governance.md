@@ -3,7 +3,7 @@ slug: 0357-deprecar-srs-sucessor-kb-jana-governance
 number: 357
 title: "Deprecar Modules/SRS — sucessores KB (acervo) + Jana (chat) + Governance (validação); o DEPRECATION-PLAN de maio revalidado em julho"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
