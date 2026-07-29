@@ -2,7 +2,7 @@
 id: requisitos-produto-briefing
 module: Produto
 status: parcial
-updated_at: "2026-07-20"
+updated_at: "2026-07-29"
 owner: W
 related_adrs: ["0093-multi-tenant-isolation-tier-0", "0104-processo-mwart-canonico-unico-caminho", "0121-oimpresso-modular-especializado-por-vertical"]
 ---
@@ -27,7 +27,7 @@ O domínio nasceu no núcleo herdado do UltimatePOS e recebeu requisitos de pari
 | Operações em massa e importação | `ProductController`, `ImportProductsController` | `product/bulk-edit`, `import_products/index` | `Produto/BulkEdit` | 🟡 Fluxo dual; importação permanece Blade |
 | Estoque inicial e histórico | `OpeningStockController`, `ImportOpeningStockController`, `ProductController@productStockHistory` | `opening_stock/*`, `import_opening_stock/index`, `product/stock_history*` | `Produto/StockHistory` | 🔴 A Page espera movimentos que o render não fornece; o caminho AJAX legado também reconcilia saldo durante um GET |
 | Cadastros auxiliares | `BrandController`, `TaxonomyController`, `UnitController`, `WarrantyController` | `brand/*`, `taxonomy/*`, `unit/*`, `warranties/*` | — | 🟡 São parte da entrada de Produto, mas continuam em Blade |
-| Cockpit unificado | `ProdutoUnificadoController` | — | `Produto/Unificado/Index` | 🔴 Possui dados placeholder, dependência de relação ausente em `Category` e rota com permissão ainda marcada como TODO |
+| Cockpit unificado | `ProdutoUnificadoController` | — | `Produto/Unificado/Index` | 🔴 **Nunca abriu**: a rota responde 500 em toda carga desde o commit de origem, porque `categorias()` chama `withCount('products')` e [Category.php](../../../app/Category.php) não declara essa relação. O equivalente já resolvido é `buildProdutoIndexCategorias()` em [ProductController.php](../../../app/Http/Controllers/ProductController.php). Somam-se dados placeholder e a permissão da rota ainda marcada como TODO. Corrigido o 500, a sub-tela de categorias permanece vazia por ausência de dado, não por defeito |
 | Composição/BOM | `Inventory/ProductBomController` | combo legado nos partials de produto | consumido pelo cockpit/protótipos | 🟡 API normalizada e fallback de combo existem; a experiência de edição é backlog |
 | API e integrações | controllers e transformers do `Modules/Connector` | — | consumers externos | 🟡 Leitura REST existe; há contrato de request para criação sem rota de criação correspondente |
 | Isolamento multi-tenant | filtros distribuídos pelos controllers e `HasBusinessScope` no BOM | — | — | 🔴 `App\Product` e models legacy relacionados não aplicam o global scope exigido pela ADR 0093; a proteção atual depende de filtros explícitos e contratos pontuais |
@@ -79,7 +79,11 @@ O domínio nasceu no núcleo herdado do UltimatePOS e recebeu requisitos de pari
 - Nota e comparativos: execute `php artisan module:grade Produto` ou `php artisan module:grade-v4 Produto`; [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) e [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) guardam a análise, não o estado operacional deste BRIEFING.
 - Backlog vivo: [SPEC.md](SPEC.md) é o contrato de US; estado de execução pertence ao board/MCP. Não inferir `todo`, `review`, `done`, `draft` ou `live` a partir deste arquivo.
 
-**Recibo:** superfície revarrida em 2026-07-20 sobre `origin/main@58447832` via `git`, `rg`, `npm run screen:files`, histórico de PRs e handoffs recentes. O recibo prova a varredura desta edição; não congela contagens.
+**Recibo:** superfície revarrida em 2026-07-20 sobre `origin/main@58447832` via `git`, `rg`, `npm run screen:files`, histórico de PRs e handoffs recentes.
+
+**Recibo da emenda de 2026-07-29** (`origin/main@b7e2db561`, linha do cockpit unificado): o 500 foi lido no `storage/logs/laravel.log` de produção (entrada de 2026-07-29 11:10:30, `route_name: products.unificado.index`, `business_id: 1`), com a pilha apontando `ProdutoUnificadoController.php(140)` chamado de `(60)` — as mesmas linhas do arquivo em `origin/main`, o que confirma que produção roda este código. A ausência da relação foi medida por `git log -S "function products" -- app/Category.php`, que volta vazio: ela nunca existiu. A afirmação sobre a sub-tela de categorias vem de consulta **de leitura** ao banco de produção na mesma data. Os números medidos ficam neste recibo de propósito e **não** sobem para o corpo do BRIEFING: contagem por empresa não tem gerador e envelhece no dia seguinte — quem precisar do valor de hoje reconsulta, não cita este parágrafo.
+
+Cada recibo prova a varredura da sua edição; nenhum congela contagens.
 
 ## Estado: entregue e por fazer
 
