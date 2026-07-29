@@ -157,6 +157,8 @@ jobs:
         run: node .claude/hooks/nudge-diagnosis-without-evidence.test.mjs
       - name: Nudge-test-contract-anchor PORTE .mjs (proibicoes §descartadas Check 9 · roda em Linux)
         run: node .claude/hooks/nudge-test-contract-anchor.test.mjs
+      - name: Vista publicada segue o padrao (PreToolUse:Artifact · advisory · morde em fixture)
+        run: node .claude/hooks/vista-publicada-padrao.test.mjs
       - name: Lote 2 nudges REGISTRADO como node (correcao != invocacao · US-GOV-052)
         run: node scripts/governance/settings-portlote2-nudges-registration.test.mjs
       - name: Licoes-code-two-strikes PORTE .mjs (loop aprendizado · logica + E2E · roda em Linux)
