@@ -2,7 +2,7 @@
 id: requisitos-srs-deprecation-plan
 ---
 
-# DEPRECATION-PLAN — Modules/SRS
+# DEPRECATION-PLAN — módulo SRS
 
 > **Status:** 📋 Planejado · **Owner:** Wagner · **Sucessor canônico:** múltiplos (KB primário + Jana + TeamMcp/Governance + MCP server canon)
 > **Atualizado:** 2026-05-17 · **Gerado por:** agent `deprecar-modulo`
@@ -106,7 +106,7 @@ O corpo fala em **15 classes** para a E2 e **9 Console Commands**. Contado na á
 
 ## TL;DR
 
-Plano de 6 etapas (~47 dias úteis, com 30d wait E5) pra deprecar `Modules/SRS` (estado: ZUMBI — SCOPE 2026-05-05 prevê repurpose SRS browser nunca executado; BRIEFING 2026-05-16 admite substituição prática pelo MCP server). **Sucessor primário:** `Modules/KB` (já dono de `mcp_memory_documents` + ingest webhook git→DB). **Sucessores secundários:** `Modules/Jana` (ChatAssistant + chat_messages), `Modules/Governance` (validation/audit), `mcp_audit_log` canon (validation_runs append-only). **Dados:** 7 tabelas `docs_*` (2 MIGRATE → KB · 2 PRESERVE→view legacy bookmarks · 2 ARCHIVE→`governance/archive/` · 1 MIGRATE+ARCHIVE híbrido). **Risks Tier 0:** 4 críticos (multi-tenant cross-tenant em 7 entities, PII em `docs_chat_messages.content` LGPD, FULLTEXT index re-criação custosa em `mcp_memory_documents`, cron `memcofre:sync-memories` daily 23:00 em `app/Console/Kernel.php` quebraria silenciosamente).
+Plano de 6 etapas (~47 dias úteis, com 30d wait E5) pra deprecar `SRS` (módulo removido) (estado: ZUMBI — SCOPE 2026-05-05 prevê repurpose SRS browser nunca executado; BRIEFING 2026-05-16 admite substituição prática pelo MCP server). **Sucessor primário:** `Modules/KB` (já dono de `mcp_memory_documents` + ingest webhook git→DB). **Sucessores secundários:** `Modules/Jana` (ChatAssistant + chat_messages), `Modules/Governance` (validation/audit), `mcp_audit_log` canon (validation_runs append-only). **Dados:** 7 tabelas `docs_*` (2 MIGRATE → KB · 2 PRESERVE→view legacy bookmarks · 2 ARCHIVE→`governance/archive/` · 1 MIGRATE+ARCHIVE híbrido). **Risks Tier 0:** 4 críticos (multi-tenant cross-tenant em 7 entities, PII em `docs_chat_messages.content` LGPD, FULLTEXT index re-criação custosa em `mcp_memory_documents`, cron `memcofre:sync-memories` daily 23:00 em `app/Console/Kernel.php` quebraria silenciosamente).
 
 ### Reporte rápido
 
@@ -144,7 +144,7 @@ Wagner promover [`memory/decisions/proposals/deprecate-srs.md`](../../decisions/
 
 | Item | Valor |
 |---|---|
-| Módulo | Modules/SRS (ex-MemCofre — rename PHP-only Fase 3.7 PR-2 em 2026-05-06) |
+| Módulo | módulo SRS (ex-MemCofre — rename PHP-only Fase 3.7 PR-2 em 2026-05-06) |
 | SCOPE vs BRIEFING | **CONFLITANTE** — SCOPE 2026-05-05 prevê repurpose (`srs_entries` table + trigger MySQL append-only) que NUNCA aconteceu; BRIEFING 2026-05-16 (11 dias depois) admite "substituído na prática pelo MCP server canon. Não investir." `transition_plan.migration_phase: 3.7` declarado, mas Entities ainda `Doc*` (não renomeadas), tabelas ainda `docs_*` (não `srs_entries`). |
 | Code stats | 8 Controllers · 6 Services · 7 Entities (`DocSource/Page/Evidence/Requirement/Link/ChatMessage/ValidationRun`) · 8 Migrations (`docs_*` legacy) · 9 Console Commands (signature `memcofre:*` legacy) · 10 Tests Pest (incluindo Wave 23/25/26/27/28 saturação) |
 | Git activity 90d | 16 commits — picos Waves 11/12/16/17/18/23/24/25/26/27/28 (saturation tests). Funcionalmente parado desde Wave 12 (12/maio/2026: HasBusinessScope + LogsActivity). **Atividade alta é de governance/Pest, não feature** — confirma zumbi. |
@@ -154,7 +154,7 @@ Wagner promover [`memory/decisions/proposals/deprecate-srs.md`](../../decisions/
 ### Detalhes inventário código
 
 ```
-Modules/SRS/
+SRS/
 ├── SCOPE.md         (conflito explícito — frontmatter declara `transition_plan` Fase 3.7 não executado)
 ├── README.md        (cita "ex-MemCofre" — explicitamente referencia rename PHP-only)
 ├── CHANGELOG.md     ⚠️ MERGE CONFLICT NÃO RESOLVIDO ATIVO no topo (linhas <<<<<<< HEAD / ======= / >>>>>>> origin/main) — Wave 28 vs Wave 27 conflito ainda aberto
@@ -223,36 +223,36 @@ Modules/SRS/
 
 | # | Feature (Controller/Service/Entity/Command) | Path atual | Receptor proposto | Justificativa (cita SCOPE receptor) | Esforço | Bloqueador |
 |---|---|---|---|---|---|---|
-| 1 | `ChatController::ask` + `newSession` | Modules/SRS/Http/Controllers/ChatController.php | **Modules/Jana** | Jana `purpose: "Chat IA do business — conversa..."` + `contains: ChatController` já é canon chat IA. Cross-corpus = extensão natural. | Médio | OpenAI config (`memcofre.ai.*` → `jana.ai.*`) + LLM provider key compartilhado |
-| 2 | `ChatAssistant` service + `retrieve()` keyword RAG offline | Modules/SRS/Services/ChatAssistant.php | **Modules/Jana** | Jana já tem `Services/Memoria/*` (recall hybrid HyDE+Reranker+Meilisearch). ChatAssistant é versão "lite" do mesmo padrão. Renomear `ChatCorpusAssistant` pra evitar colisão. | Médio | OTel span rename `srs.chat.ask` → `jana.chat-corpus.ask`; reescrever 80 LOC sem reaproveitar Memoria atual (Memoria é HyDE; ChatAssistant é keyword) |
-| 3 | `IngestController` (upload PDF/MD/URL) + `storeSource` | Modules/SRS/Http/Controllers/IngestController.php | **Modules/KB** | KB `db_tables_owned: mcp_memory_documents (sync git → DB via webhook — bridge read-only fotografia git)` + `contains: KbNodeController — CRUD kb_nodes (artigos editáveis + bridge canônico)`. KB já tem ingest webhook git→DB; ingest manual humano cabe como complemento. | Médio | Storage path `public/memcofre/` → `public/kb/uploads/` com migration + signed URLs (Modules/Arquivos pode hospedar via `HasArquivos` trait — preferido) |
-| 4 | `InboxController` (triage evidências) | Modules/SRS/Http/Controllers/InboxController.php | **Modules/KB** | KB já tem `KbCommentController` (comments inline) + workflow editorial bridge canônico. Inbox vira draft state de `kb_nodes`. | Grande | UI Inertia/React precisa migrar Blade legacy (SRS é Blade) — ou aceitar deprecação de UI (CLI-only) |
-| 5 | `MemoriaController` (browser memory/ trees) | Modules/SRS/Http/Controllers/MemoriaController.php | **Modules/KB** | KB já tem `MemoriaController — tela LGPD 'O Copiloto lembra de você' (US-COPI-MEM-012); URL /copiloto/memoria mantida` (Fase 3.7 PR-1 absorvido do Copiloto). SRS Memoria é overlap parcial. Mesclar funcionalidade. | Médio | URL `/memcofre/memoria` precisa Route::redirect 301 pra `/kb/memoria` ou `/copiloto/memoria` (decidir) |
-| 6 | `ModuloController` (ver requisitos consolidados por módulo) | Modules/SRS/Http/Controllers/ModuloController.php | **Modules/Governance** | Governance `contains: ModuleGradeController` + `routes: GET /governance/module-grades/{name}`. Vista por módulo de requirements/coverage = governance, não chat. | Médio | Mapear `docs_requirements` cache → SPEC.md fonte canônica via MCP (não bate 1:1) |
-| 7 | `DashboardController` (overview SRS) | Modules/SRS/Http/Controllers/DashboardController.php | **descontinuar** | Substituído por `Modules/Governance/DashboardController` (KPIs ADR + audit + drift). SRS dashboard é variante zumbi. | Trivial | Route::redirect 301 `/memcofre` → `/governance` |
-| 8 | `DataController::modifyAdminMenu` + `superadmin_package` + `user_permissions` | Modules/SRS/Http/Controllers/DataController.php | **descontinuar** | Sidebar entry "Cofre de Memórias" + permission `memcofre_module` desativam após E5. Bookmarks 301. | Trivial | Update `permissions` table: `memcofre.access` mantém compat até E5 |
-| 9 | `InstallController` (Install/Uninstall hooks) | Modules/SRS/Http/Controllers/InstallController.php | **descontinuar** (E5) | Padrão UltimatePOS Install — quando módulo deixa de existir, hooks vão junto. | Trivial | — |
-| 10 | `DocValidator` service + 5 checks doc integrity | Modules/SRS/Services/DocValidator.php | **Modules/Governance** | Governance `DriftAlertsController — runtime scan SCOPE.md vs filesystem real + persisted alerts cron`. DocValidator é versão "lite" do mesmo workflow. Mesclar checks. | Grande | Re-mapear 5 checks (STORY_ORPHAN/RULE_NO_TEST/ADR_DANGLING/PAGE_NO_META/PAGE_STALE) pra schema `mcp_drift_alerts` |
-| 11 | `ModuleAuditor` service + 15 checks (C01-C15) | Modules/SRS/Services/ModuleAuditor.php | **Modules/Governance** | Sobreposição direta com `ModuleGradeController` (rubrica v3/v4 9 dimensões). 15 checks do ModuleAuditor são subset granular das dimensões D1-D9. | Grande | Decidir se 15 checks viram sub-dimensões ou se descontinua (rubrica v3 já cobre na prática) |
-| 12 | `MemoryReader` service (lê primer/project/claude) | Modules/SRS/Services/MemoryReader.php | **Modules/KB** | KB acessa `mcp_memory_documents` que já tem snapshot git. MemoryReader vira leitor canon. | Médio | Path `~/.claude/.../memory/` fora do repo — manter ler local OU forçar migração pra `mcp_memory_documents` only |
-| 13 | `RequirementsFileReader` (parser memory/requisitos/<X>/*.md) | Modules/SRS/Services/RequirementsFileReader.php | **app/Services** (root, já tem `ModuleRequirementsGenerator`) | Já existe `app/Services/ModuleRequirementsGenerator.php` (irmão). Consolidar. | Médio | Refactor namespace + reaproveitar parser (ModuleRequirementsGenerator gera, RequirementsFileReader lê — complementares) |
-| 14 | `DocRetentionCleaner` service (Wave 18 stub) | Modules/SRS/Services/DocRetentionCleaner.php | **Modules/Governance** OU **descontinuar** | Service ainda é stub (sem comando agendado). Se Governance absorver `docs_validation_runs`, retention vai junto. Se ARCHIVE all, descontinuar. | Trivial | Decisão depende de Fase 3 tabelas |
-| 15 | `Entities/DocSource` | Modules/SRS/Entities/DocSource.php | **Modules/KB** (`KbSource` ou consolidar com `KbNode.kind=source`) | KB já tem `kb_nodes` (artigos + bridge canônico). Source = subset semântico. | Médio | Migration tabela `docs_sources` → `kb_sources` OR insert as `kb_nodes` com `kind=source` |
-| 16 | `Entities/DocEvidence` (Searchable, FULLTEXT) | Modules/SRS/Entities/DocEvidence.php | **Modules/KB** → tabela `mcp_memory_documents` | KB owns `mcp_memory_documents` com FULLTEXT + Meilisearch hybrid embedder. DocEvidence é cópia legacy. Migrar conteúdo + dropar FULLTEXT duplicado. | Grande | Re-criar FULLTEXT em `mcp_memory_documents` (custoso — tabela já tem indexes; verificar não colidir) |
-| 17 | `Entities/DocChatMessage` (PII content) | Modules/SRS/Entities/DocChatMessage.php | **Modules/Jana** → tabela nova `jana_chat_corpus_messages` | Jana owns `jana_memoria_*` tables. Chat history SRS é caso especial corpus-scoped. | Médio | PII LGPD: re-run PiiRedactor antes de INSERT migration |
-| 18 | `Entities/DocPage` (cache .tsx ↔ stories) | Modules/SRS/Entities/DocPage.php | **descontinuar** | Substituído por `Modules/KB/kb_nodes` (artigos editáveis) + module-grade-v3 D3 docs internas. Cache `.tsx ↔ stories` deduplica com charter (`<Tela>.charter.md` ao lado do `.tsx`). | Trivial | Migration drop tabela; remover SyncPagesCommand schedule |
-| 19 | `Entities/DocRequirement` + `DocLink` (cache US-XXX-NNN) | Modules/SRS/Entities/DocRequirement.php | **❓ ORPHAN — Wagner decide** | Cache opcional `external_id UNIQUE` (US-ESSE-001, R-ESSE-007). Fonte canônica é `memory/requisitos/<X>/SPEC.md` via MCP server (`mcp_memory_documents`). Cache pode ser descontinuado SE Wagner aceitar query lenta no MCP. | Trivial | Decisão produto — query latency MCP vs cache SQL |
-| 20 | `Entities/DocValidationRun` (audit append-only) | Modules/SRS/Entities/DocValidationRun.php | **`mcp_audit_log`** (canon TeamMcp + trigger MySQL) | TeamMcp owns `mcp_audit_log` (mantém append-only com trigger; UI Fase 5 fica em Modules/Governance). Run records cabem como audit entries. | Médio | Schema mapping `docs_validation_runs.issues_critical/health_score` → `mcp_audit_log.payload` JSON |
-| 21 | `Console: memcofre:sync-memories` (cron daily 23:00) | Modules/SRS/Console/Commands/SyncMemoriesCommand.php | **Modules/KB** (`kb:sync-memories`) OU **descontinuar** | MCP webhook git→DB já cobre sync de `memory/*`. Sync local `~/.claude/.../memory/` → repo (one-way) ainda útil. Decidir: KB absorve ou Wagner roda manual. | Médio | Schedule entry em `app/Console/Kernel.php` MIGRA NO MESMO PR — não pode esquecer |
-| 22 | `Console: memcofre:audit-module` (ModuleAuditor driver) | Modules/SRS/Console/Commands/AuditModuleCommand.php | **Modules/Governance** | Cobre subset de `php artisan module:grade <X>` (canon Wave 25+). | Trivial | Renomear pra `governance:audit-module-legacy` ou descontinuar |
-| 23 | `Console: memcofre:gen-test` | Modules/SRS/Console/Commands/GenTestCommand.php | **descontinuar** | Code-gen experimental sem uso documentado. | Trivial | — |
-| 24 | `Console: memcofre:install-hooks` | Modules/SRS/Console/Commands/InstallHooksCommand.php | **descontinuar** | Install hooks já vivem em `Modules/SRS/Http/Controllers/InstallController.php` (E5 elimina). | Trivial | — |
-| 25 | `Console: memcofre:migrate-module` | Modules/SRS/Console/Commands/MigrateModuleCommand.php | **descontinuar** | Migration de schema doc-ingest — fim da utilidade ao deprecar. | Trivial | — |
-| 26 | `Console: srs:health` (`SrsHealthCommand`) | Modules/SRS/Console/Commands/SrsHealthCommand.php | **Modules/Jana** (`jana:health-check` canon) | `jana:health-check` daily 06:00 é canon health do projeto. SrsHealthCommand é redundância. | Trivial | Mesclar checks SRS-specific em `jana:health-check` se relevante OU descontinuar |
-| 27 | `Console: memcofre:validate` (DocValidator driver) | Modules/SRS/Console/Commands/ValidateCommand.php | **Modules/Governance** | Mesma lógica do ModuleAuditor — drift detection canon. | Trivial | Renomear ou descontinuar |
-| 28 | `Console: memcofre:sync-pages` (SyncPagesCommand) | Modules/SRS/Console/Commands/SyncPagesCommand.php | **descontinuar** | DocPage cache será dropado (item 18). Command sem destino. | Trivial | Verificar se há schedule cron — provavelmente NÃO (não listado em Kernel.php LIDO) |
-| 29 | Lang `memcofre.php` + topnav `Cofre de Memórias` | Modules/SRS/Resources/lang/pt/memcofre.php + menus/topnav.php | **descontinuar** | Sidebar entry removida em E5; topnav legacy 301. | Trivial | — |
-| 30 | Compat layer `memcofre.*` URLs/permissions | Modules/SRS/Http/routes.php + DataController.php | **Route::redirect 301 PRESERVE indefinido** | Wagner bookmarks `/memcofre/*` documentados em SCOPE Fase 3.7 PR-2 — pattern Tier 0 IRREVOGÁVEL pra preservar. Permissions `memcofre.access` mantidas até E5+30d. | Trivial | — |
+| 1 | `ChatController::ask` + `newSession` | SRS/Http/Controllers/ChatController.php | **Modules/Jana** | Jana `purpose: "Chat IA do business — conversa..."` + `contains: ChatController` já é canon chat IA. Cross-corpus = extensão natural. | Médio | OpenAI config (`memcofre.ai.*` → `jana.ai.*`) + LLM provider key compartilhado |
+| 2 | `ChatAssistant` service + `retrieve()` keyword RAG offline | SRS/Services/ChatAssistant.php | **Modules/Jana** | Jana já tem `Services/Memoria/*` (recall hybrid HyDE+Reranker+Meilisearch). ChatAssistant é versão "lite" do mesmo padrão. Renomear `ChatCorpusAssistant` pra evitar colisão. | Médio | OTel span rename `srs.chat.ask` → `jana.chat-corpus.ask`; reescrever 80 LOC sem reaproveitar Memoria atual (Memoria é HyDE; ChatAssistant é keyword) |
+| 3 | `IngestController` (upload PDF/MD/URL) + `storeSource` | SRS/Http/Controllers/IngestController.php | **Modules/KB** | KB `db_tables_owned: mcp_memory_documents (sync git → DB via webhook — bridge read-only fotografia git)` + `contains: KbNodeController — CRUD kb_nodes (artigos editáveis + bridge canônico)`. KB já tem ingest webhook git→DB; ingest manual humano cabe como complemento. | Médio | Storage path `public/memcofre/` → `public/kb/uploads/` com migration + signed URLs (Modules/Arquivos pode hospedar via `HasArquivos` trait — preferido) |
+| 4 | `InboxController` (triage evidências) | SRS/Http/Controllers/InboxController.php | **Modules/KB** | KB já tem `KbCommentController` (comments inline) + workflow editorial bridge canônico. Inbox vira draft state de `kb_nodes`. | Grande | UI Inertia/React precisa migrar Blade legacy (SRS é Blade) — ou aceitar deprecação de UI (CLI-only) |
+| 5 | `MemoriaController` (browser memory/ trees) | SRS/Http/Controllers/MemoriaController.php | **Modules/KB** | KB já tem `MemoriaController — tela LGPD 'O Copiloto lembra de você' (US-COPI-MEM-012); URL /copiloto/memoria mantida` (Fase 3.7 PR-1 absorvido do Copiloto). SRS Memoria é overlap parcial. Mesclar funcionalidade. | Médio | URL `/memcofre/memoria` precisa Route::redirect 301 pra `/kb/memoria` ou `/copiloto/memoria` (decidir) |
+| 6 | `ModuloController` (ver requisitos consolidados por módulo) | SRS/Http/Controllers/ModuloController.php | **Modules/Governance** | Governance `contains: ModuleGradeController` + `routes: GET /governance/module-grades/{name}`. Vista por módulo de requirements/coverage = governance, não chat. | Médio | Mapear `docs_requirements` cache → SPEC.md fonte canônica via MCP (não bate 1:1) |
+| 7 | `DashboardController` (overview SRS) | SRS/Http/Controllers/DashboardController.php | **descontinuar** | Substituído por `Modules/Governance/DashboardController` (KPIs ADR + audit + drift). SRS dashboard é variante zumbi. | Trivial | Route::redirect 301 `/memcofre` → `/governance` |
+| 8 | `DataController::modifyAdminMenu` + `superadmin_package` + `user_permissions` | SRS/Http/Controllers/DataController.php | **descontinuar** | Sidebar entry "Cofre de Memórias" + permission `memcofre_module` desativam após E5. Bookmarks 301. | Trivial | Update `permissions` table: `memcofre.access` mantém compat até E5 |
+| 9 | `InstallController` (Install/Uninstall hooks) | SRS/Http/Controllers/InstallController.php | **descontinuar** (E5) | Padrão UltimatePOS Install — quando módulo deixa de existir, hooks vão junto. | Trivial | — |
+| 10 | `DocValidator` service + 5 checks doc integrity | SRS/Services/DocValidator.php | **Modules/Governance** | Governance `DriftAlertsController — runtime scan SCOPE.md vs filesystem real + persisted alerts cron`. DocValidator é versão "lite" do mesmo workflow. Mesclar checks. | Grande | Re-mapear 5 checks (STORY_ORPHAN/RULE_NO_TEST/ADR_DANGLING/PAGE_NO_META/PAGE_STALE) pra schema `mcp_drift_alerts` |
+| 11 | `ModuleAuditor` service + 15 checks (C01-C15) | SRS/Services/ModuleAuditor.php | **Modules/Governance** | Sobreposição direta com `ModuleGradeController` (rubrica v3/v4 9 dimensões). 15 checks do ModuleAuditor são subset granular das dimensões D1-D9. | Grande | Decidir se 15 checks viram sub-dimensões ou se descontinua (rubrica v3 já cobre na prática) |
+| 12 | `MemoryReader` service (lê primer/project/claude) | SRS/Services/MemoryReader.php | **Modules/KB** | KB acessa `mcp_memory_documents` que já tem snapshot git. MemoryReader vira leitor canon. | Médio | Path `~/.claude/.../memory/` fora do repo — manter ler local OU forçar migração pra `mcp_memory_documents` only |
+| 13 | `RequirementsFileReader` (parser memory/requisitos/<X>/*.md) | SRS/Services/RequirementsFileReader.php | **app/Services** (root, já tem `ModuleRequirementsGenerator`) | Já existe `app/Services/ModuleRequirementsGenerator.php` (irmão). Consolidar. | Médio | Refactor namespace + reaproveitar parser (ModuleRequirementsGenerator gera, RequirementsFileReader lê — complementares) |
+| 14 | `DocRetentionCleaner` service (Wave 18 stub) | SRS/Services/DocRetentionCleaner.php | **Modules/Governance** OU **descontinuar** | Service ainda é stub (sem comando agendado). Se Governance absorver `docs_validation_runs`, retention vai junto. Se ARCHIVE all, descontinuar. | Trivial | Decisão depende de Fase 3 tabelas |
+| 15 | `Entities/DocSource` | SRS/Entities/DocSource.php | **Modules/KB** (`KbSource` ou consolidar com `KbNode.kind=source`) | KB já tem `kb_nodes` (artigos + bridge canônico). Source = subset semântico. | Médio | Migration tabela `docs_sources` → `kb_sources` OR insert as `kb_nodes` com `kind=source` |
+| 16 | `Entities/DocEvidence` (Searchable, FULLTEXT) | SRS/Entities/DocEvidence.php | **Modules/KB** → tabela `mcp_memory_documents` | KB owns `mcp_memory_documents` com FULLTEXT + Meilisearch hybrid embedder. DocEvidence é cópia legacy. Migrar conteúdo + dropar FULLTEXT duplicado. | Grande | Re-criar FULLTEXT em `mcp_memory_documents` (custoso — tabela já tem indexes; verificar não colidir) |
+| 17 | `Entities/DocChatMessage` (PII content) | SRS/Entities/DocChatMessage.php | **Modules/Jana** → tabela nova `jana_chat_corpus_messages` | Jana owns `jana_memoria_*` tables. Chat history SRS é caso especial corpus-scoped. | Médio | PII LGPD: re-run PiiRedactor antes de INSERT migration |
+| 18 | `Entities/DocPage` (cache .tsx ↔ stories) | SRS/Entities/DocPage.php | **descontinuar** | Substituído por `Modules/KB/kb_nodes` (artigos editáveis) + module-grade-v3 D3 docs internas. Cache `.tsx ↔ stories` deduplica com charter (`<Tela>.charter.md` ao lado do `.tsx`). | Trivial | Migration drop tabela; remover SyncPagesCommand schedule |
+| 19 | `Entities/DocRequirement` + `DocLink` (cache US-XXX-NNN) | SRS/Entities/DocRequirement.php | **❓ ORPHAN — Wagner decide** | Cache opcional `external_id UNIQUE` (US-ESSE-001, R-ESSE-007). Fonte canônica é `memory/requisitos/<X>/SPEC.md` via MCP server (`mcp_memory_documents`). Cache pode ser descontinuado SE Wagner aceitar query lenta no MCP. | Trivial | Decisão produto — query latency MCP vs cache SQL |
+| 20 | `Entities/DocValidationRun` (audit append-only) | SRS/Entities/DocValidationRun.php | **`mcp_audit_log`** (canon TeamMcp + trigger MySQL) | TeamMcp owns `mcp_audit_log` (mantém append-only com trigger; UI Fase 5 fica em Modules/Governance). Run records cabem como audit entries. | Médio | Schema mapping `docs_validation_runs.issues_critical/health_score` → `mcp_audit_log.payload` JSON |
+| 21 | `Console: memcofre:sync-memories` (cron daily 23:00) | SRS/Console/Commands/SyncMemoriesCommand.php | **Modules/KB** (`kb:sync-memories`) OU **descontinuar** | MCP webhook git→DB já cobre sync de `memory/*`. Sync local `~/.claude/.../memory/` → repo (one-way) ainda útil. Decidir: KB absorve ou Wagner roda manual. | Médio | Schedule entry em `app/Console/Kernel.php` MIGRA NO MESMO PR — não pode esquecer |
+| 22 | `Console: memcofre:audit-module` (ModuleAuditor driver) | SRS/Console/Commands/AuditModuleCommand.php | **Modules/Governance** | Cobre subset de `php artisan module:grade <X>` (canon Wave 25+). | Trivial | Renomear pra `governance:audit-module-legacy` ou descontinuar |
+| 23 | `Console: memcofre:gen-test` | SRS/Console/Commands/GenTestCommand.php | **descontinuar** | Code-gen experimental sem uso documentado. | Trivial | — |
+| 24 | `Console: memcofre:install-hooks` | SRS/Console/Commands/InstallHooksCommand.php | **descontinuar** | Install hooks já vivem em `SRS/Http/Controllers/InstallController.php` (E5 elimina). | Trivial | — |
+| 25 | `Console: memcofre:migrate-module` | SRS/Console/Commands/MigrateModuleCommand.php | **descontinuar** | Migration de schema doc-ingest — fim da utilidade ao deprecar. | Trivial | — |
+| 26 | `Console: srs:health` (`SrsHealthCommand`) | SRS/Console/Commands/SrsHealthCommand.php | **Modules/Jana** (`jana:health-check` canon) | `jana:health-check` daily 06:00 é canon health do projeto. SrsHealthCommand é redundância. | Trivial | Mesclar checks SRS-specific em `jana:health-check` se relevante OU descontinuar |
+| 27 | `Console: memcofre:validate` (DocValidator driver) | SRS/Console/Commands/ValidateCommand.php | **Modules/Governance** | Mesma lógica do ModuleAuditor — drift detection canon. | Trivial | Renomear ou descontinuar |
+| 28 | `Console: memcofre:sync-pages` (SyncPagesCommand) | SRS/Console/Commands/SyncPagesCommand.php | **descontinuar** | DocPage cache será dropado (item 18). Command sem destino. | Trivial | Verificar se há schedule cron — provavelmente NÃO (não listado em Kernel.php LIDO) |
+| 29 | Lang `memcofre.php` + topnav `Cofre de Memórias` | SRS/Resources/lang/pt/memcofre.php + menus/topnav.php | **descontinuar** | Sidebar entry removida em E5; topnav legacy 301. | Trivial | — |
+| 30 | Compat layer `memcofre.*` URLs/permissions | SRS/Http/routes.php + DataController.php | **Route::redirect 301 PRESERVE indefinido** | Wagner bookmarks `/memcofre/*` documentados em SCOPE Fase 3.7 PR-2 — pattern Tier 0 IRREVOGÁVEL pra preservar. Permissions `memcofre.access` mantidas até E5+30d. | Trivial | — |
 
 **SEM `❓ ORPHAN` sem decisão exceto item 19 (DocRequirement+DocLink) — Wagner decide se cache SQL ou query lenta MCP.**
 
@@ -339,9 +339,9 @@ Modules\SRS\Entities\DocSource                 → Modules\KB\Entities\KbSource
 'memcofre.chat'    → ADD ALIAS 'jana.chat-corpus.use'
 
 # Tests migrar:
-Modules/SRS/Tests/Feature/MultiTenantIsolationTest.php → Modules/KB/Tests/Feature/KbSourceMultiTenantIsolationTest.php
-Modules/SRS/Tests/Feature/SmokeRoutesTest.php          → Modules/KB/Tests/Feature/KbInboxSmokeTest.php
-Modules/SRS/Tests/Feature/Wave23/25/26/27/28*          → MIGRAR mas re-attribuição em module-grade-v3 (afeta nota SRS→0, KB ganha pontos)
+SRS/Tests/Feature/MultiTenantIsolationTest.php → Modules/KB/Tests/Feature/KbSourceMultiTenantIsolationTest.php
+SRS/Tests/Feature/SmokeRoutesTest.php          → Modules/KB/Tests/Feature/KbInboxSmokeTest.php
+SRS/Tests/Feature/Wave23/25/26/27/28*          → MIGRAR mas re-attribuição em module-grade-v3 (afeta nota SRS→0, KB ganha pontos)
 ```
 
 ### Receptor Modules/Jana — patches
@@ -403,7 +403,7 @@ $schedule->command('governance:validate-docs --all')->dailyAt('04:00')->withoutO
 | `app/Console/Kernel.php` | E3+E4: migration `memcofre:sync-memories` → `kb:sync-memories` (renomear comando, manter schedule) OR remover schedule e Wagner roda manual; documentar decisão |
 | `governance/module-grades-baseline.json` | E5: remover entry `"SRS": 58` OR marcar `deprecated_in: "0168-deprecate-srs"`; renames entry `MemCofre→SRS` permanece histórico |
 | `governance/buckets/_INDEX.md` | E5: SRS sai do bucket `functional_horizontal` count |
-| `Modules/SRS/CHANGELOG.md` | E0 (PRÉ-E1): **RESOLVER MERGE CONFLICT** Wave 28 vs Wave 27 (linhas `<<<<<<< HEAD` ativas) — esse conflito impede E1 limpo |
+| `SRS/CHANGELOG.md` | E0 (PRÉ-E1): **RESOLVER MERGE CONFLICT** Wave 28 vs Wave 27 (linhas `<<<<<<< HEAD` ativas) — esse conflito impede E1 limpo |
 
 ### MCP webhook git→DB sync impact
 
@@ -427,7 +427,7 @@ Recomendo **Opção B** — append-only canon (Wagner regra `proibicoes.md`).
 | R6 | **Webhook externo apontando pra `/memcofre/*`** — improvável (SRS é tool interna sem webhook documentado), mas Asaas/Inter/Meta WhatsApp/Pluggy callbacks podem ter URL legacy se Wagner configurou ad-hoc. | **Médio** | ❌ | Grep `routes.php` por endpoints `/api/memcofre/*` ou `/api/srs/*` (não encontrado em PRE-FLIGHT — confirmado zero). Auditoria manual painel Asaas/Inter/Meta antes de E4 (Wagner check). | E4 |
 | R7 | **6 saturation tests Wave 23/25/26/27/28 contam pra module-grade-v3 SRS hoje** — Migrar pra KB/Jana/Governance re-attribui pontos D1-D9 pra outros módulos. SRS module-grade vira `deprecated_in: 0168` mas KB/Jana/Governance vão SUBIR de bucket. Wagner pode não querer (regressão visual de score). | **Médio** | ❌ | Pre-flight E5: rodar `php artisan module:grade KB --json` + Jana + Governance antes/depois pra documentar delta nota. Update `governance/module-grades-baseline.json` consciente em E5. | E5 |
 | R8 | **Time MCP entrante (Felipe/Maiara/Eliana/Luiz) tokens scoped `memcofre.*`** — Spatie permissions com scope `memcofre.access` em `mcp_user_scopes`. Após E5 alias `kb.sources.read` ativa, tokens legacy quebram acesso. | **Médio** | ❌ | Seeder de E4 PRESERVA atribuições — `$user->givePermissionTo('kb.sources.read')` pra cada user que tinha `memcofre.access`. Pest test `User::find($id)->can('kb.sources.read') === true`. Comunicação Slack Wagner→time avisando aliases ativos. | E4 |
-| R9 | **MERGE CONFLICT ATIVO em `Modules/SRS/CHANGELOG.md`** — linhas `<<<<<<< HEAD` Wave 28 vs `>>>>>>> origin/main` Wave 27 não resolvidos. Bloqueia E0/E1 clean. | **Alto** | ❌ | E0 pré-E1 PR separado dedicado: resolver merge conflict CHANGELOG mantendo append-only (ambas waves coexistem em ordem cronológica decrescente). Skill `governance-pr-summary` (Tier B) check. | E0 |
+| R9 | **MERGE CONFLICT ATIVO em `SRS/CHANGELOG.md`** — linhas `<<<<<<< HEAD` Wave 28 vs `>>>>>>> origin/main` Wave 27 não resolvidos. Bloqueia E0/E1 clean. | **Alto** | ❌ | E0 pré-E1 PR separado dedicado: resolver merge conflict CHANGELOG mantendo append-only (ambas waves coexistem em ordem cronológica decrescente). Skill `governance-pr-summary` (Tier B) check. | E0 |
 | R10 | **Module renames legacy entries em `governance/module-grades-baseline.json`** — entry `"MemCofre": {new_name: "SRS"}` permanece histórico. Se E5 remover SRS sem entry follow-up `"SRS": {new_name: null, deprecated_in: "0168"}`, baseline fica inconsistente (rubrica espera todos modules vivos). | **Médio** | ❌ | E5 PR atualiza baseline: substituir `"SRS": 58` por `"SRS": {"status": "deprecated", "deprecated_in": "0168-deprecate-srs", "successor": ["KB", "Jana", "Governance"]}`. CI `module-grades-gate.yml` ajustado pra ignorar deprecated modules. | E5 |
 
 ---
@@ -437,12 +437,12 @@ Recomendo **Opção B** — append-only canon (Wagner regra `proibicoes.md`).
 | Etapa | Tipo PR | LOC est. | Pré-req | Gate Wagner | ETA dias úteis |
 |---|---|---|---|---|---|
 | **E0** | hotfix (PR docs) | ~30 | Plano aprovado | Resolver merge conflict CHANGELOG.md (Wave 28+27) — pré-E1 limpo | 0.5d |
-| **E1** | docs only (PR) | ~80 | E0 mergeado | Promove ADR proposal `memory/decisions/proposals/deprecate-srs.md` → `memory/decisions/0168-deprecate-srs.md` `status: accepted` + `supersedes: [0080]`. Atualiza `Modules/SRS/SCOPE.md` frontmatter com `lifecycle: deprecating, deprecated_by: 0168`. | 1d |
+| **E1** | docs only (PR) | ~80 | E0 mergeado | Promove ADR proposal `memory/decisions/proposals/deprecate-srs.md` → `memory/decisions/0168-deprecate-srs.md` `status: accepted` + `supersedes: [0080]`. Atualiza `SRS/SCOPE.md` frontmatter com `lifecycle: deprecating, deprecated_by: 0168`. | 1d |
 | **E2** | docs/comments only (PR) | ~50 | E1 mergeado | Adiciona PHPDoc `@deprecated since 2026-05-17, será removido em E5, use \Modules\KB\... ou \Modules\Jana\... instead` em CADA Controller/Service/Entity de SRS (15 classes). Review code Wagner. **Não muda comportamento.** | 1d |
 | **E3** | feat/data migration (PR) | ~280 | E2 mergeado + staging dump validado | Migrations T1 MIGRATE → kb_sources, T2 MIGRATE → mcp_memory_documents (FULLTEXT cuidado R4), T3 MIGRATE → jana_chat_corpus_messages (PII redact R1), T4 ARCHIVE+MIGRATE → mcp_audit_log, T5/T6 ARCHIVE, T7 DROP. Inclui `mysqldump` script + Pest cross-tenant (R2) biz=1/99 ANTES/DEPOIS. Schedule cron migration (R3) `memcofre:sync-memories` → `kb:sync-memories`. **NÃO toca código de Controllers/Services ainda — só DB layer.** | 5-7d |
 | **E4** | refactor (PR) | ~280 | E3 mergeado + LGPD audit + cross-tenant Pest green | Namespace refactor 15 classes SRS→KB/Jana/Governance. Route::redirect 301 (R5) em 8 URLs. Permissions Spatie ALIAS preservando atribuições (R8). SCOPE.md de 3 receptores atualizado (`contains` + `url_prefixes` + `db_tables_owned`). Pest tests migrados (Waves 23/25/26/27/28 reatribuídas — R7 documenta delta). Skills/agents/rules atualizados. **Smoke `curl -sv` cada URL crítica** (`smoke-prod-evidence` Tier B). Canary biz=4 ROTA LIVRE 24h (mesmo SRS sendo tool interna, biz=4 não pode UI quebrada). | 7-10d |
-| **E5** | chore (PR) | ~150 | E4 30d estável + zero Sentry/log error apontando `/memcofre/*` | `git rm -r Modules/SRS/` (preserva CHANGELOG histórico em `memory/requisitos/_archive/SRS/CHANGELOG.md`). Remove entry `bootstrap/providers.php` + `module.json` SRS. Remove schedule `memcofre:sync-memories` se decidido descontinuar (R3 follow-up). Update `governance/module-grades-baseline.json` SRS → deprecated entry (R10). Update `governance/buckets/_INDEX.md` count. Seeder cleanup permissions `memcofre.*` órfãs (R8). **Storage criptografado:** `governance/archive/srs-docs-*.sql.gz` preservado per LGPD retention (T4 365d, T5 1825d). | 30d wait + 2d code |
-| **E6** | docs (PR) | ~100 | E5 mergeado | Update final: `Modules/SRS/SCOPE.md` status `deprecated`, `lifecycle: historical`. `memory/requisitos/SRS/BRIEFING.md` estado final ("deprecado em ADR 0168 — sucessor MCP server + KB + Jana + Governance"). `memory/08-handoff.md` entry append-only (ADR 0167 canônico checklist). `memory/proibicoes.md` entry nova: "NÃO criar features novas em `Modules/SRS` deprecated em ADR 0168". | 1d |
+| **E5** | chore (PR) | ~150 | E4 30d estável + zero Sentry/log error apontando `/memcofre/*` | `git rm -r SRS/` (preserva CHANGELOG histórico em `memory/requisitos/_archive/SRS/CHANGELOG.md`). Remove entry `bootstrap/providers.php` + `module.json` SRS. Remove schedule `memcofre:sync-memories` se decidido descontinuar (R3 follow-up). Update `governance/module-grades-baseline.json` SRS → deprecated entry (R10). Update `governance/buckets/_INDEX.md` count. Seeder cleanup permissions `memcofre.*` órfãs (R8). **Storage criptografado:** `governance/archive/srs-docs-*.sql.gz` preservado per LGPD retention (T4 365d, T5 1825d). | 30d wait + 2d code |
+| **E6** | docs (PR) | ~100 | E5 mergeado | Update final: `SRS/SCOPE.md` status `deprecated`, `lifecycle: historical`. `memory/requisitos/SRS/BRIEFING.md` estado final ("deprecado em ADR 0168 — sucessor MCP server + KB + Jana + Governance"). `memory/08-handoff.md` entry append-only (ADR 0167 canônico checklist). `memory/proibicoes.md` entry nova: "NÃO criar features novas em `SRS` (módulo removido) deprecated em ADR 0168". | 1d |
 | **Total** | — | **~970** | — | — | **~47d** (com 30d wait E5) |
 
 ---
@@ -452,7 +452,7 @@ Recomendo **Opção B** — append-only canon (Wagner regra `proibicoes.md`).
 ```yaml
 ---
 id: 0168
-title: Deprecar Modules/SRS — sucessor MCP server canon + KB + Jana + Governance
+title: Deprecar módulo SRS — sucessor MCP server canon + KB + Jana + Governance
 status: proposed
 date: 2026-05-17
 deciders: [Wagner]
@@ -463,7 +463,7 @@ tags: [deprecation, governance, multi-tenant, modular]
 
 # Contexto
 
-Modules/SRS (ex-MemCofre, rename PHP-only Fase 3.7 PR-2 em 2026-05-06) entrou em estado ZUMBI:
+módulo SRS (ex-MemCofre, rename PHP-only Fase 3.7 PR-2 em 2026-05-06) entrou em estado ZUMBI:
 - `SCOPE.md` 2026-05-05 prevê repurpose "cofre → System Rules Spec" com `srs_entries` table append-only + trigger MySQL — **nunca executado**. Entities ainda `Doc*`, tabelas ainda `docs_*`.
 - `BRIEFING.md` 2026-05-16 admite: "Substituído na prática pelo MCP server canon (mcp.oimpresso.com). ❌ Não investir em features novas. Avaliar deprecação."
 - Cliente piloto ROTA LIVRE biz=4 não interage com SRS (D5 `na_justified` no SPEC.md).
@@ -474,7 +474,7 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 
 # Decisão
 
-**Deprecar `Modules/SRS` em 6 etapas (E0-E6, ~47 dias úteis incluindo 30d wait pós-E4), distribuindo features e dados pra:**
+**Deprecar `SRS` (módulo removido) em 6 etapas (E0-E6, ~47 dias úteis incluindo 30d wait pós-E4), distribuindo features e dados pra:**
 
 | Feature | Receptor |
 |---|---|
@@ -510,7 +510,7 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 
 - [memory/requisitos/SRS/DEPRECATION-PLAN.md](../requisitos/SRS/DEPRECATION-PLAN.md) — este plano
 - [memory/requisitos/SRS/BRIEFING.md](../requisitos/SRS/BRIEFING.md) — declaração 2026-05-16 "substituído na prática"
-- [Modules/SRS/SCOPE.md](../../Modules/SRS/SCOPE.md) — transition_plan Fase 3.7 nunca executado
+- [SRS/SCOPE.md](../../SRS/SCOPE.md) — transition_plan Fase 3.7 nunca executado
 - [Modules/KB/SCOPE.md](../../Modules/KB/SCOPE.md) — receptor primário (mcp_memory_documents)
 - [Modules/Jana/SCOPE.md](../../Modules/Jana/SCOPE.md) — receptor chat IA
 - [Modules/Governance/SCOPE.md](../../Modules/Governance/SCOPE.md) — receptor validation/drift
@@ -563,7 +563,7 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 
 ### Configs/runbooks referenciados
 - [app/Console/Kernel.php §34-46](../../../app/Console/Kernel.php) — schedule `memcofre:sync-memories`
-- `Modules/SRS/Config/retention.php` — janelas LGPD (arquivo REMOVIDO na E5; sem link, o alvo não existe mais)
+- `SRS/Config/retention.php` — janelas LGPD (arquivo REMOVIDO na E5; sem link, o alvo não existe mais)
 - [governance/module-grades-baseline.json linha 40](../../../governance/module-grades-baseline.json) — `"SRS": 58`
 - [governance/buckets/_INDEX.md](../../../governance/buckets/_INDEX.md) — bucket `functional_horizontal`
 - [memory/requisitos/Infra/RUNBOOK-acesso-ct100.md](../Infra/RUNBOOK-acesso-ct100.md) (ref — SSH CT 100 pra rodar mysqldump E3)

@@ -34,9 +34,9 @@ E nunca copia markup de uma tela pra outra
 
 **Por quê**: consistência visual + acessibilidade embutida + manutenção centralizada.
 
-**Testado em:** _pendente_
+**Testado em:** `tests/Unit/DesignSystemAuditTest.php` (R-DS-001, ratchet) — ⚠️ **em quarentena** (`@group legacy-quarantine`), então não roda no CI hoje.
 
-> Histórico: este campo apontava para um teste marcado "(futuro)" que **nunca existiu**, num módulo removido em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — era teste-fantasma. Quem cobre a regra hoje é o `ds-gate` (lint DS). O caminho morto saiu do campo de propósito: dentro dele, o `anchor-lint` o conta como `dead_test`.
+> Histórico: o campo apontava para um caminho sob o módulo removido (ADR 0357) marcado "(futuro)" — esse caminho **nunca existiu** em 5.940 commits. Mas a cobertura **existe** em `tests/Unit/DesignSystemAuditTest.php` (nascido 2026-05-07, PR #187), cujo docblock diz que foi criado justamente para fechar o débito deste SPEC. **Não é o `ds-gate`** — medido: o `ui:lint` tem R1–R7 (cor crua, FontAwesome, emoji, PageHeader, origins, whitespace, bundle) e **nenhuma regra de `<button>` cru**; o ESLint `ds/no-os-btn` olha classe de shell, não o elemento.
 
 ### R-DS-002 · Cores sempre via tokens semânticos
 

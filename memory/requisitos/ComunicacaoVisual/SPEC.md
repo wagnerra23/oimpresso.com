@@ -1068,7 +1068,7 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 - [ ] Implementa interface `NfseDriver` em `Modules/NfeBrasil/Services/NfseDrivers/NfseDriverFloripa.php`
 - [ ] SOAP request ABRASF v2.04 → endpoint sandbox Floripa
 - [ ] Retry exponencial 24h se SEFAZ/prefeitura down
-- [ ] Cert A1 lido do **Vaultwarden** (`vault.oimpresso.com`) — antes dizia o módulo `SRS`, que nunca guardou credencial e foi removido (ADR 0357)
+- [ ] Cert A1 lido de **`Modules/NfeBrasil`** — tabela `nfe_certificados` via `CertificadoService` (`.pfx` encrypted em `storage/app/nfe-brasil/{biz}/cert/`, senha por `Crypt::encryptString`). Antes dizia o módulo `SRS`, que nunca guardou credencial e foi removido (ADR 0357)
 - [ ] Pest: mock SOAP success path + 3 error paths (cert vencido, payload inválido, rejeitada)
 - [ ] Smoke biz=gold real (se SC) ou biz=99 sandbox
 

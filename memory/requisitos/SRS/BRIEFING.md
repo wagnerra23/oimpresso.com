@@ -9,7 +9,7 @@ related_adrs: [0357-deprecar-srs-sucessor-kb-jana-governance, 0053-mcp-server-go
 lifecycle: arquivado
 ---
 
-# BRIEFING — Modules/SRS (REMOVIDO)
+# BRIEFING — módulo SRS (REMOVIDO)
 
 > **Estado:** ⚰️ **REMOVIDO em 2026-07-29** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — 63 arquivos deletados, 7 tabelas `docs_*` dropadas por migration. **O código não existe mais.** | **Owner:** [W]
 >
@@ -21,7 +21,7 @@ lifecycle: arquivado
 
 ## O que é
 
-**SRS = Software Requirements System.** Ferramenta interna do Wagner pra ingerir documentação (PDF/Markdown/HTML/URL), indexar em FULLTEXT MySQL, fazer search hybrid + chat assistido sobre o corpus e gerar relatórios de cobertura de requisitos. Convive com prefix `memcofre` por herança da fase anterior (cofre de docs na época em que a pasta ainda se chamava `MemCofre`, antes do rename pra `Modules/SRS`).
+**SRS = Software Requirements System.** Ferramenta interna do Wagner pra ingerir documentação (PDF/Markdown/HTML/URL), indexar em FULLTEXT MySQL, fazer search hybrid + chat assistido sobre o corpus e gerar relatórios de cobertura de requisitos. Convive com prefix `memcofre` por herança da fase anterior (cofre de docs na época em que a pasta ainda se chamava `MemCofre`, antes do rename pra `SRS` (módulo removido)).
 
 ## Por que existe
 
@@ -66,7 +66,7 @@ Recibo e detalhe em [DEPRECATION-PLAN §Reconciliação 2026-07-29](DEPRECATION-
 
 ## Estado de testes
 
-10 arquivos Pest em `Modules/SRS/Tests/Feature/` (não 3 — a lista de 2026-05-16 estava stale):
+10 arquivos Pest em `SRS/Tests/Feature/` (não 3 — a lista de 2026-05-16 estava stale):
 - Núcleo: `MultiTenantIsolationTest` · `ScaffoldTest` · `SmokeRoutesTest` · `ObservabilityTest` · `RetentionPolicyTest`
 - Saturação governance: `Wave23SaturationTest` · `Wave25CrossTenantSaturationTest` · `Wave26SaturationTest` · `Wave27PolishTest` · `Wave28SaturationTest`
 

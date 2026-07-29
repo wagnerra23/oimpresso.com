@@ -178,7 +178,8 @@ Validação: **Vargas é candidato piloto qualificado** mas charter antecipatór
 | `Modules/Whatsapp` | Webhook Meta Cloud API pra US-AP-011 + opt-in cliente | consome |
 | `Modules/OficinaAuto` | **Reuso futuro shared infra** — catálogo `pecas` + `aplicacoes` (chassis/ano/modelo) extraível como pacote shared quando OficinaAuto ativar | consome (futuro) |
 | `Modules/Vestuario` | **Reuso UI/Controller patterns** — venda balcão padrão, variação SKU multi-atributo (~30-40% reuso) | imita (não consome direto) |
-| **Vaultwarden** (não é módulo) | Cofre senhas (cert digital, login fornecedor, API DETRAN se ativar) — `vault.oimpresso.com`. Era o módulo `SRS`, atribuição errada; módulo removido (ADR 0357) | consome opcional |
+| `Modules/NfeBrasil` | **Cert digital A1** — `nfe_certificados` + `CertificadoService` (dono medido em prod) | consome |
+| _(sem dono definido)_ | Login fornecedor, API DETRAN se ativar — **decisão futura**. Antes atribuído ao módulo `SRS`, que nunca guardou credencial e foi removido (ADR 0357) | — |
 | Núcleo UltimatePOS | `business_id`, users, roles, locations, `transactions`, `products`, `contacts` | base |
 | API Bosch / Nakata / Fras-le (catálogo OEM) | Connector — sync periódico catálogo OEM open data ou parceria | externa (opcional fase 2) |
 

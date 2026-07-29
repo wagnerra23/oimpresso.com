@@ -1230,6 +1230,24 @@
       "erros_confirmados": 0,
       "error_rate_pct": 0,
       "veredito": "aprovado"
+    },
+    {
+      "pr": 5036,
+      "data": "2026-07-29",
+      "tipo": "anchors",
+      "gerador": "opus-5 (Claude Code, sessao da deprecacao SRS E5+E6)",
+      "refutador": "fable-5 (sessao fresca, tier superior — ciclo-adversary)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/5036 — parecer do refutador no comment de refutacao GT-G5",
+      "lote_id": "SRS-E5E6-saneamento-ghost-01",
+      "itens_verificados": 18,
+      "erros_confirmados": 7,
+      "error_rate_pct": 38.9,
+      "veredito": "reprovado",
+      "nota": "REPROVADO na 1a passada (38,9% >= 2%). Erro sistematico: substituicao uniforme Modules/SRS -> Vaultwarden aplicada SEM checar o dono real de cada credencial. 6 erros: cert digital A1 tem dono medido em prod = Modules/NfeBrasil (nfe_certificados + CertificadoService), nao Vaultwarden; e a ADR 0357 citada como fonte NAO menciona Vaultwarden (0 ocorrencias). 7o erro: afirmei que ds-gate cobre no_raw_buttons — medido, ui:lint tem R1-R7 e nenhuma regra de <button>; a cobertura real e tests/Unit/DesignSystemAuditTest.php R-DS-001, em quarentena. Os 7 foram corrigidos no mesmo PR; re-verificacao do lote inteiro registrada em entry separada (protocolo §2.6)."
     }
   ]
 }
