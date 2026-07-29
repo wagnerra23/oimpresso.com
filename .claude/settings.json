@@ -242,6 +242,15 @@
             "command": "node .claude/hooks/vista-publicada-padrao.mjs"
           }
         ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/doc-fora-do-rag.mjs"
+          }
+        ]
       }
     ],
     "PostToolUse": [
