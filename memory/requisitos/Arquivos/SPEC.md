@@ -161,8 +161,8 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 ### US-ARQ-025 · Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
 **Implementado em:** _pendente_ — `mcp_task_attachments` não migrado; consolidação sha256 com `arquivos_dedupe` não feita
 
-### US-ARQ-026 · Migrar `Modules/SRS/DocSource` (knowledge base — volume crescente) `p1`
-**Implementado em:** _pendente_ — `docs_sources.storage_path` não migrado para `arquivos`
+### ~~US-ARQ-026 · Migrar o antigo `SRS/DocSource` (knowledge base — volume crescente)~~ `cancelada`
+**Implementado em:** _pendente_ — **US CANCELADA em 2026-07-29** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)). Não há o que migrar: medido em produção, `docs_sources` tinha **0 linhas** — o "volume crescente" da premissa nunca existiu. O módulo e a tabela foram removidos na E5.
 
 ### Sprint 5 (deferred)
 

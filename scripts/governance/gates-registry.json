@@ -266,6 +266,13 @@
       "promote_by": "2026-07-31",
       "anchor": "Essentials (folha/RH) não tinha lane MySQL de PR (modules-pest.yml matrix não inclui, sem *-pest.yml próprio) — testes cross-tenant Tier 0 só rodavam no CT100 nightly, invisíveis a todo merge. Nasce com SalesTargetShiftCrossTenantTest (follow-up #4474 ScopeByBusinessViaParent): fecha IDOR de write com id cru do body em SalesTarget::saveSalesTarget/Shift::postAssignUsers (o backstop de scope não cobre INSERT). Advisory (skip-as-pass, mesmo padrão jana-pest/ponto-pest)."
     },
+    "officeimpresso-pest.yml": {
+      "nome": "Officeimpresso · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-10-31",
+      "anchor": "Mesma proibição Tier 0 do compras-pest ('Modules/X/Tests sem CI = falsa cobertura'), agora medida: varredura de .github/workflows/ em 2026-07-29 não achou NENHUMA menção a Officeimpresso — os testes estavam no phpunit.xml (linha 48) e nenhuma lane executava o diretório. Nasce com LicencasAcessoPermissionTest, que trava o gate de permissão do grupo /officeimpresso/*: até então pedia só `auth`, então qualquer autenticado — de qualquer business — listava as máquinas de TODOS os clientes e podia bloquear/liberar o Delphi de qualquer um pela URL direta (o menu escondia o link, o que não é autorização). Advisory (skip-as-pass, mesmo padrão essentials-pest/jana-pest); promoção a required é flip do [W] com mordida provada (ADR 0336)."
+    },
     "financeiro-pest.yml": {
       "nome": "Financeiro · Pest (MySQL)",
       "classe": "gate"

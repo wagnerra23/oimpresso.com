@@ -178,8 +178,10 @@ class GenerateModuleRequirementsCommand extends Command
         $md .= "2. **Fonte única da verdade funcional** — quando o código muda, atualizar o requisito.\n";
         $md .= "3. **Regerar** — `php artisan module:requirements` gera arquivos faltantes\n";
         $md .= "   sem sobrescrever edições manuais. Use `--force` com cuidado.\n";
-        $md .= "4. **Módulo SRS** (URL legacy `/memcofre`) consome esses arquivos e linka com evidências\n";
-        $md .= "   (screenshots de bug, chat logs, erros reportados).\n\n";
+        // O item 4 dizia que "Modules/SRS consome esses arquivos e linka com evidências".
+        // O módulo foi REMOVIDO em 2026-07-29 (ADR 0357) — manter a frase faria este
+        // comando GERAR prosa falsa em cada run. Sucessor do acervo: Modules/KB.
+        $md .= "4. **Acervo/busca** — `Modules/KB` (`kb_nodes` + `mcp_memory_documents`).\n\n";
 
         $md .= "---\n";
         $md .= "_Regerar índice: `php artisan module:requirements`_\n";

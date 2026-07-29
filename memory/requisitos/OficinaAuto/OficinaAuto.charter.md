@@ -160,7 +160,8 @@ Validação: **NENHUM CLIENTE PILOTO** (charter antecipatório). Personas basead
 | `Modules/Financeiro` | Visão unificada AR/AP de OSs; DRE simplificado | consome |
 | `Modules/Jana` (Jana) | Chat contextual + alertas + brief diário | consome |
 | `Modules/RecurringBilling` | Plano mensal da oficina (assinatura oimpresso) — não OSs finais | consome |
-| `Modules/SRS` | Cofre senhas (cert digital, login fornecedor de peças, API DETRAN) | consome opcional |
+| `Modules/NfeBrasil` | **Cert digital A1** — `nfe_certificados` + `CertificadoService` (dono medido em prod) | consome |
+| _(sem dono definido)_ | Login fornecedor de peças, API DETRAN — **decisão futura**. Antes atribuído ao módulo `SRS`, que nunca guardou credencial e foi removido (ADR 0357) | — |
 | Núcleo UltimatePOS | `business_id`, users, roles, locations, `transactions`, products, contacts | base |
 | API DETRAN/CRLV (externa) | Connector — consulta situação veicular sob opt-in cliente | externa |
 | Tabela Sindirepa (dataset) | Connector — tempária por serviço por região; sync periódico | externa |

@@ -4,8 +4,8 @@ id: requisitos-srs-deprecation-plan
 
 # DEPRECATION-PLAN — Modules/SRS
 
-> **Status:** 📋 Planejado · **Owner:** Wagner · **Sucessor canônico:** múltiplos (KB primário + Jana + TeamMcp/Governance + MCP server canon)
-> **Atualizado:** 2026-05-17 · **Gerado por:** agent `deprecar-modulo`
+> **Status:** ⚰️ **EXECUTADO em 2026-07-29** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — o módulo não existe mais: 63 arquivos removidos e as 7 tabelas `docs_*` dropadas por migration. A **E3 colapsou por medição** — as tabelas tinham **0 linhas de dado**; a única exceção era `docs_pages`, com **14 linhas de um seed morto** de 2026-04-26. · **Owner:** Wagner · **Sucessores:** KB (acervo) · Jana (chat) · Governance + `mcp_audit_log` (validação)
+> **Atualizado:** 2026-07-29 (execução) · **o corpo abaixo é de 2026-05-17 e fica preservado como registro do que se supunha em maio** · **Gerado por:** agent `deprecar-modulo`
 > **Decisão Wagner:** Caminho 1 (deprecar SRS) — BRIEFING.md 2026-05-16 já declarou "Substituído na prática pelo MCP server canon. ❌ Não investir em features novas."
 
 ---
@@ -563,7 +563,7 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 
 ### Configs/runbooks referenciados
 - [app/Console/Kernel.php §34-46](../../../app/Console/Kernel.php) — schedule `memcofre:sync-memories`
-- [Modules/SRS/Config/retention.php](../../../Modules/SRS/Config/retention.php) — janelas LGPD
+- `Modules/SRS/Config/retention.php` — janelas LGPD (arquivo REMOVIDO na E5; sem link, o alvo não existe mais)
 - [governance/module-grades-baseline.json linha 40](../../../governance/module-grades-baseline.json) — `"SRS": 58`
 - [governance/buckets/_INDEX.md](../../../governance/buckets/_INDEX.md) — bucket `functional_horizontal`
 - [memory/requisitos/Infra/RUNBOOK-acesso-ct100.md](../Infra/RUNBOOK-acesso-ct100.md) (ref — SSH CT 100 pra rodar mysqldump E3)

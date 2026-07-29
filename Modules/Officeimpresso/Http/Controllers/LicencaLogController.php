@@ -10,11 +10,42 @@ use Yajra\DataTables\Facades\DataTables;
 class LicencaLogController extends Controller
 {
     /**
+     * Autoriza a leitura do log de acesso das máquinas. Aceita `superadmin`
+     * (acesso histórico) OU a permissão delegável `officeimpresso.access`,
+     * concedida ao suporte com login próprio.
+     *
+     * Antes desta guarda o grupo /officeimpresso/* pedia só `auth` — qualquer
+     * usuário autenticado abria o log pela URL direta. O escopo por business
+     * abaixo já existia; o que faltava era a guarda de entrada.
+     */
+    private function authorizeAccess(): void
+    {
+        abort_unless($this->podeVerTodasEmpresas(), 403, 'Unauthorized action.');
+    }
+
+    /**
+     * Visão cross-empresa é legítima aqui POR DESIGN: a WR2 é a fornecedora do
+     * desktop e os clientes licenciados são os outros businesses. Quem dá
+     * assistência precisa ver a máquina do cliente, não a própria.
+     *
+     * Por isso `officeimpresso.access` habilita a visão de todas as empresas —
+     * sem ela o suporte enxergaria só o próprio business e não conseguiria
+     * atender ninguém (era o relato do Luiz em 29/07).
+     */
+    private function podeVerTodasEmpresas(): bool
+    {
+        return auth()->user()->can('superadmin')
+            || auth()->user()->can('officeimpresso.access');
+    }
+
+    /**
      * Lista de logs — pagina admin.
      */
     public function index(Request $request)
     {
-        if (! auth()->user()->can('superadmin')) {
+        $this->authorizeAccess();
+
+        if (! $this->podeVerTodasEmpresas()) {
             $business_id = session()->get('user.business_id');
         } else {
             // Superadmin pode filtrar por qualquer business via query string
@@ -262,6 +293,8 @@ class LicencaLogController extends Controller
      */
     public function timeline($licenca_id)
     {
+        $this->authorizeAccess();
+
         $maquina = \DB::table('licenca_computador as lc')
             ->leftJoin('business as b', 'b.id', '=', 'lc.business_id')
             ->where('lc.id', $licenca_id)
@@ -273,7 +306,7 @@ class LicencaLogController extends Controller
             ])->first();
         if (! $maquina) abort(404);
 
-        if (! auth()->user()->can('superadmin')) {
+        if (! $this->podeVerTodasEmpresas()) {
             abort_unless($maquina->business_id === session()->get('user.business_id'), 403);
         }
 
@@ -289,8 +322,10 @@ class LicencaLogController extends Controller
 
     public function show($id)
     {
+        $this->authorizeAccess();
+
         $log = LicencaLog::findOrFail($id);
-        if (! auth()->user()->can('superadmin')) {
+        if (! $this->podeVerTodasEmpresas()) {
             abort_unless($log->business_id === session()->get('user.business_id'), 403);
         }
         return response()->json([

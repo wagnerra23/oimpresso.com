@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **859 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **858 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -15,9 +15,9 @@
 | [`Governance`](#governance) | 45 | 0 | 0 | 3 | 42 |
 | [`Infra`](#infra) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
-| [`Arquivos`](#arquivos) | 26 | 0 | 0 | 0 | 26 |
 | [`NfeBrasil`](#nfebrasil) | 26 | 0 | 0 | 6 | 20 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
+| [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
@@ -483,38 +483,6 @@
 
 - **US-OFICINA-035** — DVI (Vistoria Digital · Digital Vehicle Inspection) schema + API — **P1** _(`p1`)_
 
-## Arquivos
-
-
-### todo
-
-- **US-ARQ-001** — Scaffold `Modules/Arquivos/` (módulo nWidart, skill `criar-modulo`) `p1`
-- **US-ARQ-002** — Migration `arquivos` (22 colunas, 5 índices; FKs business/user comentadas até validação homolog) `p1`
-- **US-ARQ-003** — Migration `arquivos_audit_log` + `arquivos_dedupe` `p1`
-- **US-ARQ-004** — Service `ArquivosService` (attach, classify, signedUrl, softDelete, restore, dedupe) `p0`
-- **US-ARQ-005** — Trait `HasArquivos` + Pest test polimorfismo (anexa em 3 models diferentes) `p1`
-- **US-ARQ-006** — `CuradorEngine.php` (port das 15+ regras de `lib/rules.mjs`) `p1`
-- **US-ARQ-007** — ParityTest JS×PHP (mesmo MD5+path → mesmo bucket — 30 fixtures) `p1`
-- **US-ARQ-008** — Storage disks config (`arquivos`+`vault`) + signed URL controller (expiração 1h, audit log) `p0`
-- **US-ARQ-009** — Pest tests (multi-tenant isolation, sensitive blocking, dedupe, soft-delete, audit log) `p0`
-- **US-ARQ-010** — Migration backfill: 1 fixture XML real → ingest via `attach()` → smoke validation `p1`
-- **US-ARQ-011** — API `POST /admin/arquivos/api/upload-batch` recebe JSONL do `scripts/curador/discover.mjs` `p1`
-- **US-ARQ-012** — Auth Bearer token gerado em `/admin/tokens` (escope `arquivos:write`) `p0`
-- **US-ARQ-013** — Page `Modules/Admin/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
-- **US-ARQ-014** — Page `Pages/Arquivos/Review.tsx` (substitui markdown `[x]` — checkbox UI, search, bulk-approve) `p1`
-- **US-ARQ-015** — Page `Pages/Arquivos/Detail.tsx` (preview MIME-aware: PDF embed, image, code highlight, JSON tree) `p2`
-- **US-ARQ-016** — Job `ApplyBatchJob` Horizon (recebe approved IDs, move pro storage final + dispara classification) `p1`
-- **US-ARQ-017** — Refactor `scripts/curador/apply.mjs` → vira "submit pro Admin API" (deixa de mexer filesystem direto) `p2`
-- **US-ARQ-018** — Widget Admin Center "Arquivos" (count por bucket, sensitive aguardando vault, métricas saúde) `p2`
-- **US-ARQ-019** — `Modules/NfeBrasil/Models/NfeXml` adota trait `HasArquivos` `p1`
-- **US-ARQ-020** — Migration backfill: NFe XMLs existentes em `storage/nfe/` → `arquivos` table com `arquivable=NfeXml` `p1`
-- **US-ARQ-021** — Smoke: novo NFe import → XML em `/var/lib/oimpresso-arquivos/biz-1/...` + audit log linha `p0`
-- **US-ARQ-022** — Officeimpresso UI lê NFe XML via `arquivable->arquivos()` (não path direto) — backward compat preservada `p1`
-- **US-ARQ-023** — Migrar `Modules/Financeiro/FinBoletoRemessa` (PDFs boleto gerados — volume razoável, baixo cliente-facing) `p1`
-- **US-ARQ-024** — Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance) `p1`
-- **US-ARQ-025** — Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
-- **US-ARQ-026** — Migrar `Modules/SRS/DocSource` (knowledge base — volume crescente) `p1`
-
 ## NfeBrasil
 
 
@@ -581,6 +549,37 @@
 - **US-RB-021** — Cobrar via Pix Automático autorizado
 - **US-RB-030** — Configurar régua de inadimplência
 - **US-RB-031** — Disparar régua quando cobrança falha
+
+## Arquivos
+
+
+### todo
+
+- **US-ARQ-001** — Scaffold `Modules/Arquivos/` (módulo nWidart, skill `criar-modulo`) `p1`
+- **US-ARQ-002** — Migration `arquivos` (22 colunas, 5 índices; FKs business/user comentadas até validação homolog) `p1`
+- **US-ARQ-003** — Migration `arquivos_audit_log` + `arquivos_dedupe` `p1`
+- **US-ARQ-004** — Service `ArquivosService` (attach, classify, signedUrl, softDelete, restore, dedupe) `p0`
+- **US-ARQ-005** — Trait `HasArquivos` + Pest test polimorfismo (anexa em 3 models diferentes) `p1`
+- **US-ARQ-006** — `CuradorEngine.php` (port das 15+ regras de `lib/rules.mjs`) `p1`
+- **US-ARQ-007** — ParityTest JS×PHP (mesmo MD5+path → mesmo bucket — 30 fixtures) `p1`
+- **US-ARQ-008** — Storage disks config (`arquivos`+`vault`) + signed URL controller (expiração 1h, audit log) `p0`
+- **US-ARQ-009** — Pest tests (multi-tenant isolation, sensitive blocking, dedupe, soft-delete, audit log) `p0`
+- **US-ARQ-010** — Migration backfill: 1 fixture XML real → ingest via `attach()` → smoke validation `p1`
+- **US-ARQ-011** — API `POST /admin/arquivos/api/upload-batch` recebe JSONL do `scripts/curador/discover.mjs` `p1`
+- **US-ARQ-012** — Auth Bearer token gerado em `/admin/tokens` (escope `arquivos:write`) `p0`
+- **US-ARQ-013** — Page `Modules/Admin/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
+- **US-ARQ-014** — Page `Pages/Arquivos/Review.tsx` (substitui markdown `[x]` — checkbox UI, search, bulk-approve) `p1`
+- **US-ARQ-015** — Page `Pages/Arquivos/Detail.tsx` (preview MIME-aware: PDF embed, image, code highlight, JSON tree) `p2`
+- **US-ARQ-016** — Job `ApplyBatchJob` Horizon (recebe approved IDs, move pro storage final + dispara classification) `p1`
+- **US-ARQ-017** — Refactor `scripts/curador/apply.mjs` → vira "submit pro Admin API" (deixa de mexer filesystem direto) `p2`
+- **US-ARQ-018** — Widget Admin Center "Arquivos" (count por bucket, sensitive aguardando vault, métricas saúde) `p2`
+- **US-ARQ-019** — `Modules/NfeBrasil/Models/NfeXml` adota trait `HasArquivos` `p1`
+- **US-ARQ-020** — Migration backfill: NFe XMLs existentes em `storage/nfe/` → `arquivos` table com `arquivable=NfeXml` `p1`
+- **US-ARQ-021** — Smoke: novo NFe import → XML em `/var/lib/oimpresso-arquivos/biz-1/...` + audit log linha `p0`
+- **US-ARQ-022** — Officeimpresso UI lê NFe XML via `arquivable->arquivos()` (não path direto) — backward compat preservada `p1`
+- **US-ARQ-023** — Migrar `Modules/Financeiro/FinBoletoRemessa` (PDFs boleto gerados — volume razoável, baixo cliente-facing) `p1`
+- **US-ARQ-024** — Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance) `p1`
+- **US-ARQ-025** — Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
 
 ## Inventory
 

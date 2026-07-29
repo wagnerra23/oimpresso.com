@@ -11,7 +11,7 @@ na_justified:
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci]
 ---
 
-# SPEC — Modules/SRS
+# SPEC — módulo SRS
 
 > **Atualizado 2026-05-16:** placeholder de 2026-05-04 substituído por SPEC realista do estado atual. Hipóteses A/B/C/D do placeholder foram resolvidas na prática — módulo virou ferramenta interna Wagner pra ingestão+search de documentação (versão lite do que o MCP server faz hoje).
 >

@@ -192,7 +192,10 @@ test('montar() Classe A com namespace IGUAL não injeta a nota de divergência',
 });
 
 test('cobertura: módulos vivos, Classe B e _Geral são obrigatórios', () => {
-  assert.equal(isSurfaceRequired('SRS'), true, 'SRS está active=1 e não pode ser pulado');
+  // Era `SRS` — removido na E5 da deprecação (ADR 0357, 2026-07-29). Trocado por
+  // `Repair`, que tem a MESMA propriedade que fazia o SRS servir de fixture aqui
+  // (`module.json.active = 1`), pra não trocar o ramo que este caso exercita.
+  assert.equal(isSurfaceRequired('Repair'), true, 'Repair está active=1 e não pode ser pulado');
   assert.equal(isSurfaceRequired('Produto'), true);
   assert.equal(isSurfaceRequired('Sells'), true);
   assert.equal(isSurfaceRequired('_Geral'), true);

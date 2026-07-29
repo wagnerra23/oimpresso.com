@@ -19,10 +19,14 @@ return [
     'label' => 'Office Impresso',
     'icon'  => 'Plug',
     'items' => [
-        ['label' => 'Empresas Licenciadas', 'href' => '/officeimpresso/businessall',        'icon' => 'Building2',      'can' => 'superadmin'],
-        ['label' => 'Computadores',         'href' => '/officeimpresso/computadores',       'icon' => 'Monitor'],
-        ['label' => 'Licenças',             'href' => '/officeimpresso/licenca_computador', 'icon' => 'KeyRound'],
-        ['label' => 'Clientes',             'href' => '/officeimpresso/client',             'icon' => 'UserCog',        'can' => 'superadmin'],
-        ['label' => 'Log de Acesso',        'href' => '/officeimpresso/licenca_log',        'icon' => 'ClipboardList'],
+        // `can` alinhado ao gate real dos controllers (abort_unless). Antes,
+        // Computadores/Licenças/Log não declaravam `can` nenhum e apareciam pra
+        // qualquer usuário no shell Inertia. Superadmin continua vendo tudo via
+        // bypass do Gate::before.
+        ['label' => 'Empresas Licenciadas', 'href' => '/officeimpresso/businessall',        'icon' => 'Building2',      'can' => 'officeimpresso.access'],
+        ['label' => 'Computadores',         'href' => '/officeimpresso/computadores',       'icon' => 'Monitor',        'can' => 'officeimpresso.access'],
+        ['label' => 'Licenças',             'href' => '/officeimpresso/licenca_computador', 'icon' => 'KeyRound',       'can' => 'officeimpresso.access'],
+        ['label' => 'Clientes',             'href' => '/officeimpresso/client',             'icon' => 'UserCog',        'can' => 'officeimpresso.clientes.liberar'],
+        ['label' => 'Log de Acesso',        'href' => '/officeimpresso/licenca_log',        'icon' => 'ClipboardList',  'can' => 'officeimpresso.access'],
     ],
 ];

@@ -2,18 +2,20 @@
 id: requisitos-srs-briefing
 module: SRS
 status: deprecated
-status_nota: "deprecação EM CURSO — E1 (ADR 0357) e E2 (@deprecated nas 33 classes) executadas em 2026-07-29. Módulo 100% presente e SERVINDO em prod (deprecating ≠ removido); E3-E6 gated por [W]. Medido em prod 2026-07-29: as 7 tabelas docs_* estão VAZIAS (só docs_pages tem 14 linhas de seed morto de 2026-04-26) — o módulo nunca foi usado. Sucessores: KB (acervo) · Jana (chat) · Governance (validação)."
+status_nota: "REMOVIDO em 2026-07-29 (ADR 0357). Ciclo E1→E6 fechado no mesmo dia; a E3 COLAPSOU por medição. Medido em prod: as 7 tabelas docs_* tinham 0 linhas de dado — a única exceção era docs_pages, com 14 linhas de um seed morto de 2026-04-26. O código não existe mais: 63 arquivos removidos e as tabelas dropadas por migration. Esta pasta é canon HISTÓRICO. Bookmarks /memcofre/* preservados por 301. Sucessores: KB (acervo) · Jana (chat) · Governance + mcp_audit_log (validação)."
 updated_at: "2026-07-29"
 owner: W
 related_adrs: [0357-deprecar-srs-sucessor-kb-jana-governance, 0053-mcp-server-governanca-como-produto, 0061-conhecimento-canonico-git-mcp-zero-automem, 0093-multi-tenant-isolation-tier-0]
-lifecycle: ativo
+lifecycle: arquivado
 ---
 
-# BRIEFING — Modules/SRS
+# BRIEFING — Modules/SRS (REMOVIDO)
 
-> **Estado:** 🔻 **em deprecação** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md), E1+E2 feitas em 2026-07-29) — segue **servindo em prod**, `deprecating` ≠ removido | **Atualizado:** 2026-07-29 | **Owner:** [W]
+> **Estado:** ⚰️ **REMOVIDO em 2026-07-29** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — 63 arquivos deletados, 7 tabelas `docs_*` dropadas por migration. **O código não existe mais.** | **Owner:** [W]
 >
-> ⛔ **Não abrir feature nova aqui.** Sucessores: `Modules\KB` (acervo) · `Modules\Jana` (chat) · `Modules\Governance` + `mcp_audit_log` (validação).
+> ⛔ **Não recriar.** Sucessores canônicos: `Modules\KB` (acervo/busca) · `Modules\Jana` (chat) · `Modules\Governance` + `mcp_audit_log` (validação). Se faltar capacidade de acervo, **estenda o KB**. Lápide em [`proibicoes.md` §5](../../proibicoes.md).
+>
+> Esta pasta sobrevive como **canon histórico** — registra por que o módulo existiu e por que saiu. Encontrá-la **não é** sinal de que ele deve voltar. Os caminhos `Modules/SRS/...` citados abaixo são **históricos**: descrevem código que foi removido.
 
 ## O que é
 
