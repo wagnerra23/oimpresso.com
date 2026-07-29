@@ -307,6 +307,27 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->password = bcrypt('test');
         $user->business_id = $bizId;
         $user->save();
+    } elseif ((int) $user->business_id !== $bizId) {
+        // BLOQUEADOR 3 (flaky 403 da lane KB, catalogado 2026-07-29): o `business_id` só era
+        // setado no ramo de CRIAÇÃO. Reutilizando o MESMO $userId em outro $bizId, o usuário
+        // ficava com o tenant da PRIMEIRA chamada enquanto a session() abaixo passava a dizer
+        // o tenant NOVO — usuário pertencendo a um business e sessão afirmando outro, que o
+        // `can:` do KbController resolvia como 403.
+        //
+        // Vazava porque o $userId default é 42 e DUAS chamadas usam `bizId: 99` sem userId
+        // explícito, em arquivos DIFERENTES: KbIndexV2ContractTest:131 (V5) e
+        // MultiTenantTraitTest:91. Sob executionOrder="random" (phpunit.xml:7), qualquer uma
+        // rodando antes de um teste de biz=1 contaminava o user 42 → 403 caindo em testes
+        // DIFERENTES a cada run (V4 num, V7 em outro), mesmo `403 ≠ 200`, mesmo placar
+        // `1 failed/14 skipped/101 passed`. Assinatura de flaky, não de regressão — e por
+        // isso sobreviveu aos BLOQUEADORES 1 e 2, que tratam o registry de PERMISSÕES e
+        // nunca alcançaram o tenant do próprio usuário.
+        //
+        // Contrato restaurado: kbActAsUser(bizId: N) devolve usuário DO business N. É
+        // contrato de TESTE — em produção usuário não troca de business.
+        // Bite-test: Modules/KB/Tests/Unit/KbActAsUserTenantTest.php
+        $user->business_id = $bizId;
+        $user->save();
     }
 
     // Isolamento do cache de DISCO do Spatie: CACHE_STORE=file → o PermissionRegistrar
