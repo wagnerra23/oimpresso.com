@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Storage;
 use Modules\Admin\Services\AdrAlertReader;
 use Modules\Admin\Services\BriefAdapter;
-use Modules\Admin\Services\CuradorStatsReader;
 use Modules\Admin\Services\CyclesAggregator;
 use Modules\Admin\Services\HealthSnapshotReader;
 use Modules\Admin\Services\McpServerHealthReader;
@@ -116,16 +115,6 @@ it('CyclesAggregator retorna stub quando tabelas ausentes', function () {
     expect($result)->toHaveKey('available');
     expect($result)->toHaveKey('cycles_active');
     expect($result)->toHaveKey('tasks_by_dev');
-});
-
-it('CuradorStatsReader retorna stub quando arquivos table ausente', function () {
-    $reader = new CuradorStatsReader();
-    $result = $reader->fetch();
-
-    expect($result)->toHaveKey('available');
-    expect($result)->toHaveKey('total_active');
-    expect($result)->toHaveKey('by_bucket');
-    expect($result)->toHaveKey('sensitive_count');
 });
 
 it('McpServerHealthReader sempre retorna estrutura ping mesmo timeout', function () {

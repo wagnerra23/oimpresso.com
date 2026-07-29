@@ -10,7 +10,7 @@ use Inertia\Response;
 use Modules\Admin\Services\AdrAlertReader;
 use Modules\Admin\Services\BrainBCostReader;
 use Modules\Admin\Services\BriefAdapter;
-use Modules\Admin\Services\CuradorStatsReader;
+use Modules\Arquivos\Services\Curador\CuradorStatsReader;
 use Modules\Admin\Services\CyclesAggregator;
 use Modules\Admin\Services\HealthSnapshotReader;
 use Modules\Admin\Services\InfraStatusReader;
