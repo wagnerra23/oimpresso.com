@@ -923,3 +923,32 @@ Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'AdminSideb
             ->whereNumber(['business', 'user'])
             ->name('suporte.empresas.acessar-como');
     });
+
+/*
+|--------------------------------------------------------------------------
+| Compat `/memcofre/*` — Modules/SRS removido na E5 (ADR 0357)
+|--------------------------------------------------------------------------
+| O módulo servia 7 telas em produção e o DEPRECATION-PLAN exige preservar os
+| bookmarks (risco R5). Sem estes 301 as URLs virariam 404 no primeiro deploy.
+|
+| Cada destino foi MEDIDO em `route:list` de produção — nenhum inventado:
+|
+|   /memcofre/chat            -> /ia                             Jana\ChatController@index
+|   /memcofre/memoria         -> /ia/memoria                     KB\MemoriaController@index
+|   /memcofre/inbox|ingest    -> /kb                             KB\KbController@index
+|   /memcofre/modulos/{x}     -> /governance/module-grades/{x}   Governance\ModuleGradeController
+|   /memcofre                 -> /governance                     dashboard de governança
+|
+| `/memcofre/install*` e `/srs/install*` NÃO ganham 301: instalar/desinstalar
+| um módulo que não existe mais não tem destino equivalente.
+|
+| Ordem importa: a rota mais específica precede o catch-all `/memcofre/{any?}`.
+*/
+Route::redirect('/memcofre/memoria', '/ia/memoria', 301);
+Route::redirect('/memcofre/chat', '/ia', 301);
+Route::redirect('/memcofre/inbox', '/kb', 301);
+Route::redirect('/memcofre/ingest', '/kb', 301);
+Route::get('/memcofre/modulos/{module}', function (string $module) {
+    return redirect('/governance/module-grades/' . $module, 301);
+})->where('module', '[A-Za-z][A-Za-z0-9_-]*');
+Route::redirect('/memcofre', '/governance', 301);
