@@ -5,14 +5,13 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **363** arquivos · **347** números únicos · máx **0357**
+- **363** arquivos · **348** números únicos · máx **0358**
 - **ADRs ATIVOS (lifecycle ativo): 327** ← resposta única a "quantos ADRs ativos"
 - Por status: aceito 328 · superseded 14 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 327 · arquivado 22 · substituido 14
 - Sem frontmatter (formato-tabela legado): 0
 
-## Colisões de número (14) — auto-detectadas
-- **0101** ×2: 0101-sistema-charter-capterra-governanca-escopo · 0101-tests-business-id-1-nunca-cliente
+## Colisões de número (13) — auto-detectadas
 - **0102** ×2: 0102-nfce-status-polling-vs-broadcast · 0102-s6-charter-capterra-postmortem-s7-backlog
 - **0119** ×2: 0119-migration-factory-capacidade-institucional · 0119-paralelismo-sessoes-whats-active-tier-1
 - **0126** ×2: 0126-mcp-jira-projects-modulos-verticais · 0126-vault-chunked-encryption-sprint-2
@@ -137,7 +136,6 @@ _(nenhuma)_
 | 0099 | aceito | ativo | decision | Modules/Project (legacy UltimatePOS) — Discovery pré-deletion (Fase 3.8) |
 | 0100 | aceito | ativo | decision | ProjectMgmt UI Redesign — Linear-tier UX em 4 fases capterra-driven |
 | 0101 | aceito | ativo | decision | Sistema Charter-Capterra — governança de escopo em 2 níveis × 3 eixos |
-| 0101 | aceito | ativo | decision | Tests SEMPRE business_id=1 (Wagner) — nunca cliente real, com guard CI |
 | 0102 | aceito | ativo | decision | US-NFE-002 fase 2C — UI status NFC-e via polling JSON (broadcast adiado) |
 | 0102 | aceito | ativo | decision | Sprint S6 Charter-Capterra postmortem + S7 backlog (5 itens, ~24h) |
 | 0103 | aceito | ativo | decision | Eventos fiscais Laravel separados por modelo NFe (NFeAutorizada / NFCeAutorizada |
@@ -402,3 +400,4 @@ _(nenhuma)_
 | 0355 | aceito | ativo | decision | Done-ness consolidada — a âncora fecha, o DoD aberto veta, o `status:` morre de  |
 | 0356 | aceito | ativo | errata | Errata à 0355 — o limiar do gate de reversão era um número inventado; troca por  |
 | 0357 | proposto | ativo | decision | Deprecar Modules/SRS — sucessores KB (acervo) + Jana (chat) + Governance (valida |
+| 0358 | aceito | ativo | decision | Doutrina de teste do sistema — tenant canônico biz=98 (fictício); supersede a 01 |

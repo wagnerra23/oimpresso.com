@@ -73,7 +73,7 @@ Acesso/deploy detalhado: [reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESS
 | **ComunicacaoVisual** | 1813-0/01 | 🟡 em construção | 6 candidatos OfficeImpresso |
 | **OficinaAuto** | 4520-0/01 | 🟡 piloto LIVE (prod biz=164) | Martinho (mecânica pesada, ~91 veículos) — é **reparo/mecânica**, nunca locação ([ADR 0265](decisions/0265-oficina-reparo-erradica-locacao.md)) |
 
-> ROTA LIVRE não é exceção — é o **caso piloto validado em prod há 2+ anos**. Testes/smoke usam **biz=1** (dogfooding), nunca biz=4 do cliente ([ADR 0101](decisions/0101-tests-business-id-1-nunca-cliente.md)).
+> ROTA LIVRE não é exceção — é o **caso piloto validado em prod há 2+ anos**. Teste automatizado usa o tenant **fictício biz=98**, nunca biz=4 do cliente e nem mais biz=1 (que é a WR2, empresa real) — [ADR 0358](decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md). Smoke fiscal manual contra SEFAZ homologação segue em biz=1 (certificado do próprio [W]).
 
 ### A6. Peças transversais que vale conhecer
 
