@@ -195,7 +195,12 @@ class MemoryReader
     {
         if (! preg_match('/^---\s*\n(.*?)\n---\s*\n/s', $content, $m)) return [];
         $out = [];
-        foreach (preg_split('/\R/', $m[1]) as $line) {
+        // `\R` do PCRE inclui NEL (0x85). SEM o modificador /u ele casa o BYTE 0x85 —
+        // que é byte de continuação de vários caracteres UTF-8 (ex.: `✅` = E2 9C 85).
+        // Resultado: o caractere é partido ao meio, o valor fica com UTF-8 inválido e
+        // `json_encode()` do payload devolve `false` → `data-page` vazio → TELA BRANCA.
+        // Foi o que derrubou `/memcofre/memoria` em produção (2026-07-29).
+        foreach (preg_split('/\R/u', $m[1]) as $line) {
             if (preg_match('/^(\w+):\s*(.*)$/', $line, $mm)) {
                 $out[$mm[1]] = trim($mm[2]);
             }
