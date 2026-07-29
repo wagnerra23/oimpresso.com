@@ -63,8 +63,8 @@ As tabelas abaixo resumem somente o necessário para executar. Quando houver div
 | Traces chegando | heartbeat construído | `jana:health-check` → `langfuse_trace_uptime_24h` | precisa de recibo autenticado de produção |
 | Trace ponta a ponta do chat | parcial | listener cobre a chamada ao modelo | cache hit, clarificação, persistência e erro SSE não compartilham um span raiz |
 | OTel no streaming | parcial | `emitirOtelGenAi()` existe no caminho bloqueante | streaming não chama emissão OTel explícita |
-| Avaliação online | ativação autorizada em 2026-07-29 | `JudgeTraceOnlineJob` + `OllamaRagasJudge` + `recordScore()` | falta recibo de score real pós-deploy |
-| Privacidade da avaliação | construída | juiz local + `PiiRedactor` | precisa smoke de infra com modelo de chat local disponível |
+| Avaliação online | ativada e provada em 2026-07-29 | `JudgeTraceOnlineJob` + worker CT 100 + `OllamaRagasJudge` + `recordScore()` | score segue advisory até calibração humana repetida |
+| Privacidade da avaliação | construída e coberta por teste | juiz local + `PiiRedactor` | smoke runtime usou entrada sintética; falta calibrar amostras reais contra revisão humana |
 | Feedback humano do chat | ausente no fluxo servido | não há vínculo mensagem → feedback → trace no chat | sem rótulo humano, faithfulness não prova resposta correta |
 | Produção → golden set | aberto | golden set e RAGAS offline existem | nenhum promotor revisado leva caso real confirmado ao corpus |
 | Mudança → comparação | parcial | baselines/gates RAGAS existem | não há vínculo obrigatório entre trace-causa, caso novo e delta antes/depois |
@@ -283,6 +283,10 @@ Não envolver `responderChatStream()` ingenuamente em `OtelHelper::spanBiz()`: o
 - o baseline controlado com o mesmo juiz avaliou 1 caso real, sem falha de infra, e mediu faithfulness `0,50`, abaixo do piso `0,65`; por isso o consumidor permanece advisory e nenhuma automação usa o score como verdade;
 - a ativação passou a rotear `JudgeTraceOnlineJob` para `database:jana-online-eval`, consumida por um worker dedicado no `docker/oimpresso-mcp/docker-compose.yml`;
 - `jana:health-check` passou a distinguir online-eval desligado, Langfuse não configurado/inacessível/ilegível, ausência de score e score recebido, sempre em modo advisory.
+- o PR #5005 foi mergeado como `f77fe1d9d`; Hostinger e CT 100 carregaram esse SHA;
+- um trace sintético, sem PII (`0595548c-5686-4519-8c5e-b8b4ad34eb5d`), atravessou a fila dedicada em 25 s e gravou `ragas_faithfulness_online=1` no Langfuse;
+- depois do smoke, a fila voltou a zero e `jana:health-check --json` mediu `online_eval_score_uptime_7d=1` com estado `ok`, advisory;
+- o recibo operacional completo vive em `memory/sessions/2026-07-29-ativacao-online-eval-local-ct100.md`; esta planta não recopia logs.
 
 **Ações**
 
@@ -601,7 +605,7 @@ Cada denominador deve vir da fonte dona. Ausência de instrumento aparece como �
 
 ## Decisões que permanecem com [W]
 
-1. ~~Autorizar `copiloto.online_eval.enabled=true` com juiz local.~~ Autorizado por [W] em 2026-07-29; falta recibo pós-deploy.
+1. ~~Autorizar e provar `copiloto.online_eval.enabled=true` com juiz local.~~ Ativado e provado por recibo sintético em 2026-07-29.
 2. Definir quem revisa feedback/candidatos e em qual cadência.
 3. Aprovar a persistência append-only de feedback de cliente.
 4. Escolher o primeiro recorte de rollout.
@@ -626,7 +630,7 @@ Cada denominador deve vir da fonte dona. Ausência de instrumento aparece como �
 | `DocumentChunker` (contextual retrieval) | `jana.contextual.chunk` | ✅ live | [DocumentChunker.php:34](../../../Modules/Jana/Services/Memoria/Contextual/DocumentChunker.php#L34) — não estava catalogado |
 | `LaravelAiSdkDriver::emitirOtelGenAi()` | `gen_ai.span` (OTel GenAI) | 🟡 blocking live | turno LLM bloqueante: tokens/custo/latência/erro + `gen_ai.business_id`; streaming não chama este método |
 | `LangfuseAgentTelemetryListener::onEnd()` | trace + generation | 🟡 construído, runtime depende de config | cobre `AgentPrompted` e `AgentStreamed`; online-eval pode nascer deste trace |
-| `JudgeTraceOnlineJob::handle()` | `ragas_faithfulness_online` | 🟡 ativado, aguardando recibo | juiz local e worker CT 100 configurados; confirmar score real pós-deploy |
+| `JudgeTraceOnlineJob::handle()` | `ragas_faithfulness_online` | ✅ live | juiz local e worker CT 100; score sintético recebido em 2026-07-29 e heartbeat advisory vivo |
 
 ## Spans canônicos PLANEJADOS (o que ainda NÃO é live)
 
