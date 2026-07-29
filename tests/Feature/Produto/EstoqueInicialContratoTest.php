@@ -119,6 +119,18 @@ beforeEach(function () {
         'user.id' => $this->user->id,
     ]);
 
+    // ARRANGE, não assert: `OpeningStockController@save` lê `financial_year.start` da sessão
+    // (`:167`) e o passa pro `Carbon::createFromFormat('Y-m-d', …)`. Em produção quem popula é o
+    // middleware `SetSessionData` — que só reconstrói a sessão quando ela NÃO tem o bloco `user`
+    // (`SetSessionData.php:29`). Como o teste pré-seta `user.*` acima, o middleware pula e o
+    // campo nunca chega: `createFromFormat` estoura, o `catch (\Exception)` genérico do `save()`
+    // engole e faz `DB::rollBack()` → NADA é gravado e as 4 pré-condições anti-vácuo reprovam
+    // por ARRANJO, não por defeito do writer.
+    // Mesma fonte que a produção usa (`BusinessUtil::getCurrentFinancialYear`) — valor não
+    // inventado aqui. Os asserts dos 4 UCs seguem intocados: se algum continuar vermelho depois
+    // disto, o vermelho É o achado (proibicoes §5 — não se ajusta teste ao código).
+    session(['financial_year' => (new \App\Utils\BusinessUtil)->getCurrentFinancialYear($this->business->id)]);
+
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     Permission::findOrCreate('product.opening_stock', 'web');
     // `OpeningStockController@save` → `BusinessLocation::forDropdown($biz)` roda com
