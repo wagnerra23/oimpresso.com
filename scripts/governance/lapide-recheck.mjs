@@ -82,13 +82,23 @@ function cleanRef(raw) {
   s = s.replace(/#.*$/, '');               // âncora markdown (#secao)
   s = s.replace(/\?.*$/, '');              // query (?v=)
   s = s.replace(/:\d+(?:-\d+)?$/, '');     // :linha ou :linha-linha
+  // `@memory/x.md` é sintaxe de IMPORT do CLAUDE.md, não parte do caminho. Sem tirar o
+  // '@' o arquivo existe e o check grita "âncora sumida" (FP medido 2026-07-29).
+  s = s.replace(/^@/, '');
   return s.trim();
 }
+/** Paths que NUNCA foram do repo — citá-los é referência, não âncora. Não resolver um
+ *  desses não é sinal de drift: o alvo nunca esteve versionado aqui.
+ *    · absoluto (`/tmp/wf-baseline.js`, `C:\...`) — artefato de sessão citado na narrativa
+ *    · dependência (`vendor/`, `node_modules/`) — código de terceiro
+ *  Medido 2026-07-29: 2 dos 4 "REVISAR" do repo vivo eram exatamente isto. */
+const EXTERNO = /^(?:\/|[a-zA-Z]:[\\/])|(?:^|\/)(?:vendor|node_modules)\//;
 /** um candidato é um PATH de arquivo real (não URL, não template, com extensão conhecida). */
 function looksLikePath(s) {
   if (!s || /^https?:\/\//i.test(s) || /^mailto:/i.test(s)) return false;
   if (/[<>{}*\s…]/.test(s)) return false;   // template/placeholder (<Mod>, {id}, *, …) — não é arquivo real
   if (!s.includes('/')) return false;        // sem separador → não é path de repo
+  if (EXTERNO.test(s)) return false;         // nunca foi do repo → não é âncora
   return KNOWN_EXT.test(s);
 }
 /** extrai as âncoras de arquivo únicas de um corpo de lápide. */
@@ -163,8 +173,17 @@ export function classifyTombstone(t, resolver) {
   const faltando = refs.filter((r) => !resolver(r));
   const reivindica = CLAIMS_DEFESA.test(t.body);
   // sem âncora de arquivo citada → não há sinal mecânico (não classifica como drift).
+  //
+  // ⚠️ REGRA MEDIDA (2026-07-29): path que não resolve só vira CHAMADO PRA REVISÃO quando a
+  // lápide REIVINDICA defesa mecânica. Sem a reivindicação, a ausência frequentemente É o
+  // estado desejado — a lápide de 07-23, por exemplo, registra `git revert` de um doc, e o
+  // arquivo sumido é justamente o desfecho que ela celebra. Tratar isso como "a premissa
+  // pode ter mudado" produziu 4 de 4 falso-positivo no repo vivo, e alarme 100% ruído é
+  // alarme que se aprende a ignorar (mesma doença do gate-de-teatro).
   const veredito = refs.length === 0 ? 'sem-ancora-de-arquivo'
-    : (faltando.length > 0 ? 'revisar-drift-de-ancora' : 'ancoras-intactas');
+    : faltando.length === 0 ? 'ancoras-intactas'
+    : reivindica ? 'revisar-drift-de-ancora'
+    : 'citacao-nao-resolvida';
   return { date: t.date, mmdd: t.mmdd, title: t.title, ancoras: refs, ancoras_faltando: faltando, reivindica_defesa_mecanica: reivindica, veredito };
 }
 
@@ -198,9 +217,11 @@ export function recheck(proibicoesText, { root, linkBase, sample = 0, seed = 0, 
   revisar.sort((a, b) => (a.reivindica_defesa_mecanica !== b.reivindica_defesa_mecanica)
     ? (a.reivindica_defesa_mecanica ? -1 : 1)
     : (a.date < b.date ? 1 : -1));
+  const citacoes = results.filter((r) => r.veredito === 'citacao-nao-resolvida');
   return {
     total_lapides_secao5: totalTombs, avaliadas: results.length,
-    revisar, intactas: intactas.length, sem_ancora: semAncora.length, resultados: results,
+    revisar, intactas: intactas.length, sem_ancora: semAncora.length,
+    citacao_nao_resolvida: citacoes.length, resultados: results,
   };
 }
 
@@ -222,7 +243,11 @@ if (isMain && !process.argv.includes('--selftest')) {
   if (json) { console.log(JSON.stringify(r, null, 2)); process.exit(0); }
   console.log('\n  LÁPIDE-RECHECK — frescor do registro de rejeição §5 (proibicoes.md)\n');
   console.log(`  §5 tem ${r.total_lapides_secao5} lápide(s)${sample ? ` · amostra determinística de ${r.avaliadas} (seed ${seed})` : ` · avaliadas todas`}`);
-  console.log(`  âncoras intactas: ${r.intactas} · sem âncora de arquivo: ${r.sem_ancora} · REVISAR (drift de âncora): ${r.revisar.length}\n`);
+  console.log(`  âncoras intactas: ${r.intactas} · sem âncora de arquivo: ${r.sem_ancora} · citação não resolvida: ${r.citacao_nao_resolvida} · REVISAR (drift de âncora): ${r.revisar.length}\n`);
+  if (r.citacao_nao_resolvida > 0) {
+    console.log(`  (as ${r.citacao_nao_resolvida} "citação não resolvida" NÃO são chamado: a lápide não reivindica`);
+    console.log('   defesa mecânica, e nesses casos a ausência do arquivo costuma ser o desfecho que ela registra.)\n');
+  }
   if (r.revisar.length === 0) {
     console.log('  🟢 nenhuma lápide com âncora driftada — as premissas ancoradas resolvem no repo vivo.');
   } else {
