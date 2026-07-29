@@ -110,7 +110,7 @@ Listar **faturas individuais** (`rb_invoices`) com filtros por status (open/paid
 - [Index-visual-comparison.md](../../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — plano canônico das ondas
 - [BRIEFING.md](../../../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado
 - [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1](../../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
+- [ADR 0101 Tests biz=1](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
 - [ADR 0104 MWART](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - [ADR 0114 Prototipo-ui Cowork loop](../../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - Charter da Page principal: [../Index.charter.md](../Index.charter.md)

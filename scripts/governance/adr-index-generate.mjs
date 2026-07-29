@@ -36,10 +36,14 @@ const NORM_LIFECYCLE = { active: 'ativo', canon: 'ativo', feature_wish: 'histori
 // Ledger vazio/ausente → set vazio → comportamento idêntico ao pré-0316.
 const TOMBSTONE_FILE = 'governance/adr-tombstones.json';
 const tombstoned = new Set();
+const tombstonedSlugs = new Set(); // slug inteiro — desambigua número colidido (ADR 0274)
 try {
   if (existsSync(join(ROOT, TOMBSTONE_FILE))) {
     const tj = JSON.parse(readFileSync(join(ROOT, TOMBSTONE_FILE), 'utf8'));
-    for (const t of tj.tombstones ?? []) tombstoned.add(String(t.number).padStart(4, '0'));
+    for (const t of tj.tombstones ?? []) {
+      tombstoned.add(String(t.number).padStart(4, '0'));
+      if (t.slug) tombstonedSlugs.add(String(t.slug).trim());
+    }
   }
 } catch { /* ledger ilegível → set vazio (fail-safe: volta a acusar dangling) */ }
 
@@ -60,6 +64,19 @@ function decodeBinaryScalar(val) {
   } catch {
     return val;
   }
+}
+// Itens CRUS de uma lista do frontmatter (slug inteiro, não só o número). Existe porque
+// `numbersFrom` rebaixa slug→número — e num NÚMERO COLIDIDO (ADR 0274) isso perde a
+// informação que desambigua: `supersedes: [0101-tests-...]` vira "0101", que resolve na
+// ADR gêmea VIVA (0101-sistema-charter-...) e acusa alerta falso. O slug é a referência
+// canônica (0274); aqui ele é preservado pra decidir supersessão de ADR tombada.
+function rawItemsFrom(fm, key) {
+  const clean = (s) => s.trim().replace(/^['"]|['"]$/g, '').split('#')[0].trim();
+  const inline = fm.match(new RegExp(`^${key}:\\s*\\[([^\\]]*)\\]`, 'mi'));
+  if (inline) return inline[1].split(',').map(clean).filter(Boolean);
+  const block = fm.match(new RegExp(`^${key}:\\s*\\n((?:\\s*-\\s*.+\\n?)+)`, 'mi'));
+  if (block) return block[1].split('\n').map((l) => clean(l.replace(/^\s*-\s*/, ''))).filter(Boolean);
+  return [];
 }
 function numbersFrom(fm, key) {
   // captura [0028] inline OU lista multilinha "- '0028'".
@@ -89,6 +106,7 @@ for (const file of readdirSync(join(ROOT, DIR)).sort()) {
     rec.lifecycle = (field(fm, 'lifecycle') || '').toLowerCase();
     rec.kind = (field(fm, 'kind') || 'decision').toLowerCase();
     rec.supersedes = numbersFrom(fm, 'supersedes');
+    rec.supersedesRaw = rawItemsFrom(fm, 'supersedes'); // slugs crus (desambiguação de colisão)
     rec.supersedes_partially = numbersFrom(fm, 'supersedes_partially'); // emenda parcial (ADR 0317)
     rec.superseded_by = numbersFrom(fm, 'superseded_by');
     rec.rejected_at = field(fm, 'rejected_at'); // o NÃO consultável (proposal recusado-com-motivo, 2026-06-11)
@@ -125,6 +143,10 @@ const exists = (n) => !!byNum[n];
 const supWarn = [];
 for (const a of adrs) {
   for (const t of a.supersedes) {
+    // Declarou por SLUG e esse slug está tombado → supersessão satisfeita, ponto.
+    // Vale MESMO com o número vivo em outra ADR: no número colidido 0101, resolver por
+    // número acharia a gêmea viva e acusaria alerta falso. O slug é quem desambigua (0274).
+    if ((a.supersedesRaw ?? []).some((r) => r.startsWith(t) && tombstonedSlugs.has(r))) continue;
     if (!exists(t)) {
       if (tombstoned.has(t)) continue; // ADR 0316 — supersede de ADR esquecida (tombada) ≠ dangling
       supWarn.push(`${a.num} supersedes ${t} → ADR ${t} NÃO existe`); continue;
