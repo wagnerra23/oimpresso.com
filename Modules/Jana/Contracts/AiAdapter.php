@@ -39,6 +39,24 @@ interface AiAdapter
     public function responderChatStream(Conversa $conv, string $mensagem): \Generator;
 
     /**
+     * Resultado estrutural da ÚLTIMA chamada a responderChatStream().
+     *
+     * Não duplica a telemetria do provider/Langfuse: expõe somente a decisão
+     * que o controller não consegue inferir dos chunks (cache, clarificação,
+     * LLM e erro convertido em resposta amigável).
+     *
+     * @return array{
+     *   path: 'idle'|'dry_run'|'semantic_cache'|'clarify'|'llm',
+     *   status: 'idle'|'running'|'ok'|'error'|'partial_error',
+     *   cache_hit: bool,
+     *   recall_count: int,
+     *   jobs_dispatched: int,
+     *   error_class: class-string<\Throwable>|null
+     * }
+     */
+    public function ultimoResultadoStream(): array;
+
+    /**
      * Uso de tokens da ÚLTIMA chamada a responderChat()/responderChatStream()
      * nesta instância. Zerado no início de cada chamada; fica com `null` quando
      * não houve consumo real (cache hit semântico, clarify, dry-run, erro).

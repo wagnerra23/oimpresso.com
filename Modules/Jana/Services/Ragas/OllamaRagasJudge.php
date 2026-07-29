@@ -23,10 +23,9 @@ use Illuminate\Support\Facades\Http;
  * de infra (falso alarme) — quem chama DECIDE pular, nunca grava score fantasma.
  * (Difere do pai, que devolve 0.0 em erro — comportamento herdado do gate de CI.)
  *
- * ⚠️ PRÉ-REQ DE INFRA: o Ollama do CT 100 (`ollama-embedder`) hoje só tem
- * embedders (`qwen3-embedding:0.6b`, `nomic-embed-text`) — um modelo de CHAT
- * precisa ser puxado (`ollama pull <model>`) pro juiz funcionar. Sem o modelo,
- * o Ollama devolve erro e este juiz lança (honesto) → o consumidor pula.
+ * ⚠️ PRÉ-REQ DE INFRA: o Ollama do CT 100 (`ollama-embedder`) precisa manter
+ * o modelo de CHAT declarado no config. Sem ele, o Ollama devolve erro e este
+ * juiz lança (honesto) → o consumidor pula.
  * CPU-only é ok aqui: o Job é ASSÍNCRONO (fila, amostra ~5%) — latência não
  * atinge a resposta ao cliente.
  *

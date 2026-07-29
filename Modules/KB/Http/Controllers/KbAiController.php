@@ -47,6 +47,22 @@ use Modules\KB\Services\KbRagService;
  */
 class KbAiController extends Controller
 {
+    /**
+     * Valores gravados em `mcp_audit_log`, que tem colunas ENUM.
+     *
+     * Ficam como constantes porque `KbAiAuditEnumContratoTest` as confronta com o
+     * enum VIVO do banco: se alguém trocar um destes por um valor que o schema não
+     * aceita, o teste falha em vez de a auditoria sumir em silêncio. Foi assim que
+     * `endpoint='kb.ai.ask'` e `status='ok_empty'` sobreviveram até 2026-07-28 —
+     * o INSERT falhava, o catch engolia, e ninguém via.
+     *
+     * O schema do mcp_audit_log é Tier 0: estender o enum exige ADR, não código aqui.
+     */
+    public const AUDIT_ENDPOINT        = 'tools/call';
+    public const AUDIT_STATUS_OK       = 'ok';
+    public const AUDIT_STATUS_DEGRADED = 'error';
+    public const AUDIT_ERROR_CODE      = 'kb_rag_degraded';
+
     public function __construct(
         private readonly KbRagService $rag,
     ) {
@@ -202,6 +218,23 @@ class KbAiController extends Controller
     // ------------------------------------------------------------------
 
     /**
+     * Classifica o desfecho da chamada pra auditoria.
+     *
+     * Existe porque `sources === []` sozinho é ambíguo: cobre tanto "o KB não tem
+     * o assunto" quanto "o retrieval/LLM caiu". A auditoria precisa dos dois
+     * separados — é o registro que permite descobrir depois que a base parecia
+     * vazia porque a busca estava fora do ar.
+     */
+    protected function resultKind(bool $degraded, bool $empty): string
+    {
+        return match (true) {
+            $degraded => 'degraded',
+            $empty    => 'empty',
+            default   => 'ok',
+        };
+    }
+
+    /**
      * Resolve business_id ativo a partir da sessão UltimatePOS.
      *
      * Pattern canônico ADR 0093 — `session('user.business_id')` é fonte da verdade.
@@ -225,10 +258,24 @@ class KbAiController extends Controller
                 'request_id'       => (string) Str::uuid(),
                 'user_id'          => $userId,
                 'business_id'      => $businessId,
-                'endpoint'         => 'kb.ai.ask',
-                'tool_or_resource' => 'KbRagService::ask',
+                // `endpoint` é ENUM('tools/list','tools/call','resources/list','resources/read',
+                // 'prompts/list','prompts/get','initialize'). Os valores 'kb.ai.*' usados aqui
+                // até 2026-07-28 não existiam no enum — em MySQL strict TODO INSERT de audit
+                // destes 3 endpoints falhava e era engolido pelo catch, então a auditoria do
+                // KB IA nunca foi gravada (não só o caso vazio). Padrão canônico: 'tools/call'
+                // no enum + identidade lógica em tool_or_resource (igual McpAuthMiddleware).
+                // O schema do mcp_audit_log é Tier 0 — alterar o enum exigiria ADR, não é feito aqui.
+                'endpoint'         => self::AUDIT_ENDPOINT,
+                'tool_or_resource' => 'kb.ai.ask',
                 'scope_required'   => 'kb.ai.ask',
-                'status'           => $result->sources === [] ? 'ok_empty' : 'ok',
+                // `status` é ENUM('ok','denied','error','quota_exceeded') na migration
+                // 2026_04_29_100005 — o valor 'ok_empty' usado aqui até 2026-07-28 não
+                // existe no enum: em MySQL strict o INSERT falhava e caía no catch abaixo,
+                // ou seja, a chamada com sources vazio (exatamente o caso degradado) NÃO
+                // era auditada. A distinção fica no payload_summary, que é JSON livre —
+                // o schema do mcp_audit_log é Tier 0 e não se altera aqui.
+                'status'           => $result->degraded() ? self::AUDIT_STATUS_DEGRADED : self::AUDIT_STATUS_OK,
+                'error_code'       => $result->degraded() ? self::AUDIT_ERROR_CODE : null,
                 'tokens_in'        => $result->tokensIn,
                 'tokens_out'       => $result->tokensOut,
                 'custo_brl'        => $result->costEstimatedBrl,
@@ -242,6 +289,9 @@ class KbAiController extends Controller
                     'corpus_version_hash'  => $result->corpusVersionHash,
                     'cache_hit'            => $result->cacheHit,
                     'confidence'           => $result->confidence,
+                    // Separa os dois "vazios" que antes eram um só na auditoria.
+                    'result_kind'          => $this->resultKind($result->degraded(), $result->sources === []),
+                    'degradation'          => $result->degradations,
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -258,10 +308,12 @@ class KbAiController extends Controller
                 'request_id'       => (string) Str::uuid(),
                 'user_id'          => $userId,
                 'business_id'      => $businessId,
-                'endpoint'         => 'kb.ai.summarize',
-                'tool_or_resource' => 'KbRagService::summarize',
+                // Ver nota sobre o enum de `endpoint` em auditAsk().
+                'endpoint'         => self::AUDIT_ENDPOINT,
+                'tool_or_resource' => 'kb.ai.summarize',
                 'scope_required'   => 'kb.ai.ask',
-                'status'           => 'ok',
+                'status'           => $result->degraded() ? self::AUDIT_STATUS_DEGRADED : self::AUDIT_STATUS_OK,
+                'error_code'       => $result->degraded() ? self::AUDIT_ERROR_CODE : null,
                 'tokens_in'        => $result->tokensIn,
                 'tokens_out'       => $result->tokensOut,
                 'custo_brl'        => $result->costEstimatedBrl,
@@ -269,9 +321,11 @@ class KbAiController extends Controller
                 'ip'               => $request->ip(),
                 'user_agent'       => mb_substr((string) $request->userAgent(), 0, 255),
                 'payload_summary'  => [
-                    'node_slug'  => $slug,
-                    'node_type'  => $result->sourceType,
-                    'cache_hit'  => $result->cacheHit,
+                    'node_slug'   => $slug,
+                    'node_type'   => $result->sourceType,
+                    'cache_hit'   => $result->cacheHit,
+                    // TL;DR degradado é o excerpt do node, não saída do LLM.
+                    'degradation' => $result->degradations,
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -288,10 +342,12 @@ class KbAiController extends Controller
                 'request_id'       => (string) Str::uuid(),
                 'user_id'          => $userId,
                 'business_id'      => $businessId,
-                'endpoint'         => 'kb.ai.suggest-meta',
-                'tool_or_resource' => 'KbRagService::suggestMeta',
+                // Ver nota sobre o enum de `endpoint` em auditAsk().
+                'endpoint'         => self::AUDIT_ENDPOINT,
+                'tool_or_resource' => 'kb.ai.suggest-meta',
                 'scope_required'   => 'kb.ai.ask',
-                'status'           => 'ok',
+                'status'           => $result->degraded() ? self::AUDIT_STATUS_DEGRADED : self::AUDIT_STATUS_OK,
+                'error_code'       => $result->degraded() ? self::AUDIT_ERROR_CODE : null,
                 'tokens_in'        => $result->tokensIn,
                 'tokens_out'       => $result->tokensOut,
                 'custo_brl'        => $result->costEstimatedBrl,
@@ -302,6 +358,8 @@ class KbAiController extends Controller
                     'tags_count'    => count($result->tags),
                     'category_slug' => $result->categorySlug,
                     'nivel'         => $result->nivel,
+                    // Sugestão vazia por falha da IA ≠ sugestão vazia por rascunho pobre.
+                    'degradation'   => $result->degradations,
                 ],
             ]);
         } catch (\Throwable $e) {

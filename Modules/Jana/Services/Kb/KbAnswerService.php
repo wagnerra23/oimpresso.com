@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Ai\Agents\KbAnswerAgent;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Support\RetrievalStatus;
 
 /**
  * KbAnswerService — pipeline reutilizável de Q&A sobre a KB do oimpresso.
@@ -47,9 +48,13 @@ class KbAnswerService
 
     /**
      * Frase única de degradação — mesma redação pra toda superfície (tool, eval, log).
-     * Constante pra ninguém reescrever "quase igual" em outro lugar.
+     *
+     * O texto MUDOU DE CASA (2026-07-28, 2ª onda): mora em {@see RetrievalStatus},
+     * porque `decisions-search` e `memoria-search` emitem a mesma frase e o service de
+     * Q&A não é dono dela. Mantido aqui como alias — os consumidores existentes
+     * (`KbAnswerTool`, testes) seguem byte-a-byte.
      */
-    public const AVISO_DEGRADADO = '⚠️ Busca semântica indisponível no momento — esta resposta usou apenas busca textual, que tem recall menor. Ausência de fonte aqui NÃO prova ausência na KB: repita em alguns minutos.';
+    public const AVISO_DEGRADADO = RetrievalStatus::AVISO;
 
     /**
      * FASE 1 — Retrieval híbrido determinístico (Princípio 2 Constituição v2:
@@ -150,7 +155,7 @@ class KbAnswerService
      */
     public static function avisoDegradacao(?string $status): string
     {
-        return self::degradado($status) ? "\n\n".self::AVISO_DEGRADADO : '';
+        return RetrievalStatus::aviso(self::degradado($status));
     }
 
     /**

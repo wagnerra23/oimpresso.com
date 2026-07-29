@@ -41,22 +41,44 @@ const MODE_CHECK = process.argv.includes('--check');
 const read = (p) => { try { return readFileSync(p, 'utf8'); } catch { return ''; } };
 const ls = (p) => { try { return readdirSync(p); } catch { return []; } };
 /**
+ * Colapsa run de espaço/tab HORIZONTAL (nunca newline) antes de comparar.
+ *
+ * Alinhamento de array PHP não é estrutura: `'role' => 'x'` e `'role'   => 'x'`
+ * são o MESMO código. Sem isto a "âncora estrutural" é na verdade um literal de
+ * formatação — quem realinhar o array (à mão ou por fixer) quebra o gerador sem
+ * ter mudado nada no fluxo.
+ *
+ * Incidente 2026-07-29: `ChatController.php:509` (persistência da resposta no
+ * caminho SSE) escreve `'role' => 'assistant'` com UM espaço, enquanto o marcador
+ * exigia a forma alinhada com oito. O fluxo estava íntegro; o `system-map.mjs`
+ * lançava assim mesmo. Como o job `refresh` do workflow não tem
+ * `continue-on-error` (só o de PR tem), PAINEL-SISTEMA, Jana/ARCHITECTURE e
+ * ONBOARDING pararam de regenerar EM SILÊNCIO.
+ */
+const normalizeHorizontalSpace = (s) => s.replace(/[ \t]+/g, ' ');
+
+/**
  * Âncora estrutural mínima para explicações de fluxo. O diagrama continua sendo
  * explicação humana, mas deixa de sobreviver silenciosamente quando o caminho do
  * código muda: cada marcador precisa existir e aparecer na ordem declarada.
+ *
+ * A comparação ignora espaçamento horizontal (ver acima) — presença e ORDEM
+ * seguem exigidas, que é o que o diagrama afirma.
  *
  * @param {string} source
  * @param {string[]} markers
  * @param {string} label
  */
 export function assertOrderedMarkers(source, markers, label) {
+  const haystack = normalizeHorizontalSpace(source);
   let cursor = 0;
   for (const marker of markers) {
-    const found = source.indexOf(marker, cursor);
+    const needle = normalizeHorizontalSpace(marker);
+    const found = haystack.indexOf(needle, cursor);
     if (found < 0) {
       throw new Error(`[system-map] fluxo "${label}" perdeu a âncora ou a ordem: ${marker}`);
     }
-    cursor = found + marker.length;
+    cursor = found + needle.length;
   }
 }
 

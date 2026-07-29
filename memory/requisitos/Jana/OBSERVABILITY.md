@@ -63,8 +63,8 @@ As tabelas abaixo resumem somente o necessário para executar. Quando houver div
 | Traces chegando | heartbeat construído | `jana:health-check` → `langfuse_trace_uptime_24h` | precisa de recibo autenticado de produção |
 | Trace ponta a ponta do chat | parcial | listener cobre a chamada ao modelo | cache hit, clarificação, persistência e erro SSE não compartilham um span raiz |
 | OTel no streaming | parcial | `emitirOtelGenAi()` existe no caminho bloqueante | streaming não chama emissão OTel explícita |
-| Avaliação online | construída, **dark** | `JudgeTraceOnlineJob` + `OllamaRagasJudge` + `recordScore()` | `copiloto.online_eval.enabled=false` |
-| Privacidade da avaliação | construída | juiz local + `PiiRedactor` | precisa smoke de infra com modelo de chat local disponível |
+| Avaliação online | ativada e provada em 2026-07-29 | `JudgeTraceOnlineJob` + worker CT 100 + `OllamaRagasJudge` + `recordScore()` | score segue advisory até calibração humana repetida |
+| Privacidade da avaliação | construída e coberta por teste | juiz local + `PiiRedactor` | smoke runtime usou entrada sintética; falta calibrar amostras reais contra revisão humana |
 | Feedback humano do chat | ausente no fluxo servido | não há vínculo mensagem → feedback → trace no chat | sem rótulo humano, faithfulness não prova resposta correta |
 | Produção → golden set | aberto | golden set e RAGAS offline existem | nenhum promotor revisado leva caso real confirmado ao corpus |
 | Mudança → comparação | parcial | baselines/gates RAGAS existem | não há vínculo obrigatório entre trace-causa, caso novo e delta antes/depois |
@@ -209,6 +209,18 @@ Não envolver `responderChatStream()` ingenuamente em `OtelHelper::spanBiz()`: o
 - cache hit e erro parcial continuam observáveis;
 - zero duplicação de generation Langfuse.
 
+**Estado verificado em 2026-07-28:** 🟡 raiz e correlação implementadas; granularidade interna ainda parcial.
+
+- `ChatController::sendStream()` passou a abrir a raiz Langfuse e o span OTel `jana.chat.stream` depois da validação de ownership e antes da primeira persistência; a callback consumiu o generator, persistiu a resposta e encerrou ambas as raízes em `finally`;
+- o UUID devolvido pelo `LangfuseClient` foi reutilizado como atributo de correlação OTel e no request scope — não foi criado um segundo ID nem um segundo contexto;
+- `LangfuseAgentTelemetryListener` anexou **uma** `generation-create` à raiz quando ela existiu e preservou `traceComGeneration()` somente como fallback fora do chat;
+- `RetrievalTelemetryDecorator` anexou o span `jana.retrieval.query` à mesma raiz já existente; os subspans internos de Hyde/BM25/rerank continuaram dependendo de hooks que o driver ainda não expôs, portanto essa granularidade não foi declarada como concluída;
+- `AiAdapter::ultimoResultadoStream()` expôs apenas o desfecho estrutural que os chunks não carregavam (`path`, cache, recall, jobs e erro); modelo, duração e usage continuaram com seus donos atuais;
+- o erro convertido em markdown deixou de parecer sucesso: `error`/`partial_error` marcaram OTel e Langfuse, somente a classe do erro foi exportada e a mensagem do provider não foi enviada ao cliente nem à telemetria;
+- abandono marcou `cancelled`, fechou exatamente uma raiz e preservou o trecho já entregue; cache hit gerou raiz sem inventar `generation`;
+- `ChatStreamObservabilityTest.php`, `LangfuseAgentTelemetryListenerTest.php` e `RetrievalTelemetryDecoratorTest.php` entraram na allowlist SQLite já existente. Os testes cobriram span ativo durante chunks, PII, cache, erro parcial, cancelamento, correlação de generation e correlação de retrieval;
+- a ativação/medição real no CT 100 continuou pertencendo à Etapa 0; nenhum resultado de produção foi inferido dos testes.
+
 **Rollback**
 
 - kill-switch OTel existente;
@@ -220,6 +232,14 @@ Não envolver `responderChatStream()` ingenuamente em `OtelHelper::spanBiz()`: o
 ### Etapa 2 — Tornar a fiação Langfuse obrigatoriamente testada
 
 **Pergunta:** uma mudança no SDK/listener consegue matar o streaming sem o CI perceber?
+
+**Estado verificado em 2026-07-28:** ✅ implementada no dono existente.
+
+- `LangfuseAgentTelemetryListenerTest.php` passou a consumir `Agent::stream()` com o gateway fake do próprio `laravel/ai`, sem criar listener, client, job ou suíte paralela;
+- o teste prova `StreamingAgent` → `AgentStreamed` → subscriber → um único `LangfuseTraceJob`, incluindo `stream=true`, `business_id`, output, usage e duração;
+- o mesmo arquivo entrou em `.github/ci-sqlite-pest.list`, a allowlist da lane `PHP / Pest (Unit)` executada em PR;
+- controle negativo executado: remover o registro de `AgentStreamed` fez o caso integrado falhar com zero jobs em vez de um;
+- o heartbeat `200 e mudo → vermelho` permaneceu no teste e na lane que já eram donos dessa garantia.
 
 **Ações**
 
@@ -254,6 +274,19 @@ Não envolver `responderChatStream()` ingenuamente em `OtelHelper::spanBiz()`: o
 - Ollama do CT 100 possui o modelo de chat declarado;
 - baseline offline com o mesmo juiz foi executado;
 - PiiRedactor e fila estão saudáveis.
+
+**Estado medido em 2026-07-29**
+
+- [W] autorizou explicitamente a ativação;
+- `qwen2.5:3b` estava disponível no `ollama-embedder` e respondeu JSON válido em 16,4 s;
+- a fila `database:default` do Hostinger estava vazia e o worker web saudável, mas não podia executar o juiz: `ollama-embedder` só resolve dentro da rede Docker do CT 100;
+- o baseline controlado com o mesmo juiz avaliou 1 caso real, sem falha de infra, e mediu faithfulness `0,50`, abaixo do piso `0,65`; por isso o consumidor permanece advisory e nenhuma automação usa o score como verdade;
+- a ativação passou a rotear `JudgeTraceOnlineJob` para `database:jana-online-eval`, consumida por um worker dedicado no `docker/oimpresso-mcp/docker-compose.yml`;
+- `jana:health-check` passou a distinguir online-eval desligado, Langfuse não configurado/inacessível/ilegível, ausência de score e score recebido, sempre em modo advisory.
+- o PR #5005 foi mergeado como `f77fe1d9d`; Hostinger e CT 100 carregaram esse SHA;
+- um trace sintético, sem PII (`0595548c-5686-4519-8c5e-b8b4ad34eb5d`), atravessou a fila dedicada em 25 s e gravou `ragas_faithfulness_online=1` no Langfuse;
+- depois do smoke, a fila voltou a zero e `jana:health-check --json` mediu `online_eval_score_uptime_7d=1` com estado `ok`, advisory;
+- o recibo operacional completo vive em `memory/sessions/2026-07-29-ativacao-online-eval-local-ct100.md`; esta planta não recopia logs.
 
 **Ações**
 
@@ -572,7 +605,7 @@ Cada denominador deve vir da fonte dona. Ausência de instrumento aparece como �
 
 ## Decisões que permanecem com [W]
 
-1. Autorizar `copiloto.online_eval.enabled=true` com juiz local.
+1. ~~Autorizar e provar `copiloto.online_eval.enabled=true` com juiz local.~~ Ativado e provado por recibo sintético em 2026-07-29.
 2. Definir quem revisa feedback/candidatos e em qual cadência.
 3. Aprovar a persistência append-only de feedback de cliente.
 4. Escolher o primeiro recorte de rollout.
@@ -597,7 +630,7 @@ Cada denominador deve vir da fonte dona. Ausência de instrumento aparece como �
 | `DocumentChunker` (contextual retrieval) | `jana.contextual.chunk` | ✅ live | [DocumentChunker.php:34](../../../Modules/Jana/Services/Memoria/Contextual/DocumentChunker.php#L34) — não estava catalogado |
 | `LaravelAiSdkDriver::emitirOtelGenAi()` | `gen_ai.span` (OTel GenAI) | 🟡 blocking live | turno LLM bloqueante: tokens/custo/latência/erro + `gen_ai.business_id`; streaming não chama este método |
 | `LangfuseAgentTelemetryListener::onEnd()` | trace + generation | 🟡 construído, runtime depende de config | cobre `AgentPrompted` e `AgentStreamed`; online-eval pode nascer deste trace |
-| `JudgeTraceOnlineJob::handle()` | `ragas_faithfulness_online` | 🟡 construído, dark | juiz local disponível; `copiloto.online_eval.enabled=false` impede execução no tráfego |
+| `JudgeTraceOnlineJob::handle()` | `ragas_faithfulness_online` | ✅ live | juiz local e worker CT 100; score sintético recebido em 2026-07-29 e heartbeat advisory vivo |
 
 ## Spans canônicos PLANEJADOS (o que ainda NÃO é live)
 

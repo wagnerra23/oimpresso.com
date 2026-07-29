@@ -32,6 +32,10 @@ O repositório carrega três produtos empilhados ([ADR 0334](memory/decisions/03
 
 Invariante anti-atrofia ([ADR 0334](memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md)): a camada C existe para **servir** A e B; ela nunca deve crescer enquanto o produto atrofia sem sinal de cliente — há um sentinela que dispara quando a governança domina a janela de merges.
 
+> 📑 **Prefere ler navegando?** As páginas publicadas em `claude.ai` — mapas, plantas e grades — estão
+> catalogadas com tema, linhagem de versões e estado em [`VISTAS-PUBLICADAS.md`](memory/reference/VISTAS-PUBLICADAS.md).
+> Elas são **retratos datados**: onde uma vista divergir do documento dono que ela linka, **o dono manda**.
+
 ---
 
 ## A — Produto (ERP)

@@ -60,11 +60,65 @@ class KbCorpusBuilder
      */
     public const PROMPT_TOP_N = 6;
 
+    /**
+     * Razões canônicas de degradação do retrieval.
+     *
+     * Cada uma marca um caminho em que este builder devolve resultado VAZIO ou
+     * DEGRADADO por falha de infra — nunca por ausência legítima de conteúdo.
+     * A distinção existe porque, do lado de fora, "o KB não tem isso" e
+     * "a busca não funcionou" são indistinguíveis se ninguém sinalizar.
+     */
+    public const DEGRADED_RETRIEVAL_FAILED      = 'retrieval_failed';       // Meilisearch respondeu erro / timeout
+    public const DEGRADED_RETRIEVAL_UNAVAILABLE = 'retrieval_unavailable';  // cliente Meilisearch ausente no runtime
+    public const DEGRADED_CORPUS_HASH_FAILED    = 'corpus_hash_failed';     // hash de versão caiu no fallback
+
+    /**
+     * Razões de degradação acumuladas nesta instância.
+     *
+     * Acumula (não reseta entre chamadas) de propósito: uma vez que o retrieval
+     * degradou no ciclo de vida deste builder, o resultado daquele ciclo não é
+     * confiável como "vazio legítimo". Builder é per-request (instanciado dentro
+     * de KbRagService::doAsk), então não há vazamento entre requisições.
+     *
+     * @var array<int,string>
+     */
+    private array $degradations = [];
+
     public function __construct(
         private readonly int $businessId,
     ) {
         if ($businessId <= 0) {
             throw new \InvalidArgumentException('businessId deve ser positivo (Tier 0 — ADR 0093).');
+        }
+    }
+
+    /**
+     * true se algum caminho de degradação foi atingido nesta instância.
+     *
+     * Chamador usa isto pra distinguir "não achei nada" de "não consegui buscar".
+     */
+    public function degraded(): bool
+    {
+        return $this->degradations !== [];
+    }
+
+    /**
+     * Razões de degradação (constantes DEGRADED_*), sem repetição e em ordem de ocorrência.
+     *
+     * @return array<int,string>
+     */
+    public function degradations(): array
+    {
+        return array_values($this->degradations);
+    }
+
+    /**
+     * Marca uma degradação. Idempotente — a mesma razão não entra duas vezes.
+     */
+    private function marcarDegradacao(string $razao): void
+    {
+        if (! in_array($razao, $this->degradations, true)) {
+            $this->degradations[] = $razao;
         }
     }
 
@@ -113,6 +167,10 @@ class KbCorpusBuilder
                     'error'       => $e->getMessage(),
                 ]);
                 // Fail-open: retorna hash baseado em now() — invalida cache mas não quebra ask().
+                // Sinaliza: o hash é sintético, então o cache vai dar miss sempre e o custo
+                // sobe sem ninguém perceber se isto não for reportado.
+                $this->marcarDegradacao(self::DEGRADED_CORPUS_HASH_FAILED);
+
                 return sha1('biz:' . $this->businessId . '|fallback:' . microtime(true));
             }
         });
@@ -237,6 +295,10 @@ class KbCorpusBuilder
                     'error'       => $e->getMessage(),
                 ]);
 
+                // Coleção vazia aqui NÃO significa "o KB não tem isso" — significa
+                // "não consegui buscar". Sem esta marca as duas viram a mesma resposta.
+                $this->marcarDegradacao(self::DEGRADED_RETRIEVAL_FAILED);
+
                 return collect();
             }
         });
@@ -340,7 +402,16 @@ class KbCorpusBuilder
     {
         // Container resolve cliente Meilisearch oficial caso Scout esteja com driver=meilisearch
         // (default do projeto, ADR 0036). Em dev sem Meilisearch, retorna [] graceful.
+        //
+        // Este era o caminho MAIS silencioso dos três: nem log, nem sinal — a busca
+        // simplesmente não acontecia e o chamador lia "nenhum resultado".
         if (! class_exists(\Meilisearch\Client::class)) {
+            Log::channel('copiloto-ai')->warning('KbCorpusBuilder::retrieve sem cliente Meilisearch (degradação)', [
+                'business_id' => $this->businessId,
+            ]);
+
+            $this->marcarDegradacao(self::DEGRADED_RETRIEVAL_UNAVAILABLE);
+
             return collect();
         }
 

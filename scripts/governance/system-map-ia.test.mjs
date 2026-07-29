@@ -196,5 +196,45 @@ class OimpressoMcpServer {
   ok(mordeu, 'MORDE: âncora existente mas fora de ordem invalida o fluxo');
 }
 
+// ── J-bis) alinhamento não é estrutura (incidente 2026-07-29) ───────────────
+// O gerador quebrou porque o marcador exigia `'role'        => 'assistant'`
+// (8 espaços) e o ChatController:509 escreve com 1. O fluxo estava íntegro.
+// Regressão aqui = PAINEL/ARCHITECTURE/ONBOARDING param de regenerar em silêncio.
+{
+  const alinhado = "\$m = Mensagem::create([\n    'role'        => 'assistant',\n]);";
+  const compacto = "\$m = Mensagem::create([\n    'role' => 'assistant',\n]);";
+
+  let liberou = true;
+  try {
+    // marcador alinhado × fonte compacta — foi ESTE par que quebrou em prod
+    assertOrderedMarkers(compacto, ["Mensagem::create([", "'role'        => 'assistant'"], 'compacta');
+    // e o inverso, pra não trocar um literal-de-formatação por outro
+    assertOrderedMarkers(alinhado, ["Mensagem::create([", "'role' => 'assistant'"], 'alinhada');
+  } catch {
+    liberou = false;
+  }
+  ok(liberou, 'LIBERA: espaçamento de alinhamento não invalida a âncora (nos dois sentidos)');
+
+  // controle negativo — normalizar NÃO pode afrouxar presença nem ordem
+  let mordeuAusente = false;
+  try {
+    assertOrderedMarkers(compacto, ["'role' => 'system'"], 'ausente');
+  } catch { mordeuAusente = true; }
+  ok(mordeuAusente, 'MORDE: normalizar espaço não faz âncora AUSENTE passar');
+
+  let mordeuOrdem = false;
+  try {
+    assertOrderedMarkers(compacto, ["'role' => 'assistant'", "Mensagem::create(["], 'ordem');
+  } catch { mordeuOrdem = true; }
+  ok(mordeuOrdem, 'MORDE: normalizar espaço não faz âncora FORA DE ORDEM passar');
+
+  // newline segue sendo estrutura: colapsar \n juntaria linhas distintas
+  let mordeuNewline = false;
+  try {
+    assertOrderedMarkers(compacto, ["Mensagem::create([ 'role' => 'assistant'"], 'newline');
+  } catch { mordeuNewline = true; }
+  ok(mordeuNewline, 'MORDE: só espaço/tab colapsa — newline continua separando linhas');
+}
+
 console.log(fails === 0 ? '\n  OK — núcleo da camada de IA morde e não falsa-positiva.\n' : `\n  ${fails} FALHA(S)\n`);
 process.exit(fails === 0 ? 0 : 1);

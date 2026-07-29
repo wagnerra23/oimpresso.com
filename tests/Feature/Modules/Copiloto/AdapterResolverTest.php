@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Jana\Contracts\AiAdapter;
+use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Services\Ai\LaravelAiSdkDriver;
 use Modules\Jana\Services\Ai\OpenAiDirectDriver;
 
@@ -88,3 +89,26 @@ it('dry_run retorna fixture sem chamar API', function () {
     expect($propostas)->toBeArray()->not->toBeEmpty();
     expect($propostas[0])->toHaveKeys(['nome', 'metrica', 'valor_alvo', 'periodo', 'dificuldade', 'racional', 'dependencias']);
 });
+
+it('os dois drivers expõem o mesmo resultado estrutural no streaming dry-run', function (AiAdapter $driver) {
+    config(['copiloto.dry_run' => true]);
+    $conversa = new Conversa(['business_id' => 23, 'user_id' => 7]);
+
+    $texto = '';
+    foreach ($driver->responderChatStream($conversa, 'teste') as $chunk) {
+        $texto .= $chunk;
+    }
+
+    expect($texto)->toContain('(dry-run)')
+        ->and($driver->ultimoResultadoStream())->toMatchArray([
+            'path' => 'dry_run',
+            'status' => 'ok',
+            'cache_hit' => false,
+            'recall_count' => 0,
+            'jobs_dispatched' => 0,
+            'error_class' => null,
+        ]);
+})->with([
+    'Laravel AI SDK' => fn () => new LaravelAiSdkDriver(),
+    'OpenAI direto' => fn () => new OpenAiDirectDriver(),
+]);

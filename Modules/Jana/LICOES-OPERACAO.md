@@ -84,6 +84,14 @@ Erro de operação ≠ feedback de cliente (`feedback-capture` cobre fricção d
 - **Ref:** incident 2026-05-28 · skill `incident-done-checklist` (DoD-v1) · `PATTERN-INCIDENT-RESPONSE-VELOCITY.md`
 - **Graduação:** JULG · regra:`.claude/skills/incident-done-checklist/SKILL.md` · status:done
 
+### L-OP-004 · Flag local ligada na fila web não alcança o juiz CT 100
+- **Data:** 2026-07-29
+- **Erro:** o online-eval estava pronto para ser ligado por config, mas o job sem fila própria seria consumido no Hostinger, onde o hostname Docker `ollama-embedder` não existe. A flag poderia ficar `true` e produzir zero score.
+- **Sintoma:** Hostinger tinha worker `default` saudável; CT 100 via o modelo local, mas não consumia a fila. Cada metade parecia verde isoladamente.
+- **Regra:** feature que depende de runtime separado só está ligada quando emissão, transporte, consumidor e destino deixam recibo no mesmo circuito.
+- **Ref:** US-COPI-137 · `JudgeTraceOnlineJob` · `docker/oimpresso-mcp/docker-compose.yml`
+- **Graduação:** MEC · check:`online_eval_score_uptime_7d` · status:done
+
 ---
 
 ## Refs

@@ -233,6 +233,15 @@
             "command": "node .claude/hooks/block-instrumento-sem-porta-viva.mjs"
           }
         ]
+      },
+      {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/vista-publicada-padrao.mjs"
+          }
+        ]
       }
     ],
     "PostToolUse": [

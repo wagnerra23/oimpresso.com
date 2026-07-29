@@ -75,7 +75,13 @@ const norm = (p) => {
 
 const tagRe = /<(\/?)([\w.:-]+)((?:"[^"]*"|'[^']*'|[^>"'])*?)(\/?)>/g;
 const files = new Map();
-const totals = { passed: 0, failed: 0, errors: 0, skipped: 0 };
+// `assertions` entra em 2026-07-29 porque era o ÚNICO campo que prova EXECUÇÃO, e o
+// summary o descartava. `0 failed` é compatível com "nada rodou" — uma suíte 100%
+// skipped sai exit 0 e parece verde (LC-13, e o §Ambiente das proibições tem o recibo:
+// `4 skipped, 0 assertions, EXIT_CODE=0` no CT 100 sem schema). O risco é vivo nas 11
+// lanes: o comentário do próprio `estoque-pest.yml` avisa que sem `DB_CONNECTION=mysql`
+// "os testes SKIPam via EstoqueFixture::schemaReady()" — verde sem ter provado nada.
+const totals = { passed: 0, failed: 0, errors: 0, skipped: 0, assertions: 0 };
 const suiteFileStack = [];
 let suiteDepth = 0;
 let declared = 0;
@@ -88,10 +94,12 @@ function commitTestcase() {
   counted++;
   const entry =
     files.get(current.file) ??
-    { file: current.file, tests: 0, passed: 0, failed: 0, errors: 0, skipped: 0, time: 0 };
+    { file: current.file, tests: 0, passed: 0, failed: 0, errors: 0, skipped: 0, assertions: 0, time: 0 };
   entry.tests++;
   entry[curStatus]++;
   totals[curStatus]++;
+  entry.assertions += current.assertions;
+  totals.assertions += current.assertions;
   entry.time += current.time;
   files.set(current.file, entry);
   current = null;
@@ -118,6 +126,9 @@ for (const m of xml.matchAll(tagRe)) {
       current = {
         file: norm(attr(rawAttrs, 'file')) || [...suiteFileStack].reverse().find(Boolean) || '(sem arquivo)',
         time: parseFloat(attr(rawAttrs, 'time') ?? '0') || 0,
+        // Ausente (JUnit de outro runner, ou testcase pulado) conta 0 — nunca inventa
+        // prova. Testcase `skipped` não tem `assertions`, e é exatamente esse o ponto.
+        assertions: parseInt(attr(rawAttrs, 'assertions') ?? '0', 10) || 0,
       };
       curStatus = 'passed';
       if (selfClose) commitTestcase();
@@ -140,6 +151,10 @@ const result = {
   n_testcases: counted,
   n_testcases_declared: declared,
   coherent: counted > 0 && counted === declared,
+  // `provou_algo` é o veredito que `0 failed` NÃO dá: houve testcase E alguma asserção.
+  // Suíte inteira pulada → counted>0 mas assertions=0 → false. Report-only por ora;
+  // reprovar exige `--check-assertions` explícito (ver docblock do flag).
+  provou_algo: counted > 0 && totals.assertions > 0,
   totals,
   files: [...files.values()]
     .sort((a, b) => a.file.localeCompare(b.file))
@@ -151,11 +166,16 @@ console.log(JSON.stringify(result, null, 2));
 
 if (process.env.GITHUB_STEP_SUMMARY) {
   const lines = [
-    `### JUnit summary — ${counted} testcases (${result.coherent ? 'coerente' : 'INCOERENTE'})`,
+    `### JUnit summary — ${counted} testcases · ${totals.assertions} assertions (${result.coherent ? 'coerente' : 'INCOERENTE'})`,
     '',
-    '| arquivo de teste | tests | pass | fail | err | skip |',
-    '|---|---:|---:|---:|---:|---:|',
-    ...result.files.map((f) => `| ${f.file} | ${f.tests} | ${f.passed} | ${f.failed} | ${f.errors} | ${f.skipped} |`),
+    ...(result.provou_algo ? [] : [
+      '> ⚠️ **0 assertions** — a suíte não provou nada. `0 failed` aqui significa que nada',
+      '> rodou (tudo pulado), não que passou. Confira o schema/fixture do ambiente.',
+      '',
+    ]),
+    '| arquivo de teste | tests | pass | fail | err | skip | assert |',
+    '|---|---:|---:|---:|---:|---:|---:|',
+    ...result.files.map((f) => `| ${f.file} | ${f.tests} | ${f.passed} | ${f.failed} | ${f.errors} | ${f.skipped} | ${f.assertions} |`),
   ];
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
 }
@@ -164,3 +184,14 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 // SOBRESCREVEM com o marcador invalid — o dado bruto segue no junit.xml do run.
 if (counted === 0) fail(2, 'XML existe mas tem 0 <testcase> — coleta quebrada (sintoma do artefato 0 bytes)', 'coleta_0_testcases');
 if (counted !== declared) fail(2, `incoerencia: contados ${counted} != declarados ${declared} no(s) <testsuite> raiz`, 'coleta_incoerente');
+
+// ── --check-assertions: OPT-IN, e de propósito NÃO wirado em lane nenhuma ────────
+// Distingue "rodou e provou" de "rodou e não provou". Fica desarmado porque a regra
+// "LIGUE A MÁQUINA" item 4 exige FP MEDIDO ANTES, e a distribuição real de assertions
+// por lane não existe em lugar nenhum hoje: as 11 lanes produzem junit XML mas só o
+// `ci.yml` roda este script, então o campo nunca foi agregado. Ligar o report nas lanes
+// é o que CRIA esse corpus; armar a reprovação vem depois, com o FP medido em cima dele.
+// Armar agora seria adivinhar com passos extras — o anti-padrão que o §5 mata 4×.
+if (args.includes('--check-assertions') && !result.provou_algo) {
+  fail(1, `0 assertions em ${counted} testcase(s) — a suíte NÃO provou nada; "0 failed" aqui é ausência de execução, não sucesso`, 'zero_assertions');
+}

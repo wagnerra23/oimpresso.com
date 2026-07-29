@@ -83,6 +83,16 @@ class KbRagService
     public const PRICE_INPUT_PER_M_USD  = 0.15;
     public const PRICE_OUTPUT_PER_M_USD = 0.60;
 
+    /**
+     * Razão de degradação própria deste service (as de retrieval vivem em
+     * KbCorpusBuilder::DEGRADED_*).
+     *
+     * Este é o caso mais enganoso dos que existem aqui: o retrieval ACHOU as fontes,
+     * o LLM caiu, e a resposta devolvida é a mesma de "não encontrei isso no KB".
+     * O leitor conclui que o conteúdo não existe — quando ele existe e foi achado.
+     */
+    public const DEGRADED_LLM_FAILED = 'llm_failed';
+
     public function __construct(
         // Service não recebe businessId no constructor — métodos públicos
         // recebem explicitamente pra evitar dependência de container scope.
@@ -164,6 +174,9 @@ class KbRagService
                     confidence: $cached->confidence,
                     corpusVersionHash: $corpusHash,
                     cacheHit: true,
+                    // Resultado degradado nunca é gravado no cache (ver passo 9),
+                    // então um hit é sempre íntegro.
+                    degradations: [],
                 );
             }
         }
@@ -171,7 +184,16 @@ class KbRagService
         // 4) Retrieve top-K
         $topK = $corpus->retrieve($querySanitized, KbCorpusBuilder::RETRIEVE_TOP_K);
         if ($topK->isEmpty()) {
-            return RagResult::notFound($this->latencyMs($startedAt), $corpusHash);
+            // Aqui moram DUAS situações que antes colapsavam no mesmo retorno:
+            //   (a) o retrieval falhou  → $corpus->degradations() != []
+            //   (b) a busca não achou nada → $corpus->degradations() == []
+            // A resposta segue 200 (disponibilidade é escolha deliberada), mas quem
+            // consome agora consegue separar "a base não tem" de "a busca não funcionou".
+            return RagResult::notFound(
+                $this->latencyMs($startedAt),
+                $corpusHash,
+                $corpus->degradations(),
+            );
         }
 
         // 5) Re-rank → top-N
@@ -193,12 +215,20 @@ class KbRagService
             $tokensOut = (int) ($response->usage->completionTokens ?? 0);
         } catch (\Throwable $e) {
             Log::channel('copiloto-ai')->error('KbRagService::ask LLM falhou', [
-                'business_id' => $businessId,
-                'user_id'     => $userId,
-                'error'       => $e->getMessage(),
+                'business_id'    => $businessId,
+                'user_id'        => $userId,
+                'sources_found'  => $topN->count(), // o retrieval funcionou — quem caiu foi o LLM
+                'error'          => $e->getMessage(),
             ]);
 
-            return RagResult::notFound($this->latencyMs($startedAt), $corpusHash);
+            // Mantém a resposta 200 e o texto atual (trocar a mensagem é decisão de
+            // produto), mas registra que houve falha: sem isto, "o LLM caiu depois de
+            // achar 6 fontes" e "o KB não tem o assunto" são a mesma resposta.
+            return RagResult::notFound(
+                $this->latencyMs($startedAt),
+                $corpusHash,
+                array_merge($corpus->degradations(), [self::DEGRADED_LLM_FAILED]),
+            );
         }
 
         $parsed = $this->parseAgentResponse($rawText);
@@ -227,10 +257,15 @@ class KbRagService
             confidence: $parsed['confidence'],
             corpusVersionHash: $corpusHash,
             cacheHit: false,
+            // Pode haver degradação mesmo com resposta boa — ex: corpus_hash_failed,
+            // que força cache miss em toda chamada e encarece sem sintoma visível.
+            degradations: $corpus->degradations(),
         );
 
-        // 9) Cache write
-        if (! $bypassCache && ! empty($sources)) {
+        // 9) Cache write — degradado NUNCA entra no cache. A condição de sources já
+        // barrava o caso vazio; o degraded() é explícito pra que uma mudança futura
+        // naquela condição não passe a persistir resultado de pipeline quebrado por 1h.
+        if (! $bypassCache && ! empty($sources) && ! $result->degraded()) {
             Cache::put($cacheKey, $result, self::CACHE_ASK_TTL_S);
         }
 
@@ -244,6 +279,8 @@ class KbRagService
             'latency_ms'         => $result->latencyMs,
             'corpus_hash'        => substr($corpusHash, 0, 12),
             'confidence'         => $result->confidence,
+            'degraded'           => $result->degraded(),
+            'degradation'        => $result->degradations,
         ]);
 
         return $result;
@@ -324,7 +361,10 @@ class KbRagService
                 'business_id' => $businessId,
                 'error'       => $e->getMessage(),
             ]);
-            // Degradação: retorna excerpt do próprio node + sem bullets
+            // Degradação: retorna excerpt do próprio node + sem bullets.
+            // Quando o node TEM excerpt, este fallback é um texto plausível e nada
+            // no payload dizia que a IA não rodou — por isso o sinal explícito.
+            // Não é cacheado (o Cache::put só roda no caminho de sucesso, abaixo).
             return new SummaryResult(
                 tldr: (string) ($node->excerpt ?? 'Resumo indisponível no momento.'),
                 bulletPoints: [],
@@ -336,6 +376,7 @@ class KbRagService
                 tokensIn: 0,
                 tokensOut: 0,
                 costEstimatedBrl: 0.0,
+                degradations: [self::DEGRADED_LLM_FAILED],
             );
         }
 
@@ -420,6 +461,8 @@ class KbRagService
                 'error'       => $e->getMessage(),
             ]);
 
+            // Sem o sinal, este retorno é idêntico ao do rascunho vazio logo acima —
+            // "a IA caiu" vira "a IA não tinha o que sugerir".
             return new MetaSuggestion(
                 title: '',
                 excerpt: mb_substr($bodyText, 0, 280),
@@ -430,6 +473,7 @@ class KbRagService
                 tokensIn: 0,
                 tokensOut: 0,
                 costEstimatedBrl: 0.0,
+                degradations: [self::DEGRADED_LLM_FAILED],
             );
         }
 

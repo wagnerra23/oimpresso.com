@@ -25,9 +25,9 @@ let fails = 0;
 const ok = (c, m) => { if (c) console.log(`  ✓ ${m}`); else { console.error(`  ✗ ${m}`); fails++; } };
 
 // executa e devolve {code, out} sem lancar
-function run(xml, out) {
+function run(xml, out, extra = []) {
   try {
-    execFileSync(process.execPath, [SCRIPT, xml, '--out', out], { stdio: 'pipe' });
+    execFileSync(process.execPath, [SCRIPT, xml, '--out', out, ...extra], { stdio: 'pipe' });
     return { code: 0 };
   } catch (e) {
     return { code: e.status };
@@ -67,6 +67,41 @@ try {
   ok(rV.code === 0, `XML valido → exit 0 — got ${rV.code}`);
   ok(sv.invalid === undefined && sv.coherent === true && sv.n_testcases === 2, 'XML valido → summary coerente sem campo invalid (contrato de sempre intacto)');
   ok(sv.totals.passed === 1 && sv.totals.failed === 1, 'XML valido → totals contados certos');
+
+  // ── assertions: o único campo que prova EXECUÇÃO (2026-07-29 · LC-13) ──────────
+  // `0 failed` é compatível com "nada rodou": suíte 100% skipped sai exit 0 e parece
+  // verde. O recibo real está em proibicoes §Ambiente — `4 skipped, 0 assertions,
+  // EXIT_CODE=0` no CT 100 sem schema. O summary tinha o dado no XML e o descartava.
+  const xmlP = join(root, 'junit-provou.xml');
+  writeFileSync(xmlP, '<testsuites><testsuite name="s" tests="2" file="T.php"><testcase name="a" file="T.php" assertions="5" time="0.1"/><testcase name="b" file="T.php" assertions="2" time="0.2"/></testsuite></testsuites>');
+  const outP = join(root, 'summary-provou.json');
+  const rP = run(xmlP, outP);
+  const sp = marker(outP);
+  ok(rP.code === 0 && sp.totals.assertions === 7, `assertions somadas do XML — got ${sp.totals.assertions}`);
+  ok(sp.provou_algo === true, 'rodou e provou → provou_algo:true');
+  ok(sp.files[0].assertions === 7, 'assertions também agregadas POR ARQUIVO');
+
+  // A fixture que define a classe: 0 failed, tudo pulado, nenhuma asserção.
+  const xmlS = join(root, 'junit-tudo-pulado.xml');
+  writeFileSync(xmlS, '<testsuites><testsuite name="s" tests="2" file="T.php"><testcase name="a" file="T.php" time="0"><skipped/></testcase><testcase name="b" file="T.php" time="0"><skipped/></testcase></testsuite></testsuites>');
+  const outS = join(root, 'summary-pulado.json');
+  const rS = run(xmlS, outS);
+  const ss = marker(outS);
+  ok(ss.totals.failed === 0 && ss.totals.skipped === 2 && ss.totals.assertions === 0,
+    'suíte 100% pulada → 0 failed E 0 assertions (é a assinatura da classe)');
+  ok(ss.provou_algo === false, 'BITE: rodou e NÃO provou → provou_algo:false');
+  // Report-only por padrão: o default NÃO pode derrubar antes do FP medido.
+  ok(rS.code === 0, `default segue report-only (exit 0) mesmo com 0 assertions — got ${rS.code}`);
+  // E o opt-in morde. Sem este par, o campo seria decorativo.
+  const rSc = run(xmlS, join(root, 's2.json'), ['--check-assertions']);
+  ok(rSc.code === 1, `BITE: --check-assertions com 0 assertions → exit 1 — got ${rSc.code}`);
+  const rPc = run(xmlP, join(root, 'p2.json'), ['--check-assertions']);
+  ok(rPc.code === 0, `LIBERA: --check-assertions com assertions>0 → exit 0 — got ${rPc.code}`);
+  // Controle negativo: JUnit de runner que não emite `assertions` não pode ser acusado
+  // de "não provou" — ausência do atributo ≠ prova de que nada rodou. Aqui o default
+  // segue 0, e é por isso que a reprovação é OPT-IN e não entra em lane nenhuma ainda.
+  ok(sv.totals.assertions === 0 && sv.provou_algo === false,
+    'XML sem atributo assertions → 0 e provou_algo:false (motivo de o --check ficar desarmado)');
 } finally { rmSync(root, { recursive: true, force: true }); }
 
 console.log(fails === 0 ? '\n  junit-summary (FV-F1 + FV-F4/US-GOV-045): OK\n' : `\n  junit-summary: ${fails} FALHA(S)\n`);

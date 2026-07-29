@@ -24,6 +24,7 @@ final class MetaSuggestion
      * @param  int                $tokensIn
      * @param  int                $tokensOut
      * @param  float              $costEstimatedBrl
+     * @param  array<int,string>  $degradations      Razões de degradação; vazio = sugestão realmente gerada pelo LLM
      */
     public function __construct(
         public readonly string $title,
@@ -35,7 +36,19 @@ final class MetaSuggestion
         public readonly int $tokensIn,
         public readonly int $tokensOut,
         public readonly float $costEstimatedBrl,
+        public readonly array $degradations = [],
     ) {}
+
+    /**
+     * true se o LLM falhou e a sugestão é o fallback (excerpt cru do rascunho).
+     *
+     * Sem esta marca, "a IA caiu" fica idêntico a "a IA não tinha o que sugerir"
+     * — os dois devolvem title vazio e tags vazias.
+     */
+    public function degraded(): bool
+    {
+        return $this->degradations !== [];
+    }
 
     /**
      * @return array<string,mixed>
@@ -53,6 +66,8 @@ final class MetaSuggestion
                 'tokens_in'          => $this->tokensIn,
                 'tokens_out'         => $this->tokensOut,
                 'cost_estimated_brl' => $this->costEstimatedBrl,
+                'degraded'           => $this->degraded(),
+                'degradation'        => $this->degradations,
             ],
         ];
     }

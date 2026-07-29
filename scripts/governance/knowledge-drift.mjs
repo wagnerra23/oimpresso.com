@@ -154,6 +154,31 @@ export function loadPathTombstones() {
   return m;
 }
 
+/** Triagem CURADA de nome de módulo (renames + excluded do mesmo ghost-rename-map). */
+export function loadModuleTriage() {
+  try {
+    const raw = JSON.parse(readFileSync(RENAME_MAP_FILE, 'utf8'));
+    return { renames: raw.renames ?? {}, excluded: raw.excluded ?? {} };
+  } catch { return { renames: {}, excluded: {} }; }
+}
+
+// PURO + injetável.
+//
+// POR QUE EXISTE (custo medido 2026-07-29): o relatório mostrava `👻 cita Modules/Project,
+// NfseBrasil inexistente` em 🔴, e nada dizia que os DOIS já estavam triados no
+// ghost-rename-map como `AMBIGUO — fila humana`, com evidência, E congelados no baseline
+// por módulo. Uma sessão inteira foi gasta re-investigando e chegando à MESMA conclusão que
+// o map já registrava. Ghost triado e ghost novo pareciam iguais; só o segundo pede ação.
+//
+//   'corrigivel' → há rename curado 1:1: o codemod ghost-fix resolve
+//   'triado'     → excluído com classe + motivo: decisão JÁ tomada, não re-litigar
+//   'novo'       → não está no map: ESTE é o que pede olho humano
+export function classifyModuleGhost(nome, { renames, excluded }) {
+  if (renames?.[nome]?.to) return { status: 'corrigivel', to: renames[nome].to };
+  if (excluded?.[nome]) return { status: 'triado', classe: excluded[nome].class ?? '?', motivo: excluded[nome].reason ?? '' };
+  return { status: 'novo' };
+}
+
 // PURO + injetável — o --selftest exercita ISTO (o contrato), nunca o console.
 //   'live'       existe no disco
 //   'tombstoned' não existe, mas há tombstone curado
@@ -256,9 +281,31 @@ if (IS_MAIN && SELFTEST) {
   ok('MOD_REF_RE: path de teste tests/Unit/Modules/Foo NÃO vira módulo (ghost falso)',
      !modsIn('roda tests/Unit/Modules/Foo/BarTest.php').includes('Foo'));
 
+  // ── triagem de ghost de MÓDULO: separa "já decidido" de "pede olho" ─────────
+  // Custo medido 2026-07-29: uma sessão inteira re-investigou Project/NfseBrasil e
+  // chegou à MESMA conclusão que o ghost-rename-map já registrava — porque o relatório
+  // mostrava ghost triado e ghost novo do mesmo jeito.
+  const TRI = loadModuleTriage();
+  ok('contrato: ghost-rename-map tem rename curado Copiloto→Jana', TRI.renames?.Copiloto?.to === 'Jana');
+  ok('contrato: ghost-rename-map exclui Project com classe (fila humana)', !!TRI.excluded?.Project?.class);
+
+  const inj = { renames: { Copiloto: { to: 'Jana' } }, excluded: { Project: { class: 'AMBIGUO', reason: 'r' } } };
+  ok('RELEASE: nome com rename curado → corrigivel (o codemod resolve)',
+     classifyModuleGhost('Copiloto', inj).status === 'corrigivel');
+  ok('RELEASE: nome excluído → triado, e devolve a CLASSE (decisão já tomada)',
+     classifyModuleGhost('Project', inj).status === 'triado' && classifyModuleGhost('Project', inj).classe === 'AMBIGUO');
+  // BITE — o único que pede ação humana tem que ser distinguível dos outros dois.
+  ok('BITE: nome fora do map → novo (ESTE pede olho humano)',
+     classifyModuleGhost('ModuloQueNinguemTriou', inj).status === 'novo');
+  ok('BITE: e "novo" não se confunde com "triado" nem com "corrigivel"',
+     ['triado', 'corrigivel'].indexOf(classifyModuleGhost('ModuloQueNinguemTriou', inj).status) === -1);
+  // CONTROLE NEGATIVO — map ausente/corrompido não pode mascarar ghost como triado.
+  ok('CONTROLE NEGATIVO: sem map, todo ghost vira "novo" (falha para o lado do alarme)',
+     classifyModuleGhost('Project', { renames: {}, excluded: {} }).status === 'novo');
+
   console.log(fails
     ? `\n  ${fails} FALHA(S) — a catraca de path-fantasma não está honesta.\n`
-    : `\n  SELFTEST OK — morde (phantom) e solta (tombstoned/live).\n`);
+    : `\n  SELFTEST OK — morde (phantom) e solta (tombstoned/live); triagem separa novo de já-decidido.\n`);
   process.exit(fails ? 1 : 0);
 }
 
@@ -447,11 +494,24 @@ const median = hopsArr[Math.floor(hopsArr.length / 2)];
 console.log(`\n  BATIMENTO DO CONHECIMENTO — drift por módulo (${rows.length} módulos)\n`);
 console.log(`  ${'MÓDULO'.padEnd(20)} ${'docs'.padStart(4)} ${'hops'.padStart(4)}  ${'porta'.padEnd(7)} drift/stale`);
 console.log('  ' + '─'.repeat(64));
+const TRIAGE = loadModuleTriage();
+/** rótulo curto por ghost: `Project(AMBIGUO)`, `Copiloto→Jana`, `Foo(NOVO)`. */
+const rotulaGhost = (n) => {
+  const c = classifyModuleGhost(n, TRIAGE);
+  return c.status === 'corrigivel' ? `${n}→${c.to}`
+    : c.status === 'triado' ? `${n}(${c.classe})`
+    : `${n}(NOVO)`;
+};
+let ghostsNovos = 0;
 for (const r of rows) {
-  const d = [r.ghosts.length ? `👻 cita Modules/${r.ghosts.join(',')} inexistente` : '', r.stale ? 'stale' : ''].filter(Boolean).join(' · ');
+  for (const g of r.ghosts) if (classifyModuleGhost(g, TRIAGE).status === 'novo') ghostsNovos++;
+  const d = [r.ghosts.length ? `👻 cita Modules/${r.ghosts.map(rotulaGhost).join(',')} inexistente` : '', r.stale ? 'stale' : ''].filter(Boolean).join(' · ');
   console.log(`  ${r.flag} ${r.mod.padEnd(18)} ${String(r.docs).padStart(4)} ${String(r.hops).padStart(4)}  ${r.door.padEnd(7)} ${d}`);
 }
 console.log('  ' + '─'.repeat(64));
+console.log(`\n  Ghost: \`X→Y\` = rename curado (ghost-fix resolve) · \`X(CLASSE)\` = JÁ TRIADO em`);
+console.log(`  governance/ghost-rename-map.json (decisão tomada — não re-investigar) · \`X(NOVO)\` = fora do map.`);
+console.log(`  Ghosts que pedem olho humano (NOVO): ${ghostsNovos}`);
 console.log(`\n  Cobertura de porta:        ${withDoor}/${rows.length} (${Math.round(100*withDoor/rows.length)}%)`);
 console.log(`  Portas auto-contidas:      ${selfContained}/${rows.length} (${Math.round(100*selfContained/rows.length)}%)`);
 console.log(`  read_path_hops mediano:    ${median}  (meta: 1)`);

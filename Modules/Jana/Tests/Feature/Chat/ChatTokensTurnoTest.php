@@ -128,6 +128,19 @@ final class FakeStreamAdapterTokens implements AiAdapter
     }
 
     /** {@inheritDoc} */
+    public function ultimoResultadoStream(): array
+    {
+        return [
+            'path' => 'llm',
+            'status' => 'ok',
+            'cache_hit' => false,
+            'recall_count' => 0,
+            'jobs_dispatched' => 0,
+            'error_class' => null,
+        ];
+    }
+
+    /** {@inheritDoc} */
     public function ultimoUsoTokens(): array
     {
         return $this->ultimoUso;

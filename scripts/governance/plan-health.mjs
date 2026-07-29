@@ -37,6 +37,44 @@ const findings = []; // {plan, level: 'warn'|'fail', issue}
 const add = (plan, issue, level = 'warn') => findings.push({ plan, issue, level });
 
 const indexPath = join(ROOT, INDEX_REL);
+// ── SELFTEST: prova que o gate MORDE e SOLTA ────────────────────────────────
+// Rodada 2026-07-29: este gate rodava em CI (plan-health-gate.yml) com ZERO prova de
+// mordida — fora do gate-selftest, sem .test.mjs, sem --selftest. "Gate mudo é pior que
+// gate ausente, porque parece cobertura." Medido no dia: 16 planos · 0 🔴 · 16 🟡, e a
+// pergunta honesta era se o 🔴 conseguia acender. Consegue — e agora está provado.
+if (process.argv.includes('--selftest')) {
+  let fails = 0;
+  const ok = (n, c) => { console.log(`  ${c ? '[OK]' : '[FAIL]'} ${n}`); if (!c) fails++; };
+  const HOJE = new Date('2026-07-29T00:00:00Z');
+  const bloco = (linhas) => `# Plano\n\n## Status vivo\n\n${linhas}\n\n## Outra seção\n`;
+  const niveis = (r) => r.map((f) => f.level);
+
+  // BITE — o único caminho de fail que depende do CORPO do plano.
+  const orfao = analisaPlano({ label: 'p', hoje: HOJE, body: bloco('status: em-execução\nreviewed_at: 2026-07-28') });
+  ok('BITE: em-execução SEM parent_plan → fail (o 🔴 acende de verdade)', niveis(orfao).includes('fail'));
+
+  // RELEASE — o mesmo plano COM parent_plan não pode acusar.
+  const ligado = analisaPlano({ label: 'p', hoje: HOJE, body: bloco('status: em-execução\nreviewed_at: 2026-07-28\nparent_plan: COPI-1') });
+  ok('RELEASE: em-execução COM parent_plan → sem fail', !niveis(ligado).includes('fail'));
+  ok('RELEASE: plano saudável não gera achado nenhum', ligado.length === 0);
+
+  // CONTROLES NEGATIVOS — warn não pode virar fail (senão o gate passa a derrubar PR por higiene).
+  const semBloco = analisaPlano({ label: 'p', hoje: HOJE, body: '# Plano\n\nsó prosa\n' });
+  ok('sem `## Status vivo` → warn, NUNCA fail', semBloco.length === 1 && semBloco[0].level === 'warn');
+  const stale = analisaPlano({ label: 'p', hoje: HOJE, body: bloco('status: ativo\nreviewed_at: 2026-01-01') });
+  ok('reviewed_at velho → warn (frescor é higiene, não quebra)', niveis(stale).every((l) => l === 'warn') && stale.length > 0);
+  const enumRuim = analisaPlano({ label: 'p', hoje: HOJE, body: bloco('status: inventado\nreviewed_at: 2026-07-28') });
+  ok('status fora do enum → warn e NOMEIA o valor', enumRuim.some((f) => f.level === 'warn' && f.issue.includes('inventado')));
+
+  // Heading ancorado: menção inline não pode ser confundida com o bloco real.
+  const inline = analisaPlano({ label: 'p', hoje: HOJE, body: '# Plano\n\nver `## Status vivo` abaixo\n' });
+  ok('CONTROLE NEGATIVO: menção inline de "## Status vivo" não conta como bloco',
+     inline.length === 1 && inline[0].issue.includes('sem bloco'));
+
+  console.log(fails ? `\n  ${fails} FALHA(S) — o gate de planos não está honesto.\n` : '\n  SELFTEST OK — o 🔴 acende no órfão e solta no plano ligado.\n');
+  process.exit(fails ? 1 : 0);
+}
+
 if (!existsSync(indexPath)) {
   const msg = `PLANS-INDEX ausente (${INDEX_REL}) — nada a checar (ainda não mergeado no main?).`;
   if (JSON_OUT) console.log(JSON.stringify({ ok: true, skipped: true, reason: msg, findings: [] }, null, 2));
@@ -63,20 +101,30 @@ const daysSince = (iso) => {
   return Math.floor((today - d) / 86_400_000);
 };
 
-for (const p of plans) {
-  if (!existsSync(p.abs)) {
-    add(p.label, `índice aponta pra arquivo inexistente: ${p.rel}`, 'fail');
-    continue;
-  }
-  const body = readFileSync(p.abs, 'utf8');
+/**
+ * PURO + injetável — o `--selftest` exercita ISTO (o contrato), nunca o console.
+ *
+ * Recebe o CORPO do plano e devolve os achados. Extraído do laço em 2026-07-29:
+ * o gate rodava em CI (`plan-health-gate.yml`) sem bite-test nenhum — não estava no
+ * `gate-selftest`, não tinha `.test.mjs`, não tinha `--selftest`. Gate cuja mordida
+ * ninguém prova é o "gate mudo" que o canon condena, porque PARECE cobertura.
+ *
+ * @param {{label:string, body:string, hoje?:Date, staleDays?:number}} p
+ * @returns {{plan:string, issue:string, level:'fail'|'warn'}[]}
+ */
+export function analisaPlano({ label, body, hoje = new Date(), staleDays = STALE_DAYS }) {
+  /** @type {{plan:string, issue:string, level:'fail'|'warn'}[]} */
+  const out = [];
+  const push = (issue, level = 'warn') => out.push({ plan: label, issue, level });
+  const dias = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? null : Math.floor((hoje - d) / 86_400_000); };
 
   // Região do bloco `## Status vivo` — heading ANCORADO em início de linha (senão
   // casa com menções inline tipo "ver `## Status vivo` abaixo" → falso negativo).
-  const blines = body.split(/\r?\n/);
+  const blines = String(body).split(/\r?\n/);
   const hi = blines.findIndex((l) => /^##\s+Status vivo\b/i.test(l.trim()));
   if (hi === -1) {
-    add(p.label, 'sem bloco `## Status vivo` (não rastreável — ADR 0294)');
-    continue; // sem bloco, os demais campos não fazem sentido
+    push('sem bloco `## Status vivo` (não rastreável — ADR 0294)');
+    return out; // sem bloco, os demais campos não fazem sentido
   }
   let raw = '';
   for (let i = hi + 1; i < blines.length && !/^##\s/.test(blines[i].trim()); i++) raw += blines[i] + '\n';
@@ -87,27 +135,38 @@ for (const p of plans) {
   // status
   const statusM = bloco.match(/status:\s*([^\n·]+)/i);
   const status = statusM ? statusM[1].trim().toLowerCase().split(/\s/)[0] : null;
-  if (!status) add(p.label, 'status ausente no bloco Status vivo');
-  else if (!STATUS_ENUM.includes(status)) add(p.label, `status fora do enum: "${status}"`);
+  if (!status) push('status ausente no bloco Status vivo');
+  else if (!STATUS_ENUM.includes(status)) push(`status fora do enum: "${status}"`);
 
   // reviewed_at (frescor)
   const revM = bloco.match(/reviewed_at:\s*([0-9]{4}-[0-9]{2}-[0-9]{2}|nunca|—|-)/i);
   const rev = revM ? revM[1].trim() : null;
   if (!rev || /nunca|—|^-$/i.test(rev)) {
-    add(p.label, 'reviewed_at ausente (frescor não rastreado)');
+    push('reviewed_at ausente (frescor não rastreado)');
   } else {
-    const d = daysSince(rev);
-    if (d !== null && d > STALE_DAYS) add(p.label, `reviewed_at stale: ${d}d (> ${STALE_DAYS}d)`);
+    const d = dias(rev);
+    if (d !== null && d > staleDays) push(`reviewed_at stale: ${d}d (> ${staleDays}d)`);
   }
 
-  // órfão: em-execução sem parent_plan
+  // órfão: em-execução sem parent_plan — ÚNICO caminho de `fail` além do índice dangling
   const emExec = status && status.startsWith('em-execu');
   const temParent = /parent_plan\s*=?\s*\S/i.test(bloco);
-  if (emExec && !temParent) add(p.label, 'órfão: em-execução SEM parent_plan (não ligado ao MCP)', 'fail');
+  if (emExec && !temParent) push('órfão: em-execução SEM parent_plan (não ligado ao MCP)', 'fail');
 
   // superseded sem ponteiro
   if (status === 'superseded' && !/verdade-viva[\s\S]*?\]\(|superseded_by|→\s*\[/i.test(bloco)) {
-    add(p.label, 'superseded SEM ponteiro pro plano novo');
+    push('superseded SEM ponteiro pro plano novo');
+  }
+  return out;
+}
+
+for (const p of plans) {
+  if (!existsSync(p.abs)) {
+    add(p.label, `índice aponta pra arquivo inexistente: ${p.rel}`, 'fail');
+    continue;
+  }
+  for (const f of analisaPlano({ label: p.label, body: readFileSync(p.abs, 'utf8'), hoje: today })) {
+    add(f.plan, f.issue, f.level);
   }
 }
 
