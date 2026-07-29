@@ -63,11 +63,14 @@ queries:
     expected: ["0235-staging-ct100-clone-anonimizado"]
     violations: []
 
-  - id: colisao-0101-tests-business-id
+  # DEIXOU de ser caso de colisão: o par 0101 foi desfeito FISICAMENTE em 2026-07-29
+  # (a `0101-tests-business-id-1-nunca-cliente` foi esquecida via ADR 0316 — `git rm` +
+  # lápide). Sobrou só a `0101-sistema-charter-capterra-governanca-escopo`, então não há
+  # mais irmão pra resolver. Vira caso de recall simples, agora apontando pra sucessora.
+  # A resposta certa também MUDOU: o tenant de teste é biz=98, não mais biz=1.
+  - id: tenant-canonico-de-teste
     query: "Qual business_id os testes Pest devem usar?"
-    collision_number: "0101"
-    must_resolve_slug: "0101-tests-business-id-1-nunca-cliente"
-    expected: ["0101-tests-business-id-1-nunca-cliente"]
+    expected: ["0358-doutrina-de-teste-tenant-98-supersede-0101"]
     violations: []
 
   - id: colisao-0180-sidebar

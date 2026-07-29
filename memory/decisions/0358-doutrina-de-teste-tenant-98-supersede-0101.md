@@ -129,9 +129,16 @@ medido antes ([ADR 0336](0336-gates-design-promocao-por-mordida-provada-emenda-0
 - ✅ Canon e código voltam a dizer a mesma coisa — o intervalo foi de 1 dia, e só porque foi pego.
 - ✅ A `0101-tests` **sai do disco**: some de `ls`, `grep`, `Glob`, do índice gerado e do recall.
 - ✅ A **colisão de número 0101** (duas ADRs com o mesmo número, [ADR 0274](0274-referencia-adr-por-slug-alias-map-13-colisoes.md))
-  deixa de existir — resolvida fisicamente, não remendada por alias-map. Sobra a
-  `0101-sistema-charter-capterra-governanca-escopo`, e "ADR 0101" volta a ser referência
-  inequívoca.
+  deixa de existir **no disco** — resolvida fisicamente, não remendada por alias-map.
+  `collisions_grandfathered` cai de 14 → 13.
+  ⚠️ **Mas "ADR 0101" NÃO virou referência inequívoca por isso.** Medido: **115 charters**
+  citam `101` numérico em `related_adrs` — e a maioria queria dizer *esta* ADR (o trio
+  típico é 93 · 94 · 101 · 104: multi-tenant, constituição, tests, MWART). Depois da
+  remoção, esse `101` passa a resolver na **sobrevivente** (`0101-sistema-charter-capterra`),
+  que trata de outro assunto. Não foram reescritos: 115 arquivos é big-bang de legado
+  ([§5 2026-07-12](../proibicoes.md)). Quem precisar desambiguar tem duas fontes:
+  a entrada `0101` do [alias map](../../governance/adr-alias-map.json) (append-only, lista
+  os dois slugs) e a lápide, que aponta esta ADR como sucessora.
 - ✅ Duas propostas paradas (tenant 2026-07-28, homologação 2026-06-24) saem do limbo.
 - ⚠️ As ~177 referências à ADR esquecida resolvem pelo ledger + git history, não por link
   clicável. É o trade-off que a [0316](0316-esquecimento-real-adr-morta-tombstone-git-auditoria.md)
