@@ -10,6 +10,10 @@ use Menu;
  * DataController — integrações com UltimatePOS.
  *
  * Descoberto automaticamente pelo middleware AdminSidebarMenu.
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor — a entrada de sidebar e as permissões `memcofre.*` saem em E5
+ *             (aliases pra KB/Jana criados em E4). DEPRECATION-PLAN §Fase 2 item 8.
  */
 class DataController extends Controller
 {

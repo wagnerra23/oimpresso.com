@@ -18,6 +18,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * LogsActivity (Wave 27): user stories podem ser ajustadas ao longo da vida do
  * projeto — auditar quem mudou o que (titulo/descricao/status) preserva
  * rastreabilidade pra governance + ADR/CHANGELOG cross-check.
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor decidido — a ADR 0357 deixa este destino EM ABERTO até E3
+ *             (hipótese do plano: descontinuar/ARCHIVE, já que a fonte canônica de US é
+ *             `memory/requisitos/<X>/SPEC.md` via MCP).
+ *             DEPRECATION-PLAN §Fase 2 item 19 + §Fase 3 T5.
  */
 class DocRequirement extends Model
 {

@@ -10,6 +10,12 @@ use Inertia\Response;
 use Modules\SRS\Entities\DocEvidence;
 use Modules\SRS\Http\Requests\TriageEvidenceRequest;
 
+/**
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\KB` (triagem vira estado draft de `kb_nodes` —
+ *             `Modules\KB\Http\Controllers\KbNodeController`). DEPRECATION-PLAN §Fase 2 item 4.
+ *             Não abrir feature nova aqui; segue servindo em prod até E5.
+ */
 class InboxController extends Controller
 {
     public function index(Request $request): Response

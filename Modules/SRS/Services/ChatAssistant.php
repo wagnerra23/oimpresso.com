@@ -12,6 +12,10 @@ use App\Util\OtelHelper;
  *
  * Modo AI: monta contexto RAG e delega ao provedor LLM. Só roda quando
  * config('memcofre.ai.enabled') = true E OPENAI_API_KEY setada.
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Jana` (chat IA canônico — `Modules\Jana\Services\Memoria\*`).
+ *             DEPRECATION-PLAN §Fase 2 item 2. Não abrir feature nova aqui.
  */
 class ChatAssistant
 {

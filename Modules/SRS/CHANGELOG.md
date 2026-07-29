@@ -2,6 +2,18 @@
 
 Append-only. Cada PR mergeado que toca `Modules/SRS/` deve adicionar 1 linha na entrada do Wave/data.
 
+## E2 (deprecação) — 2026-07-29
+
+### Changed
+
+- PHPDoc `@deprecated since 2026-07-29 (ADR 0357)` em **21 classes** (8 Controllers · 6 Services · 7 Entities), cada uma apontando o sucessor canônico e o item do [DEPRECATION-PLAN](../../memory/requisitos/SRS/DEPRECATION-PLAN.md). Etapa **E2** do plano — `docs/comments only`, **zero mudança de comportamento** (diff 100% aditivo, 106 linhas, todas dentro de docblock).
+
+### Notes
+
+- O módulo **SEGUE SERVINDO em produção** — `deprecating` ≠ removido. Nada foi desativado, renomeado, movido ou removido.
+- Contagem real = **21** classes (o plano de maio estimava 15). Console Commands (9) e FormRequests (4) ficaram **fora** do escopo declarado da E2.
+- E3+ (migração de dados, refactor de namespace, remoção) seguem gated individualmente por [W].
+
 ## Wave 28 — 2026-05-17 (SATURATION FINAL functional → ≥92)
 
 ### Added

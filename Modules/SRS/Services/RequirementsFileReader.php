@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\File;
  * Usado pelo MemCofre pra mostrar overview por módulo sem precisar
  * parsear MD via regex em cada request — pode ser cacheado / sincronizado
  * com a tabela docs_requirements (Fase 3).
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: consolidar com `App\Services\ModuleRequirementsGenerator` (irmão que
+ *             gera o que este lê). DEPRECATION-PLAN §Fase 2 item 13. Não abrir feature nova aqui.
  */
 class RequirementsFileReader
 {

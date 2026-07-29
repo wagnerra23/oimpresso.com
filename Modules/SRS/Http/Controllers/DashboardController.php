@@ -13,6 +13,12 @@ use Modules\SRS\Entities\DocValidationRun;
 use Modules\SRS\Services\ModuleAuditor;
 use Modules\SRS\Services\RequirementsFileReader;
 
+/**
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor 1:1 — a descontinuar; o painel canônico é
+ *             `Modules\Governance\Http\Controllers\DashboardController` (301 de `/memcofre` em E4).
+ *             DEPRECATION-PLAN §Fase 2 item 7. Não abrir feature nova aqui.
+ */
 class DashboardController extends Controller
 {
     protected function countRulesWithoutTest(array $m): int

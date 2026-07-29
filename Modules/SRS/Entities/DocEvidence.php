@@ -19,6 +19,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * LogsActivity (Wave 27): evidencias (screenshots/logs/snippets ingeridos)
  * podem conter info sensivel/contextual — auditar quem mudou status/triagem
  * preserva rastreabilidade governance + LGPD.
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\KB` — conteúdo MIGRA pra `mcp_memory_documents` em E3
+ *             (tabela T2; cuidado com recriação do índice FULLTEXT).
+ *             DEPRECATION-PLAN §Fase 2 item 16 + §Fase 3 T2. Não abrir feature nova aqui.
  */
 class DocEvidence extends Model
 {

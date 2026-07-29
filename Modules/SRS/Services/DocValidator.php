@@ -19,6 +19,11 @@ use Modules\SRS\Entities\DocValidationRun;
  *   5. PAGE_STALE:     página planejada há mais de 30 dias sem mudança
  *
  * Resultado persistido em docs_validation_runs com health_score 0-100.
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Governance` (validação/drift —
+ *             `Modules\Governance\Http\Controllers\DriftAlertsController`).
+ *             DEPRECATION-PLAN §Fase 2 item 10. Não abrir feature nova aqui.
  */
 class DocValidator
 {

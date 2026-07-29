@@ -18,6 +18,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * Pré-existente: MultiTenantIsolationTest SRS já cobre column-level — passa
  * tranquilo com scope adicional (scope refina, não muda contrato visível).
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\KB` — `docs_sources` MIGRA em E3 (tabela T1; o destino
+ *             `kb_sources` ainda NÃO existe, nasce na migração).
+ *             DEPRECATION-PLAN §Fase 2 item 15 + §Fase 3 T1. Não abrir feature nova aqui.
  */
 class DocSource extends Model
 {

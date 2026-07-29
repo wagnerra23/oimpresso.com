@@ -13,6 +13,11 @@ use Modules\SRS\Http\Requests\ChatAskRequest;
 use Modules\SRS\Services\ChatAssistant;
 use Modules\SRS\Services\RequirementsFileReader;
 
+/**
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Jana` (chat IA canônico — `Modules\Jana\Http\Controllers\ChatController`).
+ *             DEPRECATION-PLAN §Fase 2 item 1. Não abrir feature nova aqui; segue servindo em prod até E5.
+ */
 class ChatController extends Controller
 {
     public function index(Request $request, RequirementsFileReader $reader): Response

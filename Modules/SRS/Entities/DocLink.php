@@ -23,6 +23,11 @@ use Illuminate\Database\Eloquent\Model;
  * causaria "Unknown column 'docs_links.business_id'" em toda query.
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md §"Exceção repo-wide"
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor decidido — segue o destino de `DocRequirement` (pivot depende dele);
+ *             hipótese do plano é ARCHIVE em E3 (tabela T6). A ADR 0357 deixa esta decisão
+ *             EM ABERTO até E3. DEPRECATION-PLAN §Fase 2 item 19 + §Fase 3 T6.
  */
 class DocLink extends Model
 {

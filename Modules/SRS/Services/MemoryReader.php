@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\File;
  *   - listRoots()    → estrutura de árvore das 3 fontes
  *   - readFile($key) → conteúdo de um arquivo específico (key = "root::caminho/relativo.md")
  *   - stats()        → contagens por root
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\KB` (acervo canônico, alimentado por `mcp_memory_documents`).
+ *             DEPRECATION-PLAN §Fase 2 item 12. Não abrir feature nova aqui.
  */
 class MemoryReader
 {
