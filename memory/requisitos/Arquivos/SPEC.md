@@ -103,7 +103,7 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 **Implementado em:** _pendente_ — `scripts/curador/apply.mjs` ainda mexe filesystem direto; depende do endpoint US-ARQ-011
 
 ### US-ARQ-018 · Widget Admin Center "Arquivos" (count por bucket, sensitive aguardando vault, métricas saúde) `p2`
-**Implementado em:** `Modules/Admin/Services/CuradorStatsReader.php` · `resources/js/Pages/Admin/_components/WidgetCurador.tsx` · `Modules/Admin/Http/Controllers/IndexController.php` · `IndexController@__invoke` · verificado@dad0b11 (2026-07-02) — widget "W5 Curador" injeta `curador` prop (IndexController L64, controller invokable) com count por bucket + `sensitive_count` + audit 24h + dedupe; badge sensitive na tela `resources/js/Pages/Admin/Index.tsx`
+**Implementado em:** `Modules/Arquivos/Services/Curador/CuradorStatsReader.php` · `Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php` — count por bucket + `sensitive_count` + audit 24h + dedupe, com recorte por `business_id` (Tier 0) coberto por teste na lane MySQL. **A UI está PENDENTE:** o widget "W5 Curador" e a `IndexController@__invoke` que o injetavam viviam no `Modules/Admin` (Admin Center Wagner-only) e foram removidos com a depreciação daquele módulo em 2026-07-29 — a tela nunca foi acessível fora do Tailscale (403). O leitor foi resgatado pra cá porque só consulta tabelas DESTE módulo; falta dar a ele uma superfície própria.
 
 ## Sprint 3 — primeiro consumer real
 

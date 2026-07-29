@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Admin\Services;
+namespace Modules\Arquivos\Services\Curador;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
@@ -8,7 +8,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * CuradorStatsReader — Widget W5 (Curador / Modules/Arquivos backbone).
+ * CuradorStatsReader — estatísticas do pipeline Curador.
+ *
+ * MORAVA EM `Modules/Admin/Services/` até 2026-07-29, o que era o lugar errado:
+ * ele só lê tabelas DESTE módulo e sustenta a US-ARQ-018 do PRÓPRIO Arquivos.
+ * Estava lá porque o único consumidor era o widget W5 do Admin Center — que
+ * morre com a depreciação daquele módulo. O leitor fica; a superfície é que era
+ * emprestada.
  *
  * Lê tabelas do `Modules/Arquivos`:
  * - `arquivos` (count por bucket — sensitive/active/memory/etc)

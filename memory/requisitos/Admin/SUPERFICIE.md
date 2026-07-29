@@ -14,7 +14,7 @@ module: Admin
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Admin/**` + `resources/js/Pages/Admin/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 96 arquivos em 13 papéis.
+**Total mapeado:** 95 arquivos em 13 papéis.
 
 ## Controllers — 8
 
@@ -42,14 +42,13 @@ module: Admin
 - [IsWagner.php](../../../Modules/Admin/Http/Middleware/IsWagner.php)
 - [TailscaleOnly.php](../../../Modules/Admin/Http/Middleware/TailscaleOnly.php)
 
-## Services — 12
+## Services — 11
 
 - [AdminAuditLogger.php](../../../Modules/Admin/Services/AdminAuditLogger.php)
 - [AdrAlertReader.php](../../../Modules/Admin/Services/AdrAlertReader.php)
 - [BrainBCostReader.php](../../../Modules/Admin/Services/BrainBCostReader.php)
 - [BriefAdapter.php](../../../Modules/Admin/Services/BriefAdapter.php)
 - [CentrifugoAdminChannel.php](../../../Modules/Admin/Services/CentrifugoAdminChannel.php)
-- [CuradorStatsReader.php](../../../Modules/Admin/Services/CuradorStatsReader.php)
 - [CyclesAggregator.php](../../../Modules/Admin/Services/CyclesAggregator.php)
 - [HealthSnapshotReader.php](../../../Modules/Admin/Services/HealthSnapshotReader.php)
 - [InfraStatusReader.php](../../../Modules/Admin/Services/InfraStatusReader.php)

@@ -14,7 +14,7 @@ module: Arquivos
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 58 arquivos em 11 papéis.
+**Total mapeado:** 60 arquivos em 11 papéis.
 
 ## Controllers — 3
 
@@ -32,11 +32,12 @@ module: Arquivos
 - [RetentionRunRequest.php](../../../Modules/Arquivos/Http/Requests/RetentionRunRequest.php)
 - [UploadArquivoRequest.php](../../../Modules/Arquivos/Http/Requests/UploadArquivoRequest.php)
 
-## Services — 4
+## Services — 5
 
 - [ArquivosRetentionService.php](../../../Modules/Arquivos/Services/ArquivosRetentionService.php)
 - [ArquivosService.php](../../../Modules/Arquivos/Services/ArquivosService.php)
 - [CuradorEngine.php](../../../Modules/Arquivos/Services/Curador/CuradorEngine.php)
+- [CuradorStatsReader.php](../../../Modules/Arquivos/Services/Curador/CuradorStatsReader.php)
 - [VaultEncryptionService.php](../../../Modules/Arquivos/Services/VaultEncryptionService.php)
 
 ## Models / Entities — 1
@@ -76,9 +77,9 @@ module: Arquivos
 - [config.php](../../../Modules/Arquivos/Config/config.php)
 - [retention.php](../../../Modules/Arquivos/Config/retention.php)
 
-## Testes (Pest) — 24
+## Testes (Pest) — 25
 
-- 24 arquivos em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 25 arquivos em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 1
 
