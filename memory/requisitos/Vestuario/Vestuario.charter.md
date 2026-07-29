@@ -47,7 +47,7 @@ Add-on vertical de moda/vestuário sobre o núcleo oimpresso — entrega estoque
 - ❌ **Boleto/assinatura/cobrança recorrente** → vive em `Modules/RecurringBilling`
 - ❌ **Multi-tenant `business_id` global scope** → infraestrutura núcleo Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - ❌ **Jana IA / memória persistente** → vive em `Modules/Jana`
-- ❌ **Cofre de senhas/credenciais** → vive em `Modules/SRS`
+- ❌ **Cofre de senhas/credenciais** → **Vaultwarden** (`vault.oimpresso.com`, CT 100). Antes dizia o módulo `SRS` — atribuição ERRADA por leitura do nome ("MemCofre" = cofre): o SCOPE dele dizia "cofre de **evidências**", nunca guardou credencial. O módulo foi removido em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)).
 - ❌ **PCP de produção** (planejamento, ordem de produção, BOM gráfico) — isso é de `Modules/ComunicacaoVisual`
 - ❌ **OS de reparo/ajuste de roupa** — Modules/Repair atende, vestuário só consome se cliente quiser
 - ❌ **E-commerce / marketplace** (Shopify, Mercado Livre, etc) → fora de escopo MVP; integração via Connector futuramente
@@ -129,7 +129,7 @@ Validação: ROTA LIVRE biz=4, 17.251+ vendas, 99% volume sistema, em prod desde
 | `Modules/Jana` (Jana) | Chat contextual + alertas + brief diário | consome |
 | `Modules/RecurringBilling` | Plano mensal da loja (assinatura oimpresso) — não vendas finais | consome |
 | `Modules/Repair` | OS de ajuste/conserto de roupa (opcional, se cliente ativar) | consome opcional |
-| `Modules/SRS` | Cofre senhas (cert digital, login fornecedor) | consome opcional |
+| **Vaultwarden** (não é módulo) | Cofre senhas (cert digital, login fornecedor) — `vault.oimpresso.com`. Era o módulo `SRS`, atribuição errada; módulo removido (ADR 0357) | consome opcional |
 | Núcleo UltimatePOS | `business_id`, users, roles, locations, `transactions`, products | base |
 
 **Inverso:** Modules/Vestuario **não é consumido** por outros módulos verticais — cada vertical é independente (princípio P2 ADR 0121).
