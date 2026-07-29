@@ -2,8 +2,8 @@
 id: requisitos-kb-briefing
 module: KB
 status: parcial
-status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); /kb/v2 SAIU do mock em 2026-07-17 (KbController@indexV2 serve kb_nodes reais) mas o leitor ainda não mostra o corpo (bridge copia metadata, não body_blocks); /kb/graph SEGUE em mock (closure sem props, /kb/graph/data hardcoded vazio)"
-updated_at: "2026-07-28"
+status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); /kb/v2 SAIU do mock em 2026-07-17 (KbController@indexV2 serve kb_nodes reais) e o LEITOR do corpo ligou em 2026-07-29 — o corpo NUNCA esteve em kb_nodes (body_blocks=NULL e assim deve continuar, ADR 0061): vem por JOIN de mcp_memory_documents.content_md em GET /kb/nodes/{slug}, endpoint que já existia e não tinha consumidor no .tsx; /kb/graph SEGUE em mock (closure sem props, /kb/graph/data hardcoded vazio)"
+updated_at: "2026-07-29"
 distilled_by: "sdd-from-source (ADR 0351) — redestilação PARCIAL: só o status_nota + §Estado das telas foram reconciliados contra o código vivo neste run; o resto do BRIEFING segue com a foto de 2026-07-17"
 owner: W
 related_adrs:
@@ -27,7 +27,7 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 **Status honesto:** `parcial`.
 - ✅ **Backend LIVE em prod (biz=1):** schema `kb_*`, `KbBridgeFromMcpJob` populando `kb_nodes` a cada 15 min, taxonomia seeded, CRUD de artigo editável, permissions.
 - ✅ **`/kb/v2` SAIU do mock (2026-07-17).** `KbController@indexV2` serve `kb_nodes` reais (+ categorias, subcategorias, `business.name`) e `KbIndexV2ContractTest` V5/V6 travam o payload. ⚠️ *A linha anterior deste briefing dizia "roda MOCK / falta o Controller `indexV2`" — ficou **stale** por 11 dias; reconciliado em 2026-07-28 pelo `sdd-from-source` contra `Modules/KB/Http/routes.php` + `KbController::indexV2`.*
-- 🟡 **O leitor da V2 ainda não mostra o corpo** do documento bridgeado: `KbBridgeFromMcpJob` copia **metadata, não `body_blocks`** (limite declarado no docblock do `indexV2`). Título + excerpt, não o texto.
+- ✅ **O leitor da V2 mostra o corpo desde 2026-07-29** — e a rota disso **já existia**. A frase anterior deste briefing (*"o bridge copia metadata, não `body_blocks`"*) descrevia o mecanismo certo mas soava como dívida do bridge, e **induzia ao erro de tentar copiar o corpo pra `kb_nodes`** — o que quebraria a invariante Tier 0 `is_editable=false ⇒ body_blocks IS NULL` ([ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md); o `KbNodeObserver` barra). **O corpo vem por JOIN**, como a migration `2026_05_15_100003` sempre desenhou: `GET /kb/nodes/{slug}` → `KbNodeController@show` → `mcp_memory_documents.content_md`. O gap real era o **consumidor**: medido 2026-07-29, **21 de 21** menções a `/kb/nodes` em `resources/js/` eram comentário — **zero `fetch`**; o `NodeReader` renderizava o placeholder *"virá com Agent A (ONDA 1)"*. Agora `_lib/useKbNodeBody.ts` busca sob demanda e o `BridgeBody` renderiza markdown (GFM). Contrato: [UC-KBV2-14](../../../resources/js/Pages/kb/Index.v2.casos.md) + `KbNodeBodyReaderTest`.
 - 🔴 **`/kb/graph` continua fachada:** a rota é closure `Inertia::render('kb/Graph')` **sem props** e `/kb/graph/data` devolve `{nodes:[],edges:[],kpis:null}` hardcoded → cai em `_lib/mockGraphData.ts`. Nenhum Controller do KB a serve.
 - 🔴 **Categoria: a lista de governança (biz=1) nasce vazia por categoria** — o filtro ancora em `category_id` e a quase totalidade dos nós está NULL (ver §Bloqueador). Falta o **classificador** que lê `auto_match` — hoje com **zero leitores em PHP**.
 - 🟡 **A tela `/kb` (V3, o browser do acervo canon) ganhou seu 1º contrato executável em 2026-07-28** — antes disso não tinha nenhum. Ver [SDD](SDD-tela-kb-unificado-v1.0.md) + [`Index.casos.md`](../../../resources/js/Pages/kb/Index.casos.md).
@@ -49,7 +49,8 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 | CRUD de artigo editável + versões + permissions | ✅ existe | `Modules/KB/Http` / `Entities` |
 | Global scope `business_id` (Tier 0) | ✅ provado (governança não vaza pro cliente) | `BelongsToBusinessTrait` |
 | Troca de empresa (herda o tenant) | ✅ via `CompanyPicker` na Sidebar | `resources/js/Components/cockpit/Sidebar.tsx` |
-| **Tela `/kb/v2` servindo o dado** | 🔴 **MOCK — Controller não ligou** | `Modules/KB/Http/routes.php` / `Index.v2.tsx` |
+| **Tela `/kb/v2` servindo o dado** | ✅ **LIVE desde 2026-07-17** (`KbController@indexV2`) | `Modules/KB/Http/routes.php` / `Index.v2.tsx` |
+| **Leitor do corpo (JOIN `content_md`)** | ✅ **ligado 2026-07-29** — endpoint já existia; faltava o consumidor | `KbNodeController@show` / `_lib/useKbNodeBody.ts` |
 | **Classificador `auto_match` → `category_id`** | 🔴 **zero leitores em PHP** | (a construir) |
 | Template de categorias por vertical | 🟡 **D6 ABERTA — [W] decide** | charter §3 |
 
@@ -69,7 +70,7 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 
 ## Bloqueador — dois níveis, sem maquiar
 
-**Nível 0 — a tela nem lê o banco hoje.** `Modules/KB/Http/routes.php` renderiza `kb/Index.v2` com **zero props** → `Index.v2.tsx` cai em `usingMock` → mostra `MOCK_NODES`. É o gate visual pra [W] aprovar screenshot (ADR 0114), **não** está fiado ao DB. Falta o Controller `indexV2` injetar `props.nodes` escopado por `business_id`.
+**~~Nível 0 — a tela nem lê o banco hoje.~~ ⚰️ FECHADO em 2026-07-17** — `Modules/KB/Http/routes.php` roteia `/kb/v2` e `/sops` pra `KbController@indexV2`, que injeta `nodes`/`categories`/`subcategories`/`business` escopados por `business_id`. `usingMock = !props.nodes` → **false**. (Este parágrafo ficou stale 11 dias e é mantido riscado, não apagado — o texto abaixo, o Nível 1, **segue valendo**.)
 
 **Nível 1 — fiada ao DB, o filtro por categoria vem vazio pra governança (biz=1).** O filtro ancora em `n.category_id === cat.id`, mas a **quase totalidade dos nós de governança está com `category_id` NULL** (structural: `category_id` NULL corresponde a **exatamente todo o biz=1** — medido 2026-07-17, contagem no recibo do charter §3). Clicar qualquer categoria em biz=1 → 0 linhas. (biz=4 é a exceção: seus 3 articles estão categorizados → funcionam.)
 
@@ -116,7 +117,8 @@ Já **seeded** no banco (não inventar, não revogar seeder). Contagens exatas n
 - [SCHEMA-DB-V1.md](SCHEMA-DB-V1.md) — contrato das tabelas `kb_*`.
 - [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — benchmark de mercado.
 - `Modules/KB/Jobs/KbBridgeFromMcpJob.php` — o bridge que popula `kb_nodes` (e onde o `category_id` **não** é setado hoje).
-- `resources/js/Pages/kb/Index.v2.tsx` — a tela (hoje MOCK) + `Modules/KB/Http/routes.php` (rota sem props).
+- `resources/js/Pages/kb/Index.v2.tsx` — a tela (servida por `KbController@indexV2`) + `Modules/KB/Http/routes.php`.
+- `resources/js/Pages/kb/_components/NodeReader.tsx` + `_lib/useKbNodeBody.ts` — o **leitor do corpo** (JOIN sob demanda). Charter do contrato: [`NodeReader.charter.md`](../../../resources/js/Pages/kb/_components/NodeReader.charter.md) Goal 2.
 
 ## Riscos (re-validar mensalmente)
 
