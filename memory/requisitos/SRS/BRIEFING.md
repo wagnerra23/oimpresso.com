@@ -66,7 +66,7 @@ Recibo e detalhe em [DEPRECATION-PLAN §Reconciliação 2026-07-29](DEPRECATION-
 
 ## Estado de testes
 
-10 arquivos Pest em `SRS/Tests/Feature/` (não 3 — a lista de 2026-05-16 estava stale):
+10 arquivos Pest em `Modules/SRS/Tests/Feature/` (não 3 — a lista de 2026-05-16 estava stale):
 - Núcleo: `MultiTenantIsolationTest` · `ScaffoldTest` · `SmokeRoutesTest` · `ObservabilityTest` · `RetentionPolicyTest`
 - Saturação governance: `Wave23SaturationTest` · `Wave25CrossTenantSaturationTest` · `Wave26SaturationTest` · `Wave27PolishTest` · `Wave28SaturationTest`
 

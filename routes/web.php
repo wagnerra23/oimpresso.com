@@ -937,7 +937,9 @@ Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'AdminSideb
 |   /memcofre/memoria         -> /ia/memoria                     KB\MemoriaController@index
 |   /memcofre/inbox|ingest    -> /kb                             KB\KbController@index
 |   /memcofre/modulos/{x}     -> /governance/module-grades/{x}   Governance\ModuleGradeController
-|   /memcofre                 -> /governance                     dashboard de governança
+|   /memcofre                 -> /governance                     ⚠️ que por sua vez faz 302 -> /ia
+|                                                                (Governance/routes.php:31, desde 2026-05-22 —
+|                                                                 o dashboard vive em /governance/dashboard)
 |
 | `/memcofre/install*` e `/srs/install*` NÃO ganham 301: instalar/desinstalar
 | um módulo que não existe mais não tem destino equivalente.
