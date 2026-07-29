@@ -109,6 +109,13 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
+        # +2 em 2026-07-28 (#4989 · degradação visível do RAG): KbRagDegradacaoSinalTest e
+        # KbAiAuditEnumContratoTest entraram porque nasceram FORA da allowlist — rodaram no
+        # CT 100 (13 passed/59 assertions) e o CI NÃO os executou, o que só apareceu porque o
+        # total da lane ficou idêntico ao run anterior (88 passed) apesar dos 2 arquivos novos.
+        # Teste que não roda na lane não defende nada. O do enum pula fora de MySQL por guard
+        # explícito — se pular AQUI, é sinal de que mcp_audit_log não foi semeada, não verde.
+        #
         # Os 13: provados verdes na DB EFÊMERA do CI (PR #4725 + follow-ups). GAP 1 fechado;
         # GAP 2 tem os 4 bugs de comportamento CORRIGIDOS no código (ver abaixo), mas os 6
         # testes restantes NÃO entram ainda — bloqueio de ISOLAMENTO de teste (não de código).
@@ -185,7 +192,9 @@ jobs:
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
             Modules/KB/Tests/Feature/LgpdComplianceTest.php \
             Modules/KB/Tests/Feature/KbIndexV2ContractTest.php \
-            Modules/KB/Tests/Feature/CrossTenantIsolationTest.php
+            Modules/KB/Tests/Feature/CrossTenantIsolationTest.php \
+            Modules/KB/Tests/Feature/KbRagDegradacaoSinalTest.php \
+            Modules/KB/Tests/Feature/KbAiAuditEnumContratoTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
