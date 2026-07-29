@@ -116,6 +116,54 @@ function makeRepo() {
   rmSync(root, { recursive: true, force: true });
 }
 
+// ── 7. Tombstone-aware (ADR 0316 × 0347) ─────────────────────────────────────
+// O par que destrava o esquecimento real: referência a ADR TOMBADA resolve pelo
+// ledger e NÃO conta como morta; ADR que sumiu SEM lápide continua mordendo.
+function writeTombstones(root, slugs) {
+  writeFileSync(join(root, 'governance', 'adr-tombstones.json'),
+    JSON.stringify({ tombstones: slugs.map((s, i) => ({ number: 900 + i, slug: s, died_reason: 'teste', superseded_by: '0999-sucessora', last_sha: 'deadbeef', forgotten_in_pr: 0 })) }, null, 2));
+}
+{
+  // BOA: o alvo não existe no disco, mas está no ledger → passa
+  const root = makeRepo();
+  writeTombstones(root, ['0101-tests-business-id-1-nunca-cliente']);
+  writeFileSync(join(root, 'memory', 'decisions', '0005-cita-tombada.md'),
+    'ver [tombada](0101-tests-business-id-1-nunca-cliente.md)\n');
+  const r = run(root, '--check');
+  check('tombstone BOA: link pra ADR tombada NAO conta como morto (exit 0)', r.status === 0);
+  check('tombstone BOA: a absorcao aparece no output (nao e silenciosa)', /ADR TOMBADA resolvidas pelo ledger/.test(r.stdout));
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // RUIM (controle-negativo decisivo): ADR ausente e NAO tombada → segue mordendo
+  const root = makeRepo();
+  writeTombstones(root, ['0101-tests-business-id-1-nunca-cliente']);
+  writeFileSync(join(root, 'memory', 'decisions', '0006-cita-sumida.md'),
+    'ver [sumiu sem lapide](0777-nunca-tombada.md)\n');
+  const r = run(root, '--check');
+  check('tombstone RUIM: ADR ausente SEM lapide segue reprovando (exit 1)', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // Escopo: o ledger so vale dentro de memory/decisions/ — nao vira coringa global
+  const root = makeRepo();
+  writeTombstones(root, ['0101-tests-business-id-1-nunca-cliente']);
+  writeFileSync(join(root, 'memory', 'decisions', '0007-fora-de-escopo.md'),
+    'mesmo slug, outra pasta: [x](../0101-tests-business-id-1-nunca-cliente.md)\n');
+  const r = run(root, '--check');
+  check('tombstone ESCOPO: slug tombado fora de memory/decisions/ NAO resolve (exit 1)', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // Sem ledger no repo: comportamento identico ao de antes (zero efeito colateral)
+  const root = makeRepo();
+  writeFileSync(join(root, 'memory', 'decisions', '0008-sem-ledger.md'),
+    'ver [tombada](0101-tests-business-id-1-nunca-cliente.md)\n');
+  const r = run(root, '--check');
+  check('tombstone AUSENTE: sem ledger, link pra ADR inexistente segue morto (exit 1)', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+
 console.log('');
 if (fails > 0) { console.error(`${fails} check(s) falharam`); process.exit(1); }
 console.log('deadlink-gate.test: todos os checks passaram');

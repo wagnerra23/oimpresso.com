@@ -120,6 +120,38 @@ function existsCaseSensitive(absPath) {
   return true;
 }
 
+// ── tombstone-aware (ADR 0316 × ADR 0347) ────────────────────────────────────
+// POR QUE ISTO EXISTE: a ADR 0316 decidiu esquecimento REAL de ADR morta (`git rm` +
+// entrada em governance/adr-tombstones.json). A ADR 0347 tornou este gate REQUIRED.
+// As duas juntas travavam: `git rm` de uma ADR fabricava link morto em TODO doc que a
+// citava — e parte desses docs são ADRs aceitas, que o append-only PROÍBE editar pra
+// consertar o link. Deadlock medido em 2026-07-29 com a 0101-tests: 123 arquivos vivos
+// reprovavam, 11 deles ADR aceita (intocável). Resultado prático: o ledger ficou VAZIO
+// — a 0316 foi lei por 4 semanas e nunca pôde rodar.
+//
+// A saída não é afrouxar o gate: é reconhecer que link pra ADR TOMBADA **não é link
+// morto**. Ele resolve — pelo ledger (número, slug, sucessora, sha) + git history, que
+// a 0316 define como a auditoria primária. Só slug explicitamente tombado resolve; ADR
+// que sumiu SEM lápide continua morta (é o caso que este gate tem que pegar).
+const TOMBSTONE_PATH = join(ROOT, 'governance', 'adr-tombstones.json');
+const DECISIONS_DIR = join(ROOT, 'memory', 'decisions');
+function loadTombstonedSlugs() {
+  if (!existsSync(TOMBSTONE_PATH)) return new Set();
+  try {
+    const j = JSON.parse(readFileSync(TOMBSTONE_PATH, 'utf8'));
+    return new Set((j.tombstones || []).map((t) => String(t.slug || '').trim()).filter(Boolean));
+  } catch { return new Set(); }
+}
+const TOMBSTONED = loadTombstonedSlugs();
+/** true se `absPath` aponta pra um `memory/decisions/<slug>.md` registrado no ledger. */
+function resolvesViaTombstone(absPath) {
+  if (TOMBSTONED.size === 0) return false;
+  if (dirname(absPath) !== DECISIONS_DIR) return false; // só o diretório canônico de ADR
+  const base = absPath.split(sep).pop();
+  if (!/\.md$/i.test(base)) return false;
+  return TOMBSTONED.has(base.replace(/\.md$/i, ''));
+}
+
 // ── extração de links ────────────────────────────────────────────────────────
 const LINK_RE = /\[[^\]]*\]\(([^)]+)\)/g;
 function extractTargets(mdText) {
@@ -144,6 +176,7 @@ function scan() {
   const vivo = new Map();   // rel -> [alvos quebrados]
   const hist = new Map();
   let totalLinks = 0;
+  let tombstoned = 0;       // alvos ausentes que RESOLVEM via ledger (ADR 0316) — não são mortos
   for (const f of corpus()) {
     const rel = relative(ROOT, f).split(sep).join('/');
     const isHist = HISTORY_RE.test(relative(ROOT, f));
@@ -152,13 +185,14 @@ function scan() {
       totalLinks++;
       const abs = resolve(dirname(f), target);
       if (!existsCaseSensitive(abs)) {
+        if (resolvesViaTombstone(abs)) { tombstoned++; continue; }
         const bucket = isHist ? hist : vivo;
         if (!bucket.has(rel)) bucket.set(rel, []);
         bucket.get(rel).push(target);
       }
     }
   }
-  return { vivo, hist, totalLinks };
+  return { vivo, hist, totalLinks, tombstoned };
 }
 
 const count = (map) => [...map.values()].reduce((a, v) => a + v.length, 0);
@@ -170,7 +204,13 @@ function loadBaseline() {
 
 // ── modos ────────────────────────────────────────────────────────────────────
 const mode = argv.find((a) => ['--scan', '--check', '--write-baseline', '--triage'].includes(a)) || '--scan';
-const { vivo, hist, totalLinks } = scan();
+const { vivo, hist, totalLinks, tombstoned } = scan();
+// Visível SEMPRE que houver: mecanismo que absorve caso em silêncio vira cobertura falsa
+// (§5 presence-gate / verde-por-não-execução). Aqui o número aparece em todo modo.
+const tombLine = tombstoned > 0
+  ? `[deadlink-gate] ${tombstoned} referência(s) a ADR TOMBADA resolvidas pelo ledger (${TOMBSTONED.size} slug(s) em governance/adr-tombstones.json — ADR 0316); não contam como mortas.`
+  : null;
+if (tombLine) console.log(tombLine);
 
 if (mode === '--write-baseline') {
   const files = {};
