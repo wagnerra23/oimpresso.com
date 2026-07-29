@@ -34,7 +34,9 @@ E nunca copia markup de uma tela pra outra
 
 **Por quê**: consistência visual + acessibilidade embutida + manutenção centralizada.
 
-**Testado em:** _pendente_ — o alvo antigo (o antigo `SRS/Tests/Unit/DesignSystemAuditTest`) estava marcado "(futuro)" e **nunca existiu**; o módulo foi removido em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)). Quem cobre a regra hoje é o `ds-gate` (lint DS).
+**Testado em:** _pendente_
+
+> Histórico: este campo apontava para um teste marcado "(futuro)" que **nunca existiu**, num módulo removido em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — era teste-fantasma. Quem cobre a regra hoje é o `ds-gate` (lint DS). O caminho morto saiu do campo de propósito: dentro dele, o `anchor-lint` o conta como `dead_test`.
 
 ### R-DS-002 · Cores sempre via tokens semânticos
 
