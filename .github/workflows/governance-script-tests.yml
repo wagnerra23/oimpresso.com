@@ -159,6 +159,17 @@ jobs:
         run: node .claude/hooks/nudge-test-contract-anchor.test.mjs
       - name: Vista publicada segue o padrao (PreToolUse:Artifact · advisory · morde em fixture)
         run: node .claude/hooks/vista-publicada-padrao.test.mjs
+      # Doc que nasce em memory/requisitos/<Mod>/ fora da allowlist de 9 nomes existe no git
+      # e NAO existe pra busca da IA (Regra 2 de como-escrever-doc-para-o-rag.md). O hook e
+      # ADVISORY e forward-only (so arquivo NOVO; os 591 legados ficam grandfatherados).
+      # FP medido ANTES de instalar contra o ORACULO de runtime (mcp_memory_documents no
+      # CT 100): 486/486, 0 FP, 0 FN — reproduzivel por `--measure --indice <dump>`.
+      # O selftest tambem le o PHP do indexador e compara allowlist+globs: se o indexador
+      # ganhar um 10o nome, ESTE step fica vermelho (o hook nao pode mentir em silencio).
+      - name: Doc fora do indice do RAG (PreToolUse:Write · advisory · morde + anti-deriva vs indexador)
+        run: node .claude/hooks/doc-fora-do-rag.test.mjs
+      - name: Doc fora do RAG REGISTRADO como node (correcao != invocacao)
+        run: node scripts/governance/settings-doc-fora-do-rag-registration.test.mjs
       - name: Lote 2 nudges REGISTRADO como node (correcao != invocacao · US-GOV-052)
         run: node scripts/governance/settings-portlote2-nudges-registration.test.mjs
       - name: Licoes-code-two-strikes PORTE .mjs (loop aprendizado · logica + E2E · roda em Linux)
