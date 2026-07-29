@@ -563,7 +563,7 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 
 ### Configs/runbooks referenciados
 - [app/Console/Kernel.php §34-46](../../../app/Console/Kernel.php) — schedule `memcofre:sync-memories`
-- [Modules/SRS/Config/retention.php](../../../Modules/SRS/Config/retention.php) — janelas LGPD
+- `Modules/SRS/Config/retention.php` — janelas LGPD (arquivo REMOVIDO na E5; sem link, o alvo não existe mais)
 - [governance/module-grades-baseline.json linha 40](../../../governance/module-grades-baseline.json) — `"SRS": 58`
 - [governance/buckets/_INDEX.md](../../../governance/buckets/_INDEX.md) — bucket `functional_horizontal`
 - [memory/requisitos/Infra/RUNBOOK-acesso-ct100.md](../Infra/RUNBOOK-acesso-ct100.md) (ref — SSH CT 100 pra rodar mysqldump E3)
