@@ -2,10 +2,10 @@
 id: requisitos-srs-deprecation-plan
 ---
 
-# DEPRECATION-PLAN — módulo SRS
+# DEPRECATION-PLAN — Modules/SRS
 
-> **Status:** ⚰️ **EXECUTADO em 2026-07-29** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — E1→E6 fechadas no mesmo dia; a E3 **colapsou por medição** (0 linhas nas 7 tabelas). O módulo não existe mais: 63 arquivos removidos e as tabelas `docs_*` dropadas por migration. · **Owner:** Wagner · **Sucessores:** KB (acervo) · Jana (chat) · Governance + `mcp_audit_log` (validação)
-> **Atualizado:** 2026-07-29 (execução) · corpo abaixo é de 2026-05-17 · **Gerado por:** agent `deprecar-modulo`
+> **Status:** ⚰️ **EXECUTADO em 2026-07-29** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — o módulo não existe mais: 63 arquivos removidos e as 7 tabelas `docs_*` dropadas por migration. A **E3 colapsou por medição** — as tabelas tinham **0 linhas de dado**; a única exceção era `docs_pages`, com **14 linhas de um seed morto** de 2026-04-26. · **Owner:** Wagner · **Sucessores:** KB (acervo) · Jana (chat) · Governance + `mcp_audit_log` (validação)
+> **Atualizado:** 2026-07-29 (execução) · **o corpo abaixo é de 2026-05-17 e fica preservado como registro do que se supunha em maio** · **Gerado por:** agent `deprecar-modulo`
 > **Decisão Wagner:** Caminho 1 (deprecar SRS) — BRIEFING.md 2026-05-16 já declarou "Substituído na prática pelo MCP server canon. ❌ Não investir em features novas."
 
 ---
@@ -106,7 +106,7 @@ O corpo fala em **15 classes** para a E2 e **9 Console Commands**. Contado na á
 
 ## TL;DR
 
-Plano de 6 etapas (~47 dias úteis, com 30d wait E5) pra deprecar `SRS` (módulo removido) (estado: ZUMBI — SCOPE 2026-05-05 prevê repurpose SRS browser nunca executado; BRIEFING 2026-05-16 admite substituição prática pelo MCP server). **Sucessor primário:** `Modules/KB` (já dono de `mcp_memory_documents` + ingest webhook git→DB). **Sucessores secundários:** `Modules/Jana` (ChatAssistant + chat_messages), `Modules/Governance` (validation/audit), `mcp_audit_log` canon (validation_runs append-only). **Dados:** 7 tabelas `docs_*` (2 MIGRATE → KB · 2 PRESERVE→view legacy bookmarks · 2 ARCHIVE→`governance/archive/` · 1 MIGRATE+ARCHIVE híbrido). **Risks Tier 0:** 4 críticos (multi-tenant cross-tenant em 7 entities, PII em `docs_chat_messages.content` LGPD, FULLTEXT index re-criação custosa em `mcp_memory_documents`, cron `memcofre:sync-memories` daily 23:00 em `app/Console/Kernel.php` quebraria silenciosamente).
+Plano de 6 etapas (~47 dias úteis, com 30d wait E5) pra deprecar `Modules/SRS` (estado: ZUMBI — SCOPE 2026-05-05 prevê repurpose SRS browser nunca executado; BRIEFING 2026-05-16 admite substituição prática pelo MCP server). **Sucessor primário:** `Modules/KB` (já dono de `mcp_memory_documents` + ingest webhook git→DB). **Sucessores secundários:** `Modules/Jana` (ChatAssistant + chat_messages), `Modules/Governance` (validation/audit), `mcp_audit_log` canon (validation_runs append-only). **Dados:** 7 tabelas `docs_*` (2 MIGRATE → KB · 2 PRESERVE→view legacy bookmarks · 2 ARCHIVE→`governance/archive/` · 1 MIGRATE+ARCHIVE híbrido). **Risks Tier 0:** 4 críticos (multi-tenant cross-tenant em 7 entities, PII em `docs_chat_messages.content` LGPD, FULLTEXT index re-criação custosa em `mcp_memory_documents`, cron `memcofre:sync-memories` daily 23:00 em `app/Console/Kernel.php` quebraria silenciosamente).
 
 ### Reporte rápido
 
@@ -144,7 +144,7 @@ Wagner promover [`memory/decisions/proposals/deprecate-srs.md`](../../decisions/
 
 | Item | Valor |
 |---|---|
-| Módulo | módulo SRS (ex-MemCofre — rename PHP-only Fase 3.7 PR-2 em 2026-05-06) |
+| Módulo | Modules/SRS (ex-MemCofre — rename PHP-only Fase 3.7 PR-2 em 2026-05-06) |
 | SCOPE vs BRIEFING | **CONFLITANTE** — SCOPE 2026-05-05 prevê repurpose (`srs_entries` table + trigger MySQL append-only) que NUNCA aconteceu; BRIEFING 2026-05-16 (11 dias depois) admite "substituído na prática pelo MCP server canon. Não investir." `transition_plan.migration_phase: 3.7` declarado, mas Entities ainda `Doc*` (não renomeadas), tabelas ainda `docs_*` (não `srs_entries`). |
 | Code stats | 8 Controllers · 6 Services · 7 Entities (`DocSource/Page/Evidence/Requirement/Link/ChatMessage/ValidationRun`) · 8 Migrations (`docs_*` legacy) · 9 Console Commands (signature `memcofre:*` legacy) · 10 Tests Pest (incluindo Wave 23/25/26/27/28 saturação) |
 | Git activity 90d | 16 commits — picos Waves 11/12/16/17/18/23/24/25/26/27/28 (saturation tests). Funcionalmente parado desde Wave 12 (12/maio/2026: HasBusinessScope + LogsActivity). **Atividade alta é de governance/Pest, não feature** — confirma zumbi. |
@@ -154,7 +154,7 @@ Wagner promover [`memory/decisions/proposals/deprecate-srs.md`](../../decisions/
 ### Detalhes inventário código
 
 ```
-SRS/
+Modules/SRS/
 ├── SCOPE.md         (conflito explícito — frontmatter declara `transition_plan` Fase 3.7 não executado)
 ├── README.md        (cita "ex-MemCofre" — explicitamente referencia rename PHP-only)
 ├── CHANGELOG.md     ⚠️ MERGE CONFLICT NÃO RESOLVIDO ATIVO no topo (linhas <<<<<<< HEAD / ======= / >>>>>>> origin/main) — Wave 28 vs Wave 27 conflito ainda aberto
@@ -441,8 +441,8 @@ Recomendo **Opção B** — append-only canon (Wagner regra `proibicoes.md`).
 | **E2** | docs/comments only (PR) | ~50 | E1 mergeado | Adiciona PHPDoc `@deprecated since 2026-05-17, será removido em E5, use \Modules\KB\... ou \Modules\Jana\... instead` em CADA Controller/Service/Entity de SRS (15 classes). Review code Wagner. **Não muda comportamento.** | 1d |
 | **E3** | feat/data migration (PR) | ~280 | E2 mergeado + staging dump validado | Migrations T1 MIGRATE → kb_sources, T2 MIGRATE → mcp_memory_documents (FULLTEXT cuidado R4), T3 MIGRATE → jana_chat_corpus_messages (PII redact R1), T4 ARCHIVE+MIGRATE → mcp_audit_log, T5/T6 ARCHIVE, T7 DROP. Inclui `mysqldump` script + Pest cross-tenant (R2) biz=1/99 ANTES/DEPOIS. Schedule cron migration (R3) `memcofre:sync-memories` → `kb:sync-memories`. **NÃO toca código de Controllers/Services ainda — só DB layer.** | 5-7d |
 | **E4** | refactor (PR) | ~280 | E3 mergeado + LGPD audit + cross-tenant Pest green | Namespace refactor 15 classes SRS→KB/Jana/Governance. Route::redirect 301 (R5) em 8 URLs. Permissions Spatie ALIAS preservando atribuições (R8). SCOPE.md de 3 receptores atualizado (`contains` + `url_prefixes` + `db_tables_owned`). Pest tests migrados (Waves 23/25/26/27/28 reatribuídas — R7 documenta delta). Skills/agents/rules atualizados. **Smoke `curl -sv` cada URL crítica** (`smoke-prod-evidence` Tier B). Canary biz=4 ROTA LIVRE 24h (mesmo SRS sendo tool interna, biz=4 não pode UI quebrada). | 7-10d |
-| **E5** | chore (PR) | ~150 | E4 30d estável + zero Sentry/log error apontando `/memcofre/*` | `git rm -r SRS/` (preserva CHANGELOG histórico em `memory/requisitos/_archive/SRS/CHANGELOG.md`). Remove entry `bootstrap/providers.php` + `module.json` SRS. Remove schedule `memcofre:sync-memories` se decidido descontinuar (R3 follow-up). Update `governance/module-grades-baseline.json` SRS → deprecated entry (R10). Update `governance/buckets/_INDEX.md` count. Seeder cleanup permissions `memcofre.*` órfãs (R8). **Storage criptografado:** `governance/archive/srs-docs-*.sql.gz` preservado per LGPD retention (T4 365d, T5 1825d). | 30d wait + 2d code |
-| **E6** | docs (PR) | ~100 | E5 mergeado | Update final: `Modules/SRS/SCOPE.md` status `deprecated`, `lifecycle: historical`. `memory/requisitos/SRS/BRIEFING.md` estado final ("deprecado em ADR 0168 — sucessor MCP server + KB + Jana + Governance"). `memory/08-handoff.md` entry append-only (ADR 0167 canônico checklist). `memory/proibicoes.md` entry nova: "NÃO criar features novas em `SRS` (módulo removido) deprecated em ADR 0168". | 1d |
+| **E5** | chore (PR) | ~150 | E4 30d estável + zero Sentry/log error apontando `/memcofre/*` | `git rm -r Modules/SRS/` (preserva CHANGELOG histórico em `memory/requisitos/_archive/SRS/CHANGELOG.md`). Remove entry `bootstrap/providers.php` + `module.json` SRS. Remove schedule `memcofre:sync-memories` se decidido descontinuar (R3 follow-up). Update `governance/module-grades-baseline.json` SRS → deprecated entry (R10). Update `governance/buckets/_INDEX.md` count. Seeder cleanup permissions `memcofre.*` órfãs (R8). **Storage criptografado:** `governance/archive/srs-docs-*.sql.gz` preservado per LGPD retention (T4 365d, T5 1825d). | 30d wait + 2d code |
+| **E6** | docs (PR) | ~100 | E5 mergeado | Update final: `Modules/SRS/SCOPE.md` status `deprecated`, `lifecycle: historical`. `memory/requisitos/SRS/BRIEFING.md` estado final ("deprecado em ADR 0168 — sucessor MCP server + KB + Jana + Governance"). `memory/08-handoff.md` entry append-only (ADR 0167 canônico checklist). `memory/proibicoes.md` entry nova: "NÃO criar features novas em `Modules/SRS` deprecated em ADR 0168". | 1d |
 | **Total** | — | **~970** | — | — | **~47d** (com 30d wait E5) |
 
 ---
@@ -452,7 +452,7 @@ Recomendo **Opção B** — append-only canon (Wagner regra `proibicoes.md`).
 ```yaml
 ---
 id: 0168
-title: Deprecar módulo SRS — sucessor MCP server canon + KB + Jana + Governance
+title: Deprecar Modules/SRS — sucessor MCP server canon + KB + Jana + Governance
 status: proposed
 date: 2026-05-17
 deciders: [Wagner]
@@ -463,7 +463,7 @@ tags: [deprecation, governance, multi-tenant, modular]
 
 # Contexto
 
-módulo SRS (ex-MemCofre, rename PHP-only Fase 3.7 PR-2 em 2026-05-06) entrou em estado ZUMBI:
+Modules/SRS (ex-MemCofre, rename PHP-only Fase 3.7 PR-2 em 2026-05-06) entrou em estado ZUMBI:
 - `SCOPE.md` 2026-05-05 prevê repurpose "cofre → System Rules Spec" com `srs_entries` table append-only + trigger MySQL — **nunca executado**. Entities ainda `Doc*`, tabelas ainda `docs_*`.
 - `BRIEFING.md` 2026-05-16 admite: "Substituído na prática pelo MCP server canon (mcp.oimpresso.com). ❌ Não investir em features novas. Avaliar deprecação."
 - Cliente piloto ROTA LIVRE biz=4 não interage com SRS (D5 `na_justified` no SPEC.md).
@@ -474,7 +474,7 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 
 # Decisão
 
-**Deprecar `SRS` (módulo removido) em 6 etapas (E0-E6, ~47 dias úteis incluindo 30d wait pós-E4), distribuindo features e dados pra:**
+**Deprecar `Modules/SRS` em 6 etapas (E0-E6, ~47 dias úteis incluindo 30d wait pós-E4), distribuindo features e dados pra:**
 
 | Feature | Receptor |
 |---|---|
