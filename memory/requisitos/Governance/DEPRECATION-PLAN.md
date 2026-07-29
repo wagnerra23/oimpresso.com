@@ -5,7 +5,13 @@ id: requisitos-governance-deprecation-plan
 # DEPRECATION-PLAN — Modules/Governance
 
 > **Status:** 📋 Inventário concluído · **Veredito: NÃO deprecar** · **Owner:** [W]
-> **Medido em:** 2026-07-29 contra `origin/main` @ `be04516c96` · **Pedido por:** [W] ("inventário de quem usa e para onde deve ir as funções, para poder apagar o módulo")
+> **Medido em:** 2026-07-29 contra `origin/main` @ `9090ab9852` · **Pedido por:** [W] ("inventário de quem usa e para onde deve ir as funções, para poder apagar o módulo")
+>
+> ⚠️ **Reconciliação no mesmo dia.** A primeira redação mediu contra `be04516c96` e contou **19 arquivos
+> em 8 módulos**, incluindo **8 do `Modules/SRS`**. Horas depois o SRS foi **removido do repositório**
+> ([#5036](https://github.com/wagnerra23/oimpresso.com/pull/5036) — E5+E6: módulo apagado, 7 tabelas dropadas).
+> Os números abaixo foram **re-rodados** contra a base nova: **11 arquivos em 6 módulos + 1 teste**.
+> O veredito **não muda** — o bloqueador sempre foi Brief + Admin + o contrato `DriftChecker`, nunca o SRS.
 > **Precedentes de formato:** [SRS](../SRS/DEPRECATION-PLAN.md) · [Accounting](../Accounting/DEPRECATION-PLAN.md) · [Crm pipeline](../Crm/DEPRECATION-PLAN-pipeline.md)
 
 ## TL;DR
@@ -69,7 +75,7 @@ A governança executável hoje é Node + gates de CI; o módulo Laravel é o res
 
 ---
 
-## 2. Quem consome — 19 arquivos de código, 8 módulos
+## 2. Quem consome — 11 arquivos de código, 6 módulos (+1 teste)
 
 Varredura: `git grep -lE 'Modules\\\\Governance' origin/main -- ':!Modules/Governance/*' '*.php' '*.ts' '*.tsx'`
 (27 arquivos no total incluindo docs/baselines; 19 são código).
@@ -82,7 +88,7 @@ Varredura: `git grep -lE 'Modules\\\\Governance' origin/main -- ':!Modules/Gover
 | **TeamMcp** | 1 | `SyncMemoryWebhookController` → `DriftChecker` | webhook git→DB perde o checker |
 | **Connector** | 1 | `ConnectorHealthCommand` | health check quebra |
 | **Cms** | 1 | `SiteContentService` | a confirmar (pode ser menção) |
-| **SRS** | 8 | `DocValidator`, `ModuleAuditor`, `DocValidationRun`, 2 Controllers, 2 Commands | **morre junto** ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) |
+| ~~SRS~~ | ~~8~~ | ~~`DocValidator`, `ModuleAuditor`, `DocValidationRun`, 2 Controllers, 2 Commands~~ | **já morreu** — módulo removido em [#5036](https://github.com/wagnerra23/oimpresso.com/pull/5036) ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md) E5+E6). Era o maior consumidor e saiu de cena sem mover o veredito |
 | `tests/` | 1 | `DashboardExtensionTest` | — |
 
 **Fora do PHP:** `.claude/hooks/preflight-new-capability.mjs`, `.github/workflows/governance-drift.yml`,
@@ -216,12 +222,14 @@ Ordem obrigatória (a lição do SRS: **código sai antes das tabelas**; dropar 
 | **E0** | ADR de deprecação com sucessor nomeado para **cada** peça do §4 | [W] |
 | **E1** | Criar casa para o framework de drift (módulo novo ou `app/Domain/`) e migrar Contract + Registry + 12 Checkers | [W] |
 | **E2** | Migrar os 8 `*BriefLineService` — decidir se o Brief passa a conhecer governança | [W] |
-| **E3** | Reapontar os 19 consumidores (Brief 2 · Admin 3 · Jana 2 · TeamMcp 1 · Connector 1 · Cms 1 · SRS 8 · tests 1) | — |
+| **E3** | Reapontar os 11 consumidores (Admin 3 · Brief 2 · Jana 2 · Cms 1 · Connector 1 · TeamMcp 1 · tests 1) | — |
 | **E4** | Migrar telas + 6 schedules + `module:grade` (gate de CI) | [W] |
 | **E5** | `git rm` do módulo **+ drop das 5 tabelas junto**, após 30d de espera | [W] |
 
 **Custo estimado:** substancialmente maior que o do SRS — lá as tabelas estavam vazias e o acoplamento
-era de 6 arquivos; aqui são 19 arquivos de código, 6 módulos vivos, 2 contratos públicos e 1 gate de CI.
+era de 6 arquivos; aqui são 11 arquivos de código, 6 módulos vivos, 2 contratos públicos e 1 gate de CI.
+A diferença decisiva não é a contagem: é que **o SRS não tinha consumidor de código rodando em produção**
+(uso zero medido em prod), enquanto aqui o Daily Brief Tier A e o GovernanceV4 dependem do módulo hoje.
 
 ---
 
