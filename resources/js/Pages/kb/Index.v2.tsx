@@ -11,8 +11,10 @@
 // NÃO substitui Index.tsx (V3 atual) — roda em paralelo em /kb/v2 pra Wagner
 // aprovar gate visual antes do cutover (ADR 0114).
 //
-// Backend pendente (Agent A — ONDA 1): rotas /kb/v2, /kb/nodes, /kb/nodes/{slug},
-// /kb/paths, /kb/decision-trees. Quando ausentes, página usa MOCK_NODES fallback.
+// Backend (ONDA 1 — 2026-07-29): /kb/v2 servido por KbController@indexV2 (dado real) e
+// o LEITOR do corpo por GET /kb/nodes/{slug} (KbNodeController@show → JOIN
+// mcp_memory_documents.content_md), consumido pelo NodeReader via `useKbNodeBody`.
+// Ainda em mock: /kb/paths e /kb/decision-trees. Sem props, a página cai em MOCK_NODES.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';

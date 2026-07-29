@@ -116,6 +116,16 @@ jobs:
         # Teste que não roda na lane não defende nada. O do enum pula fora de MySQL por guard
         # explícito — se pular AQUI, é sinal de que mcp_audit_log não foi semeada, não verde.
         #
+        # +1 em 2026-07-29 (leitor do corpo da V2 · UC-KBV2-14): KbNodeBodyReaderTest entra
+        # AQUI no MESMO PR que o cria — pela lei que o parágrafo acima já fixou ("teste que
+        # não roda na lane não defende nada"). É o 1º teste HTTP de GET /kb/nodes/{slug}
+        # (KbNodeController@show nunca teve um). NÃO foi provado verde antes do merge: o
+        # CT 100 está com checkout de outra sessão e a lane é o 1º lugar onde ele roda —
+        # entra declarado como NÃO-PROVADO, não como verde herdado. Se avermelhar, o
+        # suspeito nº1 é a flakiness Spatie order-dependent do GAP 2 (403 intermitente em
+        # HTTP com `can:` coarse), não o contrato: mitigada pelo forgetCachedPermissions()
+        # do kbActAsUser, a mesma que destravou o KbIndexV2ContractTest.
+        #
         # Os 13: provados verdes na DB EFÊMERA do CI (PR #4725 + follow-ups). GAP 1 fechado;
         # GAP 2 tem os 4 bugs de comportamento CORRIGIDOS no código (ver abaixo), mas os 6
         # testes restantes NÃO entram ainda — bloqueio de ISOLAMENTO de teste (não de código).
@@ -194,7 +204,8 @@ jobs:
             Modules/KB/Tests/Feature/KbIndexV2ContractTest.php \
             Modules/KB/Tests/Feature/CrossTenantIsolationTest.php \
             Modules/KB/Tests/Feature/KbRagDegradacaoSinalTest.php \
-            Modules/KB/Tests/Feature/KbAiAuditEnumContratoTest.php
+            Modules/KB/Tests/Feature/KbAiAuditEnumContratoTest.php \
+            Modules/KB/Tests/Feature/KbNodeBodyReaderTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}

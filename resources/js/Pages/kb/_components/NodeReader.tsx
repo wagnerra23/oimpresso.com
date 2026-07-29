@@ -1,4 +1,6 @@
 import * as React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,8 +17,11 @@ import {
   Edit3,
   ExternalLink,
   Unlink,
+  Github,
+  Loader2,
 } from 'lucide-react';
 import type { KbCategory, KbNode } from '../_lib/types';
+import { useKbNodeBody } from '../_lib/useKbNodeBody';
 import {
   codeDriftRefs,
   extractHeadings,
@@ -176,9 +181,10 @@ export default function NodeReader({
   const headings = extractHeadings(node.body_blocks);
   // `related` movido pra antes do early return (linhas 113-117) — fix React #310
 
-  // Conteúdo do body: bridge (mcp_memory_documents) NÃO tem body_blocks.
-  // V1 mostra excerpt e link pra GitHub. ONDA 3 / Agent A vai entregar
-  // join completo em /kb/nodes/{slug} pra preencher.
+  // Conteúdo do body: bridge canônico (ADR 0061) NÃO tem body_blocks — invariante
+  // Tier 0 `is_editable=false ⇒ body_blocks IS NULL`, enforçada pelo KbNodeObserver.
+  // O corpo vem por JOIN com mcp_memory_documents, buscado sob demanda em
+  // GET /kb/nodes/{slug} (ver `useKbNodeBody`). Leitura pura — o app nunca edita.
   const isBridge = node.body_blocks === null && node.source_doc_id !== null;
 
   return (
@@ -334,7 +340,7 @@ export default function NodeReader({
         className="flex-1 overflow-y-auto px-5 py-3"
       >
         {isBridge ? (
-          <BridgeFallback node={node} />
+          <BridgeBody node={node} />
         ) : node.excerpt ? (
           <p className="mb-4 text-[14.5px] leading-relaxed text-muted-foreground font-medium border-l-2 border-primary/30 pl-3">
             {node.excerpt}
@@ -478,23 +484,122 @@ export default function NodeReader({
 }
 
 /**
- * BridgeFallback — quando node.body_blocks IS NULL (bridge canônica),
- * mostra excerpt + chamada pra carregar conteúdo do mcp_memory_documents
- * (V2 — Agent A entrega endpoint /kb/nodes/{slug} com content_md preenchido).
+ * BridgeBody — o LEITOR do documento canônico (ONDA 1, 2026-07-29).
+ *
+ * Quando `body_blocks IS NULL` + `source_doc_id != null`, o nó é bridge canônico:
+ * o corpo NÃO está (nem pode estar) em `kb_nodes` — invariante Tier 0 do
+ * `KbBridgeFromMcpJob` (ADR 0061). O texto vem por JOIN com
+ * `mcp_memory_documents.content_md`, buscado em `GET /kb/nodes/{slug}`.
+ *
+ * Read-only por construção: renderiza markdown, não expõe edição. Quem quiser mudar
+ * o documento muda o arquivo em `memory/*` no git — o bridge re-sincroniza em 15 min.
+ * (O `PUT /kb/nodes/{slug}` rejeita bridge com 422 `NODE_NOT_EDITABLE`.)
+ *
+ * Estados honestos (charter §6: "NUNCA afirmar sucesso de uma ação que não aconteceu"):
+ * carregando · erro explícito · corpo vazio explícito · corpo renderizado.
  */
-function BridgeFallback({ node }: { node: KbNode }) {
+function BridgeBody({ node }: { node: KbNode }) {
+  const { status, body, error } = useKbNodeBody(node.slug, true);
+
   return (
-    <div className="rounded-md border border-dashed border-border bg-muted/20 px-4 py-3 mb-4">
-      <div className="flex items-center gap-2 text-muted-foreground text-[12px]">
-        <ExternalLink size={12} />
-        <span>
-          Conteúdo canônico vem de <code className="text-[11px] font-mono">mcp_memory_documents</code>{' '}
-          (read-only). Endpoint <code className="text-[11px] font-mono">/kb/nodes/{node.slug}</code>{' '}
-          completo virá com Agent A (ONDA 1).
-        </span>
-      </div>
+    <div className="mb-4">
       {node.excerpt && (
-        <p className="m-0 mt-2 text-[13px] text-foreground/80">{node.excerpt}</p>
+        <p className="mb-4 text-[14.5px] leading-relaxed text-muted-foreground font-medium border-l-2 border-primary/30 pl-3">
+          {node.excerpt}
+        </p>
+      )}
+
+      {(status === 'idle' || status === 'loading') && (
+        <div
+          className="flex items-center gap-2 text-[12px] text-muted-foreground py-4"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2 size={13} className="animate-spin" aria-hidden />
+          Carregando o conteúdo do documento…
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div
+          className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-[12.5px] text-destructive"
+          role="alert"
+        >
+          <div className="flex items-center gap-2 font-medium">
+            <AlertTriangle size={13} aria-hidden />
+            {error}
+          </div>
+          <p className="m-0 mt-1 text-[11.5px] text-muted-foreground">
+            O texto canônico continua no git — abra pela fonte, abaixo.
+          </p>
+        </div>
+      )}
+
+      {status === 'ok' && (
+        <>
+          {body?.content_md ? (
+            <article
+              className="prose prose-sm dark:prose-invert max-w-none
+                prose-headings:scroll-mt-4 prose-headings:font-semibold
+                prose-h1:text-xl prose-h1:border-b prose-h1:border-border prose-h1:pb-2 prose-h1:mb-4
+                prose-h2:text-base prose-h2:mt-6 prose-h2:mb-2
+                prose-h3:text-sm prose-h3:mt-4 prose-h3:mb-1.5
+                prose-p:text-[13.5px]
+                prose-pre:bg-muted prose-pre:text-foreground prose-pre:border prose-pre:border-border prose-pre:rounded-md prose-pre:p-3 prose-pre:text-[11.5px]
+                prose-code:before:content-none prose-code:after:content-none
+                prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[11.5px] prose-code:font-mono prose-code:font-normal
+                prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                prose-table:text-[11.5px] prose-th:text-[11.5px] prose-td:py-1 prose-td:px-2
+                prose-blockquote:border-l-2 prose-blockquote:border-primary/40 prose-blockquote:pl-3 prose-blockquote:not-italic prose-blockquote:text-muted-foreground
+                prose-hr:my-5 prose-hr:border-border
+                prose-strong:text-foreground
+                prose-li:my-0.5 prose-li:text-[13.5px]
+                prose-img:rounded-md"
+              data-testid="kb-bridge-body"
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  a: ({ href, children, ...rest }) => {
+                    const isExternal = href && /^(https?:|mailto:)/.test(href);
+                    return isExternal ? (
+                      <a href={href} target="_blank" rel="noopener noreferrer" {...rest}>
+                        {children}
+                      </a>
+                    ) : (
+                      <a href={href} {...rest}>
+                        {children}
+                      </a>
+                    );
+                  },
+                }}
+              >
+                {body.content_md}
+              </ReactMarkdown>
+            </article>
+          ) : (
+            <p className="m-0 py-4 text-[12.5px] text-muted-foreground italic">
+              Este documento não tem corpo indexado.
+            </p>
+          )}
+
+          <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
+            <ExternalLink size={11} aria-hidden />
+            <span>
+              Documento canônico — a fonte é o git; esta tela é leitura.
+            </span>
+            {body?.github_url && (
+              <a
+                href={body.github_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground hover:border-primary/40"
+              >
+                <Github size={11} aria-hidden /> Ver no GitHub
+              </a>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

@@ -2,9 +2,9 @@
 id: requisitos-kb-briefing
 module: KB
 status: parcial
-status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); /kb/v2 serve kb_nodes reais desde 2026-07-17; classificação por categoria RESOLVIDA em 2026-07-29 (1628/1628 de biz=1 classificados; o classificador existia desde 07-17 mas nada o invocava, e 2 subcategorias nunca chegaram ao banco) e o bridge passou a classificar no fill (#5017); SEGUEM abertos: o leitor não mostra o corpo (body_blocks é invariante Tier 0 — vem do JOIN com mcp_memory_documents) e /kb/graph é fachada (closure sem props, /kb/graph/data hardcoded vazio)"
+status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); /kb/v2 serve kb_nodes reais desde 2026-07-17; classificação por categoria RESOLVIDA em 2026-07-29 (1628/1628 de biz=1 classificados; o classificador existia desde 07-17 mas nada o invocava, e 2 subcategorias nunca chegaram ao banco) e o bridge passou a classificar no fill (#5017); LEITOR do corpo ligado em 2026-07-29 (#5018) — o corpo NUNCA esteve em kb_nodes (body_blocks=NULL e assim deve continuar, ADR 0061): vem por JOIN de mcp_memory_documents.content_md em GET /kb/nodes/{slug}, endpoint que já existia e não tinha consumidor no .tsx; SEGUE aberto: /kb/graph é fachada (closure sem props, /kb/graph/data hardcoded vazio)"
 updated_at: "2026-07-29"
-distilled_by: "reconciliação MEDIDA contra prod (CT 100 oimpresso-mcp, biz=1, 2026-07-29): §Bloqueador + §Estado real + status_nota reescritos com recibo de query. Corrige a afirmação 'auto_match tem ZERO leitores em PHP', que era falsa desde 2026-07-17 e permaneceu 12 dias — ela mandou uma sessão inteira na direção errada antes de ser medida. O resto do BRIEFING segue com a foto de 2026-07-17."
+distilled_by: "reconciliação MEDIDA contra prod (CT 100 oimpresso-mcp, biz=1, 2026-07-29): §Bloqueador + §Estado real + status_nota reescritos com recibo de query. Corrige a afirmação 'auto_match tem ZERO leitores em PHP', que era falsa desde 2026-07-17 e permaneceu 12 dias — ela mandou uma sessão inteira na direção errada antes de ser medida. Fundido no mesmo dia com o #5018 (leitor do corpo), que corrigiu o outro item da mesma família: 'o bridge copia metadata, não body_blocks' descrevia o mecanismo certo mas soava como dívida do bridge — o gap era o consumidor no .tsx, não o backend. O resto do BRIEFING segue com a foto de 2026-07-17."
 owner: W
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
@@ -27,7 +27,7 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 **Status honesto:** `parcial`.
 - ✅ **Backend LIVE em prod (biz=1):** schema `kb_*`, `KbBridgeFromMcpJob` populando `kb_nodes` a cada 15 min, taxonomia seeded, CRUD de artigo editável, permissions.
 - ✅ **`/kb/v2` SAIU do mock (2026-07-17).** `KbController@indexV2` serve `kb_nodes` reais (+ categorias, subcategorias, `business.name`) e `KbIndexV2ContractTest` V5/V6 travam o payload. ⚠️ *A linha anterior deste briefing dizia "roda MOCK / falta o Controller `indexV2`" — ficou **stale** por 11 dias; reconciliado em 2026-07-28 pelo `sdd-from-source` contra `Modules/KB/Http/routes.php` + `KbController::indexV2`.*
-- 🟡 **O leitor da V2 ainda não mostra o corpo** do documento bridgeado: `KbBridgeFromMcpJob` copia **metadata, não `body_blocks`** (limite declarado no docblock do `indexV2`). Título + excerpt, não o texto.
+- ✅ **O leitor da V2 mostra o corpo desde 2026-07-29** — e a rota disso **já existia**. A frase anterior deste briefing (*"o bridge copia metadata, não `body_blocks`"*) descrevia o mecanismo certo mas soava como dívida do bridge, e **induzia ao erro de tentar copiar o corpo pra `kb_nodes`** — o que quebraria a invariante Tier 0 `is_editable=false ⇒ body_blocks IS NULL` ([ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md); o `KbNodeObserver` barra). **O corpo vem por JOIN**, como a migration `2026_05_15_100003` sempre desenhou: `GET /kb/nodes/{slug}` → `KbNodeController@show` → `mcp_memory_documents.content_md`. O gap real era o **consumidor**: medido 2026-07-29, **21 de 21** menções a `/kb/nodes` em `resources/js/` eram comentário — **zero `fetch`**; o `NodeReader` renderizava o placeholder *"virá com Agent A (ONDA 1)"*. Agora `_lib/useKbNodeBody.ts` busca sob demanda e o `BridgeBody` renderiza markdown (GFM). Contrato: [UC-KBV2-14](../../../resources/js/Pages/kb/Index.v2.casos.md) + `KbNodeBodyReaderTest`.
 - 🔴 **`/kb/graph` continua fachada:** a rota é closure `Inertia::render('kb/Graph')` **sem props** e `/kb/graph/data` devolve `{nodes:[],edges:[],kpis:null}` hardcoded → cai em `_lib/mockGraphData.ts`. Nenhum Controller do KB a serve.
 - ✅ **Categoria: RESOLVIDO em 2026-07-29.** A lista por categoria servia vazia porque **100% do acervo de biz=1 estava com `category_id` NULL** — não porque faltasse classificador. ⚠️ *As linhas anteriores diziam "falta o classificador — **zero leitores em PHP**"; era **stale**. O `KbAutoClassifierService` + `kb:classify` existem desde 2026-07-17 ([#4465](https://github.com/wagnerra23/oimpresso.com/pull/4465)); o que faltava era **invocação** (`git grep "kb:classify"` no repo inteiro não achava schedule nem chamador) e **2 subcategorias que nunca chegaram ao banco**.* Ver §Bloqueador pro recibo.
 - 🟡 **A tela `/kb` (V3, o browser do acervo canon) ganhou seu 1º contrato executável em 2026-07-28** — antes disso não tinha nenhum. Ver [SDD](SDD-tela-kb-unificado-v1.0.md) + [`Index.casos.md`](../../../resources/js/Pages/kb/Index.casos.md).
@@ -51,7 +51,7 @@ piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuá
 | Troca de empresa (herda o tenant) | ✅ via `CompanyPicker` na Sidebar | `resources/js/Components/cockpit/Sidebar.tsx` |
 | **Tela `/kb/v2` servindo o dado** | ✅ **serve `kb_nodes` reais** desde 2026-07-17 | `KbController@indexV2` / `Index.v2.tsx` |
 | **Classificador `auto_match` → `category_id`** | ✅ **existe (2026-07-17) E é invocado (2026-07-29)** | `Services/KbAutoClassifierService` · `kb:classify` · chamado no fill pelo `KbBridgeFromMcpJob` |
-| **Corpo do documento no leitor (`body_blocks`)** | 🔴 **não chega à tela** — invariante Tier 0, ver §Gap aberto | `KbNodeObserver` / `Index.v2.tsx` |
+| **Corpo do documento no leitor** | ✅ **ligado 2026-07-29** — o corpo vem do **JOIN** (nunca de `body_blocks`, que é invariante Tier 0); o endpoint já existia, faltava o consumidor | `KbNodeController@show` / `_lib/useKbNodeBody.ts` |
 | Template de categorias por vertical | 🟡 **D6 ABERTA — [W] decide** | charter §3 |
 
 ## Os números do acervo — **este briefing NÃO os guarda** (fato derivado não se restateia)
@@ -137,8 +137,9 @@ Já **seeded** no banco (não inventar, não revogar seeder). Contagens exatas n
 - [SPEC.md](SPEC.md) — US-KB-001 (o "ver" dos ADRs) e demais US.
 - [SCHEMA-DB-V1.md](SCHEMA-DB-V1.md) — contrato das tabelas `kb_*`.
 - [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — benchmark de mercado.
-- `Modules/KB/Jobs/KbBridgeFromMcpJob.php` — o bridge que popula `kb_nodes` (e onde o `category_id` **não** é setado hoje).
-- `resources/js/Pages/kb/Index.v2.tsx` — a tela (hoje MOCK) + `Modules/KB/Http/routes.php` (rota sem props).
+- `Modules/KB/Jobs/KbBridgeFromMcpJob.php` — o bridge que popula `kb_nodes` e que, **desde 2026-07-29 ([#5017](https://github.com/wagnerra23/oimpresso.com/pull/5017)), classifica no fill**. *(A ressalva "onde o `category_id` **não** é setado hoje" que estava aqui morreu com aquele PR.)*
+- `resources/js/Pages/kb/Index.v2.tsx` — a tela (servida por `KbController@indexV2`) + `Modules/KB/Http/routes.php`.
+- `resources/js/Pages/kb/_components/NodeReader.tsx` + `_lib/useKbNodeBody.ts` — o **leitor do corpo** (JOIN sob demanda). Charter do contrato: [`NodeReader.charter.md`](../../../resources/js/Pages/kb/_components/NodeReader.charter.md) Goal 2.
 
 ## Riscos (re-validar mensalmente)
 
