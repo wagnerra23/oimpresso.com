@@ -4,7 +4,7 @@ description: Regras de escrita derivadas do código real do indexador (IndexarMe
 type: guide
 authority: canonical
 lifecycle: ativo
-updated_at: '2026-07-28'
+updated_at: '2026-07-29'
 related_adrs: ['0053-mcp-server-governanca-como-produto', '0256-knowledge-survival-meia-vida-catraca-sentinela']
 ---
 
@@ -12,7 +12,7 @@ related_adrs: ['0053-mcp-server-governanca-como-produto', '0256-knowledge-surviv
 
 > **Por que este doc existe:** escrever conhecimento em `memory/` não garante que a IA o encontre. O pipeline de indexação tem regras duras (allowlist de nomes, chunk por heading, zero overlap) que fazem um doc bem escrito ficar **invisível** ou ser devolvido como **trecho sem sentido**. As regras abaixo foram lidas no código, não supostas.
 >
-> **Todas as medições desta página são datadas de 2026-07-28** e foram tiradas do container `oimpresso-mcp` no CT 100 (DB `u906587222_oimpresso`) e do código em `Modules/Jana/Services/`. Número que envelhece não se edita à mão — **re-rode o comando** citado em cada seção.
+> **As medições desta página são datadas de 2026-07-28**, exceto as da Regra 2, refeitas em **2026-07-29**. Todas saem do container `oimpresso-mcp` no CT 100 (DB `u906587222_oimpresso`) e do código em `Modules/Jana/Services/`. Número que envelhece não se edita à mão — **re-rode o comando** citado em cada seção.
 
 ## Regra 1 — o PATH decide o `type` e o `module`, não o frontmatter
 
@@ -45,19 +45,21 @@ A allowlist aceita **nome exato**, sem prefixo nem sufixo: `SPEC`, `BRIEFING`, `
 
 `RUNBOOK-criar-modulo.md` **não** casa `RUNBOOK`. `PEGADINHA-x.md`, `AUDITORIA-x.md`, `EVIDENCE-x.md` não casam nada. Esses arquivos existem no git, aparecem no `Glob` do agente, e **não existem para a busca da IA**.
 
-Medido em 2026-07-28 (re-rodar antes de citar):
+O número não se conta mais à mão. O comando é:
 
 ```bash
-for f in $(git ls-files ':(glob)memory/requisitos/*/*.md'); do n=$(basename "$f" .md); \
-  case "$n" in SPEC|BRIEFING|RUNBOOK|ARCHITECTURE|GLOSSARY|CHANGELOG|README|COMPARATIVO_CONCORRENCIA|SUPERFICIE) ;; \
-  *) echo "$f";; esac; done | wc -l
+node .claude/hooks/doc-fora-do-rag.mjs --measure
 ```
 
-Resultado naquele dia: **481 de 744 fora do RAG**, incluindo **125 arquivos `RUNBOOK-*`**.
+Medido em 2026-07-29: **447 de 744 fora do RAG** nesse nível, incluindo **118 `RUNBOOK-*`** — e **591 de 1.077** contando a subárvore inteira de `memory/requisitos/`.
+
+> ⚠️ **Errata da primeira redação desta seção.** Ela publicava **481/744** e **125 `RUNBOOK-*`**, medidos por um `for`+`case` de shell que compara **só o basename** contra os 9 nomes. Esse critério ignora que `memory/requisitos/_DesignSystem/` tem **cobertura recursiva própria** — os 40 arquivos de lá (34 fora da allowlist, 7 deles `RUNBOOK-*`) estão **dentro** do RAG e eram contados como fora. `481 − 34 = 447`; `125 − 7 = 118`. Fica registrado, não apagado: o mesmo erro da nota abaixo, uma camada acima — replicar *um* glob do indexador e esquecer os outros mede a coisa errada com a mesma confiança.
 
 > ⚠️ **O `:(glob)` no pathspec é obrigatório e não é detalhe.** Sem ele, o `git ls-files 'memory/requisitos/*/*.md'` usa wildmatch, onde `*` **atravessa `/`** — e passa a contar `_telas/`, `_legado-fullpage/` e qualquer subpasta. O `glob()` do PHP, que é o que o indexador realmente usa, **não recursa**. A primeira versão desta seção citava 743/1.011/144 por causa disso; os 19 `RUNBOOK-*` a mais viviam em profundidade ≥2 e **nunca estiveram ao alcance do indexador**. Quando for medir cobertura de um glob de código, replique a semântica **daquela linguagem**, não a do seu shell.
 
 **O que fazer:** conhecimento que precisa ser recuperável pela IA vai em `memory/reference/` (cobertura recursiva). Conhecimento que é anexo de um módulo e só o agente lê por path pode ficar em `memory/requisitos/<Mod>/` — sabendo que está fora da busca.
+
+Isto deixou de depender de alguém lembrar da regra: quem avisa, no momento em que o arquivo nasce, é [`.claude/hooks/doc-fora-do-rag.mjs`](../../.claude/hooks/doc-fora-do-rag.mjs) (`PreToolUse:Write`). Ele replica os globs do indexador e foi conferido contra o índice de produção — 486/486, zero falso-positivo e zero falso-negativo; o cabeçalho do arquivo traz a medição e o comando que a reproduz. Ponto-de-corte e mecanismo: [`_HOOKS-INDEX.md`](../../.claude/hooks/_HOOKS-INDEX.md), que é gerado, não escrito.
 
 ## Regra 3 — arquivo começando com `_` ou chamado `README` é pulado
 
