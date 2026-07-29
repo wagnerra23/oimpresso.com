@@ -46,6 +46,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      # SEM continue-on-error DE PROPÓSITO: o selftest não julga o CONTEÚDO dos planos
+      # (isso é o --check advisory abaixo) — ele prova que o próprio gate morde e solta.
+      # Se ele falhar, o gate está quebrado, e um gate quebrado não pode passar calado:
+      # é exatamente o "gate mudo que parece cobertura". Determinístico, sem I/O de rede.
+      - name: plan-health --selftest (o gate morde no órfão e solta no ligado)
+        run: node scripts/governance/plan-health.mjs --selftest
       - name: plan-health --check (morde, mas advisory via continue-on-error)
         # `continue-on-error` no step também: o `--check` sai 1 quando há achado,
         # mas o check fica VERDE-advisory (achados visíveis no log) em vez de 🔴
