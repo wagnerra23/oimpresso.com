@@ -1302,6 +1302,24 @@
       "error_rate_pct": 22.2,
       "veredito": "reprovado",
       "nota": "REPROVADO na 4a passada (22,2%). A classe se repetiu DENTRO do ato de restaurar: afirmei \"restaurei\" sem rodar a conferencia de 1 comando. grep -c Modules/SRS dava main=47 vs branch=39 — a reversao por regex (que exigia subpath) deixou 9 spots pra tras, incluindo um comando citado que nao funcionaria e um path que nunca existiu na raiz. 10o erro: o header que escrevi dizia \"0 linhas nas 7 tabelas\", contradizendo o proprio corpo do doc 3 paragrafos abaixo (a 7a tinha 14 linhas de seed) — REGREDI uma precisao que o texto substituido ja tinha. Correcao da rodada 5: restauracao POR BLOCO (git checkout origin/main dos 2 arquivos) + reaplicacao so das 2 mudancas legitimas, com prova mecanica de delta por arquivo (4x delta 0, 1x delta +1 intencional)."
+    },
+    {
+      "pr": 5036,
+      "data": "2026-07-29",
+      "tipo": "anchors",
+      "gerador": "opus-5 (Claude Code, sessao da deprecacao SRS E5+E6)",
+      "refutador": "fable-5 (sessao fresca, tier superior — ciclo-adversary, rodada 5)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/5036 — parecer da rodada 5 no comment de refutacao GT-G5",
+      "lote_id": "SRS-E5E6-saneamento-ghost-05",
+      "itens_verificados": 56,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "veredito": "aprovado",
+      "nota": "APROVADO na 5a passada (0/56). 100% do diff memory/+governance/ (22/22 arquivos) enumerado; 56 afirmacoes verificadas contra origin/main 32d77dba26 e branch fa95e04e19. Prova mecanica: catalog-graph --write, tasks-index-generate --write e deadlink-gate rodados em worktree da branch — diff ZERO nos 3 gerados (1098/858/39-622-947 exatos); module-surface --all --check exit 0. Contagens duras exatas: 63 arquivos deletados, 33 classes @deprecated, 24/37 modulos com charter_adr 0080, migration dropa as 7 docs_*, 6 redirects 301 com alvos confirmados em rota real. knowledge-drift nao-required confirmado nos DOIS donos (baseline + protection viva 34 contexts + ruleset). A restauracao por bloco exigida na rodada 4 foi provada por delta de literal por arquivo (4x delta 0, 1x +1 intencional; DEPRECATION-PLAN 47->47). 3 itens NAO_VERIFICAVEL (medicoes de banco de prod), todos consistentes com o canon ja mergeado. Ressalvas nao-contadas pelo refutador: universo do '15x' da errata nao declarado e citacao 'cofre de evidencias' nao-verbatim. PII 0. Spot-check independente do gerador antes do append: 63/63 deletados, 0 remanescentes, 24/37 charter_adr, 47->47 no DEPRECATION-PLAN — os 4 bateram."
     }
   ]
 }
