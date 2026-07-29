@@ -21,6 +21,16 @@ function langfuseCheck(): ?array
     return collect($json['checks'] ?? [])->firstWhere('name', 'langfuse_trace_uptime_24h');
 }
 
+function onlineEvalCheck(): ?array
+{
+    Artisan::call('jana:health-check', ['--json' => true]);
+    $out = Artisan::output();
+    $start = strpos($out, '{');
+    $json = $start === false ? [] : json_decode(substr($out, (int) $start), true);
+
+    return collect($json['checks'] ?? [])->firstWhere('name', 'online_eval_score_uptime_7d');
+}
+
 /** Configura credencial fake + resposta fake da API pública do Langfuse. */
 function fakeLangfuse(array $response, int $status = 200): void
 {
@@ -30,7 +40,13 @@ function fakeLangfuse(array $response, int $status = 200): void
         'langfuse.public_key' => 'pk-test',
         'langfuse.secret_key' => 'sk-test',
     ]);
-    Http::fake(['*/api/public/traces*' => Http::response($response, $status)]);
+    Http::fake([
+        '*/api/public/traces*' => Http::response($response, $status),
+        '*/api/public/scores*' => Http::response([
+            'data' => [['id' => 'score-ok']],
+            'meta' => ['totalItems' => 1],
+        ], 200),
+    ]);
 }
 
 /**
@@ -154,4 +170,40 @@ test('langfuse_trace_uptime_24h está registrado no jana:health-check e é hard 
     // teste) o campo advisory sai false.
     expect($check['advisory'] ?? false)->toBeFalse();
     expect($check)->toHaveKeys(['name', 'ok', 'value', 'threshold', 'message']);
+});
+
+test('online eval distingue desligado, instrumento mudo e score vivo sem bloquear o gate', function () {
+    expect(HealthCheckCommand::evaluateOnlineEvalUptime(false, true, true, 1))
+        ->toMatchArray(['ok' => false, 'state' => 'desligado', 'advisory' => true]);
+    expect(HealthCheckCommand::evaluateOnlineEvalUptime(true, true, true, 0))
+        ->toMatchArray(['ok' => false, 'state' => 'sem-score', 'count' => 0, 'advisory' => true]);
+    expect(HealthCheckCommand::evaluateOnlineEvalUptime(true, true, true, 3))
+        ->toMatchArray(['ok' => true, 'state' => 'vivo', 'count' => 3, 'advisory' => true]);
+});
+
+test('FIAÇÃO: online eval ligado e API sem score aparece advisory, não some', function () {
+    config([
+        'copiloto.online_eval.enabled' => true,
+        'langfuse.enabled' => true,
+        'langfuse.host' => 'https://langfuse.test',
+        'langfuse.public_key' => 'pk-test',
+        'langfuse.secret_key' => 'sk-test',
+    ]);
+    Http::fake([
+        '*/api/public/traces*' => Http::response([
+            'data' => [['id' => 'trace-ok']],
+            'meta' => ['totalItems' => 1],
+        ]),
+        '*/api/public/scores*' => Http::response([
+            'data' => [],
+            'meta' => ['totalItems' => 0],
+        ]),
+    ]);
+
+    $check = onlineEvalCheck();
+    expect($check)->not->toBeNull()
+        ->and($check['ok'])->toBeFalse()
+        ->and($check['advisory'])->toBeTrue()
+        ->and($check['value'])->toBe(0)
+        ->and($check['message'])->toContain('Nenhum ragas_faithfulness_online');
 });

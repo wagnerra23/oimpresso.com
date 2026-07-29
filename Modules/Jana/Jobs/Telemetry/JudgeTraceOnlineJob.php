@@ -59,6 +59,10 @@ class JudgeTraceOnlineJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    public int $tries = 1;
+
+    public int $timeout = 180;
+
     /**
      * @param  string   $traceId    id do trace no Langfuse (alvo do recordScore)
      * @param  int|null $businessId tenant do trace (Tier 0 — vai no metadata/log, nunca session())
@@ -70,7 +74,12 @@ class JudgeTraceOnlineJob implements ShouldQueue
         public readonly ?int $businessId,
         public readonly string $rawContext,
         public readonly string $rawAnswer,
-    ) {}
+    ) {
+        // O Hostinger só publica. O worker desta fila vive no CT 100, na mesma
+        // rede Docker do Ollama; a conexão database é o MySQL canônico comum.
+        $this->onConnection('database');
+        $this->onQueue('jana-online-eval');
+    }
 
     /**
      * Decisão de amostragem — PURA (testável sem fila/DB) e DETERMINÍSTICA por trace

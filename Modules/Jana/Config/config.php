@@ -770,8 +770,8 @@ return [
     | tráfego do cliente — a única medição hoje é offline (gold-set), então se a
     | Jana degradar pro cliente ninguém sabe até ele reclamar.
     |
-    | ⛔ DOIS gates OFF por LGPD (trace de cliente é biz≠1 — ADR 0093 + LGPD):
-    |   - enabled: liga a amostragem. Default false.
+    | ⛔ DOIS gates por LGPD (trace de cliente é biz≠1 — ADR 0093 + LGPD):
+    |   - enabled: liga a amostragem. Ativado por [W] em 2026-07-29.
     |   - judge:   'local' (default — juiz Ollama self-host CT 100, ZERO egress:
     |              o dado do cliente NÃO sai da infra) | 'openai' (manda a amostra
     |              PII-REDACTED pro juiz externo — exige aceite LGPD explícito do [W]).
@@ -781,8 +781,8 @@ return [
     | ⚠️ judge=local (US-COPI-137, implementado 2026-07-18): usa OllamaRagasJudge →
     | `local.url`/`local.model` abaixo. PRÉ-REQ de infra: o Ollama do CT 100
     | (`ollama-embedder`) precisa de um modelo de CHAT puxado (`ollama pull <model>`) —
-    | hoje só tem embedders. Sem o modelo, o juiz lança JudgeUnavailableException
-    | (honesto) e o Job PULA sem gravar score fabricado.
+    | precisa manter o modelo configurado disponível. Sem o modelo, o juiz lança
+    | JudgeUnavailableException (honesto) e o Job PULA sem gravar score fabricado.
     |
     | ⚠️ NAMESPACE (fix 2026-07-18): este bloco vive em config.php → merged como
     | `copiloto.*` (JanaServiceProvider::registerConfig). O Job/Listener leem
@@ -800,7 +800,7 @@ return [
     | @see memory/requisitos/Jana/SPEC.md#US-COPI-137
     */
     'online_eval' => [
-        'enabled'     => false,   // [W] liga aqui (gate 1)
+        'enabled'     => true,    // [W] autorizou 2026-07-29; rollback = false em PR
         'sample_rate' => 0.05,    // ~5% dos traces
         'judge'       => 'local', // 'local' (Ollama CT 100, zero egress) | 'openai' (aceite LGPD [W])
         // Juiz local (OllamaRagasJudge) — config-as-code, SEM env() (baseline Larastan).

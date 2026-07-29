@@ -125,6 +125,7 @@ class HealthCheckCommand extends Command
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
             $this->checkLangfuseTraceUptime24h(),
+            $this->checkOnlineEvalScoreUptime7d(),
             $this->checkDbWriteCanary(),
             $this->checkDbStorageQuota(),
             $this->checkMcpIndexSyncGap(),
@@ -1269,53 +1270,28 @@ class HealthCheckCommand extends Command
         $name = 'langfuse_trace_uptime_24h';
         $threshold = 1; // mínimo 1 trace nas últimas 24h (espelha brief_uptime_24h)
 
-        $host = rtrim((string) config('langfuse.host', ''), '/');
-        $publicKey = (string) config('langfuse.public_key', '');
-        $secretKey = (string) config('langfuse.secret_key', '');
-        $configured = (bool) config('langfuse.enabled', false)
-            && $host !== '' && $publicKey !== '' && $secretKey !== '';
+        $probe = $this->probeLangfuseCount('/api/public/traces', [
+            'fromTimestamp' => now()->subHours(24)->toIso8601ZuluString(),
+            'limit' => 1,
+        ]);
+        $configured = $probe['configured'];
         // Alinhado com o schedule (`->environments(['live'])`): em prod, telemetria
         // desligada merece olho; em dev/CI é normal. app()->environment cobre os dois
         // rótulos de prod que o projeto usa (Hostinger = 'live'; fallback 'production').
         $isProd = app()->environment(['production', 'live']);
 
-        $reachable = false;
-        $count = null;
-        $detalhe = '';
-
-        try {
-            if ($configured) {
-                $response = \Illuminate\Support\Facades\Http::withBasicAuth($publicKey, $secretKey)
-                    ->acceptJson()
-                    ->timeout((int) config('langfuse.timeout', 5))
-                    ->get("{$host}/api/public/traces", [
-                        'fromTimestamp' => now()->subHours(24)->toIso8601ZuluString(),
-                        'limit' => 1,
-                    ]);
-
-                $reachable = $response->successful();
-                if (! $reachable) {
-                    $detalhe = "HTTP {$response->status()}";
-                } else {
-                    // Contrato da API pública v2: {data: [...], meta: {totalItems: N}}.
-                    // `meta.totalItems` ausente = shape mudou → NÃO fingir que é 0 (o
-                    // check acende, mas dizendo "ilegível", nunca "mudo" — mentir a
-                    // causa é pior que não medir).
-                    $count = $response->json('meta.totalItems');
-                    $count = is_numeric($count) ? (int) $count : null;
-                }
-            }
-        } catch (\Throwable $e) {
-            $reachable = false;
-            $detalhe = mb_substr($e->getMessage(), 0, 80);
-        }
-
-        $r = self::evaluateTraceUptime($configured, $reachable, $count, $threshold, $isProd);
+        $r = self::evaluateTraceUptime(
+            $configured,
+            $probe['reachable'],
+            $probe['count'],
+            $threshold,
+            $isProd,
+        );
 
         $messages = [
             'nao-configurado' => 'Skipped (Langfuse não configurado — dev/CI sem host/keys)',
             'desligado-prod' => 'ATENÇÃO (advisory): Langfuse DESLIGADO em produção (LANGFUSE_ENABLED=false ou host/keys ausentes) — telemetria LLM não emite. Se não foi intencional, um deploy pode ter resetado o .env; religue no .env de prod. Não pagina (pode ser desligamento deliberado).',
-            'inacessivel' => "ALERTA: API do Langfuse inacessível ({$detalhe}) — não dá pra provar que trace está chegando. Checar CT 100: tailscale ssh root@ct100-mcp 'cd /opt/langfuse/code/docker/langfuse && docker compose ps'",
+            'inacessivel' => "ALERTA: API do Langfuse inacessível ({$probe['detail']}) — não dá pra provar que trace está chegando. Checar CT 100: tailscale ssh root@ct100-mcp 'cd /opt/langfuse/code/docker/langfuse && docker compose ps'",
             'ilegivel' => 'ALERTA: Langfuse respondeu mas sem meta.totalItems — contrato da API mudou, o heartbeat parou de medir (conserte o check, não ignore)',
             'mudo' => 'ALERTA: ZERO traces no Langfuse em 24h — telemetria LLM parou de chegar (checar LANGFUSE_ENABLED, keys, fila LangfuseTraceJob e workers). Servidor pode estar 200 e mesmo assim mudo.',
             'vivo' => "{$r['count']} trace(s) recebidos pelo Langfuse em 24h",
@@ -1330,6 +1306,116 @@ class HealthCheckCommand extends Command
             'threshold' => ">= {$threshold}",
             'message' => $messages[$r['state']] ?? $r['state'],
         ];
+    }
+
+    /**
+     * Online-eval é advisory: mede se a fila CT 100 + Ollama + Langfuse fecharam
+     * o circuito, sem bloquear chat/deploy por volume baixo ou juiz divergente.
+     */
+    protected function checkOnlineEvalScoreUptime7d(): array
+    {
+        $probe = $this->probeLangfuseCount('/api/public/scores', [
+            'name' => 'ragas_faithfulness_online',
+            'fromTimestamp' => now()->subDays(7)->toIso8601ZuluString(),
+            'limit' => 1,
+        ]);
+
+        $r = self::evaluateOnlineEvalUptime(
+            (bool) config('copiloto.online_eval.enabled', false),
+            $probe['configured'],
+            $probe['reachable'],
+            $probe['count'],
+        );
+
+        $messages = [
+            'desligado' => 'Online eval desligado no config canônico',
+            'nao-configurado' => 'Online eval ligado, mas Langfuse sem host/keys neste runtime',
+            'inacessivel' => "API de scores Langfuse inacessível ({$probe['detail']})",
+            'ilegivel' => 'API de scores respondeu sem meta.totalItems — contrato ilegível',
+            'sem-score' => 'Nenhum ragas_faithfulness_online em 7d — conferir fila jana-online-eval, worker CT 100 e Ollama',
+            'vivo' => "{$r['count']} score(s) online recebidos pelo Langfuse em 7d",
+        ];
+
+        return [
+            'name' => 'online_eval_score_uptime_7d',
+            'ok' => $r['ok'],
+            'advisory' => true,
+            'value' => $r['count'] ?? $r['state'],
+            'threshold' => '>= 1 (advisory)',
+            'message' => $messages[$r['state']] ?? $r['state'],
+        ];
+    }
+
+    /**
+     * @param  array<string, scalar>  $query
+     * @return array{configured: bool, reachable: bool, count: ?int, detail: string}
+     */
+    protected function probeLangfuseCount(string $path, array $query): array
+    {
+        $host = rtrim((string) config('langfuse.host', ''), '/');
+        $publicKey = (string) config('langfuse.public_key', '');
+        $secretKey = (string) config('langfuse.secret_key', '');
+        $configured = (bool) config('langfuse.enabled', false)
+            && $host !== '' && $publicKey !== '' && $secretKey !== '';
+
+        if (! $configured) {
+            return ['configured' => false, 'reachable' => false, 'count' => null, 'detail' => 'não configurado'];
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withBasicAuth($publicKey, $secretKey)
+                ->acceptJson()
+                ->timeout((int) config('langfuse.timeout', 5))
+                ->get($host.$path, $query);
+
+            if (! $response->successful()) {
+                return ['configured' => true, 'reachable' => false, 'count' => null, 'detail' => "HTTP {$response->status()}"];
+            }
+
+            $count = $response->json('meta.totalItems');
+
+            return [
+                'configured' => true,
+                'reachable' => true,
+                'count' => is_numeric($count) ? (int) $count : null,
+                'detail' => '',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'configured' => true,
+                'reachable' => false,
+                'count' => null,
+                'detail' => mb_substr($e->getMessage(), 0, 80),
+            ];
+        }
+    }
+
+    /**
+     * @return array{ok: bool, state: string, count: ?int, advisory: true}
+     */
+    public static function evaluateOnlineEvalUptime(
+        bool $enabled,
+        bool $configured,
+        bool $reachable,
+        ?int $scoreCount,
+    ): array {
+        if (! $enabled) {
+            return ['ok' => false, 'state' => 'desligado', 'count' => null, 'advisory' => true];
+        }
+        if (! $configured) {
+            return ['ok' => false, 'state' => 'nao-configurado', 'count' => null, 'advisory' => true];
+        }
+        if (! $reachable) {
+            return ['ok' => false, 'state' => 'inacessivel', 'count' => null, 'advisory' => true];
+        }
+        if ($scoreCount === null) {
+            return ['ok' => false, 'state' => 'ilegivel', 'count' => null, 'advisory' => true];
+        }
+        if ($scoreCount < 1) {
+            return ['ok' => false, 'state' => 'sem-score', 'count' => $scoreCount, 'advisory' => true];
+        }
+
+        return ['ok' => true, 'state' => 'vivo', 'count' => $scoreCount, 'advisory' => true];
     }
 
     /**

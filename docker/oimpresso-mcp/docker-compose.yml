@@ -17,46 +17,41 @@
 #   cd /opt/oimpresso-mcp/code && git pull
 #   cd docker/oimpresso-mcp && docker compose up -d --build
 
+x-mcp-runtime: &mcp-runtime
+  image: oimpresso/mcp:latest
+  restart: unless-stopped
+  networks:
+    - docker-host_default
+  volumes:
+    - /opt/oimpresso-mcp/code:/var/www/html
+    - /opt/oimpresso-mcp/storage:/var/www/html/storage
+    - /opt/oimpresso-mcp/bootstrap-cache:/var/www/html/bootstrap/cache
+  env_file:
+    - .env
+  environment:
+    DB_HOST: srv1818.hstgr.io
+    DB_PORT: 3306
+    APP_ENV: ${APP_ENV:-production}
+    APP_DEBUG: ${APP_DEBUG:-false}
+
 services:
 
   # ========================================================================
   # MCP server — app Laravel com endpoints /api/mcp/*
   # ========================================================================
   mcp:
+    <<: *mcp-runtime
     build:
       context: .
       # MEM-MCP-1.c-perf Fase 1: switch FPM → FrankenPHP+Octane.
       # Dockerfile (FPM legacy) preservado pra rollback rápido se precisar.
       dockerfile: Dockerfile.octane
-    image: oimpresso/mcp:latest
     container_name: oimpresso-mcp
-    restart: unless-stopped
-    networks:
-      - docker-host_default
 
     # Volume bind: código vem do clone git em /opt/oimpresso-mcp/code (host)
     # Atualização: git pull no host + reload PHP-FPM no container
     # NOTA: code NÃO é :ro porque submount :rw (storage, bootstrap/cache) dentro de
     # parent :ro falha com "read-only file system" no overlayfs
-    volumes:
-      - /opt/oimpresso-mcp/code:/var/www/html
-      - /opt/oimpresso-mcp/storage:/var/www/html/storage
-      - /opt/oimpresso-mcp/bootstrap-cache:/var/www/html/bootstrap/cache
-
-    # Variáveis de ambiente — usar .env (não commitado)
-    env_file:
-      - .env
-
-    environment:
-      # Conecta MySQL Hostinger DIRETO (Remote MySQL whitelist no hPanel)
-      # Hostname descoberto 29-abr: srv1818.hstgr.io (193.203.166.217) — NÃO é
-      # 148.135.133.115 (esse é só web/SSH). MySQL fica em servidor separado.
-      DB_HOST: srv1818.hstgr.io
-      DB_PORT: 3306
-      # Laravel paths
-      APP_ENV: ${APP_ENV:-production}
-      APP_DEBUG: ${APP_DEBUG:-false}
-
     # Healthcheck pra Traefik saber quando o container está pronto
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost/api/mcp/health || exit 1"]
@@ -90,6 +85,27 @@ services:
       - "traefik.http.routers.mcp-http.middlewares=mcp-redirect"
       - "traefik.http.middlewares.mcp-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.mcp-redirect.redirectscheme.permanent=true"
+
+  # ========================================================================
+  # Avaliação online Jana — consome SOMENTE a fila que precisa do Ollama local.
+  # O Hostinger publica no MySQL comum; este worker executa dentro do CT 100.
+  # ========================================================================
+  jana-online-eval-worker:
+    <<: *mcp-runtime
+    container_name: oimpresso-jana-online-eval-worker
+    depends_on:
+      mcp:
+        condition: service_healthy
+    entrypoint: ["php", "artisan", "queue:work"]
+    command:
+      - database
+      - --queue=jana-online-eval
+      - --sleep=3
+      - --tries=1
+      - --timeout=180
+      - --max-time=3600
+    healthcheck:
+      disable: true
 
 networks:
   docker-host_default:
