@@ -35,7 +35,9 @@ export function loadShardSummary(p) {
 // infla a medição — senão um flush parcial vira floor mascarado.
 export function mergeShards(shardsTotal, load) {
   const byFile = new Map();
-  const totals = { passed: 0, failed: 0, errors: 0, skipped: 0 };
+  // `assertions` somado junto desde 2026-07-29: sem isto a noite sharded PERDERIA o
+  // único campo que prova execução, e o merge viria com 0 mesmo tendo rodado tudo.
+  const totals = { passed: 0, failed: 0, errors: 0, skipped: 0, assertions: 0 };
   const completed = [], missing = [];
   let n = 0;
   for (let i = 0; i < shardsTotal; i++) {
@@ -43,10 +45,10 @@ export function mergeShards(shardsTotal, load) {
     if (!isLiveShard(s)) { missing.push(i); continue; } // shard morto perde SÓ ele — a noite segue
     completed.push(i);
     n += s.n_testcases;
-    for (const k of ['passed', 'failed', 'errors', 'skipped']) totals[k] += (s.totals?.[k] || 0);
+    for (const k of ['passed', 'failed', 'errors', 'skipped', 'assertions']) totals[k] += (s.totals?.[k] || 0);
     for (const f of s.files) {
-      const e = byFile.get(f.file) || { file: f.file, tests: 0, passed: 0, failed: 0, errors: 0, skipped: 0 };
-      for (const k of ['tests', 'passed', 'failed', 'errors', 'skipped']) e[k] += (f[k] || 0);
+      const e = byFile.get(f.file) || { file: f.file, tests: 0, passed: 0, failed: 0, errors: 0, skipped: 0, assertions: 0 };
+      for (const k of ['tests', 'passed', 'failed', 'errors', 'skipped', 'assertions']) e[k] += (f[k] || 0);
       byFile.set(f.file, e);
     }
   }
