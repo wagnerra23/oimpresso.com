@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Artisan;
 
+uses(Tests\TestCase::class);
+
 /**
  * Contrato do `governance:ui-catalog-generate` — resgatado de Modules/Admin
  * na depreciação do Admin Center.
@@ -26,7 +28,15 @@ it('governance:ui-catalog-generate está registrado no Artisan (registry vivo, n
 });
 
 it('o nome antigo admin:ui-catalog-generate não responde mais', function () {
-    expect(array_keys(Artisan::all()))->not->toContain('admin:ui-catalog-generate');
+    $registrados = array_keys(Artisan::all());
+
+    // Pré-condição anti-vácuo: `not->toContain` passa num array VAZIO. Sem app
+    // Laravel bootado (faltando o `uses(TestCase::class)` acima), Artisan::all()
+    // volta vazio e este caso ficaria verde provando nada — foi exatamente o que
+    // aconteceu no primeiro push deste PR: 3 casos falharam e SÓ ESTE "passou".
+    expect($registrados)->not->toBeEmpty();
+
+    expect($registrados)->not->toContain('admin:ui-catalog-generate');
 });
 
 it('--dry-run carimba o comando novo no rodapé e não a cadência que nunca existiu', function () {
