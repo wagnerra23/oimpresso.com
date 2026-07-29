@@ -9,8 +9,8 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **52** wirings em `settings.json` (5 eventos) · **48** arquivos de hook distintos wired
-- **48** arquivos de hook no disco (+39 `*.test.*` — testes, fora da conta de órfãos)
+- **53** wirings em `settings.json` (5 eventos) · **49** arquivos de hook distintos wired
+- **49** arquivos de hook no disco (+40 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **34** classic + **1** ruleset → ponto-de-corte merge
 
@@ -63,6 +63,7 @@
 | Stop | `*` | memory-pending.mjs | node | fim de turno | — |
 | Stop | `*` | nudge-recommend-not-menu.mjs | node | fim de turno | — |
 | Stop | `*` | nudge-diagnosis-without-evidence.mjs | node | fim de turno | — |
+| Stop | `*` | nudge-auditoria-resposta.mjs | node | fim de turno | — |
 | UserPromptSubmit | `*` | force-r12-closing-signal.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-handoff-reprocess.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | block-figma-without-optin.mjs | node | prompt (pré-turno) | exit-2 |

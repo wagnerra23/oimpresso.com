@@ -297,6 +297,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/nudge-diagnosis-without-evidence.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/nudge-auditoria-resposta.mjs"
           }
         ]
       }
