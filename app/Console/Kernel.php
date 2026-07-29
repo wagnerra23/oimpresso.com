@@ -110,9 +110,13 @@ class Kernel extends ConsoleKernel
         // Este sync copiava auto-mem local (~/.claude/.../memory/) → git memory/claude/:
         // foi o MECANISMO que vazou credenciais em claro pro git e ressuscitava o
         // legado a cada noite. Viola ADR 0061 (zero auto-mem privada — o próprio
-        // comando cita o ADR mas rodava mesmo assim). O command memcofre:sync-memories
-        // continua existindo (Modules/SRS) e pode ser rodado manual se algum dia
-        // precisar — mas NÃO volta ao scheduler sem ADR que reverta o 0061.
+        // comando cita o ADR mas rodava mesmo assim).
+        // ⛔ REMOVIDO 2026-07-29 (E5 da deprecação do SRS, ADR 0357): o command
+        // `memcofre:sync-memories` NÃO existe mais — `Modules/SRS/` foi deletado.
+        // Este bloco fica como LÁPIDE: explica por que o schedule sumiu e por que
+        // não volta. O invariante que impede a ressurreição continua vivo no
+        // Check F do `scripts/governance/memory-health.mjs`, que falha se
+        // `memory/claude/` reaparecer ou se esta linha for descomentada.
         // $schedule->command('memcofre:sync-memories')
         //     ->dailyAt('23:00')
         //     ->withoutOverlapping()
