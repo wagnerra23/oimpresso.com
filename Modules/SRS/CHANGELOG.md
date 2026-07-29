@@ -2,6 +2,31 @@
 
 Append-only. Cada PR mergeado que toca `Modules/SRS/` deve adicionar 1 linha na entrada do Wave/data.
 
+## Fix — tela branca em `/memcofre/memoria` (prod) — 2026-07-29
+
+### Fixed
+
+- `MemoryReader::parseFrontmatter` — `preg_split('/\R/')` ganhou o modificador `/u`. **Sem** ele, o `\R` do PCRE casa o **byte** `0x85` (NEL), que é byte de continuação de vários caracteres UTF-8 (`✅` = `E2 9C 85`). O caractere era partido ao meio → o valor do frontmatter ficava com UTF-8 inválido → `json_encode()` do payload devolvia `false` → o `data-page` do Inertia saía vazio → o front recebia `page = null` e a tela ficava **BRANCA** (`TypeError: Cannot read properties of null (reading 'component')`).
+- Achado abrindo as 7 rotas do módulo na tela. As outras 6 renderizam normalmente; só `/memcofre/memoria` monta a árvore de `memory/` e por isso é a única que toca os arquivos com `✅` no frontmatter.
+
+### Evidence
+
+Contra os dados reais de produção (3.670 arquivos):
+
+```
+ANTES  json_encode FALHA : 8
+DEPOIS json_encode FALHA : 0
+controle NEGATIVO        : resultado IDÊNTICO em 3.662 de 3.670 (mudou só nos 8 quebrados)
+payload COMPLETO         : 1.311.279 bytes — passa a codificar
+php -l                   : ok (controle negativo exit=255)
+```
+
+**Uma hipótese anterior foi REPROVADA pelo mesmo teste** e descartada: a de que o corte por byte do `file_get_contents($f,…,0,2048)` truncava o caractere. O helper de sanitização deu `8 → 8` (zero efeito) e **não foi mergeado**. O corte por byte existe (88 de 3.670 arquivos têm prefixo inválido) mas não é a causa desta tela.
+
+### Not changed
+
+A mesma classe (`preg_split('/\R/')` sem `/u`) existe em ~13 sites, incluindo `Modules/Jana/Services/CharterHealthChecker.php` e `AutomationRegistrySync.php`. **Medido: exposição atual zero** — os 238 charters têm frontmatter e **nenhum** contém o byte `0x85`. Fica latente e registrado, não varrido unilateralmente.
+
 ## E2 (conclusão) + pré-flight da E3 — 2026-07-29
 
 ### Changed
