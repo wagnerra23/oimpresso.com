@@ -90,6 +90,51 @@ backlog (exceto comentar nas existentes) · criar arquivo novo em `memory/` (ant
 - **Escalada:** ID que não fecha em 2 tentativas não gera terceiro mecanismo; vira draft de
   1 OK pro Wagner com causa, fonte viva e alternativa subtrativa.
 
+## Plano vigente — fechar impacto documental por diff (revisado em 2026-07-29)
+
+Este plano vive no charter do dono; não abre roadmap, hook, ledger ou gate paralelo.
+
+**Papéis:** o check de PR é roteador **read-only**; a máquina
+`.claude/workflows/documentacao-tecnica.js` é executada pelo agente de trabalho ou acionada pelo
+ZELADOR; o verificador da fase Recibo é independente e não edita. O ZELADOR supervisiona e limita
+cadência, mas não substitui a máquina.
+
+| Fase | Entrega verificável | Saída |
+|---|---|---|
+| 0 — anti-falso-verde | recibo recusa porta apagada, conteúdo vazio e BRIEFING alterado só no carimbo | bite + controles no `documentation-loop --selftest` |
+| 1 — impacto | `base_sha`, `head_sha`, arquivos, módulos diretos, vizinhos de 1 salto e documentos donos | `--impact-ref <base> --head-ref <head> --json` |
+| 2 — piloto Financeiro | mudança sintética em `Modules/Financeiro/` encontra Financeiro, vizinho e BRIEFING+SDD reais | fixture que roda no mesmo selftest do CLI |
+| 3 — observação | reporter advisory em PR; coletar falso-positivo, falso-negativo e mordida real | promoção só por decisão [W] e ADR 0336 |
+| 4 — frota | snapshot semanal segue cobrindo os detectores de todos os módulos; no máximo 1 correção por run | denominador conferido por `module-surface --all --check`, nunca lista lembrada |
+
+**Corte por tipo de artefato:** gerado/determinístico deve ser regenerado pelo dono; documento
+semântico exige evidência do fato contra código/runtime; “sem impacto documental” é conclusão
+explícita do mapa, não ausência de arquivo no diff. Mudança em runtime compartilhado, módulo fora
+do catálogo ou fan-out maior que 8 sempre vira `revisao-ampla`.
+
+**Commit e links:** a máquina cobra o conjunto afetado e o recibo no mesmo commit, mas não exige
+“todo doc tocado” — isso seria presence-gate. Links continuam sob o `deadlink-gate` existente:
+novos links não podem nascer quebrados e o legado segue ratchet monotônico; não se fabrica um
+segundo scanner nem se bloqueia PR alheio exigindo zerar toda a dívida histórica.
+
+### Grade comparativa do desenho
+
+Escala 0–10, evidência do repo em 2026-07-29; não é claim atemporal.
+
+| Eixo | Antes | Este corte | Referência aplicada |
+|---|---:|---:|---|
+| dono único / não duplicação | 8 | 9 | Backstage-like: catálogo existente + um workflow dono |
+| impacto `base→head` | 2 | 8 | grafo tipado, vizinhança limitada e escape para revisão |
+| correção semântica | 4 | 6 | alvo conhecido de data/remoção/vazio coberto; sem fingir prova universal |
+| verificador independente | 7 | 9 | executor e juiz separados, com `executed:true` |
+| liveness / invocação | 6 | 8 | PR advisory + ZELADOR semanal, ambos no wiring existente |
+| escala / custo | 5 | 8 | diff primeiro, 1 salto, fan-out cap, 1 correção por run |
+
+**Comparação com o passo SDD:** ambos derivam da fonte, exigem bite-test, invocador real e recibo
+de execução. O SDD cria contrato e teste por módulo; este ciclo apenas reconcilia documentos donos.
+Ele pode apontar o SDD afetado, mas não o reescreve automaticamente nem declara “SDD obrigatório”
+por presença.
+
 ## Métricas e kill-switch (piloto 14 dias: 2026-06-12 → 2026-06-26)
 
 - **M1 — itens/dia que chegam ao Wagner** (escalações + notificações não-suprimidas): tem que CAIR.

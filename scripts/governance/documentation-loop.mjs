@@ -15,6 +15,7 @@
  *   node scripts/governance/documentation-loop.mjs --snapshot [--json]
  *   node scripts/governance/documentation-loop.mjs --compare-ref origin/main [--json]
  *   node scripts/governance/documentation-loop.mjs --compare-ref origin/main --expect <id>[,<id>]
+ *   node scripts/governance/documentation-loop.mjs --impact-ref origin/main [--head-ref HEAD] [--json]
  *   node scripts/governance/documentation-loop.mjs --selftest
  *
  * O comparativo cria worktree temporária sob os.tmpdir(), mede o ref e remove a
@@ -25,7 +26,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, realpathSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -35,6 +36,8 @@ import { scan as scanBriefing, isBriefingCoverageGap } from './briefing-code-sta
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
 const SOURCE_PRIORITY = { 'memory-health': 0, 'briefing-code-staleness': 1, 'doc-freshness-score': 2 };
+const SHARED_RUNTIME_PATHS = /^(app|config|database|routes)\//;
+const DOCUMENT_NAME = /^(BRIEFING|README|ARCHITECTURE|SPEC|SDD|RUNBOOK|SUPERFICIE|CHANGELOG|GLOSSARY)/i;
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -133,6 +136,144 @@ function gitSha(root) {
   return result.status === 0 ? result.stdout.trim() : null;
 }
 
+function runGit(root, args) {
+  const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(`git ${args.join(' ')} falhou: ${(result.stderr || result.stdout || '').trim()}`);
+  return result.stdout;
+}
+
+function changedFiles(base, head = 'HEAD', root = ROOT) {
+  return runGit(root, ['diff', '--name-only', `${base}...${head}`])
+    .split(/\r?\n/).map((line) => line.trim().replaceAll('\\', '/')).filter(Boolean);
+}
+
+function moduleFromPath(file) {
+  const normalized = file.replaceAll('\\', '/');
+  const match = normalized.match(/^(?:Modules|resources\/js\/Pages|memory\/requisitos|tests\/Feature)\/([^/]+)\//);
+  const mod = match?.[1] || null;
+  return mod && !mod.startsWith('_') ? mod : null;
+}
+
+function documentationInventory(root, mod) {
+  return [`memory/requisitos/${mod}`, `Modules/${mod}`].flatMap((rel) => {
+    const abs = join(root, rel);
+    if (!existsSync(abs)) return [];
+    return readdirSync(abs, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.md') && DOCUMENT_NAME.test(entry.name))
+      .map((entry) => `${rel}/${entry.name}`.replaceAll('\\', '/'));
+  }).sort();
+}
+
+export function buildImpactReport(files, catalog = {}, root = ROOT) {
+  const catalogModules = (catalog.nodes || []).filter((node) => node.type === 'module').map((node) => node.module);
+  const canonicalModule = new Map(catalogModules.map((mod) => [mod.toLowerCase(), mod]));
+  const direct = [...new Set(files.map(moduleFromPath).filter(Boolean)
+    .map((mod) => canonicalModule.get(mod.toLowerCase()) || mod))].sort();
+  const graphModules = new Set(catalogModules);
+  const related = new Set();
+  for (const edge of catalog.edges || []) {
+    if (!['dependsOn', 'delegatesTo', 'migratesTo'].includes(edge.type)) continue;
+    const from = String(edge.from).replace(/^module:/, '');
+    const to = String(edge.to).replace(/^module:/, '');
+    if (direct.includes(from) && !direct.includes(to)) related.add(to);
+    if (direct.includes(to) && !direct.includes(from)) related.add(from);
+  }
+  const shared = files.filter((file) =>
+    SHARED_RUNTIME_PATHS.test(file) || /^(composer\.(json|lock)|package(-lock)?\.json)$/.test(file));
+  const unknown = direct.filter((mod) => !graphModules.has(mod));
+  const relatedModules = [...related].sort();
+  const fanout = relatedModules.length > 8;
+  const modules = [...new Set([...direct, ...relatedModules])].sort();
+  const businessChange = direct.length > 0 || shared.length > 0;
+  return {
+    schema_version: 1,
+    changed_files: files,
+    direct_modules: direct,
+    related_modules: relatedModules,
+    shared_runtime_files: shared,
+    unknown_modules: unknown,
+    decision: !businessChange ? 'sem-impacto-modular'
+      : shared.length || unknown.length || fanout ? 'revisao-ampla'
+        : 'revisao-modular',
+    reasons: [
+      ...(shared.length ? ['superficie-runtime-compartilhada'] : []),
+      ...(unknown.length ? ['modulo-fora-do-catalogo'] : []),
+      ...(fanout ? ['fanout-maior-que-8'] : []),
+    ],
+    documents: Object.fromEntries(modules.map((mod) => [mod, documentationInventory(root, mod)])),
+  };
+}
+
+export function normalizeMeaningfulMarkdown(text) {
+  const lines = String(text || '').replace(/\r\n/g, '\n').split('\n');
+  let frontmatter = lines[0] === '---';
+  return lines.filter((line, index) => {
+    if (index === 0 && frontmatter) return false;
+    if (frontmatter && line === '---') { frontmatter = false; return false; }
+    if (frontmatter && /^\s*(date|data|updated_at|reviewed_at|distilled_at|last_updated|atualizado)\s*:/i.test(line)) return false;
+    if (/^\s*>?\s*(?:\*\*)?(?:última atualização|atualizado em)(?:\*\*)?\s*:\s*\d{4}-\d{2}-\d{2}\s*$/i.test(line)) return false;
+    return true;
+  }).join('\n').replace(/\s+/g, ' ').trim();
+}
+
+export function applyReceiptEvidence(comparison, before, changed, documents = {}) {
+  const rejected = [];
+  const introduced = comparison.introduced || [];
+  for (const id of comparison.expected || []) {
+    if (!(comparison.resolved || []).some((issue) => issue.id === id)) continue;
+    const issue = (before.issues || []).find((item) => item.id === id);
+    const targetPath = issue?.target?.file || issue?.target?.doc;
+    if (targetPath && !existsSync(join(ROOT, targetPath))) {
+      rejected.push({ id, reason: 'alvo-removido', file: targetPath });
+      continue;
+    }
+    if (issue?.source !== 'briefing-code-staleness' || issue.kind !== 'porta-stale') continue;
+    const mod = issue.target?.mod;
+    const doc = documents[mod];
+    if (introduced.some((item) => item.source === 'briefing-code-staleness'
+      && item.kind === 'porta-ausente' && item.target?.mod === mod)) {
+      rejected.push({ id, reason: 'porta-removida', mod });
+      continue;
+    }
+    if (!doc?.currentPath || doc.current == null) {
+      rejected.push({ id, reason: 'porta-removida', mod });
+      continue;
+    }
+    if (!changed.includes(doc.currentPath)) continue;
+    const beforeBody = normalizeMeaningfulMarkdown(doc.before);
+    const afterBody = normalizeMeaningfulMarkdown(doc.current);
+    if (beforeBody === afterBody) rejected.push({ id, reason: 'somente-carimbo-de-data', mod, file: doc.currentPath });
+    else if (afterBody.length < 40) rejected.push({ id, reason: 'conteudo-esvaziado', mod, file: doc.currentPath });
+  }
+  return {
+    ...comparison,
+    ok: comparison.ok && rejected.length === 0,
+    receipt_evidence: { executed: true, changed_files: changed, rejected },
+  };
+}
+
+function briefingDocuments(ref, before, expected, root = ROOT) {
+  const result = {};
+  for (const id of expected) {
+    const issue = (before.issues || []).find((item) => item.id === id);
+    const mod = issue?.target?.mod;
+    if (issue?.source !== 'briefing-code-staleness' || !mod) continue;
+    const paths = [`memory/requisitos/${mod}/BRIEFING.md`, `Modules/${mod}/BRIEFING.md`];
+    const currentPath = paths.find((path) => existsSync(join(root, path))) || null;
+    let beforePath = null;
+    for (const path of paths) {
+      const found = spawnSync('git', ['cat-file', '-e', `${ref}:${path}`], { cwd: root });
+      if (found.status === 0) { beforePath = path; break; }
+    }
+    result[mod] = {
+      currentPath,
+      current: currentPath ? readFileSync(join(root, currentPath), 'utf8') : null,
+      before: beforePath ? runGit(root, ['show', `${ref}:${beforePath}`]) : null,
+    };
+  }
+  return result;
+}
+
 export function sortIssues(issues) {
   return [...issues].sort((a, b) => {
     if (a.severity !== b.severity) return a.severity === 'fail' ? -1 : 1;
@@ -216,6 +357,9 @@ function printComparison(data) {
   console.log(`  resolvidos ${data.resolved.length} · novos ${data.introduced.length} · métricas alteradas ${data.changed.length}`);
   for (const issue of data.resolved) console.log(`  ✅ ${issue.id}`);
   for (const id of data.missing_expected) console.log(`  ❌ esperado não fechou: ${id}`);
+  for (const rejection of data.receipt_evidence?.rejected || []) {
+    console.log(`  ❌ evidência recusada: ${rejection.id} (${rejection.reason})`);
+  }
   if (!data.expected.length) {
     console.log('\n  ✓ comparativo concluído; nenhum ID foi declarado como recibo esperado.\n');
   } else {
@@ -240,6 +384,33 @@ function selftest() {
   const newcomer = { ...issue, id: issueId('memory-health', 'link-quebrado', { file: 'novo.md' }) };
   const withNew = compareSnapshots(before, { git_sha: 'd', issues: [newcomer] }, [id]);
   check('Novo drift é reportado sem apagar o recibo resolvido', withNew.ok && withNew.introduced.length === 1);
+  const staleId = issueId('briefing-code-staleness', 'porta-stale', { mod: 'Financeiro' });
+  const stale = { id: staleId, source: 'briefing-code-staleness', kind: 'porta-stale', target: { mod: 'Financeiro' } };
+  const comparison = compareSnapshots({ git_sha: 'a', issues: [stale] }, { git_sha: 'b', issues: [] }, [staleId]);
+  const dateOnly = applyReceiptEvidence(comparison, { issues: [stale] }, ['memory/requisitos/Financeiro/BRIEFING.md'], {
+    Financeiro: {
+      currentPath: 'memory/requisitos/Financeiro/BRIEFING.md',
+      before: '---\ndate: 2026-07-01\n---\n# Financeiro\nConteúdo real.',
+      current: '---\ndate: 2026-07-29\n---\n# Financeiro\nConteúdo real.',
+    },
+  });
+  check('BITE: mudar só carimbo não fecha BRIEFING stale', !dateOnly.ok && dateOnly.receipt_evidence.rejected[0]?.reason === 'somente-carimbo-de-data');
+  const deleted = { ...issue, id: issueId('memory-health', 'link-quebrado', { file: 'memory/arquivo-removido.md' }),
+    target: { file: 'memory/arquivo-removido.md' } };
+  const deletedReceipt = compareSnapshots({ issues: [deleted] }, { issues: [] }, [deleted.id]);
+  check('BITE: apagar o alvo não fecha o achado',
+    !applyReceiptEvidence(deletedReceipt, { issues: [deleted] }, []).ok);
+  const impact = buildImpactReport(['Modules/Financeiro/Services/FluxoService.php'], {
+    nodes: [{ type: 'module', module: 'Financeiro' }, { type: 'module', module: 'Sells' }],
+    edges: [{ type: 'dependsOn', from: 'module:Financeiro', to: 'module:Sells' }],
+  });
+  check('PILOTO Financeiro: diff encontra módulo, 1 salto e seus donos documentais',
+    impact.direct_modules[0] === 'Financeiro'
+      && impact.related_modules.includes('Sells')
+      && impact.documents.Financeiro.some((path) => /SDD-/.test(path))
+      && impact.documents.Financeiro.some((path) => /BRIEFING\.md$/.test(path)));
+  check('Controle: arquivo runtime compartilhado exige revisão ampla',
+    buildImpactReport(['app/Models/User.php'], { nodes: [], edges: [] }).decision === 'revisao-ampla');
   console.log(failures ? `\n  ${failures} FALHA(S)\n` : '\n  SELFTEST OK — morde, solta e preserva IDs estáveis.\n');
   return failures ? 1 : 0;
 }
@@ -267,13 +438,39 @@ function withRefSnapshot(ref) {
 
 function main() {
   if (process.argv.includes('--selftest')) return selftest();
+  const impactIdx = process.argv.indexOf('--impact-ref');
+  if (impactIdx !== -1) {
+    const base = process.argv[impactIdx + 1];
+    if (!base) throw new Error('--impact-ref exige um ref git');
+    const headIdx = process.argv.indexOf('--head-ref');
+    const head = headIdx === -1 ? 'HEAD' : process.argv[headIdx + 1];
+    if (!head) throw new Error('--head-ref exige um ref git');
+    const files = changedFiles(base, head);
+    const catalogPath = join(ROOT, 'memory/governance/catalog.json');
+    const catalog = existsSync(catalogPath) ? JSON.parse(readFileSync(catalogPath, 'utf8')) : {};
+    const report = {
+      ...buildImpactReport(files, catalog),
+      base_sha: runGit(ROOT, ['rev-parse', base]).trim(),
+      head_sha: runGit(ROOT, ['rev-parse', head]).trim(),
+      executed: true,
+    };
+    console.log(JSON_OUT ? JSON.stringify(report, null, 2)
+      : `impacto documental: ${report.decision} · módulos diretos ${report.direct_modules.join(', ') || '—'} · relacionados ${report.related_modules.join(', ') || '—'}`);
+    return 0;
+  }
   const compareIdx = process.argv.indexOf('--compare-ref');
   if (compareIdx !== -1) {
     const ref = process.argv[compareIdx + 1];
     if (!ref) throw new Error('--compare-ref exige um ref git');
     const before = withRefSnapshot(ref);
     const after = snapshot();
-    const comparison = compareSnapshots(before, after, parseExpected());
+    const expected = parseExpected();
+    const comparison = applyReceiptEvidence(
+      compareSnapshots(before, after, expected),
+      before,
+      changedFiles(ref),
+      briefingDocuments(ref, before, expected),
+    );
     printComparison(comparison);
     return comparison.ok ? 0 : 1;
   }
