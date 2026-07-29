@@ -23,6 +23,10 @@ trust_required: L1
 owner: wagner
 permission_prefix: memcofre.*
 charter_adr: 0080
+lifecycle: deprecating
+deprecated_by: 0357-deprecar-srs-sucessor-kb-jana-governance
+deprecation_plan: memory/requisitos/SRS/DEPRECATION-PLAN.md
+deprecation_nota: "E1 executada em 2026-07-29 (ADR 0357). Módulo SEGUE SERVINDO em prod — deprecating ≠ removido. Sucessores: KB (acervo) · Jana (chat) · Governance (validação). NÃO abrir feature nova aqui. Etapas E2-E6 gated por [W]. ⚠️ `charter_adr: 0080` acima está ERRADO — a 0080 é Trust Tiers/Architecture, não charter deste módulo; corrigir em E4."
 related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
