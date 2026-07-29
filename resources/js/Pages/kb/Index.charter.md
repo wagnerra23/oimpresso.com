@@ -107,7 +107,7 @@ A tela emite eventos via tela mãe ou pode disparar:
 - `Inertia::defer()` em props com SQL pesado (`paginate()`, `count()` aggregated) — [RUNBOOK-inertia-defer-pattern](../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
 - F3 MWART canônico 5 fases — [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - Gate visual screenshot Wagner antes de F4 merge — [ADR 0114](../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
-- Pest tests biz=1 + cross-tenant biz=99 — [ADR 0101](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
+- Pest tests biz=1 + cross-tenant biz=99 — [ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
 
 ## Versionamento desta charter
 
