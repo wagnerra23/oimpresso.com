@@ -110,3 +110,117 @@ Uma rajada de requisições minha derrubou o site com **503 por ~2 minutos** (`/
 ## Fica em aberto
 
 Duas decisões [W], mais quatro achados fora de escopo — todos no [handoff](../handoffs/2026-07-29-1847-srs-deprecado-e-4-refutacoes.md).
+
+---
+
+# Adendo (20:05–21:10) — a rodada 5 fechou o ciclo
+
+> Escrito depois do corpo acima, que parou na rodada 4. O corpo fica preservado: ele registra honestamente o estado de quem achava que havia duas decisões a tomar. **Não havia.**
+
+## As duas "decisões [W]" caíram por medição
+
+Nenhuma era decisão. As duas morreram no mesmo comando.
+
+**1. O `anti-ghost` nunca bloqueou nada.** Os required de `main` vêm de **dois donos**, e eu tinha consultado só um:
+
+| origem | contexts | tem `anti-ghost`? |
+|---|---|---|
+| protection clássica | 34 | ❌ |
+| ruleset "Governance Gate — main" | 1 | ❌ |
+
+O único required que faltava vinha do **ruleset** — por isso o grep na protection clássica não o achava. Lição perene: **"o gate X é required?" tem dois donos; consultar um só responde errado.**
+
+**2. O split era pior que a doença.** O `ledger-check` conta `--diff-filter=ACMR` sob `memory/requisitos/` = 13. Composição medida:
+
+| metade | arquivos | passa do limiar 10? |
+|---|---|---|
+| núcleo SRS + MemCofre | 4 | não → gate **mudo** |
+| colaterais (4 charters + 3 SPECs + backlog) | 9 | não → gate **mudo** |
+
+**Os dois lados caem abaixo do limiar.** Splitar não reduziria o lote — apagaria a revisão adversarial nas duas metades, e a de 9 é exatamente onde moraram os erros das rodadas 1–3. Medi também se os 9 seriam descartáveis: **não são** (corrigem 4 charters que atribuíam "cofre de senhas / cert A1" a um módulo deletado; dono real = `Modules/NfeBrasil` + `nfe_certificados` + disk `nfe_certs`).
+
+## O achado que destravou
+
+**Cada commit de correção gravava a entry da rodada que ele mesmo corrigia, no mesmo commit.**
+
+```
+fa95e04e19  fix(srs): restaura por BLOCO  →  ledger +18 linhas  =  entry r4 (reprovado) E o fix da r4
+```
+
+Logo o `reprovado 22.2` descrevia o estado **anterior ao próprio HEAD**. Ninguém tinha verificado `fa95e04e19`. A rodada 5 não foi tentativa nova — foi a **primeira medição do que estava de fato lá**.
+
+## Retratação do corpo acima
+
+A frase *"as taxas não convergem (38,9 → 11,5 → 18,4 → 22,2)"*, que aparece na tabela das 4 refutações, **não se sustenta**: são razões sobre **denominadores diferentes** (18 → 26 → 38 → 45 claims), porque cada correção adiciona prosa e prosa nova é claim nova. Não é série; são quatro populações. Chamar aquilo de tendência foi **LC-08 de novo**, dentro do log que catalogava LC-08.
+
+Não apaguei a frase original — ela fica como o erro que foi.
+
+## Rodada 5 — `aprovado`, 0/56
+
+Refutador `fable-5`, sessão fresca, tier superior ao gerador (`opus-5`), amostra 100%, `pii_hits: 0`.
+
+O que mais pesa não é a contagem: ele **regenerou os três artefatos gerados** dentro da árvore da branch e obteve **diff ZERO** nos três.
+
+| artefato | valor reproduzido |
+|---|---|
+| `deadlink-gate` | 1098 vivos, exit 0 |
+| `tasks-index-generate` | 858 US abertas |
+| `catalog-graph` | 39 módulos · 622 nós · 947 arestas |
+
+**Conferi por conta própria** as quatro provas mais duras antes de escrever a entry — relatório de agente é hipótese, não veredito:
+
+| claim | medido |
+|---|---|
+| 63 arquivos deletados de `Modules/SRS` | **63** ✓ |
+| nada sobrou no módulo | **0** ✓ |
+| `charter_adr: 0080` em 24 de 37 | **24 / 37** ✓ |
+| `DEPRECATION-PLAN` restaurado 47 → 47 | **47 → 47** ✓ |
+
+O último fecha o ciclo: é o número que na rodada 4 eu **afirmei sem contar** e que me reprovou.
+
+## Smoke em produção — os dois recibos
+
+`#5036` mergeou 19:42; deploy `30485607906` → `success` 19:50:11. Warm-up antes (`/login` = 200), requisições espaçadas.
+
+```
+/memcofre/memoria       301 -> https://oimpresso.com/ia/memoria
+/memcofre/chat          301 -> https://oimpresso.com/ia
+/memcofre/inbox         301 -> https://oimpresso.com/kb
+/memcofre/ingest        301 -> https://oimpresso.com/kb
+/memcofre/modulos/Jana  301 -> https://oimpresso.com/governance/module-grades/Jana
+/memcofre               301 -> https://oimpresso.com/governance
+```
+
+E no banco de produção, com **controle positivo**:
+
+```
+tabelas docs_* restantes: 0
+business=82 · transactions=75254
+migration registrada: 2026_07_29_160000_drop_docs_tables_srs_deprecacao
+```
+
+Os mesmos `business=82` / `transactions=75254` da sonda que decidiu a deprecação — mesma base, antes e depois. É isso que faz o "0 tabelas" valer: sem o controle positivo, seria indistinguível de ter medido o banco errado.
+
+## Achado de instrumento (chip, não armado)
+
+O `validate-memory-schema.sh` deu **falso `campo obrigatório ausente`** para o `tldr` do handoff de fechamento. O campo existia e o YAML parseava; o que estourou foi o `print(val)` do extractor — a seta `→` (U+2192) do "E1→E6" **não existe no cp1252**, encoding do console no Windows. O `|| true` do script transformou o crash em string vazia, e vazia virou "ausente". Com `PYTHONIOENCODING=utf-8` (o que o CI Linux tem): `erros: 0`.
+
+Família *"saída vazia de instrumento ≠ ausência do fato"* — o mesmo vício de `cmd || echo "(não tem X)"` já catalogado no §5. **Não armei defesa:** 1ª ocorrência, e por two-strikes ([ADR 0344](../decisions/0344-two-strikes-cobre-processo.md)) a 1ª conserta, não codifica. Par candidato: `PYTHONIOENCODING=utf-8` no `extract_frontmatter_field`.
+
+## O que recusei fazer, e por quê
+
+O `anti-ghost` segue vermelho no `main`. A correção sancionada é conhecida — fazer o `knowledge-drift --check` honrar a classe `excluded` C, que o classificador já sabe ler e o PR já preencheu. **Não apliquei**: mexer na máquina que me avalia, dentro do PR que ela julga, é conflito de interesse mesmo quando a correção está certa. Fica como chip separado, e o vermelho fica visível.
+
+## Placar final
+
+| PR | o quê |
+|---|---|
+| [#5019](https://github.com/wagnerra23/oimpresso.com/pull/5019) · [#5026](https://github.com/wagnerra23/oimpresso.com/pull/5026) | E2 — `@deprecated` nas 33 classes |
+| [#5030](https://github.com/wagnerra23/oimpresso.com/pull/5030) | fix da tela branca |
+| [#5031](https://github.com/wagnerra23/oimpresso.com/pull/5031) | E4 — desacoplar |
+| [#5034](https://github.com/wagnerra23/oimpresso.com/pull/5034) | golden set apontando pra ADR deletada |
+| [#5039](https://github.com/wagnerra23/oimpresso.com/pull/5039) | E1 — ratifica a ADR 0357 |
+| [#5036](https://github.com/wagnerra23/oimpresso.com/pull/5036) | **E5+E6** — 63 arquivos e 7 tabelas fora |
+| [#5043](https://github.com/wagnerra23/oimpresso.com/pull/5043) · [#5048](https://github.com/wagnerra23/oimpresso.com/pull/5048) | memória |
+
+**E3 não foi executada** — colapsou por medição, e foi a decisão mais barata do dia.
