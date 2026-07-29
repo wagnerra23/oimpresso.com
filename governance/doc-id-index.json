@@ -1240,6 +1240,7 @@
     "2026-07-29-1056-retrieval-3-portas-degradacao-visivel": "memory/handoffs/2026-07-29-1056-retrieval-3-portas-degradacao-visivel.md",
     "2026-07-29-1150-diagnostico-ponto-kb-pos-tenant": "memory/handoffs/2026-07-29-1150-diagnostico-ponto-kb-pos-tenant.md",
     "2026-07-29-1333-srs-e2-phpdoc-deprecated": "memory/handoffs/2026-07-29-1333-srs-e2-phpdoc-deprecated.md",
+    "2026-07-29-1410-kb-categoria-classificada-backfill": "memory/handoffs/2026-07-29-1410-kb-categoria-classificada-backfill.md",
     "2026-07-29-ativacao-online-eval-local-ct100": "memory/sessions/2026-07-29-ativacao-online-eval-local-ct100.md",
     "2026-07-29-srs-e2-phpdoc-deprecated": "memory/sessions/2026-07-29-srs-e2-phpdoc-deprecated.md",
     "2026-07-29-varredura-de-populacao-tres-rodadas": "memory/sessions/2026-07-29-varredura-de-populacao-tres-rodadas.md",
@@ -2215,6 +2216,7 @@
     "sessions-2026-07-28-sdd-recurringbilling-cobranca-recorrente": "memory/sessions/2026-07-28-sdd-recurringbilling-cobranca-recorrente.md",
     "sessions-2026-07-28-sdd-teammcp-hub": "memory/sessions/2026-07-28-sdd-teammcp-hub.md",
     "sessions-2026-07-28-sdd-vestuario-etiquetas": "memory/sessions/2026-07-28-sdd-vestuario-etiquetas.md",
+    "sessions-2026-07-29-kb-classificacao-categoria-medicao": "memory/sessions/2026-07-29-kb-classificacao-categoria-medicao.md",
     "templates-herdados": "memory/requisitos/_Geral/topicos/templates-herdados.md"
   },
   "unstamped": [
@@ -3318,15 +3320,15 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3312,
-    "resolved": 2215,
+    "total": 3314,
+    "resolved": 2217,
     "unstamped": 1097,
     "collisions": 0,
     "by_source": {
       "unstamped": 1097,
       "derived-adr": 363,
-      "stamped": 972,
-      "derived-handoffs": 335,
+      "stamped": 973,
+      "derived-handoffs": 336,
       "derived-sessions": 545
     }
   }

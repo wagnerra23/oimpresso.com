@@ -109,6 +109,6 @@ Listar planos de assinatura recorrente do business, com criação/edição/exclu
 - [Index-visual-comparison.md](../../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — visual canon Onda 6 linha 112
 - [SPEC.md US-RB-001](../../../../../memory/requisitos/RecurringBilling/SPEC.md) — DoD cadastrar plano
 - [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1](../../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
+- [ADR 0101 Tests biz=1](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
 - [ADR 0104 MWART](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - Skill [inertia-defer-default](../../../../../.claude/skills/inertia-defer-default/SKILL.md)

@@ -10,7 +10,7 @@ status: draft
 created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-010, US-FISCAL-016, US-FISCAL-017, US-FISCAL-020]
-related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0104-processo-mwart-canonico-unico-caminho]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho]
 prototypes:
   - "prototipo-ui/.../fiscal-data.jsx SPED_PERIODOS/LIVROS"
 ---

@@ -10,7 +10,7 @@ status: draft
 created: 2026-05-20
 owner: wagner
 related_us: [US-FISCAL-008, US-FISCAL-012]
-related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0104-processo-mwart-canonico-unico-caminho, 0116-pivot-gold-manifestacao-destinatario-emenda-0115]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0104-processo-mwart-canonico-unico-caminho, 0116-pivot-gold-manifestacao-destinatario-emenda-0115]
 prototypes:
   - "prototipo-ui/.../fiscal-data.jsx DFE_PENDENTE/DFE_HISTORICO"
 ---
