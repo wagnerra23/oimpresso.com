@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 566 arquivos em 19 papéis.
+**Total mapeado:** 568 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -50,7 +50,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 88
+## Services — 89
 
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
 - [ClarifyCascadeService.php](../../../Modules/Jana/Services/Ai/Clarify/ClarifyCascadeService.php)
@@ -139,6 +139,7 @@ module: Jana
 - [TaskParserService.php](../../../Modules/Jana/Services/TaskRegistry/TaskParserService.php)
 - [TasksSemDonoBriefLineService.php](../../../Modules/Jana/Services/TasksSemDonoBriefLineService.php)
 - [LangfuseClient.php](../../../Modules/Jana/Services/Telemetry/LangfuseClient.php)
+- [TraceContext.php](../../../Modules/Jana/Services/Telemetry/TraceContext.php)
 - [WorkLeaseService.php](../../../Modules/Jana/Services/WorkLease/WorkLeaseService.php)
 
 ## Models / Entities — 43
@@ -395,9 +396,9 @@ module: Jana
 
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 152
+## Testes (Pest) — 153
 
-- 152 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 153 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 78
 
