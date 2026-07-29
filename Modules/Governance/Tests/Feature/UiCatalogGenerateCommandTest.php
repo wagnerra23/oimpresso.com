@@ -40,9 +40,12 @@ it('o nome antigo admin:ui-catalog-generate não responde mais', function () {
 });
 
 it('--dry-run carimba o comando novo no rodapé e não a cadência que nunca existiu', function () {
-    // módulo concreto (7 telas) em vez de --all: varrer as 279 telas do repo
-    // deixaria o caso lento e o output gigante sem provar nada a mais.
-    Artisan::call('governance:ui-catalog-generate', ['modulo' => 'Governance', '--dry-run' => true]);
+    // `--all` de propósito, não módulo fixo. A 1a versão passava um módulo
+    // concreto "pra não varrer as 279 telas" e escolheu `Governance` — que TEM
+    // 7 .tsx no meu disco e ZERO no git (resíduo de outra sessão no worktree).
+    // No CI o diretório não existe, o comando não achava tela e o caso morria
+    // na pré-condição. Alvo de teste se escolhe pelo git, nunca pelo filesystem.
+    Artisan::call('governance:ui-catalog-generate', ['--all' => true, '--dry-run' => true]);
     $output = Artisan::output();
 
     // pré-condição anti-vácuo: se o comando não varreu tela nenhuma, o resto
@@ -59,11 +62,13 @@ it('--dry-run carimba o comando novo no rodapé e não a cadência que nunca exi
 });
 
 it('--dry-run não escreve arquivo nenhum', function () {
-    $alvo = base_path('memory/requisitos/Governance/UI-CATALOG.md');
-    $antes = is_file($alvo) ? filemtime($alvo) : null;
+    // alvo versionado (existe no git, logo existe no checkout do CI)
+    $alvo = base_path('memory/requisitos/Financeiro/UI-CATALOG.md');
+    expect(is_file($alvo))->toBeTrue();          // pré-condição: sem o arquivo, o assert abaixo é vácuo
+    $antes = filemtime($alvo);
 
-    Artisan::call('governance:ui-catalog-generate', ['modulo' => 'Governance', '--dry-run' => true]);
+    Artisan::call('governance:ui-catalog-generate', ['--all' => true, '--dry-run' => true]);
+    clearstatcache(true, $alvo);
 
-    $depois = is_file($alvo) ? filemtime($alvo) : null;
-    expect($depois)->toBe($antes);
+    expect(filemtime($alvo))->toBe($antes);
 });
