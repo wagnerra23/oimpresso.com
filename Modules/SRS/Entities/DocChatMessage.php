@@ -13,6 +13,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Tabela `docs_chat_messages` tem coluna `business_id` (migration
  * 2026_04_22_000005). Trait `HasBusinessScope` aplica global scope automático.
  * Conteúdo de chat passa por PiiRedactor antes de gravar (ADR 0094 §4).
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Jana` — `docs_chat_messages` MIGRA em E3 (tabela T3).
+ *             ⚠️ Risco Tier 0 LGPD Art. 16: linhas legadas podem ter PII sem redação;
+ *             a migração exige re-rodar o PiiRedactor antes de mover/arquivar.
+ *             DEPRECATION-PLAN §Fase 2 item 17 + §Fase 3 T3. Não abrir feature nova aqui.
  */
 class DocChatMessage extends Model
 {

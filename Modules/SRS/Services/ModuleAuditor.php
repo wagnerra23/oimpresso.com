@@ -27,6 +27,11 @@ use Modules\SRS\Entities\DocPage;
  *   C15 NO_EMPTY_PLACEHOLDERS  — sem [TODO] ou _[placeholder]_ soltos
  *
  * Retorna score 0-100 e lista de findings estruturados.
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Governance` (`ModuleGradeController` + rubrica module-grade;
+ *             os 15 checks são subset das dimensões D1-D9). DEPRECATION-PLAN §Fase 2 item 11.
+ *             Não abrir feature nova aqui.
  */
 class ModuleAuditor
 {

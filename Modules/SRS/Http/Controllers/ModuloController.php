@@ -7,6 +7,12 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\SRS\Services\RequirementsFileReader;
 
+/**
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Governance\Http\Controllers\ModuleGradeController`
+ *             (visão por módulo é governança). DEPRECATION-PLAN §Fase 2 item 6.
+ *             Não abrir feature nova aqui; segue servindo em prod até E5.
+ */
 class ModuloController extends Controller
 {
     public function show(string $module, RequirementsFileReader $reader): Response

@@ -13,6 +13,12 @@ use Modules\SRS\Entities\DocEvidence;
 use Modules\SRS\Entities\DocSource;
 use Modules\SRS\Http\Requests\StoreIngestRequest;
 
+/**
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\KB` (acervo de documentos — ingest manual complementa o
+ *             webhook git→DB). DEPRECATION-PLAN §Fase 2 item 3.
+ *             Não abrir feature nova aqui; segue servindo em prod até E5.
+ */
 class IngestController extends Controller
 {
     public function show(Request $request): Response

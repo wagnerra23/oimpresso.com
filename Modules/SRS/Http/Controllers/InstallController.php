@@ -10,6 +10,10 @@ use App\System;
  * Tabelas docs_* permanecem com prefixo legado. Este controller migra
  * `docvault_version` + `memcofre_version` (legacy) → `srs_version` (atual)
  * automaticamente em postMigrationSteps().
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor — hooks de Install saem junto com o módulo.
+ *             DEPRECATION-PLAN §Fase 2 item 9.
  */
 class InstallController extends BaseModuleInstallController
 {

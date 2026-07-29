@@ -26,6 +26,11 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md §"Exceção repo-wide"
  * @see Modules/SRS/Services/DocValidator.php
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `mcp_audit_log` (append-only canônico) + `Modules\Governance`;
+ *             ARCHIVE + MIGRATE em E3 (tabela T4).
+ *             DEPRECATION-PLAN §Fase 2 item 20 + §Fase 3 T4. Não abrir feature nova aqui.
  */
 class DocValidationRun extends Model
 {

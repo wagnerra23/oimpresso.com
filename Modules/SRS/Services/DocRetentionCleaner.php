@@ -37,6 +37,10 @@ use Modules\SRS\Entities\DocValidationRun;
  * @see Modules\SRS\Config\retention.php
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md §4
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sucessor: `Modules\Governance` OU descontinuar — decisão depende do destino
+ *             das tabelas em E3. DEPRECATION-PLAN §Fase 2 item 14. Não abrir feature nova aqui.
  */
 class DocRetentionCleaner
 {

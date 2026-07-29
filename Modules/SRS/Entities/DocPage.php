@@ -24,6 +24,11 @@ use Illuminate\Database\Eloquent\Model;
  * catálogo é restrito a Wagner/admin via gate (não exposição cross-tenant).
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md §"Exceção repo-wide"
+ *
+ * @deprecated since 2026-07-29 (ADR 0357) — módulo em deprecação, remoção prevista em E5.
+ *             Sem sucessor — a descontinuar: o cache `.tsx ↔ stories` é regenerável e já
+ *             coberto pelo charter ao lado do `.tsx` + `Modules\KB` (`kb_nodes`).
+ *             DEPRECATION-PLAN §Fase 2 item 18 + §Fase 3 T7 (DROP em E3).
  */
 class DocPage extends Model
 {
