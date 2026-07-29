@@ -1,12 +1,13 @@
 name: Staleness reporters (BRIEFING + visual-comparison × código)
 
-# Reporters de STALENESS (não presence-gate). SEIS eixos irmãos:
+# Reporters de STALENESS/IMPACTO (não presence-gate). SETE eixos irmãos:
 #   · BRIEFING.md            × Modules/<X> ∪ Pages/<X>   (briefing-code-staleness.mjs)
 #   · <tela>-visual-comparison.md × inertia_target .tsx  (visual-comparison-staleness.mjs)
 #   · ADR pendente de ratificação                        (adr-proposto-parado.mjs)
 #   · RADAR de frescor por doc — score 0-100 Dosu        (doc-freshness-score.mjs · agregador)
 #   · AGENTS.md              × CLAUDE.md ∪ @imports       (agents-md-staleness.mjs)
 #   · DOC de lib             × versão no composer.lock    (spec-lib-staleness.mjs · régua Tessl)
+#   · diff base→head         × módulos + docs donos        (documentation-loop.mjs · read-only)
 # O 2º fecha o ÚLTIMO órfão de frescor do loop de design (Wagner 2026-07-09 "acho que
 # já está velho, quem atualiza?"): o comparativo visual só atualizava quando alguém
 # rodava a skill mwart-comparative; a Fase 5 do RUNBOOK esquecia dele. Mesmo núcleo
@@ -65,6 +66,12 @@ on:
       - 'prototipo-ui/*.md'
       - 'scripts/governance/doc-freshness-score.mjs'
       - 'scripts/governance/knowledge-drift.mjs'
+      # Ciclo documental: roteia o diff base→head para módulos + vizinhos sem exigir
+      # "doc no diff" e protege o recibo contra falso-verde por carimbo.
+      - 'scripts/governance/documentation-loop.mjs'
+      - 'scripts/governance/documentation-loop.test.mjs'
+      - 'scripts/governance/ZELADOR.md'
+      - '.claude/workflows/documentacao-tecnica.js'
   schedule:
     # Segunda 06h40 BRT (09h40 UTC) — heartbeat semanal (após memory-health 06h30).
     - cron: '40 9 * * 1'
@@ -140,3 +147,10 @@ jobs:
         run: node scripts/governance/spec-lib-staleness.test.mjs
       - name: reporter DOC de lib × composer.lock (advisory)
         run: node scripts/governance/spec-lib-staleness.mjs
+      # Roteador read-only do ciclo documental. A máquina de correção continua sendo
+      # acionada pelo agente/ZELADOR; CI só informa o alcance do PR.
+      - name: self-test ciclo documental (recibo + impacto)
+        run: node scripts/governance/documentation-loop.test.mjs
+      - name: mapa base→head dos módulos e documentos afetados (advisory)
+        if: github.event_name == 'pull_request'
+        run: node scripts/governance/documentation-loop.mjs --impact-ref "${{ github.event.pull_request.base.sha }}" --head-ref HEAD --json
