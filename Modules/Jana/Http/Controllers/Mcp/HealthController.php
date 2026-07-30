@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\TeamMcp\Http\Controllers\Mcp;
+namespace Modules\Jana\Http\Controllers\Mcp;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;

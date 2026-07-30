@@ -39,7 +39,7 @@ related_adrs:
 
 ### Bugs/sync (US-MCP-001..004) — concluídas
 
-**Implementado em:** `Modules/Jana/Services/TaskRegistry/GitTaskLinkerService.php` · `Modules/Jana/Mcp/Tools/MyInboxTool.php` · `app/Console/Kernel.php` · `Modules/TeamMcp/Http/Controllers/Mcp/SyncMemoryWebhookController.php` · `Modules/Jana/Console/Commands/McpTasksHealthCheckCommand.php` · verificado@8af585a (2026-07-02) — 001 regex linker parentético · 002 my-inbox mark_read default + TTL 7d no Kernel · 003 sync webhook · 004 health-check stale
+**Implementado em:** `Modules/Jana/Services/TaskRegistry/GitTaskLinkerService.php` · `Modules/Jana/Mcp/Tools/MyInboxTool.php` · `app/Console/Kernel.php` · `Modules/Jana/Http/Controllers/Mcp/SyncMemoryWebhookController.php` · `Modules/Jana/Console/Commands/McpTasksHealthCheckCommand.php` · verificado@8af585a (2026-07-02) — 001 regex linker parentético · 002 my-inbox mark_read default + TTL 7d no Kernel · 003 sync webhook · 004 health-check stale
 
 - US-MCP-001..004 — ver [Jana/BUGS-MCP-SYNC-2026-05-13.md](../Jana/BUGS-MCP-SYNC-2026-05-13.md)
 
