@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **364** arquivos · **349** números únicos · máx **0359**
+- **365** arquivos · **350** números únicos · máx **0360**
 - **ADRs ATIVOS (lifecycle ativo): 328** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 330 · superseded 14 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 328 · arquivado 22 · substituido 14
+- Por status: aceito 330 · superseded 15 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 328 · arquivado 22 · substituido 15
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (364)
+## Todas as ADRs (365)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -158,7 +158,7 @@ _(nenhuma)_
 | 0119 | aceito | ativo | decision | Paralelismo de sessões — Tier 1 `whats-active` aceito, Tier 2 lease formal dorme |
 | 0120 | aceito | ativo | decision | Supersession metadata housekeeping — fix 0079 + documenta drift de direção forwa |
 | 0121 | aceito | ativo | decision | oimpresso é ERP modular especializado por vertical — núcleo comum + Modules/<Ver |
-| 0122 | aceito | ativo | decision | Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega |
+| 0122 | superseded | substituido | decision | Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega |
 | 0123 | aceito | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
 | 0124 | aceito | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
 | 0125 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
@@ -402,3 +402,4 @@ _(nenhuma)_
 | 0357 | aceito | ativo | decision | Deprecar Modules/SRS — sucessores KB (acervo) + Jana (chat) + Governance (valida |
 | 0358 | aceito | ativo | decision | Doutrina de teste do sistema — tenant canônico biz=98 (fictício); supersede a 01 |
 | 0359 | aceito | ativo | errata | Errata à 0358 — remover a ADR resolveu a colisão NO DISCO, mas o número 0101 não |
+| 0360 | aceito | ativo | decision | Depreciação do Admin Center (Modules/Admin) — o painel nunca foi alcançável e nã |

@@ -22,7 +22,7 @@ Workflow [.github/workflows/screen-smoke-after-merge.yml](../../.github/workflow
 
 | Caminho | Quem | Quando |
 |---|---|---|
-| `/admin/screen-review` UI (Tailscale) | Wagner manual | Imediato pós-merge se quiser ver |
+| ~~`/admin/screen-review` UI (Tailscale)~~ | — | **removido** em 2026-07-29 com o Admin Center ([ADR 0360](../decisions/0360-deprecacao-admin-center-supersede-0122.md)); nunca produziu registro (`git ls-files '*.review.md'` = 0) |
 | Cron daily 09:00 BRT | Sistema | Batch das pendentes |
 | `gh workflow run screen-smoke-after-merge.yml -f screen_path=<Mod>/<Tela>` | Qualquer dev | Force re-smoke |
 

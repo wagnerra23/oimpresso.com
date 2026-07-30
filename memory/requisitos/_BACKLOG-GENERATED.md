@@ -398,7 +398,7 @@
 - **US-INFRA-005** — S5 ADS adiantado (Risk + Confidence + Policy core)
 - **US-INFRA-006** — Tool MCP `whats-active` — agregar sessões doing + paths tocados (Tier 1 ADR 0119)
 - **US-INFRA-007** — Skill Tier A `session-start-check` — alertar paths overlapping (ADR 0119)
-- **US-INFRA-008** — Feature Flag Control (3 canais: Artisan/MCP/Painel)
+- **US-INFRA-008** — Feature Flag Control (2 canais: Artisan/MCP)
 - **US-INFRA-009** — Artisan command `feature:activate` via GrowthBook API ⚠️ **SUPERSEDED por US-INFRA-008**
 - **US-INFRA-011** — Rotacionar senha MySQL Hostinger u906587222_oimpresso - exposicao sessao 2026-05-20
 - **US-INFRA-012** — Resolver migration order legacy pra visual-regression.yml sair de INFRA-ONLY (ADR 0108)
@@ -565,13 +565,13 @@
 - **US-ARQ-008** — Storage disks config (`arquivos`+`vault`) + signed URL controller (expiração 1h, audit log) `p0`
 - **US-ARQ-009** — Pest tests (multi-tenant isolation, sensitive blocking, dedupe, soft-delete, audit log) `p0`
 - **US-ARQ-010** — Migration backfill: 1 fixture XML real → ingest via `attach()` → smoke validation `p1`
-- **US-ARQ-011** — API `POST /admin/arquivos/api/upload-batch` recebe JSONL do `scripts/curador/discover.mjs` `p1`
-- **US-ARQ-012** — Auth Bearer token gerado em `/admin/tokens` (escope `arquivos:write`) `p0`
-- **US-ARQ-013** — Page `Modules/Admin/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
+- **US-ARQ-011** — API `POST /arquivos/api/upload-batch` recebe JSONL do `scripts/curador/discover.mjs` `p1`
+- **US-ARQ-012** — Auth Bearer token com scope `arquivos:write` `p0`
+- **US-ARQ-013** — Page `resources/js/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
 - **US-ARQ-014** — Page `Pages/Arquivos/Review.tsx` (substitui markdown `[x]` — checkbox UI, search, bulk-approve) `p1`
 - **US-ARQ-015** — Page `Pages/Arquivos/Detail.tsx` (preview MIME-aware: PDF embed, image, code highlight, JSON tree) `p2`
 - **US-ARQ-016** — Job `ApplyBatchJob` Horizon (recebe approved IDs, move pro storage final + dispara classification) `p1`
-- **US-ARQ-017** — Refactor `scripts/curador/apply.mjs` → vira "submit pro Admin API" (deixa de mexer filesystem direto) `p2`
+- **US-ARQ-017** — Refactor `scripts/curador/apply.mjs` → vira "submit pro endpoint do Arquivos" (deixa de mexer filesystem direto) `p2`
 - **US-ARQ-018** — Widget Admin Center "Arquivos" (count por bucket, sensitive aguardando vault, métricas saúde) `p2`
 - **US-ARQ-019** — `Modules/NfeBrasil/Models/NfeXml` adota trait `HasArquivos` `p1`
 - **US-ARQ-020** — Migration backfill: NFe XMLs existentes em `storage/nfe/` → `arquivos` table com `arquivable=NfeXml` `p1`
