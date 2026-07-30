@@ -258,6 +258,48 @@ it('nega a porta de entrada pra autenticado sem permissão do módulo', function
     $user->forceDelete();
 });
 
+it('lista os links de licença no menu Blade pra quem tem access (não só superadmin)', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_ACCESS, 'guard_name' => 'web']);
+
+    $suporte = makeOiAcessoTestUser($business->id);
+    $suporte->givePermissionTo(PERM_OI_ACCESS);
+    $this->actingAs($suporte);
+    session(['user.business_id' => $business->id]);
+
+    $html = view('officeimpresso::layouts.nav')->render();
+
+    // Regressão real (2026-07-30): o suporte ABRIA /officeimpresso/computadores
+    // — o controller aceita `access` — mas não via link NENHUM pra navegar,
+    // porque esta nav (3ª fonte de menu do módulo, a que as telas Blade legacy
+    // renderizam) ainda gateava tudo por @can('superadmin'). O #5044 corrigiu o
+    // topnav.php e a sidebar e passou por aqui. Menu e guarda têm que contar a
+    // mesma história.
+    expect($html)->toContain('/officeimpresso/businessall')
+        ->and($html)->toContain('/officeimpresso/computadores')
+        ->and($html)->toContain('/officeimpresso/licenca_log');
+
+    $suporte->forceDelete();
+});
+
+it('não lista os links de licença pra quem não tem access', function () {
+    $business = $this->seededTenant();
+
+    // Controle negativo: sem o teste abaixo, o de cima passaria com uma nav que
+    // mostra tudo pra todo mundo — que é o outro lado do buraco do #5044.
+    $user = makeOiAcessoTestUser($business->id);
+    $this->actingAs($user);
+    session(['user.business_id' => $business->id]);
+
+    $html = view('officeimpresso::layouts.nav')->render();
+
+    expect($html)->not->toContain('/officeimpresso/businessall')
+        ->and($html)->not->toContain('/officeimpresso/licenca_log');
+
+    $user->forceDelete();
+});
+
 /**
  * Cria um user de teste SEM nenhuma role (pra o Gate::before não fazer bypass).
  */
