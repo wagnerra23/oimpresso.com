@@ -47,7 +47,7 @@ Não aplicar pra:
 - **Atalhos J/K/↵/`/`** (`:220`, handler no componente) — navegação de teclado igual PT-01.
 
 **Por que descartei as outras (viram "aplicado em", não professor):**
-- **`ProjectMgmt/Inbox/Index.tsx`** — **bom aluno**: usa `PageHeader` + `KpiGrid`/`KpiCard` shared (`:286-289`), J/K/Enter/R (`:191-225`), agrupa por tipo em `<section>` (`:301`). Mas hand-rola o EmptyState (`:292`, sem `<EmptyState>` shared) e não tem drawer (deep-link pro Board). Segue o padrão, não o define.
+- **`Forja/Inbox/Index.tsx`** — **bom aluno**: usa `PageHeader` + `KpiGrid`/`KpiCard` shared (`:286-289`), J/K/Enter/R (`:191-225`), agrupa por tipo em `<section>` (`:301`). Mas hand-rola o EmptyState (`:292`, sem `<EmptyState>` shared) e não tem drawer (deep-link pro Board). Segue o padrão, não o define.
 - **`Fiscal/Eventos.tsx`** — timeline legítima (`fx-timeline` `:157`, filtro por tipo em chips `:125`, callout de janelas legais), mas estiliza com **CSS próprio `fiscal-cockpit.css`** (`fx-timeline`/`fx-chip`/`fx-callout` `:20`) em vez dos shared. É a prova de que o arquétipo existe em ≥2 módulos, mas o visual é ilha — **anti-golden parcial** (ver §Drift).
 
 ## Anatomia · 6 slots
@@ -108,7 +108,7 @@ Não aplicar pra:
 ## Drift conhecido (corrija ao copiar — não herde)
 
 - ⚠️ **`Fiscal/Eventos` usa `fiscal-cockpit.css` próprio** (`fx-timeline`/`fx-chip`/`fx-tl-item`) em vez dos shared — ilha CSS. Ao portar pra PT-07 canon, troque por card + `KpiGrid` + dot de status + `EmptyState` shared (padrão da golden). O arquétipo está certo; o visual é o débito.
-- ⚠️ **`ProjectMgmt/Inbox/Index` hand-rola o EmptyState** (`:292`, `<div>` em vez de `<EmptyState>`). Troca pelo shared ao evoluir.
+- ⚠️ **`Forja/Inbox/Index` hand-rola o EmptyState** (`:292`, `<div>` em vez de `<EmptyState>`). Troca pelo shared ao evoluir.
 - ⚠️ **Paginação por `dangerouslySetInnerHTML`** na golden (`:312`, label do link do paginator Laravel) — herança do backend; ao replicar, prefira componente `<Pagination>` shared quando existir.
 
 ## Aplicado em (estado real)
@@ -116,7 +116,7 @@ Não aplicar pra:
 | Página | R1 card/.map | R2 tempo-rel | R3 dot | R5 Header shared | R6 3-vazios | R7 drawer | Nota |
 |---|---|---|---|---|---|---|---|
 | `team-mcp/CcSessions/Index.tsx` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **golden** |
-| `ProjectMgmt/Inbox/Index.tsx` | ✓ | ✓ | ✓ (badge) | ✓ | parcial (hand-roll) | deep-link | bom aluno |
+| `Forja/Inbox/Index.tsx` | ✓ | ✓ | ✓ (badge) | ✓ | parcial (hand-roll) | deep-link | bom aluno |
 | `Fiscal/Eventos.tsx` | ✓ | ✓ (`when`) | ✓ (`fx-tl-badge`) | ✗ (`FxShell`) | parcial | deep-link | ilha CSS |
 
 **Métrica adoção PT-07 (2026-07-11):** 1/3 telas atinge o canon estrutural completo. Próximo passo: desbundlar `Fiscal/Eventos` (fx-* → shared) e trocar o EmptyState hand-rolled do Inbox — quando as 3 convergirem, bump v1.0 (→ live).

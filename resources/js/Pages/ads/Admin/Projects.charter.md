@@ -6,7 +6,7 @@ related_prototype: n/a (lista bespoke com banda de KPIs — usa <ul> em vez da a
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
-parent_module: ProjectMgmt
+parent_module: Forja
 related_adrs: [114, 101, 93]
 tier: B
 charter_version: 1
@@ -47,7 +47,7 @@ Ser o portfólio dos Projects — unidade estratégica que agrupa decisões + AD
 ---
 
 ## Automation hooks (faz)
-- `store` grava o project e registra audit LGPD via `ProjectMgmtAuditService` (EVENT_PROJECT_CREATED), com objetivo_macro redacted pelo Service.
+- `store` grava o project e registra audit LGPD via `ForjaAuditService` (EVENT_PROJECT_CREATED), com objetivo_macro redacted pelo Service.
 - Listagem/KPIs delegadas a `ProjectService` com `businessId` explícito (D4 SoC).
 
 ---

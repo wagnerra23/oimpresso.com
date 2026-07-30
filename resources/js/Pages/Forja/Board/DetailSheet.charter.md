@@ -7,7 +7,7 @@ related_prototype: n/a (sheet slide-in de detalhe da task, com abas state-driven
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
-parent_module: ProjectMgmt
+parent_module: Forja
 related_adrs: [114, 101, 93, 100]
 tier: B
 charter_version: 1

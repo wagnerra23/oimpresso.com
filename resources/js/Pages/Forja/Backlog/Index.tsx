@@ -1,6 +1,6 @@
 // @memcofre
 //   tela: /project-mgmt/backlog
-//   module: ProjectMgmt
+//   module: Forja
 //   stories: US-TR-202 (Backlog filtrável + bulk edit)
 //   permissao: jana.mcp.usage.all
 

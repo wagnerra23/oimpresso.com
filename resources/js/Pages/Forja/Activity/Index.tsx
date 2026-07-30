@@ -1,6 +1,6 @@
 // @memcofre
 //   tela: /project-mgmt/activity
-//   module: ProjectMgmt
+//   module: Forja
 //   stories: US-TR-205 (Activity feed timeline)
 //   permissao: jana.mcp.usage.all
 

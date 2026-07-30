@@ -2,7 +2,7 @@
 //
 // @memcofre
 //   tela: /project-mgmt/inbox
-//   module: ProjectMgmt
+//   module: Forja
 //   stories: US-TR-304 (lista unread) · US-TR-305 (marcar lido individual + todas) · US-TR-306 (deep-link task)
 //   adrs: 0070 (Jira-style PM), UI-0013 (Constituição UI v2), 0039 (cockpit)
 //   permissao: jana.mcp.usage.all

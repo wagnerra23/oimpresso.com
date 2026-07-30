@@ -5,7 +5,7 @@ related_us: [US-TR-201]
 owner: wagner
 status: live
 last_validated: "2026-05-08"
-parent_module: ProjectMgmt
+parent_module: Forja
 related_adrs: [110, 70, 100, 39]
 tier: A
 charter_version: 1

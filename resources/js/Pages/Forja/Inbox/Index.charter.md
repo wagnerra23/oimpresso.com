@@ -5,7 +5,7 @@ component: resources/js/Pages/Forja/Inbox/Index.tsx
 related_prototype: "n/a (herda PT-07 Feed/Timeline; segue o DS)"
 owner: wagner
 status: draft
-parent_module: ProjectMgmt
+parent_module: Forja
 related_us: [US-TR-304, US-TR-305, US-TR-306, US-TR-307]
 related_adrs: [70, 93, 58, 39]
 related_spec: memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md

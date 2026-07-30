@@ -6,7 +6,7 @@ related_prototype: n/a (feed cronologico de atividade bespoke, agrupado por dia 
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
-parent_module: ProjectMgmt
+parent_module: Forja
 related_us: [US-TR-205]
 related_adrs: [114, 101, 93, 70]
 tier: B

@@ -14,7 +14,7 @@ id: requisitos-project-mgmt-capterra-ficha
 
 ## Identidade do módulo
 
-- **Nome interno**: `Forja` (rename pra `Project` em Fase 3.9 do ADR 0079, após delete legacy em Fase 3.8)
+- **Nome interno**: `Forja` desde 2026-07-30 (era `ProjectMgmt`; a Fase 3.9 do ADR 0079 previa `Project`, plano ABANDONADO — ver errata em memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md §5)
 - **Domínio de negócio**: gerenciamento de **trabalho do TIME INTERNO** estilo Jira (Project → Epic → Cycle → Story → Subtask + Components transversais + Custom fields + Saved views + Inbox + Bidirectional git sync). Cliente alvo: time oimpresso (Wagner / Maíra / Felipe / Luiz / Eliana). **NÃO** é gestão de projetos de cliente externo.
 - **Status atual**: **em prod desde 2026-05-04** (PRs #91/#92, ADR 0070 entregue). 6 telas Inertia/React (1935 LoC), 7 controllers, 15 tabelas `mcp_*`, padrão MWART.
 - **Concorrentes-alvo direto** (6):

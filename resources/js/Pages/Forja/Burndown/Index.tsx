@@ -1,6 +1,6 @@
 // @memcofre
 //   tela: /project-mgmt/burndown
-//   module: ProjectMgmt
+//   module: Forja
 //   stories: US-TR-206 (Burndown chart)
 //   permissao: jana.mcp.usage.all
 

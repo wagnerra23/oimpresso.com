@@ -6,7 +6,7 @@ related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
-parent_module: ProjectMgmt
+parent_module: Forja
 related_us: [US-TR-204]
 related_adrs: [114, 101, 93, 70, 39]
 tier: B

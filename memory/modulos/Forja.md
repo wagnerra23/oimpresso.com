@@ -1,4 +1,4 @@
-# Módulo: ProjectMgmt
+# Módulo: Forja
 
 > **Project Management Jira-style — Kanban + Backlog + Roadmap + My Work + Inbox + Triage sobre as tabelas mcp_jira_projects/epics/cycles/tasks. Promovido a módulo próprio em 2026-05-04 (ADR 0070, supersede absorção em TeamMcp).**
 
@@ -87,13 +87,13 @@
 
 ## Processamento / eventos
 
-**Commands (artisan):** `ProjectMgmtHealthCommand`
+**Commands (artisan):** `ForjaHealthCommand`
 
 ## Configuração (`Config/config.php`)
 
 | Chave | Valor |
 |---|---|
-| `name` | `ProjectMgmt` |
+| `name` | `Forja` |
 | `module_version` | `0.1` |
 | `default_project_key` | `COPI` |
 | `kanban_columns` | `[array(5 itens)]` |
@@ -125,4 +125,4 @@ _Referências a outros módulos encontradas no código PHP._
 
 ---
 **Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
-**Reaxecutar com:** `php artisan module:spec ProjectMgmt`
+**Reaxecutar com:** `php artisan module:spec Forja`

@@ -85,7 +85,7 @@ pra priorizar:
   é `''`) e maps sobre **arrays constantes** (`CARD_TYPES`, `CARD_MONTHS`, `UFS`,
   `[20,50,100…]`, `Object.values(DRIVERS)`, listas `{value,label}` de enum fixo).
 - **Candidatos a adotar `<SafeSelectItem>` (rever):** onde o `value` é uma **string
-  distinct/texto-livre** — ex. `ProjectMgmt/Triage` e `ProjectMgmt/Board` (`owners`),
+  distinct/texto-livre** — ex. `Forja/Triage` e `Forja/Board` (`owners`),
   e qualquer `value={k}`/`value={u}` cujo `k`/`u` venha de `Object.keys`/distinct de
   dado (checar por arquivo antes de assumir; muitos `k` são enum constante).
 

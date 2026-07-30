@@ -2,7 +2,7 @@
 //
 // @memcofre
 //   tela: /project-mgmt/triage
-//   module: ProjectMgmt
+//   module: Forja
 //   stories: US-TR-301 (lista órfãs) · US-TR-302 (atribuir owner+prio inline) · US-TR-303 (mover cycle/epic)
 //   adrs: 0070 (Jira-style PM), UI-0013 (Constituição UI v2), 0039 (cockpit)
 //   permissao: jana.mcp.usage.all

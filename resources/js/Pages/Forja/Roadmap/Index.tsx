@@ -1,6 +1,6 @@
 // @memcofre
 //   tela: /project-mgmt/roadmap
-//   module: ProjectMgmt
+//   module: Forja
 //   stories: US-TR-203 (Roadmap epics x quarters)
 //   permissao: jana.mcp.usage.all
 

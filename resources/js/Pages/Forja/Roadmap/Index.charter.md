@@ -6,7 +6,7 @@ related_prototype: n/a (roadmap de colunas por quarter com cards de epic, bespok
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
-parent_module: ProjectMgmt
+parent_module: Forja
 related_us: [US-TR-203]
 related_adrs: [114, 101, 93, 70]
 tier: B

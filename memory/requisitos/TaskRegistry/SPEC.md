@@ -241,7 +241,7 @@ Tools `tasks-summarize-comments` (resume thread > 10 comments), `tasks-suggest-p
 > owner: wagner · priority: p1 · estimate: 3h · status: todo · type: chore
 > labels: cleanup,legacy,blocker-3.9
 > blocked_by: —
-> blocks: rename `Modules/Forja → Modules/Project` (Fase 3.9 do ADR 0079)
+> blocks: rename do modulo entao chamado ProjectMgmt para "Project" (Fase 3.9 do ADR 0079) — ⚠️ plano ABANDONADO: o rename executado em 2026-07-30 levou a `Modules/Forja`, nao a "Project" (ver errata em memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md §5)
 
 Wagner 2026-05-07: "acho que não tem nada no project muito simples acho que só o cliente mesmo" — confirmado que provavelmente não há dado de valor pra extrair antes do delete (UltimatePOS Project legacy gerencia projetos de cliente; ROTA LIVRE provavelmente nem usa).
 

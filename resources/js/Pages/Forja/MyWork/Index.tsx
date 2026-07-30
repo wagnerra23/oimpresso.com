@@ -1,6 +1,6 @@
 // @memcofre
 //   tela: /project-mgmt/my-work
-//   module: ProjectMgmt
+//   module: Forja
 //   stories: US-TR-204 (My Work + Inbox)
 //   adrs: 0070 (Jira-style PM), 0039 (cockpit)
 //   permissao: jana.mcp.usage.all
