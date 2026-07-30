@@ -4,11 +4,11 @@
 > Regenerar: `node scripts/governance/skills-index-generate.mjs --write`. Convenção de tiers: ADR 0095 · recalibração 5 núcleo + auto-trigger: ADR 0225.
 
 ## Resumo
-- **75** skills · Tier A **6** (5 núcleo + 1 dormente) · Tier B **59** · Tier C **10**
+- **76** skills · Tier A **6** (5 núcleo + 1 dormente) · Tier B **60** · Tier C **10**
 - Auto-trigger explícito: 9 (session_start 2 · path 5 · intent 1 · on_demand 1)
 - Destacadas no bloco do CLAUDE.md: 14 (entre marcadores AUTO:SKILLS)
 
-## Todas as skills (75)
+## Todas as skills (76)
 | Skill | Tier | auto_trigger | enabled | Descrição (início) |
 |---|---|---|---|---|
 | ads-decision-flow | B | — | sim | Use ao trabalhar em Modules/ADS/ ou tocar fluxo de decisão automatizada (Risk → Confidence → Policy → Router → Brain … |
@@ -69,6 +69,7 @@
 | personas-resolve | B | — | sim | BLOQUEADOR Tier A — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em arquivos de `resources/js/Pages/**/*.tsx` ou cri… |
 | pr-ui-judge-manual | C | — | sim | Use quando Wagner pedir "avaliar PR <número> contra Constituição UI v2", "rodar judge no PR X", "review semântico do … |
 | pre-adr-introspect | B | — | sim | ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR nova) OU antes de propor schema novo (`database/m… |
+| pre-decisao-git-first | B | — | sim | ATIVAR ANTES de interromper o Wagner com uma dúvida durante o desenvolvimento — sempre que for usar AskUserQuestion, … |
 | precisao-literal | B | — | sim | ATIVAR quando user pedir "compare com o protótipo", "avalie precisão", "que % literal", "ficou idêntico?", "compare l… |
 | preflight-modulo | B | path | sim | BLOQUEADOR — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em Modules/<X>/. PRÉ-FLIGHT obrigatório: ler memory/requis… |
 | proxmox-docker-host | C | — | sim | Use ao mexer com infra Proxmox/CT 100/containers Docker do oimpresso. Carrega receitas: subir novo subdomínio Traefik… |
