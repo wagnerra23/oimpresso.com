@@ -58,6 +58,7 @@ Resultado final local:
 - superfícies: 39 contextos sem drift;
 - catálogo: zero módulo/ADR pendurado;
 - sistema: mapa, arquitetura IA e onboarding em dia;
+- saúde da memória: zero falhas; somente avisos históricos não bloqueantes;
 - conflitos Git: zero marcadores reais.
 
 ## Pendente de ambiente

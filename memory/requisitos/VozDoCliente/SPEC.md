@@ -26,7 +26,7 @@ de erro permaneceram fora deste contrato.
 
 ## Contrato funcional entregue
 
-### US-INFRA-002 — capturar sinal autenticado no ERP
+### Fatia entregue da história canônica
 
 Uma pessoa autenticada e autorizada pôde registrar um relato dentro do ERP. O sinal
 herdou o `business_id` da sessão, preservou o texto e a URL de origem e apareceu na

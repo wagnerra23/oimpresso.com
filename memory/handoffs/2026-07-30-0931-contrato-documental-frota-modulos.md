@@ -59,6 +59,7 @@ path e registros históricos. A limpeza foi de **autoridade**, não de evidênci
 - `module-surface --all --check`: 39 contextos sem drift;
 - `catalog-graph --check`: 38 módulos, 612 nós, 935 arestas, zero pendurados;
 - `system-map --check` e `system-map-ia.test`: verdes;
+- `memory-health`: zero falhas; avisos históricos permaneceram não bloqueantes;
 - impacto real: exit 0, `activation_ok: true`, 16.237 classificados, zero sem dono;
 - `git diff --check`: verde; marcadores `<<<<<<<`/`>>>>>>>`: zero.
 
