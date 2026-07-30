@@ -286,13 +286,3 @@ Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php
 # FIELD() justamente pra rodar nas duas lanes).
 Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
 
-# Skills: frontmatter + referências (2026-07-30). Os dois arquivos existem no repo
-# desde que nasceram e NUNCA rodaram em lane nenhuma — "guard que nenhum workflow
-# executa = mentira" (US-COPI-138), mesma doença já catalogada acima. Achado ao abrir
-# o PR #5068 (skill nova): declarei no corpo do PR que não conseguia rodá-los e fui
-# procurar CT100; o lugar certo era aqui. [M] corrigiu.
-# Sqlite-safe por CONSTRUÇÃO: são testes puros de arquivo (glob em .claude/skills +
-# Yaml::parse + file_exists). Zero RefreshDatabase, zero DB::, zero factory — grep
-# em ambos não acha nenhuma referência a banco.
-tests/Feature/Skills/SkillFrontmatterTest.php
-tests/Feature/Skills/SkillReferencesTest.php
