@@ -51,6 +51,24 @@ Isso é **o motivo da ordem**: Admin sai antes e o Governance fica com 8 acoplad
 
 **Ordem:** DROP **depois** do refactor de código (lição E3 do SRS).
 
+## Destino por função — realocação
+
+> Medido 2026-07-30. A direção que importa aqui é **invertida** em relação aos outros: o Admin quase não é consumido (2 arquivos de código), ele **consome** — e o que consome morre junto. Logo a pergunta não é *"quem herda o Admin"*, é *"as 8 telas têm dono depois que o Governance sai"*.
+>
+> Consumidores externos medidos: `Governance/Http/Requests/UpdateActorRequest.php` (morre 6º) · `Superadmin/Tests/Feature/Wave25CrossTenantIsolationTest.php` (**vive**) · 2 charters (`GovernanceV4.charter.md`, `ScreenReview.charter.md`, saem com as telas).
+
+| Peça | Módulo dono correto | Base da decisão |
+|---|---|---|
+| **`/admin/screen-review` + `ScreenReviewController`** | 🔴 **BURACO — decisão [W]** | é a **UI humana de status por tela**, citada em [`how-trabalhar.md`](../../how-trabalhar.md) como porta de leitura ao lado do `screen-coverage:report`. Tem **consumidor humano documentado em canon** — o único do módulo. Depende de `Modules\Governance\`, que morre. Sem receptor: ou vai pra Superadmin, ou a leitura passa a ser só CLI. |
+| `GovernanceV4DashboardController` + tela `GovernanceV4` | **ninguém — morre com o Governance** | dashboard **do** Governance. Sem o módulo medido, não há o que exibir. `CreateInitiativeRequest` idem (`mcp_governance_initiatives` é do Governance). |
+| `RagQualityDashboard` (observabilidade de RAG) | **Jana** | o sinal é RAGAS/recall da Jana ([ADR 0318](../../decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md)); o Admin só desenha. Dono do sinal ≠ dono da tela — e aqui o dono do sinal sobrevive. |
+| `mcp_admin_audit_log` | **ninguém — DROP** | 0 linhas, nunca recebeu escrita (Fase 2). Nada a realocar. |
+| 2 Middleware | **seguem as telas** | sem consumidor fora do módulo |
+| `UI-CATALOG.md` · `GOVERNANCE-MATURITY-FICHA.md` · `SCREEN-REVIEW-RUNBOOK.md` · `Index-visual-comparison.md` | **mover se a tela sobreviver, apagar se não** | 4 docs de inventário. O `SCREEN-REVIEW-RUNBOOK` descreve a tela do buraco acima — decidir junto, não separado. |
+| `Superadmin/Tests/.../Wave25CrossTenantIsolationTest.php` | **fica no Superadmin, re-apontar** | único acoplador que sobrevive; é teste de isolamento Tier 0, não pode simplesmente sair |
+
+**A ironia que já está registrada na Fase 1 fica pior aqui:** a ferramenta que mediria o impacto de deletar as 8 telas (`/admin/screen-review`) **é uma das 8**. Realocá-la primeiro é o que torna as outras 7 avaliáveis — por isso ela é E1, não E2.
+
 ## Fase 5 — Riscos Tier 0
 
 | # | Risco | Severidade | Mitigação |
