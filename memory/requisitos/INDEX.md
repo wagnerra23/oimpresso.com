@@ -40,7 +40,7 @@ Clique para ver requisitos funcionais.
 - [Essentials](Essentials/)
 - [Manufacturing](Manufacturing/)
 - [PontoWr2](PontoWr2/) — pasta completa
-- [MemCofre](MemCofre/) ⚰️→SRS — histórico. O módulo (renomeado `Modules/SRS`) foi **removido em 2026-07-29** ([ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)); sucessores: KB (acervo) · Jana (chat) · Governance (validação). A pasta fica como registro.
+- [MemCofre](MemCofre/) ⚰️→SRS — histórico. O módulo (renomeado `Modules/SRS`) foi **removido em 2026-07-29** ([ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)); sucessores: KB (acervo) · Jana (chat) · Governance (validação). Destino da pasta em triagem — 22 dos 33 docs ainda são servidos pelo RAG.
 - [ProductCatalogue](ProductCatalogue.md)
 - [ProjectMgmt](ProjectMgmt/) — (era `Project.md`, legado UltimatePOS removido)
 - [Repair](Repair/)
