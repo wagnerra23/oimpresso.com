@@ -8,6 +8,24 @@ id: requisitos-auditoria-deprecation-plan
 > **Ordem no conjunto:** **1º de 6** — [proposal da ordem topológica](../../decisions/proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md)
 > **É o delete mais barato do conjunto.** Um acoplador, e ele é um teste.
 
+## ⚠️ ERRATA 2026-07-30 — o veredito CONFIRMA, mas *"nada no produto depende"* é forte demais
+
+> Origem: revisão adversarial pedida por [W]. **Dois agentes de mandato oposto concordaram que este
+> módulo deve morrer, e é o único dos 6 com essa unanimidade.** A errata é só de precisão.
+
+**Confirmado:** 1 acoplador de namespace e é um teste (`tests/Feature/Auditoria/RevertServiceTest.php`)
+· **0** cron (medido pelo oráculo de runtime, não por parse) · **0** tool MCP · **0** required ·
+1 tabela própria que **nunca migrou** pra produção.
+
+**A ressalva:** existe acoplamento que o grep de namespace **não vê** — `Route::has('auditoria.index')`
+em `app/Http/Middleware/AdminSidebarMenu.php`. Ele degrada com graça (cai no Blade legado, que segue
+vivo em `routes/web.php`), então não bloqueia. Mas *"nada no produto depende"* é impreciso: o padrão
+`route()` por nome é um vetor de acoplamento que **nenhum dos 6 planos mediu**.
+
+**A perda é declarável, não invisível:** o `RevertService` (undo de operações, [ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md), `status: aceito · lifecycle: ativo`) some com o módulo — com suas
+categorias *unrevertible* (Portaria MTP 671/2021, NFe SEFAZ, Asaas pago). Declarar item a item, como
+a [ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md) fez com o Admin.
+
 ## Fase 1 — Inventário
 
 **Não repetido aqui.** O inventário é **gerado**: [`SUPERFICIE.md`](SUPERFICIE.md) — **36 arquivos em 12 papéis**, por `scripts/governance/module-surface.mjs Auditoria --write`. Frescor conferido em 2026-07-30: `--check` **exit 0**.

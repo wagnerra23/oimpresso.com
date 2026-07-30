@@ -16,6 +16,49 @@ id: requisitos-governance-deprecation-plan
 
 ---
 
+## ⚠️ ERRATA 2026-07-30 (2ª) — o veredito se sustenta, mas por UM motivo diferente do que o TL;DR alega
+
+> Origem: revisão adversarial pedida por [W], com dois agentes de mandato oposto. **Um deles tinha
+> mandato de refutar este doc** e concluiu que ele **não é auto-interessado** — mas achou um headline
+> que a medição não sustenta. O outro achou o motivo real. Os dois abaixo.
+
+### E1 — O TL;DR *"infraestrutura consumida por 6 módulos vivos"* NÃO sobrevive ao teste do símbolo
+
+Abrindo os 4 acopladores "sobreviventes" e lendo **o que cada um importa** (não o namespace):
+
+```
+Cms/SiteContentService.php        →  " * @see Modules\Governance\...ModuleGradeService"     (docblock)
+Connector/ConnectorHealthCommand  →  " * @see Modules\Governance\...CharterHealthCommand"   (docblock)
+Jana/SettingsReconciler.php       →  " * @see Modules\Governance\...MeilisearchSettings"    (docblock)
+Jana/DeployReconciler.php         →  "use Modules\Governance\Services\Checkers\DeployDriftChecker;"   ← único use real
+```
+
+Depois do cluster sair, **exatamente 1 arquivo** do código sobrevivente tem `use` de Governance.
+Some-se: `scripts/governance` teve **251 commits/30d** contra **17** de `Modules/Governance` — a
+governança que executa **já migrou pra Node** e sobrevive intacta. E dos **34** required vivos
+(`gh api .../branches/main/protection`), **1** nasce daqui.
+
+### E2 — O motivo REAL de não deprecar hoje, e o corpo não o nomeia
+
+O required `ADR 0216 PR scan` roda `php artisan governance:audit --diff-only --fail-on=block` — um
+comando **deste módulo** — que carrega **12 checkers**. Um deles é o **`MultiTenantScopeChecker`**
+(ADR 0218, severity `critical`, enforcement `block`): a **única varredura arquitetural** que exige
+`HasBusinessScope` em todo Model novo de `Modules/*/Entities|Models`.
+
+Busca por substituto: os 10 arquivos com `HasBusinessScope` fora dos módulos são testes
+**por-model** ou fixtures — **nenhuma varredura arquitetural**. Os outros required Tier-0 medem
+outra coisa (`NoHardcodeBusinessIdInModulesTest` = hardcode `=== N`;
+`WithoutGlobalScopesCommentGuard`). **Não há redundância.**
+
+→ O veredito muda de *"não deprecar (caro, ganho negativo)"* para **"não antes de nomear o receptor
+dos 12 checkers"** — em especial o Tier-0. Isso é acionável; o anterior não era.
+
+### E3 — 6 crons declarados, **10** medidos, todos rodando em `live`
+
+Oráculo de runtime (`runsInEnvironment`), não parse do `Kernel.php`:
+`governance:` 6 · `governanca:` 1 · `module:grade` 1 · `observability:` 1 · `charter:` 1 = **10**,
+com os 4 últimos resolvidos a `Modules/Governance/Console/Commands/*` por assinatura.
+
 ## ⚠️ ADENDO 2026-07-30 — o limite nº 1 deste doc foi medido (produção)
 
 > Este adendo **fecha o item 1 dos "Limites honestos"** do §0 (*"**Produção.** Volume das 5 tabelas `mcp_*` não foi contado. No SRS foi exatamente isso que virou o plano do avesso."*). **Não altera o corpo** — o corpo fica como registro do que se sabia em 29/07. Onde este adendo e o corpo discordarem sobre **dado de produção**, este vence; sobre **veredito**, ver a nota de decisão no fim.
