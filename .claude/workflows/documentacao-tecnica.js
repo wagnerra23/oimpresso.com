@@ -86,7 +86,9 @@ node scripts/governance/documentation-loop.mjs --impact-ref origin/main --head-r
 O exit precisa ser 0, missing_expected e receipt_evidence.rejected precisam ser [], executed
 precisa ser true e o ID deve estar em resolved. Se a métrica só mudou, a porta foi apagada,
 o conteúdo foi esvaziado ou só o carimbo de data mudou, REPROVE. Rode também o selftest do script
-e o verificador dono. Retorne os outputs essenciais e veredito APROVADO/REPROVADO.`, { label: 'docs:recibo', phase: 'Recibo' })
+e o verificador dono. Nesta fase, `worktree_files` DEVE listar a correção ainda não commitada;
+`changed_files: []` é REPROVAÇÃO, não "sem impacto". Retorne os outputs essenciais e veredito
+APROVADO/REPROVADO.`, { label: 'docs:recibo', phase: 'Recibo' })
 
 phase('Entrega')
 const handoff = await agent(`Prepare a entrega do ciclo documental, sem merge. ${LEIS}
@@ -96,6 +98,10 @@ CORREÇÃO: ${JSON.stringify(correction)}
 RECIBO: ${JSON.stringify(receipt)}
 
 Se e somente se o recibo foi APROVADO:
+- faça commit no branch próprio com a correção e o registro exigido pelo protocolo;
+- rode novamente os dois comandos da fase Recibo acrescentando `--require-clean`;
+- o recibo final só passa com `worktree_files: []`, o alvo dentro de `changed_files`, o mesmo ID
+  em `resolved` e `receipt_evidence.rejected: []`;
 - produza corpo curto de PR com trailer \`Documentation-Receipt: ${selected.issue_id}\`;
 - inclua antes→depois do MESMO detector;
 - inclua a confirmação pós-merge obrigatória: no main, o próximo ZELADOR roda snapshot e prova que o ID segue ausente;

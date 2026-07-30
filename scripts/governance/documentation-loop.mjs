@@ -16,6 +16,7 @@
  *   node scripts/governance/documentation-loop.mjs --compare-ref origin/main [--json]
  *   node scripts/governance/documentation-loop.mjs --compare-ref origin/main --expect <id>[,<id>]
  *   node scripts/governance/documentation-loop.mjs --impact-ref origin/main [--head-ref HEAD] [--json]
+ *   acrescente --require-clean no recibo final, depois do commit
  *   node scripts/governance/documentation-loop.mjs --selftest
  *
  * O comparativo cria worktree temporária sob os.tmpdir(), mede o ref e remove a
@@ -26,15 +27,18 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
+import {
+  existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { scan as scanBriefing, isBriefingCoverageGap } from './briefing-code-staleness.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
+const REQUIRE_CLEAN = process.argv.includes('--require-clean');
 const SOURCE_PRIORITY = { 'memory-health': 0, 'briefing-code-staleness': 1, 'doc-freshness-score': 2 };
 const SHARED_RUNTIME_PATHS = /^(app|config|database|routes)\//;
 const DOCUMENT_NAME = /^(BRIEFING|README|ARCHITECTURE|SPEC|SDD|RUNBOOK|SUPERFICIE|CHANGELOG|GLOSSARY)/i;
@@ -142,9 +146,21 @@ function runGit(root, args) {
   return result.stdout;
 }
 
+function normalizeFiles(raw) {
+  return raw.split(/\r?\n/).map((line) => line.trim().replaceAll('\\', '/')).filter(Boolean);
+}
+
+function worktreeChangedFiles(root = ROOT) {
+  return [...new Set([
+    ...normalizeFiles(runGit(root, ['diff', '--name-only', 'HEAD'])),
+    ...normalizeFiles(runGit(root, ['ls-files', '--others', '--exclude-standard'])),
+  ])].sort();
+}
+
 function changedFiles(base, head = 'HEAD', root = ROOT) {
-  return runGit(root, ['diff', '--name-only', `${base}...${head}`])
-    .split(/\r?\n/).map((line) => line.trim().replaceAll('\\', '/')).filter(Boolean);
+  const committed = normalizeFiles(runGit(root, ['diff', '--name-only', `${base}...${head}`]));
+  const worktree = head === 'HEAD' ? worktreeChangedFiles(root) : [];
+  return [...new Set([...committed, ...worktree])].sort();
 }
 
 function moduleFromPath(file) {
@@ -411,6 +427,28 @@ function selftest() {
       && impact.documents.Financeiro.some((path) => /BRIEFING\.md$/.test(path)));
   check('Controle: arquivo runtime compartilhado exige revisão ampla',
     buildImpactReport(['app/Models/User.php'], { nodes: [], edges: [] }).decision === 'revisao-ampla');
+  const fixture = mkdtempSync(join(resolve(tmpdir()), 'oimpresso-documentation-loop-selftest-'));
+  try {
+    runGit(fixture, ['init']);
+    writeFileSync(join(fixture, 'README.md'), 'base\n');
+    runGit(fixture, ['add', 'README.md']);
+    runGit(fixture, ['-c', 'user.name=Documentation Loop', '-c', 'user.email=docs@example.invalid',
+      'commit', '-m', 'base']);
+    writeFileSync(join(fixture, 'README.md'), 'alterado\n');
+    mkdirSync(join(fixture, 'Modules', 'Financeiro', 'Services'), { recursive: true });
+    writeFileSync(join(fixture, 'Modules', 'Financeiro', 'Services', 'Novo.php'), '<?php\n');
+    const dirty = changedFiles('HEAD', 'HEAD', fixture);
+    check('BITE: impacto inclui arquivo rastreado e novo antes do commit',
+      dirty.includes('README.md') && dirty.includes('Modules/Financeiro/Services/Novo.php'));
+    const immutable = gitSha(fixture);
+    check('Controle: comparação entre SHAs imutáveis ignora o worktree',
+      changedFiles(immutable, immutable, fixture).length === 0);
+  } finally {
+    const resolvedFixture = resolve(fixture);
+    const safePrefix = `${resolve(tmpdir())}${sep}`;
+    if (!resolvedFixture.startsWith(safePrefix)) throw new Error(`fixture fora de os.tmpdir(): ${resolvedFixture}`);
+    rmSync(resolvedFixture, { recursive: true, force: true });
+  }
   console.log(failures ? `\n  ${failures} FALHA(S)\n` : '\n  SELFTEST OK — morde, solta e preserva IDs estáveis.\n');
   return failures ? 1 : 0;
 }
@@ -446,16 +484,22 @@ function main() {
     const head = headIdx === -1 ? 'HEAD' : process.argv[headIdx + 1];
     if (!head) throw new Error('--head-ref exige um ref git');
     const files = changedFiles(base, head);
+    const worktreeFiles = head === 'HEAD' ? worktreeChangedFiles(ROOT) : [];
     const catalogPath = join(ROOT, 'memory/governance/catalog.json');
     const catalog = existsSync(catalogPath) ? JSON.parse(readFileSync(catalogPath, 'utf8')) : {};
     const report = {
       ...buildImpactReport(files, catalog),
       base_sha: runGit(ROOT, ['rev-parse', base]).trim(),
       head_sha: runGit(ROOT, ['rev-parse', head]).trim(),
+      worktree_files: worktreeFiles,
       executed: true,
     };
     console.log(JSON_OUT ? JSON.stringify(report, null, 2)
       : `impacto documental: ${report.decision} · módulos diretos ${report.direct_modules.join(', ') || '—'} · relacionados ${report.related_modules.join(', ') || '—'}`);
+    if (REQUIRE_CLEAN && worktreeFiles.length) {
+      console.error(`documentation-loop: recibo final exige worktree limpo; ${worktreeFiles.length} arquivo(s) ainda não commitado(s)`);
+      return 1;
+    }
     return 0;
   }
   const compareIdx = process.argv.indexOf('--compare-ref');
@@ -471,6 +515,15 @@ function main() {
       changedFiles(ref),
       briefingDocuments(ref, before, expected),
     );
+    const worktreeFiles = worktreeChangedFiles(ROOT);
+    comparison.receipt_evidence.worktree_files = worktreeFiles;
+    if (REQUIRE_CLEAN && worktreeFiles.length) {
+      comparison.ok = false;
+      comparison.receipt_evidence.rejected.push({
+        reason: 'worktree-nao-commitado',
+        files: worktreeFiles,
+      });
+    }
     printComparison(comparison);
     return comparison.ok ? 0 : 1;
   }
