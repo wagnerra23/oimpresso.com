@@ -20,6 +20,76 @@ relates_to:
 >
 > **Este doc não substitui nenhum plano por módulo.** Os 5 novos estão em `memory/requisitos/<Mod>/DEPRECATION-PLAN.md`; o do Governance ganhou um **adendo** com a medição de produção (o limite nº 1 que ele mesmo declarava aberto), não uma reescrita.
 
+## ⚠️ ERRATA 2026-07-30 — um risco FALSO, um número 3× subcontado, e um DROP que quebra sobrevivente
+
+> Origem: revisão adversarial pedida por [W] (*"quero um adversário aqui"*) — **dois agentes de
+> mandato oposto** (um refutando a deleção, outro refutando a consolidação) + medição em produção
+> que nenhum deles tinha acesso. **Não reabre o mérito**; corrige medição. O corpo fica como registro.
+
+### E1 — O **R3 é falso**: o `teammcp-pest` nunca foi promovido a required
+
+O corpo trata como risco que deletar o TeamMcp deixe `main` sem poder mergear, por causa do flip da
+[ADR 0354](../0354-teammcp-pest-required-emenda-0314.md). A **autoridade viva** diz o contrário:
+
+```bash
+gh api repos/wagnerra23/oimpresso.com/branches/main/protection \
+  --jq '.required_status_checks.contexts[]' | grep -i teammcp
+# → (vazio).  Total de contexts: 34
+```
+
+O flip **não aconteceu**. (Crédito: o `TeamMcp/DEPRECATION-PLAN.md` já tinha achado e rebaixado isso
+no §Achado — foi este doc de topo que ficou desatualizado.) **Dos 34 required, exatamente 1** nasce
+de PHP dos condenados: `ADR 0216 PR scan` → `governance:audit`.
+
+### E2 — A tabela de medição declara **6 crons**. São **17**, e todos rodam em `live`.
+
+Medido pelo **oráculo de runtime**, não por parse do `Kernel.php` — a lápide §5 2026-07-17 registra
+que gate de ambiente tem **≥2 formas sintáticas** e que parsear uma é o erro:
+
+```php
+// prod, APP_ENV=live
+foreach (app(Schedule::class)->events() as $e) { $e->runsInEnvironment('live'); }
+// → 110 registrados · 108 rodam
+```
+
+| Módulo | Doc declara | Runtime (`live`) |
+|---|---:|---:|
+| ADS | **0** | **6** |
+| Brief | **0** | **1** |
+| Governance (família: `governance:` 6 · `governanca:` · `module:grade` · `observability:` · `charter:`) | 6 | **10** |
+| **Total** | **6** | **17** |
+
+Consequência direta: o **R2 do plano do ADS** (*"achar e desligar o produtor — não medido"*) tem
+resposta, e ela estava no mesmo `Kernel.php` que o doc leu.
+
+### E3 — 🔴 A Fase 4 do ADS marca `mcp_projects` / `mcp_project_parts` como DROP — e quebra o ProjectMgmt
+
+`Modules/ProjectMgmt` **não está na fila** e escreve nas duas (`ProjectService.php`, `insertGetId`,
+com `grep -c catch` = **0**). Ambas têm **0 linhas**, mas a dependência é de **schema**: o DROP vira
+`SQLSTATE 42S02` → **500** em módulo sobrevivente. Ver errata do `ADS/DEPRECATION-PLAN.md`.
+
+### E4 — O dado do ADS é escapamento de cron, não patrimônio (facilita a Fase 4)
+
+`mcp_dual_brain_decisions`: **36.658** linhas · `outcome='cancelled'` em **100,00%** · `pr_url` e
+`commit_sha` **NOT NULL = 0** · `resolved_by` = 41 (0,11%). Nenhuma decisão virou PR ou commit.
+O corpo usa *"está escrevendo hoje"* como sinal de vida — o sinal prova **cadência**, não uso.
+
+### E5 — Incoerência já materializada na ordem
+
+O [#5045](https://github.com/wagnerra23/oimpresso.com/pull/5045) resgatou o `UiCatalogGenerateCommand`
+do `Modules/Admin` (#2, já removido) **para dentro de `Modules/Governance`** — que é o **#6 da própria
+fila**. Está na [ADR 0360](../0360-deprecacao-admin-center-supersede-0122.md) aceita, com a nota
+*"passou a funcionar pela primeira vez"*. Terá de ser resgatado duas vezes. (O irmão
+[#5046](https://github.com/wagnerra23/oimpresso.com/pull/5046) → `Modules/Arquivos` está correto —
+Arquivos sobrevive.)
+
+### O que a revisão NÃO mudou
+
+O veredito de [W] segue soberano e a ordem topológica segue válida — **Auditoria** primeiro é a
+única unanimidade dos dois adversários. O que mudou é que **Governance** ganhou um motivo acionável
+pra não ser executado hoje (o `MultiTenantScopeChecker`, único enforcement Tier-0 arquitetural sem
+substituto — ver errata do plano dele), e que **ADS** precisa de 2 correções antes da Fase 4.
+
 ## O que este doc adiciona, e por que não cabe num plano por módulo
 
 O precedente é **um `DEPRECATION-PLAN.md` por módulo** — e ele continua valendo (os 5 planos estão ao lado deste, em `memory/requisitos/<Mod>/`). Mas a descoberta central desta medição é **cross-módulo** e não tem dono em nenhum deles:
