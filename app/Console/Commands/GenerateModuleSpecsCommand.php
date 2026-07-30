@@ -11,7 +11,8 @@ class GenerateModuleSpecsCommand extends Command
 {
     protected $signature = 'module:specs
                             {module? : Nome do módulo (default: todos)}
-                            {--stdout : Imprimir no stdout em vez de salvar em memory/modulos/}';
+                            {--stdout : Imprimir no stdout em vez de salvar em memory/modulos/}
+                            {--aceito-perda-de-branch : Regravar mesmo quando uma branch histórica sumiu e o registro dela for insubstituível}';
 
     protected $description = 'Inspeciona módulo(s) e gera spec markdown em memory/modulos/';
 
@@ -32,6 +33,11 @@ class GenerateModuleSpecsCommand extends Command
         $this->info(count($targets) . ' módulos descobertos (atuais + perdidos em branches antigas)');
 
         $outDir = base_path('memory/modulos');
+
+        if (! $toStdout && ! $this->guardaPerdaDeBranch($gen, $outDir)) {
+            return self::FAILURE;
+        }
+
         if (!$toStdout && !File::isDirectory($outDir)) {
             File::makeDirectory($outDir, 0755, true);
         }
@@ -85,6 +91,68 @@ class GenerateModuleSpecsCommand extends Command
      *  - main-wip-2026-04-22 (backup Wagner)
      *  - origin/3.7-com-nfe (versão antiga)
      */
+    /**
+     * Impede que regenerar apague, em silêncio, o único registro de uma branch que sumiu.
+     *
+     * `memory/modulos/` é a ÚNICA memória de módulos que não existem mais em lugar nenhum:
+     * `main-wip-2026-04-22` (backup) sumiu do repo e do remoto, e 6 módulos só constam
+     * dela — Accounting, AiAssistance, Grow, IProduction, Officeimpresso1, Writebot,
+     * todos ausentes de `origin/3.7-com-nfe` (medido 2026-07-30). Como o git não sabe
+     * mais responder por essa branch, regravar as specs trocaria o `✅` deles por `n/d`
+     * e o fato se perderia — sem erro, sem aviso, sem volta.
+     *
+     * Então: se uma branch histórica sumiu E existe arquivo que a registra, aborta e
+     * mostra quais. `--aceito-perda-de-branch` segue adiante, agora como escolha.
+     */
+    protected function guardaPerdaDeBranch(ModuleSpecGenerator $gen, string $outDir): bool
+    {
+        $ausentes = $gen->branchesAusentes();
+        if ($ausentes === [] || ! File::isDirectory($outDir)) {
+            return true;
+        }
+
+        $emRisco = [];
+        foreach (File::files($outDir) as $arquivo) {
+            if ($arquivo->getExtension() !== 'md') {
+                continue;
+            }
+            $conteudo = (string) File::get($arquivo->getPathname());
+            foreach ($ausentes as $branch) {
+                if (preg_match('/^\|.*' . preg_quote($branch, '/') . '.*✅.*\|$/mu', $conteudo)) {
+                    $emRisco[$branch][] = $arquivo->getFilenameWithoutExtension();
+                }
+            }
+        }
+
+        if ($emRisco === []) {
+            foreach ($ausentes as $branch) {
+                $this->warn("Branch histórica `{$branch}` não existe mais — a presença nela sai como `n/d`.");
+            }
+
+            return true;
+        }
+
+        if ($this->option('aceito-perda-de-branch')) {
+            foreach ($emRisco as $branch => $modulos) {
+                $this->warn("Regravando mesmo assim: `{$branch}` (" . count($modulos) . ' módulo(s) perdem o registro).');
+            }
+
+            return true;
+        }
+
+        $this->error('ABORTADO — regravar apagaria o único registro de uma branch que não existe mais.');
+        foreach ($emRisco as $branch => $modulos) {
+            sort($modulos);
+            $this->line("  <fg=yellow>{$branch}</> (sumiu do repo) é registrada por: " . implode(', ', $modulos));
+        }
+        $this->newLine();
+        $this->line('  Esses arquivos são a última prova de que esses módulos existiram.');
+        $this->line('  Confira antes: <fg=cyan>git show HEAD:memory/modulos/<Modulo>.md</>');
+        $this->line('  Ciente e quer prosseguir: <fg=cyan>php artisan module:specs --aceito-perda-de-branch</>');
+
+        return false;
+    }
+
     protected function discoverAllModules(ModuleManagerService $mgr): array
     {
         $names = array_column($mgr->list(), 'name');
