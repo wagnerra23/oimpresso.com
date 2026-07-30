@@ -171,11 +171,36 @@ export function loadModuleTriage() {
 // o map já registrava. Ghost triado e ghost novo pareciam iguais; só o segundo pede ação.
 //
 //   'corrigivel' → há rename curado 1:1: o codemod ghost-fix resolve
-//   'triado'     → excluído com classe + motivo: decisão JÁ tomada, não re-litigar
+//   'removido'   → classe C COM `removed_at` curado: o módulo foi REMOVIDO de fato.
+//                  Citação histórica de módulo removido NÃO é drift corrigível — não
+//                  existe destino 1:1 (o próprio `excluded` diz isso), e a prosa que
+//                  EXPLICA que o caminho é histórico contém o token, então o detector
+//                  conta o disclaimer como a infração: impossível ficar verde sem apagar
+//                  a explicação. Provado 2026-07-29 (neutralizei todas as citações
+//                  substantivas de MemCofre/ e ele SEGUIU vermelho pelas 2 frases do
+//                  disclaimer). É o único status que o --check honra.
+//                  ASSIMETRIA QUE ISTO CORRIGE: o freeze do baseline (2026-06-12) já
+//                  grandfathera TODO módulo removido ANTES dele — `Accounting` (classe C,
+//                  fusão ADR 0172) passa hoje por estar em Accounting.json. `SRS` falhava
+//                  só por ter morrido DEPOIS do freeze. Mesma natureza, veredito oposto
+//                  por acidente de data; aqui o grandfather fica explícito e com evidência.
+//   'triado'     → excluído com classe + motivo: decisão JÁ tomada, não re-litigar —
+//                  mas SEGUE contando como ghost (classe B/AMBIGUO, e a classe C que é
+//                  "nunca foi Modules/X aqui": Sells/Chat/Stock/Auth/UltimatePos, onde a
+//                  citação É erro acionável). MEDIDO: classe C é heterogênea (4 remoções
+//                  reais × 7 namespace), por isso honrar "classe C" inteira perderia sinal
+//                  verdadeiro — o gatilho é o campo curado, nunca a classe sozinha.
 //   'novo'       → não está no map: ESTE é o que pede olho humano
 export function classifyModuleGhost(nome, { renames, excluded }) {
   if (renames?.[nome]?.to) return { status: 'corrigivel', to: renames[nome].to };
-  if (excluded?.[nome]) return { status: 'triado', classe: excluded[nome].class ?? '?', motivo: excluded[nome].reason ?? '' };
+  const ex = excluded?.[nome];
+  if (ex) {
+    // `removed_by_adr` pode ser '' (morte não-ADR-driven); `removed_at` é o que qualifica.
+    if (ex.class === 'C' && ex.removed_at) {
+      return { status: 'removido', classe: 'C', adr: ex.removed_by_adr ?? '', em: ex.removed_at, motivo: ex.reason ?? '' };
+    }
+    return { status: 'triado', classe: ex.class ?? '?', motivo: ex.reason ?? '' };
+  }
   return { status: 'novo' };
 }
 
@@ -281,6 +306,21 @@ if (IS_MAIN && SELFTEST) {
   ok('MOD_REF_RE: path de teste tests/Unit/Modules/Foo NÃO vira módulo (ghost falso)',
      !modsIn('roda tests/Unit/Modules/Foo/BarTest.php').includes('Foo'));
 
+  // ── CONTRATO DA MENSAGEM DE FAIL: nenhum marcador em PROSA resgata um ghost ─────
+  // O --check mandava «marque "(planejado — não existe)"» desde 2026-06-12 (commit
+  // cab11a2caa) — escape valve que o código NUNCA implementou. O detector é este regex
+  // sobre o texto cru; ele não enxerga disclaimer nenhum. Estes asserts existem pra que
+  // a promessa não possa ser reintroduzida em silêncio: se alguém voltar a anunciar um
+  // marcador, tem que fazê-lo funcionar aqui primeiro. (proibicoes.md §5 2026-07-27:
+  // "mecanismo que anuncia escape valve que não implementa é pior que mudo".)
+  ok('BITE: marcador "(planejado — não existe)" ao lado NÃO desarma o detector',
+     modsIn('cita Modules/SRS/Services/X.php (planejado — não existe)').includes('SRS'));
+  ok('BITE: disclaimer "removido/histórico" em prosa também NÃO desarma',
+     modsIn('os `Modules/SRS/...` citados são históricos: código REMOVIDO em 2026-07-29').includes('SRS'));
+  // RELEASE — o único jeito que de fato solta é o TOKEN deixar de ser Modules/<X>.
+  ok('RELEASE: falar do módulo SEM o token de path (`o módulo SRS`) não é ghost',
+     modsIn('o módulo SRS foi removido em 2026-07-29 (ADR 0357)').length === 0);
+
   // ── triagem de ghost de MÓDULO: separa "já decidido" de "pede olho" ─────────
   // Custo medido 2026-07-29: uma sessão inteira re-investigou Project/NfseBrasil e
   // chegou à MESMA conclusão que o ghost-rename-map já registrava — porque o relatório
@@ -302,6 +342,32 @@ if (IS_MAIN && SELFTEST) {
   // CONTROLE NEGATIVO — map ausente/corrompido não pode mascarar ghost como triado.
   ok('CONTROLE NEGATIVO: sem map, todo ghost vira "novo" (falha para o lado do alarme)',
      classifyModuleGhost('Project', { renames: {}, excluded: {} }).status === 'novo');
+
+  // ── status 'removido': o ÚNICO que o --check honra (citação histórica aterrada) ──────
+  // O gatilho é o campo CURADO `removed_at`, nunca a classe sozinha — classe C é
+  // heterogênea (medido 2026-07-29: 4 remoções reais × 7 "nunca foi Modules/X aqui").
+  ok('contrato: ghost-rename-map marca SRS como removido (ADR 0357, 2026-07-29)',
+     TRI.excluded?.SRS?.class === 'C' && TRI.excluded?.SRS?.removed_at === '2026-07-29');
+  ok('RELEASE: classe C COM removed_at → removido (o --check solta)',
+     classifyModuleGhost('SRS', TRI).status === 'removido');
+  // BITE — o que separa este status do resto: classe C SEM removed_at NÃO é aterrada.
+  // Sells/Chat/Stock/Auth/UltimatePos são "nunca foi módulo aqui" = erro ACIONÁVEL.
+  ok('BITE: classe C SEM removed_at (Sells) segue "triado" — NÃO é aterrada',
+     classifyModuleGhost('Sells', TRI).status === 'triado');
+  ok('BITE: AMBIGUO (fila humana) nunca vira removido, nem com o campo em outra entrada',
+     classifyModuleGhost('Project', TRI).status === 'triado' &&
+     classifyModuleGhost('NfseBrasil', TRI).status === 'triado');
+  ok('BITE: classe B (nunca construído) nunca vira removido',
+     classifyModuleGhost('Pcp', TRI).status === 'triado');
+  // BITE — a classe sozinha não basta: forjar classe C sem o campo não aterra.
+  ok('BITE: forjar classe C sem removed_at não aterra (o campo é o gatilho, não a classe)',
+     classifyModuleGhost('X', { renames: {}, excluded: { X: { class: 'C', reason: 'r' } } }).status === 'triado');
+  // RELEASE — removed_by_adr vazio é legítimo (morte não-ADR-driven); removed_at qualifica.
+  ok('RELEASE: removed_by_adr vazio + removed_at presente ainda aterra (morte não-ADR)',
+     classifyModuleGhost('LaravelAI', TRI).status === 'removido');
+  // CONTROLE NEGATIVO — sem map, nem o nome aterrado escapa: falha pro lado do alarme.
+  ok('CONTROLE NEGATIVO: sem map, SRS volta a "novo" (aterramento não é implícito)',
+     classifyModuleGhost('SRS', { renames: {}, excluded: {} }).status === 'novo');
 
   console.log(fails
     ? `\n  ${fails} FALHA(S) — a catraca de path-fantasma não está honesta.\n`
@@ -372,11 +438,18 @@ if (IS_MAIN && WRITE_BASELINE) {
 
 if (IS_MAIN && CHECK) {
   const current = scanGhostsByModule();
+  const triagem = loadModuleTriage();
   const news = [];   // ghost fora do baseline => FAIL
   let legacy = 0;    // ghost congelado no baseline => passa
+  let removidos = 0; // módulo REMOVIDO com evidência curada => passa (citação histórica)
   for (const [mod, ghosts] of current) {
     const base = readBaseline(mod) ?? [];
-    for (const g of ghosts) (base.includes(g) ? legacy++ : news.push({ mod, g }));
+    for (const g of ghosts) {
+      // Ordem importa: `removido` vence o baseline porque não depende da data do freeze
+      // (é exatamente a assimetria que ele corrige — ver classifyModuleGhost).
+      if (classifyModuleGhost(g, triagem).status === 'removido') { removidos++; continue; }
+      base.includes(g) ? legacy++ : news.push({ mod, g });
+    }
   }
   const cleanups = []; // entrada de baseline que não é mais ghost => aviso
   if (existsSync(BASELINE_DIR)) {
@@ -387,11 +460,36 @@ if (IS_MAIN && CHECK) {
       if (gone.length) cleanups.push(`${mod}: ${gone.join(', ')}`);
     }
   }
-  console.log(`\n  CATRACA ANTI-GHOST — ${current.size} módulos citantes · ${legacy} ghosts legados (baseline) · ${news.length} NOVOS\n`);
-  for (const n of news) console.log(`  FAIL ${n.mod}: cita Modules/${n.g} que NÃO existe e NÃO está no baseline.`);
+  console.log(`\n  CATRACA ANTI-GHOST — ${current.size} módulos citantes · ${legacy} ghosts legados (baseline) · ${removidos} citações de módulo REMOVIDO (evidência curada) · ${news.length} NOVOS\n`);
+  // A triagem curada (ghost-rename-map) já existe e o RELATÓRIO a mostra — mas o --check
+  // não a mostrava, então um FAIL de nome JÁ DECIDIDO parecia idêntico a um nome inédito.
+  // Custo medido 2026-07-29 (mesma doença que motivou classifyModuleGhost): sessão gasta
+  // re-investigando.
+  for (const n of news) {
+    const cls = classifyModuleGhost(n.g, triagem);
+    const nota = cls.status === 'corrigivel' ? ` [JÁ TRIADO: rename curado → ${cls.to}; rode ghost-fix]`
+      : cls.status === 'triado' ? ` [JÁ TRIADO: classe ${cls.classe} — decisão registrada no ghost-rename-map, não re-litigar]`
+      : ' [NÃO TRIADO — este pede olho humano]';
+    console.log(`  FAIL ${n.mod}: cita Modules/${n.g} que NÃO existe e NÃO está no baseline.${nota}`);
+  }
   for (const c of cleanups) console.log(`  aviso ${c} — não é mais ghost; rode --write-baseline pra encolher a catraca.`);
   if (news.length) {
-    console.log('\n  Corrija o doc (nome real do módulo) ou marque "(planejado — não existe)" — NUNCA adicione ao baseline.\n');
+    // POR QUE ESTE TEXTO MUDOU (2026-07-29): a redação anterior mandava «marque
+    // "(planejado — não existe)"» — um escape valve que NUNCA existiu no código. Nasceu
+    // com a catraca (commit cab11a2caa, PR #2591, 2026-06-12) e foi aspiracional desde o
+    // dia 1: o detector é o MOD_REF_RE sobre o texto cru, não lê prosa nenhuma ao lado do
+    // token. Provado por bite-test (marcador injetado → exit 1 igual) + varredura
+    // repo-wide (zero código parseia "planejado"). Mecanismo que ANUNCIA um escape que não
+    // implementa é pior que mudo: convida a confiar (proibicoes.md §5 2026-07-27). O
+    // contrato agora é pinado no --selftest — se alguém reintroduzir a promessa, o assert
+    // do marcador cai.
+    console.log('\n  O QUE FAZER (o detector casa o TOKEN literal Modules/<X>; prosa ao lado NÃO limpa):');
+    console.log('    1. nome errado/typo  → corrija pro nome real do módulo (o token muda, o check solta);');
+    console.log('    2. rename curado     → rode scripts/governance/ghost-fix.mjs (classe A do ghost-rename-map);');
+    console.log('    3. módulo removido / nunca construído → a citação como PATH é falsa: reescreva a prosa');
+    console.log('       pra não afirmar caminho vivo. Se o nome já está em `excluded` como classe C/AMBIGUO,');
+    console.log('       o tratamento é decisão humana registrada — leve pro [W], não invente escape.');
+    console.log('    ⛔ NUNCA adicione ao baseline (o --write-baseline recusa ghost novo, por design).\n');
     process.exit(1);
   }
   console.log('  OK — nenhum ghost novo fora do baseline.\n');
@@ -499,6 +597,9 @@ const TRIAGE = loadModuleTriage();
 const rotulaGhost = (n) => {
   const c = classifyModuleGhost(n, TRIAGE);
   return c.status === 'corrigivel' ? `${n}→${c.to}`
+    // Sem este branch o status novo cairia no else e sairia rotulado `(NOVO)` — o OPOSTO
+    // do fato (é o mais decidido de todos). Rótulo que mente é pior que rótulo ausente.
+    : c.status === 'removido' ? `${n}(REMOVIDO ${c.em})`
     : c.status === 'triado' ? `${n}(${c.classe})`
     : `${n}(NOVO)`;
 };
@@ -509,7 +610,8 @@ for (const r of rows) {
   console.log(`  ${r.flag} ${r.mod.padEnd(18)} ${String(r.docs).padStart(4)} ${String(r.hops).padStart(4)}  ${r.door.padEnd(7)} ${d}`);
 }
 console.log('  ' + '─'.repeat(64));
-console.log(`\n  Ghost: \`X→Y\` = rename curado (ghost-fix resolve) · \`X(CLASSE)\` = JÁ TRIADO em`);
+console.log(`\n  Ghost: \`X→Y\` = rename curado (ghost-fix resolve) · \`X(REMOVIDO <data>\`) = módulo`);
+console.log(`  removido de fato, citação histórica ATERRADA (o --check solta) · \`X(CLASSE)\` = JÁ TRIADO em`);
 console.log(`  governance/ghost-rename-map.json (decisão tomada — não re-investigar) · \`X(NOVO)\` = fora do map.`);
 console.log(`  Ghosts que pedem olho humano (NOVO): ${ghostsNovos}`);
 console.log(`\n  Cobertura de porta:        ${withDoor}/${rows.length} (${Math.round(100*withDoor/rows.length)}%)`);
