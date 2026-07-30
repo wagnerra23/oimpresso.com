@@ -22,26 +22,26 @@
     "migratesTo"
   ],
   "stats": {
-    "modules": 40,
-    "nodes": 637,
-    "edges": 973,
+    "modules": 38,
+    "nodes": 612,
+    "edges": 933,
     "by_node_type": {
       "module": 43,
-      "table": 88,
-      "adr": 36,
-      "component": 424,
-      "api": 46
+      "table": 84,
+      "adr": 35,
+      "component": 406,
+      "api": 44
     },
     "by_edge_type": {
-      "ownsTable": 75,
+      "ownsTable": 71,
       "ownsLegacyView": 13,
       "consumesTable": 8,
-      "providesApi": 46,
-      "charteredByAdr": 35,
-      "governedByAdr": 100,
-      "hasComponent": 424,
-      "dependsOn": 140,
-      "delegatesTo": 131,
+      "providesApi": 44,
+      "charteredByAdr": 33,
+      "governedByAdr": 96,
+      "hasComponent": 406,
+      "dependsOn": 135,
+      "delegatesTo": 126,
       "migratesTo": 1
     },
     "dangling": 0
@@ -101,13 +101,6 @@
       "type": "adr",
       "num": "0061",
       "slug": "0061-conhecimento-canonico-git-mcp-zero-automem",
-      "exists": true
-    },
-    {
-      "id": "adr:0062",
-      "type": "adr",
-      "num": "0062",
-      "slug": "0062-separacao-runtime-hostinger-ct100",
       "exists": true
     },
     {
@@ -300,14 +293,6 @@
       "exists": true
     },
     {
-      "id": "api:/admin/*",
-      "type": "api",
-      "prefix": "/admin/*",
-      "providers": [
-        "Admin"
-      ]
-    },
-    {
       "id": "api:/ads/admin/*",
       "type": "api",
       "prefix": "/ads/admin/*",
@@ -481,14 +466,6 @@
       "prefix": "/manufacturing/*",
       "providers": [
         "Manufacturing"
-      ]
-    },
-    {
-      "id": "api:/memcofre/*",
-      "type": "api",
-      "prefix": "/memcofre/*",
-      "providers": [
-        "SRS"
       ]
     },
     {
@@ -666,62 +643,6 @@
       "providers": [
         "Woocommerce"
       ]
-    },
-    {
-      "id": "component:Admin/DataController",
-      "type": "component",
-      "module": "Admin",
-      "name": "DataController",
-      "desc": ""
-    },
-    {
-      "id": "component:Admin/FeatureFlagsController",
-      "type": "component",
-      "module": "Admin",
-      "name": "FeatureFlagsController",
-      "desc": ""
-    },
-    {
-      "id": "component:Admin/GovernanceV4DashboardController",
-      "type": "component",
-      "module": "Admin",
-      "name": "GovernanceV4DashboardController",
-      "desc": "Wave 24/29 Tri-pane scorecards intra-bucket Wagner-only (V1 legacy + V2 feature-flagged)"
-    },
-    {
-      "id": "component:Admin/IndexController",
-      "type": "component",
-      "module": "Admin",
-      "name": "IndexController",
-      "desc": ""
-    },
-    {
-      "id": "component:Admin/InstallController",
-      "type": "component",
-      "module": "Admin",
-      "name": "InstallController",
-      "desc": ""
-    },
-    {
-      "id": "component:Admin/MutationsController",
-      "type": "component",
-      "module": "Admin",
-      "name": "MutationsController",
-      "desc": ""
-    },
-    {
-      "id": "component:Admin/RagQualityDashboardController",
-      "type": "component",
-      "module": "Admin",
-      "name": "RagQualityDashboardController",
-      "desc": "Wave 28 §G3 RAG quality observability (KB + Jana cross-pipeline)"
-    },
-    {
-      "id": "component:Admin/ScreenReviewController",
-      "type": "component",
-      "module": "Admin",
-      "name": "ScreenReviewController",
-      "desc": "W30 Agent B Screen Review tri-pane PDCA Wagner-only (review status append-only por tela)"
     },
     {
       "id": "component:ADS/\"Api/ScopeController",
@@ -3069,76 +2990,6 @@
       "desc": ""
     },
     {
-      "id": "component:SRS/(futuro) SRS browser repurposing controllers acima",
-      "type": "component",
-      "module": "SRS",
-      "name": "(futuro) SRS browser repurposing controllers acima",
-      "desc": ""
-    },
-    {
-      "id": "component:SRS/ChatController",
-      "type": "component",
-      "module": "SRS",
-      "name": "ChatController",
-      "desc": "chat com cofre"
-    },
-    {
-      "id": "component:SRS/DashboardController",
-      "type": "component",
-      "module": "SRS",
-      "name": "DashboardController",
-      "desc": "dashboard MemCofre"
-    },
-    {
-      "id": "component:SRS/DataController + InstallController",
-      "type": "component",
-      "module": "SRS",
-      "name": "DataController + InstallController",
-      "desc": ""
-    },
-    {
-      "id": "component:SRS/Entities/Doc*",
-      "type": "component",
-      "module": "SRS",
-      "name": "Entities/Doc*",
-      "desc": "entidades (a renomear pra SRS* na Fase 3.7)"
-    },
-    {
-      "id": "component:SRS/InboxController",
-      "type": "component",
-      "module": "SRS",
-      "name": "InboxController",
-      "desc": "inbox de evidências"
-    },
-    {
-      "id": "component:SRS/IngestController",
-      "type": "component",
-      "module": "SRS",
-      "name": "IngestController",
-      "desc": "ingestão de novos docs"
-    },
-    {
-      "id": "component:SRS/MemoriaController",
-      "type": "component",
-      "module": "SRS",
-      "name": "MemoriaController",
-      "desc": "admin do cofre"
-    },
-    {
-      "id": "component:SRS/ModuloController",
-      "type": "component",
-      "module": "SRS",
-      "name": "ModuloController",
-      "desc": "gerenciamento por módulo"
-    },
-    {
-      "id": "component:SRS/Services/*",
-      "type": "component",
-      "module": "SRS",
-      "name": "Services/*",
-      "desc": "ingestão evidências (legacy — manter durante transição, depois deprecar)"
-    },
-    {
       "id": "component:Superadmin/BaseController",
       "type": "component",
       "module": "Superadmin",
@@ -3652,14 +3503,14 @@
       "id": "module:Admin",
       "type": "module",
       "module": "Admin",
-      "purpose": "Centro de Operações Wagner-only (admin.oimpresso.com em CT 100/Tailscale-only). Dashboard executivo: brief + health + cycles + ADR Tier 0 alerts. Bloqueio duro is-wagner + TailscaleOnly middleware.",
-      "trust": "L1",
-      "owner": "wagner",
-      "permission_prefix": "admin.*",
-      "charter_adr": "0122",
-      "path": "Modules/Admin/SCOPE.md",
-      "catalog_kind": "scope",
-      "catalog_status": "catalogued"
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
     },
     {
       "id": "module:ADS",
@@ -4107,14 +3958,14 @@
       "id": "module:SRS",
       "type": "module",
       "module": "SRS",
-      "purpose": "System Rules Spec — regras imutáveis pra IA programar. Append-only por trigger MySQL. Toda IA L2+ lê SRS antes de qualquer ação no código. Renomeado de MemCofre em Fase 3.7 PR-2 (2026-05-06) — rename PHP-only; URLs/permissions/config keys mantêm prefixo legacy `memcofre.*`. Repurpose funcional (cofre→SRS) ainda em transição via tabelas srs_entries futuras.",
-      "trust": "L1",
-      "owner": "wagner",
-      "permission_prefix": "memcofre.*",
-      "charter_adr": "0080",
-      "path": "Modules/SRS/SCOPE.md",
-      "catalog_kind": "scope",
-      "catalog_status": "catalogued"
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
     },
     {
       "id": "module:Superadmin",
@@ -4193,17 +4044,6 @@
       "path": "Modules/Woocommerce/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
-    },
-    {
-      "id": "table:append",
-      "type": "table",
-      "name": "append",
-      "owners": [
-        "SRS"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
     },
     {
       "id": "table:cobrancas",
@@ -4376,17 +4216,6 @@
       "name": "cross",
       "owners": [
         "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:docs_evidences",
-      "type": "table",
-      "name": "docs_evidences",
-      "owners": [
-        "SRS"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -5145,28 +4974,6 @@
       "ownership_mode": "single"
     },
     {
-      "id": "table:srs_entries",
-      "type": "table",
-      "name": "srs_entries",
-      "owners": [
-        "SRS"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:srs_entries_history",
-      "type": "table",
-      "name": "srs_entries_history",
-      "owners": [
-        "SRS"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
       "id": "table:valid",
       "type": "table",
       "name": "valid",
@@ -5179,92 +4986,6 @@
     }
   ],
   "edges": [
-    {
-      "from": "module:Admin",
-      "to": "adr:0122",
-      "type": "charteredByAdr",
-      "source": "charter_adr"
-    },
-    {
-      "from": "module:Admin",
-      "to": "module:Superadmin",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Superadmin cliente-side"
-    },
-    {
-      "from": "module:Admin",
-      "to": "module:Superadmin",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Superadmin cliente-side"
-    },
-    {
-      "from": "module:Admin",
-      "to": "adr:0062",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:Admin",
-      "to": "adr:0122",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:Admin",
-      "to": "component:Admin/DataController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Admin",
-      "to": "component:Admin/FeatureFlagsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Admin",
-      "to": "component:Admin/GovernanceV4DashboardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Admin",
-      "to": "component:Admin/IndexController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Admin",
-      "to": "component:Admin/InstallController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Admin",
-      "to": "component:Admin/MutationsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Admin",
-      "to": "component:Admin/RagQualityDashboardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Admin",
-      "to": "component:Admin/ScreenReviewController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Admin",
-      "to": "api:/admin/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
     {
       "from": "module:ADS",
       "to": "adr:0080",
@@ -7494,7 +7215,7 @@
       "to": "module:Admin",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Module Grade v4 Tri-pane Wagner-only Tailscale (/admin/governance/v4 + /admin/governance-v4)"
+      "note": "Module Grade v4 Tri-pane (era /admin/governance/v4 no Modules/Admin)"
     },
     {
       "from": "module:Governance",
@@ -7543,7 +7264,7 @@
       "to": "module:Admin",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Module Grade v4 Tri-pane Wagner-only Tailscale (/admin/governance/v4 + /admin/governance-v4)"
+      "note": "Module Grade v4 Tri-pane (era /admin/governance/v4 no Modules/Admin)"
     },
     {
       "from": "module:Governance",
@@ -10143,170 +9864,6 @@
       "source": "url_prefixes"
     },
     {
-      "from": "module:SRS",
-      "to": "adr:0080",
-      "type": "charteredByAdr",
-      "source": "charter_adr"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills (.claude/skills/*)"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:Governance",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Regras de policy runtime"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:KB",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Knowledge browsing (ADRs/sessions/specs canônicos)"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tokens MCP"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills (.claude/skills/*)"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:Governance",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Regras de policy runtime"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:KB",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Knowledge browsing (ADRs/sessions/specs canônicos)"
-    },
-    {
-      "from": "module:SRS",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tokens MCP"
-    },
-    {
-      "from": "module:SRS",
-      "to": "adr:0079",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:SRS",
-      "to": "adr:0080",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/(futuro) SRS browser repurposing controllers acima",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/ChatController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/DashboardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/DataController + InstallController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/Entities/Doc*",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/InboxController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/IngestController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/MemoriaController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/ModuloController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "component:SRS/Services/*",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:SRS",
-      "to": "table:append",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:SRS",
-      "to": "table:docs_evidences",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:SRS",
-      "to": "table:srs_entries_history",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:SRS",
-      "to": "table:srs_entries",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:SRS",
-      "to": "api:/memcofre/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
       "from": "module:Superadmin",
       "to": "adr:0080",
       "type": "charteredByAdr",
@@ -11295,11 +10852,19 @@
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
+        "module": "Admin",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
+      },
+      {
         "module": "Notas",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
         "module": "Project",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
+      },
+      {
+        "module": "SRS",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       }
     ],

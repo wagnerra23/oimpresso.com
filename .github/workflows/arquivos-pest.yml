@@ -122,7 +122,8 @@ jobs:
             --log-junit test-results/pest-arquivos-junit.xml \
             Modules/Arquivos/Tests/Feature/AuditLogActionEnumTest.php \
             Modules/Arquivos/Tests/Feature/AuditLogCommandTest.php \
-            Modules/Arquivos/Tests/Feature/DownloadAuditTest.php
+            Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
+            Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php
 
       - name: Upload JUnit (Arquivos · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.arq == 'true' }}

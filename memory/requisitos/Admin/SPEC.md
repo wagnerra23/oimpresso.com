@@ -4,7 +4,7 @@ module: Admin
 version: "1.0"
 last_updated: "2026-06-13"
 owner: wagner
-status: rascunho
+status: historical
 na_justified:
   D5: "Admin Center é Wagner-only no CT 100 via Tailscale (gate `is_wagner` + role `superadmin#1` + CIDR `100.99.0.0/16` whitelist — ADR 0122 Princípio 1+2). Cliente externo biz=4 ROTA LIVRE NÃO tem acesso por design — internet pública zera vetor de ataque. D5 cliente real não aplica."
   D4.b: "Admin Center é painel read-mostly que AGREGA visão de outros módulos (brief, health-check, cycles, ADRs) — sem state machine FSM própria. Não orquestra fluxo de negócio Eloquent; ações mutacionais limitadas a `apply` Curador, regenerate token, run-now health-check (ADR 0122 Princípio 4 read-mostly). D4.b FSM N/A."
@@ -12,7 +12,13 @@ related_adrs: [0122-admin-center-ct100, 0093-multi-tenant-isolation-tier-0, 0094
 ---
 <!-- schema-allowlist: US ativas sob "## Sprint 1 — MVP..." / "## Sprint 2 — Curador..." (tabelas US-ADM-NNN por sprint); módulo a criar, backlog organizado por sprint em vez de heading canônico "## US ativas". -->
 
-# Admin Center — Centro de Operações @ CT 100
+# Admin Center — Centro de Operações @ CT 100 (REMOVIDO)
+
+> ⛔ **MÓDULO REMOVIDO em 2026-07-29** — [ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md) (supersede a [0122](../../decisions/0122-admin-center-ct100.md)).
+>
+> `Modules/Admin/` e `resources/js/Pages/Admin/` não existem mais. Este documento fica como **histórico** porque as duas ADRs o referenciam e ADR é append-only — não se conserta link nelas.
+>
+> **Não use como estado atual.** O painel nunca entrou em operação: `/admin/*` respondia 403 fora do Tailscale, `mcp_admin_audit_log` tinha 0 linhas em produção e `US-ADM-002`/`US-ADM-010` (DNS + smoke) nunca fecharam. O que valia resgate saiu antes: o gerador de UI-CATALOG foi pra `Modules/Governance` e o `CuradorStatsReader` pra `Modules/Arquivos`.
 
 > **N/A justificado** D5 + D4.b — Wagner-only no CT 100 (Tailscale-only, sem cliente externo) e painel read-mostly que agrega outros módulos (sem FSM própria). Detalhes em [ADR 0122](../../decisions/0122-admin-center-ct100.md).
 

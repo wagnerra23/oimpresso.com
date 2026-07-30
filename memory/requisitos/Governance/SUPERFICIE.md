@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 143 arquivos em 14 papéis.
+**Total mapeado:** 145 arquivos em 14 papéis.
 
 ## Controllers — 8
 
@@ -77,7 +77,7 @@ module: Governance
 
 - [Initiative.php](../../../Modules/Governance/Entities/Initiative.php)
 
-## Console / Commands — 17
+## Console / Commands — 18
 
 - [AdrReviewFlushCommand.php](../../../Modules/Governance/Console/Commands/AdrReviewFlushCommand.php)
 - [CharterAuditCommand.php](../../../Modules/Governance/Console/Commands/CharterAuditCommand.php)
@@ -96,6 +96,7 @@ module: Governance
 - [ScorecardInitiativeSyncCommand.php](../../../Modules/Governance/Console/Commands/ScorecardInitiativeSyncCommand.php)
 - [ScorecardSnapshotCommand.php](../../../Modules/Governance/Console/Commands/ScorecardSnapshotCommand.php)
 - [SddScorecardSnapshotCommand.php](../../../Modules/Governance/Console/Commands/SddScorecardSnapshotCommand.php)
+- [UiCatalogGenerateCommand.php](../../../Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php)
 
 ## Providers — 1
 
@@ -138,9 +139,9 @@ module: Governance
 
 - [DsRollout.casos.md](../../../resources/js/Pages/governance/DsRollout.casos.md)
 
-## Testes (Pest) — 54
+## Testes (Pest) — 55
 
-- 54 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 55 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 3
 

@@ -16,6 +16,8 @@ const LEIS = `Working dir D:/oimpresso.com.
 - Leia CLAUDE.md + memory/proibicoes.md §5 antes de agir.
 - Presença ≠ correção: tocar doc, bumpar data ou melhorar parcialmente a nota NÃO fecha.
 - Use node scripts/governance/documentation-loop.mjs --snapshot --json como inventário.
+- Em PR, use --impact-ref origin/main --head-ref HEAD --json para cobrar módulos diretos,
+  vizinhos de 1 salto e os documentos donos; CI roteia, mas NÃO edita.
 - Todo achado aterrissa no DONO EXISTENTE (memory-health, briefing-code-staleness ou doc-freshness); zero gate/baseline/ledger novo.
 - ADR aceita e handoff antigo são append-only. Nunca os edite para apagar alerta; use supersede/tombstone/ponteiro vivo quando aplicável.
 - Não mexa em valor/estoque, PII, tenant ou prod. Se o alvo tocar Tier 0, pare e escale.
@@ -79,8 +81,14 @@ CORREÇÃO REPORTADA: ${JSON.stringify(correction)}
 
 Rode exatamente:
 node scripts/governance/documentation-loop.mjs --compare-ref origin/main --expect "${selected.issue_id}" --json
+node scripts/governance/documentation-loop.mjs --impact-ref origin/main --head-ref HEAD --json
 
-O exit precisa ser 0, missing_expected precisa ser [], e o ID deve estar em resolved. Se a métrica só mudou mas o ID continuou, REPROVE. Rode também o selftest do script e o verificador dono. Retorne os outputs essenciais e veredito APROVADO/REPROVADO.`, { label: 'docs:recibo', phase: 'Recibo' })
+O exit precisa ser 0, missing_expected e receipt_evidence.rejected precisam ser [], executed
+precisa ser true e o ID deve estar em resolved. Se a métrica só mudou, a porta foi apagada,
+o conteúdo foi esvaziado ou só o carimbo de data mudou, REPROVE. Rode também o selftest do script
+e o verificador dono. Nesta fase, `worktree_files` DEVE listar a correção ainda não commitada;
+`changed_files: []` é REPROVAÇÃO, não "sem impacto". Retorne os outputs essenciais e veredito
+APROVADO/REPROVADO.`, { label: 'docs:recibo', phase: 'Recibo' })
 
 phase('Entrega')
 const handoff = await agent(`Prepare a entrega do ciclo documental, sem merge. ${LEIS}
@@ -90,6 +98,10 @@ CORREÇÃO: ${JSON.stringify(correction)}
 RECIBO: ${JSON.stringify(receipt)}
 
 Se e somente se o recibo foi APROVADO:
+- faça commit no branch próprio com a correção e o registro exigido pelo protocolo;
+- rode novamente os dois comandos da fase Recibo acrescentando `--require-clean`;
+- o recibo final só passa com `worktree_files: []`, o alvo dentro de `changed_files`, o mesmo ID
+  em `resolved` e `receipt_evidence.rejected: []`;
 - produza corpo curto de PR com trailer \`Documentation-Receipt: ${selected.issue_id}\`;
 - inclua antes→depois do MESMO detector;
 - inclua a confirmação pós-merge obrigatória: no main, o próximo ZELADOR roda snapshot e prova que o ID segue ausente;

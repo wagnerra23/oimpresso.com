@@ -48,7 +48,7 @@ Add-on vertical de comunicação visual / gráfica rápida sobre o núcleo oimpr
 - ❌ **Boleto/assinatura/cobrança recorrente** → vive em `Modules/RecurringBilling`
 - ❌ **Multi-tenant `business_id` global scope** → infraestrutura núcleo Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - ❌ **Jana IA / memória persistente** → vive em `Modules/Jana`
-- ❌ **Cofre de senhas/credenciais (cert digital A1)** → vive em `Modules/SRS`
+- ❌ **Cert digital A1** → **`Modules/NfeBrasil`** (tabela `nfe_certificados` + `CertificadoService`). Antes dizia o módulo `SRS`, que nunca guardou credencial (o SCOPE dele era "cofre de **evidências**") e foi removido em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)).
 - ❌ **Estoque por SKU+tamanho+cor / etiqueta de preço de balcão** — isso é de `Modules/Vestuario`
 - ❌ **Kanban genérico drag-drop** — `Modules/Repair` é shared infra ([ADR 0121 §P8](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)); ComunicacaoVisual consome com vocabulário gráfico (etapa/OS, não placa/veículo)
 - ❌ **DAM/MubiDrive own-built** — UI de catálogo de arquivos é P2 (US-COMVIS-012); storage S3-compatible (Wasabi/Minio CT 100), não own-built de cara
@@ -154,7 +154,8 @@ Add-on vertical de comunicação visual / gráfica rápida sobre o núcleo oimpr
 | `Modules/Jana` (Jana) | Chat contextual + 3 ângulos faturamento + bulk update materiais + brief diário | consome |
 | `Modules/RecurringBilling` | Trigger boleto pago → NFe automática (US-COMVIS-009) | consome |
 | `Modules/Repair` | Kanban drag-drop multi-etapa (US-COMVIS-003) — Repair é shared infra com override de labels gráfico | consome shared infra |
-| `Modules/SRS` | Cofre cert digital A1, login fornecedor (Roland/Mimaki SDK futuro), webservice prefeitura NFSe | consome opcional |
+| `Modules/NfeBrasil` | **Cert digital A1** — `nfe_certificados` + `CertificadoService` (dono medido em prod) | consome |
+| _(sem dono definido)_ | Login fornecedor (Roland/Mimaki SDK futuro), credencial webservice prefeitura NFSe — **decisão futura**. Antes atribuído ao módulo `SRS`, que nunca guardou credencial e foi removido (ADR 0357) | — |
 | Núcleo UltimatePOS | `business_id`, users, roles, locations, `transactions`, `contacts`, `variations` (custom fields gramatura/categoria) | base |
 
 **Inverso:** Modules/ComunicacaoVisual **não é consumido** por outros módulos verticais — cada vertical é independente (princípio P2 ADR 0121). `Modules/Vestuario` e `Modules/OficinaAuto` (futuro) seguem mesmo formato sem dependência cruzada.

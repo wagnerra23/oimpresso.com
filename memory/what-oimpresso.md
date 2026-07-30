@@ -55,7 +55,6 @@ oimpresso (núcleo comum)
 ├── Modules/NfeBrasil     (NFe/NFC-e/NFSe)
 ├── Modules/RecurringBilling (assinaturas + boletos)
 ├── Modules/PaymentGateway   (🟡 parcial — código real (drivers Inter/C6/Asaas/PixAuto/CNAB + webhooks + 47 testes) porém flags OFF em prod; boleto Inter disponível — ADR 0170, extração de RecurringBilling)
-├── Modules/SRS           (Software Requirements System, ex-MemCofre — uso interno raro)
 ├── Modules/Repair        (Kanban OS — shared infrastructure entre verticais)
 └── Modules/<Vertical>    ← ESPECIALIZAÇÕES PROFUNDAS
     ├── Vestuario              ✅ em prod (ROTA LIVRE) — CNAE 4781-4/00

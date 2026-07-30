@@ -1,7 +1,7 @@
 ---
 number: 122
 title: Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega)
-status: aceito
+status: superseded
 decided_at: "2026-05-09"
 decided_by: [W]
 supersedes: []
@@ -14,7 +14,8 @@ references:
   - 0093-multi-tenant-isolation-tier-0.md
   - 0094-constituicao-v2-7-camadas-8-principios.md
   - 0124-curador-conhecimento-pipeline.md
-lifecycle: ativo
+lifecycle: substituido
+superseded_by: ['0360-deprecacao-admin-center-supersede-0122']
 slug: 0122-admin-center-ct100
 type: adr
 authority: canonical

@@ -242,9 +242,11 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Refs:** [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md), depende de US-INFRA-006
 
-### US-INFRA-008 · Feature Flag Control (3 canais: Artisan/MCP/Painel)
+### US-INFRA-008 · Feature Flag Control (2 canais: Artisan/MCP)
 
-**Implementado em:** `app/Services/GrowthBookAdminService.php` · `app/Console/Commands/FeatureFlag/FlagSetCommand.php` · `Modules/Jana/Mcp/Tools/FlagSetTool.php` · `Modules/Admin/Http/Controllers/FeatureFlagsController.php` · `Modules/Admin/Tests/Feature/FeatureFlagsControllerTest.php` · verificado@8af585a (2026-07-02) — 3 canais (Artisan flag:* + tools MCP flag-* + painel `/admin/feature-flags`) + `FeatureFlagAudit` append-only + RUNBOOK-feature-flag-control.md
+**Implementado em:** `app/Services/GrowthBookAdminService.php` · `app/Console/Commands/FeatureFlag/FlagSetCommand.php` · `Modules/Jana/Mcp/Tools/FlagSetTool.php` · verificado@8af585a (2026-07-02) — 2 canais (Artisan `flag:*` + tools MCP `flag-*`) + `FeatureFlagAudit` append-only + RUNBOOK-feature-flag-control.md
+
+> **De 3 canais para 2 em 2026-07-29** ([ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md), decisão [W]): o 3º canal era o painel `/admin/feature-flags` (`Modules/Admin/Http/Controllers/FeatureFlagsController.php` + teste), removido com a depreciação do Admin Center. **Zero perda de capacidade** — o motor (`GrowthBookAdminService` + `FeatureFlagAudit` + migration) vive em `app/`, e Artisan e MCP auditam na mesma tabela. O painel nunca foi alcançável: `/admin/*` respondia 403 fora do Tailscale.
 
 > owner: wagner · priority: p1 · estimate: 4h · status: done · type: story · origin: emergencia-rollback-sells-v2-2026-05-13
 > blocked_by: US-INFRA-001

@@ -22,7 +22,7 @@ Gerado por `php artisan module:specs` em 2026-05-29 08:06.
 | 12 | [Fiscal](Fiscal.md) | média | médio | 17 | 0 | 0 | 0 | 3 |
 | 13 | [SRS](SRS.md) | média | médio | 17 | 0 | 8 | 2 | 3 |
 | 14 | [TeamMcp](TeamMcp.md) | média | médio | 18 | 0 | 3 | 0 | 3 |
-| 15 | [Admin](Admin.md) | média | médio | 20 | 0 | 1 | 0 | 3 |
+| 15 | ~~[Admin](Admin.md)~~ ⛔ removido 2026-07-29 (ADR 0360) | — | — | — | — | — | — | — |
 | 16 | [PaymentGateway](PaymentGateway.md) | média | médio | 22 | 0 | 9 | 0 | 3 |
 | 17 | [ProjectMgmt](ProjectMgmt.md) | média | médio | 23 | 0 | 0 | 0 | 3 |
 | 18 | [AssetManagement](AssetManagement.md) | média | médio | 11 | 17 | 7 | 6 | 4 |

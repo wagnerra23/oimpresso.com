@@ -84,7 +84,45 @@ class DataController extends Controller
                 'label'   => __('copiloto::copiloto.permissao_admin_custos'),
                 'default' => false,
             ],
+            ...$this->mcpScopePermissions(),
         ];
+    }
+
+    /**
+     * Scopes MCP (`jana.mcp.*`) como checkbox na tela de roles.
+     *
+     * POR QUE EXISTE (incidente 2026-07-29, 4ª volta da mesma classe):
+     * `RoleController@update` faz `syncPermissions($request->input('permissions'))`,
+     * que é DESTRUTIVO — remove toda permission que não veio no POST. Como
+     * nenhum módulo expunha os `jana.mcp.*` aqui, eles não viravam checkbox,
+     * não iam no POST, e **qualquer save de qualquer role apagava a família
+     * inteira**. Em 29/07 um save na role `Operacional#1` (biz=1) zerou os 17
+     * scopes e derrubou o MCP dos 4 users do time (WR23, Felipe, Maiara, Luiz):
+     * token válido + `403 no_permission` no gate `jana.mcp.use`.
+     *
+     * A prova de que era isso e não outra coisa: depois do save, o conjunto
+     * `jana.*` da role era EXATAMENTE os 5 itens que este método devolvia.
+     *
+     * DERIVADO, não escrito à mão (ADR 0256): a lista vem do catálogo do
+     * `McpScopesSeeder` — a mesma fonte que cria as Spatie permissions. Scope
+     * novo no seeder aparece aqui sozinho. `McpScopesVisiveisNoRoleEditTest`
+     * trava a paridade.
+     *
+     * `default => false` de propósito: aparecer na tela ≠ vir marcado. Quem
+     * concede é o admin do business (Camada 3, multi-tenant).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function mcpScopePermissions(): array
+    {
+        return array_map(
+            static fn (array $scope): array => [
+                'value'   => $scope['slug'],
+                'label'   => 'MCP: '.$scope['nome'],
+                'default' => false,
+            ],
+            \Modules\Jana\Database\Seeders\McpScopesSeeder::catalogo()
+        );
     }
 
     /**

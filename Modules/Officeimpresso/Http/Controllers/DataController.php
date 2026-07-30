@@ -35,8 +35,24 @@ class DataController extends Controller
     {
         return [
             [
+                // Leitura da gestão de licenças de TODAS as empresas licenciadas
+                // (empresas, máquinas, pacote, log de acesso). É a visão de
+                // suporte: quem atende o cliente precisa ver a máquina DELE, não
+                // a própria. Declarada desde 2026-04-26 mas só passou a ser
+                // exigida pelos controllers em 2026-07-29 — até então o grupo
+                // /officeimpresso/* pedia apenas `auth`.
                 'value' => 'officeimpresso.access',
                 'label' => __('officeimpresso::lang.officeimpresso_module'),
+                'default' => false,
+            ],
+            [
+                // Escrita em máquina individual: liberar/bloquear (toggle-block),
+                // criar e editar licença. É a tarefa de assistência do dia a dia,
+                // delegável ao suporte sem `superadmin`. Ações de escopo
+                // empresa-inteira (versão obrigatória, bloquear o cliente todo) e
+                // exclusão seguem superadmin-only.
+                'value' => 'officeimpresso.licencas.gerenciar',
+                'label' => 'Office Impresso: liberar/bloquear máquinas (suporte)',
                 'default' => false,
             ],
             [
@@ -54,10 +70,15 @@ class DataController extends Controller
     /**
      * Adds Officeimpresso menus a sidebar admin.
      *
-     * Superadmin vê a gestão completa (Computadores + Clientes + Licenças +
-     * Logs). Quem tem só a permissão delegada `officeimpresso.clientes.liberar`
-     * (ex.: atendente com login próprio) vê APENAS o atalho de Clientes — sem
-     * abrir o Financeiro. Ordem 2 (logo depois de Superadmin order 1).
+     * O menu é montado por permissão, não por cargo. Cada nível vê só os
+     * atalhos que consegue abrir — e os controllers barram por conta própria
+     * (`abort_unless`), então o menu é conveniência, nunca a autorização:
+     *
+     * - `superadmin` .................. tudo
+     * - `officeimpresso.access` ....... Empresas + Computadores + Licenças + Logs (suporte)
+     * - `officeimpresso.clientes.liberar` ... apenas Clientes (credenciais OAuth)
+     *
+     * Ordem 2 (logo depois de Superadmin order 1).
      *
      * @return null
      */
@@ -68,46 +89,60 @@ class DataController extends Controller
         }
 
         $isSuperadmin = auth()->user()->can('superadmin');
-        $canLiberarClientes = auth()->user()->can('officeimpresso.clientes.liberar');
+        $canAccess = $isSuperadmin || auth()->user()->can('officeimpresso.access');
+        $canLiberarClientes = $isSuperadmin || auth()->user()->can('officeimpresso.clientes.liberar');
         $module_util = new ModuleUtil();
 
-        // Sem acesso (nem superadmin nem delegado) OU módulo não instalado → nada.
-        if ((! $isSuperadmin && ! $canLiberarClientes) || ! $module_util->isModuleInstalled('Officeimpresso')) {
+        // Sem nenhuma permissão do módulo OU módulo não instalado → nada.
+        if ((! $canAccess && ! $canLiberarClientes) || ! $module_util->isModuleInstalled('Officeimpresso')) {
             return;
         }
 
         // ADR 0180 Fase 4 Wave E — Officeimpresso é ghost virtual de Plataforma
-        // no grupo canon `sistema` v3. `primary` = "Novo cliente"; os `ghosts`
-        // variam por nível: superadmin vê tudo, delegado vê só Clientes.
-        if ($isSuperadmin) {
-            $baseUrl = action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'computadores']);
-            $ghosts = [
-                ['key' => 'computadores',       'label' => 'Computadores', 'href' => '/officeimpresso/computadores'],
-                ['key' => 'client',             'label' => 'Clientes',     'href' => '/officeimpresso/client'],
-                ['key' => 'licenca_computador', 'label' => 'Licenças',     'href' => '/officeimpresso/licenca_computador'],
-                ['key' => 'licenca_log',        'label' => 'Logs',         'href' => '/officeimpresso/licenca_log'],
-            ];
-        } else {
-            $baseUrl = '/officeimpresso/client';
-            $ghosts = [
-                ['key' => 'client', 'label' => 'Clientes', 'href' => '/officeimpresso/client'],
+        // no grupo canon `sistema` v3. Ghosts montados por permissão.
+        $ghosts = [];
+
+        if ($canAccess) {
+            $ghosts[] = ['key' => 'businessall',        'label' => 'Empresas',     'href' => '/officeimpresso/businessall'];
+            $ghosts[] = ['key' => 'computadores',       'label' => 'Computadores', 'href' => '/officeimpresso/computadores'];
+        }
+
+        if ($canLiberarClientes) {
+            $ghosts[] = ['key' => 'client',             'label' => 'Clientes',     'href' => '/officeimpresso/client'];
+        }
+
+        if ($canAccess) {
+            $ghosts[] = ['key' => 'licenca_computador', 'label' => 'Licenças',     'href' => '/officeimpresso/licenca_computador'];
+            $ghosts[] = ['key' => 'licenca_log',        'label' => 'Logs',         'href' => '/officeimpresso/licenca_log'];
+        }
+
+        // Base = a primeira tela que o usuário consegue abrir.
+        $baseUrl = $canAccess
+            ? action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'computadores'])
+            : '/officeimpresso/client';
+
+        // `primary` só pra quem consegue abrir a tela — sem isso o atalho
+        // levaria o suporte (que tem `access` mas não `clientes.liberar`)
+        // direto pra um 403.
+        $options = [
+            'icon'   => 'fa fas fa-plug',
+            'active' => request()->segment(1) == 'officeimpresso',
+            'ghosts' => $ghosts,
+        ];
+
+        if ($canLiberarClientes) {
+            $options['primary'] = [
+                'label'    => 'Novo cliente',
+                'href'     => '/officeimpresso/client/create',
+                'shortcut' => 'N',
             ];
         }
 
-        Menu::modify('admin-sidebar-menu', function ($menu) use ($baseUrl, $ghosts) {
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($baseUrl, $options) {
             $menu->url(
                 $baseUrl,
                 __('officeimpresso::lang.officeimpresso'),
-                [
-                    'icon'    => 'fa fas fa-plug',
-                    'active'  => request()->segment(1) == 'officeimpresso',
-                    'primary' => [
-                        'label'    => 'Novo cliente',
-                        'href'     => '/officeimpresso/client/create',
-                        'shortcut' => 'N',
-                    ],
-                    'ghosts'  => $ghosts,
-                ]
+                $options
             )->order(2);
         });
     }

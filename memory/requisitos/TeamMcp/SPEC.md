@@ -130,7 +130,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - ❌ Knowledge browsing (ADRs/sessions UI) → `Modules/KB`
 - ❌ Skills governance + Brain A/B → `Modules/ADS`
 - ❌ Policies executáveis runtime → `Modules/Governance` (Fase 5)
-- ❌ System Rules Spec → `Modules/SRS` (futuro SRS)
+- ❌ ~~System Rules Spec → módulo `SRS` (futuro)~~ — o repurpose "System Rules Spec" **nunca foi executado** e o módulo foi removido em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)). As regras vivem em ADR + `memory/proibicoes.md` + skills, não em tabela.
 
 ## Métricas de saúde
 

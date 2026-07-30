@@ -465,6 +465,25 @@ const CATRACAS = [
     expect: { good: /nenhum ghost novo/, bad: /GhostNovo/ },
   },
   {
+    // PROSA NÃO DESARMA O TOKEN (2026-07-30). Por ~7 semanas o --check anunciou um escape
+    // valve — «marque "(planejado — não existe)"» — que NUNCA existiu no código (nasceu com
+    // a catraca, cab11a2caa/#2591 2026-06-12; removido em #5053). Implementá-lo seria
+    // presence-gate sobre TEXTO, família banida em proibicoes.md §5 2026-07-09 — então o
+    // contrato a defender é "prosa ao lado nunca solta", não "o marcador funciona".
+    //
+    // POR QUE AQUI E NÃO NO --selftest do knowledge-drift: os 3 asserts que #5053 adicionou
+    // lá pinam o `MOD_REF_RE` (regex de UMA linha que ninguém tem motivo pra mexer), não o
+    // `scanGhostsByModule` (não exportado) — que é onde um implementador real poria o escape.
+    // MEDIDO por mutação em 2026-07-30: implementei o escape em scanGhostsByModule e o
+    //   --selftest seguiu exit 0  ·  --check flipou 1 NOVOS/exit 1 → 0 NOVOS/exit 0.
+    // Ou seja, o escape podia voltar com o "bite-test" verde. Esta fixture morde isso: ela
+    // exercita o --check DE FORA (sandbox por cwd), então qualquer caminho de implementação
+    // do marcador a derruba. O par `good` fixa o release real — o token deixar de existir.
+    id: 'knowledge-drift-prosa',
+    run: (kind) => runNode(script('knowledge-drift', 'scripts/governance/knowledge-drift.mjs'), ['--check'], join(FIX, 'knowledge-drift-prosa', kind)),
+    expect: { good: /nenhum ghost novo/, bad: /GhostNovo/ },
+  },
+  {
     id: 'foundation-ratchet',
     run: (kind) => {
       const fx = join(ROOT, 'scripts', 'tests', 'fixtures', 'foundation-ratchet', kind);

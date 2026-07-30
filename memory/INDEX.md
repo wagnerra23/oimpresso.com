@@ -29,7 +29,7 @@
 | Camada (arc42) | Doc canônico |
 |---|---|
 | **Vista geral + escopo + responsabilidade/módulo** | **[governance/ARCHITECTURE.md](governance/ARCHITECTURE.md)** — vista 1-slide · módulos estado/destino · **trust level por módulo** · princípios modulares · fases. |
-| **Building blocks (detalhe por módulo)** | `Modules/<X>/SCOPE.md` (36 — missão/responsabilidade de cada um) + [modulos/INDEX.md](modulos/INDEX.md) (catálogo auto-gerado por `php artisan module:specs`) |
+| **Building blocks (detalhe por módulo)** | `Modules/<X>/SCOPE.md` (missão/responsabilidade de cada um) + inventário vivo em [reference/PAINEL-SISTEMA.md](reference/PAINEL-SISTEMA.md) §"Módulos & verticais" |
 | **Deployment / onde roda / como acessar** | **[reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md)** (Hostinger · CT100 · MCP · Meilisearch · deploy) |
 | **Crosscutting** | [governance/](governance/) (Constituição · Trust-Tiers · Enforcement · Drift Framework → `governance:audit`) |
 | **Decisões (por quê)** | [decisions/](decisions/) (ADRs Nygard) — via `decisions-search` |
@@ -110,7 +110,7 @@
 
 - **[reference/](reference/)** — conhecimento canon migrado de auto-mem (post-G1, ADRs [0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)/[0131](decisions/0131-tiering-memoria-canonico-local-segredo.md))
   - 🖥️ **[reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md)** — **mapa ÚNICO de acesso a TODA máquina** (CT 100 via `tailscale ssh root@ct100-mcp`, Hostinger SSH, deploy do MCP, Meilisearch, DNS, secrets). Claude NUNCA diz "não tenho acesso". + [hostinger.md](reference/hostinger.md)
-- [modulos/](modulos/) — 44 specs auto-geradas (36 ativos · re-index 2026-05-29) via `php artisan module:specs` + [INDEX.md](modulos/INDEX.md) + [RECOMENDACOES.md](modulos/RECOMENDACOES.md)
+- [modulos/](modulos/) — catálogo **cross-branch** gerado por `php artisan module:specs` (última corrida 2026-05-29; o gerador **não tem invocador de cron/CI** — corrida é manual). Não é o inventário de "quais módulos existem hoje" (esse é o [PAINEL-SISTEMA](reference/PAINEL-SISTEMA.md) §"Módulos & verticais"): aqui vive o que o PAINEL **não** tem — rotas/views/migrations/permissões/hooks por módulo + prioridade/risco + os **8 perdidos na migração 3.7 → 6.7**, que são cross-branch e **não-deriváveis da árvore atual**. ⚠️ **15 arquivos descrevem módulo que já não existe** (Accounting, AiAssistance, BI, Boleto, Chat, Dashboard, Grow, Help, IProduction, Knowledgebase, Officeimpresso1, PontoWr2, Project, Writebot, codecanyon-ticketing) — histórico, não estado. O [RECOMENDACOES.md](modulos/RECOMENDACOES.md) é julgamento à mão de 2026-04-22 e **errou o caso central** (mandou descartar a Jana, hoje o módulo central de IA) — ler como registro datado, nunca como recomendação.
 - [governance/](governance/) — [CONSTITUTION.md](governance/CONSTITUTION.md), [TRUST-TIERS.md](governance/TRUST-TIERS.md), [IDENTITY-MESH.md](governance/IDENTITY-MESH.md), [ENFORCEMENT.md](governance/ENFORCEMENT.md), [MODULE-DRIFT-MIGRATION-PLAN.md](governance/MODULE-DRIFT-MIGRATION-PLAN.md)
 - [comparativos/](comparativos/) — análises CAPTERRA + concorrentes (memória, RAG, sites)
 - [audits/](audits/) — auditorias históricas ([2026-05-pre-sales/](audits/2026-05-pre-sales/))

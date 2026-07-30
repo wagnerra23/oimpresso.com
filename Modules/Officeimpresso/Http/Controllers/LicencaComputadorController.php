@@ -23,10 +23,60 @@ class LicencaComputadorController extends Controller
     }
 
     /**
+     * Autoriza a LEITURA da gestão de licenças (empresas licenciadas, máquinas,
+     * pacote). Aceita o `superadmin` (acesso histórico) OU a permissão delegável
+     * `officeimpresso.access`, que pode ser concedida ao suporte com login
+     * próprio SEM abrir o Financeiro (gated por `superadmin`).
+     *
+     * Antes desta guarda o grupo de rotas /officeimpresso/* pedia só `auth` —
+     * o menu escondia os links (DataController::modifyAdminMenu) mas a URL
+     * direta era acessível a QUALQUER usuário autenticado, de qualquer
+     * business. Esconder link não é autorização.
+     */
+    private function authorizeAccess(): void
+    {
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('officeimpresso.access'),
+            403,
+            'Unauthorized action.'
+        );
+    }
+
+    /**
+     * Autoriza ESCRITA em máquina individual (liberar/bloquear, criar, editar).
+     * É a tarefa de assistência do dia a dia — delegável ao suporte via
+     * `officeimpresso.licencas.gerenciar`.
+     *
+     * Ações que atingem a EMPRESA inteira do cliente (businessupdate — versão
+     * obrigatória de todos os desktops; businessbloqueado — derruba o cliente
+     * inteiro) e destroy() seguem superadmin-only.
+     */
+    private function authorizeGerenciar(): void
+    {
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+            403,
+            'Unauthorized action.'
+        );
+    }
+
+    /**
+     * Autoriza ações destrutivas ou de escopo empresa-inteira — superadmin-only.
+     */
+    private function authorizeSuperadmin(): void
+    {
+        abort_unless(auth()->user()->can('superadmin'), 403, 'Unauthorized action.');
+    }
+
+    /**
      * Display a listing of all resources.
      */
     public function index()
     {
+        $this->authorizeAccess();
+
         $business_id = request()->session()->get('user.business_id');
         $licencas = $this->licencaService->listarPorEmpresa($business_id);
 
@@ -38,6 +88,8 @@ class LicencaComputadorController extends Controller
      */
     public function computadores()
     {
+        $this->authorizeAccess();
+
         $business_id = request()->session()->get('user.business_id');
 
         $active = Subscription::active_subscription($business_id);
@@ -54,6 +106,8 @@ class LicencaComputadorController extends Controller
      */
     public function viewLicencas($id)
     {
+        $this->authorizeAccess();
+
         $active = Subscription::active_subscription($id);
         $package = $active ? Package::find($active->package_id) : null;
 
@@ -68,6 +122,8 @@ class LicencaComputadorController extends Controller
      */
     public function businessall()
     {
+        $this->authorizeAccess();
+
         $business = $this->licencaService->listarEmpresasComDesktop();
 
         return view('officeimpresso::licenca_computador.businessall', compact('business'));
@@ -78,6 +134,8 @@ class LicencaComputadorController extends Controller
      */
     public function create()
     {
+        $this->authorizeGerenciar();
+
         return view('officeimpresso::licenca_computador.create');
     }
 
@@ -86,6 +144,8 @@ class LicencaComputadorController extends Controller
      */
     public function edit($id)
     {
+        $this->authorizeGerenciar();
+
         $business_id = request()->session()->get('user.business_id');
         $licenca = $this->licencaService->buscarParaEdit((int) $id, (int) $business_id);
 
@@ -94,6 +154,8 @@ class LicencaComputadorController extends Controller
 
     public function store(StoreLicencaRequest $request)
     {
+        $this->authorizeGerenciar();
+
         $computador = $this->licencaService->criar($request->validated());
 
         return response()->json($computador, 201);
@@ -101,6 +163,8 @@ class LicencaComputadorController extends Controller
 
     public function show($id)
     {
+        $this->authorizeAccess();
+
         $computador = Licenca_Computador::find($id);
         if (! $computador) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
@@ -110,6 +174,8 @@ class LicencaComputadorController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->authorizeGerenciar();
+
         $validated = $request->validate([
             'licenca_id' => 'required|exists:licenca,id',
             'hd' => 'required|unique:licenca_computador,hd,' . $id,
@@ -128,6 +194,8 @@ class LicencaComputadorController extends Controller
 
     public function destroy($id)
     {
+        $this->authorizeSuperadmin();
+
         $ok = $this->licencaService->remover((int) $id);
         if (! $ok) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
@@ -137,6 +205,8 @@ class LicencaComputadorController extends Controller
 
     public function toggleBlock(RevokeLicencaRequest $request, $id)
     {
+        $this->authorizeGerenciar();
+
         try {
             $this->licencaService->alternarBloqueio((int) $id);
             return redirect()->back()->with('status', 'Status de bloqueio alterado com sucesso.');
@@ -147,6 +217,8 @@ class LicencaComputadorController extends Controller
 
     public function businessupdate(Request $request, $id)
     {
+        $this->authorizeSuperadmin();
+
         try {
             $request->validate([
                 'caminho_banco' => 'nullable|string|max:255',
@@ -167,6 +239,8 @@ class LicencaComputadorController extends Controller
 
     public function businessbloqueado($id)
     {
+        $this->authorizeSuperadmin();
+
         try {
             $this->licencaService->alternarBloqueioEmpresa((int) $id);
             return redirect()->back()->with('status', 'Status de bloqueio alterado com sucesso!');

@@ -18,7 +18,7 @@ not_contains:
   - "Identity Mesh (mcp_actors) UI → Modules/TeamMcp"
   - "Knowledge browsing (ADRs read-only) → Modules/KB"
   - "Constitution doc edit → memory/governance/CONSTITUTION.md (não DB)"
-  - "Module Grade v4 Tri-pane Wagner-only Tailscale (/admin/governance/v4 + /admin/governance-v4) → Modules/Admin (ADR 0122 — separação intencional, Centro de Operações CT 100 Wagner-only, NÃO unificar)"
+  - "Module Grade v4 Tri-pane (era /admin/governance/v4 no Modules/Admin) → REMOVIDO com o Admin Center em 2026-07-29 (ADR 0360 supersede 0122); a fronteira não existe mais"
   - "MCP usage cross-team dashboard (/jana/admin/governanca) → Modules/Jana (drift — migrar pra cá Fase 5, ver drift_alerts)"
 trust_required: L1
 owner: wagner

@@ -19,6 +19,10 @@ Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeConsensusTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
+# Scopes MCP visíveis na tela de roles (incidente 2026-07-29 — save de role fazia
+# syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
+# DB-less: compara catálogo do seeder × user_permissions(). sqlite-safe.
+Modules/Jana/Tests/Feature/McpScopesVisiveisNoRoleEditTest.php
 # Poda preventiva de mcp_memory_documents_history (incidente 2026-06-21 — 5 GB → cota → revogou escrita). Schema sintético, sqlite-safe.
 Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
@@ -76,6 +80,8 @@ Modules/Governance/Tests/Feature/AgentOutcomeBriefSectionServiceTest.php
 Modules/Governance/Tests/Feature/ObraParadaBriefLineServiceTest.php
 # FLAG de EXPOSIÇÃO TIER-0 × cobertura no brief (sentinela ADR 0256 → canal brief) — Process::fake, sem DB.
 Modules/Governance/Tests/Feature/ExposicaoTier0BriefLineServiceTest.php
+# Registro do governance:ui-catalog-generate no Artisan (resgatado do Modules/Admin, onde vivia sem registro) — filesystem + Artisan::all, sem DB.
+Modules/Governance/Tests/Feature/UiCatalogGenerateCommandTest.php
 tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
 # Emissão OTel GenAI (MEM-OTEL-1 · ADR 0051) — Log::shouldReceive + reflexão, sem DB.
 # Nenhum workflow rodava este arquivo: a asserção biz=4 (cliente ROTA LIVRE, viola
