@@ -66,22 +66,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 332,
+      "value": 340,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "bc7060d514a54eee",
+        "floor_files_hash": "b387d15388b36bf2",
         "runs": [
-          {
-            "sha": "8ae17699",
-            "ts": "20260727-020001",
-            "failed": 637,
-            "errors": 475,
-            "skipped": 2229,
-            "all_shards_measured": true
-          },
           {
             "sha": "92b0f655",
             "ts": "20260728-020001",
@@ -91,15 +83,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "2829d201",
             "ts": "20260729-020001",
             "failed": 682,
             "errors": 426,
             "skipped": 2260,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260730-020001",
+            "failed": 650,
+            "errors": 477,
+            "skipped": 2242,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260729-020001",
+        "computed_at": "20260730-020001",
         "intersection_of": 3
       },
       "stream": "FV"
