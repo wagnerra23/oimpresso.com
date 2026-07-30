@@ -14,6 +14,40 @@ id: requisitos-governance-deprecation-plan
 > O veredito **não muda** — o bloqueador sempre foi Brief + Admin + o contrato `DriftChecker`, nunca o SRS.
 > **Precedentes de formato:** [SRS](../SRS/DEPRECATION-PLAN.md) · [Accounting](../Accounting/DEPRECATION-PLAN.md) · [Crm pipeline](../Crm/DEPRECATION-PLAN-pipeline.md)
 
+---
+
+## ⚠️ ADENDO 2026-07-30 — o limite nº 1 deste doc foi medido (produção)
+
+> Este adendo **fecha o item 1 dos "Limites honestos"** do §0 (*"**Produção.** Volume das 5 tabelas `mcp_*` não foi contado. No SRS foi exatamente isso que virou o plano do avesso."*). **Não altera o corpo** — o corpo fica como registro do que se sabia em 29/07. Onde este adendo e o corpo discordarem sobre **dado de produção**, este vence; sobre **veredito**, ver a nota de decisão no fim.
+
+**Sistema medido:** produção — `APP_ENV=live`, `APP_URL=https://oimpresso.com`, database `u906587222_oimpresso`, **385 tabelas**. Existência por `information_schema.tables` (**não** por exceção capturada — no oimpresso "não existe no Hostinger" pode significar **vive no CT 100**, [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)).
+**Data:** 2026-07-30. **Controle positivo:** `business=82` · `users=124` · `transactions=75.255`.
+
+| Tabela | Estado em prod | Escrita mais recente |
+|---|---|---|
+| **`mcp_sdd_scorecard_history`** | **20 linhas** | **2026-07-30 11:10:05** |
+| `mcp_governance_initiatives` | ⚠️ **NÃO EXISTE no Hostinger** | — |
+| `mcp_module_grades_history` | ⚠️ **NÃO EXISTE no Hostinger** | — |
+| `mcp_observability_spans` | ⚠️ **NÃO EXISTE no Hostinger** | — |
+| `mcp_observability_aggregates_daily` | ⚠️ **NÃO EXISTE no Hostinger** | — |
+| `mcp_scorecard_runs` | ⚠️ **NÃO EXISTE no Hostinger** | — |
+
+**O que isto muda no plano — 3 consequências:**
+
+1. **O módulo está escrevendo AGORA.** A última linha entrou às **11:10 de hoje**, minutos antes da medição. Isso **reforça** o veredito "não deprecar" do corpo com dado, não com estrutura: não é casca esquecida nem hipótese — é escrita ativa.
+2. **A "posse não declarada" das 5 tabelas ganha uma explicação mais simples, e mais incômoda:** 5 das 6 **não existem no Hostinger**. Nenhum `SCOPE.md` as reivindica *e* elas não estão no banco de produção. A hipótese forte é que vivem no **CT 100** (o stack de observabilidade mora lá). **Isso não foi verificado** — e enquanto não for, é hipótese, não achado.
+3. **A Fase de dados fica BLOQUEADA, não vazia.** Ao contrário do SRS — onde medir prod **colapsou** a etapa (0 linhas → DROP em tudo) — aqui medir prod **não resolve**: transfere a pergunta pro CT 100. Ler "ausente" como "vazio" seria cometer o erro do SRS ao contrário.
+
+⛔ **Pré-requisito duro que continua aberto:** `tailscale ssh root@ct100-mcp`. Sem isso, a decisão por tabela nasce com o mesmo `?` que condenou o plano do SRS.
+
+**Acoplamento — conferido de forma independente, e bate.** Medição de 30/07 com `git grep -lF 'Modules\Governance\'` fora da própria pasta, **excluindo `memory/` e `.claude/`** → **11 arquivos** (Admin ×3 · Brief ×2 · Cms · Connector · Jana ×2 · TeamMcp · 1 teste), idêntico ao re-run do corpo. **Denominador declarado**, porque a 1ª contagem do corpo (27) usava escopo mais largo — não são números em conflito, são universos diferentes.
+
+> 🪞 **Nota de método:** a medição de 30/07 caiu **no mesmo bug** que o §0 deste doc registra — `git grep` de namespace devolvendo **0 para todos os módulos** por escaping colapsado. Pego pelo mesmo antídoto: controle positivo (`Modules\Jana\` fora de `Modules/Jana/` = **414**; se desse 0, o instrumento estava errado). Duas sessões independentes, mesma armadilha, mesmo antídoto — o §0 deste doc está calibrado.
+
+**Nota de decisão [W] — 2026-07-30.** O corpo conclui **"NÃO deprecar"** (29/07). Em 30/07 [W] decidiu deletar assim mesmo: *"todos esses eu vou deletar: Admin, ADS, TeamMcp, Brief, Auditoria, Governance, SRS"*. O veredito técnico do corpo **não foi refutado** — segue valendo como análise, incluindo o custo e o ganho negativo. O que mudou é que a decisão é de [W], e ela é soberana. A execução vira o **§9 (roadmap condicional)** deste doc, agora ativo, com a ordem cross-módulo em [proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md](../../decisions/proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md) — o Governance é o **6º e último**, porque 5 dos 11 acopladores saem com Admin, Brief, ADS e TeamMcp.
+
+---
+
 ## TL;DR
 
 O inventário foi feito para viabilizar a deleção e **concluiu o contrário**: `Modules/Governance` não é
