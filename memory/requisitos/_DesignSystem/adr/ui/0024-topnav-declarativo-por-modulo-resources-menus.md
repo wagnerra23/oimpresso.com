@@ -1,14 +1,20 @@
 ---
-id: requisitos-mem-cofre-adr-arq-0009-topnav-declarativo-por-modulo-resources-menus
+id: requisitos-design-system-adr-ui-0024-topnav-declarativo-por-modulo-resources-menus
 ---
 
-# ADR ARQ-0009 (MemCofre) · TopNav declarativo por módulo em `Resources/menus/topnav.php`
+# ADR UI-0024 · TopNav declarativo por módulo em `Resources/menus/topnav.php`
 
-- **Status**: superseded-by-arq/0010 (2026-04-23 — mesmo dia, Wagner preferiu sidebar accordion)
+> **Procedência (2026-07-30):** este registro vivia em `memory/requisitos/MemCofre/adr/arq/0009-*.md`.
+> O módulo (`Modules/SRS`, ex-MemCofre) foi removido em 2026-07-29 ([ADR 0357](../../../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)),
+> mas **esta decisão continua governando código vivo** — por isso migrou para o Design System
+> em vez de ser descartada com o resto da pasta. Numeração nova (UI-0024);
+> a data, os decisores e o conteúdo da decisão são os originais de 2026-04-23.
+
+- **Status**: superseded-by-UI-0025 (2026-04-23 — mesmo dia, Wagner preferiu sidebar accordion)
 - **Data**: 2026-04-23
 - **Decisores**: Wagner, Claude
 - **Categoria**: arq
-- **Relacionado**: ADR UI-0001 (_DesignSystem), ADR arq/0010
+- **Relacionado**: ADR UI-0001 (_DesignSystem), ADR UI-0025
 
 ## Motivo da supersedência
 
@@ -22,7 +28,16 @@ horizontais (TopNav global + ModuleTopNav) competindo por espaço.
 
 Código backend removido (`LegacyMenuAdapter::buildTopNavs`, `ShellMenuBuilder::buildTopNavs`, `Resources/menus/topnav.php`). Sidebar accordion implementada em `AppShell.tsx` usa `shell.menu` com children expansíveis — mesma fonte do backend, zero duplicação.
 
-ADR arq/0010 registra a decisão final de arquitetura de navegação.
+> ⚠️ **ERRATA (2026-07-30) — o parágrafo acima não descreve mais o mundo.** A remoção durou
+> horas: a [UI-0026](0026-sidebar-e-topnav-duas-fontes-independentes.md), do **mesmo dia**,
+> ressuscitou o TopNav declarativo como fonte independente da sidebar. Medido em `origin/main`
+> nesta data: `buildTopNavs` vive em `app/Services/LegacyMenuAdapter.php`,
+> `app/Services/ShellMenuBuilder.php` e `app/Http/Middleware/HandleInertiaRequests.php`, e
+> **14 módulos** têm `Resources/menus/topnav.php` (ADS, Essentials, Financeiro, Governance,
+> Jana, KB, NFSe, Officeimpresso, OficinaAuto, Ponto, ProjectMgmt, Repair, Superadmin,
+> Whatsapp). Para o estado atual do mecanismo, leia a UI-0026 — não este parágrafo.
+
+ADR UI-0025 registra a decisão final de arquitetura de navegação.
 
 ## Contexto
 

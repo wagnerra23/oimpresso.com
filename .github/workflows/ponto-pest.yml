@@ -123,6 +123,14 @@ jobs:
         # Vermelho neles é o ACHADO, não defeito do teste. A lane é ADVISORY (não está
         # em governance/required-checks-baseline.json), então reprova VISÍVEL sem
         # bloquear merge. Correção é decisão [W].
+        #
+        # ModuleSpecBranchPresenceTest: guarda a presença-em-branch do `module:specs`
+        # contra afirmar ❌ quando a branch sumiu (o que apagaria o único registro de 6
+        # módulos). Não toca DB nem usa RefreshDatabase. Afirma a INVARIANTE `null` ⟺
+        # branch ausente, então passa tanto aqui (checkout raso: nenhuma histórica) quanto
+        # local (onde `origin/3.7-com-nfe` existe e é medida de verdade).
+        # O irmão `ModuleManagerTest.php` segue FORA: ele testa `PontoWr2`, renomeado pra
+        # `Ponto`, e entraria vermelho por dívida pré-existente — conserto é chip à parte.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -130,7 +138,8 @@ jobs:
             Modules/Ponto/Tests/Feature/Wave27CrossTenantEscalaTest.php \
             Modules/Ponto/Tests/Feature/EspelhoContratoTest.php \
             Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php \
-            Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php
+            Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php \
+            Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
       - name: Upload JUnit (Ponto · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.ponto == 'true' }}

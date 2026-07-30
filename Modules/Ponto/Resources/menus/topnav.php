@@ -1,7 +1,7 @@
 <?php
 
 /**
- * TopNav declarativo do PontoWr2 (ADR arq/0011 MemCofre).
+ * TopNav declarativo do PontoWr2 (ADR UI-0026 · _DesignSystem).
  *
  * Espelho React do Blade `Resources/views/layouts/nav.blade.php` que outros
  * módulos usam. Lido por LegacyMenuAdapter::buildTopNavs() e exposto em

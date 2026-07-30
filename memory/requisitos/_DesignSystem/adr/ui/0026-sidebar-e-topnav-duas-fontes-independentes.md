@@ -1,14 +1,20 @@
 ---
-id: requisitos-mem-cofre-adr-arq-0011-sidebar-e-topnav-duas-fontes-independentes
+id: requisitos-design-system-adr-ui-0026-sidebar-e-topnav-duas-fontes-independentes
 ---
 
-# ADR ARQ-0011 (MemCofre) · Sidebar e TopNav como duas fontes independentes
+# ADR UI-0026 · Sidebar e TopNav como duas fontes independentes
+
+> **Procedência (2026-07-30):** este registro vivia em `memory/requisitos/MemCofre/adr/arq/0011-*.md`.
+> O módulo (`Modules/SRS`, ex-MemCofre) foi removido em 2026-07-29 ([ADR 0357](../../../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)),
+> mas **esta decisão continua governando código vivo** — por isso migrou para o Design System
+> em vez de ser descartada com o resto da pasta. Numeração nova (UI-0026);
+> a data, os decisores e o conteúdo da decisão são os originais de 2026-04-23.
 
 - **Status**: accepted
 - **Data**: 2026-04-23
 - **Decisores**: Wagner, Claude
 - **Categoria**: arq
-- **Supersede**: ADR arq/0010 (sidebar accordion — mantida, agora acompanhada de TopNav opcional)
+- **Supersede**: ADR UI-0025 (sidebar accordion — mantida, agora acompanhada de TopNav opcional)
 
 ## Contexto
 
@@ -28,7 +34,7 @@ Motivação principal: evitar que sub-items poluam a sidebar quando já estão n
 - **Mecanismo**: `Menu::modify('admin-sidebar-menu', ...)` (nwidart/laravel-menus)
 - **Orquestração**: middleware `AdminSidebarMenu` + `ModuleUtil::getModuleData('modifyAdminMenu')`
 - **Adaptação pro React**: `LegacyMenuAdapter::build()` retorna array em `shell.menu`
-- **Render**: `AppShell` sidebar com accordion expansível (ADR arq/0010 preservado)
+- **Render**: `AppShell` sidebar com accordion expansível (ADR UI-0025 preservado)
 
 **Sem mudanças** — continua como está hoje.
 
@@ -97,7 +103,7 @@ return [
 
 ## Alternativas consideradas
 
-- **ModuleTopNav global com todos módulos horizontais** (ADR arq/0009 tentado): rejeitado — 20+ módulos viram scroll horizontal infinito.
+- **ModuleTopNav global com todos módulos horizontais** (ADR UI-0024 tentado): rejeitado — 20+ módulos viram scroll horizontal infinito.
 - **Mesma fonte pra sidebar e topnav** (shell.menu children): rejeitado — força sincronização e impede diferenciação.
 - **Middleware próprio por módulo estilo ContactSidebarMenu do CRM**: rejeitado — overhead sem ganho pra caso simples (CRM é exceção por precisar lógica `$contact->type`).
 
