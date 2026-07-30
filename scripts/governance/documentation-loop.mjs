@@ -16,6 +16,7 @@
  *   node scripts/governance/documentation-loop.mjs --compare-ref origin/main [--json]
  *   node scripts/governance/documentation-loop.mjs --compare-ref origin/main --expect <id>[,<id>]
  *   node scripts/governance/documentation-loop.mjs --impact-ref origin/main [--head-ref HEAD] [--json]
+ *   acrescente --enforce-activation para bloquear módulo novo incompleto
  *   acrescente --require-clean no recibo final, depois do commit
  *   node scripts/governance/documentation-loop.mjs --selftest
  *
@@ -39,9 +40,20 @@ import { scan as scanBriefing, isBriefingCoverageGap } from './briefing-code-sta
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
 const REQUIRE_CLEAN = process.argv.includes('--require-clean');
+const ENFORCE_ACTIVATION = process.argv.includes('--enforce-activation');
 const SOURCE_PRIORITY = { 'memory-health': 0, 'briefing-code-staleness': 1, 'doc-freshness-score': 2 };
 const SHARED_RUNTIME_PATHS = /^(app|config|database|routes)\//;
 const DOCUMENT_NAME = /^(BRIEFING|README|ARCHITECTURE|SPEC|SDD|RUNBOOK|SUPERFICIE|CHANGELOG|GLOSSARY)/i;
+const GRAPH_EDGE_TYPES = new Set(['dependsOn', 'delegatesTo', 'migratesTo']);
+const MODULE_ACTIVATION_FILES = [
+  'module.json',
+  'composer.json',
+  'SCOPE.md',
+  'Providers/RouteServiceProvider.php',
+  'Http/Controllers/DataController.php',
+  'Http/Controllers/InstallController.php',
+  'Routes/web.php',
+];
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -135,19 +147,34 @@ function normalizeFreshness(data) {
     });
 }
 
+function gitArgs(root, args) {
+  // Worktrees temporárias e sandboxes Windows podem executar sob outro SID.
+  // A exceção é local ao processo e ao diretório exato; não altera config global.
+  const safeRoot = resolve(root).replaceAll('\\', '/');
+  return ['-c', `safe.directory=${safeRoot}`, ...args];
+}
+
 function gitSha(root) {
-  const result = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
+  const result = spawnSync('git', gitArgs(root, ['rev-parse', 'HEAD']), { cwd: root, encoding: 'utf8' });
   return result.status === 0 ? result.stdout.trim() : null;
 }
 
 function runGit(root, args) {
-  const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+  const result = spawnSync('git', gitArgs(root, args), { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
   if (result.status !== 0) throw new Error(`git ${args.join(' ')} falhou: ${(result.stderr || result.stdout || '').trim()}`);
   return result.stdout;
 }
 
 function normalizeFiles(raw) {
   return raw.split(/\r?\n/).map((line) => line.trim().replaceAll('\\', '/')).filter(Boolean);
+}
+
+function normalizeNullFiles(raw) {
+  return raw.split('\0').map((file) => file.replaceAll('\\', '/')).filter(Boolean);
+}
+
+function trackedFiles(root = ROOT) {
+  return normalizeNullFiles(runGit(root, ['ls-files', '-z']));
 }
 
 function worktreeChangedFiles(root = ROOT) {
@@ -170,6 +197,213 @@ function moduleFromPath(file) {
   return mod && !mod.startsWith('_') ? mod : null;
 }
 
+/**
+ * Classifica todo path versionado sem tentar forçar tudo a ser "módulo".
+ * O universo é o Git; módulo, compartilhado, governança e documentação são
+ * contextos diferentes, todos explícitos. Fallback também é explícito para
+ * nunca transformar arquivo desconhecido em silêncio.
+ */
+export function classifyRepositoryFile(file) {
+  const normalized = String(file).replaceAll('\\', '/');
+  const mod = moduleFromPath(normalized);
+  if (mod) return { file: normalized, class: 'module', context: mod };
+  if (SHARED_RUNTIME_PATHS.test(normalized)) return { file: normalized, class: 'shared-runtime', context: '_Geral' };
+  if (/^resources\/(?:js\/(?:Components|Layouts|hooks|lib)|views\/(?:components|layouts))\//.test(normalized)) {
+    return { file: normalized, class: 'shared-ui', context: '_Geral' };
+  }
+  if (/^(?:memory|docs?)\//.test(normalized)) return { file: normalized, class: 'documentation', context: 'Governance' };
+  if (/^(?:tests|e2e)\//.test(normalized)) return { file: normalized, class: 'shared-test', context: '_Geral' };
+  if (/^(?:\.github|\.claude|\.githooks|governance|scripts\/governance|bin|tools)\//.test(normalized)) {
+    return { file: normalized, class: 'governance', context: 'Governance' };
+  }
+  if (/^(?:\.devcontainer|docker-host|docker|infra)\//.test(normalized)) {
+    return { file: normalized, class: 'infrastructure', context: '_Geral' };
+  }
+  if (/^dist\//.test(normalized)) return { file: normalized, class: 'distribution-artifact', context: '_Geral' };
+  if (/^(?:scripts|bootstrap|storage|public|resources|lang|lib-custom|prototipo-ui)\//.test(normalized)) {
+    return { file: normalized, class: 'shared-support', context: '_Geral' };
+  }
+  if (!normalized.includes('/') || /^(?:composer|package|phpunit|vite|tsconfig|eslint|modules_statuses)\b/.test(normalized)) {
+    return { file: normalized, class: 'repository-root', context: 'Governance' };
+  }
+  return { file: normalized, class: 'unclassified', context: null };
+}
+
+export function repositoryInventory(files) {
+  const classified = files.map(classifyRepositoryFile);
+  const byClass = {};
+  const byContext = {};
+  for (const item of classified) {
+    byClass[item.class] = (byClass[item.class] || 0) + 1;
+    const context = item.context || 'SEM_DONO';
+    byContext[context] = (byContext[context] || 0) + 1;
+  }
+  return {
+    total: classified.length,
+    classified: classified.filter((item) => item.class !== 'unclassified').length,
+    unclassified: classified.filter((item) => item.class === 'unclassified').map((item) => item.file),
+    by_class: Object.fromEntries(Object.entries(byClass).sort()),
+    by_context: Object.fromEntries(Object.entries(byContext).sort()),
+  };
+}
+
+function graphRelatedModules(direct, catalog) {
+  const adjacency = new Map();
+  const add = (from, to) => {
+    if (!adjacency.has(from)) adjacency.set(from, new Set());
+    adjacency.get(from).add(to);
+  };
+  for (const edge of catalog.edges || []) {
+    if (!GRAPH_EDGE_TYPES.has(edge.type)) continue;
+    const from = String(edge.from).replace(/^module:/, '');
+    const to = String(edge.to).replace(/^module:/, '');
+    if (!from || !to || from === to) continue;
+    // Impacto precisa olhar fornecedor e consumidor. A direção original segue
+    // preservada no catalog.json; aqui calculamos o fechamento de revisão.
+    add(from, to);
+    add(to, from);
+  }
+  const distance = new Map(direct.map((mod) => [mod, 0]));
+  const queue = [...direct];
+  while (queue.length) {
+    const current = queue.shift();
+    for (const next of adjacency.get(current) || []) {
+      if (distance.has(next)) continue;
+      distance.set(next, distance.get(current) + 1);
+      queue.push(next);
+    }
+  }
+  return [...distance.entries()]
+    .filter(([mod]) => !direct.includes(mod))
+    .sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]))
+    .map(([module, depth]) => ({ module, depth }));
+}
+
+function existsAtRef(root, ref, file) {
+  return spawnSync('git', gitArgs(root, ['cat-file', '-e', `${ref}:${file}`]), { cwd: root }).status === 0;
+}
+
+function detectNewModules(base, files, root = ROOT) {
+  return [...new Set(files
+    .filter((file) => /^Modules\/[^/]+\/module\.json$/.test(file))
+    .filter((file) => !existsAtRef(root, base, file))
+    .map((file) => file.split('/')[1]))].sort();
+}
+
+function recursiveFiles(root, rel) {
+  const abs = join(root, rel);
+  if (!existsSync(abs)) return [];
+  const out = [];
+  for (const entry of readdirSync(abs, { withFileTypes: true })) {
+    const child = (rel === '.' ? entry.name : `${rel}/${entry.name}`).replaceAll('\\', '/');
+    if (entry.isDirectory()) out.push(...recursiveFiles(root, child));
+    else out.push(child);
+  }
+  return out.sort();
+}
+
+export function inspectModuleActivation(mod, {
+  root = ROOT,
+  catalog = {},
+  projectFiles = null,
+} = {}) {
+  const required = [
+    ...MODULE_ACTIVATION_FILES.map((rel) => `Modules/${mod}/${rel}`),
+    `memory/requisitos/${mod}/BRIEFING.md`,
+    `memory/requisitos/${mod}/SPEC.md`,
+    `memory/requisitos/${mod}/SUPERFICIE.md`,
+  ];
+  const missing = required.filter((file) => !existsSync(join(root, file)));
+  const violations = missing.map((file) => ({ kind: 'arquivo-obrigatorio-ausente', file }));
+  let manifest = null;
+  const manifestPath = join(root, 'Modules', mod, 'module.json');
+  if (existsSync(manifestPath)) {
+    try { manifest = JSON.parse(readFileSync(manifestPath, 'utf8')); }
+    catch { violations.push({ kind: 'module-json-invalido', file: `Modules/${mod}/module.json` }); }
+  }
+  for (const provider of manifest?.providers || []) {
+    const prefix = `Modules\\${mod}\\`;
+    const rel = String(provider).startsWith(prefix)
+      ? `Modules/${mod}/${String(provider).slice(prefix.length).replaceAll('\\', '/')}.php`
+      : null;
+    if (!rel || !existsSync(join(root, rel))) {
+      violations.push({ kind: 'provider-ausente', provider, file: rel });
+    }
+  }
+  const statusesPath = join(root, 'modules_statuses.json');
+  try {
+    const statuses = JSON.parse(readFileSync(statusesPath, 'utf8'));
+    if (!Object.prototype.hasOwnProperty.call(statuses, mod)) {
+      violations.push({ kind: 'modules-statuses-sem-modulo', file: 'modules_statuses.json' });
+    }
+  } catch {
+    violations.push({ kind: 'modules-statuses-invalido', file: 'modules_statuses.json' });
+  }
+  const files = projectFiles || recursiveFiles(root, '.').filter((file) => !file.startsWith('./.git/'));
+  const testPattern = new RegExp(`^(?:Modules/${mod}/Tests/|tests/(?:Feature|Unit)/${mod}/|tests/(?:Feature|Unit)/.*${mod}.*Test\\.php$)`, 'i');
+  const tests = files.filter((file) => testPattern.test(file));
+  if (!tests.length) violations.push({ kind: 'teste-de-ativacao-ausente', module: mod });
+  const catalogNode = (catalog.nodes || []).find((node) =>
+    node.type === 'module' && String(node.module).toLowerCase() === mod.toLowerCase()
+      && node.catalog_status !== 'referenced-only');
+  if (!catalogNode) violations.push({ kind: 'modulo-fora-do-catalogo-gerado', module: mod });
+  return {
+    module: mod,
+    lifecycle: violations.length ? 'incompleto' : 'ativavel',
+    required_files: required,
+    missing_files: missing,
+    tests,
+    catalogued: Boolean(catalogNode),
+    violations,
+  };
+}
+
+export function inspectDocumentationFleet({
+  root = ROOT,
+  catalog = {},
+  projectFiles = null,
+} = {}) {
+  const files = projectFiles || trackedFiles(root);
+  const modules = [...new Set(files
+    .filter((file) => /^Modules\/[^/]+\/module\.json$/.test(file))
+    .map((file) => file.split('/')[1]))].sort();
+  const rows = modules.map((mod) => {
+    const required = [
+      `Modules/${mod}/SCOPE.md`,
+      `memory/requisitos/${mod}/BRIEFING.md`,
+      `memory/requisitos/${mod}/SPEC.md`,
+      `memory/requisitos/${mod}/SUPERFICIE.md`,
+    ];
+    const missing = required.filter((file) => !existsSync(join(root, file)));
+    const testPattern = new RegExp(`^(?:Modules/${mod}/Tests/|tests/(?:Feature|Unit)/${mod}/|tests/(?:Feature|Unit)/.*${mod}.*Test\\.php$)`, 'i');
+    const tests = files.filter((file) => testPattern.test(file));
+    const catalogued = (catalog.nodes || []).some((node) =>
+      node.type === 'module' && String(node.module).toLowerCase() === mod.toLowerCase()
+        && node.catalog_status !== 'referenced-only');
+    const violations = [
+      ...missing.map((file) => ({ kind: 'contrato-documental-ausente', file })),
+      ...(!tests.length ? [{ kind: 'prova-automatizada-ausente', module: mod }] : []),
+      ...(!catalogued ? [{ kind: 'modulo-fora-do-catalogo-gerado', module: mod }] : []),
+    ];
+    return {
+      module: mod,
+      status: violations.length ? 'incompleto' : 'completo',
+      files_in_module_root: files.filter((file) => file.startsWith(`Modules/${mod}/`)).length,
+      required_files: required,
+      missing_files: missing,
+      tests,
+      catalogued,
+      violations,
+    };
+  });
+  return {
+    total_modules: rows.length,
+    complete_modules: rows.filter((row) => row.status === 'completo').length,
+    incomplete_modules: rows.filter((row) => row.status !== 'completo'),
+    modules: rows,
+  };
+}
+
 function documentationInventory(root, mod) {
   return [`memory/requisitos/${mod}`, `Modules/${mod}`].flatMap((rel) => {
     const abs = join(root, rel);
@@ -180,34 +414,43 @@ function documentationInventory(root, mod) {
   }).sort();
 }
 
-export function buildImpactReport(files, catalog = {}, root = ROOT) {
+export function buildImpactReport(files, catalog = {}, root = ROOT, options = {}) {
   const catalogModules = (catalog.nodes || []).filter((node) => node.type === 'module').map((node) => node.module);
   const canonicalModule = new Map(catalogModules.map((mod) => [mod.toLowerCase(), mod]));
   const direct = [...new Set(files.map(moduleFromPath).filter(Boolean)
     .map((mod) => canonicalModule.get(mod.toLowerCase()) || mod))].sort();
   const graphModules = new Set(catalogModules);
-  const related = new Set();
-  for (const edge of catalog.edges || []) {
-    if (!['dependsOn', 'delegatesTo', 'migratesTo'].includes(edge.type)) continue;
-    const from = String(edge.from).replace(/^module:/, '');
-    const to = String(edge.to).replace(/^module:/, '');
-    if (direct.includes(from) && !direct.includes(to)) related.add(to);
-    if (direct.includes(to) && !direct.includes(from)) related.add(from);
-  }
+  const relatedWithDepth = graphRelatedModules(direct, catalog);
   const shared = files.filter((file) =>
     SHARED_RUNTIME_PATHS.test(file) || /^(composer\.(json|lock)|package(-lock)?\.json)$/.test(file));
   const unknown = direct.filter((mod) => !graphModules.has(mod));
-  const relatedModules = [...related].sort();
+  const relatedModules = relatedWithDepth.map((item) => item.module);
   const fanout = relatedModules.length > 8;
   const modules = [...new Set([...direct, ...relatedModules])].sort();
   const businessChange = direct.length > 0 || shared.length > 0;
+  const projectFiles = options.projectFiles || (() => {
+    try { return trackedFiles(root); } catch { return files; }
+  })();
+  const newModules = options.newModules || [];
+  const activation = newModules.map((mod) => inspectModuleActivation(mod, {
+    root, catalog, projectFiles: [...new Set([...projectFiles, ...files])],
+  }));
+  const documentationFleet = inspectDocumentationFleet({
+    root, catalog, projectFiles: [...new Set([...projectFiles, ...files])],
+  });
   return {
-    schema_version: 1,
+    schema_version: 2,
     changed_files: files,
+    changed_file_classification: files.map(classifyRepositoryFile),
+    repository_inventory: repositoryInventory(projectFiles),
     direct_modules: direct,
     related_modules: relatedModules,
+    related_module_depth: relatedWithDepth,
     shared_runtime_files: shared,
     unknown_modules: unknown,
+    new_modules: newModules,
+    module_activation: activation,
+    module_documentation_fleet: documentationFleet,
     decision: !businessChange ? 'sem-impacto-modular'
       : shared.length || unknown.length || fanout ? 'revisao-ampla'
         : 'revisao-modular',
@@ -278,7 +521,7 @@ function briefingDocuments(ref, before, expected, root = ROOT) {
     const currentPath = paths.find((path) => existsSync(join(root, path))) || null;
     let beforePath = null;
     for (const path of paths) {
-      const found = spawnSync('git', ['cat-file', '-e', `${ref}:${path}`], { cwd: root });
+      const found = spawnSync('git', gitArgs(root, ['cat-file', '-e', `${ref}:${path}`]), { cwd: root });
       if (found.status === 0) { beforePath = path; break; }
     }
     result[mod] = {
@@ -383,6 +626,27 @@ function printComparison(data) {
   }
 }
 
+function runDerivationCheck(script, args, root = ROOT) {
+  const result = spawnSync(process.execPath, [join(root, script), ...args], {
+    cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+  });
+  return {
+    command: `node ${script} ${args.join(' ')}`.trim(),
+    ok: result.status === 0,
+    exit_code: result.status,
+    output: `${result.stdout || ''}${result.stderr || ''}`.trim().slice(0, 4000),
+  };
+}
+
+function activationDerivationChecks(modules, root = ROOT) {
+  if (!modules.length) return [];
+  return [
+    ...modules.map((mod) => runDerivationCheck('scripts/governance/module-surface.mjs', [mod, '--check'], root)),
+    runDerivationCheck('scripts/governance/catalog-graph.mjs', ['--check'], root),
+    runDerivationCheck('scripts/governance/system-map.mjs', ['--check'], root),
+  ];
+}
+
 function selftest() {
   let failures = 0;
   const check = (name, condition) => { console.log(`  ${condition ? '[OK]' : '[FAIL]'} ${name}`); if (!condition) failures++; };
@@ -417,14 +681,48 @@ function selftest() {
   check('BITE: apagar o alvo não fecha o achado',
     !applyReceiptEvidence(deletedReceipt, { issues: [deleted] }, []).ok);
   const impact = buildImpactReport(['Modules/Financeiro/Services/FluxoService.php'], {
-    nodes: [{ type: 'module', module: 'Financeiro' }, { type: 'module', module: 'Sells' }],
-    edges: [{ type: 'dependsOn', from: 'module:Financeiro', to: 'module:Sells' }],
+    nodes: [
+      { type: 'module', module: 'Financeiro' },
+      { type: 'module', module: 'Sells' },
+      { type: 'module', module: 'RecurringBilling' },
+    ],
+    edges: [
+      { type: 'dependsOn', from: 'module:Financeiro', to: 'module:Sells' },
+      { type: 'dependsOn', from: 'module:Sells', to: 'module:RecurringBilling' },
+    ],
   });
-  check('PILOTO Financeiro: diff encontra módulo, 1 salto e seus donos documentais',
+  check('PILOTO Financeiro: diff encontra módulo, fechamento transitivo e donos documentais',
     impact.direct_modules[0] === 'Financeiro'
       && impact.related_modules.includes('Sells')
+      && impact.related_modules.includes('RecurringBilling')
+      && impact.related_module_depth.find((x) => x.module === 'RecurringBilling')?.depth === 2
       && impact.documents.Financeiro.some((path) => /SDD-/.test(path))
       && impact.documents.Financeiro.some((path) => /BRIEFING\.md$/.test(path)));
+  const realCatalog = JSON.parse(readFileSync(join(ROOT, 'memory/governance/catalog.json'), 'utf8'));
+  const realFinanceiro = buildImpactReport(['Modules/Financeiro/Services/FluxoService.php'], realCatalog);
+  check('CATÁLOGO REAL: Financeiro alcança Sells sem aresta inventada no teste',
+    realFinanceiro.related_modules.includes('Sells'));
+  const realFleet = inspectDocumentationFleet({
+    root: ROOT, catalog: realCatalog, projectFiles: trackedFiles(ROOT),
+  });
+  check('FROTA REAL: 36/36 módulos têm SCOPE, BRIEFING, SPEC, SUPERFICIE, teste e catálogo',
+    realFleet.total_modules === 36
+      && realFleet.complete_modules === 36
+      && realFleet.incomplete_modules.length === 0);
+  const inventoryFixture = repositoryInventory([
+    'Modules/Financeiro/Services/FluxoService.php',
+    'memory/requisitos/Financeiro/SPEC.md',
+    '.github/workflows/module-surface.yml',
+    'docs/index.html',
+    'e2e/produto-show.spec.ts',
+    '.devcontainer/devcontainer.json',
+    'dist/js/app.js',
+    'arquivo-sem-dono.xyz/sub.txt',
+  ]);
+  check('Inventário classifica módulo, docs, testes, infra e distribuição; desconhecido fica explícito',
+    inventoryFixture.total === 8
+      && inventoryFixture.classified === 7
+      && inventoryFixture.unclassified[0] === 'arquivo-sem-dono.xyz/sub.txt');
   check('Controle: arquivo runtime compartilhado exige revisão ampla',
     buildImpactReport(['app/Models/User.php'], { nodes: [], edges: [] }).decision === 'revisao-ampla');
   const fixture = mkdtempSync(join(resolve(tmpdir()), 'oimpresso-documentation-loop-selftest-'));
@@ -443,6 +741,46 @@ function selftest() {
     const immutable = gitSha(fixture);
     check('Controle: comparação entre SHAs imutáveis ignora o worktree',
       changedFiles(immutable, immutable, fixture).length === 0);
+
+    const novo = 'NovoModulo';
+    for (const dir of [
+      `Modules/${novo}/Providers`,
+      `Modules/${novo}/Http/Controllers`,
+      `Modules/${novo}/Routes`,
+      `Modules/${novo}/Tests/Feature`,
+      `memory/requisitos/${novo}`,
+    ]) mkdirSync(join(fixture, dir), { recursive: true });
+    writeFileSync(join(fixture, `Modules/${novo}/module.json`), JSON.stringify({
+      name: novo,
+      providers: [`Modules\\${novo}\\Providers\\${novo}ServiceProvider`],
+    }));
+    writeFileSync(join(fixture, `Modules/${novo}/composer.json`), '{}\n');
+    writeFileSync(join(fixture, `Modules/${novo}/SCOPE.md`), '---\nmodule: NovoModulo\n---\n');
+    writeFileSync(join(fixture, `Modules/${novo}/Providers/${novo}ServiceProvider.php`), '<?php\n');
+    writeFileSync(join(fixture, `Modules/${novo}/Providers/RouteServiceProvider.php`), '<?php\n');
+    writeFileSync(join(fixture, `Modules/${novo}/Http/Controllers/DataController.php`), '<?php\n');
+    writeFileSync(join(fixture, `Modules/${novo}/Http/Controllers/InstallController.php`), '<?php\n');
+    writeFileSync(join(fixture, `Modules/${novo}/Routes/web.php`), '<?php\n');
+    writeFileSync(join(fixture, `Modules/${novo}/Tests/Feature/ActivationTest.php`), '<?php\n');
+    for (const doc of ['BRIEFING.md', 'SPEC.md', 'SUPERFICIE.md']) {
+      writeFileSync(join(fixture, `memory/requisitos/${novo}/${doc}`), `# ${novo}\n`);
+    }
+    writeFileSync(join(fixture, 'modules_statuses.json'), JSON.stringify({ [novo]: false }));
+    const activationFiles = recursiveFiles(fixture, '.');
+    const activation = inspectModuleActivation(novo, {
+      root: fixture,
+      projectFiles: activationFiles,
+      catalog: { nodes: [{ type: 'module', module: novo, catalog_status: 'catalogued' }] },
+    });
+    check('RELEASE: módulo novo completo chega a ativável', activation.lifecycle === 'ativavel');
+    rmSync(join(fixture, `memory/requisitos/${novo}/SPEC.md`));
+    const brokenActivation = inspectModuleActivation(novo, {
+      root: fixture,
+      projectFiles: activationFiles,
+      catalog: { nodes: [{ type: 'module', module: novo, catalog_status: 'catalogued' }] },
+    });
+    check('BITE: módulo novo sem SPEC é recusado',
+      brokenActivation.violations.some((x) => x.kind === 'arquivo-obrigatorio-ausente' && /SPEC\.md$/.test(x.file)));
   } finally {
     const resolvedFixture = resolve(fixture);
     const safePrefix = `${resolve(tmpdir())}${sep}`;
@@ -458,7 +796,7 @@ function withRefSnapshot(ref) {
   const worktree = mkdtempSync(join(tmpRoot, 'oimpresso-documentation-loop-'));
   const resolvedWorktree = resolve(worktree);
   if (!resolvedWorktree.startsWith(tmpRoot)) throw new Error(`worktree temporária fora de os.tmpdir(): ${resolvedWorktree}`);
-  const add = spawnSync('git', ['worktree', 'add', '--detach', resolvedWorktree, ref], { cwd: ROOT, encoding: 'utf8' });
+  const add = spawnSync('git', gitArgs(ROOT, ['worktree', 'add', '--detach', resolvedWorktree, ref]), { cwd: ROOT, encoding: 'utf8' });
   if (add.status !== 0) throw new Error(`não foi possível abrir ref ${ref}: ${(add.stderr || add.stdout || '').trim()}`);
   try {
     const script = realpathSync(fileURLToPath(import.meta.url));
@@ -470,7 +808,7 @@ function withRefSnapshot(ref) {
     }
     return JSON.parse(result.stdout);
   } finally {
-    spawnSync('git', ['worktree', 'remove', '--force', resolvedWorktree], { cwd: ROOT, encoding: 'utf8' });
+    spawnSync('git', gitArgs(ROOT, ['worktree', 'remove', '--force', resolvedWorktree]), { cwd: ROOT, encoding: 'utf8' });
   }
 }
 
@@ -487,17 +825,30 @@ function main() {
     const worktreeFiles = head === 'HEAD' ? worktreeChangedFiles(ROOT) : [];
     const catalogPath = join(ROOT, 'memory/governance/catalog.json');
     const catalog = existsSync(catalogPath) ? JSON.parse(readFileSync(catalogPath, 'utf8')) : {};
+    const newModules = detectNewModules(base, files, ROOT);
     const report = {
-      ...buildImpactReport(files, catalog),
+      ...buildImpactReport(files, catalog, ROOT, {
+        projectFiles: trackedFiles(ROOT),
+        newModules,
+      }),
       base_sha: runGit(ROOT, ['rev-parse', base]).trim(),
       head_sha: runGit(ROOT, ['rev-parse', head]).trim(),
       worktree_files: worktreeFiles,
       executed: true,
     };
+    report.activation_derivation_checks = activationDerivationChecks(newModules, ROOT);
+    report.activation_ok = report.module_activation.every((item) => item.lifecycle === 'ativavel')
+      && report.activation_derivation_checks.every((item) => item.ok)
+      && report.module_documentation_fleet.incomplete_modules.length === 0
+      && report.changed_file_classification.every((item) => item.class !== 'unclassified');
     console.log(JSON_OUT ? JSON.stringify(report, null, 2)
       : `impacto documental: ${report.decision} · módulos diretos ${report.direct_modules.join(', ') || '—'} · relacionados ${report.related_modules.join(', ') || '—'}`);
     if (REQUIRE_CLEAN && worktreeFiles.length) {
       console.error(`documentation-loop: recibo final exige worktree limpo; ${worktreeFiles.length} arquivo(s) ainda não commitado(s)`);
+      return 1;
+    }
+    if (ENFORCE_ACTIVATION && !report.activation_ok) {
+      console.error('documentation-loop: ativação recusada; módulo novo, projeção derivada ou arquivo sem dono ficou incompleto');
       return 1;
     }
     return 0;

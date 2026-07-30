@@ -2,14 +2,15 @@
 title: "RUNBOOK — Criar novo módulo no oimpresso ERP"
 owner: W
 status: ativo
-last_validated: "2026-07-10"
+last_validated: "2026-07-30"
 ---
 
 # RUNBOOK — Criar novo módulo no oimpresso ERP
 
 > **Tipo:** runbook reproduzível
 > **Refs:** [ADR 0002](../../decisions/0002-nwidart-laravel-modules.md) (nWidart), [ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md) (imitar referências), [ADR 0024](../../decisions/0024-instalacao-1-clique-modulos.md) (Install 1-clique), [ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) (zero auto-mem)
-> **Validado:** Modules/ADS/ (2026-05-03), Modules/ConsultaOs/ (2026-05-04)
+> **Validado:** Modules/ADS/ (2026-05-03), Modules/ConsultaOs/ (2026-05-04),
+> contrato documental confrontado com Modules/VozDoCliente/ (2026-07-30)
 
 Receita pra criar módulo Laravel modular (nWidart v10) no oimpresso garantindo que aparece em `/manage-modules` com botão Install funcional, aparece na sidebar admin se cabível, e roda migrations + System property automaticamente.
 
@@ -22,6 +23,10 @@ Receita pra criar módulo Laravel modular (nWidart v10) no oimpresso garantindo 
 | Após Install, entra em `system` | `SELECT * FROM system WHERE key='<modulesystemkey>_version'` retorna versão |
 | Aparece na sidebar admin (se DataController.modifyAdminMenu populado) | Login admin → menu lateral mostra item |
 | Migrations rodaram | `module:migrate` listado em `migrations` |
+| Fronteira e dependências estão declaradas | `Modules/<Nome>/SCOPE.md` |
+| Contrato, estado e inventário estão navegáveis | `BRIEFING.md` + `SPEC.md` + `SUPERFICIE.md` |
+| Existe prova executável do comportamento | ao menos um teste em `Modules/<Nome>/Tests/` |
+| Catálogo, painel e índices refletem o módulo | validação de ativação termina com exit 0 |
 
 ## Pré-requisitos
 
@@ -31,12 +36,13 @@ Receita pra criar módulo Laravel modular (nWidart v10) no oimpresso garantindo 
   - Sidebar admin? → DataController precisa de `modifyAdminMenu()` populado
   - CRUD multi-tenant? → ativar skill `multi-tenant-patterns`
 
-## Estrutura mínima — 8 peças
+## Estrutura mínima — runtime + contrato verificável
 
 ```
 Modules/<Nome>/
 ├── module.json              ← provider list
 ├── composer.json            ← psr-4: "Modules\\<Nome>\\": ""
+├── SCOPE.md                  ← fronteira + depends_on/delegates_to/migrates_to
 ├── Config/config.php
 ├── Database/Migrations/     ← (opcional se módulo não tem schema próprio)
 ├── Providers/
@@ -47,8 +53,18 @@ Modules/<Nome>/
 │   └── InstallController.php        ← OBRIGATÓRIO (extends BaseModuleInstallController)
 ├── Routes/web.php           ← OBRIGATÓRIO ter as 3 rotas Install (ver §3)
 ├── Resources/lang/pt-BR/<alias>.php
-└── Resources/menus/topnav.php       ← (opcional, só se for ter topnav declarativo)
+├── Resources/menus/topnav.php       ← (opcional, só se for ter topnav declarativo)
+└── Tests/                            ← ao menos uma prova do contrato
+
+memory/requisitos/<Nome>/
+├── BRIEFING.md              ← estado factual e próximo passo
+├── SPEC.md                  ← contrato funcional / critérios de aceite
+└── SUPERFICIE.md            ← inventário gerado; nunca editar à mão
 ```
+
+`module.json` é o evento de ativação. No mesmo commit, a máquina exige todo o
+contrato acima, a entrada em `modules_statuses.json` e as projeções derivadas. Criar
+somente a pasta PHP deixa o módulo em estado parcial e reprova o check.
 
 ## Passos
 
@@ -163,21 +179,71 @@ Sem essa entrada o nWidart não ativa o módulo.
 
 ```bash
 composer dump-autoload --no-scripts
-# (depois de mergeado em main, rodar no servidor — ver passo 10)
+# (depois de mergeado em main, rodar no servidor — ver "Deploy Hostinger")
 ```
+
+### 9. Declarar e regenerar a documentação
+
+1. Escrever `SCOPE.md`, `BRIEFING.md` e `SPEC.md` com fatos e critérios verificáveis.
+2. Declarar relações estruturadas no frontmatter do `SCOPE.md`; por exemplo:
+
+```yaml
+depends_on:
+  - Financeiro
+delegates_to:
+  - Fiscal
+```
+
+3. Regenerar apenas pelos donos:
+
+```bash
+node scripts/governance/module-surface.mjs <Nome> --write
+node scripts/governance/catalog-graph.mjs --write
+node scripts/governance/system-map.mjs
+php artisan module:requirements --index-only
+php artisan module:specs --index-only
+```
+
+Não editar `SUPERFICIE.md`, `memory/governance/catalog.json`,
+`memory/reference/PAINEL-SISTEMA.md` ou os índices na mão. Eles são projeções;
+`module.json`, `SCOPE.md`, `BRIEFING.md`, `SPEC.md` e os testes são as fontes.
+
+### 10. Fechar a transação de ativação
+
+Com a base do PR disponível:
+
+```bash
+node scripts/governance/documentation-loop.mjs \
+  --impact-ref <sha-base> \
+  --head-ref HEAD \
+  --enforce-activation \
+  --json
+```
+
+O comando inventaria os arquivos rastreados pelo Git, calcula dependências
+transitivas, detecta um novo `module.json` e confere runtime, documentação, teste,
+catálogo, painel e índices. Exit diferente de zero significa módulo ainda parcial;
+é preciso corrigir o dono apontado e rodar novamente, não suprimir a cobrança.
 
 ## Validação local
 
 ```bash
-# 1. PHP lint
+# 1. Contrato documental e ativação
+node scripts/governance/documentation-loop.mjs --selftest
+node scripts/governance/module-surface.mjs --all --check
+node scripts/governance/catalog-graph.mjs --check
+node scripts/governance/system-map.mjs --check
+node scripts/governance/documentation-loop.mjs --impact-ref <sha-base> --head-ref HEAD --enforce-activation --json
+
+# 2. PHP lint — somente no CT 100 (ADR 0062)
 php -l Modules/<Nome>/Http/Controllers/InstallController.php
 php -l Modules/<Nome>/Routes/web.php
 
-# 2. Rota Install resolvida pelo action()
+# 3. Rota Install resolvida pelo action() — CT 100
 php artisan route:list --path=<prefix>/install
 # Deve listar 3 linhas — index, uninstall, update.
 
-# 3. Composer enxerga namespace
+# 4. Composer enxerga namespace — CT 100
 composer dump-autoload --no-scripts 2>&1 | grep -i "Modules.<Nome>"
 ```
 

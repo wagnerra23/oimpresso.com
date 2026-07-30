@@ -22,8 +22,16 @@ on:
       - 'resources/views/layouts/**'
       - 'memory/requisitos/_DesignSystem/templates/**'
       - 'memory/requisitos/*/SUPERFICIE.md'
+      - 'memory/requisitos/*/BRIEFING.md'
+      - 'memory/requisitos/*/SPEC.md'
+      - 'memory/governance/catalog.json'
+      - 'memory/reference/PAINEL-SISTEMA.md'
+      - 'modules_statuses.json'
       - 'scripts/governance/module-surface.mjs'
       - 'scripts/governance/module-surface.test.mjs'
+      - 'scripts/governance/catalog-graph.mjs'
+      - 'scripts/governance/documentation-loop.mjs'
+      - 'scripts/governance/system-map.mjs'
       - 'scripts/qa/page-path.mjs'
       - 'scripts/qa/page-path.test.mjs'
       - '.github/workflows/module-surface.yml'
@@ -42,7 +50,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: node --test scripts/governance/module-surface.test.mjs scripts/qa/page-path.test.mjs
+      - name: Testar classificadores, grafo, impacto e mapa
+        run: |
+          node --test scripts/governance/module-surface.test.mjs scripts/governance/catalog-graph.test.mjs scripts/qa/page-path.test.mjs
+          node scripts/governance/documentation-loop.mjs --selftest
+          node scripts/governance/system-map-ia.test.mjs
 
   # Drift: o SUPERFICIE.md commitado bate com a árvore do PR? Exit code real.
   drift:
@@ -56,9 +68,34 @@ jobs:
           node-version: '20'
       - name: node scripts/governance/module-surface.mjs --all --check
         run: node scripts/governance/module-surface.mjs --all --check
+      - name: Catálogo de relações em dia
+        run: node scripts/governance/catalog-graph.mjs --check
+      - name: Painel, arquitetura IA e onboarding em dia
+        run: node scripts/governance/system-map.mjs --check
       - name: Diagnóstico em caso de drift
         if: failure()
         run: |
           echo "::error::Um SUPERFICIE.md ficou atrás da árvore. Regenere o módulo afetado:"
           echo "  node scripts/governance/module-surface.mjs <Mod> --write"
           echo "e commite o SUPERFICIE.md atualizado."
+
+  # Transação de módulo novo: o diff em module.json só fica ativável quando
+  # runtime, contrato, teste, catálogo, superfície e painel fecham juntos.
+  activation:
+    name: Módulo novo — contrato + projeções derivadas
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Compilar impacto e ativação
+        run: >-
+          node scripts/governance/documentation-loop.mjs
+          --impact-ref "${{ github.event.pull_request.base.sha }}"
+          --head-ref HEAD
+          --enforce-activation
+          --json

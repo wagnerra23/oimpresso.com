@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 274 arquivos em 18 papéis.
+**Total mapeado:** 314 arquivos em 18 papéis.
 
 ## Controllers — 29
 
@@ -229,16 +229,56 @@ tabelas_dominio: ["contacts", "customer_groups"]
 
 - 13 arquivos em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 11
+## Demais arquivos (manifestos, docs, assets e misc) — 51
 
 - [ClienteProximaAcaoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php)
 - [ClienteResumoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php)
 - [ClienteSegmentoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteSegmentoAgent.php)
+- [BRIEFING.md](../../../Modules/Crm/BRIEFING.md)
+- [CHANGELOG.md](../../../Modules/Crm/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Crm/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Console/.gitkeep)
 - [CrmLeadRepositoryInterface.php](../../../Modules/Crm/Contracts/CrmLeadRepositoryInterface.php)
+- [.gitkeep](../../../Modules/Crm/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Http/Requests/.gitkeep)
 - [ScheduleNotification.php](../../../Modules/Crm/Notifications/ScheduleNotification.php)
 - [SendCampaignNotification.php](../../../Modules/Crm/Notifications/SendCampaignNotification.php)
 - [SendProposalNotification.php](../../../Modules/Crm/Notifications/SendProposalNotification.php)
 - [CampaignPolicy.php](../../../Modules/Crm/Policies/CampaignPolicy.php)
 - [ProposalPolicy.php](../../../Modules/Crm/Policies/ProposalPolicy.php)
+- [.gitkeep](../../../Modules/Crm/Providers/.gitkeep)
 - [CrmLeadRepository.php](../../../Modules/Crm/Repositories/CrmLeadRepository.php)
+- [.gitkeep](../../../Modules/Crm/Resources/assets/.gitkeep)
+- [crm.js](../../../Modules/Crm/Resources/assets/js/crm.js)
+- [crm.css](../../../Modules/Crm/Resources/assets/sass/crm.css)
+- [.gitkeep](../../../Modules/Crm/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/Crm/Resources/lang/ar/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/ce/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/de/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/en/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/es/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/fr/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/hi/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/id/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/lo/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/nl/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/ps/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/pt/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/ro/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/sq/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/tr/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/vi/lang.php)
+- [.gitkeep](../../../Modules/Crm/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/Crm/SCOPE.md)
+- [.gitkeep](../../../Modules/Crm/Tests/.gitkeep)
 - [CrmUtil.php](../../../Modules/Crm/Utils/CrmUtil.php)
+- [composer.json](../../../Modules/Crm/composer.json)
+- [module.json](../../../Modules/Crm/module.json)
+- [package.json](../../../Modules/Crm/package.json)
+- [webpack.mix.js](../../../Modules/Crm/webpack.mix.js)
+- [cliente-form-types.ts](../../../resources/js/Pages/Cliente/_form/cliente-form-types.ts)

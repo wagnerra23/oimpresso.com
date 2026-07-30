@@ -12,9 +12,9 @@ module: Brief
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Brief --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Brief/**` + `resources/js/Pages/Brief/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Brief/**` + `resources/js/Pages/Brief/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Brief/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 35 arquivos em 9 papéis.
+**Total mapeado:** 39 arquivos em 9 papéis.
 
 ## Controllers — 3
 
@@ -64,6 +64,10 @@ module: Brief
 
 - 11 arquivos em [Modules/Brief/Tests/Feature/](../../../Modules/Brief/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 1
+## Demais arquivos (manifestos, docs, assets e misc) — 5
 
+- [BRIEFING.md](../../../Modules/Brief/BRIEFING.md)
+- [CHANGELOG.md](../../../Modules/Brief/CHANGELOG.md)
 - [BriefFetchTool.php](../../../Modules/Brief/Mcp/Tools/BriefFetchTool.php)
+- [SCOPE.md](../../../Modules/Brief/SCOPE.md)
+- [module.json](../../../Modules/Brief/module.json)

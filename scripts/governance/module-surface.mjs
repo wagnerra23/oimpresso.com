@@ -10,10 +10,10 @@
  * co-locado (`memory/requisitos/<Mod>/SUPERFICIE.md`) que a próxima geração recalcula.
  * "Derivado sobrevive; escrito+lembrado apodrece" (ADR 0256).
  *
- * ONDE ele mede: artefatos reconhecidos por papel em `Modules/<Mod>/**` +
- * `resources/js/Pages/<Mod>/**` (telas, componentes, charters e casos). NÃO é um manifesto
- * byte-a-byte da pasta. Âncoras cross-cutting (bridge em app/, FSM) NÃO são deriváveis por
- * path — ficam narradas no BRIEFING (curado/destilado), não aqui. Honesto por construção.
+ * ONDE ele mede: TODO arquivo em `Modules/<Mod>/**` + `resources/js/Pages/<Mod>/**`,
+ * agrupado por papel quando reconhecido e preservado em "Demais arquivos" quando não.
+ * Assim o inventário do contexto é completo sem fingir que âncoras cross-cutting fora
+ * dessas raízes pertencem ao módulo; bridges em app/ e FSM seguem declaradas no SCOPE/BRIEFING.
  *
  * O que ele NÃO faz (delega): contagem de cobertura, nota, status por tela — donos são
  * `screen-coverage-map.mjs` + `casos-gate`. Aqui é só ONDE o código mora (ponteiro, não cópia).
@@ -270,9 +270,9 @@ function coletar(mod) {
   for (const f of files) {
     const g = grupos.find((p) => p.re.test(f) && (!p.aceita || p.aceita(f)));
     if (g) g.files.push(f);
-    // "Outros" = código .php membro de dir não-reconhecido (drop lang/menus/assets/views —
-    // `/Resources/` cobre Modules, `/resources/` cobre o core CLASSE B).
-    else if (f.endsWith('.php') && !f.includes('/Resources/') && !f.includes('/resources/')) outros.push(f);
+    // Nenhum arquivo some: manifesto, documentação local, assets, lang, .gitkeep e
+    // extensões futuras ficam em "Demais arquivos" até ganhar papel próprio.
+    else outros.push(f);
   }
   return { grupos, outros };
 }
@@ -309,7 +309,7 @@ function montar(mod, grupos, outros) {
   } else if (core) {
     L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
-    L.push('> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
+    L.push('> **O que isto é:** o inventário completo das raízes `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/' + mod + '/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).');
   }
   L.push('');
   L.push(`**Total mapeado:** ${total} arquivos em ${totalPapeis} papéis.`);
@@ -331,7 +331,7 @@ function montar(mod, grupos, outros) {
     L.push('');
   }
   if (outros.length) {
-    L.push(`## Outros (raiz/misc) — ${outros.length}`);
+    L.push(`## Demais arquivos (manifestos, docs, assets e misc) — ${outros.length}`);
     L.push('');
     for (const f of outros) L.push(`- [${f.split('/').pop()}](${linkDe(f)})`);
     L.push('');

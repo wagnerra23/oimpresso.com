@@ -31,6 +31,9 @@ not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/ProjectMgmt"
   - "MCP server admin → Modules/TeamMcp"
+depends_on:
+  - Sells
+  - Compras
 trust_required: L3
 owner: wagner
 permission_prefix: financeiro.*

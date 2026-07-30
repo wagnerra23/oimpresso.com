@@ -24,11 +24,12 @@
 //   node scripts/governance/system-map.mjs --check      # exit 1 se o .md commitado difere do gerado (CI)
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, statSync } from 'node:fs';
-import { execSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { join, dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
+const GIT_SAFE_ARGS = ['-c', `safe.directory=${resolve(ROOT).replaceAll('\\', '/')}`];
 // só roda a geração/CI quando invocado DIRETO (node system-map.mjs). Importado
 // (ex: onboarding-paths-check.mjs reusa deadLinks) NÃO dispara escrita nem process.exit.
 const IS_DIRECT_RUN = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
@@ -187,7 +188,7 @@ function frontmatter(txt) {
 // último commit que tocou um path (data ISO curta) — frescor REAL, não declarado
 function gitLastDate(relPath) {
   try {
-    const out = execSync(`git log -1 --format=%cs -- "${relPath}"`, {
+    const out = execFileSync('git', [...GIT_SAFE_ARGS, 'log', '-1', '--format=%cs', '--', relPath], {
       cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
     }).toString().trim();
     return out || null;
@@ -238,7 +239,11 @@ function measureProibicoes() {
 // ── fonte 3: módulos + frescor do BRIEFING (curado; linka o dono) ─────────────
 function measureModules() {
   const modDir = join(ROOT, 'Modules');
-  const mods = ls(modDir).filter((d) => { try { return statSync(join(modDir, d)).isDirectory(); } catch { return false; } });
+  const mods = ls(modDir).filter((d) => {
+    try {
+      return statSync(join(modDir, d)).isDirectory() && existsSync(join(modDir, d, 'module.json'));
+    } catch { return false; }
+  });
   const rows = [];
   for (const m of mods) {
     const brief = `memory/requisitos/${m}/BRIEFING.md`; // forward-slash sempre (link markdown + git)
@@ -514,7 +519,7 @@ export function parseToolsRegistry(txt, donoDoArquivo = 'Jana') {
  */
 function gitGrepFiles(padrao) {
   try {
-    const out = execSync(`git grep -lE "${padrao}" -- "Modules"`, {
+    const out = execFileSync('git', [...GIT_SAFE_ARGS, 'grep', '-lE', padrao, '--', 'Modules'], {
       cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
     });
     return { ok: true, files: out.split('\n').map((s) => s.trim()).filter(Boolean) };
@@ -526,7 +531,7 @@ function gitGrepFiles(padrao) {
 }
 function gitLsFiles(pathspec) {
   try {
-    const out = execSync(`git ls-files "${pathspec}"`, {
+    const out = execFileSync('git', [...GIT_SAFE_ARGS, 'ls-files', pathspec], {
       cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
     });
     return out.split('\n').map((s) => s.trim()).filter(Boolean);
@@ -1069,7 +1074,11 @@ export function deadLinks(md, outPath) {
   // Remove blocos cercados ``` … ``` ANTES de casar inline: os backticks internos
   // do bloco bagunçam o pareamento do regex e engoliriam paths inline reais depois
   // dele (Modules/Jana, app/Domain/Fsm ficavam SEM verificação — furo silencioso).
-  const noFences = md.replace(/```[\s\S]*?```/g, '');
+  const noFences = md
+    .replace(/```[\s\S]*?```/g, '')
+    // Ideias mortas aparecem riscadas no painel. Um path dentro de `~~...~~`
+    // é evidência histórica, não instrução navegável nem promessa de existência.
+    .replace(/~~.*?~~/g, '');
   const reCode = /`([^`]+)`/g;
   while ((m = reCode.exec(noFences)) !== null) {
     const t = m[1].trim();
@@ -1082,7 +1091,11 @@ export function deadLinks(md, outPath) {
   return dead;
 }
 export function assertLinksLive(pairs) {
-  const problems = pairs.flatMap(([md, out]) => deadLinks(md, out).map((l) => `${out}: ${l}`));
+  const problems = pairs.flatMap(([md, out]) => deadLinks(md, out).map((l) => {
+    const needle = l.replace(/^\(inline\)\s*/, '');
+    const line = md.split('\n').find((row) => row.includes(needle))?.trim();
+    return `${out}: ${l}${line ? `\n    em: ${line}` : ''}`;
+  }));
   if (problems.length) {
     console.error('[system-map] PATH MORTO — o gerador se recusa a emitir link quebrado (regra):');
     problems.forEach((p) => console.error('  ✗ ' + p));

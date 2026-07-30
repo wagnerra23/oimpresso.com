@@ -12,9 +12,9 @@ module: ComunicacaoVisual
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs ComunicacaoVisual --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ComunicacaoVisual/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 64 arquivos em 14 papéis.
+**Total mapeado:** 71 arquivos em 15 papéis.
 
 ## Controllers — 4
 
@@ -101,3 +101,13 @@ module: ComunicacaoVisual
 ## Testes (Pest) — 21
 
 - 21 arquivos em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+
+## Demais arquivos (manifestos, docs, assets e misc) — 7
+
+- [BRIEFING.md](../../../Modules/ComunicacaoVisual/BRIEFING.md)
+- [CHANGELOG.md](../../../Modules/ComunicacaoVisual/CHANGELOG.md)
+- [README.md](../../../Modules/ComunicacaoVisual/README.md)
+- [comunicacao-visual.php](../../../Modules/ComunicacaoVisual/Resources/lang/pt-BR/comunicacao-visual.php)
+- [SCOPE.md](../../../Modules/ComunicacaoVisual/SCOPE.md)
+- [composer.json](../../../Modules/ComunicacaoVisual/composer.json)
+- [module.json](../../../Modules/ComunicacaoVisual/module.json)

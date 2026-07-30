@@ -12,9 +12,9 @@ module: VozDoCliente
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs VozDoCliente --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/VozDoCliente/**` + `resources/js/Pages/VozDoCliente/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/VozDoCliente/**` + `resources/js/Pages/VozDoCliente/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/VozDoCliente/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 13 arquivos em 10 papéis.
+**Total mapeado:** 18 arquivos em 11 papéis.
 
 ## Controllers — 3
 
@@ -58,3 +58,11 @@ module: VozDoCliente
 ## Testes (Pest) — 1
 
 - 1 arquivos em [Modules/VozDoCliente/Tests/Feature/](../../../Modules/VozDoCliente/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+
+## Demais arquivos (manifestos, docs, assets e misc) — 5
+
+- [vozdocliente.php](../../../Modules/VozDoCliente/Resources/lang/en/vozdocliente.php)
+- [vozdocliente.php](../../../Modules/VozDoCliente/Resources/lang/pt/vozdocliente.php)
+- [SCOPE.md](../../../Modules/VozDoCliente/SCOPE.md)
+- [composer.json](../../../Modules/VozDoCliente/composer.json)
+- [module.json](../../../Modules/VozDoCliente/module.json)
