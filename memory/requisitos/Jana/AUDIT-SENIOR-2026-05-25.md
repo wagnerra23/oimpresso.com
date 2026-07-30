@@ -44,7 +44,7 @@ Discordância detectada entre input pedido e estado real:
 | Fonte | Score | Quando | Confiança |
 |---|---|---|---|
 | Input do parent agent | 71/100 (D1=15/30, D7=6/10) | — | Baixa — estimativa pré-Wave 25 ou rubrica antiga |
-| `Modules/Jana/BRIEFING.md` §2 | **96/100** (Wave 25 SATURATION) | 2026-05-16 | Alta — `module:grade Jana --detail` ratificado |
+| ~~`Modules/Jana/BRIEFING.md`~~ §2 (deletado 2026-07-30) | **96/100** (Wave 25 SATURATION) | 2026-05-16 | ~~Alta~~ → **baixa**: o baseline canônico diz **73**; era BRIEFING concorrente, hoje só `memory/requisitos/Jana/BRIEFING.md` |
 | Pest tests passing | `LgpdComplianceTest` (179 linhas D7.a+b+c) · `MultiTenantIsolationComprehensiveTest` (293 linhas) · `MultiTenantIsolationTest` (314 linhas) | Live | Alta |
 | Inventário código | 27 Mcp entities + 11 chat entities = 38 Models, 12+ com `BelongsToBusinessViaParent`, 14+ com `HasBusinessScope` direto, 8 com SATURATION marker explícito "Sem business_id by design" | Live | Alta |
 
@@ -539,7 +539,7 @@ ENTREGÁVEL FINAL: score governance D1-D9 = 96 → 97-98
 **Auditorias canon predecessoras lidas:**
 
 - [Knowledge Architecture Audit 2026-05-13 (parent artifact)](AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md)
-- [BRIEFING canon Jana (Wave 25 SATURATION)](../../../Modules/Jana/BRIEFING.md)
+- [BRIEFING canon Jana](BRIEFING.md) — casa única (o `Modules/Jana/BRIEFING.md` citado na época foi deletado em 2026-07-30)
 - [Modules/Jana/SCOPE.md (Fase 3.7 PR-9)](../../../Modules/Jana/SCOPE.md)
 - [RETRIEVAL-GOTCHAS Sprint 9 — 14 armadilhas](RETRIEVAL-GOTCHAS.md)
 - [RUNBOOK-chat (tela `/copiloto`)](RUNBOOK-chat.md)
