@@ -96,7 +96,7 @@ class BoardController extends Controller
         // (charter Board live exige initial render — atalhos J/K precisam de
         // cards já presentes). epics/cycles/owners alimentam filtros dropdown,
         // que abrem por interação user → defer ok.
-        return Inertia::render('ProjectMgmt/Board/Index', [
+        return Inertia::render('Forja/Board/Index', [
             'project' => $project ? [
                 'id'   => $project->id,
                 'key'  => $project->key,

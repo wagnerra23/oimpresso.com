@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 42 arquivos em 8 papéis.
+**Total mapeado:** 61 arquivos em 11 papéis.
 
 ## Controllers — 12
 
@@ -60,6 +60,34 @@ module: Forja
 
 - [config.php](../../../Modules/Forja/Config/config.php)
 - [retention.php](../../../Modules/Forja/Config/retention.php)
+
+## Telas (Inertia/React) — 9
+
+- [Index.tsx](../../../resources/js/Pages/Forja/Activity/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Forja/Backlog/Index.tsx)
+- [DetailSheet.tsx](../../../resources/js/Pages/Forja/Board/DetailSheet.tsx)
+- [Index.tsx](../../../resources/js/Pages/Forja/Board/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Forja/Burndown/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Forja/Inbox/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Forja/MyWork/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Forja/Roadmap/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Forja/Triage/Index.tsx)
+
+## Componentes / apoio de tela — 1
+
+- [TriageDossier.tsx](../../../resources/js/Pages/Forja/Triage/_components/TriageDossier.tsx)
+
+## Charters (lei da tela) — 9
+
+- [Index.charter.md](../../../resources/js/Pages/Forja/Activity/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Forja/Backlog/Index.charter.md)
+- [DetailSheet.charter.md](../../../resources/js/Pages/Forja/Board/DetailSheet.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Forja/Board/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Forja/Burndown/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Forja/Inbox/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Forja/MyWork/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
 
 ## Testes (Pest) — 13
 

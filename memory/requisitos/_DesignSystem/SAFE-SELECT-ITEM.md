@@ -64,8 +64,8 @@ origem, não só abafe.
 - `Pages/kb/Index.tsx` — `Object.keys(kpis.tipos)`, `Object.keys(kpis.modulos)`
 - `Pages/team-mcp/Tasks/Index.tsx` — `modulos`, `owners`, `sprints`
 - `Pages/team-mcp/CcSessions/Index.tsx` — `projList`
-- `Pages/ProjectMgmt/Backlog/Index.tsx` — `owners` (×2), `sprints`
-- `Pages/ProjectMgmt/Activity/Index.tsx` — `event_types`, `authors`
+- `Pages/Forja/Backlog/Index.tsx` — `owners` (×2), `sprints`
+- `Pages/Forja/Activity/Index.tsx` — `event_types`, `authors`
 
 **Corrigido via sentinela** (item "Todos" literal `value=""` — crash latente vivo):
 

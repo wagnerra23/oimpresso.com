@@ -48,7 +48,7 @@ class TriageController extends Controller
         // `project`/`filters` cheap eager. tasks/kpis compartilham a query órfã →
         // 1 closure memoizada. epics/cycles/owners alimentam os dropdowns de
         // atribuição inline → closures separadas pra partial reload.
-        return Inertia::render('ProjectMgmt/Triage/Index', [
+        return Inertia::render('Forja/Triage/Index', [
             'project' => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
             'tasks'   => Inertia::defer(fn () => $this->buildTriagePayload($projectId)['tasks']),
             'kpis'    => Inertia::defer(fn () => $this->buildTriagePayload($projectId)['kpis']),

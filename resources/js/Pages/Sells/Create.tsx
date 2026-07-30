@@ -937,7 +937,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   };
 
   // Scroll-spy: detecta qual aba está visível e marca como ativa (pattern Cockpit canon).
-  // Ref: Pages/ProjectMgmt/Board/DetailSheet.tsx — abas com border-b-2 border-primary -mb-px no estado ativo.
+  // Ref: Pages/Forja/Board/DetailSheet.tsx — abas com border-b-2 border-primary -mb-px no estado ativo.
   const sectionIds = ['sec-dados', 'sec-produtos', 'sec-pagamento', 'sec-resumo', 'sec-mais-opcoes'];
   const [activeSection, setActiveSection] = useState<string>('sec-dados');
   useEffect(() => {

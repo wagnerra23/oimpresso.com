@@ -42,7 +42,7 @@ C1 P0 Onda 4 fecha o loop:
 | 13 | `resources/js/Pages/Orcamento/Index.charter.md` | draft | Orcamento |
 | 14 | `resources/js/Pages/Produto/Index.charter.md` | draft | Produto |
 | 15 | `resources/js/Pages/Produto/Unificado/Index.charter.md` | draft | Produto |
-| 16 | `resources/js/Pages/ProjectMgmt/Board/Index.charter.md` | live | ProjectMgmt |
+| 16 | `resources/js/Pages/Forja/Board/Index.charter.md` | live | ProjectMgmt |
 | 17 | `resources/js/Pages/Repair/Dashboard/Index.charter.md` | live | Repair |
 | 18 | `resources/js/Pages/Repair/JobSheet/Index.charter.md` | live | Repair |
 | 19 | `resources/js/Pages/Repair/ProducaoOficina/Index.charter.md` | rascunho | Repair |

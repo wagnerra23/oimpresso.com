@@ -3,7 +3,7 @@
 //   Ações [W] confirma: aprovar (→backlog), rejeitar (→cancelled), fundir (duplicata).
 //   "Agente propõe, [W] aprova" — nada vira oficial sem confirmação.
 //
-// Espelha resources/js/Pages/ProjectMgmt/Triage/_components/TriageDossier.tsx
+// Espelha resources/js/Pages/Forja/Triage/_components/TriageDossier.tsx
 // (PR-5a) — só muda o prefixo de rota /project-mgmt/triage → /forja. DS v6:
 // tokens semânticos, layout via inline-flex/inline-grid, data-testid locators.
 

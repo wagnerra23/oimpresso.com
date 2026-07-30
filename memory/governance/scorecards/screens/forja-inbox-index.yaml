@@ -2,8 +2,8 @@
 # screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
 # A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
 # Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
-screen: ProjectMgmt/Inbox/Index
-path: resources/js/Pages/ProjectMgmt/Inbox/Index.tsx
+screen: Forja/Inbox/Index
+path: resources/js/Pages/Forja/Inbox/Index.tsx
 archetype: list
 persona: wagner
 nota: 87

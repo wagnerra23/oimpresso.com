@@ -213,7 +213,7 @@ capacidades:
 **Locais a inspecionar (paths exatos):**
 
 - Controllers: `Modules/Forja/Http/Controllers/{Board,Backlog,Roadmap,MyWork,Burndown,Activity}Controller.php` + `Admin/ProjectsController.php` + `DataController.php` + `InstallController.php`
-- Pages React: `resources/js/Pages/ProjectMgmt/{Board,Backlog,Roadmap,MyWork,Burndown,Activity}/Index.tsx`
+- Pages React: `resources/js/Pages/Forja/{Board,Backlog,Roadmap,MyWork,Burndown,Activity}/Index.tsx`
 - Componentes board: `resources/js/Components/board/{BoardColumn,TaskCard,badges}.tsx`
 - Routes: `Modules/Forja/Http/routes.php` (prefixo `/project-mgmt`)
 - SCOPE.md: `Modules/Forja/SCOPE.md`

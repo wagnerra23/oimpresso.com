@@ -108,7 +108,7 @@ Após drift resolvido, mesmo PR (ou PR seguinte) faz renames:
 
 ## §5. Renomeação ProjectMgmt → ~~Project~~ **Forja** (Fase 3.8 + 3.9)
 
-> ⚠️ **ERRATUM 2026-07-30:** o alvo deste §5 era `Modules/Project`. Foi ABANDONADO — o rename executado levou a **`Modules/Forja`** (decisão [W]), PHP-only no padrão da ADR 0088: URL `/project-mgmt`, alias/config/lang `projectmgmt`, `Pages/ProjectMgmt/`, permission `jana.mcp.usage.all` e package key `project_mgmt_module` seguem legacy por compat. Os passos abaixo ficam como registro do plano original.
+> ⚠️ **ERRATUM 2026-07-30:** o alvo deste §5 era `Modules/Project`. Foi ABANDONADO — o rename executado levou a **`Modules/Forja`** (decisão [W]), PHP-only no padrão da ADR 0088: URL `/project-mgmt`, alias/config/lang `projectmgmt`, `Pages/Forja/`, permission `jana.mcp.usage.all` e package key `project_mgmt_module` seguem legacy por compat. Os passos abaixo ficam como registro do plano original.
 
 **Fase 3.8** (DELETE Project legado UltimatePOS):
 

@@ -2,7 +2,7 @@
 
 > **Ultima atualizacao:** 2026-05-17 (W31-10)
 > **Auto-regeneravel.** Manter versao; reescrever via gerador (nao editar manual em campos de auto-status).
-> Pages dir: `resources/js/Pages/ProjectMgmt/`
+> Pages dir: `resources/js/Pages/Forja/`
 
 ## Resumo
 

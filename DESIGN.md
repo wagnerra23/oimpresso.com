@@ -255,7 +255,7 @@ Quick-check resumido:
 ## 16. Cockpit Pattern V2 — list+detail consolidado (ADR 0110)
 
 > **Pra páginas tipo "lista de entidades transacionais"** (vendas, compras, OSes, despesas, contas, clientes, produtos). Espelha `os-page.jsx` da §6 + adiciona spec concreto de tipografia, cores semânticas e endpoints REST.
-> Fonte da verdade: [ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md). Pages canon vivos: [Sells/Index.tsx](resources/js/Pages/Sells/Index.tsx), [Sells/Create.tsx](resources/js/Pages/Sells/Create.tsx), [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx), [governance/Dashboard.tsx](resources/js/Pages/governance/Dashboard.tsx), [ProjectMgmt/Board/Index.tsx](resources/js/Pages/ProjectMgmt/Board/Index.tsx).
+> Fonte da verdade: [ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md). Pages canon vivos: [Sells/Index.tsx](resources/js/Pages/Sells/Index.tsx), [Sells/Create.tsx](resources/js/Pages/Sells/Create.tsx), [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx), [governance/Dashboard.tsx](resources/js/Pages/governance/Dashboard.tsx), [Forja/Board/Index.tsx](resources/js/Pages/Forja/Board/Index.tsx).
 
 ### 16.1. Anatomia (5 partes obrigatórias)
 
@@ -384,5 +384,5 @@ Tests automatizados:
 ---
 
 > **Última atualização:** 2026-05-25 — patch §2/§7/§9/§15 refletindo evolução pós-2026-05-08: ADR UI-0013 Constituição UI v2 (4 camadas — mãe atual em §7) · ADR 0190 primary roxo universal 295 (§9) · ADR 0114 prototipo-ui/PROTOCOL.md loop formalizado (§2) · ADR 0180/0182/0189 PageHeader canon v3 (§7) · pr-ui-judge.yml ligado (§15 gates CI) · PRE-MERGE-UI.md link canônico (§15). Fecha US-_DESIGNSYSTEM-001 (era redundante — este arquivo já existia).
-> **2026-05-08:** §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, ProjectMgmt/Board/Index.
+> **2026-05-08:** §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, Forja/Board/Index.
 > **Próxima revisão sugerida:** quando US-_DESIGNSYSTEM-002 (`/dev/components` Inertia) e US-INFRA-012 (visual-regression strict mode) fecharem.

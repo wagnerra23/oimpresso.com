@@ -1,7 +1,7 @@
 ---
 id: resources-js-pages-project-mgmt-board-detail-sheet-charter
 page: /project-mgmt/board
-component: resources/js/Pages/ProjectMgmt/Board/DetailSheet.tsx
+component: resources/js/Pages/Forja/Board/DetailSheet.tsx
 related_prototype: n/a (sheet slide-in de detalhe da task, com abas state-driven, bespoke — nao segue um dos 5 Padroes de Tela)
 owner: wagner
 status: draft

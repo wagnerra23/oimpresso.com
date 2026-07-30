@@ -16,7 +16,7 @@ uses(Tests\TestCase::class);
  *
  * Cobertura do TriageController:
  *  - GET /project-mgmt/triage sem permission → 403
- *  - GET com permission → 200 + Inertia 'ProjectMgmt/Triage/Index' + props canônicas
+ *  - GET com permission → 200 + Inertia 'Forja/Triage/Index' + props canônicas
  *  - lista órfã = scope McpTask::triage() (sem owner OU sem prio OU backlog),
  *    paridade com a tool MCP `triage`
  *  - PATCH /triage/{id}/assign sem permission → 403
@@ -138,7 +138,7 @@ it('GET /project-mgmt/triage com permission retorna Inertia Forja/Triage/Index',
 
     $response->assertOk();
     $response->assertInertia(fn (AssertableInertia $page) => $page
-        ->component('ProjectMgmt/Triage/Index')
+        ->component('Forja/Triage/Index')
         ->has('tasks')
         ->has('kpis')
         ->has('cycles')

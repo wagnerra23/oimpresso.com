@@ -67,7 +67,7 @@ Detectadas nos lotes de `related_us`; cada uma precisa de decisão: criar US no 
 | `Pages/Atendimento/JanaTemplates.charter.md` | `[US-WA-070]` | smoke ou prod-flags `Atendimento/JanaTemplates` |
 | `Pages/Atendimento/Macros/Index.charter.md` | `[US-WA-048]` | smoke ou prod-flags `Atendimento/Macros/Index` |
 | `Pages/Atendimento/Metricas/Index.charter.md` | `[US-WA-041]` | smoke ou prod-flags `Atendimento/Metricas/Index` |
-| `Pages/ProjectMgmt/Board/Index.charter.md` | `[US-TR-307]` (TR-308 é topicamente da tela mas está `todo`/gap — só listar quando entregue) | smoke ou prod-flags `ProjectMgmt/Board/Index` |
+| `Pages/Forja/Board/Index.charter.md` | `[US-TR-307]` (TR-308 é topicamente da tela mas está `todo`/gap — só listar quando entregue) | smoke ou prod-flags `ProjectMgmt/Board/Index` |
 | `Pages/RecurringBilling/Faturas/Index.charter.md` | `[US-RB-042]` (RECURRINGBILLING-007 é duplicata declarada da 042 — refutador: não listar as duas) | smoke ou prod-flags `RecurringBilling/Faturas/Index` |
 | `Pages/RecurringBilling/Planos/Index.charter.md` | `[US-RB-001]` | smoke ou prod-flags `RecurringBilling/Planos/Index` |
 | `Pages/RecurringBilling/Configuracoes/Index.charter.md` | `[US-RB-010]` (anchor cita ConfiguracoesController → `Inertia::render('RecurringBilling/Configuracoes/Index')`) | smoke ou prod-flags `RecurringBilling/Configuracoes/Index` |

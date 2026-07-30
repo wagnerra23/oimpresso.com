@@ -35,7 +35,7 @@ class RoadmapController extends Controller
         // `project` é cheap (resolveProject já consultou); demais props deferidas
         // pra desbloquear initial render. Quarters+kpis compartilham mesma query
         // de epics — agrupados em 1 closure pra evitar duplicar.
-        return Inertia::render('ProjectMgmt/Roadmap/Index', [
+        return Inertia::render('Forja/Roadmap/Index', [
             'project'  => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
             'quarters' => Inertia::defer(fn () => $this->buildRoadmapPayload($projectId)['quarters']),
             'kpis'     => Inertia::defer(fn () => $this->buildRoadmapPayload($projectId)['kpis']),

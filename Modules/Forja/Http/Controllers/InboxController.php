@@ -43,7 +43,7 @@ class InboxController extends Controller
 
         // RUNBOOK-inertia-defer-pattern.md — `filters` cheap eager.
         // inbox/inbox_stats compartilham a mesma user_id query → 1 closure.
-        return Inertia::render('ProjectMgmt/Inbox/Index', [
+        return Inertia::render('Forja/Inbox/Index', [
             'inbox'       => Inertia::defer(fn () => $this->buildInboxPayload($userId, $showRead)['inbox']),
             'inbox_stats' => Inertia::defer(fn () => $this->buildInboxPayload($userId, $showRead)['inbox_stats']),
             'filters'     => ['show_read' => $showRead],

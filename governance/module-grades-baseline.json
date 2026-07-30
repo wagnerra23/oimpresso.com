@@ -47,7 +47,7 @@
   "renames": {
     "ProjectMgmt": {
       "new_name": "Forja",
-      "reason": "Renomeado 2026-07-30 — module.json name=Forja (rename PHP-only, padrao ADR 0088). URL /project-mgmt, alias projectmgmt, config key, lang, permission jana.mcp.usage.all, package key project_mgmt_module, row system.projectmgmt_version e Pages/ProjectMgmt mantem prefixo legacy por compat.",
+      "reason": "Renomeado 2026-07-30 — module.json name=Forja (padrao ADR 0088 + PR-5 Pages). Renomeados: namespace PHP e resources/js/Pages/Forja. Mantem prefixo legacy por compat: URL /project-mgmt, alias projectmgmt, config key, lang, permission jana.mcp.usage.all, package key project_mgmt_module e a row system.projectmgmt_version.",
       "renamed_at": "2026-07-30T00:00:00-03:00"
     },
     "PontoWr2": {

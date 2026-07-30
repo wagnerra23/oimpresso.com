@@ -53,7 +53,7 @@ Em ordem:
 1. **`Design.md`** raiz — princípios não-negociáveis (§3) + Cockpit V2 spec (§16)
 2. **[ADR 0110](../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)** — anatomia/tipografia/cores semânticas
 3. **`*.charter.md`** da Page parent (se existir) — Mission/Goals/Non-Goals
-4. **Pages canon vivos** (Sells/Index, Sells/Create, governance/Dashboard, ProjectMgmt/Board) — comparar pattern
+4. **Pages canon vivos** (Sells/Index, Sells/Create, governance/Dashboard, Forja/Board) — comparar pattern
 
 ### A.3. Visual gate F1.5 (ADR 0107) — OBRIGATÓRIO
 

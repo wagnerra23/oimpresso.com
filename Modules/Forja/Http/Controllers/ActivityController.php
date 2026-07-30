@@ -85,7 +85,7 @@ class ActivityController extends Controller
             'completed' => $events->where('event_type', 'status_changed')->where('to_value', 'done')->count(),
         ];
 
-        return Inertia::render('ProjectMgmt/Activity/Index', [
+        return Inertia::render('Forja/Activity/Index', [
             'project'     => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
             'events'      => $serialized,
             'kpis'        => $kpis,

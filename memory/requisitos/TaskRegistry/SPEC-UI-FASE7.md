@@ -64,7 +64,7 @@ Tudo dentro de **`Modules/Forja`** (dono canônico do board — [ADR 0064](../..
 | Camada | Novo | Padrão a seguir |
 |---|---|---|
 | Controller | `TriageController` + `InboxController` | igual `MyWorkController` (Inertia::render + `Inertia::defer` na lista) |
-| Pages | `resources/js/Pages/ProjectMgmt/Triage/Index.tsx` + `Inbox/Index.tsx` (+ `.charter.md` + `.review.md`) | igual `Board/Index.tsx`, `MyWork/Index.tsx` |
+| Pages | `resources/js/Pages/Forja/Triage/Index.tsx` + `Inbox/Index.tsx` (+ `.charter.md` + `.review.md`) | igual `Board/Index.tsx`, `MyWork/Index.tsx` |
 | Shell | `AppShellV2` + `PageHeader` canon (modo NAV com SubNav) | [ADR UI-0013](../_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [PT-01](../_DesignSystem/padroes-tela/PT-01-Lista.md) |
 | Rotas | `/projects/triage`, `/projects/inbox` (ou prefixo já usado pelo módulo) | `Modules/Forja/Routes/web.php`, FQCN ([.claude/rules/routes.md](../../../.claude/rules/routes.md)) |
 | Realtime | canal Centrifugo `inbox.{user_id}` pro badge | [ADR 0058](../../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md) |
@@ -93,7 +93,7 @@ Tudo dentro de **`Modules/Forja`** (dono canônico do board — [ADR 0064](../..
 
 - Auditoria origem: [`AUDIT-TEAM-OS-2026-05-29.md`](AUDIT-TEAM-OS-2026-05-29.md) — Onda 2 (função 9: 7→9).
 - [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) — Fase 7 (UI) + hierarquia + tools.
-- UI existente a reusar: `resources/js/Pages/ProjectMgmt/{Board,Backlog,MyWork,Roadmap,Burndown,Activity}/Index.tsx`.
+- UI existente a reusar: `resources/js/Pages/Forja/{Board,Backlog,MyWork,Roadmap,Burndown,Activity}/Index.tsx`.
 
 ---
 

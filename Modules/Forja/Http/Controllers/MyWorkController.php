@@ -44,7 +44,7 @@ class MyWorkController extends Controller
         // `username`/`project`/`filters` cheap eager.
         // my_work/inbox/inbox_stats/kpis compartilham contagens — agrupados em
         // 2 closures (work payload + inbox payload). kpis depende dos 2 → 3ª closure.
-        return Inertia::render('ProjectMgmt/MyWork/Index', [
+        return Inertia::render('Forja/MyWork/Index', [
             'project'     => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
             'username'    => $username,
             'my_work'     => Inertia::defer(fn () => $this->buildMyWorkPayload($projectId, $username)['my_work']),

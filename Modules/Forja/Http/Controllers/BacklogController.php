@@ -50,7 +50,7 @@ class BacklogController extends Controller
         // tasks/kpis compartilham mesma query — agrupados em 1 closure.
         // epics/owners/sprints são queries independentes — closures separadas
         // permitem partial reload (ex `only:['tasks','kpis']` ao filtrar).
-        return Inertia::render('ProjectMgmt/Backlog/Index', [
+        return Inertia::render('Forja/Backlog/Index', [
             'project' => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
             'tasks'   => Inertia::defer(fn () => $this->buildTasksAndKpis($projectId, $filters)['tasks']),
             'kpis'    => Inertia::defer(fn () => $this->buildTasksAndKpis($projectId, $filters)['kpis']),

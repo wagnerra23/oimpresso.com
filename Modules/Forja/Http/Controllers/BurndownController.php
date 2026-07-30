@@ -42,7 +42,7 @@ class BurndownController extends Controller
         // `project` cheap eager; cycles list/series/kpis/cycle deferidos.
         // series/kpis/cycle compartilham mesma query histórica McpTaskEvent —
         // agrupados em 1 closure pra evitar reprocessar.
-        return Inertia::render('ProjectMgmt/Burndown/Index', [
+        return Inertia::render('Forja/Burndown/Index', [
             'project' => $project ? ['id' => $project->id, 'key' => $project->key, 'name' => $project->name] : null,
             'cycles'  => Inertia::defer(fn () => $this->buildCyclesPayload($projectId)),
             'cycle'   => Inertia::defer(fn () => $this->buildBurndownPayload($projectId, $cycleId)['cycle']),

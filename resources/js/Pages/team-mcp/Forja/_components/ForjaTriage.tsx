@@ -8,7 +8,7 @@
 // que reusa o padrão Analista de ProjectMgmt apontando pros endpoints /forja/*).
 //
 // Reuso: estrutura de lista + navegação J/K + defer-guard espelham
-// resources/js/Pages/ProjectMgmt/Triage/Index.tsx. DS v6: roxo canon (text/bg-primary)
+// resources/js/Pages/Forja/Triage/Index.tsx. DS v6: roxo canon (text/bg-primary)
 // nas primárias, tabular-nums, layout via inline-flex/primitivos, data-testid locators.
 
 import { router } from '@inertiajs/react';
@@ -40,7 +40,7 @@ export interface ForjaTicket {
 interface Props {
   // tickets chega via Inertia::defer (ForjaController@triagem) → undefined no 1º
   // paint. Default-guard `= []` no destructuring pra NÃO crashar antes do defer
-  // (skill inertia-defer-default; espelha ProjectMgmt/Triage/Index.tsx).
+  // (skill inertia-defer-default; espelha Forja/Triage/Index.tsx).
   tickets?: ForjaTicket[];
 }
 

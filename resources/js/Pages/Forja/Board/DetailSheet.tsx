@@ -1,5 +1,5 @@
 // @memcofre
-//   componente: ProjectMgmt/Board/DetailSheet
+//   componente: Forja/Board/DetailSheet
 //   stories: PMG-004 (ADR 0100) — Detail Sheet Jira-style
 //   permissao: jana.mcp.usage.all
 //

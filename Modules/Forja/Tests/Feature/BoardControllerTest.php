@@ -16,7 +16,7 @@ uses(Tests\TestCase::class);
  *
  * Cobertura mínima do BoardController:
  *  - GET /project-mgmt/board sem permission `jana.mcp.usage.all` → 403
- *  - GET com permission → 200 + Inertia component 'ProjectMgmt/Board/Index' + props canônicas
+ *  - GET com permission → 200 + Inertia component 'Forja/Board/Index' + props canônicas
  *  - PATCH /project-mgmt/board/{taskId}/status sem permission → 403
  *  - PATCH happy path → 200 + ok=true + DB atualiza + cria mcp_task_events row
  *  - PATCH status inválido → 422
@@ -131,7 +131,7 @@ it('GET /project-mgmt/board com permission retorna Inertia Forja/Board/Index', f
 
     $response->assertOk();
     $response->assertInertia(fn (AssertableInertia $page) => $page
-        ->component('ProjectMgmt/Board/Index')
+        ->component('Forja/Board/Index')
         ->has('kanban')
         ->has('kpis.total')
         ->has('kpis.doing')

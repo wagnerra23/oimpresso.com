@@ -6,7 +6,7 @@ id: requisitos-project-mgmt-inventario
 
 > **Atualizado 2026-05-08** — Fase 1 + Fase 2 entregues em 7 PRs (#207 #209 #211 #220 #222 #224 #226). Status detalhado por PMG-NNN em [SPEC.md](SPEC.md).
 > Próximas atualizações via skill `comparativo-do-modulo` (executar `/comparativo Forja`).
-> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (24 capacidades) + `Modules/Forja/` + `resources/js/Pages/ProjectMgmt/`.
+> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (24 capacidades) + `Modules/Forja/` + `resources/js/Pages/Forja/`.
 > ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md).
 > ADR mãe redesign: [0100](../../decisions/0100-projectmgmt-ui-redesign.md).
 

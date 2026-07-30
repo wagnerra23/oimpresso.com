@@ -63,7 +63,7 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | `Atendimento/Inbox/Index` | chat | **91** | Leader | Cockpit 3-paineis estado-da-arte: charter, Deferred+skeletons, J/K/E/A, Centrifugo+polling fallback, tokens primary — falta polish mobile/a11y real-time. |
 | `Financeiro/Unificado/Index` | list | **90** | Leader | Cockpit financeiro denso estado-da-arte (KPI hero+sparkline, multi-filtro, bulk, drawer 3-abas, atalhos J/K/space/B, OCR boleto) — top do batch, so peca mistura emoji+oklch cru vs DS. |
 | `Sells/Index` | list | **90** | Leader | Cockpit de vendas estado-da-arte (1806 linhas, charter, score 9.75): SLA pills, pipeline FSM, ⌘K, saved views, bulk emit, sparkline deferred; desvia do DS por CSS Cowork scoped. |
-| `ProjectMgmt/Board/Index` | kanban | **89** | Leader | Kanban estado-da-arte: drag-drop otimista com optimistic-lock 409/403, atalhos J/K/E/A, polling+on-focus, DetailSheet via URL, charter presente; só leves blue-leaks (border-l-blue-500). |
+| `Forja/Board/Index` | kanban | **89** | Leader | Kanban estado-da-arte: drag-drop otimista com optimistic-lock 409/403, atalhos J/K/E/A, polling+on-focus, DetailSheet via URL, charter presente; só leves blue-leaks (border-l-blue-500). |
 | `Atendimento/CaixaUnificada/Index` | chat | **88** | Leader | Inbox omnichannel madura: Centrifugo+polling fallback, atalhos J/K/E/A + /, Deferred granular, EmptyState, tokens primary e charter+review; pesa header hand-rolled e 3 acoes topnav disabled. |
 | `RecurringBilling/Index` | dashboard | **88** | Leader | Cockpit 3-col de altíssimo craft (defer, ⌘K palette, Jana IA, troubleshooters, timeline, atalhos) — teto puxado por mock client-side, a11y de itens clicáveis e fuga do shell/DS canon. |
 | `Sells/Create` | form | **88** | Leader | Form POS denso e maduro (1647 linhas, charter): autosave multi-tenant, atalhos /, Cmd+Enter, error-scroll, NumericInputPtBR; perde por cores cruas nos cards e header fora do canon. |
@@ -72,7 +72,7 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | `Cliente/Show` | detail | **86** | Leader | Detalhe de cliente maduro: 9 tabs, Deferred em tudo, cowork-primary, CPF mascarado LGPD, frota condicional. |
 | `Jana/Admin/Governanca/Index` | dashboard | **86** | Leader | Governanca MCP estado-da-arte interno (3 secoes SubNav+persist LS, KPI taxa-sucesso/p95, chart calls/custo toggle, RBAC denied, EmptyState/StatusBadge shared) — melhor conformance DS do batch. |
 | `Ponto/Aprovacoes/Index` | list | **86** | Leader | Lista densa estado-da-arte (KPI-filtro, bulk, dialogs, empty/search, toasts); peca por cores cruas, confirm() nativo e zero charter. |
-| `ProjectMgmt/Inbox/Index` | list | **86** | Leader | Caixa de entrada agrupada por tipo com marca-lido otimista, deep-link pro Board, J/K/Enter/R, banner erro role=alert, empty-state e charter; tokens limpos. Marcada DRAFT aguardando screenshot Wagner. |
+| `Forja/Inbox/Index` | list | **86** | Leader | Caixa de entrada agrupada por tipo com marca-lido otimista, deep-link pro Board, J/K/Enter/R, banner erro role=alert, empty-state e charter; tokens limpos. Marcada DRAFT aguardando screenshot Wagner. |
 | `Site/Register` | form | **86** | Leader | Cadastro espelha Login com mesma qualidade: social, gate allowRegistration, copy '30s sem cartao'; falta strength meter e validacao client de match. |
 
 ## 📊 Média por módulo (pior → melhor)
@@ -236,7 +236,7 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | `OficinaAuto/ServiceOrders/Show` | 76 | Advanced | tecnico | Detalhe de OS com Itens optimistic + imprimir A4 e CTA roxo; status plano (sem badge canon) e cores slate cruas na lista. |
 | `Ponto/Escalas/Form` | 76 | Advanced | tecnico | Form create/edit de escala correto (useForm dual), mas turnos so leitura, checkbox nativo inconsistente com Switch e sem charter. |
 | `Ponto/Importacoes/Create` | 76 | Advanced | tecnico | Form de upload AFD enxuto, DS v4 + toast, mas header canon nao estilizado (os-page-h orfao) e sem charter. |
-| `ProjectMgmt/Roadmap/Index` | 76 | Advanced | wagner | Roadmap epics×quarter em colunas roláveis com progress-bar e KPIs; bom empty-state, mas várias cores cruas (blue-100, slate, #3b82f6 fallback) e sem charter nem interação de mover epic na UI. |
+| `Forja/Roadmap/Index` | 76 | Advanced | wagner | Roadmap epics×quarter em colunas roláveis com progress-bar e KPIs; bom empty-state, mas várias cores cruas (blue-100, slate, #3b82f6 fallback) e sem charter nem interação de mover epic na UI. |
 | `Purchase/Create` | 76 | Advanced | misto | Form linear denso e consistente (Card/PageHeader/AppShellV2 + totais reativos), mas fornecedor/produto como texto livre e <select> cru limitam affordance. |
 | `Repair/DeviceModels/Edit` | 76 | Advanced | misto | Form de modelo limpo com useForm/charter/AppShellV2, mas cores cruas rose e selects nativos fora do DS. |
 | `ads/Admin/Skills/Test` | 77 | Advanced | wagner | Tela de teste completa (manual vs conversas reais, PII, dry-run badge, runs com metricas), mas mistura inputs nativos hand-rolled e a11y de label fraca. |
@@ -279,8 +279,8 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | `Ponto/Importacoes/Show` | 80 | Advanced | tecnico | Detalhe solido com polling de job e bloco de erro, mas header canon nao estilizado e polling sem backoff/aria-live. |
 | `Ponto/Intercorrencias/Show` | 80 | Advanced | tecnico | Detalhe com maquina de estados (canEdit/Submit/Cancel) e alerts de aprovacao/rejeicao; usa confirm() nativo e header canon orfao. |
 | `Produto/Create` | 80 | Advanced | larissa | Cadastro Cowork com avancado colapsavel persistido + dedup; usa Deferred? nao, e perde em tokens crus + feedback de erro so no nome. |
-| `ProjectMgmt/Activity/Index` | 80 | Advanced | wagner | Feed timeline agrupado por dia com PageHeader+KpiGrid, filtros, auto-refresh 30s e i18n PT-BR sólido; falta charter e tem leve dependência de cor emerald hardcoded. |
-| `ProjectMgmt/Burndown/Index` | 80 | Advanced | wagner | Burndown SVG ideal-vs-real hand-rolled com KPIs de pace/forecast e empty-state sem-cycle; usa stroke-blue-500 cru e não tem charter nem tooltip/hover no gráfico. |
+| `Forja/Activity/Index` | 80 | Advanced | wagner | Feed timeline agrupado por dia com PageHeader+KpiGrid, filtros, auto-refresh 30s e i18n PT-BR sólido; falta charter e tem leve dependência de cor emerald hardcoded. |
+| `Forja/Burndown/Index` | 80 | Advanced | wagner | Burndown SVG ideal-vs-real hand-rolled com KPIs de pace/forecast e empty-state sem-cycle; usa stroke-blue-500 cru e não tem charter nem tooltip/hover no gráfico. |
 | `Purchase/Show` | 80 | Advanced | misto | Detalhe completo (fornecedor/empresa/itens/pagamentos/totais) bem hierarquizado e fiscal-aware; falta CTA de pagamento e ajuste do azul cru. |
 | `Settings/PaymentGateways/Index` | 80 | Advanced | wagner | Console de gateways (charter, Cowork F1.5 93/100, persona Wagner): KPIs+tabela deferred, J/K, cheat-sheet, drawer; desvia do DS v4 (paleta stone + atoms locais). |
 | `StockAdjustment/Create` | 80 | Advanced | eliana | Form denso forte: validacao live recuperado<=total, perda liquida ao vivo, perm-gate preco, empty states; trava em product-picker fake e paleta stone fora do token v4. |
@@ -307,7 +307,7 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | `Essentials/Documents/Index` | 83 | Developing | misto | CRUD de docs/memos forte: tabs, upload com progresso, share dialog, AlertDialog e toasts, tudo tokenizado. |
 | `Ponto/Intercorrencias/Create` | 83 | Advanced | tecnico | Form rico com classificacao IA (texto livre->preenche campos), bom estado loading/erro; perde em checkbox nativo + header canon orfao. |
 | `Produto/Index` | 83 | Advanced | larissa | Catalogo Cowork forte: Inertia Deferred+skeletons, KPIs, tabs categoria, localStorage de prefs; perde em tokens crus e densidade card vs tabela p/ balcao. |
-| `ProjectMgmt/MyWork/Index` | 83 | Advanced | wagner | Painel duplo My Work + Inbox com foco alternável (Tab), J/K/E/R, defer-guard, ring de foco via primary; falta charter e tem blue-500 cru no dot de não-lida. |
+| `Forja/MyWork/Index` | 83 | Advanced | wagner | Painel duplo My Work + Inbox com foco alternável (Tab), J/K/E/R, defer-guard, ring de foco via primary; falta charter e tem blue-500 cru no dot de não-lida. |
 | `RecurringBilling/Configuracoes/Index` | 83 | Advanced | eliana | Config rica (gateways/dunning/NFe/webhooks com copiar+docs+tour) mas majoritariamente read-only/'em breve' e fora do shell canon. |
 | `RecurringBilling/Planos/Edit` | 83 | Advanced | eliana | Edit espelha o Create com aviso inteligente de slug alterado; falta guarda em ciclo/valor com assinaturas ativas e alinhamento ao DS/shell. |
 | `Admin/GovernanceV4` | 84 | Advanced | wagner | Tri-pane estado-da-arte com ⌘K, localStorage, Deferred granular, KpiGrid e charter+review; mancha sao os window.prompt/confirm pra initiative/override. |
@@ -315,12 +315,12 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | `Essentials/Holidays/Index` | 84 | Developing | misto | Lista de feriados solida: filtros por localidade/data, dialog create/edit, badge de dias, empty state, full DS. |
 | `Fiscal/Nfe` | 84 | Advanced | eliana | Cockpit NF-e/NFC-e exemplar de perf (Inertia Deferred + only:[] partial reload, J/K/Enter nav, chips status server-side, drawer SEFAZ) — melhor padrao tecnico do batch; acoes write ainda stub. |
 | `Nfse/Index` | 84 | Advanced | eliana | Lista madura com atalhos J/K/N//, filtros persistidos e tooltips; perde no token roxo e Select value vazio (bug Radix). |
-| `ProjectMgmt/Backlog/Index` | 84 | Advanced | wagner | Lista densa com filtros multi + bulk-edit sticky + defer-guard + persist localStorage e badges canônicos; falta charter e atalhos de teclado (J/K) que o resto do módulo tem. |
+| `Forja/Backlog/Index` | 84 | Advanced | wagner | Lista densa com filtros multi + bulk-edit sticky + defer-guard + persist localStorage e badges canônicos; falta charter e atalhos de teclado (J/K) que o resto do módulo tem. |
 | `Repair/JobSheet/Show` | 84 | Advanced | tecnico | Melhor da leva: painel FSM completo (fetch, confirm, motivo, toast, side-effect, permissao) mas cores cruas e modal hand-roll. |
 | `Site/Pricing` | 84 | Advanced | misto | Landing de preços convincente: billing toggle, tiers/FAQ extraidos, confidence row, CTA final roxo; falha em token success cru e a11y do toggle. |
 | `Home/Index` | 85 | Leader | misto | Landing pos-login limpa e WCAG-AA (8 KPI Vendas/Compras agrupados, accent-map JIT-safe, primary roxo, permission gate, fallback legacy) — solido mas KPIs estaticos sem drill. |
 | `Ponto/Dashboard/Index` | 85 | Leader | wagner | Cockpit rico (KPIs clicaveis, presenca ao vivo, chart 7d, polling only:[]) — peca skeleton, a11y do chart e charter. |
-| `ProjectMgmt/Triage/Index` | 85 | Leader | wagner | Fila de triagem com atribuição inline otimista (owner/prio/cycle/epic), rollback+banner erro, chips de motivo, J/K/Enter, responsivo grid→stack e charter; só falta confirmar gate F3 (DRAFT). |
+| `Forja/Triage/Index` | 85 | Leader | wagner | Fila de triagem com atribuição inline otimista (owner/prio/cycle/epic), rollback+banner erro, chips de motivo, J/K/Enter, responsivo grid→stack e charter; só falta confirmar gate F3 (DRAFT). |
 | `RecurringBilling/Faturas/Index` | 85 | Leader | eliana | Lista de faturas estado-da-arte (KPIs hero+sparkline, filtros pill, defer+skeleton, cancel dialog LGPD-aware), limitada por divergência do shell/DS e criação ainda bloqueada. |
 | `RecurringBilling/Planos/Index` | 85 | Leader | eliana | Lista de planos forte (KPIs hero+distribuição de ciclos, defer+skeleton, flash, ⌘K, atalhos N/J/K) limitada por cores cruas, a11y de linha e métricas aproximadas. |
 | `Sells/Show` | 85 | Leader | larissa | Detalhe 8/4 deferred com proxima-acao FSM, emit NF-e/NFS-e, timeline unificada, multi-modo print e cheat-sheet; perde por tones crus e alert() nativo. |
@@ -329,7 +329,7 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | `Cliente/Show` | 86 | Leader | larissa | Detalhe de cliente maduro: 9 tabs, Deferred em tudo, cowork-primary, CPF mascarado LGPD, frota condicional. |
 | `Jana/Admin/Governanca/Index` | 86 | Leader | wagner | Governanca MCP estado-da-arte interno (3 secoes SubNav+persist LS, KPI taxa-sucesso/p95, chart calls/custo toggle, RBAC denied, EmptyState/StatusBadge shared) — melhor conformance DS do batch. |
 | `Ponto/Aprovacoes/Index` | 86 | Leader | tecnico | Lista densa estado-da-arte (KPI-filtro, bulk, dialogs, empty/search, toasts); peca por cores cruas, confirm() nativo e zero charter. |
-| `ProjectMgmt/Inbox/Index` | 86 | Leader | wagner | Caixa de entrada agrupada por tipo com marca-lido otimista, deep-link pro Board, J/K/Enter/R, banner erro role=alert, empty-state e charter; tokens limpos. Marcada DRAFT aguardando screenshot Wagner. |
+| `Forja/Inbox/Index` | 86 | Leader | wagner | Caixa de entrada agrupada por tipo com marca-lido otimista, deep-link pro Board, J/K/Enter/R, banner erro role=alert, empty-state e charter; tokens limpos. Marcada DRAFT aguardando screenshot Wagner. |
 | `Site/Register` | 86 | Leader | misto | Cadastro espelha Login com mesma qualidade: social, gate allowRegistration, copy '30s sem cartao'; falta strength meter e validacao client de match. |
 | `Whatsapp/Settings` | 86 | Leader | misto | Wizard OAuth Meta exemplar: charter live v2, tokens semanticos, Esc/autofocus/aria, empty-state honesto, error-recovery solido — melhor da leva. |
 | `TransactionPayment/Index` | 87 | Leader | eliana | Melhor lista do lote: Inertia::defer+Skeleton nos KPIs, filtros persistidos em localStorage, paginacao server real, Badge/token puro; falta PageHeader e date-range UI. |
@@ -337,7 +337,7 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | `RecurringBilling/Index` | 88 | Leader | eliana | Cockpit 3-col de altíssimo craft (defer, ⌘K palette, Jana IA, troubleshooters, timeline, atalhos) — teto puxado por mock client-side, a11y de itens clicáveis e fuga do shell/DS canon. |
 | `Sells/Create` | 88 | Leader | larissa | Form POS denso e maduro (1647 linhas, charter): autosave multi-tenant, atalhos /, Cmd+Enter, error-scroll, NumericInputPtBR; perde por cores cruas nos cards e header fora do canon. |
 | `Site/Login` | 88 | Leader | misto | Login estado-da-arte: token-puro, floating-label, social IdP, show/hide, flash error, copy PT-BR caloroso; falta wiring a11y de erro de campo. |
-| `ProjectMgmt/Board/Index` | 89 | Leader | wagner | Kanban estado-da-arte: drag-drop otimista com optimistic-lock 409/403, atalhos J/K/E/A, polling+on-focus, DetailSheet via URL, charter presente; só leves blue-leaks (border-l-blue-500). |
+| `Forja/Board/Index` | 89 | Leader | wagner | Kanban estado-da-arte: drag-drop otimista com optimistic-lock 409/403, atalhos J/K/E/A, polling+on-focus, DetailSheet via URL, charter presente; só leves blue-leaks (border-l-blue-500). |
 | `Financeiro/Unificado/Index` | 90 | Leader | eliana | Cockpit financeiro denso estado-da-arte (KPI hero+sparkline, multi-filtro, bulk, drawer 3-abas, atalhos J/K/space/B, OCR boleto) — top do batch, so peca mistura emoji+oklch cru vs DS. |
 | `Sells/Index` | 90 | Leader | larissa | Cockpit de vendas estado-da-arte (1806 linhas, charter, score 9.75): SLA pills, pipeline FSM, ⌘K, saved views, bulk emit, sparkline deferred; desvia do DS por CSS Cowork scoped. |
 | `Atendimento/Inbox/Index` | 91 | Leader | misto | Cockpit 3-paineis estado-da-arte: charter, Deferred+skeletons, J/K/E/A, Centrifugo+polling fallback, tokens primary — falta polish mobile/a11y real-time. |

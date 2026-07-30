@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
  *
  * Cobertura do InboxController:
  *  - GET /project-mgmt/inbox sem permission → 403
- *  - GET com permission → 200 + Inertia 'ProjectMgmt/Inbox/Index' + props canônicas
+ *  - GET com permission → 200 + Inertia 'Forja/Inbox/Index' + props canônicas
  *  - lista = unread do AUTH user (paridade tool `my-inbox`)
  *  - MULTI-TENANT Tier 0: notificação de OUTRO user NÃO aparece + não pode ser marcada
  *  - PATCH /inbox/{id}/read → 200 + seta read_at + some do unread
@@ -115,7 +115,7 @@ it('GET /project-mgmt/inbox com permission retorna Inertia Forja/Inbox/Index', f
 
     $response->assertOk();
     $response->assertInertia(fn (AssertableInertia $page) => $page
-        ->component('ProjectMgmt/Inbox/Index')
+        ->component('Forja/Inbox/Index')
         ->has('inbox')
         ->has('inbox_stats')
         ->has('filters')

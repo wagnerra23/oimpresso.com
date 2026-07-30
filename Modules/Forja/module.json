@@ -1,7 +1,7 @@
 {
     "name": "Forja",
     "alias": "projectmgmt",
-    "description": "Forja — cockpit de trabalho do time: Kanban + Backlog + Roadmap + My Work + Inbox + Triage sobre as tabelas mcp_jira_projects/epics/cycles/tasks. Promovido a módulo próprio em 2026-05-04 (ADR 0070, supersede absorção em TeamMcp); renomeado ProjectMgmt→Forja em 2026-07-30 (rename PHP-only, padrão ADR 0088 — URL /project-mgmt, alias, config key, lang e Pages/ProjectMgmt seguem legacy por compat).",
+    "description": "Forja — cockpit de trabalho do time: Kanban + Backlog + Roadmap + My Work + Inbox + Triage sobre as tabelas mcp_jira_projects/epics/cycles/tasks. Promovido a módulo próprio em 2026-05-04 (ADR 0070, supersede absorção em TeamMcp); renomeado ProjectMgmt→Forja em 2026-07-30 (padrão ADR 0088 + PR-5 Pages: namespace PHP e resources/js/Pages/Forja renomeados; URL /project-mgmt, alias, config key, lang, permission jana.mcp.usage.all, package key project_mgmt_module e a row system.projectmgmt_version seguem legacy por compat).",
     "keywords": ["project", "jira", "kanban", "backlog", "roadmap", "tasks", "mcp"],
     "active": 1,
     "order": 0,

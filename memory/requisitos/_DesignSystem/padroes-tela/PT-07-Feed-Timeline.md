@@ -9,7 +9,7 @@ created: 2026-07-11
 parent_adr: UI-0013
 applied_in:
   - Pages/team-mcp/CcSessions/Index.tsx
-  - Pages/ProjectMgmt/Inbox/Index.tsx
+  - Pages/Forja/Inbox/Index.tsx
   - Pages/Fiscal/Eventos.tsx
 ---
 
