@@ -28,6 +28,10 @@
 //  - HISTÓRIA (só reporta, nunca enforça): memory/{handoffs,sessions,sprints,
 //    audits,research,reguas}/ — são fósseis datados append-only; link morto lá é
 //    registro histórico, não regressão.
+//  - `memory/decisions/` fica DE PROPÓSITO no escopo vivo (há infra dedicada:
+//    adr-tombstones.json + 5 checks do selftest). A dívida que RENAME de pasta gera
+//    numa ADR imutável é absorvida pelo ledger de path-alias abaixo — não movendo a
+//    ADR pra história (isso desligaria o tombstone junto).
 //
 // MODOS:
 //   node scripts/governance/deadlink-gate.mjs --scan             # relatório (exit 0)
@@ -152,6 +156,55 @@ function resolvesViaTombstone(absPath) {
   return TOMBSTONED.has(base.replace(/\.md$/i, ''));
 }
 
+// ── rename-aware (mesma doutrina do tombstone acima) ─────────────────────────
+// POR QUE ISTO EXISTE: rename de módulo/pasta é rotina no projeto (Copiloto→Jana,
+// PontoWr2→Ponto, MemCofre→SRS, ProjectMgmt→Forja) e SEMPRE fabrica link morto em
+// ADR aceita — que o append-only PROÍBE editar. É o MESMO deadlock que a 0316×0347
+// criou pro tombstone, por outra porta: a única "saída" virava inflar o baseline a
+// cada migração, o oposto do ratchet só-desce. Medido no rename ProjectMgmt→Forja
+// (2026-07-30): +11 links mortos em 2 ADRs imutáveis (0099, 0100).
+//
+// A saída, de novo, NÃO é afrouxar o gate nem jogar `decisions/` pra história (isso
+// desligaria o tombstone junto): é reconhecer que link pra path RENOMEADO **não é
+// link morto** — ele resolve pelo rename-map CURADO (governance/ghost-rename-map.json,
+// classe A = rename 1:1 com evidência dura ADR+commit; o próprio `_doc` do arquivo diz
+// que nome sem evidência fica em `excluded` e nunca é tocado).
+//
+// DUAS travas pra não virar escape genérico:
+//   1. só classe A (curada, com evidência) — `excluded`/AMBIGUO nunca resolve;
+//   2. só se o destino reescrito EXISTIR de fato no disco. Renomeou pra lugar nenhum
+//      (ou o link já era falso), continua morto — que é o caso que o gate deve pegar.
+const RENAME_MAP_PATH = join(ROOT, 'governance', 'ghost-rename-map.json');
+function loadClassARenames() {
+  if (!existsSync(RENAME_MAP_PATH)) return [];
+  try {
+    const j = JSON.parse(readFileSync(RENAME_MAP_PATH, 'utf8'));
+    return Object.entries(j.renames || {})
+      .filter(([, v]) => v && v.class === 'A' && v.to)
+      .map(([from, v]) => [String(from), String(v.to)]);
+  } catch { return []; }
+}
+const CLASS_A_RENAMES = loadClassARenames();
+/**
+ * true se `absPath` (inexistente) passa a existir ao trocar um SEGMENTO de path
+ * `<Antigo>` por `<Novo>` segundo o rename-map classe A.
+ * Casa segmento inteiro — `Modules/ProjectMgmt/SCOPE.md` resolve, mas um arquivo
+ * chamado `ProjectMgmtLegado.md` não (evita match por substring).
+ */
+function resolvesViaRename(absPath) {
+  if (CLASS_A_RENAMES.length === 0) return false;
+  const segs = absPath.split(sep);
+  for (const [from, to] of CLASS_A_RENAMES) {
+    for (let i = 0; i < segs.length; i++) {
+      if (segs[i] !== from) continue;
+      const alt = [...segs];
+      alt[i] = to;
+      if (existsSync(alt.join(sep))) return true;
+    }
+  }
+  return false;
+}
+
 // ── extração de links ────────────────────────────────────────────────────────
 const LINK_RE = /\[[^\]]*\]\(([^)]+)\)/g;
 function extractTargets(mdText) {
@@ -177,6 +230,7 @@ function scan() {
   const hist = new Map();
   let totalLinks = 0;
   let tombstoned = 0;       // alvos ausentes que RESOLVEM via ledger (ADR 0316) — não são mortos
+  let renamed = 0;          // alvos ausentes que RESOLVEM via rename-map classe A — idem
   for (const f of corpus()) {
     const rel = relative(ROOT, f).split(sep).join('/');
     const isHist = HISTORY_RE.test(relative(ROOT, f));
@@ -186,13 +240,14 @@ function scan() {
       const abs = resolve(dirname(f), target);
       if (!existsCaseSensitive(abs)) {
         if (resolvesViaTombstone(abs)) { tombstoned++; continue; }
+        if (resolvesViaRename(abs)) { renamed++; continue; }
         const bucket = isHist ? hist : vivo;
         if (!bucket.has(rel)) bucket.set(rel, []);
         bucket.get(rel).push(target);
       }
     }
   }
-  return { vivo, hist, totalLinks, tombstoned };
+  return { vivo, hist, totalLinks, tombstoned, renamed };
 }
 
 const count = (map) => [...map.values()].reduce((a, v) => a + v.length, 0);
@@ -204,20 +259,24 @@ function loadBaseline() {
 
 // ── modos ────────────────────────────────────────────────────────────────────
 const mode = argv.find((a) => ['--scan', '--check', '--write-baseline', '--triage'].includes(a)) || '--scan';
-const { vivo, hist, totalLinks, tombstoned } = scan();
+const { vivo, hist, totalLinks, tombstoned, renamed } = scan();
 // Visível SEMPRE que houver: mecanismo que absorve caso em silêncio vira cobertura falsa
 // (§5 presence-gate / verde-por-não-execução). Aqui o número aparece em todo modo.
 const tombLine = tombstoned > 0
   ? `[deadlink-gate] ${tombstoned} referência(s) a ADR TOMBADA resolvidas pelo ledger (${TOMBSTONED.size} slug(s) em governance/adr-tombstones.json — ADR 0316); não contam como mortas.`
   : null;
 if (tombLine) console.log(tombLine);
+const renameLine = renamed > 0
+  ? `[deadlink-gate] ${renamed} referência(s) a PATH RENOMEADO resolvidas pelo rename-map (${CLASS_A_RENAMES.length} rename(s) classe A em governance/ghost-rename-map.json); não contam como mortas.`
+  : null;
+if (renameLine) console.log(renameLine);
 
 if (mode === '--write-baseline') {
   const files = {};
   for (const [rel, targets] of [...vivo.entries()].sort()) files[rel] = targets.length;
   mkdirSync(dirname(BASELINE_PATH), { recursive: true });
   writeFileSync(BASELINE_PATH, JSON.stringify({
-    _doc: 'Baseline RATCHET do deadlink-gate (so-desce). Dívida grandfathered de links mortos por arquivo VIVO. NAO editar a mao: regenerar com `node scripts/governance/deadlink-gate.mjs --write-baseline` (idealmente quando a divida DIMINUI). Historia (handoffs/sessions/sprints/audits/research/reguas) fica fora por ser append-only.',
+    _doc: 'Baseline RATCHET do deadlink-gate (so-desce). Dívida grandfathered de links mortos por arquivo VIVO. NAO editar a mao: regenerar com `node scripts/governance/deadlink-gate.mjs --write-baseline` (idealmente quando a divida DIMINUI). Historia (handoffs/sessions/sprints/audits/research/reguas) fica fora por ser append-only. NAO entram aqui (resolvem, nao sao mortos): referencia a ADR TOMBADA via governance/adr-tombstones.json (ADR 0316) e referencia a PATH RENOMEADO via governance/ghost-rename-map.json classe A (2026-07-30) — os dois evitam que esquecimento/rename inflem o baseline por divida que o append-only proibe corrigir.',
     generated_at: new Date().toISOString().slice(0, 10),
     total_vivo: count(vivo),
     files,
