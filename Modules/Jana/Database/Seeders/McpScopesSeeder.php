@@ -27,8 +27,15 @@ class McpScopesSeeder extends Seeder
      * Catálogo canônico de scopes.
      *
      * Cada scope vira UMA Spatie permission + UMA linha em mcp_scopes.
+     *
+     * FONTE ÚNICA (incidente 2026-07-29): este array é lido também pelo
+     * `DataController@user_permissions`, pra que TODO scope daqui vire
+     * checkbox em `/roles/{id}/edit`. Sem isso o `RoleController@update`
+     * — que faz `syncPermissions($request->input('permissions'))`, destrutivo —
+     * apagava a família `jana.mcp.*` inteira a cada save de qualquer role,
+     * derrubando o MCP do time. Ver `McpScopesVisiveisNoRoleEditTest`.
      */
-    protected array $catalogo = [
+    private static array $catalogo = [
         [
             'slug'              => 'jana.mcp.use',
             'nome'              => 'Acessar MCP server',
@@ -251,6 +258,19 @@ class McpScopesSeeder extends Seeder
         ],
     ];
 
+    /**
+     * Catálogo canônico, legível por quem não é seeder.
+     *
+     * Consumidores: o próprio `run()` e `DataController@user_permissions`
+     * (que transforma cada entrada num checkbox da tela de roles).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function catalogo(): array
+    {
+        return self::$catalogo;
+    }
+
     public function run(): void
     {
         $this->command?->info('Seeding MCP scopes + Spatie permissions...');
@@ -258,7 +278,7 @@ class McpScopesSeeder extends Seeder
         $criadosScopes      = 0;
         $criadosPermissions = 0;
 
-        foreach ($this->catalogo as $entry) {
+        foreach (self::$catalogo as $entry) {
             $slug = $entry['slug'];
 
             // 1. mcp_scopes (catálogo descritivo) — usa updateOrInsert pra idempotência.
