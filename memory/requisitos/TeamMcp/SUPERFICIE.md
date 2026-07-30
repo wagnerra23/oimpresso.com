@@ -14,9 +14,9 @@ module: TeamMcp
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/TeamMcp/**` + `resources/js/Pages/team-mcp/**` (namespace Inertia `team-mcp`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `TeamMcp`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 105 arquivos em 15 papéis.
+**Total mapeado:** 103 arquivos em 15 papéis.
 
-## Controllers — 12
+## Controllers — 10
 
 - [TeamScopesController.php](../../../Modules/TeamMcp/Http/Controllers/Admin/TeamScopesController.php)
 - [ToolsController.php](../../../Modules/TeamMcp/Http/Controllers/Admin/ToolsController.php)
@@ -25,8 +25,6 @@ module: TeamMcp
 - [ForjaController.php](../../../Modules/TeamMcp/Http/Controllers/ForjaController.php)
 - [InstallController.php](../../../Modules/TeamMcp/Http/Controllers/InstallController.php)
 - [CcIngestController.php](../../../Modules/TeamMcp/Http/Controllers/Mcp/CcIngestController.php)
-- [HealthController.php](../../../Modules/TeamMcp/Http/Controllers/Mcp/HealthController.php)
-- [SyncMemoryWebhookController.php](../../../Modules/TeamMcp/Http/Controllers/Mcp/SyncMemoryWebhookController.php)
 - [ScorecardController.php](../../../Modules/TeamMcp/Http/Controllers/ScorecardController.php)
 - [TasksAdminController.php](../../../Modules/TeamMcp/Http/Controllers/TasksAdminController.php)
 - [TeamController.php](../../../Modules/TeamMcp/Http/Controllers/TeamController.php)

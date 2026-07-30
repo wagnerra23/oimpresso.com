@@ -1606,7 +1606,7 @@
         },
         "graph": {
           "depends_on": 3,
-          "dependents": 2,
+          "dependents": 3,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1820,7 +1820,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": null,
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2020,14 +2020,14 @@
           "idade_max_dias": 19
         },
         "graph": {
-          "depends_on": 8,
-          "dependents": 9,
+          "depends_on": 6,
+          "dependents": 11,
           "provides_api": 1,
           "owns_tables": 13,
           "owns_legacy_views": 13,
           "consumes_tables": 0,
           "governed_by_adr": 6,
-          "components": 20,
+          "components": 22,
           "dangling_edges": 0,
           "connected": true
         },
@@ -2838,7 +2838,7 @@
           "note": "sem superfície de tela (backend-only) — n/a, não é falha"
         },
         "graph": {
-          "depends_on": 4,
+          "depends_on": 5,
           "dependents": 1,
           "provides_api": 7,
           "owns_tables": 3,
@@ -3960,14 +3960,14 @@
           "idade_max_dias": null
         },
         "graph": {
-          "depends_on": 6,
-          "dependents": 30,
+          "depends_on": 8,
+          "dependents": 28,
           "provides_api": 1,
           "owns_tables": 11,
           "owns_legacy_views": 0,
           "consumes_tables": 3,
           "governed_by_adr": 8,
-          "components": 12,
+          "components": 10,
           "dangling_edges": 0,
           "connected": true
         },

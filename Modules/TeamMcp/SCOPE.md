@@ -8,8 +8,6 @@ contains:
   - "DataController + InstallController (boilerplate)"
   # Absorvidos em Fase 3.7 PR-1 (2026-05-06):
   - "Mcp/CcIngestController — ingest Claude Code sessions; URL /api/cc/ingest mantida"
-  - "Mcp/HealthController — health check do MCP server; URL /api/mcp/health mantida"
-  - "Mcp/SyncMemoryWebhookController — webhook git → mcp_memory_documents; URL /api/mcp/sync-memory mantida"
   - "Admin/ToolsController — MCP tools registry UI; URL /ads/admin/tools mantida"
   - "Admin/TeamScopesController — RBAC scopes per actor; URL /ads/admin/team-scopes mantida"
   # Fase 4 (NOVA, ADR 0081):
@@ -17,6 +15,8 @@ contains:
   - "ScorecardController — G1 FICHA Wave 22 esqueleto tela /team-mcp/scorecard (governance maturity per-actor)"
   - "ForjaController — cockpit do cowork loop /forja (absorção, não módulo novo): 6 abas projetando mcp_tasks project=FORJA + git/ADR/sessão + gates; aba Triagem real + dossiê"
 not_contains:
+  - "Mcp/HealthController → Modules/Jana (devolvido na E2b da deprecação)"
+  - "Mcp/SyncMemoryWebhookController → Modules/Jana (devolvido na E2b — R6, canon→MCP)"
   - "Chat IA conversacional → Modules/Jana"
   - "Knowledge browsing → Modules/KB"
   - "Skills governance → Modules/ADS"

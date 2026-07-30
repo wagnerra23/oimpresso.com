@@ -19,7 +19,7 @@ not_contains:
   - "Chat IA (Jana) → Modules/Jana"
   - "MCP server admin (tokens, webhooks) → Modules/TeamMcp"
   - "Skills governance → Modules/ADS"
-  - "System Rules Spec (regras pra IA programar) → Modules/SRS"
+  - "System Rules Spec (regras pra IA programar) → Modules/SRS — módulo REMOVIDO em 2026-07-29 (ADR 0357); fronteira a revisar"
   - "Tasks Jira-style → Modules/Forja"
   - "Audit log → Modules/TeamMcp + Modules/Governance"
 trust_required: L2
@@ -73,9 +73,9 @@ Browser canônico de **conhecimento estruturado** do oimpresso: ADRs, sessions, 
 
 ## Quando NÃO é tocado
 
-- ❌ Conversar com IA → Modules/Copiloto (Jana)
+- ❌ Conversar com IA → **Modules/Jana** (era `Modules/Copiloto`, renomeado — [ADR 0092](../../memory/decisions/0092-tabela-rename-copiloto-para-jana.md))
 - ❌ Editar SKILL.md → Modules/ADS
-- ❌ Editar regra imutável de programação → Modules/MemCofre (SRS)
+- ❌ Editar regra imutável de programação → ~~Modules/MemCofre (SRS)~~ — `MemCofre` virou `SRS` ([ADR 0088](../../memory/decisions/0088-module-rename-php-only.md)) e o `SRS` foi REMOVIDO em 2026-07-29 ([ADR 0357](../../memory/decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)); fronteira a revisar
 - ❌ Browse de tarefas → Modules/Forja
 
 ## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
