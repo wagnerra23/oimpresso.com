@@ -1,5 +1,8 @@
 ---
 id: requisitos-admin-briefing
+module: Admin
+status: deprecated
+updated_at: "2026-07-30"
 ---
 
 # BRIEFING — Modules/Admin (Admin Center @ CT 100) — REMOVIDO
