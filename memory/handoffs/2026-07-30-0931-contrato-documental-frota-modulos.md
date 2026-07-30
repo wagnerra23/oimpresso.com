@@ -22,6 +22,11 @@ e a auditoria documental fechou os 35 módulos atuais sem lacunas.
 O ciclo documental passou a partir do universo exato do Git e separou fontes de
 projeções:
 
+> **Recibo — os números abaixo são medição datada, não afirmação atemporal.** Medidos em
+> `8c46d802ea` (branch pré-merge), 2026-07-30. As contagens que dependem do universo do Git
+> (`ls-files`, nós e arestas do catálogo) **mudam a cada merge com o `main`** — re-rode o
+> comando citado em cada linha em vez de editar o número. Refutação GT-G5 rodada 2.
+
 - `git ls-files -z`: **16.236/16.236** paths classificados; `unclassified: []`;
 - frota atual: **35/35** manifestos com `SCOPE`, `BRIEFING`, `SPEC`,
   `SUPERFICIE`, teste e nó de catálogo;

@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 584 arquivos em 19 papéis.
+**Total mapeado:** 583 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -400,7 +400,7 @@ module: Jana
 
 - 155 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 92
+## Demais arquivos (manifestos, docs, assets e misc) — 91
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -424,7 +424,6 @@ module: Jana
 - [VendasPeriodoTool.php](../../../Modules/Jana/Ai/Tools/BriefDiario/VendasPeriodoTool.php)
 - [UiDeterministicScorer.php](../../../Modules/Jana/Ai/UiDeterministicScorer.php)
 - [UiJudgeConsensus.php](../../../Modules/Jana/Ai/UiJudgeConsensus.php)
-- [BRIEFING.md](../../../Modules/Jana/BRIEFING.md)
 - [CHANGELOG.md](../../../Modules/Jana/CHANGELOG.md)
 - [AiAdapter.php](../../../Modules/Jana/Contracts/AiAdapter.php)
 - [CalculaMeta.php](../../../Modules/Jana/Contracts/CalculaMeta.php)

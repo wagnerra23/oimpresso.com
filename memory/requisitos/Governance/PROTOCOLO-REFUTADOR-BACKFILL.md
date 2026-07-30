@@ -3,7 +3,7 @@ id: requisitos-governance-protocolo-refutador-backfill
 status: active
 owner: "[W] Wagner"
 module: Governance
-updated_at: "2026-07-01"
+updated_at: "2026-07-30"
 ---
 
 # PROTOCOLO-REFUTADOR-BACKFILL — verificação adversarial de lotes IA (GT-G5)
@@ -44,7 +44,7 @@ PR que **adiciona/modifica >10 arquivos em `memory/requisitos/**`** e cujo conte
 | `lote_id` | string | ex.: `SA-A5-financeiro-01`, `KL-E3-briefings-02` |
 | `data` | string | `"YYYY-MM-DD"` da refutação |
 | `tipo` | enum | `anchors` \| `prosa` |
-| `gerador` / `refutador` | string | contém `haiku`/`sonnet`/`opus`/`fable`/`mythos`; refutador de tier SUPERIOR ao gerador (igualdade só no tier máximo) |
+| `gerador` / `refutador` | string | contém `haiku`/`sonnet`/`opus`/`fable`/`mythos`; refutador de tier SUPERIOR ao gerador (igualdade só no tier máximo). **Gerador não-Anthropic:** ver §4.1 |
 | `sessao_fresca` | boolean | tem que ser `true` |
 | `amostra_pct` | number | `anchors` → 100; `prosa` → ≥30 |
 | `itens_verificados` / `erros_confirmados` | integer | base do error_rate |
@@ -52,6 +52,40 @@ PR que **adiciona/modifica >10 arquivos em `memory/requisitos/**`** e cujo conte
 | `pii_scan` / `pii_hits` | boolean / integer | `true` / `0` obrigatórios |
 | `evidencia` | string | path do artefato de refutação (session log ou comment do PR) |
 | `veredito` | enum | `aprovado` \| `reprovado` |
+
+### 4.1 Gerador NÃO-Anthropic (emenda 2026-07-30)
+
+A escala de tiers do §2.3 só conhece modelos Anthropic. Um lote gerado por modelo de outro
+vendor (Codex/GPT, Gemini, Llama…) caía em `rank(gerador) === 0` e era **reprovado
+independentemente do veredito** — gate sem caminho honesto de abertura, cujo único "jeito
+prático" era falsear o campo `gerador`. Regra que fabrica incentivo pra mentir no registro
+é pior que regra ausente.
+
+**O que a regra de tier protege é DECORRELAÇÃO**, não hierarquia por si: gerador e
+refutador do mesmo modelo alucinam igual (avaliação 2026-07-01). **Vendor cruzado satisfaz
+isso por construção** — treinos, tokenizadores e modos de falha distintos decorrelacionam
+mais que `opus`-refuta-`opus`, que a regra já aceita no tier máximo.
+
+Portanto:
+
+| Gerador | Refutador exigido |
+|---|---|
+| Anthropic | tier SUPERIOR (igualdade só no tier máximo) — §2.3, inalterado |
+| **Não-Anthropic reconhecido** (`codex`/`gpt-N`/`gemini`/`llama`/`mistral`/`grok`/`deepseek`/`qwen`) | **Anthropic de tier ALTO (≥ `opus`)** |
+| String não reconhecida (nem Anthropic, nem vendor externo) | **reprova** — o campo não é terra de ninguém |
+
+O refutador continua tendo que ser Anthropic de tier conhecido: não sabemos ranquear um
+refutador externo, e afrouxar os dois lados de uma vez esvaziaria o campo.
+
+Enforcement: `ledger-check.mjs` (`isExternal` + `MIN_RANK_VS_EXTERNAL`), com bite-test
+pareado em [`ledger-check-external.test.mjs`](../../../scripts/governance/ledger-check-external.test.mjs)
+— 10 casos, incluindo os controles negativos de que a regra Anthropic×Anthropic **não** foi
+afrouxada e de que veredito/`error_rate` seguem barrando. Rodado no CI por
+`governance-script-tests.yml`.
+
+Origem: refutação GT-G5 rodada 2 do PR #5069 — o lote do Codex ficou preso por este defeito
+de mecanismo, não por defeito do lote. A emenda **não** aprova aquele lote (ele segue
+`reprovado` por 3 erros próprios); só devolve ao gate um caminho honesto de abertura.
 
 ## 5. Enforcement — ledger-check.mjs
 

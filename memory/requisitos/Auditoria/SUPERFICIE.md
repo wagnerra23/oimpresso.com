@@ -14,7 +14,7 @@ module: Auditoria
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Auditoria/**` + `resources/js/Pages/Auditoria/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Auditoria/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 41 arquivos em 13 papéis.
+**Total mapeado:** 40 arquivos em 13 papéis.
 
 ## Controllers — 3
 
@@ -78,9 +78,8 @@ module: Auditoria
 
 - 11 arquivos em [Modules/Auditoria/Tests/Feature/](../../../Modules/Auditoria/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 5
+## Demais arquivos (manifestos, docs, assets e misc) — 4
 
-- [BRIEFING.md](../../../Modules/Auditoria/BRIEFING.md)
 - [CHANGELOG.md](../../../Modules/Auditoria/CHANGELOG.md)
 - [SCOPE.md](../../../Modules/Auditoria/SCOPE.md)
 - [composer.json](../../../Modules/Auditoria/composer.json)

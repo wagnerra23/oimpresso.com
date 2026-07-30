@@ -28,12 +28,12 @@ lifecycle: ativo
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-07-28 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-07-23 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-07-23 |
-| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-23 |
+| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-30 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-27 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-27 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-27 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-29 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-30 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
@@ -210,14 +210,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **346** handoffs · **567** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **347** handoffs · **568** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-30-session-02-organizacao-contrato-documental-modulos`
+  - `2026-07-30-pr5069-refutacao-r2`
   - `2026-07-30-pr5069-refutacao-r1`
   - `2026-07-30-mcp-scopes-apagados-por-save-de-role`
   - `2026-07-30-documentation-loop-primeiro-recibo-real`
   - `2026-07-29-vistas-publicadas-lidas-e-reagrupadas`
-  - `2026-07-29-varredura-de-populacao-tres-rodadas`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-07-30 · deriva das fontes canônicas, não as substitui._
