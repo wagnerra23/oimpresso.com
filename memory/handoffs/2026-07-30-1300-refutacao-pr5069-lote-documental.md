@@ -1,11 +1,21 @@
 ---
 date: "2026-07-30"
-hour: "13:00 BRT"
+time: "13:00 BRT"
+slug: "refutacao-pr5069-lote-documental"
+tldr: "Refutador GT-G5 do #5069 (gerador Codex ficou sem tokens): rodada 1 REPROVADO, 3 erros em 58 itens. O achado central é um docblock citando `Modules/*/module.json` — o `*/` fecha o comentário e quebra o parse do IndexReconciler, causa dos 2 checks vermelhos de PHP. Corrigido, mas o PR segue (corretamente) bloqueado: a rodada 2 não pode ser quem aplicou a correção."
+prs: [5069, 5080]
+decided_by: [W]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0256-knowledge-survival-meia-vida-catraca-sentinela
+next_steps:
+  - "Rodada 2 da refutação em sessão FRESCA (não esta) contra a branch já corrigida — sem `aprovado` + `error_rate < 2` o ledger-check não abre"
+  - "Emenda ao PROTOCOLO-REFUTADOR-BACKFILL: ledger-check.mjs:79 não representa gerador não-Anthropic (Codex) sem falsear o campo"
+  - "Remover os 3 worktrees de verificação depois que a rodada 2 fechar"
 topic: "Refutação GT-G5 do PR #5069 — lote de ativação documental da frota"
 type: handoff
 status: aberto
 module: Governance
-pr: 5069
 ---
 
 # 2026-07-30 13:00 — Refutação do PR #5069: o lote passou, o PHP não
