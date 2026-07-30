@@ -2087,6 +2087,20 @@
       "desc": "ledger append-only dos erros de OPERAÇÃO da Jana (≠ saída, que golden/RAGAS cobrem); cada lição gradua MEC→check no jana:health-check ou JULG→regra sempre-lida. Proposta §10.4 (aguarda [W])"
     },
     {
+      "id": "component:Jana/Mcp/HealthController",
+      "type": "component",
+      "module": "Jana",
+      "name": "Mcp/HealthController",
+      "desc": "health/version/cycle-active do MCP server; URLs /api/mcp/* inalteradas"
+    },
+    {
+      "id": "component:Jana/Mcp/SyncMemoryWebhookController",
+      "type": "component",
+      "module": "Jana",
+      "name": "Mcp/SyncMemoryWebhookController",
+      "desc": "webhook GitHub → mcp_memory_documents; URL /api/mcp/sync-memory inalterada"
+    },
+    {
       "id": "component:Jana/MetasController",
       "type": "component",
       "module": "Jana",
@@ -3170,20 +3184,6 @@
       "module": "TeamMcp",
       "name": "Mcp/CcIngestController",
       "desc": "ingest Claude Code sessions; URL /api/cc/ingest mantida"
-    },
-    {
-      "id": "component:TeamMcp/Mcp/HealthController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "Mcp/HealthController",
-      "desc": "health check do MCP server; URL /api/mcp/health mantida"
-    },
-    {
-      "id": "component:TeamMcp/Mcp/SyncMemoryWebhookController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "Mcp/SyncMemoryWebhookController",
-      "desc": "webhook git → mcp_memory_documents; URL /api/mcp/sync-memory mantida"
     },
     {
       "id": "component:TeamMcp/ScorecardController",
@@ -7528,20 +7528,6 @@
     },
     {
       "from": "module:Jana",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Mcp/HealthController"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Mcp/SyncMemoryWebhookController"
-    },
-    {
-      "from": "module:Jana",
       "to": "module:ADS",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7587,20 +7573,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Mcp/CcIngestController"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Mcp/HealthController"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Mcp/SyncMemoryWebhookController"
     },
     {
       "from": "module:Jana",
@@ -7707,6 +7679,18 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/LICOES-OPERACAO.md",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Jana",
+      "to": "component:Jana/Mcp/HealthController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Jana",
+      "to": "component:Jana/Mcp/SyncMemoryWebhookController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10146,6 +10130,20 @@
     },
     {
       "from": "module:TeamMcp",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Mcp/HealthController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:TeamMcp",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -10185,6 +10183,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Chat IA conversacional"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/HealthController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/SyncMemoryWebhookController"
     },
     {
       "from": "module:TeamMcp",
@@ -10302,18 +10314,6 @@
     {
       "from": "module:TeamMcp",
       "to": "component:TeamMcp/Mcp/CcIngestController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/Mcp/HealthController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/Mcp/SyncMemoryWebhookController",
       "type": "hasComponent",
       "source": "contains"
     },
