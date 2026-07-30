@@ -49,7 +49,9 @@ Toda manhã, fazer o estado declarado convergir pra verdade, decidir o decidíve
      A correção só fecha com
      `documentation-loop.mjs --compare-ref origin/main --expect <id> --json`: o mesmo ID
      precisa existir ANTES e desaparecer DEPOIS. Métrica melhor mas ID ainda presente =
-     **não resolvido**. PR leva trailer `Documentation-Receipt: <id>`. Na run seguinte ao
+     **não resolvido**. Antes do commit, `worktree_files` precisa expor a correção; depois do
+     commit, repetir recibo + impacto com `--require-clean` (lista vazia e alvo em
+     `changed_files`). PR leva trailer `Documentation-Receipt: <id>`. Na run seguinte ao
      merge, medir o `main`; se o ID reapareceu/permaneceu, reabrir como resíduo em vez de
      declarar sucesso. Isto é recibo do detector dono, não presence-gate de "doc no diff".
    - **Bite-log dos gates de design (DR-2a · [ADR 0336](../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)):** rodar `node scripts/governance/design-gate-bites.mjs --scan --sha <sha-do-main> [--pr <n>]`. Registra em `memory/governance/design-gate-bites.jsonl` cada violação de design que MERGEOU (gate advisory que não segurou; dedup por `sig` — persistente não infla). Se houver mordida NOVA, **incluí-la no PR diário** (o ZELADOR é o único coletor — não há workflow que commita no main sob `enforce_admins`). Depois `--tally`: gate com **≥2 PRs distintos** vira candidato a required (DR-3) → escalar como **resíduo** (passo 3 do trilho) com draft de emenda à 0314, **NUNCA promover sozinho**.
