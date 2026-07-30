@@ -1,12 +1,19 @@
 ---
 title: "Organização e contrato documental dos módulos"
 date: "2026-07-30"
+topic: "Organização e contrato documental dos módulos"
 status: concluida
 branch: codex/module-documentation-activation
 pr: 5069
 ---
 
 # Sessão — organização e contrato documental dos módulos
+
+## TL;DR
+
+As fontes canônicas, os índices derivados e a ativação de módulos foram separados
+por responsabilidade. A máquina passou a auditar a frota inteira e a cobrar no
+mesmo PR os arquivos correlacionados de cada módulo novo.
 
 ## Pedido
 
@@ -48,7 +55,7 @@ Resultado final local:
 - frota: 35 total, 35 completos, zero incompletos;
 - selftest do ciclo: 17/17;
 - testes Node: 42/42;
-- superfícies: 40/40 sem drift;
+- superfícies: 39 contextos sem drift;
 - catálogo: zero módulo/ADR pendurado;
 - sistema: mapa, arquitetura IA e onboarding em dia;
 - conflitos Git: zero marcadores reais.

@@ -4,7 +4,7 @@ module: VozDoCliente
 version: "1.0"
 last_updated: "2026-07-30"
 anchor_format: "v1"
-status: em-construcao
+status: ativo
 owner: wagner
 source_us: US-INFRA-002
 ---
@@ -67,7 +67,7 @@ Prova automatizada:
 | R-VOZ-004 | O mesmo texto em tenants diferentes representa sinais diferentes. | hash inclui `business_id` + teste |
 | R-VOZ-005 | Relatar e triar exigem permissões distintas. | `StoreSinalRequest` + `SinalController::index` |
 
-## Fora deste contrato
+## Backlog ativo
 
 Os itens abaixo permaneceram backlog em 2026-07-28 e não podem ser inferidos como
 entregues pela existência deste módulo:

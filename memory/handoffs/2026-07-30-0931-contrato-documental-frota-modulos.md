@@ -2,12 +2,20 @@
 title: "Contrato documental da frota e ativação atômica de módulos"
 date: "2026-07-30"
 time: "09:31"
+slug: contrato-documental-frota-modulos
+tldr: "A frota passou a ter fontes canônicas, projeções regeneráveis e ativação atômica cobrada no mesmo PR."
 status: concluido
 branch: codex/module-documentation-activation
 pr: 5069
 ---
 
 # Contrato documental da frota e ativação atômica de módulos
+
+## TL;DR
+
+A frota passou a ter fontes canônicas, projeções regeneráveis e ativação atômica
+cobrada no mesmo PR. O inventário classificou todos os 16.237 arquivos rastreados
+e a auditoria documental fechou os 35 módulos atuais sem lacunas.
 
 ## Resultado
 
@@ -65,3 +73,9 @@ existente ficou sob o contrato documental comum.
 Durante a atualização do PR, o `main` removeu o módulo Admin. A resolução preservou
 a remoção e regenerou catálogo, superfícies, painel e índices; por isso o denominador
 final passou de 36 para 35 sem lista manual.
+
+## Estado MCP no momento do fechamento
+
+Nenhum MCP de domínio participou desta mudança. A prova foi produzida diretamente
+no checkout Git e no PR #5069 por scripts determinísticos do repositório; os checks
+de PHP/Pest/PHPStan ficaram delegados ao CT 100 conforme ADR 0062.
