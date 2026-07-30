@@ -14,7 +14,7 @@ pr: 5069
 ## TL;DR
 
 A frota passou a ter fontes canônicas, projeções regeneráveis e ativação atômica
-cobrada no mesmo PR. O inventário classificou todos os 16.237 arquivos rastreados
+cobrada no mesmo PR. O inventário classificou todos os 16.236 arquivos rastreados
 e a auditoria documental fechou os 35 módulos atuais sem lacunas.
 
 ## Resultado
@@ -22,7 +22,7 @@ e a auditoria documental fechou os 35 módulos atuais sem lacunas.
 O ciclo documental passou a partir do universo exato do Git e separou fontes de
 projeções:
 
-- `git ls-files -z`: **16.237/16.237** paths classificados; `unclassified: []`;
+- `git ls-files -z`: **16.236/16.236** paths classificados; `unclassified: []`;
 - frota atual: **35/35** manifestos com `SCOPE`, `BRIEFING`, `SPEC`,
   `SUPERFICIE`, teste e nó de catálogo;
 - `VozDoCliente/SPEC.md` fechou a única ausência da frota;
@@ -60,7 +60,7 @@ path e registros históricos. A limpeza foi de **autoridade**, não de evidênci
 - `catalog-graph --check`: 38 módulos, 612 nós, 935 arestas, zero pendurados;
 - `system-map --check` e `system-map-ia.test`: verdes;
 - `memory-health`: zero falhas; avisos históricos permaneceram não bloqueantes;
-- impacto real: exit 0, `activation_ok: true`, 16.237 classificados, zero sem dono;
+- impacto real: exit 0, `activation_ok: true`, 16.236 classificados, zero sem dono;
 - `git diff --check`: verde; marcadores `<<<<<<<`/`>>>>>>>`: zero.
 
 ## Limite honesto

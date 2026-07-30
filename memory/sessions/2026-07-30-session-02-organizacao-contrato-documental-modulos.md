@@ -51,7 +51,7 @@ Havia quatro causas:
 
 Resultado final local:
 
-- inventário: 16.237 total, 16.237 classificados, zero sem dono;
+- inventário: 16.236 total, 16.236 classificados, zero sem dono;
 - frota: 35 total, 35 completos, zero incompletos;
 - selftest do ciclo: 17/17;
 - testes Node: 44/44, incluindo colisão de casing e seleção por raiz Git;
