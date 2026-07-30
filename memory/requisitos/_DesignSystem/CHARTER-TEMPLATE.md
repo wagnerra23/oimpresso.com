@@ -183,7 +183,7 @@ Invocação **manual**. Medido em 2026-07-29: não há schedule pra este comando
 - [RUNBOOK-charters-s4-ativacao.md](RUNBOOK-charters-s4-ativacao.md) — workflow draft→live
 - Skill `charter-first` (Tier A) · `charter-write` (Tier C) · `tela-smoke-pos-merge` (Tier B — W30)
 - Tool MCP `charter-fetch` ([Modules/Jana/Mcp/Tools/CharterFetchTool.php](../../../Modules/Jana/Mcp/Tools/CharterFetchTool.php))
-- Command `governance:ui-catalog-generate` ([Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php](../../../Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php)) — invocação manual; resgatado de `Modules/Admin` em 2026-07-29, onde vivia sem registro no ServiceProvider
+- Command `governance:ui-catalog-generate` ([Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php](../../../Modules/Governance/Console/Commands/UiCatalogGenerateCommand.php)) — invocação manual; resgatado do Admin Center (módulo removido em 2026-07-29), onde vivia sem registro no ServiceProvider
 
 ## Histórico
 

@@ -4,15 +4,22 @@ id: requisitos-admin-deprecation-plan
 
 # DEPRECATION-PLAN — Modules/Admin
 
-> **Status:** 📋 Planejado · **Owner:** [W] · **Decisão:** [W] 2026-07-30 (*"todos esses eu vou deletar"*)
+> **Status:** ✅ **EXECUTADO em 2026-07-30** · **Owner:** [W] · **Decisão:** [W] 2026-07-30 (*"todos esses eu vou deletar"*)
+>
+> O módulo saiu do repo em 4 PRs, por [ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md) (supersede a 0122), ratificada por [W] no [#5057](https://github.com/wagnerra23/oimpresso.com/pull/5057):
+> resgates [#5045](https://github.com/wagnerra23/oimpresso.com/pull/5045) (gerador de UI-CATALOG → `Modules/Governance`) e [#5046](https://github.com/wagnerra23/oimpresso.com/pull/5046) (`CuradorStatsReader` → `Modules/Arquivos`) · ADR + reconciliação de US de terceiros [#5057](https://github.com/wagnerra23/oimpresso.com/pull/5057) · remoção [#5062](https://github.com/wagnerra23/oimpresso.com/pull/5062).
+>
+> Este plano foi escrito em paralelo à execução (sessões independentes). **A medição de produção das duas bateu:** `mcp_admin_audit_log` com **0 linhas**. Fica como registro do método — as fases abaixo descrevem o inventário do dia, não trabalho pendente.
 > **Ordem no conjunto:** **2º de 6** — [proposal da ordem topológica](../../decisions/proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md)
 > **Vai em 2º porque sair daqui remove 3 dos 11 acopladores do Governance** (que é o 6º). Não é sequência arbitrária.
 
 ## Fase 1 — Inventário
 
-**Gerado, não escrito:** [`SUPERFICIE.md`](SUPERFICIE.md) — **95 arquivos em 13 papéis** (`module-surface.mjs Admin --write`). Frescor 2026-07-30: `--check` **exit 0**.
+**Gerado, não escrito:** `SUPERFICIE.md` — **95 arquivos em 13 papéis** (`module-surface.mjs Admin --write`). Frescor medido em 2026-07-30: `--check` **exit 0**.
 
-Este módulo é o mais rico em artefatos de inventário do repo — além da superfície tem [`UI-CATALOG.md`](UI-CATALOG.md), [`GOVERNANCE-MATURITY-FICHA.md`](GOVERNANCE-MATURITY-FICHA.md), [`SCREEN-REVIEW-RUNBOOK.md`](SCREEN-REVIEW-RUNBOOK.md) e [`Index-visual-comparison.md`](Index-visual-comparison.md). **Todos saem com o módulo** — conferir antes se algum descreve tela que sobrevive.
+> ⚠️ **O arquivo foi DELETADO no [#5062](https://github.com/wagnerra23/oimpresso.com/pull/5062)** (por isso o link saiu): era índice **gerado** da superfície de código, e o código não existe mais — ele carregava 76 links mortos e derrubava o `deadlink-gate`. O número 95 fica aqui como retrato do dia.
+
+Este módulo é o mais rico em artefatos de inventário do repo — além da superfície tem [`UI-CATALOG.md`](UI-CATALOG.md), [`GOVERNANCE-MATURITY-FICHA.md`](GOVERNANCE-MATURITY-FICHA.md), [`SCREEN-REVIEW-RUNBOOK.md`](SCREEN-REVIEW-RUNBOOK.md) e [`Index-visual-comparison.md`](Index-visual-comparison.md). **Decidido na execução: os docs de `memory/requisitos/Admin/` FICAM** como histórico — o plano previa que saíssem. Razão medida: as ADRs **0122 e 0360** referenciam esta pasta e **ADR é append-only**, então deletar criaria deadlink impossível de consertar na origem. `SPEC.md` e `BRIEFING.md` ganharam lápide + `status: historical`; os demais ficam intocados (e este plano linka 4 deles). Só o `SUPERFICIE.md` saiu, porque era gerado a partir do código.
 
 Contornos: **8 telas** `.tsx` · 8 Controllers · 7 Requests · 2 Middleware · **0** tools MCP · **0** cron.
 

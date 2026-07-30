@@ -111,7 +111,7 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 > **Destino reescrito em 2026-07-29** ([ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md)): dizia *"submit pro Admin API"*, mas o Admin Center foi deprecado. O endpoint alvo é o do próprio módulo (US-ARQ-011).
 
 ### US-ARQ-018 · Widget Admin Center "Arquivos" (count por bucket, sensitive aguardando vault, métricas saúde) `p2`
-**Implementado em:** `Modules/Arquivos/Services/Curador/CuradorStatsReader.php` · `Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php` — count por bucket + `sensitive_count` + audit 24h + dedupe, com recorte por `business_id` (Tier 0) coberto por teste na lane MySQL. **A UI está PENDENTE:** o widget "W5 Curador" e a `IndexController@__invoke` que o injetavam viviam no `Modules/Admin` (Admin Center Wagner-only) e foram removidos com a depreciação daquele módulo em 2026-07-29 — a tela nunca foi acessível fora do Tailscale (403). O leitor foi resgatado pra cá porque só consulta tabelas DESTE módulo; falta dar a ele uma superfície própria.
+**Implementado em:** `Modules/Arquivos/Services/Curador/CuradorStatsReader.php` · `Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php` — count por bucket + `sensitive_count` + audit 24h + dedupe, com recorte por `business_id` (Tier 0) coberto por teste na lane MySQL. **A UI está PENDENTE:** o widget "W5 Curador" e a `IndexController@__invoke` que o injetavam viviam no Admin Center (módulo Wagner-only, REMOVIDO do repo em 2026-07-29 — não há caminho vivo a citar) — a tela nunca foi acessível fora do Tailscale (403). O leitor foi resgatado pra cá porque só consulta tabelas DESTE módulo; falta dar a ele uma superfície própria.
 
 ## Sprint 3 — primeiro consumer real
 
