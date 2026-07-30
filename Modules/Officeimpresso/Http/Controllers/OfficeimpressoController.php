@@ -50,7 +50,7 @@ class OfficeimpressoController extends Controller
      * Não usa Closure na rota de propósito: Closure quebra `php artisan
      * route:cache` (mesma pegadinha do name colidente já anotada no web.php).
      *
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function home()
     {
