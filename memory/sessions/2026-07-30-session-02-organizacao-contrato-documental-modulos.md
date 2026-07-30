@@ -3,6 +3,7 @@ title: "Organização e contrato documental dos módulos"
 date: "2026-07-30"
 status: concluida
 branch: codex/module-documentation-activation
+pr: 5069
 ---
 
 # Sessão — organização e contrato documental dos módulos

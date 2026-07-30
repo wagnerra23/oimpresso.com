@@ -4,6 +4,7 @@ date: "2026-07-30"
 time: "09:31"
 status: concluido
 branch: codex/module-documentation-activation
+pr: 5069
 ---
 
 # Contrato documental da frota e ativação atômica de módulos
