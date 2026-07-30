@@ -38,6 +38,7 @@ uses(Tests\TestCase::class);
 
 defined('PERM_OI_ACCESS') || define('PERM_OI_ACCESS', 'officeimpresso.access');
 defined('PERM_OI_GERENCIAR') || define('PERM_OI_GERENCIAR', 'officeimpresso.licencas.gerenciar');
+defined('PERM_OI_CLIENTES') || define('PERM_OI_CLIENTES', 'officeimpresso.clientes.liberar');
 
 // ID que não existe: o gate roda ANTES do service, então o caso "com permissão"
 // atravessa a guarda e morre no findOrFail (try/catch → redirect), sem escrever
@@ -149,6 +150,44 @@ it('mantém bloqueio da EMPRESA inteira como superadmin-only', function () {
         ->assertForbidden();
 
     $suporte->forceDelete();
+});
+
+it('manda /officeimpresso pra primeira tela que o nível consegue abrir', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_ACCESS, 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => PERM_OI_CLIENTES, 'guard_name' => 'web']);
+
+    // Suporte (lê licenças) → Computadores.
+    $suporte = makeOiAcessoTestUser($business->id);
+    $suporte->givePermissionTo(PERM_OI_ACCESS);
+    $this->actingAs($suporte);
+    session(['user.business_id' => $business->id]);
+    $this->get('/officeimpresso')->assertRedirect('/officeimpresso/computadores');
+    $suporte->forceDelete();
+
+    // Atendente (só credenciais OAuth) → Clientes. Um redirect fixo pra
+    // /computadores jogaria este nível num 403 — o buraco que o #5044 fechou
+    // no menu e que a porta de entrada não pode reabrir.
+    $atendente = makeOiAcessoTestUser($business->id);
+    $atendente->givePermissionTo(PERM_OI_CLIENTES);
+    $this->actingAs($atendente);
+    session(['user.business_id' => $business->id]);
+    $this->get('/officeimpresso')->assertRedirect('/officeimpresso/client');
+    $atendente->forceDelete();
+});
+
+it('nega a porta de entrada pra autenticado sem permissão do módulo', function () {
+    $business = $this->seededTenant();
+
+    $user = makeOiAcessoTestUser($business->id);
+    $this->actingAs($user);
+    session(['user.business_id' => $business->id]);
+
+    // Não redireciona pra uma tela que negaria do mesmo jeito — nega aqui.
+    $this->get('/officeimpresso')->assertForbidden();
+
+    $user->forceDelete();
 });
 
 /**
