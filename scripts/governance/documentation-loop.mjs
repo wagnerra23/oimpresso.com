@@ -286,6 +286,7 @@ function existsAtRef(root, ref, file) {
 function detectNewModules(base, files, root = ROOT) {
   return [...new Set(files
     .filter((file) => /^Modules\/[^/]+\/module\.json$/.test(file))
+    .filter((file) => existsSync(join(root, file)))
     .filter((file) => !existsAtRef(root, base, file))
     .map((file) => file.split('/')[1]))].sort();
 }
@@ -363,7 +364,10 @@ export function inspectDocumentationFleet({
   catalog = {},
   projectFiles = null,
 } = {}) {
-  const files = projectFiles || trackedFiles(root);
+  // O diff inclui paths DELETADOS. A frota é o estado da árvore resultante,
+  // então só um module.json que ainda existe pode registrar módulo.
+  const files = (projectFiles || trackedFiles(root))
+    .filter((file) => existsSync(join(root, file)));
   const modules = [...new Set(files
     .filter((file) => /^Modules\/[^/]+\/module\.json$/.test(file))
     .map((file) => file.split('/')[1]))].sort();
@@ -705,10 +709,18 @@ function selftest() {
   const realFleet = inspectDocumentationFleet({
     root: ROOT, catalog: realCatalog, projectFiles: trackedFiles(ROOT),
   });
-  check('FROTA REAL: 36/36 módulos têm SCOPE, BRIEFING, SPEC, SUPERFICIE, teste e catálogo',
-    realFleet.total_modules === 36
-      && realFleet.complete_modules === 36
+  const realManifestCount = trackedFiles(ROOT)
+    .filter((file) => /^Modules\/[^/]+\/module\.json$/.test(file)).length;
+  check('FROTA REAL: todo module.json tem SCOPE, BRIEFING, SPEC, SUPERFICIE, teste e catálogo',
+    realManifestCount > 0
+      && realFleet.total_modules === realManifestCount
+      && realFleet.complete_modules === realManifestCount
       && realFleet.incomplete_modules.length === 0);
+  const deletedFleet = inspectDocumentationFleet({
+    root: ROOT, catalog: {}, projectFiles: ['Modules/ModuloRemovido/module.json'],
+  });
+  check('BITE: module.json presente só no diff de deleção não ressuscita módulo na frota',
+    deletedFleet.total_modules === 0);
   const inventoryFixture = repositoryInventory([
     'Modules/Financeiro/Services/FluxoService.php',
     'memory/requisitos/Financeiro/SPEC.md',
@@ -767,6 +779,9 @@ function selftest() {
     }
     writeFileSync(join(fixture, 'modules_statuses.json'), JSON.stringify({ [novo]: false }));
     const activationFiles = recursiveFiles(fixture, '.');
+    check('BITE/RELEASE: detector distingue module.json novo presente de path deletado no diff',
+      detectNewModules('HEAD', [`Modules/${novo}/module.json`], fixture).includes(novo)
+        && detectNewModules('HEAD', ['Modules/ModuloRemovido/module.json'], fixture).length === 0);
     const activation = inspectModuleActivation(novo, {
       root: fixture,
       projectFiles: activationFiles,

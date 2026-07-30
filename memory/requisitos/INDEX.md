@@ -2,12 +2,11 @@
 
 > ⚙️ Gerado por `php artisan module:requirements --index-only` a partir dos módulos registrados no checkout atual. Histórico fica no Git; este índice não mistura branches antigas.
 
-**Total atual:** 36 módulos registrados.
+**Total atual:** 35 módulos registrados.
 
 | Módulo | BRIEFING | SPEC | SUPERFÍCIE |
 |---|:---:|:---:|:---:|
 | **ADS** | [abrir](ADS/BRIEFING.md) | [abrir](ADS/SPEC.md) | [abrir](ADS/SUPERFICIE.md) |
-| **Admin** | [abrir](Admin/BRIEFING.md) | [abrir](Admin/SPEC.md) | [abrir](Admin/SUPERFICIE.md) |
 | **Arquivos** | [abrir](Arquivos/BRIEFING.md) | [abrir](Arquivos/SPEC.md) | [abrir](Arquivos/SUPERFICIE.md) |
 | **AssetManagement** | [abrir](AssetManagement/BRIEFING.md) | [abrir](AssetManagement/SPEC.md) | [abrir](AssetManagement/SUPERFICIE.md) |
 | **Auditoria** | [abrir](Auditoria/BRIEFING.md) | [abrir](Auditoria/SPEC.md) | [abrir](Auditoria/SUPERFICIE.md) |

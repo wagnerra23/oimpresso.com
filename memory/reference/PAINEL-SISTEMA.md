@@ -18,7 +18,6 @@ lifecycle: ativo
 
 | Módulo | BRIEFING | Último toque |
 |---|---|---|
-| Admin | [BRIEFING](../requisitos/Admin/BRIEFING.md) | 2026-07-23 |
 | ADS | [BRIEFING](../requisitos/ADS/BRIEFING.md) | 2026-07-23 |
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-07-23 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |

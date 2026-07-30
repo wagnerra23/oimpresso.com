@@ -26,7 +26,6 @@
             <directory>./Modules/Repair/Tests/Feature</directory>
             <directory>./Modules/ProjectMgmt/Tests/Feature</directory>
             <directory>./Modules/Whatsapp/Tests/Feature</directory>
-            <directory>./Modules/Admin/Tests/Feature</directory>
             <directory>./Modules/Arquivos/Tests/Feature</directory>
             <directory>./Modules/Ponto/Tests/Feature</directory>
             <directory>./Modules/Ponto/Tests/Unit</directory>

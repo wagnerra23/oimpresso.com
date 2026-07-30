@@ -4,15 +4,22 @@ id: requisitos-admin-deprecation-plan
 
 # DEPRECATION-PLAN — Modules/Admin
 
-> **Status:** 📋 Planejado · **Owner:** [W] · **Decisão:** [W] 2026-07-30 (*"todos esses eu vou deletar"*)
+> **Status:** ✅ **EXECUTADO em 2026-07-30** · **Owner:** [W] · **Decisão:** [W] 2026-07-30 (*"todos esses eu vou deletar"*)
+>
+> O módulo saiu do repo em 4 PRs, por [ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md) (supersede a 0122), ratificada por [W] no [#5057](https://github.com/wagnerra23/oimpresso.com/pull/5057):
+> resgates [#5045](https://github.com/wagnerra23/oimpresso.com/pull/5045) (gerador de UI-CATALOG → `Modules/Governance`) e [#5046](https://github.com/wagnerra23/oimpresso.com/pull/5046) (`CuradorStatsReader` → `Modules/Arquivos`) · ADR + reconciliação de US de terceiros [#5057](https://github.com/wagnerra23/oimpresso.com/pull/5057) · remoção [#5062](https://github.com/wagnerra23/oimpresso.com/pull/5062).
+>
+> Este plano foi escrito em paralelo à execução (sessões independentes). **A medição de produção das duas bateu:** `mcp_admin_audit_log` com **0 linhas**. Fica como registro do método — as fases abaixo descrevem o inventário do dia, não trabalho pendente.
 > **Ordem no conjunto:** **2º de 6** — [proposal da ordem topológica](../../decisions/proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md)
 > **Vai em 2º porque sair daqui remove 3 dos 11 acopladores do Governance** (que é o 6º). Não é sequência arbitrária.
 
 ## Fase 1 — Inventário
 
-**Gerado, não escrito:** [`SUPERFICIE.md`](SUPERFICIE.md) — **95 arquivos em 13 papéis** (`module-surface.mjs Admin --write`). Frescor 2026-07-30: `--check` **exit 0**.
+**Gerado, não escrito:** `SUPERFICIE.md` — **95 arquivos em 13 papéis** (`module-surface.mjs Admin --write`). Frescor medido em 2026-07-30: `--check` **exit 0**.
 
-Este módulo é o mais rico em artefatos de inventário do repo — além da superfície tem [`UI-CATALOG.md`](UI-CATALOG.md), [`GOVERNANCE-MATURITY-FICHA.md`](GOVERNANCE-MATURITY-FICHA.md), [`SCREEN-REVIEW-RUNBOOK.md`](SCREEN-REVIEW-RUNBOOK.md) e [`Index-visual-comparison.md`](Index-visual-comparison.md). **Todos saem com o módulo** — conferir antes se algum descreve tela que sobrevive.
+> ⚠️ **O arquivo foi DELETADO no [#5062](https://github.com/wagnerra23/oimpresso.com/pull/5062)** (por isso o link saiu): era índice **gerado** da superfície de código, e o código não existe mais — ele carregava 76 links mortos e derrubava o `deadlink-gate`. O número 95 fica aqui como retrato do dia.
+
+Este módulo é o mais rico em artefatos de inventário do repo — além da superfície tem [`UI-CATALOG.md`](UI-CATALOG.md), [`GOVERNANCE-MATURITY-FICHA.md`](GOVERNANCE-MATURITY-FICHA.md), [`SCREEN-REVIEW-RUNBOOK.md`](SCREEN-REVIEW-RUNBOOK.md) e [`Index-visual-comparison.md`](Index-visual-comparison.md). **Decidido na execução: os docs de `memory/requisitos/Admin/` FICAM** como histórico — o plano previa que saíssem. Razão medida: as ADRs **0122 e 0360** referenciam esta pasta e **ADR é append-only**, então deletar criaria deadlink impossível de consertar na origem. `SPEC.md` e `BRIEFING.md` ganharam lápide + `status: historical`; os demais ficam intocados (e este plano linka 4 deles). Só o `SUPERFICIE.md` saiu, porque era gerado a partir do código.
 
 Contornos: **8 telas** `.tsx` · 8 Controllers · 7 Requests · 2 Middleware · **0** tools MCP · **0** cron.
 
@@ -50,6 +57,24 @@ Isso é **o motivo da ordem**: Admin sai antes e o Governance fica com 8 acoplad
 | `mcp_admin_audit_log` | **DROP** | 0 linhas. Nada a migrar, nada a arquivar. |
 
 **Ordem:** DROP **depois** do refactor de código (lição E3 do SRS).
+
+## Destino por função — realocação
+
+> Medido 2026-07-30. A direção que importa aqui é **invertida** em relação aos outros: o Admin quase não é consumido (2 arquivos de código), ele **consome** — e o que consome morre junto. Logo a pergunta não é *"quem herda o Admin"*, é *"as 8 telas têm dono depois que o Governance sai"*.
+>
+> Consumidores externos medidos: `Governance/Http/Requests/UpdateActorRequest.php` (morre 6º) · `Superadmin/Tests/Feature/Wave25CrossTenantIsolationTest.php` (**vive**) · 2 charters (`GovernanceV4.charter.md`, `ScreenReview.charter.md`, saem com as telas).
+
+| Peça | Módulo dono correto | Base da decisão |
+|---|---|---|
+| **`/admin/screen-review` + `ScreenReviewController`** | 🔴 **BURACO — decisão [W]** | é a **UI humana de status por tela**, citada em [`how-trabalhar.md`](../../how-trabalhar.md) como porta de leitura ao lado do `screen-coverage:report`. Tem **consumidor humano documentado em canon** — o único do módulo. Depende de `Modules\Governance\`, que morre. Sem receptor: ou vai pra Superadmin, ou a leitura passa a ser só CLI. |
+| `GovernanceV4DashboardController` + tela `GovernanceV4` | **ninguém — morre com o Governance** | dashboard **do** Governance. Sem o módulo medido, não há o que exibir. `CreateInitiativeRequest` idem (`mcp_governance_initiatives` é do Governance). |
+| `RagQualityDashboard` (observabilidade de RAG) | **Jana** | o sinal é RAGAS/recall da Jana ([ADR 0318](../../decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md)); o Admin só desenha. Dono do sinal ≠ dono da tela — e aqui o dono do sinal sobrevive. |
+| `mcp_admin_audit_log` | **ninguém — DROP** | 0 linhas, nunca recebeu escrita (Fase 2). Nada a realocar. |
+| 2 Middleware | **seguem as telas** | sem consumidor fora do módulo |
+| `UI-CATALOG.md` · `GOVERNANCE-MATURITY-FICHA.md` · `SCREEN-REVIEW-RUNBOOK.md` · `Index-visual-comparison.md` | **mover se a tela sobreviver, apagar se não** | 4 docs de inventário. O `SCREEN-REVIEW-RUNBOOK` descreve a tela do buraco acima — decidir junto, não separado. |
+| `Superadmin/Tests/.../Wave25CrossTenantIsolationTest.php` | **fica no Superadmin, re-apontar** | único acoplador que sobrevive; é teste de isolamento Tier 0, não pode simplesmente sair |
+
+**A ironia que já está registrada na Fase 1 fica pior aqui:** a ferramenta que mediria o impacto de deletar as 8 telas (`/admin/screen-review`) **é uma das 8**. Realocá-la primeiro é o que torna as outras 7 avaliáveis — por isso ela é E1, não E2.
 
 ## Fase 5 — Riscos Tier 0
 

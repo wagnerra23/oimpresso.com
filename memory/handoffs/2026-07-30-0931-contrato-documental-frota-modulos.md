@@ -14,8 +14,8 @@ pr: 5069
 O ciclo documental passou a partir do universo exato do Git e separou fontes de
 projeções:
 
-- `git ls-files -z`: **16.349/16.349** paths classificados; `unclassified: []`;
-- frota atual: **36/36** manifestos com `SCOPE`, `BRIEFING`, `SPEC`,
+- `git ls-files -z`: **16.237/16.237** paths classificados; `unclassified: []`;
+- frota atual: **35/35** manifestos com `SCOPE`, `BRIEFING`, `SPEC`,
   `SUPERFICIE`, teste e nó de catálogo;
 - `VozDoCliente/SPEC.md` fechou a única ausência da frota;
 - `memory/modulos/INDEX.md` e `memory/requisitos/INDEX.md` passaram a listar
@@ -45,13 +45,13 @@ path e registros históricos. A limpeza foi de **autoridade**, não de evidênci
 
 ## Provas executadas
 
-- `documentation-loop --selftest`: 15/15, incluindo bite negativo de módulo sem
-  SPEC, grafo profundo e frota real 36/36;
+- `documentation-loop --selftest`: 17/17, incluindo bite negativo de módulo sem
+  SPEC, grafo profundo e toda a frota real;
 - testes Node combinados: 42/42;
-- `module-surface --all --check`: 40 contextos sem drift;
-- `catalog-graph --check`: 39 módulos, 622 nós, 949 arestas, zero pendurados;
+- `module-surface --all --check`: 39 contextos sem drift;
+- `catalog-graph --check`: 38 módulos, 612 nós, 935 arestas, zero pendurados;
 - `system-map --check` e `system-map-ia.test`: verdes;
-- impacto real: exit 0, `activation_ok: true`, 16.349 classificados, zero sem dono;
+- impacto real: exit 0, `activation_ok: true`, 16.237 classificados, zero sem dono;
 - `git diff --check`: verde; marcadores `<<<<<<<`/`>>>>>>>`: zero.
 
 ## Limite honesto
@@ -61,3 +61,7 @@ alterados precisam de lint/teste no CT 100, conforme ADR 0062. Dez módulos
 históricos usam layouts alternativos de rota/composer; não foram normalizados
 em massa. O contrato rígido de runtime ficou restrito a módulos novos, e a frota
 existente ficou sob o contrato documental comum.
+
+Durante a atualização do PR, o `main` removeu o módulo Admin. A resolução preservou
+a remoção e regenerou catálogo, superfícies, painel e índices; por isso o denominador
+final passou de 36 para 35 sem lista manual.

@@ -44,9 +44,9 @@ Havia quatro causas:
 
 Resultado final local:
 
-- inventário: 16.349 total, 16.349 classificados, zero sem dono;
-- frota: 36 total, 36 completos, zero incompletos;
-- selftest do ciclo: 15/15;
+- inventário: 16.237 total, 16.237 classificados, zero sem dono;
+- frota: 35 total, 35 completos, zero incompletos;
+- selftest do ciclo: 17/17;
 - testes Node: 42/42;
 - superfícies: 40/40 sem drift;
 - catálogo: zero módulo/ADR pendurado;

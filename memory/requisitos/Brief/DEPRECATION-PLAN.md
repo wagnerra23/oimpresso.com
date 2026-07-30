@@ -50,6 +50,25 @@ Contornos: **0** telas `.tsx` · 2 arquivos em `Routes/` · **1 tool MCP** (`bri
 
 **Este plano não dropa nada.** É o único dos 6 assim.
 
+## Destino por função — realocação
+
+> Medido 2026-07-30 nos **3 consumidores sobreviventes** (`grep` do símbolo importado, não do namespace — o namespace diz que depende, o símbolo diz **de quê**):
+> `Jana/Mcp/OimpressoMcpServer.php` → `Modules\Brief\Mcp\Tools\BriefFetchTool` · `Manufacturing/Console/Commands/ManufacturingHealthCommand.php` → `Modules\Brief\Console\Commands\BriefHealthCommand` · `scripts/governance/system-map.mjs` → path da tool (censo).
+
+| Peça | Módulo dono correto | Base da decisão |
+|---|---|---|
+| **`Mcp/Tools/BriefFetchTool`** | **Jana** ⛔ Tier A | quem **registra** já é o `OimpressoMcpServer` da Jana; e `mcp_briefs` (438 linhas) **já é tabela da Jana** ([ADR 0091](../../decisions/0091-daily-brief.md)). A tool muda de pasta, não de servidor nem de dono do dado. Zero migração de schema. |
+| `Services/BriefGeneratorService` + `Services/BriefValidator` + `ValidationResult` | **Jana** | produzem o conteúdo de `mcp_briefs`; separar produtor do dado seria criar a fronteira que o módulo já não sustenta |
+| `Services/LeaseBriefSectionService` | **Jana** · ⚠️ depende de `Modules\Governance\` | é a seção de *lease* do brief e importa Governance, que morre no 6º. **Realocar não basta — a seção precisa de receptor pro sinal também**, ou sai do brief. Não medi de onde vem o lease. |
+| `Console/Commands/GenerateBriefCommand` | **Jana** | é o cron que alimenta `mcp_briefs` (`brief:generate`, schedule) |
+| **`Console/Commands/BriefHealthCommand`** | **Jana** · ⚠️ **acoplador vivo fora do conjunto** | o `ManufacturingHealthCommand` referencia esta classe, e **Manufacturing não está na lista de deleção**. É o único acoplamento do conjunto com módulo de **produto**. Patch obrigatório, ou o health do Manufacturing quebra. |
+| `Console/Commands/SkillTierReviewCommand` | **decisão [W]** | revisa tier de skill — tema de `.claude/skills/`, que não é módulo Laravel. Sem receptor natural. |
+| Referência em `scripts/governance/system-map.mjs` | **atualizar, não mover** | é o censo de tools MCP; aponta pro path da tool. Muda com o path novo. |
+
+**Padrão:** 5 de 7 vão pra **Jana**, e o argumento não é conveniência — **a tabela já é dela e o servidor que registra a tool já é dela**. O Brief, medido, é a pasta do produtor de um dado que nunca foi seu.
+
+**Os 2 buracos reais** (não invento receptor): a origem do sinal de *lease* e o `SkillTierReviewCommand`.
+
 ## Fase 5 — Riscos Tier 0
 
 | # | Risco | Severidade | Mitigação |

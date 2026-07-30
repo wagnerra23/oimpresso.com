@@ -8,12 +8,11 @@
 gerado. Os arquivos históricos `memory/modulos/<M>.md` permanecem como snapshots e não
 definem quais módulos existem.
 
-**Total atual:** 36 módulos.
+**Total atual:** 35 módulos.
 
 | Módulo | Manifesto | Fronteira | Superfície | Requisitos |
 |---|---|---|---|---|
 | ADS | [module.json](../../Modules/ADS/module.json) | [SCOPE](../../Modules/ADS/SCOPE.md) | [SUPERFICIE](../requisitos/ADS/SUPERFICIE.md) | [SPEC](../requisitos/ADS/SPEC.md) |
-| Admin | [module.json](../../Modules/Admin/module.json) | [SCOPE](../../Modules/Admin/SCOPE.md) | [SUPERFICIE](../requisitos/Admin/SUPERFICIE.md) | [SPEC](../requisitos/Admin/SPEC.md) |
 | Arquivos | [module.json](../../Modules/Arquivos/module.json) | [SCOPE](../../Modules/Arquivos/SCOPE.md) | [SUPERFICIE](../requisitos/Arquivos/SUPERFICIE.md) | [SPEC](../requisitos/Arquivos/SPEC.md) |
 | AssetManagement | [module.json](../../Modules/AssetManagement/module.json) | [SCOPE](../../Modules/AssetManagement/SCOPE.md) | [SUPERFICIE](../requisitos/AssetManagement/SUPERFICIE.md) | [SPEC](../requisitos/AssetManagement/SPEC.md) |
 | Auditoria | [module.json](../../Modules/Auditoria/module.json) | [SCOPE](../../Modules/Auditoria/SCOPE.md) | [SUPERFICIE](../requisitos/Auditoria/SUPERFICIE.md) | [SPEC](../requisitos/Auditoria/SPEC.md) |
