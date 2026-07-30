@@ -12,9 +12,9 @@ module: Governance
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Governance --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Governance/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 145 arquivos em 14 papéis.
+**Total mapeado:** 153 arquivos em 14 papéis.
 
 ## Controllers — 8
 
@@ -143,8 +143,16 @@ module: Governance
 
 - 55 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 3
+## Demais arquivos (manifestos, docs, assets e misc) — 11
 
+- [CHANGELOG.md](../../../Modules/Governance/CHANGELOG.md)
 - [DriftChecker.php](../../../Modules/Governance/Contracts/DriftChecker.php)
 - [routes.php](../../../Modules/Governance/Http/routes.php)
+- [governance.php](../../../Modules/Governance/Resources/lang/en/governance.php)
+- [governance.php](../../../Modules/Governance/Resources/lang/pt-BR/governance.php)
+- [governance.php](../../../Modules/Governance/Resources/lang/pt/governance.php)
+- [topnav.php](../../../Modules/Governance/Resources/menus/topnav.php)
+- [SCOPE.md](../../../Modules/Governance/SCOPE.md)
+- [composer.json](../../../Modules/Governance/composer.json)
+- [module.json](../../../Modules/Governance/module.json)
 - [start.php](../../../Modules/Governance/start.php)

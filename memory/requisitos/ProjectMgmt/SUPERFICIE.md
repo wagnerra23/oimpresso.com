@@ -12,9 +12,9 @@ module: ProjectMgmt
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs ProjectMgmt --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ProjectMgmt/**` + `resources/js/Pages/ProjectMgmt/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/ProjectMgmt/**` + `resources/js/Pages/ProjectMgmt/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ProjectMgmt/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 61 arquivos em 11 papéis.
+**Total mapeado:** 69 arquivos em 11 papéis.
 
 ## Controllers — 12
 
@@ -93,7 +93,15 @@ module: ProjectMgmt
 
 - 13 arquivos em [Modules/ProjectMgmt/Tests/Feature/](../../../Modules/ProjectMgmt/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 2
+## Demais arquivos (manifestos, docs, assets e misc) — 10
 
+- [CHANGELOG.md](../../../Modules/ProjectMgmt/CHANGELOG.md)
 - [routes.php](../../../Modules/ProjectMgmt/Http/routes.php)
+- [README.md](../../../Modules/ProjectMgmt/README.md)
+- [projectmgmt.php](../../../Modules/ProjectMgmt/Resources/lang/en/projectmgmt.php)
+- [projectmgmt.php](../../../Modules/ProjectMgmt/Resources/lang/pt/projectmgmt.php)
+- [topnav.php](../../../Modules/ProjectMgmt/Resources/menus/topnav.php)
+- [SCOPE.md](../../../Modules/ProjectMgmt/SCOPE.md)
+- [composer.json](../../../Modules/ProjectMgmt/composer.json)
+- [module.json](../../../Modules/ProjectMgmt/module.json)
 - [start.php](../../../Modules/ProjectMgmt/start.php)

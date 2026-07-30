@@ -12,9 +12,9 @@ module: Jana
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Jana --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 571 arquivos em 19 papéis.
+**Total mapeado:** 583 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -400,7 +400,7 @@ module: Jana
 
 - 155 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 79
+## Demais arquivos (manifestos, docs, assets e misc) — 91
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -424,6 +424,7 @@ module: Jana
 - [VendasPeriodoTool.php](../../../Modules/Jana/Ai/Tools/BriefDiario/VendasPeriodoTool.php)
 - [UiDeterministicScorer.php](../../../Modules/Jana/Ai/UiDeterministicScorer.php)
 - [UiJudgeConsensus.php](../../../Modules/Jana/Ai/UiJudgeConsensus.php)
+- [CHANGELOG.md](../../../Modules/Jana/CHANGELOG.md)
 - [AiAdapter.php](../../../Modules/Jana/Contracts/AiAdapter.php)
 - [CalculaMeta.php](../../../Modules/Jana/Contracts/CalculaMeta.php)
 - [MemoriaContrato.php](../../../Modules/Jana/Contracts/MemoriaContrato.php)
@@ -431,9 +432,12 @@ module: Jana
 - [Reconciler.php](../../../Modules/Jana/Contracts/Reconciler.php)
 - [SqlDriver.php](../../../Modules/Jana/Drivers/Sql/SqlDriver.php)
 - [routes.php](../../../Modules/Jana/Http/routes.php)
+- [LICOES-OPERACAO.md](../../../Modules/Jana/LICOES-OPERACAO.md)
 - [WeeklyDigestMail.php](../../../Modules/Jana/Mail/WeeklyDigestMail.php)
 - [OimpressoMcpServer.php](../../../Modules/Jana/Mcp/OimpressoMcpServer.php)
 - [BriefingOimpressoPrompt.php](../../../Modules/Jana/Mcp/Prompts/BriefingOimpressoPrompt.php)
+- [CurrentResource.php](../../../Modules/Jana/Mcp/Resources/CurrentResource.php)
+- [HandoffResource.php](../../../Modules/Jana/Mcp/Resources/HandoffResource.php)
 - [AutomationsListTool.php](../../../Modules/Jana/Mcp/Tools/AutomationsListTool.php)
 - [CcSearchTool.php](../../../Modules/Jana/Mcp/Tools/CcSearchTool.php)
 - [CharterFetchTool.php](../../../Modules/Jana/Mcp/Tools/CharterFetchTool.php)
@@ -475,9 +479,17 @@ module: Jana
 - [WhatsActiveTool.php](../../../Modules/Jana/Mcp/Tools/WhatsActiveTool.php)
 - [WhatsLockedTool.php](../../../Modules/Jana/Mcp/Tools/WhatsLockedTool.php)
 - [MetaDesvioNotification.php](../../../Modules/Jana/Notifications/MetaDesvioNotification.php)
+- [copiloto.php](../../../Modules/Jana/Resources/lang/pt/copiloto.php)
+- [topnav.php](../../../Modules/Jana/Resources/menus/topnav.php)
+- [permissions.php](../../../Modules/Jana/Resources/permissions.php)
+- [SCOPE.md](../../../Modules/Jana/SCOPE.md)
 - [ScopeByBusiness.php](../../../Modules/Jana/Scopes/ScopeByBusiness.php)
 - [ScopeByBusinessViaParent.php](../../../Modules/Jana/Scopes/ScopeByBusinessViaParent.php)
 - [ClarifyResult.php](../../../Modules/Jana/Support/ClarifyResult.php)
 - [ContextoNegocio.php](../../../Modules/Jana/Support/ContextoNegocio.php)
 - [RetrievalStatus.php](../../../Modules/Jana/Support/RetrievalStatus.php)
+- [baseline-responses.json](../../../Modules/Jana/Tests/Feature/Ai/fixtures/baseline-responses.json)
+- [jana-gold-set.json](../../../Modules/Jana/Tests/Feature/Ai/fixtures/jana-gold-set.json)
+- [composer.json](../../../Modules/Jana/composer.json)
+- [module.json](../../../Modules/Jana/module.json)
 - [start.php](../../../Modules/Jana/start.php)

@@ -12,9 +12,9 @@ module: ADS
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs ADS --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ADS/**` + `resources/js/Pages/ads/**` (namespace Inertia `ads`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `ADS`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/ADS/**` + `resources/js/Pages/ads/**` (namespace Inertia `ads`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `ADS`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ADS/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 152 arquivos em 14 papéis.
+**Total mapeado:** 157 arquivos em 14 papéis.
 
 ## Controllers — 15
 
@@ -177,13 +177,16 @@ module: ADS
 
 - 19 arquivos em [Modules/ADS/Tests/Feature/](../../../Modules/ADS/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 12
+## Demais arquivos (manifestos, docs, assets e misc) — 17
 
 - [BrainBAgent.php](../../../Modules/ADS/Ai/Agents/BrainBAgent.php)
 - [PlannerAgent.php](../../../Modules/ADS/Ai/Agents/PlannerAgent.php)
 - [ProjectDecomposerAgent.php](../../../Modules/ADS/Ai/Agents/ProjectDecomposerAgent.php)
 - [ReviewerAgent.php](../../../Modules/ADS/Ai/Agents/ReviewerAgent.php)
+- [CHANGELOG.md](../../../Modules/ADS/CHANGELOG.md)
 - [Tool.php](../../../Modules/ADS/Contracts/Tool.php)
+- [topnav.php](../../../Modules/ADS/Resources/menus/topnav.php)
+- [SCOPE.md](../../../Modules/ADS/SCOPE.md)
 - [BoostToolAdapter.php](../../../Modules/ADS/Tools/BoostToolAdapter.php)
 - [GitCommitWipTool.php](../../../Modules/ADS/Tools/GitCommitWipTool.php)
 - [GitInspectTool.php](../../../Modules/ADS/Tools/GitInspectTool.php)
@@ -191,3 +194,5 @@ module: ADS
 - [MetricsQueryTool.php](../../../Modules/ADS/Tools/MetricsQueryTool.php)
 - [RunTestTool.php](../../../Modules/ADS/Tools/RunTestTool.php)
 - [WriteFileTool.php](../../../Modules/ADS/Tools/WriteFileTool.php)
+- [composer.json](../../../Modules/ADS/composer.json)
+- [module.json](../../../Modules/ADS/module.json)

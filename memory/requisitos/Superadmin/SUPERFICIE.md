@@ -12,9 +12,9 @@ module: Superadmin
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Superadmin --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Superadmin/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 126 arquivos em 17 papéis.
+**Total mapeado:** 166 arquivos em 17 papéis.
 
 ## Controllers — 14
 
@@ -122,8 +122,18 @@ module: Superadmin
 
 - 15 arquivos em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 9
+## Demais arquivos (manifestos, docs, assets e misc) — 49
 
+- [CHANGELOG.md](../../../Modules/Superadmin/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Superadmin/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Superadmin/Console/.gitkeep)
+- [.gitkeep](../../../Modules/Superadmin/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Superadmin/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Superadmin/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Superadmin/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/Superadmin/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Superadmin/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Superadmin/Http/Requests/.gitkeep)
 - [NewBusinessNotification.php](../../../Modules/Superadmin/Notifications/NewBusinessNotification.php)
 - [NewBusinessWelcomNotification.php](../../../Modules/Superadmin/Notifications/NewBusinessWelcomNotification.php)
 - [NewSubscriptionNotification.php](../../../Modules/Superadmin/Notifications/NewSubscriptionNotification.php)
@@ -132,4 +142,34 @@ module: Superadmin
 - [SubscriptionOfflinePaymentActivationConfirmation.php](../../../Modules/Superadmin/Notifications/SubscriptionOfflinePaymentActivationConfirmation.php)
 - [SuperadminCommunicator.php](../../../Modules/Superadmin/Notifications/SuperadminCommunicator.php)
 - [PackagePolicy.php](../../../Modules/Superadmin/Policies/PackagePolicy.php)
+- [.gitkeep](../../../Modules/Superadmin/Providers/.gitkeep)
+- [README.md](../../../Modules/Superadmin/README.md)
+- [.gitkeep](../../../Modules/Superadmin/Resources/assets/.gitkeep)
+- [app.js](../../../Modules/Superadmin/Resources/assets/js/app.js)
+- [app.scss](../../../Modules/Superadmin/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/Superadmin/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/ar/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/ce/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/de/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/en/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/es/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/fr/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/hi/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/id/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/lo/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/nl/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/ps/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/pt/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/ro/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/sq/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/tr/lang.php)
+- [lang.php](../../../Modules/Superadmin/Resources/lang/vi/lang.php)
+- [topnav.php](../../../Modules/Superadmin/Resources/menus/topnav.php)
+- [.gitkeep](../../../Modules/Superadmin/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/Superadmin/SCOPE.md)
 - [RedactsPiiInLogs.php](../../../Modules/Superadmin/Support/RedactsPiiInLogs.php)
+- [.gitkeep](../../../Modules/Superadmin/Tests/.gitkeep)
+- [composer.json](../../../Modules/Superadmin/composer.json)
+- [module.json](../../../Modules/Superadmin/module.json)
+- [package.json](../../../Modules/Superadmin/package.json)
+- [webpack.mix.js](../../../Modules/Superadmin/webpack.mix.js)

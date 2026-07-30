@@ -24,7 +24,7 @@
   "stats": {
     "modules": 38,
     "nodes": 617,
-    "edges": 940,
+    "edges": 942,
     "by_node_type": {
       "module": 43,
       "table": 84,
@@ -40,7 +40,7 @@
       "charteredByAdr": 33,
       "governedByAdr": 96,
       "hasComponent": 411,
-      "dependsOn": 136,
+      "dependsOn": 138,
       "delegatesTo": 127,
       "migratesTo": 1
     },
@@ -6914,6 +6914,12 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "module:Compras",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "module:KB",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -6925,6 +6931,12 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:Sells",
+      "type": "dependsOn",
+      "source": "depends_on"
     },
     {
       "from": "module:Financeiro",

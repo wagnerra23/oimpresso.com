@@ -71,7 +71,11 @@ Cada módulo vertical = produto separado vendável como add-on ao núcleo.
 
 ## Criar módulo novo
 
-Ler `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` — checklist das 8 peças obrigatórias + 3 rotas Install + padrão `Route::has()` pra link público condicional + pegadinhas. Validado em Modules/ADS (2026-05-03) e Modules/ConsultaOs (2026-05-04).
+Ler `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` — transação completa de ativação:
+runtime nWidart, 3 rotas Install, `SCOPE`/`BRIEFING`/`SPEC`, teste, projeções geradas e
+verificação `--enforce-activation`. A parte runtime foi validada em Modules/ADS
+(2026-05-03) e Modules/ConsultaOs (2026-05-04); o contrato documental foi confrontado
+com Modules/VozDoCliente em 2026-07-30.
 
 ## ADRs centrais
 

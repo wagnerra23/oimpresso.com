@@ -12,7 +12,7 @@
  *
  * DOUTRINA (ADR 0256): derivado sobrevive; escrito+lembrado apodrece. O grafo é 100% recalculado
  * dos SCOPE.md e SUPERFICIE.md Classe B — nada à mão. NÃO INVENTA relação que as fontes não declaram:
- * campos estruturados do frontmatter (`db_tables_owned`/`db_tables_consumed`/`db_tables_legacy_views`,
+ * campos estruturados do frontmatter (`depends_on`, `db_tables_owned`/`db_tables_consumed`/`db_tables_legacy_views`,
  * `related_adrs`/`charter_adr`, `url_prefixes`, `contains`, e os cross-refs `→ Modules/X` que vivem
  * DENTRO de `not_contains` + `drift_alerts.pertence_a`). Prosa do corpo markdown é ignorada de
  * propósito (não é declaração — é narrativa, e não-uniforme).
@@ -225,7 +225,7 @@ function listCoreClassBRecords() {
     const txt = readFileSync(join(ROOT, rel), 'utf8');
     if (!/CLASSE B/.test(txt)) return [];
     return [{ module, path: rel, purpose: 'Domínio core UltimatePOS (Classe B)', trust: '', owner: '', permission_prefix: '',
-      charter_adr: '', related_adrs: [], url_prefixes: [], contains: [], not_contains: [],
+      charter_adr: '', related_adrs: [], url_prefixes: [], contains: [], not_contains: [], depends_on: [],
       db_tables_owned: [], db_tables_consumed: [], db_tables_legacy_views: [], migrate_targets: [], catalog_kind: 'core-class-b' }];
   });
 }
@@ -257,6 +257,7 @@ function readScope(mod) {
     url_prefixes: asList(fields.url_prefixes),
     contains: asList(fields.contains),
     not_contains: asList(fields.not_contains),
+    depends_on: asList(fields.depends_on),
     db_tables_owned: asList(fields.db_tables_owned),
     db_tables_consumed: asList(fields.db_tables_consumed),
     db_tables_legacy_views: asList(fields.db_tables_legacy_views),
@@ -359,6 +360,16 @@ function buildGraph(records, opts = {}) {
           catalog_kind: 'referenced-only', catalog_status: 'referenced-only' }));
         addEdge(mid, `module:${target}`, 'delegatesTo', 'not_contains', note);
       }
+    }
+    // Dependência explícita. Aceita `Sells` ou `Modules/Sells`; diferente de
+    // not_contains, declara consumo real sem fingir delegação de escopo.
+    for (const declared of r.depends_on || []) {
+      const target = String(declared).replace(/^Modules\//, '').trim();
+      if (!target || target === r.module) continue;
+      ensure(`module:${target}`, () => ({ id: `module:${target}`, type: 'module', module: target,
+        purpose: '', trust: '', owner: '', permission_prefix: '', charter_adr: '', path: null,
+        catalog_kind: 'referenced-only', catalog_status: 'referenced-only' }));
+      addEdge(mid, `module:${target}`, 'dependsOn', 'depends_on');
     }
     // migrações planejadas (drift_alerts.pertence_a)
     for (const target of r.migrate_targets) {
