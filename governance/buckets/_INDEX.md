@@ -84,7 +84,7 @@ Stack IA canônica (laravel/ai + RAG + Meilisearch). Rubrica adiciona dimensões
 | **Whatsapp** | Z-API/Meta Cloud (status OS/boleto/NFe/dunning/bot Jana) | Cross-vertical (transacional WhatsApp) |
 | **Woocommerce** | Bridge POS ↔ WooCommerce externo | Cross-vertical (e-commerce) |
 | **ProductCatalogue** | Catálogo público read-only de produtos | Cross-vertical |
-| **ProjectMgmt** | Project Mgmt Jira-style (Kanban/Backlog/Roadmap) | Cross-vertical (ADR 0070) |
+| **Forja** | Cockpit de trabalho Jira-style (Kanban/Backlog/Roadmap) | Cross-vertical (ADR 0070) |
 
 ---
 

@@ -118,7 +118,7 @@ Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-onl
 - ❌ Browse de ADRs/sessions/specs canônicos → use Modules/KB
 - ❌ Admin de tokens MCP → use Modules/TeamMcp
 - ❌ Editar skill → use Modules/ADS
-- ❌ Triagem de tasks Jira-style → use Modules/ProjectMgmt (futuro Project)
+- ❌ Triagem de tasks Jira-style → use Modules/Forja
 
 ## Skills auto-load relevantes
 

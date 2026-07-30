@@ -33,7 +33,7 @@ const COCKPIT_CANON_TARGET = [
     'resources/js/Pages/Sells/Create.tsx',
     'resources/js/Pages/Sells/_components/SaleSheet.tsx',
     'resources/js/Pages/governance/Dashboard.tsx',
-    'resources/js/Pages/ProjectMgmt/Board/Index.tsx',
+    'resources/js/Pages/Forja/Board/Index.tsx',
 ];
 
 /** Pages com exceção — landing público, demos, sub-componentes auxiliares. */
@@ -181,7 +181,7 @@ it('CANON TARGET: h1 com tracking-tight + font-semibold (estrito)', function () 
         'resources/js/Pages/Sells/Index.tsx',
         'resources/js/Pages/Sells/Create.tsx',
         'resources/js/Pages/governance/Dashboard.tsx',
-        'resources/js/Pages/ProjectMgmt/Board/Index.tsx',
+        'resources/js/Pages/Forja/Board/Index.tsx',
     ];
     foreach ($strictH1Pages as $rel) {
         $source = readCockpitPage($rel);

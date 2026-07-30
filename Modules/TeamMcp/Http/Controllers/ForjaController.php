@@ -35,7 +35,7 @@ use Modules\TeamMcp\Services\HandoffLeverService;
  *
  * Onda Forja PR-A → Triagem REAL (esta PR): a aba Triagem deixa de ser placeholder
  * e projeta `mcp_tasks` project=FORJA em estado de triagem (sem owner OU sem
- * priority OU backlog), com dossiê lateral (reusa o padrão Analista de ProjectMgmt:
+ * priority OU backlog), com dossiê lateral (reusa o padrão Analista da Forja:
  * valor×esforço, risco Tier-0, duplicatas, Aprovar/Rejeitar/Fundir). As outras 5
  * abas (backlog/quadro/changelog/mcp/saude) seguem placeholder (1 PR cada).
  * Referência aprovada (F1.5 ADR 0114):
@@ -257,7 +257,7 @@ class ForjaController extends Controller
      * CC (mcp_cc_sessions), valor×esforço SUGERIDO (derivado de prioridade/estimativa)
      * e risco Tier-0 (HEURÍSTICA por palavra-chave). Nada vira oficial sem [W].
      *
-     * Espelha Modules\ProjectMgmt\Http\Controllers\TriageController@dossier — só muda
+     * Espelha Modules\Forja\Http\Controllers\TriageController@dossier — só muda
      * a rota; a lógica é a mesma (agente propõe, [W] aprova).
      */
     public function dossier(Request $request, string $taskId): JsonResponse

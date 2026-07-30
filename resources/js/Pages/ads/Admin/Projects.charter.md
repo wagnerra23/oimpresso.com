@@ -6,7 +6,7 @@ related_prototype: n/a (lista bespoke com banda de KPIs — usa <ul> em vez da a
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
-parent_module: ProjectMgmt
+parent_module: Forja
 related_adrs: [114, 101, 93]
 tier: B
 charter_version: 1
@@ -16,12 +16,12 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/Admin/ProjectsController@index` (rota `ads.admin.projects.index`; controller em ProjectMgmt, URL sob `/ads`). Lista os Projects estratégicos (`mcp_projects`) e cria novos; multi-tenant Tier 0 via `businessId` resolvido da sessão.
+> Backend: `Modules/Forja/Http/Controllers/Admin/ProjectsController@index` (rota `ads.admin.projects.index`; controller em Modules/Forja (ex-ProjectMgmt), URL sob `/ads`). Lista os Projects estratégicos (`mcp_projects`) e cria novos; multi-tenant Tier 0 via `businessId` resolvido da sessão.
 
 ---
 
 ## Mission
-Ser o portfólio dos Projects — unidade estratégica que agrupa decisões + ADRs + decomposição. O admin vê o estado de cada project (status, viability, custo, prazo, progresso das parts) e cria um novo informando nome + objetivo macro, que depois é decomposto pelo Project Decomposer Agent (no detalhe). É a entrada da esteira de decomposição estratégica do ADS/ProjectMgmt.
+Ser o portfólio dos Projects — unidade estratégica que agrupa decisões + ADRs + decomposição. O admin vê o estado de cada project (status, viability, custo, prazo, progresso das parts) e cria um novo informando nome + objetivo macro, que depois é decomposto pelo Project Decomposer Agent (no detalhe). É a entrada da esteira de decomposição estratégica do ADS/Forja.
 
 ---
 
@@ -47,7 +47,7 @@ Ser o portfólio dos Projects — unidade estratégica que agrupa decisões + AD
 ---
 
 ## Automation hooks (faz)
-- `store` grava o project e registra audit LGPD via `ProjectMgmtAuditService` (EVENT_PROJECT_CREATED), com objetivo_macro redacted pelo Service.
+- `store` grava o project e registra audit LGPD via `ForjaAuditService` (EVENT_PROJECT_CREATED), com objetivo_macro redacted pelo Service.
 - Listagem/KPIs delegadas a `ProjectService` com `businessId` explícito (D4 SoC).
 
 ---

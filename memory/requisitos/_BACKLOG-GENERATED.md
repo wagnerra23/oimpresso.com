@@ -40,8 +40,8 @@
 | [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
+| [`Forja`](#forja) | 8 | 0 | 1 | 0 | 7 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
-| [`ProjectMgmt`](#projectmgmt) | 8 | 0 | 1 | 0 | 7 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`KB`](#kb) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
@@ -1057,21 +1057,7 @@
 - **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
 - **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
 
-## Produto
-
-
-### todo
-
-- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
-- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
-- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
-- **US-PROD-023** — [G-05] Finalizar + promover as 8 telas React do Produto (draft→live) + `can:product.view` _(`p1` · @wagner)_
-- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
-- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
-- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
-- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
-
-## ProjectMgmt
+## Forja
 
 
 ### review
@@ -1087,6 +1073,20 @@
 - **US-TR-307** — Operador não-técnico usa sem treino
 - **US-TR-310** — Triage — atribuir owner + prioridade inline
 - **US-TR-311** — Triage — mover cycle/epic
+
+## Produto
+
+
+### todo
+
+- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
+- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
+- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
+- **US-PROD-023** — [G-05] Finalizar + promover as 8 telas React do Produto (draft→live) + `can:product.view` _(`p1` · @wagner)_
+- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
+- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
+- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
+- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
 
 ## EvolutionAgent
 

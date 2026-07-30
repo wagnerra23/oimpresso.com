@@ -137,9 +137,9 @@ Essentials:
   level: biz_4_rota_livre_prod
   note: ROTA LIVRE usa Todo + HRM UltimatePOS
 
-ProjectMgmt:
+Forja:
   level: internal_governance_active
-  note: Cross-cutting — Wagner usa Board/Backlog/MyWork diário pra gerir 25+ cycles ProjectMgmt (Jira-style ADR 0070); time MCP futuro depende — ADR 0159 Wave 18
+  note: Cross-cutting — Wagner usa Board/Backlog/MyWork diário pra gerir 25+ cycles na Forja (Jira-style ADR 0070; módulo chamado ProjectMgmt até 2026-07-30); time MCP futuro depende — ADR 0159 Wave 18
 
 ADS:
   level: biz_1_wagner_active

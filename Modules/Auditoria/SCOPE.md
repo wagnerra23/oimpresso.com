@@ -14,7 +14,7 @@ not_contains:
   - "EMITIR o log (trait LogsActivity nos Models de cada módulo) → o módulo dono do Model emite; Auditoria LÊ e REVERTE"
   - "Trilha de chamada de tool MCP (mcp_audit_log) → Modules/Jana"
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
+  - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/TeamMcp"
 trust_required: L3
 owner: wagner
