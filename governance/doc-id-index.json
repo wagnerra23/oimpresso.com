@@ -367,6 +367,7 @@
     "0358-doutrina-de-teste-tenant-98-supersede-0101": "memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md",
     "0359-errata-0358-numero-0101-nao-virou-inequivoco": "memory/decisions/0359-errata-0358-numero-0101-nao-virou-inequivoco.md",
     "0360-deprecacao-admin-center-supersede-0122": "memory/decisions/0360-deprecacao-admin-center-supersede-0122.md",
+    "0361-errata-0354-teammcp-pest-required-nunca-executado": "memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md",
     "2026-04-18-session-01": "memory/sessions/2026-04-18-session-01.md",
     "2026-04-18-session-02": "memory/sessions/2026-04-18-session-02.md",
     "2026-04-19-session-03": "memory/sessions/2026-04-19-session-03.md",
@@ -1250,6 +1251,7 @@
     "2026-07-29-2005-srs-rodada5-aprovada-smoke-verde": "memory/handoffs/2026-07-29-2005-srs-rodada5-aprovada-smoke-verde.md",
     "2026-07-29-ativacao-online-eval-local-ct100": "memory/sessions/2026-07-29-ativacao-online-eval-local-ct100.md",
     "2026-07-29-documentation-impact-loop": "memory/handoffs/2026-07-29-documentation-impact-loop.md",
+    "2026-07-29-documentation-impact-loop-plano-e-primeira-fatia": "memory/sessions/2026-07-29-documentation-impact-loop-plano-e-primeira-fatia.md",
     "2026-07-29-kb-v2-leitor-do-corpo": "memory/sessions/2026-07-29-kb-v2-leitor-do-corpo.md",
     "2026-07-29-srs-e2-phpdoc-deprecated": "memory/sessions/2026-07-29-srs-e2-phpdoc-deprecated.md",
     "2026-07-29-srs-e5-e6-e-quatro-refutacoes": "memory/sessions/2026-07-29-srs-e5-e6-e-quatro-refutacoes.md",
@@ -3338,23 +3340,15 @@
     "memory/what-oimpresso.md",
     "memory/why-oimpresso.md"
   ],
-  "collisions": [
-    {
-      "id": "2026-07-29-documentation-impact-loop",
-      "paths": [
-        "memory/handoffs/2026-07-29-documentation-impact-loop.md",
-        "memory/sessions/2026-07-29-documentation-impact-loop.md"
-      ]
-    }
-  ],
+  "collisions": [],
   "stats": {
-    "total": 3335,
-    "resolved": 2238,
+    "total": 3336,
+    "resolved": 2240,
     "unstamped": 1096,
-    "collisions": 1,
+    "collisions": 0,
     "by_source": {
       "unstamped": 1096,
-      "derived-adr": 365,
+      "derived-adr": 366,
       "stamped": 979,
       "derived-handoffs": 345,
       "derived-sessions": 550
