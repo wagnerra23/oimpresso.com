@@ -19,6 +19,10 @@ Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeConsensusTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
+# Scopes MCP visíveis na tela de roles (incidente 2026-07-29 — save de role fazia
+# syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
+# DB-less: compara catálogo do seeder × user_permissions(). sqlite-safe.
+Modules/Jana/Tests/Feature/McpScopesVisiveisNoRoleEditTest.php
 # Poda preventiva de mcp_memory_documents_history (incidente 2026-06-21 — 5 GB → cota → revogou escrita). Schema sintético, sqlite-safe.
 Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
