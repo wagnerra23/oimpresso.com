@@ -1,10 +1,10 @@
 {
   "_doc": "Baseline RATCHET do deadlink-gate (so-desce). Dívida grandfathered de links mortos por arquivo VIVO. NAO editar a mao: regenerar com `node scripts/governance/deadlink-gate.mjs --write-baseline` (idealmente quando a divida DIMINUI). Historia (handoffs/sessions/sprints/audits/research/reguas) fica fora por ser append-only.",
-  "generated_at": "2026-07-29",
-  "total_vivo": 1098,
+  "generated_at": "2026-07-30",
+  "total_vivo": 1096,
   "files": {
     "INFRA.md": 2,
-    "memory/08-handoff.md": 12,
+    "memory/08-handoff.md": 10,
     "memory/decisions/0022-meta-5mi-ano-financeira.md": 1,
     "memory/decisions/0023-inertia-v3-upgrade.md": 8,
     "memory/decisions/0026-posicionamento-erp-grafico-com-ia.md": 2,
