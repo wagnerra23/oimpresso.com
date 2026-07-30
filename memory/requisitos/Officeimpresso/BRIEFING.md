@@ -1,5 +1,8 @@
 ---
 id: requisitos-officeimpresso-briefing
+module: Officeimpresso
+status: parcial
+updated_at: '2026-07-30'
 ---
 
 # BRIEFING — Officeimpresso
