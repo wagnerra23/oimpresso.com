@@ -71,12 +71,12 @@ it('McpActor logOnly NÃO inclui notes (texto livre PII risco)', function () {
 it('PiiRedactor existe e redaciona CPF brasileiro (D7.a smoke)', function () {
     $redactor = app(PiiRedactor::class);
 
-    $input = 'CcIngest erro processando msg do CPF 123.456.789-09';
+    $input = 'CcIngest erro processando msg do CPF 123.456.789-09'; // pii-allowlist — CPF sintético: é a fixture que PROVA o PiiRedactor
     $output = $redactor->redact($input);
 
     expect($output)
         ->toContain('[REDACTED:CPF]')
-        ->and($output)->not->toContain('123.456.789-09');
+        ->and($output)->not->toContain('123.456.789-09'); // pii-allowlist — mesma fixture da asserção acima
 });
 
 it('PiiRedactor redaciona email + telefone juntos (D7.a smoke combo)', function () {
