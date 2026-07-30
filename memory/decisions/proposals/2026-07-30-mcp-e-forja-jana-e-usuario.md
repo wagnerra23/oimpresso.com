@@ -92,7 +92,8 @@ Ou seja: 90% do servidor MCP vive dentro do módulo de IA do **cliente**.
    objeto cujo dono é o business. O destino natural já existe e está vazio: `mcp_user_scopes`
    (0 linhas) e/ou `mcp_actors` (6 linhas, tenant-free por design, ADR 0081).
 4. **A Jana fica com o que é do usuário** — chat, metas, custos, e o `BriefDiarioAgent`
-   (ver [proposta irmã do Brief](2026-07-30-brief-se-divide-em-dois.md)).
+   (ver a proposta irmã do Brief — [PR #5073](https://github.com/wagnerra23/oimpresso.com/pull/5073),
+   ainda não em `main`, por isso a referência é ao PR e não ao arquivo).
 
 ## O que este doc NÃO propõe
 
