@@ -181,7 +181,7 @@
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 17
+        "citing_modules": 16
       },
       "stream": "KL"
     },
@@ -193,8 +193,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 76,
-        "modules": 76
+        "with_door": 75,
+        "modules": 75
       },
       "stream": "MEM"
     },
@@ -237,9 +237,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
-        "portas": 79,
+        "portas": 78,
         "carimbadas": 14,
-        "sem_carimbo": 65,
+        "sem_carimbo": 64,
         "stale": 0,
         "oldest_distilled_at": "2026-07-17"
       },
@@ -253,7 +253,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 76,
+        "modules": 75,
         "hops_worst": 13
       },
       "stream": "MEM"
