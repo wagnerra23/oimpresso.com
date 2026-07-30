@@ -1,4 +1,4 @@
-# CHANGELOG — Modules/ProjectMgmt
+# CHANGELOG — Modules/Forja (chamado ProjectMgmt até 2026-07-30)
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 

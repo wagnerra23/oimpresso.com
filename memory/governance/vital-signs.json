@@ -332,7 +332,7 @@
       "stale": false
     },
     {
-      "mod": "ProjectMgmt",
+      "mod": "Forja",
       "classe": "resto",
       "telas": 9,
       "com_scorecard": 8,
@@ -573,7 +573,7 @@
   "fila_prioridade": [
     {
       "screen": "Forja/Board/DetailSheet",
-      "mod": "ProjectMgmt",
+      "mod": "Forja",
       "classe": "resto",
       "nota": null,
       "stale": true,
