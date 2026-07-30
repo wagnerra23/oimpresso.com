@@ -306,13 +306,26 @@ if (IS_MAIN && SELFTEST) {
   ok('MOD_REF_RE: path de teste tests/Unit/Modules/Foo NÃO vira módulo (ghost falso)',
      !modsIn('roda tests/Unit/Modules/Foo/BarTest.php').includes('Foo'));
 
-  // ── CONTRATO DA MENSAGEM DE FAIL: nenhum marcador em PROSA resgata um ghost ─────
+  // ── O REGEX IGNORA PROSA (escopo honesto destes 3 asserts) ─────────────────────
   // O --check mandava «marque "(planejado — não existe)"» desde 2026-06-12 (commit
-  // cab11a2caa) — escape valve que o código NUNCA implementou. O detector é este regex
-  // sobre o texto cru; ele não enxerga disclaimer nenhum. Estes asserts existem pra que
-  // a promessa não possa ser reintroduzida em silêncio: se alguém voltar a anunciar um
-  // marcador, tem que fazê-lo funcionar aqui primeiro. (proibicoes.md §5 2026-07-27:
-  // "mecanismo que anuncia escape valve que não implementa é pior que mudo".)
+  // cab11a2caa) — escape valve que o código NUNCA implementou. Estes asserts fixam que
+  // ESTE REGEX não enxerga disclaimer nenhum ao lado do token.
+  //
+  // ⚠️ ERRATA (2026-07-30) — o que eles NÃO fazem. O commit #5053 afirmou que "se alguém
+  // reintroduzir a promessa, o bite-test do marcador cai". É FALSO, medido por mutação:
+  //   · reintroduzir o texto no console.log  → --selftest exit 0 (não vê console);
+  //   · IMPLEMENTAR o escape em scanGhostsByModule (onde um implementador real o poria,
+  //     e que não é exportado) → --selftest exit 0, mas --check flipa 1 NOVOS/exit 1 →
+  //     0 NOVOS/exit 0. Ou seja: o escape voltava com o "bite-test" verde.
+  // Quem morde isso é a fixture `knowledge-drift-prosa` do gate-selftest.mjs — que
+  // exercita o --check DE FORA (sandbox por cwd), então pega qualquer caminho de
+  // implementação. Provado com controle negativo: sob a mutação, gate-selftest exit 1 e
+  // este --selftest exit 0. Dono do bite-test de catraca = gate-selftest (§5 2026-07-09
+  // "estender o dono, nunca abrir paralelo").
+  //
+  // E o contrato a defender é "prosa ao lado NUNCA solta", não "o marcador funciona":
+  // implementar o marcador seria presence-gate sobre TEXTO — família banida em
+  // proibicoes.md §5 2026-07-09. Por isso o conserto foi REMOVER o anúncio.
   ok('BITE: marcador "(planejado — não existe)" ao lado NÃO desarma o detector',
      modsIn('cita Modules/SRS/Services/X.php (planejado — não existe)').includes('SRS'));
   ok('BITE: disclaimer "removido/histórico" em prosa também NÃO desarma',
