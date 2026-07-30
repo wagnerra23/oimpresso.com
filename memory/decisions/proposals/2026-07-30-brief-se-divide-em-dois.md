@@ -17,7 +17,8 @@ relates_to:
 > [ordem topológica](2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md), com `Admin` (#2)
 > já removido ([#5062](https://github.com/wagnerra23/oimpresso.com/pull/5062)).
 >
-> Irmã de [MCP é Forja](2026-07-30-mcp-e-forja-jana-e-usuario.md). Podem ser decididas separadamente.
+> Irmã de **MCP é Forja** ([PR #5072](https://github.com/wagnerra23/oimpresso.com/pull/5072) — ainda
+> não em `main`, por isso a referência é ao PR e não ao arquivo). Podem ser decididas separadamente.
 
 ## A descoberta: são dois produtos com o mesmo nome
 
