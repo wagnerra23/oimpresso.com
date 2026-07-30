@@ -86,8 +86,10 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 
 > **Rota reescrita em 2026-07-29** ([ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md)): perdeu o prefixo `/admin/`, que pertencia ao Admin Center deprecado (e era gated por Tailscale — 403 pra qualquer chamada de fora). Nasce no próprio módulo.
 
-### US-ARQ-012 · Auth Bearer token gerado em `/admin/tokens` (escope `arquivos:write`) `p0`
-**Implementado em:** _pendente_ — scope `arquivos:write` não existe; depende de US-ADM-003
+### US-ARQ-012 · Auth Bearer token com scope `arquivos:write` `p0`
+**Implementado em:** _pendente_ — scope `arquivos:write` não existe
+
+> **Dependência e rota reescritas em 2026-07-29** ([ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md)): o título citava emissão em `/admin/tokens` — rota que **nunca existiu** (o Admin Center tinha só `/`, `mutations/*`, `governance-v4`, `governance/v4`, `rag-quality`, `screen-review`, `feature-flags`) — e o corpo dependia de `US-ADM-003`, o auth gate que morre com o módulo. A emissão herda do gestor de token canônico do projeto (`/copiloto/admin/team`, per [what-oimpresso.md](../../what-oimpresso.md)); a rota exata se confirma quando a US for implementada, não se inventa aqui.
 
 ### US-ARQ-013 · Page `resources/js/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
 **Implementado em:** _pendente_ — nenhuma Page Inertia de Arquivos existe; módulo é backbone sem UI própria
