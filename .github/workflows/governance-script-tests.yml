@@ -482,3 +482,24 @@ jobs:
       # pré-mudança e as de não-regressão passam nos dois. Advisory por desenho (ADR 0314/0275).
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         run: node scripts/governance/reguas-workflow.test.mjs
+      # doc-id-index --check — o modo que lê o CORPUS REAL nunca teve invocador. O script já
+      # tinha o `--selftest` wirado acima desde o PR1, e foi por isso que escapou da TRIAGEM DOS 13
+      # (26-27/07): o detector de órfão enxerga o ARQUIVO, e o arquivo estava coberto — o MODO não.
+      # É a distinção que `proibicoes.md` §"Sempre fazer" já nomeia (`doc-id-index` está na lista
+      # dos 4 invisíveis ao dono do tema) e a mesma família de "um script com N modos é N gates"
+      # (§5 2026-07-28: validar um gate rodando UM dos modos que o CI roda não é verde).
+      # Medido em origin/main dcf927898c7 (2026-07-30), árvore limpa: `--check` = exit 1 com 1
+      # colisão real de id (`memory/handoffs/` e `memory/sessions/` com o mesmo stem) enquanto o
+      # `governance/doc-id-index.json` commitado afirmava `"collisions": []` e `stats.collisions: 0`
+      # — o índice AFIRMAVA zero colisão havendo uma, e o drift (3317→3337 docs) não era cobrado.
+      # Três session logs de 28/07 já haviam reportado a falha e a deixado "pra consolidação do
+      # parent"; sem invocador, ficou. Fixture prova que a lógica morde; nunca que o corpus está em dia.
+      # Enforcement: o dono é `governance/required-checks-baseline.json` — medido em 2026-07-30,
+      # 0 dos 35 contexts casavam "script", logo hard-fail aqui foi vermelho honesto que não
+      # bloqueia merge (desenho advisory da ADR 0271, não gate de teatro). Promoção = mordida
+      # provada + flip [W] (ADR 0336), fora deste PR.
+      # `!cancelled()`: é o único step do job que lê o corpus real em vez de fixture — não pode
+      # ser pulado porque o selftest de OUTRO script quebrou antes dele.
+      - name: doc-id-index --check (corpus real · colisão de id + drift do índice · advisory)
+        if: ${{ !cancelled() }}
+        run: node scripts/governance/doc-id-index.mjs --check
