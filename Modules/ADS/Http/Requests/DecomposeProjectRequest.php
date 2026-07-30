@@ -10,7 +10,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * D8.c Security — Wave 18 RETRY (meta 97 module-grade).
  *
  * FormRequest pra POST /ads/admin/projects/{id}/decompose
- * (ProjectMgmt\Admin\ProjectsController@decompose). Dispara
+ * (Forja\Admin\ProjectsController@decompose). Dispara
  * ProjectDecomposerService que quebra um Project em N Parts + N Tasks
  * usando LLM (Brain B) — custo ~R$ [redacted Tier 0] por chamada.
  *
