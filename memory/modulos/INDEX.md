@@ -1,77 +1,50 @@
-# Índice de Specs dos Módulos
+# Índice técnico dos módulos
 
-Gerado por `php artisan module:specs` em 2026-05-29 08:06.
+> Projeção determinística dos diretórios atuais que possuem `Modules/<M>/module.json`.
+> Regenerar com `php artisan module:specs --index-only`.
 
-**Total:** 44 módulos únicos encontrados em todas as branches conhecidas (atual, `main-wip-2026-04-22`, `origin/3.7-com-nfe`).
+**Autoridade:** `module.json` declara a existência; `SCOPE.md` declara a fronteira;
+`memory/requisitos/<M>/SPEC.md` declara comportamento; `SUPERFICIE.md` é inventário
+gerado. Os arquivos históricos `memory/modulos/<M>.md` permanecem como snapshots e não
+definem quais módulos existem.
 
-## 🟢 Ativos (36)
+**Total atual:** 36 módulos.
 
-| # | Módulo | Prioridade | Risco | Rotas | Views | Migrations | Permissões | Hooks |
-|--:|---|---|---|--:|--:|--:|--:|--:|
-| 1 | [Arquivos](Arquivos.md) | alta (pequeno, ganho rápido) | baixo | 3 | 0 | 6 | 0 | 3 |
-| 2 | [Brief](Brief.md) | alta (pequeno, ganho rápido) | baixo | 4 | 0 | 0 | 0 | 3 |
-| 3 | [Compras](Compras.md) | alta (pequeno, ganho rápido) | baixo | 5 | 0 | 0 | 5 | 3 |
-| 4 | [ConsultaOs](ConsultaOs.md) | alta (pequeno, ganho rápido) | baixo | 5 | 0 | 0 | 0 | 3 |
-| 5 | [Auditoria](Auditoria.md) | alta (pequeno, ganho rápido) | baixo | 7 | 0 | 1 | 0 | 3 |
-| 6 | [Vestuario](Vestuario.md) | alta (pequeno, ganho rápido) | baixo | 6 | 1 | 3 | 0 | 0 |
-| 7 | [NFSe](NFSe.md) | alta (pequeno, ganho rápido) | baixo | 9 | 0 | 5 | 0 | 3 |
-| 8 | [Governance](Governance.md) | alta (pequeno, ganho rápido) | baixo | 11 | 0 | 4 | 3 | 3 |
-| 9 | [ComunicacaoVisual](ComunicacaoVisual.md) | alta (pequeno, ganho rápido) | baixo | 12 | 0 | 9 | 0 | 3 |
-| 10 | [ProductCatalogue](ProductCatalogue.md) | média | médio | 7 | 8 | 1 | 1 | 3 |
-| 11 | [Spreadsheet](Spreadsheet.md) | média | médio | 9 | 7 | 4 | 2 | 3 |
-| 12 | [Fiscal](Fiscal.md) | média | médio | 17 | 0 | 0 | 0 | 3 |
-| 13 | [SRS](SRS.md) | média | médio | 17 | 0 | 8 | 2 | 3 |
-| 14 | [TeamMcp](TeamMcp.md) | média | médio | 18 | 0 | 3 | 0 | 3 |
-| 15 | [Admin](Admin.md) | média | médio | 20 | 0 | 1 | 0 | 3 |
-| 16 | [PaymentGateway](PaymentGateway.md) | média | médio | 22 | 0 | 9 | 0 | 3 |
-| 17 | [ProjectMgmt](ProjectMgmt.md) | média | médio | 23 | 0 | 0 | 0 | 3 |
-| 18 | [AssetManagement](AssetManagement.md) | média | médio | 11 | 17 | 7 | 6 | 4 |
-| 19 | [RecurringBilling](RecurringBilling.md) | média | médio | 28 | 2 | 8 | 0 | 3 |
-| 20 | [Woocommerce](Woocommerce.md) | média | médio | 19 | 13 | 13 | 5 | 3 |
-| 21 | [Manufacturing](Manufacturing.md) | média | médio | 14 | 20 | 13 | 4 | 3 |
-| 22 | [OficinaAuto](OficinaAuto.md) | média | médio | 34 | 0 | 11 | 0 | 3 |
-| 23 | [Officeimpresso](Officeimpresso.md) | média | médio | 21 | 18 | 8 | 1 | 3 |
-| 24 | [KB](KB.md) | baixa (grande, fazer por último ou dividir) | alto | 43 | 0 | 12 | 4 | 3 |
-| 25 | [NfeBrasil](NfeBrasil.md) | baixa (grande, fazer por último ou dividir) | alto | 39 | 4 | 16 | 9 | 3 |
-| 26 | [ADS](ADS.md) | baixa (grande, fazer por último ou dividir) | alto | 46 | 0 | 15 | 0 | 3 |
-| 27 | [Jana](Jana.md) | baixa (grande, fazer por último ou dividir) | alto | 39 | 9 | 64 | 5 | 3 |
-| 28 | [Whatsapp](Whatsapp.md) | baixa (grande, fazer por último ou dividir) | alto | 59 | 1 | 42 | 0 | 3 |
-| 29 | [Cms](Cms.md) | baixa (grande, fazer por último ou dividir) | alto | 16 | 45 | 5 | 1 | 3 |
-| 30 | [Connector](Connector.md) | baixa (grande, fazer por último ou dividir) | alto | 61 | 2 | 1 | 1 | 3 |
-| 31 | [Ponto](Ponto.md) | baixa (grande, fazer por último ou dividir) | alto | 41 | 26 | 8 | 5 | 3 |
-| 32 | [Financeiro](Financeiro.md) | baixa (grande, fazer por último ou dividir) | alto | 67 | 3 | 22 | 0 | 3 |
-| 33 | [Superadmin](Superadmin.md) | baixa (grande, fazer por último ou dividir) | alto | 39 | 46 | 12 | 1 | 2 |
-| 34 | [Repair](Repair.md) | baixa (grande, fazer por último ou dividir) | alto | 35 | 52 | 18 | 12 | 7 |
-| 35 | [Essentials](Essentials.md) | baixa (grande, fazer por último ou dividir) | alto | 55 | 87 | 36 | 23 | 5 |
-| 36 | [Crm](Crm.md) | baixa (grande, fazer por último ou dividir) | alto | 75 | 68 | 27 | 13 | 3 |
-
-## ❌ Perdidos na migração 3.7 → 6.7 (8)
-
-_**Existem em branches antigas** (`main-wip-2026-04-22` ou `origin/3.7-com-nfe`) **mas não na branch atual 6.7-react.**_
-_Potenciais funcionalidades que ficaram para trás. Decidir se trazer de volta ou abandonar._
-
-| Módulo | main-wip | 3.7 | Ação sugerida |
-|---|:-:|:-:|---|
-| [BI](BI.md) | — | ✅ | (definir) |
-| [Boleto](Boleto.md) | — | ✅ | (definir) |
-| [Chat](Chat.md) | — | ✅ | (definir) |
-| [Dashboard](Dashboard.md) | — | ✅ | (definir) |
-| [Help](Help.md) | — | ✅ | (definir) |
-| [Knowledgebase](Knowledgebase.md) | — | ✅ | (definir) |
-| [Project](Project.md) | — | ✅ | (definir) |
-| [codecanyon-32094844-perfect-support-ticketing-document-management-system](codecanyon-32094844-perfect-support-ticketing-document-management-system.md) | — | ✅ | (definir) |
-
-## Como usar
-
-1. Abra o spec de um módulo (coluna 'Módulo' é link).
-2. Na seção **'Gaps & próximos passos'**, preencha customizações suas conhecidas.
-3. Compare com o código original do UltimatePOS 6.7 para identificar o diff (seção automática).
-4. Use 'Prioridade' e 'Risco' para definir ordem de migração.
-
-## Regenerar
-
-```bash
-php artisan module:specs              # todos
-php artisan module:specs Ponto        # um só
-php artisan module:specs --stdout     # ver sem salvar
-```
+| Módulo | Manifesto | Fronteira | Superfície | Requisitos |
+|---|---|---|---|---|
+| ADS | [module.json](../../Modules/ADS/module.json) | [SCOPE](../../Modules/ADS/SCOPE.md) | [SUPERFICIE](../requisitos/ADS/SUPERFICIE.md) | [SPEC](../requisitos/ADS/SPEC.md) |
+| Admin | [module.json](../../Modules/Admin/module.json) | [SCOPE](../../Modules/Admin/SCOPE.md) | [SUPERFICIE](../requisitos/Admin/SUPERFICIE.md) | [SPEC](../requisitos/Admin/SPEC.md) |
+| Arquivos | [module.json](../../Modules/Arquivos/module.json) | [SCOPE](../../Modules/Arquivos/SCOPE.md) | [SUPERFICIE](../requisitos/Arquivos/SUPERFICIE.md) | [SPEC](../requisitos/Arquivos/SPEC.md) |
+| AssetManagement | [module.json](../../Modules/AssetManagement/module.json) | [SCOPE](../../Modules/AssetManagement/SCOPE.md) | [SUPERFICIE](../requisitos/AssetManagement/SUPERFICIE.md) | [SPEC](../requisitos/AssetManagement/SPEC.md) |
+| Auditoria | [module.json](../../Modules/Auditoria/module.json) | [SCOPE](../../Modules/Auditoria/SCOPE.md) | [SUPERFICIE](../requisitos/Auditoria/SUPERFICIE.md) | [SPEC](../requisitos/Auditoria/SPEC.md) |
+| Brief | [module.json](../../Modules/Brief/module.json) | [SCOPE](../../Modules/Brief/SCOPE.md) | [SUPERFICIE](../requisitos/Brief/SUPERFICIE.md) | [SPEC](../requisitos/Brief/SPEC.md) |
+| Cms | [module.json](../../Modules/Cms/module.json) | [SCOPE](../../Modules/Cms/SCOPE.md) | [SUPERFICIE](../requisitos/Cms/SUPERFICIE.md) | [SPEC](../requisitos/Cms/SPEC.md) |
+| Compras | [module.json](../../Modules/Compras/module.json) | [SCOPE](../../Modules/Compras/SCOPE.md) | [SUPERFICIE](../requisitos/Compras/SUPERFICIE.md) | [SPEC](../requisitos/Compras/SPEC.md) |
+| ComunicacaoVisual | [module.json](../../Modules/ComunicacaoVisual/module.json) | [SCOPE](../../Modules/ComunicacaoVisual/SCOPE.md) | [SUPERFICIE](../requisitos/ComunicacaoVisual/SUPERFICIE.md) | [SPEC](../requisitos/ComunicacaoVisual/SPEC.md) |
+| Connector | [module.json](../../Modules/Connector/module.json) | [SCOPE](../../Modules/Connector/SCOPE.md) | [SUPERFICIE](../requisitos/Connector/SUPERFICIE.md) | [SPEC](../requisitos/Connector/SPEC.md) |
+| ConsultaOs | [module.json](../../Modules/ConsultaOs/module.json) | [SCOPE](../../Modules/ConsultaOs/SCOPE.md) | [SUPERFICIE](../requisitos/ConsultaOs/SUPERFICIE.md) | [SPEC](../requisitos/ConsultaOs/SPEC.md) |
+| Crm | [module.json](../../Modules/Crm/module.json) | [SCOPE](../../Modules/Crm/SCOPE.md) | [SUPERFICIE](../requisitos/Crm/SUPERFICIE.md) | [SPEC](../requisitos/Crm/SPEC.md) |
+| Essentials | [module.json](../../Modules/Essentials/module.json) | [SCOPE](../../Modules/Essentials/SCOPE.md) | [SUPERFICIE](../requisitos/Essentials/SUPERFICIE.md) | [SPEC](../requisitos/Essentials/SPEC.md) |
+| Financeiro | [module.json](../../Modules/Financeiro/module.json) | [SCOPE](../../Modules/Financeiro/SCOPE.md) | [SUPERFICIE](../requisitos/Financeiro/SUPERFICIE.md) | [SPEC](../requisitos/Financeiro/SPEC.md) |
+| Fiscal | [module.json](../../Modules/Fiscal/module.json) | [SCOPE](../../Modules/Fiscal/SCOPE.md) | [SUPERFICIE](../requisitos/Fiscal/SUPERFICIE.md) | [SPEC](../requisitos/Fiscal/SPEC.md) |
+| Governance | [module.json](../../Modules/Governance/module.json) | [SCOPE](../../Modules/Governance/SCOPE.md) | [SUPERFICIE](../requisitos/Governance/SUPERFICIE.md) | [SPEC](../requisitos/Governance/SPEC.md) |
+| Jana | [module.json](../../Modules/Jana/module.json) | [SCOPE](../../Modules/Jana/SCOPE.md) | [SUPERFICIE](../requisitos/Jana/SUPERFICIE.md) | [SPEC](../requisitos/Jana/SPEC.md) |
+| KB | [module.json](../../Modules/KB/module.json) | [SCOPE](../../Modules/KB/SCOPE.md) | [SUPERFICIE](../requisitos/KB/SUPERFICIE.md) | [SPEC](../requisitos/KB/SPEC.md) |
+| Manufacturing | [module.json](../../Modules/Manufacturing/module.json) | [SCOPE](../../Modules/Manufacturing/SCOPE.md) | [SUPERFICIE](../requisitos/Manufacturing/SUPERFICIE.md) | [SPEC](../requisitos/Manufacturing/SPEC.md) |
+| NFSe | [module.json](../../Modules/NFSe/module.json) | [SCOPE](../../Modules/NFSe/SCOPE.md) | [SUPERFICIE](../requisitos/NFSe/SUPERFICIE.md) | [SPEC](../requisitos/NFSe/SPEC.md) |
+| NfeBrasil | [module.json](../../Modules/NfeBrasil/module.json) | [SCOPE](../../Modules/NfeBrasil/SCOPE.md) | [SUPERFICIE](../requisitos/NfeBrasil/SUPERFICIE.md) | [SPEC](../requisitos/NfeBrasil/SPEC.md) |
+| Officeimpresso | [module.json](../../Modules/Officeimpresso/module.json) | [SCOPE](../../Modules/Officeimpresso/SCOPE.md) | [SUPERFICIE](../requisitos/Officeimpresso/SUPERFICIE.md) | [SPEC](../requisitos/Officeimpresso/SPEC.md) |
+| OficinaAuto | [module.json](../../Modules/OficinaAuto/module.json) | [SCOPE](../../Modules/OficinaAuto/SCOPE.md) | [SUPERFICIE](../requisitos/OficinaAuto/SUPERFICIE.md) | [SPEC](../requisitos/OficinaAuto/SPEC.md) |
+| PaymentGateway | [module.json](../../Modules/PaymentGateway/module.json) | [SCOPE](../../Modules/PaymentGateway/SCOPE.md) | [SUPERFICIE](../requisitos/PaymentGateway/SUPERFICIE.md) | [SPEC](../requisitos/PaymentGateway/SPEC.md) |
+| Ponto | [module.json](../../Modules/Ponto/module.json) | [SCOPE](../../Modules/Ponto/SCOPE.md) | [SUPERFICIE](../requisitos/Ponto/SUPERFICIE.md) | [SPEC](../requisitos/Ponto/SPEC.md) |
+| ProductCatalogue | [module.json](../../Modules/ProductCatalogue/module.json) | [SCOPE](../../Modules/ProductCatalogue/SCOPE.md) | [SUPERFICIE](../requisitos/ProductCatalogue/SUPERFICIE.md) | [SPEC](../requisitos/ProductCatalogue/SPEC.md) |
+| ProjectMgmt | [module.json](../../Modules/ProjectMgmt/module.json) | [SCOPE](../../Modules/ProjectMgmt/SCOPE.md) | [SUPERFICIE](../requisitos/ProjectMgmt/SUPERFICIE.md) | [SPEC](../requisitos/ProjectMgmt/SPEC.md) |
+| RecurringBilling | [module.json](../../Modules/RecurringBilling/module.json) | [SCOPE](../../Modules/RecurringBilling/SCOPE.md) | [SUPERFICIE](../requisitos/RecurringBilling/SUPERFICIE.md) | [SPEC](../requisitos/RecurringBilling/SPEC.md) |
+| Repair | [module.json](../../Modules/Repair/module.json) | [SCOPE](../../Modules/Repair/SCOPE.md) | [SUPERFICIE](../requisitos/Repair/SUPERFICIE.md) | [SPEC](../requisitos/Repair/SPEC.md) |
+| Spreadsheet | [module.json](../../Modules/Spreadsheet/module.json) | [SCOPE](../../Modules/Spreadsheet/SCOPE.md) | [SUPERFICIE](../requisitos/Spreadsheet/SUPERFICIE.md) | [SPEC](../requisitos/Spreadsheet/SPEC.md) |
+| Superadmin | [module.json](../../Modules/Superadmin/module.json) | [SCOPE](../../Modules/Superadmin/SCOPE.md) | [SUPERFICIE](../requisitos/Superadmin/SUPERFICIE.md) | [SPEC](../requisitos/Superadmin/SPEC.md) |
+| TeamMcp | [module.json](../../Modules/TeamMcp/module.json) | [SCOPE](../../Modules/TeamMcp/SCOPE.md) | [SUPERFICIE](../requisitos/TeamMcp/SUPERFICIE.md) | [SPEC](../requisitos/TeamMcp/SPEC.md) |
+| Vestuario | [module.json](../../Modules/Vestuario/module.json) | [SCOPE](../../Modules/Vestuario/SCOPE.md) | [SUPERFICIE](../requisitos/Vestuario/SUPERFICIE.md) | [SPEC](../requisitos/Vestuario/SPEC.md) |
+| VozDoCliente | [module.json](../../Modules/VozDoCliente/module.json) | [SCOPE](../../Modules/VozDoCliente/SCOPE.md) | [SUPERFICIE](../requisitos/VozDoCliente/SUPERFICIE.md) | [SPEC](../requisitos/VozDoCliente/SPEC.md) |
+| Whatsapp | [module.json](../../Modules/Whatsapp/module.json) | [SCOPE](../../Modules/Whatsapp/SCOPE.md) | [SUPERFICIE](../requisitos/Whatsapp/SUPERFICIE.md) | [SPEC](../requisitos/Whatsapp/SPEC.md) |
+| Woocommerce | [module.json](../../Modules/Woocommerce/module.json) | [SCOPE](../../Modules/Woocommerce/SCOPE.md) | [SUPERFICIE](../requisitos/Woocommerce/SUPERFICIE.md) | [SPEC](../requisitos/Woocommerce/SPEC.md) |

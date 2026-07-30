@@ -12,9 +12,9 @@ module: Woocommerce
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Woocommerce --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Woocommerce/**` + `resources/js/Pages/Woocommerce/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Woocommerce/**` + `resources/js/Pages/Woocommerce/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Woocommerce/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 59 arquivos em 13 papéis.
+**Total mapeado:** 92 arquivos em 13 papéis.
 
 ## Controllers — 4
 
@@ -88,9 +88,42 @@ module: Woocommerce
 
 - 8 arquivos em [Modules/Woocommerce/Tests/Feature/](../../../Modules/Woocommerce/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 4
+## Demais arquivos (manifestos, docs, assets e misc) — 37
 
+- [BRIEFING.md](../../../Modules/Woocommerce/BRIEFING.md)
+- [CHANGELOG.md](../../../Modules/Woocommerce/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Woocommerce/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Woocommerce/Console/.gitkeep)
+- [.gitkeep](../../../Modules/Woocommerce/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Woocommerce/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Woocommerce/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Woocommerce/Entities/.gitkeep)
 - [WooCommerceError.php](../../../Modules/Woocommerce/Exceptions/WooCommerceError.php)
+- [.gitkeep](../../../Modules/Woocommerce/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Woocommerce/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Woocommerce/Http/Requests/.gitkeep)
 - [SyncOrdersNotification.php](../../../Modules/Woocommerce/Notifications/SyncOrdersNotification.php)
+- [.gitkeep](../../../Modules/Woocommerce/Providers/.gitkeep)
 - [WoocommerceSyncLogRepository.php](../../../Modules/Woocommerce/Repositories/WoocommerceSyncLogRepository.php)
+- [.gitkeep](../../../Modules/Woocommerce/Resources/assets/.gitkeep)
+- [app.js](../../../Modules/Woocommerce/Resources/assets/js/app.js)
+- [app.scss](../../../Modules/Woocommerce/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/Woocommerce/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/ar/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/ce/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/de/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/en/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/es/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/fr/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/hi/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/nl/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/sq/lang.php)
+- [lang.php](../../../Modules/Woocommerce/Resources/lang/tr/lang.php)
+- [.gitkeep](../../../Modules/Woocommerce/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/Woocommerce/SCOPE.md)
+- [.gitkeep](../../../Modules/Woocommerce/Tests/.gitkeep)
 - [WoocommerceUtil.php](../../../Modules/Woocommerce/Utils/WoocommerceUtil.php)
+- [composer.json](../../../Modules/Woocommerce/composer.json)
+- [module.json](../../../Modules/Woocommerce/module.json)
+- [package.json](../../../Modules/Woocommerce/package.json)
+- [webpack.mix.js](../../../Modules/Woocommerce/webpack.mix.js)

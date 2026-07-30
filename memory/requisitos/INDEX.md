@@ -1,102 +1,54 @@
----
-id: requisitos-index
----
+# Índice — requisitos funcionais por módulo
 
-# Índice — Requisitos funcionais por módulo
+> ⚙️ Gerado por `php artisan module:requirements --index-only` a partir dos módulos registrados no checkout atual. Histórico fica no Git; este índice não mistura branches antigas.
 
-> Documentação viva, complementa `memory/modulos/` (spec técnica)
-> com foco no **valor de negócio** — user stories, regras Gherkin, DoD.
->
-> **Atualizado em 2026-04-24**
+**Total atual:** 36 módulos registrados.
 
-## Resumo
+| Módulo | BRIEFING | SPEC | SUPERFÍCIE |
+|---|:---:|:---:|:---:|
+| **ADS** | [abrir](ADS/BRIEFING.md) | [abrir](ADS/SPEC.md) | [abrir](ADS/SUPERFICIE.md) |
+| **Admin** | [abrir](Admin/BRIEFING.md) | [abrir](Admin/SPEC.md) | [abrir](Admin/SUPERFICIE.md) |
+| **Arquivos** | [abrir](Arquivos/BRIEFING.md) | [abrir](Arquivos/SPEC.md) | [abrir](Arquivos/SUPERFICIE.md) |
+| **AssetManagement** | [abrir](AssetManagement/BRIEFING.md) | [abrir](AssetManagement/SPEC.md) | [abrir](AssetManagement/SUPERFICIE.md) |
+| **Auditoria** | [abrir](Auditoria/BRIEFING.md) | [abrir](Auditoria/SPEC.md) | [abrir](Auditoria/SUPERFICIE.md) |
+| **Brief** | [abrir](Brief/BRIEFING.md) | [abrir](Brief/SPEC.md) | [abrir](Brief/SUPERFICIE.md) |
+| **Cms** | [abrir](Cms/BRIEFING.md) | [abrir](Cms/SPEC.md) | [abrir](Cms/SUPERFICIE.md) |
+| **Compras** | [abrir](Compras/BRIEFING.md) | [abrir](Compras/SPEC.md) | [abrir](Compras/SUPERFICIE.md) |
+| **ComunicacaoVisual** | [abrir](ComunicacaoVisual/BRIEFING.md) | [abrir](ComunicacaoVisual/SPEC.md) | [abrir](ComunicacaoVisual/SUPERFICIE.md) |
+| **Connector** | [abrir](Connector/BRIEFING.md) | [abrir](Connector/SPEC.md) | [abrir](Connector/SUPERFICIE.md) |
+| **ConsultaOs** | [abrir](ConsultaOs/BRIEFING.md) | [abrir](ConsultaOs/SPEC.md) | [abrir](ConsultaOs/SUPERFICIE.md) |
+| **Crm** | [abrir](Crm/BRIEFING.md) | [abrir](Crm/SPEC.md) | [abrir](Crm/SUPERFICIE.md) |
+| **Essentials** | [abrir](Essentials/BRIEFING.md) | [abrir](Essentials/SPEC.md) | [abrir](Essentials/SUPERFICIE.md) |
+| **Financeiro** | [abrir](Financeiro/BRIEFING.md) | [abrir](Financeiro/SPEC.md) | [abrir](Financeiro/SUPERFICIE.md) |
+| **Fiscal** | [abrir](Fiscal/BRIEFING.md) | [abrir](Fiscal/SPEC.md) | [abrir](Fiscal/SUPERFICIE.md) |
+| **Governance** | [abrir](Governance/BRIEFING.md) | [abrir](Governance/SPEC.md) | [abrir](Governance/SUPERFICIE.md) |
+| **Jana** | [abrir](Jana/BRIEFING.md) | [abrir](Jana/SPEC.md) | [abrir](Jana/SUPERFICIE.md) |
+| **KB** | [abrir](KB/BRIEFING.md) | [abrir](KB/SPEC.md) | [abrir](KB/SUPERFICIE.md) |
+| **Manufacturing** | [abrir](Manufacturing/BRIEFING.md) | [abrir](Manufacturing/SPEC.md) | [abrir](Manufacturing/SUPERFICIE.md) |
+| **NFSe** | [abrir](NFSe/BRIEFING.md) | [abrir](NFSe/SPEC.md) | [abrir](NFSe/SUPERFICIE.md) |
+| **NfeBrasil** | [abrir](NfeBrasil/BRIEFING.md) | [abrir](NfeBrasil/SPEC.md) | [abrir](NfeBrasil/SUPERFICIE.md) |
+| **Officeimpresso** | [abrir](Officeimpresso/BRIEFING.md) | [abrir](Officeimpresso/SPEC.md) | [abrir](Officeimpresso/SUPERFICIE.md) |
+| **OficinaAuto** | [abrir](OficinaAuto/BRIEFING.md) | [abrir](OficinaAuto/SPEC.md) | [abrir](OficinaAuto/SUPERFICIE.md) |
+| **PaymentGateway** | [abrir](PaymentGateway/BRIEFING.md) | [abrir](PaymentGateway/SPEC.md) | [abrir](PaymentGateway/SUPERFICIE.md) |
+| **Ponto** | [abrir](Ponto/BRIEFING.md) | [abrir](Ponto/SPEC.md) | [abrir](Ponto/SUPERFICIE.md) |
+| **ProductCatalogue** | [abrir](ProductCatalogue/BRIEFING.md) | [abrir](ProductCatalogue/SPEC.md) | [abrir](ProductCatalogue/SUPERFICIE.md) |
+| **ProjectMgmt** | [abrir](ProjectMgmt/BRIEFING.md) | [abrir](ProjectMgmt/SPEC.md) | [abrir](ProjectMgmt/SUPERFICIE.md) |
+| **RecurringBilling** | [abrir](RecurringBilling/BRIEFING.md) | [abrir](RecurringBilling/SPEC.md) | [abrir](RecurringBilling/SUPERFICIE.md) |
+| **Repair** | [abrir](Repair/BRIEFING.md) | [abrir](Repair/SPEC.md) | [abrir](Repair/SUPERFICIE.md) |
+| **Spreadsheet** | [abrir](Spreadsheet/BRIEFING.md) | [abrir](Spreadsheet/SPEC.md) | [abrir](Spreadsheet/SUPERFICIE.md) |
+| **Superadmin** | [abrir](Superadmin/BRIEFING.md) | [abrir](Superadmin/SPEC.md) | [abrir](Superadmin/SUPERFICIE.md) |
+| **TeamMcp** | [abrir](TeamMcp/BRIEFING.md) | [abrir](TeamMcp/SPEC.md) | [abrir](TeamMcp/SUPERFICIE.md) |
+| **Vestuario** | [abrir](Vestuario/BRIEFING.md) | [abrir](Vestuario/SPEC.md) | [abrir](Vestuario/SUPERFICIE.md) |
+| **VozDoCliente** | [abrir](VozDoCliente/BRIEFING.md) | [abrir](VozDoCliente/SPEC.md) | [abrir](VozDoCliente/SUPERFICIE.md) |
+| **Whatsapp** | [abrir](Whatsapp/BRIEFING.md) | [abrir](Whatsapp/SPEC.md) | [abrir](Whatsapp/SUPERFICIE.md) |
+| **Woocommerce** | [abrir](Woocommerce/BRIEFING.md) | [abrir](Woocommerce/SPEC.md) | [abrir](Woocommerce/SUPERFICIE.md) |
 
-| Categoria | Módulos | % |
-|---|---:|---:|
-| 🚀 Spec-ready (futuros) | 4 | 12% |
-| 🟢 Ativos | 14 | 42% |
-| ⚪ Inativos (presentes) | 5 | 15% |
-| ⚠️ Legados (ausentes) | 10 | 30% |
-| **Total** | **33** | 100% |
+## Como trabalhar
 
-## 🚀 Módulos spec-ready (promovidos de `_Ideias/` em 2026-04-24)
-
-Espinha dorsal do roadmap de faturamento (2 anos). Ver [_Roadmap_Faturamento.md](_Roadmap_Faturamento.md).
-
-- **[Financeiro](Financeiro/)** — Tier 1A · Foundational · 5-6 sem · R$ [redacted Tier 0]-599 + take rate 0,5%
-- **[NfeBrasil](NfeBrasil/)** — Tier 1B · Compliance-forced · 5-6 sem · R$ [redacted Tier 0]-599
-- **[RecurringBilling](RecurringBilling/)** — Tier 2 · Take rate volume · 12-14 sem · R$ [redacted Tier 0]-999 + take rate 0,8%
-- **[LaravelAI](LaravelAI/)** — Tier 3 · Multiplier · 6-8 sem · R$ [redacted Tier 0]-599 (add-on)
-
-## 🟢 Módulos ativos
-
-Clique para ver requisitos funcionais.
-
-- [Accounting](Accounting/)
-- [AssetManagement](AssetManagement.md)
-- [Cms](Cms.md)
-- [Connector](Connector.md)
-- [Crm](Crm/)
-- [Essentials](Essentials/)
-- [Manufacturing](Manufacturing/)
-- [PontoWr2](PontoWr2/) — pasta completa
-- [MemCofre](MemCofre/) — Cofre de Memórias / docs vivos
-- [ProductCatalogue](ProductCatalogue.md)
-- [ProjectMgmt](ProjectMgmt/) — (era `Project.md`, legado UltimatePOS removido)
-- [Repair](Repair/)
-- [Spreadsheet](Spreadsheet.md)
-- [Superadmin](Superadmin.md)
-- [Woocommerce](Woocommerce.md)
-
-## ⚪ Módulos inativos (presentes no branch atual)
-
-- [AiAssistance](AiAssistance.md) — descartar (substituído por LaravelAI)
-- [Grow](Grow.md) — prioridade
-- [IProduction](IProduction.md)
-- [Officeimpresso](Officeimpresso.md) — Superadmin only
-- [Writebot](Writebot.md)
-
-## ⚠️ Módulos legados (ausentes — decidir ressuscitar/deprecar)
-
-Boleto e Fiscal foram **superados** pelos novos spec-ready (RecurringBilling/Boleto sub-módulo + NfeBrasil). Manter pra histórico.
-
-- [BI](BI.md) ⚠️
-- [Boleto](Boleto.md) ⚠️ — **superado por** `RecurringBilling/` (sub-módulo Boleto) e `Financeiro/` (boleto avulso)
-- [Chat](Chat.md) ⚠️
-- [Dashboard](Dashboard.md) ⚠️
-- [Fiscal](Fiscal.md) ⚠️ — **superado por** `NfeBrasil/`
-- [Help](Help.md) ⚠️
-- [Jana](Jana.md) ⚠️
-- [Knowledgebase](Knowledgebase.md) ⚠️
-- [Officeimpresso1](Officeimpresso1.md) ⚠️
-- [codecanyon-32094844-perfect-support-ticketing-document-management-system](codecanyon-32094844-perfect-support-ticketing-document-management-system.md) ⚠️
-
-## Como trabalhar com estes arquivos
-
-1. **Formato estruturado** — cada arquivo tem frontmatter YAML + user stories (`US-XXX-NNN`)
-   + regras Gherkin (`R-XXX-NNN`) + DoD rastreável com a tela React.
-2. **Pasta vs arquivo plano** — Módulos spec-ready/grandes (PontoWr2, MemCofre, Financeiro,
-   NfeBrasil, RecurringBilling, LaravelAI) têm pasta com README/SPEC/ARCHITECTURE/GLOSSARY/
-   CHANGELOG/adr/. Módulos legados têm um único `<Modulo>.md` plano.
-3. **Fonte única da verdade funcional** — quando o código muda, atualizar o requisito.
-4. **Regerar** — `php artisan module:requirements` gera arquivos faltantes
-   sem sobrescrever edições manuais. Use `--force` com cuidado.
-5. **Módulo MemCofre** (`/memcofre`) consome esses arquivos e linka com evidências
-   (screenshots de bug, chat logs, erros reportados).
-6. **Pasta `_Ideias/`** — incubadora de módulos novos antes de promover (ver [_Ideias/README.md](_Ideias/README.md))
-
-## Padrão de ADRs (separação por categoria)
-
-Cada módulo spec-ready tem ADRs separados por **assunto** (não monolíticos):
-
-```
-adr/
-├── arq/   # decisões de arquitetura (módulo, eventos, integração)
-├── tech/  # decisões técnicas (idempotência, lockForUpdate, embeddings)
-└── ui/    # decisões de interface (layout, fluxo, componente)
-```
-
-Numeração separada por categoria: `ARQ-0001`, `TECH-0001`, `UI-0001`.
+1. `BRIEFING.md` resume estado vivo e próximos riscos.
+2. `SPEC.md` é a autoridade funcional: user stories, regras e critérios de aceite.
+3. `SUPERFICIE.md` é o inventário completo gerado das raízes do contexto.
+4. `php artisan module:requirements` cria somente `SPEC.md` ausente; `--force` continua destrutivo e deve ser usado com cuidado.
 
 ---
-_Regerar índice: `php artisan module:requirements`_
+_Regerar índice: `php artisan module:requirements --index-only`_

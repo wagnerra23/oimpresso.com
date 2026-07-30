@@ -12,9 +12,9 @@ module: Crm
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Crm --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Crm/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 196 arquivos em 14 papéis.
+**Total mapeado:** 235 arquivos em 14 papéis.
 
 ## Controllers — 28
 
@@ -161,16 +161,55 @@ module: Crm
 
 - 13 arquivos em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 11
+## Demais arquivos (manifestos, docs, assets e misc) — 50
 
 - [ClienteProximaAcaoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php)
 - [ClienteResumoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php)
 - [ClienteSegmentoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteSegmentoAgent.php)
+- [BRIEFING.md](../../../Modules/Crm/BRIEFING.md)
+- [CHANGELOG.md](../../../Modules/Crm/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Crm/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Console/.gitkeep)
 - [CrmLeadRepositoryInterface.php](../../../Modules/Crm/Contracts/CrmLeadRepositoryInterface.php)
+- [.gitkeep](../../../Modules/Crm/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Crm/Http/Requests/.gitkeep)
 - [ScheduleNotification.php](../../../Modules/Crm/Notifications/ScheduleNotification.php)
 - [SendCampaignNotification.php](../../../Modules/Crm/Notifications/SendCampaignNotification.php)
 - [SendProposalNotification.php](../../../Modules/Crm/Notifications/SendProposalNotification.php)
 - [CampaignPolicy.php](../../../Modules/Crm/Policies/CampaignPolicy.php)
 - [ProposalPolicy.php](../../../Modules/Crm/Policies/ProposalPolicy.php)
+- [.gitkeep](../../../Modules/Crm/Providers/.gitkeep)
 - [CrmLeadRepository.php](../../../Modules/Crm/Repositories/CrmLeadRepository.php)
+- [.gitkeep](../../../Modules/Crm/Resources/assets/.gitkeep)
+- [crm.js](../../../Modules/Crm/Resources/assets/js/crm.js)
+- [crm.css](../../../Modules/Crm/Resources/assets/sass/crm.css)
+- [.gitkeep](../../../Modules/Crm/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/Crm/Resources/lang/ar/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/ce/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/de/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/en/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/es/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/fr/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/hi/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/id/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/lo/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/nl/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/ps/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/pt/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/ro/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/sq/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/tr/lang.php)
+- [lang.php](../../../Modules/Crm/Resources/lang/vi/lang.php)
+- [.gitkeep](../../../Modules/Crm/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/Crm/SCOPE.md)
+- [.gitkeep](../../../Modules/Crm/Tests/.gitkeep)
 - [CrmUtil.php](../../../Modules/Crm/Utils/CrmUtil.php)
+- [composer.json](../../../Modules/Crm/composer.json)
+- [module.json](../../../Modules/Crm/module.json)
+- [package.json](../../../Modules/Crm/package.json)
+- [webpack.mix.js](../../../Modules/Crm/webpack.mix.js)

@@ -12,9 +12,9 @@ module: Admin
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Admin --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Admin/**` + `resources/js/Pages/Admin/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Admin/**` + `resources/js/Pages/Admin/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Admin/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 95 arquivos em 13 papéis.
+**Total mapeado:** 102 arquivos em 14 papéis.
 
 ## Controllers — 8
 
@@ -131,3 +131,13 @@ module: Admin
 ## Testes (Pest) — 19
 
 - 19 arquivos em [Modules/Admin/Tests/Feature/](../../../Modules/Admin/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+
+## Demais arquivos (manifestos, docs, assets e misc) — 7
+
+- [BRIEFING.md](../../../Modules/Admin/BRIEFING.md)
+- [CHANGELOG.md](../../../Modules/Admin/CHANGELOG.md)
+- [SCOPE.md](../../../Modules/Admin/SCOPE.md)
+- [module.json](../../../Modules/Admin/module.json)
+- [governanceV4Types.ts](../../../resources/js/Pages/Admin/_components/governanceV4Types.ts)
+- [mockGovernanceV4.ts](../../../resources/js/Pages/Admin/_lib/mockGovernanceV4.ts)
+- [mockScreenReview.ts](../../../resources/js/Pages/Admin/_lib/mockScreenReview.ts)

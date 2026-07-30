@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PAPEIS, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, isSurfaceRequired, manifestExigeSuperficie } from './module-surface.mjs';
+import { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, isSurfaceRequired, manifestExigeSuperficie } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
@@ -143,12 +143,20 @@ test('montar() carimba frontmatter gerado + título + papéis', () => {
   assert.match(md, /\[AController\.php\]\(\.\.\/\.\.\/\.\.\/Modules\/X\/Http\/Controllers\/AController\.php\)/);
 });
 
-test('Total mapeado inclui Outros tanto nos arquivos quanto nos papéis', () => {
+test('Total mapeado inclui Demais arquivos tanto nos arquivos quanto nos papéis', () => {
   const grupos = [{ rot: 'Controllers', listar: true, files: ['Modules/X/Http/Controllers/AController.php'] }];
-  const outros = ['Modules/X/Support/Helper.php', 'Modules/X/Legacy/Foo.php'];
+  const outros = ['Modules/X/module.json', 'Modules/X/README.md'];
   const md = montar('X', grupos, outros);
   assert.match(md, /\*\*Total mapeado:\*\* 3 arquivos em 2 papéis\./);
-  assert.match(md, /## Outros \(raiz\/misc\) — 2/);
+  assert.match(md, /## Demais arquivos \(manifestos, docs, assets e misc\) — 2/);
+  assert.match(md, /\[module\.json\]/);
+  assert.match(md, /\[README\.md\]/);
+});
+
+test('BITE real: manifesto e SCOPE do módulo não somem do inventário completo', () => {
+  const { outros } = coletar('Financeiro');
+  assert.ok(outros.includes('Modules/Financeiro/module.json'));
+  assert.ok(outros.includes('Modules/Financeiro/SCOPE.md'));
 });
 
 test('papel volumoso (listar:false) mostra contagem + dir, NÃO lista arquivos', () => {

@@ -12,9 +12,9 @@ module: Connector
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Connector --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Connector/**` + `resources/js/Pages/Connector/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Connector/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 81 arquivos em 13 papéis.
+**Total mapeado:** 121 arquivos em 13 papéis.
 
 ## Controllers — 30
 
@@ -111,9 +111,45 @@ module: Connector
 
 - 9 arquivos em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 13
+## Demais arquivos (manifestos, docs, assets e misc) — 53
 
+- [BRIEFING.md](../../../Modules/Connector/BRIEFING.md)
+- [CHANGELOG.md](../../../Modules/Connector/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Connector/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Connector/Console/.gitkeep)
+- [.gitkeep](../../../Modules/Connector/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Connector/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Connector/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Connector/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/Connector/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Connector/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Connector/Http/Requests/.gitkeep)
 - [NewPassword.php](../../../Modules/Connector/Notifications/NewPassword.php)
+- [.gitkeep](../../../Modules/Connector/Providers/.gitkeep)
+- [README.md](../../../Modules/Connector/README.md)
+- [.gitkeep](../../../Modules/Connector/Resources/assets/.gitkeep)
+- [app.js](../../../Modules/Connector/Resources/assets/js/app.js)
+- [app.scss](../../../Modules/Connector/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/Connector/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/Connector/Resources/lang/ar/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/ce/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/de/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/en/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/es/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/fr/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/hi/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/id/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/lo/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/nl/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/ps/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/pt/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/ro/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/sq/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/tr/lang.php)
+- [lang.php](../../../Modules/Connector/Resources/lang/vi/lang.php)
+- [.gitkeep](../../../Modules/Connector/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/Connector/SCOPE.md)
+- [.gitkeep](../../../Modules/Connector/Tests/.gitkeep)
 - [BusinessLocationResource.php](../../../Modules/Connector/Transformers/BusinessLocationResource.php)
 - [BusinessResource.php](../../../Modules/Connector/Transformers/BusinessResource.php)
 - [CommonResource.php](../../../Modules/Connector/Transformers/CommonResource.php)
@@ -126,3 +162,7 @@ module: Connector
 - [SellTransactionResource.php](../../../Modules/Connector/Transformers/SellTransactionResource.php)
 - [TypesOfServiceResource.php](../../../Modules/Connector/Transformers/TypesOfServiceResource.php)
 - [VariationResource.php](../../../Modules/Connector/Transformers/VariationResource.php)
+- [composer.json](../../../Modules/Connector/composer.json)
+- [module.json](../../../Modules/Connector/module.json)
+- [package.json](../../../Modules/Connector/package.json)
+- [webpack.mix.js](../../../Modules/Connector/webpack.mix.js)

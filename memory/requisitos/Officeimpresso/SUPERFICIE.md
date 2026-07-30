@@ -12,9 +12,9 @@ module: Officeimpresso
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Officeimpresso --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Officeimpresso/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 82 arquivos em 15 papéis.
+**Total mapeado:** 108 arquivos em 15 papéis.
 
 ## Controllers — 7
 
@@ -101,8 +101,30 @@ module: Officeimpresso
 
 - 14 arquivos em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 9
+## Demais arquivos (manifestos, docs, assets e misc) — 35
 
+- [CHANGELOG.md](../../../Modules/Officeimpresso/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Officeimpresso/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Console/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Http/Requests/.gitkeep)
+- [.gitkeep](../../../Modules/Officeimpresso/Providers/.gitkeep)
+- [README.md](../../../Modules/Officeimpresso/README.md)
+- [.gitkeep](../../../Modules/Officeimpresso/Resources/assets/.gitkeep)
+- [easy.qrcode.min.js](../../../Modules/Officeimpresso/Resources/assets/plugins/easy.qrcode.min.js)
+- [app.scss](../../../Modules/Officeimpresso/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/Officeimpresso/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/Officeimpresso/Resources/lang/en/lang.php)
+- [lang.php](../../../Modules/Officeimpresso/Resources/lang/pt/lang.php)
+- [topnav.php](../../../Modules/Officeimpresso/Resources/menus/topnav.php)
+- [.gitkeep](../../../Modules/Officeimpresso/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/Officeimpresso/SCOPE.md)
+- [.gitkeep](../../../Modules/Officeimpresso/Tests/.gitkeep)
 - [BusinessLocationResource.php](../../../Modules/Officeimpresso/Transformers/BusinessLocationResource.php)
 - [BusinessResource.php](../../../Modules/Officeimpresso/Transformers/BusinessResource.php)
 - [CommonResource.php](../../../Modules/Officeimpresso/Transformers/CommonResource.php)
@@ -112,3 +134,7 @@ module: Officeimpresso
 - [SellTransactionResource.php](../../../Modules/Officeimpresso/Transformers/SellTransactionResource.php)
 - [TypesOfServiceResource.php](../../../Modules/Officeimpresso/Transformers/TypesOfServiceResource.php)
 - [VariationResource.php](../../../Modules/Officeimpresso/Transformers/VariationResource.php)
+- [composer.json](../../../Modules/Officeimpresso/composer.json)
+- [module.json](../../../Modules/Officeimpresso/module.json)
+- [package.json](../../../Modules/Officeimpresso/package.json)
+- [webpack.mix.js](../../../Modules/Officeimpresso/webpack.mix.js)

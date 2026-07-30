@@ -28,6 +28,7 @@ import {
   linhaAgentes,
   parseToolsRegistry,
   linhaTools,
+  deadLinks,
 } from './system-map.mjs';
 
 let fails = 0;
@@ -234,6 +235,17 @@ class OimpressoMcpServer {
     assertOrderedMarkers(compacto, ["Mensagem::create([ 'role' => 'assistant'"], 'newline');
   } catch { mordeuNewline = true; }
   ok(mordeuNewline, 'MORDE: só espaço/tab colapsa — newline continua separando linhas');
+}
+
+// ── K) path histórico riscado não é promessa de existência ───────────────
+{
+  const out = 'memory/reference/fixture-system-map.md';
+  const live = deadLinks('Use `Modules/ModuloQueNaoExiste` agora.', out);
+  const historical = deadLinks('~~Removido: `Modules/ModuloQueNaoExiste`~~', out);
+  ok(live.some((x) => x.includes('Modules/ModuloQueNaoExiste')),
+    'MORDE: path vivo inexistente continua falhando');
+  ok(historical.length === 0,
+    'LIBERA: path dentro de ideia histórica riscada não promete arquivo vivo');
 }
 
 console.log(fails === 0 ? '\n  OK — núcleo da camada de IA morde e não falsa-positiva.\n' : `\n  ${fails} FALHA(S)\n`);

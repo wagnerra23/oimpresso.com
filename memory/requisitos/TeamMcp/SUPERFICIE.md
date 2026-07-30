@@ -12,9 +12,9 @@ module: TeamMcp
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs TeamMcp --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/TeamMcp/**` + `resources/js/Pages/team-mcp/**` (namespace Inertia `team-mcp`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `TeamMcp`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/TeamMcp/**` + `resources/js/Pages/team-mcp/**` (namespace Inertia `team-mcp`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `TeamMcp`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/TeamMcp/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 105 arquivos em 15 papéis.
+**Total mapeado:** 113 arquivos em 15 papéis.
 
 ## Controllers — 12
 
@@ -131,11 +131,19 @@ module: TeamMcp
 
 - 27 arquivos em [Modules/TeamMcp/Tests/Feature/](../../../Modules/TeamMcp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 6
+## Demais arquivos (manifestos, docs, assets e misc) — 14
 
+- [CHANGELOG.md](../../../Modules/TeamMcp/CHANGELOG.md)
 - [routes.php](../../../Modules/TeamMcp/Http/routes.php)
 - [HandoffAckTool.php](../../../Modules/TeamMcp/Mcp/Tools/HandoffAckTool.php)
 - [HandoffLeverTool.php](../../../Modules/TeamMcp/Mcp/Tools/HandoffLeverTool.php)
 - [HandoffPendingTool.php](../../../Modules/TeamMcp/Mcp/Tools/HandoffPendingTool.php)
 - [HandoffSubmitTool.php](../../../Modules/TeamMcp/Mcp/Tools/HandoffSubmitTool.php)
+- [teammcp.php](../../../Modules/TeamMcp/Resources/lang/en/teammcp.php)
+- [teammcp.php](../../../Modules/TeamMcp/Resources/lang/pt/teammcp.php)
+- [SCOPE.md](../../../Modules/TeamMcp/SCOPE.md)
+- [composer.json](../../../Modules/TeamMcp/composer.json)
+- [module.json](../../../Modules/TeamMcp/module.json)
 - [start.php](../../../Modules/TeamMcp/start.php)
+- [sessionTokens.ts](../../../resources/js/Pages/team-mcp/CcSessions/_components/sessionTokens.ts)
+- [taskTokens.ts](../../../resources/js/Pages/team-mcp/Tasks/_components/taskTokens.ts)

@@ -12,9 +12,9 @@ module: ProductCatalogue
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs ProductCatalogue --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ProductCatalogue/**` + `resources/js/Pages/ProductCatalogue/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/ProductCatalogue/**` + `resources/js/Pages/ProductCatalogue/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ProductCatalogue/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 35 arquivos em 12 papéis.
+**Total mapeado:** 59 arquivos em 12 papéis.
 
 ## Controllers — 3
 
@@ -70,6 +70,30 @@ module: ProductCatalogue
 
 - 7 arquivos em [Modules/ProductCatalogue/Tests/Feature/](../../../Modules/ProductCatalogue/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 1
+## Demais arquivos (manifestos, docs, assets e misc) — 25
 
+- [CHANGELOG.md](../../../Modules/ProductCatalogue/CHANGELOG.md)
+- [.gitkeep](../../../Modules/ProductCatalogue/Config/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Console/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Http/Requests/.gitkeep)
+- [.gitkeep](../../../Modules/ProductCatalogue/Providers/.gitkeep)
+- [README.md](../../../Modules/ProductCatalogue/README.md)
 - [ProductCatalogueRepository.php](../../../Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php)
+- [.gitkeep](../../../Modules/ProductCatalogue/Resources/assets/.gitkeep)
+- [easy.qrcode.min.js](../../../Modules/ProductCatalogue/Resources/assets/plugins/easy.qrcode.min.js)
+- [app.scss](../../../Modules/ProductCatalogue/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/ProductCatalogue/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/ProductCatalogue/Resources/lang/en/lang.php)
+- [.gitkeep](../../../Modules/ProductCatalogue/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/ProductCatalogue/SCOPE.md)
+- [.gitkeep](../../../Modules/ProductCatalogue/Tests/.gitkeep)
+- [composer.json](../../../Modules/ProductCatalogue/composer.json)
+- [module.json](../../../Modules/ProductCatalogue/module.json)
+- [package.json](../../../Modules/ProductCatalogue/package.json)
+- [webpack.mix.js](../../../Modules/ProductCatalogue/webpack.mix.js)

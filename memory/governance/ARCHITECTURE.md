@@ -106,9 +106,11 @@ C4Container
 
 > **Contagem/lista VIVA (não duplicar aqui = não apodrece):** o inventário de módulos vive em [reference/PAINEL-SISTEMA.md](../reference/PAINEL-SISTEMA.md) §"Módulos & verticais", derivado de `Modules/` na branch atual por `scripts/governance/system-map.mjs`. Responsabilidade de cada um: `Modules/<X>/SCOPE.md`. A tabela abaixo é o mapa curado de estado→destino.
 >
-> **Detalhe por módulo que o PAINEL não tem** (rotas · views · migrations · permissões · hooks · prioridade/risco, **e os 8 módulos perdidos na migração 3.7 → 6.7**): [modulos/INDEX.md](../modulos/INDEX.md), gerado por `php artisan module:specs`. Os "perdidos" são **cross-branch** (`main-wip-2026-04-22`, `origin/3.7-com-nfe`) e por isso **não são deriváveis da árvore atual** — `IndexReconciler.php:45-48` declara isso e se recusa a curar o número.
->
-> ⚠️ **Não re-citar aqui o "44 detectados / 36 ativos" daquele arquivo.** `44` é o universo cross-branch, não "quantos módulos o sistema tem"; e o `36` está stale em 1 (o `VozDoCliente` nasceu depois). Recibo: `git ls-tree -d --name-only HEAD Modules/ | wc -l` → **37** em 2026-07-29. Quem errou não foi o gerador — foi este doc, que citou censo de branch morta como contagem viva. _(Lei: [proibicoes.md §5 2026-07-17](../proibicoes.md) — doc canônico não repete número que outro sistema sabe melhor; aponta pro dono ou carrega recibo datado.)_
+> **Navegação técnica por módulo:** [modulos/INDEX.md](../modulos/INDEX.md), derivado dos
+> `Modules/*/module.json` atuais por `php artisan module:specs --index-only`. O inventário
+> completo de cada raiz está em `memory/requisitos/<M>/SUPERFICIE.md`; contrato e estado
+> estão no `SPEC.md` e `BRIEFING.md` vizinhos. Snapshots antigos em `memory/modulos/*.md`
+> permaneceram históricos e não foram usados como censo.
 
 | Módulo | Estado | Categoria | Trust-alvo | Decisão |
 |---|---|---|---|---|

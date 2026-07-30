@@ -84,7 +84,11 @@
 
 [Lista completa via MCP `decisions-search`]
 
-## 📦 Requisitos por Módulo (~70 pastas em requisitos/)
+## 📦 Requisitos por módulo
+
+> O índice dos módulos registrados no checkout atual é
+> [requisitos/INDEX.md](requisitos/INDEX.md). Pastas adicionais preservam contextos
+> cross-cutting ou históricos e não entram no denominador de módulos vivos.
 
 `memory/requisitos/<Mod>/SPEC.md` é canônico por módulo. Estrutura típica: `SPEC.md` + `CAPTERRA-FICHA.md` + `CAPTERRA-INVENTARIO.md` + `RUNBOOK-*.md` + `adr/` + `audits/`.
 
@@ -110,7 +114,7 @@
 
 - **[reference/](reference/)** — conhecimento canon migrado de auto-mem (post-G1, ADRs [0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)/[0131](decisions/0131-tiering-memoria-canonico-local-segredo.md))
   - 🖥️ **[reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md)** — **mapa ÚNICO de acesso a TODA máquina** (CT 100 via `tailscale ssh root@ct100-mcp`, Hostinger SSH, deploy do MCP, Meilisearch, DNS, secrets). Claude NUNCA diz "não tenho acesso". + [hostinger.md](reference/hostinger.md)
-- [modulos/](modulos/) — catálogo **cross-branch** gerado por `php artisan module:specs` (última corrida 2026-05-29; o gerador **não tem invocador de cron/CI** — corrida é manual). Não é o inventário de "quais módulos existem hoje" (esse é o [PAINEL-SISTEMA](reference/PAINEL-SISTEMA.md) §"Módulos & verticais"): aqui vive o que o PAINEL **não** tem — rotas/views/migrations/permissões/hooks por módulo + prioridade/risco + os **8 perdidos na migração 3.7 → 6.7**, que são cross-branch e **não-deriváveis da árvore atual**. ⚠️ **15 arquivos descrevem módulo que já não existe** (Accounting, AiAssistance, BI, Boleto, Chat, Dashboard, Grow, Help, IProduction, Knowledgebase, Officeimpresso1, PontoWr2, Project, Writebot, codecanyon-ticketing) — histórico, não estado. O [RECOMENDACOES.md](modulos/RECOMENDACOES.md) é julgamento à mão de 2026-04-22 e **errou o caso central** (mandou descartar a Jana, hoje o módulo central de IA) — ler como registro datado, nunca como recomendação.
+- [modulos/INDEX.md](modulos/INDEX.md) — índice técnico dos `Modules/*/module.json` atuais, regenerado por `php artisan module:specs --index-only`. Os demais `modulos/*.md` são snapshots históricos preservados por compatibilidade e não declaram existência, estado nem prioridade atual. O [RECOMENDACOES.md](modulos/RECOMENDACOES.md) registrou julgamento de 2026-04-22 e deve ser lido somente como histórico datado.
 - [governance/](governance/) — [CONSTITUTION.md](governance/CONSTITUTION.md), [TRUST-TIERS.md](governance/TRUST-TIERS.md), [IDENTITY-MESH.md](governance/IDENTITY-MESH.md), [ENFORCEMENT.md](governance/ENFORCEMENT.md), [MODULE-DRIFT-MIGRATION-PLAN.md](governance/MODULE-DRIFT-MIGRATION-PLAN.md)
 - [comparativos/](comparativos/) — análises CAPTERRA + concorrentes (memória, RAG, sites)
 - [audits/](audits/) — auditorias históricas ([2026-05-pre-sales/](audits/2026-05-pre-sales/))
@@ -153,5 +157,5 @@ Mantidos por compatibilidade (PontoWr2 origem do projeto). Para core moderno, ve
 - **Tasks NÃO em markdown** ([ADR 0070](decisions/0070-jira-style-task-management-current-md-removed.md)) — use tools MCP `tasks-*`
 
 ---
-**Última atualização:** 2026-05-29 — **auditoria de indexação & priorização** (Wagner). (1) Constituição promovida a LEI MÁXIMA. (2) Novo bloco "Norte, Protocolo & Skills Tier A" — NORTE-ROI, PROTOCOLO-WAGNER-SEMPRE, how-trabalhar e Skills Tier A estavam ausentes/enterrados (mesma classe de regressão da Constituição). (3) Contagens corrigidas (handoffs 15→~55, sessions 81→~227, ADRs 148→~220, docs 1.536→~2.300, modulos 29→44). Links quebrados de `requisitos/INDEX.md` (7) corrigidos. Pendência: contagens não têm regen automático (drift volta).
+**Última atualização:** 2026-07-30 — a navegação de módulos passou a apontar para os manifestos atuais e para índices determinísticos; snapshots cross-branch de 2026-04 permaneceram preservados como histórico, sem disputar autoridade.
 **2026-05-13** — reescrito de 64 linhas (stale, só PontoWr2) → mapa completo. Gap reportado em [AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md](requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) §5 (G2 P0).
