@@ -104,7 +104,7 @@ it('PiiRedactor preserva texto sem PII (idempotência)', function () {
 
 dataset('teammcp_files_with_pii_redactor', [
     'CcIngestController'        => ['Modules/TeamMcp/Http/Controllers/Mcp/CcIngestController.php'],
-    'SyncMemoryWebhookController' => ['Modules/TeamMcp/Http/Controllers/Mcp/SyncMemoryWebhookController.php'],
+    'SyncMemoryWebhookController' => ['Modules/Jana/Http/Controllers/Mcp/SyncMemoryWebhookController.php'],
 ]);
 
 it('arquivo %s importa PiiRedactor (D7.a aplicação em logs)', function (string $relativePath) {
@@ -122,6 +122,9 @@ it('arquivo %s importa PiiRedactor (D7.a aplicação em logs)', function (string
 it('TeamMcp não tem Log::error com $e->getMessage() raw sem PiiRedactor (D7.a hardening)', function () {
     $files = collect(glob(base_path('Modules/TeamMcp/Http/Controllers/*.php')))
         ->merge(glob(base_path('Modules/TeamMcp/Http/Controllers/Mcp/*.php')))
+        // E2b (deprecação do TeamMcp): SyncMemoryWebhook + Health foram pra Jana.
+        // Mantido aqui pra a guarda D7.a não encolher junto com a mudança de pasta.
+        ->merge(glob(base_path('Modules/Jana/Http/Controllers/Mcp/*.php')))
         ->merge(glob(base_path('Modules/TeamMcp/Http/Controllers/Admin/*.php')))
         ->merge(glob(base_path('Modules/TeamMcp/Services/*.php')));
 

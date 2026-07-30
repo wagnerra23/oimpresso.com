@@ -265,13 +265,15 @@ Route::redirect('/jana/install/update',        '/ia/install/update',    301);
 //   GET  /api/mcp/health       — status básico do server
 // Autenticados (Bearer mcp_*):
 //   GET  /api/mcp/health/auth  — info do user/token autenticado
-// Controllers migrados pra Modules/TeamMcp em Fase 3.7 (drift resolution).
-// URLs mantêm /api/mcp/* — só o namespace prefix mudou.
+// Controllers de volta em Modules/Jana (deprecação do TeamMcp, E2b): as rotas,
+// os nomes (jana.mcp.*) e as dependências (McpMemoryDocument, McpCycle,
+// IndexarMemoryGitParaDb, TaskParserService) sempre foram da Jana.
+// URLs inalteradas /api/mcp/* — o webhook do GitHub não muda.
 Route::group(
     [
         'middleware' => ['api'],
         'prefix'     => 'api/mcp',
-        'namespace'  => 'Modules\TeamMcp\Http\Controllers\Mcp',
+        'namespace'  => 'Modules\Jana\Http\Controllers\Mcp',
     ],
     function () {
         // Públicos
