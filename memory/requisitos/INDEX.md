@@ -40,7 +40,7 @@ Clique para ver requisitos funcionais.
 - [Essentials](Essentials/)
 - [Manufacturing](Manufacturing/)
 - [PontoWr2](PontoWr2/) — pasta completa
-- [MemCofre](MemCofre/) — Cofre de Memórias / docs vivos
+- [MemCofre](MemCofre/) ⚰️→SRS — histórico. O módulo (renomeado `Modules/SRS`) foi **removido em 2026-07-29** ([ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)); sucessores: KB (acervo) · Jana (chat) · Governance (validação). A pasta fica como registro.
 - [ProductCatalogue](ProductCatalogue.md)
 - [ProjectMgmt](ProjectMgmt/) — (era `Project.md`, legado UltimatePOS removido)
 - [Repair](Repair/)
@@ -81,8 +81,11 @@ Boleto e Fiscal foram **superados** pelos novos spec-ready (RecurringBilling/Bol
 3. **Fonte única da verdade funcional** — quando o código muda, atualizar o requisito.
 4. **Regerar** — `php artisan module:requirements` gera arquivos faltantes
    sem sobrescrever edições manuais. Use `--force` com cuidado.
-5. **Módulo MemCofre** (`/memcofre`) consome esses arquivos e linka com evidências
-   (screenshots de bug, chat logs, erros reportados).
+5. ~~**Módulo MemCofre** (`/memcofre`) consome esses arquivos e linka com evidências
+   (screenshots de bug, chat logs, erros reportados).~~ ⚰️ **Não vale mais desde 2026-07-29**
+   ([ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)): o módulo foi
+   removido e nada consome estes arquivos por essa via. As URLs `/memcofre/*` seguem como
+   redirect 301 para `/ia`, `/kb` e `/governance` (`routes/web.php`), só para preservar bookmarks.
 6. **Pasta `_Ideias/`** — incubadora de módulos novos antes de promover (ver [_Ideias/README.md](_Ideias/README.md))
 
 ## Padrão de ADRs (separação por categoria)

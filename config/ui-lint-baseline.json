@@ -635,15 +635,6 @@
             "R1": 27,
             "R4": 2
         },
-        "resources\/js\/Pages\/MemCofre\/Dashboard.tsx": {
-            "R1": 17
-        },
-        "resources\/js\/Pages\/MemCofre\/Memoria.tsx": {
-            "R1": 5
-        },
-        "resources\/js\/Pages\/MemCofre\/Modulo.tsx": {
-            "R1": 15
-        },
         "resources\/js\/Pages\/Modules\/Index.tsx": {
             "R1": 52
         },
