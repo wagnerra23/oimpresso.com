@@ -20,7 +20,7 @@ not_contains:
   - "MCP server admin (tokens, webhooks) → Modules/TeamMcp"
   - "Skills governance → Modules/ADS"
   - "System Rules Spec (regras pra IA programar) → Modules/SRS"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
+  - "Tasks Jira-style → Modules/Forja"
   - "Audit log → Modules/TeamMcp + Modules/Governance"
 trust_required: L2
 owner: wagner
@@ -76,7 +76,7 @@ Browser canônico de **conhecimento estruturado** do oimpresso: ADRs, sessions, 
 - ❌ Conversar com IA → Modules/Copiloto (Jana)
 - ❌ Editar SKILL.md → Modules/ADS
 - ❌ Editar regra imutável de programação → Modules/MemCofre (SRS)
-- ❌ Browse de tarefas → Modules/ProjectMgmt
+- ❌ Browse de tarefas → Modules/Forja
 
 ## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
 

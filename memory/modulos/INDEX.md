@@ -24,7 +24,7 @@ Gerado por `php artisan module:specs` em 2026-05-29 08:06.
 | 14 | [TeamMcp](TeamMcp.md) | média | médio | 18 | 0 | 3 | 0 | 3 |
 | 15 | ~~[Admin](Admin.md)~~ ⛔ removido 2026-07-29 (ADR 0360) | — | — | — | — | — | — | — |
 | 16 | [PaymentGateway](PaymentGateway.md) | média | médio | 22 | 0 | 9 | 0 | 3 |
-| 17 | [ProjectMgmt](ProjectMgmt.md) | média | médio | 23 | 0 | 0 | 0 | 3 |
+| 17 | [Forja](Forja.md) | média | médio | 23 | 0 | 0 | 0 | 3 |
 | 18 | [AssetManagement](AssetManagement.md) | média | médio | 11 | 17 | 7 | 6 | 4 |
 | 19 | [RecurringBilling](RecurringBilling.md) | média | médio | 28 | 2 | 8 | 0 | 3 |
 | 20 | [Woocommerce](Woocommerce.md) | média | médio | 19 | 13 | 13 | 5 | 3 |

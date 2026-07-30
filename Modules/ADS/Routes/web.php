@@ -14,7 +14,7 @@ use Modules\ADS\Http\Controllers\InstallController;
 // Drift resolvido em Fase 3.7 (PR-1): 4 controllers movidos pros módulos donos.
 // URLs mantêm /ads/admin/* (PR-2 fará rename de URL se aplicável).
 use Modules\KB\Http\Controllers\Admin\GraphController;
-use Modules\ProjectMgmt\Http\Controllers\Admin\ProjectsController;
+use Modules\Forja\Http\Controllers\Admin\ProjectsController;
 use Modules\TeamMcp\Http\Controllers\Admin\ToolsController;
 use Modules\TeamMcp\Http\Controllers\Admin\TeamScopesController;
 

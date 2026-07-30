@@ -30,7 +30,7 @@ wagner_modified_to .......... 10      (0,03%)
 
 **Nenhuma das 36.658 decisões virou PR ou commit; todas foram canceladas.** É laço fechado: os
 crons do próprio ADS escrevem e os dashboards do próprio ADS leem. O único leitor externo
-(`Modules/ProjectMgmt/Services/ProjectService.php`) filtra por `project_id` em `mcp_projects`, que
+(`Modules/Forja/Services/ProjectService.php`) filtra por `project_id` em `mcp_projects`, que
 tem **0 linhas** — retorna vazio, sempre. A decisão da Fase 4 sobre este dado fica **mais fácil**,
 não mais difícil.
 
@@ -50,7 +50,7 @@ foreach (app(Schedule::class)->events() as $e) { $e->runsInEnvironment('live'); 
 
 ### E3 — 🔴 A Fase 4 marca `mcp_projects` e `mcp_project_parts` como DROP. Isso quebra módulo SOBREVIVENTE.
 
-`Modules/ProjectMgmt` **não está na lista de deleção** e escreve nas duas
+`Modules/Forja` **não está na lista de deleção** e escreve nas duas
 (`ProjectService.php` — `insertGetId` entre outros), com **`grep -c catch` = 0**. As tabelas têm
 **0 linhas**, mas a dependência é de **schema**, não de dado: o DROP converte "tela vazia" em
 `SQLSTATE 42S02` → **500**.
@@ -91,7 +91,7 @@ Contornos: **19 telas** `.tsx` (o maior número do conjunto) · 2 arquivos em `R
 | Acoplador | Sobrevive ao conjunto? |
 |---|---|
 | `Modules/KB/Http/Controllers/Admin/GraphController.php` | ✅ **sim** — exige patch |
-| `Modules/ProjectMgmt/Http/Controllers/Admin/ProjectsController.php` | ✅ **sim** — exige patch |
+| `Modules/Forja/Http/Controllers/Admin/ProjectsController.php` | ✅ **sim** — exige patch |
 | `Modules/TeamMcp/Http/Controllers/Admin/TeamScopesController.php` | ❌ morre (5º) |
 | `Modules/TeamMcp/Http/Controllers/Admin/ToolsController.php` | ❌ morre (5º) |
 | `tests/Feature/Skills/SkillsServiceTest.php` | ✅ sim — teste a re-apontar |

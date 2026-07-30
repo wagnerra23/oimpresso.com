@@ -17,7 +17,7 @@ contains:
   - "RelatorioController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
+  - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/TeamMcp"
 trust_required: L3
 owner: wagner

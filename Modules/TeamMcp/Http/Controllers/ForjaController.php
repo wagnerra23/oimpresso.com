@@ -257,7 +257,7 @@ class ForjaController extends Controller
      * CC (mcp_cc_sessions), valor×esforço SUGERIDO (derivado de prioridade/estimativa)
      * e risco Tier-0 (HEURÍSTICA por palavra-chave). Nada vira oficial sem [W].
      *
-     * Espelha Modules\ProjectMgmt\Http\Controllers\TriageController@dossier — só muda
+     * Espelha Modules\Forja\Http\Controllers\TriageController@dossier — só muda
      * a rota; a lógica é a mesma (agente propõe, [W] aprova).
      */
     public function dossier(Request $request, string $taskId): JsonResponse

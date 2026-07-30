@@ -9,7 +9,7 @@ project: TR
 default_component: BE
 ---
 
-> ⚰️ **HISTORICAL como pasta `requisitos/` — o SISTEMA de tasks vive no MCP server, porta [`requisitos/TeamMcp/`](../TeamMcp/BRIEFING.md)** (ADR 0070; FUNDIDO em TeamMcp, emenda E1 2026-06-15). As `US-TR-*` aqui **não são contrato desta pasta**. ⚠️ **Exceção viva:** [`SPEC-UI-FASE7.md`](SPEC-UI-FASE7.md) segue **Fonte funcional** das telas Triage/Inbox de `ProjectMgmt` (US-TR-309) — não é morto, só mora aqui.
+> ⚰️ **HISTORICAL como pasta `requisitos/` — o SISTEMA de tasks vive no MCP server, porta [`requisitos/TeamMcp/`](../TeamMcp/BRIEFING.md)** (ADR 0070; FUNDIDO em TeamMcp, emenda E1 2026-06-15). As `US-TR-*` aqui **não são contrato desta pasta**. ⚠️ **Exceção viva:** [`SPEC-UI-FASE7.md`](SPEC-UI-FASE7.md) segue **Fonte funcional** das telas Triage/Inbox da `Forja` (ex-`ProjectMgmt`, US-TR-309) — não é morto, só mora aqui.
 
 # TaskRegistry — SPEC
 
@@ -241,7 +241,7 @@ Tools `tasks-summarize-comments` (resume thread > 10 comments), `tasks-suggest-p
 > owner: wagner · priority: p1 · estimate: 3h · status: todo · type: chore
 > labels: cleanup,legacy,blocker-3.9
 > blocked_by: —
-> blocks: rename `Modules/ProjectMgmt → Modules/Project` (Fase 3.9 do ADR 0079)
+> blocks: rename `Modules/Forja → Modules/Project` (Fase 3.9 do ADR 0079)
 
 Wagner 2026-05-07: "acho que não tem nada no project muito simples acho que só o cliente mesmo" — confirmado que provavelmente não há dado de valor pra extrair antes do delete (UltimatePOS Project legacy gerencia projetos de cliente; ROTA LIVRE provavelmente nem usa).
 
@@ -264,7 +264,7 @@ Wagner 2026-05-07: "acho que não tem nada no project muito simples acho que só
 - `memory/requisitos/Project/SPEC.md` — 15 US documentadas
 - `memory/decisions/0099-project-mwart-migration.md` (status `pivotado`) — discovery pré-deletion
 
-**Refs:** ADR 0079 Fase 3.8 · ADR 0099 (legacy discovery) · [`Modules/ProjectMgmt/SCOPE.md`](../../../Modules/ProjectMgmt/SCOPE.md) · [PR #197](https://github.com/wagnerra23/oimpresso.com/pull/197)
+**Refs:** ADR 0079 Fase 3.8 · ADR 0099 (legacy discovery) · [`Modules/Forja/SCOPE.md`](../../../Modules/Forja/SCOPE.md) · [PR #197](https://github.com/wagnerra23/oimpresso.com/pull/197)
 
 ## Migração e fluxos críticos
 

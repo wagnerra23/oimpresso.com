@@ -32,11 +32,11 @@ contains:
   - "ScaffoldSkillFromMissionService — scaffolder via meta-skill"
   - "SkillScaffoldCommand — artisan skill:scaffold"
 not_contains:
-  - "Tasks/Cycles/Projects Jira-style → Modules/Project (ex-ProjectMgmt)"
+  - "Tasks/Cycles/Projects Jira-style → Modules/Forja"
   - "MCP tools registry (canônico) → Modules/TeamMcp"
   - "Knowledge graph / ADRs browsing → Modules/KB"
   - "TeamScopes (RBAC actor capabilities) → Modules/TeamMcp (a migrar)"
-  - "ProjectsController (Jira-style) → Modules/Project (ex-ProjectMgmt — a migrar)"
+  - "ProjectsController (Jira-style) → Modules/Forja"
 trust_required: L1
 owner: wagner
 permission_prefix: ads.*
@@ -61,7 +61,7 @@ db_tables_owned:
   - mcp_governance_rules (dono: migration + write das rules de decision flow; Modules/Governance CONSOME — ActionGate lê + CRUD de toggle `enabled`. Fronteira reconciliada 2026-07-26)
 drift_alerts: []
   # Fase 3.7 PR-1 (2026-05-06): 4 drift controllers movidos pros donos corretos.
-  # Admin/ProjectsController → Modules/ProjectMgmt
+  # Admin/ProjectsController → Modules/Forja
   # Admin/ToolsController + Admin/TeamScopesController → Modules/TeamMcp
   # Admin/GraphController → Modules/KB
   # URLs mantidas em /ads/admin/* via use imports atualizadas em Routes/web.php.
@@ -94,7 +94,7 @@ Razão: ADS decide o que IA pode/não pode fazer. Bug em ADS = blast radius pra 
 
 ## Quando ADS NÃO é tocado
 
-- ❌ Criar tarefa Jira-style → use Modules/Project (ex-ProjectMgmt)
+- ❌ Criar tarefa Jira-style → use Modules/Forja
 - ❌ Editar token MCP → use Modules/TeamMcp
 - ❌ Browsing de ADRs/sessions → use Modules/KB
 - ❌ Editar configuração de business → use UltimatePOS Superadmin (L0)

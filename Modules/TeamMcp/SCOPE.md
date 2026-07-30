@@ -49,7 +49,7 @@ db_tables_owned:
   - mcp_quotas
   - mcp_workflows
 db_tables_consumed:
-  # Domínio Jira-style pertence a Modules/ProjectMgmt (ADR 0070). Aqui é só
+  # Domínio Jira-style pertence a Modules/Forja (ADR 0070). Aqui é só
   # superfície ADMIN do MCP server (TasksAdminController / ForjaController) —
   # lê e opera, não é dono. Fronteira reconciliada 2026-07-26.
   - mcp_tasks / mcp_epics / mcp_cycles / mcp_jira_projects (Jira-style)

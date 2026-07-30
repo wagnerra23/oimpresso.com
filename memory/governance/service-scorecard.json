@@ -9,7 +9,7 @@
     },
     "grades": {
       "path": "governance/module-grades-baseline.json",
-      "baseline": "v3.6.0",
+      "baseline": "v3.6.1",
       "rubric": "0155"
     },
     "vital_signs": {
@@ -18,15 +18,15 @@
     }
   },
   "stats": {
-    "services": 41,
+    "services": 43,
     "with_grade": 36,
     "unmatched_screen_dirs": [],
     "orphan_screen_ns": [
       "Atendimento",
-      "Cliente",
       "Home",
       "MemCofre",
       "Modules",
+      "ProjectMgmt",
       "Purchase",
       "Settings",
       "Site",
@@ -38,9 +38,9 @@
       "User"
     ],
     "maturity_levels": {
-      "ouro": 33,
-      "prata": 4,
-      "bronze": 4
+      "ouro": 32,
+      "prata": 5,
+      "bronze": 6
     }
   },
   "services": [
@@ -74,7 +74,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-24",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -142,17 +142,17 @@
     },
     {
       "id": "Admin",
-      "trust": "L1",
-      "owner": "wagner",
-      "permission_prefix": "admin.*",
-      "charter_adr": "0122",
-      "scope": "Modules/Admin/SCOPE.md",
-      "purpose": "Centro de Operações Wagner-only (admin.oimpresso.com em CT 100/Tailscale-only). Dashboard executivo: brief + health + cycles + ADR Tier 0 alerts. Bloqueio duro is-wagner + TailscaleOnly middleware.",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": null,
+      "purpose": "",
       "signals": {
         "grade": {
           "value": 81,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -169,20 +169,20 @@
           "idade_max_dias": 19
         },
         "graph": {
-          "depends_on": 1,
+          "depends_on": 0,
           "dependents": 1,
-          "provides_api": 1,
+          "provides_api": 0,
           "owns_tables": 0,
           "owns_legacy_views": 0,
           "consumes_tables": 0,
-          "governed_by_adr": 3,
-          "components": 8,
+          "governed_by_adr": 0,
+          "components": 0,
           "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -194,12 +194,12 @@
       "checks": [
         {
           "key": "has_scope",
-          "ok": true,
+          "ok": false,
           "rot": "SCOPE.md presente"
         },
         {
           "key": "has_charter_adr",
-          "ok": true,
+          "ok": false,
           "rot": "charter/ADR declarado"
         },
         {
@@ -239,10 +239,10 @@
         }
       ],
       "maturity": {
-        "passed": 9,
+        "passed": 7,
         "applicable": 9,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.78,
+        "level": "prata"
       }
     },
     {
@@ -257,7 +257,7 @@
         "grade": {
           "value": 88,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -275,7 +275,7 @@
         },
         "graph": {
           "depends_on": 5,
-          "dependents": 9,
+          "dependents": 8,
           "provides_api": 2,
           "owns_tables": 5,
           "owns_legacy_views": 0,
@@ -362,7 +362,7 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -462,7 +462,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -557,12 +557,12 @@
       "permission_prefix": "auditoria.*",
       "charter_adr": "0094",
       "scope": "Modules/Auditoria/SCOPE.md",
-      "purpose": "Trilha de auditoria + governance review do oimpresso. Cataloga eventos críticos cross-módulo (LGPD Art. 37 accountability).",
+      "purpose": "Leitura, investigação e REVERSÃO segura da trilha por-registro (activity_log). Responde 'quem mudou este registro, o quê, quando — e dá pra desfazer?'. Guarda o que NÃO pode ser desfeito (append-only por lei) e o isolamento multi-tenant no undo.",
       "signals": {
         "grade": {
           "value": 81,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -579,14 +579,14 @@
           "idade_max_dias": 19
         },
         "graph": {
-          "depends_on": 3,
+          "depends_on": 4,
           "dependents": 0,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
           "consumes_tables": 0,
           "governed_by_adr": 3,
-          "components": 3,
+          "components": 8,
           "dangling_edges": 0,
           "connected": true
         },
@@ -667,7 +667,7 @@
         "grade": {
           "value": 85,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -756,6 +756,107 @@
       }
     },
     {
+      "id": "Cliente",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "memory/requisitos/Cliente/SUPERFICIE.md",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": true,
+          "ns": "Cliente",
+          "via": "direto",
+          "telas": 7,
+          "com_scorecard": 7,
+          "nota_media": 78,
+          "nota_min": 72,
+          "pior_tela": "Cliente/Map",
+          "charter_pct": 100,
+          "casos_pct": 100,
+          "stale": false,
+          "idade_max_dias": 19
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 0,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": false
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-27",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": false,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 9,
+        "ratio": 0.67,
+        "level": "bronze"
+      }
+    },
+    {
       "id": "Cms",
       "trust": "L4",
       "owner": "wagner",
@@ -767,7 +868,7 @@
         "grade": {
           "value": 76,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -867,7 +968,7 @@
         "grade": {
           "value": 73,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -897,7 +998,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -972,7 +1073,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -1002,7 +1103,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-28",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1077,7 +1178,7 @@
         "grade": {
           "value": 86,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -1177,7 +1278,7 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -1195,7 +1296,7 @@
         },
         "graph": {
           "depends_on": 3,
-          "dependents": 0,
+          "dependents": 1,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1282,7 +1383,7 @@
         "grade": {
           "value": 87,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -1304,7 +1405,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1382,7 +1483,7 @@
         "grade": {
           "value": 86,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -1487,7 +1588,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -1505,7 +1606,7 @@
         },
         "graph": {
           "depends_on": 3,
-          "dependents": 1,
+          "dependents": 2,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1517,7 +1618,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1592,7 +1693,7 @@
         "grade": {
           "value": 74,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -1622,7 +1723,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1686,6 +1787,106 @@
       }
     },
     {
+      "id": "Forja",
+      "trust": "L2",
+      "owner": "wagner",
+      "permission_prefix": "projectmgmt.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Forja/SCOPE.md",
+      "purpose": "Gerenciamento Jira-style do time interno: Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown sobre `mcp_jira_projects/epics/cycles/tasks`.",
+      "signals": {
+        "grade": {
+          "value": 85,
+          "ruler": "0155",
+          "baseline": "v3.6.1"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Forja",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 5,
+          "dependents": 22,
+          "provides_api": 1,
+          "owns_tables": 15,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 4,
+          "components": 11,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": null,
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
       "id": "Governance",
       "trust": "L1",
       "owner": "wagner",
@@ -1697,7 +1898,7 @@
         "grade": {
           "value": 88,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -1715,11 +1916,11 @@
         },
         "graph": {
           "depends_on": 7,
-          "dependents": 5,
+          "dependents": 4,
           "provides_api": 1,
-          "owns_tables": 1,
+          "owns_tables": 0,
           "owns_legacy_views": 0,
-          "consumes_tables": 0,
+          "consumes_tables": 1,
           "governed_by_adr": 5,
           "components": 9,
           "dangling_edges": 0,
@@ -1727,7 +1928,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1802,7 +2003,7 @@
         "grade": {
           "value": 73,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -1820,7 +2021,7 @@
         },
         "graph": {
           "depends_on": 8,
-          "dependents": 7,
+          "dependents": 9,
           "provides_api": 1,
           "owns_tables": 13,
           "owns_legacy_views": 13,
@@ -1832,7 +2033,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1907,7 +2108,7 @@
         "grade": {
           "value": 77,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -1925,7 +2126,7 @@
         },
         "graph": {
           "depends_on": 7,
-          "dependents": 29,
+          "dependents": 28,
           "provides_api": 2,
           "owns_tables": 14,
           "owns_legacy_views": 0,
@@ -1937,7 +2138,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-29",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2012,7 +2213,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -2117,7 +2318,7 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -2147,7 +2348,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-28",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2222,7 +2423,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -2423,7 +2624,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -2445,7 +2646,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2523,7 +2724,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -2553,7 +2754,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2628,7 +2829,7 @@
         "grade": {
           "value": 63,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -2638,7 +2839,7 @@
         },
         "graph": {
           "depends_on": 4,
-          "dependents": 0,
+          "dependents": 1,
           "provides_api": 7,
           "owns_tables": 3,
           "owns_legacy_views": 0,
@@ -2728,7 +2929,7 @@
         "grade": {
           "value": 76,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -2758,7 +2959,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2833,7 +3034,7 @@
         "grade": {
           "value": 78,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -2959,7 +3160,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-30",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3040,7 +3241,7 @@
         },
         "graph": {
           "depends_on": 0,
-          "dependents": 3,
+          "dependents": 1,
           "provides_api": 0,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -3119,111 +3320,6 @@
       }
     },
     {
-      "id": "ProjectMgmt",
-      "trust": "L2",
-      "owner": "wagner",
-      "permission_prefix": "projectmgmt.*",
-      "charter_adr": "0080",
-      "scope": "Modules/ProjectMgmt/SCOPE.md",
-      "purpose": "Gerenciamento Jira-style do time interno: Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown sobre `mcp_jira_projects/epics/cycles/tasks`.",
-      "signals": {
-        "grade": {
-          "value": 85,
-          "ruler": "0155",
-          "baseline": "v3.6.0"
-        },
-        "screens": {
-          "matched": true,
-          "ns": "ProjectMgmt",
-          "via": "direto",
-          "telas": 9,
-          "com_scorecard": 8,
-          "nota_media": 84,
-          "nota_min": 76,
-          "pior_tela": "ProjectMgmt/Roadmap/Index",
-          "charter_pct": 100,
-          "casos_pct": 0,
-          "stale": true,
-          "idade_max_dias": 19
-        },
-        "graph": {
-          "depends_on": 5,
-          "dependents": 20,
-          "provides_api": 1,
-          "owns_tables": 15,
-          "owns_legacy_views": 0,
-          "consumes_tables": 0,
-          "governed_by_adr": 4,
-          "components": 11,
-          "dangling_edges": 0,
-          "connected": true
-        },
-        "briefing": {
-          "present": true,
-          "last_commit": "2026-07-23",
-          "verdict_owner": "briefing-code-staleness.mjs"
-        },
-        "cost": {
-          "module_attributable": false,
-          "owner": "agent-cost-per-pr.mjs",
-          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
-        }
-      },
-      "checks": [
-        {
-          "key": "has_scope",
-          "ok": true,
-          "rot": "SCOPE.md presente"
-        },
-        {
-          "key": "has_charter_adr",
-          "ok": true,
-          "rot": "charter/ADR declarado"
-        },
-        {
-          "key": "graded",
-          "ok": true,
-          "rot": "nota module-grade presente"
-        },
-        {
-          "key": "briefing_present",
-          "ok": true,
-          "rot": "BRIEFING.md presente"
-        },
-        {
-          "key": "graph_connected",
-          "ok": true,
-          "rot": "conectado no grafo (≥1 aresta)"
-        },
-        {
-          "key": "no_dangling_edges",
-          "ok": true,
-          "rot": "sem aresta pendurada"
-        },
-        {
-          "key": "screens_matched",
-          "ok": true,
-          "rot": "telas rastreadas em vital-signs"
-        },
-        {
-          "key": "charter_full",
-          "ok": true,
-          "rot": "charter 100% nas telas"
-        },
-        {
-          "key": "no_stale_screens",
-          "ok": false,
-          "rot": "nenhuma tela stale"
-        }
-      ],
-      "maturity": {
-        "passed": 8,
-        "applicable": 9,
-        "ratio": 0.89,
-        "level": "prata"
-      }
-    },
-    {
       "id": "RecurringBilling",
       "trust": "L3",
       "owner": "wagner",
@@ -3235,7 +3331,7 @@
         "grade": {
           "value": 82,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -3253,7 +3349,7 @@
         },
         "graph": {
           "depends_on": 3,
-          "dependents": 1,
+          "dependents": 2,
           "provides_api": 2,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -3265,7 +3361,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-28",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3340,7 +3436,7 @@
         "grade": {
           "value": 83,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -3358,7 +3454,7 @@
         },
         "graph": {
           "depends_on": 3,
-          "dependents": 3,
+          "dependents": 4,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -3471,7 +3567,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-27",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3546,7 +3642,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,
@@ -3636,18 +3732,14 @@
     },
     {
       "id": "SRS",
-      "trust": "L1",
-      "owner": "wagner",
-      "permission_prefix": "memcofre.*",
-      "charter_adr": "0080",
-      "scope": "Modules/SRS/SCOPE.md",
-      "purpose": "System Rules Spec — regras imutáveis pra IA programar. Append-only por trigger MySQL. Toda IA L2+ lê SRS antes de qualquer ação no código. Renomeado de MemCofre em Fase 3.7 PR-2 (2026-05-06) — rename PHP-only; URLs/permissions/config keys mantêm prefixo legacy `memcofre.*`. Repurpose funcional (cofre→SRS) ainda em transição via tabelas srs_entries futuras.",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": null,
+      "purpose": "",
       "signals": {
-        "grade": {
-          "value": 76,
-          "ruler": "0155",
-          "baseline": "v3.6.0"
-        },
+        "grade": null,
         "screens": {
           "matched": false,
           "ns": "SRS",
@@ -3655,20 +3747,20 @@
           "note": "sem superfície de tela (backend-only) — n/a, não é falha"
         },
         "graph": {
-          "depends_on": 4,
+          "depends_on": 0,
           "dependents": 3,
-          "provides_api": 1,
-          "owns_tables": 4,
+          "provides_api": 0,
+          "owns_tables": 0,
           "owns_legacy_views": 0,
           "consumes_tables": 0,
-          "governed_by_adr": 3,
-          "components": 10,
+          "governed_by_adr": 0,
+          "components": 0,
           "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-29",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3680,17 +3772,17 @@
       "checks": [
         {
           "key": "has_scope",
-          "ok": true,
+          "ok": false,
           "rot": "SCOPE.md presente"
         },
         {
           "key": "has_charter_adr",
-          "ok": true,
+          "ok": false,
           "rot": "charter/ADR declarado"
         },
         {
           "key": "graded",
-          "ok": true,
+          "ok": false,
           "rot": "nota module-grade presente"
         },
         {
@@ -3728,10 +3820,10 @@
         }
       ],
       "maturity": {
-        "passed": 6,
+        "passed": 3,
         "applicable": 6,
-        "ratio": 1,
-        "level": "ouro"
+        "ratio": 0.5,
+        "level": "bronze"
       }
     },
     {
@@ -3746,7 +3838,7 @@
         "grade": {
           "value": 75,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -3764,7 +3856,7 @@
         },
         "graph": {
           "depends_on": 3,
-          "dependents": 1,
+          "dependents": 0,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -3851,12 +3943,12 @@
         "grade": {
           "value": 79,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
           "ns": "team-mcp",
-          "via": "normalizado",
+          "via": "direto",
           "telas": 5,
           "com_scorecard": 0,
           "nota_media": null,
@@ -3869,11 +3961,11 @@
         },
         "graph": {
           "depends_on": 6,
-          "dependents": 31,
+          "dependents": 30,
           "provides_api": 1,
-          "owns_tables": 14,
+          "owns_tables": 11,
           "owns_legacy_views": 0,
-          "consumes_tables": 0,
+          "consumes_tables": 3,
           "governed_by_adr": 8,
           "components": 12,
           "dangling_edges": 0,
@@ -3881,7 +3973,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-28",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -3956,7 +4048,7 @@
         "grade": {
           "value": 83,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -3986,7 +4078,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-23",
+          "last_commit": "2026-07-28",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -4050,10 +4142,110 @@
       }
     },
     {
-      "id": "Whatsapp",
+      "id": "VozDoCliente",
       "trust": "",
-      "owner": "",
+      "owner": "wagner",
       "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "Modules/VozDoCliente/SCOPE.md",
+      "purpose": "Voz do Cliente — canal de sinal dentro do sistema. Quem usa o ERP relata a dor na tela em que ela acontece; o sinal é gravado com contexto, roteado ao módulo dono e triado até virar melhoria rastreável. Implementa ADR 0105 'cliente como sinal qualificado'.",
+      "signals": {
+        "grade": {
+          "value": 46,
+          "ruler": "0155",
+          "baseline": "v3.6.1"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "VozDoCliente",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 0,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 5,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-28",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 5,
+        "applicable": 6,
+        "ratio": 0.83,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Whatsapp",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "whatsapp.*",
       "charter_adr": "",
       "scope": "Modules/Whatsapp/SCOPE.md",
       "purpose": "Whatsapp transacional unificado (Z-API default + Meta Cloud fallback obrigatório; BaileysDriver custom autorizado Sprint 3; Evolution PROIBIDO permanente) — status OS Repair, boleto/NFe RecurringBilling, lembrete Financeiro, ConsultaOs acompanhamento, bot Jana HITL",
@@ -4061,7 +4253,7 @@
         "grade": {
           "value": 80,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": true,
@@ -4078,9 +4270,9 @@
           "idade_max_dias": 19
         },
         "graph": {
-          "depends_on": 0,
+          "depends_on": 6,
           "dependents": 0,
-          "provides_api": 0,
+          "provides_api": 3,
           "owns_tables": 0,
           "owns_legacy_views": 0,
           "consumes_tables": 0,
@@ -4166,7 +4358,7 @@
         "grade": {
           "value": 87,
           "ruler": "0155",
-          "baseline": "v3.6.0"
+          "baseline": "v3.6.1"
         },
         "screens": {
           "matched": false,

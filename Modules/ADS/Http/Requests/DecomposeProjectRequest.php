@@ -18,7 +18,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * `confirm: true` pra disparar — evita uso acidental.
  *
  * @see Modules\ADS\Services\ProjectDecomposerService
- * @see Modules\ProjectMgmt\Http\Controllers\Admin\ProjectsController::decompose
+ * @see Modules\Forja\Http\Controllers\Admin\ProjectsController::decompose
  */
 class DecomposeProjectRequest extends FormRequest
 {

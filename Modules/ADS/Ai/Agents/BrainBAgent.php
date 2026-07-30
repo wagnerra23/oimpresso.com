@@ -50,7 +50,7 @@ class BrainBAgent implements Agent
         - nWidart/laravel-modules ^10 (módulos em Modules/<Nome>/)
         - Pest v4 para testes
         - Multi-tenant via business_id em todas as queries de dados de negócio
-        - Padrão de referência: Modules/Jana, Modules/Repair, Modules/ProjectMgmt
+        - Padrão de referência: Modules/Jana, Modules/Repair, Modules/Forja
 
         FORMATO OBRIGATÓRIO DA RESPOSTA (JSON estrito, sem markdown):
         {

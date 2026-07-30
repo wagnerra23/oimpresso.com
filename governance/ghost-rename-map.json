@@ -4,6 +4,15 @@
   "date": "2026-06-12",
   "scope": "memory/requisitos/**/*.md — só referências na forma 'Modules/<Nome>' (mesma regex token-boundary do knowledge-drift.mjs); forma namespace 'Modules\\<Nome>' fica fora do v1",
   "renames": {
+    "ProjectMgmt": {
+      "to": "Forja",
+      "class": "A",
+      "evidence": [
+        "decisao [W] 2026-07-30 (ProjectMgmt->Forja renomear)",
+        "padrao ADR 0088 memory/decisions/0088-module-rename-php-only.md (rename PHP-only, fachada legacy)",
+        "governance/module-grades-baseline.json chave renames.ProjectMgmt"
+      ]
+    },
     "Copiloto": {
       "to": "Jana",
       "class": "A",

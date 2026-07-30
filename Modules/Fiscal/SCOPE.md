@@ -18,7 +18,7 @@ not_contains:
   - "Emissão fiscal (XML + SEFAZ) → Modules/NfeBrasil (lê via Service)"
   - "NFSe federal LC 214/2025 → Modules/NFSe (futura sub-página 3)"
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
+  - "Tasks Jira-style → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: fiscal.*
