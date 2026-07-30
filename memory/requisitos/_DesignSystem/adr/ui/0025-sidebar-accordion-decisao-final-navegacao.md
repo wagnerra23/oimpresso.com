@@ -1,14 +1,20 @@
 ---
-id: requisitos-mem-cofre-adr-arq-0010-sidebar-accordion-decisao-final-navegacao
+id: requisitos-design-system-adr-ui-0025-sidebar-accordion-decisao-final-navegacao
 ---
 
-# ADR ARQ-0010 (MemCofre) · Sidebar accordion como navegação principal (decisão final)
+# ADR UI-0025 · Sidebar accordion como navegação principal (decisão final)
+
+> **Procedência (2026-07-30):** este registro vivia em `memory/requisitos/MemCofre/adr/arq/0010-*.md`.
+> O módulo (`Modules/SRS`, ex-MemCofre) foi removido em 2026-07-29 ([ADR 0357](../../../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)),
+> mas **esta decisão continua governando código vivo** — por isso migrou para o Design System
+> em vez de ser descartada com o resto da pasta. Numeração nova (UI-0025);
+> a data, os decisores e o conteúdo da decisão são os originais de 2026-04-23.
 
 - **Status**: accepted
 - **Data**: 2026-04-23
 - **Decisores**: Wagner, Claude
 - **Categoria**: arq
-- **Supersede**: ADR arq/0009 (topnav declarativo) — mesma sessão
+- **Supersede**: ADR UI-0024 (topnav declarativo) — mesma sessão
 - **Relacionado**: _DesignSystem UI-0001
 
 ## Contexto
@@ -16,7 +22,7 @@ id: requisitos-mem-cofre-adr-arq-0010-sidebar-accordion-decisao-final-navegacao
 Exploração de 3 padrões de navegação nesta sessão:
 
 1. **2 colunas fixas** (estado inicial do AppShell): col 1 = ícones módulos 64px, col 2 = sub-páginas 256px
-2. **1 coluna flat + ModuleTopNav horizontal** (ADR arq/0009 piloto): sidebar só com módulos top-level, sub-items em barra horizontal no topo da página
+2. **1 coluna flat + ModuleTopNav horizontal** (ADR UI-0024 piloto): sidebar só com módulos top-level, sub-items em barra horizontal no topo da página
 3. **Sidebar vertical com accordion** (decisão final): módulos com chevron expansível, sub-items indentados verticalmente — padrão AdminLTE/Blade original
 
 Wagner comparou visualmente e preferiu **opção 3**. Referência visual: screenshot do AppShell legado Blade com módulos (Superadmin, Iniciar ativo, Gerenciamento de usuários `<`, Contatos `<`, Produtos `<`, Fabricação, Accounting, Reparar, Compras `<`, Ponto WR2 `v` expandido mostrando Dashboard/Espelho/Aprovações/Intercorrências/Banco Horas/Escalas/Importações/Relatórios/Colaboradores/Configurações, vender `<`).
@@ -72,7 +78,7 @@ Mesma fonte que alimentava o layout anterior — zero mudança no pipeline de
 
 ## Código removido nesta decisão
 
-Tudo que era do ADR arq/0009 foi removido:
+Tudo que era do ADR UI-0024 foi removido:
 
 - `resources/js/Components/shared/ShellTopBar.tsx` (deletado — nunca foi integrado)
 - `resources/js/Components/shared/ModuleTopNav.tsx` (deletado)
@@ -90,7 +96,7 @@ Inventário de mudança: `git diff` mostra ~400 linhas removidas + ~320 linhas a
 ## Alternativas consideradas (fechamento)
 
 - **2 colunas fixas** (estado original): descartada — col 2 vazia quando módulo sem children é confuso.
-- **1 coluna flat + ModuleTopNav horizontal** (ADR arq/0009): descartada — 2 barras horizontais competem por espaço com 20+ módulos.
+- **1 coluna flat + ModuleTopNav horizontal** (ADR UI-0024): descartada — 2 barras horizontais competem por espaço com 20+ módulos.
 - **Sidebar accordion** (esta decisão): escolhida.
 
 ## Sinais de conclusão
@@ -100,12 +106,12 @@ Inventário de mudança: `git diff` mostra ~400 linhas removidas + ~320 linhas a
 - [x] Mobile drawer com mesma estrutura
 - [x] User no rodapé preservado
 - [x] Código temporário (ShellTopBar, ModuleTopNav, buildTopNavs) removido
-- [x] ADR arq/0009 marcado como superseded
+- [x] ADR UI-0024 marcado como superseded
 - [ ] Testar visualmente com Wagner (pendente)
 
 ## Aprendizado
 
 Dois ADRs numa sessão, um supersedendo o outro — prática saudável:
-- ADR arq/0009 documenta a tentativa de TopNav declarativo com arquivo por módulo
-- ADR arq/0010 registra a decisão final após avaliação empírica
+- ADR UI-0024 documenta a tentativa de TopNav declarativo com arquivo por módulo
+- ADR UI-0025 registra a decisão final após avaliação empírica
 - Ambos permanecem no repo como registro da exploração técnica
