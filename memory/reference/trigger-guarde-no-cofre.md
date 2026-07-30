@@ -21,7 +21,7 @@ Quando Wagner pedir **"guarde no cofre"**, **"salve no cofre"**, **"deposita no 
 
 ## Por que existe esse trigger
 
-Wagner construiu o MemCofre — hoje `Modules/SRS` (rename ADR 0088) — como o Cofre de Memórias do projeto (estilo Obsidian Vault). Ele quer que conversas com IA acabem em **artefato persistente versionado** — não em chat efêmero. O comando "guarde no cofre" é a interface natural pra esse handoff.
+Wagner construiu o MemCofre — renomeado para `Modules/SRS` ([ADR 0088](../decisions/0088-module-rename-php-only.md)) e **REMOVIDO em 2026-07-29** ([ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) — como o Cofre de Memórias do projeto (estilo Obsidian Vault). O papel de acervo passou ao `Modules/KB`; o de conversa, à `Modules/Jana`. Ele quer que conversas com IA acabem em **artefato persistente versionado** — não em chat efêmero. O comando "guarde no cofre" é a interface natural pra esse handoff.
 
 ## Onde salvar (decisão por contexto)
 
@@ -80,7 +80,7 @@ Se ele não especificar, classifique pela intuição do conteúdo e confirme.
 
 ## Conexão com o resto
 
-- Módulo: `Modules/SRS` (ex-MemCofre — Cofre de Memórias; rename ADR 0088)
-- Comandos: `memcofre:audit-module`, `memcofre:sync-pages`, etc
+- Módulo: ~~`Modules/SRS`~~ (ex-MemCofre; rename [ADR 0088](../decisions/0088-module-rename-php-only.md)) — **REMOVIDO em 2026-07-29** ([ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md))
+- Comandos: ~~`memcofre:audit-module`, `memcofre:sync-pages`~~ — saíram com o módulo
 - URL: `/memcofre/*`
 - Tabelas: `docs_*` (mantidas com prefixo legado)
