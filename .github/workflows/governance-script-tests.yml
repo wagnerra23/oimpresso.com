@@ -500,6 +500,16 @@ jobs:
       # provada + flip [W] (ADR 0336), fora deste PR.
       # `!cancelled()`: é o único step do job que lê o corpus real em vez de fixture — não pode
       # ser pulado porque o selftest de OUTRO script quebrou antes dele.
-      - name: doc-id-index --check (corpus real · colisão de id + drift do índice · advisory)
+      #
+      # POR QUE `--check-collisions` E NÃO `--check` (medido 2026-07-30, primeira corrida real
+      # deste step): o `--check` também exige `gerado == commitado`, e essa metade CORRE COM O
+      # MAIN — o CI avalia o *merge commit*, e 203 dos 319 commits dos últimos 7 dias (64% ·
+      # ~29/dia) tocam `memory/**.md`. Na prática o step ficou vermelho em minutos, por 2 docs
+      # que entraram em main enquanto o PR estava aberto — sem culpa do autor. Gate cronicamente
+      # vermelho é ruído que se aprende a ignorar (espelho do gate-de-teatro, §5 2026-07-28) e
+      # afogaria o sinal que importa. A metade COLISÃO é semântica, estável e FP 0 por construção:
+      # só fica vermelha quando dois docs reivindicam a mesma identidade. O frescor do índice
+      # segue como ato de consolidação (`--write`), não como cobrança por PR.
+      - name: doc-id-index — colisão de id no corpus real (advisory · frescor fica no --write)
         if: ${{ !cancelled() }}
-        run: node scripts/governance/doc-id-index.mjs --check
+        run: node scripts/governance/doc-id-index.mjs --check-collisions

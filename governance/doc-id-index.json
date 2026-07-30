@@ -367,6 +367,7 @@
     "0358-doutrina-de-teste-tenant-98-supersede-0101": "memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md",
     "0359-errata-0358-numero-0101-nao-virou-inequivoco": "memory/decisions/0359-errata-0358-numero-0101-nao-virou-inequivoco.md",
     "0360-deprecacao-admin-center-supersede-0122": "memory/decisions/0360-deprecacao-admin-center-supersede-0122.md",
+    "0361-errata-0354-teammcp-pest-required-nunca-executado": "memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md",
     "2026-04-18-session-01": "memory/sessions/2026-04-18-session-01.md",
     "2026-04-18-session-02": "memory/sessions/2026-04-18-session-02.md",
     "2026-04-19-session-03": "memory/sessions/2026-04-19-session-03.md",
@@ -3343,13 +3344,13 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3337,
-    "resolved": 2239,
+    "total": 3338,
+    "resolved": 2240,
     "unstamped": 1098,
     "collisions": 0,
     "by_source": {
       "unstamped": 1098,
-      "derived-adr": 365,
+      "derived-adr": 366,
       "stamped": 979,
       "derived-handoffs": 345,
       "derived-sessions": 550
