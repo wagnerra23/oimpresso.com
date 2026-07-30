@@ -45,6 +45,21 @@ Nenhum Controller, Service, Provider, rota ou cron de outro módulo referencia o
 
 **Ordem obrigatória (lição do SRS, E3):** o DROP vem **depois** do refactor de código, nunca antes. O plano do SRS dropava na E3 e *"isso derrubaria produção"*.
 
+## Destino por função — realocação
+
+> Medido 2026-07-30: `use Modules\Auditoria\` fora da pasta → **1 arquivo, e é um teste**. Nenhum consumidor sobrevivente. Isto é o que torna a realocação **opcional** aqui, ao contrário dos outros 5.
+
+| Peça | Módulo dono correto | Base da decisão |
+|---|---|---|
+| `Services/AuditEntryService` | **ninguém — morre** | a trilha de auditoria canônica é `mcp_audit_log`, tabela do `Modules/Jana` ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md)). Este service escreve numa tabela paralela que **nunca chegou em produção** — é duplicata de régua consolidada que não pegou. |
+| `Services/RevertService` + `Services/RevertCheck` | **decisão [W]** — candidato `Modules/Jana` | é a única **capacidade** do módulo (reverter ação auditada). Se [W] quiser preservá-la, o receptor é quem tem o log: Jana. Se não, morre com o módulo. **Não há consumidor pressionando** — o único é o teste dele mesmo. |
+| `Entities/AuditNote` + `auditoria_audit_notes` | **ninguém — morre** | 0 linhas onde a tabela existe; ausente no Hostinger |
+| `Console/Commands/AuditoriaHealthCommand` | **ninguém — morre** | health de módulo que não existe mais |
+| 2 telas `.tsx` | **decisão [W]** | dono do número é `npm run screen-coverage:report`; não avaliadas uma a uma |
+| `tests/Feature/Auditoria/RevertServiceTest.php` | **sai junto** | único acoplador; morre com o service ou vai com ele pro receptor |
+
+**Leitura honesta:** este é o **delete mais barato do conjunto** e o único onde "não realocar nada" é resposta defensável. A pergunta que sobra não é *"pra onde vai"*, é *"a capacidade de reverter ação auditada importa?"* — e essa é [W], não derivável.
+
 ## Fase 5 — Riscos Tier 0
 
 Nenhum identificado. É o único dos 6 nessa situação, e é por isso que vai primeiro.
