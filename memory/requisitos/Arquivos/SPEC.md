@@ -81,14 +81,18 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 
 > Não construída. Curador só existe como scripts CLI (`scripts/curador/*.mjs`) que mexem filesystem direto; não há endpoint `upload-batch`, nem Pages Inertia, nem `ApplyBatchJob`, nem token scope `arquivos:write`.
 
-### US-ARQ-011 · API `POST /admin/arquivos/api/upload-batch` recebe JSONL do `scripts/curador/discover.mjs` `p1`
+### US-ARQ-011 · API `POST /arquivos/api/upload-batch` recebe JSONL do `scripts/curador/discover.mjs` `p1`
 **Implementado em:** _pendente_ — endpoint upload-batch não existe; `scripts/curador/apply.mjs` ainda mexe filesystem direto (US-ARQ-017)
+
+> **Rota reescrita em 2026-07-29** ([ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md)): perdeu o prefixo `/admin/`, que pertencia ao Admin Center deprecado (e era gated por Tailscale — 403 pra qualquer chamada de fora). Nasce no próprio módulo.
 
 ### US-ARQ-012 · Auth Bearer token gerado em `/admin/tokens` (escope `arquivos:write`) `p0`
 **Implementado em:** _pendente_ — scope `arquivos:write` não existe; depende de US-ADM-003
 
-### US-ARQ-013 · Page `Modules/Admin/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
-**Implementado em:** _pendente_ — nenhuma Page Inertia de Arquivos existe (sem `Modules/Admin/Pages/Arquivos/` nem `resources/js/Pages/Arquivos/`); módulo é backbone sem UI própria
+### US-ARQ-013 · Page `resources/js/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
+**Implementado em:** _pendente_ — nenhuma Page Inertia de Arquivos existe; módulo é backbone sem UI própria
+
+> **Destino reescrito em 2026-07-29** ([ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md), decisão [W] *"pode ser dentro do arquivo mesmo"*): a tela era planejada dentro do Admin Center (`Modules/Admin/Pages/Arquivos/Index.tsx`), que foi deprecado. Passa a nascer no próprio módulo, em `resources/js/Pages/Arquivos/` — o padrão canônico do projeto (telas Inertia vivem em `resources/js/Pages/<Mod>/`, nunca dentro de `Modules/`).
 
 ### US-ARQ-014 · Page `Pages/Arquivos/Review.tsx` (substitui markdown `[x]` — checkbox UI, search, bulk-approve) `p1`
 **Implementado em:** _pendente_ — Page não existe; depende de US-ARQ-013
@@ -99,8 +103,10 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 ### US-ARQ-016 · Job `ApplyBatchJob` Horizon (recebe approved IDs, move pro storage final + dispara classification) `p1`
 **Implementado em:** _pendente_ — job `ApplyBatchJob` não existe no repo
 
-### US-ARQ-017 · Refactor `scripts/curador/apply.mjs` → vira "submit pro Admin API" (deixa de mexer filesystem direto) `p2`
+### US-ARQ-017 · Refactor `scripts/curador/apply.mjs` → vira "submit pro endpoint do Arquivos" (deixa de mexer filesystem direto) `p2`
 **Implementado em:** _pendente_ — `scripts/curador/apply.mjs` ainda mexe filesystem direto; depende do endpoint US-ARQ-011
+
+> **Destino reescrito em 2026-07-29** ([ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md)): dizia *"submit pro Admin API"*, mas o Admin Center foi deprecado. O endpoint alvo é o do próprio módulo (US-ARQ-011).
 
 ### US-ARQ-018 · Widget Admin Center "Arquivos" (count por bucket, sensitive aguardando vault, métricas saúde) `p2`
 **Implementado em:** `Modules/Arquivos/Services/Curador/CuradorStatsReader.php` · `Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php` — count por bucket + `sensitive_count` + audit 24h + dedupe, com recorte por `business_id` (Tier 0) coberto por teste na lane MySQL. **A UI está PENDENTE:** o widget "W5 Curador" e a `IndexController@__invoke` que o injetavam viviam no `Modules/Admin` (Admin Center Wagner-only) e foram removidos com a depreciação daquele módulo em 2026-07-29 — a tela nunca foi acessível fora do Tailscale (403). O leitor foi resgatado pra cá porque só consulta tabelas DESTE módulo; falta dar a ele uma superfície própria.

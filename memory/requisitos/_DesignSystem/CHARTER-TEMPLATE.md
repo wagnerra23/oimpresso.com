@@ -169,7 +169,7 @@ ux_targets:
 
 Command `php artisan governance:ui-catalog-generate <modulo>` varre `resources/js/Pages/<Mod>/**/*.tsx` + lê irmãos `.charter.md` + `.review.md` e gera `memory/requisitos/<Mod>/UI-CATALOG.md` (tabela + pendências + cross-ref).
 
-Schedule daily 09:30 BRT (depois cron smoke 09:00). Auditável via `cycles-active` + Wagner monitor.
+Invocação **manual**. Medido em 2026-07-29: não há schedule pra este comando em `app/Console/Kernel.php` (`grep "admin:"` e `grep "ui-catalog"` = 0 linhas) — o "daily 09:30 BRT" que esta linha afirmava desde 2026-05-17 nunca existiu. O comando também nunca esteve registrado no Artisan até ser resgatado pra `Modules/Governance` ([ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md)).
 
 ---
 

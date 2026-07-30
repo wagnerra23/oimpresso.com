@@ -29,7 +29,7 @@ UI humana: `/copiloto/admin/memoria` lista os docs sincronizados (contagem viva 
 | charter · e2e · scorecard · a11y | `npm run screen-coverage:report` (`scripts/qa/screen-coverage-map.mjs`) | `screen-coverage-gate` **required** |
 | casos / trio | `npm run casos:report` (`scripts/casos-coverage-guard.mjs`) | `casos-gate` **required** |
 | prontuário por módulo (não por tela) | `memory/governance/vital-signs.json` (nightly `mv-metabolismo.yml`) | advisory |
-| UI humana por tela | `/admin/screen-review` (charter/ux_targets/status/grade) | — |
+| UI humana por tela | **não existe** — era `/admin/screen-review`, removido com o Admin Center ([ADR 0360](decisions/0360-deprecacao-admin-center-supersede-0122.md)). Use as duas portas acima | — |
 
 Session logs `*-mapa-telas-projeto.md` (e os números embutidos em qualquer session log) são **fósseis datados** — snapshot honesto do dia, **history**, nunca "o mapa atual". Se um número datado incomodar, **re-rode o comando** — não edite o número ([lápide §5 2026-07-17](proibicoes.md)).
 
