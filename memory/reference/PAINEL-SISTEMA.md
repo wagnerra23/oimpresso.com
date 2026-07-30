@@ -138,7 +138,7 @@ lifecycle: ativo
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 62 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 63 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -202,6 +202,7 @@ lifecycle: ativo
 - ~~2026-07-29 — Ressuscitar `Modules/SRS` (ex-MemCofre, ex-DocVault) ou recriar suas 7 tabelas `docs_*`~~
 - ~~2026-07-29 — EMENDA da lápide 2026-07-28 ("a máquina NÃO existe" por grep estreito): o eixo **ROTA/ENDPOINT** tem donos próprios — e um deles é o **charter**~~
 - ~~2026-07-30 — Mecanismo ANUNCIAR uma saída (escape valve/override) que ele não implementa — e o escape anunciado ser, ele mesmo, da família banida~~
+- ~~2026-07-30 — Deprecar/apagar `Modules/Auditoria` (a trilha por-registro é capacidade de negócio, não sobra de governança)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -209,14 +210,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **346** handoffs · **566** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **346** handoffs · **567** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-30-session-02-organizacao-contrato-documental-modulos`
+  - `2026-07-30-pr5069-refutacao-r1`
   - `2026-07-30-mcp-scopes-apagados-por-save-de-role`
   - `2026-07-30-documentation-loop-primeiro-recibo-real`
   - `2026-07-29-vistas-publicadas-lidas-e-reagrupadas`
   - `2026-07-29-varredura-de-populacao-tres-rodadas`
-  - `2026-07-29-srs-e5-e6-e-quatro-refutacoes`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-07-30 · deriva das fontes canônicas, não as substitui._

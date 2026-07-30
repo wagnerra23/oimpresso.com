@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 612,
-    "edges": 935,
+    "nodes": 617,
+    "edges": 942,
     "by_node_type": {
       "module": 43,
       "table": 84,
       "adr": 35,
-      "component": 406,
+      "component": 411,
       "api": 44
     },
     "by_edge_type": {
@@ -39,9 +39,9 @@
       "providesApi": 44,
       "charteredByAdr": 33,
       "governedByAdr": 96,
-      "hasComponent": 406,
-      "dependsOn": 137,
-      "delegatesTo": 126,
+      "hasComponent": 411,
+      "dependsOn": 138,
+      "delegatesTo": 127,
       "migratesTo": 1
     },
     "dangling": 0
@@ -890,6 +890,13 @@
       "desc": ""
     },
     {
+      "id": "component:Auditoria/AuditEntryService",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "AuditEntryService",
+      "desc": "leitura paginada e detalhe de activity_log"
+    },
+    {
       "id": "component:Auditoria/AuditoriaController",
       "type": "component",
       "module": "Auditoria",
@@ -909,6 +916,34 @@
       "module": "Auditoria",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Auditoria/RevertCheck",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "RevertCheck",
+      "desc": "veredito allow/deny com OTel span"
+    },
+    {
+      "id": "component:Auditoria/RevertService",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "RevertService",
+      "desc": "undo restaurando properties.old + registro do próprio undo"
+    },
+    {
+      "id": "component:Auditoria/Telas Auditoria/Index + Auditoria/Detail",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "Telas Auditoria/Index + Auditoria/Detail",
+      "desc": ""
+    },
+    {
+      "id": "component:Auditoria/unrevertibleRegistry()",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "unrevertibleRegistry()",
+      "desc": "whitelist do que NUNCA reverte (append-only legal/fiscal)"
     },
     {
       "id": "component:Brief/BriefFetchController",
@@ -3555,7 +3590,7 @@
       "id": "module:Auditoria",
       "type": "module",
       "module": "Auditoria",
-      "purpose": "Trilha de auditoria + governance review do oimpresso. Cataloga eventos críticos cross-módulo (LGPD Art. 37 accountability).",
+      "purpose": "Leitura, investigação e REVERSÃO segura da trilha por-registro (activity_log). Responde 'quem mudou este registro, o quê, quando — e dá pra desfazer?'. Guarda o que NÃO pode ser desfeito (append-only por lei) e o isolamento multi-tenant no undo.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "auditoria.*",
@@ -5488,6 +5523,13 @@
     },
     {
       "from": "module:Auditoria",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Trilha de chamada de tool MCP (mcp_audit_log)"
+    },
+    {
+      "from": "module:Auditoria",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -5506,6 +5548,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "MCP server admin"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Trilha de chamada de tool MCP (mcp_audit_log)"
     },
     {
       "from": "module:Auditoria",
@@ -5542,6 +5591,12 @@
     },
     {
       "from": "module:Auditoria",
+      "to": "component:Auditoria/AuditEntryService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
       "to": "component:Auditoria/AuditoriaController",
       "type": "hasComponent",
       "source": "contains"
@@ -5555,6 +5610,30 @@
     {
       "from": "module:Auditoria",
       "to": "component:Auditoria/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/RevertCheck",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/RevertService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/Telas Auditoria/Index + Auditoria/Detail",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/unrevertibleRegistry()",
       "type": "hasComponent",
       "source": "contains"
     },

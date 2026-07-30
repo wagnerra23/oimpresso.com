@@ -48,11 +48,29 @@ class DataController extends Controller
             [
                 // Escrita em máquina individual: liberar/bloquear (toggle-block),
                 // criar e editar licença. É a tarefa de assistência do dia a dia,
-                // delegável ao suporte sem `superadmin`. Ações de escopo
-                // empresa-inteira (versão obrigatória, bloquear o cliente todo) e
-                // exclusão seguem superadmin-only.
+                // delegável ao suporte sem `superadmin`. Escopo empresa-inteira e
+                // exclusão têm permissão própria (abaixo) — ter esta NÃO as concede.
                 'value' => 'officeimpresso.licencas.gerenciar',
                 'label' => 'Office Impresso: liberar/bloquear máquinas (suporte)',
+                'default' => false,
+            ],
+            [
+                // Escopo EMPRESA INTEIRA: versão obrigatória de todos os desktops
+                // do cliente + bloquear/liberar o cliente inteiro. Era
+                // superadmin-only; delegado por decisão [W] 2026-07-30 pra tirar o
+                // superadmin do caminho da gestão de licenças. Ações REVERSÍVEIS —
+                // o bloqueio é toggle, a versão se reescreve.
+                'value' => 'officeimpresso.empresa.gerenciar',
+                'label' => 'Office Impresso: bloquear empresa inteira + versão obrigatória',
+                'default' => false,
+            ],
+            [
+                // Exclusão de licença — destrutivo e irreversível (o registro sai
+                // do banco e o histórico em licenca_log fica órfão). Permissão
+                // separada de propósito: quem bloqueia uma máquina não deveria
+                // apagá-la por tabela.
+                'value' => 'officeimpresso.licencas.excluir',
+                'label' => 'Office Impresso: EXCLUIR licença (destrutivo)',
                 'default' => false,
             ],
             [

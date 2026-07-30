@@ -8,6 +8,27 @@ id: requisitos-brief-deprecation-plan
 > **Ordem no conjunto:** **3º de 6** — [proposal da ordem topológica](../../decisions/proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md)
 > ⚠️ **O módulo mais barato em código e o mais caro em processo.** 35 arquivos, 4 acopladores — e sustenta uma skill **Tier A always-on**.
 
+## ⚠️ ERRATA 2026-07-30 — o plano declara **0 cron**. Existe **1**, e ele roda em `live`.
+
+> Origem: revisão adversarial pedida por [W]. Não altera o veredito do corpo — acrescenta um
+> pré-requisito que faltava.
+
+`brief:generate` → `Modules/Brief/Console/Commands/GenerateBriefCommand.php`. Medido pelo **oráculo
+de runtime**, não por parse do `Kernel.php` (lápide §5 2026-07-17 — gate de ambiente tem ≥2 formas):
+
+```php
+// prod, APP_ENV=live → 110 schedules registrados · 108 rodam
+// brief: 1 registrado, 1 roda
+```
+
+É ele que produz os **438** briefs de `mcp_briefs`. **Desligar/realocar o cron entra na E3**, junto
+com a tool — senão o comando fica órfão gravando numa tabela sem dono.
+
+Fica registrado também o achado que a revisão trouxe e que **muda o destino**: `Modules/Brief` e o
+`BriefDiarioAgent` (dentro de `Modules/Jana`) são **dois produtos com o mesmo nome** e não se
+referenciam. O receptor do `brief-fetch` proposto no corpo (**Jana**) é contestado — ver proposta
+[#5073](https://github.com/wagnerra23/oimpresso.com/pull/5073), que aponta **Forja**.
+
 ## Fase 1 — Inventário
 
 **Gerado:** [`SUPERFICIE.md`](SUPERFICIE.md) — **35 arquivos em 9 papéis** (`module-surface.mjs Brief --write`). Frescor 2026-07-30: `--check` **exit 0**.
