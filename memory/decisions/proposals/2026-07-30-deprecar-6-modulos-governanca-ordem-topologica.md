@@ -121,6 +121,31 @@ Três coisas que a tabela diz e que nenhum plano isolado diria:
 2. **O oposto também é verdade, e é o caso mais limpo:** `Auditoria` tem **uma** tabela que **nunca chegou em produção** e **um** acoplador, que é um teste. É o delete mais barato do conjunto.
 3. **5 das 6 tabelas do Governance não existem no Hostinger.** Isso não é "não existe" — as tabelas de observabilidade (`mcp_observability_spans`, `_aggregates_daily`, `mcp_scorecard_runs`, `mcp_governance_initiatives`, `mcp_module_grades_history`) provavelmente vivem no **CT 100**. **Medir o CT 100 é pré-requisito da E3 do Governance** e não foi feito aqui.
 
+## ⚠️ ADENDO 2026-07-30 (tarde) — o CT 100 foi medido, e são **5** módulos, não 6
+
+Duas coisas mudaram depois que este doc foi escrito. Ambas são medição, não opinião.
+
+### 1. `Auditoria` SAI da fila — [W] reverteu na execução
+
+*"acho que auditoria deve ficar"* · *"ele registra as alterações em cada registro é super importante"* · *"não pode apagar"* ([W], 2026-07-30, com a E3 já começando; nada de código foi removido — o `block-destructive` barrou o `git rm`). O **plano dele foi DELETADO** a pedido de [W] (*"remova o plano"*): plano suspenso ainda é armadilha. O registro do episódio vive na **lápide §5** de [`proibicoes.md`](../../proibicoes.md) (*"Deprecar/apagar Modules/Auditoria"* — não re-propor), e o módulo ganhou [`SCOPE.md`](../../../Modules/Auditoria/SCOPE.md) corrigido + [SDD completo](../../requisitos/Auditoria/SDD-auditoria-v1.0.md).
+
+O ponto 2 da medição acima (*"`Auditoria` … é o delete mais barato do conjunto"*) **fica refutado**: ele media `auditoria_audit_notes` (0 linhas), que nunca foi o valor do módulo. Ele é o **leitor/revertedor** do `activity_log` — **117.510 linhas, última escrita 2026-07-30 11:22:14**. A ordem passa a ser **5**: Admin → Brief → ADS → TeamMcp → Governance.
+
+### 2. Não existe banco no CT 100 — o pré-requisito dos 6 planos cai
+
+Todos os planos carregam *"CT 100 não medido — pré-requisito da E3"*, e o ponto 3 acima hipotetiza que as 5 tabelas do Governance *"provavelmente vivem no CT 100"*. **Medido — a hipótese é falsa:**
+
+| Fonte | Comando | Resultado |
+|---|---|---|
+| MCP server do CT 100 | `docker exec oimpresso-mcp printenv \| grep ^DB_` | `DB_HOST=srv1818.hstgr.io` · `DB_DATABASE=u906587222_oimpresso` — **é o banco do Hostinger** |
+| staging CT 100 | `information_schema` em `oimpresso_staging` | **377 tabelas**, e as 6 procuradas **ausentes** também |
+
+**Não há terceiro banco.** As 5 tabelas de observabilidade/scorecard do Governance + `auditoria_audit_notes` **não existem em lugar nenhum** — as migrations nunca rodaram, e essas features jamais produziram dado em produção.
+
+**Consequências:** o resíduo *"CT 100 não medido"* dos 5 planos restantes fica **fechado — aponte pra este bloco, não repita o número** ([proibicoes §5 2026-07-17](../../proibicoes.md)). E o R1 do TeamMcp fica mais barato: `mcp_tokens`/`mcp_actors` vivem no MESMO banco que o MCP lê, logo "migrar pra Jana" é troca de dono **no código**, não migração de dados.
+
+**Resíduo honesto:** medi **existência** de tabela e **contagem**, não o caminho de escrita. E staging ≠ prod — a ausência lá indica que a migration não roda, não prova sobre prod (essa parte vem da medição de 30/07 da manhã, que não é minha).
+
 ## O acoplamento, medido (e o instrumento que quase me enganou)
 
 `git grep -lF 'Modules\<Mod>\'` fora da própria pasta, excluindo `memory/` e `.claude/`:
