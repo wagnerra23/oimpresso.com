@@ -5,7 +5,7 @@
 // priority OU backlog) — projeção, sem dado fantasma. Cada linha: ID mono ·
 // badge de tipo (Tela=roxo · Bug=âmbar · Refino=azul) · título · tag de módulo ·
 // selo de ator [CC] · botão roxo "Analisar" → abre o dossiê lateral (ForjaDossier,
-// que reusa o padrão Analista de ProjectMgmt apontando pros endpoints /forja/*).
+// que reusa o padrão Analista da Forja apontando pros endpoints /forja/*).
 //
 // Reuso: estrutura de lista + navegação J/K + defer-guard espelham
 // resources/js/Pages/Forja/Triage/Index.tsx. DS v6: roxo canon (text/bg-primary)

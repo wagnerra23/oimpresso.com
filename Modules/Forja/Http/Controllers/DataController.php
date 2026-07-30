@@ -30,7 +30,7 @@ class DataController extends Controller
         return [
             [
                 'name'    => 'project_mgmt_module',
-                'label'   => 'Project Mgmt',
+                'label'   => 'Forja',
                 'default' => false,
             ],
         ];
@@ -116,7 +116,7 @@ class DataController extends Controller
                 // Ghosts canônicos espelham as 6 sub-views do dropdown atual:
                 //   my-work / board / backlog / roadmap / activity / burndown
                 $menu->dropdown(
-                    'Project Mgmt',
+                    'Forja',
                     function ($sub) {
                         $sub->url(
                             route('project-mgmt.my-work.index'),

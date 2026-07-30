@@ -111,7 +111,7 @@ id: governance-scorecards-screen-grade-board-2026-05-30
 | Nfse | 3 | 80 |
 | StockAdjustment | 2 | 81 |
 | StockTransfer | 2 | 82 |
-| ProjectMgmt | 8 | 83 |
+| Forja | 8 | 83 |
 | RecurringBilling | 6 | 84 |
 | Home | 1 | 85 |
 | TransactionPayment | 3 | 86 |

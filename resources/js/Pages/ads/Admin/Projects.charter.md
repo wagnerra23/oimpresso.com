@@ -21,7 +21,7 @@ charter_version: 1
 ---
 
 ## Mission
-Ser o portfólio dos Projects — unidade estratégica que agrupa decisões + ADRs + decomposição. O admin vê o estado de cada project (status, viability, custo, prazo, progresso das parts) e cria um novo informando nome + objetivo macro, que depois é decomposto pelo Project Decomposer Agent (no detalhe). É a entrada da esteira de decomposição estratégica do ADS/ProjectMgmt.
+Ser o portfólio dos Projects — unidade estratégica que agrupa decisões + ADRs + decomposição. O admin vê o estado de cada project (status, viability, custo, prazo, progresso das parts) e cria um novo informando nome + objetivo macro, que depois é decomposto pelo Project Decomposer Agent (no detalhe). É a entrada da esteira de decomposição estratégica do ADS/Forja.
 
 ---
 

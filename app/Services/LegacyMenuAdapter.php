@@ -192,7 +192,20 @@ class LegacyMenuAdapter
 
                 if (empty($filteredItems)) continue;
 
-                $out[$moduleName] = [
+                // COLISAO DE CHAVE entre os dois loops (2026-07-30): o loop de cima indexa
+                // por nome de MODULO e este indexa por chave de `core_topnavs`. Quando as
+                // duas coincidem, o `$out[$moduleName] =` cru DESCARTAVA o topnav do modulo
+                // -- a nav sumia nas telas dele. Virou real quando `Modules/ProjectMgmt` foi
+                // renomeado pra `Modules/Forja` e passou a colidir com `core_topnavs['Forja']`
+                // (o cockpit /forja, que mora em Modules/TeamMcp). Renomear qualquer um dos
+                // lados nao serve: a chave `Forja` do config e asserida por
+                // Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.
+                // Os dois grupos sao legitimos e servem URLs distintas (/project-mgmt/* vs
+                // /forja/*); o front (useAutoModuleNav) casa pelo 1o segmento do href do
+                // ITEM, nao pela chave -- entao basta nao deixar um sobrescrever o outro.
+                $chave = isset($out[$moduleName]) ? $moduleName . '__core' : $moduleName;
+
+                $out[$chave] = [
                     'label' => $this->resolveLabel($config['label'] ?? $moduleName),
                     'icon'  => $config['icon'] ?? 'Circle',
                     'items' => $filteredItems,

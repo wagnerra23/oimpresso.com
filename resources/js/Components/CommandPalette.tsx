@@ -1,4 +1,4 @@
-// @memcofre componente=CommandPalette modulo=ProjectMgmt
+// @memcofre componente=CommandPalette modulo=Forja
 // PMG-002 (ADR 0100) — Cmd+K Search Global
 //
 // Wrapper de cmdk (via shadcn `command.tsx`) que faz fetch debounced em

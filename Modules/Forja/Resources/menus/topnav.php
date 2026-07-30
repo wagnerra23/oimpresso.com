@@ -14,7 +14,7 @@
  */
 
 return [
-    'label' => 'Project Mgmt',
+    'label' => 'Forja',
     'icon'  => 'KanbanSquare',
     'items' => [
         ['label' => 'My Work',          'href' => '/project-mgmt/my-work',  'icon' => 'CheckSquare',   'can' => 'jana.mcp.usage.all'],

@@ -1,7 +1,5 @@
 ---
 module: Forja
-will_rename_to: Project
-will_rename_at_phase: 3.9
 depends_on_phase: 3.8 (DELETE Project legado UltimatePOS)
 purpose: "Gerenciamento Jira-style do time interno: Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown sobre `mcp_jira_projects/epics/cycles/tasks`."
 contains:
