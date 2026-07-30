@@ -147,7 +147,7 @@ Como B é **descontinuação** (não migração), não há receptor que absorve 
 | `Connector Api/ContactController::store` | Branch `type=='lead'` → remover `CrmContact::createNewLead`; 422 | E4 (gated) |
 | `crm.*` permissions | Seed cleanup das permissões pipeline. **Preservar** `crm.access_contact_login` se portal ficar | E5 |
 | `memory/requisitos/Crm/SPEC.md` | Status `descontinuado` (era draft nunca aprovado) | E6 |
-| `Modules/Crm/BRIEFING.md` | Banner 🔇 → "DEPRECADO via ADR NNNN" + link plano | E6 |
+| `memory/requisitos/Crm/BRIEFING.md` | Banner 🔇 → "DEPRECADO via ADR NNNN" + link plano | E6 |
 | `Modules/Crm/SCOPE.md` | Remover do `contains[]` os controllers de B; manter `Cliente*`/`ContactAddress` | E6 |
 | `module.json` | Manter `active:1` (A vive) | — |
 
