@@ -1320,6 +1320,24 @@
       "error_rate_pct": 0,
       "veredito": "aprovado",
       "nota": "APROVADO na 5a passada (0/56). 100% do diff memory/+governance/ (22/22 arquivos) enumerado; 56 afirmacoes verificadas contra origin/main 32d77dba26 e branch fa95e04e19. Prova mecanica: catalog-graph --write, tasks-index-generate --write e deadlink-gate rodados em worktree da branch — diff ZERO nos 3 gerados (1098/858/39-622-947 exatos); module-surface --all --check exit 0. Contagens duras exatas: 63 arquivos deletados, 33 classes @deprecated, 24/37 modulos com charter_adr 0080, migration dropa as 7 docs_*, 6 redirects 301 com alvos confirmados em rota real. knowledge-drift nao-required confirmado nos DOIS donos (baseline + protection viva 34 contexts + ruleset). A restauracao por bloco exigida na rodada 4 foi provada por delta de literal por arquivo (4x delta 0, 1x +1 intencional; DEPRECATION-PLAN 47->47). 3 itens NAO_VERIFICAVEL (medicoes de banco de prod), todos consistentes com o canon ja mergeado. Ressalvas nao-contadas pelo refutador: universo do '15x' da errata nao declarado e citacao 'cofre de evidencias' nao-verbatim. PII 0. Spot-check independente do gerador antes do append: 63/63 deletados, 0 remanescentes, 24/37 charter_adr, 47->47 no DEPRECATION-PLAN — os 4 bateram."
+    },
+    {
+      "pr": 5069,
+      "data": "2026-07-30",
+      "tipo": "anchors",
+      "gerador": "codex (GPT-5.x, branch codex/module-documentation-activation)",
+      "refutador": "opus-5 (Claude Code, sessao fresca — sem contexto de conversa do gerador)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "memory/sessions/2026-07-30-pr5069-refutacao-r1.md",
+      "lote_id": "DOC-ATIVACAO-frota-modulos-01",
+      "itens_verificados": 58,
+      "erros_confirmados": 3,
+      "error_rate_pct": 5.17,
+      "veredito": "reprovado",
+      "nota": "REPROVADO na rodada 1 (5,17%). Achado FATAL: o docblock reescrito de IndexReconciler.php contem `Modules/*/module.json` — a sequencia */ FECHA o comentario e o backtick seguinte vira codigo. php -l: origin/main sem erro, branch com \"syntax error, unexpected token backtick on line 46\". E a causa dos 2 checks vermelhos (PHP/Pest Unit exit 124 sem junit.xml + PHPStan ratchet), num PR cujo corpo dizia que \"os checks PHP/Pest do CI sao a prova\" — a prova saiu vermelha. Erros 2 e 3 sao numericos e so no CORPO do PR (o session log acerta os dois): inventario 16.237 vs 16.236 reais (git ls-files + repository_inventory.total) e testes Node 42/42 vs 44/44 reais (24 module-surface + 18 catalog-graph + 2 page-path, o conjunto que o proprio workflow do PR roda). Resistiram: selftest 17/17 com o bite-test novo do detector, module-surface 39 contextos sem drift, catalog-graph 38/612/935/0-pendurados, frota 35/35 (set-diff INDEX vs disco vazio), fecho transitivo com depth, Financeiro depends_on Sells+Compras real (32 arquivos com Transaction, TransactionObserver + CriarTituloDeVendaJob), zero marcador de conflito, e o SPEC novo de VozDoCliente inteiro (12/12 paths existem, 8/8 criterios batem com StoreSinalRequest/SinalController/migration/Sinal, e a prova citada roda mesmo em CI via ci-sqlite-pest.list:287). Verificado e NAO e erro: a delecao de lang/pt-br/nfebrasil.php era duplicata de casing com blob identico ao pt-BR e zero consumidores de nfebrasil::nfebrasil.*. Ressalva nao-contada: pos-merge com main atual o system-map --check reprova, mas o controle negativo mostra main puro reprovando tambem (PATH MORTO Modules/SRS) — divida herdada; e o job drift do module-surface nao esta no required-checks-baseline (advisory). Esta sessao aplicou a correcao do achado 1 (php -l limpo), logo virou geradora da correcao: a rodada 2 exige refutador fresco e independente."
     }
   ]
 }

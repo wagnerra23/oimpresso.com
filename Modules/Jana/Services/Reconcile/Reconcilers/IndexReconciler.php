@@ -43,7 +43,7 @@ use Symfony\Component\Yaml\Yaml;
  *        healable=FALSE → só ALERTA (R10: pra onde repontar é decisão humana).
  *
  * NÃO reconcilia `modulos/INDEX.md`: desde 2026-07-30 ele passou a ser uma projeção
- * determinística dos `Modules/*/module.json`, regenerada por
+ * determinística dos manifestos `module.json` sob `Modules/<Modulo>/`, regenerada por
  * `php artisan module:specs --index-only`. O dono desse índice já faz o próprio
  * `write`; duplicar a cura aqui criaria dois autores para o mesmo artefato.
  *
