@@ -7,7 +7,18 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, isSurfaceRequired, manifestExigeSuperficie } from './module-surface.mjs';
+import {
+  PAPEIS,
+  coletar,
+  montar,
+  CORE_APP_MODULES,
+  PAGES_NS,
+  RAIZES_GERAIS,
+  isSurfaceRequired,
+  manifestExigeSuperficie,
+  colisoesDeCasing,
+  pathsSobRaiz,
+} from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
@@ -130,6 +141,30 @@ test('montar() é determinístico (mesmo input → bytes idênticos)', () => {
   const a = montar('X', grupos, []);
   const b = montar('X', grupos, []);
   assert.equal(a, b);
+});
+
+test('inventário Git preserva casing e seleciona somente a raiz pedida', () => {
+  const paths = [
+    'Modules/NfeBrasil/module.json',
+    'Modules/NfeBrasil/Resources/lang/pt-BR/nfebrasil.php',
+    'Modules/NfeBrasilExtra/module.json',
+  ];
+  assert.deepEqual(pathsSobRaiz(paths, 'Modules/NfeBrasil'), [
+    'Modules/NfeBrasil/Resources/lang/pt-BR/nfebrasil.php',
+    'Modules/NfeBrasil/module.json',
+  ]);
+});
+
+test('BITE cross-platform: colisão pt-BR/pt-br é detectada antes de gerar drift', () => {
+  const colisoes = colisoesDeCasing([
+    'Modules/NfeBrasil/Resources/lang/pt-BR/nfebrasil.php',
+    'Modules/NfeBrasil/Resources/lang/pt-br/nfebrasil.php',
+    'Modules/NfeBrasil/module.json',
+  ]);
+  assert.deepEqual(colisoes, [[
+    'Modules/NfeBrasil/Resources/lang/pt-BR/nfebrasil.php',
+    'Modules/NfeBrasil/Resources/lang/pt-br/nfebrasil.php',
+  ]]);
 });
 
 test('montar() carimba frontmatter gerado + título + papéis', () => {

@@ -55,7 +55,7 @@ path e registros históricos. A limpeza foi de **autoridade**, não de evidênci
 
 - `documentation-loop --selftest`: 17/17, incluindo bite negativo de módulo sem
   SPEC, grafo profundo e toda a frota real;
-- testes Node combinados: 42/42;
+- testes Node combinados: 44/44;
 - `module-surface --all --check`: 39 contextos sem drift;
 - `catalog-graph --check`: 38 módulos, 612 nós, 935 arestas, zero pendurados;
 - `system-map --check` e `system-map-ia.test`: verdes;
@@ -74,6 +74,11 @@ existente ficou sob o contrato documental comum.
 Durante a atualização do PR, o `main` removeu o módulo Admin. A resolução preservou
 a remoção e regenerou catálogo, superfícies, painel e índices; por isso o denominador
 final passou de 36 para 35 sem lista manual.
+
+O runner Linux também revelou dois paths Git com o mesmo blob em NfeBrasil:
+`Resources/lang/pt-BR/nfebrasil.php` e `pt-br/nfebrasil.php`. O path minúsculo foi
+removido do índice, o canônico `pt-BR` foi preservado e `module-surface` passou a
+derivar do inventário Git, bloqueando novas colisões de casing entre plataformas.
 
 ## Estado MCP no momento do fechamento
 

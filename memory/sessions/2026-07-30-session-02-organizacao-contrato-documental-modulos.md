@@ -54,12 +54,18 @@ Resultado final local:
 - inventário: 16.237 total, 16.237 classificados, zero sem dono;
 - frota: 35 total, 35 completos, zero incompletos;
 - selftest do ciclo: 17/17;
-- testes Node: 42/42;
+- testes Node: 44/44, incluindo colisão de casing e seleção por raiz Git;
 - superfícies: 39 contextos sem drift;
 - catálogo: zero módulo/ADR pendurado;
 - sistema: mapa, arquitetura IA e onboarding em dia;
 - saúde da memória: zero falhas; somente avisos históricos não bloqueantes;
 - conflitos Git: zero marcadores reais.
+
+O gate Linux encontrou uma colisão que o filesystem case-insensitive do Windows
+escondia: NfeBrasil rastreava `pt-BR/nfebrasil.php` e `pt-br/nfebrasil.php` com o
+mesmo blob. O duplicado minúsculo saiu do índice; o gerador deixou de percorrer o
+filesystem como autoridade e passou a usar índice Git + novos arquivos não ignorados,
+menos paths deletados.
 
 ## Pendente de ambiente
 

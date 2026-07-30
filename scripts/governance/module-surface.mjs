@@ -30,8 +30,9 @@
  * Refs: ADR 0256 (survival, fonte única gerada) · dor estado-da-arte 2026-07-21
  *       (memory/sessions/2026-07-21-arte-contexto-vivo-descoberta.md, Gap 2).
  */
-import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { isPageScreenPath } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
@@ -47,6 +48,59 @@ const RAIZES_GERAIS = [
   'resources/views/layouts',
   'memory/requisitos/_DesignSystem/templates',
 ];
+
+/** @type {string[] | null} */
+let INVENTARIO_REPO = null;
+
+/** Retorna grupos de paths que só diferem por casing — inválidos num checkout cross-platform. */
+function colisoesDeCasing(paths) {
+  const porFold = new Map();
+  for (const path of paths) {
+    const key = path.toLowerCase();
+    const grupo = porFold.get(key) || [];
+    grupo.push(path);
+    porFold.set(key, grupo);
+  }
+  return [...porFold.values()].filter((grupo) => grupo.length > 1);
+}
+
+/**
+ * Universo exato do checkout: índice Git + arquivos novos não ignorados, menos paths deletados.
+ * O Git é a autoridade para casing; percorrer o filesystem fazia Windows colapsar `pt-BR`/`pt-br`
+ * enquanto Linux via ambos, gerando um verde local falso.
+ */
+function inventarioRepo() {
+  if (INVENTARIO_REPO) return INVENTARIO_REPO;
+  const safeRoot = ROOT.replaceAll('\\', '/');
+  let raw;
+  try {
+    raw = execFileSync(
+      'git',
+      ['-c', `safe.directory=${safeRoot}`, 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+  } catch (error) {
+    const detalhe = error instanceof Error ? error.message : String(error);
+    throw new Error(`[module-surface] não foi possível obter o inventário Git: ${detalhe}`);
+  }
+  const paths = [...new Set(raw.split('\0').filter(Boolean))]
+    .filter((path) => existsSync(join(ROOT, path)))
+    .sort();
+  const colisoes = colisoesDeCasing(paths);
+  if (colisoes.length) {
+    const detalhe = colisoes.map((grupo) => grupo.join(' ⇄ ')).join('; ');
+    throw new Error(`[module-surface] colisão de casing no índice Git: ${detalhe}`);
+  }
+  INVENTARIO_REPO = paths;
+  return INVENTARIO_REPO;
+}
+
+/** Seleciona arquivos sob uma raiz sem depender da semântica de casing do sistema operacional. */
+function pathsSobRaiz(paths, rel) {
+  const raiz = rel.replaceAll('\\', '/').replace(/\/+$/, '');
+  const prefixo = `${raiz}/`;
+  return paths.filter((path) => path === raiz || path.startsWith(prefixo)).sort();
+}
 
 /**
  * Módulos CLASSE B — o código NÃO mora em `Modules/<Mod>/`, mora no núcleo UltimatePOS (`app/`).
@@ -192,18 +246,9 @@ const PAPEIS = [
   { rot: 'Testes (Pest)', re: /^Modules\/[^/]+\/Tests\/.*\.php$/, listar: false },
 ];
 
-/** Walk recursivo determinístico (sort). Retorna paths relativos à raiz, com forward-slash. */
+/** Walk determinístico sobre o inventário Git. Retorna paths relativos à raiz. */
 function walk(rel) {
-  const abs = join(ROOT, rel);
-  if (!existsSync(abs)) return [];
-  const out = [];
-  for (const name of readdirSync(abs).sort()) {
-    const childRel = `${rel}/${name}`;
-    const st = statSync(join(ROOT, childRel));
-    if (st.isDirectory()) out.push(...walk(childRel));
-    else out.push(childRel);
-  }
-  return out;
+  return pathsSobRaiz(inventarioRepo(), rel);
 }
 
 /** Expande a semente CLASSE B: cada prefixo é arquivo exato OU dir (walk). Ignora inexistente. */
@@ -222,8 +267,9 @@ function expandirPrefixos(prefixos) {
  * CORE_APP_MODULES (CLASSE B, ex. Sells — não tem diretório modular homônimo, mas tem semente no core).
  */
 function listarModulos() {
-  const dir = join(ROOT, 'Modules');
-  const classeA = existsSync(dir) ? readdirSync(dir).sort().filter((m) => existsSync(join(dir, m, 'module.json'))) : [];
+  const classeA = inventarioRepo()
+    .map((path) => path.match(/^Modules\/([^/]+)\/module\.json$/)?.[1])
+    .filter(Boolean);
   return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES), CONTEXTO_GERAL])].sort();
 }
 
@@ -401,4 +447,16 @@ function main() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
 
-export { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, CONTEXTO_GERAL, isSurfaceRequired, manifestExigeSuperficie };
+export {
+  PAPEIS,
+  coletar,
+  montar,
+  CORE_APP_MODULES,
+  PAGES_NS,
+  RAIZES_GERAIS,
+  CONTEXTO_GERAL,
+  isSurfaceRequired,
+  manifestExigeSuperficie,
+  colisoesDeCasing,
+  pathsSobRaiz,
+};
