@@ -114,4 +114,89 @@ class ModuleManagerTest extends TestCase
             );
         }
     }
+
+    /**
+     * Controle do discriminador: uma ref que não existe tem de ser reconhecida como
+     * ausente, e uma que existe como presente. É o que separa "a branch sumiu" de
+     * "o módulo não estava nela" — antes os dois casos davam saída vazia no ls-tree.
+     */
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function branch_existe_distingue_ref_viva_de_ref_inexistente(): void
+    {
+        $gen = app(ModuleSpecGenerator::class);
+
+        $this->assertTrue($gen->branchExiste('HEAD'), 'HEAD sempre existe num repo git');
+        $this->assertFalse(
+            $gen->branchExiste('branch-que-nunca-existiu-oimpresso-teste'),
+            'Ref inventada não pode ser reportada como existente'
+        );
+    }
+
+    /**
+     * A invariante que impede a afirmação falsa: presença é `null` (indeterminado)
+     * EXATAMENTE quando a branch sumiu — nunca `false`, que significaria "medi e não
+     * estava lá". Sem ramo de skip: os dois lados asseguram, então o teste nunca
+     * passa por não ter rodado.
+     */
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function presenca_e_indeterminada_se_e_somente_se_a_branch_sumiu(): void
+    {
+        $gen = app(ModuleSpecGenerator::class);
+        $presenca = $gen->inspect('PontoWr2')['branch_presence'];
+        $ausentes = $gen->branchesAusentes();
+
+        foreach (ModuleSpecGenerator::BRANCHES_DE_INTERESSE as $branch) {
+            $this->assertArrayHasKey($branch, $presenca);
+
+            if (in_array($branch, $ausentes, true)) {
+                $this->assertNull($presenca[$branch], "`{$branch}` sumiu: presença é indeterminada, não ❌");
+                continue;
+            }
+
+            $this->assertIsBool($presenca[$branch], "`{$branch}` existe: presença tem de ser medida");
+        }
+
+        $this->assertSame(
+            $ausentes,
+            array_values(array_filter(
+                ModuleSpecGenerator::BRANCHES_DE_INTERESSE,
+                fn (string $b): bool => $presenca[$b] === null
+            )),
+            'O conjunto de branches ausentes tem de bater com o de presenças indeterminadas'
+        );
+    }
+
+    /**
+     * O rótulo tem três estados. O bug vivia aqui: `$pres[...] ?? false ? '✅' : '❌'`
+     * colapsava `null` em `❌`, transformando "não deu pra medir" em "medi, não estava lá".
+     */
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function rotulo_de_presenca_nunca_colapsa_indeterminado_em_ausente(): void
+    {
+        $gen = app(ModuleSpecGenerator::class);
+        $rotulo = new \ReflectionMethod($gen, 'rotuloPresenca');
+        $rotulo->setAccessible(true);
+
+        $this->assertSame('✅', $rotulo->invoke($gen, true));
+        $this->assertSame('❌', $rotulo->invoke($gen, false));
+        $this->assertSame('n/d', $rotulo->invoke($gen, null));
+        $this->assertNotSame($rotulo->invoke($gen, null), $rotulo->invoke($gen, false));
+    }
+
+    /**
+     * Só há legenda de `n/d` quando existe `n/d` na tabela — nem sobra ruído, nem
+     * aparece símbolo sem explicação.
+     */
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function markdown_explica_o_n_d_quando_e_so_quando_ele_aparece(): void
+    {
+        $gen = app(ModuleSpecGenerator::class);
+        $md = $gen->renderMarkdown($gen->inspect('PontoWr2'));
+
+        $temIndeterminado = $gen->branchesAusentes() !== [];
+        $temLegenda = str_contains($md, 'não é verificável');
+
+        $this->assertSame($temIndeterminado, $temLegenda);
+        $this->assertSame($temIndeterminado, str_contains($md, '| n/d |'));
+    }
 }
