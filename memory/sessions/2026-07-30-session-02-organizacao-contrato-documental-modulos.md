@@ -67,6 +67,11 @@ mesmo blob. O duplicado minúsculo saiu do índice; o gerador deixou de percorre
 filesystem como autoridade e passou a usar índice Git + novos arquivos não ignorados,
 menos paths deletados.
 
+O checkout raso do job agregado ainda fazia `system-map` fabricar `2026-07-30` como
+último toque de todos os BRIEFINGs. O workflow recebeu `fetch-depth: 0`, e o script
+agora falha se o commit usado como evidência for exatamente a fronteira rasa. Um clone
+temporário `--depth 1` comprovou a mordida; o worktree com histórico suficiente liberou.
+
 ## Pendente de ambiente
 
 Executar no CT 100 o lint/teste PHP dos comandos

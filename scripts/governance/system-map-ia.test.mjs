@@ -29,12 +29,28 @@ import {
   parseToolsRegistry,
   linhaTools,
   deadLinks,
+  assertFreshnessCommitUsable,
 } from './system-map.mjs';
 
 let fails = 0;
 const ok = (cond, msg) => { if (cond) console.log(`  ✓ ${msg}`); else { console.error(`  ✗ ${msg}`); fails++; } };
 
 console.log('\n  system-map · camada de IA — self-test do núcleo puro\n');
+
+// Frescor exige histórico real — clone raso não pode parecer atualizado.
+{
+  let mordeu = false;
+  try {
+    assertFreshnessCommitUsable(true, 'memory/requisitos/Financeiro/BRIEFING.md');
+  } catch { mordeu = true; }
+  ok(mordeu, 'MORDE: clone raso não fabrica último toque de todos os BRIEFINGs');
+
+  let liberou = true;
+  try {
+    assertFreshnessCommitUsable(false, 'memory/requisitos/Financeiro/BRIEFING.md');
+  } catch { liberou = false; }
+  ok(liberou, 'LIBERA: histórico completo permite medir frescor');
+}
 
 // ── A) MORDE: o erro humano real — `caching.embeddings` não é provider ────────
 {

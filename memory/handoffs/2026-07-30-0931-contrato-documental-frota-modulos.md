@@ -80,6 +80,12 @@ O runner Linux também revelou dois paths Git com o mesmo blob em NfeBrasil:
 removido do índice, o canônico `pt-BR` foi preservado e `module-surface` passou a
 derivar do inventário Git, bloqueando novas colisões de casing entre plataformas.
 
+Na rodada seguinte, o job agregado chamou `system-map` com checkout raso. Nesse
+estado, `git log -- <BRIEFING>` atribuiu a data do commit-fronteira a todos os
+módulos e fabricou frescor. O job passou a usar `fetch-depth: 0`; o script também
+passou a recusar qualquer data cujo commit seja a fronteira rasa. O bite foi
+reproduzido num clone temporário de profundidade 1 antes da correção.
+
 ## Estado MCP no momento do fechamento
 
 Nenhum MCP de domínio participou desta mudança. A prova foi produzida diretamente

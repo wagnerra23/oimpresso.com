@@ -58,6 +58,39 @@ const ls = (p) => { try { return readdirSync(p); } catch { return []; } };
  */
 const normalizeHorizontalSpace = (s) => s.replace(/[ \t]+/g, ' ');
 
+/** Impede que a fronteira de um clone raso seja tratada como último toque real. */
+export function assertFreshnessCommitUsable(isShallowBoundary, relPath = '<path>') {
+  if (isShallowBoundary) {
+    throw new Error(
+      `[system-map] histórico Git insuficiente para medir frescor de ${relPath}. `
+      + 'Use checkout fetch-depth: 0 ou rode `git fetch --unshallow`.',
+    );
+  }
+}
+
+let SHALLOW_BOUNDARIES = null;
+function shallowBoundaries() {
+  if (SHALLOW_BOUNDARIES) return SHALLOW_BOUNDARIES;
+  try {
+    const isShallow = execFileSync(
+      'git',
+      [...GIT_SAFE_ARGS, 'rev-parse', '--is-shallow-repository'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim() === 'true';
+    if (!isShallow) return (SHALLOW_BOUNDARIES = new Set());
+    const shallowPath = execFileSync(
+      'git',
+      [...GIT_SAFE_ARGS, 'rev-parse', '--git-path', 'shallow'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim();
+    const absolute = resolve(ROOT, shallowPath);
+    return (SHALLOW_BOUNDARIES = new Set(read(absolute).split(/\r?\n/).filter(Boolean)));
+  } catch (error) {
+    const detalhe = error instanceof Error ? error.message : String(error);
+    throw new Error(`[system-map] não foi possível verificar a fronteira rasa do Git: ${detalhe}`);
+  }
+}
+
 /**
  * Âncora estrutural mínima para explicações de fluxo. O diagrama continua sendo
  * explicação humana, mas deixa de sobreviver silenciosamente quando o caminho do
@@ -187,12 +220,16 @@ function frontmatter(txt) {
 }
 // último commit que tocou um path (data ISO curta) — frescor REAL, não declarado
 function gitLastDate(relPath) {
+  let out;
   try {
-    const out = execFileSync('git', [...GIT_SAFE_ARGS, 'log', '-1', '--format=%cs', '--', relPath], {
+    out = execFileSync('git', [...GIT_SAFE_ARGS, 'log', '-1', '--format=%H%x00%cs', '--', relPath], {
       cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
     }).toString().trim();
-    return out || null;
   } catch { return null; }
+  if (!out) return null;
+  const [commit, date] = out.split('\0');
+  assertFreshnessCommitUsable(shallowBoundaries().has(commit), relPath);
+  return date || null;
 }
 function daysSince(isoDate) {
   if (!isoDate) return null;

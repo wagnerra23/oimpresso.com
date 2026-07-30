@@ -63,6 +63,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          # system-map usa git log por BRIEFING; checkout raso fabricaria a data
+          # do merge para todos os módulos e produziria drift falso.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -75,9 +79,11 @@ jobs:
       - name: Diagnóstico em caso de drift
         if: failure()
         run: |
-          echo "::error::Um SUPERFICIE.md ficou atrás da árvore. Regenere o módulo afetado:"
+          echo "::error::Uma projeção derivada ficou atrás das fontes. Rode os checks abaixo:"
           echo "  node scripts/governance/module-surface.mjs <Mod> --write"
-          echo "e commite o SUPERFICIE.md atualizado."
+          echo "  node scripts/governance/catalog-graph.mjs"
+          echo "  node scripts/governance/system-map.mjs"
+          echo "e commite somente as projeções que mudarem."
 
   # Transação de módulo novo: o diff em module.json só fica ativável quando
   # runtime, contrato, teste, catálogo, superfície e painel fecham juntos.
