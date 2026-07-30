@@ -280,18 +280,11 @@ it('Services Wave 25 mantêm PT-BR em comments docblock', function () {
     }
 });
 
-it('FormRequests Wave 25 Admin existem em filesystem', function () {
-    expect(file_exists(base_path('Modules/Admin/Http/Requests/RemediationRequest.php')))->toBeTrue();
-    expect(file_exists(base_path('Modules/Admin/Http/Requests/AlertAcknowledgeRequest.php')))->toBeTrue();
-});
-
-it('FormRequests Wave 25 namespace canônico Modules\\Admin\\Http\\Requests', function () {
-    require_once base_path('Modules/Admin/Http/Requests/RemediationRequest.php');
-    require_once base_path('Modules/Admin/Http/Requests/AlertAcknowledgeRequest.php');
-
-    expect(class_exists(\Modules\Admin\Http\Requests\RemediationRequest::class))->toBeTrue();
-    expect(class_exists(\Modules\Admin\Http\Requests\AlertAcknowledgeRequest::class))->toBeTrue();
-});
+// Os 2 casos "FormRequests Wave 25 Admin" foram REMOVIDOS em 2026-07-29 com a
+// depreciacao do Modules/Admin (ADR 0360 supersede 0122). Eles afirmavam
+// EXISTENCIA de arquivo (file_exists + require_once), nao comportamento — e o
+// require_once num arquivo deletado e FATAL do PHP: derruba o processo inteiro
+// em vez de falhar 2 casos. Nada a migrar: os FormRequests nao tinham endpoint.
 
 // ---------- Cenários 21-25: cross-tenant guards adicionais ----------
 

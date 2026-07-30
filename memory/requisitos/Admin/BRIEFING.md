@@ -2,7 +2,13 @@
 id: requisitos-admin-briefing
 ---
 
-# BRIEFING — Modules/Admin (Admin Center @ CT 100)
+# BRIEFING — Modules/Admin (Admin Center @ CT 100) — REMOVIDO
+
+> ⛔ **MÓDULO REMOVIDO em 2026-07-29** — [ADR 0360](../../decisions/0360-deprecacao-admin-center-supersede-0122.md) (supersede a [0122](../../decisions/0122-admin-center-ct100.md)).
+>
+> `Modules/Admin/` e `resources/js/Pages/Admin/` não existem mais. Este documento fica como **histórico** porque as duas ADRs o referenciam e ADR é append-only — não se conserta link nelas.
+>
+> **Não use como estado atual.** O painel nunca entrou em operação: `/admin/*` respondia 403 fora do Tailscale, `mcp_admin_audit_log` tinha 0 linhas em produção e `US-ADM-002`/`US-ADM-010` (DNS + smoke) nunca fecharam. O que valia resgate saiu antes: o gerador de UI-CATALOG foi pra `Modules/Governance` e o `CuradorStatsReader` pra `Modules/Arquivos`.
 
 > **Estado consolidado 1-pager** · Atualizado: 2026-05-16 (pós-PR3 governance-v3-docs `na_justified` declarado)
 > Canon: [SPEC.md](SPEC.md) · ADR mãe: [0122](../../decisions/0122-admin-center-ct100.md) · Rubrica v3: [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)

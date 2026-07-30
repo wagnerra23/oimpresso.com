@@ -1,11 +1,14 @@
-# Módulo: Admin
+# Módulo: Admin — REMOVIDO
+
+> ⛔ **Removido em 2026-07-29** — [ADR 0360](../decisions/0360-deprecacao-admin-center-supersede-0122.md).
+> `Modules/Admin/` não existe mais. Tudo abaixo é retrato do dia em que foi removido, mantido como histórico.
 
 > **Centro de Operações Wagner-only @ CT 100 (Tailscale-only). Agrega Curador, Health Checks, Cycles+Tasks, ADRs Tier 0 violados. Read-mostly. Não substitui Officeimpresso superadmin nem /copiloto/admin/team — agrega visão deles. Ver ADR 0122.**
 
 - **Alias:** `admin`
 - **Versão:** ?
 - **Path:** `D:\oimpresso.com\Modules/Admin`
-- **Status:** 🟢 ativo
+- **Status:** ⛔ removido (2026-07-29, ADR 0360)
 - **Providers:** Modules\Admin\Providers\AdminServiceProvider
 - **Requires (módulo.json):** nenhum
 
