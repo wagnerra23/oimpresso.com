@@ -16,7 +16,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/Admin/ProjectsController@index` (rota `ads.admin.projects.index`; controller em ProjectMgmt, URL sob `/ads`). Lista os Projects estratégicos (`mcp_projects`) e cria novos; multi-tenant Tier 0 via `businessId` resolvido da sessão.
+> Backend: `Modules/Forja/Http/Controllers/Admin/ProjectsController@index` (rota `ads.admin.projects.index`; controller em ProjectMgmt, URL sob `/ads`). Lista os Projects estratégicos (`mcp_projects`) e cria novos; multi-tenant Tier 0 via `businessId` resolvido da sessão.
 
 ---
 

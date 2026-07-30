@@ -8,7 +8,7 @@
 // Props:
 //   open / onOpenChange — controlled state (AppShellV2 é dono do trigger Cmd+K)
 //
-// Endpoint backend: Modules/ProjectMgmt/Http/Controllers/SearchController.php
+// Endpoint backend: Modules/Forja/Http/Controllers/SearchController.php
 
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';

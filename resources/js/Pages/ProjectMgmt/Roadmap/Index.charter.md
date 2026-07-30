@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/RoadmapController@index` (rota `project-mgmt.roadmap.index`, permissão `jana.mcp.usage.all`). **Silenciosa:** o corpo dominante é um layout de colunas por quarter com cards de epic (roadmap bespoke); há `KpiGrid` de header, mas a tela não é um dos 5 Padrões de Tela — não há dnd (não é Kanban) nem tabela/grid de lista. Honestidade > cobertura.
+> Backend: `Modules/Forja/Http/Controllers/RoadmapController@index` (rota `project-mgmt.roadmap.index`, permissão `jana.mcp.usage.all`). **Silenciosa:** o corpo dominante é um layout de colunas por quarter com cards de epic (roadmap bespoke); há `KpiGrid` de header, mas a tela não é um dos 5 Padrões de Tela — não há dnd (não é Kanban) nem tabela/grid de lista. Honestidade > cobertura.
 
 ---
 

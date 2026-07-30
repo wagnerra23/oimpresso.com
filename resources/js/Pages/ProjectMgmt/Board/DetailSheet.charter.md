@@ -16,7 +16,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/BoardController@show` — `GET /project-mgmt/board/{taskId}/detail` (rota `project-mgmt.board.show`, permissão `jana.mcp.usage.all`). **Componente**, não página com rota própria: é o drawer slide-in aberto ao clicar num card do Board (`/project-mgmt/board`). História PMG-004 (ADR 0100) — não é ID no formato `US-...`, por isso `related_us` foi omitido. **Silencioso:** sheet de detalhe bespoke — sem `FsmActionPanel`/`Timeline`/`<dl>`/`StatCard`, sem tabela/form/kanban/kpi; nenhum dos 5 Padrões de Tela se aplica.
+> Backend: `Modules/Forja/Http/Controllers/BoardController@show` — `GET /project-mgmt/board/{taskId}/detail` (rota `project-mgmt.board.show`, permissão `jana.mcp.usage.all`). **Componente**, não página com rota própria: é o drawer slide-in aberto ao clicar num card do Board (`/project-mgmt/board`). História PMG-004 (ADR 0100) — não é ID no formato `US-...`, por isso `related_us` foi omitido. **Silencioso:** sheet de detalhe bespoke — sem `FsmActionPanel`/`Timeline`/`<dl>`/`StatCard`, sem tabela/form/kanban/kpi; nenhum dos 5 Padrões de Tela se aplica.
 
 ---
 

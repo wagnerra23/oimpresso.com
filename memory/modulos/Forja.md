@@ -4,9 +4,9 @@
 
 - **Alias:** `projectmgmt`
 - **Versão:** ?
-- **Path:** `D:\oimpresso.com\Modules/ProjectMgmt`
+- **Path:** `D:\oimpresso.com\Modules/Forja`
 - **Status:** 🟢 ativo
-- **Providers:** Modules\ProjectMgmt\Providers\ProjectMgmtServiceProvider
+- **Providers:** Modules\Forja\Providers\ForjaServiceProvider
 - **Requires (módulo.json):** nenhum
 
 ## Sinais detectados

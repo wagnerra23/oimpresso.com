@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/ActivityController@index` (rota `project-mgmt.activity.index`, permissão `jana.mcp.usage.all`). Feed cronológico de eventos append-only. **Silenciosa:** o corpo dominante é um feed/timeline bespoke — há um `KpiGrid` de header, mas a tela não é um dos 5 Padrões de Tela; declarar um PT seria ruído. Honestidade > cobertura.
+> Backend: `Modules/Forja/Http/Controllers/ActivityController@index` (rota `project-mgmt.activity.index`, permissão `jana.mcp.usage.all`). Feed cronológico de eventos append-only. **Silenciosa:** o corpo dominante é um feed/timeline bespoke — há um `KpiGrid` de header, mas a tela não é um dos 5 Padrões de Tela; declarar um PT seria ruído. Honestidade > cobertura.
 
 ---
 

@@ -3,7 +3,7 @@
 //   module: ProjectMgmt
 //   stories: US-TR-201 (Kanban Page)
 //   adrs: 0070 (Jira-style PM), 0039 (cockpit como layout-mae do ERP)
-//   tests: Modules/ProjectMgmt/Tests/Feature/BoardControllerTest (TBD)
+//   tests: Modules/Forja/Tests/Feature/BoardControllerTest (TBD)
 //   status: implementada (PR1)
 //   permissao: jana.mcp.usage.all
 //

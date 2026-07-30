@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/BacklogController@index` (rota `project-mgmt.backlog.index`, permissão `jana.mcp.usage.all`). Lista densa filtrável com bulk edit sobre as tabelas internas `mcp_*` do PM Jira-style do time.
+> Backend: `Modules/Forja/Http/Controllers/BacklogController@index` (rota `project-mgmt.backlog.index`, permissão `jana.mcp.usage.all`). Lista densa filtrável com bulk edit sobre as tabelas internas `mcp_*` do PM Jira-style do time.
 
 ---
 

@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/MyWorkController@index` (rota `project-mgmt.my-work.index`, permissão `jana.mcp.usage.all`). Cockpit do operador (ADR 0039): KPIs + minhas tasks ativas + Inbox de notificações.
+> Backend: `Modules/Forja/Http/Controllers/MyWorkController@index` (rota `project-mgmt.my-work.index`, permissão `jana.mcp.usage.all`). Cockpit do operador (ADR 0039): KPIs + minhas tasks ativas + Inbox de notificações.
 
 ---
 

@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/BurndownController@index` (rota `project-mgmt.burndown.index`, permissão `jana.mcp.usage.all`). Dashboard de burndown do cycle: KPIs + gráfico SVG ideal vs real.
+> Backend: `Modules/Forja/Http/Controllers/BurndownController@index` (rota `project-mgmt.burndown.index`, permissão `jana.mcp.usage.all`). Dashboard de burndown do cycle: KPIs + gráfico SVG ideal vs real.
 
 ---
 
