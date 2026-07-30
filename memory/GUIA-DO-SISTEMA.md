@@ -52,7 +52,7 @@ Camada de cima **herda** da de baixo e **nunca contradiz**. Detalhe canônico (a
 ### A3. Stack canônica (resumo — fonte: [what-oimpresso.md](what-oimpresso.md))
 
 - **Laravel 13.6 + PHP 8.4** · **MySQL** · **Inertia v3 + React 19 + Tailwind 4** · **Pest v4**
-- **nWidart Modules** (`Modules/<Nome>/`) — hoje **44 detectados / 36 ativos** ([modulos/INDEX.md](modulos/INDEX.md), auto-gerado)
+- **nWidart Modules** (`Modules/<Nome>/`) — lista viva em [reference/PAINEL-SISTEMA.md](reference/PAINEL-SISTEMA.md) §"Módulos & verticais" (derivada da árvore; quantos são = `git ls-tree -d --name-only HEAD Modules/ | wc -l`)
 - **IA:** `laravel/ai` (camada A) + Agents próprios Jana (camada B) + memória Meilisearch (camada C) — [ADR 0035](decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)
 
 ### A4. Onde roda (Tier 0 IRREVOGÁVEL — [ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
