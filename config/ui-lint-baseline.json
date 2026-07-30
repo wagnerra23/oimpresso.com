@@ -795,33 +795,33 @@
         "resources\/js\/Pages\/Produto\/Unificado\/Index.tsx": {
             "R1": 74
         },
-        "resources\/js\/Pages\/ProjectMgmt\/Activity\/Index.tsx": {
+        "resources\/js\/Pages\/Forja\/Activity\/Index.tsx": {
             "R1": 4
         },
-        "resources\/js\/Pages\/ProjectMgmt\/Backlog\/Index.tsx": {
+        "resources\/js\/Pages\/Forja\/Backlog\/Index.tsx": {
             "R1": 7
         },
-        "resources\/js\/Pages\/ProjectMgmt\/Board\/DetailSheet.tsx": {
+        "resources\/js\/Pages\/Forja\/Board\/DetailSheet.tsx": {
             "R1": 61
         },
-        "resources\/js\/Pages\/ProjectMgmt\/Board\/Index.tsx": {
+        "resources\/js\/Pages\/Forja\/Board\/Index.tsx": {
             "R1": 6
         },
-        "resources\/js\/Pages\/ProjectMgmt\/Burndown\/Index.tsx": {
+        "resources\/js\/Pages\/Forja\/Burndown\/Index.tsx": {
             "R1": 3
         },
-        "resources\/js\/Pages\/ProjectMgmt\/Inbox\/Index.tsx": {
+        "resources\/js\/Pages\/Forja\/Inbox\/Index.tsx": {
             "R1": 7,
             "R3": 1
         },
-        "resources\/js\/Pages\/ProjectMgmt\/MyWork\/Index.tsx": {
+        "resources\/js\/Pages\/Forja\/MyWork\/Index.tsx": {
             "R1": 4,
             "R3": 1
         },
-        "resources\/js\/Pages\/ProjectMgmt\/Roadmap\/Index.tsx": {
+        "resources\/js\/Pages\/Forja\/Roadmap\/Index.tsx": {
             "R1": 18
         },
-        "resources\/js\/Pages\/ProjectMgmt\/Triage\/Index.tsx": {
+        "resources\/js\/Pages\/Forja\/Triage\/Index.tsx": {
             "R1": 21,
             "R3": 1
         },
