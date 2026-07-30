@@ -2244,9 +2244,7 @@
   },
   "unstamped": [
     "memory/00-user-profile.md",
-    "memory/01-project-overview.md",
     "memory/02-technical-stack.md",
-    "memory/03-architecture.md",
     "memory/04-conventions.md",
     "memory/06-domain-glossary.md",
     "memory/07-roadmap.md",
@@ -3344,12 +3342,12 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3338,
+    "total": 3336,
     "resolved": 2240,
-    "unstamped": 1098,
+    "unstamped": 1096,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1098,
+      "unstamped": 1096,
       "derived-adr": 366,
       "stamped": 979,
       "derived-handoffs": 345,
