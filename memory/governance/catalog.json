@@ -24,7 +24,7 @@
   "stats": {
     "modules": 38,
     "nodes": 617,
-    "edges": 940,
+    "edges": 942,
     "by_node_type": {
       "module": 43,
       "table": 84,
@@ -40,8 +40,8 @@
       "charteredByAdr": 33,
       "governedByAdr": 96,
       "hasComponent": 411,
-      "dependsOn": 136,
-      "delegatesTo": 127,
+      "dependsOn": 137,
+      "delegatesTo": 128,
       "migratesTo": 1
     },
     "dangling": 0
@@ -8817,6 +8817,13 @@
     },
     {
       "from": "module:PaymentGateway",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Plano de contas contábil"
+    },
+    {
+      "from": "module:PaymentGateway",
       "to": "module:NfeBrasil",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -8839,6 +8846,13 @@
     {
       "from": "module:PaymentGateway",
       "to": "module:Accounting",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Plano de contas contábil"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "module:Financeiro",
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Plano de contas contábil"
