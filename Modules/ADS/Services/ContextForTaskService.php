@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Governance\Services\PolicyEngine;
 // UserScopeService saiu do ADS pra Forja. Aqui ele era resolvido por
 // mesmo-namespace (sem `use`) — por isso nenhum grep de import o encontrava.
+// DecisionLinksService seguiu o mesmo caminho na parte 6 (ADR 0363), pelo
+// mesmo motivo: a Forja é consumidora viva dela.
+use Modules\Forja\Services\DecisionLinksService;
 use Modules\Forja\Services\UserScopeService;
 
 /**

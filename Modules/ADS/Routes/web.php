@@ -21,9 +21,11 @@ use Modules\ADS\Http\Controllers\InstallController;
 // frontend chama esses endpoints por string literal (não por `route()`), então
 // renomear quebraria em silêncio.
 //
-// GraphController (Modules/KB) segue registrado aqui: `/ads/admin/graph` morre na
-// parte 6/7 (o KB já tem grafo próprio em /kb/graph), não é rota a realocar.
-use Modules\KB\Http\Controllers\Admin\GraphController;
+// A rota do GraphController (Modules/KB) saiu daqui na parte 6 — ver bloco
+// abaixo. O comentário anterior dizia que ela podia morrer "porque o KB já tem
+// grafo próprio em /kb/graph": medido em 2026-07-31, `/kb/graph` NÃO EXISTE em
+// nenhum `Routes/*.php` do repo, então `/ads/admin/graph` era a única porta
+// dessa tela.
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
 // Pattern: ADR 0024 / feedback_pattern_install_modulos
@@ -106,14 +108,14 @@ Route::group([
     Route::post('/admin/meta-skills/validate', [MetaSkillsController::class, 'validateRule'])
         ->name('ads.admin.metaskills.validate');
 
-    // KB duplicado removido (PR feat/delete-ads-kb-duplicate) — ver módulo Modules/KB
-    // URL canônica é /kb (não mais /ads/admin/kb)
-    Route::redirect('/admin/kb', '/kb', 301);
-    Route::redirect('/admin/kb/{slug}', '/kb/{slug}/show', 301)
-        ->where('slug', '[A-Za-z0-9\-_\.]+');
+    // /admin/kb (2 redirects 301) e /admin/graph → Modules/Forja/Http/routes.php
+    // (parte 6, 2026-07-31). Saíram daqui porque NÃO são do ADS: o graph serve o
+    // GraphController do Modules/KB e a page Pages/ads/Admin/Graph.tsx, ambos
+    // vivos — ficariam 404 quando este arquivo for deletado com o módulo.
+    // Saíram daqui em vez de serem copiadas lá: `route:cache` está ativo em prod
+    // e o name `ads.admin.graph.index` não pode existir nos dois arquivos.
 
     // /admin/team-scopes/* → Modules/Forja/Http/routes.php (parte 5/7, 2026-07-31)
-    Route::get('/admin/graph',     [GraphController::class,     'index'])->name('ads.admin.graph.index');
     Route::get('/admin/conflicts', [ConflictsController::class, 'index'])->name('ads.admin.conflicts.index');
 
     // /admin/projects/* → Modules/Forja/Http/routes.php (parte 5/7, 2026-07-31)

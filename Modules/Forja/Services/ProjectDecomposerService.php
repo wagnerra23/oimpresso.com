@@ -5,12 +5,11 @@ namespace Modules\Forja\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\Privacy\PiiRedactor;
-use Modules\ADS\Ai\Agents\ProjectDecomposerAgent;
-// Estas duas ainda moram no ADS. Eram resolvidas por mesmo-namespace enquanto
-// este service era `Modules\ADS\Services` — ao vir pra Forja viraram import
-// explícito. Acoplamento Forja→ADS transitório: quem decide o destino delas é
-// a parte 6 (remoção do núcleo do ADS), não esta.
-use Modules\ADS\Services\DecisionLinksService;
+// A parte 6 (ADR 0363) resolveu o acoplamento transitório que esta linha
+// carregava: as duas peças vieram junto pra Forja em vez de morrer com o
+// núcleo do ADS, porque este service é consumidor vivo das duas.
+// `DecisionLinksService` agora é do mesmo namespace e dispensa import.
+use Modules\Forja\Ai\Agents\ProjectDecomposerAgent;
 
 /**
  * Observabilidade D9.a (ADR 0155): chamada Sonnet envolto em

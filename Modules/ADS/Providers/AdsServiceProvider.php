@@ -14,7 +14,6 @@ use Modules\ADS\Services\PatternLearningService;
 use Modules\ADS\Services\AutoTaskGeneratorService;
 use Modules\ADS\Services\PlannerService;
 use Modules\Governance\Services\GovernanceRulesService;
-use Modules\ADS\Services\DecisionLinksService;
 use Modules\ADS\Services\ContextForTaskService;
 use Modules\ADS\Http\Middleware\AdsApiAuth;
 use Modules\ADS\Console\Commands\AdsHealthCommand;
@@ -58,13 +57,13 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(AutoTaskGeneratorService::class);
         $this->app->singleton(PlannerService::class);
         $this->app->singleton(GovernanceRulesService::class);
-        $this->app->singleton(DecisionLinksService::class);
         $this->app->singleton(ContextForTaskService::class);
         // ToolRegistry, ProjectDecomposerService e UserScopeService saíram daqui
         // em 2026-07-31 — o registro foi JUNTO com as classes, pro
         // ForjaServiceProvider::register(). Sem isso a classe muda de casa e
         // ninguém a registra (o container até auto-resolve, mas o `singleton`
         // some — e o ToolRegistry instancia 11 tools por resolução).
+        // `DecisionLinksService` seguiu o mesmo caminho na parte 6 (ADR 0363).
     }
 
     protected function registerConfig(): void

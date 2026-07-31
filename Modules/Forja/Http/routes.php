@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Route;
 use Modules\Forja\Http\Controllers\Admin\ProjectsController;
 use Modules\Forja\Http\Controllers\Admin\TeamScopesController;
 use Modules\Forja\Http\Controllers\Admin\ToolsController;
+// Controller de OUTRO módulo (KB). Este arquivo só hospeda a ROTA — o código
+// segue sendo do KB. Veio na parte 6 (ADR 0363); ver bloco "Graph do KB".
+use Modules\KB\Http\Controllers\Admin\GraphController;
 
 /*
 |--------------------------------------------------------------------------
@@ -400,5 +403,24 @@ Route::group(
         Route::post('/admin/projects/{id}/decompose', [ProjectsController::class, 'decompose'])
             ->whereNumber('id')
             ->name('ads.admin.projects.decompose');
+
+        // ---- Graph do KB + redirects legados -------------------------------
+        // Recebidos na parte 6 (ADR 0363), quando `Modules/ADS/Routes/web.php`
+        // foi deletado junto com o módulo. NÃO são do ADS, e por isso não podiam
+        // morrer com ele:
+        //   • `/ads/admin/graph` serve `Modules\KB\…\GraphController` e a page
+        //     `Pages/ads/Admin/Graph.tsx` — módulo KB, vivo. A parte 5 levou
+        //     tools/team-scopes/projects e deixou esta pra trás; deletar o ADS
+        //     sem movê-la daria 404 numa tela viva de módulo sobrevivente.
+        //   • os dois 301 pra /kb são compatibilidade de URL antiga (o KB
+        //     duplicado saiu do ADS num PR anterior).
+        // URL e name preservados — ADR 0087. Middlewares do grupo de origem
+        // conferidos idênticos aos deste antes de mover.
+        Route::get('/admin/graph', [GraphController::class, 'index'])
+            ->name('ads.admin.graph.index');
+
+        Route::redirect('/admin/kb', '/kb', 301);
+        Route::redirect('/admin/kb/{slug}', '/kb/{slug}/show', 301)
+            ->where('slug', '[A-Za-z0-9\-_\.]+');
     }
 );

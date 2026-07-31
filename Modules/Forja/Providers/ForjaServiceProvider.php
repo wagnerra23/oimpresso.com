@@ -11,6 +11,7 @@ use Modules\Forja\Console\Commands\HandoffStaleAlertCommand;
 use Modules\Forja\Console\Commands\GenerateBriefCommand;
 use Modules\Forja\Console\Commands\SkillTierReviewCommand;
 use Modules\Forja\Console\Commands\SeedActorsCommand;
+use Modules\Forja\Services\DecisionLinksService;
 use Modules\Forja\Services\ProjectDecomposerService;
 use Modules\Forja\Services\ToolRegistry;
 use Modules\Forja\Services\UserScopeService;
@@ -87,6 +88,12 @@ class ForjaServiceProvider extends ServiceProvider
         $this->app->singleton(ToolRegistry::class);
         $this->app->singleton(UserScopeService::class);
         $this->app->singleton(ProjectDecomposerService::class);
+
+        // Recebido na parte 6 (ADR 0363) pelo mesmo motivo: o
+        // `ProjectDecomposerService` acima injeta `DecisionLinksService` no
+        // construtor, então a classe veio junto em vez de morrer com o núcleo
+        // do ADS — e o registro vem junto da classe, como o bloco acima ensina.
+        $this->app->singleton(DecisionLinksService::class);
     }
 
     protected function registerConfig(): void

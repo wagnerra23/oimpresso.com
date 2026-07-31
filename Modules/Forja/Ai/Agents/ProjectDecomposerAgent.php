@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ADS\Ai\Agents;
+namespace Modules\Forja\Ai\Agents;
 
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Promptable;
