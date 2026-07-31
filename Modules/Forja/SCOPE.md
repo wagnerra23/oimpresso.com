@@ -18,6 +18,8 @@ contains:
   # MCP endpoints — recebidos de Modules/Jana em 2026-07-30 ([W] "MCP vai para Forja")
   - "Mcp/SyncMemoryWebhookController — webhook GitHub → mcp_memory_documents; URL /api/mcp/sync-memory inalterada"
   - "Mcp/HealthController — health/version/cycle-active; URLs /api/mcp/* inalteradas"
+  # Absorvido do Modules/Brief em 2026-07-30 (ADR 0091 — o módulo Brief deixou de existir):
+  - "BriefFetchController — endpoint HTTP da tool MCP `brief-fetch` (POST /api/mcp/tools/brief-fetch); Daily Brief L7"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"

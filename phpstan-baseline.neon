@@ -1030,13 +1030,13 @@ parameters:
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 3
-			path: Modules/Brief/Config/retention.php
+			path: Modules/Forja/Config/brief-retention.php
 
 		-
 			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:header\(\)\.$#'
 			identifier: method.notFound
 			count: 1
-			path: Modules/Brief/Mcp/Tools/BriefFetchTool.php
+			path: Modules/Forja/Mcp/Tools/BriefFetchTool.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'

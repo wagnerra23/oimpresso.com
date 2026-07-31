@@ -46,7 +46,7 @@ use Throwable;
  *
  * @see Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php (a regra · US-INFRA-043)
  * @see Modules/Governance/Services/ObraParadaBriefLineService.php (pattern irmão)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 final class TasksSemDonoBriefLineService
 {

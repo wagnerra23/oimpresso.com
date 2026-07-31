@@ -38,7 +38,7 @@ use Throwable;
  * @see scripts/governance/agent-pr-outcomes.mjs (medidor · shape {ok,agent,metrics,gaps})
  * @see .github/workflows/agent-pr-outcomes.yml (relatório semanal irmão, job summary)
  * @see Modules\Governance\Services\AdrReviewBriefLineService (pattern irmão)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 final class AgentOutcomeBriefSectionService
 {

@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  *
  * @see Modules/Jana/Services/TasksSemDonoBriefLineService.php
  * @see Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php (a regra)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 beforeEach(function () {

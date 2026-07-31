@@ -43,7 +43,7 @@ use Throwable;
  *
  * @see scripts/governance/cron-watchdog.mjs (sentinela · eixo 2 · shape {gate,limite_dias,parados[]})
  * @see Modules\Governance\Services\AdrPendenteBriefLineService (pattern irmão)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 final class ObraParadaBriefLineService
 {

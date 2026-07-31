@@ -39,11 +39,30 @@ class DataController extends Controller
     /**
      * Permissões expostas no cadastro de papéis (Roles) do UltimatePOS.
      *
-     * NÃO declara permissões — as telas reusam `jana.mcp.usage.all`.
+     * As telas da Forja reusam `jana.mcp.usage.all` — não declaram permissão
+     * própria.
+     *
+     * `brief.access` veio do ex-Modules/Brief (absorvido em 2026-07-30, ADR
+     * 0091) e é declarada AQUI de propósito: ela é ENFORÇADA por
+     * GenerateBriefRequest e ForceRefreshBriefRequest via `can('brief.access')`.
+     * Sem este ponto de declaração o checkbox some de /roles/{id}/edit,
+     * ninguém consegue conceder a permissão e os dois requests passam a negar
+     * sempre. Habilitar/desabilitar é pela UI canônica, nunca por hardcode
+     * (memory/proibicoes.md — Camada 3, Spatie por papel).
+     *
+     * O pacote `brief_module` NÃO foi trazido: nada o consumia
+     * (`ModuleUtil::hasThePermissionInSubscription` não o referencia em lugar
+     * nenhum) e a Forja já é gateada por `project_mgmt_module`.
      */
     public function user_permissions()
     {
-        return [];
+        return [
+            [
+                'value'   => 'brief.access',
+                'label'   => 'Brief: acessar tool brief-fetch + admin',
+                'default' => false,
+            ],
+        ];
     }
 
     /**

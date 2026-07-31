@@ -136,7 +136,7 @@ docblock, e não vê a direção contrária. Classe **LC-08** do ledger.
 
 ## Fase 1 — Inventário
 
-**Gerado:** [`SUPERFICIE.md`](SUPERFICIE.md) — **35 arquivos em 9 papéis** (`module-surface.mjs Brief --write`). Frescor 2026-07-30: `--check` **exit 0**.
+**Gerado:** `SUPERFICIE.md` — **35 arquivos em 9 papéis** (`module-surface.mjs Brief --write`). Frescor 2026-07-30: `--check` **exit 0**. ⚠️ **O arquivo foi REMOVIDO em 2026-07-30** junto com o módulo: mapa de superfície de módulo inexistente é afirmação falsa. Mesmo precedente de `memory/requisitos/SRS/`, que não tem `SUPERFICIE.md`. A superfície das peças absorvidas vive agora em [`memory/requisitos/Forja/SUPERFICIE.md`](../Forja/SUPERFICIE.md).
 
 Contornos: **0** telas `.tsx` · 2 arquivos em `Routes/` · **1 tool MCP** (`brief-fetch`) · **0** cron em `Kernel.php`.
 
