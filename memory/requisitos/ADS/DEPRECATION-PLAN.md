@@ -7,6 +7,88 @@ id: requisitos-ads-deprecation-plan
 > **Status:** 📋 Planejado · **Owner:** [W] · **Decisão:** [W] 2026-07-30 (*"todos esses eu vou deletar"*)
 > **Ordem no conjunto:** **4º de 6** — [proposal da ordem topológica](../../decisions/proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md)
 > 🔴 **O único dos 6 com volume alto e escrita ATIVA.** Não é zumbi: gravou hoje.
+>
+> ⚠️ **O plano MUDOU de rumo em 2026-07-31.** O destino não é mais "deletar": o `Modules/Governance`
+> **incorpora** o ADS — [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md),
+> que supersede a 0145. Ver a **ERRATA 2026-07-31** logo abaixo: ela corrige 4 fatos que a execução
+> mediu e que o corpo (incluindo a errata de 07-30) erra.
+
+## ⚠️ ERRATA 2026-07-31 — quatro correções que a EXECUÇÃO mediu (não altera o corpo)
+
+> Origem: as partes 1-3 da incorporação (PRs [#5127](https://github.com/wagnerra23/oimpresso.com/pull/5127) ·
+> [#5128](https://github.com/wagnerra23/oimpresso.com/pull/5128) · [#5129](https://github.com/wagnerra23/oimpresso.com/pull/5129))
+> mais o review adversarial de 4 agentes. **Onde este bloco discordar do corpo OU da errata de 07-30
+> sobre dado medido, este vence** — ele é o único escrito depois de rodar as coisas.
+
+### C1 — São **5** crons, não 6. A errata E2 (de 07-30) errou por filtro.
+
+A E2 declara *"O plano declara 0 crons. São **6**, e todos rodam em `live`"*. O oráculo de runtime em
+prod dá **5**. Reconstrução do 6: filtrando `ads` **sem** os dois-pontos aparecem 7 linhas — as 5 reais
+mais duas do WhatsApp com "downl**oads**"; e como a linha do Job não carrega string de comando, um filtro
+sobre `$e->command` fecha em 5+1.
+
+Os cinco, nomeados (hoje registrados no comentário-lápide de [`app/Console/Kernel.php`](../../../app/Console/Kernel.php),
+que os desligou): `ads:review-decisions` (15min) · `ads:learn-patterns` (02:00) ·
+`ads:auto-generate-tasks` (9-18h úteis) · `ads:plan-decisions` (10min) · `ads:process-brain-b` (5min).
+
+**E o produtor nunca foi só cron.** Havia um sexto que nenhuma varredura de `Kernel.php` acharia:
+`ads-brain-a.service`, **systemd no CT 100**, `Restart=on-failure`, ativo desde maio, fazendo poll de
+`/api/ads/*` a cada ~5s. Journal dos ~73 dias: **16.832 `HTTP 503`** · 5.074 decisões enviadas · **2.199**
+classificadas `unknown_commit`. Desligado (`inactive`/`disabled`, 0 processos), reversível por
+`systemctl enable --now`. Efeito medido pós-deploy: `schedule:list` de **103 → 98**, com **0** crons
+`ads:`. A lição operacional: *"quem grava"* não se responde só pelo scheduler do app quando existe host
+próprio rodando daemon.
+
+### C2 — 🔴 O DROP de `mcp_dual_brain_decisions` **também** quebra a Forja, não só as 2 tabelas de projeto.
+
+A errata E3 corrigiu o caso de `mcp_projects`/`mcp_project_parts`. Faltou o principal: a **Fase 4 marca a
+própria `mcp_dual_brain_decisions` como decisão ARCHIVE-ou-DROP** sem registrar que ela tem **consumidor
+externo sobrevivente**.
+
+[`Modules/Forja/Services/ProjectService.php:160`](../../../Modules/Forja/Services/ProjectService.php)
+faz `DB::table('mcp_dual_brain_decisions')->where('project_id', …)->get(...)`, **sem `try/catch`**. A
+Forja não está na lista de deleção. O DROP converte a tela de detalhe de projeto em `SQLSTATE 42S02` →
+**500** — exatamente a mesma classe de falha que a E3 descreveu, na tabela que a E3 não olhou.
+
+**Correção:** o DROP de `mcp_dual_brain_decisions` exige **patch prévio no `ProjectService`** (o bloco de
+decisões vira opcional/removido), na mesma leva. A decisão de dado ficou **ARCHIVE → DROP preservando as
+41 linhas com decisão humana** (dump no CT 100, **nunca em git** — 87,75 MB), registrada na ADR 0363.
+
+### C3 — `Modules/ADS/Routes/web.php` é o **único host** de 9 rotas da Forja.
+
+O plano trata as rotas do ADS como se fossem todas do ADS. Não são: **9** apontam para controllers da
+**Forja**, e o arquivo de rotas da Forja **não tem nenhuma delas**. Contado no arquivo:
+
+| Bloco | Rotas | Controller (Forja) |
+|---|---:|---|
+| `/ads/admin/tools*` | 2 | `Admin\ToolsController` |
+| `/ads/admin/team-scopes*` | 3 | `Admin\TeamScopesController` |
+| `/ads/admin/projects*` | 4 | `Admin\ProjectsController` |
+
+Apagar `Modules/ADS/Routes/web.php` sem receptor derruba as 9 — três telas vivas de um módulo que
+sobrevive. **A Forja precisa assumir as 9 ANTES da remoção do arquivo** (é a parte 5 da incorporação), e
+com **URL e route name congelados** (`ads.admin.*`), pelo padrão da [ADR 0087](../../decisions/0087-drift-resolution-sem-mover-url.md):
+troca-se só o FQCN no `Route::`, nunca o endereço.
+
+### C4 — `outcome='cancelled'` em 100% **não** significa "canceladas". É o DEFAULT da coluna.
+
+A errata E1 lê os 36.658 como *"todas foram canceladas"* e conclui que a decisão da Fase 4 fica mais
+fácil. A leitura do dado está errada — embora a conclusão continue valendo, por outro motivo.
+
+`outcome` é `->default('cancelled')` na
+[migration `2026_05_03_000004`, linha 43](../../../Modules/ADS/Database/Migrations/2026_05_03_000004_create_mcp_dual_brain_decisions_table.php),
+e o `DecisionPresenter` exibe esse mesmo estado como **"Aguardando você decidir"**. Ou seja: 100% de
+`cancelled` é **100% de linhas que nunca foram tocadas depois do INSERT** — não são decisões recusadas,
+são decisões que ninguém respondeu.
+
+O retrato correto (**prod `u906587222_oimpresso`, medido 2026-07-31**): **36.862** itens que nunca saíram
+do estado inicial · `resolved_by` em **41** (0,11%) · `pr_url` e `commit_sha` em **zero**. Contra os
+36.658 de 07-30, são **+204 em um dia** — a cadência que o C1 desligou.
+
+**Por que muda o argumento:** "canceladas" sugere um sistema que decidiu e disse não. O que havia era um
+laço aberto — sem outcome o `PatternLearning` não aprende, sem aprender nada é promovido, e tudo
+continua indo pra fila. O que faltava era um passo humano que nunca teve dono. É esse fato, e não o
+volume, que sustenta a decisão de que **o núcleo não tem receptor** (ADR 0363).
 
 ## ⚠️ ERRATA 2026-07-30 — três correções medidas (não altera o corpo)
 

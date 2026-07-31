@@ -3,9 +3,9 @@ slug: 0145-ia-administradora-pivot-ads-fsm-piloto-cobradora
 number: 145
 title: "IA Administradora do oimpresso — pivot ADS↔FSM + piloto Cobradora ROTA LIVRE"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-15"
 module: ADS
@@ -13,7 +13,7 @@ tags: [visao, ia-administradora, ads, fsm, cobradora, lgpd-art-20, anpd-nt-12-20
 supersedes: []
 supersedes_partially: []
 amends: [0094]
-superseded_by: []
+superseded_by: ['0363-governance-incorpora-ads-nucleo-sem-receptor']
 related: [0035-stack-ai-canonica-wagner-2026-04-26, 0048-framework-agentes-laravel-ai-vizra-rejeitada, 0053-mcp-server-governanca-como-produto, 0061-conhecimento-canonico-git-mcp-zero-automem, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0104-processo-mwart-canonico-unico-caminho, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0129-state-machine-canonica-fsm-rbac, 0131-tiering-memoria-canonico-local-segredo, 0140-jana-pro-produto-comercial-saas, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
 pii: false
 review_triggers:
