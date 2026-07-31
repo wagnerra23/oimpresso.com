@@ -24,7 +24,7 @@
   "stats": {
     "modules": 38,
     "nodes": 617,
-    "edges": 942,
+    "edges": 944,
     "by_node_type": {
       "module": 43,
       "table": 84,
@@ -40,8 +40,8 @@
       "charteredByAdr": 33,
       "governedByAdr": 96,
       "hasComponent": 411,
-      "dependsOn": 137,
-      "delegatesTo": 128,
+      "dependsOn": 138,
+      "delegatesTo": 129,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1982,6 +1982,20 @@
       "desc": "caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"
     },
     {
+      "id": "component:Forja/Mcp/HealthController",
+      "type": "component",
+      "module": "Forja",
+      "name": "Mcp/HealthController",
+      "desc": "health/version/cycle-active; URLs /api/mcp/* inalteradas"
+    },
+    {
+      "id": "component:Forja/Mcp/SyncMemoryWebhookController",
+      "type": "component",
+      "module": "Forja",
+      "name": "Mcp/SyncMemoryWebhookController",
+      "desc": "webhook GitHub → mcp_memory_documents; URL /api/mcp/sync-memory inalterada"
+    },
+    {
       "id": "component:Forja/MyWorkController",
       "type": "component",
       "module": "Forja",
@@ -2162,20 +2176,6 @@
       "module": "Jana",
       "name": "LICOES-OPERACAO.md",
       "desc": "ledger append-only dos erros de OPERAÇÃO da Jana (≠ saída, que golden/RAGAS cobrem); cada lição gradua MEC→check no jana:health-check ou JULG→regra sempre-lida. Proposta §10.4 (aguarda [W])"
-    },
-    {
-      "id": "component:Jana/Mcp/HealthController",
-      "type": "component",
-      "module": "Jana",
-      "name": "Mcp/HealthController",
-      "desc": "health/version/cycle-active do MCP server; URLs /api/mcp/* inalteradas"
-    },
-    {
-      "id": "component:Jana/Mcp/SyncMemoryWebhookController",
-      "type": "component",
-      "module": "Jana",
-      "name": "Mcp/SyncMemoryWebhookController",
-      "desc": "webhook GitHub → mcp_memory_documents; URL /api/mcp/sync-memory inalterada"
     },
     {
       "id": "component:Jana/MetasController",
@@ -7313,13 +7313,6 @@
     },
     {
       "from": "module:Forja",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP server admin"
-    },
-    {
-      "from": "module:Forja",
       "to": "module:ADS",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7345,13 +7338,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects)"
-    },
-    {
-      "from": "module:Forja",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Forja",
@@ -7410,6 +7396,18 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/InboxController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/Mcp/HealthController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/Mcp/SyncMemoryWebhookController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7756,6 +7754,20 @@
     },
     {
       "from": "module:Jana",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Mcp/HealthController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:Jana",
       "to": "module:Governance",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -7795,6 +7807,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Skills governance"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/HealthController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/SyncMemoryWebhookController"
     },
     {
       "from": "module:Jana",
@@ -7935,18 +7961,6 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/LICOES-OPERACAO.md",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/Mcp/HealthController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/Mcp/SyncMemoryWebhookController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10130,6 +10144,20 @@
     },
     {
       "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Mcp/HealthController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:TeamMcp",
       "to": "module:Governance",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -10141,20 +10169,6 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Chat IA conversacional"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Jana",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Mcp/HealthController"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Jana",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Mcp/SyncMemoryWebhookController"
     },
     {
       "from": "module:TeamMcp",
@@ -10207,6 +10221,20 @@
     },
     {
       "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/HealthController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:TeamMcp",
       "to": "module:Governance",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -10218,20 +10246,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Chat IA conversacional"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Jana",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Mcp/HealthController"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Jana",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Mcp/SyncMemoryWebhookController"
     },
     {
       "from": "module:TeamMcp",

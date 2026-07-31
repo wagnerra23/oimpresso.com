@@ -14,9 +14,9 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 61 arquivos em 11 papéis.
+**Total mapeado:** 63 arquivos em 11 papéis.
 
-## Controllers — 12
+## Controllers — 14
 
 - [ActivityController.php](../../../Modules/Forja/Http/Controllers/ActivityController.php)
 - [ProjectsController.php](../../../Modules/Forja/Http/Controllers/Admin/ProjectsController.php)
@@ -26,6 +26,8 @@ module: Forja
 - [DataController.php](../../../Modules/Forja/Http/Controllers/DataController.php)
 - [InboxController.php](../../../Modules/Forja/Http/Controllers/InboxController.php)
 - [InstallController.php](../../../Modules/Forja/Http/Controllers/InstallController.php)
+- [HealthController.php](../../../Modules/Forja/Http/Controllers/Mcp/HealthController.php)
+- [SyncMemoryWebhookController.php](../../../Modules/Forja/Http/Controllers/Mcp/SyncMemoryWebhookController.php)
 - [MyWorkController.php](../../../Modules/Forja/Http/Controllers/MyWorkController.php)
 - [RoadmapController.php](../../../Modules/Forja/Http/Controllers/RoadmapController.php)
 - [SearchController.php](../../../Modules/Forja/Http/Controllers/SearchController.php)

@@ -14,9 +14,9 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 573 arquivos em 19 papéis.
+**Total mapeado:** 571 arquivos em 19 papéis.
 
-## Controllers — 18
+## Controllers — 16
 
 - [CustosController.php](../../../Modules/Jana/Http/Controllers/Admin/CustosController.php)
 - [GovernancaController.php](../../../Modules/Jana/Http/Controllers/Admin/GovernancaController.php)
@@ -28,8 +28,6 @@ module: Jana
 - [DashboardController.php](../../../Modules/Jana/Http/Controllers/DashboardController.php)
 - [DataController.php](../../../Modules/Jana/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Jana/Http/Controllers/InstallController.php)
-- [HealthController.php](../../../Modules/Jana/Http/Controllers/Mcp/HealthController.php)
-- [SyncMemoryWebhookController.php](../../../Modules/Jana/Http/Controllers/Mcp/SyncMemoryWebhookController.php)
 - [MetasController.php](../../../Modules/Jana/Http/Controllers/MetasController.php)
 - [PainelController.php](../../../Modules/Jana/Http/Controllers/PainelController.php)
 - [PeriodosController.php](../../../Modules/Jana/Http/Controllers/PeriodosController.php)

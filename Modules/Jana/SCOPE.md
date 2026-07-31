@@ -28,11 +28,10 @@ contains:
   - "SuperadminController — superadmin package"
   # Aprendizado com erro / Reflexion runtime
   - "LICOES-OPERACAO.md — ledger append-only dos erros de OPERAÇÃO da Jana (≠ saída, que golden/RAGAS cobrem); cada lição gradua MEC→check no jana:health-check ou JULG→regra sempre-lida. Proposta §10.4 (aguarda [W])"
-  # Endpoints /api/mcp (de volta na E2b da deprecação do TeamMcp — sempre foram rotas jana.mcp.*)
-  - "Mcp/SyncMemoryWebhookController — webhook GitHub → mcp_memory_documents; URL /api/mcp/sync-memory inalterada"
-  - "Mcp/HealthController — health/version/cycle-active do MCP server; URLs /api/mcp/* inalteradas"
   - "Console/Commands/HealthCheckCommand — check jana_lesson_ledger_graduation valida o loop de graduação do ledger (advisory)"
 not_contains:
+  - "Mcp/SyncMemoryWebhookController → Modules/Forja (MCP é plataforma, [W] 2026-07-30)"
+  - "Mcp/HealthController → Modules/Forja (idem)"
   - "MemoriaController (browser KB) → Modules/KB"
   - "FontesController (knowledge sources) → Modules/KB"
   - "Mcp/CcIngestController → Modules/TeamMcp"
@@ -87,8 +86,8 @@ drift_alerts:
   # Mcp/CcIngest + Mcp/Health + Mcp/SyncMemoryWebhook → Modules/TeamMcp
   # URLs mantidas (/jana/memoria, /jana/metas/{id}/fonte, /api/mcp/*, /api/cc/*)
   # via tuple [Class::class, 'method'] e namespace prefix dos route groups.
-  # E2b (2026-07-30, deprecação do TeamMcp): Mcp/Health + Mcp/SyncMemoryWebhook
-  # VOLTARAM pra Modules/Jana. Só Mcp/CcIngest segue no TeamMcp. URLs inalteradas.
+  # E2b (2026-07-30): Mcp/Health + Mcp/SyncMemoryWebhook passaram por aqui e
+  # seguiram pra Modules/Forja no MESMO dia ([W] "MCP vai para Forja").
   - controller: "Admin/GovernancaController"
     pertence_a: "Modules/Governance (NOVO)"
     motivo: "Governança consolidada vai pra módulo dedicado"

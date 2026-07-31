@@ -257,48 +257,10 @@ Route::redirect('/jana/install',               '/ia/install',           301);
 Route::redirect('/jana/install/uninstall',     '/ia/install/uninstall', 301);
 Route::redirect('/jana/install/update',        '/ia/install/update',    301);
 
-// ===========================================================================
-// 3) MCP server endpoints (ADR 0053) — prefixo /api/mcp
-// ===========================================================================
-// Públicos (sem auth):
-//   POST /api/mcp/sync-memory  — webhook GitHub (auth via X-MCP-Sync-Token)
-//   GET  /api/mcp/health       — status básico do server
-// Autenticados (Bearer mcp_*):
-//   GET  /api/mcp/health/auth  — info do user/token autenticado
-// Controllers de volta em Modules/Jana (deprecação do TeamMcp, E2b): as rotas,
-// os nomes (jana.mcp.*) e as dependências (McpMemoryDocument, McpCycle,
-// IndexarMemoryGitParaDb, TaskParserService) sempre foram da Jana.
-// URLs inalteradas /api/mcp/* — o webhook do GitHub não muda.
-Route::group(
-    [
-        'middleware' => ['api'],
-        'prefix'     => 'api/mcp',
-        'namespace'  => 'Modules\Jana\Http\Controllers\Mcp',
-    ],
-    function () {
-        // Públicos
-        Route::post('/sync-memory', 'SyncMemoryWebhookController@handle')
-            ->name('jana.mcp.sync-memory');
-        Route::get('/health', 'HealthController@publico')
-            ->name('jana.mcp.health');
-
-        // Drift sentinel (ADR 0256): token DEDICADO MCP_DRIFT_TOKEN checado no
-        // controller (sem mcp.auth/RBAC/user) — vazar revela só o SHA do commit.
-        Route::get('/version', 'HealthController@versao')
-            ->name('jana.mcp.version');
-
-        // G6 (porta de saída do loop): cycle ATIVO pro cron do shipped-log descobrir
-        // cycle+janela sem depender do shipped-log anterior. Mesmo token do /version.
-        Route::get('/cycle-active', 'HealthController@cicloAtivo')
-            ->name('jana.mcp.cycle-active');
-
-        // Autenticados via McpAuth
-        Route::group(['middleware' => 'mcp.auth'], function () {
-            Route::get('/health/auth', 'HealthController@autenticado')
-                ->name('jana.mcp.health.auth');
-        });
-    }
-);
+// 3) MCP server endpoints /api/mcp/{sync-memory,health,version,cycle-active}
+//    MUDARAM pra Modules/Forja/Http/routes.php em 2026-07-30 (decisão [W]
+//    "MCP vai para Forja"). URLs e names (jana.mcp.*) INALTERADOS.
+//    O POST /api/mcp (JSON-RPC) e o /api/cc/ingest seguem AQUI — saem na F4.
 
 // MEM-CC-1 (ADR 0053 + SPEC-cc-sessions) — Endpoint ingest pra watcher Node
 //   POST /api/cc/ingest  — Bearer mcp_*  — payload {session, messages}
