@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services\Forja;
+namespace Modules\Forja\Services;
 
 use Modules\Jana\Entities\Mcp\McpTask;
 

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services\Forja;
+namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
 use Modules\Forja\Entities\CoworkHandoff;
 use Modules\Forja\Entities\McpIngestHeartbeat;
-use Modules\TeamMcp\Services\PrChecksResolver;
+use Modules\Forja\Services\PrChecksResolver;
 
 /**
  * ForjaMcpService — projeção dos handoffs de design (Cowork→Code, F1→F3) pra aba

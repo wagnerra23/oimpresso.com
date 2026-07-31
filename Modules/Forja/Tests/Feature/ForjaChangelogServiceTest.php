@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
-use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
+use Modules\Forja\Services\ForjaChangelogService;
 
 uses(Tests\TestCase::class);
 
@@ -26,7 +26,7 @@ uses(Tests\TestCase::class);
  * Scout NullEngine (SCOUT_DRIVER=null no phpunit.xml) torna o Searchable do
  * McpMemoryDocument no-op; activitylog não se aplica a essas entidades.
  *
- * @see Modules\TeamMcp\Services\Forja\ForjaChangelogService
+ * @see Modules\Forja\Services\ForjaChangelogService
  * @see memory/decisions/0053-mcp-server-governanca-como-produto.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */

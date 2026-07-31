@@ -41,6 +41,9 @@ contains:
   - "CcSessionsController — KB de sessões Claude Code do time"
   - "ScorecardController + ScorecardBuilderService — governance maturity per-actor"
   - "As páginas React seguem em resources/js/Pages/team-mcp/* — não migram; renomear URL é decisão separada"
+  # Cockpit /forja — recebido do TeamMcp em 2026-07-31; URLs /forja/* inalteradas
+  - "ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver — 6 abas do loop Cowork"
+  - "⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W], separada desta deprecação"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"

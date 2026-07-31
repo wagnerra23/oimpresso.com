@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Database\Seeders;
+namespace Modules\Forja\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;

@@ -7,8 +7,8 @@ contains:
   - "Mcp/CcIngestController — ingest Claude Code sessions; URL /api/cc/ingest mantida"
   # Fase 4 (NOVA, ADR 0081):
   - "ActorsController (NOVO) — Identity Mesh: CRUD de mcp_actors com manifest YAML"
-  - "ForjaController — cockpit do cowork loop /forja (absorção, não módulo novo): 6 abas projetando mcp_tasks project=FORJA + git/ADR/sessão + gates; aba Triagem real + dossiê"
 not_contains:
+  - "Cockpit /forja (ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver) → Modules/Forja ([W] 2026-07-31)"
   - "Hub Equipe (Team/TasksAdmin/CcSessions/Scorecard + Requests + TeamUsageAggregator/UsageCsvExporter/ScorecardBuilderService) → Modules/Forja ([W] 2026-07-31)"
   - "Rotas /team-mcp/* → registradas por Modules/Forja; URLs e names INALTERADOS (ADR 0087)"
   - "Admin/ToolsController · Admin/TeamScopesController → Modules/Forja ([W] 2026-07-31 \"ads vem para forja\"); URLs /ads/admin/* inalteradas"

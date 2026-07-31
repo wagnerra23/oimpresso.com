@@ -55,7 +55,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * `DatabaseTransactions`: os casos abaixo concedem/revogam permission pra montar
  * o cenário. Sem o rollback, o teste deixaria resíduo de RBAC no banco da lane.
  *
- * @see Modules\TeamMcp\Http\Controllers\ForjaController
+ * @see Modules\Forja\Http\Controllers\ForjaController
  * @see resources/js/Pages/team-mcp/Forja/Cockpit.casos.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md

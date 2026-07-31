@@ -14,29 +14,16 @@ module: TeamMcp
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/TeamMcp/**` + `resources/js/Pages/team-mcp/**` (namespace Inertia `team-mcp`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `TeamMcp`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 47 arquivos em 11 papéis.
+**Total mapeado:** 35 arquivos em 9 papéis.
 
-## Controllers — 3
+## Controllers — 2
 
 - [DataController.php](../../../Modules/TeamMcp/Http/Controllers/DataController.php)
-- [ForjaController.php](../../../Modules/TeamMcp/Http/Controllers/ForjaController.php)
 - [InstallController.php](../../../Modules/TeamMcp/Http/Controllers/InstallController.php)
-
-## Services — 5
-
-- [ForjaBacklogService.php](../../../Modules/TeamMcp/Services/Forja/ForjaBacklogService.php)
-- [ForjaChangelogService.php](../../../Modules/TeamMcp/Services/Forja/ForjaChangelogService.php)
-- [ForjaMcpService.php](../../../Modules/TeamMcp/Services/Forja/ForjaMcpService.php)
-- [ForjaQuadroService.php](../../../Modules/TeamMcp/Services/Forja/ForjaQuadroService.php)
-- [PrChecksResolver.php](../../../Modules/TeamMcp/Services/PrChecksResolver.php)
 
 ## Providers — 1
 
 - [TeamMcpServiceProvider.php](../../../Modules/TeamMcp/Providers/TeamMcpServiceProvider.php)
-
-## Seeders — 1
-
-- [ForjaDemoTicketsSeeder.php](../../../Modules/TeamMcp/Database/Seeders/ForjaDemoTicketsSeeder.php)
 
 ## Config — 2
 
@@ -77,9 +64,9 @@ module: TeamMcp
 - [Cockpit.casos.md](../../../resources/js/Pages/team-mcp/Forja/Cockpit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
 
-## Testes (Pest) — 11
+## Testes (Pest) — 6
 
-- 11 arquivos em [Modules/TeamMcp/Tests/Feature/](../../../Modules/TeamMcp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 6 arquivos em [Modules/TeamMcp/Tests/Feature/](../../../Modules/TeamMcp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 2
 

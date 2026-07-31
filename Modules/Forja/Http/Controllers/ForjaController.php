@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Http\Controllers;
+namespace Modules\Forja\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -17,10 +17,10 @@ use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
-use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
-use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
-use Modules\TeamMcp\Services\Forja\ForjaMcpService;
-use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
+use Modules\Forja\Services\ForjaBacklogService;
+use Modules\Forja\Services\ForjaChangelogService;
+use Modules\Forja\Services\ForjaMcpService;
+use Modules\Forja\Services\ForjaQuadroService;
 use Modules\Forja\Services\HandoffLeverService;
 
 /**

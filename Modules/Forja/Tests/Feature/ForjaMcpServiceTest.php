@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Modules\Forja\Entities\CoworkHandoff;
 use Modules\Forja\Entities\McpIngestHeartbeat;
-use Modules\TeamMcp\Services\Forja\ForjaMcpService;
+use Modules\Forja\Services\ForjaMcpService;
 
 uses(Tests\TestCase::class);
 
