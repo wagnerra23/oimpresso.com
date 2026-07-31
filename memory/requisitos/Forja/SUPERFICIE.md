@@ -14,12 +14,14 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 132 arquivos em 14 papéis.
+**Total mapeado:** 134 arquivos em 14 papéis.
 
-## Controllers — 16
+## Controllers — 18
 
 - [ActivityController.php](../../../Modules/Forja/Http/Controllers/ActivityController.php)
 - [ProjectsController.php](../../../Modules/Forja/Http/Controllers/Admin/ProjectsController.php)
+- [TeamScopesController.php](../../../Modules/Forja/Http/Controllers/Admin/TeamScopesController.php)
+- [ToolsController.php](../../../Modules/Forja/Http/Controllers/Admin/ToolsController.php)
 - [BacklogController.php](../../../Modules/Forja/Http/Controllers/BacklogController.php)
 - [BoardController.php](../../../Modules/Forja/Http/Controllers/BoardController.php)
 - [BriefFetchController.php](../../../Modules/Forja/Http/Controllers/BriefFetchController.php)

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\TeamMcp\Http\Controllers\Admin;
+namespace Modules\Forja\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

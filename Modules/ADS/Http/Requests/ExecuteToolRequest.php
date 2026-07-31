@@ -20,7 +20,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * Multi-tenant Tier 0 (ADR 0093): `business_id` extraído da session pelo
  * Controller — tool recebe `$businessId` no constructor.
  *
- * @see Modules\TeamMcp\Http\Controllers\Admin\ToolsController::execute
+ * @see Modules\Forja\Http\Controllers\Admin\ToolsController::execute
  * @see memory/decisions/0053-mcp-server-governanca-como-produto.md
  */
 class ExecuteToolRequest extends FormRequest

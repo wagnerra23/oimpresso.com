@@ -15,6 +15,12 @@ contains:
   - "DataController + InstallController (boilerplate)"
   # Absorvido em Fase 3.7 PR-1 (2026-05-06):
   - "Admin/ProjectsController — gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc); URL /ads/admin/projects mantida"
+  # Admin do MCP — recebidos do TeamMcp em 2026-07-31 ([W] "ads vem para forja").
+  # Mesmo padrão do ProjectsController acima: controller da Forja, rota do ADS,
+  # URL /ads/admin/* mantida. Importam serviços do ADS (ToolRegistry,
+  # UserScopeService) — transitório: o ADS também está em deprecação.
+  - "Admin/ToolsController — registry de tools MCP; URL /ads/admin/tools mantida"
+  - "Admin/TeamScopesController — RBAC scopes por actor; URL /ads/admin/team-scopes mantida"
   # MCP endpoints — recebidos de Modules/Jana em 2026-07-30 ([W] "MCP vai para Forja")
   - "Mcp/SyncMemoryWebhookController — webhook GitHub → mcp_memory_documents; URL /api/mcp/sync-memory inalterada"
   - "Mcp/HealthController — health/version/cycle-active; URLs /api/mcp/* inalteradas"
