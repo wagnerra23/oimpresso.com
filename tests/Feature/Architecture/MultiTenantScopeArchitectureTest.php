@@ -83,6 +83,20 @@ function mtsTraitAplicaEscopo(string $src): bool
     return str_contains($src, 'business_id') && str_contains($src, 'addGlobalScope');
 }
 
+/**
+ * Último segmento de um nome qualificado.
+ *
+ * `strrpos()` devolve FALSE quando não há `\` — e `(int) false` é 0, o que faz
+ * `substr($n, 0 + 1)` comer a primeira letra ("Model" → "odel"). Foi esse bug
+ * que deixou `is_model` sempre false na 1ª rodada desta lane; o bite-test pegou.
+ */
+function mtsNomeCurto(string $nome): string
+{
+    $pos = strrpos($nome, '\\');
+
+    return $pos === false ? $nome : substr($nome, $pos + 1);
+}
+
 /** Resolve FQCN de trait → caminho de arquivo (PSR-4 do projeto). */
 function mtsTraitPath(string $fqcn): ?string
 {
@@ -167,8 +181,7 @@ function mtsAnalisar(string $src): array
                 if (preg_match('/^(.+?)\s*as\s+(\w+)$/i', $parte, $m)) {
                     $imports[strtolower($m[2])] = ltrim(trim($m[1]), '\\');
                 } else {
-                    $short = substr($parte, (int) strrpos($parte, '\\') + 1);
-                    $imports[strtolower($short)] = ltrim($parte, '\\');
+                    $imports[strtolower(mtsNomeCurto($parte))] = ltrim($parte, '\\');
                 }
             }
             continue;
@@ -194,8 +207,7 @@ function mtsAnalisar(string $src): array
                         }
                         $pai .= $texto($sig[$k]);
                     }
-                    $pai = trim($pai);
-                    $curto = substr($pai, (int) strrpos($pai, '\\') + 1);
+                    $curto = mtsNomeCurto(trim($pai));
                     $extendsModel = ($curto === 'Model' || $curto === 'Pivot' || $curto === 'Authenticatable');
                 }
                 if ($texto($sig[$j]) === '{') {
@@ -329,6 +341,22 @@ describe('Arquitetura — Model de módulo com escopo automático por business (
         expect(count(mtsColetarArquivos()))->toBeGreaterThan(150);
     });
 
+    it('RECONHECE os arquivos coletados como Model (anti verde-por-não-execução)', function () {
+        // Contar ARQUIVO não basta: na 1ª rodada desta lane o scan achava 211
+        // arquivos e o analisador classificava ZERO como Model (bug do
+        // mtsNomeCurto), então "nenhum Model sem escopo" passava sem ter
+        // examinado nada. Este assert mede o que importa — quantos foram de
+        // fato ANALISADOS como Model. Sem ele, o verde abaixo é não-execução.
+        $reconhecidos = 0;
+        foreach (mtsColetarArquivos() as $rel) {
+            $src = file_get_contents(MTS_ROOT . '/' . $rel);
+            if ($src !== false && mtsAnalisar($src)['is_model']) {
+                $reconhecidos++;
+            }
+        }
+        expect($reconhecidos)->toBeGreaterThan(150);
+    });
+
     it('nenhum Model NOVO sem escopo automático de tenant', function () {
         $baseline = mtsBaseline();
         $isentos = array_merge($baseline['grandfathered'], $baseline['allowlist']);
@@ -422,6 +450,14 @@ describe('Arquitetura — Model de módulo com escopo automático por business (
         }
         PHP;
         expect(mtsAnalisar($src)['traits'])->toBe(['App\Concerns\HasBusinessScope']);
+    });
+
+    it('nome curto de classe sem namespace não perde a 1ª letra (regressão real)', function () {
+        // `strrpos` devolve FALSE sem `\`; `(int) false` é 0 e `substr($n, 1)`
+        // vira "odel". Foi o bug que zerou `is_model` na 1ª rodada desta lane.
+        expect(mtsNomeCurto('Model'))->toBe('Model');
+        expect(mtsNomeCurto('Illuminate\Database\Eloquent\Model'))->toBe('Model');
+        expect(mtsNomeCurto('\Model'))->toBe('Model');
     });
 
     it('trait só qualifica se aplicar escopo de verdade (estrutural, não por nome)', function () {
