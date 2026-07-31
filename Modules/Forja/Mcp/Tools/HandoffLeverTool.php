@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Mcp\Tools;
+namespace Modules\Forja\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -10,7 +10,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Entities\Mcp\McpAuditLog;
 use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
-use Modules\TeamMcp\Services\HandoffLeverService;
+use Modules\Forja\Services\HandoffLeverService;
 use Throwable;
 
 /**
@@ -33,7 +33,7 @@ use Throwable;
  * núcleo que o endpoint web do cockpit
  * ({@see \Modules\TeamMcp\Http\Controllers\ForjaController::handoffLever}) chama
  * pros botões do front. Nada de duplicar a regra (espelha o par
- * `handoff:ingest`/`handoff-submit` sobre {@see \Modules\TeamMcp\Services\HandoffIngestService}).
+ * `handoff:ingest`/`handoff-submit` sobre {@see \Modules\Forja\Services\HandoffIngestService}).
  *
  * Defesas do adversário [AH] (espelha {@see HandoffAckTool}):
  *   - **A7 authz:** mutação — exige scope fino `jana.mcp.handoff.lever`, via
@@ -43,8 +43,8 @@ use Throwable;
  *   - **sem cache:** este handler NÃO cacheia (logo NÃO há `Cache::flush()` que
  *     derrubava o ERP inteiro — A2).
  *
- * @see Modules\TeamMcp\Services\HandoffLeverService
- * @see Modules\TeamMcp\Mcp\Tools\HandoffAckTool
+ * @see Modules\Forja\Services\HandoffLeverService
+ * @see Modules\Forja\Mcp\Tools\HandoffAckTool
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */
 class HandoffLeverTool extends Tool

@@ -53,9 +53,9 @@ Modules/TeamMcp/Tests/Feature/CcIngestPersistsFieldsTest.php
 # Loop de Handoff Zero-Paste (ADR 0283): PR-6a submit (novo) + PR-1 ingest
 # (regressão do refactor que extraiu HandoffIngestService) + PR-7 levers
 # (re-disparar/devolver/supersede). Sintéticas em beforeEach → sqlite-safe.
-Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php
-Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php
-Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php
+Modules/Forja/Tests/Feature/HandoffSubmitToolTest.php
+Modules/Forja/Tests/Feature/HandoffIngestTest.php
+Modules/Forja/Tests/Feature/HandoffLeverToolTest.php
 # Forja aba MCP: projeção de cowork_handoffs + gate CONFLITO (ack verde × required
 # checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
 # sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
@@ -253,7 +253,7 @@ Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
 # ATIVO com token"). Entrar vermelho aqui travaria merge de TODO mundo (lane
 # required). Fica como dívida honesta: ou vira sqlite-safe, ou vai pra lane MySQL.
 Modules/Forja/Tests/Feature/ActorPermissionMatrixTest.php
-Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php
+Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php
 Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php
 Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php
 Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php
@@ -262,8 +262,8 @@ Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php
 # erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
 # execução real do happy-path (UC-FORJA-01) mora na lane MySQL teammcp-pest.yml.
 Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.php
-Modules/TeamMcp/Tests/Feature/HandoffStaleAlertTest.php
-Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php
+Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
+Modules/Forja/Tests/Feature/HandoffToolsTest.php
 Modules/TeamMcp/Tests/Feature/LgpdComplianceTest.php
 Modules/Forja/Tests/Feature/McpActorsSeederTest.php
 Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php

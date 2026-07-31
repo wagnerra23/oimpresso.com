@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Console\Commands;
+namespace Modules\Forja\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpInboxNotification;
 use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\Forja\Entities\CoworkHandoff;
 
 /**
  * HandoffStaleAlertCommand — PR-4 Loop de Handoff Zero-Paste (Fase 0 · ADR 0283).
@@ -28,7 +28,7 @@ use Modules\TeamMcp\Entities\CoworkHandoff;
  * Convenções ({@see .claude/rules/commands.md}): `--days`/`--dry-run` (não
  * `--verbose`), output PT-BR, exit 0/1.
  *
- * @see Modules\TeamMcp\Entities\CoworkHandoff
+ * @see Modules\Forja\Entities\CoworkHandoff
  * @see Modules\Jana\Entities\Mcp\McpInboxNotification
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */

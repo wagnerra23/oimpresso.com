@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Entities;
+namespace Modules\Forja\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 

@@ -6,9 +6,9 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Request as McpRequest;
 use Laravel\Mcp\Response as McpResponse;
-use Modules\TeamMcp\Entities\CoworkHandoff;
-use Modules\TeamMcp\Mcp\Tools\HandoffAckTool;
-use Modules\TeamMcp\Mcp\Tools\HandoffPendingTool;
+use Modules\Forja\Entities\CoworkHandoff;
+use Modules\Forja\Mcp\Tools\HandoffAckTool;
+use Modules\Forja\Mcp\Tools\HandoffPendingTool;
 
 uses(Tests\TestCase::class);
 
