@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **366** arquivos · **351** números únicos · máx **0361**
-- **ADRs ATIVOS (lifecycle ativo): 329** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 331 · superseded 15 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 329 · arquivado 22 · substituido 15
+- **367** arquivos · **352** números únicos · máx **0362**
+- **ADRs ATIVOS (lifecycle ativo): 330** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 332 · superseded 15 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 330 · arquivado 22 · substituido 15
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (366)
+## Todas as ADRs (367)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -404,3 +404,4 @@ _(nenhuma)_
 | 0359 | aceito | ativo | errata | Errata à 0358 — remover a ADR resolveu a colisão NO DISCO, mas o número 0101 não |
 | 0360 | aceito | ativo | decision | Depreciação do Admin Center (Modules/Admin) — o painel nunca foi alcançável e nã |
 | 0361 | aceito | ativo | errata | Errata à 0354 — a promoção de `teammcp-pest` a required nunca chegou à proteção  |
+| 0362 | aceito | ativo | errata | Errata à 0360 — o Admin Center não respondia 403: o bypass do Tailscale estava L |
