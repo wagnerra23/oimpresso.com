@@ -19,7 +19,7 @@ uses(Tests\TestCase::class);
  *
  * @see Modules/Governance/Services/ObraParadaBriefLineService.php
  * @see scripts/governance/cron-watchdog.mjs (eixo 2 · núcleo puro paradosEntre)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 /** Stub do shell-out Node: devolve o JSON dado no stdout (modo --json sai 0). */

@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
  * Auth pelo token dedicado (copiloto.mcp.drift_token, sem RBAC), igual /version.
  * Pro cron do shipped-log descobrir cycle+janela sem depender do shipped-log anterior.
  *
- * @see Modules/TeamMcp/Http/Controllers/Mcp/HealthController.php (cicloAtivo)
+ * @see Modules/Forja/Http/Controllers/Mcp/HealthController.php (cicloAtivo)
  */
 
 beforeEach(function () {

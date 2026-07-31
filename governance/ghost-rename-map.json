@@ -4,6 +4,15 @@
   "date": "2026-06-12",
   "scope": "memory/requisitos/**/*.md — só referências na forma 'Modules/<Nome>' (mesma regex token-boundary do knowledge-drift.mjs); forma namespace 'Modules\\<Nome>' fica fora do v1",
   "renames": {
+    "ProjectMgmt": {
+      "to": "Forja",
+      "class": "A",
+      "evidence": [
+        "decisao [W] 2026-07-30 (ProjectMgmt->Forja renomear)",
+        "padrao ADR 0088 memory/decisions/0088-module-rename-php-only.md (rename PHP-only, fachada legacy)",
+        "governance/module-grades-baseline.json chave renames.ProjectMgmt"
+      ]
+    },
     "Copiloto": {
       "to": "Jana",
       "class": "A",
@@ -146,6 +155,12 @@
       "removed_by_adr": "0360",
       "removed_at": "2026-07-29",
       "reason": "REMOVIDO, nao renomeado (ADR 0360 supersede 0122) - mesmo caso do SRS acima. O painel nunca entrou em operacao: /admin/* respondia 403 fora do Tailscale, mcp_admin_audit_log tinha 0 linhas em prod, US-ADM-002/010 (DNS+smoke) nunca fecharam. memory/requisitos/Admin/ e memory/modulos/Admin.md sobrevivem como canon HISTORICO (as ADRs 0122 e 0360 os referenciam e ADR e append-only). Resgatados antes da delecao: UiCatalogGenerateCommand -> Modules/Governance (#5045), CuradorStatsReader -> Modules/Arquivos (#5046). Nao recriar sem ADR nova."
+    },
+    "Brief": {
+      "class": "C",
+      "removed_by_adr": "",
+      "removed_at": "2026-07-30",
+      "reason": "ABSORVIDO por Modules/Forja, nao renomeado — por isso classe C e nao A (mesmo caso do Accounting->Financeiro acima): o move NAO e 1:1. 29 arquivos migraram (BriefFetchTool, 4 Services, 3 Console/Commands, BriefFetchController, 9 Http/Requests, 11 Tests), mas 6 MORRERAM (Routes/api.php absorvida em Forja/Http/routes.php; Routes/web.php + InstallController + DataController + BriefServiceProvider + module.json) e Config/retention.php virou Config/brief-retention.php (a Forja ja tinha um retention.php proprio). Logo nao ha destino 1:1 pra reescrita mecanica: 'Modules/Brief/Routes/api.php' NAO vira 'Modules/Forja/Routes/api.php' — esse path nao existe. A morte nao foi ADR-driven: decisao [W] 2026-07-30 apoiada nas propostas mergeadas #5072 (MCP e Forja) e #5073 (o Brief se divide em dois), executada no PR #5098. O NOME da tool MCP NAO mudou ('brief-fetch'), entao CLAUDE.md passo 1, hook SessionStart e os 6 agentes seguem validos. memory/requisitos/Brief/ sobrevive como canon HISTORICO (BRIEFING + DEPRECATION-PLAN); SUPERFICIE.md removida, como no SRS. Nao recriar."
     }
   },
   "_path_tombstones_doc": "Tombstones de PATH concreto (workflow/script morto) consumidos pelo detector de path-fantasma do knowledge-drift.mjs (--check-paths + secao advisory do batimento + --selftest). Cada entrada: {nome=path concreto, deletado_por_adr, substituto, evidencia}. Um doc/ADR pode citar um path morto SEM virar 'phantom' sse houver tombstone aqui. REGRA (P16): so entra path com EVIDENCIA DURA verificada no repo — commit que deletou/moveu (campo evidencia) + ADR quando a decisao veio de ADR. `deletado_por_adr` pode ser '' quando a morte NAO foi ADR-driven (dedup, rename/mudanca-de-path, nome!=path): ai a evidencia carrega o commit/fato. Cada `substituto` foi conferido VIVO no disco no momento da curadoria. NAO detecta 'nome-de-gate' fuzzy em prosa (falso-positivo). NAO edita ADR aceita (append-only) — o tombstone aterra o DETECTOR; a injecao no decisions-fetch (leitura humana) e PR separado (follow-up). Residual conhecido: paths citados que NUNCA foram versionados (planejados-nunca-construidos em session/audit historicos) NAO entram aqui sem substituto verificado — ficam advisory ate curadoria per-doc.",

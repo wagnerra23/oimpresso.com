@@ -21,6 +21,12 @@ use Modules\Officeimpresso\Http\Controllers\LicencaLogController;
 
 Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])->prefix('officeimpresso')->group(function () {
 
+    // Porta de entrada: /officeimpresso (sem sufixo) devolvia 404 — nunca houve
+    // rota na raiz do prefixo. Redireciona por nível de permissão (ver
+    // OfficeimpressoController::home). Controller, não Closure: Closure quebra
+    // `php artisan route:cache`.
+    Route::get('/', [OfficeimpressoController::class, 'home'])->name('officeimpresso.home');
+
     // Catalogue QR (legacy ProductCatalogue feature)
     Route::get('catalogue-qr', [OfficeimpressoController::class, 'generateQr'])->name('officeimpresso.catalogue-qr');
     Route::get('/catalogue/{business_id}/{location_id}', [OfficeimpressoController::class, 'index'])->name('officeimpresso.catalogue');

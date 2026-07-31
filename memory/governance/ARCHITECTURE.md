@@ -115,7 +115,7 @@ C4Container
 | **Jana** | active=1, 16 controllers, drift | IA | L2 PRODUCT | **Renomear → `Jana`** |
 | **Essentials** | active=1, 19 controllers, herdado UltimatePOS HRM | UltimatePOS | L3 VERTICAL | **Manter Essentials L3** + criar **`Notas` (novo, L2)** com extração gradual |
 | **PontoWr2** | active=1, 12 controllers, ponto eletrônico | Vertical BR | L3 VERTICAL | **Renomear → `Ponto`** |
-| **ProjectMgmt** | active=1, 8 controllers Jira-style | Governance | L2 PRODUCT | **Renomear → `Project`** (após delete legado) |
+| **Forja** (ex-ProjectMgmt) | active=1, 8 controllers Jira-style | Governance | L2 PRODUCT | ✅ **renomeado → `Forja`** em 2026-07-30 (PHP-only, ADR 0088). O alvo `Project` do plano original foi ABANDONADO. |
 | **Project** | active=1, 9 controllers, UltimatePOS legado | UltimatePOS | — | **Extrair info útil → DELETE** |
 | **MemCofre** | active=1, 8 controllers, evidências | Governance | L1 GOVERNANCE | **Repurpose → `SRS` (System Rules Spec)** |
 | **Writebot** | active=1, 2 controllers (boilerplate) | IA | — | **DELETE (vazio)** |
@@ -146,7 +146,7 @@ C4Container
 | **Notas (NEW)** | a criar | Personal | L2 PRODUCT | Fase 3 — extração gradual de Essentials |
 | **Governance (NEW)** | a criar | Governance | L1 GOVERNANCE | Fase 5 — ActionGate + UI |
 
-**Total:** 30 atuais → após Fase 3: **27 ativos** (deletes: Writebot, Project legado) + **3 novos** (Jana via rename, Notas, Governance) + **2 renames preservando id de DB** (Ponto via rename de PontoWr2; Project via rename de ProjectMgmt) + **1 repurpose** (SRS via repurpose de MemCofre)
+**Total:** 30 atuais → após Fase 3: **27 ativos** (deletes: Writebot, Project legado) + **3 novos** (Jana via rename, Notas, Governance) + **2 renames preservando id de DB** (Ponto via rename de PontoWr2; Forja via rename de ProjectMgmt — alvo `Project` abandonado, 2026-07-30) + **1 repurpose** (SRS via repurpose de MemCofre)
 
 ---
 
@@ -157,7 +157,7 @@ C4Container
 | `Modules/Copiloto` | `Modules/Jana` | rename | Nome canônico da IA do business | namespace, URLs `/copiloto/*`→`/jana/*` (com 301 redirects), permissões `copiloto.*`→`jana.*`, tabelas `copiloto_*` mantém prefixo legacy ou rename via migration cuidadosa |
 | `Modules/Essentials` (parte) | `Modules/Notas` (novo) | extração | Notas pessoais + arquivo cliente + KB pessoal **fora** do HRM herdado | Essentials L3 mantém código UltimatePOS HRM; Notas L2 absorve gradualmente: Notes, Personal Tasks, Cliente Archive |
 | `Modules/PontoWr2` | `Modules/Ponto` | rename | Tirar `WR2` (cliente externo) do nome do módulo | rename + URLs + namespace + tabelas `ponto_*` mantém prefixo |
-| `Modules/ProjectMgmt` | `Modules/Project` | rename | Único `Project` (após delete legado) | DEPENDE: extrair Project legado primeiro |
+| `Modules/ProjectMgmt` | `Modules/Forja` | rename | ✅ FEITO 2026-07-30 (PHP-only, ADR 0088). O alvo `Project` do plano original foi abandonado — nome novo é Forja. |
 | `Modules/MemCofre` | `Modules/SRS` | repurpose | Era cofre de evidências; vira System Rules Spec — regras imutáveis pra IA programar | rename + redefinir entities (`Doc*` → SRS entries) + adicionar trigger MySQL append-only |
 
 > **Status (2026-05-06):** renames executados **PHP-only** (pasta+namespace; URLs/permissions/tabelas mantidas legacy) — [ADR 0088](../decisions/0088-module-rename-php-only.md) + erratum §4 v1.2 do [MODULE-DRIFT-MIGRATION-PLAN](MODULE-DRIFT-MIGRATION-PLAN.md). Os nomes antigos na coluna "De" são registro histórico do plano, não referência viva.
@@ -219,7 +219,7 @@ C4Container
 | `Modules/Jana (ex-Jana)` | Chat IA do business — feature visível, dev frequente |
 | `Modules/Notas (NEW)` | Notas/tarefas/arquivo pessoal Wagner — alta freq de mudança |
 | `Modules/KB` | Knowledge browser — leitura ampla, edit moderada |
-| `Modules/Project (ex-ProjectMgmt)` | Tasks/cycles Jira-style — operacional do time |
+| `Modules/Forja` (ex-ProjectMgmt) | Tasks/cycles Jira-style — operacional do time |
 | `Modules/Ponto (ex-PontoWr2)` | Ponto eletrônico — alta freq mas com guardrails legais |
 | `Modules/ConsultaOs` | Portal cliente — leitura pública mas precisa cuidado L2 pra config |
 
@@ -267,7 +267,7 @@ C4Container
 | **3.6** | Pre-commit hook drift detection (warn-only) | 1h | depende 3.5 |
 | **3.7** | Renames: Copiloto→Jana, PontoWr2→Ponto, MemCofre→SRS | 6h | depende 3.3 (SCOPE.md já escrito) |
 | **3.8** | Project legado: audit dados + extrair + DELETE | 4h | bloqueia 3.9 |
-| **3.9** | Rename: ProjectMgmt → Project | 1h | depende 3.8 |
+| **3.9** | Rename: ProjectMgmt → ~~Project~~ **Forja** | 1h | ✅ feito 2026-07-30 (PHP-only, ADR 0088) |
 | **3.10** | Notas (NEW): scaffold módulo + extração gradual de Essentials | 6h | depende 3.7 (Jana feita pra reuso de pattern) |
 
 **Total Fase 3:** ~33h distribuídos. P0 (audit cascata + triggers MySQL) e P1 (skills manifest) ficam em paralelo.

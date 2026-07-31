@@ -352,7 +352,7 @@ class ScopedScorecardEvaluator
         $modulosConhecidos = 'Vestuario|Governance|Jana|Crm|Financeiro|Repair|Ponto'
             . '|RecurringBilling|NfeBrasil|NFSe|Manufacturing|Cms|Spreadsheet'
             . '|Arquivos|Accounting|AssetManagement|Essentials|ADS|ConsultaOs'
-            . '|SRS|Whatsapp|Woocommerce|ProductCatalogue|ProjectMgmt'
+            . '|SRS|Whatsapp|Woocommerce|ProductCatalogue|Forja|ProjectMgmt'
             . '|ComunicacaoVisual|OficinaAuto|Officeimpresso|Auditoria|Admin'
             . '|Brief|TeamMcp|Superadmin|Connector|KB|MemCofre|Project|Sells';
 

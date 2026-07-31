@@ -31,7 +31,7 @@ pii: false
 | 4 | `Modules/Jana/Http/Controllers/Mcp/HealthController.php` | `Modules/TeamMcp/Http/Controllers/` | Health check do MCP server pertence ao admin do MCP | 3.7 | baixo |
 | 5 | `Modules/Jana/Http/Controllers/Mcp/SyncMemoryWebhookController.php` | `Modules/TeamMcp/Http/Controllers/` | Webhook sync git→DB é função do MCP server admin | 3.7 | **alto** (webhook GitHub aponta pra URL atual) |
 | 6 | `Modules/Jana/Http/Controllers/Admin/GovernancaController.php` | `Modules/Governance/Http/Controllers/` (NOVO Fase 5) | Governança consolidada vai pra módulo dedicado | 5 | baixo |
-| 7 | `Modules/ADS/Http/Controllers/Admin/ProjectsController.php` | `Modules/ProjectMgmt/Http/Controllers/` (depois Project) | Gerencia `mcp_jira_projects` (Jira-style) | 3.7 | baixo |
+| 7 | `Modules/ADS/Http/Controllers/Admin/ProjectsController.php` | `Modules/Forja/Http/Controllers/` (o "depois Project" do plano foi ABANDONADO — ver errata §5) | Gerencia `mcp_jira_projects` (Jira-style) | 3.7 | baixo |
 | 8 | `Modules/ADS/Http/Controllers/Admin/ToolsController.php` | `Modules/TeamMcp/Http/Controllers/` | MCP tools registry pertence ao TeamMcp | 3.7 | baixo |
 | 9 | `Modules/ADS/Http/Controllers/Admin/TeamScopesController.php` | `Modules/TeamMcp/Http/Controllers/` | RBAC scopes do MCP server pertence ao TeamMcp | 3.7 | baixo |
 | 10 | `Modules/ADS/Http/Controllers/Admin/GraphController.php` | `Modules/KB/Http/Controllers/` | Knowledge graph pertence ao KB | 3.7 | baixo |
@@ -106,7 +106,9 @@ Após drift resolvido, mesmo PR (ou PR seguinte) faz renames:
 
 ---
 
-## §5. Renomeação ProjectMgmt → Project (Fase 3.8 + 3.9)
+## §5. Renomeação ProjectMgmt → ~~Project~~ **Forja** (Fase 3.8 + 3.9)
+
+> ⚠️ **ERRATUM 2026-07-30:** o alvo deste §5 era `Modules/Project`. Foi ABANDONADO — o rename executado levou a **`Modules/Forja`** (decisão [W]), PHP-only no padrão da ADR 0088: URL `/project-mgmt`, alias/config/lang `projectmgmt`, `Pages/Forja/`, permission `jana.mcp.usage.all` e package key `project_mgmt_module` seguem legacy por compat. Os passos abaixo ficam como registro do plano original.
 
 **Fase 3.8** (DELETE Project legado UltimatePOS):
 
@@ -116,7 +118,7 @@ Após drift resolvido, mesmo PR (ou PR seguinte) faz renames:
 4. `git rm -rf Modules/Project/`
 5. Remover permissions órfãs (Spatie)
 
-**Fase 3.9** (rename ProjectMgmt → Project):
+**Fase 3.9** (rename ProjectMgmt → Forja — executado 2026-07-30; texto original preservado):
 
 1. `git mv Modules/ProjectMgmt Modules/Project`
 2. Namespace + URLs + permissions

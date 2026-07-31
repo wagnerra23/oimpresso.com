@@ -8,8 +8,6 @@ contains:
   - "DataController + InstallController (boilerplate)"
   # Absorvidos em Fase 3.7 PR-1 (2026-05-06):
   - "Mcp/CcIngestController — ingest Claude Code sessions; URL /api/cc/ingest mantida"
-  - "Mcp/HealthController — health check do MCP server; URL /api/mcp/health mantida"
-  - "Mcp/SyncMemoryWebhookController — webhook git → mcp_memory_documents; URL /api/mcp/sync-memory mantida"
   - "Admin/ToolsController — MCP tools registry UI; URL /ads/admin/tools mantida"
   - "Admin/TeamScopesController — RBAC scopes per actor; URL /ads/admin/team-scopes mantida"
   # Fase 4 (NOVA, ADR 0081):
@@ -17,6 +15,8 @@ contains:
   - "ScorecardController — G1 FICHA Wave 22 esqueleto tela /team-mcp/scorecard (governance maturity per-actor)"
   - "ForjaController — cockpit do cowork loop /forja (absorção, não módulo novo): 6 abas projetando mcp_tasks project=FORJA + git/ADR/sessão + gates; aba Triagem real + dossiê"
 not_contains:
+  - "Mcp/HealthController → Modules/Forja (MCP é plataforma — [W] 2026-07-30)"
+  - "Mcp/SyncMemoryWebhookController → Modules/Forja (R6 canon→MCP; [W] 2026-07-30)"
   - "Chat IA conversacional → Modules/Jana"
   - "Knowledge browsing → Modules/KB"
   - "Skills governance → Modules/ADS"
@@ -49,7 +49,7 @@ db_tables_owned:
   - mcp_quotas
   - mcp_workflows
 db_tables_consumed:
-  # Domínio Jira-style pertence a Modules/ProjectMgmt (ADR 0070). Aqui é só
+  # Domínio Jira-style pertence a Modules/Forja (ADR 0070). Aqui é só
   # superfície ADMIN do MCP server (TasksAdminController / ForjaController) —
   # lê e opera, não é dono. Fronteira reconciliada 2026-07-26.
   - mcp_tasks / mcp_epics / mcp_cycles / mcp_jira_projects (Jira-style)

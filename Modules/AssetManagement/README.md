@@ -93,6 +93,6 @@ php artisan assetmanagement:health --detail  # expande JSON após tabela
 
 Ver [SCOPE.md](SCOPE.md). Em resumo:
 - ❌ Conhecimento canônico (ADRs, sessions) → `Modules/KB`
-- ❌ Tasks Jira-style → `Modules/ProjectMgmt`
+- ❌ Tasks Jira-style → `Modules/Forja`
 - ❌ MCP server admin → `Modules/TeamMcp`
 - ❌ Lançamento contábil de depreciação → `Modules/Accounting` (downstream consumer)

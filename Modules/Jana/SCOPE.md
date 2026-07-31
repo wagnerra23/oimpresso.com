@@ -30,11 +30,11 @@ contains:
   - "LICOES-OPERACAO.md — ledger append-only dos erros de OPERAÇÃO da Jana (≠ saída, que golden/RAGAS cobrem); cada lição gradua MEC→check no jana:health-check ou JULG→regra sempre-lida. Proposta §10.4 (aguarda [W])"
   - "Console/Commands/HealthCheckCommand — check jana_lesson_ledger_graduation valida o loop de graduação do ledger (advisory)"
 not_contains:
+  - "Mcp/SyncMemoryWebhookController → Modules/Forja (MCP é plataforma, [W] 2026-07-30)"
+  - "Mcp/HealthController → Modules/Forja (idem)"
   - "MemoriaController (browser KB) → Modules/KB"
   - "FontesController (knowledge sources) → Modules/KB"
   - "Mcp/CcIngestController → Modules/TeamMcp"
-  - "Mcp/HealthController → Modules/TeamMcp"
-  - "Mcp/SyncMemoryWebhookController → Modules/TeamMcp"
   - "Admin/GovernancaController → Modules/Governance (NOVO Fase 5)"
   - "Skills governance → Modules/ADS"
   - "Decision flow → Modules/ADS"
@@ -86,6 +86,8 @@ drift_alerts:
   # Mcp/CcIngest + Mcp/Health + Mcp/SyncMemoryWebhook → Modules/TeamMcp
   # URLs mantidas (/jana/memoria, /jana/metas/{id}/fonte, /api/mcp/*, /api/cc/*)
   # via tuple [Class::class, 'method'] e namespace prefix dos route groups.
+  # E2b (2026-07-30): Mcp/Health + Mcp/SyncMemoryWebhook passaram por aqui e
+  # seguiram pra Modules/Forja no MESMO dia ([W] "MCP vai para Forja").
   - controller: "Admin/GovernancaController"
     pertence_a: "Modules/Governance (NOVO)"
     motivo: "Governança consolidada vai pra módulo dedicado"
@@ -115,7 +117,7 @@ Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-onl
 - ❌ Browse de ADRs/sessions/specs canônicos → use Modules/KB
 - ❌ Admin de tokens MCP → use Modules/TeamMcp
 - ❌ Editar skill → use Modules/ADS
-- ❌ Triagem de tasks Jira-style → use Modules/ProjectMgmt (futuro Project)
+- ❌ Triagem de tasks Jira-style → use Modules/Forja
 
 ## Skills auto-load relevantes
 

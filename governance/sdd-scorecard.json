@@ -15,38 +15,38 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 87.8,
+      "value": 87.9,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 87.8,
-        "specs_total": 51,
-        "us_total": 930,
-        "anchor_coverage_pct": 87.8,
+        "coverage_pct": 87.9,
+        "specs_total": 50,
+        "us_total": 931,
+        "anchor_coverage_pct": 87.9,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
           "pendente": 379,
-          "parcial": 114,
-          "anchored_ok": 324,
+          "parcial": 113,
+          "anchored_ok": 326,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 823,
+        "fields_total": 824,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 772,
+        "fields_grammar_ok": 771,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 248,
-        "req_sem_covering_test_total": 353,
+        "req_sem_aceite_total": 247,
+        "req_sem_covering_test_total": 352,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 56,
+        "req_sem_lane_total": 58,
         "behavior_known": false,
         "servido_total": 16,
-        "nao_servido_total": 89,
+        "nao_servido_total": 90,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -175,13 +175,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 8,
+      "value": 9,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 12
+        "citing_modules": 16
       },
       "stream": "KL"
     },
@@ -193,8 +193,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 76,
-        "modules": 76
+        "with_door": 75,
+        "modules": 75
       },
       "stream": "MEM"
     },
@@ -237,9 +237,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
-        "portas": 79,
+        "portas": 78,
         "carimbadas": 14,
-        "sem_carimbo": 65,
+        "sem_carimbo": 64,
         "stale": 0,
         "oldest_distilled_at": "2026-07-17"
       },
@@ -253,7 +253,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 76,
+        "modules": 75,
         "hops_worst": 13
       },
       "stream": "MEM"

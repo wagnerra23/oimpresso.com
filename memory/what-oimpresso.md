@@ -67,7 +67,7 @@ Cada módulo vertical = produto separado vendável como add-on ao núcleo.
 
 ## Módulos referência canônica (imitar antes de criar)
 
-`Modules/Jana/`, `Modules/Repair/`, `Modules/ProjectMgmt/` — antes de criar/ajustar qualquer arquivo, abrir o equivalente e imitar ([ADR 0011](decisions/0011-alinhamento-padrao-jana.md)).
+`Modules/Jana/`, `Modules/Repair/`, `Modules/Forja/` (ex-ProjectMgmt) — antes de criar/ajustar qualquer arquivo, abrir o equivalente e imitar ([ADR 0011](decisions/0011-alinhamento-padrao-jana.md)).
 
 ## Criar módulo novo
 

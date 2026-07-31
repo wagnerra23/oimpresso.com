@@ -157,4 +157,5 @@ Quando user marca ≥2 checkboxes na table, aparece sticky panel:
 - ADR 0114 — Loop Cowork ↔ Claude Code
 - ADR 0127 — Modules/Auditoria UI + undo (mãe)
 - SPEC `memory/requisitos/Auditoria/SPEC.md` US-AUDIT-007..010
-- BRIEFING `Modules/Auditoria/BRIEFING.md`
+- BRIEFING `memory/requisitos/Auditoria/BRIEFING.md` — casa única do BRIEFING
+- SDD `memory/requisitos/Auditoria/SDD-auditoria-v1.0.md`

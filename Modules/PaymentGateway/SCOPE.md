@@ -32,7 +32,7 @@ not_contains:
   - "Sale / Transaction de venda → app/ core (consome este módulo via PaymentGatewayContract)"
   - "NFSe / NFe emissão → Modules/NFSe / Modules/NfeBrasil (escuta evento CobrancaPaga)"
   - "Subscription SaaS Wagner→tenants → Plan em RecurringBilling biz=1 + handler Superadmin"
-  - "Plano de contas contábil → Modules/Accounting"
+  - "Plano de contas contábil → Modules/Accounting — módulo REMOVIDO (ADR 0174 + DEPRECATION-PLAN); hoje o plano de contas vive em Modules/Financeiro (fin_planos_conta)"
   - "Account (saldo bancário) → app/Account.php (core); só recebe FK das credenciais"
 trust_required: L3
 owner: wagner

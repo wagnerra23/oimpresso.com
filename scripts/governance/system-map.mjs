@@ -478,7 +478,7 @@ export function linhaTools(ia) {
  * NÚCLEO PURO: lê o REGISTRO de tools do `OimpressoMcpServer` — a lista que o servidor
  * de fato publica. Fonte deliberadamente diferente da PASTA: um `*Tool.php` que ninguém
  * registrou não sobe, e um registro pode apontar pra outro módulo. Duas formas convivem
- * no array: FQN (`\Modules\Brief\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
+ * no array: FQN (`\Modules\Forja\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
  * resolve no namespace do próprio servidor, Jana).
  *
  * Foi aqui que a 1ª versão desta seção errou: contou a pasta de UM módulo (39) pra

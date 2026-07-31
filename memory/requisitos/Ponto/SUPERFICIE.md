@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 176 arquivos em 18 papéis.
+**Total mapeado:** 177 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -176,9 +176,9 @@ module: Ponto
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Importacoes/Show.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.casos.md)
 
-## Testes (Pest) — 32
+## Testes (Pest) — 33
 
-- 32 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 33 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 7
 

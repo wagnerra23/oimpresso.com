@@ -1,6 +1,6 @@
 // US-SELL-008 — Drawer lateral direito de detalhes da venda (pattern Cockpit canon).
 // Refs: exemplo Officeimpresso/OS Anthropic claude.ai/design (gold-standard Wagner aprovou),
-//        Pages/ProjectMgmt/Board/DetailSheet.tsx (pattern fonte interno).
+//        Pages/Forja/Board/DetailSheet.tsx (pattern fonte interno).
 
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';

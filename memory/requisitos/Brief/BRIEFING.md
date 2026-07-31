@@ -29,7 +29,7 @@ Cron **6×/dia** — `0 7,11,14,17,20,23 * * * America/Sao_Paulo` (o "daily 06:0
 
 ## Linhas de sinal injetadas no Daily Brief (pós-LLM)
 
-O Daily Brief **ganhou várias linhas de sinal** desde 2026-06. Cada uma vem de um `*BriefLineService`/`*BriefSectionService` orquestrado em [`GenerateBriefCommand`](../../../Modules/Brief/Console/Commands/GenerateBriefCommand.php) (6 dos 7 injetores vivem em `Modules/Governance`; só o de leases mora em `Modules/Brief`):
+O Daily Brief **ganhou várias linhas de sinal** desde 2026-06. Cada uma vem de um `*BriefLineService`/`*BriefSectionService` orquestrado em [`GenerateBriefCommand`](../../../Modules/Forja/Console/Commands/GenerateBriefCommand.php) (8 dos 10 injetores vivem em `Modules/Governance`; o de leases e o de tasks-sem-dono moram fora dele):
 
 | Sinal | Onde entra | Serviço · fonte | Origem |
 |---|---|---|---|

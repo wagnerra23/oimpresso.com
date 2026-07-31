@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Schema;
  * NOTA Tier 0: NUNCA `--verbose` (colide Symfony — usar `--detail` se precisar).
  *
  * @see memory/decisions/0155-module-grade-v3.md D9.c
- * @see Modules\Brief\Console\Commands\BriefHealthCommand (pattern referência)
+ * @see Modules\Forja\Console\Commands\BriefHealthCommand (pattern referência)
  */
 class ManufacturingHealthCommand extends Command
 {

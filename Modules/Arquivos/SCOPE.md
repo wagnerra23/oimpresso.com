@@ -6,7 +6,7 @@ contains:
   - "DownloadController"
   - "InstallController"
 not_contains:
-  - "MemCofre senhas/segredos → Modules/SRS"
+  - "MemCofre senhas/segredos → Modules/SRS — módulo REMOVIDO em 2026-07-29 (ADR 0357); fronteira a revisar"
   - "Memoria RAG semântico Jana → Modules/Jana"
   - "OCR/transcrição/antivirus → fora de MVP"
 trust_required: L2

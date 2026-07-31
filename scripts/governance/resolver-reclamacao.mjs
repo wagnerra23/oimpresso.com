@@ -109,7 +109,7 @@ export const LEXICO = {
   jana: ['Jana'],
   cliente: ['Crm', 'Sells'],
   proposta: ['Crm'],
-  tarefa: ['ProjectMgmt'],
+  tarefa: ['Forja'],
   ponto: ['Ponto'],
   marcacao: ['Ponto'],
   arquivo: ['Arquivos'],

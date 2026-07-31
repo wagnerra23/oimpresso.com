@@ -44,10 +44,10 @@ Mostrar extrato (saldo + lançamentos + totais) de uma conta bancária do busine
 ## Non-Goals — Features (NÃO faz)
 
 - ❌ Edição de lançamento (extrato bancário é imutável vindo do gateway)
-- ❌ Categorização de lançamento (vai pra Modules/Accounting futuro)
+- ❌ Categorização de lançamento (ia pra `Modules/Accounting`, **REMOVIDO** — ADR 0174; hoje o plano de contas vive em `Modules/Financeiro`, tabela `fin_planos_conta`)
 - ❌ Download de OFX/CSV (extrato gateway tem export próprio)
 - ❌ Trigger sync manual via botão (sync é via cron diário)
-- ❌ Conciliação contábil (escopo Modules/Accounting)
+- ❌ Conciliação contábil (era escopo de `Modules/Accounting`, **REMOVIDO** — ADR 0174; fronteira a revisar)
 - ❌ Multi-banco simultâneo (uma tela, uma conta)
 - ❌ Comparativo período-anterior (M2 backlog)
 - ❌ Gráfico de saldo histórico (futuro feature)
