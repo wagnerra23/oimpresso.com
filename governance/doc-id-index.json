@@ -1262,6 +1262,8 @@
     "2026-07-30-1300-refutacao-pr5069-lote-documental": "memory/handoffs/2026-07-30-1300-refutacao-pr5069-lote-documental.md",
     "2026-07-30-documentation-loop-primeiro-recibo-real": "memory/sessions/2026-07-30-documentation-loop-primeiro-recibo-real.md",
     "2026-07-30-mcp-scopes-apagados-por-save-de-role": "memory/sessions/2026-07-30-mcp-scopes-apagados-por-save-de-role.md",
+    "2026-07-31-1100-srs-memcofre-purga-e-abortos": "memory/handoffs/2026-07-31-1100-srs-memcofre-purga-e-abortos.md",
+    "2026-07-31-srs-memcofre-telas-orfas-e-purga-do-rag": "memory/sessions/2026-07-31-srs-memcofre-telas-orfas-e-purga-do-rag.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -3311,16 +3313,16 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3305,
-    "resolved": 2212,
+    "total": 3307,
+    "resolved": 2214,
     "unstamped": 1093,
     "collisions": 0,
     "by_source": {
       "unstamped": 1093,
       "derived-adr": 366,
       "stamped": 951,
-      "derived-handoffs": 345,
-      "derived-sessions": 550
+      "derived-handoffs": 346,
+      "derived-sessions": 551
     }
   }
 }
