@@ -162,7 +162,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Implementado em:** _pendente_ — **desimplementada** em 2026-07-31 pela [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md). O que ancorava esta US era o núcleo dual-brain do ADS (`RiskEngine`, `ConfidenceEngine`, `DecisionRouter` + a tela `ads/Admin/Decisoes`), removido com o módulo — não há substituto, porque nenhum módulo vivo decide. Sobrevive só o `PolicyEngine`, hoje em `Modules/Governance/Services/PolicyEngine.php` ([PR #5128](https://github.com/wagnerra23/oimpresso.com/pull/5128)). Estado anterior, pra história: `_parcial_` · verificado@8af585a (2026-07-02) — os 4 outcomes + tela admin + Pest tinham landado; faltava o wire em `client_signal_triage` (US-INFRA-002, nunca construída).
 
-> owner: wagner · priority: p1 · estimate: 12h · status: done · type: epic · origin: adr-0106-recalibracao
+> owner: wagner · priority: p1 · estimate: 12h · status: superseded · type: epic · origin: adr-0106-recalibracao · superseded_by: adr-0363
 > blocked_by: US-INFRA-002
 
 **Contexto.** ADS Universal previsto pra jul/2026 (skill `ads-decision-flow` lista S5). [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) recalibra: ~80h antigos → ~12h reais. Nova janela ~30 maio/2026. Adiantar pra **viabilizar US-INFRA-002 triage automática** ainda em 2026-Q2.

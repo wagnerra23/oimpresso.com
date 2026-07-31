@@ -327,7 +327,7 @@ Fechar dívida documental da sessão 2026-05-04:
 
 **Implementado em:** _pendente_ — **desimplementada** em 2026-07-31 pela [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md): o `ContextForTaskService` era do núcleo do ADS e foi removido com o módulo, junto da `mcp_dual_brain_decisions` que ele lia. Sem substituto — nenhum módulo vivo consome essa fila. Estado anterior, pra história: verificado@dd3ed7c (2026-07-01) — lia `mcp_dual_brain_decisions` (outcome success, LIMIT 5, business_id scoped) em vez do filesystem CURRENT.md.
 
-> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: done · done_at: 2026-05-04 · commit: 6bca4c1b
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: superseded · done_at: 2026-05-04 · commit: 6bca4c1b · superseded_by: adr-0363
 
 Wagner reclamou 2026-05-03: "CURRENT.md ativo deve ser substituido pelas tarefas que ja foi feito". Hoje `Modules/ADS/Services/ContextForTaskService.php::buildCycleFocus()` lê filesystem CURRENT.md.
 
