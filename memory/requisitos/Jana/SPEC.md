@@ -306,7 +306,7 @@ Cenário: Desvio acima do threshold dispara alerta
 
 ## US-COPI-076..081 · Cronograma Cycle 01 (semanas W19+W20)
 
-**Implementado em:** _parcial_ · `memory/decisions/0064-modularizacao-split-teammcp-kb-superadmin360.md` · `memory/decisions/0065-permission-registry-contract.md` · `Modules/ADS/Services/ContextForTaskService.php` · `app/Console/Commands/EvalRagasBaselineCommand.php` · verificado@dd3ed7c (2026-07-01) — epic agregado: 076/077/078/081/082/083 entregues (ADRs + contexto MCP + KB tipado + RAGAS baseline); US-079 (demo Maiara) e US-080 (buffer fix) seguem `todo`
+**Implementado em:** _parcial_ · `memory/decisions/0064-modularizacao-split-teammcp-kb-superadmin360.md` · `memory/decisions/0065-permission-registry-contract.md` · `app/Console/Commands/EvalRagasBaselineCommand.php` · verificado@dd3ed7c (2026-07-01) — epic agregado: 076/078/081/082/083 entregues (ADRs + KB tipado + RAGAS baseline); US-079 (demo Maiara) e US-080 (buffer fix) seguem `todo`. **US-077 saiu do agregado** em 2026-07-31: o `ContextForTaskService` que a ancorava foi removido com o núcleo do ADS ([ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md)) — ver a linha da própria US-077 abaixo.
 Tasks criadas após sessão 2026-05-04 que entregou 4 PRs de modularização (split TeamMcp, split KB, Usuário 360°, delete /ads/admin/kb duplicado). Sequência prioriza fechar dívida documental, evoluir contexto Claude, validar com user real, e medir com RAGAS no fim do cycle.
 
 ### US-COPI-076 · ADRs formais split modular + Permission Registry + atualizar 5 ADRs com URLs antigas
@@ -325,9 +325,9 @@ Fechar dívida documental da sessão 2026-05-04:
 
 ### US-COPI-077 · ContextForTaskService consumir tasks-current MCP em vez de ler CURRENT.md
 
-**Implementado em:** `Modules/ADS/Services/ContextForTaskService.php` · verificado@dd3ed7c (2026-07-01) — lê `mcp_dual_brain_decisions` (outcome success, LIMIT 5, business_id scoped) em vez de filesystem CURRENT.md
+**Implementado em:** _pendente_ — **desimplementada** em 2026-07-31 pela [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md): o `ContextForTaskService` era do núcleo do ADS e foi removido com o módulo, junto da `mcp_dual_brain_decisions` que ele lia. Sem substituto — nenhum módulo vivo consome essa fila. Estado anterior, pra história: verificado@dd3ed7c (2026-07-01) — lia `mcp_dual_brain_decisions` (outcome success, LIMIT 5, business_id scoped) em vez do filesystem CURRENT.md.
 
-> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: done · done_at: 2026-05-04 · commit: 6bca4c1b
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: superseded · done_at: 2026-05-04 · commit: 6bca4c1b · superseded_by: adr-0363
 
 Wagner reclamou 2026-05-03: "CURRENT.md ativo deve ser substituido pelas tarefas que ja foi feito". Hoje `Modules/ADS/Services/ContextForTaskService.php::buildCycleFocus()` lê filesystem CURRENT.md.
 

@@ -107,7 +107,7 @@ DoD: nota ≥70 + ratchet verde. Charter + gate visual antes de Editar a Page.
 > owner: — · priority: p2 · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** `Modules/Forja/Http/Controllers/Admin/ProjectsController.php` (`index`, `store`) · rotas `ads.admin.projects.index|store` (`Modules/ADS/Routes/web.php`) · tela `resources/js/Pages/ads/Admin/Projects.tsx` (+ `Projects.charter.md`)
+**Implementado em:** `Modules/Forja/Http/Controllers/Admin/ProjectsController.php` (`index`, `store`) · rotas `ads.admin.projects.index|store` (`Modules/Forja/Http/routes.php`) · tela `resources/js/Pages/ads/Admin/Projects.tsx` (+ `Projects.charter.md`)
 
 **Origem:** US escrita a posteriori (2026-07-30) pra ancorar duas telas que já rodavam sem US declarada — o `charter-us-lint` acusou `related_us` ausente quando o rename ProjectMgmt→Forja (PR #5089) tocou os charters. Não é feature nova: descreve o que o código já faz.
 
@@ -127,7 +127,9 @@ Refs: ADR 0070 (Jira-style) · ADR 0088 + PR #5089 (rename ProjectMgmt→Forja; 
 > owner: — · priority: p2 · status: done · type: story
 > blocked_by: US-ADS-003
 
-**Implementado em:** `Modules/Forja/Http/Controllers/Admin/ProjectsController.php` (`show`, `decompose`) · `Modules/ADS/Http/Requests/DecomposeProjectRequest.php` · `Modules/Forja/Services/ProjectDecomposerService.php` · rotas `ads.admin.projects.show|decompose` (`Modules/ADS/Routes/web.php`) · tela `resources/js/Pages/ads/Admin/ProjectShow.tsx` (+ `ProjectShow.charter.md`)
+**Implementado em:** `Modules/Forja/Http/Controllers/Admin/ProjectsController.php` (`show`, `decompose`) · `Modules/Forja/Services/ProjectDecomposerService.php` · rotas `ads.admin.projects.show|decompose` (`Modules/Forja/Http/routes.php`) · tela `resources/js/Pages/ads/Admin/ProjectShow.tsx` (+ `ProjectShow.charter.md`)
+
+> O `DecomposeProjectRequest` saiu desta âncora na parte 6 (ADR 0363): morava no ADS e foi removido com o módulo. Não houve substituto porque o `decompose` do `ProjectsController` da Forja recebe `Illuminate\Http\Request` genérico — conferido ANTES de deletar — e a validação do `id` é da rota (`whereNumber`).
 
 **Origem:** idem US-ADS-003 — ancoragem a posteriori de tela já existente.
 

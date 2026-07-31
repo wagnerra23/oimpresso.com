@@ -18,7 +18,7 @@
 ## IA canônica ([ADR 0035](decisions/0035-stack-ai-canonica-wagner-2026-04-26.md))
 
 - **Camada A** (LLM wrapper): `laravel/ai` ^0.6.3 oficial fev/2026
-- **Camada B** (agents): `LaravelAiSdkDriver` + Agents próprios em `Modules/<X>/Ai/Agents/` — a Jana é a maior casa, mas **não é a única** (ADS, Crm e Whatsapp têm agentes que usam a mesma camada A). Censo derivado no [PAINEL-SISTEMA §Camada de IA](reference/PAINEL-SISTEMA.md) — não repetir o número aqui. **Vizra ADK REJEITADA** ([ADR 0048](decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md))
+- **Camada B** (agents): `LaravelAiSdkDriver` + Agents próprios em `Modules/<X>/Ai/Agents/` — a Jana é a maior casa, mas **não é a única** (Crm e Whatsapp têm agentes que usam a mesma camada A). Censo derivado no [PAINEL-SISTEMA §Camada de IA](reference/PAINEL-SISTEMA.md) — não repetir o número aqui. **Vizra ADK REJEITADA** ([ADR 0048](decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md))
 - **Camada C** (memória): `MemoriaContrato` + `MeilisearchDriver` default + `NullDriver` dev
 
 ## MCP server canônico ([ADR 0053](decisions/0053-mcp-server-governanca-como-produto.md))
@@ -71,7 +71,7 @@ Cada módulo vertical = produto separado vendável como add-on ao núcleo.
 
 ## Criar módulo novo
 
-Ler `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` — checklist das 8 peças obrigatórias + 3 rotas Install + padrão `Route::has()` pra link público condicional + pegadinhas. Validado em Modules/ADS (2026-05-03) e Modules/ConsultaOs (2026-05-04).
+Ler `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` — checklist das 8 peças obrigatórias + 3 rotas Install + padrão `Route::has()` pra link público condicional + pegadinhas. Validado em Modules/ConsultaOs (2026-05-04). _(A outra validação foi no módulo ADS em 2026-05-03; ele foi removido em 2026-07-31 pela [ADR 0363](decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) — o checklist segue valendo, só o exemplo saiu.)_
 
 ## ADRs centrais
 

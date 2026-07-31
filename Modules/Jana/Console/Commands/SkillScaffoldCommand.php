@@ -14,7 +14,9 @@ use Modules\Jana\Services\ScaffoldSkillFromMissionService;
  * — rumo ao ERP autônomo R$ [redacted Tier 0]M / 24m?
  *
  * Saída: arquivo `.claude/skills/<slug>/SKILL.md` + entry em `mcp_skills`
- * status=draft. Wagner edita o body via UI `/ads/admin/skills/<slug>/edit`.
+ * status=draft. O body se edita no PRÓPRIO arquivo em git — a UI
+ * `/ads/admin/skills/<slug>/edit` foi removida na parte 6 (ADR 0363) junto
+ * com o Modules/ADS. O `SkillsService` continua vivo, aqui na Jana (#5129).
  *
  * ADR 0078 — A constituição do oimpresso é uma frase.
  */
@@ -64,10 +66,9 @@ class SkillScaffoldCommand extends Command
         }
         $this->newLine();
         $this->line('Próximo passo:');
-        $this->line('  1. Editar body em <fg=cyan>/ads/admin/skills/'.$result['slug'].'/edit</>');
+        $this->line('  1. Editar body em <fg=cyan>'.($result['git_path'] ?? '.claude/skills/'.$result['slug'].'/SKILL.md').'</>');
         $this->line('  2. Preencher 4 TODOs (substitui/repetitivo/ROI/R$ [redacted Tier 0]M)');
-        $this->line('  3. Run testes inline (Fase 3 da UI)');
-        $this->line('  4. Aprovar + publish-to-git (Fase 4)');
+        $this->line('  3. Commitar — a revisão é o PR');
         $this->newLine();
 
         return self::SUCCESS;
