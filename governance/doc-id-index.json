@@ -1263,7 +1263,9 @@
     "2026-07-30-documentation-loop-primeiro-recibo-real": "memory/sessions/2026-07-30-documentation-loop-primeiro-recibo-real.md",
     "2026-07-30-mcp-scopes-apagados-por-save-de-role": "memory/sessions/2026-07-30-mcp-scopes-apagados-por-save-de-role.md",
     "2026-07-31-0030-rename-projectmgmt-forja-3-rodadas": "memory/handoffs/2026-07-31-0030-rename-projectmgmt-forja-3-rodadas.md",
+    "2026-07-31-1100-srs-memcofre-purga-e-abortos": "memory/handoffs/2026-07-31-1100-srs-memcofre-purga-e-abortos.md",
     "2026-07-31-rename-projectmgmt-forja": "memory/sessions/2026-07-31-rename-projectmgmt-forja.md",
+    "2026-07-31-srs-memcofre-telas-orfas-e-purga-do-rag": "memory/sessions/2026-07-31-srs-memcofre-telas-orfas-e-purga-do-rag.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -3315,16 +3317,16 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3309,
-    "resolved": 2216,
+    "total": 3311,
+    "resolved": 2218,
     "unstamped": 1093,
     "collisions": 0,
     "by_source": {
       "unstamped": 1093,
       "derived-adr": 366,
       "stamped": 953,
-      "derived-handoffs": 346,
-      "derived-sessions": 551
+      "derived-handoffs": 347,
+      "derived-sessions": 552
     }
   }
 }
