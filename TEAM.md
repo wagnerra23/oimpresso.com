@@ -146,15 +146,25 @@ Três sinais de que `owner: wagner` não é declaração de posse: **(a)** apare
 
 ---
 
-## 3.2 Dono por PROCESSO (cadeia de escalação) — **PROPOSTA, pendente de [W]**
+## 3.2 Dono por PROCESSO (cadeia de escalação)
 
-> ⚠️ **Esta tabela ainda não é canon.** As colunas *Responde* e *Aprova* são **derivadas da matriz
-> §3** (que é por *tipo de task*), não decididas. Nomear pessoa é ato do [W] — confirmar, trocar ou
-> cortar linha por linha no review deste PR. Enquanto não for confirmada, vale a §3.
+> **Ratificada por [W] em 2026-07-31** ("aprove", sessão da cadeia de responsabilidade). O ato de
+> ratificação é o merge deste PR — as colunas *Responde* e *Aprova* passam a valer junto com a §3,
+> que segue canônica pro eixo *tipo de task*. As duas convivem: a §3 diz **quem pode pegar**; esta
+> diz **quem responde quando degrada**.
+>
+> **O que a ratificação NÃO fecha:** as linhas marcadas 🔴 continuam **abertas por decisão** —
+> ratificar a tabela não inventa dono pra elas. São elas: meta-governança, smoke de produção e os
+> 29 módulos da §3.3. Ficam registradas como buraco declarado, não como omissão.
+>
+> **Procedência de cada linha:** as colunas *Responde*/*Aprova* foram **derivadas da matriz §3**
+> pelo agente e confirmadas por [W] em bloco. A coluna *Derivado de* preserva de onde cada uma
+> saiu, e o ⚠️ marca as que vieram por proximidade (a §3 não tinha linha exata). Trocar qualquer
+> uma é PR novo — esta seção é append-only como o resto do canon.
 >
 > **Por que existe:** a §3 responde *"quem pode pegar este tipo de task"*. Não responde *"quem
 > responde quando este processo degrada"*. São perguntas diferentes, e a segunda não tinha fonte —
-> por isso todo alarme sobe direto pro [W]. Origem: [W] 2026-07-31, textual — *"eu não consigo
+> por isso todo alarme subia direto pro [W]. Origem: [W] 2026-07-31, textual — *"eu não consigo
 > garantir o funcionamento integral do sistema como um todo e não enxergo como cobrar de cada parte
 > do sistema a sua responsabilidade"*.
 
@@ -184,7 +194,7 @@ Três sinais de que `owner: wagner` não é declaração de posse: **(a)** apare
 | 10 | Deploy e smoke em produção | [W] · [F] | deploy **[W]+[F]** · smoke **sem dono** 🔴 | [W] | "Deploy SSH Hostinger" ✅[W]✅[F] |
 | 11 | Registro e aprendizado | agente IA | **[W] aprova** | [W] | "Memory consolidation (skill)" ✅[W] |
 
-⚠️ = derivado por proximidade, a §3 não tem linha exata · 🔴 = **órfã, exige decisão [W]**
+⚠️ = derivado por proximidade, a §3 não tem linha exata · 🔴 = **órfã — segue aberta mesmo após a ratificação**
 
 **Regras duras que já limitam esta cadeia** (não são novas — vêm da §1 e da §3):
 
