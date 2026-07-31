@@ -64,7 +64,9 @@ related_adrs:
 url_prefixes:
   - /projectmgmt/*
   # host das 9 rotas do Admin do MCP (parte 5/7, 2026-07-31) — URL do ADS mantida (ADR 0087)
-  - /ads/admin/tools/* · /ads/admin/team-scopes/* · /ads/admin/projects/*
+  - /ads/admin/tools/*
+  - /ads/admin/team-scopes/*
+  - /ads/admin/projects/*
   - (futuro) /project/* — após Fase 3.9 (rename pra Project quando legado for deletado)
 db_tables_owned:
   - mcp_jira_projects
