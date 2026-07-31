@@ -15,6 +15,8 @@ contains:
   - "DataController + InstallController (boilerplate)"
   # Absorvido em Fase 3.7 PR-1 (2026-05-06):
   - "Admin/ProjectsController — gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc); URL /ads/admin/projects mantida"
+  # Absorvido do Modules/Brief em 2026-07-30 (ADR 0091 — o módulo Brief deixou de existir):
+  - "BriefFetchController — endpoint HTTP da tool MCP `brief-fetch` (POST /api/mcp/tools/brief-fetch); Daily Brief L7"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"

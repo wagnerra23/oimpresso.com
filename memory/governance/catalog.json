@@ -22,26 +22,26 @@
     "migratesTo"
   ],
   "stats": {
-    "modules": 38,
-    "nodes": 617,
-    "edges": 942,
+    "modules": 37,
+    "nodes": 606,
+    "edges": 909,
     "by_node_type": {
-      "module": 43,
-      "table": 84,
-      "adr": 35,
-      "component": 411,
-      "api": 44
+      "module": 42,
+      "table": 81,
+      "adr": 34,
+      "component": 406,
+      "api": 43
     },
     "by_edge_type": {
-      "ownsTable": 71,
+      "ownsTable": 68,
       "ownsLegacyView": 13,
-      "consumesTable": 8,
-      "providesApi": 44,
-      "charteredByAdr": 33,
-      "governedByAdr": 96,
-      "hasComponent": 411,
-      "dependsOn": 137,
-      "delegatesTo": 128,
+      "consumesTable": 4,
+      "providesApi": 43,
+      "charteredByAdr": 32,
+      "governedByAdr": 93,
+      "hasComponent": 406,
+      "dependsOn": 127,
+      "delegatesTo": 122,
       "migratesTo": 1
     },
     "dangling": 0
@@ -188,13 +188,6 @@
       "exists": true
     },
     {
-      "id": "adr:0091",
-      "type": "adr",
-      "num": "0091",
-      "slug": "0091-daily-brief",
-      "exists": true
-    },
-    {
       "id": "adr:0093",
       "type": "adr",
       "num": "0093",
@@ -306,14 +299,6 @@
       "prefix": "/api/ads/*",
       "providers": [
         "ADS"
-      ]
-    },
-    {
-      "id": "api:/api/mcp/tools/brief-fetch",
-      "type": "api",
-      "prefix": "/api/mcp/tools/brief-fetch",
-      "providers": [
-        "Brief"
       ]
     },
     {
@@ -944,48 +929,6 @@
       "module": "Auditoria",
       "name": "unrevertibleRegistry()",
       "desc": "whitelist do que NUNCA reverte (append-only legal/fiscal)"
-    },
-    {
-      "id": "component:Brief/BriefFetchController",
-      "type": "component",
-      "module": "Brief",
-      "name": "BriefFetchController",
-      "desc": "endpoint POST /api/mcp/tools/brief-fetch (cache 5min + audit log + telemetria)"
-    },
-    {
-      "id": "component:Brief/BriefFetchTool",
-      "type": "component",
-      "module": "Brief",
-      "name": "BriefFetchTool",
-      "desc": "tool MCP equivalente (mcp.oimpresso.com), schema JSON, force_refresh restrito a Wagner"
-    },
-    {
-      "id": "component:Brief/BriefGeneratorService",
-      "type": "component",
-      "module": "Brief",
-      "name": "BriefGeneratorService",
-      "desc": "pipeline CALL refresh_brief_inputs_cache → Brain B (sonnet-4-6) → grava mcp_briefs"
-    },
-    {
-      "id": "component:Brief/BriefServiceProvider",
-      "type": "component",
-      "module": "Brief",
-      "name": "BriefServiceProvider",
-      "desc": "registra command, tool MCP e routes"
-    },
-    {
-      "id": "component:Brief/BriefValidator + ValidationResult",
-      "type": "component",
-      "module": "Brief",
-      "name": "BriefValidator + ValidationResult",
-      "desc": "valida output (7 headers obrigatórios, ≤3500 tokens, sem PII)"
-    },
-    {
-      "id": "component:Brief/GenerateBriefCommand",
-      "type": "component",
-      "module": "Brief",
-      "name": "GenerateBriefCommand",
-      "desc": "artisan brief:generate, roda via cron 0 7,11,14,17,20,23 * * * (6x/dia America/Sao_Paulo)"
     },
     {
       "id": "component:Cms/CmsController",
@@ -1959,6 +1902,13 @@
       "module": "Forja",
       "name": "BoardController",
       "desc": "Kanban view"
+    },
+    {
+      "id": "component:Forja/BriefFetchController",
+      "type": "component",
+      "module": "Forja",
+      "name": "BriefFetchController",
+      "desc": "endpoint HTTP da tool MCP `brief-fetch` (POST /api/mcp/tools/brief-fetch); Daily Brief L7"
     },
     {
       "id": "component:Forja/BurndownController",
@@ -3600,19 +3550,6 @@
       "catalog_status": "catalogued"
     },
     {
-      "id": "module:Brief",
-      "type": "module",
-      "module": "Brief",
-      "purpose": "Daily Brief (camada L7 / contexto) — gera estado consolidado ≤3.5k tokens 6x/dia + tool MCP brief-fetch + endpoint HTTP. Reduz onboarding de sessão Claude de ~30k para ~3k tokens. Sprint 1 da Constituição V2 (ADR 0091).",
-      "trust": "L1",
-      "owner": "wagner",
-      "permission_prefix": "n/a",
-      "charter_adr": "0091",
-      "path": "Modules/Brief/SCOPE.md",
-      "catalog_kind": "scope",
-      "catalog_status": "catalogued"
-    },
-    {
       "id": "module:Cliente",
       "type": "module",
       "module": "Cliente",
@@ -4560,19 +4497,6 @@
       "owners": [
         "TeamMcp"
       ],
-      "consumers": [
-        "Brief"
-      ],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_briefs",
-      "type": "table",
-      "name": "mcp_briefs",
-      "owners": [
-        "Brief"
-      ],
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
@@ -4630,9 +4554,7 @@
       "owners": [
         "Forja"
       ],
-      "consumers": [
-        "Brief"
-      ],
+      "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4643,9 +4565,7 @@
       "owners": [
         "ADS"
       ],
-      "consumers": [
-        "Brief"
-      ],
+      "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4764,17 +4684,6 @@
       "ownership_mode": "single"
     },
     {
-      "id": "table:mcp_skill_telemetry",
-      "type": "table",
-      "name": "mcp_skill_telemetry",
-      "owners": [
-        "Brief"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
       "id": "table:mcp_skills",
       "type": "table",
       "name": "mcp_skills",
@@ -4859,7 +4768,6 @@
         "Forja"
       ],
       "consumers": [
-        "Brief",
         "TeamMcp"
       ],
       "legacy_views": [],
@@ -5003,17 +4911,6 @@
       "name": "payment_gateway_credentials",
       "owners": [
         "PaymentGateway"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:valid",
-      "type": "table",
-      "name": "valid",
-      "owners": [
-        "Brief"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -5640,226 +5537,6 @@
     {
       "from": "module:Auditoria",
       "to": "api:/auditoria/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:Brief",
-      "to": "adr:0091",
-      "type": "charteredByAdr",
-      "source": "charter_adr"
-    },
-    {
-      "from": "module:Brief",
-      "to": "table:mcp_audit_log",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
-    },
-    {
-      "from": "module:Brief",
-      "to": "table:mcp_cycles",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
-    },
-    {
-      "from": "module:Brief",
-      "to": "table:mcp_decisions",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
-    },
-    {
-      "from": "module:Brief",
-      "to": "table:mcp_tasks",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:Governance",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Audit dashboard UI"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:Jana",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Geração de chat/conversa em tempo real"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:Jana",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tools MCP genéricas (memoria-search, decisions-fetch, etc.)"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:KB",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tokens MCP CRUD"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tools MCP genéricas (memoria-search, decisions-fetch, etc.)"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_decisions"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_cycles"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_tasks"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:Governance",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Audit dashboard UI"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:Jana",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Geração de chat/conversa em tempo real"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:Jana",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tools MCP genéricas (memoria-search, decisions-fetch, etc.)"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:KB",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_audit_log"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tokens MCP CRUD"
-    },
-    {
-      "from": "module:Brief",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tools MCP genéricas (memoria-search, decisions-fetch, etc.)"
-    },
-    {
-      "from": "module:Brief",
-      "to": "adr:0079",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:Brief",
-      "to": "adr:0080",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:Brief",
-      "to": "adr:0091",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:Brief",
-      "to": "component:Brief/BriefFetchController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Brief",
-      "to": "component:Brief/BriefFetchTool",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Brief",
-      "to": "component:Brief/BriefGeneratorService",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Brief",
-      "to": "component:Brief/BriefServiceProvider",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Brief",
-      "to": "component:Brief/BriefValidator + ValidationResult",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Brief",
-      "to": "component:Brief/GenerateBriefCommand",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Brief",
-      "to": "table:mcp_briefs",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:Brief",
-      "to": "table:mcp_skill_telemetry",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:Brief",
-      "to": "table:valid",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:Brief",
-      "to": "api:/api/mcp/tools/brief-fetch",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -7392,6 +7069,12 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/BoardController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/BriefFetchController",
       "type": "hasComponent",
       "source": "contains"
     },
