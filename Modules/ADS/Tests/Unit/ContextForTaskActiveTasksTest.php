@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\ADS\Services\ContextForTaskService;
 use Modules\ADS\Services\DecisionLinksService;
-use Modules\ADS\Services\PolicyEngine;
+use Modules\Governance\Services\PolicyEngine;
 use Modules\ADS\Services\UserScopeService;
 
 uses(Tests\TestCase::class);

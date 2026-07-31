@@ -5,6 +5,8 @@ namespace Modules\ADS\Services;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Governance\Services\PolicyEngine;
+use Modules\Governance\Services\PolicyResult;
 
 /**
  * ARQ-0003 — Ponto único de entrada de eventos no ADS.
