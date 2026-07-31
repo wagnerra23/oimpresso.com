@@ -42,12 +42,13 @@ Servir como **cockpit operacional de Compras** entregando 4 KPIs (a pagar / em t
 - Filtros locais: all / abertas / rascunhos / em trânsito (state client-side; quando server filter for adicionado, vira query string)
 - Search input header (placeholder Wave 5+ — sem ação MVP)
 - Drawer simples ao clicar linha — mostra ref, fornecedor, data, status, total, due (sem 5 tabs detalhadas — Wave 6+)
-- Botão "Nova compra" disabled (Wave 8 abre `/compras/create`)
+- Botão "+ Nova compra" aparece quando o usuário tem `purchase.create` → `router.visit('/purchases/create')` (C1 · delega ao trilho Purchase Inertia, conforme Non-Goal abaixo) <!-- reconciliação factual 2026-07-31 — ver §Reconciliação -->
 - Botão "↓ Importar XML" disabled (Wave 6 abre modal DFe pendentes)
 - Inertia::defer obrigatório em `kpis` e `rows` (pattern canônico — props caras default defer)
 - CSS bundle `cowork-compras-bundle.css` aplicado INTEIRO (1ª aplicação Tier 0 — proibicoes.md)
 - Permission gate `compras.view` — sem permission, retorna 403
-- Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL — `session('user.business_id')` em todas queries
+- Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL — `business_id` derivado de `auth()->user()->business_id` (não `session()` — US-COM-007) escopa todas as queries <!-- reconciliação factual 2026-07-31 — ver §Reconciliação -->
+- `abort_if($businessId <= 0, 403)` + cross-check `session` × `auth` (defense-in-depth, US-COM-007)
 
 ---
 
@@ -122,6 +123,19 @@ Ainda pendentes:
 - **Drawer 5 tabs** — Resumo/Itens/Documentos/Pagamentos/Histórico (Wave 6+ quando `show()` existir) — **mantido** (diferencial UX cockpit)
 - **Link "Ver tela cheia" no drawer** apontando `/purchases/{id}?v=2` — V2 polimento C1
 - **Server-side filter persistido** — hoje filter é client-side (sobre rows defer); migrar pra query string Wave 7
+
+---
+
+## Reconciliação factual (2026-07-31 · agent `sdd-from-source`, Fase 2.6)
+
+> Só **FATO verificável** — a intenção (Non-Goals, Anti-hooks) fica intocada; divergências de intenção vão pra [W] (ver SDD §5.4.3/§5.4.4 e `Index.casos.md`).
+
+| Antes (scaffold v1) | Agora | Evidência |
+|---|---|---|
+| Goal *"Botão Nova compra **disabled** (Wave 8 abre `/compras/create`)"* | delega `router.visit('/purchases/create')` quando há `purchase.create` | `Index.tsx` :280-289 (botão condicional + `router.visit`) + o próprio §Non-Goals v2 (*"delega `/purchases/create`"*) — o texto v1 se contradizia |
+| Goal *"`session('user.business_id')` em todas queries"* | `auth()->user()->business_id` (não session) + `abort_if(<=0)` + cross-check | `ComprasController@index` :50-59 · **US-COM-007** (landed + testado por `MultiTenantTest`) · SDD §3 |
+
+Ambos eram remanescentes v1 que o pivô v2 (C1, 2026-05-25) não atualizou. O segundo era **instrução ativa pra regressão** ([proibicoes §Precedência](../../../../memory/proibicoes.md)): mandava usar `session`, exatamente o que a US-COM-007 corrigiu. `last_validated` **não** foi bumpado (fix pontual ≠ re-validação completa).
 
 ---
 
