@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /ia/admin/roadmap
 //   module: Jana
 //   ondas: Onda 5 V1 (Roadmap timeline UI)

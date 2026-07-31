@@ -1,4 +1,3 @@
-// @memcofre tela=/nfe-brasil/tributacao/config-default module=NfeBrasil
 //   us: US-NFE-010 fase 2 (Form Nivel 4 - defaults business)
 
 import AppShellV2 from '@/Layouts/AppShellV2';

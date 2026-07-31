@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /forja (+ /forja/{backlog,quadro,changelog,mcp})
 //   module: TeamMcp — cockpit Forja (cowork loop · hub ÚNICO pós-fusão).
 //   forja: header vem do <ForjaHub> compartilhado (mesmo header em TODAS as abas,

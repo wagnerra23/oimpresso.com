@@ -1,5 +1,3 @@
-// @memcofre tela=/financeiro/contas-receber module=Financeiro
-
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, useForm } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';

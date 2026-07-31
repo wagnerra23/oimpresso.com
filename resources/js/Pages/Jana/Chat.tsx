@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /copiloto
 //   stories: US-COPI-001, US-COPI-002, US-COPI-003, US-COPI-MEM-007
 //   rules: R-COPI-001, R-COPI-MEM-005

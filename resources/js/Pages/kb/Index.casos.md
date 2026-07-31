@@ -4,7 +4,7 @@ casos: "KB V3 — browser do acervo canon · /kb"
 irmaos: "Index.charter.md (lei · v1.0) · Index.v2.casos.md (tela irmã, kb_nodes) · SDD-tela-kb-unificado-v1.0.md (§6 CU-KB)"
 tecnica: "Caso de uso = narrativa + critério de aceite verificável, derivado do §6 do SDD (nunca do .tsx)"
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-07-30"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (KB · MySQL)"
 status_tela: "viva-dado-real (GET /kb → KbController@index → mcp_memory_documents; 1ª vez que a tela ganha contrato executável)"
 ---

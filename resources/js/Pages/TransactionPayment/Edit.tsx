@@ -1,4 +1,3 @@
-// @memcofre tela=/payments/v2/{id}/edit module=TransactionPayment
 // MWART Wave Blade T1 Migration B (2026-05-17) — full page Edit (vs modal Blade)
 // Charter: ./Edit.charter.md
 

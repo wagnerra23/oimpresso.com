@@ -1,4 +1,3 @@
-// @memcofre tela=/aprovar-os/{token} module=OficinaAuto
 // Rota PÚBLICA sem auth — cliente aprova/rejeita OS via WhatsApp + PIN (US-OFICINA-006)
 // Charter: AprovacaoPublica.charter.md
 // Multi-tenant Tier 0: token HMAC + business_id assinado (ADR 0093)

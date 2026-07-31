@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/dashboard module=Repair
 // Sprint 2.5 / MWART-0002 — port Dashboard Repair Blade → Inertia/React.
 // W31-uplift: SimpleListCard texto → BarChart SVG a11y; trending_devices
 // (US-REPAIR-DASH-1) un-voided; charts em Inertia::defer + skeleton (P7).

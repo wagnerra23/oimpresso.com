@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /stock-transfers
 //   module: Inventory / StockTransfer (raiz UltimatePOS)
 //   tipo: LIST (MWART Wave2 B5)

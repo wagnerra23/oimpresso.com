@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /team-mcp/tasks
 //   module: TeamMcp (split do Copiloto) — TaskRegistry F2 (US-TR-007)
 //   forja: PR-1 re-skin DS v6 — visual-comparison em

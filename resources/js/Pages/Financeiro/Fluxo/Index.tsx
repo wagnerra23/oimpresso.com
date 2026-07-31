@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /financeiro/fluxo
 //   module: Financeiro
 //   status: em-implementacao

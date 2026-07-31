@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /copiloto/admin/custos
 //   module: Copiloto
 //   stories: US-COPI-070

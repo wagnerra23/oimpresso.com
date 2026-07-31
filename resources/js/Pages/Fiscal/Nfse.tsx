@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /fiscal/nfse
 //   module: Fiscal
 //   status: em-implementacao

@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /purchases/create
 //   module: Purchase (raiz UltimatePOS, não Modules/)
 //   tipo: FORM CREATE (MWART Wave2 B5)

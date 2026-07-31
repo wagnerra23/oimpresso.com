@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/status module=Repair
 // Sprint 2.5 / MWART-0002 — port da tela de Status (Repair) Blade → Inertia/React.
 // CRUD simples: lista status com cor + sort_order + flag completed; criar/editar via modal Blade
 // (mantém compat com edit/create existentes — 1:1 paridade visual).

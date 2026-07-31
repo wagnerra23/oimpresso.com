@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /project-mgmt/activity
 //   module: Forja
 //   stories: US-TR-205 (Activity feed timeline)

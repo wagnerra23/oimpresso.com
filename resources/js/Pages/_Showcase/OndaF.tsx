@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /showcase/onda-f
 //   module: _DesignSystem
 //   status: showcase

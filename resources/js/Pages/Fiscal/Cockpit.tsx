@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /fiscal
 //   module: Fiscal (cockpit unificado)
 //   status: em-implementacao (Wave Cowork "Notas Fiscais" visual)

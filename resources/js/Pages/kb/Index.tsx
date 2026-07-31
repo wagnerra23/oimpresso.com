@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /kb
 //   module: KB
 //   stories: MEM-KB-1 (ADR 0053) — KB browser dos docs servidos via MCP server

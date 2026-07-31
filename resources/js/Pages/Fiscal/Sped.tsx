@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /fiscal/sped
 //   module: Fiscal
 //   stories: US-FISCAL-010 (SPED placeholder), US-FISCAL-016 (gerador EFD-ICMS/IPI MVP — PR #8)

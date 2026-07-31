@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /atendimento/canais/{id}
 //   stories: US-WA-068 (Tab "Usuários do canal")
 //   adrs: 0135 (omnichannel arquitetura), 0093 (multi-tenant Tier 0)

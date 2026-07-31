@@ -5,7 +5,7 @@ irmaos: NfceStatus.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F3/F4 �
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do módulo que a operadora abre por causa de UMA nota — o que ela mostra decide se a venda sai do balcão ou não.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-07-30"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 

@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /financeiro
 //   module: Financeiro
 //   status: implementada

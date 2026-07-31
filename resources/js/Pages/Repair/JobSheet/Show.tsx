@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/job-sheet/{id} module=Repair
 // Wave 3 B6 MWART — JobSheet Show port Blade → Inertia.
 // FSM Panel integrado (ADR 0143) — usa endpoints REPAIR próprios via wrapper.
 

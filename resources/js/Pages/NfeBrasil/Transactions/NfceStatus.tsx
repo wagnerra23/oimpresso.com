@@ -1,4 +1,3 @@
-// @memcofre
 //   modulo: NfeBrasil (NfceStatus)
 //   stories: US-NFE-002 fase 2C (status NFC-e pós-emissão, polling SEFAZ)
 //   gap-fix: board 2026-05-30 nota 38→≥70 — remove inline/oklch, Card/Badge DS,

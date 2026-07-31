@@ -7,7 +7,7 @@ por_que: a etiqueta é o elo entre a peça física e o POS — um EAN-13 inváli
 owner: wagner
 related_us: [US-VEST-020]
 related_cu: [CU-VEST-01, CU-VEST-02, CU-VEST-03, CU-VEST-04, CU-VEST-05, CU-VEST-06, CU-VEST-07, CU-VEST-08]
-last_run: "2026-07-28"
+last_run: "2026-07-30"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Modules Pest → Pest Vestuario"
 ---
 

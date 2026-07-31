@@ -1,5 +1,3 @@
-// @memcofre tela=/financeiro/contas-pagar module=Financeiro
-
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, useForm } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';

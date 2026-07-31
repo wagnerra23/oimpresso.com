@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /project-mgmt/board
 //   module: Forja
 //   stories: US-TR-201 (Kanban Page)

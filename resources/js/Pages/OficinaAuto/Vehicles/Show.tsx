@@ -1,4 +1,3 @@
-// @memcofre tela=/oficina-auto/veiculos/{id} module=OficinaAuto
 // V0 scaffold (US-OFICINA-001) — ADR 0137. Detalhe veículo + histórico OS.
 // RUNBOOK: memory/requisitos/OficinaAuto/RUNBOOK-show.md
 

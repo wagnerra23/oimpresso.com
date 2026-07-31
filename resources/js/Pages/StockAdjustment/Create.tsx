@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /stock-adjustments/create
 //   module: Inventory / StockAdjustment (raiz UltimatePOS)
 //   tipo: FORM CREATE (MWART Wave2 B5)

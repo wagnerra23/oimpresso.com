@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /project-mgmt/roadmap
 //   module: Forja
 //   stories: US-TR-203 (Roadmap epics x quarters)

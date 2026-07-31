@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /whatsapp/templates
 //   stories: US-WA-013 (Templates HSM Meta + locais Z-API/Baileys)
 //   adrs: 0096

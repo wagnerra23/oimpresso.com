@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /nfse
 //   module: NFSe
 //   stories: US-NFSE-008

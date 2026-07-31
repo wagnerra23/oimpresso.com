@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /project-mgmt/burndown
 //   module: Forja
 //   stories: US-TR-206 (Burndown chart)

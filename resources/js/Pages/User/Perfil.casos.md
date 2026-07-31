@@ -5,7 +5,7 @@ irmaos: Perfil.charter.md (lei)
 tecnica: Caso de uso = narrativa do usuário + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-06-24"
+last_run: "2026-07-30"
 ---
 
 # Casos de Uso & Aceite — Meu perfil (/perfil)

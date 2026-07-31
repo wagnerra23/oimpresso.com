@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/device-models module=Repair
 // Blade T1 Migration C (2026-05-17) — port Device Models (Repair) Blade → Inertia/React.
 // Expansão sprint 2.5: KPIs + filtros brand_id/device_id + Inertia::defer (RUNBOOK-inertia-defer-pattern).
 // Charter: Index.charter.md. RUNBOOK: memory/requisitos/Repair/RUNBOOK-device-models.md

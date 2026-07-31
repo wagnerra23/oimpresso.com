@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-07-30"
 last_run_ci: "0 UC executado neste PR — os 4 UC já existiam; veredito pendente da lane PHP / Pest (OficinaAuto · MySQL)"
 related_us: [US-OFICINA-001, US-OFICINA-003, US-AUTO-005]
 related_cu: [CU-OFI-04, CU-OFI-07, CU-OFI-15, CU-OFI-19]

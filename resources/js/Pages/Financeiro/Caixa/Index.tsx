@@ -1,4 +1,3 @@
-// @memcofre tela=/financeiro/caixa module=Financeiro
 // Wagner 2026-05-21 Fase 6 deprecação legacy Soft (wrapper Inertia).
 // Tela read-only sobre cash_registers core UltimatePOS. Lifecycle (abrir/fechar)
 // continua na header POS — esta tela é descoberta + histórico no Financeiro.

@@ -1,4 +1,3 @@
-// @memcofre tela=/home module=Dashboard
 // Wagner 2026-05-21 F6 Soft wrapper Inertia (US-DASH-001).
 // Wagner 2026-05-22 charter v2 — 8 KPI cards (Vendas + Compras) — fix contraste header.
 // Landing pós-login. Charts + widgets pluggable preservados em /home?legacy=1.

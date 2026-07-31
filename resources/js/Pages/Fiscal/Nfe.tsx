@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /fiscal/nfe
 //   module: Fiscal (cockpit unificado)
 //   status: em-implementacao

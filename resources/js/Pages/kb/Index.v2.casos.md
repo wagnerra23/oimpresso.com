@@ -5,7 +5,7 @@ irmaos: Index.v2.charter.md (lei · v4) · Index.charter.md (V3 atual, coexiste)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 status_tela: viva-dado-real (roteada /kb/v2 + /sops via KbController@indexV2; serve kb_nodes reais; leitor do corpo ligado em 2026-07-29 via GET /kb/nodes/{slug} — JOIN mcp_memory_documents, read-only)
-last_run: "2026-07-29"
+last_run: "2026-07-30"
 ---
 
 # Casos de uso — /kb/v2 (KB Unificado tri-pane · DADO REAL)

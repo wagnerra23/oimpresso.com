@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /atendimento/macros
 //   stories: US-WA-048 (Macros — quick replies + automation actions, Chatwoot pattern)
 //   gap: P1 #6 + #12 em memory/requisitos/Whatsapp/COMPARATIVO-MERCADO-2026-05-12.md

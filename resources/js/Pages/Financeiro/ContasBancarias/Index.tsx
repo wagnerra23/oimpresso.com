@@ -1,5 +1,3 @@
-// @memcofre tela=/financeiro/contas-bancarias module=Financeiro
-
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';

@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /copiloto/admin/governanca
 //   module: Copiloto
 //   stories: MEM-MCP-1.e (ADR 0053)

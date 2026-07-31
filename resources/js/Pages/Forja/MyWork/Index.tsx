@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /project-mgmt/my-work
 //   module: Forja
 //   stories: US-TR-204 (My Work + Inbox)

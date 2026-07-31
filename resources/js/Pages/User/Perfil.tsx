@@ -1,4 +1,3 @@
-// @memcofre tela=/perfil module=User
 //
 // "Meu perfil" — conta do usuário logado. Redesign ComVis do legado
 // resources/views/user/profile.blade.php (UltimatePOS HRM), em Inertia.

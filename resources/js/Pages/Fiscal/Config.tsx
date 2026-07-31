@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /fiscal/config
 //   module: Fiscal
 //   stories: US-FISCAL-009 (Cert/Cfg sub-página 6 do design KB-9.75)

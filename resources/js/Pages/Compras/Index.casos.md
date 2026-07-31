@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — o escopo de quem-vê-o-quê e o contrato de filtro não mudam quando o cockpit ganhar abas novas.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-07-30"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Compras · MySQL)"
 ---
 

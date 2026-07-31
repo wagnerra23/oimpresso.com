@@ -5,7 +5,7 @@ irmaos: ImportCsv.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F8 · §
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única porta que escreve CENTENAS de regras tributárias de uma vez — e ela resolve o tenant DUAS vezes, em momentos diferentes.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-07-30"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 

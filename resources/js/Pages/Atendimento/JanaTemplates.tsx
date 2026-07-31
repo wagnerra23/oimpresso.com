@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /atendimento/canais/jana-templates
 //   stories: US-WA-070 (renomeação pós-Canais)
 //   herda: US-WA-067 (bloco Templates+Bot Jana migrado de /whatsapp/settings)

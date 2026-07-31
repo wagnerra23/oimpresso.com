@@ -1,4 +1,3 @@
-// @memcofre tela=/nfe-brasil/tributacao module=NfeBrasil
 //   us: US-NFE-010 fase 2 (UI tributação — regras NCM + config default)
 //   adrs: NfeBrasil/adr/arq/0006-cascade-defaults-ncm-produto, ADR 0029 (Inertia + UPos)
 

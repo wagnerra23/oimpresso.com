@@ -1,6 +1,5 @@
 // DRAFT Onda 2 — PRECISA smoke visual + aprovação SCREENSHOT do Wagner (ADR 0107/0114) antes de merge
 //
-// @memcofre
 //   tela: /project-mgmt/triage
 //   module: Forja
 //   stories: US-TR-301 (lista órfãs) · US-TR-302 (atribuir owner+prio inline) · US-TR-303 (mover cycle/epic)

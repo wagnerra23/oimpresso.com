@@ -1,4 +1,3 @@
-// @memcofre tela=/nfe-brasil/manifestacao module=NfeBrasil
 //   us: US-NFE-052 (manifestação destinatário UI)
 //   adrs: 0039 (cockpit), 0093 (multi-tenant Tier 0), 0116 (caso Gold)
 //   visual-comparison: memory/requisitos/NfeBrasil/manifestacao-visual-comparison.md (approved 2026-05-09)

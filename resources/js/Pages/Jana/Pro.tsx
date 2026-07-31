@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /ia/pro
 //   adrs: 0140 (Jana Pro SaaS), 0110 (Cockpit V2), 0190/0235 (primary roxo), 0093 (Tier 0)
 //   design: prototipos/jana-pro/Jana Pro - Paywall CC.html (gate F1.5 PASS 90)

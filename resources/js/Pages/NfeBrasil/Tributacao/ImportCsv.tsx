@@ -1,4 +1,3 @@
-// @memcofre tela=/nfe-brasil/tributacao/import module=NfeBrasil
 //   us: US-NFE-010 fase 3 (Import CSV regras tributárias em massa)
 
 import AppShellV2 from '@/Layouts/AppShellV2';

@@ -1,4 +1,3 @@
-// @memcofre tela=/advisor module=Financeiro
 // Onda 31 (2026-05-20) #57 US-FIN-037 — Dashboard do contador parceiro.
 // Mostra cards de cada cliente acessível via grant ATIVO + links read-only
 // pra /financeiro/unificado e /financeiro/relatorios (middleware AdvisorViewScope

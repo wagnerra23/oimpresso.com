@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /copiloto/admin/qualidade
 //   module: Copiloto
 //   stories: MEM-MET-4 (ADR 0050)

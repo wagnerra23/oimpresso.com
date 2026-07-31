@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /purchases/{id}
 //   module: Purchase
 //   tipo: DETAIL (MWART migracao-blade-react PR2 piloto)

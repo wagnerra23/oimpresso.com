@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /financeiro/prova-viva
 //   module: Financeiro
 //   status: prova-viva (pilot ADR 0253 — mock data, NÃO é a Visão Unificada de produção)

@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /stock-transfers/create
 //   module: Inventory / StockTransfer (raiz UltimatePOS)
 //   tipo: FORM CREATE (MWART Wave2 B5)

@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /nfse/emitir
 //   module: NFSe
 //   stories: US-NFSE-009

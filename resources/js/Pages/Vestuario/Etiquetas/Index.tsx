@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /vestuario/etiquetas
 //   stories: US-VEST-020 (Etiqueta TAG térmica + EAN-13 + QR Code)
 //   adrs: 0093 multi-tenant · 0104 mwart · 0121 vertical Vestuario

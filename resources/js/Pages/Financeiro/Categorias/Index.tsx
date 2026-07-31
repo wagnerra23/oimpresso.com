@@ -1,5 +1,3 @@
-// @memcofre tela=/financeiro/categorias module=Financeiro
-
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useState } from 'react';

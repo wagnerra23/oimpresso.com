@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /fiscal/dfe
 //   module: Fiscal
 //   stories: US-FISCAL-008 (DF-e manifesto sub-página 4 do design KB-9.75)

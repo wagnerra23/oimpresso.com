@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /whatsapp/settings
 //   stories: US-WA-310 (Embedded Signup v4 wizard)
 //   adrs: 0202 (Meta Cloud default universal + Baileys OUT)

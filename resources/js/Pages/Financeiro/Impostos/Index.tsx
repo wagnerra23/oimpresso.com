@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /financeiro/impostos
 //   module: Financeiro
 //   status: live (F1 — estimativa visual)

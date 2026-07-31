@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /atendimento/canais
 //   stories: US-WA-057 (Omnichannel Fase 0 UI)
 //   adrs: 0135 (omnichannel arquitetura)

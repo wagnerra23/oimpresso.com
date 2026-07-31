@@ -1,4 +1,3 @@
-// @memcofre tela=/financeiro/configuracoes/contador module=Financeiro
 // Onda 31 (2026-05-20) #57 US-FIN-037 — Portal Advisor contadores parceiros (Fase 1 MVP).
 // Wave 4 (2026-05-31): migrado pra DS canon — PageHeader (shared) + FinanceiroSubNav +
 // Input/Label/Button/Card/Alert/AlertDialog @/Components/ui. Removidos inputs hand-rolled,

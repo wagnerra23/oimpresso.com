@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-07-30"
 ---
 
 # Casos de Uso & Aceite — Tributação (regras NCM · templates · gate de emissão automática)

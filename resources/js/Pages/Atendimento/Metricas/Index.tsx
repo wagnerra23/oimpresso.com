@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /atendimento/metricas
 //   stories: US-WA-021/041 (CYCLE-07 PR-3 — dashboard métricas omnichannel)
 //   adrs: 0135 (omnichannel arquitetura) · Constituição §4 loop fechado por métrica

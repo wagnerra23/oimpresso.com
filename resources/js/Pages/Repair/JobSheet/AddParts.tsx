@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/job-sheet/add-parts/{id} module=Repair
 // Wave 3 B6 MWART — JobSheet AddParts port Blade → Inertia.
 // SEM FSM (ação não-transitiva). Form lista peças editável.
 //

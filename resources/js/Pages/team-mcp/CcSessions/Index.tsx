@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /team-mcp/cc-sessions
 //   module: TeamMcp (split do Copiloto)
 //   forja: PR-2 re-skin DS v6 — visual-comparison em

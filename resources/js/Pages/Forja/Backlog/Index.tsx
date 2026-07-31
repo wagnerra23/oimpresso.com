@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /project-mgmt/backlog
 //   module: Forja
 //   stories: US-TR-202 (Backlog filtrável + bulk edit)

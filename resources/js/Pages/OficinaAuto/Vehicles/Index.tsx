@@ -1,4 +1,3 @@
-// @memcofre tela=/oficina-auto/veiculos module=OficinaAuto
 // Dashboard de Veículos (US-OFICINA-001 evoluída pra demo Martinho 13/maio).
 // 2026-06-10 sweep ADR 0265: vocabulário de locação erradicado do user-facing —
 // "Caçambas"→"Veículos", colunas Endereço/Diárias (conceitos de aluguel) removidas,

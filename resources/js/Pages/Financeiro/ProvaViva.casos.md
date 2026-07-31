@@ -4,7 +4,7 @@ casos: Prova viva (primitivos) · /financeiro/prova-viva
 irmaos: ProvaViva.charter.md (lei) · RUNBOOK-prova-viva.md
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-07-06"
+last_run: "2026-07-30"
 ---
 
 # Casos de uso — /financeiro/prova-viva (pilot ADR 0253)

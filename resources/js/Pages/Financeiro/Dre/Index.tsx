@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /financeiro/dre
 //   module: Financeiro
 //   status: live

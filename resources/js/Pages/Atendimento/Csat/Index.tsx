@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /atendimento/csat
 //   stories: US-WA-CSAT (PR-6 CYCLE-07) — pesquisa pós-resolução 1-5
 //   adrs: 0135 (omnichannel), 0142 (notas internas pattern reusado)

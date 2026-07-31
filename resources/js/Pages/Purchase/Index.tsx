@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /purchases
 //   module: Purchase (raiz UltimatePOS, não Modules/)
 //   tipo: LIST (MWART migracao-blade-react piloto)

@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /atendimento/macros/{macro_id}/variants
 //   stories: US-WA-049 (A/B testing variants pra macros HSM)
 //   gap: P2 #18 em memory/requisitos/Whatsapp/COMPARATIVO-MERCADO-2026-05-12-v2.md

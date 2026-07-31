@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/job-sheet/{id}/edit module=Repair
 // Wave 3 B6 MWART — JobSheet Edit port Blade → Inertia.
 // FSM transitions ficam no Show (não aqui).
 

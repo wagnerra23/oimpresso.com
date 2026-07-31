@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /superadmin/usuarios
 //   module: Superadmin
 //   stories: USUARIO-360 (Wagner — não pular galho em galho pra rastrear acesso)

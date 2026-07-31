@@ -5,7 +5,7 @@ irmaos: ConfigDefault.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o que esta tela grava vira imposto na nota — o comportamento é durável mesmo se o form mudar de layout.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-07-30"
 ---
 
 # Casos de Uso & Aceite — Defaults tributários (cascade Nível 4)

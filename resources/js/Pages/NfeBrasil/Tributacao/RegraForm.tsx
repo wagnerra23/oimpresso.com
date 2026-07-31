@@ -1,4 +1,3 @@
-// @memcofre tela=/nfe-brasil/tributacao/regras/(create|edit) module=NfeBrasil
 //   us: US-NFE-010 fase 2 (Form criar/editar regra NCM)
 
 import AppShellV2 from '@/Layouts/AppShellV2';

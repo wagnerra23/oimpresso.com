@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/repair/{id} module=Repair
 // Wave 3 B6 MWART — Repair Show (venda-de-reparo, Transaction sub_type=repair).
 // FSM Sells panel opcional via flag mwart.repair_show_fsm_panel.enabled.
 

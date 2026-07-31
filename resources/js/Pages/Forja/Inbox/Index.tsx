@@ -1,6 +1,5 @@
 // DRAFT Onda 2 — PRECISA smoke visual + aprovação SCREENSHOT do Wagner (ADR 0107/0114) antes de merge
 //
-// @memcofre
 //   tela: /project-mgmt/inbox
 //   module: Forja
 //   stories: US-TR-304 (lista unread) · US-TR-305 (marcar lido individual + todas) · US-TR-306 (deep-link task)

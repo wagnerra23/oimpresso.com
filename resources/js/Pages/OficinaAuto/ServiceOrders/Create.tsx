@@ -1,4 +1,3 @@
-// @memcofre tela=/oficina-auto/ordens-servico/create module=OficinaAuto
 // V0 scaffold (US-OFICINA-001) — ADR 0137. Form criação de OS em Sheet lateral.
 // RUNBOOK: memory/requisitos/OficinaAuto/RUNBOOK-create.md
 //

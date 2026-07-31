@@ -4,7 +4,7 @@ casos: Jana Pro · paywall/upgrade · /ia/pro
 irmaos: Pro.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-07-06"
+last_run: "2026-07-30"
 ---
 
 # Casos de uso — /ia/pro (Jana Pro paywall)

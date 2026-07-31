@@ -5,7 +5,7 @@ irmaos: RegraForm.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F7 · §
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta regra decide a alíquota que sai na nota — errar aqui é multa fiscal, não bug de tela.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-07-30"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 

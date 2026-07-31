@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /kb/v2 (port tri-pane do Cowork [CC])
 //   module: KB
 //   stories: ONDA 2 KB-Unificado (BRIEFING.md, ADR 0149 proposal)

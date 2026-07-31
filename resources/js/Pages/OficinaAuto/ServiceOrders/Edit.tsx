@@ -1,4 +1,3 @@
-// @memcofre tela=/oficina-auto/ordens-servico/{id}/edit module=OficinaAuto
 // V0 scaffold (US-OFICINA-001) — ADR 0137. Edição de OS em Sheet lateral.
 // Wave 5 US-OFICINA-005-bis (2026-05-26): section inline "Itens da OS".
 // 2026-05-26: refatorado de Page fullscreen → Sheet 720px lateral (Wagner pedido —

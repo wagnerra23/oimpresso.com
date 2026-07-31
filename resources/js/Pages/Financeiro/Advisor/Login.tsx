@@ -1,4 +1,3 @@
-// @memcofre tela=/advisor/login module=Financeiro
 // Onda 31 (2026-05-20) #57 US-FIN-037 — Portal Advisor login isolado.
 // NÃO usa AppShellV2 — advisor é entidade global, não tem sidebar POS UltimatePOS.
 // Charter: Login.charter.md (status draft).

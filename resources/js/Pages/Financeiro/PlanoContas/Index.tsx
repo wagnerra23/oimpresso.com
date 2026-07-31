@@ -1,4 +1,3 @@
-// @memcofre tela=/financeiro/plano-contas module=Financeiro status=implementada
 //
 // Onda 18 (2026-05-19) #48 — Tela dedicada de Plano de Contas BR.
 // Resolve workaround do botão "Plano de contas" no header de /unificado

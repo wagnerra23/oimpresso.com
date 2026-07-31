@@ -1,4 +1,3 @@
-// @memcofre tela=/oficina-auto/veiculos/create module=OficinaAuto
 // V0 scaffold (US-OFICINA-001) — ADR 0137. Form de criação de veículo.
 // RUNBOOK: memory/requisitos/OficinaAuto/RUNBOOK-create.md
 // Charter: Create.charter.md (paridade de campos + erros em todos os campos com Edit).

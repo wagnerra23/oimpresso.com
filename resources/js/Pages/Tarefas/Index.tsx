@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /tarefas
 //   stories: a definir (Fase 4 ADR 0039 — TaskProvider/TaskRegistry)
 //   adrs: 0039 (Cockpit), UI-0008 (cockpit layout), UI-0011 (sidebar single-pane)

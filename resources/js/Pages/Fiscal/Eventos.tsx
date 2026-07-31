@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /fiscal/eventos
 //   module: Fiscal
 //   status: em-implementacao

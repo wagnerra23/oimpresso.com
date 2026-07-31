@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /team-mcp/scorecard
 //   module: TeamMcp — G1 FICHA W22 (Facts + Checks)
 //   forja: PR-3 — CRIA a Page (rota existia mas o componente não; route quebrada).

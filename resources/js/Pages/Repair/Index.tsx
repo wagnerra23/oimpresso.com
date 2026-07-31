@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/repair module=Repair
 // Sprint 2 / MWART-0001 — port 1:1 da listagem Blade legacy (DataTables)
 // para Inertia/React. Não muda UX; troca só o motor de renderização.
 

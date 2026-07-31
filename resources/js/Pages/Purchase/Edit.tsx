@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /purchases/{id}/edit
 //   module: Purchase
 //   tipo: FORM EDIT (MWART Wave2 B5)

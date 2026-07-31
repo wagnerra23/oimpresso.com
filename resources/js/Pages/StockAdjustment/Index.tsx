@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /stock-adjustments
 //   module: Inventory / StockAdjustment (raiz UltimatePOS)
 //   tipo: LIST (MWART Wave2 B5)

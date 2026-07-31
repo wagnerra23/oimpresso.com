@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /atendimento/caixa-unificada
 //   stories: US-WA-XXX (Caixa Unificada V4 — Cowork redesign omnichannel)
 //   adrs: 0114 (Cowork loop) · 0135 (omnichannel) · 0093 (multi-tenant Tier 0) · 0107 (visual gate F3)

@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/job-sheet module=Repair
 // Sprint 2.5 / MWART-0002 — port Job Sheet Repair Blade → Inertia/React.
 // Score-up 2026-05-31 (board 52 "stub: placeholder DataTables + cards só contam"):
 //   placeholder → tabela real. Mantém o contrato REAL do controller

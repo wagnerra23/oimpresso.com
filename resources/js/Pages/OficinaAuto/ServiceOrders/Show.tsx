@@ -1,4 +1,3 @@
-// @memcofre tela=/oficina-auto/ordens-servico/{id} module=OficinaAuto
 // V0 scaffold (US-OFICINA-001) — ADR 0137. Detalhe OS.
 // Wave 5 US-OFICINA-005-bis (2026-05-26): seção "Itens da OS" com CTA Adicionar
 // via Sheet 480px lateral. Depende do backend PR #1624 (ServiceOrderItemController).

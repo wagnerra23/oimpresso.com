@@ -1,4 +1,3 @@
-// @memcofre
 //   modulo: Copiloto / Chat
 //   adrs: 0035, 0036, 0046, 0047, 0053
 //   status: implementada (Sprint chat enterprise via assistant-ui v0.10)

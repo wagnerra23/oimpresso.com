@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/job-sheet/create module=Repair
 // Wave 3 B6 MWART — JobSheet Create port Blade → Inertia.
 // OS nasce SEM current_stage_id (legacy). Pipeline FSM iniciado opt-in no Show.
 //

@@ -1,4 +1,3 @@
-// @memcofre tela=/payments/v2 module=TransactionPayment
 // MWART Wave Blade T1 Migration B (2026-05-17) — coexiste com Blade /payments
 // Charter: ./Index.charter.md
 

@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F9/F10 · §
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: manifestar é obrigação fiscal com prazo legal — e o que esta tela faz em LOTE não existe em nenhuma outra.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-07-30"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 

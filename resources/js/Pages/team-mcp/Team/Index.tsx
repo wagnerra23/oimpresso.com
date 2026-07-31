@@ -1,4 +1,3 @@
-// @memcofre
 //   tela: /team-mcp/team
 //   module: TeamMcp (split do Copiloto, ADR pendente)
 //   stories: MEM-TEAM-1 (ADR 0055) — self-host equivalent Anthropic Team plan admin

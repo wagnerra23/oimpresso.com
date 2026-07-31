@@ -1,4 +1,3 @@
-// @memcofre tela=/repair/device-models/{id}/edit module=Repair
 // Blade T1 Migration C (2026-05-17) — port DeviceModel Edit Blade → Inertia/React.
 // Página dedicada substitui modal Blade legacy. Charter: Edit.charter.md.
 // RUNBOOK: memory/requisitos/Repair/RUNBOOK-device-models.md

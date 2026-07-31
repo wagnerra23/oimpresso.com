@@ -1,4 +1,3 @@
-// @memcofre tela=/financeiro/conciliacao module=Financeiro status=implementada-mvp
 //
 // Onda 19 (2026-05-19) #49 — Conciliação OFX MVP.
 // Upload arquivo OFX → parser → linhas pendentes → match fuzzy → user aprova.
