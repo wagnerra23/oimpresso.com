@@ -22,45 +22,31 @@
     "migratesTo"
   ],
   "stats": {
-    "modules": 36,
-    "nodes": 600,
-    "edges": 885,
+    "modules": 35,
+    "nodes": 564,
+    "edges": 828,
     "by_node_type": {
       "module": 41,
-      "table": 70,
-      "adr": 31,
-      "component": 413,
-      "api": 45
+      "table": 66,
+      "adr": 25,
+      "component": 389,
+      "api": 43
     },
     "by_edge_type": {
-      "ownsTable": 57,
+      "ownsTable": 52,
       "ownsLegacyView": 13,
       "consumesTable": 1,
-      "providesApi": 45,
-      "charteredByAdr": 31,
-      "governedByAdr": 86,
-      "hasComponent": 413,
-      "dependsOn": 120,
-      "delegatesTo": 118,
+      "providesApi": 43,
+      "charteredByAdr": 30,
+      "governedByAdr": 78,
+      "hasComponent": 389,
+      "dependsOn": 111,
+      "delegatesTo": 110,
       "migratesTo": 1
     },
     "dangling": 0
   },
   "nodes": [
-    {
-      "id": "adr:0001",
-      "type": "adr",
-      "num": "0001",
-      "slug": "0001-arq-decision-engine-dual-brain",
-      "exists": true
-    },
-    {
-      "id": "adr:0011",
-      "type": "adr",
-      "num": "0011",
-      "slug": "0011-arq-policy-engine-4-outcomes",
-      "exists": true
-    },
     {
       "id": "adr:0035",
       "type": "adr",
@@ -115,34 +101,6 @@
       "type": "adr",
       "num": "0070",
       "slug": "0070-jira-style-task-management-current-md-removed",
-      "exists": true
-    },
-    {
-      "id": "adr:0073",
-      "type": "adr",
-      "num": "0073",
-      "slug": "0073-team-mcp-skills-policies-superseded-by-0075",
-      "exists": true
-    },
-    {
-      "id": "adr:0075",
-      "type": "adr",
-      "num": "0075",
-      "slug": "0075-team-mcp-skills-ui-prompt-management-style",
-      "exists": true
-    },
-    {
-      "id": "adr:0076",
-      "type": "adr",
-      "num": "0076",
-      "slug": "0076-skills-db-primary-git-destino-drift-alert",
-      "exists": true
-    },
-    {
-      "id": "adr:0078",
-      "type": "adr",
-      "num": "0078",
-      "slug": "0078-constituicao-uma-frase-skill-unidade-evolucao",
       "exists": true
     },
     {
@@ -265,14 +223,6 @@
       "exists": true
     },
     {
-      "id": "api:/ads/admin/*",
-      "type": "api",
-      "prefix": "/ads/admin/*",
-      "providers": [
-        "ADS"
-      ]
-    },
-    {
       "id": "api:/ads/admin/projects/*",
       "type": "api",
       "prefix": "/ads/admin/projects/*",
@@ -294,14 +244,6 @@
       "prefix": "/ads/admin/tools/*",
       "providers": [
         "Forja"
-      ]
-    },
-    {
-      "id": "api:/api/ads/*",
-      "type": "api",
-      "prefix": "/api/ads/*",
-      "providers": [
-        "ADS"
       ]
     },
     {
@@ -623,174 +565,6 @@
       "providers": [
         "Woocommerce"
       ]
-    },
-    {
-      "id": "component:ADS/\"Api/ScopeController",
-      "type": "component",
-      "module": "ADS",
-      "name": "\"Api/ScopeController",
-      "desc": "scope lookup"
-    },
-    {
-      "id": "component:ADS/Admin/ConfidenceController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/ConfidenceController",
-      "desc": "Wilson lower bound, padrões aprendidos"
-    },
-    {
-      "id": "component:ADS/Admin/ConflictsController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/ConflictsController",
-      "desc": "conflitos entre policies"
-    },
-    {
-      "id": "component:ADS/Admin/DecisoesController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/DecisoesController",
-      "desc": "decisões registradas"
-    },
-    {
-      "id": "component:ADS/Admin/LearningController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/LearningController",
-      "desc": "pattern learning loops"
-    },
-    {
-      "id": "component:ADS/Admin/MetaSkillsController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/MetaSkillsController",
-      "desc": "governance rules em mcp_governance_rules (promote/archive/escalate)"
-    },
-    {
-      "id": "component:ADS/Admin/MetricasController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/MetricasController",
-      "desc": "métricas de decisão"
-    },
-    {
-      "id": "component:ADS/Admin/PatternsController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/PatternsController",
-      "desc": "padrões aprendidos"
-    },
-    {
-      "id": "component:ADS/Admin/PolicyController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/PolicyController",
-      "desc": "Policy Engine (4 outcomes ALLOW/REQUIRE_REVIEW/BLOCK/REQUIRE_BRAIN_B)"
-    },
-    {
-      "id": "component:ADS/Admin/SkillsController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Admin/SkillsController",
-      "desc": "UI /ads/admin/skills (lista/detalhe/edit/test/review/approve/publish)"
-    },
-    {
-      "id": "component:ADS/Api/ContextController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Api/ContextController",
-      "desc": "context lookup pra decisão"
-    },
-    {
-      "id": "component:ADS/Api/DecisionController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Api/DecisionController",
-      "desc": "propor decisão (entry point Risk→Confidence→Policy)"
-    },
-    {
-      "id": "component:ADS/Api/RecentEventsController",
-      "type": "component",
-      "module": "ADS",
-      "name": "Api/RecentEventsController",
-      "desc": "eventos recentes pra ContextSnapshot"
-    },
-    {
-      "id": "component:ADS/Auto Task Generator Service",
-      "type": "component",
-      "module": "ADS",
-      "name": "Auto Task Generator Service",
-      "desc": ""
-    },
-    {
-      "id": "component:ADS/Brain B Service",
-      "type": "component",
-      "module": "ADS",
-      "name": "Brain B Service",
-      "desc": "modelo lento + estruturado"
-    },
-    {
-      "id": "component:ADS/Confidence Engine",
-      "type": "component",
-      "module": "ADS",
-      "name": "Confidence Engine",
-      "desc": "Wilson lower bound, padrões aprendidos"
-    },
-    {
-      "id": "component:ADS/Decision Links Service / Context for Task Service",
-      "type": "component",
-      "module": "ADS",
-      "name": "Decision Links Service / Context for Task Service",
-      "desc": ""
-    },
-    {
-      "id": "component:ADS/Decision Router",
-      "type": "component",
-      "module": "ADS",
-      "name": "Decision Router",
-      "desc": "roteia entre Brain A/B/HITL"
-    },
-    {
-      "id": "component:ADS/Pattern Learning Service",
-      "type": "component",
-      "module": "ADS",
-      "name": "Pattern Learning Service",
-      "desc": "aprende de outcomes"
-    },
-    {
-      "id": "component:ADS/Planner Service",
-      "type": "component",
-      "module": "ADS",
-      "name": "Planner Service",
-      "desc": ""
-    },
-    {
-      "id": "component:ADS/Reviewer Service",
-      "type": "component",
-      "module": "ADS",
-      "name": "Reviewer Service",
-      "desc": "HITL queue"
-    },
-    {
-      "id": "component:ADS/Risk Engine",
-      "type": "component",
-      "module": "ADS",
-      "name": "Risk Engine",
-      "desc": "classifica risco da decisão"
-    },
-    {
-      "id": "component:ADS/ScaffoldSkillFromMissionService",
-      "type": "component",
-      "module": "ADS",
-      "name": "ScaffoldSkillFromMissionService",
-      "desc": "scaffolder via meta-skill"
-    },
-    {
-      "id": "component:ADS/SkillScaffoldCommand",
-      "type": "component",
-      "module": "ADS",
-      "name": "SkillScaffoldCommand",
-      "desc": "artisan skill:scaffold"
     },
     {
       "id": "component:Arquivos/DataController",
@@ -3545,14 +3319,14 @@
       "id": "module:ADS",
       "type": "module",
       "module": "ADS",
-      "purpose": "Adaptive Decision System — meta-orquestrador de decisões automatizadas (Risk → Confidence → Policy → Router → Brain A/B → HITL) + governança de Skills",
-      "trust": "L1",
-      "owner": "wagner",
-      "permission_prefix": "ads.*",
-      "charter_adr": "0080",
-      "path": "Modules/ADS/SCOPE.md",
-      "catalog_kind": "scope",
-      "catalog_status": "catalogued"
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
     },
     {
       "id": "module:Arquivos",
@@ -4500,17 +4274,6 @@
       "ownership_mode": "single"
     },
     {
-      "id": "table:mcp_confidence_scores",
-      "type": "table",
-      "name": "mcp_confidence_scores",
-      "owners": [
-        "ADS"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
       "id": "table:mcp_cycle_goals",
       "type": "table",
       "name": "mcp_cycle_goals",
@@ -4533,28 +4296,6 @@
       "ownership_mode": "single"
     },
     {
-      "id": "table:mcp_decisions",
-      "type": "table",
-      "name": "mcp_decisions",
-      "owners": [
-        "ADS"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_dual_brain_decisions",
-      "type": "table",
-      "name": "mcp_dual_brain_decisions",
-      "owners": [
-        "ADS"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
       "id": "table:mcp_epics",
       "type": "table",
       "name": "mcp_epics",
@@ -4569,14 +4310,12 @@
       "id": "table:mcp_governance_rules",
       "type": "table",
       "name": "mcp_governance_rules",
-      "owners": [
-        "ADS"
-      ],
+      "owners": [],
       "consumers": [
         "Governance"
       ],
       "legacy_views": [],
-      "ownership_mode": "single"
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:mcp_inbox_notifications",
@@ -4628,17 +4367,6 @@
       "name": "mcp_memory_documents_history",
       "owners": [
         "KB"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_skills",
-      "type": "table",
-      "name": "mcp_skills",
-      "owners": [
-        "ADS"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -4822,358 +4550,6 @@
     }
   ],
   "edges": [
-    {
-      "from": "module:ADS",
-      "to": "adr:0080",
-      "type": "charteredByAdr",
-      "source": "charter_adr"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP tools registry (canônico)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "ProjectDecomposerService"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "ProjectsController (Jira-style)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tasks/Cycles/Projects Jira-style"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "TeamScopes (RBAC actor capabilities)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "ToolRegistry + Contracts/Tool + Tools/* (7)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "UserScopeService (permissões usuário × módulo)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:KB",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Knowledge graph / ADRs browsing"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP tools registry (canônico)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "ProjectDecomposerService"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "ProjectsController (Jira-style)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tasks/Cycles/Projects Jira-style"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "TeamScopes (RBAC actor capabilities)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "ToolRegistry + Contracts/Tool + Tools/* (7)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "UserScopeService (permissões usuário × módulo)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:KB",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Knowledge graph / ADRs browsing"
-    },
-    {
-      "from": "module:ADS",
-      "to": "adr:0001",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:ADS",
-      "to": "adr:0011",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:ADS",
-      "to": "adr:0048",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:ADS",
-      "to": "adr:0073",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:ADS",
-      "to": "adr:0075",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:ADS",
-      "to": "adr:0076",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:ADS",
-      "to": "adr:0078",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:ADS",
-      "to": "adr:0079",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/\"Api/ScopeController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/ConfidenceController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/ConflictsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/DecisoesController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/LearningController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/MetaSkillsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/MetricasController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/PatternsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/PolicyController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Admin/SkillsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Api/ContextController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Api/DecisionController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Api/RecentEventsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Auto Task Generator Service",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Brain B Service",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Confidence Engine",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Decision Links Service / Context for Task Service",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Decision Router",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Pattern Learning Service",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Planner Service",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Reviewer Service",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Risk Engine",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/ScaffoldSkillFromMissionService",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/SkillScaffoldCommand",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "table:mcp_confidence_scores",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:ADS",
-      "to": "table:mcp_decisions",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:ADS",
-      "to": "table:mcp_dual_brain_decisions",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:ADS",
-      "to": "table:mcp_governance_rules",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:ADS",
-      "to": "table:mcp_skills",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:ADS",
-      "to": "api:/ads/admin/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:ADS",
-      "to": "api:/api/ads/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
     {
       "from": "module:Arquivos",
       "to": "adr:0123",
@@ -7354,13 +6730,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Decision flow (Risk/Confidence/Policy Engine)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_governance_rules"
     },
     {
       "from": "module:Governance",
@@ -10381,6 +9750,10 @@
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
+        "module": "ADS",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
+      },
+      {
         "module": "Notas",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
@@ -10395,7 +9768,14 @@
     ],
     "dangling_module_refs": [],
     "dangling_adr_refs": [],
-    "consumed_tables_without_catalog_owner": [],
+    "consumed_tables_without_catalog_owner": [
+      {
+        "table": "mcp_governance_rules",
+        "consumers": [
+          "Governance"
+        ]
+      }
+    ],
     "tables_owned_by_multiple": []
   }
 }
