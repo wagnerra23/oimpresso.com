@@ -43,7 +43,8 @@ describe('Wave 28 TeamMcp Polish — saturação final ≥95', function () {
     });
 
     it('W28 sentry — RotateTokenCommand preserva signature canônica (Tier 0 segredo)', function () {
-        $cmdPath = __DIR__ . '/../../Console/Commands/RotateTokenCommand.php';
+        // Moveu-se pro Modules/Forja com a identidade do MCP ([W] 2026-07-31).
+        $cmdPath = base_path('Modules/Forja/Console/Commands/RotateTokenCommand.php');
         expect(file_exists($cmdPath))->toBeTrue(
             'RotateTokenCommand ausente — W22 G3 FICHA self-service token rotation quebrado'
         );

@@ -50,7 +50,7 @@ it('McpActor logOnly NÃO inclui notes (texto livre PII risco)', function () {
     // Smoke: garante que tightening de campos foi aplicado — `notes` é text livre
     // que pode conter CPF/email/etc. logOnly precisa ser explícita whitelist.
     // Extrai o bloco entre `->logOnly([` e o `])` correspondente.
-    $sourceFile = base_path('Modules/TeamMcp/Entities/McpActor.php');
+    $sourceFile = base_path('Modules/Forja/Entities/McpActor.php');
     $contents = file_get_contents($sourceFile);
 
     expect($contents)

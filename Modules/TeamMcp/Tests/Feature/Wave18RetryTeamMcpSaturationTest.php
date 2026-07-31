@@ -78,7 +78,7 @@ describe('Wave 18 RETRY — TeamMcp Services novas (D4)', function () {
     });
 
     it('McpActorRepository usa OtelHelper em findActiveBySlug', function () {
-        $source = file_get_contents(__DIR__ . '/../../Services/McpActorRepository.php');
+        $source = file_get_contents(base_path('Modules/Forja/Services/McpActorRepository.php'));
 
         expect($source)->toContain("OtelHelper::spanBiz('teammcp.actor.find_active_by_slug'");
     });
