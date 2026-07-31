@@ -17,6 +17,31 @@ id: requisitos-ads-deprecation-plan
 > recente pro mais antigo, e a de cima corrige 4 fatos que TODAS as anteriores erram — incluindo a
 > terceira tabela com consumidor sobrevivente, que nem o C2 nem a E3 pegaram.
 
+## ⚠️ ERRATA 2026-07-31 (parte 6b) — CORRIJO O C7: `/kb/graph` EXISTE, e eu medi errado
+
+> Auto-correção. O C7 abaixo afirma que `/kb/graph` **não existe em nenhum `Routes/*.php` do repo**.
+> **É falso.** A rota existe em [`Modules/KB/Http/routes.php`](../../../Modules/KB/Http/routes.php) (`kb.graph.page` + `kb.graph.data`) e tem
+> teste de contrato próprio (`Modules/KB/Tests/Feature/KbGraphContratoTest.php`).
+> **Meu erro foi o glob:** varri `**/Routes/*.php` com `R` maiúsculo; o KB usa `Http/routes.php`
+> minúsculo, e o padrão nunca casou. Classe LC-08 — afirmar a partir da fonte errada. Quem pegou foi
+> [W], relendo o que a sessão anterior tinha registrado.
+
+**O que NÃO muda:** a decisão de preservar `/ads/admin/graph` continua correta, por outra razão.
+As duas telas **não são a mesma**:
+
+| | `/kb/graph` | `/ads/admin/graph` |
+|---|---|---|
+| render | `kb/Graph` por **closure**, sem props | `ads/Admin/Graph` via `GraphController` |
+| dado | `/kb/graph/data` devolve `{nodes:[],edges:[],kpis:null}` — o próprio teste diz *"A TELA É FACHADA"* | 5 fontes reais (patterns, meta-skills, tools, policy, memory_docs) |
+
+Logo não havia duplicata a eliminar: matar a do ADS teria trocado a tela **com dado** pela **fachada**.
+A guarda `Schema::hasTable` no `buildPatternsRows` segue necessária — das 5 fontes, `mcp_decision_patterns`
+é a única que o DROP mata, e sem ela a tela viraria 500 em vez de perder um eixo.
+
+**O que muda:** a justificativa publicada no [#5134](https://github.com/wagnerra23/oimpresso.com/pull/5134) e o comentário em `Modules/Forja/Http/routes.php`
+estavam apoiados num fato falso. Corrigidos neste PR. Fica o registro de que a conclusão sobreviveu
+por sorte — a medição que a sustentava, não.
+
 ## ⚠️ ERRATA 2026-07-31 (parte 6) — quatro correções da execução da REMOÇÃO (não altera o corpo)
 
 > Origem: execução da **parte 6** (remoção do núcleo), passo 1 — PR "preserva o que sobrevive".

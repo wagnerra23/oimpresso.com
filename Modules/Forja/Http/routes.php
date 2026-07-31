@@ -412,6 +412,12 @@ Route::group(
         //     `Pages/ads/Admin/Graph.tsx` — módulo KB, vivo. A parte 5 levou
         //     tools/team-scopes/projects e deixou esta pra trás; deletar o ADS
         //     sem movê-la daria 404 numa tela viva de módulo sobrevivente.
+        //     ERRATA (mesmo dia): o #5134 justificou isto dizendo que
+        //     `/kb/graph` NÃO EXISTIA — falso, existe em Modules/KB/Http/
+        //     routes.php (glob errado na medição: `Routes/` maiúsculo × o KB
+        //     usa `Http/routes.php`). A conclusão não muda porque as telas são
+        //     DIFERENTES: a do KB é fachada (closure sem props, /kb/graph/data
+        //     devolve vazio — ver KbGraphContratoTest), esta tem 5 fontes reais.
         //   • os dois 301 pra /kb são compatibilidade de URL antiga (o KB
         //     duplicado saiu do ADS num PR anterior).
         // URL e name preservados — ADR 0087. Middlewares do grupo de origem
