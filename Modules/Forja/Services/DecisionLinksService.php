@@ -1,22 +1,26 @@
 <?php
 
-namespace Modules\ADS\Services;
+namespace Modules\Forja\Services;
 
 use Illuminate\Support\Facades\DB;
 
 /**
- * Vincula ADRs (do mcp_memory_documents via slug) com entidades do ADS.
+ * Vincula ADRs (do mcp_memory_documents via slug) com entidades da Forja.
  * Suporta backlinks: dado uma ADR, lista todas as entidades que a referenciam.
+ *
+ * **Veio do `Modules\ADS\Services` na parte 6** (remoção do núcleo dual-brain,
+ * ADR 0363). Não morreu com o núcleo porque a Forja é consumidora VIVA: o
+ * `ProjectDecomposerService` injeta este service no construtor e grava em
+ * `mcp_decision_links` a cada decompose (auditoria reversa ADR→project).
+ * Por isso `mcp_decision_links` também saiu da lista de DROP e passou a ser
+ * tabela da Forja — mesma classe do achado E3, que pegou `mcp_projects`.
  *
  * Observabilidade D9.a (ADR 0155): queries lookup ms-range; Tracer via
  * `OtelHelper::span(` pode envolver quando virar hot path.
  */
 class DecisionLinksService
 {
-    public const TARGET_PROJECT   = 'project';
-    public const TARGET_SKILL     = 'skill';
-    public const TARGET_DECISION  = 'decision';
-    public const TARGET_METASKILL = 'metaskill';
+    public const TARGET_PROJECT = 'project';
 
     public function link(string $targetType, int $targetId, string $adrSlug, string $relation = 'referenced'): void
     {
@@ -134,21 +138,13 @@ class DecisionLinksService
                 if (! $r) return null;
                 return ['label' => "{$r->codigo} — {$r->nome}", 'url' => "/ads/admin/projects/{$id}"];
 
-            case self::TARGET_SKILL:
-                $r = DB::table('mcp_decision_patterns')->where('id', $id)->first(['domain', 'event_type']);
-                if (! $r) return null;
-                return ['label' => "{$r->domain} · {$r->event_type}", 'url' => "/ads/admin/skills"];
-
-            case self::TARGET_DECISION:
-                $r = DB::table('mcp_dual_brain_decisions')->where('id', $id)->first(['event_type']);
-                if (! $r) return null;
-                return ['label' => "Decision #{$id} · {$r->event_type}", 'url' => "/ads/admin/decisoes/{$id}"];
-
-            case self::TARGET_METASKILL:
-                $r = DB::table('mcp_governance_rules')->where('id', $id)->first(['name', 'rule_key']);
-                if (! $r) return null;
-                return ['label' => "{$r->name} ({$r->rule_key})", 'url' => "/ads/admin/meta-skills"];
-
+            // Os 3 outros alvos morreram com o núcleo do ADS (parte 6, ADR 0363)
+            // e por isso NÃO foram portados: `skill` lia `mcp_decision_patterns` e
+            // `decision` lia `mcp_dual_brain_decisions` — ambas dropadas; `metaskill`
+            // lia `mcp_governance_rules`, que sobrevive no Governance, mas a URL
+            // `/ads/admin/meta-skills` não. Linha remanescente em `mcp_decision_links`
+            // com esses `target_type` cai no `default` e some da UI — que é o
+            // comportamento honesto quando a entidade-alvo deixou de existir.
             default:
                 return null;
         }

@@ -14,7 +14,7 @@ module: ADS
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ADS/**` + `resources/js/Pages/ads/**` (namespace Inertia `ads`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `ADS`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 135 arquivos em 14 papéis.
+**Total mapeado:** 133 arquivos em 14 papéis.
 
 ## Controllers — 15
 
@@ -57,13 +57,12 @@ module: ADS
 
 - [AdsApiAuth.php](../../../Modules/ADS/Http/Middleware/AdsApiAuth.php)
 
-## Services — 14
+## Services — 13
 
 - [AutoTaskGeneratorService.php](../../../Modules/ADS/Services/AutoTaskGeneratorService.php)
 - [BrainBService.php](../../../Modules/ADS/Services/BrainBService.php)
 - [ConfidenceEngine.php](../../../Modules/ADS/Services/ConfidenceEngine.php)
 - [ContextForTaskService.php](../../../Modules/ADS/Services/ContextForTaskService.php)
-- [DecisionLinksService.php](../../../Modules/ADS/Services/DecisionLinksService.php)
 - [DecisionPresenter.php](../../../Modules/ADS/Services/DecisionPresenter.php)
 - [DecisionRouter.php](../../../Modules/ADS/Services/DecisionRouter.php)
 - [PatternLearningService.php](../../../Modules/ADS/Services/PatternLearningService.php)
@@ -168,9 +167,8 @@ module: ADS
 
 - 19 arquivos em [Modules/ADS/Tests/Feature/](../../../Modules/ADS/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 4
+## Outros (raiz/misc) — 3
 
 - [BrainBAgent.php](../../../Modules/ADS/Ai/Agents/BrainBAgent.php)
 - [PlannerAgent.php](../../../Modules/ADS/Ai/Agents/PlannerAgent.php)
-- [ProjectDecomposerAgent.php](../../../Modules/ADS/Ai/Agents/ProjectDecomposerAgent.php)
 - [ReviewerAgent.php](../../../Modules/ADS/Ai/Agents/ReviewerAgent.php)
