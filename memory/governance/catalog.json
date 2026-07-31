@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 610,
-    "edges": 923,
+    "nodes": 612,
+    "edges": 929,
     "by_node_type": {
       "module": 42,
       "table": 81,
       "adr": 34,
-      "component": 410,
+      "component": 412,
       "api": 43
     },
     "by_edge_type": {
@@ -39,9 +39,9 @@
       "providesApi": 43,
       "charteredByAdr": 32,
       "governedByAdr": 93,
-      "hasComponent": 410,
-      "dependsOn": 132,
-      "delegatesTo": 127,
+      "hasComponent": 412,
+      "dependsOn": 134,
+      "delegatesTo": 129,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1939,6 +1939,13 @@
       "desc": "Identity Mesh (ADR 0081); tabela `mcp_actors` é cross-business POR DESIGN"
     },
     {
+      "id": "component:Forja/Entities/McpIngestHeartbeat + IngestLivenessService",
+      "type": "component",
+      "module": "Forja",
+      "name": "Entities/McpIngestHeartbeat + IngestLivenessService",
+      "desc": "liveness do watcher; produtor é o watcher LOCAL de cada dev (decisão [W]: migrate, o watcher volta)"
+    },
+    {
       "id": "component:Forja/Http/Requests/StoreActorRequest · Database/Seeders/McpActorsSeeder · comandos mcp:seed-actors e mcp:rotate-token",
       "type": "component",
       "module": "Forja",
@@ -1951,6 +1958,13 @@
       "module": "Forja",
       "name": "InboxController",
       "desc": "caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"
+    },
+    {
+      "id": "component:Forja/Mcp/CcIngestController + CcIngestService + CcIngestRequest",
+      "type": "component",
+      "module": "Forja",
+      "name": "Mcp/CcIngestController + CcIngestService + CcIngestRequest",
+      "desc": "POST /api/cc/ingest, URL inalterada"
     },
     {
       "id": "component:Forja/Mcp/HealthController",
@@ -7118,6 +7132,12 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/Entities/McpIngestHeartbeat + IngestLivenessService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/Http/Requests/StoreActorRequest · Database/Seeders/McpActorsSeeder · comandos mcp:seed-actors e mcp:rotate-token",
       "type": "hasComponent",
       "source": "contains"
@@ -7125,6 +7145,12 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/InboxController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/Mcp/CcIngestController + CcIngestService + CcIngestRequest",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9896,6 +9922,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Ingest de sessões Claude Code (CcIngestController/Service/Request · McpIngestHeartbeat · IngestLivenessService)"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Loop de handoff zero-paste (CoworkHandoff · 4 tools MCP Handoff* · HandoffIngest/LeverService · GitMainResolver · cowork_handoffs)"
     },
     {
@@ -9918,6 +9951,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "URL POST /api/cc/ingest"
     },
     {
       "from": "module:TeamMcp",
@@ -9980,6 +10020,13 @@
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
+      "note": "Ingest de sessões Claude Code (CcIngestController/Service/Request · McpIngestHeartbeat · IngestLivenessService)"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Loop de handoff zero-paste (CoworkHandoff · 4 tools MCP Handoff* · HandoffIngest/LeverService · GitMainResolver · cowork_handoffs)"
     },
     {
@@ -10023,6 +10070,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "URL POST /api/cc/ingest"
     },
     {
       "from": "module:TeamMcp",

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Entities\McpIngestHeartbeat;
+use Modules\Forja\Entities\McpIngestHeartbeat;
 
 /**
  * IngestLivenessService — reader de liveness do ingest (B-LIVE-CHECK, SDD · ADR 0278).
@@ -25,8 +25,8 @@ use Modules\TeamMcp\Entities\McpIngestHeartbeat;
  * Tier 0 ({@see ADR 0093}/{@see ADR 0280}): heartbeat é sinal de infra/máquina, SEM
  * business_id (cross-tenant by design — Grupo A). Este reader não filtra por tenant.
  *
- * @see \Modules\TeamMcp\Entities\McpIngestHeartbeat
- * @see \Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController (writer, B-LIVE-HB)
+ * @see \Modules\Forja\Entities\McpIngestHeartbeat
+ * @see \Modules\Forja\Http\Controllers\Mcp\CcIngestController (writer, B-LIVE-HB)
  */
 class IngestLivenessService
 {

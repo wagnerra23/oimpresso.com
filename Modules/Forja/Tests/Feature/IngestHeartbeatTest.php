@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Entities\McpIngestHeartbeat;
-use Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController;
+use Modules\Forja\Entities\McpIngestHeartbeat;
+use Modules\Forja\Http\Controllers\Mcp\CcIngestController;
 
 uses(Tests\TestCase::class);
 
@@ -30,7 +30,7 @@ uses(Tests\TestCase::class);
  * mcp_cc_sessions). last_ingest_at gravado via now() em runtime (NUNCA coluna
  * gerada).
  *
- * @see Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController::bumpHeartbeat
+ * @see Modules\Forja\Http\Controllers\Mcp\CcIngestController::bumpHeartbeat
  * @see Modules\TeamMcp\Database\Migrations\2026_06_15_100000_create_mcp_ingest_heartbeat_table.php
  */
 

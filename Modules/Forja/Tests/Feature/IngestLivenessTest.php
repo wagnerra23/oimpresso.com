@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Entities\McpIngestHeartbeat;
-use Modules\TeamMcp\Services\IngestLivenessService;
+use Modules\Forja\Entities\McpIngestHeartbeat;
+use Modules\Forja\Services\IngestLivenessService;
 
 uses(Tests\TestCase::class);
 
@@ -21,7 +21,7 @@ uses(Tests\TestCase::class);
  * Carbon::setTestNow crava os limiares (sem flake de relógio). 100% sqlite — fica na
  * lane rápida do ci.yml (NÃO jana-pest.yml: nenhuma feature MySQL-only).
  *
- * @see \Modules\TeamMcp\Services\IngestLivenessService
+ * @see \Modules\Forja\Services\IngestLivenessService
  */
 function ensureLivenessTable(): void
 {

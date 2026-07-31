@@ -262,20 +262,8 @@ Route::redirect('/jana/install/update',        '/ia/install/update',    301);
 //    "MCP vai para Forja"). URLs e names (jana.mcp.*) INALTERADOS.
 //    O POST /api/mcp (JSON-RPC) e o /api/cc/ingest seguem AQUI — saem na F4.
 
-// MEM-CC-1 (ADR 0053 + SPEC-cc-sessions) — Endpoint ingest pra watcher Node
-//   POST /api/cc/ingest  — Bearer mcp_*  — payload {session, messages}
-// CcIngestController migrado pra Modules/TeamMcp em Fase 3.7 (URL mantida).
-Route::group(
-    [
-        'middleware' => ['api', 'mcp.auth'],
-        'prefix'     => 'api/cc',
-        'namespace'  => 'Modules\TeamMcp\Http\Controllers\Mcp',
-    ],
-    function () {
-        Route::post('/ingest', 'CcIngestController@ingest')
-            ->name('jana.cc.ingest');
-    }
-);
+// MEM-CC-1 — POST /api/cc/ingest MUDOU-SE pra Modules/Forja/Http/routes.php em
+// 2026-07-31 (cluster de ingest). URL e name inalterados.
 
 // MEM-MCP-1.c (ADR 0053) — Servidor MCP protocol (JSON-RPC) via laravel/mcp
 // Auth via mcp.auth middleware (mesmo Bearer mcp_* do health/auth).

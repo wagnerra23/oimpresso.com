@@ -224,3 +224,20 @@ Route::middleware(['api', 'mcp.auth', 'throttle:60,1'])
         Route::post('/tools/brief-fetch', \Modules\Forja\Http\Controllers\BriefFetchController::class)
             ->name('mcp.tools.brief-fetch');
     });
+
+// MEM-CC-1 (ADR 0053 + SPEC-cc-sessions) — Endpoint ingest pra watcher Node
+//   POST /api/cc/ingest  — Bearer mcp_*  — payload {session, messages}
+// Veio de Modules/Jana em 2026-07-31 com o cluster de ingest ([W] "MCP vai
+// para Forja"). URL e name (jana.cc.ingest) INALTERADOS — cada watcher local
+// dos devs aponta pra essa URL; mover o endereco exigiria reconfigurar todos.
+Route::group(
+    [
+        'middleware' => ['api', 'mcp.auth'],
+        'prefix'     => 'api/cc',
+        'namespace'  => 'Modules\Forja\Http\Controllers\Mcp',
+    ],
+    function () {
+        Route::post('/ingest', 'CcIngestController@ingest')
+            ->name('jana.cc.ingest');
+    }
+);

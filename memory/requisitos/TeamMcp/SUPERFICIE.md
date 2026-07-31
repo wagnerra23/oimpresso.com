@@ -14,9 +14,9 @@ module: TeamMcp
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/TeamMcp/**` + `resources/js/Pages/team-mcp/**` (namespace Inertia `team-mcp`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `TeamMcp`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 72 arquivos em 14 papéis.
+**Total mapeado:** 63 arquivos em 12 papéis.
 
-## Controllers — 10
+## Controllers — 9
 
 - [TeamScopesController.php](../../../Modules/TeamMcp/Http/Controllers/Admin/TeamScopesController.php)
 - [ToolsController.php](../../../Modules/TeamMcp/Http/Controllers/Admin/ToolsController.php)
@@ -24,42 +24,30 @@ module: TeamMcp
 - [DataController.php](../../../Modules/TeamMcp/Http/Controllers/DataController.php)
 - [ForjaController.php](../../../Modules/TeamMcp/Http/Controllers/ForjaController.php)
 - [InstallController.php](../../../Modules/TeamMcp/Http/Controllers/InstallController.php)
-- [CcIngestController.php](../../../Modules/TeamMcp/Http/Controllers/Mcp/CcIngestController.php)
 - [ScorecardController.php](../../../Modules/TeamMcp/Http/Controllers/ScorecardController.php)
 - [TasksAdminController.php](../../../Modules/TeamMcp/Http/Controllers/TasksAdminController.php)
 - [TeamController.php](../../../Modules/TeamMcp/Http/Controllers/TeamController.php)
 
-## Requests (validação) — 4
+## Requests (validação) — 3
 
-- [CcIngestRequest.php](../../../Modules/TeamMcp/Http/Requests/CcIngestRequest.php)
 - [ExportUsageCsvRequest.php](../../../Modules/TeamMcp/Http/Requests/ExportUsageCsvRequest.php)
 - [IssueActorTokenRequest.php](../../../Modules/TeamMcp/Http/Requests/IssueActorTokenRequest.php)
 - [UpdateQuotaRequest.php](../../../Modules/TeamMcp/Http/Requests/UpdateQuotaRequest.php)
 
-## Services — 10
+## Services — 8
 
-- [CcIngestService.php](../../../Modules/TeamMcp/Services/CcIngestService.php)
 - [ForjaBacklogService.php](../../../Modules/TeamMcp/Services/Forja/ForjaBacklogService.php)
 - [ForjaChangelogService.php](../../../Modules/TeamMcp/Services/Forja/ForjaChangelogService.php)
 - [ForjaMcpService.php](../../../Modules/TeamMcp/Services/Forja/ForjaMcpService.php)
 - [ForjaQuadroService.php](../../../Modules/TeamMcp/Services/Forja/ForjaQuadroService.php)
-- [IngestLivenessService.php](../../../Modules/TeamMcp/Services/IngestLivenessService.php)
 - [PrChecksResolver.php](../../../Modules/TeamMcp/Services/PrChecksResolver.php)
 - [ScorecardBuilderService.php](../../../Modules/TeamMcp/Services/ScorecardBuilderService.php)
 - [TeamUsageAggregator.php](../../../Modules/TeamMcp/Services/TeamUsageAggregator.php)
 - [UsageCsvExporter.php](../../../Modules/TeamMcp/Services/UsageCsvExporter.php)
 
-## Models / Entities — 1
-
-- [McpIngestHeartbeat.php](../../../Modules/TeamMcp/Entities/McpIngestHeartbeat.php)
-
 ## Providers — 1
 
 - [TeamMcpServiceProvider.php](../../../Modules/TeamMcp/Providers/TeamMcpServiceProvider.php)
-
-## Migrations (schema) — 1
-
-- [2026_06_15_100000_create_mcp_ingest_heartbeat_table.php](../../../Modules/TeamMcp/Database/Migrations/2026_06_15_100000_create_mcp_ingest_heartbeat_table.php)
 
 ## Seeders — 1
 
@@ -104,9 +92,9 @@ module: TeamMcp
 - [Cockpit.casos.md](../../../resources/js/Pages/team-mcp/Forja/Cockpit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
 
-## Testes (Pest) — 18
+## Testes (Pest) — 15
 
-- 18 arquivos em [Modules/TeamMcp/Tests/Feature/](../../../Modules/TeamMcp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 15 arquivos em [Modules/TeamMcp/Tests/Feature/](../../../Modules/TeamMcp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 2
 

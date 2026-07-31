@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Carbon;
@@ -15,7 +15,7 @@ use Modules\Jana\Entities\Mcp\McpCcSession;
  * CcIngestService — Wave 18 D4 SATURATION (2026-05-16).
  *
  * Extrai lógica de upsert sessions+messages antes embutida em
- * `Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController`.
+ * `Modules\Forja\Http\Controllers\Mcp\CcIngestController`.
  *
  * Service pura (sem Request/Response) — recebe payload já validado e devolve
  * contadores. Controller fica thin (auth + validate + chamar service + log
@@ -32,7 +32,7 @@ use Modules\Jana\Entities\Mcp\McpCcSession;
  * + `teammcp.cc.ingest_messages` separam latência session-upsert vs
  * batch-insert (debug performance ingest com payload grande).
  *
- * @see Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController (caller)
+ * @see Modules\Forja\Http\Controllers\Mcp\CcIngestController (caller)
  * @see Modules\Jana\Entities\Mcp\McpCcSession
  */
 class CcIngestService

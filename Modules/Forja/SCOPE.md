@@ -26,6 +26,9 @@ contains:
   # Loop de handoff (ADR 0283) — recebido do TeamMcp em 2026-07-31
   - "Mcp/Tools/Handoff{Pending,Ack,Submit,Lever} — registradas pelo OimpressoMcpServer da Jana; URLs/nomes de tool inalterados"
   - "Entities/CoworkHandoff + HandoffIngestService + HandoffLeverService + GitMainResolver; `cowork_handoffs` é cross-tenant POR DESIGN (ADR 0093/0283)"
+  # Ingest de sessões Claude Code — recebido do TeamMcp em 2026-07-31
+  - "Mcp/CcIngestController + CcIngestService + CcIngestRequest — POST /api/cc/ingest, URL inalterada"
+  - "Entities/McpIngestHeartbeat + IngestLivenessService — liveness do watcher; produtor é o watcher LOCAL de cada dev (decisão [W]: migrate, o watcher volta)"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"

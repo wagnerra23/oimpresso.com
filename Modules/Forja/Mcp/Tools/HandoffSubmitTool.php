@@ -10,7 +10,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Entities\Mcp\McpAuditLog;
 use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
-use Modules\TeamMcp\Entities\McpIngestHeartbeat;
+use Modules\Forja\Entities\McpIngestHeartbeat;
 use Modules\Forja\Services\HandoffIngestService;
 use Throwable;
 

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Request as McpRequest;
 use Laravel\Mcp\Response as McpResponse;
 use Modules\Forja\Entities\CoworkHandoff;
-use Modules\TeamMcp\Entities\McpIngestHeartbeat;
+use Modules\Forja\Entities\McpIngestHeartbeat;
 use Modules\Forja\Mcp\Tools\HandoffSubmitTool;
 
 uses(Tests\TestCase::class);
