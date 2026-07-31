@@ -89,7 +89,7 @@ class ScaffoldSkillFromMissionService
 
         // Idempotência — se já existe, não sobrescreve
         if (is_file($absolutePath)) {
-            return $this->failure($slug, "skill {$slug} já existe em {$gitPath}. Use editor /ads/admin/skills/{$slug}/edit");
+            return $this->failure($slug, "skill {$slug} já existe em {$gitPath}. Edite o arquivo em git");
         }
 
         // Gera scaffold
@@ -132,7 +132,9 @@ class ScaffoldSkillFromMissionService
             'absolute_path' => $absolutePath,
             'git_path'      => $gitPath,
             'tests'         => $tests,
-            'message'       => "Skill {$slug} criada (status=draft). Edite via /ads/admin/skills/{$slug}/edit",
+            // A UI de edição (`/ads/admin/skills/{slug}/edit`) saiu na parte 6
+            // (ADR 0363) com o Modules/ADS; o arquivo em git é a fonte.
+            'message'       => "Skill {$slug} criada (status=draft). Edite {$gitPath}",
         ];
     }
 

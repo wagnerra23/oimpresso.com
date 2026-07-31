@@ -300,10 +300,11 @@ class DataController extends Controller
                             // PageHeaderTabs silenciar (click no-op). Reintroduzir quando MetasController
                             // for migrado pra Inertia::render via MWART.
                             ['key' => 'custos',    'label' => 'Custos',    'href' => '/ia/admin/custos'],
-                            // Wagner 2026-05-22: ADS vai pra dentro da Jana (entry sidebar removida).
-                            // Wagner 2026-05-23 fix: href '/ads' não existe (rota raiz ausente em
-                            // Modules/ADS/Routes/web.php). Entry-point real do módulo é a tela Decisões.
-                            ['key' => 'ads',       'label' => 'ADS',       'href' => '/ads/admin/decisoes'],
+                            // Ghost 'ads' REMOVIDO na parte 6 (ADR 0363): apontava pra
+                            // /ads/admin/decisoes, tela do núcleo dual-brain que deixou de existir
+                            // junto com o Modules/ADS. As telas que continuam sob /ads/ (projects,
+                            // tools, team-scopes, graph) são da Forja e do KB, e a Forja tem entrada
+                            // própria de sidebar no DataController dela — não ficam órfãs.
                             // Wagner 2026-05-25: promovidas pra ghosts após audit Jana
                             // (browser MCP smoke detectou 3 Pages órfãs sem link).
                             //  - cockpit: Jana V2 Analista IA (Brief + KPIs + análises) — Pages/Jana/Cockpit.tsx

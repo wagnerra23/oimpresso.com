@@ -33,7 +33,7 @@ Gerado por `php artisan module:specs` em 2026-05-29 08:06.
 | 23 | [Officeimpresso](Officeimpresso.md) | média | médio | 21 | 18 | 8 | 1 | 3 |
 | 24 | [KB](KB.md) | baixa (grande, fazer por último ou dividir) | alto | 43 | 0 | 12 | 4 | 3 |
 | 25 | [NfeBrasil](NfeBrasil.md) | baixa (grande, fazer por último ou dividir) | alto | 39 | 4 | 16 | 9 | 3 |
-| 26 | [ADS](ADS.md) | baixa (grande, fazer por último ou dividir) | alto | 46 | 0 | 15 | 0 | 3 |
+| 26 | ~~[ADS](ADS.md)~~ ⛔ removido 2026-07-31 (ADR 0363) | — | — | — | — | — | — | — |
 | 27 | [Jana](Jana.md) | baixa (grande, fazer por último ou dividir) | alto | 39 | 9 | 64 | 5 | 3 |
 | 28 | [Whatsapp](Whatsapp.md) | baixa (grande, fazer por último ou dividir) | alto | 59 | 1 | 42 | 0 | 3 |
 | 29 | [Cms](Cms.md) | baixa (grande, fazer por último ou dividir) | alto | 16 | 45 | 5 | 1 | 3 |
