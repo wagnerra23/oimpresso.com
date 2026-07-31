@@ -65,8 +65,9 @@ Pôr o Brief dentro da Jana instala infra de desenvolvimento **sem tenant** dent
 (save de papel de tenant apagou os 17 `jana.mcp.*`).
 
 **Destravou no mesmo dia:** [#5089](https://github.com/wagnerra23/oimpresso.com/pull/5089) executou a
-**F5** do #5072 — `Modules/ProjectMgmt` → `Modules/Forja` (rename completo; `ProjectMgmt` não existe
-mais). O receptor **existe** e já tem `Console/`, `Services/`, `Http/`, `Providers/`.
+**F5** do #5072 — o módulo `ProjectMgmt` foi renomeado para `Modules/Forja` (rename completo; o nome
+antigo não existe mais na árvore, por isso não é citado aqui como path). O receptor **existe** e já
+tem `Console/`, `Services/`, `Http/`, `Providers/`.
 
 **A F4 NÃO foi executada:** `Modules/Forja/Mcp/` não existe e `Modules/Jana/Mcp/` segue com os **44**
 arquivos (servidor + 40 tools). Isso não bloqueia — só define o corte:
