@@ -250,7 +250,7 @@ it('UC-SC-08 · a rota do scorecard exige auth + can:jana.mcp.usage.all no regis
 
 it('UC-SC-08 · autenticado SEM jana.mcp.usage.all leva 403 no scorecard', function () {
     // O 403 de verdade. Exige schema MySQL (stack UltimatePOS) → pula em sqlite.
-    // Esta perna só produz veredito `pass` na lane MySQL `teammcp-pest.yml`.
+    // Esta perna só produz veredito `pass` na lane MySQL `forja-pest.yml`.
     if (DB::connection()->getDriverName() === 'sqlite') {
         test()->markTestSkipped(
             'SQLite-incompatível: middlewares UltimatePOS (SetSessionData/AdminSidebarMenu/'.

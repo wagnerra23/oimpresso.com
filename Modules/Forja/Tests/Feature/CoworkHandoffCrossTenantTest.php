@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  * ("NUNCA adicionar global scope de business aqui") é violado. Cross-tenant Tier 0 é
  * o bug pior possível — aqui nos DOIS sentidos (vazar OU sumir indevidamente).
  *
- * @see Modules/TeamMcp/Entities/CoworkHandoff.php
+ * @see Modules/Forja/Entities/CoworkHandoff.php
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0283-loop-handoff-zero-paste.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md

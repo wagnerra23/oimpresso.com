@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
  *      'auth' da stack canonica UltimatePOS
  *
  * Per stack UltimatePOS: ['web','SetSessionData','auth','language','timezone',
- * 'AdminSidebarMenu','CheckUserLogin'] (Modules/TeamMcp/Http/routes.php).
+ * 'AdminSidebarMenu','CheckUserLogin'] (Modules/Forja/Http/routes.php).
  *
  * NUNCA usar biz=4 (ROTA LIVRE producao) — ADR 0101. Tests assumem
  * que rotas existem (validado em ScaffoldTest) e so checam status HTTP nao-500.

@@ -34,7 +34,7 @@ not_contains:
   - "Mcp/HealthController → Modules/Forja (idem)"
   - "MemoriaController (browser KB) → Modules/KB"
   - "FontesController (knowledge sources) → Modules/KB"
-  - "Mcp/CcIngestController → Modules/TeamMcp"
+  - "Mcp/CcIngestController → Modules/Forja"
   - "Admin/GovernancaController → Modules/Governance (NOVO Fase 5)"
   - "Skills governance → Modules/ADS"
   - "Decision flow → Modules/ADS"
@@ -83,7 +83,7 @@ db_tables_legacy_views:
 drift_alerts:
   # Fase 3.7 PR-1 (2026-05-06): 5 drift controllers movidos pros donos corretos.
   # MemoriaController + FontesController → Modules/KB
-  # Mcp/CcIngest + Mcp/Health + Mcp/SyncMemoryWebhook → Modules/TeamMcp
+  # Mcp/CcIngest + Mcp/Health + Mcp/SyncMemoryWebhook → Modules/Forja
   # URLs mantidas (/jana/memoria, /jana/metas/{id}/fonte, /api/mcp/*, /api/cc/*)
   # via tuple [Class::class, 'method'] e namespace prefix dos route groups.
   # E2b (2026-07-30): Mcp/Health + Mcp/SyncMemoryWebhook passaram por aqui e
@@ -115,7 +115,7 @@ Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-onl
 ## Quando este módulo NÃO é tocado
 
 - ❌ Browse de ADRs/sessions/specs canônicos → use Modules/KB
-- ❌ Admin de tokens MCP → use Modules/TeamMcp
+- ❌ Admin de tokens MCP → use Modules/Forja
 - ❌ Editar skill → use Modules/ADS
 - ❌ Triagem de tasks Jira-style → use Modules/Forja
 

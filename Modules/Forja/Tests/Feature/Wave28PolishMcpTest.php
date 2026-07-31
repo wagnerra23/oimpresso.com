@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  *   - RotateTokenCommand --detail (não --verbose, Symfony reservado)
  *   - PT-BR + cross-tenant by design (mcp_actors sem business_id)
  *
- * @see Modules\TeamMcp\Tests\Feature\Wave18RetryTeamMcpSaturationTest (predecessor)
+ * @see Modules\Forja\Tests\Feature\Wave18RetryTeamMcpSaturationTest (predecessor)
  * @see memory/decisions/0081-identity-mesh-actor-trust-mcp.md
  */
 describe('Wave 28 TeamMcp Polish — saturação final ≥95', function () {

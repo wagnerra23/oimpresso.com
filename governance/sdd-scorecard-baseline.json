@@ -62,7 +62,7 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 10,
+      "value": 11,
       "unit": "nomes distintos",
       "direction": "down",
       "armed": true,

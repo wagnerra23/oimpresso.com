@@ -22,7 +22,7 @@ uses(Tests\TestCase::class);
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
- * @see Modules\TeamMcp\Config\retention.php
+ * @see Modules\Forja\Config\retention-mcp.php
  */
 
 // ------------------------------------------------------------------
@@ -120,12 +120,12 @@ it('arquivo %s importa PiiRedactor (D7.a aplicação em logs)', function (string
 })->with('teammcp_files_with_pii_redactor');
 
 it('TeamMcp não tem Log::error com $e->getMessage() raw sem PiiRedactor (D7.a hardening)', function () {
-    $files = collect(glob(base_path('Modules/TeamMcp/Http/Controllers/*.php')))
+    $files = collect(glob(base_path('Modules/Forja/Http/Controllers/*.php')))
         // E2b (deprecação do TeamMcp): SyncMemoryWebhook + Health foram pra Jana.
         // Mantido aqui pra a guarda D7.a não encolher junto com a mudança de pasta.
         ->merge(glob(base_path('Modules/Forja/Http/Controllers/Mcp/*.php')))
-        ->merge(glob(base_path('Modules/TeamMcp/Http/Controllers/Admin/*.php')))
-        ->merge(glob(base_path('Modules/TeamMcp/Services/*.php')));
+        ->merge(glob(base_path('Modules/Forja/Http/Controllers/Admin/*.php')))
+        ->merge(glob(base_path('Modules/Forja/Services/*.php')));
 
     $rawLeaks = [];
     foreach ($files as $file) {
@@ -151,9 +151,9 @@ it('TeamMcp não tem Log::error com $e->getMessage() raw sem PiiRedactor (D7.a h
 // ------------------------------------------------------------------
 
 it('Config/retention.php existe e é array válido (D7.c declaração)', function () {
-    $configPath = base_path('Modules/TeamMcp/Config/retention.php');
+    $configPath = base_path('Modules/Forja/Config/retention-mcp.php');
 
-    expect(file_exists($configPath))->toBeTrue('Modules/TeamMcp/Config/retention.php deve existir');
+    expect(file_exists($configPath))->toBeTrue('Modules/Forja/Config/retention-mcp.php deve existir');
 
     $config = require $configPath;
 
@@ -163,7 +163,7 @@ it('Config/retention.php existe e é array válido (D7.c declaração)', functio
 });
 
 it('retention.php declara TTL pras 6 tabelas TeamMcp PII-relevantes (D7.c cobertura)', function () {
-    $config = require base_path('Modules/TeamMcp/Config/retention.php');
+    $config = require base_path('Modules/Forja/Config/retention-mcp.php');
 
     $expectedEntities = [
         'mcp_actors',
@@ -184,21 +184,21 @@ it('retention.php declara TTL pras 6 tabelas TeamMcp PII-relevantes (D7.c cobert
 });
 
 it('retention.php declara strategy ∈ {soft_delete, hard_delete, anonymize}', function () {
-    $config = require base_path('Modules/TeamMcp/Config/retention.php');
+    $config = require base_path('Modules/Forja/Config/retention-mcp.php');
 
     expect($config['strategy'])
         ->toBeIn(['soft_delete', 'hard_delete', 'anonymize']);
 });
 
 it('mcp_cc_messages tem retention curta (<=180 dias) — PII alta em prompts', function () {
-    $config = require base_path('Modules/TeamMcp/Config/retention.php');
+    $config = require base_path('Modules/Forja/Config/retention-mcp.php');
 
     expect((int) $config['entities']['mcp_cc_messages'])
         ->toBeLessThanOrEqual(180, 'mensagens Claude Code com PII colada em prompt — janela curta');
 });
 
 it('notice_period_days >= 7 (LGPD Art. 18 §VI aviso prévio mínimo razoável)', function () {
-    $config = require base_path('Modules/TeamMcp/Config/retention.php');
+    $config = require base_path('Modules/Forja/Config/retention-mcp.php');
 
     expect((int) $config['notice_period_days'])
         ->toBeGreaterThanOrEqual(7);

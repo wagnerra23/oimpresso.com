@@ -22,16 +22,11 @@ uses(Tests\TestCase::class);
  * Wagner aqui e superadmin/L0 dev = cross-tenant (mcp_actors sem business_id).
  */
 
-it('cenario 1: modulo TeamMcp aparece registrado em nWidart', function () {
-    $module = Module::find('TeamMcp');
-    expect($module)->not->toBeNull('Modules/TeamMcp deveria estar registrado em nWidart');
-    expect($module->getName())->toBe('TeamMcp');
-});
-
-it('cenario 2: TeamMcpServiceProvider classe existe', function () {
-    expect(class_exists(\Modules\TeamMcp\Providers\TeamMcpServiceProvider::class))
-        ->toBeTrue('Providers/TeamMcpServiceProvider.php deveria existir');
-});
+// cenarios 1 e 2 REMOVIDOS em 2026-07-31: afirmavam que o modulo TeamMcp e o
+// TeamMcpServiceProvider existem. O modulo foi apagado — o sujeito da asserção
+// deixou de existir, entao a asserção nao tem o que provar. Os cenarios 3-10
+// FICAM e ganham valor novo: provam que as rotas team-mcp.* e as classes
+// migradas continuam RESOLVENDO depois da mudanca de modulo.
 
 it('cenario 3: rota team-mcp.team.index existe', function () {
     expect(\Route::has('team-mcp.team.index'))

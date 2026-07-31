@@ -28,7 +28,7 @@ use Throwable;
  * Multi-tenant: mcp_actors é tabela cross-tenant (actors operam multi-business);
  * sem business_id obrigatório. Detalhe em IDENTITY-MESH-MANIFESTS.md.
  *
- * @see Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php
+ * @see Modules/Forja/Database/Seeders/McpActorsSeeder.php
  * @see memory/decisions/0081-identity-mesh-mcp-actors.md
  * @see memory/governance/IDENTITY-MESH-MANIFESTS.md
  */

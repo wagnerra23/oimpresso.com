@@ -15,7 +15,7 @@ not_contains:
   - "Trilha de chamada de tool MCP (mcp_audit_log) → Modules/Jana"
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
-  - "MCP server admin → Modules/TeamMcp"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: auditoria.*

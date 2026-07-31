@@ -68,7 +68,7 @@ jobs:
             "nfebrasil-pest.yml:pest-nfebrasil-junit" \
             "arquivos-pest.yml:pest-arquivos-junit" \
             "sells-pest.yml:pest-sells-junit" \
-            "teammcp-pest.yml:pest-teammcp-junit" \
+            "forja-pest.yml:pest-forja-junit" \
             "e2e-gate.yml:casos-test-results" \
           ; do
             wf="${pair%%:*}"; art="${pair##*:}"

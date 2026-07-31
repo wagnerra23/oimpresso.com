@@ -104,7 +104,7 @@ Renomeação Forja → Project prevista pra Fase 3.9 do ADR 0079, **após** dele
 
 - ❌ UltimatePOS Project (clientes + timesheet) → Modules/Project legado (em DELETE Fase 3.8)
 - ❌ Skills governance → Modules/ADS
-- ❌ Tokens / scopes / audit → Modules/TeamMcp
+- ❌ Tokens / scopes / audit → Modules/Forja
 
 ## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
 

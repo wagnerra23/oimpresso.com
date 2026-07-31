@@ -17,11 +17,11 @@ contains:
   - "KbAiController — IA RAG endpoints /kb/ai/{ask,summarize,suggest-meta} (delega Modules/Jana/Ai/Agents/KbAnswerAgent) — ONDA 4 ADR 0149"
 not_contains:
   - "Chat IA (Jana) → Modules/Jana"
-  - "MCP server admin (tokens, webhooks) → Modules/TeamMcp"
+  - "MCP server admin (tokens, webhooks) → Modules/Forja"
   - "Skills governance → Modules/ADS"
   - "System Rules Spec (regras pra IA programar) → Modules/SRS — módulo REMOVIDO em 2026-07-29 (ADR 0357); fronteira a revisar"
   - "Tasks Jira-style → Modules/Forja"
-  - "Audit log → Modules/TeamMcp + Modules/Governance"
+  - "Audit log → Modules/Forja + Modules/Governance"
 trust_required: L2
 owner: wagner
 permission_prefix: kb.*

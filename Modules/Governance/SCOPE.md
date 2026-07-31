@@ -14,8 +14,8 @@ contains:
 not_contains:
   - "Decision flow (Risk/Confidence/Policy Engine) → Modules/ADS"
   - "Skills governance → Modules/ADS"
-  - "Tokens MCP CRUD → Modules/TeamMcp"
-  - "Identity Mesh (mcp_actors) UI → Modules/TeamMcp"
+  - "Tokens MCP CRUD → Modules/Forja"
+  - "Identity Mesh (mcp_actors) UI → Modules/Forja"
   - "Knowledge browsing (ADRs read-only) → Modules/KB"
   - "Constitution doc edit → memory/governance/CONSTITUTION.md (não DB)"
   - "Module Grade v4 Tri-pane (era /admin/governance/v4 no Modules/Admin) → REMOVIDO com o Admin Center em 2026-07-29 (ADR 0360 supersede 0122); a fronteira não existe mais"
@@ -77,7 +77,7 @@ Onde Wagner opera **5min/dia**: aprova ADRs pendentes, ajusta policies, vê audi
 
 - ❌ Decision flow ADS (Risk/Confidence/Policy Engine) → Modules/ADS
 - ❌ Skill governance → Modules/ADS
-- ❌ Token / scope CRUD → Modules/TeamMcp
+- ❌ Token / scope CRUD → Modules/Forja
 - ❌ Constitution doc edit → file `memory/governance/CONSTITUTION.md` direto
 
 ## ActionGate modes

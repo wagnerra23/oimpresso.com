@@ -260,20 +260,14 @@ Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
 # Skip-as-pass em sqlite (stack UltimatePOS exige MySQL) — mas o VALOR aqui é outro:
 # o `DatasetArgumentsMismatch` que manteve este arquivo quebrado desde que nasceu é
 # erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
-# execução real do happy-path (UC-FORJA-01) mora na lane MySQL teammcp-pest.yml.
+# execução real do happy-path (UC-FORJA-01) mora na lane MySQL forja-pest.yml.
 Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
 Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
 Modules/Forja/Tests/Feature/HandoffToolsTest.php
-Modules/TeamMcp/Tests/Feature/LgpdComplianceTest.php
 Modules/Forja/Tests/Feature/McpActorsSeederTest.php
 Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php
-Modules/TeamMcp/Tests/Feature/ScaffoldTest.php
-Modules/TeamMcp/Tests/Feature/SmokeRoutesTest.php
 Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php
-Modules/TeamMcp/Tests/Feature/Wave18RetryTeamMcpSaturationTest.php
-Modules/TeamMcp/Tests/Feature/Wave18ServicesExtractionTest.php
 Modules/Forja/Tests/Feature/Wave23ScorecardRotateTest.php
-Modules/TeamMcp/Tests/Feature/Wave28PolishTest.php
 # US-INFRA-043 acceptance #2 (flag de US nao atribuida no Daily Brief): exercita so os
 # nucleos PUROS formatar()/injetarEm() + kill-switch (early-return antes de consultar).
 # ZERO acesso a DB de proposito — mcp_tasks e compartilhada e no CT 100 os testes rodam

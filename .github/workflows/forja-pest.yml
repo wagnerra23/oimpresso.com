@@ -1,4 +1,4 @@
-name: TeamMcp · Pest (MySQL)
+name: Forja · Pest (MySQL)
 
 # ATUALIZADO 2026-07-31: o ForjaRoutesSmokeTest e as rotas /forja mudaram-se pro
 # Modules/Forja (deprecação do TeamMcp). O paths-filter e o caminho do teste
@@ -46,16 +46,16 @@ on:
     paths:
       - 'Modules/Forja/**'
       - 'database/schema/mysql-schema.sql'
-      - '.github/workflows/teammcp-pest.yml'
+      - '.github/workflows/forja-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
 
 concurrency:
-  group: teammcp-pest-${{ github.ref }}
+  group: forja-pest-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   pest:
-    name: PHP / Pest (TeamMcp · MySQL)
+    name: PHP / Pest (Forja · MySQL)
     runs-on: ubuntu-latest
 
     services:
@@ -83,12 +83,12 @@ jobs:
             tmcp:
               - 'Modules/Forja/**'
               - 'database/schema/mysql-schema.sql'
-              - '.github/workflows/teammcp-pest.yml'
+              - '.github/workflows/forja-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
 
-      - name: Skip-as-pass (nada do TeamMcp mudou)
+      - name: Skip-as-pass (nada da Forja mudou)
         if: steps.changes.outputs.tmcp == 'false'
-        run: echo "✅ Sem mudanças no Modules/TeamMcp — skip-as-pass (required-ready, ADR 0271 onda 2)."
+        run: echo "✅ Sem mudanças no Modules/Forja — skip-as-pass (required-ready, ADR 0271 onda 2)."
 
       # Setup canônico reusável (composite action). O service container MySQL fica
       # DECLARADO ACIMA no job (composite action não pode declarar services).
@@ -111,7 +111,7 @@ jobs:
           }
           EOF
 
-      - name: Run Pest (TeamMcp · MySQL) — ALLOWLIST VERDE (catraca)
+      - name: Run Pest (Forja · MySQL) — ALLOWLIST VERDE (catraca)
         if: steps.changes.outputs.tmcp == 'true'
         # phpunit.xml força DB_CONNECTION=sqlite :memory: — sem sobrescrever aqui, os
         # testes de rota SKIPam de novo (a falsa cobertura que esta lane existe pra
@@ -135,13 +135,13 @@ jobs:
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
-            --log-junit test-results/pest-teammcp-junit.xml \
+            --log-junit test-results/pest-forja-junit.xml \
             Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
 
       - name: Upload JUnit (TeamMcp · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.tmcp == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: pest-teammcp-junit
-          path: test-results/pest-teammcp-junit.xml
+          name: pest-forja-junit
+          path: test-results/pest-forja-junit.xml
           retention-days: 14

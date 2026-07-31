@@ -4,6 +4,10 @@ return [
     'module_label' => 'Project Mgmt',
 
     'menu' => [
+        // herdadas do Modules/TeamMcp (apagado 2026-07-31)
+        'team'        => 'Team Admin',
+        'tasks'       => 'Task Board',
+        'cc_sessions' => 'CC sessions',
         'board'   => 'Board',
         'backlog' => 'Backlog',
         'my_work' => 'My Work',

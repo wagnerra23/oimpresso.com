@@ -22,7 +22,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * - PII surface: `slug` (identificador pessoal), `display_name` (nome completo),
  *   `user_id` (link pra users → email/CPF), `notes` (texto livre).
  * - Auditoria via Spatie LogsActivity (audit_log append-only, não purgada).
- * - Retention em `Modules/TeamMcp/Config/retention.php` (LGPD Art. 16).
+ * - Retention em `Modules/Forja/Config/retention.php` (LGPD Art. 16).
  */
 class McpActor extends Model
 {
