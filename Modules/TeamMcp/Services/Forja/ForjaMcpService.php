@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\TeamMcp\Services\Forja;
 
 use App\Util\OtelHelper;
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\Forja\Entities\CoworkHandoff;
 use Modules\TeamMcp\Entities\McpIngestHeartbeat;
 use Modules\TeamMcp\Services\PrChecksResolver;
 
@@ -14,7 +14,7 @@ use Modules\TeamMcp\Services\PrChecksResolver;
  * MCP do cockpit Forja (Fase 1 · ADR 0283).
  *
  * Surface-only: a Fase 0 já criou tabela/tools/cron ({@see CoworkHandoff},
- * {@see \Modules\TeamMcp\Mcp\Tools\HandoffPendingTool}). Aqui só se LÊ a fonte da
+ * {@see \Modules\Forja\Mcp\Tools\HandoffPendingTool}). Aqui só se LÊ a fonte da
  * verdade (`cowork_handoffs`) + o heartbeat do ingest e devolve o estado pro
  * front. NÃO muta nada — re-disparar/supersede é roteado pelas tools MCP e o
  * merge é o 1-clique do [W] no GitHub (sem auto-merge — ADR 0283).
@@ -22,10 +22,10 @@ use Modules\TeamMcp\Services\PrChecksResolver;
  * Espelha ForjaQuadroService/ForjaBacklogService/ForjaChangelogService: read-only,
  * sem dado fantasma. Tier 0 (ADR 0093): `cowork_handoffs`/`mcp_ingest_heartbeat`
  * são REPO-WIDE (artefato do repo, não de tenant) — sem business_id por design,
- * igual {@see \Modules\TeamMcp\Mcp\Tools\HandoffPendingTool}.
+ * igual {@see \Modules\Forja\Mcp\Tools\HandoffPendingTool}.
  *
  * Observability (ADR 0155 D9.a): cada leitura roda dentro de `OtelHelper::span`
- * (zero-cost quando OTel off), igual {@see \Modules\TeamMcp\Services\GitMainResolver}.
+ * (zero-cost quando OTel off), igual {@see \Modules\Forja\Services\GitMainResolver}.
  *
  * Gap 2 do adversário [AH] (ADR 0283): o `gate_status` é AUTO-REPORTADO pelo [CC] e
  * pode divergir dos required checks REAIS do PR no GitHub. Por isso o gate verde do ack

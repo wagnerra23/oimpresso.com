@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Console\Commands;
+namespace Modules\Forja\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Services\HandoffIngestService;
+use Modules\Forja\Services\HandoffIngestService;
 use Symfony\Component\Yaml\Yaml;
 use Throwable;
 
@@ -46,7 +46,7 @@ use Throwable;
  * Convenções ({@see .claude/rules/commands.md}): `--detail`/`--dry-run` (não
  * `--verbose`), output PT-BR, exit 0 sucesso / 1 erro.
  *
- * @see Modules\TeamMcp\Entities\CoworkHandoff
+ * @see Modules\Forja\Entities\CoworkHandoff
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */
 final class HandoffIngestCommand extends Command

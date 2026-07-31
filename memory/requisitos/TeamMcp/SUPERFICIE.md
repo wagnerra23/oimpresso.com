@@ -14,7 +14,7 @@ module: TeamMcp
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/TeamMcp/**` + `resources/js/Pages/team-mcp/**` (namespace Inertia `team-mcp`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `TeamMcp`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 89 arquivos em 15 papéis.
+**Total mapeado:** 72 arquivos em 14 papéis.
 
 ## Controllers — 10
 
@@ -36,40 +36,30 @@ module: TeamMcp
 - [IssueActorTokenRequest.php](../../../Modules/TeamMcp/Http/Requests/IssueActorTokenRequest.php)
 - [UpdateQuotaRequest.php](../../../Modules/TeamMcp/Http/Requests/UpdateQuotaRequest.php)
 
-## Services — 13
+## Services — 10
 
 - [CcIngestService.php](../../../Modules/TeamMcp/Services/CcIngestService.php)
 - [ForjaBacklogService.php](../../../Modules/TeamMcp/Services/Forja/ForjaBacklogService.php)
 - [ForjaChangelogService.php](../../../Modules/TeamMcp/Services/Forja/ForjaChangelogService.php)
 - [ForjaMcpService.php](../../../Modules/TeamMcp/Services/Forja/ForjaMcpService.php)
 - [ForjaQuadroService.php](../../../Modules/TeamMcp/Services/Forja/ForjaQuadroService.php)
-- [GitMainResolver.php](../../../Modules/TeamMcp/Services/GitMainResolver.php)
-- [HandoffIngestService.php](../../../Modules/TeamMcp/Services/HandoffIngestService.php)
-- [HandoffLeverService.php](../../../Modules/TeamMcp/Services/HandoffLeverService.php)
 - [IngestLivenessService.php](../../../Modules/TeamMcp/Services/IngestLivenessService.php)
 - [PrChecksResolver.php](../../../Modules/TeamMcp/Services/PrChecksResolver.php)
 - [ScorecardBuilderService.php](../../../Modules/TeamMcp/Services/ScorecardBuilderService.php)
 - [TeamUsageAggregator.php](../../../Modules/TeamMcp/Services/TeamUsageAggregator.php)
 - [UsageCsvExporter.php](../../../Modules/TeamMcp/Services/UsageCsvExporter.php)
 
-## Models / Entities — 2
+## Models / Entities — 1
 
-- [CoworkHandoff.php](../../../Modules/TeamMcp/Entities/CoworkHandoff.php)
 - [McpIngestHeartbeat.php](../../../Modules/TeamMcp/Entities/McpIngestHeartbeat.php)
-
-## Console / Commands — 2
-
-- [HandoffIngestCommand.php](../../../Modules/TeamMcp/Console/Commands/HandoffIngestCommand.php)
-- [HandoffStaleAlertCommand.php](../../../Modules/TeamMcp/Console/Commands/HandoffStaleAlertCommand.php)
 
 ## Providers — 1
 
 - [TeamMcpServiceProvider.php](../../../Modules/TeamMcp/Providers/TeamMcpServiceProvider.php)
 
-## Migrations (schema) — 2
+## Migrations (schema) — 1
 
 - [2026_06_15_100000_create_mcp_ingest_heartbeat_table.php](../../../Modules/TeamMcp/Database/Migrations/2026_06_15_100000_create_mcp_ingest_heartbeat_table.php)
-- [2026_06_17_120000_create_cowork_handoffs_table.php](../../../Modules/TeamMcp/Database/Migrations/2026_06_17_120000_create_cowork_handoffs_table.php)
 
 ## Seeders — 1
 
@@ -114,15 +104,11 @@ module: TeamMcp
 - [Cockpit.casos.md](../../../resources/js/Pages/team-mcp/Forja/Cockpit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
 
-## Testes (Pest) — 24
+## Testes (Pest) — 18
 
-- 24 arquivos em [Modules/TeamMcp/Tests/Feature/](../../../Modules/TeamMcp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 18 arquivos em [Modules/TeamMcp/Tests/Feature/](../../../Modules/TeamMcp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 6
+## Outros (raiz/misc) — 2
 
 - [routes.php](../../../Modules/TeamMcp/Http/routes.php)
-- [HandoffAckTool.php](../../../Modules/TeamMcp/Mcp/Tools/HandoffAckTool.php)
-- [HandoffLeverTool.php](../../../Modules/TeamMcp/Mcp/Tools/HandoffLeverTool.php)
-- [HandoffPendingTool.php](../../../Modules/TeamMcp/Mcp/Tools/HandoffPendingTool.php)
-- [HandoffSubmitTool.php](../../../Modules/TeamMcp/Mcp/Tools/HandoffSubmitTool.php)
 - [start.php](../../../Modules/TeamMcp/start.php)

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Mcp\Tools;
+namespace Modules\Forja\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -11,7 +11,7 @@ use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Entities\Mcp\McpAuditLog;
 use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
 use Modules\TeamMcp\Entities\McpIngestHeartbeat;
-use Modules\TeamMcp\Services\HandoffIngestService;
+use Modules\Forja\Services\HandoffIngestService;
 use Throwable;
 
 /**
@@ -26,7 +26,7 @@ use Throwable;
  * Reusa {@see HandoffIngestService} — MESMA validação HMAC, MESMO `source_hash`,
  * MESMO append-only do `handoff:ingest` (PR-1). Nada de recriar ingest (NÃO-FAZER
  * do handoff). O runner de CI não alcança o DB de prod (docblock do
- * {@see \Modules\TeamMcp\Console\Commands\HandoffIngestCommand}) — por isso o
+ * {@see \Modules\Forja\Console\Commands\HandoffIngestCommand}) — por isso o
  * transporte é HTTP pra ESTE tool, não `artisan handoff:ingest` no runner.
  *
  * Defesas do adversário [AH]:
@@ -40,8 +40,8 @@ use Throwable;
  * Pulsa o heartbeat (`mcp_ingest_heartbeat`, host `handoff-submit`) no caminho de
  * sucesso → a Forja sai de "transporte sem sinal" sozinha.
  *
- * @see Modules\TeamMcp\Services\HandoffIngestService
- * @see Modules\TeamMcp\Mcp\Tools\HandoffAckTool
+ * @see Modules\Forja\Services\HandoffIngestService
+ * @see Modules\Forja\Mcp\Tools\HandoffAckTool
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */
 class HandoffSubmitTool extends Tool

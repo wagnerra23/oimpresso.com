@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Request as McpRequest;
 use Laravel\Mcp\Response as McpResponse;
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\Forja\Entities\CoworkHandoff;
 use Modules\TeamMcp\Entities\McpIngestHeartbeat;
-use Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool;
+use Modules\Forja\Mcp\Tools\HandoffSubmitTool;
 
 uses(Tests\TestCase::class);
 
@@ -32,8 +32,8 @@ uses(Tests\TestCase::class);
  *
  * Tier 0 ({@see ADR 0093}): cowork_handoffs/mcp_ingest_heartbeat sem business_id.
  *
- * @see Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool
- * @see Modules\TeamMcp\Services\HandoffIngestService
+ * @see Modules\Forja\Mcp\Tools\HandoffSubmitTool
+ * @see Modules\Forja\Services\HandoffIngestService
  */
 
 const HANDOFF_SUBMIT_SECRET = 'segredo-de-teste-hmac-pr6';

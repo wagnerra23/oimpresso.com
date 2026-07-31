@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpInboxNotification;
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\Forja\Entities\CoworkHandoff;
 
 uses(Tests\TestCase::class);
 
@@ -21,7 +21,7 @@ uses(Tests\TestCase::class);
  * Helpers com nomes ÚNICOS (prefixo stale*) pra não colidir com HandoffIngestTest /
  * HandoffToolsTest no mesmo processo Pest. Tabelas sintéticas sqlite-friendly.
  *
- * @see Modules\TeamMcp\Console\Commands\HandoffStaleAlertCommand
+ * @see Modules\Forja\Console\Commands\HandoffStaleAlertCommand
  */
 
 function staleMkCoworkTable(): void

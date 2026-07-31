@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\Forja\Entities\CoworkHandoff;
 
 /**
  * HandoffLeverService — PR-7b Loop de Handoff Zero-Paste (Fase 2 · ADR 0283).
  *
  * Núcleo COMPARTILHADO das 3 levers do loop (re-disparar/devolver/supersede),
- * extraído do {@see \Modules\TeamMcp\Mcp\Tools\HandoffLeverTool} (PR-7 #2924) pra
+ * extraído do {@see \Modules\Forja\Mcp\Tools\HandoffLeverTool} (PR-7 #2924) pra
  * ser a fonte ÚNICA tanto da tool MCP (ator-agente, scope fino) quanto do endpoint
  * web do cockpit ({@see \Modules\TeamMcp\Http\Controllers\ForjaController::handoffLever},
  * ator-[W] na Forja) — o browser NÃO é cliente MCP, então as levers do front
@@ -31,7 +31,7 @@ use Modules\TeamMcp\Entities\CoworkHandoff;
  * (ADR 0155 D9.a): roda dentro de `OtelHelper::span` (zero-cost quando OTel off),
  * igual {@see \Modules\TeamMcp\Services\Forja\ForjaMcpService}/{@see GitMainResolver}.
  *
- * @see Modules\TeamMcp\Mcp\Tools\HandoffLeverTool
+ * @see Modules\Forja\Mcp\Tools\HandoffLeverTool
  * @see Modules\TeamMcp\Http\Controllers\ForjaController
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */

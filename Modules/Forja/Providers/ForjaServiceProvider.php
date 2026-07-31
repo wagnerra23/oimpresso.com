@@ -5,7 +5,9 @@ namespace Modules\Forja\Providers;
 use Illuminate\Support\ServiceProvider;
 use Modules\Forja\Console\Commands\BriefHealthCommand;
 use Modules\Forja\Console\Commands\RotateTokenCommand;
+use Modules\Forja\Console\Commands\HandoffIngestCommand;
 use Modules\Forja\Console\Commands\ForjaHealthCommand;
+use Modules\Forja\Console\Commands\HandoffStaleAlertCommand;
 use Modules\Forja\Console\Commands\GenerateBriefCommand;
 use Modules\Forja\Console\Commands\SkillTierReviewCommand;
 use Modules\Forja\Console\Commands\SeedActorsCommand;
@@ -46,6 +48,11 @@ class ForjaServiceProvider extends ServiceProvider
                 // (mcp_actors + emissão de token — ADR 0081).
                 SeedActorsCommand::class,
                 RotateTokenCommand::class,
+                // Loop de handoff zero-paste (ADR 0283), recebido do TeamMcp em
+                // 2026-07-31. handoff:stale-alert TEM schedule daily em
+                // app/Console/Kernel.php — se sair do registro, o cron morre calado.
+                HandoffIngestCommand::class,
+                HandoffStaleAlertCommand::class,
             ]);
         }
 

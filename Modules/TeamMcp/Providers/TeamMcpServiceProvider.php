@@ -3,8 +3,6 @@
 namespace Modules\TeamMcp\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Modules\TeamMcp\Console\Commands\HandoffIngestCommand;
-use Modules\TeamMcp\Console\Commands\HandoffStaleAlertCommand;
 
 /**
  * ServiceProvider do módulo TeamMcp.
@@ -29,18 +27,9 @@ class TeamMcpServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
 
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                // mcp:seed-actors e mcp:rotate-token foram pra Modules/Forja
-                // (identidade do MCP — [W] "MCP vai para Forja", 2026-07-31).
-                // handoff:ingest — PR-1 loop handoff zero-paste (Fase 0 ADR 0283):
-                // ingere handoffs de design assinados (HMAC) → cowork_handoffs pending.
-                HandoffIngestCommand::class,
-                // handoff:stale-alert — PR-4: handoffs pending > 3d alertam o inbox ops
-                // (anti feedback-void). Schedule daily em app/Console/Kernel.php.
-                HandoffStaleAlertCommand::class,
-            ]);
-        }
+        // Sem comandos proprios: os 4 foram pra Modules/Forja em 2026-07-31
+        // ([W] "MCP vai para Forja") — identidade (team-mcp:seed-actors,
+        // teammcp:token:rotate) e handoff (handoff:ingest, handoff:stale-alert).
     }
 
     public function register(): void

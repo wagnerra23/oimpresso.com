@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\Forja\Entities\CoworkHandoff;
 use Symfony\Component\Yaml\Yaml;
 
 uses(Tests\TestCase::class);
@@ -27,7 +27,7 @@ uses(Tests\TestCase::class);
  *
  * Tier 0 ({@see ADR 0093}): tabela SEM business_id (cross-tenant by design).
  *
- * @see Modules\TeamMcp\Console\Commands\HandoffIngestCommand
+ * @see Modules\Forja\Console\Commands\HandoffIngestCommand
  * @see Modules\TeamMcp\Database\Migrations\2026_06_17_120000_create_cowork_handoffs_table.php
  */
 

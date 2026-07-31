@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Idempotente (hasTable) + reversível (down dropIfExists).
  *
- * @see Modules\TeamMcp\Console\Commands\HandoffIngestCommand (writer)
+ * @see Modules\Forja\Console\Commands\HandoffIngestCommand (writer)
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */
 return new class extends Migration

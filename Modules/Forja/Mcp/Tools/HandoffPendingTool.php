@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Mcp\Tools;
+namespace Modules\Forja\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Modules\TeamMcp\Entities\CoworkHandoff;
-use Modules\TeamMcp\Services\GitMainResolver;
+use Modules\Forja\Entities\CoworkHandoff;
+use Modules\Forja\Services\GitMainResolver;
 use Throwable;
 
 /**
@@ -32,7 +32,7 @@ use Throwable;
  * Read-only: exige só o gate grosso `jana.mcp.use` (McpAuthMiddleware). Mutação é
  * o handoff-ack (esse sim com scope fino `jana.mcp.handoff.ack`).
  *
- * @see Modules\TeamMcp\Mcp\Tools\HandoffAckTool
+ * @see Modules\Forja\Mcp\Tools\HandoffAckTool
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */
 class HandoffPendingTool extends Tool

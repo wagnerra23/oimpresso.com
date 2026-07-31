@@ -23,6 +23,9 @@ contains:
   # Identidade do MCP — recebida do TeamMcp em 2026-07-31 ([W] "MCP vai para Forja")
   - "Entities/McpActor + Services/{ActorResolver,McpActorRepository,McpTokenIssuer} — Identity Mesh (ADR 0081); tabela `mcp_actors` é cross-business POR DESIGN"
   - "Http/Requests/StoreActorRequest · Database/Seeders/McpActorsSeeder · comandos mcp:seed-actors e mcp:rotate-token"
+  # Loop de handoff (ADR 0283) — recebido do TeamMcp em 2026-07-31
+  - "Mcp/Tools/Handoff{Pending,Ack,Submit,Lever} — registradas pelo OimpressoMcpServer da Jana; URLs/nomes de tool inalterados"
+  - "Entities/CoworkHandoff + HandoffIngestService + HandoffLeverService + GitMainResolver; `cowork_handoffs` é cross-tenant POR DESIGN (ADR 0093/0283)"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"

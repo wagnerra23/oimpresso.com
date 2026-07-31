@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Mcp\Tools;
+namespace Modules\Forja\Mcp\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -10,7 +10,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Entities\Mcp\McpAuditLog;
 use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\Forja\Entities\CoworkHandoff;
 use Throwable;
 
 /**
@@ -30,7 +30,7 @@ use Throwable;
  *     handoff-pending não cacheia a lista — o ack reflete na hora, sem o
  *     flush-global que derrubava o ERP inteiro.
  *
- * @see Modules\TeamMcp\Mcp\Tools\HandoffPendingTool
+ * @see Modules\Forja\Mcp\Tools\HandoffPendingTool
  * @see Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */

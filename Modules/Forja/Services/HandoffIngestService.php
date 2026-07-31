@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\Forja\Entities\CoworkHandoff;
 
 /**
  * HandoffIngestService — PR-6 Loop de Handoff Zero-Paste (Fase 0 · ADR 0283).
  *
  * Núcleo COMPARTILHADO de validação + persistência de um handoff de design,
- * extraído de {@see \Modules\TeamMcp\Console\Commands\HandoffIngestCommand}
+ * extraído de {@see \Modules\Forja\Console\Commands\HandoffIngestCommand}
  * (PR-1) pra ser reusado pelo landing-pad HTTP
- * {@see \Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool} (PR-6a). MESMA checagem HMAC,
+ * {@see \Modules\Forja\Mcp\Tools\HandoffSubmitTool} (PR-6a). MESMA checagem HMAC,
  * MESMO `source_hash`, MESMO append-only — uma fonte só de verdade pra ingest,
  * venha de arquivo (command, server-side) ou de HTTP (tool, on-push).
  *
@@ -26,11 +26,11 @@ use Modules\TeamMcp\Entities\CoworkHandoff;
  *
  * Stateless e SEM efeito colateral além do insert/update em `cowork_handoffs`. NÃO
  * faz auto-merge (ADR 0283); NÃO toca o heartbeat — quem chama decide (o
- * {@see \Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool} pulsa; o command não, igual
+ * {@see \Modules\Forja\Mcp\Tools\HandoffSubmitTool} pulsa; o command não, igual
  * ao comportamento original do PR-1).
  *
- * @see Modules\TeamMcp\Console\Commands\HandoffIngestCommand
- * @see Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool
+ * @see Modules\Forja\Console\Commands\HandoffIngestCommand
+ * @see Modules\Forja\Mcp\Tools\HandoffSubmitTool
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */
 final class HandoffIngestService

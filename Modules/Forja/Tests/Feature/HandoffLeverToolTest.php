@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Request as McpRequest;
 use Laravel\Mcp\Response as McpResponse;
-use Modules\TeamMcp\Entities\CoworkHandoff;
-use Modules\TeamMcp\Mcp\Tools\HandoffLeverTool;
+use Modules\Forja\Entities\CoworkHandoff;
+use Modules\Forja\Mcp\Tools\HandoffLeverTool;
 
 uses(Tests\TestCase::class);
 
@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  *
  * Tier 0 ({@see ADR 0093}): cowork_handoffs sem business_id.
  *
- * @see Modules\TeamMcp\Mcp\Tools\HandoffLeverTool
+ * @see Modules\Forja\Mcp\Tools\HandoffLeverTool
  */
 
 /** Tabela sintética (espelha a migration; sqlite-friendly). */

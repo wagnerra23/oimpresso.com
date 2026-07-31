@@ -21,7 +21,7 @@ use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
 use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
 use Modules\TeamMcp\Services\Forja\ForjaMcpService;
 use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
-use Modules\TeamMcp\Services\HandoffLeverService;
+use Modules\Forja\Services\HandoffLeverService;
 
 /**
  * ForjaController — cockpit do cowork loop (/forja).

@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 106 arquivos em 14 papéis.
+**Total mapeado:** 123 arquivos em 14 papéis.
 
 ## Controllers — 15
 
@@ -56,27 +56,33 @@ module: Forja
 - [UpdateTaskStatusRequest.php](../../../Modules/Forja/Http/Requests/UpdateTaskStatusRequest.php)
 - [WatchTaskRequest.php](../../../Modules/Forja/Http/Requests/WatchTaskRequest.php)
 
-## Services — 9
+## Services — 12
 
 - [ActorResolver.php](../../../Modules/Forja/Services/ActorResolver.php)
 - [BriefGeneratorService.php](../../../Modules/Forja/Services/BriefGeneratorService.php)
 - [BriefValidator.php](../../../Modules/Forja/Services/BriefValidator.php)
 - [ForjaAuditService.php](../../../Modules/Forja/Services/ForjaAuditService.php)
+- [GitMainResolver.php](../../../Modules/Forja/Services/GitMainResolver.php)
+- [HandoffIngestService.php](../../../Modules/Forja/Services/HandoffIngestService.php)
+- [HandoffLeverService.php](../../../Modules/Forja/Services/HandoffLeverService.php)
 - [LeaseBriefSectionService.php](../../../Modules/Forja/Services/LeaseBriefSectionService.php)
 - [McpActorRepository.php](../../../Modules/Forja/Services/McpActorRepository.php)
 - [McpTokenIssuer.php](../../../Modules/Forja/Services/McpTokenIssuer.php)
 - [ProjectService.php](../../../Modules/Forja/Services/ProjectService.php)
 - [ValidationResult.php](../../../Modules/Forja/Services/ValidationResult.php)
 
-## Models / Entities — 1
+## Models / Entities — 2
 
+- [CoworkHandoff.php](../../../Modules/Forja/Entities/CoworkHandoff.php)
 - [McpActor.php](../../../Modules/Forja/Entities/McpActor.php)
 
-## Console / Commands — 6
+## Console / Commands — 8
 
 - [BriefHealthCommand.php](../../../Modules/Forja/Console/Commands/BriefHealthCommand.php)
 - [ForjaHealthCommand.php](../../../Modules/Forja/Console/Commands/ForjaHealthCommand.php)
 - [GenerateBriefCommand.php](../../../Modules/Forja/Console/Commands/GenerateBriefCommand.php)
+- [HandoffIngestCommand.php](../../../Modules/Forja/Console/Commands/HandoffIngestCommand.php)
+- [HandoffStaleAlertCommand.php](../../../Modules/Forja/Console/Commands/HandoffStaleAlertCommand.php)
 - [RotateTokenCommand.php](../../../Modules/Forja/Console/Commands/RotateTokenCommand.php)
 - [SeedActorsCommand.php](../../../Modules/Forja/Console/Commands/SeedActorsCommand.php)
 - [SkillTierReviewCommand.php](../../../Modules/Forja/Console/Commands/SkillTierReviewCommand.php)
@@ -85,11 +91,12 @@ module: Forja
 
 - [ForjaServiceProvider.php](../../../Modules/Forja/Providers/ForjaServiceProvider.php)
 
-## Migrations (schema) — 3
+## Migrations (schema) — 4
 
 - [2026_05_05_240001_create_mcp_actors_and_link_tokens.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240001_create_mcp_actors_and_link_tokens.php)
 - [2026_05_05_240002_seed_initial_actors.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240002_seed_initial_actors.php)
 - [2026_05_07_140000_update_actor_display_name_maiara.php](../../../Modules/Forja/Database/Migrations/2026_05_07_140000_update_actor_display_name_maiara.php)
+- [2026_06_17_120000_create_cowork_handoffs_table.php](../../../Modules/Forja/Database/Migrations/2026_06_17_120000_create_cowork_handoffs_table.php)
 
 ## Seeders — 1
 
@@ -129,12 +136,16 @@ module: Forja
 - [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
 
-## Testes (Pest) — 26
+## Testes (Pest) — 32
 
-- 26 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 32 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 3
+## Outros (raiz/misc) — 7
 
 - [routes.php](../../../Modules/Forja/Http/routes.php)
 - [BriefFetchTool.php](../../../Modules/Forja/Mcp/Tools/BriefFetchTool.php)
+- [HandoffAckTool.php](../../../Modules/Forja/Mcp/Tools/HandoffAckTool.php)
+- [HandoffLeverTool.php](../../../Modules/Forja/Mcp/Tools/HandoffLeverTool.php)
+- [HandoffPendingTool.php](../../../Modules/Forja/Mcp/Tools/HandoffPendingTool.php)
+- [HandoffSubmitTool.php](../../../Modules/Forja/Mcp/Tools/HandoffSubmitTool.php)
 - [start.php](../../../Modules/Forja/start.php)
