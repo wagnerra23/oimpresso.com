@@ -65,6 +65,10 @@ drift_alerts: []
   # Admin/ToolsController + Admin/TeamScopesController → Modules/Forja
   # Admin/GraphController → Modules/KB
   # URLs mantidas em /ads/admin/* via use imports atualizadas em Routes/web.php.
+  # 2026-07-31 (parte 5/7): as 9 rotas dos 3 controllers da Forja saIram DESTE
+  # arquivo — quem as hospeda agora e Modules/Forja/Http/routes.php (rota e
+  # controller no mesmo modulo). URL /ads/admin/* inalterada (ADR 0087).
+  # /ads/admin/graph (GraphController do KB) segue aqui: morre na parte 6/7.
 ---
 
 # Modules/ADS — Adaptive Decision System
