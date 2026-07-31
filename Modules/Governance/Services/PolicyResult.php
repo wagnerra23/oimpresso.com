@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ADS\Services;
+namespace Modules\Governance\Services;
 
 /**
  * Observabilidade D9.a (ADR 0155): value-object — spans Tracer ficam no

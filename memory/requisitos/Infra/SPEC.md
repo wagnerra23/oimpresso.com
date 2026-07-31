@@ -160,7 +160,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-005 · S5 ADS adiantado (Risk + Confidence + Policy core)
 
-**Implementado em:** _parcial_ · `Modules/ADS/Services/RiskEngine.php` · `Modules/ADS/Services/ConfidenceEngine.php` · `Modules/ADS/Services/PolicyEngine.php` · `Modules/ADS/Services/DecisionRouter.php` · `resources/js/Pages/ads/Admin/Decisoes.tsx` · verificado@8af585a (2026-07-02) — núcleo do ADS (4 outcomes ALLOW_BRAIN_A/REQUIRE_BRAIN_B/REQUIRE_HUMAN_REVIEW/BLOCK_ALWAYS + tela admin + Pest PolicyEngine/Risk/Confidence/DecisionRouter) landou; falta só o wire em `client_signal_triage` (depende de US-INFRA-002, não construída)
+**Implementado em:** _parcial_ · `Modules/ADS/Services/RiskEngine.php` · `Modules/ADS/Services/ConfidenceEngine.php` · `Modules/Governance/Services/PolicyEngine.php` · `Modules/ADS/Services/DecisionRouter.php` · `resources/js/Pages/ads/Admin/Decisoes.tsx` · verificado@8af585a (2026-07-02) — núcleo do ADS (4 outcomes ALLOW_BRAIN_A/REQUIRE_BRAIN_B/REQUIRE_HUMAN_REVIEW/BLOCK_ALWAYS + tela admin + Pest PolicyEngine/Risk/Confidence/DecisionRouter) landou; falta só o wire em `client_signal_triage` (depende de US-INFRA-002, não construída)
 
 > owner: wagner · priority: p1 · estimate: 12h · status: done · type: epic · origin: adr-0106-recalibracao
 > blocked_by: US-INFRA-002

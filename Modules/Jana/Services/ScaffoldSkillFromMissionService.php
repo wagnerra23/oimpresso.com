@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ADS\Services;
+namespace Modules\Jana\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

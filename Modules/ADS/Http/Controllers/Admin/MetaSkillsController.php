@@ -8,7 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ADS\Http\Requests\StoreGovernanceMetaSkillRequest;
-use Modules\ADS\Services\GovernanceRulesService;
+use Modules\Governance\Services\GovernanceRulesService;
 
 class MetaSkillsController extends Controller
 {

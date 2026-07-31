@@ -5,7 +5,7 @@ namespace Modules\ADS\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Routing\Router;
 use Modules\ADS\Services\RiskEngine;
-use Modules\ADS\Services\PolicyEngine;
+use Modules\Governance\Services\PolicyEngine;
 use Modules\ADS\Services\ConfidenceEngine;
 use Modules\ADS\Services\DecisionRouter;
 use Modules\ADS\Services\BrainBService;
@@ -14,7 +14,7 @@ use Modules\ADS\Services\PatternLearningService;
 use Modules\ADS\Services\AutoTaskGeneratorService;
 use Modules\ADS\Services\PlannerService;
 use Modules\ADS\Services\ToolRegistry;
-use Modules\ADS\Services\GovernanceRulesService;
+use Modules\Governance\Services\GovernanceRulesService;
 use Modules\ADS\Services\ProjectDecomposerService;
 use Modules\ADS\Services\DecisionLinksService;
 use Modules\ADS\Services\UserScopeService;
@@ -26,8 +26,6 @@ use Modules\ADS\Console\Commands\LearnPatternsCommand;
 use Modules\ADS\Console\Commands\ReviewDecisionsCommand;
 use Modules\ADS\Console\Commands\AutoGenerateTasksCommand;
 use Modules\ADS\Console\Commands\PlanDecisionsCommand;
-use Modules\ADS\Console\Commands\SkillScaffoldCommand;
-use Modules\ADS\Services\ScaffoldSkillFromMissionService;
 
 class AdsServiceProvider extends ServiceProvider
 {
@@ -44,7 +42,6 @@ class AdsServiceProvider extends ServiceProvider
                 ReviewDecisionsCommand::class,
                 AutoGenerateTasksCommand::class,
                 PlanDecisionsCommand::class,
-                SkillScaffoldCommand::class,
                 AdsHealthCommand::class,
             ]);
         }
@@ -69,7 +66,6 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(DecisionLinksService::class);
         $this->app->singleton(UserScopeService::class);
         $this->app->singleton(ContextForTaskService::class);
-        $this->app->singleton(ScaffoldSkillFromMissionService::class);
     }
 
     protected function registerConfig(): void

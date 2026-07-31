@@ -14,7 +14,7 @@ module: ADS
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ADS/**` + `resources/js/Pages/ads/**` (namespace Inertia `ads`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `ADS`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 152 arquivos em 14 papéis.
+**Total mapeado:** 146 arquivos em 14 papéis.
 
 ## Controllers — 15
 
@@ -57,7 +57,7 @@ module: ADS
 
 - [AdsApiAuth.php](../../../Modules/ADS/Http/Middleware/AdsApiAuth.php)
 
-## Services — 22
+## Services — 17
 
 - [AutoTaskGeneratorService.php](../../../Modules/ADS/Services/AutoTaskGeneratorService.php)
 - [BrainBService.php](../../../Modules/ADS/Services/BrainBService.php)
@@ -66,23 +66,18 @@ module: ADS
 - [DecisionLinksService.php](../../../Modules/ADS/Services/DecisionLinksService.php)
 - [DecisionPresenter.php](../../../Modules/ADS/Services/DecisionPresenter.php)
 - [DecisionRouter.php](../../../Modules/ADS/Services/DecisionRouter.php)
-- [GovernanceRulesService.php](../../../Modules/ADS/Services/GovernanceRulesService.php)
 - [PatternLearningService.php](../../../Modules/ADS/Services/PatternLearningService.php)
 - [PlannerService.php](../../../Modules/ADS/Services/PlannerService.php)
-- [PolicyEngine.php](../../../Modules/ADS/Services/PolicyEngine.php)
-- [PolicyResult.php](../../../Modules/ADS/Services/PolicyResult.php)
 - [ProjectDecomposerService.php](../../../Modules/ADS/Services/ProjectDecomposerService.php)
 - [ReviewerService.php](../../../Modules/ADS/Services/ReviewerService.php)
 - [RiskEngine.php](../../../Modules/ADS/Services/RiskEngine.php)
 - [RiskResult.php](../../../Modules/ADS/Services/RiskResult.php)
 - [RoutingDecision.php](../../../Modules/ADS/Services/RoutingDecision.php)
 - [RoutingInput.php](../../../Modules/ADS/Services/RoutingInput.php)
-- [ScaffoldSkillFromMissionService.php](../../../Modules/ADS/Services/ScaffoldSkillFromMissionService.php)
-- [SkillsService.php](../../../Modules/ADS/Services/SkillsService.php)
 - [ToolRegistry.php](../../../Modules/ADS/Services/ToolRegistry.php)
 - [UserScopeService.php](../../../Modules/ADS/Services/UserScopeService.php)
 
-## Console / Commands — 7
+## Console / Commands — 6
 
 - [AdsHealthCommand.php](../../../Modules/ADS/Console/Commands/AdsHealthCommand.php)
 - [AutoGenerateTasksCommand.php](../../../Modules/ADS/Console/Commands/AutoGenerateTasksCommand.php)
@@ -90,7 +85,6 @@ module: ADS
 - [PlanDecisionsCommand.php](../../../Modules/ADS/Console/Commands/PlanDecisionsCommand.php)
 - [ProcessBrainBCommand.php](../../../Modules/ADS/Console/Commands/ProcessBrainBCommand.php)
 - [ReviewDecisionsCommand.php](../../../Modules/ADS/Console/Commands/ReviewDecisionsCommand.php)
-- [SkillScaffoldCommand.php](../../../Modules/ADS/Console/Commands/SkillScaffoldCommand.php)
 
 ## Providers — 2
 

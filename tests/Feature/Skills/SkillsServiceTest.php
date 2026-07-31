@@ -14,7 +14,7 @@
  * fica coberto em SkillsControllerTest com Schema::create direto.
  */
 
-use Modules\ADS\Services\SkillsService;
+use Modules\Jana\Services\SkillsService;
 
 it('lista skills do filesystem (sanity check ≥ 10)', function () {
     $service = new SkillsService();

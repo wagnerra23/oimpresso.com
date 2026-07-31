@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ADS\Services;
+namespace Modules\Jana\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Schema;
