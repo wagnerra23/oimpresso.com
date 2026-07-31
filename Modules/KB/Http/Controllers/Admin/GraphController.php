@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\ADS\Services\PolicyEngine;
-use Modules\ADS\Services\GovernanceRulesService;
+use Modules\Governance\Services\PolicyEngine;
+use Modules\Governance\Services\GovernanceRulesService;
 use Modules\ADS\Services\ToolRegistry;
 
 /**

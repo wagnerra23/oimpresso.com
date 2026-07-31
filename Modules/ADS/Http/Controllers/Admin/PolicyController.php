@@ -5,7 +5,7 @@ namespace Modules\ADS\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\ADS\Services\PolicyEngine;
+use Modules\Governance\Services\PolicyEngine;
 use Modules\ADS\Services\DecisionPresenter;
 
 class PolicyController extends Controller

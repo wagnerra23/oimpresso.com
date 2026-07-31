@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ADS\Services;
+namespace Modules\Governance\Services;
 
 use App\Util\OtelHelper;
 

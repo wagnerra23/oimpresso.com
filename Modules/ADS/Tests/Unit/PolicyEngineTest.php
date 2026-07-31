@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Modules\ADS\Services\PolicyEngine;
-use Modules\ADS\Services\PolicyResult;
+use Modules\Governance\Services\PolicyEngine;
+use Modules\Governance\Services\PolicyResult;
 
 uses(Tests\TestCase::class);
 

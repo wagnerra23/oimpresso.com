@@ -4,6 +4,7 @@ namespace Modules\ADS\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Governance\Services\PolicyEngine;
 
 /**
  * Observabilidade D9.a (ADR 0155): consolidação multi-source envolve
