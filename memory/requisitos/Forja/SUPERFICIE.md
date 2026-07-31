@@ -14,9 +14,9 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 148 arquivos em 14 papéis.
+**Total mapeado:** 160 arquivos em 14 papéis.
 
-## Controllers — 22
+## Controllers — 23
 
 - [ActivityController.php](../../../Modules/Forja/Http/Controllers/ActivityController.php)
 - [ProjectsController.php](../../../Modules/Forja/Http/Controllers/Admin/ProjectsController.php)
@@ -28,6 +28,7 @@ module: Forja
 - [BurndownController.php](../../../Modules/Forja/Http/Controllers/BurndownController.php)
 - [CcSessionsController.php](../../../Modules/Forja/Http/Controllers/CcSessionsController.php)
 - [DataController.php](../../../Modules/Forja/Http/Controllers/DataController.php)
+- [ForjaController.php](../../../Modules/Forja/Http/Controllers/ForjaController.php)
 - [InboxController.php](../../../Modules/Forja/Http/Controllers/InboxController.php)
 - [InstallController.php](../../../Modules/Forja/Http/Controllers/InstallController.php)
 - [CcIngestController.php](../../../Modules/Forja/Http/Controllers/Mcp/CcIngestController.php)
@@ -67,13 +68,17 @@ module: Forja
 - [UpdateTaskStatusRequest.php](../../../Modules/Forja/Http/Requests/UpdateTaskStatusRequest.php)
 - [WatchTaskRequest.php](../../../Modules/Forja/Http/Requests/WatchTaskRequest.php)
 
-## Services — 17
+## Services — 22
 
 - [ActorResolver.php](../../../Modules/Forja/Services/ActorResolver.php)
 - [BriefGeneratorService.php](../../../Modules/Forja/Services/BriefGeneratorService.php)
 - [BriefValidator.php](../../../Modules/Forja/Services/BriefValidator.php)
 - [CcIngestService.php](../../../Modules/Forja/Services/CcIngestService.php)
 - [ForjaAuditService.php](../../../Modules/Forja/Services/ForjaAuditService.php)
+- [ForjaBacklogService.php](../../../Modules/Forja/Services/ForjaBacklogService.php)
+- [ForjaChangelogService.php](../../../Modules/Forja/Services/ForjaChangelogService.php)
+- [ForjaMcpService.php](../../../Modules/Forja/Services/ForjaMcpService.php)
+- [ForjaQuadroService.php](../../../Modules/Forja/Services/ForjaQuadroService.php)
 - [GitMainResolver.php](../../../Modules/Forja/Services/GitMainResolver.php)
 - [HandoffIngestService.php](../../../Modules/Forja/Services/HandoffIngestService.php)
 - [HandoffLeverService.php](../../../Modules/Forja/Services/HandoffLeverService.php)
@@ -81,6 +86,7 @@ module: Forja
 - [LeaseBriefSectionService.php](../../../Modules/Forja/Services/LeaseBriefSectionService.php)
 - [McpActorRepository.php](../../../Modules/Forja/Services/McpActorRepository.php)
 - [McpTokenIssuer.php](../../../Modules/Forja/Services/McpTokenIssuer.php)
+- [PrChecksResolver.php](../../../Modules/Forja/Services/PrChecksResolver.php)
 - [ProjectService.php](../../../Modules/Forja/Services/ProjectService.php)
 - [ScorecardBuilderService.php](../../../Modules/Forja/Services/ScorecardBuilderService.php)
 - [TeamUsageAggregator.php](../../../Modules/Forja/Services/TeamUsageAggregator.php)
@@ -116,8 +122,9 @@ module: Forja
 - [2026_06_15_100000_create_mcp_ingest_heartbeat_table.php](../../../Modules/Forja/Database/Migrations/2026_06_15_100000_create_mcp_ingest_heartbeat_table.php)
 - [2026_06_17_120000_create_cowork_handoffs_table.php](../../../Modules/Forja/Database/Migrations/2026_06_17_120000_create_cowork_handoffs_table.php)
 
-## Seeders — 1
+## Seeders — 2
 
+- [ForjaDemoTicketsSeeder.php](../../../Modules/Forja/Database/Seeders/ForjaDemoTicketsSeeder.php)
 - [McpActorsSeeder.php](../../../Modules/Forja/Database/Seeders/McpActorsSeeder.php)
 
 ## Config — 3
@@ -154,9 +161,9 @@ module: Forja
 - [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
 
-## Testes (Pest) — 39
+## Testes (Pest) — 44
 
-- 39 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 44 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 7
 

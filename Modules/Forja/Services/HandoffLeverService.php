@@ -13,7 +13,7 @@ use Modules\Forja\Entities\CoworkHandoff;
  * Núcleo COMPARTILHADO das 3 levers do loop (re-disparar/devolver/supersede),
  * extraído do {@see \Modules\Forja\Mcp\Tools\HandoffLeverTool} (PR-7 #2924) pra
  * ser a fonte ÚNICA tanto da tool MCP (ator-agente, scope fino) quanto do endpoint
- * web do cockpit ({@see \Modules\TeamMcp\Http\Controllers\ForjaController::handoffLever},
+ * web do cockpit ({@see \Modules\Forja\Http\Controllers\ForjaController::handoffLever},
  * ator-[W] na Forja) — o browser NÃO é cliente MCP, então as levers do front
  * roteiam por aqui. Mesmo padrão de {@see HandoffIngestService} (command + tool).
  *
@@ -29,10 +29,10 @@ use Modules\Forja\Entities\CoworkHandoff;
  * Sem auto-merge (ADR 0283). Stateless e SEM efeito colateral além de
  * cowork_handoffs — NÃO audita (quem chama audita, com o ator certo). Observability
  * (ADR 0155 D9.a): roda dentro de `OtelHelper::span` (zero-cost quando OTel off),
- * igual {@see \Modules\TeamMcp\Services\Forja\ForjaMcpService}/{@see GitMainResolver}.
+ * igual {@see \Modules\Forja\Services\ForjaMcpService}/{@see GitMainResolver}.
  *
  * @see Modules\Forja\Mcp\Tools\HandoffLeverTool
- * @see Modules\TeamMcp\Http\Controllers\ForjaController
+ * @see Modules\Forja\Http\Controllers\ForjaController
  * @see memory/decisions/0283-handoff-loop-zero-paste.md
  */
 final class HandoffLeverService

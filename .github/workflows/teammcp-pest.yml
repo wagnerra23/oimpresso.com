@@ -1,5 +1,11 @@
 name: TeamMcp · Pest (MySQL)
 
+# ATUALIZADO 2026-07-31: o ForjaRoutesSmokeTest e as rotas /forja mudaram-se pro
+# Modules/Forja (deprecação do TeamMcp). O paths-filter e o caminho do teste
+# acompanharam — sem isso a lane pararia de disparar e o teste que a ADR 0354
+# existe pra fazer EXECUTAR voltaria a nunca rodar. Nome do job mantido pra
+# não trocar o context de CI no meio da leva; renomear é da etapa final.
+#
 # Lane dedicada pra rodar contra MySQL REAL os testes do Modules/TeamMcp que a
 # lane sqlite (.github/ci-sqlite-pest.list) só consegue PULAR.
 #
@@ -38,7 +44,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'Modules/TeamMcp/**'
+      - 'Modules/Forja/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/teammcp-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -75,7 +81,7 @@ jobs:
         with:
           filters: |
             tmcp:
-              - 'Modules/TeamMcp/**'
+              - 'Modules/Forja/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/teammcp-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -130,7 +136,7 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-teammcp-junit.xml \
-            Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.php
+            Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
 
       - name: Upload JUnit (TeamMcp · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.tmcp == 'true' }}

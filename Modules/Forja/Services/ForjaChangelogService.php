@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services\Forja;
+namespace Modules\Forja\Services;
 
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpCcSession;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Database\Seeders\ForjaDemoTicketsSeeder;
-use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
+use Modules\Forja\Database\Seeders\ForjaDemoTicketsSeeder;
+use Modules\Forja\Services\ForjaBacklogService;
 
 uses(Tests\TestCase::class);
 
@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * Padrão era-sqlite (espelha AcceptanceRefTest): schema sintético + activitylog OFF.
  * Assertions ROBUSTAS (chaves/tipos/contagem), nunca valores frágeis.
  *
- * @see Modules\TeamMcp\Services\Forja\ForjaBacklogService
+ * @see Modules\Forja\Services\ForjaBacklogService
  * @see memory/decisions/0070-jira-style-task-management.md
  */
 beforeEach(function () {

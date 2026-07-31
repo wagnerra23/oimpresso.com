@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Database\Seeders\ForjaDemoTicketsSeeder;
-use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
+use Modules\Forja\Database\Seeders\ForjaDemoTicketsSeeder;
+use Modules\Forja\Services\ForjaQuadroService;
 
 uses(Tests\TestCase::class);
 
@@ -19,7 +19,7 @@ uses(Tests\TestCase::class);
  *
  * Padrão era-sqlite (espelha AcceptanceRefTest): schema sintético + activitylog OFF.
  *
- * @see Modules\TeamMcp\Services\Forja\ForjaQuadroService
+ * @see Modules\Forja\Services\ForjaQuadroService
  * @see memory/decisions/0070-jira-style-task-management.md
  */
 beforeEach(function () {

@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 613,
-    "edges": 936,
+    "nodes": 614,
+    "edges": 939,
     "by_node_type": {
       "module": 42,
       "table": 81,
       "adr": 34,
-      "component": 413,
+      "component": 414,
       "api": 43
     },
     "by_edge_type": {
@@ -39,9 +39,9 @@
       "providesApi": 43,
       "charteredByAdr": 32,
       "governedByAdr": 93,
-      "hasComponent": 413,
-      "dependsOn": 137,
-      "delegatesTo": 132,
+      "hasComponent": 414,
+      "dependsOn": 138,
+      "delegatesTo": 133,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1876,6 +1876,13 @@
       "desc": "sub-página 7 + endpoint gerar() download EFD-ICMS/IPI MVP (PR #8)"
     },
     {
+      "id": "component:Forja/⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W], separada desta deprecação",
+      "type": "component",
+      "module": "Forja",
+      "name": "⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W], separada desta deprecação",
+      "desc": ""
+    },
+    {
       "id": "component:Forja/ActivityController",
       "type": "component",
       "module": "Forja",
@@ -1972,6 +1979,13 @@
       "module": "Forja",
       "name": "Entities/McpIngestHeartbeat + IngestLivenessService",
       "desc": "liveness do watcher; produtor é o watcher LOCAL de cada dev (decisão [W]: migrate, o watcher volta)"
+    },
+    {
+      "id": "component:Forja/ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver",
+      "type": "component",
+      "module": "Forja",
+      "name": "ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver",
+      "desc": "6 abas do loop Cowork"
     },
     {
       "id": "component:Forja/Http/Requests/StoreActorRequest · Database/Seeders/McpActorsSeeder · comandos mcp:seed-actors e mcp:rotate-token",
@@ -3190,13 +3204,6 @@
       "module": "TeamMcp",
       "name": "DataController + InstallController",
       "desc": ""
-    },
-    {
-      "id": "component:TeamMcp/ForjaController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "ForjaController",
-      "desc": "cockpit do cowork loop /forja (absorção, não módulo novo): 6 abas projetando mcp_tasks project=FORJA + git/ADR/sessão + gates; aba Triagem real + dossiê"
     },
     {
       "id": "component:TeamMcp/Mcp/CcIngestController",
@@ -7085,6 +7092,12 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W], separada desta deprecação",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/ActivityController",
       "type": "hasComponent",
       "source": "contains"
@@ -7164,6 +7177,12 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/Entities/McpIngestHeartbeat + IngestLivenessService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9964,6 +9983,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Cockpit /forja (ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver)"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "handoff:ingest · handoff:stale-alert"
     },
     {
@@ -10077,6 +10103,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Admin/ToolsController · Admin/TeamScopesController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cockpit /forja (ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver)"
     },
     {
       "from": "module:TeamMcp",
@@ -10248,12 +10281,6 @@
     {
       "from": "module:TeamMcp",
       "to": "component:TeamMcp/DataController + InstallController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/ForjaController",
       "type": "hasComponent",
       "source": "contains"
     },

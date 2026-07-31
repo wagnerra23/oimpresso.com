@@ -59,7 +59,7 @@ Modules/Forja/Tests/Feature/HandoffLeverToolTest.php
 # Forja aba MCP: projeção de cowork_handoffs + gate CONFLITO (ack verde × required
 # checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
 # sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
-Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php
+Modules/Forja/Tests/Feature/ForjaMcpServiceTest.php
 tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
@@ -254,14 +254,14 @@ Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
 # required). Fica como dívida honesta: ou vira sqlite-safe, ou vai pra lane MySQL.
 Modules/Forja/Tests/Feature/ActorPermissionMatrixTest.php
 Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php
-Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php
-Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php
-Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php
+Modules/Forja/Tests/Feature/ForjaBacklogServiceTest.php
+Modules/Forja/Tests/Feature/ForjaChangelogServiceTest.php
+Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
 # Skip-as-pass em sqlite (stack UltimatePOS exige MySQL) — mas o VALOR aqui é outro:
 # o `DatasetArgumentsMismatch` que manteve este arquivo quebrado desde que nasceu é
 # erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
 # execução real do happy-path (UC-FORJA-01) mora na lane MySQL teammcp-pest.yml.
-Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.php
+Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
 Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
 Modules/Forja/Tests/Feature/HandoffToolsTest.php
 Modules/TeamMcp/Tests/Feature/LgpdComplianceTest.php

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
@@ -16,7 +16,7 @@ use Throwable;
  * a11y). Ele pode MENTIR: afirmar "verde" enquanto um required check do PR está
  * vermelho ou pendente no GitHub. Este resolver lê o ESTADO REAL dos required checks
  * do PR via GitHub API e devolve um veredito (`green`/`red`/`pending`) pro
- * {@see \Modules\TeamMcp\Services\Forja\ForjaMcpService} cruzar com o ack — a
+ * {@see \Modules\Forja\Services\ForjaMcpService} cruzar com o ack — a
  * divergência vira o badge `conflito`.
  *
  * Espelha {@see GitMainResolver}: mesmo PAT (`config('services.github.*')`, ADR 0076),
