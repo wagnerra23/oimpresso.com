@@ -28,7 +28,7 @@ uses(Tests\TestCase::class);
  * Tier 0 ({@see ADR 0093}): tabela SEM business_id (cross-tenant by design).
  *
  * @see Modules\Forja\Console\Commands\HandoffIngestCommand
- * @see Modules\TeamMcp\Database\Migrations\2026_06_17_120000_create_cowork_handoffs_table.php
+ * @see Modules\Forja\Database\Migrations\2026_06_17_120000_create_cowork_handoffs_table.php
  */
 
 const HANDOFF_TEST_SECRET = 'segredo-de-teste-hmac-pr1';

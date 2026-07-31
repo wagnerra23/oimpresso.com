@@ -27,7 +27,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * ── Errata 2026-07-27 (este arquivo nunca havia rodado uma vez) ──────────────
  * O helper listava SEIS rotas, incluindo `forja.saude`. Ela NUNCA existiu:
  * Saúde foi fundida no Scorecard real (`/team-mcp/scorecard`) e o próprio
- * `Modules/TeamMcp/Http/routes.php` registra isso em comentário — só há 5 GET de
+ * `Modules/Forja/Http/routes.php` registra isso em comentário — só há 5 GET de
  * aba, e `ForjaController::TABS` tem 5 entradas. Medido no CT 100 em 2026-07-27
  * (`vendor/bin/pest …ForjaRoutesSmokeTest.php`, DB_CONNECTION=mysql):
  * **7 failed, 5 passed** — 1 `RouteNotFoundException: Route [forja.saude] not
@@ -46,7 +46,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * sem permissão" feito com admin passaria mesmo se o `can:` fosse removido.
  * Mesma trava do `Modules/Jana/Tests/Feature/JanaAccessGateTest.php` (#4859).
  *
- * Stack UltimatePOS (Modules/TeamMcp/Http/routes.php): ['web','SetSessionData',
+ * Stack UltimatePOS (Modules/Forja/Http/routes.php): ['web','SetSessionData',
  * 'auth','language','timezone','AdminSidebarMenu','CheckUserLogin'] + can:.
  * Esses middlewares exigem schema MySQL (business/users/permissions) → skip
  * gracioso em sqlite :memory: (mesma estratégia de SmokeRoutesTest/TokensList).

@@ -96,7 +96,7 @@ return [
     // Forja — cockpit do cowork loop (Onda Forja PR-A). Raiz /forja é segmento
     // PRÓPRIO de propósito: useAutoModuleNav() casa o topnav pelo 1º segmento da
     // URL, então /team-mcp/* (hub Equipe) e /forja/* não se sobrepõem. Controller
-    // mora em Modules/TeamMcp (absorção, não módulo novo).
+    // mora em Modules/Forja (absorção, não módulo novo).
     // Ref: memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md
     'Forja' => [
         'label' => 'Forja',

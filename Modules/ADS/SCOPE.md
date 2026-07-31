@@ -33,9 +33,9 @@ contains:
   - "SkillScaffoldCommand — artisan skill:scaffold"
 not_contains:
   - "Tasks/Cycles/Projects Jira-style → Modules/Forja"
-  - "MCP tools registry (canônico) → Modules/TeamMcp"
+  - "MCP tools registry (canônico) → Modules/Forja"
   - "Knowledge graph / ADRs browsing → Modules/KB"
-  - "TeamScopes (RBAC actor capabilities) → Modules/TeamMcp (a migrar)"
+  - "TeamScopes (RBAC actor capabilities) → Modules/Forja (a migrar)"
   - "ProjectsController (Jira-style) → Modules/Forja"
 trust_required: L1
 owner: wagner
@@ -62,7 +62,7 @@ db_tables_owned:
 drift_alerts: []
   # Fase 3.7 PR-1 (2026-05-06): 4 drift controllers movidos pros donos corretos.
   # Admin/ProjectsController → Modules/Forja
-  # Admin/ToolsController + Admin/TeamScopesController → Modules/TeamMcp
+  # Admin/ToolsController + Admin/TeamScopesController → Modules/Forja
   # Admin/GraphController → Modules/KB
   # URLs mantidas em /ads/admin/* via use imports atualizadas em Routes/web.php.
 ---
@@ -95,7 +95,7 @@ Razão: ADS decide o que IA pode/não pode fazer. Bug em ADS = blast radius pra 
 ## Quando ADS NÃO é tocado
 
 - ❌ Criar tarefa Jira-style → use Modules/Forja
-- ❌ Editar token MCP → use Modules/TeamMcp
+- ❌ Editar token MCP → use Modules/Forja
 - ❌ Browsing de ADRs/sessions → use Modules/KB
 - ❌ Editar configuração de business → use UltimatePOS Superadmin (L0)
 - ❌ Decision flow custom por business sem ADR → bloqueado, abrir ADR antes

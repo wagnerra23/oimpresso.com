@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  *     diretamente, mas McpActor usa LogsActivity e grava nele a cada create)
  *   - PII Tier 0: zero email/credencial real
  *
- * @see Modules/TeamMcp/Entities/McpActor.php
+ * @see Modules/Forja/Entities/McpActor.php
  * @covers-us US-TEAM-004
  * @covers-us US-TEAM-003
  *
@@ -38,7 +38,7 @@ uses(Tests\TestCase::class);
  * duplicação. US-TEAM-003 (revoke) é coberta na perna que o SPEC nomeia: actor com
  * `revoked_at` preenchido NÃO resolve — nem por `byId`, nem por `bySlug`.
  *
- * @see Modules/TeamMcp/Services/ActorResolver.php
+ * @see Modules/Forja/Services/ActorResolver.php
  * @see memory/decisions/0081-identity-mesh-mcp-actors.md
  * @see memory/decisions/0053-mcp-server-governanca-como-produto.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md

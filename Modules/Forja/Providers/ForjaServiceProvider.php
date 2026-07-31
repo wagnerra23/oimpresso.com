@@ -15,7 +15,7 @@ use Modules\Forja\Console\Commands\SeedActorsCommand;
 /**
  * ServiceProvider do módulo Forja.
  *
- * Modelado conforme Modules/TeamMcp/Providers/TeamMcpServiceProvider.php.
+ * Modelado conforme Modules/Forja/Providers/TeamMcpServiceProvider.php.
  * Rotas carregadas via start.php (ver module.json "files").
  */
 class ForjaServiceProvider extends ServiceProvider

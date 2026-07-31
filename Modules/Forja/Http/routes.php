@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 | Rotas do módulo Forja
 |--------------------------------------------------------------------------
 |
-| Padrão UltimatePOS (ref.: Modules/TeamMcp/Http/routes.php).
+| Padrão UltimatePOS (ref.: Modules/Forja/Http/routes.php).
 | Promovido a módulo próprio em 2026-05-04 (ADR 0070) — Jira-style PM
 | sobre tabelas mcp_jira_projects/epics/cycles/tasks.
 |

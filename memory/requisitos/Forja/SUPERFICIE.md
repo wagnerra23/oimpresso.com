@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 160 arquivos em 14 papéis.
+**Total mapeado:** 167 arquivos em 14 papéis.
 
 ## Controllers — 23
 
@@ -127,10 +127,11 @@ module: Forja
 - [ForjaDemoTicketsSeeder.php](../../../Modules/Forja/Database/Seeders/ForjaDemoTicketsSeeder.php)
 - [McpActorsSeeder.php](../../../Modules/Forja/Database/Seeders/McpActorsSeeder.php)
 
-## Config — 3
+## Config — 4
 
 - [brief-retention.php](../../../Modules/Forja/Config/brief-retention.php)
 - [config.php](../../../Modules/Forja/Config/config.php)
+- [retention-mcp.php](../../../Modules/Forja/Config/retention-mcp.php)
 - [retention.php](../../../Modules/Forja/Config/retention.php)
 
 ## Telas (Inertia/React) — 9
@@ -161,9 +162,9 @@ module: Forja
 - [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
 
-## Testes (Pest) — 44
+## Testes (Pest) — 50
 
-- 44 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 50 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 7
 

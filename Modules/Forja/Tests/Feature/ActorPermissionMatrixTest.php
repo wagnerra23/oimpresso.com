@@ -41,8 +41,8 @@ uses(Tests\TestCase::class);
  * US-TEAM-006 — IA pareada: `effectiveHumanSlug()` resolvendo IA→parent, e o
  * fallback pro próprio slug quando o parent está revogado (degradação graciosa).
  *
- * @see Modules/TeamMcp/Entities/McpActor.php
- * @see Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php
+ * @see Modules/Forja/Entities/McpActor.php
+ * @see Modules/Forja/Database/Seeders/McpActorsSeeder.php
  * @see memory/requisitos/TeamMcp/SDD-tela-hub-team-mcp-v1.0.md (§5.4.2 · CU-TEAM-05)
  * @see memory/decisions/0081-identity-mesh-mcp-actors.md
  * @see memory/decisions/0086-fase-5-mvp-governance-actiongate-warn.md

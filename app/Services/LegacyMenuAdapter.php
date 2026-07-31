@@ -197,9 +197,9 @@ class LegacyMenuAdapter
                 // duas coincidem, o `$out[$moduleName] =` cru DESCARTAVA o topnav do modulo
                 // -- a nav sumia nas telas dele. Virou real quando `Modules/ProjectMgmt` foi
                 // renomeado pra `Modules/Forja` e passou a colidir com `core_topnavs['Forja']`
-                // (o cockpit /forja, que mora em Modules/TeamMcp). Renomear qualquer um dos
+                // (o cockpit /forja, que mora em Modules/Forja). Renomear qualquer um dos
                 // lados nao serve: a chave `Forja` do config e asserida por
-                // Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.
+                // Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.
                 // Os dois grupos sao legitimos e servem URLs distintas (/project-mgmt/* vs
                 // /forja/*); o front (useAutoModuleNav) casa pelo 1o segmento do href do
                 // ITEM, nao pela chave -- entao basta nao deixar um sobrescrever o outro.

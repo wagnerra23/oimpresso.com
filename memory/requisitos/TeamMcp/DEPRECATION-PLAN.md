@@ -27,6 +27,16 @@ id: requisitos-teammcp-deprecation-plan
 **Consequência da #3 na ordem:** o TeamMcp deixa de depender da morte de ADS/Governance. Ele sai
 **primeiro**, e leva junto o trabalho de repontar quem o consome.
 
+> ⚰️ **EXECUTADO — `Modules/TeamMcp` foi APAGADO em 2026-07-31.** As 7 etapas fecharam com
+> PR e CI verde; **89 → 0 arquivos**. Nada foi perdido: o destino de cada peça está na
+> lápide [`SUPERFICIE.md`](SUPERFICIE.md). URLs `/api/mcp/*`, `/api/cc/ingest`,
+> `/team-mcp/*`, `/forja/*` e `/ads/admin/*` seguem **idênticas**; as 4 tabelas
+> **não foram tocadas** (CT 100 e Hostinger leem o mesmo banco — a migração foi troca
+> de dono no código, nunca DDL).
+>
+> **Fica pendente e NÃO bloqueia nada:** as 4 abas do `/forja` sobrepõem telas da Forja.
+> Foram **movidas, não fundidas** — fundir deleta uma implementação, e isso é decisão [W].
+
 ## Fase 1 — Inventário
 
 **Gerado:** [`SUPERFICIE.md`](SUPERFICIE.md) — **105 arquivos em 15 papéis** (`module-surface.mjs TeamMcp --write`). Frescor 2026-07-30: `--check` **exit 0**.

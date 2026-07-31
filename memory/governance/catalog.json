@@ -22,26 +22,26 @@
     "migratesTo"
   ],
   "stats": {
-    "modules": 37,
-    "nodes": 614,
-    "edges": 939,
+    "modules": 36,
+    "nodes": 595,
+    "edges": 874,
     "by_node_type": {
-      "module": 42,
-      "table": 81,
-      "adr": 34,
-      "component": 414,
-      "api": 43
+      "module": 41,
+      "table": 70,
+      "adr": 31,
+      "component": 411,
+      "api": 42
     },
     "by_edge_type": {
-      "ownsTable": 68,
+      "ownsTable": 57,
       "ownsLegacyView": 13,
-      "consumesTable": 4,
-      "providesApi": 43,
-      "charteredByAdr": 32,
-      "governedByAdr": 93,
-      "hasComponent": 414,
-      "dependsOn": 138,
-      "delegatesTo": 133,
+      "consumesTable": 1,
+      "providesApi": 42,
+      "charteredByAdr": 31,
+      "governedByAdr": 86,
+      "hasComponent": 411,
+      "dependsOn": 117,
+      "delegatesTo": 115,
       "migratesTo": 1
     },
     "dangling": 0
@@ -118,13 +118,6 @@
       "exists": true
     },
     {
-      "id": "adr:0072",
-      "type": "adr",
-      "num": "0072",
-      "slug": "0072-maturacao-memoria-team-mcp-openclaw-soa-2026",
-      "exists": true
-    },
-    {
       "id": "adr:0073",
       "type": "adr",
       "num": "0073",
@@ -146,13 +139,6 @@
       "exists": true
     },
     {
-      "id": "adr:0077",
-      "type": "adr",
-      "num": "0077",
-      "slug": "0077-mcp-resolver-owner-via-mcp-handle (a absorver em 0081)",
-      "exists": true
-    },
-    {
       "id": "adr:0078",
       "type": "adr",
       "num": "0078",
@@ -171,13 +157,6 @@
       "type": "adr",
       "num": "0080",
       "slug": "0080-trust-tiers-operacional-audit-findings",
-      "exists": true
-    },
-    {
-      "id": "adr:0081",
-      "type": "adr",
-      "num": "0081",
-      "slug": "0081-identity-mesh-mcp-actors (a criar — Fase 4)",
       "exists": true
     },
     {
@@ -555,14 +534,6 @@
       "prefix": "/superadmin/*",
       "providers": [
         "Superadmin"
-      ]
-    },
-    {
-      "id": "api:/teammcp/*",
-      "type": "api",
-      "prefix": "/teammcp/*",
-      "providers": [
-        "TeamMcp"
       ]
     },
     {
@@ -3192,27 +3163,6 @@
       "desc": ""
     },
     {
-      "id": "component:TeamMcp/ActorsController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "ActorsController",
-      "desc": "Identity Mesh: CRUD de mcp_actors com manifest YAML"
-    },
-    {
-      "id": "component:TeamMcp/DataController + InstallController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "DataController + InstallController",
-      "desc": ""
-    },
-    {
-      "id": "component:TeamMcp/Mcp/CcIngestController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "Mcp/CcIngestController",
-      "desc": "ingest Claude Code sessions; URL /api/cc/ingest mantida"
-    },
-    {
       "id": "component:Vestuario/DevolucaoService",
       "type": "component",
       "module": "Vestuario",
@@ -4009,19 +3959,6 @@
       "catalog_status": "catalogued"
     },
     {
-      "id": "module:TeamMcp",
-      "type": "module",
-      "module": "TeamMcp",
-      "purpose": "Painel administrativo do MCP server canônico (mcp.oimpresso.com): tokens, scopes, audit, webhooks, ingest, tools registry, identity (mcp_actors), e tasks/cycles Jira-style do time.",
-      "trust": "L1",
-      "owner": "wagner",
-      "permission_prefix": "teammcp.*",
-      "charter_adr": "0080",
-      "path": "Modules/TeamMcp/SCOPE.md",
-      "catalog_kind": "scope",
-      "catalog_status": "catalogued"
-    },
-    {
       "id": "module:Vestuario",
       "type": "module",
       "module": "Vestuario",
@@ -4226,28 +4163,6 @@
         "Jana"
       ],
       "ownership_mode": "unowned"
-    },
-    {
-      "id": "table:cowork_handoffs",
-      "type": "table",
-      "name": "cowork_handoffs",
-      "owners": [
-        "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:cross",
-      "type": "table",
-      "name": "cross",
-      "owners": [
-        "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
     },
     {
       "id": "table:gateway_webhook_events",
@@ -4536,48 +4451,13 @@
       "ownership_mode": "single"
     },
     {
-      "id": "table:mcp_actors",
-      "type": "table",
-      "name": "mcp_actors",
-      "owners": [
-        "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_audit_log",
-      "type": "table",
-      "name": "mcp_audit_log",
-      "owners": [
-        "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_cc_sessions",
-      "type": "table",
-      "name": "mcp_cc_sessions",
-      "owners": [
-        "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
       "id": "table:mcp_components",
       "type": "table",
       "name": "mcp_components",
       "owners": [
         "Forja"
       ],
-      "consumers": [
-        "TeamMcp"
-      ],
+      "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4667,9 +4547,7 @@
       "owners": [
         "Forja"
       ],
-      "consumers": [
-        "TeamMcp"
-      ],
+      "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4712,28 +4590,6 @@
       "name": "mcp_memory_documents_history",
       "owners": [
         "KB"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_quotas",
-      "type": "table",
-      "name": "mcp_quotas",
-      "owners": [
-        "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_scopes",
-      "type": "table",
-      "name": "mcp_scopes",
-      "owners": [
-        "TeamMcp"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -4823,41 +4679,6 @@
       "owners": [
         "Forja"
       ],
-      "consumers": [
-        "TeamMcp"
-      ],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_tokens",
-      "type": "table",
-      "name": "mcp_tokens",
-      "owners": [
-        "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_user_module_access",
-      "type": "table",
-      "name": "mcp_user_module_access",
-      "owners": [
-        "TeamMcp"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_user_scopes",
-      "type": "table",
-      "name": "mcp_user_scopes",
-      "owners": [
-        "TeamMcp"
-      ],
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
@@ -4868,17 +4689,6 @@
       "name": "mcp_views",
       "owners": [
         "Forja"
-      ],
-      "consumers": [],
-      "legacy_views": [],
-      "ownership_mode": "single"
-    },
-    {
-      "id": "table:mcp_workflows",
-      "type": "table",
-      "name": "mcp_workflows",
-      "owners": [
-        "TeamMcp"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -4985,6 +4795,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP tools registry (canônico)"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "ProjectsController (Jira-style)"
     },
     {
@@ -4996,6 +4813,13 @@
     },
     {
       "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "TeamScopes (RBAC actor capabilities)"
+    },
+    {
+      "from": "module:ADS",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -5003,17 +4827,10 @@
     },
     {
       "from": "module:ADS",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP tools registry (canônico)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "TeamScopes (RBAC actor capabilities)"
     },
     {
       "from": "module:ADS",
@@ -5031,24 +4848,17 @@
     },
     {
       "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "TeamScopes (RBAC actor capabilities)"
+    },
+    {
+      "from": "module:ADS",
       "to": "module:KB",
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Knowledge graph / ADRs browsing"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP tools registry (canônico)"
-    },
-    {
-      "from": "module:ADS",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "TeamScopes (RBAC actor capabilities)"
     },
     {
       "from": "module:ADS",
@@ -5371,6 +5181,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -5382,9 +5199,9 @@
     },
     {
       "from": "module:AssetManagement",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -5400,13 +5217,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:AssetManagement",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:AssetManagement",
@@ -5479,6 +5289,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -5497,9 +5314,9 @@
     },
     {
       "from": "module:Auditoria",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -5522,13 +5339,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Auditoria",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Auditoria",
@@ -5607,6 +5417,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Cms",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -5618,9 +5435,9 @@
     },
     {
       "from": "module:Cms",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -5636,13 +5453,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Cms",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Cms",
@@ -5913,6 +5723,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Connector",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -5924,9 +5741,9 @@
     },
     {
       "from": "module:Connector",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -5942,13 +5759,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Connector",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Connector",
@@ -6159,6 +5969,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -6170,9 +5987,9 @@
     },
     {
       "from": "module:ConsultaOs",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -6188,13 +6005,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:ConsultaOs",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:ConsultaOs",
@@ -6243,6 +6053,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Crm",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -6254,9 +6071,9 @@
     },
     {
       "from": "module:Crm",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -6272,13 +6089,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Crm",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Crm",
@@ -6629,6 +6439,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -6640,9 +6457,9 @@
     },
     {
       "from": "module:Financeiro",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -6658,13 +6475,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Financeiro",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Financeiro",
@@ -7395,6 +7205,20 @@
     },
     {
       "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Identity Mesh (mcp_actors) UI"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Tokens MCP CRUD"
+    },
+    {
+      "from": "module:Governance",
       "to": "module:Jana",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -7406,20 +7230,6 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Knowledge browsing (ADRs read-only)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Identity Mesh (mcp_actors) UI"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tokens MCP CRUD"
     },
     {
       "from": "module:Governance",
@@ -7451,6 +7261,20 @@
     },
     {
       "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Identity Mesh (mcp_actors) UI"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tokens MCP CRUD"
+    },
+    {
+      "from": "module:Governance",
       "to": "module:Jana",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7462,20 +7286,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Knowledge browsing (ADRs read-only)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Identity Mesh (mcp_actors) UI"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tokens MCP CRUD"
     },
     {
       "from": "module:Governance",
@@ -7586,6 +7396,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Mcp/CcIngestController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Mcp/HealthController"
     },
     {
@@ -7618,13 +7435,6 @@
     },
     {
       "from": "module:Jana",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Mcp/CcIngestController"
-    },
-    {
-      "from": "module:Jana",
       "to": "module:ADS",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7636,6 +7446,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Skills governance"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/CcIngestController"
     },
     {
       "from": "module:Jana",
@@ -7677,13 +7494,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "MemoriaController (browser KB)"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Mcp/CcIngestController"
     },
     {
       "from": "module:Jana",
@@ -8021,6 +7831,20 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Audit log"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "MCP server admin (tokens, webhooks)"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -8046,24 +7870,24 @@
     },
     {
       "from": "module:KB",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Audit log"
-    },
-    {
-      "from": "module:KB",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP server admin (tokens, webhooks)"
-    },
-    {
-      "from": "module:KB",
       "to": "module:ADS",
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Skills governance"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Audit log"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin (tokens, webhooks)"
     },
     {
       "from": "module:KB",
@@ -8092,20 +7916,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "System Rules Spec (regras pra IA programar)"
-    },
-    {
-      "from": "module:KB",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Audit log"
-    },
-    {
-      "from": "module:KB",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin (tokens, webhooks)"
     },
     {
       "from": "module:KB",
@@ -8304,6 +8114,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -8315,9 +8132,9 @@
     },
     {
       "from": "module:Manufacturing",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -8333,13 +8150,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Manufacturing",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Manufacturing",
@@ -8406,6 +8216,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -8417,9 +8234,9 @@
     },
     {
       "from": "module:NfeBrasil",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -8435,13 +8252,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:NfeBrasil",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:NfeBrasil",
@@ -8580,6 +8390,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -8591,9 +8408,9 @@
     },
     {
       "from": "module:NFSe",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -8609,13 +8426,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:NFSe",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:NFSe",
@@ -8664,6 +8474,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Officeimpresso",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -8675,9 +8492,9 @@
     },
     {
       "from": "module:Officeimpresso",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -8693,13 +8510,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Officeimpresso",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Officeimpresso",
@@ -9212,6 +9022,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -9223,9 +9040,9 @@
     },
     {
       "from": "module:Ponto",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -9241,13 +9058,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Ponto",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Ponto",
@@ -9356,6 +9166,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -9367,9 +9184,9 @@
     },
     {
       "from": "module:ProductCatalogue",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -9385,13 +9202,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:ProductCatalogue",
@@ -9440,6 +9250,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -9451,9 +9268,9 @@
     },
     {
       "from": "module:RecurringBilling",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -9469,13 +9286,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:RecurringBilling",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:RecurringBilling",
@@ -9578,6 +9388,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Repair",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -9589,9 +9406,9 @@
     },
     {
       "from": "module:Repair",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -9607,13 +9424,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Repair",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Repair",
@@ -9710,6 +9520,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Spreadsheet",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -9721,9 +9538,9 @@
     },
     {
       "from": "module:Spreadsheet",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -9739,13 +9556,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Spreadsheet",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Spreadsheet",
@@ -9794,6 +9604,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -9805,9 +9622,9 @@
     },
     {
       "from": "module:Superadmin",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -9823,13 +9640,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Superadmin",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Superadmin",
@@ -9930,435 +9740,6 @@
     {
       "from": "module:Superadmin",
       "to": "api:/superadmin/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "adr:0080",
-      "type": "charteredByAdr",
-      "source": "charter_adr"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_components",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_inbox_notifications",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_tasks",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Decision flow"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills governance"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Admin/ToolsController · Admin/TeamScopesController"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Cockpit /forja (ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "handoff:ingest · handoff:stale-alert"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Hub Equipe (Team/TasksAdmin/CcSessions/Scorecard + Requests + TeamUsageAggregator/UsageCsvExporter/ScorecardBuilderService)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Identidade do MCP (McpActor · ActorResolver · McpActorRepository · McpTokenIssuer · mcp_actors)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Ingest de sessões Claude Code (CcIngestController/Service/Request · McpIngestHeartbeat · IngestLivenessService)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Loop de handoff zero-paste (CoworkHandoff · 4 tools MCP Handoff* · HandoffIngest/LeverService · GitMainResolver · cowork_handoffs)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "mcp:seed-actors · mcp:rotate-token"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Mcp/HealthController"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Mcp/SyncMemoryWebhookController"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Rotas /team-mcp/*"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "URL POST /api/cc/ingest"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Governance",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Policies executáveis runtime"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Jana",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Chat IA conversacional"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:KB",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Knowledge browsing"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:SRS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "System Rules Spec"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Decision flow"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills governance"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Admin/ToolsController · Admin/TeamScopesController"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Cockpit /forja (ForjaController + Forja{Backlog,Changelog,Mcp,Quadro}Service + PrChecksResolver)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "handoff:ingest · handoff:stale-alert"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Hub Equipe (Team/TasksAdmin/CcSessions/Scorecard + Requests + TeamUsageAggregator/UsageCsvExporter/ScorecardBuilderService)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Identidade do MCP (McpActor · ActorResolver · McpActorRepository · McpTokenIssuer · mcp_actors)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Ingest de sessões Claude Code (CcIngestController/Service/Request · McpIngestHeartbeat · IngestLivenessService)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Loop de handoff zero-paste (CoworkHandoff · 4 tools MCP Handoff* · HandoffIngest/LeverService · GitMainResolver · cowork_handoffs)"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_components"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_inbox_notifications"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "db_tables_consumed→db_tables_owned",
-      "note": "mcp_tasks"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "mcp:seed-actors · mcp:rotate-token"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Mcp/HealthController"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Mcp/SyncMemoryWebhookController"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Rotas /team-mcp/*"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "URL POST /api/cc/ingest"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Governance",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Policies executáveis runtime"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:Jana",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Chat IA conversacional"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:KB",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Knowledge browsing"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "module:SRS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "System Rules Spec"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "adr:0053",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "adr:0070",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "adr:0072",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "adr:0077",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "adr:0079",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "adr:0080",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "adr:0081",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/ActorsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/DataController + InstallController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/Mcp/CcIngestController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:cowork_handoffs",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:cross",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_actors",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_audit_log",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_cc_sessions",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_quotas",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_scopes",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_tokens",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_user_module_access",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_user_scopes",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "table:mcp_workflows",
-      "type": "ownsTable",
-      "source": "db_tables_owned"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "api:/teammcp/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10799,6 +10180,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Woocommerce",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
@@ -10810,9 +10198,9 @@
     },
     {
       "from": "module:Woocommerce",
-      "to": "module:TeamMcp",
-      "type": "delegatesTo",
-      "source": "not_contains",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -10828,13 +10216,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:Woocommerce",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Woocommerce",
