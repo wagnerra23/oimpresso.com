@@ -2,7 +2,7 @@
 date: "2026-07-31"
 time: "00:30 BRT"
 slug: "rename-projectmgmt-forja-3-rodadas"
-tldr: "ProjectMgmt renomeado pra Forja (namespace + Pages + governanca) e o deadlink-gate passou a resolver PATH RENOMEADO pelo rename-map, pagando 47 refs e derrubando o baseline 1096->1061. O gate GT-G5 forcou 3 rodadas de refutacao (5,8% -> 2,1% -> 2,6%, 35 achados): a rodada 3 achou que modules_statuses[Forja] colidia com core_topnavs[Forja] e o LegacyMenuAdapter descartava o topnav do modulo — a nav sumiria em 8 telas. Merge admin no #5089 (ledger sem entry, declarado); #5096 fechou limpo. Aberto: a BUSCA nao sabe do rename (27 ADRs citam ProjectMgmt, 6 citam Forja, sem sinonimo) — e classe, vale pra Copiloto->Jana tambem."
+tldr: "ProjectMgmt renomeado pra Forja (namespace + Pages + governanca); o deadlink-gate passou a resolver PATH RENOMEADO pelo rename-map, pagando 47 refs (baseline 1096->1061). O GT-G5 forcou 3 rodadas de refutacao (5,8% -> 2,1% -> 2,6%): a rodada 3 achou colisao de chave Forja que fazia o LegacyMenuAdapter descartar o topnav do modulo — a nav sumiria em 8 telas. #5089 merge admin (ledger sem entry, declarado); #5096 limpo. Aberto: a busca nao sabe do rename."
 prs: [5089, 5096, 5104]
 decided_by: [W]
 related_adrs:
