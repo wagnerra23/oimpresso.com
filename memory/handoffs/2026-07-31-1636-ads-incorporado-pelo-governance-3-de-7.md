@@ -1,11 +1,21 @@
 ---
-id: handoff-2026-07-31-1636-ads-incorporado-governance
-title: "ADS incorporado pelo Governance — 3 de 7 partes, e a decisão mudou no meio por medição"
-date: 2026-07-31
-type: handoff
-authority: historical
-lifecycle: ativo
-pii: false
+date: "2026-07-31"
+time: "16:36 BRT"
+slug: ads-incorporado-pelo-governance-3-de-7
+tldr: "A sessão começou pra APAGAR o Modules/ADS e terminou incorporando-o ao Modules/Governance (decisão [W]). 3 de 7 partes entregues; #5127 mergeado e deployado desligou os 5 crons e o daemon do CT 100 — a fila de 36.862 parou de crescer. 4 adversários derrubaram 3 afirmações minhas, incluindo 'a fusão facilita os gates' (piora 2 dos 3, provado por contrafactual)."
+prs: [5127, 5128, 5129, 5130]
+decided_by: [W]
+related_adrs:
+  - 0087-drift-resolution-sem-mover-url
+  - 0086-fase-5-mvp-governance-actiongate-warn
+  - 0145-ia-administradora-pivot-ads-fsm-piloto-cobradora
+  - 0130-handoff-append-only-mcp-first
+next_steps:
+  - "Parte 3 — ToolRegistry · UserScopeService · ProjectDecomposerService → Forja (3 dos 4 consumidores vivos são dela)"
+  - "Parte 5 — Forja assume as 9 rotas de Modules/ADS/Routes/web.php, URLs CONGELADAS (ADR 0087)"
+  - "Parte 6 — remoção do núcleo + 14 telas + os 3 gates + a decisão do loadMigrationsFrom (sessão limpa)"
+  - "Parte 7 — ADR nova com supersedes: [0145] + errata no DEPRECATION-PLAN"
+  - "Fora do escopo, mas achado aqui: Modules/Governance sem loadMigrationsFrom faz module:grade-snapshot e observability:aggregate-daily escreverem em tabelas inexistentes"
 ---
 
 # ADS incorporado pelo Governance — 3 de 7 partes
