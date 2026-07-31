@@ -175,7 +175,7 @@ parameters:
 			path: Modules/Jana/Services/ScaffoldSkillFromMissionService.php
 
 		-
-			message: '#^Constant Modules\\ADS\\Services\\ScaffoldSkillFromMissionService\:\:META_SLUG is unused\.$#'
+			message: '#^Constant Modules\\Jana\\Services\\ScaffoldSkillFromMissionService\:\:META_SLUG is unused\.$#'
 			identifier: classConstant.unused
 			count: 1
 			path: Modules/Jana/Services/ScaffoldSkillFromMissionService.php
