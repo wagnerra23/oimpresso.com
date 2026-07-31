@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+// FQCN obrigatório (.claude/rules/routes.md — `route:cache` ATIVO em prod desde
+// PR #843; string sem namespace vira ReflectionException silenciosa no build).
+use Modules\Forja\Http\Controllers\Admin\ProjectsController;
+use Modules\Forja\Http\Controllers\Admin\TeamScopesController;
+use Modules\Forja\Http\Controllers\Admin\ToolsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -341,5 +346,59 @@ Route::group(
             ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.rejeitar');
         Route::post('/{taskId}/fundir',   'ForjaController@fundir')
             ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.fundir');
+    }
+);
+
+// ===========================================================================
+// Admin do MCP — prefixo /ads (veio de Modules/ADS/Routes/web.php em 2026-07-31,
+// incorporação do ADS pelo Governance, parte 5/7). Os 3 controllers JÁ moravam
+// aqui desde a Fase 3.7 PR-1; o que faltava era a ROTA, que seguia hospedada no
+// ADS — este arquivo passa a ser o único host, fechando o drift.
+//
+// URLs e names `/ads/admin/*` / `ads.admin.*` INALTERADOS — ADR 0087 (drift
+// resolution SEM mover URL), reafirmado em governance/ghost-rename-map.json.
+// Renomear quebraria em SILÊNCIO: as pages em Pages/ads/Admin/* chamam por string
+// literal (`/ads/admin/...`, ZERO `route('ads.`), medido), há 6 permissions Spatie
+// `ads.admin.skills.*` gravadas no banco e a chave `ads_module` em
+// `package_details`. Rename de URL, se um dia acontecer, é decisão separada com 301.
+//
+// Prefixo `ads` (não `forja`) é deliberado e NÃO colide: o grupo que sobrou no ADS
+// não registra mais nenhum `/admin/{tools,team-scopes,projects}`, e não há wildcard
+// `/admin/{any}` de nenhum dos dois lados que pudesse capturar estes paths.
+// ===========================================================================
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'ads',
+    ],
+    function () {
+        // ---- Tool Registry — tools MCP internos ----------------------------
+        Route::get('/admin/tools', [ToolsController::class, 'index'])
+            ->name('ads.admin.tools.index');
+        Route::post('/admin/tools/{name}/execute', [ToolsController::class, 'execute'])
+            ->where('name', '[a-z0-9_\-\.]+')
+            ->name('ads.admin.tools.execute');
+
+        // ---- Team Scopes (caso Maiara: governance per-user × module) --------
+        Route::get('/admin/team-scopes',         [TeamScopesController::class, 'index'])
+            ->name('ads.admin.teamscopes.index');
+        Route::post('/admin/team-scopes/grant',  [TeamScopesController::class, 'grant'])
+            ->name('ads.admin.teamscopes.grant');
+        Route::post('/admin/team-scopes/revoke', [TeamScopesController::class, 'revoke'])
+            ->name('ads.admin.teamscopes.revoke');
+
+        // ---- Projects (modelo [W]: Project → Parts → ADRs) -----------------
+        // `whereNumber('id')` é aceite de US-ADS-004 — id não-numérico tem que
+        // cair em 404 de ROTA, antes do controller (AdsProjectsRoutesContratoTest).
+        Route::get('/admin/projects',                 [ProjectsController::class, 'index'])
+            ->name('ads.admin.projects.index');
+        Route::post('/admin/projects',                [ProjectsController::class, 'store'])
+            ->name('ads.admin.projects.store');
+        Route::get('/admin/projects/{id}',            [ProjectsController::class, 'show'])
+            ->whereNumber('id')
+            ->name('ads.admin.projects.show');
+        Route::post('/admin/projects/{id}/decompose', [ProjectsController::class, 'decompose'])
+            ->whereNumber('id')
+            ->name('ads.admin.projects.decompose');
     }
 );
