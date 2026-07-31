@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Console\Commands;
+namespace Modules\Forja\Console\Commands;
 
 use App\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpToken;
-use Modules\TeamMcp\Services\McpTokenIssuer;
+use Modules\Forja\Services\McpTokenIssuer;
 use Throwable;
 
 /**
@@ -37,7 +37,7 @@ use Throwable;
  * Multi-tenant: mcp_tokens é cross-tenant (token vincula a user, user pertence a
  * business). RotateTokenCommand respeita ownership via Service.rotate guard.
  *
- * @see Modules\TeamMcp\Services\McpTokenIssuer::rotate
+ * @see Modules\Forja\Services\McpTokenIssuer::rotate
  * @see Modules\Jana\Entities\Mcp\McpToken
  * @see memory/decisions/0081-identity-mesh-actor-trust-mcp.md
  */

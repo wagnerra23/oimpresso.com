@@ -20,6 +20,9 @@ contains:
   - "Mcp/HealthController — health/version/cycle-active; URLs /api/mcp/* inalteradas"
   # Absorvido do Modules/Brief em 2026-07-30 (ADR 0091 — o módulo Brief deixou de existir):
   - "BriefFetchController — endpoint HTTP da tool MCP `brief-fetch` (POST /api/mcp/tools/brief-fetch); Daily Brief L7"
+  # Identidade do MCP — recebida do TeamMcp em 2026-07-31 ([W] "MCP vai para Forja")
+  - "Entities/McpActor + Services/{ActorResolver,McpActorRepository,McpTokenIssuer} — Identity Mesh (ADR 0081); tabela `mcp_actors` é cross-business POR DESIGN"
+  - "Http/Requests/StoreActorRequest · Database/Seeders/McpActorsSeeder · comandos mcp:seed-actors e mcp:rotate-token"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"

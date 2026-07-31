@@ -54,12 +54,12 @@ it('cenario 6: rota team-mcp.install.index existe', function () {
 });
 
 it('cenario 7: Entity McpActor classe carrega', function () {
-    expect(class_exists(\Modules\TeamMcp\Entities\McpActor::class))
+    expect(class_exists(\Modules\Forja\Entities\McpActor::class))
         ->toBeTrue('Entities/McpActor.php (ADR 0081 Identity Mesh) deveria carregar');
 });
 
 it('cenario 8: ActorResolver service classe carrega', function () {
-    expect(class_exists(\Modules\TeamMcp\Services\ActorResolver::class))
+    expect(class_exists(\Modules\Forja\Services\ActorResolver::class))
         ->toBeTrue('Services/ActorResolver.php deveria carregar');
 });
 

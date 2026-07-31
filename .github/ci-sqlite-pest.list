@@ -252,7 +252,7 @@ Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
 # 2 QueryException em sqlite ("cycle null quando nenhum ativo" / "retorna o cycle
 # ATIVO com token"). Entrar vermelho aqui travaria merge de TODO mundo (lane
 # required). Fica como dívida honesta: ou vira sqlite-safe, ou vai pra lane MySQL.
-Modules/TeamMcp/Tests/Feature/ActorPermissionMatrixTest.php
+Modules/Forja/Tests/Feature/ActorPermissionMatrixTest.php
 Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php
 Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php
 Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php
@@ -265,8 +265,8 @@ Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.php
 Modules/TeamMcp/Tests/Feature/HandoffStaleAlertTest.php
 Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php
 Modules/TeamMcp/Tests/Feature/LgpdComplianceTest.php
-Modules/TeamMcp/Tests/Feature/McpActorsSeederTest.php
-Modules/TeamMcp/Tests/Feature/MultiTenantTokenIsolationTest.php
+Modules/Forja/Tests/Feature/McpActorsSeederTest.php
+Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php
 Modules/TeamMcp/Tests/Feature/ScaffoldTest.php
 Modules/TeamMcp/Tests/Feature/SmokeRoutesTest.php
 Modules/TeamMcp/Tests/Feature/TokensListAndRevokeTest.php

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Database\Seeders;
+namespace Modules\Forja\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Entities\McpActor;
+use Modules\Forja\Entities\McpActor;
 
 /**
  * McpActorsSeeder — popular 5 manifests canônicos do time interno oimpresso

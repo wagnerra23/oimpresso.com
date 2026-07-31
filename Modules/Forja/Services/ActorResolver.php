@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Http\Request;
-use Modules\TeamMcp\Entities\McpActor;
+use Modules\Forja\Entities\McpActor;
 
 /**
  * ADR 0081 — Identity Mesh canonical resolver.

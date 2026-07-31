@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Modules\Jana\Services\Privacy\PiiRedactor;
-use Modules\TeamMcp\Entities\McpActor;
+use Modules\Forja\Entities\McpActor;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);

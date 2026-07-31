@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\TeamMcp\Services\McpTokenIssuer;
+use Modules\Forja\Services\McpTokenIssuer;
 
 uses(Tests\TestCase::class);
 
