@@ -248,7 +248,7 @@ Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
 #      que mede contaminação cruzada de conexão/resíduo — o motivo pelo qual o
 #      KbHealthSnapshotTest ficou de fora lá em cima. Zero falha vinda do TeamMcp.
 #
-# FORA DE PROPÓSITO: Modules/TeamMcp/Tests/Feature/CicloAtivoEndpointTest.php —
+# FORA DE PROPÓSITO: Modules/Forja/Tests/Feature/CicloAtivoEndpointTest.php —
 # 2 QueryException em sqlite ("cycle null quando nenhum ativo" / "retorna o cycle
 # ATIVO com token"). Entrar vermelho aqui travaria merge de TODO mundo (lane
 # required). Fica como dívida honesta: ou vira sqlite-safe, ou vai pra lane MySQL.
@@ -269,10 +269,10 @@ Modules/Forja/Tests/Feature/McpActorsSeederTest.php
 Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php
 Modules/TeamMcp/Tests/Feature/ScaffoldTest.php
 Modules/TeamMcp/Tests/Feature/SmokeRoutesTest.php
-Modules/TeamMcp/Tests/Feature/TokensListAndRevokeTest.php
+Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php
 Modules/TeamMcp/Tests/Feature/Wave18RetryTeamMcpSaturationTest.php
 Modules/TeamMcp/Tests/Feature/Wave18ServicesExtractionTest.php
-Modules/TeamMcp/Tests/Feature/Wave23ScorecardRotateTest.php
+Modules/Forja/Tests/Feature/Wave23ScorecardRotateTest.php
 Modules/TeamMcp/Tests/Feature/Wave28PolishTest.php
 # US-INFRA-043 acceptance #2 (flag de US nao atribuida no Daily Brief): exercita so os
 # nucleos PUROS formatar()/injetarEm() + kill-switch (early-return antes de consultar).

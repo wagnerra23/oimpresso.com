@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Http\Requests;
+namespace Modules\Forja\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 

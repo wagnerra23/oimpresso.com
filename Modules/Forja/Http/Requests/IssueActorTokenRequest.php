@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\TeamMcp\Http\Requests;
+namespace Modules\Forja\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -25,7 +25,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * D8.c Security — Wave S Batch 2.
  *
- * @see Modules\TeamMcp\Http\Controllers\TeamController::gerarToken
+ * @see Modules\Forja\Http\Controllers\TeamController::gerarToken
  * @see Modules\Jana\Entities\Mcp\McpToken::gerar (helper canonico)
  * @see memory/decisions/0081-team-internal-modulos.md
  */

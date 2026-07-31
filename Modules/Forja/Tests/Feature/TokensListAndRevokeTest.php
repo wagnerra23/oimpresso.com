@@ -40,8 +40,8 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * histórico. As pernas cross-tenant/cross-user (404) defendem o mesmo contrato
  * pelo lado Tier 0 — revogar não pode virar vetor de acesso a token alheio.
  *
- * @see Modules\TeamMcp\Http\Controllers\TeamController::listTokens
- * @see Modules\TeamMcp\Http\Controllers\TeamController::revokeToken
+ * @see Modules\Forja\Http\Controllers\TeamController::listTokens
+ * @see Modules\Forja\Http\Controllers\TeamController::revokeToken
  * @see memory/decisions/0057-tela-team-admin-regras-governanca-tokens-mcp.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */

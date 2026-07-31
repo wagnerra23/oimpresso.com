@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Services\ScorecardBuilderService;
+use Modules\Forja\Services\ScorecardBuilderService;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -44,7 +44,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *
  * NUNCA biz=4 (ROTA LIVRE prod) — ADR 0101 usa biz=1 canônico.
  *
- * @see Modules\TeamMcp\Services\ScorecardBuilderService
+ * @see Modules\Forja\Services\ScorecardBuilderService
  * @see resources/js/Pages/team-mcp/Scorecard/Index.casos.md
  * @see memory/requisitos/TeamMcp/SDD-tela-hub-team-mcp-v1.0.md (§5.3 F3 · CU-TEAM-08)
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md

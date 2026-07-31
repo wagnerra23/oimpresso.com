@@ -14,9 +14,9 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 134 arquivos em 14 papéis.
+**Total mapeado:** 148 arquivos em 14 papéis.
 
-## Controllers — 18
+## Controllers — 22
 
 - [ActivityController.php](../../../Modules/Forja/Http/Controllers/ActivityController.php)
 - [ProjectsController.php](../../../Modules/Forja/Http/Controllers/Admin/ProjectsController.php)
@@ -26,6 +26,7 @@ module: Forja
 - [BoardController.php](../../../Modules/Forja/Http/Controllers/BoardController.php)
 - [BriefFetchController.php](../../../Modules/Forja/Http/Controllers/BriefFetchController.php)
 - [BurndownController.php](../../../Modules/Forja/Http/Controllers/BurndownController.php)
+- [CcSessionsController.php](../../../Modules/Forja/Http/Controllers/CcSessionsController.php)
 - [DataController.php](../../../Modules/Forja/Http/Controllers/DataController.php)
 - [InboxController.php](../../../Modules/Forja/Http/Controllers/InboxController.php)
 - [InstallController.php](../../../Modules/Forja/Http/Controllers/InstallController.php)
@@ -34,10 +35,13 @@ module: Forja
 - [SyncMemoryWebhookController.php](../../../Modules/Forja/Http/Controllers/Mcp/SyncMemoryWebhookController.php)
 - [MyWorkController.php](../../../Modules/Forja/Http/Controllers/MyWorkController.php)
 - [RoadmapController.php](../../../Modules/Forja/Http/Controllers/RoadmapController.php)
+- [ScorecardController.php](../../../Modules/Forja/Http/Controllers/ScorecardController.php)
 - [SearchController.php](../../../Modules/Forja/Http/Controllers/SearchController.php)
+- [TasksAdminController.php](../../../Modules/Forja/Http/Controllers/TasksAdminController.php)
+- [TeamController.php](../../../Modules/Forja/Http/Controllers/TeamController.php)
 - [TriageController.php](../../../Modules/Forja/Http/Controllers/TriageController.php)
 
-## Requests (validação) — 20
+## Requests (validação) — 23
 
 - [AddCommentRequest.php](../../../Modules/Forja/Http/Requests/AddCommentRequest.php)
 - [AddSubtaskRequest.php](../../../Modules/Forja/Http/Requests/AddSubtaskRequest.php)
@@ -46,21 +50,24 @@ module: Forja
 - [CcIngestRequest.php](../../../Modules/Forja/Http/Requests/CcIngestRequest.php)
 - [CompareBriefRequest.php](../../../Modules/Forja/Http/Requests/CompareBriefRequest.php)
 - [ExportBriefMarkdownRequest.php](../../../Modules/Forja/Http/Requests/ExportBriefMarkdownRequest.php)
+- [ExportUsageCsvRequest.php](../../../Modules/Forja/Http/Requests/ExportUsageCsvRequest.php)
 - [FetchBriefHistoryRequest.php](../../../Modules/Forja/Http/Requests/FetchBriefHistoryRequest.php)
 - [ForceRefreshBriefRequest.php](../../../Modules/Forja/Http/Requests/ForceRefreshBriefRequest.php)
 - [GenerateBriefRequest.php](../../../Modules/Forja/Http/Requests/GenerateBriefRequest.php)
 - [InvalidateBriefRequest.php](../../../Modules/Forja/Http/Requests/InvalidateBriefRequest.php)
+- [IssueActorTokenRequest.php](../../../Modules/Forja/Http/Requests/IssueActorTokenRequest.php)
 - [MarkBriefValidRequest.php](../../../Modules/Forja/Http/Requests/MarkBriefValidRequest.php)
 - [PurgeBriefHistoryRequest.php](../../../Modules/Forja/Http/Requests/PurgeBriefHistoryRequest.php)
 - [StoreActorRequest.php](../../../Modules/Forja/Http/Requests/StoreActorRequest.php)
 - [StoreProjectRequest.php](../../../Modules/Forja/Http/Requests/StoreProjectRequest.php)
 - [StoreTaskRequest.php](../../../Modules/Forja/Http/Requests/StoreTaskRequest.php)
 - [UpdateProjectRequest.php](../../../Modules/Forja/Http/Requests/UpdateProjectRequest.php)
+- [UpdateQuotaRequest.php](../../../Modules/Forja/Http/Requests/UpdateQuotaRequest.php)
 - [UpdateTaskRequest.php](../../../Modules/Forja/Http/Requests/UpdateTaskRequest.php)
 - [UpdateTaskStatusRequest.php](../../../Modules/Forja/Http/Requests/UpdateTaskStatusRequest.php)
 - [WatchTaskRequest.php](../../../Modules/Forja/Http/Requests/WatchTaskRequest.php)
 
-## Services — 14
+## Services — 17
 
 - [ActorResolver.php](../../../Modules/Forja/Services/ActorResolver.php)
 - [BriefGeneratorService.php](../../../Modules/Forja/Services/BriefGeneratorService.php)
@@ -75,6 +82,9 @@ module: Forja
 - [McpActorRepository.php](../../../Modules/Forja/Services/McpActorRepository.php)
 - [McpTokenIssuer.php](../../../Modules/Forja/Services/McpTokenIssuer.php)
 - [ProjectService.php](../../../Modules/Forja/Services/ProjectService.php)
+- [ScorecardBuilderService.php](../../../Modules/Forja/Services/ScorecardBuilderService.php)
+- [TeamUsageAggregator.php](../../../Modules/Forja/Services/TeamUsageAggregator.php)
+- [UsageCsvExporter.php](../../../Modules/Forja/Services/UsageCsvExporter.php)
 - [ValidationResult.php](../../../Modules/Forja/Services/ValidationResult.php)
 
 ## Models / Entities — 3
@@ -144,9 +154,9 @@ module: Forja
 - [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
 
-## Testes (Pest) — 35
+## Testes (Pest) — 39
 
-- 35 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 39 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 7
 

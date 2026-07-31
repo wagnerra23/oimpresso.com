@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Http\Controllers;
+namespace Modules\Forja\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\TeamMcp\Services\ScorecardBuilderService;
+use Modules\Forja\Services\ScorecardBuilderService;
 
 /**
  * ScorecardController — G1 FICHA Wave 22 esqueleto TeamMcp scorecard UI.
@@ -37,8 +37,8 @@ use Modules\TeamMcp\Services\ScorecardBuilderService;
  * Multi-tenant Tier 0: scorecard é repo-wide (governance cross-business).
  * Sem business_id filter — INTENCIONAL pra superadmin enxergar saúde global.
  *
- * @see Modules\TeamMcp\Services\ScorecardBuilderService (lógica real — Wave 25)
- * @see Modules\TeamMcp\Http\Controllers\TeamController (irmão — team plan view)
+ * @see Modules\Forja\Services\ScorecardBuilderService (lógica real — Wave 25)
+ * @see Modules\Forja\Http\Controllers\TeamController (irmão — team plan view)
  * @see memory/decisions/0091-daily-brief.md (facts pattern origem)
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */

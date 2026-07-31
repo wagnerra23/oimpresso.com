@@ -2,17 +2,15 @@
 module: TeamMcp
 purpose: "Painel administrativo do MCP server canônico (mcp.oimpresso.com): tokens, scopes, audit, webhooks, ingest, tools registry, identity (mcp_actors), e tasks/cycles Jira-style do time."
 contains:
-  - "TeamController — gerencia time + tokens MCP"
-  - "CcSessionsController — Claude Code sessions ingest"
-  - "TasksAdminController — admin Jira-style (mcp_tasks, mcp_cycles, mcp_jira_projects)"
   - "DataController + InstallController (boilerplate)"
   # Absorvidos em Fase 3.7 PR-1 (2026-05-06):
   - "Mcp/CcIngestController — ingest Claude Code sessions; URL /api/cc/ingest mantida"
   # Fase 4 (NOVA, ADR 0081):
   - "ActorsController (NOVO) — Identity Mesh: CRUD de mcp_actors com manifest YAML"
-  - "ScorecardController — G1 FICHA Wave 22 esqueleto tela /team-mcp/scorecard (governance maturity per-actor)"
   - "ForjaController — cockpit do cowork loop /forja (absorção, não módulo novo): 6 abas projetando mcp_tasks project=FORJA + git/ADR/sessão + gates; aba Triagem real + dossiê"
 not_contains:
+  - "Hub Equipe (Team/TasksAdmin/CcSessions/Scorecard + Requests + TeamUsageAggregator/UsageCsvExporter/ScorecardBuilderService) → Modules/Forja ([W] 2026-07-31)"
+  - "Rotas /team-mcp/* → registradas por Modules/Forja; URLs e names INALTERADOS (ADR 0087)"
   - "Admin/ToolsController · Admin/TeamScopesController → Modules/Forja ([W] 2026-07-31 \"ads vem para forja\"); URLs /ads/admin/* inalteradas"
   - "Ingest de sessões Claude Code (CcIngestController/Service/Request · McpIngestHeartbeat · IngestLivenessService) → Modules/Forja ([W] 2026-07-31)"
   - "URL POST /api/cc/ingest → registrada por Modules/Forja; endereço INALTERADO (cada watcher local aponta pra ele)"

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Carbon;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
  * ScorecardBuilderService — Wave 25 D4 SATURATION (2026-05-16).
  *
  * Extrai lógica de Facts+Checks antes embutida em
- * `Modules\TeamMcp\Http\Controllers\ScorecardController`. Controller fica
+ * `Modules\Forja\Http\Controllers\ScorecardController`. Controller fica
  * thin (auth + render Inertia + chamar Service).
  *
  * Pattern **Facts+Checks** ({@see ADR 0091 origem}):
@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Schema;
  * Testes Pest unit-level: cada método público retorna estrutura canônica que
  * o frontend espera (Wave23ScorecardRotateTest cobre).
  *
- * @see Modules\TeamMcp\Http\Controllers\ScorecardController (caller)
+ * @see Modules\Forja\Http\Controllers\ScorecardController (caller)
  * @see memory/decisions/0091-daily-brief.md (facts pattern origem)
  * @see memory/decisions/0081-identity-mesh-actor-trust-mcp.md (token Tier 0)
  */

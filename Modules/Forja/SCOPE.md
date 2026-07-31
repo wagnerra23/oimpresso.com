@@ -35,6 +35,12 @@ contains:
   # Ingest de sessões Claude Code — recebido do TeamMcp em 2026-07-31
   - "Mcp/CcIngestController + CcIngestService + CcIngestRequest — POST /api/cc/ingest, URL inalterada"
   - "Entities/McpIngestHeartbeat + IngestLivenessService — liveness do watcher; produtor é o watcher LOCAL de cada dev (decisão [W]: migrate, o watcher volta)"
+  # Hub Equipe — recebido do TeamMcp em 2026-07-31; URLs /team-mcp/* inalteradas
+  - "TeamController — time + tokens MCP + quota + export CSV"
+  - "TasksAdminController — Kanban Jira-style (mcp_tasks/cycles/projects)"
+  - "CcSessionsController — KB de sessões Claude Code do time"
+  - "ScorecardController + ScorecardBuilderService — governance maturity per-actor"
+  - "As páginas React seguem em resources/js/Pages/team-mcp/* — não migram; renomear URL é decisão separada"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"

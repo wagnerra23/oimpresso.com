@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * download é restrito a `jana.mcp.usage.all` (superadmin) e auditado via
  * `mcp_audit_log` (request → tool=team-export → user_id=Wagner).
  *
- * @see Modules\TeamMcp\Http\Controllers\TeamController::exportCsv (uses this)
+ * @see Modules\Forja\Http\Controllers\TeamController::exportCsv (uses this)
  */
 class UsageCsvExporter
 {

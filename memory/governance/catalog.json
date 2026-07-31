@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 612,
-    "edges": 931,
+    "nodes": 613,
+    "edges": 936,
     "by_node_type": {
       "module": 42,
       "table": 81,
       "adr": 34,
-      "component": 412,
+      "component": 413,
       "api": 43
     },
     "by_edge_type": {
@@ -39,9 +39,9 @@
       "providesApi": 43,
       "charteredByAdr": 32,
       "governedByAdr": 93,
-      "hasComponent": 412,
-      "dependsOn": 135,
-      "delegatesTo": 130,
+      "hasComponent": 413,
+      "dependsOn": 137,
+      "delegatesTo": 132,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1904,6 +1904,13 @@
       "desc": "registry de tools MCP; URL /ads/admin/tools mantida"
     },
     {
+      "id": "component:Forja/As páginas React seguem em resources/js/Pages/team-mcp/*",
+      "type": "component",
+      "module": "Forja",
+      "name": "As páginas React seguem em resources/js/Pages/team-mcp/*",
+      "desc": "não migram; renomear URL é decisão separada"
+    },
+    {
       "id": "component:Forja/BacklogController",
       "type": "component",
       "module": "Forja",
@@ -1930,6 +1937,13 @@
       "module": "Forja",
       "name": "BurndownController",
       "desc": "burndown chart por cycle"
+    },
+    {
+      "id": "component:Forja/CcSessionsController",
+      "type": "component",
+      "module": "Forja",
+      "name": "CcSessionsController",
+      "desc": "KB de sessões Claude Code do time"
     },
     {
       "id": "component:Forja/DataController + InstallController",
@@ -2016,11 +2030,32 @@
       "desc": "roadmap quarterly"
     },
     {
+      "id": "component:Forja/ScorecardController + ScorecardBuilderService",
+      "type": "component",
+      "module": "Forja",
+      "name": "ScorecardController + ScorecardBuilderService",
+      "desc": "governance maturity per-actor"
+    },
+    {
       "id": "component:Forja/SearchController",
       "type": "component",
       "module": "Forja",
       "name": "SearchController",
       "desc": "busca cross-task fulltext"
+    },
+    {
+      "id": "component:Forja/TasksAdminController",
+      "type": "component",
+      "module": "Forja",
+      "name": "TasksAdminController",
+      "desc": "Kanban Jira-style (mcp_tasks/cycles/projects)"
+    },
+    {
+      "id": "component:Forja/TeamController",
+      "type": "component",
+      "module": "Forja",
+      "name": "TeamController",
+      "desc": "time + tokens MCP + quota + export CSV"
     },
     {
       "id": "component:Forja/TriageController",
@@ -3150,13 +3185,6 @@
       "desc": "Identity Mesh: CRUD de mcp_actors com manifest YAML"
     },
     {
-      "id": "component:TeamMcp/CcSessionsController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "CcSessionsController",
-      "desc": "Claude Code sessions ingest"
-    },
-    {
       "id": "component:TeamMcp/DataController + InstallController",
       "type": "component",
       "module": "TeamMcp",
@@ -3176,27 +3204,6 @@
       "module": "TeamMcp",
       "name": "Mcp/CcIngestController",
       "desc": "ingest Claude Code sessions; URL /api/cc/ingest mantida"
-    },
-    {
-      "id": "component:TeamMcp/ScorecardController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "ScorecardController",
-      "desc": "G1 FICHA Wave 22 esqueleto tela /team-mcp/scorecard (governance maturity per-actor)"
-    },
-    {
-      "id": "component:TeamMcp/TasksAdminController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "TasksAdminController",
-      "desc": "admin Jira-style (mcp_tasks, mcp_cycles, mcp_jira_projects)"
-    },
-    {
-      "id": "component:TeamMcp/TeamController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "TeamController",
-      "desc": "gerencia time + tokens MCP"
     },
     {
       "id": "component:Vestuario/DevolucaoService",
@@ -7102,6 +7109,12 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/As páginas React seguem em resources/js/Pages/team-mcp/*",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/BacklogController",
       "type": "hasComponent",
       "source": "contains"
@@ -7121,6 +7134,12 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/BurndownController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/CcSessionsController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7198,7 +7217,25 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/ScorecardController + ScorecardBuilderService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/SearchController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/TasksAdminController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/TeamController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9934,6 +9971,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Hub Equipe (Team/TasksAdmin/CcSessions/Scorecard + Requests + TeamUsageAggregator/UsageCsvExporter/ScorecardBuilderService)"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Identidade do MCP (McpActor · ActorResolver · McpActorRepository · McpTokenIssuer · mcp_actors)"
     },
     {
@@ -9970,6 +10014,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Rotas /team-mcp/*"
     },
     {
       "from": "module:TeamMcp",
@@ -10039,6 +10090,13 @@
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
+      "note": "Hub Equipe (Team/TasksAdmin/CcSessions/Scorecard + Requests + TeamUsageAggregator/UsageCsvExporter/ScorecardBuilderService)"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Identidade do MCP (McpActor · ActorResolver · McpActorRepository · McpTokenIssuer · mcp_actors)"
     },
     {
@@ -10096,6 +10154,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Rotas /team-mcp/*"
     },
     {
       "from": "module:TeamMcp",
@@ -10182,12 +10247,6 @@
     },
     {
       "from": "module:TeamMcp",
-      "to": "component:TeamMcp/CcSessionsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
       "to": "component:TeamMcp/DataController + InstallController",
       "type": "hasComponent",
       "source": "contains"
@@ -10201,24 +10260,6 @@
     {
       "from": "module:TeamMcp",
       "to": "component:TeamMcp/Mcp/CcIngestController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/ScorecardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/TasksAdminController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/TeamController",
       "type": "hasComponent",
       "source": "contains"
     },

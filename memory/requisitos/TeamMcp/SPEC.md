@@ -50,7 +50,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `McpActorsSeederTest.php` (7 invariantes), `ActorPermissionMatrixTest.php`
 
 ### US-TEAM-002 — Token MCP issue (gerar token pra dev/IA)
-**Implementado em:** `Modules/TeamMcp/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/TeamMcp/Http/routes.php` · verificado@8af585a (2026-07-02) — rota POST /team-mcp/team/{user}/token → TeamController::gerarToken chama McpToken::gerar inline (McpTokenIssuer::issue é extração Wave 18 NÃO religada à rota; caller de prod só RotateTokenCommand)
+**Implementado em:** `Modules/Forja/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/TeamMcp/Http/routes.php` · verificado@8af585a (2026-07-02) — rota POST /team-mcp/team/{user}/token → TeamController::gerarToken chama McpToken::gerar inline (McpTokenIssuer::issue é extração Wave 18 NÃO religada à rota; caller de prod só RotateTokenCommand)
 **Testado em:** _lacuna — a EMISSÃO pela rota POST não tem teste (2026-07-28). O smoke de rotas só prova o gate de auth, e o teste de rotação exercita a geração por dentro do rotate, nunca o endpoint. Cobertura a criar — ver CU-TEAM-01 do SDD._
 **Como** Wagner
 **Quero** gerar token MCP via `POST /team-mcp/team/{user}/token` que bind a um `user_id` + `actor_id`
@@ -63,8 +63,8 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `SmokeRoutesTest.php` (smoke auth gate)
 
 ### US-TEAM-003 — Token MCP revoke (revogar token comprometido)
-**Implementado em:** `Modules/TeamMcp/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` · verificado@8af585a (2026-07-02) — DELETE /team-mcp/team/token/{token} → revogarToken seta revoked_at inline + soft-delete (McpTokenIssuer::revoke NÃO religado à rota; caller de prod só RotateTokenCommand); token revogado rejeitado por McpToken::encontrarPorRaw (whereNull revoked_at) via McpAuthMiddleware
-**Testado em:** `Modules/TeamMcp/Tests/Feature/TokensListAndRevokeTest.php` · `Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php`
+**Implementado em:** `Modules/Forja/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` · verificado@8af585a (2026-07-02) — DELETE /team-mcp/team/token/{token} → revogarToken seta revoked_at inline + soft-delete (McpTokenIssuer::revoke NÃO religado à rota; caller de prod só RotateTokenCommand); token revogado rejeitado por McpToken::encontrarPorRaw (whereNull revoked_at) via McpAuthMiddleware
+**Testado em:** `Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php` · `Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php`
 **Como** Wagner
 **Quero** revogar token via `DELETE /team-mcp/team/token/{token}`
 **Pra** invalidar imediatamente acesso (dev desligado, IA descontinuada, credencial vazada).
