@@ -65,12 +65,43 @@
       "stream": "SA"
     },
     "full_suite_pass_rate": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 336,
+      "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
-      "source": "governance/nightly-floor.json ainda não publicado pelo write-side CT100 (ADR 0279 PR-2 — precisa de credencial de push no CT100). A nightly FV-F3 roda (15+ runs reais); falta o transporte.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
+      "detail": {
+        "floor_files_hash": "622c08f4ec5273cd",
+        "runs": [
+          {
+            "sha": "2829d201",
+            "ts": "20260729-020001",
+            "failed": 682,
+            "errors": 426,
+            "skipped": 2260,
+            "all_shards_measured": true
+          },
+          {
+            "sha": "a1b86822",
+            "ts": "20260730-020001",
+            "failed": 650,
+            "errors": 477,
+            "skipped": 2242,
+            "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260731-020002",
+            "failed": 701,
+            "errors": 381,
+            "skipped": 2219,
+            "all_shards_measured": true
+          }
+        ],
+        "computed_at": "20260731-020002",
+        "intersection_of": 3
+      },
       "stream": "FV"
     },
     "n_quarantine": {
@@ -86,12 +117,41 @@
       "stream": "FV"
     },
     "coverage_pct": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 19.4,
+      "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json ainda não publicado pelo write-side CT100 (SDD P07 — pcov instrumentado em ct100-fullsuite.sh; falta rebuild da imagem com pcov + 1ª nightly). Hoje ci.yml roda coverage: none / --no-coverage no lane sqlite (fonte honesta é a suíte inteira CT100 — ADR 0275:68).",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
+      "detail": {
+        "covered": 46234,
+        "total": 237833,
+        "runs": [
+          {
+            "sha": "afb9f347",
+            "ts": "20260726-020001",
+            "coverage_pct": 17.6,
+            "covered": 42502,
+            "total": 241024
+          },
+          {
+            "sha": "8ae17699",
+            "ts": "20260727-020001",
+            "coverage_pct": 17.8,
+            "covered": 42870,
+            "total": 240778
+          },
+          {
+            "sha": null,
+            "ts": "20260731-020002",
+            "coverage_pct": 19.4,
+            "covered": 46234,
+            "total": 237833
+          }
+        ],
+        "computed_at": "20260731-020002",
+        "measured_of": 3
+      },
       "stream": "FV"
     },
     "sqlite_corruptors": {
@@ -148,12 +208,25 @@
       "stream": "MEM"
     },
     "ragas_real_uptime": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 75,
+      "unit": "%",
       "direction": "up",
-      "target": "≥95%",
-      "source": "governance/ragas-real-trend.json ainda não publicado pelo write-side CT100 — jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318; baseline honesto em governance/jana-ragas-real-baseline.json). Transporte: órfã governance/ragas-real-trend (write-side ct100-ragas-publish.sh · pattern nightly-floor ADR 0279); 1ª execução do cron 2026-07-05.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "target": 95,
+      "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
+      "detail": {
+        "weeks_expected": 4,
+        "weeks_valid": 3,
+        "first_scheduled": "2026-07-05",
+        "last_week": "2026-07-26",
+        "latest": {
+          "gate_status": "fail",
+          "n_evaluated": 51,
+          "faithfulness_avg": 0.6865,
+          "relevancy_avg": 0.8294,
+          "context_recall_avg": 0.3461
+        }
+      },
       "stream": "MEM"
     },
     "distiller_freshness": {
@@ -181,7 +254,7 @@
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
         "modules": 75,
-        "hops_worst": 1
+        "hops_worst": 13
       },
       "stream": "MEM"
     },
