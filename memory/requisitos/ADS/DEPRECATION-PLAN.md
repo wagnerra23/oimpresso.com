@@ -12,6 +12,79 @@ id: requisitos-ads-deprecation-plan
 > **incorpora** o ADS — [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md),
 > que supersede a 0145. Ver a **ERRATA 2026-07-31** logo abaixo: ela corrige 4 fatos que a execução
 > mediu e que o corpo (incluindo a errata de 07-30) erra.
+>
+> 📌 **Leia primeiro a ERRATA 2026-07-31 (parte 6)**, no topo: as erratas estão em ordem do mais
+> recente pro mais antigo, e a de cima corrige 4 fatos que TODAS as anteriores erram — incluindo a
+> terceira tabela com consumidor sobrevivente, que nem o C2 nem a E3 pegaram.
+
+## ⚠️ ERRATA 2026-07-31 (parte 6) — quatro correções da execução da REMOÇÃO (não altera o corpo)
+
+> Origem: execução da **parte 6** (remoção do núcleo), passo 1 — PR "preserva o que sobrevive".
+> Medido em `origin/main` no HEAD `5c0d0a864c2`, com o repo completo (`is-shallow=false`).
+> **Onde este bloco discordar do corpo ou de qualquer errata anterior, ele vence** — é o mais recente.
+
+### C5 — 🔴 `mcp_decision_links` é a **terceira** tabela com consumidor sobrevivente. O C2 não a olhou.
+
+O C2 acima corrigiu `mcp_dual_brain_decisions` (consumidor: `ProjectService:160`); a E3 corrigiu
+`mcp_projects`/`mcp_project_parts`. Falta a terceira, e ela está na mesma lista de DROP: a linha do
+"Destino por função" agrupa `mcp_decision_links` no **núcleo que morre**.
+
+Mas [`Modules/Forja/Services/ProjectDecomposerService.php:118`](../../../Modules/Forja/Services/ProjectDecomposerService.php)
+chama `linkFromTexts(TARGET_PROJECT, …)`, que faz `DB::table('mcp_decision_links')->updateOrInsert(…)`
+— **escrita**, a cada decompose, pra vincular as ADRs consultadas ao project (auditoria reversa). A
+Forja não está na lista de deleção.
+
+**Correção:** `mcp_decision_links` **sai do DROP** e passa a ser tabela da **Forja**. O padrão agora tem
+três instâncias e vale como regra pro que restar: *antes de dropar tabela do ADS, procurar o consumidor
+FORA do ADS* — as três só apareceram quando alguém foi olhar.
+
+### C6 — `DecisionLinksService` e `ProjectDecomposerAgent` **não** morrem com o núcleo.
+
+O recorte da ADR 0363 lista `DecisionLinksService` entre as peças que "morrem com o módulo". A
+afirmação **envelheceu** no [#5131](https://github.com/wagnerra23/oimpresso.com/pull/5131), que trouxe o
+`ProjectDecomposerService` pra Forja: ele injeta o service no construtor (`:28`), instancia o
+`ProjectDecomposerAgent` (`:59`) e usa `DecisionLinksService::TARGET_PROJECT` (`:119`). Varredura
+contada: eram os **2 únicos** `use Modules\ADS` fora do ADS em todo o repo.
+
+**Correção:** as duas classes (156 + 112 linhas) vão pra **Forja**, com o `singleton` junto — como o
+comentário do `AdsServiceProvider` já ensinava (*"o registro foi JUNTO com as classes"*). O
+`fetchTarget` perde 3 dos 4 alvos: `skill` lia `mcp_decision_patterns` e `decision` lia
+`mcp_dual_brain_decisions` (ambas dropadas), `metaskill` apontava pra `/ads/admin/meta-skills` (tela
+removida). Sobra `TARGET_PROJECT` — o único que a Forja usa.
+
+### C7 — `/ads/admin/graph` não podia morrer com o arquivo de rotas. A justificativa era **falsa**.
+
+`Modules/ADS/Routes/web.php:24` afirmava: *"`/ads/admin/graph` morre na parte 6/7 (o KB já tem grafo
+próprio em `/kb/graph`), não é rota a realocar"*. **Medido: `/kb/graph` NÃO EXISTE** em nenhum
+`Routes/*.php` do repo. A rota serve o `GraphController` do **Modules/KB** e a page
+`Pages/ads/Admin/Graph.tsx` — ambos de módulo **sobrevivente**, e ela era a única porta da tela.
+
+Some-se: o controller lia `mcp_decision_patterns` **sem** `Schema::hasTable`, então o DROP a
+transformaria em **500**, não em degradação. Das 5 fontes do grafo, só essa morre — as outras 4
+(`mcp_memory_documents` do KB, meta-skills e policy do Governance, tools da Forja) seguem vivas.
+
+**Correção:** a rota e os 2 redirects `301 /admin/kb` vão pra `Modules/Forja/Http/routes.php` (URL e
+name congelados — ADR 0087; middlewares conferidos idênticos; **saem** do ADS em vez de serem copiados,
+porque `route:cache` está ativo em prod e o name não pode existir nos dois arquivos), e o
+`buildPatternsRows` ganha guarda de tabela.
+
+### C8 — São **14** telas, não 12; e o `loadMigrationsFrom` **não** é necessário.
+
+**As telas:** o corpo, a ADR 0363 (§Resíduo) e o handoff falam em "12 telas do núcleo"; o handoff
+também diz "14 telas". Derivado da fonte viva — os `Inertia::render` dos controllers do ADS — são
+**14**: `Confidence · Conflicts · DecisaoShow · Decisoes · Learning · MetaSkills · Metricas · Patterns ·
+Policy` (9) + `Skills/{Edit,Index,Review,Show,Test}` (5). As outras 5 do diretório
+(`Projects · ProjectShow · TeamScopes · Tools · Graph`) **não são do ADS** — são Forja e KB, e ficam.
+Não há tela "sobrevivente" do núcleo: `Decisoes`/`DecisaoShow` leem a tabela que o DROP mata.
+
+**O `loadMigrationsFrom`:** o dilema registrado (*ligar acorda 4 migrations dormentes e cria 4 tabelas
+que ninguém pediu*) **não precisa ser resolvido aqui**. As 7 tabelas do ADS que sobrevivem
+(`mcp_governance_rules`, `mcp_projects`, `mcp_project_parts`, `mcp_tool_executions`,
+`mcp_user_module_access`, `mcp_file_locks`, `mcp_dual_brain_decisions`) **já estão em
+`database/schema/mysql-schema.sql`**, o baseline que o CI e o CT 100 usam — conferido uma a uma. Deletar
+as 15 migrations junto com o módulo não quebra ambiente novo, e o Governance segue **sem**
+`loadMigrationsFrom`, com as 4 dormentes dormindo. O bug dos crons `module:grade-snapshot` e
+`observability:aggregate-daily` escrevendo em tabela inexistente **continua aberto** — é outro assunto.
 
 ## ⚠️ ERRATA 2026-07-31 — quatro correções que a EXECUÇÃO mediu (não altera o corpo)
 
