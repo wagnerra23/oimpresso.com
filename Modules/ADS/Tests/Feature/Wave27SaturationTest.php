@@ -7,7 +7,7 @@ use Modules\ADS\Http\Requests\StoreGovernanceMetaSkillRequest;
 use Modules\ADS\Http\Requests\StoreSkillVersionRequest;
 use Modules\ADS\Services\BrainBService;
 use Modules\ADS\Services\PlannerService;
-use Modules\ADS\Services\SkillsService;
+use Modules\Jana\Services\SkillsService;
 
 uses(Tests\TestCase::class);
 
@@ -82,7 +82,7 @@ describe('Wave 27 ADS POLISH', function () {
         $expected = [
             base_path('Modules/ADS/Services/PlannerService.php')   => "'ads.planner.plan'",
             base_path('Modules/ADS/Services/BrainBService.php')    => "'ads.brain_b.process'",
-            base_path('Modules/ADS/Services/SkillsService.php')    => "'ads.",
+            base_path('Modules/Jana/Services/SkillsService.php')    => "'ads.",
         ];
 
         foreach ($expected as $file => $expectedFragment) {

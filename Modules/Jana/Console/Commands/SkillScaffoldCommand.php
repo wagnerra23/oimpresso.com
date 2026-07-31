@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\ADS\Console\Commands;
+namespace Modules\Jana\Console\Commands;
 
 use Illuminate\Console\Command;
-use Modules\ADS\Services\ScaffoldSkillFromMissionService;
+use Modules\Jana\Services\ScaffoldSkillFromMissionService;
 
 /**
  * Cria scaffold de skill nova a partir de 1 frase (missão).

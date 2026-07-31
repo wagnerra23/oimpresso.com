@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 571 arquivos em 19 papéis.
+**Total mapeado:** 574 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -50,7 +50,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 89
+## Services — 91
 
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
 - [ClarifyCascadeService.php](../../../Modules/Jana/Services/Ai/Clarify/ClarifyCascadeService.php)
@@ -125,9 +125,11 @@ module: Jana
 - [NullReranker.php](../../../Modules/Jana/Services/Retrieval/NullReranker.php)
 - [Reranker.php](../../../Modules/Jana/Services/Retrieval/Reranker.php)
 - [RrfReranker.php](../../../Modules/Jana/Services/Retrieval/RrfReranker.php)
+- [ScaffoldSkillFromMissionService.php](../../../Modules/Jana/Services/ScaffoldSkillFromMissionService.php)
 - [AiScorecardJudge.php](../../../Modules/Jana/Services/Scorecard/AiScorecardJudge.php)
 - [PublicarSkillNoGitService.php](../../../Modules/Jana/Services/Skills/PublicarSkillNoGitService.php)
 - [SkillTestRunnerService.php](../../../Modules/Jana/Services/Skills/SkillTestRunnerService.php)
+- [SkillsService.php](../../../Modules/Jana/Services/SkillsService.php)
 - [SuggestionEngine.php](../../../Modules/Jana/Services/SuggestionEngine.php)
 - [AutoSummarizerHelper.php](../../../Modules/Jana/Services/Summarizer/AutoSummarizerHelper.php)
 - [AutoSummarizerService.php](../../../Modules/Jana/Services/Summarizer/AutoSummarizerService.php)
@@ -204,7 +206,7 @@ module: Jana
 - [NotificarDesvioListener.php](../../../Modules/Jana/Listeners/NotificarDesvioListener.php)
 - [LangfuseAgentTelemetryListener.php](../../../Modules/Jana/Listeners/Telemetry/LangfuseAgentTelemetryListener.php)
 
-## Console / Commands — 45
+## Console / Commands — 46
 
 - [ApurarMetricasCommand.php](../../../Modules/Jana/Console/Commands/ApurarMetricasCommand.php)
 - [AutomationsSyncCommand.php](../../../Modules/Jana/Console/Commands/AutomationsSyncCommand.php)
@@ -249,6 +251,7 @@ module: Jana
 - [RetentionPurgeCommand.php](../../../Modules/Jana/Console/Commands/RetentionPurgeCommand.php)
 - [SeedAdrsCommand.php](../../../Modules/Jana/Console/Commands/SeedAdrsCommand.php)
 - [SinteseSemanalCommand.php](../../../Modules/Jana/Console/Commands/SinteseSemanalCommand.php)
+- [SkillScaffoldCommand.php](../../../Modules/Jana/Console/Commands/SkillScaffoldCommand.php)
 - [SystemAuditCommand.php](../../../Modules/Jana/Console/Commands/SystemAuditCommand.php)
 - [UiJudgeTrendCommand.php](../../../Modules/Jana/Console/Commands/UiJudgeTrendCommand.php)
 
