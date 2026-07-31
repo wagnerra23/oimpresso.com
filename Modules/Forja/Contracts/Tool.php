@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ADS\Contracts;
+namespace Modules\Forja\Contracts;
 
 /**
  * T12 — Tool interface canônica do ADS.

@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\ADS\Tools;
+namespace Modules\Forja\Tools;
 
-use Modules\ADS\Contracts\Tool;
+use Modules\Forja\Contracts\Tool;
 
 /**
  * Tool: lê últimas N linhas do laravel.log com filtro por nível.

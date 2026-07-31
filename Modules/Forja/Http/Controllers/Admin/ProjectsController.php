@@ -8,7 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\ADS\Services\ProjectDecomposerService;
+use Modules\Forja\Services\ProjectDecomposerService;
 use Modules\Forja\Services\ForjaAuditService;
 use Modules\Forja\Services\ProjectService;
 

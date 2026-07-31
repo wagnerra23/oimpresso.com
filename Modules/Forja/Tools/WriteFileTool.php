@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\ADS\Tools;
+namespace Modules\Forja\Tools;
 
-use Modules\ADS\Contracts\Tool;
+use Modules\Forja\Contracts\Tool;
 
 /**
  * Tool de ESCRITA — paranóica em segurança.
@@ -87,7 +87,7 @@ class WriteFileTool implements Tool
         // Validação 0: per-user scope (camada NOVA — caso Maiara)
         $userId = $input['_user_id'] ?? auth()->id();
         if ($userId !== null) {
-            $scope = app(\Modules\ADS\Services\UserScopeService::class);
+            $scope = app(\Modules\Forja\Services\UserScopeService::class);
             if (! $scope->canWriteToPath((int) $userId, $path)) {
                 return [
                     'ok'     => false,

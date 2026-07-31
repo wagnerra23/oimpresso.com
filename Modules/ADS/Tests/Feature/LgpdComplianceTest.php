@@ -69,7 +69,7 @@ it('PiiRedactor preserva texto sem PII (idempotência)', function () {
 dataset('ads_services_with_pii_redactor', [
     'BrainBService'           => ['Modules/ADS/Services/BrainBService.php'],
     'PlannerService'          => ['Modules/ADS/Services/PlannerService.php'],
-    'ProjectDecomposerService' => ['Modules/ADS/Services/ProjectDecomposerService.php'],
+    'ProjectDecomposerService' => ['Modules/Forja/Services/ProjectDecomposerService.php'],
     'ReviewerService'         => ['Modules/ADS/Services/ReviewerService.php'],
 ]);
 

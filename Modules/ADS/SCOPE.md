@@ -26,9 +26,8 @@ contains:
   - "Reviewer Service — HITL queue"
   - "Pattern Learning Service — aprende de outcomes"
   - "Auto Task Generator Service"
-  - "Planner Service / Project Decomposer Service"
-  - "Tool Registry — MCP tools internos"
-  - "Decision Links Service / User Scope Service / Context for Task Service"
+  - "Planner Service"
+  - "Decision Links Service / Context for Task Service"
   - "ScaffoldSkillFromMissionService — scaffolder via meta-skill"
   - "SkillScaffoldCommand — artisan skill:scaffold"
 not_contains:
@@ -37,6 +36,12 @@ not_contains:
   - "Knowledge graph / ADRs browsing → Modules/KB"
   - "TeamScopes (RBAC actor capabilities) → Modules/Forja (a migrar)"
   - "ProjectsController (Jira-style) → Modules/Forja"
+  # 2026-07-31 — o REGISTRO seguiu os consumidores (3 dos 4 vivos eram da Forja).
+  # URLs /ads/admin/*, nomes de rota, permissions ads.* e a chave ads_module ficam
+  # onde estão (ADR 0087 + governance/ghost-rename-map.json).
+  - "ToolRegistry + Contracts/Tool + Tools/* (7) → Modules/Forja"
+  - "UserScopeService (permissões usuário × módulo) → Modules/Forja"
+  - "ProjectDecomposerService → Modules/Forja (ainda importa DecisionLinksService e Ai\\Agents\\ProjectDecomposerAgent daqui)"
 trust_required: L1
 owner: wagner
 permission_prefix: ads.*

@@ -17,10 +17,15 @@ contains:
   - "Admin/ProjectsController — gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc); URL /ads/admin/projects mantida"
   # Admin do MCP — recebidos do TeamMcp em 2026-07-31 ([W] "ads vem para forja").
   # Mesmo padrão do ProjectsController acima: controller da Forja, rota do ADS,
-  # URL /ads/admin/* mantida. Importam serviços do ADS (ToolRegistry,
-  # UserScopeService) — transitório: o ADS também está em deprecação.
+  # URL /ads/admin/* mantida.
   - "Admin/ToolsController — registry de tools MCP; URL /ads/admin/tools mantida"
   - "Admin/TeamScopesController — RBAC scopes por actor; URL /ads/admin/team-scopes mantida"
+  # Registro do ADS, recebido em 2026-07-31 — os 3 consumidores vivos eram
+  # controllers desta casa, então o serviço veio morar junto do consumidor.
+  # URLs, nomes de rota, permissions `ads.*` e a chave `ads_module` NÃO mudaram.
+  - "Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,MetricsQuery,RunTest,WriteFile} — catálogo de tools (Anthropic tool use); consumido por Admin/ToolsController e por KB Admin/GraphController"
+  - "Services/UserScopeService — permissões (usuário x módulo) sobre `mcp_user_module_access`; é quem o WriteFileTool consulta ANTES de escrever — regra do servidor vence a regra local"
+  - "Services/ProjectDecomposerService — decompõe Project em Parts via Sonnet; ainda importa DecisionLinksService e Ai/Agents/ProjectDecomposerAgent do ADS (resíduo transitório: sai com o núcleo do ADS)"
   # MCP endpoints — recebidos de Modules/Jana em 2026-07-30 ([W] "MCP vai para Forja")
   - "Mcp/SyncMemoryWebhookController — webhook GitHub → mcp_memory_documents; URL /api/mcp/sync-memory inalterada"
   - "Mcp/HealthController — health/version/cycle-active; URLs /api/mcp/* inalteradas"

@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 167 arquivos em 14 papéis.
+**Total mapeado:** 178 arquivos em 14 papéis.
 
 ## Controllers — 23
 
@@ -68,7 +68,7 @@ module: Forja
 - [UpdateTaskStatusRequest.php](../../../Modules/Forja/Http/Requests/UpdateTaskStatusRequest.php)
 - [WatchTaskRequest.php](../../../Modules/Forja/Http/Requests/WatchTaskRequest.php)
 
-## Services — 22
+## Services — 25
 
 - [ActorResolver.php](../../../Modules/Forja/Services/ActorResolver.php)
 - [BriefGeneratorService.php](../../../Modules/Forja/Services/BriefGeneratorService.php)
@@ -87,10 +87,13 @@ module: Forja
 - [McpActorRepository.php](../../../Modules/Forja/Services/McpActorRepository.php)
 - [McpTokenIssuer.php](../../../Modules/Forja/Services/McpTokenIssuer.php)
 - [PrChecksResolver.php](../../../Modules/Forja/Services/PrChecksResolver.php)
+- [ProjectDecomposerService.php](../../../Modules/Forja/Services/ProjectDecomposerService.php)
 - [ProjectService.php](../../../Modules/Forja/Services/ProjectService.php)
 - [ScorecardBuilderService.php](../../../Modules/Forja/Services/ScorecardBuilderService.php)
 - [TeamUsageAggregator.php](../../../Modules/Forja/Services/TeamUsageAggregator.php)
+- [ToolRegistry.php](../../../Modules/Forja/Services/ToolRegistry.php)
 - [UsageCsvExporter.php](../../../Modules/Forja/Services/UsageCsvExporter.php)
+- [UserScopeService.php](../../../Modules/Forja/Services/UserScopeService.php)
 - [ValidationResult.php](../../../Modules/Forja/Services/ValidationResult.php)
 
 ## Models / Entities — 3
@@ -166,12 +169,20 @@ module: Forja
 
 - 50 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 7
+## Outros (raiz/misc) — 15
 
+- [Tool.php](../../../Modules/Forja/Contracts/Tool.php)
 - [routes.php](../../../Modules/Forja/Http/routes.php)
 - [BriefFetchTool.php](../../../Modules/Forja/Mcp/Tools/BriefFetchTool.php)
 - [HandoffAckTool.php](../../../Modules/Forja/Mcp/Tools/HandoffAckTool.php)
 - [HandoffLeverTool.php](../../../Modules/Forja/Mcp/Tools/HandoffLeverTool.php)
 - [HandoffPendingTool.php](../../../Modules/Forja/Mcp/Tools/HandoffPendingTool.php)
 - [HandoffSubmitTool.php](../../../Modules/Forja/Mcp/Tools/HandoffSubmitTool.php)
+- [BoostToolAdapter.php](../../../Modules/Forja/Tools/BoostToolAdapter.php)
+- [GitCommitWipTool.php](../../../Modules/Forja/Tools/GitCommitWipTool.php)
+- [GitInspectTool.php](../../../Modules/Forja/Tools/GitInspectTool.php)
+- [LogReaderTool.php](../../../Modules/Forja/Tools/LogReaderTool.php)
+- [MetricsQueryTool.php](../../../Modules/Forja/Tools/MetricsQueryTool.php)
+- [RunTestTool.php](../../../Modules/Forja/Tools/RunTestTool.php)
+- [WriteFileTool.php](../../../Modules/Forja/Tools/WriteFileTool.php)
 - [start.php](../../../Modules/Forja/start.php)

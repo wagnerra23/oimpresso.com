@@ -127,11 +127,11 @@ Refs: ADR 0070 (Jira-style) · ADR 0088 + PR #5089 (rename ProjectMgmt→Forja; 
 > owner: — · priority: p2 · status: done · type: story
 > blocked_by: US-ADS-003
 
-**Implementado em:** `Modules/Forja/Http/Controllers/Admin/ProjectsController.php` (`show`, `decompose`) · `Modules/ADS/Http/Requests/DecomposeProjectRequest.php` · `Modules/ADS/Services/ProjectDecomposerService.php` · rotas `ads.admin.projects.show|decompose` (`Modules/ADS/Routes/web.php`) · tela `resources/js/Pages/ads/Admin/ProjectShow.tsx` (+ `ProjectShow.charter.md`)
+**Implementado em:** `Modules/Forja/Http/Controllers/Admin/ProjectsController.php` (`show`, `decompose`) · `Modules/ADS/Http/Requests/DecomposeProjectRequest.php` · `Modules/Forja/Services/ProjectDecomposerService.php` · rotas `ads.admin.projects.show|decompose` (`Modules/ADS/Routes/web.php`) · tela `resources/js/Pages/ads/Admin/ProjectShow.tsx` (+ `ProjectShow.charter.md`)
 
 **Origem:** idem US-ADS-003 — ancoragem a posteriori de tela já existente.
 
-**Contexto:** é o único ponto onde o ADS **escreve** nas tabelas `mcp_projects`/`mcp_project_parts` (o `ProjectDecomposerService` é do ADS, o controller é da Forja). Esse acoplamento está registrado no `DEPRECATION-PLAN.md` do ADS como o caso com receptor inequívoco.
+**Contexto:** é o único ponto de escrita nas tabelas `mcp_projects`/`mcp_project_parts`. O acoplamento que existia aqui (service do ADS, controller da Forja) **acabou em 2026-07-31**: o `ProjectDecomposerService` passou pra `Modules/Forja/Services/`, junto do consumidor. O que ele ainda importa do ADS — `DecisionLinksService` e `Ai\Agents\ProjectDecomposerAgent` — é resíduo transitório, endereçado na remoção do núcleo do ADS.
 
 **Testado em:** `tests/Feature/Ads/AdsProjectsRoutesContratoTest.php`
 

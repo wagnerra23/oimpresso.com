@@ -13,11 +13,8 @@ use Modules\ADS\Services\ReviewerService;
 use Modules\ADS\Services\PatternLearningService;
 use Modules\ADS\Services\AutoTaskGeneratorService;
 use Modules\ADS\Services\PlannerService;
-use Modules\ADS\Services\ToolRegistry;
 use Modules\ADS\Services\GovernanceRulesService;
-use Modules\ADS\Services\ProjectDecomposerService;
 use Modules\ADS\Services\DecisionLinksService;
-use Modules\ADS\Services\UserScopeService;
 use Modules\ADS\Services\ContextForTaskService;
 use Modules\ADS\Http\Middleware\AdsApiAuth;
 use Modules\ADS\Console\Commands\AdsHealthCommand;
@@ -60,12 +57,14 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(PatternLearningService::class);
         $this->app->singleton(AutoTaskGeneratorService::class);
         $this->app->singleton(PlannerService::class);
-        $this->app->singleton(ToolRegistry::class);
         $this->app->singleton(GovernanceRulesService::class);
-        $this->app->singleton(ProjectDecomposerService::class);
         $this->app->singleton(DecisionLinksService::class);
-        $this->app->singleton(UserScopeService::class);
         $this->app->singleton(ContextForTaskService::class);
+        // ToolRegistry, ProjectDecomposerService e UserScopeService saíram daqui
+        // em 2026-07-31 — o registro foi JUNTO com as classes, pro
+        // ForjaServiceProvider::register(). Sem isso a classe muda de casa e
+        // ninguém a registra (o container até auto-resolve, mas o `singleton`
+        // some — e o ToolRegistry instancia 11 tools por resolução).
     }
 
     protected function registerConfig(): void

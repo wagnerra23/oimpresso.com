@@ -1,11 +1,16 @@
 <?php
 
-namespace Modules\ADS\Services;
+namespace Modules\Forja\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\ADS\Ai\Agents\ProjectDecomposerAgent;
+// Estas duas ainda moram no ADS. Eram resolvidas por mesmo-namespace enquanto
+// este service era `Modules\ADS\Services` — ao vir pra Forja viraram import
+// explícito. Acoplamento Forja→ADS transitório: quem decide o destino delas é
+// a parte 6 (remoção do núcleo do ADS), não esta.
+use Modules\ADS\Services\DecisionLinksService;
 
 /**
  * Observabilidade D9.a (ADR 0155): chamada Sonnet envolto em

@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\ADS\Tools;
+namespace Modules\Forja\Tools;
 
 use Illuminate\Support\Facades\DB;
-use Modules\ADS\Contracts\Tool;
+use Modules\Forja\Contracts\Tool;
 
 /**
  * Tool: query agregada em mcp_dual_brain_decisions.

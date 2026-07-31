@@ -11,7 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ADS\Services\PolicyEngine;
 use Modules\ADS\Services\GovernanceRulesService;
-use Modules\ADS\Services\ToolRegistry;
+use Modules\Forja\Services\ToolRegistry;
 
 /**
  * Knowledge Graph (Cognitive Control Panel #3).
