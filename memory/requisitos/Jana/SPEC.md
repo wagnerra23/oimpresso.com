@@ -515,7 +515,7 @@ Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top
 
 ### US-COPI-088 · BRIEF-A1 — Fix aggregator (in_flight + ADR DATE bug + activity_24h)
 
-**Implementado em:** `database/migrations/2026_05_06_172445_fix_brief_procedure_real_schema.php` · `Modules/Brief/Services/BriefGeneratorService.php` · verificado@dd3ed7c (2026-07-01) — migration corrige o procedure aggregator (DATE bug + mcp_activity_24h + in_flight via mcp_tasks doing/review); validado brief #5 em prod 2026-05-07
+**Implementado em:** `database/migrations/2026_05_06_172445_fix_brief_procedure_real_schema.php` · `Modules/Forja/Services/BriefGeneratorService.php` · verificado@dd3ed7c (2026-07-01) — migration corrige o procedure aggregator (DATE bug + mcp_activity_24h + in_flight via mcp_tasks doing/review); validado brief #5 em prod 2026-05-07
 
 > owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: done · done_at: 2026-05-07
 > blocked_by: —

@@ -2895,7 +2895,6 @@
     "memory/requisitos/Atendimento/UI-CATALOG.md",
     "memory/requisitos/Auditoria/SUPERFICIE.md",
     "memory/requisitos/Auditoria/UI-CATALOG.md",
-    "memory/requisitos/Brief/SUPERFICIE.md",
     "memory/requisitos/Cliente/SUPERFICIE.md",
     "memory/requisitos/Cms/SUPERFICIE.md",
     "memory/requisitos/Compras/RUNBOOK-compras-index.md",
@@ -3312,12 +3311,12 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3306,
+    "total": 3305,
     "resolved": 2212,
-    "unstamped": 1094,
+    "unstamped": 1093,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1094,
+      "unstamped": 1093,
       "derived-adr": 366,
       "stamped": 951,
       "derived-handoffs": 345,
