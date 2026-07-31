@@ -1,6 +1,6 @@
 ---
-slug: 0361-errata-0360-admin-nao-respondia-403-o-bypass-estava-ligado
-number: 361
+slug: 0362-errata-0360-admin-nao-respondia-403-o-bypass-estava-ligado
+number: 362
 title: "Errata à 0360 — o Admin Center não respondia 403: o bypass do Tailscale estava LIGADO em produção"
 type: adr
 status: aceito
