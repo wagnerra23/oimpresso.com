@@ -14,12 +14,10 @@ module: TeamMcp
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/TeamMcp/**` + `resources/js/Pages/team-mcp/**` (namespace Inertia `team-mcp`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `TeamMcp`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 63 arquivos em 12 papéis.
+**Total mapeado:** 61 arquivos em 12 papéis.
 
-## Controllers — 9
+## Controllers — 7
 
-- [TeamScopesController.php](../../../Modules/TeamMcp/Http/Controllers/Admin/TeamScopesController.php)
-- [ToolsController.php](../../../Modules/TeamMcp/Http/Controllers/Admin/ToolsController.php)
 - [CcSessionsController.php](../../../Modules/TeamMcp/Http/Controllers/CcSessionsController.php)
 - [DataController.php](../../../Modules/TeamMcp/Http/Controllers/DataController.php)
 - [ForjaController.php](../../../Modules/TeamMcp/Http/Controllers/ForjaController.php)

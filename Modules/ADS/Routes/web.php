@@ -15,8 +15,8 @@ use Modules\ADS\Http\Controllers\InstallController;
 // URLs mantêm /ads/admin/* (PR-2 fará rename de URL se aplicável).
 use Modules\KB\Http\Controllers\Admin\GraphController;
 use Modules\Forja\Http\Controllers\Admin\ProjectsController;
-use Modules\TeamMcp\Http\Controllers\Admin\ToolsController;
-use Modules\TeamMcp\Http\Controllers\Admin\TeamScopesController;
+use Modules\Forja\Http\Controllers\Admin\ToolsController;
+use Modules\Forja\Http\Controllers\Admin\TeamScopesController;
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
 // Pattern: ADR 0024 / feedback_pattern_install_modulos

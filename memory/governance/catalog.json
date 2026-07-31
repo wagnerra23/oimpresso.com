@@ -24,7 +24,7 @@
   "stats": {
     "modules": 37,
     "nodes": 612,
-    "edges": 929,
+    "edges": 931,
     "by_node_type": {
       "module": 42,
       "table": 81,
@@ -40,8 +40,8 @@
       "charteredByAdr": 32,
       "governedByAdr": 93,
       "hasComponent": 412,
-      "dependsOn": 134,
-      "delegatesTo": 129,
+      "dependsOn": 135,
+      "delegatesTo": 130,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1890,6 +1890,20 @@
       "desc": "gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc); URL /ads/admin/projects mantida"
     },
     {
+      "id": "component:Forja/Admin/TeamScopesController",
+      "type": "component",
+      "module": "Forja",
+      "name": "Admin/TeamScopesController",
+      "desc": "RBAC scopes por actor; URL /ads/admin/team-scopes mantida"
+    },
+    {
+      "id": "component:Forja/Admin/ToolsController",
+      "type": "component",
+      "module": "Forja",
+      "name": "Admin/ToolsController",
+      "desc": "registry de tools MCP; URL /ads/admin/tools mantida"
+    },
+    {
       "id": "component:Forja/BacklogController",
       "type": "component",
       "module": "Forja",
@@ -3134,20 +3148,6 @@
       "module": "TeamMcp",
       "name": "ActorsController",
       "desc": "Identity Mesh: CRUD de mcp_actors com manifest YAML"
-    },
-    {
-      "id": "component:TeamMcp/Admin/TeamScopesController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "Admin/TeamScopesController",
-      "desc": "RBAC scopes per actor; URL /ads/admin/team-scopes mantida"
-    },
-    {
-      "id": "component:TeamMcp/Admin/ToolsController",
-      "type": "component",
-      "module": "TeamMcp",
-      "name": "Admin/ToolsController",
-      "desc": "MCP tools registry UI; URL /ads/admin/tools mantida"
     },
     {
       "id": "component:TeamMcp/CcSessionsController",
@@ -7090,6 +7090,18 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/Admin/TeamScopesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/Admin/ToolsController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/BacklogController",
       "type": "hasComponent",
       "source": "contains"
@@ -9908,6 +9920,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Admin/ToolsController · Admin/TeamScopesController"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "handoff:ingest · handoff:stale-alert"
     },
     {
@@ -10000,6 +10019,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Skills governance"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Admin/ToolsController · Admin/TeamScopesController"
     },
     {
       "from": "module:TeamMcp",
@@ -10151,18 +10177,6 @@
     {
       "from": "module:TeamMcp",
       "to": "component:TeamMcp/ActorsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/Admin/TeamScopesController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:TeamMcp",
-      "to": "component:TeamMcp/Admin/ToolsController",
       "type": "hasComponent",
       "source": "contains"
     },
