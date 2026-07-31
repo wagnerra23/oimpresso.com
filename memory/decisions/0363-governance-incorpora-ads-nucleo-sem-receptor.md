@@ -56,8 +56,10 @@ módulos**, medido no repo em 2026-07-31:
 | Escrita (criar/validar meta-skill) | `Modules/ADS` — `MetaSkillsController` + `StoreGovernanceMetaSkillRequest` |
 | Leitura + toggle (UI de policies) | `Modules/Governance` — **8 arquivos + 4 testes** |
 
-E **duas telas leem as mesmas 4 linhas**: `GovernanceRulesService::listAll()`
-([`Modules/ADS/Services/GovernanceRulesService.php:80`](../../Modules/ADS/Services/GovernanceRulesService.php))
+E **duas telas leem as mesmas 4 linhas**: `GovernanceRulesService::listAll()` (linha 80 — morava em
+`Modules/ADS/Services/` até o [PR #5128](https://github.com/wagnerra23/oimpresso.com/pull/5128), que o
+levou pro destino desta ADR:
+[`Modules/Governance/Services/GovernanceRulesService.php`](../../Modules/Governance/Services/GovernanceRulesService.php))
 e `PolicyToggleService::listPolicies()`
 ([`Modules/Governance/Services/PolicyToggleService.php:35`](../../Modules/Governance/Services/PolicyToggleService.php)) —
 as duas `DB::table('mcp_governance_rules')->get()`, sem filtro. Aqui **não há violação Tier 0**: a tabela
@@ -72,8 +74,8 @@ Governance lendo uma tabela sem dono declarado.
 
 O coração do ADS — `DecisionRouter` · `RiskEngine` · `ConfidenceEngine` · `BrainBService` ·
 `PatternLearningService` · `PlannerService` · `ReviewerService` — não tem análogo em módulo nenhum. E o
-retrato do que ele produziu (**medido em prod `u906587222_oimpresso`, 2026-07-31**, recibo em
-[PR #5130](https://github.com/wagnerra23/oimpresso.com/pull/5130)):
+retrato do que ele produziu (**medido em prod `u906587222_oimpresso`, 2026-07-31**, recibo no
+[handoff da sessão](../handoffs/2026-07-31-1636-ads-incorporado-pelo-governance-3-de-7.md)):
 
 | Métrica | Valor |
 |---|---:|
@@ -115,7 +117,8 @@ são **35 contextos required** (34 classic + 1 ruleset), e **exatamente 1** roda
 Isso **rebaixa o risco** de mexer nos dois módulos e é o que torna a incorporação uma operação de
 arrumação, não de infraestrutura crítica.
 
-> ⚠️ **Correção de um número que circulou nesta sessão.** O handoff [PR #5130](https://github.com/wagnerra23/oimpresso.com/pull/5130)
+> ⚠️ **Correção de um número que circulou nesta sessão.** O
+> [handoff da sessão](../handoffs/2026-07-31-1636-ads-incorporado-pelo-governance-3-de-7.md)
 > diz que *"34 dos 35"* required vêm de `scripts/governance`. **É falso como está escrito** — basta ler a
 > lista pra ver `Frontend / Vite build`, `PHP / Pest`, `PHPStan`, `gitleaks`. O fato que sustenta o
 > argumento é o outro lado da conta, e esse é verificável: **1 de 35** vem do módulo. Registrado aqui em
@@ -330,6 +333,7 @@ nenhuma superfície desta decisão. E `mcp_projects`/`mcp_project_parts` saíram
 - [ADR 0360](0360-deprecacao-admin-center-supersede-0122.md) — precedente de deprecação de módulo no mesmo ciclo
 - [DEPRECATION-PLAN — Modules/ADS](../requisitos/ADS/DEPRECATION-PLAN.md) — inventário + errata desta sessão
 - PRs: [#5127](https://github.com/wagnerra23/oimpresso.com/pull/5127) (crons+daemon off, merged) ·
-  [#5128](https://github.com/wagnerra23/oimpresso.com/pull/5128) (política→Governance) ·
-  [#5129](https://github.com/wagnerra23/oimpresso.com/pull/5129) (skills→Jana, merged) ·
-  [#5130](https://github.com/wagnerra23/oimpresso.com/pull/5130) (handoff com os recibos de prod)
+  [#5128](https://github.com/wagnerra23/oimpresso.com/pull/5128) (política→Governance, merged) ·
+  [#5129](https://github.com/wagnerra23/oimpresso.com/pull/5129) (skills→Jana, merged)
+- [Handoff 2026-07-31 16:36](../handoffs/2026-07-31-1636-ads-incorporado-pelo-governance-3-de-7.md) —
+  os recibos de prod e do CT 100, e o que o review adversarial derrubou ([#5130](https://github.com/wagnerra23/oimpresso.com/pull/5130), merged)
