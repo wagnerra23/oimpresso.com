@@ -34,13 +34,13 @@ uses(Tests\TestCase::class);
 it('PiiRedactor existe e redaciona CPF brasileiro', function () {
     $redactor = app(PiiRedactor::class);
 
-    $input = 'falha brain_b decision payload CPF 123.456.789-09 invalid';
+    $input = 'falha brain_b decision payload CPF 123.456.789-09 invalid'; // pii-allowlist (fixture sintética — é o INPUT que prova a redação)
     $output = $redactor->redact($input);
 
     expect($output)
         ->toContain('[REDACTED:CPF]')
         ->and($output)
-        ->not->toContain('123.456.789-09');
+        ->not->toContain('123.456.789-09'); // pii-allowlist (idem — a asserção EXIGE o literal)
 });
 
 it('PiiRedactor redaciona email + telefone juntos em mensagem de exception', function () {
