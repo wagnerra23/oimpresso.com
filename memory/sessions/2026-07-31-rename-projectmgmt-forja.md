@@ -1,9 +1,18 @@
 ---
-id: sessions-2026-07-31-rename-projectmgmt-forja
-type: session
-authority: historical
-lifecycle: ativo
 date: "2026-07-31"
+topic: "Rename Modules/ProjectMgmt -> Modules/Forja (PHP + Pages), deadlink-gate rename-aware e as 3 rodadas de refutacao que o GT-G5 forcou"
+prs: [5089, 5096, 5104]
+related_adrs:
+  - 0088-module-rename-php-only
+  - 0316-esquecimento-real-adr-tombstone
+  - 0275-calendario-promocao-gates-sdd
+outcomes:
+  - "Rename entregue e verificado em prod: 8/8 telas /project-mgmt/* respondem 302 (nenhuma 500 = PSR-4 renomeado carrega)"
+  - "deadlink-gate resolve PATH RENOMEADO pelo rename-map classe A (6 checks novos, 4 bite): 47 refs resolvidas, baseline 1096->1061"
+  - "Rodada 3 da refutacao evitou regressao funcional: colisao de chave Forja fazia o LegacyMenuAdapter descartar o topnav do modulo (nav sumiria em 8 telas)"
+  - "Pages moveram por MEDICAO, nao por gosto: precedente no disco + o -3 do module-grades rastreado ate ModuleGradeService:643 (D3.c 3->0)"
+  - "Erro meu revertido: a varredura reescreveu a lapide de 07-28 em proibicoes.md, que cita literalmente o nome historico do teste"
+  - "LC-08 34->35: rodei UM modo do gate e chamei de verde, 2x na mesma sessao"
 ---
 
 # Rename `Modules/ProjectMgmt` → `Modules/Forja` — e as 3 rodadas que o gate forçou

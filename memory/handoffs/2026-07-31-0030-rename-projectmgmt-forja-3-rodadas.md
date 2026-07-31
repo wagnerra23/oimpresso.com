@@ -1,9 +1,19 @@
 ---
-id: handoffs-2026-07-31-0030-rename-projectmgmt-forja
-type: handoff
-authority: historical
-lifecycle: ativo
 date: "2026-07-31"
+time: "00:30 BRT"
+slug: "rename-projectmgmt-forja-3-rodadas"
+tldr: "ProjectMgmt renomeado pra Forja (namespace + Pages + governanca) e o deadlink-gate passou a resolver PATH RENOMEADO pelo rename-map, pagando 47 refs e derrubando o baseline 1096->1061. O gate GT-G5 forcou 3 rodadas de refutacao (5,8% -> 2,1% -> 2,6%, 35 achados): a rodada 3 achou que modules_statuses[Forja] colidia com core_topnavs[Forja] e o LegacyMenuAdapter descartava o topnav do modulo — a nav sumiria em 8 telas. Merge admin no #5089 (ledger sem entry, declarado); #5096 fechou limpo. Aberto: a BUSCA nao sabe do rename (27 ADRs citam ProjectMgmt, 6 citam Forja, sem sinonimo) — e classe, vale pra Copiloto->Jana tambem."
+prs: [5089, 5096, 5104]
+decided_by: [W]
+related_adrs:
+  - 0088-module-rename-php-only
+  - 0070-jira-style-task-management-current-md-removed
+  - 0160-scoped-scorecards
+next_steps:
+  - "Decidir o alias de busca: sinonimo no Meilisearch OU expansao de query no decisions-search OU aceitar e documentar (classe — vale pra Copiloto->Jana e PontoWr2->Ponto)"
+  - "Migrar o cockpit da Forja (ScorecardBuilderService + Services/Forja/* + team-mcp/Forja/Cockpit) do TeamMcp pra Modules/Forja — e o que este rename destravou"
+  - "PAINEL-SISTEMA.md nao regenera: system-map --write recusa por path morto Modules/SRS (ADR 0357) — falha identica em main, pre-existente"
+  - "Pest (Ponto) falha em main desde 07-28 e Pest (KB) desde 07-30 17:51 — ambos anteriores a este trabalho"
 ---
 
 # 2026-07-31 00:30 — `ProjectMgmt` → `Forja`: 2 PRs mergeados, 3 rodadas de refutação, 1 nav salva

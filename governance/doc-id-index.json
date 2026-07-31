@@ -1262,6 +1262,8 @@
     "2026-07-30-1300-refutacao-pr5069-lote-documental": "memory/handoffs/2026-07-30-1300-refutacao-pr5069-lote-documental.md",
     "2026-07-30-documentation-loop-primeiro-recibo-real": "memory/sessions/2026-07-30-documentation-loop-primeiro-recibo-real.md",
     "2026-07-30-mcp-scopes-apagados-por-save-de-role": "memory/sessions/2026-07-30-mcp-scopes-apagados-por-save-de-role.md",
+    "2026-07-31-0030-rename-projectmgmt-forja-3-rodadas": "memory/handoffs/2026-07-31-0030-rename-projectmgmt-forja-3-rodadas.md",
+    "2026-07-31-rename-projectmgmt-forja": "memory/sessions/2026-07-31-rename-projectmgmt-forja.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -1285,7 +1287,6 @@
     "governance-scorecards-screen-grade-board-2026-05-30": "memory/governance/scorecards/SCREEN-GRADE-BOARD-2026-05-30.md",
     "governance-screen-grades-pilot": "memory/governance/screen-grades-pilot.md",
     "governance-trust-tiers": "memory/governance/TRUST-TIERS.md",
-    "handoffs-2026-07-31-0030-rename-projectmgmt-forja": "memory/handoffs/2026-07-31-0030-rename-projectmgmt-forja-3-rodadas.md",
     "memory-requisitos-produto-telas-ajuste-estoque-relatorio-casos": "memory/requisitos/Produto/_telas/ajuste-estoque-relatorio.casos.md",
     "memory-requisitos-produto-telas-bom-combo-casos": "memory/requisitos/Produto/_telas/bom-combo.casos.md",
     "memory-requisitos-produto-telas-estoque-inicial-casos": "memory/requisitos/Produto/_telas/estoque-inicial.casos.md",
@@ -2213,7 +2214,6 @@
     "sessions-2026-07-28-sdd-teammcp-hub": "memory/sessions/2026-07-28-sdd-teammcp-hub.md",
     "sessions-2026-07-28-sdd-vestuario-etiquetas": "memory/sessions/2026-07-28-sdd-vestuario-etiquetas.md",
     "sessions-2026-07-29-kb-classificacao-categoria-medicao": "memory/sessions/2026-07-29-kb-classificacao-categoria-medicao.md",
-    "sessions-2026-07-31-rename-projectmgmt-forja": "memory/sessions/2026-07-31-rename-projectmgmt-forja.md",
     "templates-herdados": "memory/requisitos/_Geral/topicos/templates-herdados.md"
   },
   "unstamped": [
@@ -3320,9 +3320,9 @@
     "by_source": {
       "unstamped": 1093,
       "derived-adr": 366,
-      "stamped": 953,
-      "derived-handoffs": 345,
-      "derived-sessions": 550
+      "stamped": 951,
+      "derived-handoffs": 346,
+      "derived-sessions": 551
     }
   }
 }
