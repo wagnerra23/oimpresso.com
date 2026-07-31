@@ -22,6 +22,7 @@ id: requisitos-teammcp-deprecation-plan
 | 2 | **ADR 0361 ratificada** (`aceito`). O flip de branch protection da 0354 **não** será feito | R2 encerrado |
 | 3 | ⛔ **NADA PODE SER PERDIDO** | **Zero DROP. Zero função aposentada por conveniência.** Todo papel do §Destino — inclusive os ~13 sem dono declarado — ganha receptor. Os 6 acopladores de ADS/Governance são **repontados nesta deprecação**, não deixados pro 6º |
 | 4 | `mcp_ingest_heartbeat` = **MIGRATE**, e **o watcher volta** | Fase 4 atualizada; `CcIngest*` + `IngestLiveness*` migram inteiros, sem poda |
+| 5 | ⚠️ **RECEPTOR CORRIGIDO: o MCP vai pra `Modules/Forja`, não pra Jana** — [W] *"Mcp vai para forja"* (depois do #5089 renomear `ProjectMgmt`→`Forja`) | Supersede a §Destino abaixo, que dizia *"7 de 8 vão pra Jana"*. A [proposal MCP-é-Forja](../../decisions/proposals/2026-07-30-mcp-e-forja-jana-e-usuario.md) já pedia isso e deixava `SyncMemoryWebhookController` em **aberto #2** (*"escreve em `mcp_memory_documents`, que é tabela da Jana e tem `business_id`"*). **Medido e resolvido:** as **2082 linhas são TODAS `business_id=1`** — a coluna é nominal, o canon é conteúdo de plataforma. Vai pra Forja. |
 
 **Consequência da #3 na ordem:** o TeamMcp deixa de depender da morte de ADS/Governance. Ele sai
 **primeiro**, e leva junto o trabalho de repontar quem o consome.
@@ -128,7 +129,7 @@ gh api repos/wagnerra23/oimpresso.com/branches/main/protection --jq '.required_s
 |---|---|---|
 | **E1** | ✅ **FEITO 2026-07-30** — CT 100, banco, tokens, heartbeat e semântica de migration medidos (§E1) | — |
 | **E2** | ✅ **ESCRITA** — [ADR 0361](../../decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md) (`proposto`) | ✋ [W] ratifica — **não bloqueia a E4** |
-| **E2b** | ✅ **[PR #5083](https://github.com/wagnerra23/oimpresso.com/pull/5083)** — `SyncMemoryWebhook` + `Health` → `Modules/Jana/Http/Controllers/Mcp/`, vínculos repontados, gates verdes. **Falta o smoke** (exige merge: o webhook aponta pra prod) | ✋ **[W] aprova — é o risco silencioso (R6)** |
+| **E2b** | ✅ **[PR #5083](https://github.com/wagnerra23/oimpresso.com/pull/5083)** moveu `SyncMemoryWebhook` + `Health` pra Jana e **provou o R6 em prod** (webhook `last_response 200`; ADR 0361 chegou em `mcp_memory_documents`). **Corrigido no mesmo dia:** com a decisão #5, os 2 controllers **+ o route group `/api/mcp`** foram pra `Modules/Forja`. URLs e names inalterados. | ✋ [W] — R6 já provado |
 | **E3** | MIGRATE `mcp_tokens` + `mcp_actors` pro receptor · smoke com token real do time (R1) | ✋ [W] confere |
 | **E4** | Migrar as 4 tools MCP + patch nos 4 acopladores do Jana | ✋ [W] aprova |
 | **E5** | Remover `Modules/TeamMcp/` + telas `/forja` + permissions + `modules_statuses.json` | ✋ [W] aprova |
@@ -224,9 +225,9 @@ Por que ninguém viu: o arquivo tem **9 `it()`, só 3 com `->skip`** — os 4 qu
 são pulados**. Ele está no testsuite do `phpunit.xml` (`Modules/Jana/Tests/Feature`) mas **fora da
 allowlist** `.github/ci-sqlite-pest.list` → nunca roda. Verde por não-execução.
 
-**A E2b conserta sozinha:** ao devolver o controller pra `Modules\Jana\Http\Controllers\Mcp`, a
-referência volta a resolver. E o teste é evidência independente de que o receptor certo é a Jana — ele
-foi escrito quando o controller era dela.
+**A E2b conserta sozinha:** o teste voltou a resolver quando o controller saiu do TeamMcp. Ele agora aponta pra
+`Modules\Forja\Http\Controllers\Mcp` (receptor final, decisão #5). O que o teste prova, de qualquer forma, é que o
+controller **nunca foi do TeamMcp**: foi escrito quando ele morava fora de lá.
 
 ### Buraco no §Destino por função — ele cobre ~metade do módulo
 

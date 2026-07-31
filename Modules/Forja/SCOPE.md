@@ -15,10 +15,13 @@ contains:
   - "DataController + InstallController (boilerplate)"
   # Absorvido em Fase 3.7 PR-1 (2026-05-06):
   - "Admin/ProjectsController — gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc); URL /ads/admin/projects mantida"
+  # MCP endpoints — recebidos de Modules/Jana em 2026-07-30 ([W] "MCP vai para Forja")
+  - "Mcp/SyncMemoryWebhookController — webhook GitHub → mcp_memory_documents; URL /api/mcp/sync-memory inalterada"
+  - "Mcp/HealthController — health/version/cycle-active; URLs /api/mcp/* inalteradas"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
   - "Skills governance → Modules/ADS"
-  - "MCP server admin → Modules/TeamMcp"
+  - "Painel/tokens do MCP (TeamMcp) — em deprecação; endpoints /api/mcp JÁ são daqui"
   - "Knowledge browsing → Modules/KB"
   - "Chat IA → Modules/Jana"
 trust_required: L2

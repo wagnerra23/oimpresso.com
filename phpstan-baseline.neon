@@ -12951,7 +12951,7 @@ parameters:
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
-			path: Modules/Jana/Http/Controllers/Mcp/SyncMemoryWebhookController.php
+			path: Modules/Forja/Http/Controllers/Mcp/SyncMemoryWebhookController.php
 
 		-
 			message: '#^Anonymous function should return Illuminate\\Support\\Collection\<int, array\{task_id\: mixed, title\: mixed, module\: mixed, owner\: mixed, sprint\: mixed, priority\: mixed, estimate_h\: mixed, blocked_by\: mixed, \.\.\.\}\> but returns Illuminate\\Support\\Collection\<int, array\{task_id\: mixed, title\: mixed, module\: mixed, owner\: mixed, sprint\: mixed, priority\: mixed, estimate_h\: mixed, blocked_by\: mixed, \.\.\.\}\>\.$#'
