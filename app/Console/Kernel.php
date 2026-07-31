@@ -770,47 +770,27 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // ADS Reviewer (T11 G-Eval) — review automático cada 15min de decisions sem score.
-        $schedule->command('ads:review-decisions --limit=10')
-            ->everyFifteenMinutes()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule ADS Reviewer (ads:review-decisions) FALHOU'
-                );
-            });
-
-        // ADS Pattern Learning (T15 Wilson Score) — diário 02:00.
-        $schedule->command('ads:learn-patterns --business=all --detect-drift')
-            ->dailyAt('02:00')
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Auto Task Generator (T7 Self-Instruct) — horário de 9h às 18h.
-        $schedule->command('ads:auto-generate-tasks')
-            ->cron('0 9-18 * * 1-5')
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Planner (T9 PlannerAgent) — decompõe decisions complexas a cada 10min.
-        $schedule->command('ads:plan-decisions --limit=3')
-            ->everyTenMinutes()
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Brain B — processa decisions com destination=brain_b a cada 5 min.
-        // Custo estimado ~$0.05/dia em prod com prompt caching Sonnet. Limit=5
-        // por execução evita gastos descontrolados; ajustar via Policy se necessário.
-        $schedule->command('ads:process-brain-b --limit=5')
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule ADS Brain B (ads:process-brain-b) FALHOU'
-                );
-            });
+        // ── ADS · 5 schedules REMOVIDOS em 2026-07-31 (decisão [W]) ──────────────
+        // Eram: ads:review-decisions (15min) · ads:learn-patterns (02:00) ·
+        // ads:auto-generate-tasks (9-18h úteis) · ads:plan-decisions (10min) ·
+        // ads:process-brain-b (5min). Os cinco alimentavam `mcp_dual_brain_decisions`.
+        //
+        // POR QUE SAÍRAM, medido em prod 2026-07-30/31 (não estimado):
+        //   - 36.862 linhas acumuladas, `resolved_by` em 41 (0,11%);
+        //   - `pr_url NOT NULL` = 0 e `commit_sha NOT NULL` = 0 — nenhuma decisão
+        //     virou PR ou commit em ~3 meses;
+        //   - `outcome` em 100% no DEFAULT da coluna ('cancelled'), que o próprio
+        //     DecisionPresenter exibe como "Aguardando você decidir": a fila nunca
+        //     saiu do estado inicial, e sem outcome o PatternLearning não aprende.
+        //   - cadência medida: +204 linhas em ~24h.
+        //
+        // O produtor externo (daemon systemd `ads-brain-a` no CT 100, que fazia poll
+        // de /api/ads/*) foi desligado no mesmo movimento — desligar só os crons
+        // deixaria a escrita em vôo pela outra ponta.
+        //
+        // O Governance incorpora a POLÍTICA do ADS (PolicyEngine + GovernanceRules
+        // + mcp_governance_rules); o núcleo dual-brain não tem receptor e acaba.
+        // Ver ADR de deprecação (supersedes 0145) + memory/requisitos/ADS/DEPRECATION-PLAN.md.
 
         // G1 P0 AUDIT-SENIOR-2026-05-25 §6 — D7.d LGPD purge job daily 03:00 BRT.
         // Aplica Modules/Jana/Config/retention.php sobre 7 entidades PII-relevantes

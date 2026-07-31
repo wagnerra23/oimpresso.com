@@ -26,8 +26,6 @@ use Modules\ADS\Console\Commands\LearnPatternsCommand;
 use Modules\ADS\Console\Commands\ReviewDecisionsCommand;
 use Modules\ADS\Console\Commands\AutoGenerateTasksCommand;
 use Modules\ADS\Console\Commands\PlanDecisionsCommand;
-use Modules\ADS\Console\Commands\SkillScaffoldCommand;
-use Modules\ADS\Services\ScaffoldSkillFromMissionService;
 
 class AdsServiceProvider extends ServiceProvider
 {
@@ -44,7 +42,6 @@ class AdsServiceProvider extends ServiceProvider
                 ReviewDecisionsCommand::class,
                 AutoGenerateTasksCommand::class,
                 PlanDecisionsCommand::class,
-                SkillScaffoldCommand::class,
                 AdsHealthCommand::class,
             ]);
         }
@@ -69,7 +66,6 @@ class AdsServiceProvider extends ServiceProvider
         $this->app->singleton(DecisionLinksService::class);
         $this->app->singleton(UserScopeService::class);
         $this->app->singleton(ContextForTaskService::class);
-        $this->app->singleton(ScaffoldSkillFromMissionService::class);
     }
 
     protected function registerConfig(): void

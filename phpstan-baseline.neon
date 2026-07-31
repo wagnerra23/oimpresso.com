@@ -172,31 +172,31 @@ parameters:
 			message: '#^Anonymous function has an unused use \$mission\.$#'
 			identifier: closure.unusedUse
 			count: 1
-			path: Modules/ADS/Services/ScaffoldSkillFromMissionService.php
+			path: Modules/Jana/Services/ScaffoldSkillFromMissionService.php
 
 		-
-			message: '#^Constant Modules\\ADS\\Services\\ScaffoldSkillFromMissionService\:\:META_SLUG is unused\.$#'
+			message: '#^Constant Modules\\Jana\\Services\\ScaffoldSkillFromMissionService\:\:META_SLUG is unused\.$#'
 			identifier: classConstant.unused
 			count: 1
-			path: Modules/ADS/Services/ScaffoldSkillFromMissionService.php
+			path: Modules/Jana/Services/ScaffoldSkillFromMissionService.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$body_markdown\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/ADS/Services/SkillsService.php
+			path: Modules/Jana/Services/SkillsService.php
 
 		-
 			message: '#^Parameter \#2 \$attributes of static method App\\Util\\OtelHelper\:\:span\(\) expects array\<string, mixed\>, Closure given\.$#'
 			identifier: argument.type
 			count: 2
-			path: Modules/ADS/Services/SkillsService.php
+			path: Modules/Jana/Services/SkillsService.php
 
 		-
 			message: '#^Static method App\\Util\\OtelHelper\:\:span\(\) invoked with 2 parameters, 3 required\.$#'
 			identifier: arguments.count
 			count: 2
-			path: Modules/ADS/Services/SkillsService.php
+			path: Modules/Jana/Services/SkillsService.php
 
 		-
 			message: '#^Offset ''ok'' on array\{ok\: bool, output\: mixed, error\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'

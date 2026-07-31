@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Modules\ADS\Http\Requests\StoreSkillVersionRequest;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\ADS\Services\SkillsService;
+use Modules\Jana\Services\SkillsService;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Entities\Mcp\McpSkill;
 use Modules\Jana\Entities\Mcp\McpSkillApproval;
