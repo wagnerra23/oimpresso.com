@@ -67,7 +67,7 @@
                           "Modules/Superadmin/Entities/SuperadminFrontendPage.php",
                           "Modules/Forja/Entities/CoworkHandoff.php",
                           "Modules/Forja/Entities/McpActor.php",
-                          "Modules/TeamMcp/Entities/McpIngestHeartbeat.php",
+                          "Modules/Forja/Entities/McpIngestHeartbeat.php",
                           "Modules/Vestuario/Entities/VestuarioSetting.php",
                           "Modules/VozDoCliente/Entities/Sinal.php",
                           "Modules/Woocommerce/Entities/WoocommerceSyncLog.php"

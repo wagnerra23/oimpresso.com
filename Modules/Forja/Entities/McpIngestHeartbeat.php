@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Entities;
+namespace Modules\Forja\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * (heartbeat é sinal de infra/máquina, não de tenant). NUNCA adicionar global
  * scope de business aqui.
  *
- * @see Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController (writer)
+ * @see Modules\Forja\Http\Controllers\Mcp\CcIngestController (writer)
  *
  * @property string $host
  * @property \Illuminate\Support\Carbon|null $last_ingest_at

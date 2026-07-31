@@ -15,6 +15,8 @@ contains:
   - "ScorecardController — G1 FICHA Wave 22 esqueleto tela /team-mcp/scorecard (governance maturity per-actor)"
   - "ForjaController — cockpit do cowork loop /forja (absorção, não módulo novo): 6 abas projetando mcp_tasks project=FORJA + git/ADR/sessão + gates; aba Triagem real + dossiê"
 not_contains:
+  - "Ingest de sessões Claude Code (CcIngestController/Service/Request · McpIngestHeartbeat · IngestLivenessService) → Modules/Forja ([W] 2026-07-31)"
+  - "URL POST /api/cc/ingest → registrada por Modules/Forja; endereço INALTERADO (cada watcher local aponta pra ele)"
   - "Loop de handoff zero-paste (CoworkHandoff · 4 tools MCP Handoff* · HandoffIngest/LeverService · GitMainResolver · cowork_handoffs) → Modules/Forja ([W] 2026-07-31)"
   - "handoff:ingest · handoff:stale-alert → Modules/Forja (o schedule do Kernel segue apontando pra signature, que não mudou)"
   - "Identidade do MCP (McpActor · ActorResolver · McpActorRepository · McpTokenIssuer · mcp_actors) → Modules/Forja ([W] 2026-07-31)"

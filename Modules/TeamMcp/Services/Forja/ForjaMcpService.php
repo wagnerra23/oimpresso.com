@@ -6,7 +6,7 @@ namespace Modules\TeamMcp\Services\Forja;
 
 use App\Util\OtelHelper;
 use Modules\Forja\Entities\CoworkHandoff;
-use Modules\TeamMcp\Entities\McpIngestHeartbeat;
+use Modules\Forja\Entities\McpIngestHeartbeat;
 use Modules\TeamMcp\Services\PrChecksResolver;
 
 /**

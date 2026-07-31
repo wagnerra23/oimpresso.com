@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController;
+use Modules\Forja\Http\Controllers\Mcp\CcIngestController;
 
 uses(Tests\TestCase::class);
 
@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  * monta mcp_cc_sessions + mcp_cc_messages (+ heartbeat best-effort) sqlite-friendly
  * sob demanda; sem RefreshDatabase. Skipa no MySQL persistente do nightly (US-GOV-021).
  *
- * @see Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController::ingest
+ * @see Modules\Forja\Http\Controllers\Mcp\CcIngestController::ingest
  */
 
 function ensureCcIngestTables(): void

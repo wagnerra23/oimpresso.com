@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\TeamMcp\Http\Controllers\Mcp;
+namespace Modules\Forja\Http\Controllers\Mcp;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -12,7 +12,7 @@ use Modules\Jana\Entities\Mcp\McpCcBlob;
 use Modules\Jana\Entities\Mcp\McpCcMessage;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 use Modules\Jana\Services\Privacy\PiiRedactor;
-use Modules\TeamMcp\Entities\McpIngestHeartbeat;
+use Modules\Forja\Entities\McpIngestHeartbeat;
 
 /**
  * MEM-CC-1 — Endpoint POST /api/cc/ingest pra watcher local de cada dev

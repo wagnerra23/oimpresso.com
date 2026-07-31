@@ -92,7 +92,7 @@ class WhatsActiveTool extends Tool
             // Se a tabela de heartbeat nem existe (feature não-deployada), não cria lobo:
             // mantém o all-clear original (sem sinal de liveness pra contradizê-lo).
             if (Schema::hasTable('mcp_ingest_heartbeat')) {
-                $ingest = app(\Modules\TeamMcp\Services\IngestLivenessService::class)->summary();
+                $ingest = app(\Modules\Forja\Services\IngestLivenessService::class)->summary();
                 if ($ingest['fresh'] === 0) {
                     return Response::text(
                         "⚠️ Nenhuma sessão Claude Code vista nas últimas {$hours}h — MAS o pipeline de "

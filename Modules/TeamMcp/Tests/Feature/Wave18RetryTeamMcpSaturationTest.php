@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Modules\TeamMcp\Http\Requests\CcIngestRequest;
+use Modules\Forja\Http\Requests\CcIngestRequest;
 use Modules\Forja\Http\Requests\StoreActorRequest;
-use Modules\TeamMcp\Services\CcIngestService;
+use Modules\Forja\Services\CcIngestService;
 use Modules\Forja\Services\McpActorRepository;
 
 uses(Tests\TestCase::class);
@@ -22,7 +22,7 @@ uses(Tests\TestCase::class);
  *
  * Pareia com Wave18ServicesExtractionTest (não substitui).
  *
- * @see Modules\TeamMcp\Services\CcIngestService
+ * @see Modules\Forja\Services\CcIngestService
  * @see Modules\Forja\Services\McpActorRepository
  */
 describe('Wave 18 RETRY — TeamMcp Services novas (D4)', function () {
@@ -70,7 +70,7 @@ describe('Wave 18 RETRY — TeamMcp Services novas (D4)', function () {
     });
 
     it('CcIngestService usa OtelHelper canônico (3 spans declarados)', function () {
-        $source = file_get_contents(__DIR__ . '/../../Services/CcIngestService.php');
+        $source = file_get_contents(base_path('Modules/Forja/Services/CcIngestService.php'));
 
         expect($source)->toContain('use App\Util\OtelHelper');
         expect($source)->toContain("OtelHelper::spanBiz('teammcp.cc.ingest_session'");

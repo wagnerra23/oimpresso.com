@@ -31,7 +31,7 @@ Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
 Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
-Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
+Modules/Forja/Tests/Feature/IngestHeartbeatTest.php
 # KB drift-detector persiste veredito doc↔código em kb_nodes.code_drift_state (Fase A1) — sqlite-safe (kbBootstrapSchema, coluna json, sem FK/ENUM MySQL-only).
 Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
 # KB code-scan (Fase B, ADR 0350) — gera KbNode reference a partir de AST PHP. sqlite-safe (kbBootstrapSchema, DB::table; php-parser das dev deps).
@@ -42,14 +42,14 @@ Modules/KB/Tests/Feature/KbCodeGraphTest.php
 # Suas asserções de contagem por-business + multi-tenant divergem no sqlite :memory:
 # da lane compartilhada (o comando enxerga resíduo que a re-query do teste não vê;
 # artefato de conexão, mesmo motivo de estoque-pest/essentials-pest). Passa em MySQL.
-Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
+Modules/Forja/Tests/Feature/IngestLivenessTest.php
 # Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
 # dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.
 Modules/Governance/Tests/Feature/IngestLivenessCheckerTest.php
 # Regressão do validate-strip no /api/cc/ingest (MEM-CC-1, fix 2026-07-17): prova
 # content_text/tokens persistindo (pré-fix gravava skeletons NULL). Sintética em
 # beforeEach → sqlite-safe.
-Modules/TeamMcp/Tests/Feature/CcIngestPersistsFieldsTest.php
+Modules/Forja/Tests/Feature/CcIngestPersistsFieldsTest.php
 # Loop de Handoff Zero-Paste (ADR 0283): PR-6a submit (novo) + PR-1 ingest
 # (regressão do refactor que extraiu HandoffIngestService) + PR-7 levers
 # (re-disparar/devolver/supersede). Sintéticas em beforeEach → sqlite-safe.

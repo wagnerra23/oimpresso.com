@@ -7,7 +7,7 @@ namespace Modules\Governance\Services\Checkers;
 use Modules\Governance\Contracts\DriftChecker;
 use Modules\Governance\Services\DriftCheckResult;
 use Modules\Governance\Services\DriftFinding;
-use Modules\TeamMcp\Services\IngestLivenessService;
+use Modules\Forja\Services\IngestLivenessService;
 
 /**
  * IngestLivenessChecker — o pipe de ingestão Claude Code (MEM-CC-1) parou de receber?
