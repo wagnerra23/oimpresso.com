@@ -11,6 +11,9 @@ use Modules\Forja\Console\Commands\HandoffStaleAlertCommand;
 use Modules\Forja\Console\Commands\GenerateBriefCommand;
 use Modules\Forja\Console\Commands\SkillTierReviewCommand;
 use Modules\Forja\Console\Commands\SeedActorsCommand;
+use Modules\Forja\Services\ProjectDecomposerService;
+use Modules\Forja\Services\ToolRegistry;
+use Modules\Forja\Services\UserScopeService;
 
 /**
  * ServiceProvider do módulo Forja.
@@ -74,6 +77,16 @@ class ForjaServiceProvider extends ServiceProvider
             __DIR__ . '/../Config/brief-retention.php',
             'brief'
         );
+
+        // Registro do ADS, recebido em 2026-07-31 JUNTO com as classes
+        // (`AdsServiceProvider::register` deixou de registrá-las no mesmo PR).
+        // Os 3 consumidores vivos são controllers desta casa:
+        // Admin/ToolsController, Admin/TeamScopesController, Admin/ProjectsController.
+        // `singleton` (e não bind) é o que preserva a semântica anterior — o
+        // ToolRegistry monta 11 tools no construtor.
+        $this->app->singleton(ToolRegistry::class);
+        $this->app->singleton(UserScopeService::class);
+        $this->app->singleton(ProjectDecomposerService::class);
     }
 
     protected function registerConfig(): void

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\ADS\Services\UserScopeService;
+use Modules\Forja\Services\UserScopeService;
 
 /**
  * UI para Wagner gerenciar quem pode tocar quais módulos.

@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\ADS\Tools;
+namespace Modules\Forja\Tools;
 
 use Symfony\Component\Process\Process;
-use Modules\ADS\Contracts\Tool;
+use Modules\Forja\Contracts\Tool;
 
 /**
  * Tool: inspeção git (log, show, diff). Read-only.

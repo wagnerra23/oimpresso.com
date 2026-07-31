@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\ADS\Tools;
+namespace Modules\Forja\Tools;
 
-use Modules\ADS\Contracts\Tool;
+use Modules\Forja\Contracts\Tool;
 use Laravel\Boost\Mcp\Tools\ApplicationInfo;
 use Laravel\Boost\Mcp\Tools\BrowserLogs;
 use Laravel\Boost\Mcp\Tools\DatabaseConnections;

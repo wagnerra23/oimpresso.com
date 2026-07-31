@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use Modules\ADS\Services\ContextForTaskService;
 use Modules\ADS\Services\DecisionLinksService;
 use Modules\Governance\Services\PolicyEngine;
-use Modules\ADS\Services\UserScopeService;
+use Modules\Forja\Services\UserScopeService;
 
 uses(Tests\TestCase::class);
 

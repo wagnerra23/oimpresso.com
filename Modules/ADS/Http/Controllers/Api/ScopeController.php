@@ -5,7 +5,7 @@ namespace Modules\ADS\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Modules\ADS\Services\UserScopeService;
+use Modules\Forja\Services\UserScopeService;
 
 /**
  * Endpoint que Claude Code (de qualquer dev junior) consulta ANTES

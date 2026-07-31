@@ -48,7 +48,7 @@
 
 Wagner usa `/ads/admin/projects` (ProjectsController refatorado D4 Wave 16) pra:
 - Criar projects estratégicos (PROJ-YYYYMM-NNN auto-gerado)
-- Decompor em parts via ProjectDecomposerService (ADS)
+- Decompor em parts via ProjectDecomposerService (Forja, desde 2026-07-31)
 - Acompanhar viability_score + decision (pending/approved/rejected)
 - Arquivar projects concluídos (preserva audit trail)
 

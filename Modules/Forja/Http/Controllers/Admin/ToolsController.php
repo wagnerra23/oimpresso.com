@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\ADS\Services\ToolRegistry;
+use Modules\Forja\Services\ToolRegistry;
 
 class ToolsController extends Controller
 {

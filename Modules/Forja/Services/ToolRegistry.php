@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\ADS\Services;
+namespace Modules\Forja\Services;
 
-use Modules\ADS\Contracts\Tool;
-use Modules\ADS\Tools\BoostToolAdapter;
-use Modules\ADS\Tools\GitCommitWipTool;
-use Modules\ADS\Tools\GitInspectTool;
-use Modules\ADS\Tools\LogReaderTool;
-use Modules\ADS\Tools\MetricsQueryTool;
-use Modules\ADS\Tools\RunTestTool;
-use Modules\ADS\Tools\WriteFileTool;
+use Modules\Forja\Contracts\Tool;
+use Modules\Forja\Tools\BoostToolAdapter;
+use Modules\Forja\Tools\GitCommitWipTool;
+use Modules\Forja\Tools\GitInspectTool;
+use Modules\Forja\Tools\LogReaderTool;
+use Modules\Forja\Tools\MetricsQueryTool;
+use Modules\Forja\Tools\RunTestTool;
+use Modules\Forja\Tools\WriteFileTool;
 
 /**
  * Observabilidade D9.a (ADR 0155): registry lookup hashmap; Tracer via

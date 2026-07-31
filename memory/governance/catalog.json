@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 598,
-    "edges": 877,
+    "nodes": 600,
+    "edges": 885,
     "by_node_type": {
       "module": 41,
       "table": 70,
       "adr": 31,
-      "component": 411,
+      "component": 413,
       "api": 45
     },
     "by_edge_type": {
@@ -39,9 +39,9 @@
       "providesApi": 45,
       "charteredByAdr": 31,
       "governedByAdr": 86,
-      "hasComponent": 411,
-      "dependsOn": 117,
-      "delegatesTo": 115,
+      "hasComponent": 413,
+      "dependsOn": 120,
+      "delegatesTo": 118,
       "migratesTo": 1
     },
     "dangling": 0
@@ -737,10 +737,10 @@
       "desc": "Wilson lower bound, padrões aprendidos"
     },
     {
-      "id": "component:ADS/Decision Links Service / User Scope Service / Context for Task Service",
+      "id": "component:ADS/Decision Links Service / Context for Task Service",
       "type": "component",
       "module": "ADS",
-      "name": "Decision Links Service / User Scope Service / Context for Task Service",
+      "name": "Decision Links Service / Context for Task Service",
       "desc": ""
     },
     {
@@ -758,10 +758,10 @@
       "desc": "aprende de outcomes"
     },
     {
-      "id": "component:ADS/Planner Service / Project Decomposer Service",
+      "id": "component:ADS/Planner Service",
       "type": "component",
       "module": "ADS",
-      "name": "Planner Service / Project Decomposer Service",
+      "name": "Planner Service",
       "desc": ""
     },
     {
@@ -791,13 +791,6 @@
       "module": "ADS",
       "name": "SkillScaffoldCommand",
       "desc": "artisan skill:scaffold"
-    },
-    {
-      "id": "component:ADS/Tool Registry",
-      "type": "component",
-      "module": "ADS",
-      "name": "Tool Registry",
-      "desc": "MCP tools internos"
     },
     {
       "id": "component:Arquivos/DataController",
@@ -2051,6 +2044,27 @@
       "module": "Forja",
       "name": "SearchController",
       "desc": "busca cross-task fulltext"
+    },
+    {
+      "id": "component:Forja/Services/ProjectDecomposerService",
+      "type": "component",
+      "module": "Forja",
+      "name": "Services/ProjectDecomposerService",
+      "desc": "decompõe Project em Parts via Sonnet; ainda importa DecisionLinksService e Ai/Agents/ProjectDecomposerAgent do ADS (resíduo transitório: sai com o núcleo do ADS)"
+    },
+    {
+      "id": "component:Forja/Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,MetricsQuery,RunTest,WriteFile}",
+      "type": "component",
+      "module": "Forja",
+      "name": "Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,MetricsQuery,RunTest,WriteFile}",
+      "desc": "catálogo de tools (Anthropic tool use); consumido por Admin/ToolsController e por KB Admin/GraphController"
+    },
+    {
+      "id": "component:Forja/Services/UserScopeService",
+      "type": "component",
+      "module": "Forja",
+      "name": "Services/UserScopeService",
+      "desc": "permissões (usuário x módulo) sobre `mcp_user_module_access`; é quem o WriteFileTool consulta ANTES de escrever — regra do servidor vence a regra local"
     },
     {
       "id": "component:Forja/TasksAdminController",
@@ -4826,6 +4840,13 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "ProjectDecomposerService"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "ProjectsController (Jira-style)"
     },
     {
@@ -4841,6 +4862,20 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "TeamScopes (RBAC actor capabilities)"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "ToolRegistry + Contracts/Tool + Tools/* (7)"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "UserScopeService (permissões usuário × módulo)"
     },
     {
       "from": "module:ADS",
@@ -4861,6 +4896,13 @@
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
+      "note": "ProjectDecomposerService"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "ProjectsController (Jira-style)"
     },
     {
@@ -4876,6 +4918,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "TeamScopes (RBAC actor capabilities)"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "ToolRegistry + Contracts/Tool + Tools/* (7)"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "UserScopeService (permissões usuário × módulo)"
     },
     {
       "from": "module:ADS",
@@ -5030,7 +5086,7 @@
     },
     {
       "from": "module:ADS",
-      "to": "component:ADS/Decision Links Service / User Scope Service / Context for Task Service",
+      "to": "component:ADS/Decision Links Service / Context for Task Service",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -5048,7 +5104,7 @@
     },
     {
       "from": "module:ADS",
-      "to": "component:ADS/Planner Service / Project Decomposer Service",
+      "to": "component:ADS/Planner Service",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -5073,12 +5129,6 @@
     {
       "from": "module:ADS",
       "to": "component:ADS/SkillScaffoldCommand",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:ADS",
-      "to": "component:ADS/Tool Registry",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7077,6 +7127,24 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/SearchController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/Services/ProjectDecomposerService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,MetricsQuery,RunTest,WriteFile}",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/Services/UserScopeService",
       "type": "hasComponent",
       "source": "contains"
     },

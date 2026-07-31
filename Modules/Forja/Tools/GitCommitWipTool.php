@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\ADS\Tools;
+namespace Modules\Forja\Tools;
 
 use Symfony\Component\Process\Process;
-use Modules\ADS\Contracts\Tool;
+use Modules\Forja\Contracts\Tool;
 
 /**
  * Tool de COMMIT em branch WIP isolada — NUNCA toca main, NUNCA push.

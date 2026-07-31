@@ -88,22 +88,22 @@ PolicyEngine é **firewall**, não recomendação. Ordem de precedência:
 |---|---|---|
 | [`BrainBAgent`](Modules/ADS/Ai/Agents/BrainBAgent.php) | [`BrainBService.php`](Modules/ADS/Services/BrainBService.php) | Policy = REQUIRE_BRAIN_B; ou Brain A escalou |
 | [`PlannerAgent`](Modules/ADS/Ai/Agents/PlannerAgent.php) | [`PlannerService.php`](Modules/ADS/Services/PlannerService.php) | Decompor task pendente em plano executável |
-| [`ProjectDecomposerAgent`](Modules/ADS/Ai/Agents/ProjectDecomposerAgent.php) | [`ProjectDecomposerService.php`](Modules/ADS/Services/ProjectDecomposerService.php) | SPEC novo → quebrar em US-XXX-NNN |
+| [`ProjectDecomposerAgent`](Modules/ADS/Ai/Agents/ProjectDecomposerAgent.php) | [`ProjectDecomposerService.php`](Modules/Forja/Services/ProjectDecomposerService.php) | SPEC novo → quebrar em US-XXX-NNN |
 | [`ReviewerAgent`](Modules/ADS/Ai/Agents/ReviewerAgent.php) | [`ReviewerService.php`](Modules/ADS/Services/ReviewerService.php) | Code review adversarial pré-merge |
 
-## 7 Tools (`Modules/ADS/Tools/`) — capacidades dos Agents
+## 7 Tools (`Modules/Forja/Tools/`) — capacidades dos Agents
 
 | Tool | Uso |
 |---|---|
-| [`GitInspectTool`](Modules/ADS/Tools/GitInspectTool.php) | Read-only: log, blame, diff |
-| [`GitCommitWipTool`](Modules/ADS/Tools/GitCommitWipTool.php) | Commit incremental WIP (não push) |
-| [`LogReaderTool`](Modules/ADS/Tools/LogReaderTool.php) | Tail de `storage/logs/*` |
-| [`MetricsQueryTool`](Modules/ADS/Tools/MetricsQueryTool.php) | Query em `copiloto_memoria_metricas` + observabilidade |
-| [`RunTestTool`](Modules/ADS/Tools/RunTestTool.php) | `vendor/bin/pest --filter=...` (sandbox) |
-| [`WriteFileTool`](Modules/ADS/Tools/WriteFileTool.php) | Sujeito a Policy (BLOCK_ALWAYS bloqueia paths sensíveis) |
-| [`BoostToolAdapter`](Modules/ADS/Tools/BoostToolAdapter.php) | Bridge pra tools do laravel/boost |
+| [`GitInspectTool`](Modules/Forja/Tools/GitInspectTool.php) | Read-only: log, blame, diff |
+| [`GitCommitWipTool`](Modules/Forja/Tools/GitCommitWipTool.php) | Commit incremental WIP (não push) |
+| [`LogReaderTool`](Modules/Forja/Tools/LogReaderTool.php) | Tail de `storage/logs/*` |
+| [`MetricsQueryTool`](Modules/Forja/Tools/MetricsQueryTool.php) | Query em `copiloto_memoria_metricas` + observabilidade |
+| [`RunTestTool`](Modules/Forja/Tools/RunTestTool.php) | `vendor/bin/pest --filter=...` (sandbox) |
+| [`WriteFileTool`](Modules/Forja/Tools/WriteFileTool.php) | Sujeito a Policy (BLOCK_ALWAYS bloqueia paths sensíveis) |
+| [`BoostToolAdapter`](Modules/Forja/Tools/BoostToolAdapter.php) | Bridge pra tools do laravel/boost |
 
-Toolset registrado em [`ToolRegistry.php`](Modules/ADS/Services/ToolRegistry.php).
+Toolset registrado em [`ToolRegistry.php`](Modules/Forja/Services/ToolRegistry.php).
 
 ## §Crítico — 4 níveis HITL (ARQ-0008)
 

@@ -5,6 +5,9 @@ namespace Modules\ADS\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Governance\Services\PolicyEngine;
+// UserScopeService saiu do ADS pra Forja. Aqui ele era resolvido por
+// mesmo-namespace (sem `use`) — por isso nenhum grep de import o encontrava.
+use Modules\Forja\Services\UserScopeService;
 
 /**
  * Observabilidade D9.a (ADR 0155): consolidação multi-source envolve

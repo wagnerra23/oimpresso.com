@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ADS\Services;
+namespace Modules\Forja\Services;
 
 use Illuminate\Support\Facades\DB;
 
