@@ -2,6 +2,7 @@
 id: resources-js-pages-ads-admin-projects-charter
 page: /ads/admin/projects
 component: resources/js/Pages/ads/Admin/Projects.tsx
+related_us: [US-ADS-003]
 related_prototype: n/a (lista bespoke com banda de KPIs — usa <ul> em vez da assinatura tabular/grid dos 5 Padrões de Tela)
 owner: wagner
 status: draft

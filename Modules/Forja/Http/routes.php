@@ -163,7 +163,52 @@ Route::group(
 );
 
 // ===========================================================================
-// 3) Endpoint MCP do Daily Brief — POST /api/mcp/tools/brief-fetch
+// 3) MCP server endpoints (ADR 0053) — prefixo /api/mcp
+// ===========================================================================
+// Públicos (sem auth):
+//   POST /api/mcp/sync-memory  — webhook GitHub (auth via X-MCP-Sync-Token)
+//   GET  /api/mcp/health       — status básico do server
+// Autenticados (Bearer mcp_*):
+//   GET  /api/mcp/health/auth  — info do user/token autenticado
+// Vieram de Modules/Jana em 2026-07-30 (decisão [W] "MCP vai para Forja" —
+// proposal 2026-07-30-mcp-e-forja-jana-e-usuario: o MCP é plataforma/dev, a
+// Jana é o produto do tenant). Medido: mcp_memory_documents tem business_id,
+// mas as 2082 linhas são TODAS business_id=1 — a coluna é nominal; o canon
+// é conteúdo de plataforma. URLs e names (jana.mcp.*) INALTERADOS — renomear
+// namespace é a fase F1-F3 da proposal (gate aditivo), não aqui.
+Route::group(
+    [
+        'middleware' => ['api'],
+        'prefix'     => 'api/mcp',
+        'namespace'  => 'Modules\Forja\Http\Controllers\Mcp',
+    ],
+    function () {
+        // Públicos
+        Route::post('/sync-memory', 'SyncMemoryWebhookController@handle')
+            ->name('jana.mcp.sync-memory');
+        Route::get('/health', 'HealthController@publico')
+            ->name('jana.mcp.health');
+
+        // Drift sentinel (ADR 0256): token DEDICADO MCP_DRIFT_TOKEN checado no
+        // controller (sem mcp.auth/RBAC/user) — vazar revela só o SHA do commit.
+        Route::get('/version', 'HealthController@versao')
+            ->name('jana.mcp.version');
+
+        // G6 (porta de saída do loop): cycle ATIVO pro cron do shipped-log descobrir
+        // cycle+janela sem depender do shipped-log anterior. Mesmo token do /version.
+        Route::get('/cycle-active', 'HealthController@cicloAtivo')
+            ->name('jana.mcp.cycle-active');
+
+        // Autenticados via McpAuth
+        Route::group(['middleware' => 'mcp.auth'], function () {
+            Route::get('/health/auth', 'HealthController@autenticado')
+                ->name('jana.mcp.health.auth');
+        });
+    }
+);
+
+// ===========================================================================
+// 4) Endpoint MCP do Daily Brief — POST /api/mcp/tools/brief-fetch
 // ===========================================================================
 // Ex-Modules/Brief/Routes/api.php, absorvido em 2026-07-30 (ADR 0091).
 // O NOME da tool não mudou (`brief-fetch`) — só o módulo dono. Por isso

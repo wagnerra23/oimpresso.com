@@ -29,6 +29,111 @@ Fica registrado também o achado que a revisão trouxe e que **muda o destino**:
 referenciam. O receptor do `brief-fetch` proposto no corpo (**Jana**) é contestado — ver proposta
 [#5073](https://github.com/wagnerra23/oimpresso.com/pull/5073), que aponta **Forja**.
 
+## ⚠️ ERRATA 2026-07-30 (2ª) — o receptor é **Forja**, não Jana; e 5 medições do corpo estão erradas
+
+> Origem: execução do plano parada na **E1**, retomada quando [W] apontou que a Forja tinha sido
+> postada (*"Forja foi postado reconfira"*). **Nada de código foi removido nem movido** nesta rodada.
+>
+> **Recibo:** medido em `origin/main` @ `522a392272` (2026-07-30, **re-medido** — a 1ª passada foi
+> em `14b0b85061` e envelheceu em 14 commits **no meio da própria análise**), com `git grep`/`git
+> ls-tree` contra a **ref remota**, não contra checkout local. O clone da sessão estava **raso**
+> (`--is-shallow-repository=true`) e **−101 commits** — nenhuma data de `git log` foi usada como
+> recibo (lápide §5 2026-07-24).
+
+### 1. O receptor: **Forja** — e ele passou a existir no meio desta análise
+
+O corpo aponta **Jana**; as duas propostas mergeadas apontam **Forja**:
+
+| Fonte | Diz |
+|---|---|
+| corpo deste plano | `brief-fetch` → **Jana** |
+| [`mcp-e-forja-jana-e-usuario`](../../decisions/proposals/2026-07-30-mcp-e-forja-jana-e-usuario.md) ([#5072](https://github.com/wagnerra23/oimpresso.com/pull/5072)) | errata explícita: → **Forja** |
+| [`brief-se-divide-em-dois`](../../decisions/proposals/2026-07-30-brief-se-divide-em-dois.md) ([#5073](https://github.com/wagnerra23/oimpresso.com/pull/5073)) | → **Forja** |
+
+**A medição dá razão a Forja, por um eixo que o corpo não usou — tenancy:**
+
+| | |
+|---|---|
+| `mcp_briefs` | **9 colunas, nenhuma `business_id`** (`database/schema/mysql-schema.sql`) — estado singleton do projeto |
+| conteúdo | cycle · HITL · PRs · ADRs · SDD · charters = estado de **desenvolvimento**, zero dado de cliente |
+| telas | **0** `.tsx`; consumidores são hooks/skills/6 agentes do `.claude` |
+| `brief.access` | concedida **só em biz=1** |
+| contraste | a Jana **é** tenant — `BriefDiarioAgent` recebe `businessId` no constructor |
+
+Pôr o Brief dentro da Jana instala infra de desenvolvimento **sem tenant** dentro do módulo de IA
+**do cliente** — o erro estrutural que o #5072 diagnostica e que produziu o incidente de 2026-07-29
+(save de papel de tenant apagou os 17 `jana.mcp.*`).
+
+**Destravou no mesmo dia:** [#5089](https://github.com/wagnerra23/oimpresso.com/pull/5089) executou a
+**F5** do #5072 — o módulo `ProjectMgmt` foi renomeado para `Modules/Forja` (rename completo; o nome
+antigo não existe mais na árvore, por isso não é citado aqui como path). O receptor **existe** e já
+tem `Console/`, `Services/`, `Http/`, `Providers/`.
+
+**A F4 NÃO foi executada:** `Modules/Forja/Mcp/` não existe e `Modules/Jana/Mcp/` segue com os **44**
+arquivos (servidor + 40 tools). Isso não bloqueia — só define o corte:
+
+| Peça | Vai para | Por quê |
+|---|---|---|
+| 4 `Services/` + 3 `Console/Commands/` + `Http/` + `Routes/` | **`Modules/Forja/`** direto | a Forja já tem essas pastas; um movimento só, sem duplo-move |
+| `Mcp/Tools/BriefFetchTool` | **`Modules/Forja/Mcp/Tools/`** | `OimpressoMcpServer.php:63` muda **um token** (`\Modules\Brief\…` → `\Modules\Forja\…`). Registro **cross-módulo por FQN já é o padrão vigente** — aquela linha é exatamente isso hoje. Quando a F4 mover `Mcp/` pra Forja, vira referência relativa: limpeza, não migração. |
+
+**Precedente operacional:** o #5089 é a mesma operação e teve de tocar `phpunit.xml`,
+`phpstan-baseline.neon`, `modules_statuses.json` e o `deadlink-gate` (`.mjs` + `.test.mjs`) — os
+mesmos arquivos que o item 2 abaixo aponta como invisíveis à varredura por namespace. Serve de
+checklist pronto para a E4.
+
+### 2. As 5 medições erradas do corpo
+
+| O corpo/prompt afirma | Medido |
+|---|---|
+| `ManufacturingHealthCommand` **quebra** (R3) — *"patch obrigatório"* | É **`@see` em docblock** (`ManufacturingHealthCommand.php:30`, *"pattern referência"*). **Não quebra.** Vira referência morta — higiene de doc, não runtime. |
+| `system-map.mjs` **quebra** (R2) | **Não quebra.** Ele deriva o censo parseando o array `$tools = [` do `OimpressoMcpServer` (`parseToolsRegistry`, `system-map.mjs:490`). O único `Brief` do módulo no `.mjs` é **comentário de exemplo** (L481); os demais `Brief` são `BRIEFING.md` e `BriefDiario` — outros assuntos. |
+| `LeaseBriefSectionService` depende de `Modules\Governance` — buraco, *"não medi de onde vem o lease"* | **Medido: depende de `Modules\Jana\Services\WorkLease\WorkLeaseService`** (`LeaseBriefSectionService.php:8`). **Jana sobrevive → este buraco não existe.** A mesma afirmação errada está no R2 do #5073. |
+| **0 cron** (corpo) · **1 cron** (1ª errata) | **2**, ambos `->environments(['live'])`: `brief:generate` (`Kernel.php:989`, 6×/dia) **e** `skills:tier-review` (`Kernel.php:237`, trimestral, [ADR 0095](../../decisions/0095-skills-tiers-convencao-interna.md)). O filtro da 1ª errata buscou por `brief` e não casa `skills:tier-review`. |
+| **4 acopladores** | 4 **por namespace** (`git grep -lF 'Modules\Brief\'`). A varredura de namespace **não vê** o que referencia por **path**: `phpunit.xml:53` (registra `./Modules/Brief/Tests/Feature` como suíte), `.github/ci-sqlite-pest.list:70`, `phpstan-baseline.neon` (L1033 · L1039), `README.md:62`, + **19 `@see`** em docblock (Governance ×17 · Jana ×2). |
+
+**Dos 4 "acopladores", só 1 é dependência de código real:** `Modules/Jana/Mcp/OimpressoMcpServer.php:63`
+(`\Modules\Brief\Mcp\Tools\BriefFetchTool::class`). Um é teste que sai com o Governance (#6); dois são
+docblock.
+
+### 3. O acoplamento que o corpo não mediu: a direção **outbound**
+
+A Fase 3 varreu só **quem consome o Brief** (inbound). Medindo o inverso — `git grep -n 'use Modules'
+-- 'Modules/Brief/**/*.php'` — o `GenerateBriefCommand` importa **8 serviços de `Modules\Governance`**,
+todos injetando seção no brief (`SddBriefLine` · `PlanHealthBriefLine` · `ShippedLogBriefLine` ·
+`AdrReviewBriefLine` · `AdrPendenteBriefLine` · `ObraParadaBriefLine` · `ExposicaoTier0BriefLine` ·
+`AgentOutcomeBriefSection`), mais 1 da Jana (`TasksSemDonoBriefLine`).
+
+**Consequência que independe do receptor escolhido:** quem receber o `GenerateBriefCommand` herda
+dependência dura de `Modules\Governance`. Quando o Governance cair no **#6**, o brief perde **8 das
+~10 seções** — a menos que esses 8 serviços ganhem receptor antes. Isso não é risco do Governance:
+é pré-requisito da E3 **deste** plano, e o corpo não o registrava.
+
+### 4. `SkillTierReviewCommand` — segue **sem receptor**, agora com o custo medido
+
+O corpo o lista como *"decisão [W] · sem receptor natural"*. Medido, ele **não é comando morto**:
+tem cron **trimestral em `live`** (`skills:tier-review`, `Kernel.php:237`, `quarterlyOn(1, '06:40')`),
+emite relatório append-only sob `memory/governance/` e implementa o loop telemetria→tier da
+[ADR 0095](../../decisions/0095-skills-tiers-convencao-interna.md). Fora de `Modules/Brief` ele tem
+**zero consumidor** (`git grep -lF 'SkillTierReviewCommand'` → nenhum).
+
+[W] não decidiu o destino nesta rodada. **Fica declarado, não decidido** — aposentá-lo exigiria
+emenda à ADR 0095, e inventar receptor é proibido.
+
+### 5. O que esta errata **não** muda
+
+O veredito de que o módulo sai segue de [W]. A Fase 4 segue **PRESERVE em tudo** — este plano
+continua sem `DROP` de tabela. O resíduo *"CT 100 não medido"* segue **fechado** pelo adendo da
+[ordem topológica](../../decisions/proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md)
+(não repetir o número aqui — [proibições §5 2026-07-17](../../proibicoes.md)).
+
+### Nota de método
+
+Os itens 2 e 3 têm **uma causa só**: a Fase 3 mediu com um instrumento que responde uma pergunta
+**parecida** com a que interessava — `git grep -lF 'Modules\Brief\'` responde *"quem importa o
+namespace"*, não *"o que quebra se a pasta sumir"*. Namespace não vê path (`phpunit.xml`), não vê
+docblock, e não vê a direção contrária. Classe **LC-08** do ledger.
+
 ## Fase 1 — Inventário
 
 **Gerado:** `SUPERFICIE.md` — **35 arquivos em 9 papéis** (`module-surface.mjs Brief --write`). Frescor 2026-07-30: `--check` **exit 0**. ⚠️ **O arquivo foi REMOVIDO em 2026-07-30** junto com o módulo: mapa de superfície de módulo inexistente é afirmação falsa. Mesmo precedente de `memory/requisitos/SRS/`, que não tem `SUPERFICIE.md`. A superfície das peças absorvidas vive agora em [`memory/requisitos/Forja/SUPERFICIE.md`](../Forja/SUPERFICIE.md).
