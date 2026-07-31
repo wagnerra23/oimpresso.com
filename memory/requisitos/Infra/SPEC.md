@@ -938,7 +938,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-INFRA-043 · Sentinela tasks:unassigned — flag US todo sem cycle/owner (fecha furo do roadmap)
 
-**Implementado em:** `Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php` · `Modules/Jana/Tests/Feature/TaskRegistry/McpTasksUnassignedCommandTest.php` · verificado@8af585a (2026-07-02) — comando `mcp:tasks:unassigned` (espelha orphans) com Pest · **wiring 2026-07-27:** `app/Console/Kernel.php` (schedule 06:45 BRT) · `Modules/Jana/Services/TasksSemDonoBriefLineService.php` + `Modules/Brief/Console/Commands/GenerateBriefCommand.php` (acceptance #2) · `Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php`
+**Implementado em:** `Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php` · `Modules/Jana/Tests/Feature/TaskRegistry/McpTasksUnassignedCommandTest.php` · verificado@8af585a (2026-07-02) — comando `mcp:tasks:unassigned` (espelha orphans) com Pest · **wiring 2026-07-27:** `app/Console/Kernel.php` (schedule 06:45 BRT) · `Modules/Jana/Services/TasksSemDonoBriefLineService.php` + `Modules/Forja/Console/Commands/GenerateBriefCommand.php` (acceptance #2) · `Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php`
 
 > owner: — · priority: p2 · estimate: 5h · status: done · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
