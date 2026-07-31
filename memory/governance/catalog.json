@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 606,
-    "edges": 911,
+    "nodes": 608,
+    "edges": 917,
     "by_node_type": {
       "module": 42,
       "table": 81,
       "adr": 34,
-      "component": 406,
+      "component": 408,
       "api": 43
     },
     "by_edge_type": {
@@ -39,9 +39,9 @@
       "providesApi": 43,
       "charteredByAdr": 32,
       "governedByAdr": 93,
-      "hasComponent": 406,
-      "dependsOn": 128,
-      "delegatesTo": 123,
+      "hasComponent": 408,
+      "dependsOn": 130,
+      "delegatesTo": 125,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1922,6 +1922,20 @@
       "type": "component",
       "module": "Forja",
       "name": "DataController + InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:Forja/Entities/McpActor + Services/{ActorResolver,McpActorRepository,McpTokenIssuer}",
+      "type": "component",
+      "module": "Forja",
+      "name": "Entities/McpActor + Services/{ActorResolver,McpActorRepository,McpTokenIssuer}",
+      "desc": "Identity Mesh (ADR 0081); tabela `mcp_actors` é cross-business POR DESIGN"
+    },
+    {
+      "id": "component:Forja/Http/Requests/StoreActorRequest · Database/Seeders/McpActorsSeeder · comandos mcp:seed-actors e mcp:rotate-token",
+      "type": "component",
+      "module": "Forja",
+      "name": "Http/Requests/StoreActorRequest · Database/Seeders/McpActorsSeeder · comandos mcp:seed-actors e mcp:rotate-token",
       "desc": ""
     },
     {
@@ -7078,6 +7092,18 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/Entities/McpActor + Services/{ActorResolver,McpActorRepository,McpTokenIssuer}",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/Http/Requests/StoreActorRequest · Database/Seeders/McpActorsSeeder · comandos mcp:seed-actors e mcp:rotate-token",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/InboxController",
       "type": "hasComponent",
       "source": "contains"
@@ -9830,6 +9856,20 @@
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Identidade do MCP (McpActor · ActorResolver · McpActorRepository · McpTokenIssuer · mcp_actors)"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "mcp:seed-actors · mcp:rotate-token"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Mcp/HealthController"
     },
     {
@@ -9885,6 +9925,13 @@
       "from": "module:TeamMcp",
       "to": "module:Forja",
       "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Identidade do MCP (McpActor · ActorResolver · McpActorRepository · McpTokenIssuer · mcp_actors)"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
       "source": "db_tables_consumed→db_tables_owned",
       "note": "mcp_components"
     },
@@ -9901,6 +9948,13 @@
       "type": "dependsOn",
       "source": "db_tables_consumed→db_tables_owned",
       "note": "mcp_tasks"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "mcp:seed-actors · mcp:rotate-token"
     },
     {
       "from": "module:TeamMcp",

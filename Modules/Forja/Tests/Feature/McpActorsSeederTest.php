@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Database\Seeders\McpActorsSeeder;
-use Modules\TeamMcp\Entities\McpActor;
-use Modules\TeamMcp\Services\ActorResolver;
+use Modules\Forja\Database\Seeders\McpActorsSeeder;
+use Modules\Forja\Entities\McpActor;
+use Modules\Forja\Services\ActorResolver;
 
 uses(Tests\TestCase::class);
 

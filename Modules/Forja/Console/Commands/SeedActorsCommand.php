@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Console\Commands;
+namespace Modules\Forja\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Database\Seeders\McpActorsSeeder;
-use Modules\TeamMcp\Entities\McpActor;
+use Modules\Forja\Database\Seeders\McpActorsSeeder;
+use Modules\Forja\Entities\McpActor;
 use Throwable;
 
 /**

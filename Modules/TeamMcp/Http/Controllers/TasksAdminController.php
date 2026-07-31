@@ -10,7 +10,7 @@ use Inertia\Response;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
-use Modules\TeamMcp\Entities\McpActor;
+use Modules\Forja\Entities\McpActor;
 
 /**
  * TaskRegistry Fase 2 (US-TR-007) — Page /team-mcp/tasks.

@@ -5,8 +5,6 @@ namespace Modules\TeamMcp\Providers;
 use Illuminate\Support\ServiceProvider;
 use Modules\TeamMcp\Console\Commands\HandoffIngestCommand;
 use Modules\TeamMcp\Console\Commands\HandoffStaleAlertCommand;
-use Modules\TeamMcp\Console\Commands\RotateTokenCommand;
-use Modules\TeamMcp\Console\Commands\SeedActorsCommand;
 
 /**
  * ServiceProvider do módulo TeamMcp.
@@ -33,8 +31,8 @@ class TeamMcpServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                SeedActorsCommand::class,
-                RotateTokenCommand::class,
+                // mcp:seed-actors e mcp:rotate-token foram pra Modules/Forja
+                // (identidade do MCP — [W] "MCP vai para Forja", 2026-07-31).
                 // handoff:ingest — PR-1 loop handoff zero-paste (Fase 0 ADR 0283):
                 // ingere handoffs de design assinados (HMAC) → cowork_handoffs pending.
                 HandoffIngestCommand::class,

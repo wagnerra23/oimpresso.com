@@ -1,14 +1,14 @@
 {
   "_meta": {
-    "generated_at": "2026-06-11T18:49:57.492Z",
+    "generated_at": "2026-07-31T11:41:54.612Z",
     "gate": "dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3)",
     "stats": {
       "modules_with_dict": 6,
-      "modules_with_enums": 21,
+      "modules_with_enums": 20,
       "divergences": 0,
       "code_divergences": 26,
       "forbidden_ui_terms": 76,
-      "modules_no_dict": 19
+      "modules_no_dict": 18
     },
     "nota": "Divergências ATUAIS fotografadas (débito): enum⇔dicionário E valores de domínio hardcoded no código (Salto #3). Gate falha só em divergência NOVA (ratchet). order_type=locacao zera quando a erradicação (ADR 0265) remover o valor do enum E das ramificações de código.",
     "refs": [
@@ -100,6 +100,7 @@
     "dominio:module-no-dict:ComunicacaoVisual",
     "dominio:module-no-dict:Crm",
     "dominio:module-no-dict:Essentials",
+    "dominio:module-no-dict:Forja",
     "dominio:module-no-dict:Governance",
     "dominio:module-no-dict:Jana",
     "dominio:module-no-dict:NfeBrasil",
@@ -108,9 +109,7 @@
     "dominio:module-no-dict:Ponto",
     "dominio:module-no-dict:RecurringBilling",
     "dominio:module-no-dict:Repair",
-    "dominio:module-no-dict:SRS",
     "dominio:module-no-dict:Superadmin",
-    "dominio:module-no-dict:TeamMcp",
     "dominio:module-no-dict:Vestuario",
     "dominio:module-no-dict:Whatsapp",
     "dominio:module-no-dict:Woocommerce",

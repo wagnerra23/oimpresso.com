@@ -4,9 +4,11 @@ namespace Modules\Forja\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Modules\Forja\Console\Commands\BriefHealthCommand;
+use Modules\Forja\Console\Commands\RotateTokenCommand;
 use Modules\Forja\Console\Commands\ForjaHealthCommand;
 use Modules\Forja\Console\Commands\GenerateBriefCommand;
 use Modules\Forja\Console\Commands\SkillTierReviewCommand;
+use Modules\Forja\Console\Commands\SeedActorsCommand;
 
 /**
  * ServiceProvider do módulo Forja.
@@ -40,6 +42,10 @@ class ForjaServiceProvider extends ServiceProvider
                 GenerateBriefCommand::class,
                 SkillTierReviewCommand::class,
                 BriefHealthCommand::class,
+                // Identidade do MCP, recebida do TeamMcp em 2026-07-31
+                // (mcp_actors + emissão de token — ADR 0081).
+                SeedActorsCommand::class,
+                RotateTokenCommand::class,
             ]);
         }
 

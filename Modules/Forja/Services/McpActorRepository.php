@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
-use Modules\TeamMcp\Entities\McpActor;
+use Modules\Forja\Entities\McpActor;
 
 /**
  * McpActorRepository — Wave 18 D4 SATURATION (2026-05-16).
@@ -25,8 +25,8 @@ use Modules\TeamMcp\Entities\McpActor;
  * Identity Mesh transcende tenants by design. NÃO aplicar global scope —
  * documentado em proibições.
  *
- * @see Modules\TeamMcp\Entities\McpActor
- * @see Modules\TeamMcp\Services\ActorResolver (caller principal)
+ * @see Modules\Forja\Entities\McpActor
+ * @see Modules\Forja\Services\ActorResolver (caller principal)
  */
 class McpActorRepository
 {

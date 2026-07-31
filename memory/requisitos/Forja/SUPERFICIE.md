@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 92 arquivos em 11 papéis.
+**Total mapeado:** 106 arquivos em 14 papéis.
 
 ## Controllers — 15
 
@@ -34,7 +34,7 @@ module: Forja
 - [SearchController.php](../../../Modules/Forja/Http/Controllers/SearchController.php)
 - [TriageController.php](../../../Modules/Forja/Http/Controllers/TriageController.php)
 
-## Requests (validação) — 18
+## Requests (validação) — 19
 
 - [AddCommentRequest.php](../../../Modules/Forja/Http/Requests/AddCommentRequest.php)
 - [AddSubtaskRequest.php](../../../Modules/Forja/Http/Requests/AddSubtaskRequest.php)
@@ -48,6 +48,7 @@ module: Forja
 - [InvalidateBriefRequest.php](../../../Modules/Forja/Http/Requests/InvalidateBriefRequest.php)
 - [MarkBriefValidRequest.php](../../../Modules/Forja/Http/Requests/MarkBriefValidRequest.php)
 - [PurgeBriefHistoryRequest.php](../../../Modules/Forja/Http/Requests/PurgeBriefHistoryRequest.php)
+- [StoreActorRequest.php](../../../Modules/Forja/Http/Requests/StoreActorRequest.php)
 - [StoreProjectRequest.php](../../../Modules/Forja/Http/Requests/StoreProjectRequest.php)
 - [StoreTaskRequest.php](../../../Modules/Forja/Http/Requests/StoreTaskRequest.php)
 - [UpdateProjectRequest.php](../../../Modules/Forja/Http/Requests/UpdateProjectRequest.php)
@@ -55,25 +56,44 @@ module: Forja
 - [UpdateTaskStatusRequest.php](../../../Modules/Forja/Http/Requests/UpdateTaskStatusRequest.php)
 - [WatchTaskRequest.php](../../../Modules/Forja/Http/Requests/WatchTaskRequest.php)
 
-## Services — 6
+## Services — 9
 
+- [ActorResolver.php](../../../Modules/Forja/Services/ActorResolver.php)
 - [BriefGeneratorService.php](../../../Modules/Forja/Services/BriefGeneratorService.php)
 - [BriefValidator.php](../../../Modules/Forja/Services/BriefValidator.php)
 - [ForjaAuditService.php](../../../Modules/Forja/Services/ForjaAuditService.php)
 - [LeaseBriefSectionService.php](../../../Modules/Forja/Services/LeaseBriefSectionService.php)
+- [McpActorRepository.php](../../../Modules/Forja/Services/McpActorRepository.php)
+- [McpTokenIssuer.php](../../../Modules/Forja/Services/McpTokenIssuer.php)
 - [ProjectService.php](../../../Modules/Forja/Services/ProjectService.php)
 - [ValidationResult.php](../../../Modules/Forja/Services/ValidationResult.php)
 
-## Console / Commands — 4
+## Models / Entities — 1
+
+- [McpActor.php](../../../Modules/Forja/Entities/McpActor.php)
+
+## Console / Commands — 6
 
 - [BriefHealthCommand.php](../../../Modules/Forja/Console/Commands/BriefHealthCommand.php)
 - [ForjaHealthCommand.php](../../../Modules/Forja/Console/Commands/ForjaHealthCommand.php)
 - [GenerateBriefCommand.php](../../../Modules/Forja/Console/Commands/GenerateBriefCommand.php)
+- [RotateTokenCommand.php](../../../Modules/Forja/Console/Commands/RotateTokenCommand.php)
+- [SeedActorsCommand.php](../../../Modules/Forja/Console/Commands/SeedActorsCommand.php)
 - [SkillTierReviewCommand.php](../../../Modules/Forja/Console/Commands/SkillTierReviewCommand.php)
 
 ## Providers — 1
 
 - [ForjaServiceProvider.php](../../../Modules/Forja/Providers/ForjaServiceProvider.php)
+
+## Migrations (schema) — 3
+
+- [2026_05_05_240001_create_mcp_actors_and_link_tokens.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240001_create_mcp_actors_and_link_tokens.php)
+- [2026_05_05_240002_seed_initial_actors.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240002_seed_initial_actors.php)
+- [2026_05_07_140000_update_actor_display_name_maiara.php](../../../Modules/Forja/Database/Migrations/2026_05_07_140000_update_actor_display_name_maiara.php)
+
+## Seeders — 1
+
+- [McpActorsSeeder.php](../../../Modules/Forja/Database/Seeders/McpActorsSeeder.php)
 
 ## Config — 3
 
@@ -109,9 +129,9 @@ module: Forja
 - [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
 
-## Testes (Pest) — 23
+## Testes (Pest) — 26
 
-- 23 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 26 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 3
 

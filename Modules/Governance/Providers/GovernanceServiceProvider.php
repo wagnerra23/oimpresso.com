@@ -7,7 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Governance\Contracts\DriftChecker;
 use Modules\Governance\Http\Middleware\ActionGate;
 use Modules\Governance\Services\DriftCheckerRegistry;
-use Modules\TeamMcp\Services\ActorResolver;
+use Modules\Forja\Services\ActorResolver;
 
 class GovernanceServiceProvider extends ServiceProvider
 {

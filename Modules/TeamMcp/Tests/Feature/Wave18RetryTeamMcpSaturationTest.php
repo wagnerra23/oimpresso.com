@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Modules\TeamMcp\Http\Requests\CcIngestRequest;
-use Modules\TeamMcp\Http\Requests\StoreActorRequest;
+use Modules\Forja\Http\Requests\StoreActorRequest;
 use Modules\TeamMcp\Services\CcIngestService;
-use Modules\TeamMcp\Services\McpActorRepository;
+use Modules\Forja\Services\McpActorRepository;
 
 uses(Tests\TestCase::class);
 
@@ -23,7 +23,7 @@ uses(Tests\TestCase::class);
  * Pareia com Wave18ServicesExtractionTest (não substitui).
  *
  * @see Modules\TeamMcp\Services\CcIngestService
- * @see Modules\TeamMcp\Services\McpActorRepository
+ * @see Modules\Forja\Services\McpActorRepository
  */
 describe('Wave 18 RETRY — TeamMcp Services novas (D4)', function () {
     it('CcIngestService carrega via container + 3 métodos públicos', function () {
@@ -78,7 +78,7 @@ describe('Wave 18 RETRY — TeamMcp Services novas (D4)', function () {
     });
 
     it('McpActorRepository usa OtelHelper em findActiveBySlug', function () {
-        $source = file_get_contents(__DIR__ . '/../../Services/McpActorRepository.php');
+        $source = file_get_contents(base_path('Modules/Forja/Services/McpActorRepository.php'));
 
         expect($source)->toContain("OtelHelper::spanBiz('teammcp.actor.find_active_by_slug'");
     });

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpToken;
 use Modules\TeamMcp\Http\Controllers\ScorecardController;
-use Modules\TeamMcp\Services\McpTokenIssuer;
+use Modules\Forja\Services\McpTokenIssuer;
 use Modules\TeamMcp\Services\ScorecardBuilderService;
 
 uses(Tests\TestCase::class);
@@ -29,8 +29,8 @@ uses(Tests\TestCase::class);
  *
  * Multi-tenant Tier 0: scorecard repo-wide (cross-business Wagner-only).
  *
- * @see Modules\TeamMcp\Services\McpTokenIssuer::rotate
- * @see Modules\TeamMcp\Console\Commands\RotateTokenCommand
+ * @see Modules\Forja\Services\McpTokenIssuer::rotate
+ * @see Modules\Forja\Console\Commands\RotateTokenCommand
  * @see Modules\TeamMcp\Http\Controllers\ScorecardController
  */
 
@@ -137,7 +137,7 @@ it('teammcp:token:rotate sem args retorna exit code de erro', function () {
 });
 
 it('teammcp:token:rotate signature usa --detail (não --verbose Symfony reserved)', function () {
-    $cmd = app(\Modules\TeamMcp\Console\Commands\RotateTokenCommand::class);
+    $cmd = app(\Modules\Forja\Console\Commands\RotateTokenCommand::class);
     $signature = (new ReflectionClass($cmd))->getProperty('signature');
     $signature->setAccessible(true);
     $sig = $signature->getValue($cmd);

@@ -118,7 +118,7 @@ ALTER TABLE users ADD COLUMN mcp_actor_id BIGINT UNSIGNED NULL AFTER username;
 // Antes (ADR 0077 propunha): token → user → user.mcp_handle
 // Agora (ADR 0081): token → actor → actor.slug
 
-// Em Modules/TeamMcp/Services/ActorResolver.php (a criar)
+// Em Modules/Forja/Services/ActorResolver.php (a criar)
 
 public function resolveActorFromToken(string $bearerToken): ?Actor {
     $hash = hash('sha256', $bearerToken);
