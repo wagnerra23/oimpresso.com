@@ -1264,8 +1264,10 @@
     "2026-07-30-mcp-scopes-apagados-por-save-de-role": "memory/sessions/2026-07-30-mcp-scopes-apagados-por-save-de-role.md",
     "2026-07-31-0030-rename-projectmgmt-forja-3-rodadas": "memory/handoffs/2026-07-31-0030-rename-projectmgmt-forja-3-rodadas.md",
     "2026-07-31-1100-srs-memcofre-purga-e-abortos": "memory/handoffs/2026-07-31-1100-srs-memcofre-purga-e-abortos.md",
+    "2026-07-31-1800-teammcp-deprecado-89-para-0": "memory/handoffs/2026-07-31-1800-teammcp-deprecado-89-para-0.md",
     "2026-07-31-rename-projectmgmt-forja": "memory/sessions/2026-07-31-rename-projectmgmt-forja.md",
     "2026-07-31-srs-memcofre-telas-orfas-e-purga-do-rag": "memory/sessions/2026-07-31-srs-memcofre-telas-orfas-e-purga-do-rag.md",
+    "2026-07-31-teammcp-deprecacao-7-etapas": "memory/sessions/2026-07-31-teammcp-deprecacao-7-etapas.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -1756,7 +1758,6 @@
     "requisitos-governanca-roadmap-t2-tdad-lite-lane-impactados-pr": "memory/requisitos/_Governanca/roadmap/T2-tdad-lite-lane-impactados-pr.md",
     "requisitos-governanca-runbook-fase-debate-adversarial": "memory/requisitos/_Governanca/RUNBOOK-fase-debate-adversarial.md",
     "requisitos-governance-briefing": "memory/requisitos/Governance/BRIEFING.md",
-    "requisitos-governance-deprecation-plan": "memory/requisitos/Governance/DEPRECATION-PLAN.md",
     "requisitos-governance-governance-maturity-ficha": "memory/requisitos/Governance/GOVERNANCE-MATURITY-FICHA.md",
     "requisitos-governance-protocolo-refutador-backfill": "memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md",
     "requisitos-governance-spec": "memory/requisitos/Governance/SPEC.md",
@@ -2155,6 +2156,7 @@
     "requisitos-team-mcp-tasks-visual-comparison": "memory/requisitos/TeamMcp/tasks-visual-comparison.md",
     "requisitos-team-mcp-team-visual-comparison": "memory/requisitos/TeamMcp/team-visual-comparison.md",
     "requisitos-teammcp-deprecation-plan": "memory/requisitos/TeamMcp/DEPRECATION-PLAN.md",
+    "requisitos-teammcp-superficie": "memory/requisitos/TeamMcp/SUPERFICIE.md",
     "requisitos-template-feature-briefing": "memory/requisitos/_TEMPLATE_FEATURE/BRIEFING.md",
     "requisitos-template-feature-plan": "memory/requisitos/_TEMPLATE_FEATURE/plan.md",
     "requisitos-template-feature-requirements": "memory/requisitos/_TEMPLATE_FEATURE/requirements.md",
@@ -3078,7 +3080,6 @@
     "memory/requisitos/Superadmin/SUPERFICIE.md",
     "memory/requisitos/Superadmin/UI-CATALOG.md",
     "memory/requisitos/Tarefas/UI-CATALOG.md",
-    "memory/requisitos/TeamMcp/SUPERFICIE.md",
     "memory/requisitos/TeamMcp/UI-CATALOG.md",
     "memory/requisitos/Vestuario/RUNBOOK-etiqueta-tag.md",
     "memory/requisitos/Vestuario/SPEC.md",
@@ -3317,16 +3318,16 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3311,
-    "resolved": 2218,
-    "unstamped": 1093,
+    "total": 3312,
+    "resolved": 2220,
+    "unstamped": 1092,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1093,
+      "unstamped": 1092,
       "derived-adr": 366,
       "stamped": 953,
-      "derived-handoffs": 347,
-      "derived-sessions": 552
+      "derived-handoffs": 348,
+      "derived-sessions": 553
     }
   }
 }
