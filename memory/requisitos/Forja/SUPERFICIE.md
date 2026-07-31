@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 178 arquivos em 14 papéis.
+**Total mapeado:** 180 arquivos em 14 papéis.
 
 ## Controllers — 23
 
@@ -68,12 +68,13 @@ module: Forja
 - [UpdateTaskStatusRequest.php](../../../Modules/Forja/Http/Requests/UpdateTaskStatusRequest.php)
 - [WatchTaskRequest.php](../../../Modules/Forja/Http/Requests/WatchTaskRequest.php)
 
-## Services — 25
+## Services — 26
 
 - [ActorResolver.php](../../../Modules/Forja/Services/ActorResolver.php)
 - [BriefGeneratorService.php](../../../Modules/Forja/Services/BriefGeneratorService.php)
 - [BriefValidator.php](../../../Modules/Forja/Services/BriefValidator.php)
 - [CcIngestService.php](../../../Modules/Forja/Services/CcIngestService.php)
+- [DecisionLinksService.php](../../../Modules/Forja/Services/DecisionLinksService.php)
 - [ForjaAuditService.php](../../../Modules/Forja/Services/ForjaAuditService.php)
 - [ForjaBacklogService.php](../../../Modules/Forja/Services/ForjaBacklogService.php)
 - [ForjaChangelogService.php](../../../Modules/Forja/Services/ForjaChangelogService.php)
@@ -169,8 +170,9 @@ module: Forja
 
 - 50 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 15
+## Outros (raiz/misc) — 16
 
+- [ProjectDecomposerAgent.php](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php)
 - [Tool.php](../../../Modules/Forja/Contracts/Tool.php)
 - [routes.php](../../../Modules/Forja/Http/routes.php)
 - [BriefFetchTool.php](../../../Modules/Forja/Mcp/Tools/BriefFetchTool.php)
