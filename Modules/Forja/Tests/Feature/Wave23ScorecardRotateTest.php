@@ -228,7 +228,7 @@ it('ScorecardBuilderService::checkSchema retorna ok=false pra tabela inexistente
 
 it('ScorecardController delega buildFacts/buildChecks pra Service (Wave 25 thin)', function () {
     // Garantir que controller injeta Service e não duplica lógica
-    $path = base_path('Modules/TeamMcp/Http/Controllers/ScorecardController.php');
+    $path = base_path('Modules/Forja/Http/Controllers/ScorecardController.php');
     $content = file_get_contents($path);
 
     expect($content)->toContain('ScorecardBuilderService $builder');

@@ -79,7 +79,7 @@ it('UC-SC-01 · o componente Inertia que o controller renderiza existe em disco'
     // O bug original do UC-SC-01: a rota existia e o controller renderizava
     // 'team-mcp/Scorecard/Index', mas o .tsx não existia → Inertia 500 (tela branca).
     // Cruza DUAS fontes: a string de render no controller × a árvore de arquivos.
-    $controller = file_get_contents(base_path('Modules/TeamMcp/Http/Controllers/ScorecardController.php'));
+    $controller = file_get_contents(base_path('Modules/Forja/Http/Controllers/ScorecardController.php'));
 
     expect($controller)->toContain("Inertia::render('team-mcp/Scorecard/Index'");
 
