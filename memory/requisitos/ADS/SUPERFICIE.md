@@ -14,7 +14,7 @@ module: ADS
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ADS/**` + `resources/js/Pages/ads/**` (namespace Inertia `ads`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `ADS`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 138 arquivos em 14 papéis.
+**Total mapeado:** 135 arquivos em 14 papéis.
 
 ## Controllers — 15
 
@@ -57,7 +57,7 @@ module: ADS
 
 - [AdsApiAuth.php](../../../Modules/ADS/Http/Middleware/AdsApiAuth.php)
 
-## Services — 17
+## Services — 14
 
 - [AutoTaskGeneratorService.php](../../../Modules/ADS/Services/AutoTaskGeneratorService.php)
 - [BrainBService.php](../../../Modules/ADS/Services/BrainBService.php)
@@ -66,11 +66,8 @@ module: ADS
 - [DecisionLinksService.php](../../../Modules/ADS/Services/DecisionLinksService.php)
 - [DecisionPresenter.php](../../../Modules/ADS/Services/DecisionPresenter.php)
 - [DecisionRouter.php](../../../Modules/ADS/Services/DecisionRouter.php)
-- [GovernanceRulesService.php](../../../Modules/ADS/Services/GovernanceRulesService.php)
 - [PatternLearningService.php](../../../Modules/ADS/Services/PatternLearningService.php)
 - [PlannerService.php](../../../Modules/ADS/Services/PlannerService.php)
-- [PolicyEngine.php](../../../Modules/ADS/Services/PolicyEngine.php)
-- [PolicyResult.php](../../../Modules/ADS/Services/PolicyResult.php)
 - [ReviewerService.php](../../../Modules/ADS/Services/ReviewerService.php)
 - [RiskEngine.php](../../../Modules/ADS/Services/RiskEngine.php)
 - [RiskResult.php](../../../Modules/ADS/Services/RiskResult.php)

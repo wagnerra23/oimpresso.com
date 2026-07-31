@@ -16,8 +16,12 @@ contains:
   # Absorvido em Fase 3.7 PR-1 (2026-05-06):
   - "Admin/ProjectsController — gerencia mcp_jira_projects (key=COPI/ADS/FIN/etc); URL /ads/admin/projects mantida"
   # Admin do MCP — recebidos do TeamMcp em 2026-07-31 ([W] "ads vem para forja").
-  # Mesmo padrão do ProjectsController acima: controller da Forja, rota do ADS,
-  # URL /ads/admin/* mantida.
+  # 2026-07-31 (parte 5/7): a ROTA das 9 entradas /ads/admin/{tools,team-scopes,
+  # projects} saiu do ADS e veio pra Modules/Forja/Http/routes.php — a Forja e
+  # agora o UNICO host (rota + controller no mesmo modulo), fechando o drift.
+  # URL /ads/admin/* mantida (ADR 0087 — o frontend chama por string literal).
+  # O residuo que a parte 5 anotava aqui ("os 3 ainda importam servicos do ADS")
+  # foi fechado pela parte 3/7 — os servicos vieram junto; ver bloco abaixo.
   - "Admin/ToolsController — registry de tools MCP; URL /ads/admin/tools mantida"
   - "Admin/TeamScopesController — RBAC scopes por actor; URL /ads/admin/team-scopes mantida"
   # Registro do ADS, recebido em 2026-07-31 — os 3 consumidores vivos eram
@@ -65,6 +69,10 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /projectmgmt/*
+  # host das 9 rotas do Admin do MCP (parte 5/7, 2026-07-31) — URL do ADS mantida (ADR 0087)
+  - /ads/admin/tools/*
+  - /ads/admin/team-scopes/*
+  - /ads/admin/projects/*
   - (futuro) /project/* — após Fase 3.9 (rename pra Project quando legado for deletado)
 db_tables_owned:
   - mcp_jira_projects

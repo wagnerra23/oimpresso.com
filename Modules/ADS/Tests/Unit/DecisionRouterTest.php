@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Modules\ADS\Services\DecisionRouter;
-use Modules\ADS\Services\PolicyEngine;
+use Modules\Governance\Services\PolicyEngine;
 use Modules\ADS\Services\RiskEngine;
 use Modules\ADS\Services\ConfidenceEngine;
 use Modules\ADS\Services\RoutingInput;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\ADS\Services\GovernanceRulesService;
+use Modules\Governance\Services\GovernanceRulesService;
 
 // Meta-skills DSL — evaluator de condições JSON
 // (uses() já declarado em PolicyEngineTest.php)

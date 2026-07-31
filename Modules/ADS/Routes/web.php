@@ -12,11 +12,18 @@ use Modules\ADS\Http\Controllers\Admin\SkillsController;
 use Modules\ADS\Http\Controllers\Admin\ConflictsController;
 use Modules\ADS\Http\Controllers\InstallController;
 // Drift resolvido em Fase 3.7 (PR-1): 4 controllers movidos pros módulos donos.
-// URLs mantêm /ads/admin/* (PR-2 fará rename de URL se aplicável).
+//
+// 2026-07-31 (incorporação do ADS pelo Governance, parte 5/7): as 9 rotas dos 3
+// controllers da Forja (tools, team-scopes, projects) saíram DESTE arquivo e
+// passaram a ser registradas em `Modules/Forja/Http/routes.php` — o módulo dono
+// do controller virou também o host da rota. URL e name ficaram INALTERADOS
+// (`/ads/admin/*`, `ads.admin.*`): ADR 0087 resolve drift SEM mover URL, e o
+// frontend chama esses endpoints por string literal (não por `route()`), então
+// renomear quebraria em silêncio.
+//
+// GraphController (Modules/KB) segue registrado aqui: `/ads/admin/graph` morre na
+// parte 6/7 (o KB já tem grafo próprio em /kb/graph), não é rota a realocar.
 use Modules\KB\Http\Controllers\Admin\GraphController;
-use Modules\Forja\Http\Controllers\Admin\ProjectsController;
-use Modules\Forja\Http\Controllers\Admin\ToolsController;
-use Modules\Forja\Http\Controllers\Admin\TeamScopesController;
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
 // Pattern: ADR 0024 / feedback_pattern_install_modulos
@@ -88,10 +95,7 @@ Route::group([
     Route::post('/admin/skills/{slug}/move-label',        [SkillsController::class, 'moveLabel'])
         ->where('slug', '[a-z0-9][a-z0-9-]*')
         ->name('ads.admin.skills.move-label');
-    Route::get('/admin/tools',      [ToolsController::class,      'index'])->name('ads.admin.tools.index');
-    Route::post('/admin/tools/{name}/execute', [ToolsController::class, 'execute'])
-        ->where('name', '[a-z0-9_\-\.]+')
-        ->name('ads.admin.tools.execute');
+    // /admin/tools/* → Modules/Forja/Http/routes.php (parte 5/7, 2026-07-31)
     Route::get('/admin/learning',   [LearningController::class,   'index'])->name('ads.admin.learning.index');
     Route::get('/admin/meta-skills', [MetaSkillsController::class, 'index'])->name('ads.admin.metaskills.index');
     Route::post('/admin/meta-skills/{id}/toggle', [MetaSkillsController::class, 'toggle'])
@@ -108,16 +112,9 @@ Route::group([
     Route::redirect('/admin/kb/{slug}', '/kb/{slug}/show', 301)
         ->where('slug', '[A-Za-z0-9\-_\.]+');
 
-    // Team Scopes (caso Maiara: governance per-user × module)
-    Route::get('/admin/team-scopes',          [TeamScopesController::class, 'index'])->name('ads.admin.teamscopes.index');
-    Route::post('/admin/team-scopes/grant',   [TeamScopesController::class, 'grant'])->name('ads.admin.teamscopes.grant');
-    Route::post('/admin/team-scopes/revoke',  [TeamScopesController::class, 'revoke'])->name('ads.admin.teamscopes.revoke');
+    // /admin/team-scopes/* → Modules/Forja/Http/routes.php (parte 5/7, 2026-07-31)
     Route::get('/admin/graph',     [GraphController::class,     'index'])->name('ads.admin.graph.index');
     Route::get('/admin/conflicts', [ConflictsController::class, 'index'])->name('ads.admin.conflicts.index');
 
-    // Projects (Wagner modelo: Project → Parts → ADRs)
-    Route::get('/admin/projects',                [ProjectsController::class, 'index'])->name('ads.admin.projects.index');
-    Route::post('/admin/projects',               [ProjectsController::class, 'store'])->name('ads.admin.projects.store');
-    Route::get('/admin/projects/{id}',           [ProjectsController::class, 'show'])->whereNumber('id')->name('ads.admin.projects.show');
-    Route::post('/admin/projects/{id}/decompose', [ProjectsController::class, 'decompose'])->whereNumber('id')->name('ads.admin.projects.decompose');
+    // /admin/projects/* → Modules/Forja/Http/routes.php (parte 5/7, 2026-07-31)
 });
