@@ -212,5 +212,5 @@ ver [charter gêmeo §Dependência](../governance/Operacao.charter.md).
 - Gêmea (camada ERP): [`governance/Operacao`](../governance/Operacao.charter.md)
 - Vizinhas no módulo: [`Admin/Qualidade`](./Admin/Qualidade/Index.charter.md) ·
   [`Admin/Custos`](./Admin/Custos/Index.charter.md) · [`Admin/Governanca`](./Admin/Governanca/Index.charter.md)
-- [ADR 0318 — eval RAGAS real](../../../../memory/decisions/0318-ragas-real-eval.md) ·
+- [ADR 0318 — eval RAGAS real](../../../../memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md) ·
   [ADR 0344 — two-strikes cobre processo](../../../../memory/decisions/0344-two-strikes-cobre-processo.md)
