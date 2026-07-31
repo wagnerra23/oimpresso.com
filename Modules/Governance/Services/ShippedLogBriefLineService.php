@@ -31,7 +31,7 @@ use Throwable;
  *
  * @see scripts/governance/shipped-log-generate.mjs (sentinela --json · shape {ok,cycles,stale,findings})
  * @see Modules\Governance\Services\PlanHealthBriefLineService (pattern irmão ADR 0294 Onda 1)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 final class ShippedLogBriefLineService
 {

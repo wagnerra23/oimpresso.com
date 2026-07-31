@@ -19,7 +19,7 @@ uses(Tests\TestCase::class);
  * top-3) + degradação, não os detectores (esses têm seus próprios testes).
  *
  * @see Modules/Governance/Services/AdrReviewBriefLineService.php
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 /**

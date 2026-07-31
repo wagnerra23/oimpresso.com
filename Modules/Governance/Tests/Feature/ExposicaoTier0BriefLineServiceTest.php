@@ -19,7 +19,7 @@ uses(Tests\TestCase::class);
  * da sentinela (essa tem o baseline + o workflow semanal como defesa própria).
  *
  * @see Modules/Governance/Services/ExposicaoTier0BriefLineService.php
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 /**

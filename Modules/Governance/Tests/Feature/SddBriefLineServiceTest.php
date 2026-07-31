@@ -12,7 +12,7 @@ use Modules\Governance\Services\SddBriefLineService;
  * (b) métrica armada regrediu / fonte vermelha (alerts não-vazio).
  *
  * @see Modules/Governance/Services/SddBriefLineService.php
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 uses(RefreshDatabase::class);

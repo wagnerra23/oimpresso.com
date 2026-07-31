@@ -1,6 +1,6 @@
 # Configuração D5 (Cliente real) da rubrica module-grade-v1 (ADR 0153).
 #
-# Wagner edita manualmente — quando Modules/Brief gerar volume/módulo automático,
+# Wagner edita manualmente — quando Modules/Forja gerar volume/módulo automático,
 # pode virar source DB (mcp_module_clients table).
 #
 # Níveis (peso D5 = 15 pts):

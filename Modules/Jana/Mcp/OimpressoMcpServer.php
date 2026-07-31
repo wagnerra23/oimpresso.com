@@ -60,7 +60,7 @@ class OimpressoMcpServer extends Server
         // ADR 0091 — Daily Brief (camada L7 da Constituição V2). PRIMEIRA tool
         // em toda sessão (skill brief-first Tier A always-on). Substitui 5-8
         // chamadas exploratórias por 1 brief de ~3k tokens.
-        \Modules\Brief\Mcp\Tools\BriefFetchTool::class,
+        \Modules\Forja\Mcp\Tools\BriefFetchTool::class,
         // ADR 0070 — Jira-style task management (CURRENT.md/TASKS.md removidos).
         // ⚠️ ListTools (laravel/mcp) PAGINA em 15 itens. 15 primeiras = essenciais.
         // Tools de leitura cycle/work/inbox:

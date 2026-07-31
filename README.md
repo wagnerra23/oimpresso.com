@@ -59,7 +59,7 @@ Invariante anti-atrofia ([ADR 0334](memory/decisions/0334-modelo-3-camadas-invar
 | `Modules/Repair/` | Ordens de serviço + Kanban FSM — infraestrutura compartilhada entre verticais |
 | `Modules/RecurringBilling/` · `Modules/PaymentGateway/` | Cobrança recorrente e gateways de pagamento |
 | `Modules/Ponto/` | Marcação de ponto eletrônico (Portaria MTP 671/2021) |
-| `Modules/Brief/` | Daily Brief — estado consolidado do projeto ([ADR 0091](memory/decisions/0091-daily-brief.md)) |
+| `Modules/Forja/` | Daily Brief — estado consolidado do projeto ([ADR 0091](memory/decisions/0091-daily-brief.md)) |
 
 **Verticais** — especialização profunda onde há cliente real ([ADR 0121](memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md)):
 

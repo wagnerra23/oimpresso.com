@@ -161,3 +161,21 @@ Route::group(
         Route::get('/update',    'InstallController@update')->name('project-mgmt.install.update');
     }
 );
+
+// ===========================================================================
+// 3) Endpoint MCP do Daily Brief — POST /api/mcp/tools/brief-fetch
+// ===========================================================================
+// Ex-Modules/Brief/Routes/api.php, absorvido em 2026-07-30 (ADR 0091).
+// O NOME da tool não mudou (`brief-fetch`) — só o módulo dono. Por isso
+// CLAUDE.md passo 1, o hook SessionStart e os 6 agentes seguem intactos.
+//
+// Middleware:
+// - mcp.auth: registrado pelo JanaServiceProvider (ADR 0053). Garante token
+//   válido em mcp_tokens + carrega scopes Spatie.
+// - throttle:60,1: 60 req/min/IP — proteção contra loop em agent.
+Route::middleware(['api', 'mcp.auth', 'throttle:60,1'])
+    ->prefix('api/mcp')
+    ->group(function () {
+        Route::post('/tools/brief-fetch', \Modules\Forja\Http\Controllers\BriefFetchController::class)
+            ->name('mcp.tools.brief-fetch');
+    });

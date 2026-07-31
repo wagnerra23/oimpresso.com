@@ -23,7 +23,7 @@ use Throwable;
  * DEPOIS do Brain B gerar o markdown — o modelo nunca inventa esse número.
  * Degrada graciosamente: tabela ausente/sem rows/erro → brief intacto.
  *
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point)
  * @see memory/decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md §4
  */
 final class SddBriefLineService

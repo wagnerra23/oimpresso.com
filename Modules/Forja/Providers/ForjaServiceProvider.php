@@ -3,7 +3,10 @@
 namespace Modules\Forja\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Forja\Console\Commands\BriefHealthCommand;
 use Modules\Forja\Console\Commands\ForjaHealthCommand;
+use Modules\Forja\Console\Commands\GenerateBriefCommand;
+use Modules\Forja\Console\Commands\SkillTierReviewCommand;
 
 /**
  * ServiceProvider do módulo Forja.
@@ -30,13 +33,34 @@ class ForjaServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ForjaHealthCommand::class,
+                // Ex-Modules/Brief (ADR 0091) — absorvido em 2026-07-30. Os dois
+                // primeiros têm schedule em live (app/Console/Kernel.php):
+                // brief:generate 6x/dia e skills:tier-review trimestral. A
+                // signature não mudou, então o Kernel não precisou de patch.
+                GenerateBriefCommand::class,
+                SkillTierReviewCommand::class,
+                BriefHealthCommand::class,
             ]);
         }
+
+        // Ex-Modules/Brief — D7 LGPD (Wave 13): publica a config de retenção do
+        // Daily Brief. Arquivo renomeado pra brief-retention.php porque a Forja
+        // já tinha um Config/retention.php próprio; a CHAVE segue 'brief.*'.
+        $this->publishes([
+            __DIR__ . '/../Config/brief-retention.php' => config_path('brief.php'),
+        ], 'brief-config');
     }
 
     public function register(): void
     {
-        //
+        // Ex-Modules/Brief — merge sob o namespace 'brief.*' para que
+        // config('brief.redact_pii_before_llm') e demais flags resolvam sem
+        // publish. Lido por BriefGeneratorService; a chave NÃO pode virar
+        // 'forja.*' sem tocar os consumidores.
+        $this->mergeConfigFrom(
+            __DIR__ . '/../Config/brief-retention.php',
+            'brief'
+        );
     }
 
     protected function registerConfig(): void
