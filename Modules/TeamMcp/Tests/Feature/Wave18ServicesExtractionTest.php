@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Http\Requests\ExportUsageCsvRequest;
-use Modules\TeamMcp\Http\Requests\UpdateQuotaRequest;
+use Modules\Forja\Http\Requests\ExportUsageCsvRequest;
+use Modules\Forja\Http\Requests\UpdateQuotaRequest;
 use Modules\Forja\Services\McpTokenIssuer;
-use Modules\TeamMcp\Services\TeamUsageAggregator;
-use Modules\TeamMcp\Services\UsageCsvExporter;
+use Modules\Forja\Services\TeamUsageAggregator;
+use Modules\Forja\Services\UsageCsvExporter;
 
 uses(Tests\TestCase::class);
 

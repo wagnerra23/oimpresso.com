@@ -64,7 +64,7 @@ it('cenario 8: ActorResolver service classe carrega', function () {
 });
 
 it('cenario 9: TeamController classe carrega', function () {
-    expect(class_exists(\Modules\TeamMcp\Http\Controllers\TeamController::class))
+    expect(class_exists(\Modules\Forja\Http\Controllers\TeamController::class))
         ->toBeTrue('Http/Controllers/TeamController.php deveria carregar');
 });
 

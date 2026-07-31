@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpToken;
-use Modules\TeamMcp\Http\Controllers\ScorecardController;
+use Modules\Forja\Http\Controllers\ScorecardController;
 use Modules\Forja\Services\McpTokenIssuer;
-use Modules\TeamMcp\Services\ScorecardBuilderService;
+use Modules\Forja\Services\ScorecardBuilderService;
 
 uses(Tests\TestCase::class);
 
@@ -31,7 +31,7 @@ uses(Tests\TestCase::class);
  *
  * @see Modules\Forja\Services\McpTokenIssuer::rotate
  * @see Modules\Forja\Console\Commands\RotateTokenCommand
- * @see Modules\TeamMcp\Http\Controllers\ScorecardController
+ * @see Modules\Forja\Http\Controllers\ScorecardController
  */
 
 function requiresMcpSchema(): void
@@ -228,7 +228,7 @@ it('ScorecardBuilderService::checkSchema retorna ok=false pra tabela inexistente
 
 it('ScorecardController delega buildFacts/buildChecks pra Service (Wave 25 thin)', function () {
     // Garantir que controller injeta Service e não duplica lógica
-    $path = base_path('Modules/TeamMcp/Http/Controllers/ScorecardController.php');
+    $path = base_path('Modules/Forja/Http/Controllers/ScorecardController.php');
     $content = file_get_contents($path);
 
     expect($content)->toContain('ScorecardBuilderService $builder');

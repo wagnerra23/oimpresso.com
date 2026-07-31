@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\TeamMcp\Http\Controllers;
+namespace Modules\Forja\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\User;
@@ -13,7 +13,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Jana\Entities\Mcp\McpQuota;
 use Modules\Jana\Entities\Mcp\McpToken;
-use Modules\TeamMcp\Http\Requests\IssueActorTokenRequest;
+use Modules\Forja\Http\Requests\IssueActorTokenRequest;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**

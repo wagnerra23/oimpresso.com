@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\TeamMcp\Services;
+namespace Modules\Forja\Services;
 
 use App\User;
 use App\Util\OtelHelper;
@@ -31,7 +31,7 @@ use Modules\Jana\Entities\Mcp\McpToken;
  * **OTel spans** ({@see ADR 0155}) — todas queries críticas envolvidas em
  * `OtelHelper::spanBiz` pra observabilidade hot-path admin console.
  *
- * @see Modules\TeamMcp\Http\Controllers\TeamController
+ * @see Modules\Forja\Http\Controllers\TeamController
  */
 class TeamUsageAggregator
 {

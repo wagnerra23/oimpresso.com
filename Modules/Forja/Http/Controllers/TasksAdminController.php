@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\TeamMcp\Http\Controllers;
+namespace Modules\Forja\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
