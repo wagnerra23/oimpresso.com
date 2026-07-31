@@ -175,13 +175,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 10,
+      "value": 11,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 18
+        "citing_modules": 20
       },
       "stream": "KL"
     },
