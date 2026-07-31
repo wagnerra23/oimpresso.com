@@ -80,7 +80,7 @@ O ADS é agnóstico de domínio. Estes módulos submetem eventos a ele:
 
 **Origem:** rodada adversarial do ADR 0296 (achado S-2). O vazamento cross-tenant pontual em `ContextForTaskService::buildRecentDecisions` já foi corrigido (PR #3162), mas o adversário apontou ~85 `DB::table('mcp_*')` crus fora do global scope.
 
-**Acceptance:**
+**Aceite:**
 - [ ] Inventariar todos os `DB::table('mcp_dual_brain_decisions')` e `DB::table('mcp_*')` (Grupo B / com business_id, ADR 0280) que leem/mutam sem `->where('business_id', …)`.
 - [ ] Classificar cada um: leak real (request per-tenant) vs by-id system worker (ok) vs admin-scoped.
 - [ ] Corrigir os leaks reais + teste cross-tenant POR call-site (exercitando o serviço, não só a query crua).
@@ -113,7 +113,9 @@ DoD: nota ≥70 + ratchet verde. Charter + gate visual antes de Editar a Page.
 
 **Contexto:** o Project é a unidade estratégica do ADS — agrupa decisões, ADRs e a decomposição em parts. O controller vive em `Modules/Forja` (dono do domínio Jira-style, `mcp_jira_projects`) mas serve sob `/ads/*`, porque quem consome é o painel de decisão automatizada.
 
-**Acceptance:**
+**Testado em:** `tests/Feature/Ads/AdsProjectsRoutesContratoTest.php`
+
+**Aceite:**
 - [x] `GET /ads/admin/projects` lista os Projects via `ProjectService::list()` e devolve KPIs agregados via `calculateKpis()`.
 - [x] `POST /ads/admin/projects` cria Project validando por `StoreProjectRequest`.
 - [x] Render Inertia em `ads/Admin/Projects` com as props `projects` + `kpis`.
@@ -131,7 +133,9 @@ Refs: ADR 0070 (Jira-style) · ADR 0088 + PR #5089 (rename ProjectMgmt→Forja; 
 
 **Contexto:** é o único ponto onde o ADS **escreve** nas tabelas `mcp_projects`/`mcp_project_parts` (o `ProjectDecomposerService` é do ADS, o controller é da Forja). Esse acoplamento está registrado no `DEPRECATION-PLAN.md` do ADS como o caso com receptor inequívoco.
 
-**Acceptance:**
+**Testado em:** `tests/Feature/Ads/AdsProjectsRoutesContratoTest.php`
+
+**Aceite:**
 - [x] `GET /ads/admin/projects/{id}` (`whereNumber`) devolve o detalhe via `findDetail()` e **404 quando o id não existe** (`ModelNotFoundException` → `abort(404)`).
 - [x] `POST /ads/admin/projects/{id}/decompose` valida por `DecomposeProjectRequest` e delega ao `ProjectDecomposerService`.
 - [x] Render Inertia em `ads/Admin/ProjectShow` com KPIs, parts e decisões geradas.
