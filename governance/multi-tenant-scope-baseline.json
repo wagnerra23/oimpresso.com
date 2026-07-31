@@ -1,0 +1,9 @@
+{
+  "_doc": "Baseline FORWARD-ONLY do tests/Feature/Architecture/MultiTenantScopeArchitectureTest.php (Tier 0 ADR 0093). Roda na lane required 'No hardcode business_id (Tier 0)'. DOIS campos, com semânticas OPOSTAS — não confundir: `grandfathered` = DÍVIDA datada (Model que não aplica escopo automático e ainda não foi curado); é catraca SÓ-DESCE, sai quando o arquivo for tocado por trabalho real, NUNCA cresce. `allowlist` = EXCEÇÃO permanente (Model legitimamente global: catálogo read-only, entidade system-wide) e cada entrada exige razão em `allowlist_razoes`. Model NOVO sem escopo NÃO entra em nenhum dos dois — corrige-se o Model. Backfill em massa do legado morre no CI (proibicoes.md §5 2026-07-12).",
+  "_origem": "Receptor do MultiTenantScopeChecker (Modules/Governance, ADR 0218), cuja varredura em modo --diff-only reportava models_scanned=0 em todo PR — medido 2026-07-30 no artefato governance-drift-report.json de runs reais. Ver o cabeçalho do teste.",
+  "_regenerar": "O teste imprime a lista completa quando falha. Rodar a lane, copiar os caminhos reportados. NÃO editar à mão pra silenciar Model novo.",
+  "generated_at": "",
+  "grandfathered": [],
+  "allowlist": [],
+  "allowlist_razoes": {}
+}
