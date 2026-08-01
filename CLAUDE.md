@@ -105,7 +105,7 @@ Detalhes em `memory/proibicoes.md`. Resumo:
 ## Métricas de saúde
 
 Rodar `php artisan jana:health-check` (ou ver schedule daily 06:00 BRT em `app/Console/Kernel.php`).
-5 checks SQL: multi_tenant_isolation, brief_uptime_24h, custo_brain_b_24h, pii_leak_in_assistant_responses, profile_distiller_drift.
+Os checks vivem no próprio comando (`Modules/Jana/Console/Commands/HealthCheckCommand.php`, `$description` se auto-reporta a contagem de duros) — não fixar número aqui (apodrece · fact-anchor §5). Tier-0 críticos incl. multi_tenant_isolation, pii_leak_in_assistant_responses, profile_distiller_drift.
 
 Se algum falhar → investigar `storage/logs/laravel.log` ALERT entries.
 

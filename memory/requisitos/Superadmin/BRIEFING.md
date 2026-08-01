@@ -4,8 +4,8 @@ id: requisitos-superadmin-briefing
 
 # BRIEFING — Modules/Superadmin
 
-> **Estado:** ✅ legado UltimatePOS v6 em uso interno Wagner | **Atualizado:** 2026-05-16 (pós-PR3 governance-v3-docs `na_justified` declarado) | **Owner:** [W]
-> Canon: [SPEC.md](SPEC.md) · Rubrica v3: [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)
+> **Estado:** ✅ legado UltimatePOS v6 em uso interno Wagner | **Atualizado:** 2026-08-01 (refresh — 76d de código desde 05-16; 2 commits Superadmin-próprios: health-check registrado #2647 + `// SUPERADMIN` scope audit #2707) | **Owner:** [W]
+> Canon: [SPEC.md](SPEC.md) · [SCOPE.md](../../../Modules/Superadmin/SCOPE.md) · [CHANGELOG](../../../Modules/Superadmin/CHANGELOG.md) · Rubrica v3: [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)
 
 ## O que é
 
@@ -27,7 +27,10 @@ Sem Superadmin Wagner precisaria SSH + tinker + SQL pra criar cliente novo, alte
 - ✅ Manage Modules per-business
 - ✅ Settings globais (SMTP/Pusher/Cron/Backup/Gateways)
 - ✅ Pricing público `/pricing`
-- ✅ Usuario 360 (consolidado por cliente)
+- ✅ Usuario 360 (consolidado por cliente) — Inertia/React (`resources/js/Pages/superadmin/Usuario360/` Index+Show, `Usuario360Controller`)
+- ✅ Auto-onboarding SaaS: `Business::created` → auto-Subscription via observer (`registerBusinessAutoSubscriptionObserver`) + cron `paymentgateway:emit-trial-expired` 08:00 (ADR 0170 Onda 5.B, PaymentGateway 2026-05-19)
+- ✅ Health-check `superadmin:health` (`--detail`/`--notify`) — biz=1 imutável + subscriptions aging + self-destroy guard; alimenta `jana:health-check`. Registrado no ServiceProvider desde #2647 (2026-06-13; antes definido mas fora de `Artisan::all()`)
+- ✅ Cron `pos:sendSubscriptionExpiryAlert` daily (alerta expiração assinatura)
 
 ## Diferencial vs concorrentes
 
@@ -42,21 +45,25 @@ Sem Superadmin Wagner precisaria SSH + tinker + SQL pra criar cliente novo, alte
 | **v3 (pós-PR3)** | **~85-90/100** (esperado) | `na_justified` D5+D4.c+D8.b declarado no SPEC → rubrica v3 (ADR 0155) redistribui pesos pras dimensões aplicáveis |
 
 **`na_justified` declarado no SPEC:**
-- **D5 (cliente externo):** cross-tenant intencional Wagner-only, ADR 0093 §exceções + Constituição Art. 6 — biz=4 ROTA LIVRE não é alvo.
+- **D5 (cliente externo):** cross-tenant intencional Wagner-only, ADR 0093 §exceções + Constituição Art. 6 — biz=4 ROTA LIVRE não é alvo. Todo bypass de global scope marcado com `// SUPERADMIN` auditável (US-GOV-019, #2707 2026-06-14 — 44 marcações no módulo).
 - **D4.c (MWART migração):** Blade legacy preservado por design — herdado UltimatePOS v6 (~50 views), Wagner-only não justifica investimento Inertia (ADR 0104 escopo só fronts cliente).
 - **D8.b (CSRF except):** nenhuma rota Superadmin em `VerifyCsrfToken::except` — middleware CSRF padrão sempre aplicado.
 
 ## Gaps reconhecidos
 
-- 🟡 PIX BR não nativo (gateways herdados são internacionais; Asaas/Inter integrados via `Modules/RecurringBilling`)
+- 🟡 PIX BR não nativo (gateways herdados são internacionais; Asaas/Inter integrados via `Modules/RecurringBilling`/`Modules/PaymentGateway`)
 - 🟡 Sem dashboard de receita consolidada por package/cohort (P2 backlog)
 - 🟡 Sem export CSV de audit do Communicator (LGPD opt-in)
+- 🟡 `Config/retention.php` (política LGPD Art. 16, Wave 11 D7.c) declarada, mas o `RetentionCleanupCommand` de purge/anonymize segue como `TODO` — nenhum job consome os TTLs ainda
 
-## Estado de testes (Wave B)
+## Estado de testes
 
-- `Tests/Feature/MultiTenantIsolationTest.php` — bloqueia rotas Superadmin sem role
-- `Tests/Feature/ScaffoldTest.php`
-- `Tests/Feature/SmokeRoutesTest.php`
+`ls Modules/Superadmin/Tests/Feature/` (2026-08-01) → 15 arquivos/dirs. Núcleo:
+- Cross-tenant saturado: `Wave23CrossTenantIsolationTest` + `Wave25CrossTenantIsolationTest` + `Wave26SaturationTest` + `Wave27CrossTenantSaturationTest` (~89 cenários acumulados, CHANGELOG W27) + `CrossTenantSuperadminTest` + `SuperadminCrossTenantPolicyTest`
+- Gate/segurança: `SuperadminGateTest`, `SecurityHardeningTest`, `SmokeRoutesTest`, `Lgpd/`
+- Lifecycle assinatura: `SubscriptionLifecycleServiceTest`, `PackageManagerServiceTest`, `BusinessAutoSubscriptionObserverTest`, `OnCobrancaPagaUpdateSubscriptionTest`, `OnCobrancaVencidaBloqueaSubscriptionTest`
+
+> ⚠️ Rodar sempre no CT 100 (proibições §Testes). Status = veredito do run, não desta lista.
 
 ## Decisões relacionadas
 
