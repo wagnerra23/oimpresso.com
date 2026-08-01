@@ -1,7 +1,7 @@
 ---
 date: "2026-08-01"
 hour: "10:00 BRT"
-duration: "~5h"
+duration: "5h"
 topic: "Pesquisas da doc-do-fonte: estado-da-arte colocação×centralização (Grab/Diátaxis/Spec Kit/Kiro/Swimm) + estado empírico medido de memory/ + método (LC-08). Levou à reversão da 0364 pra Opção B."
 authors: [F, C]
 outcomes:
