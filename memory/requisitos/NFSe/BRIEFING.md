@@ -60,7 +60,7 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 - **Service `NfseEmissaoService`**: idempotência via `idempotency_key`, retry 3× com backoff exponencial em timeout, log estruturado canal `nfse`
 - **Ambiente POR-BUSINESS (cutover fiscal)**: emissão resolve `homologacao`/`producao` de `nfse_provider_configs.ambiente` do tenant (`montarPayload` L76-80 + `SnNfseAdapter::resolveBaseUrl`), NÃO do bind global — ligar produção pra biz=164 não afeta os demais (#2147, teste `AmbientePorBusinessTest`)
 - **Job assíncrono**: `EmitirNfseJob` na fila `nfse` com payload DTO (cert A1 em base64 + senha decriptada)
-- **Cert A1**: storage encriptado, delegado ao `CertificadoService` do NfeBrasil (schema unificado migration 2026_05_07_210000). Import via `php artisan nfse:importar-cert --pfx= --senha= --business=` (`ImportarCertificadoCommand`)
+- **Cert A1**: storage encriptado, delegado ao `CertificadoService` do NfeBrasil (schema unificado migration 2026_05_07_210000). Import via `php artisan nfse:importar-cert --pfx=<arquivo.pfx> --senha=<senha> --business=<id>` (`ImportarCertificadoCommand`)
 - **Health check**: `php artisan nfse:health` — 6 sinais (tabelas, providers ativos, **cert vencendo ≤30d**, rejeitadas 24h) — `NfseHealthCommand`, Wave 23 D6
 - **Cancelamento**: motivo obrigatório, bloqueia dupla cancelação (`NfseJaCanceladaException`), span OTel `nfse.cancelar` (Wave 28, #2678), log canal nfse
 - **Observabilidade**: spans OTel `nfse.emissao` + `nfse.cancelar` com atributo `businessId` (correlação prod cross-tenant)

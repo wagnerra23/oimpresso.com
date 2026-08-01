@@ -10,7 +10,7 @@ id: requisitos-spreadsheet-briefing
 
 Verificado contra o código (working tree em `origin/main`). Desde a porta anterior (2026-05-17, Wave 26), **2 commits** tocaram `Modules/Spreadsheet/`, ambos sweeps cross-módulo de referência — **zero mudança de capacidade**:
 
-- **[`6229fb42`](https://github.com/wagnerra23/oimpresso.com/commit/6229fb4238d8be30c3f401fb532b54110f164d31)** (2026-07-30) — rename `Modules/ProjectMgmt` → `Modules/Forja`: repontou 1 linha do `SCOPE.md` (`not_contains`).
+- **[`6229fb42`](https://github.com/wagnerra23/oimpresso.com/commit/6229fb4238d8be30c3f401fb532b54110f164d31)** (2026-07-30) — rename `ProjectMgmt` → `Modules/Forja`: repontou 1 linha do `SCOPE.md` (`not_contains`).
 - **[`c9da3549`](https://github.com/wagnerra23/oimpresso.com/commit/c9da3549d55dcd203d84181b1924f3d8927f3b03)** (2026-07-31) — deleção de `Modules/TeamMcp`: repontou 1 linha do `SCOPE.md` (`not_contains` → `Modules/Forja`). Diff no módulo = **+1/−1**.
 
 Seções abaixo (O que é / Capacidades / Gaps / Testes) seguem fiéis ao código. Correção factual da lista de testes: a suíte hoje inclui também `SpreadsheetServiceContractTest.php`, `Wave26SpreadsheetSaturationTest.php`, `Wave27SpreadsheetPolishTest.php` e `Wave28SpreadsheetSaturationTest.php` (verificado via `ls Modules/Spreadsheet/Tests/Feature/`) — todos polish de saturação same-day 2026-05-17, sem capacidade nova.
