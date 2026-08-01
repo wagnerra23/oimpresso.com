@@ -7,7 +7,6 @@ use Modules\Forja\Tools\BoostToolAdapter;
 use Modules\Forja\Tools\GitCommitWipTool;
 use Modules\Forja\Tools\GitInspectTool;
 use Modules\Forja\Tools\LogReaderTool;
-use Modules\Forja\Tools\MetricsQueryTool;
 use Modules\Forja\Tools\RunTestTool;
 use Modules\Forja\Tools\WriteFileTool;
 
@@ -19,9 +18,13 @@ use Modules\Forja\Tools\WriteFileTool;
  *
  * Estrutura por categoria:
  *   - 'leitura (Laravel Boost)' — 8 tools nativas Boost (preferência Wagner)
- *   - 'leitura'                 — 2 tools customizadas (GitInspect, MetricsQuery — Boost não cobre direto)
- *   - 'análise'                 — (legado) MetricsQueryTool
+ *   - 'leitura'                 — 1 tool customizada (GitInspect — Boost não cobre direto)
  *   - 'escrita'                 — 3 tools customizadas (Write/RunTest/GitWip)
+ *
+ * A categoria 'análise' deixou de existir com a `MetricsQueryTool`: ela agregava
+ * `mcp_dual_brain_decisions`, dropada no E5 da deprecação do ADS (ADR 0363). Sem
+ * fonte, a tool só poderia falhar — e tool que nunca funciona no catálogo é ruído,
+ * não capacidade. A perda é a decidida pela ADR, não um efeito colateral.
  */
 class ToolRegistry
 {
@@ -37,7 +40,10 @@ class ToolRegistry
 
         // ─── Tools customizadas read-only que Boost NÃO cobre ───
         $this->register(new GitInspectTool());     // Boost não tem git inspect
-        $this->register(new MetricsQueryTool());   // Boost db-query é mais raw; nossa é específica ADS
+
+        // MetricsQueryTool removida no E5 do ADS (ADR 0363) — a fonte que ela
+        // agregava (`mcp_dual_brain_decisions`) foi dropada. Quem precisar de
+        // query bruta usa a `db-query` nativa do Boost.
 
         // LogReaderTool removido — Boost::read-log-entries cobre
 

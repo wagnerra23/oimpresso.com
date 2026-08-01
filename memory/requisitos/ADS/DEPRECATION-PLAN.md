@@ -13,9 +13,76 @@ id: requisitos-ads-deprecation-plan
 > que supersede a 0145. Ver a **ERRATA 2026-07-31** logo abaixo: ela corrige 4 fatos que a execução
 > mediu e que o corpo (incluindo a errata de 07-30) erra.
 >
-> 📌 **Leia primeiro a ERRATA 2026-07-31 (parte 6)**, no topo: as erratas estão em ordem do mais
-> recente pro mais antigo, e a de cima corrige 4 fatos que TODAS as anteriores erram — incluindo a
-> terceira tabela com consumidor sobrevivente, que nem o C2 nem a E3 pegaram.
+> 📌 **Leia as erratas de cima pra baixo**: elas estão em ordem do mais recente pro mais antigo, e
+> cada uma corrige fatos que as anteriores erram. A do topo é a do **E5** — e o fato que mais se
+> repetiu no plano inteiro está lá: a lista de tabelas a dropar encolheu **três vezes** (E3, C5 e D1),
+> sempre porque uma tabela dada como morta tinha consumidor vivo fora do ADS.
+
+## ⚠️ ERRATA 2026-07-31 (E5) — a lista do DROP encolheu de novo: **5 saem, 6 ficam**
+
+> Origem: execução do **E5** (ARCHIVE → DROP). Medido em **produção** (`APP_ENV=live`,
+> `u906587222_oimpresso`) e em `origin/main` no HEAD `c6918a957ff`, repo completo.
+> **Onde este bloco discordar do corpo ou de qualquer errata anterior, ele vence.**
+
+### D1 — 🔴 `mcp_tool_executions` e `mcp_user_module_access` são a **4ª e a 5ª** tabelas com consumidor sobrevivente
+
+A Fase 4 manda *"as outras 8 (0 linhas) → DROP"*, e o "Destino por função" mandava `mcp_tool_executions`
+pra Jana e dava `mcp_user_module_access` como morta junto do `UserScopeService`. **As duas premissas
+envelheceram** na própria sessão de 31/07:
+
+| Tabela | Consumidor vivo, medido | O que o DROP faria |
+|---|---|---|
+| `mcp_tool_executions` | [`Forja/…/Admin/ToolsController`](../../../Modules/Forja/Http/Controllers/Admin/ToolsController.php) — **INSERT a cada execução de tool** + 2 SELECT | `/ads/admin/tools` 302 → **500** |
+| `mcp_user_module_access` | [`Forja/Services/UserScopeService`](../../../Modules/Forja/Services/UserScopeService.php) — `updateOrInsert` + 3 leituras | `/ads/admin/team-scopes` 302 → **500** |
+
+Ambas alimentam rotas que o **smoke do E6 registrou VIVAS (302)**. O `UserScopeService` foi pra Forja
+no [#5131](https://github.com/wagnerra23/oimpresso.com/pull/5131) e a rota no
+[#5132](https://github.com/wagnerra23/oimpresso.com/pull/5132) — depois de o plano ter sido escrito.
+
+É a 4ª e a 5ª instância do padrão que o C5 nomeou, e a regra que ele propôs se confirma: **antes de
+dropar tabela do ADS, procurar o consumidor FORA do ADS**. Registrado também onde o pré-flight procura
+(`db_tables_owned` do [SCOPE da Forja](../../../Modules/Forja/SCOPE.md) e do
+[Governance](../../../Modules/Governance/SCOPE.md)) — sem dono declarado, a próxima varredura acharia
+as 6 órfãs e repetiria o erro.
+
+### D2 — lista final do E5
+
+| Dropadas (5) | Ficam (6) — têm dono e consumidor |
+|---|---|
+| `mcp_dual_brain_decisions` (36.986) · `mcp_decision_thresholds` (1) · `mcp_confidence_scores` (0) · `mcp_decision_patterns` (0) · `mcp_file_locks` (0) | `mcp_decision_links` · `mcp_governance_rules` · `mcp_projects` · `mcp_project_parts` · `mcp_tool_executions` · `mcp_user_module_access` |
+
+`mcp_decision_patterns` sai com o consumidor **já preparado**: o `GraphController` do KB a lê atrás de
+`Schema::hasTable` (linha 90), com comentário dizendo que ela cai na parte 6 — a tela perde um eixo,
+não quebra.
+
+### D3 — o ARCHIVE está feito, e o que ele contém
+
+Dump em `/root/archive/ads-2026-07-31/` no **CT 100** (nunca em git). Verificado nas **duas pontas**
+por SHA-256 **e** por contagem de INSERT dentro do artefato — `--skip-extended-insert` foi escolhido
+justamente pra tornar a contagem conferível sem restaurar:
+
+```
+ads-mcp_dual_brain_decisions-FULL-2026-07-31.sql.gz       36.986 inserts   10,6 MB
+ads-mcp_dual_brain_decisions-resolved_by-2026-07-31.sql        41 inserts
+ads-mcp_decision_thresholds-2026-07-31.sql                      1 insert
+```
+
+Arquivamos a tabela **inteira**, não só as 41 que a ADR 0363 mandou preservar: o DROP é irreversível e
+10 MB comprimidos são mais baratos que uma perda mal medida. `MANIFEST.md` ao lado explica a origem e
+como restaurar.
+
+**Estado de prod na hora do dump** (controle positivo `business=83`, `users=125`): 36.986 linhas ·
+`resolved_by`=41 · última escrita **15:50:26** (parada desde o [#5127](https://github.com/wagnerra23/oimpresso.com/pull/5127)) · 87,75 MB.
+No `information_schema`: **zero FK entrando**, zero trigger, zero view citando as 5 — nada bloqueia o DROP.
+
+### D4 — 2 consumidores da tabela morta foram patchados na mesma leva
+
+O C2 previa o patch no `ProjectService`; o segundo é achado desta etapa.
+
+- [`Forja/Services/ProjectService.php:160`](../../../Modules/Forja/Services/ProjectService.php) — a query vira `[]`. A **chave continua no payload**: `ProjectShow.tsx` declara `decisions` como prop obrigatória e faz `decisions.length > 0`; removê-la crasharia a tela.
+- `Forja/Tools/MetricsQueryTool.php` — **removida**. Agregava só `mcp_dual_brain_decisions`; sem fonte, só poderia falhar, e tool que nunca funciona no catálogo é ruído, não capacidade. É a perda que a ADR 0363 decidiu, não efeito colateral.
+
+O contrato dos dois lados (o que morreu × o que sobreviveu) virou teste: `Modules/Forja/Tests/Feature/AdsCoreDropContratoTest.php`.
 
 ## ⚠️ ERRATA 2026-07-31 (parte 6b) — CORRIJO O C7: `/kb/graph` EXISTE, e eu medi errado
 

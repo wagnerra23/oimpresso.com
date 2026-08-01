@@ -23,19 +23,19 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 564,
-    "edges": 828,
+    "nodes": 569,
+    "edges": 833,
     "by_node_type": {
       "module": 41,
-      "table": 66,
+      "table": 71,
       "adr": 25,
       "component": 389,
       "api": 43
     },
     "by_edge_type": {
-      "ownsTable": 52,
+      "ownsTable": 58,
       "ownsLegacyView": 13,
-      "consumesTable": 1,
+      "consumesTable": 0,
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
@@ -1827,10 +1827,10 @@
       "desc": "decompõe Project em Parts via Sonnet; ainda importa DecisionLinksService e Ai/Agents/ProjectDecomposerAgent do ADS (resíduo transitório: sai com o núcleo do ADS)"
     },
     {
-      "id": "component:Forja/Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,MetricsQuery,RunTest,WriteFile}",
+      "id": "component:Forja/Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,RunTest,WriteFile}",
       "type": "component",
       "module": "Forja",
-      "name": "Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,MetricsQuery,RunTest,WriteFile}",
+      "name": "Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,RunTest,WriteFile}",
       "desc": "catálogo de tools (Anthropic tool use); consumido por Admin/ToolsController e por KB Admin/GraphController"
     },
     {
@@ -4296,6 +4296,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_decision_links",
+      "type": "table",
+      "name": "mcp_decision_links",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:mcp_epics",
       "type": "table",
       "name": "mcp_epics",
@@ -4310,12 +4321,12 @@
       "id": "table:mcp_governance_rules",
       "type": "table",
       "name": "mcp_governance_rules",
-      "owners": [],
-      "consumers": [
+      "owners": [
         "Governance"
       ],
+      "consumers": [],
       "legacy_views": [],
-      "ownership_mode": "unowned"
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_inbox_notifications",
@@ -4367,6 +4378,28 @@
       "name": "mcp_memory_documents_history",
       "owners": [
         "KB"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_project_parts",
+      "type": "table",
+      "name": "mcp_project_parts",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_projects",
+      "type": "table",
+      "name": "mcp_projects",
+      "owners": [
+        "Forja"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -4442,6 +4475,28 @@
       "id": "table:mcp_tasks",
       "type": "table",
       "name": "mcp_tasks",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_tool_executions",
+      "type": "table",
+      "name": "mcp_tool_executions",
+      "owners": [
+        "Forja"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_user_module_access",
+      "type": "table",
+      "name": "mcp_user_module_access",
       "owners": [
         "Forja"
       ],
@@ -6514,7 +6569,7 @@
     },
     {
       "from": "module:Forja",
-      "to": "component:Forja/Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,MetricsQuery,RunTest,WriteFile}",
+      "to": "component:Forja/Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,RunTest,WriteFile}",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -6562,6 +6617,12 @@
     },
     {
       "from": "module:Forja",
+      "to": "table:mcp_decision_links",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
       "to": "table:mcp_epics",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -6581,6 +6642,18 @@
     {
       "from": "module:Forja",
       "to": "table:mcp_jira_projects",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_project_parts",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_projects",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -6628,6 +6701,18 @@
     },
     {
       "from": "module:Forja",
+      "to": "table:mcp_tool_executions",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
+      "to": "table:mcp_user_module_access",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Forja",
       "to": "table:mcp_views",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -6661,12 +6746,6 @@
       "to": "adr:0086",
       "type": "charteredByAdr",
       "source": "charter_adr"
-    },
-    {
-      "from": "module:Governance",
-      "to": "table:mcp_governance_rules",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
     },
     {
       "from": "module:Governance",
@@ -6843,6 +6922,12 @@
       "to": "component:Governance/PoliciesController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_governance_rules",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
     },
     {
       "from": "module:Governance",
@@ -9768,14 +9853,7 @@
     ],
     "dangling_module_refs": [],
     "dangling_adr_refs": [],
-    "consumed_tables_without_catalog_owner": [
-      {
-        "table": "mcp_governance_rules",
-        "consumers": [
-          "Governance"
-        ]
-      }
-    ],
+    "consumed_tables_without_catalog_owner": [],
     "tables_owned_by_multiple": []
   }
 }

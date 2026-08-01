@@ -157,11 +157,15 @@ class ProjectService
             ])
             ->all();
 
-        $decisions = DB::table('mcp_dual_brain_decisions')
-            ->where('project_id', $projectId)
-            ->orderBy('id')
-            ->get(['id', 'event_type', 'domain', 'destination', 'outcome', 'review_score'])
-            ->all();
+        // O núcleo dual-brain do ADS morreu (ADR 0363) e `mcp_dual_brain_decisions`
+        // foi dropada no E5 — consultá-la aqui viraria SQLSTATE 42S02 → 500 nesta
+        // tela, que é uma das 4 rotas /ads/admin/* que sobreviveram.
+        //
+        // A chave continua no payload de propósito: `ProjectShow.tsx` a declara como
+        // prop obrigatória (`decisions: DecisionLink[]`) e faz `decisions.length > 0`.
+        // Devolver [] mantém o contrato e faz o bloco sumir da UI sozinho, que é o
+        // comportamento honesto quando a entidade-alvo deixou de existir.
+        $decisions = [];
 
         return [
             'project' => [

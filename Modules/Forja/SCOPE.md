@@ -27,7 +27,9 @@ contains:
   # Registro do ADS, recebido em 2026-07-31 — os 3 consumidores vivos eram
   # controllers desta casa, então o serviço veio morar junto do consumidor.
   # URLs, nomes de rota, permissions `ads.*` e a chave `ads_module` NÃO mudaram.
-  - "Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,MetricsQuery,RunTest,WriteFile} — catálogo de tools (Anthropic tool use); consumido por Admin/ToolsController e por KB Admin/GraphController"
+  # MetricsQuery saiu no E5 do ADS (2026-07-31): agregava `mcp_dual_brain_decisions`,
+  # que foi dropada — tool sem fonte só poderia falhar.
+  - "Services/ToolRegistry + Contracts/Tool + Tools/{BoostToolAdapter,GitInspect,GitCommitWip,LogReader,RunTest,WriteFile} — catálogo de tools (Anthropic tool use); consumido por Admin/ToolsController e por KB Admin/GraphController"
   - "Services/UserScopeService — permissões (usuário x módulo) sobre `mcp_user_module_access`; é quem o WriteFileTool consulta ANTES de escrever — regra do servidor vence a regra local"
   - "Services/ProjectDecomposerService — decompõe Project em Parts via Sonnet; ainda importa DecisionLinksService e Ai/Agents/ProjectDecomposerAgent do ADS (resíduo transitório: sai com o núcleo do ADS)"
   # MCP endpoints — recebidos de Modules/Jana em 2026-07-30 ([W] "MCP vai para Forja")
@@ -90,6 +92,15 @@ db_tables_owned:
   - mcp_views
   - mcp_inbox_notifications
   - mcp_issue_templates
+  # Herdadas do ADS (módulo extinto) em 2026-07-31 (ADR 0363). Declaradas aqui porque o E5
+  # dropou o núcleo dual-brain e estas 5 FICARAM — cada uma tem consumidor vivo
+  # nesta casa. Sem dono declarado, a próxima varredura de deprecação as acharia
+  # órfãs e dropava: é exatamente o padrão da errata C5 do DEPRECATION-PLAN do ADS.
+  - mcp_projects           # Admin/ProjectsController + ProjectService
+  - mcp_project_parts      # ProjectDecomposerService
+  - mcp_decision_links     # DecisionLinksService (escreve a cada decompose)
+  - mcp_tool_executions    # Admin/ToolsController (INSERT por execução de tool)
+  - mcp_user_module_access # UserScopeService (RBAC usuário × módulo)
 drift_alerts: []
   # Fase 3.7 PR-1 (2026-05-06): Admin/ProjectsController absorvido do ADS.
   # URL /ads/admin/projects mantida — só namespace mudou.
