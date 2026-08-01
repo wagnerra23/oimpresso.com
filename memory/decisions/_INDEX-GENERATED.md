@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **367** arquivos · **352** números únicos · máx **0363**
-- **ADRs ATIVOS (lifecycle ativo): 329** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 331 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 329 · arquivado 22 · substituido 16
+- **368** arquivos · **353** números únicos · máx **0364**
+- **ADRs ATIVOS (lifecycle ativo): 330** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 332 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 330 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (367)
+## Todas as ADRs (368)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -405,3 +405,4 @@ _(nenhuma)_
 | 0360 | aceito | ativo | decision | Depreciação do Admin Center (Modules/Admin) — o painel nunca foi alcançável e nã |
 | 0361 | aceito | ativo | errata | Errata à 0354 — a promoção de `teammcp-pest` a required nunca chegou à proteção  |
 | 0363 | aceito | ativo | decision | Modules/Governance incorpora o Modules/ADS — a política tinha posse partida e o  |
+| 0364 | aceito | ativo | decision | O trio de tela (charter + casos) muda de casa para memory/requisitos/<Modulo>/_t |

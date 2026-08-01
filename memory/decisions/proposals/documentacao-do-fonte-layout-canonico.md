@@ -1,9 +1,12 @@
 ---
-status: proposal
+status: accepted
 title: "Documentação do fonte — consolidação física do trio em memory/ (Opção A, decisão organizacional [F])"
 proposed_by: Felipe [F] + Claude
 proposed_at: 2026-07-31
 decided_at: 2026-08-01
+decided_by: wagner
+ratified_at: 2026-08-01
+realized_by: 0364-trio-de-tela-mora-em-memory-emenda-0264
 relates_to:
   - 0264-governanca-executavel-trio-dominio-e2e
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
@@ -15,7 +18,7 @@ relates_to:
 
 # PROPOSAL — Documentação do fonte: consolidação física do trio em `memory/` (Opção A)
 
-> **Status:** `proposal` — **[F] decidiu o move físico** (2026-08-01: *"prefiro mudar para memória… mover os arquivos é escolha minha e eu quero"*). Ratificação = **[W]** (supera ADR canon + reescrita de gates required + toca `Modules/Jana` — CODEOWNERS `@wagnerra23`). [F] patrocina; [W] ratifica; eu executo sob aprovação.
+> **Status:** ✅ `accepted` — **[F] decidiu o move físico** (2026-08-01: *"prefiro mudar para memória… mover os arquivos é escolha minha e eu quero"*) e **[W] ratificou** em 2026-08-01 (*"Flip autorizo"*). Realizada na **[ADR 0364](../0364-trio-de-tela-mora-em-memory-emenda-0264.md)** — que executa a emenda como `supersedes_partially: [0264]` (não `supersedes` total; o porquê está lá). [F] patrocina; [W] ratifica; eu executo sob aprovação, passo a passo.
 >
 > **Decisão registrada com honestidade (o ponto que o adversário provou):** o move **NÃO é requisito de RAG** — o trio pode ser indexado **in-place** (glob no `IndexarMemoryGitParaDb`) sem mover nada. [F] escolheu mover **mesmo assim, como decisão organizacional** ("raiz é memory, nada fora"), ciente do trade-off. É soberania [F]/[W], não consequência técnica.
 
