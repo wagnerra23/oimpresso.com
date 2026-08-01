@@ -300,7 +300,7 @@
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
-### 5.1 `scripts/governance/` — 99
+### 5.1 `scripts/governance/` — 100
 
 | Script | Descrição (cabeçalho) |
 |---|---|
@@ -313,6 +313,7 @@
 | `agents-md-staleness.mjs` | sentinela: o AGENTS.md ficou atrás do CLAUDE.md? |
 | `anchor-content-check.mjs` | sentinela de CONTEÚDO da âncora de design. |
 | `anchor-lint.mjs` | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
+| `ancora-codigo-sync.mjs` | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
 | `baseline-tamper-guard.mjs` | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
 | `briefing-code-staleness.mjs` | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
 | `brl-scan-diff.mjs` | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |

@@ -157,7 +157,11 @@ P('|---|---|');
 const seen = new Set();
 for (const d of jsonDirs) {
   for (const f of lsDir(d).filter((x) => x.endsWith('.json')).sort()) {
-    const p = join(d, f);
+    // POSIX sempre: `join` usa o separador do SO, então no Windows isto virava
+    // `governance\x.json` — e o `--check` no CI (Linux) lia como "fora do índice",
+    // acusando 41 baselines que estavam lá. O índice é comparado string-exata entre
+    // máquinas de SOs diferentes ([W] no Windows, o time e o CI em POSIX).
+    const p = join(d, f).split('\\').join('/');
     if (seen.has(p)) continue;
     seen.add(p);
     let meta = '';
