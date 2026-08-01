@@ -42,13 +42,16 @@ routes:
   - "GET  /governance/module-grades/{name}         → ModuleGradeController@show          (governance.module-grades.show)"
   - "GET  /governance/ds-rollout                    → DsRolloutController@index           (governance.ds-rollout.index)"
   - "GET  /governance/install{,/uninstall,/update} → InstallController@*                 (governance.install.*)"
-db_tables_owned: []
-db_tables_consumed:
-  # Dono = Modules/ADS (migration 2026_05_03_220001_create_mcp_governance_rules_table
-  # + write das rules de decision flow). Aqui é superfície de LEITURA (ActionGate)
-  # + CRUD de toggle `enabled` via PoliciesController — não define o schema.
-  # Fronteira reconciliada 2026-07-26.
+db_tables_owned:
+  # Recebida do ADS (módulo extinto) em 2026-07-31 (ADR 0363 §1 — "a política tinha posse
+  # partida"). Este módulo já tinha a leitura (ActionGate) e o toggle `enabled`
+  # (PoliciesController); com o ADS extinto, passa a ser dono também do schema e
+  # da escrita. A migration original saiu do repo no PR #5135 — o DDL vive no
+  # baseline `database/schema/mysql-schema.sql`, e a tabela FICOU no E5 (não foi
+  # dropada) justamente por ter dono e consumidor vivos.
+  # Sem `business_id` POR DESIGN: é config global de superadmin (ADR 0093 não se aplica).
   - mcp_governance_rules
+db_tables_consumed: []
 drift_alerts:
   # 2026-05-17 — atualizado: Copiloto foi renomeado Jana em Fase 3.7 PR-2 (2026-05-06).
   # Drift ainda VIVO. ETA migração: Fase 5 (próxima sessão dedicada).

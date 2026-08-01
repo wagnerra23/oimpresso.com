@@ -166,11 +166,11 @@ module: Forja
 - [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
 
-## Testes (Pest) — 50
+## Testes (Pest) — 51
 
-- 50 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 51 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 16
+## Outros (raiz/misc) — 15
 
 - [ProjectDecomposerAgent.php](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php)
 - [Tool.php](../../../Modules/Forja/Contracts/Tool.php)
@@ -184,7 +184,6 @@ module: Forja
 - [GitCommitWipTool.php](../../../Modules/Forja/Tools/GitCommitWipTool.php)
 - [GitInspectTool.php](../../../Modules/Forja/Tools/GitInspectTool.php)
 - [LogReaderTool.php](../../../Modules/Forja/Tools/LogReaderTool.php)
-- [MetricsQueryTool.php](../../../Modules/Forja/Tools/MetricsQueryTool.php)
 - [RunTestTool.php](../../../Modules/Forja/Tools/RunTestTool.php)
 - [WriteFileTool.php](../../../Modules/Forja/Tools/WriteFileTool.php)
 - [start.php](../../../Modules/Forja/start.php)
