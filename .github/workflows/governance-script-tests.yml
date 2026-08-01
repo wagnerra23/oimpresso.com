@@ -34,6 +34,13 @@ jobs:
         run: node scripts/governance/adr-index-generate.test.mjs
       - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
         run: node scripts/governance/fact-anchor.test.mjs
+      # Fecha o gap "scripts/** + agents sem indice-dono": o MAQUINAS-INVENTARIO.md e derivado
+      # e agora ENFORCADO. --check e por COBERTURA (morde so quando maquina e add/removida sem
+      # regenerar, nao byte-exact que viraria ruido). Advisory (ADR 0314/0275: required = so Tier-0).
+      - name: Maquinas-inventario DRIFT (indice cobre todas as maquinas · rode --write se vermelho)
+        run: node scripts/governance/maquinas-inventario.mjs --check
+      - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
+        run: node scripts/governance/maquinas-inventario.test.mjs
       - name: System-map camada de IA (censo derivado · morde no caching.embeddings que a mao contou errado)
         run: node scripts/governance/system-map-ia.test.mjs
       - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)

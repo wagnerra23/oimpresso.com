@@ -5,10 +5,11 @@
 // gap não-catalogado (scripts/** + agents). NÃO escreve descrição à mão: cada linha vem
 // do cabeçalho/frontmatter/_meta do próprio arquivo. Regerar: node scripts/governance/maquinas-inventario.mjs --write
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const ROOT = process.cwd();
-const write = process.argv.includes('--write');
+const MODE = process.argv.includes('--write') ? 'write'
+  : process.argv.includes('--check') ? 'check' : 'dry';
 
 // --- helpers de extração (medido, nunca inventado) ---
 const firstDescComment = (txt) => {
@@ -57,7 +58,9 @@ P('# Máquinas do oimpresso — inventário consolidado (DERIVADO)');
 P('');
 P('> ⚙️ **Auto-gerado** por `scripts/governance/maquinas-inventario.mjs` — cada descrição vem do');
 P('> cabeçalho/frontmatter/`_meta` do PRÓPRIO arquivo (medido, não escrito à mão · ADR 0256).');
-P('> Regerar: `node scripts/governance/maquinas-inventario.mjs --write`.');
+P('> Regerar: `node scripts/governance/maquinas-inventario.mjs --write` · drift de COBERTURA');
+P('> acusado por `--check` (advisory em `governance-script-tests.yml`): morde quando uma máquina');
+P('> é adicionada/removida sem regenerar. Bite-test: `maquinas-inventario.test.mjs`.');
 P('>');
 P('> **Donos canônicos** (esta página só CONSOLIDA — a fonte viva de cada eixo é):');
 P('> - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`');
@@ -170,10 +173,38 @@ P(`> Total baselines JSON em governance/+config/+scripts: ${seen.size} · (mais 
 P('');
 
 const md = out.join('\n');
-if (write) {
-  const dest = join(ROOT, 'governance/MAQUINAS-INVENTARIO.md');
-  writeFileSync(dest, md);
-  console.log(`✅ escrito: governance/MAQUINAS-INVENTARIO.md (${md.split('\n').length} linhas)`);
+const OUT = process.env.MAQUINAS_OUT || 'governance/MAQUINAS-INVENTARIO.md'; // env: fixture no bite-test
+
+// Identidade da máquina = token da 1ª coluna das tabelas (`| \`nome\` | …`). Comparar SÓ
+// esse conjunto torna o --check insensível a mudança de descrição/contagem — ele morde
+// apenas quando uma máquina é ADICIONADA ou REMOVIDA sem regenerar (o drift que importa;
+// byte-exact viraria vermelho em quase todo PR de governança → ruído ignorado).
+const extractNames = (text) => {
+  const s = new Set();
+  for (const m of text.matchAll(/^\| `([^`]+)` /gm)) s.add(m[1]);
+  return s;
+};
+
+const OUT_PATH = resolve(ROOT, OUT); // resolve trata OUT absoluto (env fixture) sem manglar
+if (MODE === 'write') {
+  writeFileSync(OUT_PATH, md);
+  console.log(`✅ escrito: ${OUT} (${md.split('\n').length} linhas)`);
+} else if (MODE === 'check') {
+  if (!existsSync(OUT_PATH)) {
+    console.error(`✗ ${OUT} não existe — rode: node scripts/governance/maquinas-inventario.mjs --write`);
+    process.exit(1);
+  }
+  const fresh = extractNames(md);
+  const have = extractNames(readFileSync(OUT_PATH, 'utf8'));
+  const missing = [...fresh].filter((n) => !have.has(n)).sort(); // no disco, FORA do índice
+  const ghost = [...have].filter((n) => !fresh.has(n)).sort();    // no índice, SUMIU do disco
+  if (missing.length || ghost.length) {
+    console.error(`✗ ${OUT} DESATUALIZADO (cobertura) — rode: node scripts/governance/maquinas-inventario.mjs --write`);
+    if (missing.length) console.error(`  ${missing.length} no disco fora do índice: ${missing.slice(0, 15).join(', ')}${missing.length > 15 ? '…' : ''}`);
+    if (ghost.length) console.error(`  ${ghost.length} no índice que sumiram do disco: ${ghost.slice(0, 15).join(', ')}${ghost.length > 15 ? '…' : ''}`);
+    process.exit(1);
+  }
+  console.log(`✅ ${OUT} cobre todas as ${fresh.size} máquinas (0 faltando · 0 ghost).`);
 } else {
   process.stdout.write(md);
 }
