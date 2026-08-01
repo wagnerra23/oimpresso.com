@@ -300,7 +300,7 @@
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
-### 5.1 `scripts/governance/` — 99
+### 5.1 `scripts/governance/` — 100
 
 | Script | Descrição (cabeçalho) |
 |---|---|
@@ -313,6 +313,7 @@
 | `agents-md-staleness.mjs` | sentinela: o AGENTS.md ficou atrás do CLAUDE.md? |
 | `anchor-content-check.mjs` | sentinela de CONTEÚDO da âncora de design. |
 | `anchor-lint.mjs` | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
+| `ancora-codigo-sync.mjs` | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
 | `baseline-tamper-guard.mjs` | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
 | `briefing-code-staleness.mjs` | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
 | `brl-scan-diff.mjs` | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
@@ -461,46 +462,46 @@
 
 | Arquivo | `_meta` / propósito |
 |---|---|
-| `governance/adr-alias-map.json` | (baseline/estado) |
-| `governance/adr-collisions-baseline.json` | Colisões de número de ADR — catraca anti-bifurcação (só encolhe). O detector já existia (adr-index-generate.mjs lista as colisões desde sempre); este … |
-| `governance/adr-tombstones.json` | (baseline/estado) |
-| `governance/anchor-entry-baseline.json` | anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário) |
-| `governance/charter-refs-baseline.json` | (baseline/estado) |
-| `governance/deadlink-baseline.json` | (baseline/estado) |
-| `governance/doc-id-index.json` | (baseline/estado) |
-| `governance/doneness-baseline.json` | doneness GRANDFATHER — conflitos status×âncora legados isentos (ratchet só-desce · ADR 0302/0275 advisory→required por calendário) |
-| `governance/ds-ledger.json` | (baseline/estado) |
-| `governance/dup-hot-paths.json` | (baseline/estado) |
-| `governance/ghost-rename-map.json` | (baseline/estado) |
-| `governance/hue-canon.json` | Fonte única do hue primário universal (US-GOV-052 P32). O hue vivia em 3 mapas divergentes — pageheader-canon chegou a ter check aprovando o 145 morto… |
-| `governance/jana-ragas-baseline.json` | Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispat… |
-| `governance/jana-ragas-real-baseline.json` | (baseline/estado) |
-| `governance/ledger-checkpoints.json` | (baseline/estado) |
-| `governance/module-grades-baseline.json` | (baseline/estado) |
-| `governance/module-group.json` | (baseline/estado) |
-| `governance/multi-tenant-scope-baseline.json` | (baseline/estado) |
-| `governance/prod-flags.json` | (baseline/estado) |
-| `governance/required-checks-baseline.json` | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
-| `governance/reseed-meilisearch-manifest.json` | (baseline/estado) |
-| `governance/route-hits.json` | (baseline/estado) |
-| `governance/sdd-scorecard-baseline.json` | SDD scorecard baseline v1 — meta-catraca GT-G3 (plano 2026-06-12 §2 GARANTIDA + §4 Semanas 1-2) |
-| `governance/sdd-scorecard.json` | (baseline/estado) |
-| `governance/sdd-verification-ledger.json` | (baseline/estado) |
-| `config/a11y-baseline.json` | (baseline/estado) |
-| `config/css-size-baseline.json` | (baseline/estado) |
-| `config/design-identity-baseline.json` | (baseline/estado) |
-| `config/ds-handoff-baseline.json` | (baseline/estado) |
-| `config/eslint-baseline.json` | (baseline/estado) |
-| `config/handoff-integrity-baseline.json` | (baseline/estado) |
-| `config/pageheader-shared-baseline.json` | (baseline/estado) |
-| `config/stylelint-baseline.json` | (baseline/estado) |
-| `config/ui-lint-baseline.json` | (baseline/estado) |
-| `scripts/casos-coverage-baseline.json` | casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado) |
-| `scripts/casos-test-results.json` | casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste) |
-| `scripts/domain-dict-baseline.json` | dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3) |
-| `scripts/layout-primitives-baseline.json` | Contagem de flex/grid solto POR ARQUIVO. Gate falha se um arquivo AUMENTAR ou se arquivo novo nascer com flex/grid solto. |
-| `scripts/no-mock-baseline.json` | Contagem por REGRA. Gate falha so se uma regra AUMENTAR vs este baseline. |
-| `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
-| `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
+| `governance\adr-alias-map.json` | (baseline/estado) |
+| `governance\adr-collisions-baseline.json` | Colisões de número de ADR — catraca anti-bifurcação (só encolhe). O detector já existia (adr-index-generate.mjs lista as colisões desde sempre); este … |
+| `governance\adr-tombstones.json` | (baseline/estado) |
+| `governance\anchor-entry-baseline.json` | anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário) |
+| `governance\charter-refs-baseline.json` | (baseline/estado) |
+| `governance\deadlink-baseline.json` | (baseline/estado) |
+| `governance\doc-id-index.json` | (baseline/estado) |
+| `governance\doneness-baseline.json` | doneness GRANDFATHER — conflitos status×âncora legados isentos (ratchet só-desce · ADR 0302/0275 advisory→required por calendário) |
+| `governance\ds-ledger.json` | (baseline/estado) |
+| `governance\dup-hot-paths.json` | (baseline/estado) |
+| `governance\ghost-rename-map.json` | (baseline/estado) |
+| `governance\hue-canon.json` | Fonte única do hue primário universal (US-GOV-052 P32). O hue vivia em 3 mapas divergentes — pageheader-canon chegou a ter check aprovando o 145 morto… |
+| `governance\jana-ragas-baseline.json` | Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispat… |
+| `governance\jana-ragas-real-baseline.json` | (baseline/estado) |
+| `governance\ledger-checkpoints.json` | (baseline/estado) |
+| `governance\module-grades-baseline.json` | (baseline/estado) |
+| `governance\module-group.json` | (baseline/estado) |
+| `governance\multi-tenant-scope-baseline.json` | (baseline/estado) |
+| `governance\prod-flags.json` | (baseline/estado) |
+| `governance\required-checks-baseline.json` | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
+| `governance\reseed-meilisearch-manifest.json` | (baseline/estado) |
+| `governance\route-hits.json` | (baseline/estado) |
+| `governance\sdd-scorecard-baseline.json` | SDD scorecard baseline v1 — meta-catraca GT-G3 (plano 2026-06-12 §2 GARANTIDA + §4 Semanas 1-2) |
+| `governance\sdd-scorecard.json` | (baseline/estado) |
+| `governance\sdd-verification-ledger.json` | (baseline/estado) |
+| `config\a11y-baseline.json` | (baseline/estado) |
+| `config\css-size-baseline.json` | (baseline/estado) |
+| `config\design-identity-baseline.json` | (baseline/estado) |
+| `config\ds-handoff-baseline.json` | (baseline/estado) |
+| `config\eslint-baseline.json` | (baseline/estado) |
+| `config\handoff-integrity-baseline.json` | (baseline/estado) |
+| `config\pageheader-shared-baseline.json` | (baseline/estado) |
+| `config\stylelint-baseline.json` | (baseline/estado) |
+| `config\ui-lint-baseline.json` | (baseline/estado) |
+| `scripts\casos-coverage-baseline.json` | casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado) |
+| `scripts\casos-test-results.json` | casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste) |
+| `scripts\domain-dict-baseline.json` | dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3) |
+| `scripts\layout-primitives-baseline.json` | Contagem de flex/grid solto POR ARQUIVO. Gate falha se um arquivo AUMENTAR ou se arquivo novo nascer com flex/grid solto. |
+| `scripts\no-mock-baseline.json` | Contagem por REGRA. Gate falha so se uma regra AUMENTAR vs este baseline. |
+| `scripts\perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
+| `scripts\reuse-duplicates-baseline.json` | (baseline/estado) |
 
 > Total baselines JSON em governance/+config/+scripts: 41 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
