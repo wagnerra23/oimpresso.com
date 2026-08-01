@@ -17,7 +17,7 @@
 | Telas (.tsx) | 21 |
 | Telas com `casos.md` | 6 |
 | UC declarados | 32 |
-| UC com teste que os cita | 29 |
+| UC com teste que os cita | 30 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -132,7 +132,7 @@
 | UC-IMP-02 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-03 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-04 | Impostos/Index | 🧪 aguarda veredito da lane |
-| UC-IMP-05 | Impostos/Index | 📝 sem_teste |
+| UC-IMP-05 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-06 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-07 | Impostos/Index | 📝 sem_teste |
 | UC-IMP-08 | Impostos/Index | 🧪 aguarda veredito da lane |
