@@ -1,8 +1,9 @@
 ---
 status: proposal
-title: "Documentação do fonte — consolidação física do trio em memory/ (Opção A, RAG-indexável)"
+title: "Documentação do fonte — consolidação física do trio em memory/ (Opção A, decisão organizacional [F])"
 proposed_by: Felipe [F] + Claude
 proposed_at: 2026-07-31
+decided_at: 2026-08-01
 relates_to:
   - 0264-governanca-executavel-trio-dominio-e2e
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
@@ -14,54 +15,49 @@ relates_to:
 
 # PROPOSAL — Documentação do fonte: consolidação física do trio em `memory/` (Opção A)
 
-> **Status:** `proposal` — [F] escolheu **Opção A** (2026-07-31: *"eu gostaria do A, não gostei de
-> onde ficou"*). Ratificação = **[W]** (supera ADR canon + re-path de gate required + toca
-> `Modules/Jana` — CODEOWNERS `@wagnerra23`). [F] patrocina; [W] ratifica; eu executo sob aprovação.
+> **Status:** `proposal` — **[F] decidiu o move físico** (2026-08-01: *"prefiro mudar para memória… mover os arquivos é escolha minha e eu quero"*). Ratificação = **[W]** (supera ADR canon + reescrita de gates required + toca `Modules/Jana` — CODEOWNERS `@wagnerra23`). [F] patrocina; [W] ratifica; eu executo sob aprovação.
 >
-> **Histórico honesto (append-only):** a v1 recomendava **Opção B** (trio fica no `resources/js/`,
-> achabilidade por índice derivado). **Refutada por um fato medido que a v1 não pesou — o RAG.**
+> **Decisão registrada com honestidade (o ponto que o adversário provou):** o move **NÃO é requisito de RAG** — o trio pode ser indexado **in-place** (glob no `IndexarMemoryGitParaDb`) sem mover nada. [F] escolheu mover **mesmo assim, como decisão organizacional** ("raiz é memory, nada fora"), ciente do trade-off. É soberania [F]/[W], não consequência técnica.
 
-## Por que virou A — o fato do RAG (medido 2026-07-31)
+## Histórico honesto (append-only)
 
-O indexador do RAG/Jana — [`IndexarMemoryGitParaDb`](../../../Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php) (ADR 0053, **auto-sync via webhook GitHub** — zero "colocar no RAG" manual) — **só varre `memory/`**. **Não indexa `resources/js/`.** Logo o trio (`charter`+`casos` = contrato de design + casos de uso) **está fora do RAG**: invisível ao `memoria-search`/`decisions-search`/Jana. A Opção B (índice derivado) resolve achabilidade **por humano**; **não** põe o conteúdo no RAG. Só A faz o contrato de tela virar conhecimento pesquisável pela IA — e de graça (sync automático).
+- **v1 → B** (trio fica no `resources/js/`, achabilidade por índice derivado). Refutada.
+- **v2 → A por causa do RAG.** **Refutada pelo adversário do plano** (2026-08-01): o RAG é alcançável in-place; a tese "só A põe no RAG" era falsa.
+- **v3 (esta) → A por escolha organizacional [F]**, com o plano **corrigido** pelos achados do adversário (abaixo). O RAG deixa de ser justificativa; a justificativa é "quero tudo em `memory/`".
 
-## Requisitos pra "entrar no RAG bem" (medidos — pergunta [F])
+## Alternativa registrada e DECLINADA por [F]: RAG in-place
 
-Não basta jogar em `memory/`: o RAG exige **classificação + schema**.
+Adicionar `resources/js/Pages` (filtrado a `.charter/.casos.md`) como raiz do `coletarRecursivo` em `IndexarMemoryGitParaDb` → o trio entra no RAG **sem mover, sem tocar gate**. Entrega a Jana-searchability. **[F] declinou** em favor do move físico (organizacional). Fica registrado como o caminho de menor custo, caso [W] reavalie.
 
-1. **Classificação (`type`):** o indexer atribui `type` por **glob→path** (`spec`/`briefing`/`adr`/`audit`…). **Não existe `type=charter` nem `type=casos` hoje** → precisam ser adicionados.
-2. **Schema (bem definida):** o **charter JÁ tem** `charter.schema.json` (memory-schema-gate valida) ✅. O **casos NÃO tem** schema de memory (governado pelo casos-gate G-5) → ganha `casos.schema.json` OU o indexer trata `type=casos` sem frontmatter estrito.
+## Decisão (A)
 
-## Decisão proposta (A)
+1. **Casa canônica ÚNICA = `memory/requisitos/<Modulo>/`.** O trio migra pra `memory/requisitos/<Modulo>/_telas/<Tela>.charter.md` + `.casos.md` — **mesma estrutura, raiz `memory/`**. Nada fora de `memory/`.
+2. **O `.tsx` fica em `resources/js/Pages/`** (é código). O vínculo trio↔tela vira **explícito no frontmatter** (`tela: resources/js/Pages/<Mod>/<Tela>.tsx`) — mas isto é **dado inerte até o gate ler** (ver plano passo 2).
+3. **Supera a [ADR 0264](../0264-governanca-executavel-trio-dominio-e2e.md)** — ADR nova `supersedes: [264]` (append-only).
 
-1. **Casa canônica ÚNICA da doc do módulo = `memory/requisitos/<Modulo>/`.** O trio migra pra `memory/requisitos/<Modulo>/_telas/<Tela>.charter.md` + `.casos.md` (o `_telas/` já é a casa por-tela; `requisitos-status.mjs` já lê lá). **Nada fora de `memory/`.**
-2. **O `.tsx` fica em `resources/js/Pages/`** (é código) — mas o trio deixa de depender de adjacência: o vínculo trio↔tela vira **explícito no frontmatter** (`tela: resources/js/Pages/<Mod>/<Tela>.tsx`).
-3. **Supera a [ADR 0264](../0264-governanca-executavel-trio-dominio-e2e.md)** — vira ADR nova `supersedes: [264]` (append-only).
+## Plano de migração CORRIGIDO (adversário 2026-08-01) — [W] ratifica, eu executo
 
-## Plano de migração (turn-key — [W] aprova, eu executo end-to-end)
+> Não é turn-key. É projeto separado. Os defeitos da v2 estão corrigidos:
 
-Ordenado por dependência; cada passo endereça um risco já medido (adversário 2026-07-31):
-
-1. **Vínculo `tela:` no frontmatter do trio** — **conserta o G-6 que quebraria em silêncio** (o gate acha o `.tsx` pelo link, não pelo path-irmão `casos.replace('.casos.md','.tsx')`). É o passo-chave; nada move antes dele.
-2. **Re-path do `casos-gate`** ([`casos-coverage-guard.mjs`](../../../scripts/casos-coverage-guard.mjs)) — varre `memory/requisitos/*/_telas/` e lê o `.tsx` do frontmatter (item 1). G-1 completude + G-6 frescor (`casos` vs git-date do `.tsx`) via link.
-3. **Classificação + schema pro RAG** (⚠️ `Modules/Jana` = CODEOWNERS [W]): estender `IndexarMemoryGitParaDb` com glob `memory/requisitos/*/_telas/*.{charter,casos}.md` → `type=charter`/`type=casos`; criar `casos.schema.json` (ou tratar sem); **atualizar o glob do memory-schema-gate** (hoje hardcoded `resources/js/Pages/**/*.charter.md` → +`memory/requisitos/*/_telas/*.charter.md`).
-4. **Atualizar os consumidores do path-irmão** — medido: **29 workflows** + **≥12 scripts/hooks** (`block-mwart-violation`, `charter-validate`, `detect-ui-drift`, `pt-conformance`, `screen-coverage-map`, `vital-signs`, `criar-tela.mjs`, `charter-first` hook…) → ler o trio do novo path / do frontmatter.
-5. **Mover os arquivos — forward-only, por módulo** (nunca lote, §5 2026-07-12); `move-with-tombstone` (`estrutura-canon` §II.5b) pra não quebrar inbound links.
-6. **Revisão adversarial do PLANO + smoke** antes de cada flip de gate required ("a IA não altera a máquina que a fiscaliza").
-
-## Consequências
-
-- **Positivo:** tudo num lugar (`memory/`); o trio entra no RAG/Jana **automático + classificado** (searchable por `type`); anti-rot **preservado por enforcement** (o gate re-pathado exige o frescor trio↔`.tsx` pelo link + git-date, não por adjacência).
-- **Custo:** migração de 6 passos, 29+12 consumidores + Jana (Tier-0) — mitigado por forward-only + turn-key + adversarial antes do flip.
-- **Trade-off honesto:** perde-se "o dev vê o contrato ao lado do `.tsx`"; ganha-se "o contrato está no RAG + o gate garante frescor por link".
+1. **Reescrever o `casos-coverage-guard.mjs` para DUAL-RESOLVER** — o G-1/G-6/G-7 hoje resolvem o `.tsx` por **path-irmão computado** (`file.replace('.casos.md','.tsx')`, `existsSync(dir+base+'.charter.md')`), **não leem frontmatter**. Passa a resolver o trio nas **DUAS árvores ao mesmo tempo** (irmão em `Pages/` OU vinculado em `_telas/` via `tela:`), mantido até o último módulo mover. ⚠️ **É o passo caro** — o `tela:` do frontmatter é inerte sem esta reescrita (correção: v2 chamava isto de "re-path").
+2. **Inventário COMPLETO dos consumidores** (a v2 dizia "≥12" — incompleto). Os REQUIRED omitidos, achados pelo adversário:
+   - **`anchor-content-check.mjs`** (`Ancora de design nao-shell F2/F6`) — **required**
+   - **`charter-live-signal.mjs`** (`charter status:live precisa de sinal de prod`) — **required**
+   - **`visreg-states-lint.mjs` + manifesto `tests/Browser/visreg-states.json`** (dentro de `visual-regression`) — **required**
+   - advisory: `charter-refs`, `charter-us-lint`, `charter-promote-signal`, `reconcile-triplet`, `design-code-map-check`, subsistema `prototipo-ui/ancora.mjs` + `_lib-charter.mjs` + `block-ancora-no-olho`, `charter-da-tela-que-o-controller-serve`
+   - **`requisitos-status.mjs` REGRIDE** — lê `_telas/` como fluxo "(blade)", geraria falsa lacuna + contagem dobrada; precisa aprender o trio React movido.
+3. **RAG (Jana = CODEOWNERS [W]):** glob `memory/requisitos/*/_telas/*.{charter,casos}.md` → `type=charter`/`type=casos` (⚠️ glob PHP não recursa, `_telas` é 2 níveis, `{}` exige `GLOB_BRACE`); casos entra bem **sem** schema (o RAG degrada gracioso — `casos.schema.json` é necessidade do memory-schema-gate, não do RAG); atualizar o glob hardcoded do memory-schema-gate.
+4. **NÃO usar `move-with-tombstone`** — é a ferramenta ERRADA (correção da v2): é `memory/`-scoped, só relinka referências **literais** (as do trio são **resoluções path-irmão computadas** que o scanner não acha), e o stub que ele deixa em `Pages/` **quebra o Charter schema REQUIRED + finge o G-1 verde** (LC-11). Mover = `git mv` real + a reescrita dual-resolver (passo 1) segurando a transição.
+5. **Mover forward-only, por módulo** — mas **só depois** do dual-resolver (passo 1), senão o `.tsx` órfão em `Pages/` falha o G-1 **full-tree** (o gate varre `Pages/**` inteiro, não diff).
+6. **Adversarial do PLANO (feito) + smoke por módulo** antes de cada flip.
 
 ## Riscos Tier 0
 
-- **Append-only:** não edita a 0264; cria nova `supersedes`.
-- **Gate required + Jana:** re-path `casos-gate` + glob/schema do RAG = **[W]** (CODEOWNERS). Nenhum flip sem [W] + adversarial.
-- **G-6 silencioso:** endereçado pelo `tela:` (passo 1) — sem ele, mover = anti-rot desligado sem sinal.
-- **Legado:** forward-only; `move-with-tombstone`; enumerar globs de gate por arquivo antes de tocar (EMENDA §5 2026-07-27).
+- **Append-only:** não edita a 0264; ADR nova `supersedes`.
+- **Gates required (≥5) + Jana:** reescrita = **[W]** + adversarial + bite-test antes do flip ("a IA não altera a máquina que a fiscaliza").
+- **Diff-aware por-arquivo:** cada charter movido é "novo" no diff → re-validado contra o `charter.schema.json` **strict** → dívida latente grandfathered **falha** (EMENDA §5 2026-07-27, 3 eixos). Mover um por vez, verde a verde.
+- **Ordem:** passo 1 (dual-resolver) **antes** de qualquer move; passo 5 por último.
 
 ## Ratificação
 
-PR + aprovação **[W]** (CODEOWNERS). Revisão adversarial do **plano de migração** (não só do texto) antes do 1º flip. Ratificada → executo módulo-a-módulo, forward-only.
+PR + aprovação **[W]** (CODEOWNERS). O plano corrigido já passou por revisão adversarial (2026-08-01, veredito no PR #5136). Ratificada → executo módulo-a-módulo, forward-only, dual-resolver segurando a transição.
