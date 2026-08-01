@@ -1,5 +1,7 @@
 # Índice de Specs dos Módulos
 
+> ⚠️ **FÓSSIL DATADO — não é o estado atual.** Congelado em **2026-05-29** (`php artisan module:specs`); módulos removidos aparecem ~~tachados~~ à mão. Para o **retrato vivo** de módulos, gates required, workflows e ADRs → [`../reference/PAINEL-SISTEMA.md`](../reference/PAINEL-SISTEMA.md) (gerado por `system-map.mjs`, derivado da árvore). Mantido como história até o mapa por-módulo derivado cobri-lo.
+
 Gerado por `php artisan module:specs` em 2026-05-29 08:06.
 
 **Total:** 44 módulos únicos encontrados em todas as branches conhecidas (atual, `main-wip-2026-04-22`, `origin/3.7-com-nfe`).

@@ -6,6 +6,8 @@
 
 > ℹ️ Contagens aqui são aproximadas (navegação). A lista canônica de ADRs é **GERADA**: [`decisions/_INDEX-GENERATED.md`](decisions/_INDEX-GENERATED.md) (ADR 0258).
 
+> 🧭 Este é o **catálogo de arquivos** de `memory/`. O **retrato gerado do sistema** (módulos, gates required, workflows, ADRs) fica em [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
+
 > Mapa pra navegar `memory/`. Para **estado VIVO** (cycle ativo, tasks, brief), use tools MCP: `brief-fetch`, `my-work`, `cycles-active`, `decisions-search`.
 > Documento canônico — atualizar quando criar nova categoria. Reorg: ver [AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13](requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) §5 (G2).
 
