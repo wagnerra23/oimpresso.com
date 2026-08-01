@@ -2,7 +2,9 @@
 
 > ⚙️ **Auto-gerado** por `scripts/governance/maquinas-inventario.mjs` — cada descrição vem do
 > cabeçalho/frontmatter/`_meta` do PRÓPRIO arquivo (medido, não escrito à mão · ADR 0256).
-> Regerar: `node scripts/governance/maquinas-inventario.mjs --write`.
+> Regerar: `node scripts/governance/maquinas-inventario.mjs --write` · drift de COBERTURA
+> acusado por `--check` (advisory em `governance-script-tests.yml`): morde quando uma máquina
+> é adicionada/removida sem regenerar. Bite-test: `maquinas-inventario.test.mjs`.
 >
 > **Donos canônicos** (esta página só CONSOLIDA — a fonte viva de cada eixo é):
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
