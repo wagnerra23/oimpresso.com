@@ -140,7 +140,7 @@ Fonte completa: [proibicoes.md](proibicoes.md). As que mais te afetam:
 - **ADRs** = decisões arquiteturais (`memory/decisions/`, formato Nygard). Índice vivo: [decisions/_INDEX-GENERATED.md](decisions/_INDEX-GENERATED.md).
 - **Skills** = automações por contexto (`.claude/skills/`). **Tier A** sempre-on (multi-tenant, commit-discipline, smoke). **Tier B** disparam por path/intenção.
 - **Rules path-scoped** (`.claude/rules/`) = instruções que só carregam ao tocar certos arquivos.
-- **Saúde:** `php artisan jana:health-check` (5 checks SQL diários).
+- **Saúde:** `php artisan jana:health-check` diário — os checks vivem no próprio comando (`HealthCheckCommand.php` se auto-reporta a contagem); não fixar número à mão (LC-08).
 
 ---
 
