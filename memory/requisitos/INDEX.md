@@ -7,7 +7,7 @@ id: requisitos-index
 > Documentação viva, complementa `memory/modulos/` (spec técnica)
 > com foco no **valor de negócio** — user stories, regras Gherkin, DoD.
 >
-> **Atualizado em 2026-04-24**
+> **Atualizado em 2026-04-24** — snapshot datado. Para o estado vivo por módulo use a porta viva (`npm run screen-coverage:report` / `casos:report`) e o retrato gerado em [`../reference/PAINEL-SISTEMA.md`](../reference/PAINEL-SISTEMA.md).
 
 ## Resumo
 

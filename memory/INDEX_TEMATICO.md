@@ -2,6 +2,8 @@
 
 > ⚠️ Para a lista **COMPLETA e atual de ADRs** (status/lifecycle/colisões), use o índice **GERADO** [`decisions/_INDEX-GENERATED.md`](decisions/_INDEX-GENERATED.md) (ADR 0258). Este índice temático é navegação por tema e pode estar atrás do disco.
 
+> 🧭 Isto é **busca por tema**. O **retrato gerado do sistema** (módulos, gates required, workflows) fica em [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
+
 > **Busca por tema, não por número.** Une as duas memórias: a **grande memória do git**
 > (`wagnerra23/oimpresso.com` · `memory/decisions/` · ~239 ADRs Nygard, numeração monotônica
 > ADR 0028) e a **memória do Cowork** (projeto de design). Para "o que decidimos sobre X?", venha aqui.

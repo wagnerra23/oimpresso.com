@@ -6,7 +6,7 @@ authority: canonical
 lifecycle: ativo
 version: "1.1.0"
 maintained_by: wagner
-last_updated: "2026-07-22"
+last_updated: "2026-08-01"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -17,6 +17,8 @@ pii: false
 # Guia do Sistema — oimpresso
 
 <!-- documentation-entrypoint: route:produto-operacao -->
+
+> 🧭 Este guia é a **leitura humana** do sistema. Para o **retrato gerado** (estado vivo de módulos, gates required, workflows, ADRs) veja [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
 
 > **Pra quem:** Wagner e time, depois de escolher a rota **produto/operação** no [`README.md` da raiz](../README.md). Este guia explica o sistema numa página e aponta como operá-lo com agentes de IA.
 >
