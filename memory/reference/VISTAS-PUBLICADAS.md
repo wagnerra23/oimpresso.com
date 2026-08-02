@@ -99,8 +99,22 @@ Dono em git: [`GUIA-DO-SISTEMA.md`](../GUIA-DO-SISTEMA.md) · [`PAINEL-SISTEMA.m
 
 | Data | Vista | Estado |
 |---|---|---|
+| 2026-08-02 | 👁 [oimpresso — documentação do sistema](https://claude.ai/code/artifact/18086cd7-5e33-434f-b369-bbf0db555017) | **viva** |
 | 2026-07-29 | 👁 [oimpresso — fluxo do sistema, peças e diagramas](https://claude.ai/code/artifact/aa1bfaa6-d97b-4116-a6ab-55b39bbfa59d) | **viva** |
 | 2026-07-12 | 👁 [mapa-sistema-oimpresso](https://claude.ai/code/artifact/a3c19a93-de01-4a04-82a4-d8ac7ade0106) | histórica |
+
+> **A de 2026-08-02 é explicação, não retrato de estado.** Treze seções lidas de ponta a ponta: o que
+> é (as 3 camadas), por que foi construído assim (as 3 eras), as camadas A/B/C, onde roda, como o
+> conhecimento é indexado, o que é observado, como uma decisão vira lei, os quatro fluxos de operação
+> (venda · OS · cancelamento · deploy) e as linhas vermelhas Tier 0. Dono declarado: [`README.md`](../../README.md).
+> Nasceu de [W] 2026-08-02 — *"não ficou nada bom de ler e entender… preciso da explicação documentação
+> oficial do projeto"*. Nenhum número foi copiado para dentro: onde um valor importa, está o comando
+> que o recalcula.
+>
+> ⚠️ **Duas vivas no mesmo tema, de propósito.** A de 07-29 (*"fluxo do sistema, peças e diagramas"*)
+> **não** foi marcada histórica: superar vista é decisão de [W], e o append-only manda preservar a
+> linhagem. Se [W] considerar que a de 08-02 a substitui, o caminho é marcá-la `histórica` com elo
+> pra sucessora — nunca apagar.
 
 > A histórica é *"Tudo que existe, em camadas"* — L0 produto → L5 em voo, com estado por peça. Ela é
 > também a perna **"o quê"** da trilogia de 2026-07-12 (ver *manual do dono* e *história e linhagem*
