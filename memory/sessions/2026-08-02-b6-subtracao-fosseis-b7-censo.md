@@ -5,7 +5,6 @@ duration: "2h"
 topic: "B6 (subtração dos 21 fósseis da raiz de memory/requisitos/) executado e mergeado com refutação adversarial GT-G5 (Fable 0/64); B7-censo dos 14 sem SPEC concluído — falso-alarme, nenhum gap real de SPEC a preencher."
 authors: [F, C]
 prs: [5165]
-related_adrs: [0357, 0264, 0273]
 outcomes:
   - "B6 MERGEADO (#5165): 21 specs-planas-fósseis da raiz viraram lápide-no-lugar (mesmo path + mesmo id → doc-id-index intacto; corpo redireciona pro dono vivo). Officeimpresso1.md preservada (ref histórica ADR 0017). 9 índices/templates mantidos."
   - "Medido antes de tocar: a raiz de requisitos/ NÃO cai sob anchor-lint nem memory-schema-gate (ambos só globam */SPEC.md) → sem o big-bang que a §5 2026-07-12/27 proíbe. Único gate em jogo = deadlink (verde 1081/1081)."
