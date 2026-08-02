@@ -50,29 +50,39 @@ Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 pas
 Modules/Financeiro/Tests/Feature/Onda9ResumirMesTest.php  # 1 failed, 13 passed (42 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
-# B) RefreshDatabase — incompatível com o processo compartilhado da lane (11)
-#    A própria lane já documentava: dropam o schema (FK) e LIMPAM o biz=1
-#    seedado, envenenando os demais. Três deles PASSAM isolados
-#    (ConciliacaoMatchScore, ConciliacaoUploadDedupe, ExtratoNavRedirect) e
-#    ficam aqui só por causa do compartilhamento.
+# B) RefreshDatabase — incompatível com o processo compartilhado da lane (1)
+#    Dropa o schema (FK) e LIMPA o biz=1 seedado, envenenando os demais.
 #    ENCAMINHAMENTO: job separado com banco próprio — não é defeito do teste.
+#
+#    ⚠️ CORREÇÃO 2026-08-02 — este bucket tinha 11 arquivos e a classificação
+#    estava ERRADA em 10 deles. Foi montada por GREP da string "RefreshDatabase",
+#    e a string casou em COMENTÁRIO que diz o OPOSTO: os 10 carregam frases como
+#    "NÃO usa RefreshDatabase (UltimatePOS legacy migrations não rodam em SQLite)".
+#    Medido (uses(RefreshDatabase::class) ou `use RefreshDatabase;` real, não menção):
+#      USA de verdade  → 1  (CashRegisterBridgeFinanceiroTest)
+#      só CITAM        → 10
+#    Logo a justificativa "dropam o schema e envenenam os demais" era falsa pros 10:
+#    eles não dropam nada. Os que FALHAM foram pro bucket C (defeito real, onde
+#    sempre pertenceram); os que PASSAM saíram da quarentena (ver rodapé).
+#    Mesma classe do §5 2026-07-28: "hit que volta como comentário não é evidência".
 Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 failed (0 assertions)
-Modules/Financeiro/Tests/Feature/ConciliacaoAuditReabrirTest.php  # 1 failed, 4 passed (15 assertions)
-Modules/Financeiro/Tests/Feature/ConciliacaoMatchScoreTest.php  # 3 passed (15 assertions)
-Modules/Financeiro/Tests/Feature/ConciliacaoUploadDedupeTest.php  # 4 passed (24 assertions)
-Modules/Financeiro/Tests/Feature/ExtratoControllerTest.php  # 1 failed, 2 passed (2 assertions)
-Modules/Financeiro/Tests/Feature/ExtratoNavRedirectTest.php  # 4 passed (11 assertions)
-Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions)
-Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # 1 failed, 11 passed (24 assertions)
-Modules/Financeiro/Tests/Feature/ProvaVivaContractTest.php  # 1 failed, 1 passed (10 assertions)
-Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions)
-Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
 # C) DB-dependente FALHANDO — defeito real a investigar (14)
 #    Estes são o achado de maior valor: falham contra MySQL semeado, não por
 #    formatação. Podem ser regressão de produto OU teste desatualizado —
 #    exige olhar caso a caso, não conserto em lote.
+#
+#    +6 vindos do bucket B em 2026-08-02 (reclassificação — ver nota no B): falham
+#    de verdade contra MySQL semeado e NÃO usam RefreshDatabase, logo o motivo
+#    "envenena o processo compartilhado" nunca se aplicou a eles. Ficam
+#    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
+Modules/Financeiro/Tests/Feature/ExtratoControllerTest.php  # 1 failed, 2 passed (2 assertions) — ex-B
+Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
+Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # 1 failed, 11 passed (24 assertions) — ex-B
+Modules/Financeiro/Tests/Feature/ProvaVivaContractTest.php  # 1 failed, 1 passed (10 assertions) — ex-B
+Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
+Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php  # 6 failed, 2 passed (2 assertions)
 Modules/Financeiro/Tests/Feature/CobrancaControllerTest.php  # 4 failed, 11 passed (51 assertions)
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
@@ -117,3 +127,27 @@ Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php  # 3 skipped (0 asser
 #    fix neste PR — e um fix não provado deixaria o main vermelho se errasse.
 #    Quarentena restaura o verde de forma determinística; o fix é decisão [W].
 Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado · 1 failed em main (run 30378571902)
+
+# ═════════════════════════════════════════════════════════════════════════
+# SAÍRAM DA QUARENTENA em 2026-08-02 (a lista deve encolher — cabeçalho)
+# ═════════════════════════════════════════════════════════════════════════
+# Os 4 abaixo estavam no bucket B pelo motivo FALSO descrito lá (grep casou
+# comentário que dizia o oposto). Nenhum usa RefreshDatabase; nenhum pode
+# envenenar o processo compartilhado. Todos com veredito PASSA medido:
+#
+#   ConciliacaoMatchScoreTest      3 passed (15 assertions)
+#   ConciliacaoUploadDedupeTest    4 passed (24 assertions)
+#   ExtratoNavRedirectTest         4 passed (11 assertions)
+#   ConciliacaoAuditReabrirTest    4 passed + 1 CONSERTADO neste PR
+#
+# O AuditReabrir era "1 failed" por FIXTURE, não por produto: montava a linha
+# com titulo_id = 12345 hardcoded, violava a FK fin_bank_statement_lines_
+# titulo_id_foreign e MORRIA NO SETUP, sem nunca exercer reabrir() — o [must]
+# [T0] do UC-FCC-06 ficava sem prova enquanto o arquivo parecia defeito de
+# produto. Fix = criar título real, mesmo padrão do caso irmão UC-FCC-09 que
+# já fazia certo no MESMO arquivo.
+#
+# RESSALVA QUE NÃO CADUCA (a mesma do cabeçalho): os vereditos acima vêm de run
+# ISOLADO (1 arquivo por processo). A lane roda TODOS num processo só, com
+# executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
+# vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.

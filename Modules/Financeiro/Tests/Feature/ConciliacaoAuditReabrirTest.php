@@ -164,10 +164,33 @@ it('UC-FCC-06 · reabrir() volta status pra pendente e zera titulo_id/match_scor
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 
+    // titulo_id REAL — fin_bank_statement_lines.titulo_id tem FK → fin_titulos.
+    // (Antes: 12345 hardcoded → SQLSTATE[23000] fin_bank_statement_lines_titulo_id_foreign
+    // e o caso morria no SETUP, sem NUNCA exercer reabrir(). O [must] [T0] deste UC ficava
+    // sem prova enquanto o arquivo parecia "1 failed" de produto. Mesmo padrão do caso
+    // irmão UC-FCC-09 acima, que já criava título real.)
+    $tituloId = (int) DB::table('fin_titulos')->insertGetId([
+        'business_id'     => $businessId,
+        'numero'          => 'REABRIR-'.uniqid(),
+        'tipo'            => 'receber',
+        'status'          => 'aberto',
+        'valor_total'     => 100.00,
+        'valor_aberto'    => 100.00,
+        'moeda'           => 'BRL',
+        'emissao'         => now()->toDateString(),
+        'vencimento'      => now()->toDateString(),
+        'competencia_mes' => now()->format('Y-m'),
+        'origem'          => 'manual',
+        'origem_id'       => random_int(900000, 999999),
+        'created_by'      => $user->id,
+        'created_at'      => now(),
+        'updated_at'      => now(),
+    ]);
+
     // Linha já conciliada (com titulo_id + match_score) pra ter o que desfazer.
     $lineId = inserirLinhaConciliacao($businessId, [
         'status'        => 'conciliado',
-        'titulo_id'     => 12345,
+        'titulo_id'     => $tituloId,
         'match_score'   => 0.85,
         'conciliado_by' => $user->id,
         'conciliado_at' => now(),
@@ -185,6 +208,7 @@ it('UC-FCC-06 · reabrir() volta status pra pendente e zera titulo_id/match_scor
     expect($linha->match_score)->toBeNull();
 
     DB::table('fin_bank_statement_lines')->where('id', $lineId)->delete();
+    DB::table('fin_titulos')->where('id', $tituloId)->delete();
 });
 
 it('UC-FCC-07 · reabrir() é idempotente — linha já pendente continua pendente (sem erro)', function () {
