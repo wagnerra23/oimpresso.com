@@ -79,6 +79,14 @@ function coletarFixtureRepo(): string
         // PII — devem ser IGNORADOS (não há branch que os colete)
         'memory/clientes/martinho-cacambas.md'        => "# Martinho\nemail joao@x.com tel (11) 99999-9999",
         'memory/feedback/algum-feedback.md'           => "# Feedback\nemail maria@y.com",
+
+        // TRIO DE TELA colado (B3) — vive FORA de memory/, em resources/js/Pages/.
+        // `Financeiro/Dre/` está em profundidade 2 DE PROPÓSITO: é o que prova a
+        // recursão, já que `glob()` do PHP não atravessa `/`.
+        'resources/js/Pages/Produto/Edit.charter.md'          => "# Charter Edit\na lei da tela",
+        'resources/js/Pages/Produto/Edit.casos.md'            => "# Casos Edit\nUC-PROD-01",
+        'resources/js/Pages/Financeiro/Dre/Index.charter.md'  => "# Charter DRE\nprofundidade 2",
+        'resources/js/Pages/Produto/Edit.tsx'                 => "export default function Edit() {}",
     ];
 
     foreach ($files as $rel => $conteudo) {
@@ -294,6 +302,72 @@ it('pula arquivos _* (templates/índices) e README', function () {
 
         expect($temTemplate)->toBeFalse();
         expect($temReadme)->toBeFalse();
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+// ── B3 · trio de tela colado (Opção B, 2026-08-01) ───────────────────────────
+//
+// O trio mora em `resources/js/Pages/`, fora de `memory/` — e por isso estava
+// invisível pro RAG. A ADR 0364 queria resolver MOVENDO; a reversão mantém colado
+// e indexa in-place. Estes casos defendem o glob aditivo.
+
+it('coleta o trio de tela colado ao .tsx com type e slug canônicos', function () {
+    $base = coletarFixtureRepo();
+
+    try {
+        $map = coletarSlugMap(coletarInvoke($base));
+
+        expect($map)->toHaveKey('charter:Produto/Edit')
+            ->and($map['charter:Produto/Edit']['type'])->toBe('charter')
+            ->and($map['charter:Produto/Edit']['module'])->toBe('produto')
+            ->and($map['charter:Produto/Edit']['path'])->toBe('resources/js/Pages/Produto/Edit.charter.md');
+
+        expect($map)->toHaveKey('casos:Produto/Edit')
+            ->and($map['casos:Produto/Edit']['type'])->toBe('casos');
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+it('recursa além do primeiro nível de Pages (glob do PHP não atravessa /)', function () {
+    $base = coletarFixtureRepo();
+
+    try {
+        $map = coletarSlugMap(coletarInvoke($base));
+
+        // Profundidade 2. Se a coleta usasse `glob('Pages/*/*.charter.md')`, este
+        // arquivo sumia em silêncio — e o módulo Financeiro ficaria fora do RAG.
+        expect($map)->toHaveKey('charter:Financeiro/Dre/Index')
+            ->and($map['charter:Financeiro/Dre/Index']['module'])->toBe('financeiro');
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+it('não coleta o .tsx — só a doc que vive ao lado dele', function () {
+    $base = coletarFixtureRepo();
+
+    try {
+        $arquivos = coletarInvoke($base);
+        $temTsx = collect($arquivos)->contains(fn ($a) => str_ends_with($a['path'], '.tsx'));
+
+        expect($temTsx)->toBeFalse();
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+it('o slug preserva o caminho — telas homônimas de módulos diferentes não colidem', function () {
+    $base = coletarFixtureRepo();
+
+    try {
+        // Há 438 `.tsx` em Pages e muitos se chamam `Index`. Slug por basename
+        // colidiria e uma tela sobrescreveria a outra no índice, em silêncio.
+        $slugs = array_column(coletarInvoke($base), 'slug');
+
+        expect($slugs)->toBe(array_unique($slugs));
     } finally {
         coletarLimpar($base);
     }
