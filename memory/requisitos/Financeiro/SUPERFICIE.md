@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 294 arquivos em 22 papéis.
+**Total mapeado:** 295 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -274,9 +274,10 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 6
+## Casos (contrato UC) — 7
 
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Caixa/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Conciliacao/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasPagar/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasReceber/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Impostos/Index.casos.md)
