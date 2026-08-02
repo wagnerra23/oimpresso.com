@@ -16,8 +16,8 @@ use App\Util\OtelHelper;
  * - Exibir em UI compartilhada (cross-tenant)
  *
  * Coberto:
- * - CPF (000.000.000-00 ou 00000000000)
- * - CNPJ (00.000.000/0000-00 ou 00000000000000)
+ * - CPF (000.000.000-00 ou 00000000000)  // pii-allowlist (formato na doc, não é dado)
+ * - CNPJ (00.000.000/0000-00 ou 00000000000000)  // pii-allowlist (formato na doc, não é dado)
  * - Email
  * - Telefone BR (com ou sem DDD, com ou sem +55)
  * - CEP (00000-000 ou 00000000)
@@ -92,13 +92,13 @@ class PiiRedactor
      * nada: CPF real cru (`11144477735`) continua redigido.
      *
      * **CPF PONTUADO segue redigido SEMPRE**, com DV válido ou não — quem escreve
-     * `123.456.789-01` está declarando um CPF, e formato explícito não pede prova.
+     * um CPF pontuado está declarando o que é, e formato explícito não pede prova.
      * Isso mantém coberto o caso de CPF digitado errado, que é dado inválido mas
      * ainda é tentativa de PII.
      */
     private function deveRedigir(string $type, string $match): bool
     {
-        // Formatação é DECLARAÇÃO: quem escreve `123.456.789-01` ou `(11) 98765-4321`
+        // Formatação é DECLARAÇÃO: quem escreve CPF pontuado ou telefone com DDD entre parênteses
         // está dizendo que aquilo é CPF/telefone. Formato explícito não pede prova —
         // inclusive porque CPF digitado errado ainda é tentativa de PII.
         if (preg_match('/[.\-()\s\/+]/', $match)) {
