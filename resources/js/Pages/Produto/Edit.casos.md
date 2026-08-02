@@ -77,7 +77,7 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 - **Teste:** `tests/Feature/Produto/ProdutoEditContratoTest.php` — `UC-PEDIT-03 · GET edit ...` + `UC-PEDIT-03 · PUT update ...` (Pest, failing-first, lane `Estoque · MySQL` no CT100). O `e2e/produto-edit.spec.ts` mantém o id citado (redundância G-2).
 - **Contrato:** `CU-PROD-10` + Edit.charter Goal *"Multi-tenant: produto cross-tenant retorna 404"* + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** é **exatamente** a família que já nasceu vermelha 2× no Produto — `UC-PCAD-06` (`create()` `find()`→`findOrFail()`, era 500) e `UC-PTAB-04` (`saveSellingPrices` engolia a `ModelNotFoundException` no `catch` genérico → 302, não 404, [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)).
-- **Status: 🧪 achado CONFIRMADO + corrigido no mesmo PR (adversário 2026-07-24).** A varredura que faltava (2 linhas): `edit()` (GET) usa `firstOrFail()` (`ProductController.php:872-875`) → **já era 404 ✅**; mas `update()` (PUT) usava `first()` (`:978-981`) → id alheio vira `null` → atribuição em `null` (`:990`) → `\Error` → o `catch (\Exception)` (`:1173`) **não** pega `\Error` → **500** (nunca 404). O `[T0]` estava a um `grep firstOrFail` de distância; o casos.md v1 usou LC-08 como escudo pra NÃO ler, quando LC-08 **manda** ler. **Fix (mesmo PR):** `firstOrFail()` **antes do try** no `update()` (fora do `catch`, pra o 404 não virar 302 como no #4300) → `ProductController.php:972-980`. Vermelho→verde provado pela lane MySQL do CI.
+- **Status: 🧪 achado CONFIRMADO + corrigido no mesmo PR (adversário 2026-07-24).** A varredura que faltava (2 linhas): `edit()` (GET) usa `firstOrFail()` (`app/Http/Controllers/ProductController.php:872-875 (verificado@5d5cac0)`) → **já era 404 ✅**; mas `update()` (PUT) usava `first()` (`:978-981`) → id alheio vira `null` → atribuição em `null` (`:990`) → `\Error` → o `catch (\Exception)` (`:1173`) **não** pega `\Error` → **500** (nunca 404). O `[T0]` estava a um `grep firstOrFail` de distância; o casos.md v1 usou LC-08 como escudo pra NÃO ler, quando LC-08 **manda** ler. **Fix (mesmo PR):** `firstOrFail()` **antes do try** no `update()` (fora do `catch`, pra o 404 não virar 302 como no #4300) → `app/Http/Controllers/ProductController.php:972-980 (verificado@5d5cac0)`. Vermelho→verde provado pela lane MySQL do CI.
 
 ---
 
@@ -136,7 +136,7 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 
 | Cliente | O que "chave ausente" significa | Prova (medida, não lida no olho) |
 |---|---|---|
-| **Blade** — o que roda em prod hoje | *o operador desmarcou* | `edit.blade.php:125/221/231` usa `Form::checkbox` e **não existe hidden** para nenhum dos 3 flags (grep: "NENHUM hidden"). Checkbox desmarcado não é enviado pelo browser — spec HTML, não implementação. Sem hidden, ausência **é** o gesto de desligar. |
+| **Blade** — o que roda em prod hoje | *o operador desmarcou* | `resources/views/product/edit.blade.php:125 (verificado@5d5cac0)/221/231` usa `Form::checkbox` e **não existe hidden** para nenhum dos 3 flags (grep: "NENHUM hidden"). Checkbox desmarcado não é enviado pelo browser — spec HTML, não implementação. Sem hidden, ausência **é** o gesto de desligar. |
 | **React** — `Edit.tsx` (draft) | *a tela não gerencia esse campo* | `grep -E "enable_stock\|not_for_selling\|enable_sr_no"` no `Edit.tsx` → **zero ocorrências**. A tela não oferece o gesto. |
 
 **Consequência dura:** trocar o `update()` para "ausência = preservar" **tira da Larissa a capacidade
@@ -153,7 +153,7 @@ movimento, ou piora o que veio consertar.
 
 ### Não é incidente de produção (re-verificado nesta data)
 
-`preparation_time_in_minutes` é **incondicional** no Blade (`edit.blade.php:316-317`, fora de qualquer
+`preparation_time_in_minutes` é **incondicional** no Blade (`resources/views/product/edit.blade.php:316-317 (verificado@5d5cac0)`, fora de qualquer
 `@if`) → prod sempre manda a chave e o abort não a atinge. Somado à inalcançabilidade das telas React
 (sidebar `<a href>` puro, sem header `X-Inertia`), isto segue **bloqueador de migração MWART F5**
 ([ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)) — não incêndio.

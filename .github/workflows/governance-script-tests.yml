@@ -39,6 +39,8 @@ jobs:
       # regenerar, nao byte-exact que viraria ruido). Advisory (ADR 0314/0275: required = so Tier-0).
       - name: Maquinas-inventario DRIFT (indice cobre todas as maquinas · rode --write se vermelho)
         run: node scripts/governance/maquinas-inventario.mjs --check
+      - name: Ancora doc->codigo DRIFT (o codigo moveu e a doc nao sabe · rode --sync)
+        run: node scripts/governance/ancora-codigo-sync.mjs --check
       - name: Ancora doc->codigo · bite-test (sincroniza ponteiro, recusa ambiguo, nao toca assercao)
         run: node scripts/governance/ancora-codigo-sync.mjs --selftest
       - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)

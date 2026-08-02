@@ -55,7 +55,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 |----|-------------|------|--------|-------|--------|
 | UC-PIDX-01 | Todo produto do catálogo é alcançável na lista (sem corte silencioso) | must | Blade DataTables server-side + `AR-PROD-022/023` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
 | UC-PIDX-02 | Busca é resolvida no servidor e acha por SKU de variação (`sub_sku`) | must | Blade `filterColumn('products.sku')` + `CU-PROD-02` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
-| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`index.blade.php:287,294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
+| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
 | UC-PIDX-04 | Lista, KPIs e contadores só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PIDX-05 | Abrir a lista não escreve no banco (GET é leitura pura) | must | charter §Anti-hooks + `AR-PROD-064` | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PIDX-06 | "Mostrar inativos" é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` (`:173-179`) | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
@@ -188,7 +188,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | **Localizações do produto** | coluna `product_locations` (`:196-200`) | `AR-PROD-055` | ausente |
 | **Marca · unidade · imposto · tipo** | colunas `brand`/`unit`/`tax`/`type` | `AR-PROD-014` (Tipo) | só `unit` chega; resto ausente |
 | **20 custom fields** (7 na grade) | `:326-357` | `AR-PROD-040/041` | ausente |
-| **Filtros: tipo · marca · unidade · imposto · localização · not-for-selling** | `index.blade.php:21-110` (7 filtros) | `AR-PROD-060` (filtros de consulta) | só categoria + inativos; charter declara Non-Goal p/ "filtros avançados" (backlog) |
+| **Filtros: tipo · marca · unidade · imposto · localização · not-for-selling** | `resources/views/product/index.blade.php:21-110 (verificado@5d5cac0)` (7 filtros) | `AR-PROD-060` (filtros de consulta) | só categoria + inativos; charter declara Non-Goal p/ "filtros avançados" (backlog) |
 | **Seleção em massa + excluir/desativar selecionados** | `mass_delete` (`:276-278`) + `:438-496` | `AR-PROD-022` (soft-delete) | Non-Goal declarado no charter (`❌ Bulk actions`) — **ok, não é regressão** |
 | **Aba "Relatório de estoque"** (custo, valor de venda, lucro potencial) | 2ª tabela do mesmo Blade (`:617-670`) | `AR-PROD-051/061` | ausente · pareia com `CU-PROD-12` `[V0]` (agregação de valor) |
 | **Badge "não vendável"** (`not_for_selling`) | `:263-264` | — | ausente (só o badge "inativo" migrou) |
