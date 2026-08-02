@@ -25,6 +25,8 @@ on:
       - 'Modules/Jana/Tests/Unit/SupersedeDetectorTest.php'
       - 'Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php'
       - 'Modules/Jana/Tests/Unit/AuditChainServiceTest.php'
+      - 'Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php'
+      - 'Modules/Jana/Services/Privacy/PiiRedactor.php'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
@@ -100,5 +102,6 @@ jobs:
             Modules/Jana/Tests/Unit/SupersedeDetectorTest.php \
             Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php \
             Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
+            Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php \
             --no-coverage \
             --colors=always
