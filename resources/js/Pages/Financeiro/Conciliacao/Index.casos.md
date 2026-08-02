@@ -20,13 +20,25 @@ last_run: "2026-08-02"
 > O código foi lido só para **confirmar** comportamento. Persona: Eliana [E] (financeiro).
 > US âncora: `US-FIN-009`.
 
-> ⚠️ **Por que quase nada aqui é ✅ (e isso é honesto, não preguiça).** Três dos quatro
-> arquivos de teste desta tela estão na
-> [quarentena da lane](../../../../../.github/financeiro-pest-quarantine.list) — bucket **B
-> (RefreshDatabase incompatível com o processo compartilhado)**, não por estarem errados.
-> A própria lista registra: *"Três deles PASSAM isolados … e ficam aqui só por causa do
-> compartilhamento"*. Teste fora da lane **não gera veredito** (G-7), então declarar ✅ seria
-> "status sem prova". Só `ConciliacaoLeExtratoApiTest` roda na lane required.
+> ⚠️ **ATUALIZAÇÃO 2026-08-02 — as duas travas caíram.** Este bloco dizia que 3 dos 4 arquivos
+> estavam na [quarentena da lane](../../../../../.github/financeiro-pest-quarantine.list) por
+> "RefreshDatabase incompatível com o processo compartilhado", e que por isso nenhum UC podia
+> passar de 🧪. **O motivo era falso:** medido, os 3 **não usam** `RefreshDatabase` — o bucket
+> tinha sido montado por grep da string, que casou comentários dizendo *"NÃO usa
+> RefreshDatabase"*. Saíram da quarentena e rodam na lane required desde
+> [#5178](https://github.com/wagnerra23/oimpresso.com/pull/5178) — veredito da lane no processo
+> compartilhado: `MatchScore 3/0/0` · `UploadDedupe 4/0/0` · `AuditReabrir 5/0/0` ·
+> lane inteira 325 testcases · **0 failures**.
+>
+> A 2ª trava era de atribuição: o manifesto G-7 lê o UC do `name` do `<testcase>`, e método
+> PHPUnit vira nome humanizado sem hífen. `LeExtratoApi` foi convertido pra `it()` em
+> [#5177](https://github.com/wagnerra23/oimpresso.com/pull/5177) e `UploadDedupe` neste PR —
+> agora **os 13 UCs desta tela têm o id no título**.
+>
+> Os Status abaixo seguem 🧪 **de propósito**: quem carimba ✅ é o manifesto, alimentado pelo
+> cron `casos-results-publish` (07:30 BRT, colhe o JUnit do último run verde de `main`).
+> Declarar ✅ antes disso seria "status sem prova" (G-7) — exatamente o que este arquivo
+> passou o dia inteiro corrigindo.
 
 ---
 
@@ -183,12 +195,12 @@ permanece intocada (`status` segue nulo).
 
 ## Backlog declarado (prosa honesta, ainda sem UC — não tem teste que cite)
 
-- `[BACKLOG]` Consertar a fixture do `ConciliacaoAuditReabrirTest` (`titulo_id = 12345`
-  hardcoded viola FK) para que **UC-FCC-06** possa produzir veredito. É o único `[must]`
-  `[T0]` desta tela sem prova.
-- `[BACKLOG]` Tirar os 3 arquivos da quarentena movendo-os pra job com banco próprio — a
-  própria lista aponta esse encaminhamento (*"job separado com banco próprio — não é defeito
-  do teste"*). Enquanto não sair, nenhum UC-FCC-01..09 pode passar de 🧪.
+> ✅ **Fechados em 2026-08-02** (ficam registrados, não apagados): (a) a fixture do
+> `AuditReabrirTest` com `titulo_id = 12345` — virou título real, e o `UC-FCC-06` saiu de
+> `1 failed` pra `5/0/0` na lane; (b) a saída da quarentena — **não** exigiu "job com banco
+> próprio", porque o motivo do bucket era falso (ver bloco no topo); (c) a atribuição de UC
+> via título de `it()` nos 13 UCs.
+
 - `[BACKLOG]` Os Non-Goals do charter (❌ editar linha · ❌ conciliação N:N · ❌ desfazer
   conciliação confirmada · ❌ export) ainda não têm Pest GUARD. Charter manda virar guarda;
   quem preenche Non-Goal é [W].
