@@ -84,7 +84,7 @@ function inserirLinhaConciliacao(int $businessId, array $overrides = []): int
     ], $overrides));
 }
 
-it('match() escreve entrada de auditoria via FinanceiroAuditLogger', function () {
+it('UC-FCC-09 · match() escreve entrada de auditoria via FinanceiroAuditLogger', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 
@@ -134,7 +134,7 @@ it('match() escreve entrada de auditoria via FinanceiroAuditLogger', function ()
     DB::table('fin_titulos')->where('id', $tituloId)->delete();
 });
 
-it('ignorar() escreve entrada de auditoria via FinanceiroAuditLogger', function () {
+it('UC-FCC-09 · ignorar() escreve entrada de auditoria via FinanceiroAuditLogger', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 
@@ -160,7 +160,7 @@ it('ignorar() escreve entrada de auditoria via FinanceiroAuditLogger', function 
     DB::table('fin_bank_statement_lines')->where('id', $lineId)->delete();
 });
 
-it('reabrir() volta status pra pendente e zera titulo_id/match_score', function () {
+it('UC-FCC-06 · reabrir() volta status pra pendente e zera titulo_id/match_score', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 
@@ -187,7 +187,7 @@ it('reabrir() volta status pra pendente e zera titulo_id/match_score', function 
     DB::table('fin_bank_statement_lines')->where('id', $lineId)->delete();
 });
 
-it('reabrir() é idempotente — linha já pendente continua pendente (sem erro)', function () {
+it('UC-FCC-07 · reabrir() é idempotente — linha já pendente continua pendente (sem erro)', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 
@@ -205,7 +205,7 @@ it('reabrir() é idempotente — linha já pendente continua pendente (sem erro)
     DB::table('fin_bank_statement_lines')->where('id', $lineId)->delete();
 });
 
-it('Tier 0: reabrir() de linha de OUTRO business retorna 404 (ADR 0093)', function () {
+it('UC-FCC-08 · Tier 0: reabrir() de linha de OUTRO business retorna 404 (ADR 0093)', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 

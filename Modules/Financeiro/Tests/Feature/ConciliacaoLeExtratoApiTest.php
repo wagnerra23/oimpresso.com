@@ -132,6 +132,7 @@ class ConciliacaoLeExtratoApiTest extends FinanceiroTestCase
         return DB::table('fin_titulos')->insertGetId($row);
     }
 
+    /** Contrato UC-FCC-10 — a lista une as duas origens (charter Goals · ADR 0236 Fase 1). */
     public function test_index_lista_linha_api_alem_de_ofx(): void
     {
         $this->linhaApi(['descricao' => $this->pfx . 'linha API visível']);
@@ -149,6 +150,7 @@ class ConciliacaoLeExtratoApiTest extends FinanceiroTestCase
         $this->assertTrue($achou, 'Linha de extrato API deve aparecer na conciliação (Fase 1 ADR 0236).');
     }
 
+    /** Contrato UC-FCC-11 — a sugestão grava na tabela da ORIGEM certa. */
     public function test_sugerir_matches_casa_linha_api_e_marca_na_tabela_do_extrato(): void
     {
         $venc = now()->toDateString();
@@ -168,6 +170,7 @@ class ConciliacaoLeExtratoApiTest extends FinanceiroTestCase
         $this->assertNotNull($linha->titulo_id);
     }
 
+    /** Contrato UC-FCC-12 — match com origem=api atualiza fin_extrato_lancamentos. */
     public function test_match_origem_api_atualiza_tabela_extrato(): void
     {
         $tituloId = $this->tituloAberto(150.00, now()->toDateString());
@@ -185,6 +188,7 @@ class ConciliacaoLeExtratoApiTest extends FinanceiroTestCase
         $this->assertSame($tituloId, (int) $linha->titulo_id);
     }
 
+    /** Contrato UC-FCC-12 — ignorar com origem=api atualiza fin_extrato_lancamentos. */
     public function test_ignorar_origem_api_atualiza_tabela_extrato(): void
     {
         $apiId = $this->linhaApi();
@@ -207,6 +211,8 @@ class ConciliacaoLeExtratoApiTest extends FinanceiroTestCase
      * FK-safe: usamos um 2º business REAL do banco (não um id fabricado, que
      * violaria a FK business). A linha é do business B; a sessão é do business A
      * (o admin logado). O match não pode tocar a linha de B.
+     *
+     * Contrato UC-FCC-13.
      */
     public function test_match_api_respeita_business_id_tier0(): void
     {

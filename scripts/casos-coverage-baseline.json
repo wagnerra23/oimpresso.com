@@ -1,14 +1,14 @@
 {
   "_meta": {
-    "generated_at": "2026-08-02T19:03:18.155Z",
+    "generated_at": "2026-08-02T19:25:00.247Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
       "pages": 207,
-      "casos_files": 74,
-      "ucs_declared": 382,
+      "casos_files": 75,
+      "ucs_declared": 395,
       "missing_charter": 0,
-      "missing_casos": 134,
+      "missing_casos": 133,
       "orphan_ucs": 12,
       "metadata_issues": 0,
       "stale_cases": 0,
@@ -16,8 +16,8 @@
       "status_unverified": 0,
       "status_stale": 0,
       "exec_backed_ucs": 75,
-      "exec_backed_declared": 382,
-      "exec_backed_pct": 20
+      "exec_backed_declared": 395,
+      "exec_backed_pct": 19
     },
     "nota": "Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write",
     "refs": [
@@ -61,7 +61,6 @@
     "trio:missing-casos:resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Categorias/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Cobranca/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Conciliacao/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Configuracoes/Contador.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/ContasBancarias/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Dashboard/Index.tsx",
