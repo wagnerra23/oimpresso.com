@@ -245,6 +245,42 @@ class IndexarMemoryGitParaDb
             ];
         }
 
+        // TRIO DE TELA colado ao .tsx (B3 do Plano B, 2026-08-01) — `<Tela>.charter.md`
+        // (a lei) e `<Tela>.casos.md` (o contrato UC) vivem em `resources/js/Pages/`,
+        // FORA de `memory/`, e por isso estavam invisíveis pro RAG. A ADR 0364 queria
+        // resolver isso MOVENDO o trio; a reversão ([F]: "eu quero como no fonte")
+        // mantém colado e resolve indexando in-place — glob ADITIVO, nada sai do lugar.
+        //
+        // `glob()` do PHP NÃO recursa (`*` não atravessa `/` — proibicoes §5 2026-07-28),
+        // e a profundidade aqui varia (`Pages/Sells/Create` × `Pages/Financeiro/Dre/Index`),
+        // então a varredura é por iterador. Slug canônico `charter:<Mod>/<Tela>`, que
+        // preserva o caminho e não colide entre telas homônimas de módulos diferentes
+        // (há 438 `.tsx` em Pages, muitos chamados `Index`).
+        $pages = "$base/resources/js/Pages";
+        if (is_dir($pages)) {
+            $it = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($pages, \FilesystemIterator::SKIP_DOTS)
+            );
+            foreach ($it as $file) {
+                $nome = $file->getFilename();
+                if (! preg_match('/^(.+)\.(charter|casos)\.md$/', $nome, $m)) {
+                    continue;
+                }
+                $rel = str_replace('\\', '/', substr($file->getPathname(), strlen($base) + 1));
+                $dentro = substr($rel, strlen('resources/js/Pages/'));           // Mod/Sub/Tela.charter.md
+                $tela   = substr($dentro, 0, -strlen(".{$m[2]}.md"));            // Mod/Sub/Tela
+                $module = strtolower(explode('/', $dentro)[0]);
+
+                $arquivos[] = [
+                    'slug'   => "{$m[2]}:{$tela}",
+                    'type'   => $m[2],                                            // charter | casos
+                    'module' => $module,
+                    'path'   => $rel,
+                    'full'   => $file->getPathname(),
+                ];
+            }
+        }
+
         // Arquivos raiz canônicos
         $raiz = [
             ['slug' => 'handoff',  'type' => 'handoff', 'module' => null, 'path' => 'memory/08-handoff.md',  'full' => "$base/memory/08-handoff.md"],
