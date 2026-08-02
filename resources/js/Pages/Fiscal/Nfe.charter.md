@@ -43,7 +43,7 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 > Non-Goal novo foi inventado** — só saiu o que o código refutava; os demais seguem como [W] aprovou.
 >
 > Pelo mesmo motivo saiu "❌ ⌘K palette completa com busca cross-fiscal": entregue em
-> `US-FISCAL-015` e montada no shell desta tela (`FxShell.tsx:142` renderiza `<CmdKPalette />`).
+> `US-FISCAL-015` e montada no shell desta tela (`FxShell.tsx:142 (verificado@d4afe95)` renderiza `<CmdKPalette />`).
 
 - ❌ **Download de XML e DANFE** pelo drawer — botões seguem desabilitados ("PR seguinte").
 - ❌ **NFS-e** na mesma tela (sub-página 3 separada do design).

@@ -109,7 +109,7 @@ const tracked = (() => {
   return () => (cache ??= (git('ls-files') || '').split('\n').filter(Boolean));
 })();
 
-function resolveAlvo(ref, doc) {
+function resolveAlvo(ref, doc, linha) {
   const direto = join(ROOT, ref);
   if (ref.includes('/') && existsSync(direto)) return { path: ref };
   const base = basename(ref);
@@ -121,6 +121,23 @@ function resolveAlvo(ref, doc) {
   const exato = hits.filter((f) => f.endsWith('/' + ref) || f === ref);
   if (exato.length === 1) return { path: exato[0] };
 
+  // IRMÃO COLOCADO — a mais forte, e é consequência direta da Opção B: o trio mora ao
+  // lado do `.tsx`, então `Index.tsx:422` citado de `Pages/X/Y/Index.charter.md` é o
+  // Index daquele MESMO diretório. Não é heurística: é o layout do repositório.
+  const dirDoc = doc?.replace(/\/[^/]+$/, '');
+  if (dirDoc) {
+    const irmao = hits.find((f) => f === `${dirDoc}/${ref}`);
+    if (irmao) return { path: irmao, via: 'irmao' };
+
+    // RELATIVO ao diretório do doc e ao pai dele — cobre `Unificado/Index.tsx` citado
+    // de `Pages/Financeiro/Dre/`, que é irmão de pasta dentro do mesmo módulo.
+    const pai = dirDoc.replace(/\/[^/]+$/, '');
+    for (const base of [dirDoc, pai]) {
+      const rel = hits.filter((f) => f === `${base}/${ref}`);
+      if (rel.length === 1) return { path: rel[0], via: 'relativo' };
+    }
+  }
+
   // Desambiguação por PROXIMIDADE de módulo — não é chute: `Index.tsx:422` citado de
   // `Pages/Produto/Edit.casos.md` só pode ser o Index do Produto. O módulo é o segmento
   // que o doc e o alvo compartilham. Se mais de um candidato empatar, RECUSA.
@@ -129,6 +146,16 @@ function resolveAlvo(ref, doc) {
   if (mod) {
     const perto = hits.filter((f) => new RegExp(`(^|/)${mod}(/|$)`, 'i').test(f));
     if (perto.length === 1) return { path: perto[0], via: 'modulo' };
+  }
+
+  // ÚLTIMA PERNA, e é MEDIÇÃO, não palpite: a ref cita uma linha. Um candidato que não
+  // chega nessa linha não pode ser o alvo. Se sobrar exatamente um que a contém, o
+  // próprio número desambigua — e continua recusando quando sobram dois.
+  if (linha != null) {
+    const cabe = hits.filter((f) => {
+      try { return readFileSync(join(ROOT, f), 'utf8').split('\n').length >= linha; } catch { return false; }
+    });
+    if (cabe.length === 1) return { path: cabe[0], via: 'linha' };
   }
   return { erro: 'ALVO_AMBIGUO', n: hits.length };
 }
@@ -141,7 +168,7 @@ const norm = (s) => (s ?? '').replace(/\s+/g, ' ').trim();
 
 /** Classifica UMA ref. É aqui que o drift vira veredito. */
 function classificar(ref, linha, sha, doc) {
-  const alvo = resolveAlvo(ref, doc);
+  const alvo = resolveAlvo(ref, doc, linha);
   if (alvo.erro) return { estado: alvo.erro };
 
   const atualTxt = existsSync(join(ROOT, alvo.path)) ? readFileSync(join(ROOT, alvo.path), 'utf8') : null;
@@ -184,7 +211,7 @@ function varrer() {
   for (const doc of docs) {
     const txt = readFileSync(join(ROOT, doc), 'utf8');
     for (const m of txt.matchAll(RE_REF)) {
-      refs.push({ doc, bruto: m[0], ref: m[1], linha: Number(m[2]), sha: m[5] || null, idx: m.index });
+      refs.push({ doc, bruto: m[0], ref: m[1], linha: Number(m[2]), fim: m[3] ? Number(m[3]) : null, sha: m[5] || null, idx: m.index });
     }
   }
   return { docs, refs };
@@ -238,7 +265,7 @@ function run() {
 
   const alvo = MODE === 'stamp'
     ? rows.filter((r) => !r.sha && ['SEM_CARIMBO'].includes(r.estado))
-    : rows.filter((r) => r.estado === 'MOVEU');
+    : rows.filter((r) => r.estado === 'MOVEU' && !r.fim); // range: o fim nao e recalculavel com seguranca
 
   if (!alvo.length) { console.log(`  nada a ${MODE === 'stamp' ? 'carimbar' : 'sincronizar'}.`); return 0; }
 
@@ -249,9 +276,14 @@ function run() {
   for (const [doc, lista] of Object.entries(porDoc)) {
     let txt = readFileSync(join(ROOT, doc), 'utf8');
     for (const r of [...lista].sort((a, b) => b.idx - a.idx)) {
+      // O RANGE faz parte do endereço. Sem re-emitir o `-NN`, o carimbo transformaria
+      // `show.blade.php:66-82` em `:66` e apagaria informação do documento — que é
+      // exatamente o que este script promete não fazer. Pego na verificação
+      // "prove que só o ponteiro mudou", antes de qualquer commit.
+      const faixa = r.fim ? `-${r.fim}` : '';
       const novo = MODE === 'stamp'
-        ? `${r.ref}:${r.linha} (verificado@${head})`
-        : `${r.ref}:${r.para} (verificado@${head})`;
+        ? `${r.ref}:${r.linha}${faixa} (verificado@${head})`
+        : `${r.ref}:${r.para}${faixa} (verificado@${head})`;
       txt = txt.slice(0, r.idx) + novo + txt.slice(r.idx + r.bruto.length);
       n++;
     }
@@ -311,6 +343,15 @@ function selftest() {
 
   const out2 = rodar('--check');
   ok('check LIBERA depois do sync (controle negativo)', !/MOVEU|PERDIDO/.test(out2));
+
+  // RANGE preservado — regressão real: a 1ª versão reescrevia `:66-82` como `:66`,
+  // apagando o fim do intervalo. Carimbo que come informação do doc é o oposto do
+  // contrato deste script, e passou despercebido até a prova "só o ponteiro mudou".
+  writeFileSync(join(tmp, 'resources/js/Pages/Demo/Tela.casos.md'), 'UC-2: ver Tela.tsx:1-3\n');
+  G('add', '-A'); G('commit', '-qm', 'range');
+  rodar('--stamp');
+  const comRange = readFileSync(join(tmp, 'resources/js/Pages/Demo/Tela.casos.md'), 'utf8');
+  ok('stamp PRESERVA o range da ref (:1-3 nao vira :1)', /Tela\.tsx:1-3 \(verificado@/.test(comRange));
 
   // ambiguidade: o trecho passa a existir 2x — nunca escreve
   writeFileSync(alvo, ['function alvoUnico() {}', 'const A = 1', 'const NOVO1 = 0', 'const NOVO2 = 0', 'function alvoUnico() {}', 'const B = 2'].join('\n'));

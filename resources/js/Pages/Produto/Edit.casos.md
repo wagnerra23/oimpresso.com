@@ -85,7 +85,7 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 - **Persona:** Larissa — se editar o custo/preço e digitar `1.234,56`, o sistema tem que gravar mil duzentos e trinta e quatro, nunca um milhão.
 - **Aceite:** Dado um `PUT /products/{id}` com `single_dpp='1.234,56'` e `single_dsp='2.000,00'` · Quando salvo · Então a variação grava `default_purchase_price ≈ 1234.56` / `default_sell_price ≈ 2000.00` — **nunca** ordem de grandeza maior.
 - **Teste:** `e2e/produto-edit.spec.ts` — `UC-PEDIT-04` (stub; Pest com o mesmo par `1.234,56`/`204.99605` do `UC-PCAD-04`).
-- **Contrato:** `CU-PROD-01` item 4 `[V0]` + REGRA MESTRE valor/estoque (`proibicoes.md`). `ProductController@update` roda `num_uf` em `single_dpp`/`single_dsp`/`profit_percent` (`ProductController.php:1102-1106`) e `alert_quantity` (`:997`) — **o mesmo parser** que inflou 16 vendas ×100k na ROTA LIVRE (incidente 2026-06-05).
+- **Contrato:** `CU-PROD-01` item 4 `[V0]` + REGRA MESTRE valor/estoque (`proibicoes.md`). `ProductController@update` roda `num_uf` em `single_dpp`/`single_dsp`/`profit_percent` (`ProductController.php:1102-1106 (verificado@d4afe95)`) e `alert_quantity` (`:997`) — **o mesmo parser** que inflou 16 vendas ×100k na ROTA LIVRE (incidente 2026-06-05).
 - **⚠️ Achado de paridade (NÃO afirmado como bug — decisão [W]/[F]):** a **Edit React não tem campo de preço** — o `useForm` não manda `single_dpp`/`single_dsp`/`profit_percent`, e o card "Preço & Imposto" só traz `tax`/`tax_type` (mesmo padrão do `Create.tsx`, §Pendência de contrato do `Create.casos.md`). Já o **Delphi edita Custo/Valor/Margem** com binding bidirecional (`AR-PROD-006`/`007`/`008`). Então: (a) o UC defende o **endpoint** (`update()` parseia pt-BR, caminho Blade/legado); (b) a **ausência do preço na Edit React** é gap de paridade Blade/Delphi→React, registrado abaixo — não afirmo se é Non-Goal ou bug (igual à Pendência do Create; segue [F] reconstruindo o cadastro em abas).
 - **Status: ⬜** — stub.
 
@@ -118,7 +118,7 @@ last_run_ci: "lane Estoque · MySQL, run 30366164436 (PR #4953), lido 2026-07-29
 - **Teste:** [`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-07`.
 - **Contrato:** `AR-PROD-003`/`AR-PROD-042` — no legado, alterar a ficha preserva o que já estava gravado; ausência de um campo no formulário não é "desmarcar".
 - **Regressão que defende:** mesmo padrão ausência→zero do `UC-PEDIT-05`, em `not_for_selling` (`:82`) e `enable_sr_no` (`:101-104`); `sub_unit_ids` (`:71`) vira `null` pela mesma razão. Generaliza o defeito: **não é uma flag, é o contrato do payload**.
-- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): `not_for_selling` foi de **1 → 0**. Recibo literal: `Failed asserting that 0 is identical to 1` em `ProdutoEditPayloadContratoTest.php:212`. Re-confirmado no run 30366164436 (2026-07-29). Mesmo remédio do UC-PEDIT-05 — ver [§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada).
+- **Status: ❌ ACHADO CONFIRMADO** (run 30122611472): `not_for_selling` foi de **1 → 0**. Recibo literal: `Failed asserting that 0 is identical to 1` em `ProdutoEditPayloadContratoTest.php:212 (verificado@d4afe95)`. Re-confirmado no run 30366164436 (2026-07-29). Mesmo remédio do UC-PEDIT-05 — ver [§Diagnóstico do remédio](#diagnóstico-do-remédio-2026-07-29--a-correção-óbvia-é-a-errada).
 
 ---
 

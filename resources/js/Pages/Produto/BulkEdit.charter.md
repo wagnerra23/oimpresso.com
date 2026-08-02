@@ -34,7 +34,7 @@ Editar atributos comuns (Category/Sub/Brand/Tax/Locations + preços variations) 
 - Colunas: Categoria (select) · Sub-categoria · Brand · Tax · Locations (multi) · Variations prices (sub-rows)
 - Botão "Atualizar {N} produtos" sticky topo (primary destructive)
 - Multi-tenant: `business_id` scope nas queries
-- Submit POST `/products/bulk-update` (writer real — `ProductController@bulkUpdate`, `routes/web.php:443`)
+- Submit POST `/products/bulk-update` (writer real — `ProductController@bulkUpdate`, `routes/web.php:443 (verificado@d4afe95)`)
 
 ## Non-Goals
 
@@ -84,7 +84,7 @@ it('UC-PBULK-02 · produto de outro business não entra na matriz (multi-tenant 
 |---|---|---|
 | §Goals *"Submit POST `/products/bulk-update`"* (corrigido — antes declarava `mass-update`) | a rota `mass-update` **nunca existiu** (0× em `routes/`); o `.tsx` **ainda** posta nela | [W] decidiu 2026-07-27 **repontar a tela** pro `bulk-update` (não criar alias — evita superfície de escrita nova numa feature que o upstream vai depreciar). §Goals já corrigido; a linha do `.tsx` **viaja junto com o `UC-PBULK-05`** (sozinha: ganho zero + custo de contrato visreg pra tela `POST`-only — cálculo no `casos.md`). |
 | §Goals *"Colunas: … Locations (multi) …"* | a tabela React **não renderiza** coluna de localização; o payload só faz round-trip de `productLocations` | construir a coluna · remover do §Goals |
-| Tela existe e é MWART F3 concluído | o botão de entrada está atrás de `config('constants.enable_product_bulk_edit')` = **`false`** (`config/constants.php:84`, nota upstream *"Will be depreciated in future"*) | ligar a flag · manter desligada e declarar Non-Goal/remoção · substituir pelo `/unificado` |
+| Tela existe e é MWART F3 concluído | o botão de entrada está atrás de `config('constants.enable_product_bulk_edit')` = **`false`** (`config/constants.php:84 (verificado@d4afe95)`, nota upstream *"Will be depreciated in future"*) | ligar a flag · manter desligada e declarar Non-Goal/remoção · substituir pelo `/unificado` |
 
 Detalhe + contrato executável: [`BulkEdit.casos.md`](BulkEdit.casos.md) §"Três fatos medidos" e §Backlog.
 
