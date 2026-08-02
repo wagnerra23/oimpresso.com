@@ -1,40 +1,17 @@
 ---
 id: requisitos-chat
-module: Chat
-status: ausente_branch_atual
-action_required: decidir_ressuscitar_ou_deprecar
-present_in_branches: [main-wip-2026-04-22, origin/3.7-com-nfe]
-last_generated: 2026-04-22
+status: fossil-tombstone
+tombstoned_at: 2026-08-02
+tombstoned_by: "[F] · B6 — proposal Opção B (2026-08-01)"
+pii: false
 ---
+# ⚰️ `Chat.md` — FÓSSIL (spec plana pré-diretório, subtraída)
 
-# Requisitos funcionais — Chat _(legado)_
+> **Subtraído em 2026-08-02** — B6 do [programa Opção B](../decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md).
+> Era uma spec plana gerada em 2026-04-22 (`status: ausente_branch_atual` / `decidir_ressuscitar_ou_deprecar`),
+> premissa hoje **falsa** — o módulo/tema já tem casa viva. Conteúdo original preservado no histórico git.
+>
+> **Dono vivo:** [`memory/requisitos/Chat/` (módulo legado ⚠️ — sucessor conversacional é a Jana)](Chat/) — SPEC/BRIEFING/charter atuais moram lá.
+>
+> Mantido como lápide (não deletado) para preservar o `id` no `doc-id-index` e os links históricos de entrada.
 
-> ⚠️ **Módulo não existe no branch atual (`6.7-react`).**
-> Decidir entre **ressuscitar** ou **deprecar** antes de escrever
-> requisitos completos.
-
-## O que fazer com este módulo?
-
-- [ ] **Ressuscitar** — trazer do branch X, atualizar stack, migrar React
-- [ ] **Deprecar** — decisão de não trazer; apagar spec obsoleta
-- [ ] **Adiar** — congelado até próxima revisão
-
-## Histórico
-
-Presente em: main-wip-2026-04-22, origin/3.7-com-nfe
-
-## Se ressuscitar, preencher:
-
-1. **Objetivo** — que valor entregava?
-2. **Áreas funcionais** — telas/fluxos
-3. **Motivação da volta**
-4. **Integrações** — módulos atuais que tocaria
-5. **Critérios de aceite** — quando considerar pronto
-
-## Referências
-
-- Spec técnica (se existir): `memory/modulos/Chat.md`
-- Recomendações: `memory/modulos/RECOMENDACOES.md`
-
----
-_Gerado por `module:requirements` em 2026-04-22 16:34_

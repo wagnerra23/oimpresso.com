@@ -1,109 +1,17 @@
 ---
 id: requisitos-iproduction
-module: IProduction
-alias: iproduction
-status: inativo
-migration_target: react
-migration_priority: baixa (desativado)
-risk: baixo
-areas: []
-last_generated: 2026-04-22
-scale:
-  routes: 14
-  controllers: 1
-  views: 20
-  entities: 0
-  permissions: 0
+status: fossil-tombstone
+tombstoned_at: 2026-08-02
+tombstoned_by: "[F] · B6 — proposal Opção B (2026-08-01)"
+pii: false
 ---
+# ⚰️ `IProduction.md` — FÓSSIL (spec plana pré-diretório, subtraída)
 
-# Requisitos funcionais — IProduction
-
-> **Documentação viva.** Foca em _o que o módulo faz de valor pro negócio_,
-> separada da spec técnica em `memory/modulos/IProduction.md`.
+> **Subtraído em 2026-08-02** — B6 do [programa Opção B](../decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md).
+> Era uma spec plana gerada em 2026-04-22 (`status: ausente_branch_atual` / `decidir_ressuscitar_ou_deprecar`),
+> premissa hoje **falsa** — o módulo/tema já tem casa viva. Conteúdo original preservado no histórico git.
 >
-> Arquivos deste formato são consumidos pelo módulo **MemCofre**
-> (`/docs/modulos/IProduction`) que linka user stories com telas React,
-> regras Gherkin com testes, e mantém rastreabilidade evidência → requisito.
+> **Dono vivo:** [`memory/requisitos/Manufacturing/` (Inventory/SPEC.md L47 aponta a produção industrial pra lá)](Manufacturing/) — SPEC/BRIEFING/charter atuais moram lá.
+>
+> Mantido como lápide (não deletado) para preservar o `id` no `doc-id-index` e os links históricos de entrada.
 
-## Sumário
-
-1. [Objetivo](#1-objetivo)
-2. [Áreas funcionais](#2-áreas-funcionais)
-3. [User stories](#3-user-stories)
-4. [Regras de negócio (Gherkin)](#4-regras-de-negócio-gherkin)
-5. [Integrações](#5-integrações)
-6. [Dados e entidades](#6-dados-e-entidades)
-7. [Decisões em aberto](#7-decisões-em-aberto)
-8. [Histórico e notas](#8-histórico-e-notas)
-
----
-
-## 1. Objetivo
-
-Software de Gestão de Produção e Fabricação
-
-## 2. Áreas funcionais
-
-_[TODO — descrever áreas funcionais. Esperado formato: lista com 1 linha por área explicando o que faz pro usuário final.]_
-
-## 3. User stories
-
-> Convenção do ID: `US-IPRO-NNN`
-> Campo `implementado_em` linka com a Page React que atende a story.
-
-_[TODO — escrever user stories no formato abaixo.]_
-
-### US-IPRO-001 · [TODO — título]
-
-**Como** [papel]  
-**Quero** [ação]  
-**Para** [objetivo de negócio]
-
-**Implementado em:** _[path]_
-
-**Definition of Done:**
-- [ ] [critério]
-
-## 4. Regras de negócio (Gherkin)
-
-> Formato: `Dado ... Quando ... Então ...`. Cada regra deve ser
-> **testável** — idealmente tem 1 teste Feature que a valida.
-
-### R-IPRO-001 · Isolamento multi-tenant por business_id
-
-```gherkin
-Dado que um usuário pertence ao business A
-Quando ele acessa qualquer recurso do módulo IProduction
-Então só vê registros com `business_id = A`
-```
-
-**Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** _[TODO — apontar caminho do teste]_
-
-## 5. Integrações
-
-### 5.3. Integrações externas
-
-_[TODO — APIs, webhooks, serviços de terceiros, SSO, etc.]_
-
-## 6. Dados e entidades
-
-_Módulo não declara entities próprias._
-
-## 7. Decisões em aberto
-
-> Questões que exigem decisão de produto/negócio antes de avançar.
-
-- [ ] [TODO]
-- [ ] [TODO]
-
-## 8. Histórico e notas
-
-> Decisões tomadas, incidentes relevantes, contexto.
-
-- **2026-04-22** — arquivo gerado automaticamente por `module:requirements`
-
----
-_Última regeneração: 2026-04-22 16:35_  
-_Regerar: `php artisan module:requirements IProduction`_  
-_Ver no MemCofre: `/docs/modulos/IProduction`_
