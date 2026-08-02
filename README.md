@@ -168,6 +168,7 @@ Este `README.md` é a **única porta global**. Escolhida a camada, o resto é de
 
 | Quero... | Vá para |
 |---|---|
+| **Entender o sistema inteiro** — o que é, por que foi construído assim, como funciona | [Documentação do sistema](https://claude.ai/code/artifact/18086cd7-5e33-434f-b369-bbf0db555017) — vista navegável, derivada deste README + [GUIA](memory/GUIA-DO-SISTEMA.md) + [ARCHITECTURE](memory/governance/ARCHITECTURE.md) + [PAINEL](memory/reference/PAINEL-SISTEMA.md) |
 | Mapa técnico (arc42, trust levels, runtime C4) | [`ARCHITECTURE.md`](memory/governance/ARCHITECTURE.md) |
 | Decisões arquiteturais | [`memory/decisions/`](memory/decisions/) — ADRs Nygard ([índice vivo](memory/decisions/_INDEX-GENERATED.md)) |
 | Alterar um módulo | `memory/requisitos/<Modulo>/BRIEFING.md` → `SPEC.md` → `RUNBOOK` |
