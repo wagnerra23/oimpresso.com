@@ -34,8 +34,15 @@ use Modules\Jana\Support\RetrievalStatus;
  */
 class KbAnswerService
 {
-    /** Tipos canônicos persistidos em `mcp_memory_documents.type`. */
-    public const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'all'];
+    /**
+     * Tipos canônicos persistidos em `mcp_memory_documents.type`.
+     *
+     * `charter`/`casos` entram com o B3 (2026-08-02): o trio de tela mora colado ao
+     * `.tsx` e passou a ser indexado in-place. Sem estar AQUI, o `kb-answer` rejeita
+     * `categoria:charter` na entrada e o doc fica no corpus sem porta de filtro —
+     * a mesma meia-indexação que deixou os BRIEFINGs com `type=''` por 18 dias.
+     */
+    public const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'charter', 'casos', 'all'];
 
     /** Retrieval veio do hybrid (semântico + lexical) — caminho pleno. */
     public const RETRIEVAL_HYBRID = 'hybrid';
