@@ -142,6 +142,13 @@ Fonte completa: [proibicoes.md](proibicoes.md). As que mais te afetam:
 - **Rules path-scoped** (`.claude/rules/`) = instruções que só carregam ao tocar certos arquivos.
 - **Saúde:** `php artisan jana:health-check` diário — os checks vivem no próprio comando (`HealthCheckCommand.php` se auto-reporta a contagem); não fixar número à mão (LC-08).
 
+### B6. Quem cuida da documentação (o modelo — não há um "responsável" único, por design)
+
+- **Não existe um chefe/agente único de documentação.** Cada tipo de doc tem um **dono-máquina**: um gerador que a **DERIVA** da fonte + um gate que **morde** quando ela drifta (ADR 0256: *derivado+enforçado sobrevive; escrito+lembrado apodrece*).
+- **Quem decide o canon é humano** ([W]/[F]): ADR, proposal, token/componente novo. A IA **gera e mantém sob os gates** — não altera sozinha a máquina que a fiscaliza.
+- **O censo de TODAS as máquinas** (geradores + gates + hooks + skills + agents) é **derivado**, não escrito à mão: [governance/MAQUINAS-INVENTARIO.md](../governance/MAQUINAS-INVENTARIO.md) (regerado por `maquinas-inventario.mjs`). Donos por camada: [reference/PAINEL-SISTEMA.md](reference/PAINEL-SISTEMA.md). Saúde do ciclo documental (snapshot antes→correção no dono→depois): `documentation-loop.mjs`.
+- ⛔ A resposta pra *"onde acho X / quem faz Y"* **NÃO é um índice/mapa novo** — foi tentado e reprovado 2× ([proibicoes.md](proibicoes.md) §5 2026-07-23 e 2026-07-25). Os donos já existem: **estende ou aponta**, nunca abre paralelo.
+
 ---
 
 ## Backbone operacional — como tudo se conecta
@@ -174,6 +181,7 @@ git memory/ (FONTE DE VERDADE)
 | Quero... | Vá pra |
 |---|---|
 | Mapa técnico do produto (arc42) | [governance/ARCHITECTURE.md](governance/ARCHITECTURE.md) |
+| Quem gera/enforça a documentação (todas as máquinas) | [governance/MAQUINAS-INVENTARIO.md](../governance/MAQUINAS-INVENTARIO.md) |
 | Voltar à porta global / escolher outra rota | [README.md da raiz](../README.md) |
 | Procurar um documento conhecido | [INDEX.md](INDEX.md) · [INDEX_TEMATICO.md](INDEX_TEMATICO.md) |
 | Regras de sessão / como trabalhar | [how-trabalhar.md](how-trabalhar.md) · [CLAUDE.md](../CLAUDE.md) |
