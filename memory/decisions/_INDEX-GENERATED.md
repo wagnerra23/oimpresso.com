@@ -7,7 +7,7 @@
 ## Resumo
 - **368** arquivos · **353** números únicos · máx **0364**
 - **ADRs ATIVOS (lifecycle ativo): 330** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 332 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por status: aceito 333 · superseded 16 · deprecated 12 · proposto 5 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 330 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -375,7 +375,7 @@ _(nenhuma)_
 | 0330 | aceito | ativo | meta | Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda d |
 | 0331 | aceito | ativo | decision | Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector  |
 | 0332 | aceito | ativo | decision | Importers complementares Wave 2 (compras/estoque/contacts-NFe-fornecedores/daemo |
-| 0333 | proposto | ativo | meta | Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (pon |
+| 0333 | aceito | ativo | meta | Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (pon |
 | 0334 | aceito | ativo | meta | Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia |
 | 0335 | aceito | ativo | decision | Fechamento do loop diff-first DS-sync: nota honesta (B−/C+ vs SOTA A−), régua re |
 | 0336 | aceito | ativo | decision | Emenda à 0314 — gates de design PODEM virar required quando provarem mordida REA |

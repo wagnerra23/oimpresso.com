@@ -1,20 +1,21 @@
 ---
 name: capterra-senior
-description: Use quando Wagner pedir "Capterra do módulo X", "compare meu módulo Y com os melhores e dá nota", "estado-da-arte profundo do módulo Z", "/capterra-senior <Modulo>", "pesquise os líderes mundiais do {módulo} e gere CAPTERRA-FICHA". Auditor SÊNIOR que (1) pesquisa profundamente 10-15 concorrentes globais + BR (5-7 WebSearch por dimensão crítica, modo Opus 4.7 sustained), (2) compara em 3 eixos canônicos features/UX/automação com 15-20 capacidades P0-P3, (3) avalia código real do `Modules/<X>/` + SPEC.md + ADRs ativas, (4) calcula nota 0-100 ponderada + ranking gaps por impacto×esforço (ADR 0106 fator 10x IA-pair), (5) entrega `CAPTERRA-FICHA.md` no formato canônico do oimpresso (10 seções) + session log expandido com pesquisa bruta. NÃO executa código, NÃO commita, NÃO cria task no MCP — Wagner aprova com `/comparativo {modulo}` posterior pra cruzar com SPEC e propor batch tasks.
+description: |
+  Use quando Wagner pedir "Capterra do módulo X", "compare meu módulo Y com os melhores e dá nota", "estado-da-arte profundo do módulo Z", "/capterra-senior <Modulo>", "pesquise os líderes mundiais do {módulo} e gere CAPTERRA-FICHA". Auditor SÊNIOR que (1) pesquisa profundamente 10-15 concorrentes globais + BR (5-7 WebSearch por dimensão crítica, modo Opus 4.7 sustained), (2) compara em 3 eixos canônicos features/UX/automação com 15-20 capacidades P0-P3, (3) avalia código real do `Modules/<X>/` + SPEC.md + ADRs ativas, (4) calcula nota 0-100 ponderada + ranking gaps por impacto×esforço (ADR 0106 fator 10x IA-pair), (5) entrega `CAPTERRA-FICHA.md` no formato canônico do oimpresso (10 seções) + session log expandido com pesquisa bruta. NÃO executa código, NÃO commita, NÃO cria task no MCP — Wagner aprova com `/comparativo {modulo}` posterior pra cruzar com SPEC e propor batch tasks.
 
-<example>
-Context: Wagner pediu Capterra completo do módulo Whatsapp pra entender posição vs Take Blip/Twilio/Wati 2026.
-user: "Crie um agente sênior pesquise os melhores profundamente e compare com o meu gere uma nota, e o Capterra"
-assistant: "Spawn capterra-senior — vai pesquisar 12 BSPs (Meta Cloud, Twilio, Take Blip, Zenvia, 360dialog, Bird/MessageBird, Gupshup, Wati, Sinch, Infobip, Z-API, Baileys) com 5-7 WebSearch por dimensão crítica, comparar com Modules/Whatsapp atual em 20+ capacidades, gerar CAPTERRA-FICHA.md canônico + nota 0-100."
-</example>
+  <example>
+  Context: Wagner pediu Capterra completo do módulo Whatsapp pra entender posição vs Take Blip/Twilio/Wati 2026.
+  user: "Crie um agente sênior pesquise os melhores profundamente e compare com o meu gere uma nota, e o Capterra"
+  assistant: "Spawn capterra-senior — vai pesquisar 12 BSPs (Meta Cloud, Twilio, Take Blip, Zenvia, 360dialog, Bird/MessageBird, Gupshup, Wati, Sinch, Infobip, Z-API, Baileys) com 5-7 WebSearch por dimensão crítica, comparar com Modules/Whatsapp atual em 20+ capacidades, gerar CAPTERRA-FICHA.md canônico + nota 0-100."
+  </example>
 
-<example>
-Context: Wagner cogita repensar Modules/Financeiro inteiro vs Bling/Tiny/Omie/Conta Azul.
-user: "/capterra-senior Financeiro"
-assistant: "Spawn capterra-senior <Financeiro> — pesquisa 8 ERPs/financeiros BR + 4 globais (QuickBooks, Xero, FreshBooks, Wave) com profundidade, monta CAPTERRA-FICHA canônica + nota."
-</example>
+  <example>
+  Context: Wagner cogita repensar Modules/Financeiro inteiro vs Bling/Tiny/Omie/Conta Azul.
+  user: "/capterra-senior Financeiro"
+  assistant: "Spawn capterra-senior <Financeiro> — pesquisa 8 ERPs/financeiros BR + 4 globais (QuickBooks, Xero, FreshBooks, Wave) com profundidade, monta CAPTERRA-FICHA canônica + nota."
+  </example>
 
-NÃO usar pra: bug tático isolado (Edit direto), tela única (use `tela-venda-arte` ou `design-arte`), pesquisa puramente conceitual sem comparar com módulo (use `estado-da-arte`), validar CAPTERRA-FICHA já existente cruzando com SPEC (use skill `/comparativo`). Diferença: `estado-da-arte` é genérico curto (1 doc decisório); `capterra-senior` é PROFUNDO específico de módulo (gera FICHA canônica + nota + pesquisa expandida, modo Opus sustained 5-7 WebSearch por dimensão).
+  NÃO usar pra: bug tático isolado (Edit direto), tela única (use `tela-venda-arte` ou `design-arte`), pesquisa puramente conceitual sem comparar com módulo (use `estado-da-arte`), validar CAPTERRA-FICHA já existente cruzando com SPEC (use skill `/comparativo`). Diferença: `estado-da-arte` é genérico curto (1 doc decisório); `capterra-senior` é PROFUNDO específico de módulo (gera FICHA canônica + nota + pesquisa expandida, modo Opus sustained 5-7 WebSearch por dimensão).
 model: opus
 color: purple
 tools: Read, Glob, Grep, WebSearch, WebFetch, Write, Bash
