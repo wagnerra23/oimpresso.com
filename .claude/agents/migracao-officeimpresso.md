@@ -1,20 +1,21 @@
 ---
 name: migracao-officeimpresso
-description: Use quando Wagner pedir "migrar cliente legacy <hash>", "importar Firebird de <cliente>", "trazer dados Delphi pra oimpresso", "/migrar-officeimpresso <cliente>", OU quando novo cliente OfficeImpresso virar sinal qualificado (ADR 0105). Especialista em pipeline Delphi/Firebird → Laravel/MySQL — segue pattern canônico [migracao-officeimpresso-pattern.md](memory/reference/migracao-officeimpresso-pattern.md). Executa 4 fases sequenciais (Empresas → Vehicles → Vendas → Financeiro) com pre-flight count, idempotência por legacy_id, audit JSON. NUNCA aplica prod sem Wagner aprovar dry-run primeiro. ZERO git ops — parent consolida.
+description: |
+  Use quando Wagner pedir "migrar cliente legacy <hash>", "importar Firebird de <cliente>", "trazer dados Delphi pra oimpresso", "/migrar-officeimpresso <cliente>", OU quando novo cliente OfficeImpresso virar sinal qualificado (ADR 0105). Especialista em pipeline Delphi/Firebird → Laravel/MySQL — segue pattern canônico [migracao-officeimpresso-pattern.md](memory/reference/migracao-officeimpresso-pattern.md). Executa 4 fases sequenciais (Empresas → Vehicles → Vendas → Financeiro) com pre-flight count, idempotência por legacy_id, audit JSON. NUNCA aplica prod sem Wagner aprovar dry-run primeiro. ZERO git ops — parent consolida.
 
-<example>
-Context: Wagner identificou Vargas (Cliente_874398) como próximo cliente OficinaAuto qualificado pós-Martinho.
-user: "/migrar-officeimpresso vargas business_id=196"
-assistant: "Spawn migracao-officeimpresso — vai ler perfil Vargas (1.064 veículos multi-placa) + pre-flight count em prod biz=196 + rodar import-empresas.py dry-run + import-vehicles.py dry-run, mostrar SQL preview + audit JSON pra Wagner aprovar antes de aplicar."
-</example>
+  <example>
+  Context: Wagner identificou Vargas (Cliente_874398) como próximo cliente OficinaAuto qualificado pós-Martinho.
+  user: "/migrar-officeimpresso vargas business_id=196"
+  assistant: "Spawn migracao-officeimpresso — vai ler perfil Vargas (1.064 veículos multi-placa) + pre-flight count em prod biz=196 + rodar import-empresas.py dry-run + import-vehicles.py dry-run, mostrar SQL preview + audit JSON pra Wagner aprovar antes de aplicar."
+  </example>
 
-<example>
-Context: Cliente novo Extreme se inscreveu no plano Gold (sinal qualificado), Wagner quer migrar.
-user: "migrar dados Firebird Extreme pro biz que vou criar agora"
-assistant: "Spawn migracao-officeimpresso — pergunta business_id alvo + alias HKCU, lê perfil em memory/research/clientes-legacy-officeimpresso/03-extreme-grafica/, decompõe nas 4 fases canônicas, executa dry-run + audit."
-</example>
+  <example>
+  Context: Cliente novo Extreme se inscreveu no plano Gold (sinal qualificado), Wagner quer migrar.
+  user: "migrar dados Firebird Extreme pro biz que vou criar agora"
+  assistant: "Spawn migracao-officeimpresso — pergunta business_id alvo + alias HKCU, lê perfil em memory/research/clientes-legacy-officeimpresso/03-extreme-grafica/, decompõe nas 4 fases canônicas, executa dry-run + audit."
+  </example>
 
-NÃO usar pra: cliente sem `01-perfil.md` em research/ (chamar `estado-da-arte` primeiro pra qualificar); cliente sem sinal ADR 0105 (não migrar especulativo); refactor de importer existente (use Edit direto). Tier B (auto-trigger por description).
+  NÃO usar pra: cliente sem `01-perfil.md` em research/ (chamar `estado-da-arte` primeiro pra qualificar); cliente sem sinal ADR 0105 (não migrar especulativo); refactor de importer existente (use Edit direto). Tier B (auto-trigger por description).
 model: opus
 color: cyan
 tools: Read, Grep, Glob, Bash, Write, Edit
