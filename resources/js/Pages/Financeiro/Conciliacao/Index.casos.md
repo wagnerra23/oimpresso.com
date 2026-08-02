@@ -130,8 +130,19 @@ vira mudança de dinheiro sem autor.
 
 ## Lista unificada das duas origens (charter Goals · ADR 0236 Fase 1)
 
-> Estes quatro rodam na **lane required** (`ConciliacaoLeExtratoApiTest` **não** está na
-> quarentena) — são os únicos desta tela que podem virar ✅ pelo manifesto.
+> ⚠️ **ERRATA 2026-08-02 (mesmo dia).** A 1ª redação deste bloco dizia que estes quatro *"são
+> os únicos desta tela que **podem virar ✅** pelo manifesto"*. **É FALSO, e o erro é meu.**
+> Eles rodam mesmo na lane required (`ConciliacaoLeExtratoApiTest` não está na quarentena), mas
+> `casos-results-collect.mjs` lê o UC do atributo `name` do `<testcase>` — ou seja, do **título**
+> do teste. Estes são métodos PHPUnit (`public function test_index_lista_linha_api_alem_de_ofx`),
+> cujo `name` no JUnit não carrega UC nenhum; eu pus o id em **docblock**, que o coletor não lê.
+> Medido, não inferido: dos **82 UCs do manifesto, 82 vêm de título `it()`/`test()` e 0 de método
+> `test_`**. Nome de método PHP não aceita hífen, e o regex canônico (`scripts/lib/uc-regex.mjs`)
+> exige `UC-FCC-NN` — logo **não há forma de docblock que funcione**. Como estão, `UC-FCC-10..13`
+> nunca chegam ao G-7. Ver `[BACKLOG]` abaixo.
+>
+> Lição da classe LC-11 (presence ≠ prova): o G-2 ficou verde porque eu **escrevi a string do id
+> no arquivo** — isso prova acoplamento de texto, não que o teste exerça o caso.
 
 ## UC-FCC-10 — A lista mostra extrato de API junto com o de OFX
 Status: 🧪 (`ConciliacaoLeExtratoApiTest::test_index_lista_linha_api_alem_de_ofx` — lane required)
@@ -166,6 +177,11 @@ permanece intocada (`status` segue nulo).
 - `[BACKLOG]` Consertar a fixture do `ConciliacaoAuditReabrirTest` (`titulo_id = 12345`
   hardcoded viola FK) para que **UC-FCC-06** possa produzir veredito. É o único `[must]`
   `[T0]` desta tela sem prova.
+- `[BACKLOG]` Converter os 5 métodos de `ConciliacaoLeExtratoApiTest` para `it('UC-FCC-NN · …')`
+  (estilo Pest), única forma do UC chegar ao `name` do `<testcase>` e portanto ao manifesto G-7.
+  Enquanto não for feito, `UC-FCC-10..13` ficam presos em 🧪 **mesmo rodando verde na lane
+  required** — o veredito existe, o coletor é que não sabe a qual UC atribuí-lo. É o único item
+  desta lista que destrava ✅ de verdade nesta tela.
 - `[BACKLOG]` Tirar os 3 arquivos da quarentena movendo-os pra job com banco próprio — a
   própria lista aponta esse encaminhamento (*"job separado com banco próprio — não é defeito
   do teste"*). Enquanto não sair, nenhum UC-FCC-01..09 pode passar de 🧪.
