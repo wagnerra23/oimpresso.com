@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-08-01T11:41:41.963Z",
+    "generated_at": "2026-08-02T11:41:39.666Z",
     "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
       "test-results/junit.xml",
@@ -26,15 +26,15 @@
     ]
   },
   "ucs": {
-    "UC-FORJA-13": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 7
-    },
     "UC-FORJA-12": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 12
+    },
+    "UC-FORJA-13": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 7
     },
     "UC-FORJA-02": {
       "verdict": "pass",
@@ -46,12 +46,12 @@
       "ran_at": null,
       "tests": 20
     },
-    "UC-FORJA-01": {
+    "UC-FORJA-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 10
     },
-    "UC-FORJA-05": {
+    "UC-FORJA-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 10
@@ -331,22 +331,7 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-SIDX-01": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 2
-    },
-    "UC-SIDX-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-VSHOW-05": {
+    "UC-VSHOW-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -356,7 +341,7 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-VSHOW-06": {
+    "UC-VSHOW-05": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -366,7 +351,12 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-VSHOW-03": {
+    "UC-VSHOW-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-VSHOW-06": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
@@ -375,6 +365,16 @@
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
+    },
+    "UC-SIDX-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-SIDX-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
     },
     "UC-11": {
       "verdict": "pass",
