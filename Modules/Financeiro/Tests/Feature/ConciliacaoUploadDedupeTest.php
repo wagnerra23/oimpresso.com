@@ -98,6 +98,7 @@ class ConciliacaoUploadDedupeTest extends FinanceiroTestCase
             ->count();
     }
 
+    /** Contrato UC-FCC-01 (SDD §6.2 CU-FIN-10) — cada STMTTRN novo vira linha pendente. */
     public function test_happy_path_importa_todas_as_transacoes_novas(): void
     {
         $response = $this->from(self::URL)->post(self::URL, [
@@ -118,6 +119,8 @@ class ConciliacaoUploadDedupeTest extends FinanceiroTestCase
      * Núcleo do fix: um fitid já existente no banco é PULADO sem QueryException,
      * o count reflete só as linhas realmente novas, e a linha pré-existente NÃO
      * é sobrescrita (prova insertOrIgnore vs upsert).
+     *
+     * Contrato UC-FCC-02 (SDD §6.2 CU-FIN-10).
      */
     public function test_fitid_duplicado_e_pulado_sem_excecao_e_count_correto(): void
     {
@@ -168,6 +171,8 @@ class ConciliacaoUploadDedupeTest extends FinanceiroTestCase
     /**
      * Double-click / retry do MESMO arquivo: segundo upload não duplica nem 500.
      * Modela o cenário exato da race (reenvio do mesmo OFX).
+     *
+     * Contrato UC-FCC-02 (SDD §6.2 CU-FIN-10).
      */
     public function test_upload_duplicado_double_click_e_idempotente(): void
     {
@@ -190,7 +195,7 @@ class ConciliacaoUploadDedupeTest extends FinanceiroTestCase
         $this->assertSame(2, $this->countMinhas());
     }
 
-    /** Tier 0 (ADR 0093): toda linha importada carrega o business_id do tenant. */
+    /** Contrato UC-FCC-03 — Tier 0 (ADR 0093): toda linha importada carrega o business_id do tenant. */
     public function test_todas_as_linhas_recebem_business_id_do_tenant(): void
     {
         $this->from(self::URL)->post(self::URL, [

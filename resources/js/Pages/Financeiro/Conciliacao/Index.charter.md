@@ -12,7 +12,7 @@ related_us: [US-FIN-009]
 smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; KPIs + upload OFX). Antes: 2026-07-01 render sob sessão matriz biz=0."
 related_prototype: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaConciliacao) — tela viva evoluiu além do protótipo (extrato via API, ADR 0236)
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /financeiro/conciliacao
@@ -36,7 +36,8 @@ e de **sync API do banco** — e deixar o usuário conciliá-las com títulos ab
 - Upload de arquivo OFX (parser `<STMTTRN>`) → linhas pendentes
 - Lista unificada das DUAS origens com coluna **Origem** (chip Banco / OFX) — ADR 0236 Fase 1
 - 4 KPIs: pendentes · sugeridos · conciliados · ignorados (somados das duas origens)
-- Sugestão automática de match (fuzzy: valor + data ±3 dias) com `fin_titulos` abertos
+- Sugestão automática de match (fuzzy: valor + data ±3 dias) com `fin_titulos` abertos,
+  com `match_score` **calculado** (`0.7·valor + 0.3·proximidade-de-data`) — ver `UC-FCC-04`
 - Confirmar match (conciliar) / Ignorar linha — grava na tabela de origem correta
 - Busca client-side por descrição
 
@@ -52,7 +53,7 @@ e de **sync API do banco** — e deixar o usuário conciliá-las com títulos ab
 - ❌ Conciliação N:N (1 linha ↔ N títulos) — hoje é 1:1
 - ❌ Desfazer conciliação já confirmada (append-only; reverter é outra US)
 - ❌ Export PDF/Excel da conciliação
-- ❌ Editar regra de match (score fixo 0.85 no MVP)
+- ❌ Editar regra de match (a fórmula do score é do servidor, não configurável na tela)
 
 ---
 
@@ -115,6 +116,11 @@ it('match api respeita business id tier0');                     // ✅ existe (A
 it('upload duplicado double click e idempotente');             // ✅ existe (anti-race)
 ```
 
+> **Contrato executável desta tela:** [`Index.casos.md`](Index.casos.md) — `UC-FCC-01..13`,
+> derivados do [SDD Financeiro §6.2](../../../../../memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md)
+> (`CU-FIN-10/11/12`) + os Goals acima. Lá está registrado quais rodam na lane required e
+> qual `[must]` segue **sem prova** (`UC-FCC-06`).
+
 ---
 
 ## Histórico
@@ -123,3 +129,4 @@ it('upload duplicado double click e idempotente');             // ✅ existe (an
 |---|---|---|
 | 2026-05-19 | Onda 19 #49 | Tela criada (Conciliação OFX MVP) — sem charter na época. |
 | 2026-05-31 | Opus + Wagner | Charter criado na Fase 1 ADR 0236 (tela passou a ler extrato API + coluna Origem). |
+| 2026-08-02 | Claude [C] | v2 — B7: nasce o `Index.casos.md` (`UC-FCC-01..13`). Corrigido o Non-Goal que dizia *"score fixo 0.85 no MVP"*: o 0.85 constante era o **bug B1** (ADR 0236), já substituído por `calcularMatchScore()` (`0.7·valor + 0.3·data`). Precedência teste-verde > charter — `ConciliacaoMatchScoreTest` provou (3 passed, CT 100 2026-08-02) e o charter foi corrigido no mesmo PR. |
