@@ -153,7 +153,7 @@ Substitui `Cockpit.tsx` atual que erroneamente implementou um chat WhatsApp-styl
 - ❌ **Bubbles com tail asimétrico** — `border-bottom-right-radius:4px` (user) + `border-bottom-left-radius:4px` (jana) em chat-jana.css:498,505. Substituir por simétrico.
 - ❌ **Streaming ausente** — `onSend()` linha 395 só ecoa user msg. Implementar `mock-stream.js` SSE fake com chunks `delta`/`final`.
 - ❌ **Atalhos globais ausentes** — sem `useEffect` keydown. Implementar listener `/` `J` `K` `Esc`.
-- ❌ **Apenas 1 kind bubble** — só `list-card` em chat-jana.jsx:412. Implementar switch 4 kinds.
+- ❌ **Apenas 1 kind bubble** — só `list-card` em chat-jana.jsx:412 (verificado@d4afe95). Implementar switch 4 kinds.
 - ❌ **Citations ausentes** — sem schema `sources`. Adicionar.
 - ❌ **PII detector ausente** — composer sem regex. Adicionar.
 - ❌ **Markdown render frágil** — regex custom `**bold**` split (linha 156-163) sem sanitizer. Trocar por `react-markdown` + `rehype-sanitize` (já no projeto via `Chat.tsx`).
@@ -164,10 +164,10 @@ Substitui `Cockpit.tsx` atual que erroneamente implementou um chat WhatsApp-styl
 
 ## Automation Hooks
 
-- **Backend**: `ChatController::sendStream($id)` em [Modules/Jana/Http/Controllers/ChatController.php:276](../../../../Modules/Jana/Http/Controllers/ChatController.php) já existe — reusar.
+- **Backend**: `ChatController::sendStream($id)` em [Modules/Jana/Http/Controllers/ChatController.php:276 (verificado@d4afe95)](../../../../Modules/Jana/Http/Controllers/ChatController.php) já existe — reusar.
 - **Centrifugo subscribe**: `jana:thread:{business_id}:{thread_id}` no `useEffect` da tab IA · cleanup no unmount + pausa visibilityState.
 - **Token Centrifugo**: backend emite via `CentrifugoTokenIssuer::issue` em cada `Inertia::render` (mesmo padrão `/atendimento/caixa-unificada`).
-- **HITL action confirm**: `<ActionCardBubble onConfirm>` → POST `/jana/sugestoes/{id}/escolher` · `onCancel` → POST `/jana/sugestoes/{id}/rejeitar` (rotas já existem em `Modules/Jana/Http/routes.php:40-41`).
+- **HITL action confirm**: `<ActionCardBubble onConfirm>` → POST `/jana/sugestoes/{id}/escolher` · `onCancel` → POST `/jana/sugestoes/{id}/rejeitar` (rotas já existem em `Modules/Jana/Http/routes.php:40-41 (verificado@d4afe95)`).
 - **Brief diário fetch**: tab `dashboard` carrega via `Inertia::defer(fn () => $this->buildBriefPayload($businessId))` — primeiro paint do shell <500ms, brief completa async ~1-2s.
 
 ---

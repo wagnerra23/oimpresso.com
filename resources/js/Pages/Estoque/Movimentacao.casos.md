@@ -42,7 +42,7 @@ last_run: "2026-07-02"
 ---
 
 ## UC-EST-03 · Devolução de venda → ENTRA (volta pro estoque)
-- **Fluxo:** cliente devolve item de uma venda. A devolução reintegra `qty_available` no local da venda, pela quantidade devolvida (DOC-RAIZ §3 `sell_return` → `addSellReturn` → `updateProductQuantity`, TransactionUtil.php:6189). Caminho NÚCLEO UltimatePOS.
+- **Fluxo:** cliente devolve item de uma venda. A devolução reintegra `qty_available` no local da venda, pela quantidade devolvida (DOC-RAIZ §3 `sell_return` → `addSellReturn` → `updateProductQuantity`, TransactionUtil.php:6189 (verificado@d4afe95)). Caminho NÚCLEO UltimatePOS.
 - **Aceite:** Dado venda de 5 com saldo pós-venda `qty_available=8` · Quando devolve 2 · Então `qty_available=10`. E: devolução parcial reintegra só o devolvido (devolve 1 de 5 → +1).
 - **Teste:** `tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php`.
 - **Status: 🧪** _(fluxo núcleo `addSellReturn`; o caminho Vestuario `DevolucaoService` é o UC-EST-04 abaixo)._

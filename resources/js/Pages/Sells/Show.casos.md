@@ -57,7 +57,7 @@ last_run: "2026-07-27"
 ## UC-VSHOW-04 · Os números de dinheiro da venda são os do banco
 - **Persona:** Larissa / Kamila — "quanto essa venda ainda deve?" respondido pela tela, sem conferir no relatório.
 - **Aceite:** Dado uma venda de R$ 100,00 com dois pagamentos registrados (R$ 30,00 + R$ 25,00) e `payment_status = partial` · Quando abro `/sells/{id}` · Então o cabeçalho traz **Total** = 100,00, **Pago** = 55,00 (a soma real dos pagamentos), **Status** = parcial, e **Falta** fecha em 45,00.
-- **Âncora:** `Show.charter.md` §Goals ("4 KPIs grandes (canon V2): Total / Pago / Falta / Status pgto") + REGRA MESTRE valor/estoque de [`memory/proibicoes.md`](../../../../memory/proibicoes.md). "Falta" é derivada no front (`Show.tsx:303`), então o contrato do backend é Total + Pago + Status coerentes.
+- **Âncora:** `Show.charter.md` §Goals ("4 KPIs grandes (canon V2): Total / Pago / Falta / Status pgto") + REGRA MESTRE valor/estoque de [`memory/proibicoes.md`](../../../../memory/proibicoes.md). "Falta" é derivada no front (`Show.tsx:303 (verificado@d4afe95)`), então o contrato do backend é Total + Pago + Status coerentes.
 - **Regressão que defende:** um KPI "Pago" que não some os pagamentos faz a tela **mentir sobre a dívida do cliente** — a mesma família do incidente `num_uf` (R$ 204,99 gravado como R$ 20.499.605, 16 vendas infladas ×100k antes de alguém ver).
 - **Teste:** `tests/Feature/Sells/SellsShowContratoTest.php` — estado semeado por INSERT direto (não pelo fluxo sob teste), tolerância de centavo pelo `decimal(22,4)`.
 - **Status: 🧪** — mesma condição do UC-VSHOW-01.
