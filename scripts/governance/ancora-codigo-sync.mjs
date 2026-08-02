@@ -78,6 +78,25 @@ const MODE = args.includes('--selftest') ? 'selftest'
 const CORPUS_DIRS = ['resources/js/Pages', 'memory/requisitos'];
 const CORPUS_RE = /\.(casos|charter)\.md$/;
 
+/**
+ * Docs que o `--stamp` NÃO toca, e o motivo de cada um.
+ *
+ * Carimbar re-emite a linha inteira no diff. Num arquivo que carrega dívida
+ * PRÉ-EXISTENTE, isso acorda gate diff-aware sobre dívida que não é deste PR e que
+ * o agente não pode pagar sozinho (§5 2026-07-12 + emenda 2026-07-27). Já custou
+ * dois vermelhos: recuei à mão no #5159 e o `--stamp` seguinte pegou os MESMOS dois
+ * arquivos de novo — porque o recuo era estado de branch, não regra. Agora é regra.
+ *
+ * Sai desta lista quando a dívida for paga por quem pode: redigir o valor / declarar
+ * a US é decisão [W], não deste script.
+ */
+const NAO_CARIMBAR = new Map([
+  ['resources/js/Pages/Produto/SellingPrices.charter.md',
+   'BRL scan: 14 ocorrências de R$ pré-existentes (valores reais) — redigir é decisão [W]'],
+  ['resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md',
+   'charter-us-lint: sem `related_us` — só [W] sabe qual US a tela atende'],
+]);
+
 /** `Arquivo.php:443` ou `path/Arquivo.tsx:12-20`, com carimbo opcional logo depois. */
 const RE_REF = /\b([\w./-]+\.(?:php|tsx?|jsx?|mjs|blade\.php)):(\d+)(?:-(\d+))?\b(\s*\(verificado@([0-9a-f]{7,40})\))?/g;
 
@@ -263,9 +282,15 @@ function run() {
   const head = (git('rev-parse', 'HEAD') || '').trim().slice(0, 7);
   if (!head) { console.error('  sem HEAD legível — abortado'); return 2; }
 
-  const alvo = MODE === 'stamp'
+  const alvo = (MODE === 'stamp'
     ? rows.filter((r) => !r.sha && ['SEM_CARIMBO'].includes(r.estado))
-    : rows.filter((r) => r.estado === 'MOVEU' && !r.fim); // range: o fim nao e recalculavel com seguranca
+    : rows.filter((r) => r.estado === 'MOVEU' && !r.fim) // range: o fim nao e recalculavel com seguranca
+  ).filter((r) => !NAO_CARIMBAR.has(r.doc));
+
+  for (const [doc, razao] of NAO_CARIMBAR) {
+    const n = rows.filter((r) => r.doc === doc && !r.sha).length;
+    if (n) console.log(`  pulado: ${doc} — ${n} ref(s) · ${razao}`);
+  }
 
   if (!alvo.length) { console.log(`  nada a ${MODE === 'stamp' ? 'carimbar' : 'sincronizar'}.`); return 0; }
 

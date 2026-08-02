@@ -103,7 +103,7 @@ last_run_ci: "0 UC executado — trio nasce agora (agent sdd-from-source, ADR 03
 - **Persona:** Larissa / ROTA LIVRE (vestuário, grade tam×cor) — numa lista de variações, "Azul" e "M" sozinhos não dizem qual é cor e qual é tamanho. A ficha precisa dizer o **eixo**.
 - **Aceite:** Dado um produto variável com eixo "Cor" e valor "Azul" · Quando abro a aba Variações · Então a linha identifica **"Cor - Azul"**, não só "Azul".
 - **Teste:** `e2e/produto-show.spec.ts` — `UC-PSHOW-04` (stub `test.fixme`).
-- **Contrato:** Blade `variable_product_details.blade.php:30` — `{{$variation->product_variation->name}} - {{ $variation->name }}`.
+- **Contrato:** Blade `resources/views/product/partials/variable_product_details.blade.php:30 (verificado@5d5cac0)` — `{{$variation->product_variation->name}} - {{ $variation->name }}`.
 - **Regressão que defende:** o controller **carrega** o eixo (`->with([… 'variations.product_variation' …])`, `:812`) e depois **descarta**: o `map` (`:831-837`) só usa `$v->name`. O eager-load órfão é a evidência de que a intenção existia e se perdeu na migração — exatamente a classe de perda silenciosa que motivou a ADR 0351.
 - **Status: ⬜** — stub.
 
@@ -113,7 +113,7 @@ last_run_ci: "0 UC executado — trio nasce agora (agent sdd-from-source, ADR 03
 - **Persona:** Wagner / Larissa olhando a ficha pra decidir preço. Se "Preço compra" for **sem** imposto e "Preço venda" **com** imposto, a margem calculada de cabeça sai errada — e ninguém na tela avisa.
 - **Aceite:** Dado a aba Variações · Quando exibe preço de compra e de venda na mesma linha · Então ou usam a **mesma base** de imposto, ou o rótulo **declara** a base de cada um.
 - **Teste:** `e2e/produto-show.spec.ts` — `UC-PSHOW-05` (stub).
-- **Contrato:** Blade `variable_product_details.blade.php:12-20` — o legado exibe **4 colunas explicitamente rotuladas**: compra `(exc_of_tax)`, compra `(inc_of_tax)`, venda `(exc_of_tax)`, venda `(inc_of_tax)`, mais `profit_percent`. A base **nunca** é ambígua. + **REGRA MESTRE** valor ([proibicoes.md](../../../../memory/proibicoes.md)) + `AR-PROD-007` (margem = `((Valor/Custo)−1)×100`, confirmada por 5 caminhos).
+- **Contrato:** Blade `resources/views/product/partials/variable_product_details.blade.php:12-20 (verificado@5d5cac0)` — o legado exibe **4 colunas explicitamente rotuladas**: compra `(exc_of_tax)`, compra `(inc_of_tax)`, venda `(exc_of_tax)`, venda `(inc_of_tax)`, mais `profit_percent`. A base **nunca** é ambígua. + **REGRA MESTRE** valor ([proibicoes.md](../../../../memory/proibicoes.md)) + `AR-PROD-007` (margem = `((Valor/Custo)−1)×100`, confirmada por 5 caminhos).
 - **⚠️ Correção de premissa (2026-07-27):** até esta data o parágrafo abaixo afirmava que
   `defaultSellPrice` vinha de `default_sell_price_inc_tax`, **com** imposto. Esse campo **não existe**
   em `variations` — o Eloquent devolvia `null → 0`, então a ficha não mostrava preço de venda nenhum,
