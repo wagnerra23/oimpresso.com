@@ -8,10 +8,10 @@ pii: false
 # ⚰️ `IProduction.md` — FÓSSIL (spec plana pré-diretório, subtraída)
 
 > **Subtraído em 2026-08-02** — B6 do [programa Opção B](../decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md).
-> Era uma spec plana gerada em 2026-04-22 (`status: ausente_branch_atual` / `decidir_ressuscitar_ou_deprecar`),
-> premissa hoje **falsa** — o módulo/tema já tem casa viva. Conteúdo original preservado no histórico git.
+> Era uma spec plana gerada em 2026-04-22 (`status: ausente_branch_atual` / `decidir_ressuscitar_ou_deprecar`).
+> Premissa hoje **falsa** — o módulo/tema já tem casa viva. Conteúdo original preservado no histórico git.
 >
-> **Dono vivo:** [`memory/requisitos/Manufacturing/` (Inventory/SPEC.md L47 aponta a produção industrial pra lá)](Manufacturing/) — SPEC/BRIEFING/charter atuais moram lá.
+> **Sucessor:** `memory/requisitos/Manufacturing/` (Inventory/SPEC.md L47 aponta a produção industrial pra lá) — a documentação viva mora lá.
 >
 > Mantido como lápide (não deletado) para preservar o `id` no `doc-id-index` e os links históricos de entrada.
 

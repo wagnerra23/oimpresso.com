@@ -8,8 +8,8 @@ pii: false
 # ⚰️ `Writebot.md` — FÓSSIL (spec plana pré-diretório, subtraída)
 
 > **Subtraído em 2026-08-02** — B6 do [programa Opção B](../decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md).
-> Era uma spec plana gerada em 2026-04-22 (`status: ausente_branch_atual` / `decidir_ressuscitar_ou_deprecar`),
-> premissa hoje **falsa** — o módulo/tema já tem casa viva. Conteúdo original preservado no histórico git.
+> Era uma spec plana gerada em 2026-04-22 (`status: ausente_branch_atual` / `decidir_ressuscitar_ou_deprecar`).
+> Hoje **sem dono vivo** — tema morto. Conteúdo original preservado no histórico git.
 >
 > **Sem sucessor ativo** — tema sem dono vivo hoje. Ressuscitar exige decisão [W]/[F] + SPEC real (nunca promover este fóssil).
 >
