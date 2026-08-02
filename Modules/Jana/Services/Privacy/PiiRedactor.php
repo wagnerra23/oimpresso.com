@@ -66,12 +66,99 @@ class PiiRedactor
             $output = $input;
             foreach (self::PATTERNS as $type => $regex) {
                 $output = preg_replace_callback($regex, function ($matches) use ($type, $mode) {
+                    if (! $this->deveRedigir($type, $matches[0])) {
+                        return $matches[0];
+                    }
+
                     return $this->makeReplacement($type, $mode, $matches[0]);
                 }, $output);
             }
 
             return $output;
         }, ['input_chars' => strlen($input), 'mode' => $mode]);
+    }
+
+    /**
+     * Segundo filtro: o regex casou, mas isto é MESMO PII?
+     *
+     * Só o CPF CRU (11 dígitos sem pontuação) precisa deste desempate — e ele existe
+     * porque `\d{11}` colide com QUALQUER número de 11 dígitos. Medido em produção
+     * 2026-08-02, ao indexar o trio de tela: 32 "PII" redigidos em 8 `casos.md` eram
+     * **run id do GitHub Actions** (`30366164436`), e o efeito foi apagar do índice
+     * justamente o recibo de CI que o projeto exige como prova. Não era vazamento —
+     * era o oposto, e degradava a rastreabilidade.
+     *
+     * O CPF tem dígito verificador; run id não. Validá-lo separa os dois sem afrouxar
+     * nada: CPF real cru (`11144477735`) continua redigido.
+     *
+     * **CPF PONTUADO segue redigido SEMPRE**, com DV válido ou não — quem escreve
+     * `123.456.789-01` está declarando um CPF, e formato explícito não pede prova.
+     * Isso mantém coberto o caso de CPF digitado errado, que é dado inválido mas
+     * ainda é tentativa de PII.
+     */
+    private function deveRedigir(string $type, string $match): bool
+    {
+        // Formatação é DECLARAÇÃO: quem escreve `123.456.789-01` ou `(11) 98765-4321`
+        // está dizendo que aquilo é CPF/telefone. Formato explícito não pede prova —
+        // inclusive porque CPF digitado errado ainda é tentativa de PII.
+        if (preg_match('/[.\-()\s\/+]/', $match)) {
+            return true;
+        }
+
+        // Daqui pra baixo o match é DÍGITO CRU, e é onde mora a colisão: qualquer
+        // número comprido casa. O desempate é a regra de formação de cada tipo.
+        return match ($type) {
+            'CPF'   => $this->cpfTemDvValido($match),
+            'PHONE' => $this->temDddBrasileiro($match),
+            default => true,
+        };
+    }
+
+    /**
+     * DDD que existe no Brasil. É o que separa `3036616443` (run id do GitHub, DDD
+     * "30" inexistente) de `11987654321` (celular de São Paulo).
+     *
+     * Fonte: plano de numeração ANATEL — as faixas não usadas nunca foram alocadas.
+     */
+    private function temDddBrasileiro(string $digitos): bool
+    {
+        $ddd = (int) substr($digitos, 0, 2);
+
+        return in_array($ddd, [
+            11, 12, 13, 14, 15, 16, 17, 18, 19,
+            21, 22, 24, 27, 28,
+            31, 32, 33, 34, 35, 37, 38,
+            41, 42, 43, 44, 45, 46, 47, 48, 49,
+            51, 53, 54, 55,
+            61, 62, 63, 64, 65, 66, 67, 68, 69,
+            71, 73, 74, 75, 77, 79,
+            81, 82, 83, 84, 85, 86, 87, 88, 89,
+            91, 92, 93, 94, 95, 96, 97, 98, 99,
+        ], true);
+    }
+
+    /** Dígito verificador do CPF (módulo 11). Repetidos (111...) são inválidos por definição. */
+    private function cpfTemDvValido(string $digitos): bool
+    {
+        if (strlen($digitos) !== 11 || preg_match('/^(\d)\1{10}$/', $digitos)) {
+            return false;
+        }
+
+        foreach ([9, 10] as $posicao) {
+            $soma = 0;
+            for ($i = 0; $i < $posicao; $i++) {
+                $soma += (int) $digitos[$i] * (($posicao + 1) - $i);
+            }
+            $dv = ($soma * 10) % 11;
+            if ($dv === 10) {
+                $dv = 0;
+            }
+            if ($dv !== (int) $digitos[$posicao]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -84,7 +171,12 @@ class PiiRedactor
         $found = [];
         foreach (self::PATTERNS as $type => $regex) {
             if (preg_match_all($regex, $input, $matches)) {
-                $found[$type] = count($matches[0]);
+                // mesmo desempate do redact(): detect() e redact() não podem divergir,
+                // senão o has_pii marca doc que o redact deixou intacto.
+                $reais = array_filter($matches[0], fn (string $m) => $this->deveRedigir($type, $m));
+                if ($reais !== []) {
+                    $found[$type] = count($reais);
+                }
             }
         }
         return $found;
