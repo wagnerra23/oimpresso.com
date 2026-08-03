@@ -190,12 +190,22 @@ export function resumoLiveness(estados) {
  *   · `governance-drift.yml`— 40 de 40 runs agendadas falhando, ZERO sucesso desde 24/06.
  *
  * MEDIDO antes de armar (2026-08-03, 24 workflows agendados, últimas ≤14 runs de cada):
- * 21 dos 24 com 0% de falha; os 3 restantes são defeito REAL, nenhum "vermelho por
- * desenho" — `system-map` 29% (corrigido no #5232), `governance-drift` 100% (aberto),
- * `exposicao-tier0-sentinel` 40% intermitente e já verde na última. Ou seja: o critério
- * "última run agendada falhou" alarma HOJE em 2 de 24, ambos legítimos, FP medido = 0.
- * Sem essa medição, o receio razoável era "alarme ruidoso que se aprende a ignorar" — o
- * dado disse o contrário, e é por isso que ela vem antes do código.
+ * 21 dos 24 com 0% de falha. Os 3 que falham, e o que CADA UM significa — a taxa de
+ * falha sozinha não diz, foi preciso ler o código de cada um:
+ *   · `system-map` 29% ....... defeito REAL do gerador (fail-closed em path de lápide;
+ *                              corrigido no #5232). Alarme acionável.
+ *   · `governance-drift` 100%  vermelho POR DESENHO: `SecretsAuditCommand` termina em
+ *                              `return self::FAILURE; // drift detectado (CI-friendly)`,
+ *                              e o drift é permanente (chave Meilisearch catalogada como
+ *                              comprometida em 2026-05-28, à espera de rotação [W]).
+ *                              Sinal honesto de dívida — mas NÃO fecha por código.
+ *   · `exposicao-tier0-sentinel` 40% intermitente, verde na última — não alarma hoje.
+ *
+ * Então o critério "última agendada falhou" acusa HOJE 2 de 24, e nenhum acusa sem
+ * motivo — mas só UM é fechável por conserto. O outro fica vermelho até decisão [W]
+ * (rotacionar a chave, ou o `governance-drift` parar de sair 1 para drift já aceito).
+ * Registrado aqui de propósito: "vermelho permanente que ninguém pode fechar" é o que
+ * vira ruído aprendido a ignorar, e essa é a única razão real para não armar isto.
  *
  * Eixo SEPARADO do liveness de propósito: vivo-e-falhando é um estado real (é o caso
  * dos dois acima), e colapsar os dois num só faria o relatório perder justo esse.
