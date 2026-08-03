@@ -109,3 +109,31 @@ it('conta apenas o que redigiu — run id no meio de CPF válido não infla o co
         ->and($r['redacted'])->toContain(IDX_RUN_ID_GITHUB)
         ->and($r['redacted'])->toContain('XXX.XXX.XXX-NN');
 });
+
+/**
+ * Paridade com o `PiiRedactor`: a emenda do CNPJ vale nos DOIS redactors. Se um
+ * lado mudar sem o outro, volta o defeito do LC-18 (duas cópias, uma corrigida).
+ */
+
+/** LID real do WhatsApp Multi-Device, dos que apareciam redigidos no índice. DV inválido. */
+const IDX_LID_WHATSAPP = '14628809617558';
+
+/** CNPJ sintético com DV VÁLIDO — controle de não-afrouxamento. */
+const IDX_CNPJ_CRU_VALIDO = '11222333000181'; // pii-allowlist (sintético, DV válido, fixture do teste)
+
+it('não redige LID do WhatsApp — 14 dígitos com DV inválido não é CNPJ', function () {
+    $texto = 'remoteJid "' . IDX_LID_WHATSAPP . '@lid" na conversa';
+
+    $r = idxRedactor()->redigir($texto);
+
+    expect($r['redacted'])->toBe($texto)
+        ->and($r['count'])->toBe(0);
+});
+
+it('CONTROLE: CNPJ cru com DV válido CONTINUA redigido', function () {
+    $r = idxRedactor()->redigir('emitente ' . IDX_CNPJ_CRU_VALIDO);
+
+    expect($r['redacted'])->toContain('XX.XXX.XXX/XXXX-NN')
+        ->and($r['redacted'])->not->toContain(IDX_CNPJ_CRU_VALIDO)
+        ->and($r['count'])->toBe(1);
+});

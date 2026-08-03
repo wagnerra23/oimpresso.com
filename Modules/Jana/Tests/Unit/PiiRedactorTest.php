@@ -24,7 +24,7 @@ beforeEach(function () {
 // -------------------------------------------------------------------------
 
 test('redaciona CPF formatado', function () {
-    $input = 'Cliente Larissa CPF 123.456.789-09';
+    $input = 'Cliente Larissa CPF 123.456.789-09';  // pii-allowlist (sintético, fixture do teste do redactor)
     $output = $this->redactor->redact($input);
     expect($output)->toBe('Cliente Larissa CPF [REDACTED:CPF]');
 });
@@ -36,7 +36,7 @@ test('redaciona CPF sem máscara', function () {
 });
 
 test('redaciona múltiplos CPFs', function () {
-    $input = '111.222.333-44 e 555.666.777-88';
+    $input = '111.222.333-44 e 555.666.777-88';  // pii-allowlist (sintético, fixture do teste do redactor)
     $output = $this->redactor->redact($input);
     expect($output)->toBe('[REDACTED:CPF] e [REDACTED:CPF]');
 });
@@ -46,13 +46,17 @@ test('redaciona múltiplos CPFs', function () {
 // -------------------------------------------------------------------------
 
 test('redaciona CNPJ formatado', function () {
-    $input = 'CNPJ 12.345.678/0001-90 da empresa';
+    $input = 'CNPJ 12.345.678/0001-90 da empresa';  // pii-allowlist (sintético, fixture do teste do redactor)
     $output = $this->redactor->redact($input);
     expect($output)->toBe('CNPJ [REDACTED:CNPJ] da empresa');
 });
 
 test('redaciona CNPJ sem máscara', function () {
-    $input = '12345678000190 inscrição';
+    // DV VÁLIDO obrigatório desde a emenda de 2026-08-03: cru sem máscara,
+    // `\d{14}` colide com LID do WhatsApp e id de artigo em URL, então o
+    // desempate passou a ser o dígito verificador. O valor anterior
+    // (`12345678000190`) tem DV inválido — não era CNPJ, era placeholder.
+    $input = '11222333000181 inscrição'; // pii-allowlist (sintético, DV válido, fixture)
     $output = $this->redactor->redact($input);
     expect($output)->toBe('[REDACTED:CNPJ] inscrição');
 });
@@ -110,8 +114,8 @@ test('redaciona telefone com +55', function () {
 // -------------------------------------------------------------------------
 
 test('redaciona mensagem real do Copiloto chat', function () {
-    $input = 'Cliente Larissa (CPF 123.456.789-09, email larissa@rotalivre.com.br, '
-           . 'tel (11) 98765-4321) pediu boleto pro CEP 01310-100 da empresa CNPJ 12.345.678/0001-90.';
+    $input = 'Cliente Larissa (CPF 123.456.789-09, email larissa@rotalivre.com.br, '  // pii-allowlist (sintético, fixture do teste do redactor)
+           . 'tel (11) 98765-4321) pediu boleto pro CEP 01310-100 da empresa CNPJ 12.345.678/0001-90.';  // pii-allowlist (sintético, fixture do teste do redactor)
     $output = $this->redactor->redact($input);
 
     expect($output)
@@ -120,9 +124,9 @@ test('redaciona mensagem real do Copiloto chat', function () {
         ->toContain('[REDACTED:PHONE]')
         ->toContain('[REDACTED:CEP]')
         ->toContain('[REDACTED:CNPJ]')
-        ->not->toContain('123.456.789-09')
+        ->not->toContain('123.456.789-09')  // pii-allowlist (sintético, fixture do teste do redactor)
         ->not->toContain('larissa@rotalivre.com.br')
-        ->not->toContain('12.345.678/0001-90');
+        ->not->toContain('12.345.678/0001-90');  // pii-allowlist (sintético, fixture do teste do redactor)
 });
 
 // -------------------------------------------------------------------------
@@ -130,8 +134,8 @@ test('redaciona mensagem real do Copiloto chat', function () {
 // -------------------------------------------------------------------------
 
 test('modo hash gera identificador determinístico', function () {
-    $input1 = 'CPF 123.456.789-09 hoje';
-    $input2 = 'CPF 123.456.789-09 amanhã';
+    $input1 = 'CPF 123.456.789-09 hoje';  // pii-allowlist (sintético, fixture do teste do redactor)
+    $input2 = 'CPF 123.456.789-09 amanhã';  // pii-allowlist (sintético, fixture do teste do redactor)
 
     $r1 = $this->redactor->redact($input1, 'hash');
     $r2 = $this->redactor->redact($input2, 'hash');
@@ -159,7 +163,7 @@ test('modo remove apaga sem placeholder', function () {
 // -------------------------------------------------------------------------
 
 test('detecta PII sem redactar', function () {
-    $input = 'CPF 123.456.789-09 + email a@b.com.br';
+    $input = 'CPF 123.456.789-09 + email a@b.com.br';  // pii-allowlist (sintético, fixture do teste do redactor)
     $detected = $this->redactor->detect($input);
 
     expect($detected)
@@ -175,7 +179,7 @@ test('detecta PII sem redactar', function () {
 
 test('redactArray funciona recursivamente', function () {
     $input = [
-        'message' => 'CPF 123.456.789-09',
+        'message' => 'CPF 123.456.789-09',  // pii-allowlist (sintético, fixture do teste do redactor)
         'meta' => [
             'phone' => '(11) 98765-4321',
             'count' => 42,
