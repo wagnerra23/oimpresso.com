@@ -1,14 +1,14 @@
 {
   "_meta": {
-    "generated_at": "2026-08-03T02:27:34.115Z",
+    "generated_at": "2026-08-03T02:32:41.679Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
       "pages": 207,
-      "casos_files": 78,
-      "ucs_declared": 401,
+      "casos_files": 79,
+      "ucs_declared": 404,
       "missing_charter": 0,
-      "missing_casos": 130,
+      "missing_casos": 129,
       "orphan_ucs": 12,
       "metadata_issues": 0,
       "stale_cases": 0,
@@ -16,11 +16,11 @@
       "status_unverified": 0,
       "status_stale": 0,
       "exec_backed_ucs": 75,
-      "exec_backed_declared": 401,
+      "exec_backed_declared": 404,
       "exec_backed_pct": 19,
-      "teto_no_titulo": 245,
+      "teto_no_titulo": 248,
       "teto_so_docblock": 144,
-      "teto_distintos": 401
+      "teto_distintos": 404
     },
     "nota": "Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write",
     "refs": [
@@ -111,7 +111,6 @@
     "trio:missing-casos:resources/js/Pages/Ponto/Dashboard/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Escalas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Importacoes/Create.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Importacoes/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Welcome.tsx",
