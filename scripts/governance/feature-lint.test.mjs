@@ -5,7 +5,7 @@
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { parseFrontmatter, parseAcs, parseTaskMeta, parseTasks, detectCycle, lintFeature, scaffoldFeature } from './feature-lint.mjs';
+import { parseFrontmatter, parseAcs, parseTaskMeta, parseTasks, detectCycle, lintFeature, scaffoldFeature, featureTutorialText } from './feature-lint.mjs';
 
 let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
@@ -111,6 +111,13 @@ writeFileSync(join(scaffoldModule, 'SPEC.md'), '### US-MOD-0010 - prefixo difere
 let prefixRefused = false;
 try { scaffoldFeature({ root: scaffoldRoot, target: 'Mod/prefixo', us: 'US-MOD-001', date: '2026-08-03', templateDir }); } catch { prefixRefused = true; }
 check('US valida ID exato, nao substring', prefixRefused && !existsSync(join(scaffoldModule, 'features', 'prefixo')));
+
+// 7. tutorial da própria máquina: caminho completo, exemplo real e fronteira de uso.
+const tutorial = featureTutorialText();
+check('tutorial ensina dry-run antes de escrever', tutorial.includes('--dry-run') && tutorial.indexOf('--dry-run') < tutorial.indexOf('Passo 2'));
+check('tutorial ensina lint antes de implementar', tutorial.includes('feature-lint.mjs <Modulo>/<slug> --check'));
+check('tutorial aponta exemplo real', tutorial.includes('Connector/features/openapi-connector'));
+check('tutorial separa feature complexa de fix pequeno', tutorial.includes('Fix pequeno de uma tarefa não usa trio'));
 
 rmSync(tmp, { recursive: true, force: true });
 

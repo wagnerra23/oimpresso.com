@@ -51,6 +51,7 @@
     "feature:lint:check": "node scripts/governance/feature-lint.mjs --check",
     "feature:lint:selftest": "node scripts/governance/feature-lint.test.mjs",
     "feature:init": "node scripts/governance/feature-lint.mjs --init",
+    "feature:tutorial": "node scripts/governance/feature-lint.mjs --help",
     "reguas:indexar": "node scripts/governance/reguas-indexar.mjs",
     "reguas:indexar:selftest": "node scripts/governance/reguas-indexar.mjs --selftest",
     "reclamacao:resolver": "node scripts/governance/resolver-reclamacao.mjs",
