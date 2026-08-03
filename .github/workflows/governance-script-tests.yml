@@ -47,6 +47,8 @@ jobs:
         run: node scripts/governance/maquinas-inventario.test.mjs
       - name: System-map camada de IA (censo derivado · morde no caching.embeddings que a mao contou errado)
         run: node scripts/governance/system-map-ia.test.mjs
+      - name: System-map path morto (transcricao de lapide libera, ponteiro inventado morde)
+        run: node scripts/governance/system-map-deadlinks.test.mjs
       - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
         run: node scripts/governance/module-group-resolve.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)

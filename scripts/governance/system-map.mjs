@@ -687,14 +687,21 @@ function render(data) {
   L.push('');
   L.push(`> Dono canônico: [\`memory/proibicoes.md §5\`](../proibicoes.md). ${proib.descartadas.length} entradas.`);
   L.push('');
+  // Títulos TRANSCRITOS literalmente de proibicoes.md §5 — não são ponteiros deste
+  // doc. Lápide cita path deletado de propósito ("não ressuscite `Modules/SRS`"),
+  // então o validador de path morto não se aplica aqui (ver RE_TRANSCRITO).
+  L.push('<!-- transcrito-de: memory/proibicoes.md §5 -->');
   for (const d of proib.descartadas) L.push(`- ~~${d}~~`);
+  L.push('<!-- /transcrito-de -->');
   L.push('');
 
   // Tier 0 gaps
   if (proib.tier0gaps.length) {
     L.push('## Tier 0 gaps (esperam decisão/desbloqueio)');
     L.push('');
+    L.push('<!-- transcrito-de: memory/proibicoes.md §Tier 0 gaps -->');
     for (const g of proib.tier0gaps) L.push(`- ⛔ ${g}`);
+    L.push('<!-- /transcrito-de -->');
     L.push('');
   }
 
@@ -1055,6 +1062,19 @@ function renderOnboardingAgent(data) {
 // tratado como PATH (relativo à RAIZ do repo) e verificado. Fecha o furo que deixou
 // `Modules/Project` (inexistente) passar — antes só links markdown eram checados.
 const REPO_DIRS = /^(Modules|app|resources|scripts|governance|database|tests|config|routes|bootstrap|\.github|\.claude|memory)\/\S/;
+// ── EXCEÇÃO: TRANSCRIÇÃO ≠ PONTEIRO (2026-08-03) ──────────────────────────────
+// A regra acima mira o path que o GERADOR indica ("vá aqui") — foi feita pro caso
+// `Modules/Project`, ponteiro inventado. Ela NÃO se aplica ao texto que o gerador
+// apenas TRANSCREVE de outra fonte: um título de lápide §5 cita `Modules/SRS`
+// justamente PORQUE o módulo foi deletado ("não ressuscite"). Fail-closed nisso
+// significa que toda deleção de módulo mata o gerador — foi o que aconteceu:
+// 4 runs agendadas seguidas falharam (30/07→02/08) e o painel congelou em 28/07,
+// primeiro por `Modules/SRS` (#5036), depois somando `Modules/ADS`.
+// Escopo mínimo de propósito: pula SÓ o path inline (item 2) dentro do bloco
+// transcrito; o item 1 (links markdown) segue valendo em todo o doc, e os links do
+// texto-fonte são vigiados no DONO (`deadlink-gate` sobre memory/) — o espelho não
+// re-verifica o que o dono já verifica.
+const RE_TRANSCRITO = /<!-- transcrito-de:[^>]*-->[\s\S]*?<!-- \/transcrito-de -->/g;
 export function deadLinks(md, outPath) {
   const base = dirname(outPath);
   const dead = [];
@@ -1069,7 +1089,7 @@ export function deadLinks(md, outPath) {
   // Remove blocos cercados ``` … ``` ANTES de casar inline: os backticks internos
   // do bloco bagunçam o pareamento do regex e engoliriam paths inline reais depois
   // dele (Modules/Jana, app/Domain/Fsm ficavam SEM verificação — furo silencioso).
-  const noFences = md.replace(/```[\s\S]*?```/g, '');
+  const noFences = md.replace(/```[\s\S]*?```/g, '').replace(RE_TRANSCRITO, '');
   const reCode = /`([^`]+)`/g;
   while ((m = reCode.exec(noFences)) !== null) {
     const t = m[1].trim();
