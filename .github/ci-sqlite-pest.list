@@ -329,3 +329,27 @@ Modules/RecurringBilling/Tests/Feature/RefundCobrancaAsaasJobTest.php
 Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php
 Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php
 Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
+
+# ─── IndexarMemoryGitParaDb — 3 testes de regressao da MESMA classe, todos orfaos
+# ate 2026-08-03. Achados pelo medidor test-lane-coverage.mjs (#5203) na 1a corrida
+# contra codigo vivo. O #5193 alterou Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php
+# (redactor apagava run id) e so o teste NOVO dele entrou numa lane; os 3 de
+# regressao ficaram de fora. Mesmo padrao do PiiRedactor (#5169).
+#
+# Por que ESTA lane (e nao jana-pest MySQL): os 2 com DB tem guard
+# `markTestSkipped` que exige `DB_CONNECTION=sqlite` + `:memory:` — em MySQL os 9
+# casos viram skip, isto e, VERDE POR NAO-EXECUCAO (LC-13). O ci.yml semeia
+# exatamente sqlite/:memory:. Schema e sintetico (Schema::create manual, sem
+# RefreshDatabase/migrate) = criterio sqlite-safe do cabecalho deste arquivo.
+# O comentario do proprio SoftDeleteRestore ja dizia "na lane sqlite (per-PR)" —
+# a intencao existia, o registro nunca foi feito.
+#
+# Higiene de schema conferida (dividem mcp_memory_documents com lane-mates):
+# ForjaChangelogServiceTest e SoftDeleteRestore dropam em afterEach, entao o
+# `Schema::create` cru destes nao colide. Coletar e DB-less.
+#
+# +21 casos (7 + 12 + 2). Vermelho aqui e divida aparecendo, nao regressao de
+# quem ligou — nenhum deles jamais rodou em lane de PR.
+tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
+Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitParaDbColetarTest.php
+Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
