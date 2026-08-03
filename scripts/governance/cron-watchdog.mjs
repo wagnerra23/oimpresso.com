@@ -132,14 +132,18 @@ function gh(args) {
 export function interpretarResposta(r) {
   if (!r || r.ok !== true) return { ok: false };
   if (!r.out) return { ok: true, at: '' };
-  try { return { ok: true, at: JSON.parse(r.out)[0]?.createdAt || '' }; } catch { return { ok: false }; }
+  try {
+    const row = JSON.parse(r.out)[0] || {};
+    return { ok: true, at: row.createdAt || '', conclusion: row.conclusion || '' };
+  } catch { return { ok: false }; }
 }
 
 // Última run AGENDADA (event=schedule, qualquer conclusão — liveness ≠ sucesso).
 // Filtra o JSON em JS (sem `--jq`): evita o quoting de aspas simples que o cmd.exe do
 // Windows quebra (execSync usa cmd no Win, sh no CI) — cross-platform + testável local.
+// `conclusion` vem na MESMA chamada (custo zero de API) e alimenta o eixo 3.
 function lastScheduledRun(file) {
-  return interpretarResposta(gh(`run list --workflow ${file} --event schedule --status completed --limit 1 --json createdAt`));
+  return interpretarResposta(gh(`run list --workflow ${file} --event schedule --status completed --limit 1 --json createdAt,conclusion`));
 }
 
 /**
@@ -172,6 +176,48 @@ export function resumoLiveness(estados) {
   const cegoTotal = total > 0 && cont.cego === total;
   return { ...cont, total, medidos: total - cont.cego, cegoTotal,
     afirmaVerde: cont.morto === 0 && cont.cego === 0, exit: (cont.morto > 0 || cegoTotal) ? 1 : 0 };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EIXO 3 — SUCESSO ("rodou" ≠ "deu certo")
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * O eixo 1 pergunta `--status completed`, e `completed` INCLUI `failure`. Um cron que
+ * dispara todo dia e falha todo dia era indistinguível de um saudável: heartbeat fresco,
+ * verde. Foi o vão que escondeu, ao mesmo tempo:
+ *   · `system-map.yml`      — 4 runs agendadas seguidas falhando (30/07→02/08 de 2026),
+ *                             o PAINEL-SISTEMA congelado, ninguém avisado;
+ *   · `governance-drift.yml`— 40 de 40 runs agendadas falhando, ZERO sucesso desde 24/06.
+ *
+ * MEDIDO antes de armar (2026-08-03, 24 workflows agendados, últimas ≤14 runs de cada):
+ * 21 dos 24 com 0% de falha; os 3 restantes são defeito REAL, nenhum "vermelho por
+ * desenho" — `system-map` 29% (corrigido no #5232), `governance-drift` 100% (aberto),
+ * `exposicao-tier0-sentinel` 40% intermitente e já verde na última. Ou seja: o critério
+ * "última run agendada falhou" alarma HOJE em 2 de 24, ambos legítimos, FP medido = 0.
+ * Sem essa medição, o receio razoável era "alarme ruidoso que se aprende a ignorar" — o
+ * dado disse o contrário, e é por isso que ela vem antes do código.
+ *
+ * Eixo SEPARADO do liveness de propósito: vivo-e-falhando é um estado real (é o caso
+ * dos dois acima), e colapsar os dois num só faria o relatório perder justo esse.
+ */
+export function classificarSucesso(consulta) {
+  if (!consulta || consulta.ok !== true) return { estado: 'cego' };
+  if (!consulta.at) return { estado: 'bootstrap' };
+  // conclusion ausente numa run já `completed` = resposta incompleta, não é "deu certo":
+  // afirmar sucesso a partir de campo que não veio é o fail-open que a ADR 0317 §2 pune.
+  if (!consulta.conclusion) return { estado: 'cego' };
+  return consulta.conclusion === 'success'
+    ? { estado: 'ok', conclusion: consulta.conclusion }
+    : { estado: 'falhou', conclusion: consulta.conclusion, at: consulta.at };
+}
+
+/** Agrega o eixo 3. `afirmaVerde` exige medição de todos — mesma regra do eixo 1. */
+export function resumoSucesso(estados) {
+  const cont = { ok: 0, bootstrap: 0, cego: 0, falhou: 0 };
+  for (const e of estados) if (e in cont) cont[e]++;
+  const total = estados.length;
+  return { ...cont, total, medidos: total - cont.cego,
+    afirmaVerde: cont.falhou === 0 && cont.cego === 0, exit: cont.falhou > 0 ? 1 : 0 };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -315,6 +361,33 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   ok(resumoLiveness(['vivo', 'morto']).exit === 1,
     'MORDE: um morto entre medidos → exit 1 (o alarme que já existia)');
 
+  // ── EIXO 3: "rodou" ≠ "deu certo" — o caso REAL, com os dados reais ──────────
+  // system-map: 4 falhas seguidas (30/07→02/08) com heartbeat fresco; governance-drift:
+  // 40/40 falhas desde 24/06. Os dois VIVOS o tempo todo — logo o eixo 1 os dava verdes.
+  const runFalha = { ok: true, out: '[{"createdAt":"2026-08-02T11:40:32Z","conclusion":"failure"}]' };
+  const runOk = { ok: true, out: '[{"createdAt":"2026-08-02T11:40:32Z","conclusion":"success"}]' };
+
+  ok(interpretarResposta(runFalha).conclusion === 'failure',
+    'a conclusão vem na MESMA consulta (sem chamada extra de API)');
+  ok(classificarSucesso(interpretarResposta(runFalha)).estado === 'falhou',
+    'MORDE: última agendada = failure → FALHOU (o caso system-map/governance-drift)');
+  ok(classificarLiveness('30 10 * * *', interpretarResposta(runFalha), Date.parse('2026-08-03T12:00:00Z')).estado === 'vivo',
+    'e ela segue VIVA no eixo 1 — é exatamente o vão: vivo E falhando ao mesmo tempo');
+  ok(classificarSucesso(interpretarResposta(runOk)).estado === 'ok',
+    'LIBERA: última agendada = success → ok (21 dos 24 medidos caem aqui)');
+  ok(classificarSucesso({ ok: false }).estado === 'cego',
+    'consulta falhou → CEGO, nunca "deu certo" (fail-open é o que a ADR 0317 §2 pune)');
+  ok(classificarSucesso({ ok: true, at: '' }).estado === 'bootstrap',
+    'LIBERA: sem run agendada ainda → bootstrap, não falha');
+  ok(classificarSucesso({ ok: true, at: '2026-08-02T11:40:32Z', conclusion: '' }).estado === 'cego',
+    'BITE: run completed SEM conclusion → cego, não sucesso (campo ausente ≠ verde)');
+  ok(resumoSucesso(['ok', 'ok', 'falhou']).exit === 1 && resumoSucesso(['ok', 'ok', 'falhou']).afirmaVerde === false,
+    'MORDE: um falhando entre medidos → exit 1 e proibido afirmar verde');
+  ok(resumoSucesso(['ok', 'ok', 'bootstrap']).exit === 0 && resumoSucesso(['ok', 'ok', 'bootstrap']).afirmaVerde === true,
+    'LIBERA: todos medidos com sucesso → verde (não virou alarme permanente)');
+  ok(resumoSucesso(['ok', 'cego']).afirmaVerde === false && resumoSucesso(['ok', 'cego']).exit === 0,
+    'cegueira parcial no eixo 3 → não derruba, mas também não afirma verde');
+
   console.log(falhas ? `\n✗ selftest: ${falhas} falha(s)` : '\n✓ selftest: núcleo morde e libera certo');
   process.exit(falhas ? 1 : 0);
 }
@@ -341,9 +414,14 @@ if (!wfs.length) {
 }
 
 const dead = [], boot = [], alive = [], cego = [], estados = [];
+const falhando = [], estadosSucesso = []; // eixo 3
 const nowMs = Date.now(); // liveness real (não determinístico de propósito)
 for (const { file, cron } of wfs) {
-  const c = classificarLiveness(cron, lastScheduledRun(file), nowMs);
+  const consulta = lastScheduledRun(file); // UMA consulta alimenta os eixos 1 e 3
+  const c = classificarLiveness(cron, consulta, nowMs);
+  const s = classificarSucesso(consulta);
+  estadosSucesso.push(s.estado);
+  if (s.estado === 'falhou') falhando.push(`${file} — última run agendada CONCLUIU '${s.conclusion}' (${s.at})`);
   estados.push(c.estado);
   if (c.estado === 'cego') cego.push(`${file} (cron '${cron}') — NÃO CONSULTÁVEL (gh ausente/sem auth/sem 'actions:read'/API fora): este cron NÃO foi medido`);
   else if (c.estado === 'bootstrap') boot.push(`${file} (cron '${cron}') — sem run agendada ainda (bootstrap; arma na 1ª execução)`);
@@ -369,10 +447,24 @@ if (dead.length) {
   console.log(`✓ todos os ${wfs.length} crons de governança com heartbeat < limite.`);
 }
 
+// ── EIXO 3 — SUCESSO. Sempre roda, pela mesma razão do eixo 2: vivo-e-falhando é
+// estado independente de morto, e o caso real (system-map, governance-drift) estava
+// justamente vivo. Esconder atrás do eixo 1 faria o relatório mentir por omissão.
+const rs = resumoSucesso(estadosSucesso);
+console.log(`\n🎯 sucesso — ${rs.medidos} medido(s) de ${rs.total} · ${rs.ok} ok · ${rs.bootstrap} bootstrap · ${rs.cego} ⛔ não medidos · ${falhando.length} 🔴 falhando`);
+for (const f of falhando) console.error(`🔴 ${f}`);
+if (falhando.length) {
+  console.error(`\n✗ ${falhando.length} cron(s) DISPARAM mas FALHAM — heartbeat fresco não é entrega. Abra o log com 'gh run list --workflow <file> --event schedule' e conserte a origem, ou registre por que o vermelho é esperado.`);
+} else if (rs.cego) {
+  console.log(`✓ os ${rs.medidos} cron(s) MEDIDOS concluíram com sucesso — ⚠️ ${rs.cego} não foi(ram) medido(s): sobre esse(s) nada se afirma.`);
+} else {
+  console.log(`✓ a última run agendada de todos os ${rs.total} concluiu com sucesso.`);
+}
+
 // Eixo 2 sempre roda — inclusive quando o eixo 1 já achou cron morto: são falhas
 // independentes (um cron pode estar vivo e não entregar, e vice-versa) e esconder
 // a segunda atrás da primeira faria o relatório mentir por omissão.
 const falhouEntrega = reportarEntrega(checarEntrega(nowMs));
-process.exit(r.exit || falhouEntrega ? 1 : 0);
+process.exit(r.exit || rs.exit || falhouEntrega ? 1 : 0);
 
 }
