@@ -54,8 +54,11 @@ class DocumentacaoController extends Controller
 
         $markdown = File::get($caminho);
 
+        [$html, $sumario] = $this->comSumario($this->paraHtml($markdown));
+
         return view('documentacao.index', [
-            'html' => $this->paraHtml($markdown),
+            'html' => $html,
+            'sumario' => $sumario,
             'fonte' => self::FONTE,
             'atualizadoEm' => $this->dataDoFrontmatter($markdown),
             'buscaDisponivel' => $this->corpusDisponivel(),
@@ -188,6 +191,78 @@ class DocumentacaoController extends Controller
             fn ($m) => 'href="' . self::BLOB . ltrim(str_replace('../', '', $m[1]), '/') . ($m[2] ?? '') . '" rel="noopener" target="_blank"',
             $html
         );
+    }
+
+    /**
+     * Injeta `id` nos títulos e devolve o sumário — DERIVADO do HTML, nunca escrito à mão.
+     *
+     * POR QUE ASSIM: uma lista de links escrita no markdown seria uma CÓPIA da estrutura
+     * do documento e drifaria dele no primeiro título novo — ninguém lembra de sincronizar
+     * um sumário (ADR 0256). Aqui o trilho é recalculado a cada acesso: título que nasce
+     * aparece; título que some, some junto.
+     *
+     * ÂNCORA ESTÁVEL: quando o título começa por `A3.`/`B6.`, o id é `a3`/`b6` — esses
+     * códigos são referenciados de fora do documento (o próprio guia manda "ver B6.1"),
+     * então o link precisa sobreviver a reescrita do resto do título. Sem código, cai no
+     * slug do texto.
+     *
+     * @return array{0: string, 1: list<array{id:string, nivel:int, codigo:?string, rotulo:string}>}
+     */
+    private function comSumario(string $html): array
+    {
+        $sumario = [];
+        $usados = [];
+
+        $html = preg_replace_callback(
+            '/<h([23])>(.*?)<\/h\1>/su',
+            function (array $m) use (&$sumario, &$usados): string {
+                $nivel = (int) $m[1];
+
+                // strip_tags porque o título pode conter link e <code>; decode porque o
+                // conversor escapa `—`, aspas e afins.
+                $texto = trim(html_entity_decode(strip_tags($m[2]), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+                if ($texto === '') {
+                    return $m[0];
+                }
+
+                $codigo = preg_match('/^([AB]\d{1,2})\./u', $texto, $c) ? $c[1] : null;
+
+                $id = $codigo !== null ? Str::lower($codigo) : Str::slug($texto);
+                if ($id === '') {
+                    $id = 'secao';
+                }
+
+                // Título repetido não pode roubar a âncora do primeiro.
+                $usados[$id] = ($usados[$id] ?? 0) + 1;
+                if ($usados[$id] > 1) {
+                    $id .= '-' . $usados[$id];
+                }
+
+                // O rótulo do trilho corta o aparte entre parênteses — neste documento ele
+                // é sempre explicação, não identidade ("A4. Onde roda (Tier 0 …)" → "Onde
+                // roda"). O título da página continua inteiro; só o trilho encurta.
+                $rotulo = trim(preg_replace('/\s*\(.*$/us', '', $texto));
+                if ($codigo !== null) {
+                    $rotulo = trim(Str::after($rotulo, $codigo . '.'));
+                }
+                if ($rotulo === '') {
+                    $rotulo = $texto;
+                }
+
+                $sumario[] = [
+                    'id' => $id,
+                    'nivel' => $nivel,
+                    'codigo' => $codigo,
+                    'rotulo' => $rotulo,
+                ];
+
+                return '<h' . $nivel . ' id="' . $id . '">' . $m[2] . '</h' . $nivel . '>';
+            },
+            $html
+        );
+
+        return [$html, $sumario];
     }
 
     /** Remove o bloco YAML do topo — ele é metadado, não conteúdo de leitura. */
