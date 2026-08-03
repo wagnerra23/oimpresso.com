@@ -330,26 +330,47 @@ Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php
 Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php
 Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
 
-# ─── IndexarMemoryGitParaDb — 3 testes de regressao da MESMA classe, todos orfaos
-# ate 2026-08-03. Achados pelo medidor test-lane-coverage.mjs (#5203) na 1a corrida
-# contra codigo vivo. O #5193 alterou Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php
-# (redactor apagava run id) e so o teste NOVO dele entrou numa lane; os 3 de
-# regressao ficaram de fora. Mesmo padrao do PiiRedactor (#5169).
+# ─── IndexarMemoryGitParaDb — regressao da classe que o #5193 alterou
+# (redactor apagava run id). O #5193 poe so o teste NOVO dele numa lane; os de
+# REGRESSAO ficaram de fora. Mesmo padrao do PiiRedactor (#5169). Achados pelo
+# medidor test-lane-coverage.mjs (#5203) na 1a corrida contra codigo vivo.
 #
-# Por que ESTA lane (e nao jana-pest MySQL): os 2 com DB tem guard
-# `markTestSkipped` que exige `DB_CONNECTION=sqlite` + `:memory:` — em MySQL os 9
-# casos viram skip, isto e, VERDE POR NAO-EXECUCAO (LC-13). O ci.yml semeia
+# Por que ESTA lane (e nao jana-pest MySQL): os testes com DB tem guard
+# `markTestSkipped` exigindo `DB_CONNECTION=sqlite` + `:memory:` — em MySQL
+# viram skip, isto e, VERDE POR NAO-EXECUCAO (LC-13). O ci.yml semeia
 # exatamente sqlite/:memory:. Schema e sintetico (Schema::create manual, sem
 # RefreshDatabase/migrate) = criterio sqlite-safe do cabecalho deste arquivo.
 # O comentario do proprio SoftDeleteRestore ja dizia "na lane sqlite (per-PR)" —
 # a intencao existia, o registro nunca foi feito.
 #
-# Higiene de schema conferida (dividem mcp_memory_documents com lane-mates):
-# ForjaChangelogServiceTest e SoftDeleteRestore dropam em afterEach, entao o
-# `Schema::create` cru destes nao colide. Coletar e DB-less.
+# Higiene de schema conferida: ForjaChangelogServiceTest e SoftDeleteRestore
+# dropam mcp_memory_documents em afterEach, entao o `Schema::create` cru nao
+# colide. Coletar e DB-less.
 #
-# +21 casos (7 + 12 + 2). Vermelho aqui e divida aparecendo, nao regressao de
-# quem ligou — nenhum deles jamais rodou em lane de PR.
-tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
+# +14 casos, execucao REAL provada na corrida 30783000852 (junit-summary por
+# arquivo, nao "0 failed"): Coletar 12 passed/0 skipped · SoftDelete 2 passed/0
+# skipped.
 Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitParaDbColetarTest.php
 Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
+
+# NAO ligar ainda — tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
+# (7 casos). Foi ligado nesta branch, rodou, e deu 7 ERRORS na corrida
+# 30783000852 — todos a mesma causa:
+#   QueryException: table mcp_memory_documents has no column named business_id
+#   (IndexarMemoryGitParaDb.php:632 <- :87)
+# A fixture sintetica do teste esta 3 migrations ATRAS do schema real: faltam
+# business_id (add_business_id, 2026-04-30), os 10 tipados de add_typed_cols
+# (status/authority/lifecycle/quarter/decided_at/decided_by/tags/supersedes/
+# superseded_by/related, 2026-05-01) e has_pii. O service escreve as colunas; a
+# fixture nunca acompanhou.
+#
+# ACHADO QUE IMPORTA MAIS QUE O ERRO: este teste NAO roda em lugar NENHUM hoje.
+# Fora de lane de PR (medidor) E pulado na nightly do CT100, porque a nightly
+# roda MySQL e o guard sqlite-only o manda pra skip. Nao e "feedback tardio" —
+# e ausencia total, com cara de verde (LC-13).
+#
+# Religar exige conserto de fixture que toca `business_id` = Tier 0 multi-tenant:
+# so adicionar a coluna nullable faz os 7 passarem SEM que nenhum caso exerca
+# isolamento — verde fabricado. O follow-up tem que trazer a fixture derivada das
+# migrations + ao menos 1 caso biz=1 vs biz=99. Decisao [W] 2026-08-03: sai deste
+# PR, vai pra PR propria (1 PR = 1 intent).
