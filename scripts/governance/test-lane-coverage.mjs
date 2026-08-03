@@ -244,6 +244,38 @@ function moduloDe(teste) {
   return m ? m[1] : '(raiz tests/)';
 }
 
+/**
+ * FORWARD-ONLY: dado o conjunto de arquivos-fonte tocados por um PR, aponta os que
+ * TÊM teste no repo mas cujo teste NÃO é alcançado por lane de PR.
+ *
+ * É o caso exato do incidente que originou tudo: `PiiRedactor.php` alterado em +98
+ * linhas com `PiiRedactorTest.php` (19 casos, LGPD) fora da lista de execução — o
+ * `paths:` do trigger CITAVA o arquivo, então a lane disparava e não rodava o teste
+ * dele. Trigger dispara a lane; a LISTA decide o que roda. Confundir os dois é o
+ * defeito.
+ *
+ * Casamento por convenção de nome (`Foo.php` → `FooTest.php`). Deliberadamente
+ * simples: não infere por conteúdo. Falso-negativo (teste com outro nome) é aceito;
+ * falso-positivo seria ruído em todo PR.
+ */
+export function testesDeRisco(arquivosTocados, testes, alvos) {
+  const porBase = new Map();
+  for (const t of testes) {
+    const base = t.split('/').pop().replace(/\.php$/, '');
+    if (!porBase.has(base)) porBase.set(base, []);
+    porBase.get(base).push(t);
+  }
+  const achados = [];
+  for (const src of arquivosTocados) {
+    if (!/\.php$/.test(src) || /Test\.php$/.test(src)) continue;
+    const base = src.split('/').pop().replace(/\.php$/, '');
+    for (const t of porBase.get(base + 'Test') || []) {
+      if (!estaCoberto(t, alvos)) achados.push({ fonte: src, teste: t });
+    }
+  }
+  return achados;
+}
+
 // ───────────────────────────────── selftest ───────────────────────────────────
 
 function selftest() {
@@ -311,6 +343,23 @@ function selftest() {
   ok('CONTROLE NEGATIVO: find de um módulo não cobre outro',
     !estaCoberto('Modules/Outro/Tests/Feature/QualquerTest.php', aFind));
 
+  // FORWARD-ONLY — reproduz o incidente do PiiRedactor (2026-08-02):
+  // a fonte é tocada, o teste dela existe, e nenhuma lane de PR o alcança.
+  const testesRepo = [
+    'Modules/Jana/Tests/Unit/PiiRedactorTest.php',
+    'Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php',
+  ];
+  const alvosLane = ['Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php'];
+  const risco = testesDeRisco(['Modules/Jana/Services/Privacy/PiiRedactor.php'], testesRepo, alvosLane);
+  ok('BITE forward-only: fonte tocada + teste fora da lane = risco',
+    risco.length === 1 && risco[0].teste.endsWith('PiiRedactorTest.php'));
+  ok('CONTROLE NEGATIVO: teste JÁ na lane não vira risco',
+    testesDeRisco(['Modules/Jana/Services/Privacy/PiiRedactorNumeroCru.php'], testesRepo, alvosLane).length === 0);
+  ok('CONTROLE NEGATIVO: tocar o próprio arquivo de teste não vira risco',
+    testesDeRisco(['Modules/Jana/Tests/Unit/PiiRedactorTest.php'], testesRepo, alvosLane).length === 0);
+  ok('CONTROLE NEGATIVO: fonte sem teste correspondente não vira risco',
+    testesDeRisco(['Modules/Jana/Services/Privacy/SemTeste.php'], testesRepo, alvosLane).length === 0);
+
   // BITE do falso-COBERTO achado pelo adversário (2026-08-02): path dentro de
   // string de AJUDA (actions/github-script) não é comando e não pode virar alvo.
   // Era assim que tests/Browser/NfeBrasil/NfceStatusTest.php — que não roda em
@@ -346,8 +395,14 @@ function selftest() {
 
 // ─────────────────────────────────── main ─────────────────────────────────────
 
+// Só executa como CLI. Sem esta guarda, `import` deste módulo dispararia o main
+// e as funções exportadas ficariam inúteis pra outro consumidor (ex.: um teste
+// .test.mjs, ou o próprio junit-summary querendo cruzar alcance x assertions).
+const ehCli = /test-lane-coverage\.mjs$/.test(process.argv[1] || '');
 const args = process.argv.slice(2);
-if (args.includes('--selftest')) process.exit(selftest());
+if (!ehCli) { /* importado como módulo: nada roda */ }
+else if (args.includes('--selftest')) process.exit(selftest());
+else {
 
 const filtroModulo = (() => {
   const i = args.indexOf('--modulo');
@@ -356,6 +411,36 @@ const filtroModulo = (() => {
 
 const { alvos, lanesLidas } = coletarAlvos();
 const testes = testesExistentes();
+
+// --diff <base>: modo FORWARD-ONLY pro PR. Não olha a dívida histórica (que é
+// grande e não é deste PR); só o que ESTE PR está prestes a deixar sem rede.
+if (args.includes('--diff')) {
+  const base = args[args.indexOf('--diff') + 1] || 'origin/main';
+  let tocados = [];
+  try {
+    tocados = execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], {
+      cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+    }).split(/\r?\n/).filter(Boolean);
+  } catch {
+    console.log(`⚠️  não consegui ler o diff vs ${base} — ausência de MEDIÇÃO, não de risco.`);
+    process.exit(0);
+  }
+  const risco = testesDeRisco(tocados, testes, alvos);
+  if (risco.length === 0) {
+    console.log(`✓ nenhum arquivo tocado tem teste fora das lanes de PR (${tocados.length} arquivos no diff).`);
+    process.exit(0);
+  }
+  console.log('\n⚠️  ESTE PR toca arquivo cujo teste NÃO roda em lane de PR:\n');
+  for (const r of risco) {
+    console.log(`  fonte:  ${r.fonte}`);
+    console.log(`  teste:  ${r.teste}   ← existe, mas nenhuma lane de PR o executa\n`);
+  }
+  console.log('  Isso é o incidente do PiiRedactor (2026-08-02): o teste de regressão da');
+  console.log('  classe só falaria na nightly, DEPOIS do merge — e merge em main é deploy.');
+  console.log('  Ação: adicione o teste à lista de execução da lane E ao paths: do trigger.');
+  console.log('  (advisory — não bloqueia; o número é relato, não veredito)\n');
+  process.exit(0);
+}
 const quarentena = new Set(emQuarentena());
 const orfaos = testes.filter((t) => !estaCoberto(t, alvos) && !quarentena.has(t));
 
@@ -407,4 +492,5 @@ if (linhas.length === 0) {
     console.log(`${mod.padEnd(30)} ${String(v.orfaos).padStart(5)}/${String(v.total).padEnd(5)}`);
   }
   console.log('\n(--json pra lista completa de arquivos; --modulo X pra focar)\n');
+}
 }
