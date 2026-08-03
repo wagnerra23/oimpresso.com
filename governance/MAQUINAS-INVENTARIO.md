@@ -300,7 +300,7 @@
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
-### 5.1 `scripts/governance/` — 100
+### 5.1 `scripts/governance/` — 101
 
 | Script | Descrição (cabeçalho) |
 |---|---|
@@ -402,6 +402,7 @@
 | `system-map.mjs` | a MATRIZ gerada do painel do sistema oimpresso. |
 | `tasks-index-generate.mjs` | GERADOR determinístico de BACKLOG + CHANGELOG indexados. |
 | `tema-owner.mjs` | detector ADVISORY de DONO-DE-TEMA por sobreposição de ENTIDADE. |
+| `test-lane-coverage.mjs` | quais testes EXISTEM × quais o CI realmente EXECUTA. |
 | `ui-impact.mjs` | Fonte única do skip-as-pass do visual-regression. |
 | `visual-comparison-staleness.mjs` | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
 
