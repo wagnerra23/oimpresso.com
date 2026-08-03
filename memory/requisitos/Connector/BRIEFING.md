@@ -1,10 +1,15 @@
 ---
 id: requisitos-connector-briefing
+module: Connector
+status: producao
+updated_at: "2026-08-03"
+owner: W
+related_adrs: []
 ---
 
 # BRIEFING — Modules/Connector
 
-> **1-pager executivo** · Última atualização: **2026-05-16** · Owner: [F] Felipe + [W] Wagner
+> **1-pager executivo** · Última atualização: **2026-08-03** · Owner: [F] Felipe + [W] Wagner
 
 ## O que é
 
@@ -66,7 +71,7 @@ Após esta Wave Massive: **~63/100 (Bom)** estimado.
 
 ## Arquivos canônicos do módulo
 
-- [`SPEC.md`](SPEC.md) — US-CONN-001..012
+- [`SPEC.md`](SPEC.md) — US-CONN-001..013
 - [`BRIEFING.md`](BRIEFING.md) — este arquivo
 - [`CHARTER-rest-api-external.md`](CHARTER-rest-api-external.md) — contrato API externa
 - `Modules/Connector/Services/DelphiSyncService.php` — pattern sync centralizado
