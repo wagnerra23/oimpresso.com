@@ -90,7 +90,6 @@ Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
-Modules/Financeiro/Tests/Feature/Wave23SaturationTest.php  # 1 failed, 6 passed (17 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
 # D) SKIP TOTAL — 'passa' com ZERO assertions, logo não prova nada (1)
@@ -175,6 +174,35 @@ Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado 
 #
 # Medido no CT 100 (worktree em origin/main, DB oimpresso_qa — receita do CI).
 #
+# ── Wave23SaturationTest (2026-08-02, triagem 5/N do bucket C) ────────
+#   1 failed, 6 passed (17 assertions)  →  7 passed (17 assertions)
+#
+# Classificação: TESTE PODRE por CRESCIMENTO LEGÍTIMO — não há defeito de
+# produto. O caso asseria o número EXATO de checks de `financeiro:health`:
+#
+#   // Wave 23 adicionou 2 checks → total 8
+#   expect(count($decoded['checks']))->toBe(8);
+#
+# A Wave 25 D9 acrescentou dois checks (contas_bancarias_ativas,
+# caixa_movimento_freshness) e o `toBe(8)` virou "10 !== 8". Medido rodando o
+# próprio comando no CT 100: 10 checks — titulos_table, baixas_table,
+# caixa_table, titulos_per_business, vencidos_alarme, retention_policy,
+# orphan_baixas, valor_aberto_consistente, contas_bancarias_ativas,
+# caixa_movimento_freshness. O comando cresceu de propósito; o teste cobrava
+# que ele não crescesse.
+#
+# É o mesmo desenho-pra-apodrecer que o bucket A descreve ("asserta
+# 'charter_version: 3' num campo que o processo OBRIGA a subir"). Por isso o
+# encaminhamento aqui NÃO foi trocar 8 por 10 — isso só reinicia o relógio.
+#
+# Fix = inverter o contrato: asserir INCLUSÃO do conjunto esperado (array_diff).
+# Morde quando um check SOME (o risco real: regressão silenciosa de cobertura de
+# health) e fica calada quando uma onda futura adiciona. Produção intocada.
+#
+# BITE-TEST (controle negativo ANTES de tirar da quarentena): removi
+# `checkOrphanBaixas` do comando dentro do container →
+# "check(s) removido(s) de financeiro:health: orphan_baixas", 1 failed.
+# Restaurado → 7 passed. A asserção nova morde de verdade.
 # ── Onda23OcrBoletoTest (2026-08-02, triagem 6/N do bucket C) ─────────
 #   1 failed, 11 passed (24 assertions)  →  12 passed (25 assertions)
 #
