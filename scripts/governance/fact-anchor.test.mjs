@@ -9,7 +9,7 @@
 //
 // Rodar: node scripts/governance/fact-anchor.test.mjs   (exit 0 = passa)
 
-import { factAnchorScan, factAnchorTabelas, majorFrom, tabelasAfirmadasNo52 } from './fact-anchor.mjs';
+import { factAnchorScan, factAnchorTabelas, factAnchorPaths, ehPlaceholderDePath, majorFrom, tabelasAfirmadasNo52 } from './fact-anchor.mjs';
 
 let fails = 0;
 function check(name, cond) {
@@ -105,6 +105,34 @@ check('tabela errada na §5.3 NÃO flagra (escopo da seção)',
 // extrator puro
 check('tabelasAfirmadasNo52 devolve a base sem a coluna',
   tabelasAfirmadasNo52(sdd(['| Tabela | x |', '|---|---|', '| `fin_titulos.titulo_pai_id` | y |'])).has('fin_titulos'));
+
+// ── 9. ÂNCORA DE PATH/COMANDO (docs de instrução vs árvore real) ────────────
+// Fixtures da classe medida na Fase 0 (2026-08-03). O controle negativo mais
+// importante é o PLACEHOLDER: 18 dos 41 paths do corpus são padrão de nome, não
+// afirmação de existência — cobrá-los seria FP por construção.
+const arvore = new Set(['scripts/governance/memory-health.mjs', 'memory/proibicoes.md', 'prototipo-ui/ancora.mjs']);
+const scripts = new Set(['casos:report', 'screen:files']);
+const scanP = (txt) => factAnchorPaths({ docs: [{ rel: 'd.md', txt }], existe: (p) => arvore.has(p), npmScripts: scripts });
+
+// MORDE
+check('path inexistente FLAGRA', scanP('veja `scripts/governance/sumiu.mjs` aqui').length === 1);
+check('`npm run` inexistente FLAGRA', scanP('rode `npm run nao-existe` antes').length === 1);
+check('`node <script>` inexistente FLAGRA', scanP('rode `node scripts/governance/fantasma.mjs`').length === 1);
+// controles negativos
+check('path existente NÃO flagra', scanP('abra `scripts/governance/memory-health.mjs`').length === 0);
+check('`npm run` existente NÃO flagra', scanP('rode `npm run casos:report` sempre').length === 0);
+check('`node` existente NÃO flagra', scanP('rode `node prototipo-ui/ancora.mjs`').length === 0);
+check('PLACEHOLDER <Mod> NÃO flagra', scanP('edite `Modules/<Mod>/Http/Controllers/X.php`').length === 0);
+check('PLACEHOLDER YYYY-MM-DD NÃO flagra', scanP('crie `memory/sessions/YYYY-MM-DD-slug.md`').length === 0);
+check('PLACEHOLDER glob * NÃO flagra', scanP('veja `memory/decisions/*.md` todos').length === 0);
+check('path FORA de backtick NÃO flagra (prosa solta)', scanP('o arquivo scripts/governance/sumiu.mjs some').length === 0);
+check('path de prefixo desconhecido NÃO flagra', scanP('veja `vendor/laravel/boost/x.php` aqui').length === 0);
+check('doc vazio NÃO flagra', factAnchorPaths({ docs: [{ rel: 'd.md', txt: '' }] }).length === 0);
+// helper puro
+check('ehPlaceholderDePath("a/<X>.md") === true', ehPlaceholderDePath('a/<X>.md') === true);
+check('ehPlaceholderDePath("a/b.md") === false', ehPlaceholderDePath('a/b.md') === false);
+// 2 erros no mesmo doc → 2 hits
+check('2 alvos mortos devolvem 2 hits', scanP('`scripts/governance/x.mjs` e `npm run nada`').length === 2);
 
 if (fails) {
   console.error(`\n❌ fact-anchor.test: ${fails} falha(s)`);
