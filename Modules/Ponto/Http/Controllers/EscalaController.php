@@ -70,13 +70,20 @@ class EscalaController extends Controller
                 'carga_diaria_minutos'  => (int) $escala->carga_diaria_minutos,
                 'carga_semanal_minutos' => (int) $escala->carga_semanal_minutos,
                 'permite_banco_horas'   => (bool) $escala->permite_banco_horas,
+                // US-PONTO-012 (SDD §9 D-1/D-8, 3ª instância): as chaves do payload
+                // seguem as mesmas (o `Form.tsx` as consome), mas a LEITURA passa a ser
+                // das colunas que existem. `entrada`/`saida`/`almoco_inicio`/`almoco_fim`
+                // não são coluna nem accessor — a migration e o `$fillable` de
+                // EscalaTurno têm `hora_*`. Os 4 resolviam null e o `.tsx` renderiza
+                // `{t.entrada ?? '—'}`: a edição de escala mostrava TODOS os horários
+                // vazios, de toda escala, sempre.
                 'turnos'                => $escala->turnos->map(fn ($t) => [
                     'id'                 => $t->id,
                     'dia_semana'         => $t->dia_semana,
-                    'entrada'            => $t->entrada,
-                    'saida'              => $t->saida,
-                    'almoco_inicio'      => $t->almoco_inicio,
-                    'almoco_fim'         => $t->almoco_fim,
+                    'entrada'            => $t->hora_entrada,
+                    'saida'              => $t->hora_saida,
+                    'almoco_inicio'      => $t->hora_almoco_inicio,
+                    'almoco_fim'         => $t->hora_almoco_fim,
                 ])->toArray(),
             ],
         ]);
