@@ -68,7 +68,7 @@ Modules/Financeiro/Tests/Feature/Onda9ResumirMesTest.php  # 1 failed, 13 passed 
 Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 failed (0 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
-# C) DB-dependente FALHANDO — defeito real a investigar (14)
+# C) DB-dependente FALHANDO — defeito real a investigar (13)
 #    Estes são o achado de maior valor: falham contra MySQL semeado, não por
 #    formatação. Podem ser regressão de produto OU teste desatualizado —
 #    exige olhar caso a caso, não conserto em lote.
@@ -90,7 +90,6 @@ Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4
 Modules/Financeiro/Tests/Feature/Onda26InterWebhookIntegrationTest.php  # 2 failed (0 assertions)
 Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions)
-Modules/Financeiro/Tests/Feature/TituloCriadoEventTest.php  # 1 failed, 1 passed (3 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
@@ -184,6 +183,41 @@ Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado 
 # de ~10,0s para ~6,7s no ambiente que tem chave.
 #
 # DEPOIS do fix, os dois ambientes concordam: 12 passed (25 assertions).
+# ── TituloCriadoEventTest (2026-08-02, triagem 1/N do bucket C) ──────────
+#   1 failed, 1 passed (3 assertions)  →  2 passed (3 assertions)
+#
+# Classificação: FIXTURE quebrada, NÃO regressão de produto. As duas asserções
+# do caso (assertRedirect + assertDispatched) PASSAVAM; o que estourava era o
+# CLEANUP na última linha — `Titulo::...->each->forceDelete()`. `forceDelete()`
+# do SoftDeletes chama `$this->delete()`, e `Titulo::delete()` lança
+# DomainException ("fin_titulos não permite delete") por regra de domínio
+# append-only. Ou seja: o teste morria DEPOIS de provar o que se propunha.
+#
+# Não é apodrecimento: o override de delete() existe desde 2026-04-24
+# (Sub-Onda 1A, 6072794f817) e o teste nasceu em 2026-05-25 (#1549) — o cleanup
+# NUNCA funcionou. Ficou invisível porque antes da lane MySQL o arquivo skipava
+# em `Business::first()` (verde por não-execução). Quando a lane passou a rodar
+# de verdade, apareceu como "1 failed" e foi lido como defeito de produto.
+#
+# Fix = limpar pelo query builder, o padrão que o irmão
+# BaixaConservacaoValorContratoTest:96 já documentava no MESMO módulo
+# ("fin_titulos recusa forceDelete — DomainException"). Produção intocada.
+#
+# Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa provisionada
+# pela receita do CI): antes 1 failed/1 passed · depois 2 passed, 3 assertions
+# nos dois (as asserções são as mesmas — o que mudou foi só o teardown).
+#
+# SEGUNDO ACHADO, no run REAL da lane (#5192, run 30778447731): o arquivo ficou
+# verde mas o 2o caso deu SKIP ("- it update NAO dispatch"). Ele dependia de ja
+# existir um titulo 'aberto' no banco — num banco FRESCO (CI) com
+# executionOrder="random" isso nao e garantido. Skip e verde por NAO-EXECUCAO
+# (§5 LC-13), entao o arquivo sairia da quarentena provando metade.
+# Fix no mesmo PR: o caso passou a criar o pre-requisito pelo MESMO caminho de
+# produto (POST /financeiro/unificado; status nasce 'aberto' por default de
+# schema) e limpa depois. CONTROLE NEGATIVO: escondi os 19 titulos abertos do
+# biz=1 no DB de QA (status->cancelado), rodei -> 2 passed (3 assertions), e
+# restaurei -> 19 de volta. Sob a condicao EXATA que causou o skip, o caso agora
+# executa.
 # ── ProvaVivaControllerTest (2026-08-02, triagem 3/N do bucket C) ────────
 #   1 failed, 1 passed (3 assertions)  →  2 passed (9 assertions)
 #

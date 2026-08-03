@@ -26,14 +26,19 @@ use Symfony\Component\Yaml\Yaml;
  */
 class IndexarMemoryGitParaDb
 {
-    /** Padrões para PII (regex BR — herda lógica de LaravelAiSdkDriver) */
+    /**
+     * Padrões para PII (regex BR — herda lógica de LaravelAiSdkDriver).
+     *
+     * Shape: regex => [tipo, substituição]. O TIPO existe pra `deveRedigir()`
+     * desempatar número cru — ver o docblock de lá.
+     */
     protected const PII_PATTERNS = [
         // CPF: 000.000.000-00 ou 00000000000  (pii-allowlist: exemplo de FORMATO do próprio redator, não é PII real)
-        '/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/' => 'XXX.XXX.XXX-NN',
+        '/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/' => ['CPF', 'XXX.XXX.XXX-NN'],
         // CNPJ: 00.000.000/0000-00 ou 00000000000000  (pii-allowlist: exemplo de FORMATO do próprio redator, não é PII real)
-        '/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/' => 'XX.XXX.XXX/XXXX-NN',
+        '/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/' => ['CNPJ', 'XX.XXX.XXX/XXXX-NN'],
         // Cartão de crédito (16 dígitos)
-        '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '****-****-****-****',
+        '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => ['CARD', '****-****-****-****'],
     ];
 
     public function __construct(
@@ -739,14 +744,76 @@ class IndexarMemoryGitParaDb
         $count = 0;
         $redacted = $texto;
 
-        foreach (self::PII_PATTERNS as $pattern => $replacement) {
-            $redacted = preg_replace_callback($pattern, function () use (&$count, $replacement) {
+        foreach (self::PII_PATTERNS as $pattern => [$tipo, $replacement]) {
+            $redacted = preg_replace_callback($pattern, function (array $m) use (&$count, $tipo, $replacement) {
+                if (! $this->deveRedigir($tipo, $m[0])) {
+                    return $m[0];
+                }
                 $count++;
                 return $replacement;
             }, $redacted);
         }
 
         return ['redacted' => $redacted, 'count' => $count];
+    }
+
+    /**
+     * Desempata número CRU — `\d{11}` colide com QUALQUER número de 11 dígitos.
+     *
+     * Porta pro indexador a regra já ratificada em `PiiRedactor` (#5169). O fix de
+     * lá NÃO alcançava aqui: este serviço tem cópia PRÓPRIA de `PII_PATTERNS` +
+     * `redactarPii()` e nunca chamou `PiiRedactor` — então o `mcp:sync-memory`
+     * seguia redigindo run id do GitHub Actions como se fosse CPF.
+     *
+     * Medido em produção 2026-08-02: 32 "PII" em 8 `casos.md` do Produto eram
+     * **run id** (`run 30366164436`). Não era vazamento — era o oposto: apagava do
+     * índice o recibo de CI que a regra de evidência do projeto exige.
+     *
+     * O CPF tem dígito verificador; run id não. Validá-lo separa os dois sem
+     * afrouxar nada — CPF real cru (`11144477735`) continua redigido.
+     *
+     * **CPF PONTUADO segue redigido SEMPRE**, com DV válido ou não: quem escreve
+     * CPF pontuado está declarando o que é, e formato explícito não pede prova
+     * (CPF digitado errado ainda é tentativa de PII).
+     *
+     * CNPJ e cartão caem em `default => true` — igual ao `PiiRedactor`, de
+     * propósito: divergir aqui criaria um TERCEIRO comportamento de redação.
+     */
+    protected function deveRedigir(string $tipo, string $match): bool
+    {
+        // Formatação é DECLARAÇÃO: pontuado/hifenizado é PII assumida.
+        if (preg_match('/[.\-()\s\/+]/', $match)) {
+            return true;
+        }
+
+        return match ($tipo) {
+            'CPF'   => $this->cpfTemDvValido($match),
+            default => true,
+        };
+    }
+
+    /** Dígito verificador do CPF (módulo 11). Repetidos (111...) são inválidos por definição. */
+    protected function cpfTemDvValido(string $digitos): bool
+    {
+        if (strlen($digitos) !== 11 || preg_match('/^(\d)\1{10}$/', $digitos)) {
+            return false;
+        }
+
+        foreach ([9, 10] as $posicao) {
+            $soma = 0;
+            for ($i = 0; $i < $posicao; $i++) {
+                $soma += (int) $digitos[$i] * (($posicao + 1) - $i);
+            }
+            $dv = ($soma * 10) % 11;
+            if ($dv === 10) {
+                $dv = 0;
+            }
+            if ($dv !== (int) $digitos[$posicao]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

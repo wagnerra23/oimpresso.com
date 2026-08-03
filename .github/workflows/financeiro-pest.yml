@@ -173,6 +173,22 @@ jobs:
       # Onda Q2 (G-7 / Salto #2): o JUnit do Pest alimenta o manifesto por-UC
       # (casos:results MERGE per-UC — vereditos UC-F01..03 do RetencaoLoopE2ETest).
       # Roda mesmo em falha: a falha É o veredito que o G-7 registra.
+
+      # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
+      # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
+      # o FP do --check-assertions ANTES de arma-lo. Aqui so REPORTA (if: always()).
+      - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-financeiro-junit.xml --out test-results/pest-financeiro-junit-summary.json || true
+
+      - name: Upload sumario JUnit (pest-financeiro-junit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-financeiro-junit-summary
+          path: test-results/pest-financeiro-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.fin == 'true' }}
         uses: actions/upload-artifact@v4

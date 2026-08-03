@@ -19,8 +19,17 @@ last_run: "2026-07-28"
 > um arquivo paralelo pra "fluxo sem tela" seria tipo novo, proibido
 > ([ADR 0351](../../../../../memory/decisions/0351-sdd-from-source.md) D-B).
 >
-> ⚠️ **Força do veredito:** rodam na **nightly CT100**, **não no PR**, **não bloqueiam merge**
-> (zero linhas de `RecurringBilling` em `.github/ci-sqlite-pest.list`). Status **🧪, nunca ✅**.
+> ⚠️ **Força do veredito.** _(atualizado 2026-08-02; a redação anterior dizia "zero linhas de
+> `RecurringBilling` em `.github/ci-sqlite-pest.list`" — era verdade até
+> [PR #5194](https://github.com/wagnerra23/oimpresso.com/pull/5194) e deixou de ser.)_
+>
+> Os 4 arquivos desta tela (`Wave8ConfiguracoesIndexTest`, `AsaasWebhookAuthTest`,
+> `AsaasWebhookIdempotencyTest`, `InterWebhookControllerTest`) agora carregam o **UC-id no título**
+> e rodam na **lane sqlite** do `ci.yml`, que o `casos-results-publish` colhe. Os 8 UC desta tela
+> (`UC-RBCFG-01..08`) são os **únicos do módulo com as duas pernas fechadas** — id no `name` do
+> `<testcase>` **e** lane verde (medido no JUnit do run 30778559754).
+>
+> Status segue **🧪**: quem carimba ✅ é o cron `casos-results-publish` (07:30 BRT), não este PR.
 
 ## Rastreabilidade
 
