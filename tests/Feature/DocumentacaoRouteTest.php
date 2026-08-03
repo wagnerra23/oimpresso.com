@@ -210,6 +210,8 @@ it('a paleta da documentacao nao drifa dos tokens do DS', function () {
 
     expect($dsEscuro)->not->toHaveKey('--accent');          // premissa da divergência acima
     expect($localEscuro['--accent'])->toBe('oklch(0.74 0.13 295)');
+});
+
 it('resolve link de documento em subpasta contra a pasta dele, nao contra memory/', function () {
     // /documentacao/{slug} serve o acervo INTEIRO, e boa parte dele mora em subpasta
     // (memory/reference/…, memory/requisitos/<Mod>/…). Com a base fixa em `memory/`,
