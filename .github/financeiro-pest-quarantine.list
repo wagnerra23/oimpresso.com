@@ -78,7 +78,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 #    "envenena o processo compartilhado" nunca se aplicou a eles. Ficam
 #    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
-Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # 1 failed, 11 passed (24 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php  # 6 failed, 2 passed (2 assertions)
@@ -181,6 +180,40 @@ Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado 
 # Medido no CT 100 (worktree em origin/main, DB oimpresso_qa provisionada pela
 # receita do CI .github/actions/pest-mysql-setup).
 #
+# ── Onda23OcrBoletoTest (2026-08-02, triagem 6/N do bucket C) ─────────
+#   1 failed, 11 passed (24 assertions)  →  12 passed (25 assertions)
+#
+# Classificação: ARTEFATO DO AMBIENTE DE MEDIÇÃO — nem produto, nem (a rigor)
+# defeito que o CI veria. O motivo pelo qual ele entrou aqui NÃO existe em CI.
+#
+# O caso "fail secure sem openai key" fazia:
+#     config(['services.openai.key' => null]);
+#     putenv('OPENAI_API_KEY=');
+# e esperava a mensagem do guard de chave ausente (contém "OpenAI").
+#
+# MAS o helper env() do Laravel lê pelos adapters ServerConst/EnvConst
+# ($_SERVER/$_ENV) — que putenv() NÃO toca. O container do CT 100 (onde o
+# baseline de 2026-07-28 foi medido) tem OPENAI_API_KEY REAL no ambiente, então
+# o guard era pulado, o teste fazia uma chamada REAL pra api.openai.com e caia
+# no branch genérico de erro HTTP ("OCR falhou. Tente outro arquivo..."), sem a
+# palavra "OpenAI". Em CI passava — por acidente, porque o runner não tem a var.
+#
+# PROVADO rodando o MESMO commit das duas formas no CT 100:
+#   com    OPENAI_API_KEY no processo  →  1 failed, 11 passed (24 assertions)
+#   sem    OPENAI_API_KEY no processo  →  12 passed (25 assertions)
+#
+# Mesma família do erro do bucket B (motivo herdado que nunca existiu), aqui com
+# a fonte sendo o AMBIENTE de medição e não um grep.
+#
+# Fix (endurecimento, opcional pro CI mas correto): tornar a ausência de chave
+# DETERMINÍSTICA — limpar $_SERVER/$_ENV/putenv e restaurar no finally (a lane
+# roda tudo num processo só; vazar mutacão global envenenaria os demais).
+# Env::getRepository()->clear() foi TESTADO e não serve: o repositório do
+# Laravel é immutable(), delete de var já setada é no-op.
+# Efeito colateral bom: o teste parou de fazer chamada paga real — duração caiu
+# de ~10,0s para ~6,7s no ambiente que tem chave.
+#
+# DEPOIS do fix, os dois ambientes concordam: 12 passed (25 assertions).
 # ── ExtratoControllerTest (2026-08-02, triagem 2/N do bucket C) ──────────
 #   1 failed, 2 passed (2 assertions)  →  3 passed (3 assertions)
 #
