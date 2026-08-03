@@ -85,7 +85,7 @@ Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (10
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/Onda26InterWebhookIntegrationTest.php  # 2 failed (0 assertions)
 Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
-Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions)
+Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
@@ -167,6 +167,49 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # "To contain: open={presentOpen}". Restaurado → 12 passed.
 #
 # Medido no CT 100 (worktree em origin/main, DB oimpresso_qa — receita do CI).
+# ── TituloAutoServiceExpenseTest (2026-08-03, triagem 8/N) — FICA, com motivo
+#    REAL escrito. NÃO consertei: o eixo é VALOR (Tier 0) e a decisão é [W].
+#
+# O motivo herdado ("DB-dependente FALHANDO — defeito real a investigar") era
+# vago demais pra ser acionado. Medido, as 2 falhas têm UMA causa só:
+#
+#   linha 184: SQLSTATE 42S22 — Unknown column 'total_remaining_amount' in 'SET'
+#   linha 161: esperava status 'parcial', veio 'aberto'
+#
+# O teste monta o cenário "pago parcialmente" escrevendo em
+# `transactions.total_remaining_amount`. Essa coluna NÃO EXISTE. Medido no CT 100
+# com Schema::hasColumn: NAO. Sem accessor no Model (`getTotalRemainingAmount…`:
+# NAO) e sem `$appends` (vazio). O próprio código de produção registra isso em
+# BridgeExpenseToTitulosCommand:30 — "nunca existiu no UltimatePOS".
+#
+# CONSEQUÊNCIA no produto (o que exige olho do [W]): TituloAutoService:100 faz
+#     $valorAberto = (float) ($tx->total_remaining_amount ?? $tx->final_total);
+# Como o atributo é SEMPRE null, o fallback é SEMPRE tomado — a leitura é código
+# morto e o comentário acima dela ("Pra sell/purchase paga/parcial: usa
+# total_remaining_amount") descreve uma intenção irrealizável.
+#
+# POR QUE ISSO PROVAVELMENTE NÃO É BUG DE PRODUÇÃO (e por isso NÃO toquei):
+# existe caminho downstream que corrige. FinanceiroServiceProvider:73 registra o
+# TransactionPaymentObserver; o `created` chama registrarPagamento(), que cria
+# TituloBaixa e atualiza valor_aberto/status. Ou seja, o desenho real é
+# "Service cria o título ABERTO; as baixas aplicam os pagamentos". O teste tenta
+# provar 'parcial' pelo Service SOZINHO, por um atalho que não existe.
+#
+# O QUE FALTA DECIDIR ([W]) — duas saídas legítimas e incompatíveis:
+#   (a) o teste passa a montar o cenário como a produção monta (criar
+#       transaction_payments) OU passa a asserir o contrato REAL do Service
+#       (título nasce 'aberto'; 'parcial' é responsabilidade da baixa);
+#   (b) remover a leitura morta de TituloAutoService:100 + o comentário que
+#       promete o que não acontece.
+# (b) mexe em cálculo de VALOR — REGRA MESTRE de proibicoes.md exige dupla
+# conferência + apresentação de impacto antes→depois + aprovação. Não fiz.
+#
+# Recibo: CT 100, DB oimpresso_qa (receita do CI). Sonda:
+#   coluna transactions.total_remaining_amount existe? NAO
+#   accessor no Model? NAO   |   appends: []
+# Varredura contada do símbolo: 10 arquivos .php — 8 são teste, 2 são produção
+# (TituloAutoService, BridgeExpenseToTitulosCommand). O Bridge já DERIVA o
+# restante de Σ pagamentos (está correto); só o Service tem a leitura morta.
 # ── Onda23OcrBoletoTest — VOLTOU pra quarentena em 2026-08-03 ──────────
 #
 # AUTOCORREÇÃO do PR #5200 (meu). O veredito de lá era de run ISOLADO e NÃO
