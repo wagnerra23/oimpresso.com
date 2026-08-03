@@ -126,6 +126,46 @@
   @yield('conteudo')
 </div>
 
+{{-- Mermaid servido do NOSSO domínio (public/js), nunca de CDN: a página não carrega
+     nenhum recurso externo, e essa é uma qualidade que não se derruba por conveniência.
+     O bundle expõe o global via `globalThis["mermaid"]` na última linha — por isso
+     <script src> simples basta, sem type="module". --}}
+<script src="/js/mermaid.min.js"></script>
+<script>
+  (function () {
+    if (typeof mermaid === 'undefined') return;   // lib ausente: diagrama fica como código, página não quebra
+
+    var escuro = document.documentElement.dataset.theme === 'dark'
+      || (!document.documentElement.dataset.theme
+          && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: escuro ? 'dark' : 'neutral',
+      securityLevel: 'strict',                    // sem HTML arbitrário vindo do markdown
+      fontFamily: 'Segoe UI, -apple-system, sans-serif',
+      flowchart: { htmlLabels: true, curve: 'basis' },
+    });
+
+    // O markdown vira <pre><code class="language-mermaid">; o mermaid espera <pre class="mermaid">.
+    // textContent (não innerHTML) porque o conteúdo vem HTML-escaped do conversor.
+    var blocos = document.querySelectorAll('pre > code.language-mermaid');
+    if (!blocos.length) return;
+
+    blocos.forEach(function (code) {
+      var pre = code.parentElement;
+      var alvo = document.createElement('pre');
+      alvo.className = 'mermaid';
+      alvo.textContent = code.textContent;
+      pre.parentNode.replaceChild(alvo, pre);
+    });
+
+    mermaid.run({ querySelector: 'pre.mermaid' }).catch(function () {
+      // diagrama inválido não derruba a página — fica o texto do próprio diagrama
+    });
+  })();
+</script>
+
 @stack('script')
 </body>
 </html>
