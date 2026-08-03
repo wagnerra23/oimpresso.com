@@ -79,10 +79,32 @@ describe('Wave 23 Financeiro Saturation', function () {
         expect($decoded)->toHaveKey('checks');
         expect($decoded)->toHaveKey('summary');
 
-        // Wave 23 adicionou 2 checks → total 8
-        expect(count($decoded['checks']))->toBe(8);
+        // NÃO asserir o número exato de checks: é desenhado pra apodrecer. Toda
+        // onda que acrescenta um check quebra o teste por CRESCIMENTO legítimo —
+        // foi o que aconteceu aqui (a Wave 25 D9 somou contas_bancarias_ativas e
+        // caixa_movimento_freshness, e o `toBe(8)` virou "10 !== 8", sem nenhum
+        // defeito de produto).
+        //
+        // O contrato que importa é o inverso: nenhum check pode SUMIR. Por isso a
+        // asserção é de INCLUSÃO do conjunto esperado — morde na remoção
+        // silenciosa e fica calada quando uma onda futura adiciona.
+        $names = collect($decoded['checks'])->pluck('name')->all();
 
-        $names = collect($decoded['checks'])->pluck('name')->toArray();
-        expect($names)->toContain('orphan_baixas', 'valor_aberto_consistente');
+        $esperados = [
+            'titulos_table',
+            'baixas_table',
+            'caixa_table',
+            'titulos_per_business',
+            'vencidos_alarme',
+            'retention_policy',
+            'orphan_baixas',            // Wave 23 D6
+            'valor_aberto_consistente', // Wave 23 D6
+            'contas_bancarias_ativas',  // Wave 25 D9
+            'caixa_movimento_freshness', // Wave 25 D9
+        ];
+
+        $sumidos = array_values(array_diff($esperados, $names));
+
+        expect($sumidos)->toBe([], 'check(s) removido(s) de financeiro:health: '.implode(', ', $sumidos));
     });
 });

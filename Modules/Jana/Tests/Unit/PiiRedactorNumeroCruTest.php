@@ -91,3 +91,75 @@ it('detect e redact concordam — has_pii não marca doc que ficou intacto', fun
     expect($r->detect($texto))->not->toHaveKey('CPF')
         ->and($r->redact($texto))->toBe($texto);
 });
+
+/**
+ * A MESMA colisão, um nível acima: `\d{14}` do CNPJ casa qualquer número de 14
+ * dígitos. Achado ao MEDIR o corpus depois do fix do CPF — 67 dos 197 matches de
+ * CNPJ eram falso-positivo (LID do WhatsApp, id de artigo em URL, placeholder),
+ * e os 38 crus com DV válido (inclui CNPJ real de cliente) seguem redigidos.
+ */
+
+/** LID real do WhatsApp Multi-Device, dos que apareciam redigidos. 14 dígitos, DV inválido. */
+const LID_WHATSAPP = '14628809617558';
+
+/** Id de artigo em URL de doc externa (Bling) — 14 dígitos, DV inválido. */
+const ID_ARTIGO_URL = '21830391097367';
+
+/** CNPJ sintético com DV VÁLIDO — controle de que nada afrouxou. */
+const CNPJ_CRU_VALIDO = '11222333000181'; // pii-allowlist (sintético, DV válido, fixture do teste)
+
+it('não redige LID do WhatsApp — 14 dígitos com DV inválido não é CNPJ', function () {
+    $r = new PiiRedactor();
+    $texto = 'remoteJid "' . LID_WHATSAPP . '@lid" na conversa';
+
+    expect($r->redact($texto))->toBe($texto)
+        ->and($r->detect($texto))->not->toHaveKey('CNPJ');
+});
+
+it('não redige id de artigo dentro de URL de documentação', function () {
+    $r = new PiiRedactor();
+    $texto = 'https://ajuda.bling.com.br/hc/pt-br/articles/' . ID_ARTIGO_URL;
+
+    expect($r->redact($texto))->toContain(ID_ARTIGO_URL);
+});
+
+it('CONTROLE: CNPJ cru com DV válido CONTINUA redigido', function () {
+    $r = new PiiRedactor();
+
+    expect($r->redact('emitente ' . CNPJ_CRU_VALIDO))->not->toContain(CNPJ_CRU_VALIDO)
+        ->and($r->detect('emitente ' . CNPJ_CRU_VALIDO))->toHaveKey('CNPJ');
+});
+
+it('CONTROLE: CNPJ FORMATADO segue redigido mesmo com DV inválido — formato é declaração', function () {
+    $r = new PiiRedactor();
+    $cnpjPontuadoDvInvalido = '12.345.678/0001-90'; // pii-allowlist (fixture: DV inválido de propósito)
+
+    expect($r->redact("CNPJ {$cnpjPontuadoDvInvalido}"))->not->toContain($cnpjPontuadoDvInvalido);
+});
+
+/**
+ * A CASCATA: liberar um tipo faz o número sobrar para o padrão seguinte.
+ *
+ * CPF, CNPJ e CEP usam `\b`; PHONE não usava, então casava um PEDAÇO de número
+ * maior. Com o CNPJ liberado, `articles/21830391097367` virava `[REDACTED:PHONE]`
+ * porque o match era `2183039109` e o DDD 21 (Rio) existe. No #5169 o mesmo já
+ * quase aconteceu com o CPF — escapou por sorte, o run id começava com `30`.
+ */
+it('PHONE não come pedaço de número maior — fronteira, não só DDD válido', function () {
+    $r = new PiiRedactor();
+
+    // Ambos começam com DDD que EXISTE (21 e 14): se o desempate fosse só o DDD,
+    // os dois seriam redigidos. Quem segura é a fronteira `(?<!\d)`/`(?!\d)`.
+    $idArtigo = 'articles/21830391097367';
+    $lid = '14628809617558@lid';
+
+    expect($r->redact($idArtigo))->toBe($idArtigo)
+        ->and($r->redact($lid))->toBe($lid);
+});
+
+it('CONTROLE: telefone cru com DDD real CONTINUA redigido', function () {
+    $r = new PiiRedactor();
+    $celular = '11987654321'; // pii-allowlist (sintético, fixture)
+
+    expect($r->redact("ligar {$celular} agora"))->not->toContain($celular);
+});
