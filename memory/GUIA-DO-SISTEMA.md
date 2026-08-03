@@ -279,6 +279,71 @@ Origem: [W] 2026-08-02 — *"preciso de um responsável que não se desvie do fo
 - **Nada de documento novo quando o dono existe.** A pergunta antes de criar é sempre: *quem já é dono deste assunto?*
 - **Achado adjacente não emenda.** Encontrou outro problema no caminho? Reporta em UMA linha e **para**. [W] decide se vira trabalho, e quando. _(O que deu errado naquela sessão: cada achado adjacente virou "sim" por reflexo, e o pedido original — a documentação — ficou parado no meio.)_
 
+### B7. Como especificar e executar uma feature complexa (SDD)
+
+> **Não instalar outro kit nem criar outro `spec.md`.** O fluxo local já operacionaliza
+> `specify → clarify → plan → tasks → implement` no trio
+> [`requirements.md` + `plan.md` + `tasks.md`](requisitos/_TEMPLATE_FEATURE/BRIEFING.md),
+> ligado à US do `SPEC.md`. Referências: o piloto financeiro protegido
+> [`RecurringBilling/gateway-ativacao`](requisitos/RecurringBilling/features/gateway-ativacao/requirements.md)
+> e o piloto de adoção segura
+> [`Connector/openapi-connector`](requisitos/Connector/features/openapi-connector/requirements.md).
+
+**Quando usar:** US que virará execução multi-sessão, com pelo menos 3 tarefas e uma dependência
+real; ou mudança com regra de negócio, integração, fila, multi-tenant, valor ou estoque. Fix tático
+de uma tarefa segue direto por task MCP + PR. Tela nova ou alterada também precisa do respectivo
+`<Tela>.casos.md`; o trio não substitui o contrato da tela.
+
+| Camada | Dono | Pergunta que responde |
+|---|---|---|
+| Sinal + requisito-mãe | `requisitos/<Mod>/SPEC.md` (`US-*`) | **Por quê e o quê?** |
+| Especificação executável | `features/<slug>/requirements.md` | **Quais comportamentos e critérios `AC-N` provam o resultado?** |
+| Plano técnico | `features/<slug>/plan.md` | **Como encaixa no código existente sem duplicar?** |
+| Grafo de execução | `features/<slug>/tasks.md` | **Em qual ordem, cobrindo quais ACs, com qual DoD?** |
+| Estado vivo | tasks MCP com `parent_plan:<slug>` | **Quem está fazendo e em que estado?** |
+| Prova | Pest/CI + smoke real + anchor da US | **Executou, funciona e ficou rastreável?** |
+
+**Receita operacional:**
+
+1. **Confirmar o sinal.** A US só entra se cliente que paga reportou a dor ou uma métrica mostrou
+   drift ([ADR 0105](decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Hipótese sem sinal não
+   vira feature ativa.
+2. **Gerar pela máquina dona, nunca copiar à mão:**
+
+   ```bash
+   npm run feature:init -- <Mod>/<slug> --us US-<MOD>-<NNN>
+   ```
+
+   O modo `--init` do `feature-lint.mjs` valida que módulo/SPEC/US existem, gera somente
+   `requirements.md`, `plan.md` e `tasks.md` a partir dos templates canônicos e recusa
+   sobrescrever um destino. Use `--dry-run` para conferir sem escrever. O
+   [`BRIEFING.md`](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) é a porta do template e **não se copia**.
+3. **Especificar e esclarecer.** Em `requirements.md`, ligar a US do SPEC, escrever critérios
+   EARS `AC-N`, fora-de-escopo e registrar respostas em `Clarifications`. Ambiguidade relevante
+   não resolvida bloqueia o plano; não se completa por palpite.
+4. **Planejar no brownfield.** Em `plan.md`, inventariar plug-points antes de criar símbolos,
+   declarar dados/contratos tocados e marcar conscientemente os riscos Tier 0: `business_id`,
+   valor/estoque, PII, tela e runtime.
+5. **Quebrar em tarefas atômicas.** Cada `T-NN` declara `blocked_by`, `covers`, `us` e um DoD
+   verificável. A última tarefa sempre contém smoke real + atualização de `**Implementado em:**`
+   na US; status `todo/doing/done` fica no MCP, nunca no markdown.
+6. **Validar antes de implementar:**
+
+   ```bash
+   node scripts/governance/feature-lint.mjs <Mod>/<slug> --check
+   ```
+
+7. **Executar em ordem topológica.** Para cada tarefa: teste que prova o AC falha → menor
+   implementação que o satisfaz → teste passa → DoD registrado. Pest/PHPStan rodam no CT 100,
+   nunca no Hostinger ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md)).
+8. **Fechar o loop.** Smoke real, âncora `verificado@<sha7>` na US e lint final. Em valor/estoque,
+   `--apply` só ocorre após dry-run com impacto antes→depois e aprovação humana explícita.
+
+**Critério de pronto da especificação:** todo `AC-N` é coberto por pelo menos uma tarefa; toda
+tarefa tem DoD; o grafo não tem ciclo; a US existe no SPEC. **Critério de pronto da feature:**
+o comportamento foi executado e provado, o smoke passou e a âncora da US ficou viva — documentos
+preenchidos, sozinhos, não significam entrega.
+
 ---
 
 ## Backbone operacional — como tudo se conecta
@@ -332,6 +397,7 @@ flowchart LR
 | Linhas vermelhas | [proibicoes.md](proibicoes.md) |
 | Time e papéis | [regras-time.md](regras-time.md) · [TEAM.md](../TEAM.md) |
 | Responsabilidade de um módulo | `Modules/<X>/SCOPE.md` + `BRIEFING.md` |
+| Planejar uma feature complexa por SDD | [B7 deste guia](#b7-como-especificar-e-executar-uma-feature-complexa-sdd) · [template do trio](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) |
 | Conectar um dev novo ao MCP | [MEMORY_TEAM_ONBOARDING.md](../MEMORY_TEAM_ONBOARDING.md) |
 
 ---
