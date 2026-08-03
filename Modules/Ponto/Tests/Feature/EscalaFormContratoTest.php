@@ -14,7 +14,7 @@ uses(PontoTestCase::class);
  * Contrato do formulário de escala (`/ponto/escalas/{create,{id}/edit}`).
  *
  * Cada teste cita o UC no TÍTULO do `it()` (G-2 do casos-gate, ADR 0264):
- *   Escalas/Form.casos.md → UC-ESCFORM-01..03
+ *   Escalas/Form.casos.md → UC-ESCF-01..03
  *
  * ── De onde vieram os UC ───────────────────────────────────────────────────
  * O SDD do módulo NÃO tem `CU-PONTO-*` para Escalas. O que existe é o §10 Onda 1,
@@ -25,10 +25,10 @@ uses(PontoTestCase::class);
  * proibicoes.md §5 2026-06-05). O UC-03 ancora em CU-PONTO-12 (§6.5).
  *
  * ⚠️ DOIS UC nascem FAILING-FIRST por desenho, denunciando regressão medida:
- *   UC-ESCFORM-01 → controller lê `entrada`/`saida`/`almoco_inicio`/`almoco_fim`;
+ *   UC-ESCF-01 → controller lê `entrada`/`saida`/`almoco_inicio`/`almoco_fim`;
  *                   as colunas são `hora_*` e não há accessor → tela sempre vazia.
  *                   3ª instância do padrão D-1/D-8 do SDD §9.
- *   UC-ESCFORM-02 → `update(Request $request)` chama `$request->validated()`, que
+ *   UC-ESCF-02 → `update(Request $request)` chama `$request->validated()`, que
  *                   só existe em FormRequest → BadMethodCallException ao salvar.
  * Vermelho neles é o ACHADO, não defeito do teste. Correção é decisão [W].
  *
@@ -124,7 +124,7 @@ afterEach(function () {
 // Escalas/Form
 // =====================================================================
 
-it('UC-ESCFORM-01 · os horários dos turnos configurados aparecem na edição', function () {
+it('UC-ESCF-01 · os horários dos turnos configurados aparecem na edição', function () {
     $this->actAsAdmin();
     escfPrecisaDe(['ponto_escalas', 'ponto_escala_turnos']);
 
@@ -170,7 +170,7 @@ it('UC-ESCFORM-01 · os horários dos turnos configurados aparecem na edição',
     );
 });
 
-it('UC-ESCFORM-02 · salvar a edição da escala persiste os campos', function () {
+it('UC-ESCF-02 · salvar a edição da escala persiste os campos', function () {
     $this->actAsAdmin();
     escfPrecisaDe(['ponto_escalas']);
 
@@ -202,7 +202,7 @@ it('UC-ESCFORM-02 · salvar a edição da escala persiste os campos', function (
     );
 });
 
-it('UC-ESCFORM-03 · escala de outro empregador dá 404', function () {
+it('UC-ESCF-03 · escala de outro empregador dá 404', function () {
     $this->actAsAdmin();
     escfPrecisaDe(['ponto_escalas']);
     escfGarantirBizAlheio();

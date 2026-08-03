@@ -27,9 +27,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-ESCFORM-01 | Os horários dos turnos configurados aparecem na edição | must | charter §Mission + achado 2026-08-02 | `EscalaFormContratoTest` | 🧪 **vermelho ESPERADO** (predição) |
-| UC-ESCFORM-02 | Salvar a edição da escala persiste os campos | must | charter §Goals + achado 2026-08-02 | `EscalaFormContratoTest` | 🧪 **vermelho ESPERADO** (predição) |
-| UC-ESCFORM-03 | Escala de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EscalaFormContratoTest` | 🧪 sem veredito |
+| UC-ESCF-01 | Os horários dos turnos configurados aparecem na edição | must | charter §Mission + achado 2026-08-02 | `EscalaFormContratoTest` | 🧪 **vermelho ESPERADO** (predição) |
+| UC-ESCF-02 | Salvar a edição da escala persiste os campos | must | charter §Goals + achado 2026-08-02 | `EscalaFormContratoTest` | 🧪 **vermelho ESPERADO** (predição) |
+| UC-ESCF-03 | Escala de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EscalaFormContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]:**
 
@@ -44,7 +44,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-ESCFORM-01 · Os horários dos turnos configurados aparecem na edição · `must`
+## UC-ESCF-01 · Os horários dos turnos configurados aparecem na edição · `must`
 
 - **Persona:** gestor abrindo uma escala já cadastrada para conferir os turnos antes de
   atribuí-la a um colaborador. A escala é o padrão contra o qual atraso, HE e falta são
@@ -52,7 +52,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Aceite:** Dado um turno gravado com `hora_entrada`, `hora_almoco_inicio`,
   `hora_almoco_fim` e `hora_saida` · Quando abro `/ponto/escalas/{id}/edit` · Então a tela
   apresenta **os horários gravados** — não vazios.
-- **Teste:** `Modules/Ponto/Tests/Feature/EscalaFormContratoTest.php` — `UC-ESCFORM-01`.
+- **Teste:** `Modules/Ponto/Tests/Feature/EscalaFormContratoTest.php` — `UC-ESCF-01`.
 - **Contrato:** charter §Mission (*"exibe (read-only por enquanto) os turnos por dia da semana
   **já configurados**"*) · §Goals (*"no edit, listagem read-only dos turnos"*).
 - **Achado que motiva (medido 2026-08-02, varredura contada):**
@@ -82,12 +82,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-ESCFORM-02 · Salvar a edição da escala persiste os campos · `must`
+## UC-ESCF-02 · Salvar a edição da escala persiste os campos · `must`
 
 - **Persona:** o mesmo gestor, corrigindo a carga diária de uma escala depois de um acordo.
 - **Aceite:** Dado uma escala do meu business · Quando envio `PUT /ponto/escalas/{id}` com
   nome e carga novos · Então a alteração **fica gravada** e a tela não quebra.
-- **Teste:** `EscalaFormContratoTest.php` — `UC-ESCFORM-02`.
+- **Teste:** `EscalaFormContratoTest.php` — `UC-ESCF-02`.
 - **Contrato:** charter §Goals (*"Formulário dual: cria (`POST`) ou edita
   (`PUT /ponto/escalas/{id}`)"*) · §Automation hooks (*"Submit via `useForm.post`/`.put`
   conforme modo"*).
@@ -113,13 +113,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-ESCFORM-03 · Escala de outro empregador → 404 · `must` `[T0]`
+## UC-ESCF-03 · Escala de outro empregador → 404 · `must` `[T0]`
 
 - **Persona:** plataforma multi-tenant. A escala carrega a jornada praticada pelo time —
   informação de organização interna de outro empregador.
 - **Aceite:** Dado o id de uma escala de **outro** business · Quando acesso
   `/ponto/escalas/{id}/edit` · Então recebo **404** — nunca 200 com dado, nunca 500.
-- **Teste:** `EscalaFormContratoTest.php` — `UC-ESCFORM-03`.
+- **Teste:** `EscalaFormContratoTest.php` — `UC-ESCF-03`.
 - **Contrato:** `CU-PONTO-12` (SDD §6.5) · US-PONTO-007 ·
   [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** `EscalaController@edit` usa `Escala::with('turnos')->findOrFail($id)`

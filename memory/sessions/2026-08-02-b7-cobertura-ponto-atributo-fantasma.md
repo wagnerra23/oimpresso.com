@@ -6,7 +6,7 @@ topic: "B7-cobertura no módulo Ponto: 4 das 14 telas ganharam casos.md, e a var
 authors: [C]
 prs: [5191]
 outcomes:
-  - "4 telas do Ponto fecharam o trio (ratchet 145 → 141): BancoHoras/Index (UC-BHIDX-01..04), Escalas/Form (UC-ESCFORM-01..03), Relatorios/Index (UC-RELIDX-01..02), Importacoes/Index (UC-IMPIDX-01..03). Todos em Pest it() com o UC no título — a forma que o manifesto G-7 enxerga."
+  - "4 telas do Ponto fecharam o trio (ratchet 145 → 141): BancoHoras/Index (UC-BHIDX-01..04), Escalas/Form (UC-ESCF-01..03), Relatorios/Index (UC-RELIDX-01..02), Importacoes/Index (UC-IMPIDX-01..03). Todos em Pest it() com o UC no título — a forma que o manifesto G-7 enxerga."
   - "ACHADO 1 (o que pagou a sessão) — a varredura que o SDD §10 Onda 1 pediu e declarou não ter feito: EscalaController@edit lê `entrada`/`saida`/`almoco_inicio`/`almoco_fim`; as colunas são `hora_*` e não há accessor. A tela de edição de escala mostra TODOS os horários vazios, sempre. 3ª instância do padrão D-1/D-8, agora em 3 de 8 famílias de tela."
   - "ACHADO 2 — EscalaController@update recebe Illuminate\\Http\\Request e chama $request->validated(), método que só existe em FormRequest (medido: 0 em Http/Request.php, 0 macros no projeto). Salvar a edição de uma escala lança BadMethodCallException. O padrão certo está no mesmo módulo, ao lado: IntercorrenciaController usa IntercorrenciaRequest."
   - "ACHADO 3 — `erro_mensagem` também é fantasma na importação: o Show.tsx faz `{i.erro_mensagem && <Alert>}`, logo o alerta de erro NUNCA renderiza. Importação que falhou não mostra o motivo — consequência mais séria que o 'exibe 0' do D-8, e o SDD §5.3 F7 lista o campo sem notar."
@@ -27,7 +27,7 @@ escritos — os `casos.md` derivam de lá, nunca do `.tsx`.
 | Tela | UCs | Âncora | Nota |
 |---|---|---|---|
 | `BancoHoras/Index` | `UC-BHIDX-01..04` | CU-PONTO-08/12 | o UC-03 prova que o **agregado** não vaza |
-| `Escalas/Form` | `UC-ESCFORM-01..03` | achado medido + CU-PONTO-12 | 2 failing-first |
+| `Escalas/Form` | `UC-ESCF-01..03` | achado medido + CU-PONTO-12 | 2 failing-first |
 | `Relatorios/Index` | `UC-RELIDX-01..02` | CU-PONTO-14 + F8 | contrato é a honestidade da tela |
 | `Importacoes/Index` | `UC-IMPIDX-01..03` | CU-PONTO-11/12 | 1 failing-first (D-8 na lista) |
 
@@ -173,6 +173,18 @@ para nunca virar ✅ — o UC em docblock (teto zero) **e** o teste morrendo no 
 5. **Dois defeitos de fixture pegos antes da lane**, nenhum visível ao `php -l`:
    `Importacao::ESTADO_CONCLUIDO` (a constante é `ESTADO_CONCLUIDA`) e `usuario_id` omitido sendo
    NOT NULL. Achados conferindo as colunas contra a **migration**, não relendo o teste.
+6. **Escrevi 3 UCs invisíveis ao gate — a mesma classe que este PR documenta.** Batendo o report
+   contra o que eu tinha escrito, a conta não fechava: `395 → 404` é **+9**, mas eu escrevera
+   **12** UCs. Causa medida: o regex canônico
+   ([`scripts/lib/uc-regex.mjs`](../../scripts/lib/uc-regex.mjs)) aceita prefixo de **até 6**
+   caracteres (`[A-Z][A-Z0-9]{0,5}`), e `UC-ESCFORM-` tem **7** — `ucScanRe()` devolvia `[]` para
+   os três. Eles não existiam para o G-2/G-5/G-7 **nem** para o manifesto: exatamente o "teto
+   zero" que a sessão inteira está documentando, cometido por mim dentro do PR sobre isso.
+   Renomeados para `UC-ESCF-` (4 chars); a conta passou a fechar em **407 = 395 + 12**.
+   **A lição de método é o gesto, não o regex:** o defeito só apareceu porque conferi um número
+   derivado (`ucs_declared`) contra o que eu sabia ter escrito. Sem essa subtração, os 3 UCs
+   passariam verdes e vazios — e o `casos:check` **não teria reclamado**, porque um UC que o
+   regex não enxerga simplesmente não entra na conta de nada.
 
 ## As 10 telas que faltam — e por que não varri em lote
 
