@@ -210,6 +210,8 @@ it('a paleta da documentacao nao drifa dos tokens do DS', function () {
 
     expect($dsEscuro)->not->toHaveKey('--accent');          // premissa da divergência acima
     expect($localEscuro['--accent'])->toBe('oklch(0.74 0.13 295)');
+});
+
 it('resolve link de documento em subpasta contra a pasta dele, nao contra memory/', function () {
     // /documentacao/{slug} serve o acervo INTEIRO, e boa parte dele mora em subpasta
     // (memory/reference/…, memory/requisitos/<Mod>/…). Com a base fixa em `memory/`,
@@ -266,6 +268,75 @@ it('resolve link de documento em subpasta contra a pasta dele, nao contra memory
     // correção fosse revertida por um default silencioso.
     $errado = $paraHtml->invoke($controller, $conteudo, 'memory');
     expect($inexistentes($errado))->not->toBe([]);
+});
+
+it('o rail e derivado do frontmatter, com ordinal da ordem visivel na lente', function () {
+    // O rail não tem lista escrita à mão: sai do `nav_group`/`nav_order`/`lente`. Dois
+    // defeitos que este caso existe pra pegar:
+    //   1. ordinal saindo de `nav_order` em vez da ordem VISÍVEL — filtrar a lente
+    //      deixaria buracos (1, 3, 7) e o leitor acharia que sumiu conteúdo;
+    //   2. documento sem `nav_group` vazando pro menu — o opt-in é o que impede os
+    //      ~130 arquivos de referência legados de virarem menu sem ninguém decidir.
+    //
+    // Só filesystem + reflection: roda em qualquer lane, sem banco e sem sessão.
+    $controller = new App\Http\Controllers\DocumentacaoController;
+    $navegacao = (new ReflectionClass($controller))->getMethod('navegacao');
+    $navegacao->setAccessible(true);
+
+    $tudo = $navegacao->invoke($controller, null);
+
+    expect($tudo['grupos'])->not->toBeEmpty();
+    expect($tudo['linear'])->not->toBeEmpty();
+
+    // Ordinal = posição visível, sempre 1..N sem buraco.
+    expect(array_column($tudo['linear'], 'ordinal'))->toBe(range(1, count($tudo['linear'])));
+
+    // Todo item aponta pra uma URL resolvível — o id é o MESMO slug que o indexador gera
+    // pro acervo, por isso o rail linka direto, sem tabela de-para.
+    foreach ($tudo['linear'] as $item) {
+        expect($item['id'])->toStartWith('reference-');
+        expect($item['rotulo'])->not->toBe('');
+    }
+
+    // Grupo vazio não vira cabeçalho órfão.
+    foreach ($tudo['grupos'] as $grupo) {
+        expect($grupo['itens'])->not->toBeEmpty();
+    }
+
+    // A lente filtra de verdade — e continua sem buraco no ordinal.
+    $operar = $navegacao->invoke($controller, 'operar');
+    expect(array_column($operar['linear'], 'ordinal'))->toBe(range(1, count($operar['linear'])));
+    expect(count($operar['linear']))->toBeLessThanOrEqual(count($tudo['linear']));
+
+    // Domínio é UMA página vista por dois públicos — nunca duas cópias. Se um doc de
+    // domínio aparecer só numa lente, alguém quebrou essa regra.
+    $construir = $navegacao->invoke($controller, 'construir');
+    $idsDominio = fn (array $nav) => collect($nav['linear'])
+        ->filter(fn ($d) => $d['grupo'] === 'dominio')->pluck('id')->sort()->values()->all();
+
+    expect($idsDominio($operar))->toBe($idsDominio($construir));
+});
+
+it('documento sem nav_group nao entra no rail', function () {
+    // Contra-prova do opt-in: a pasta tem MUITO mais arquivo do que o rail mostra. Se um
+    // dia o filtro cair, este caso vira vermelho na hora.
+    $controller = new App\Http\Controllers\DocumentacaoController;
+    $navegacao = (new ReflectionClass($controller))->getMethod('navegacao');
+    $navegacao->setAccessible(true);
+
+    $noRail = count($navegacao->invoke($controller, null)['linear']);
+    $arquivos = glob(base_path('memory/reference/*.md'));
+
+    expect(count($arquivos))->toBeGreaterThan($noRail);
+
+    // E o rail tem exatamente os que declaram nav_group — nem a mais, nem a menos.
+    $comGrupo = 0;
+    foreach ($arquivos as $arquivo) {
+        if (preg_match('/^nav_group:\s*\S+/m', (string) file_get_contents($arquivo))) {
+            $comGrupo++;
+        }
+    }
+    expect($noRail)->toBe($comGrupo);
 });
 
 it('responde 200 e renderiza o conteudo do dono quando autenticado', function () {
