@@ -5,9 +5,9 @@ title: "Arquitetura e Escopo do Oimpresso ERP — estado atual e estado-alvo"
 type: architecture
 authority: canonical
 lifecycle: ativo
-version: 1.0.0
+version: 1.1.0
 maintained_by: wagner
-last_updated: 2026-05-05
+last_updated: 2026-08-03
 charter_adr: 0080
 related:
   - 0079-constituicao-oimpresso-7-camadas-governanca
@@ -17,9 +17,10 @@ pii: false
 
 # Arquitetura e Escopo do Oimpresso ERP
 
-> **Versão 1.0.0 — 2026-05-05**
+> **Versão 1.1.0 — 2026-08-03** (v1.0.0 em 2026-05-05)
 > **Hierarquia:** subordinada à [Constituição](CONSTITUTION.md) v1.1.0 (Artigo 7 — Module Charter)
-> 👋 **Visão humana rápida:** [GUIA-DO-SISTEMA.md](../GUIA-DO-SISTEMA.md) (produto + como usar numa página). Este doc é o detalhe técnico arc42. **Contagens/renames abaixo são snapshot 2026-05-05** — inventário vivo em [reference/PAINEL-SISTEMA.md](../reference/PAINEL-SISTEMA.md) §"Módulos & verticais" (derivado de `Modules/` por `scripts/governance/system-map.mjs`).
+> 👋 **Visão humana rápida:** [GUIA-DO-SISTEMA.md](../GUIA-DO-SISTEMA.md) (produto + como usar numa página). Este doc é o detalhe técnico arc42.
+> 📐 **Como ler os números deste doc:** os planos e contagens de **§2, §7 e §9 são o snapshot do plano de 2026-05-05** — leia-os como *o que foi decidido naquela data*, nunca como o estado de hoje. A **contagem viva** de módulos não é cravada aqui: tem recibo datado em **§1-bis** e dono derivado em [reference/PAINEL-SISTEMA.md](../reference/PAINEL-SISTEMA.md) §"Módulos & verticais" (gerado de `Modules/` por `scripts/governance/system-map.mjs`).
 
 Documento operacional que mapeia (a) os módulos atuais, (b) o estado-alvo após renomeações + depreciações aprovadas, (c) trust level por módulo, (d) plano de execução por fase.
 
@@ -27,44 +28,31 @@ Documento operacional que mapeia (a) os módulos atuais, (b) o estado-alvo após
 
 ## §1. Vista geral em 1 slide
 
-```
-┌──────────────────── L1 CONSTITUTION (10 artigos) ────────────────────┐
-│                                                                       │
-│  ┌──────────── Cross-cutting ────────────┐                            │
-│  │  ADRs (memory/decisions/)              │                            │
-│  │  Skills (.claude/skills/)              │                            │
-│  └─────────────────────────────────────────┘                          │
-│                                                                       │
-│  ┌──────────── L2 SRS (System Rules Spec) ─────────┐                 │
-│  │  memory/governance/srs/* (append-only)           │                 │
-│  └───────────────────────────────────────────────────┘                │
-│                                                                       │
-│  L3 Trust Tiers     L4 Identity Mesh     L5 Module Charter            │
-│  (TRUST-TIERS.md)   (mcp_actors)         (Modules/<X>/SCOPE.md)       │
-│                                                                       │
-│  L6 Policy Gating (mcp_governance_rules + ActionGate)                 │
-│                                                                       │
-│  L7 Audit (mcp_audit_log + trigger append-only + dashboard)           │
-│                                                                       │
-└───────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    L1["<b>L1 CONSTITUTION</b> — 10 artigos<br/>governance/CONSTITUTION.md"]
+    X["<b>Cross-cutting</b><br/>ADRs (memory/decisions/)<br/>Skills (.claude/skills/)"]
+    L2["<b>L2 SRS</b> — System Rules Spec<br/>memory/governance/srs/* (append-only)"]
+    L3["<b>L3 Trust Tiers</b><br/>TRUST-TIERS.md"]
+    L4["<b>L4 Identity Mesh</b><br/>mcp_actors"]
+    L5["<b>L5 Module Charter</b><br/>Modules/&lt;X&gt;/SCOPE.md"]
+    L6["<b>L6 Policy Gating</b><br/>mcp_governance_rules + ActionGate"]
+    L7["<b>L7 Audit</b><br/>mcp_audit_log + trigger append-only + dashboard"]
 
-                  Modules/ (30 atuais → 27 após Fase 3)
-
-  KERNEL L0          GOVERNANCE L1         PRODUCT L2        VERTICAL L3
-  ─────────────      ─────────────         ─────────────     ─────────────
-  Connector          ADS (decisions)        Jana ←Jana    Financeiro
-  Superadmin         TeamMcp                Notas ←Essentials NfeBrasil
-  schema raiz        Governance(NEW)        KB                NFSe
-                     SRS ←MemCofre          Project ←ProjMgmt RecurringBilling
-                                            Ponto ←PontoWr2   Officeimpresso
-                                            ConsultaOs        Repair
-                                                              Manufacturing
-                                                              Grow
-                                                              Crm
-  CONTENT L4
-  ─────────────
-  Cms (landing)
+    L1 --> X
+    X --> L2
+    L2 --> L3
+    L2 --> L4
+    L2 --> L5
+    L3 --> L6
+    L4 --> L6
+    L5 --> L6
+    L6 --> L7
 ```
+
+**Onde os módulos entram nessa pilha:** cada módulo recebe um *trust level* (L0 KERNEL … L4 CONTENT) — o mapa curado de trust→módulo é a **[§5](#5-trust-level-por-módulo-estado-alvo-após-fase-3)** deste doc, e a **lista viva** de quais módulos existem é a do [PAINEL-SISTEMA](../reference/PAINEL-SISTEMA.md) §"Módulos & verticais". A contagem tem recibo em §1-bis.
+
+> 🗑️ **v1.1.0 removeu daqui um bloco ASCII que listava os módulos por trust tier.** Ele duplicava §5 + PAINEL (o que o próprio §2 deste doc proíbe: *"contagem/lista VIVA — não duplicar aqui = não apodrece"*), cravava `30 atuais → 27 após Fase 3`, e tinha apodrecido em duas frentes: **6 dos módulos que ele listava como vivos/alvo não existem mais** na árvore (`ADS`, `TeamMcp`, `SRS`, `Grow`, `Notas`, `Project` — testados um a um em `origin/main` 2026-08-03) e o texto estava corrompido por um rename anterior (`Jana ←Jana`, `Project ←ProjMgmt`, este último superseded por Forja). _(Os outros nomes mortos que ele citava — `MemCofre`, `ProjectMgmt`, `PontoWr2` — apareciam como **origem de rename**, o que é legítimo e não conta como apodrecimento.)_ Nenhuma decisão se perdeu: os renames vivem em **§3**, o mapa de trust em **§5**.
 
 ---
 
@@ -78,7 +66,7 @@ C4Container
     System_Ext(github, "GitHub origin/main", "fonte de verdade do código + memory/")
 
     System_Boundary(hostinger, "Hostinger — ERP web (sem daemons, ADR 0062)") {
-      Container(erp, "ERP Laravel 13.6", "PHP 8.4 + Inertia/React", "36 módulos · multi-tenant business_id Tier 0")
+      Container(erp, "ERP Laravel 13.6", "PHP 8.4 + Inertia/React", "multi-tenant business_id Tier 0 · nº de módulos: recibo abaixo")
       ContainerDb(mysql, "MySQL u906587222", "MySQL", "dados de negócio + mcp_*")
     }
     System_Boundary(ct100, "CT 100 — daemons/IA (tailscale)") {
@@ -98,6 +86,18 @@ C4Container
     Rel(erp, mysql, "")
 ```
 
+> 🧾 **Recibo da contagem de módulos** — o rótulo do container **aponta, não crava** (o `36 módulos` que ficava ali apodreceu; ver o histórico de versões no fim do doc):
+>
+> ```bash
+> git ls-tree -d --name-only origin/main Modules/ | wc -l
+> ```
+>
+> → **32** em **2026-08-03**, medido na **árvore git de `origin/main`** (rev `3800a039`). O mesmo 32 sai contando `module.json` (`git ls-tree -r --name-only origin/main Modules/ | grep -c '^Modules/[^/]*/module\.json$'`) — **diretório e `module.json` coincidem, então o denominador é único** e não precisa de desempate.
+>
+> ⚠️ **`modules_statuses.json` responde 38 e NÃO é contagem de módulos:** ele carrega 6 entradas fantasma (`Accounting`, `CustomDashboard`, `Ecommerce`, `FieldForce`, `Hms`, `InboxReport`) de módulos que não existem mais na árvore. Três fontes, dois números — por isso a contagem não pode ser cravada à mão aqui.
+>
+> **Dono vivo da lista** (não re-listar aqui): [PAINEL-SISTEMA.md](../reference/PAINEL-SISTEMA.md) §"Módulos & verticais", derivado por `scripts/governance/system-map.mjs`. _(Lei: [proibicoes.md §5 2026-07-17](../proibicoes.md) — doc canônico não repete número que outro sistema sabe melhor.)_
+
 > Detalhe de acesso/deploy: [reference/INFRA-ACESSO-CANON.md](../reference/INFRA-ACESSO-CANON.md). Reconcile/drift do estado: `governance:audit` (DriftCheckers).
 
 ---
@@ -108,7 +108,9 @@ C4Container
 >
 > **Detalhe por módulo que o PAINEL não tem** (rotas · views · migrations · permissões · hooks · prioridade/risco, **e os 8 módulos perdidos na migração 3.7 → 6.7**): [modulos/INDEX.md](../modulos/INDEX.md), gerado por `php artisan module:specs`. Os "perdidos" são **cross-branch** (`main-wip-2026-04-22`, `origin/3.7-com-nfe`) e por isso **não são deriváveis da árvore atual** — `IndexReconciler.php:45-48` declara isso e se recusa a curar o número.
 >
-> ⚠️ **Não re-citar aqui o "44 detectados / 36 ativos" daquele arquivo.** `44` é o universo cross-branch, não "quantos módulos o sistema tem"; e o `36` está stale em 1 (o `VozDoCliente` nasceu depois). Recibo: `git ls-tree -d --name-only HEAD Modules/ | wc -l` → **37** em 2026-07-29. Quem errou não foi o gerador — foi este doc, que citou censo de branch morta como contagem viva. _(Lei: [proibicoes.md §5 2026-07-17](../proibicoes.md) — doc canônico não repete número que outro sistema sabe melhor; aponta pro dono ou carrega recibo datado.)_
+> ⚠️ **Não re-citar aqui o "44 detectados / 36 ativos" daquele arquivo.** `44` é o universo cross-branch, não "quantos módulos o sistema tem". Quem errou não foi o gerador — foi este doc, que citou censo de branch morta como contagem viva. **A contagem viva tem recibo único em §1-bis** — não restatear o número aqui (dois recibos do mesmo fato drifam separado). _(Lei: [proibicoes.md §5 2026-07-17](../proibicoes.md) — doc canônico não repete número que outro sistema sabe melhor; aponta pro dono ou carrega recibo datado.)_
+>
+> 🩹 **Correção de 2026-08-03 sobre a redação anterior desta nota (fica registrada, não apagada):** ela carregava o recibo `git ls-tree -d --name-only HEAD Modules/ | wc -l` → **37 em 2026-07-29**, com dois defeitos. **(1) Comando não reprodutível:** `HEAD` é a branch de quem rodou, não uma referência estável — em worktree paralelo o mesmo comando responde outro número (§5 2026-07-28: conferir em que branch está o diretório onde se mediu). O recibo de §1-bis usa `origin/main`. **(2) O número caducou em 5 dias:** entre 07-29 e 08-03 saíram `SRS` (#5036), `Admin` (#5062), `ProjectMgmt`→`Forja` (#5089), `Brief` (#5098), `TeamMcp` (#5122) e `ADS` (#5135) — de 36 em `main` no fim de 07-29 para **32**. É a prova viva de por que a contagem mora no comando, não no texto.
 
 | Módulo | Estado | Categoria | Trust-alvo | Decisão |
 |---|---|---|---|---|
@@ -146,7 +148,9 @@ C4Container
 | **Notas (NEW)** | a criar | Personal | L2 PRODUCT | Fase 3 — extração gradual de Essentials |
 | **Governance (NEW)** | a criar | Governance | L1 GOVERNANCE | Fase 5 — ActionGate + UI |
 
-**Total:** 30 atuais → após Fase 3: **27 ativos** (deletes: Writebot, Project legado) + **3 novos** (Jana via rename, Notas, Governance) + **2 renames preservando id de DB** (Ponto via rename de PontoWr2; Forja via rename de ProjectMgmt — alvo `Project` abandonado, 2026-07-30) + **1 repurpose** (SRS via repurpose de MemCofre)
+**Aritmética do plano, como decidida em 2026-05-05** (não é o estado de hoje — a contagem viva tem recibo em §1-bis): partindo dos **30 módulos de 2026-05-05** → após Fase 3: **27 ativos** (deletes: Writebot, Project legado) + **3 novos** (Jana via rename, Notas, Governance) + **2 renames preservando id de DB** (Ponto via rename de PontoWr2; Forja via rename de ProjectMgmt — alvo `Project` abandonado, 2026-07-30) + **1 repurpose** (SRS via repurpose de MemCofre).
+
+> ⚠️ O plano foi ultrapassado pelos fatos: `SRS` chegou a existir e **foi removido** em 2026-07-29 (#5036), e `ADS`/`TeamMcp` — que a tabela acima manda "manter" — **foram deletados** em 2026-07-31 (#5135/#5122). A tabela permanece como registro da decisão de 2026-05-05; para saber o que existe hoje, use o dono vivo (PAINEL-SISTEMA), nunca esta tabela.
 
 ---
 
@@ -307,4 +311,5 @@ A meta-skill `meta-skill-roi-erp-autonomo` é trust L1 — só Wagner edita.
 
 ## Histórico de versões
 
+- **v1.1.0** (2026-08-03) — **Tira as contagens cravadas à mão.** O rótulo do C4-Container em §1-bis dizia `36 módulos` (a árvore tinha **32**); a nota de §2 carregava um recibo `HEAD → 37 em 2026-07-29`, já caduco em 5 dias e medido num comando não-reprodutível (`HEAD` = branch de quem roda). Passam a **apontar pro dono** (PAINEL-SISTEMA) com **um recibo único e datado** em §1-bis (`origin/main`, comando + resultado + data + rev). §1 vira **Mermaid** (o ASCII não diffa em PR) e perde o bloco de módulos-por-tier que duplicava §5/PAINEL e apodrecera em 6 nomes. §2 e o cabeçalho passam a marcar explicitamente o que é **snapshot do plano de 2026-05-05** vs. estado vivo. Nenhuma decisão removida — renames em §3, trust em §5.
 - **v1.0.0** (2026-05-05) — Vista inicial. 30 módulos mapeados, 5 renomeações + 2 depreciações + 1 repurpose decididos.
