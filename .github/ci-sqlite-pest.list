@@ -296,33 +296,44 @@ Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
 # lane e o unico lugar onde eles de fato EXECUTAM; na lane MySQL viram skip.
 # Schema sintetico montado no beforeEach, sem migration MySQL-only.
 #
-# FICAM DE FORA — 4 arquivos, cada um por motivo MEDIDO (run 30778559754):
+# FICA DE FORA — 1 arquivo (era 4 ate 2026-08-03; os outros 3 foram consertados,
+# ver abaixo):
 #
-# 1) PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST
-#    por desenho: denuncia a assinatura com valor negociado que nunca fatura, e o
-#    remedio e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o
-#    vermelho que e o ACHADO travaria todo merge em main.
+# PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST por
+# desenho: denuncia a assinatura com valor negociado que nunca fatura, e o remedio
+# e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o vermelho que e
+# o ACHADO travaria todo merge em main.
 #
-# Os 3 abaixo eu ADICIONEI, a lane RODOU e reprovou. Divida PRE-EXISTENTE que so
-# ficou visivel porque a lane ligou (proibicoes §5 2026-07-28: "defeito em teste
-# que nao roda e invisivel ate a lane ligar"). NAO e regressao deste PR — nenhum
-# deles jamais rodou em CI algum. Ficam fora ate o teste ser consertado:
+# ── OS 3 QUE VOLTARAM (2026-08-03) ───────────────────────────────────────────
+# Reprovaram no run 30778559754, quando a lane os rodou pela PRIMEIRA vez. Divida
+# pre-existente, invisivel ate a lane ligar (proibicoes §5 2026-07-28). Diagnostico
+# feito, defeito era do TESTE nos tres casos — zero mudanca em codigo de produto:
 #
-# 2) Wave21NewSubscriptionTest.php   (UC-RBSUB-01/02/03) — 4 errors
-# 3) Wave23EditarAssinaturaTest.php  (UC-RBSUB-04)       — 1 failure + 2 errors
-#    Ambos: `AuthorizationException: This action is unauthorized`. Exercitam
-#    controller com FormRequest::authorize(), e a lane sqlite nao semeia as
-#    permissions Spatie que o Gate exige.
+#  Wave21NewSubscriptionTest + Wave23EditarAssinaturaTest (UC-RBSUB-01..04)
+#    Ambos declaravam "auth bypassado via Gate::before" e NUNCA autenticavam. Duas
+#    causas somadas: (a) `authorize()` devolve `$this->user() !== null` — exige
+#    USUARIO, nao permissao; (b) `Gate::before(fn () => true)` tem ZERO parametros
+#    e o Laravel so invoca before-callback pra visitante anonimo se o callback
+#    aceitar null no 1o parametro (Gate::callbackAllowsGuests) — sem usuario logado
+#    o callback nem dispara. Fix: actingAs(user biz=1) no beforeEach, padrao vivo
+#    do RefundCobrancaAsaasJobTest.
 #
-# 4) InvoiceGeneratorServiceTest.php (UC-RBFAT-08..11)   — 1 failure
-#    `2. Idempotencia: 2x run() nao duplica invoice` (linha 226). ATENCAO ao ler:
-#    a assercao de NAO-DUPLICACAO PASSOU (linha 225, generated==0) — nao ha
-#    indicio de cobranca dupla. O que falhou e o CONTADOR: esperava skipped==1,
-#    veio 0. O contrato do UC-RBFAT-08 promete um `skipped` que o codigo nao
-#    entrega. Diagnostico e remedio sao [V0] (REGRA MESTRE valor) = decisao [W].
+#  InvoiceGeneratorServiceTest (UC-RBFAT-08..11)
+#    NAO era o contador do servico. O teste simulava a re-execucao com
+#    `$sub->update([...])` sobre instancia STALE: o run 1 gravara 2026-08-15, o
+#    modelo em memoria ainda achava 2026-07-15, entao `getDirty()` vinha vazio e o
+#    Eloquent NAO emitia UPDATE. A linha ficava em agosto, o run 2 nao achava
+#    candidato, e `generated==0` passava por AUSENCIA DE TRABALHO — verde por
+#    nao-execucao (LC-13) dentro do teste que afirma provar idempotencia. O
+#    `skipped==1` era o unico assert que denunciava isso. Fix: UPDATE de
+#    query-builder + pre-condicao anti-vacuo provando que a assinatura voltou a ser
+#    candidata. O servico esta correto e nao foi tocado.
 Modules/RecurringBilling/Tests/Feature/AsaasWebhookAuthTest.php
 Modules/RecurringBilling/Tests/Feature/AsaasWebhookIdempotencyTest.php
 Modules/RecurringBilling/Tests/Feature/AssinaturaCobrancaServiceTest.php
+Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php
+Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php
+Modules/RecurringBilling/Tests/Feature/Wave23EditarAssinaturaTest.php
 Modules/RecurringBilling/Tests/Feature/CustomerJourneyTest.php
 Modules/RecurringBilling/Tests/Feature/InterWebhookControllerTest.php
 Modules/RecurringBilling/Tests/Feature/RefundCobrancaAsaasJobTest.php
@@ -353,24 +364,15 @@ Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
 Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitParaDbColetarTest.php
 Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
 
-# NAO ligar ainda — tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
-# (7 casos). Foi ligado nesta branch, rodou, e deu 7 ERRORS na corrida
-# 30783000852 — todos a mesma causa:
-#   QueryException: table mcp_memory_documents has no column named business_id
-#   (IndexarMemoryGitParaDb.php:632 <- :87)
-# A fixture sintetica do teste esta 3 migrations ATRAS do schema real: faltam
-# business_id (add_business_id, 2026-04-30), os 10 tipados de add_typed_cols
-# (status/authority/lifecycle/quarter/decided_at/decided_by/tags/supersedes/
-# superseded_by/related, 2026-05-01) e has_pii. O service escreve as colunas; a
-# fixture nunca acompanhou.
+# Religado apos o conserto da fixture (follow-up do #5213, autorizado [W]).
+# Historico: ao ser ligado no #5213 deu 7 ERRORS (corrida 30783000852), todos
+# `table mcp_memory_documents has no column named business_id` — a fixture
+# sintetica estava 3 migrations atras do schema (faltavam business_id + os 11
+# tipados + os 3 contextual). Fixture agora e DERIVADA das migrations, com os
+# arquivos-fonte citados no proprio beforeEach.
 #
-# ACHADO QUE IMPORTA MAIS QUE O ERRO: este teste NAO roda em lugar NENHUM hoje.
-# Fora de lane de PR (medidor) E pulado na nightly do CT100, porque a nightly
-# roda MySQL e o guard sqlite-only o manda pra skip. Nao e "feedback tardio" —
-# e ausencia total, com cara de verde (LC-13).
-#
-# Religar exige conserto de fixture que toca `business_id` = Tier 0 multi-tenant:
-# so adicionar a coluna nullable faz os 7 passarem SEM que nenhum caso exerca
-# isolamento — verde fabricado. O follow-up tem que trazer a fixture derivada das
-# migrations + ao menos 1 caso biz=1 vs biz=99. Decisao [W] 2026-08-03: sai deste
-# PR, vai pra PR propria (1 PR = 1 intent).
+# +8 casos (os 7 originais + 1 Tier 0 NOVO). O Tier 0 existe porque sem a coluna
+# `business_id` era IMPOSSIVEL escrever isolamento: os 7 originais nunca tocaram
+# multi-tenant. Ancorado no docblock de McpMemoryDocument::scopeDoBusiness +
+# ADR 0093 — nao no que o service faz hoje.
+tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php

@@ -218,8 +218,32 @@ test('UC-RBFAT-08 · 2. Idempotência: 2x run() nao duplica invoice', function (
 
     $service = new InvoiceGeneratorService();
     $service->run(1, '2026-07-15');
-    // Re-aponta next_due_date pra mesma data simulando re-execução do job
-    $sub->update(['next_due_date' => '2026-07-15']);
+
+    // Re-aponta next_due_date pra mesma data, simulando re-execução do job.
+    //
+    // TEM que ser UPDATE de query-builder. A redação anterior era
+    // `$sub->update(['next_due_date' => '2026-07-15'])` e era um NO-OP SILENCIOSO:
+    // o run 1 gravou 2026-08-15 no banco, mas `$sub` é uma instância STALE que ainda
+    // acredita valer 2026-07-15. `Model::update()` faz `fill()->save()`, e o
+    // `performUpdate` só emite SQL se `getDirty()` for não-vazio — preencher o
+    // atributo com o valor que o modelo JÁ acha que tem deixa o dirty vazio.
+    // Resultado: a linha continuava em agosto, o run 2 não achava candidato, e
+    // `generated == 0` passava por AUSÊNCIA DE TRABALHO, não porque a guarda de
+    // idempotência funcionou. O `skipped == 1` era o único assert que denunciava
+    // isso — e vinha sendo lido como "o contador do serviço está errado".
+    Subscription::query()->whereKey($sub->getKey())->update(['next_due_date' => '2026-07-15']);
+
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO (proibicoes §5 2026-07-24): prova que a assinatura
+    // voltou a ser CANDIDATA antes de afirmar qualquer coisa sobre o 2º run. Sem
+    // isto, este teste mede "o job não rodou" e chama de "não duplicou".
+    expect(
+        Subscription::query()
+            ->where('business_id', 1)
+            ->where('status', 'active')
+            ->whereDate('next_due_date', '<=', '2026-07-15')
+            ->count()
+    )->toBe(1);
+
     $stats2 = $service->run(1, '2026-07-15');
 
     expect($stats2['generated'])->toBe(0);
