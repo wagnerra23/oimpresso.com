@@ -131,6 +131,12 @@ jobs:
         # local (onde `origin/3.7-com-nfe` existe e é medida de verdade).
         # O irmão `ModuleManagerTest.php` segue FORA: ele testa `PontoWr2`, renomeado pra
         # `Ponto`, e entraria vermelho por dívida pré-existente — conserto é chip à parte.
+        #
+        # B7-cobertura (2026-08-02): `BancoHorasIndexContratoTest` entra escrito em Pest
+        # `it()` com o UC no TÍTULO — os 3 *ContratoTest acima têm o UC em DOCBLOCK e por
+        # isso nunca chegam ao manifesto G-7 (`casos-results-collect` lê o `name` do
+        # `<testcase>`; método PHP não aceita hífen). Rodam verdes valendo 0 no painel.
+        # Conversão deles é oportunística, não varredura em lote.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -139,6 +145,7 @@ jobs:
             Modules/Ponto/Tests/Feature/EspelhoContratoTest.php \
             Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php \
+            Modules/Ponto/Tests/Feature/BancoHorasIndexContratoTest.php \
             Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
       - name: Upload JUnit (Ponto · MySQL)
