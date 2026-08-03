@@ -109,7 +109,13 @@ class EspelhoController extends Controller
             'adicional_not' => (int) $apuracoes->sum('adicional_noturno_minutos'),
             'bh_credito'    => (int) $apuracoes->sum('banco_horas_credito_minutos'),
             'bh_debito'     => (int) $apuracoes->sum('banco_horas_debito_minutos'),
-            'divergencias'  => $apuracoes->where('tem_divergencia', true)->count(),
+            // US-PONTO-012 (SDD §9 D-1): era `where('tem_divergencia', true)` — atributo
+            // que NÃO existe (nem coluna, nem accessor, nem $appends), então resolvia
+            // null e o contador dava 0 SEMPRE. Quem grava a verdade é o ApuracaoService:
+            // `count($apuracao->divergencias) > 0` → `estado = DIVERGENCIA`. A Blade
+            // legada contava exatamente assim; a migração para React perdeu a feature em
+            // silêncio, e com ela o aviso de violação de Art. 66 e Art. 71 §4º.
+            'divergencias'  => $apuracoes->where('estado', ApuracaoDia::ESTADO_DIVERGENCIA)->count(),
         ];
     }
 
@@ -155,7 +161,9 @@ class EspelhoController extends Controller
                 'atraso'    => $a ? (int) $a->atraso_minutos : 0,
                 'falta'     => $a ? (int) $a->falta_minutos : 0,
                 'he'        => $a ? ((int) $a->he_diurna_minutos + (int) $a->he_noturna_minutos) : 0,
-                'divergencia' => $a ? (bool) $a->tem_divergencia : false,
+                // US-PONTO-012 (SDD §9 D-1): idem — `tem_divergencia` não existe, então
+                // o realce da linha era `false` sempre. Fonte da verdade: `estado`.
+                'divergencia' => $a ? $a->estado === ApuracaoDia::ESTADO_DIVERGENCIA : false,
                 'marcacoes' => $mgs->map(fn ($m) => [
                     'hora'   => $m->momento->format('H:i'),
                     'tipo'   => $m->tipo,

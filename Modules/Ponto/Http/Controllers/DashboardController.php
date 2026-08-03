@@ -119,8 +119,19 @@ class DashboardController extends Controller
                 'id'             => $i->id,
                 'tipo'           => $i->tipo,
                 'prioridade'     => $i->prioridade,
-                'data_inicio'    => $i->data_inicio?->format('Y-m-d'),
-                'data_fim'       => $i->data_fim?->format('Y-m-d'),
+                // US-PONTO-012 — 5ª instância do padrão (SDD §9 D-1/D-8), achada ao
+                // re-rodar o detector como controle depois de corrigir as outras 4.
+                // `data_inicio`/`data_fim` não existem em `ponto_intercorrencias`: a
+                // coluna é `data` (a intercorrência é de UM dia; o recorte por hora vem
+                // de `intervalo_inicio`/`intervalo_fim`). O `?->` mascarava igual ao
+                // `?? 0` do D-8 — `null?->format()` devolve null sem erro, então o
+                // Dashboard mostrava a data em branco em toda intercorrência recente.
+                'data_inicio'    => optional($i->data)->format('Y-m-d'),
+                // Mantida no payload porque o `Dashboard/Index.tsx:42` a tipa, mas fica
+                // explicitamente null: a entidade NÃO tem data-fim, e inventar uma
+                // (repetir `data`, somar intervalo) seria criar semântica que o domínio
+                // não define. Remover a chave é decisão de front, não deste fix.
+                'data_fim'       => null,
                 'justificativa'  => $i->justificativa,
                 'estado'         => $i->estado,
                 'created_at'     => $i->created_at?->diffForHumans(),
