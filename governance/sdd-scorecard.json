@@ -23,27 +23,27 @@
       "detail": {
         "coverage_pct": 87.9,
         "specs_total": 50,
-        "us_total": 931,
+        "us_total": 934,
         "anchor_coverage_pct": 87.9,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 381,
+          "pendente": 384,
           "parcial": 112,
           "anchored_ok": 325,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 824,
+        "fields_total": 827,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 771,
+        "fields_grammar_ok": 774,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 246,
         "req_sem_covering_test_total": 350,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 58,
+        "req_sem_lane_total": 53,
         "behavior_known": false,
         "servido_total": 16,
         "nao_servido_total": 89,
@@ -66,22 +66,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 341,
+      "value": 342,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "45eacddf1114ebff",
+        "floor_files_hash": "603afb947db46ef3",
         "runs": [
-          {
-            "sha": "32c357dc",
-            "ts": "20260731-020002",
-            "failed": 701,
-            "errors": 381,
-            "skipped": 2219,
-            "all_shards_measured": true
-          },
           {
             "sha": "6a8d6e2b",
             "ts": "20260801-020001",
@@ -91,15 +83,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "5d5cac07",
             "ts": "20260802-020001",
             "failed": 643,
             "errors": 418,
             "skipped": 2308,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260803-020001",
+            "failed": 690,
+            "errors": 395,
+            "skipped": 2289,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260802-020001",
+        "computed_at": "20260803-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -118,22 +118,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 19.6,
+      "value": 19.8,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 45915,
-        "total": 234433,
+        "covered": 46350,
+        "total": 234598,
         "runs": [
-          {
-            "sha": "32c357dc",
-            "ts": "20260731-020002",
-            "coverage_pct": 19.4,
-            "covered": 46234,
-            "total": 237833
-          },
           {
             "sha": "6a8d6e2b",
             "ts": "20260801-020001",
@@ -142,14 +135,21 @@
             "total": 234483
           },
           {
-            "sha": null,
+            "sha": "5d5cac07",
             "ts": "20260802-020001",
             "coverage_pct": 19.6,
             "covered": 45915,
             "total": 234433
+          },
+          {
+            "sha": null,
+            "ts": "20260803-020001",
+            "coverage_pct": 19.8,
+            "covered": 46350,
+            "total": 234598
           }
         ],
-        "computed_at": "20260802-020001",
+        "computed_at": "20260803-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -209,22 +209,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 75,
+      "value": 60,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 4,
+        "weeks_expected": 5,
         "weeks_valid": 3,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-07-26",
+        "last_week": "2026-08-02",
         "latest": {
-          "gate_status": "fail",
-          "n_evaluated": 51,
-          "faithfulness_avg": 0.6865,
-          "relevancy_avg": 0.8294,
-          "context_recall_avg": 0.3461
+          "gate_status": "skipped",
+          "n_evaluated": 0,
+          "faithfulness_avg": null,
+          "relevancy_avg": null,
+          "context_recall_avg": null
         }
       },
       "stream": "MEM"
@@ -280,10 +280,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 45,
+        "entries_aprovadas": 46,
         "max_error_rate_pct": 1.82,
-        "last_pr": 5036,
-        "last_lote": "SRS-E5E6-saneamento-ghost-05"
+        "last_pr": 5165,
+        "last_lote": "B6-fosseis-raiz-requisitos-01"
       },
       "stream": "GT"
     }
