@@ -11,6 +11,8 @@ declare(strict_types=1);
  *   UC-RBSUB-04 — editar cobrança: 404 cross-tenant · 422 se cancelada [T0][V0]
  */
 
+use App\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -71,6 +73,29 @@ beforeEach(function () {
         $t->timestamps();
     });
 
+    Schema::dropIfExists('users');
+    Schema::create('users', function (Blueprint $t) {
+        $t->increments('id');
+        $t->string('username')->unique();
+        $t->string('password');
+        $t->integer('business_id')->nullable();
+        $t->rememberToken();
+        $t->softDeletes();
+        $t->timestamps();
+    });
+
+    // AUTENTICAR É OBRIGATÓRIO, não opcional (fix 2026-08-03) — mesma causa do
+    // Wave21NewSubscriptionTest, ver o comentário longo de lá. Resumo:
+    //  1. `UpdateAssinaturaRequest::authorize()` devolve `$this->user() !== null`.
+    //  2. `Gate::before(fn () => true)` tem ZERO parâmetros e, sem usuário logado, o
+    //     Laravel nem invoca o callback (Gate::callbackAllowsGuests) — logo o
+    //     `Gate::authorize('update', $sub)` do controller negava.
+    // biz=1 sempre — NUNCA biz=4, que é cliente real (ADR 0101).
+    $this->actingAs(User::forceCreate([
+        'username' => 'rbw23_biz1_' . uniqid(),
+        'password' => bcrypt('x'),
+        'business_id' => 1,
+    ]));
     Gate::before(fn () => true);
     Event::fake([AssinaturaAtualizada::class]);
     session(['user.business_id' => 1]);
@@ -84,6 +109,7 @@ afterEach(function () {
     if (config('database.default') === 'sqlite'
         && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         Schema::dropIfExists('rb_subscriptions');
+        Schema::dropIfExists('users');
     }
     Mockery::close();
 });

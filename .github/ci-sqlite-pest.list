@@ -296,33 +296,44 @@ Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
 # lane e o unico lugar onde eles de fato EXECUTAM; na lane MySQL viram skip.
 # Schema sintetico montado no beforeEach, sem migration MySQL-only.
 #
-# FICAM DE FORA — 4 arquivos, cada um por motivo MEDIDO (run 30778559754):
+# FICA DE FORA — 1 arquivo (era 4 ate 2026-08-03; os outros 3 foram consertados,
+# ver abaixo):
 #
-# 1) PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST
-#    por desenho: denuncia a assinatura com valor negociado que nunca fatura, e o
-#    remedio e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o
-#    vermelho que e o ACHADO travaria todo merge em main.
+# PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST por
+# desenho: denuncia a assinatura com valor negociado que nunca fatura, e o remedio
+# e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o vermelho que e
+# o ACHADO travaria todo merge em main.
 #
-# Os 3 abaixo eu ADICIONEI, a lane RODOU e reprovou. Divida PRE-EXISTENTE que so
-# ficou visivel porque a lane ligou (proibicoes §5 2026-07-28: "defeito em teste
-# que nao roda e invisivel ate a lane ligar"). NAO e regressao deste PR — nenhum
-# deles jamais rodou em CI algum. Ficam fora ate o teste ser consertado:
+# ── OS 3 QUE VOLTARAM (2026-08-03) ───────────────────────────────────────────
+# Reprovaram no run 30778559754, quando a lane os rodou pela PRIMEIRA vez. Divida
+# pre-existente, invisivel ate a lane ligar (proibicoes §5 2026-07-28). Diagnostico
+# feito, defeito era do TESTE nos tres casos — zero mudanca em codigo de produto:
 #
-# 2) Wave21NewSubscriptionTest.php   (UC-RBSUB-01/02/03) — 4 errors
-# 3) Wave23EditarAssinaturaTest.php  (UC-RBSUB-04)       — 1 failure + 2 errors
-#    Ambos: `AuthorizationException: This action is unauthorized`. Exercitam
-#    controller com FormRequest::authorize(), e a lane sqlite nao semeia as
-#    permissions Spatie que o Gate exige.
+#  Wave21NewSubscriptionTest + Wave23EditarAssinaturaTest (UC-RBSUB-01..04)
+#    Ambos declaravam "auth bypassado via Gate::before" e NUNCA autenticavam. Duas
+#    causas somadas: (a) `authorize()` devolve `$this->user() !== null` — exige
+#    USUARIO, nao permissao; (b) `Gate::before(fn () => true)` tem ZERO parametros
+#    e o Laravel so invoca before-callback pra visitante anonimo se o callback
+#    aceitar null no 1o parametro (Gate::callbackAllowsGuests) — sem usuario logado
+#    o callback nem dispara. Fix: actingAs(user biz=1) no beforeEach, padrao vivo
+#    do RefundCobrancaAsaasJobTest.
 #
-# 4) InvoiceGeneratorServiceTest.php (UC-RBFAT-08..11)   — 1 failure
-#    `2. Idempotencia: 2x run() nao duplica invoice` (linha 226). ATENCAO ao ler:
-#    a assercao de NAO-DUPLICACAO PASSOU (linha 225, generated==0) — nao ha
-#    indicio de cobranca dupla. O que falhou e o CONTADOR: esperava skipped==1,
-#    veio 0. O contrato do UC-RBFAT-08 promete um `skipped` que o codigo nao
-#    entrega. Diagnostico e remedio sao [V0] (REGRA MESTRE valor) = decisao [W].
+#  InvoiceGeneratorServiceTest (UC-RBFAT-08..11)
+#    NAO era o contador do servico. O teste simulava a re-execucao com
+#    `$sub->update([...])` sobre instancia STALE: o run 1 gravara 2026-08-15, o
+#    modelo em memoria ainda achava 2026-07-15, entao `getDirty()` vinha vazio e o
+#    Eloquent NAO emitia UPDATE. A linha ficava em agosto, o run 2 nao achava
+#    candidato, e `generated==0` passava por AUSENCIA DE TRABALHO — verde por
+#    nao-execucao (LC-13) dentro do teste que afirma provar idempotencia. O
+#    `skipped==1` era o unico assert que denunciava isso. Fix: UPDATE de
+#    query-builder + pre-condicao anti-vacuo provando que a assinatura voltou a ser
+#    candidata. O servico esta correto e nao foi tocado.
 Modules/RecurringBilling/Tests/Feature/AsaasWebhookAuthTest.php
 Modules/RecurringBilling/Tests/Feature/AsaasWebhookIdempotencyTest.php
 Modules/RecurringBilling/Tests/Feature/AssinaturaCobrancaServiceTest.php
+Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php
+Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php
+Modules/RecurringBilling/Tests/Feature/Wave23EditarAssinaturaTest.php
 Modules/RecurringBilling/Tests/Feature/CustomerJourneyTest.php
 Modules/RecurringBilling/Tests/Feature/InterWebhookControllerTest.php
 Modules/RecurringBilling/Tests/Feature/RefundCobrancaAsaasJobTest.php

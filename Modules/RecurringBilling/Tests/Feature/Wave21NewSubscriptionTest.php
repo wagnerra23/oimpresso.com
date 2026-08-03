@@ -13,6 +13,8 @@ declare(strict_types=1);
  *   UC-RBSUB-03 — busca de cliente não vaza outro business nem tipo errado [T0]
  */
 
+use App\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
@@ -32,7 +34,10 @@ uses(Tests\TestCase::class);
  *  - RecurringBillingController::searchContacts scopa por business_id (Tier 0).
  *
  * SQLite in-memory (espelha Wave6PlanCrudTest) — migrations legadas UltimatePOS
- * usam sintaxe MySQL-only. Auth Spatie/Gate é bypassado via Gate::before.
+ * usam sintaxe MySQL-only. Auth: usuário biz=1 autenticado no beforeEach (obrigatório —
+ * `authorize()` exige `$this->user() !== null`) + `Gate::before` pra dispensar a permission
+ * Spatie. Ver o comentário longo no beforeEach: só o `Gate::before` NÃO basta, e a redação
+ * anterior desta linha ("bypassado via Gate::before") era falsa.
  *
  * Multi-tenant Tier 0 (ADR 0093) + biz=1 (ADR 0101): NUNCA biz=4.
  */
@@ -112,7 +117,42 @@ beforeEach(function () {
         $t->softDeletes();
     });
 
-    // Bypass auth/Gate — qualquer authorize() passa.
+    Schema::dropIfExists('users');
+    Schema::create('users', function (Blueprint $t) {
+        $t->increments('id');
+        $t->string('username')->unique();
+        $t->string('password');
+        $t->integer('business_id')->nullable();
+        $t->rememberToken();
+        $t->softDeletes();
+        $t->timestamps();
+    });
+
+    // AUTENTICAR É OBRIGATÓRIO, não opcional (fix 2026-08-03).
+    //
+    // A redação anterior era `Gate::before(fn () => true)` sozinho, com o comentário
+    // "Bypass auth/Gate — qualquer authorize() passa". Era FALSO, por dois motivos
+    // independentes, e o arquivo inteiro morria em AuthorizationException:
+    //
+    //  1. `StoreAssinaturaRequest::authorize()` devolve `$this->user() !== null` —
+    //     exige USUÁRIO, não permissão. Nenhum before-callback do Gate satisfaz isso.
+    //  2. `Gate::before(fn () => true)` tem ZERO parâmetros, e o Laravel só invoca
+    //     before-callback para visitante anônimo quando o callback declara o 1º
+    //     parâmetro aceitando null (Gate::callbackAllowsGuests usa
+    //     `isset($reflection->getParameters()[0])`). Sem usuário logado o callback
+    //     NUNCA dispara — então o `Gate::authorize('create', Subscription::class)`
+    //     do RecurringBillingController::store/searchContacts negava.
+    //
+    // Autenticar resolve os dois de uma vez: `$this->user()` deixa de ser null E os
+    // before-callbacks passam a ser invocados. Padrão vivo do módulo:
+    // RefundCobrancaAsaasJobTest (verde na lane sqlite).
+    //
+    // biz=1 sempre — NUNCA biz=4, que é cliente real (ADR 0101).
+    $this->actingAs(User::forceCreate([
+        'username' => 'rbw21_biz1_' . uniqid(),
+        'password' => bcrypt('x'),
+        'business_id' => 1,
+    ]));
     Gate::before(fn () => true);
     session(['user.business_id' => 1]);
 });
@@ -127,6 +167,7 @@ afterEach(function () {
         && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         Schema::dropIfExists('rb_subscriptions');
         Schema::dropIfExists('rb_plans');
+        Schema::dropIfExists('users');
     }
 });
 
