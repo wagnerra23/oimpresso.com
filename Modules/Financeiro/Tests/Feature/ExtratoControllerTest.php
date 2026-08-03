@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Financeiro\Tests\Feature;
 
 use App\Account;
+use App\Business;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -84,8 +85,20 @@ class ExtratoControllerTest extends FinanceiroTestCase
 
     public function test_index_404_quando_conta_eh_de_outro_business(): void
     {
-        // Cria account+conta em outro business
-        $otherBusinessId = $this->business->id + 9999;
+        // O "outro business" precisa EXISTIR de verdade: fin_contas_bancarias.business_id
+        // tem FK pra business (ON DELETE CASCADE). O id sintético que estava aqui
+        // ($this->business->id + 9999) estourava SQLSTATE 23000/1452 no insert abaixo,
+        // e o caso morria ANTES de exercer o 404 — ou seja, o [T0] cross-tenant desta
+        // tela nunca foi provado. Padrão canônico do próprio módulo:
+        // BackfillExtratoOfxTest:256 e BridgeExpenseToTitulosCommandTest:281.
+        $otherBusiness = Business::where('id', '!=', $this->business->id)->first();
+
+        if (! $otherBusiness) {
+            $this->markTestSkipped('Sem segundo business no banco pra provar isolamento cross-tenant.');
+        }
+
+        $otherBusinessId = (int) $otherBusiness->id;
+
         $otherAccountId = DB::table('accounts')->insertGetId([
             'business_id' => $otherBusinessId,
             'name'        => 'Outro biz',
