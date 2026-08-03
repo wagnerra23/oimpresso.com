@@ -86,6 +86,7 @@ Acesso/deploy detalhado: [reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESS
 - **Jana IA** — copiloto conversacional com memória persistente ([Modules/Jana](../Modules/Jana/), skill `jana-arch`)
 - **FSM Pipeline** — toda mudança de estado de Venda/OS passa por `ExecuteStageActionService` ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)); UPDATE direto em `current_stage_id` é bloqueado
 - **MCP server** (`mcp.oimpresso.com`) — expõe conhecimento canônico do `memory/` como tools ([ADR 0053](decisions/0053-mcp-server-governanca-como-produto.md))
+- **Forja** — a **cara humana** do estado vivo que a PARTE B consulta por tool: Kanban, backlog, roadmap, triagem, caixa de entrada e burndown em `/project-mgmt`, sobre as mesmas tabelas `mcp_*` que as tools `tasks-*`/`cycles-*` leem. A administração do time e dos tokens MCP mora em `/team-mcp`, no mesmo módulo ([Modules/Forja](../Modules/Forja/))
 - **Multi-tenant Tier 0** — `business_id` global scope obrigatório; vazar dado entre tenants é o pior bug possível ([ADR 0093](decisions/0093-multi-tenant-isolation-tier-0.md))
 
 ### A7. Por que existe assim — três eras
