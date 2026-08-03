@@ -67,6 +67,7 @@ class SecretsAuditCommand extends Command
         $this->info(sprintf('[secrets:audit] %d entries carregadas', count($entries)));
 
         $changes = [];
+        $naoMedidos = [];
         foreach ($entries as $entry) {
             if ($this->option('filter') && ! str_contains(strtolower($entry['name']), strtolower($this->option('filter')))) {
                 continue;
@@ -75,20 +76,33 @@ class SecretsAuditCommand extends Command
             $oldStatus = $entry['status'];
             $newStatus = $this->validateEntry($entry);
 
-            if ($oldStatus !== $newStatus) {
+            if (self::ehDrift($oldStatus, $newStatus)) {
                 $changes[] = [
                     'name' => $entry['name'],
                     'old' => $oldStatus,
                     'new' => $newStatus,
                 ];
                 $this->warn(sprintf('  ⚠️  %s: %s → %s', $entry['name'], $oldStatus, $newStatus));
+            } elseif (trim($newStatus) === self::NAO_MEDIDO) {
+                // Não afirmar ✅ sobre o que não foi medido — o relatório passa a
+                // distinguir "validei e bate" de "não consegui validar".
+                $naoMedidos[] = $entry['name'];
+                $this->line(sprintf('  ⏸  %s: NÃO MEDIDO (índice diz: %s)', $entry['name'], $oldStatus));
             } else {
                 $this->line(sprintf('  ✅ %s: %s', $entry['name'], $newStatus));
             }
         }
 
         if (count($changes) === 0) {
-            $this->info('[secrets:audit] ✅ todos secrets em estado consistente, sem drift');
+            if ($naoMedidos !== []) {
+                $this->info(sprintf(
+                    '[secrets:audit] ✅ nenhum drift de ESTADO nos medidos — ⏸ %d NÃO medido(s): %s. Sobre esse(s) nada se afirma.',
+                    count($naoMedidos),
+                    implode(', ', $naoMedidos)
+                ));
+            } else {
+                $this->info('[secrets:audit] ✅ todos secrets em estado consistente, sem drift');
+            }
             return self::SUCCESS;
         }
 
@@ -149,6 +163,56 @@ class SecretsAuditCommand extends Command
     /**
      * Roteia validação por heurística do nome/tipo da entry.
      */
+    /**
+     * Sentinela devolvido pelos validadores quando NÃO foi possível medir (fonte
+     * ausente, credencial indisponível, tipo sem validador implementado).
+     */
+    public const NAO_MEDIDO = '⏸ pending';
+
+    /**
+     * Extrai o ESTADO do texto de status, descartando anotação humana.
+     *
+     * O índice carrega prosa junto do estado — `✅ active (verificado 2026-06-05 —
+     * conecta + oimpresso-staging vivo)` — e a comparação string-exata contra o
+     * `✅ active` devolvido pelo validador acusava drift onde o estado é o MESMO.
+     */
+    public static function estadoDe(string $status): string
+    {
+        $s = trim($status);
+        foreach (['✅', '🔴', '🟡', '⏸', '🔒'] as $marcador) {
+            if (str_starts_with($s, $marcador)) {
+                return $marcador;
+            }
+        }
+        // Sem marcador: cai no primeiro token, normalizado (entradas legadas).
+        $primeiro = strtok(mb_strtolower($s), " \t\n(—-");
+        return $primeiro === false ? '' : $primeiro;
+    }
+
+    /**
+     * Drift = o ESTADO mudou. Duas coisas que NÃO são drift, e que mantiveram o
+     * `governance-drift.yml` vermelho em 52 runs agendadas seguidas (medido
+     * 2026-08-03; último sucesso 2026-06-11):
+     *
+     *  1. NÃO-MEDIÇÃO. `validateHostingerApi` lê `memory/claude/reference_hostinger_hpanel.md`
+     *     — diretório PURGADO na auditoria de memória de 2026-06-07 — e por isso
+     *     devolve `⏸ pending` todo dia. Comparar "não consegui medir" com o status do
+     *     índice e chamar de mudança é o mesmo fail-open que a ADR 0317 §2 pune no
+     *     `cron-watchdog`: ausência de medição não é estado do segredo.
+     *  2. ANOTAÇÃO HUMANA. `✅ active (verificado …)` × `✅ active` é o mesmo estado.
+     *
+     * O que NÃO muda: dívida real de segredo (Meilisearch comprometida, Vaultwarden
+     * ADMIN_TOKEN a rotacionar) segue registrada no índice e visível no relatório —
+     * ela é STATUS CONHECIDO, não drift. Este alarme é sobre MUDANÇA, e não havia.
+     */
+    public static function ehDrift(string $statusIndice, string $statusValidado): bool
+    {
+        if (trim($statusValidado) === self::NAO_MEDIDO) {
+            return false;
+        }
+        return self::estadoDe($statusIndice) !== self::estadoDe($statusValidado);
+    }
+
     private function validateEntry(array $entry): string
     {
         $name = strtolower($entry['name']);

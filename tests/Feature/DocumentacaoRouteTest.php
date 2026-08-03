@@ -210,6 +210,62 @@ it('a paleta da documentacao nao drifa dos tokens do DS', function () {
 
     expect($dsEscuro)->not->toHaveKey('--accent');          // premissa da divergência acima
     expect($localEscuro['--accent'])->toBe('oklch(0.74 0.13 295)');
+it('resolve link de documento em subpasta contra a pasta dele, nao contra memory/', function () {
+    // /documentacao/{slug} serve o acervo INTEIRO, e boa parte dele mora em subpasta
+    // (memory/reference/…, memory/requisitos/<Mod>/…). Com a base fixa em `memory/`,
+    // `../decisions/0275-….md` virava `decisions/0275-….md` — que não existe. Medido em
+    // 2026-08-03: 482 links assim só em memory/reference/. O guia mora na raiz de memory/,
+    // então nunca sentiu o defeito — foi por isso que ele passou pelo contrato anterior.
+    //
+    // Só filesystem + reflection: roda em qualquer lane, sem banco e sem sessão.
+    $controller = new App\Http\Controllers\DocumentacaoController;
+    $classe = new ReflectionClass($controller);
+
+    $paraHtml = $classe->getMethod('paraHtml');
+    $paraHtml->setAccessible(true);
+    $pastaDe = $classe->getMethod('pastaDe');
+    $pastaDe->setAccessible(true);
+
+    expect($pastaDe->invoke($controller, 'memory/reference/x.md'))->toBe('memory/reference');
+    expect($pastaDe->invoke($controller, 'README.md'))->toBe('');            // raiz do repo
+    expect($pastaDe->invoke($controller, null))->toBe('memory');             // registro sem git_path
+
+    // Documento real do acervo que sobe de pasta no link — não fixamos qual, pra o caso
+    // não morrer quando alguém renomear um arquivo.
+    $alvo = collect(glob(base_path('memory/reference/*.md')))
+        ->first(fn ($f) => str_contains((string) file_get_contents($f), '](../'));
+
+    expect($alvo)->not->toBeNull('nenhum doc de referência com link relativo — corpus mudou?');
+
+    $conteudo = (string) file_get_contents($alvo);
+    $gitPath = 'memory/reference/' . basename($alvo);
+    $blob = 'https://github.com/wagnerra23/oimpresso.com/blob/main/';
+
+    $inexistentes = function (string $html) use ($blob): array {
+        preg_match_all('/href="([^"]+)"/', $html, $m);
+        $faltando = [];
+        foreach (array_unique($m[1]) as $href) {
+            if (! str_starts_with($href, $blob)) {
+                continue;
+            }
+            $caminho = rtrim(explode('#', substr($href, strlen($blob)))[0], '/');
+            if ($caminho !== '' && ! file_exists(base_path($caminho))) {
+                $faltando[] = $caminho;
+            }
+        }
+
+        return $faltando;
+    };
+
+    // Com a pasta do próprio documento, todo alvo tem que existir na árvore.
+    $certo = $paraHtml->invoke($controller, $conteudo, $pastaDe->invoke($controller, $gitPath));
+    expect($inexistentes($certo))->toBe([]);
+
+    // E o contrário prova que o caso mede o que diz medir: com a base antiga o mesmo
+    // documento produz alvo inexistente. Sem esta linha, o caso passaria mesmo que a
+    // correção fosse revertida por um default silencioso.
+    $errado = $paraHtml->invoke($controller, $conteudo, 'memory');
+    expect($inexistentes($errado))->not->toBe([]);
 });
 
 it('responde 200 e renderiza o conteudo do dono quando autenticado', function () {

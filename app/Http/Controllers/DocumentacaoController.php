@@ -137,7 +137,10 @@ class DocumentacaoController extends Controller
 
         return view('documentacao.doc', [
             'doc' => $doc,
-            'html' => $this->paraHtml($doc->content_md),
+            // A base dos links é a PASTA DO PRÓPRIO documento, não `memory/`: este acervo
+            // tem doc em subpasta (`memory/reference/…`, `memory/requisitos/<Mod>/…`), e o
+            // link relativo dele foi escrito a partir de onde ele mora.
+            'html' => $this->paraHtml($doc->content_md, $this->pastaDe($doc->git_path)),
         ]);
     }
 
@@ -194,9 +197,19 @@ class DocumentacaoController extends Controller
      *      e dava 404 na própria página.
      * Agora o caminho é normalizado segmento a segmento, e qualquer alvo relativo entra —
      * o que também é o que faz *apontar pro código* funcionar de dentro do texto.
+     *
+     * TERCEIRO DEFEITO (medido 2026-08-03): a base era a constante `memory/` para TODO
+     * documento. Vale pro guia, que mora ali — mas `/documentacao/{slug}` serve o acervo
+     * inteiro, e doc em subpasta tem link escrito a partir da pasta DELE. Medição em
+     * `memory/reference/` (130 docs, 71 com link relativo): **482 links** resolviam pra
+     * caminho inexistente — `../decisions/0275-….md` virava `decisions/0275-….md`, que
+     * não existe, em vez de `memory/decisions/0275-….md`. Passou invisível porque o caso
+     * de contrato varre só o guia. Agora a base vem do `git_path` do próprio documento.
      */
-    private function paraHtml(string $markdown): string
+    private function paraHtml(string $markdown, ?string $base = null): string
     {
+        $base ??= self::BASE_LINKS;
+
         $html = Str::markdown($this->semFrontmatter($markdown), [
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
@@ -204,10 +217,28 @@ class DocumentacaoController extends Controller
 
         return preg_replace_callback(
             '/href="(?!https?:|#|mailto:|data:|\/)([^"#]+)(#[^"]*)?"/i',
-            fn ($m) => 'href="' . self::BLOB . $this->resolveRelativo(self::BASE_LINKS, $m[1])
+            fn ($m) => 'href="' . self::BLOB . $this->resolveRelativo($base, $m[1])
                 . ($m[2] ?? '') . '" rel="noopener" target="_blank"',
             $html
         );
+    }
+
+    /**
+     * Pasta de um documento do acervo, para resolver os links relativos dele.
+     *
+     * `git_path` é relativo à raiz do repo, com `/` (ver ReindexarDocumentoJob). Documento
+     * na raiz devolve string vazia — que `resolveRelativo` trata como a própria raiz.
+     * Sem `git_path` (registro antigo), cai na base do guia em vez de arriscar caminho pior.
+     */
+    private function pastaDe(?string $gitPath): string
+    {
+        if (! $gitPath) {
+            return self::BASE_LINKS;
+        }
+
+        $pasta = str_contains($gitPath, '/') ? dirname($gitPath) : '';
+
+        return $pasta === '.' ? '' : $pasta;
     }
 
     /**
