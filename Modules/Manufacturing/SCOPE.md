@@ -1,6 +1,6 @@
 ---
 module: Manufacturing
-purpose: "UltimatePOS manufacturing."
+purpose: "Receita/BOM e ordem de produção: transforma insumos em produto acabado (transactions.type=production_purchase), calculando custo unitário com perda e baixando estoque dos ingredientes."
 contains:
   - "DataController"
   - "InstallController"

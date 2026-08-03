@@ -1,6 +1,6 @@
 ---
 module: Auditoria
-purpose: "Leitura, investigação e REVERSÃO segura da trilha por-registro (activity_log). Responde 'quem mudou este registro, o quê, quando — e dá pra desfazer?'. Guarda o que NÃO pode ser desfeito (append-only por lei) e o isolamento multi-tenant no undo."
+purpose: "Quem mudou este registro, o quê e quando? — lê e investiga a trilha por-registro (activity_log) com isolamento multi-tenant e guarda o registry do que a lei não deixa desfazer. A reversão está codificada (RevertService) porém desligada do caminho HTTP: POST /{id}/revert responde 501."
 contains:
   - "AuditoriaController (index · show · revert)"
   - "AuditEntryService — leitura paginada e detalhe de activity_log"

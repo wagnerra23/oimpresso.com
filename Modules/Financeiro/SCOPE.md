@@ -1,6 +1,6 @@
 ---
 module: Financeiro
-purpose: "Contas a pagar/receber, fluxo de caixa, DRE BR."
+purpose: "Razão financeira do negócio — espelha vendas, compras e caixa do core em títulos (fin_titulos) e opera o ciclo do dinheiro sobre eles: contas a pagar e receber, baixa, conciliação bancária OFX, fluxo de caixa, DRE BR e portal read-only do contador externo."
 contains:
   - "AdvisorAccessController — Onda 31 US-FIN-037 grant/revoke acesso contador parceiro (biz-side, consent LGPD)"
   - "Advisor/AdvisorAuthController — Onda 31 US-FIN-037 login/logout guard web-advisor isolado"

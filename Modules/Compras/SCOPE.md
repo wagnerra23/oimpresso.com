@@ -1,6 +1,6 @@
 ---
 module: Compras
-purpose: "Gestão de compras (entrada de mercadoria) — substitui UltimatePOS Purchase legacy."
+purpose: "Cockpit de leitura de compras (/compras): lista, KPIs e drawer de detalhe sobre transactions type=purchase. Complementa — não substitui — o CRUD /purchases do core, pra onde delega criar, editar e excluir."
 contains:
   - "ComprasController"
   - "DataController"

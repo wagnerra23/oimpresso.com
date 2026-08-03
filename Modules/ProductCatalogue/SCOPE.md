@@ -1,6 +1,6 @@
 ---
 module: ProductCatalogue
-purpose: "Catálogo & menu público."
+purpose: "Vitrine pública read-only de produto por business e location, acessível sem login via URL ou QR code — zero entidade própria, zero escrita, subordinada ao hub Vendas."
 contains:
   - "DataController"
   - "InstallController"

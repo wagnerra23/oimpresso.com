@@ -1,6 +1,6 @@
 ---
 module: NfeBrasil
-purpose: "NFC-e + NF-e + SPED brasileiro. Spec-ready."
+purpose: "Motor headless de comunicação com a SEFAZ: emite NF-e/NFC-e/NFS-e, guarda e opera o certificado A1, aplica eventos (cancelamento, CC-e, inutilização, manifestação DF-e) e calcula tributos. Não tem tela própria no sidebar — a UI é do Modules/Fiscal."
 contains:
   - "DataController"
   - "InstallController"

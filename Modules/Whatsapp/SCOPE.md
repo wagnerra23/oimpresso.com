@@ -1,6 +1,6 @@
 ---
 module: Whatsapp
-purpose: "Whatsapp transacional unificado (Z-API default + Meta Cloud fallback obrigatório; BaileysDriver custom autorizado Sprint 3; Evolution PROIBIDO permanente) — status OS Repair, boleto/NFe RecurringBilling, lembrete Financeiro, ConsultaOs acompanhamento, bot Jana HITL"
+purpose: "Plataforma de atendimento do oimpresso (/atendimento/*): caixa unificada, canais, filas, macros, CSAT, métricas, IA de apoio na thread e voz do cliente. Canal implementado hoje = WhatsApp (Meta Cloud default; baileys/evolution/whatsapp-web.js proibidos, ADR 0202); Instagram, Messenger, Email e Mercado Livre são tipos declarados sem driver."
 contains:
   # Install (ADR 0024)
   - "InstallController — extends BaseModuleInstallController (rotas install/uninstall/update)"

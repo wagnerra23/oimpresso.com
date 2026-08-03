@@ -1,6 +1,6 @@
 ---
 module: Spreadsheet
-purpose: "Planilhas internas — uso interno do time."
+purpose: "Planilhas Luckysheet dentro do ERP — CRUD, pastas e compartilhamento com usuário, papel ou tarefa do próprio business. Módulo legado UltimatePOS vendido por assinatura, em manutenção bug-fix only."
 contains:
   - "DataController"
   - "InstallController"

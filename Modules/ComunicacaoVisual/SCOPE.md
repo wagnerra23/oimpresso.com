@@ -1,6 +1,6 @@
 ---
 module: ComunicacaoVisual
-purpose: "Vertical gráfica rápida BR (CNAE 1813-0/01). Diferencial: cálculo m² + PCP gráfico + apontamento + NFe-de-boleto-pago + IA conversacional. Greenfield aguardando piloto Q3/2026 entre OfficeImpresso clients."
+purpose: "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto: hoje entrega cálculo de orçamento por m2 server-authoritative e apontamento de produção. PCP/FSM, materiais e integração fiscal existem como schema e contrato, não como fluxo navegável."
 contains:
   - "ApontamentoController"
   - "DataController"

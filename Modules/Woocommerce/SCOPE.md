@@ -1,6 +1,6 @@
 ---
 module: Woocommerce
-purpose: "Integração POS ↔ WooCommerce."
+purpose: "Canal de venda WooCommerce: espelha o catálogo do oimpresso na loja WordPress (produtos, variações, categorias, tax rates, mídia) e converte pedido recebido por webhook em venda (transaction) no núcleo. Subordinado ao hub Vendas; não é loja nem gateway."
 contains:
   - "DataController"
   - "InstallController"

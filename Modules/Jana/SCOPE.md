@@ -1,6 +1,6 @@
 ---
 module: Jana
-purpose: "Chat IA do business — conversa, sugere metas, monitora execução. Tenancy híbrida (business_id nullable). Inclui custos LLM, qualidade RAG, alertas, períodos. Renomeado de Copiloto em Fase 3.7 PR-2 (2026-05-06). URLs/permissions/config keys mantêm prefixo legacy `copiloto.*` por compatibilidade."
+purpose: "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. ATENÇÃO fronteira em aberto: este módulo hospeda hoje também a plataforma MCP do time (servidor JSON-RPC /api/mcp, 44 tabelas mcp_* e 30 entidades Entities/Mcp/), cujo destino declarado em not_contains é Modules/Forja — movimento ainda não executado."
 contains:
   # Chat IA core
   - "ChatController — UI chat principal"
