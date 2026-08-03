@@ -49,6 +49,23 @@
       "type": "array",
       "items": { "type": "string" },
       "default": []
+    },
+    "nav_group": {
+      "type": "string",
+      "description": "Grupo do rail de /documentacao. AUSENTE = o doc não aparece na navegação (e sai como órfão no relatório do docs:loop) — opt-in de propósito: os ~130 docs de referência legados não viram menu sem alguém decidir que viram.",
+      "enum": ["start", "dominio", "fluxo", "tecnico", "governanca"]
+    },
+    "nav_order": {
+      "type": "integer",
+      "description": "Peso dentro do nav_group. Só ORDENA; o ordinal exibido é derivado da ordem visível na lente ativa, nunca deste número — senão filtrar a lente deixaria buracos (1, 3, 7).",
+      "minimum": 0
+    },
+    "lente": {
+      "type": "array",
+      "description": "Em que lentes o doc aparece. Ausente = todas. Domínio costuma ser [operar, construir]: é UMA página canônica por entidade vista por dois públicos, nunca duas cópias.",
+      "items": { "type": "string", "enum": ["operar", "construir"] },
+      "uniqueItems": true,
+      "minItems": 1
     }
   }
 }
