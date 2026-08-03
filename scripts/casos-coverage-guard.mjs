@@ -186,6 +186,56 @@ function buildTestCorpus() {
   return corpus;
 }
 
+// ---------------------------------------------------------------------------
+// TETO DE PROVA (advisory, irmã da métrica exec-backed logo abaixo dela)
+// ---------------------------------------------------------------------------
+// POR QUE EXISTE: o `exec_backed_pct` vinha sendo lido como "falta rodar teste". Não é só
+// isso — parte dos UCs NÃO PODE ser carimbada, por construção. O manifesto G-7 é alimentado
+// pelo `casos-results-collect.mjs`, que lê o UC-id do atributo `name` do <testcase> do JUnit
+// — ou seja, do TÍTULO do teste. Um UC citado só em docblock/comentário satisfaz o G-2
+// (string-match no arquivo) e NUNCA chega ao manifesto: método PHPUnit vira nome humanizado
+// sem hífen (`test_match_api_...` → "Match api ...") e o regex canônico exige `UC-XXX-NN`.
+//
+// MEDIDO 2026-08-02, no JUnit real da lane Financeiro (run 30764392026): dos 82 UCs do
+// manifesto, **82 vêm de título it()/test() e 0 de método test_**. Caso concreto: os 4 UCs
+// de `Conciliacao` rodavam VERDES numa lane required e valiam 0 no painel — o conserto foi
+// converter pra `it('UC-FCC-NN · …')` (#5177/#5180), não rodar mais teste.
+//
+// O QUE ISTO NÃO É: não é violação, não entra no baseline, não muda exit code — o bloco
+// MODE_REPORT termina em `process.exit(0)` incondicional e o job do CI roda os OUTROS dois
+// modos (G-1/G-2 e --check-baseline-shrink). É a mesma natureza da linha exec-backed.
+// Não é gate novo (§5: não duplicar régua consolidada) — é o dono do tema informando o teto
+// da métrica que ele já publica.
+/** Corpus só dos TÍTULOS de it()/test() — o que o coletor do manifesto consegue enxergar. */
+function buildTestTitleCorpus() {
+  let corpus = '';
+  for (const d of TEST_DIRS) {
+    const base = resolve(ROOT, d);
+    const files = walk(base, (full, name) =>
+      (/Test\.php$/.test(name) || /\.test\.[tj]sx?$/.test(name) || /\.spec\.[tj]sx?$/.test(name))
+      && !META_TEST_RE.test(name),
+    );
+    for (const f of files) {
+      let c; try { c = readFileSync(f, 'utf8'); } catch { continue; }
+      const re = /\b(?:it|test)\s*\(\s*(['"`])([\s\S]*?)\1/g;
+      let m;
+      while ((m = re.exec(c)) !== null) corpus += '\n' + m[2];
+    }
+  }
+  return corpus;
+}
+
+/** {distintos, noTitulo, soDocblock} — quantos UCs declarados o manifesto CONSEGUE carimbar. */
+function tetoDeProva(ucDecls, testCorpus) {
+  const tituloCorpus = buildTestTitleCorpus();
+  const distintos = [...new Set(ucDecls.map((d) => d.uc))];
+  const noTitulo = distintos.filter((uc) => tituloCorpus.includes(uc));
+  // "preso" = citado em ALGUM teste (satisfaz G-2) mas NUNCA no título → inalcançável pelo G-7.
+  // UC sem citação alguma não conta aqui: já é violação `uc-orphan`, outro problema.
+  const soDocblock = distintos.filter((uc) => !tituloCorpus.includes(uc) && testCorpus.includes(uc));
+  return { distintos: distintos.length, noTitulo: noTitulo.length, soDocblock: soDocblock.length };
+}
+
 function orphanUcViolations(ucDecls, testCorpus) {
   const violations = [];
   for (const { uc, file } of ucDecls) {
@@ -395,6 +445,7 @@ function computeViolations() {
 
   // Advisory (NÃO entra em `violations`, NÃO afeta o baseline nem o exit code).
   const execBacked = execBackedMetric(ucDecls, manifest);
+  const teto = tetoDeProva(ucDecls, testCorpus);
 
   const all = [...trio, ...orphans, ...meta, ...stale, ...status].sort((a, b) => a.localeCompare(b));
   return {
@@ -417,6 +468,10 @@ function computeViolations() {
       exec_backed_ucs: execBacked.backed,
       exec_backed_declared: execBacked.total,
       exec_backed_pct: execBacked.pct,
+      // TETO da métrica acima (advisory, mesma natureza): ver buildTestTitleCorpus().
+      teto_no_titulo: teto.noTitulo,
+      teto_so_docblock: teto.soDocblock,
+      teto_distintos: teto.distintos,
     },
   };
 }
@@ -491,6 +546,17 @@ function main() {
     console.log(
       `\nUCs execução-backed (manifesto pass): ${stats.exec_backed_ucs} de ${stats.exec_backed_declared} declarados ` +
         `(${stats.exec_backed_pct}%) — o resto é string-match ou sem prova [advisory, G-2 fase 1]`,
+    );
+    // TETO da métrica acima: UC citado só em docblock/comentário satisfaz o G-2 e NUNCA
+    // chega ao manifesto (o coletor lê o UC do `name` do <testcase> = TÍTULO do teste).
+    console.log(
+      `TETO de prova: ${stats.teto_no_titulo} de ${stats.teto_distintos} UCs têm o id no TÍTULO de um ` +
+        `it()/test() (alcançáveis pelo manifesto) · ${stats.teto_so_docblock} citados SÓ em ` +
+        `docblock/comentário — esses NUNCA viram ✅ como estão [advisory, não é violação]`,
+    );
+    console.log(
+      '  → conserto é converter o teste pra `it(\'UC-XXX-NN · …\')`, não rodar mais teste. ' +
+        'Forward-only/oportunístico: varrer em lote acorda gate diff-aware sobre dívida alheia.',
     );
     console.log('\n→ F1 fotografa isso no baseline (não-bloqueante). F3 ratchet zera tela-a-tela.');
     process.exit(0);
