@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: é a porta de entrada do banco de horas — e o KPI agregado desta tela é o único lugar do módulo onde saldo de vários colaboradores é somado num número só.
 owner: wagner
 last_run: "2026-08-02"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
+last_run_ci: "4 UC executados na lane (run 30778424885): UC-BHIDX-01 e -04 pass; -02 e -03 morreram no setup por FK biz=99 sem stub (defeito de fixture, corrigido no mesmo PR). Veredito oficial vem do manifesto, não desta linha."
 ---
 
 # Casos de Uso & Aceite — Saldos de banco de horas
@@ -24,6 +24,15 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > visível, não bloqueia merge (SDD §8.1, medido em `governance/required-checks-baseline.json`).
 >
 > **Status:** ✅ verde na lane · 🧪 teste cita o UC, sem veredito · ⬜ não verificado · ❌ vermelho.
+>
+> 🔎 **Recibo da 1ª corrida** (run [30778424885](https://github.com/wagnerra23/oimpresso.com/actions/runs/30778424885),
+> 2026-08-02 — medição datada, não afirmação atemporal): os **4 UC chegaram ao `name` do
+> `<testcase>` com o hífen** (`it UC-BHIDX-01 · …`), que é o que o manifesto G-7 exige.
+> `UC-BHIDX-01` e `-04` passaram; `-02` e `-03` **morreram no setup** com
+> `SQLSTATE 1452 ponto_colaborador_config_business_id_foreign` — biz=99 não existe na lane
+> e a FK é real. Era **defeito de fixture, não de produto**: corrigido no mesmo PR com o
+> stub do business (padrão do `Wave27CrossTenantEscalaTest`). O status abaixo segue 🧪 —
+> quem carimba ✅ é o manifesto via cron, nunca esta leitura.
 
 ## Rastreabilidade
 

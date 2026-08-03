@@ -49,6 +49,7 @@ uses(PontoTestCase::class);
 
 const BHIDX_MARCADOR = 'SDD-BHIDX-CONTRATO';
 const BHIDX_BIZ_ALHEIO = 99;
+const BHIDX_BIZ_NOME = 'BHIDX Test Biz Adversario#99';
 
 /** Guard de ambiente — schema do Ponto presente. Skip gracioso e VISÍVEL. */
 function bhIdxPrecisaDe(array $tabelas): void
@@ -58,6 +59,39 @@ function bhIdxPrecisaDe(array $tabelas): void
             test()->markTestSkipped("Tabela {$t} ausente — schema do Ponto não migrado nesta lane.");
         }
     }
+}
+
+/**
+ * Stub do business fictício 99.
+ *
+ * MEDIDO na lane (run 30778424885, PR #5191): sem isto o INSERT do colaborador
+ * alheio morre com `SQLSTATE[23000] 1452 ... ponto_colaborador_config_business_id_foreign`
+ * — nem o clone-de-prod do CT100 nem o seed biz=1/biz=2 do `pest-mysql-setup` têm
+ * biz=99, e a FK é real. O teste não reprova: ele MORRE NO SETUP, sem exercer
+ * isolamento nenhum (o mesmo modo de falha que a fixture do UC-FCC-06 tinha).
+ *
+ * Padrão copiado de `Wave27CrossTenantEscalaTest` — o único teste do módulo que já
+ * rodava verde nesta lane, e que documenta a mesma armadilha. Convenção biz=99:
+ * ADR 0101 (nunca biz=4, que é cliente real).
+ */
+function bhIdxGarantirBizAlheio(): void
+{
+    if (\App\Business::find(BHIDX_BIZ_ALHEIO)) {
+        return;
+    }
+
+    \App\Business::forceCreate([
+        'id'                              => BHIDX_BIZ_ALHEIO,
+        'name'                            => BHIDX_BIZ_NOME,
+        'currency_id'                     => 1,
+        'start_date'                      => now()->toDateString(),
+        'default_profit_percent'          => 0,
+        'owner_id'                        => 1,
+        'stop_selling_before'             => 0,
+        'weighing_scale_setting'          => '',
+        'certificado'                     => '',
+        'officeimpresso_numerodemaquinas' => 0,
+    ]);
 }
 
 /**
@@ -121,6 +155,12 @@ afterEach(function () {
             DB::table('ponto_banco_horas_saldo')->whereIn('colaborador_config_id', $ids)->delete();
             Colaborador::withoutGlobalScopes()->whereIn('id', $ids)->delete();
         }
+
+        // Remove SÓ o stub que este arquivo criou (filtro por nome próprio): o
+        // Wave27 usa o mesmo id 99 com nome dele, e não pode ser derrubado aqui.
+        \App\Business::where('id', BHIDX_BIZ_ALHEIO)
+            ->where('name', BHIDX_BIZ_NOME)
+            ->delete();
     } catch (\Throwable $e) {
         // schema ausente — cleanup best-effort
     }
@@ -165,6 +205,7 @@ it('UC-BHIDX-01 · a lista traz os colaboradores do meu empregador com o saldo d
 it('UC-BHIDX-02 · saldo de outro empregador não aparece na lista', function () {
     $this->actAsAdmin();
     bhIdxPrecisaDe(['ponto_colaborador_config', 'ponto_banco_horas_saldo']);
+    bhIdxGarantirBizAlheio();
 
     // O user fica no MEU business (evita FK/business inexistente); o que é alheio
     // é o colaborador e o saldo — que é o dado que a tela lista.
@@ -189,6 +230,7 @@ it('UC-BHIDX-02 · saldo de outro empregador não aparece na lista', function ()
 it('UC-BHIDX-03 · saldo de outro empregador não entra nos totais agregados', function () {
     $this->actAsAdmin();
     bhIdxPrecisaDe(['ponto_colaborador_config', 'ponto_banco_horas_saldo']);
+    bhIdxGarantirBizAlheio();
 
     // Antes: fotografa os 4 agregados do MEU business.
     $antes = bhIdxInertiaPartial(['totais']);
