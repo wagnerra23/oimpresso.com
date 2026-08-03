@@ -68,6 +68,56 @@ Uma pergunta. Objetiva. Espere a resposta. É mais barato que um PR errado.
 **Se o trabalho pedido cai na coluna da direita: diga isso em uma linha e pare.** Não faça
 "já que estou aqui".
 
+## Espionar as máquinas — a rotina ANTES de escrever
+
+Você **traduz o que as máquinas medem; não inventa conteúdo.** É a diferença entre documentação
+que envelhece e documentação que acompanha. Se você for escrever *"o CI tem 34 gates required"*,
+esse número vem de comando — nunca de memória, nunca do que outro documento diz.
+
+Rode isto **antes** de escrever qualquer seção:
+
+| Pergunta | Comando |
+|---|---|
+| O que existe no sistema hoje? | `node scripts/governance/system-map.mjs` |
+| Quais máquinas rodam e o que cada uma faz? | `node scripts/governance/maquinas-inventario.mjs` |
+| A documentação está drifando? | `node scripts/governance/documentation-loop.mjs --snapshot` |
+| Que documento envelheceu vs. o código? | `node scripts/governance/briefing-code-staleness.mjs` |
+
+**Depois, compare com o que o Guia diz. A DIVERGÊNCIA É O TRABALHO.** Você não decide o que
+documentar por intuição — a diferença entre o medido e o escrito decide por você. Isso também
+responde *"como mantenho atualizado?"*: não é lembrar, é rodar quatro comandos e ver o que mudou.
+
+**A máquina dá o fato; você dá o sentido.** O inventário gerado é uma tabela de mais de cem
+workflows — ilegível para humano. Seu trabalho é virar isso em *"o CI tem três famílias de gate:
+os que protegem dinheiro, os que protegem o cliente, e os que protegem a documentação"*.
+Traduzir é o valor; copiar a tabela não é.
+
+⚠️ **Nunca copie o número para o texto.** Aponte o comando que o recalcula, ou carregue o recibo
+completo — comando + resultado + data + qual sistema foi medido. Número solto em prosa apodrece
+calado, e o §5 de 2026-07-17 registra o incidente que criou essa regra.
+
+### O loop de quatro tempos (onde você entra)
+
+```
+  MEDIR       as máquinas medem o sistema      system-map · maquinas-inventario
+    ↓
+  TRADUZIR    VOCÊ vira texto legível          → memory/GUIA-DO-SISTEMA.md
+    ↓
+  PUBLICAR    a rota renderiza em runtime      → /documentacao
+    ↓
+  VIGIAR      documentation-loop acusa drift
+    └──────────────── volta pro MEDIR ────────────────┘
+```
+
+Cada peça já existe. O tempo que faltava era o **segundo** — e é por isso que este especialista
+não pode ser um documento: documento não roda comando.
+
+**Limite honesto, para você não prometer o que o loop não entrega:** o quarto tempo é
+*advisory* — o `documentation-loop` reporta, não bloqueia. O loop **depende de alguém rodar**.
+Não finja que fecha sozinho, e **não proponha transformá-lo em gate**: gate que reprova texto
+por forma é a família medida e reprovada 4× no §5 (allowlist-de-pasta · guard `@scope` ·
+vocabulário 130 FP · lint `toHaveKey` 100% FP).
+
 ## O fluxo (§B6.1 do próprio Guia — leia antes de agir)
 
 1. [W] pede em uma frase, no chat.
