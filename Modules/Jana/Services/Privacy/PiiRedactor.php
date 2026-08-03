@@ -47,8 +47,16 @@ class PiiRedactor
         'CNPJ'  => '/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/',
         'CPF'   => '/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/',
         'CEP'   => '/\b\d{5}-?\d{3}\b/',
-        // Telefone BR: opcional +55, opcional DDD (XX), 8-9 dígitos
-        'PHONE' => '/(?:\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}-?\d{4}/',
+        // Telefone BR: opcional +55, opcional DDD (XX), 8-9 dígitos.
+        // Os lookarounds `(?<!\d)`/`(?!\d)` são o que impede casar um PEDAÇO de
+        // número maior — os irmãos acima usam `\b`, este não usava. Sem eles,
+        // liberar o CNPJ cru fazia o telefone herdar a colisão: em
+        // `articles/21830391097367` o match virava `2183039109`, e o DDD 21
+        // (Rio) EXISTE, então passava pelo desempate e era redigido.
+        // Pego pelo teste desta emenda em 2026-08-03. O mesmo já quase
+        // aconteceu no #5169 com o CPF — lá escapou por sorte, porque o run id
+        // começava com `30`, DDD que não existe.
+        'PHONE' => '/(?<!\d)(?:\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}-?\d{4}(?!\d)/',
     ];
 
     /**
@@ -109,9 +117,50 @@ class PiiRedactor
         // número comprido casa. O desempate é a regra de formação de cada tipo.
         return match ($type) {
             'CPF'   => $this->cpfTemDvValido($match),
+            'CNPJ'  => $this->cnpjTemDvValido($match),
             'PHONE' => $this->temDddBrasileiro($match),
             default => true,
         };
+    }
+
+    /**
+     * Dígito verificador do CNPJ (módulo 11). Mesma emenda do CPF, um nível acima:
+     * `\d{14}` cru colide com QUALQUER número de 14 dígitos.
+     *
+     * Medido no corpus real 2026-08-03 (3.652 `.md`, 197 matches de CNPJ):
+     *   - 92 formatados        -> seguem redigidos (declaração, não pedem prova)
+     *   - 38 crus com DV VÁLIDO -> seguem redigidos (inclui CNPJ real de cliente)
+     *   - 67 crus com DV inválido, em 22 docs -> LIBERADOS, e **todos** eram
+     *     falso-positivo: `14628809617558@lid` (WhatsApp Multi-Device), id de
+     *     artigo em URL de doc externa (`21830391097367`) e placeholder de exemplo.
+     *
+     * Assim como no CPF, o risco aceito é CNPJ real digitado CRU com DV errado
+     * deixar de ser redigido — mitigado por qualquer formatação (ponto/barra/hífen)
+     * devolver `true` acima.
+     */
+    private function cnpjTemDvValido(string $digitos): bool
+    {
+        if (strlen($digitos) !== 14 || preg_match('/^(\d)\1{13}$/', $digitos)) {
+            return false;
+        }
+
+        foreach ([12, 13] as $posicao) {
+            $peso = $posicao - 7;
+            $soma = 0;
+            for ($i = 0; $i < $posicao; $i++) {
+                $soma += (int) $digitos[$i] * $peso--;
+                if ($peso < 2) {
+                    $peso = 9;
+                }
+            }
+            $resto = $soma % 11;
+            $dv = $resto < 2 ? 0 : 11 - $resto;
+            if ($dv !== (int) $digitos[$posicao]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
