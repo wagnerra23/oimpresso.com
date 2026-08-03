@@ -1,32 +1,35 @@
 <?php
 
 /**
- * Contrato da rota /documentacao (ADR 0256 — a página É a fonte, renderizada).
+ * Contrato das rotas /documentacao (ADR 0256 — a página É a fonte, renderizada).
  *
  * O que cada caso defende:
- *   1. a rota exige login (decisão [W] 2026-08-02: doc interna não fica pública);
- *   2. o documento fonte EXISTE no repo — é o defeito mais provável desta rota:
- *      alguém renomeia/move o GUIA e a página passa a dar 503 em produção,
- *      silenciosamente, até um humano abrir. Este caso pega isso no PR;
- *   3. autenticado, a página responde e traz o conteúdo do dono.
+ *   1. as 3 rotas exigem login (decisão [W] 2026-08-02: doc interna não fica pública);
+ *   2. o documento fonte EXISTE no repo — defeito mais provável: alguém renomeia o
+ *      GUIA e a página vira 503 silencioso em produção;
+ *   3. `/documentacao/buscar` resolve pra BUSCA, não pra documento de slug "buscar" —
+ *      é o defeito clássico de ordem de rota, e sem regex no {slug} ele acontece;
+ *   4. os tipos filtrados EXISTEM no enum da tabela — se alguém trocar o enum na
+ *      migration, o filtro vira uma lista de valores impossíveis e a busca devolve
+ *      vazio pra sempre, sem erro nenhum;
+ *   5. autenticado, a página responde e traz o conteúdo do dono.
  *
- * O caso 3 pula sem user semeado — declarado, não escondido: "0 failed" não
- * prova execução, então o caso 2 (que sempre roda) é quem sustenta o contrato.
+ * O caso 5 pula sem user semeado — declarado, não escondido: "0 failed" não prova
+ * execução, então quem sustenta o contrato são os casos 2, 3 e 4, que sempre rodam.
  */
 
 use App\User;
 
-it('exige login em /documentacao', function () {
-    $r = $this->get('/documentacao');
-
-    // 302 pro login — nunca 200 pra anônimo.
-    expect($r->getStatusCode())->toBe(302);
-    expect($r->headers->get('Location'))->toContain('login');
+it('exige login nas tres rotas de documentacao', function () {
+    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/qualquer-slug'] as $rota) {
+        $r = $this->get($rota);
+        expect($r->getStatusCode())->toBe(302, "rota {$rota} deveria redirecionar pro login");
+        expect($r->headers->get('Location'))->toContain('login');
+    }
 });
 
 it('o documento fonte que a rota renderiza existe no repo', function () {
-    // Espelha a const FONTE do DocumentacaoController. Se divergir, a rota
-    // devolve 503 em prod — este caso quebra antes, no PR.
+    // Espelha a const FONTE do DocumentacaoController.
     $fonte = base_path('memory/GUIA-DO-SISTEMA.md');
 
     expect(file_exists($fonte))->toBeTrue();
@@ -35,6 +38,32 @@ it('o documento fonte que a rota renderiza existe no repo', function () {
     expect(strlen($conteudo))->toBeGreaterThan(500);
     // O controller remove o frontmatter; se o formato mudar, a remoção falha calada.
     expect($conteudo)->toStartWith('---');
+});
+
+it('/documentacao/buscar resolve pra busca, nao pra documento de slug "buscar"', function () {
+    // Sem a ordem correta + regex no {slug}, a rota curinga engole a busca e o
+    // usuário recebe "documento 'buscar' não encontrado". Aqui checamos o binding.
+    $rota = app('router')->getRoutes()->match(
+        Illuminate\Http\Request::create('/documentacao/buscar', 'GET')
+    );
+
+    expect($rota->getName())->toBe('documentacao.buscar');
+    expect($rota->getActionMethod())->toBe('buscar');
+});
+
+it('os tipos filtrados existem no enum da tabela do acervo', function () {
+    // Espelha TIPOS_DOC do controller. Se a migration mudar o enum e estes valores
+    // sumirem, o whereIn não dá erro — só devolve vazio pra sempre. Este caso pega.
+    $tiposDoController = ['adr', 'reference', 'spec', 'runbook'];
+
+    $migrations = glob(base_path('Modules/Jana/Database/Migrations/*mcp_memory_documents*.php'));
+    expect($migrations)->not->toBeEmpty();
+
+    $sql = implode("\n", array_map('file_get_contents', $migrations));
+
+    foreach ($tiposDoController as $tipo) {
+        expect($sql)->toContain("'{$tipo}'", "tipo '{$tipo}' não aparece no enum das migrations");
+    }
 });
 
 it('responde 200 e renderiza o conteudo do dono quando autenticado', function () {
@@ -48,10 +77,8 @@ it('responde 200 e renderiza o conteudo do dono quando autenticado', function ()
     expect($r->getStatusCode())->toBe(200);
 
     $html = $r->getContent();
-    // veio do markdown convertido, não de um HTML estático commitado
-    expect($html)->toContain('memory/GUIA-DO-SISTEMA.md');
-    // o frontmatter YAML NÃO pode vazar pra página
-    expect($html)->not->toContain('slug: guia-do-sistema');
-    // e o markdown virou HTML de verdade (não texto cru com '##')
-    expect($html)->toContain('<h2');
+    expect($html)->toContain('memory/GUIA-DO-SISTEMA.md');   // veio do markdown, não de HTML commitado
+    expect($html)->not->toContain('slug: guia-do-sistema');  // frontmatter não vazou
+    expect($html)->toContain('<h2');                          // markdown virou HTML de verdade
+    expect($html)->toContain('documentacao/buscar');           // a busca está oferecida
 });
