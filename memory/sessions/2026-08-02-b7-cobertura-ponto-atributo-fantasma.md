@@ -1,21 +1,22 @@
 ---
 date: "2026-08-02"
 hour: "23:00 BRT"
-duration: "3h"
-topic: "B7-cobertura no módulo Ponto: 4 das 14 telas ganharam casos.md, e a varredura que o SDD §10 Onda 1 pediu achou a 3ª e a 4ª instância do padrão 'atributo fantasma' — mais um 500 na edição de escala e a prova de que os 3 ContratoTest do trio SDD nunca rodaram verdes."
+duration: "6h"
+topic: "B7-cobertura no módulo Ponto: as 7 telas com fonte de contrato fecharam o trio (ratchet 145→138), e escrever os casos achou 5 defeitos de produto — incluindo um Tier 0 [V0] (ledger de banco de horas aceita save()) e CU-PONTO-05 quebrado (registrar intercorrência não grava). Mais a prova de que os 3 ContratoTest do trio SDD nunca rodaram verdes."
 authors: [C]
 prs: [5191]
 outcomes:
-  - "4 telas do Ponto fecharam o trio (ratchet 145 → 141): BancoHoras/Index (UC-BHIDX-01..04), Escalas/Form (UC-ESCF-01..03), Relatorios/Index (UC-RELIDX-01..02), Importacoes/Index (UC-IMPIDX-01..03). Todos em Pest it() com o UC no título — a forma que o manifesto G-7 enxerga."
+  - "As 7 telas do Ponto COM fonte de contrato fecharam o trio (ratchet 145 → 138; UCs 395 → 414): BancoHoras/Index, Escalas/Form, Relatorios/Index, Importacoes/{Index,Create}, Intercorrencias/{Index,Create}. Todos em Pest it() com o UC no título — a forma que o manifesto G-7 enxerga. As outras 7 telas não têm CU no SDD nem US no SPEC."
   - "ACHADO 1 (o que pagou a sessão) — a varredura que o SDD §10 Onda 1 pediu e declarou não ter feito: EscalaController@edit lê `entrada`/`saida`/`almoco_inicio`/`almoco_fim`; as colunas são `hora_*` e não há accessor. A tela de edição de escala mostra TODOS os horários vazios, sempre. 3ª instância do padrão D-1/D-8, agora em 3 de 8 famílias de tela."
   - "ACHADO 2 — EscalaController@update recebe Illuminate\\Http\\Request e chama $request->validated(), método que só existe em FormRequest (medido: 0 em Http/Request.php, 0 macros no projeto). Salvar a edição de uma escala lança BadMethodCallException. O padrão certo está no mesmo módulo, ao lado: IntercorrenciaController usa IntercorrenciaRequest."
   - "ACHADO 3 — `erro_mensagem` também é fantasma na importação: o Show.tsx faz `{i.erro_mensagem && <Alert>}`, logo o alerta de erro NUNCA renderiza. Importação que falhou não mostra o motivo — consequência mais séria que o 'exibe 0' do D-8, e o SDD §5.3 F7 lista o campo sem notar."
   - "ACHADO 4 — o ledger de banco de horas NÃO é append-only na prática: BancoHorasMovimento sobrescreve update() e delete(), mas não save(), e Model::save() não passa por update(). Sem trigger DB (SDD §9 D-6), `$mov->minutos = X; $mov->save()` grava. A irmã Marcacao sobrevive porque TEM trigger. Tier 0 + [V0] — registrado, não corrigido."
+  - "ACHADO 6 — registrar intercorrência NÃO grava (CU-PONTO-05 quebrado): business_id nunca é atribuído no caminho de criação (FormRequest não declara a chave · Service seta só codigo/solicitante_id/estado · creating só gera UUID · trait só adiciona scope de LEITURA · 0 observe() no módulo), e a coluna é NOT NULL + FK sem default. O SDD F4 descreve o fluxo como se funcionasse e o SPEC marca US-PONTO-003 implementada — nenhum teste exercitava o store() por HTTP."
   - "ACHADO 5 — os 3 *ContratoTest do trio SDD (nascidos 07-27) NUNCA rodaram verdes: 7 dos seus casos morrem com FK 1452 porque biz=99 não existe na lane e ninguém criou o stub. A lane não rodava há ≥100 runs (nenhum PR tocava Ponto), então o defeito ficou invisível. Somado ao UC-em-docblock, as 6 telas já cobertas do Ponto tinham DOIS motivos independentes para nunca virar ✅."
 related_adrs: ["0264-governanca-executavel-trio-dominio-e2e", "0351-sdd-from-source", "0093-multi-tenant-isolation-tier-0", "0101-tests-business-id-1-nunca-cliente"]
 ---
 
-# B7-cobertura no Ponto — as 4 telas e os 5 achados
+# B7-cobertura no Ponto — as 7 telas e os 6 achados
 
 Continuação do **B7** ([sessão anterior](2026-08-02-b7-cobertura-conciliacao-quarentena-ledger.md),
 que fechou a 1ª tela do Financeiro). O alvo aqui foi o **Ponto**, escolhido porque o
@@ -24,14 +25,21 @@ escritos — os `casos.md` derivam de lá, nunca do `.tsx`.
 
 ## O que foi entregue
 
+**As 7 telas do módulo que tinham fonte de contrato** — as outras 7 não têm CU no SDD nem US no
+SPEC (ver §"As telas que faltam").
+
 | Tela | UCs | Âncora | Nota |
 |---|---|---|---|
 | `BancoHoras/Index` | `UC-BHIDX-01..04` | CU-PONTO-08/12 | o UC-03 prova que o **agregado** não vaza |
 | `Escalas/Form` | `UC-ESCF-01..03` | achado medido + CU-PONTO-12 | 2 failing-first |
 | `Relatorios/Index` | `UC-RELIDX-01..02` | CU-PONTO-14 + F8 | contrato é a honestidade da tela |
 | `Importacoes/Index` | `UC-IMPIDX-01..03` | CU-PONTO-11/12 | 1 failing-first (D-8 na lista) |
+| `Importacoes/Create` | `UC-IMPCRE-01..02` | CU-PONTO-10 + Portaria 671 Anexo I | storage segregado é o único Tier 0 sem global scope |
+| `Intercorrencias/Index` | `UC-INTIDX-01..03` | CU-PONTO-05/12 | filtro que vira no-op silencioso |
+| `Intercorrencias/Create` | `UC-INTCRE-01..02` | CU-PONTO-05/12 | 1 failing-first (achado 6) |
 
-Ratchet do `casos-gate`: **145 → 141**. Todos os testes em **Pest `it()` com o UC no título**.
+Ratchet do `casos-gate`: **145 → 138**. UCs declarados: **395 → 414**. Todos os testes em
+**Pest `it()` com o UC no título**.
 
 ## A varredura que o SDD pediu — e o que ela achou
 
@@ -83,7 +91,7 @@ aqui o mesmo papel do `?? 0` do D-8.
 **É a 3ª instância do mesmo padrão** que o SDD nomeou: *o controller lê um atributo que o modelo
 não tem, e a linguagem esconde*. Agora em **3 de 8 famílias** de tela do módulo.
 
-### 2 · 🔴 Salvar a edição de uma escala lança exceção
+### 2 · 🔴 Salvar a edição de uma escala lança exceção — ✅ **confirmado pela lane**
 
 `EscalaController@update` recebe **`Illuminate\Http\Request`** (import na linha 7) e chama
 `$request->validated()`. Medido: `grep -c "function validated"` em `Illuminate/Http/Request.php` →
@@ -96,6 +104,9 @@ está ao lado do errado.
 
 O `store()` (criar) funciona, então a tela **parece** boa — o erro só aparece na edição, o caminho
 menos exercitado.
+
+> ✅ **Confirmado pela lane** (run 30779959209): o `UC-ESCF-02` reprovou **com a mensagem do
+> assert** — o nome novo não foi gravado. Deixou de ser leitura minha e virou veredito de máquina.
 
 ### 3 · 🔴 O alerta de erro da importação nunca aparece
 
@@ -158,6 +169,29 @@ Ficou invisível porque **a lane não rodava há ≥100 runs** (medido: nenhum P
 **Consequência composta:** as 6 telas do Ponto já cobertas tinham **dois** motivos independentes
 para nunca virar ✅ — o UC em docblock (teto zero) **e** o teste morrendo no setup.
 
+### 6 · 🔴 Registrar intercorrência não grava — `CU-PONTO-05` quebrado
+
+Achado ao cobrir `Intercorrencias/Create`. O `business_id` **nunca é atribuído** no caminho de
+criação — cadeia inteira medida, elo por elo:
+
+| elo | o que faz com `business_id` |
+|---|---|
+| `IntercorrenciaRequest::rules()` | não declara a chave → `validated()` não a devolve |
+| `Controller@store` | passa `$request->validated()` cru |
+| `IntercorrenciaService::criar()` | seta `codigo`, `solicitante_id`, `estado` — **não** `business_id` |
+| `Intercorrencia::boot()::creating` | só gera o UUID |
+| trait `HasBusinessScope` | só adiciona o **scope de leitura** |
+| `observe()` no módulo | **0 ocorrências** (exit 1) |
+| migration | **NOT NULL + FK**, sem default |
+
+O próprio Service **denuncia** que sabia: usa `(int) ($dados['business_id'] ?? 0)` — o `?? 0` só
+existe porque a chave pode não vir.
+
+O que torna este o mais instrutivo dos seis: **o SDD §5.3 F4 descreve o fluxo como se
+funcionasse** e o SPEC marca US-PONTO-003 como implementada. Documentação e código discordam, e
+**nenhum teste exercitava o `store()` por HTTP** para desempatar. É exatamente o buraco que o trio
+existe para fechar — e ele só apareceu porque escrever o caso obriga a percorrer o caminho real.
+
 ## Erros meus, registrados e não apagados
 
 1. **Regex inline no shell devolveu ruído e eu quase reportei** — a 1ª varredura mandou `$1` pelo
@@ -184,24 +218,42 @@ para nunca virar ✅ — o UC em docblock (teto zero) **e** o teste morrendo no 
    **A lição de método é o gesto, não o regex:** o defeito só apareceu porque conferi um número
    derivado (`ucs_declared`) contra o que eu sabia ter escrito. Sem essa subtração, os 3 UCs
    passariam verdes e vazios — e o `casos:check` **não teria reclamado**, porque um UC que o
-   regex não enxerga simplesmente não entra na conta de nada.
+   regex não enxerga simplesmente não entra na conta de nada. *(O gesto se pagou de novo na leva
+   seguinte: 407 → 414 com 7 UCs escritos, conta fechada.)*
+7. **Li `props` de um GET sem header `X-Inertia`** — 6 casos morreram com *"Invalid JSON was
+   returned from the route"*. O Inertia só responde JSON quando o request se declara Inertia;
+   sem o header vem o HTML da página. Os casos **não reprovavam: morriam sem exercer nada** —
+   o mesmo modo de falha do `biz=99` sem stub, por outra porta. O `BancoHoras` escapou porque lá
+   eu já usava o helper com header, copiado do `EspelhoContratoTest`. Nos outros 4 não copiei.
+8. **`toContain($id, 'mensagem')` — a lápide §5 2026-07-28, cometida por mim.** `toContain` é
+   **variádico**: a mensagem virou **needle** e o assert passou a procurar a frase inteira no
+   array. Falha sempre, e a mensagem de erro aponta para o lado errado
+   (*"Failed asserting that an array contains 'O colaborador do meu business…'"*). Trocado por
+   `assertContains`/`assertNotContains` (array) e `assertStringContainsString` (string), que
+   aceitam a mensagem no 3º parâmetro. **O `EspelhoContratoTest` já usava esse idiom** — o
+   precedente estava no mesmo diretório e eu não o segui.
 
-## As 10 telas que faltam — e por que não varri em lote
+   > A lápide de 07-28 diz textualmente que o defeito é *"real e uniforme"* e que o lint para
+   > pegá-lo foi **medido e reprovado** (100% FP). Ou seja: não há máquina para esta classe, só
+   > o cuidado — e o cuidado falhou aqui. Vale como recibo de que a ausência de gate custa.
 
-| Situação | Telas | Caminho |
-|---|---|---|
-| **CU no SDD, prontas para o mesmo tratamento** | `Importacoes/Create`, `Intercorrencias/{Index,Create}` | CU-PONTO-05/06/10 — próxima leva |
-| **Sem CU e sem achado** (varredura deu limpo) | `Colaboradores/{Index,Edit}`, `Configuracoes/{Index,Reps}`, `Dashboard/Index`, `Escalas/Index`, `Welcome` | ver abaixo |
+## As 7 telas que faltam — e por que param aqui
 
-Para as 7 sem CU, a única âncora honesta hoje é o **`CU-PONTO-12`** (*"nenhuma tela do Ponto expõe
+| Situação | Telas |
+|---|---|
+| **Sem CU no SDD e sem US no SPEC** — varredura de atributo fantasma deu **limpa** | `Colaboradores/{Index,Edit}` · `Configuracoes/{Index,Reps}` · `Dashboard/Index` · `Escalas/Index` · `Welcome` |
+
+Para essas 7, a única âncora honesta hoje é o **`CU-PONTO-12`** (*"nenhuma tela do Ponto expõe
 dado de outro empregador"*), que é transversal por construção e vale para qualquer tela. Isso dá
 **um** UC `[T0]` por tela — cobertura real, mas fina. Derivar mais que isso exigiria inventar
 (proibido) ou ler o `.tsx` (tautológico, [§5 2026-06-05](../proibicoes.md)).
 
-**Decisão de escopo:** parei nas 4 em vez de varrer as 14. Cada tela é um PR com gate próprio, e
-a lane do Ponto **acabou de ganhar 4 arquivos novos** cujo veredito ainda não voltou — empilhar
-mais 10 antes de ler o resultado seria repetir o erro que esta sessão achou nos ContratoTest de
-07-27: escrever teste que ninguém viu rodar.
+**Nota de escopo (a decisão mudou no meio, e o registro é honesto sobre isso):** parei em 4 de
+propósito, com o argumento de não empilhar teste não-observado — o mesmo erro que esta sessão
+achou nos ContratoTest de 07-27. [W] autorizou seguir, e as 3 restantes com CU foram feitas
+**depois** de o veredito da 1ª leva voltar. Ou seja: o argumento foi respeitado, não descartado —
+a leva 2 nasceu com os 2 defeitos de método (header Inertia, `toContain` variádico) **já
+corrigidos**, que é exatamente o que ler o resultado antes serve para comprar.
 
 ## Método que se pagou
 
