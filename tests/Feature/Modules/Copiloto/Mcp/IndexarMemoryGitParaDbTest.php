@@ -9,7 +9,21 @@ use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
  * MEM-MCP-1.a (ADR 0053) — Service que sincroniza memory/ git → DB.
  *
  * Testa: parse frontmatter, PII redaction, UPSERT idempotente, history,
- * soft-delete de docs sumidos. Setup cria pasta tmp com .md files.
+ * soft-delete de docs sumidos, isolamento multi-tenant. Setup cria pasta tmp
+ * com .md files.
+ *
+ * ── HISTÓRICO (leia antes de confiar neste arquivo) ─────────────────────────
+ * Até 2026-08-03 este teste não rodava em lugar NENHUM: fora do CI de PR (nenhuma
+ * lane o citava — medido por scripts/governance/test-lane-coverage.mjs) E pulado
+ * na nightly do CT100, que roda MySQL e cai no markTestSkipped abaixo. Não era
+ * feedback tardio; era ausência total com cara de verde (LICOES_CODE.md LC-13).
+ * A fixture tinha drifado 3 migrations atrás do schema real e os 7 casos davam
+ * QueryException assim que a lane ligou (PR #5213, run 30783000852).
+ *
+ * Consequência prática: até aqui NENHUM caso exercia multi-tenant — a coluna
+ * `business_id` sequer existia na fixture. O caso Tier 0 no fim do arquivo fecha
+ * isso. Se você adicionar caso novo, ancore no contrato (ADR/model docblock),
+ * nunca no que o service faz hoje (proibicoes.md §5 2026-06-05).
  */
 
 $repoTmp = null;
@@ -22,13 +36,38 @@ beforeEach(function () use (&$repoTmp) {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
 
+    // ⚠️ Fixture DERIVADA das migrations reais, não escrita de cabeça. Ela havia
+    // drifado 3 migrations atrás do schema (faltavam business_id + os 11 tipados +
+    // os 3 contextual), e como este arquivo não rodava em lane NENHUMA — fora do CI
+    // de PR E pulado na nightly, que é MySQL e cai no markTestSkipped acima — o drift
+    // ficou invisível até a lane ligar (PR #5213). Ao mexer aqui, confira contra:
+    //   Modules/Jana/Database/Migrations/2026_04_29_100008_create_mcp_memory_documents_table.php
+    //   ...2026_04_30_200001_add_business_id_to_mcp_memory_documents.php
+    //   ...2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php
+    //   ...2026_05_15_120000_add_contextual_context_to_mcp_memory_documents.php
+    // `type` é enum no MySQL e string aqui de propósito (sqlite não tem ENUM).
     Schema::create('mcp_memory_documents', function (Blueprint $t) {
         $t->bigIncrements('id');
+        $t->unsignedBigInteger('business_id')->nullable();
         $t->string('slug', 200)->unique();
         $t->string('type', 20);
         $t->string('module', 50)->nullable();
+        $t->string('status', 20)->nullable();
+        $t->string('authority', 20)->nullable();
+        $t->string('lifecycle', 20)->nullable();
+        $t->string('quarter', 10)->nullable();
+        $t->date('decided_at')->nullable();
+        $t->json('decided_by')->nullable();
+        $t->json('tags')->nullable();
+        $t->json('supersedes')->nullable();
+        $t->json('superseded_by')->nullable();
+        $t->json('related')->nullable();
+        $t->boolean('has_pii')->default(false);
         $t->string('title', 250);
         $t->mediumText('content_md');
+        $t->text('contextual_context')->nullable();
+        $t->boolean('contextual_indexed')->default(false);
+        $t->timestamp('contextualized_at')->nullable();
         $t->string('scope_required', 100)->nullable();
         $t->boolean('admin_only')->default(false);
         $t->json('metadata')->nullable();
@@ -193,4 +232,54 @@ it('infere scope_required pra credenciais como admin-only', function () use (&$r
 
     $doc = McpMemoryDocument::where('slug', '0030-credenciais-secretas')->first();
     expect($doc->scope_required)->toBe('copiloto.mcp.admin');
+});
+
+/**
+ * Tier 0 multi-tenant (ADR 0093).
+ *
+ * ÂNCORA DE CONTRATO — a asserção vem do que `McpMemoryDocument::scopeDoBusiness()`
+ * DECLARA, não do que o service faz hoje: "doBusiness = business_id = X OR
+ * business_id IS NULL, então docs de plataforma (NULL = ADR 0053 cross-tenant by
+ * design) aparecem pra todos, mas docs de um business específico NÃO vazam pra
+ * outro tenant."
+ *
+ * Por que este caso não existia: a fixture não tinha a coluna `business_id`, então
+ * era IMPOSSÍVEL escrevê-lo — e como o arquivo não rodava em lane nenhuma, ninguém
+ * esbarrou nisso. Os 7 casos acima nunca tocaram multi-tenant.
+ */
+it('Tier 0 — carimba o business_id do construtor e doBusiness NÃO vaza entre tenants', function () use (&$repoTmp) {
+    file_put_contents("$repoTmp/memory/decisions/0060-doc-do-tenant-1.md", "# T1\n\nconteudo");
+
+    (new IndexarMemoryGitParaDb($repoTmp, 'test', null, 1))->run();
+
+    // (a) o service carimba o businessId que recebeu no construtor
+    $doc = McpMemoryDocument::where('slug', '0060-doc-do-tenant-1')->first();
+    expect($doc)->not->toBeNull('pré-condição: o doc do tenant 1 foi indexado');
+    expect($doc->business_id)->toBe(1);
+
+    // Vizinhos: um doc de OUTRO tenant e um doc de plataforma (NULL = global).
+    McpMemoryDocument::create([
+        'slug' => 'doc-do-tenant-99', 'business_id' => 99, 'type' => 'session',
+        'title' => 'Do outro tenant', 'content_md' => '# 99',
+        'git_path' => 'memory/sessions/doc-do-tenant-99.md',
+        'admin_only' => false, 'metadata' => [], 'pii_redactions_count' => 0,
+    ]);
+    McpMemoryDocument::create([
+        'slug' => 'doc-de-plataforma', 'business_id' => null, 'type' => 'reference',
+        'title' => 'Global', 'content_md' => '# Global',
+        'git_path' => 'memory/reference/doc-de-plataforma.md',
+        'admin_only' => false, 'metadata' => [], 'pii_redactions_count' => 0,
+    ]);
+
+    // (b) tenant 1 vê o seu + o global, e NÃO vê o do 99
+    $slugsBiz1 = McpMemoryDocument::doBusiness(1)->pluck('slug')->all();
+    expect($slugsBiz1)->toContain('0060-doc-do-tenant-1');
+    expect($slugsBiz1)->toContain('doc-de-plataforma');
+    expect($slugsBiz1)->not->toContain('doc-do-tenant-99');
+
+    // (c) simétrico — tenant 99 não enxerga o doc do 1
+    $slugsBiz99 = McpMemoryDocument::doBusiness(99)->pluck('slug')->all();
+    expect($slugsBiz99)->toContain('doc-do-tenant-99');
+    expect($slugsBiz99)->toContain('doc-de-plataforma');
+    expect($slugsBiz99)->not->toContain('0060-doc-do-tenant-1');
 });
