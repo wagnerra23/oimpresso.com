@@ -9084,7 +9084,7 @@ parameters:
 			path: Modules/Ponto/Http/Controllers/DashboardController.php
 
 		-
-			message: '#^Method Modules\\Ponto\\Http\\Controllers\\DashboardController\:\:buildAprovacoes\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: mixed, tipo\: mixed, prioridade\: mixed, data_inicio\: mixed, data_fim\: mixed, justificativa\: mixed, estado\: mixed, created_at\: mixed, \.\.\.\}\>\.$#'
+			message: '#^Method Modules\\Ponto\\Http\\Controllers\\DashboardController\:\:buildAprovacoes\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: mixed, tipo\: mixed, prioridade\: mixed, data_inicio\: mixed, data_fim\: null, justificativa\: mixed, estado\: mixed, created_at\: mixed, \.\.\.\}\>\.$#'
 			identifier: return.type
 			count: 1
 			path: Modules/Ponto/Http/Controllers/DashboardController.php
@@ -9095,17 +9095,7 @@ parameters:
 			count: 1
 			path: Modules/Ponto/Http/Controllers/DashboardController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$almoco_fim\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$almoco_inicio\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$dia_semana\.$#'
@@ -9113,11 +9103,6 @@ parameters:
 			count: 1
 			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$entrada\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
@@ -9125,11 +9110,6 @@ parameters:
 			count: 1
 			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$saida\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Http\\Request\:\:validated\(\)\.$#'

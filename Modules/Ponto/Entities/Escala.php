@@ -75,6 +75,19 @@ class Escala extends Model
     public const TIPO_ESCALA_6X1   = 'ESCALA_6X1';
     public const TIPO_ESCALA_5X2   = 'ESCALA_5X2';
 
+    /**
+     * US-PONTO-012 — generic anotado para o PHPStan enxergar `EscalaTurno` em vez de
+     * `Model` genérico. Sem isto, `$escala->turnos->map(fn ($t) => $t->hora_entrada)`
+     * vira "Access to an undefined property Model::$hora_entrada".
+     *
+     * ⚠️ E isso não é cosmético: os 4 erros equivalentes das leituras ANTIGAS
+     * (`$t->entrada`, `$t->saida`, `$t->almoco_inicio`, `$t->almoco_fim`) estavam
+     * SUPRIMIDOS no `phpstan-baseline.neon`. Ou seja — a análise estática tinha
+     * apontado o atributo fantasma, e a supressão calou o aviso. Anotar o generic
+     * remove as 4 entradas do baseline em vez de trocá-las por 4 novas.
+     *
+     * @return HasMany<EscalaTurno, $this>
+     */
     public function turnos(): HasMany
     {
         return $this->hasMany(EscalaTurno::class, 'escala_id');
