@@ -142,7 +142,35 @@ it('o .tsx é 100% primitivos — sem flex solto nem .css de tela (UC-PV-05)', f
     //    flex-col/place-items) são helpers dos próprios primitivos e são permitidas.
     $lines = preg_split('/\R/', $src) ?: [];
     $offenders = [];
+    $emBlocoComentario = false;
+
     foreach ($lines as $i => $line) {
+        // COMENTÁRIO NÃO É MARKUP. A própria ProvaViva.tsx DOCUMENTA esta regra
+        // citando o literal que ela proíbe ("zero `<div className=\"flex\">` solto",
+        // linha 10 do cabeçalho), então varrer prosa fazia o guard acusar a
+        // documentação dele mesmo — a única "ofensa" do arquivo era essa frase.
+        // Limitação conhecida e aceita: só pula linhas que SÃO comentário; um
+        // comentário no fim de uma linha de JSX real continua sendo varrido, o que
+        // é o lado seguro (não deixa markup escapar).
+        $trim = ltrim($line);
+
+        if ($emBlocoComentario) {
+            $emBlocoComentario = ! str_contains($line, '*/');
+
+            continue;
+        }
+        if (str_starts_with($trim, '//')) {
+            continue;
+        }
+        if (str_starts_with($trim, '*')) {
+            continue;
+        }
+        if (str_starts_with($trim, '/*')) {
+            $emBlocoComentario = ! str_contains($line, '*/');
+
+            continue;
+        }
+
         // pega className="... flex ..." como palavra isolada
         if (! preg_match('/className="[^"]*\bflex\b/', $line)) {
             continue;
