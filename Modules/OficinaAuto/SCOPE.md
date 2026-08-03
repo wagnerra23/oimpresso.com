@@ -1,6 +1,7 @@
 ---
 module: OficinaAuto
 purpose: "Vertical de oficina de REPARO de veículo (CNAE 4520-0/01) — OS própria (service_orders) com FSM canônica, vistoria DVI, aprovação pública do cliente por WhatsApp e PIN, e faturamento automático em Transaction (os_ref SO-). Schema veículo+placa, distinto do Repair genérico (serial_no+device)."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "DataController"
   - "InstallController"

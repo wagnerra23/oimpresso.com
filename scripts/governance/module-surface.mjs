@@ -38,6 +38,7 @@ const ROOT = process.cwd();
 const args = process.argv.slice(2);
 const MODE = args.includes('--write') ? 'write' : args.includes('--check') ? 'check' : 'dry';
 const ALL = args.includes('--all');
+const MIGRACAO = args.includes('--migracao');
 const POS = args.filter((a) => !a.startsWith('--'));
 const CONTEXTO_GERAL = '_Geral';
 const RAIZES_GERAIS = [
@@ -377,9 +378,87 @@ function processar(mod) {
   return { mod, total, drift: false };
 }
 
+// ── modo --migracao: retrato Blade→Inertia (ADITIVO — não toca write/check) ────
+/**
+ * Responde "quanto falta migrar, por módulo" DERIVANDO da árvore — nunca de campo escrito.
+ * O que ele NÃO faz: dizer se o módulo DEVE migrar. Isso é decisão curada e mora no
+ * `migracao_ui:` do SCOPE.md, que este relatório apenas LÊ e mostra ao lado do número.
+ *
+ * Distinção que importa (medido 2026-08-03): arquivo .blade.php que EXISTE ≠ Blade que é
+ * SERVIDO. O Ponto tem 26 arquivos e 1 `return view(` — contar arquivo superestima o
+ * trabalho em 25x. Por isso a coluna que ordena a fila é `servido`, não `blade`.
+ */
+function contarPhp(dir, re) {
+  let n = 0;
+  const stack = [dir];
+  while (stack.length) {
+    const cur = stack.pop();
+    let ents;
+    try { ents = readdirSync(cur, { withFileTypes: true }); } catch { continue; }
+    for (const e of ents) {
+      const p = join(cur, e.name);
+      if (e.isDirectory()) { if (e.name !== 'Tests' && e.name !== 'node_modules') stack.push(p); continue; }
+      if (!e.name.endsWith('.php')) continue;
+      const m = readFileSync(p, 'utf8').match(re);
+      if (m) n += m.length;
+    }
+  }
+  return n;
+}
+
+/** Lê o campo curado `migracao_ui:` do SCOPE.md do módulo (ou '—' se não declarado). */
+function decisaoMigracao(mod) {
+  const f = join(ROOT, 'Modules', mod, 'SCOPE.md');
+  if (!existsSync(f)) return '—';
+  const m = readFileSync(f, 'utf8').match(/^migracao_ui:\s*(.+)$/m);
+  return m ? m[1].trim().replace(/^["']|["']$/g, '') : '—';
+}
+
+function relatorioMigracao() {
+  const mods = (ALL || !POS.length) ? listarModulos() : POS;
+  const linhas = [];
+  for (const mod of mods) {
+    const dir = join(ROOT, 'Modules', mod);
+    if (!existsSync(dir)) continue;
+    const { grupos } = coletar(mod);
+    const blade = grupos.filter((g) => /Blade/i.test(g.rot)).reduce((n, g) => n + g.files.length, 0);
+    const servido = contarPhp(dir, /return view\(/g);
+    const inertia = contarPhp(dir, /Inertia::render/g);
+    let estado;
+    if (servido === 0 && inertia > 0) estado = 'migrado';
+    else if (servido === 0 && inertia === 0) estado = 'sem-ui';
+    else if (inertia === 0) estado = 'nao-comecou';
+    else estado = 'parcial';
+    linhas.push({ mod, blade, servido, inertia, estado, decisao: decisaoMigracao(mod) });
+  }
+  // ordem: quem tem mais Blade SERVIDO primeiro (é o trabalho real, não o nº de arquivos)
+  linhas.sort((a, b) => b.servido - a.servido || b.blade - a.blade);
+  console.log('\n=== Migração Blade → Inertia · derivado da árvore ===\n');
+  console.log('  servido = `return view(` (Blade que uma rota entrega) — é o que ordena a fila');
+  console.log('  blade   = arquivos .blade.php (superestima: pode ser partial/resíduo)');
+  console.log('  decisão = campo curado `migracao_ui:` do SCOPE.md (— = não declarado)\n');
+  console.log('  MÓDULO                 servido  blade  inertia  estado        decisão');
+  console.log('  ' + '─'.repeat(76));
+  for (const l of linhas) {
+    console.log(
+      '  ' + l.mod.padEnd(22) + String(l.servido).padStart(7) + String(l.blade).padStart(7) +
+      String(l.inertia).padStart(9) + '  ' + l.estado.padEnd(13) + l.decisao
+    );
+  }
+  const tot = linhas.reduce((a, l) => a + l.servido, 0);
+  const porEstado = linhas.reduce((a, l) => { a[l.estado] = (a[l.estado] || 0) + 1; return a; }, {});
+  console.log(`\n  TOTAL Blade servido nos módulos: ${tot}`);
+  console.log('  Módulos por estado: ' + Object.entries(porEstado).map(([k, v]) => `${k}=${v}`).join(' · '));
+  const semDecisao = linhas.filter((l) => l.decisao === '—').length;
+  if (semDecisao) console.log(`  ⚠️  ${semDecisao} módulo(s) sem \`migracao_ui:\` declarado no SCOPE.md`);
+  console.log('\n  ⚠️  NÃO cobre o núcleo (app/ + resources/views): medir com');
+  console.log('      git grep -c "return view(" -- app/   →   é lá que está o grosso.\n');
+}
+
 // ── main (só quando executado direto, não em import de teste) ───────────────────
 import { pathToFileURL } from 'node:url';
 function main() {
+  if (MIGRACAO) { relatorioMigracao(); return; }
   const alvos = ALL ? listarModulos() : POS;
   if (!alvos.length) {
     console.error('Uso: node scripts/governance/module-surface.mjs <Mod> [--write|--check]  |  --all [--write|--check]');

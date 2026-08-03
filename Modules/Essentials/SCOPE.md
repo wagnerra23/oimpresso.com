@@ -3,6 +3,7 @@ module: Essentials
 will_extract_partial_to: Notas
 will_extract_at_phase: 3.10
 purpose: "Infraestrutura interna compartilhada herdada do UltimatePOS: HRM sob /hrm/* (folgas, presença, folha, turnos, feriados, metas) e produtividade sob /essentials/* (tarefas, lembretes, mensagens, documentos, base de conhecimento). Não é vertical vendável; é fundação consumida por todos os business."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "AttendanceController"
   - "DashboardController"

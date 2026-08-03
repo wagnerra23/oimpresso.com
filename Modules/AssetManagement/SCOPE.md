@@ -1,6 +1,7 @@
 ---
 module: AssetManagement
 purpose: "Patrimônio da empresa: cadastro de ativos físicos, alocação e devolução a colaboradores, manutenção e garantia — bem de uso interno, nunca item vendável de estoque."
+migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
 contains:
   - "AssetAllocationController"
   - "AssetController"

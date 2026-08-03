@@ -1,6 +1,7 @@
 ---
 module: Compras
 purpose: "Cockpit de leitura de compras (/compras): lista, KPIs e drawer de detalhe sobre transactions type=purchase. Complementa — não substitui — o CRUD /purchases do core, pra onde delega criar, editar e excluir."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "ComprasController"
   - "DataController"

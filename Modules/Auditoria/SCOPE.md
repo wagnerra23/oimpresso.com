@@ -1,6 +1,7 @@
 ---
 module: Auditoria
 purpose: "Quem mudou este registro, o quê e quando? — lê e investiga a trilha por-registro (activity_log) com isolamento multi-tenant e guarda o registry do que a lei não deixa desfazer. A reversão está codificada (RevertService) porém desligada do caminho HTTP: POST /{id}/revert responde 501."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "AuditoriaController (index · show · revert)"
   - "AuditEntryService — leitura paginada e detalhe de activity_log"

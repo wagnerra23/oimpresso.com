@@ -1,6 +1,7 @@
 ---
 module: Arquivos
 purpose: "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe sha256, signed URL e soft-delete. Não tem tela própria: a UI é do módulo dono. Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação."
+migracao_ui: "nao-aplica — modulo sem UI propria"
 contains:
   - "DataController"
   - "DownloadController"

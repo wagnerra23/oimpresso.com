@@ -1,6 +1,7 @@
 ---
 module: Fiscal
 purpose: "Cara única (UI e sidebar) do domínio fiscal: agrega leitura de NfeBrasil e NFSe, delega toda ação SEFAZ aos Services deles, e é dono próprio do gerador SPED EFD-ICMS/IPI."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "AcoesController — PR #4 thin delegate NfeService::cancelar + ManifestacaoService (4 ações DF-e)"
   - "CockpitController — sub-página 1 (KPIs + alertas + sparklines + quick links)"

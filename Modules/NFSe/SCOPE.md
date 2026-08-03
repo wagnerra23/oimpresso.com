@@ -1,6 +1,7 @@
 ---
 module: NFSe
 purpose: "Emissão, consulta e cancelamento de NFS-e pelo Sistema Nacional (sefin.nfse.gov.br) com certificado A1 e ambiente por business. Dono do schema nfse_emissoes em produção; serve as telas /nfse e é consumido pela tela de venda e pelo cockpit Fiscal."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "DataController"
   - "InstallController"

@@ -5,6 +5,7 @@ module: Crm
 # (a antiga memory/requisitos/Cliente/ foi consolidada aqui em 2026-06-01).
 # Ver memory/reference/crm-e-o-modulo-de-cliente.md
 purpose: "Pipeline pré-venda herdado do UltimatePOS (leads, follow-ups, campanhas, propostas, call logs) — EM DEPRECAÇÃO por ADR 0301. Hospeda ainda, por acidente histórico, os endpoints JSON do drawer de Cliente (/cliente/*) e o portal do contato (/contact/*), cujo dono real é o ContactController do core."
+migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
 contains:
   - "CallLogController"
   - "CampaignController"

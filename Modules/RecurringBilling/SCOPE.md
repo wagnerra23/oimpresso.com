@@ -1,6 +1,7 @@
 ---
 module: RecurringBilling
 purpose: "Assinaturas, planos e faturas recorrentes (schema rb_*) com pilha própria de boleto e PIX (Inter, C6, Asaas) e webhooks. Gera faturas por schedule diário em live; a régua de dunning é declarativa e a cobrança automática (ChargeAttempt) ainda não é criada por código de produção."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "DataController"
   - "InstallController"

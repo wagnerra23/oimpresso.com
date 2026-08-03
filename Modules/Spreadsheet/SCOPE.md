@@ -1,6 +1,7 @@
 ---
 module: Spreadsheet
 purpose: "Planilhas Luckysheet dentro do ERP — CRUD, pastas e compartilhamento com usuário, papel ou tarefa do próprio business. Módulo legado UltimatePOS vendido por assinatura, em manutenção bug-fix only."
+migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
 contains:
   - "DataController"
   - "InstallController"

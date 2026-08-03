@@ -1,6 +1,7 @@
 ---
 module: Vestuario
 purpose: "Vertical lojas de vestuário e moda BR (CNAE 4781-4/00): capacidades que o núcleo não tem por serem específicas do ramo — etiqueta TAG térmica (ZPL e PDF, tamanho x cor x coleção) e devolução/troca CDC com crédito-ficha — mais os settings por business do vertical."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "EtiquetaTagController — geração lote etiquetas TAG (ZPL Argox/Zebra + PDF DomPDF) per business (US-VEST-020, RUNBOOK-etiqueta-tag.md)"
   - "EtiquetaTagService — ZPL 50×30mm + EAN-13 GS1 + QR Code opcional + settings configurable per business (Wave 27 + US-VEST-020)"

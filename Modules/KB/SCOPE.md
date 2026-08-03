@@ -1,6 +1,7 @@
 ---
 module: KB
 purpose: "Onde está escrito? — indexa, classifica e serve o conhecimento consultável da empresa (o canônico vindo do git, artigos e trilhas editáveis, e a estrutura extraída do próprio código) e responde pergunta em linguagem natural sobre ele via RAG."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "KbController — listagem e detalhe (legacy V0 — KB browser dos docs MCP)"
   - "MemoriaController — tela LGPD 'O Copiloto lembra de você' (US-COPI-MEM-012); URL /copiloto/memoria mantida"

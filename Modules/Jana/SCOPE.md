@@ -1,6 +1,7 @@
 ---
 module: Jana
 purpose: "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. ATENÇÃO fronteira em aberto: este módulo hospeda hoje também a plataforma MCP do time (servidor JSON-RPC /api/mcp, 44 tabelas mcp_* e 30 entidades Entities/Mcp/), cujo destino declarado em not_contains é Modules/Forja — movimento ainda não executado."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   # Chat IA core
   - "ChatController — UI chat principal"

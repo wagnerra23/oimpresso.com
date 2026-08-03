@@ -1,6 +1,7 @@
 ---
 module: Governance
 purpose: "A regra está sendo cumprida? — mede e mostra o cumprimento (drift de escopo/deploy/índice, nota de módulo, scorecard SDD, policies, trilha de tool MCP) e injeta o veredito no Daily Brief. Quem bloqueia merge é o CI em scripts/governance/, não este módulo."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "DashboardController — UI /governance painel consolidado (KPIs ADR pending + policies + audit + drift + actors + compliance score)"
   - "PoliciesController — CRUD inline mcp_governance_rules (toggle enabled MVP; edit JSON futuro)"
