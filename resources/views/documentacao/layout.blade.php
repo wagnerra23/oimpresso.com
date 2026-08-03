@@ -7,26 +7,50 @@
 <title>@yield('titulo', 'Documentação') — oimpresso</title>
 <meta name="color-scheme" content="light dark">
 <style>
-  /* Acento = roxo canônico (ADR 0190). Neutros com viés violeta, escolhidos —
-     cinza puro lê como não-considerado. CSS mora AQUI, num lugar só: três views
-     com cópia do mesmo CSS seria o drift que este projeto combate. */
+  /* PALETA = a do DS vivo, uma paleta só no produto (decisão [W] 2026-08-03).
+     Os valores abaixo são os tokens semânticos de `resources/css/tokens/semantic.tokens.json`,
+     compilados em `resources/css/tokens/_generated-cockpit-{light,dark}.css` — regerar com
+     `npm run tokens:build`. Aqui eles são ESPELHADOS, não importados, porque o arquivo do DS
+     escopa tudo em `.cockpit` e traz ~80 tokens de tela de ERP (sidebar, bolhas, badges de
+     origem) que uma página editorial não usa. O espelho não fica na boa-fé: o caso
+     "a paleta da documentacao nao drifa dos tokens do DS" (tests/Feature/DocumentacaoRouteTest)
+     lê os dois arquivos e falha se um valor divergir.
+
+     Nomes locais preservados de propósito (`--paper`, `--ink`, `--rule`): o DS chama
+     `--surface` o branco puro, e aqui `--surface` é o cinza de fundo de código — mesmo nome,
+     sentido diferente. Mapa: paper←bg · surface←bg-2 · ink←text · ink-soft←text-dim ·
+     ink-mute←text-mute · rule←border · rule-soft←border-2 · accent-bg←accent-soft.
+
+     A serif NÃO vem do DS e é intencional: é o que separa documento de tela. Só h1/h2. */
   :root {
-    --paper:#FBFAFC; --surface:#F3F1F7; --ink:#17151E; --ink-soft:#4A4655;
-    --ink-mute:#736E80; --rule:#DEDAE6; --rule-soft:#EAE7F0;
-    --accent:#6D4FD1; --accent:oklch(0.55 0.15 295); --accent-bg:#F0EBFC;
+    --paper:oklch(0.985 0.003 90); --surface:oklch(0.965 0.004 90);
+    --ink:oklch(0.22 0.01 80); --ink-soft:oklch(0.50 0.01 80); --ink-mute:oklch(0.65 0.01 80);
+    --rule:oklch(0.90 0.004 90); --rule-soft:oklch(0.93 0.004 90);
+    --accent:oklch(0.55 0.15 295); --accent-bg:oklch(0.95 0.04 295);
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
-    --sans:"Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-    --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    /* string idêntica à do DS, espaçamento incluído — o caso de equivalência compara literal */
+    --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   }
+  /* DIVERGÊNCIA CONSCIENTE no escuro — o DS não redeclara `--accent` no dark, então ele
+     herda oklch(0.55 …), que no ERP é fundo de botão (texto branco por cima). Aqui o accent
+     é COR DE LINK dentro de parágrafo: 0.55 sobre papel escuro fica abaixo do contraste de
+     leitura. Sobe pra 0.74 — mesmo hue 295, mesma família. Não é drift; é o mesmo token
+     aplicado a um uso que o DS não cobre. */
   @media (prefers-color-scheme: dark) {
-    :root { --paper:#131118; --surface:#1C1926; --ink:#E9E6F0; --ink-soft:#B6B1C4;
-      --ink-mute:#8B8598; --rule:#2E2A3A; --rule-soft:#241F2E;
-      --accent:oklch(0.74 0.13 295); --accent-bg:#241C3D; }
+    :root { --paper:oklch(0.26 0.006 240); --surface:oklch(0.23 0.006 240);
+      --ink:oklch(0.94 0.005 90); --ink-soft:oklch(0.72 0.005 90); --ink-mute:oklch(0.58 0.005 90);
+      --rule:oklch(0.34 0.008 240); --rule-soft:oklch(0.31 0.008 240);
+      --accent:oklch(0.74 0.13 295); --accent-bg:oklch(0.32 0.06 295); }
   }
-  :root[data-theme="dark"]{--paper:#131118;--surface:#1C1926;--ink:#E9E6F0;--ink-soft:#B6B1C4;
-    --ink-mute:#8B8598;--rule:#2E2A3A;--rule-soft:#241F2E;--accent:oklch(0.74 0.13 295);--accent-bg:#241C3D}
-  :root[data-theme="light"]{--paper:#FBFAFC;--surface:#F3F1F7;--ink:#17151E;--ink-soft:#4A4655;
-    --ink-mute:#736E80;--rule:#DEDAE6;--rule-soft:#EAE7F0;--accent:oklch(0.55 0.15 295);--accent-bg:#F0EBFC}
+  :root[data-theme="dark"]{--paper:oklch(0.26 0.006 240);--surface:oklch(0.23 0.006 240);
+    --ink:oklch(0.94 0.005 90);--ink-soft:oklch(0.72 0.005 90);--ink-mute:oklch(0.58 0.005 90);
+    --rule:oklch(0.34 0.008 240);--rule-soft:oklch(0.31 0.008 240);
+    --accent:oklch(0.74 0.13 295);--accent-bg:oklch(0.32 0.06 295);}
+  :root[data-theme="light"]{--paper:oklch(0.985 0.003 90);--surface:oklch(0.965 0.004 90);
+    --ink:oklch(0.22 0.01 80);--ink-soft:oklch(0.50 0.01 80);--ink-mute:oklch(0.65 0.01 80);
+    --rule:oklch(0.90 0.004 90);--rule-soft:oklch(0.93 0.004 90);
+    --accent:oklch(0.55 0.15 295);--accent-bg:oklch(0.95 0.04 295);}
 
   *,*::before,*::after{box-sizing:border-box}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);

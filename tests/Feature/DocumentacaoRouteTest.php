@@ -133,6 +133,83 @@ it('o sumario da pagina e derivado dos titulos, com ancora estavel nos codigos d
     }
 });
 
+it('a paleta da documentacao nao drifa dos tokens do DS', function () {
+    // A página é editorial e standalone: não carrega o CSS do app, então os tokens do DS
+    // estão ESPELHADOS no :root do layout (o arquivo do DS escopa tudo em `.cockpit` e
+    // traz ~80 tokens de tela de ERP que uma página de leitura não usa). Espelho sem
+    // trava vira cópia que apodrece — este caso é a trava: mexeu no token do DS e não
+    // no layout (ou o contrário), cai aqui.
+    //
+    // Roda sempre: só lê arquivo do repo, sem banco e sem sessão.
+    $bloco = function (string $arquivo, string $seletor): array {
+        $css = file_get_contents(base_path($arquivo));
+        // preg_quote no seletor porque ele tem [ ] " . — e o corpo vai até a primeira `}`.
+        expect(preg_match('/' . preg_quote($seletor, '/') . '\s*\{([^}]*)\}/', $css, $m))
+            ->toBe(1, "bloco '{$seletor}' não encontrado em {$arquivo}");
+
+        // `;` opcional: o último par antes da chave pode não tê-lo, e o caso não pode
+        // depender do estilo de escrita de quem editar o CSS.
+        preg_match_all('/--([a-z0-9-]+)\s*:\s*([^;]+);?/i', $m[1], $vars, PREG_SET_ORDER);
+
+        return collect($vars)->mapWithKeys(
+            fn ($v) => ['--' . $v[1] => trim(preg_replace('/\s+/', ' ', $v[2]))]
+        )->all();
+    };
+
+    $ds = 'resources/css/tokens/_generated-cockpit-light.css';
+    $dsDark = 'resources/css/tokens/_generated-cockpit-dark.css';
+    $layout = 'resources/views/documentacao/layout.blade.php';
+
+    // Mapa dos nomes locais → token do DS. Os nomes diferem de propósito: o DS chama
+    // `--surface` o branco puro, e aqui `--surface` é o cinza de fundo de código.
+    $mapa = [
+        '--paper' => '--bg',
+        '--surface' => '--bg-2',
+        '--ink' => '--text',
+        '--ink-soft' => '--text-dim',
+        '--ink-mute' => '--text-mute',
+        '--rule' => '--border',
+        '--rule-soft' => '--border-2',
+        '--accent' => '--accent',
+        '--accent-bg' => '--accent-soft',
+    ];
+
+    $dsLight = $bloco($ds, '.cockpit');
+    $localLight = $bloco($layout, ':root');
+
+    foreach ($mapa as $local => $token) {
+        expect($localLight)->toHaveKey($local);
+        expect($dsLight)->toHaveKey($token);
+        expect($localLight[$local])->toBe(
+            $dsLight[$token],
+            "{$local} do layout divergiu de {$token} do DS — rode `npm run tokens:build` e reconcilie"
+        );
+    }
+
+    // Tipografia: a stack tem que ser a MESMA do DS (IBM Plex à frente), senão a página
+    // desenha noutra fonte que o resto do produto.
+    expect($localLight['--sans'])->toBe($dsLight['--font-sans']);
+    expect($localLight['--mono'])->toBe($dsLight['--font-mono']);
+
+    // No escuro o DS não redeclara accent nem fontes — só os neutros e o accent-soft.
+    // O accent local (0.74) é divergência DECLARADA: aqui ele é cor de link em texto
+    // corrido, uso que o DS não cobre. Se um dia o DS passar a declarar accent no dark,
+    // esta linha vira o lembrete de reconciliar conscientemente.
+    $dsEscuro = $bloco($dsDark, '.cockpit[data-theme="dark"]');
+    $localEscuro = $bloco($layout, ':root[data-theme="dark"]');
+
+    foreach (['--paper' => '--bg', '--surface' => '--bg-2', '--ink' => '--text',
+        '--ink-soft' => '--text-dim', '--ink-mute' => '--text-mute',
+        '--rule' => '--border', '--rule-soft' => '--border-2',
+        '--accent-bg' => '--accent-soft'] as $local => $token) {
+        expect($localEscuro[$local])->toBe(
+            $dsEscuro[$token],
+            "{$local} (dark) divergiu de {$token} do DS"
+        );
+    }
+
+    expect($dsEscuro)->not->toHaveKey('--accent');          // premissa da divergência acima
+    expect($localEscuro['--accent'])->toBe('oklch(0.74 0.13 295)');
 it('resolve link de documento em subpasta contra a pasta dele, nao contra memory/', function () {
     // /documentacao/{slug} serve o acervo INTEIRO, e boa parte dele mora em subpasta
     // (memory/reference/…, memory/requisitos/<Mod>/…). Com a base fixa em `memory/`,
