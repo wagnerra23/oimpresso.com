@@ -140,7 +140,19 @@ class EspelhoController extends Controller
             ->get();
 
         $marcacoesPorDia = $marcacoes->groupBy(fn ($m) => $m->momento->toDateString());
-        $apuracoesPorData = $apuracoes->keyBy(fn ($a) => (string) $a->data);
+        // US-PONTO-012 — 6º achado, e o mais caro da tela: `ApuracaoDia::$casts` tem
+        // `'data' => 'date'`, então `$a->data` é Carbon e `(string) $carbon` produz
+        // "2019-03-11 00:00:00" (Carbon::__toString usa Y-m-d H:i:s). O lookup abaixo
+        // usa `$cursor->toDateString()` → "2019-03-11". As chaves NUNCA casavam, então
+        // `$a` era null em TODA linha: `trabalhado`, `atraso`, `falta`, `he` e
+        // `divergencia` saíam zerados no mês inteiro — a apuração era invisível na
+        // tabela dia-a-dia, que é o coração do espelho.
+        //
+        // A linha logo acima já fazia certo para marcações (`->toDateString()`); só
+        // esta divergia. Isso é o que fazia o UC-ESPSHOW-01 seguir vermelho mesmo
+        // depois de corrigir o `tem_divergencia` dos totais: eram DOIS defeitos
+        // empilhados no mesmo caso, e o de cima escondia o de baixo.
+        $apuracoesPorData = $apuracoes->keyBy(fn ($a) => optional($a->data)->toDateString());
 
         $inicio = Carbon::createFromDate($ano, $mesNum, 1)->startOfMonth();
         $fim = $inicio->copy()->endOfMonth();

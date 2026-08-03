@@ -84,7 +84,13 @@ class DashboardController extends Controller
             ->groupBy('data')
             ->orderBy('data')
             ->get()
-            ->keyBy(fn ($r) => (string) $r->data);
+            // US-PONTO-012 — MESMA classe do 6º achado (EspelhoController): `ApuracaoDia`
+            // tem cast `'data' => 'date'`, então `$r->data` é Carbon mesmo vindo de
+            // `selectRaw`, e `(string) $carbon` produz "2026-08-03 00:00:00". O lookup
+            // abaixo usa `$d->toDateString()` → "2026-08-03". As chaves nunca casavam,
+            // `$row` era sempre null, e a série de 7 dias do Dashboard mostrava ZERO em
+            // todos os dias — inclusive com jornada apurada no banco.
+            ->keyBy(fn ($r) => optional($r->data)->toDateString());
 
         $serie7d = [];
         for ($i = 0; $i < 7; $i++) {
