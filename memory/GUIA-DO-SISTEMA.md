@@ -4,13 +4,15 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.2.0"
+version: "1.3.0"
 maintained_by: wagner
-last_updated: "2026-08-02"
+last_updated: "2026-08-03"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
   - 0062-separacao-runtime-hostinger-ct100
+  - 0330-mapa-dos-niveis-estado-real-2026-07-constituicao
+  - 0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio
 pii: false
 ---
 
@@ -84,8 +86,8 @@ Acesso/deploy detalhado: [reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESS
 ### A6. Peças transversais que vale conhecer
 
 - **Jana IA** — copiloto conversacional com memória persistente ([Modules/Jana](../Modules/Jana/), skill `jana-arch`)
-- **FSM Pipeline** — toda mudança de estado de Venda/OS passa por `ExecuteStageActionService` ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)); UPDATE direto em `current_stage_id` é bloqueado
-- **MCP server** (`mcp.oimpresso.com`) — expõe conhecimento canônico do `memory/` como tools ([ADR 0053](decisions/0053-mcp-server-governanca-como-produto.md))
+- **FSM Pipeline** — toda mudança de estado de Venda/OS passa por [`app/Domain/Fsm/Services/ExecuteStageActionService.php`](../app/Domain/Fsm/Services/ExecuteStageActionService.php) ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)); UPDATE direto em `current_stage_id` é bloqueado pelo trait [`app/Domain/Fsm/Concerns/GuardsFsmTransitions.php`](../app/Domain/Fsm/Concerns/GuardsFsmTransitions.php)
+- **MCP server** (`mcp.oimpresso.com`) — expõe conhecimento canônico do `memory/` como tools ([ADR 0053](decisions/0053-mcp-server-governanca-como-produto.md)). O servidor é [`Modules/Jana/Mcp/OimpressoMcpServer.php`](../Modules/Jana/Mcp/OimpressoMcpServer.php), e a rota que o monta está **dentro de um `if`**: sem `mcp.tools_exposed` ligado ela nem existe — por isso o Hostinger responde 404 e só o CT 100 serve tools ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
 - **Forja** — a **cara humana** do estado vivo que a PARTE B consulta por tool: Kanban, backlog, roadmap, triagem, caixa de entrada e burndown em `/project-mgmt`, sobre as mesmas tabelas `mcp_*` que as tools `tasks-*`/`cycles-*` leem. A administração do time e dos tokens MCP mora em `/team-mcp`, no mesmo módulo ([Modules/Forja](../Modules/Forja/))
 - **Multi-tenant Tier 0** — `business_id` global scope obrigatório; vazar dado entre tenants é o pior bug possível ([ADR 0093](decisions/0093-multi-tenant-isolation-tier-0.md))
 
@@ -105,7 +107,7 @@ A forma atual do sistema é consequência direta da segunda era. Linhagem comple
 
 Não é um chatbot: é o **front de decisão do dono do negócio** sobre um ERP multi-tenant. Entrega chat com memória persistente por empresa, brief diário auto-gerado, sugestão de metas com apuração agendada, e alertas de desvio.
 
-- **Três camadas** ([ADR 0035](decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)): **(A)** wrapper `laravel/ai`; **(B)** agents próprios em `Modules/Jana/Ai/Agents/` — o Vizra ADK foi avaliado e **rejeitado** ([ADR 0048](decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md)); **(C)** memória `MemoriaContrato` + Meilisearch + embeddings Ollama, com recall reordenado por decaimento no tempo.
+- **Três camadas** ([ADR 0035](decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)): **(A)** wrapper `laravel/ai`; **(B)** agents próprios em `Modules/Jana/Ai/Agents/` — o Vizra ADK foi avaliado e **rejeitado** ([ADR 0048](decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md)); **(C)** memória atrás da interface [`Modules/Jana/Contracts/MemoriaContrato.php`](../Modules/Jana/Contracts/MemoriaContrato.php) + Meilisearch + embeddings Ollama, com recall reordenado por decaimento no tempo.
 - **O isolamento é mecânico, não instruído** — o `business_id` vem do **construtor da tool, nunca do modelo** ([ADR 0141](decisions/0141-agents-tool-use-pattern-claude-code.md) + [0093](decisions/0093-multi-tenant-isolation-tier-0.md)). Mesmo que o LLM tente injetar outro, a tool ignora. Não se confia no prompt para garantir isolamento — confia-se no código.
 - **A qualidade morde o CI** — evals de recall e RAGAS com baseline que reprova regressão. ⚠️ O `jana:drift-sentinel` **não mede a qualidade da Jana**: ele pontua fidelidade comparando o gabarito consigo mesmo, o que dá `1.0` por construção. O que ele vigia é **o juiz** — se cair, quem quebrou foi o avaliador, não a Jana.
 
@@ -181,7 +183,7 @@ Todos passam pelo mesmo portão — e é isso que os torna auditáveis.
 - **Uma venda** — nasce rascunho de orçamento e caminha até concluída. Não muda de estágio por atribuição: cada passo é uma **ação nomeada**, com papel autorizado por empresa. Dispara efeitos isolados (`ReservarEstoque`, `ConsumirEstoque`, `LiberarReserva`). A emissão fiscal está amarrada ao estágio, não a um botão avulso.
 - **Uma ordem de serviço** — mesma mecânica, vocabulário de oficina: recebido para diagnóstico → orçamento → aprovação → execução → entrega. O Kanban é a projeção visual desses estágios; mover o cartão **é** executar a ação.
 - **Um cancelamento** — o caso difícil, porque não é um `DELETE`: cancela a nota na SEFAZ **preservando o número sequencial** (a lei o considera usado), estorna no gateway, devolve o estoque, e avisa o cliente **só se ele consentiu** (LGPD).
-- **Um deploy** — merge em `main` que toque código dispara build no runner, manutenção, migrations, reset de opcode e **smoke em `/login`**; se o boot falhar, um failsafe segura um 503 gracioso. Mudança só em documentação **não** dispara deploy.
+- **Um deploy** ([ADR 0269](decisions/0269-deploy-automatico-build-no-runner.md)) — merge em `main` que toque código dispara build no runner, manutenção, migrations, reset de opcode e **smoke em `/login`**; se o boot falhar, um failsafe segura um 503 gracioso. Mudança só em documentação **não** dispara deploy (`paths-ignore: memory/** · **.md`) — o que economiza minutos de pipeline e tem um efeito que vale saber: **markdown novo só chega ao servidor no deploy seguinte**.
 
 **O fio que une os quatro:** um portão único, efeitos com nome próprio, histórico que não se reescreve, permissão checada por empresa. Quando algo dá errado, *"o que aconteceu aqui?"* tem resposta — e essa é a diferença entre um ERP que se opera e um que se adivinha.
 
@@ -241,7 +243,7 @@ Fonte completa: [proibicoes.md](proibicoes.md). As que mais te afetam:
 - **ADRs** = decisões arquiteturais (`memory/decisions/`, formato Nygard). Índice vivo: [decisions/_INDEX-GENERATED.md](decisions/_INDEX-GENERATED.md).
 - **Skills** = automações por contexto (`.claude/skills/`). **Tier A** sempre-on (multi-tenant, commit-discipline, smoke). **Tier B** disparam por path/intenção.
 - **Rules path-scoped** (`.claude/rules/`) = instruções que só carregam ao tocar certos arquivos.
-- **Saúde:** `php artisan jana:health-check` diário — os checks vivem no próprio comando (`HealthCheckCommand.php` se auto-reporta a contagem); não fixar número à mão (LC-08).
+- **Saúde:** `php artisan jana:health-check` diário — os checks vivem no próprio comando ([`Modules/Jana/Console/Commands/HealthCheckCommand.php`](../Modules/Jana/Console/Commands/HealthCheckCommand.php) se auto-reporta a contagem); não fixar número à mão (LC-08).
 
 ### B6. Quem cuida da documentação (o modelo — não há um "responsável" único, por design)
 
@@ -259,7 +261,7 @@ Origem: [W] 2026-08-02 — *"preciso de um responsável que não se desvie do fo
 3. **Um item por vez**, via `documentacao-tecnica`: mede o drift → corrige **no dono existente** → prova com recibo antes→depois pelo mesmo detector → abre PR.
 4. **O conteúdo vai pro DONO** (tabela abaixo). Nunca pra arquivo novo.
 5. **[W] mergeia** — o merge é o ato de ratificação.
-6. **A página se atualiza sozinha**, porque é derivada: `/documentacao` renderiza este arquivo em runtime. Não há cópia pra alguém lembrar de sincronizar.
+6. **A página não precisa de sincronização**, porque é derivada: `/documentacao` renderiza este arquivo em runtime e não existe cópia intermediária. ⚠️ Mas ela **não é instantânea**: o deploy ignora `memory/**` e `**.md` ([ADR 0269](decisions/0269-deploy-automatico-build-no-runner.md)), então o texto novo aparece no **próximo deploy de código** — ou num `quick-sync` disparado à mão. Nada a sincronizar ≠ chega na hora.
 
 | O que é | Dono |
 |---|---|
