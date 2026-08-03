@@ -46,7 +46,7 @@ import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { auditDocumentAuthority, CANONICAL_ENTRYPOINT } from './document-authority.mjs';
-import { factAnchorScan } from './fact-anchor.mjs';
+import { factAnchorScan, factAnchorTabelas } from './fact-anchor.mjs';
 import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
@@ -298,6 +298,55 @@ const CURRENT_STATE_DOCS = [
   'memory/why-oimpresso.md',
   'memory/how-trabalhar.md',
 ];
+// Fonte-de-verdade VERSIONADA de tabelas: dump do schema + Schema::create/rename das
+// migrations. Hermética (não toca banco) — ver o porquê em fact-anchor.factAnchorTabelas.
+function tabelasDoSchemaVersionado() {
+  const truth = new Set();
+  try {
+    for (const m of read('database/schema/mysql-schema.sql').matchAll(/^CREATE TABLE `([^`]+)`/gim)) truth.add(m[1].toLowerCase());
+  } catch {}
+  const dirs = [join(ROOT, 'database/migrations')];
+  try {
+    for (const e of readdirSync(join(ROOT, 'Modules'), { withFileTypes: true })) {
+      if (e.isDirectory()) dirs.push(join(ROOT, 'Modules', e.name, 'Database', 'Migrations'));
+    }
+  } catch {}
+  const php = [];
+  const walk = (d) => {
+    if (!existsSync(d)) return;
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name);
+      if (e.isDirectory()) walk(p); else if (e.name.endsWith('.php')) php.push(p);
+    }
+  };
+  for (const d of dirs) walk(d);
+  for (const f of php) {
+    let t = ''; try { t = readFileSync(f, 'utf8'); } catch { continue; }
+    for (const m of t.matchAll(/Schema::(?:create|table|rename|dropIfExists)\w*\(\s*['"]([a-zA-Z0-9_]+)['"]/g)) truth.add(m[1].toLowerCase());
+    for (const m of t.matchAll(/->rename\(\s*['"]([a-zA-Z0-9_]+)['"]/g)) truth.add(m[1].toLowerCase());
+  }
+  return truth;
+}
+
+// Corpus da âncora de TABELA = os SDDs (fora de CURRENT_STATE_DOCS de propósito:
+// pôr 16 SDDs no corpus das VERSIONS submeteria doc histórico a um check required
+// com raio de explosão não medido).
+function sddDocs() {
+  const out = [];
+  const walk = (d) => {
+    if (!existsSync(d)) return;
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name);
+      if (e.isDirectory()) { walk(p); continue; }
+      if (!/^SDD.*\.md$/i.test(e.name) || /TEMPLATE/i.test(e.name)) continue;
+      let txt = ''; try { txt = readFileSync(p, 'utf8'); } catch { continue; }
+      out.push({ rel: p.slice(ROOT.length + 1).replace(/\\/g, '/'), txt });
+    }
+  };
+  walk(join(ROOT, 'memory/requisitos'));
+  return out;
+}
+
 function checkFactAnchor() {
   let pkg = {}; try { pkg = JSON.parse(read('package.json')); } catch {}
   let comp = {}; try { comp = JSON.parse(read('composer.json')); } catch {}
@@ -308,6 +357,29 @@ function checkFactAnchor() {
   if (hits.length) {
     fails.push({ check: 'T', kind: 'fato-ancora-drift', count: hits.length, sample: hits.slice(0, 12),
       msg: `${hits.length} FATO(s) na camada de entrada CONTRADIZ(em) a fonte-de-verdade (package.json/composer.json/Modules/). Corrigir o doc — não é idade, é erro. 🔴 required (ADR 0349 — promovido a fail: determinístico major-only, zero contradição viva na promoção). Reversível: FP → volta a warns + PR de demoção.` });
+  }
+
+  // Âncora de TABELA — a fonte "dado" que faltava ao Check T (proibicoes §5 2026-07-17:
+  // "extensão de régua consolidada, nunca gate novo"). Corpus = SDDs; verdade = schema
+  // versionado. Entrou como 🟡 warn em 2026-08-03 (1ª medição: 84 afirmações · 2
+  // contradições · 0 falso-positivo). Promover a 🔴 fail é flip [W].
+  // Sem SDD no corpus → nada foi AFIRMADO, logo não há o que contradizer: silêncio é
+  // honesto (não é gate mudo). O sandbox do gate-selftest cai aqui — mesmo padrão já
+  // documentado em checkVitalSigns ("sem fonte-de-verdade → não inventa"; warnar mataria
+  // o "saudável" da fixture good).
+  const sdds = sddDocs();
+  if (sdds.length === 0) return;
+  const truthTab = tabelasDoSchemaVersionado();
+  if (truthTab.size === 0) {
+    // AQUI sim é mudo se calar: há §5.2 afirmando tabela e nenhuma fonte pra conferir.
+    warns.push({ check: 'T', kind: 'fato-ancora-tabela-sem-fonte', count: sdds.length,
+      msg: `âncora de tabela PULADA em ${sdds.length} SDD(s): nenhuma tabela lida de database/schema/mysql-schema.sql nem das migrations. Não é "0 contradições" — é "não medi". 🟡 sentinela.` });
+    return;
+  }
+  const hitsTab = factAnchorTabelas({ docs: sdds, tableExists: (t) => truthTab.has(t) });
+  if (hitsTab.length) {
+    warns.push({ check: 'T', kind: 'fato-ancora-tabela', count: hitsTab.length, sample: hitsTab.slice(0, 12),
+      msg: `${hitsTab.length} tabela(s) afirmada(s) na §5.2 de um SDD NÃO existe(m) no schema versionado (${truthTab.size} tabelas conhecidas). Corrigir o doc — o §5.2 afirma que a tabela existe. 🟡 sentinela.` });
   }
 }
 

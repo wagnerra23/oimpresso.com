@@ -4,8 +4,8 @@ id: requisitos-template-feature-briefing
 
 <!--
   USE COMO BASE — NÃO EDITAR (canônico). Este BRIEFING é a porta do diretório (não se copia).
-  Copie os 3 templates (requirements.md + plan.md + tasks.md) pra
-  `memory/requisitos/<Mod>/features/<slug>/` e cure os placeholders {{...}}.
+  Gere o trio pela máquina dona (ela lê estes 3 templates, valida a US e nunca sobrescreve):
+  `npm run feature:init -- <Mod>/<slug> --us US-<MOD>-<NNN>`.
   Piloto de referência: memory/requisitos/RecurringBilling/features/gateway-ativacao/
 -->
 
@@ -53,7 +53,9 @@ id: requisitos-template-feature-briefing
 
 ## Ciclo de vida
 
-1. Copiar template → curar placeholders → `node scripts/governance/feature-lint.mjs <Mod>/<slug>`.
+1. `npm run feature:init -- <Mod>/<slug> --us US-<MOD>-<NNN>` → curar placeholders →
+   `node scripts/governance/feature-lint.mjs <Mod>/<slug> --check`. O `--init` recusa US ausente,
+   destino existente e path fora de `<Modulo>/<slug>`; `--dry-run` prova os arquivos sem escrever.
 1b. **Fase Clarify (Spec Kit 2026):** se o pedido tem ambiguidade, rodar o agente `wagner-understand`
    ANTES do plan e gravar as respostas na seção `## Clarifications` do requirements — desambiguação
    vira parte do contrato (não some no session log). Feature clara: seção fica `_nenhuma_`.

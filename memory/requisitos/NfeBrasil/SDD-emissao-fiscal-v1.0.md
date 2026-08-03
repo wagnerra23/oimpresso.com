@@ -243,7 +243,7 @@ Modules/NfeBrasil/Services/*  (15)
 | `nfe_eventos` | `tipo` (tpEvento) · `cstat_evento` · `justificativa` | `UPDATED_AT = null` — append-only por lei |
 | `nfe_dfe_recebidos` | `chave_44` · `nsu` · `cnpj_emitente` · `status_manifestacao` · `prazo_confirmacao_em` | prazo vem da **SEFAZ**, não de `now()+180d` hard-coded |
 | `nfe_dfe_eventos` | `tipo` ∈ {`210210`,`210200`,`210220`,`210240`} · `status` · `cstat_evento` | UNIQUE `(business_id, dfe_recebido_id, tipo, nseq_evento)` = a idempotência |
-| `nfe_dfe_nsu_states` | `last_nsu` · `ultimo_check_em` · `ultimo_lote_count` | 1 row por business — o cursor da distribuição |
+| `nfe_dfe_nsu_state` | `last_nsu` · `ultimo_check_em` · `ultimo_lote_count` | 1 row por business — o cursor da distribuição |
 | `nfe_fiscal_rules` | `ncm` · `uf_origem` · `uf_destino` (NULL = "todas") · `cfop` · `csosn`/`cst` · 4 alíquotas + `mva`/`fcp` | `SoftDeletes` — regra fiscal não some do histórico |
 | `nfe_business_configs` | `regime` · `tributacao_default` (JSON) · `auto_emission_enabled` | 1 row por business; `auto_emission_enabled` é **o gate da emissão automática** |
 | `nfe_certificados` | `uuid` · `cnpj_titular` · `valido_ate` · `ativo` · **`encrypted_password` `$hidden`** | a tela dele mora no **Fiscal** (§0.1) |

@@ -9,7 +9,7 @@
 //
 // Rodar: node scripts/governance/fact-anchor.test.mjs   (exit 0 = passa)
 
-import { factAnchorScan, majorFrom } from './fact-anchor.mjs';
+import { factAnchorScan, factAnchorTabelas, majorFrom, tabelasAfirmadasNo52 } from './fact-anchor.mjs';
 
 let fails = 0;
 function check(name, cond) {
@@ -67,6 +67,44 @@ check('Modules/<X> placeholder NÃO flagra (regex exige letra)', scan('crie Modu
 // 7. count/relato de hit: doc com 2 erros → 2 contradições
 const doisErros = 'stack antiga: React 18 + Pest v3';
 check('doc com 2 erros devolve 2 hits', scan(doisErros).length === 2);
+
+// ── 8. ÂNCORA DE TABELA (§5.2 dos SDDs vs schema versionado) ────────────────
+// Fixtures boa/ruim da classe REAL medida em 2026-08-03: 2 contradições em 84
+// afirmações, ambas erro de 1 letra (`nfe_dfe_nsu_states` vs `nfe_dfe_nsu_state`,
+// `ponto_escalas_turnos` vs `ponto_escala_turnos`). Os controles negativos abaixo
+// existem porque a 1ª versão do extrator era LEXICAL e deu 234 FP — todos COLUNAS.
+const tabelasReais = new Set(['nfe_dfe_nsu_state', 'ponto_escala_turnos', 'ponto_escalas', 'fin_titulos', 'transactions']);
+const scanTab = (txt) => factAnchorTabelas({ docs: [{ rel: 'SDD-x.md', txt }], tableExists: (t) => tabelasReais.has(t) });
+const sdd = (linhas) => ['### 5.2 Modelo de dados (núcleo)', '', ...linhas, '', '### 5.3 Fluxos críticos', '| Tabela | x |', '|---|---|', '| `tabela_que_nao_existe_na_53` | y |'].join('\n');
+
+// MORDE: a classe real (nome com "s" a mais)
+check('§5.2 com tabela inexistente FLAGRA',
+  scanTab(sdd(['| Tabela | Papel |', '|---|---|', '| `nfe_dfe_nsu_states` | cursor |'])).length === 1);
+// controle negativo 1: o nome certo não flagra
+check('§5.2 com tabela correta NÃO flagra',
+  scanTab(sdd(['| Tabela | Papel |', '|---|---|', '| `nfe_dfe_nsu_state` | cursor |'])).length === 0);
+// controle negativo 2 — o FP que matou a v1: COLUNA em backtick fora da coluna "Tabela"
+check('coluna citada em backtick (fora da col Tabela) NÃO flagra (FP da v1 lexical)',
+  scanTab(sdd(['| Tabela | Invariante |', '|---|---|', '| `fin_titulos` | `valor_aberto` ≤ `valor_total`; `business_id` obrigatório |'])).length === 0);
+// controle negativo 3: `tabela.coluna` ancora na TABELA
+check('`tabela.coluna` ancora na tabela (existente → 0 hit)',
+  scanTab(sdd(['| Tabela | Papel |', '|---|---|', '| `fin_titulos.titulo_pai_id` | split |'])).length === 0);
+check('`tabela.coluna` com tabela inexistente FLAGRA',
+  scanTab(sdd(['| Tabela | Papel |', '|---|---|', '| `fin_titulo.titulo_pai_id` | split |'])).length === 1);
+// controle negativo 4: duas tabelas na mesma célula (caso Ponto) — as duas são checadas
+check('2 tabelas na mesma célula: só a errada flagra',
+  scanTab(sdd(['| Tabela | Papel |', '|---|---|', '| `ponto_escalas` / `ponto_escalas_turnos` | escala |'])).length === 1);
+// controle negativo 5: doc sem §5.2 não é varrido
+check('SDD sem §5.2 NÃO flagra', scanTab('# SDD\n\n### 6. Casos de uso\n| Tabela |\n|---|\n| `nao_existe` |').length === 0);
+// controle negativo 6: tabela markdown SEM cabeçalho "Tabela" é ignorada (2 SDDs reais)
+check('§5.2 sem coluna "Tabela" NÃO flagra',
+  scanTab(sdd(['| Campo | Papel |', '|---|---|', '| `nao_existe_nenhuma` | x |'])).length === 0);
+// controle negativo 7: escopo da seção — a §5.3 não é varrida (o fixture sdd() planta isca lá)
+check('tabela errada na §5.3 NÃO flagra (escopo da seção)',
+  scanTab(sdd(['| Tabela | Papel |', '|---|---|', '| `fin_titulos` | ok |'])).length === 0);
+// extrator puro
+check('tabelasAfirmadasNo52 devolve a base sem a coluna',
+  tabelasAfirmadasNo52(sdd(['| Tabela | x |', '|---|---|', '| `fin_titulos.titulo_pai_id` | y |'])).has('fin_titulos'));
 
 if (fails) {
   console.error(`\n❌ fact-anchor.test: ${fails} falha(s)`);
