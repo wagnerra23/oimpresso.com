@@ -13,6 +13,16 @@ module: {{PascalCase}}
 
 # Plan — {{título curto da feature}}
 
+## Status vivo
+
+- **status:** proposto
+- **owner:** {{OWNER}}
+- **criado:** {{YYYY-MM-DD}} · **reviewed_at:** {{YYYY-MM-DD}} · **próxima-revisão:** {{YYYY-MM-DD+30}}
+- **cycle:** off-cycle · **execução:** `parent_plan={{parent-plan}}` — tasks MCP ainda não criadas
+- **gate-de-saída (DoD):** {{quando todos os ACs estarão provados e a US ancorada}}
+- **kill-condition:** {{quando abandonar ou replanejar em vez de manter plano zumbi}}
+- **verdade-viva:** este documento
+
 ## Decisões técnicas
 
 | # | Decisão | Por quê (1 linha) | Âncora |
