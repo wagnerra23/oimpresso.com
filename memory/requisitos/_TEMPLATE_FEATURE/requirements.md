@@ -11,7 +11,7 @@ id: requisitos-template-feature-requirements
 feature: {{slug-kebab}}
 module: {{PascalCase — igual à pasta memory/requisitos/<Mod>/}}
 us: ["US-{{MOD}}-{{NNN}}"]
-parent_plan: {{slug usado no tasks-create parent_plan: — normalmente <modulo>-<feature>}}
+parent_plan: {{parent-plan}}
 created: "{{YYYY-MM-DD}}"
 ---
 

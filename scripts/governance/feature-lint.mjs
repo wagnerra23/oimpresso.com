@@ -28,16 +28,24 @@
 //   node scripts/governance/feature-lint.mjs --json             # JSON determinístico
 //   node scripts/governance/feature-lint.mjs RecurringBilling/gateway-ativacao   # 1 feature
 //   node scripts/governance/feature-lint.mjs --check            # exit 1 se houver ERRO
+//   node scripts/governance/feature-lint.mjs --init Mod/slug --us US-MOD-001
+//   node scripts/governance/feature-lint.mjs --init Mod/slug --us US-MOD-001 --dry-run
 //                                                               # ADVISORY até promoção (ADR 0271/0275)
 // Node puro (fs). Sem deps, sem DB, sem PHP. Idioma: clone de doneness-lint.mjs (ADR 0302).
 
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname, basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
 const TRIO = ['requirements.md', 'plan.md', 'tasks.md'];
+const TEMPLATE_DIR = join(REQ, '_TEMPLATE_FEATURE');
+const FEATURE_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const MODULE_RE = /^[A-Z][A-Za-z0-9]*$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const OWNER_RE = /^(?:W|F|M|L|E)(?:\/(?:W|F|M|L|E))*$/;
+const PLACEHOLDER_RE = /\{\{[^}\n]+\}\}/g;
 
 // ── regexes do contrato (fonte: _TEMPLATE_FEATURE) ───────────────────────────────────────
 const US_ID_RE = /US-[A-Z][A-Za-z0-9]*-\d+/g;
@@ -118,6 +126,87 @@ export function detectCycle(tasks) {
 }
 
 // ── lint de UMA feature-pasta ────────────────────────────────────────────────────────────
+function stripTemplateEnvelope(txt) {
+  // Templates carregam o id do proprio TEMPLATE e depois o frontmatter da feature.
+  // O scaffold descarta o envelope explicativo e materializa somente o contrato vivo.
+  return txt
+    .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
+    .replace(/^\s*<!--[\s\S]*?-->\s*/, '')
+    .trimStart();
+}
+
+function plusDays(date, days) {
+  const d = new Date(`${date}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function localToday() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function kebabModule(module) {
+  return module.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+export function renderFeatureTemplate(kind, values, { templateDir = TEMPLATE_DIR } = {}) {
+  if (!TRIO.includes(kind)) throw new Error(`template desconhecido: ${kind}`);
+  const source = join(templateDir, kind);
+  if (!existsSync(source)) throw new Error(`template ausente: ${source}`);
+
+  const type = kind.replace(/\.md$/, '');
+  const id = `requisitos-${kebabModule(values.module)}-features-${values.slug}-${type}`;
+  let out = stripTemplateEnvelope(readFileSync(source, 'utf8'));
+  out = out.replace(/^---\r?\n/, `---\nid: ${id}\n`);
+  out = out
+    .replaceAll('{{slug-kebab}}', values.slug)
+    .replace(/\{\{PascalCase[^}]*\}\}/g, values.module)
+    .replaceAll('US-{{MOD}}-{{NNN}}', values.us)
+    .replaceAll('{{YYYY-MM-DD+30}}', plusDays(values.date, 30))
+    .replaceAll('{{YYYY-MM-DD}}', values.date)
+    .replaceAll('{{parent-plan}}', values.parentPlan)
+    .replaceAll('{{OWNER}}', values.owner)
+    .replaceAll('{{Mod}}', values.module);
+  out = out.replace(/^parent_plan:\s*.*$/m, `parent_plan: ${values.parentPlan}`);
+  return out.endsWith('\n') ? out : `${out}\n`;
+}
+
+export function scaffoldFeature({ root = ROOT, target, us, date, owner = 'W', parentPlan, dryRun = false, templateDir } = {}) {
+  const parts = String(target || '').split(/[\\/]/).filter(Boolean);
+  if (parts.length !== 2) throw new Error('alvo invalido: use <Modulo>/<slug>');
+  const [module, slug] = parts;
+  if (!MODULE_RE.test(module)) throw new Error(`modulo invalido: ${module} (esperado PascalCase)`);
+  if (!FEATURE_SLUG_RE.test(slug)) throw new Error(`slug invalido: ${slug} (esperado kebab-case)`);
+  if (!/^US-[A-Z][A-Z0-9]*-\d+$/.test(String(us || ''))) throw new Error('US invalida/ausente: use --us US-MOD-001');
+
+  const created = date || localToday();
+  if (!DATE_RE.test(created)) throw new Error(`data invalida: ${created} (esperado YYYY-MM-DD)`);
+  if (!OWNER_RE.test(owner)) throw new Error(`owner invalido: ${owner} (use W/F/M/L/E, combinaveis com /)`);
+  const plan = parentPlan || `${kebabModule(module)}-${slug}`;
+  if (!FEATURE_SLUG_RE.test(plan)) throw new Error(`parent-plan invalido: ${plan} (esperado kebab-case)`);
+
+  const requisitos = join(root, 'memory', 'requisitos');
+  const moduleDir = join(requisitos, module);
+  const specPath = join(moduleDir, 'SPEC.md');
+  if (!existsSync(moduleDir)) throw new Error(`modulo sem requisitos: memory/requisitos/${module}`);
+  if (!existsSync(specPath)) throw new Error(`SPEC ausente: memory/requisitos/${module}/SPEC.md`);
+  const specIds = new Set(readFileSync(specPath, 'utf8').match(US_ID_RE) || []);
+  if (!specIds.has(us)) throw new Error(`${us} nao existe no SPEC.md; a maquina nao inventa US`);
+
+  const dir = join(moduleDir, 'features', slug);
+  if (existsSync(dir)) throw new Error(`destino ja existe; recusado sobrescrever: memory/requisitos/${module}/features/${slug}`);
+
+  const values = { module, slug, us, date: created, owner, parentPlan: plan };
+  const sourceDir = templateDir || join(requisitos, '_TEMPLATE_FEATURE');
+  const files = TRIO.map((file) => ({ file, path: join(dir, file), content: renderFeatureTemplate(file, values, { templateDir: sourceDir }) }));
+  if (!dryRun) {
+    mkdirSync(dir, { recursive: true });
+    for (const f of files) writeFileSync(f.path, f.content, 'utf8');
+  }
+  return { dir, module, slug, us, date: created, owner, parentPlan: plan, dryRun, files };
+}
+
 export function lintFeature(dir, { specText } = {}) {
   const issues = [];
   const erro = (code, msg) => issues.push({ level: 'erro', code, msg });
@@ -127,7 +216,11 @@ export function lintFeature(dir, { specText } = {}) {
   if (missing.length) erro('trio-incompleto', `faltando: ${missing.join(', ')}`);
 
   const read = (f) => (existsSync(join(dir, f)) ? readFileSync(join(dir, f), 'utf8') : '');
-  const reqTxt = read('requirements.md'), tasksTxt = read('tasks.md');
+  const reqTxt = read('requirements.md'), planTxt = read('plan.md'), tasksTxt = read('tasks.md');
+  for (const [file, txt] of [['requirements.md', reqTxt], ['plan.md', planTxt], ['tasks.md', tasksTxt]]) {
+    const placeholders = [...new Set(txt.match(PLACEHOLDER_RE) || [])];
+    if (placeholders.length) erro('placeholder-nao-curado', `${file} ainda contem ${placeholders.slice(0, 3).join(', ')}${placeholders.length > 3 ? ` +${placeholders.length - 3}` : ''}`);
+  }
 
   // requirements: us → existe no SPEC do módulo (substring — a US é ID único no repo)
   const fm = parseFrontmatter(reqTxt);
@@ -161,7 +254,7 @@ export function lintFeature(dir, { specText } = {}) {
   for (const ac of acs) if (!covered.has(ac)) aviso('ac-sem-task', `${ac} não é coberto por nenhuma task (buraco de execução)`);
 
   // toca tela? lembrar o casos-gate (ADR 0264) — advisory
-  for (const page of new Set(`${reqTxt}\n${read('plan.md')}`.match(PAGE_RE) || [])) {
+  for (const page of new Set(`${reqTxt}\n${planTxt}`.match(PAGE_RE) || [])) {
     const casos = join(ROOT, page.replace(/\.tsx$/, '.casos.md'));
     if (existsSync(join(ROOT, page)) && !existsSync(casos)) aviso('tela-sem-casos', `toca ${page} sem ${basename(casos)} ao lado (casos-gate, ADR 0264)`);
   }
@@ -172,9 +265,45 @@ export function lintFeature(dir, { specText } = {}) {
 // ── seleção: full-tree ou diff-aware (args `<Mod>/<slug>` ou paths) — igual doneness-lint ─
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-  const JSON_OUT = process.argv.includes('--json');
-  const CHECK = process.argv.includes('--check');
-  const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+  const argv = process.argv.slice(2);
+  const JSON_OUT = argv.includes('--json');
+  const CHECK = argv.includes('--check');
+  const flagValue = (name) => {
+    const eq = argv.find((a) => a.startsWith(`${name}=`));
+    if (eq) return eq.slice(name.length + 1);
+    const i = argv.indexOf(name);
+    return i >= 0 ? argv[i + 1] : undefined;
+  };
+
+  if (argv.includes('--init') || argv.some((a) => a.startsWith('--init='))) {
+    try {
+      const result = scaffoldFeature({
+        target: flagValue('--init'),
+        us: flagValue('--us'),
+        date: flagValue('--date'),
+        owner: flagValue('--owner') || 'W',
+        parentPlan: flagValue('--parent-plan'),
+        dryRun: argv.includes('--dry-run'),
+      });
+      const rel = result.dir.slice(ROOT.length + 1).replaceAll('\\', '/');
+      console.log(`\n  FEATURE INIT - ${result.dryRun ? 'DRY-RUN' : 'CRIADO'} - ${result.module}/${result.slug} - ${result.us}`);
+      for (const f of result.files) console.log(`  ${result.dryRun ? 'criaria' : 'criou'} ${f.path.slice(ROOT.length + 1).replaceAll('\\', '/')}`);
+      console.log(`\n  Proximo: cure todos os {{...}} em ${rel} e rode:`);
+      console.log(`  node scripts/governance/feature-lint.mjs ${result.module}/${result.slug} --check\n`);
+      process.exit(0);
+    } catch (e) {
+      console.error(`\n  FEATURE INIT RECUSADO - ${e.message}\n`);
+      process.exit(2);
+    }
+  }
+
+  const flagsWithValue = new Set(['--us', '--date', '--owner', '--parent-plan']);
+  const args = [];
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (flagsWithValue.has(a)) { i++; continue; }
+    if (!a.startsWith('--')) args.push(a);
+  }
 
   let dirs;
   if (args.length) {
