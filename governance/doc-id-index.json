@@ -1329,6 +1329,10 @@
     "reference-datatables-locale-ptbr": "memory/reference/datatables-locale-ptbr.md",
     "reference-db-schema-ultimatepos": "memory/reference/db-schema-ultimatepos.md",
     "reference-deploy-recovery-patterns": "memory/reference/deploy-recovery-patterns.md",
+    "reference-dominio-estagio": "memory/reference/DOMINIO-ESTAGIO.md",
+    "reference-dominio-nota-fiscal": "memory/reference/DOMINIO-NOTA-FISCAL.md",
+    "reference-dominio-os": "memory/reference/DOMINIO-OS.md",
+    "reference-dominio-titulo": "memory/reference/DOMINIO-TITULO.md",
     "reference-dominio-venda": "memory/reference/DOMINIO-VENDA.md",
     "reference-dominios-verticais-oimpresso": "memory/reference/dominios-verticais-oimpresso.md",
     "reference-escala-migracao-carteira-delphi": "memory/reference/escala-migracao-carteira-delphi.md",
@@ -1381,6 +1385,8 @@
     "reference-feedback-testes-no-ct100-nao-local": "memory/reference/feedback-testes-no-ct100-nao-local.md",
     "reference-feedback-topnav-i18n-pattern": "memory/reference/feedback-topnav-i18n-pattern.md",
     "reference-financeiro-integracao": "memory/reference/financeiro-integracao.md",
+    "reference-fluxo-cancelamento": "memory/reference/FLUXO-CANCELAMENTO.md",
+    "reference-fluxo-deploy": "memory/reference/FLUXO-DEPLOY.md",
     "reference-fluxo-venda": "memory/reference/FLUXO-VENDA.md",
     "reference-gotcha-session-business-model": "memory/reference/gotcha-session-business-model.md",
     "reference-gotcha-worktree-junction-vendor-rm": "memory/reference/gotcha-worktree-junction-vendor-rm.md",
@@ -3342,14 +3348,14 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 3336,
-    "resolved": 2243,
+    "total": 3342,
+    "resolved": 2249,
     "unstamped": 1093,
     "collisions": 0,
     "by_source": {
       "unstamped": 1093,
       "derived-adr": 369,
-      "stamped": 957,
+      "stamped": 963,
       "derived-handoffs": 359,
       "derived-sessions": 558
     }
