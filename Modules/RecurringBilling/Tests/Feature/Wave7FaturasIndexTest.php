@@ -205,7 +205,7 @@ function wave7MakeInvoice(int $bizId, int $contactId, ?int $subId, array $extra 
     ], $extra));
 }
 
-it('R-RB-WAVE7-1 — paginatedForIndex retorna invoices biz=1 com eager loads', function () {
+it('UC-RBFAT-04 · R-RB-WAVE7-1 — paginatedForIndex retorna invoices biz=1 com eager loads', function () {
     // CNPJ fictício montado runtime (escapar regex PII literal — proibicoes.md)
     $cnpjFake = sprintf('%02d.%03d.%03d/0001-%02d', 11, 137, 251, 7);
     $contactId = wave7MakeContact(1, 'Cliente Alpha', $cnpjFake);
@@ -234,7 +234,7 @@ it('R-RB-WAVE7-1 — paginatedForIndex retorna invoices biz=1 com eager loads', 
         ->and($first->subscription->plan->name)->toBe('Plano Premium');
 });
 
-it('R-RB-WAVE7-2 — aplicarFiltrosIndex filtra por status + gateway + busca', function () {
+it('UC-RBFAT-01 · R-RB-WAVE7-2 — aplicarFiltrosIndex filtra por status + gateway + busca', function () {
     Carbon::setTestNow('2026-06-15 12:00:00');
 
     $contactAlpha = wave7MakeContact(1, 'Alpha Vestuário LTDA');
@@ -296,7 +296,7 @@ it('R-RB-WAVE7-2 — aplicarFiltrosIndex filtra por status + gateway + busca', f
         ->and($buscaNumero->items()[0]->numero_documento)->toBe('INV-003');
 });
 
-it('R-RB-WAVE7-3 — cross-tenant: biz=99 NÃO enxerga invoices de biz=1', function () {
+it('UC-RBFAT-03 · R-RB-WAVE7-3 — cross-tenant: biz=99 NÃO enxerga invoices de biz=1', function () {
     $contactBiz1 = wave7MakeContact(1, 'Cliente biz=1');
     $contactBiz99 = wave7MakeContact(99, 'Cliente biz=99');
 
@@ -321,7 +321,7 @@ it('R-RB-WAVE7-3 — cross-tenant: biz=99 NÃO enxerga invoices de biz=1', funct
     session(['business' => ['id' => 1], 'user.business_id' => 1]);
 });
 
-it('R-RB-WAVE7-4 — paginated meta retorna current_page/last_page/per_page/total corretos', function () {
+it('UC-RBFAT-04 · R-RB-WAVE7-4 — paginated meta retorna current_page/last_page/per_page/total corretos', function () {
     $contactId = wave7MakeContact(1, 'Cliente Pagination');
 
     // 12 invoices, per_page=5 → 3 páginas
@@ -342,7 +342,7 @@ it('R-RB-WAVE7-4 — paginated meta retorna current_page/last_page/per_page/tota
         ->and(count($paginator->items()))->toBe(5);
 });
 
-it('R-RB-WAVE7-5 — kpisForIndex agrega pago_mes + pendente + atrasado + count_overdue + total_faturas', function () {
+it('UC-RBFAT-02 · R-RB-WAVE7-5 — kpisForIndex agrega pago_mes + pendente + atrasado + count_overdue + total_faturas', function () {
     Carbon::setTestNow('2026-06-15 12:00:00');
 
     $contactId = wave7MakeContact(1, 'Cliente KPI');
