@@ -1,9 +1,12 @@
 ---
 tipo: proposta-incorporacao
-status: proposta
+status: recusado
 proposto_por: [C]
 proposto_em: "2026-08-03"
 decide: [W]
+rejected_at: "2026-08-03"
+rejected_via: "[W] 2026-08-03 no chat: 'não instalar' — e, em seguida, o motivo de fundo: 'não confio nessa que temos, ela é manualmente a descoberta do contexto' + 'gostaria que não fosse prosa, e sim descoberta por maquina'"
+rejected_reason: "A Fase 0 mediu que a cobertura versionada do Boost não alcança Laravel 13 nem Inertia React 3 (sem fallback no GuidelineComposer), sobrando ~6 linhas de ganho contra manutenção perpétua de 2 overrides que contornam 3 conflitos duros com a lei local. E o Boost NÃO resolve o problema de fundo que [W] nomeou: as guidelines dele são 'curated by Laravel maintainers' — também prosa humana, só mantida por outra equipe. REABRE só se o pacote publicar laravel/13 + inertia-react/3 E alguém re-rodar a tabela de conflito. O tema 'contexto derivado por máquina em vez de prosa' NÃO passa por esta recusa — é outro trabalho."
 related_adrs:
   - 0062-separacao-runtime-hostinger-ct100
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
@@ -170,3 +173,35 @@ três alvos, incluindo o `.mcp.json`, que é nosso e comentado).
   versionada, o lote que sobra é menor do que a grade sugeria. Se [W] achar que 6 linhas de ganho
   não pagam a manutenção de 2 overrides, **não instalar é resposta legítima** — e a Fase 0 terá
   valido por ter evitado o trabalho.
+
+## 8. Decisão — RECUSADA ([W], 2026-08-03)
+
+**"não instalar".** A Fase 0 refutou a proposta, como ela mesma previa: o lote versionado não
+alcança as nossas duas versões principais, e o que sobra não paga a manutenção dos overrides.
+
+### 8.1 O motivo de fundo que [W] levantou — e que é maior que esta proposta
+
+> *"não confio nessa que temos, ela é manualmente a descoberta do contexto"*
+> *"gostaria que não fosse prosa, e sim descoberta por maquina"*
+
+A objeção **procede** e é de outra natureza: não é "a nota está baixa", é que a nossa camada de
+contexto é **prosa mantida à mão**, e prosa apodrece ([ADR 0256](../0256-knowledge-survival-meia-vida-catraca-sentinela.md)).
+
+Mas ela **reforça** a recusa em vez de reverter: o `foundation.blade.php` do Boost afirma
+literalmente que as guidelines são *"specifically curated by Laravel maintainers"* — **também são
+prosa humana**, só mantida por outra equipe e redistribuída via `boost:update`. Adotá-las compraria
+**frescor terceirizado**, não **derivação**.
+
+A única parte de fato derivada é a lista de pacotes que o `foundation` renderiza em runtime via
+Roster (`app(Roster::class)->packages()`) — e nesse eixo específico nós já temos algo **mais forte**:
+o `fact-anchor` (Check T, **required**) não só declara a versão como **derruba o PR** quando o doc
+contradiz o `composer.json`.
+
+**O buraco real, que nenhum dos dois cobre, é a CONVENÇÃO** (idioma de framework, padrão de
+projeto): nos dois lados ela é prosa humana. Atacar isso é trabalho próprio — registrado como
+tema aberto, fora do escopo desta recusa.
+
+### 8.2 O que continua valendo
+
+O **MCP do Boost** segue registrado e em uso no `.mcp.json`. A recusa é só da camada
+guidelines/skills.
