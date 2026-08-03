@@ -75,6 +75,61 @@
   .wrap{max-width:1160px;margin:0 auto;padding:0 32px 120px}
   .col{max-width:72ch}
 
+  /* ── rail de navegação ───────────────────────────────────────────
+     Itens DERIVADOS do frontmatter (DocumentacaoController::navegacao) — não há lista
+     escrita à mão. Doc sem `nav_group` não aparece, por opt-in. Abaixo de 980px o rail
+     vira bloco no topo: numa coluna estreita, fixá-lo ao lado espremeria a leitura. */
+  .layout{display:block}
+  @media (min-width:980px){
+    .layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:0 48px;align-items:start}
+    .rail{position:sticky;top:22px;max-height:calc(100vh - 44px);overflow-y:auto;
+      overscroll-behavior:contain;padding-right:4px}
+  }
+  @media (max-width:979px){
+    .rail{border-bottom:1px solid var(--rule-soft);padding-bottom:22px;margin-bottom:28px}
+  }
+  .rail-busca{margin:26px 0 22px}
+  .rail-busca input{width:100%;font:inherit;font-size:13.5px;padding:7px 11px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--rule);border-radius:4px}
+  .rail-busca input::placeholder{color:var(--ink-mute)}
+  .rail-busca input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .rail-grupo{margin:0 0 20px}
+  .rail-grupo h3{display:flex;align-items:baseline;gap:7px;font-family:var(--mono);font-size:10px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute);font-weight:500;margin:0 0 7px}
+  .rail-grupo h3 .qtd{font-size:9.5px;color:var(--ink-mute);opacity:.7;letter-spacing:0}
+  .rail ul{list-style:none;margin:0;padding:0}
+  .rail li a{display:block;font-size:13.5px;line-height:1.35;padding:4px 0 4px 11px;
+    color:var(--ink-soft);text-decoration:none;border-left:2px solid var(--rule-soft)}
+  .rail li a:hover{color:var(--accent);border-left-color:var(--rule)}
+  .rail li a[aria-current="page"]{color:var(--accent);border-left-color:var(--accent);font-weight:600}
+  .rail a.capa{display:block;font-family:var(--serif);font-size:15px;color:var(--ink);
+    text-decoration:none;margin-bottom:18px}
+  .rail a.capa:hover{color:var(--accent)}
+  .rail a.capa[aria-current="page"]{color:var(--accent)}
+
+  /* ── lente (Operar / Construir) ──────────────────────────────────
+     Server-side de propósito: filtra no Blade e lembra por cookie, então funciona sem
+     JS e o link continua compartilhável. Domínio aparece nas duas — UMA página por
+     entidade, vista por dois públicos, nunca duas cópias. */
+  .lente{display:flex;gap:2px;padding:2px;background:var(--paper);border:1px solid var(--rule);
+    border-radius:5px}
+  .lente a{font-size:12px;padding:4px 11px;border-radius:3px;color:var(--ink-soft);
+    text-decoration:none;white-space:nowrap}
+  .lente a:hover{color:var(--accent)}
+  .lente a[aria-current="true"]{background:var(--surface);color:var(--accent);font-weight:600}
+
+  /* ── anterior / próximo ──────────────────────────────────────────
+     A ordem é a do rail NA LENTE ATIVA — o rodapé nunca oferece um destino que o menu
+     ao lado não mostra. */
+  .vizinhos{display:flex;gap:16px;justify-content:space-between;margin:56px 0 0;
+    padding-top:22px;border-top:1px solid var(--rule);max-width:72ch}
+  .vizinhos a{flex:1;max-width:48%;text-decoration:none;color:var(--ink-soft);font-size:13.5px;
+    border:1px solid var(--rule-soft);border-radius:5px;padding:12px 14px}
+  .vizinhos a:hover{border-color:var(--accent);color:var(--accent)}
+  .vizinhos .dir{text-align:right;margin-left:auto}
+  .vizinhos .rot{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-mute);margin-bottom:3px}
+
   /* ── trilho de sumário ───────────────────────────────────────────
      Os itens vêm DERIVADOS dos títulos (DocumentacaoController::comSumario) —
      não há lista escrita à mão em lugar nenhum pra ficar desatualizada.
@@ -169,18 +224,58 @@
 <div class="topo">
   <div class="topo-in">
     <a class="marca" href="{{ route('documentacao') }}">oimpresso · documentação</a>
-    <form class="busca" method="GET" action="{{ route('documentacao.buscar') }}" role="search">
-      <input type="search" name="q" value="{{ $termo ?? '' }}"
-             placeholder="Buscar em decisões, referências, specs e runbooks…"
-             aria-label="Buscar na documentação">
-      <button type="submit">Buscar</button>
-    </form>
+
+    @isset($nav)
+      {{-- Lente: o mesmo acervo por dois públicos. Links de verdade (não JS), então
+           funciona sem script e a URL é compartilhável. --}}
+      <nav class="lente" aria-label="Lente de leitura">
+        <a href="{{ request()->fullUrlWithQuery(['lente' => null]) }}"
+           @if (! $nav['lente']) aria-current="true" @endif>Tudo</a>
+        @foreach ($nav['lentes'] as $chave => $rotulo)
+          <a href="{{ request()->fullUrlWithQuery(['lente' => $chave]) }}"
+             @if ($nav['lente'] === $chave) aria-current="true" @endif>{{ $rotulo }}</a>
+        @endforeach
+      </nav>
+    @endisset
+
     <a class="volta" href="/">← voltar ao sistema</a>
   </div>
 </div>
 
 <div class="wrap">
-  @yield('conteudo')
+  <div class="layout">
+    @isset($nav)
+      <aside class="rail">
+        {{-- Busca no rail, mas continua um FORM GET pra rota própria: sem JS ela
+             funciona igual, e o resultado tem URL. --}}
+        <form class="rail-busca" method="GET" action="{{ route('documentacao.buscar') }}" role="search">
+          <input type="search" name="q" value="{{ $termo ?? '' }}"
+                 placeholder="Buscar na documentação…"
+                 aria-label="Buscar em decisões, referências, specs e runbooks">
+        </form>
+
+        <a class="capa" href="{{ route('documentacao') }}"
+           @if (empty($atual)) aria-current="page" @endif>Comece aqui</a>
+
+        @foreach ($nav['grupos'] as $grupo)
+          <div class="rail-grupo">
+            <h3>{{ $grupo['titulo'] }} <span class="qtd">{{ count($grupo['itens']) }}</span></h3>
+            <ul>
+              @foreach ($grupo['itens'] as $item)
+                <li>
+                  <a href="{{ route('documentacao.documento', $item['id']) }}"
+                     @if (($atual ?? null) === $item['id']) aria-current="page" @endif
+                     title="{{ $item['descricao'] }}">{{ $item['rotulo'] }}</a>
+                </li>
+              @endforeach
+            </ul>
+          </div>
+        @endforeach
+      </aside>
+    @endisset
+
+    <div>@yield('conteudo')</div>
+  </div>
 </div>
 
 {{-- Mermaid servido do NOSSO domínio (public/js), nunca de CDN: a página não carrega

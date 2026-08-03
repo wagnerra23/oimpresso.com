@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -46,7 +47,21 @@ class DocumentacaoController extends Controller
 
     private const POR_PAGINA = 25;
 
-    public function index(): View
+    /** Pasta de onde a navegação é derivada. Doc sem `nav_group` fica fora do rail. */
+    private const PASTA_NAV = 'memory/reference';
+
+    /** Rótulo de cada grupo, na ordem em que o rail os apresenta. */
+    private const GRUPOS_NAV = [
+        'start' => 'Comece aqui',
+        'dominio' => 'Domínio',
+        'fluxo' => 'Fluxos',
+        'tecnico' => 'Técnico',
+        'governanca' => 'Governança',
+    ];
+
+    private const LENTES = ['operar' => 'Operar', 'construir' => 'Construir'];
+
+    public function index(Request $request): View
     {
         $caminho = base_path(self::FONTE);
 
@@ -65,6 +80,8 @@ class DocumentacaoController extends Controller
             'fonte' => self::FONTE,
             'atualizadoEm' => $this->dataDoFrontmatter($markdown),
             'buscaDisponivel' => $this->corpusDisponivel(),
+            'nav' => $this->navegacao($this->lenteAtiva($request)),
+            'atual' => null,   // a capa não é item do rail; é a rota raiz
         ]);
     }
 
@@ -79,6 +96,8 @@ class DocumentacaoController extends Controller
                 'termo' => $termo,
                 'resultados' => collect(),
                 'indisponivel' => true,
+                'nav' => $this->navegacao($this->lenteAtiva($request)),
+                'atual' => null,
             ]);
         }
 
@@ -117,11 +136,13 @@ class DocumentacaoController extends Controller
             'termo' => $termo,
             'resultados' => $resultados,
             'indisponivel' => false,
+            'nav' => $this->navegacao($this->lenteAtiva($request)),
+            'atual' => null,
         ]);
     }
 
     /** Abre um documento do corpus com o mesmo visual da leitura guiada. */
-    public function documento(string $slug): View
+    public function documento(Request $request, string $slug): View
     {
         if (! $this->corpusDisponivel()) {
             abort(503, 'Índice de documentação indisponível no momento.');
@@ -137,11 +158,158 @@ class DocumentacaoController extends Controller
 
         return view('documentacao.doc', [
             'doc' => $doc,
+            'nav' => $this->navegacao($this->lenteAtiva($request)),
+            'atual' => $slug,
             // A base dos links é a PASTA DO PRÓPRIO documento, não `memory/`: este acervo
             // tem doc em subpasta (`memory/reference/…`, `memory/requisitos/<Mod>/…`), e o
             // link relativo dele foi escrito a partir de onde ele mora.
             'html' => $this->paraHtml($doc->content_md, $this->pastaDe($doc->git_path)),
         ]);
+    }
+
+    /**
+     * Monta o rail a partir do FRONTMATTER dos documentos — nada escrito à mão.
+     *
+     * POR QUE DERIVADO EM RUNTIME, e não um JSON gerado e commitado: um manifesto no
+     * repositório seria mais uma cópia da estrutura, e cópia drifa (ADR 0256). É a mesma
+     * razão de o sumário da página ser recalculado a cada acesso. Documento novo com
+     * `nav_group` aparece sozinho; documento que perde o campo some junto.
+     *
+     * OPT-IN de propósito: sem `nav_group` o doc não entra. Os ~130 arquivos de referência
+     * legados não viram menu porque alguém criou um rail — viram quando alguém decidir.
+     *
+     * O ORDINAL não sai de `nav_order`. Ele numera a ordem VISÍVEL na lente ativa; se
+     * viesse do campo, filtrar a lente deixaria buracos (1, 3, 7) e o leitor pensaria
+     * que sumiu conteúdo. `nav_order` só ordena.
+     *
+     * @return array{grupos: list<array{id:string, titulo:string, itens:list<array<string,mixed>>}>, linear: list<array<string,mixed>>, lente: ?string, lentes: array<string,string>}
+     */
+    private function navegacao(?string $lente): array
+    {
+        $docs = [];
+
+        foreach (File::glob(base_path(self::PASTA_NAV . '/*.md')) as $arquivo) {
+            $meta = $this->frontmatter(File::get($arquivo));
+
+            $grupo = $meta['nav_group'] ?? null;
+            if (! is_string($grupo) || ! isset(self::GRUPOS_NAV[$grupo])) {
+                continue;
+            }
+
+            // `lente` ausente = aparece em todas. Domínio é UMA página vista por dois
+            // públicos — nunca duas cópias.
+            $lentes = $meta['lente'] ?? [];
+            if ($lente !== null && $lentes !== [] && ! in_array($lente, $lentes, true)) {
+                continue;
+            }
+
+            $titulo = $meta['name'] ?? basename($arquivo, '.md');
+
+            $docs[] = [
+                'id' => $meta['id'] ?? basename($arquivo, '.md'),
+                'grupo' => $grupo,
+                'ordem' => (int) ($meta['nav_order'] ?? 999),
+                'titulo' => $titulo,
+                // No rail o item já está sob o cabeçalho do grupo, então "Domínio — Venda"
+                // vira "Venda": repetir o grupo em cada linha rouba a largura do rótulo.
+                // A página em si continua com o título inteiro.
+                'rotulo' => trim(Str::after($titulo, '—')) ?: $titulo,
+                'descricao' => $meta['description'] ?? null,
+            ];
+        }
+
+        // Ordena por (grupo na ordem do rail, nav_order, título) — determinístico.
+        $posicaoGrupo = array_flip(array_keys(self::GRUPOS_NAV));
+        usort($docs, fn ($a, $b) => [$posicaoGrupo[$a['grupo']], $a['ordem'], $a['titulo']]
+            <=> [$posicaoGrupo[$b['grupo']], $b['ordem'], $b['titulo']]);
+
+        $grupos = [];
+        $linear = [];
+        $n = 0;
+
+        foreach (self::GRUPOS_NAV as $id => $titulo) {
+            $itens = array_values(array_filter($docs, fn ($d) => $d['grupo'] === $id));
+            if ($itens === []) {
+                continue;   // grupo vazio não vira cabeçalho órfão
+            }
+
+            foreach ($itens as $i => $item) {
+                $itens[$i]['ordinal'] = ++$n;   // ordinal = ordem VISÍVEL, não nav_order
+                $linear[] = $itens[$i];
+            }
+
+            $grupos[] = ['id' => $id, 'titulo' => $titulo, 'itens' => $itens];
+        }
+
+        return ['grupos' => $grupos, 'linear' => $linear, 'lente' => $lente, 'lentes' => self::LENTES];
+    }
+
+    /**
+     * Lente ativa: query string manda, cookie lembra, ausência = tudo.
+     *
+     * Valor fora do enum vira null em vez de lista vazia — filtro que ninguém pediu e que
+     * esconde a página inteira é pior do que ignorar o parâmetro.
+     */
+    private function lenteAtiva(Request $request): ?string
+    {
+        // A escolha só se torna preferência quando é EXPLÍCITA (veio na URL). Ler o
+        // cookie e regravá-lo a cada request renovaria sozinho uma escolha que o
+        // usuário talvez tenha feito uma vez, meses atrás.
+        if ($request->query->has('lente')) {
+            $escolha = $request->query('lente');
+            $valida = is_string($escolha) && isset(self::LENTES[$escolha]) ? $escolha : null;
+
+            // 1 ano; `null` apaga (o link "Tudo" desfaz a preferência de verdade).
+            Cookie::queue($valida === null
+                ? Cookie::forget('doc_lente')
+                : cookie('doc_lente', $valida, 60 * 24 * 365));
+
+            return $valida;
+        }
+
+        $lembrado = $request->cookie('doc_lente');
+
+        return is_string($lembrado) && isset(self::LENTES[$lembrado]) ? $lembrado : null;
+    }
+
+    /**
+     * Frontmatter YAML — só o suficiente para a navegação (escalar e lista inline).
+     *
+     * Escrito à mão de propósito: o projeto não tem parser YAML no runtime da web, e a
+     * alternativa seria uma dependência nova para ler 4 campos. Se um dia o frontmatter
+     * usar YAML de verdade (aninhado, multilinha), isto vira insuficiente — e o caso de
+     * contrato quebra, que é o sinal certo para trocar por parser real.
+     *
+     * @return array<string, mixed>
+     */
+    private function frontmatter(string $markdown): array
+    {
+        if (! preg_match('/\A---\R(.*?)\R---\R/s', $markdown, $bloco)) {
+            return [];
+        }
+
+        $meta = [];
+
+        foreach (preg_split('/\R/', $bloco[1]) as $linha) {
+            if (! preg_match('/^([a-z_][a-z0-9_]*):\s*(.*)$/i', $linha, $m)) {
+                continue;   // indentado, comentário ou vazio — fora do escopo
+            }
+
+            $valor = trim($m[2]);
+
+            if (str_starts_with($valor, '[') && str_ends_with($valor, ']')) {
+                $itens = array_filter(array_map(
+                    fn ($v) => trim($v, " \t\"'"),
+                    explode(',', trim($valor, '[]'))
+                ), fn ($v) => $v !== '');
+                $meta[$m[1]] = array_values($itens);
+                continue;
+            }
+
+            $meta[$m[1]] = trim($valor, "\"'");
+        }
+
+        return $meta;
     }
 
     /**
