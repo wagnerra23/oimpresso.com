@@ -29,7 +29,10 @@ class DocumentacaoController extends Controller
     private const FONTE = 'memory/GUIA-DO-SISTEMA.md';
 
     /** Base para reescrever links relativos do markdown (que apontam pra árvore do git). */
-    private const BLOB = 'https://github.com/wagnerra23/oimpresso.com/blob/main/memory/';
+    private const BLOB = 'https://github.com/wagnerra23/oimpresso.com/blob/main/';
+
+    /** Pasta a partir da qual os links relativos do markdown se resolvem. */
+    private const BASE_LINKS = 'memory';
 
     /**
      * Tipos que são DOCUMENTAÇÃO — decisão [W] 2026-08-02.
@@ -178,7 +181,20 @@ class DocumentacaoController extends Controller
         return ($inicio > 0 ? '…' : '') . Str::limit(substr($texto, $inicio), 230);
     }
 
-    /** Converte o markdown, já sem frontmatter e com links relativos utilizáveis na web. */
+    /**
+     * Converte o markdown, já sem frontmatter e com links relativos utilizáveis na web.
+     *
+     * O markdown foi escrito para ser lido na árvore do git, então os links são relativos
+     * a `memory/`. Na web isso não resolve sozinho — cada um vira link pro blob do GitHub.
+     *
+     * DOIS DEFEITOS CORRIGIDOS AQUI (medidos no guia em 2026-08-03, 9 de 56 links):
+     *   1. `../` era APAGADO da string em vez de subir um nível, então `../README.md`
+     *      virava `memory/README.md` — caminho que não existe (o README é da raiz).
+     *   2. só `.md` era reescrito, então `../Modules/Jana/` saía como href relativo cru
+     *      e dava 404 na própria página.
+     * Agora o caminho é normalizado segmento a segmento, e qualquer alvo relativo entra —
+     * o que também é o que faz *apontar pro código* funcionar de dentro do texto.
+     */
     private function paraHtml(string $markdown): string
     {
         $html = Str::markdown($this->semFrontmatter($markdown), [
@@ -187,10 +203,36 @@ class DocumentacaoController extends Controller
         ]);
 
         return preg_replace_callback(
-            '/href="(?!https?:|#|mailto:)([^"]+\.md)(#[^"]*)?"/i',
-            fn ($m) => 'href="' . self::BLOB . ltrim(str_replace('../', '', $m[1]), '/') . ($m[2] ?? '') . '" rel="noopener" target="_blank"',
+            '/href="(?!https?:|#|mailto:|data:|\/)([^"#]+)(#[^"]*)?"/i',
+            fn ($m) => 'href="' . self::BLOB . $this->resolveRelativo(self::BASE_LINKS, $m[1])
+                . ($m[2] ?? '') . '" rel="noopener" target="_blank"',
             $html
         );
+    }
+
+    /**
+     * Resolve um caminho relativo contra a pasta base, tratando `..` como subir um nível.
+     *
+     * Feito à mão de propósito: `realpath()` resolveria contra o disco do servidor e
+     * devolveria caminho absoluto de máquina; aqui o alvo é uma URL do GitHub, então a
+     * normalização é puramente textual — e não pode escapar acima da raiz do repo.
+     */
+    private function resolveRelativo(string $base, string $href): string
+    {
+        $partes = [];
+
+        foreach (explode('/', $base . '/' . trim($href)) as $segmento) {
+            if ($segmento === '' || $segmento === '.') {
+                continue;
+            }
+            if ($segmento === '..') {
+                array_pop($partes);   // pop em array vazio é no-op: não sobe acima da raiz
+                continue;
+            }
+            $partes[] = $segmento;
+        }
+
+        return implode('/', $partes) . (str_ends_with(trim($href), '/') ? '/' : '');
     }
 
     /**
