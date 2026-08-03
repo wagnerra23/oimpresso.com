@@ -65,7 +65,7 @@ Se `composer.lock` mudou, trocar `dump-autoload` por `composer install`.
 - Site: `https://oimpresso.test` (Herd SSL)
 - MySQL: Laragon `127.0.0.1:3306` root sem senha, DB `oimpresso`
 - PHP: 8.4 Herd
-- Login: `WR23` / `Wscrct*2312`
+- Login: `WR23` / **senha no Vaultwarden** — nunca em doc (ver [`_INDEX-SECRETS.md`](memory/_INDEX-SECRETS.md))
 - Meilisearch local: `http://127.0.0.1:7700` (PID auto, ver `D:\oimpresso.com\meilisearch\`)
 
 ---
