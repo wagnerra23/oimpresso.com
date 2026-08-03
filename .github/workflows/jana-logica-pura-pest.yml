@@ -3,8 +3,16 @@ name: Jana lógica pura Pest (event-time + histórico + audit-chain)
 # Funde jana-bitemporal-pest.yml + jana-bitemporal-slice2-pest.yml + jana-audit-chain-pest.yml
 # (poda Movimento 1 — consolidação de irmãos). Os três eram lanes de LÓGICA PURA idênticas
 # (SQLite :memory:, mesmo setup PHP 8.4 + composer + .env), só mudavam os arquivos de teste.
-# Agora 1 job faz composer install UMA vez e roda as 4 suites Unit num único Pest invoke
-# -> 1 runner + 1 composer install em vez de 3. Cobertura preservada (4 testes, ADR 0294/0295).
+# Agora 1 job faz composer install UMA vez e roda as suites Unit num único Pest invoke
+# -> 1 runner + 1 composer install em vez de 3. Cobertura preservada (ADR 0294/0295).
+#
+# 2026-08-02 — 5 → 10 alvos. Auditoria dos Modules/*/Tests/Unit achou 5 arquivos de
+# lógica pura (55 casos) que existiam no repo e NENHUMA lane executava: DesignDossieAssembler,
+# DesignIngestPlanner, DistillerFreshnessStats, ModuleTruthEventCollector e — o mais grave —
+# PiiRedactorTest (19 casos, LGPD), cuja classe o #5169 alterou em +98 linhas no mesmo dia
+# ligando só o teste do caso NOVO, deixando o de regressão fora. Verde que não roda é pior
+# que vermelho: se algum destes falhar ao ser ligado, é dívida aparecendo, não regressão de
+# quem ligou.
 #
 # jana-pest.yml (MySQL real, skip-as-pass, required-ready ADR 0271) fica SEPARADO de propósito:
 # tem service container MySQL e always-run — natureza diferente, não funde aqui.
@@ -27,6 +35,18 @@ on:
       - 'Modules/Jana/Tests/Unit/AuditChainServiceTest.php'
       - 'Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php'
       - 'Modules/Jana/Services/Privacy/PiiRedactor.php'
+      # Adotados 2026-08-02: os 5 Tests/Unit que existiam no repo e NENHUMA lane
+      # executava. Cada um entra com o arquivo SOB TESTE ao lado — sem isso, mexer
+      # na classe não dispara o teste dela (o gatilho fica cego à regressão).
+      - 'Modules/Jana/Tests/Unit/DesignDossieAssemblerTest.php'
+      - 'Modules/Jana/Services/Memoria/DesignDossieAssembler.php'
+      - 'Modules/Jana/Tests/Unit/DesignIngestPlannerTest.php'
+      - 'Modules/Jana/Services/Memoria/DesignIngestPlanner.php'
+      - 'Modules/Jana/Tests/Unit/DistillerFreshnessStatsTest.php'
+      - 'Modules/Jana/Console/Commands/HealthCheckCommand.php'
+      - 'Modules/Jana/Tests/Unit/ModuleTruthEventCollectorTest.php'
+      - 'Modules/Jana/Services/Memoria/ModuleTruthEventCollector.php'
+      - 'Modules/Jana/Tests/Unit/PiiRedactorTest.php'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
@@ -88,7 +108,7 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (Jana lógica pura — 4 suites Unit)
+      - name: Run Pest (Jana lógica pura — 10 suites Unit)
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
@@ -96,6 +116,9 @@ jobs:
           CACHE_DRIVER: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
+        # A lista abaixo é o que DECIDE o que roda — registrar em phpunit.xml não
+        # alcança o CI (nenhuma lane deste repo usa --testsuite; todas passam alvos
+        # explícitos). Teste novo em Tests/Unit precisa entrar AQUI e no paths: acima.
         run: |
           vendor/bin/pest \
             Modules/Jana/Tests/Unit/BiTemporalResolverTest.php \
@@ -103,5 +126,10 @@ jobs:
             Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php \
             Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
             Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php \
+            Modules/Jana/Tests/Unit/DesignDossieAssemblerTest.php \
+            Modules/Jana/Tests/Unit/DesignIngestPlannerTest.php \
+            Modules/Jana/Tests/Unit/DistillerFreshnessStatsTest.php \
+            Modules/Jana/Tests/Unit/ModuleTruthEventCollectorTest.php \
+            Modules/Jana/Tests/Unit/PiiRedactorTest.php \
             --no-coverage \
             --colors=always
