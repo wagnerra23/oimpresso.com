@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 185 arquivos em 18 papéis.
+**Total mapeado:** 190 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -167,7 +167,7 @@ module: Ponto
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Relatorios/Index.charter.md)
 - [Welcome.charter.md](../../../resources/js/Pages/Ponto/Welcome.charter.md)
 
-## Casos (contrato UC) — 10
+## Casos (contrato UC) — 13
 
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.casos.md)
@@ -175,14 +175,17 @@ module: Ponto
 - [Form.casos.md](../../../resources/js/Pages/Ponto/Escalas/Form.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Espelho/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Espelho/Show.casos.md)
+- [Create.casos.md](../../../resources/js/Pages/Ponto/Importacoes/Create.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Importacoes/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Importacoes/Show.casos.md)
+- [Create.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Create.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 
-## Testes (Pest) — 37
+## Testes (Pest) — 39
 
-- 37 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 39 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 7
 

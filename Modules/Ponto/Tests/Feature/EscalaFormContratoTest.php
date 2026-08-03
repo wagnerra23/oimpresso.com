@@ -84,6 +84,26 @@ function escfGarantirBizAlheio(): void
     ]);
 }
 
+/**
+ * GET com cabeçalho Inertia.
+ *
+ * MEDIDO na run 30779959209: `$this->get(...)` cru devolve o HTML da página (o
+ * Inertia só responde JSON quando o request se declara Inertia), então
+ * `->json('props...')` estoura "Invalid JSON was returned from the route" — o caso
+ * morre sem exercer nada. Mesmo helper que o EspelhoContratoTest usa.
+ */
+function escfInertiaGet(string $url)
+{
+    $manifestPath = public_path('build-inertia/manifest.json');
+    $version = file_exists($manifestPath) ? md5_file($manifestPath) : '1';
+
+    return test()->withHeaders([
+        'X-Inertia'         => 'true',
+        'X-Inertia-Version' => $version,
+        'Accept'            => 'text/html',
+    ])->get($url);
+}
+
 function escfCriarEscala(int $businessId): Escala
 {
     $escala = new Escala();
@@ -147,7 +167,7 @@ it('UC-ESCF-01 · os horários dos turnos configurados aparecem na edição', fu
         'O turno precisa nascer com hora_entrada gravada — senão o caso não exerce nada.'
     );
 
-    $resp = $this->get("/ponto/escalas/{$escala->id}/edit");
+    $resp = escfInertiaGet("/ponto/escalas/{$escala->id}/edit");
     $resp->assertStatus(200);
 
     $turnos = collect($resp->json('props.escala.turnos') ?? []);
@@ -157,15 +177,21 @@ it('UC-ESCF-01 · os horários dos turnos configurados aparecem na edição', fu
     // qualquer forma que a correção escolha expor.
     $serializado = json_encode($turnos->all());
 
-    expect($serializado)->toContain('08:00',
+    $this->assertStringContainsString(
+        '08:00',
+        $serializado,
         'O horário de entrada gravado (08:00) tem de aparecer na edição. O controller lê '
         . '`$t->entrada`, mas a coluna é `hora_entrada` e não há accessor — SDD §9, 3ª '
         . 'instância do padrão D-1/D-8.'
     );
-    expect($serializado)->toContain('17:00',
+    $this->assertStringContainsString(
+        '17:00',
+        $serializado,
         'O horário de saída gravado (17:00) tem de aparecer na edição.'
     );
-    expect($serializado)->toContain('12:00',
+    $this->assertStringContainsString(
+        '12:00',
+        $serializado,
         'O início do almoço gravado (12:00) tem de aparecer na edição.'
     );
 });

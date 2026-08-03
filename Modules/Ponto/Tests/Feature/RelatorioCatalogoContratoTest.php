@@ -32,10 +32,30 @@ uses(PontoTestCase::class);
  * @see \Modules\Ponto\Http\Controllers\RelatorioController
  */
 
+/**
+ * GET com cabeçalho Inertia.
+ *
+ * MEDIDO na run 30779959209: `$this->get(...)` cru devolve o HTML da página (o
+ * Inertia só responde JSON quando o request se declara Inertia), então
+ * `->json('props...')` estoura "Invalid JSON was returned from the route" — o caso
+ * morre sem exercer nada. Mesmo helper que o EspelhoContratoTest usa.
+ */
+function relInertiaGet(string $url)
+{
+    $manifestPath = public_path('build-inertia/manifest.json');
+    $version = file_exists($manifestPath) ? md5_file($manifestPath) : '1';
+
+    return test()->withHeaders([
+        'X-Inertia'         => 'true',
+        'X-Inertia-Version' => $version,
+        'Accept'            => 'text/html',
+    ])->get($url);
+}
+
 it('UC-RELIDX-01 · relatório não implementado aparece marcado como indisponível', function () {
     $this->actAsAdmin();
 
-    $resp = $this->get('/ponto/relatorios');
+    $resp = relInertiaGet('/ponto/relatorios');
     $resp->assertStatus(200);
 
     $relatorios = collect($resp->json('props.relatorios') ?? []);
@@ -66,7 +86,7 @@ it('UC-RELIDX-01 · relatório não implementado aparece marcado como indisponí
 it('UC-RELIDX-02 · nenhum relatório do catálogo entrega download sem aviso', function () {
     $this->actAsAdmin();
 
-    $catalogo = collect($this->get('/ponto/relatorios')->json('props.relatorios') ?? []);
+    $catalogo = collect(relInertiaGet('/ponto/relatorios')->json('props.relatorios') ?? []);
     $indisponivel = $catalogo->first(fn ($r) => $r['disponivel'] === false);
 
     // Pré-condição anti-vácuo: sem um indisponível no catálogo, não há o que exercer.

@@ -80,6 +80,26 @@ function impIdxGarantirBizAlheio(): void
  * O user é sempre o admin logado (do MEU business), mesmo quando a importação é do
  * business alheio: quem é alheio é o dado listado, não quem o inseriu na fixture.
  */
+/**
+ * GET com cabeçalho Inertia.
+ *
+ * MEDIDO na run 30779959209: `$this->get(...)` cru devolve o HTML da página (o
+ * Inertia só responde JSON quando o request se declara Inertia), então
+ * `->json('props...')` estoura "Invalid JSON was returned from the route" — o caso
+ * morre sem exercer nada. Mesmo helper que o EspelhoContratoTest usa.
+ */
+function impIdxInertiaGet(string $url)
+{
+    $manifestPath = public_path('build-inertia/manifest.json');
+    $version = file_exists($manifestPath) ? md5_file($manifestPath) : '1';
+
+    return test()->withHeaders([
+        'X-Inertia'         => 'true',
+        'X-Inertia-Version' => $version,
+        'Accept'            => 'text/html',
+    ])->get($url);
+}
+
 function impIdxCriar(int $businessId, int $usuarioId, array $extra = []): Importacao
 {
     $imp = new Importacao();
@@ -126,7 +146,7 @@ it('UC-IMPIDX-01 · o histórico traz as importações do meu empregador', funct
 
     $imp = impIdxCriar($this->business->id, $this->admin->id);
 
-    $resp = $this->get('/ponto/importacoes');
+    $resp = impIdxInertiaGet('/ponto/importacoes');
     $resp->assertStatus(200);
 
     $linhas = collect($resp->json('props.importacoes.data') ?? []);
@@ -152,17 +172,21 @@ it('UC-IMPIDX-02 · importação de outro empregador não aparece no histórico'
     $minha  = impIdxCriar($this->business->id, $this->admin->id);
     $alheia = impIdxCriar(IMPIDX_BIZ_ALHEIO, $this->admin->id);
 
-    $resp = $this->get('/ponto/importacoes');
+    $resp = impIdxInertiaGet('/ponto/importacoes');
     $resp->assertStatus(200);
 
     $ids = collect($resp->json('props.importacoes.data') ?? [])->pluck('id')->all();
 
     // Pré-condição anti-vácuo: sem a minha na lista, "a alheia não está" seria
     // verdade por lista vazia, não por isolamento.
-    expect($ids)->toContain($minha->id,
+    $this->assertContains(
+        $minha->id,
+        $ids,
         'A minha importação tem de estar na lista — senão o caso não exerce isolamento.'
     );
-    expect($ids)->not->toContain($alheia->id,
+    $this->assertNotContains(
+        $alheia->id,
+        $ids,
         'Arquivo importado por OUTRO empregador não pode aparecer no meu histórico '
         . '(ADR 0093 · CU-PONTO-12).'
     );
@@ -182,7 +206,7 @@ it('UC-IMPIDX-03 · a contagem exibida na lista reflete o que foi processado', f
         'A fixture precisa gravar 7 linhas com sucesso — senão o caso não exerce nada.'
     );
 
-    $resp = $this->get('/ponto/importacoes');
+    $resp = impIdxInertiaGet('/ponto/importacoes');
     $resp->assertStatus(200);
 
     $minha = collect($resp->json('props.importacoes.data') ?? [])->firstWhere('id', $imp->id);

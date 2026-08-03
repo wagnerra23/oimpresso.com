@@ -219,10 +219,14 @@ it('UC-BHIDX-02 · saldo de outro empregador não aparece na lista', function ()
 
     // Pré-condição anti-vácuo: sem o meu na lista, "o alheio não está" seria
     // verdade por lista vazia, não por isolamento.
-    expect($ids)->toContain($meu->id,
+    $this->assertContains(
+        $meu->id,
+        $ids,
         'O colaborador do meu business tem de estar na lista — senão o caso não exerceu isolamento.'
     );
-    expect($ids)->not->toContain($alheio->id,
+    $this->assertNotContains(
+        $alheio->id,
+        $ids,
         'Saldo de banco de horas de OUTRO empregador não pode aparecer (ADR 0093 · CU-PONTO-12).'
     );
 });
