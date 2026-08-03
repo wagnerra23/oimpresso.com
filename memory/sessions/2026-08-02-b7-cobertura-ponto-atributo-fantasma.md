@@ -2,7 +2,7 @@
 date: "2026-08-02"
 hour: "23:00 BRT"
 duration: "6h"
-topic: "B7-cobertura no módulo Ponto: as 7 telas com fonte de contrato fecharam o trio (ratchet 145→138), e escrever os casos achou 5 defeitos de produto — incluindo um Tier 0 [V0] (ledger de banco de horas aceita save()) e CU-PONTO-05 quebrado (registrar intercorrência não grava). Mais a prova de que os 3 ContratoTest do trio SDD nunca rodaram verdes."
+topic: "B7-cobertura no Ponto: as 7 telas com fonte de contrato fecharam o trio (ratchet 145→138) e escrever os casos achou 6 defeitos — 2 de funcionalidade morta, 1 Tier 0 [V0] no ledger, e os 3 ContratoTest do SDD que nunca rodaram verdes."
 authors: [C]
 prs: [5191]
 outcomes:
