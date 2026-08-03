@@ -109,7 +109,7 @@ function jsonPutRequest(array $payload): UpdateAssinaturaRequest
 
 // ─── Wiring ────────────────────────────────────────────────────────────
 
-it('R-RB-WAVE23-1 — controller.update altera valor da assinatura biz=1 (local-only)', function () {
+it('UC-RBSUB-04 · R-RB-WAVE23-1 — controller.update altera valor da assinatura biz=1 (local-only)', function () {
     $sub = Subscription::create([
         'business_id' => 1, 'contact_id' => 10, 'status' => 'active',
         'start_date' => '2026-01-01', 'next_due_date' => '2026-06-01',
@@ -125,7 +125,7 @@ it('R-RB-WAVE23-1 — controller.update altera valor da assinatura biz=1 (local-
     expect((float) $sub->metadata['valor'])->toBe(350.0);
 });
 
-it('R-RB-WAVE23-2 — controller.update aborta 404 cross-tenant (sub biz=99, sessão biz=1)', function () {
+it('UC-RBSUB-04 · R-RB-WAVE23-2 — controller.update aborta 404 cross-tenant (sub biz=99, sessão biz=1)', function () {
     $sub = Subscription::create([
         'business_id' => 99, 'contact_id' => 10, 'status' => 'active',
         'start_date' => '2026-01-01', 'next_due_date' => '2026-06-01',
@@ -140,7 +140,7 @@ it('R-RB-WAVE23-2 — controller.update aborta 404 cross-tenant (sub biz=99, ses
     expect((float) $sub->metadata['valor'])->toBe(100.0);
 });
 
-it('R-RB-WAVE23-3 — controller.update devolve erro do serviço (assinatura cancelada → 422)', function () {
+it('UC-RBSUB-04 · R-RB-WAVE23-3 — controller.update devolve erro do serviço (assinatura cancelada → 422)', function () {
     $sub = Subscription::create([
         'business_id' => 1, 'contact_id' => 10, 'status' => 'canceled',
         'start_date' => '2026-01-01', 'next_due_date' => '2026-06-01',
