@@ -79,7 +79,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 #    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
 Modules/Financeiro/Tests/Feature/ExtratoControllerTest.php  # 1 failed, 2 passed (2 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
-Modules/Financeiro/Tests/Feature/ProvaVivaContractTest.php  # 1 failed, 1 passed (10 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # 1 failed, 11 passed (24 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
