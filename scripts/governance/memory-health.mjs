@@ -363,16 +363,23 @@ function checkFactAnchor() {
   // "extensão de régua consolidada, nunca gate novo"). Corpus = SDDs; verdade = schema
   // versionado. Entrou como 🟡 warn em 2026-08-03 (1ª medição: 84 afirmações · 2
   // contradições · 0 falso-positivo). Promover a 🔴 fail é flip [W].
+  // Sem SDD no corpus → nada foi AFIRMADO, logo não há o que contradizer: silêncio é
+  // honesto (não é gate mudo). O sandbox do gate-selftest cai aqui — mesmo padrão já
+  // documentado em checkVitalSigns ("sem fonte-de-verdade → não inventa"; warnar mataria
+  // o "saudável" da fixture good).
+  const sdds = sddDocs();
+  if (sdds.length === 0) return;
   const truthTab = tabelasDoSchemaVersionado();
   if (truthTab.size === 0) {
-    warns.push({ check: 'T', kind: 'fato-ancora-tabela-sem-fonte', count: 1,
-      msg: 'âncora de tabela PULADA: nenhuma tabela lida de database/schema/mysql-schema.sql nem das migrations. Não é "0 contradições" — é "não medi". 🟡 sentinela.' });
-  } else {
-    const hitsTab = factAnchorTabelas({ docs: sddDocs(), tableExists: (t) => truthTab.has(t) });
-    if (hitsTab.length) {
-      warns.push({ check: 'T', kind: 'fato-ancora-tabela', count: hitsTab.length, sample: hitsTab.slice(0, 12),
-        msg: `${hitsTab.length} tabela(s) afirmada(s) na §5.2 de um SDD NÃO existe(m) no schema versionado (${truthTab.size} tabelas conhecidas). Corrigir o doc — o §5.2 afirma que a tabela existe. 🟡 sentinela.` });
-    }
+    // AQUI sim é mudo se calar: há §5.2 afirmando tabela e nenhuma fonte pra conferir.
+    warns.push({ check: 'T', kind: 'fato-ancora-tabela-sem-fonte', count: sdds.length,
+      msg: `âncora de tabela PULADA em ${sdds.length} SDD(s): nenhuma tabela lida de database/schema/mysql-schema.sql nem das migrations. Não é "0 contradições" — é "não medi". 🟡 sentinela.` });
+    return;
+  }
+  const hitsTab = factAnchorTabelas({ docs: sdds, tableExists: (t) => truthTab.has(t) });
+  if (hitsTab.length) {
+    warns.push({ check: 'T', kind: 'fato-ancora-tabela', count: hitsTab.length, sample: hitsTab.slice(0, 12),
+      msg: `${hitsTab.length} tabela(s) afirmada(s) na §5.2 de um SDD NÃO existe(m) no schema versionado (${truthTab.size} tabelas conhecidas). Corrigir o doc — o §5.2 afirma que a tabela existe. 🟡 sentinela.` });
   }
 }
 
