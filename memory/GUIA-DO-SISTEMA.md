@@ -69,7 +69,7 @@ Camada de cima **herda** da de baixo e **nunca contradiz**. Detalhe canônico (a
 | **CT 100 Proxmox** (tailscale) | FrankenPHP + Centrifugo + Meilisearch + **MCP server** + Ollama embedder + Vaultwarden + **testes/PHPStan** | — |
 | **GitHub `origin/main`** | fonte de verdade do código + `memory/` | — |
 
-Acesso/deploy detalhado: [reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md).
+Acesso/deploy detalhado: [reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md). **O desenho** desse runtime — quem fala com quem, num diagrama C4-Container em Mermaid, versionado e revisável em PR — é o **§1-bis** de [governance/ARCHITECTURE.md](governance/ARCHITECTURE.md). Fica lá e não é copiado pra cá **de propósito**: diagrama duplicado drifta do original em silêncio, e o de lá já carrega uma contagem de módulos que envelheceu — um segundo exemplar só multiplicaria o problema.
 
 ### A5. Verticais — estado (fonte: [why-oimpresso.md](why-oimpresso.md))
 
