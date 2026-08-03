@@ -106,7 +106,7 @@ function rbResolveProp(mixed $prop): mixed
  * Cenário 1 — Controller render Inertia 'RecurringBilling/Configuracoes/Index'
  * com as 4 props canônicas (regua_dunning + nfe_auto + webhooks eager; gateways defer).
  */
-it('renderiza Page Inertia com componente correto e props canônicas', function () {
+it('UC-RBCFG-01 · renderiza Page Inertia com componente correto e props canônicas', function () {
     $controller = app(ConfiguracoesController::class);
     $response   = $controller->index(request());
 
@@ -128,7 +128,7 @@ it('renderiza Page Inertia com componente correto e props canônicas', function 
 /**
  * Cenário 2 — Régua de dunning canônica v1 (3 retentativas: +3d, +7d, +15d).
  */
-it('expõe régua de dunning canônica com 3 retentativas estruturadas', function () {
+it('UC-RBCFG-02 · expõe régua de dunning canônica com 3 retentativas estruturadas', function () {
     $controller = app(ConfiguracoesController::class);
     $response   = $controller->index(request());
 
@@ -161,7 +161,7 @@ it('expõe régua de dunning canônica com 3 retentativas estruturadas', functio
 /**
  * Cenário 3 — Webhooks URLs canônicas com business_id correto na URL.
  */
-it('expõe webhooks Asaas e Inter PJ com URL scopada por business_id', function () {
+it('UC-RBCFG-04 · expõe webhooks Asaas e Inter PJ com URL scopada por business_id', function () {
     $controller = app(ConfiguracoesController::class);
     $response   = $controller->index(request());
 
@@ -194,7 +194,7 @@ it('expõe webhooks Asaas e Inter PJ com URL scopada por business_id', function 
  * Cenário 4 — Multi-tenant Tier 0: gateways biz=1 NÃO vazam pra biz=99.
  * Cross-tenant isolation via HasBusinessScope automático em BoletoCredential.
  */
-it('aplica multi-tenant Tier 0 — gateways biz=1 não aparecem pra biz=99', function () {
+it('UC-RBCFG-03 · aplica multi-tenant Tier 0 — gateways biz=1 não aparecem pra biz=99', function () {
     // Cria 3 credenciais: 2 biz=1, 1 biz=99 (vazamento se scope falhar).
     BoletoCredential::create([
         'business_id'  => 1,
@@ -256,7 +256,7 @@ it('aplica multi-tenant Tier 0 — gateways biz=1 não aparecem pra biz=99', fun
  * Cenário 5 — Webhooks refletem o business_id da session corrente.
  * (Reforça cenário 3 — protege contra regressão de scope na URL helper.)
  */
-it('URLs de webhook refletem o business_id da session ativa', function () {
+it('UC-RBCFG-04 · URLs de webhook refletem o business_id da session ativa', function () {
     session(['user' => ['business_id' => 7]]);
 
     $controller = app(ConfiguracoesController::class);

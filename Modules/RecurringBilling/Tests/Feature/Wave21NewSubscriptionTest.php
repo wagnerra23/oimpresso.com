@@ -161,13 +161,13 @@ it('R-RB-WAVE21-2 — request aceita plan_id inteiro (campo novo da Onda 21)', f
     expect(validateStoreAssinatura(validPayload(['plan_id' => 7]))->passes())->toBeTrue();
 });
 
-it('R-RB-WAVE21-3 — request rejeita contact_id ausente', function () {
+it('UC-RBSUB-02 · R-RB-WAVE21-3 — request rejeita contact_id ausente', function () {
     $v = validateStoreAssinatura(validPayload(['contact_id' => null]));
     expect($v->fails())->toBeTrue()
         ->and($v->errors()->has('contact_id'))->toBeTrue();
 });
 
-it('R-RB-WAVE21-4 — request rejeita ciclo/gateway/forma fora do enum + data no passado', function () {
+it('UC-RBSUB-02 · R-RB-WAVE21-4 — request rejeita ciclo/gateway/forma fora do enum + data no passado', function () {
     $v = validateStoreAssinatura(validPayload([
         'ciclo'                 => 'quinzenal',
         'gateway'               => 'paypal',
@@ -183,7 +183,7 @@ it('R-RB-WAVE21-4 — request rejeita ciclo/gateway/forma fora do enum + data no
 
 // ─── store() cria Subscription ─────────────────────────────────────────
 
-it('R-RB-WAVE21-5 — store cria Subscription biz=1 mapeando forma_pagamento→payment_method', function () {
+it('UC-RBSUB-01 · R-RB-WAVE21-5 — store cria Subscription biz=1 mapeando forma_pagamento→payment_method', function () {
     \App\Contact::create(['business_id' => 1, 'name' => 'Cliente Teste', 'type' => 'customer']);
 
     $controller = new RecurringBillingController(new SubscriptionRepository());
@@ -208,7 +208,7 @@ it('R-RB-WAVE21-5 — store cria Subscription biz=1 mapeando forma_pagamento→p
 
 // ─── searchContacts() scoping Tier 0 ───────────────────────────────────
 
-it('R-RB-WAVE21-6 — searchContacts só retorna contatos do business da sessão', function () {
+it('UC-RBSUB-03 · R-RB-WAVE21-6 — searchContacts só retorna contatos do business da sessão', function () {
     \App\Contact::create(['business_id' => 1, 'name' => 'Larissa Costa', 'type' => 'customer']);
     \App\Contact::create(['business_id' => 99, 'name' => 'Larissa Outra Empresa', 'type' => 'customer']);
 
@@ -221,7 +221,7 @@ it('R-RB-WAVE21-6 — searchContacts só retorna contatos do business da sessão
         ->and($json['contacts'][0]['name'])->toBe('Larissa Costa');
 });
 
-it('R-RB-WAVE21-7 — searchContacts ignora query < 2 chars', function () {
+it('UC-RBSUB-03 · R-RB-WAVE21-7 — searchContacts ignora query < 2 chars', function () {
     \App\Contact::create(['business_id' => 1, 'name' => 'Ab', 'type' => 'customer']);
 
     $controller = new RecurringBillingController(new SubscriptionRepository());
@@ -232,7 +232,7 @@ it('R-RB-WAVE21-7 — searchContacts ignora query < 2 chars', function () {
     expect($json['contacts'])->toBe([]);
 });
 
-it('R-RB-WAVE21-8 — searchContacts exclui type=lead/supplier (só customer/both)', function () {
+it('UC-RBSUB-03 · R-RB-WAVE21-8 — searchContacts exclui type=lead/supplier (só customer/both)', function () {
     \App\Contact::create(['business_id' => 1, 'name' => 'Lead Frio', 'type' => 'lead']);
     \App\Contact::create(['business_id' => 1, 'name' => 'Lead Ambos', 'type' => 'both']);
 

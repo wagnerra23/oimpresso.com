@@ -68,7 +68,7 @@ afterEach(function () {
 /**
  * Cenário 1 (idempotência): invoice já canceled → ok + skipped, sem chamar gateway.
  */
-it('retorna idempotente quando invoice já canceled (skip gateway)', function () {
+it('UC-RBFAT-06 · retorna idempotente quando invoice já canceled (skip gateway)', function () {
     $boletos = Mockery::mock(BoletoService::class);
     $boletos->shouldNotReceive('cancelar');
 
@@ -93,7 +93,7 @@ it('retorna idempotente quando invoice já canceled (skip gateway)', function ()
 /**
  * Cenário 2 (guard pago): invoice paga → 422 (use estorno).
  */
-it('bloqueia cancelamento quando invoice paga e sugere estorno', function () {
+it('UC-RBFAT-05 · bloqueia cancelamento quando invoice paga e sugere estorno', function () {
     $boletos = Mockery::mock(BoletoService::class);
     $boletos->shouldNotReceive('cancelar');
 
@@ -119,7 +119,7 @@ it('bloqueia cancelamento quando invoice paga e sugere estorno', function () {
 /**
  * Cenário 3 (happy path local-only): invoice open sem gateway_ref → cancela só local sem chamar gateway.
  */
-it('cancela local quando invoice nunca foi enviada ao gateway', function () {
+it('UC-RBFAT-07 · cancela local quando invoice nunca foi enviada ao gateway', function () {
     $boletos = Mockery::mock(BoletoService::class);
     $boletos->shouldNotReceive('cancelar');
 

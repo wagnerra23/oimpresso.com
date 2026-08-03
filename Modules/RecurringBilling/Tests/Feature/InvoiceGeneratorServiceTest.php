@@ -191,7 +191,7 @@ function makeSubscription(int $bizId, int $planId, string $nextDueDate, string $
     ]);
 }
 
-test('1. Cria invoice quando next_due_date <= hoje', function () {
+test('UC-RBFAT-08 · 1. Cria invoice quando next_due_date <= hoje', function () {
     $plan = makePlan(1, 250.50, 'monthly');
     $sub  = makeSubscription(1, $plan->id, '2026-07-10', 'active', 12);
 
@@ -212,7 +212,7 @@ test('1. Cria invoice quando next_due_date <= hoje', function () {
     expect($invoice->numero_documento)->toBe("RB-{$sub->id}-2026-07");
 });
 
-test('2. Idempotência: 2x run() nao duplica invoice', function () {
+test('UC-RBFAT-08 · 2. Idempotência: 2x run() nao duplica invoice', function () {
     $plan = makePlan(1, 100.0, 'monthly');
     $sub  = makeSubscription(1, $plan->id, '2026-07-15');
 
@@ -227,7 +227,7 @@ test('2. Idempotência: 2x run() nao duplica invoice', function () {
     expect(Invoice::where('subscription_id', $sub->id)->count())->toBe(1);
 });
 
-test('3. Avanca next_due_date += 1 mes (monthly) preservando anchor', function () {
+test('UC-RBFAT-09 · 3. Avanca next_due_date += 1 mes (monthly) preservando anchor', function () {
     $plan = makePlan(1, 100.0, 'monthly');
     $sub  = makeSubscription(1, $plan->id, '2026-07-10');
 
@@ -237,7 +237,7 @@ test('3. Avanca next_due_date += 1 mes (monthly) preservando anchor', function (
     expect($sub->next_due_date->toDateString())->toBe('2026-08-10');
 });
 
-test('4. Skipa subscription paused/canceled', function () {
+test('UC-RBFAT-10 · 4. Skipa subscription paused/canceled', function () {
     $plan = makePlan(1, 100.0, 'monthly');
     makeSubscription(1, $plan->id, '2026-07-10', 'paused');
     makeSubscription(1, $plan->id, '2026-07-10', 'canceled');
@@ -249,7 +249,7 @@ test('4. Skipa subscription paused/canceled', function () {
     expect(Invoice::count())->toBe(1);
 });
 
-test('5. dry-run nao escreve mas conta', function () {
+test('UC-RBFAT-10 · 5. dry-run nao escreve mas conta', function () {
     $plan = makePlan(1, 100.0, 'monthly');
     $sub  = makeSubscription(1, $plan->id, '2026-07-10');
 
@@ -262,7 +262,7 @@ test('5. dry-run nao escreve mas conta', function () {
     expect($sub->next_due_date->toDateString())->toBe('2026-07-10'); // não avançou
 });
 
-test('6. lead-days antecipa: venc hoje+3 entra com lead=3', function () {
+test('UC-RBFAT-10 · 6. lead-days antecipa: venc hoje+3 entra com lead=3', function () {
     $plan = makePlan(1, 100.0, 'monthly');
     makeSubscription(1, $plan->id, '2026-07-13'); // venc 3 dias depois
 
@@ -275,7 +275,7 @@ test('6. lead-days antecipa: venc hoje+3 entra com lead=3', function () {
     expect($com['generated'])->toBe(1);
 });
 
-test('7. Cross-tenant Tier 0: biz=99 NAO vaza biz=1', function () {
+test('UC-RBFAT-11 · 7. Cross-tenant Tier 0: biz=99 NAO vaza biz=1', function () {
     // Subscription real em biz=1
     $plan1 = makePlan(1, 100.0, 'monthly');
     makeSubscription(1, $plan1->id, '2026-07-10');
@@ -293,7 +293,7 @@ test('7. Cross-tenant Tier 0: biz=99 NAO vaza biz=1', function () {
     expect((float) Invoice::where('business_id', 99)->first()->valor)->toBe(200.0);
 });
 
-test('8. Logga SubscriptionEvent kind=event-charge', function () {
+test('UC-RBFAT-11 · 8. Logga SubscriptionEvent kind=event-charge', function () {
     $plan = makePlan(1, 100.0, 'monthly');
     $sub  = makeSubscription(1, $plan->id, '2026-07-10');
 
