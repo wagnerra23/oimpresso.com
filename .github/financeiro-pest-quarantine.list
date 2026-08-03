@@ -80,7 +80,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 Modules/Financeiro/Tests/Feature/ExtratoControllerTest.php  # 1 failed, 2 passed (2 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # 1 failed, 11 passed (24 assertions) — ex-B
-Modules/Financeiro/Tests/Feature/ProvaVivaContractTest.php  # 1 failed, 1 passed (10 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php  # 6 failed, 2 passed (2 assertions)
@@ -151,3 +150,34 @@ Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado 
 # ISOLADO (1 arquivo por processo). A lane roda TODOS num processo só, com
 # executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
 # vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
+#
+# ── ProvaVivaContractTest (2026-08-02, triagem 4/N do bucket C) ───────
+#   1 failed, 1 passed (10 assertions)  →  2 passed (10 assertions)
+#
+# Classificação: TESTE PODRE, NÃO regressão de produto — e a única "ofensa" do
+# arquivo era a PRÓPRIA DOCUMENTAÇÃO da regra.
+#
+# O UC-PV-05 varre ProvaViva.tsx procurando `className="... flex ..."` solto
+# (ADR 0253 — tela 100% primitivos). Varria TODAS as linhas, inclusive
+# comentário. A linha 10 do .tsx é o cabeçalho que DOCUMENTA a regra citando o
+# literal proibido: 'zero `<div className="flex">` solto'. O guard acusava a
+# frase que explica o guard.
+#
+# Medido: das 8 linhas do .tsx com `flex` em className, 7 usam só os tokens
+# permitidos (inline-flex, flex-1) e 1 é o comentário. Markup real: ZERO
+# ofensores. O produto estava certo o tempo todo.
+#
+# Mesma família do §5 2026-07-26 (auto-silenciamento do modulo-preflight-warning),
+# aqui na forma invertida: auto-ACUSAÇÃO.
+#
+# Fix = pular linhas que SÃO comentário (// , /* */, * ) antes da varredura.
+# Limitação aceita de propósito: comentário no FIM de uma linha de JSX real
+# continua varrido — lado seguro, não deixa markup escapar.
+#
+# BITE-TEST (o guard continua mordendo, não virou presence-gate): injetei
+# `<div className="flex items-center">` real no .tsx dentro do container →
+# 1 failed, apontando "627: <div className=\"flex items-center\">". Restaurado
+# o arquivo → 2 passed. Controle negativo feito ANTES de tirar da quarentena.
+#
+# Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa
+# provisionada pela receita do CI .github/actions/pest-mysql-setup).
