@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Ponto\Entities\Escala;
+use Modules\Ponto\Http\Requests\StoreEscalaRequest;
 
 class EscalaController extends Controller
 {
@@ -81,7 +82,24 @@ class EscalaController extends Controller
         ]);
     }
 
-    public function update(Request $request, int $id): RedirectResponse
+    /**
+     * US-PONTO-013 — recebia `Illuminate\Http\Request` e chamava `$request->validated()`,
+     * método que só existe em `FormRequest` (medido: 0 ocorrências em
+     * `Illuminate/Http/Request.php`; ele mora em `Foundation/Http/FormRequest.php:365`;
+     * 0 macros no projeto). A chamada lançava `BadMethodCallException` — salvar a edição
+     * de uma escala simplesmente quebrava. O `store()` funciona, então a tela parecia boa:
+     * só a edição, que é o caminho menos exercitado, estava morta.
+     *
+     * O `StoreEscalaRequest` já existia desde a Wave 18 e nunca foi ligado — o que
+     * explica o `validated()` órfão: escreveram o controller esperando o FormRequest e
+     * deixaram o type-hint em `Request`. Aqui ele é só conectado.
+     *
+     * ⚠️ Inconsistência DECLARADA, não corrigida: o `store()` acima segue com validação
+     * inline mais frouxa (`carga_semanal_minutos` aceita 0; aqui o mínimo é 600, por
+     * CLT Art. 7º XIII). Unificar os dois é mudar um caminho que FUNCIONA e que nenhum
+     * teste cobre — fica como follow-up, não como carona deste fix.
+     */
+    public function update(StoreEscalaRequest $request, int $id): RedirectResponse
     {
         $escala = Escala::findOrFail($id);
         $escala->update($request->validated());
