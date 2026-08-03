@@ -37,10 +37,14 @@ beforeEach(function () {
         $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101).');
     }
 
-    $this->business = \App\Business::query()->orderBy('id')->first();
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB — rode o seeder UltimatePOS.');
-    }
+    // Tenant CANONICO de teste (biz=98) via trait WithSeededTenant, nao o primeiro
+    // business do banco. O seed do CI (.github/actions/pest-mysql-setup) cria
+    // business_locations + contacts para o biz=98 — e SO para ele, desde a decisao
+    // [W] de 2026-07-28 que moveu o tenant canonico de 1 para 98 (biz=1 e a WR2
+    // Sistemas, empresa REAL). Resolvendo por `orderBy('id')->first()` este arquivo
+    // caia em biz=1, que tem user mas NAO tem location/contact — e os 3 UCs
+    // SKIPavam no CI, silenciosamente, dentro de uma lane REQUIRED.
+    $this->business = $this->seededTenant();
     $this->user = \App\User::where('business_id', $this->business->id)->first();
     $this->location = DB::table('business_locations')->where('business_id', $this->business->id)->first();
     $this->contact = DB::table('contacts')
