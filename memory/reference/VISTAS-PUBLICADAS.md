@@ -4,7 +4,7 @@ description: Catálogo curado das páginas publicadas em claude.ai — tema, lin
 type: index
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-07-29"
+updated_at: "2026-08-03"
 related_adrs:
   - "0256-knowledge-survival-meia-vida-catraca-sentinela"
   - "0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento"
@@ -115,6 +115,16 @@ Dono em git: [`GUIA-DO-SISTEMA.md`](../GUIA-DO-SISTEMA.md) · [`PAINEL-SISTEMA.m
 > **não** foi marcada histórica: superar vista é decisão de [W], e o append-only manda preservar a
 > linhagem. Se [W] considerar que a de 08-02 a substitui, o caminho é marcá-la `histórica` com elo
 > pra sucessora — nunca apagar.
+>
+> 📌 **2026-08-03 — o conteúdo da vista de 08-02 foi incorporado ao dono.** [W]: *"incorpore as
+> melhorias, no https://oimpresso.com/documentacao"*. O que a vista tinha e o dono não tinha entrou
+> no [`GUIA-DO-SISTEMA.md`](../GUIA-DO-SISTEMA.md) — o mapa das sete camadas com estado (A9.1), o
+> invariante anti-atrofia (A9.2), o módulo Forja (A6), o elo pro diagrama C4 do runtime (A4) e os
+> caminhos de código que faltavam. O trilho de sumário que [W] elogiou na vista virou mecanismo na
+> rota: **derivado dos títulos a cada acesso**, não uma lista copiada. A partir daqui, **a rota
+> `/documentacao` é a documentação oficial do sistema** e a vista é o retrato datado que a antecedeu.
+> **Não a marquei `histórica`** — este registro diz, três linhas acima, que superar vista é decisão
+> de [W]. Fica registrada a linhagem; o estado é dele.
 
 > A histórica é *"Tudo que existe, em camadas"* — L0 produto → L5 em voo, com estado por peça. Ela é
 > também a perna **"o quê"** da trilogia de 2026-07-12 (ver *manual do dono* e *história e linhagem*
