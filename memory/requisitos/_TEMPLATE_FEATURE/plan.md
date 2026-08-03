@@ -3,7 +3,8 @@ id: requisitos-template-feature-plan
 ---
 
 <!--
-  TEMPLATE — copie pra memory/requisitos/<Mod>/features/<slug>/plan.md e cure os {{...}}.
+  TEMPLATE CANÔNICO — gerado exclusivamente por `npm run feature:init`; nunca copie à mão.
+  Depois da geração, cure os {{...}} na pasta criada pela máquina.
   O plan é o COMO técnico. Decisão arquitetural nova = ADR (append-only), aqui só referência.
 -->
 ---

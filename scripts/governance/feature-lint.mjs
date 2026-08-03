@@ -58,6 +58,53 @@ const T_REF_RE = /T-\d+/g;
 const ROOT_DEP_RE = /^(—|-|nenhum|n\/a)?$/i;        // blocked_by vazio/travessão = raiz
 const PAGE_RE = /resources\/js\/Pages\/[A-Za-z0-9_\-/]+\.tsx/g;
 
+export function featureTutorialText() {
+  return `
+FEATURE INIT — TUTORIAL GUIADO
+
+Quando usar:
+  Feature complexa ou multi-sessão (>=3 tarefas, dependência real, regra de negócio,
+  integração, fila, multi-tenant, valor ou estoque). Fix pequeno de uma tarefa não usa trio.
+
+Antes de começar:
+  1. Confirme o sinal de cliente/métrica.
+  2. Crie ou confirme a US em memory/requisitos/<Modulo>/SPEC.md.
+  3. Escolha um slug kebab-case. A máquina nunca inventa a US.
+
+Passo 1 — conferir sem escrever:
+  npm run feature:init -- <Modulo>/<slug> --us US-<MOD>-<NNN> --dry-run
+
+Passo 2 — gerar o contrato:
+  npm run feature:init -- <Modulo>/<slug> --us US-<MOD>-<NNN>
+
+Resultado:
+  memory/requisitos/<Modulo>/features/<slug>/requirements.md
+  memory/requisitos/<Modulo>/features/<slug>/plan.md
+  memory/requisitos/<Modulo>/features/<slug>/tasks.md
+
+Passo 3 — preencher:
+  requirements.md  = user story, Clarifications, AC-N verificáveis e fora de escopo
+  plan.md          = plug-points existentes, decisões, dados/contratos e riscos Tier 0
+  tasks.md         = T-NN, blocked_by, covers, us e DoD verificável
+
+Passo 4 — validar antes de implementar:
+  node scripts/governance/feature-lint.mjs <Modulo>/<slug> --check
+
+Passo 5 — executar e fechar:
+  teste falha -> menor implementação -> teste passa -> DoD -> smoke real ->
+  atualizar Implementado em: verificado@<sha7> na US do SPEC.
+
+Exemplo completo para leitura (já existe; não tente recriá-lo):
+  memory/requisitos/Connector/features/openapi-connector/
+
+Tutorial visual completo:
+  /documentacao -> B7.1 Tutorial completo: da US à entrega provada
+
+A máquina recusa destino existente, US ausente, trio incompleto, placeholder não curado,
+dependência quebrada/cíclica, AC inexistente e tarefa sem DoD.
+`.trim();
+}
+
 // ── parsers (exportados pro self-test) ───────────────────────────────────────────────────
 export function parseFrontmatter(txt) {
   const m = txt.match(/^(?:<!--[\s\S]*?-->\s*)?---\r?\n([\s\S]*?)\r?\n---/);
@@ -274,6 +321,11 @@ if (isMain) {
     const i = argv.indexOf(name);
     return i >= 0 ? argv[i + 1] : undefined;
   };
+
+  if (argv.includes('--help') || argv.includes('-h')) {
+    console.log(`${featureTutorialText()}\n`);
+    process.exit(0);
+  }
 
   if (argv.includes('--init') || argv.some((a) => a.startsWith('--init='))) {
     try {
