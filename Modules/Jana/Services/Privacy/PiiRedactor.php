@@ -47,8 +47,16 @@ class PiiRedactor
         'CNPJ'  => '/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/',
         'CPF'   => '/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/',
         'CEP'   => '/\b\d{5}-?\d{3}\b/',
-        // Telefone BR: opcional +55, opcional DDD (XX), 8-9 dígitos
-        'PHONE' => '/(?:\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}-?\d{4}/',
+        // Telefone BR: opcional +55, opcional DDD (XX), 8-9 dígitos.
+        // Os lookarounds `(?<!\d)`/`(?!\d)` são o que impede casar um PEDAÇO de
+        // número maior — os irmãos acima usam `\b`, este não usava. Sem eles,
+        // liberar o CNPJ cru fazia o telefone herdar a colisão: em
+        // `articles/21830391097367` o match virava `2183039109`, e o DDD 21
+        // (Rio) EXISTE, então passava pelo desempate e era redigido.
+        // Pego pelo teste desta emenda em 2026-08-03. O mesmo já quase
+        // aconteceu no #5169 com o CPF — lá escapou por sorte, porque o run id
+        // começava com `30`, DDD que não existe.
+        'PHONE' => '/(?<!\d)(?:\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}-?\d{4}(?!\d)/',
     ];
 
     /**

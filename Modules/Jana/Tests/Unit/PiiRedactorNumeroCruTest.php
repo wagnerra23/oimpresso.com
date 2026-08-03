@@ -136,3 +136,30 @@ it('CONTROLE: CNPJ FORMATADO segue redigido mesmo com DV inválido — formato �
 
     expect($r->redact("CNPJ {$cnpjPontuadoDvInvalido}"))->not->toContain($cnpjPontuadoDvInvalido);
 });
+
+/**
+ * A CASCATA: liberar um tipo faz o número sobrar para o padrão seguinte.
+ *
+ * CPF, CNPJ e CEP usam `\b`; PHONE não usava, então casava um PEDAÇO de número
+ * maior. Com o CNPJ liberado, `articles/21830391097367` virava `[REDACTED:PHONE]`
+ * porque o match era `2183039109` e o DDD 21 (Rio) existe. No #5169 o mesmo já
+ * quase aconteceu com o CPF — escapou por sorte, o run id começava com `30`.
+ */
+it('PHONE não come pedaço de número maior — fronteira, não só DDD válido', function () {
+    $r = new PiiRedactor();
+
+    // Ambos começam com DDD que EXISTE (21 e 14): se o desempate fosse só o DDD,
+    // os dois seriam redigidos. Quem segura é a fronteira `(?<!\d)`/`(?!\d)`.
+    $idArtigo = 'articles/21830391097367';
+    $lid = '14628809617558@lid';
+
+    expect($r->redact($idArtigo))->toBe($idArtigo)
+        ->and($r->redact($lid))->toBe($lid);
+});
+
+it('CONTROLE: telefone cru com DDD real CONTINUA redigido', function () {
+    $r = new PiiRedactor();
+    $celular = '11987654321'; // pii-allowlist (sintético, fixture)
+
+    expect($r->redact("ligar {$celular} agora"))->not->toContain($celular);
+});
