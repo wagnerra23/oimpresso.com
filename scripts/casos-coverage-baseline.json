@@ -1,14 +1,14 @@
 {
   "_meta": {
-    "generated_at": "2026-08-03T02:02:08.060Z",
+    "generated_at": "2026-08-03T02:24:09.977Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
       "pages": 207,
-      "casos_files": 76,
+      "casos_files": 77,
       "ucs_declared": 399,
       "missing_charter": 0,
-      "missing_casos": 132,
+      "missing_casos": 131,
       "orphan_ucs": 12,
       "metadata_issues": 0,
       "stale_cases": 0,
@@ -109,7 +109,6 @@
     "trio:missing-casos:resources/js/Pages/Ponto/Configuracoes/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Dashboard/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Escalas/Form.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Escalas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Importacoes/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Importacoes/Index.tsx",

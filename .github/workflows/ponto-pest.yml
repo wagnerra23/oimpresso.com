@@ -117,9 +117,17 @@ jobs:
         # Entram aqui porque teste fora da allowlist é "verde impossível" — existe e
         # nunca roda por PR (achado #7 do piloto Produto).
         #
-        # ⚠️ DOIS UC nascem FAILING-FIRST por desenho, denunciando regressão medida:
-        #   UC-ESPSHOW-01 → SDD §9 D-1 (espelho lê `tem_divergencia`, campo inexistente)
-        #   UC-IMPSHOW-04 → SDD §9 D-8 (importação lê `linhas_criadas`, campo inexistente)
+        # ⚠️ QUATRO UC nascem FAILING-FIRST por desenho, denunciando regressão medida:
+        #   UC-ESPSHOW-01  → SDD §9 D-1 (espelho lê `tem_divergencia`, campo inexistente)
+        #   UC-IMPSHOW-04  → SDD §9 D-8 (importação lê `linhas_criadas`, campo inexistente)
+        #   UC-ESCFORM-01  → 3ª instância do MESMO padrão, achada em 2026-08-02 pela
+        #                    varredura que o SDD §10 Onda 1 pediu: EscalaController@edit lê
+        #                    `entrada`/`saida`/`almoco_inicio`/`almoco_fim`; as colunas são
+        #                    `hora_*` e não há accessor → a tela de edição de escala mostra
+        #                    TODOS os horários vazios, sempre.
+        #   UC-ESCFORM-02  → `EscalaController@update(Request $request)` chama
+        #                    `$request->validated()`, que só existe em FormRequest → salvar
+        #                    a edição de uma escala lança BadMethodCallException.
         # Vermelho neles é o ACHADO, não defeito do teste. A lane é ADVISORY (não está
         # em governance/required-checks-baseline.json), então reprova VISÍVEL sem
         # bloquear merge. Correção é decisão [W].
@@ -146,6 +154,7 @@ jobs:
             Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasIndexContratoTest.php \
+            Modules/Ponto/Tests/Feature/EscalaFormContratoTest.php \
             Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
       - name: Upload JUnit (Ponto · MySQL)
