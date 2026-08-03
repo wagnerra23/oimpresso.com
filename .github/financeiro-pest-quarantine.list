@@ -73,11 +73,10 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 #    formatação. Podem ser regressão de produto OU teste desatualizado —
 #    exige olhar caso a caso, não conserto em lote.
 #
-#    +6 vindos do bucket B em 2026-08-02 (reclassificação — ver nota no B): falham
+#    +5 vindos do bucket B em 2026-08-02 (reclassificação — ver nota no B): falham
 #    de verdade contra MySQL semeado e NÃO usam RefreshDatabase, logo o motivo
 #    "envenena o processo compartilhado" nunca se aplicou a eles. Ficam
 #    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
-Modules/Financeiro/Tests/Feature/ExtratoControllerTest.php  # 1 failed, 2 passed (2 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # 1 failed, 11 passed (24 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
@@ -193,6 +192,27 @@ Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado 
 # (TituloAutoService, BridgeExpenseToTitulosCommand). O Bridge já DERIVA o
 # restante de Σ pagamentos (está correto); só o Service tem a leitura morta.
 #
+# ── ExtratoControllerTest (2026-08-02, triagem 2/N do bucket C) ──────────
+#   1 failed, 2 passed (2 assertions)  →  3 passed (3 assertions)
+#
+# Classificação: FIXTURE quebrada, NÃO regressão de produto — e o caso que
+# morria era justamente o [T0] cross-tenant ("404 quando conta é de outro
+# business"). Ele montava o cenário com um business SINTÉTICO
+# (`$this->business->id + 9999`), id que não existe; `fin_contas_bancarias`
+# tem FK pra `business`, então o insert estourava SQLSTATE 23000/1452 e o caso
+# MORRIA ANTES de exercer o 404. O isolamento desta tela nunca foi provado.
+#
+# Exatamente a forma do precedente ConciliacaoAuditReabrirTest (#5178): id
+# hardcoded → viola FK → morre no setup → parece "defeito de produto".
+#
+# Fix = usar um segundo business REAL, o padrão canônico do próprio módulo
+# (BackfillExtratoOfxTest:256, BridgeExpenseToTitulosCommandTest:281). Em CI o
+# seed garante biz=2 justamente "pros testes de isolamento multi-tenant terem
+# um segundo business real". Produção intocada.
+#
+# A PROVA de que o caso passou a EXECUTAR (não só a ficar verde): as assertions
+# subiram 2 → 3 com o mesmo número de casos. O +1 é o assertSame(404) que antes
+# nunca era alcançado (§5 LC-13 — "0 failed" não prova execução, assertions sim).
 # ── ProvaVivaContractTest (2026-08-02, triagem 4/N do bucket C) ───────
 #   1 failed, 1 passed (10 assertions)  →  2 passed (10 assertions)
 #
