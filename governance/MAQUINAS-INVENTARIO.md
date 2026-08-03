@@ -268,7 +268,7 @@
 | `wagner-protocol-enforce` | B | BLOQUEADOR Tier A always-on — carrega memory/reference/PROTOCOLO-WAGNER-SEMPRE.md |
 | `wagner-request-refiner` | B | ATIVAR quando Wagner manda múltiplos pedidos curtos não-estruturados num mesmo turno (ex: lista com 3+ items, "todo: a) b) c)", bullets numerados, scr… |
 
-## 4. Agents (subagentes Task) — 25
+## 4. Agents (subagentes Task) — 26
 
 | Agent | Descrição (início) |
 |---|---|
@@ -285,6 +285,7 @@
 | `deprecar-modulo` | Use quando Wagner decidir deprecar/aposentar um módulo Laravel modular do oimpresso (ex SRS, Officeimpresso legacy, Cms antigo, qualquer Modules/<X> em estado zumbi). |
 | `design-arte` | Use quando Wagner pedir "estado da arte de design do oimpresso", "nota de design da tela X", "Capterra de design pro módulo Y", "compare meu design com Linear/Shopify/Not… |
 | `document-relocation-adversary` | Adversario read-only de planos de classificacao, movimento e relink de documentacao. |
+| `documentacao-sistema` | ATIVAR quando [W] pedir qualquer coisa sobre a DOCUMENTAÇÃO DO SISTEMA — "documenta o sistema", |
 | `estado-da-arte` | Use quando o Wagner pedir "faça o estado da arte de X", "estado da arte de Y", "pesquise como os melhores fazem Z", "/estado-da-arte <problema>". |
 | `financeiro-bridge-auditor` | Auditor especialista da bridge Sells/Compras (UltimatePOS core) → Modules/Financeiro (`fin_titulos`/`fin_titulo_baixas` via Observers). |
 | `maturity-gap-expert` | Especialista em gap analysis maturidade oimpresso vs estado-da-arte 2026. |
