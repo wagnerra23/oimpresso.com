@@ -3,7 +3,8 @@ id: requisitos-template-feature-requirements
 ---
 
 <!--
-  TEMPLATE — copie pra memory/requisitos/<Mod>/features/<slug>/requirements.md e cure os {{...}}.
+  TEMPLATE CANÔNICO — gerado exclusivamente por `npm run feature:init`; nunca copie à mão.
+  Depois da geração, cure os {{...}} na pasta criada pela máquina.
   Validado por: node scripts/governance/feature-lint.mjs (advisory).
   A US continua no SPEC.md do módulo — este arquivo DETALHA, aponta, nunca duplica a decisão.
 -->
