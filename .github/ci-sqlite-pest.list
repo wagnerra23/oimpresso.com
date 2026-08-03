@@ -353,24 +353,15 @@ Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
 Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitParaDbColetarTest.php
 Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
 
-# NAO ligar ainda — tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
-# (7 casos). Foi ligado nesta branch, rodou, e deu 7 ERRORS na corrida
-# 30783000852 — todos a mesma causa:
-#   QueryException: table mcp_memory_documents has no column named business_id
-#   (IndexarMemoryGitParaDb.php:632 <- :87)
-# A fixture sintetica do teste esta 3 migrations ATRAS do schema real: faltam
-# business_id (add_business_id, 2026-04-30), os 10 tipados de add_typed_cols
-# (status/authority/lifecycle/quarter/decided_at/decided_by/tags/supersedes/
-# superseded_by/related, 2026-05-01) e has_pii. O service escreve as colunas; a
-# fixture nunca acompanhou.
+# Religado apos o conserto da fixture (follow-up do #5213, autorizado [W]).
+# Historico: ao ser ligado no #5213 deu 7 ERRORS (corrida 30783000852), todos
+# `table mcp_memory_documents has no column named business_id` — a fixture
+# sintetica estava 3 migrations atras do schema (faltavam business_id + os 11
+# tipados + os 3 contextual). Fixture agora e DERIVADA das migrations, com os
+# arquivos-fonte citados no proprio beforeEach.
 #
-# ACHADO QUE IMPORTA MAIS QUE O ERRO: este teste NAO roda em lugar NENHUM hoje.
-# Fora de lane de PR (medidor) E pulado na nightly do CT100, porque a nightly
-# roda MySQL e o guard sqlite-only o manda pra skip. Nao e "feedback tardio" —
-# e ausencia total, com cara de verde (LC-13).
-#
-# Religar exige conserto de fixture que toca `business_id` = Tier 0 multi-tenant:
-# so adicionar a coluna nullable faz os 7 passarem SEM que nenhum caso exerca
-# isolamento — verde fabricado. O follow-up tem que trazer a fixture derivada das
-# migrations + ao menos 1 caso biz=1 vs biz=99. Decisao [W] 2026-08-03: sai deste
-# PR, vai pra PR propria (1 PR = 1 intent).
+# +8 casos (os 7 originais + 1 Tier 0 NOVO). O Tier 0 existe porque sem a coluna
+# `business_id` era IMPOSSIVEL escrever isolamento: os 7 originais nunca tocaram
+# multi-tenant. Ancorado no docblock de McpMemoryDocument::scopeDoBusiness +
+# ADR 0093 — nao no que o service faz hoje.
+tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
