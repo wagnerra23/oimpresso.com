@@ -51,6 +51,39 @@
   .wrap{max-width:1160px;margin:0 auto;padding:0 32px 120px}
   .col{max-width:72ch}
 
+  /* ── trilho de sumário ───────────────────────────────────────────
+     Os itens vêm DERIVADOS dos títulos (DocumentacaoController::comSumario) —
+     não há lista escrita à mão em lugar nenhum pra ficar desatualizada.
+     Estreito: só acompanha a leitura; quem lê continua lendo a coluna. */
+  .com-trilho{display:block}
+  .trilho{font-size:13px;margin:36px 0 8px;max-width:72ch}
+  .trilho-tit{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-mute);margin:0 0 8px}
+  .trilho ol{list-style:none;margin:0;padding:0;display:block}
+  .trilho a{display:flex;gap:9px;align-items:baseline;padding:3px 0 3px 11px;
+    color:var(--ink-soft);text-decoration:none;border-left:2px solid var(--rule-soft);
+    line-height:1.35;border-bottom:0}
+  .trilho a:hover{color:var(--accent);border-left-color:var(--rule)}
+  .trilho a[aria-current="true"]{color:var(--accent);border-left-color:var(--accent);font-weight:600}
+  .trilho .grupo > a{font-family:var(--serif);font-size:14.5px;color:var(--ink);
+    margin-top:15px;border-left-color:transparent;padding-left:0}
+  .trilho .grupo:first-child > a{margin-top:0}
+  .trilho .cod{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);flex:0 0 auto}
+  .trilho a[aria-current="true"] .cod{color:var(--accent)}
+
+  @media (min-width:1080px){
+    .com-trilho{display:grid;grid-template-columns:minmax(0,72ch) 208px;
+      gap:0 60px;align-items:start}
+    .com-trilho > .col{grid-column:1;grid-row:1}
+    .com-trilho > .trilho{grid-column:2;grid-row:1;position:sticky;top:22px;margin:6px 0 0;
+      max-height:calc(100vh - 44px);overflow-y:auto;overscroll-behavior:contain}
+    .trilho ol{columns:1}
+  }
+  @media (max-width:1079px){
+    .trilho ol{columns:2;column-gap:26px}
+    .trilho li{break-inside:avoid}
+  }
+
   .stamp{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
     color:var(--accent);margin:44px 0 16px}
   .colophon{display:flex;flex-wrap:wrap;gap:4px 22px;font-family:var(--mono);font-size:11.5px;
@@ -63,7 +96,7 @@
   .doc h2{font-family:var(--serif);font-weight:400;font-size:29px;line-height:1.2;
     margin:48px 0 10px;padding-top:20px;border-top:1px solid var(--rule-soft);
     letter-spacing:-.01em;text-wrap:balance;scroll-margin-top:20px}
-  .doc h3{font-size:15px;font-weight:650;margin:28px 0 8px}
+  .doc h3{font-size:15px;font-weight:650;margin:28px 0 8px;scroll-margin-top:20px}
   .doc h4{font-size:13px;font-weight:650;color:var(--ink-soft);margin:22px 0 6px}
   .doc p{margin:0 0 16px}
   .doc strong{font-weight:640}

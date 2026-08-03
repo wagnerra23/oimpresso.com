@@ -66,6 +66,73 @@ it('os tipos filtrados existem no enum da tabela do acervo', function () {
     }
 });
 
+it('nenhum link do guia sai da rota como href relativo cru ou apontando pra caminho inexistente', function () {
+    // O markdown foi escrito pra ser lido na árvore do git: os links são relativos a
+    // `memory/`. Na web nada disso resolve sozinho — a rota reescreve cada um pro blob
+    // do GitHub. Dois defeitos mediram 9 de 56 links errados em 2026-08-03: `../` era
+    // apagado da string (virava `memory/README.md`, que não existe) e alvo não-`.md`
+    // nem era reescrito (saía href relativo cru, 404 na própria página).
+    //
+    // Este caso NÃO toca banco nem sessão de propósito: roda sempre, em qualquer lane.
+    $controller = new App\Http\Controllers\DocumentacaoController;
+    $paraHtml = (new ReflectionClass($controller))->getMethod('paraHtml');
+    $paraHtml->setAccessible(true);
+
+    $html = $paraHtml->invoke($controller, file_get_contents(base_path('memory/GUIA-DO-SISTEMA.md')));
+
+    preg_match_all('/href="([^"]+)"/', $html, $m);
+    expect($m[1])->not->toBeEmpty();
+
+    $blob = 'https://github.com/wagnerra23/oimpresso.com/blob/main/';
+
+    $crus = array_values(array_unique(array_filter(
+        $m[1],
+        fn ($h) => ! preg_match('~^(https?:|[#]|mailto:)~', $h)
+    )));
+    expect($crus)->toBe([]);
+
+    // Todo alvo reescrito tem que existir na árvore — link pro blob é promessa de arquivo.
+    $inexistentes = [];
+    foreach (array_unique($m[1]) as $href) {
+        if (! str_starts_with($href, $blob)) {
+            continue;
+        }
+        $caminho = rtrim(explode('#', substr($href, strlen($blob)))[0], '/');
+        if (! file_exists(base_path($caminho))) {
+            $inexistentes[] = $caminho;
+        }
+    }
+    expect($inexistentes)->toBe([]);
+});
+
+it('o sumario da pagina e derivado dos titulos, com ancora estavel nos codigos de secao', function () {
+    // Se alguém trocar o sumário derivado por uma lista escrita à mão, ou quebrar a
+    // âncora curta (`#a1`/`#b6`) que o próprio guia usa pra se referenciar, este caso cai.
+    $controller = new App\Http\Controllers\DocumentacaoController;
+    $classe = new ReflectionClass($controller);
+
+    $paraHtml = $classe->getMethod('paraHtml');
+    $paraHtml->setAccessible(true);
+    $comSumario = $classe->getMethod('comSumario');
+    $comSumario->setAccessible(true);
+
+    $markdown = file_get_contents(base_path('memory/GUIA-DO-SISTEMA.md'));
+    [$html, $sumario] = $comSumario->invoke($controller, $paraHtml->invoke($controller, $markdown));
+
+    expect(count($sumario))->toBeGreaterThan(10);
+
+    $ids = array_column($sumario, 'id');
+    expect($ids)->toContain('a1');
+    expect($ids)->toContain('b6');
+    expect(array_unique($ids))->toHaveCount(count($ids));   // âncora duplicada rouba o link
+
+    // Todo item do sumário tem título correspondente no HTML — sumário e página não
+    // podem divergir, e só não divergem porque um é derivado do outro.
+    foreach ($ids as $id) {
+        expect($html)->toContain('id="' . $id . '"');
+    }
+});
+
 it('responde 200 e renderiza o conteudo do dono quando autenticado', function () {
     $user = User::query()->whereNotNull('email')->first();
     if (! $user) {
