@@ -47,7 +47,6 @@ Modules/Financeiro/Tests/Feature/Onda7bTroubleshootPresentTest.php  # 1 failed, 
 Modules/Financeiro/Tests/Feature/Onda7cTranscriptFavsTest.php  # 2 failed, 16 passed (55 assertions)
 Modules/Financeiro/Tests/Feature/Onda8CoworkRewriteTest.php  # 3 failed, 6 passed (41 assertions)
 Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 passed (25 assertions)
-Modules/Financeiro/Tests/Feature/Onda9ResumirMesTest.php  # 1 failed, 13 passed (42 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
 # B) RefreshDatabase — incompatível com o processo compartilhado da lane (1)
@@ -146,6 +145,34 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 # executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
 # vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
 #
+# ── Onda9ResumirMesTest (2026-08-03, triagem 9/N — 1o do bucket A) ─────
+#   1 failed, 13 passed (42 assertions)  →  14 passed (46 assertions)
+#
+# Classificação: exatamente o que o cabeçalho do bucket A previu — "o recurso
+# AINDA EXISTE; o que quebrou foi a forma escrita". Medido no .tsx:
+#   linha 1640: { key:'resumir', ..., onClick: () => setResumoOpen(true) }
+#   linha 3008: <FinMonthResumeDialog open={resumoOpen} ...
+#   alert('Resumir mês: → 0 ocorrências (removido, como o caso exige)
+# Só a SINTAXE JSX `onClick={() => setResumoOpen(true)}` morreu, porque os
+# botões viraram array data-driven.
+#
+# O QUE FIZ, e o limite honesto disso: NÃO "consertei a string" (o cabeçalho
+# proibe — só reinicia o relógio). Troquei a asserção de SINTAXE por asserção de
+# CADEIA DE WIRING, que é o que o caso promete e sobrevive a refactor de forma:
+#   setResumoOpen existe · alguém chama setResumoOpen(true) · <FinMonthResumeDialog
+#   é montado · está ligado ao MESMO estado (open={resumoOpen})
+#
+# ⚠️ ISTO NÃO É UM TESTE DE COMPORTAMENTO. É grep de fonte com meia-vida maior.
+# Um teste PHP que lê .tsx NÃO TEM COMO ser de comportamento — o "reescrever como
+# COMPORTAMENTO" do cabeçalho, levado a sério, significa Playwright (lane
+# "E2E Playwright · UCs críticos") ou UC no casos.md. Isso fica como dívida
+# nomeada, não como promessa cumprida.
+#
+# BITE-TEST (a cadeia morde de verdade): desliguei o diálogo do estado no .tsx
+# (`open={resumoOpen}` → `open={false}`) → 2 failed, apontando
+# "To contain: open={resumoOpen}". Restaurado → 14 passed.
+#
+# Medido no CT 100 (worktree em origin/main, DB oimpresso_qa — receita do CI).
 # ── TituloAutoServiceExpenseTest (2026-08-03, triagem 8/N) — FICA, com motivo
 #    REAL escrito. NÃO consertei: o eixo é VALOR (Tier 0) e a decisão é [W].
 #
