@@ -95,6 +95,8 @@ owner: wagner
 
 **Testado em:** `Modules/Financeiro/Tests/Feature/BaixaConservacaoValorContratoTest.php` (UC-FUNI-01..04, lane `financeiro-pest`) · `Modules/Financeiro/Tests/Feature/UnificadoBaixaDialogGuardTest.php`
 
+**Detalhamento executável:** [recebimento parcial de parcela de cliente](features/recebimento-parcial-parcela/requirements.md) — trio SDD gerado por máquina em 2026-08-03; arquitetura proposta, ainda sem alteração de runtime.
+
 > ⚠️ **Reconciliação factual 2026-07-27 (onda `sdd-from-source`).** A âncora dizia *"`_pendente_` —
 > tela planejada, `ContasReceber/Show.tsx` modal de baixa não construída"*: **estava stale**. A baixa
 > (parcial e total) está **construída e viva desde 2026-06-03**, só que **noutra tela** — o
