@@ -2,7 +2,7 @@
 date: "2026-08-03"
 time: "05:00 BRT"
 slug: "documentacao-sistema-online-e-credencial-exposta"
-tldr: "A documentação do sistema ganhou URL própria (oimpresso.com/documentacao — a página É o GUIA renderizado em runtime, zero HTML commitado), busca sobre o acervo pelo FULLTEXT que já existia, e diagramas em Mermaid servidos do próprio domínio. Mas o achado que importa é outro: há CREDENCIAL EM TEXTO CLARO num repositório PÚBLICO — inclusive a senha do Vaultwarden, que abre os outros 27 segredos — e 3 das 7 cópias são append-only, intocáveis. Rotação é a única mitigação e é ato do [W]. Também: 9 agents não carregavam há meses (YAML), o DESIGN.md ensinava o oposto do canon sobre sidebar, e nasceu o agente documentacao-sistema porque desviei 4x do pedido."
+tldr: "🔴 Há CREDENCIAL EM TEXTO CLARO num repositório PÚBLICO — inclusive a senha do Vaultwarden, que abre os outros 27 segredos. 3 das 7 cópias são append-only e intocáveis, então rotação é a única mitigação e é ato do [W]. No resto: a documentação do sistema ganhou URL (oimpresso.com/documentacao — a página É o GUIA renderizado, zero HTML commitado), com busca e diagramas; 9 agents não carregavam há meses; e nasceu o agente documentacao-sistema porque desviei 4x do pedido."
 decided_by: [W]
 cycle: null
 prs: [5168, 5170, 5171, 5173, 5182, 5186, 5188, 5199, 5201, 5205, 5210]
