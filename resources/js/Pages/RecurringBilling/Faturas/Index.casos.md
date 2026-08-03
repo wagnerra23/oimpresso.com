@@ -19,9 +19,23 @@ last_run: "2026-07-28"
 > artefato que eles produzem e desfazem** (a fatura). Criar um arquivo paralelo pra "fluxo sem tela"
 > seria tipo novo — proibido ([ADR 0351](../../../../../memory/decisions/0351-sdd-from-source.md) D-B).
 >
-> ⚠️ **Força do veredito:** os testes citados **rodam na nightly CT100** (`phpunit.xml` inclui
-> `Modules/RecurringBilling/Tests/Feature`) mas **não rodam no PR** e **não bloqueiam merge** — zero
-> linhas do módulo em `.github/ci-sqlite-pest.list`. Status **🧪, nunca ✅**: não rodei nada (CT 100).
+> ⚠️ **Força do veredito.** _(atualizado 2026-08-02; a redação anterior dizia "zero linhas do módulo
+> em `.github/ci-sqlite-pest.list`" — era verdade até
+> [PR #5194](https://github.com/wagnerra23/oimpresso.com/pull/5194) e deixou de ser.)_
+>
+> Os `it()` passaram a carregar o **UC-id no título** (antes só no docblock, o que os deixava fora do
+> manifesto G-7 por construção) e os arquivos desta tela entraram na **lane sqlite** do `ci.yml`, que
+> o `casos-results-publish` colhe — **exceto `InvoiceGeneratorServiceTest`**.
+>
+> **`UC-RBFAT-08..11` seguem SEM lane de PR.** Quando a lane rodou o arquivo pela primeira vez
+> (run 30778559754), `2. Idempotência: 2x run() nao duplica invoice` reprovou na **linha 226**.
+> Leia com cuidado: a asserção de **não-duplicação passou** (linha 225, `generated == 0`) — **não há
+> indício de cobrança dupla**. O que falhou é o **contador**: o UC-RBFAT-08 promete que a 2ª execução
+> conta `skipped`, e veio `skipped == 0`. Dívida **pré-existente** (o arquivo nunca rodou em CI
+> algum), revelada pela lane. Diagnóstico e remédio são `[V0]` — decisão de [W].
+>
+> Status segue **🧪**: quem carimba ✅ é o cron `casos-results-publish` (07:30 BRT); não rodei nada
+> localmente (CT 100).
 
 ## Rastreabilidade
 
