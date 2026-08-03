@@ -376,3 +376,4 @@ Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
 # multi-tenant. Ancorado no docblock de McpMemoryDocument::scopeDoBusiness +
 # ADR 0093 — nao no que o service faz hoje.
 tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
+tests/Feature/SecretsGovernanceTest.php
