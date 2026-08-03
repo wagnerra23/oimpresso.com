@@ -120,6 +120,7 @@ Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php  # 3 skipped (0 asser
 #    fix neste PR — e um fix não provado deixaria o main vermelho se errasse.
 #    Quarentena restaura o verde de forma determinística; o fix é decisão [W].
 Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado · 1 failed em main (run 30378571902)
+Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 — flake por ORDEM (403 no processo compartilhado). Ver rodape.
 
 # ═════════════════════════════════════════════════════════════════════════
 # SAÍRAM DA QUARENTENA em 2026-08-02 (a lista deve encolher — cabeçalho)
@@ -144,6 +145,43 @@ Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado 
 # ISOLADO (1 arquivo por processo). A lane roda TODOS num processo só, com
 # executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
 # vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
+#
+# ── Onda23OcrBoletoTest — VOLTOU pra quarentena em 2026-08-03 ──────────
+#
+# AUTOCORREÇÃO do PR #5200 (meu). O veredito de lá era de run ISOLADO e NÃO
+# sobreviveu à lane. É exatamente a ressalva do cabeçalho se materializando:
+# "quem prova é o run da lane — se algum ficar vermelho lá, volta pra cá com o
+# motivo REAL escrito, não com o motivo herdado". Está sendo cumprida.
+#
+# O QUE ACONTECEU: no run da lane do PR #5216 (run 30788554095), com
+# `quarentena: 26 · RODANDO: 56`, o arquivo deu 5 failed — TODAS iguais:
+#     Expected response status code [422] but received 403
+#     (linhas 29, 44, 58, 95, 163 — todo caso que bate no endpoint)
+# 403 = gate de permissão/subscription barrando a rota ANTES de chegar na
+# validação que devolveria 422.
+#
+# É FLAKE POR ORDEM, não regressão: o `main` está VERDE nos commits que
+# mergearam #5200 e #5198 (runs 30787806969 e 30788489353, ambos success), e o
+# próprio #5200 passou na lane antes de entrar. Com executionOrder="random" e
+# um run-set que muda a cada PR, a ordem decide se o 403 aparece.
+#
+# CAUSA-RAIZ (hipótese medida, NÃO confirmada): vazamento de estado compartilhado
+# de permissão. 20+ arquivos que RODAM na lane mexem em permissão
+# (givePermissionTo/revokePermissionTo/syncPermissions/assignRole). O padrão mais
+# perigoso é `syncPermissions`, que SUBSTITUI o conjunto do role em vez de somar
+# — CobrancaControllerTest:45 faz isso, mas segue quarentenado, então não é ele.
+# Identificar o vazador exige rodar a lane com seed fixo e bisseccionar. NÃO FIZ.
+#
+# O QUE ISTO NÃO É: não é defeito do fix do #5200. Aquele fix (tornar a ausência
+# de OPENAI_API_KEY determinística) continua correto e provado — em CI a variável
+# nem existe, então o `finally` de restauração é no-op. O 403 é anterior e
+# independente; ficou LATENTE enquanto o arquivo estava fora da lane, e o #5200
+# o expôs ao trazer o arquivo de volta pro run-set.
+#
+# ENCAMINHAMENTO: mesma classe do BackfillExtratoOfxTest logo acima (bucket E,
+# flake por ordem). Sai da lane pra restaurar o verde determinístico; o conserto
+# é achar o vazador de permissão — decisão [W], porque mexe em teste que hoje
+# passa e o custo de bissecção não é trivial.
 #
 # ── FluxoControllerTest (2026-08-03, triagem 7/N do bucket C) ─────────
 #   3 failed, 3 passed (39 assertions)  →  6 passed (46 assertions)
