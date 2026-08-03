@@ -65,7 +65,9 @@ jobs:
       # (bite + controles negativos); o relatorio e ADVISORY e nao derruba o PR —
       # o numero e relato, nao veredito. Ligado aqui porque script sem invocador e
       # bug (proibicoes.md §Sempre-fazer #2), nao neutralidade.
-      - name: Test-lane coverage (teste existe x lane de PR alcanca · bite 15/15)
+      # Sem contador no nome: "bite 15/15" apodreceria no proximo caso novo (LC-10 —
+      # artefato afirmando em tempo presente algo que muda). O numero vive na saida.
+      - name: Test-lane coverage (teste existe x lane de PR alcanca · bite + controles)
         run: node scripts/governance/test-lane-coverage.mjs --selftest
       - name: Test-lane coverage — relatorio (ADVISORY, nao bloqueia)
         run: node scripts/governance/test-lane-coverage.mjs || true
