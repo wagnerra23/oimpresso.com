@@ -20,13 +20,25 @@ last_run: "2026-08-02"
 > O código foi lido só para **confirmar** comportamento. Persona: Eliana [E] (financeiro).
 > US âncora: `US-FIN-009`.
 
-> ⚠️ **Por que quase nada aqui é ✅ (e isso é honesto, não preguiça).** Três dos quatro
-> arquivos de teste desta tela estão na
-> [quarentena da lane](../../../../../.github/financeiro-pest-quarantine.list) — bucket **B
-> (RefreshDatabase incompatível com o processo compartilhado)**, não por estarem errados.
-> A própria lista registra: *"Três deles PASSAM isolados … e ficam aqui só por causa do
-> compartilhamento"*. Teste fora da lane **não gera veredito** (G-7), então declarar ✅ seria
-> "status sem prova". Só `ConciliacaoLeExtratoApiTest` roda na lane required.
+> ⚠️ **ATUALIZAÇÃO 2026-08-02 — as duas travas caíram.** Este bloco dizia que 3 dos 4 arquivos
+> estavam na [quarentena da lane](../../../../../.github/financeiro-pest-quarantine.list) por
+> "RefreshDatabase incompatível com o processo compartilhado", e que por isso nenhum UC podia
+> passar de 🧪. **O motivo era falso:** medido, os 3 **não usam** `RefreshDatabase` — o bucket
+> tinha sido montado por grep da string, que casou comentários dizendo *"NÃO usa
+> RefreshDatabase"*. Saíram da quarentena e rodam na lane required desde
+> [#5178](https://github.com/wagnerra23/oimpresso.com/pull/5178) — veredito da lane no processo
+> compartilhado: `MatchScore 3/0/0` · `UploadDedupe 4/0/0` · `AuditReabrir 5/0/0` ·
+> lane inteira 325 testcases · **0 failures**.
+>
+> A 2ª trava era de atribuição: o manifesto G-7 lê o UC do `name` do `<testcase>`, e método
+> PHPUnit vira nome humanizado sem hífen. `LeExtratoApi` foi convertido pra `it()` em
+> [#5177](https://github.com/wagnerra23/oimpresso.com/pull/5177) e `UploadDedupe` neste PR —
+> agora **os 13 UCs desta tela têm o id no título**.
+>
+> Os Status abaixo seguem 🧪 **de propósito**: quem carimba ✅ é o manifesto, alimentado pelo
+> cron `casos-results-publish` (07:30 BRT, colhe o JUnit do último run verde de `main`).
+> Declarar ✅ antes disso seria "status sem prova" (G-7) — exatamente o que este arquivo
+> passou o dia inteiro corrigindo.
 
 ---
 
@@ -130,8 +142,28 @@ vira mudança de dinheiro sem autor.
 
 ## Lista unificada das duas origens (charter Goals · ADR 0236 Fase 1)
 
-> Estes quatro rodam na **lane required** (`ConciliacaoLeExtratoApiTest` **não** está na
-> quarentena) — são os únicos desta tela que podem virar ✅ pelo manifesto.
+> ⚠️ **ERRATA 2026-08-02 (mesmo dia).** A 1ª redação deste bloco dizia que estes quatro *"são
+> os únicos desta tela que **podem virar ✅** pelo manifesto"*. **É FALSO, e o erro é meu.**
+> Eles rodam mesmo na lane required (`ConciliacaoLeExtratoApiTest` não está na quarentena), mas
+> `casos-results-collect.mjs` lê o UC do atributo `name` do `<testcase>` — ou seja, do **título**
+> do teste. Estes são métodos PHPUnit (`public function test_index_lista_linha_api_alem_de_ofx`),
+> cujo `name` no JUnit não carrega UC nenhum; eu pus o id em **docblock**, que o coletor não lê.
+> Medido, não inferido: dos **82 UCs do manifesto, 82 vêm de título `it()`/`test()` e 0 de método
+> `test_`**. Nome de método PHP não aceita hífen, e o regex canônico (`scripts/lib/uc-regex.mjs`)
+> exige `UC-FCC-NN` — logo **não havia forma de docblock que funcionasse**.
+>
+> **CORRIGIDO** (PR seguinte ao da errata — o #5175 mergeou por auto-merge antes da conversão
+> entrar): o `ConciliacaoLeExtratoApiTest` foi convertido de classe PHPUnit
+> para `it('UC-FCC-NN · …')` (estilo Pest), único invólucro que põe o UC no `name` do
+> `<testcase>`. Nenhuma asserção mudou — os 5 corpos são verbatim. Baseline a preservar,
+> medido no JUnit de `main` (run 30764392026): **5 testcases · 0 fail · 0 skip**.
+> A partir do próximo `casos-results-publish` (cron 07:30 BRT, colhe o JUnit do último run
+> verde de `main`), `UC-FCC-10..13` passam a carregar veredito real — sem ninguém commitar
+> manifesto à mão.
+>
+> Lição da classe LC-11 (presence ≠ prova): o G-2 ficou verde porque eu **escrevi a string do id
+> no arquivo** — isso prova acoplamento de texto, não que o teste exerça o caso. Foi só ao ir
+> atrás do veredito de verdade que o buraco apareceu.
 
 ## UC-FCC-10 — A lista mostra extrato de API junto com o de OFX
 Status: 🧪 (`ConciliacaoLeExtratoApiTest::test_index_lista_linha_api_alem_de_ofx` — lane required)
@@ -163,12 +195,12 @@ permanece intocada (`status` segue nulo).
 
 ## Backlog declarado (prosa honesta, ainda sem UC — não tem teste que cite)
 
-- `[BACKLOG]` Consertar a fixture do `ConciliacaoAuditReabrirTest` (`titulo_id = 12345`
-  hardcoded viola FK) para que **UC-FCC-06** possa produzir veredito. É o único `[must]`
-  `[T0]` desta tela sem prova.
-- `[BACKLOG]` Tirar os 3 arquivos da quarentena movendo-os pra job com banco próprio — a
-  própria lista aponta esse encaminhamento (*"job separado com banco próprio — não é defeito
-  do teste"*). Enquanto não sair, nenhum UC-FCC-01..09 pode passar de 🧪.
+> ✅ **Fechados em 2026-08-02** (ficam registrados, não apagados): (a) a fixture do
+> `AuditReabrirTest` com `titulo_id = 12345` — virou título real, e o `UC-FCC-06` saiu de
+> `1 failed` pra `5/0/0` na lane; (b) a saída da quarentena — **não** exigiu "job com banco
+> próprio", porque o motivo do bucket era falso (ver bloco no topo); (c) a atribuição de UC
+> via título de `it()` nos 13 UCs.
+
 - `[BACKLOG]` Os Non-Goals do charter (❌ editar linha · ❌ conciliação N:N · ❌ desfazer
   conciliação confirmada · ❌ export) ainda não têm Pest GUARD. Charter manda virar guarda;
   quem preenche Non-Goal é [W].

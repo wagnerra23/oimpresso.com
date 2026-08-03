@@ -867,6 +867,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/user/preferences/sidebar',
         [\App\Http\Controllers\UserPreferencesController::class, 'updateSidebarCollapsed']
     )->name('user.preferences.sidebar');
+
+    // Documentação do sistema — renderiza memory/GUIA-DO-SISTEMA.md em runtime.
+    // Só `auth`: é leitura pura, não depende de business_id nem de SetSessionData.
+    // NÃO usa /docs de propósito: aquele caminho já é servido por arquivo estático
+    // no servidor, que tem precedência sobre rota do Laravel — a rota nunca seria
+    // alcançada e o usuário veria a página velha.
+    Route::get('/documentacao',
+        [\App\Http\Controllers\DocumentacaoController::class, 'index']
+    )->name('documentacao');
 });
 
 // Gerenciador de Módulos — substituto React do /manage-modules (AdminLTE quebrado).
