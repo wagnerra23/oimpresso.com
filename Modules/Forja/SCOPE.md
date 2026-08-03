@@ -1,7 +1,8 @@
 ---
 module: Forja
 depends_on_phase: 3.8 (DELETE Project legado UltimatePOS)
-purpose: "Gerenciamento Jira-style do time interno: Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown sobre `mcp_jira_projects/epics/cycles/tasks`."
+purpose: "Cockpit de trabalho do time interno (Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown) e host da infraestrutura MCP da plataforma: identidade e emissão de token (mcp_actors), endpoints /api/mcp e /api/cc, Daily Brief, loop de handoff Cowork-Code, hub Equipe e Admin do MCP."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "BoardController — Kanban view"
   - "BacklogController — backlog priorizado"

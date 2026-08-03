@@ -1,6 +1,7 @@
 ---
 module: Cms
-purpose: "Mini CMS — landing page, blog, contact-us. Routes /, /c/page/{x}, /c/blogs."
+purpose: "Site institucional público do próprio oimpresso — home, páginas, blog e contato — servido em Inertia na raiz do domínio. Single-tenant por natureza (não tem business_id) e edição superadmin-only. O formulário de contato é o canal de lead comercial: notifica o e-mail configurado e registra com PII redactada."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "CmsController"
   - "CmsPageController"
