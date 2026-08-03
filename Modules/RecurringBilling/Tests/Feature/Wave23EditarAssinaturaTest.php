@@ -23,6 +23,7 @@ use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
 use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(Tests\TestCase::class);
 
@@ -84,6 +85,44 @@ beforeEach(function () {
         $t->timestamps();
     });
 
+    // Tabelas Spatie — o PermissionServiceProvider registra um `Gate::before` no boot
+    // que consulta `permissions`, e ele roda ANTES do nosso. Sem elas, o
+    // `Gate::authorize('update', $sub)` morre em "no such table: permissions".
+    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions'] as $tbl) {
+        Schema::dropIfExists($tbl);
+    }
+    Schema::create('permissions', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('name');
+        $t->string('guard_name');
+        $t->timestamps();
+        $t->unique(['name', 'guard_name']);
+    });
+    Schema::create('roles', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('name');
+        $t->string('guard_name');
+        $t->timestamps();
+        $t->unique(['name', 'guard_name']);
+    });
+    Schema::create('model_has_permissions', function (Blueprint $t) {
+        $t->unsignedBigInteger('permission_id');
+        $t->string('model_type');
+        $t->unsignedBigInteger('model_id');
+        $t->primary(['permission_id', 'model_id', 'model_type'], 'mhp_pk_rbw23');
+    });
+    Schema::create('model_has_roles', function (Blueprint $t) {
+        $t->unsignedBigInteger('role_id');
+        $t->string('model_type');
+        $t->unsignedBigInteger('model_id');
+        $t->primary(['role_id', 'model_id', 'model_type'], 'mhr_pk_rbw23');
+    });
+    Schema::create('role_has_permissions', function (Blueprint $t) {
+        $t->unsignedBigInteger('permission_id');
+        $t->unsignedBigInteger('role_id');
+        $t->primary(['permission_id', 'role_id']);
+    });
+
     // AUTENTICAR É OBRIGATÓRIO, não opcional (fix 2026-08-03) — mesma causa do
     // Wave21NewSubscriptionTest, ver o comentário longo de lá. Resumo:
     //  1. `UpdateAssinaturaRequest::authorize()` devolve `$this->user() !== null`.
@@ -97,6 +136,7 @@ beforeEach(function () {
         'business_id' => 1,
     ]));
     Gate::before(fn () => true);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
     Event::fake([AssinaturaAtualizada::class]);
     session(['user.business_id' => 1]);
 });
@@ -109,8 +149,11 @@ afterEach(function () {
     if (config('database.default') === 'sqlite'
         && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         Schema::dropIfExists('rb_subscriptions');
-        Schema::dropIfExists('users');
+        foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
     Mockery::close();
 });
 
@@ -128,6 +171,11 @@ function jsonPutRequest(array $payload): UpdateAssinaturaRequest
 {
     $req = UpdateAssinaturaRequest::create('/recurring-billing/1', 'PUT', $payload);
     $req->headers->set('Accept', 'application/json');
+    // setUserResolver é OBRIGATÓRIO: `Request::create()` não herda o usuário do
+    // `actingAs`, então `authorize()` (`$this->user() !== null`) veria null e lançaria
+    // AuthorizationException ANTES de qualquer regra — inclusive antes do abort(404)
+    // cross-tenant que o R-RB-WAVE23-2 quer observar.
+    $req->setUserResolver(fn () => auth()->user());
     $req->setContainer(app())->validateResolved();
 
     return $req;
