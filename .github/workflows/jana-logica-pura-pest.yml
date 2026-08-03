@@ -27,6 +27,11 @@ on:
       - 'Modules/Jana/Tests/Unit/AuditChainServiceTest.php'
       - 'Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php'
       - 'Modules/Jana/Services/Privacy/PiiRedactor.php'
+      # 2º redactor: o indexador do RAG tem cópia PRÓPRIA de PII_PATTERNS e NÃO
+      # usa PiiRedactor — por isso o fix #5169 não chegou nele. Sem estes dois
+      # paths o teste do fix nasceria mudo (o serviço não dispara a lane dele).
+      - 'Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php'
+      - 'Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
@@ -103,5 +108,6 @@ jobs:
             Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php \
             Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
             Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php \
+            Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
             --no-coverage \
             --colors=always
