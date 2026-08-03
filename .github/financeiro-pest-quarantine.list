@@ -174,3 +174,15 @@ Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado 
 # Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa provisionada
 # pela receita do CI): antes 1 failed/1 passed · depois 2 passed, 3 assertions
 # nos dois (as asserções são as mesmas — o que mudou foi só o teardown).
+#
+# SEGUNDO ACHADO, no run REAL da lane (#5192, run 30778447731): o arquivo ficou
+# verde mas o 2o caso deu SKIP ("- it update NAO dispatch"). Ele dependia de ja
+# existir um titulo 'aberto' no banco — num banco FRESCO (CI) com
+# executionOrder="random" isso nao e garantido. Skip e verde por NAO-EXECUCAO
+# (§5 LC-13), entao o arquivo sairia da quarentena provando metade.
+# Fix no mesmo PR: o caso passou a criar o pre-requisito pelo MESMO caminho de
+# produto (POST /financeiro/unificado; status nasce 'aberto' por default de
+# schema) e limpa depois. CONTROLE NEGATIVO: escondi os 19 titulos abertos do
+# biz=1 no DB de QA (status->cancelado), rodei -> 2 passed (3 assertions), e
+# restaurei -> 19 de volta. Sob a condicao EXATA que causou o skip, o caso agora
+# executa.
