@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Modules\Financeiro\Events\TituloCriado;
 use Modules\Financeiro\Models\Titulo;
@@ -82,12 +83,21 @@ it('store dispatch TituloCriado com Titulo do business correto', function () {
             && (float) $event->titulo->valor_total === 12.34;
     });
 
-    // Cleanup título criado
-    Titulo::where('business_id', $business->id)
+    // Cleanup do título criado PELO TESTE. Vai pelo query builder de propósito:
+    // fin_titulos é append-only por domínio — Titulo::delete() lança
+    // DomainException desde a Sub-Onda 1A (Titulo.php:121), e forceDelete() do
+    // SoftDeletes chama delete() internamente, então a forma Eloquent SEMPRE
+    // estourou aqui. Mesmo padrão do irmão BaixaConservacaoValorContratoTest.
+    $ids = DB::table('fin_titulos')
+        ->where('business_id', $business->id)
         ->where('cliente_descricao', 'PR F event test')
-        ->get()
-        ->each
-        ->forceDelete();
+        ->pluck('id')
+        ->all();
+
+    if ($ids !== []) {
+        DB::table('fin_titulo_baixas')->whereIn('titulo_id', $ids)->delete();
+        DB::table('fin_titulos')->whereIn('id', $ids)->delete();
+    }
 });
 
 it('update NÃO dispatch TituloCriado (event é apenas pra novo título)', function () {
