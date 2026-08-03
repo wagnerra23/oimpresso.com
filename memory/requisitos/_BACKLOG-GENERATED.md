@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **861 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **862 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -29,10 +29,10 @@
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
+| [`Connector`](#connector) | 13 | 0 | 0 | 0 | 13 |
 | [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`Ponto`](#ponto) | 13 | 0 | 0 | 0 | 13 |
-| [`Connector`](#connector) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
@@ -865,6 +865,25 @@
 - **US-COMM-013** — Mobile self-service vendedor — **P2**
 - **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
 
+## Connector
+
+
+### todo
+
+- **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
+- **US-CONN-001** — Auth Passport `auth:api` bloqueia anônimo
+- **US-CONN-002** — Sync Delphi via `/processa-dados-cliente`
+- **US-CONN-003** — Registrar WR Comercial via `/oimpresso/registrar`
+- **US-CONN-004** — Check-update via `/check-update`
+- **US-CONN-005** — REST CRUD `/contactapi`
+- **US-CONN-006** — REST CRUD `/product`
+- **US-CONN-007** — REST CRUD `/sell` (vendas)
+- **US-CONN-008** — REST `/business-location` (filiais)
+- **US-CONN-009** — REST `/taxonomy` + `/brand`
+- **US-CONN-010** — REST `/user`
+- **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
+- **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
+
 ## Mwart
 
 
@@ -921,24 +940,6 @@
 - **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
 - **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
 - **US-PONTO-013** — Consertar as duas telas que nao persistem
-
-## Connector
-
-
-### todo
-
-- **US-CONN-001** — Auth Passport `auth:api` bloqueia anônimo
-- **US-CONN-002** — Sync Delphi via `/processa-dados-cliente`
-- **US-CONN-003** — Registrar WR Comercial via `/oimpresso/registrar`
-- **US-CONN-004** — Check-update via `/check-update`
-- **US-CONN-005** — REST CRUD `/contactapi`
-- **US-CONN-006** — REST CRUD `/product`
-- **US-CONN-007** — REST CRUD `/sell` (vendas)
-- **US-CONN-008** — REST `/business-location` (filiais)
-- **US-CONN-009** — REST `/taxonomy` + `/brand`
-- **US-CONN-010** — REST `/user`
-- **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
-- **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
 
 ## NFSe
 
