@@ -118,6 +118,30 @@ Não é um chatbot: é o **front de decisão do dono do negócio** sobre um ERP 
 - **A linha vermelha do contrato de agente** — agentes têm **ler** e **propor**; `git.merge` e `constituicao.edit` são **negados no token** ([ADR 0114](decisions/0114-prototipo-ui-cowork-loop-formalizado.md) · [0282](decisions/0282-protocolo-v2-colapso-ratificacao.md)). Propor é permitido; decidir o merge não é.
 - **Doutrina** ([ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)): *derivado e enforçado sobrevive; escrito e lembrado apodrece*.
 
+#### A9.1 — As sete camadas, e em que estado cada uma está
+
+A [ADR 0094](decisions/0094-constituicao-v2-7-camadas-8-principios.md) descreve o **desenho**; o estado **real e datado** de cada camada é a [ADR 0330](decisions/0330-mapa-dos-niveis-estado-real-2026-07-constituicao.md), emendada pela [0333](decisions/0333-emenda-0330-eixo-rodar-e-observar-submedido.md). A tabela abaixo serve para saber **onde procurar** — contagens e datas ficam na ADR, que é a dona delas.
+
+| Camada | O que é | Estado |
+|---|---|---|
+| **L7 · Daily Brief** | o estado consolidado que abre a sessão (`brief-fetch`) | ✅ em produção |
+| **L6 · Charters** | a lei de cada tela, ao lado do `.tsx`, defendida por gate `required` | ✅ em produção |
+| **L5 · ADRs canon** | as decisões, append-only, com índice **gerado** do disco | ⚠️ vivo — o volume passou da meta de poda, e podar ou aceitar é decisão em aberto |
+| **L4 · Playbooks** | RUNBOOKs de procedimento operacional | 🔸 parcial — existem aos montes, mas o contrato de "quando foi testado pela última vez" nunca foi adotado |
+| **L3 · Skills** | automações que carregam por contexto (Tier A sempre-on, Tier B por gatilho) | ✅ em produção |
+| **L2 · ADS** | o firewall que decidiria *quem* age e com que autoridade | 🔸 **dormente por decisão** (ver o bullet acima) |
+| **L1 · MCP Core** | tools + memória + audit log + tokens de time | ✅ em produção |
+
+**Camada de cima invoca primitivo da de baixo, nunca o contrário.** Um 🔸 não é atraso a cobrar: é estado declarado, com a razão escrita na ADR.
+
+#### A9.2 — O invariante anti-atrofia (por que a governança não pode virar o produto)
+
+A [ADR 0334](decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md) separa três coisas que se confundem com facilidade: **(A) o Produto ERP** — os módulos que o cliente usa; **(B) o Produto IA** — a Jana respondendo sobre o negócio *dele*, com dado real; e **(C) o IA-OS** — esta governança toda. E instala o invariante:
+
+> **(C) existe para servir (A) + (B). (C) nunca cresce sistemicamente enquanto (A) + (B) atrofia sem sinal de cliente.**
+
+Governança-meta é investimento — velocidade, segurança do cliente, onboarding do time — não um fim em si. **Quando a régua passa a dirigir a prioridade no lugar do sinal do cliente, a régua virou o produto**, e isso é a deriva que a ADR nomeia. O critério que separa atrofia de pausa disciplinada não é *"construiu pouca feature?"*, e sim *"a capacidade de sentir e agir sobre sinal do cliente está intacta e conectada?"*.
+
 ### A10. Como o conhecimento é indexado
 
 O repositório é a fonte; o índice é cache governado. Nunca o contrário.
