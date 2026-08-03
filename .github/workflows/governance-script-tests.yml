@@ -311,7 +311,7 @@ jobs:
       # rodaram em CI, e por isso o eixo 1 pôde afirmar "✓ todos os crons com heartbeat
       # < limite" tendo medido zero (cego lido como bootstrap). Ver proibicoes §"LIGUE A
       # MÁQUINA" item 2: máquina que ninguém invoca é bug, não neutralidade.
-      - name: cron-watchdog — cego ≠ bootstrap, e entrega parada morde (eixo 1 + eixo 2)
+      - name: cron-watchdog — cego ≠ bootstrap, entrega parada morde, e rodar ≠ dar certo (eixos 1+2+3)
         run: node scripts/governance/cron-watchdog.mjs --selftest
       - name: Ciclo documental — recibo antes→depois morde/solta (ADR 0270 · ZELADOR)
         run: node scripts/governance/documentation-loop.test.mjs
