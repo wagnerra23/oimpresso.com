@@ -117,9 +117,24 @@ jobs:
         # Entram aqui porque teste fora da allowlist é "verde impossível" — existe e
         # nunca roda por PR (achado #7 do piloto Produto).
         #
-        # ⚠️ DOIS UC nascem FAILING-FIRST por desenho, denunciando regressão medida:
-        #   UC-ESPSHOW-01 → SDD §9 D-1 (espelho lê `tem_divergencia`, campo inexistente)
-        #   UC-IMPSHOW-04 → SDD §9 D-8 (importação lê `linhas_criadas`, campo inexistente)
+        # ⚠️ QUATRO UC nascem FAILING-FIRST por desenho, denunciando regressão medida:
+        #   UC-ESPSHOW-01  → SDD §9 D-1 (espelho lê `tem_divergencia`, campo inexistente)
+        #   UC-IMPSHOW-04  → SDD §9 D-8 (importação lê `linhas_criadas`, campo inexistente)
+        #   UC-ESCF-01  → 3ª instância do MESMO padrão, achada em 2026-08-02 pela
+        #                    varredura que o SDD §10 Onda 1 pediu: EscalaController@edit lê
+        #                    `entrada`/`saida`/`almoco_inicio`/`almoco_fim`; as colunas são
+        #                    `hora_*` e não há accessor → a tela de edição de escala mostra
+        #                    TODOS os horários vazios, sempre.
+        #   UC-ESCF-02     → `EscalaController@update(Request $request)` chama
+        #                    `$request->validated()`, que só existe em FormRequest → salvar
+        #                    a edição de uma escala lança BadMethodCallException.
+        #                    ✅ CONFIRMADO pela lane na run 30779959209: reprovou com a
+        #                    mensagem do assert (o nome novo não foi gravado).
+        #   UC-INTCRE-01   → `business_id` nunca é atribuído no caminho de criação de
+        #                    intercorrência (FormRequest não declara a chave · Service seta
+        #                    só codigo/solicitante_id/estado · `creating` só gera UUID ·
+        #                    trait só adiciona scope de LEITURA · 0 `observe()` no módulo).
+        #                    Coluna NOT NULL + FK, sem default → registrar NÃO grava.
         # Vermelho neles é o ACHADO, não defeito do teste. A lane é ADVISORY (não está
         # em governance/required-checks-baseline.json), então reprova VISÍVEL sem
         # bloquear merge. Correção é decisão [W].
@@ -131,6 +146,12 @@ jobs:
         # local (onde `origin/3.7-com-nfe` existe e é medida de verdade).
         # O irmão `ModuleManagerTest.php` segue FORA: ele testa `PontoWr2`, renomeado pra
         # `Ponto`, e entraria vermelho por dívida pré-existente — conserto é chip à parte.
+        #
+        # B7-cobertura (2026-08-02): `BancoHorasIndexContratoTest` entra escrito em Pest
+        # `it()` com o UC no TÍTULO — os 3 *ContratoTest acima têm o UC em DOCBLOCK e por
+        # isso nunca chegam ao manifesto G-7 (`casos-results-collect` lê o `name` do
+        # `<testcase>`; método PHP não aceita hífen). Rodam verdes valendo 0 no painel.
+        # Conversão deles é oportunística, não varredura em lote.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -139,8 +160,30 @@ jobs:
             Modules/Ponto/Tests/Feature/EspelhoContratoTest.php \
             Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php \
+            Modules/Ponto/Tests/Feature/BancoHorasIndexContratoTest.php \
+            Modules/Ponto/Tests/Feature/EscalaFormContratoTest.php \
+            Modules/Ponto/Tests/Feature/RelatorioCatalogoContratoTest.php \
+            Modules/Ponto/Tests/Feature/ImportacaoIndexContratoTest.php \
+            Modules/Ponto/Tests/Feature/ImportacaoCreateContratoTest.php \
+            Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
+
+      # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
+      # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
+      # o FP do --check-assertions ANTES de arma-lo. Aqui so REPORTA (if: always()).
+      - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-ponto-junit.xml --out test-results/pest-ponto-junit-summary.json || true
+
+      - name: Upload sumario JUnit (pest-ponto-junit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-ponto-junit-summary
+          path: test-results/pest-ponto-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Upload JUnit (Ponto · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.ponto == 'true' }}
         uses: actions/upload-artifact@v4
