@@ -1,379 +1,356 @@
-# Allowlist da lane sqlite per-PR — lida pelo job "PHP / Pest (Unit)" do
-# .github/workflows/ci.yml. 1 path por linha (arquivo OU diretório de teste).
+
 #
-# POR QUE UM ARQUIVO (e não a linha única do pest dentro do ci.yml): a linha
-# única era editada por TODO PR que adiciona um teste → todo par de PRs conflitava
-# (o "conflito de ci.yml lane de 1 linha" do handoff SDD Leva 1). Este arquivo é
-# marcado `merge=union` em .gitattributes → PRs concorrentes que adicionam linhas
-# são UNIDOS automaticamente pelo git, sem conflito. O runner faz `sort -u`, então
-# ordem e duplicatas não importam.
-#
-# REGRA: só testes SQLITE-SAFE (rodam em :memory: sem migrate completo). NÃO
-# adicionar testes com RefreshDatabase/migrate:fresh que puxem migration MySQL-only
+#      KbHealthSnapshotTest ficou de fora lá em cima. Zero falha vinda do TeamMcp.
+#      consertado nesta PR) e CicloAtivoEndpointTest (2× QueryException, NÃO entra).
+#      e as 8 falhas eram só 2 arquivos: ForjaRoutesSmokeTest (6× DatasetArgumentsMismatch,
+#      pest (reproduzindo o `vendor/bin/pest "${PEST_TARGETS[@]}"` do ci.yml), que é o
+#      que mede contaminação cruzada de conexão/resíduo — o motivo pelo qual o
+#    Ambos declaravam "auth bypassado via Gate::before" e NUNCA autenticavam. Duas
+#    Eloquent NAO emitia UPDATE. A linha ficava em agosto, o run 2 nao achava
+#    NAO era o contador do servico. O teste simulava a re-execucao com
+#    USUARIO, nao permissao; (b) `Gate::before(fn () => true)` tem ZERO parametros
+#    `$sub->update([...])` sobre instancia STALE: o run 1 gravara 2026-08-15, o
+#    `skipped==1` era o unico assert que denunciava isso. Fix: UPDATE de
+#    aceitar null no 1o parametro (Gate::callbackAllowsGuests) — sem usuario logado
+#    candidata. O servico esta correto e nao foi tocado.
+#    candidato, e `generated==0` passava por AUSENCIA DE TRABALHO — verde por
+#    causas somadas: (a) `authorize()` devolve `$this->user() !== null` — exige
+#    do RefundCobrancaAsaasJobTest.
+#    e o Laravel so invoca before-callback pra visitante anonimo se o callback
+#    modelo em memoria ainda achava 2026-07-15, entao `getDirty()` vinha vazio e o
+#    nao-execucao (LC-13) dentro do teste que afirma provar idempotencia. O
+#    o callback nem dispara. Fix: actingAs(user biz=1) no beforeEach, padrao vivo
+#    query-builder + pre-condicao anti-vacuo provando que a assinatura voltou a ser
+#   1) isolado   — `pest Modules/TeamMcp/Tests` → 8 failed / 60 skipped / 130 passed,
+#   2) COMBINADO — a lane inteira desta lista + estes 18 alvos numa ÚNICA invocação do
+#  InvoiceGeneratorServiceTest (UC-RBFAT-08..11)
+#  Wave21NewSubscriptionTest + Wave23EditarAssinaturaTest (UC-RBSUB-01..04)
+# "Modules/TeamMcp/Tests/**Test.php"` = 26 arquivos; DESTES só 7 estavam aqui e
+# 'sqlite' || ! str_contains(...':memory:')` -> markTestSkipped). Ou seja, esta
+# (Log + Centrifugo + mcp_alertas_eventos). Adicionado na Fase 2: o teste existia
+# (Whatsapp NÃO está em modules-pest.yml e nenhum outro workflow roda esses pest).
 # (ex ALTER TABLE ... ENUM) — esses pertencem à lane MySQL (financeiro-pest /
-# jana-pest), não aqui. Testes MySQL-only que dão markTestSkipped em sqlite podem
-# ficar (viram skip-as-pass), mas o lar deles é a lane MySQL.
-#
+# (mesmo idioma do CaixaUnificada) e passam verde local rodados juntos em 3 seeds
+# (o "conflito de ci.yml lane de 1 linha" do handoff SDD Leva 1). Este arquivo é
+# (re-disparar/devolver/supersede). Sintéticas em beforeEach → sqlite-safe.
+# (redactor apagava run id). O #5193 poe so o teste NOVO dele numa lane; os de
+# (regressão do refactor que extraiu HandoffIngestService) + PR-7 levers
+# +14 casos, execucao REAL provada na corrida 30783000852 (junit-summary por
+# +8 casos (os 7 originais + 1 Tier 0 NOVO). O Tier 0 existe porque sem a coluna
+# ---------------------------------------------------------------------------
+# .github/workflows/ci.yml. 1 path por linha (arquivo OU diretório de teste).
+# 2 QueryException em sqlite ("cycle null quando nenhum ativo" / "retorna o cycle
+# ADR 0093 — nao no que o service faz hoje.
+# ADR 0101) ficou vermelha na nightly diagnóstica e foi absorvida no floor (1 dos 358)
+# ATIVO com token"). Entrar vermelho aqui travaria merge de TODO mundo (lane
+# Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
+# Allowlist da lane sqlite per-PR — lida pelo job "PHP / Pest (Unit)" do
+# Ambos bootstram um mcp_tasks mínimo (sem RefreshDatabase → sem migration ENUM
+# Até 2026-07-01 NÃO rodava em lane nenhuma ("suite mente"): não estava aqui, o
+# Colisão de número de ADR (AdrNumberCollisionTest) — teste PURO de arquivo (lê
 # Comentários começam com # e linhas em branco são ignoradas.
+# Config-puro (sem DB) → sqlite-safe. Item b/produtor da proposta SDD 2026-06-24.
+# Consequência que fechou o elo: nenhum resultado do TeamMcp chegava ao manifesto
+# DB-less (o middleware `signed` decide antes do controller). Sqlite-safe.
+# DB-less: compara catálogo do seeder × user_permissions(). sqlite-safe.
+# DatabaseTransactions, sem RefreshDatabase/ENUM MySQL-only). PaymentGateway NÃO
+# Emissão OTel GenAI (MEM-OTEL-1 · ADR 0051) — Log::shouldReceive + reflexão, sem DB.
+# Estado medido em 2026-07-27 (contado, sem head_limit): `git ls-files
+# Estes 21 falhavam só por "no such table: activity_log" (models com Spatie
+# Estes 33 montam schema sintético em beforeEach + markTestSkipped fora de sqlite
+# FICA DE FORA — 1 arquivo (era 4 ate 2026-08-03; os outros 3 foram consertados,
+# FIELD() justamente pra rodar nas duas lanes).
+# FLAG de ADR pendente no brief (US-GOV-052 · adr-proposto-parado) — Process::fake, sem DB.
+# FLAG de EXPOSIÇÃO TIER-0 × cobertura no brief (sentinela ADR 0256 → canal brief) — Process::fake, sem DB.
+# FLAG de OBRA PARADA no brief (cron-watchdog eixo 2 — "roda" ≠ "entrega") — Process::fake, sem DB.
+# FORA DE PROPÓSITO: Modules/Forja/Tests/Feature/CicloAtivoEndpointTest.php —
+# Fase 1 perda-zero — canário do webhook WhatsApp (US-WA-311, incidente #2726)
+# Forja aba MCP: projeção de cowork_handoffs + gate CONFLITO (ack verde × required
+# Heartbeat da telemetria LLM (US-COPI-138) — lógica pura estática + prova de que o
+# Higiene de schema conferida: ForjaChangelogServiceTest e SoftDeleteRestore
+# Historico: ao ser ligado no #5213 deu 7 ERRORS (corrida 30783000852), todos
+# JUnit colhido jamais conteria o `name`. Titulo sem lane e chokepoint fantasma:
+# KB code-graph (Fase D) — kb_edges de dependência (classe usa classe) via AST. sqlite-safe (kbBootstrapSchema cria kb_nodes+kb_edges; php-parser das dev deps).
+# KB code-scan (Fase B, ADR 0350) — gera KbNode reference a partir de AST PHP. sqlite-safe (kbBootstrapSchema, DB::table; php-parser das dev deps).
+# KB drift-detector persiste veredito doc↔código em kb_nodes.code_drift_state (Fase A1) — sqlite-safe (kbBootstrapSchema, coluna json, sem FK/ENUM MySQL-only).
+# Linha de revisão de ADR no brief (ADR 0317 Onda 3 · M3) — Process::fake, sem DB.
+# Linha de saúde dos planos no brief (ADR 0294 Onda 1) — Process::fake, sem DB.
+# LogsActivity, 341 falhas na audit). O beforeEach scoped ao dir Whatsapp em
+# Loop de Handoff Zero-Paste (ADR 0283): PR-6a submit (novo) + PR-1 ingest
+# Markup mestre a 2 casas nao reconstitui 7.000,00 (da 6.999,97) — piso e 4 casas, que e o que
+# Modules/RecurringBilling/Tests/Feature, mas so a nightly CT100 le aquilo — e a
+# Modules/TeamMcp — o módulo NÃO tinha lane (2026-07-27)
+# Modules/Whatsapp tem 120 testes Feature mas só 2 rodavam em CI (CaixaUnificada +
+# MySQL-only) → sqlite-safe. Provam max(DB,SPEC)+guarda de colisão e o detector
+# NENHUMA das 10 lanes que o casos-results-publish.yml colhe. `phpunit.xml` inclui
+# NENHUMA — "guard que nenhum workflow executa = mentira" (US-COPI-138), a mesma
+# NOTA: KbHealthSnapshotTest NÃO entra aqui — é MySQL-only (roda na lane kb-pest.yml).
+# Nenhum workflow rodava este arquivo: a asserção biz=4 (cliente ROTA LIVRE, viola
+# O comentario do proprio SoftDeleteRestore ja dizia "na lane sqlite (per-PR)" —
+# Observabilidade SLO/SLI canal (ADR 0288) — snapshot + alerta canal-down 3 sinks
+# Observabilidade do chat SSE — raiz/correlação, ponto único Langfuse, retrieval
+# Os ~84 restantes precisam de activity_log sintético (Spatie LogsActivity) ou do
+# POR QUE ENTRAM AQUI: o modulo tinha ZERO linhas nesta lista e nao aparece em
+# POR QUE UM ARQUIVO (e não a linha única do pest dentro do ci.yml): a linha
+# PR-7c — guard do fix de auth-manager resolver no McpAuthMiddleware (ADR 0283/0081).
+# Paridade do motor de preco/margem vs cadastro legado (AR-PROD-093/094/095/006 · CU-PROD-03.3).
+# PaymentGateway linkage cobranca_id (US-PG-008) — era-sqlite (schema sintético,
+# PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST por
+# Poda preventiva de mcp_memory_documents_history (incidente 2026-06-21 — 5 GB → cota → revogou escrita). Schema sintético, sqlite-safe.
+# Por que ESTA lane (e nao jana-pest MySQL): os testes com DB tem guard
+# REGRA: só testes SQLITE-SAFE (rodam em :memory: sem migrate completo). NÃO
+# REGRESSAO ficaram de fora. Mesmo padrao do PiiRedactor (#5169). Achados pelo
+# RecurringBilling — O INVOCADOR dos 29 UC (UC-RBFAT/RBCFG/RBSUB dos 3 casos.md).
+# RefreshDatabase, e nao usa sintaxe MySQL-only (o CASE do controller substitui
+# RefreshDatabase/migrate) = criterio sqlite-safe do cabecalho deste arquivo.
+# Registro do governance:ui-catalog-generate no Artisan (resgatado do Modules/Admin, onde vivia sem registro) — filesystem + Artisan::all, sem DB.
+# Regressão do validate-strip no /api/cc/ingest (MEM-CC-1, fix 2026-07-17): prova
+# Religado apos o conserto da fixture (follow-up do #5213, autorizado [W]).
+# Reprovaram no run 30778559754, quando a lane os rodou pela PRIMEIRA vez. Divida
+# SQLITE-SAFE POR DESENHO, NAO POR SORTE: os 12 arquivos tem RefreshDatabase=0 e
+# Schema sintetico montado no beforeEach, sem migration MySQL-only.
+# Scopes MCP visíveis na tela de roles (incidente 2026-07-29 — save de role fazia
+# Seção OUTCOME DO AGENTE (7d) no brief (US-GOV-052 · DORA agent-pr-outcomes) — Process::fake, sem DB.
+# Sinal "servido" — route-hits (middleware contador + flush/export). Cache array + schema sintetico, sqlite-safe.
+# Skip-as-pass em sqlite (stack UltimatePOS exige MySQL) — mas o VALOR aqui é outro:
+# Source-ratchet (sem DB) → sqlite-safe.
+# Sqlite-safe de proposito: monta a tabela sintetica no beforeEach, sem
+# Suas asserções de contagem por-business + multi-tenant divergem no sqlite :memory:
+# TaskRegistry não rodava em lane nenhuma.
+# Tier 0 do canal público de feedback (US-INFRA-002 · ADR 0334): numa rota SEM auth o global
+# UC-id ja no titulo do it(), os 29 UC continuariam 🧪 pra sempre, porque nenhum
+# US-COPI-137 eval online — juiz LOCAL Ollama. Http::fake + config + Mockery, ZERO
+# US-INFRA-002 (Voz do Cliente) — isolamento cross-tenant Tier 0 do sinal.
+# US-INFRA-043 acceptance #2 (flag de US nao atribuida no Daily Brief): exercita so os
+# Verde PROVADO antes de entrar (CT 100, DB_CONNECTION=sqlite :memory:, 2026-07-27):
+# Verde determinístico em 4 seeds rodados juntos (152 passed) + 3 seeds no
+# WebhookCanary acima): os outros ~118 nunca eram exercidos em lane nenhuma
+# Whatsapp — Caixa Unificada V4: schema sintético em beforeEach + markTestSkipped
+# ZERO acesso a DB de proposito — mcp_tasks e compartilhada e no CT 100 os testes rodam
+# `business_id` era IMPOSSIVEL escrever isolamento: os 7 originais nunca tocaram
+# `grep -c TeamMcp .github/workflows/modules-pest.yml` = 0 (o módulo não está no
+# `markTestSkipped` exigindo `DB_CONNECTION=sqlite` + `:memory:` — em MySQL
+# `pest-ci-junit` DESTA lane), então o veredito por UC do G-7 era mudo pro módulo.
+# `table mcp_memory_documents has no column named business_id` — a fixture
+# a intencao existia, o registro nunca foi feito.
+# acesso a DB (sem RefreshDatabase) → sqlite-safe. Antes deste PR o JudgeTraceOnlineJobTest
+# adicionar testes com RefreshDatabase/migrate:fresh que puxem migration MySQL-only
+# adr-lint.yml só roda o AdrFrontmatterLinter irmão, e modules-pest não pega
+# arquivo, nao "0 failed"): Coletar 12 passed/0 skipped · SoftDelete 2 passed/0
+# arquivos-fonte citados no proprio beforeEach.
+# artefato de conexão, mesmo motivo de estoque-pest/essentials-pest). Passa em MySQL.
+# beforeEach → sqlite-safe.
+# check está registrado no jana:health-check. Sem credencial Langfuse ele pula, então
+# checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
+# colide. Coletar e DB-less.
+# combinado dos 57 Whatsapp da lane (431 passed, 0 fail). FORA: DispatchToJanaBot
+# content_text/tokens persistindo (pré-fix gravava skeletons NULL). Sintética em
+# contra MySQL real, entao assertar contagem vinda de la seria nao-deterministico. Sqlite-safe.
+# da lane compartilhada (o comando enxerga resíduo que a re-query do teste não vê;
+# de canal whatsmeow, #2822). Até aqui o suite nunca rodava em CI ("✅ GUARD" sem mordida).
+# desde #3005 mas NÃO estava nesta lane, logo nunca rodava em CI ("suite mente").
+# desenho: denuncia a assinatura com valor negociado que nunca fatura, e o remedio
+# dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.
+# distintos (271 passed, 0 fail, 3 skip). AutoLinkContactTest ficou DE FORA: passa
+# doença do JudgeTraceOnlineJobTest acima.
+# dropam mcp_memory_documents em afterEach, entao o `Schema::create` cru nao
+# e PhoneResolutionWebhook (flaky order-dependente em grupo, fix à parte).
+# e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o vermelho que e
+# em vez de derrubar PR. Corrigida pra biz=1 e ancorada aqui pra passar a morder.
+# erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
+# está na matrix do modules-pest.yml → ancoramos aqui pra a lógica de linkage +
+# exatamente sqlite/:memory:. Schema e sintetico (Schema::create manual, sem
+# execução real do happy-path (UC-FORJA-01) mora na lane MySQL forja-pest.yml.
+# feito, defeito era do TESTE nos tres casos — zero mudanca em codigo de produto:
+# ficar (viram skip-as-pass), mas o lar deles é a lane MySQL.
+# filho e contrato estrutural dos dois adapters. SQLite/HTTP fake, sem provider real.
+# fora de sqlite. Whatsapp NÃO está no modules-pest.yml, então esta é a única lane
+# governance/adr-collisions-baseline.json + glob memory/decisions/, sem DB) → sqlite-safe.
+# governance:prod-flags — produtor do prod-flags.json (replica shouldRenderInertiaCliente).
+# isolado (17/17) mas R-WA-078-008 falha order-dependente em grupo (flaky → fix à parte).
+# jana-pest), não aqui. Testes MySQL-only que dão markTestSkipped em sqlite podem
+# lane e o unico lugar onde eles de fato EXECUTAM; na lane MySQL viram skip.
+# marcado `merge=union` em .gitattributes → PRs concorrentes que adicionam linhas
+# matrix, e aquela lane nem emite JUnit). Logo 19 arquivos não rodavam em lane
+# mcp:tasks:orphans. Antes a lógica usava SUBSTRING (MySQL-only) e Tests/Feature/
+# medidor test-lane-coverage.mjs (#5203) na 1a corrida contra codigo vivo.
+# multi-tenant. Ancorado no docblock de McpMemoryDocument::scopeDoBusiness +
+# nightly nao emite artifact que o coletor enxergue. Consequencia medida: com o
+# nucleos PUROS formatar()/injetarEm() + kill-switch (early-return antes de consultar).
+# não faz HTTP real: sqlite-safe e determinístico.
+# não rodava em NENHUMA lane per-PR (US-COPI-138: guard que nenhum workflow executa = mentira).
+# o ACHADO travaria todo merge em main.
+# o `DatasetArgumentsMismatch` que manteve este arquivo quebrado desde que nasceu é
+# o beforeEach de cada um EXIGE sqlite+:memory: (`config('database.default') !==
+# o mecanismo existe e nada no caminho real o invoca.
+# ordem e duplicatas não importam.
+# pre-existente, invisivel ate a lane ligar (proibicoes §5 2026-07-28). Diagnostico
+# que executa as guards R-WA-CAIXA-UNIF-001..013 (inclui a regressão -013 dos chips
+# re-resolve rodar de fato no CI (antes skipava em todo lane).
+# required). Fica como dívida honesta: ou vira sqlite-safe, ou vai pra lane MySQL.
+# schema MySQL real — ficam de fora desta lane até decisão (relatório da audit).
+# scope é no-op, quem isola o tenant é o HMAC da URL assinada. Trava que adulterar ?biz dá 403.
+# scripts/casos-test-results.json (o casos-results-publish colhe o artifact
+# sintetica estava 3 migrations atras do schema (faltavam business_id + os 11
+# sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
+# skipped.
+# syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
+# são UNIDOS automaticamente pelo git, sem conflito. O runner faz `sort -u`, então
+# tasks-create não reusa task_id de row órfã no DB (incidente US-RB-052 · 2026-06-20).
+# tests/Feature/. Repontado pro baseline JSON em #3479 → esta lane passa a exercê-lo per-PR.
+# tests/Pest.php agora provisiona a tabela (idioma do bloco RecurringBilling).
+# tipados + os 3 contextual). Fixture agora e DERIVADA das migrations, com os
+# variations.profit_percent (DECIMAL 22,4) ja guarda. DB-less: so aritmetica no App\Utils\Util. Sqlite-safe.
+# ver abaixo):
+# viram skip, isto e, VERDE POR NAO-EXECUCAO (LC-13). O ci.yml semeia
+# única era editada por TODO PR que adiciona um teste → todo par de PRs conflitava
+# ── OS 3 QUE VOLTARAM (2026-08-03) ───────────────────────────────────────────
+# ── Whatsapp LogsActivity sqlite-safe (auditoria cobertura-CI 2026-06-19) ─────
+# ── Whatsapp sqlite-safe (auditoria cobertura-CI 2026-06-19) ──────────────────
+# ─── IndexarMemoryGitParaDb — regressao da classe que o #5193 alterou
+Modules/Forja/Tests/Feature/ActorPermissionMatrixTest.php
+Modules/Forja/Tests/Feature/CcIngestPersistsFieldsTest.php
+Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php
+Modules/Forja/Tests/Feature/ForjaBacklogServiceTest.php
+Modules/Forja/Tests/Feature/ForjaChangelogServiceTest.php
+Modules/Forja/Tests/Feature/ForjaMcpServiceTest.php
+Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
+Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
+Modules/Forja/Tests/Feature/HandoffIngestTest.php
+Modules/Forja/Tests/Feature/HandoffLeverToolTest.php
+Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
+Modules/Forja/Tests/Feature/HandoffSubmitToolTest.php
+Modules/Forja/Tests/Feature/HandoffToolsTest.php
+Modules/Forja/Tests/Feature/IngestHeartbeatTest.php
+Modules/Forja/Tests/Feature/IngestLivenessTest.php
+Modules/Forja/Tests/Feature/LeaseBriefSectionServiceTest.php
+Modules/Forja/Tests/Feature/McpActorsSeederTest.php
+Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php
+Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php
+Modules/Forja/Tests/Feature/Wave23ScorecardRotateTest.php
+Modules/Governance/Tests/Feature/AdrPendenteBriefLineServiceTest.php
+Modules/Governance/Tests/Feature/AdrReviewBriefLineServiceTest.php
+Modules/Governance/Tests/Feature/AgentOutcomeBriefSectionServiceTest.php
+Modules/Governance/Tests/Feature/ExposicaoTier0BriefLineServiceTest.php
+Modules/Governance/Tests/Feature/IngestLivenessCheckerTest.php
+Modules/Governance/Tests/Feature/ObraParadaBriefLineServiceTest.php
+Modules/Governance/Tests/Feature/PlanHealthBriefLineServiceTest.php
+Modules/Governance/Tests/Feature/UiCatalogGenerateCommandTest.php
 Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeConsensusTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
+Modules/Jana/Tests/Feature/Mcp/AuthorizesMcpMutationTest.php
+Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitParaDbColetarTest.php
+Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
-# Scopes MCP visíveis na tela de roles (incidente 2026-07-29 — save de role fazia
-# syncPermissions e apagava os 17 `jana.mcp.*`, derrubando o MCP do time inteiro).
-# DB-less: compara catálogo do seeder × user_permissions(). sqlite-safe.
-Modules/Jana/Tests/Feature/McpScopesVisiveisNoRoleEditTest.php
-# Poda preventiva de mcp_memory_documents_history (incidente 2026-06-21 — 5 GB → cota → revogou escrita). Schema sintético, sqlite-safe.
-Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
+Modules/Jana/Tests/Feature/Mcp/McpAuthUserResolverTest.php
+Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
 Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
-Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
+Modules/Jana/Tests/Feature/McpScopesVisiveisNoRoleEditTest.php
+Modules/Jana/Tests/Feature/Memoria/Telemetry/RetrievalTelemetryDecoratorTest.php
+Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
+Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
 Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php
-Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
-Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
-Modules/Forja/Tests/Feature/IngestHeartbeatTest.php
-# KB drift-detector persiste veredito doc↔código em kb_nodes.code_drift_state (Fase A1) — sqlite-safe (kbBootstrapSchema, coluna json, sem FK/ENUM MySQL-only).
-Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
-# KB code-scan (Fase B, ADR 0350) — gera KbNode reference a partir de AST PHP. sqlite-safe (kbBootstrapSchema, DB::table; php-parser das dev deps).
-Modules/KB/Tests/Feature/KbCodeScanTest.php
-# KB code-graph (Fase D) — kb_edges de dependência (classe usa classe) via AST. sqlite-safe (kbBootstrapSchema cria kb_nodes+kb_edges; php-parser das dev deps).
-Modules/KB/Tests/Feature/KbCodeGraphTest.php
-# NOTA: KbHealthSnapshotTest NÃO entra aqui — é MySQL-only (roda na lane kb-pest.yml).
-# Suas asserções de contagem por-business + multi-tenant divergem no sqlite :memory:
-# da lane compartilhada (o comando enxerga resíduo que a re-query do teste não vê;
-# artefato de conexão, mesmo motivo de estoque-pest/essentials-pest). Passa em MySQL.
-Modules/Forja/Tests/Feature/IngestLivenessTest.php
-# Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
-# dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.
-Modules/Governance/Tests/Feature/IngestLivenessCheckerTest.php
-# Regressão do validate-strip no /api/cc/ingest (MEM-CC-1, fix 2026-07-17): prova
-# content_text/tokens persistindo (pré-fix gravava skeletons NULL). Sintética em
-# beforeEach → sqlite-safe.
-Modules/Forja/Tests/Feature/CcIngestPersistsFieldsTest.php
-# Loop de Handoff Zero-Paste (ADR 0283): PR-6a submit (novo) + PR-1 ingest
-# (regressão do refactor que extraiu HandoffIngestService) + PR-7 levers
-# (re-disparar/devolver/supersede). Sintéticas em beforeEach → sqlite-safe.
-Modules/Forja/Tests/Feature/HandoffSubmitToolTest.php
-Modules/Forja/Tests/Feature/HandoffIngestTest.php
-Modules/Forja/Tests/Feature/HandoffLeverToolTest.php
-# Forja aba MCP: projeção de cowork_handoffs + gate CONFLITO (ack verde × required
-# checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
-# sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
-Modules/Forja/Tests/Feature/ForjaMcpServiceTest.php
-tests/Feature/Form
-tests/Feature/Services/FeatureFlagServiceTest.php
-Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
-Modules/Jana/Tests/Feature/Mcp/AuthorizesMcpMutationTest.php
-# PR-7c — guard do fix de auth-manager resolver no McpAuthMiddleware (ADR 0283/0081).
-# Source-ratchet (sem DB) → sqlite-safe.
-Modules/Jana/Tests/Feature/Mcp/McpAuthUserResolverTest.php
-Modules/Forja/Tests/Feature/LeaseBriefSectionServiceTest.php
-# Linha de saúde dos planos no brief (ADR 0294 Onda 1) — Process::fake, sem DB.
-Modules/Governance/Tests/Feature/PlanHealthBriefLineServiceTest.php
-# Linha de revisão de ADR no brief (ADR 0317 Onda 3 · M3) — Process::fake, sem DB.
-Modules/Governance/Tests/Feature/AdrReviewBriefLineServiceTest.php
-# FLAG de ADR pendente no brief (US-GOV-052 · adr-proposto-parado) — Process::fake, sem DB.
-Modules/Governance/Tests/Feature/AdrPendenteBriefLineServiceTest.php
-# Seção OUTCOME DO AGENTE (7d) no brief (US-GOV-052 · DORA agent-pr-outcomes) — Process::fake, sem DB.
-Modules/Governance/Tests/Feature/AgentOutcomeBriefSectionServiceTest.php
-# FLAG de OBRA PARADA no brief (cron-watchdog eixo 2 — "roda" ≠ "entrega") — Process::fake, sem DB.
-Modules/Governance/Tests/Feature/ObraParadaBriefLineServiceTest.php
-# FLAG de EXPOSIÇÃO TIER-0 × cobertura no brief (sentinela ADR 0256 → canal brief) — Process::fake, sem DB.
-Modules/Governance/Tests/Feature/ExposicaoTier0BriefLineServiceTest.php
-# Registro do governance:ui-catalog-generate no Artisan (resgatado do Modules/Admin, onde vivia sem registro) — filesystem + Artisan::all, sem DB.
-Modules/Governance/Tests/Feature/UiCatalogGenerateCommandTest.php
-tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
-# Emissão OTel GenAI (MEM-OTEL-1 · ADR 0051) — Log::shouldReceive + reflexão, sem DB.
-# Nenhum workflow rodava este arquivo: a asserção biz=4 (cliente ROTA LIVRE, viola
-# ADR 0101) ficou vermelha na nightly diagnóstica e foi absorvida no floor (1 dos 358)
-# em vez de derrubar PR. Corrigida pra biz=1 e ancorada aqui pra passar a morder.
-tests/Feature/Modules/Copiloto/OtelGenAiEmissionTest.php
-Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
-Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
-# Whatsapp — Caixa Unificada V4: schema sintético em beforeEach + markTestSkipped
-# fora de sqlite. Whatsapp NÃO está no modules-pest.yml, então esta é a única lane
-# que executa as guards R-WA-CAIXA-UNIF-001..013 (inclui a regressão -013 dos chips
-# de canal whatsmeow, #2822). Até aqui o suite nunca rodava em CI ("✅ GUARD" sem mordida).
-Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php
-# Fase 1 perda-zero — canário do webhook WhatsApp (US-WA-311, incidente #2726)
-Modules/Whatsapp/Tests/Feature/WebhookCanaryCommandTest.php
-Modules/Jana/Tests/Feature/Smoke/WhatsappInboundCanaryCheckTest.php
-# Heartbeat da telemetria LLM (US-COPI-138) — lógica pura estática + prova de que o
-# check está registrado no jana:health-check. Sem credencial Langfuse ele pula, então
-# não faz HTTP real: sqlite-safe e determinístico.
 Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php
-# ── Whatsapp sqlite-safe (auditoria cobertura-CI 2026-06-19) ──────────────────
-# Modules/Whatsapp tem 120 testes Feature mas só 2 rodavam em CI (CaixaUnificada +
-# WebhookCanary acima): os outros ~118 nunca eram exercidos em lane nenhuma
-# (Whatsapp NÃO está em modules-pest.yml e nenhum outro workflow roda esses pest).
-# Estes 33 montam schema sintético em beforeEach + markTestSkipped fora de sqlite
-# (mesmo idioma do CaixaUnificada) e passam verde local rodados juntos em 3 seeds
-# distintos (271 passed, 0 fail, 3 skip). AutoLinkContactTest ficou DE FORA: passa
-# isolado (17/17) mas R-WA-078-008 falha order-dependente em grupo (flaky → fix à parte).
-# Os ~84 restantes precisam de activity_log sintético (Spatie LogsActivity) ou do
-# schema MySQL real — ficam de fora desta lane até decisão (relatório da audit).
+Modules/Jana/Tests/Feature/Smoke/WhatsappInboundCanaryCheckTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/McpTasksOrphansCommandTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/TaskCrudServiceCanonicalIdTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php
+Modules/Jana/Tests/Feature/Telemetry/ChatStreamObservabilityTest.php
+Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php
+Modules/Jana/Tests/Feature/Telemetry/LangfuseAgentTelemetryListenerTest.php
+Modules/KB/Tests/Feature/KbCodeGraphTest.php
+Modules/KB/Tests/Feature/KbCodeScanTest.php
+Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
+Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookJobTest.php
+Modules/PaymentGateway/Tests/Feature/WebhookProcessorLinkageTest.php
+Modules/RecurringBilling/Tests/Feature/AsaasWebhookAuthTest.php
+Modules/RecurringBilling/Tests/Feature/AsaasWebhookIdempotencyTest.php
+Modules/RecurringBilling/Tests/Feature/AssinaturaCobrancaServiceTest.php
+Modules/RecurringBilling/Tests/Feature/CustomerJourneyTest.php
+Modules/RecurringBilling/Tests/Feature/InterWebhookControllerTest.php
+Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php
+Modules/RecurringBilling/Tests/Feature/RefundCobrancaAsaasJobTest.php
+Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php
+Modules/RecurringBilling/Tests/Feature/Wave23EditarAssinaturaTest.php
+Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php
+Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php
+Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
+Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
+Modules/Whatsapp/Tests/Feature/AuditChannelAccessCommandTest.php
 Modules/Whatsapp/Tests/Feature/AutoPrefixSenderNameTest.php
+Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php
 Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php
 Modules/Whatsapp/Tests/Feature/CentrifugoTokenIssuerTest.php
+Modules/Whatsapp/Tests/Feature/ChannelBaileysInstanceIdHelperTest.php
+Modules/Whatsapp/Tests/Feature/ChannelBaileysWebhookIdempotencyTest.php
+Modules/Whatsapp/Tests/Feature/ChannelHealthSnapshotCommandTest.php
+Modules/Whatsapp/Tests/Feature/ChannelRequestUniqueIdentifierTest.php
+Modules/Whatsapp/Tests/Feature/ChannelUserAccessTest.php
+Modules/Whatsapp/Tests/Feature/CsatFlowTest.php
 Modules/Whatsapp/Tests/Feature/CustomerMemoryBackfillCommandTest.php
 Modules/Whatsapp/Tests/Feature/CustomerMemoryRebuilderTest.php
 Modules/Whatsapp/Tests/Feature/DispatchToJanaBotPiiRedactionTest.php
 Modules/Whatsapp/Tests/Feature/E2EJourneyBiz1Test.php
 Modules/Whatsapp/Tests/Feature/EmbeddedSignupFlowTest.php
+Modules/Whatsapp/Tests/Feature/FeedbackPublicoSignedUrlTest.php
 Modules/Whatsapp/Tests/Feature/FeedbackReindexCommandTest.php
 Modules/Whatsapp/Tests/Feature/FetchTemplatesTest.php
+Modules/Whatsapp/Tests/Feature/GuardiaoMidiaTest.php
+Modules/Whatsapp/Tests/Feature/HistorySyncQueueArchitectureTest.php
+Modules/Whatsapp/Tests/Feature/InboxQueueDerivationTest.php
+Modules/Whatsapp/Tests/Feature/InternalNoteTest.php
+Modules/Whatsapp/Tests/Feature/LastMessageDenormalizeTest.php
 Modules/Whatsapp/Tests/Feature/LegacyConversationsRemovedTest.php
+Modules/Whatsapp/Tests/Feature/MacroVariantPickerTest.php
 Modules/Whatsapp/Tests/Feature/MacroVariantsCrudTest.php
+Modules/Whatsapp/Tests/Feature/MediaMessageTest.php
 Modules/Whatsapp/Tests/Feature/MessageHasArquivosTraitTest.php
+Modules/Whatsapp/Tests/Feature/MetricsAggregateCommandTest.php
 Modules/Whatsapp/Tests/Feature/MetricsSnapshotBuilderTest.php
 Modules/Whatsapp/Tests/Feature/ObservabilityTest.php
 Modules/Whatsapp/Tests/Feature/OfficeimpressoEnrichServiceTest.php
+Modules/Whatsapp/Tests/Feature/PersistContactsFromHistorySyncJobTest.php
 Modules/Whatsapp/Tests/Feature/PropagateTraceparentTest.php
 Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php
+Modules/Whatsapp/Tests/Feature/ReparseMediaFromPayloadCommandTest.php
 Modules/Whatsapp/Tests/Feature/SidebarCountsTest.php
+Modules/Whatsapp/Tests/Feature/SlaScanCommandTest.php
+Modules/Whatsapp/Tests/Feature/SlashConfigTest.php
 Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave26WhatsappSaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave27WhatsappSaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave28WhatsappPolishTest.php
 Modules/Whatsapp/Tests/Feature/WebhookBackpressureTest.php
+Modules/Whatsapp/Tests/Feature/WebhookCanaryCommandTest.php
 Modules/Whatsapp/Tests/Feature/WebhookReplayProtectionTest.php
 Modules/Whatsapp/Tests/Feature/WebhookSignatureCheckerTest.php
+Modules/Whatsapp/Tests/Feature/WhatsappMessageObserverTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowAuthHeaderTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowChannelIsolationTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowCicloE2ETest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowHealthProbeDecisionTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowInboundTimezoneTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowReconcilerTest.php
-Modules/Whatsapp/Tests/Feature/WhatsmeowSubscribeLoggedOutTest.php
-# Observabilidade SLO/SLI canal (ADR 0288) — snapshot + alerta canal-down 3 sinks
-# (Log + Centrifugo + mcp_alertas_eventos). Adicionado na Fase 2: o teste existia
-# desde #3005 mas NÃO estava nesta lane, logo nunca rodava em CI ("suite mente").
-Modules/Whatsapp/Tests/Feature/ChannelHealthSnapshotCommandTest.php
-# ── Whatsapp LogsActivity sqlite-safe (auditoria cobertura-CI 2026-06-19) ─────
-# Estes 21 falhavam só por "no such table: activity_log" (models com Spatie
-# LogsActivity, 341 falhas na audit). O beforeEach scoped ao dir Whatsapp em
-# tests/Pest.php agora provisiona a tabela (idioma do bloco RecurringBilling).
-# Verde determinístico em 4 seeds rodados juntos (152 passed) + 3 seeds no
-# combinado dos 57 Whatsapp da lane (431 passed, 0 fail). FORA: DispatchToJanaBot
-# e PhoneResolutionWebhook (flaky order-dependente em grupo, fix à parte).
-Modules/Whatsapp/Tests/Feature/AuditChannelAccessCommandTest.php
-Modules/Whatsapp/Tests/Feature/ChannelBaileysInstanceIdHelperTest.php
-Modules/Whatsapp/Tests/Feature/ChannelBaileysWebhookIdempotencyTest.php
-Modules/Whatsapp/Tests/Feature/ChannelRequestUniqueIdentifierTest.php
-Modules/Whatsapp/Tests/Feature/ChannelUserAccessTest.php
-Modules/Whatsapp/Tests/Feature/CsatFlowTest.php
-Modules/Whatsapp/Tests/Feature/GuardiaoMidiaTest.php
-Modules/Whatsapp/Tests/Feature/HistorySyncQueueArchitectureTest.php
-Modules/Whatsapp/Tests/Feature/InboxQueueDerivationTest.php
-Modules/Whatsapp/Tests/Feature/InternalNoteTest.php
-Modules/Whatsapp/Tests/Feature/LastMessageDenormalizeTest.php
-Modules/Whatsapp/Tests/Feature/MacroVariantPickerTest.php
-Modules/Whatsapp/Tests/Feature/MediaMessageTest.php
-Modules/Whatsapp/Tests/Feature/MetricsAggregateCommandTest.php
-Modules/Whatsapp/Tests/Feature/PersistContactsFromHistorySyncJobTest.php
-Modules/Whatsapp/Tests/Feature/ReparseMediaFromPayloadCommandTest.php
-Modules/Whatsapp/Tests/Feature/SlaScanCommandTest.php
-Modules/Whatsapp/Tests/Feature/SlashConfigTest.php
-Modules/Whatsapp/Tests/Feature/WhatsappMessageObserverTest.php
-Modules/Whatsapp/Tests/Feature/WhatsmeowCicloE2ETest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowResubscribeEventsCommandTest.php
-# tasks-create não reusa task_id de row órfã no DB (incidente US-RB-052 · 2026-06-20).
-# Ambos bootstram um mcp_tasks mínimo (sem RefreshDatabase → sem migration ENUM
-# MySQL-only) → sqlite-safe. Provam max(DB,SPEC)+guarda de colisão e o detector
-# mcp:tasks:orphans. Antes a lógica usava SUBSTRING (MySQL-only) e Tests/Feature/
-# TaskRegistry não rodava em lane nenhuma.
-Modules/Jana/Tests/Feature/TaskRegistry/TaskCrudServiceCanonicalIdTest.php
-Modules/Jana/Tests/Feature/TaskRegistry/McpTasksOrphansCommandTest.php
-
-# governance:prod-flags — produtor do prod-flags.json (replica shouldRenderInertiaCliente).
-# Config-puro (sem DB) → sqlite-safe. Item b/produtor da proposta SDD 2026-06-24.
+Modules/Whatsapp/Tests/Feature/WhatsmeowSubscribeLoggedOutTest.php
+tests/Feature/DocumentacaoRouteTest.php
+tests/Feature/Form
 tests/Feature/Governance/ProdFlagsCommandTest.php
-
-# PaymentGateway linkage cobranca_id (US-PG-008) — era-sqlite (schema sintético,
-# DatabaseTransactions, sem RefreshDatabase/ENUM MySQL-only). PaymentGateway NÃO
-# está na matrix do modules-pest.yml → ancoramos aqui pra a lógica de linkage +
-# re-resolve rodar de fato no CI (antes skipava em todo lane).
-Modules/PaymentGateway/Tests/Feature/WebhookProcessorLinkageTest.php
-Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookJobTest.php
-
-# Colisão de número de ADR (AdrNumberCollisionTest) — teste PURO de arquivo (lê
-# governance/adr-collisions-baseline.json + glob memory/decisions/, sem DB) → sqlite-safe.
-# Até 2026-07-01 NÃO rodava em lane nenhuma ("suite mente"): não estava aqui, o
-# adr-lint.yml só roda o AdrFrontmatterLinter irmão, e modules-pest não pega
-# tests/Feature/. Repontado pro baseline JSON em #3479 → esta lane passa a exercê-lo per-PR.
 tests/Feature/Memory/AdrNumberCollisionTest.php
-# Sinal "servido" — route-hits (middleware contador + flush/export). Cache array + schema sintetico, sqlite-safe.
+tests/Feature/Modules/Copiloto/AdapterResolverTest.php
+tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
+tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
+tests/Feature/Modules/Copiloto/OtelGenAiEmissionTest.php
+tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php
 tests/Feature/RouteHits/ContadorHitsRotaTest.php
 tests/Feature/RouteHits/RouteHitsCommandsTest.php
-# Paridade do motor de preco/margem vs cadastro legado (AR-PROD-093/094/095/006 · CU-PROD-03.3).
-# Markup mestre a 2 casas nao reconstitui 7.000,00 (da 6.999,97) — piso e 4 casas, que e o que
-# variations.profit_percent (DECIMAL 22,4) ja guarda. DB-less: so aritmetica no App\Utils\Util. Sqlite-safe.
-tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php
-# Tier 0 do canal público de feedback (US-INFRA-002 · ADR 0334): numa rota SEM auth o global
-# scope é no-op, quem isola o tenant é o HMAC da URL assinada. Trava que adulterar ?biz dá 403.
-# DB-less (o middleware `signed` decide antes do controller). Sqlite-safe.
-Modules/Whatsapp/Tests/Feature/FeedbackPublicoSignedUrlTest.php
-# Observabilidade do chat SSE — raiz/correlação, ponto único Langfuse, retrieval
-# filho e contrato estrutural dos dois adapters. SQLite/HTTP fake, sem provider real.
-Modules/Jana/Tests/Feature/Telemetry/ChatStreamObservabilityTest.php
-Modules/Jana/Tests/Feature/Memoria/Telemetry/RetrievalTelemetryDecoratorTest.php
-Modules/Jana/Tests/Feature/Telemetry/LangfuseAgentTelemetryListenerTest.php
-tests/Feature/Modules/Copiloto/AdapterResolverTest.php
-# US-COPI-137 eval online — juiz LOCAL Ollama. Http::fake + config + Mockery, ZERO
-# acesso a DB (sem RefreshDatabase) → sqlite-safe. Antes deste PR o JudgeTraceOnlineJobTest
-# não rodava em NENHUMA lane per-PR (US-COPI-138: guard que nenhum workflow executa = mentira).
-Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php
-Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
-
-# ---------------------------------------------------------------------------
-# Modules/TeamMcp — o módulo NÃO tinha lane (2026-07-27)
-# ---------------------------------------------------------------------------
-# Estado medido em 2026-07-27 (contado, sem head_limit): `git ls-files
-# "Modules/TeamMcp/Tests/**Test.php"` = 26 arquivos; DESTES só 7 estavam aqui e
-# `grep -c TeamMcp .github/workflows/modules-pest.yml` = 0 (o módulo não está no
-# matrix, e aquela lane nem emite JUnit). Logo 19 arquivos não rodavam em lane
-# NENHUMA — "guard que nenhum workflow executa = mentira" (US-COPI-138), a mesma
-# doença do JudgeTraceOnlineJobTest acima.
-#
-# Consequência que fechou o elo: nenhum resultado do TeamMcp chegava ao manifesto
-# scripts/casos-test-results.json (o casos-results-publish colhe o artifact
-# `pest-ci-junit` DESTA lane), então o veredito por UC do G-7 era mudo pro módulo.
-#
-# Verde PROVADO antes de entrar (CT 100, DB_CONNECTION=sqlite :memory:, 2026-07-27):
-#   1) isolado   — `pest Modules/TeamMcp/Tests` → 8 failed / 60 skipped / 130 passed,
-#      e as 8 falhas eram só 2 arquivos: ForjaRoutesSmokeTest (6× DatasetArgumentsMismatch,
-#      consertado nesta PR) e CicloAtivoEndpointTest (2× QueryException, NÃO entra).
-#   2) COMBINADO — a lane inteira desta lista + estes 18 alvos numa ÚNICA invocação do
-#      pest (reproduzindo o `vendor/bin/pest "${PEST_TARGETS[@]}"` do ci.yml), que é o
-#      que mede contaminação cruzada de conexão/resíduo — o motivo pelo qual o
-#      KbHealthSnapshotTest ficou de fora lá em cima. Zero falha vinda do TeamMcp.
-#
-# FORA DE PROPÓSITO: Modules/Forja/Tests/Feature/CicloAtivoEndpointTest.php —
-# 2 QueryException em sqlite ("cycle null quando nenhum ativo" / "retorna o cycle
-# ATIVO com token"). Entrar vermelho aqui travaria merge de TODO mundo (lane
-# required). Fica como dívida honesta: ou vira sqlite-safe, ou vai pra lane MySQL.
-Modules/Forja/Tests/Feature/ActorPermissionMatrixTest.php
-Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php
-Modules/Forja/Tests/Feature/ForjaBacklogServiceTest.php
-Modules/Forja/Tests/Feature/ForjaChangelogServiceTest.php
-Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
-# Skip-as-pass em sqlite (stack UltimatePOS exige MySQL) — mas o VALOR aqui é outro:
-# o `DatasetArgumentsMismatch` que manteve este arquivo quebrado desde que nasceu é
-# erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
-# execução real do happy-path (UC-FORJA-01) mora na lane MySQL forja-pest.yml.
-Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
-Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
-Modules/Forja/Tests/Feature/HandoffToolsTest.php
-Modules/Forja/Tests/Feature/McpActorsSeederTest.php
-Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php
-Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php
-Modules/Forja/Tests/Feature/Wave23ScorecardRotateTest.php
-# US-INFRA-043 acceptance #2 (flag de US nao atribuida no Daily Brief): exercita so os
-# nucleos PUROS formatar()/injetarEm() + kill-switch (early-return antes de consultar).
-# ZERO acesso a DB de proposito — mcp_tasks e compartilhada e no CT 100 os testes rodam
-# contra MySQL real, entao assertar contagem vinda de la seria nao-deterministico. Sqlite-safe.
-Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php
-
-# US-INFRA-002 (Voz do Cliente) — isolamento cross-tenant Tier 0 do sinal.
-# Sqlite-safe de proposito: monta a tabela sintetica no beforeEach, sem
-# RefreshDatabase, e nao usa sintaxe MySQL-only (o CASE do controller substitui
-# FIELD() justamente pra rodar nas duas lanes).
-Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
-
-# RecurringBilling — O INVOCADOR dos 29 UC (UC-RBFAT/RBCFG/RBSUB dos 3 casos.md).
-#
-# POR QUE ENTRAM AQUI: o modulo tinha ZERO linhas nesta lista e nao aparece em
-# NENHUMA das 10 lanes que o casos-results-publish.yml colhe. `phpunit.xml` inclui
-# Modules/RecurringBilling/Tests/Feature, mas so a nightly CT100 le aquilo — e a
-# nightly nao emite artifact que o coletor enxergue. Consequencia medida: com o
-# UC-id ja no titulo do it(), os 29 UC continuariam 🧪 pra sempre, porque nenhum
-# JUnit colhido jamais conteria o `name`. Titulo sem lane e chokepoint fantasma:
-# o mecanismo existe e nada no caminho real o invoca.
-#
-# SQLITE-SAFE POR DESENHO, NAO POR SORTE: os 12 arquivos tem RefreshDatabase=0 e
-# o beforeEach de cada um EXIGE sqlite+:memory: (`config('database.default') !==
-# 'sqlite' || ! str_contains(...':memory:')` -> markTestSkipped). Ou seja, esta
-# lane e o unico lugar onde eles de fato EXECUTAM; na lane MySQL viram skip.
-# Schema sintetico montado no beforeEach, sem migration MySQL-only.
-#
-# FICA DE FORA — 1 arquivo (era 4 ate 2026-08-03; os outros 3 foram consertados,
-# ver abaixo):
-#
-# PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST por
-# desenho: denuncia a assinatura com valor negociado que nunca fatura, e o remedio
-# e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o vermelho que e
-# o ACHADO travaria todo merge em main.
-#
-# ── OS 3 QUE VOLTARAM (2026-08-03) ───────────────────────────────────────────
-# Reprovaram no run 30778559754, quando a lane os rodou pela PRIMEIRA vez. Divida
-# pre-existente, invisivel ate a lane ligar (proibicoes §5 2026-07-28). Diagnostico
-# feito, defeito era do TESTE nos tres casos — zero mudanca em codigo de produto:
-#
-#  Wave21NewSubscriptionTest + Wave23EditarAssinaturaTest (UC-RBSUB-01..04)
-#    Ambos declaravam "auth bypassado via Gate::before" e NUNCA autenticavam. Duas
-#    causas somadas: (a) `authorize()` devolve `$this->user() !== null` — exige
-#    USUARIO, nao permissao; (b) `Gate::before(fn () => true)` tem ZERO parametros
-#    e o Laravel so invoca before-callback pra visitante anonimo se o callback
-#    aceitar null no 1o parametro (Gate::callbackAllowsGuests) — sem usuario logado
-#    o callback nem dispara. Fix: actingAs(user biz=1) no beforeEach, padrao vivo
-#    do RefundCobrancaAsaasJobTest.
-#
-#  InvoiceGeneratorServiceTest (UC-RBFAT-08..11)
-#    NAO era o contador do servico. O teste simulava a re-execucao com
-#    `$sub->update([...])` sobre instancia STALE: o run 1 gravara 2026-08-15, o
-#    modelo em memoria ainda achava 2026-07-15, entao `getDirty()` vinha vazio e o
-#    Eloquent NAO emitia UPDATE. A linha ficava em agosto, o run 2 nao achava
-#    candidato, e `generated==0` passava por AUSENCIA DE TRABALHO — verde por
-#    nao-execucao (LC-13) dentro do teste que afirma provar idempotencia. O
-#    `skipped==1` era o unico assert que denunciava isso. Fix: UPDATE de
-#    query-builder + pre-condicao anti-vacuo provando que a assinatura voltou a ser
-#    candidata. O servico esta correto e nao foi tocado.
-Modules/RecurringBilling/Tests/Feature/AsaasWebhookAuthTest.php
-Modules/RecurringBilling/Tests/Feature/AsaasWebhookIdempotencyTest.php
-Modules/RecurringBilling/Tests/Feature/AssinaturaCobrancaServiceTest.php
-Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php
-Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php
-Modules/RecurringBilling/Tests/Feature/Wave23EditarAssinaturaTest.php
-Modules/RecurringBilling/Tests/Feature/CustomerJourneyTest.php
-Modules/RecurringBilling/Tests/Feature/InterWebhookControllerTest.php
-Modules/RecurringBilling/Tests/Feature/RefundCobrancaAsaasJobTest.php
-Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php
-Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php
-Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
-
-# ─── IndexarMemoryGitParaDb — regressao da classe que o #5193 alterou
-# (redactor apagava run id). O #5193 poe so o teste NOVO dele numa lane; os de
-# REGRESSAO ficaram de fora. Mesmo padrao do PiiRedactor (#5169). Achados pelo
-# medidor test-lane-coverage.mjs (#5203) na 1a corrida contra codigo vivo.
-#
-# Por que ESTA lane (e nao jana-pest MySQL): os testes com DB tem guard
-# `markTestSkipped` exigindo `DB_CONNECTION=sqlite` + `:memory:` — em MySQL
-# viram skip, isto e, VERDE POR NAO-EXECUCAO (LC-13). O ci.yml semeia
-# exatamente sqlite/:memory:. Schema e sintetico (Schema::create manual, sem
-# RefreshDatabase/migrate) = criterio sqlite-safe do cabecalho deste arquivo.
-# O comentario do proprio SoftDeleteRestore ja dizia "na lane sqlite (per-PR)" —
-# a intencao existia, o registro nunca foi feito.
-#
-# Higiene de schema conferida: ForjaChangelogServiceTest e SoftDeleteRestore
-# dropam mcp_memory_documents em afterEach, entao o `Schema::create` cru nao
-# colide. Coletar e DB-less.
-#
-# +14 casos, execucao REAL provada na corrida 30783000852 (junit-summary por
-# arquivo, nao "0 failed"): Coletar 12 passed/0 skipped · SoftDelete 2 passed/0
-# skipped.
-Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitParaDbColetarTest.php
-Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
-
-# Religado apos o conserto da fixture (follow-up do #5213, autorizado [W]).
-# Historico: ao ser ligado no #5213 deu 7 ERRORS (corrida 30783000852), todos
-# `table mcp_memory_documents has no column named business_id` — a fixture
-# sintetica estava 3 migrations atras do schema (faltavam business_id + os 11
-# tipados + os 3 contextual). Fixture agora e DERIVADA das migrations, com os
-# arquivos-fonte citados no proprio beforeEach.
-#
-# +8 casos (os 7 originais + 1 Tier 0 NOVO). O Tier 0 existe porque sem a coluna
-# `business_id` era IMPOSSIVEL escrever isolamento: os 7 originais nunca tocaram
-# multi-tenant. Ancorado no docblock de McpMemoryDocument::scopeDoBusiness +
-# ADR 0093 — nao no que o service faz hoje.
-tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
 tests/Feature/SecretsGovernanceTest.php
+tests/Feature/Services/FeatureFlagServiceTest.php
