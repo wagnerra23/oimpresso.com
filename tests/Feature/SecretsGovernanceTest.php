@@ -90,3 +90,57 @@ it('R-SEC-0215-008 — secrets governance consolidado no governance-drift.yml (A
     expect($content)->toContain('secrets:audit --auto-pr'); // Camada 3 portada pra cá
     expect($content)->toContain('governance:audit');         // cobre o SecretsDriftChecker no PR
 });
+
+/**
+ * R-SEC-0215-009..012 — o que É drift.
+ *
+ * Origem (medido 2026-08-03): o `governance-drift.yml` acumulou 52 runs agendadas
+ * vermelhas em sequência (último sucesso 2026-06-11) por DOIS falsos-positivos, e
+ * nenhum deles era dívida de segredo:
+ *
+ *   ⚠️ Hostinger DNS API token: 🔴 EXPIRED 2026-05-28 — Wagner regerar → ⏸ pending
+ *   ⚠️ CT 100 root SSH (LAN): ✅ active (verificado 2026-06-05 — …)     → ✅ active
+ *
+ * O 1º é NÃO-MEDIÇÃO lida como mudança: `validateHostingerApi` lê
+ * `memory/claude/reference_hostinger_hpanel.md`, diretório PURGADO na auditoria de
+ * 2026-06-07, e devolve `⏸ pending` todo dia. O 2º é comparação string-exata contra
+ * anotação humana — o estado é o mesmo.
+ */
+it('R-SEC-0215-009 — NÃO-MEDIÇÃO não é drift (o fail-open que a ADR 0317 §2 pune)', function () {
+    // o caso real: índice diz 🔴 e o validador não conseguiu medir
+    expect(App\Console\Commands\SecretsAuditCommand::ehDrift(
+        '🔴 **EXPIRED 2026-05-28** — Wagner regerar',
+        '⏸ pending'
+    ))->toBeFalse();
+});
+
+it('R-SEC-0215-010 — anotação humana não é drift (mesmo estado, prosa a mais)', function () {
+    // o caso real: CT 100 root SSH
+    expect(App\Console\Commands\SecretsAuditCommand::ehDrift(
+        '✅ active (verificado 2026-06-05 — conecta + `oimpresso-staging` Laravel 13.6 vivo)',
+        '✅ active'
+    ))->toBeFalse();
+});
+
+it('R-SEC-0215-011 — MUDANÇA DE ESTADO continua sendo drift (o alarme não foi desligado)', function () {
+    // segredo que estava ativo e expirou: o alarme TEM que morder
+    expect(App\Console\Commands\SecretsAuditCommand::ehDrift(
+        '✅ active',
+        '🔴 EXPIRED 2026-08-03'
+    ))->toBeTrue();
+
+    // e o inverso: algo marcado como comprometido que volta a validar
+    expect(App\Console\Commands\SecretsAuditCommand::ehDrift(
+        '🔴 **COMPROMETIDA 2026-05-28**',
+        '✅ active'
+    ))->toBeTrue();
+});
+
+it('R-SEC-0215-012 — estadoDe() extrai o estado e descarta a prosa', function () {
+    expect(App\Console\Commands\SecretsAuditCommand::estadoDe('✅ active (verificado 2026-06-05)'))->toBe('✅');
+    expect(App\Console\Commands\SecretsAuditCommand::estadoDe('🔴 **EXPIRED** — Wagner regerar'))->toBe('🔴');
+    expect(App\Console\Commands\SecretsAuditCommand::estadoDe('🟡 rotacionando 2026-06-08'))->toBe('🟡');
+    expect(App\Console\Commands\SecretsAuditCommand::estadoDe('🔒 LOCKED humano-only'))->toBe('🔒');
+    // mudança de DATA dentro do mesmo estado não é mudança de estado
+    expect(App\Console\Commands\SecretsAuditCommand::ehDrift('🔴 EXPIRED 2026-05-28', '🔴 EXPIRED 2026-08-03'))->toBeFalse();
+});
