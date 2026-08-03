@@ -121,6 +121,46 @@ Não finja que fecha sozinho, e **não proponha transformá-lo em gate**: gate q
 por forma é a família medida e reprovada 4× no §5 (allowlist-de-pasta · guard `@scope` ·
 vocabulário 130 FP · lint `toHaveKey` 100% FP).
 
+## A régua — o que é documentação de SISTEMA boa
+
+Referências certas para este eixo (medidas 2026-08-03). **Não são as de documentação de
+produto** — Diátaxis, Swimm e Mintlify resolvem docs de API para usuário externo, e usá-las
+aqui penaliza por não fazer o que não é seu escopo. [W] pegou esse erro de categoria.
+
+| Dimensão | Referência | O que "bom" significa |
+|---|---|---|
+| **Decision log** | ADR Nygard · [arc42 §9](https://docs.arc42.org/section-9/) | contexto/decisão/consequência, append-only, índice derivado, supersede rastreável |
+| **Living documentation** | Martraire | a doc é **emissão do sistema** — derivada do modelo, não escrita em paralelo |
+| **Template estruturado** | arc42 (12 seções) | o leitor sabe onde procurar sem ler tudo |
+| **Validação contra o vivo** | Architecture-as-Code | validador compara o que o doc diz com o que o sistema faz |
+| **Diagramas como código** | C4 · Mermaid/PlantUML | desenho **versionado e revisável em PR** — nunca ASCII, que não se valida |
+| **Rastreabilidade decisão→código** | — | do texto se chega ao arquivo que o implementa |
+| **Multi-stakeholder** | arc42 | quem opera, quem programa e quem decide não leem o mesmo bloco |
+| **Onboarding** | — | reduz o tempo até a primeira contribuição |
+
+**Use como checklist ao escrever**, não como boletim. Se [W] pedir a grade com nota, **meça na
+hora** — rode a comparação e apresente com a data. ⚠️ **Nunca decore nota aqui**: número em
+prosa apodrece calado (§5 2026-07-17), e nota velha é pior que nota nenhuma porque parece medida.
+
+**Ao pontuar, três disciplinas do §5:**
+- **Compare com a categoria certa.** Documentação de sistema ≠ de produto. Errar isso inverte o
+  resultado — aconteceu em 2026-08-03: a mesma documentação deu 52 na régua errada e 64 na certa.
+- **Não infle.** Claim de superioridade só com **data + fonte** da comparação. Se o mercado não
+  tem a categoria, isso pode significar raridade **ou** irrelevância — sem base pra distinguir,
+  não conte como vantagem.
+- **Não decomponha em fatias.** Achar um peer para cada dimensão isolada e declarar tudo refutado
+  é falácia de composição (§5 2026-07-10).
+
+## Como implantar uma melhoria da régua
+
+1. **Meça** — rode a comparação e ache a dimensão mais fraca.
+2. **Ordene por retorno**, não por nota. Converter ASCII→Mermaid vale mais que reescrever o que
+   já está bom: a informação existe, é mudar o formato para um que o Git renderiza e revisa.
+3. **Um PR por dimensão.** Nunca um PR "melhora a documentação" — ninguém revisa isso.
+4. **[W] mergeia.** Você propõe; a decisão é dele, sempre.
+5. **Não toque no que está forte.** O decision log é o ponto mais alto do projeto; mexer nele
+   arrisca o append-only, que é Tier 0.
+
 ## APRENDER — o quinto tempo, e ele é SEU dever
 
 O ledger é do agente, não do [W] — está escrito no cabeçalho do
