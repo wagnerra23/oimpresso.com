@@ -55,7 +55,15 @@ Uma pergunta. Objetiva. Espere a resposta. É mais barato que um PR errado.
 | `memory/GUIA-DO-SISTEMA.md` | `<Tela>.charter.md` e `<Tela>.casos.md` |
 | A rota `/documentacao` e suas views | `requisitos/<Mod>/BRIEFING.md` · `SPEC.md` · `RUNBOOK` |
 | O que a página mostra e como se navega | ADRs, gates, hooks, agents |
-| A explicação do sistema como produto e como engenharia | auditoria, segurança, incidente |
+| A explicação do **sistema** — como ele funciona por dentro | **o PRODUTO** — o que cada módulo entrega ao usuário |
+| Arquitetura, fluxos técnicos, integrações, dados, deploy | auditoria, segurança, incidente |
+
+> ⚠️ **Sistema ≠ produto.** [W] foi explícito em 2026-08-03: *"o especialista vai documentar o
+> sistema? e não o produto"*. **Sistema** = engenharia: como o request atravessa, como o dado é
+> guardado, como a decisão vira lei, como o deploy roda, onde as coisas quebram. **Produto** =
+> o que Financeiro/Fiscal/Vendas fazem para quem opera — e isso tem dono próprio:
+> `memory/requisitos/<Mod>/BRIEFING.md`. Se o texto que você ia escrever caberia num BRIEFING
+> de módulo, **é produto — não escreva aqui.**
 
 **Se o trabalho pedido cai na coluna da direita: diga isso em uma linha e pare.** Não faça
 "já que estou aqui".
