@@ -788,8 +788,46 @@ class IndexarMemoryGitParaDb
 
         return match ($tipo) {
             'CPF'   => $this->cpfTemDvValido($match),
+            'CNPJ'  => $this->cnpjTemDvValido($match),
             default => true,
         };
+    }
+
+    /**
+     * Dígito verificador do CNPJ (módulo 11) — espelha `PiiRedactor::cnpjTemDvValido()`.
+     *
+     * Mantido em paridade DELIBERADA com o `PiiRedactor`: as duas cópias existem
+     * (LC-18) e divergir criaria um terceiro comportamento de redação. Se um lado
+     * mudar, o outro muda no MESMO PR.
+     *
+     * Medido no corpus real 2026-08-03: dos 197 matches de CNPJ, os 67 crus com DV
+     * inválido eram todos falso-positivo (LID do WhatsApp, id de artigo em URL,
+     * placeholder de exemplo); os 38 crus com DV válido — inclui CNPJ real de
+     * cliente — seguem redigidos.
+     */
+    protected function cnpjTemDvValido(string $digitos): bool
+    {
+        if (strlen($digitos) !== 14 || preg_match('/^(\d)\1{13}$/', $digitos)) {
+            return false;
+        }
+
+        foreach ([12, 13] as $posicao) {
+            $peso = $posicao - 7;
+            $soma = 0;
+            for ($i = 0; $i < $posicao; $i++) {
+                $soma += (int) $digitos[$i] * $peso--;
+                if ($peso < 2) {
+                    $peso = 9;
+                }
+            }
+            $resto = $soma % 11;
+            $dv = $resto < 2 ? 0 : 11 - $resto;
+            if ($dv !== (int) $digitos[$posicao]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** Dígito verificador do CPF (módulo 11). Repetidos (111...) são inválidos por definição. */
