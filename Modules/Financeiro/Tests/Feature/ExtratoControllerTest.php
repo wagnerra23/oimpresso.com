@@ -51,7 +51,7 @@ class ExtratoControllerTest extends FinanceiroTestCase
             'banco_codigo'               => '077',
             'agencia'                    => '0001',
             'carteira'                   => '112',
-            'beneficiario_documento'     => '12.345.678/0001-99',
+            'beneficiario_documento'     => '12.345.678/0001-99', // pii-allowlist (CNPJ sintético de fixture — sequência 1..8, não é empresa real)
             'beneficiario_razao_social'  => 'Empresa Teste',
             'ativo_para_boleto'          => true,
             'saldo_cached'               => 5000.00,
@@ -111,7 +111,7 @@ class ExtratoControllerTest extends FinanceiroTestCase
             'banco_codigo'              => '077',
             'agencia'                   => '0001',
             'carteira'                  => '112',
-            'beneficiario_documento'    => '11.111.111/1111-11',
+            'beneficiario_documento'    => '11.111.111/1111-11', // pii-allowlist (CNPJ sintético de fixture — dígito repetido, não é empresa real)
             'beneficiario_razao_social' => 'X',
             'created_at'                => now(),
             'updated_at'                => now(),
