@@ -36,17 +36,21 @@ ERP brasileiro **multi-tenant**, **modular especializado por vertical**: um **n�
 
 ### A2. As camadas (mental model)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  GOVERNANÇA   Constituição v2 · ADRs · Skills · Trust Tiers  │  ← "as leis"
-├─────────────────────────────────────────────────────────────┤
-│  VERTICAIS    Vestuario ✅ · ComunicacaoVisual 🟡 · OficinaAuto 🟡│  ← produto vendável por setor
-├─────────────────────────────────────────────────────────────┤
-│  NÚCLEO       Jana IA · Financeiro · NFe/NFSe · Repair(OS) ·  │  ← comum a todos
-│               RecurringBilling · PaymentGateway · FSM Pipeline│
-├─────────────────────────────────────────────────────────────┤
-│  KERNEL       UltimatePOS (Connector, Superadmin) + business_id│  ← base multi-tenant
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    G["<b>GOVERNANÇA</b><br/>Constituição v2 · ADRs · Skills · Trust Tiers<br/><i>as leis</i>"]
+    V["<b>VERTICAIS</b><br/>Vestuário ✅ · ComunicacaoVisual 🟡 · OficinaAuto 🟡<br/><i>produto vendável por setor</i>"]
+    N["<b>NÚCLEO</b><br/>Jana IA · Financeiro · NFe/NFSe · Repair (OS)<br/>RecurringBilling · PaymentGateway · FSM Pipeline<br/><i>comum a todos</i>"]
+    K["<b>KERNEL</b><br/>UltimatePOS (Connector, Superadmin) + business_id<br/><i>base multi-tenant</i>"]
+
+    G --> V --> N --> K
+
+    classDef topo fill:#F0EBFC,stroke:#6D4FD1,stroke-width:2px,color:#17151E
+    classDef meio fill:#F3F1F7,stroke:#8B8598,color:#17151E
+    classDef base fill:#EAE7F0,stroke:#736E80,color:#17151E
+    class G topo
+    class V,N meio
+    class K base
 ```
 
 Camada de cima **herda** da de baixo e **nunca contradiz**. Detalhe canônico (arc42, 30+ módulos, trust level, runtime C4): **[governance/ARCHITECTURE.md](governance/ARCHITECTURE.md) — comece por aí pra o mapa técnico.**
@@ -256,13 +260,27 @@ Origem: [W] 2026-08-02 — *"preciso de um responsável que não se desvie do fo
 
 **A fonte é o git; o MCP é cache governado** (nunca o inverso — [ADR 0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)):
 
-```
-git memory/ (FONTE DE VERDADE)
-   │ push → webhook → MCP server ingere → mcp_* tables (cache vivo, ADR 0053, reconcile por ID ADR 0144)
-   ├─ tools MCP leem o cache vivo:  tasks-* · cycles-* · decisions-* · sessions-recent
-   ├─ ÍNDICES gerados da fonte:  decisions/_INDEX-GENERATED (gated) · requisitos/_BACKLOG-GENERATED (Check W)
-   ├─ HISTÓRIA append-only:  handoffs (ADR 0130) + session logs + git log
-   └─ AUDITORIA do drift:  memory-health (Checks S–W) → gov-sync propõe → Story (DoD = sentinela zera)
+```mermaid
+flowchart LR
+    GIT["<b>git memory/</b><br/>FONTE DE VERDADE"]
+    MCP["<b>MCP server</b><br/>mcp_* tables — cache vivo<br/>ADR 0053 · reconcile por ID (0144)"]
+
+    TOOLS["<b>Tools MCP</b> leem o cache<br/>tasks-* · cycles-* · decisions-* · sessions-recent"]
+    IDX["<b>Índices gerados</b> da fonte<br/>_INDEX-GENERATED (gated)<br/>_BACKLOG-GENERATED (Check W)"]
+    HIST["<b>História</b> append-only<br/>handoffs (ADR 0130) · session logs · git log"]
+    AUD["<b>Auditoria do drift</b><br/>memory-health (Checks S–W)<br/>→ gov-sync propõe → Story"]
+
+    GIT -->|push → webhook| MCP
+    MCP --> TOOLS
+    GIT --> IDX
+    GIT --> HIST
+    GIT --> AUD
+    AUD -.->|DoD = sentinela zera| GIT
+
+    classDef fonte fill:#F0EBFC,stroke:#6D4FD1,stroke-width:2px,color:#17151E
+    classDef cache fill:#F3F1F7,stroke:#8B8598,color:#17151E
+    class GIT fonte
+    class MCP,TOOLS,IDX,HIST,AUD cache
 ```
 
 | Sistema | Onde vive / máquina |
