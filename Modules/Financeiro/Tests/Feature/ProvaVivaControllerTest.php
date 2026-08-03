@@ -64,6 +64,9 @@ function provaVivaBootstrap(): User
 it('renderiza Inertia component Financeiro/ProvaViva', function () {
     $user = provaVivaBootstrap();
 
+    // Primeira visita (sem X-Inertia no request): o Inertia responde o root view
+    // HTML com o page object embutido. É essa forma que assertInertia() exige —
+    // fromTestResponse() começa com assertViewHas('page').
     $response = $this->actingAs($user)->get('/financeiro/prova-viva');
 
     if ($response->status() === 403) {
@@ -74,8 +77,13 @@ it('renderiza Inertia component Financeiro/ProvaViva', function () {
     }
 
     expect($response->status())->toBe(200);
-    expect($response->headers->get('X-Inertia'))->not()->toBeNull();
 
+    // NÃO asserta o header X-Inertia da resposta: ele só existe quando o REQUEST
+    // é XHR (X-Inertia: true), e nesse modo o Inertia devolve JSON — o que faz
+    // assertInertia() abaixo falhar com "Not a valid Inertia response". As duas
+    // asserções eram mutuamente exclusivas, então a linha do header NUNCA podia
+    // passar neste caso. Fica a mais forte: assertInertia prova que a rota é
+    // servida pelo Inertia E qual componente ela monta.
     $response->assertInertia(fn (AssertableInertia $page) => $page
         ->component('Financeiro/ProvaViva')
     );
