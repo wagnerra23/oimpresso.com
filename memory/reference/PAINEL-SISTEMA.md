@@ -68,7 +68,7 @@ lifecycle: ativo
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **341**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **342**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -222,7 +222,7 @@ lifecycle: ativo
 
 ## Rastro
 
-- **359** handoffs · **576** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **361** handoffs · **576** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-08-03-triagem-quarentena-financeiro`
   - `2026-08-03-documentacao-do-sistema-rota-agente-diagramas`

@@ -10,23 +10,30 @@
  * PORQUE o módulo foi deletado — e o fail-closed nisso significa que toda deleção
  * de módulo mata o gerador.
  *
- * Foi o que aconteceu, com recibo: 4 runs agendadas seguidas do `system-map.yml`
- * falharam (30/07, 31/07, 01/08, 02/08 de 2026) com "PATH MORTO ... (inline)
- * Modules/SRS" — deletado por design em #5036 —, depois somando `Modules/ADS`.
- * O PAINEL-SISTEMA.md congelou no regen de 28/07 (#4938).
+ * Foi o que aconteceu, com recibo: as 4 runs agendadas do `system-map.yml` de 30/07,
+ * 31/07, 01/08 e 02/08 de 2026 falharam com "PATH MORTO ... (inline) Modules/SRS"
+ * — deletado por design em #5036. O PAINEL-SISTEMA.md congelou.
  *
- * Este teste prova as DUAS pernas, senão a exceção vira buraco:
+ * ERRATA (2026-08-03, revisão adversarial): a redação original deste docblock dizia
+ * "depois somando `Modules/ADS`". FALSO — as 4 runs acusaram SÓ `Modules/SRS`; a
+ * lápide do ADS entrou em main em 03/08, DEPOIS da última falha. Ver a errata gêmea
+ * no cabeçalho de `system-map.mjs`.
+ *
+ * Este teste prova as pernas todas, senão a exceção vira buraco:
  *   · LIBERA — path morto DENTRO do bloco transcrito (é o caso legítimo).
  *   · MORDE  — o MESMO path morto FORA do bloco (a regra original segue viva).
  *   · MORDE  — link markdown morto mesmo DENTRO do bloco (escopo mínimo: a
  *              exceção cobre só path inline; link markdown nunca foi o caso).
  *   · MORDE  — marcador aberto e não fechado NÃO engole o resto do doc.
+ *   · LIBERA — lápide cujo TÍTULO cita o próprio marcador não fecha o bloco cedo
+ *              (a fragilidade que a revisão adversarial achou e `semComentarioHtml`
+ *              fechou — com o controle negativo que prova que ela era real).
  *
  * Determinístico: strings inline; o único I/O é existsSync sobre paths reais do
  * repo (um que existe, um que foi deletado de propósito).
  * Uso: node scripts/governance/system-map-deadlinks.test.mjs
  */
-import { deadLinks } from './system-map.mjs';
+import { deadLinks, semComentarioHtml } from './system-map.mjs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -90,6 +97,29 @@ ok(!existsSync(join(ROOT, MORTO)), `pré-condição: \`${MORTO}\` NÃO existe (d
 {
   const md = `- Fonte dona: \`${VIVO}\`.`;
   ok(deadLinks(md, OUT).length === 0, 'LIBERA: path vivo fora do bloco não é acusado');
+}
+
+// ── F) A fragilidade que a revisão adversarial achou: o CONTEÚDO fecha o bloco ──
+// O §5 é cheio de lápide SOBRE mecanismo, então um título citar o próprio marcador é
+// plausível, não exótico. Primeiro o CONTROLE NEGATIVO — prova que a fragilidade era
+// real —, depois o conserto.
+{
+  const tituloVenenoso = `2026-08-04 — Remover o marcador <!-- /transcrito-de --> do gerador`;
+  const monta = (titulo) => [
+    '<!-- transcrito-de: memory/proibicoes.md §5 -->',
+    `- ~~${titulo}~~`,
+    `- ~~2026-07-29 — Ressuscitar \`${MORTO}\` (ex-MemCofre)~~`,
+    '<!-- /transcrito-de -->',
+  ].join('\n');
+
+  ok(temInline(monta(tituloVenenoso), MORTO),
+    'CONTROLE NEGATIVO: sem sanitizar, o título fecha o bloco cedo e o gerador volta a morrer');
+  ok(!temInline(monta(semComentarioHtml(tituloVenenoso)), MORTO),
+    'LIBERA: com semComentarioHtml() o bloco resiste ao conteúdo que cita o marcador');
+  ok(!temInline(monta(semComentarioHtml('2026-08-05 — Não abrir <!-- transcrito-de: falso -->')), MORTO),
+    'LIBERA: e resiste também à ABERTURA forjada no conteúdo');
+  ok(semComentarioHtml(tituloVenenoso).includes('&lt;!-- /transcrito-de --&gt;'.replace('--&gt;', '-->')),
+    'a lápide segue LEGÍVEL — só a abertura do comentário vira entidade');
 }
 
 console.log(fails === 0 ? '\n  OK — transcrição libera, ponteiro morde.\n' : `\n  ${fails} FALHA(S)\n`);

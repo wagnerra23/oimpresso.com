@@ -187,37 +187,115 @@ export function resumoLiveness(estados) {
  * verde. Foi o vão que escondeu, ao mesmo tempo:
  *   · `system-map.yml`      — 4 runs agendadas seguidas falhando (30/07→02/08 de 2026),
  *                             o PAINEL-SISTEMA congelado, ninguém avisado;
- *   · `governance-drift.yml`— 40 de 40 runs agendadas falhando, ZERO sucesso desde 24/06.
+ *   · `governance-drift.yml`— 52 runs agendadas falhando em sequência; último sucesso
+ *                             em 2026-06-11, streak desde 12/06.
  *
- * MEDIDO antes de armar (2026-08-03, 24 workflows agendados, últimas ≤14 runs de cada):
- * 21 dos 24 com 0% de falha; os 3 restantes são defeito REAL, nenhum "vermelho por
- * desenho" — `system-map` 29% (corrigido no #5232), `governance-drift` 100% (aberto),
- * `exposicao-tier0-sentinel` 40% intermitente e já verde na última. Ou seja: o critério
- * "última run agendada falhou" alarma HOJE em 2 de 24, ambos legítimos, FP medido = 0.
- * Sem essa medição, o receio razoável era "alarme ruidoso que se aprende a ignorar" — o
- * dado disse o contrário, e é por isso que ela vem antes do código.
+ * ERRATA (2026-08-03, revisão adversarial). A redação original afirmava "40 de 40, ZERO
+ * sucesso desde 24/06" e "FP medido = 0, nenhum vermelho por desenho". As DUAS estavam
+ * erradas, e o modo de errar é o que vale registrar:
+ *   · "40 de 40 desde 24/06" saiu de um `gh run list --limit 40`. 40 runs diárias
+ *     contadas pra trás de 02/08 caem exatamente em ~24/06 — a BORDA DA JANELA foi lida
+ *     como início do fenômeno. Com a janela inteira (65 retidas): 52 failure + 13
+ *     success, último sucesso 11/06. A dívida é 13 dias mais velha que o registrado.
+ *   · "FP = 0" mediu a taxa de `failure` e concluiu sobre o SIGNIFICADO dela sem ler o
+ *     código de cada um. Lido: `governance-drift` sai 1 POR DESENHO (`SecretsAuditCommand`
+ *     → `return self::FAILURE; // drift detectado (CI-friendly)`, drift permanente à
+ *     espera de rotação [W]) e `exposicao-tier0-sentinel` também (piso Tier-0 violado →
+ *     comenta a issue #4567 → exit 1). Só `system-map` era defeito de mecanismo.
+ *
+ * E a janela ≤14 runs NÃO é comparável entre crons: cobre 0,9 dia no `mcp-drift-sentinel`
+ * (roda de 30 em 30 minutos) e 77 dias no `jana-ragas-gate` (semanal) — 86x de diferença.
+ * Somar os dois num "21 dos 24 com 0% de falha" é média de coisas incomensuráveis, e o
+ * número já virou 20 quando o `mcp-drift-sentinel` acumulou 1 falha na janela de ~21h.
+ *
+ * O QUE SOBREVIVEU: o vão é real, e quem prova é o próprio relatório de CI, que imprime
+ * as duas linhas juntas — `✓ governance-drift.yml 1d/3d` (eixo 1: vivo) ao lado de
+ * `🔴 governance-drift.yml — última run agendada CONCLUIU 'failure'` (eixo 3).
  *
  * Eixo SEPARADO do liveness de propósito: vivo-e-falhando é um estado real (é o caso
  * dos dois acima), e colapsar os dois num só faria o relatório perder justo esse.
  */
+// `completed` NÃO é só success/failure: o GitHub fecha run com 9 conclusões distintas.
+// Tratar "tudo != success" como FALHA é falso-positivo medido, não hipotético —
+// 20 dos 24 workflows agendados usam `cancel-in-progress: true`, e já existe run
+// agendada cancelada de verdade (`mcp-drift-sentinel.yml`, run 29219824034, 13/07),
+// que o filtro `--status completed` DEVOLVE. O pior caso é o próprio
+// `mcp-drift-sentinel`: roda `*/30 * * * *` com `group:` sem `${{ github.ref }}`, então
+// qualquer dispatch cancela a agendada em curso — e um cancelamento benigno viraria
+// 🔴 + exit 1. Achado da revisão adversarial de 2026-08-03: a medição que precedeu o
+// eixo 3 olhou a TAXA de `failure` e nunca o ESPAÇO de `conclusion`.
+const CONCLUSOES_DE_FALHA = new Set(['failure', 'timed_out', 'startup_failure']);
+// Não afirmam sucesso NEM defeito: a run não chegou ao fim por conta própria. Estado
+// próprio de propósito — some no relatório sem derrubar, e proíbe afirmar verde.
+const CONCLUSOES_INCONCLUSIVAS = new Set(['cancelled', 'skipped', 'neutral', 'stale', 'action_required']);
+
 export function classificarSucesso(consulta) {
   if (!consulta || consulta.ok !== true) return { estado: 'cego' };
   if (!consulta.at) return { estado: 'bootstrap' };
   // conclusion ausente numa run já `completed` = resposta incompleta, não é "deu certo":
   // afirmar sucesso a partir de campo que não veio é o fail-open que a ADR 0317 §2 pune.
   if (!consulta.conclusion) return { estado: 'cego' };
-  return consulta.conclusion === 'success'
-    ? { estado: 'ok', conclusion: consulta.conclusion }
-    : { estado: 'falhou', conclusion: consulta.conclusion, at: consulta.at };
+  const c = consulta.conclusion;
+  if (c === 'success') return { estado: 'ok', conclusion: c };
+  if (CONCLUSOES_DE_FALHA.has(c)) return { estado: 'falhou', conclusion: c, at: consulta.at };
+  if (CONCLUSOES_INCONCLUSIVAS.has(c)) return { estado: 'inconclusivo', conclusion: c, at: consulta.at };
+  // Conclusão DESCONHECIDA (o GitHub pode acrescentar valores): inconclusivo, nunca
+  // sucesso e nunca falha — inventar veredito a partir de string não prevista é o
+  // mesmo fail-open, só que com cara de exaustividade.
+  return { estado: 'inconclusivo', conclusion: c, at: consulta.at };
 }
 
-/** Agrega o eixo 3. `afirmaVerde` exige medição de todos — mesma regra do eixo 1. */
+/**
+ * FIAÇÃO dos eixos 1 e 3 — pura de propósito, recebendo `consultar` por parâmetro.
+ *
+ * Antes, este laço vivia solto no corpo do script e NENHUM assert o alcançava: a
+ * revisão adversarial de 2026-08-03 provou com mutantes que desligar o eixo 3 inteiro
+ * — trocar `if (s.estado === 'falhou')` por `if (false)`, ou tirar `rs.exit` do
+ * `process.exit` — deixava o selftest VERDE. Os asserts provavam as funções puras e
+ * nada da invocação: a classe "correção-do-mecanismo ≠ invocação" (§5 2026-07-09),
+ * justamente o defeito que o eixo 2 deste arquivo se gaba de ter consertado.
+ *
+ * Residual honesto que permanece: a linha `process.exit(decidirExit(...))` no corpo do
+ * script segue fora de teste — para cobri-la seria preciso E2E com `gh` stubado. O que
+ * este refactor faz é reduzir a superfície não-testada de um laço inteiro para uma
+ * linha, não zerá-la. Declarar isso é parte do conserto.
+ */
+export function avaliarCrons(wfs, consultar, nowMs) {
+  const dead = [], boot = [], alive = [], cego = [], estados = [];
+  const falhando = [], inconclusivos = [], estadosSucesso = [];
+  for (const { file, cron } of wfs) {
+    const consulta = consultar(file); // UMA consulta alimenta os eixos 1 e 3
+    const c = classificarLiveness(cron, consulta, nowMs);
+    const s = classificarSucesso(consulta);
+    estadosSucesso.push(s.estado);
+    if (s.estado === 'falhou') falhando.push(`${file} — última run agendada CONCLUIU '${s.conclusion}' (${s.at})`);
+    else if (s.estado === 'inconclusivo') inconclusivos.push(`${file} — última run agendada CONCLUIU '${s.conclusion}' (${s.at}) — não afirma sucesso nem defeito`);
+    estados.push(c.estado);
+    if (c.estado === 'cego') cego.push(`${file} (cron '${cron}') — NÃO CONSULTÁVEL (gh ausente/sem auth/sem 'actions:read'/API fora): este cron NÃO foi medido`);
+    else if (c.estado === 'bootstrap') boot.push(`${file} (cron '${cron}') — sem run agendada ainda (bootstrap; arma na 1ª execução)`);
+    else if (c.estado === 'morto') dead.push(`${file} (cron '${cron}') MORTO há ${c.dias}d (limite ${c.limite}d) — última agendada: ${c.at}`);
+    else alive.push(`${file} ${c.dias}d/${c.limite}d`);
+  }
+  return { dead, boot, alive, cego, estados, falhando, inconclusivos, estadosSucesso };
+}
+
+/** Decisão de saída dos 3 eixos, num só lugar testável. */
+export function decidirExit(rLiveness, rSucesso, falhouEntrega) {
+  return (rLiveness.exit || rSucesso.exit || falhouEntrega) ? 1 : 0;
+}
+
+/**
+ * Agrega o eixo 3. `afirmaVerde` exige medição de todos E que ninguém esteja
+ * inconclusivo — mesma regra do eixo 1: não se afirma sobre o que não se mediu.
+ * `exit` só conta falha REAL: cancelamento não derruba o job.
+ */
 export function resumoSucesso(estados) {
-  const cont = { ok: 0, bootstrap: 0, cego: 0, falhou: 0 };
+  const cont = { ok: 0, bootstrap: 0, cego: 0, falhou: 0, inconclusivo: 0 };
   for (const e of estados) if (e in cont) cont[e]++;
   const total = estados.length;
   return { ...cont, total, medidos: total - cont.cego,
-    afirmaVerde: cont.falhou === 0 && cont.cego === 0, exit: cont.falhou > 0 ? 1 : 0 };
+    afirmaVerde: cont.falhou === 0 && cont.cego === 0 && cont.inconclusivo === 0,
+    exit: cont.falhou > 0 ? 1 : 0 };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -388,6 +466,48 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   ok(resumoSucesso(['ok', 'cego']).afirmaVerde === false && resumoSucesso(['ok', 'cego']).exit === 0,
     'cegueira parcial no eixo 3 → não derruba, mas também não afirma verde');
 
+  // ── FP MEDIDO: `completed` tem 9 conclusões, não 2 (revisão adversarial 2026-08-03) ──
+  // 20 dos 24 workflows agendados usam `cancel-in-progress: true`, e a run 29219824034
+  // (`mcp-drift-sentinel`, 13/07) é um cancelamento REAL que o `--status completed` devolve.
+  const runCancel = { ok: true, at: '2026-07-13T02:35:14Z', conclusion: 'cancelled' };
+  ok(classificarSucesso(runCancel).estado === 'inconclusivo',
+    'BITE: cancelled → INCONCLUSIVO, não "falhou" (o FP real do caso 29219824034)');
+  ok(resumoSucesso(['ok', 'inconclusivo']).exit === 0,
+    'LIBERA: cancelamento benigno NÃO derruba o job');
+  ok(resumoSucesso(['ok', 'inconclusivo']).afirmaVerde === false,
+    'mas também não deixa afirmar verde — não se afirma sobre o que não se mediu');
+  for (const c of ['skipped', 'neutral', 'stale', 'action_required']) {
+    ok(classificarSucesso({ ok: true, at: 'x', conclusion: c }).estado === 'inconclusivo',
+      `LIBERA: '${c}' → inconclusivo (não é defeito do cron)`);
+  }
+  for (const c of ['failure', 'timed_out', 'startup_failure']) {
+    ok(classificarSucesso({ ok: true, at: 'x', conclusion: c }).estado === 'falhou',
+      `MORDE: '${c}' → falhou (falha real continua mordendo)`);
+  }
+  ok(classificarSucesso({ ok: true, at: 'x', conclusion: 'conclusao_futura_do_github' }).estado === 'inconclusivo',
+    'conclusão DESCONHECIDA → inconclusivo, nunca sucesso (fail-open com cara de exaustividade)');
+
+  // ── FIAÇÃO: os mutantes que passavam verde antes (mut1/mut2 da revisão adversarial) ──
+  const wfsFake = [{ file: 'a.yml', cron: '30 10 * * *' }, { file: 'b.yml', cron: '30 10 * * *' }];
+  const NOW3 = Date.parse('2026-08-03T12:00:00Z');
+  const consultaFake = (f) => (f === 'a.yml'
+    ? { ok: true, at: '2026-08-03T10:30:00Z', conclusion: 'failure' }
+    : { ok: true, at: '2026-08-03T10:30:00Z', conclusion: 'success' });
+  const av = avaliarCrons(wfsFake, consultaFake, NOW3);
+  ok(av.falhando.length === 1 && av.falhando[0].includes('a.yml'),
+    'FIAÇÃO: o laço REPORTA o cron falhando (mata o mutante `if (false) falhando.push`)');
+  ok(av.estados.every((e) => e === 'vivo'),
+    'FIAÇÃO: e os dois seguem VIVOS no eixo 1 — o vão, medido pela fiação inteira');
+  ok(decidirExit(resumoLiveness(av.estados), resumoSucesso(av.estadosSucesso), 0) === 1,
+    'FIAÇÃO: eixo 3 sozinho derruba o exit (mata o mutante que tira `rs.exit`)');
+  ok(decidirExit({ exit: 0 }, { exit: 0 }, 0) === 0 && decidirExit({ exit: 0 }, { exit: 0 }, 1) === 1,
+    'FIAÇÃO: sem falha → 0; entrega parada sozinha → 1 (os outros eixos seguem ligados)');
+  const avCancel = avaliarCrons([{ file: 'c.yml', cron: '30 10 * * *' }],
+    () => ({ ok: true, at: '2026-08-03T10:30:00Z', conclusion: 'cancelled' }), NOW3);
+  ok(avCancel.falhando.length === 0 && avCancel.inconclusivos.length === 1
+     && decidirExit(resumoLiveness(avCancel.estados), resumoSucesso(avCancel.estadosSucesso), 0) === 0,
+    'FIAÇÃO: cron só-cancelado atravessa o caminho inteiro sem derrubar nada');
+
   console.log(falhas ? `\n✗ selftest: ${falhas} falha(s)` : '\n✓ selftest: núcleo morde e libera certo');
   process.exit(falhas ? 1 : 0);
 }
@@ -413,21 +533,9 @@ if (!wfs.length) {
   process.exit(reportarEntrega(checarEntrega(Date.now())));
 }
 
-const dead = [], boot = [], alive = [], cego = [], estados = [];
-const falhando = [], estadosSucesso = []; // eixo 3
 const nowMs = Date.now(); // liveness real (não determinístico de propósito)
-for (const { file, cron } of wfs) {
-  const consulta = lastScheduledRun(file); // UMA consulta alimenta os eixos 1 e 3
-  const c = classificarLiveness(cron, consulta, nowMs);
-  const s = classificarSucesso(consulta);
-  estadosSucesso.push(s.estado);
-  if (s.estado === 'falhou') falhando.push(`${file} — última run agendada CONCLUIU '${s.conclusion}' (${s.at})`);
-  estados.push(c.estado);
-  if (c.estado === 'cego') cego.push(`${file} (cron '${cron}') — NÃO CONSULTÁVEL (gh ausente/sem auth/sem 'actions:read'/API fora): este cron NÃO foi medido`);
-  else if (c.estado === 'bootstrap') boot.push(`${file} (cron '${cron}') — sem run agendada ainda (bootstrap; arma na 1ª execução)`);
-  else if (c.estado === 'morto') dead.push(`${file} (cron '${cron}') MORTO há ${c.dias}d (limite ${c.limite}d) — última agendada: ${c.at}`);
-  else alive.push(`${file} ${c.dias}d/${c.limite}d`);
-}
+const { dead, boot, alive, cego, estados, falhando, inconclusivos, estadosSucesso } =
+  avaliarCrons(wfs, lastScheduledRun, nowMs);
 const r = resumoLiveness(estados);
 
 console.log(`🩺 cron-watchdog — ${wfs.length} crons agendados · ${alive.length} vivos · ${boot.length} bootstrap · ${cego.length} ⛔ não medidos · ${dead.length} 🔴 mortos`);
@@ -451,12 +559,13 @@ if (dead.length) {
 // estado independente de morto, e o caso real (system-map, governance-drift) estava
 // justamente vivo. Esconder atrás do eixo 1 faria o relatório mentir por omissão.
 const rs = resumoSucesso(estadosSucesso);
-console.log(`\n🎯 sucesso — ${rs.medidos} medido(s) de ${rs.total} · ${rs.ok} ok · ${rs.bootstrap} bootstrap · ${rs.cego} ⛔ não medidos · ${falhando.length} 🔴 falhando`);
+console.log(`\n🎯 sucesso — ${rs.medidos} medido(s) de ${rs.total} · ${rs.ok} ok · ${rs.bootstrap} bootstrap · ${rs.cego} ⛔ não medidos · ${rs.inconclusivo} 🟠 inconclusivos · ${falhando.length} 🔴 falhando`);
 for (const f of falhando) console.error(`🔴 ${f}`);
+for (const i of inconclusivos) console.log(`🟠 ${i}`);
 if (falhando.length) {
   console.error(`\n✗ ${falhando.length} cron(s) DISPARAM mas FALHAM — heartbeat fresco não é entrega. Abra o log com 'gh run list --workflow <file> --event schedule' e conserte a origem, ou registre por que o vermelho é esperado.`);
-} else if (rs.cego) {
-  console.log(`✓ os ${rs.medidos} cron(s) MEDIDOS concluíram com sucesso — ⚠️ ${rs.cego} não foi(ram) medido(s): sobre esse(s) nada se afirma.`);
+} else if (rs.cego || rs.inconclusivo) {
+  console.log(`✓ nenhum cron MEDIDO falhou — ⚠️ ${rs.cego} não medido(s) e ${rs.inconclusivo} inconclusivo(s) (cancelled/skipped/...): sobre esse(s) nada se afirma.`);
 } else {
   console.log(`✓ a última run agendada de todos os ${rs.total} concluiu com sucesso.`);
 }
@@ -465,6 +574,6 @@ if (falhando.length) {
 // independentes (um cron pode estar vivo e não entregar, e vice-versa) e esconder
 // a segunda atrás da primeira faria o relatório mentir por omissão.
 const falhouEntrega = reportarEntrega(checarEntrega(nowMs));
-process.exit(r.exit || rs.exit || falhouEntrega ? 1 : 0);
+process.exit(decidirExit(r, rs, falhouEntrega));
 
 }
