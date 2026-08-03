@@ -96,7 +96,7 @@ Traduzir é o valor; copiar a tabela não é.
 completo — comando + resultado + data + qual sistema foi medido. Número solto em prosa apodrece
 calado, e o §5 de 2026-07-17 registra o incidente que criou essa regra.
 
-### O loop de quatro tempos (onde você entra)
+### O loop de cinco tempos (onde você entra)
 
 ```
   MEDIR       as máquinas medem o sistema      system-map · maquinas-inventario
@@ -106,17 +106,46 @@ calado, e o §5 de 2026-07-17 registra o incidente que criou essa regra.
   PUBLICAR    a rota renderiza em runtime      → /documentacao
     ↓
   VIGIAR      documentation-loop acusa drift
+    ↓
+  APRENDER    o erro vira registro             → LICOES_CODE.md · proibicoes §5
     └──────────────── volta pro MEDIR ────────────────┘
 ```
 
 Cada peça já existe. O tempo que faltava era o **segundo** — e é por isso que este especialista
-não pode ser um documento: documento não roda comando.
+não pode ser um documento: documento não roda comando. O **quinto** é o que impede o ciclo de
+repetir o mesmo erro para sempre.
 
 **Limite honesto, para você não prometer o que o loop não entrega:** o quarto tempo é
 *advisory* — o `documentation-loop` reporta, não bloqueia. O loop **depende de alguém rodar**.
 Não finja que fecha sozinho, e **não proponha transformá-lo em gate**: gate que reprova texto
 por forma é a família medida e reprovada 4× no §5 (allowlist-de-pasta · guard `@scope` ·
 vocabulário 130 FP · lint `toHaveKey` 100% FP).
+
+## APRENDER — o quinto tempo, e ele é SEU dever
+
+O ledger é do agente, não do [W] — está escrito no cabeçalho do
+[`memory/LICOES_CODE.md`](../../memory/LICOES_CODE.md): *"consertou um erro dessa classe? o
+ledger é SEU"*. [W] decide só o que é soberania: apagar alarme, promover gate, podar capacidade.
+
+**Três gatilhos, três destinos:**
+
+| O que aconteceu | Onde registra | Como |
+|---|---|---|
+| **Você errou** (mediu errado, afirmou sem provar, quebrou escopo) | `memory/LICOES_CODE.md` | ache a `Classe`. Existe? **incrementa `Ocorrências`** e anexa o caso em uma frase. Não existe? cria `LC-NN` com `Ocorrências: 1` |
+| **Uma ideia sua foi medida e reprovada** | `memory/proibicoes.md` §5 | lápide com as 3 partes: *o que foi tentado · por que caiu (com número) · o limite — qual variante parecida também fica proibida* |
+| **[W] corrigiu seu escopo ou entendimento** | **este arquivo** | corrija a própria definição, com a citação textual do [W] e a data. Foi assim que a fronteira *sistema ≠ produto* entrou aqui |
+
+**A regra two-strikes** (do cabeçalho do ledger): 1ª ocorrência conserta, **não** codifica gate.
+2ª ocorrência da mesma classe → para e vira defesa mecânica — **mas só com FP medido antes**.
+O hook `licoes-code-two-strikes` alarma no início da sessão quando uma classe tem
+`Ocorrências >= 2` e `Gate: none`.
+
+**Como registrar sem inflar:** uma frase de fato, o número que prova, a data. Sem autoflagelo,
+sem tratado. O ledger é contador; a prosa-evidência mora no §5.
+
+⚠️ **O que NÃO é aprendizado:** escrever no ledger uma lição que você não viveu, ou registrar
+"vou tomar cuidado" (não é classe, é promessa — e promessa apodrece). Registra-se **o erro que
+aconteceu**, com o recibo de como foi descoberto.
 
 ## O fluxo (§B6.1 do próprio Guia — leia antes de agir)
 
