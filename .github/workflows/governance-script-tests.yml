@@ -61,6 +61,29 @@ jobs:
         run: node scripts/governance/agent-pr-outcomes.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         run: node scripts/governance/agent-cost-per-pr.test.mjs
+      # Alcance arquivo-de-teste -> lane de PR. O selftest e a defesa do MEDIDOR
+      # (bite + controles negativos); o relatorio e ADVISORY e nao derruba o PR —
+      # o numero e relato, nao veredito. Ligado aqui porque script sem invocador e
+      # bug (proibicoes.md §Sempre-fazer #2), nao neutralidade.
+      # Sem contador no nome: "bite 15/15" apodreceria no proximo caso novo (LC-10 —
+      # artefato afirmando em tempo presente algo que muda). O numero vive na saida.
+      - name: Test-lane coverage (teste existe x lane de PR alcanca · bite + controles)
+        run: node scripts/governance/test-lane-coverage.mjs --selftest
+      - name: Test-lane coverage — relatorio (ADVISORY, nao bloqueia)
+        run: node scripts/governance/test-lane-coverage.mjs || true
+
+      # FORWARD-ONLY: nao cobra a divida historica (957 arquivos, nao e deste PR).
+      # Aponta so o que ESTE PR esta prestes a deixar sem rede — o padrao exato do
+      # incidente PiiRedactor: fonte alterada, teste dela existindo, nenhuma lane de
+      # PR alcancando. Provado E2E contra o commit real do incidente: acusa o
+      # PiiRedactorTest.php; controle negativo (diff sem fonte orfa) sai limpo.
+      # O checkout e raso (depth=1), entao a base do PR precisa ser buscada — sem
+      # ela o script imprime "ausencia de MEDICAO" e sai 0, nunca um falso "limpo".
+      - name: Forward-only — o teste do arquivo tocado roda em lane de PR? (ADVISORY)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=50 origin "${{ github.event.pull_request.base.sha }}" 2>/dev/null || true
+          node scripts/governance/test-lane-coverage.mjs --diff "${{ github.event.pull_request.base.sha }}" || true
       # Blinda a MATEMÁTICA (pearson/spearman) do outcome-probe do funcao-scorecard — o "número
       # real" (r=0.26) da proposta 2026-07-21-funcao-scorecard-validacao-por-outcome sustenta-se
       # nessas funções; um pearson bugado seria LC-08 (medir errado). Prova contra valores conhecidos
