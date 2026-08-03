@@ -221,6 +221,33 @@ Fonte completa: [proibicoes.md](proibicoes.md). As que mais te afetam:
 - **O censo de TODAS as máquinas** (geradores + gates + hooks + skills + agents) é **derivado**, não escrito à mão: [governance/MAQUINAS-INVENTARIO.md](../governance/MAQUINAS-INVENTARIO.md) (regerado por `maquinas-inventario.mjs`). Donos por camada: [reference/PAINEL-SISTEMA.md](reference/PAINEL-SISTEMA.md). Saúde do ciclo documental (snapshot antes→correção no dono→depois): `documentation-loop.mjs`.
 - ⛔ A resposta pra *"onde acho X / quem faz Y"* **NÃO é um índice/mapa novo** — foi tentado e reprovado 2× ([proibicoes.md](proibicoes.md) §5 2026-07-23 e 2026-07-25). Os donos já existem: **estende ou aponta**, nunca abre paralelo.
 
+#### B6.1 — Como pedir mudança de documentação (fluxo de 6 passos)
+
+Origem: [W] 2026-08-02 — *"preciso de um responsável que não se desvie do foco e mantenha atualizado; já aconteceram muitos erros por causa disso"*. O responsável **não é uma pessoa nem um agente novo** (ver bullet 1 acima): é este procedimento + o workflow [`documentacao-tecnica`](../.claude/workflows/documentacao-tecnica.js), cuja lei já é *"escolha **exatamente 1** achado acionável"*.
+
+1. **[W] pede em uma frase, no chat.** É o canal real — nenhuma US ou UC foi escrita por [W] sozinho em 60 dias (verificado 2026-07-16).
+2. **O agente declara o escopo ANTES de tocar em nada** — uma linha: *"vou fazer X; não vou fazer Y nem Z"*. É aqui que [W] corta, não três PRs depois.
+3. **Um item por vez**, via `documentacao-tecnica`: mede o drift → corrige **no dono existente** → prova com recibo antes→depois pelo mesmo detector → abre PR.
+4. **O conteúdo vai pro DONO** (tabela abaixo). Nunca pra arquivo novo.
+5. **[W] mergeia** — o merge é o ato de ratificação.
+6. **A página se atualiza sozinha**, porque é derivada: `/documentacao` renderiza este arquivo em runtime. Não há cópia pra alguém lembrar de sincronizar.
+
+| O que é | Dono |
+|---|---|
+| Documentação do sistema | **este arquivo** (`GUIA-DO-SISTEMA.md`) |
+| Decisão arquitetural | `decisions/NNNN-*.md` (append-only) |
+| Estado de um módulo | `requisitos/<Mod>/BRIEFING.md` |
+| Requisito | `requisitos/<Mod>/SPEC.md` |
+| Procedimento operacional | `RUNBOOK-*.md` |
+| Lei de uma tela | `<Tela>.charter.md`, ao lado do `.tsx` |
+| Retrato gerado (módulos, gates) | [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) — **não se edita à mão** |
+
+**As três regras que evitam os erros de 2026-08-02:**
+
+- **Nada de cópia.** Nenhum HTML commitado, nenhum resumo paralelo. Se existe cópia, alguém tem que sincronizar — e ninguém sincroniza.
+- **Nada de documento novo quando o dono existe.** A pergunta antes de criar é sempre: *quem já é dono deste assunto?*
+- **Achado adjacente não emenda.** Encontrou outro problema no caminho? Reporta em UMA linha e **para**. [W] decide se vira trabalho, e quando. _(O que deu errado naquela sessão: cada achado adjacente virou "sim" por reflexo, e o pedido original — a documentação — ficou parado no meio.)_
+
 ---
 
 ## Backbone operacional — como tudo se conecta
