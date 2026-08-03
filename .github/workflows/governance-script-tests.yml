@@ -61,6 +61,14 @@ jobs:
         run: node scripts/governance/agent-pr-outcomes.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         run: node scripts/governance/agent-cost-per-pr.test.mjs
+      # Alcance arquivo-de-teste -> lane de PR. O selftest e a defesa do MEDIDOR
+      # (bite + controles negativos); o relatorio e ADVISORY e nao derruba o PR —
+      # o numero e relato, nao veredito. Ligado aqui porque script sem invocador e
+      # bug (proibicoes.md §Sempre-fazer #2), nao neutralidade.
+      - name: Test-lane coverage (teste existe x lane de PR alcanca · bite 15/15)
+        run: node scripts/governance/test-lane-coverage.mjs --selftest
+      - name: Test-lane coverage — relatorio (ADVISORY, nao bloqueia)
+        run: node scripts/governance/test-lane-coverage.mjs || true
       # Blinda a MATEMÁTICA (pearson/spearman) do outcome-probe do funcao-scorecard — o "número
       # real" (r=0.26) da proposta 2026-07-21-funcao-scorecard-validacao-por-outcome sustenta-se
       # nessas funções; um pearson bugado seria LC-08 (medir errado). Prova contra valores conhecidos

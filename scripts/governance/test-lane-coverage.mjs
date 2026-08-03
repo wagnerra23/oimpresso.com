@@ -86,14 +86,34 @@ export function extrairAlvos(yamlText, entradasDaLista = []) {
   // começam em `Modules/` ou `tests/` e seguem até espaço/backslash/aspas.
   const invocaPest = /vendor\/bin\/pest/.test(yamlText);
   if (invocaPest) {
-    // Recorta do 1º `vendor/bin/pest` em diante pra não capturar paths de `paths:`
-    // (o trigger cita arquivos de teste que a lane NÃO necessariamente executa —
-    //  confundir os dois foi exatamente o erro que originou este script).
+    // Só as LINHAS DE COMANDO contam. A 1ª versão fatiava do 1º `vendor/bin/pest`
+    // até o FIM DO ARQUIVO — e engolia texto que não é comando: em
+    // visual-regression.yml:680 a string de AJUDA de um comentário de PR
+    // ("./vendor/bin/pest tests/Browser/ --update-snapshots") virava alvo-diretório
+    // e "cobria" os 12 arquivos de tests/Browser por prefixo. Um deles
+    // (NfeBrasil/NfceStatusTest.php) não roda em lane nenhuma E a nightly exclui
+    // tests/Browser: o script marcava como coberto justamente o teste que não roda
+    // em lugar nenhum — o defeito que ele existe pra achar. (adversário 2026-08-02)
+    //
+    // Heurística conservadora: descarta linha que é literal de string de script
+    // (aspas + vírgula final, padrão do actions/github-script) e linha de markdown
+    // de comentário. Preferir FALSO-ÓRFÃO a FALSO-COBERTO: acusar demais é ruído
+    // que se investiga; acusar de menos esconde o teste que ninguém roda.
+    const linhasComando = yamlText
+      .slice(yamlText.indexOf('vendor/bin/pest'))
+      .split(/\r?\n/)
+      .filter((l) => {
+        const t = l.trim();
+        if (/^['"].*['"],?$/.test(t)) return false;   // literal de array JS (github-script)
+        if (/^#/.test(t)) return false;               // comentário YAML
+        if (/^['"]?\s*\d+\.\s/.test(t)) return false; // item numerado de mensagem
+        return true;
+      })
+      .join('\n');
     // `${{ matrix.module }}` CONTÉM ESPAÇOS — vira placeholder sem espaço antes do
     // regex, senão o match para no 1º espaço e a matriz nunca expande (bug pego
     // pelo próprio --selftest antes deste script ser usado pra decidir qualquer coisa).
-    const desdePest = yamlText
-      .slice(yamlText.indexOf('vendor/bin/pest'))
+    const desdePest = linhasComando
       .replace(/\$\{\{\s*matrix\.module\s*\}\}/g, '__MATRIXMODULE__');
     const re = /(?:^|[\s'"])((?:Modules|tests)\/[A-Za-z0-9_\-./]*?)(?=[\s'"\\]|$)/gm;
     let m;
@@ -150,11 +170,32 @@ export function estaCoberto(teste, alvos) {
 
 // ───────────────────────────────── coleta (I/O) ───────────────────────────────
 
+/**
+ * Diretórios que NÃO são teste real. O critério NÃO é inventado aqui: é lido do
+ * `SHARD_EXCLUDE` do ct100-fullsuite.sh, que já os poda e explica por quê
+ * ("tests/governance-fixtures = testes SINTETICOS bad/good dos gates, nao reais").
+ * Ler do dono evita dois critérios divergindo — se lá mudar, aqui acompanha.
+ * `tests/Browser` fica FORA desta poda: são testes reais (11 dos 12 rodam em PR);
+ * a nightly os exclui por falta de Playwright na imagem, não por não serem testes.
+ */
+function dirsSinteticos() {
+  const sh = join(ROOT, 'scripts', 'tests', 'ct100-fullsuite.sh');
+  if (!existsSync(sh)) return ['tests/governance-fixtures'];
+  const m = readFileSync(sh, 'utf8').match(/SHARD_EXCLUDE="\$\{FULLSUITE_SHARD_EXCLUDE:-([^}"]+)\}"/);
+  const todos = m ? m[1].split(',').map((s) => s.trim()).filter(Boolean) : [];
+  return todos.filter((d) => d.includes('fixtures'));
+}
+
 function testesExistentes() {
   const out = execFileSync('git', ['ls-files', 'Modules', 'tests'], {
     cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
   });
-  return out.split(/\r?\n/).filter((p) => /Test\.php$/.test(p) && /(^|\/)([Tt]ests)\//.test(p)).sort();
+  const sinteticos = dirsSinteticos();
+  return out
+    .split(/\r?\n/)
+    .filter((p) => /Test\.php$/.test(p) && /(^|\/)([Tt]ests)\//.test(p))
+    .filter((p) => !sinteticos.some((d) => p.startsWith(d + '/')))
+    .sort();
 }
 
 function entradasDaListaCurada() {
@@ -269,6 +310,28 @@ function selftest() {
     estaCoberto('tests/Feature/Extra/ForaDaArvoreTest.php', aFind));
   ok('CONTROLE NEGATIVO: find de um módulo não cobre outro',
     !estaCoberto('Modules/Outro/Tests/Feature/QualquerTest.php', aFind));
+
+  // BITE do falso-COBERTO achado pelo adversário (2026-08-02): path dentro de
+  // string de AJUDA (actions/github-script) não é comando e não pode virar alvo.
+  // Era assim que tests/Browser/NfeBrasil/NfceStatusTest.php — que não roda em
+  // lane nenhuma e é excluído da nightly — aparecia coberto.
+  const wfAjuda = [
+    'jobs:', '  x:', '    steps:', '      - run: |',
+    '          vendor/bin/pest tests/Browser/RealTest.php',
+    '      - uses: actions/github-script@v7',
+    '        with:', '          script: |',
+    '            const corpo = [',
+    "              '   ./vendor/bin/pest tests/Browser/ --update-snapshots',",
+    "              '   git add tests/Browser/Screenshots/',",
+    '            ]',
+  ].join('\n');
+  const aAjuda = extrairAlvos(wfAjuda);
+  ok('BITE: path em string de AJUDA não vira alvo-diretório',
+    !aAjuda.includes('tests/Browser/'));
+  ok('LIBERA: o comando real da mesma lane segue coberto',
+    estaCoberto('tests/Browser/RealTest.php', aAjuda));
+  ok('BITE: teste irmão não roda por causa da string de ajuda',
+    !estaCoberto('tests/Browser/NfeBrasil/NfceStatusTest.php', aAjuda));
 
   // arquivo .php nunca é tratado como diretório
   ok('CONTROLE NEGATIVO: .php não cobre irmão por prefixo',
