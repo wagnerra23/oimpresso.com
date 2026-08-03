@@ -88,7 +88,6 @@ Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (10
 Modules/Financeiro/Tests/Feature/FluxoControllerTest.php  # 3 failed, 3 passed (39 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/Onda26InterWebhookIntegrationTest.php  # 2 failed (0 assertions)
-Modules/Financeiro/Tests/Feature/ProvaVivaControllerTest.php  # 1 failed, 1 passed (3 assertions)
 Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions)
 Modules/Financeiro/Tests/Feature/TituloCriadoEventTest.php  # 1 failed, 1 passed (3 assertions)
@@ -185,6 +184,34 @@ Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado 
 # de ~10,0s para ~6,7s no ambiente que tem chave.
 #
 # DEPOIS do fix, os dois ambientes concordam: 12 passed (25 assertions).
+# ── ProvaVivaControllerTest (2026-08-02, triagem 3/N do bucket C) ────────
+#   1 failed, 1 passed (3 assertions)  →  2 passed (9 assertions)
+#
+# Classificação: TESTE PODRE (asserção impossível), NÃO regressão de produto.
+# O caso fazia um GET simples e então exigia DUAS coisas mutuamente exclusivas:
+#
+#   expect($response->headers->get('X-Inertia'))->not()->toBeNull();  ← exige XHR
+#   $response->assertInertia(...)                                    ← exige HTML
+#
+# O Inertia só emite o header X-Inertia na RESPOSTA quando o REQUEST é XHR
+# (X-Inertia: true) — e nesse modo devolve JSON. Já assertInertia() começa com
+# assertViewHas('page') (AssertableInertia:71), logo exige a root view HTML.
+# Provado empiricamente nesta triagem: com os headers XHR o status vira 200 e o
+# header aparece, mas o assertInertia passa a falhar "Not a valid Inertia
+# response". Nenhuma das duas formas satisfaz as duas linhas juntas.
+#
+# Fix = manter a primeira visita (GET simples) e REMOVER a linha do header, que
+# nunca podia passar. Fica a asserção mais forte: assertInertia prova que a rota
+# é servida pelo Inertia E qual componente ela monta (Financeiro/ProvaViva).
+# Produção intocada.
+#
+# PROVA DE EXECUÇÃO: assertions 3 → 9. O salto é o assertInertia, que antes
+# nunca era alcançado porque a linha anterior abortava o caso.
+#
+# ⚠️ MESMA LINHA COPIADA EM 3 IRMÃOS AINDA EM QUARENTENA — DreControllerTest:80,
+# FluxoControllerTest:77 e UnificadoControllerTest:77. NÃO consertados aqui de
+# propósito (um arquivo por PR): cada um tem outras falhas além desta, e
+# conserto em lote é exatamente o que o cabeçalho proíbe.
 #
 # Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa
 # provisionada pela receita do CI .github/actions/pest-mysql-setup).
