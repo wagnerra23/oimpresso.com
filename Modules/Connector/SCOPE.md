@@ -1,6 +1,6 @@
 ---
 module: Connector
-purpose: "POS APIs UltimatePOS — coração dos POS clientes. Só Wagner toca."
+purpose: "Porta REST externa única do oimpresso (Passport auth:api, contrato congelado): expõe o núcleo do ERP a consumidores de fora — app POS móvel e integrações — e sustenta o handshake de licenciamento, registro e versão dos clientes Delphi WR Comercial em migração."
 contains:
   - "Api/ApiController"
   - "Api/AttendanceController"

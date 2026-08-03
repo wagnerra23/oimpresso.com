@@ -1,6 +1,6 @@
 ---
 module: Superadmin
-purpose: "Pacotes + subscription multi-tenant. Só Wagner toca."
+purpose: "Console do operador da plataforma (superadmin-only, cross-tenant por desenho). Vende e administra o produto — pacotes, assinaturas e checkout — e administra os tenants e o acesso: criar, desativar e destruir business, resetar senha, e a vista Usuário 360 com roles, permissões efetivas, tokens, sessões e lockouts. É o único módulo que fura o business_id global scope legitimamente."
 contains:
   - "BaseController"
   - "BusinessController"

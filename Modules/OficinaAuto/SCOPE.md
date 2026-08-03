@@ -1,6 +1,6 @@
 ---
 module: OficinaAuto
-purpose: "Vertical oficinas automotivas BR (mecânica geral, recapagem, locação caçamba). Schema próprio veículo+placa (≠ Repair que usa serial_no+device neutro)."
+purpose: "Vertical de oficina de REPARO de veículo (CNAE 4520-0/01) — OS própria (service_orders) com FSM canônica, vistoria DVI, aprovação pública do cliente por WhatsApp e PIN, e faturamento automático em Transaction (os_ref SO-). Schema veículo+placa, distinto do Repair genérico (serial_no+device)."
 contains:
   - "DataController"
   - "InstallController"

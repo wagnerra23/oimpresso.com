@@ -1,6 +1,6 @@
 ---
 module: ConsultaOs
-purpose: "Portal público de consulta de Ordem de Serviço. Cliente acompanha pipeline produção."
+purpose: "Casca de portal público de consulta de OS — backend completo (rota sem auth, anti-enumeration, auditoria LGPD, throttle, OTel, Repository trocável) rodando sobre dataset FAKE de 4 OS. Não lê banco: existe para validar UX e segurança antes de US-CONSULTA-001 ligar a query real."
 contains:
   - "ConsultaOsController"
   - "DataController"

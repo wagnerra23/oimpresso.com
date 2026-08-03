@@ -1,6 +1,6 @@
 ---
 module: Officeimpresso
-purpose: "Sistema Office Impresso desktop licenciamento (Superadmin-only)."
+purpose: "Licenciamento, bloqueio e auditoria das máquinas do Office Impresso desktop (Delphi) — CRUD de licenças e logs, credenciais OAuth Passport e API de acesso do desktop, delegáveis ao suporte por permissão. Inclui o importador Firebird do WR Comercial legado."
 contains:
   - "AuditController"
   - "ClientController"
