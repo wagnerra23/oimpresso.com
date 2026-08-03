@@ -203,6 +203,20 @@ export function resumoLiveness(estados) {
  *     espera de rotação [W]) e `exposicao-tier0-sentinel` também (piso Tier-0 violado →
  *     comenta a issue #4567 → exit 1). Só `system-map` era defeito de mecanismo.
  *
+ * ERRATA DA ERRATA (2026-08-03, mesmo dia, algumas horas depois — #5242). A segunda
+ * bola acima está ERRADA na metade que importa, e o modo de errar se repete: ler o
+ * MECANISMO (`return self::FAILURE`) e concluir sobre o SIGNIFICADO (`drift permanente
+ * à espera de rotação [W]`) sem rodar o comando nem ler QUAIS eram os 2 drifts.
+ * Rodado: os dois eram FALSO-POSITIVO, nenhum era dívida de segredo —
+ *   (a) NÃO-MEDIÇÃO lida como mudança (`validateHostingerApi` lê `memory/claude/…`,
+ *       diretório purgado em 2026-06-07, e devolve `⏸ pending` todo dia);
+ *   (b) ANOTAÇÃO HUMANA (`✅ active (verificado …)` × `✅ active`, string-exata).
+ * O mecanismo segue verdadeiro (drift>0 ⇒ exit 1); a CARACTERIZAÇÃO era falsa, e é
+ * ela que fazia o leitor concluir "vermelho esperado, nada a consertar" — foi assim
+ * que o vermelho sobreviveu 52 runs. Consertado em #5242 (`estadoDe`/`ehDrift`);
+ * `governance-drift` voltou a verde. Não repita a inferência mecanismo→significado:
+ * pra saber o que um cron está acusando, RODE o comando e leia os itens.
+ *
  * E a janela ≤14 runs NÃO é comparável entre crons: cobre 0,9 dia no `mcp-drift-sentinel`
  * (roda de 30 em 30 minutos) e 77 dias no `jana-ragas-gate` (semanal) — 86x de diferença.
  * Somar os dois num "21 dos 24 com 0% de falha" é média de coisas incomensuráveis, e o

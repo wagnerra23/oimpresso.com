@@ -300,7 +300,29 @@ class SecretsAuditCommand extends Command
     }
 
     /**
-     * Cria branch + commit + PR auto via gh CLI quando drift detectado.
+     * Tenta branch + commit + PR auto via gh CLI quando drift detectado.
+     *
+     * ⚠️ ESTADO REAL (medido 2026-08-03): esta rota NUNCA abriu um PR desde que
+     * nasceu na ADR 0215 (2026-05-28). Medição, não leitura:
+     *   · `git ls-remote --heads origin 'refs/heads/chore/secrets-drift-*'` → vazio;
+     *   · `git log --author=secrets-governance-bot` → zero commits;
+     *   · nenhum PR com o título abaixo, em qualquer estado.
+     *
+     * A causa é estrutural, não de ambiente: `secrets:audit` só LÊ o índice — não
+     * existe UM `file_put_contents` neste arquivo. Logo `git add` + `git commit`
+     * caem sempre em `nothing to commit, working tree clean`, o commit sai != 0 e
+     * a cadeia `&&` aborta ANTES de `git push`/`gh pr create`.
+     *
+     * O que este método conserta agora é a MENTIRA, não a capacidade: ele afirmava
+     * `🔀 PR auto criado` imprimindo, na mesma linha, o `nothing to commit` que o
+     * desmentia — e o `shell_exec` descartava o exit code, então falha nenhuma
+     * chegava ao relatório. Isso é a família LC-10/LC-11 (artefato afirmando o
+     * próprio comportamento / presença no lugar de comportamento), e o único
+     * guarda que existia era um presence test (`toContain('secrets:audit --auto-pr')`).
+     *
+     * Fazer a Camada 3 funcionar de verdade exige o comando ESCREVER o estado novo
+     * em `memory/_INDEX-SECRETS.md` — bot commitando em canon de segredo, decisão
+     * [W], deliberadamente fora deste conserto.
      */
     private function createAutoPullRequest(array $changes): void
     {
@@ -316,8 +338,21 @@ class SecretsAuditCommand extends Command
             "gh pr create --title 'chore(secrets): drift detectado pelo cron audit' --body 'Auto-detectado por secrets:audit cron. Mudanças: " . substr($changeSummary, 0, 500) . ". Wagner revisa + aceita ou rotaciona conforme tipo de drift.'",
         ];
 
-        $script = implode(' && ', $cmd);
-        $output = shell_exec($script . ' 2>&1');
-        $this->info('[secrets:audit] 🔀 PR auto criado: ' . substr((string) $output, -200));
+        // `exec` (e não `shell_exec`) porque só ele devolve o exit code — sem isso
+        // a falha da cadeia era engolida e o relatório afirmava sucesso.
+        exec(implode(' && ', $cmd) . ' 2>&1', $saida, $exitCode);
+        $cauda = substr(implode("\n", $saida), -200);
+
+        if ($exitCode === 0) {
+            $this->info('[secrets:audit] 🔀 PR auto aberto: ' . $cauda);
+
+            return;
+        }
+
+        $this->warn(sprintf(
+            '[secrets:audit] ⚠️ auto-PR NÃO abriu (exit %d) — drift segue só neste relatório. Saída: %s',
+            $exitCode,
+            $cauda
+        ));
     }
 }
