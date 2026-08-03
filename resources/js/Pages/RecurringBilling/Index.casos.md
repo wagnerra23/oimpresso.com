@@ -18,12 +18,23 @@ last_run: "2026-07-28"
 > **Por que nasce agora:** o módulo tinha 6 telas, 39 testes e **zero `casos.md`** — a cadeia
 > `US → CU → UC → teste` quebrava no elo do meio. O SDD nasceu no mesmo PR; estes UC o citam.
 >
-> ⚠️ **Força do veredito — leia antes de confiar no status.** Os testes citados aqui **rodam** (a
-> testsuite `Feature` do `phpunit.xml` inclui `Modules/RecurringBilling/Tests/Feature`, e o
-> `shards-plan.mjs` os enumera na nightly CT100), mas **não rodam no PR** e **não bloqueiam merge**:
-> nenhuma linha de `RecurringBilling` em `.github/ci-sqlite-pest.list`, nenhum workflow que o cite.
-> A linha proposta pro parent está no [SDD §8.2](../../../../memory/requisitos/RecurringBilling/SDD-cobranca-recorrente-v1.0.md).
-> Por isso o status abaixo é **🧪, nunca ✅** — eu não rodei nada (CT 100, [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
+> ⚠️ **Força do veredito — leia antes de confiar no status.** _(atualizado 2026-08-02; a redação
+> anterior dizia "nenhuma linha de `RecurringBilling` em `.github/ci-sqlite-pest.list`" — era
+> verdade até [PR #5194](https://github.com/wagnerra23/oimpresso.com/pull/5194) e deixou de ser.)_
+>
+> Duas coisas mudaram: os `it()` passaram a carregar o **UC-id no título** (antes só no docblock, o
+> que os deixava fora do manifesto G-7 por construção) e **9 dos 12 arquivos entraram na lane
+> sqlite** do `ci.yml`, que o `casos-results-publish` colhe. Medido no JUnit do run 30778559754:
+> **28 UC-ids distintos chegam ao `name` do `<testcase>`**.
+>
+> **`UC-RBSUB-01..04` seguem SEM lane de PR** — `Wave21NewSubscriptionTest` (4 errors) e
+> `Wave23EditarAssinaturaTest` (1 failure + 2 errors) reprovaram quando a lane os rodou pela
+> primeira vez: `AuthorizationException: This action is unauthorized` (a lane sqlite não semeia as
+> permissions Spatie que o `FormRequest::authorize()` exige). Dívida **pré-existente**, revelada
+> pela lane — não regressão. `UC-RBSUB-05` continua fora de propósito (🔴 failing-first).
+>
+> Status segue **🧪** em tudo: quem carimba ✅ é o cron `casos-results-publish` (07:30 BRT), e eu
+> não rodei nada localmente (CT 100, [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 >
 > **Legenda:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC, veredito pendente da lane ·
 > ⬜ não verificado · ❌ quebrou.
