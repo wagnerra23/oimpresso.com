@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 181 arquivos em 18 papéis.
+**Total mapeado:** 183 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -167,7 +167,7 @@ module: Ponto
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Relatorios/Index.charter.md)
 - [Welcome.charter.md](../../../resources/js/Pages/Ponto/Welcome.charter.md)
 
-## Casos (contrato UC) — 8
+## Casos (contrato UC) — 9
 
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.casos.md)
@@ -177,10 +177,11 @@ module: Ponto
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Espelho/Show.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Importacoes/Show.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 
-## Testes (Pest) — 35
+## Testes (Pest) — 36
 
-- 35 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 36 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 7
 

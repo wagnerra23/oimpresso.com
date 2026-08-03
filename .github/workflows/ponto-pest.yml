@@ -155,6 +155,7 @@ jobs:
             Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasIndexContratoTest.php \
             Modules/Ponto/Tests/Feature/EscalaFormContratoTest.php \
+            Modules/Ponto/Tests/Feature/RelatorioCatalogoContratoTest.php \
             Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
       - name: Upload JUnit (Ponto · MySQL)
