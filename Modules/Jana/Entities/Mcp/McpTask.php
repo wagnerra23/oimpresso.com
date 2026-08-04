@@ -27,6 +27,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @property string|null $acceptance_ref Prova de DoD pra fechar (Fase 2, ADR 0278).
  *           Coluna adicionada via ALTER — declarada aqui pro Larastan reconhecer.
+ * @property 'backlog'|'todo'|'doing'|'review'|'done'|'blocked'|'cancelled'|'pending_approval' $status
+ *           MESMO motivo do acceptance_ref acima: `pending_approval` entrou no enum por
+ *           `DB::statement("ALTER TABLE ... MODIFY status ENUM(...)")` (migration
+ *           2026_08_04_190000, ADR 0368), e o Larastan só lê enum de Blueprint — não de SQL
+ *           cru. Sem esta linha ele segue inferindo os 7 valores da migration original
+ *           (2026_05_04_180015) e marca TODA comparação com `pending_approval` como
+ *           "always false", ou seja: a análise estática contradiz código que funciona.
+ *           Mantém a união estreita (não alarga pra `string`) — só acrescenta o 8º valor.
  */
 class McpTask extends Model
 {
@@ -155,17 +163,43 @@ class McpTask extends Model
      * todo→done (teleport) passava silencioso. Agora o chokepoint applyLockedUpdate consulta
      * esta const e rejeita transição ilegal (rollback automático dentro da DB::transaction).
      *
+     * FUNIL DE ADMISSÃO (ADR 0368) — `pending_approval` entrou em STATUSES/AWAITING_HUMAN mas
+     * NÃO nesta matriz. Com canTransition() fail-closed, isso tornava o estado ao mesmo tempo
+     * inalcançável e inescapável PELO CHOKEPOINT: nenhum update conseguia levar a candidata a
+     * voto, e uma vez lá (nasce assim — createAdHoc seta status direto, sem FSM) ela não saía
+     * nem pra admitida nem pra recusada. As arestas abaixo vêm da ADR 0368 §5, que fixa as
+     * DUAS saídas: `admitida` → volta ao fluxo normal (todo/backlog) · `recusada` → cancelled.
+     *
+     * A aresta de ENTRADA `backlog → pending_approval` é a leitura conservadora: a ADR descreve
+     * a candidata nascendo da pesquisa (evento de criação, que não passa por FSM), mas sem
+     * NENHUMA aresta de entrada o funil só serviria a registro novo — candidata já parqueada em
+     * backlog (os 11 CAPTERRA-INVENTARIO são anteriores à ADR) ficaria fora. `todo →
+     * pending_approval` NÃO entra: trabalho já admitido voltar a esperar seria política nova,
+     * que a ADR não decide.
+     *
      * @var array<string, list<string>>
      */
     public const TRANSITIONS = [
-        'backlog'   => ['todo', 'cancelled'],
-        'todo'      => ['doing', 'blocked', 'cancelled'],
-        'doing'     => ['review', 'blocked', 'todo', 'cancelled'],
-        'review'    => ['done', 'doing', 'blocked'],
-        'blocked'   => ['todo', 'doing', 'cancelled'],
-        'done'      => ['review'],   // reabrir
-        'cancelled' => ['todo'],     // reabrir
+        'backlog'          => ['todo', 'cancelled', 'pending_approval'],
+        'todo'             => ['doing', 'blocked', 'cancelled'],
+        'doing'            => ['review', 'blocked', 'todo', 'cancelled'],
+        'review'           => ['done', 'doing', 'blocked'],
+        'blocked'          => ['todo', 'doing', 'cancelled'],
+        'done'             => ['review'],   // reabrir
+        'cancelled'        => ['todo'],     // reabrir
+        'pending_approval' => ['todo', 'backlog', 'cancelled'], // admitida | admitida-parqueada | recusada
     ];
+
+    /**
+     * Chave em `custom_fields` onde mora o MOTIVO da recusa (ADR 0368 §5).
+     *
+     * Não nasce coluna: `custom_fields` já é JSON casteado pra array, já está em $fillable e já
+     * está no whitelist de applyLockedUpdate — e já tem precedente de chave escalar canônica
+     * (`parent_plan`, PlanDriftCommand/ADR 0294). O motivo em prosa de [W] continua indo pro
+     * CAPTERRA-INVENTARIO.md ao lado da capacidade, como a ADR manda; isto aqui é só o registro
+     * no MESMO ato da recusa, pra que o chokepoint tenha o que verificar.
+     */
+    public const REFUSAL_REASON_KEY = 'motivo_recusa';
 
     /**
      * A transição $from → $to é permitida pela FSM?
