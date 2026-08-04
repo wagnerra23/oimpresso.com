@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **370** arquivos · **355** números únicos · máx **0366**
-- **ADRs ATIVOS (lifecycle ativo): 332** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 335 · superseded 16 · deprecated 12 · proposto 5 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 332 · arquivado 22 · substituido 16
+- **371** arquivos · **356** números únicos · máx **0367**
+- **ADRs ATIVOS (lifecycle ativo): 333** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 335 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 333 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (370)
+## Todas as ADRs (371)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -408,3 +408,4 @@ _(nenhuma)_
 | 0364 | aceito | ativo | decision | O trio de tela (charter + casos) muda de casa para memory/requisitos/<Modulo>/_t |
 | 0365 | aceito | ativo | decision | O trio de tela (charter + casos) FICA colocado ao lado do .tsx; a doc espelha o  |
 | 0366 | aceito | ativo | decision | Fronteira dos 4 módulos emaranhados — Jana (IA) · Forja (trabalho + MCP) · Gover |
+| 0367 | proposto | ativo | decision | Cockpit único do time: /project-mgmt morre, /forja e /team-mcp/tasks ficam — cin |
