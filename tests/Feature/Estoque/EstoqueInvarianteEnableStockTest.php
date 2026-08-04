@@ -31,7 +31,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('produto enable_stock=0: baixa (decreaseProductQuantity) NÃO mexe o saldo', function () {
+it('UC-INV-05 · produto enable_stock=0: baixa (decreaseProductQuantity) NÃO mexe o saldo', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz, enableStock: false);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0); // saldo semeado direto (VLD), mas produto é serviço
@@ -41,7 +41,7 @@ it('produto enable_stock=0: baixa (decreaseProductQuantity) NÃO mexe o saldo', 
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(10.0); // guard: intocado
 });
 
-it('produto enable_stock=0: entrada (updateProductQuantity) NÃO mexe o saldo', function () {
+it('UC-INV-05 · produto enable_stock=0: entrada (updateProductQuantity) NÃO mexe o saldo', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz, enableStock: false);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);
@@ -51,7 +51,7 @@ it('produto enable_stock=0: entrada (updateProductQuantity) NÃO mexe o saldo', 
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(10.0); // guard: intocado
 });
 
-it('contraprova: o MESMO fluxo num produto enable_stock=1 MEXE o saldo', function () {
+it('UC-INV-05 · contraprova: o MESMO fluxo num produto enable_stock=1 MEXE o saldo', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz, enableStock: true);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);

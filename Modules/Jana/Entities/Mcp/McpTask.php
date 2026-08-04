@@ -84,11 +84,21 @@ class McpTask extends Model
         'parsed_at' => 'datetime',
     ];
 
-    /** Status canônicos (ADR 0070 — backlog adicionado). */
-    public const STATUSES = ['backlog', 'todo', 'doing', 'review', 'done', 'blocked', 'cancelled'];
+    /** Status canônicos (ADR 0070 — backlog adicionado · ADR 0368 — pending_approval). */
+    public const STATUSES = ['backlog', 'todo', 'doing', 'review', 'done', 'blocked', 'cancelled', 'pending_approval'];
 
     /** Status terminais — task nesses estados não trava mais ninguém. */
     public const CLOSED_STATUSES = ['done', 'cancelled'];
+
+    /**
+     * Espera por DECISÃO HUMANA — distinto de `blocked`, que é trava técnica (ADR 0368 §3).
+     *
+     * A separação existe porque o proxy antigo (`blocked` + `owner: wagner`) misturava duas
+     * coisas que pedem ações opostas: "alguém precisa decidir" (some quando [W] responde) e
+     * "depende de outra coisa" (some quando a dependência resolve). Com os dois no mesmo
+     * balde, nenhum relatório conseguia dizer o que de fato esperava por uma pessoa.
+     */
+    public const AWAITING_HUMAN = 'pending_approval';
 
     /**
      * Mapa task_id => status pros ids dados (1 query — evita N+1 em listagem).
