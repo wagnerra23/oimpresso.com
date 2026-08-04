@@ -87,7 +87,7 @@ class PlanDriftCommand extends Command
     public const INDEX_REL = 'memory/requisitos/_processo/PLANS-INDEX.md';
 
     /** Estados "abertos" (a US ainda não fechou). */
-    public const OPEN = ['backlog', 'todo', 'doing', 'review', 'blocked'];
+    public const OPEN = ['backlog', 'todo', 'doing', 'review', 'blocked', 'pending_approval'];
 
     /** Estados "em movimento" (alguém está realmente tocando agora). */
     public const MOVING = ['todo', 'doing'];

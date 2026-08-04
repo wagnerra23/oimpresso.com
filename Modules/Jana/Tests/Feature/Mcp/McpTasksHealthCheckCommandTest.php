@@ -301,3 +301,40 @@ it('output markdown sem tasks stale mostra mensagem de "backlog saudável"', fun
 
     expect($output)->toContain('Nenhuma task stale');
 });
+
+/**
+ * ADR 0368 §3 — `pending_approval` é espera por DECISÃO HUMANA, não trava técnica.
+ *
+ * Antes desta ADR o funil usava o proxy `blocked` + `owner: wagner`, que mistura duas
+ * coisas de ação oposta: "alguém precisa decidir" some quando [W] responde; "travado por
+ * dependência" some quando a dependência resolve. Os testes abaixo provam que o estado
+ * novo é visível ao scan (senão nasceria invisível), que morde no prazo próprio — 14d,
+ * mais curto que os 30d de `blocked` de propósito — e que solta antes disso.
+ */
+it('pending_approval flagga com prazo PRÓPRIO (>14d) e não com o de blocked', function () {
+    makeStaleTask('US-TEST-060', McpTask::AWAITING_HUMAN, 20);  // > 14 → morde
+    makeStaleTask('US-TEST-061', McpTask::AWAITING_HUMAN, 10);  // < 14 → solta
+
+    $command = app(McpTasksHealthCheckCommand::class);
+    $flagged = $command->scanStaleness();
+
+    $ids = $flagged->pluck('task_id')->all();
+    expect($ids)->toContain('US-TEST-060');
+    expect($ids)->not->toContain('US-TEST-061');
+    expect($flagged->firstWhere('task_id', 'US-TEST-060')['flag'])->toBe('stale_pending_approval');
+});
+
+it('pending_approval é distinto de blocked — 20 dias flagga um e não o outro', function () {
+    makeStaleTask('US-TEST-062', McpTask::AWAITING_HUMAN, 20);  // 20 > 14 → morde
+    makeStaleTask('US-TEST-063', 'blocked', 20);                // 20 < 30 → solta
+
+    $command = app(McpTasksHealthCheckCommand::class);
+    $flagged = $command->scanStaleness();
+
+    expect($flagged->pluck('task_id')->all())->toBe(['US-TEST-062']);
+});
+
+it('pending_approval NÃO é estado terminal — continua no scan de ativas', function () {
+    expect(McpTask::STATUSES)->toContain(McpTask::AWAITING_HUMAN);
+    expect(McpTask::CLOSED_STATUSES)->not->toContain(McpTask::AWAITING_HUMAN);
+});
