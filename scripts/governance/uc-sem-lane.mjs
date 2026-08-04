@@ -98,6 +98,45 @@ export function ucsNoTituloDe(conteudo) {
 }
 
 /**
+ * Alvos da lane PLAYWRIGHT. O `extrairAlvos` do dono só entende `vendor/bin/pest`
+ * (o escopo dele é explícito: "as 27 invocações de teste passam ALVOS EXPLÍCITOS")
+ * — e Playwright não passa alvo nenhum: o `e2e-gate.yml` roda `npm run e2e:check`,
+ * que é `playwright test`, e QUEM decide o conjunto é o `playwright.config.ts`
+ * (`testDir: './e2e'` + `testMatch: '**''/*.spec.ts'`).
+ *
+ * POR QUE ISTO EXISTE (erro meu, medido e corrigido antes do merge): sem esta
+ * função os 11 UCs declarados por `e2e/*.spec.ts` apareciam como órfãos — e são
+ * FALSO-POSITIVO puro, porque a lane e2e roda a pasta inteira e ainda por cima é
+ * uma das 10 fontes que o `casos-results-publish` colhe pro manifesto. Pior: meu
+ * verificador independente tinha o MESMO ponto cego (procurava basename/ancestral
+ * no texto do workflow, e o nome do spec não aparece em workflow nenhum — quem o
+ * seleciona é a config). Dois caminhos com o mesmo viés não são duas provas.
+ * Medir a fonte certa é a lição LC-08.
+ *
+ * Deriva, não presume: lê o script do package.json e o testDir da config. Se
+ * amanhã o `testDir` mudar, isto acompanha.
+ *
+ * @param {string} yamlText   texto do workflow
+ * @param {Record<string,string>} scripts  package.json `scripts` (injetado = puro)
+ * @param {string|null} testDir   testDir do playwright.config (injetado = puro)
+ */
+export function alvosDePlaywright(yamlText, scripts = {}, testDir = null) {
+  if (!testDir) return [];
+  const invocaDireto = /npx\s+playwright\s+test|(?:^|[\s&|;])playwright\s+test/m.test(yamlText);
+  // `npm run <script>` cujo corpo no package.json chama `playwright test`.
+  const viaNpm = [...yamlText.matchAll(/npm\s+run\s+([A-Za-z0-9:_-]+)/g)]
+    .some((m) => /playwright\s+test/.test(scripts[m[1]] || ''));
+  return invocaDireto || viaNpm ? [testDir] : [];
+}
+
+/** `testDir: './e2e'` → `e2e` (normalizado pro mesmo formato dos outros alvos). */
+export function normalizaTestDir(configText) {
+  const m = String(configText).match(/testDir\s*:\s*(['"`])([^'"`]+)\1/);
+  if (!m) return null;
+  return m[2].replace(/^\.\//, '').replace(/\/$/, '');
+}
+
+/**
  * Classifica cada UC declarado cruzando (título→arquivos) × (arquivos→lanes).
  *
  * Puro de propósito: recebe mapas prontos, então o --selftest exercita a REGRA
@@ -195,11 +234,22 @@ function coletarAlvos() {
   const alvos = new Set();
   let lanesLidas = 0;
   if (!existsSync(WF_DIR)) return { alvos: [], lanesLidas: 0 };
+
+  // Playwright: quem escolhe os specs é a config, não o comando (ver alvosDePlaywright).
+  let scripts = {};
+  try { scripts = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')).scripts || {}; }
+  catch { /* sem package.json: só some a perna e2e, e o relatório diz lanes_lidas */ }
+  const pwConfig = ['playwright.config.ts', 'playwright.config.js']
+    .map((f) => resolve(ROOT, f)).find((f) => existsSync(f));
+  const testDir = pwConfig ? normalizaTestDir(readFileSync(pwConfig, 'utf8')) : null;
+
   for (const f of readdirSync(WF_DIR).filter((f) => /\.ya?ml$/.test(f))) {
     const txt = readFileSync(join(WF_DIR, f), 'utf8');
-    if (!/vendor\/bin\/pest|ci-sqlite-pest\.list/.test(txt)) continue;
+    const alvosPw = alvosDePlaywright(txt, scripts, testDir);
+    if (!/vendor\/bin\/pest|ci-sqlite-pest\.list/.test(txt) && alvosPw.length === 0) continue;
     lanesLidas++;
     for (const a of extrairAlvos(txt, lista)) alvos.add(a);
+    for (const a of alvosPw) alvos.add(a);
   }
   return { alvos: [...alvos].sort(), lanesLidas };
 }
@@ -256,6 +306,27 @@ function selftest() {
   ok('CONTROLE NEGATIVO: alvo-diretório cobre arquivo dentro dele',
     classificar(['UC-D-01'], new Map([['UC-D-01', ['Modules/Alpha/Tests/Feature/ATest.php']]]),
       ['Modules/Alpha/Tests']).emLane.length === 1);
+
+  // ---- lane PLAYWRIGHT (o falso-positivo que eu mesmo produzi, 2026-08-04) ----
+  // Sem estes, os 11 UCs de `e2e/*.spec.ts` viravam órfãos — e a lane roda a pasta
+  // INTEIRA. O nome do spec não aparece em workflow nenhum: quem seleciona é a config.
+  ok('testDir "./e2e" normaliza pra "e2e"',
+    normalizaTestDir(`export default { testDir: './e2e', testMatch: '**/*.spec.ts' }`) === 'e2e');
+  ok('CONTROLE NEGATIVO: config sem testDir → null',
+    normalizaTestDir('export default { use: {} }') === null);
+  ok('LIBERA: workflow com `npx playwright test` cobre o testDir',
+    alvosDePlaywright('run: npx playwright test', {}, 'e2e').includes('e2e'));
+  ok('LIBERA: `npm run e2e:check` resolve via package.json',
+    alvosDePlaywright('run: npm run e2e:check', { 'e2e:check': 'playwright test' }, 'e2e').includes('e2e'));
+  ok('CONTROLE NEGATIVO: npm run de OUTRO script não cobre e2e',
+    alvosDePlaywright('run: npm run build', { 'e2e:check': 'playwright test', build: 'vite build' }, 'e2e').length === 0);
+  ok('CONTROLE NEGATIVO: sem testDir não inventa alvo',
+    alvosDePlaywright('run: npx playwright test', {}, null).length === 0);
+  ok('CONTROLE NEGATIVO: menção a e2e/** só no paths: não cobre',
+    alvosDePlaywright("on:\n  pull_request:\n    paths:\n      - 'e2e/**'", {}, 'e2e').length === 0);
+  ok('INTEGRAÇÃO: spec e2e coberto pelo testDir não vira órfão',
+    classificar(['UC-OFI-06'], new Map([['UC-OFI-06', ['e2e/oficina-uc06-gate-etapa.spec.ts']]]),
+      alvosDePlaywright('run: npm run e2e:check', { 'e2e:check': 'playwright test' }, 'e2e')).semLane.length === 0);
 
   // ---- integração com o dono (prova que o import está vivo, não só importado) ----
   const alvosDoDono = extrairAlvos([
