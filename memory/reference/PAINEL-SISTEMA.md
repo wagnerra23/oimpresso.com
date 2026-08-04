@@ -135,7 +135,7 @@ lifecycle: ativo
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 76 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 77 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -214,6 +214,7 @@ lifecycle: ativo
 - ~~2026-08-03 — Consertar UM comprimento da família de regex e não medir os IRMÃOS~~
 - ~~2026-08-03 — Construir máquina PARALELA ao dono DEPOIS de ter lido o dono; e despachar escrita em massa sobre base que envelheceu sozinha~~
 - ~~2026-08-03 — Colher as guidelines/skills do `laravel/boost` pra fechar a nota baixa de "contexto de framework versionado"~~
+- ~~2026-08-04 — Placeholder `{{X}}` **sem aspas** em frontmatter YAML (quebra consumidor em fail-open, e a técnica foi vendida como "FP zero")~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
