@@ -27,6 +27,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @property string|null $acceptance_ref Prova de DoD pra fechar (Fase 2, ADR 0278).
  *           Coluna adicionada via ALTER — declarada aqui pro Larastan reconhecer.
+ * @property 'backlog'|'todo'|'doing'|'review'|'done'|'blocked'|'cancelled'|'pending_approval' $status
+ *           MESMO motivo do acceptance_ref acima: `pending_approval` entrou no enum por
+ *           `DB::statement("ALTER TABLE ... MODIFY status ENUM(...)")` (migration
+ *           2026_08_04_190000, ADR 0368), e o Larastan só lê enum de Blueprint — não de SQL
+ *           cru. Sem esta linha ele segue inferindo os 7 valores da migration original
+ *           (2026_05_04_180015) e marca TODA comparação com `pending_approval` como
+ *           "always false", ou seja: a análise estática contradiz código que funciona.
+ *           Mantém a união estreita (não alarga pra `string`) — só acrescenta o 8º valor.
  */
 class McpTask extends Model
 {

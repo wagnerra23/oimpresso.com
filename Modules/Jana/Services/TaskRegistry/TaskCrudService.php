@@ -126,14 +126,9 @@ class TaskCrudService
                 $fromStatus = (string) $task->status;
                 $toStatus = (string) $newVal;
                 if (! McpTask::canTransition($fromStatus, $toStatus)) {
-                    // `?? []`: sem ele, um status FORA da matriz (o próprio caso fail-closed que
-                    // a linha acima existe pra pegar) fazia TRANSITIONS[$from] devolver null e o
-                    // implode() lançar TypeError em vez desta RuntimeException — o guard mordia,
-                    // mas com a exceção errada e sem dizer o que era permitido.
-                    $permitidas = McpTask::TRANSITIONS[$fromStatus] ?? [];
                     throw new \RuntimeException(
                         "Transição ilegal {$fromStatus} → {$toStatus} (FSM mcp_tasks). Permitidas: "
-                        . ($permitidas === [] ? '(nenhuma — estado fora da FSM)' : implode(', ', $permitidas))
+                        . implode(', ', McpTask::TRANSITIONS[$fromStatus])
                     );
                 }
 

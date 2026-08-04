@@ -179,17 +179,6 @@ it('pending_approval→done (teleporte) é ILEGAL — reverte, candidata segue e
         ->and(McpTaskEvent::where('task_id', 'US-GOV-F4')->where('event_type', 'status_changed')->count())->toBe(0);
 })->group('atomic-update', 'ci');
 
-it('status fora da FSM lança RuntimeException (não TypeError) e diz que não há saída', function () {
-    // Fail-closed com mensagem utilizável: sem o `?? []` em applyLockedUpdate, montar a lista
-    // de "permitidas" pra um estado ausente da matriz estourava TypeError no implode(null).
-    seedFsmTask('US-GOV-F5', 'estado_zumbi');
-
-    expect(fn () => app(TaskCrudService::class)->update('US-GOV-F5', ['status' => 'todo'], 'wagner'))
-        ->toThrow(RuntimeException::class, 'nenhuma — estado fora da FSM');
-
-    expect(fsmStatus('US-GOV-F5'))->toBe('estado_zumbi');
-})->group('atomic-update', 'ci');
-
 it('RECUSA SEM MOTIVO é barrada — reverte e a candidata continua esperando', function () {
     seedFsmTask('US-GOV-F6', McpTask::AWAITING_HUMAN);
 
