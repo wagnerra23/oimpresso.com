@@ -45,6 +45,11 @@ jobs:
         run: node scripts/governance/ancora-codigo-sync.mjs --selftest
       - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
         run: node scripts/governance/maquinas-inventario.test.mjs
+      # Fixtures do falso-positivo REAL de 2026-08-04: main parado a noite toda + rajada de
+      # 2 commits -> a formula antiga (head - served) devolvia 14.4h e alarmava com o servidor
+      # 3min atras. A fixture "a formula ANTIGA teria alarmado" impede a regressao voltar.
+      - name: MCP drift · lag mede HA QUANTO TEMPO o servidor deve (nao a distancia entre commits)
+        run: node scripts/governance/mcp-drift-sentinel.mjs --selftest
       - name: System-map camada de IA (censo derivado · morde no caching.embeddings que a mao contou errado)
         run: node scripts/governance/system-map-ia.test.mjs
       - name: System-map path morto (transcricao de lapide libera, ponteiro inventado morde)
