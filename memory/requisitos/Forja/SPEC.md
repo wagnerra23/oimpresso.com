@@ -330,7 +330,9 @@ registrado e sem critério de quando fazer. Backlog que só cresce vira ruído; 
 Régua consolidada já existe e já roda:
 [`McpTasksUnassignedCommand`](../../../Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php)
 (flags `--days/--module/--strict/--json`), agendado **daily 06:45 BRT** em
-[`app/Console/Kernel.php`](../../../app/Console/Kernel.php) L622 (`environments(['live'])`, US-INFRA-043).
+[`app/Console/Kernel.php`](../../../app/Console/Kernel.php), no bloco `command('mcp:tasks:unassigned')`
+(`environments(['live'])`, US-INFRA-043). Ref de linha removida em 2026-08-04: apodrece a cada edição
+do Kernel — a âncora durável é o símbolo + `grep`.
 Somar um segundo contador cria dois juízes pro mesmo tema — lápide §5 2026-07-09
 *"duplica régua consolidada"* em [`memory/proibicoes.md`](../../proibicoes.md).
 

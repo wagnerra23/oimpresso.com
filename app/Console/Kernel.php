@@ -619,11 +619,46 @@ class Kernel extends ConsoleKernel
         //
         // Slot 06:45: 06:15 disputado (4), 06:20/06:30/06:35 ocupados — canon em
         // memory/reference/feedback-cron-slot-06h15-brt-disputado.md (verificado hoje).
+        //
+        // ── 2026-08-04 — REMOVIDO o ->onOneServer(). CAUSA NÃO ESTABELECIDA. ────────
+        // Medido em prod (Hostinger), `grep "mcp:tasks:unassigned" storage/logs/laravel.log
+        // | grep -o "2026-..-.. [0-9:]*" | sort | uniq -c`, 8 dias 07-28..08-04: a série
+        // tem 2 buracos — 07-29 e 08-04 — sem NENHUM registro.
+        //
+        // O comando loga INCONDICIONALMENTE no fim do handle(), então "sem linha" = não
+        // completou. E `grep -c "mcp:tasks:unassigned FALHOU"` = 0: o onFailure abaixo
+        // nunca disparou, porque ele só cobre exit != 0 e é CEGO a "nunca começou" —
+        // inclusive ao caso em que o próprio schedule:run morre (o comando roda in-process,
+        // sem runInBackground).
+        //
+        // Descartado com evidência: deploy (`schedule:list` em prod, 2026-08-04, lista
+        // `45 6 * * *`; e `gh run list --workflow=deploy.yml` não tem run na janela dos
+        // 2 dias) · disco (`df -h`: 75% usado, 5,4T livres) · OOM (nenhum fatal/memory no
+        // log em 06:40-06:55 dos 2 dias; memory_limit CLI = 3072M pra ~672 linhas).
+        //
+        // NÃO descartado — e é por isso que este ->onOneServer() sai: comparando os
+        // DOIS únicos comandos com log incondicional, o vizinho mcp:tasks:health-check
+        // (06:20) fez 12/12 dias e este fez 6/8, e a ÚNICA diferença estrutural entre
+        // eles era o ->onOneServer(). Não é prova (Fisher 1-cauda = 0,1474 com n=8), mas
+        // ele é uma via de SKIP SILENCIOSO dependente de cache (CACHE_DRIVER=file) e não
+        // tem função aqui: um único host roda schedule:run com APP_ENV=live (o cron do
+        // hPanel — memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md; no CT 100 o
+        // schedule:run é 0, medido 2026-07-17 em memory/requisitos/Jana/SPEC.md).
+        // Mesmo que um 2º host surgisse, rodar 2× é inócuo: o comando é SELECT + log.
+        //
+        // Isto é uma MITIGAÇÃO QUE DISCRIMINA, não um conserto de causa conhecida: se os
+        // buracos persistirem sem o onOneServer, a causa está noutro lugar e o dado passa
+        // a valer. NÃO fecha a visibilidade — nada hoje ALARMA quando o cron falta, e o
+        // cron-watchdog.mjs põe os schedules Laravel fora do eixo 1 (sem API de liveness).
+        // Heartbeat em DB é a opção que fecharia, e é decisão [W].
+        // Ver memory/sessions/2026-08-04-cron-unassigned-buraco-na-serie.md.
+        //
+        // Diverge de propósito do passo 2 do canon do slot (que prescreve "sempre"
+        // onOneServer) — desvio declarado lá, no mesmo PR.
         $schedule->command('mcp:tasks:unassigned')
             ->dailyAt('06:45')
             ->timezone('America/Sao_Paulo')
             ->environments(['live'])
-            ->onOneServer()
             ->withoutOverlapping(60)
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
