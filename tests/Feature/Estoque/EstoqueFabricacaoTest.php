@@ -35,7 +35,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('fabricar um kit CONSOME cada componente pela quantidade da receita', function () {
+it('UC-EST-08 · fabricar um kit CONSOME cada componente pela quantidade da receita', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $compA = EstoqueFixture::singleProduct($this->biz);
     $compB = EstoqueFixture::singleProduct($this->biz);
@@ -54,7 +54,7 @@ it('fabricar um kit CONSOME cada componente pela quantidade da receita', functio
     expect(EstoqueFixture::currentStock($compB, 0, $loc))->toBe(19.0); // -1 (quantidades distintas)
 });
 
-it('produzir o acabado ENTRA o saldo do produto final', function () {
+it('UC-EST-08 · produzir o acabado ENTRA o saldo do produto final', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $acabado = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($acabado, 0, $loc, 0.0);

@@ -20,8 +20,19 @@ last_run: "2026-07-02"
 > (`estoque-pest.yml`) + CT 100 — em sqlite faz skip gracioso (o gate é o MySQL, não o skip).
 >
 > **Status:** ✅ passa (com prova no manifesto G-7) · 🧪 em teste/prova parcial (verde ainda
-> não capturado no manifesto — falta rodar `npm run casos:results` sobre a lane MySQL) ·
-> ⬜ não verificado · ❌ quebrou.
+> não capturado no manifesto) · ⬜ não verificado · ❌ quebrou.
+>
+> **2026-08-04 — por que os 🧪 abaixo nunca viravam ✅ (a causa era outra):** a nota anterior
+> dizia "falta rodar `npm run casos:results`" — atribuía à cadência de bookkeeping. MEDIDO:
+> a causa era ESTRUTURAL. O `casos-results-collect.mjs` lê o UC-id do atributo `name` do
+> `<testcase>` do JUnit — ou seja, do **título** do `it()`. Os 12 UCs daqui citavam o id só em
+> docblock/`@covers-us`: satisfaziam o G-2 (string-match) e eram **inalcançáveis** pelo G-7
+> por construção, rodando verdes na lane e valendo 0 no painel. Rodar `casos:results` mil
+> vezes não mudaria. Conserto: id no título (`it('UC-EST-01 · …')`), mesma receita do
+> Financeiro/Conciliacao (#5177/#5180) — nenhuma asserção mudou.
+>
+> Seguem 🧪 aqui de propósito: o ✅ é derivado do manifesto (G-7), não declarado à mão —
+> quem bumpa é o `casos-results-publish` depois da lane verde em main.
 
 ---
 
