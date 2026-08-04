@@ -27,8 +27,12 @@ use Illuminate\Support\Facades\Log;
  *   - minio_credentials— mc admin info OR curl health
  *   - docker_env       — docker inspect container env
  *
- * Flag --auto-pr (cron only): se status mudou, commita atualização +
- * abre PR auto via gh CLI pra Wagner revisar.
+ * Flag --auto-pr (cron only): se status mudou, abre ISSUE de drift via gh CLI
+ * pra [W] agir. O nome da flag é mantido porque é o contrato citado em ADR 0215
+ * (append-only), ADR 0216, `app/Console/Kernel.php` e `governance-drift.yml` —
+ * mas o que ela faz hoje é issue, não PR: abrir PR exigiria o bot ESCREVER em
+ * `memory/_INDEX-SECRETS.md` (canon de segredo), decisão [W] ainda pendente.
+ * Ver `abrirIssueDeDrift()` pro histórico medido de por que o PR nunca saiu.
  *
  * Flag --notify (cron only): publica Centrifugo channel governance:secrets
  * pra Wagner ver no Brief Diário Jana.
@@ -40,7 +44,7 @@ use Illuminate\Support\Facades\Log;
 class SecretsAuditCommand extends Command
 {
     protected $signature = 'secrets:audit
-                            {--auto-pr : commitar + abrir PR se status mudou}
+                            {--auto-pr : abrir issue de drift (nome mantido: é o contrato citado em ADR 0215/0216, Kernel e workflow)}
                             {--notify : publicar Centrifugo governance:secrets}
                             {--filter= : auditar apenas entries com nome contendo string}';
 
@@ -120,7 +124,7 @@ class SecretsAuditCommand extends Command
         }
 
         if ($this->option('auto-pr')) {
-            $this->createAutoPullRequest($changes);
+            $this->abrirIssueDeDrift($changes);
         }
 
         return self::FAILURE; // exit code 1 indica drift detectado (CI-friendly)
@@ -300,58 +304,130 @@ class SecretsAuditCommand extends Command
     }
 
     /**
-     * Tenta branch + commit + PR auto via gh CLI quando drift detectado.
+     * Identidade da issue de drift: título estável + hash do CONJUNTO de drifts.
      *
-     * ⚠️ ESTADO REAL (medido 2026-08-03): esta rota NUNCA abriu um PR desde que
-     * nasceu na ADR 0215 (2026-05-28). Medição, não leitura:
-     *   · `git ls-remote --heads origin 'refs/heads/chore/secrets-drift-*'` → vazio;
-     *   · `git log --author=secrets-governance-bot` → zero commits;
-     *   · nenhum PR com o título abaixo, em qualquer estado.
+     * O hash é o que dá idempotência sem estado externo. O cron roda diariamente;
+     * sem ele seriam ~365 issues/ano dizendo a mesma coisa. Com ele:
+     *   · mesmo conjunto de drifts → mesmo título → não duplica;
+     *   · conjunto MUDA (secret novo expira, um é rotacionado) → título novo →
+     *     issue nova, porque é outro estado do mundo e merece outro aviso.
      *
-     * A causa é estrutural, não de ambiente: `secrets:audit` só LÊ o índice — não
-     * existe UM `file_put_contents` neste arquivo. Logo `git add` + `git commit`
-     * caem sempre em `nothing to commit, working tree clean`, o commit sai != 0 e
-     * a cadeia `&&` aborta ANTES de `git push`/`gh pr create`.
+     * Ordena antes de hashear: a ordem de leitura do índice não pode mudar a
+     * identidade do conjunto.
      *
-     * O que este método conserta agora é a MENTIRA, não a capacidade: ele afirmava
-     * `🔀 PR auto criado` imprimindo, na mesma linha, o `nothing to commit` que o
-     * desmentia — e o `shell_exec` descartava o exit code, então falha nenhuma
-     * chegava ao relatório. Isso é a família LC-10/LC-11 (artefato afirmando o
-     * próprio comportamento / presença no lugar de comportamento), e o único
-     * guarda que existia era um presence test (`toContain('secrets:audit --auto-pr')`).
-     *
-     * Fazer a Camada 3 funcionar de verdade exige o comando ESCREVER o estado novo
-     * em `memory/_INDEX-SECRETS.md` — bot commitando em canon de segredo, decisão
-     * [W], deliberadamente fora deste conserto.
+     * @param array<int,array{name:string,old:string,new:string}> $changes
      */
-    private function createAutoPullRequest(array $changes): void
+    public static function tituloDaIssue(array $changes): string
     {
-        $changeSummary = implode(', ', array_map(fn ($c) => "{$c['name']}: {$c['old']} → {$c['new']}", $changes));
-        $branch = 'chore/secrets-drift-' . now()->format('Y-m-d-His');
+        $assinatura = array_map(fn ($c) => "{$c['name']}|{$c['old']}|{$c['new']}", $changes);
+        sort($assinatura);
 
-        $cmd = [
-            "cd " . base_path(),
-            "git switch -c {$branch}",
-            "git add memory/_INDEX-SECRETS.md",
-            "git commit -m 'chore(secrets): drift detectado " . now()->format('Y-m-d') . " — " . substr($changeSummary, 0, 100) . "'",
-            "git push -u origin {$branch}",
-            "gh pr create --title 'chore(secrets): drift detectado pelo cron audit' --body 'Auto-detectado por secrets:audit cron. Mudanças: " . substr($changeSummary, 0, 500) . ". Wagner revisa + aceita ou rotaciona conforme tipo de drift.'",
-        ];
+        return sprintf(
+            '[secrets:audit] %d drift(s) no índice de segredos (%s)',
+            count($changes),
+            substr(sha1(implode("\n", $assinatura)), 0, 7)
+        );
+    }
 
-        // `exec` (e não `shell_exec`) porque só ele devolve o exit code — sem isso
-        // a falha da cadeia era engolida e o relatório afirmava sucesso.
-        exec(implode(' && ', $cmd) . ' 2>&1', $saida, $exitCode);
-        $cauda = substr(implode("\n", $saida), -200);
+    /**
+     * Corpo da issue. Puro (sem I/O) porque é o que o teste consegue exercer.
+     *
+     * ⛔ Só `name`/`old`/`new` — que são NOMES e ESTADOS ("active", "expired"),
+     * nunca o valor do segredo. O comando não lê valor nenhum; o índice canon
+     * também não os guarda. Se algum dia passar a guardar, este método é o
+     * chokepoint que precisa continuar não os imprimindo.
+     *
+     * @param array<int,array{name:string,old:string,new:string}> $changes
+     */
+    public static function corpoDaIssue(array $changes, string $quando): string
+    {
+        $linhas = array_map(
+            fn ($c) => sprintf('| `%s` | %s | %s |', $c['name'], $c['old'], $c['new']),
+            $changes
+        );
 
-        if ($exitCode === 0) {
-            $this->info('[secrets:audit] 🔀 PR auto aberto: ' . $cauda);
+        return implode("\n", [
+            'Detectado por `secrets:audit` (cron diário, ADR 0215 Camada 3) em ' . $quando . '.',
+            '',
+            '| Secret | Índice diz | Validação diz |',
+            '|---|---|---|',
+            ...$linhas,
+            '',
+            '**O que fazer:** rotacionar/regerar o que estiver `expired`/`comprometida` e',
+            'atualizar `memory/_INDEX-SECRETS.md`. Enquanto o índice discordar da validação,',
+            'o job `Secrets audit --auto-pr` segue vermelho — e isso é o alarme funcionando,',
+            'não um cron quebrado.',
+            '',
+            '_Fecha sozinho? Não. Feche a issue depois de rotacionar; se o drift persistir,',
+            'o próximo cron abre outra com o mesmo título (idempotente por conjunto de drifts)._',
+        ]);
+    }
+
+    /**
+     * Abre UMA issue por conjunto de drifts, via gh CLI.
+     *
+     * ⚠️ POR QUE ISSUE E NÃO PR (o histórico importa): esta rota nasceu como
+     * auto-PR na ADR 0215 (2026-05-28) e NUNCA abriu um PR — medido em 2026-08-03
+     * (`git ls-remote --heads origin 'refs/heads/chore/secrets-drift-*'` vazio,
+     * zero commits do bot, nenhum PR em qualquer estado). A causa é estrutural:
+     * `secrets:audit` só LÊ o índice, então `git add` + `git commit` caíam sempre
+     * em `nothing to commit, working tree clean`, o commit saía != 0 e a cadeia
+     * `&&` abortava antes do `gh pr create`.
+     *
+     * Fazer PR exigiria o comando ESCREVER em `memory/_INDEX-SECRETS.md` — bot
+     * commitando em canon de segredo, que segue sendo decisão [W] e continua fora
+     * daqui. A issue entrega o que o PR prometia (aviso visível, com histórico e
+     * dono) sem atravessar essa fronteira.
+     *
+     * Autorizado por [W] em 2026-08-04 ("pode arrumar"); antes disso o defeito
+     * estava diagnosticado e explicitamente não-autorizado (handoff 2026-07-29).
+     *
+     * @param array<int,array{name:string,old:string,new:string}> $changes
+     */
+    private function abrirIssueDeDrift(array $changes): void
+    {
+        $titulo = self::tituloDaIssue($changes);
+
+        // Idempotência: já existe issue aberta pra ESTE conjunto? Então o aviso
+        // já está dado — não duplica.
+        exec(
+            'gh issue list --state open --search ' . escapeshellarg($titulo . ' in:title')
+            . ' --json number --jq ' . escapeshellarg('.[0].number // empty') . ' 2>&1',
+            $saidaBusca,
+            $exitBusca
+        );
+
+        if ($exitBusca === 0 && trim(implode('', $saidaBusca)) !== '') {
+            $this->info(sprintf(
+                '[secrets:audit] issue de drift já aberta (#%s) — não duplicada.',
+                trim(implode('', $saidaBusca))
+            ));
 
             return;
         }
 
+        exec(
+            'gh issue create --title ' . escapeshellarg($titulo)
+            . ' --body ' . escapeshellarg(self::corpoDaIssue($changes, now()->format('Y-m-d H:i')))
+            . ' 2>&1',
+            $saidaCriacao,
+            $exitCriacao
+        );
+
+        $cauda = substr(implode("\n", $saidaCriacao), -200);
+
+        if ($exitCriacao === 0) {
+            $this->info('[secrets:audit] 🔔 issue de drift aberta: ' . $cauda);
+
+            return;
+        }
+
+        // Falha aqui NÃO é silenciosa: o relatório diz o exit code e a saída, e o
+        // comando segue retornando FAILURE por causa do drift. Nunca afirmar que
+        // avisou sem ter avisado (LC-10).
         $this->warn(sprintf(
-            '[secrets:audit] ⚠️ auto-PR NÃO abriu (exit %d) — drift segue só neste relatório. Saída: %s',
-            $exitCode,
+            '[secrets:audit] ⚠️ issue NÃO abriu (exit %d) — drift segue só neste relatório. Saída: %s',
+            $exitCriacao,
             $cauda
         ));
     }
