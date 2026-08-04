@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 574 arquivos em 19 papéis.
+**Total mapeado:** 575 arquivos em 19 papéis.
 
 ## Controllers — 15
 
@@ -258,7 +258,7 @@ module: Jana
 
 - [JanaServiceProvider.php](../../../Modules/Jana/Providers/JanaServiceProvider.php)
 
-## Migrations (schema) — 79
+## Migrations (schema) — 80
 
 - [2026_04_24_000001_create_copiloto_metas_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000001_create_copiloto_metas_table.php)
 - [2026_04_24_000002_create_copiloto_meta_periodos_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000002_create_copiloto_meta_periodos_table.php)
@@ -339,6 +339,7 @@ module: Jana
 - [2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php)
 - [2026_07_28_120000_create_mcp_handoff_drafts_table.php](../../../Modules/Jana/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php)
 - [2026_08_02_100000_add_charter_casos_to_mcp_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_08_02_100000_add_charter_casos_to_mcp_type_enum.php)
+- [2026_08_04_100000_add_feature_to_mcp_memory_documents_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_08_04_100000_add_feature_to_mcp_memory_documents_type_enum.php)
 
 ## Seeders — 4
 
