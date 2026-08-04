@@ -83,6 +83,7 @@ return [
         \Modules\Governance\Services\Checkers\McpServedDriftChecker::class,      // 2026-06-21 Onda 1 — commit servido por env remoto != main (CT100→main, ~19d cego)
         \Modules\Governance\Services\Checkers\McpIndexFreshnessChecker::class,   // 2026-06-21 Onda 1 — índice mcp_memory_documents defasado vs git memory/
         \Modules\Governance\Services\Checkers\IngestLivenessChecker::class,      // 2026-07-18 — pipe MEM-CC-1 sem heartbeat fresco (watcher caído; incidente 30/abr ~2,5m cego)
+        \Modules\Governance\Services\Checkers\PlanDriftChecker::class,           // 2026-08-04 — adapter do `jana:plan-drift` (ADR 0294 Onda 2), escrito+testado e com ZERO invocador (0 de 105 no schedule:list de prod)
     ],
 
     /*

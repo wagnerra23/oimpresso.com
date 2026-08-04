@@ -357,7 +357,7 @@
 | `funcao-scorecard-outcome-probe.mjs` | PROTÓTIPO de validação-por-OUTCOME do funcao-scorecard. |
 | `gate-selftest.mjs` | QUEM VIGIA OS VIGIAS (frente GT-G6, plano-mãe SDD 2026-06-12 §2 |
 | `ghost-fix.mjs` | codemod de ghost-names em memory/requisitos/** (Semana 0, frente KL). |
-| `governance-audit.mjs` | AGREGADOR da bateria de sentinelas (auditoria de sentinelas |
+| `governance-audit.mjs` | DEPRECADO 2026-08-04: agregador SEM invocador e sem casa honesta |
 | `governance-backlog-sync.mjs` | fecha o loop memory-health → backlog MCP. |
 | `hook-bites.mjs` | DEAD MAN'S SWITCH dos hooks de runtime (advisory, exit 0 sempre). |
 | `hook-replay.mjs` | testa hook contra TELEMETRIA REAL (advisory, exit 0 sempre). |
