@@ -462,7 +462,10 @@ class Kernel extends ConsoleKernel
         //
         // Skip-guard honesto (2026-06-20): SEM OPENAI_API_KEY o canary NÃO falha o
         // cron toda semana (era ruído / falso "DRIFT 100%") — sai DORMANT (exit 0,
-        // status=dormant), visível como ⊘ no agregador governance-audit.mjs. O
+        // status=dormant). ⚠️ 2026-08-04: a redação anterior dizia que isso era "visível
+        // como ⊘ no agregador governance-audit.mjs" — o agregador NUNCA teve invocador
+        // (medido; declarado morto no cabeçalho dele), então o dormant não era visível em
+        // lugar nenhum além do log deste schedule. Fica o fato, sem a visibilidade falsa. O
         // onFailure abaixo só dispara em drift REAL acima do threshold. Domingo cedo
         // pra não disputar DB com os health-checks diários (06:00-06:30).
         $schedule->command('jana:drift-sentinel')

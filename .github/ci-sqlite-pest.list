@@ -377,3 +377,16 @@ Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
 # ADR 0093 — nao no que o service faz hoje.
 tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
 tests/Feature/SecretsGovernanceTest.php
+
+# PlanDriftChecker — o INVOCADOR do `jana:plan-drift` (2026-08-04). O comando existia
+# desde a ADR 0294 Onda 2, com teste próprio JÁ nesta lane (PlanDriftCommandTest, acima),
+# e mesmo assim NUNCA rodava: `php artisan schedule:list` em PROD lista 98 comandos e
+# nenhum é plan-drift; o único "invocador" no repo era uma linha do governance-audit.mjs,
+# agregador que ele próprio nunca teve invocador. O checker o põe dentro do
+# `governance:audit --all --notify` (cron diário 06:35, prod).
+# Entra AQUI e não em modules-pest.yml porque Modules/Governance NÃO está naquela matrix
+# (Arquivos/ComunicacaoVisual/Fiscal/NfeBrasil/Repair/Vestuario) — teste fora de lane é o
+# "guard que nenhum workflow executa = mentira", que é exatamente a doença que esta PR trata.
+# Sqlite-safe por desenho: zero DB (mapeamento PURO + facade Artisan mockada), sem
+# RefreshDatabase. Mesmo idioma do IngestLivenessCheckerTest, já nesta lista.
+Modules/Governance/Tests/Feature/PlanDriftCheckerTest.php

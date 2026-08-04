@@ -437,8 +437,19 @@ jobs:
       #     de legado é proibido — §5 2026-07-12).
       #
       # Todos advisory de nascença (ADR 0314/0275). Nenhum entra em branch protection.
-      - name: feature-lint sweep (trio requirements/plan/tasks · advisory)
-        run: node scripts/governance/feature-lint.mjs
+      #
+      # ── 2026-08-04 — o feature-lint passa a rodar COM `--check` ────────────────────
+      # Ligado em 27/07 sem a flag, o sweep tinha 14 códigos de recusa e nunca reprovava
+      # nada: `--check` é a única forma de o script sair com exit≠0. Medido ANTES do flip,
+      # em `origin/main` @69039c8cd45: `node scripts/governance/feature-lint.mjs` →
+      # "3 feature(s) · ERROS (mordem em --check): 0 · AVISOS: 0", exit 0; e com `--check`,
+      # exit 0 também. Dívida legada = ZERO, então não precisa de baseline nem de
+      # forward-only. A mordida já é provada pelo `feature-lint.test.mjs` (23 casos, com
+      # fixture boa → 0 issues e fixtures ruins → erro por código). O step continua fora do
+      # `required-checks-baseline.json` — quem manda em "o que bloqueia merge" é ele, não
+      # este nome. AVISO segue advisory por desenho do script (só ERRO morde).
+      - name: feature-lint --check (trio requirements/plan/tasks · exit 1 em ERRO)
+        run: node scripts/governance/feature-lint.mjs --check
       - name: reguas-indexar CATRACA morde/solta (fixture boa/ruim)
         run: node scripts/governance/reguas-indexar.mjs --selftest
       - name: reguas-indexar fila (existia-mas-invisível não indexado · report-only)
