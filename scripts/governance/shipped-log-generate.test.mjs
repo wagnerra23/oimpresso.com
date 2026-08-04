@@ -7,9 +7,15 @@
  * borda BRT×UTC, e truncação (cross-check). Exit 1 em qualquer falha.
  */
 import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import {
   parseTitle, normScope, isDS, reconcileReverts, groupByArea,
   crossCheck, dayList, inBrtRange, markDeployed,
+  evalShippedHealth, parseShippedMeta, pickLiveLogs, FRESH_DAYS, SHIPPED_DIR,
 } from './shipped-log-generate.mjs';
 
 const tests = [];
@@ -115,6 +121,106 @@ t('inBrtRange exclui já-29/jun BRT (29/jun 05:00 UTC = 29/jun 02:00 BRT)', () =
 t('dayList cobre margem ±1 dia', () => {
   const d = dayList('2026-06-01', '2026-06-02');
   assert.deepEqual(d, ['2026-05-31', '2026-06-01', '2026-06-02', '2026-06-03']);
+});
+
+// ── evalShippedHealth (freshness) — o gate que NUNCA teve como reprovar ──────────
+// Contexto: até 2026-08-04 o --check pulava todo arquivo com `status: parcial`, e o
+// gerador carimba `parcial` sempre que `until >= hoje` — que é o que o cron SEMPRE
+// passa. Conjunto verificado vazio por construção. Estes casos são o controle-negativo
+// que faltava (esta função tinha ZERO teste, por isso a isenção invertida sobreviveu).
+const HOJE = Date.parse('2026-08-04T00:00:00Z');
+const dia = (n) => new Date(HOJE - n * 86400000).toISOString().slice(0, 10);
+const log = ({ status = 'parcial', gen, until = gen, cycle = 'CYCLE-08' }) =>
+  `<!-- GERADO -->\n---\nstatus: ${status}\ncycle: ${cycle}\nwindow: "2026-05-31..${until}"\ngenerated: "${gen}"\n---\n`;
+
+t('MORDE: log parcial gerado há 9d (cron morto) — o caso que passava verde', () => {
+  const f = evalShippedHealth([{ name: 'CYCLE-08.md', text: log({ gen: dia(9) }) }], HOJE);
+  assert.equal(f.length, 1);
+  assert.match(f[0].issue, /STALE/);
+});
+t('MORDE: sem campo generated → não dá pra medir frescor', () => {
+  const f = evalShippedHealth([{ name: 'CYCLE-08.md', text: '---\nstatus: parcial\n---\n' }], HOJE);
+  assert.equal(f.length, 1);
+  assert.equal(f[0].issue, 'sem campo generated');
+});
+t('MORDE: cron morto na transição de cycle (só o log velho existe, nada mais novo)', () => {
+  const f = evalShippedHealth([{ name: 'CYCLE-08.md', text: log({ gen: dia(9), cycle: 'CYCLE-08' }) }], HOJE);
+  assert.equal(f.length, 1); // não escapa por ser o único
+});
+t('MORDE: empate de janela → todos os vivos são cobrados', () => {
+  const f = evalShippedHealth([
+    { name: 'A.md', text: log({ gen: dia(9), until: dia(9), cycle: 'A' }) },
+    { name: 'B.md', text: log({ gen: dia(9), until: dia(9), cycle: 'B' }) },
+  ], HOJE);
+  assert.equal(f.length, 2);
+});
+t('negativo: log parcial gerado hoje → verde (o estado normal do cron)', () => {
+  assert.equal(evalShippedHealth([{ name: 'CYCLE-08.md', text: log({ gen: dia(0) }) }], HOJE).length, 0);
+});
+t(`negativo: exatamente FRESH_DAYS (${FRESH_DAYS}d) ainda é fresco — gap máx. do cron seg→qui`, () => {
+  assert.equal(evalShippedHealth([{ name: 'CYCLE-08.md', text: log({ gen: dia(FRESH_DAYS) }) }], HOJE).length, 0);
+  assert.equal(evalShippedHealth([{ name: 'CYCLE-08.md', text: log({ gen: dia(FRESH_DAYS + 1) }) }], HOJE).length, 1);
+});
+t('negativo: cycle FECHADO fica exempto (senão vermelho eterno) quando há vivo fresco', () => {
+  // fixture usa `parcial` no histórico DE PROPÓSITO: é o que o registro real tem (13/13
+  // medido). Com `ativo` aqui o caso passaria verde até num mutante que elegesse por
+  // rótulo — não discriminaria a regressão que ele existe pra travar.
+  const f = evalShippedHealth([
+    { name: 'CYCLE-07.md', text: log({ status: 'parcial', gen: '2026-05-30', until: '2026-05-30', cycle: 'CYCLE-07' }) },
+    { name: 'CYCLE-08.md', text: log({ gen: dia(1), cycle: 'CYCLE-08' }) },
+  ], HOJE);
+  assert.equal(f.length, 0);
+});
+t('MORDE (fail-closed documentado): janela forjada no futuro sequestra a eleição do vivo', () => {
+  const f = evalShippedHealth([
+    { name: 'BOGUS.md', text: log({ gen: '2026-06-01', until: '2027-01-01', cycle: 'BOGUS' }) },
+    { name: 'CYCLE-08.md', text: log({ gen: dia(1), cycle: 'CYCLE-08' }) },
+  ], HOJE);
+  assert.equal(f.length, 1);
+  assert.equal(f[0].cycle, 'BOGUS.md'); // reprova até regenerar/remover o forjado — nunca falha ABERTO
+});
+t('negativo: virada de cycle — log velho congela como `parcial` e AINDA assim é isentado', () => {
+  // o caso que o conserto ingênuo (só apagar a isenção) quebraria: nada aqui é `ativo`.
+  const f = evalShippedHealth([
+    { name: 'CYCLE-08.md', text: log({ status: 'parcial', gen: dia(15), until: dia(15), cycle: 'CYCLE-08' }) },
+    { name: 'CYCLE-09.md', text: log({ status: 'parcial', gen: dia(1), until: dia(1), cycle: 'CYCLE-09' }) },
+  ], HOJE);
+  assert.equal(f.length, 0);
+});
+t('pickLiveLogs escolhe por fim-de-janela, não por nome nem por status', () => {
+  // os DOIS são `parcial` — o estado real do registro. Se este teste usasse `ativo` no
+  // histórico, o nome dele mentiria: um mutante que elegesse por rótulo passaria.
+  const metas = parseShippedMeta([
+    { name: 'CYCLE-07.md', text: log({ status: 'parcial', gen: '2026-05-30', until: '2026-05-30' }) },
+    { name: 'CYCLE-08.md', text: log({ status: 'parcial', gen: dia(1), until: dia(1) }) },
+  ]);
+  assert.deepEqual(pickLiveLogs(metas).map((m) => m.name), ['CYCLE-08.md']);
+});
+
+// ── bite-test E2E: prova que o COMANDO do gate (`--check`) morde, não só a função ──
+// (correção-do-mecanismo ≠ invocação: o gate roda o CLI, então o CLI é que tem que reprovar)
+function checkEmFixture(files) {
+  const root = mkdtempSync(join(tmpdir(), 'shipped-check-'));
+  try {
+    const dir = join(root, SHIPPED_DIR);
+    mkdirSync(dir, { recursive: true });
+    for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text);
+    const gen = fileURLToPath(new URL('./shipped-log-generate.mjs', import.meta.url));
+    try {
+      execFileSync(process.execPath, [gen, '--check'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      return 0;
+    } catch (e) { return e.status ?? 1; }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}
+const HOJE_REAL = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
+t('E2E --check: fixture RUIM (parcial velho) → exit ≠ 0', () => {
+  assert.notEqual(checkEmFixture({ 'CYCLE-08.md': log({ gen: HOJE_REAL(9), until: HOJE_REAL(9) }) }), 0);
+});
+t('E2E --check: fixture BOA (parcial de hoje) → exit 0', () => {
+  assert.equal(checkEmFixture({ 'CYCLE-08.md': log({ gen: HOJE_REAL(0), until: HOJE_REAL(0) }) }), 0);
+});
+t('E2E --check: registro vazio (dir existe, 0 log) → exit ≠ 0, não fica mudo', () => {
+  assert.notEqual(checkEmFixture({}), 0);
 });
 
 // ── runner ──
