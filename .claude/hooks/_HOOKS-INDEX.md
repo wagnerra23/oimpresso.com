@@ -4,7 +4,7 @@
 > Regenerar: `node scripts/governance/hooks-manifest-generate.mjs --write` · drift acusado por `--check`.
 >
 > **Como ler as colunas computadas** (nada aqui é declarado à mão):
-> - **Sinal de bloqueio** = heurística estática sobre o conteúdo do arquivo na geração (`deny` quoted · `exit-2`/`return 2`) — critério da [ADR 0224](../../memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md) ("mecanismo real, não o nome"). É CAPACIDADE detectada no código (deny condicional/strict conta); ausência de sinal ≠ classificação advisory, e presença ≠ afirmação de runtime.
+> - **Sinal de bloqueio** = heurística estática sobre o **ramo de evento daquela linha** (`deny` quoted · `exit-2`/`return 2`) — critério da [ADR 0224](../../memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md) ("mecanismo real, não o nome"). Hook multi-evento é fatiado: o `exit(2)` que só existe dentro de `if (event === 'PreToolUse')` **não** conta na linha do `UserPromptSubmit` do mesmo arquivo (2026-08-04 — antes contava; bite-test com payload real mostrou 0 de 6 hooks do `UserPromptSubmit` bloqueando). É CAPACIDADE detectada no código (deny condicional/strict conta); ausência de sinal ≠ classificação advisory, e presença ≠ afirmação de runtime.
 > - **Ponto-de-corte** = derivado de evento+matcher (hooks) ou da presença no baseline (gates CI → merge).
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
@@ -66,8 +66,8 @@
 | Stop | `*` | nudge-auditoria-resposta.mjs | node | fim de turno | — |
 | UserPromptSubmit | `*` | force-r12-closing-signal.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-handoff-reprocess.mjs | node | prompt (pré-turno) | — |
-| UserPromptSubmit | `*` | block-figma-without-optin.mjs | node | prompt (pré-turno) | exit-2 |
-| UserPromptSubmit | `*` | block-design-sync-without-optin.mjs | node | prompt (pré-turno) | exit-2 |
+| UserPromptSubmit | `*` | block-figma-without-optin.mjs | node | prompt (pré-turno) | — |
+| UserPromptSubmit | `*` | block-design-sync-without-optin.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-compare-protocol.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-agente-ativa.mjs | node | prompt (pré-turno) | — |
 
