@@ -102,6 +102,26 @@ beforeEach(function () {
         $t->text('payload')->nullable();
         $t->timestamps();
     });
+
+    // `McpTask` usa LogsActivity (Spatie) e grava em `activity_log` a CADA create/update.
+    // Sem esta tabela, todo teste que cria task morre com QueryException — e ninguém tinha
+    // visto porque este arquivo nunca rodou: pula em MySQL (dropIfExists é corruptor de
+    // schema compartilhado) e não estava na allowlist da lane sqlite. Ao entrar na lane,
+    // 12 casos caíram de uma vez, todos por esta mesma causa. Schema mínimo do Spatie.
+    Schema::dropIfExists('activity_log');
+    Schema::create('activity_log', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('log_name')->nullable();
+        $t->text('description')->nullable();
+        $t->string('subject_type')->nullable();
+        $t->string('subject_id')->nullable();
+        $t->string('causer_type')->nullable();
+        $t->string('causer_id')->nullable();
+        $t->text('properties')->nullable();
+        $t->string('batch_uuid', 36)->nullable();
+        $t->string('event')->nullable();
+        $t->timestamps();
+    });
 });
 
 afterEach(function () {
@@ -113,6 +133,7 @@ afterEach(function () {
     Schema::dropIfExists('mcp_git_links');
     Schema::dropIfExists('mcp_task_comments');
     Schema::dropIfExists('mcp_task_events');
+    Schema::dropIfExists('activity_log');
 });
 
 /**
