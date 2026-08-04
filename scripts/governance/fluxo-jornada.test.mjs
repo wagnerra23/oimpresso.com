@@ -63,10 +63,14 @@ const UC = 'UC-FAKE-01';
 const TELA = 'resources/js/Pages/Fake/Tela.tsx';
 
 function montarJornada(raiz, { comDod = true, ancora = TELA, comCasos = true, comTeste = true,
-  usDaFeature = US, comTaskCobrindoAc = true, comRelatedUs = true, ancoraPendente = false } = {}) {
+  usDaFeature = US, comTaskCobrindoAc = true, comRelatedUs = true, ancoraPendente = false,
+  ancoraParcial = false, semTela = false } = {}) {
+  if (semTela) ancora = 'Modules/Fake/Services/FakeService.php';
   const linhaAncora = ancoraPendente
     ? '**Implementado em:** _pendente_ — tela não construída'
-    : `**Implementado em:** \`${ancora}\` · verificado@abc1234 (2026-08-04)`;
+    : ancoraParcial
+      ? `**Implementado em:** _parcial_ · \`${ancora}\` · verificado@abc1234 (2026-08-04) — falta o filtro`
+      : `**Implementado em:** \`${ancora}\` · verificado@abc1234 (2026-08-04)`;
 
   escrever(raiz, 'memory/requisitos/Fake/SPEC.md',
     `---\nmodule: Fake\nstatus: ativo\n---\n\n# SPEC Fake\n\n### ${US} · Tela de teste do fluxo\n\n`
@@ -83,6 +87,12 @@ function montarJornada(raiz, { comDod = true, ancora = TELA, comCasos = true, co
     + `> blocked_by: — · covers: ${comTaskCobrindoAc ? 'AC-1' : '—'} · us: ${usDaFeature}\n\n`
     + `**DoD:** a tela renderiza e o teste do ${UC} passa.\n`);
 
+  // `semTela` = feature backend-only: não existe .tsx, logo não pode haver trio de tela.
+  // A âncora aponta um Service, não uma Page — é jornada legítima, não dívida.
+  if (semTela) {
+    escrever(raiz, 'Modules/Fake/Services/FakeService.php', "<?php\n\nclass FakeService {}\n");
+    return;
+  }
   escrever(raiz, TELA, 'export default function Tela() { return null; }\n');
   escrever(raiz, 'resources/js/Pages/Fake/Tela.charter.md',
     `---\npage: Fake/Tela\ncomponent: ${TELA}\nstatus: live\n`
@@ -144,84 +154,157 @@ try {
     jc !== null && jc.total === 0,
     jc ? `total=${jc.total} stats=${JSON.stringify(jc.stats)}` : 'json ilegível');
 
-  // A aresta charter→US existe no dado, mas NENHUM dos três mecanismos a lê. Afirmar que
-  // ela "passou" seria transformar ausência de gate em aprovação — o oposto do que este
-  // arquivo existe pra fazer. A Parte B prova a ausência quebrando a aresta.
-  ok('US → tela (related_us): sem mecanismo que verifique — declarado, não provado',
-    true, '(ver variação correspondente na Parte B)');
+  // A aresta charter→US não tem mecanismo que a leia. A versão anterior "documentava" isso
+  // com `ok(..., true)` — assert que não pode reprovar em condição nenhuma, exatamente o
+  // tipo de decoração que este arquivo existe pra denunciar (o adversário o apontou como o
+  // único dos 12 que ele NÃO conseguiu derrubar, e isso é acusação, não elogio).
+  // Agora a ausência é MEDIDA: com a aresta quebrada, nenhum dos 3 linters muda de veredito.
+  const raizSemRelated = novaRaiz();
+  try {
+    montarJornada(raizSemRelated, { comRelatedUs: false });
+    const semRel = [
+      rodar(ANCHOR, ['--json'], raizSemRelated).code,
+      rodar(FEATURE, ['--check'], raizSemRelated).code,
+      rodar(CASOS, ['--json'], raizSemRelated).code,
+    ];
+    const comRel = [a1.code, f1.code, c1.code];
+    ok('US → tela (related_us): SEM mecanismo — quebrar a aresta não muda veredito de ninguém',
+      JSON.stringify(semRel) === JSON.stringify(comRel),
+      `com=${JSON.stringify(comRel)} sem=${JSON.stringify(semRel)}`);
+  } finally {
+    rmSync(raizSemRelated, { recursive: true, force: true });
+  }
 } finally {
   rmSync(raizA, { recursive: true, force: true });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════
-// PARTE B — VARIAÇÕES: remove/altera UM elo e afirma QUEM acusa.
-// `detecta: false` = variação LEGÍTIMA (controle positivo) ou buraco CONHECIDO de cobertura.
+// PARTE B — VARIAÇÕES. Cada uma roda DUAS VEZES, e é isso que a torna um teste:
+//
+//   íntegra  → a sonda TEM que ficar silenciosa   (controle negativo, obrigatório)
+//   mutada   → a sonda acusa (`esperado: 'acusa'`) ou segue silenciosa (`'silencia'`)
+//
+// POR QUE DUAS. Revisão adversarial (2026-08-04) derrubou 11 dos 12 asserts da 1ª versão.
+// O achado central: a bateria ficava 12/12 VERDE com o `casos-gate` desligado, porque a
+// sonda era `/viola[çc][õo]es/i` sobre o stdout — e o guard imprime a palavra SEMPRE,
+// inclusive em `0 violações`. Sonda que casa no estado ÍNTEGRO não mede nada: 3 das 5
+// variações `detecta:true` passavam com o elo PRESENTE. Rodar contra a jornada íntegra
+// mata a classe inteira — sonda viciada reprova na primeira execução.
+//
+// E as sondas passam a ler CAMPO ESTRUTURADO específico (`dead[].us`, `req_sem_aceite`,
+// `stats.missing_casos`), nunca texto humano: o texto muda sem aviso e foi ele que produziu
+// a tautologia. É a mesma lição do §5 2026-07-28 (ler o veredito, não a prosa).
 // ═══════════════════════════════════════════════════════════════════════════════════════
-console.log('\n  PARTE B — variações do fluxo (quem acusa quando um elo falta)\n');
+console.log('\n  PARTE B — variações (cada uma medida contra a jornada íntegra E a mutada)\n');
+
+/** Campo estruturado do anchor-lint, por US. `null` = o linter não respondeu. */
+function anchorSinal(r, chave) {
+  const { out, code } = rodar(ANCHOR, ['--json'], r);
+  if (code !== 0) return null;
+  try {
+    const j = JSON.parse(out);
+    return j.modules.some((m) => (m[chave] ?? []).some((x) => (x.us ?? x) === US));
+  } catch { return null; }
+}
+/** Campo do casos-guard. `null` = o guard não respondeu com JSON legível. */
+function casosStat(r, campo) {
+  const { out } = rodar(CASOS, ['--json'], r);
+  try { return (JSON.parse(out).stats ?? {})[campo] ?? null; } catch { return null; }
+}
 
 const VARIACOES = [
   {
-    nome: 'US sem DoD → gate de entrada acusa',
-    mut: { comDod: false }, detecta: true,
-    sonda: (r) => rodar(ANCHOR, ['--check-entry', 'memory/requisitos/Fake/SPEC.md'], r).code !== 0,
+    nome: 'US sem DoD → gate de entrada acusa (req_sem_aceite, não "exit != 0")',
+    mut: { comDod: false }, esperado: 'acusa',
+    // `--check-entry` já saía 1 na jornada íntegra por OUTRA regra (`req_sem_covering_test`).
+    // Usar o exit como sinal fazia esta variação passar sem medir DoD nenhum.
+    sonda: (r) => anchorSinal(r, 'req_sem_aceite'),
   },
   {
-    nome: 'âncora aponta path inexistente → anchored_dead',
-    mut: { ancora: 'resources/js/Pages/Fake/NaoExiste.tsx' }, detecta: true,
-    sonda: (r) => {
-      const { out, code } = rodar(ANCHOR, ['--json'], r);
-      if (code !== 0) return false;
-      return JSON.parse(out).modules.some((m) => m.dead.some((d) => d.us === US));
-    },
+    nome: 'âncora aponta path inexistente → anchored_dead nomeia a US',
+    mut: { ancora: 'resources/js/Pages/Fake/NaoExiste.tsx' }, esperado: 'acusa',
+    sonda: (r) => anchorSinal(r, 'dead'),
   },
   {
-    nome: 'âncora _pendente_ → NÃO é dívida (tela não construída é estado legítimo, ADR 0273 §2)',
-    mut: { ancoraPendente: true, comCasos: false, comTeste: false }, detecta: false,
-    sonda: (r) => {
-      const { out, code } = rodar(ANCHOR, ['--json'], r);
-      if (code !== 0) return true;
-      return JSON.parse(out).modules.some((m) => m.dead.length > 0);
-    },
+    nome: 'âncora _parcial_ → é estado LEGÍTIMO da gramática, não dívida (ADR 0273 §1)',
+    mut: { ancoraParcial: true }, esperado: 'silencia',
+    sonda: (r) => anchorSinal(r, 'dead'),
+  },
+  {
+    nome: 'âncora _pendente_ → tela não construída é estado legítimo (ADR 0273 §2)',
+    mut: { ancoraPendente: true, comCasos: false, comTeste: false }, esperado: 'silencia',
+    sonda: (r) => anchorSinal(r, 'dead'),
   },
   {
     nome: 'feature aponta US que não existe no SPEC → feature-lint --check morde',
-    mut: { usDaFeature: 'US-FAKE-999' }, detecta: true,
+    mut: { usDaFeature: 'US-FAKE-999' }, esperado: 'acusa',
     sonda: (r) => rodar(FEATURE, ['--check'], r).code !== 0,
   },
   {
-    nome: 'AC sem task que o cubra → feature-lint AVISA (advisory por desenho, não morde)',
-    mut: { comTaskCobrindoAc: false }, detecta: false,
+    nome: 'AC sem task que o cubra → feature-lint AVISA, não morde (advisory por desenho)',
+    mut: { comTaskCobrindoAc: false }, esperado: 'silencia',
     sonda: (r) => rodar(FEATURE, ['--check'], r).code !== 0,
   },
   {
-    nome: 'tela sem casos.md → casos-gate acusa',
-    mut: { comCasos: false }, detecta: true,
-    sonda: (r) => /viola[çc][õo]es/i.test(rodar(CASOS, [], r).out),
+    nome: 'feature sem tela (backend-only) → NÃO vira dívida de trio',
+    mut: { semTela: true }, esperado: 'silencia',
+    sonda: (r) => {
+      const n = casosStat(r, 'missing_casos');
+      return n === null ? null : n > 0;
+    },
   },
   {
-    nome: 'UC sem teste que o cite → casos-gate acusa',
-    mut: { comTeste: false }, detecta: true,
-    sonda: (r) => /viola[çc][õo]es/i.test(rodar(CASOS, [], r).out),
+    nome: 'tela sem casos.md → casos-gate acusa (stats.missing_casos, não regex no stdout)',
+    mut: { comCasos: false }, esperado: 'acusa',
+    sonda: (r) => {
+      const n = casosStat(r, 'missing_casos');
+      return n === null ? null : n > 0;
+    },
   },
   {
-    nome: 'charter sem related_us → NINGUÉM acusa (buraco conhecido: 38 de 209 no main)',
-    mut: { comRelatedUs: false }, detecta: false,
+    nome: 'UC sem teste que o cite → casos-gate acusa (teto/exec-backed cai)',
+    mut: { comTeste: false }, esperado: 'acusa',
+    // Só `orphan_ucs`. A 1ª versão desta sonda também olhava `exec_backed_ucs < ucs_declared`
+    // — e acusava na jornada ÍNTEGRA, porque `exec_backed` depende do manifesto
+    // (`scripts/casos-test-results.json`), que não existe na fixture: 0 < 1 sempre. O
+    // controle negativo pegou; sem ele, esta variação passaria "detectando" o tempo todo.
+    sonda: (r) => {
+      const n = casosStat(r, 'orphan_ucs');
+      return n === null ? null : n > 0;
+    },
+  },
+  {
+    nome: 'charter sem related_us → NINGUÉM acusa (buraco medido: 38 de 209 no main)',
+    mut: { comRelatedUs: false }, esperado: 'silencia',
     sonda: (r) => rodar(ANCHOR, ['--json'], r).code !== 0 || rodar(FEATURE, ['--check'], r).code !== 0,
   },
 ];
 
 for (const v of VARIACOES) {
-  const raiz = novaRaiz();
+  const rIntegra = novaRaiz();
+  const rMutada = novaRaiz();
   try {
-    montarJornada(raiz, v.mut);
-    const acusou = v.sonda(raiz);
-    ok(v.nome, acusou === v.detecta, `acusou=${acusou} esperado=${v.detecta}`);
+    montarJornada(rIntegra);              // sem mutação — o controle negativo
+    montarJornada(rMutada, v.mut);
+    const naIntegra = v.sonda(rIntegra);
+    const naMutada = v.sonda(rMutada);
+
+    // Sonda que não respondeu (linter morto / JSON ilegível) é FALHA, nunca "detectou".
+    // Sem isto, apontar o linter pra um path inexistente deixava a variação verde.
+    if (naIntegra === null || naMutada === null) {
+      ok(v.nome, false, `sonda sem resposta (linter morto?) integra=${naIntegra} mutada=${naMutada}`);
+      continue;
+    }
+    const deveAcusar = v.esperado === 'acusa';
+    ok(`${v.nome}  [silencia na íntegra]`, naIntegra === false, `acusou na jornada ÍNTEGRA → sonda viciada`);
+    ok(`${v.nome}  [${v.esperado} na mutada]`, naMutada === deveAcusar, `mutada=${naMutada} esperado=${deveAcusar}`);
   } finally {
-    rmSync(raiz, { recursive: true, force: true });
+    rmSync(rIntegra, { recursive: true, force: true });
+    rmSync(rMutada, { recursive: true, force: true });
   }
 }
 
 console.log(fails
   ? `\n  ${fails} FALHA(S) — o fluxo não se comporta como o contrato diz.\n`
-  : `\n  OK — a jornada íntegra passa, cada elo removido é acusado por quem deve, e as variações legítimas não viram dívida.\n`);
+  : `\n  OK — a jornada íntegra passa, cada sonda fica silenciosa nela, e cada elo removido é acusado por quem deve.\n`);
 process.exit(fails ? 1 : 0);
