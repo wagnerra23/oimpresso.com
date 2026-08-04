@@ -9,7 +9,7 @@ id: requisitos-project-mgmt-charter-board
 > Quando entregue Fase S4 charter-fetch tool, este arquivo migra como `Board.charter.md` ao lado do `.tsx`.
 > ADR mãe redesign: [0100](../../decisions/0100-projectmgmt-ui-redesign.md).
 > Capacidades cobertas: ver [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — itens P0 #1, #2, #5, #6 + P1 #7-#15.
-> Gap analysis: [INVENTARIO.md](INVENTARIO.md).
+> Gap analysis: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md).
 
 ---
 
@@ -261,7 +261,7 @@ Documentado no top do `Board/Index.tsx` mas NÃO implementado:
 ## 12. Referências
 
 - [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — capacidades-alvo do mercado (24 capacidades)
-- [INVENTARIO.md](INVENTARIO.md) — gap analysis ✅🟡❌
+- [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) — gap analysis ✅🟡❌
 - [ADR 0094 — Constituição v2](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3 Charter > Spec
 - [ADR 0100 — Forja UI Redesign](../../decisions/0100-projectmgmt-ui-redesign.md)
 - [ADR 0070 — Jira-style task management](../../decisions/0070-jira-style-task-management-current-md-removed.md)

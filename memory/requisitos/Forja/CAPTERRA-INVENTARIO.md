@@ -4,156 +4,182 @@ title: "CAPTERRA-INVENTARIO — Forja"
 slug: capterra-inventario-projectmgmt
 type: inventario
 status: aceito
-generated_at: 2026-05-09
-generated_by: audit-constituicao
+generated_at: 2026-08-04
+generated_by: reauditoria-2026-08-04
 source_ficha: CAPTERRA-FICHA.md
 source_spec: SPEC.md
 ---
 
+<!-- CONSOLIDAÇÃO 2026-08-04: o conteúdo abaixo veio de `INVENTARIO.md` (irmão órfão do mesmo módulo).
+     Medido: `CAPTERRA-INVENTARIO.md` existe em 11 módulos e é citado 10x pela skill `comparativo-do-modulo`
+     e pelo comando /comparativo; `INVENTARIO.md` existia em 1 (só a Forja) e não era citado por máquina alguma.
+     A reauditoria de 2026-08-04 foi escrita no órfão por engano e movida pra cá. -->
+
 # CAPTERRA-INVENTÁRIO — Forja
 
-> Cruzamento entre [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (27 capacidades baseline + score P0-P3), [SPEC.md](SPEC.md) (PMG-001..PMG-025) e código real em [`Modules/Forja/`](../../../Modules/Forja/) + [`resources/js/Pages/Forja/`](../../../resources/js/Pages/Forja/).
+> **Reauditado 2026-08-04.** A redação anterior era de **2026-05-08** e estava ~3 meses stale: **9 das 24 capacidades subiram de bucket sem que ninguém reauditasse** — todas por trabalho que **já tinha shipado** entre maio e agosto, nenhuma por trabalho feito nesta reauditoria.
+> Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (24 capacidades) + `Modules/Forja/` + `resources/js/Pages/Forja/`.
 > ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md). ADR mãe redesign: [0100](../../decisions/0100-projectmgmt-ui-redesign.md).
-> Próxima reauditoria sugerida: após Fase 3 (PMG-008/009/010 — atalhos avançados + cycle close + sprint planning).
+> Detalhe por US vive no [SPEC.md](SPEC.md) — este doc **não** recopia critério de aceite.
+
+## Como reproduzir esta auditoria
+
+Tudo abaixo foi medido em **2026-08-04**, num worktree fresco de `origin/main` (0 commits atrás). Cada número na tabela carrega o comando que o produziu — se a data incomodar, **re-rode o comando; não edite o número** ([proibicoes §5 2026-07-17](../../proibicoes.md)).
+
+| Pergunta | Porta viva (o dono da resposta) | Resultado em 2026-08-04 |
+|---|---|---|
+| Quais rotas o módulo expõe? | `Read Modules/Forja/Http/routes.php` | 6 grupos: `/project-mgmt`, `/project-mgmt/install`, `/api/mcp`, `/api/cc`, `/team-mcp`, `/forja`, `/ads/admin` |
+| Quantos testes Pest? | `Glob Modules/Forja/Tests/Feature/*.php` | **51 arquivos** |
+| Que artefatos cada tela tem? | `npm run screen-coverage:report` | Forja: **9 telas · 9 charter · 0 E2E · 8 scorecard** |
+| Cobertura de casos/UC? | `node scripts/casos-coverage-guard.mjs --report` | Forja: **0 de 9 telas com `casos.md`** |
+| Há cycle ativo? | tool MCP `cycles-active` | **Nenhum cycle ATIVO em COPI** |
+| Backlog vivo do módulo? | tool MCP `tasks-list module:Forja` | 7 tasks ativas — **6 em `review`** (US-TR-304..311), 1 em `todo` |
+| Fila de triagem do projeto? | Daily brief **#461** (2026-08-04) | **663 US não atribuída · 519 sem dono · mais antiga 95d** |
 
 ---
 
-## Resumo executivo
+## Resumo por bucket
 
-| Bucket | Quantidade | % |
+| Bucket | 2026-05-08 | **2026-08-04** | Δ |
+|---|---|---|---|
+| ✅ APROVADO | 6 | **14** | **+8** |
+| 🟡 PARCIAL | 5 | **1** | −4 |
+| ❌ AUSENTE | 13 | **9** | −4 |
+| **Total** | 24 | **24** | — |
+
+**Os +8 líquidos vieram de 9 movimentos, todos por capacidade que JÁ TINHA SHIPADO** — zero código foi escrito nesta reauditoria:
+
+| Movimento | Capacidades | Evidência (medida 2026-08-04) |
 |---|---|---|
-| ✅ APROVADO | 7 | 26% |
-| 🟡 PARCIAL  | 7 | 26% |
-| ❌ AUSENTE  | 13 | 48% |
-| **Total** | **27** | 100% |
+| ❌ → ✅ (4) | #6 Cmd+K · #9 @mentions · #10 Watchers · #12 Atalhos J/K/E/A | ver tabela detalhada |
+| 🟡 → ✅ (4) | #1 Drag-drop · #4 Tests Pest · #13 Subtasks · #15 Triage | ver tabela detalhada |
+| ❌ → 🟡 (1) | #19 Dependencies | `DetailSheet.tsx:515-521` já renderiza `dependencies[]` |
 
-**Por score (P0-P3):**
+> ⚠️ **Errata do resumo anterior.** O bloco "Resumo" de 2026-05-08 declarava **13 ✅ / 0 🟡 / 11 ❌**, número que **contradizia a própria tabela detalhada do mesmo documento** (que trazia 6 ✅ / 5 🟡 / 13 ❌ — os 🟡 eram #1, #4, #13, #14, #15). O Δ acima usa a **tabela** como base, porque é ela que carrega evidência por linha. Registrado, não apagado.
 
-| Score | ✅ | 🟡 | ❌ | Total |
+**Diagnóstico 2026-08-04:** o gap que motivou o redesign (ADR 0100) **fechou**. Drag-drop, Cmd+K, Detail Sheet, atalhos, mentions, watchers, subtasks e triage estão em código, com rota, com teste — e o caso dos atalhos tem lane de CI própria (`forja-shortcuts-gate.yml`, PR #5261, HEAD do main em 2026-08-04). O que sobra em ❌ **não é dívida da mesma natureza**: são 9 features cuja premissa de origem (Jira/Linear) não se sustenta num time de 5 pessoas — ver a seção "Premissa da Jira que NÃO vale aqui".
+
+**O gap real hoje não está na tabela de capacidades, está na cobertura de contrato:** `0 de 9` telas da Forja têm `casos.md`. Contexto obrigatório pra não inflar: **E2E 0/9 na Forja NÃO é fraqueza específica dela** — o projeto inteiro está em **9/207 (4,3%)**, medido pelo mesmo `screen-coverage:report`. Charter, a Forja tem 100% (9/9), igual ao projeto (207/207).
+
+---
+
+## Inventário detalhado
+
+| # | Capacidade | Score | 05-08 | **08-04** | Evidência medida em 2026-08-04 | Falta |
+|---|---|---|---|---|---|---|
+| **1** | Kanban board drag-drop completo | P0 | 🟡 | **✅** | `Components/board/BoardColumn.tsx` (`onDragOver:39`, `onDrop:44`, `onDragStart:64`) + `BoardController::updateStatus` com optimistic-lock `expected_updated_at` → **409 Conflict** (`:233-254`) + `BoardControllerTest.php` | — |
+| 2 | Backlog priorização + bulk operations | P0 | ✅ | **✅** | `Backlog/Index.tsx` + rota `POST /backlog/bulk` (`routes.php:136`) | — |
+| 3 | My Work + Inbox unread badges | P0 | ✅ | **✅** | `MyWork/Index.tsx` + 3 rotas inbox (`:85-94`); **Inbox ganhou tela própria** (`Pages/Forja/Inbox/Index.tsx` + `InboxController` + 3 rotas `:122-130`) | — |
+| **4** | Multi-tenant + Permissions cobertos por Pest | P0 | 🟡 | **✅** | **51 arquivos** em `Modules/Forja/Tests/Feature/` — incl. `MultiTenantProjectTest`, `MultiTenantTokenIsolationTest`, `ActorPermissionMatrixTest`, `CrossTenantSaturationTest`, `LgpdComplianceTest` | — (a afirmação "0 tests, `Tests/` não existe" é **falsa** desde antes desta medição) |
+| 5 | Filters URL state-driven | P0 | ✅ | **✅** | localStorage + URL state em Board + Backlog | — (backend é #14, e a premissa dele não vale aqui) |
+| **6** | Search global Cmd+K | P0 | ❌ | **✅** | `SearchController.php` + rota `GET /project-mgmt/search` (`:78`) + `Components/CommandPalette.tsx` + atalho global `AppShellV2.tsx:340` (`metaKey\|ctrlKey` + `k`) + `SearchControllerTest.php` | — |
+| **7** | Cycle close UI | P1 | ❌ | **❌** | Tool MCP `cycles-close --rollover` (CLI). **Zero rota** de close em `routes.php` | Ver "Recomendo NÃO fazer" — não há cycle ativo hoje |
+| **8** | Sprint/Cycle planning UI (add-to-cycle) | P1 | ❌ | **❌** | **Zero rota** `add-tasks` em `routes.php` | idem #7 |
+| **9** | Comments com @mentions | P1 | ❌ | **✅** | Rotas `POST /board/{id}/comment` (`:56`) + `GET /board/users/suggest` (`:60`) + aba "Comentários" no `DetailSheet.tsx:366` | — |
+| **10** | Watchers UI (follow/unfollow) | P1 | ❌ | **✅** | Rotas `POST\|DELETE /board/{id}/watch` (`:64-70`) + aba "Watchers" (`DetailSheet.tsx:369`, lista em `:753-761`) | — |
+| **11** | Centrifugo presence | P1 | ❌ | **❌** | Centrifugo provisionado ([ADR 0058](../../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md)); **zero canal** de presence no módulo | Ver "Recomendo NÃO fazer" — 5 pessoas |
+| **12** | Atalhos keyboard J/K/E/A + `?` | P1 | ❌ | **✅** | `Board/_components/useBoardShortcuts.ts` (`?`:79, `/`:95, `j`:106, `k`:110, `Enter`:114, `e`:118, `a`:122) + `ShortcutsOverlay.tsx` + **lane de CI dedicada** `.github/workflows/forja-shortcuts-gate.yml` (PR #5261) | — |
+| **13** | Subtasks (1 nível + completion) | P1 | 🟡 | **✅** | Rota `POST /board/{id}/subtask` (`:73`) + aba Subtasks (`DetailSheet.tsx:368`, toggle `:308`) | — |
+| **14** | Saved views **backend** (localStorage → DB) | P1 | 🟡 | **❌** | Tabela `mcp_views` existe; **zero rota** `/views` CRUD | Rebaixado a não-fazer: o valor de usuário já está coberto por #5 (localStorage). Compartilhar view entre 5 pessoas não tem sinal |
+| **15** | Triage view dedicada | P1 | 🟡 | **✅** | `TriageController` + `Pages/Forja/Triage/Index.tsx` + `_components/TriageDossier.tsx` + 5 rotas (`assign:102`, `dossier:107`, `aprovar:110`, `rejeitar:113`, `fundir:116`). **Entregou além do escopo original** — o dossiê read-only + fluxo aprovar/rejeitar/fundir não estava na proposta de maio | — |
+| 16 | Activity feed timeline | P1 | ✅ | **✅** | `Activity/Index.tsx` + rota `:144` | — |
+| 17 | Burndown chart | P1 | ✅ | **✅** | `Burndown/Index.tsx` + rota `:148` | — |
+| 18 | Roadmap quarterly | P1 | ✅ | **✅** | `Roadmap/Index.tsx` + rota `:140` | — |
+| **19** | Dependencies | P2 | ❌ | **🟡** | **Não é ausente:** `DetailSheet.tsx` já tipa `dependencies: Dependency[]` (`:118`) e **renderiza a seção** com contagem (`:515-521`) | Falta **criar/validar** dependência (não falta exibir). Grafo visual: ver "Recomendo NÃO fazer" |
+| **20** | Custom fields per project | P2 | ❌ | **❌** | — | Premissa não vale — ver seção própria |
+| **21** | Workload view | P2 | ❌ | **❌** | — | Sem sinal (5 pessoas, WIP máx 1-2 por [regras-time](../../regras-time.md)) |
+| **22** | Time tracking interno | P2 | ❌ | **❌** | `estimate_h` em `mcp_tasks` | Premissa não vale — não faturamos por hora |
+| **23** | Templates de epic/cycle | P2 | ❌ | **❌** | Tabela `mcp_issue_templates` (uso parcial) | Acoplado ao rito de cycle (#7/#8) |
+| **24** | Automation rules (when X then Y) | P2 | ❌ | **❌** | — | **Única ❌ com premissa que vale MAIS aqui** — ver seção própria |
+
+---
+
+## Premissa da Jira que NÃO vale aqui (não copiar)
+
+> Esta seção existe porque copiar solução sem checar premissa é erro catalogado ([proibicoes §5 2026-07-16](../../proibicoes.md)): *pesquisa de mercado informa a decisão, não a substitui*. Cada linha responde **"que premissa do modelo deles sustenta essa solução, e ela vale AQUI?"**.
+
+| Feature (Jira/mercado) | Premissa que a sustenta lá | Nossa realidade (medida) | Veredito |
+|---|---|---|---|
+| **Custom fields por projeto** (#20) | Dezenas de times, cada um com taxonomia própria; o admin não pode antecipar os campos | **5 pessoas, 1 taxonomia** ([regras-time](../../regras-time.md)). `mcp_components` já dá categorização leve | Não copiar |
+| **JQL / query language** | Milhares de issues; achar exige linguagem de consulta | **Cmd+K (#6) + filtros (#5) já cobrem** o volume atual | Não copiar |
+| **Workflow designer / schemes** | Governança entre times com processos divergentes | Fluxo fixo já vive em `McpTask::TRANSITIONS` — e é o mesmo pra todo mundo | Não copiar |
+| **Portfolio Plans / marketplace** | N times + fornecedores terceiros, com permissionamento cruzado | **1 time, 1 permission** (`jana.mcp.usage.all` — é a única checada nas rotas do módulo) | Não copiar |
+| **Time tracking** (#22, Tempo/Productive) | Faturar cliente por hora trabalhada | **Não faturamos por hora.** O custo que de fato importa aqui — o do agente — já é medido por `scripts/governance/agent-cost-per-pr.mjs` | Não copiar |
+| **Presence real-time** (#11) | Muita gente na mesma tela; colisão de edição é frequente | **5 pessoas**, WIP máx 1-2 cada. Colisão inexistente — e o caso de escrita concorrente que existe já está coberto pelo **409 optimistic-lock** (#1) | Não copiar |
+| **Sprint ceremony** (#7 close, #8 add-to-cycle, velocity) | Time que compromete escopo numa janela fixa e mede velocity contra ela | **Não há cycle ativo hoje** (`cycles-active` → "Nenhum cycle ATIVO em COPI", 2026-08-04). Construir UI de rito pra rito que não acontece é fabricar demanda | Não copiar **enquanto** não houver cycle vivo |
+
+---
+
+## Onde a premissa vale MAIS aqui que na Jira
+
+**Automação de fila (#24) — e só ela.**
+
+Na Jira, *automation rules* existe porque **humano esquece de triar**: alguém abre a issue e ela apodrece no backlog até uma cerimônia semanal.
+
+Aqui a premissa é **mais forte, não mais fraca**, porque **o criador é agente**: tasks nascem via `tasks-create` (tool MCP) durante uma sessão e o autor **some quando a sessão fecha** — não há "alguém que abriu" pra cobrar depois. Recibo, medido no Daily Brief **#461 (2026-08-04)**:
+
+- **663 US não atribuída**
+- **519 sem dono**
+- mais antiga: **95 dias**
+
+Uma regra do tipo *"task criada por agente sem owner há N dias → notifica [W] / entra na Triage"* teria aqui um alvo que a Jira não tem: um produtor automático de trabalho órfão em escala. A superfície humana pra isso **já existe e já shipou** (#15 Triage, com dossiê + aprovar/rejeitar/fundir) — falta o gatilho que empurra pra ela.
+
+> ⚠️ Isto é a **premissa**, não a aprovação. Antes de virar máquina, vale a régua do projeto: começar **advisory**, medir falso-positivo **antes** de instalar, e conferir se o dono do tema não é a tool `triage` que já existe (estender > paralelo).
+
+---
+
+## O que a Forja tem que a Jira não tem
+
+> Constatação datada (**2026-08-04**), não claim de superioridade. Não há aqui comparação de capacidade ponta-a-ponta com a Jira, e nenhuma destas peças foi benchmarkada contra concorrente — ver a tabela de claims refutadas em [proibicoes §5 2026-07-09](../../proibicoes.md), que é o motivo desta ressalva.
+
+- **Tasks legíveis E escrevíveis por agente** via tools MCP (`tasks-list`, `tasks-detail`, `tasks-create`, `tasks-update`, `tasks-comment`) — o mesmo backlog que o humano vê na tela, sem camada de integração.
+- **`mcp_task_memory_links`** — vínculo task ↔ ADR/SPEC materializado (US-TR-308, chips de memória no drawer).
+- **Ingest de sessões Claude Code do time** — `POST /api/cc/ingest` (`routes.php:248`) + tela `/team-mcp/cc-sessions` + busca.
+- **Daily Brief gerado** — `POST /api/mcp/tools/brief-fetch` (`routes.php:232`); o brief #461 é a fonte dos números desta auditoria.
+- **Loop de handoff governado** — `POST /forja/handoff/{slug}/lever` (`routes.php:338`) com `HandoffLeverService` como fonte única (mesma mutação do tool MCP `handoff-lever`).
+
+O que estas 5 peças têm em comum: assumem que **um dos operadores do sistema é um agente**. É a premissa que a Jira não tem porque não precisava ter.
+
+---
+
+## Propostas (aguardando aprovação [W])
+
+> **O detalhe e o critério de aceite vivem no [SPEC.md](SPEC.md)** — este doc lista só prioridade, esforço e **a premissa que sustenta cada uma**. Sem premissa declarada, não entra.
+>
+> ⚠️ **Recibo de estado:** medido em 2026-08-04, o `SPEC.md` ainda **não** continha os IDs `US-FORJA-001..008` (grep sem resultado); a numeração viva lá é a legada `PMG-NNN` das Fases 3-5. Sessão irmã está escrevendo o detalhe. Se ao ler isto os IDs divergirem, **o SPEC é o dono** — corrija esta lista, não o SPEC.
+
+| # | Tema | Prio | Esforço | Premissa que sustenta |
 |---|---|---|---|---|
-| P0 (bloqueador)            | 4 | 2 | 0 | 6 |
-| P1 (mercado tem)           | 3 | 3 | 5 | 11 |
-| P2 (diferenciação)         | 0 | 1 | 5 | 6 |
-| P3 (opcional)              | 0 | 1 | 3 | 4 |
-
-**Diagnóstico:** Fase 1 (drag-drop atomic + Cmd+K + Pest base) e Fase 2 (Detail Sheet + @mentions + watchers + subtasks) entregues — fundação sólida (6 telas em prod, 7 controllers, 15 tabelas `mcp_*`, 52 cenários Pest). P0 100% coberto (4 ✅ + 2 🟡 — gaps são endurecimento de testes/URL-state, não funcionalidade ausente). Maior gap está em **P1 workflow** (Cycle close UI, Sprint planning, Saved views backend, Triage page, Centrifugo presence) — 5 itens AUSENTE casam exatamente com Fase 3 + Fase 4 da SPEC (PMG-008..PMG-012). P2/P3 são diferenciação mercado (graph dependencies, custom fields, workload, time tracking, templates, automation, dark mode wiring, mobile, roadmap drag, public share) — backlog não-comprometido (PMG-013..PMG-025).
-
----
-
-## ✅ APROVADO (7)
-
-| Capacidade | Score | Evidência |
-|---|---|---|
-| **Kanban drag-drop completo (droppable + 409 conflict)** | P0 | [`BoardColumn.tsx`](../../../resources/js/Components/board/BoardColumn.tsx) com `onDragOver`/`onDrop` atomic; [`BoardController::updateStatus`](../../../Modules/Forja/Http/Controllers/BoardController.php) aceita `expected_updated_at` → 409 Conflict com `current` state; revert otimismo + banner amarelo em [`Board/Index.tsx`](../../../resources/js/Pages/Forja/Board/Index.tsx#L196). PR #211 + R-PMG-005 testado em [`BoardControllerTest.php`](../../../Modules/Forja/Tests/Feature/BoardControllerTest.php). |
-| **Backlog priorização visual + bulk operations** | P0 | [`BacklogController::bulk`](../../../Modules/Forja/Http/Controllers/BacklogController.php#L119) com permission check + bulk_op_id correlacionando audit em `mcp_task_events` (via [`TaskCrudService::bulkUpdate`](../../../Modules/Jana/Services/TaskRegistry/TaskCrudService.php#L250)). 7 dimensões filtros (status/priority/owner/epic/cycle/sprint/q). |
-| **My Work + Inbox unread badges** | P0 | [`MyWorkController`](../../../Modules/Forja/Http/Controllers/MyWorkController.php) agrupa tasks por Cycle (ativo destacado) + carrega `mcp_inbox_notifications` com unread/total_30d KPIs + endpoints `markRead`/`markAllRead`/`bumpStatus`. Page [`MyWork/Index.tsx`](../../../resources/js/Pages/Forja/MyWork/Index.tsx) renderiza inbox + buckets cycle. |
-| **Search global Cmd+K (command palette)** | P0 | [`CommandPalette.tsx`](../../../resources/js/Components/CommandPalette.tsx) (cmdk via shadcn) com fetch debounced 220ms + grupos Tasks/Epics/Cycles/Projects; [`SearchController`](../../../Modules/Forja/Http/Controllers/SearchController.php) com permission gate + LIKE multi-resource; atalho global Cmd/Ctrl+K em `AppShellV2`. 4 cenários Pest em [`SearchControllerTest.php`](../../../Modules/Forja/Tests/Feature/SearchControllerTest.php). |
-| **Comments com @mentions (autocomplete + Notification)** | P1 | [`MentionInput.tsx`](../../../resources/js/Components/MentionInput.tsx) com trigger `@` + autocomplete debounced 180ms + ↑↓ + Enter/Tab/Esc/Cmd+Enter; [`BoardController::addComment`](../../../Modules/Forja/Http/Controllers/BoardController.php#L365) + `suggestUsers`; parser regex `/@([a-z][a-z0-9_-]+)/i` + dispatch `McpInboxNotification::notify()` em [`TaskCrudService::comment()`](../../../Modules/Jana/Services/TaskRegistry/TaskCrudService.php). PR #222. |
-| **Watchers UI (follow/unfollow task)** | P1 | [`McpTaskWatcher`](../../../Modules/Jana/Entities/Mcp/McpTaskWatcher.php) Model + tabela `mcp_task_watchers`; [`BoardController::watch`/`unwatch`](../../../Modules/Forja/Http/Controllers/BoardController.php#L438) idempotentes (firstOrCreate/delete); tab Watchers em [`DetailSheet.tsx`](../../../resources/js/Pages/Forja/Board/DetailSheet.tsx) com lista + Seguir/Parar de seguir. PR #224. |
-| **Subtasks (1 nível + create + toggle status)** | P1 | [`BoardController::addSubtask`](../../../Modules/Forja/Http/Controllers/BoardController.php#L502) reusa `TaskCrudService::create()` com `parent_task_id`; tab Subtasks em [`DetailSheet.tsx`](../../../resources/js/Pages/Forja/Board/DetailSheet.tsx) com checkboxes (toggla todo↔done via PATCH otimista) + form add inline. PR #226. |
+| 001 | Casos/UC das 9 telas (`casos.md`) | P0 | M | `casos-gate` é required; 0/9 hoje. É contrato executável, não doc |
+| 002 | Gatilho de fila órfã → Triage | P0 | S | 519 tasks sem dono, criador-agente some (seção acima) |
+| 003 | Fechar as 6 US-TR em `review` | P0 | S | Backlog vivo do módulo — 6 de 7 ativas estão paradas em review |
+| 004 | Criar/validar dependência (#19) | P1 | M | Exibir já existe; criar não. Fecha meia-capacidade, não abre nova |
+| 005 | E2E da Board (drag-drop + atalhos) | P1 | M | O comportamento mais caro de regredir é o único com lane de CI só de unit |
+| 006 | Cobertura de scorecard (8/9 → 9/9) | P2 | S | Higiene; a porta viva já aponta o faltante |
+| 007 | Activity feed: filtros + permalink | P2 | S | Refino de capacidade ✅, não capacidade nova |
+| 008 | Burndown multi-cycle | P3 | M | **Bloqueada por premissa**: depende de haver cycle. Não iniciar enquanto `cycles-active` estiver vazio |
 
 ---
 
-## 🟡 PARCIAL (7)
+## Recomendo NÃO fazer
 
-| Capacidade | Score | Evidência | Gap |
-|---|---|---|---|
-| **Multi-tenant + Permissions Spatie cobertas por testes Pest** | P0 | Todos controllers checam `can:jana.mcp.usage.all`; UI esconde botões; [`BoardControllerTest.php`](../../../Modules/Forja/Tests/Feature/BoardControllerTest.php) cobre 403 GET/PATCH; SearchControllerTest cobre permission gate. R-PMG-002 documenta que `mcp_*` são governance (sem business_id). | Falta `Modules/Forja/Tests/Feature/PermissionsTest.php` dedicado com matriz cross-controller (Backlog/MyWork/Roadmap/Activity/Burndown sem permission → 403); falta cenário cross-tenant explícito (mesmo que governance, permission gate é Tier 0). |
-| **Filters URL state-driven (compartilhável + back button)** | P0 | [`Board/Index.tsx`](../../../resources/js/Pages/Forja/Board/Index.tsx#L86) usa `router.get` com query params + localStorage como cache (`oimpresso.board.cycle/epic/owner/search`); `aplicar()` reescreve URL. | Sem teste E2E cobrindo back/forward preservando filters; localStorage e URL podem divergir; sem aplicação consistente em Backlog/MyWork/Roadmap (cada page reimplementa o pattern). Falta lib compartilhada (ex: `useUrlState()`). |
-| **Atalhos keyboard (J/K/E/A + /)** | P1 | [`Board/Index.tsx`](../../../resources/js/Pages/Forja/Board/Index.tsx#L278) implementa J/K (next/prev card), E (advance status), A (back status), / (focus search). Doc do header lista todos. | Falta `?` overlay help, `c` create, `Esc` close sheet (apenas Sheet shadcn nativo), shortcut hub global (não só Board); `e` documentado como "abre Detail Sheet em modo edit" — não implementado. PMG-008 pendente. |
-| **Activity feed timeline (filtros + permalinks)** | P1 | [`ActivityController`](../../../Modules/Forja/Http/Controllers/ActivityController.php) com filtros type/author/task/days (1-90); KPIs last_24h/last_7d/created/completed; limit 300. Page [`Activity/Index.tsx`](../../../resources/js/Pages/Forja/Activity/Index.tsx) renderiza timeline. | Sem permalink clicável pra task referenciada (só `task_id` mostrado, sem link `/project-mgmt/board?task=ID`); sem lazy load se >100 (limit hardcoded 300); sem range custom (slider days fixo 1-90). |
-| **Burndown chart** | P1 | [`BurndownController`](../../../Modules/Forja/Http/Controllers/BurndownController.php) calcula linha ideal vs real reconstruindo de `mcp_task_events`; pace_per_day + forecast_days; cycle selector via dropdown. | Sem comparação multi-cycle (só 1 cycle por vez); sem projection line explícita (só forecast_days numérico); scope_creep highlight ausente; sem cycles selector multi-select. |
-| **Dependencies graph (blocks / blocked_by)** | P2 | Tabela `mcp_task_dependencies` populada; [`BoardController::show`](../../../Modules/Forja/Http/Controllers/BoardController.php#L246) carrega `dependencies[]` + `dependency_targets` map; [`DetailSheet.tsx`](../../../resources/js/Pages/Forja/Board/DetailSheet.tsx) renderiza section "Dependências" com display_id + status + title. | Sem grafo visual (D3/SVG); sem validação no PATCH status (tarefa pode ir pra `done` mesmo com bloqueador `blocks` não-resolvido); sem direção bidirecional UI (`blocked_by` vs `blocks`). |
-| **Dark mode + theme persisted** | P3 | [`Hooks/useTheme.ts`](../../../resources/js/Hooks/useTheme.ts) + [`Components/ThemeToggle.tsx`](../../../resources/js/Components/ThemeToggle.tsx) existem; Tailwind 4 com classes `dark:` em Components. | `ThemeToggle` NÃO está montado em `AppShellV2` (busca via grep zero matches em Layouts/AppShellV2.tsx); usuário não consegue ativar; sem persistência efetivada (hook existe sem caller). |
+> Não é "backlog frio" — é recusa com razão de premissa. Reabrir exige sinal novo, não vontade nova. Régua: [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — *backlog só recebe item se cliente paga + reporta OU métrica detecta drift*.
 
----
-
-## ❌ AUSENTE (13)
-
-| Capacidade | Score | Evidência |
-|---|---|---|
-| **Cycle close UI (rollover + retro markdown)** | P1 | Não encontrado em `Modules/Forja/Http/Controllers/*` ou `resources/js/Pages/Forja/`. Tool MCP `cycles-close --rollover` existe (CLI), mas sem UI Sheet/Page. PMG-009 todo. |
-| **Sprint/Cycle planning UI ("Add to cycle" do Backlog)** | P1 | Não encontrado endpoint `POST /project-mgmt/cycle/{id}/add-tasks`; Backlog não tem modal Add to cycle. PMG-010 todo. |
-| **Centrifugo presence — quem está vendo a tela** | P1 | grep `Centrifugo|presence|usePresence` em `Modules/Forja/` + Pages: 0 matches. Infra Centrifugo provisionada (ADR 0058) mas zero integração nas pages do módulo. PMG-011 todo. |
-| **Saved views backend (não só localStorage)** | P1 | Tabela `mcp_views` declarada na FICHA mas não populada/usada; sem endpoints CRUD `/project-mgmt/views`; filters atuais ficam em localStorage `oimpresso.board.*` (per-browser). PMG-012 todo. |
-| **Triage view (tasks novas sem owner/priority)** | P1 | Sem rota `/project-mgmt/triage` em [`routes.php`](../../../Modules/Forja/Http/routes.php); sem `TriageController`; tool MCP `triage` existe mas sem page UI. PMG-013 backlog. |
-| **Custom fields per project** | P2 | Sem migration `mcp_custom_fields`; sem UI cadastro. Apenas `mcp_components` existe (categorização limitada). PMG-019 backlog. |
-| **Workload view (capacidade do time)** | P2 | Sem rota `/project-mgmt/workload`; sem agregação capacity per owner/cycle. PMG-018 backlog. |
-| **Time tracking interno (horas trabalhadas)** | P2 | Sem migration `mcp_time_logs` (a ficha distingue de `pjt_project_time_logs` legacy); sem Start/Stop UI; só `estimate_h` existe em `mcp_tasks`. PMG-017 backlog. |
-| **Templates de epic/cycle (clone)** | P2 | Sem flag `is_template` em `mcp_cycles`/`mcp_epics`; sem endpoint POST `/from-template/{id}`. PMG-020 backlog. |
-| **Automation rules (when X then Y)** | P2 | Sem migration `mcp_automation_rules`; sem engine PHP. PMG-021 backlog. |
-| **Mobile responsive otimizado** | P3 | [`Board/Index.tsx`](../../../resources/js/Pages/Forja/Board/Index.tsx#L485) usa grid fixo `repeat(N, 1fr)` sem breakpoints `sm:`/`md:`; sem touch drag-drop; sem audit Lighthouse mobile. PMG-022 backlog. |
-| **Roadmap timeline drag-and-drop** | P3 | [`RoadmapController`](../../../Modules/Forja/Http/Controllers/RoadmapController.php) renderiza grouping por quarter (read-only); sem endpoint PATCH `target_quarter`; sem drag horizontal em [`Roadmap/Index.tsx`](../../../resources/js/Pages/Forja/Roadmap/Index.tsx). PMG-024 backlog. |
-| **Public share link (read-only)** | P3 | Sem endpoint `/p/{token}`; sem UI revoke; sem LGPD review. PMG-025 backlog. |
+| Item | Razão de premissa |
+|---|---|
+| **PMG-016 — Grafo de dependências** (#19 parte visual) | O `DetailSheet` **já mostra** as dependências em lista com contagem. Grafo resolve navegação em rede densa; com 7 tasks ativas não há rede densa. Fazer a metade que falta (criar/validar) é proposta 004 — o **desenho** do grafo não é |
+| **PMG-017 — Time tracking** (#22) | Não faturamos por hora. O custo que importa (agente) já tem dono: `agent-cost-per-pr.mjs`. Somar um 2º medidor duplica régua consolidada |
+| **PMG-011 — Centrifugo presence** (#11) | 5 pessoas, WIP 1-2. A colisão real (escrita concorrente) já está coberta pelo 409 do #1. Presence resolveria um problema que a medição não mostra existir |
+| **PMG-019 — Custom fields** (#20) | 1 taxonomia, 1 time. Exige migration nova + render dinâmico pra flexibilidade que ninguém pediu |
+| **PMG-020 — Templates de epic/cycle** (#23) | Acoplado ao rito de cycle. **Morre junto** se o rito for aposentado — e hoje não há cycle ativo. Fazer agora é apostar num rito que não está acontecendo |
+| **PMG-023/024/025 — Dark mode toggle · Roadmap drag horizontal · Public share link** | **Sem sinal** (ADR 0105): nenhum cliente reportou, nenhuma métrica detectou drift. Hipótese sem sinal vira ADR de feature wish, não US ativa |
 
 ---
 
-## Gaps priorizados (top 10)
+## Próxima reauditoria sugerida
 
-Ordenação: P0 endurecimento → P1 workflow Fase 3/4 → P2/P3 diferenciação. Refletem exatamente PMG-008..PMG-025 em [SPEC.md](SPEC.md).
+**2026-11-04** (trimestral) ou após fechar as propostas 001-003. Se a data chegar e ninguém rodar, os números acima ficam **datados, não errados** — re-rode os comandos da seção "Como reproduzir".
 
-| # | Score | Capacidade (gap) | US sugerida |
-|---|---|---|---|
-| 1 | **P0** | PermissionsTest cross-controller dedicado (Backlog/MyWork/Roadmap/Activity/Burndown sem perm → 403) | PMG-026 (nova) |
-| 2 | **P0** | URL state lib compartilhada (`useUrlState()`) + teste E2E back/forward | PMG-027 (nova) |
-| 3 | **P1** | Atalhos completos (`?` overlay help, `c` create, `e` edit) | PMG-008 (existente) |
-| 4 | **P1** | Cycle close UI (Sheet retro markdown + rollover) | PMG-009 (existente) |
-| 5 | **P1** | Sprint planning ("Add to cycle" do Backlog) | PMG-010 (existente) |
-| 6 | **P1** | Centrifugo presence (avatar stack TopBar) | PMG-011 (existente) |
-| 7 | **P1** | Saved views backend (mcp_views CRUD + sharing) | PMG-012 (existente) |
-| 8 | **P1** | Triage page dedicada `/project-mgmt/triage` | PMG-013 (existente) |
-| 9 | **P1** | Activity permalinks pra task + lazy load | PMG-014 (existente) |
-| 10 | **P1** | Burndown multi-cycle + projection + scope_creep | PMG-015 (existente) |
+## Insumos preservados de PR #197
 
-Backlog não-priorizado P2/P3 (já listado em SPEC § "Fase 5 — Diferenciação"): PMG-016 (Dependencies graph), PMG-017 (Time tracking), PMG-018 (Workload), PMG-019 (Custom fields), PMG-020 (Templates), PMG-021 (Automation), PMG-022 (Mobile), PMG-023 (Dark mode toggle wiring), PMG-024 (Roadmap drag), PMG-025 (Public share).
-
----
-
-## Próximos passos (sugestão de batch — Wagner aprova)
-
-> Skill `comparativo-do-modulo` (ADR 0089) NÃO cria tasks sem confirmação humana. Lista abaixo é proposta — Wagner usa `tasks-create` no MCP pra materializar.
-
-**Batch Fase-3 endurecimento P0 (2 tasks novas):**
-
-- `tasks-create` PMG-026 — `chore(test): PermissionsTest cross-controller Forja`
-  - priority: p0 · estimate: 2h · type: chore · cycle: current
-  - acceptance: matriz Backlog/MyWork/Roadmap/Activity/Burndown sem `jana.mcp.usage.all` → 403; suite verde em CI
-- `tasks-create` PMG-027 — `feat(ui): useUrlState hook compartilhado + teste E2E back/forward`
-  - priority: p0 · estimate: 4h · type: feature · cycle: next
-  - acceptance: hook em `resources/js/Hooks/useUrlState.ts` com sync URL+localStorage; aplicado em Board+Backlog+MyWork; teste Pest cobrindo navegação back/forward
-
-**Batch Fase-3 workflow P1 (3 tasks já existem em SPEC — só agendar):**
-
-- PMG-008 (atalhos avançados) → `tasks-update PMG-008 cycle:current`
-- PMG-009 (cycle close UI) → `tasks-update PMG-009 cycle:current`
-- PMG-010 (sprint planning) → `tasks-update PMG-010 cycle:next`
-
-**Batch Fase-4 real-time + persistência P1 (2 tasks já existem):**
-
-- PMG-011 (Centrifugo presence) → `tasks-update PMG-011 cycle:next`
-- PMG-012 (saved views backend) → `tasks-update PMG-012 cycle:next`
-
-**Batch refinamento P1 (3 tasks já existem):**
-
-- PMG-013 (Triage view) — quick win se Wagner abre weekly triage
-- PMG-014 (Activity permalinks) — efeito UX imediato
-- PMG-015 (Burndown multi-cycle) — efeito retro mensal
-
-**P2/P3 (10 tasks já listadas em SPEC):** mantém em backlog não-comprometido conforme SPEC § "Fase 5 — Diferenciação". Re-priorizar após Fase 3+4 batido.
-
----
-
-## Métricas a coletar pós-Fase 3
-
-(Conforme FICHA § Métricas de adoção)
-
-- Adoção time interno: ≥5 usuários distintos abrem `/project-mgmt/board` semanalmente
-- Latência drag-drop status change: <300ms p95
-- % de tasks com TimeLog interno: ≥40% (sinal real do Time tracking — bloqueado por PMG-017)
-- Taxa de tasks completadas via Cmd+K vs mouse: >20% (telemetria `palette.opened` × `board.task.moved`)
-
----
-
-## Histórico de revisão
-
-- `2026-05-09` — [audit-constituicao] — geração via skill `comparativo-do-modulo`. Cruza FICHA (27 capacidades), SPEC (PMG-001..PMG-025) e código real em `Modules/Forja/` (7 controllers, 6 pages Inertia, 2 test files com 52 cenários Pest). Resultado: 7 ✅ + 7 🟡 + 13 ❌. P0 100% coberto (4 ✅ + 2 🟡 — gaps de endurecimento, não funcionalidade). Top gaps casam Fase 3/4 da SPEC.
+O PR #197 mirou no `Modules/Project` legacy (queue-for-delete Fase 3.8) e foi mergeado com disclaimer pivot. Os critérios UX do `CHARTER-board.md` legacy foram **todos portados**: anatomia 4 regiões (TopBar / FilterBar / Kanban / DetailSheet), 6 fluxos críticos, 8 estados de UI, anti-padrões (modal full-screen / `window.location.reload`). ADR 0099 (`aceito`, conteúdo redirecionado pra Fase 3.8 deletion) é o doc de transição entre os 2 esforços.

@@ -8,22 +8,28 @@ id: requisitos-project-mgmt-capterra-ficha
 > ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md).
 > ADR mãe redesign: [0100](../../decisions/0100-projectmgmt-ui-redesign.md).
 > Charter da Board: [CHARTER-board.md](CHARTER-board.md).
-> Inventário ✅🟡❌ atualizado: [INVENTARIO.md](INVENTARIO.md).
+> Inventário ✅🟡❌ atualizado: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md).
 
 ---
 
 ## Identidade do módulo
 
-- **Nome interno**: `Forja` desde 2026-07-30 (era `ProjectMgmt`; a Fase 3.9 do ADR 0079 previa `Project`, plano ABANDONADO — ver errata em memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md §5)
-- **Domínio de negócio**: gerenciamento de **trabalho do TIME INTERNO** estilo Jira (Project → Epic → Cycle → Story → Subtask + Components transversais + Custom fields + Saved views + Inbox + Bidirectional git sync). Cliente alvo: time oimpresso (Wagner / Maíra / Felipe / Luiz / Eliana). **NÃO** é gestão de projetos de cliente externo.
-- **Status atual**: **em prod desde 2026-05-04** (PRs #91/#92, ADR 0070 entregue). 6 telas Inertia/React (1935 LoC), 7 controllers, 15 tabelas `mcp_*`, padrão MWART.
-- **Concorrentes-alvo direto** (6):
-  - **Linear** — linear.app — UX state-of-the-art (atalhos teclado, navegação <100ms, command palette). Benchmark de **fluidez** que Wagner pediu como base do redesign.
-  - **Jira Cloud** — atlassian.com/software/jira — referência mundial Kanban + Backlog + Sprints + Roadmap + JQL. Padrão de **completude funcional**.
+- **Nome interno**: `Forja` desde 2026-07-30 (era `ProjectMgmt`; a Fase 3.9 do ADR 0079 previa `Project`, plano ABANDONADO — ver errata em memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md §5). **URLs web seguem `/project-mgmt/*` por compat** — o nome do módulo mudou, o prefixo de rota não (`Modules/Forja/Http/routes.php`; renomear é decisão [W] separada, SCOPE `url_prefixes`).
+- **Domínio de negócio** (reescrito 2026-08-04 — a redação anterior "só Jira interno" ficou estreita): **cockpit de trabalho do time interno + host da infraestrutura MCP da plataforma**. Duas metades, uma casa:
+  1. **Trabalho do time** estilo Jira — Project → Epic → Cycle → Story → Subtask + Inbox + Triage + Roadmap + Burndown + Activity. Cliente alvo: time oimpresso ([W]/[M]/[F]/[L]/[E]). **NÃO** é gestão de projetos de cliente externo.
+  2. **Infra MCP** absorvida em jul/2026 sem mudar URL: identidade e emissão de token (`mcp_actors`), endpoints `/api/mcp` e `/api/cc`, **Daily Brief** (ex-`Modules/Brief`, ADR 0091), loop de handoff Cowork↔Code (ADR 0283), ingest de sessões Claude Code, hub Equipe (`/team-mcp/*`), Admin do MCP (`/ads/admin/*`) e o núcleo de registro/decompose do ADS. **`Modules/TeamMcp` foi DELETADO** (PR #5122) — as capacidades vieram MOVIDAS, não fundidas.
+- **Fronteira e proveniência de cada peça**: [`Modules/Forja/SCOPE.md`](../../../Modules/Forja/SCOPE.md) (dono único — não recopiar aqui).
+- **Superfície de código**: **não fixar contagem nesta ficha** — número solto apodrece. Dono vivo: [`SUPERFICIE.md`](SUPERFICIE.md), regenerável por `node scripts/governance/module-surface.mjs Forja --write` (frescor via `--check`). Estado consolidado: [`BRIEFING.md`](BRIEFING.md).
+- **Status atual**: em prod desde 2026-05-04 (PRs #91/#92, ADR 0070); **uso interno diário**, não cliente-facing. Nota do módulo: rodar `php artisan module:grade Forja --detail` (não fixar aqui).
+- **⚠️ Sobreposição conhecida (aberta)**: as abas do cockpit `/forja` (triagem/backlog/quadro/changelog) sobrepõem Triage/Backlog/Board/Activity nativos. MOVIDO, não fundido — fundir = deletar uma implementação = decisão [W] (SCOPE §cockpit). Enquanto durar, **auditar as duas** ao classificar uma capacidade como ✅/🟡/❌.
+- **Concorrentes-alvo direto** — a lista abaixo mudou em 2026-08-04 porque a identidade mudou: as 4 primeiras cobrem a metade "trabalho do time"; as 2 últimas entram porque o módulo virou **host de infra de agente**, e não havia benchmark pra essa metade.
+  - **Linear** — linear.app — UX state-of-the-art (atalhos teclado, navegação <100ms, command palette, Triage em lote). Benchmark de **fluidez** que [W] pediu como base do redesign.
+  - **Jira Cloud** — atlassian.com/software/jira — referência mundial Kanban + Backlog + Sprints + Roadmap + JQL. Padrão de **completude funcional** (e de peso: ver §"Premissa que NÃO importamos").
   - **Asana** — asana.com — multi-vertical, popular em PMEs BR. Views Lista + Board + Timeline + Workload.
   - **ClickUp** — clickup.com — one-tool-rules-all, custom fields ricos. Popular em SMB BR.
-  - **Plane.so** — plane.so — open-source Linear-clone; arquitetura inspiração porque é self-hostable como Forja.
-  - **Productive.io** — productive.io — agências/gráficas; **time tracking + invoicing integrado** (pode inspirar US-PROJ-015 invoice-from-timelogs do legacy se Wagner reaproveitar).
+  - **Plane.so** — plane.so — open-source Linear-clone; **self-hostable como a Forja**, então é o único cuja premissa de deploy (1 tenant, 1 time, sem SaaS no meio) bate com a nossa.
+  - **Backstage (Spotify)** — backstage.io — **novo em 2026-08-04**. Premissa que vale aqui: portal interno que é ao mesmo tempo catálogo de serviços e **host de plugins/infra do time** — exatamente a forma que a Forja assumiu ao absorver identidade MCP + Admin + Equipe. Serve de benchmark pra *"cockpit interno não é produto, é plataforma do time"*, não pra features de Kanban.
+  - ~~**Productive.io**~~ — removido da lista-alvo em 2026-08-04. Premissa não bate: o valor dele é **time tracking humano faturável → invoice** (agência cobra hora do cliente). A Forja mede trabalho de time interno que **não é faturado por hora** — ver §"Premissa que NÃO importamos". Fica citado só como referência histórica do legado `pjt_project_time_logs`.
 
 ## Comparativos de referência
 
@@ -206,22 +212,38 @@ capacidades:
     evidencia_de_pronto: "Endpoint público /p/{token} + UI read-only + revoke token + LGPD review"
 ```
 
+## Premissa que NÃO importamos
+
+> **Por que esta seção existe** (nova em 2026-08-04): uma ficha de benchmark, lida sem contexto, vira lista de compras — o concorrente tem, logo falta. A lápide §5 [2026-07-16](../../proibicoes.md) catalogou 3 transplantes crus no MESMO dia (Odoo/Shopify/Akeneo), e em 2 deles o anti-padrão inventado virou **lei no charter** — pior que ausente, porque parece canon. Aqui fica o registro do inverso: capacidade que o concorrente tem, cuja **premissa não vale aqui**.
+> **Escopo:** o "porquê não" é desta ficha (foco no concorrente). O status ✅🟡❌ por capacidade é do [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md) — não recopiar. ⚠️ O INVENTARIO está carimbado `generated_at: 2026-05-09` e **envelheceu** (lista Triage como ❌ quando a tela existe): cruze com [`SUPERFICIE.md`](SUPERFICIE.md) antes de citá-lo como estado atual.
+> Sair desta lista é decisão [W] — não é o agente que reclassifica.
+
+| Capacidade | Quem tem | A premissa DELES | Por que não vale aqui |
+|---|---|---|---|
+| **Custom fields per project** (hoje P2 nesta ficha) | Jira (canonical), ClickUp, Asana | SaaS multi-cliente: cada empresa modela um processo diferente e o vendor **não pode** prever o schema — então delega o schema ao usuário. | A Forja tem **1 tenant e 5 pessoas**, e o schema é nosso: precisou de campo, é migration + PR. Custom fields aqui compram flexibilidade que já temos e vendem o preço que o Jira paga por ela — query, índice e UI genéricos sobre EAV. Se um campo aparecer 3× no `mcp_components`, o caminho é coluna, não motor de campo. |
+| **JQL / linguagem de query** (não listado nas capacidades — e é de propósito) | Jira (canonical) | Backlog de dezenas de milhares de issues com centenas de projetos: filtro por UI não alcança, então nasce uma linguagem. | Nosso volume não pede linguagem, e já existem **dois** caminhos de consulta consolidados: os filtros do Backlog (7 dimensões) e as tools MCP (`tasks-list module: status: owner:`). Uma 3ª sintaxe seria um terceiro juiz pro mesmo fato. |
+| **Time tracking humano faturável** (hoje P2 nesta ficha) | Productive.io (canonical), Jira+Tempo, ClickUp | Agência **fatura hora do cliente** — a hora registrada É a receita, então rastrear é obrigação contratual. | A Forja mede trabalho **interno não faturado por hora**. O sinal de esforço que o time realmente usa já é outro: `estimate_h` + burndown + o **custo por PR em USD** (`scripts/governance/agent-cost-per-pr.mjs`, advisory). Cronômetro humano aqui mede a pessoa, não o trabalho — e ainda entra em rota de colisão com a regra Tier 0 de não commitar valor. O legado `pjt_project_time_logs` é do `Modules/Project` (em DELETE, Fase 3.8), não desta casa. |
+| **Presence real-time "quem está vendo esta tela"** (hoje **P1** nesta ficha — proponho rebaixar, decisão [W]) | Figma (canonical), Linear, Notion | Edição **simultânea do mesmo documento**: sem avatar ao vivo, dois usuários se sobrescrevem sem perceber. | Aqui ninguém co-edita um card: a colisão real é conflito de transição, e ela **já tem defesa melhor que presence** — `expected_updated_at` → 409 + revert + estado do servidor no aviso (BoardController::updateStatus). Presence mostraria que alguém *está lá*; o 409 prova o que *aconteceu*. Com 5 pessoas e Centrifugo custando canal + teardown por página, o segundo mecanismo compra pouco. ⚠️ Continua P1 na lista de capacidades acima — **não reclassifiquei sozinho**; a demoção é decisão [W]. |
+| **Workflow designer visual (arrastar estados)** (não listado — e é de propósito) | Jira (canonical), ClickUp | Cada cliente do SaaS tem um processo diferente e o vendor precisa que o **admin** configure sem deploy. | Estado de trabalho no oimpresso é **decisão de arquitetura, não preferência de tela** — o canon é o FSM tabular custom ([ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md)/[0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)), com transição por `ExecuteStageActionService` e auditoria append-only. Um designer visual que gere transição fora desse gateway não é feature: é a fuga do gateway que a proibição Tier 0 nomeia. |
+| **Marketplace / plugins de terceiro** (não listado — e é de propósito) | Jira/Atlassian (canonical), ClickUp, Backstage | Plataforma com milhares de clientes: o vendor não escala pra cobrir cada nicho, então terceiriza a long tail. | A Forja tem **um** cliente (o time) e código-fonte aberto pra ele. Extensão aqui é PR, e o custo do marketplace é o oposto do que este projeto persegue: superfície de terceiro dentro de um host que guarda **identidade MCP e emissão de token** (`mcp_actors`, cross-business POR DESIGN). Do Backstage importamos a forma "portal interno é plataforma do time" — **não** o mercado de plugins. |
+
+---
+
 ## Como auditar este módulo (etapa específica)
 
 > Esta seção é **lida pela skill** no passo 2.5.
 
 **Locais a inspecionar (paths exatos):**
 
-- Controllers: `Modules/Forja/Http/Controllers/{Board,Backlog,Roadmap,MyWork,Burndown,Activity}Controller.php` + `Admin/ProjectsController.php` + `DataController.php` + `InstallController.php`
-- Pages React: `resources/js/Pages/Forja/{Board,Backlog,Roadmap,MyWork,Burndown,Activity}/Index.tsx`
+- **Controllers / Services / Pages / charters / testes**: NÃO enumerar aqui (a lista de 2026-05 já ficou falsa quando o módulo absorveu a infra MCP). Fonte única e regenerável: [`SUPERFICIE.md`](SUPERFICIE.md) — `node scripts/governance/module-surface.mjs Forja --write`.
 - Componentes board: `resources/js/Components/board/{BoardColumn,TaskCard,badges}.tsx`
-- Routes: `Modules/Forja/Http/routes.php` (prefixo `/project-mgmt`)
+- Routes: `Modules/Forja/Http/routes.php` — **6 prefixos**, não 1: `/project-mgmt` (web + `/install`), `/api/mcp`, `/api/cc`, `/team-mcp`, `/forja`, `/ads` (verificado 2026-08-04 por `grep -nE "prefix" Modules/Forja/Http/routes.php`)
 - SCOPE.md: `Modules/Forja/SCOPE.md`
 - SPEC funcional histórico: `memory/requisitos/TaskRegistry/SPEC.md` (US-TR-NNN — nome legado, content vivo)
 - Tabelas: `mcp_jira_projects`, `mcp_epics`, `mcp_cycles`, `mcp_cycle_goals`, `mcp_tasks`, `mcp_task_attachments`, `mcp_task_comments`, `mcp_task_dependencies`, `mcp_task_events`, `mcp_task_memory_links`, `mcp_task_watchers`, `mcp_components`, `mcp_views`, `mcp_inbox_notifications`, `mcp_issue_templates`
 - Tools MCP relacionados: `tasks-list`, `tasks-detail`, `tasks-create`, `tasks-update`, `cycles-active`, `cycles-close`, `cycle-goals-track`, `my-work`, `my-inbox`, `triage`
-- Permission: `jana.mcp.usage.all`
-- Tests: `Modules/Forja/Tests/` (a criar — diretório atualmente sem registro em `phpunit.xml`)
+- Permission: `jana.mcp.usage.all` (legacy herdada — o BRIEFING pede pra NÃO criar permission própria da Forja)
+- Tests: `Modules/Forja/Tests/Feature` **está registrado** em `phpunit.xml:33` (verificado 2026-08-04 — a redação anterior "a criar / sem registro" era de 2026-05 e ficou falsa). Contagem de arquivos: `SUPERFICIE.md`; cobertura por tela: `casos-gate`/`screen-coverage`, nunca esta ficha.
 
 **Critérios customizados de classificação (resumo — detalhe completo no INVENTARIO.md):**
 
@@ -254,13 +276,14 @@ capacidades:
 
 ## Métricas de adoção
 
-- **Última auditoria**: nunca (1ª execução pós-pivot do PR #197 — INVENTARIO criado em sessão paralela)
-- **Capacidades P0 cobertas**: estimativa otimista 4 de 6 (Backlog/MyWork/Filters URL parcialmente OK; Drag-drop/Cmd+K/Permissions tests faltam)
-- **Gap P0+P1 atual**: estimativa 11 de 17
-- **Próxima reauditoria sugerida**: após Fase 1 (drag-drop + Cmd+K) — reavaliar gaps P1
+- **Última auditoria de capacidades**: `2026-05-09` — [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md) (`generated_at`). ⚠️ **envelheceu** — foi gerada antes do rename, antes da Triage e antes da absorção do TeamMcp; os buckets ✅🟡❌ e o "27 capacidades" de lá são retrato de maio, não estado atual.
+- **Última revisão de identidade/eixos v2**: `2026-08-04` — esta ficha (identidade + ux_heuristics + automation_targets + premissas não-importadas). **Não reauditou as 27 capacidades** — o placar por bucket segue sendo do INVENTARIO.
+- **Cobertura P0/P1**: não fixar número aqui (as estimativas de 2026-05 apodreceram). Dono do placar: INVENTARIO, quando regerado.
+- **Próxima reauditoria sugerida**: regerar o INVENTARIO contra `SUPERFICIE.md` — a divergência conhecida é grande o bastante pra que citar o placar velho induza erro.
 
 ## Histórico de revisão da ficha
 
+- `2026-08-04` — [C] — reauditoria pós-rename e pós-absorção do TeamMcp; ux_heuristics e automation_targets preenchidos; premissas não-importadas registradas.
 - `2026-05-07` — [W+C] — criação da ficha pós-pivot do PR #197 (que mirou no módulo errado `Modules/Project` legacy). Mira `Modules/Forja` em prod desde 2026-05-04 PRs #91/#92.
 
 ## Referências externas
@@ -280,29 +303,90 @@ capacidades:
 ## UX heuristics (Capterra v2 — eixo Usabilidade)
 
 > Capterra v2 ([ADR 0101](../../decisions/0101-sistema-charter-capterra-governanca-escopo.md) §3 eixos): além de medir features, mede **como** o concorrente entrega — cliques, tempo, recuperação de erro.
-> ⚠️ **TODO Wagner pesquisar/curate** — placeholder vazio até inventariar 3-5 heurísticas P0 do módulo.
+> Preenchido em **2026-08-04** [C] (era placeholder vazio desde a criação da ficha). Cada entrada carrega `benchmark` com concorrente nomeado + `premissa` dizendo por que o problema dele é o nosso (lápide §5 2026-07-16 — 3 transplantes crus no mesmo dia: Odoo/Shopify/Akeneo).
+> ⚠️ **`atual` é retrato de leitura de código datado 2026-08-04, não medição de uso.** Onde a métrica pede número de produção (tempo, p95), o campo diz `baseline: a medir` — não invente o número.
 
 ```yaml
-ux_heuristics: []
-  # - id: example-clicks
-  #   nome: "Cliques pra ação X"
-  #   score: P0
-  #   benchmark: "Concorrente A: 1 clique. Concorrente B: 5."
-  #   target: "<= 2 cliques"
-  #   metrica: "navegacao_steps_X"
+ux_heuristics:
+  - id: triagem-cliques-por-task
+    nome: "Cliques pra triar 1 task órfã (dar owner + prioridade)"
+    score: P0
+    benchmark: "Linear (Triage canonical): seleção MÚLTIPLA na fila + aceitar/atribuir em lote por atalho. Jira: bulk change no board filtrado."
+    premissa: "Vale aqui porque a fila de órfãs do oimpresso NASCE em lote — o cron `mcp:tasks:unassigned` mediu ≥50 pendências (Kernel.php:614, 2026-07-27). Fila que chega em lote e só sai 1-a-1 acumula por construção; é o mesmo problema do Linear, não uma feature copiada."
+    atual: "1-a-1. `Triage/Index.tsx` tem `selectedId` SINGULAR (linha 118) — não há checkbox nem seleção múltipla. O Backlog JÁ tem o padrão certo (Checkbox + `bulk()` → POST /project-mgmt/backlog/bulk, linhas 149/328/357), então o desenho existe na casa: é reuso, não invenção."
+    target: "<= 2 cliques por task no caminho 1-a-1 E ação em lote na Triage reusando o padrão do Backlog (nunca um 2º mecanismo de bulk)"
+    metrica: "triagem_cliques_por_task"
+
+  - id: atalho-significa-o-mesmo-em-toda-tela
+    nome: "Mesma tecla = mesma ação nas 4 telas de fila"
+    score: P0
+    benchmark: "Linear: um mapa de atalhos ÚNICO pro app inteiro; `?` abre a lista de qualquer tela."
+    premissa: "Vale aqui porque o time transita entre Board → Triage → Inbox → MyWork no mesmo bloco de trabalho. Atalho que muda de significado (ou some) entre telas irmãs treina o usuário a não usar atalho nenhum — e aí o investimento já feito em J/K/E/A vira custo morto."
+    atual: "J/K/Enter existem nas 4, mas em 4 listeners `keydown` REIMPLEMENTADOS (Board via `_components/useBoardShortcuts.ts`; Triage/Index.tsx:195; Inbox/Index.tsx:~195; MyWork/Index.tsx:~230). Só o Board tem o overlay `?` (`ShortcutsOverlay.tsx`) — nas outras 3 o atalho existe e é INDESCOBRÍVEL. Inbox/MyWork têm `r`/`R` (marcar lido); Triage não tem atalho de atribuir."
+    target: "1 hook compartilhado + `?` disponível nas 4 telas; nenhuma tecla com 2 significados"
+    metrica: "telas_com_overlay_de_atalho"
+
+  - id: tempo-ate-achar-uma-task
+    nome: "Passos até abrir uma task cujo id você não lembra"
+    score: P0
+    benchmark: "Linear/Notion: Cmd+K → digitar → Enter, sem sair da tela atual."
+    premissa: "Vale aqui porque o time referencia task por id no chat e no commit (`Refs: US-...`), então o caminho 'lembro do assunto, não do id' é o caminho REAL — não um luxo de produtividade."
+    atual: "Cmd+K entregue e é o padrão certo — `Components/CommandPalette.tsx` (cmdk) com debounce 220ms + grupos Tasks/Epics/Cycles/Projects, backend `SearchController` com gate de permission. Trigger global no AppShellV2."
+    baseline: "a medir — não há número de produção pro tempo/p95 desta busca; NÃO citar número sem rodar"
+    target: "<= 2 teclas pra abrir a busca + resultado p95 <= 1s (medir antes de comparar)"
+    metrica: "search_palette_p95_ms"
+
+  - id: recuperacao-de-erro-em-acao-otimista
+    nome: "O que acontece quando a ação otimista falha"
+    score: P1
+    benchmark: "Linear/Jira: mudança aplica na hora e, em conflito, reverte com aviso — o usuário nunca fica com a tela mentindo."
+    premissa: "Vale aqui porque a Forja tem 5 pessoas mexendo na MESMA fila (não é single-player), e o Board já sofre o caso: dois vendo o mesmo card. É o problema deles, com um agravante nosso — parte das transições passa por regra de negócio, então falhar é normal, não exceção."
+    atual: "Board tem o caminho completo: `expected_updated_at` → 409 Conflict com `current` + revert + banner (BoardController::updateStatus + Board/Index.tsx). Fora do Board o padrão não está replicado — Inbox/MyWork usam `optimisticRead` sem conflito de servidor."
+    target: "toda mutação otimista da Forja com revert visível + estado do servidor no aviso (nunca 'falhou' mudo)"
+    metrica: "mutacoes_otimistas_com_revert"
 ```
 
 ## Automation targets (Capterra v2 — eixo Automação)
 
 > O que mercado faz **sem humano**? Listener? Cron? Job? Webhook?
-> ⚠️ **TODO Wagner pesquisar/curate** — placeholder vazio até inventariar 3-5 automações P0 do módulo.
+> Preenchido em **2026-08-04** [C] (era placeholder vazio desde a criação da ficha).
+> ⛔ **Regra dura desta seção — a máquina pode já existir.** Antes de escrever "criar alerta X", conferir o dono vivo em `app/Console/Kernel.php` + `memory/governance/AUTOMATIONS.md`. Duas das entradas abaixo nasceriam DUPLICANDO régua consolidada (lápide §5 2026-07-09) — por isso dizem **ESTENDER**, não "criar". Máquina órfã é bug; máquina duplicada é pior, porque cria dois juízes pro mesmo fato.
 
 ```yaml
-automation_targets: []
-  # - id: example-auto-action
-  #   nome: "Auto-disparar X quando Y"
-  #   score: P0
-  #   benchmark: "Concorrente A SIM, B SIM, C PARCIAL"
-  #   target: "Listener event Y → JobDoX, p95 < 30s"
-  #   metrica: "auto_X_p95_seconds"
+automation_targets:
+  - id: orfa-sem-dono-chega-no-humano
+    nome: "US órfã (sem owner e/ou sem cycle) vira sinal que alguém lê"
+    score: P0
+    benchmark: "Linear: fila de Triage é estado de primeira classe — item sem dono não fica invisível, ele fica NA FILA. Jira: filtro salvo + subscription por email."
+    premissa: "Vale aqui porque o oimpresso tem um sintoma que o Linear resolve por desenho: US que nasce sem `cycle_id` some do roadmap (a Jana filtra por cycle). O item não é 'ignorado', é INVISÍVEL — que é exatamente o buraco que a fila de triagem do Linear fecha."
+    dono_existente: "⚠️ NÃO CRIAR — já existe. `mcp:tasks:unassigned`, agendado daily 06:45 BRT em `app/Console/Kernel.php:622` (US-INFRA-043, 2026-07-27), `environments(['live'])`, ADVISORY de propósito. A visibilidade humana vem do `TasksSemDonoBriefLineService` (Modules/Jana) no Daily Brief."
+    target: "ESTENDER o existente — a tela Triage da Forja consumir o MESMO predicado do comando (uma fonte, dois consumidores). Promover a --strict só com mordida provada (ADR 0336), nunca por reflexo."
+    metrica: "mcp_tasks_unassigned_total (série do log — é a série que autoriza o flip, não um número isolado)"
+
+  - id: parada-em-review-vira-sinal-na-tela
+    nome: "Task parada em `review` deixa de depender de alguém lembrar"
+    score: P0
+    benchmark: "Jira Automation (canonical): regra 'se transição X há N dias, notifica'. Linear: SLA/auto-nudge por estado."
+    premissa: "Vale aqui e o número prova: medido 2026-08-04 via `tasks-list module:Forja` (tool MCP), das 7 tasks ativas do próprio módulo **6 estão em `review`** e 1 em `todo` — zero em `doing`. Fila de revisão que só esvazia por memória humana é o gargalo que a automação do Jira ataca; aqui ele já é o estado dominante."
+    dono_existente: "⚠️ A DETECÇÃO JÁ EXISTE — `mcp:tasks:health-check`, daily 06:20 BRT (`app/Console/Kernel.php:591`), flagga `stale_review >5d` (além de stale_todo >21d, stale_blocked >30d, stale_doing >7d sem commit). Roda SEM --auto-comment: o sinal morre no log."
+    target: "ESTENDER — expor o veredito que o comando JÁ produz na superfície da Forja (badge no card / linha no MyWork / Inbox), sem um 2º detector e sem mudar o limiar por conta própria (>5d é do dono; 7d seria um 3º número pro mesmo fato)."
+    metrica: "stale_review_count (dono: mcp:tasks:health-check)"
+
+  - id: pr-mergeado-realimenta-a-task
+    nome: "PR mergeado que cita a US realimenta a task sozinho"
+    score: P1
+    benchmark: "Linear (canonical): magic words no PR movem o issue no merge. GitHub Issues: `Closes #N`."
+    premissa: "Vale aqui porque metade do dado já está na casa e não é usada pra isso: o `PrChecksResolver` (Modules/Forja/Services) já lê o estado REAL dos required checks do PR via GitHub API pro loop de handoff (ADR 0283), e os commits do projeto já carregam `Refs:` por disciplina (skill commit-discipline). A aresta PR→task é o pedaço que falta, não a integração."
+    atual: "AUSENTE — `PrChecksResolver` resolve green/red/pending do PR, mas nada escreve de volta em `mcp_tasks`/`mcp_task_events` a partir do merge."
+    target: "PR mergeado citando a US → EVENTO em `mcp_task_events` + sugestão de transição. **Nunca transição automática pra `done`** — aqui quem fecha é o dono da task ([W]/owner), então importamos o gatilho, não o desfecho."
+    metrica: "pr_merge_events_vinculados_a_task"
+
+  - id: cycle-close-rollover-sem-cli
+    nome: "Fechamento de cycle move as incompletas sem alguém rodar comando"
+    score: P1
+    benchmark: "Jira: sprint close com rollover é passo do fluxo, não CLI. Linear: cycle vira automaticamente e o não-feito escorre pro próximo."
+    premissa: "Vale aqui porque o cycle do oimpresso é quinzenal e o rollover é REGRA (regras-time.md §Ciclo: 'Sex final cycle: cycles-close --rollover'). Regra escrita que depende de alguém lembrar de rodar CLI é a definição de conhecimento que apodrece (ADR 0256) — o mesmo motivo pelo qual o Jira tirou isso da mão do usuário."
+    atual: "PARCIAL — a tool MCP `cycles-close --rollover` existe (CLI/MCP), sem UI e sem cadência. `CAPTERRA-INVENTARIO` lista Cycle close UI como ❌ (PMG-009)."
+    target: "UI de fechamento (rollover + retro) + lembrete na data de fim do cycle. Disparo do fechamento segue humano — o cycle é ato de gestão, não de cron."
+    metrica: "cycles_fechados_com_rollover_no_prazo"
 ```
