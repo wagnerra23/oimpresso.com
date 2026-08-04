@@ -19,6 +19,7 @@ on:
       - 'memory/governance/ciclo-completo-baseline.json'
       - 'scripts/governance/ciclo-completo.mjs'
       - 'scripts/governance/pt-conformance.mjs'
+      - '.github/workflows/ciclo-completo.yml'
   workflow_dispatch:
 
 concurrency:
@@ -39,10 +40,14 @@ jobs:
           node-version: '20'
       - name: Selftest do gate (bite/release — anti-fantasma ADR 0256)
         run: node scripts/governance/ciclo-completo.mjs --selftest
+      # O `--check` MORDE: exit≠0 derruba o passo (job vermelho e visível). Job segue
+      # NÃO-required — não bloqueia o merge. Advisory = "não bloqueia", NUNCA = "não pode
+      # ficar vermelho" (proibicoes.md §5, lápide 2026-07-09). O `||` só ENFEITA o erro com
+      # a receita de conserto e re-levanta o exit — engolir o status era o gate mudo.
       - name: Catraca do ciclo-de-tela (só sobe)
         run: |
-          if node scripts/governance/ciclo-completo.mjs --check; then
-            echo "✅ ciclo-completo não regrediu."
-          else
-            echo "::warning title=ciclo-completo::Uma tela perdeu peça do ciclo (charter/PT/conforme/casos/teste/golden-live). Nasça a tela com 'node scripts/governance/criar-tela.mjs' + rode '--json' pra subir o piso (advisory, não bloqueia)."
-          fi
+          node scripts/governance/ciclo-completo.mjs --check || {
+            echo "::error title=ciclo-completo::Uma tela perdeu peça do ciclo (charter/PT/conforme/casos/teste/golden-live). Nasça a tela com 'node scripts/governance/criar-tela.mjs' + rode '--json' pra subir o piso."
+            exit 1
+          }
+          echo "✅ ciclo-completo não regrediu."
