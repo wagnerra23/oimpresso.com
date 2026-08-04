@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **862 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **871 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -26,6 +26,7 @@
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
 | [`Compras`](#compras) | 17 | 0 | 0 | 0 | 16 |
+| [`Forja`](#forja) | 17 | 0 | 1 | 0 | 7 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
@@ -40,7 +41,6 @@
 | [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
-| [`Forja`](#forja) | 8 | 0 | 1 | 0 | 7 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`KB`](#kb) | 7 | 0 | 0 | 0 | 7 |
@@ -802,6 +802,35 @@
 
 - **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
+## Forja
+
+
+### review
+
+- **US-TR-309** — Triage — lista de tasks órfãs _(`p1` · @wagner)_
+
+### todo
+
+- **US-TR-308** — Chips de ADRs/SPECs relacionados (memory-linked) _(`p2` · @wagner)_
+- **US-TR-304** — Inbox — lista de não-lidas
+- **US-TR-305** — Inbox — marcar lido (individual + todas)
+- **US-TR-306** — Inbox — deep-link pra task/DetailSheet
+- **US-TR-307** — Operador não-técnico usa sem treino
+- **US-TR-310** — Triage — atribuir owner + prioridade inline
+- **US-TR-311** — Triage — mover cycle/epic
+
+### proposto
+
+- **US-FORJA-001** — Triagem em lote na tela Triage _(`p0` · @[W])_
+- **US-FORJA-002** — Política de expurgo (usar o `cancelled` que já existe) _(`p0` · @[W])_
+- **US-FORJA-005** — Rito de cycle — reativar ou aposentar (decisão [W], 0h de código) _(`p0` · @[W])_
+- **US-FORJA-009** — Pôr os testes da Forja numa lane de CI (41+ nunca executam) _(`p0` · @[W])_
+- **US-FORJA-003** — Estender `mcp:tasks:unassigned` (idade + delta semanal) _(`p1` · @[W])_
+- **US-FORJA-004** — Ligar a superfície do alarme de `review` parado (o detector já existe) _(`p1` · @[W])_
+- **US-FORJA-006** — Sobreposição cockpit `/forja` × telas nativas (decisão [W] + código) _(`p1` · @[W])_
+- **US-FORJA-008** — Requisitos da Forja no formato atual — **oportunístico** _(`p1` · @[W])_
+- **US-FORJA-007** — WIP por pessoa vs máximo declarado _(`p2` · @[W])_
+
 ## Accounting
 
 
@@ -1060,23 +1089,6 @@
 - **US-CRM-083** — UI de consentimento (opt-in/opt-out) + base legal por finalidade
 - **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
 - **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
-
-## Forja
-
-
-### review
-
-- **US-TR-309** — Triage — lista de tasks órfãs _(`p1` · @wagner)_
-
-### todo
-
-- **US-TR-308** — Chips de ADRs/SPECs relacionados (memory-linked) _(`p2` · @wagner)_
-- **US-TR-304** — Inbox — lista de não-lidas
-- **US-TR-305** — Inbox — marcar lido (individual + todas)
-- **US-TR-306** — Inbox — deep-link pra task/DetailSheet
-- **US-TR-307** — Operador não-técnico usa sem treino
-- **US-TR-310** — Triage — atribuir owner + prioridade inline
-- **US-TR-311** — Triage — mover cycle/epic
 
 ## Produto
 
