@@ -364,6 +364,7 @@
 | `hook-replay.mjs` | testa hook contra TELEMETRIA REAL (advisory, exit 0 sempre). |
 | `hooks-manifest-generate.mjs` | GERADOR determinístico do manifesto de hooks (grade de réguas |
 | `hue-canon-check.mjs` | verificador da fonte única do hue primário (US-GOV-052 P32). |
+| `junit-lanes.mjs` | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
 | `knowledge-drift.mjs` | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
 | `lapide-recheck.mjs` | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
