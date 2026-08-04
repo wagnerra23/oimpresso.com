@@ -390,3 +390,7 @@ tests/Feature/SecretsGovernanceTest.php
 # Sqlite-safe por desenho: zero DB (mapeamento PURO + facade Artisan mockada), sem
 # RefreshDatabase. Mesmo idioma do IngestLivenessCheckerTest, já nesta lista.
 Modules/Governance/Tests/Feature/PlanDriftCheckerTest.php
+# Health-check de tasks: ele PULA em MySQL (corruptor de schema — dropIfExists) e não
+# estava aqui, então não rodava em lugar NENHUM. Entra com o estado `pending_approval`
+# (ADR 0368 §3) pra que o caso novo possa de fato reprovar. Schema manual sqlite-safe.
+Modules/Jana/Tests/Feature/Mcp/McpTasksHealthCheckCommandTest.php
