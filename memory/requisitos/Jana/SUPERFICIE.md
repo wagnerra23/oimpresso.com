@@ -14,9 +14,9 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 577 arquivos em 19 papéis.
+**Total mapeado:** 574 arquivos em 19 papéis.
 
-## Controllers — 16
+## Controllers — 15
 
 - [CustosController.php](../../../Modules/Jana/Http/Controllers/Admin/CustosController.php)
 - [GovernancaController.php](../../../Modules/Jana/Http/Controllers/Admin/GovernancaController.php)
@@ -32,7 +32,6 @@ module: Jana
 - [PainelController.php](../../../Modules/Jana/Http/Controllers/PainelController.php)
 - [PeriodosController.php](../../../Modules/Jana/Http/Controllers/PeriodosController.php)
 - [ProController.php](../../../Modules/Jana/Http/Controllers/ProController.php)
-- [RegrasController.php](../../../Modules/Jana/Http/Controllers/RegrasController.php)
 - [SuperadminController.php](../../../Modules/Jana/Http/Controllers/SuperadminController.php)
 
 ## Requests (validação) — 8
@@ -358,7 +357,7 @@ module: Jana
 
 - 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 11
+## Telas (Inertia/React) — 10
 
 - [Index.tsx](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx)
@@ -370,7 +369,6 @@ module: Jana
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Painel.tsx](../../../resources/js/Pages/Jana/Painel.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
-- [Index.tsx](../../../resources/js/Pages/Jana/Regras/Index.tsx)
 
 ## Componentes / apoio de tela — 7
 
@@ -382,7 +380,7 @@ module: Jana
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
 - [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
-## Charters (lei da tela) — 11
+## Charters (lei da tela) — 10
 
 - [Index.charter.md](../../../resources/js/Pages/Jana/Admin/Custos/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Jana/Admin/Governanca/Index.charter.md)
@@ -394,7 +392,6 @@ module: Jana
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
 - [Painel.charter.md](../../../resources/js/Pages/Jana/Painel.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Jana/Regras/Index.charter.md)
 
 ## Casos (contrato UC) — 1
 

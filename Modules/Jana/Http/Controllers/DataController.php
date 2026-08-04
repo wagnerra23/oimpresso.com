@@ -284,7 +284,11 @@ class DataController extends Controller
                             // diário" do dashboard). Rota + BriefController + Page apagados.
                             ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
                             ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
-                            ['key' => 'regras',    'label' => 'Regras',    'href' => '/ia/regras'],
+                            // Ghost 'regras' removido 2026-08-04 [W]: /ia/regras era stub de
+                            // domínio ALHEIO — cobria policies do PolicyEngine ADS + governance
+                            // MCP cross-team, e o núcleo do ADS foi pra Modules/Forja em jul/2026.
+                            // Lia zero tabela; só apontava pra /ia/admin/governanca.
+                            // Rota + RegrasController + Page + charter + scorecard apagados.
                             // Jana Pro — entry-point pro paywall/upgrade (ADR 0140). Ghost no hub IA
                             // pra ficar clicável de qualquer tela Jana (a própria /ia/pro é modo FOCO
                             // sem SubNav). Billing real fica pra Sprint JANA-B.
