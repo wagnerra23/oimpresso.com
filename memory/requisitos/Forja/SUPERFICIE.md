@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 181 arquivos em 14 papéis.
+**Total mapeado:** 184 arquivos em 15 papéis.
 
 ## Controllers — 23
 
@@ -166,6 +166,12 @@ module: Forja
 - [Index.charter.md](../../../resources/js/Pages/Forja/MyWork/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
+
+## Casos (contrato UC) — 3
+
+- [Index.casos.md](../../../resources/js/Pages/Forja/Board/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Forja/Inbox/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Forja/Triage/Index.casos.md)
 
 ## Testes (Pest) — 51
 
