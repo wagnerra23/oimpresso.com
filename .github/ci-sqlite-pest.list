@@ -390,3 +390,12 @@ tests/Feature/SecretsGovernanceTest.php
 # Sqlite-safe por desenho: zero DB (mapeamento PURO + facade Artisan mockada), sem
 # RefreshDatabase. Mesmo idioma do IngestLivenessCheckerTest, já nesta lista.
 Modules/Governance/Tests/Feature/PlanDriftCheckerTest.php
+
+# /documentacao — contrato das rotas do acervo. Estava FORA de toda lane desde que
+# nasceu: nenhum workflow o citava e ele não estava aqui. Consequência medida no CT100
+# em 2026-08-04 rodando o arquivo de origin/main (72c9424f0a4): `1 failed, 10 passed`
+# — o caso do enum passava a mensagem como 2º NEEDLE do `toContain` variádico e falhava
+# desde sempre, sem ninguém ver. Corrigido no mesmo PR; entra aqui pra não repetir.
+# Sqlite-safe: os 11 casos que sempre rodam são DB-less (rota, markdown, CSS, reflexão);
+# o 12º pula por `Schema::hasTable('users')`, declarado no cabeçalho do arquivo.
+tests/Feature/DocumentacaoRouteTest.php

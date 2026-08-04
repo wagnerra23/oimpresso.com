@@ -389,7 +389,14 @@ it('documento sem nav_group nao entra no rail', function () {
 });
 
 it('responde 200 e renderiza o conteudo do dono quando autenticado', function () {
-    $user = User::query()->whereNotNull('email')->first();
+    // `hasTable` ANTES do query: na lane sqlite (:memory:, sem migrate) o
+    // `User::query()` lançava "no such table: users" e derrubava o caso, em vez de
+    // cair no skip que o cabeçalho deste arquivo já promete. Promessa não testada
+    // apodrece calada — e era ela que impedia o arquivo de entrar na lane.
+    $user = Illuminate\Support\Facades\Schema::hasTable('users')
+        ? User::query()->whereNotNull('email')->first()
+        : null;
+
     if (! $user) {
         $this->markTestSkipped('Sem users no DB — este caso não executou.');
     }
