@@ -128,13 +128,16 @@ Route::group(
         Route::delete('/memoria/{id}',                     [\Modules\KB\Http\Controllers\MemoriaController::class, 'destroy'])->name('jana.memoria.destroy');
 
         // ---- Ghosts canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21) -----
-        // Destinos canon do hub IA: Copiloto / Memórias / KB / Regras.
-        // Regras é stub "Em construção" (tela dedicada vem em onda futura);
+        // Destinos canon do hub IA: Copiloto / Memórias / KB.
         // Memórias e KB redirecionam pras rotas existentes preservando o ghost
         // clicável no header canon.
         // /brief removido 2026-06-15 (Wagner): stub redundante com o brief já
         // entregue via chat + brief-fetch (MCP) + seção "Brief diário" do dashboard.
-        Route::get('/regras',                              'RegrasController@index')->name('jana.regras.index');
+        // /regras removido 2026-08-04 [W]: o stub cobria "policies do PolicyEngine ADS
+        // + governance MCP cross-team" — DOIS domínios que não são da Jana (o núcleo do
+        // ADS foi pra Modules/Forja em jul/2026; o SCOPE da Jana declara só tabelas
+        // jana_*). O controller lia ZERO tabela e só apontava pra /ia/admin/governanca.
+        // Rota + RegrasController + Page + charter + scorecard apagados.
 
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('jana.superadmin.metas');

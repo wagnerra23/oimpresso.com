@@ -20,9 +20,13 @@ contains:
   - "PeriodosController — períodos de apuração"
   # Alertas
   - "AlertasController — alerts gerenciados pela IA"
-  # Ghosts canon hub IA (stubs ADR 0182 + GUIA-SIDEBAR-V3)
-  - "BriefController — stub /jana/brief (UI dedicada Onda C; brief gerado por BriefDiarioAgent)"
-  - "RegrasController — stub /jana/regras (UI dedicada futura; policies PolicyEngine ADS + governance MCP)"
+  # Ghosts canon hub IA (stubs ADR 0182 + GUIA-SIDEBAR-V3) — os DOIS foram apagados.
+  # BriefController: removido 2026-06-15 [W] (stub redundante com brief-fetch/chat).
+  #   ⚠️ Ficou listado aqui por ~7 semanas depois de deixar de existir — nenhuma
+  #   máquina compara `contains` com a árvore, então o SCOPE apodreceu calado.
+  # RegrasController: removido 2026-08-04 [W] — cobria policies do PolicyEngine ADS
+  #   + governance MCP cross-team, DOIS domínios fora da Jana (núcleo do ADS foi pra
+  #   Modules/Forja em jul/2026; este SCOPE declara só tabelas jana_*). Lia zero tabela.
   # Boilerplate
   - "DataController — sidebar/permissions"
   - "InstallController — install/uninstall hooks"
