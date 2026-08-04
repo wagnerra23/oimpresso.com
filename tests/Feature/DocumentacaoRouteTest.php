@@ -83,13 +83,18 @@ it('os tipos filtrados existem no enum VIGENTE da tabela do acervo', function ()
     }
 
     // Falha visível se o formato mudar — nunca "não achei, então passa".
-    expect($vigente)->not->toBeNull('nenhuma migration expõe o enum de `type` num formato conhecido');
+    expect($vigente)->not->toBeNull();
 
-    $enum = array_map(fn ($v) => trim($v, " \t\n'\""), explode(',', $vigente));
+    $enum = array_map(fn ($v) => trim($v, " \t\n'\""), explode(',', (string) $vigente));
 
-    foreach ($tiposDoController as $tipo) {
-        expect($enum)->toContain($tipo, "tipo '{$tipo}' do filtro não existe no enum vigente — o whereIn devolveria vazio pra sempre, sem erro");
-    }
+    // Por diferença de conjuntos, NÃO `toContain($tipo, "mensagem")`: `toContain` é
+    // VARIÁDICO no Pest, então a mensagem entra como segundo NEEDLE e o caso falha
+    // sempre (proibicoes §5 2026-07-28). Era o estado do `main` até este PR — passava
+    // despercebido porque este arquivo não roda em lane nenhuma. O diff também é
+    // melhor diagnóstico: mostra exatamente qual tipo sumiu do enum.
+    $foraDoEnum = array_values(array_diff($tiposDoController, $enum));
+
+    expect($foraDoEnum)->toBe([]);
 });
 
 it('o trio de feature chega ao acervo: o tipo que o indexador produz é o que o filtro aceita', function () {
