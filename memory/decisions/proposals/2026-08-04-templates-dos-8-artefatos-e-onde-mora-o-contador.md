@@ -30,6 +30,52 @@ Worktree `claude/jana-fronteira`, **5 atrás / 3 à frente de `origin/main`**, 2
 
 **A parte "dentro do arquivo" não passa** — e o motivo é técnico, não de gosto.
 
+## D-0 · O que esta ADR carrega — e o que ela NÃO carrega
+
+Decisão de [W] 2026-08-04: *"conteúdo dos templates pode mudar, então não participa da ADR"*. **Correto**, e vira regra do repo.
+
+São **4 camadas com velocidades de mudança diferentes**. A ADR é append-only e só pode carregar a mais lenta:
+
+| Camada | Muda | Dono | Como se altera |
+|---|---|---|---|
+| **decisão · invariante · lugar** | quase nunca | **a ADR** | ADR nova com `supersedes` |
+| **contrato de campo** | raro | o **JSON Schema** | PR — o gate de schema valida |
+| **conteúdo do template** | frequente | o **arquivo template** | PR simples |
+| **materialização** | frequente | o **gerador** (`*:init`) | PR simples |
+
+**O que a ADR registra por artefato** — uma linha, invariante ao texto:
+
+> `<artefato>` mora em `<path>`, tem template `<T>`, schema `<S>`, gerador `<G>`, e é cobrado por `<gate>`.
+
+**O que a ADR NÃO registra:** lista de campos (o schema é o dono) · prosa do template (o template é o dono) · números e contagens (apodrecem — §5 2026-07-17).
+
+### A regra dura: 1 artefato = 1 template = 1 dono
+
+Se existirem dois, **a ADR nomeia qual vale e o outro vira lápide**. Não é higiene: é o defeito que já está no repo, medido em 2026-08-04.
+
+| | Campos no frontmatter |
+|---|---|
+| template **inline** em `criar-tela.mjs::charterTemplate()` — **o que o gerador usa** | `page · component · owner · status · last_validated · parent_module · related_prototype · tier · charter_version` (**9**) |
+| `memory/requisitos/_DesignSystem/CHARTER-TEMPLATE.md` — **o que ninguém lê** | `id` (**1**) |
+| `charter.schema.json` `required` | `page · component · status` (**3**) |
+
+O gerador **não lê** o `.md`. Os dois convivem porque nenhuma ADR nomeou o dono — e o `.md` virou fóssil sem alarme.
+
+### Onde cada artefato mora (a tabela que É a ADR)
+
+| Artefato | Path | Template | Schema | Gerador | Cobrado por |
+|---|---|---|---|---|---|
+| SPEC | `memory/requisitos/<Mod>/SPEC.md` | `_TEMPLATE_SPEC.md` | `spec.schema.json` | **nenhum** ⚠️ | `SPEC (…)` + `anchor-lint` + `entry/covers` + `doneness-lint` — **required** |
+| requirements | `…/features/<slug>/requirements.md` | `_TEMPLATE_FEATURE/requirements.md` | **nenhum** ⚠️ | `feature:init` | `feature-lint` — advisory |
+| plan | `…/features/<slug>/plan.md` | `_TEMPLATE_FEATURE/plan.md` | **nenhum** ⚠️ | `feature:init` | `feature-lint` (só presença) |
+| tasks | `…/features/<slug>/tasks.md` | `_TEMPLATE_FEATURE/tasks.md` | **nenhum** ⚠️ | `feature:init` | `feature-lint` — advisory |
+| charter | `resources/js/Pages/**/*.charter.md` | **inline em `criar-tela.mjs`** (o `.md` é fóssil) | `charter.schema.json` | `tela:criar` | `Charter (…)` + `status:live` + `screen-coverage` — **required** |
+| casos | `resources/js/Pages/**/*.casos.md` | **inline em `criar-tela.mjs`** | **nenhum** ⚠️ | `tela:criar` | `Casos-coverage · ratchet` — **required** |
+| SCOPE | `Modules/<X>/SCOPE.md` | **nenhum** ⚠️ | **nenhum** ⚠️ | **nenhum** ⚠️ | **nenhum required** ⚠️ |
+| BRIEFING | `memory/requisitos/<X>/BRIEFING.md` | `_DesignSystem/BRIEFING-TEMPLATE.md` | `briefing.schema.json` | **nenhum** ⚠️ | memory-schema — **grace, warn-only** |
+
+Os **⚠️** são a lacuna, e ficam registrados como fato — não como promessa. O `SCOPE.md` é o pior caso: declara fronteira de módulo e não tem template, nem schema, nem gerador, nem check required.
+
 ## D-1 · Nenhum dos 8 qualifica para bloco gerado dentro do arquivo
 
 A regra que permitiria isso é o precedente de `SUPERFICIE.md`, `plans-index --check` e `adr-index-generate --check`: bloco gerado, marcadores, `--check` comparando gerado × commitado. **Os três são herméticos** — fonte e gerado no MESMO PR.
