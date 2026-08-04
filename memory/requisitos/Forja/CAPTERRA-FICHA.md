@@ -359,7 +359,7 @@ automation_targets:
     score: P0
     benchmark: "Linear: fila de Triage é estado de primeira classe — item sem dono não fica invisível, ele fica NA FILA. Jira: filtro salvo + subscription por email."
     premissa: "Vale aqui porque o oimpresso tem um sintoma que o Linear resolve por desenho: US que nasce sem `cycle_id` some do roadmap (a Jana filtra por cycle). O item não é 'ignorado', é INVISÍVEL — que é exatamente o buraco que a fila de triagem do Linear fecha."
-    dono_existente: "⚠️ NÃO CRIAR — já existe. `mcp:tasks:unassigned`, agendado daily 06:45 BRT em `app/Console/Kernel.php:622` (US-INFRA-043, 2026-07-27), `environments(['live'])`, ADVISORY de propósito. A visibilidade humana vem do `TasksSemDonoBriefLineService` (Modules/Jana) no Daily Brief."
+    dono_existente: "⚠️ NÃO CRIAR — já existe. `mcp:tasks:unassigned`, agendado daily 06:45 BRT em `app/Console/Kernel.php`, bloco `command('mcp:tasks:unassigned')` (US-INFRA-043, 2026-07-27), `environments(['live'])`, ADVISORY de propósito. A visibilidade humana vem do `TasksSemDonoBriefLineService` (Modules/Jana) no Daily Brief."
     target: "ESTENDER o existente — a tela Triage da Forja consumir o MESMO predicado do comando (uma fonte, dois consumidores). Promover a --strict só com mordida provada (ADR 0336), nunca por reflexo."
     metrica: "mcp_tasks_unassigned_total (série do log — é a série que autoriza o flip, não um número isolado)"
 
