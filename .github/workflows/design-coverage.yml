@@ -15,6 +15,8 @@ on:
       - 'resources/js/Pages/**/*.tsx'
       - 'prototipo-ui/ancora.mjs'
       - 'memory/governance/design-coverage-baseline.json'
+      - 'scripts/qa/design-coverage.mjs'
+      - '.github/workflows/design-coverage.yml'
   workflow_dispatch:
 
 concurrency:

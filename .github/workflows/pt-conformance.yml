@@ -15,6 +15,8 @@ on:
       - 'resources/js/Pages/**/*.charter.md'
       - 'resources/js/Pages/**/*.tsx'
       - 'scripts/governance/pt-conformance.mjs'
+      - 'scripts/governance/lib/pt-signatures.mjs'
+      - '.github/workflows/pt-conformance.yml'
   workflow_dispatch:
 
 concurrency:
