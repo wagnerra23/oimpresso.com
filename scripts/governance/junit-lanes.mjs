@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// scripts/governance/junit-lanes.mjs — fonte ÚNICA e DERIVADA das lanes que alimentam o
-//                                      manifesto por-UC (G-7, ADR 0264).
+// junit-lanes.mjs — fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC
+//                    (G-7, ADR 0264): quais workflows emitem JUnit e sob qual artifact.
+// (caminho: scripts/governance/junit-lanes.mjs)
 //
 // =====================================================================================
 // POR QUE EXISTE

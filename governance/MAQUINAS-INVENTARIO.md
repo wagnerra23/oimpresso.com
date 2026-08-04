@@ -21,7 +21,7 @@
 | `agent-cost-per-pr.yml` | Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de AL… |
 | `agent-pr-outcomes.yml` | Agent PR outcomes (advisory · DORA dos PRs do agente · change-failure-rate + accept-rate + time-to-merge via gh pr list · weekly schedule + dispatch · card #0 grade-das-r… |
 | `anchor-content-required.yml` | Ancora de design nao-shell — REQUIRED (F2/F6 revisão adversarial 2026-07-08: related_prototype do charter != shell/fantasma; anchor-content-check --check hard-fail; emend… |
-| `anchor-drift.yml` | Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3) |
+| `anchor-drift.yml` | Anchor Drift — lint spec↔código ADR 0273 + entry/covers (0303) + doneness (0302) + charter status:live, diff-aware no PR e full-tree no cron semanal (SA-A2/A3). Enforceme… |
 | `arquivos-pest.yml` | Arquivos · Pest (MySQL) — audit-log/download/enum rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
 | `baseline-tamper-guard.yml` | Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD) |
 | `block-brl-values-selftest.yml` | block-brl-values selftest (meta-teste do hook Tier-0 dinheiro block-brl-values-in-memory.mjs — bite/release do detector via --selftest + registration test do settings.jso… |
@@ -66,7 +66,7 @@
 | `forja-pest.yml` | Forja · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca a… |
 | `forja-shortcuts-gate.yml` | Forja Shortcuts — atalhos do Board (overlay `?` · Enter · J/K/E/A anti-regressão) |
 | `foundation-ratchet.yml` | Foundation ratchet (advisory · catracas só-diminui da fundação de testes — SDD FV-Q1) |
-| `gate-selftest.yml` | Gate selftest (advisory · quem vigia os vigias — fixtures boa/ruim por catraca, SDD GT-G6) |
+| `gate-selftest.yml` | Gate selftest — quem vigia os vigias: cada catraca de governança contra fixtures boa/ruim versionadas (SDD GT-G6). Enforcement POR JOB: consultar governance/required-chec… |
 | `gitleaks-history.yml` | Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215) |
 | `governance-drift.yml` | Governance Drift Framework — ADR 0216 |
 | `governance-gate-umbrella.yml` | Governance Gate (umbrella) |
@@ -302,7 +302,7 @@
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
-### 5.1 `scripts/governance/` — 102
+### 5.1 `scripts/governance/` — 103
 
 | Script | Descrição (cabeçalho) |
 |---|---|
@@ -363,6 +363,7 @@
 | `hook-replay.mjs` | testa hook contra TELEMETRIA REAL (advisory, exit 0 sempre). |
 | `hooks-manifest-generate.mjs` | GERADOR determinístico do manifesto de hooks (grade de réguas |
 | `hue-canon-check.mjs` | verificador da fonte única do hue primário (US-GOV-052 P32). |
+| `junit-lanes.mjs` | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
 | `knowledge-drift.mjs` | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
 | `lapide-recheck.mjs` | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
