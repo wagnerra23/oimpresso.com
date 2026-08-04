@@ -80,7 +80,9 @@ Os **⚠️** são a lacuna, e ficam registrados como fato — não como promess
 
 A regra que permitiria isso é o precedente de `SUPERFICIE.md`, `plans-index --check` e `adr-index-generate --check`: bloco gerado, marcadores, `--check` comparando gerado × commitado. **Os três são herméticos** — fonte e gerado no MESMO PR.
 
-O candidato mais forte era o bloco dentro do `casos.md`. Cai por medição: **5 das 8 dimensões** leem `scripts/casos-test-results.json`, escrito por **auto-PR (~1×/dia)**, e o corpus de testes muda em ~25% dos commits em 60d. Bloco commitado com fonte fora do PR = o **deadlock que a [ADR 0261](../0261-fatos-derivados-nao-viram-gate-de-merge.md) proíbe**: advisory vira vermelho permanente; required trava o `main` quando o auto-PR landa.
+O candidato mais forte era o bloco dentro do `casos.md`. Cai por medição: **5 das 8 dimensões** leem `scripts/casos-test-results.json`, escrito por **auto-PR (~1×/dia)**, e o corpus de testes muda em ~25% dos commits em 60d. Bloco commitado com fonte fora do PR fica **estruturalmente defasado**: como advisory vira vermelho permanente; como required trava o `main` toda vez que o auto-PR do manifesto landa.
+
+> ⚠️ **Errata de citação (2026-08-04):** a 1ª redação atribuía isso a uma *"ADR 0261 — fatos derivados não viram gate de merge"*. **Esse slug não existe.** A [ADR 0261](../0261-enforcement-faseado-gates-ci.md) real é *enforcement faseado dos gates de CI*, e o **deadlock dela é outro**: required **path-scoped** que não roda nunca reporta status e trava o PR em *"Expected — waiting"*. O raciocínio acima continua válido — é medição desta sessão — mas **não tem ADR que o proíba**: é análise, não lei citada. Pego pelo `deadlink-gate` (**required**), que reprovou o PR pelo link morto. Registro porque inventar slug de ADR e citá-lo como fundamento é pior que não citar nada.
 
 **Regra:** o contador mora no `--json`/relatório do **dono**. Quando precisar de casa versionada, vai num arquivo que o dono **já gera** (`_STATUS-GENERATED.md`, `catalog.json`, baseline em `governance/`). **Nunca dentro do artefato curado.**
 
