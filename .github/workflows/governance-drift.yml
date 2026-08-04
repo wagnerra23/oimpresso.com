@@ -157,6 +157,14 @@ jobs:
   secrets-audit-autopr:
     name: Secrets audit --auto-pr (Camada 3 · scheduled)
     runs-on: ubuntu-latest
+    # `issues: write` é o que o `gh issue create` do --auto-pr precisa. Sem isto
+    # o comando detecta o drift e o aviso morre no log — que é exatamente o
+    # defeito consertado em 2026-08-04 (antes: auto-PR caía em "nothing to
+    # commit"). O default do repo não garante escrita; declarar aqui mantém o
+    # menor privilégio (contents fica em read — este job não commita nada).
+    permissions:
+      contents: read
+      issues: write
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4

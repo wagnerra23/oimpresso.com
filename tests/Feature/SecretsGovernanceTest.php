@@ -144,3 +144,75 @@ it('R-SEC-0215-012 — estadoDe() extrai o estado e descarta a prosa', function 
     // mudança de DATA dentro do mesmo estado não é mudança de estado
     expect(App\Console\Commands\SecretsAuditCommand::ehDrift('🔴 EXPIRED 2026-05-28', '🔴 EXPIRED 2026-08-03'))->toBeFalse();
 });
+
+/**
+ * R-SEC-0215-013..016 — o aviso de drift SAI (não morre no log).
+ *
+ * Origem (medido 2026-08-03, confirmado 2026-08-04): a Camada 3 nasceu como
+ * auto-PR na ADR 0215 e NUNCA abriu um PR — `secrets:audit` só LÊ o índice,
+ * então `git commit` caía sempre em "nothing to commit" e a cadeia `&&` morria
+ * antes do `gh pr create`. O drift ficava só no log de um job vermelho que todo
+ * mundo aprendeu a ignorar. Autorizado por [W] 2026-08-04 ("pode arrumar").
+ *
+ * Estes testes exercem os dois métodos PUROS do caminho novo. O `exec`/gh em si
+ * não é testável aqui (precisa de token + rede) — o que dá pra travar é a
+ * identidade da issue (idempotência) e o que vai no corpo (não-vazamento).
+ */
+it('R-SEC-0215-013 — mesmo conjunto de drifts = mesmo título, independente da ORDEM (idempotência)', function () {
+    $a = [
+        ['name' => 'Hostinger DNS API token', 'old' => '✅', 'new' => '🔴'],
+        ['name' => 'Meilisearch master key',  'old' => '✅', 'new' => '🔴'],
+    ];
+    // mesmo conjunto, ordem invertida — a ordem de leitura do índice não pode
+    // mudar a identidade do conjunto, senão o cron duplica issue todo dia
+    $b = array_reverse($a);
+
+    expect(App\Console\Commands\SecretsAuditCommand::tituloDaIssue($a))
+        ->toBe(App\Console\Commands\SecretsAuditCommand::tituloDaIssue($b));
+});
+
+it('R-SEC-0215-014 — conjunto DIFERENTE = título diferente (estado novo merece aviso novo)', function () {
+    $antes = [['name' => 'Hostinger DNS API token', 'old' => '✅', 'new' => '🔴']];
+    $depois = [
+        ['name' => 'Hostinger DNS API token', 'old' => '✅', 'new' => '🔴'],
+        ['name' => 'Vaultwarden ADMIN_TOKEN',  'old' => '✅', 'new' => '🔴'],
+    ];
+
+    expect(App\Console\Commands\SecretsAuditCommand::tituloDaIssue($antes))
+        ->not->toBe(App\Console\Commands\SecretsAuditCommand::tituloDaIssue($depois));
+
+    // e o título conta quantos são, pra dar o tamanho do problema de relance
+    expect(App\Console\Commands\SecretsAuditCommand::tituloDaIssue($depois))->toContain('2 drift(s)');
+});
+
+it('R-SEC-0215-015 — corpo lista cada secret com o estado do índice e o da validação', function () {
+    $corpo = App\Console\Commands\SecretsAuditCommand::corpoDaIssue(
+        [['name' => 'Hostinger DNS API token', 'old' => '✅ active', 'new' => '🔴 EXPIRED']],
+        '2026-08-04 10:00'
+    );
+
+    expect($corpo)->toContain('Hostinger DNS API token');
+    expect($corpo)->toContain('✅ active');
+    expect($corpo)->toContain('🔴 EXPIRED');
+    expect($corpo)->toContain('2026-08-04 10:00');
+    // diz o que fazer — aviso sem ação é ruído
+    expect($corpo)->toContain('_INDEX-SECRETS.md');
+});
+
+it('R-SEC-0215-016 — corpo NÃO imprime nada além de name/old/new (chokepoint anti-vazamento)', function () {
+    // Se um dia o índice passar a carregar valor, este método é o lugar onde o
+    // vazamento aconteceria: ele monta o texto que vai pro GitHub. O teste passa
+    // uma chave a mais de propósito — o corpo tem que ignorá-la.
+    $corpo = App\Console\Commands\SecretsAuditCommand::corpoDaIssue(
+        [[
+            'name'  => 'Meilisearch master key',
+            'old'   => '✅ active',
+            'new'   => '🔴 COMPROMETIDA',
+            'value' => 'MASTER_KEY_QUE_NAO_PODE_VAZAR',
+        ]],
+        '2026-08-04 10:00'
+    );
+
+    expect($corpo)->toContain('Meilisearch master key');
+    expect($corpo)->not->toContain('MASTER_KEY_QUE_NAO_PODE_VAZAR');
+});
