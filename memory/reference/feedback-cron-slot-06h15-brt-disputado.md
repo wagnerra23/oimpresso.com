@@ -1,6 +1,9 @@
 ---
 id: reference-feedback-cron-slot-06h15-brt-disputado
+name: feedback-cron-slot-06h15-brt-disputado
+description: "Slot 06:15 BRT tem 4 schedules disputando — inventário 06:00-08:00 e receita pra escolher slot alternativo em app/Console/Kernel.php."
 type: feedback
+authority: canonical
 domain: scheduling
 date: 2026-05-28
 discovered_in: ADR 0216 Drift Framework wire-up (PR #1874)

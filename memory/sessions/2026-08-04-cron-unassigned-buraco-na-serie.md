@@ -1,5 +1,5 @@
 ---
-date: 2026-08-04
+date: "2026-08-04"
 topic: "Buraco na série do cron mcp:tasks:unassigned — onFailure é cego a 'nunca começou'"
 participants: [W, C]
 outcomes:
