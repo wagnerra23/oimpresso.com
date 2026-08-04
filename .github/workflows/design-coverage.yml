@@ -33,10 +33,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      # O `--check` MORDE: exit≠0 derruba o passo (job vermelho e visível). Job segue
+      # NÃO-required — não bloqueia o merge. Advisory = "não bloqueia", NUNCA = "não pode
+      # ficar vermelho" (proibicoes.md §5, lápide 2026-07-09). O `||` só ENFEITA o erro com
+      # a receita de conserto e re-levanta o exit — engolir o status era o gate mudo.
       - name: Catraca de cobertura de design (só sobe)
         run: |
-          if node scripts/qa/design-coverage.mjs --check; then
-            echo "✅ cobertura de design não regrediu."
-          else
-            echo "::warning title=DS design-coverage::Uma tela perdeu a fonte de design declarada (declared regrediu). Declare o Padrão de Tela/protótipo no charter + rode 'node scripts/qa/design-coverage.mjs --json' (advisory, não bloqueia)."
-          fi
+          node scripts/qa/design-coverage.mjs --check || {
+            echo "::error title=DS design-coverage::Uma tela perdeu a fonte de design declarada (declared regrediu). Declare o Padrão de Tela/protótipo no charter + rode 'node scripts/qa/design-coverage.mjs --json' pra subir o piso."
+            exit 1
+          }
+          echo "✅ cobertura de design não regrediu."
