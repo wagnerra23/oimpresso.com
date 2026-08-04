@@ -80,6 +80,21 @@ function coletarFixtureRepo(): string
         'memory/clientes/martinho-cacambas.md'        => "# Martinho\nemail joao@x.com tel (11) 99999-9999",
         'memory/feedback/algum-feedback.md'           => "# Feedback\nemail maria@y.com",
 
+        // TRIO DE FEATURE — memory/requisitos/<Mod>/features/<slug>/{requirements,plan,tasks}.md.
+        // Profundidade 2 DENTRO da pasta do módulo: é o que prova o glob novo, já que
+        // `memory/requisitos/*/*.md` (o glob anterior mais fundo) para um nível antes.
+        'memory/requisitos/Connector/features/openapi-connector/requirements.md' => "# Requirements — OpenAPI\nAC-1 ...",
+        'memory/requisitos/Connector/features/openapi-connector/plan.md'         => "# Plan — OpenAPI\nplug-points",
+        'memory/requisitos/Connector/features/openapi-connector/tasks.md'        => "# Tasks — OpenAPI\nT-01 ...",
+        // Segundo módulo com nome de doc IDÊNTICO — prova que o slug não colide.
+        'memory/requisitos/Financeiro/features/recebimento-parcial/requirements.md' => "# Requirements — parcial\nAC-1 ...",
+        // Templates/índices seguem a convenção do resto do coletor (pulados).
+        'memory/requisitos/Connector/features/openapi-connector/_RASCUNHO.md'    => "# Rascunho\nignore",
+        'memory/requisitos/Connector/features/_TEMPLATE/requirements.md'         => "# Template feature\nignore",
+        // Doc de nome não-whitelistado na profundidade 1 do módulo: NÃO é coletado.
+        // Serve de controle — se virasse HIT, o glob novo estaria pegando o nível errado.
+        'memory/requisitos/Connector/requirements.md'                            => "# Solto no módulo\nignore",
+
         // TRIO DE TELA colado (B3) — vive FORA de memory/, em resources/js/Pages/.
         // `Financeiro/Dre/` está em profundidade 2 DE PROPÓSITO: é o que prova a
         // recursão, já que `glob()` do PHP não atravessa `/`.
@@ -302,6 +317,96 @@ it('pula arquivos _* (templates/índices) e README', function () {
 
         expect($temTemplate)->toBeFalse();
         expect($temReadme)->toBeFalse();
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+// ── trio de FEATURE (memory/requisitos/<Mod>/features/<slug>/) ───────────────
+//
+// O trio de feature ficava fora do acervo por PROFUNDIDADE, não por pasta: `glob()`
+// do PHP não atravessa `/`, e o glob mais fundo que existia parava em
+// `memory/requisitos/*/*.md`. Medido em 2026-08-04 rodando `coletarArquivos()` no
+// próprio PHP: 9 arquivos no disco, 0 coletados.
+
+it('coleta o trio de feature com type=feature', function () {
+    $base = coletarFixtureRepo();
+    try {
+        $map = coletarSlugMap(coletarInvoke($base));
+
+        foreach (['requirements', 'plan', 'tasks'] as $doc) {
+            $slug = "feature-connector-openapi-connector-$doc";
+            expect($map)->toHaveKey($slug)
+                ->and($map[$slug]['type'])->toBe('feature')
+                ->and($map[$slug]['module'])->toBe('connector')
+                ->and($map[$slug]['path'])
+                    ->toBe("memory/requisitos/Connector/features/openapi-connector/$doc.md");
+        }
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+it('o glob novo pega a profundidade 2, e o doc solto na raiz do módulo segue fora', function () {
+    $base = coletarFixtureRepo();
+    try {
+        $arquivos = coletarInvoke($base);
+        $paths = array_column($arquivos, 'path');
+
+        // O que o glob novo destrava…
+        expect($paths)->toContain('memory/requisitos/Connector/features/openapi-connector/plan.md');
+
+        // …e o que ele NÃO passou a arrastar junto. `memory/requisitos/*/*.md` sempre
+        // existiu, mas com whitelist de nomes (RUNBOOK, ARCHITECTURE, …). Se este
+        // arquivo virasse HIT, o glob estaria pegando o nível errado e todo `.md` solto
+        // de módulo entraria no acervo sem ninguém ter decidido isso.
+        expect($paths)->not->toContain('memory/requisitos/Connector/requirements.md');
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+it('o slug do trio de feature abre em /documentacao/{slug} — só [A-Za-z0-9._-]', function () {
+    $base = coletarFixtureRepo();
+    try {
+        $features = array_filter(coletarInvoke($base), fn ($a) => $a['type'] === 'feature');
+
+        // A rota `/documentacao/{slug}` tem `->where('slug', '[A-Za-z0-9._-]+')`. Slug
+        // com `:` ou `/` entra no índice e nunca abre — o doc aparece na busca e o
+        // clique dá 404. É o que acontece hoje com `charter:<Mod>/<Tela>`.
+        expect($features)->not->toBeEmpty();
+        foreach ($features as $a) {
+            expect($a['slug'])->toMatch('/^[A-Za-z0-9._-]+$/');
+        }
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+it('pula _TEMPLATE e _RASCUNHO dentro de features/', function () {
+    $base = coletarFixtureRepo();
+    try {
+        $paths = array_column(coletarInvoke($base), 'path');
+
+        $temTemplate = collect($paths)->contains(fn ($p) => str_contains($p, 'features/_TEMPLATE'));
+        $temRascunho = collect($paths)->contains(fn ($p) => str_contains($p, '_RASCUNHO'));
+
+        expect($temTemplate)->toBeFalse();
+        expect($temRascunho)->toBeFalse();
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+it('features homônimas de módulos diferentes não colidem no slug', function () {
+    $base = coletarFixtureRepo();
+    try {
+        $map = coletarSlugMap(coletarInvoke($base));
+
+        // Os dois se chamam `requirements.md`; o módulo + a feature desempatam.
+        expect($map)->toHaveKey('feature-connector-openapi-connector-requirements');
+        expect($map)->toHaveKey('feature-financeiro-recebimento-parcial-requirements');
+        expect($map['feature-financeiro-recebimento-parcial-requirements']['module'])->toBe('financeiro');
     } finally {
         coletarLimpar($base);
     }

@@ -51,19 +51,63 @@ it('/documentacao/buscar resolve pra busca, nao pra documento de slug "buscar"',
     expect($rota->getActionMethod())->toBe('buscar');
 });
 
-it('os tipos filtrados existem no enum da tabela do acervo', function () {
-    // Espelha TIPOS_DOC do controller. Se a migration mudar o enum e estes valores
-    // sumirem, o whereIn não dá erro — só devolve vazio pra sempre. Este caso pega.
-    $tiposDoController = ['adr', 'reference', 'spec', 'runbook'];
+it('os tipos filtrados existem no enum VIGENTE da tabela do acervo', function () {
+    // TIPOS_DOC vem por reflexão, não copiado aqui: espelho escrito à mão drifa do
+    // controller e o caso passa a defender uma lista que ninguém usa.
+    $tiposDoController = (new ReflectionClass(App\Http\Controllers\DocumentacaoController::class))
+        ->getConstant('TIPOS_DOC');
 
-    $migrations = glob(base_path('Modules/Jana/Database/Migrations/*mcp_memory_documents*.php'));
+    expect($tiposDoController)->toBeArray()->not->toBeEmpty();
+
+    // As migrations do enum se chamam `*_to_mcp_type_enum.php` — um glob por
+    // `*mcp_memory_documents*` no NOME deixava as duas últimas de fora. Filtra por
+    // CONTEÚDO e ordena por nome (= ordem de aplicação).
+    $migrations = array_values(array_filter(
+        glob(base_path('Modules/Jana/Database/Migrations/*.php')),
+        fn ($f) => str_contains((string) file_get_contents($f), 'mcp_memory_documents')
+    ));
+    sort($migrations);
     expect($migrations)->not->toBeEmpty();
 
-    $sql = implode("\n", array_map('file_get_contents', $migrations));
+    // O enum VIGENTE é o da ÚLTIMA migration que o redefine. Procurar a string solta
+    // em todos os arquivos passaria com o tipo aparecendo só no ENUM_ANTIGO de um
+    // `down()` — ou seja, num tipo que foi REMOVIDO. Presença ≠ estado atual.
+    $vigente = null;
+    foreach ($migrations as $arquivo) {
+        $src = (string) file_get_contents($arquivo);
+        if (preg_match('/ENUM_NOVO\s*=\s*"([^"]+)"/', $src, $m)) {
+            $vigente = $m[1];                                   // migration de expansão
+        } elseif (preg_match("/->enum\('type',\s*\[(.*?)\]\)/s", $src, $m)) {
+            $vigente = $m[1];                                   // create table original
+        }
+    }
+
+    // Falha visível se o formato mudar — nunca "não achei, então passa".
+    expect($vigente)->not->toBeNull('nenhuma migration expõe o enum de `type` num formato conhecido');
+
+    $enum = array_map(fn ($v) => trim($v, " \t\n'\""), explode(',', $vigente));
 
     foreach ($tiposDoController as $tipo) {
-        expect($sql)->toContain("'{$tipo}'", "tipo '{$tipo}' não aparece no enum das migrations");
+        expect($enum)->toContain($tipo, "tipo '{$tipo}' do filtro não existe no enum vigente — o whereIn devolveria vazio pra sempre, sem erro");
     }
+});
+
+it('o trio de feature chega ao acervo: o tipo que o indexador produz é o que o filtro aceita', function () {
+    // O par tem DOIS lados e falhar em qualquer um é silencioso: sem o glob o doc não
+    // entra na tabela; sem o tipo em TIPOS_DOC ele entra e nunca aparece em
+    // /documentacao. É o que acontece hoje com charter/casos — indexados desde
+    // 2026-08-02, fora deste filtro por decisão.
+    $indexador = (string) file_get_contents(
+        base_path('Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php')
+    );
+
+    expect($indexador)->toContain('memory/requisitos/*/features/*/*.md');
+    expect($indexador)->toContain("'type'   => 'feature'");
+
+    $tiposDoController = (new ReflectionClass(App\Http\Controllers\DocumentacaoController::class))
+        ->getConstant('TIPOS_DOC');
+
+    expect($tiposDoController)->toContain('feature');
 });
 
 it('nenhum link do guia sai da rota como href relativo cru ou apontando pra caminho inexistente', function () {

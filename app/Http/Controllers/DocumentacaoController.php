@@ -41,9 +41,19 @@ class DocumentacaoController extends Controller
      * Fora de propósito: `session` e `handoff` (diário de bordo, não guia — misturá-los
      * piora a busca: procurar "financeiro" traria 40 handoffs antes do briefing do
      * módulo), e `audit`/`changelog`/`comparativo`/`current`/`tasks`/`other`, que são
-     * retratos datados. Os 4 abaixo são os que respondem "como isto funciona".
+     * retratos datados. Os abaixo são os que respondem "como isto funciona".
+     *
+     * `feature` entrou em 2026-08-04 (pedido [W]): é o trio
+     * `memory/requisitos/<Mod>/features/<slug>/{requirements,plan,tasks}.md` — o degrau
+     * "spec por feature" (proposal `feature-trio-requirements-plan-tasks`). Não é retrato
+     * datado: é contrato vivo de UMA feature (acceptance EARS + plug-points + DoD), a
+     * mesma natureza do `spec`, um nível abaixo.
+     *
+     * Fora AINDA (decisão pendente [W], não esquecimento): `charter` e `casos` — entram no
+     * ÍNDICE desde 2026-08-02 (B3) mas não neste filtro, de propósito. Estar na TABELA não
+     * é estar no ACERVO; adicioná-los é decisão, não conserto.
      */
-    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook'];
+    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature'];
 
     private const POR_PAGINA = 25;
 

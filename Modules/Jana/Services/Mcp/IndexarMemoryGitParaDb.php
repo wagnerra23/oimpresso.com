@@ -250,6 +250,40 @@ class IndexarMemoryGitParaDb
             ];
         }
 
+        // TRIO DE FEATURE (proposal feature-trio-requirements-plan-tasks, 2026-07-09) —
+        // `memory/requisitos/<Mod>/features/<slug>/{requirements,plan,tasks}.md`: o degrau
+        // "spec por feature" entre a US do SPEC e a task do MCP.
+        //
+        // Estava fora do acervo por PROFUNDIDADE, não por pasta: `glob()` do PHP não
+        // atravessa `/` (proibicoes §5 2026-07-28), e os 12 globs anteriores paravam em
+        // `memory/requisitos/*/*.md`. O trio vive um nível abaixo — casava com NENHUM
+        // deles. Medido em 2026-08-04 rodando `coletarArquivos()` no próprio PHP:
+        // 9 arquivos no disco, 0 coletados.
+        //
+        // Slug `feature-<modulo>-<feature>-<doc>`: só `[a-z0-9-]`, porque a rota
+        // `/documentacao/{slug}` restringe o parâmetro a `[A-Za-z0-9._-]+` — slug com
+        // `:` ou `/` (como o do trio de TELA abaixo) entra no índice mas nunca abre.
+        foreach (glob("$base/memory/requisitos/*/features/*/*.md") as $file) {
+            $doc       = basename($file, '.md');            // requirements | plan | tasks
+            $featureId = basename(dirname($file));          // <slug> da feature
+            $moduleDir = basename(dirname(dirname(dirname($file))));
+
+            // `_*` e README seguem a convenção do resto do coletor (template/índice).
+            if (str_starts_with($doc, '_') || $doc === 'README') continue;
+            if (str_starts_with($featureId, '_') || str_starts_with($moduleDir, '_')) continue;
+
+            $module = strtolower($moduleDir);
+            $slug   = 'feature-' . $this->slugificar("$module-$featureId-$doc");
+
+            $arquivos[] = [
+                'slug'   => $slug,
+                'type'   => 'feature',
+                'module' => $module,
+                'path'   => "memory/requisitos/$moduleDir/features/$featureId/$doc.md",
+                'full'   => $file,
+            ];
+        }
+
         // TRIO DE TELA colado ao .tsx (B3 do Plano B, 2026-08-01) — `<Tela>.charter.md`
         // (a lei) e `<Tela>.casos.md` (o contrato UC) vivem em `resources/js/Pages/`,
         // FORA de `memory/`, e por isso estavam invisíveis pro RAG. A ADR 0364 queria
@@ -515,9 +549,7 @@ class IndexarMemoryGitParaDb
             $relSemExt = preg_replace('/\.md$/i', '', $rel);
 
             // Slug determinístico: prefixo + caminho-relativo slugificado.
-            $slugTail = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $relSemExt));
-            $slugTail = trim((string) $slugTail, '-');
-            $slug = "$slugPrefix-$slugTail";
+            $slug = "$slugPrefix-" . $this->slugificar($relSemExt);
 
             // git_path POSIX relativo ao repo (consistente com glob branches acima).
             $gitPath = ltrim(str_replace('\\', '/', substr($full, strlen($base))), '/');
@@ -532,6 +564,18 @@ class IndexarMemoryGitParaDb
         }
 
         return $arquivos;
+    }
+
+    /**
+     * Slug seguro pra URL: minúsculas, `[a-z0-9-]`, sem hífen nas pontas.
+     *
+     * A rota `/documentacao/{slug}` restringe o parâmetro a `[A-Za-z0-9._-]+` — slug
+     * fora disso é indexado mas nunca abre. Extraído de `coletarRecursivo()` (mesma
+     * regra, agora numa fonte só) e reusado pelo trio de feature.
+     */
+    protected function slugificar(string $texto): string
+    {
+        return trim((string) strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $texto)), '-');
     }
 
     /**
