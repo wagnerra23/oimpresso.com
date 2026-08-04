@@ -86,6 +86,8 @@
     "reuse:duplicates": "node scripts/reuse-index.mjs --duplicates",
     "reuse:gate": "node scripts/reuse-index.mjs --gate",
     "reuse:baseline:write": "node scripts/reuse-index.mjs --write-baseline",
+    "worktree:check": "node scripts/governance/worktree-janitor.mjs",
+    "worktree:prune": "node scripts/governance/worktree-janitor.mjs --prune",
     "dup:check": "jscpd resources/js",
     "no-mock:check": "node scripts/no-mock-in-prod.mjs",
     "no-mock:baseline:write": "node scripts/no-mock-in-prod.mjs --write-baseline",

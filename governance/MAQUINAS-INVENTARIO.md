@@ -10,7 +10,7 @@
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 117 (34 contexts required)
+## 1. Workflows / Gates de CI — 118 (34 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -64,6 +64,7 @@
 | `financeiro-pest.yml` | Financeiro · Pest (MySQL) |
 | `force-clean-rebuild-trigger.yml` | Force Clean Rebuild (one-shot) |
 | `forja-pest.yml` | Forja · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca a… |
+| `forja-shortcuts-gate.yml` | Forja Shortcuts — atalhos do Board (overlay `?` · Enter · J/K/E/A anti-regressão) |
 | `foundation-ratchet.yml` | Foundation ratchet (advisory · catracas só-diminui da fundação de testes — SDD FV-Q1) |
 | `gate-selftest.yml` | Gate selftest (advisory · quem vigia os vigias — fixtures boa/ruim por catraca, SDD GT-G6) |
 | `gitleaks-history.yml` | Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215) |
@@ -301,7 +302,7 @@
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
-### 5.1 `scripts/governance/` — 101
+### 5.1 `scripts/governance/` — 102
 
 | Script | Descrição (cabeçalho) |
 |---|---|
@@ -406,6 +407,7 @@
 | `test-lane-coverage.mjs` | quais testes EXISTEM × quais o CI realmente EXECUTA. |
 | `ui-impact.mjs` | Fonte única do skip-as-pass do visual-regression. |
 | `visual-comparison-staleness.mjs` | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
+| `worktree-janitor.mjs` | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
 ### 5.2 `scripts/tests/` — 8
 
