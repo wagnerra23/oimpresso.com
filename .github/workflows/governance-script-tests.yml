@@ -45,6 +45,11 @@ jobs:
         run: node scripts/governance/ancora-codigo-sync.mjs --selftest
       - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
         run: node scripts/governance/maquinas-inventario.test.mjs
+      # A lista de lanes que alimentam o manifesto por-UC (G-7) e DERIVADA desde 2026-08-04
+      # (a lista a mao apodreceu: 4 lanes emitiam JUnit e ninguem lia). Sem este bite-test,
+      # quebrar a derivacao volta a congelar a colheita EM SILENCIO -- que foi o defeito.
+      - name: Junit-lanes bite-test (morde junit+artifact e bloco literal, solta comentario e junit sem artifact)
+        run: node scripts/governance/junit-lanes.mjs --selftest
       # Fixtures do falso-positivo REAL de 2026-08-04: main parado a noite toda + rajada de
       # 2 commits -> a formula antiga (head - served) devolvia 14.4h e alarmava com o servidor
       # 3min atras. A fixture "a formula ANTIGA teria alarmado" impede a regressao voltar.
