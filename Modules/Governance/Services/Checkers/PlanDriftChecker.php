@@ -17,9 +17,10 @@ use Modules\Governance\Services\DriftFinding;
  * **nunca foi invocado**. Medido em 2026-08-04, pelas duas pontas:
  *   - repo (`git grep "plan-drift"` em `origin/main`): o único invocador não-teste era a
  *     linha 45 de `scripts/governance/governance-audit.mjs` — bateria que, ela própria, não
- *     tinha invocador nenhum (comentário/docblock em 8 sites, zero em workflow/cron/package).
- *   - runtime (`php artisan schedule:list` em PROD): 105 entradas agendadas, `plan-drift` em
- *     **0** delas.
+ *     tinha invocador nenhum (8 menções não-.md — 7 comentário/docblock + 1 dentro da
+ *     string `$signature` —, zero em workflow/cron/package).
+ *   - runtime (`php artisan schedule:list` em PROD): 98 comandos agendados (contagem por
+ *     `grep -c "php artisan"`), `plan-drift` em **0** deles.
  * É a classe que `memory/proibicoes.md` §"Sempre fazer" item 2 nomeia — *"máquina que existe
  * e NINGUÉM invoca é bug, não neutralidade"*. Este checker é o conserto: dá ao comando um
  * invocador de 1ª classe DENTRO do `governance:audit --all --notify` que **já roda** (cron

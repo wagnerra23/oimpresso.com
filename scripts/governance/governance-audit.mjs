@@ -9,8 +9,10 @@
 //
 //   1. NÃO tem invocador — e nunca teve. `git grep "governance-audit"` → 32 ocorrências;
 //      fora de .md, do próprio arquivo e do falso-positivo de substring
-//      `governance-auditoria` em doc-id-index.json, sobram 8 — e as 8 são COMENTÁRIO/
-//      docblock. Zero em .github/workflows, package.json, .claude/ ou cron. O próprio
+//      `governance-auditoria` em doc-id-index.json, sobram 8 — e NENHUMA invoca: 7 são
+//      COMENTÁRIO/docblock e a 8ª é texto de descrição dentro da string `$signature` do
+//      PlanDriftCommand (`{--json : Output JSON (agregador governance-audit ...)}`).
+//      Zero em .github/workflows, package.json, .claude/ ou cron. O próprio
 //      selftest-registry-check.mjs:215 já registrava o caso por nome.
 //   2. Ligar em CI seria 43% MUDO. As 6 entradas `runtime:'php'` precisam de
 //      `php artisan` + DB; no runner node elas caem todas em `skip: php indisponível`.

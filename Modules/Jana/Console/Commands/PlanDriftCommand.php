@@ -34,9 +34,10 @@ use Modules\Jana\Entities\Mcp\McpTask;
  *
  * ⚠️ ERRATA DE TRANSPORTE (2026-08-04) — a 3ª razão acima estava correta em forma e ERRADA
  * em fato: o slot existia, mas o agregador `governance-audit.mjs` NUNCA teve invocador
- * (medido: 8 menções não-.md, todas comentário; 0 em workflow/cron/package). Consequência:
+ * (medido: 8 menções não-.md — 7 comentário/docblock + 1 dentro da string `$signature`
+ * deste próprio comando; 0 em workflow/cron/package). Consequência:
  * este comando ficou ESCRITO e TESTADO e nunca rodou — `php artisan schedule:list` em PROD
- * (2026-08-04) lista 105 entradas e nenhuma é `jana:plan-drift`. É a classe que
+ * (2026-08-04) lista 98 comandos e nenhum é `jana:plan-drift`. É a classe que
  * proibicoes.md §"Sempre fazer" item 2 nomeia: *máquina que existe e ninguém invoca é bug*.
  * CONSERTO: {@see \Modules\Governance\Services\Checkers\PlanDriftChecker} — adapter que
  * chama este comando (`--json`) de dentro do `governance:audit --all --notify`, que JÁ roda

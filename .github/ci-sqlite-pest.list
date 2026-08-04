@@ -380,8 +380,8 @@ tests/Feature/SecretsGovernanceTest.php
 
 # PlanDriftChecker — o INVOCADOR do `jana:plan-drift` (2026-08-04). O comando existia
 # desde a ADR 0294 Onda 2, com teste próprio JÁ nesta lane (PlanDriftCommandTest, acima),
-# e mesmo assim NUNCA rodava: `php artisan schedule:list` em PROD lista 105 entradas e
-# nenhuma é plan-drift; o único "invocador" no repo era uma linha do governance-audit.mjs,
+# e mesmo assim NUNCA rodava: `php artisan schedule:list` em PROD lista 98 comandos e
+# nenhum é plan-drift; o único "invocador" no repo era uma linha do governance-audit.mjs,
 # agregador que ele próprio nunca teve invocador. O checker o põe dentro do
 # `governance:audit --all --notify` (cron diário 06:35, prod).
 # Entra AQUI e não em modules-pest.yml porque Modules/Governance NÃO está naquela matrix
