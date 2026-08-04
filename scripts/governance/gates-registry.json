@@ -148,7 +148,7 @@
       "anchor": "incidente âncora podre REINCIDENTE (2026-07-06 pego pelo Wagner, charter corrigido; voltou 2026-07-08 — o gate advisory NÃO preveniu) + revisão adversarial F2/F6 (RUNBOOK-fidelidade-fingerprint) + emenda 0327-anchor-content-required-emenda-0314.md (exceção consciente à 'required = só Tier-0', Wagner 'resolva todos, eu autorizo')"
     },
     "anchor-drift.yml": {
-      "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
+      "nome": "Anchor Drift — lint spec↔código ADR 0273 + entry/covers (0303) + doneness (0302) + charter status:live, diff-aware no PR e full-tree no cron semanal (SA-A2/A3). Enforcement POR JOB: consultar governance/required-checks-baseline.json → classic_protection.contexts (dono único; casa pelo `name:` do job, string-exata; drift vigiado por protection-drift.mjs).",
       "classe": "gate"
     },
     "plan-health-gate.yml": {
@@ -293,7 +293,7 @@
       "classe": "gate"
     },
     "gate-selftest.yml": {
-      "nome": "Gate selftest (advisory · quem vigia os vigias — fixtures boa/ruim por catraca, SDD GT-G6)",
+      "nome": "Gate selftest — quem vigia os vigias: cada catraca de governança contra fixtures boa/ruim versionadas (SDD GT-G6). Enforcement POR JOB: consultar governance/required-checks-baseline.json → classic_protection.contexts (dono único; casa pelo `name:` do job, string-exata; drift vigiado por protection-drift.mjs).",
       "classe": "meta"
     },
     "governance-drift.yml": {
