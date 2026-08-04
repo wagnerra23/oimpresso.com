@@ -51,6 +51,8 @@
         "anchor_stale_on": false,
         "anchor_stale_total": null,
         "anchor_stale_fresco_total": null,
+        "anchor_stale_via_base_derivada_total": null,
+        "anchor_stale_via_base_motivos": null,
         "anchor_stale_unknown_total": null,
         "anchor_stale_unknown_motivos": null,
         "baseline_applied": null,
