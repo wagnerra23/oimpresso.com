@@ -37,7 +37,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('devolução estorno_dinheiro REINTEGRA qty_available pela quantidade devolvida', function () {
+it('UC-EST-04 · devolução estorno_dinheiro REINTEGRA qty_available pela quantidade devolvida', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 8.0); // saldo pós-venda de 5
@@ -58,7 +58,7 @@ it('devolução estorno_dinheiro REINTEGRA qty_available pela quantidade devolvi
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(10.0); // 8 + 2
 });
 
-it('devolução credito_ficha também REINTEGRA (estoque é reason-agnostic)', function () {
+it('UC-EST-04 · devolução credito_ficha também REINTEGRA (estoque é reason-agnostic)', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 5.0);
@@ -80,7 +80,7 @@ it('devolução credito_ficha também REINTEGRA (estoque é reason-agnostic)', f
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(6.0); // 5 + 1
 });
 
-it('Tier 0: devolver sell_line de OUTRO business é rejeitado (não reintegra)', function () {
+it('UC-EST-04 · Tier 0: devolver sell_line de OUTRO business é rejeitado (não reintegra)', function () {
     $biz2 = EstoqueFixture::secondBusinessId();
     if ($biz2 === null) {
         $this->markTestSkipped('Sem 2º business semeado pra testar cross-tenant.');

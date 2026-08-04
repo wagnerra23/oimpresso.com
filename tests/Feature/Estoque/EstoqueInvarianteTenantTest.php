@@ -39,7 +39,7 @@ beforeEach(function () {
     }
 });
 
-it('movimento no biz=1 NÃO toca o saldo do biz=2 (isolamento transitivo por IDs únicos)', function () {
+it('UC-INV-06 · movimento no biz=1 NÃO toca o saldo do biz=2 (isolamento transitivo por IDs únicos)', function () {
     // Tenant 1
     $loc1 = EstoqueFixture::locationId($this->biz1);
     $prod1 = EstoqueFixture::singleProduct($this->biz1);

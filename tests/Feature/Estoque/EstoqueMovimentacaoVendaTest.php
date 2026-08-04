@@ -35,7 +35,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('venda vira FINAL → baixa qty_available pela quantidade vendida', function () {
+it('UC-EST-01 · venda vira FINAL → baixa qty_available pela quantidade vendida', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);
@@ -55,7 +55,7 @@ it('venda vira FINAL → baixa qty_available pela quantidade vendida', function 
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(7.0);
 });
 
-it('venda estornada (FINAL→RASCUNHO) devolve o estoque da linha existente', function () {
+it('UC-EST-01 · venda estornada (FINAL→RASCUNHO) devolve o estoque da linha existente', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 7.0);
@@ -76,7 +76,7 @@ it('venda estornada (FINAL→RASCUNHO) devolve o estoque da linha existente', fu
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(10.0);
 });
 
-it('saldo é por VARIAÇÃO: vender a variação A não mexe o saldo da variação B', function () {
+it('UC-EST-01 · saldo é por VARIAÇÃO: vender a variação A não mexe o saldo da variação B', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::variableProduct($this->biz, 2);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0); // variação A

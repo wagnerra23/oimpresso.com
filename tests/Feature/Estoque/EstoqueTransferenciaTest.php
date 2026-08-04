@@ -34,7 +34,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('transferência SAI da origem e ENTRA no destino pela mesma quantidade', function () {
+it('UC-EST-06 · transferência SAI da origem e ENTRA no destino pela mesma quantidade', function () {
     $origem = EstoqueFixture::locationId($this->biz, '-ORIG');
     $destino = EstoqueFixture::locationId($this->biz, '-DEST');
     $produto = EstoqueFixture::singleProduct($this->biz);
@@ -52,7 +52,7 @@ it('transferência SAI da origem e ENTRA no destino pela mesma quantidade', func
     expect(EstoqueFixture::totalStock($produto))->toBe(12.0);
 });
 
-it('transferência não toca um TERCEIRO local do mesmo produto', function () {
+it('UC-EST-06 · transferência não toca um TERCEIRO local do mesmo produto', function () {
     $origem = EstoqueFixture::locationId($this->biz, '-ORIG');
     $destino = EstoqueFixture::locationId($this->biz, '-DEST');
     $outro = EstoqueFixture::locationId($this->biz, '-OUTRO');
