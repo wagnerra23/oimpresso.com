@@ -126,9 +126,32 @@ class TaskCrudService
                 $fromStatus = (string) $task->status;
                 $toStatus = (string) $newVal;
                 if (! McpTask::canTransition($fromStatus, $toStatus)) {
+                    // `?? []`: sem ele, um status FORA da matriz (o próprio caso fail-closed que
+                    // a linha acima existe pra pegar) fazia TRANSITIONS[$from] devolver null e o
+                    // implode() lançar TypeError em vez desta RuntimeException — o guard mordia,
+                    // mas com a exceção errada e sem dizer o que era permitido.
+                    $permitidas = McpTask::TRANSITIONS[$fromStatus] ?? [];
                     throw new \RuntimeException(
                         "Transição ilegal {$fromStatus} → {$toStatus} (FSM mcp_tasks). Permitidas: "
-                        . implode(', ', McpTask::TRANSITIONS[$fromStatus])
+                        . ($permitidas === [] ? '(nenhuma — estado fora da FSM)' : implode(', ', $permitidas))
+                    );
+                }
+
+                // ADR 0368 §5 — RECUSA EXIGE MOTIVO. Recusar (pending_approval → cancelled) sem
+                // motivo registrado é o que faz a mesma capacidade voltar em três meses e
+                // consumir a decisão de novo. Throw dentro da DB::transaction => reverte.
+                //
+                // O que isto verifica é a PRESENÇA do motivo no ato da recusa — não a qualidade
+                // dele, e não que o CAPTERRA-INVENTARIO.md foi atualizado (é markdown, não tem
+                // chokepoint). A prosa de [W] segue indo pro inventário, como a ADR manda.
+                if ($fromStatus === McpTask::AWAITING_HUMAN && $toStatus === 'cancelled'
+                    && $this->refusalReason($fields, $task) === '') {
+                    $k = McpTask::REFUSAL_REASON_KEY;
+                    throw new \RuntimeException(
+                        "Recusa sem motivo (ADR 0368 §5): sair de " . McpTask::AWAITING_HUMAN
+                        . " pra cancelled exige custom_fields['{$k}'] preenchido — na mesma chamada "
+                        . "ou já gravado na task. Registre também o motivo ao lado da capacidade "
+                        . "no CAPTERRA-INVENTARIO.md."
                     );
                 }
 
@@ -177,6 +200,35 @@ class TaskCrudService
         $task->save();
 
         return ['task' => $task->fresh(), 'events' => $events];
+    }
+
+    /**
+     * Motivo da recusa vigente APÓS este update (ADR 0368 §5), ou '' se não houver.
+     *
+     * A precedência não é "o que existir em qualquer lugar": se a chamada escreve
+     * `custom_fields`, ela SUBSTITUI o valor antigo (o update faz assignment, não merge) — logo
+     * só o payload novo conta. Sem isso, recusar mandando um custom_fields SEM o motivo passaria
+     * apoiado num motivo que a própria chamada estava apagando.
+     *
+     * @param  array<string,mixed>  $fields  payload do update
+     */
+    protected function refusalReason(array $fields, McpTask $task): string
+    {
+        $fonte = array_key_exists('custom_fields', $fields)
+            ? $fields['custom_fields']
+            : $task->custom_fields;
+
+        if (is_string($fonte)) {
+            $fonte = json_decode($fonte, true); // custom_fields cru (payload vindo de tool MCP)
+        }
+
+        if (! is_array($fonte)) {
+            return '';
+        }
+
+        $motivo = $fonte[McpTask::REFUSAL_REASON_KEY] ?? null;
+
+        return is_scalar($motivo) ? trim((string) $motivo) : '';
     }
 
     /**
