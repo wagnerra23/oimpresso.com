@@ -439,6 +439,15 @@ jobs:
       # Todos advisory de nascença (ADR 0314/0275). Nenhum entra em branch protection.
       - name: feature-lint sweep (trio requirements/plan/tasks · advisory)
         run: node scripts/governance/feature-lint.mjs
+      # fluxo-morde — exercício de fogo do CICLO (não da catraca: isso é o gate-selftest).
+      # Injeta 1 defeito por etapa e mede os 3 elos: o script acusa → o CI transmite o exit →
+      # o required bloqueia merge. O --selftest roda SEM continue-on-error de propósito: se o
+      # medidor quebrar, não pode passar calado (gate mudo PARECE cobertura). O relatório é
+      # advisory (exit 0 sem --check) — promoção exige mordida provada (ADR 0336).
+      - name: fluxo-morde --selftest (o medidor vê o exit engolido e lê o baseline do dono)
+        run: node scripts/governance/fluxo-morde.mjs --selftest
+      - name: fluxo-morde (1 defeito injetado por etapa × 3 elos · advisory)
+        run: node scripts/governance/fluxo-morde.mjs
       - name: reguas-indexar CATRACA morde/solta (fixture boa/ruim)
         run: node scripts/governance/reguas-indexar.mjs --selftest
       - name: reguas-indexar fila (existia-mas-invisível não indexado · report-only)
