@@ -52,8 +52,16 @@ class DocumentacaoController extends Controller
      * Fora AINDA (decisão pendente [W], não esquecimento): `charter` e `casos` — entram no
      * ÍNDICE desde 2026-08-02 (B3) mas não neste filtro, de propósito. Estar na TABELA não
      * é estar no ACERVO; adicioná-los é decisão, não conserto.
+     *
+     * `briefing` entrou em 2026-08-05 (autorização [W]: *"pode incluir"*). Era o único tipo
+     * que não estava nem na lista nem entre as exclusões justificadas acima — assinatura de
+     * omissão, não de decisão. É o dono da camada de PRODUTO por módulo (`requisitos/<Mod>/
+     * BRIEFING.md`, entrada da Camada A no README), já indexado com `type='briefing'` desde
+     * 2026-07-22 e já buscável pela Jana (`KbAnswerService::TIPOS_VALIDOS`) — só a rota
+     * humana não o enxergava. Não é retrato datado: é estado vivo do módulo, mantido por
+     * PR (skill `brief-update`) e vigiado por `briefing-code-staleness.mjs`.
      */
-    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature'];
+    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature', 'briefing'];
 
     private const POR_PAGINA = 25;
 
