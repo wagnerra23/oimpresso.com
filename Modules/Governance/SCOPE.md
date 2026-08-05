@@ -67,14 +67,6 @@ db_tables_consumed:
   - jana_mensagens          # CustosService — tokens in/out por mensagem
   - copiloto_memoria_metricas  # QualidadeIaController via Modules\Jana\Entities\MemoriaMetrica
   - jana_memoria_gabarito   # QualidadeIaController — contagem do gabarito ativo
-drift_alerts:
-  # 2026-05-17 — atualizado: Copiloto foi renomeado Jana em Fase 3.7 PR-2 (2026-05-06).
-  # Drift ainda VIVO. ETA migração: Fase 5 (próxima sessão dedicada).
-  - controller: "Modules/Jana/Http/Controllers/Admin/GovernancaController.php"
-    pertence_a: "Modules/Governance (MCP usage cross-team)"
-    motivo: "Dashboard de MCP usage cross-team (cf. ADR 0053) é governança, não chat Jana. SCOPE.md de Jana já cataloga este drift (Fase 5)."
-    url_atual: "/jana/admin/governanca"
-    eta_migracao: "Fase 5 — manter URL via Route::redirect 301 (pattern Fase 3.7 PR-1)"
   # LEITURA da seção MCP do painel, via Modules\Jana\Services\GovernancaService.
   # O Service NÃO se moveu — a ADR 0366 moveu a TELA, não a tabela (o item 4 do
   # plano §D-C, que move as `Mcp*`, não está autorizado e o destino delas é Forja).
