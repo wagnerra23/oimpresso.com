@@ -279,6 +279,20 @@ function isShallowHistory() {
   } catch { return true; }
 }
 
+/**
+ * Doc REGENERADO por máquina? Lê o `authority: generated` do frontmatter.
+ *
+ * Só o bloco YAML de abertura conta — `authority` citado no CORPO (prosa sobre o campo)
+ * não classifica o doc. Arquivo ilegível devolve `false`: na dúvida o doc CONTA como
+ * conhecimento (o medidor erra pro lado de acusar stale, nunca pro de esconder).
+ */
+export function isDocGerado(caminho, ler = readFileSync) {
+  let txt;
+  try { txt = ler(caminho, 'utf8'); } catch { return false; }
+  const fm = txt.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  return !!fm && /^authority:[ \t]*generated[ \t]*$/m.test(fm[1]);
+}
+
 // Data-git (committer %cs) do doc .md mais novo do módulo, EXCETO a própria BRIEFING.
 // Só é chamada pras portas carimbadas → barato no rollout (poucas portas têm carimbo).
 function gitNewestModuleDocDate(modDir) {
@@ -288,11 +302,20 @@ function gitNewestModuleDocDate(modDir) {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, e.name);
       if (e.isDirectory()) { walk(p); continue; }
-      // SUPERFICIE.md é índice GERADO (authority: generated, module-surface.mjs) — NÃO é
-      // conhecimento novo que a porta destilada deveria refletir. Contá-lo marcaria a BRIEFING
-      // como stale falsamente toda vez que um módulo ganha superfície (§5 2026-07-12: conserta
-      // o medidor, não o baseline — 2026-07-17). Fica FORA do "doc mais novo do módulo".
-      if (!e.name.endsWith('.md') || p === briefing || e.name === 'SUPERFICIE.md') continue;
+      // Doc GERADO (`authority: generated`) — NÃO é conhecimento novo que a porta destilada
+      // deveria refletir. Contá-lo marcaria a BRIEFING como stale falsamente toda vez que uma
+      // MÁQUINA regenera um índice (§5 2026-07-12: conserta o medidor, não o baseline — 2026-07-17).
+      //
+      // A regra era por NOME (`SUPERFICIE.md`) e por isso deixava passar o irmão: o
+      // `Jana/ARCHITECTURE.md`, gerado pelo system-map.mjs, tem o MESMO `authority: generated`
+      // e marcava a porta da Jana como stale sempre que o painel era regenerado — falso-stale
+      // que avermelhava um gate REQUIRED (PR #5298).
+      //
+      // Trocar nome→frontmatter é GENERALIZAÇÃO ESTRITA, medida antes de instalar (2026-08-05):
+      // dos 1.055 .md sob memory/requisitos, 37 têm `authority: generated` — 36 são o próprio
+      // SUPERFICIE.md (o que a regra antiga já pegava) e 1 é o ARCHITECTURE.md (o que ela
+      // deixava passar). Nenhum doc de conhecimento entra na exclusão. FP = 0.
+      if (!e.name.endsWith('.md') || p === briefing || isDocGerado(p)) continue;
       const dt = gitDateOf(p);
       if (dt && (!newest || dt > newest)) newest = dt;
     }
