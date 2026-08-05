@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 118 (34 contexts required)
+## 1. Workflows / Gates de CI — 118 (37 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -311,7 +311,7 @@ lifecycle: ativo
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
-### 5.1 `scripts/governance/` — 105
+### 5.1 `scripts/governance/` — 106
 
 | Script | Descrição (cabeçalho) |
 |---|---|
@@ -404,6 +404,7 @@ lifecycle: ativo
 | `reguas-ledger-check.mjs` | o ledger de réguas contradiz a si mesmo? |
 | `requisitos-status.mjs` | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
 | `resolver-reclamacao.mjs` | resolvedor reclamação → cadeia de responsabilidade. |
+| `sdd-flow.mjs` | recibo estrutural da cadeia: |
 | `sdd-output-lint.mjs` | mede a QUALIDADE do artefato que o agent `sdd-from-source` (ADR 0351) produz. |
 | `sdd-scorecard.mjs` | agregador do scorecard SDD (GT-G2, Semana 0 do plano |
 | `seed-tela.mjs` | EMPACOTADOR DE SEED (G1 do padrão "1 clique → sessão limpa por tela"). |

@@ -3,7 +3,7 @@ id: requisitos-template-feature-tasks
 ---
 
 <!--
-  TEMPLATE CANÔNICO — gerado exclusivamente por `npm run feature:init`; nunca copie à mão.
+  TEMPLATE CANÔNICO — gerado exclusivamente por `npm run sdd:init` (`feature:init` é alias); nunca copie à mão.
   Depois da geração, cure os {{...}} na pasta criada pela máquina.
   Formato PARSEÁVEL (feature-lint.mjs): header `### T-NN · <título>`, metadados no blockquote,
   DoD em linha `**DoD:**`. blocked_by forma um grafo ACÍCLICO (lint reprova ciclo/ref quebrada).

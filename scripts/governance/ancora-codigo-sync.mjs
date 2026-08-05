@@ -54,6 +54,8 @@
  * Uso:
  *   node scripts/governance/ancora-codigo-sync.mjs --measure   # censo do corpus (roda isto primeiro)
  *   node scripts/governance/ancora-codigo-sync.mjs --check     # drift das refs carimbadas
+ *   node scripts/governance/ancora-codigo-sync.mjs --check --require-stamp --doc <arquivo.md>
+ *                                                            # recibo estrito, escopado ao doc
  *   node scripts/governance/ancora-codigo-sync.mjs --stamp     # carimba verificado@HEAD nas sem sha
  *   node scripts/governance/ancora-codigo-sync.mjs --sync      # reescreve SÓ as MOVEU
  *   node scripts/governance/ancora-codigo-sync.mjs --selftest  # bite-test
@@ -61,12 +63,20 @@
 
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { join, relative, basename } from 'node:path';
+import { join, relative, basename, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 
 const args = process.argv.slice(2);
 const rootFlag = args.indexOf('--root');
 const ROOT = rootFlag >= 0 ? args[rootFlag + 1] : process.cwd();
+const REQUIRE_STAMP = args.includes('--require-stamp');
+const DOC_SCOPE_REQUESTED = args.includes('--doc');
+
+const explicitDocs = args.flatMap((arg, index) => {
+  if (arg !== '--doc' || !args[index + 1]) return [];
+  const rel = relative(resolve(ROOT), resolve(ROOT, args[index + 1])).split('\\').join('/');
+  return rel.startsWith('../') || rel === '..' ? [] : [rel];
+});
 
 const MODE = args.includes('--selftest') ? 'selftest'
   : args.includes('--sync') ? 'sync'
@@ -102,7 +112,7 @@ const RE_REF = /\b([\w./-]+\.(?:php|tsx?|jsx?|mjs|blade\.php)):(\d+)(?:-(\d+))?\
 
 const git = (...a) => {
   try {
-    return execFileSync('git', ['-C', ROOT, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return execFileSync('git', ['-c', `safe.directory=${resolve(ROOT)}`, '-C', ROOT, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   } catch { return null; }
 };
 
@@ -225,7 +235,11 @@ function classificar(ref, linha, sha, doc) {
 }
 
 function varrer() {
-  const docs = CORPUS_DIRS.flatMap((d) => walk(d));
+  // Sem --doc, preserva exatamente o corpus historico. Com --doc, aceita qualquer
+  // Markdown explicitamente nomeado: o chamador (ex.: sdd-flow) ja delimitou a cadeia.
+  const docs = DOC_SCOPE_REQUESTED
+    ? [...new Set(explicitDocs)].filter((doc) => /\.md$/i.test(doc) && existsSync(join(ROOT, doc)))
+    : CORPUS_DIRS.flatMap((d) => walk(d));
   const refs = [];
   for (const doc of docs) {
     const txt = readFileSync(join(ROOT, doc), 'utf8');
@@ -272,9 +286,13 @@ function run() {
   }
 
   if (MODE === 'check') {
-    const ruins = rows.filter((r) => ['MOVEU', 'PERDIDO', 'FORA_DO_ARQUIVO', 'CARIMBO_FORA_DO_ARQUIVO'].includes(r.estado));
+    const ruins = rows.filter((r) => REQUIRE_STAMP
+      ? r.estado !== 'OK'
+      : ['MOVEU', 'PERDIDO', 'FORA_DO_ARQUIVO', 'CARIMBO_FORA_DO_ARQUIVO'].includes(r.estado));
     ruins.forEach((r) => console.log(`  ${r.estado}  ${r.doc}  →  ${r.ref}:${r.linha}` + (r.estado === 'MOVEU' ? ` (agora ${r.para}) — rode --sync` : '')));
-    if (!ruins.length) console.log('  âncoras carimbadas conferem com o código.');
+    if (!ruins.length) console.log(REQUIRE_STAMP
+      ? '  todas as refs possuem smart token Git SHA valido e conferem com o codigo.'
+      : '  âncoras carimbadas conferem com o código.');
     return ruins.length ? 1 : 0;
   }
 
@@ -348,11 +366,16 @@ function selftest() {
   G('add', '-A'); G('commit', '-qm', 'base');
   const sha = G('rev-parse', 'HEAD').trim().slice(0, 7);
 
+  const semStamp = rodar('--check', '--require-stamp', '--doc', 'resources/js/Pages/Demo/Tela.casos.md');
+  ok('check estrito MORDE ref sem smart token Git SHA', /SEM_CARIMBO/.test(semStamp));
+
   // carimba
   rodar('--stamp');
   const carimbado = readFileSync(join(tmp, 'resources/js/Pages/Demo/Tela.casos.md'), 'utf8');
   ok('stamp carimba a ref sem sha', /Tela\.tsx:3 \(verificado@[0-9a-f]{7}\)/.test(carimbado));
   ok('stamp NAO altera o texto do contrato', carimbado.startsWith('UC-1: ver '));
+  const estritoOk = rodar('--check', '--require-stamp', '--doc', 'resources/js/Pages/Demo/Tela.casos.md');
+  ok('check estrito escopado libera ref carimbada valida', /smart token Git SHA valido/.test(estritoOk));
 
   // o código move: 2 linhas entram antes do alvo
   writeFileSync(alvo, ['import x', 'const A = 1', 'const NOVO1 = 0', 'const NOVO2 = 0', 'function alvoUnico() {}', 'const B = 2'].join('\n'));

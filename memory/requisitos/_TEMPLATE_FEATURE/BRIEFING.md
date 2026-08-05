@@ -5,7 +5,7 @@ id: requisitos-template-feature-briefing
 <!--
   USE COMO BASE — NÃO EDITAR (canônico). Este BRIEFING é a porta do diretório (não se copia).
   Gere o trio pela máquina dona (ela lê estes 3 templates, valida a US e nunca sobrescreve):
-  `npm run feature:init -- <Mod>/<slug> --us US-<MOD>-<NNN>`.
+  `npm run sdd:init -- <Mod>/<slug> --us US-<MOD>-<NNN> --sdd auto --cu CU-<MOD>-NN --screen <Mod>/<Tela>`.
   Piloto de referência: memory/requisitos/RecurringBilling/features/gateway-ativacao/
 -->
 
@@ -33,6 +33,8 @@ id: requisitos-template-feature-briefing
 1. **`requirements.md`** — user story + acceptance criteria **EARS** verificáveis (`AC-N`) + fora-de-escopo.
    Frontmatter `us:` aponta pra(s) US do SPEC do módulo — a US **continua no SPEC**; a pasta
    **detalha, aponta, nunca duplica** a decisão.
+   Os campos `sdd:`, `related_cus:` e `screens:` fecham a ligação estrutural com o mapa do
+   domínio e com as telas afetadas. O gerador resolve paths; o humano escolhe o CU.
 2. **`plan.md`** — decisões técnicas (o COMO), plug-points no código existente (comparar e não
    duplicar), riscos Tier-0 (business_id · REGRA MESTRE valor/estoque · PII · casos-gate).
 3. **`tasks.md`** — tarefas atômicas `T-NN` com `blocked_by:` explícito (grafo acíclico),
@@ -53,7 +55,7 @@ id: requisitos-template-feature-briefing
 
 ## Ciclo de vida
 
-1. `npm run feature:init -- <Mod>/<slug> --us US-<MOD>-<NNN>` → curar placeholders →
+1. `npm run sdd:init -- <Mod>/<slug> --us US-<MOD>-<NNN> --sdd auto --cu CU-<MOD>-NN --screen <Mod>/<Tela>` → curar placeholders →
    `node scripts/governance/feature-lint.mjs <Mod>/<slug> --check`. O `--init` recusa US ausente,
    destino existente e path fora de `<Modulo>/<slug>`; `--dry-run` prova os arquivos sem escrever.
 1b. **Fase Clarify (Spec Kit 2026):** se o pedido tem ambiguidade, rodar o agente `wagner-understand`

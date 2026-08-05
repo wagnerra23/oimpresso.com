@@ -4,6 +4,9 @@ feature: recebimento-parcial-parcela
 module: Financeiro
 us: ["US-FIN-003"]
 parent_plan: financeiro-recebimento-parcial-parcela
+sdd: ["memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md"]
+related_cus: ["CU-FIN-02", "CU-FIN-03", "CU-FIN-04", "CU-FIN-05", "CU-FIN-08"]
+screens: ["resources/js/Pages/Financeiro/Unificado/Index.tsx"]
 created: "2026-08-03"
 ---
 
