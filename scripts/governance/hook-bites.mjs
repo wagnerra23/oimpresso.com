@@ -23,7 +23,7 @@
 //
 // Uso:  node scripts/governance/hook-bites.mjs [--dias N] [--json] [--selftest]
 
-import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { homedir } from 'node:os';
@@ -169,9 +169,33 @@ export function relatorio({ wired, contagem, naoObservaveis, sessoes, segundos, 
   return L.join('\n');
 }
 
+/**
+ * Throttle do --heartbeat. Custo MEDIDO da análise: 1,9s (7d) / 3,2s (14d) sobre
+ * ~735MB de transcript. Barato pra 1×/dia, caro pra toda sessão — e o SessionStart
+ * já carrega 7 hooks. Estado em `.claude/run/` (gitignored, por-dev). Fail-open:
+ * qualquer erro de I/O deixa passar (prefere rodar de novo a ficar mudo).
+ */
+function heartbeatJaRodou(root, horas) {
+  const marca = join(root, '.claude', 'run', '.last-hook-bites');
+  try {
+    if (existsSync(marca)) {
+      const idadeH = (Date.now() - statSync(marca).mtimeMs) / 36e5;
+      if (idadeH < horas) return true;
+    }
+    mkdirSync(join(root, '.claude', 'run'), { recursive: true });
+    writeFileSync(marca, new Date().toISOString());
+  } catch { /* fail-open */ }
+  return false;
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const dias = (() => { const i = argv.indexOf('--dias'); return i >= 0 ? parseInt(argv[i + 1], 10) : 0; })();
+  if (argv.includes('--heartbeat')) {
+    const i = argv.indexOf('--throttle-horas');
+    const horas = i >= 0 ? parseInt(argv[i + 1], 10) : 20;
+    if (heartbeatJaRodou(RAIZ, horas)) process.exit(0);        // silencioso: já falou hoje
+  }
   const t0 = Date.now();
   let settings = {};
   try { settings = JSON.parse(readFileSync(SETTINGS, 'utf8')); } catch { /* fail-open */ }
@@ -199,6 +223,22 @@ function main() {
     for (const [t, n] of tagsOrfas(txt, conhecidas)) orfas.set(t, (orfas.get(t) || 0) + n);
   }
   const segundos = ((Date.now() - t0) / 1000).toFixed(1);
+  if (argv.includes('--heartbeat')) {
+    // Resumo de 4 linhas pro SessionStart. Existe porque a análise completa é boa e
+    // NINGUÉM a invocava: o dead man's switch estava, ele próprio, órfão (medido em
+    // 2026-07-27 e ainda em 2026-08-05). Sem invocador, "não sei se está funcionando"
+    // vira o estado permanente — que é exatamente a queixa que isto responde.
+    const semEntrega = wired.filter((h) => h.tag && !(contagem.get(h.tag) || 0));
+    const comEntrega = wired.filter((h) => h.tag && (contagem.get(h.tag) || 0));
+    const curto = (a) => a.replace(/\.mjs$/, '');
+    console.log(`\n=== MAQUINAS: os hooks entregaram? (hook-bites · janela ${dias || 'toda'}d · ${segundos}s) ===`);
+    console.log(`  ${comEntrega.length} entregaram · ${semEntrega.length} wired com ZERO entrega · ${naoObservaveis.length} nao-observaveis (silencio = indistinguivel de morte)`);
+    if (semEntrega.length) {
+      console.log(`  zero entrega: ${semEntrega.slice(0, 6).map((h) => curto(h.arquivo)).join(', ')}${semEntrega.length > 6 ? ` (+${semEntrega.length - 6})` : ''}`);
+    }
+    console.log(`  detalhe: node scripts/governance/hook-bites.mjs --dias ${dias || 14}\n`);
+    process.exit(0);
+  }
   if (argv.includes('--json')) {
     console.log(JSON.stringify({
       sessoes: arquivos.length, segundos: Number(segundos),
