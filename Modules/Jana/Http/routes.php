@@ -150,8 +150,11 @@ Route::group(
         // ---- Administração — Governança MCP (MEM-MCP-1.e, ADR 0053) --------
         // Visão cross-team do consumo do MCP server.
         // Permission: jana.mcp.usage.all (Wagner/superadmin).
-        Route::get('/admin/governanca',                    'Admin\GovernancaController@index')
-            ->name('jana.admin.governanca.index');
+        // FUNDIDA no /governance/dashboard em 2026-08-05 (ADR 0366 §D-C item 1:
+        // "é a mesma tela que governance/Dashboard — sobreposição #4, funde").
+        // Fecha o drift que o próprio Modules/Governance/SCOPE.md declarava desde
+        // 2026-05-17. O GovernancaService FICA no Jana — mudou o dono da tela,
+        // não o do dado. Redirect 301 no rodapé deste arquivo.
 
         // ---- Team admin / Tasks / CC sessions MOVIDOS pra Modules/TeamMcp/ ----
         // URLs antigas redirecionam via Route::redirect 301 (ver fim deste arquivo).
@@ -226,6 +229,14 @@ Route::middleware(['web'])->group(function () {
 // Mesma decisão arquitetural do PR #1387 que escondeu a entrada Essentials no
 // sidebar quando KB canon está instalado.
 Route::redirect('/ia/memorias', '/ia/memoria', 302);
+
+// Governança MCP → fundida no painel da Governança (ADR 0366 §D-C item 1).
+// `Route::redirect` simples serve aqui: os filtros da tela antiga (`preset`,
+// `de`, `ate`, `secao`) NÃO sobrevivem à fusão — na tela nova eles têm prefixo
+// (`mcp_preset`/`mcp_de`/`mcp_ate`) pra não colidir com outras seções do painel.
+// Repassar a query crua levaria parâmetro que o destino ignora, o que é pior
+// que perdê-la: dá a impressão de que o filtro foi aplicado.
+Route::redirect('/ia/admin/governanca', '/governance/dashboard', 301);
 Route::redirect('/ia/kb',       '/kb',         302);
 
 // ===========================================================================

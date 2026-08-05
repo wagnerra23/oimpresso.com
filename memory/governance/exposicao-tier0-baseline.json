@@ -666,14 +666,6 @@
       "exposure_score": 4
     },
     {
-      "screen": "Jana/Admin/Governanca/Index.tsx",
-      "module": "Jana",
-      "categories": [
-        "dinheiro"
-      ],
-      "exposure_score": 4
-    },
-    {
       "screen": "Jana/components/JanaCockpitV2.tsx",
       "module": "Jana",
       "categories": [
