@@ -54,6 +54,19 @@ const lsDir = (d) => (existsSync(join(ROOT, d)) ? readdirSync(join(ROOT, d)) : [
 const out = [];
 const P = (s = '') => out.push(s);
 
+// Frontmatter: exigido pelo schema de `memory/reference/*.md` (name/description/type/
+// authority) e é o que faz o doc ATRAVESSAR o filtro do DocumentacaoController —
+// `type` ∈ {adr,reference,spec,runbook,feature} + `admin_only=false` + `scope_required`
+// nulo. Sem ele o arquivo é indexado e some da página, calado. `authority: generated`
+// é o mesmo par do PAINEL-SISTEMA.md (gerado, não curado).
+P('---');
+P('name: MAQUINAS-INVENTARIO — inventário derivado das máquinas do oimpresso');
+P('description: Censo GERADO por scripts/governance/maquinas-inventario.mjs (workflows, hooks, skills, agents, scripts, baselines). NÃO editar à mão (regenera). Cada descrição vem do cabeçalho/frontmatter/_meta da própria máquina.');
+P('type: reference');
+P('authority: generated');
+P('lifecycle: ativo');
+P('---');
+P('');
 P('# Máquinas do oimpresso — inventário consolidado (DERIVADO)');
 P('');
 P('> ⚙️ **Auto-gerado** por `scripts/governance/maquinas-inventario.mjs` — cada descrição vem do');
@@ -177,7 +190,14 @@ P(`> Total baselines JSON em governance/+config/+scripts: ${seen.size} · (mais 
 P('');
 
 const md = out.join('\n');
-const OUT = process.env.MAQUINAS_OUT || 'governance/MAQUINAS-INVENTARIO.md'; // env: fixture no bite-test
+// Mora em `memory/reference/` (era `governance/`) porque é ONDE O ACERVO ENXERGA: o
+// IndexarMemoryGitParaDb varre `memory/reference` por RECURSÃO (não por glob — os globs
+// não cobrem essa pasta) e o DocumentacaoController publica quem tem `type: reference`.
+// De `governance/` o arquivo não aparecia em /documentacao: aquele path não é varrido
+// nem por glob nem por recursão. Mesmo lugar e mesmo motivo do PAINEL-SISTEMA.md, que
+// também é gerado. Tombstone no path antigo — backlinks em handoff/session são
+// append-only e não podem ser relinkados.
+const OUT = process.env.MAQUINAS_OUT || 'memory/reference/MAQUINAS-INVENTARIO.md'; // env: fixture no bite-test
 
 // Identidade da máquina = token da 1ª coluna das tabelas (`| \`nome\` | …`). Comparar SÓ
 // esse conjunto torna o --check insensível a mudança de descrição/contagem — ele morde
