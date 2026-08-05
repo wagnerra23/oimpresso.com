@@ -230,14 +230,14 @@ lente: [construir]
 
 ## Rastro
 
-- **365** handoffs · **581** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **366** handoffs · **582** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-05-ancora-medivel-funil-e-teste-que-nao-provava`
   - `2026-08-04-cron-unassigned-buraco-na-serie`
   - `2026-08-03-tutorial-sdd-guiado`
   - `2026-08-03-triagem-quarentena-financeiro`
   - `2026-08-03-tecnico-arquitetura-modulos`
   - `2026-08-03-recebimento-parcial-parcela-sdd`
-  - `2026-08-03-documentacao-sdd-operacional`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-08-05 · deriva das fontes canônicas, não as substitui._

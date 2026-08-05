@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
@@ -52,8 +53,38 @@ class DocumentacaoController extends Controller
      * Fora AINDA (decisão pendente [W], não esquecimento): `charter` e `casos` — entram no
      * ÍNDICE desde 2026-08-02 (B3) mas não neste filtro, de propósito. Estar na TABELA não
      * é estar no ACERVO; adicioná-los é decisão, não conserto.
+     *
+     * `briefing` entrou em 2026-08-05 (autorização [W]: *"pode incluir"*). Era o único tipo
+     * que não estava nem na lista nem entre as exclusões justificadas acima — assinatura de
+     * omissão, não de decisão. É o dono da camada de PRODUTO por módulo (`requisitos/<Mod>/
+     * BRIEFING.md`, entrada da Camada A no README), já indexado com `type='briefing'` desde
+     * 2026-07-22 e já buscável pela Jana (`KbAnswerService::TIPOS_VALIDOS`) — só a rota
+     * humana não o enxergava. Não é retrato datado: é estado vivo do módulo, mantido por
+     * PR (skill `brief-update`) e vigiado por `briefing-code-staleness.mjs`.
      */
-    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature'];
+    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature', 'briefing'];
+
+    /**
+     * Rótulo humano de cada tipo — para a PROSA das views ("cobre decisões, referências…").
+     *
+     * Só o rótulo mora aqui; QUAIS tipos entram é sempre `TIPOS_DOC`. Esta tabela precisa
+     * cobrir TODOS os tipos de lá — e quem cobra isso é o PHPStan, porque `escopoEmProsa()`
+     * indexa direto, sem fallback: tipo novo sem rótulo derruba o CI nomeando o tipo.
+     *
+     * O defeito que motivou tudo isto: até 2026-08-05 as views enumeravam
+     * "adr · reference · spec · runbook" DIGITADO em 4 lugares, e a lista ficou mentindo
+     * duas vezes seguidas — `feature` entrou em 08-04, `briefing` em 08-05, e nenhum dos
+     * quatro rótulos acompanhou. Descrição de máquina mora dentro da máquina; o que a view
+     * mostra é derivado dela, nunca redigitado ([W] 2026-08-05 · ADR 0256).
+     */
+    private const TIPOS_DOC_ROTULO = [
+        'adr' => 'decisões (ADR)',
+        'reference' => 'referências',
+        'spec' => 'specs',
+        'runbook' => 'runbooks',
+        'feature' => 'features',
+        'briefing' => 'briefings de módulo',
+    ];
 
     private const POR_PAGINA = 25;
 
@@ -70,6 +101,53 @@ class DocumentacaoController extends Controller
     ];
 
     private const LENTES = ['operar' => 'Operar', 'construir' => 'Construir'];
+
+    /**
+     * Publica o escopo do acervo pra TODA view desta rota — inclusive o layout, que é
+     * quem carrega o `aria-label` da busca e não recebe payload de método nenhum.
+     *
+     * `View::share` aqui (e não em provider) porque o alcance é exatamente este
+     * controller: quem renderiza `documentacao.*` é só ele.
+     */
+    public function __construct()
+    {
+        ViewFacade::share('escopoTipos', self::TIPOS_DOC);
+        ViewFacade::share('escopoProsa', self::escopoEmProsa());
+    }
+
+    /**
+     * Os tipos do acervo em prosa PT-BR: "a, b, c e d".
+     *
+     * Deriva de `TIPOS_DOC` — a lista de tipos é dona; este método só a veste, na ordem
+     * dela.
+     *
+     * A busca é DIRETA, sem `?? $slug` de fallback, e isso é deliberado: quem garante que
+     * todo tipo tem rótulo é o **PHPStan**. Adicionou tipo em `TIPOS_DOC` e esqueceu o
+     * rótulo? O CI falha com `Offset 'novo' does not exist`, nomeando o tipo. Um fallback
+     * aqui só empurraria o defeito pra produção em forma de slug cru — e, pior, seria
+     * código comprovadamente morto (PHPStan reprovou o `??` exatamente por isso em
+     * 2026-08-05). A garantia mora no analisador, não numa linha inalcançável.
+     *
+     * O caso em `DocumentacaoRouteTest` cobre a mesma invariante por outro caminho
+     * (diferença de conjuntos), pra ela não depender de uma ferramenta só.
+     *
+     * Sem guard de lista curta, pelo mesmo motivo: com `TIPOS_DOC` sabidamente não-vazio,
+     * qualquer `if (count(...) < 2)` é comparação estaticamente sempre-falsa — PHPStan
+     * reprovou uma dessas junto com o `??`. O formato assume ≥2 tipos, o que é verdade
+     * desde que o acervo existe.
+     */
+    private static function escopoEmProsa(): string
+    {
+        $rotulos = [];
+
+        foreach (self::TIPOS_DOC as $tipo) {
+            $rotulos[] = self::TIPOS_DOC_ROTULO[$tipo];
+        }
+
+        $ultimo = array_pop($rotulos);
+
+        return implode(', ', $rotulos) . ' e ' . $ultimo;
+    }
 
     public function index(Request $request): View
     {
