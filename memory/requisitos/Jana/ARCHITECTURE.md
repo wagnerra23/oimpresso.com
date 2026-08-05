@@ -157,7 +157,7 @@ A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de te
 | Implementações de `Reranker` | **4** | contrato PHP, fora de `Tests/` |
 | Agentes de engenharia | **27** | `.claude/agents/*.md` — outra camada, não runtime PHP |
 | Serviços em compose versionado | **15** | `docker/**/docker-compose.yml` — declaração, não uptime |
-| Checks no baseline versionado de merge | **35** | `governance/required-checks-baseline.json` — o probe vivo é `protection-drift.mjs` |
+| Checks no baseline versionado de merge | **41** | `governance/required-checks-baseline.json` — o probe vivo é `protection-drift.mjs` |
 
 ## Agentes PHP por módulo
 

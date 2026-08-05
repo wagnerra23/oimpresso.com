@@ -1,0 +1,50 @@
+name: Required always-run (advisory)
+
+# Impede o DEADLOCK de required-readiness: um context REQUIRED cujo workflow tem
+# `paths:`/`paths-ignore:` no `pull_request` não fica vermelho quando o PR não casa
+# o filtro — ele NÃO NASCE. O PR trava em "Expected — waiting for status" pra sempre,
+# e como a proteção é do branch, trava o repo INTEIRO, não só aquele PR.
+#
+# Precedente (proibicoes.md §Ambiente, 2026-07-02): main ficou BLOCKED com 54/54
+# checks verdes. A causa foi outra (mojibake nos nomes), mas o SINTOMA é idêntico e
+# o `protection-drift` — que cobre aquele caso — confere nome/baseline/mojibake e
+# NÃO confere se o workflow dono de cada context é alcançável por todo PR.
+#
+# Bite-test do incidente real (medido 2026-08-05): a branch do PR #5069 promove
+# `module-surface` a required mantendo `paths:` no gatilho → este lint acusa 2
+# contexts filtrados, exit 1. Contra o main: 40 contexts, 40 always-run, 0 filtrados.
+#
+# ADVISORY (ADR 0275: gate nasce advisory) — o `promote_by` está no gates-registry.
+# Sem `paths:` de propósito: um lint de always-run que só roda em alguns PRs não
+# veria justamente o PR que introduz o filtro.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: required-always-run-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Required always-run — todo context required nasce em todo PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # selftest primeiro: se a lógica do lint quebrou, o veredito dele não vale nada.
+      # 12 asserts, incl. o par CRLF (este repo é Windows; sem ele o lint fica cego).
+      - name: Selftest do lint (a régua antes da medida)
+        run: node scripts/governance/required-always-run.mjs --selftest
+
+      - name: Auditar contexts required
+        run: node scripts/governance/required-always-run.mjs

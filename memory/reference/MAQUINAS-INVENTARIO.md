@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 118 (37 contexts required)
+## 1. Workflows / Gates de CI — 119 (40 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -38,7 +38,7 @@ lifecycle: ativo
 | `brl-scan.yml` | BRL scan (advisory · valor monetário em linha NOVA do PR · diff-only · arquivos + PR body + commit subjects) |
 | `casos-gate.yml` | Casos-coverage ratchet (trio-de-tela + caso↔teste) |
 | `casos-results-publish.yml` | Casos results publish — colhe o JUnit das lanes (que já emitem --log-junit) e aterrissa o veredito por-UC em scripts/casos-test-results.json, fonte do G-7 do casos-gate; … |
-| `catalog-graph.yml` | Catalog graph (advisory) — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais pendura… |
+| `catalog-graph.yml` | Catalog graph — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exerci… |
 | `charter-refs-gate.yml` | Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256) |
 | `charter-us-gate.yml` | Charter ↔ US join (advisory · related_us nos Page Charters · charter-us-lint.mjs --check diff-aware no PR + cobertura full-tree no cron) |
 | `ci.yml` | CI |
@@ -98,7 +98,7 @@ lifecycle: ativo
 | `memory-health.yml` | Memory Health — ADR 0256 |
 | `memory-schema-gate.yml` | Memory schema gate (ONDA 5 S1 · FUNDIDO ADR 0314 F2: matrix AJV/frontmatter + sub-checks do corpo via validate-memory-schema.sh, ex-memory-schema-gate-extended D6 #4) |
 | `module-grades-gate.yml` | Module Grades Gate (anti-regressão) |
-| `module-surface.yml` | Module surface (advisory) — guarda o índice GERADO de arquivos por módulo (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore: self-test HARD + `--all --check` (drift… |
+| `module-surface.yml` | Module surface — guarda o índice GERADO de arquivos por módulo (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore: self-test HARD + `--all --check` (drift real; obri… |
 | `modules-pest.yml` | Modules Pest |
 | `multi-tenant-gate.yml` | Multi-tenant gate |
 | `mutation-gate.yml` | Mutation Gate (advisory) |
@@ -122,6 +122,7 @@ lifecycle: ativo
 | `quick-sync.yml` | Quick Sync (manual escape — auto-deploy agora é deploy.yml) |
 | `reconcile-triplet.yml` | Reconcile triplet (advisory · paridade por setor 3-way charter↔protótipo↔produção · 6 slots PT-01 · reconcile-triplet.mjs --all + charter-blueprint-pointers.mjs · self-te… |
 | `repair-shared-vocab.yml` | Repair shared vocabulary guard |
+| `required-always-run.yml` | Required always-run (advisory · todo context required nasce em todo PR · anti-deadlock de required-readiness) |
 | `reuse-gate.yml` | Reuse duplicates ratchet (anti-duplicação de símbolo) |
 | `scope-guard.yml` | Scope Guard (anti-drift) |
 | `screen-coverage-gate.yml` | Screen Coverage Gate (catraca de cobertura) |
@@ -311,7 +312,7 @@ lifecycle: ativo
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
-### 5.1 `scripts/governance/` — 106
+### 5.1 `scripts/governance/` — 107
 
 | Script | Descrição (cabeçalho) |
 |---|---|
@@ -402,6 +403,7 @@ lifecycle: ativo
 | `reguas-cross-model.mjs` | braço de verificação CROSS-MODEL (cross-VENDOR) da grade de réguas. |
 | `reguas-indexar.mjs` | Órgão 4 da máquina de réguas em looping (ADR proposta reguas-loop-maquina-evolucao). |
 | `reguas-ledger-check.mjs` | o ledger de réguas contradiz a si mesmo? |
+| `required-always-run.mjs` | todo context REQUIRED nasce em TODO PR? |
 | `requisitos-status.mjs` | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
 | `resolver-reclamacao.mjs` | resolvedor reclamação → cadeia de responsabilidade. |
 | `sdd-flow.mjs` | recibo estrutural da cadeia: |
