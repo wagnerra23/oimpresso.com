@@ -34,4 +34,19 @@ paths = [
 # Marcadores explícitos de valor fake em fixtures/docs (placeholder, exemplo).
 regexes = [
   '''(?i)(example|exemplo|fake|dummy|placeholder|changeme|your[-_]?token|xxx+|<[a-z_]+>)''',
+  # Cor CSS em notação hexadecimal (#rrggbb / #rgb). Determinístico e seguro:
+  # são 3 ou 6 dígitos hex ancorados nas duas pontas — curto demais pra ser
+  # credencial de qualquer provedor, e o `#` inicial é sintaxe de cor, não de
+  # token. Nenhum segredo real cabe nesse formato.
+  #
+  # POR QUE ENTROU (2026-08-05): a regra `generic-api-key` lê a cor da série de
+  # um gráfico como chave de API. Tratamos isso 4 vezes por fingerprint no
+  # .gitleaksignore e falhou todas — o fingerprint é fixado por COMMIT, então
+  # invalida a cada merge/rename que mude o dono da linha. Allowlist por padrão
+  # de VALOR não tem esse problema: vale enquanto o valor for uma cor.
+  #
+  # Isto NÃO reduz a cobertura: continua flagrando hex longo (chave/hash), que
+  # é o que importa. E não mascara a dívida de DS — cor crua em Page segue
+  # pega pelo `php artisan ui:lint` regra R1, que é o gate certo pra isso.
+  '''^#[0-9a-fA-F]{6}$|^#[0-9a-fA-F]{3}$''',
 ]
