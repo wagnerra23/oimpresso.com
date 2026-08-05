@@ -3,9 +3,24 @@ slug: jana-runbook-custos-admin
 title: "Jana — Runbook da tela Custos de IA (Admin)"
 type: runbook
 module: Jana
-status: active
+status: arquivado
+owner: W
+last_validated: "2026-05-09"
 date: 2026-05-09
 ---
+
+> ⚠️ **Arquivado em 2026-08-05.** A tela que este runbook descreve saiu do
+> Modules/Jana para o Modules/Governance (ADR 0366 §D-B) — o runbook vivo é
+> `memory/requisitos/Governance/RUNBOOK-custos.md`. Este fica como fóssil datado.
+>
+> Nota de honestidade sobre o frontmatter: `owner` e `last_validated` eram
+> **obrigatórios pelo schema e estavam ausentes**, e `status: active` não existe
+> no enum (`rascunho|ativo|arquivado|historical`). A dívida é de 2026-05-09 e
+> ficou dormente porque nenhum PR tocava o arquivo; o gate `memory-schema` é
+> diff-aware. Este PR precisou tocá-lo (reapontar links que a mudança de dono
+> quebrou) e por isso pagou o mínimo. `last_validated` recebeu a **data original
+> do documento**, não a de hoje: ninguém re-executou o runbook — carimbar hoje
+> seria afirmar uma validação que não aconteceu.
 
 # RUNBOOK — Custos de IA Admin (Jana)
 
