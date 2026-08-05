@@ -43,6 +43,13 @@ export const ALIASES = {
   'post-merge-ui-smoke-required': 'ui-smoke-required',
   'preflight-new-capability': 'oimpresso-anti-reinvencao',
   'mcp-first-nudge': 'oimpresso-mcp-first',
+  // `memory-schema-guard` JÁ emitia `[memory-schema]` em produção — a tag existe e é
+  // distintiva, só não estava registrada aqui. Registrar o ALIAS (em vez de trocar a
+  // mensagem) o torna observável RETROATIVAMENTE: as emissões históricas passam a
+  // contar. Trocar a string zeraria esse rastro. Medido 2026-08-05.
+  'memory-schema-guard': 'memory-schema',
+  // idem: `php-syntax-after-write` já emite `[php-syntax]`. Alias preserva o histórico.
+  'php-syntax-after-write': 'php-syntax',
 };
 
 /** hooks wired no settings.json → [{arquivo, evento, matcher}] */
