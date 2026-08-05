@@ -1,24 +1,27 @@
-name: Catalog graph (live check advisory)
+name: Catalog graph (live check)
 
+# REQUIRED-READINESS (ADR 0271 onda 2 · pré-requisito da promoção da ADR 0370):
+# `pull_request` SEM `paths` — always-run. Um context required que só dispara por path
+# fica PENDING pra sempre nos PRs que não tocam aquele path e trava o merge do repo
+# inteiro — foi o deadlock de 2026-07-02 (proibicoes.md §Ambiente). Sempre-rodar é
+# aceitável aqui porque o job leva ~33s MEDIDOS; os minutos que apareciam no
+# `gh run list` eram FILA de runner, não execução (o script roda em <1s).
 on:
   pull_request:
-    paths:
-      - 'Modules/*/SCOPE.md'
-      - 'memory/requisitos/*/SUPERFICIE.md'
-      - 'memory/governance/catalog.json'
-      - 'scripts/governance/catalog-graph.mjs'
-      - 'scripts/governance/catalog-graph.test.mjs'
-      - '.github/workflows/catalog-graph.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Não está na branch protection (ADR 0314). Advisory significa que pode ficar
-# vermelho de verdade; não há continue-on-error nem `|| true` escondendo a mordida.
+# REQUIRED desde a ADR 0370 (emenda à 0314) — 6 mordidas reais medidas em 2026-08-05.
+# Nunca teve continue-on-error nem `|| true`: a mordida sempre foi real, agora bloqueia.
 jobs:
   live:
-    name: catalog.json == SCOPEs + Classes B (advisory)
+    # Sem "(advisory)" no nome: vira required nesta mesma ADR, e label que declara o
+    # próprio enforcement em tempo presente apodrece no primeiro flip (§5 2026-07-16,
+    # que custou 8 sites errados). Renomeado ANTES de entrar no baseline — enquanto não
+    # é required não há context a preservar, então não precisa da dança zero-window (P14).
+    name: catalog.json == SCOPEs + Classes B
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

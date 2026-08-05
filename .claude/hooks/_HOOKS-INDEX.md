@@ -12,7 +12,7 @@
 - **54** wirings em `settings.json` (5 eventos) · **49** arquivos de hook distintos wired
 - **49** arquivos de hook no disco (+41 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **37** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **40** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -79,7 +79,7 @@ Nenhum.
 Nenhum.
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (37):
+Contexts `classic_protection` (40):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -88,6 +88,7 @@ Contexts `classic_protection` (37):
 - Ancora de design nao-shell (F2/F6 required)
 - Append-only canon (ADRs, handoffs, Constituição)
 - Casos-coverage · ratchet (trio + rastreabilidade)
+- catalog.json == SCOPEs + Classes B
 - Charter (resources/js/Pages/**/*.charter.md)
 - charter status:live precisa de sinal de prod
 - deadlink-gate (ratchet · integridade referencial)
@@ -112,8 +113,10 @@ Contexts `classic_protection` (37):
 - screen-coverage-gate
 - SDD scorecard ratchet (métrica armada não regride · GT-G3)
 - Secret scan (gitleaks · só linhas novas do PR)
+- Self-test — classificação por papel + montagem determinística
 - SPEC (memory/requisitos/*/SPEC.md)
 - Stylelint · ratchet vs baseline
+- SUPERFICIE.md == árvore (módulos vivos + adotados)
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
 - visual-regression
