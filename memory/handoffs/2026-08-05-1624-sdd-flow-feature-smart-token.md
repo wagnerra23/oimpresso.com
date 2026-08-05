@@ -46,6 +46,8 @@ elos estruturais e hashes estão mensuráveis. O recibo não substitui `casos-ga
 - censo do trio: **3 features, 0 erros, 0 avisos**;
 - `gateway-ativacao` ligado a `SDD-cobranca-recorrente-v1.0.md` / novo `CU-RB-15`, sem tela por desenho;
 - inventário derivado: **457 máquinas, 0 faltando, 0 ghost**;
+- o scorecard do PR detectou o `BRIEFING` de RecurringBilling atrás do novo `CU-RB-15`; a verdade
+  destilada foi atualizada e o ratchet voltou a passar, sem alteração de baseline;
 - piloto Financeiro: cadeia encontrada, mas recibo bloqueado por âncora anterior à feature e
   `checkout_shallow`; esse é o comportamento fail-safe esperado.
 

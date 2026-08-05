@@ -2,9 +2,9 @@
 id: requisitos-recurring-billing-briefing
 module: RecurringBilling
 status: producao
-updated_at: "2026-08-03"
-distilled_at: "2026-07-23"
-distilled_by: "jana:distill-module-truth (2026-07-23) + redestilação PARCIAL manual do agent sdd-from-source (2026-07-28) — só as seções Governança/Última mudança/Gaps; o resto segue da destilação automática de 23/07"
+updated_at: "2026-08-05"
+distilled_at: "2026-08-05"
+distilled_by: "jana:distill-module-truth (2026-07-23) + redestilações PARCIAIS manuais: agent sdd-from-source (2026-07-28) e fluxo SDD (2026-08-05) — só as seções Governança/Última mudança/Gaps; o resto segue da destilação automática de 23/07"
 ---
 
 # BRIEFING — RecurringBilling (verdade destilada)
@@ -23,9 +23,9 @@ O módulo de assinaturas recorrentes, `RecurringBilling`, gerencia planos, assin
 - **Interface**: Página Inertia completa para gestão de assinaturas.
 - **Nova assinatura**: Criação simplificada com interface intuitiva (PR #2369).
 
-## Governança (redestilação parcial 2026-07-28)
+## Governança (redestilação parcial 2026-08-05)
 - **SDD do domínio:** [`SDD-cobranca-recorrente-v1.0.md`](SDD-cobranca-recorrente-v1.0.md) — §5 com 9
-  fluxos críticos, §6 com `CU-RB-01..14`. **Primeiro SDD do repo criado do zero** pelo agent
+  fluxos críticos, §6 com `CU-RB-01..15`. **Primeiro SDD do repo criado do zero** pelo agent
   `sdd-from-source` ([ADR 0351](../../decisions/0351-sdd-from-source.md)).
 - **Trio completo nas 6 telas** — `casos.md` de 0 → 6; **36 UC declarados, 36 com teste que os cita,
   0 órfãos** (recibo: `node scripts/governance/requisitos-status.mjs RecurringBilling`, 2026-07-28).
@@ -69,7 +69,9 @@ O módulo de assinaturas recorrentes, `RecurringBilling`, gerencia planos, assin
   roteadas, ninguém abriu.
 
 ## Última mudança
-**2026-08-03** — os UC do módulo passaram a ser **alcançáveis pelo manifesto G-7**: UC-id no título
+**2026-08-05** — `CU-RB-15` tornou explícito no SDD o contrato operacional da US-RB-052 para ativar
+gateway em assinaturas dormentes e ligou o trio `gateway-ativacao` à cadeia SDD; sem tela por desenho.
+Anterior: **2026-08-03** — os UC do módulo passaram a ser **alcançáveis pelo manifesto G-7**: UC-id no título
 dos `it()` (antes só no docblock, o que os deixava fora por construção) + 9 arquivos na lane sqlite
 do `ci.yml` ([PR #5194](https://github.com/wagnerra23/oimpresso.com/pull/5194)). De **0 → 20** UC
 carimbáveis. Ligar a lane revelou dívida pré-existente em 3 arquivos (nunca tinham rodado em CI),

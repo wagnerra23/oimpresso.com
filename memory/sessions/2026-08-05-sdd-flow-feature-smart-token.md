@@ -45,6 +45,7 @@ dívida de outra; seus elos continuam sob `anchor-lint` e validação exata dos 
 | `sdd-flow.test.mjs` | verde; hash válido libera e drift contrafactual morde US + ref por linha |
 | `ancora-codigo-sync --selftest` | 11/11 |
 | `feature-lint --check` | 3 features; 0 erros; 0 avisos |
+| `sdd-scorecard --ratchet` | verde após redestilar o `BRIEFING` de RecurringBilling com `CU-RB-15`; baseline intacto |
 | inventário de máquinas | 457 cobertas; 0 faltando; 0 ghost |
 | `git diff --check` | verde |
 
