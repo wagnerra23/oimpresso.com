@@ -8,9 +8,20 @@
 # gerando o proximo alerta. Se precisar ser especifico, cite arquivo e LINHA,
 # nunca o conteudo.
 #
-# 2026-08-05 — as 2 entradas de QualidadeIa.tsx foram REMOVIDAS: em vez de
-# silenciar o alerta, a causa foi eliminada. O campo do array de metricas se
-# chamava literalmente "key" e ficava colado num valor hexadecimal de 6 digitos
-# (a cor da serie no grafico) — e isso que a regra generic-api-key casa. Renomeei
-# o campo para "metrica", o que quebra o match sem mudar UM PIXEL do render.
-# Fingerprint some quando a causa some; ignorar era o remendo, nao o conserto.
+# 2026-08-05 — QualidadeIa.tsx, 2 entradas. FALSO POSITIVO conferido linha a
+# linha: sao definicoes de metrica do grafico, cada uma com um valor hexadecimal
+# de 6 digitos que e a COR da serie. A regra generic-api-key le o hexadecimal
+# como credencial. Nada a rotacionar.
+#
+# HIPOTESE MINHA QUE A EVIDENCIA DERRUBOU (fica registrada pra ninguem repetir):
+# achei que o gatilho fosse o NOME do campo — ele se chamava "key", colado no
+# hexadecimal. Renomeei para "metrica" e removi estes 2 fingerprints achando que
+# a causa tinha ido embora. O scan reprovou de novo NO MESMO SHA do rename: o
+# gatilho e o literal hexadecimal, nao o nome do campo. Restaurei as entradas.
+# O rename ficou (nao piora nada e o nome novo e mais claro), mas ele NAO resolve.
+#
+# Conserto de verdade seria tokenizar as cores (R-DS-002) — muda o render das
+# series do grafico, entao exige aprovacao visual [W]. Ate la, ignorar aqui e o
+# caminho honesto: o alerta e falso e esta documentado.
+d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:167
+d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:170
