@@ -15,9 +15,12 @@ charter_version: 1
 
 # Page Charter — /forja/roadmap-gantt
 
-> **Status:** `draft`. Este charter é o **porte** de
-> [`resources/js/Pages/Jana/Admin/Roadmap.charter.md`](../../Jana/Admin/Roadmap.charter.md)
-> (também `draft`), movido pela [ADR 0366 §D-B](../../../../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md)
+> **Status:** `draft`. Este charter é o **porte** do antigo
+> `resources/js/Pages/Jana/Admin/Roadmap.charter.md` (também `draft`), que **deixou
+> de existir no mesmo PR** — por isso o nome aparece aqui como texto e não como
+> link: ref pra arquivo deletado quebra o `charter-refs-gate`, e link que não
+> resolve é pior que citação honesta. Quem quiser o conteúdo original acha no
+> histórico do git. Movido pela [ADR 0366 §D-B](../../../../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md)
 > e [ADR 0367 D4](../../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md).
 > **Os Non-Goals e os Automation Anti-hooks abaixo são cópia literal do charter de origem** — nenhum
 > item foi inferido, adicionado ou reinterpretado neste porte (`charter-write` é proibida de inferir;
@@ -178,7 +181,7 @@ substitui"*. Recibo da não-duplicação:
 - [ADR 0093 — multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 - [ADR 0253 — primitivos de layout](../../../../../memory/decisions/0253-primitivos-layout.md)
 - [RUNBOOK-gantt](../../../../../memory/requisitos/Forja/RUNBOOK-gantt.md)
-- Charter de origem: [`Jana/Admin/Roadmap.charter.md`](../../Jana/Admin/Roadmap.charter.md)
+- Charter de origem: `resources/js/Pages/Jana/Admin/Roadmap.charter.md` — **deletado neste PR** (a tela mudou de dono). Sem link de propósito: o alvo não existe mais; o conteúdo vive no histórico do git.
 
 ---
 
