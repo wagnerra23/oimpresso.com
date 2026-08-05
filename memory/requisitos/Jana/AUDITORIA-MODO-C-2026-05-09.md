@@ -77,7 +77,7 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 2. Admin/Governanca/Index.tsx — 78/100 🟡
 
-**Arquivo:** [resources/js/Pages/Jana/Admin/Governanca/Index.tsx](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx) (503 linhas)
+**Arquivo:** [resources/js/Pages/governance/Dashboard.tsx](../../../resources/js/Pages/governance/Dashboard.tsx) (503 linhas)
 **Categoria BENCHMARKS:** §3 Dashboard + §5 Settings (sub-nav).
 
 ### Score detalhado
@@ -92,14 +92,14 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 ### Top 3 violações
 
 1. **`Index.tsx:72-79`** — `statusBarClass()` retorna `bg-emerald-500 h-2`, `bg-amber-500 h-2`, `bg-orange-500 h-2`, `bg-rose-500 h-2` — viola R-DS-002 (cor crua Tailwind). Status fixo é exceção R-DS-002 OK, **mas misturar com `h-2` na mesma string vira shotgun-CSS** — separar em const + classe utility.
-2. **`Index.tsx:139`** — `stroke-amber-400 dark:stroke-amber-300` em SVG; aceitável (status fixo) mas `borderTop: '1px dashed'` inline em [Index.tsx:155](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx) é CSS hardcoded inline (R-DS-007).
+2. **`Index.tsx:139`** — `stroke-amber-400 dark:stroke-amber-300` em SVG; aceitável (status fixo) mas `borderTop: '1px dashed'` inline em [Index.tsx:155](../../../resources/js/Pages/governance/Dashboard.tsx) é CSS hardcoded inline (R-DS-007).
 3. **`Index.tsx:218-493`** — 3 seções (`consumo` / `acesso` / `usuarios`) em um Page só, controladas por estado local com `localStorage`. **Deveria ser 3 rotas Inertia** — separação de concerns brutal (ADR 0094 §5). Render condicional caro pra o cliente.
 
 ### Top 3 vitórias
 
-1. **Atalho `/` foca seletor de período** com cleanup correto — [Index.tsx:190-200](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx). Único da família que implementa Q7 (atalho power-user) + GOTCHAS.md "Listener sem cleanup".
-2. **`EmptyState` shared usado em 4 sub-cenários** (sem dados, denied, top tools, top users) — [Index.tsx:96-102, 357-362, 388-393, 427-432, 462-467](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx). H4 (consistency) bem atendido.
-3. **`StatusBadge kind="mcp_status"`** — usa shared component pra padronizar status MCP — [Index.tsx:367](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx). Boa abstração.
+1. **Atalho `/` foca seletor de período** com cleanup correto — [Index.tsx:190-200](../../../resources/js/Pages/governance/Dashboard.tsx). Único da família que implementa Q7 (atalho power-user) + GOTCHAS.md "Listener sem cleanup".
+2. **`EmptyState` shared usado em 4 sub-cenários** (sem dados, denied, top tools, top users) — [Index.tsx:96-102, 357-362, 388-393, 427-432, 462-467](../../../resources/js/Pages/governance/Dashboard.tsx). H4 (consistency) bem atendido.
+3. **`StatusBadge kind="mcp_status"`** — usa shared component pra padronizar status MCP — [Index.tsx:367](../../../resources/js/Pages/governance/Dashboard.tsx). Boa abstração.
 
 ### Prioridade fix
 

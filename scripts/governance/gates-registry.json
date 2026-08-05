@@ -386,20 +386,16 @@
       "classe": "gate"
     },
     "module-surface.yml": {
-      "nome": "Module surface (advisory) — guarda o índice GERADO de arquivos por módulo (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore: self-test HARD + `--all --check` (drift real; obrigatório para módulos vivos, Classes B e _Geral). Fecha a raiz do apodrecimento da Superfície de código (dor estado-da-arte 2026-07-21, Gap 2): a lista de arquivos por contexto é DERIVADA, não escrita.",
+      "nome": "Module surface — guarda o índice GERADO de arquivos por módulo (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore: self-test HARD + `--all --check` (drift real; obrigatório para módulos vivos, Classes B e _Geral). Fecha a raiz do apodrecimento da Superfície de código (dor estado-da-arte 2026-07-21, Gap 2): a lista de arquivos por contexto é DERIVADA, não escrita.",
       "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-09-05",
-      "anchor": "sinal de custo: dor [W] 2026-07-21 'não sei os arquivos de cada contexto, dificulta a busca da IA' (memory/sessions/2026-07-21-arte-contexto-vivo-descoberta.md, Gap 2 — único sobrevivente do adversário) + PR #4607. Advisory por ADR 0314 (índice de arquivos é qualidade/descoberta, não Tier-0) na adoção; promote_by força a decisão required/enforce em 14d (quando N módulos adotarem + FP medido = 0), não advisory eterno.",
-      "promote_by_razao": "7 mordidas reais (medido 2026-08-05) MAS guarda índice derivado (SUPERFICIE.md), não Tier-0 — required exige emenda própria à 0314, não carona na 0369. (prazo anterior: 2026-08-04; decisão [W] 2026-08-05, ADR 0369 §Decisão)"
+      "terminal": "required",
+      "anchor": "ADR 0370 (emenda 0314) — 10 mordidas em 3 dias / 6 branches, todas o step \"--all --check\" acusando drift REAL do índice derivado (SUPERFICIE.md atrás da árvore). FP crônico descartado: exit 0 no main. Cumpre a condição que o próprio cabeçalho do workflow declarava e nunca fora verificada. Required-readiness paga no mesmo PR: \"paths\" removido do pull_request (era path-triggered = deadlock garantido se required), custo medido ~19s/~18s por job. | sinal de custo: dor [W] 2026-07-21 'não sei os arquivos de cada contexto, dificulta a busca da IA' (memory/sessions/2026-07-21-arte-contexto-vivo-descoberta.md, Gap 2 — único sobrevivente do adversário) + PR #4607. Advisory por ADR 0314 (índice de arquivos é qualidade/descoberta, não Tier-0) na adoção; promote_by força a decisão required/enforce em 14d (quando N módulos adotarem + FP medido = 0), não advisory eterno."
     },
     "catalog-graph.yml": {
-      "nome": "Catalog graph (advisory) — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exercita consulta real por módulo e arestas dependsOn/providesApi.",
+      "nome": "Catalog graph — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exercita consulta real por módulo e arestas dependsOn/providesApi.",
       "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-09-05",
-      "anchor": "sinal de custo: grade do catálogo 2026-07-21 identificou descritores isolados sem grafo consultável; uma IA não conseguia responder mecanicamente que módulos dependem de uma fronteira alterada. Deriva 38 módulos/627 nós/950 arestas dos donos existentes, sem criar segunda fonte. Advisory por ADR 0314; promote_by força revisão após janela de falsos positivos, sem promoção silenciosa.",
-      "promote_by_razao": "6 mordidas reais (medido 2026-08-05) MAS guarda derivada determinística (catalog.json), não Tier-0 — mesma razão do module-surface. (prazo anterior: 2026-08-04; decisão [W] 2026-08-05, ADR 0369 §Decisão)"
+      "terminal": "required",
+      "anchor": "ADR 0370 (emenda 0314) — 3 mordidas (episódio das branches ads-*), step \"--check\" acusando aresta pendurada / catalog.json fora da derivada. FP crônico descartado: exit 0 no main. Required-readiness paga no mesmo PR: \"paths\" removido, custo medido ~33s. Job renomeado pra tirar \"(advisory)\" antes de virar required (§5 2026-07-16). | sinal de custo: grade do catálogo 2026-07-21 identificou descritores isolados sem grafo consultável; uma IA não conseguia responder mecanicamente que módulos dependem de uma fronteira alterada. Deriva 38 módulos/627 nós/950 arestas dos donos existentes, sem criar segunda fonte. Advisory por ADR 0314; promote_by força revisão após janela de falsos positivos, sem promoção silenciosa."
     },
     "modules-pest.yml": {
       "nome": "Modules Pest",

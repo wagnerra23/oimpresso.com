@@ -4,9 +4,9 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.3.0"
+version: "1.4.0"
 maintained_by: wagner
-last_updated: "2026-08-03"
+last_updated: "2026-08-05"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -20,7 +20,7 @@ pii: false
 
 <!-- documentation-entrypoint: route:produto-operacao -->
 
-> 🧭 Este guia é a **leitura humana** do sistema. Para o **retrato gerado** (estado vivo de módulos, gates required, workflows, ADRs) veja [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
+> 🧭 Este guia é a **leitura humana** do sistema, publicada em [`https://oimpresso.com/documentacao`](https://oimpresso.com/documentacao) para usuários autenticados. Para o **retrato gerado** (estado vivo de módulos, gates required, workflows, ADRs) veja [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
 
 > **Pra quem:** Wagner e time, depois de escolher a rota **produto/operação** no [`README.md` da raiz](../README.md). Este guia explica o sistema numa página e aponta como operá-lo com agentes de IA.
 >
@@ -278,6 +278,40 @@ Origem: [W] 2026-08-02 — *"preciso de um responsável que não se desvie do fo
 - **Nada de cópia.** Nenhum HTML commitado, nenhum resumo paralelo. Se existe cópia, alguém tem que sincronizar — e ninguém sincroniza.
 - **Nada de documento novo quando o dono existe.** A pergunta antes de criar é sempre: *quem já é dono deste assunto?*
 - **Achado adjacente não emenda.** Encontrou outro problema no caminho? Reporta em UMA linha e **para**. [W] decide se vira trabalho, e quando. _(O que deu errado naquela sessão: cada achado adjacente virou "sim" por reflexo, e o pedido original — a documentação — ficou parado no meio.)_
+
+#### B6.2 — Plano técnico e operacional ponta a ponta
+
+[W] autorizou em 2026-08-05 a **Trilha D** do
+[`PLANO-MESTRE`](requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md). Ela passou a organizar a
+documentação que começa nas máquinas existentes e atravessa quatro frentes:
+
+| Frente | O que o leitor encontra |
+|---|---|
+| **Infraestrutura** | Hostinger, Proxmox, CT 100, GitHub Actions, Windows/Firebird, rede e dispositivos |
+| **Plataforma** | hooks, MCP, CI, skills, agents, scripts, baselines e observabilidade |
+| **Aplicação** | kernel, módulos transversais, verticais, integrações e legado |
+| **Fluxos** | venda, estoque, financeiro, fiscal, WhatsApp, Jana, migração, deploy e recuperação |
+
+O plano fica no Git; as ondas e critérios vivem no plano mestre; o estado `todo/doing/done` vive nas
+tasks MCP com `parent_plan=programa-ondas`; este Guia traduz e aponta; a rota
+[`/documentacao`](https://oimpresso.com/documentacao) publica. O ciclo executável é:
+
+```mermaid
+flowchart LR
+    MEDIR["Medir<br/>inventário + probe"] --> DONO["Localizar o dono"]
+    DONO --> TRADUZIR["Traduzir no Git"]
+    TRADUZIR --> VALIDAR["Validar técnica + operação"]
+    VALIDAR --> RECIBO["Recibo antes → depois"]
+    RECIBO --> PUBLICAR["PR + merge + /documentacao"]
+    PUBLICAR --> OPERAR["Operar e observar"]
+    OPERAR --> DRIFT["Drift ou incidente"]
+    DRIFT --> MEDIR
+```
+
+O workflow [`documentacao-tecnica`](../.claude/workflows/documentacao-tecnica.js) consome exatamente
+um achado por execução. `system-map`, `maquinas-inventario`, `documentation-loop` e
+`briefing-code-staleness` medem; o especialista traduz; [W] decide o merge. A trilha permanece ativa
+enquanto houver task aberta, revisão fresca e consumo dos achados — não por criar outro gate.
 
 ### B7. Como especificar e executar uma feature complexa (SDD)
 
@@ -569,6 +603,8 @@ flowchart LR
 |---|---|
 | Mapa técnico do produto (arc42) | [governance/ARCHITECTURE.md](governance/ARCHITECTURE.md) |
 | Quem gera/enforça a documentação (todas as máquinas) | [reference/MAQUINAS-INVENTARIO.md](reference/MAQUINAS-INVENTARIO.md) |
+| Plano técnico e operacional ponta a ponta | [PLANO-MESTRE § Trilha D](requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md) |
+| Visão humana publicada | [oimpresso.com/documentacao](https://oimpresso.com/documentacao) |
 | Voltar à porta global / escolher outra rota | [README.md da raiz](../README.md) |
 | Procurar um documento conhecido | [INDEX.md](INDEX.md) · [INDEX_TEMATICO.md](INDEX_TEMATICO.md) |
 | Regras de sessão / como trabalhar | [how-trabalhar.md](how-trabalhar.md) · [CLAUDE.md](../CLAUDE.md) |

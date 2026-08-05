@@ -24,7 +24,7 @@
   "stats": {
     "modules": 35,
     "nodes": 567,
-    "edges": 838,
+    "edges": 836,
     "by_node_type": {
       "module": 41,
       "table": 71,
@@ -40,8 +40,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 387,
-      "dependsOn": 114,
-      "delegatesTo": 110,
+      "dependsOn": 113,
+      "delegatesTo": 109,
       "migratesTo": 1
     },
     "dangling": 0
@@ -6808,13 +6808,6 @@
     },
     {
       "from": "module:Governance",
-      "to": "module:Jana",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP usage cross-team dashboard (/jana/admin/governanca)"
-    },
-    {
-      "from": "module:Governance",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -6875,13 +6868,6 @@
       "type": "dependsOn",
       "source": "db_tables_consumed→db_tables_owned",
       "note": "jana_mensagens"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:Jana",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP usage cross-team dashboard (/jana/admin/governanca)"
     },
     {
       "from": "module:Governance",

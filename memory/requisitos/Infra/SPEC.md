@@ -7,8 +7,8 @@ module: Infra
 project: COPI
 status: ativo
 owner: wagner
-version: "1.2"
-last_updated: "2026-06-04"
+version: "1.3"
+last_updated: "2026-08-05"
 na_justified:
   D5: "Infra é loop de governança fechado (META → SINAL → DESVIO → RECÁLCULO — ADR 0105) servindo o projeto inteiro, NÃO módulo de features cliente. Não há biz=4 ROTA LIVRE consumindo GrowthBook/APM/MCP server diretamente — são fundações da plataforma. D5 cliente real não aplica por design."
   D4.b: "Infra não tem state machine FSM (ADR 0143). Concentra runbooks operacionais (deploy Centrifugo, Hostinger, CT 100, GrowthBook) e SPECs de infra — sem Eloquent Models com transições. D4.b FSM canônica N/A."
@@ -1031,3 +1031,32 @@ volume é inventar sinal — e a ADR 0105 já diz que item só entra com cliente
 detectando.
 
 **Refs:** [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) · [`Modules/VozDoCliente/SCOPE.md`](../../../Modules/VozDoCliente/SCOPE.md) · US-INFRA-002
+
+### US-INFRA-048 · Ativar a documentação técnica e operacional ponta a ponta
+
+**Implementado em:** _pendente_ — a US rastreia a execução da D0; plano e visão humana já foram preparados, mas inventário inicial e owners ainda serão fechados nesta onda
+
+> owner: wagner · priority: p1 · estimate: 4h · status: doing · type: story
+> blocked_by: —
+> parent_plan: programa-ondas
+
+**Contexto.** A Trilha D do programa de ondas organiza, no mesmo ciclo, a documentação das
+máquinas existentes, hooks, MCP, CI/CD, observabilidade, módulos e fluxos operacionais. O estado
+canônico fica no Git; a fila MCP acompanha a execução; e a visão humana é publicada em
+`https://oimpresso.com/documentacao` a partir de `memory/GUIA-DO-SISTEMA.md`.
+
+**Escopo da D0:**
+- [ ] consolidar o inventário derivado das máquinas existentes e registrar criticidade, owner e evidência;
+- [ ] confrontar hooks, MCP, workflows, schedules, comandos, agentes, skills, módulos e runbooks com seus invocadores reais;
+- [ ] classificar gaps por `ausente`, `parcial`, `obsoleto` ou `sem evidência`;
+- [ ] abrir somente o próximo item acionável da fila, preservando `parent_plan=programa-ondas`;
+- [ ] manter o Guia do Sistema como visão humana e o Plano Mestre como dono das ondas.
+
+**Acceptance criteria:**
+- [ ] `node scripts/governance/maquinas-inventario.mjs --check` verde e contagens registradas;
+- [ ] matriz inicial `máquina → invocador → owner → documento → evidência` revisada;
+- [ ] pelo menos um gap priorizado com task canônica, ou evidência explícita de zero gaps acionáveis;
+- [ ] visão humana aponta para a Trilha D sem duplicar o estado da fila;
+- [ ] handoff e session log registram validações, bloqueios e próximo passo.
+
+**Refs:** [PLANO-MESTRE § Trilha D](../_Governanca/programa-ondas/PLANO-MESTRE.md) · [GUIA-DO-SISTEMA § B6.2](../../GUIA-DO-SISTEMA.md)

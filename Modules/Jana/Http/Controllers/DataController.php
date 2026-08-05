@@ -319,6 +319,11 @@ class DataController extends Controller
                             ['key' => 'governanca-mcp', 'label' => 'Governança MCP', 'href' => '/ia/admin/governanca'],
                             // Ghost 'qualidade-jana' removido 2026-08-05 (ADR 0366 §D-B):
                             // eval é gate de conformidade, foi pra /governance/qualidade-ia.
+                            // Ghost 'governanca-mcp' removido 2026-08-05: a tela foi FUNDIDA
+                            // no /governance/dashboard (ADR 0366 §D-C item 1). O ghost
+                            // 'governanca' logo acima já aponta pra lá — manter os dois
+                            // seria duas entradas pro mesmo destino.
+                            ['key' => 'qualidade-jana', 'label' => 'Qualidade IA',   'href' => '/ia/admin/qualidade'],
                         ],
                     ]
                 )->order(90); // Logo após PontoWr2 (88)
