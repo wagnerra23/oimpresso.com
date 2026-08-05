@@ -5,7 +5,7 @@ slug: "sdd-flow-feature-smart-token"
 tldr: "A cadeia SPEC/US → trio da feature → SDD/CU → tela ganhou geração, lint e recibo. A prova por hash reutiliza o smart token Git SHA já existente; o piloto Financeiro não ganhou verde fabricado em checkout shallow."
 decided_by: [W]
 cycle: null
-prs: []
+prs: [5329]
 us: ["US-FIN-003"]
 next_steps:
   - "Executar o recibo em checkout com histórico suficiente e revalidar a US-FIN-003 somente após implementação e smoke reais"
@@ -52,4 +52,5 @@ elos estruturais e hashes estão mensuráveis. O recibo não substitui `casos-ga
 ## Estado
 
 Não houve alteração de PHP, banco, cálculo de valor/estoque ou runtime. Os diretórios não rastreados
-preexistentes foram mantidos fora do escopo. A integração Git foi autorizada por [W] após a validação.
+preexistentes foram mantidos fora do escopo. A integração Git foi autorizada por [W]; o PR #5329
+foi aberto de branch fresca baseada em `origin/main`, sem carregar commits do PR anterior.

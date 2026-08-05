@@ -57,7 +57,8 @@ Node/documentação e o runtime de testes pertence ao CT 100.
 
 ## Estado de integração
 
-- A integração Git foi autorizada por [W] após a validação; branch/PR são registrados no fechamento.
+- A integração Git foi autorizada por [W] após a validação; PR #5329 foi aberto a partir de branch
+  fresca baseada em `origin/main` e ficou sujeito aos checks do SHA final.
 - MCP não foi materializado porque nenhuma tool MCP de tarefas estava disponível nesta execução.
 - Diretórios não rastreados preexistentes foram preservados.
 - O Connector continuou sem ligação SDD: não existe `SDD-*.md` nesse módulo e a triangulação não foi
