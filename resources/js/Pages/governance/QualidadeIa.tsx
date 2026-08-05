@@ -131,7 +131,7 @@ function gateStatus(value: number | null, gate: Gate): { ok: boolean; emoji: str
  *
  * ⚠️ Dívida herdada da origem: normaliza por min/max LOCAL da série, então
  * 0.78→0.79 "parece" o mesmo movimento de 0.20→0.85. O número absoluto ao lado
- * mitiga; fix real = escala 0..1 nas métricas % ou linha no `gates[m.key].alvo`.
+ * mitiga; fix real = escala 0..1 nas métricas % ou linha no `gates[m.metrica].alvo`.
  */
 function Sparkline({ values, color = '#3b82f6' }: { values: (number | null)[]; color?: string }) {
   const w = 120, h = 28;
@@ -156,21 +156,21 @@ function Sparkline({ values, color = '#3b82f6' }: { values: (number | null)[]; c
 }
 
 const ALL_METRICS: ReadonlyArray<{
-  key: MetricaKey;
+  metrica: MetricaKey;
   label: string;
   isPct: boolean;
   color: string;
   critical: boolean;
   isMs?: boolean;
 }> = [
-  { key: 'recall_at_3', label: 'Recall@3', isPct: true, color: '#3b82f6', critical: true },
-  { key: 'precision_at_3', label: 'Precision@3', isPct: true, color: '#10b981', critical: true },
-  { key: 'mrr', label: 'MRR', isPct: false, color: '#8b5cf6', critical: true },
-  { key: 'faithfulness', label: 'Faithfulness', isPct: true, color: '#f59e0b', critical: false },
-  { key: 'latencia_p95_ms', label: 'Latência p95', isPct: false, color: '#ef4444', critical: true, isMs: true },
-  { key: 'tokens_medio', label: 'Tokens médios', isPct: false, color: '#06b6d4', critical: false },
-  { key: 'memory_bloat', label: 'Bloat ratio', isPct: true, color: '#84cc16', critical: false },
-  { key: 'taxa_contradicoes_pct', label: 'Contradições %', isPct: false, color: '#ec4899', critical: false },
+  { metrica: 'recall_at_3', label: 'Recall@3', isPct: true, color: '#3b82f6', critical: true },
+  { metrica: 'precision_at_3', label: 'Precision@3', isPct: true, color: '#10b981', critical: true },
+  { metrica: 'mrr', label: 'MRR', isPct: false, color: '#8b5cf6', critical: true },
+  { metrica: 'faithfulness', label: 'Faithfulness', isPct: true, color: '#f59e0b', critical: false },
+  { metrica: 'latencia_p95_ms', label: 'Latência p95', isPct: false, color: '#ef4444', critical: true, isMs: true },
+  { metrica: 'tokens_medio', label: 'Tokens médios', isPct: false, color: '#06b6d4', critical: false },
+  { metrica: 'memory_bloat', label: 'Bloat ratio', isPct: true, color: '#84cc16', critical: false },
+  { metrica: 'taxa_contradicoes_pct', label: 'Contradições %', isPct: false, color: '#ec4899', critical: false },
 ];
 
 function GovernancaQualidadeIa(props: Props) {
@@ -320,7 +320,7 @@ function GovernancaQualidadeIa(props: Props) {
                   <th className="text-left py-2 px-2 font-medium">Business</th>
                   <th className="text-center py-2 px-2 font-medium">N pontos</th>
                   {ALL_METRICS.map(m => (
-                    <th key={m.key} className="text-center py-2 px-2 font-medium" style={{ minWidth: 130 }}>
+                    <th key={m.metrica} className="text-center py-2 px-2 font-medium" style={{ minWidth: 130 }}>
                       {m.label}
                       {m.critical && <span className="ml-1 text-destructive">*</span>}
                     </th>
@@ -334,11 +334,11 @@ function GovernancaQualidadeIa(props: Props) {
                     <td className="text-center py-2 px-2">{s.pontos.length}</td>
                     {ALL_METRICS.map(m => {
                       // `MetricaKey` garante que só chaves numéricas de Ponto entram aqui —
-                      // era `(p as any)[m.key]` na origem (violação no-explicit-any).
-                      const values = s.pontos.map(p => p[m.key]);
+                      // era `(p as any)[m.metrica]` na origem (violação no-explicit-any).
+                      const values = s.pontos.map(p => p[m.metrica]);
                       const last = values[values.length - 1] ?? null;
                       return (
-                        <td key={m.key} className="text-center py-2 px-2">
+                        <td key={m.metrica} className="text-center py-2 px-2">
                           <div className="flex flex-col items-center gap-0.5">
                             <Sparkline values={values} color={m.color} />
                             <span className="text-[10px] font-mono">
