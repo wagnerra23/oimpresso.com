@@ -321,7 +321,10 @@ class DataController extends Controller
                             // Wagner 2026-05-25: rename 'Governança Jana' → 'Governança MCP' (alinha
                             // com topnav.php que já chama de MCP — clarifica vs ghost 'governanca'
                             // canon que aponta /governance/dashboard outro módulo).
-                            ['key' => 'governanca-mcp', 'label' => 'Governança MCP', 'href' => '/ia/admin/governanca'],
+                            // Ghost 'governanca-mcp' removido 2026-08-05: a tela foi FUNDIDA
+                            // no /governance/dashboard (ADR 0366 §D-C item 1). O ghost
+                            // 'governanca' logo acima já aponta pra lá — manter os dois
+                            // seria duas entradas pro mesmo destino.
                             ['key' => 'qualidade-jana', 'label' => 'Qualidade IA',   'href' => '/ia/admin/qualidade'],
                         ],
                     ]
