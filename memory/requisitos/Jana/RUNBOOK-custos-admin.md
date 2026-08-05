@@ -44,7 +44,7 @@ Lê dados de `jana_mensagens` (join com `jana_conversas` pra scope multi-tenant 
 - [ ] Módulo `Jana` instalado em `/manage-modules` (ADR 0024)
 - [ ] Permissão `copiloto.admin.custos.view` atribuída ao role do usuário (Controller usa `middleware('can:copiloto.admin.custos.view')`)
 - [ ] Rota `Route::get('/admin/custos', 'Admin\CustosController@index')->name('jana.admin.custos.index')` em [`Modules/Jana/Http/routes.php:84`](../../../Modules/Jana/Http/routes.php) — dentro do prefix `/copiloto`
-- [ ] Page Inertia em [`resources/js/Pages/Jana/Admin/Custos/Index.tsx`](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx)
+- [ ] Page Inertia em [`resources/js/Pages/governance/Custos.tsx`](../../../resources/js/Pages/governance/Custos.tsx)
 - [ ] Service `Modules\Jana\Services\CustosService` resolve `painel($businessId, $inicio, $fim)` e `resolverPeriodo($preset, $de, $ate)`
 - [ ] Tabelas `jana_mensagens` e `jana_conversas` com `tokens_in` e `tokens_out` populados (preenchidos pelo `OpenAiDirectDriver` ao final do stream — ver `ChatController::sendStream`)
 - [ ] Configs: `config('copiloto.ai.pricing_default_model')` e `config('copiloto.ai.cambio_brl_usd')` definidas em `config/copiloto.php`
@@ -55,7 +55,7 @@ Lê dados de `jana_mensagens` (join com `jana_conversas` pra scope multi-tenant 
 ### 1. Controller resolve período + chama Service + renderiza Inertia
 
 ```php
-// Modules/Jana/Http/Controllers/Admin/CustosController.php
+// Modules/Governance/Http/Controllers/CustosController.php
 class CustosController extends Controller
 {
     public function __construct()
@@ -143,7 +143,7 @@ public function painel(int $businessId, CarbonInterface $inicio, CarbonInterface
 ### 3. Page Inertia recebe Props tipadas
 
 ```tsx
-// resources/js/Pages/Jana/Admin/Custos/Index.tsx
+// resources/js/Pages/governance/Custos.tsx
 type Preset = 'mes_atual' | 'mes_anterior' | '90d' | 'custom';
 
 interface Kpis           { custo_brl: number; mensagens: number; tokens: number; usuarios_ativos: number }
@@ -380,7 +380,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 - Copiloto/adr/arq/0003 — Onda 1 (ROI direto): "primeira tela admin do Jana é custo, não feature"
 
 **Stories cobertas:** US-COPI-070 ([SPEC.md](SPEC.md))
-**Tests:** [Modules/Jana/Tests/Feature/Admin/CustosControllerTest.php](../../../Modules/Jana/Tests/Feature/Admin/CustosControllerTest.php)
+**Tests:** [Modules/Governance/Tests/Feature/CustosControllerTest.php](../../../Modules/Governance/Tests/Feature/CustosControllerTest.php)
 **Service:** [Modules/Jana/Services/CustosService.php](../../../Modules/Jana/Services/CustosService.php)
 
 ---

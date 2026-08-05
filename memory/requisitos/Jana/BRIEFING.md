@@ -1,6 +1,6 @@
 ---
 id: requisitos-jana-briefing
-distilled_at: "2026-07-28"
+distilled_at: "2026-08-05"
 distilled_by: "manual [W/C] — consolidação de donos: intenção e decisões abertas ficam aqui; topologia/inventário ficam nos artefatos gerados; execução de observabilidade fica em OBSERVABILITY.md"
 module: Jana
 status: producao
@@ -10,6 +10,8 @@ updated_at: "2026-07-29"
 # BRIEFING — Jana (verdade destilada)
 
 ## Estado atual
+
+> **2026-08-05 — Custos de IA e Qualidade IA sairam pra Modules/Governance** (ADR 0366 §D-B, ratificada por [W] em 2026-08-03: cada modulo responde UMA pergunta, e a da Jana e "como esta meu negocio e o que eu faco?"). Muda o dono da TELA, nao o do DADO: CustosService e MemoriaMetrica continuam aqui, e as permissions jana.admin.custos.view / jana.mcp.usage.all foram PRESERVADAS — renomear revogaria acesso em silencio (ADR 0087). URLs antigas seguem vivas por 301 preservando a query. O item 4 do plano (mover as Mcp*) NAO esta autorizado.
 
 Camada de IA do oimpresso: chat com memória persistente, brief diário, sugestões de metas e evals, sobre a stack canônica `laravel/ai` + Agents próprios ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)). Em produção.
 

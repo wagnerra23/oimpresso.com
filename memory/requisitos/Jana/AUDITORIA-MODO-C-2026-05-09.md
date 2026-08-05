@@ -43,7 +43,7 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 1. Admin/Custos/Index.tsx — 84/100 🟡
 
-**Arquivo:** [resources/js/Pages/Jana/Admin/Custos/Index.tsx](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx) (390 linhas)
+**Arquivo:** [resources/js/Pages/governance/Custos.tsx](../../../resources/js/Pages/governance/Custos.tsx) (390 linhas)
 **Categoria BENCHMARKS:** §3 Dashboard/KPI overview (Mixpanel/Amplitude/Vercel Analytics).
 
 ### Score detalhado
@@ -63,9 +63,9 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ### Top 3 vitórias
 
-1. **PageHeader + KpiGrid + KpiCard shared** — usa todos os 3 componentes do DS ([Index.tsx:211-254](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx)). Padrão limpo.
-2. **`GastoDiarioChart` SVG inline com viewBox** — sem dep de `recharts`/`chart.js`, dark-mode-safe via `text-primary` + `fill-primary/15`. Pattern de [Index.tsx:86-183](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx).
-3. **Filtro custom com form `de`/`ate` + preserveState/preserveScroll** — [Index.tsx:196-207](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx). Atende `preference_cache_estado_preservado` (auto-mem) e ADR 0039 §4.
+1. **PageHeader + KpiGrid + KpiCard shared** — usa todos os 3 componentes do DS ([Index.tsx:211-254](../../../resources/js/Pages/governance/Custos.tsx)). Padrão limpo.
+2. **`GastoDiarioChart` SVG inline com viewBox** — sem dep de `recharts`/`chart.js`, dark-mode-safe via `text-primary` + `fill-primary/15`. Pattern de [Index.tsx:86-183](../../../resources/js/Pages/governance/Custos.tsx).
+3. **Filtro custom com form `de`/`ate` + preserveState/preserveScroll** — [Index.tsx:196-207](../../../resources/js/Pages/governance/Custos.tsx). Atende `preference_cache_estado_preservado` (auto-mem) e ADR 0039 §4.
 
 ### Prioridade fix
 
@@ -179,7 +179,7 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 5. Admin/Qualidade/Index.tsx — 62/100 🟠
 
-**Arquivo:** [resources/js/Pages/Jana/Admin/Qualidade/Index.tsx](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx) (375 linhas)
+**Arquivo:** [resources/js/Pages/governance/QualidadeIa.tsx](../../../resources/js/Pages/governance/QualidadeIa.tsx) (375 linhas)
 **Categoria BENCHMARKS:** §3 Dashboard + §6 Listagem operacional (trend + tabela detalhada).
 
 ### Score detalhado
@@ -199,9 +199,9 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ### Top 3 vitórias
 
-1. **Função `gateStatus` separa avaliação de regra de UI** — [Index.tsx:94-103](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx). Lógica testável.
-2. **`KpiCard tone={ok ? 'success' : 'danger'}` dinâmico** — [Index.tsx:221-244](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx). Usa o tom semântico do DS (não cor crua) — boa prática parcial mesmo com problemas.
-3. **`ScrollArea max-h-[600px]` + `sticky top-0`** na trend table — [Index.tsx:258-260](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx). BENCHMARKS §6 pattern 9 (sticky header) atendido.
+1. **Função `gateStatus` separa avaliação de regra de UI** — [Index.tsx:94-103](../../../resources/js/Pages/governance/QualidadeIa.tsx). Lógica testável.
+2. **`KpiCard tone={ok ? 'success' : 'danger'}` dinâmico** — [Index.tsx:221-244](../../../resources/js/Pages/governance/QualidadeIa.tsx). Usa o tom semântico do DS (não cor crua) — boa prática parcial mesmo com problemas.
+3. **`ScrollArea max-h-[600px]` + `sticky top-0`** na trend table — [Index.tsx:258-260](../../../resources/js/Pages/governance/QualidadeIa.tsx). BENCHMARKS §6 pattern 9 (sticky header) atendido.
 
 ### Prioridade fix
 
