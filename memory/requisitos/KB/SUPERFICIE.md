@@ -12,9 +12,9 @@ module: KB
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs KB --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/KB/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 155 arquivos em 18 papéis.
+**Total mapeado:** 177 arquivos em 18 papéis.
 
 ## Controllers — 14
 
@@ -169,8 +169,9 @@ module: KB
 
 - 41 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 13
+## Demais arquivos (manifestos, docs, assets e misc) — 35
 
+- [CHANGELOG.md](../../../Modules/KB/CHANGELOG.md)
 - [KbCategoryFactory.php](../../../Modules/KB/Database/Factories/KbCategoryFactory.php)
 - [KbCommentFactory.php](../../../Modules/KB/Database/Factories/KbCommentFactory.php)
 - [KbDecisionTreeFactory.php](../../../Modules/KB/Database/Factories/KbDecisionTreeFactory.php)
@@ -183,4 +184,25 @@ module: KB
 - [KbPathStepFactory.php](../../../Modules/KB/Database/Factories/KbPathStepFactory.php)
 - [KbSubcategoryFactory.php](../../../Modules/KB/Database/Factories/KbSubcategoryFactory.php)
 - [routes.php](../../../Modules/KB/Http/routes.php)
+- [README.md](../../../Modules/KB/README.md)
+- [kb.php](../../../Modules/KB/Resources/lang/en/kb.php)
+- [kb.php](../../../Modules/KB/Resources/lang/pt-BR/kb.php)
+- [kb.php](../../../Modules/KB/Resources/lang/pt/kb.php)
+- [topnav.php](../../../Modules/KB/Resources/menus/topnav.php)
+- [permissions.php](../../../Modules/KB/Resources/permissions.php)
+- [SCOPE.md](../../../Modules/KB/SCOPE.md)
+- [kb-gold-set.json](../../../Modules/KB/Tests/Feature/fixtures/kb-gold-set.json)
+- [composer.json](../../../Modules/KB/composer.json)
+- [module.json](../../../Modules/KB/module.json)
 - [start.php](../../../Modules/KB/start.php)
+- [graphLayout.ts](../../../resources/js/Pages/kb/_lib/graphLayout.ts)
+- [graphTypes.ts](../../../resources/js/Pages/kb/_lib/graphTypes.ts)
+- [helpers.ts](../../../resources/js/Pages/kb/_lib/helpers.ts)
+- [mockData.ts](../../../resources/js/Pages/kb/_lib/mockData.ts)
+- [mockGraphData.ts](../../../resources/js/Pages/kb/_lib/mockGraphData.ts)
+- [types.ts](../../../resources/js/Pages/kb/_lib/types.ts)
+- [useKbFavorites.ts](../../../resources/js/Pages/kb/_lib/useKbFavorites.ts)
+- [useKbKeyboardNav.ts](../../../resources/js/Pages/kb/_lib/useKbKeyboardNav.ts)
+- [useKbNodeBody.ts](../../../resources/js/Pages/kb/_lib/useKbNodeBody.ts)
+- [useKbPathProgress.ts](../../../resources/js/Pages/kb/_lib/useKbPathProgress.ts)
+- [useKbRecent.ts](../../../resources/js/Pages/kb/_lib/useKbRecent.ts)

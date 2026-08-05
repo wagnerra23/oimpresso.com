@@ -42,10 +42,10 @@ use Symfony\Component\Yaml\Yaml;
  *        observed = links cujo destino sumiu.
  *        healable=FALSE → só ALERTA (R10: pra onde repontar é decisão humana).
  *
- * NÃO reconcilia a contagem `**Total:** N módulos` de `modulos/INDEX.md`: aquele número
- * é derivado de `module:specs` varrendo MÚLTIPLAS branches do git (cross-branch), não
- * reproduzível read-only a partir do disco — heal a partir de uma contagem de arquivos
- * daria um número ERRADO. Fora de escopo por honestidade de fonte-de-verdade.
+ * NÃO reconcilia `modulos/INDEX.md`: desde 2026-07-30 ele passou a ser uma projeção
+ * determinística dos manifestos `module.json` sob `Modules/<Modulo>/`, regenerada por
+ * `php artisan module:specs --index-only`. O dono desse índice já faz o próprio
+ * `write`; duplicar a cura aqui criaria dois autores para o mesmo artefato.
  *
  * Invariantes (ADR 0237 / 0230):
  *   - Núcleo PURO injetável: {@see analisar()} recebe desired/observed e devolve drifts

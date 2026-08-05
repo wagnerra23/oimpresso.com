@@ -1,4 +1,4 @@
-name: Module surface (drift do índice de arquivos)
+name: Module surface (drift do índice de arquivos — advisory na adoção)
 
 # Guarda o SUPERFICIE.md gerado (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore.
 # Fecha a raiz do apodrecimento da "Superfície de código" (dor estado-da-arte 2026-07-21,
@@ -9,17 +9,7 @@ name: Module surface (drift do índice de arquivos)
 # "Advisory" = NÃO está nos required checks (branch protection — decisão [W]), NÃO é vermelho
 # escondido. `--all --check` exige SUPERFICIE de todo módulo VIVO (`module.json active=1`),
 # das Classes B e de `_Geral`; apenas módulo inativo nunca adotado fica grandfathered.
-# PROMOVIDO A REQUIRED em 2026-08-05 (ADR 0370, emenda à 0314). A condição que este
-# cabeçalho declarava — "N módulos adotarem + FP medido = 0" — foi VERIFICADA, não
-# presumida: `--all --check` sai 0 no main (nenhum FP crônico) e as 10 falhas medidas em
-# 3 dias, 6 branches, são todas o step `--all --check` acusando drift REAL introduzido
-# pelo PR (índice derivado ficou atrás da árvore). Gate certo, autor errado.
-#
-# REQUIRED-READINESS (ADR 0271 onda 2): o `paths:` do `pull_request` foi REMOVIDO —
-# context required que só dispara por path fica PENDING pra sempre nos PRs que não tocam
-# aquele path e trava o merge do repo (deadlock de 2026-07-02, proibicoes §Ambiente).
-# Sempre-rodar custa ~19s por job MEDIDOS; os minutos do `gh run list` eram FILA, não
-# execução (o script roda em <1s).
+# Promoção a required = quando N módulos adotarem + FP medido = 0 por 1-2 semanas (ADR 0275).
 
 on:
   pull_request:
@@ -39,7 +29,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: node --test scripts/governance/module-surface.test.mjs scripts/qa/page-path.test.mjs
+      - name: Testar classificadores, grafo, impacto e mapa
+        run: |
+          node --test scripts/governance/module-surface.test.mjs scripts/governance/catalog-graph.test.mjs scripts/qa/page-path.test.mjs
+          node scripts/governance/documentation-loop.mjs --selftest
+          node scripts/governance/system-map-ia.test.mjs
 
   # Drift: o SUPERFICIE.md commitado bate com a árvore do PR? Exit code real.
   drift:
@@ -48,14 +42,48 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          # system-map usa git log por BRIEFING; checkout raso fabricaria a data
+          # do merge para todos os módulos e produziria drift falso.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: node scripts/governance/module-surface.mjs --all --check
         run: node scripts/governance/module-surface.mjs --all --check
+      # O `catalog-graph.mjs --check` NÃO roda aqui: ele tem workflow PRÓPRIO
+      # (catalog-graph.yml), cujo job "catalog.json == SCOPEs + Classes B" virou
+      # context REQUIRED na ADR 0370. Duplicar rodaria 2× o mesmo check, e o dono
+      # do veredito é o workflow required — não este step. O `.test.mjs` dele segue
+      # rodando no selftest acima: teste unitário do gerador é outra coisa.
+      - name: Painel, arquitetura IA e onboarding em dia
+        run: node scripts/governance/system-map.mjs --check
       - name: Diagnóstico em caso de drift
         if: failure()
         run: |
-          echo "::error::Um SUPERFICIE.md ficou atrás da árvore. Regenere o módulo afetado:"
+          echo "::error::Uma projeção derivada ficou atrás das fontes. Rode os checks abaixo:"
           echo "  node scripts/governance/module-surface.mjs <Mod> --write"
-          echo "e commite o SUPERFICIE.md atualizado."
+          echo "  node scripts/governance/catalog-graph.mjs"
+          echo "  node scripts/governance/system-map.mjs"
+          echo "e commite somente as projeções que mudarem."
+
+  # Transação de módulo novo: o diff em module.json só fica ativável quando
+  # runtime, contrato, teste, catálogo, superfície e painel fecham juntos.
+  activation:
+    name: Módulo novo — contrato + projeções derivadas
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Compilar impacto e ativação
+        run: >-
+          node scripts/governance/documentation-loop.mjs
+          --impact-ref "${{ github.event.pull_request.base.sha }}"
+          --head-ref HEAD
+          --enforce-activation
+          --json

@@ -1,13 +1,9 @@
 ---
-id: reference-painel-sistema
-name: Técnico — Painel do sistema
+name: PAINEL-SISTEMA — índice gerado do estado do sistema oimpresso
 description: MATRIZ gerada por scripts/governance/system-map.mjs. NÃO editar à mão (regenera). Índice que aponta pros donos canônicos + fatos deriváveis + frescor real.
 type: reference
 authority: generated
 lifecycle: ativo
-nav_group: tecnico
-nav_order: 20
-lente: [construir]
 ---
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
@@ -32,11 +28,11 @@ lente: [construir]
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-07-23 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-30 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-27 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-05 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-27 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-01 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-27 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-30 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-05 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-05 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
@@ -72,7 +68,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **336**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **347**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -80,43 +76,49 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 35 required (enforcement: everyone)
+### Bloqueiam merge — 41 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
+- anchor entry/covers gate
+- anchor-lint ADR 0273
 - Ancora de design nao-shell (F2/F6 required)
 - Append-only canon (ADRs, handoffs, Constituição)
 - Casos-coverage · ratchet (trio + rastreabilidade)
+- catalog.json == SCOPEs + Classes B
 - Charter (resources/js/Pages/**/*.charter.md)
-- DS gate
+- charter status:live precisa de sinal de prod
+- deadlink-gate (ratchet · integridade referencial)
 - Dominio-dict · ratchet (enum ⇔ dicionário)
+- doneness-lint ADR 0302
+- DS gate
 - ESLint · ratchet vs baseline
 - Frontend / Vite build
+- gate selftest (as catracas mordem · GT-G6)
 - Layout primitives · ratchet
 - Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
+- PHP / Pest (Compras · MySQL)
+- PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)
 - PHP / Pest (NfeBrasil · MySQL)
+- PHP / Pest (Ponto · MySQL)
 - PHP / Pest (Unit)
 - PHPStan / Larastan · ratchet vs baseline
 - PII scan (CPF/CNPJ literal)
+- screen-coverage-gate
 - SDD scorecard ratchet (métrica armada não regride · GT-G3)
-- SPEC (memory/requisitos/*/SPEC.md)
 - Secret scan (gitleaks · só linhas novas do PR)
+- Self-test — classificação por papel + montagem determinística
+- SPEC (memory/requisitos/*/SPEC.md)
 - Stylelint · ratchet vs baseline
+- SUPERFICIE.md == árvore (módulos vivos + adotados)
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
-- anchor entry/covers gate
-- anchor-lint ADR 0273
-- charter status:live precisa de sinal de prod
-- doneness-lint ADR 0302
-- gate selftest (as catracas mordem · GT-G6)
-- screen-coverage-gate
 - visual-regression
-- deadlink-gate (ratchet · integridade referencial)
 - Governance Gate (índice + memory-health + meta-teste)
 
 ### Censo — 118 workflows por classe
@@ -133,15 +135,14 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **372** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 336 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **374** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 338 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
 > Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 78 entradas.
 
-<!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
 - ~~2026-06-09 — Domínio de "locação" na Oficina (alucinação herdada do legado)~~
@@ -220,24 +221,21 @@ lente: [construir]
 - ~~2026-08-03 — Colher as guidelines/skills do `laravel/boost` pra fechar a nota baixa de "contexto de framework versionado"~~
 - ~~2026-08-04 — Placeholder `{{X}}` **sem aspas** em frontmatter YAML (quebra consumidor em fail-open, e a técnica foi vendida como "FP zero")~~
 - ~~2026-08-04 — Isentar do gate a população que a MÁQUINA SEMPRE PRODUZ (o `shipped-log-gate` nunca teve como reprovar — e a isenção estava INVERTIDA)~~
-<!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
-<!-- transcrito-de: memory/proibicoes.md §Tier 0 gaps -->
 - ⛔ 2026-05-28 — Token Hostinger API inacessível ao agente autônomo
-<!-- /transcrito-de -->
 
 ## Rastro
 
-- **366** handoffs · **582** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **371** handoffs · **589** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-05-plano-documentacao-tecnica-operacional`
+  - `2026-08-05-maquinas-que-existiam-e-nao-avisavam`
+  - `2026-08-05-hooks-condicionais-observaveis`
+  - `2026-08-05-duplicacao-roadmap-forja`
   - `2026-08-05-ancora-medivel-funil-e-teste-que-nao-provava`
   - `2026-08-04-cron-unassigned-buraco-na-serie`
-  - `2026-08-03-tutorial-sdd-guiado`
-  - `2026-08-03-triagem-quarentena-financeiro`
-  - `2026-08-03-tecnico-arquitetura-modulos`
-  - `2026-08-03-recebimento-parcial-parcela-sdd`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-08-05 · deriva das fontes canônicas, não as substitui._

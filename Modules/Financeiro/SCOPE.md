@@ -1,7 +1,6 @@
 ---
 module: Financeiro
-purpose: "Razão financeira do negócio — espelha vendas, compras e caixa do core em títulos (fin_titulos) e opera o ciclo do dinheiro sobre eles: contas a pagar e receber, baixa, conciliação bancária OFX, fluxo de caixa, DRE BR e portal read-only do contador externo."
-migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
+purpose: "Contas a pagar/receber, fluxo de caixa, DRE BR."
 contains:
   - "AdvisorAccessController — Onda 31 US-FIN-037 grant/revoke acesso contador parceiro (biz-side, consent LGPD)"
   - "Advisor/AdvisorAuthController — Onda 31 US-FIN-037 login/logout guard web-advisor isolado"
@@ -30,8 +29,11 @@ contains:
   - "UnificadoController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/Forja"
-  - "MCP server admin → Modules/Forja"
+  - "Tasks Jira-style → Modules/ProjectMgmt"
+  - "MCP server admin → Modules/TeamMcp"
+depends_on:
+  - Sells
+  - Compras
 trust_required: L3
 owner: wagner
 permission_prefix: financeiro.*
