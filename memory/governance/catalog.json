@@ -23,11 +23,11 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 569,
-    "edges": 838,
+    "nodes": 571,
+    "edges": 840,
     "by_node_type": {
       "module": 43,
-      "table": 71,
+      "table": 73,
       "adr": 25,
       "component": 387,
       "api": 43
@@ -35,7 +35,7 @@
     "by_edge_type": {
       "ownsTable": 58,
       "ownsLegacyView": 13,
-      "consumesTable": 4,
+      "consumesTable": 6,
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
@@ -4283,6 +4283,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_audit_log",
+      "type": "table",
+      "name": "mcp_audit_log",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
       "id": "table:mcp_components",
       "type": "table",
       "name": "mcp_components",
@@ -4512,6 +4523,17 @@
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_usage_diaria",
+      "type": "table",
+      "name": "mcp_usage_diaria",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:mcp_user_module_access",
@@ -6806,6 +6828,18 @@
     {
       "from": "module:Governance",
       "to": "table:jana_mensagens",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_audit_log",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_usage_diaria",
       "type": "consumesTable",
       "source": "db_tables_consumed"
     },
@@ -9912,7 +9946,20 @@
     ],
     "dangling_module_refs": [],
     "dangling_adr_refs": [],
-    "consumed_tables_without_catalog_owner": [],
+    "consumed_tables_without_catalog_owner": [
+      {
+        "table": "mcp_audit_log",
+        "consumers": [
+          "Governance"
+        ]
+      },
+      {
+        "table": "mcp_usage_diaria",
+        "consumers": [
+          "Governance"
+        ]
+      }
+    ],
     "tables_owned_by_multiple": []
   }
 }
