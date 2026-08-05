@@ -1034,7 +1034,7 @@ detectando.
 
 ### US-INFRA-048 · Ativar a documentação técnica e operacional ponta a ponta
 
-**Implementado em:** _em andamento_ — plano e visão humana ativados; inventário inicial e owners ainda serão fechados nesta onda
+**Implementado em:** _pendente_ — a US rastreia a execução da D0; plano e visão humana já foram preparados, mas inventário inicial e owners ainda serão fechados nesta onda
 
 > owner: wagner · priority: p1 · estimate: 4h · status: doing · type: story
 > blocked_by: —
