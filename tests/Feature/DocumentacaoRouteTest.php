@@ -423,8 +423,9 @@ it('o escopo que a pagina MOSTRA e derivado de TIPOS_DOC — nenhum tipo some ca
     $tipos = $classe->getConstant('TIPOS_DOC');
     $rotulos = $classe->getConstant('TIPOS_DOC_ROTULO');
 
-    // 1. Todo tipo tem rótulo humano. Sem isto ele ainda aparece (cai no slug, por
-    //    desenho), mas a prosa fica torta — o aviso é aqui, não em produção.
+    // 1. Todo tipo tem rótulo humano. O PHPStan já cobra isto — escopoEmProsa() indexa
+    //    direto, sem fallback, então tipo sem rótulo derruba a análise estática nomeando
+    //    o tipo. A invariante é importante demais pra depender de uma ferramenta só.
     $semRotulo = array_values(array_diff($tipos, array_keys($rotulos)));
     expect($semRotulo)->toBe([]);
 
