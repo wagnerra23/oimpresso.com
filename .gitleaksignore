@@ -1,12 +1,24 @@
-
-# 2026-08-05 — FALSO POSITIVO medido, nao segredo. QualidadeIa.tsx:167/170 sao
-# duas entradas do array METRICAS (`{ key: 'precision_at_3', ..., color: '#10b981' }`
-# e `{ key: 'latencia_p95_ms', ..., color: '#ef4444' }`): a regra generic-api-key
-# casa `key: '<string>'` perto de um hexadecimal e le a COR como chave de API.
-# Conferido lendo as linhas, nao so o alerta. Nada a rotacionar.
-# DIVIDA REAL que isto expoe (herdada do Jana, nao criada aqui): as cores sao HEX
-# CRU, violando R-DS-002 (token semantico). Tokenizar muda o render das series do
-# grafico -> exige aprovacao visual [W], entao fica registrado, nao consertado no
-# calado. Quando tokenizar, estas 2 linhas saem daqui sozinhas.
+# .gitleaksignore — fingerprints de FALSO POSITIVO, conferidos um a um.
+#
+# REGRA DESTE ARQUIVO: descreva o achado SEM reproduzir o padrão que o disparou.
+# A 1a versao deste comentario citava o trecho literal do codigo pra explicar o
+# falso positivo — e o Gitleaks passou a acusar o PROPRIO .gitleaksignore
+# (linhas 3 e 4), porque o texto explicativo continha exatamente a forma que a
+# regra procura. Ignorar aquilo criaria regressao infinita: cada explicacao
+# gerando o proximo alerta. Se precisar ser especifico, cite arquivo e LINHA,
+# nunca o conteudo.
+#
+# 2026-08-05 — Modules/Governance, tela de Qualidade IA (recebida do Jana, ADR
+# 0366 §D-B). Duas linhas de um array de definicao de metricas foram lidas como
+# credencial: cada entrada declara um identificador curto ao lado de um valor
+# hexadecimal de 6 digitos usado como cor da serie no grafico. A regra
+# generic-api-key casa identificador + hexadecimal e conclui "chave de API".
+# Conferi as duas linhas no arquivo, nao so o alerta. NADA A ROTACIONAR.
+#
+# DIVIDA REAL que o alerta expos, e que NAO consertei: a cor esta hardcoded em
+# hexadecimal, violando R-DS-002 (token semantico do Design System). Tokenizar
+# muda o render das series do grafico — e mudanca visual, exige aprovacao [W],
+# entao fica registrada aqui em vez de corrigida no calado. Quando for
+# tokenizada, estas duas entradas saem sozinhas.
 d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:167
 d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:170
