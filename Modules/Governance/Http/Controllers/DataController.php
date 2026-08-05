@@ -52,15 +52,17 @@ class DataController extends Controller
 
     public function modifyAdminMenu()
     {
-        // Wagner 2026-05-25: entry sidebar de Governança REMOVIDA — módulo
-        // continua acessível por URL direta (/governance/dashboard, /policies,
-        // /audit, /drift, /module-grades) mas não aparece no sidebar. Roteamento
-        // canon agora é via Jana: login pós-redirect → /ia/dashboard (primeira
-        // aba). Permissions/package/rotas preservadas — só desligamos o
-        // Menu::modify pra parar de renderizar entry no AppShellV2.
-        return;
-
-        // ↓ DEAD CODE preservado pra histórico (até ADR formalizar a remoção).
+        // HISTÓRICO — Wagner 2026-05-25: entry sidebar de Governança foi REMOVIDA
+        // (um `return;` no topo deste método). O módulo seguia acessível por URL
+        // direta, e a porta de entrada canon era o ghost 'governanca' do hub Jana.
+        //
+        // REATIVADA em 2026-08-05 por decisão [W]: a Governança volta a ter entrada
+        // própria porque deixa de ser satélite do hub IA e passa a RECEBER telas que
+        // hoje moram no Jana (ADR 0366 §D-B — Governança MCP, Custos, Qualidade IA).
+        // Sem entrada própria essas telas ficariam órfãs: fora dos ghosts do Jana e
+        // sem strip própria, alcançáveis só por URL. Os 2 gates abaixo (pacote da
+        // subscription + permission Spatie) nunca foram removidos — só deixaram de
+        // ser avaliados enquanto o `return;` existiu.
         if (!auth()->check()) return;
 
         $module_util = new ModuleUtil();
@@ -92,7 +94,12 @@ class DataController extends Controller
             // ADR 0180 Fase 4 Wave E — entry principal Governance declara:
             //  - `shortcut` G G → atalho kbd canônico (overlay visual em Fase 8)
             //  - `primary`     → botão "Gerenciar policies" (PageHeaderTabs Fase 5)
-            //  - `ghosts`      → 5 sub-views consolidadas (dashboard/policies/audit/drift/module-grades)
+            //  - `ghosts`      → sub-views consolidadas (a strip do PageHeaderTabs)
+            //
+            // Os ghosts são a fonte ÚNICA da sub-navegação da Governança: o
+            // `GovernancaSubNav` (Pages/governance/_shared) lê esta lista de
+            // `shell.menu` e renderiza a strip. Tela nova da Governança entra
+            // AQUI — se não entrar, nasce órfã (alcançável só por URL).
             //
             // ADR 0180 v3 — entry vive no grupo canon `sistema` (acoplado em Governança
             // visual no frontend). ADS/Auditoria/Cms/Connector/Officeimpresso são ghosts
@@ -120,6 +127,7 @@ class DataController extends Controller
                         ['key' => 'audit',         'label' => 'Audit log',       'href' => '/governance/audit'],
                         ['key' => 'drift',         'label' => 'Drift alerts',    'href' => '/governance/drift'],
                         ['key' => 'module-grades', 'label' => 'Module Grades',   'href' => '/governance/module-grades'],
+                        ['key' => 'ds-rollout',    'label' => 'DS Rollout',      'href' => '/governance/ds-rollout'],
                     ],
                 ]
             )->order(199);
