@@ -9,6 +9,7 @@ import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 import PageHeader from '@/Components/shared/PageHeader'
+import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
@@ -59,6 +60,8 @@ const DriftAlerts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
 }) => {
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
+      {/* key `drift` (não `drift-alerts`) — é a declarada nos ghosts do DataController. */}
+      <GovernancaSubNav active="drift" />
       <PageHeader
         icon="alert-triangle"
         title="Drift Alerts"
