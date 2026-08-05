@@ -1934,6 +1934,8 @@ DoD: nota ≥70 + ratchet verde. Backend-only na aparência (tela de auth) — c
 
 **Implementado em:** `Modules/Financeiro/Console/Commands/BridgeExpenseToTitulosCommand.php`
 
+**Testado em:** `Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php` (`@covers-us US-FIN-068`, lane `financeiro-pest`) — saiu da quarentena neste PR, logo o veredito passa a vir da lane.
+
 `BridgeExpenseToTitulosCommand.php:106` montava `DB::table('transactions as t')->whereNull('t.deleted_at')`. A coluna `transactions.deleted_at` NÃO EXISTE — medido em 3 fontes independentes (2026-08-05):
 
 | Fonte | `transactions.deleted_at` |
