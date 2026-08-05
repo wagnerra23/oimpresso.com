@@ -36,7 +36,7 @@ Output: `<Tela>.review.md` round N + `<Tela>.smoke-log.md` + `<Modulo>/UI-CATALO
 
 Wagner decide no round N: `decisão: approved | rejected | iterate`. Só `approved` marca `<Tela>.charter.md` `status: live`.
 
-**Tier 0:** screenshots passam por `PiiRedactor` (CPF/CNPJ/email/fone) ANTES de salvar — ADR 0093. Usa biz=99 fake por padrão, não biz=4 ROTA LIVRE — [ADR 0101](../decisions/0101-tests-business-id-1-nunca-cliente.md).
+**Tier 0:** screenshots passam por `PiiRedactor` (CPF/CNPJ/email/fone) ANTES de salvar — ADR 0093. Usa biz=99 fake por padrão, não biz=4 ROTA LIVRE — [ADR 0358](../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md).
 
 Detalhes: [`.claude/skills/tela-smoke-pos-merge/SKILL.md`](../../.claude/skills/tela-smoke-pos-merge/SKILL.md) + [ADR 0164](../decisions/0164-screen-review-pdca-tela-smoke-pos-merge.md) + [memory/requisitos/Admin/SCREEN-REVIEW-RUNBOOK.md](../requisitos/Admin/SCREEN-REVIEW-RUNBOOK.md).
 
@@ -168,7 +168,7 @@ Hoje (2026-05-17): brief mostra CYCLE-06 com drift 38/38 PRs 0% alinhados. Wagne
 - ⛔ **Editar ADR canon com status `accepted`** — append-only, criar nova com `supersedes`
 - ⛔ **`tasks-update` em markdown** — CURRENT.md/TASKS.md REMOVIDOS (ADR 0070)
 - ⛔ **Screenshot prod sem auto-mask PII** — viola Tier 0 ADR 0093
-- ⛔ **Smoke biz=4 ROTA LIVRE sem justificativa charter** — usar biz=99 fake (ADR 0101)
+- ⛔ **Smoke biz=4 ROTA LIVRE sem justificativa charter** — usar biz=99 fake ([ADR 0358](../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
 
 ## Refs canônicas
 
@@ -177,8 +177,8 @@ Hoje (2026-05-17): brief mostra CYCLE-06 com drift 38/38 PRs 0% alinhados. Wagne
 - [ADR 0167](../decisions/0167-errata-0130-indice-handoff-historico-longo.md) — Errata 0130: índice mantém histórico longo (passo 5c)
 - [ADR 0164](../decisions/0164-screen-review-pdca-tela-smoke-pos-merge.md) — Screen Review PDCA (passo 2)
 - [ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 (PII redactor passo 2)
-- [ADR 0101](../decisions/0101-tests-business-id-1-nunca-cliente.md) — biz=99 não biz=4 em smoke
+- [ADR 0358](../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) — biz=99 não biz=4 em smoke
 - [memory/how-trabalhar.md §"Ao terminar uma sessão"](../how-trabalhar.md) — protocolo geral
 - [memory/proibicoes.md](../proibicoes.md) — Tier 0 IRREVOGÁVEIS
 
-**Atualizado:** 2026-05-17 — auditoria pós-merge cross-fontes consolidada num doc canônico unificado (pedido Wagner sessão `sharp-shannon-c7ae87`).
+**Atualizado:** 2026-08-05 — referências da ADR 0101 esquecida reconciliadas com a sucessora canônica ADR 0358.
