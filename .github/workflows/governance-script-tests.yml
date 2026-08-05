@@ -506,6 +506,13 @@ jobs:
       # "calibração vira atalho pra liberar lote" e "número sem rótulo humano".
       - name: Ledger tipo juiz — calibração não libera lote + rótulo humano às cegas (C10)
         run: node scripts/governance/ledger-check-juiz.test.mjs
+      # Emenda 2026-07-30 (refutação GT-G5 rodada 2 do PR #5069): gerador não-Anthropic
+      # deixava `rank()===0` reprovar o lote INDEPENDENTEMENTE do veredito — gate sem
+      # caminho honesto de abertura, cujo único "jeito" era falsear o campo `gerador`.
+      # Os 2 vetores testados são simétricos: afrouxar demais (string qualquer vira
+      # "externo", ou refutador fraco valida lote externo) e não pegar (o lote segue preso).
+      - name: Ledger gerador externo — vendor cruzado destrava sem afrouxar o tier
+        run: node scripts/governance/ledger-check-external.test.mjs
       # Transparency-log (Rekor-style) do sdd-verification-ledger — grade de réguas
       # 2026-07-21 (sub-dim "Humano-no-loop + ledger de rejeição" 8,0, gap a): hash-chain
       # torna adulteração RETROATIVA de entry selada detectável + pina proveniência
