@@ -1,14 +1,18 @@
 ---
-name: PAINEL-SISTEMA — índice gerado do estado do sistema oimpresso
+id: reference-painel-sistema
+name: Técnico — Painel do sistema
 description: MATRIZ gerada por scripts/governance/system-map.mjs. NÃO editar à mão (regenera). Índice que aponta pros donos canônicos + fatos deriváveis + frescor real.
 type: reference
 authority: generated
 lifecycle: ativo
+nav_group: tecnico
+nav_order: 20
+lente: [construir]
 ---
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-04**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-05**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -61,7 +65,7 @@ lifecycle: ativo
 - **Provedores** declarados em `config/ai.php`: **15** · default = `openai` — anthropic, azure, bedrock, cohere, deepseek, eleven, gemini, groq, jina, mistral, ollama, openai, openrouter, voyageai, xai. _Declarado ≠ com chave_: a credencial mora no ambiente.
 - **Implementações de `MemoriaContrato`**: McpMemoriaDriver · MeilisearchDriver · NullMemoriaDriver · RetrievalTelemetryDecorator
 - **Rerankers** (`implements Reranker`): BgeReranker · LlmRerankerAdapter · NullReranker · RrfReranker
-- **Tools SQL do Brief Diário**: **5** · **agentes de engenharia**: **26** — catálogo separado do runtime PHP.
+- **Tools SQL do Brief Diário**: **5** · **agentes de engenharia**: **27** — catálogo separado do runtime PHP.
 - Arquitetura completa, topologia, compose e probes: [`Jana/ARCHITECTURE.md`](../requisitos/Jana/ARCHITECTURE.md) — gerada por esta mesma máquina.
 
 > Não derivável e por isso NÃO listado aqui: quais pipelines de retrieval existem e qual está ligado — isso mora na config e no BRIEFING da Jana, e um número inventado aqui seria pior que a ausência.
@@ -129,13 +133,13 @@ lifecycle: ativo
 
 ## Decisões (ADRs)
 
-- **371** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 335 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **372** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 336 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 77 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 78 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -215,6 +219,7 @@ lifecycle: ativo
 - ~~2026-08-03 — Construir máquina PARALELA ao dono DEPOIS de ter lido o dono; e despachar escrita em massa sobre base que envelheceu sozinha~~
 - ~~2026-08-03 — Colher as guidelines/skills do `laravel/boost` pra fechar a nota baixa de "contexto de framework versionado"~~
 - ~~2026-08-04 — Placeholder `{{X}}` **sem aspas** em frontmatter YAML (quebra consumidor em fail-open, e a técnica foi vendida como "FP zero")~~
+- ~~2026-08-04 — Isentar do gate a população que a MÁQUINA SEMPRE PRODUZ (o `shipped-log-gate` nunca teve como reprovar — e a isenção estava INVERTIDA)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -225,14 +230,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **365** handoffs · **580** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **365** handoffs · **581** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-04-cron-unassigned-buraco-na-serie`
   - `2026-08-03-tutorial-sdd-guiado`
   - `2026-08-03-triagem-quarentena-financeiro`
   - `2026-08-03-tecnico-arquitetura-modulos`
   - `2026-08-03-recebimento-parcial-parcela-sdd`
   - `2026-08-03-documentacao-sdd-operacional`
-  - `2026-08-03-documentacao-do-sistema-rota-agente-diagramas`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-04 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-05 · deriva das fontes canônicas, não as substitui._
