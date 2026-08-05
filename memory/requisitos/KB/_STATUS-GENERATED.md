@@ -12,7 +12,7 @@
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 7 |
+| US no SPEC | 8 |
 | CU no SDD | 10 |
 | Telas (.tsx) | 3 |
 | Telas com `casos.md` | 3 |
@@ -40,6 +40,7 @@
 | US-KB-004 | `desconhecido` | — Trilha de aprendizado Larissa (ONDA 3+5) |
 | US-KB-005 | `desconhecido` | — Troubleshooter Q→Sim/Não→Fix (ONDA 3) |
 | US-KB-007 | `desconhecido` | — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou** |
+| US-KB-008 | `desconhecido` | — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — |
 
 ## UC por status
 

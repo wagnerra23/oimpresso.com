@@ -12,12 +12,12 @@
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 58 |
+| US no SPEC | 59 |
 | CU no SDD | 16 |
 | Telas (.tsx) | 21 |
-| Telas com `casos.md` | 6 |
-| UC declarados | 32 |
-| UC com teste que os cita | 30 |
+| Telas com `casos.md` | 7 |
+| UC declarados | 45 |
+| UC com teste que os cita | 43 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -28,7 +28,6 @@
 | Tela `AssinaturaAtualizar` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Categorias/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Cobranca/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Conciliacao/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Configuracoes/Contador` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `ContasBancarias/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Dashboard/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
@@ -55,6 +54,7 @@
 | `US-FIN-053` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — WR2 backfill recorrência 2026 biz=1 — assinaturas+invoices+c |
 | `US-FIN-062` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Tela Impostos & obrigações (/financeiro/impostos) — estimati |
 | `US-FIN-063` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Tela Atualizar Cobrança de assinatura (/financeiro/assinatur |
+| `US-FIN-068` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — BridgeExpenseToTitulosCommand filtra transactions.deleted_at |
 
 ### Backlog — NÃO é lacuna
 
@@ -119,6 +119,19 @@
 | UC-F04 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-F05 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-F0N | Unificado/Index | 📝 sem_teste |
+| UC-FCC-01 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-02 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-03 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-04 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-05 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-06 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-07 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-08 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-09 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-10 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-11 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-12 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-13 | Conciliacao/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-01 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-02 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-03 | Caixa/Index | 🧪 aguarda veredito da lane |
