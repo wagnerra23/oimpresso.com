@@ -14,11 +14,12 @@ module: Governance
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 150 arquivos em 14 papéis.
+**Total mapeado:** 158 arquivos em 15 papéis.
 
-## Controllers — 8
+## Controllers — 10
 
 - [AuditController.php](../../../Modules/Governance/Http/Controllers/AuditController.php)
+- [CustosController.php](../../../Modules/Governance/Http/Controllers/CustosController.php)
 - [DashboardController.php](../../../Modules/Governance/Http/Controllers/DashboardController.php)
 - [DataController.php](../../../Modules/Governance/Http/Controllers/DataController.php)
 - [DriftAlertsController.php](../../../Modules/Governance/Http/Controllers/DriftAlertsController.php)
@@ -26,6 +27,7 @@ module: Governance
 - [InstallController.php](../../../Modules/Governance/Http/Controllers/InstallController.php)
 - [ModuleGradeController.php](../../../Modules/Governance/Http/Controllers/ModuleGradeController.php)
 - [PoliciesController.php](../../../Modules/Governance/Http/Controllers/PoliciesController.php)
+- [QualidadeIaController.php](../../../Modules/Governance/Http/Controllers/QualidadeIaController.php)
 
 ## Requests (validação) — 4
 
@@ -119,33 +121,41 @@ module: Governance
 - [config.php](../../../Modules/Governance/Config/config.php)
 - [retention.php](../../../Modules/Governance/Config/retention.php)
 
-## Telas (Inertia/React) — 7
+## Telas (Inertia/React) — 9
 
 - [Audit.tsx](../../../resources/js/Pages/governance/Audit.tsx)
+- [Custos.tsx](../../../resources/js/Pages/governance/Custos.tsx)
 - [Dashboard.tsx](../../../resources/js/Pages/governance/Dashboard.tsx)
 - [DriftAlerts.tsx](../../../resources/js/Pages/governance/DriftAlerts.tsx)
 - [DsRollout.tsx](../../../resources/js/Pages/governance/DsRollout.tsx)
 - [Index.tsx](../../../resources/js/Pages/governance/ModuleGrades/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/governance/ModuleGrades/Show.tsx)
 - [Policies.tsx](../../../resources/js/Pages/governance/Policies.tsx)
+- [QualidadeIa.tsx](../../../resources/js/Pages/governance/QualidadeIa.tsx)
 
-## Charters (lei da tela) — 7
+## Componentes / apoio de tela — 1
+
+- [GovernancaSubNav.tsx](../../../resources/js/Pages/governance/_shared/GovernancaSubNav.tsx)
+
+## Charters (lei da tela) — 9
 
 - [Audit.charter.md](../../../resources/js/Pages/governance/Audit.charter.md)
+- [Custos.charter.md](../../../resources/js/Pages/governance/Custos.charter.md)
 - [Dashboard.charter.md](../../../resources/js/Pages/governance/Dashboard.charter.md)
 - [DriftAlerts.charter.md](../../../resources/js/Pages/governance/DriftAlerts.charter.md)
 - [DsRollout.charter.md](../../../resources/js/Pages/governance/DsRollout.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/governance/ModuleGrades/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/governance/ModuleGrades/Show.charter.md)
 - [Policies.charter.md](../../../resources/js/Pages/governance/Policies.charter.md)
+- [QualidadeIa.charter.md](../../../resources/js/Pages/governance/QualidadeIa.charter.md)
 
 ## Casos (contrato UC) — 1
 
 - [DsRollout.casos.md](../../../resources/js/Pages/governance/DsRollout.casos.md)
 
-## Testes (Pest) — 56
+## Testes (Pest) — 57
 
-- 56 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 57 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 3
 
