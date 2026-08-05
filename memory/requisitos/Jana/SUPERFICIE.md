@@ -14,12 +14,11 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 572 arquivos em 19 papéis.
+**Total mapeado:** 568 arquivos em 19 papéis.
 
-## Controllers — 14
+## Controllers — 13
 
 - [CustosController.php](../../../Modules/Jana/Http/Controllers/Admin/CustosController.php)
-- [GovernancaController.php](../../../Modules/Jana/Http/Controllers/Admin/GovernancaController.php)
 - [JanaProController.php](../../../Modules/Jana/Http/Controllers/Admin/JanaProController.php)
 - [QualidadeController.php](../../../Modules/Jana/Http/Controllers/Admin/QualidadeController.php)
 - [AlertasController.php](../../../Modules/Jana/Http/Controllers/AlertasController.php)
@@ -358,10 +357,9 @@ module: Jana
 
 - 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 9
+## Telas (Inertia/React) — 8
 
 - [Index.tsx](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx)
 - [Chat.tsx](../../../resources/js/Pages/Jana/Chat.tsx)
 - [Cockpit.tsx](../../../resources/js/Pages/Jana/Cockpit.tsx)
@@ -380,10 +378,9 @@ module: Jana
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
 - [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
-## Charters (lei da tela) — 9
+## Charters (lei da tela) — 8
 
 - [Index.charter.md](../../../resources/js/Pages/Jana/Admin/Custos/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Jana/Admin/Governanca/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.charter.md)
 - [Chat.charter.md](../../../resources/js/Pages/Jana/Chat.charter.md)
 - [Cockpit.charter.md](../../../resources/js/Pages/Jana/Cockpit.charter.md)
@@ -396,9 +393,9 @@ module: Jana
 
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 156
+## Testes (Pest) — 155
 
-- 156 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 155 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 79
 
