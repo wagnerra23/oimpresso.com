@@ -331,6 +331,26 @@ Route::group(
         Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
         // Saúde foi fundida no Scorecard real (/team-mcp/scorecard) — sem rota própria.
 
+        // Roadmap Gantt — recebido do Modules/Jana em 2026-08-05.
+        // ADR 0366 §D-B: "usa TaskCrudService/McpTask — é tasks, e tasks é Forja;
+        // mandar pro Governance criaria a 3ª tela de roadmap". ADR 0367 D4 crava
+        // "o Gantt vira aba da Forja".
+        //
+        // CONVIVE com /project-mgmt/roadmap (visão por quarter), NÃO o substitui:
+        // a 0367 D7 diz que o quarter view "só sai quando o Gantt provar que
+        // substitui (filtro por cycle efetivo + volume domado)" — e este porte é
+        // 1:1, não domou volume nenhum. Por isso a rota é `roadmap-gantt`.
+        //
+        // 1 e 4 segmentos → não colidem com /{taskId}/* (2 segmentos).
+        // Permissions `jana.mcp.tasks.read|write` PRESERVADAS (no construtor do
+        // controller): renomear pra `forja.*` revogaria acesso em silêncio (ADR 0087).
+        // FQCN obrigatório em rota nova (.claude/rules/routes.md) — as strings
+        // legacy acima são grandfather, não modelo a copiar.
+        Route::get('/roadmap-gantt', [\Modules\Forja\Http\Controllers\RoadmapGanttController::class, 'index'])
+            ->name('forja.roadmap-gantt.index');
+        Route::patch('/roadmap-gantt/tasks/{taskId}/schedule', [\Modules\Forja\Http\Controllers\RoadmapGanttController::class, 'updateSchedule'])
+            ->name('forja.roadmap-gantt.schedule');
+
         // PR-7b (ADR 0283 · Fase 2) — levers do loop de handoff (re-disparar/devolver/
         // supersede) dos botões da aba MCP. Mesma mutação governada do tool MCP
         // handoff-lever (HandoffLeverService é a fonte única). 3 segmentos → não

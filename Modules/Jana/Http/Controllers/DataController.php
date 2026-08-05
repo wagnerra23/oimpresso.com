@@ -315,7 +315,8 @@ class DataController extends Controller
                             //  - roadmap: Timeline Gantt das tasks MCP — Pages/Jana/Admin/Roadmap.tsx
                             // Painel.tsx fica acessível só por URL (mock Onda A1, sobreposto ao Cockpit).
                             ['key' => 'cockpit',  'label' => 'Cockpit',  'href' => '/ia/cockpit'],
-                            ['key' => 'roadmap',  'label' => 'Roadmap',  'href' => '/ia/admin/roadmap'],
+                            // Ghost 'roadmap' removido 2026-08-05 (ADR 0366 §D-B + 0367 D4):
+                            // o Gantt virou aba da Forja (/forja/roadmap-gantt). Tasks é Forja.
                             // Wagner 2026-05-22 P2: zera 2 órfãs (telas Jana Admin Governança + Qualidade).
                             // Wagner 2026-05-25: rename 'Governança Jana' → 'Governança MCP' (alinha
                             // com topnav.php que já chama de MCP — clarifica vs ghost 'governanca'

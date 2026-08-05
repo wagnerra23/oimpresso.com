@@ -1803,7 +1803,14 @@
       "type": "component",
       "module": "Forja",
       "name": "RoadmapController",
-      "desc": "roadmap quarterly"
+      "desc": "roadmap quarterly (/project-mgmt/roadmap): epics agrupados por target_quarter"
+    },
+    {
+      "id": "component:Forja/RoadmapGanttController",
+      "type": "component",
+      "module": "Forja",
+      "name": "RoadmapGanttController",
+      "desc": "roadmap Gantt (/forja/roadmap-gantt): tasks no tempo via mcp_cycles+mcp_tasks, com reschedule de due_date por drag-drop. Recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B + 0367 D4). CONVIVE com o quarter view acima — são duas leituras do mesmo backlog e nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id); a 0367 D7 diz que o quarter só sai quando o Gantt provar que substitui"
     },
     {
       "id": "component:Forja/ScorecardController + ScorecardBuilderService",
@@ -1944,13 +1951,6 @@
       "module": "Jana",
       "name": "Admin/QualidadeController",
       "desc": "qualidade RAG/memória (RAGAS)"
-    },
-    {
-      "id": "component:Jana/Admin/RoadmapController",
-      "type": "component",
-      "module": "Jana",
-      "name": "Admin/RoadmapController",
-      "desc": "timeline Gantt do cycle ativo (Onda 5 V1)"
     },
     {
       "id": "component:Jana/AlertasController",
@@ -6559,6 +6559,12 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/RoadmapGanttController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/ScorecardController + ScorecardBuilderService",
       "type": "hasComponent",
       "source": "contains"
@@ -7110,12 +7116,6 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/Admin/QualidadeController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/Admin/RoadmapController",
       "type": "hasComponent",
       "source": "contains"
     },

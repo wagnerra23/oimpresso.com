@@ -176,14 +176,17 @@ Route::group(
         // Visualiza mcp_cycles + mcp_tasks como Gantt. Filtros cycle/owner/
         // priority/module via query params. Permission: jana.mcp.tasks.read.
         // Ver memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md §V1.
-        Route::get('/admin/roadmap',                       'Admin\RoadmapController@index')
-            ->name('jana.admin.roadmap.index');
+        // MOVIDO pra Modules/Forja em 2026-08-05 → GET /forja/roadmap-gantt
+        // (forja.roadmap-gantt.index). ADR 0366 §D-B + ADR 0367 D4: é tasks, e
+        // tasks é Forja. Redirect 301 no rodapé deste arquivo.
 
         // US-COPI-111 B2 (Wagner 2026-07-12) — reschedule do prazo via drag-drop no
         // Gantt. PATCH gated por jana.mcp.tasks.write (controller ->only). {taskId} =
         // task_id string (ex US-COPI-110), mapeado no frontend via $payload.
-        Route::patch('/admin/roadmap/tasks/{taskId}/schedule', 'Admin\RoadmapController@updateSchedule')
-            ->name('jana.admin.roadmap.schedule');
+        // MOVIDO junto → PATCH /forja/roadmap-gantt/tasks/{taskId}/schedule.
+        // Este NÃO ganha redirect 301: redirecionar PATCH não é seguro (o
+        // browser pode rebaixar pra GET e o corpo se perde). O frontend novo já
+        // aponta pro endereço novo e não havia consumidor server-to-server.
 
         // ---- JANA Pro Sprint A (US-COPI-201, ADR 0140) — preview brief diário
         // Endpoint admin pra rodar BriefDiarioService manualmente e ver JSON
@@ -237,6 +240,19 @@ Route::redirect('/ia/memorias', '/ia/memoria', 302);
 // Repassar a query crua levaria parâmetro que o destino ignora, o que é pior
 // que perdê-la: dá a impressão de que o filtro foi aplicado.
 Route::redirect('/ia/admin/governanca', '/governance/dashboard', 301);
+// Roadmap Gantt → Modules/Forja (ADR 0366 §D-B + ADR 0367 D4, 2026-08-05).
+// Closure em vez de `Route::redirect` porque a tela carrega 4 filtros na query
+// (`?cycle=`, `?owner=`, `?priority=`, `?module=`) e o `Route::redirect`
+// DESCARTA a query string — link compartilhado com filtro cairia no cycle
+// ativo sem avisar. `getQueryString()` devolve null quando não há query.
+//
+// Só o GET redireciona. O PATCH de reschedule não: redirect de PATCH não é
+// seguro (o browser pode rebaixar pra GET e perder o corpo).
+Route::get('/ia/admin/roadmap', function () {
+    $qs = request()->getQueryString();
+
+    return redirect()->to('/forja/roadmap-gantt'.($qs ? '?'.$qs : ''), 301);
+});
 Route::redirect('/ia/kb',       '/kb',         302);
 
 // ===========================================================================
