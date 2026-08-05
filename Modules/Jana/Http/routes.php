@@ -142,10 +142,13 @@ Route::group(
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('jana.superadmin.metas');
 
-        // ---- Administração — Onda 1 (ROI direto, ver adr/arq/0003) ----------
-        // US-COPI-070: dashboard de custo de IA por business
-        Route::get('/admin/custos',                        'Admin\CustosController@index')
-            ->name('jana.admin.custos.index');
+        // ---- Custos de IA MOVIDO pra Modules/Governance (ADR 0366 §D-B) ------
+        // US-COPI-070 saiu daqui em 2026-08-05: o `Chat.charter.md` já mandava
+        // "custo vai pra /governance — Wagner-only", e a 0366 §D-B ratificou.
+        // Agora é `governance.custos.index` (/governance/custos). Permission
+        // `jana.admin.custos.view` PRESERVADA — rename de permission é ADR +
+        // migration própria, não vem de carona numa mudança de dono.
+        // Redirect 301 da URL antiga no rodapé deste arquivo.
 
         // ---- Administração — Governança MCP (MEM-MCP-1.e, ADR 0053) --------
         // Visão cross-team do consumo do MCP server.
@@ -168,9 +171,13 @@ Route::group(
         // GET ficam no fim deste arquivo (DELETE/POST não redirecionam — clients
         // novos chamam /kb diretamente).
 
-        // ---- MEM-MET-4 (ADR 0050) — Page /copiloto/admin/qualidade
-        Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
-            ->name('jana.admin.qualidade.index');
+        // ---- Qualidade IA MOVIDA pra Modules/Governance (ADR 0366 §D-B) ------
+        // MEM-MET-4 (ADR 0050) saiu daqui em 2026-08-05. Decisão [W] 2026-08-03
+        // registrada na 0366: eval é **gate de conformidade**, medido contra
+        // piso/baseline igual `module-grades` e `drift` — logo, Governança.
+        // Agora é `governance.qualidade-ia.index` (/governance/qualidade-ia).
+        // Permission `jana.mcp.usage.all` PRESERVADA (rename = ADR próprio).
+        // Redirect 301 da URL antiga no rodapé deste arquivo.
 
         // ---- Onda 5 V1 — Roadmap timeline (SVAR React Gantt MIT) -----------
         // Visualiza mcp_cycles + mcp_tasks como Gantt. Filtros cycle/owner/
@@ -232,6 +239,27 @@ Route::middleware(['web'])->group(function () {
 // Mesma decisão arquitetural do PR #1387 que escondeu a entrada Essentials no
 // sidebar quando KB canon está instalado.
 Route::redirect('/ia/memorias', '/ia/memoria', 302);
+
+// Custos + Qualidade IA → Modules/Governance (ADR 0366 §D-B, [W] 2026-08-03;
+// movidas em 2026-08-05). Closure em vez de `Route::redirect` de propósito: as
+// duas telas carregam filtro na query (`?preset=` no Custos, `?dias=` +
+// `?business_id=` na Qualidade) e o `Route::redirect` DESCARTA a query string —
+// bookmark com filtro cairia no default sem avisar ninguém.
+// `getQueryString()` devolve null quando não há query, daí o ternário.
+//
+// Bookmark antigo de /copiloto ou /jana chega aqui pela cadeia genérica do
+// bloco 1.c (/copiloto → /jana → /ia) e então faz o último hop pro destino.
+Route::get('/ia/admin/custos', function () {
+    $qs = request()->getQueryString();
+
+    return redirect()->to('/governance/custos'.($qs ? '?'.$qs : ''), 301);
+});
+
+Route::get('/ia/admin/qualidade', function () {
+    $qs = request()->getQueryString();
+
+    return redirect()->to('/governance/qualidade-ia'.($qs ? '?'.$qs : ''), 301);
+});
 
 // Governança MCP → fundida no painel da Governança (ADR 0366 §D-C item 1).
 // `Route::redirect` simples serve aqui: os filtros da tela antiga (`preset`,

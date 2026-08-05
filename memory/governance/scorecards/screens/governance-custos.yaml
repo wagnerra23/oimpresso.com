@@ -2,8 +2,8 @@
 # screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
 # A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
 # Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
-screen: Jana/Admin/Custos/Index
-path: resources/js/Pages/Jana/Admin/Custos/Index.tsx
+screen: governance/Custos
+path: resources/js/Pages/governance/Custos.tsx
 archetype: dashboard
 persona: wagner
 nota: 81

@@ -14,6 +14,21 @@ uses(Tests\TestCase::class);
 /**
  * US-COPI-070 — Cobertura mínima do dashboard de custos de IA.
  *
+ * MOVIDO de Modules/Jana/Tests/Feature/Admin/ em 2026-08-05 junto com o
+ * controller (ADR 0366 §D-B). Duas correções vieram no porte, e ambas eram
+ * defeito PRÉ-EXISTENTE, não regressão da mudança de dono:
+ *
+ *   - a URL era `/copiloto/admin/custos`, que desde o rename pra /ia (ADR 0180)
+ *     só chega ao destino atravessando DOIS redirects 301 — e `$this->get()`
+ *     não segue redirect, então `expect(status)->toBe(200)` recebia 301;
+ *   - o component esperado era `'Copiloto/Admin/Custos/Index'`, string que
+ *     deixou de existir no rename Copiloto→Jana de 2026-05-06.
+ *
+ * Os dois só podiam estar passando porque o caso PULAVA (`markTestSkipped`
+ * quando não há business/user no banco) — "0 failed" nunca provou execução.
+ * Agora aponta pro destino real: `/governance/custos` → `governance/Custos`.
+ * O `CustosService` NÃO se moveu: segue em Modules/Jana/Services.
+ *
  * Não usa RefreshDatabase: roda contra DB dev real (UltimatePOS tem 100+
  * migrations + triggers que não migram bem em sqlite). Limpamos no afterEach.
  *
@@ -120,7 +135,7 @@ it('responde 403 para usuário sem a permissão jana.admin.custos.view', functio
     }
 
     $this->actingAs($user);
-    $response = $this->get('/copiloto/admin/custos');
+    $response = $this->get('/governance/custos');
 
     expect($response->status())->toBe(403);
 });
@@ -138,13 +153,13 @@ it('responde 200 para usuário com permissão e devolve a estrutura esperada', f
         'X-Inertia'         => 'true',
         'X-Inertia-Version' => $version,
         'Accept'            => 'text/html',
-    ])->get('/copiloto/admin/custos?preset=mes_atual');
+    ])->get('/governance/custos?preset=mes_atual');
 
     expect($response->status())->toBe(200);
 
     $payload = json_decode($response->getContent(), true);
     expect($payload)->toBeArray()
-        ->and($payload['component'] ?? null)->toBe('Copiloto/Admin/Custos/Index');
+        ->and($payload['component'] ?? null)->toBe('governance/Custos');
 
     $props = $payload['props'] ?? [];
     expect($props)->toHaveKeys(['kpis', 'por_usuario', 'serie_diaria', 'periodo', 'filters', 'pricing']);

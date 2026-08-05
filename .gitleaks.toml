@@ -35,3 +35,16 @@ paths = [
 regexes = [
   '''(?i)(example|exemplo|fake|dummy|placeholder|changeme|your[-_]?token|xxx+|<[a-z_]+>)''',
 ]
+
+# NOTA (2026-08-05) — aqui existiu por algumas horas um allowlist pra cor CSS em
+# hexadecimal, com um comentário afirmando que a `generic-api-key` lia a cor de
+# um gráfico como credencial. Isso era FALSO e foi removido.
+#
+# A causa real, lida no log do scan: a regra casa o VALOR de um campo cujo nome
+# contém "key", quando o valor tem 10+ caracteres. Um hexadecimal de cor tem 7 —
+# nunca poderia disparar sozinho. O allowlist era inofensivo, mas plantava um
+# diagnóstico errado no arquivo que a próxima sessão leria como verdade.
+#
+# Fica registrado porque o modo de falha é reutilizável: 6 tentativas de conserto
+# saíram de leitura do código suspeito; a resposta estava no log da ferramenta.
+# Antes de tratar um alerta, leia o que a ferramenta REPORTOU.
