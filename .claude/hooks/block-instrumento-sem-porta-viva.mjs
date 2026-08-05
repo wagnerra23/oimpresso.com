@@ -517,7 +517,9 @@ function main() {
       if (d) msg += `\n\nMEDIDO AGORA neste repo:\n  ${d.pattern}\n    pathspec cru : ${d.wild}\n    :(glob)      : ${d.glob}\n    delta        : ${d.wild - d.glob} arquivo(s) que o glob do codigo NAO enxerga`;
     } catch { /* fail-open: bloqueia com a mensagem base */ }
   }
-  console.error(msg);
+  // prefixo no ponto ÚNICO de emissão: as mensagens P1/P2/P3 têm cabeçalhos
+  // próprios; a tag `[block-instrumento-sem-porta-viva]` sai em todas por aqui.
+  console.error('[block-instrumento-sem-porta-viva] ' + msg);
   process.exit(2);
 }
 

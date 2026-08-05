@@ -106,7 +106,10 @@ export function fireLines(rel, minutes) {
   const base = rel.replace(/^.*\//, '').replace(/\.php$/i, '');
   return [
     '',
-    '[RED-FIRST - teste novo sem evidencia de vermelho / SDD FV-T0]',
+    // `[block-test-without-red]` torna este hook OBSERVÁVEL pro `hook-bites`
+    // (convenção: a mensagem carrega `[<nome-do-arquivo>]`). Medido 2026-08-05:
+    // era 1 dos 11 BLOQUEADORES cujo silêncio não se distingue de morte.
+    '[block-test-without-red] [RED-FIRST - teste novo sem evidencia de vermelho / SDD FV-T0]',
     `  Teste NOVO (${base} em ${rel}) sem prova de ter FALHADO vermelho antes (red-first evita teste tautologico).`,
     '  Satisfaca QUALQUER UMA:',
     `    1. cabecalho no ${base} : // red-first: rodei <cmd>, FALHOU com <erro> antes de implementar`,

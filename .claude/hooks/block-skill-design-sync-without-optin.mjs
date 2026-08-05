@@ -61,7 +61,7 @@ export function classifySkillCall(toolName, toolInput = {}) {
 
 function denyMessage(skillName) {
   return [
-    '[BLOCKED: /design-sync (claude.ai/design) não é fonte de design no oimpresso (ADR 0315 / fecha Gap 1 da 0299)]',
+    '[block-skill-design-sync-without-optin] [BLOCKED: /design-sync (claude.ai/design) não é fonte de design no oimpresso (ADR 0315 / fecha Gap 1 da 0299)]',
     '',
     `Skill: ${skillName || '—'}`,
     '',
