@@ -1,6 +1,6 @@
 ---
 id: requisitos-jana-briefing
-distilled_at: "2026-07-28"
+distilled_at: "2026-08-05"
 distilled_by: "manual [W/C] — consolidação de donos: intenção e decisões abertas ficam aqui; topologia/inventário ficam nos artefatos gerados; execução de observabilidade fica em OBSERVABILITY.md"
 module: Jana
 status: producao
@@ -10,6 +10,8 @@ updated_at: "2026-07-29"
 # BRIEFING — Jana (verdade destilada)
 
 ## Estado atual
+
+> **2026-08-05 — a Jana está devolvendo as telas admin que não são dela** (ADR 0366 §D-B, ratificada por [W] em 2026-08-03: cada módulo responde UMA pergunta, e a da Jana é *"como está meu negócio e o que eu faço?"*). O Roadmap Gantt (`/ia/admin/roadmap`) foi pra **Forja** — usa `TaskCrudService`/`McpTask`, e tasks é Forja; mandar pro Governance criaria a 3ª tela de roadmap. Em PRs irmãos: Custos, Qualidade IA e a Governança MCP vão pra **Governance**. Em todos os casos **muda o dono da TELA, não o do DADO** — `CustosService`, `MemoriaMetrica`, `GovernancaService` e `TaskCrudService` continuam aqui; o item 4 do plano (mover as `Mcp*`) **não está autorizado**. URLs antigas sobrevivem por 301. Permissions `jana.*` **preservadas**: renomear revogaria acesso em silêncio ([ADR 0087](../../decisions/0087-drift-resolution-sem-mover-url.md)).
 
 Camada de IA do oimpresso: chat com memória persistente, brief diário, sugestões de metas e evals, sobre a stack canônica `laravel/ai` + Agents próprios ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)). Em produção.
 
