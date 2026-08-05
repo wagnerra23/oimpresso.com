@@ -168,5 +168,6 @@
     "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-10",
     "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-02",
     "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-06"
-  ]
+  ],
+  "_grow_note": "2026-08-05: as 2 entradas trio:missing-casos de governance/{Custos,QualidadeIa}.tsx sao RE-KEY das antigas de Jana/Admin/{Custos,Qualidade}/Index.tsx (ADR 0366 D-B). Saldo liquido zero — o --check-baseline-shrink compara conjuntos de chave, entao re-key le como crescimento. Divida pre-existente: nenhuma das duas tinha casos.md no Jana."
 }
