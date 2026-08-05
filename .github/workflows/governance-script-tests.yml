@@ -489,6 +489,8 @@ jobs:
         run: node .claude/hooks/git-base-freshness-guard.test.mjs
       - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
         run: node scripts/governance/feature-lint.test.mjs
+      - name: SDD-flow (cadeia US → feature → SDD/CU → tela → âncora)
+        run: node scripts/governance/sdd-flow.test.mjs
       # A JORNADA, não a peça: o gate-selftest prova que cada catraca morde (72/72) e o
       # fluxo-morde prova que a mordida chega ao merge. Faltava "um item atravessa o fluxo
       # inteiro, e pular um elo é detectado — por QUEM". Fixture sintética em tmpdir; roda
