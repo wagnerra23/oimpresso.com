@@ -9,11 +9,11 @@ contains:
   - "PainelController — Cockpit Analista IA (Jana V2) — visual canon chat-jana.jsx · US-JANA-PAINEL-001 ondas A1-D"
   - "Services/Memoria/* — recall hybrid (Hyde, Reranker, Meilisearch)"
   - "Entities/jana_memoria_* — memória persistente do business (rename ADR 0092)"
-  # Custos / Qualidade
-  - "Admin/CustosController — dashboard custos LLM"
+  # Custos / Qualidade — SAÍRAM pra Modules/Governance em 2026-08-05 (ADR 0366 §D-B).
+  # Admin/CustosController e Admin/QualidadeController não moram mais aqui; os
+  # Services (CustosService, MemoriaMetrica) FICARAM — mudou o dono da tela, não o do dado.
   - "Admin/JanaProController — brief diário invocável (US-COPI-203)"
   - "ProController — paywall Jana Pro (/ia/pro), tela de conversão F3 design (#2069)"
-  - "Admin/QualidadeController — qualidade RAG/memória (RAGAS)"
   - "Admin/RoadmapController — timeline Gantt do cycle ativo (Onda 5 V1)"
   # Metas / Períodos
   - "MetasController — metas do business"

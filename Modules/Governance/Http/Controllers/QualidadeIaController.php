@@ -1,30 +1,44 @@
 <?php
 
-namespace Modules\Jana\Http\Controllers\Admin;
+namespace Modules\Governance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Jana\Entities\MemoriaMetrica;
 
 /**
- * MEM-MET-4 (ADR 0050) — Page /copiloto/admin/qualidade.
+ * MEM-MET-4 (ADR 0050) — Page /governance/qualidade-ia.
  *
- * Trend 30d das 8 métricas obrigatórias + 3 RAGAS-aligned, lidos de
- * copiloto_memoria_metricas (alimentado pelo cron diário 23:55 +
- * copiloto:eval --persist contra gabarito).
+ * PORTE de `Modules\Jana\Http\Controllers\Admin\QualidadeController`
+ * (ADR 0366 §D-B, decisão [W] 2026-08-03): eval é **gate de conformidade**,
+ * medido contra piso/baseline igual `module-grades` e `drift` — logo o dono
+ * é a Governança. A pergunta respondida é "a regra está sendo cumprida?".
  *
- * Permite Wagner ver ao vivo se Recall@3 está acima do gate ADR 0049
- * (>0.80) e calibrar HyDE/Reranker/RRF.
+ * Trend 7-90d das 8 métricas obrigatórias + 3 RAGAS-aligned, lidas de
+ * `copiloto_memoria_metricas` (alimentada pelo cron diário 23:55
+ * `copiloto:metrics:apurar` + `copiloto:eval --persist` contra gabarito).
+ *
+ * O que NÃO mudou de propósito:
+ *  - A permissão segue `jana.mcp.usage.all` (Wagner/superadmin). Renomear
+ *    permissão exige ADR + migration própria (regra explícita em
+ *    Modules/Jana/Http/routes.php).
+ *  - A Entity `MemoriaMetrica` e as tabelas (`copiloto_memoria_metricas`,
+ *    `jana_memoria_gabarito`) continuam no Jana — só o controller mudou de
+ *    dono. Estado intermediário legítimo (ADR 0366 §Consequências); precedente
+ *    vivo: Modules/Forja/.../RoadmapController importa Modules\Jana\Entities\Mcp\McpTask.
+ *
+ * Cross-business é INTENCIONAL aqui: a tela é de PLATAFORMA (superadmin), não
+ * do business logado — exceção da Constituição Art. 6+8 preservada pela ADR 0366.
+ * A própria métrica `cross_tenant_violations == 0` é o vigia do isolamento.
  *
  * V1: visualização. V2: HITL anotação + drift alerts (Cycle 02).
  *
- * Permissão: jana.mcp.usage.all (Wagner/superadmin).
+ * RUNBOOK: memory/requisitos/Governance/RUNBOOK-qualidade-ia.md
  */
-class QualidadeController extends Controller
+class QualidadeIaController extends Controller
 {
     public function __construct()
     {
@@ -52,16 +66,19 @@ class QualidadeController extends Controller
             'cross_tenant_violations' => ['op' => '==', 'alvo' => 0,  'unit' => '',  'label' => 'Cross-tenant'],
         ];
 
-        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (5 props).
-        // Qualidade/Index.tsx destruct direto — TypeError `undefined.filter`
-        // em prod. Mesmo padrão PR #1550/#1552.
-        return Inertia::render('Jana/Admin/Qualidade/Index', [
+        // HOTFIX Wagner 2026-05-25 PRESERVADO no porte: `Inertia::defer` fica FORA
+        // de series/kpis. A Page desestrutura direto (`series.map`, `kpis.map`) —
+        // defer entrega undefined no primeiro render → TypeError `undefined.filter`
+        // em prod (mesmo padrão PR #1550/#1552). Reintroduzir SÓ junto com
+        // `<Deferred data={['series','kpis']} fallback={...}>` no frontend.
+        return Inertia::render('governance/QualidadeIa', [
             'filtros' => ['dias' => $dias, 'business_id' => $businessId],
             'gates'   => $gates,
             'series'  => $this->buildSeriesPayload($dias, $businessId),
             'kpis'    => $this->buildKpisPayload($dias, $businessId),
-            // closure D-14: gabarito da plataforma, não muda com filtro — pula no
-            // partial reload (only: series/kpis/filtros). Roda normal no load cheio.
+            // closure D-14 (NÃO é defer): gabarito da plataforma não muda com filtro,
+            // então pula no partial reload (only: series/kpis/filtros). Roda normal no
+            // load cheio — por isso não cai na armadilha do defer acima.
             'gabarito_total' => fn () => DB::table('jana_memoria_gabarito')->where('ativo', true)->count(),
             'gabarito_por_categoria' => fn () => DB::table('jana_memoria_gabarito')
                 ->where('ativo', true)
@@ -71,7 +88,7 @@ class QualidadeController extends Controller
         ]);
     }
 
-    /** Trend série — extraído pra closure deferred (D6.a Wave 17). */
+    /** Trend série agrupada por business. */
     private function buildSeriesPayload(int $dias, ?int $businessId): array
     {
         $query = MemoriaMetrica::query()
@@ -115,7 +132,7 @@ class QualidadeController extends Controller
         return array_values($series);
     }
 
-    /** KPIs — última métrica por business (D6.a Wave 17). */
+    /** KPIs — última métrica por business. */
     private function buildKpisPayload(int $dias, ?int $businessId): array
     {
         $series = $this->buildSeriesPayload($dias, $businessId);
@@ -123,7 +140,9 @@ class QualidadeController extends Controller
         $kpis = [];
         foreach ($series as $s) {
             $ultimo = end($s['pontos']);
-            if ($ultimo === false) continue;
+            if ($ultimo === false) {
+                continue;
+            }
             $kpis[] = [
                 'business_id' => $s['business_id'],
                 'label'       => $s['label'],

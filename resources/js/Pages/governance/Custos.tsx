@@ -1,11 +1,16 @@
-// @memcofre
-//   tela: /copiloto/admin/custos
-//   module: Copiloto
+// @governance
+//   tela: /governance/custos
 //   stories: US-COPI-070
-//   adrs: arq/0003 (Onda 1 — ROI direto), 0029 (padrão Inertia/React UltimatePOS)
-//   tests: Modules/Copiloto/Tests/Feature/Admin/CustosControllerTest
-//   status: implementada
-//   permissao: copiloto.admin.custos.view
+//   adrs: 0366 (fronteira Jana/Governance — §D-B manda esta tela pra cá),
+//         0104 (MWART), 0029 (padrão Inertia/React UltimatePOS)
+//   runbook: memory/requisitos/Governance/RUNBOOK-custos.md
+//   permissao: jana.admin.custos.view  (nome legado preservado — rename exige ADR + migration)
+//
+// PORTE de resources/js/Pages/Jana/Admin/Custos/Index.tsx. Diferenças conscientes:
+//   - JanaAreaHeader → GovernancaSubNav (a Governança tem strip própria desde 2026-08-05)
+//   - rota do partial reload: /ia/admin/custos → /governance/custos
+//   - labels de form associados por htmlFor/id (a origem tinha 3 violações a11y
+//     grandfathered no eslint-baseline; arquivo novo não herda grandfather)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
@@ -13,8 +18,9 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader';
+import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav';
 import { Coins } from 'lucide-react';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -82,7 +88,7 @@ function formatDataCurta(iso: string): string {
 
 /**
  * Gráfico de área SVG inline — sem dependência externa.
- * Mesmo padrão do Sparkline em Pages/Copiloto/Dashboard.tsx.
+ * Mesmo padrão do Sparkline em Pages/Jana/Dashboard.tsx.
  */
 function GastoDiarioChart({ dados }: { dados: DiaRow[] }) {
   const w = 800;
@@ -183,7 +189,7 @@ function GastoDiarioChart({ dados }: { dados: DiaRow[] }) {
   );
 }
 
-function CustosIaIndex(props: Props) {
+function GovernancaCustos(props: Props) {
   const { kpis, por_usuario, serie_diaria, periodo, filters, pricing } = props;
 
   const [de, setDe] = useState(filters.de ?? '');
@@ -195,9 +201,9 @@ function CustosIaIndex(props: Props) {
   );
 
   const aplicar = (patch: Partial<Filters>) => {
-    // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+    // D-14: partial reload — só re-busca o que muda com filtro.
     // `pricing` é config estática — não trafega de novo.
-    router.get('/ia/admin/custos', { ...filters, ...patch }, {
+    router.get('/governance/custos', { ...filters, ...patch }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
@@ -212,16 +218,16 @@ function CustosIaIndex(props: Props) {
 
   return (
     <>
-      <JanaAreaHeader active="custos" />
+      <GovernancaSubNav active="custos" />
 
-      {/* Title local da tela — preservado pós-migração JanaAreaHeader (Wagner 2026-05-25) */}
+      {/* Title local da tela */}
       <div className="px-6 pt-6 flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <Coins className="size-6 text-primary" />
           <div>
             <h1 className="text-xl font-semibold">Custos de IA</h1>
             <p className="text-sm text-muted-foreground">
-              Visão de consumo do Copiloto — {periodo.label}
+              Visão de consumo da IA — {periodo.label}
             </p>
           </div>
         </div>
@@ -268,14 +274,14 @@ function CustosIaIndex(props: Props) {
       <Card className="mt-6 mb-4">
         <CardContent className="pt-6 flex flex-col md:flex-row gap-3 md:items-end">
           <div className="flex-1 min-w-[160px]">
-            <label className="text-xs font-medium text-muted-foreground block mb-1">
+            <Label htmlFor="custos-preset" className="text-xs font-medium text-muted-foreground block mb-1">
               Período
-            </label>
+            </Label>
             <Select
               value={filters.preset}
               onValueChange={(v) => aplicar({ preset: v as Preset, de: null, ate: null })}
             >
-              <SelectTrigger>
+              <SelectTrigger id="custos-preset">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -290,8 +296,11 @@ function CustosIaIndex(props: Props) {
           {filters.preset === 'custom' && (
             <form onSubmit={aplicarCustom} className="flex-[2] flex gap-2 items-end">
               <div className="flex-1">
-                <label className="text-xs font-medium text-muted-foreground block mb-1">De</label>
+                <Label htmlFor="custos-de" className="text-xs font-medium text-muted-foreground block mb-1">
+                  De
+                </Label>
                 <Input
+                  id="custos-de"
                   type="date"
                   value={de}
                   onChange={(e) => setDe(e.target.value)}
@@ -299,8 +308,11 @@ function CustosIaIndex(props: Props) {
                 />
               </div>
               <div className="flex-1">
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Até</label>
+                <Label htmlFor="custos-ate" className="text-xs font-medium text-muted-foreground block mb-1">
+                  Até
+                </Label>
                 <Input
+                  id="custos-ate"
                   type="date"
                   value={ate}
                   onChange={(e) => setAte(e.target.value)}
@@ -344,7 +356,7 @@ function CustosIaIndex(props: Props) {
               Nenhum consumo de IA no período.
               <br />
               <span className="text-xs mt-2 block">
-                Quando alguém usar o Copiloto, o gasto aparece aqui automaticamente.
+                Quando alguém usar a IA, o gasto aparece aqui automaticamente.
               </span>
             </div>
           ) : (
@@ -392,10 +404,13 @@ function CustosIaIndex(props: Props) {
   );
 }
 
-CustosIaIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Copiloto — Custos de IA" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Custos de IA' }]}>
+GovernancaCustos.layout = (page: ReactNode) => (
+  <AppShellV2
+    title="Governança — Custos de IA"
+    breadcrumbItems={[{ label: 'Governança' }, { label: 'Custos de IA' }]}
+  >
     {page}
   </AppShellV2>
 );
 
-export default CustosIaIndex;
+export default GovernancaCustos;

@@ -28,7 +28,10 @@ return [
         // KB foi splitado pro módulo Modules/KB em 2026-05-03 (Etapa 2 modularização).
         // Link cross-module aqui pra continuidade visual.
         ['label' => 'KB →',                               'href' => '/kb',                      'icon' => 'BookOpen',        'can' => 'jana.mcp.memory.manage'],
-        ['label' => 'Qualidade IA',                       'href' => '/ia/admin/qualidade',  'icon' => 'TrendingUp',      'can' => 'jana.mcp.usage.all'],
+        // Qualidade IA saiu daqui em 2026-08-05 (ADR 0366 §D-B) — a tela é do
+        // Modules/Governance agora. Repontada em vez de removida pra não perder
+        // o acesso de quem já usava o topnav da IA.
+        ['label' => 'Qualidade IA',                       'href' => '/governance/qualidade-ia',  'icon' => 'TrendingUp',      'can' => 'jana.mcp.usage.all'],
         // Fusão Forja↔TeamMcp (2026-06-16): o cross-link "Team MCP →" foi REMOVIDO
         // daqui porque o item /team-mcp/team roubava o match de /team-mcp/* no
         // useAutoModuleNav (este topnav vem antes da Forja no Object.values),

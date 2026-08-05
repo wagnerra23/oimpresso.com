@@ -128,6 +128,13 @@ class DataController extends Controller
                         ['key' => 'drift',         'label' => 'Drift alerts',    'href' => '/governance/drift'],
                         ['key' => 'module-grades', 'label' => 'Module Grades',   'href' => '/governance/module-grades'],
                         ['key' => 'ds-rollout',    'label' => 'DS Rollout',      'href' => '/governance/ds-rollout'],
+                        // Recebidas do Modules/Jana em 2026-08-05 (ADR 0366 §D-B).
+                        // Com estas duas a lista vai a 8 e o GovernancaSubNav usa
+                        // maxVisible={5} — as 3 últimas caem no overflow `⋯ Mais`.
+                        // Ordem é deliberada: Painel/Policies/Audit são o uso diário
+                        // do [W]-auditor; Custos e Qualidade são consulta periódica.
+                        ['key' => 'custos',        'label' => 'Custos de IA',    'href' => '/governance/custos'],
+                        ['key' => 'qualidade-ia',  'label' => 'Qualidade IA',    'href' => '/governance/qualidade-ia'],
                     ],
                 ]
             )->order(199);

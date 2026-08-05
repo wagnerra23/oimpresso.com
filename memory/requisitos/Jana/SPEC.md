@@ -162,9 +162,9 @@ related_adrs:
 ### Área Administração — Onda 1 (ROI direto, ver ADR [`arq/0003`](adr/arq/0003-administracao-roi-governance.md))
 
 #### US-COPI-070 · Dashboard de custo IA
-**Implementado em:** `Modules/Jana/Http/Controllers/Admin/CustosController.php` · `resources/js/Pages/Jana/Admin/Custos/Index.tsx` · `Modules/Jana/Services/CustosService.php` · verificado@dd3ed7c (2026-07-01) — index() renderiza a page Custos com card/tabela por usuário + custo (rota viva GET /ia/admin/custos, jana.admin.custos.index)
+**Implementado em:** `Modules/Governance/Http/Controllers/CustosController.php` · `resources/js/Pages/governance/Custos.tsx` · `Modules/Jana/Services/CustosService.php` · verificado@9bc4503 (2026-08-05) — index() renderiza a page Custos com card/tabela por usuário + custo (rota viva GET /governance/custos, governance.custos.index; /ia/admin/custos redireciona 301 preservando a query)
 - **Rota:** `GET /copiloto/admin/custos`
-- **Controller:** `Admin\CustosController@index`
+- **Controller:** `Modules\Governance\Http\Controllers\CustosController@index` _(era `Jana\Admin\CustosController` — movido 2026-08-05, ADR 0366 §D-B; a US fica registrada aqui porque nasceu no Jana, o código é da Governança)_
 - **Como** admin do business **quero** ver quanto a IA custou esse mês **para** controlar orçamento e justificar ROI.
 - **DoD extra:** card "Esse mês" (R$, #mensagens, #tokens, #usuários ativos); tabela por usuário (nome, #conversas, #mensagens, tokens consumidos, R$ aprox); gráfico diário 90d; preço lido de `config('copiloto.ai.pricing.{modelo}.{input,output}')` em USD/1k tokens × câmbio configurável; permissão `copiloto.admin.custos.view`.
 
