@@ -1,0 +1,12 @@
+
+# 2026-08-05 — FALSO POSITIVO medido, nao segredo. QualidadeIa.tsx:167/170 sao
+# duas entradas do array METRICAS (`{ key: 'precision_at_3', ..., color: '#10b981' }`
+# e `{ key: 'latencia_p95_ms', ..., color: '#ef4444' }`): a regra generic-api-key
+# casa `key: '<string>'` perto de um hexadecimal e le a COR como chave de API.
+# Conferido lendo as linhas, nao so o alerta. Nada a rotacionar.
+# DIVIDA REAL que isto expoe (herdada do Jana, nao criada aqui): as cores sao HEX
+# CRU, violando R-DS-002 (token semantico). Tokenizar muda o render das series do
+# grafico -> exige aprovacao visual [W], entao fica registrado, nao consertado no
+# calado. Quando tokenizar, estas 2 linhas saem daqui sozinhas.
+d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:167
+d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:170
