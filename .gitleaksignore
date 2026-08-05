@@ -23,5 +23,18 @@
 # Conserto de verdade seria tokenizar as cores (R-DS-002) — muda o render das
 # series do grafico, entao exige aprovacao visual [W]. Ate la, ignorar aqui e o
 # caminho honesto: o alerta e falso e esta documentado.
+#
+# POR QUE SAO 4 ENTRADAS E NAO 2 (medido, nao suposto): o fingerprint e fixado
+# por COMMIT, e o gitleaks atribui o achado ao commit que TOCOU a linha por
+# ultimo. As 2 primeiras apontam pro commit que criou o arquivo; as 2 ultimas,
+# pro commit que renomeou o campo daquelas mesmas linhas. Enquanto os dois forem
+# alcancaveis na branch, os dois precisam estar aqui — foi por nao entender isso
+# que o alerta voltou depois de eu "consertar".
+#
+# COROLARIO PRATICO: tocar de novo essas 2 linhas exige acrescentar o fingerprint
+# do commit novo. E o custo real de conviver com o falso positivo, e e o argumento
+# mais forte a favor de tokenizar as cores de uma vez.
 d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:167
 d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:170
+2a5b2bec47efe821dfac03d7dc412467871f3200:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:167
+2a5b2bec47efe821dfac03d7dc412467871f3200:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:170
