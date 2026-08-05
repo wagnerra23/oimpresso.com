@@ -42,7 +42,7 @@ lifecycle: ativo
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-27 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
-| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-03 |
+| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-23 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-01 |
