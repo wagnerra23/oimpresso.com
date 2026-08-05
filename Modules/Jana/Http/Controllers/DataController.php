@@ -312,18 +312,22 @@ class DataController extends Controller
                             ['key' => 'cockpit',  'label' => 'Cockpit',  'href' => '/ia/cockpit'],
                             // Ghost 'roadmap' removido 2026-08-05 (ADR 0366 §D-B + 0367 D4):
                             // o Gantt virou aba da Forja (/forja/roadmap-gantt). Tasks é Forja.
-                            // Wagner 2026-05-22 P2: zera 2 órfãs (telas Jana Admin Governança + Qualidade).
-                            // Wagner 2026-05-25: rename 'Governança Jana' → 'Governança MCP' (alinha
-                            // com topnav.php que já chama de MCP — clarifica vs ghost 'governanca'
-                            // canon que aponta /governance/dashboard outro módulo).
-                            ['key' => 'governanca-mcp', 'label' => 'Governança MCP', 'href' => '/ia/admin/governanca'],
                             // Ghost 'qualidade-jana' removido 2026-08-05 (ADR 0366 §D-B):
                             // eval é gate de conformidade, foi pra /governance/qualidade-ia.
                             // Ghost 'governanca-mcp' removido 2026-08-05: a tela foi FUNDIDA
                             // no /governance/dashboard (ADR 0366 §D-C item 1). O ghost
                             // 'governanca' logo acima já aponta pra lá — manter os dois
                             // seria duas entradas pro mesmo destino.
-                            ['key' => 'qualidade-jana', 'label' => 'Qualidade IA',   'href' => '/ia/admin/qualidade'],
+                            //
+                            // ⚠️ 2026-08-05 (2ª passada, [W] viu em PRODUÇÃO): os dois comentários
+                            // acima chegaram no main SEM as remoções que anunciavam. #5312 tirou o
+                            // 'governanca-mcp' e #5309 tirou o 'qualidade-jana', em hunks distintos
+                            // do MESMO bloco — o git mergeou os dois comentários e preservou a linha
+                            // que o outro PR apagava. Comentário dizia "removido", menu mostrava os
+                            // dois. Mesma família do `drift_alerts` duplicado no SCOPE.md (#5328):
+                            // merge paralelo no mesmo bloco não gera conflito e não valida o
+                            // resultado. Agora as linhas saíram DE FATO — confira pelo menu, não
+                            // por este comentário.
                         ],
                     ]
                 )->order(90); // Logo após PontoWr2 (88)
