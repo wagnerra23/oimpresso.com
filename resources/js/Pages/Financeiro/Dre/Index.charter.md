@@ -63,7 +63,7 @@ Wagner (dono) e Eliana (financeiro) respondem **"deu lucro este mês?"** em <60s
 
 - **2026-05-20** — Q1-Q8b aprovados por Wagner ("ok pode fazer", "pode fazer todos em paralelo"). Visual-comparison `dre-visual-comparison.md` → `status: approved`. Screenshot canon TelaDRE aprovado em chat (gate F1.5 ADR 0107 cumprido).
 - **2026-05-20** — Decisão Q8b: deprecar tab DRE em `Relatorios/Index.tsx`, mantendo Fluxo+Resumo na Relatorios. PR D fecha o cleanup.
-- **2026-05-20** — Decisão Q8a: topnav contextual = copy-paste inline em F1 (de `Unificado/Index.tsx:963-1043`). Extração `<FinModuleTopnav>` vira backlog US-FIN-TOPNAV-COMPONENT (gatilho: 3ª tela usar mesmos 7 botões).
+- **2026-05-20** — Decisão Q8a: topnav contextual = copy-paste inline em F1 (de `Unificado/Index.tsx:963-1043 (verificado@d4afe95)`). Extração `<FinModuleTopnav>` vira backlog US-FIN-TOPNAV-COMPONENT (gatilho: 3ª tela usar mesmos 7 botões).
 
 ## Quem pode mexer
 

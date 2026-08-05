@@ -32,7 +32,7 @@ use Throwable;
  *
  * @see scripts/governance/plan-health.mjs (sentinela · shape {ok,planos,fail,warn,findings})
  * @see Modules\Governance\Services\SddBriefLineService (pattern irmão GT-G8)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  * @see memory/requisitos/_processo/PLANS-INDEX.md §"Como manter vivo" item 2
  */
 final class PlanHealthBriefLineService

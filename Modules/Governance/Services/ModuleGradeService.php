@@ -21,7 +21,7 @@ use Symfony\Component\Yaml\Yaml;
  * Total normalizado: 0-100. Buckets: Excelente 80+ / Bom 60-79 / Médio 40-59 / Crítico 20-39 / Embrião <20.
  *
  * Coleta automática via filesystem inspection. D5 (cliente) lê config/governance/module_clients.yaml
- * (Wagner edita manualmente — quando Modules/Brief gerar volume/módulo vira automático).
+ * (Wagner edita manualmente — quando Modules/Forja gerar volume/módulo vira automático).
  *
  * V2 (ADR 0154 proposto) — suporta "N/A justificado" lido do frontmatter `na_justified`
  * em `memory/requisitos/<X>/SPEC.md`. Sub-itens/dimensões marcadas N/A recebem pontuação
@@ -1869,7 +1869,7 @@ class ModuleGradeService
     /**
      * Lê flag boolean de `Modules/<X>/module.json` via dot-notation.
      *
-     * Exemplo: `moduleJsonFlag('/abs/Modules/Brief', 'governance.fsm_n_a')` retorna
+     * Exemplo: `moduleJsonFlag('/abs/Modules/Forja', 'governance.fsm_n_a')` retorna
      * o valor (ou null se ausente) do JSON:
      *
      *   {

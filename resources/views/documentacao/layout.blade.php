@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>@yield('titulo', 'Documentação') — oimpresso</title>
+<meta name="color-scheme" content="light dark">
+<style>
+  /* PALETA = a do DS vivo, uma paleta só no produto (decisão [W] 2026-08-03).
+     Os valores abaixo são os tokens semânticos de `resources/css/tokens/semantic.tokens.json`,
+     compilados em `resources/css/tokens/_generated-cockpit-{light,dark}.css` — regerar com
+     `npm run tokens:build`. Aqui eles são ESPELHADOS, não importados, porque o arquivo do DS
+     escopa tudo em `.cockpit` e traz ~80 tokens de tela de ERP (sidebar, bolhas, badges de
+     origem) que uma página editorial não usa. O espelho não fica na boa-fé: o caso
+     "a paleta da documentacao nao drifa dos tokens do DS" (tests/Feature/DocumentacaoRouteTest)
+     lê os dois arquivos e falha se um valor divergir.
+
+     Nomes locais preservados de propósito (`--paper`, `--ink`, `--rule`): o DS chama
+     `--surface` o branco puro, e aqui `--surface` é o cinza de fundo de código — mesmo nome,
+     sentido diferente. Mapa: paper←bg · surface←bg-2 · ink←text · ink-soft←text-dim ·
+     ink-mute←text-mute · rule←border · rule-soft←border-2 · accent-bg←accent-soft.
+
+     A serif NÃO vem do DS e é intencional: é o que separa documento de tela. Só h1/h2. */
+  :root {
+    --paper:oklch(0.985 0.003 90); --surface:oklch(0.965 0.004 90);
+    --ink:oklch(0.22 0.01 80); --ink-soft:oklch(0.50 0.01 80); --ink-mute:oklch(0.65 0.01 80);
+    --rule:oklch(0.90 0.004 90); --rule-soft:oklch(0.93 0.004 90);
+    --accent:oklch(0.55 0.15 295); --accent-bg:oklch(0.95 0.04 295);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    /* string idêntica à do DS, espaçamento incluído — o caso de equivalência compara literal */
+    --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  /* DIVERGÊNCIA CONSCIENTE no escuro — o DS não redeclara `--accent` no dark, então ele
+     herda oklch(0.55 …), que no ERP é fundo de botão (texto branco por cima). Aqui o accent
+     é COR DE LINK dentro de parágrafo: 0.55 sobre papel escuro fica abaixo do contraste de
+     leitura. Sobe pra 0.74 — mesmo hue 295, mesma família. Não é drift; é o mesmo token
+     aplicado a um uso que o DS não cobre. */
+  @media (prefers-color-scheme: dark) {
+    :root { --paper:oklch(0.26 0.006 240); --surface:oklch(0.23 0.006 240);
+      --ink:oklch(0.94 0.005 90); --ink-soft:oklch(0.72 0.005 90); --ink-mute:oklch(0.58 0.005 90);
+      --rule:oklch(0.34 0.008 240); --rule-soft:oklch(0.31 0.008 240);
+      --accent:oklch(0.74 0.13 295); --accent-bg:oklch(0.32 0.06 295); }
+  }
+  :root[data-theme="dark"]{--paper:oklch(0.26 0.006 240);--surface:oklch(0.23 0.006 240);
+    --ink:oklch(0.94 0.005 90);--ink-soft:oklch(0.72 0.005 90);--ink-mute:oklch(0.58 0.005 90);
+    --rule:oklch(0.34 0.008 240);--rule-soft:oklch(0.31 0.008 240);
+    --accent:oklch(0.74 0.13 295);--accent-bg:oklch(0.32 0.06 295);}
+  :root[data-theme="light"]{--paper:oklch(0.985 0.003 90);--surface:oklch(0.965 0.004 90);
+    --ink:oklch(0.22 0.01 80);--ink-soft:oklch(0.50 0.01 80);--ink-mute:oklch(0.65 0.01 80);
+    --rule:oklch(0.90 0.004 90);--rule-soft:oklch(0.93 0.004 90);
+    --accent:oklch(0.55 0.15 295);--accent-bg:oklch(0.95 0.04 295);}
+
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased}
+
+  /* ── barra superior: identidade + busca ─────────────────────────── */
+  .topo{border-bottom:1px solid var(--rule);background:var(--surface)}
+  .topo-in{max-width:1160px;margin:0 auto;padding:14px 32px;display:flex;
+    align-items:center;gap:24px;flex-wrap:wrap}
+  .marca{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);text-decoration:none;white-space:nowrap}
+  .busca{flex:1;min-width:220px;display:flex;gap:8px}
+  .busca input{flex:1;font:inherit;font-size:14px;padding:7px 12px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--rule);border-radius:4px}
+  .busca input::placeholder{color:var(--ink-mute)}
+  .busca input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .busca button{font:inherit;font-size:13px;padding:7px 16px;cursor:pointer;color:#fff;
+    background:var(--accent);border:1px solid var(--accent);border-radius:4px}
+  .topo a.volta{font-size:13px;color:var(--ink-soft);text-decoration:none;white-space:nowrap}
+  .topo a.volta:hover{color:var(--accent)}
+
+  .wrap{max-width:1160px;margin:0 auto;padding:0 32px 120px}
+  .col{max-width:72ch}
+
+  /* ── rail de navegação ───────────────────────────────────────────
+     Itens DERIVADOS do frontmatter (DocumentacaoController::navegacao) — não há lista
+     escrita à mão. Doc sem `nav_group` não aparece, por opt-in. Abaixo de 980px o rail
+     vira bloco no topo: numa coluna estreita, fixá-lo ao lado espremeria a leitura. */
+  .layout{display:block}
+  @media (min-width:980px){
+    .layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:0 48px;align-items:start}
+    .rail{position:sticky;top:22px;max-height:calc(100vh - 44px);overflow-y:auto;
+      overscroll-behavior:contain;padding-right:4px}
+  }
+  @media (max-width:979px){
+    .rail{border-bottom:1px solid var(--rule-soft);padding-bottom:22px;margin-bottom:28px}
+  }
+  .rail-busca{margin:26px 0 22px}
+  .rail-busca input{width:100%;font:inherit;font-size:13.5px;padding:7px 11px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--rule);border-radius:4px}
+  .rail-busca input::placeholder{color:var(--ink-mute)}
+  .rail-busca input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .rail-grupo{margin:0 0 20px}
+  .rail-grupo h3{display:flex;align-items:baseline;gap:7px;font-family:var(--mono);font-size:10px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute);font-weight:500;margin:0 0 7px}
+  .rail-grupo h3 .qtd{font-size:9.5px;color:var(--ink-mute);opacity:.7;letter-spacing:0}
+  .rail ul{list-style:none;margin:0;padding:0}
+  .rail li a{display:block;font-size:13.5px;line-height:1.35;padding:4px 0 4px 11px;
+    color:var(--ink-soft);text-decoration:none;border-left:2px solid var(--rule-soft)}
+  .rail li a:hover{color:var(--accent);border-left-color:var(--rule)}
+  .rail li a[aria-current="page"]{color:var(--accent);border-left-color:var(--accent);font-weight:600}
+  .rail a.capa{display:block;font-family:var(--serif);font-size:15px;color:var(--ink);
+    text-decoration:none;margin-bottom:18px}
+  .rail a.capa:hover{color:var(--accent)}
+  .rail a.capa[aria-current="page"]{color:var(--accent)}
+
+  /* ── lente (Operar / Construir) ──────────────────────────────────
+     Server-side de propósito: filtra no Blade e lembra por cookie, então funciona sem
+     JS e o link continua compartilhável. Domínio aparece nas duas — UMA página por
+     entidade, vista por dois públicos, nunca duas cópias. */
+  .lente{display:flex;gap:2px;padding:2px;background:var(--paper);border:1px solid var(--rule);
+    border-radius:5px}
+  .lente a{font-size:12px;padding:4px 11px;border-radius:3px;color:var(--ink-soft);
+    text-decoration:none;white-space:nowrap}
+  .lente a:hover{color:var(--accent)}
+  .lente a[aria-current="true"]{background:var(--surface);color:var(--accent);font-weight:600}
+
+  /* ── anterior / próximo ──────────────────────────────────────────
+     A ordem é a do rail NA LENTE ATIVA — o rodapé nunca oferece um destino que o menu
+     ao lado não mostra. */
+  .vizinhos{display:flex;gap:16px;justify-content:space-between;margin:56px 0 0;
+    padding-top:22px;border-top:1px solid var(--rule);max-width:72ch}
+  .vizinhos a{flex:1;max-width:48%;text-decoration:none;color:var(--ink-soft);font-size:13.5px;
+    border:1px solid var(--rule-soft);border-radius:5px;padding:12px 14px}
+  .vizinhos a:hover{border-color:var(--accent);color:var(--accent)}
+  .vizinhos .dir{text-align:right;margin-left:auto}
+  .vizinhos .rot{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-mute);margin-bottom:3px}
+
+  /* ── trilho de sumário ───────────────────────────────────────────
+     Os itens vêm DERIVADOS dos títulos (DocumentacaoController::comSumario) —
+     não há lista escrita à mão em lugar nenhum pra ficar desatualizada.
+     Estreito: só acompanha a leitura; quem lê continua lendo a coluna. */
+  .com-trilho{display:block}
+  .trilho{font-size:13px;margin:36px 0 8px;max-width:72ch}
+  .trilho-tit{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-mute);margin:0 0 8px}
+  .trilho ol{list-style:none;margin:0;padding:0;display:block}
+  .trilho a{display:flex;gap:9px;align-items:baseline;padding:3px 0 3px 11px;
+    color:var(--ink-soft);text-decoration:none;border-left:2px solid var(--rule-soft);
+    line-height:1.35;border-bottom:0}
+  .trilho a:hover{color:var(--accent);border-left-color:var(--rule)}
+  .trilho a[aria-current="true"]{color:var(--accent);border-left-color:var(--accent);font-weight:600}
+  .trilho .grupo > a{font-family:var(--serif);font-size:14.5px;color:var(--ink);
+    margin-top:15px;border-left-color:transparent;padding-left:0}
+  .trilho .grupo:first-child > a{margin-top:0}
+  .trilho .cod{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);flex:0 0 auto}
+  .trilho a[aria-current="true"] .cod{color:var(--accent)}
+
+  @media (min-width:1080px){
+    .com-trilho{display:grid;grid-template-columns:minmax(0,72ch) 208px;
+      gap:0 60px;align-items:start}
+    .com-trilho > .col{grid-column:1;grid-row:1}
+    .com-trilho > .trilho{grid-column:2;grid-row:1;position:sticky;top:22px;margin:6px 0 0;
+      max-height:calc(100vh - 44px);overflow-y:auto;overscroll-behavior:contain}
+    .trilho ol{columns:1}
+  }
+  @media (max-width:1079px){
+    .trilho ol{columns:2;column-gap:26px}
+    .trilho li{break-inside:avoid}
+  }
+
+  .stamp{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--accent);margin:44px 0 16px}
+  .colophon{display:flex;flex-wrap:wrap;gap:4px 22px;font-family:var(--mono);font-size:11.5px;
+    color:var(--ink-mute);padding:14px 0 36px;border-bottom:1px solid var(--rule-soft);margin-bottom:36px}
+  .colophon b{font-weight:600;color:var(--ink-soft)}
+
+  /* ── tipografia do markdown renderizado ─────────────────────────── */
+  .doc h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5vw,48px);
+    line-height:1.07;letter-spacing:-.015em;margin:0 0 20px;text-wrap:balance}
+  .doc h2{font-family:var(--serif);font-weight:400;font-size:29px;line-height:1.2;
+    margin:48px 0 10px;padding-top:20px;border-top:1px solid var(--rule-soft);
+    letter-spacing:-.01em;text-wrap:balance;scroll-margin-top:20px}
+  .doc h3{font-size:15px;font-weight:650;margin:28px 0 8px;scroll-margin-top:20px}
+  .doc h4{font-size:13px;font-weight:650;color:var(--ink-soft);margin:22px 0 6px}
+  .doc p{margin:0 0 16px}
+  .doc strong{font-weight:640}
+  .doc a{color:var(--accent);text-decoration:none;
+    border-bottom:1px solid color-mix(in srgb,var(--accent) 32%,transparent)}
+  .doc a:hover{border-bottom-color:var(--accent)}
+  .doc a:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+  .doc code{font-family:var(--mono);font-size:.855em;background:var(--surface);padding:.1em .36em;border-radius:3px}
+  .doc pre{font-family:var(--mono);font-size:12.5px;line-height:1.6;background:var(--surface);
+    color:var(--ink-soft);padding:18px 20px;margin:6px 0 26px;overflow-x:auto;border-left:2px solid var(--rule)}
+  .doc pre code{background:none;padding:0;font-size:inherit}
+  .doc ul,.doc ol{margin:0 0 16px;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+  .doc blockquote{border-left:2px solid var(--accent);background:var(--accent-bg);
+    padding:14px 20px;margin:6px 0 26px;font-size:15px}
+  .doc blockquote p:last-child{margin-bottom:0}
+  .doc hr{border:0;border-top:1px solid var(--rule);margin:40px 0}
+  .tabela-scroll{overflow-x:auto;margin:6px 0 26px}
+  .doc table{border-collapse:collapse;width:100%;font-size:14.5px}
+  .doc th,.doc td{text-align:left;padding:10px 16px 10px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+  .doc th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-mute);font-weight:500;border-bottom:1px solid var(--rule);white-space:nowrap}
+  .doc td:last-child,.doc th:last-child{padding-right:0}
+
+  /* ── resultados de busca ────────────────────────────────────────── */
+  .achado{padding:18px 0;border-bottom:1px solid var(--rule-soft)}
+  .achado a.tit{font-family:var(--serif);font-size:20px;color:var(--ink);text-decoration:none;
+    display:inline-block;margin-bottom:4px}
+  .achado a.tit:hover{color:var(--accent)}
+  .achado .meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-mute);margin-bottom:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .achado .tag{color:var(--accent)}
+  .achado p{margin:0;font-size:14.5px;color:var(--ink-soft)}
+  .vazio{padding:40px 0;color:var(--ink-soft)}
+
+  footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--ink);
+    font-size:13.5px;color:var(--ink-soft);max-width:72ch}
+
+  @media (max-width:900px){ .wrap,.topo-in{padding-left:20px;padding-right:20px} }
+  @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto !important}}
+  html{scroll-behavior:smooth}
+</style>
+@stack('estilo')
+</head>
+<body>
+
+<div class="topo">
+  <div class="topo-in">
+    <a class="marca" href="{{ route('documentacao') }}">oimpresso · documentação</a>
+
+    @isset($nav)
+      {{-- Lente: o mesmo acervo por dois públicos. Links de verdade (não JS), então
+           funciona sem script e a URL é compartilhável. --}}
+      <nav class="lente" aria-label="Lente de leitura">
+        <a href="{{ request()->fullUrlWithQuery(['lente' => null]) }}"
+           @if (! $nav['lente']) aria-current="true" @endif>Tudo</a>
+        @foreach ($nav['lentes'] as $chave => $rotulo)
+          <a href="{{ request()->fullUrlWithQuery(['lente' => $chave]) }}"
+             @if ($nav['lente'] === $chave) aria-current="true" @endif>{{ $rotulo }}</a>
+        @endforeach
+      </nav>
+    @endisset
+
+    <a class="volta" href="/">← voltar ao sistema</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="layout">
+    @isset($nav)
+      <aside class="rail">
+        {{-- Busca no rail, mas continua um FORM GET pra rota própria: sem JS ela
+             funciona igual, e o resultado tem URL. --}}
+        <form class="rail-busca" method="GET" action="{{ route('documentacao.buscar') }}" role="search">
+          <input type="search" name="q" value="{{ $termo ?? '' }}"
+                 placeholder="Buscar na documentação…"
+                 aria-label="Buscar em {{ $escopoProsa }}">
+        </form>
+
+        <a class="capa" href="{{ route('documentacao') }}"
+           @if (empty($atual)) aria-current="page" @endif>Comece aqui</a>
+
+        @foreach ($nav['grupos'] as $grupo)
+          <div class="rail-grupo">
+            <h3>{{ $grupo['titulo'] }} <span class="qtd">{{ count($grupo['itens']) }}</span></h3>
+            <ul>
+              @foreach ($grupo['itens'] as $item)
+                <li>
+                  <a href="{{ route('documentacao.documento', $item['id']) }}"
+                     @if (($atual ?? null) === $item['id']) aria-current="page" @endif
+                     title="{{ $item['descricao'] }}">{{ $item['rotulo'] }}</a>
+                </li>
+              @endforeach
+            </ul>
+          </div>
+        @endforeach
+      </aside>
+    @endisset
+
+    <div>@yield('conteudo')</div>
+  </div>
+</div>
+
+{{-- Mermaid servido do NOSSO domínio (public/js), nunca de CDN: a página não carrega
+     nenhum recurso externo, e essa é uma qualidade que não se derruba por conveniência.
+     O bundle expõe o global via `globalThis["mermaid"]` na última linha — por isso
+     <script src> simples basta, sem type="module". --}}
+<script src="/js/mermaid.min.js"></script>
+<script>
+  (function () {
+    if (typeof mermaid === 'undefined') return;   // lib ausente: diagrama fica como código, página não quebra
+
+    var escuro = document.documentElement.dataset.theme === 'dark'
+      || (!document.documentElement.dataset.theme
+          && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: escuro ? 'dark' : 'neutral',
+      securityLevel: 'strict',                    // sem HTML arbitrário vindo do markdown
+      fontFamily: 'Segoe UI, -apple-system, sans-serif',
+      flowchart: { htmlLabels: true, curve: 'basis' },
+    });
+
+    // O markdown vira <pre><code class="language-mermaid">; o mermaid espera <pre class="mermaid">.
+    // textContent (não innerHTML) porque o conteúdo vem HTML-escaped do conversor.
+    var blocos = document.querySelectorAll('pre > code.language-mermaid');
+    if (!blocos.length) return;
+
+    blocos.forEach(function (code) {
+      var pre = code.parentElement;
+      var alvo = document.createElement('pre');
+      alvo.className = 'mermaid';
+      alvo.textContent = code.textContent;
+      pre.parentNode.replaceChild(alvo, pre);
+    });
+
+    mermaid.run({ querySelector: 'pre.mermaid' }).catch(function () {
+      // diagrama inválido não derruba a página — fica o texto do próprio diagrama
+    });
+  })();
+</script>
+
+@stack('script')
+</body>
+</html>

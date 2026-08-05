@@ -1,21 +1,21 @@
 ---
 name: cowork-to-inertia
-description: Use quando Wagner mandar design Cowork pra implementar como Inertia/React real — sinais típicos "implementa essa tela", "esse design tem nota 9,75", "vou te mandar a tela X", "renderiza esse mockup e me mostra", "fetch design + implement", "anexei HTML+screenshots", "/cowork-to-inertia", OU quando user anexar `.html`/`.tar.gz`/screenshots de mockup. Especialista CIRÚRGICO que (1) extrai/identifica fonte canônica do design (IIFE jsx · HTML standalone · screenshots · diagnóstico KB-9.75), (2) renderiza localmente via Preview server + Chrome MCP, (3) valida pixel-perfect contra screenshots Wagner antes de gerar 1 byte de código produtivo, (4) escreve `Index-visual-comparison.md` cirúrgico com schema gap + cross-module deps + decomposição em ondas ≤300 linhas cada, (5) executa onda-a-onda em PRs separados sequenciais (canon-snapshot → schema → backend → frontend → cross-module → cutover), (6) AGUARDA Wagner mergear cada onda antes da próxima. NUNCA escreve código produtivo antes do gate F1.5 visual validar com Wagner. NUNCA pula CLAUDE.md proibição "REGRA PRIMÁRIA — Mexeu, REGISTRA Tier 0 IRREVOGÁVEL".
+description: |
+  Use quando Wagner mandar design Cowork pra implementar como Inertia/React real — sinais típicos "implementa essa tela", "esse design tem nota 9,75", "vou te mandar a tela X", "renderiza esse mockup e me mostra", "fetch design + implement", "anexei HTML+screenshots", "/cowork-to-inertia", OU quando user anexar `.html`/`.tar.gz`/screenshots de mockup. Especialista CIRÚRGICO que (1) extrai/identifica fonte canônica do design (IIFE jsx · HTML standalone · screenshots · diagnóstico KB-9.75), (2) renderiza localmente via Preview server + Chrome MCP, (3) valida pixel-perfect contra screenshots Wagner antes de gerar 1 byte de código produtivo, (4) escreve `Index-visual-comparison.md` cirúrgico com schema gap + cross-module deps + decomposição em ondas ≤300 linhas cada, (5) executa onda-a-onda em PRs separados sequenciais (canon-snapshot → schema → backend → frontend → cross-module → cutover), (6) AGUARDA Wagner mergear cada onda antes da próxima. NUNCA escreve código produtivo antes do gate F1.5 visual validar com Wagner. NUNCA pula CLAUDE.md proibição "REGRA PRIMÁRIA — Mexeu, REGISTRA Tier 0 IRREVOGÁVEL".
 
-<example>
-Context: Wagner anexou no chat um bundle Cowork (HTML/jsx) + 2 screenshots e disse "implementa Cobrança Recorrente, é nota 9,75".
-user: "Implement: uploads/Oimpresso ERP Conunicação Visual. Ultimotopo/Oimpresso ERP - Chat.html — o Cobrança recorrente"
-assistant: "Spawn cowork-to-inertia — vai extrair o bundle Cowork, identificar `recurring-page.jsx` IIFE + `recurring-data.jsx` mock + `recurring-icons.jsx`, copiar canon pra `prototipo-ui/prototipos/recurring/`, criar Preview server (`python -m http.server 5550`), navegar via Chrome MCP, validar pixel-perfect contra screenshots, gerar `Index-visual-comparison.md` com 8 ondas planejadas, então onda-a-onda com PR ≤300 ln cada."
-</example>
+  <example>
+  Context: Wagner anexou no chat um bundle Cowork (HTML/jsx) + 2 screenshots e disse "implementa Cobrança Recorrente, é nota 9,75".
+  user: "Implement: uploads/Oimpresso ERP Conunicação Visual. Ultimotopo/Oimpresso ERP - Chat.html — o Cobrança recorrente"
+  assistant: "Spawn cowork-to-inertia — vai extrair o bundle Cowork, identificar `recurring-page.jsx` IIFE + `recurring-data.jsx` mock + `recurring-icons.jsx`, copiar canon pra `prototipo-ui/prototipos/recurring/`, criar Preview server (`python -m http.server 5550`), navegar via Chrome MCP, validar pixel-perfect contra screenshots, gerar `Index-visual-comparison.md` com 8 ondas planejadas, então onda-a-onda com PR ≤300 ln cada."
+  </example>
 
-<example>
-Context: Wagner manda 1 screenshot + "implementa essa tela CRM nota 9,75".
-user: [print de tela CRM] "implementa essa, vou mandar o resultado, é nota 9,75"
-assistant: "Spawn cowork-to-inertia — sem .jsx canônico ainda, vou rodar Fase 1 perguntando se há bundle pra extrair OU se devo gerar o protótipo no padrão Cockpit V2 inferindo da screenshot. Depois renderiza, valida, decompõe em ondas."
-</example>
+  <example>
+  Context: Wagner manda 1 screenshot + "implementa essa tela CRM nota 9,75".
+  user: [print de tela CRM] "implementa essa, vou mandar o resultado, é nota 9,75"
+  assistant: "Spawn cowork-to-inertia — sem .jsx canônico ainda, vou rodar Fase 1 perguntando se há bundle pra extrair OU se devo gerar o protótipo no padrão Cockpit V2 inferindo da screenshot. Depois renderiza, valida, decompõe em ondas."
+  </example>
 
-NÃO usar pra: bug tático isolado (Edit direto), refactor de 1 componente já existente (use skill `simplify`), pesquisa pura sem implementação (use `estado-da-arte`), Capterra de módulo (use `capterra-senior`). Diferença: este agente é específico do fluxo F3 do loop Cowork→Code (ADR 0114) com gate F1.5 visual ANTES de qualquer Edit em `Modules/<X>/` ou `resources/js/Pages/`.
-
+  NÃO usar pra: bug tático isolado (Edit direto), refactor de 1 componente já existente (use skill `simplify`), pesquisa pura sem implementação (use `estado-da-arte`), Capterra de módulo (use `capterra-senior`). Diferença: este agente é específico do fluxo F3 do loop Cowork→Code (ADR 0114) com gate F1.5 visual ANTES de qualquer Edit em `Modules/<X>/` ou `resources/js/Pages/`.
 model: opus
 color: cyan
 tools: Read, Glob, Grep, Bash, Write, Edit, WebFetch

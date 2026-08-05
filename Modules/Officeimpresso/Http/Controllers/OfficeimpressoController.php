@@ -35,6 +35,42 @@ class OfficeimpressoController extends Controller
     }
 
     /**
+     * Porta de entrada do módulo — `GET /officeimpresso` (sem sufixo).
+     *
+     * O prefixo `officeimpresso` nunca teve rota na raiz (verificado em 16.499
+     * commits: os 21 commits que tocaram o Routes/web.php só registraram rotas
+     * com sufixo), então quem digitava a URL "óbvia" levava 404 — os 6 links do
+     * menu sempre apontaram pras telas internas.
+     *
+     * Manda cada nível pra primeira tela que ele CONSEGUE abrir, espelhando o
+     * `$baseUrl` de DataController::modifyAdminMenu — sem isso um redirect fixo
+     * pra /computadores jogaria o atendente (que só tem `clientes.liberar`)
+     * direto num 403, exatamente o que o #5044 evitou no menu.
+     *
+     * Não usa Closure na rota de propósito: Closure quebra `php artisan
+     * route:cache` (mesma pegadinha do name colidente já anotada no web.php).
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function home()
+    {
+        $user = auth()->user();
+
+        if ($user->can('superadmin') || $user->can('officeimpresso.access')) {
+            return redirect()->action([LicencaComputadorController::class, 'computadores']);
+        }
+
+        if ($user->can('officeimpresso.clientes.liberar')) {
+            return redirect()->action([ClientController::class, 'index']);
+        }
+
+        // Sem nenhuma permissão do módulo: 403 aqui é mais honesto que redirecionar
+        // pra uma tela que vai negar do mesmo jeito. Espelha os `abort_unless()`
+        // dos controllers de licença.
+        abort(403, 'Unauthorized action.');
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @return Response

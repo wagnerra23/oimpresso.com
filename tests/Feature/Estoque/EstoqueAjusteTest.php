@@ -32,7 +32,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('ajuste de saída BAIXA o saldo pela quantidade ajustada', function () {
+it('UC-EST-05 · ajuste de saída BAIXA o saldo pela quantidade ajustada', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);
@@ -42,7 +42,7 @@ it('ajuste de saída BAIXA o saldo pela quantidade ajustada', function () {
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(6.0);
 });
 
-it('deletar o ajuste REVERTE (devolve) o saldo ajustado', function () {
+it('UC-EST-05 · deletar o ajuste REVERTE (devolve) o saldo ajustado', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 6.0); // já ajustado -4 de 10

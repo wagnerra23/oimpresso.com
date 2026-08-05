@@ -69,5 +69,5 @@ Cockpit **read-only** de observabilidade/governança do próprio loop de desenvo
 - ✅ Entry "Forja" aparece na sidebar e o topnav do hub (9 itens: 5 próprios + 4 do TeamMcp absorvido) navega + destaca o ativo.
 - ✅ Sem cor crua / PageHeader canon (conformance/foundation/layout/pageheader verdes).
 - ✅ Acesso negado (403) sem `jana.mcp.usage.all`.
-- ✅ **Triagem fiel ao protótipo:** após `php artisan db:seed --class="Modules\TeamMcp\Database\Seeders\ForjaDemoTicketsSeeder"`, `/forja` lista FORJA-152 (Tela·KB), FORJA-151 (Bug·Financeiro), FORJA-150 (Refino·Atendimento), cada um com badge de tipo colorido + tag de módulo + selo `[CC]` + botão roxo Analisar; aba mostra badge 3.
+- ✅ **Triagem fiel ao protótipo:** após `php artisan db:seed --class="Modules\Forja\Database\Seeders\ForjaDemoTicketsSeeder"`, `/forja` lista FORJA-152 (Tela·KB), FORJA-151 (Bug·Financeiro), FORJA-150 (Refino·Atendimento), cada um com badge de tipo colorido + tag de módulo + selo `[CC]` + botão roxo Analisar; aba mostra badge 3.
 - ✅ **Analisar** abre o dossiê lateral (valor×esforço, risco Tier-0, duplicatas, Aprovar→backlog / Rejeitar / Fundir) — `GET /forja/{id}/dossier` + `POST /forja/{id}/{aprovar,rejeitar,fundir}`.

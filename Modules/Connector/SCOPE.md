@@ -1,6 +1,7 @@
 ---
 module: Connector
-purpose: "POS APIs UltimatePOS — coração dos POS clientes. Só Wagner toca."
+purpose: "Porta REST externa única do oimpresso (Passport auth:api, contrato congelado): expõe o núcleo do ERP a consumidores de fora — app POS móvel e integrações — e sustenta o handshake de licenciamento, registro e versão dos clientes Delphi WR Comercial em migração."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "Api/ApiController"
   - "Api/AttendanceController"
@@ -34,8 +35,8 @@ contains:
   - "InstallController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
-  - "MCP server admin → Modules/TeamMcp"
+  - "Tasks Jira-style → Modules/Forja"
+  - "MCP server admin → Modules/Forja"
 trust_required: L0
 owner: wagner
 permission_prefix: connector.*

@@ -32,7 +32,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('movimento dentro de DB::transaction que FALHA é revertido (nada persiste)', function () {
+it('UC-INV-03 · movimento dentro de DB::transaction que FALHA é revertido (nada persiste)', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);
@@ -51,7 +51,7 @@ it('movimento dentro de DB::transaction que FALHA é revertido (nada persiste)',
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(10.0);
 });
 
-it('movimento dentro de DB::transaction que COMMITA persiste', function () {
+it('UC-INV-03 · movimento dentro de DB::transaction que COMMITA persiste', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);

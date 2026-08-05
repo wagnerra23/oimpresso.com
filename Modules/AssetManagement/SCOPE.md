@@ -1,6 +1,7 @@
 ---
 module: AssetManagement
-purpose: "UltimatePOS herdado."
+purpose: "Patrimônio da empresa: cadastro de ativos físicos, alocação e devolução a colaboradores, manutenção e garantia — bem de uso interno, nunca item vendável de estoque."
+migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
 contains:
   - "AssetAllocationController"
   - "AssetController"
@@ -11,8 +12,8 @@ contains:
   - "RevokeAllocatedAssetController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
-  - "MCP server admin → Modules/TeamMcp"
+  - "Tasks Jira-style → Modules/Forja"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: assetmanagement.*

@@ -214,7 +214,7 @@ grupo `ponto/install`.
 | `ponto_apuracao_dia` | recalculável | ✅ | `unique(colaborador_config_id, data)` · `estado` enum · `divergencias` JSON |
 | `ponto_banco_horas_saldo` | não | ✅ | saldo corrente |
 | `ponto_intercorrencias` | não (workflow) | ✅ | SoftDeletes · 6 estados |
-| `ponto_escalas` / `ponto_escalas_turnos` | não | ✅ / ⚠️ | **`EscalaTurno` é a única entity SEM `HasBusinessScope`** |
+| `ponto_escalas` / `ponto_escala_turnos` | não | ✅ / ⚠️ | **`EscalaTurno` é a única entity SEM `HasBusinessScope`** |
 | `ponto_colaborador_config` · `ponto_reps` · `ponto_importacoes` | não | ✅ | — |
 
 **Campos de `ponto_apuracao_dia` que a lei produz** (medidos na migration

@@ -867,6 +867,29 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/user/preferences/sidebar',
         [\App\Http\Controllers\UserPreferencesController::class, 'updateSidebarCollapsed']
     )->name('user.preferences.sidebar');
+
+    // Documentação do sistema — renderiza memory/GUIA-DO-SISTEMA.md em runtime.
+    // Só `auth`: é leitura pura, não depende de business_id nem de SetSessionData.
+    // NÃO usa /docs de propósito: aquele caminho já é servido por arquivo estático
+    // no servidor, que tem precedência sobre rota do Laravel — a rota nunca seria
+    // alcançada e o usuário veria a página velha.
+    Route::get('/documentacao',
+        [\App\Http\Controllers\DocumentacaoController::class, 'index']
+    )->name('documentacao');
+
+    // Busca no acervo — usa o FULLTEXT que JÁ existe em `mcp_memory_documents`
+    // (índice `mcp_md_fulltext_idx`), a tabela sincronizada do git por webhook.
+    // Nenhum índice novo foi criado pra esta página.
+    Route::get('/documentacao/buscar',
+        [\App\Http\Controllers\DocumentacaoController::class, 'buscar']
+    )->name('documentacao.buscar');
+
+    // Documento do acervo. Declarada DEPOIS de /buscar e com regex restrita no
+    // slug — sem as duas coisas, /documentacao/buscar casaria aqui primeiro e a
+    // busca viraria um 404 de "documento 'buscar' não encontrado".
+    Route::get('/documentacao/{slug}',
+        [\App\Http\Controllers\DocumentacaoController::class, 'documento']
+    )->where('slug', '[A-Za-z0-9._-]+')->name('documentacao.documento');
 });
 
 // Gerenciador de Módulos — substituto React do /manage-modules (AdminLTE quebrado).

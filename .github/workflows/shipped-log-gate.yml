@@ -1,8 +1,15 @@
 name: Shipped log gate (advisory)
 
 # Catraca de freshness do registro de entrega — porta de saída do loop (ADR 0294 ext).
-# Roda o gerador --check: falha (exit 1) se algum shipped-log versionado está STALE
-# (> FRESH_DAYS=4 desde `generated`), sinal de que o cron/auto-PR parou.
+# Roda o gerador --check: falha (exit 1) se o shipped-log VIVO (o que cobre a janela
+# mais recente — o único que o cron regenera) está STALE (> FRESH_DAYS=4 desde
+# `generated`), sinal de que o cron/auto-PR parou. Log de cycle fechado é registro
+# final e não conta freshness (senão seria vermelho eterno).
+#
+# 2026-08-04: até aqui o --check isentava `status: parcial` — que é o que o cron
+# SEMPRE produz (roda com --until=hoje) → conjunto verificado vazio por construção,
+# o gate nunca teve como reprovar. Passou verde durante os 4 dias em que o auto-PR
+# #5058 ficou preso. Ver proibicoes.md §5 2026-08-04 + evalShippedHealth.
 #
 # Dois gatilhos:
 #   - pull_request (paths): valida cada auto-PR do cron + edição humana de shipped/.

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **858 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **871 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -26,22 +26,22 @@
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
 | [`Compras`](#compras) | 17 | 0 | 0 | 0 | 16 |
+| [`Forja`](#forja) | 17 | 0 | 1 | 0 | 7 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
+| [`Connector`](#connector) | 13 | 0 | 0 | 0 | 13 |
 | [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
-| [`Connector`](#connector) | 12 | 0 | 0 | 0 | 12 |
+| [`Ponto`](#ponto) | 13 | 0 | 0 | 0 | 13 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
-| [`Ponto`](#ponto) | 10 | 0 | 0 | 0 | 10 |
 | [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
-| [`ProjectMgmt`](#projectmgmt) | 8 | 0 | 1 | 0 | 7 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`KB`](#kb) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
@@ -802,6 +802,35 @@
 
 - **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
+## Forja
+
+
+### review
+
+- **US-TR-309** — Triage — lista de tasks órfãs _(`p1` · @wagner)_
+
+### todo
+
+- **US-TR-308** — Chips de ADRs/SPECs relacionados (memory-linked) _(`p2` · @wagner)_
+- **US-TR-304** — Inbox — lista de não-lidas
+- **US-TR-305** — Inbox — marcar lido (individual + todas)
+- **US-TR-306** — Inbox — deep-link pra task/DetailSheet
+- **US-TR-307** — Operador não-técnico usa sem treino
+- **US-TR-310** — Triage — atribuir owner + prioridade inline
+- **US-TR-311** — Triage — mover cycle/epic
+
+### proposto
+
+- **US-FORJA-001** — Triagem em lote na tela Triage _(`p0` · @[W])_
+- **US-FORJA-002** — Política de expurgo (usar o `cancelled` que já existe) _(`p0` · @[W])_
+- **US-FORJA-005** — Rito de cycle — reativar ou aposentar (decisão [W], 0h de código) _(`p0` · @[W])_
+- **US-FORJA-009** — Pôr os testes da Forja numa lane de CI (41+ nunca executam) _(`p0` · @[W])_
+- **US-FORJA-003** — Estender `mcp:tasks:unassigned` (idade + delta semanal) _(`p1` · @[W])_
+- **US-FORJA-004** — Ligar a superfície do alarme de `review` parado (o detector já existe) _(`p1` · @[W])_
+- **US-FORJA-006** — Sobreposição cockpit `/forja` × telas nativas (decisão [W] + código) _(`p1` · @[W])_
+- **US-FORJA-008** — Requisitos da Forja no formato atual — **oportunístico** _(`p1` · @[W])_
+- **US-FORJA-007** — WIP por pessoa vs máximo declarado _(`p2` · @[W])_
+
 ## Accounting
 
 
@@ -865,6 +894,25 @@
 - **US-COMM-013** — Mobile self-service vendedor — **P2**
 - **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
 
+## Connector
+
+
+### todo
+
+- **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
+- **US-CONN-001** — Auth Passport `auth:api` bloqueia anônimo
+- **US-CONN-002** — Sync Delphi via `/processa-dados-cliente`
+- **US-CONN-003** — Registrar WR Comercial via `/oimpresso/registrar`
+- **US-CONN-004** — Check-update via `/check-update`
+- **US-CONN-005** — REST CRUD `/contactapi`
+- **US-CONN-006** — REST CRUD `/product`
+- **US-CONN-007** — REST CRUD `/sell` (vendas)
+- **US-CONN-008** — REST `/business-location` (filiais)
+- **US-CONN-009** — REST `/taxonomy` + `/brand`
+- **US-CONN-010** — REST `/user`
+- **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
+- **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
+
 ## Mwart
 
 
@@ -903,23 +951,24 @@
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
 
-## Connector
+## Ponto
 
 
 ### todo
 
-- **US-CONN-001** — Auth Passport `auth:api` bloqueia anônimo
-- **US-CONN-002** — Sync Delphi via `/processa-dados-cliente`
-- **US-CONN-003** — Registrar WR Comercial via `/oimpresso/registrar`
-- **US-CONN-004** — Check-update via `/check-update`
-- **US-CONN-005** — REST CRUD `/contactapi`
-- **US-CONN-006** — REST CRUD `/product`
-- **US-CONN-007** — REST CRUD `/sell` (vendas)
-- **US-CONN-008** — REST `/business-location` (filiais)
-- **US-CONN-009** — REST `/taxonomy` + `/brand`
-- **US-CONN-010** — REST `/user`
-- **US-CONN-011** — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
-- **US-CONN-012** — CRM API (`crm/follow-ups`, `crm/leads`)
+- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
+- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
+- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
+- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
+- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
+- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
+- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
+- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
+- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
+- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
+- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
+- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
+- **US-PONTO-013** — Consertar as duas telas que nao persistem
 
 ## NFSe
 
@@ -990,22 +1039,6 @@
 - **US-CMS-009** — Importer WordPress (XML/REST API)
 - **US-CMS-010** — Editor visual drag-drop (page builder)
 
-## Ponto
-
-
-### todo
-
-- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
-- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
-- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
-- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
-- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
-- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
-- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
-- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
-- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
-- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
-
 ## Superadmin
 
 
@@ -1070,23 +1103,6 @@
 - **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
 - **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
 - **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
-
-## ProjectMgmt
-
-
-### review
-
-- **US-TR-309** — Triage — lista de tasks órfãs _(`p1` · @wagner)_
-
-### todo
-
-- **US-TR-308** — Chips de ADRs/SPECs relacionados (memory-linked) _(`p2` · @wagner)_
-- **US-TR-304** — Inbox — lista de não-lidas
-- **US-TR-305** — Inbox — marcar lido (individual + todas)
-- **US-TR-306** — Inbox — deep-link pra task/DetailSheet
-- **US-TR-307** — Operador não-técnico usa sem treino
-- **US-TR-310** — Triage — atribuir owner + prioridade inline
-- **US-TR-311** — Triage — mover cycle/epic
 
 ## EvolutionAgent
 

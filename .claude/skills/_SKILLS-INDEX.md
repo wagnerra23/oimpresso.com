@@ -4,15 +4,13 @@
 > Regenerar: `node scripts/governance/skills-index-generate.mjs --write`. Convenção de tiers: ADR 0095 · recalibração 5 núcleo + auto-trigger: ADR 0225.
 
 ## Resumo
-- **76** skills · Tier A **6** (5 núcleo + 1 dormente) · Tier B **60** · Tier C **10**
+- **74** skills · Tier A **5** (5 núcleo + 0 dormente) · Tier B **59** · Tier C **10**
 - Auto-trigger explícito: 9 (session_start 2 · path 5 · intent 1 · on_demand 1)
-- Destacadas no bloco do CLAUDE.md: 14 (entre marcadores AUTO:SKILLS)
+- Destacadas no bloco do CLAUDE.md: 13 (entre marcadores AUTO:SKILLS)
 
-## Todas as skills (76)
+## Todas as skills (74)
 | Skill | Tier | auto_trigger | enabled | Descrição (início) |
 |---|---|---|---|---|
-| ads-decision-flow | B | — | sim | Use ao trabalhar em Modules/ADS/ ou tocar fluxo de decisão automatizada (Risk → Confidence → Policy → Router → Brain … |
-| ads-route | A | — | **false (dormente)** | Use ANTES de qualquer mudança custosa (chamada Brain B Sonnet/Opus, deploy prod, mudança Tier 0). Roteia decisão por … |
 | alinhar-tela | B | — | sim | Use quando Wagner pedir "alinhar a tela X", "ligar a máquina da tela Y", "o que já tem pronto e o que falta na tela Z… |
 | aplicar-prototipo | B | — | sim | ATIVAR quando Wagner pedir "importar o zip do protótipo", "importa esse zip/bundle/handoff", "conferir se o protocolo… |
 | audit-constituicao | C | — | sim | ATIVAR quando user pedir "audit pós-constituição", "/audit-constituicao", "consolidação geral", "revisão geral desde … |

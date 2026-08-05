@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093):
  * NUNCA biz=4 (ROTA LIVRE Larissa produção). Tests usam biz=1 (ADR 0101).
  *
- * Pattern proven em Modules/Brief/Tests/Feature/SmokeRoutesTest.php
+ * Pattern proven em Modules/Forja/Tests/Feature/SmokeRoutesTest.php
  * (modelo canônico — adaptado pra KB).
  *
  * @see Modules/KB/Http/routes.php — rotas registradas

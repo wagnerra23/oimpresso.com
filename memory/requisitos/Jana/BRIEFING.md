@@ -66,7 +66,7 @@ Cada linha **aponta pro dono do número** em vez de repeti-lo ([proibicoes.md](.
 
 ⚠️ **LGPD purge não é "só ligar".** O evidence pack de 2026-07-12 provou o path `anonymize` em staging, mas o **§3.1 dele** registra que flipar hoje violaria a própria regra: o schedule (`Kernel.php:770`) roda `jana:retention-purge` **sem `--business`** → itera todos, **incluindo biz=4 ROTA LIVRE (Larissa)**. Falta PR de allowlist + 3 sign-offs [W]. Ver [EVIDENCE-retention-purge-dry-run-2026-07-12.md](EVIDENCE-retention-purge-dry-run-2026-07-12.md).
 
-⚠️ **Segundo BRIEFING concorrente.** [`Modules/Jana/BRIEFING.md`](../../../Modules/Jana/BRIEFING.md) (último toque real 2026-05-16) afirma *"Governance score v3 96/100"* + *"Operacional PME 95%"* — contra os **73** do baseline canônico. Mesma doença que o [#4408](https://github.com/wagnerra23/oimpresso.com/pull/4408) matou em TeamMcp/Cms; candidato à mesma cura (reconciliar apontando pro dono, ou lápide).
+✅ **Segundo BRIEFING concorrente — RESOLVIDO em 2026-07-30.** O `Modules/Jana/BRIEFING.md` afirmava *"Governance score v3 96/100"* + *"Operacional PME 95%"* contra os **73** do baseline canônico (último toque real 2026-05-16). Virou lápide-ponteiro em 21/07 ([taxonomia §5](../../decisions/proposals/2026-07-21-taxonomia-arquivos-modulo.md)) e foi **deletado** em 30/07, decisão [W] (*"quero mover tudo para memory, apagar os outros e revisar os vínculos"*). Este arquivo é a **casa única** do BRIEFING da Jana. Mesma cura aplicada aos 10 módulos que tinham o par.
 
 ## Última mudança
 

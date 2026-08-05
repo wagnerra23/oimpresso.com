@@ -128,13 +128,16 @@ Route::group(
         Route::delete('/memoria/{id}',                     [\Modules\KB\Http\Controllers\MemoriaController::class, 'destroy'])->name('jana.memoria.destroy');
 
         // ---- Ghosts canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21) -----
-        // Destinos canon do hub IA: Copiloto / Memórias / KB / Regras.
-        // Regras é stub "Em construção" (tela dedicada vem em onda futura);
+        // Destinos canon do hub IA: Copiloto / Memórias / KB.
         // Memórias e KB redirecionam pras rotas existentes preservando o ghost
         // clicável no header canon.
         // /brief removido 2026-06-15 (Wagner): stub redundante com o brief já
         // entregue via chat + brief-fetch (MCP) + seção "Brief diário" do dashboard.
-        Route::get('/regras',                              'RegrasController@index')->name('jana.regras.index');
+        // /regras removido 2026-08-04 [W]: o stub cobria "policies do PolicyEngine ADS
+        // + governance MCP cross-team" — DOIS domínios que não são da Jana (o núcleo do
+        // ADS foi pra Modules/Forja em jul/2026; o SCOPE da Jana declara só tabelas
+        // jana_*). O controller lia ZERO tabela e só apontava pra /ia/admin/governanca.
+        // Rota + RegrasController + Page + charter + scorecard apagados.
 
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('jana.superadmin.metas');
@@ -257,61 +260,13 @@ Route::redirect('/jana/install',               '/ia/install',           301);
 Route::redirect('/jana/install/uninstall',     '/ia/install/uninstall', 301);
 Route::redirect('/jana/install/update',        '/ia/install/update',    301);
 
-// ===========================================================================
-// 3) MCP server endpoints (ADR 0053) — prefixo /api/mcp
-// ===========================================================================
-// Públicos (sem auth):
-//   POST /api/mcp/sync-memory  — webhook GitHub (auth via X-MCP-Sync-Token)
-//   GET  /api/mcp/health       — status básico do server
-// Autenticados (Bearer mcp_*):
-//   GET  /api/mcp/health/auth  — info do user/token autenticado
-// Controllers migrados pra Modules/TeamMcp em Fase 3.7 (drift resolution).
-// URLs mantêm /api/mcp/* — só o namespace prefix mudou.
-Route::group(
-    [
-        'middleware' => ['api'],
-        'prefix'     => 'api/mcp',
-        'namespace'  => 'Modules\TeamMcp\Http\Controllers\Mcp',
-    ],
-    function () {
-        // Públicos
-        Route::post('/sync-memory', 'SyncMemoryWebhookController@handle')
-            ->name('jana.mcp.sync-memory');
-        Route::get('/health', 'HealthController@publico')
-            ->name('jana.mcp.health');
+// 3) MCP server endpoints /api/mcp/{sync-memory,health,version,cycle-active}
+//    MUDARAM pra Modules/Forja/Http/routes.php em 2026-07-30 (decisão [W]
+//    "MCP vai para Forja"). URLs e names (jana.mcp.*) INALTERADOS.
+//    O POST /api/mcp (JSON-RPC) e o /api/cc/ingest seguem AQUI — saem na F4.
 
-        // Drift sentinel (ADR 0256): token DEDICADO MCP_DRIFT_TOKEN checado no
-        // controller (sem mcp.auth/RBAC/user) — vazar revela só o SHA do commit.
-        Route::get('/version', 'HealthController@versao')
-            ->name('jana.mcp.version');
-
-        // G6 (porta de saída do loop): cycle ATIVO pro cron do shipped-log descobrir
-        // cycle+janela sem depender do shipped-log anterior. Mesmo token do /version.
-        Route::get('/cycle-active', 'HealthController@cicloAtivo')
-            ->name('jana.mcp.cycle-active');
-
-        // Autenticados via McpAuth
-        Route::group(['middleware' => 'mcp.auth'], function () {
-            Route::get('/health/auth', 'HealthController@autenticado')
-                ->name('jana.mcp.health.auth');
-        });
-    }
-);
-
-// MEM-CC-1 (ADR 0053 + SPEC-cc-sessions) — Endpoint ingest pra watcher Node
-//   POST /api/cc/ingest  — Bearer mcp_*  — payload {session, messages}
-// CcIngestController migrado pra Modules/TeamMcp em Fase 3.7 (URL mantida).
-Route::group(
-    [
-        'middleware' => ['api', 'mcp.auth'],
-        'prefix'     => 'api/cc',
-        'namespace'  => 'Modules\TeamMcp\Http\Controllers\Mcp',
-    ],
-    function () {
-        Route::post('/ingest', 'CcIngestController@ingest')
-            ->name('jana.cc.ingest');
-    }
-);
+// MEM-CC-1 — POST /api/cc/ingest MUDOU-SE pra Modules/Forja/Http/routes.php em
+// 2026-07-31 (cluster de ingest). URL e name inalterados.
 
 // MEM-MCP-1.c (ADR 0053) — Servidor MCP protocol (JSON-RPC) via laravel/mcp
 // Auth via mcp.auth middleware (mesmo Bearer mcp_* do health/auth).

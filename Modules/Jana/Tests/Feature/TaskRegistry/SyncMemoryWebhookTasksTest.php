@@ -80,7 +80,7 @@ it('retorna skipped para push em branch diferente de main', function () {
 });
 
 it('detecta push perigoso quando composer.lock muda', function () {
-    $controller = new \Modules\Jana\Http\Controllers\Mcp\SyncMemoryWebhookController();
+    $controller = new \Modules\Forja\Http\Controllers\Mcp\SyncMemoryWebhookController();
 
     $request = \Illuminate\Http\Request::create('/api/mcp/sync-memory', 'POST', [], [], [], [], json_encode([
         'commits' => [
@@ -97,7 +97,7 @@ it('detecta push perigoso quando composer.lock muda', function () {
 });
 
 it('detecta push perigoso quando migration nova é adicionada', function () {
-    $controller = new \Modules\Jana\Http\Controllers\Mcp\SyncMemoryWebhookController();
+    $controller = new \Modules\Forja\Http\Controllers\Mcp\SyncMemoryWebhookController();
 
     $request = \Illuminate\Http\Request::create('/api/mcp/sync-memory', 'POST', [], [], [], [], json_encode([
         'commits' => [
@@ -114,7 +114,7 @@ it('detecta push perigoso quando migration nova é adicionada', function () {
 });
 
 it('considera push só de docs como seguro', function () {
-    $controller = new \Modules\Jana\Http\Controllers\Mcp\SyncMemoryWebhookController();
+    $controller = new \Modules\Forja\Http\Controllers\Mcp\SyncMemoryWebhookController();
 
     $request = \Illuminate\Http\Request::create('/api/mcp/sync-memory', 'POST', [], [], [], [], json_encode([
         'commits' => [
@@ -131,7 +131,7 @@ it('considera push só de docs como seguro', function () {
 });
 
 it('considera push em head_commit também', function () {
-    $controller = new \Modules\Jana\Http\Controllers\Mcp\SyncMemoryWebhookController();
+    $controller = new \Modules\Forja\Http\Controllers\Mcp\SyncMemoryWebhookController();
 
     $request = \Illuminate\Http\Request::create('/api/mcp/sync-memory', 'POST', [], [], [], [], json_encode([
         'commits'     => [],

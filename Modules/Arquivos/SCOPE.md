@@ -1,12 +1,13 @@
 ---
 module: Arquivos
-purpose: "DMS backbone — todo arquivo anexado do oimpresso deve cair aqui. Tabelas arquivos + arquivos_audit_log + arquivos_dedupe. Trait HasArquivos morphMany pra opt-in por entidade. Curador engine PHP + parity com JS scripts/curador. Signed URLs + soft-delete + dedupe sha256."
+purpose: "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe sha256, signed URL e soft-delete. Não tem tela própria: a UI é do módulo dono. Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação."
+migracao_ui: "nao-aplica — modulo sem UI propria"
 contains:
   - "DataController"
   - "DownloadController"
   - "InstallController"
 not_contains:
-  - "MemCofre senhas/segredos → Modules/SRS"
+  - "MemCofre senhas/segredos → Modules/SRS — módulo REMOVIDO em 2026-07-29 (ADR 0357); fronteira a revisar"
   - "Memoria RAG semântico Jana → Modules/Jana"
   - "OCR/transcrição/antivirus → fora de MVP"
 trust_required: L2

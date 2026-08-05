@@ -547,8 +547,8 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 - [Modules/KB/SCOPE.md](../../../Modules/KB/SCOPE.md)
 - [Modules/Jana/SCOPE.md](../../../Modules/Jana/SCOPE.md)
 - [Modules/Governance/SCOPE.md](../../../Modules/Governance/SCOPE.md)
-- [Modules/TeamMcp/SCOPE.md](../../../Modules/TeamMcp/SCOPE.md)
-- [Modules/Brief/SCOPE.md](../../../Modules/Brief/SCOPE.md) (ref — não receptor mas cita SRS no purpose L1)
+- [Modules/TeamMcp/SCOPE.md](../../../Modules/Forja/SCOPE.md)
+- `Modules/Brief/SCOPE.md` (ref — não receptor mas citava SRS no purpose L1) — **link removido em 2026-07-30**: o módulo Brief foi absorvido por `Modules/Forja` e o SCOPE.md dele deixou de existir
 - [Modules/Arquivos/SCOPE.md](../../../Modules/Arquivos/SCOPE.md) (alternativa DMS pra storage de uploads ingest)
 
 ### Skills mencionadas

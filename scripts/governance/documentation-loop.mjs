@@ -39,7 +39,7 @@ import { scan as scanBriefing, isBriefingCoverageGap } from './briefing-code-sta
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
 const REQUIRE_CLEAN = process.argv.includes('--require-clean');
-const SOURCE_PRIORITY = { 'memory-health': 0, 'briefing-code-staleness': 1, 'doc-freshness-score': 2 };
+const SOURCE_PRIORITY = { 'memory-health': 0, 'briefing-code-staleness': 1, 'doc-freshness-score': 2, 'doc-nav': 3 };
 const SHARED_RUNTIME_PATHS = /^(app|config|database|routes)\//;
 const DOCUMENT_NAME = /^(BRIEFING|README|ARCHITECTURE|SPEC|SDD|RUNBOOK|SUPERFICIE|CHANGELOG|GLOSSARY)/i;
 
@@ -298,11 +298,51 @@ export function sortIssues(issues) {
   });
 }
 
-export function buildSnapshot({ sha = null, memoryHealth = {}, briefingIssues = [], freshness = {} } = {}) {
+/**
+ * Órfão de navegação: doc que DECLAROU intenção de navegar (`nav_order`/`lente`) e ficou
+ * sem `nav_group` — então some do rail em silêncio, e ninguém percebe.
+ *
+ * ESCOPO ESTREITO DE PROPÓSITO. O óbvio seria acusar "todo doc sem nav_group", mas o
+ * campo é OPT-IN: os ~130 arquivos de referência legados não o têm, e não devem ter —
+ * acusá-los seria ~130 falso-positivos por rodada, o gate-que-reprova-o-legítimo que
+ * este projeto já enterrou quatro vezes (§5: allowlist-de-pasta, guard @scope,
+ * vocabulário 130 FP, toHaveKey 100% FP). O predicado aqui é a INCOERÊNCIA declarada
+ * pelo próprio autor: pôs metade dos campos e esqueceu justamente o que faz aparecer.
+ *
+ * @return {Array<object>} issues no mesmo formato das demais fontes
+ */
+export function normalizeNav(root = ROOT) {
+  const dir = join(root, 'memory', 'reference');
+  if (!existsSync(dir)) return [];
+
+  const out = [];
+  for (const nome of readdirSync(dir)) {
+    if (!nome.endsWith('.md') || nome.startsWith('_') || nome === 'README.md') continue;
+
+    const fm = readFileSync(join(dir, nome), 'utf8').match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+    if (!fm) continue;
+
+    const temGrupo = /^nav_group:\s*\S/m.test(fm[1]);
+    const declarouNav = /^(nav_order|lente):\s*\S/m.test(fm[1]);
+
+    if (declarouNav && !temGrupo) {
+      const target = { file: `memory/reference/${nome}` };
+      out.push({
+        id: issueId('doc-nav', 'nav-orfao', target),
+        source: 'doc-nav', kind: 'nav-orfao', severity: 'warn', target, metric: 1,
+        details: 'declara nav_order/lente mas não tem nav_group — não aparece no rail',
+      });
+    }
+  }
+  return out;
+}
+
+export function buildSnapshot({ sha = null, memoryHealth = {}, briefingIssues = [], freshness = {}, navIssues = [] } = {}) {
   const rawIssues = [
     ...normalizeMemoryHealth(memoryHealth),
     ...briefingIssues,
     ...normalizeFreshness(freshness),
+    ...navIssues,
   ];
   // O mesmo link pode aparecer repetido no sample do detector (ex.: índice que o
   // cita várias vezes). Recibo é por achado estável, não por ocorrência textual.
@@ -325,7 +365,8 @@ export function snapshot(root = ROOT) {
   // scanBriefing usa process.cwd() como raiz. No snapshot do checkout corrente ele
   // evita subprocesso; snapshots de ref chamam este CLI com cwd na worktree-ref.
   const briefingIssues = root === process.cwd() ? normalizeBriefing() : [];
-  return buildSnapshot({ sha: gitSha(root), memoryHealth, briefingIssues, freshness });
+  // normalizeNav lê só arquivo, então roda em qualquer root (inclusive fixture do selftest).
+  return buildSnapshot({ sha: gitSha(root), memoryHealth, briefingIssues, freshness, navIssues: normalizeNav(root) });
 }
 
 export function compareSnapshots(before, after, expected = []) {

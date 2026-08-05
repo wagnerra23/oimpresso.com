@@ -15,6 +15,8 @@ on:
       - 'resources/js/Pages/**/*.charter.md'
       - 'resources/js/Pages/**/*.tsx'
       - 'scripts/governance/pt-conformance.mjs'
+      - 'scripts/governance/lib/pt-signatures.mjs'
+      - '.github/workflows/pt-conformance.yml'
   workflow_dispatch:
 
 concurrency:
@@ -35,10 +37,14 @@ jobs:
           node-version: '20'
       - name: Selftest (a lógica morde/solta)
         run: node scripts/governance/pt-conformance.mjs --selftest
+      # O `--check` MORDE: exit≠0 derruba o passo (job vermelho e visível). Job segue
+      # NÃO-required — não bloqueia o merge. Advisory = "não bloqueia", NUNCA = "não pode
+      # ficar vermelho" (proibicoes.md §5, lápide 2026-07-09). O `||` só ENFEITA o erro com
+      # a receita de conserto e re-levanta o exit — engolir o status era o gate mudo.
       - name: Declarações de PT conferem com a assinatura?
         run: |
-          if node scripts/governance/pt-conformance.mjs --check; then
-            echo "✅ nenhuma tela declara um PT que não é."
-          else
-            echo "::warning title=DS pt-conformance::Uma tela declara um Padrão de Tela que não tem a assinatura (ex: jura PT-05 Kanban mas é form). Corrija o related_prototype pro PT correto (advisory, não bloqueia)."
-          fi
+          node scripts/governance/pt-conformance.mjs --check || {
+            echo "::error title=DS pt-conformance::Uma tela declara um Padrão de Tela que não tem a assinatura (ex: jura PT-05 Kanban mas é form). Corrija o related_prototype pro PT correto, OU faça a tela seguir o padrão que declara."
+            exit 1
+          }
+          echo "✅ nenhuma tela declara um PT que não é."

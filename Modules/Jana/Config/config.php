@@ -183,7 +183,7 @@ return [
         'system_token'     => env('COPILOTO_MCP_SYSTEM_TOKEN', ''),
         'timeout_seconds'  => env('COPILOTO_MCP_TIMEOUT', 5),
 
-        // === Webhook GitHub → endpoint sync-memory (TeamMcp/SyncMemoryWebhookController) ===
+        // === Webhook GitHub → endpoint sync-memory (Forja/Http/Controllers/Mcp/SyncMemoryWebhookController) ===
         // Token shared-secret entre GitHub webhook e endpoint sync-memory.
         // Setar em .env: COPILOTO_MCP_SYNC_TOKEN=...
         'sync_webhook_token' => env('COPILOTO_MCP_SYNC_TOKEN'),

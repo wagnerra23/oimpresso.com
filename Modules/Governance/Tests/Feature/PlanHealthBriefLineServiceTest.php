@@ -19,7 +19,7 @@ uses(Tests\TestCase::class);
  * o parser da sentinela (esse tem seu próprio meta-teste em governança).
  *
  * @see Modules/Governance/Services/PlanHealthBriefLineService.php
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 /**

@@ -6,6 +6,8 @@
 
 > ℹ️ Contagens aqui são aproximadas (navegação). A lista canônica de ADRs é **GERADA**: [`decisions/_INDEX-GENERATED.md`](decisions/_INDEX-GENERATED.md) (ADR 0258).
 
+> 🧭 Este é o **catálogo de arquivos** de `memory/`. O **retrato gerado do sistema** (módulos, gates required, workflows, ADRs) fica em [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
+
 > Mapa pra navegar `memory/`. Para **estado VIVO** (cycle ativo, tasks, brief), use tools MCP: `brief-fetch`, `my-work`, `cycles-active`, `decisions-search`.
 > Documento canônico — atualizar quando criar nova categoria. Reorg: ver [AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13](requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) §5 (G2).
 
@@ -34,7 +36,7 @@
 | **Crosscutting** | [governance/](governance/) (Constituição · Trust-Tiers · Enforcement · Drift Framework → `governance:audit`) |
 | **Decisões (por quê)** | [decisions/](decisions/) (ADRs Nygard) — via `decisions-search` |
 
-> ⚠️ `01-project-overview.md` e `03-architecture.md` são **PontoWr2-era (PODRES — "Laravel 10 / Módulo de Ponto")**. NÃO usar; ver governance/ARCHITECTURE.md.
+> ⚠️ Os fósseis PontoWr2 `01-project-overview.md` e `03-architecture.md` foram **apagados** em 2026-07-30 (histórico no git). Descreviam "Laravel 10 / Módulo de Ponto" e o nome oficial-soante já enganou um classificador (2026-07-22) e um agente, que criou doc duplicado (2026-07-23 — as duas lápides §5 em [proibicoes.md](proibicoes.md)). **Não recriar:** arquitetura → [governance/ARCHITECTURE.md](governance/ARCHITECTURE.md) (arc42) · visão numa página → [GUIA-DO-SISTEMA.md](GUIA-DO-SISTEMA.md).
 
 ## 🎯 Norte, Protocolo & Skills Tier A (normativo — mesmo nível da Constituição)
 
@@ -98,10 +100,10 @@
 - [Jana/](requisitos/Jana/) — IA + memória (`ARCHITECTURE.md`, `RUNBOOK-*.md`, auditorias 2026-05-13) — ex-`Copiloto/` (rename ADR 0088; ghost-dir migrado 2026-07-01)
 - [Financeiro/](requisitos/Financeiro/) · [FinanceiroAvancado/](requisitos/FinanceiroAvancado/) ⚰️→Financeiro · [NfeBrasil/](requisitos/NfeBrasil/) · [NFSe/](requisitos/NFSe/)
 - [Repair/](requisitos/Repair/) (Kanban OS shared) · [Sells/](requisitos/Sells/) · [Purchase/](requisitos/Purchase/) · [Inventory/](requisitos/Inventory/) · [Produto/](requisitos/Produto/)
-- [RecurringBilling/](requisitos/RecurringBilling/) · [MemCofre/](requisitos/MemCofre/) ⚰️→SRS · [Crm/](requisitos/Crm/) · [Chat/](requisitos/Chat/) ⚰️→Jana · [Whatsapp/](requisitos/Whatsapp/) · [EvolutionAgent/](requisitos/EvolutionAgent/) ⚰️MATAR
+- [RecurringBilling/](requisitos/RecurringBilling/) · [Crm/](requisitos/Crm/) · [Chat/](requisitos/Chat/) ⚰️→Jana · [Whatsapp/](requisitos/Whatsapp/) · [EvolutionAgent/](requisitos/EvolutionAgent/) ⚰️MATAR
 
 **Plataforma/auxiliares:**
-- [ADS/](requisitos/ADS/) (decisão automatizada) · [Admin/](requisitos/Admin/) · [Auditoria/](requisitos/Auditoria/) · [BI/](requisitos/BI/) ⚰️MATAR · [Cms/](requisitos/Cms/) · [Comissao/](requisitos/Comissao/) · [Essentials/](requisitos/Essentials/) · [Garantia/](requisitos/Garantia/) · [Grow/](requisitos/Grow/) ⚰️MATAR · [Manufacturing/](requisitos/Manufacturing/) · [Marketplaces/](requisitos/Marketplaces/) · [Pcp/](requisitos/Pcp/) · [PontoWr2/](requisitos/PontoWr2/) ⚰️→Ponto · [ProjectMgmt/](requisitos/ProjectMgmt/) · [TaskRegistry/](requisitos/TaskRegistry/) ⚰️→TeamMcp · [Officeimpresso/](requisitos/Officeimpresso/) · [Accounting/](requisitos/Accounting/) · [Arquivos/](requisitos/Arquivos/) · [LaravelAI/](requisitos/LaravelAI/) ⚰️→Jana · [MemoriaAutonoma/](requisitos/MemoriaAutonoma/) ⚰️→Jana · [Mwart/](requisitos/Mwart/) · [SRS/](requisitos/SRS/)
+- [ADS/](requisitos/ADS/) (decisão automatizada) · [Admin/](requisitos/Admin/) · [Auditoria/](requisitos/Auditoria/) · [BI/](requisitos/BI/) ⚰️MATAR · [Cms/](requisitos/Cms/) · [Comissao/](requisitos/Comissao/) · [Essentials/](requisitos/Essentials/) · [Garantia/](requisitos/Garantia/) · [Grow/](requisitos/Grow/) ⚰️MATAR · [Manufacturing/](requisitos/Manufacturing/) · [Marketplaces/](requisitos/Marketplaces/) · [Pcp/](requisitos/Pcp/) · [PontoWr2/](requisitos/PontoWr2/) ⚰️→Ponto · [Forja/](requisitos/Forja/) (ex-ProjectMgmt) · [TaskRegistry/](requisitos/TaskRegistry/) ⚰️→TeamMcp · [Officeimpresso/](requisitos/Officeimpresso/) · [Accounting/](requisitos/Accounting/) · [Arquivos/](requisitos/Arquivos/) · [LaravelAI/](requisitos/LaravelAI/) ⚰️→Jana · [MemoriaAutonoma/](requisitos/MemoriaAutonoma/) ⚰️→Jana · [Mwart/](requisitos/Mwart/) · [SRS/](requisitos/SRS/)
 
 **Infra (não-módulo):** [Infra/](requisitos/Infra/) — RUNBOOKs CT 100, Hostinger SSH, criar-modulo, branch protection, MWART-gate
 **Cross-cutting:** [_DesignSystem/](requisitos/_DesignSystem/) · [_Ideias/](requisitos/_Ideias/) · [_processo/](requisitos/_processo/) · [_COMPARATIVOS_INDEX.md](requisitos/_COMPARATIVOS_INDEX.md) · [_TEMPLATE_capterra_ficha.md](requisitos/_TEMPLATE_capterra_ficha.md) · [_Roadmap_Faturamento.md](requisitos/_Roadmap_Faturamento.md) · [requisitos/INDEX.md](requisitos/INDEX.md)
@@ -141,7 +143,7 @@
 
 Mantidos por compatibilidade (PontoWr2 origem do projeto). Para core moderno, ver [why/what/how acima](#comece-aqui-onboarding-7-docs).
 
-- [00-user-profile.md](00-user-profile.md) · [01-project-overview.md](01-project-overview.md) · [02-technical-stack.md](02-technical-stack.md) · [03-architecture.md](03-architecture.md) · [04-conventions.md](04-conventions.md) · [06-domain-glossary.md](06-domain-glossary.md) · [07-roadmap.md](07-roadmap.md) · [08-handoff.md](08-handoff.md) · [09-modulos-ultimatepos.md](09-modulos-ultimatepos.md) · [11-metas-negocio.md](11-metas-negocio.md)
+- [00-user-profile.md](00-user-profile.md) · [02-technical-stack.md](02-technical-stack.md) · [04-conventions.md](04-conventions.md) · [06-domain-glossary.md](06-domain-glossary.md) · [07-roadmap.md](07-roadmap.md) · [08-handoff.md](08-handoff.md) · [09-modulos-ultimatepos.md](09-modulos-ultimatepos.md) · [11-metas-negocio.md](11-metas-negocio.md)
 - [Guia atual de pedidos para agentes](../HOW_TO_ASK_CLAUDE.md) · [COMPARATIVO_TELAS_BLADE_VS_REACT.md](COMPARATIVO_TELAS_BLADE_VS_REACT.md) · [REQUISITOS_FUNCIONAIS_PONTO.md](REQUISITOS_FUNCIONAIS_PONTO.md) · [OPUS-MISSION-BRIEF.md](OPUS-MISSION-BRIEF.md) · [officeimpresso-spec.md](officeimpresso-spec.md) · [migrations.md](migrations.md)
 
 ## 🚨 Onde NÃO ir (Tier 0 IRREVOGÁVEL)

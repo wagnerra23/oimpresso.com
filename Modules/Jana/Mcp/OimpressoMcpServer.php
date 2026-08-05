@@ -60,7 +60,7 @@ class OimpressoMcpServer extends Server
         // ADR 0091 — Daily Brief (camada L7 da Constituição V2). PRIMEIRA tool
         // em toda sessão (skill brief-first Tier A always-on). Substitui 5-8
         // chamadas exploratórias por 1 brief de ~3k tokens.
-        \Modules\Brief\Mcp\Tools\BriefFetchTool::class,
+        \Modules\Forja\Mcp\Tools\BriefFetchTool::class,
         // ADR 0070 — Jira-style task management (CURRENT.md/TASKS.md removidos).
         // ⚠️ ListTools (laravel/mcp) PAGINA em 15 itens. 15 primeiras = essenciais.
         // Tools de leitura cycle/work/inbox:
@@ -161,18 +161,18 @@ class OimpressoMcpServer extends Server
         // Cowork→Code. handoff-pending puxa (stale/conflict guard A4/A5); handoff-ack
         // fecha (gate verde A3 + scope jana.mcp.handoff.ack A7). Page 2+ (chamados após
         // brief-fetch numa sessão de UI, fora dos 15 essenciais da página 1).
-        \Modules\TeamMcp\Mcp\Tools\HandoffPendingTool::class,
-        \Modules\TeamMcp\Mcp\Tools\HandoffAckTool::class,
+        \Modules\Forja\Mcp\Tools\HandoffPendingTool::class,
+        \Modules\Forja\Mcp\Tools\HandoffAckTool::class,
         // PR-6a Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — landing-pad HTTP
         // assinado: a GitHub Action on-push assina (HMAC) e chama handoff-submit →
         // pending, sem [W] no transporte. Scope fino jana.mcp.handoff.submit (A7);
         // reusa HandoffIngestService (mesma validação do PR-1). Sem auto-merge.
-        \Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool::class,
+        \Modules\Forja\Mcp\Tools\HandoffSubmitTool::class,
         // PR-7 Loop de Handoff Zero-Paste (Fase 2 · ADR 0283) — liga as levers da
         // fila (re-disparar/devolver/supersede) que o front só PINTA hoje. Mutação
         // auditada+idempotente da fila cowork_handoffs; scope fino jana.mcp.handoff.lever.
         // Sem auto-merge (o merge segue 1-clique do [W]).
-        \Modules\TeamMcp\Mcp\Tools\HandoffLeverTool::class,
+        \Modules\Forja\Mcp\Tools\HandoffLeverTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */

@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\ADS\Services\PolicyEngine;
-use Modules\ADS\Services\GovernanceRulesService;
-use Modules\ADS\Services\ToolRegistry;
+use Modules\Governance\Services\PolicyEngine;
+use Modules\Governance\Services\GovernanceRulesService;
+use Modules\Forja\Services\ToolRegistry;
 
 /**
  * Knowledge Graph (Cognitive Control Panel #3).
@@ -81,6 +82,15 @@ class GraphController extends Controller
      */
     private function buildPatternsRows(int $businessId): Collection
     {
+        // `mcp_decision_patterns` era do núcleo do ADS e é dropada na parte 6
+        // (ADR 0363). Das 5 fontes deste grafo, esta é a única que morre — as
+        // outras 4 (memory_docs do KB, meta-skills e policy do Governance,
+        // tools da Forja) seguem vivas. Sem esta guarda o DROP transformaria a
+        // tela inteira em 500; com ela o eixo "skills do KG" apenas some.
+        if (! Schema::hasTable('mcp_decision_patterns')) {
+            return collect();
+        }
+
         return DB::table('mcp_decision_patterns')
             ->where('business_id', $businessId)
             ->orderByDesc('total_count')

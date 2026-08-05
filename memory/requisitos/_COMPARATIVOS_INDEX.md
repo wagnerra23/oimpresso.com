@@ -32,7 +32,7 @@ Legenda: 🟢 ≥70  🟡 30-69  🔴 1-29  ⚫ 0 (n/a)
 |---|---|---|---|---|---|---|---|
 | 1 | **Financeiro** | 🟢 75 | Conta Azul 85 | -10 | produção (5 telas) | imitar OCR + dif. tela única | [📄](Financeiro/COMPARATIVO_CONCORRENCIA.md) |
 | 2 | **PontoWr2** | 🟡 52 | Pontomais 84 | -32 | dev avançado | imitar mobile + dif. dashboard live | [📄](PontoWr2/COMPARATIVO_CONCORRENCIA.md) |
-| 3 | **MemCofre** | 🟡 62 | GDrive 83 | -21 | em uso (basic) | bundled + integração IA Jana | [📄](MemCofre/COMPARATIVO_CONCORRENCIA.md) |
+| 3 | ~~**MemCofre**~~ ⚰️ | — | — | — | **módulo removido em 2026-07-29** ([ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)) | sucessores: KB · Jana · Governance | doc purgado (ver histórico git) |
 | 4 | **Grow** | 🟡 50 | HubSpot 87 | -37 | legado, status incerto | revisar — talvez integrar HubSpot | [📄](Grow/COMPARATIVO_CONCORRENCIA.md) |
 | 5 | **LaravelAI** | 🔴 14 | Prism PHP 76 | -62 | spec | **NÃO BUILD** — adotar Prism + wrapper | [📄](LaravelAI/COMPARATIVO_CONCORRENCIA.md) |
 | 6 | **Chat** | ⚫ 0 | Crisp 82 | -82 | perdido | **NÃO BUILD** — integrar Crisp/Jivo | [📄](Chat/COMPARATIVO_CONCORRENCIA.md) |

@@ -16,8 +16,8 @@
 | CU no SDD | 10 |
 | Telas (.tsx) | 3 |
 | Telas com `casos.md` | 3 |
-| UC declarados | 27 |
-| UC com teste que os cita | 23 |
+| UC declarados | 29 |
+| UC com teste que os cita | 24 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -52,6 +52,7 @@
 | UC-09 | Index.v2 | 🧪 aguarda veredito da lane |
 | UC-10 | Index.v2 | 📝 sem_teste |
 | UC-13 | Index.v2 | 📝 sem_teste |
+| UC-14 | Index.v2 | 📝 sem_teste |
 | UC-KB-01 | Index | 🧪 aguarda veredito da lane |
 | UC-KB-02 | Index | 🧪 aguarda veredito da lane |
 | UC-KB-03 | Index | 🧪 aguarda veredito da lane |
@@ -72,6 +73,7 @@
 | UC-KBV2-09 | Index.v2 | 📝 sem_teste |
 | UC-KBV2-10 | Index.v2 | 📝 sem_teste |
 | UC-KBV2-13 | Index.v2 | 🧪 aguarda veredito da lane |
+| UC-KBV2-14 | Index.v2 | 🧪 aguarda veredito da lane |
 
 ---
 

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Forja/Inbox/Index
+path: resources/js/Pages/Forja/Inbox/Index.tsx
+archetype: list
+persona: wagner
+nota: 87
+nivel: "Leader"
+baseline_anterior: 86   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Caixa de entrada agrupada por tipo com marca-lido otimista, deep-link pro Board, J/K/Enter/R, banner erro role=alert, empty-state e charter; conformance DS reforçada (#2666 + #3404, zero cores cruas). Comentário DRAFT ainda no topo do arquivo (gate F3 não fechado)."
+dimensoes: { density: 86, discoverability: 86, speed_to_task: 88, error_recovery: 90, cognitive_load: 86, aesthetic_usability: 86, affordance: 86, brand_confidence: 82, mobile_fit: 82, a11y_wcag: 86, i18n_ptbr: 90, performance_perceived: 86, information_hierarchy: 84, microcopy: 88, internal_consistency: 88, preflight_conformance: 86 }
+gaps:
+  - dim: "Brand-confidence"
+    best_of_class: "Linear inbox: superfície aprovada e estável"
+    fix: "Concluir gate F3 (screenshot Wagner ADR 0107/0114) e remover header DRAFT"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Superhuman: snooze/arquivar por item além de marcar lido"
+    fix: "Adicionar ação snooze/dispensar por item e undo do marcar-lido"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Gmail prioritário: bloco 'acionáveis' destacado no topo"
+    fix: "Separar visualmente menções/atribuições (acionáveis) do ruído de status_changed"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

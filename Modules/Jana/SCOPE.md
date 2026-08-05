@@ -1,6 +1,7 @@
 ---
 module: Jana
-purpose: "Chat IA do business — conversa, sugere metas, monitora execução. Tenancy híbrida (business_id nullable). Inclui custos LLM, qualidade RAG, alertas, períodos. Renomeado de Copiloto em Fase 3.7 PR-2 (2026-05-06). URLs/permissions/config keys mantêm prefixo legacy `copiloto.*` por compatibilidade."
+purpose: "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. ATENÇÃO fronteira em aberto: este módulo hospeda hoje também a plataforma MCP do time (servidor JSON-RPC /api/mcp, 44 tabelas mcp_* e 30 entidades Entities/Mcp/), cujo destino declarado em not_contains é Modules/Forja — movimento ainda não executado."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   # Chat IA core
   - "ChatController — UI chat principal"
@@ -19,9 +20,13 @@ contains:
   - "PeriodosController — períodos de apuração"
   # Alertas
   - "AlertasController — alerts gerenciados pela IA"
-  # Ghosts canon hub IA (stubs ADR 0182 + GUIA-SIDEBAR-V3)
-  - "BriefController — stub /jana/brief (UI dedicada Onda C; brief gerado por BriefDiarioAgent)"
-  - "RegrasController — stub /jana/regras (UI dedicada futura; policies PolicyEngine ADS + governance MCP)"
+  # Ghosts canon hub IA (stubs ADR 0182 + GUIA-SIDEBAR-V3) — os DOIS foram apagados.
+  # BriefController: removido 2026-06-15 [W] (stub redundante com brief-fetch/chat).
+  #   ⚠️ Ficou listado aqui por ~7 semanas depois de deixar de existir — nenhuma
+  #   máquina compara `contains` com a árvore, então o SCOPE apodreceu calado.
+  # RegrasController: removido 2026-08-04 [W] — cobria policies do PolicyEngine ADS
+  #   + governance MCP cross-team, DOIS domínios fora da Jana (núcleo do ADS foi pra
+  #   Modules/Forja em jul/2026; este SCOPE declara só tabelas jana_*). Lia zero tabela.
   # Boilerplate
   - "DataController — sidebar/permissions"
   - "InstallController — install/uninstall hooks"
@@ -30,11 +35,11 @@ contains:
   - "LICOES-OPERACAO.md — ledger append-only dos erros de OPERAÇÃO da Jana (≠ saída, que golden/RAGAS cobrem); cada lição gradua MEC→check no jana:health-check ou JULG→regra sempre-lida. Proposta §10.4 (aguarda [W])"
   - "Console/Commands/HealthCheckCommand — check jana_lesson_ledger_graduation valida o loop de graduação do ledger (advisory)"
 not_contains:
+  - "Mcp/SyncMemoryWebhookController → Modules/Forja (MCP é plataforma, [W] 2026-07-30)"
+  - "Mcp/HealthController → Modules/Forja (idem)"
   - "MemoriaController (browser KB) → Modules/KB"
   - "FontesController (knowledge sources) → Modules/KB"
-  - "Mcp/CcIngestController → Modules/TeamMcp"
-  - "Mcp/HealthController → Modules/TeamMcp"
-  - "Mcp/SyncMemoryWebhookController → Modules/TeamMcp"
+  - "Mcp/CcIngestController → Modules/Forja"
   - "Admin/GovernancaController → Modules/Governance (NOVO Fase 5)"
   - "Skills governance → Modules/ADS"
   - "Decision flow → Modules/ADS"
@@ -83,9 +88,11 @@ db_tables_legacy_views:
 drift_alerts:
   # Fase 3.7 PR-1 (2026-05-06): 5 drift controllers movidos pros donos corretos.
   # MemoriaController + FontesController → Modules/KB
-  # Mcp/CcIngest + Mcp/Health + Mcp/SyncMemoryWebhook → Modules/TeamMcp
+  # Mcp/CcIngest + Mcp/Health + Mcp/SyncMemoryWebhook → Modules/Forja
   # URLs mantidas (/jana/memoria, /jana/metas/{id}/fonte, /api/mcp/*, /api/cc/*)
   # via tuple [Class::class, 'method'] e namespace prefix dos route groups.
+  # E2b (2026-07-30): Mcp/Health + Mcp/SyncMemoryWebhook passaram por aqui e
+  # seguiram pra Modules/Forja no MESMO dia ([W] "MCP vai para Forja").
   - controller: "Admin/GovernancaController"
     pertence_a: "Modules/Governance (NOVO)"
     motivo: "Governança consolidada vai pra módulo dedicado"
@@ -113,9 +120,9 @@ Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-onl
 ## Quando este módulo NÃO é tocado
 
 - ❌ Browse de ADRs/sessions/specs canônicos → use Modules/KB
-- ❌ Admin de tokens MCP → use Modules/TeamMcp
+- ❌ Admin de tokens MCP → use Modules/Forja
 - ❌ Editar skill → use Modules/ADS
-- ❌ Triagem de tasks Jira-style → use Modules/ProjectMgmt (futuro Project)
+- ❌ Triagem de tasks Jira-style → use Modules/Forja
 
 ## Skills auto-load relevantes
 

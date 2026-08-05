@@ -125,6 +125,22 @@ jobs:
             Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
             Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php
 
+
+      # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
+      # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
+      # o FP do --check-assertions ANTES de arma-lo. Aqui so REPORTA (if: always()).
+      - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-arquivos-junit.xml --out test-results/pest-arquivos-junit-summary.json || true
+
+      - name: Upload sumario JUnit (pest-arquivos-junit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-arquivos-junit-summary
+          path: test-results/pest-arquivos-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Upload JUnit (Arquivos · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.arq == 'true' }}
         uses: actions/upload-artifact@v4

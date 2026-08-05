@@ -146,6 +146,94 @@ Três sinais de que `owner: wagner` não é declaração de posse: **(a)** apare
 
 ---
 
+## 3.2 Dono por PROCESSO (cadeia de escalação)
+
+> **Ratificada por [W] em 2026-07-31** ("aprove", sessão da cadeia de responsabilidade). O ato de
+> ratificação é o merge deste PR — as colunas *Responde* e *Aprova* passam a valer junto com a §3,
+> que segue canônica pro eixo *tipo de task*. As duas convivem: a §3 diz **quem pode pegar**; esta
+> diz **quem responde quando degrada**.
+>
+> **O que a ratificação NÃO fecha:** as linhas marcadas 🔴 continuam **abertas por decisão** —
+> ratificar a tabela não inventa dono pra elas. São elas: meta-governança, smoke de produção e os
+> 29 módulos da §3.3. Ficam registradas como buraco declarado, não como omissão.
+>
+> **Procedência de cada linha:** as colunas *Responde*/*Aprova* foram **derivadas da matriz §3**
+> pelo agente e confirmadas por [W] em bloco. A coluna *Derivado de* preserva de onde cada uma
+> saiu, e o ⚠️ marca as que vieram por proximidade (a §3 não tinha linha exata). Trocar qualquer
+> uma é PR novo — esta seção é append-only como o resto do canon.
+>
+> **Por que existe:** a §3 responde *"quem pode pegar este tipo de task"*. Não responde *"quem
+> responde quando este processo degrada"*. São perguntas diferentes, e a segunda não tinha fonte —
+> por isso todo alarme subia direto pro [W]. Origem: [W] 2026-07-31, textual — *"eu não consigo
+> garantir o funcionamento integral do sistema como um todo e não enxergo como cobrar de cada parte
+> do sistema a sua responsabilidade"*.
+
+### A cadeia — cinco degraus
+
+| Degrau | Quem | Faz o quê |
+|---|---|---|
+| **0 · máquina** | o gate | Primeiro respondente, sem humano. 34 barram merge, 29 avisam. É o degrau que deve engordar. |
+| **1 · executor** | [L] [M] [F] [E] | Recebe o vermelho e conserta. Não decide se a regra faz sentido; cumpre. |
+| **2 · dono** | [F] [M] [E] | Responde quando a **métrica do processo** cai ou o gate vive vermelho. **É o degrau que hoje não existe.** |
+| **3 · aprovador** | [F] no técnico | Libera exceção: label de regressão consentida, code review, implementação dentro de ADR aceita. |
+| **4 · soberano** | [W] | Merge, ADR canônica, promoção de gate, deploy, migration destrutiva, preço, produto. Não delega. |
+
+### As 11 etapas do fluxo
+
+| # | Processo | Executa | **Responde** | Aprova exceção | Derivado de |
+|---|---|---|---|---|---|
+| 1 | Pedido | [W] | [W] | [W] | §1 — decisões estratégicas |
+| 2 | Contrato de tela (charter · casos · SDD) | [M] · [L] pareado | **[M]** ⚠️ | [F] | "Frontend Inertia (Page nova)" — sem linha própria |
+| 3 | Design e Design System | [M] | **[M]** + [E] em UX ⚠️ | [W] | "Frontend Inertia" + "Validação UX" ✅[E] |
+| 4 | Código de módulo | varia | **ver §3.3** 🔴 | [F] | só 5 dos 34 módulos têm linha |
+| 5 | Teste e eval | [F] · [L] em Pest simples | **[F]** | [F] | "Eval / RAGAS / golden set" ✅[F] |
+| 6 | Segredo e dado pessoal | [F] | **[F]** | [W] | "PII redactor BR (LGPD)" — única linha com dono exclusivo |
+| 7 | Conhecimento canônico (ADR · SPEC · âncora) | [F] propõe | **[F]** | [W] | "Decisão / ADR" ✅[W], [F] propõe |
+| 8 | Meta-governança (as máquinas que vigiam máquinas) | — | **sem dono** 🔴 | [W] | nenhuma linha na §3 |
+| 9 | Merge | [W] | [F] revisa | [W] | "Code review PR técnico" ✅[F] |
+| 10 | Deploy e smoke em produção | [W] · [F] | deploy **[W]+[F]** · smoke **sem dono** 🔴 | [W] | "Deploy SSH Hostinger" ✅[W]✅[F] |
+| 11 | Registro e aprendizado | agente IA | **[W] aprova** | [W] | "Memory consolidation (skill)" ✅[W] |
+
+⚠️ = derivado por proximidade, a §3 não tem linha exata · 🔴 = **órfã — segue aberta mesmo após a ratificação**
+
+**Regras duras que já limitam esta cadeia** (não são novas — vêm da §1 e da §3):
+
+1. **[L] nunca passa do degrau 1.** Não mergeia sozinho, não pega LGPD, eval, cobrança, deploy nem
+   migration destrutiva. Sempre revisado por [F] ou [W].
+2. **[M] não sobe sozinha no deploy.** Produção exige [W] ou [F] junto.
+3. **[E] não entra na Jana em sprints LGPD.** E é a única que usa o produto como cliente final —
+   vale mais em UX do que em código.
+4. **[W] não deveria ocupar o degrau 1.** Está na §1: *"não deve fazer tasks de execução pura quando
+   a equipe consegue"*. Hoje ocupa, porque o degrau 2 está vazio.
+
+### O que esta tabela NÃO resolve
+
+Ela destrava as perguntas *quem responde*, *qual o risco de não agir* e *qual a prioridade*. **Não
+muda a concentração.** Medido em 2026-07-31 (`git log --since=180.days`, repo completo, 5.998
+commits alcançáveis): **96,7% dos commits** saem de uma identidade só, e **18 dos 34 módulos** têm
+autor único em 180 dias. Esse número só cai quando outra pessoa efetivamente commitar — nomear dono
+não commita por ninguém.
+
+## 3.3 Dono por MÓDULO — o buraco medido
+
+A §3 nomeia módulo em **5 das 24 linhas**: Financeiro, NfeBrasil/NFSe, RecurringBilling, PontoWr2 e
+MemCofre (hoje SRS). Os outros **29 módulos vivos não têm dono declarado em lugar nenhum** — nem na
+matriz, nem no `module.json` (que guarda `governance.bucket`, LGPD e retenção, mas **não** tem campo
+de dono), nem no frontmatter dos SPEC (ver §3.1).
+
+**Tentei derivar do git e não dá.** Varredura de autoria por módulo em 180 dias, excluindo a
+identidade dominante e os bots, devolve sinal humano real em **um** módulo:
+
+| Módulo | Autor humano distinto (180d) | Bate com a §3? |
+|---|---|---|
+| **NFSe** | ELIANAMARCELINOALVES (6 commits) | ✅ sim — "Módulo NfeBrasil (NFSe/NF-e)" ✅[E] |
+
+Todo o resto fica entre 1 e 5 commits — ruído, não posse. **Conclusão honesta: git não deriva dono
+de módulo neste repo.** A atribuição dos 29 é ato do [W], não inferência do agente. Deixar em branco
+é mais correto do que preencher com palpite: dono inventado parece canon e é pior que ausente.
+
+---
+
 ## 4. Convenção de identificação em commits / PRs / SPEC.md
 
 Use **iniciais entre colchetes** sempre que mencionar dono:

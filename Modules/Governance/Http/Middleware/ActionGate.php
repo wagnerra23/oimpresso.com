@@ -8,7 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\Privacy\PiiRedactor;
-use Modules\TeamMcp\Services\ActorResolver;
+use Modules\Forja\Services\ActorResolver;
 use Symfony\Component\HttpFoundation\Response;
 
 /**

@@ -34,8 +34,31 @@ jobs:
         run: node scripts/governance/adr-index-generate.test.mjs
       - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
         run: node scripts/governance/fact-anchor.test.mjs
+      # Fecha o gap "scripts/** + agents sem indice-dono": o MAQUINAS-INVENTARIO.md e derivado
+      # e agora ENFORCADO. --check e por COBERTURA (morde so quando maquina e add/removida sem
+      # regenerar, nao byte-exact que viraria ruido). Advisory (ADR 0314/0275: required = so Tier-0).
+      - name: Maquinas-inventario DRIFT (indice cobre todas as maquinas · rode --write se vermelho)
+        run: node scripts/governance/maquinas-inventario.mjs --check
+      - name: Ancora doc->codigo DRIFT (o codigo moveu e a doc nao sabe · rode --sync)
+        run: node scripts/governance/ancora-codigo-sync.mjs --check
+      - name: Ancora doc->codigo · bite-test (sincroniza ponteiro, recusa ambiguo, nao toca assercao)
+        run: node scripts/governance/ancora-codigo-sync.mjs --selftest
+      - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
+        run: node scripts/governance/maquinas-inventario.test.mjs
+      # A lista de lanes que alimentam o manifesto por-UC (G-7) e DERIVADA desde 2026-08-04
+      # (a lista a mao apodreceu: 4 lanes emitiam JUnit e ninguem lia). Sem este bite-test,
+      # quebrar a derivacao volta a congelar a colheita EM SILENCIO -- que foi o defeito.
+      - name: Junit-lanes bite-test (morde junit+artifact e bloco literal, solta comentario e junit sem artifact)
+        run: node scripts/governance/junit-lanes.mjs --selftest
+      # Fixtures do falso-positivo REAL de 2026-08-04: main parado a noite toda + rajada de
+      # 2 commits -> a formula antiga (head - served) devolvia 14.4h e alarmava com o servidor
+      # 3min atras. A fixture "a formula ANTIGA teria alarmado" impede a regressao voltar.
+      - name: MCP drift · lag mede HA QUANTO TEMPO o servidor deve (nao a distancia entre commits)
+        run: node scripts/governance/mcp-drift-sentinel.mjs --selftest
       - name: System-map camada de IA (censo derivado · morde no caching.embeddings que a mao contou errado)
         run: node scripts/governance/system-map-ia.test.mjs
+      - name: System-map path morto (transcricao de lapide libera, ponteiro inventado morde)
+        run: node scripts/governance/system-map-deadlinks.test.mjs
       - name: Grupo de memoria por modulo (case-trap Pages/kb x requisitos/KB + token no nome do arquivo)
         run: node scripts/governance/module-group-resolve.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
@@ -50,6 +73,29 @@ jobs:
         run: node scripts/governance/agent-pr-outcomes.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         run: node scripts/governance/agent-cost-per-pr.test.mjs
+      # Alcance arquivo-de-teste -> lane de PR. O selftest e a defesa do MEDIDOR
+      # (bite + controles negativos); o relatorio e ADVISORY e nao derruba o PR —
+      # o numero e relato, nao veredito. Ligado aqui porque script sem invocador e
+      # bug (proibicoes.md §Sempre-fazer #2), nao neutralidade.
+      # Sem contador no nome: "bite 15/15" apodreceria no proximo caso novo (LC-10 —
+      # artefato afirmando em tempo presente algo que muda). O numero vive na saida.
+      - name: Test-lane coverage (teste existe x lane de PR alcanca · bite + controles)
+        run: node scripts/governance/test-lane-coverage.mjs --selftest
+      - name: Test-lane coverage — relatorio (ADVISORY, nao bloqueia)
+        run: node scripts/governance/test-lane-coverage.mjs || true
+
+      # FORWARD-ONLY: nao cobra a divida historica (957 arquivos, nao e deste PR).
+      # Aponta so o que ESTE PR esta prestes a deixar sem rede — o padrao exato do
+      # incidente PiiRedactor: fonte alterada, teste dela existindo, nenhuma lane de
+      # PR alcancando. Provado E2E contra o commit real do incidente: acusa o
+      # PiiRedactorTest.php; controle negativo (diff sem fonte orfa) sai limpo.
+      # O checkout e raso (depth=1), entao a base do PR precisa ser buscada — sem
+      # ela o script imprime "ausencia de MEDICAO" e sai 0, nunca um falso "limpo".
+      - name: Forward-only — o teste do arquivo tocado roda em lane de PR? (ADVISORY)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=50 origin "${{ github.event.pull_request.base.sha }}" 2>/dev/null || true
+          node scripts/governance/test-lane-coverage.mjs --diff "${{ github.event.pull_request.base.sha }}" || true
       # Blinda a MATEMÁTICA (pearson/spearman) do outcome-probe do funcao-scorecard — o "número
       # real" (r=0.26) da proposta 2026-07-21-funcao-scorecard-validacao-por-outcome sustenta-se
       # nessas funções; um pearson bugado seria LC-08 (medir errado). Prova contra valores conhecidos
@@ -275,7 +321,7 @@ jobs:
       # rodaram em CI, e por isso o eixo 1 pôde afirmar "✓ todos os crons com heartbeat
       # < limite" tendo medido zero (cego lido como bootstrap). Ver proibicoes §"LIGUE A
       # MÁQUINA" item 2: máquina que ninguém invoca é bug, não neutralidade.
-      - name: cron-watchdog — cego ≠ bootstrap, e entrega parada morde (eixo 1 + eixo 2)
+      - name: cron-watchdog — cego ≠ bootstrap, entrega parada morde, e rodar ≠ dar certo (eixos 1+2+3)
         run: node scripts/governance/cron-watchdog.mjs --selftest
       - name: Ciclo documental — recibo antes→depois morde/solta (ADR 0270 · ZELADOR)
         run: node scripts/governance/documentation-loop.test.mjs
@@ -396,8 +442,28 @@ jobs:
       #     de legado é proibido — §5 2026-07-12).
       #
       # Todos advisory de nascença (ADR 0314/0275). Nenhum entra em branch protection.
-      - name: feature-lint sweep (trio requirements/plan/tasks · advisory)
-        run: node scripts/governance/feature-lint.mjs
+      #
+      # ── 2026-08-04 — o feature-lint passa a rodar COM `--check` ────────────────────
+      # Ligado em 27/07 sem a flag, o sweep tinha 14 códigos de recusa e nunca reprovava
+      # nada: `--check` é a única forma de o script sair com exit≠0. Medido ANTES do flip,
+      # em `origin/main` @69039c8cd45: `node scripts/governance/feature-lint.mjs` →
+      # "3 feature(s) · ERROS (mordem em --check): 0 · AVISOS: 0", exit 0; e com `--check`,
+      # exit 0 também. Dívida legada = ZERO, então não precisa de baseline nem de
+      # forward-only. A mordida já é provada pelo `feature-lint.test.mjs` (23 casos, com
+      # fixture boa → 0 issues e fixtures ruins → erro por código). O step continua fora do
+      # `required-checks-baseline.json` — quem manda em "o que bloqueia merge" é ele, não
+      # este nome. AVISO segue advisory por desenho do script (só ERRO morde).
+      - name: feature-lint --check (trio requirements/plan/tasks · exit 1 em ERRO)
+        run: node scripts/governance/feature-lint.mjs --check
+      # fluxo-morde — exercício de fogo do CICLO (não da catraca: isso é o gate-selftest).
+      # Injeta 1 defeito por etapa e mede os 3 elos: o script acusa → o CI transmite o exit →
+      # o required bloqueia merge. O --selftest roda SEM continue-on-error de propósito: se o
+      # medidor quebrar, não pode passar calado (gate mudo PARECE cobertura). O relatório é
+      # advisory (exit 0 sem --check) — promoção exige mordida provada (ADR 0336).
+      - name: fluxo-morde --selftest (o medidor vê o exit engolido e lê o baseline do dono)
+        run: node scripts/governance/fluxo-morde.mjs --selftest
+      - name: fluxo-morde (1 defeito injetado por etapa × 3 elos · advisory)
+        run: node scripts/governance/fluxo-morde.mjs
       - name: reguas-indexar CATRACA morde/solta (fixture boa/ruim)
         run: node scripts/governance/reguas-indexar.mjs --selftest
       - name: reguas-indexar fila (existia-mas-invisível não indexado · report-only)
@@ -423,6 +489,12 @@ jobs:
         run: node .claude/hooks/git-base-freshness-guard.test.mjs
       - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
         run: node scripts/governance/feature-lint.test.mjs
+      # A JORNADA, não a peça: o gate-selftest prova que cada catraca morde (72/72) e o
+      # fluxo-morde prova que a mordida chega ao merge. Faltava "um item atravessa o fluxo
+      # inteiro, e pular um elo é detectado — por QUEM". Fixture sintética em tmpdir; roda
+      # os linters REAIS por subprocess. Advisory por natureza: não é gate, é evidência.
+      - name: Fluxo-jornada (dado atravessa os elos + variações · ADR 0368/0273/0306/0264)
+        run: node scripts/governance/fluxo-jornada.test.mjs
       - name: Ghost-fix (reescrita SPEC + ADR append-only intacto)
         run: node scripts/governance/ghost-fix.test.mjs
       - name: Negócio-vs-governança ratio (alarme morde no crossover, solta no equilíbrio)
@@ -482,3 +554,70 @@ jobs:
       # pré-mudança e as de não-regressão passam nos dois. Advisory por desenho (ADR 0314/0275).
       - name: Réguas workflow (persistência incremental · checkpoint antes da prosa · retrato parcial declarado)
         run: node scripts/governance/reguas-workflow.test.mjs
+      # doc-id-index --check — o modo que lê o CORPUS REAL nunca teve invocador. O script já
+      # tinha o `--selftest` wirado acima desde o PR1, e foi por isso que escapou da TRIAGEM DOS 13
+      # (26-27/07): o detector de órfão enxerga o ARQUIVO, e o arquivo estava coberto — o MODO não.
+      # É a distinção que `proibicoes.md` §"Sempre fazer" já nomeia (`doc-id-index` está na lista
+      # dos 4 invisíveis ao dono do tema) e a mesma família de "um script com N modos é N gates"
+      # (§5 2026-07-28: validar um gate rodando UM dos modos que o CI roda não é verde).
+      # Medido em origin/main dcf927898c7 (2026-07-30), árvore limpa: `--check` = exit 1 com 1
+      # colisão real de id (`memory/handoffs/` e `memory/sessions/` com o mesmo stem) enquanto o
+      # `governance/doc-id-index.json` commitado afirmava `"collisions": []` e `stats.collisions: 0`
+      # — o índice AFIRMAVA zero colisão havendo uma, e o drift (3317→3337 docs) não era cobrado.
+      # Três session logs de 28/07 já haviam reportado a falha e a deixado "pra consolidação do
+      # parent"; sem invocador, ficou. Fixture prova que a lógica morde; nunca que o corpus está em dia.
+      # Enforcement: o dono é `governance/required-checks-baseline.json` — medido em 2026-07-30,
+      # 0 dos 35 contexts casavam "script", logo hard-fail aqui foi vermelho honesto que não
+      # bloqueia merge (desenho advisory da ADR 0271, não gate de teatro). Promoção = mordida
+      # provada + flip [W] (ADR 0336), fora deste PR.
+      # `!cancelled()`: é o único step do job que lê o corpus real em vez de fixture — não pode
+      # ser pulado porque o selftest de OUTRO script quebrou antes dele.
+      #
+      # POR QUE `--check-collisions` E NÃO `--check` (medido 2026-07-30, primeira corrida real
+      # deste step): o `--check` também exige `gerado == commitado`, e essa metade CORRE COM O
+      # MAIN — o CI avalia o *merge commit*, e 203 dos 319 commits dos últimos 7 dias (64% ·
+      # ~29/dia) tocam `memory/**.md`. Na prática o step ficou vermelho em minutos, por 2 docs
+      # que entraram em main enquanto o PR estava aberto — sem culpa do autor. Gate cronicamente
+      # vermelho é ruído que se aprende a ignorar (espelho do gate-de-teatro, §5 2026-07-28) e
+      # afogaria o sinal que importa. A metade COLISÃO é semântica, estável e FP 0 por construção:
+      # só fica vermelha quando dois docs reivindicam a mesma identidade. O frescor do índice
+      # segue como ato de consolidação (`--write`), não como cobrança por PR.
+      - name: doc-id-index — colisão de id no corpus real (advisory · frescor fica no --write)
+        if: ${{ !cancelled() }}
+        run: node scripts/governance/doc-id-index.mjs --check-collisions
+
+      # uc-sem-lane — a terceira categoria entre "coberto" e "descoberto": UC com o
+      # id no TÍTULO de um it()/test() (logo ALCANÇÁVEL pelo manifesto G-7) cujo
+      # arquivo LANE NENHUMA executa. Classe LC-13 (verde por não-execução) no eixo
+      # ESTÁTICO — irmã, não cópia, do junit-summary `--check-assertions`, que mede o
+      # eixo RUNTIME (rodou e provou algo?) e precisa de um run + artifact pra falar.
+      # Aqui a pergunta é anterior: existe caminho pro teste rodar?
+      #
+      # NÃO é régua nova (§5 "duplica régua consolidada"): é o cruzamento de dois donos
+      # que já existiam e nunca se falaram — `casos-coverage-guard` sabe UC×título e para;
+      # `test-lane-coverage` sabe arquivo×lane e para. As funções de parsing são
+      # IMPORTADAS dos donos (`extrairAlvos`/`estaCoberto` + `lib/uc-regex.mjs`), não
+      # copiadas, então a heurística não pode drifar em duas cabeças.
+      #
+      # FP MEDIDO ANTES de wirar (obrigação da §"LIGUE A MÁQUINA" item 4 — o §5 tem 4
+      # lápides de guard sintático que reprovava o legítimo). Corpus real de origin/main
+      # 13450bc8338 (2026-08-04): 93 UCs acusados em 30 arquivos, verificados por um
+      # segundo caminho INDEPENDENTE (grep cru do basename + de cada diretório ancestral
+      # em todo .github/) → **0 falso-positivo**. Os 12 arquivos com sinal de citação
+      # foram à mão: 4 do Forja (a lane roda só ForjaRoutesSmokeTest.php), 2 do KB (lista
+      # explícita), 1 do Governance (a citação é COMENTÁRIO de outro workflow), 1 do
+      # Board (idem, comentário no forja-shortcuts-gate) e `tests/Feature/Sells/**`, que
+      # aparece só no `paths:` do trigger — o PiiRedactor em pessoa: trigger dispara a
+      # lane, a LISTA decide o que roda. Zero overlap com a quarentena declarada.
+      #
+      # ADVISORY POR DESENHO, e não por timidez: "fora de lane de PR" ≠ "nunca roda" —
+      # a nightly do CT 100 varre a árvore. O que se mede é o elo do MANIFESTO (o UC fica
+      # 🧪 pra sempre sem ninguém saber por quê) e a LATÊNCIA de feedback. Promoção a
+      # required exige mordida provada + flip [W] (ADR 0336/0314), fora deste PR.
+      # O modo de corpus sai exit 0 SEMPRE: é relato, não veredito. Quem morde é o
+      # `--selftest` logo acima dele, sobre fixture — que é onde mordida se prova.
+      - name: uc-sem-lane — bite-test da lógica (fixture boa/ruim + controles negativos)
+        run: node scripts/governance/uc-sem-lane.mjs --selftest
+      - name: uc-sem-lane — UC alcançável × nunca alcançado no corpus real (advisory)
+        if: ${{ !cancelled() }}
+        run: node scripts/governance/uc-sem-lane.mjs

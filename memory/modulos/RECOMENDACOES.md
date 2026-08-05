@@ -1,5 +1,18 @@
 # Recomendações por módulo — decisões 2026-04-22
 
+> ⚠️ **Instantâneo de 2026-04-22 — NÃO é recomendação vigente.** A história reverteu
+> vários vereditos daqui: a linha `Jana ❌ Descartar` é o exemplo mais forte — a Jana
+> virou o módulo central de IA do produto. Leia como registro do que se pensava naquele
+> dia, nunca como orientação para hoje.
+>
+> **Por que o arquivo continua aqui** (medido 2026-07-30): ele é o **único** lugar que
+> registra o *porquê* de 6 módulos que não existem mais em branch nenhuma — Accounting,
+> AiAssistance, Grow, IProduction, Officeimpresso1 e Writebot. Eles só constavam de
+> `main-wip-2026-04-22`, que sumiu do repo e do remoto, e estão ausentes de
+> `origin/3.7-com-nfe`. Apagar este doc destruiria o contexto desses 6.
+> Recibo: `gh api repos/wagnerra23/oimpresso.com/branches --paginate` (1466 branches,
+> zero match para `main-wip`) · `git ls-tree origin/3.7-com-nfe Modules/<nome>` (vazio).
+
 Revisão dos 29 módulos encontrados em todas as branches (atual, `main-wip-2026-04-22`, `origin/3.7-com-nfe`, `origin/6.7-bootstrap`). Um resumo por módulo com ação recomendada.
 
 ## Legenda

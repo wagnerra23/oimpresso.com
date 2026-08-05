@@ -1,0 +1,97 @@
+---
+id: resources-js-pages-project-mgmt-triage-index-charter
+page: /project-mgmt/triage
+component: resources/js/Pages/Forja/Triage/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
+owner: wagner
+status: draft
+parent_module: Forja
+related_us: [US-TR-301, US-TR-307, US-TR-310, US-TR-311]
+related_adrs: [70, 93, 39]
+related_spec: memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md
+stories: [US-TR-301, US-TR-302, US-TR-303]
+tier: A
+charter_version: 1
+---
+
+# Page Charter — /project-mgmt/triage
+
+> **Status:** DRAFT (Onda 2, SPEC-UI-FASE7). Superfície humana da tool MCP `triage`.
+> **PENDENTE:** smoke visual + aprovação SCREENSHOT do Wagner (ADR 0107/0114) antes de `status: live`.
+
+---
+
+## Mission
+
+Dar ao time não-técnico (e futuros clientes B2B) uma tela dedicada pra **triar** tasks órfãs — atribuir dono + prioridade (+ cycle/epic opcional) inline, sem abrir cada task. A fila é a **mesma** da tool MCP `triage`: a UI não inventa query, consome o scope `McpTask::triage()` (owner NULL OU priority NULL OU status=backlog), excluindo done/cancelled.
+
+---
+
+## Goals — Features (faz)
+
+- AppShellV2 + `<PageHeader>` canon (h1 + subtitle com contadores)
+- `<KpiGrid>` + `<KpiCard>` 4 contadores: Pra triar / Sem dono / Sem prioridade / Em backlog
+- Lista de tasks órfãs (paridade 1:1 com tool `triage`) ordenada por `created_at desc`
+- **Atribuição inline** (US-TR-302): select de owner + select de prioridade direto na linha
+- **Mover cycle/epic** (US-TR-303): dropdowns opcionais de cycle + epic na mesma linha
+- UI **otimista** chamando `PATCH /triage/{id}/assign` → reusa `TaskCrudService::update` (mesma via que `tasks-update` MCP): gera `mcp_task_events` (assigned/field_updated) + notifica owner via `mcp_inbox_notifications`
+- **Rollback** em erro (banner âmbar inline auto-dismiss 5s) + reconciliação via partial reload
+- Task **some da lista** quando deixa de ser órfã (`still_triage=false` do backend)
+- Chips de motivo por linha (sem dono / sem prioridade / backlog)
+- Empty state: **"Nada pra triar"** (sem emoji — AP empty-state PT-BR limpo)
+- Deep-link `display_id` → `/project-mgmt/board?task=ID` (abre DetailSheet)
+- Atalhos canônicos (PT-01 + Board/MyWork): **J/K** navega linha · **Enter** abre no Board · **⌘K** palette global (dono do AppShellV2, PMG-002)
+- Polling 30s + on-focus reload (re-sincroniza fila)
+
+### Analista (Forja PR-5a, 2026-06-16)
+
+- Botão **Analisar** por linha → drawer **dossiê** (`GET /triage/{id}/dossier`, read-only, SÓ dado real): valor×esforço *sugerido* · risco Tier-0 *heurística* · requisitos (link SPEC) · duplicatas (mesmo módulo) · histórico de decisão (docs/ADRs `mcp_memory_documents`) · sessões CC (`mcp_cc_sessions`) · atividade (`mcp_task_events`).
+- Ações **"agente propõe, [W] aprova"** (AlertDialog confirma): **Aprovar** (`POST /aprovar` → backlog `todo`, exige dono+prio) · **Rejeitar** (`POST /rejeitar` → cancelled) · **Fundir** (`POST /fundir` → cancela + evento de duplicata). Todas via `TaskCrudService` (FSM + eventos).
+- Escopo **enxuto** ([W] 2026-06-16): "proposta" sem novo enum/schema (Tier-0 intocado). RAG leve (cross-link por módulo, sem ranking semântico). PR-5b futuro = estado F0 real + RAG semântico.
+
+---
+
+## Non-Goals — Features (NÃO faz)
+
+- ❌ Editar título/descrição/estimativa da task (isso é DetailSheet no Board)
+- ❌ Mudar status arbitrário (Triage só atribui; status muda no Board/Backlog)
+- ❌ Bulk-ops multi-seleção (defer ADR 0070 Tier 3 — fica no Backlog)
+- ❌ Criar task nova (tasks-create via MCP / botão futuro)
+- ❌ Escopo por `business_id` (mcp_tasks é governança GLOBAL repo-wide — ADR 0070/0093)
+- ❌ Brain B / autonomia ADS
+
+---
+
+## UX Targets
+
+- p95 first-paint < 1500ms (lista deferida via `Inertia::defer`)
+- 0 erros JS console
+- Atribuição reflete na UI < 100ms (otimista) e reconcilia < 1s
+- Empty state aparece quando a fila zera (não tela em branco)
+- Toque-friendly ≥ 360px (selects empilham em mobile com label visível)
+
+---
+
+## UX Anti-patterns
+
+- ❌ Hex cru em badges priority/status (canon = tokens `PRIORITY_BADGE`)
+- ❌ Modal pra atribuir (canon = select inline na linha)
+- ❌ Recarregar a página inteira a cada atribuição (canon = partial reload `only:['tasks','kpis']`)
+- ❌ `sessionStorage`
+- ❌ Divergir da fila da tool `triage` (UI e tool devem dar a MESMA resposta)
+
+---
+
+## Multi-tenant (Tier 0 — ADR 0093)
+
+`mcp_tasks` é **governança global** (sem `business_id` efetivo — ADR 0070). O escopo da Triage é **por-projeto** (`resolveProject`, default `COPI`), idêntico a Board/Backlog/MyWork — **não** por business. Board B2B multi-tenant entra só com 1º cliente (sinal qualificado ADR 0105).
+
+---
+
+## Refs
+
+- [SPEC-UI-FASE7](../../../../../memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md) — US-TR-301..303
+- [TriageTool MCP](../../../../../Modules/Jana/Mcp/Tools/TriageTool.php) — fila canônica espelhada
+- [ADR 0070 Jira-style PM](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
+- [ADR UI-0013 Constituição UI v2](../../../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)
+- Pattern fonte: `MyWork/Index.tsx` + `Backlog/Index.tsx`

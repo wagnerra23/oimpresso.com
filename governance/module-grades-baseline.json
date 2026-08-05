@@ -10,19 +10,15 @@
     "Governance": 88,
     "Crm": 87,
     "Essentials": 86,
-    "ProjectMgmt": 85,
+    "Forja": 85,
     "Repair": 83,
-    "ADS": 88,
-    "Brief": 85,
     "Financeiro": 82,
-    "TeamMcp": 79,
     "Auditoria": 81,
     "RecurringBilling": 82,
     "Woocommerce": 87,
     "Connector": 86,
     "NfeBrasil": 79,
     "Officeimpresso": 82,
-    "Admin": 81,
     "OficinaAuto": 80,
     "Manufacturing": 80,
     "NFSe": 82,
@@ -45,6 +41,11 @@
     "VozDoCliente": 46
   },
   "renames": {
+    "ProjectMgmt": {
+      "new_name": "Forja",
+      "reason": "Renomeado 2026-07-30 — module.json name=Forja (padrao ADR 0088 + PR-5 Pages). Renomeados: namespace PHP e resources/js/Pages/Forja. Mantem prefixo legacy por compat: URL /project-mgmt, alias projectmgmt, config key, lang, permission jana.mcp.usage.all, package key project_mgmt_module e a row system.projectmgmt_version.",
+      "renamed_at": "2026-07-30T00:00:00-03:00"
+    },
     "PontoWr2": {
       "new_name": "Ponto",
       "reason": "Renomeado Fase 3.7 PR-2 — module.json name=Ponto. URL/permissions/config keys mantem prefixo legacy pontowr2.* por compat.",
@@ -57,7 +58,7 @@
     },
     "Project": {
       "new_name": "ProjectMgmt",
-      "reason": "Dir fisico canonico e Modules/ProjectMgmt (promovido modulo proprio 2026-05-04 ADR 0070, supersede absorcao em TeamMcp). module.json name=ProjectMgmt.",
+      "reason": "Promovido a modulo proprio em 2026-05-04 (ADR 0070, supersede absorcao em TeamMcp) sob o nome ProjectMgmt. Em 2026-07-30 ProjectMgmt foi renomeado pra Forja — a cadeia completa e Project -> ProjectMgmt -> Forja; o dir fisico canonico hoje e Modules/Forja (ver renames.ProjectMgmt).",
       "renamed_at": "2026-05-16T14:46:35-03:00"
     }
   },

@@ -1,20 +1,21 @@
 ---
 name: whatsapp-arch-arte
-description: Use quando Wagner pedir "estado da arte de arquitetura WhatsApp/mensagens", "compare minha estrutura WhatsApp com os melhores e dá nota", "auditar arquitetura técnica do daemon Baileys + Hostinger", "/whatsapp-arch-arte", "como os melhores fazem infra WhatsApp scale". Especialista TÉCNICO (não Capterra de mercado — esse é `capterra-senior`) que (1) pesquisa profundamente arquiteturas estado-da-arte 2026 (Take Blip stack, Twilio Flex, Wati infra, MessageBird/Sinch eng blogs, Letta agents, Baileys community patterns), (2) compara com a arquitetura técnica do oimpresso (daemon Baileys CT 100 + Hostinger webhook + Laravel queue database + MessagePersister + Centrifugo + OTel), (3) avalia 15 dimensões técnicas (throughput, latency, anti-ban, persistência, idempotência, multi-tenant, observabilidade, retry, backpressure, recovery, multi-device, mídia, security, scale), (4) entrega NOTA 0-100 + top 5 ações priorizadas. Devolve doc enxuto em `memory/sessions/YYYY-MM-DD-arte-wa-structure.md`. NÃO executa código, NÃO commita.
+description: |
+  Use quando Wagner pedir "estado da arte de arquitetura WhatsApp/mensagens", "compare minha estrutura WhatsApp com os melhores e dá nota", "auditar arquitetura técnica do daemon Baileys + Hostinger", "/whatsapp-arch-arte", "como os melhores fazem infra WhatsApp scale". Especialista TÉCNICO (não Capterra de mercado — esse é `capterra-senior`) que (1) pesquisa profundamente arquiteturas estado-da-arte 2026 (Take Blip stack, Twilio Flex, Wati infra, MessageBird/Sinch eng blogs, Letta agents, Baileys community patterns), (2) compara com a arquitetura técnica do oimpresso (daemon Baileys CT 100 + Hostinger webhook + Laravel queue database + MessagePersister + Centrifugo + OTel), (3) avalia 15 dimensões técnicas (throughput, latency, anti-ban, persistência, idempotência, multi-tenant, observabilidade, retry, backpressure, recovery, multi-device, mídia, security, scale), (4) entrega NOTA 0-100 + top 5 ações priorizadas. Devolve doc enxuto em `memory/sessions/YYYY-MM-DD-arte-wa-structure.md`. NÃO executa código, NÃO commita.
 
-<example>
-Context: Wagner quer entender onde a arquitetura técnica do WhatsApp do oimpresso está vs Take Blip/Twilio infra 2026.
-user: "como seria o estado da arte? e compara com meu de uma nota"
-assistant: "Spawn whatsapp-arch-arte — pesquisa arquiteturas Take Blip / Twilio Flex / Wati / Bird / Letta / Baileys community, compara com daemon CT 100 + Hostinger queue do oimpresso, avalia 15 dimensões técnicas, dá nota 0-100."
-</example>
+  <example>
+  Context: Wagner quer entender onde a arquitetura técnica do WhatsApp do oimpresso está vs Take Blip/Twilio infra 2026.
+  user: "como seria o estado da arte? e compara com meu de uma nota"
+  assistant: "Spawn whatsapp-arch-arte — pesquisa arquiteturas Take Blip / Twilio Flex / Wati / Bird / Letta / Baileys community, compara com daemon CT 100 + Hostinger queue do oimpresso, avalia 15 dimensões técnicas, dá nota 0-100."
+  </example>
 
-<example>
-Context: Wagner cogita refactor da camada de webhook/queue.
-user: "/whatsapp-arch-arte"
-assistant: "Spawn whatsapp-arch-arte — produz benchmark técnico com nota ponderada."
-</example>
+  <example>
+  Context: Wagner cogita refactor da camada de webhook/queue.
+  user: "/whatsapp-arch-arte"
+  assistant: "Spawn whatsapp-arch-arte — produz benchmark técnico com nota ponderada."
+  </example>
 
-NÃO usar pra: features de mercado (use `capterra-senior`), bug tático no daemon (use `whatsapp-doctor`), tela Inbox UI (use `design-arte` ou `tela-venda-arte`), pesquisa genérica não-WhatsApp (use `estado-da-arte`).
+  NÃO usar pra: features de mercado (use `capterra-senior`), bug tático no daemon (use `whatsapp-doctor`), tela Inbox UI (use `design-arte` ou `tela-venda-arte`), pesquisa genérica não-WhatsApp (use `estado-da-arte`).
 model: opus
 color: teal
 tools: Read, Grep, Glob, WebSearch, WebFetch, Write, Bash

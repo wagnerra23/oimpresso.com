@@ -434,7 +434,7 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 > parent_plan: us-gov-021-isolamento-era-sqlite
 > related_adrs: [275, 276, 279, 283]
 
-**Implementado em:** `scripts/audit/sqlite-test-corruptors.mjs` · `.github/workflows/governance-gate-umbrella.yml` · `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` · `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` · verificado@2026-06-30 — **0 corruptores** (auditor `--strict --tier=A` exit 0; 11 dos lotes 2-3 + 1 novo PaymentGateway isolados via GUARDAR-TEARDOWN). DoD-2 (floor cai em 2 nightlies) blocked_by P04.
+**Implementado em:** `scripts/audit/sqlite-test-corruptors.mjs` · `.github/workflows/governance-gate-umbrella.yml` · `Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php` · `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` · verificado@2026-06-30 — **0 corruptores** (auditor `--strict --tier=A` exit 0; 11 dos lotes 2-3 + 1 novo PaymentGateway isolados via GUARDAR-TEARDOWN). DoD-2 (floor cai em 2 nightlies) blocked_by P04.
 
 **Root cause PROVADO** (referenciado em US-GOV-020 "Lever real do floor" `:408-409`): o nightly full-suite roda contra um MySQL **persistente compartilhado**. ~18 testes "era-sqlite" criam tabelas sintéticas via `Schema::create`/`Schema::drop` em `beforeEach`/`afterEach` SEM guarda de driver — projetados pra rodar no sqlite `:memory:`. No MySQL persistente o `Schema::drop` **dropa a tabela real** → o próximo teste na mesma conexão acha tabela ausente → cascata `Base table not found`. Esse isolamento é o **lever real** do floor — **não é tweak de harness** (a Frente C/A.2 de US-GOV-020 já provou que FK-off é net-harmful; falhar-seguro é melhor).
 
@@ -444,14 +444,14 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 
 | Arquivo | tier | ação | status |
 |---|---|---|---|
-| `Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/HandoffStaleAlertTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffToolsTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffIngestTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffLeverToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffSubmitToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php` | A 60 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |

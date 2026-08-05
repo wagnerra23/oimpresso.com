@@ -380,6 +380,74 @@ export function pathsQueAndaram(paths, tocados) {
   return out;
 }
 
+// ── BASE DERIVADA (US-GOV-058) — o que o squash-merge NÃO come ──
+//
+// O carimbo grava o sha da BRANCH; o squash descarta esse commit, então 2 dos 4 motivos de
+// unknown (`sha_fora_da_ancestralidade` e `sha_ausente`) são ruído ESTRUTURAL, não dívida:
+// medido em 2026-08-04 no main, 270 de 437 âncoras (61,8%) caíam neles — o eixo temporal
+// nascia cego em 67,7% do corpus e o número virava não-acionável.
+//
+// O squash come o commit da branch, mas NÃO come o commit em que a LINHA entrou no main.
+// Esse commit é ancestral por construção e serve de base: `git log -S"verificado@<sha>"`
+// restrito ao SPEC, primeiro que for ancestral do HEAD.
+//
+// O QUE ISTO NÃO É:
+//  · NÃO usa a DATA declarada (a metade auto-declarável que o `verificado_em` já reprovou —
+//    proibicoes §5 2026-07-09). A base sai do GIT; o documento só entrega a string do carimbo.
+//  · NÃO re-carimba nada. Re-gravar sha em massa é o `--reverify` que a própria US-GOV-058
+//    classificou como gaming automatizado (apagaria as stale sem ninguém olhar o código).
+//  · NÃO muda exit code: o eixo segue report-only, fora de --check* e de anchor_coverage.
+//
+// FIDELIDADE MEDIDA (o controle que decidiu): nas 141 âncoras que já eram medíveis pelo sha
+// declarado, os dois caminhos concordam em 139 (98,6%). As 2 divergências são do mesmo par
+// (3acabd2 → 13559be, PR #4207) e a base derivada acerta MELHOR: o "movimento" que o sha
+// declarado chama de stale é o PRÓPRIO PR que fez a verificação — quem carimba o origin/main
+// de ontem e mexe no código ancorado hoje nasce stale, e a base derivada cancela isso.
+//
+// VIÉS HONESTO: mede "desde que a verificação ENTROU no main", não "desde que alguém olhou".
+// Movimento na janela branch→merge fica invisível. Medido: p50 = 0 dia, 98% ≤ 1 dia, máx 42.
+//
+// FAIL-SAFE preservado: pickaxe que não acha base (SPEC renomeado, carimbo reescrito) devolve
+// o unknown original — "não sei" nunca vira "fresco".
+// GRANULARIDADE (e o viés que ela causa, declarado): a chave é (SPEC, sha), não (US, sha) —
+// o pickaxe casa a string do carimbo, e um SPEC inteiro costuma ser carimbado com o mesmo sha
+// (medido: 411 âncoras em 25 shas). Quando uma US é carimbada DEPOIS com um sha já usado no
+// mesmo arquivo, a base é a 1ª introdução daquele sha ali — mais ANTIGA que a linha, logo
+// mede mais movimento e tende a `stale`. É o lado seguro: erra reportando, nunca calando.
+const _baseCarimboCache = new Map(); // `${spec}::${sha}` → sha da base | null
+function baseAncestralDoCarimbo(sha, spec) {
+  const chave = `${spec}::${sha}`;
+  if (_baseCarimboCache.has(chave)) return _baseCarimboCache.get(chave);
+  const rel = relative(ROOT, spec).split('\\').join('/');
+  const out = gitTry(`git log --reverse --format=%H -S"verificado@${sha}" -- "${rel}"`);
+  let base = null;
+  for (const h of (out || '').split('\n').map((s) => s.trim()).filter(Boolean)) {
+    if (gitOk(`git merge-base --is-ancestor ${h} HEAD`)) { base = h; break; }
+  }
+  _baseCarimboCache.set(chave, base);
+  return base;
+}
+// Os 2 motivos que o squash CAUSA. `checkout_shallow` e `git_log_falhou` ficam de fora de
+// propósito: ali a história inteira é não-confiável, e derivar base não conserta isso.
+// `sha_ausente` entra porque em CI a branch some depois do merge — medido no run do main de
+// 2026-08-03: `sha_fora_da_ancestralidade=266 · sha_ausente=4` (local dá 270 / 0).
+const MOTIVOS_DO_SQUASH = new Set(['sha_fora_da_ancestralidade', 'sha_ausente']);
+
+/**
+ * Como `tocadosDesde`, mas com a base derivada quando o squash comeu o sha declarado.
+ * O motivo ORIGINAL viaja junto: medir pela base não pode apagar o rastro de que aquele
+ * carimbo não era ancestral (`sha_ausente` também cobre sha com typo, não só branch
+ * deletada — o eixo passa a medir, mas o número segue contável por motivo).
+ */
+function tocadosDesdeAncora(sha, spec) {
+  const t = tocadosDesde(sha);
+  if (t.ok || !MOTIVOS_DO_SQUASH.has(t.reason)) return t;
+  const base = baseAncestralDoCarimbo(sha, spec);
+  if (!base) return t;
+  const r = tocadosDesde(base);
+  return r.ok ? { ok: true, files: r.files, viaBaseDerivada: true, motivoOriginal: t.reason } : t;
+}
+
 // Arquivos tocados entre <sha> e HEAD. Devolve {ok:false, reason} em TODO caso ambíguo —
 // "não sei" nunca vira "não-stale" (é a lição do JUnit parcial: ausente ≠ verde).
 function tocadosDesde(sha) {
@@ -669,7 +737,8 @@ function lintSpec(file) {
   const naoServido = []; // advisory `servido` — só quando HITS carregado
   let servidoCount = 0;
   const staleList = [], staleUnknown = []; // C8 — só com --stale
-  let staleFresco = 0;
+  let staleFresco = 0, staleViaBase = 0; // viaBase: medidas pela base derivada (US-GOV-058)
+  const staleViaBaseMotivos = {};
   for (const u of usList) {
     if (!u.fields.length) { counts.sem_campo++; continue; }
     const c = u.fields[0]; // 1 linha por US (gramática); extras contam em fields_total
@@ -682,11 +751,12 @@ function lintSpec(file) {
         // âncora fora da forma verificada (legado sem `verificado@`) → não dá pra medir.
         staleUnknown.push({ us: u.id, line: c.line, reason: 'sem_sha_verificado' });
       } else {
-        const t = tocadosDesde(c.sha);
+        const t = tocadosDesdeAncora(c.sha, file);
         if (!t.ok) staleUnknown.push({ us: u.id, line: c.line, sha: c.sha, reason: t.reason });
         else {
+          if (t.viaBaseDerivada) { staleViaBase++; staleViaBaseMotivos[t.motivoOriginal] = (staleViaBaseMotivos[t.motivoOriginal] || 0) + 1; }
           const andaram = pathsQueAndaram(c.segs, t.files);
-          if (andaram.length) staleList.push({ us: u.id, line: c.line, sha: c.sha, paths: andaram });
+          if (andaram.length) staleList.push({ us: u.id, line: c.line, sha: c.sha, paths: andaram, via: t.viaBaseDerivada ? 'base_derivada' : 'sha_declarado' });
           else staleFresco++;
         }
       }
@@ -745,6 +815,7 @@ function lintSpec(file) {
     req_sem_aceite: reqSemAceite, req_sem_covering_test: reqSemTeste, req_teste_vermelho: reqTesteVermelho,
     req_sem_lane: reqSemLane, servido: servidoCount, nao_servido: naoServido,
     anchor_stale: staleList, anchor_stale_unknown: staleUnknown, anchor_stale_fresco: staleFresco,
+    anchor_stale_via_base_derivada: staleViaBase, anchor_stale_via_base_motivos: staleViaBaseMotivos,
   };
 }
 
@@ -905,6 +976,9 @@ const naoServidoTotal = modules.reduce((a, m) => a + m.nao_servido.length, 0);
 const staleTotal = modules.reduce((a, m) => a + m.anchor_stale.length, 0);
 const staleUnknownTotal = modules.reduce((a, m) => a + m.anchor_stale_unknown.length, 0);
 const staleFrescoTotal = modules.reduce((a, m) => a + m.anchor_stale_fresco, 0);
+const staleViaBaseTotal = modules.reduce((a, m) => a + (m.anchor_stale_via_base_derivada || 0), 0);
+const staleViaBaseMotivosTotal = {};
+for (const m of modules) for (const [k, v] of Object.entries(m.anchor_stale_via_base_motivos || {})) staleViaBaseMotivosTotal[k] = (staleViaBaseMotivosTotal[k] || 0) + v;
 const staleMotivos = {};
 for (const m of modules) for (const u of m.anchor_stale_unknown) staleMotivos[u.reason] = (staleMotivos[u.reason] || 0) + 1;
 
@@ -923,7 +997,7 @@ const report = {
     servido_regra: 'SERVIDO (4º veredito · ADVISORY runtime): US wired (anchored_ok/parcial) ancorada em Page com hits>0 na janela do ledger governance/route-hits.json (export do middleware ContadorHitsRota em prod). nao_servido = "existe + roteado mas 0 hits em Nd" — prova de USO, não de correção. NUNCA entra em coverage/--check/flag. Sem ledger (ou pages vazio) = sem_ledger, nada é marcado.',
     servido_ledger: HITS ? `${relative(ROOT, HITS_PATH).replace(/\\/g, '/')} (janela ${HITS.janela ?? '?'}d)` : 'sem_ledger',
     stale_regra: STALE
-      ? 'ANCHOR STALE (5º eixo · TEMPORAL · C8): consome o `verificado@<sha7>` que a gramática §1 exige e ninguém lia. anchor_stale = US anchored_ok/parcial cujo(s) path(s) foram tocados por ≥1 commit entre o sha e o HEAD (`git log <sha>..HEAD --name-only`, 1 chamada por sha DISTINTO). dead=path sumiu · zombie=tela desligada · stale=path vivo mas "verificado" virou passado. NÃO entra em anchor_coverage, NÃO muda flag e NÃO participa de --check* (exit intocado). GUARD ANTI-FABRICAÇÃO: checkout shallow, sha que não resolve, ou sha NÃO-ancestral do HEAD (squash-merge comeu o commit da branch) → anchor_stale_unknown, NUNCA "fresco" — `git log` sobre sha não-ancestral não erra, MENTE (mede desde o merge-base). RESÍDUO: o sha é declarado; re-carimbar sem re-verificar zera o sinal (o custo é um commit auditável no diff — mesmo argumento do churn no doc-freshness-score).'
+      ? 'ANCHOR STALE (5º eixo · TEMPORAL · C8): consome o `verificado@<sha7>` que a gramática §1 exige e ninguém lia. anchor_stale = US anchored_ok/parcial cujo(s) path(s) foram tocados por ≥1 commit entre o sha e o HEAD (`git log <sha>..HEAD --name-only`, 1 chamada por sha DISTINTO). dead=path sumiu · zombie=tela desligada · stale=path vivo mas "verificado" virou passado. NÃO entra em anchor_coverage, NÃO muda flag e NÃO participa de --check* (exit intocado). BASE DERIVADA (US-GOV-058): quando o squash comeu o sha da branch (`sha_fora_da_ancestralidade`/`sha_ausente`), a base vira o commit ANCESTRAL que introduziu aquele carimbo no SPEC (`git log -S"verificado@<sha>" -- <spec>`, 1ª ocorrência ancestral) — derivada do GIT, nunca da data declarada. Mede "desde que a verificação ENTROU no main" (janela branch→merge medida em 2026-08-04: p50 0d, 98% ≤1d, máx 42d), contada em anchor_stale_via_base_derivada com o motivo original preservado. GUARD ANTI-FABRICAÇÃO: checkout shallow, git log falho, ou pickaxe sem base ancestral (carimbo ainda não mergeado / SPEC renomeado) → anchor_stale_unknown, NUNCA "fresco" — `git log` sobre sha não-ancestral não erra, MENTE (mede desde o merge-base). RESÍDUO: o sha é declarado; re-carimbar sem re-verificar zera o sinal (o custo é um commit auditável no diff — mesmo argumento do churn no doc-freshness-score).'
       : 'stale_off — sem --stale este script não executa git (invariante fs-puro do ADR 0303 preservada nos jobs required `anchor-lint ADR 0273` e `anchor entry/covers gate`).',
     behavior: JUNIT ? `junit:${JUNIT.schema}${JUNIT_PARTIAL ? ' (noite PARCIAL — ausente=unknown)' : ''} · fonte ${JUNIT.source}` : `behavior_unknown (${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'})`,
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
@@ -944,6 +1018,8 @@ const report = {
     anchor_stale_on: STALE,
     anchor_stale_total: STALE ? staleTotal : null,
     anchor_stale_fresco_total: STALE ? staleFrescoTotal : null,
+    anchor_stale_via_base_derivada_total: STALE ? staleViaBaseTotal : null,
+    anchor_stale_via_base_motivos: STALE ? staleViaBaseMotivosTotal : null,
     anchor_stale_unknown_total: STALE ? staleUnknownTotal : null,
     anchor_stale_unknown_motivos: STALE ? staleMotivos : null,
     baseline_applied: BASELINE ? BASELINE_PATH : null,
@@ -993,7 +1069,8 @@ console.log(`  Servido (advisory runtime): ${HITS ? `${servidoTotal} US com hit 
 if (STALE) {
   const motivos = Object.entries(staleMotivos).map(([k, v]) => `${k}=${v}`).join(' · ') || '—';
   console.log(`  Âncora stale (verificado@sha × HEAD): ${staleTotal} com código movido desde a verificação · ${staleFrescoTotal} sem movimento · ${staleUnknownTotal} não-medível (${motivos})`);
-  console.log(`     └ não-medível NÃO é "fresco": sha ausente/não-ancestral (squash-merge) ou checkout shallow = "não sei". Carimbe o sha de um commit JÁ na main (\`git rev-parse --short=7 origin/main\`), não o HEAD da branch.`);
+  console.log(`     └ não-medível NÃO é "fresco": carimbo ausente ou checkout shallow = "não sei".`);
+  console.log(`     └ ${staleViaBaseTotal} medida(s) pela BASE DERIVADA (o squash comeu o sha da branch; a base é o commit que trouxe o carimbo pro main). Medível ≠ carimbado certo: a receita segue \`git rev-parse --short=7 origin/main\` (ADR 0273 §1), não o HEAD da branch.`);
 }
 console.log(`\n  💀 dead = path inexistente · 🧟 zombie = path existe mas tela desligada · 🧪 = teste citado inexistente${STALE ? ' · ⏳ stale = path vivo, mas o código andou desde o verificado@sha' : ''}. Corrigir via reconciliação — nunca inventar path.\n`);
 

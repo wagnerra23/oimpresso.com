@@ -1,6 +1,7 @@
 ---
 module: KB
-purpose: "Knowledge Base — biblioteca compartilhada de ADRs, sessions, runbooks, specs, comparativos. Browse/search/graph sobre `mcp_memory_documents`. Split do Copiloto pra desacoplar chat IA de browsing canônico."
+purpose: "Onde está escrito? — indexa, classifica e serve o conhecimento consultável da empresa (o canônico vindo do git, artigos e trilhas editáveis, e a estrutura extraída do próprio código) e responde pergunta em linguagem natural sobre ele via RAG."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "KbController — listagem e detalhe (legacy V0 — KB browser dos docs MCP)"
   - "MemoriaController — tela LGPD 'O Copiloto lembra de você' (US-COPI-MEM-012); URL /copiloto/memoria mantida"
@@ -17,11 +18,11 @@ contains:
   - "KbAiController — IA RAG endpoints /kb/ai/{ask,summarize,suggest-meta} (delega Modules/Jana/Ai/Agents/KbAnswerAgent) — ONDA 4 ADR 0149"
 not_contains:
   - "Chat IA (Jana) → Modules/Jana"
-  - "MCP server admin (tokens, webhooks) → Modules/TeamMcp"
+  - "MCP server admin (tokens, webhooks) → Modules/Forja"
   - "Skills governance → Modules/ADS"
-  - "System Rules Spec (regras pra IA programar) → Modules/SRS"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
-  - "Audit log → Modules/TeamMcp + Modules/Governance"
+  - "System Rules Spec (regras pra IA programar) → Modules/SRS — módulo REMOVIDO em 2026-07-29 (ADR 0357); fronteira a revisar"
+  - "Tasks Jira-style → Modules/Forja"
+  - "Audit log → Modules/Forja + Modules/Governance"
 trust_required: L2
 owner: wagner
 permission_prefix: kb.*
@@ -73,10 +74,10 @@ Browser canônico de **conhecimento estruturado** do oimpresso: ADRs, sessions, 
 
 ## Quando NÃO é tocado
 
-- ❌ Conversar com IA → Modules/Copiloto (Jana)
+- ❌ Conversar com IA → **Modules/Jana** (era `Modules/Copiloto`, renomeado — [ADR 0092](../../memory/decisions/0092-tabela-rename-copiloto-para-jana.md))
 - ❌ Editar SKILL.md → Modules/ADS
-- ❌ Editar regra imutável de programação → Modules/MemCofre (SRS)
-- ❌ Browse de tarefas → Modules/ProjectMgmt
+- ❌ Editar regra imutável de programação → ~~Modules/MemCofre (SRS)~~ — `MemCofre` virou `SRS` ([ADR 0088](../../memory/decisions/0088-module-rename-php-only.md)) e o `SRS` foi REMOVIDO em 2026-07-29 ([ADR 0357](../../memory/decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)); fronteira a revisar
+- ❌ Browse de tarefas → Modules/Forja
 
 ## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
 

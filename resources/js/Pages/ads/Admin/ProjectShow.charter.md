@@ -2,11 +2,12 @@
 id: resources-js-pages-ads-admin-project-show-charter
 page: /ads/admin/projects/{id}
 component: resources/js/Pages/ads/Admin/ProjectShow.tsx
+related_us: [US-ADS-004]
 related_prototype: n/a (detalhe bespoke — banda de KPIs + decomposição em <ol>; sem FsmActionPanel/<dl>/Timeline, assinatura PT-03 ausente)
 owner: wagner
 status: draft
 last_validated: "2026-07-11"
-parent_module: ProjectMgmt
+parent_module: Forja
 related_adrs: [114, 101, 93]
 tier: B
 charter_version: 1
@@ -16,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/ProjectMgmt/Http/Controllers/Admin/ProjectsController@show` (rota `ads.admin.projects.show`, `whereNumber('id')`) + `@decompose` (POST). Detalhe do Project: KPIs estratégicos, parts decompostas, métricas de sucesso e decisões geradas.
+> Backend: `Modules/Forja/Http/Controllers/Admin/ProjectsController@show` (rota `ads.admin.projects.show`, `whereNumber('id')`) + `@decompose` (POST). Detalhe do Project: KPIs estratégicos, parts decompostas, métricas de sucesso e decisões geradas.
 
 ---
 

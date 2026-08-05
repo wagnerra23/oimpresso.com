@@ -1,14 +1,15 @@
 ---
 module: ConsultaOs
-purpose: "Portal público de consulta de Ordem de Serviço. Cliente acompanha pipeline produção."
+purpose: "Casca de portal público de consulta de OS — backend completo (rota sem auth, anti-enumeration, auditoria LGPD, throttle, OTel, Repository trocável) rodando sobre dataset FAKE de 4 OS. Não lê banco: existe para validar UX e segurança antes de US-CONSULTA-001 ligar a query real."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "ConsultaOsController"
   - "DataController"
   - "InstallController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
-  - "MCP server admin → Modules/TeamMcp"
+  - "Tasks Jira-style → Modules/Forja"
+  - "MCP server admin → Modules/Forja"
 trust_required: L4
 owner: wagner
 permission_prefix: consultaos.*

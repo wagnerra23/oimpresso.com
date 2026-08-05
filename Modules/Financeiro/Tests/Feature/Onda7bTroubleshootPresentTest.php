@@ -108,7 +108,20 @@ describe('Onda 7b — wire-up Index.tsx', function () {
 
     it('Botão ▶ Apresentar agora abre PresentationMode (não alert)', function () {
         $src = file_get_contents(FIN_BASE_7B . '/Index.tsx');
-        expect($src)->toContain('onClick={() => setPresentOpen(true)}');
+
+        // NÃO asserta a SINTAXE do handler — mesmo molde do Onda9ResumirMesTest.
+        // A versão anterior exigia o literal `onClick={() => setPresentOpen(true)}`
+        // (forma JSX); os botões viraram array data-driven
+        // (`{ key:'apresentar', …, onClick: () => setPresentOpen(true) }`), então a
+        // string morreu enquanto o RECURSO seguia intacto. É o exemplo que o próprio
+        // cabeçalho da quarentena cita ao descrever o bucket A.
+        //
+        // Asserimos a CADEIA DE WIRING — estado → handler → componente montado com ele:
+        expect($src)->toContain('setPresentOpen');        // handler existe
+        expect($src)->toContain('setPresentOpen(true)');  // alguém ABRE o modo apresentação
+        expect($src)->toContain('<FinPresentationMode');  // o componente é montado
+        expect($src)->toContain('open={presentOpen}');    // ligado ao MESMO estado
+
         // alert removido
         expect($src)->not->toContain("alert('Apresentar:");
     });

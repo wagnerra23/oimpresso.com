@@ -50,6 +50,77 @@ export function buildVersions(pkg = {}, comp = {}) {
  * @param {{ docs: {rel:string,txt:string}[], pkg?: object, comp?: object, moduleExists?: (name:string)=>boolean }} args
  * @returns {{file:string, afirma:string, verdade:string}[]}
  */
+/**
+ * Extrai as tabelas AFIRMADAS na §5.2 ("Modelo de dados") de um SDD.
+ *
+ * Discriminador **ESTRUTURAL, não lexical**: só a coluna cujo cabeçalho é `Tabela`
+ * (a forma que o SDD-TEMPLATE prescreve). Medido em 2026-08-03 sobre os 16 SDDs
+ * vivos: extração lexical (todo `backtick` da §5.2) devolve 234 "não encontrados"
+ * em 333 — e **todos são COLUNAS** (`business_id`, `final_total`…), não tabelas.
+ * A coluna-Tabela é o único lugar onde o doc afirma "esta tabela EXISTE".
+ * Com o discriminador estrutural: 84 afirmações, 2 contradições, 0 falso-positivo.
+ *
+ * @param {string} txt conteúdo do SDD
+ * @returns {Map<string,string>} base (tabela) → token original citado
+ */
+export function tabelasAfirmadasNo52(txt) {
+  const out = new Map();
+  const L = String(txt || '').split(/\r?\n/);
+  let ini = -1, niv = 0;
+  for (let i = 0; i < L.length; i++) {
+    const m = L[i].match(/^(#{2,4})\s*5\.2\b/);
+    if (m) { ini = i; niv = m[1].length; break; }
+  }
+  if (ini < 0) return out;
+  let fim = L.length;
+  for (let j = ini + 1; j < L.length; j++) {
+    const m = L[j].match(/^(#{1,6})\s/);
+    if (m && m[1].length <= niv) { fim = j; break; }
+  }
+  let col = -1;
+  for (const ln of L.slice(ini, fim)) {
+    if (!ln.trim().startsWith('|')) { col = -1; continue; } // saiu da tabela markdown
+    const cels = ln.split('|').slice(1, -1).map((c) => c.trim());
+    if (/^[-: ]+$/.test(cels.join(''))) continue;           // linha separadora
+    if (col === -1) { // cabeçalho: acha a coluna "Tabela"/"Entidade"
+      col = cels.findIndex((c) => /^(tabela|tabelas|entidade)$/i.test(c.replace(/[*`]/g, '').trim()));
+      continue;
+    }
+    if (col < 0 || col >= cels.length) continue;
+    for (const m of cels[col].matchAll(/`([^`]+)`/g)) {
+      const base = m[1].trim().split('.')[0].split('->')[0]; // `tabela.coluna` → tabela
+      if (!/^[a-z][a-z0-9_]{2,}$/.test(base)) continue;
+      if (!out.has(base)) out.set(base, m[1].trim());
+    }
+  }
+  return out;
+}
+
+/**
+ * Ancora as tabelas afirmadas na §5.2 dos SDDs na fonte-de-verdade VERSIONADA
+ * (dump `database/schema/mysql-schema.sql` + `Schema::create/rename` das migrations).
+ *
+ * Por que a fonte é o dump e não `db:show`/`model:show`: o oráculo de **autoria**
+ * (o agente que escreve a §5.2 deve perguntar ao banco) não serve de oráculo de
+ * **gate** — query de banco roda no CT 100, nunca no CI, e gate que fingisse medir
+ * isso lá seria teatro (proibicoes §5 2026-07-17). O dump é versionado e hermético.
+ *
+ * @param {{ docs: {rel:string,txt:string}[], tableExists?: (t:string)=>boolean }} args
+ * @returns {{file:string, afirma:string, verdade:string}[]}
+ */
+export function factAnchorTabelas({ docs, tableExists = () => true }) {
+  const hits = [];
+  for (const { rel, txt } of docs) {
+    if (!txt) continue;
+    for (const [base, token] of tabelasAfirmadasNo52(txt)) {
+      if (!tableExists(base)) {
+        hits.push({ file: rel, afirma: `tabela \`${token}\``, verdade: 'não existe no schema versionado (renomeada/nome errado?)' });
+      }
+    }
+  }
+  return hits;
+}
+
 export function factAnchorScan({ docs, pkg = {}, comp = {}, moduleExists = () => true }) {
   const VERSIONS = buildVersions(pkg, comp);
   const hits = [];

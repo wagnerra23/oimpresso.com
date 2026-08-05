@@ -49,7 +49,7 @@ use Throwable;
  *
  * @see scripts/qa/exposicao-tier0.mjs (sentinela · shape {aggregates,debt_ranked,trend})
  * @see Modules\Governance\Services\PlanHealthBriefLineService (pattern irmão)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  * @see .github/workflows/exposicao-tier0-sentinel.yml (o outro canal — issue semanal)
  */
 final class ExposicaoTier0BriefLineService

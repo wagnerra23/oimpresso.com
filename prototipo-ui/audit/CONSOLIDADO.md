@@ -38,7 +38,7 @@
 | 17 | `Atendimento/Metricas/Index` | 72 | Advanced | R1 R2 R4 | 0 | Regras mecanizadas falhando: R1, R2, R4 — ver GOLDEN-REFERENCE |
 | 18 | `Sells/Index` | 72 | Advanced | R1 R2 R4 | 0 | Regras mecanizadas falhando: R1, R2, R4 — ver GOLDEN-REFERENCE |
 | 19 | `Financeiro/Relatorios/Index` | 72 | Advanced | R1 R2 | 4 | Regras mecanizadas falhando: R1, R2 — ver GOLDEN-REFERENCE |
-| 20 | `ProjectMgmt/Board/DetailSheet` | 73 | Advanced | R2 R7 | 7 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
+| 20 | `Forja/Board/DetailSheet` | 73 | Advanced | R2 R7 | 7 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 21 | `team-mcp/Team/Index` | 74 | Advanced | R2 R6 R7 | 2 | Regras mecanizadas falhando: R2, R6, R7 — ver GOLDEN-REFERENCE |
 | 22 | `OficinaAuto/Vehicles/Index` | 74 | Advanced | R2 R7 | 6 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 23 | `StockAdjustment/Create` | 74 | Advanced | R2 R7 | 6 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
@@ -54,7 +54,7 @@
 | 33 | `governance/Audit` | 76 | Advanced | R2 R7 | 4 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 34 | `Home/Index` | 76 | Advanced | R2 R7 | 4 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 35 | `NfeBrasil/Manifestacao/Index` | 76 | Advanced | R2 R7 | 4 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
-| 36 | `ProjectMgmt/Backlog/Index` | 76 | Advanced | R2 R7 | 4 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
+| 36 | `Forja/Backlog/Index` | 76 | Advanced | R2 R7 | 4 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 37 | `Financeiro/Categorias/components/CategoriaSheet` | 76 | Advanced | R1 R2 | 0 | Regras mecanizadas falhando: R1, R2 — ver GOLDEN-REFERENCE |
 | 38 | `Fiscal/Dfe` | 76 | Advanced | R1 R2 | 0 | Regras mecanizadas falhando: R1, R2 — ver GOLDEN-REFERENCE |
 | 39 | `Fiscal/Sped` | 76 | Advanced | R1 R2 | 0 | Regras mecanizadas falhando: R1, R2 — ver GOLDEN-REFERENCE |
@@ -67,14 +67,14 @@
 | 46 | `kb/Index` | 78 | Advanced | R2 R7 | 2 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 47 | `Modules/Index` | 78 | Advanced | R2 R7 | 2 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 48 | `Produto/Index` | 78 | Advanced | R2 R7 | 2 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
-| 49 | `ProjectMgmt/Triage/Index` | 78 | Advanced | R1 R7 | 2 | Regras mecanizadas falhando: R1, R7 — ver GOLDEN-REFERENCE |
+| 49 | `Forja/Triage/Index` | 78 | Advanced | R1 R7 | 2 | Regras mecanizadas falhando: R1, R7 — ver GOLDEN-REFERENCE |
 | 50 | `Sells/Create` | 78 | Advanced | R2 R7 | 2 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 51 | `Financeiro/Categorias/Index` | 79 | Advanced | R2 R7 | 1 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 52 | `Financeiro/Dashboard/Index` | 79 | Advanced | R2 R7 | 1 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 53 | `Financeiro/PlanoContas/Index` | 79 | Advanced | R2 R7 | 1 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 54 | `NfeBrasil/Tributacao/ImportCsv` | 79 | Advanced | R2 R7 | 1 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 55 | `Nfse/Emitir` | 79 | Advanced | R2 R7 | 1 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
-| 56 | `ProjectMgmt/Inbox/Index` | 79 | Advanced | R1 R7 | 1 | Regras mecanizadas falhando: R1, R7 — ver GOLDEN-REFERENCE |
+| 56 | `Forja/Inbox/Index` | 79 | Advanced | R1 R7 | 1 | Regras mecanizadas falhando: R1, R7 — ver GOLDEN-REFERENCE |
 | 57 | `Settings/PaymentGateways/Index` | 79 | Advanced | R2 R7 | 1 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 58 | `team-mcp/CcSessions/Index` | 79 | Advanced | R2 R7 | 1 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 59 | `team-mcp/Tasks/Index` | 79 | Advanced | R2 R7 | 1 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
@@ -90,8 +90,8 @@
 | 69 | `NfeBrasil/Tributacao/Index` | 80 | Advanced | R2 R7 | 0 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 70 | `Produto/BulkEdit` | 80 | Advanced | R2 R7 | 0 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 71 | `Produto/StockHistory` | 80 | Advanced | R2 R9 | 0 | Regras mecanizadas falhando: R2, R9 — ver GOLDEN-REFERENCE |
-| 72 | `ProjectMgmt/Board/Index` | 80 | Advanced | R1 R7 | 0 | Regras mecanizadas falhando: R1, R7 — ver GOLDEN-REFERENCE |
-| 73 | `ProjectMgmt/Roadmap/Index` | 80 | Advanced | R1 R7 | 0 | Regras mecanizadas falhando: R1, R7 — ver GOLDEN-REFERENCE |
+| 72 | `Forja/Board/Index` | 80 | Advanced | R1 R7 | 0 | Regras mecanizadas falhando: R1, R7 — ver GOLDEN-REFERENCE |
+| 73 | `Forja/Roadmap/Index` | 80 | Advanced | R1 R7 | 0 | Regras mecanizadas falhando: R1, R7 — ver GOLDEN-REFERENCE |
 | 74 | `Repair/Show` | 80 | Advanced | R2 R7 | 0 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 75 | `Sells/Show` | 80 | Advanced | R2 R7 | 0 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
 | 76 | `TransactionPayment/Index` | 80 | Advanced | R2 R7 | 0 | Regras mecanizadas falhando: R2, R7 — ver GOLDEN-REFERENCE |
@@ -181,7 +181,7 @@
 | 160 | `Cliente/Show` | 90 | Leader | R7 | 2 | Regras mecanizadas falhando: R7 — ver GOLDEN-REFERENCE |
 | 161 | `governance/Dashboard` | 90 | Leader | R7 | 2 | Regras mecanizadas falhando: R7 — ver GOLDEN-REFERENCE |
 | 162 | `ads/Admin/Decisoes` | 91 | Leader | R7 | 1 | Regras mecanizadas falhando: R7 — ver GOLDEN-REFERENCE |
-| 163 | `ProjectMgmt/Activity/Index` | 91 | Leader | R7 | 1 | Regras mecanizadas falhando: R7 — ver GOLDEN-REFERENCE |
+| 163 | `Forja/Activity/Index` | 91 | Leader | R7 | 1 | Regras mecanizadas falhando: R7 — ver GOLDEN-REFERENCE |
 | 164 | `Repair/JobSheet/Show` | 91 | Leader | R7 | 1 | Regras mecanizadas falhando: R7 — ver GOLDEN-REFERENCE |
 | 165 | `Repair/ProducaoOficina/Index` | 91 | Leader | R7 | 1 | Regras mecanizadas falhando: R7 — ver GOLDEN-REFERENCE |
 | 166 | `Vestuario/Etiquetas/Index` | 91 | Leader | R7 | 1 | Regras mecanizadas falhando: R7 — ver GOLDEN-REFERENCE |
@@ -199,11 +199,11 @@
 | 178 | `Repair/DeviceModels/Create` | 95 | Champion | — | 5 |  |
 | 179 | `Repair/DeviceModels/Edit` | 95 | Champion | — | 5 |  |
 | 180 | `ads/Admin/Graph` | 96 | Champion | R6 | 0 | Regras mecanizadas falhando: R6 — ver GOLDEN-REFERENCE |
-| 181 | `ProjectMgmt/Burndown/Index` | 96 | Champion | R4 | 0 | Regras mecanizadas falhando: R4 — ver GOLDEN-REFERENCE |
+| 181 | `Forja/Burndown/Index` | 96 | Champion | R4 | 0 | Regras mecanizadas falhando: R4 — ver GOLDEN-REFERENCE |
 | 182 | `Repair/Dashboard/Index` | 96 | Champion | R4 | 0 | Regras mecanizadas falhando: R4 — ver GOLDEN-REFERENCE |
 | 183 | `TransactionPayment/Edit` | 97 | Champion | — | 3 |  |
 | 184 | `ads/Admin/DecisaoShow` | 98 | Champion | — | 2 |  |
-| 185 | `ProjectMgmt/MyWork/Index` | 98 | Champion | — | 2 |  |
+| 185 | `Forja/MyWork/Index` | 98 | Champion | — | 2 |  |
 | 186 | `ads/Admin/Conflicts` | 99 | Champion | — | 1 |  |
 | 187 | `Atendimento/CaixaUnificada/Index` | 99 | Champion | — | 1 |  |
 | 188 | `Cliente/Map` | 99 | Champion | — | 1 |  |

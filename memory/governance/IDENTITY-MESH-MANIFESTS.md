@@ -34,7 +34,7 @@ Constituição v1.1.0 Art. 6 (Identity Mesh) determina:
 - Time entra no MCP server `mcp.oimpresso.com` em breve (Felipe + Maiara + Luiz + Eliana)
 - Sem manifests refletindo papel REAL de cada um, ActionGate fica genérico → warn-only impreciso → time entra e drift escala
 
-Este doc é a **source of truth declarativa** dos 5 humanos do time. O seeder `Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php` lê **daqui** (replica em PHP) e popula `mcp_actors`.
+Este doc é a **source of truth declarativa** dos 5 humanos do time. O seeder `Modules/Forja/Database/Seeders/McpActorsSeeder.php` lê **daqui** (replica em PHP) e popula `mcp_actors`.
 
 ## §2. Os 5 Manifestos
 
@@ -193,7 +193,7 @@ Action `edit_non_financial_code` é declarativo (gate enforce em ActionGate Fase
 
 Mudou papel? Promotion/demotion? Module novo entrou no escopo de alguém?
 
-1. **PR atualizando este doc** + atualizando array em `Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php` (replica fiel deste doc)
+1. **PR atualizando este doc** + atualizando array em `Modules/Forja/Database/Seeders/McpActorsSeeder.php` (replica fiel deste doc)
 2. **ADR** se mudança é tier (promotion L2→L1) — não exigida pra ajuste de `modules_write/blocked` rotineiro
 3. Wagner aprova merge
 4. Em prod: `php artisan team-mcp:seed-actors` (idempotente — só atualiza diff)

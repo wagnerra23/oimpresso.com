@@ -1,14 +1,15 @@
 ---
 module: NFSe
-purpose: "Emissão NFSe via Sistema Nacional (LC 214/2025). Spec-ready, ativar com NfeBrasil."
+purpose: "Emissão, consulta e cancelamento de NFS-e pelo Sistema Nacional (sefin.nfse.gov.br) com certificado A1 e ambiente por business. Dono do schema nfse_emissoes em produção; serve as telas /nfse e é consumido pela tela de venda e pelo cockpit Fiscal."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "DataController"
   - "InstallController"
   - "NfseController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
-  - "MCP server admin → Modules/TeamMcp"
+  - "Tasks Jira-style → Modules/Forja"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: nfse.*

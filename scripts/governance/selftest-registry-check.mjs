@@ -25,6 +25,29 @@
 // não têm invocador executável nenhum. Regra certa, superfície errada — o mesmo mecanismo
 // (varre dir, cruza com corpus, reporta) só não olhava os scripts.
 //
+// ── AMPLIAÇÃO DE ESCOPO (2026-08-05): scripts/governance/ → scripts/** ──────────
+// A superfície ainda estava errada, um nível acima: o escopo era `scripts/governance/`
+// APENAS, então todo script fora dessa pasta ficava invisível POR CONSTRUÇÃO — não por
+// estar são. Custo REAL medido: `scripts/perf-static-guard.mjs` (ratchet de performance
+// COM baseline commitado, Onda 4 / AUDITORIA-PERFORMANCE-2026-07) estava sem invocador
+// nenhum desde 2026-07-05 e ninguém avisou, porque mora em `scripts/` (raiz). No mês
+// parado entrou 1 regressão nova (paginate_sem_eager 28→29: +Modules/KB/…/KbController
+// :102, +Modules/VozDoCliente/…/SinalController:50, −Modules/SRS/…/InboxController:29 —
+// diff das listas COMPLETAS entre a árvore de 07-05 e o HEAD) e 2 contadores MELHORARAM
+// sem ninguém travar o ganho (8→7 e 20→15). A catraca existia, tinha baseline, e não
+// mordia: é o "gate mudo" do §Sempre fazer #5 das proibições.
+//
+// FP MEDIDO ANTES de ampliar (corpus real, 2026-08-05): 107 → 196 scripts varridos e
+// 5 → 13 órfãos (+8). Sem explosão — a lista nova é toda plausível e triável à mão.
+// A ampliação corrigiu junto 1 FP de CRITÉRIO: `tests/` faltava em PREFIXOS_INVOCADOR,
+// então `deploy-wave-z2-integracao-vendas-oficina.sh` saía como órfão embora o
+// `tests/Feature/Docs/WaveZ2DocumentationGuardTest.php` o valide (shebang + readable).
+// Teste Pest É invocador executável. Com o prefixo corrigido: 14 → 13.
+//
+// SEGUE REPORT-ONLY — ampliar o RADAR não muda a natureza do julgamento (ver abaixo), e
+// a lista nova traz categoria que este detector não consegue ver nem em princípio: script
+// que roda FORA do repo (`scripts/infra/get-secret.sh` é deployado em /root/bin/ no CT 100).
+//
 // POR QUE report-only (exit 0 SEMPRE, sem --check): "0 invocador" NÃO é sinônimo de obra
 // parada. MEDIDO nos 12: 6+ são CLI manual POR DESIGN (`adr-supersede` é transacional do
 // autor da ADR; `doc-id-stamp` é stamper de um PR nomeado; `funcao-scorecard-humano` fecha
@@ -189,16 +212,37 @@ export function findEmbeddedOrphans(scripts, arquivos, workflowText, existeIrmao
 
 // ── SCRIPTS órfãos (report-only) ────────────────────────────────────────────────
 
-/** Prefixos onde um invocador EXECUTÁVEL pode viver (doc não conta — .md só cita). */
+/**
+ * Prefixos onde um invocador EXECUTÁVEL pode viver (doc não conta — .md só cita).
+ * `tests/` entrou em 2026-08-05: teste Pest que valida um script É invocador dele
+ * (FP medido: WaveZ2DocumentationGuardTest.php × deploy-wave-z2-…sh).
+ */
 const PREFIXOS_INVOCADOR = ['.github/', 'package.json', 'composer.json', '.claude/hooks/',
-  '.claude/settings', 'scripts/', 'tools/', 'docker/', 'bin/', 'app/', 'Modules/'];
+  '.claude/settings', 'scripts/', 'tools/', 'docker/', 'bin/', 'app/', 'Modules/', 'tests/'];
 
-/** Scripts não-teste de scripts/governance/ (paths relativos posix). */
+/**
+ * Scripts executáveis não-teste de `scripts/**` (paths relativos posix, recursivo).
+ *
+ * Escopo AMPLIADO em 2026-08-05 (era `scripts/governance/` raso — ver header): script
+ * fora daquela pasta era invisível por construção, e foi assim que o `perf-static-guard`
+ * ficou 1 mês desligado sem ninguém avisar. Exclui `node_modules/` (dependência vendorada,
+ * não obra nossa) e `*.test/*.spec` (o eixo de teste órfão é outro modo deste mesmo guard).
+ */
 export function collectScriptFiles(root) {
-  try {
-    return readdirSync(join(root, 'scripts', 'governance'))
-      .filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs')).sort();
-  } catch { return []; }
+  const out = [];
+  const walk = (relDir) => {
+    let entries;
+    try { entries = readdirSync(join(root, relDir), { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const rel = `${relDir}/${e.name}`;
+      if (e.isDirectory()) { if (e.name !== 'node_modules') walk(rel); continue; }
+      if (!/\.(mjs|js|cjs|sh)$/.test(e.name)) continue;
+      if (/\.(test|spec)\.(mjs|js|cjs)$/.test(e.name)) continue;
+      out.push(rel);
+    }
+  };
+  walk('scripts');
+  return out.sort();
 }
 
 /**
@@ -234,9 +278,13 @@ export function ehComentario(linha, path) {
  * e o arquivo não pode ser `.md` (doc nunca executa). Sem isso, "tem invocador" mede
  * a presença do nome no repo, não a invocação.
  */
-export function acharInvocadores(base, conteudo) {
-  const self = `scripts/governance/${base}`;
-  const selfTest = `scripts/governance/${base.replace('.mjs', '.test.mjs')}`;
+export function acharInvocadores(alvo, conteudo) {
+  // `alvo` aceita path relativo (`scripts/x/y.mjs`, escopo ampliado 2026-08-05) OU
+  // basename puro (`y.mjs`), caso em que assume scripts/governance/ — compat com as
+  // fixtures do --selftest, que passam só o nome.
+  const self = alvo.includes('/') ? alvo : `scripts/governance/${alvo}`;
+  const base = self.slice(self.lastIndexOf('/') + 1);
+  const selfTest = self.replace(/\.(mjs|js|cjs)$/, '.test.$1');
   const exec = [], doc = [];
   for (const [p, txt] of conteudo) {
     if (p === self || p === selfTest || !txt.includes(base)) continue;
@@ -286,7 +334,7 @@ function reportScripts(root, { json = false } = {}) {
     const { exec, doc } = acharInvocadores(f, conteudo);
     if (exec.length) continue;
     let txt = '';
-    try { txt = readFileSync(join(root, 'scripts', 'governance', f), 'utf8'); } catch { /* ignora */ }
+    try { txt = readFileSync(join(root, f), 'utf8'); } catch { /* ignora */ }
     const header = txt.split('\n').slice(0, 45).join('\n').toLowerCase();
     orfaos.push({
       script: f,
@@ -302,7 +350,7 @@ function reportScripts(root, { json = false } = {}) {
     _meta: {
       guard: 'script órfão de invocador (report-only · auditoria 2026-07-26)',
       generator: 'scripts/governance/selftest-registry-check.mjs --scripts',
-      regra: 'órfão = .mjs não-teste em scripts/governance/ que nenhum arquivo executável (yml/json/mjs/sh/php) cita. Citação só em .md NÃO conta como invocador.',
+      regra: 'órfão = script executável não-teste em scripts/** (recursivo, sem node_modules) que nenhum arquivo executável (yml/json/mjs/sh/php, incl. tests/) cita. Citação só em .md ou só em comentário NÃO conta como invocador.',
       fase: 'REPORT-ONLY — exit 0 sempre. "0 invocador" não é sinônimo de obra parada: CLI manual por design é legítimo. Os campos implementa_check/header_cita_gate são SINAIS, não veredito.',
     },
     summary: { scripts_total: scripts.length, orfaos: orfaos.length },
@@ -313,7 +361,7 @@ function reportScripts(root, { json = false } = {}) {
   for (const o of orfaos) {
     const sinais = [o.implementa_check ? '--check' : null, o.header_cita_gate ? 'header cita gate/cadência' : null]
       .filter(Boolean).join(' · ') || 'sem sinal de automação';
-    console.log(`  ⚪ ${o.script.padEnd(38)} ${sinais}`);
+    console.log(`  ⚪ ${o.script.padEnd(52)} ${sinais}`);
   }
   console.log(`\n  Os 2 sinais juntos sugerem "construído pra rodar sozinho e não roda" — mas é PALPITE,`);
   console.log(`  não veredito (medido: ~67% de precisão). CLI manual por design é legítimo e comum aqui.`);
@@ -457,6 +505,41 @@ function selftest() {
     check(`--scripts: código REAL em ${idioma} continua contando como invocador`,
       acharInvocadores(nome, corpus).exec.length === 1);
   }
+  // ── MORDIDA da ampliação de escopo 2026-08-05 (scripts/governance/ → scripts/**) ──
+  // Sem estes, a ampliação seria "escrita e lembrada": o escopo raso passaria igual.
+  // ⚠️ NOMES FICTÍCIOS OBRIGATÓRIOS (convenção do arquivo — `usado.mjs`, `exec-real-js.mjs`).
+  // Fixture que cite o nome REAL de um script do repo vira invocador executável dele e o
+  // ABSOLVE do relatório: o guard passa a se auto-silenciar. Aconteceu ao escrever estes
+  // asserts — citei `perf-static-guard.mjs` e ele sumiu da lista (12 em vez de 13), logo
+  // no PR cujo argumento era ele. Mesma assinatura da lápide §5 2026-07-26.
+  const corpusAmpliado = new Map([
+    ['.github/workflows/perf.yml', '      - run: node scripts/ratchet-ficticio-raiz.mjs\n'],
+    ['tests/Feature/Docs/Guard.php', "    \$s = ROOT . '/scripts/deploy-ficticio.sh';\n"],
+    ['memory/reference/doc.md', 'o `scripts/fora-de-governance.mjs` faz X\n'],
+  ]);
+  check('--scripts: alvo com path relativo (fora de scripts/governance/) é resolvido',
+    acharInvocadores('scripts/ratchet-ficticio-raiz.mjs', corpusAmpliado).exec.length === 1);
+  check('--scripts: invocador em tests/ conta como executável (teste Pest invoca)',
+    acharInvocadores('scripts/deploy-ficticio.sh', corpusAmpliado).exec.length === 1);
+  check('--scripts: script fora de governance citado só em .md segue órfão (doc ≠ exec)',
+    acharInvocadores('scripts/fora-de-governance.mjs', corpusAmpliado).exec.length === 0
+    && acharInvocadores('scripts/fora-de-governance.mjs', corpusAmpliado).doc.length === 1);
+  check('--scripts: basename puro segue assumindo scripts/governance/ (compat)',
+    acharInvocadores('usado.mjs', corpus).exec.length === 1);
+  {   // o escopo varre RECURSIVO e ignora node_modules — senão a ampliação não pegaria nada
+    const dirTmp = mkdtempSync(join(tmpdir(), 'scope-'));
+    mkdirSync(join(dirTmp, 'scripts', 'infra'), { recursive: true });
+    mkdirSync(join(dirTmp, 'scripts', 'x', 'node_modules'), { recursive: true });
+    writeFileSync(join(dirTmp, 'scripts', 'raiz.mjs'), '// x\n');
+    writeFileSync(join(dirTmp, 'scripts', 'infra', 'fundo.sh'), '#!/bin/sh\n');
+    writeFileSync(join(dirTmp, 'scripts', 'raiz.test.mjs'), '// teste, fora do eixo\n');
+    writeFileSync(join(dirTmp, 'scripts', 'x', 'node_modules', 'dep.mjs'), '// vendorado\n');
+    const achados = collectScriptFiles(dirTmp);
+    check('--scripts: escopo pega subpasta e .sh, ignora node_modules e *.test',
+      achados.join(',') === 'scripts/infra/fundo.sh,scripts/raiz.mjs', achados.join(','));
+    rmSync(dirTmp, { recursive: true, force: true });
+  }
+
   // Guarda de idioma: `#` é comentário em YAML/sh, NÃO em JS (lá é privado de classe).
   check('--scripts: `#` no meio de JS não vira comentário (idioma importa)',
     !ehComentario('  this.#privado = usa.mjs;', 'x.mjs'));

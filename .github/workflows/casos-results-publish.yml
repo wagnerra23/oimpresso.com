@@ -53,34 +53,47 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Colher JUnit do último run VERDE de main de cada lane
+      - name: Colher JUnit do run mais recente de main que TENHA o artifact
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p test-results
-          # lane:artifact — todas já emitem --log-junit hoje; o artifact é o transporte.
-          for pair in \
-            "ci.yml:pest-ci-junit" \
-            "financeiro-pest.yml:pest-financeiro-junit" \
-            "estoque-pest.yml:pest-estoque-junit" \
-            "compras-pest.yml:pest-compras-junit" \
-            "jana-pest.yml:pest-jana-junit" \
-            "nfebrasil-pest.yml:pest-nfebrasil-junit" \
-            "arquivos-pest.yml:pest-arquivos-junit" \
-            "sells-pest.yml:pest-sells-junit" \
-            "teammcp-pest.yml:pest-teammcp-junit" \
-            "e2e-gate.yml:casos-test-results" \
-          ; do
+          # LANES: DERIVADAS, nunca listadas à mão (scripts/governance/junit-lanes.mjs).
+          # A lista `lane:artifact` que vivia aqui apodreceu: medido 2026-08-04, QUATRO lanes
+          # emitiam --log-junit, publicavam artifact e NINGUÉM as lia — essentials-pest ·
+          # kb-pest · officeimpresso-pest · ponto-pest. Só o Ponto tinha 19 UCs com o id no
+          # título esperando. Mesmo bug que o anchor-lint sofreu e consertou em 2026-07-27
+          # (lista de 3 nomes à mão → stale → falso-positivo em gate REQUIRED); mesma cura.
+          node scripts/governance/junit-lanes.mjs > /tmp/lanes.txt
+          echo "--- lanes derivadas ($(wc -l < /tmp/lanes.txt)) ---"; cat /tmp/lanes.txt
+          while IFS= read -r pair; do
+            [ -z "$pair" ] && continue
             wf="${pair%%:*}"; art="${pair##*:}"
-            rid=$(gh run list --workflow="$wf" --branch main --status success --limit 1 \
-                    --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)
-            if [ -z "$rid" ]; then echo "::warning::$wf — sem run verde em main; lane pulada"; continue; fi
-            if gh run download "$rid" -n "$art" -D test-results 2>/dev/null; then
-              echo "  ok  $wf (run $rid) → $art"
-            else
-              echo "::warning::$wf (run $rid) — artifact '$art' ausente/expirado; lane pulada"
-            fi
-          done
+            # RUN ESCOLHIDO: o mais recente que TENHA o artifact — não "o último verde".
+            # POR QUÊ (medido 2026-08-04): a casa adotou lanes FAILING-FIRST por desenho
+            # (ADR 0351 — o teste de contrato entra vermelho de propósito e o vermelho É o
+            # achado). Lane assim NUNCA fica `success`, então exigir run verde CONGELA a
+            # colheita: estoque-pest parada desde 22/07, ponto-pest desde 27/07 — com o
+            # artifact do run vermelho intacto ao lado (`if: always()` no upload).
+            # O coletor agrega veredito POR UC (pass/fail/skip): ele não precisa que a LANE
+            # tenha passado, precisa do XML. Exigir `success` confundia "a lane passou" com
+            # "este UC passou". A defesa contra mentira continua onde sempre esteve — o G-7
+            # (`Status MENTE` / `SEM PROVA`) confronta o ✅ declarado com o veredito real.
+            rids=$(gh run list --workflow="$wf" --branch main --limit 12 \
+                     --json databaseId,conclusion \
+                     --jq '[.[]|select(.conclusion=="success" or .conclusion=="failure")|.databaseId]|.[]' \
+                   2>/dev/null || true)
+            if [ -z "$rids" ]; then echo "::warning::$wf — sem run completo em main; lane pulada"; continue; fi
+            colhido=""
+            for rid in $rids; do
+              if gh run download "$rid" -n "$art" -D test-results 2>/dev/null; then
+                concl=$(gh run view "$rid" --json conclusion --jq .conclusion 2>/dev/null || echo '?')
+                echo "  ok  $wf (run $rid · $concl) → $art"
+                colhido=1; break
+              fi
+            done
+            [ -z "$colhido" ] && echo "::warning::$wf — artifact '$art' ausente/expirado nos últimos runs; lane pulada"
+          done < /tmp/lanes.txt
           echo "--- XMLs colhidos ---"; ls -1 test-results/ 2>/dev/null || echo "(nenhum)"
 
       - name: Coletar veredito por UC (merge per-UC — lane pulada preserva o veredito anterior)

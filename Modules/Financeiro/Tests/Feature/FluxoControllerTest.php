@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia;
 use Modules\Financeiro\Models\Titulo;
 use Spatie\Permission\Models\Permission;
@@ -74,7 +75,16 @@ it('renderiza Inertia component Financeiro/Fluxo/Index', function () {
     }
 
     expect($response->status())->toBe(200);
-    expect($response->headers->get('X-Inertia'))->not()->toBeNull();
+
+    // NAO asserta o header X-Inertia da resposta: ele so existe quando o REQUEST
+    // e XHR (X-Inertia: true) — e nesse modo o Inertia devolve JSON, o que faz
+    // assertInertia() (usado nos casos abaixo) falhar com "Not a valid Inertia
+    // response". As duas formas sao mutuamente exclusivas; esta linha nunca podia
+    // passar num GET simples. Mesma causa do ProvaVivaControllerTest (PR #5196).
+    // Fica a prova mais forte: o componente montado.
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('Financeiro/Fluxo/Index')
+    );
 });
 
 it('expõe Props no shape esperado (saldo_hoje, saldo_30d, pior_dia, margem_minima, conta, dias)', function () {
@@ -106,7 +116,12 @@ it('expõe margem_minima padrão R$ [redacted Tier 0] (Q3 hardcode aprovado 2026
     }
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('margem_minima', 5000.0)
+        // Comparacao NUMERICA, nao estrita-por-tipo. A constante e float no PHP
+        // (FluxoCaixaService::MARGEM_MINIMA_PADRAO = 5000.0), mas o JSON do Inertia
+        // serializa 5000.0 como `5000` e o json_decode devolve int — entao
+        // ->where(..., 5000.0) falhava com "5000 is identical to 5000.0".
+        // Artefato de round-trip JSON, nao mudanca de produto.
+        ->where('margem_minima', fn ($valor) => (float) $valor === 5000.0)
     );
 });
 
@@ -126,7 +141,11 @@ it('aplica clamp em ?dias=N (range 7..60, default 35)', function () {
             'dias',
             // Default histórico (2d) + projeção (60d clampada) = ~63 elementos
             // Aceitar margem tolerante (pode variar com timezone +/- 1)
-            fn (array $dias) => count($dias) >= 60 && count($dias) <= 65
+            // Collection, NAO array: Illuminate\Testing\Fluent\Concerns\Matching::where()
+            // embrulha o valor em Collection antes de chamar o closure
+            // (`is_array($actual) ? new Collection($actual) : $actual`). O type hint
+            // `array` estourava TypeError — drift de framework, nao de produto.
+            fn (Collection $dias) => $dias->count() >= 60 && $dias->count() <= 65
         )
     );
 });

@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Route;
  */
 
 // Group canon — throttle:60,1 (60 req/min/IP) protege contra abuse
-// de tools MCP automatizadas. Mesmo padrão do Modules/Brief/Routes/api.php.
+// de tools MCP automatizadas. Mesmo padrão do Modules/Forja/Routes/api.php.
 Route::middleware(['api', 'mcp.auth', 'throttle:60,1'])
     ->prefix('api/mcp/kb')
     ->group(function () {

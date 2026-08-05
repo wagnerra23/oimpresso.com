@@ -75,12 +75,19 @@ it('aceita /oauth/token com password grant e retorna access_token', function () 
     }
     $client = ensurePasswordClient();
 
+    // 2026-08-02: o literal que ficava como default aqui era uma credencial REAL,
+    // exposta em repositorio PUBLICO. Removido. A senha agora vem SO do ambiente.
+    $senhaDev = env('DEV_LOGIN_PASSWORD');
+    if (! $senhaDev) {
+        $this->markTestSkipped('DEV_LOGIN_PASSWORD ausente no ambiente — defina para exercer o password grant.');
+    }
+
     $r = $this->withHeaders(['Accept' => 'application/json'])->postJson('/oauth/token', [
         'grant_type' => 'password',
         'client_id' => $client->id,
         'client_secret' => $client->plainSecret ?? $client->secret,
         'username' => $user->email,
-        'password' => env('DEV_LOGIN_PASSWORD', 'Wscrct*2312'),
+        'password' => $senhaDev,
         'scope' => '*',
     ]);
 

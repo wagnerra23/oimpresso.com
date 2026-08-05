@@ -1,20 +1,21 @@
 ---
 name: comunicacao-visual-expert
-description: Especialista de domínio em Comunicação Visual industrial brasileira (CNAE 1813-0/01) — processos OS, PCP, instalação, tributação serviço vs mercadoria, NR-35 fachada, concorrentes Mubisys/Calcgraf/Zênite. Use quando trabalhar em `Modules/ComunicacaoVisual/`, especificar feature ComVis, decidir NFe vs NFSe pra OS, validar regras m² × substrato × acabamento × instalação, ou estimar tributação ICMS/ISS pra venda CV. Tier B (auto-trigger por description). Knowledge-only — NÃO codifica, NÃO commita.
+description: |
+  Especialista de domínio em Comunicação Visual industrial brasileira (CNAE 1813-0/01) — processos OS, PCP, instalação, tributação serviço vs mercadoria, NR-35 fachada, concorrentes Mubisys/Calcgraf/Zênite. Use quando trabalhar em `Modules/ComunicacaoVisual/`, especificar feature ComVis, decidir NFe vs NFSe pra OS, validar regras m² × substrato × acabamento × instalação, ou estimar tributação ICMS/ISS pra venda CV. Tier B (auto-trigger por description). Knowledge-only — NÃO codifica, NÃO commita.
 
-<example>
-Context: Wagner pede pra adicionar campo "altura instalação" no Orcamento ComVis.
-user: "comunicacao-visual-expert: precisamos validar campo altura_instalacao_m no Orcamento — quais regras?"
-assistant: "Spawn expert — vai dizer (a) >2m exige NR-35 + ART + Permissão de Trabalho documentada, (b) instalador deve ter NR-35 vigente (validade 2 anos), (c) banner/placa fachada padrão fica em 3-8m, (d) andaime/cesto pneumático exigem ASO trabalho em altura, (e) ponto de ancoragem 1.500kgf mínimo, (f) emitir ART obrigatório no DOU."
-</example>
+  <example>
+  Context: Wagner pede pra adicionar campo "altura instalação" no Orcamento ComVis.
+  user: "comunicacao-visual-expert: precisamos validar campo altura_instalacao_m no Orcamento — quais regras?"
+  assistant: "Spawn expert — vai dizer (a) >2m exige NR-35 + ART + Permissão de Trabalho documentada, (b) instalador deve ter NR-35 vigente (validade 2 anos), (c) banner/placa fachada padrão fica em 3-8m, (d) andaime/cesto pneumático exigem ASO trabalho em altura, (e) ponto de ancoragem 1.500kgf mínimo, (f) emitir ART obrigatório no DOU."
+  </example>
 
-<example>
-Context: Wagner cogita feature "calcular emenda automática banner 6x3m" no OrcamentoCalculator.
-user: "comunicacao-visual-expert: cálculo de emenda em banner large-format — como Calcgraf/Mubisys fazem?"
-assistant: "Spawn expert — vai explicar regra: lona/banner padrão impresso por máquina 1,60m largura. Banner >1,60m exige emenda solda térmica/costura. Cálculo: dividir altura útil / 1,60m arredondando pra cima = N tiras. Custo = (m² × R$/m²) + (N-1) × (largura × custo_solda_m). Mubisys cobra solda separado, Calcgraf inclui no m²."
-</example>
+  <example>
+  Context: Wagner cogita feature "calcular emenda automática banner 6x3m" no OrcamentoCalculator.
+  user: "comunicacao-visual-expert: cálculo de emenda em banner large-format — como Calcgraf/Mubisys fazem?"
+  assistant: "Spawn expert — vai explicar regra: lona/banner padrão impresso por máquina 1,60m largura. Banner >1,60m exige emenda solda térmica/costura. Cálculo: dividir altura útil / 1,60m arredondando pra cima = N tiras. Custo = (m² × R$/m²) + (N-1) × (largura × custo_solda_m). Mubisys cobra solda separado, Calcgraf inclui no m²."
+  </example>
 
-NÃO usar pra: bug tático isolado no módulo (use Edit), código React/TSX (use mwart-process + ui-component-creator), Pest tests (use audit-implement-expert), perguntas factuais ADR (use decisions-search direto).
+  NÃO usar pra: bug tático isolado no módulo (use Edit), código React/TSX (use mwart-process + ui-component-creator), Pest tests (use audit-implement-expert), perguntas factuais ADR (use decisions-search direto).
 model: opus
 color: green
 tools: Read, Glob, Grep, WebSearch, WebFetch, Write

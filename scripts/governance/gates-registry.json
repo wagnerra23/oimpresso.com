@@ -102,11 +102,18 @@
       "anchor": "sinal de custo: #3658 introduziu crash em `arquivos:audit-log --suspicious` (DB::table(raw,[bind]) → Expression-to-string em QUALQUER MySQL) + os testes signed_url_consumed são MySQL-only e ficavam skip na modules-pest (SQLite) = falsa cobertura; lane #3666 expôs e fechou o bug. Skip-as-pass já é required-ready (ADR 0271 onda 2).",
       "promote_by": "2026-07-16"
     },
-    "teammcp-pest.yml": {
-      "nome": "TeamMcp · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca allowlist verde, espelha arquivos-pest",
+    "forja-pest.yml": {
+      "nome": "Forja · Pest (MySQL) — rotas /forja executam de verdade (em sqlite a stack UltimatePOS só SKIPa, e skip vira veredito `skip` no manifesto por-UC, nunca `pass`); catraca allowlist verde, espelha arquivos-pest",
       "classe": "gate",
       "terminal": "required",
       "anchor": "REQUIRED via emenda ADR 0354 à 0314 (3ª exceção formal à regra 'required = só Tier-0', mesmo processo da 0327/0347: emenda + flip [W] explícito — [W] 2026-07-27: 'Promova'). Override de cadência CONSCIENTE: a 0336 DR-2 pede ≥2 mordidas reais e esta lane tem ZERO (nasceu 2026-07-27 com 1 corrida verde) — promovida por argumento estrutural, não por evidência de mordida; risco residual mitigado por skip-as-pass (blast radius só em PR que toca TeamMcp) + catraca de allowlist de 1 arquivo + gate de reversão da 0354. Precedente de classe: `PHP / Pest (Financeiro · MySQL)` e `(NfeBrasil · MySQL)` já são required. || sinal de custo MEDIDO (2026-07-27, #4887): `ForjaRoutesSmokeTest` existia desde a Onda Forja e NUNCA executou uma vez — TeamMcp fora do matrix do modules-pest.yml (que nem emite JUnit) + só 7 dos 26 arquivos na lista sqlite = 19 sem lane nenhuma. Rodado no CT 100: 7 failed / 5 passed (rota `forja.saude` inexistente + dataset associativo com `it()` de 2 args); o happy-path de UC-FORJA-01 jamais rodou, e UC-FORJA-01/07 eram órfãos no G-2. Sem esta lane o JUnit do módulo não chega ao casos-results-publish (elo do G-7, ADR 0264)."
+    },
+    "forja-shortcuts-gate.yml": {
+      "nome": "Forja Shortcuts — atalhos do Board (overlay `?` · Enter · J/K/E/A anti-regressão)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "PMG-008 (SPEC Forja, Fase 3). Trava o comportamento de TECLADO do Board — que o Pest do módulo (BoardControllerTest) não alcança — em vitest/jsdom sobre Pages/Forja/Board/_components/useBoardShortcuts.ts. Defende (a) o overlay `?`/Esc que a PMG-008 adicionou; (b) E = avançar status / A = voltar, que Index.charter.md fixa e a US queria reatribuir pra 'editar' (precedência charter > SPEC, proibicoes.md); (c) o guard de digitação — sem ele, digitar 'java' na busca move 2 cards e avança 1 status. Lane PRÓPRIA porque NENHUMA lane roda `vitest run` sem argumento (medido 2026-08-03, contado nos 117 workflows): spec sem lane nunca executa, e verde-por-não-execução (LC-13) é pior que teste ausente porque parece cobertura. || mordida PROVADA antes do merge (2 mutações no hook, restore = 9/9 verde): remover o guard `!typing` do `?` -> 1 failed; trocar onAdvance por onOpenDetail no E -> 1 failed. || sinal de custo: atalho de tela é qualidade/higiene, não Tier-0 -> advisory (ADR 0271/0314); promoção a required só com mordida real coletada em main (ADR 0336 DR-2), não se auto-promove.",
+      "promote_by": "2026-09-30"
     },
     "baseline-tamper-guard.yml": {
       "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
@@ -141,7 +148,7 @@
       "anchor": "incidente âncora podre REINCIDENTE (2026-07-06 pego pelo Wagner, charter corrigido; voltou 2026-07-08 — o gate advisory NÃO preveniu) + revisão adversarial F2/F6 (RUNBOOK-fidelidade-fingerprint) + emenda 0327-anchor-content-required-emenda-0314.md (exceção consciente à 'required = só Tier-0', Wagner 'resolva todos, eu autorizo')"
     },
     "anchor-drift.yml": {
-      "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
+      "nome": "Anchor Drift — lint spec↔código ADR 0273 + entry/covers (0303) + doneness (0302) + charter status:live, diff-aware no PR e full-tree no cron semanal (SA-A2/A3). Enforcement POR JOB: consultar governance/required-checks-baseline.json → classic_protection.contexts (dono único; casa pelo `name:` do job, string-exata; drift vigiado por protection-drift.mjs).",
       "classe": "gate"
     },
     "plan-health-gate.yml": {
@@ -286,7 +293,7 @@
       "classe": "gate"
     },
     "gate-selftest.yml": {
-      "nome": "Gate selftest (advisory · quem vigia os vigias — fixtures boa/ruim por catraca, SDD GT-G6)",
+      "nome": "Gate selftest — quem vigia os vigias: cada catraca de governança contra fixtures boa/ruim versionadas (SDD GT-G6). Enforcement POR JOB: consultar governance/required-checks-baseline.json → classic_protection.contexts (dono único; casa pelo `name:` do job, string-exata; drift vigiado por protection-drift.mjs).",
       "classe": "meta"
     },
     "governance-drift.yml": {

@@ -48,9 +48,8 @@ class LicencaComputadorController extends Controller
      * É a tarefa de assistência do dia a dia — delegável ao suporte via
      * `officeimpresso.licencas.gerenciar`.
      *
-     * Ações que atingem a EMPRESA inteira do cliente (businessupdate — versão
-     * obrigatória de todos os desktops; businessbloqueado — derruba o cliente
-     * inteiro) e destroy() seguem superadmin-only.
+     * Ações que atingem a EMPRESA inteira (businessupdate, businessbloqueado) e
+     * a exclusão têm guardas próprias — ter `gerenciar` NÃO as concede.
      */
     private function authorizeGerenciar(): void
     {
@@ -63,11 +62,44 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * Autoriza ações destrutivas ou de escopo empresa-inteira — superadmin-only.
+     * Autoriza escopo EMPRESA INTEIRA — versão obrigatória de todos os desktops
+     * do cliente (businessupdate) e bloqueio/liberação do cliente inteiro
+     * (businessbloqueado).
+     *
+     * Delegável via `officeimpresso.empresa.gerenciar` (decisão [W] 2026-07-30:
+     * "pode liberar" — o suporte assume a gestão de licenças ponta a ponta, sem
+     * o superadmin como gargalo). Ambas as ações são REVERSÍVEIS: bloquear e
+     * liberar são o mesmo toggle, e a versão obrigatória se reescreve.
+     *
+     * Separada de authorizeExcluir() de propósito — bloquear o cliente é
+     * reversível, apagar o registro não é. Mesma lógica que já separa `access`
+     * (ver) de `licencas.gerenciar` (mexer).
      */
-    private function authorizeSuperadmin(): void
+    private function authorizeEmpresa(): void
     {
-        abort_unless(auth()->user()->can('superadmin'), 403, 'Unauthorized action.');
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('officeimpresso.empresa.gerenciar'),
+            403,
+            'Unauthorized action.'
+        );
+    }
+
+    /**
+     * Autoriza EXCLUSÃO de licença — destrutivo e irreversível (o registro sai
+     * do banco; o histórico de acesso em licenca_log fica órfão).
+     *
+     * Delegável via `officeimpresso.licencas.excluir`, permissão própria e
+     * separada: quem pode bloquear uma máquina não deveria apagá-la por tabela.
+     */
+    private function authorizeExcluir(): void
+    {
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('officeimpresso.licencas.excluir'),
+            403,
+            'Unauthorized action.'
+        );
     }
 
     /**
@@ -194,7 +226,7 @@ class LicencaComputadorController extends Controller
 
     public function destroy($id)
     {
-        $this->authorizeSuperadmin();
+        $this->authorizeExcluir();
 
         $ok = $this->licencaService->remover((int) $id);
         if (! $ok) {
@@ -217,7 +249,7 @@ class LicencaComputadorController extends Controller
 
     public function businessupdate(Request $request, $id)
     {
-        $this->authorizeSuperadmin();
+        $this->authorizeEmpresa();
 
         try {
             $request->validate([
@@ -239,7 +271,7 @@ class LicencaComputadorController extends Controller
 
     public function businessbloqueado($id)
     {
-        $this->authorizeSuperadmin();
+        $this->authorizeEmpresa();
 
         try {
             $this->licencaService->alternarBloqueioEmpresa((int) $id);

@@ -1,6 +1,7 @@
 ---
 module: Governance
-purpose: "Governança consolidada — ActionGate runtime, audit dashboard, ADRs pending approvals, policies CRUD, drift alerts. Constituição Art. 8 + Art. 9 operacional."
+purpose: "A regra está sendo cumprida? — mede e mostra o cumprimento (drift de escopo/deploy/índice, nota de módulo, scorecard SDD, policies, trilha de tool MCP) e injeta o veredito no Daily Brief. Quem bloqueia merge é o CI em scripts/governance/, não este módulo."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "DashboardController — UI /governance painel consolidado (KPIs ADR pending + policies + audit + drift + actors + compliance score)"
   - "PoliciesController — CRUD inline mcp_governance_rules (toggle enabled MVP; edit JSON futuro)"
@@ -14,8 +15,8 @@ contains:
 not_contains:
   - "Decision flow (Risk/Confidence/Policy Engine) → Modules/ADS"
   - "Skills governance → Modules/ADS"
-  - "Tokens MCP CRUD → Modules/TeamMcp"
-  - "Identity Mesh (mcp_actors) UI → Modules/TeamMcp"
+  - "Tokens MCP CRUD → Modules/Forja"
+  - "Identity Mesh (mcp_actors) UI → Modules/Forja"
   - "Knowledge browsing (ADRs read-only) → Modules/KB"
   - "Constitution doc edit → memory/governance/CONSTITUTION.md (não DB)"
   - "Module Grade v4 Tri-pane (era /admin/governance/v4 no Modules/Admin) → REMOVIDO com o Admin Center em 2026-07-29 (ADR 0360 supersede 0122); a fronteira não existe mais"
@@ -42,13 +43,16 @@ routes:
   - "GET  /governance/module-grades/{name}         → ModuleGradeController@show          (governance.module-grades.show)"
   - "GET  /governance/ds-rollout                    → DsRolloutController@index           (governance.ds-rollout.index)"
   - "GET  /governance/install{,/uninstall,/update} → InstallController@*                 (governance.install.*)"
-db_tables_owned: []
-db_tables_consumed:
-  # Dono = Modules/ADS (migration 2026_05_03_220001_create_mcp_governance_rules_table
-  # + write das rules de decision flow). Aqui é superfície de LEITURA (ActionGate)
-  # + CRUD de toggle `enabled` via PoliciesController — não define o schema.
-  # Fronteira reconciliada 2026-07-26.
+db_tables_owned:
+  # Recebida do ADS (módulo extinto) em 2026-07-31 (ADR 0363 §1 — "a política tinha posse
+  # partida"). Este módulo já tinha a leitura (ActionGate) e o toggle `enabled`
+  # (PoliciesController); com o ADS extinto, passa a ser dono também do schema e
+  # da escrita. A migration original saiu do repo no PR #5135 — o DDL vive no
+  # baseline `database/schema/mysql-schema.sql`, e a tabela FICOU no E5 (não foi
+  # dropada) justamente por ter dono e consumidor vivos.
+  # Sem `business_id` POR DESIGN: é config global de superadmin (ADR 0093 não se aplica).
   - mcp_governance_rules
+db_tables_consumed: []
 drift_alerts:
   # 2026-05-17 — atualizado: Copiloto foi renomeado Jana em Fase 3.7 PR-2 (2026-05-06).
   # Drift ainda VIVO. ETA migração: Fase 5 (próxima sessão dedicada).
@@ -77,7 +81,7 @@ Onde Wagner opera **5min/dia**: aprova ADRs pendentes, ajusta policies, vê audi
 
 - ❌ Decision flow ADS (Risk/Confidence/Policy Engine) → Modules/ADS
 - ❌ Skill governance → Modules/ADS
-- ❌ Token / scope CRUD → Modules/TeamMcp
+- ❌ Token / scope CRUD → Modules/Forja
 - ❌ Constitution doc edit → file `memory/governance/CONSTITUTION.md` direto
 
 ## ActionGate modes

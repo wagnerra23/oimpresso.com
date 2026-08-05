@@ -106,6 +106,22 @@ jobs:
             --log-junit test-results/pest-essentials-junit.xml \
             Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php
 
+
+      # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
+      # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
+      # o FP do --check-assertions ANTES de arma-lo. Aqui so REPORTA (if: always()).
+      - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-essentials-junit.xml --out test-results/pest-essentials-junit-summary.json || true
+
+      - name: Upload sumario JUnit (pest-essentials-junit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-essentials-junit-summary
+          path: test-results/pest-essentials-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Upload JUnit (Essentials · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.essentials == 'true' }}
         uses: actions/upload-artifact@v4

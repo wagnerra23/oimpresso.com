@@ -3,7 +3,8 @@ id: requisitos-template-feature-tasks
 ---
 
 <!--
-  TEMPLATE — copie pra memory/requisitos/<Mod>/features/<slug>/tasks.md e cure os {{...}}.
+  TEMPLATE CANÔNICO — gerado exclusivamente por `npm run feature:init`; nunca copie à mão.
+  Depois da geração, cure os {{...}} na pasta criada pela máquina.
   Formato PARSEÁVEL (feature-lint.mjs): header `### T-NN · <título>`, metadados no blockquote,
   DoD em linha `**DoD:**`. blocked_by forma um grafo ACÍCLICO (lint reprova ciclo/ref quebrada).
 -->
@@ -14,7 +15,7 @@ module: {{PascalCase}}
 
 # Tasks — {{título curto da feature}}
 
-> **Estado de workflow (todo/doing/done) vive no MCP** (`tasks-create ... parent_plan:"{{slug}}"`,
+> **Estado de workflow (todo/doing/done) vive no MCP** (`tasks-create ... parent_plan:"{{parent-plan}}"`,
 > ADR 0070) — este arquivo é o **plano versionado**: ordem, dependências e DoD. Por isso NÃO há
 > `status:` aqui (ADR 0302 — done-ness se lê da âncora da US no SPEC, nunca de checkbox).
 > Executar em ordem topológica de `blocked_by:`. Task atômica = 1 sessão consegue fechar.

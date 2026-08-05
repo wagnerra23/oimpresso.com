@@ -31,7 +31,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('venda que fica em RASCUNHO (draft→draft) NÃO movimenta o saldo', function () {
+it('UC-INV-02 · venda que fica em RASCUNHO (draft→draft) NÃO movimenta o saldo', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);
@@ -51,7 +51,7 @@ it('venda que fica em RASCUNHO (draft→draft) NÃO movimenta o saldo', function
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(10.0);
 });
 
-it('COTAÇÃO (quotation) não movimenta o saldo', function () {
+it('UC-INV-02 · COTAÇÃO (quotation) não movimenta o saldo', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);

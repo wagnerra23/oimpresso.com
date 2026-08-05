@@ -66,7 +66,7 @@ docker compose exec app bash
 
 ### 3. Adicionar tool ao registro do MCP server
 
-O servidor MCP usa `laravel/mcp` ^0.7. Tools são registradas em
+O servidor MCP usa `laravel/mcp` ^0.9. Tools são registradas em
 `config/mcp.php` ou via `App\Providers\McpServerProvider` (ver código real
 do CT 100 — pode variar).
 

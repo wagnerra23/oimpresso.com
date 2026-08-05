@@ -1320,6 +1320,24 @@
       "error_rate_pct": 0,
       "veredito": "aprovado",
       "nota": "APROVADO na 5a passada (0/56). 100% do diff memory/+governance/ (22/22 arquivos) enumerado; 56 afirmacoes verificadas contra origin/main 32d77dba26 e branch fa95e04e19. Prova mecanica: catalog-graph --write, tasks-index-generate --write e deadlink-gate rodados em worktree da branch — diff ZERO nos 3 gerados (1098/858/39-622-947 exatos); module-surface --all --check exit 0. Contagens duras exatas: 63 arquivos deletados, 33 classes @deprecated, 24/37 modulos com charter_adr 0080, migration dropa as 7 docs_*, 6 redirects 301 com alvos confirmados em rota real. knowledge-drift nao-required confirmado nos DOIS donos (baseline + protection viva 34 contexts + ruleset). A restauracao por bloco exigida na rodada 4 foi provada por delta de literal por arquivo (4x delta 0, 1x +1 intencional; DEPRECATION-PLAN 47->47). 3 itens NAO_VERIFICAVEL (medicoes de banco de prod), todos consistentes com o canon ja mergeado. Ressalvas nao-contadas pelo refutador: universo do '15x' da errata nao declarado e citacao 'cofre de evidencias' nao-verbatim. PII 0. Spot-check independente do gerador antes do append: 63/63 deletados, 0 remanescentes, 24/37 charter_adr, 47->47 no DEPRECATION-PLAN — os 4 bateram."
+    },
+    {
+      "pr": 5165,
+      "data": "2026-08-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (Claude Code, sessão B6 — subtração de fósseis da raiz de requisitos)",
+      "refutador": "fable-5 (sessão fresca, tier superior — ciclo-adversary)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/5165#issuecomment-5158684197 — parecer da refutação GT-G5",
+      "lote_id": "B6-fosseis-raiz-requisitos-01",
+      "itens_verificados": 64,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "veredito": "aprovado",
+      "nota": "APROVADO (0/64). Lote B6 = 21 specs-planas-fósseis da raiz de memory/requisitos/ convertidas em lápide-no-lugar (mesmo path, mesmo id, corpo redireciona) + INDEX.md relinkado. Refutador Fable verificou 100% dos redirects contra origin/main: 14 dirs-dono existem (git ls-tree), 4 sucessores evidenciados (IProduction→Manufacturing ancorado em Inventory/SPEC.md L47 exata), 3 sem-sucessor sem módulo óbvio faltando, Officeimpresso1 preservada (ghost-rename-map L149-151/ADR 0017), 21/21 ids idênticos main↔HEAD, 0 fóssil promovido a SPEC. PII 0. Raiz não cai sob anchor-lint/memory-schema-gate (só globam */SPEC.md) — sem big-bang §5 2026-07-12. 2 observações de prosa do refutador (contradição nas 3 lápides mortas + overpromessa SPEC/charter em dirs finos) aplicadas antes do merge."
     }
   ]
 }

@@ -478,7 +478,7 @@ export function linhaTools(ia) {
  * NÚCLEO PURO: lê o REGISTRO de tools do `OimpressoMcpServer` — a lista que o servidor
  * de fato publica. Fonte deliberadamente diferente da PASTA: um `*Tool.php` que ninguém
  * registrou não sobe, e um registro pode apontar pra outro módulo. Duas formas convivem
- * no array: FQN (`\Modules\Brief\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
+ * no array: FQN (`\Modules\Forja\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
  * resolve no namespace do próprio servidor, Jana).
  *
  * Foi aqui que a 1ª versão desta seção errou: contou a pasta de UM módulo (39) pra
@@ -687,14 +687,21 @@ function render(data) {
   L.push('');
   L.push(`> Dono canônico: [\`memory/proibicoes.md §5\`](../proibicoes.md). ${proib.descartadas.length} entradas.`);
   L.push('');
-  for (const d of proib.descartadas) L.push(`- ~~${d}~~`);
+  // Títulos TRANSCRITOS literalmente de proibicoes.md §5 — não são ponteiros deste
+  // doc. Lápide cita path deletado de propósito ("não ressuscite `Modules/SRS`"),
+  // então o validador de path morto não se aplica aqui (ver RE_TRANSCRITO).
+  L.push('<!-- transcrito-de: memory/proibicoes.md §5 -->');
+  for (const d of proib.descartadas) L.push(`- ~~${semComentarioHtml(d)}~~`);
+  L.push('<!-- /transcrito-de -->');
   L.push('');
 
   // Tier 0 gaps
   if (proib.tier0gaps.length) {
     L.push('## Tier 0 gaps (esperam decisão/desbloqueio)');
     L.push('');
-    for (const g of proib.tier0gaps) L.push(`- ⛔ ${g}`);
+    L.push('<!-- transcrito-de: memory/proibicoes.md §Tier 0 gaps -->');
+    for (const g of proib.tier0gaps) L.push(`- ⛔ ${semComentarioHtml(g)}`);
+    L.push('<!-- /transcrito-de -->');
     L.push('');
   }
 
@@ -1055,6 +1062,56 @@ function renderOnboardingAgent(data) {
 // tratado como PATH (relativo à RAIZ do repo) e verificado. Fecha o furo que deixou
 // `Modules/Project` (inexistente) passar — antes só links markdown eram checados.
 const REPO_DIRS = /^(Modules|app|resources|scripts|governance|database|tests|config|routes|bootstrap|\.github|\.claude|memory)\/\S/;
+// ── EXCEÇÃO: TRANSCRIÇÃO ≠ PONTEIRO (2026-08-03) ──────────────────────────────
+// A regra acima mira o path que o GERADOR indica ("vá aqui") — foi feita pro caso
+// `Modules/Project`, ponteiro inventado. Ela NÃO se aplica ao texto que o gerador
+// apenas TRANSCREVE de outra fonte: um título de lápide §5 cita `Modules/SRS`
+// justamente PORQUE o módulo foi deletado ("não ressuscite"). Fail-closed nisso
+// significa que toda deleção de módulo mata o gerador — foi o que aconteceu: as 4 runs
+// agendadas de 30/07, 31/07, 01/08 e 02/08 falharam e o painel congelou.
+//
+// ERRATA (2026-08-03, revisão adversarial): a redação original dizia "primeiro por
+// `Modules/SRS`, depois somando `Modules/ADS`". FALSO — as 4 runs acusaram SÓ
+// `Modules/SRS` (`deadLinks` acumula todos os mortos e o relatório imprime todos, então
+// a ausência do ADS nos 4 logs é prova, não truncagem). A lápide do ADS só entrou em
+// main em 03/08 02:24 (#5189), DEPOIS da última falha. Eu vi os dois ao reproduzir em
+// 03/08 e escrevi isso como se fosse a causa das falhas — confundi o que observei hoje
+// com o que aconteceu. O ADS teria quebrado a run de 03/08 em diante; não quebrou
+// nenhuma das 4.
+//
+// Escopo mínimo de propósito: pula SÓ o path inline (item 2) dentro do bloco transcrito.
+// O item 1 (links markdown) segue valendo no doc INTEIRO — inclusive dentro do bloco.
+// ERRATA (mesma revisão): a redação original justificava isso dizendo que "os links do
+// texto-fonte são vigiados no DONO (deadlink-gate) — o espelho não re-verifica o que o
+// dono já verifica". As duas metades eram falsas: (a) o `deadlink-gate` extrai APENAS
+// links markdown (`/\[[^\]]*\]\(([^)]+)\)/g`), então path inline em crase não tem dono
+// nenhum — o que é aceitável (lápide é lápide), mas não é o que a frase dizia; (b) o
+// espelho CONTINUA re-verificando link markdown dentro do bloco, e um caso do bite-test
+// garante exatamente isso. A justificativa honesta é mais simples: path em título de
+// lápide não é ponteiro de navegação, e link markdown nunca foi o modo de falha.
+const RE_TRANSCRITO = /<!-- transcrito-de:[^>]*-->[\s\S]*?<!-- \/transcrito-de -->/g;
+
+/**
+ * Neutraliza abertura de comentário HTML no texto TRANSCRITO, para que o conteúdo não
+ * possa forjar o delimitador que o delimita.
+ *
+ * Achado da revisão adversarial de 2026-08-03: uma lápide futura cujo TÍTULO contenha
+ * literalmente o marcador de fechamento fecha o bloco cedo, e os títulos seguintes
+ * voltam a ser validados — reabrindo exatamente o modo de falha que este mecanismo veio
+ * consertar. Não é teórico: o §5 deste projeto é cheio de lápide SOBRE os próprios
+ * mecanismos ("não remover o marcador X"), então o texto tende a citar o marcador.
+ * Reproduzido com controle negativo antes de consertar:
+ *   com  `<!-- /transcrito-de -->` no título → ["(inline) Modules/SRS"]   (QUEBRA)
+ *   sem                                      → []                        (ok)
+ * A falha era fail-closed (mata o gerador, não abre buraco), mas o custo era outro
+ * silêncio de dias — que é o que o eixo 3 do cron-watchdog passou a vigiar.
+ *
+ * Escapar só `<!--` basta: abertura e fechamento começam por ele. O `&lt;!--` renderiza
+ * como texto visível no markdown, então a lápide continua legível.
+ */
+export function semComentarioHtml(s) {
+  return String(s).replace(/<!--/g, '&lt;!--');
+}
 export function deadLinks(md, outPath) {
   const base = dirname(outPath);
   const dead = [];
@@ -1069,7 +1126,7 @@ export function deadLinks(md, outPath) {
   // Remove blocos cercados ``` … ``` ANTES de casar inline: os backticks internos
   // do bloco bagunçam o pareamento do regex e engoliriam paths inline reais depois
   // dele (Modules/Jana, app/Domain/Fsm ficavam SEM verificação — furo silencioso).
-  const noFences = md.replace(/```[\s\S]*?```/g, '');
+  const noFences = md.replace(/```[\s\S]*?```/g, '').replace(RE_TRANSCRITO, '');
   const reCode = /`([^`]+)`/g;
   while ((m = reCode.exec(noFences)) !== null) {
     const t = m[1].trim();

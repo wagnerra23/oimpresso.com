@@ -3,7 +3,8 @@ id: requisitos-template-feature-requirements
 ---
 
 <!--
-  TEMPLATE — copie pra memory/requisitos/<Mod>/features/<slug>/requirements.md e cure os {{...}}.
+  TEMPLATE CANÔNICO — gerado exclusivamente por `npm run feature:init`; nunca copie à mão.
+  Depois da geração, cure os {{...}} na pasta criada pela máquina.
   Validado por: node scripts/governance/feature-lint.mjs (advisory).
   A US continua no SPEC.md do módulo — este arquivo DETALHA, aponta, nunca duplica a decisão.
 -->
@@ -11,7 +12,7 @@ id: requisitos-template-feature-requirements
 feature: {{slug-kebab}}
 module: {{PascalCase — igual à pasta memory/requisitos/<Mod>/}}
 us: ["US-{{MOD}}-{{NNN}}"]
-parent_plan: {{slug usado no tasks-create parent_plan: — normalmente <modulo>-<feature>}}
+parent_plan: {{parent-plan}}
 created: "{{YYYY-MM-DD}}"
 ---
 

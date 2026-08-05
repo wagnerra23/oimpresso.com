@@ -1,6 +1,7 @@
 ---
 module: PaymentGateway
-purpose: "Camada técnica de cobrança BR — drivers Inter/C6/Asaas/Pix Automático BCB, webhooks, CNAB, credenciais. Consumida por Sell, RecurringBilling, NFSe, Superadmin license."
+purpose: "Camada técnica de cobrança BR — drivers de API bancária (Inter, C6, Asaas, Pagar.me, Sicoob, Pix Automático BCB) e 11 drivers CNAB, webhooks assinados e cofre de credenciais, atrás do PaymentGatewayContract. Consumida hoje por Financeiro, Sell (core) e Superadmin."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "PaymentGatewayController"
   - "CobrancaController"
@@ -32,7 +33,7 @@ not_contains:
   - "Sale / Transaction de venda → app/ core (consome este módulo via PaymentGatewayContract)"
   - "NFSe / NFe emissão → Modules/NFSe / Modules/NfeBrasil (escuta evento CobrancaPaga)"
   - "Subscription SaaS Wagner→tenants → Plan em RecurringBilling biz=1 + handler Superadmin"
-  - "Plano de contas contábil → Modules/Accounting"
+  - "Plano de contas contábil → Modules/Accounting — módulo REMOVIDO (ADR 0174 + DEPRECATION-PLAN); hoje o plano de contas vive em Modules/Financeiro (fin_planos_conta)"
   - "Account (saldo bancário) → app/Account.php (core); só recebe FK das credenciais"
 trust_required: L3
 owner: wagner

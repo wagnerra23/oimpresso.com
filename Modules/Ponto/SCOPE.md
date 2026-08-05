@@ -1,6 +1,7 @@
 ---
 module: Ponto
-purpose: "Ponto eletrônico Portaria 671/2021. Renomeado de PontoWr2 em Fase 3.7 PR-2 (2026-05-06). URLs/permissions/config keys mantêm prefixo legacy `pontowr2.*` por compatibilidade."
+purpose: "Ponto eletrônico CLT sob Portaria MTP 671/2021 — marcação append-only imutável (trigger MySQL mais override no Model; correção só por anulação) com NSR sequencial por REP e importação de AFD. Sobre isso: apuração de jornada, banco de horas, intercorrências com aprovação e espelho. Multi-tenant Tier 0."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "Api/MobileMarcacaoController — W28-8 endpoint POST /api/v1/ponto/marcacao-mobile autenticado Sanctum token per-funcionario (escopo ponto:marcar). Recebe selfie+lat/lng+device_uuid; delega a MobileMarcacaoService. PII LGPD: selfie_base64 NUNCA logado."
   - "AprovacaoController"
@@ -17,8 +18,8 @@ contains:
   - "RelatorioController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
-  - "MCP server admin → Modules/TeamMcp"
+  - "Tasks Jira-style → Modules/Forja"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: pontowr2.*
