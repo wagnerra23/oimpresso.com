@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
@@ -63,6 +64,26 @@ class DocumentacaoController extends Controller
      */
     private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature', 'briefing'];
 
+    /**
+     * Rótulo humano de cada tipo — para a PROSA das views ("cobre decisões, referências…").
+     *
+     * Só o rótulo mora aqui; QUAIS tipos entram é sempre `TIPOS_DOC`. Tipo sem rótulo cai
+     * no próprio slug (ver `escopoEmProsa()`), então um tipo novo aparece torto — nunca
+     * some calado. É o inverso do defeito que motivou isto: até 2026-08-05 as views
+     * enumeravam "adr · reference · spec · runbook" DIGITADO, e a lista ficou mentindo
+     * duas vezes seguidas — `feature` entrou em 08-04, `briefing` em 08-05, e nenhum dos
+     * quatro rótulos acompanhou. Descrição de máquina mora dentro da máquina; o que a view
+     * mostra é derivado dela, nunca redigitado ([W] 2026-08-05 · ADR 0256).
+     */
+    private const TIPOS_DOC_ROTULO = [
+        'adr' => 'decisões (ADR)',
+        'reference' => 'referências',
+        'spec' => 'specs',
+        'runbook' => 'runbooks',
+        'feature' => 'features',
+        'briefing' => 'briefings de módulo',
+    ];
+
     private const POR_PAGINA = 25;
 
     /** Pasta de onde a navegação é derivada. Doc sem `nav_group` fica fora do rail. */
@@ -78,6 +99,42 @@ class DocumentacaoController extends Controller
     ];
 
     private const LENTES = ['operar' => 'Operar', 'construir' => 'Construir'];
+
+    /**
+     * Publica o escopo do acervo pra TODA view desta rota — inclusive o layout, que é
+     * quem carrega o `aria-label` da busca e não recebe payload de método nenhum.
+     *
+     * `View::share` aqui (e não em provider) porque o alcance é exatamente este
+     * controller: quem renderiza `documentacao.*` é só ele.
+     */
+    public function __construct()
+    {
+        ViewFacade::share('escopoTipos', self::TIPOS_DOC);
+        ViewFacade::share('escopoProsa', self::escopoEmProsa());
+    }
+
+    /**
+     * Os tipos do acervo em prosa PT-BR: "a, b, c e d".
+     *
+     * Deriva de `TIPOS_DOC` — a lista de tipos é dona; este método só a veste. Tipo sem
+     * entrada em `TIPOS_DOC_ROTULO` sai como o próprio slug: fica feio e visível, em vez
+     * de sumir em silêncio (o modo de falha que esta função existe pra impedir).
+     */
+    private static function escopoEmProsa(): string
+    {
+        $rotulos = array_map(
+            static fn (string $t): string => self::TIPOS_DOC_ROTULO[$t] ?? $t,
+            self::TIPOS_DOC,
+        );
+
+        if (count($rotulos) < 2) {
+            return implode('', $rotulos);
+        }
+
+        $ultimo = array_pop($rotulos);
+
+        return implode(', ', $rotulos) . ' e ' . $ultimo;
+    }
 
     public function index(Request $request): View
     {
