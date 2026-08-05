@@ -226,18 +226,12 @@ class DataController extends Controller
                         // implementação real. Reativar quando US-COPI-060 entregar.
                         // Rota e Controller mantidos pra não quebrar bookmarks externos.
 
-                        // Custos de IA (admin do business — US-COPI-070)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.admin.custos.view')) {
-                            $sub->url(
-                                route('jana.admin.custos.index'),
-                                __('copiloto::copiloto.menu.custos'),
-                                [
-                                    'icon'   => 'fa fas fa-coins',
-                                    'active' => request()->segment(2) == 'admin'
-                                                && request()->segment(3) == 'custos',
-                                ]
-                            );
-                        }
+                        // Custos de IA MOVIDO pra Modules/Governance em 2026-08-05
+                        // (ADR 0366 §D-B). Este bloco tinha que sair JUNTO com a rota:
+                        // ele chamava `route('jana.admin.custos.index')`, e um nome de
+                        // rota inexistente lança RouteNotFoundException — derrubaria o
+                        // sidebar INTEIRO, não só este item. A entrada agora vive no
+                        // ghost `custos` do DataController da Governança.
 
                         // Plataforma (superadmin-only)
                         if (auth()->user()->can('superadmin') || auth()->user()->can('jana.superadmin')) {
@@ -303,7 +297,8 @@ class DataController extends Controller
                             // retorna Blade view ('copiloto::metas.index'), o que faz Inertia Link no
                             // PageHeaderTabs silenciar (click no-op). Reintroduzir quando MetasController
                             // for migrado pra Inertia::render via MWART.
-                            ['key' => 'custos',    'label' => 'Custos',    'href' => '/ia/admin/custos'],
+                            // Ghost 'custos' removido 2026-08-05 (ADR 0366 §D-B): a tela
+                            // foi pra /governance/custos e agora é ghost da Governança.
                             // Ghost 'ads' REMOVIDO na parte 6 (ADR 0363): apontava pra
                             // /ads/admin/decisoes, tela do núcleo dual-brain que deixou de existir
                             // junto com o Modules/ADS. As telas que continuam sob /ads/ (projects,
@@ -321,6 +316,9 @@ class DataController extends Controller
                             // Wagner 2026-05-25: rename 'Governança Jana' → 'Governança MCP' (alinha
                             // com topnav.php que já chama de MCP — clarifica vs ghost 'governanca'
                             // canon que aponta /governance/dashboard outro módulo).
+                            ['key' => 'governanca-mcp', 'label' => 'Governança MCP', 'href' => '/ia/admin/governanca'],
+                            // Ghost 'qualidade-jana' removido 2026-08-05 (ADR 0366 §D-B):
+                            // eval é gate de conformidade, foi pra /governance/qualidade-ia.
                             // Ghost 'governanca-mcp' removido 2026-08-05: a tela foi FUNDIDA
                             // no /governance/dashboard (ADR 0366 §D-C item 1). O ghost
                             // 'governanca' logo acima já aponta pra lá — manter os dois

@@ -142,7 +142,7 @@ export function paraGitPath(fp, root = ROOT) {
 /** NÚCLEO PURO: a mensagem (separada do IO pra ser testável). */
 export function mensagem(gitPath, base, modulo) {
   return (
-    `ℹ️  DOC NASCE FORA DO ÍNDICE DA IA — ${gitPath}\n` +
+    `[doc-fora-do-rag] ℹ️  DOC NASCE FORA DO ÍNDICE DA IA — ${gitPath}\n` +
     `   Em memory/requisitos/<Mod>/ o indexador coleta por nome EXATO, e só estes 9:\n` +
     `   ${ALLOWLIST.join(' · ')}\n` +
     `   "${base}" não casa nenhum — e não casa por prefixo (RUNBOOK-algo ≠ RUNBOOK).\n` +

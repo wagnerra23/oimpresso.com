@@ -94,7 +94,7 @@ function isAuditPath(filePath) {
       .map((t, i) => `  ${i + 1}. [${t.owner}](${t.priority}) ${t.desc}`)
       .join('\n');
 
-    const reminder = `📋 **ADR 0213 — Audit-to-backlog: ${orphanTasks.length} task(s) órfã(s) detectada(s)** (hook \`audit-creates-tasks.mjs\`)
+    const reminder = `[audit-creates-tasks] 📋 **ADR 0213 — Audit-to-backlog: ${orphanTasks.length} task(s) órfã(s) detectada(s)** (hook \`audit-creates-tasks.mjs\`)
 
 Path: \`${filePath.replace(/\\/g, '/')}\`
 

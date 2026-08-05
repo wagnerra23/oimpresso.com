@@ -23,6 +23,9 @@ export function isTestFile(filePath) {
 }
 
 export const NUDGE_LINES = [
+  // Tag PRIMEIRO por exigência da sonda do `hook-bites`: ela casa `"content":"[<tag>]`
+  // no INÍCIO do valor, então uma linha vazia antes zeraria a observabilidade.
+  '[nudge-test-contract-anchor]',
   '',
   '[ANCORA DE CONTRATO - Check 9 / anti-regressao Opcao B]',
   '  Antes de escrever este teste, confirme que a assercao deriva de um CONTRATO',

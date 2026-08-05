@@ -10,7 +10,7 @@
 
 ## Resumo
 - **54** wirings em `settings.json` (5 eventos) · **49** arquivos de hook distintos wired
-- **49** arquivos de hook no disco (+41 `*.test.*` — testes, fora da conta de órfãos)
+- **49** arquivos de hook no disco (+42 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **40** classic + **1** ruleset → ponto-de-corte merge
 
