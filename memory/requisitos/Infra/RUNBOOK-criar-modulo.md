@@ -30,7 +30,7 @@ Receita pra criar módulo Laravel modular (nWidart v10) no oimpresso garantindo 
 
 ## Pré-requisitos
 
-- Ler [ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md) — imitar `Modules/Jana/`, `Modules/Repair/` ou `Modules/ProjectMgmt/`
+- Ler [ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md) — imitar `Modules/Jana/`, `Modules/Repair/` ou `Modules/Forja/`
 - Saber se o módulo terá:
   - Apenas rotas públicas? (ex: ConsultaOs) → DataController stub é OK
   - Sidebar admin? → DataController precisa de `modifyAdminMenu()` populado
@@ -299,5 +299,5 @@ Se o módulo expõe rota pública (ex: `/consulta-os`, `/repair-status`) que dev
 
 - **Mais recente** (validado 2026-05-04): `Modules/ConsultaOs/` — só rota pública + Install routes
 - **Estrutura cheia** (validado 2026-05-03): `Modules/ADS/` — sidebar + admin + service singletons
-- **CRUD multi-tenant**: `Modules/Repair/`, `Modules/ProjectMgmt/`, `Modules/Jana/`
+- **CRUD multi-tenant**: `Modules/Repair/`, `Modules/Forja/`, `Modules/Jana/`
 - **Spec-driven**: `Modules/NFSe/`
