@@ -423,6 +423,14 @@ jobs:
         run: node .claude/hooks/git-base-freshness-guard.test.mjs
       - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
         run: node scripts/governance/feature-lint.test.mjs
+      - name: SDD-flow (cadeia US → feature → SDD/CU → tela → âncora)
+        run: node scripts/governance/sdd-flow.test.mjs
+      # A JORNADA, não a peça: o gate-selftest prova que cada catraca morde (72/72) e o
+      # fluxo-morde prova que a mordida chega ao merge. Faltava "um item atravessa o fluxo
+      # inteiro, e pular um elo é detectado — por QUEM". Fixture sintética em tmpdir; roda
+      # os linters REAIS por subprocess. Advisory por natureza: não é gate, é evidência.
+      - name: Fluxo-jornada (dado atravessa os elos + variações · ADR 0368/0273/0306/0264)
+        run: node scripts/governance/fluxo-jornada.test.mjs
       - name: Ghost-fix (reescrita SPEC + ADR append-only intacto)
         run: node scripts/governance/ghost-fix.test.mjs
       - name: Negócio-vs-governança ratio (alarme morde no crossover, solta no equilíbrio)

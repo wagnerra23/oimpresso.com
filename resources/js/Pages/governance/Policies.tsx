@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Switch } from '@/Components/ui/switch'
 import PageHeader from '@/Components/shared/PageHeader'
+import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
@@ -66,6 +67,7 @@ const Policies: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
 
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
+      <GovernancaSubNav active="policies" />
       <PageHeader
         icon="settings"
         title="Policies (Governança)"

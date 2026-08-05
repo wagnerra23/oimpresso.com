@@ -121,7 +121,7 @@ lifecycle: ativo
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 118 workflows por classe
+### Censo — 119 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
@@ -131,6 +131,7 @@ lifecycle: ativo
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
+| governanca | 1 | required-always-run |
 | qualidade | 1 | brl-scan |
 
 ## Decisões (ADRs)
@@ -141,7 +142,7 @@ lifecycle: ativo
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 78 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 80 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -221,6 +222,8 @@ lifecycle: ativo
 - ~~2026-08-03 — Colher as guidelines/skills do `laravel/boost` pra fechar a nota baixa de "contexto de framework versionado"~~
 - ~~2026-08-04 — Placeholder `{{X}}` **sem aspas** em frontmatter YAML (quebra consumidor em fail-open, e a técnica foi vendida como "FP zero")~~
 - ~~2026-08-04 — Isentar do gate a população que a MÁQUINA SEMPRE PRODUZ (o `shipped-log-gate` nunca teve como reprovar — e a isenção estava INVERTIDA)~~
+- ~~2026-08-05 — Tratar alerta de ferramenta deduzindo a causa do ARQUIVO SUSPEITO, sem ler o que ela reportou (6 tentativas · e o `.gitleaksignore` era o vazamento)~~
+- ~~2026-08-05 — Confiar que o merge do git protege frontmatter YAML (dois PRs, sem conflito, chave DUPLICADA em produção)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -228,14 +231,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **371** handoffs · **589** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **373** handoffs · **591** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-05-sdd-flow-feature-smart-token`
   - `2026-08-05-plano-documentacao-tecnica-operacional`
   - `2026-08-05-maquinas-que-existiam-e-nao-avisavam`
   - `2026-08-05-hooks-condicionais-observaveis`
+  - `2026-08-05-governanca-recebe-telas-e-contrato-visual`
   - `2026-08-05-duplicacao-roadmap-forja`
-  - `2026-08-05-ancora-medivel-funil-e-teste-que-nao-provava`
-  - `2026-08-04-cron-unassigned-buraco-na-serie`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-08-05 · deriva das fontes canônicas, não as substitui._

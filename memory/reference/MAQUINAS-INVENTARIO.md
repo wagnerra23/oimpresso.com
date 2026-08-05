@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 118 (40 contexts required)
+## 1. Workflows / Gates de CI — 119 (40 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -122,6 +122,7 @@ lifecycle: ativo
 | `quick-sync.yml` | Quick Sync (manual escape — auto-deploy agora é deploy.yml) |
 | `reconcile-triplet.yml` | Reconcile triplet (advisory · paridade por setor 3-way charter↔protótipo↔produção · 6 slots PT-01 · reconcile-triplet.mjs --all + charter-blueprint-pointers.mjs · self-te… |
 | `repair-shared-vocab.yml` | Repair shared vocabulary guard |
+| `required-always-run.yml` | Required always-run (advisory · todo context required nasce em todo PR · anti-deadlock de required-readiness) |
 | `reuse-gate.yml` | Reuse duplicates ratchet (anti-duplicação de símbolo) |
 | `scope-guard.yml` | Scope Guard (anti-drift) |
 | `screen-coverage-gate.yml` | Screen Coverage Gate (catraca de cobertura) |
@@ -311,7 +312,7 @@ lifecycle: ativo
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
-### 5.1 `scripts/governance/` — 105
+### 5.1 `scripts/governance/` — 107
 
 | Script | Descrição (cabeçalho) |
 |---|---|
@@ -402,8 +403,10 @@ lifecycle: ativo
 | `reguas-cross-model.mjs` | braço de verificação CROSS-MODEL (cross-VENDOR) da grade de réguas. |
 | `reguas-indexar.mjs` | Órgão 4 da máquina de réguas em looping (ADR proposta reguas-loop-maquina-evolucao). |
 | `reguas-ledger-check.mjs` | o ledger de réguas contradiz a si mesmo? |
+| `required-always-run.mjs` | todo context REQUIRED nasce em TODO PR? |
 | `requisitos-status.mjs` | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
 | `resolver-reclamacao.mjs` | resolvedor reclamação → cadeia de responsabilidade. |
+| `sdd-flow.mjs` | recibo estrutural da cadeia: |
 | `sdd-output-lint.mjs` | mede a QUALIDADE do artefato que o agent `sdd-from-source` (ADR 0351) produz. |
 | `sdd-scorecard.mjs` | agregador do scorecard SDD (GT-G2, Semana 0 do plano |
 | `seed-tela.mjs` | EMPACOTADOR DE SEED (G1 do padrão "1 clique → sessão limpa por tela"). |

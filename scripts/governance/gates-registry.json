@@ -608,6 +608,13 @@
       "terminal": "advisory",
       "anchor": "Auditoria adversarial da defesa Tier 0 dinheiro (2026-07-28). MEDIDO: o hook block-brl-values-in-memory está armado desde 2026-07-09 (PR #4004) e MESMO ASSIM 4 commits levaram ~22 linhas com valor pra memory/ — 715f4187f9, be53b247a1, cf64b2878a, f9e116aab7. Causa medida e NÃO é indisciplina: Bash escreve sem passar por hook (heredoc/tee/sed/python), e dos 56 worktrees do repo 7 não têm .claude/settings.json e 1 não registra o hook; escape valve OIMPRESSO_BRL_OK usada 0 vezes. Enquanto multi-tenant, PII e segredo têm gate required, dinheiro tinha ZERO camada de CI — sendo o Tier 0 com precedente de git filter-repo em 5.033 commits + force-push em main (incidente 2026-06-08). Este job é a única camada que independe de worktree, runtime e autor. Bite-test: 32 hits nos 4 commits que vazaram (11+3+4+14). FP: 0 em 38.324 linhas adicionadas dos últimos 120 commits de main. Fonte única do predicado: importa scanBrlLeak do próprio hook.",
       "promote_by": "2026-09-30"
+    },
+    "required-always-run.yml": {
+      "nome": "Required always-run (advisory · todo context required nasce em todo PR · anti-deadlock de required-readiness)",
+      "classe": "governanca",
+      "terminal": "advisory",
+      "anchor": "Deadlock de required-readiness — proibicoes.md §Ambiente (2026-07-02: main BLOCKED com 54/54 verdes) + ADR 0271 onda 2 (item 4). O buraco medido: um context required cujo workflow tem paths:/paths-ignore: no pull_request NAO fica vermelho, ele NAO NASCE — o PR trava em \"Expected — waiting for status\" e a trava e do BRANCH, logo pega o repo inteiro. O protection-drift.mjs cobre nome/baseline/mojibake e NAO confere alcancabilidade do workflow dono do context. Bite-test no incidente REAL (2026-08-05): a branch do PR #5069 promove module-surface a required mantendo paths: no gatilho → 2 contexts filtrados, exit 1; contra main → 40 contexts, 40 always-run, 0 filtrados. FP medido ANTES de armar: 0 em 40 contexts required do corpus real (0 nao-resolvidos apos resolver name literal + job id + expansao de matrix). Selftest 12 asserts, incl. o par CRLF que pegou o lint cego (o $ do JS em /m nao casa antes de \r\n; sem esse par o selftest ficava 100% verde com o bloco on: vindo vazio).",
+      "promote_by": "2026-09-05"
     }
   }
 }

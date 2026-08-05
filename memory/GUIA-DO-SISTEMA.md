@@ -331,6 +331,7 @@ de uma tarefa segue direto por task MCP + PR. Tela nova ou alterada também prec
 | Camada | Dono | Pergunta que responde |
 |---|---|---|
 | Sinal + requisito-mãe | `requisitos/<Mod>/SPEC.md` (`US-*`) | **Por quê e o quê?** |
+| Contrato do domínio/família | `requisitos/<Mod>/SDD-<domínio>-vN.md` (§5/§6) | **Como o domínio funciona e quais CU precisam sobreviver?** |
 | Especificação executável | `features/<slug>/requirements.md` | **Quais comportamentos e critérios `AC-N` provam o resultado?** |
 | Plano técnico | `features/<slug>/plan.md` | **Como encaixa no código existente sem duplicar?** |
 | Grafo de execução | `features/<slug>/tasks.md` | **Em qual ordem, cobrindo quais ACs, com qual DoD?** |
@@ -345,7 +346,8 @@ de uma tarefa segue direto por task MCP + PR. Tela nova ou alterada também prec
 2. **Gerar pela máquina dona, nunca copiar à mão:**
 
    ```bash
-   npm run feature:init -- <Mod>/<slug> --us US-<MOD>-<NNN>
+   npm run sdd:init -- <Mod>/<slug> --us US-<MOD>-<NNN> \
+     --sdd auto --cu CU-<MOD>-NN --screen <Mod>/<Tela>
    ```
 
    O modo `--init` do `feature-lint.mjs` valida que módulo/SPEC/US existem, gera somente
@@ -364,13 +366,23 @@ de uma tarefa segue direto por task MCP + PR. Tela nova ou alterada também prec
 6. **Validar antes de implementar:**
 
    ```bash
-   node scripts/governance/feature-lint.mjs <Mod>/<slug> --check
+   npm run sdd:flow:check -- <Mod>/<slug>
    ```
 
 7. **Executar em ordem topológica.** Para cada tarefa: teste que prova o AC falha → menor
    implementação que o satisfaz → teste passa → DoD registrado. Pest/PHPStan rodam no CT 100,
    nunca no Hostinger ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md)).
-8. **Fechar o loop.** Smoke real, âncora `verificado@<sha7>` na US e lint final. Em valor/estoque,
+8. **Fechar o loop.** Smoke real, âncora `verificado@<sha7>` na US e recibo final:
+
+   ```bash
+   npm run sdd:flow:receipt -- <Mod>/<slug>
+   ```
+
+   O recibo estrutural não declara teste verde por conta própria. Ele verifica o smart token Git
+   `verificado@<sha7>` da US com `anchor-lint --stale` (incluindo a base derivada pós-squash) e
+   exige hash válido nas referências `arquivo:linha` da feature/tela por meio de
+   `ancora-codigo-sync --check --require-stamp`; `casos-gate` e a lane CT 100 aplicável continuam
+   sendo autoridades separadas. Em valor/estoque,
    `--apply` só ocorre após dry-run com impacto antes→depois e aprovação humana explícita.
 
 **Critério de pronto da especificação:** todo `AC-N` é coberto por pelo menos uma tarefa; toda
@@ -423,25 +435,29 @@ a ajuda curta para o terminal; esta seção é a versão explicada.
 Substitua os três campos: `<Modulo>`, `<slug>` e `US-<MOD>-<NNN>`.
 
 ```bash
-npm run feature:init -- <Modulo>/<slug> --us US-<MOD>-<NNN> --dry-run
+npm run sdd:init -- <Modulo>/<slug> --us US-<MOD>-<NNN> --dry-run
 ```
 
 Exemplo de formato — use uma US e um slug que pertençam à feature real:
 
 ```bash
-npm run feature:init -- Connector/minha-integracao --us US-CONN-013 --dry-run
+npm run sdd:init -- Connector/minha-integracao --us US-CONN-013 --dry-run
 ```
 
 O resultado esperado lista exatamente três caminhos com a palavra `criaria`. Confirme também que
 a pasta não apareceu no disco. O dry-run não é permissão para duplicar a US-CONN-013: o comando
 acima demonstra apenas a forma; uma feature nova usa sua própria US.
 
+Quando já houver SDD e/ou tela afetada, acrescente `--sdd auto`, um ou mais `--cu CU-<MOD>-NN`
+e `--screen <Mod>/<Tela>`. `auto` só aceita exatamente um SDD no módulo; se houver mais de uma
+família, informe o arquivo explicitamente. Feature exclusivamente backend pode omitir `--screen`.
+
 ##### Passo 4 — gerar a pasta
 
 Depois de conferir módulo, slug e US, remova apenas `--dry-run`:
 
 ```bash
-npm run feature:init -- <Modulo>/<slug> --us US-<MOD>-<NNN>
+npm run sdd:init -- <Modulo>/<slug> --us US-<MOD>-<NNN>
 ```
 
 A máquina cria:
