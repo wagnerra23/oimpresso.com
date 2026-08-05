@@ -46,8 +46,7 @@
         não uma cópia dele. Alterou a fonte por PR? A página muda no próximo acesso.
         Não existe versão intermediária para ficar desatualizada.
         @if ($buscaDisponivel)
-          Para o resto do acervo, use a busca acima — ela cobre decisões, referências,
-          specs e runbooks.
+          Para o resto do acervo, use a busca acima — ela cobre {{ $escopoProsa }}.
         @endif
       </footer>
     </div>

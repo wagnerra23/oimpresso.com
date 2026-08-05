@@ -251,7 +251,7 @@
         <form class="rail-busca" method="GET" action="{{ route('documentacao.buscar') }}" role="search">
           <input type="search" name="q" value="{{ $termo ?? '' }}"
                  placeholder="Buscar na documentação…"
-                 aria-label="Buscar em decisões, referências, specs e runbooks">
+                 aria-label="Buscar em {{ $escopoProsa }}">
         </form>
 
         <a class="capa" href="{{ route('documentacao') }}"

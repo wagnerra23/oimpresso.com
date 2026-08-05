@@ -411,3 +411,41 @@ it('responde 200 e renderiza o conteudo do dono quando autenticado', function ()
     expect($html)->toContain('<h2');                          // markdown virou HTML de verdade
     expect($html)->toContain('documentacao/buscar');           // a busca está oferecida
 });
+
+it('o escopo que a pagina MOSTRA e derivado de TIPOS_DOC — nenhum tipo some calado', function () {
+    // O defeito que este caso mata (2026-08-05): as views enumeravam
+    // "adr · reference · spec · runbook" DIGITADO à mão, em 4 lugares. A lista ficou
+    // mentindo duas vezes seguidas — `feature` entrou em 08-04, `briefing` em 08-05, e
+    // nenhum dos rótulos acompanhou. Quem lia a página concluía que o acervo era menor
+    // do que é. Não é presence-gate (não olha o texto do .blade): mede a DERIVAÇÃO —
+    // se um tipo novo entrar em TIPOS_DOC sem chegar ao que a página mostra, cai aqui.
+    $classe = new ReflectionClass(App\Http\Controllers\DocumentacaoController::class);
+    $tipos = $classe->getConstant('TIPOS_DOC');
+    $rotulos = $classe->getConstant('TIPOS_DOC_ROTULO');
+
+    // 1. Todo tipo tem rótulo humano. O PHPStan já cobra isto — escopoEmProsa() indexa
+    //    direto, sem fallback, então tipo sem rótulo derruba a análise estática nomeando
+    //    o tipo. A invariante é importante demais pra depender de uma ferramenta só.
+    $semRotulo = array_values(array_diff($tipos, array_keys($rotulos)));
+    expect($semRotulo)->toBe([]);
+
+    // 2. A prosa cobre TODOS os tipos. Por diferença de conjuntos, não por toContain
+    //    com mensagem — o diagnóstico mostra exatamente qual tipo ficou de fora.
+    $escopoEmProsa = $classe->getMethod('escopoEmProsa');
+    $escopoEmProsa->setAccessible(true);
+    $prosa = $escopoEmProsa->invoke(null);
+
+    $foraDaProsa = array_values(array_filter(
+        $tipos,
+        fn (string $t): bool => ! str_contains($prosa, $rotulos[$t] ?? $t)
+    ));
+    expect($foraDaProsa)->toBe([]);
+
+    // 3. O construtor PUBLICA os dois pra toda view da rota — incluindo o layout, que
+    //    carrega o aria-label da busca e não recebe payload de método nenhum. Sem esta
+    //    perna, a derivação existiria e não chegaria na tela.
+    new App\Http\Controllers\DocumentacaoController;
+
+    expect(Illuminate\Support\Facades\View::shared('escopoTipos'))->toBe($tipos);
+    expect(Illuminate\Support\Facades\View::shared('escopoProsa'))->toBe($prosa);
+});
