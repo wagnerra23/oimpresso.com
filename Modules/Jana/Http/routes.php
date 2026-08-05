@@ -256,6 +256,8 @@ Route::get('/ia/admin/qualidade', function () {
     $qs = request()->getQueryString();
 
     return redirect()->to('/governance/qualidade-ia'.($qs ? '?'.$qs : ''), 301);
+});
+
 // Roadmap Gantt → Modules/Forja (ADR 0366 §D-B + ADR 0367 D4, 2026-08-05).
 // Closure em vez de `Route::redirect` porque a tela carrega 4 filtros na query
 // (`?cycle=`, `?owner=`, `?priority=`, `?module=`) e o `Route::redirect`
