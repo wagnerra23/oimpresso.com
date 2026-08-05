@@ -14,7 +14,8 @@ contains:
   # Services (CustosService, MemoriaMetrica) FICARAM — mudou o dono da tela, não o do dado.
   - "Admin/JanaProController — brief diário invocável (US-COPI-203)"
   - "ProController — paywall Jana Pro (/ia/pro), tela de conversão F3 design (#2069)"
-  - "Admin/RoadmapController — timeline Gantt do cycle ativo (Onda 5 V1)"
+  # Admin/RoadmapController SAIU pra Modules/Forja em 2026-08-05 (ADR 0366 §D-B +
+  # ADR 0367 D4): usa TaskCrudService/McpTask — é tasks, e tasks é Forja.
   # Metas / Períodos
   - "MetasController — metas do business"
   - "PeriodosController — períodos de apuração"

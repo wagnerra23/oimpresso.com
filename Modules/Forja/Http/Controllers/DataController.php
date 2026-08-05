@@ -347,6 +347,16 @@ class DataController extends Controller
                             ['key' => 'activity',    'label' => 'Activity',    'href' => '/project-mgmt/activity'],
                             ['key' => 'burndown',    'label' => 'Burndown',    'href' => '/project-mgmt/burndown'],
                             ['key' => 'roadmap',     'label' => 'Roadmap',     'href' => '/project-mgmt/roadmap'],
+                            // Gantt recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B +
+                            // ADR 0367 D4). Key e label DIFEREM do ghost 'roadmap' acima de
+                            // propósito: são duas leituras distintas do mesmo backlog e as
+                            // DUAS ficam — o quarter view agrupa epics por trimestre, o Gantt
+                            // agrupa tasks no tempo, e nenhum responde a pergunta do outro
+                            // (o quarter não tem due_date/blocked_by; o Gantt não tem epic_id).
+                            // A 0367 D7: o quarter view "só sai quando o Gantt provar que
+                            // substitui". Key duplicada faria os dois disputarem o destaque
+                            // ativo no PageHeaderTabs.
+                            ['key' => 'roadmap-gantt', 'label' => 'Roadmap (Gantt)', 'href' => '/forja/roadmap-gantt'],
                         ],
                     ]
                 )->order(91); // Logo após Copiloto (90) — hub único Forja (fusão 2026-06-16)
