@@ -277,7 +277,7 @@ lifecycle: ativo
 | `wagner-protocol-enforce` | B | BLOQUEADOR Tier A always-on — carrega memory/reference/PROTOCOLO-WAGNER-SEMPRE.md |
 | `wagner-request-refiner` | B | ATIVAR quando Wagner manda múltiplos pedidos curtos não-estruturados num mesmo turno (ex: lista com 3+ items, "todo: a) b) c)", bullets numerados, scr… |
 
-## 4. Agents (subagentes Task) — 26
+## 4. Agents (subagentes Task) — 27
 
 | Agent | Descrição (início) |
 |---|---|
@@ -304,6 +304,7 @@ lifecycle: ativo
 | `screen-qa-specialist` | ATIVAR quando Wagner pedir "garantir QA da tela X", "testar a tela Y de ponta a ponta", "cobrir a tela Z", "/screen-qa <Mod>/<Tela>", "especialista de teste na tela W", "… |
 | `sdd-from-source` | ATIVAR quando [W] pedir "gera o SDD da tela X a partir do fonte", "documenta o fluxo real de <Mod>/<Tela>", "faz o SDD/casos de <Mod>/<Tela> analisando o código", "/sdd-f… |
 | `tela-venda-arte` | Use quando Wagner pedir "estado da arte da tela de venda", "compare minha tela de venda com os concorrentes", "benchmark POS", "nota da minha tela de venda", "como o Blin… |
+| `testador-de-maquinas` | ATIVAR quando [W] pedir "essa máquina morde?", "testa o gate X", "esse hook está funcionando mesmo?", "audita a máquina Y", "prova que o gate pega", "posso promover esse … |
 | `wagner-understand` | ATIVAR ANTES de Claude começar a executar pedido do Wagner — especialmente quando o pedido vem cru/curto/ambíguo ("faz isso", "implementa X", "copia aquilo", screenshot c… |
 | `whatsapp-arch-arte` | Use quando Wagner pedir "estado da arte de arquitetura WhatsApp/mensagens", "compare minha estrutura WhatsApp com os melhores e dá nota", "auditar arquitetura técnica do … |
 | `whatsapp-doctor` | Use quando WhatsApp Baileys daemon der problema no CT 100 — "WhatsApp parou", "mensagem não saiu", "tá banido?", "loop de erro no daemon", "device_removed", "stream error… |

@@ -581,11 +581,25 @@ function render(data) {
 
   const L = [];
   L.push('---');
-  L.push('name: PAINEL-SISTEMA — índice gerado do estado do sistema oimpresso');
+  // `id` NÃO é decorativo: o rail de /documentacao linka por ele
+  // (`route('documentacao.documento', $item['id'])`) e o controller resolve
+  // `where('slug', …)` em mcp_memory_documents — cujo slug é DERIVADO do caminho
+  // (`reference-` + path slugificado · IndexarMemoryGitParaDb::coletarRecursivo).
+  // Os dois têm que bater, senão o item do rail 404. Mudou o caminho → mude aqui.
+  L.push('id: reference-painel-sistema');
+  // O rail rotula com o que vem DEPOIS do travessão (Str::after(name, '—')), então o
+  // padrão `Grupo — Assunto` dos 10 vizinhos vira "Painel do sistema" no menu.
+  L.push('name: Técnico — Painel do sistema');
   L.push('description: MATRIZ gerada por scripts/governance/system-map.mjs. NÃO editar à mão (regenera). Índice que aponta pros donos canônicos + fatos deriváveis + frescor real.');
   L.push('type: reference');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
+  // Opt-in do rail de /documentacao (DocumentacaoController::navegacao): sem `nav_group`
+  // o doc fica FORA do menu — era por isso que o painel só era alcançável pela busca.
+  // `tecnico` = grupo do irmão TECNICO-ARQUITETURA (nav_order 10); este vem depois.
+  L.push('nav_group: tecnico');
+  L.push('nav_order: 20');
+  L.push('lente: [construir]');
   L.push('---');
   L.push('');
   L.push('# 🗺️ PAINEL-SISTEMA — estado do oimpresso');
