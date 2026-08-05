@@ -1,6 +1,6 @@
 ---
 id: requisitos-jana-briefing
-distilled_at: "2026-07-28"
+distilled_at: "2026-08-05"
 distilled_by: "manual [W/C] — consolidação de donos: intenção e decisões abertas ficam aqui; topologia/inventário ficam nos artefatos gerados; execução de observabilidade fica em OBSERVABILITY.md"
 module: Jana
 status: producao
@@ -10,6 +10,8 @@ updated_at: "2026-07-29"
 # BRIEFING — Jana (verdade destilada)
 
 ## Estado atual
+
+> **2026-08-05 — a tela de Governanca MCP saiu da Jana** (ADR 0366 §D-C item 1). Ela nao foi movida: foi FUNDIDA no painel do Modules/Governance, porque era a mesma tela que o dashboard de la (sobreposicao #4 da ADR). Fecha um drift que o SCOPE.md da Governanca declarava desde 2026-05-17 com eta_migracao Fase 5. O GovernancaService FICA aqui — mudou o dono da TELA, nao o do DADO; a permission jana.mcp.usage.all foi PRESERVADA e continua gateando a secao MCP dentro do painel novo. A URL antiga /ia/admin/governanca redireciona 301.
 
 Camada de IA do oimpresso: chat com memória persistente, brief diário, sugestões de metas e evals, sobre a stack canônica `laravel/ai` + Agents próprios ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)). Em produção.
 
