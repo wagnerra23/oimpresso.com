@@ -1,39 +1,41 @@
 # .gitleaksignore — fingerprints de FALSO POSITIVO, conferidos um a um.
 #
-# REGRA DESTE ARQUIVO: descreva o achado SEM reproduzir o padrão que o disparou.
-# A 1a versao deste comentario citava o trecho literal do codigo pra explicar o
-# falso positivo — e o Gitleaks passou a acusar o PROPRIO .gitleaksignore
-# (linhas 3 e 4), porque o texto explicativo continha exatamente a forma que a
-# regra procura. Ignorar aquilo criaria regressao infinita: cada explicacao
-# gerando o proximo alerta. Se precisar ser especifico, cite arquivo e LINHA,
-# nunca o conteudo.
+# REGRA DESTE ARQUIVO: descreva o achado SEM reproduzir o padrao que o disparou.
+# Cite arquivo e LINHA, nunca o conteudo. Comentario que reproduz o padrao vira
+# o proximo alerta — foi o que aconteceu aqui, duas vezes.
 #
-# 2026-08-05 — QualidadeIa.tsx, 2 entradas. FALSO POSITIVO conferido linha a
-# linha: sao definicoes de metrica do grafico, cada uma com um valor hexadecimal
-# de 6 digitos que e a COR da serie. A regra generic-api-key le o hexadecimal
-# como credencial. Nada a rotacionar.
+# 2026-08-05 — QualidadeIa.tsx. FALSO POSITIVO conferido linha a linha: sao
+# definicoes de metrica do grafico (rotulo + cor da serie). Nada a rotacionar.
 #
-# HIPOTESE MINHA QUE A EVIDENCIA DERRUBOU (fica registrada pra ninguem repetir):
-# achei que o gatilho fosse o NOME do campo — ele se chamava "key", colado no
-# hexadecimal. Renomeei para "metrica" e removi estes 2 fingerprints achando que
-# a causa tinha ido embora. O scan reprovou de novo NO MESMO SHA do rename: o
-# gatilho e o literal hexadecimal, nao o nome do campo. Restaurei as entradas.
-# O rename ficou (nao piora nada e o nome novo e mais claro), mas ele NAO resolve.
+# CAUSA REAL, LIDA NO LOG DO SCAN (nao inferida): a regra generic-api-key casa o
+# VALOR de um campo cujo nome e a palavra "key", quando esse valor e uma string
+# de 10+ caracteres. O campo do array de metricas se chamava assim, e o valor era
+# o identificador da metrica. O hexadecimal da cor NUNCA foi o gatilho.
 #
-# Conserto de verdade seria tokenizar as cores (R-DS-002) — muda o render das
-# series do grafico, entao exige aprovacao visual [W]. Ate la, ignorar aqui e o
-# caminho honesto: o alerta e falso e esta documentado.
+# DUAS HIPOTESES MINHAS QUE A EVIDENCIA DERRUBOU (ficam registradas):
+#   1. "e o hexadecimal da cor" — falso. Passei 6 tentativas tratando a cor:
+#      fingerprint, remocao, re-fingerprint e ate um allowlist por padrao de cor
+#      no .gitleaks.toml. Nenhuma podia funcionar, porque nenhuma tocava o gatilho.
+#   2. "o rename do campo nao resolve" — falso, e o inverso do que escrevi aqui
+#      antes. O rename resolveu: o .tsx nao aparece mais em achado nenhum. O que
+#      reprovou no mesmo SHA foi OUTRO arquivo — este — porque o comentario que
+#      eu tinha escrito pra explicar o falso positivo reproduzia o trecho literal.
 #
-# POR QUE SAO 4 ENTRADAS E NAO 2 (medido, nao suposto): o fingerprint e fixado
-# por COMMIT, e o gitleaks atribui o achado ao commit que TOCOU a linha por
-# ultimo. As 2 primeiras apontam pro commit que criou o arquivo; as 2 ultimas,
-# pro commit que renomeou o campo daquelas mesmas linhas. Enquanto os dois forem
-# alcancaveis na branch, os dois precisam estar aqui — foi por nao entender isso
-# que o alerta voltou depois de eu "consertar".
+# LICAO (LC-08, fonte errada): as 6 tentativas partiram de leitura do codigo, e
+# a resposta estava no log do scan o tempo todo — 1 comando. Antes de tratar um
+# alerta, LEIA o que a ferramenta reportou; nao deduza do arquivo suspeito.
 #
-# COROLARIO PRATICO: tocar de novo essas 2 linhas exige acrescentar o fingerprint
-# do commit novo. E o custo real de conviver com o falso positivo, e e o argumento
-# mais forte a favor de tokenizar as cores de uma vez.
+# POR QUE OS 2 PRIMEIROS FINGERPRINTS APONTAM PRA ESTE ARQUIVO: o gitleaks detect
+# varre os COMMITS do PR, nao so o estado final. O texto ruim vive num commit ja
+# empurrado; corrigir o arquivo agora nao apaga o historico. Como esse commit e
+# imutavel, este fingerprint e ESTAVEL — diferente dos que apontam pra linha de
+# codigo viva, que invalidam a cada toque (foi o que quebrou as tentativas 1-4).
+719430d3936db003dd78e27eeea5c7ec5d492bb7:.gitleaksignore:generic-api-key:3
+719430d3936db003dd78e27eeea5c7ec5d492bb7:.gitleaksignore:generic-api-key:4
+#
+# Abaixo: entradas do .tsx anteriores ao rename. Provavelmente ja obsoletas (o
+# rename matou o achado), mas os commits seguem alcancaveis na branch e remove-las
+# sem necessidade ja me custou um ciclo. Ficam ate a branch ser mergeada.
 d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:167
 d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:170
 2a5b2bec47efe821dfac03d7dc412467871f3200:resources/js/Pages/governance/QualidadeIa.tsx:generic-api-key:167
