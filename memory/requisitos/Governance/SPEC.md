@@ -916,3 +916,20 @@ Dono do ato = quem opera o loop Cowork. Escalado a [W] porque **17 dias de verme
 **Contexto que mata o pedido original** (investigação 2026-07-27): o eixo `path::simbolo` **não é o problema** — **0 de 469** renames em 180d deixaram âncora apontando path antigo; `anchored_dead=1` e `anchored_zombie=0` em 981 US; símbolo aparece na lista canônica de só 19 dos 447 campos (4,3%) e **0 estão mortos**. O P6 rename-proof já foi **cortado conscientemente** em 2026-06-23 (*"refatoração de pasta é rara num ERP de 5 devs; `anchored_dead` é ruído visível, não mentira silenciosa"*).
 
 **Aceite:** emenda ao [ADR 0303](../../decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md) (dono do testado-check) define a receita; `anchor-lint --stale` mostra `sha_fora_da_ancestralidade` **caindo** nas âncoras novas. Refs: US-GOV-055 · ADR 0273 · ADR 0303.
+
+### US-GOV-059 · Triar as 43 permissões órfãs — usadas no código, declaradas em lugar nenhum
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — o detector existe (`scripts/governance/permission-drift.mjs`); falta a TRIAGEM das 43.
+
+Achado da sessão 2026-08-05, na triagem dos scripts órfãos: o `permission-drift.mjs` estava sem invocador, e rodá-lo revelou a dívida.
+
+**Medido no main** (`node scripts/governance/permission-drift.mjs`, ~2,2s): **357** permissões declaradas · **340** usadas com alvo literal · **30** chamadas com alvo DINÂMICO (quarentena — indecidível por texto) · **43 ÓRFÃS**.
+
+Órfã = usada no código (`can()`, FormRequest, blade) e declarada em lugar **nenhum**. A consequência está no próprio relatório: *"ninguém consegue conceder; com o `Gate::before`, viram 'só admin' por acidente"* — a feature fica inacessível a qualquer papel não-admin, em silêncio. Amostra: `auditoria.revert`, `auditoria.export`, `arquivos.restore`, `brief.purge`, `api.access`, `configure_dashboard`.
+
+**NÃO é pedido de gate.** O output do script declara: *"advisory por construção nesta fase — decidir forma de gate SÓ depois do FP medido"*. O trabalho é a triagem: cada uma das 43 é (a) permissão que falta declarar no seeder/config, (b) chamada morta a remover, ou (c) falso-positivo do detector (alvo dinâmico mal classificado).
+
+**Aceite:** as 43 classificadas nas 3 categorias, com as de tipo (a) declaradas e as de tipo (b) removidas; o número cai e o que sobra tem razão escrita. Refs: sessão 2026-08-05.
