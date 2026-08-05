@@ -6485,7 +6485,7 @@ parameters:
 			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
 			identifier: oimpresso.silentFallback
 			count: 1
-			path: Modules/Jana/Http/Controllers/Admin/QualidadeController.php
+			path: Modules/Governance/Http/Controllers/QualidadeIaController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Jana\\Entities\\Sugestao\>\|Modules\\Jana\\Entities\\Sugestao\:\:\$conversa\.$#'
