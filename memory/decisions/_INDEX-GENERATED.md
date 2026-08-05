@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **373** arquivos · **358** números únicos · máx **0369**
-- **ADRs ATIVOS (lifecycle ativo): 335** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 337 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 335 · arquivado 22 · substituido 16
+- **374** arquivos · **359** números únicos · máx **0370**
+- **ADRs ATIVOS (lifecycle ativo): 336** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 338 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 336 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (373)
+## Todas as ADRs (374)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -411,3 +411,4 @@ _(nenhuma)_
 | 0367 | proposto | ativo | decision | Cockpit único do time: /project-mgmt morre, /forja e /team-mcp/tasks ficam — cin |
 | 0368 | aceito | ativo | decision | Funil de admissão de feature — a pesquisa de mercado propõe, [W] admite ou recus |
 | 0369 | aceito | ativo | decision | Emenda à 0314 — Compras, Estoque e Ponto (Pest MySQL) promovidos a REQUIRED (val |
+| 0370 | aceito | ativo | decision | Emenda à 0314 — module-surface e catalog-graph promovidos a REQUIRED (índice der |

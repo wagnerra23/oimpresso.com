@@ -97,7 +97,7 @@ function extractText(payload) {
     if (!BLOCK_HEADER.test(text)) process.exit(0);
 
     // Bloco detectado → força a skill design-memoria-reprocess (G2).
-    const reminder = `🔁 **ADR 0236 — bloco \`## new_design_memories\` detectado num handoff do Claude Design** (hook \`design-handoff-reprocess.mjs\`)
+    const reminder = `[design-handoff-reprocess] 🔁 **ADR 0236 — bloco \`## new_design_memories\` detectado num handoff do Claude Design** (hook \`design-handoff-reprocess.mjs\`)
 
 Isto é o gatilho **G2 RECONCILIAR** do modelo de reprocesso event-driven. O handoff **declarou** memórias de design novas; o hook **garante** que elas sejam reconciliadas (lembrete é esquecível; hook é garantido — ADR 0224 + R12).
 

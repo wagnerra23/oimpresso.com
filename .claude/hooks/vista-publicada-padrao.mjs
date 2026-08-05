@@ -141,7 +141,7 @@ async function readStdin() {
 
     if (queixas.length) {
       console.error(
-        `⚠️  VISTA FORA DO PADRÃO — ${fp}\n` +
+        `[vista-publicada-padrao] ⚠️  VISTA FORA DO PADRÃO — ${fp}\n` +
         queixas.map((x) => `   · ${x}`).join('\n') +
         `\n\nO padrão e o registro vivem em ${REGISTRO_REL}.\n` +
         `Vista é retrato datado: sem procedência declarada ela vira a segunda documentação.\n` +

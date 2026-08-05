@@ -658,15 +658,7 @@
       "exposure_score": 4
     },
     {
-      "screen": "Jana/Admin/Custos/Index.tsx",
-      "module": "Jana",
-      "categories": [
-        "dinheiro"
-      ],
-      "exposure_score": 4
-    },
-    {
-      "screen": "Jana/Admin/Governanca/Index.tsx",
+      "screen": "governance/Custos.tsx",
       "module": "Jana",
       "categories": [
         "dinheiro"

@@ -1926,3 +1926,36 @@ Gaps (`financeiro-advisor-login.yaml`):
 - **Error-recovery (médio):** sem "esqueci a senha", sem rate-limit hint.
 
 DoD: nota ≥70 + ratchet verde. Backend-only na aparência (tela de auth) — charter + gate visual antes de Editar a Page.
+
+### US-FIN-068 · BridgeExpenseToTitulosCommand filtra transactions.deleted_at — coluna inexistente em prod (SQLSTATE 42S22)
+
+> owner: — · priority: p1 · estimate: 2h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Console/Commands/BridgeExpenseToTitulosCommand.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php` (`@covers-us US-FIN-068`, lane `financeiro-pest`) — saiu da quarentena neste PR, logo o veredito passa a vir da lane.
+
+`BridgeExpenseToTitulosCommand.php:106` montava `DB::table('transactions as t')->whereNull('t.deleted_at')`. A coluna `transactions.deleted_at` NÃO EXISTE — medido em 3 fontes independentes (2026-08-05):
+
+| Fonte | `transactions.deleted_at` |
+|---|---|
+| `database/schema/mysql-schema.sql` (bloco `CREATE TABLE transactions`, 161 colunas) | ausente |
+| CT 100 `oimpresso_staging` (`Schema::hasColumn`) | `false` |
+| **PRODUÇÃO Hostinger** (`Schema::hasColumn`) | `false` |
+
+`App\Transaction` não usa o trait `SoftDeletes` e nenhuma migration cria a coluna. A query quebrava com `SQLSTATE[42S22] Unknown column 't.deleted_at' in 'WHERE'` em toda execução — **confirmado rodando o comando em produção** (`--dry`, leitura pura).
+
+**Escopo do achado (varredura contada):** `git grep "t\.deleted_at"` devolveu 5 pontos; apenas ESTE era defeito. Os outros 4 usam alias para tabelas que TÊM soft delete (medido: `fin_titulos.deleted_at=true`, `mcp_tokens.deleted_at=true`) e estão CORRETOS: `FluxoRealizadoService.php:99`, `FinanceiroHealthCommand.php:307`, `ResyncFromCoreCommand.php:108` (`ft.` = fin_titulos), `Modules/Jana/.../HealthCheckCommand.php:1036` (`mcp_tokens`).
+
+**Correção:** removido o `whereNull('t.deleted_at')`. NÃO foi adicionada a coluna — isso mudaria schema do core UltimatePOS e exigiria ADR.
+
+**Evidência (CT 100, worktree limpo em `origin/main`):** `BridgeExpenseToTitulosCommandTest` saiu de `6 failed, 2 passed (2 assertions)` para **`8 passed (26 assertions)`**. As assertions subirem de 2→26 provam execução real, não verde por não-execução.
+
+**Impacto medido em produção (Regra Mestre Tier 0 — valor):** o comando **não está agendado** (`schedule:list` em prod: 105 schedules, nenhum é este), logo o fix não dispara escrita automática. Quando rodado manualmente, passa a processar **11 despesas pendentes de bridge** em 5 businesses: biz=1 (6), biz=4 (2), biz=6 (1), biz=8 (1), biz=164 (1).
+
+**Aceite:**
+- [x] `whereNull('t.deleted_at')` removido de `BridgeExpenseToTitulosCommand.php:106`
+- [x] `BridgeExpenseToTitulosCommandTest` deixa de emitir SQLSTATE 42S22
+- [x] Teste sai da quarentena `.github/financeiro-pest-quarantine.list` (a lista encolhe 25 → 24)
+- [ ] Rodado na lane `financeiro-pest` (CI) — o veredito final é da lane, não do CT 100

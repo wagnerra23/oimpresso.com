@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **871 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **874 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,9 +11,9 @@
 | [`Jana`](#jana) | 82 | 2 | 0 | 0 | 80 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 51 | 0 | 0 | 0 | 51 |
+| [`Governance`](#governance) | 46 | 0 | 0 | 3 | 43 |
+| [`Infra`](#infra) | 46 | 0 | 0 | 0 | 46 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
-| [`Governance`](#governance) | 45 | 0 | 0 | 3 | 42 |
-| [`Infra`](#infra) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 26 | 0 | 0 | 6 | 20 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
@@ -41,9 +41,9 @@
 | [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`Cliente`](#cliente) | 8 | 1 | 0 | 0 | 7 |
+| [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`Produto`](#produto) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
-| [`KB`](#kb) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
@@ -281,57 +281,6 @@
 - **US-SELL-052** — Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado)
 - **US-SELL-053** — FieldError por campo + auto-open details em erro
 
-## Financeiro
-
-
-### todo
-
-- **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
-- **US-FIN-016** — Auto-emite boleto Inter ao criar titulo_receber (Observer + Job idempotente) _(`p1` · @wagner)_
-- **US-FIN-017** — Boletos — Sheet Emitir multi-título (bulk emission) _(`p1` · @wagner)_
-- **US-FIN-030** — Aging buckets <30/30-60/60-90/90+ no header Unificado + filtro _(`p1` · sprint Onda 24)_
-- **US-FIN-043** — Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara) _(`p1` · @maiara)_
-- **US-FIN-044** — SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time) _(`p1` · @wagner)_
-- **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
-- **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
-- **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
-- **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
-- **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
-- **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
-- **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
-- **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
-- **US-FIN-021** — Fluxo de caixa — Margem mínima configurável via business_settings _(`p2` · @wagner)_
-- **US-FIN-022** — Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS) _(`p2` · @wagner)_
-- **US-FIN-023** — Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão) _(`p2` · @wagner)_
-- **US-FIN-024** — Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) _(`p2` · @wagner)_
-- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p2` · sprint Onda 27)_
-- **US-FIN-034** — Importação massiva CSV/Excel — mapping wizard + dry-run + commit _(`p2` · sprint Onda 28)_
-- **US-FIN-035** — Repetir lançamento próximo mês + Combobox autocomplete contraparte _(`p2` · sprint Onda 29)_
-- **US-FIN-036** — PWA básico Financeiro — manifest + service worker + offline cache + install prompt _(`p2` · sprint Onda 30)_
-- **US-FIN-039** — Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior _(`p2`)_
-- **US-FIN-040** — Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge _(`p2`)_
-- **US-FIN-041** — Onda 6 Accounting DROP TABLE - 6 vazias + ARCHIVE 2 seed + DELETE permissions _(`p2`)_
-- **US-FIN-061** — Otimizar LCP das telas núcleo (Financeiro/Unificado + Sells) — verificar prod real + reduzir bundle JS _(`p2`)_
-- **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
-- **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
-- **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
-- **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
-- **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
-- **US-FIN-067** — Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) _(`p3`)_
-- **US-FIN-001** — Listar Contas a Receber em aberto
-- **US-FIN-002** — Lançar título a receber manual
-- **US-FIN-003** — Baixar título (parcial ou total)
-- **US-FIN-004** — Listar Contas a Pagar com vencimento próximo
-- **US-FIN-005** — Cadastrar título a pagar com upload de boleto OCR
-- **US-FIN-006** — Pagar título (registrar saída do caixa)
-- **US-FIN-007** — Visualizar fluxo de caixa projetado
-- **US-FIN-008** — Cadastrar conta bancária
-- **US-FIN-009** — Importar extrato OFX e conciliar
-- **US-FIN-010** — Emitir boleto bancário (CNAB ou via gateway)
-- **US-FIN-011** — DRE (Demonstração de Resultado)
-- **US-FIN-012** — Aging de inadimplência
-- **US-FIN-013** — Dashboard unificado de títulos (4 estados na mesma tela)
-
 ## Governance
 
 
@@ -370,6 +319,7 @@
 - **US-GOV-052** — Backlog da revisão da memória do processo — consertos M/G restantes _(`p2`)_
 - **US-GOV-053** — recall_eval_violations: transporte versionado do cron dominical pro scorecard SDD _(`p2`)_
 - **US-GOV-054** — Coletar bite-log retroativo dos 3 gates DS required (fechamento empírico ADR 0339 / DR-2a 0336) _(`p2`)_
+- **US-GOV-059** — Triar as 43 permissões órfãs — usadas no código, declaradas em lugar nenhum _(`p2`)_
 - **US-GOV-033** — Corrigir links internos residuais (corpos de ADR append-only + dead-links de alvo incerto) _(`p3`)_
 - **US-GOV-039** — TDAD-lite — lane de testes impactados no PR (test-map via pcov + sombra 14d) _(`p3`)_
 - **US-GOV-040** — Roadmap-v2 — dobrar correção P01/P02 + entries P14/P15/P16 no _ROADMAP.md _(`p3`)_
@@ -436,6 +386,58 @@
 - **US-INFRA-045** — Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
 - **US-INFRA-046** — ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
 - **US-INFRA-047** — Voz do Cliente — do sinal gravado ao loop fechado
+- **US-INFRA-048** — Ativar a documentação técnica e operacional ponta a ponta
+
+## Financeiro
+
+
+### todo
+
+- **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
+- **US-FIN-016** — Auto-emite boleto Inter ao criar titulo_receber (Observer + Job idempotente) _(`p1` · @wagner)_
+- **US-FIN-017** — Boletos — Sheet Emitir multi-título (bulk emission) _(`p1` · @wagner)_
+- **US-FIN-030** — Aging buckets <30/30-60/60-90/90+ no header Unificado + filtro _(`p1` · sprint Onda 24)_
+- **US-FIN-043** — Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara) _(`p1` · @maiara)_
+- **US-FIN-044** — SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time) _(`p1` · @wagner)_
+- **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
+- **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
+- **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
+- **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
+- **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
+- **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
+- **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
+- **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
+- **US-FIN-021** — Fluxo de caixa — Margem mínima configurável via business_settings _(`p2` · @wagner)_
+- **US-FIN-022** — Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS) _(`p2` · @wagner)_
+- **US-FIN-023** — Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão) _(`p2` · @wagner)_
+- **US-FIN-024** — Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) _(`p2` · @wagner)_
+- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p2` · sprint Onda 27)_
+- **US-FIN-034** — Importação massiva CSV/Excel — mapping wizard + dry-run + commit _(`p2` · sprint Onda 28)_
+- **US-FIN-035** — Repetir lançamento próximo mês + Combobox autocomplete contraparte _(`p2` · sprint Onda 29)_
+- **US-FIN-036** — PWA básico Financeiro — manifest + service worker + offline cache + install prompt _(`p2` · sprint Onda 30)_
+- **US-FIN-039** — Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior _(`p2`)_
+- **US-FIN-040** — Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge _(`p2`)_
+- **US-FIN-041** — Onda 6 Accounting DROP TABLE - 6 vazias + ARCHIVE 2 seed + DELETE permissions _(`p2`)_
+- **US-FIN-061** — Otimizar LCP das telas núcleo (Financeiro/Unificado + Sells) — verificar prod real + reduzir bundle JS _(`p2`)_
+- **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
+- **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
+- **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
+- **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
+- **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
+- **US-FIN-067** — Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) _(`p3`)_
+- **US-FIN-001** — Listar Contas a Receber em aberto
+- **US-FIN-002** — Lançar título a receber manual
+- **US-FIN-003** — Baixar título (parcial ou total)
+- **US-FIN-004** — Listar Contas a Pagar com vencimento próximo
+- **US-FIN-005** — Cadastrar título a pagar com upload de boleto OCR
+- **US-FIN-006** — Pagar título (registrar saída do caixa)
+- **US-FIN-007** — Visualizar fluxo de caixa projetado
+- **US-FIN-008** — Cadastrar conta bancária
+- **US-FIN-009** — Importar extrato OFX e conciliar
+- **US-FIN-010** — Emitir boleto bancário (CNAB ou via gateway)
+- **US-FIN-011** — DRE (Demonstração de Resultado)
+- **US-FIN-012** — Aging de inadimplência
+- **US-FIN-013** — Dashboard unificado de títulos (4 estados na mesma tela)
 
 ## OficinaAuto
 
@@ -1090,6 +1092,20 @@
 - **US-CRM-084** — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
 - **US-CRM-085** — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
 
+## KB
+
+
+### todo
+
+- **US-KB-001** — Bridge canon dos 143 ADRs (ONDA 1, ✅ LIVE)
+- **US-KB-002** — Artigo editável (Larissa Cowork, ONDA 3 parcial)
+- **US-KB-003** — Pergunta IA RAG sobre grafo (ONDA 4, ✅ LIVE)
+- **US-KB-004** — Trilha de aprendizado Larissa (ONDA 3+5)
+- **US-KB-005** — Troubleshooter Q→Sim/Não→Fix (ONDA 3)
+- **US-KB-006** — Visualização-grafo (ONDA 5) — 🔴 **FACHADA: front sem backend**
+- **US-KB-007** — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
+- **US-KB-008** — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — ⬜ **não começou**
+
 ## Produto
 
 
@@ -1116,19 +1132,6 @@
 - **US-EVOL-005** — Subagent CC `evolucao.md`
 - **US-EVOL-006** — Tier-2 autonomia: comentar PR
 - **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
-
-## KB
-
-
-### todo
-
-- **US-KB-001** — Bridge canon dos 143 ADRs (ONDA 1, ✅ LIVE)
-- **US-KB-002** — Artigo editável (Larissa Cowork, ONDA 3 parcial)
-- **US-KB-003** — Pergunta IA RAG sobre grafo (ONDA 4, ✅ LIVE)
-- **US-KB-004** — Trilha de aprendizado Larissa (ONDA 3+5)
-- **US-KB-005** — Troubleshooter Q→Sim/Não→Fix (ONDA 3)
-- **US-KB-006** — Visualização-grafo (ONDA 5) — 🔴 **FACHADA: front sem backend**
-- **US-KB-007** — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
 
 ## TeamMcp
 

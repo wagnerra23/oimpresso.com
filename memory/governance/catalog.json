@@ -23,11 +23,11 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 567,
-    "edges": 831,
+    "nodes": 569,
+    "edges": 838,
     "by_node_type": {
       "module": 41,
-      "table": 71,
+      "table": 73,
       "adr": 25,
       "component": 387,
       "api": 43
@@ -35,13 +35,13 @@
     "by_edge_type": {
       "ownsTable": 58,
       "ownsLegacyView": 13,
-      "consumesTable": 0,
+      "consumesTable": 6,
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 387,
-      "dependsOn": 111,
-      "delegatesTo": 110,
+      "dependsOn": 113,
+      "delegatesTo": 109,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1803,7 +1803,14 @@
       "type": "component",
       "module": "Forja",
       "name": "RoadmapController",
-      "desc": "roadmap quarterly"
+      "desc": "roadmap quarterly (/project-mgmt/roadmap): epics agrupados por target_quarter"
+    },
+    {
+      "id": "component:Forja/RoadmapGanttController",
+      "type": "component",
+      "module": "Forja",
+      "name": "RoadmapGanttController",
+      "desc": "roadmap Gantt (/forja/roadmap-gantt): tasks no tempo via mcp_cycles+mcp_tasks, com reschedule de due_date por drag-drop. Recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B + 0367 D4). CONVIVE com o quarter view acima — são duas leituras do mesmo backlog e nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id); a 0367 D7 diz que o quarter só sai quando o Gantt provar que substitui"
     },
     {
       "id": "component:Forja/ScorecardController + ScorecardBuilderService",
@@ -1876,6 +1883,13 @@
       "desc": "drill-down mcp_audit_log filtrável (período/actor/endpoint/status)"
     },
     {
+      "id": "component:Governance/CustosController",
+      "type": "component",
+      "module": "Governance",
+      "name": "CustosController",
+      "desc": "/governance/custos dashboard de custo de IA por business (US-COPI-070; recebido do Modules/Jana em 2026-08-05, ADR 0366 §D-B — o `Chat.charter.md` já mandava 'custo vai pra /governance')"
+    },
+    {
       "id": "component:Governance/DashboardController",
       "type": "component",
       "module": "Governance",
@@ -1925,11 +1939,11 @@
       "desc": "CRUD inline mcp_governance_rules (toggle enabled MVP; edit JSON futuro)"
     },
     {
-      "id": "component:Jana/Admin/CustosController",
+      "id": "component:Governance/QualidadeIaController",
       "type": "component",
-      "module": "Jana",
-      "name": "Admin/CustosController",
-      "desc": "dashboard custos LLM"
+      "module": "Governance",
+      "name": "QualidadeIaController",
+      "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual module-grades e drift)"
     },
     {
       "id": "component:Jana/Admin/JanaProController",
@@ -1937,20 +1951,6 @@
       "module": "Jana",
       "name": "Admin/JanaProController",
       "desc": "brief diário invocável (US-COPI-203)"
-    },
-    {
-      "id": "component:Jana/Admin/QualidadeController",
-      "type": "component",
-      "module": "Jana",
-      "name": "Admin/QualidadeController",
-      "desc": "qualidade RAG/memória (RAGAS)"
-    },
-    {
-      "id": "component:Jana/Admin/RoadmapController",
-      "type": "component",
-      "module": "Jana",
-      "name": "Admin/RoadmapController",
-      "desc": "timeline Gantt do cycle ativo (Onda 5 V1)"
     },
     {
       "id": "component:Jana/AlertasController",
@@ -3879,7 +3879,9 @@
       "type": "table",
       "name": "copiloto_memoria_metricas",
       "owners": [],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [
         "Jana"
       ],
@@ -4002,7 +4004,9 @@
       "owners": [
         "Jana"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4024,7 +4028,9 @@
       "owners": [
         "Jana"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4046,7 +4052,9 @@
       "owners": [
         "Jana"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4247,6 +4255,17 @@
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_audit_log",
+      "type": "table",
+      "name": "mcp_audit_log",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:mcp_components",
@@ -4478,6 +4497,17 @@
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_usage_diaria",
+      "type": "table",
+      "name": "mcp_usage_diaria",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:mcp_user_module_access",
@@ -6537,6 +6567,12 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/RoadmapGanttController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/ScorecardController + ScorecardBuilderService",
       "type": "hasComponent",
       "source": "contains"
@@ -6735,6 +6771,42 @@
     },
     {
       "from": "module:Governance",
+      "to": "table:copiloto_memoria_metricas",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:jana_conversas",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:jana_memoria_gabarito",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:jana_mensagens",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_audit_log",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_usage_diaria",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
       "to": "module:Admin",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -6767,13 +6839,6 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Tokens MCP CRUD"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:Jana",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP usage cross-team dashboard (/jana/admin/governanca)"
     },
     {
       "from": "module:Governance",
@@ -6821,8 +6886,22 @@
       "from": "module:Governance",
       "to": "module:Jana",
       "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP usage cross-team dashboard (/jana/admin/governanca)"
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "jana_conversas"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "jana_memoria_gabarito"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "jana_mensagens"
     },
     {
       "from": "module:Governance",
@@ -6869,6 +6948,12 @@
     },
     {
       "from": "module:Governance",
+      "to": "component:Governance/CustosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
       "to": "component:Governance/DashboardController",
       "type": "hasComponent",
       "source": "contains"
@@ -6906,6 +6991,12 @@
     {
       "from": "module:Governance",
       "to": "component:Governance/PoliciesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
+      "to": "component:Governance/QualidadeIaController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7077,25 +7168,7 @@
     },
     {
       "from": "module:Jana",
-      "to": "component:Jana/Admin/CustosController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
       "to": "component:Jana/Admin/JanaProController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/Admin/QualidadeController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/Admin/RoadmapController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9827,7 +9900,20 @@
     ],
     "dangling_module_refs": [],
     "dangling_adr_refs": [],
-    "consumed_tables_without_catalog_owner": [],
+    "consumed_tables_without_catalog_owner": [
+      {
+        "table": "mcp_audit_log",
+        "consumers": [
+          "Governance"
+        ]
+      },
+      {
+        "table": "mcp_usage_diaria",
+        "consumers": [
+          "Governance"
+        ]
+      }
+    ],
     "tables_owned_by_multiple": []
   }
 }

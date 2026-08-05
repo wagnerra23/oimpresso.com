@@ -9,6 +9,8 @@ contains:
   - "DriftAlertsController — runtime scan SCOPE.md vs filesystem real + persisted alerts cron"
   - "ModuleGradeController — /governance/module-grades Index ranking 34 módulos + Show drill-down 9 dimensões v3 + dossier markdown (ADR 0155 + Charter Goal 9 2026-05-17)"
   - "DsRolloutController — /governance/ds-rollout plano de portar o DS em ondas + Ledger de Conformidade DS (tradução F3 protótipo Cowork · census via scripts/ds-ledger.mjs)"
+  - "CustosController — /governance/custos dashboard de custo de IA por business (US-COPI-070; recebido do Modules/Jana em 2026-08-05, ADR 0366 §D-B — o `Chat.charter.md` já mandava 'custo vai pra /governance')"
+  - "QualidadeIaController — /governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual module-grades e drift)"
   - "InstallController — install/uninstall hooks (ADR 0024)"
   - "DataController — sidebar/permissions hooks (UltimatePOS pattern)"
   - "ActionGate middleware — runtime gate (modo warn|strict por config)"
@@ -20,7 +22,9 @@ not_contains:
   - "Knowledge browsing (ADRs read-only) → Modules/KB"
   - "Constitution doc edit → memory/governance/CONSTITUTION.md (não DB)"
   - "Module Grade v4 Tri-pane (era /admin/governance/v4 no Modules/Admin) → REMOVIDO com o Admin Center em 2026-07-29 (ADR 0360 supersede 0122); a fronteira não existe mais"
-  - "MCP usage cross-team dashboard (/jana/admin/governanca) → Modules/Jana (drift — migrar pra cá Fase 5, ver drift_alerts)"
+  # A linha "MCP usage cross-team dashboard → Modules/Jana (drift)" saiu em
+  # 2026-08-05: o drift FOI RESOLVIDO — a tela foi fundida no DashboardController
+  # deste módulo (ADR 0366 §D-C item 1). Deixar em not_contains passaria a mentir.
 trust_required: L1
 owner: wagner
 permission_prefix: governance.*
@@ -42,6 +46,8 @@ routes:
   - "GET  /governance/module-grades                → ModuleGradeController@index         (governance.module-grades.index)"
   - "GET  /governance/module-grades/{name}         → ModuleGradeController@show          (governance.module-grades.show)"
   - "GET  /governance/ds-rollout                    → DsRolloutController@index           (governance.ds-rollout.index)"
+  - "GET  /governance/custos                       → CustosController@index             (governance.custos.index)"
+  - "GET  /governance/qualidade-ia                  → QualidadeIaController@index        (governance.qualidade-ia.index)"
   - "GET  /governance/install{,/uninstall,/update} → InstallController@*                 (governance.install.*)"
 db_tables_owned:
   # Recebida do ADS (módulo extinto) em 2026-07-31 (ADR 0363 §1 — "a política tinha posse
@@ -52,15 +58,26 @@ db_tables_owned:
   # dropada) justamente por ter dono e consumidor vivos.
   # Sem `business_id` POR DESIGN: é config global de superadmin (ADR 0093 não se aplica).
   - mcp_governance_rules
-db_tables_consumed: []
-drift_alerts:
-  # 2026-05-17 — atualizado: Copiloto foi renomeado Jana em Fase 3.7 PR-2 (2026-05-06).
-  # Drift ainda VIVO. ETA migração: Fase 5 (próxima sessão dedicada).
-  - controller: "Modules/Jana/Http/Controllers/Admin/GovernancaController.php"
-    pertence_a: "Modules/Governance (MCP usage cross-team)"
-    motivo: "Dashboard de MCP usage cross-team (cf. ADR 0053) é governança, não chat Jana. SCOPE.md de Jana já cataloga este drift (Fase 5)."
-    url_atual: "/jana/admin/governanca"
-    eta_migracao: "Fase 5 — manter URL via Route::redirect 301 (pattern Fase 3.7 PR-1)"
+db_tables_consumed:
+  # Consumidas pelas 2 telas recebidas do Jana em 2026-08-05 (ADR 0366 §D-B).
+  # LEITURA apenas, e o dono continua sendo o Modules/Jana — a ADR moveu a tela,
+  # não a tabela (o item 4 do plano §D-C, que move as `Mcp*`, NÃO está autorizado).
+  # Precedente do mesmo formato: Modules/Forja já importa Modules\Jana\Entities\Mcp\McpTask.
+  - jana_conversas          # CustosService — agregação de custo por business
+  - jana_mensagens          # CustosService — tokens in/out por mensagem
+  - copiloto_memoria_metricas  # QualidadeIaController via Modules\Jana\Entities\MemoriaMetrica
+  - jana_memoria_gabarito   # QualidadeIaController — contagem do gabarito ativo
+  # LEITURA da seção MCP do painel, via Modules\Jana\Services\GovernancaService.
+  # O Service NÃO se moveu — a ADR 0366 moveu a TELA, não a tabela (o item 4 do
+  # plano §D-C, que move as `Mcp*`, não está autorizado e o destino delas é Forja).
+  - mcp_audit_log       # cada chamada MCP (append-only)
+  - mcp_usage_diaria    # agregações diárias (cron 23:55)
+drift_alerts: []
+  # RESOLVIDO em 2026-08-05. O drift declarado aqui desde 2026-05-17
+  # (Admin/GovernancaController do Jana, com `eta_migracao: Fase 5`) foi fechado
+  # pela fusão da tela no DashboardController deste módulo — ADR 0366 §D-C item 1.
+  # A URL antiga /ia/admin/governanca sobrevive por Route::redirect 301, como o
+  # próprio `eta_migracao` previa ("manter URL via Route::redirect 301").
 ---
 
 # Modules/Governance — UI consolidada de governança

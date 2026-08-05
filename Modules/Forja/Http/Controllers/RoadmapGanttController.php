@@ -1,6 +1,8 @@
 <?php
 
-namespace Modules\Jana\Http\Controllers\Admin;
+declare(strict_types=1);
+
+namespace Modules\Forja\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -11,25 +13,44 @@ use Inertia\Response;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
- * Onda 5 V1 — Roadmap timeline UI (SVAR React Gantt MIT).
+ * RoadmapGanttController — /forja/roadmap-gantt.
  *
- * Render cronológico das tasks de cycle ativo + sub-issues hierarchy +
- * dependency graph (blocked_by[]). Substitui visão markdown de
- * `tasks-list cycle:current`.
+ * Timeline cronológica das tasks do cycle (SVAR React Gantt MIT), com sub-issues
+ * por módulo e dependency graph (`blocked_by[]`). Porte de
+ * `Modules\Jana\Http\Controllers\Admin\RoadmapController` (Onda 5 V1).
  *
- * Permissão: jana.mcp.tasks.read (existente, lê task board canon).
- * Scope:     `mcp_tasks` é cache cross-business (canon = git via SPEC.md).
- *            Filtros por module/cycle/owner. Não exige `business_id` global
- *            scope porque tabela já é canon governado (ADR 0093 §exceções).
+ * POR QUE MORA AQUI (ADR 0366 §D-B, ratificada por [W] 2026-08-03): o critério de
+ * fronteira é a PERGUNTA que o módulo responde. Esta tela responde "o que a gente
+ * está fazendo e o que vence quando" — pergunta da Forja (time interno), não do Jana
+ * (produto do cliente). A ADR nomeia o destino textualmente: "usa TaskCrudService/
+ * McpTask — é tasks, e tasks é Forja. Mandar pro Governance criaria a 3ª tela de
+ * roadmap". Confirmado pela ADR 0367 D4 ("o Gantt vira aba da Forja").
+ *
+ * ⚠️ NÃO SUBSTITUI o quarter view. `Modules\Forja\Http\Controllers\RoadmapController`
+ * (/project-mgmt/roadmap) agrupa EPICS por trimestre; este agrupa TASKS no tempo. A
+ * ADR 0367 D7 decidiu que os dois convivem — o quarter view "só sai quando o Gantt
+ * provar que substitui (filtro por cycle efetivo + volume domado)". Recibo da
+ * não-duplicação: memory/sessions/2026-08-05-duplicacao-roadmap-forja.md.
+ *
+ * PERMISSÕES INALTERADAS no porte: seguem `jana.mcp.tasks.read` / `.write`, o mesmo
+ * par do Jana. Permission Spatie vive por ID DE LINHA — renomear revoga acesso em
+ * SILÊNCIO, sem erro e sem log (ADR 0087; reafirmado no §Custo de execução da 0367).
+ * Rename é ADR + migration própria, nunca efeito colateral de um move.
+ *
+ * SCOPE: `mcp_tasks`/`mcp_cycles` são cache canon cross-business (a fonte de verdade é
+ * o git, via SPEC.md por módulo) — sem coluna `business_id`, ADR 0093 §exceções
+ * repo-wide, igual Triage/Scorecard/ForjaController. O isolamento é a PERMISSION.
  *
  * Ver:
- *  - memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md §V1
- *  - ADR 0070 Jira-style task management
- *  - ADR 0093 Multi-tenant Tier 0
- *  - ADR 0110 Cockpit V2
+ *  - memory/requisitos/Forja/RUNBOOK-gantt.md
+ *  - resources/js/Pages/Forja/Roadmap/Gantt.charter.md
+ *  - ADR 0070 (Jira-style tasks) · 0087 (URL/permission congeladas) · 0093 · 0366 · 0367
  */
-class RoadmapController extends Controller
+class RoadmapGanttController extends Controller
 {
+    /** Teto de linhas por render — anti-cluttered em 1280px (Larissa-friendly). */
+    private const MAX_TASKS = 500;
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -112,16 +133,20 @@ class RoadmapController extends Controller
         $tasks = $tasksQuery->orderBy('module')
             ->orderByRaw("FIELD(priority, 'p0', 'p1', 'p2', 'p3')")
             ->orderBy('due_date')
-            ->limit(500)
+            ->limit(self::MAX_TASKS)
             ->get();
 
-        // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (owners+modules).
-        // Roadmap.tsx destruct direto — TypeError `undefined.map` em prod.
-        // Mesmo padrão PR #1550/#1552.
+        // ⛔ DESENHO CONSCIENTE — NÃO trocar estas closures por Inertia::defer.
         //
-        // closure D-14 (2026-07-06, ref PR #3889): fontes dos dropdowns, não mudam
-        // com filtro — pulam no partial reload (only: tasks/filters). Diferente do
-        // defer, closure roda no load cheio (1º render nunca vê undefined).
+        // Wagner 2026-05-25 HOTFIX (herdado do Jana, PR #1550/#1552): com defer, os
+        // dropdowns chegavam `undefined` no 1º paint e o .tsx — que desestrutura
+        // direto e chama .map() — estourava `TypeError: undefined.map` em PRODUÇÃO.
+        //
+        // A CLOSURE dá o melhor dos dois mundos (padrão D-14, ref PR #3889): roda no
+        // load cheio (1º render nunca vê undefined) e é PULADA no partial reload
+        // (`only: ['tasks','filters']`), que é o caminho quente do filtro. Deferir
+        // exigiria antes dar default-guard no destructuring do .tsx — as duas
+        // mudanças andam juntas ou nenhuma. Ver RUNBOOK-gantt.md §3.
         $owners = fn () => DB::table('mcp_tasks')
             ->select('owner')
             ->whereNotNull('owner')
@@ -136,7 +161,7 @@ class RoadmapController extends Controller
             ->orderBy('module')
             ->pluck('module');
 
-        return Inertia::render('Jana/Admin/Roadmap', [
+        return Inertia::render('Forja/Roadmap/Gantt', [
             'cycles' => $cycles->map(function ($c) {
                 return [
                     'id'         => (int) $c->id,
@@ -195,6 +220,10 @@ class RoadmapController extends Controller
      * manualmente: por isso o drag reagenda o PRAZO, não o início. Reusa o
      * `TaskCrudService::update` canônico (mesma via do MCP `tasks-update`): atômico
      * (lock de linha), audita via OTel + McpTaskEvent, allowlist de campos.
+     *
+     * O Service permanece em `Modules\Jana` — a Forja só IMPORTA. Mesmo precedente do
+     * `Forja\RoadmapController`, que importa `Modules\Jana\Entities\Mcp\McpTask`. Mover
+     * as 30 `Mcp*` é o item #4 da ADR 0366 §D-C, que aquela ADR NÃO autoriza.
      *
      * Recebe o `task_id` STRING (ex US-COPI-110), não o id numérico do Gantt — o
      * frontend mapeia via `$payload.task_id` antes do PATCH.

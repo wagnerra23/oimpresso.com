@@ -14,9 +14,9 @@ module: Forja
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 184 arquivos em 15 papéis.
+**Total mapeado:** 189 arquivos em 15 papéis.
 
-## Controllers — 23
+## Controllers — 24
 
 - [ActivityController.php](../../../Modules/Forja/Http/Controllers/ActivityController.php)
 - [ProjectsController.php](../../../Modules/Forja/Http/Controllers/Admin/ProjectsController.php)
@@ -36,6 +36,7 @@ module: Forja
 - [SyncMemoryWebhookController.php](../../../Modules/Forja/Http/Controllers/Mcp/SyncMemoryWebhookController.php)
 - [MyWorkController.php](../../../Modules/Forja/Http/Controllers/MyWorkController.php)
 - [RoadmapController.php](../../../Modules/Forja/Http/Controllers/RoadmapController.php)
+- [RoadmapGanttController.php](../../../Modules/Forja/Http/Controllers/RoadmapGanttController.php)
 - [ScorecardController.php](../../../Modules/Forja/Http/Controllers/ScorecardController.php)
 - [SearchController.php](../../../Modules/Forja/Http/Controllers/SearchController.php)
 - [TasksAdminController.php](../../../Modules/Forja/Http/Controllers/TasksAdminController.php)
@@ -138,7 +139,7 @@ module: Forja
 - [retention-mcp.php](../../../Modules/Forja/Config/retention-mcp.php)
 - [retention.php](../../../Modules/Forja/Config/retention.php)
 
-## Telas (Inertia/React) — 9
+## Telas (Inertia/React) — 10
 
 - [Index.tsx](../../../resources/js/Pages/Forja/Activity/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Forja/Backlog/Index.tsx)
@@ -147,6 +148,7 @@ module: Forja
 - [Index.tsx](../../../resources/js/Pages/Forja/Burndown/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Forja/Inbox/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Forja/MyWork/Index.tsx)
+- [Gantt.tsx](../../../resources/js/Pages/Forja/Roadmap/Gantt.tsx)
 - [Index.tsx](../../../resources/js/Pages/Forja/Roadmap/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Forja/Triage/Index.tsx)
 
@@ -155,7 +157,7 @@ module: Forja
 - [ShortcutsOverlay.tsx](../../../resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx)
 - [TriageDossier.tsx](../../../resources/js/Pages/Forja/Triage/_components/TriageDossier.tsx)
 
-## Charters (lei da tela) — 9
+## Charters (lei da tela) — 10
 
 - [Index.charter.md](../../../resources/js/Pages/Forja/Activity/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Backlog/Index.charter.md)
@@ -164,18 +166,20 @@ module: Forja
 - [Index.charter.md](../../../resources/js/Pages/Forja/Burndown/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Inbox/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/MyWork/Index.charter.md)
+- [Gantt.charter.md](../../../resources/js/Pages/Forja/Roadmap/Gantt.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
 
-## Casos (contrato UC) — 3
+## Casos (contrato UC) — 4
 
 - [Index.casos.md](../../../resources/js/Pages/Forja/Board/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Forja/Inbox/Index.casos.md)
+- [Gantt.casos.md](../../../resources/js/Pages/Forja/Roadmap/Gantt.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Forja/Triage/Index.casos.md)
 
-## Testes (Pest) — 51
+## Testes (Pest) — 52
 
-- 51 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 52 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 15
 

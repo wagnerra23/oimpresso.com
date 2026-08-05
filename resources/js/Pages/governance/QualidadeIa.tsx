@@ -1,23 +1,30 @@
-// @memcofre
-//   tela: /copiloto/admin/qualidade
-//   module: Copiloto
+// @governance
+//   tela: /governance/qualidade-ia
 //   stories: MEM-MET-4 (ADR 0050)
-//   permissao: jana.mcp.usage.all
+//   adrs: 0366 (fronteira Jana/Governance — §D-B: eval é gate de conformidade),
+//         0049 (gates), 0050 (métricas), 0104 (MWART)
+//   runbook: memory/requisitos/Governance/RUNBOOK-qualidade-ia.md
+//   permissao: jana.mcp.usage.all  (nome legado preservado — rename exige ADR + migration)
 //
-// V1: KPIs por business (último valor) + gates verde/vermelho + tabela trend
-// das 8 métricas obrigatórias + 3 RAGAS-aligned. Sem chart libs — sparklines
-// SVG inline minimalistas (1 line por série).
+// PORTE de resources/js/Pages/Jana/Admin/Qualidade/Index.tsx. Diferenças conscientes:
+//   - JanaAreaHeader → GovernancaSubNav (a Governança tem strip própria desde 2026-08-05)
+//   - rota do partial reload: /ia/admin/qualidade → /governance/qualidade-ia
+//   - `Badge` (import morto) removido; `useMemo` agora é USADO de verdade (memoiza os
+//     runs recentes, que antes eram re-ordenados a cada render)
+//   - acesso dinâmico à métrica tipado sem `as any` (arquivo novo não herda grandfather)
+//
+// V1: KPIs por business (último valor) + gates verde/vermelho + tabela trend das 8
+// métricas obrigatórias + 3 RAGAS-aligned. Sem chart libs — sparklines SVG inline.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { Badge } from '@/Components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Label } from '@/Components/ui/label';
 import { ScrollArea } from '@/Components/ui/scroll-area';
-import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader';
+import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav';
 import { TrendingUp } from 'lucide-react';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -38,6 +45,17 @@ interface Ponto {
   total_interacoes_dia: number;
   total_memorias_ativas: number;
 }
+
+/** Chaves de `Ponto` que a trend table plota — sem elas o acesso dinâmico exigiria `any`. */
+type MetricaKey =
+  | 'recall_at_3'
+  | 'precision_at_3'
+  | 'mrr'
+  | 'faithfulness'
+  | 'latencia_p95_ms'
+  | 'tokens_medio'
+  | 'memory_bloat'
+  | 'taxa_contradicoes_pct';
 
 interface Serie {
   business_id: number | null;
@@ -67,10 +85,15 @@ interface Gate {
   label: string;
 }
 
+/** Chaves de gate que o controller sempre envia (ADR 0049/0050). Union literal —
+ *  não index signature — pra `gates.recall_at_3` não vir `| undefined` sob
+ *  `noUncheckedIndexedAccess` (a origem escapava disso por estar no baseline). */
+type GateKey = MetricaKey | 'cross_tenant_violations';
+
 interface Props {
   series: Serie[];
   kpis: Kpi[];
-  gates: Record<string, Gate>;
+  gates: Record<GateKey, Gate>;
   filtros: { dias: number; business_id: number | null };
   gabarito_total: number;
   gabarito_por_categoria: Record<string, number>;
@@ -105,6 +128,10 @@ function gateStatus(value: number | null, gate: Gate): { ok: boolean; emoji: str
 
 /**
  * Sparkline SVG minimalista — sem dep externa. Width fixa 120, height 28.
+ *
+ * ⚠️ Dívida herdada da origem: normaliza por min/max LOCAL da série, então
+ * 0.78→0.79 "parece" o mesmo movimento de 0.20→0.85. O número absoluto ao lado
+ * mitiga; fix real = escala 0..1 nas métricas % ou linha no `gates[m.metrica].alvo`.
  */
 function Sparkline({ values, color = '#3b82f6' }: { values: (number | null)[]; color?: string }) {
   const w = 120, h = 28;
@@ -128,41 +155,58 @@ function Sparkline({ values, color = '#3b82f6' }: { values: (number | null)[]; c
   );
 }
 
-function QualidadeIndex(props: Props) {
+const ALL_METRICS: ReadonlyArray<{
+  metrica: MetricaKey;
+  label: string;
+  isPct: boolean;
+  color: string;
+  critical: boolean;
+  isMs?: boolean;
+}> = [
+  { metrica: 'recall_at_3', label: 'Recall@3', isPct: true, color: '#3b82f6', critical: true },
+  { metrica: 'precision_at_3', label: 'Precision@3', isPct: true, color: '#10b981', critical: true },
+  { metrica: 'mrr', label: 'MRR', isPct: false, color: '#8b5cf6', critical: true },
+  { metrica: 'faithfulness', label: 'Faithfulness', isPct: true, color: '#f59e0b', critical: false },
+  { metrica: 'latencia_p95_ms', label: 'Latência p95', isPct: false, color: '#ef4444', critical: true, isMs: true },
+  { metrica: 'tokens_medio', label: 'Tokens médios', isPct: false, color: '#06b6d4', critical: false },
+  { metrica: 'memory_bloat', label: 'Bloat ratio', isPct: true, color: '#84cc16', critical: false },
+  { metrica: 'taxa_contradicoes_pct', label: 'Contradições %', isPct: false, color: '#ec4899', critical: false },
+];
+
+function GovernancaQualidadeIa(props: Props) {
   const { series, kpis, gates, filtros, gabarito_total, gabarito_por_categoria } = props;
   const [businessFilter, setBusinessFilter] = useState<string>(
     filtros.business_id !== null ? String(filtros.business_id) : '__all__'
   );
   const [diasFilter, setDiasFilter] = useState<string>(String(filtros.dias));
 
+  // Origem recomputava isso a cada render (30d × N businesses ordenados por keypress).
+  const runsRecentes = useMemo(
+    () =>
+      series
+        .flatMap((s) => s.pontos.map((p) => ({ s, p })))
+        .sort((a, b) => (b.p.data ?? '').localeCompare(a.p.data ?? ''))
+        .slice(0, 30),
+    [series],
+  );
+
   function applyFilter() {
     const params: Record<string, string | number> = { dias: Number(diasFilter) };
     if (businessFilter !== '__all__') params.business_id = Number(businessFilter);
-    // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+    // D-14: partial reload — só re-busca o que muda com filtro.
     // gates (constante) e gabarito_* (closures no controller) nem rodam no partial.
-    router.get('/ia/admin/qualidade', params, {
+    router.get('/governance/qualidade-ia', params, {
       preserveScroll: true,
       preserveState: true,
       only: ['series', 'kpis', 'filtros'],
     });
   }
 
-  const allMetrics = [
-    { key: 'recall_at_3', label: 'Recall@3', isPct: true, color: '#3b82f6', critical: true },
-    { key: 'precision_at_3', label: 'Precision@3', isPct: true, color: '#10b981', critical: true },
-    { key: 'mrr', label: 'MRR', isPct: false, color: '#8b5cf6', critical: true },
-    { key: 'faithfulness', label: 'Faithfulness', isPct: true, color: '#f59e0b', critical: false },
-    { key: 'latencia_p95_ms', label: 'Latência p95', isPct: false, color: '#ef4444', critical: true, isMs: true },
-    { key: 'tokens_medio', label: 'Tokens médios', isPct: false, color: '#06b6d4', critical: false },
-    { key: 'memory_bloat', label: 'Bloat ratio', isPct: true, color: '#84cc16', critical: false },
-    { key: 'taxa_contradicoes_pct', label: 'Contradições %', isPct: false, color: '#ec4899', critical: false },
-  ] as const;
-
   return (
     <>
-      <JanaAreaHeader active="qualidade-jana" />
+      <GovernancaSubNav active="qualidade-ia" />
 
-      {/* Title local da tela — preservado pós-migração JanaAreaHeader (Wagner 2026-05-25) */}
+      {/* Title local da tela */}
       <div className="px-6 pt-6 flex items-center gap-3">
         <TrendingUp className="size-6 text-primary" />
         <div>
@@ -176,9 +220,9 @@ function QualidadeIndex(props: Props) {
       <Card className="mt-4">
         <CardContent className="py-3 flex flex-wrap items-end gap-3">
           <div className="w-32">
-            <Label className="text-xs">Janela</Label>
+            <Label htmlFor="qualidade-janela" className="text-xs">Janela</Label>
             <Select value={diasFilter} onValueChange={setDiasFilter}>
-              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+              <SelectTrigger id="qualidade-janela" className="h-8"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="7">7 dias</SelectItem>
                 <SelectItem value="30">30 dias</SelectItem>
@@ -188,9 +232,9 @@ function QualidadeIndex(props: Props) {
             </Select>
           </div>
           <div className="w-40">
-            <Label className="text-xs">Business</Label>
+            <Label htmlFor="qualidade-business" className="text-xs">Business</Label>
             <Select value={businessFilter} onValueChange={setBusinessFilter}>
-              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+              <SelectTrigger id="qualidade-business" className="h-8"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">Todos</SelectItem>
                 <SelectItem value="0">Plataforma (NULL)</SelectItem>
@@ -266,7 +310,7 @@ function QualidadeIndex(props: Props) {
       <Card className="mt-4">
         <CardHeader>
           <CardTitle className="text-sm">Trend {filtros.dias} dias</CardTitle>
-          <CardDescription>Sparkline por business × métrica. Clique no business pra detalhe.</CardDescription>
+          <CardDescription>Sparkline por business × métrica.</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="max-h-[600px]">
@@ -275,8 +319,8 @@ function QualidadeIndex(props: Props) {
                 <tr className="border-b">
                   <th className="text-left py-2 px-2 font-medium">Business</th>
                   <th className="text-center py-2 px-2 font-medium">N pontos</th>
-                  {allMetrics.map(m => (
-                    <th key={m.key} className="text-center py-2 px-2 font-medium" style={{ minWidth: 130 }}>
+                  {ALL_METRICS.map(m => (
+                    <th key={m.metrica} className="text-center py-2 px-2 font-medium" style={{ minWidth: 130 }}>
                       {m.label}
                       {m.critical && <span className="ml-1 text-destructive">*</span>}
                     </th>
@@ -288,11 +332,13 @@ function QualidadeIndex(props: Props) {
                   <tr key={s.label} className="border-b">
                     <td className="py-2 px-2 font-medium">{s.label}</td>
                     <td className="text-center py-2 px-2">{s.pontos.length}</td>
-                    {allMetrics.map(m => {
-                      const values = s.pontos.map(p => (p as any)[m.key] as number | null);
-                      const last = values[values.length - 1];
+                    {ALL_METRICS.map(m => {
+                      // `MetricaKey` garante que só chaves numéricas de Ponto entram aqui —
+                      // era `(p as any)[m.metrica]` na origem (violação no-explicit-any).
+                      const values = s.pontos.map(p => p[m.metrica]);
+                      const last = values[values.length - 1] ?? null;
                       return (
-                        <td key={m.key} className="text-center py-2 px-2">
+                        <td key={m.metrica} className="text-center py-2 px-2">
                           <div className="flex flex-col items-center gap-0.5">
                             <Sparkline values={values} color={m.color} />
                             <span className="text-[10px] font-mono">
@@ -306,7 +352,7 @@ function QualidadeIndex(props: Props) {
                 ))}
                 {series.length === 0 && (
                   <tr>
-                    <td colSpan={allMetrics.length + 2} className="text-center py-12 text-muted-foreground">
+                    <td colSpan={ALL_METRICS.length + 2} className="text-center py-12 text-muted-foreground">
                       Sem dados de métricas. Rode <code className="font-mono">php artisan copiloto:metrics:apurar</code> ou
                       <code className="font-mono ml-1">copiloto:eval --persist</code> pra popular.
                     </td>
@@ -321,7 +367,7 @@ function QualidadeIndex(props: Props) {
         </CardContent>
       </Card>
 
-      {/* Tabela tabular detalhada — última N runs */}
+      {/* Tabela tabular detalhada — últimas N runs */}
       <Card className="mt-4">
         <CardHeader>
           <CardTitle className="text-sm">Runs recentes (tabela detalhada)</CardTitle>
@@ -346,7 +392,7 @@ function QualidadeIndex(props: Props) {
               </tr>
             </thead>
             <tbody>
-              {series.flatMap(s => s.pontos.map(p => ({ s, p }))).sort((a, b) => (b.p.data ?? '').localeCompare(a.p.data ?? '')).slice(0, 30).map((row, i) => (
+              {runsRecentes.map((row, i) => (
                 <tr key={i} className="border-b hover:bg-muted/40">
                   <td className="py-1 px-2 font-mono text-[10px]">{row.p.data}</td>
                   <td className="py-1 px-2">{row.s.label}</td>
@@ -369,7 +415,7 @@ function QualidadeIndex(props: Props) {
 
       <div className="mt-4 text-xs text-muted-foreground">
         <strong>Como atualizar:</strong> rodar <code className="font-mono">php artisan copiloto:metrics:apurar</code>
-        (cron diário 23:55 já faz) ou <code className="font-mono">copiloto:eval --persist --business=4</code>
+        (cron diário 23:55 já faz) ou <code className="font-mono">copiloto:eval --persist --business=1</code>
         (eval contra gabarito — popula Recall/Precision/MRR/Faithfulness).
         <br />
         <strong>Gates canônicos</strong> em ADR 0049 (Recall@3≥0.80 = bloqueante de evolução de camada) e ADR 0050.
@@ -380,10 +426,13 @@ function QualidadeIndex(props: Props) {
   );
 }
 
-QualidadeIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Qualidade IA — Métricas de memória" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Qualidade IA' }]}>
+GovernancaQualidadeIa.layout = (page: ReactNode) => (
+  <AppShellV2
+    title="Governança — Qualidade IA"
+    breadcrumbItems={[{ label: 'Governança' }, { label: 'Qualidade IA' }]}
+  >
     {page}
   </AppShellV2>
 );
 
-export default QualidadeIndex;
+export default GovernancaQualidadeIa;

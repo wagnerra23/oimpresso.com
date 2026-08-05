@@ -129,7 +129,7 @@ export function hasValidOptIn(now = Date.now(), root = process.cwd()) {
 
 function denyMessage(method) {
   return [
-    '[BLOCKED: claude.ai/design não é fonte de design no oimpresso (ADR 0315 / fecha Gap 1 da 0299)]',
+    '[block-design-sync-without-optin] [BLOCKED: claude.ai/design não é fonte de design no oimpresso (ADR 0315 / fecha Gap 1 da 0299)]',
     '',
     `Tool: DesignSync (method: ${method || '—'})`,
     '',

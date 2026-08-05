@@ -83,7 +83,7 @@ export const REGRAS = [
   },
 ];
 
-export const CABECALHO = '[AUDITORIA-RESPOSTA] Checklist pedido por [M] 2026-07-29 — pendencias nesta resposta:';
+export const CABECALHO = '[nudge-auditoria-resposta] [AUDITORIA-RESPOSTA] Checklist pedido por [M] 2026-07-29 — pendencias nesta resposta:';
 
 /** classificador PURO: devolve os ids das regras violadas (array vazio = limpo). */
 export function auditar(text) {

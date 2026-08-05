@@ -9,6 +9,8 @@ use Modules\Governance\Http\Controllers\AuditController;
 use Modules\Governance\Http\Controllers\DriftAlertsController;
 use Modules\Governance\Http\Controllers\ModuleGradeController;
 use Modules\Governance\Http\Controllers\DsRolloutController;
+use Modules\Governance\Http\Controllers\CustosController;
+use Modules\Governance\Http\Controllers\QualidadeIaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +70,20 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('/ds-rollout', [DsRolloutController::class, 'index'])
             ->middleware('throttle:60,1')
             ->name('ds-rollout.index');
+
+        // Custos de IA + Qualidade IA — recebidas do Modules/Jana em 2026-08-05
+        // (ADR 0366 §D-B). As permissions seguem `jana.*` de propósito e vivem no
+        // construtor de cada controller: `jana.admin.custos.view` no Custos e
+        // `jana.mcp.usage.all` na Qualidade — são DIFERENTES entre si, e renomear
+        // pra `governance.*` revogaria acesso em silêncio (ADR 0087), o que exige
+        // ADR + migration própria, não carona numa mudança de dono.
+        Route::get('/custos', [CustosController::class, 'index'])
+            ->middleware('throttle:30,1')
+            ->name('custos.index');
+
+        Route::get('/qualidade-ia', [QualidadeIaController::class, 'index'])
+            ->middleware('throttle:30,1')
+            ->name('qualidade-ia.index');
 
         // Install hooks (ADR 0024 — pattern padronizado BaseModuleInstallController)
         Route::get('install',           [InstallController::class, 'index'])
