@@ -50,7 +50,7 @@ const DESIGN = /\b(design|desing|dising|desgin|prot[oó]tipo|protipo|cowork|tela
 
     if (!(INTENT.test(prompt) && DESIGN.test(prompt))) process.exit(0);
 
-    console.log(`🎨 **DESIGN/TELA detectado — você É o designer-agente v2 (PROTOCOL §0.1), NÃO espera insumo externo**
+    console.log(`[design-agente-ativa] 🎨 **DESIGN/TELA detectado — você É o designer-agente v2 (PROTOCOL §0.1), NÃO espera insumo externo**
 
 Antes de dizer *"precisa vir do Cowork"*, *"esperar handoff"* ou *"me autorize a desenhar"* — PARE. Na v2 (ADR 0282/0241):
 - **Fonte de design** = protótipo Cowork (\`prototipo-ui/prototipos/<tela>/\`) + Design System em git + charter (ADR 0239/0299). claude.ai/design e Figma são **NÃO-fonte**.
