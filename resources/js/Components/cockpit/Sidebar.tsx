@@ -244,8 +244,12 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     label: 'SISTEMA',
     // Wagner 2026-05-22: Auditoria/Modelos de notificação/Relatórios/Dashboard
     // adicionados (eram módulos soltos em MAIS).
-    // Wagner 2026-05-25: 'Governança' REMOVIDO — entry sidebar desligada no
-    // Modules/Governance/DataController.modifyAdminMenu (acesso via URL direta).
+    // Wagner 2026-05-25: 'Governança' foi retirado desta lista quando a entry de
+    // sidebar do Modules/Governance foi desligada. Em 2026-08-05 a entry voltou
+    // ([W] — a Governança passa a receber telas do Jana, ADR 0366 §D-B), e ela
+    // NÃO precisa voltar pra cá: o DataController declara `group => 'sistema'`,
+    // que `findGroupKey` resolve no passo 1. Esta lista é só o fallback por label
+    // pra módulo que não declara `group`.
     items: ['Plataforma', 'Auditoria',
             'Modelos de notificação', 'Modelo de notificação',
             'Relatórios', 'Dashboard',

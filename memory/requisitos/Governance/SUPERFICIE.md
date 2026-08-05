@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 150 arquivos em 14 papéis.
+**Total mapeado:** 151 arquivos em 15 papéis.
 
 ## Controllers — 8
 
@@ -128,6 +128,10 @@ module: Governance
 - [Index.tsx](../../../resources/js/Pages/governance/ModuleGrades/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/governance/ModuleGrades/Show.tsx)
 - [Policies.tsx](../../../resources/js/Pages/governance/Policies.tsx)
+
+## Componentes / apoio de tela — 1
+
+- [GovernancaSubNav.tsx](../../../resources/js/Pages/governance/_shared/GovernancaSubNav.tsx)
 
 ## Charters (lei da tela) — 7
 
