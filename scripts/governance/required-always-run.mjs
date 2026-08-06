@@ -151,7 +151,17 @@ export function contextsDoWorkflow(srcCru) {
 
 function auditar(root = ROOT) {
   const baseP = join(root, 'governance', 'required-checks-baseline.json');
-  const required = JSON.parse(readFileSync(baseP, 'utf8')).classic_protection.contexts;
+  // O baseline guarda o required em DUAS chaves — `classic_protection` (branch protection
+  // clássica) e `rulesets` (ruleset novo do GitHub). Ler só a primeira deixava 1 context
+  // fora da guarda: `Governance Gate (índice + memory-health + meta-teste)`, que vive em
+  // `rulesets` e é justamente quem carrega o GT-G5. Ele está always-run hoje, então não
+  // havia exposição viva — mas um `paths:` ali passaria batido, que é o defeito exato que
+  // este lint existe pra impedir. União deduplicada: os dois conjuntos bloqueiam merge.
+  const bl = JSON.parse(readFileSync(baseP, 'utf8'));
+  const required = [...new Set([
+    ...(bl.classic_protection?.contexts || []),
+    ...(bl.rulesets?.contexts || []),
+  ])];
   const dir = join(root, '.github', 'workflows');
   const mapa = new Map();                                   // context → {arquivo, gatilho, via}
   for (const f of readdirSync(dir).filter((x) => /\.ya?ml$/.test(x))) {
@@ -224,6 +234,24 @@ function selftest() {
     const rc = auditar(dir);
     ok(rc.filtrados.length === 0 && rc.naoResolvidos.length === 0,
       'CRLF: always-run resolve o context (não vira "não-resolvido" fantasma)', JSON.stringify(rc.naoResolvidos));
+    // RULESETS E2E — o baseline tem duas chaves de required e o lint lia só
+    // `classic_protection`. O context de `rulesets` (hoje: o umbrella do Governance Gate,
+    // dono do GT-G5) ficava fora da guarda. Sem este par, o lint fica VERDE com um
+    // required filtrado, que é o cenário que ele existe pra impedir.
+    writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
+      JSON.stringify({ classic_protection: { contexts: [] }, rulesets: { contexts: ['Job A'] } }));
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), comPaths);
+    ok(auditar(dir).filtrados.length === 1, 'BITE E2E: required vindo de `rulesets` com paths é acusado');
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), semPaths);
+    ok(auditar(dir).filtrados.length === 0, 'LIBERA E2E: required de `rulesets` always-run passa');
+    // controle: o mesmo context nas DUAS chaves conta uma vez só (união dedupada)
+    writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
+      JSON.stringify({ classic_protection: { contexts: ['Job A'] }, rulesets: { contexts: ['Job A'] } }));
+    ok(auditar(dir).required.length === 1, 'context repetido nas 2 chaves conta 1× (união, não concatenação)');
+    // controle: baseline sem a chave `rulesets` segue funcionando (retrocompat)
+    writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
+      JSON.stringify({ classic_protection: { contexts: ['Job A'] } }));
+    ok(auditar(dir).filtrados.length === 0, 'baseline sem `rulesets` não quebra (retrocompat)');
   } finally { rmSync(dir, { recursive: true, force: true }); }
 
   console.log(falhas ? `\n✗ ${falhas} falha(s)` : '\n✅ required-always-run: acusa filtrado, libera always-run, avisa o não-resolvido.');
