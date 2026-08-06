@@ -933,3 +933,28 @@ Achado da sessão 2026-08-05, na triagem dos scripts órfãos: o `permission-dri
 **NÃO é pedido de gate.** O output do script declara: *"advisory por construção nesta fase — decidir forma de gate SÓ depois do FP medido"*. O trabalho é a triagem: cada uma das 43 é (a) permissão que falta declarar no seeder/config, (b) chamada morta a remover, ou (c) falso-positivo do detector (alvo dinâmico mal classificado).
 
 **Aceite:** as 43 classificadas nas 3 categorias, com as de tipo (a) declaradas e as de tipo (b) removidas; o número cai e o que sobra tem razão escrita. Refs: sessão 2026-08-05.
+
+#### Triagem executada — 2026-08-06
+
+**43 → 38.** Cinco eram **falso-positivo do detector**, não permissão: a forma `middleware` (`/(?:can|permission):([a-zA-Z][\w.\-]*)/`) casava dentro de **comentário**, e o corpus tem 36 linhas de prosa citando `can:`/`permission:`. Os cinco (`x`, `kb.`, `financeiro.`, `financeiro.dashboard.view.`, `api.access`) foram verificados um a um no arquivo de origem. Corrigido no detector com 5 asserts `FP-4` + 2 controles negativos provando que o strip não come código.
+
+Classificação das **38** restantes:
+
+| Classe | N | O que é |
+|---|---:|---|
+| **A · bug de acesso confirmado** | 2 | código exige permissão que não existe → feature vira só-admin em silêncio |
+| **B · feature legada sem módulo** | 5 | `hms.*` (3) e `restaurant.*` (2) — `Modules/Hms` e `Modules/Restaurant` **não existem** neste repo; sobrou código no core (`TransactionPaymentController`, `resources/views/restaurant/`) |
+| **C · módulo nosso, nunca declarada** | ~13 | `auditoria.export/note.write/revert` · `brief.history.view/purge` · `crm.*` (4) · `arquivos.restore` · `financeiro.lancamentos.create` · `ponto.importacoes.criar` · `recurringbilling.*` (2) · `whatsapp.view-all-phones` |
+| **D · core UltimatePOS** | ~18 | `admin` · `only_admin` · `subscribe` · `edit_purchase_price` · `configure_dashboard` · `send_notification(s)` · `report.stock_details` · `sale.history.view` · `*_essentials_*` · `edit_repair_settings` … |
+
+**Classe A — os dois casos, com veredito:**
+
+1. **`kb.ai` — RESOLVIDO.** `KbController` montava o flag `ai_ask` da UI com `can('kb.ai')`, mas o registry declara **`kb.ai.ask`** e o endpoint real (`KbAiController`) exige `can:kb.ai.ask|jana.mcp.memory.manage`. A UI escondia o botão de uma feature que o endpoint teria liberado. Corrigido para o nome declarado.
+
+2. **`fiscal.inutilizar` — NÃO corrigido; exige decisão [W].** `CancelarNfeRequest::authorize()` faz `can('fiscal.inutilizar')`, e esse nome **não é permissão** — é **role** criada por `NfeFiscalActionsSeeder` com a convenção UltimatePOS de sufixo (`fiscal.inutilizar#{business_id}`). `can()` procura permissão, não casa com role homônima, então **a inutilização de faixa fiscal NFe está acessível só a admin** (via `Gate::before`), o que não é a intenção — o próprio docblock do `NfeInutilizacaoController` diz *"role per-business — seeder NfeFiscalActionsSeeder"*. Há dois consertos possíveis, com consequências diferentes:
+   - **(i)** trocar por `hasRole("fiscal.inutilizar#{$businessId}")` — fiel ao que está documentado, mas acopla o código à convenção de sufixo;
+   - **(ii)** declarar `fiscal.inutilizar` como permissão e concedê-la à role no seeder — mais idiomático em Spatie (role carrega permissão, código checa permissão), porém cria dois objetos de mesmo nome (a role FSM e a permissão).
+
+   Escolher é desenho de autorização em endpoint **fiscal**; não foi inventado aqui.
+
+**Nota sobre B/C/D:** o denominador de declaração do detector são 5 fontes (`DataController`, `Resources/permissions.php`, `role/*.blade.php`, `PermissionsTableSeeder`, `syncPermissions` em runtime). Seeders de módulo (ex.: `NfeFiscalActionsSeeder`) **não** entram — foi o que fez `fiscal.inutilizar` aparecer. Antes de declarar qualquer permissão da classe C, conferir se ela já existe em fonte fora dessas cinco.
