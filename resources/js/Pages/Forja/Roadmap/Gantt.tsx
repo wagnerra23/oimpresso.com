@@ -20,6 +20,7 @@
 // memory/sessions/2026-08-05-duplicacao-roadmap-forja.md.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import { router } from '@inertiajs/react';
 import { useMemo, useState, useCallback } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
@@ -667,6 +668,13 @@ export default function RoadmapGanttPage(props: Props) {
       title="Forja — Roadmap (Gantt)"
       breadcrumbItems={[{ label: 'Forja' }, { label: 'Roadmap' }, { label: 'Gantt' }]}
     >
+      {/* Faixa do hub. Sem isto a tela abre SOLTA — foi o defeito que [W] viu em
+          produção. O `AppShellV2` não desenha topnav aqui: o hub Forja esconde a
+          barra do shell e renderiza a própria (`ForjaHub`), então toda Page sob
+          /forja/* precisa montá-la explicitamente. Registrar a aba em
+          `config/core_topnavs.php` (#5339) alimenta `shell.topnavs`, que ESTA tela
+          não consome — provado em runtime: 10 itens no shell, 0 `.topnav-chip` no DOM. */}
+      <ForjaHub active="roadmap-gantt" />
       <RoadmapGantt {...props} />
     </AppShellV2>
   );

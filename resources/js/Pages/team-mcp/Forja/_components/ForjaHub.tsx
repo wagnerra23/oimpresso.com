@@ -7,7 +7,7 @@
 // reuso nas telas TeamMcp absorvidas (Equipe/Tarefas/CC Sessions/Saúde).
 
 import { Link } from '@inertiajs/react';
-import { Activity, Bell, Code2, Columns3, History, Inbox, LayoutGrid, List, Plug, Search, Users } from 'lucide-react';
+import { Activity, Bell, CalendarRange, Code2, Columns3, History, Inbox, LayoutGrid, List, Plug, Search, Users } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
 import { cn } from '@/Lib/utils';
@@ -19,6 +19,14 @@ export const FORJA_TABS = [
   { key: 'triagem',   label: 'Triagem',     href: '/forja',                icon: Inbox },
   { key: 'backlog',   label: 'Backlog',     href: '/forja/backlog',        icon: List },
   { key: 'quadro',    label: 'Quadro',      href: '/forja/quadro',         icon: LayoutGrid },
+  // Roadmap (Gantt) — 2026-08-06. A tela chegou da Jana no #5310 (ADR 0366 §D-C item 3).
+  // ESTA é a fonte da faixa do hub: `AppShellV2` NÃO renderiza topnav aqui (o Cockpit
+  // esconde a barra do shell e desenha a própria). Provado em runtime: `shell.topnavs
+  // .Forja__core` já entregava 10 itens com este, e o DOM tinha ZERO `.topnav-chip` —
+  // registrar em `config/core_topnavs.php` (#5339) alimentou o shell e não a tela.
+  // Quem adicionar aba aqui: adicione também `<ForjaHub>` na Page nova, senão ela abre
+  // sem faixa (foi o caso do Gantt até hoje).
+  { key: 'roadmap-gantt', label: 'Roadmap (Gantt)', href: '/forja/roadmap-gantt', icon: CalendarRange },
   { key: 'changelog', label: 'Changelog',   href: '/forja/changelog',      icon: History },
   { key: 'mcp',       label: 'MCP',         href: '/forja/mcp',            icon: Plug },
   // Telas TeamMcp absorvidas (fusão) — reusam as canônicas ricas.
