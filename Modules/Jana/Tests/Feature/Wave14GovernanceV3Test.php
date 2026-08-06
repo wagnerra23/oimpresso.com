@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  *   008. GovernancaService importa OtelHelper (instrumentado)
  *
  *  D6.a Inertia::defer:
- *   009. PainelController usa Inertia::defer no payload `painel`
+ *   009. (removido 2026-08-06 — PainelController deletado; ver nota no corpo)
  *   010. DashboardController usa Inertia::defer no payload `metas`
  *
  *  D8.a throttle:
@@ -117,12 +117,14 @@ it('008. GovernancaService importa OtelHelper (instrumentado D9.a)', function ()
 
 // ---------- D6.a Inertia::defer tests ----------
 
-it('009. PainelController usa Inertia::defer no payload painel', function () {
-    $source = file_get_contents(base_path('Modules/Jana/Http/Controllers/PainelController.php'));
-
-    expect($source)->toContain('Inertia::defer(');
-    expect($source)->toContain("'painel' => Inertia::defer(");
-});
+// 009. REMOVIDO 2026-08-06 [W] — o PainelController foi apagado na onda 1 da
+// fusão das telas da Jana, e este caso lia o arquivo por `file_get_contents`,
+// logo passaria a estourar. Registro do que ele afirmava, porque é instrutivo:
+// ele exigia `'painel' => Inertia::defer(` num controller que trazia, desde
+// 2026-05-25, o comentário "HOTFIX: removido Inertia::defer" e o código
+// `'painel' => $this->buildMockPayload()`. O caso afirmava o OPOSTO do código e
+// mesmo assim nunca ficou vermelho — este arquivo não está na lista da lane
+// `jana-pest.yml`, que executa arquivo-a-arquivo em vez de testsuite.
 
 it('010. DashboardController usa Inertia::defer no payload metas', function () {
     $source = file_get_contents(base_path('Modules/Jana/Http/Controllers/DashboardController.php'));

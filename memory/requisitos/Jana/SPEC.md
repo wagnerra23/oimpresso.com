@@ -950,7 +950,7 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 
 ### US-COPI-106 · Jana V2 demo — tela navegável apresentável a 1 cliente piloto
 
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/PainelController.php` · `resources/js/Pages/Jana/Painel.tsx` · verificado@dd3ed7c (2026-07-01) — tela Cockpit Analista IA (`/ia/painel`, charter live) existe, mas ainda com `buildMockPayload` (mock data); fluxo navegável real biz=4 + smoke + demo script a cliente piloto não confirmados (status todo)
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/DashboardController.php` · `resources/js/Pages/Jana/Dashboard.tsx` · verificado@ee54ee50373 (2026-08-06) — REANCORADA: apontava pro `PainelController`/`Painel.tsx`, removidos em 2026-08-06 [W] (onda 1 da fusão das telas da Jana). O receptor é o `/ia/dashboard`, que entrega o mesmo cockpit (brief · KPIs · análises · ações via `resources/js/Pages/Jana/_components/JanaCockpit.tsx`) porém com dado REAL do SellsCockpitAggregator — o Painel servia buildMockPayload(). Segue `_parcial_` pelo mesmo motivo de antes: smoke biz=4 + demo script a cliente piloto não confirmados (status todo)
 
 > owner: wagner · priority: p0 · estimate: 8h · type: story
 > blocked_by: —

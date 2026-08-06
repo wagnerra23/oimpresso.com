@@ -6,7 +6,12 @@ contains:
   # Chat IA core
   - "ChatController — UI chat principal"
   - "DashboardController — resumo executivo"
-  - "PainelController — Cockpit Analista IA (Jana V2) — visual canon chat-jana.jsx · US-JANA-PAINEL-001 ondas A1-D"
+  # PainelController: removido 2026-08-06 [W] — onda 1 da fusão das telas da Jana.
+  #   Era hub de 3 links + `buildMockPayload()`; a capacidade (brief · KPIs ·
+  #   análises · ações) já vive em DashboardController com dado real do
+  #   SellsCockpitAggregator. A `US-JANA-PAINEL-001` que esta linha citava NUNCA
+  #   existiu no SPEC do módulo — era id fantasma, vivo só aqui, no charter e no
+  #   teste (e daqui vazava pro catalog.json, que é derivado deste arquivo).
   - "Services/Memoria/* — recall hybrid (Hyde, Reranker, Meilisearch)"
   - "Entities/jana_memoria_* — memória persistente do business (rename ADR 0092)"
   # Custos / Qualidade — SAÍRAM pra Modules/Governance em 2026-08-05 (ADR 0366 §D-B).
