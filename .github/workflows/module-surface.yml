@@ -6,9 +6,8 @@ name: Module surface (drift do índice de arquivos)
 # Controller e ninguém regenera, o --check morde.
 #
 # REGRA ANTI-TEATRO (igual charter-refs-gate.yml): SEM continue-on-error, SEM skip-as-pass.
-# "Advisory" = NÃO está nos required checks (branch protection — decisão [W]), NÃO é vermelho
-# escondido. `--all --check` exige SUPERFICIE de todo módulo VIVO (`module.json active=1`),
-# das Classes B e de `_Geral`; apenas módulo inativo nunca adotado fica grandfathered.
+# `--all --check` exige SUPERFICIE de todo módulo VIVO (`module.json active=1`), das
+# Classes B e de `_Geral`; apenas módulo inativo nunca adotado fica grandfathered.
 # PROMOVIDO A REQUIRED em 2026-08-05 (ADR 0370, emenda à 0314). A condição que este
 # cabeçalho declarava — "N módulos adotarem + FP medido = 0" — foi VERIFICADA, não
 # presumida: `--all --check` sai 0 no main (nenhum FP crônico) e as 10 falhas medidas em
@@ -19,7 +18,7 @@ name: Module surface (drift do índice de arquivos)
 # context required que só dispara por path fica PENDING pra sempre nos PRs que não tocam
 # aquele path e trava o merge do repo (deadlock de 2026-07-02, proibicoes §Ambiente).
 # Sempre-rodar custa ~19s por job MEDIDOS; os minutos do `gh run list` eram FILA, não
-# execução (o script roda em <1s).
+# execução (o script roda em <1s). Guardado pelo lint `required-always-run.mjs` (#5332).
 
 on:
   pull_request:
@@ -39,7 +38,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: node --test scripts/governance/module-surface.test.mjs scripts/qa/page-path.test.mjs
+      - name: Testar classificadores, grafo, impacto e mapa
+        run: |
+          node --test scripts/governance/module-surface.test.mjs scripts/governance/catalog-graph.test.mjs scripts/qa/page-path.test.mjs
+          node scripts/governance/documentation-loop.mjs --selftest
+          node scripts/governance/system-map-ia.test.mjs
 
   # Drift: o SUPERFICIE.md commitado bate com a árvore do PR? Exit code real.
   drift:
@@ -48,14 +51,60 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          # system-map usa git log por BRIEFING; checkout raso fabricaria a data
+          # do merge para todos os módulos e produziria drift falso.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: node scripts/governance/module-surface.mjs --all --check
         run: node scripts/governance/module-surface.mjs --all --check
+      # O `catalog-graph.mjs --check` NÃO roda aqui: ele tem workflow PRÓPRIO
+      # (catalog-graph.yml), cujo job "catalog.json == SCOPEs + Classes B" virou
+      # context REQUIRED na ADR 0370. Duplicar rodaria 2× o mesmo check, e o dono
+      # do veredito é o workflow required — não este step. O `.test.mjs` dele segue
+      # rodando no selftest acima: teste unitário do gerador é outra coisa.
+      # O `system-map.mjs --check` também NÃO roda aqui, e pelo mesmo princípio:
+      # o dono dele é o `system-map.yml`, que o mantém ADVISORY de propósito
+      # (`continue-on-error: true`, "stale = avisa, não bloqueia") mais um job
+      # `refresh` que regenera por cron e abre auto-PR. O PAINEL deriva de fontes
+      # que qualquer PR mexe (`memory/sessions/`, `proibicoes.md` §5), então quem
+      # o conserta é o cron, não o autor do PR. Medido na refutação R4 do #5327
+      # (2026-08-06): 11 dos últimos 12 commits do main falhavam esse `--check`, e
+      # o bite-test com controle negativo mostrou que UM session log alheio já
+      # derruba (+1 arquivo → exit 1; removido → exit 0). Dentro DESTE job — que é
+      # o context required `SUPERFICIE.md == árvore` e, por regra anti-teatro, não
+      # tem `continue-on-error` — isso trancaria o merge do repo entre uma
+      # regeneração e a seguinte: o deadlock de 2026-07-02 que o cabeçalho cita.
+      # Querer o painel sempre-rodando é mudança no `system-map.yml` (tirar o
+      # `paths:`, mantendo o advisory), não um step embutido num required.
       - name: Diagnóstico em caso de drift
         if: failure()
         run: |
-          echo "::error::Um SUPERFICIE.md ficou atrás da árvore. Regenere o módulo afetado:"
+          echo "::error::Uma projeção derivada ficou atrás das fontes. Rode os checks abaixo:"
           echo "  node scripts/governance/module-surface.mjs <Mod> --write"
-          echo "e commite o SUPERFICIE.md atualizado."
+          echo "  node scripts/governance/catalog-graph.mjs"
+          echo "  node scripts/governance/system-map.mjs"
+          echo "e commite somente as projeções que mudarem."
+
+  # Transação de módulo novo: o diff em module.json só fica ativável quando
+  # runtime, contrato, teste, catálogo, superfície e painel fecham juntos.
+  activation:
+    name: Módulo novo — contrato + projeções derivadas
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Compilar impacto e ativação
+        run: >-
+          node scripts/governance/documentation-loop.mjs
+          --impact-ref "${{ github.event.pull_request.base.sha }}"
+          --head-ref HEAD
+          --enforce-activation
+          --json

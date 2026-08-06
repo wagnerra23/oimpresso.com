@@ -12,9 +12,9 @@ module: Forja
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Forja --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Forja/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 189 arquivos em 15 papéis.
+**Total mapeado:** 198 arquivos em 15 papéis.
 
 ## Controllers — 24
 
@@ -181,9 +181,10 @@ module: Forja
 
 - 52 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 15
+## Demais arquivos (manifestos, docs, assets e misc) — 24
 
 - [ProjectDecomposerAgent.php](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php)
+- [CHANGELOG.md](../../../Modules/Forja/CHANGELOG.md)
 - [Tool.php](../../../Modules/Forja/Contracts/Tool.php)
 - [routes.php](../../../Modules/Forja/Http/routes.php)
 - [BriefFetchTool.php](../../../Modules/Forja/Mcp/Tools/BriefFetchTool.php)
@@ -191,10 +192,18 @@ module: Forja
 - [HandoffLeverTool.php](../../../Modules/Forja/Mcp/Tools/HandoffLeverTool.php)
 - [HandoffPendingTool.php](../../../Modules/Forja/Mcp/Tools/HandoffPendingTool.php)
 - [HandoffSubmitTool.php](../../../Modules/Forja/Mcp/Tools/HandoffSubmitTool.php)
+- [README.md](../../../Modules/Forja/README.md)
+- [projectmgmt.php](../../../Modules/Forja/Resources/lang/en/projectmgmt.php)
+- [projectmgmt.php](../../../Modules/Forja/Resources/lang/pt/projectmgmt.php)
+- [topnav.php](../../../Modules/Forja/Resources/menus/topnav.php)
+- [SCOPE.md](../../../Modules/Forja/SCOPE.md)
 - [BoostToolAdapter.php](../../../Modules/Forja/Tools/BoostToolAdapter.php)
 - [GitCommitWipTool.php](../../../Modules/Forja/Tools/GitCommitWipTool.php)
 - [GitInspectTool.php](../../../Modules/Forja/Tools/GitInspectTool.php)
 - [LogReaderTool.php](../../../Modules/Forja/Tools/LogReaderTool.php)
 - [RunTestTool.php](../../../Modules/Forja/Tools/RunTestTool.php)
 - [WriteFileTool.php](../../../Modules/Forja/Tools/WriteFileTool.php)
+- [composer.json](../../../Modules/Forja/composer.json)
+- [module.json](../../../Modules/Forja/module.json)
 - [start.php](../../../Modules/Forja/start.php)
+- [useBoardShortcuts.ts](../../../resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts)

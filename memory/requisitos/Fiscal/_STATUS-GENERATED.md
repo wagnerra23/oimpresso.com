@@ -1,3 +1,7 @@
+---
+authority: generated
+---
+
 <!-- GERADO por scripts/governance/requisitos-status.mjs — NÃO editar à mão.
      Status é DERIVADO da cadeia US→CU→UC→teste. Editar aqui não muda nada:
      mude o SPEC/SDD/casos/teste e re-rode. (ADR 0256: derivado sobrevive.) -->

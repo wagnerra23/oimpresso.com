@@ -32,6 +32,9 @@ not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/Forja"
+depends_on:
+  - Sells
+  - Compras
 trust_required: L3
 owner: wagner
 permission_prefix: financeiro.*

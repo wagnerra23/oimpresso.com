@@ -24,11 +24,12 @@
 //   node scripts/governance/system-map.mjs --check      # exit 1 se o .md commitado difere do gerado (CI)
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, statSync } from 'node:fs';
-import { execSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { join, dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
+const GIT_SAFE_ARGS = ['-c', `safe.directory=${resolve(ROOT).replaceAll('\\', '/')}`];
 // só roda a geração/CI quando invocado DIRETO (node system-map.mjs). Importado
 // (ex: onboarding-paths-check.mjs reusa deadLinks) NÃO dispara escrita nem process.exit.
 const IS_DIRECT_RUN = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
@@ -56,6 +57,39 @@ const ls = (p) => { try { return readdirSync(p); } catch { return []; } };
  * ONBOARDING pararam de regenerar EM SILÊNCIO.
  */
 const normalizeHorizontalSpace = (s) => s.replace(/[ \t]+/g, ' ');
+
+/** Impede que a fronteira de um clone raso seja tratada como último toque real. */
+export function assertFreshnessCommitUsable(isShallowBoundary, relPath = '<path>') {
+  if (isShallowBoundary) {
+    throw new Error(
+      `[system-map] histórico Git insuficiente para medir frescor de ${relPath}. `
+      + 'Use checkout fetch-depth: 0 ou rode `git fetch --unshallow`.',
+    );
+  }
+}
+
+let SHALLOW_BOUNDARIES = null;
+function shallowBoundaries() {
+  if (SHALLOW_BOUNDARIES) return SHALLOW_BOUNDARIES;
+  try {
+    const isShallow = execFileSync(
+      'git',
+      [...GIT_SAFE_ARGS, 'rev-parse', '--is-shallow-repository'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim() === 'true';
+    if (!isShallow) return (SHALLOW_BOUNDARIES = new Set());
+    const shallowPath = execFileSync(
+      'git',
+      [...GIT_SAFE_ARGS, 'rev-parse', '--git-path', 'shallow'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim();
+    const absolute = resolve(ROOT, shallowPath);
+    return (SHALLOW_BOUNDARIES = new Set(read(absolute).split(/\r?\n/).filter(Boolean)));
+  } catch (error) {
+    const detalhe = error instanceof Error ? error.message : String(error);
+    throw new Error(`[system-map] não foi possível verificar a fronteira rasa do Git: ${detalhe}`);
+  }
+}
 
 /**
  * Âncora estrutural mínima para explicações de fluxo. O diagrama continua sendo
@@ -186,12 +220,16 @@ function frontmatter(txt) {
 }
 // último commit que tocou um path (data ISO curta) — frescor REAL, não declarado
 function gitLastDate(relPath) {
+  let out;
   try {
-    const out = execSync(`git log -1 --format=%cs -- "${relPath}"`, {
+    out = execFileSync('git', [...GIT_SAFE_ARGS, 'log', '-1', '--format=%H%x00%cs', '--', relPath], {
       cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
     }).toString().trim();
-    return out || null;
   } catch { return null; }
+  if (!out) return null;
+  const [commit, date] = out.split('\0');
+  assertFreshnessCommitUsable(shallowBoundaries().has(commit), relPath);
+  return date || null;
 }
 function daysSince(isoDate) {
   if (!isoDate) return null;
@@ -238,7 +276,11 @@ function measureProibicoes() {
 // ── fonte 3: módulos + frescor do BRIEFING (curado; linka o dono) ─────────────
 function measureModules() {
   const modDir = join(ROOT, 'Modules');
-  const mods = ls(modDir).filter((d) => { try { return statSync(join(modDir, d)).isDirectory(); } catch { return false; } });
+  const mods = ls(modDir).filter((d) => {
+    try {
+      return statSync(join(modDir, d)).isDirectory() && existsSync(join(modDir, d, 'module.json'));
+    } catch { return false; }
+  });
   const rows = [];
   for (const m of mods) {
     const brief = `memory/requisitos/${m}/BRIEFING.md`; // forward-slash sempre (link markdown + git)
@@ -478,7 +520,7 @@ export function linhaTools(ia) {
  * NÚCLEO PURO: lê o REGISTRO de tools do `OimpressoMcpServer` — a lista que o servidor
  * de fato publica. Fonte deliberadamente diferente da PASTA: um `*Tool.php` que ninguém
  * registrou não sobe, e um registro pode apontar pra outro módulo. Duas formas convivem
- * no array: FQN (`\Modules\Forja\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
+ * no array: FQN (`\Modules\Brief\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
  * resolve no namespace do próprio servidor, Jana).
  *
  * Foi aqui que a 1ª versão desta seção errou: contou a pasta de UM módulo (39) pra
@@ -514,7 +556,7 @@ export function parseToolsRegistry(txt, donoDoArquivo = 'Jana') {
  */
 function gitGrepFiles(padrao) {
   try {
-    const out = execSync(`git grep -lE "${padrao}" -- "Modules"`, {
+    const out = execFileSync('git', [...GIT_SAFE_ARGS, 'grep', '-lE', padrao, '--', 'Modules'], {
       cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
     });
     return { ok: true, files: out.split('\n').map((s) => s.trim()).filter(Boolean) };
@@ -526,7 +568,7 @@ function gitGrepFiles(padrao) {
 }
 function gitLsFiles(pathspec) {
   try {
-    const out = execSync(`git ls-files "${pathspec}"`, {
+    const out = execFileSync('git', [...GIT_SAFE_ARGS, 'ls-files', pathspec], {
       cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
     });
     return out.split('\n').map((s) => s.trim()).filter(Boolean);
@@ -1076,49 +1118,20 @@ function renderOnboardingAgent(data) {
 // tratado como PATH (relativo à RAIZ do repo) e verificado. Fecha o furo que deixou
 // `Modules/Project` (inexistente) passar — antes só links markdown eram checados.
 const REPO_DIRS = /^(Modules|app|resources|scripts|governance|database|tests|config|routes|bootstrap|\.github|\.claude|memory)\/\S/;
-// ── EXCEÇÃO: TRANSCRIÇÃO ≠ PONTEIRO (2026-08-03) ──────────────────────────────
-// A regra acima mira o path que o GERADOR indica ("vá aqui") — foi feita pro caso
-// `Modules/Project`, ponteiro inventado. Ela NÃO se aplica ao texto que o gerador
-// apenas TRANSCREVE de outra fonte: um título de lápide §5 cita `Modules/SRS`
-// justamente PORQUE o módulo foi deletado ("não ressuscite"). Fail-closed nisso
-// significa que toda deleção de módulo mata o gerador — foi o que aconteceu: as 4 runs
-// agendadas de 30/07, 31/07, 01/08 e 02/08 falharam e o painel congelou.
-//
-// ERRATA (2026-08-03, revisão adversarial): a redação original dizia "primeiro por
-// `Modules/SRS`, depois somando `Modules/ADS`". FALSO — as 4 runs acusaram SÓ
-// `Modules/SRS` (`deadLinks` acumula todos os mortos e o relatório imprime todos, então
-// a ausência do ADS nos 4 logs é prova, não truncagem). A lápide do ADS só entrou em
-// main em 03/08 02:24 (#5189), DEPOIS da última falha. Eu vi os dois ao reproduzir em
-// 03/08 e escrevi isso como se fosse a causa das falhas — confundi o que observei hoje
-// com o que aconteceu. O ADS teria quebrado a run de 03/08 em diante; não quebrou
-// nenhuma das 4.
-//
-// Escopo mínimo de propósito: pula SÓ o path inline (item 2) dentro do bloco transcrito.
-// O item 1 (links markdown) segue valendo no doc INTEIRO — inclusive dentro do bloco.
-// ERRATA (mesma revisão): a redação original justificava isso dizendo que "os links do
-// texto-fonte são vigiados no DONO (deadlink-gate) — o espelho não re-verifica o que o
-// dono já verifica". As duas metades eram falsas: (a) o `deadlink-gate` extrai APENAS
-// links markdown (`/\[[^\]]*\]\(([^)]+)\)/g`), então path inline em crase não tem dono
-// nenhum — o que é aceitável (lápide é lápide), mas não é o que a frase dizia; (b) o
-// espelho CONTINUA re-verificando link markdown dentro do bloco, e um caso do bite-test
-// garante exatamente isso. A justificativa honesta é mais simples: path em título de
-// lápide não é ponteiro de navegação, e link markdown nunca foi o modo de falha.
+
+// Escopo mínimo de propósito: pula SÓ o path inline dentro do bloco transcrito. Links
+// markdown seguem valendo no doc INTEIRO — inclusive dentro do bloco (há caso de
+// bite-test garantindo isso). A justificativa é simples: path em título de lápide não é
+// ponteiro de navegação, e link markdown nunca foi o modo de falha.
 const RE_TRANSCRITO = /<!-- transcrito-de:[^>]*-->[\s\S]*?<!-- \/transcrito-de -->/g;
 
 /**
- * Neutraliza abertura de comentário HTML no texto TRANSCRITO, para que o conteúdo não
- * possa forjar o delimitador que o delimita.
+ * Escapa `<!--` ao transcrever texto de `proibicoes.md` pro painel gerado.
  *
- * Achado da revisão adversarial de 2026-08-03: uma lápide futura cujo TÍTULO contenha
- * literalmente o marcador de fechamento fecha o bloco cedo, e os títulos seguintes
- * voltam a ser validados — reabrindo exatamente o modo de falha que este mecanismo veio
- * consertar. Não é teórico: o §5 deste projeto é cheio de lápide SOBRE os próprios
- * mecanismos ("não remover o marcador X"), então o texto tende a citar o marcador.
- * Reproduzido com controle negativo antes de consertar:
- *   com  `<!-- /transcrito-de -->` no título → ["(inline) Modules/SRS"]   (QUEBRA)
- *   sem                                      → []                        (ok)
- * A falha era fail-closed (mata o gerador, não abre buraco), mas o custo era outro
- * silêncio de dias — que é o que o eixo 3 do cron-watchdog passou a vigiar.
+ * Uma lápide do §5 que contenha um comentário HTML abriria um comentário no meio do
+ * markdown gerado e engoliria o resto do documento. A falha era fail-closed (mata o
+ * gerador, não abre buraco), mas o custo era outro silêncio de dias — que é o que o
+ * eixo 3 do cron-watchdog passou a vigiar.
  *
  * Escapar só `<!--` basta: abertura e fechamento começam por ele. O `&lt;!--` renderiza
  * como texto visível no markdown, então a lápide continua legível.
@@ -1126,6 +1139,7 @@ const RE_TRANSCRITO = /<!-- transcrito-de:[^>]*-->[\s\S]*?<!-- \/transcrito-de -
 export function semComentarioHtml(s) {
   return String(s).replace(/<!--/g, '&lt;!--');
 }
+
 export function deadLinks(md, outPath) {
   const base = dirname(outPath);
   const dead = [];
@@ -1153,7 +1167,11 @@ export function deadLinks(md, outPath) {
   return dead;
 }
 export function assertLinksLive(pairs) {
-  const problems = pairs.flatMap(([md, out]) => deadLinks(md, out).map((l) => `${out}: ${l}`));
+  const problems = pairs.flatMap(([md, out]) => deadLinks(md, out).map((l) => {
+    const needle = l.replace(/^\(inline\)\s*/, '');
+    const line = md.split('\n').find((row) => row.includes(needle))?.trim();
+    return `${out}: ${l}${line ? `\n    em: ${line}` : ''}`;
+  }));
   if (problems.length) {
     console.error('[system-map] PATH MORTO — o gerador se recusa a emitir link quebrado (regra):');
     problems.forEach((p) => console.error('  ✗ ' + p));
