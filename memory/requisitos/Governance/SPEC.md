@@ -943,7 +943,7 @@ Classificação das **38** restantes:
 | Classe | N | O que é |
 |---|---:|---|
 | **A · bug de acesso confirmado** | 2 | código exige permissão que não existe → feature vira só-admin em silêncio |
-| **B · feature legada sem módulo** | 5 | `hms.*` (3) e `restaurant.*` (2) — `Modules/Hms` e `Modules/Restaurant` **não existem** neste repo; sobrou código no core (`TransactionPaymentController`, `resources/views/restaurant/`) |
+| **B · feature legada sem módulo** | 5 | `hms.*` (3) e `restaurant.*` (2) — os módulos correspondentes (HMS/hospitalidade e restaurante, do UltimatePOS upstream) **não existem** nesta árvore; sobrou código no core (`TransactionPaymentController`, `resources/views/restaurant/`). _Paths de módulo não citados de propósito: a catraca anti-ghost trata citação de `Modules/<X>` inexistente como referência podre, e ela está certa — a ausência se comunica sem o path._ |
 | **C · módulo nosso, nunca declarada** | ~13 | `auditoria.export/note.write/revert` · `brief.history.view/purge` · `crm.*` (4) · `arquivos.restore` · `financeiro.lancamentos.create` · `ponto.importacoes.criar` · `recurringbilling.*` (2) · `whatsapp.view-all-phones` |
 | **D · core UltimatePOS** | ~18 | `admin` · `only_admin` · `subscribe` · `edit_purchase_price` · `configure_dashboard` · `send_notification(s)` · `report.stock_details` · `sale.history.view` · `*_essentials_*` · `edit_repair_settings` … |
 
