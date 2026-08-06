@@ -125,7 +125,12 @@ class KbController extends Controller
                 'write'                => (bool) ($user?->can('kb.write') ?? false),
                 'favorite'             => true,
                 'comment'              => (bool) ($user?->can('kb.comment') ?? false),
-                'ai_ask'               => (bool) ($user?->can('kb.ai') ?? false),
+                // `kb.ai.ask` — o nome DECLARADO no registry (Resources/permissions.php)
+                // e o mesmo que o endpoint exige (`KbAiController`: can:kb.ai.ask|jana.mcp.memory.manage).
+                // Era `kb.ai`, que não existe em lugar nenhum: o flag caía sempre em false
+                // pra quem não é admin, escondendo o botão de uma feature que o endpoint
+                // teria liberado. Achado pelo permission-drift (US-GOV-059).
+                'ai_ask'               => (bool) ($user?->can('kb.ai.ask') ?? false),
                 'graph_view'           => true,
                 'publish_path'         => (bool) ($user?->can('kb.write') ?? false),
                 'publish_troubleshoot' => (bool) ($user?->can('kb.write') ?? false),
