@@ -623,11 +623,25 @@ function render(data) {
 
   const L = [];
   L.push('---');
-  L.push('name: PAINEL-SISTEMA — índice gerado do estado do sistema oimpresso');
+  // `id` NÃO é decorativo: o rail de /documentacao linka por ele
+  // (`route('documentacao.documento', $item['id'])`) e o controller resolve
+  // `where('slug', …)` em mcp_memory_documents — cujo slug é DERIVADO do caminho
+  // (`reference-` + path slugificado · IndexarMemoryGitParaDb::coletarRecursivo).
+  // Os dois têm que bater, senão o item do rail 404. Mudou o caminho → mude aqui.
+  L.push('id: reference-painel-sistema');
+  // O rail rotula com o que vem DEPOIS do travessão (Str::after(name, '—')), então o
+  // padrão `Grupo — Assunto` dos 10 vizinhos vira "Painel do sistema" no menu.
+  L.push('name: Técnico — Painel do sistema');
   L.push('description: MATRIZ gerada por scripts/governance/system-map.mjs. NÃO editar à mão (regenera). Índice que aponta pros donos canônicos + fatos deriváveis + frescor real.');
   L.push('type: reference');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
+  // Opt-in do rail de /documentacao (DocumentacaoController::navegacao): sem `nav_group`
+  // o doc fica FORA do menu — era por isso que o painel só era alcançável pela busca.
+  // `tecnico` = grupo do irmão TECNICO-ARQUITETURA (nav_order 10); este vem depois.
+  L.push('nav_group: tecnico');
+  L.push('nav_order: 20');
+  L.push('lente: [construir]');
   L.push('---');
   L.push('');
   L.push('# 🗺️ PAINEL-SISTEMA — estado do oimpresso');
@@ -729,14 +743,21 @@ function render(data) {
   L.push('');
   L.push(`> Dono canônico: [\`memory/proibicoes.md §5\`](../proibicoes.md). ${proib.descartadas.length} entradas.`);
   L.push('');
-  for (const d of proib.descartadas) L.push(`- ~~${d}~~`);
+  // Títulos TRANSCRITOS literalmente de proibicoes.md §5 — não são ponteiros deste
+  // doc. Lápide cita path deletado de propósito ("não ressuscite `Modules/SRS`"),
+  // então o validador de path morto não se aplica aqui (ver RE_TRANSCRITO).
+  L.push('<!-- transcrito-de: memory/proibicoes.md §5 -->');
+  for (const d of proib.descartadas) L.push(`- ~~${semComentarioHtml(d)}~~`);
+  L.push('<!-- /transcrito-de -->');
   L.push('');
 
   // Tier 0 gaps
   if (proib.tier0gaps.length) {
     L.push('## Tier 0 gaps (esperam decisão/desbloqueio)');
     L.push('');
-    for (const g of proib.tier0gaps) L.push(`- ⛔ ${g}`);
+    L.push('<!-- transcrito-de: memory/proibicoes.md §Tier 0 gaps -->');
+    for (const g of proib.tier0gaps) L.push(`- ⛔ ${semComentarioHtml(g)}`);
+    L.push('<!-- /transcrito-de -->');
     L.push('');
   }
 
@@ -1097,6 +1118,28 @@ function renderOnboardingAgent(data) {
 // tratado como PATH (relativo à RAIZ do repo) e verificado. Fecha o furo que deixou
 // `Modules/Project` (inexistente) passar — antes só links markdown eram checados.
 const REPO_DIRS = /^(Modules|app|resources|scripts|governance|database|tests|config|routes|bootstrap|\.github|\.claude|memory)\/\S/;
+
+// Escopo mínimo de propósito: pula SÓ o path inline dentro do bloco transcrito. Links
+// markdown seguem valendo no doc INTEIRO — inclusive dentro do bloco (há caso de
+// bite-test garantindo isso). A justificativa é simples: path em título de lápide não é
+// ponteiro de navegação, e link markdown nunca foi o modo de falha.
+const RE_TRANSCRITO = /<!-- transcrito-de:[^>]*-->[\s\S]*?<!-- \/transcrito-de -->/g;
+
+/**
+ * Escapa `<!--` ao transcrever texto de `proibicoes.md` pro painel gerado.
+ *
+ * Uma lápide do §5 que contenha um comentário HTML abriria um comentário no meio do
+ * markdown gerado e engoliria o resto do documento. A falha era fail-closed (mata o
+ * gerador, não abre buraco), mas o custo era outro silêncio de dias — que é o que o
+ * eixo 3 do cron-watchdog passou a vigiar.
+ *
+ * Escapar só `<!--` basta: abertura e fechamento começam por ele. O `&lt;!--` renderiza
+ * como texto visível no markdown, então a lápide continua legível.
+ */
+export function semComentarioHtml(s) {
+  return String(s).replace(/<!--/g, '&lt;!--');
+}
+
 export function deadLinks(md, outPath) {
   const base = dirname(outPath);
   const dead = [];
@@ -1111,11 +1154,7 @@ export function deadLinks(md, outPath) {
   // Remove blocos cercados ``` … ``` ANTES de casar inline: os backticks internos
   // do bloco bagunçam o pareamento do regex e engoliriam paths inline reais depois
   // dele (Modules/Jana, app/Domain/Fsm ficavam SEM verificação — furo silencioso).
-  const noFences = md
-    .replace(/```[\s\S]*?```/g, '')
-    // Ideias mortas aparecem riscadas no painel. Um path dentro de `~~...~~`
-    // é evidência histórica, não instrução navegável nem promessa de existência.
-    .replace(/~~.*?~~/g, '');
+  const noFences = md.replace(/```[\s\S]*?```/g, '').replace(RE_TRANSCRITO, '');
   const reCode = /`([^`]+)`/g;
   while ((m = reCode.exec(noFences)) !== null) {
     const t = m[1].trim();

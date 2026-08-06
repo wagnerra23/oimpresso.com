@@ -1,14 +1,18 @@
 ---
-name: PAINEL-SISTEMA — índice gerado do estado do sistema oimpresso
+id: reference-painel-sistema
+name: Técnico — Painel do sistema
 description: MATRIZ gerada por scripts/governance/system-map.mjs. NÃO editar à mão (regenera). Índice que aponta pros donos canônicos + fatos deriváveis + frescor real.
 type: reference
 authority: generated
 lifecycle: ativo
+nav_group: tecnico
+nav_order: 20
+lente: [construir]
 ---
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-05**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-06**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -68,7 +72,7 @@ lifecycle: ativo
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **347**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **342**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -144,6 +148,7 @@ lifecycle: ativo
 
 > Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 80 entradas.
 
+<!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
 - ~~2026-06-09 — Domínio de "locação" na Oficina (alucinação herdada do legado)~~
@@ -224,10 +229,13 @@ lifecycle: ativo
 - ~~2026-08-04 — Isentar do gate a população que a MÁQUINA SEMPRE PRODUZ (o `shipped-log-gate` nunca teve como reprovar — e a isenção estava INVERTIDA)~~
 - ~~2026-08-05 — Tratar alerta de ferramenta deduzindo a causa do ARQUIVO SUSPEITO, sem ler o que ela reportou (6 tentativas · e o `.gitleaksignore` era o vazamento)~~
 - ~~2026-08-05 — Confiar que o merge do git protege frontmatter YAML (dois PRs, sem conflito, chave DUPLICADA em produção)~~
+<!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
+<!-- transcrito-de: memory/proibicoes.md §Tier 0 gaps -->
 - ⛔ 2026-05-28 — Token Hostinger API inacessível ao agente autônomo
+<!-- /transcrito-de -->
 
 ## Rastro
 
@@ -241,4 +249,4 @@ lifecycle: ativo
   - `2026-08-05-duplicacao-roadmap-forja`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-05 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-06 · deriva das fontes canônicas, não as substitui._

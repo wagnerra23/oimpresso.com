@@ -253,15 +253,17 @@ class OimpressoMcpServer {
   ok(mordeuNewline, 'MORDE: só espaço/tab colapsa — newline continua separando linhas');
 }
 
-// ── K) path histórico riscado não é promessa de existência ───────────────
+// ── K) path histórico não é promessa de existência ───────────────────────
+// A isenção mudou de FORMA no main: era `~~riscado~~` (heurística de estilo), virou o
+// bloco delimitado `<!-- transcrito-de: … -->` (RE_TRANSCRITO) — mais preciso, porque
+// declara a PROVENIÊNCIA do texto em vez de adivinhar pela formatação. A cobertura do
+// caso vive inteira em `system-map-deadlinks.test.mjs` (7 asserts, incl. o controle
+// negativo e o bloco aberto-e-não-fechado). Aqui fica só o lado que não mudou:
 {
   const out = 'memory/reference/fixture-system-map.md';
   const live = deadLinks('Use `Modules/ModuloQueNaoExiste` agora.', out);
-  const historical = deadLinks('~~Removido: `Modules/ModuloQueNaoExiste`~~', out);
   ok(live.some((x) => x.includes('Modules/ModuloQueNaoExiste')),
     'MORDE: path vivo inexistente continua falhando');
-  ok(historical.length === 0,
-    'LIBERA: path dentro de ideia histórica riscada não promete arquivo vivo');
 }
 
 console.log(fails === 0 ? '\n  OK — núcleo da camada de IA morde e não falsa-positiva.\n' : `\n  ${fails} FALHA(S)\n`);
