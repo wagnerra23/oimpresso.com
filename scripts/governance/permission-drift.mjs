@@ -124,14 +124,38 @@ export const RE_DINAMICO = /(?:->can\(\s*\$|->can\(\s*self::|->can\(\s*static::|
 
 const GLOBS_CODIGO = ['Modules/**/*.php', 'app/**/*.php', 'resources/views/**/*.php', 'routes/*.php'];
 
+// COMENTÁRIO NÃO É USO. O detector lia prosa como se fosse código: a forma
+// `middleware` (/(?:can|permission):([a-zA-Z][\w.\-]*)/) casa dentro de qualquer
+// texto, e o corpus tem 36 linhas de comentário citando `can:`/`permission:`.
+// Três "órfãs" reportadas em 2026-08-06 eram exatamente isso, e nenhuma era
+// permissão de verdade:
+//   · `x`            ← `// … por formatação do gate (\`can:x\` vs \`can:x,arg\`)`
+//   · `kb.`          ← `* … (Spatie — pra middleware can:kb.*)` — o `*` do glob
+//                       corta a captura, sobrando o prefixo com ponto
+//   · `financeiro.`  ← `// … via middleware can:financeiro.{a|b}.baixar` — para no `{`
+// Uma permissão citada SÓ em comentário não é usada; contá-la infla o número que
+// o time triaria. Achado ao triar a US-GOV-059.
+//
+// CONSERVADOR de propósito: descarta apenas a linha cujo conteúdo COMEÇA com
+// marcador de comentário. NÃO faz strip de `//` no meio da linha — isso quebraria
+// `'url' => 'https://…'` e mataria uso legítimo em `$this->middleware('can:x'); // nota`,
+// que continua sendo lido inteiro. `#[Attribute]` do PHP 8 é preservado (não é comentário).
+export const semComentarios = (txt) => txt.split('\n').map((l) => {
+  const t = l.trimStart();
+  const ehComentario = t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')
+    || (t.startsWith('#') && !t.startsWith('#['));
+  return ehComentario ? '' : l;
+}).join('\n');
+
 export function coletarUsadas(files = null, reader = readSafe) {
   const usadas = new Map(); // perm -> Set(arquivo)
   let dinamicas = 0;
   const arquivosDinamicos = new Set();
   const lista = files ?? GLOBS_CODIGO.flatMap((g) => lsFiles(g));
   for (const rel of lista) {
-    const txt = reader(rel);
-    if (!txt) continue;
+    const bruto = reader(rel);
+    if (!bruto) continue;
+    const txt = semComentarios(bruto);
     for (const forma of FORMAS_USO) {
       for (const m of txt.matchAll(forma.re)) {
         const alvos = forma.lista
