@@ -283,7 +283,7 @@ Origem: [W] 2026-08-02 — *"preciso de um responsável que não se desvie do fo
 
 [W] autorizou em 2026-08-05 a **Trilha D** do
 [`PLANO-MESTRE`](requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md). Ela passou a organizar a
-documentação que começa nas máquinas existentes e atravessa quatro frentes:
+documentação que começa nas máquinas existentes e atravessa seis frentes:
 
 | Frente | O que o leitor encontra |
 |---|---|
@@ -291,6 +291,12 @@ documentação que começa nas máquinas existentes e atravessa quatro frentes:
 | **Plataforma** | hooks, MCP, CI, skills, agents, scripts, baselines e observabilidade |
 | **Aplicação** | kernel, módulos transversais, verticais, integrações e legado |
 | **Fluxos** | venda, estoque, financeiro, fiscal, WhatsApp, Jana, migração, deploy e recuperação |
+| **Operação** | acesso, monitoramento, manutenção, backup, restore, rollback e incidentes |
+| **Visão humana** | a rota `/documentacao` autenticada, que renderiza este Guia |
+
+A leitura humana do programa — as onze estações do ciclo, as onze ondas e a regra de onde o estado
+mora — está em
+[reference/GOV-PROGRAMA-DOCUMENTACAO.md](reference/GOV-PROGRAMA-DOCUMENTACAO.md).
 
 O plano fica no Git; as ondas e critérios vivem no plano mestre; o estado `todo/doing/done` vive nas
 tasks MCP com `parent_plan=programa-ondas`; este Guia traduz e aponta; a rota
@@ -620,6 +626,7 @@ flowchart LR
 | Mapa técnico do produto (arc42) | [governance/ARCHITECTURE.md](governance/ARCHITECTURE.md) |
 | Quem gera/enforça a documentação (todas as máquinas) | [reference/MAQUINAS-INVENTARIO.md](reference/MAQUINAS-INVENTARIO.md) |
 | Plano técnico e operacional ponta a ponta | [PLANO-MESTRE § Trilha D](requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md) |
+| Como o programa de documentação funciona (leitura humana) | [reference/GOV-PROGRAMA-DOCUMENTACAO.md](reference/GOV-PROGRAMA-DOCUMENTACAO.md) |
 | Visão humana publicada | [oimpresso.com/documentacao](https://oimpresso.com/documentacao) |
 | Voltar à porta global / escolher outra rota | [README.md da raiz](../README.md) |
 | Procurar um documento conhecido | [INDEX.md](INDEX.md) · [INDEX_TEMATICO.md](INDEX_TEMATICO.md) |

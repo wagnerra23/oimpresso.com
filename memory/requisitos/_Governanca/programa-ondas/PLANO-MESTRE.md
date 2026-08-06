@@ -134,7 +134,7 @@ Cada onda de módulo roda estes 4 passos, reusando ferramentas que já existem:
 ### D.1 Objetivo e fronteira
 
 Fechar o ciclo **medir → traduzir → publicar → operar → detectar drift → aprender → medir de
-novo** para quatro frentes inseparáveis:
+novo** para seis frentes inseparáveis:
 
 | Frente | Inclui | Dono principal |
 |---|---|---|
@@ -142,6 +142,8 @@ novo** para quatro frentes inseparáveis:
 | **Plataforma** | hooks, MCP, CI, skills, agents, scripts, baselines e observabilidade | índices gerados + arquitetura/Runbooks Jana, Forja e Infra |
 | **Aplicação** | kernel, módulos transversais, verticais e integrações | `SCOPE.md` + `BRIEFING.md` + `SPEC.md` + `ARCHITECTURE.md` + `RUNBOOK-*.md` |
 | **Fluxos** | venda, estoque, financeiro, fiscal, WhatsApp, Jana, migração, deploy e recuperação | `GUIA-DO-SISTEMA.md` aponta; detalhe permanece no dono do fluxo |
+| **Operação** | backup, restore, segredos, perda de host, incidentes e drills de recuperação | `memory/requisitos/Infra/RUNBOOK-*.md` sustentados por `last_validated` + auditoria Ops/DR |
+| **Visão humana** | navegação, onboarding e leitura por quem não escreveu o sistema | `memory/GUIA-DO-SISTEMA.md`, renderizado em [`/documentacao`](https://oimpresso.com/documentacao) |
 
 **Fora de escopo:** documentação de produto por tela, cópia manual de inventário, reescrita de
 ADRs aceitas, criação de máquina de governança e correção de achado adjacente durante outra etapa.
@@ -161,15 +163,17 @@ ADRs aceitas, criação de máquina de governança e correção de achado adjace
 
 | Onda | Escopo | Saída no dono existente | Gate de saída |
 |---|---|---|---|
-| **D0 · ativar e medir** | inventários, donos, criticidade e gaps | esta seção + navegação do Guia + tasks MCP | plano ligado ao MCP; inventários `--check`; baseline documental registrada |
+| **D0 · fundação** | inventários, donos, criticidade e gaps | esta seção + navegação do Guia + tasks MCP | plano ligado ao MCP; inventários `--check`; baseline documental registrada |
 | **D1 · infraestrutura crítica** | Hostinger, CT 100, Proxmox e GitHub Actions | referências de infra + runbooks de acesso/deploy/rollback/saúde | operador identifica onde roda, valida saúde e recupera sem editar servidor |
-| **D2 · hooks e governança** | hooks, CI, skills, agents, scripts e baselines | índice derivado + explicação humana por família | cada família declara gatilho, bloqueio/advisory, risco, bite/release e diagnóstico |
+| **D2 · plataforma** | hooks, CI, skills, agents, scripts, baselines e observabilidade | índice derivado + explicação humana por família | cada família declara gatilho, bloqueio/advisory, risco, bite/release e diagnóstico |
 | **D3 · MCP ponta a ponta** | Git→sync→cache→servidor→tool→audit | arquitetura Jana/MCP + runbooks de acesso, deploy, drift e recovery | auth, `business_id`, 401/403/404, reindexação e auditoria reproduzíveis |
-| **D4 · módulos críticos** | Sells, Estoque, Financeiro, Fiscal, Repair e Jana | cinco portas aplicáveis por módulo | responsabilidade, requisito, arquitetura, superfície e operação alcançáveis |
-| **D5 · verticais, integrações e legado** | Vestuario, ComunicacaoVisual, OficinaAuto, WhatsApp, NFe/NFSe, gateways, Officeimpresso/Firebird | mesmos donos modulares | integrações e recuperação documentadas sem misturar produto com sistema |
-| **D6 · fluxos ponta a ponta** | venda, cancelamento, fiscal, WhatsApp, IA, migração e deploy | diagramas Mermaid e ponteiros no Guia/donos | ator, máquina, módulo, dado, auth, tenant, retry, falha parcial e rollback explícitos |
-| **D7 · continuidade** | backup, restore, segredos, perda de host e incidentes | auditoria Ops/DR + runbooks | RPO/RTO medidos, drill seguro, responsável e evidência datada |
-| **D8 · publicação e manutenção** | `/documentacao`, onboarding e ciclo recorrente | Guia + donos corrigidos | navegação humana alcança todas as frentes; detectores reexecutados; tasks fechadas |
+| **D4 · módulos críticos** | Sells, Estoque, Financeiro, Fiscal, Repair e Jana | seis portas aplicáveis por módulo | responsabilidade, requisito, arquitetura, superfície e operação alcançáveis |
+| **D5 · verticais e integrações** | Vestuario, ComunicacaoVisual, OficinaAuto, WhatsApp, NFe/NFSe e gateways | mesmos donos modulares | integrações documentadas sem misturar produto com sistema |
+| **D6 · legado e rede local** | Officeimpresso/Firebird, Windows, router/Tailscale, PBX, SVN e dispositivos | referências de infra + runbooks de recuperação | acesso, dependência e recuperação do legado alcançáveis sem editar servidor |
+| **D7 · fluxos transversais** | venda, cancelamento, fiscal, WhatsApp, IA, migração e deploy | diagramas Mermaid e ponteiros no Guia/donos | ator, máquina, módulo, dado, auth, tenant, retry, falha parcial e rollback explícitos |
+| **D8 · continuidade** | backup, restore, segredos, perda de host e incidentes | auditoria Ops/DR + runbooks | RPO/RTO medidos, drill seguro, responsável e evidência datada |
+| **D9 · publicação e onboarding** | `/documentacao` e entrada de gente nova | Guia + donos corrigidos | navegação humana alcança todas as frentes; pessoa nova chega sozinha ao runbook certo |
+| **D10 · manutenção contínua** | ciclo recorrente e consumo dos achados | tasks MCP + donos corrigidos | detectores reexecutados; task aberta e achado sendo consumido; um incidente já girou o ciclo |
 
 Ordem interna das ondas modulares: **kernel/transversais críticos → plataforma → verticais →
 integrações → legado**. Uma onda pode avançar só até o próximo bloqueio humano; não abre trabalho
@@ -177,19 +181,37 @@ paralelo para esconder dependência.
 
 ### D.4 Ciclo de uma unidade de trabalho
 
-1. **Selecionar:** uma task MCP e exatamente um achado acionável.
-2. **Medir antes:** abrir fonte/configuração real, executar inventário/probe e guardar o ID estável.
-3. **Localizar o dono:** corrigir o arquivo que já responde pelo assunto; nunca criar resumo paralelo.
-4. **Traduzir:** explicar para humano sem copiar tabela gerada nem congelar contagem em prosa.
-5. **Validar tecnicamente:** fonte, links, diagrama, dependências, tenant, PII e ausência de segredo.
-6. **Validar operacionalmente:** executar o runbook no ambiente correto e atualizar `last_validated`
+1. **Descobrir:** a máquina, o hook, o MCP, o módulo ou o fluxo que entra nesta volta.
+2. **Medir o estado real:** abrir fonte/configuração, executar inventário/probe e guardar o ID estável.
+3. **Classificar e localizar o dono:** qual camada, e qual arquivo já responde por ela.
+4. **Priorizar o gap:** criticidade × impacto. Achado adjacente vira task nova, nunca desvio da etapa em curso.
+5. **Documentar no dono existente:** corrigir o arquivo que já responde pelo assunto; nunca criar resumo paralelo.
+6. **Validar tecnicamente:** fonte, links, diagrama, dependências, tenant, PII e ausência de segredo.
+7. **Validar operacionalmente:** executar o runbook no ambiente correto e atualizar `last_validated`
    somente quando o resultado real bateu.
-7. **Provar:** comparar `origin/main` com o trabalho pelo `documentation-loop`; alteração de data não fecha.
-8. **Entregar:** PR de uma intenção; [W] ratifica pelo merge.
-9. **Publicar:** confirmar a rota humana no próximo deploy de código ou `quick-sync` manual.
-10. **Fechar e aprender:** task `done`, registro de sessão/handoff e lição quando houve erro ou incidente.
+8. **Publicar:** provar pelo `documentation-loop` que o ID sumiu (alteração de data não fecha), abrir PR
+   de uma intenção, [W] ratifica pelo merge, e a rota humana atualiza no deploy ou no `quick-sync`.
+9. **Operar e observar:** o documento em uso, com health-check e vital-signs por trás.
+10. **Incidente ou drift:** a realidade discorda do que está escrito.
+11. **Aprender e corrigir:** runbook, lição ou decisão — **e voltar à estação 2.**
 
-### D.5 Batimento que mantém a trilha ativa
+O ciclo **não termina em publicar**: a estação 11 devolve o aprendizado à medição, e a volta seguinte
+começa sabendo mais. É isso que separa o programa de uma campanha de escrita.
+
+### D.5 Caminho canônico por tipo
+
+| Tipo | Caminho | O que a documentação precisa responder |
+|---|---|---|
+| **Máquinas** | inventário → arquitetura → acesso → operação → monitoramento → backup → restore → incidente | função e responsável, serviços e dados, dependências, configuração versionada, acesso (sem copiar segredo), probe de saúde, deploy/restart/rollback, backup com RPO e RTO, falhas conhecidas e última validação com evidência |
+| **Hooks** | arquivo → índice gerado → família humana → cenário de bloqueio → troubleshooting | quando dispara, que risco protege, se bloqueia ou alerta, que entrada examina, que mensagem produz, como provar que morde e solta, e como diagnosticar falso positivo |
+| **MCP** | Git canon → sincronização → banco/cache → servidor CT 100 → autenticação → tool → auditoria | fronteiras, catálogo derivado das tools, tokens e papéis, isolamento por `business_id`, drift, deploy e reload, health check, 401/403/404, reindexação, auditoria e on/offboarding |
+| **Módulos** | as portas documentais aplicáveis | `SCOPE.md` (responsabilidade e limites) · `BRIEFING.md` (estado e capacidade) · `SPEC.md` (requisitos) · `SUPERFICIE.md` (retrato derivado do código) · `ARCHITECTURE.md` (quando houver integração relevante) · `RUNBOOK-*.md` (operação e recuperação) |
+| **Fluxos** | ator → máquinas e módulos → dado → falha → recuperação | ponto de entrada, o que atravessa, dado transportado, auth e autorização, `business_id`, transação e idempotência, filas/retry/timeout, logs e alertas, falha parcial, compensação ou rollback, e o procedimento de recuperação |
+
+**Não se escreve uma segunda lista de hooks** — o índice gerado continua sendo o inventário; o texto
+humano explica famílias e aponta pra ele.
+
+### D.6 Batimento que mantém a trilha ativa
 
 | Momento | Máquina existente | Efeito |
 |---|---|---|
@@ -204,16 +226,18 @@ O batimento é deliberadamente **advisory**: detecta e oferece trabalho, mas nã
 merge. Manter ativo significa haver task aberta, revisão fresca e consumo regular dos achados — não
 adicionar outro gate.
 
-### D.6 Definição de pronto da trilha
+### D.7 Definição de pronto da trilha
 
 - toda máquina crítica tem dono técnico, probe e runbook validado;
 - hooks e tools MCP são inventariados por máquina e explicados por família para humanos;
 - cada módulo ativo alcança suas portas documentais aplicáveis sem lista manual concorrente;
 - cada fluxo crítico declara auth, `business_id`, dado, observabilidade, falha e recuperação;
 - runbooks críticos carregam `owner` e `last_validated` sustentados por execução;
+- nenhum documento da trilha carrega segredo em claro — credencial aparece só como ponteiro ao Vaultwarden;
 - `/documentacao` navega por infraestrutura, plataforma, módulos, fluxos e operação;
 - os detectores do escopo foram reexecutados e todo resíduo ficou fechado ou explicitamente justificado;
-- as tasks MCP do `parent_plan=programa-ondas` não deixam trabalho concluído marcado como aberto.
+- as tasks MCP do `parent_plan=programa-ondas` não deixam trabalho concluído marcado como aberto;
+- pelo menos um incidente real já girou o ciclo inteiro — do runbook à lição registrada e de volta à medição seguinte.
 
 ## Índice das etapas (arquivos)
 
