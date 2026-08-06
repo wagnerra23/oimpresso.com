@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **874 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **875 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -53,11 +53,11 @@
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
+| [`Repair`](#repair) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
 | [`Manufacturing`](#manufacturing) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
-| [`Repair`](#repair) | 1 | 0 | 0 | 0 | 1 |
 
 
 ## Jana
@@ -1226,6 +1226,14 @@
 - **US-MEMORIAAUTONOMA-001** — MEM-MIGRACAO Auto-mem → git/MCP (22 candidatos pós-consolidação 2026-05-10) _(`p2` · @wagner)_
 - **US-MEMORIAAUTONOMA-002** — MEM-VERIFICAR 8 pendências stale detectadas pós-consolidação 2026-05-10 _(`p3` · @wagner)_
 
+## Repair
+
+
+### todo
+
+- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
+- **US-REPA-001** — [TODO — título]
+
 ## Admin
 
 
@@ -1253,10 +1261,3 @@
 ### todo
 
 - **US-MCP-017** — Tool `module-state <modulo>` (CQRS projection per bounded context) _(`p1` · @wagner)_
-
-## Repair
-
-
-### todo
-
-- **US-REPA-001** — [TODO — título]
