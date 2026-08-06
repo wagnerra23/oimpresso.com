@@ -884,6 +884,13 @@ Route::middleware(['auth'])->group(function () {
         [\App\Http\Controllers\DocumentacaoController::class, 'buscar']
     )->name('documentacao.buscar');
 
+    // Programa de documentação (Trilha D) — vista estruturada do PLANO-MESTRE.
+    // Mesma razão de ordem que /buscar abaixo: precisa vir ANTES de /{slug}, senão
+    // "programa" casaria como nome de documento e daria 404.
+    Route::get('/documentacao/programa',
+        [\App\Http\Controllers\DocumentacaoController::class, 'programa']
+    )->name('documentacao.programa');
+
     // Documento do acervo. Declarada DEPOIS de /buscar e com regex restrita no
     // slug — sem as duas coisas, /documentacao/buscar casaria aqui primeiro e a
     // busca viraria um 404 de "documento 'buscar' não encontrado".

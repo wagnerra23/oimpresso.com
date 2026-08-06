@@ -30,6 +30,9 @@ class DocumentacaoController extends Controller
     /** Documento dono da leitura guiada, relativo à raiz do repo. */
     private const FONTE = 'memory/GUIA-DO-SISTEMA.md';
 
+    /** Plano dono do programa de documentação (Trilha D), relativo à raiz do repo. */
+    private const PLANO = 'memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md';
+
     /** Base para reescrever links relativos do markdown (que apontam pra árvore do git). */
     private const BLOB = 'https://github.com/wagnerra23/oimpresso.com/blob/main/';
 
@@ -171,6 +174,195 @@ class DocumentacaoController extends Controller
             'nav' => $this->navegacao($this->lenteAtiva($request)),
             'atual' => null,   // a capa não é item do rail; é a rota raiz
         ]);
+    }
+
+    /**
+     * Programa de documentação (Trilha D) — a vista estruturada do plano.
+     *
+     * MESMA DOUTRINA DA CAPA, um passo adiante: a capa renderiza o markdown do Guia;
+     * esta rota LÊ O PLANO e o apresenta como ciclo, ondas e caminhos. Em nenhum dos
+     * dois casos existe cópia commitada — mudou o plano por PR, a tela muda no próximo
+     * acesso (ADR 0256).
+     *
+     * POR QUE PARSEAR EM VEZ DE ESCREVER OS ONZE PASSOS NA VIEW: uma lista escrita aqui
+     * seria um segundo dono do mesmo fato, e drifaria do plano em silêncio — exatamente
+     * o que a § Trilha D proíbe ("ponteiro > cópia"). Se a estrutura esperada some do
+     * plano, a rota falha alto (503 dizendo o que faltou) em vez de exibir tela vazia:
+     * ausência de fonte é defeito, não conteúdo.
+     *
+     * O ESTADO DE EXECUÇÃO (que onda está em curso, qual task) NÃO mora aqui nem na
+     * view: sai da linha da Trilha D no `## Status vivo`, que a ADR 0294 faz dona
+     * ("1 plano = 1 registro"). A fila real continua nas tasks MCP.
+     */
+    public function programa(): View
+    {
+        $caminho = base_path(self::PLANO);
+
+        if (! File::exists($caminho)) {
+            abort(503, 'Plano ausente no deploy: ' . self::PLANO);
+        }
+
+        $markdown = File::get($caminho);
+
+        $ondas = $this->linhasDeTabela($this->secaoDoPlano($markdown, 'D.3'));
+        $estacoes = $this->estacoesDoCiclo($this->secaoDoPlano($markdown, 'D.4'));
+        $caminhos = $this->linhasDeTabela($this->secaoDoPlano($markdown, 'D.5'));
+        $batimento = $this->linhasDeTabela($this->secaoDoPlano($markdown, 'D.6'));
+        $dod = $this->itensDeLista($this->secaoDoPlano($markdown, 'D.7'));
+
+        // Falha honesta: sem as quatro estruturas não há o que apresentar, e uma tela
+        // com seções vazias mentiria dizendo "o programa não tem ondas".
+        foreach (['D.3 ondas' => $ondas, 'D.4 estações' => $estacoes, 'D.5 caminhos' => $caminhos, 'D.6 batimento' => $batimento, 'D.7 DoD' => $dod] as $qual => $bloco) {
+            if ($bloco === []) {
+                abort(503, 'Estrutura ausente na § Trilha D do plano: ' . $qual);
+            }
+        }
+
+        $execucao = $this->execucaoDaTrilha($markdown, $ondas);
+
+        return view('documentacao.programa', [
+            'fonte' => self::PLANO,
+            'blob' => self::BLOB . self::PLANO,
+            'atualizadoEm' => $this->dataDoFrontmatter($markdown),
+            'ondas' => $ondas,
+            'estacoes' => $estacoes,
+            'caminhos' => $caminhos,
+            'batimento' => $batimento,
+            'dod' => $dod,
+            'execucao' => $execucao,
+            'nav' => $this->navegacao($this->lenteAtiva(request())),
+            'atual' => null,
+        ]);
+    }
+
+    /**
+     * Recorta uma subseção `### <codigo> ...` até o próximo `###`/`##`.
+     *
+     * Casa pelo CÓDIGO (`D.3`), não pelo título: o título é prosa e pode ser reescrito
+     * sem aviso; o código é o identificador estável dentro da seção.
+     */
+    private function secaoDoPlano(string $markdown, string $codigo): string
+    {
+        $padrao = '/^###\s+' . preg_quote($codigo, '/') . '\s.*?$(.*?)(?=^#{2,3}\s|\z)/ms';
+
+        return preg_match($padrao, $markdown, $m) === 1 ? $m[1] : '';
+    }
+
+    /**
+     * Linhas de uma tabela markdown → [rotulo, colunas].
+     *
+     * O cabeçalho é descartado pela ESTRUTURA (tudo que vem antes da linha separadora
+     * `|---|`), não por aparência. A primeira versão exigia `**` na 1ª célula pra
+     * distinguir dado de cabeçalho, e isso derrubou a tabela inteira do batimento, cujos
+     * rótulos não são negrito — a tela escondia a seção sem erro nenhum. Formatação não
+     * é contrato; a separadora é.
+     */
+    private function linhasDeTabela(string $trecho): array
+    {
+        $linhas = [];
+        $passouCabecalho = false;
+
+        foreach (preg_split('/\R/', $trecho) ?: [] as $linha) {
+            $linha = trim($linha);
+
+            if (! str_starts_with($linha, '|')) {
+                continue;
+            }
+
+            if (preg_match('/^\|[\s:\-|]+\|$/', $linha) === 1) {
+                $passouCabecalho = true;
+
+                continue;
+            }
+
+            if (! $passouCabecalho) {
+                continue;
+            }
+
+            $celulas = array_map('trim', explode('|', trim($linha, '|')));
+
+            if ($celulas === [] || $celulas[0] === '') {
+                continue;
+            }
+
+            $rotulo = trim(str_replace('**', '', $celulas[0]));
+
+            $linhas[] = [
+                'rotulo' => $rotulo,
+                'codigo' => preg_match('/^(D\d+)\s*·\s*(.*)$/u', $rotulo, $m) === 1 ? $m[1] : null,
+                'nome' => isset($m[2]) ? $m[2] : $rotulo,
+                'colunas' => array_slice($celulas, 1),
+            ];
+        }
+
+        return $linhas;
+    }
+
+    /** Itens `- ...` de uma lista markdown, sem o marcador. */
+    private function itensDeLista(string $trecho): array
+    {
+        preg_match_all('/^-\s+(.*?)(?=^-\s|\z)/ms', $trecho, $m);
+
+        return array_values(array_filter(array_map(
+            static fn (string $item): string => trim(preg_replace('/\s+/', ' ', rtrim(trim($item), ';.'))),
+            $m[1] ?? []
+        )));
+    }
+
+    /**
+     * Estações do ciclo: itens `N. **Título:** corpo` da D.4.
+     *
+     * Numeradas na fonte, então a ordem e a contagem vêm do documento — a view nunca
+     * escreve "onze".
+     */
+    private function estacoesDoCiclo(string $trecho): array
+    {
+        preg_match_all('/^(\d+)\.\s+\*\*(.+?):?\*\*:?\s*(.*?)(?=^\d+\.\s|\z)/ms', $trecho, $m, PREG_SET_ORDER);
+
+        return array_map(static function (array $item): array {
+            return [
+                'n' => str_pad($item[1], 2, '0', STR_PAD_LEFT),
+                'titulo' => trim($item[2]),
+                'corpo' => trim(preg_replace('/\s+/', ' ', $item[3])),
+            ];
+        }, $m);
+    }
+
+    /**
+     * Estado de execução da Trilha D, lido da linha dela no `## Status vivo`.
+     *
+     * Dona do fato: ADR 0294 (1 plano = 1 registro). Se a linha sumir ou mudar de forma,
+     * os campos voltam nulos e a view omite os cartões — melhor um vazio honesto que um
+     * "D0" fossilizado no código.
+     */
+    private function execucaoDaTrilha(string $markdown, array $ondas): array
+    {
+        $linha = null;
+
+        foreach (preg_split('/\R/', $markdown) ?: [] as $l) {
+            if (str_starts_with(trim($l), '|') && str_contains($l, 'Trilha D')) {
+                $linha = $l;
+            }
+        }
+
+        $ondaAtual = ($linha !== null && preg_match('/\bD(\d+)\b\s+em execução/u', $linha, $m) === 1)
+            ? 'D' . $m[1]
+            : null;
+
+        $posicao = null;
+        foreach ($ondas as $i => $onda) {
+            if ($onda['codigo'] === $ondaAtual) {
+                $posicao = $i + 1;
+            }
+        }
+
+        return [
+            'onda' => $ondaAtual,
+            'onda_nome' => $posicao !== null ? $ondas[$posicao - 1]['nome'] : null,
+            'posicao' => $posicao,
+            'total' => count($ondas),
+            'task' => ($linha !== null && preg_match('/\b(US-[A-Z]+-\d+)\b/', $linha, $m) === 1) ? $m[1] : null,
+        ];
     }
 
     /** Busca full-text no corpus sincronizado do git. */
