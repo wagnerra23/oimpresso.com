@@ -239,7 +239,7 @@ lente: [construir]
 
 ## Rastro
 
-- **373** handoffs · **591** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **372** handoffs · **588** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-08-05-sdd-flow-feature-smart-token`
   - `2026-08-05-plano-documentacao-tecnica-operacional`
