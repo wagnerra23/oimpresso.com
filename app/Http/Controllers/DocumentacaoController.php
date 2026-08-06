@@ -298,14 +298,20 @@ class DocumentacaoController extends Controller
         return $linhas;
     }
 
-    /** Itens `- ...` de uma lista markdown, sem o marcador. */
+    /**
+     * Itens `- ...` de uma lista markdown, sem o marcador.
+     *
+     * Sem `?? []` no grupo 1: `preg_match_all` sempre popula o índice, então o coalesce
+     * seria código comprovadamente morto — e o PHPStan reprova. É a mesma lição que o
+     * `escopoEmProsa()` acima já carrega, de 2026-08-05.
+     */
     private function itensDeLista(string $trecho): array
     {
         preg_match_all('/^-\s+(.*?)(?=^-\s|\z)/ms', $trecho, $m);
 
         return array_values(array_filter(array_map(
-            static fn (string $item): string => trim(preg_replace('/\s+/', ' ', rtrim(trim($item), ';.'))),
-            $m[1] ?? []
+            static fn (string $item): string => trim((string) preg_replace('/\s+/', ' ', rtrim(trim($item), ';.'))),
+            $m[1]
         )));
     }
 
