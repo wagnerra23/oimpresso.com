@@ -2,9 +2,9 @@
 id: requisitos-repair-briefing
 module: Repair
 status: shared-infra
-updated_at: "2026-07-23"
-distilled_at: "2026-07-23"
-distilled_by: jana:distill-module-truth
+updated_at: "2026-08-06"
+distilled_at: "2026-08-06"
+distilled_by: manual (sessão 2026-08-06 — gap US-REPA-002 refletido à mão; o gerador jana:distill-module-truth NÃO rodou nesta data)
 ---
 
 # BRIEFING — Repair (verdade destilada)
@@ -25,6 +25,7 @@ O módulo "Repair" gerencia ordens de serviço em infraestrutura compartilhada, 
 ## Gaps
 - Top-5 da FICHA (US-REP-005..009): KPIs/dashboard, app mobile, comissão, catálogo, retention-purge.
 - Bulk-start de OS legadas pro FSM: comando `repair:fsm:bulk-start` inexistente (US-REP-FSM-006).
+- **Cobertura de teste com falso-verde (US-REPA-002):** 3 testes do `Wave18RepairSaturationTest` quebram com `Call to undefined method Container::basePath()` — `base_path()` fora do bootstrap do app (linhas 19 e 47). Ficaram invisíveis porque `Pest Repair` vem do `modules-pest.yml` (matrix de 6 módulos, dispara por path de qualquer um deles) e **não é required**: o vermelho não bloqueia merge. Recibo: [run 31040822015](https://github.com/wagnerra23/oimpresso.com/actions/runs/31040822015) — `3 failed, 65 skipped, 80 passed`.
 
 ## Última mudança
 Perf D-14 partial reload no Kanban `ProducaoOficina` (PR #3901, 2026-07-06) e draft de charter da OS (PR #4123, 2026-07-12).
