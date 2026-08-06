@@ -390,7 +390,7 @@ function RoadmapGantt(props: Props) {
 
   const aplicarFiltro = useCallback(
     (patch: Partial<Filters>) => {
-      // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+      // D-14: partial reload — só re-busca o que muda com filtro (ref PR PR 3889).
       // cycles/owners/modules (fontes dos dropdowns) não trafegam de novo.
       router.get(
         ROTA,
@@ -672,7 +672,7 @@ export default function RoadmapGanttPage(props: Props) {
           produção. O `AppShellV2` não desenha topnav aqui: o hub Forja esconde a
           barra do shell e renderiza a própria (`ForjaHub`), então toda Page sob
           /forja/* precisa montá-la explicitamente. Registrar a aba em
-          `config/core_topnavs.php` (#5339) alimenta `shell.topnavs`, que ESTA tela
+          `config/core_topnavs.php` (PR 5339) alimenta `shell.topnavs`, que ESTA tela
           não consome — provado em runtime: 10 itens no shell, 0 `.topnav-chip` no DOM. */}
       <ForjaHub active="roadmap-gantt" />
       <RoadmapGantt {...props} />

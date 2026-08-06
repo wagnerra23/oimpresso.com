@@ -1,6 +1,6 @@
 // ForjaHub — header ÚNICO do hub Forja, usado por TODAS as abas (cockpit /forja/*
 // + telas absorvidas /team-mcp/*) pra que o header seja IDÊNTICO em tudo:
-// título "Forja" + ações (sino/⌘K/Novo issue) + tab-strip de 9 abas.
+// título "Forja" + ações (sino/⌘K/Novo issue) + tab-strip de 10 abas.
 // SEM eyebrow (removido a pedido do Wagner 2026-06-16).
 //
 // Fonte única da tab-strip — antes vivia inline no Cockpit; extraída pra
@@ -19,11 +19,11 @@ export const FORJA_TABS = [
   { key: 'triagem',   label: 'Triagem',     href: '/forja',                icon: Inbox },
   { key: 'backlog',   label: 'Backlog',     href: '/forja/backlog',        icon: List },
   { key: 'quadro',    label: 'Quadro',      href: '/forja/quadro',         icon: LayoutGrid },
-  // Roadmap (Gantt) — 2026-08-06. A tela chegou da Jana no #5310 (ADR 0366 §D-C item 3).
+  // Roadmap (Gantt) — 2026-08-06. A tela chegou da Jana no PR 5310 (ADR 0366 §D-C item 3).
   // ESTA é a fonte da faixa do hub: `AppShellV2` NÃO renderiza topnav aqui (o Cockpit
   // esconde a barra do shell e desenha a própria). Provado em runtime: `shell.topnavs
   // .Forja__core` já entregava 10 itens com este, e o DOM tinha ZERO `.topnav-chip` —
-  // registrar em `config/core_topnavs.php` (#5339) alimentou o shell e não a tela.
+  // registrar em `config/core_topnavs.php` (PR 5339) alimentou o shell e não a tela.
   // Quem adicionar aba aqui: adicione também `<ForjaHub>` na Page nova, senão ela abre
   // sem faixa (foi o caso do Gantt até hoje).
   { key: 'roadmap-gantt', label: 'Roadmap (Gantt)', href: '/forja/roadmap-gantt', icon: CalendarRange },
