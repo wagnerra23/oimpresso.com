@@ -277,7 +277,10 @@ class DataController extends Controller
                             // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
                             // diário" do dashboard). Rota + BriefController + Page apagados.
                             ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
-                            ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
+                            // Ghost 'kb' removido 2026-08-05 ([W]: "governança, KB, saem"):
+                            // `/ia/kb` é `Route::redirect(…, '/kb', 302)` — apontava pro
+                            // redirect de uma tela que é do Modules/KB e tem entrada própria.
+                            // Item de menu que só redireciona é fronteira suja (ADR 0366).
                             // Ghost 'regras' removido 2026-08-04 [W]: /ia/regras era stub de
                             // domínio ALHEIO — cobria policies do PolicyEngine ADS + governance
                             // MCP cross-team, e o núcleo do ADS foi pra Modules/Forja em jul/2026.
@@ -289,10 +292,13 @@ class DataController extends Controller
                             ['key' => 'pro',       'label' => 'Jana Pro',  'href' => '/ia/pro'],
                             // Wagner 2026-05-25: Governança canon (Modules/Governance · policies/audit/
                             // drift/module-grades) entra como ghost da Jana — "governança é da IA".
-                            // Entry sidebar foi desligada no mesmo dia (Modules/Governance/DataController
-                            // modifyAdminMenu early-return). Sub-views Dashboard/Policies/Audit/Drift/
-                            // Module Grades navegáveis pelo PageHeader da própria Governança.
-                            ['key' => 'governanca', 'label' => 'Governança', 'href' => '/governance/dashboard'],
+                            // Ghost 'governanca' removido 2026-08-05 ([W]: "governança, KB, saem").
+                            // A justificativa original deste ghost era que a entry de sidebar da
+                            // Governança estava DESLIGADA (early-return no modifyAdminMenu dela), então
+                            // a Jana emprestava o acesso. Isso deixou de valer: o #5308 REATIVOU a
+                            // entry, e a Governança ganhou faixa própria com as 7 sub-views. O ghost
+                            // virou 2ª porta pro mesmo lugar — e o comentário que o defendia estava
+                            // descrevendo um mundo que não existe mais desde o mesmo dia.
                             // Wagner 2026-05-23: ghost 'metas' removido — MetasController@index ainda
                             // retorna Blade view ('copiloto::metas.index'), o que faz Inertia Link no
                             // PageHeaderTabs silenciar (click no-op). Reintroduzir quando MetasController
