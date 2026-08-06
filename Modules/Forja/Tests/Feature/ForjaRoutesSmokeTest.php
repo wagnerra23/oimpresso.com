@@ -256,7 +256,7 @@ it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado
 })->with(forjaRotasNomes());
 
 // -------------------------------------------------------------------------
-// UC-FORJA-02 — topnav do hub: 9 itens, nenhum apontando pra rota fantasma
+// UC-FORJA-02 — topnav do hub: 10 itens, nenhum apontando pra rota fantasma
 // -------------------------------------------------------------------------
 //
 // NÃO é tautológico: cruza DUAS fontes independentes — `config/core_topnavs.php`
@@ -265,13 +265,13 @@ it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado
 // meses apontando pra uma rota que nunca existiu (#4887). Testar o config contra
 // ele mesmo é que seria tautologia (§5 proibicoes.md, 2026-06-05).
 
-it('UC-FORJA-02 · topnav do hub tem 9 itens (5 Forja + 4 TeamMcp absorvidos)', function () {
+it('UC-FORJA-02 · topnav do hub tem 10 itens (6 Forja + 4 TeamMcp absorvidos)', function () {
     $items = config('core_topnavs.Forja.items');
 
     expect($items)->toBeArray();
-    expect($items)->toHaveCount(9,
+    expect($items)->toHaveCount(10,
         'Fusão de 2026-06-16: `config/core_topnavs.php[Forja]` é o ÚNICO grupo que casa '.
-        '/team-mcp/* no useAutoModuleNav, então carrega as 5 abas próprias MAIS as 4 telas '.
+        '/team-mcp/* no useAutoModuleNav, então carrega as abas próprias MAIS as 4 telas '.
         'absorvidas (Tarefas · Equipe · CC Sessions · Saúde). Mudou a conta? O hub ganhou ou '.
         'perdeu tela — atualize Cockpit.casos.md e o §5.3 F6 do SDD junto.'
     );
