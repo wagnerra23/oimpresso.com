@@ -22,7 +22,7 @@
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
         "coverage_pct": 88,
-        "specs_total": 50,
+        "specs_total": 51,
         "us_total": 948,
         "anchor_coverage_pct": 88,
         "by_state": {
@@ -61,7 +61,7 @@
           "covering_test": 0,
           "covers": 0
         },
-        "v1_files": 5,
+        "v1_files": 6,
         "v1_violations": "0[object Object]"
       },
       "stream": "SA"
