@@ -404,6 +404,32 @@ jobs:
         run: node scripts/governance/hook-replay.test.mjs
       - name: permission-drift — a sentinela de permissão morde e libera
         run: node scripts/governance/permission-drift.test.mjs
+      # ── 2026-08-06 — o MEDIDOR passa a rodar, não só o teste dele ──────────────────
+      # O `.test.mjs` acima é HERMÉTICO por desenho (injeta conteúdo, não lê o repo): ele
+      # prova que a sentinela morde e libera, e nunca aponta pro código real. Era
+      # "correção-do-mecanismo ≠ invocação" (§5 2026-07-09): o medidor em si não tinha
+      # invocador nenhum, e o sweep `--scripts` abaixo NÃO pegava isso — ele tem a regra
+      # do irmão (`x.mjs` com `x.test.mjs` wirado não conta como órfão), que existe porque
+      # a forma ingênua deu 83% de FP (§5 2026-07-29). Medido em 2026-08-06: o sweep lista
+      # 9 órfãos e `permission-drift.mjs` não está entre eles. Quem registrava a verdade
+      # era o `MAQUINAS-INVENTARIO.md` (coluna invocador `— (só .test)`) — regenerá-lo com
+      # `--write` passa a coluna pra `ci`; o `--check` mede COBERTURA, então não morde.
+      # Medido em origin/main 2026-08-06 (node puro, sem deps/DB/rede, ~2s):
+      #   357 declaradas · 340 usadas (alvo literal) · 28 chamadas com alvo DINÂMICO
+      #   (quarentena — indecidível por texto) · 43 ÓRFÃS · 63 TEATRO — exit 0.
+      # RELATÓRIO, não gate: o script sai 0 SEMPRE por construção (é censo, e o próprio
+      # output declara "advisory por construção nesta fase — decidir forma de gate SÓ
+      # depois do FP medido"). Por isso NÃO leva `continue-on-error`: seria supérfluo e
+      # mascararia quebra real do medidor — job mudo PARECE cobertura. Segue fora do
+      # `governance/required-checks-baseline.json`; quem manda em "o que bloqueia merge"
+      # é ele, não este nome (§5 2026-07-16: artefato não declara o próprio enforcement).
+      # `git ls-files` lê o INDEX, então funciona no checkout raso (depth 1) deste job.
+      # Flags REAIS no argv: só `--json` e `--selftest` (o `--measure` do cabeçalho do
+      # script é no-op — cai no mesmo caminho da invocação nua). Usamos a nua.
+      # A TRIAGEM das 43 órfãs é a US-GOV-059 (memory/requisitos/Governance/SPEC.md) e é
+      # trabalho humano; este step só faz o número parar de ser invisível.
+      - name: permission-drift — censo declarada × aplicada (report-only · exit 0 sempre)
+        run: node scripts/governance/permission-drift.mjs
       - name: doc-id-index — o índice de doc-id morde e libera
         run: node scripts/governance/doc-id-index.mjs --selftest
       # Auditoria 2026-07-26: o sweep acima estava VERDE (125/125 testes registrados)

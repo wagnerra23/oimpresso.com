@@ -401,7 +401,7 @@ lifecycle: ativo
 | `outcome-metrics.mjs` | ci, script | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
 | `palette-generate.mjs` | ci | GERADOR determinístico da página de paleta de cor. |
 | `permissao-renomeada-lint.mjs` | ci | barra o nome VELHO de permissão renomeada em linha NOVA. |
-| `permission-drift.mjs` | — (só `.test`) | mede o drift entre permissão DECLARADA e permissão APLICADA. |
+| `permission-drift.mjs` | ci | mede o drift entre permissão DECLARADA e permissão APLICADA. |
 | `plan-health.mjs` | ci, script | sentinela de PLANOS órfãos/podres (ADR 0294 Onda 1 · catraca da |
 | `plans-index.mjs` | ci | GERADOR determinístico do Índice de Planos Vivos (ADR 0294 + 0256). |
 | `protection-drift.mjs` | agente, ci, script | drift de branch protection + watchdog de staleness (GT-G4, |
