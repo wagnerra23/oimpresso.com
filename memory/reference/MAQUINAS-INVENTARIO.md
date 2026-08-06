@@ -312,170 +312,180 @@ lifecycle: ativo
 
 ## 5. Scripts (`scripts/**`) — o gap sem índice-dono
 
+> **Coluna `Invocador` — DERIVADA** (Trilha D · D0). Quem de fato executa o script:
+> `ci` (workflow) · `npm` (package.json) · `agente` (`.claude/**`) · `script` (outro script) ·
+> `php` (comando artisan/serviço). `—` = nenhum invocador encontrado; `— (só \`.test\`)` = o
+> CI roda o **teste** dele, mas o script em si nunca é apontado para o repo; `?` = a varredura
+> falhou (não medido — nunca leia como ausência).
+>
+> ⚠️ `—` **não** significa "apagar": one-shot (codemod, probe, PoC de migração) é órfão **por
+> design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,
+> e nada a executa. A matriz reporta o fato; a triagem é humana.
+
 ### 5.1 `scripts/governance/` — 107
 
-| Script | Descrição (cabeçalho) |
-|---|---|
-| `adr-index-generate.mjs` | GERADOR determinístico do índice de ADR (modelo Log4brains). |
-| `adr-proposto-parado.mjs` | sentinela: decisão PENDENTE que ninguém vê acaba não sendo feita. |
-| `adr-supersede.mjs` | supersessão ATÔMICA de ADR (modelo adr-tools/pyadr, ADR 0258). |
-| `agent-corpus-counterfactual.mjs` | QUANTO CUSTA descobrir se o corpus ajuda? |
-| `agent-cost-per-pr.mjs` | CUSTO ESTIMADO POR PR do agente (USD/tokens · advisory). |
-| `agent-pr-outcomes.mjs` | EVALS DE OUTCOME dos PRs do agente (DORA-style). |
-| `agents-md-staleness.mjs` | sentinela: o AGENTS.md ficou atrás do CLAUDE.md? |
-| `anchor-content-check.mjs` | sentinela de CONTEÚDO da âncora de design. |
-| `anchor-lint.mjs` | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
-| `ancora-codigo-sync.mjs` | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
-| `baseline-tamper-guard.mjs` | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
-| `briefing-code-staleness.mjs` | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
-| `brl-scan-diff.mjs` | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
-| `catalog-graph.mjs` | GERADOR determinístico do GRAFO TIPADO de módulos. |
-| `charter-blueprint-pointers.mjs` | auditoria de PONTEIROS DE PROTÓTIPO dos Page Charters. |
-| `charter-live-signal.mjs` | gate de SINAL pra charter `status: live` (proposta SDD 2026-06-24). |
-| `charter-promote-signal.mjs` | passe REPETÍVEL de promoção draft→live guiado por SINAL de prod. |
-| `charter-refs.mjs` | catraca de integridade de refs dos Page Charters (ADR 0256). |
-| `charter-us-lint.mjs` | lint do campo canônico `related_us` nos Page Charters |
-| `ciclo-completo.mjs` | GATE "a tela nasceu (e segue) COMPLETA?" (Constituição UI v2 · UI-0013). |
-| `component-registry-check.mjs` | sentinela de DRIFT do registro de componentes (Onda O2). |
-| `cowork-mirror-freshness.mjs` | comparador de FRESCOR do espelho Cowork (v2, identidade canônica). |
-| `cowork-ssot-guard.mjs` | MÁQUINA de fonte única do protótipo de design. |
-| `criar-tela.mjs` | GERADOR de tela que NASCE do Padrão de Tela (Constituição UI v2 · UI-0013). |
-| `cron-watchdog.mjs` | G6: heartbeat dos crons de governança (generaliza o auto-canário |
-| `deadlink-gate.mjs` | catraca de integridade referencial doc↔doc (links markdown mortos). |
-| `design-code-map-check.mjs` | sentinela da ponte design↔código PERSISTENTE (<tela>.map.json). |
-| `design-gate-bites.mjs` | o BITE-LOG dos gates de design (DR-2a da ADR 0336). |
-| `detect-handoff.mjs` | DETECTOR-EM-LOTE do G4 ("paste zip → 1 tarefa por tela"). |
-| `detect-ui-drift.mjs` | M1: detector de MUDANÇA DE UI NÃO-DECLARADA (eixo de AUTORIZAÇÃO). |
-| `doc-auto-relink.mjs` | AUTO-RELIGADOR: dado um doc que MOVEU (A→B), religa os links. |
-| `doc-freshness-score.mjs` | RADAR de frescor POR DOC (score 0-100 · régua Dosu). |
-| `doc-id-index.mjs` | GERADOR determinístico do índice `id → path atual` do corpus memory/. |
-| `doc-id-stamp.mjs` | STAMPER: adiciona `id:` no frontmatter dos docs SEM id. |
-| `document-authority.mjs` | identidade documental compartilhada pelo hook e pelo CI. |
-| `document-relocation-adversary.mjs` | Validador read-only de planos de realocacao documental. |
-| `document-relocation-classifier.mjs` | Classificador conservador de documentos. Produz plano v2 pinado ao HEAD; |
-| `document-relocation-executor.mjs` | Executor transacional de planos documentais aprovados. Dry-run por padrao. |
-| `documentation-loop.mjs` | recibo determinístico do ciclo documental. |
-| `doneness-lint.mjs` | catraca de fonte-única do "done-ness" de US (ADR 0302). |
-| `ds-lint-selftest.mjs` | LINT SELFTEST — controle-negativo das regras ds/* (as `no-restricted-syntax` |
-| `ds-mirror-drift.mjs` | SENTINELA de drift git ↔ espelho vivo (P3). |
-| `dtcg-equivalence.mjs` | onda DTCG (ancora: ADR 0239 DS git SSOT + ADR 0249 DS v6 + |
-| `dup-detector.mjs` | L3 (keystone) da trava anti-duplicação de trabalho entre sessões |
-| `fact-anchor.mjs` | lógica PURA do Check T de memory-health.mjs (fact-anchor). |
-| `feature-lint.mjs` | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
-| `fluxo-morde.mjs` | EXERCÍCIO DE FOGO DO FLUXO: o método detém um defeito, ou só o comenta? |
-| `funcao-scorecard-calibracao.mjs` | calibração NÃO-CIRCULAR do juiz funcao-scorecard. |
-| `funcao-scorecard-humano.mjs` | template                 imprime o JSON cego que [W] preenche |
-| `funcao-scorecard-outcome-probe.mjs` | PROTÓTIPO de validação-por-OUTCOME do funcao-scorecard. |
-| `gate-selftest.mjs` | QUEM VIGIA OS VIGIAS (frente GT-G6, plano-mãe SDD 2026-06-12 §2 |
-| `ghost-fix.mjs` | codemod de ghost-names em memory/requisitos/** (Semana 0, frente KL). |
-| `governance-audit.mjs` | DEPRECADO 2026-08-04: agregador SEM invocador e sem casa honesta |
-| `governance-backlog-sync.mjs` | fecha o loop memory-health → backlog MCP. |
-| `hook-bites.mjs` | DEAD MAN'S SWITCH dos hooks de runtime (advisory, exit 0 sempre). |
-| `hook-replay.mjs` | testa hook contra TELEMETRIA REAL (advisory, exit 0 sempre). |
-| `hooks-manifest-generate.mjs` | GERADOR determinístico do manifesto de hooks (grade de réguas |
-| `hue-canon-check.mjs` | verificador da fonte única do hue primário (US-GOV-052 P32). |
-| `junit-lanes.mjs` | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
-| `knowledge-drift.mjs` | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
-| `lapide-recheck.mjs` | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
-| `ledger-check.mjs` | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
-| `ledger-hash-chain.mjs` | transparency-log (Rekor/Sigstore-style) sobre o |
-| `maquinas-inventario.mjs` | DERIVA um índice único e legível de TODAS as "máquinas" |
-| `mcp-drift-sentinel.mjs` | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
-| `memory-health.mjs` | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
-| `module-group-resolve.mjs` | resolve O GRUPO DE MEMÓRIA de um módulo a partir da ÁRVORE. |
-| `module-surface.mjs` | GERADOR determinístico da "Superfície de código" de um módulo. |
-| `negocio-vs-governanca-ratio.mjs` | o alarme anti-atrofia da inteligência de negócio. |
-| `next-id.mjs` | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
-| `normalize-adr-frontmatter.mjs` | normaliza status/lifecycle de ADR pro enum canônico. |
-| `onboarding-paths-check.mjs` | a CAMADA DETERMINÍSTICA do canário de onboarding. |
-| `outcome-metrics.mjs` | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
-| `palette-generate.mjs` | GERADOR determinístico da página de paleta de cor. |
-| `permissao-renomeada-lint.mjs` | barra o nome VELHO de permissão renomeada em linha NOVA. |
-| `permission-drift.mjs` | mede o drift entre permissão DECLARADA e permissão APLICADA. |
-| `plan-health.mjs` | sentinela de PLANOS órfãos/podres (ADR 0294 Onda 1 · catraca da |
-| `plans-index.mjs` | GERADOR determinístico do Índice de Planos Vivos (ADR 0294 + 0256). |
-| `protection-drift.mjs` | drift de branch protection + watchdog de staleness (GT-G4, |
-| `pt-conformance.mjs` | VERIFICA que uma tela que DECLARA "herda PT-0X" tem de fato a |
-| `rag-status-vocab-check.mjs` | detecta documento que ENTRA no índice do RAG mas |
-| `reconcile-triplet.mjs` | gate de PARIDADE POR SETOR (3-way charter↔protótipo↔produção). |
-| `ref-integrity.mjs` | sentinela ADVISORY de integridade referencial rota↔código |
-| `refuter-canary-check.mjs` | anti-Goodhart do LAYER DE AGENTE (chip orq-anti-goodhart · |
-| `reguas-cross-model.mjs` | braço de verificação CROSS-MODEL (cross-VENDOR) da grade de réguas. |
-| `reguas-indexar.mjs` | Órgão 4 da máquina de réguas em looping (ADR proposta reguas-loop-maquina-evolucao). |
-| `reguas-ledger-check.mjs` | o ledger de réguas contradiz a si mesmo? |
-| `required-always-run.mjs` | todo context REQUIRED nasce em TODO PR? |
-| `requisitos-status.mjs` | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
-| `resolver-reclamacao.mjs` | resolvedor reclamação → cadeia de responsabilidade. |
-| `sdd-flow.mjs` | recibo estrutural da cadeia: |
-| `sdd-output-lint.mjs` | mede a QUALIDADE do artefato que o agent `sdd-from-source` (ADR 0351) produz. |
-| `sdd-scorecard.mjs` | agregador do scorecard SDD (GT-G2, Semana 0 do plano |
-| `seed-tela.mjs` | EMPACOTADOR DE SEED (G1 do padrão "1 clique → sessão limpa por tela"). |
-| `selftest-registry-check.mjs` | P15 entrega 3: teste .mjs órfão de workflow (advisory). |
-| `service-scorecard.mjs` | SCORECARD de SINAIS-VIVOS por serviço/módulo (estilo Cortex). |
-| `shipped-log-generate.mjs` | generate.mjs v2 — porta de saída do loop (estende ADR 0294). |
-| `skills-index-generate.mjs` | GERADOR determinístico do índice de skills (US-GOV-052 P31). |
-| `spec-lib-staleness.mjs` | sentinela: o DOC que descreve uma lib externa ficou |
-| `system-map.mjs` | a MATRIZ gerada do painel do sistema oimpresso. |
-| `tasks-index-generate.mjs` | GERADOR determinístico de BACKLOG + CHANGELOG indexados. |
-| `tema-owner.mjs` | detector ADVISORY de DONO-DE-TEMA por sobreposição de ENTIDADE. |
-| `test-lane-coverage.mjs` | quais testes EXISTEM × quais o CI realmente EXECUTA. |
-| `uc-sem-lane.mjs` | UC com o id no TÍTULO de um teste que LANE NENHUMA executa. |
-| `ui-impact.mjs` | Fonte única do skip-as-pass do visual-regression. |
-| `visual-comparison-staleness.mjs` | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
-| `worktree-janitor.mjs` | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
+| Script | Invocador | Descrição (cabeçalho) |
+|---|---|---|
+| `adr-index-generate.mjs` | agente, ci, script | GERADOR determinístico do índice de ADR (modelo Log4brains). |
+| `adr-proposto-parado.mjs` | ci, script | sentinela: decisão PENDENTE que ninguém vê acaba não sendo feita. |
+| `adr-supersede.mjs` | npm | supersessão ATÔMICA de ADR (modelo adr-tools/pyadr, ADR 0258). |
+| `agent-corpus-counterfactual.mjs` | agente | QUANTO CUSTA descobrir se o corpus ajuda? |
+| `agent-cost-per-pr.mjs` | agente, ci, script | CUSTO ESTIMADO POR PR do agente (USD/tokens · advisory). |
+| `agent-pr-outcomes.mjs` | agente, ci, script | EVALS DE OUTCOME dos PRs do agente (DORA-style). |
+| `agents-md-staleness.mjs` | ci, script | sentinela: o AGENTS.md ficou atrás do CLAUDE.md? |
+| `anchor-content-check.mjs` | agente, ci, script | sentinela de CONTEÚDO da âncora de design. |
+| `anchor-lint.mjs` | agente, ci, script | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
+| `ancora-codigo-sync.mjs` | ci, script | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
+| `baseline-tamper-guard.mjs` | ci, script | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
+| `briefing-code-staleness.mjs` | agente, ci, npm, script | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
+| `brl-scan-diff.mjs` | ci | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
+| `catalog-graph.mjs` | ci, script | GERADOR determinístico do GRAFO TIPADO de módulos. |
+| `charter-blueprint-pointers.mjs` | ci, script | auditoria de PONTEIROS DE PROTÓTIPO dos Page Charters. |
+| `charter-live-signal.mjs` | ci, script | gate de SINAL pra charter `status: live` (proposta SDD 2026-06-24). |
+| `charter-promote-signal.mjs` | script | passe REPETÍVEL de promoção draft→live guiado por SINAL de prod. |
+| `charter-refs.mjs` | agente, ci, script | catraca de integridade de refs dos Page Charters (ADR 0256). |
+| `charter-us-lint.mjs` | ci | lint do campo canônico `related_us` nos Page Charters |
+| `ciclo-completo.mjs` | ci | GATE "a tela nasceu (e segue) COMPLETA?" (Constituição UI v2 · UI-0013). |
+| `component-registry-check.mjs` | ci, script | sentinela de DRIFT do registro de componentes (Onda O2). |
+| `cowork-mirror-freshness.mjs` | agente, ci | comparador de FRESCOR do espelho Cowork (v2, identidade canônica). |
+| `cowork-ssot-guard.mjs` | ci | MÁQUINA de fonte única do protótipo de design. |
+| `criar-tela.mjs` | agente, ci, npm, script | GERADOR de tela que NASCE do Padrão de Tela (Constituição UI v2 · UI-0013). |
+| `cron-watchdog.mjs` | ci | G6: heartbeat dos crons de governança (generaliza o auto-canário |
+| `deadlink-gate.mjs` | ci, script | catraca de integridade referencial doc↔doc (links markdown mortos). |
+| `design-code-map-check.mjs` | ci | sentinela da ponte design↔código PERSISTENTE (<tela>.map.json). |
+| `design-gate-bites.mjs` | agente, ci | o BITE-LOG dos gates de design (DR-2a da ADR 0336). |
+| `detect-handoff.mjs` | ci, npm | DETECTOR-EM-LOTE do G4 ("paste zip → 1 tarefa por tela"). |
+| `detect-ui-drift.mjs` | ci, npm | M1: detector de MUDANÇA DE UI NÃO-DECLARADA (eixo de AUTORIZAÇÃO). |
+| `doc-auto-relink.mjs` | ci, npm | AUTO-RELIGADOR: dado um doc que MOVEU (A→B), religa os links. |
+| `doc-freshness-score.mjs` | ci, script | RADAR de frescor POR DOC (score 0-100 · régua Dosu). |
+| `doc-id-index.mjs` | ci, script | GERADOR determinístico do índice `id → path atual` do corpus memory/. |
+| `doc-id-stamp.mjs` | ci, npm | STAMPER: adiciona `id:` no frontmatter dos docs SEM id. |
+| `document-authority.mjs` | agente, ci, script | identidade documental compartilhada pelo hook e pelo CI. |
+| `document-relocation-adversary.mjs` | agente, ci, npm, script | Validador read-only de planos de realocacao documental. |
+| `document-relocation-classifier.mjs` | ci, npm | Classificador conservador de documentos. Produz plano v2 pinado ao HEAD; |
+| `document-relocation-executor.mjs` | ci, npm, script | Executor transacional de planos documentais aprovados. Dry-run por padrao. |
+| `documentation-loop.mjs` | agente, ci, npm | recibo determinístico do ciclo documental. |
+| `doneness-lint.mjs` | ci, script | catraca de fonte-única do "done-ness" de US (ADR 0302). |
+| `ds-lint-selftest.mjs` | ci | LINT SELFTEST — controle-negativo das regras ds/* (as `no-restricted-syntax` |
+| `ds-mirror-drift.mjs` | agente, ci, script | SENTINELA de drift git ↔ espelho vivo (P3). |
+| `dtcg-equivalence.mjs` | ci | onda DTCG (ancora: ADR 0239 DS git SSOT + ADR 0249 DS v6 + |
+| `dup-detector.mjs` | ci | L3 (keystone) da trava anti-duplicação de trabalho entre sessões |
+| `fact-anchor.mjs` | script | lógica PURA do Check T de memory-health.mjs (fact-anchor). |
+| `feature-lint.mjs` | ci, npm, script | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
+| `fluxo-morde.mjs` | ci | EXERCÍCIO DE FOGO DO FLUXO: o método detém um defeito, ou só o comenta? |
+| `funcao-scorecard-calibracao.mjs` | script | calibração NÃO-CIRCULAR do juiz funcao-scorecard. |
+| `funcao-scorecard-humano.mjs` | npm | template                 imprime o JSON cego que [W] preenche |
+| `funcao-scorecard-outcome-probe.mjs` | ci, npm | PROTÓTIPO de validação-por-OUTCOME do funcao-scorecard. |
+| `gate-selftest.mjs` | agente, ci, script | QUEM VIGIA OS VIGIAS (frente GT-G6, plano-mãe SDD 2026-06-12 §2 |
+| `ghost-fix.mjs` | agente, script | codemod de ghost-names em memory/requisitos/** (Semana 0, frente KL). |
+| `governance-audit.mjs` | script | DEPRECADO 2026-08-04: agregador SEM invocador e sem casa honesta |
+| `governance-backlog-sync.mjs` | ci | fecha o loop memory-health → backlog MCP. |
+| `hook-bites.mjs` | agente, script | DEAD MAN'S SWITCH dos hooks de runtime (advisory, exit 0 sempre). |
+| `hook-replay.mjs` | npm | testa hook contra TELEMETRIA REAL (advisory, exit 0 sempre). |
+| `hooks-manifest-generate.mjs` | agente, ci | GERADOR determinístico do manifesto de hooks (grade de réguas |
+| `hue-canon-check.mjs` | agente, ci | verificador da fonte única do hue primário (US-GOV-052 P32). |
+| `junit-lanes.mjs` | ci | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
+| `knowledge-drift.mjs` | agente, ci, script | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
+| `lapide-recheck.mjs` | agente, ci | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
+| `ledger-check.mjs` | agente, ci, script | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
+| `ledger-hash-chain.mjs` | ci | transparency-log (Rekor/Sigstore-style) sobre o |
+| `maquinas-inventario.mjs` | agente, ci | DERIVA um índice único e legível de TODAS as "máquinas" |
+| `mcp-drift-sentinel.mjs` | ci, script | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
+| `memory-health.mjs` | ci, script | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
+| `module-group-resolve.mjs` | — (só `.test`) | resolve O GRUPO DE MEMÓRIA de um módulo a partir da ÁRVORE. |
+| `module-surface.mjs` | agente, ci, npm, script | GERADOR determinístico da "Superfície de código" de um módulo. |
+| `negocio-vs-governanca-ratio.mjs` | agente, ci | o alarme anti-atrofia da inteligência de negócio. |
+| `next-id.mjs` | agente, script | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
+| `normalize-adr-frontmatter.mjs` | npm | normaliza status/lifecycle de ADR pro enum canônico. |
+| `onboarding-paths-check.mjs` | agente, script | a CAMADA DETERMINÍSTICA do canário de onboarding. |
+| `outcome-metrics.mjs` | ci, script | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
+| `palette-generate.mjs` | ci | GERADOR determinístico da página de paleta de cor. |
+| `permissao-renomeada-lint.mjs` | ci | barra o nome VELHO de permissão renomeada em linha NOVA. |
+| `permission-drift.mjs` | ci | mede o drift entre permissão DECLARADA e permissão APLICADA. |
+| `plan-health.mjs` | ci, script | sentinela de PLANOS órfãos/podres (ADR 0294 Onda 1 · catraca da |
+| `plans-index.mjs` | ci | GERADOR determinístico do Índice de Planos Vivos (ADR 0294 + 0256). |
+| `protection-drift.mjs` | agente, ci, script | drift de branch protection + watchdog de staleness (GT-G4, |
+| `pt-conformance.mjs` | ci, npm, script | VERIFICA que uma tela que DECLARA "herda PT-0X" tem de fato a |
+| `rag-status-vocab-check.mjs` | ci | detecta documento que ENTRA no índice do RAG mas |
+| `reconcile-triplet.mjs` | ci, script | gate de PARIDADE POR SETOR (3-way charter↔protótipo↔produção). |
+| `ref-integrity.mjs` | ci, script | sentinela ADVISORY de integridade referencial rota↔código |
+| `refuter-canary-check.mjs` | agente, script | anti-Goodhart do LAYER DE AGENTE (chip orq-anti-goodhart · |
+| `reguas-cross-model.mjs` | agente, script | braço de verificação CROSS-MODEL (cross-VENDOR) da grade de réguas. |
+| `reguas-indexar.mjs` | agente, ci, npm | Órgão 4 da máquina de réguas em looping (ADR proposta reguas-loop-maquina-evolucao). |
+| `reguas-ledger-check.mjs` | ci | o ledger de réguas contradiz a si mesmo? |
+| `required-always-run.mjs` | ci | todo context REQUIRED nasce em TODO PR? |
+| `requisitos-status.mjs` | ci, npm, script | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
+| `resolver-reclamacao.mjs` | ci, npm | resolvedor reclamação → cadeia de responsabilidade. |
+| `sdd-flow.mjs` | npm | recibo estrutural da cadeia: |
+| `sdd-output-lint.mjs` | ci, npm | mede a QUALIDADE do artefato que o agent `sdd-from-source` (ADR 0351) produz. |
+| `sdd-scorecard.mjs` | agente, ci, script | agregador do scorecard SDD (GT-G2, Semana 0 do plano |
+| `seed-tela.mjs` | script | EMPACOTADOR DE SEED (G1 do padrão "1 clique → sessão limpa por tela"). |
+| `selftest-registry-check.mjs` | agente, ci, script | P15 entrega 3: teste .mjs órfão de workflow (advisory). |
+| `service-scorecard.mjs` | ci | SCORECARD de SINAIS-VIVOS por serviço/módulo (estilo Cortex). |
+| `shipped-log-generate.mjs` | ci | generate.mjs v2 — porta de saída do loop (estende ADR 0294). |
+| `skills-index-generate.mjs` | agente, ci, script | GERADOR determinístico do índice de skills (US-GOV-052 P31). |
+| `spec-lib-staleness.mjs` | ci | sentinela: o DOC que descreve uma lib externa ficou |
+| `system-map.mjs` | agente, ci, script | a MATRIZ gerada do painel do sistema oimpresso. |
+| `tasks-index-generate.mjs` | ci, script | GERADOR determinístico de BACKLOG + CHANGELOG indexados. |
+| `tema-owner.mjs` | agente | detector ADVISORY de DONO-DE-TEMA por sobreposição de ENTIDADE. |
+| `test-lane-coverage.mjs` | ci, script | quais testes EXISTEM × quais o CI realmente EXECUTA. |
+| `uc-sem-lane.mjs` | ci | UC com o id no TÍTULO de um teste que LANE NENHUMA executa. |
+| `ui-impact.mjs` | ci | Fonte única do skip-as-pass do visual-regression. |
+| `visual-comparison-staleness.mjs` | ci, script | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
+| `worktree-janitor.mjs` | npm | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
 ### 5.2 `scripts/tests/` — 8
 
-| Script | Descrição (cabeçalho) |
-|---|---|
-| `coverage-compute.mjs` | write-side do coverage_pct (SDD P07 · ADR 0275 §2 fonte |
-| `floor-compute.mjs` | write-side do floor (ADR 0279 Opção A · PR-2 · US-GOV-018). |
-| `foundation-ratchet.mjs` | marcadores `legacy-quarantine` (burn-down: subir = regressão) |
-| `junit-summary.mjs` | sumário JSON por arquivo de teste a partir de JUnit XML (PHPUnit/Pest). |
-| `nightly-diff.mjs` | tripwire de regressão QUALITATIVA do nightly (ROADMAP-SDD P15). |
-| `ragas-trend-compute.mjs` | write-side do trend do RAGAS real (ADR 0318 + pattern |
-| `shards-merge.mjs` | funde os summaries junit POR SHARD numa medição da noite (SDD P04 |
-| `shards-plan.mjs` | particiona a suíte Pest em N shards POR DIRETÓRIO (determinístico). |
+| Script | Invocador | Descrição (cabeçalho) |
+|---|---|---|
+| `coverage-compute.mjs` | ci, script | write-side do coverage_pct (SDD P07 · ADR 0275 §2 fonte |
+| `floor-compute.mjs` | ci, script | write-side do floor (ADR 0279 Opção A · PR-2 · US-GOV-018). |
+| `foundation-ratchet.mjs` | agente, ci, script | marcadores `legacy-quarantine` (burn-down: subir = regressão) |
+| `junit-summary.mjs` | agente, ci, script | sumário JSON por arquivo de teste a partir de JUnit XML (PHPUnit/Pest). |
+| `nightly-diff.mjs` | ci | tripwire de regressão QUALITATIVA do nightly (ROADMAP-SDD P15). |
+| `ragas-trend-compute.mjs` | ci, script | write-side do trend do RAGAS real (ADR 0318 + pattern |
+| `shards-merge.mjs` | ci, script | funde os summaries junit POR SHARD numa medição da noite (SDD P04 |
+| `shards-plan.mjs` | agente, ci, script | particiona a suíte Pest em N shards POR DIRETÓRIO (determinístico). |
 
 ### 5.3 `scripts/` (raiz) — 35
 
-| Script | Descrição (cabeçalho) |
-|---|---|
-| `a11y-ratchet.mjs` | scripts/a11y-ratchet.mjs — acessibilidade como categoria DETERMINÍSTICA PROTEGIDA. |
-| `adversario-intencao-fluxo.mjs` | Adversário: procura contraprovas ao contrato, sem aceitar justificativa em prosa. |
-| `auditar-intencao-fluxo.mjs` | Catraca estática: a prosa declara a intenção, mas não mascara evidência ausente. |
-| `bundle-lint.mjs` | esteira ≠ armazém (régua 6 da memória de proveniência). |
-| `casos-coverage-guard.mjs` | scripts/casos-coverage-guard.mjs — Gate G-1 (trio-de-tela) + G-2 (rastreabilidade caso↔teste) |
-| `casos-results-collect.mjs` | scripts/casos-results-collect.mjs — Coletor de test-results → manifesto por-UC (Salto #2, |
-| `components-tree-guard.mjs` | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
-| `conformance-gate.mjs` | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
-| `contrato-de-tela.mjs` | Gate "Contrato de Tela" (a perna de fidelidade visual do trio-de-tela). |
-| `css-size-baseline.mjs` | scripts/css-size-baseline.mjs — ratchet de TAMANHO do CSS (anti-regrowth). |
-| `design-identity-grade.mjs` | GRADE de identidade visual DETERMINÍSTICO (ADR 0254). |
-| `design-spec-gen.mjs` | tela (componentes/tokens/layout) é PURA e DERIVÁVEL, mas era julgada por LLM |
-| `domain-dict-guard.mjs` | scripts/domain-dict-guard.mjs — Gate G-4 (dicionário de domínio) da Governança executável (ADR 0264). |
-| `ds-canon-color-guard.mjs` | scripts/ds-canon-color-guard.mjs — catraca: a camada canônica NÃO usa paleta crua |
-| `ds-ledger.mjs` | scripts/ds-ledger.mjs — Ledger de Conformidade DS (censo Onda 0, por tela). |
-| `ds-report.mjs` | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
-| `dsih-gate.mjs` | porque NENHUM gate mordia CONTEUDO em .tsx (so canal: lint/build/conformance). |
-| `eslint-baseline.mjs` | scripts/eslint-baseline.mjs — Onda 1.2 (ADR 0209) |
-| `foundation-guard.mjs` | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
-| `generate-dxt.js` | Gera arquivo .dxt (Claude Desktop Extension) para membros do time oimpresso. |
-| `handoff-integrity-guard.mjs` | scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). |
-| `layout-primitives-guard.mjs` | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
-| `no-mock-in-prod.mjs` | scripts/no-mock-in-prod.mjs — Frente 6 (plano anti-duplicacao 2026-06-06) |
-| `pageheader-migration-guard.mjs` | scripts/pageheader-migration-guard.mjs — F4 do roadmap de convergência UI (MANUAL-CSS-JS.md §5) |
-| `perf-static-guard.mjs` | scripts/perf-static-guard.mjs — catraca da Onda 4 lente 5b (AUDITORIA-PERFORMANCE-2026-07). |
-| `reuse-index.mjs` | índice escrito à mão APODRECE (ADR 0239: git=SSOT, derivado>escrito). Este índice é REGENERADO do código a cada |
-| `scheme-gate.mjs` | Por que existe: o red-team adversarial de 2026-06-17 mostrou que NENHUM gate mordia CONTEUDO |
-| `scorer-sync-check.mjs` | scripts/scorer-sync-check.mjs — guarda a SINCRONIA dos regex entre as duas implementações. |
-| `sells-cowork-dead-css.mjs` | gate conta a cor-crua DESSAS regras mortas como se fosse dívida viva |
-| `smoke-veredito-ledger.mjs` | Smoke / acceptance harness do programa veredito-ledger. |
-| `stylelint-baseline.mjs` | scripts/stylelint-baseline.mjs — G5 anti-drift CSS (ADR 0209 pattern) |
-| `uc-derive.mjs` | scripts/uc-derive.mjs — Auto-derivador de vínculo UC↔teste (PoC read-only, determinístico) |
-| `visreg-flows-lint.mjs` | Catraca do contrato de fluxos visuais: cenário sem viewport, ação ou evidência não entra no CI. |
-| `visreg-sells-lint.mjs` | Catraca do contrato de fluxos visuais de Sells/Create: cenário sem viewport, ação ou |
-| `visreg-states-lint.mjs` | charter `states:` ⇄ manifesto do gate L2 (estados isolados do VRT). |
+| Script | Invocador | Descrição (cabeçalho) |
+|---|---|---|
+| `a11y-ratchet.mjs` | ci, npm | scripts/a11y-ratchet.mjs — acessibilidade como categoria DETERMINÍSTICA PROTEGIDA. |
+| `adversario-intencao-fluxo.mjs` | ci | Adversário: procura contraprovas ao contrato, sem aceitar justificativa em prosa. |
+| `auditar-intencao-fluxo.mjs` | ci, script | Catraca estática: a prosa declara a intenção, mas não mascara evidência ausente. |
+| `bundle-lint.mjs` | ci, npm | esteira ≠ armazém (régua 6 da memória de proveniência). |
+| `casos-coverage-guard.mjs` | agente, ci, npm, script | scripts/casos-coverage-guard.mjs — Gate G-1 (trio-de-tela) + G-2 (rastreabilidade caso↔teste) |
+| `casos-results-collect.mjs` | ci, npm, script | scripts/casos-results-collect.mjs — Coletor de test-results → manifesto por-UC (Salto #2, |
+| `components-tree-guard.mjs` | ci, npm, script | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
+| `conformance-gate.mjs` | ci, npm, script | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
+| `contrato-de-tela.mjs` | ci, npm, script | Gate "Contrato de Tela" (a perna de fidelidade visual do trio-de-tela). |
+| `css-size-baseline.mjs` | ci, npm, script | scripts/css-size-baseline.mjs — ratchet de TAMANHO do CSS (anti-regrowth). |
+| `design-identity-grade.mjs` | ci | GRADE de identidade visual DETERMINÍSTICO (ADR 0254). |
+| `design-spec-gen.mjs` | ci, npm | tela (componentes/tokens/layout) é PURA e DERIVÁVEL, mas era julgada por LLM |
+| `domain-dict-guard.mjs` | ci, npm, script | scripts/domain-dict-guard.mjs — Gate G-4 (dicionário de domínio) da Governança executável (ADR 0264). |
+| `ds-canon-color-guard.mjs` | ci, npm | scripts/ds-canon-color-guard.mjs — catraca: a camada canônica NÃO usa paleta crua |
+| `ds-ledger.mjs` | npm | scripts/ds-ledger.mjs — Ledger de Conformidade DS (censo Onda 0, por tela). |
+| `ds-report.mjs` | npm, script | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
+| `dsih-gate.mjs` | ci, script | porque NENHUM gate mordia CONTEUDO em .tsx (so canal: lint/build/conformance). |
+| `eslint-baseline.mjs` | ci, npm, script | scripts/eslint-baseline.mjs — Onda 1.2 (ADR 0209) |
+| `foundation-guard.mjs` | ci, npm, script | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
+| `generate-dxt.js` | php | Gera arquivo .dxt (Claude Desktop Extension) para membros do time oimpresso. |
+| `handoff-integrity-guard.mjs` | ci, npm | scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). |
+| `layout-primitives-guard.mjs` | ci, npm, script | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
+| `no-mock-in-prod.mjs` | ci, npm, script | scripts/no-mock-in-prod.mjs — Frente 6 (plano anti-duplicacao 2026-06-06) |
+| `pageheader-migration-guard.mjs` | ci, npm, script | scripts/pageheader-migration-guard.mjs — F4 do roadmap de convergência UI (MANUAL-CSS-JS.md §5) |
+| `perf-static-guard.mjs` | script | scripts/perf-static-guard.mjs — catraca da Onda 4 lente 5b (AUDITORIA-PERFORMANCE-2026-07). |
+| `reuse-index.mjs` | agente, ci, npm, script | índice escrito à mão APODRECE (ADR 0239: git=SSOT, derivado>escrito). Este índice é REGENERADO do código a cada |
+| `scheme-gate.mjs` | ci | Por que existe: o red-team adversarial de 2026-06-17 mostrou que NENHUM gate mordia CONTEUDO |
+| `scorer-sync-check.mjs` | ci, npm | scripts/scorer-sync-check.mjs — guarda a SINCRONIA dos regex entre as duas implementações. |
+| `sells-cowork-dead-css.mjs` | — | gate conta a cor-crua DESSAS regras mortas como se fosse dívida viva |
+| `smoke-veredito-ledger.mjs` | npm | Smoke / acceptance harness do programa veredito-ledger. |
+| `stylelint-baseline.mjs` | ci, npm, script | scripts/stylelint-baseline.mjs — G5 anti-drift CSS (ADR 0209 pattern) |
+| `uc-derive.mjs` | — | scripts/uc-derive.mjs — Auto-derivador de vínculo UC↔teste (PoC read-only, determinístico) |
+| `visreg-flows-lint.mjs` | ci, npm, script | Catraca do contrato de fluxos visuais: cenário sem viewport, ação ou evidência não entra no CI. |
+| `visreg-sells-lint.mjs` | ci, npm | Catraca do contrato de fluxos visuais de Sells/Create: cenário sem viewport, ação ou |
+| `visreg-states-lint.mjs` | ci, npm | charter `states:` ⇄ manifesto do gate L2 (estados isolados do VRT). |
 
 ## 6. Baselines & JSON de estado
 

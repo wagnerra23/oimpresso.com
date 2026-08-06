@@ -110,6 +110,13 @@ return [
             ['label' => 'Triagem',     'href' => '/forja',                'icon' => 'Inbox',         'can' => 'jana.mcp.usage.all', 'badge' => 3],
             ['label' => 'Backlog',     'href' => '/forja/backlog',        'icon' => 'List',          'can' => 'jana.mcp.usage.all'],
             ['label' => 'Quadro',      'href' => '/forja/quadro',         'icon' => 'KanbanSquare',  'can' => 'jana.mcp.usage.all'],
+            // Roadmap (Gantt) — aba adicionada 2026-08-06 ([W]: "quero que registre").
+            // A tela chegou da Jana no #5310 (ADR 0366 §D-C item 3) com o ghost já
+            // registrado no DataController da Forja, MAS abriu sem faixa nenhuma em
+            // produção: são DUAS superfícies de navegação e o ghost não alimenta esta.
+            // O `can` é o da rota real (`RoadmapGanttController@index`), não o genérico
+            // das abas vizinhas — aba que aparece e dá 403 é pior que aba ausente.
+            ['label' => 'Roadmap (Gantt)', 'href' => '/forja/roadmap-gantt', 'icon' => 'CalendarRange', 'can' => 'jana.mcp.tasks.read'],
             ['label' => 'Changelog',   'href' => '/forja/changelog',      'icon' => 'GitBranch',     'can' => 'jana.mcp.usage.all'],
             ['label' => 'MCP',         'href' => '/forja/mcp',            'icon' => 'ShieldCheck',   'can' => 'jana.mcp.usage.all'],
             ['label' => 'Tarefas',     'href' => '/team-mcp/tasks',       'icon' => 'ClipboardList', 'can' => 'jana.mcp.usage.all'],

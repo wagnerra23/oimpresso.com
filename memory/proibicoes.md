@@ -13,7 +13,7 @@
 > | R3 | Workflow 3 fases (PRE+DURING+POST) | Edit `Modules/<X>/` |
 > | R4 | Multi-tenant Tier 0 IRREVOGÁVEL | Edit Model/Service/Job |
 > | R5 | PT-BR + economia crédito | SEMPRE |
-> | R6 | biz=1 não biz=4 (cliente piloto) | Pest + smoke |
+> | R6 | biz=4 (cliente piloto) **NUNCA** em teste/smoke — Pest roda no tenant fictício **98** ([ADR 0358](decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)); smoke manual em prod segue biz=1 | Pest + smoke |
 > | R7 | Charter + visual-comparison antes Edit Page | `Pages/<Mod>/<Tela>.tsx` |
 > | R8 | Branch + worktree disciplina | Worktree filha |
 > | R9 | Zero auto-mem privada | Write `~/.claude/projects/*/memory/` |
@@ -71,7 +71,7 @@
 > | `resources/js/Pages/<X>/<Tela>.tsx` | charter `<Tela>.charter.md` + skill `mwart-process` (ADR 0104) |
 > | `Modules/<X>/Database/Migrations/...` | ADR 0093 (multi-tenant) + Schema existente |
 > | Comando artisan novo | skill `criar-modulo` + Console/Kernel.php pattern |
-> | Service/Job que toca prod biz=1 | ADR 0101 (tests biz=1) + skill `multi-tenant-patterns` |
+> | Service/Job que toca prod biz=1 | [ADR 0358](decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) (doutrina de teste — tenant canônico **98**; supersede a `0101-tests`, que fixava biz=1 e foi esquecida fisicamente) + skill `multi-tenant-patterns` |
 > | Observer/Event | ADR 0143 FSM (se aplicável) + proibições deste arquivo |
 >
 > **Por que isso importa MAIS agora (2026-05-15+):**
@@ -212,7 +212,7 @@
 
 - ⛔ **Caminho alternativo de MWART** — Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` existir. Hook `block-mwart-violation.mjs` (Node cross-plataforma — ex-.ps1) bloqueia em runtime. ⚠️ **Atualização 2026-06-11 (ADR 0271 onda 2):** o CI `mwart-gate.yml` foi **deletado** (era soft `continue-on-error`, só comentava — teatro). A régua viva de cobertura de tela é o `casos-gate` (required, ADR 0264) + `screen-coverage`. O enforcement de RUNBOOK segue só via hook runtime. Override runtime: comentar `/mwart-override <razão>` em PR (vira ADR per-tela `lifecycle: historical`)
 - ⛔ **F2 BACKEND BASELINE sem Pest 5+ fixtures** do `store()` antes de mexer — gera regressão silenciosa
-- ⛔ **F4 QA sem smoke biz=1** ([ADR 0101](decisions/0101-tests-business-id-1-nunca-cliente.md)) — usar biz=4 (cliente) em smoke = grave
+- ⛔ **F4 QA sem smoke biz=1** — usar biz=4 (cliente) em smoke = grave. Essa metade segue **intacta** e reforçada: a [ADR 0358](decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) põe biz=4 como **proibido sem exceção** em teste, fixture, smoke ou exemplo. ⚠️ Mas **teste automatizado** (Pest/CI/CT 100) **não** roda mais em biz=1 — é o tenant fictício **98** (a 0358 supersede a `0101-tests`, que fixava biz=1 e foi esquecida fisicamente). O biz=1 que a 0358 preserva é o **smoke fiscal manual contra SEFAZ** (§Carve-out); ela **não reexaminou** o smoke de *tela* do F4, então aqui o biz=1 permanece por herança do MWART, não por endosso da 0358 — se isso incomodar, é decisão [W], não conserto silencioso
 - ⛔ **F5 CUTOVER sem aviso prévio cliente + canary 7d** — ROTA LIVRE 99% volume, surprise = perda
 
 ## Multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](decisions/0093-multi-tenant-isolation-tier-0.md))
