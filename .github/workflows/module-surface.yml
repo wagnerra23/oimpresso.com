@@ -65,8 +65,20 @@ jobs:
       # context REQUIRED na ADR 0370. Duplicar rodaria 2× o mesmo check, e o dono
       # do veredito é o workflow required — não este step. O `.test.mjs` dele segue
       # rodando no selftest acima: teste unitário do gerador é outra coisa.
-      - name: Painel, arquitetura IA e onboarding em dia
-        run: node scripts/governance/system-map.mjs --check
+      # O `system-map.mjs --check` também NÃO roda aqui, e pelo mesmo princípio:
+      # o dono dele é o `system-map.yml`, que o mantém ADVISORY de propósito
+      # (`continue-on-error: true`, "stale = avisa, não bloqueia") mais um job
+      # `refresh` que regenera por cron e abre auto-PR. O PAINEL deriva de fontes
+      # que qualquer PR mexe (`memory/sessions/`, `proibicoes.md` §5), então quem
+      # o conserta é o cron, não o autor do PR. Medido na refutação R4 do #5327
+      # (2026-08-06): 11 dos últimos 12 commits do main falhavam esse `--check`, e
+      # o bite-test com controle negativo mostrou que UM session log alheio já
+      # derruba (+1 arquivo → exit 1; removido → exit 0). Dentro DESTE job — que é
+      # o context required `SUPERFICIE.md == árvore` e, por regra anti-teatro, não
+      # tem `continue-on-error` — isso trancaria o merge do repo entre uma
+      # regeneração e a seguinte: o deadlock de 2026-07-02 que o cabeçalho cita.
+      # Querer o painel sempre-rodando é mudança no `system-map.yml` (tirar o
+      # `paths:`, mantendo o advisory), não um step embutido num required.
       - name: Diagnóstico em caso de drift
         if: failure()
         run: |

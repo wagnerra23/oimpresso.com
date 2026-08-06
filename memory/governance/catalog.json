@@ -23,10 +23,10 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 571,
+    "nodes": 569,
     "edges": 840,
     "by_node_type": {
-      "module": 43,
+      "module": 41,
       "table": 73,
       "adr": 25,
       "component": 387,
@@ -3461,7 +3461,7 @@
       "id": "module:Financeiro",
       "type": "module",
       "module": "Financeiro",
-      "purpose": "Contas a pagar/receber, fluxo de caixa, DRE BR.",
+      "purpose": "Razão financeira do negócio — espelha vendas, compras e caixa do core em títulos (fin_titulos) e opera o ciclo do dinheiro sobre eles: contas a pagar e receber, baixa, conciliação bancária OFX, fluxo de caixa, DRE BR e portal read-only do contador externo.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "financeiro.*",
@@ -3679,19 +3679,6 @@
       "catalog_status": "referenced-only"
     },
     {
-      "id": "module:ProjectMgmt",
-      "type": "module",
-      "module": "ProjectMgmt",
-      "purpose": "",
-      "trust": "",
-      "owner": "",
-      "permission_prefix": "",
-      "charter_adr": "",
-      "path": null,
-      "catalog_kind": "referenced-only",
-      "catalog_status": "referenced-only"
-    },
-    {
       "id": "module:RecurringBilling",
       "type": "module",
       "module": "RecurringBilling",
@@ -3768,19 +3755,6 @@
       "path": "Modules/Superadmin/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
-    },
-    {
-      "id": "module:TeamMcp",
-      "type": "module",
-      "module": "TeamMcp",
-      "purpose": "",
-      "trust": "",
-      "owner": "",
-      "permission_prefix": "",
-      "charter_adr": "",
-      "path": null,
-      "catalog_kind": "referenced-only",
-      "catalog_status": "referenced-only"
     },
     {
       "id": "module:Vestuario",
@@ -5983,24 +5957,24 @@
     },
     {
       "from": "module:Financeiro",
-      "to": "module:KB",
+      "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Conhecimento canônico (ADRs, sessions)"
+      "note": "MCP server admin"
     },
     {
       "from": "module:Financeiro",
-      "to": "module:ProjectMgmt",
+      "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Tasks Jira-style"
     },
     {
       "from": "module:Financeiro",
-      "to": "module:TeamMcp",
+      "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "MCP server admin"
+      "note": "Conhecimento canônico (ADRs, sessions)"
     },
     {
       "from": "module:Financeiro",
@@ -6010,6 +5984,20 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "module:KB",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -6017,23 +6005,9 @@
     },
     {
       "from": "module:Financeiro",
-      "to": "module:ProjectMgmt",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tasks Jira-style"
-    },
-    {
-      "from": "module:Financeiro",
       "to": "module:Sells",
       "type": "dependsOn",
       "source": "depends_on"
-    },
-    {
-      "from": "module:Financeiro",
-      "to": "module:TeamMcp",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
     },
     {
       "from": "module:Financeiro",
@@ -9932,15 +9906,7 @@
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
-        "module": "ProjectMgmt",
-        "reason": "referenciado por SCOPE, sem descritor próprio"
-      },
-      {
         "module": "SRS",
-        "reason": "referenciado por SCOPE, sem descritor próprio"
-      },
-      {
-        "module": "TeamMcp",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       }
     ],
