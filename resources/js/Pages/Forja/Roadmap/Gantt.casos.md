@@ -5,7 +5,7 @@ irmaos: Gantt.charter.md (lei) · memory/requisitos/Forja/RUNBOOK-gantt.md (oper
 tecnica: Caso de uso = narrativa de quem usa + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — "quem enxerga o roadmap" e "quem pode mexer no prazo" não mudam no refactor; o Gantt em si pode virar outra lib.
 owner: wagner
-last_run: "2026-08-05"
+last_run: "2026-08-06"
 ---
 
 # Casos de Uso & Aceite — Roadmap Gantt (Forja)
@@ -32,6 +32,17 @@ last_run: "2026-08-05"
 > manifesto seria `status:unverified` no G-7, e afirmar verde sem rodar é a classe LC-08.
 
 ---
+
+> **`last_run` 08-05 → 08-06.** A tela ganhou a faixa do hub (`<ForjaHub active="roadmap-gantt" />`,
+> [#5346](https://github.com/wagnerra23/oimpresso.com/pull/5346)). Reli os 10 UCs abaixo antes de carimbar: todos tratam de auth,
+> permissão, filtros, cross-tenant e reagendamento — **nenhum muda com a navegação**. O carimbo é
+> "trio reconciliado com a tela nesta data", não "rodei a suíte".
+>
+> **[BACKLOG]** Nenhum UC cobre *"a tela abre dentro do hub, com a aba certa ativa"* — e foi exatamente
+> esse o defeito que [W] achou em produção (tela abrindo solta, sem faixa). Fica em prosa, sem id, até
+> ganhar teste que o cite: a lição do dia é que navegação tem **cinco** superfícies na Forja
+> (`FORJA_TABS` · `core_topnavs` · ghosts de dois hubs · `Resources/menus/topnav.php`) e só uma
+> renderiza aqui. Um UC que afirme sem provar seria pior que a ausência.
 
 ## UC-RGT-01 · Quem não está logado nunca vê o roadmap do time
 - **Persona:** visitante anônimo — o roadmap expõe o que o time está fazendo; não é público.
