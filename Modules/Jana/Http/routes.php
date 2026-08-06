@@ -59,12 +59,14 @@ Route::group(
         //      pra validacao visual sem substituir a /copiloto atual). ----------
         Route::get('/cockpit',                             'ChatController@cockpit')->name('jana.cockpit');
 
-        // ---- Painel Analista IA (Jana V2 — cycle CYCLE-06 goal #4) ---------
-        // Canon Cowork: prototipo-ui/cowork-snapshot/chat-jana.jsx (491 ln IIFE).
-        // Render Inertia/React via resources/js/Pages/Jana/Painel.tsx.
-        // Onda A1: esqueleto + mock data · Onda B: queries SQL reais · Onda C: BriefDiarioAgent.
-        Route::get('/painel',                              'PainelController@index')->name('jana.painel');
-
+        // ---- Painel Analista IA — REMOVIDO 2026-08-06 [W] (onda 1 da fusão
+        //      das telas da Jana). Era um hub de 3 links + `buildMockPayload()`;
+        //      a capacidade real (brief · KPIs · análises · ações) já vive em
+        //      /ia/dashboard, alimentada por SellsCockpitAggregator com dado de
+        //      verdade — o Painel era a versão mock dela. Redirect 301 no bloco
+        //      do fim deste arquivo. Medido antes de apagar: 0 hits no ledger
+        //      governance/route-hits.json (janela 30d) e o link `/ia/chat` do
+        //      próprio hub apontava pra rota inexistente.
         Route::post('/conversas',                          'ChatController@criarConversa')->name('jana.conversas.store');
         // Atalho GET — link "Nova conversa" da sidebar (UX Wagner 2026-05-08).
         // Cria conversa e redireciona pro /conversas/{id}. Antes era 404.
@@ -239,6 +241,12 @@ Route::middleware(['web'])->group(function () {
 // Mesma decisão arquitetural do PR #1387 que escondeu a entrada Essentials no
 // sidebar quando KB canon está instalado.
 Route::redirect('/ia/memorias', '/ia/memoria', 302);
+
+// Painel Analista IA removido em 2026-08-06 [W] (onda 1 da fusão das telas da
+// Jana) — ver comentário no grupo acima. 301 porque a remoção é permanente e o
+// destino serve a MESMA capacidade com dado real. Sem query string a preservar
+// (o hub não tinha filtro), então `Route::redirect` basta aqui.
+Route::redirect('/ia/painel', '/ia/dashboard', 301);
 
 // Custos + Qualidade IA → Modules/Governance (ADR 0366 §D-B, [W] 2026-08-03;
 // movidas em 2026-08-05). Closure em vez de `Route::redirect` de propósito: as

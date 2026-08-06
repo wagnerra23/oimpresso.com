@@ -14,9 +14,9 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 573 arquivos em 19 papéis.
+**Total mapeado:** 569 arquivos em 19 papéis.
 
-## Controllers — 11
+## Controllers — 10
 
 - [JanaProController.php](../../../Modules/Jana/Http/Controllers/Admin/JanaProController.php)
 - [AlertasController.php](../../../Modules/Jana/Http/Controllers/AlertasController.php)
@@ -25,7 +25,6 @@ module: Jana
 - [DataController.php](../../../Modules/Jana/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Jana/Http/Controllers/InstallController.php)
 - [MetasController.php](../../../Modules/Jana/Http/Controllers/MetasController.php)
-- [PainelController.php](../../../Modules/Jana/Http/Controllers/PainelController.php)
 - [PeriodosController.php](../../../Modules/Jana/Http/Controllers/PeriodosController.php)
 - [ProController.php](../../../Modules/Jana/Http/Controllers/ProController.php)
 - [SuperadminController.php](../../../Modules/Jana/Http/Controllers/SuperadminController.php)
@@ -355,13 +354,12 @@ module: Jana
 
 - 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 6
+## Telas (Inertia/React) — 5
 
 - [Chat.tsx](../../../resources/js/Pages/Jana/Chat.tsx)
 - [Cockpit.tsx](../../../resources/js/Pages/Jana/Cockpit.tsx)
 - [Dashboard.tsx](../../../resources/js/Pages/Jana/Dashboard.tsx)
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
-- [Painel.tsx](../../../resources/js/Pages/Jana/Painel.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
 ## Componentes / apoio de tela — 7
@@ -374,22 +372,21 @@ module: Jana
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
 - [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
-## Charters (lei da tela) — 6
+## Charters (lei da tela) — 5
 
 - [Chat.charter.md](../../../resources/js/Pages/Jana/Chat.charter.md)
 - [Cockpit.charter.md](../../../resources/js/Pages/Jana/Cockpit.charter.md)
 - [Dashboard.charter.md](../../../resources/js/Pages/Jana/Dashboard.charter.md)
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
-- [Painel.charter.md](../../../resources/js/Pages/Jana/Painel.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
 
 ## Casos (contrato UC) — 1
 
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 154
+## Testes (Pest) — 153
 
-- 154 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 153 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 91
 

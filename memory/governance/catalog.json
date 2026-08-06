@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 569,
-    "edges": 840,
+    "nodes": 568,
+    "edges": 839,
     "by_node_type": {
       "module": 41,
       "table": 73,
       "adr": 25,
-      "component": 387,
+      "component": 386,
       "api": 43
     },
     "by_edge_type": {
@@ -39,7 +39,7 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 387,
+      "hasComponent": 386,
       "dependsOn": 115,
       "delegatesTo": 109,
       "migratesTo": 1
@@ -2014,13 +2014,6 @@
       "module": "Jana",
       "name": "MetasController",
       "desc": "metas do business"
-    },
-    {
-      "id": "component:Jana/PainelController",
-      "type": "component",
-      "module": "Jana",
-      "name": "PainelController",
-      "desc": "Cockpit Analista IA (Jana V2) — visual canon chat-jana.jsx · US-JANA-PAINEL-001 ondas A1-D"
     },
     {
       "id": "component:Jana/PeriodosController",
@@ -7235,12 +7228,6 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/MetasController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/PainelController",
       "type": "hasComponent",
       "source": "contains"
     },
