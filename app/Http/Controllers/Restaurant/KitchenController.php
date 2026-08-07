@@ -38,9 +38,16 @@ class KitchenController extends Controller
      */
     public function index()
     {
-        // if (!auth()->user()->can('sell.view')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        // Gate reativado (US-GOV-059, 2026-08-07). Estava comentado desde o upstream:
+        // a tela filtrava por business_id mas servia os PEDIDOS da cozinha a qualquer
+        // usuário autenticado do business. `sell.view` é a permissão que o próprio
+        // upstream declarou aqui, é declarada no PermissionsTableSeeder e aparece na
+        // tela de papéis. O link no sidebar (AdminSidebarMenu, menu Cozinha) carrega o
+        // MESMO predicado — se um lado mudar, o outro muda junto, senão vira 403 pra
+        // quem vê o link (classe A da US-GOV-059).
+        if (! auth()->user()->can('sell.view')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $business_id = request()->session()->get('user.business_id');
         

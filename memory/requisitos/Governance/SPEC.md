@@ -1092,3 +1092,38 @@ node scripts/governance/permission-drift.mjs --json   # a lista COMPLETA vem daq
 ⚠️ **Duas armadilhas de método, pagas na própria medição** (registradas porque a próxima pessoa cai nas mesmas):
 - **A saída de texto TRUNCA em 25** (`… +12` no rodapé da seção). Quem parsear o texto mede 25 de 37 e chama de completo. A lista inteira só sai no `--json`.
 - **Casar o nome por substring reprova o legítimo e aprova o errado.** O primeiro cruzamento acusou `admin` como "declarada em 15 seeders"; era a palavra *admin* dentro de comentário em prosa (*"chamável via UI admin fiscal"*). É a mesma classe de falso-positivo que o [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) acabou de remover do próprio detector — reproduzida por fora dele. Cruzamento de permissão pede âncora (aspas, item de array, argumento de `syncRoles`), nunca `grep` de substring.
+
+#### Cozinha (`restaurant/kitchen`) — gate reativado, com o menu junto — 2026-08-07
+
+> ⚠️ **Decisão [W] pendente — não mergear sem aprovação.**
+
+Mesma família dos `restaurant.*` acima, um grau mais sensível: o `KitchenController::index()` tinha o gate **comentado desde o upstream** e servia os **pedidos** da cozinha — transações, não nomes de catálogo — a qualquer usuário autenticado do business. `business_id` intacto (Tier 0 não foi violado); o que faltava era RBAC **dentro** do tenant.
+
+**Correção de premissa do pedido que abriu este trabalho (medido, não lido).** O brief afirmava que `ModifierSetsController::index()` passou a gatear com `product.view || product.create` em 2026-08-07. **Não passou.** Esse predicado é da **linha do menu** (`AdminSidebarMenu.php:906`); o `index()` daquele controller **segue sem gate** — que é exatamente o que o *"Achado adjacente, não corrigido"* acima registra. Confundir predicado-de-menu com gate-de-controller é o que faria alguém "espelhar" um gate inexistente.
+
+**Retrato das 5 telas da pasta** (medido em `origin/main`, worktree em 0/0):
+
+| Tela | Predicado do MENU | Gate do `index()` | Casam? |
+|---|---|---|---|
+| Mesas | módulo + `access_tables` | `access_tables` | ✅ espelho exato |
+| Reservas | módulo + (`crud_all_bookings` \|\| `crud_own_bookings`) | o mesmo OR | ✅ espelho exato |
+| Modificadores | módulo + (`product.view` \|\| `product.create`) | **nenhum** | ❌ menu mais estrito |
+| **Cozinha** | **só o módulo** — permissão nenhuma | **nenhum** (comentado) | — nada a espelhar |
+| Pedidos | **só o módulo** (`service_staff`) | **nenhum** (comentado, `sell.view`) | — |
+
+Ou seja: **"espelhar o predicado do menu" não era executável como escrito** — o menu da Cozinha não declara permissão. Espelhá-lo ao pé da letra deixaria o buraco aberto; e qualquer permissão no endpoint o torna **mais estrito que o menu**, que é a classe A (link visível → 403) que esta US existe pra matar. Por isso o gate saiu **nas duas pernas, no mesmo PR**:
+
+1. `KitchenController::index()` — gate ativo com **`sell.view`**.
+2. `AdminSidebarMenu.php`, menu Cozinha — o **mesmo** `sell.view` no predicado do link.
+
+**Por que `sell.view`:** é a permissão que o **próprio upstream escreveu** no gate comentado (proveniência escrita, não invenção); é **declarada** (`PermissionsTableSeeder.php:43`) e está na tela de papéis (`role/edit.blade.php:590`); e a tela lê *sell lines* — é dado de venda. **O fork de [W]:** não existe permissão que exprima "é da cozinha" — `is_service_staff` é **flag da role** (`roles.is_service_staff`), não permissão, então o papel de quem opera a tela não é expressável em `can()`. Se a Cozinha for operada por gente sem `sell.view`, `access_tables ||` (a única permissão que a tela de papéis oferece sob o título "Restaurante") é a emenda natural — mas **nenhuma fonte declara esse OR**, e inventá-lo seria o oposto de espelhar.
+
+**⚠️ O que este PR NÃO fecha — e impede chamá-lo de "vedado".** O `index()` renderiza a tela, mas os **mesmos pedidos** saem por `POST /modules/refresh-orders-list` (`refreshOrdersList`), ainda **sem gate** — é o polling de `public/js/restaurant.js:111`. Fechar o `index()` fecha a **porta**, não o **dado**. Não foi tocado de propósito: esse endpoint é **compartilhado** com a tela Pedidos (`orders_for == 'waiter'`), então o predicado dele arrasta a decisão do `OrderController` junto — outro escopo. Idem `refreshLineOrdersList`, e `markAsCooked`, que **muta** (com `sell.update` comentado).
+
+> É a mesma lição que o `@can` do `modifier_sets` já tinha ensinado nesta US — *o gate da view nunca foi a barreira real*. Aqui: **o gate do `index()` não é a barreira real do dado.**
+
+**Sem teste e sem lane, e o custo de wirar é menor do que o brief supunha.** `rg --hidden` por `KitchenController|modules/kitchen` em `tests/` e `.github/` volta **rc=1** (rodou, não achou). O `ci.yml` **não** roda "só `tests/Feature/Form`": ele roda uma **lista curada**, `.github/ci-sqlite-pest.list` (~150 alvos, `tests/Feature/Form` é *uma linha* dela). Logo um teste em `tests/Feature/Restaurant/` não rodaria por estar lá — mas ligá-lo é **uma linha nessa lista**, não uma lane nova. Fica como decisão [W]: criar o arquivo sem a linha seria cobertura de mentira (LC-13).
+
+**Custo da janela:** [W] informou em 2026-08-07 que a feature Restaurante **existe mas não está em uso**. Fechar agora é reversível; depois de entrar em uso, apertar o gate vira breaking change — e apertar o **menu** junto passa a esconder link de quem já usava.
+
+**Recibo:** `php -l` nos dois arquivos tocados, PHP 8.4.22 no CT 100 (`oimpresso-staging`) — *No syntax errors detected* nos dois. Nenhuma linha de cálculo tocada: o diff mexe só em predicado de autorização.
