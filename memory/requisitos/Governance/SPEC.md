@@ -1062,6 +1062,25 @@ O caso mais claro do 2º grupo é o `auditoria.revert`: vive no `BulkRevertActiv
 
 **Contador: 43 → 32.** Restam 6 do grupo "endpoint vivo" (Crm 3, Financeiro 1, Ponto 1, Whatsapp 1) + 7 scaffolding + classe D.
 
+##### Grupo "endpoint vivo" FECHADO — 2026-08-07 (6/6)
+
+⚠️ **A verificação que faltava, e que [W] exigiu:** o `RoleController::__createPermissionIfNotExists` (L350) faz `Permission::create()` para qualquer nome vindo do input da tela de papéis — ou seja, **permissão pode existir no banco sem estar em código**, e toda a triagem anterior tinha lido apenas código. Consultado o banco de **produção** antes de mexer: **495 permissões no total, nenhuma das investigadas presente**. As órfãs são reais, e o que fazia as funcionalidades "funcionarem" era o `Gate::before` de superadmin. **Dado colateral: 495 no banco × 357 em código ⇒ ~138 existem só na tabela** — ninguém deve triar o grupo "teatro" (63) sem consultar o banco antes.
+
+| permissão | desfecho | por quê |
+|---|---|---|
+| `crm.delete_campaign` | **declarada** | `access_all_campaigns` é leitura; deletar ≠ acessar — reaproveitar ampliaria semântica de VER para DELETAR |
+| `crm.add_proposal_template` | **declarada** | template é config distinta de `access_proposal` |
+| `crm.view_reports` | **declarada** | não havia permissão de relatórios no módulo |
+| `financeiro.lancamentos.create` | **declarada** | `.create` já é o padrão do módulo (`contas_pagar`/`contas_receber`) |
+| `whatsapp.view-all-phones` | **declarada como está** | o hífen desvia do padrão de ponto, mas renomear exigiria tocar o consumidor sem ganho funcional |
+| `ponto.importacoes.criar` | **renomeada → `.manage`** + declarada | `.criar` estava em português e sozinho; os três irmãos usam `.manage` |
+
+Todas `default => false` — nenhuma é concedida automaticamente. **Nenhuma virou "teatro"**: o detector confirma que as 6 continuam sendo usadas (declarar sem uso só trocaria um problema por outro).
+
+**Achado de segurança corrigido junto:** o `ImportacaoAfdRequest::authorize()` era `$user ? $user->can(...) : true` — **sem usuário autenticado retornava `true`**, ou seja, autorizava. O middleware `auth` cobre na prática, mas o padrão do projeto é negar por ausência (`RevertActivityRequest`: `return $this->user() !== null`). Agora é fail-secure.
+
+**Contador: 43 → 23.** Resta o grupo scaffolding (7, resíduo declarado — endpoint não ligado) + classe D (~18, core UltimatePOS).
+
 **A conferência foi FEITA — e o ponto cego NÃO explica a classe C.** Medido em 2026-08-06 (recibo abaixo): das **37** órfãs do censo, **1 única** aparece declarada em seeder — `fiscal.inutilizar`, em [`NfeFiscalActionsSeeder.php:51`](../../../database/seeders/NfeFiscalActionsSeeder.php) mais o `syncRoles` da L173, que é justamente o caso A-2 já conhecido acima. As outras **36 não existem em seeder algum**. Consequência para quem for triar: a classe C **não pode ser descartada como cegueira do detector** — aquelas permissões estão mesmo sem declaração em lugar nenhum, e a decisão sobre elas (declarar × remover o `can()`) é de mérito, não de instrumento.
 
 ```bash
