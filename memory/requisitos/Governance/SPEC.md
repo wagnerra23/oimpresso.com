@@ -958,3 +958,13 @@ Classificação das **38** restantes:
    Escolher é desenho de autorização em endpoint **fiscal**; não foi inventado aqui.
 
 **Nota sobre B/C/D:** o denominador de declaração do detector são 5 fontes (`DataController`, `Resources/permissions.php`, `role/*.blade.php`, `PermissionsTableSeeder`, `syncPermissions` em runtime). Seeders de módulo (ex.: `NfeFiscalActionsSeeder`) **não** entram — foi o que fez `fiscal.inutilizar` aparecer. Antes de declarar qualquer permissão da classe C, conferir se ela já existe em fonte fora dessas cinco.
+
+**A conferência foi FEITA — e o ponto cego NÃO explica a classe C.** Medido em 2026-08-06 (recibo abaixo): das **37** órfãs do censo, **1 única** aparece declarada em seeder — `fiscal.inutilizar`, em [`NfeFiscalActionsSeeder.php:51`](../../../database/seeders/NfeFiscalActionsSeeder.php) mais o `syncRoles` da L173, que é justamente o caso A-2 já conhecido acima. As outras **36 não existem em seeder algum**. Consequência para quem for triar: a classe C **não pode ser descartada como cegueira do detector** — aquelas permissões estão mesmo sem declaração em lugar nenhum, e a decisão sobre elas (declarar × remover o `can()`) é de mérito, não de instrumento.
+
+```bash
+node scripts/governance/permission-drift.mjs --json   # a lista COMPLETA vem daqui
+```
+
+⚠️ **Duas armadilhas de método, pagas na própria medição** (registradas porque a próxima pessoa cai nas mesmas):
+- **A saída de texto TRUNCA em 25** (`… +12` no rodapé da seção). Quem parsear o texto mede 25 de 37 e chama de completo. A lista inteira só sai no `--json`.
+- **Casar o nome por substring reprova o legítimo e aprova o errado.** O primeiro cruzamento acusou `admin` como "declarada em 15 seeders"; era a palavra *admin* dentro de comentário em prosa (*"chamável via UI admin fiscal"*). É a mesma classe de falso-positivo que o [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) acabou de remover do próprio detector — reproduzida por fora dele. Cruzamento de permissão pede âncora (aspas, item de array, argumento de `syncRoles`), nunca `grep` de substring.
