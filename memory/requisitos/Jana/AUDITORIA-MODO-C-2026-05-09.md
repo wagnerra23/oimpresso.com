@@ -43,7 +43,7 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 1. Admin/Custos/Index.tsx — 84/100 🟡
 
-**Arquivo:** [resources/js/Pages/Jana/Admin/Custos/Index.tsx](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx) (390 linhas)
+**Arquivo:** [resources/js/Pages/governance/Custos.tsx](../../../resources/js/Pages/governance/Custos.tsx) (390 linhas)
 **Categoria BENCHMARKS:** §3 Dashboard/KPI overview (Mixpanel/Amplitude/Vercel Analytics).
 
 ### Score detalhado
@@ -63,9 +63,9 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ### Top 3 vitórias
 
-1. **PageHeader + KpiGrid + KpiCard shared** — usa todos os 3 componentes do DS ([Index.tsx:211-254](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx)). Padrão limpo.
-2. **`GastoDiarioChart` SVG inline com viewBox** — sem dep de `recharts`/`chart.js`, dark-mode-safe via `text-primary` + `fill-primary/15`. Pattern de [Index.tsx:86-183](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx).
-3. **Filtro custom com form `de`/`ate` + preserveState/preserveScroll** — [Index.tsx:196-207](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx). Atende `preference_cache_estado_preservado` (auto-mem) e ADR 0039 §4.
+1. **PageHeader + KpiGrid + KpiCard shared** — usa todos os 3 componentes do DS ([Index.tsx:211-254](../../../resources/js/Pages/governance/Custos.tsx)). Padrão limpo.
+2. **`GastoDiarioChart` SVG inline com viewBox** — sem dep de `recharts`/`chart.js`, dark-mode-safe via `text-primary` + `fill-primary/15`. Pattern de [Index.tsx:86-183](../../../resources/js/Pages/governance/Custos.tsx).
+3. **Filtro custom com form `de`/`ate` + preserveState/preserveScroll** — [Index.tsx:196-207](../../../resources/js/Pages/governance/Custos.tsx). Atende `preference_cache_estado_preservado` (auto-mem) e ADR 0039 §4.
 
 ### Prioridade fix
 
@@ -77,7 +77,7 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 2. Admin/Governanca/Index.tsx — 78/100 🟡
 
-**Arquivo:** [resources/js/Pages/Jana/Admin/Governanca/Index.tsx](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx) (503 linhas)
+**Arquivo:** [resources/js/Pages/governance/Dashboard.tsx](../../../resources/js/Pages/governance/Dashboard.tsx) (503 linhas)
 **Categoria BENCHMARKS:** §3 Dashboard + §5 Settings (sub-nav).
 
 ### Score detalhado
@@ -92,14 +92,14 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 ### Top 3 violações
 
 1. **`Index.tsx:72-79`** — `statusBarClass()` retorna `bg-emerald-500 h-2`, `bg-amber-500 h-2`, `bg-orange-500 h-2`, `bg-rose-500 h-2` — viola R-DS-002 (cor crua Tailwind). Status fixo é exceção R-DS-002 OK, **mas misturar com `h-2` na mesma string vira shotgun-CSS** — separar em const + classe utility.
-2. **`Index.tsx:139`** — `stroke-amber-400 dark:stroke-amber-300` em SVG; aceitável (status fixo) mas `borderTop: '1px dashed'` inline em [Index.tsx:155](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx) é CSS hardcoded inline (R-DS-007).
+2. **`Index.tsx:139`** — `stroke-amber-400 dark:stroke-amber-300` em SVG; aceitável (status fixo) mas `borderTop: '1px dashed'` inline em [Index.tsx:155](../../../resources/js/Pages/governance/Dashboard.tsx) é CSS hardcoded inline (R-DS-007).
 3. **`Index.tsx:218-493`** — 3 seções (`consumo` / `acesso` / `usuarios`) em um Page só, controladas por estado local com `localStorage`. **Deveria ser 3 rotas Inertia** — separação de concerns brutal (ADR 0094 §5). Render condicional caro pra o cliente.
 
 ### Top 3 vitórias
 
-1. **Atalho `/` foca seletor de período** com cleanup correto — [Index.tsx:190-200](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx). Único da família que implementa Q7 (atalho power-user) + GOTCHAS.md "Listener sem cleanup".
-2. **`EmptyState` shared usado em 4 sub-cenários** (sem dados, denied, top tools, top users) — [Index.tsx:96-102, 357-362, 388-393, 427-432, 462-467](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx). H4 (consistency) bem atendido.
-3. **`StatusBadge kind="mcp_status"`** — usa shared component pra padronizar status MCP — [Index.tsx:367](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx). Boa abstração.
+1. **Atalho `/` foca seletor de período** com cleanup correto — [Index.tsx:190-200](../../../resources/js/Pages/governance/Dashboard.tsx). Único da família que implementa Q7 (atalho power-user) + GOTCHAS.md "Listener sem cleanup".
+2. **`EmptyState` shared usado em 4 sub-cenários** (sem dados, denied, top tools, top users) — [Index.tsx:96-102, 357-362, 388-393, 427-432, 462-467](../../../resources/js/Pages/governance/Dashboard.tsx). H4 (consistency) bem atendido.
+3. **`StatusBadge kind="mcp_status"`** — usa shared component pra padronizar status MCP — [Index.tsx:367](../../../resources/js/Pages/governance/Dashboard.tsx). Boa abstração.
 
 ### Prioridade fix
 
@@ -111,7 +111,7 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 3. Dashboard.tsx — 74/100 🟡
 
-**Arquivo:** [resources/js/Pages/Jana/Dashboard.tsx](../../../resources/js/Pages/Jana/Dashboard.tsx) (224 linhas)
+**Arquivo:** [resources/js/Pages/Jana/Index.tsx](../../../resources/js/Pages/Jana/Index.tsx) (224 linhas)
 **Categoria BENCHMARKS:** §3 Dashboard/KPI overview (cards de meta com farol).
 
 ### Score detalhado
@@ -126,14 +126,14 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 ### Top 3 violações
 
 1. **`Dashboard.tsx:182-196`** — header inline (`<h1 className="text-2xl font-semibold">Dashboard de Metas</h1>`) em vez de `<PageHeader/>` shared como Custos/Index/Governança fazem. Inconsistência cross-Jana (H4).
-2. **`Dashboard.tsx:54-70`** — `calcularFarol` assume trajetória linear hardcoded; meta sazonal (faturamento Dezembro) vai acender vermelho injustamente. RUNBOOK-dashboard.md já documenta como pegadinha mas não foi resolvido. Severidade: a meta `R$ [redacted Tier 0]MM/ano` usa esse cálculo.
+2. **`Dashboard.tsx:54-70`** — `calcularFarol` assume trajetória linear hardcoded; meta sazonal (faturamento Dezembro) vai acender vermelho injustamente. RUNBOOK-index.md já documenta como pegadinha mas não foi resolvido. Severidade: a meta `R$ [redacted Tier 0]MM/ano` usa esse cálculo.
 3. **`Dashboard.tsx:198-205`** — empty state inline (12 linhas de JSX) em vez de `<EmptyState/>` shared. Mesmo gap detectado em Custos/Index.
 
 ### Top 3 vitórias
 
-1. **Sparkline SVG inline + tendência up/down/flat** com lucide icons — [Dashboard.tsx:87-125](../../../resources/js/Pages/Jana/Dashboard.tsx). Boa aplicação de R-DS-003.
-2. **Farol semântico com 4 estados** + `aria-hidden="true"` na faixa lateral — [Dashboard.tsx:136](../../../resources/js/Pages/Jana/Dashboard.tsx). A11y consciente.
-3. **Persistent Layout** correto via `Dashboard.layout = (page) => <AppShellV2>...` — [Dashboard.tsx:220-224](../../../resources/js/Pages/Jana/Dashboard.tsx). Padrão Anthropic atendido.
+1. **Sparkline SVG inline + tendência up/down/flat** com lucide icons — [Dashboard.tsx:87-125](../../../resources/js/Pages/Jana/Index.tsx). Boa aplicação de R-DS-003.
+2. **Farol semântico com 4 estados** + `aria-hidden="true"` na faixa lateral — [Dashboard.tsx:136](../../../resources/js/Pages/Jana/Index.tsx). A11y consciente.
+3. **Persistent Layout** correto via `Dashboard.layout = (page) => <AppShellV2>...` — [Dashboard.tsx:220-224](../../../resources/js/Pages/Jana/Index.tsx). Padrão Anthropic atendido.
 
 ### Prioridade fix
 
@@ -179,7 +179,7 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 5. Admin/Qualidade/Index.tsx — 62/100 🟠
 
-**Arquivo:** [resources/js/Pages/Jana/Admin/Qualidade/Index.tsx](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx) (375 linhas)
+**Arquivo:** [resources/js/Pages/governance/QualidadeIa.tsx](../../../resources/js/Pages/governance/QualidadeIa.tsx) (375 linhas)
 **Categoria BENCHMARKS:** §3 Dashboard + §6 Listagem operacional (trend + tabela detalhada).
 
 ### Score detalhado
@@ -199,9 +199,9 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ### Top 3 vitórias
 
-1. **Função `gateStatus` separa avaliação de regra de UI** — [Index.tsx:94-103](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx). Lógica testável.
-2. **`KpiCard tone={ok ? 'success' : 'danger'}` dinâmico** — [Index.tsx:221-244](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx). Usa o tom semântico do DS (não cor crua) — boa prática parcial mesmo com problemas.
-3. **`ScrollArea max-h-[600px]` + `sticky top-0`** na trend table — [Index.tsx:258-260](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx). BENCHMARKS §6 pattern 9 (sticky header) atendido.
+1. **Função `gateStatus` separa avaliação de regra de UI** — [Index.tsx:94-103](../../../resources/js/Pages/governance/QualidadeIa.tsx). Lógica testável.
+2. **`KpiCard tone={ok ? 'success' : 'danger'}` dinâmico** — [Index.tsx:221-244](../../../resources/js/Pages/governance/QualidadeIa.tsx). Usa o tom semântico do DS (não cor crua) — boa prática parcial mesmo com problemas.
+3. **`ScrollArea max-h-[600px]` + `sticky top-0`** na trend table — [Index.tsx:258-260](../../../resources/js/Pages/governance/QualidadeIa.tsx). BENCHMARKS §6 pattern 9 (sticky header) atendido.
 
 ### Prioridade fix
 
@@ -249,14 +249,14 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 7. Cockpit.tsx — 48/100 🔴
 
-**Arquivo:** [resources/js/Pages/Jana/Cockpit.tsx](../../../resources/js/Pages/Jana/Cockpit.tsx) (138 linhas)
+**Arquivo:** `resources/js/Pages/Jana/Cockpit.tsx` (138 linhas)
 **Categoria BENCHMARKS:** §1 Inbox conversacional — **MVP/piloto declarado**.
 
 ### Score detalhado
 
 | Categoria | Score | Detalhe |
 |-----------|-------|---------|
-| DS (40) | 22/40 | 0 CRITICAL diretos (delega ao `Thread`/`Composer` shared); 2 WARN (`👍` emoji literal em [Cockpit.tsx:103](../../../resources/js/Pages/Jana/Cockpit.tsx) — R-DS-003), 1 WARN (`localStorage.setItem` fora de useEffect — render-side-effect anti-pattern React) |
+| DS (40) | 22/40 | 0 CRITICAL diretos (delega ao `Thread`/`Composer` shared); 2 WARN (`👍` emoji literal em `Cockpit.tsx:103` — R-DS-003), 1 WARN (`localStorage.setItem` fora de useEffect — render-side-effect anti-pattern React) |
 | ADR (30) | 12/30 | **3 violações graves**: (a) ADR 0094 §1 (context as product) — typing/reply mockados com `setTimeout` em produção; (b) ADR 0094 §4 (loop fechado por métrica) — não há fetch real, sem telemetria; (c) GOTCHAS.md "Cache/estado preservado" — usa `setMensagensLocal` local em vez de Inertia state, ao trocar conversa perde |
 | UX (30) | 14/30 | **1 CRITICAL (Q1)** — usuário em produção que digita uma mensagem recebe "Recebido, vou verificar e te respondo já já 👍" hardcoded — induz erro grave; **1 CRITICAL (H1)** — visibility of system status mente (mostra typing falso); 1 WARN (Q4 — sem loading real) |
 | **TOTAL** | **48/100** | 🔴 **Reescrever ou matar a rota** — risco de cliente acreditar que Jana respondeu |
@@ -269,8 +269,8 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ### Top 3 vitórias
 
-1. **AppShellV2 com `conversaFoco` + `activeConvId` + `onSelectConv`** — [Cockpit.tsx:111-126](../../../resources/js/Pages/Jana/Cockpit.tsx). Usa o canal canônico do shell (não duplica como Chat.tsx faz com ConvSidePanel).
-2. **Compõe `ChatTabs` + `ThreadHeader` + `Thread` + `Composer` shareds** — [Cockpit.tsx:127-135](../../../resources/js/Pages/Jana/Cockpit.tsx). Reuso máximo, código mínimo.
+1. **AppShellV2 com `conversaFoco` + `activeConvId` + `onSelectConv`** — `Cockpit.tsx:111-126`. Usa o canal canônico do shell (não duplica como Chat.tsx faz com ConvSidePanel).
+2. **Compõe `ChatTabs` + `ThreadHeader` + `Thread` + `Composer` shareds** — `Cockpit.tsx:127-135`. Reuso máximo, código mínimo.
 3. **138 linhas total** — densidade boa pra MVP. Bem comentado sobre status piloto.
 
 ### Prioridade fix

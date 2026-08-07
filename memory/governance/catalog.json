@@ -23,25 +23,25 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 569,
-    "edges": 833,
+    "nodes": 568,
+    "edges": 839,
     "by_node_type": {
       "module": 41,
-      "table": 71,
+      "table": 73,
       "adr": 25,
-      "component": 389,
+      "component": 386,
       "api": 43
     },
     "by_edge_type": {
       "ownsTable": 58,
       "ownsLegacyView": 13,
-      "consumesTable": 0,
+      "consumesTable": 6,
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 389,
-      "dependsOn": 111,
-      "delegatesTo": 110,
+      "hasComponent": 386,
+      "dependsOn": 115,
+      "delegatesTo": 109,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1803,7 +1803,14 @@
       "type": "component",
       "module": "Forja",
       "name": "RoadmapController",
-      "desc": "roadmap quarterly"
+      "desc": "roadmap quarterly (/project-mgmt/roadmap): epics agrupados por target_quarter"
+    },
+    {
+      "id": "component:Forja/RoadmapGanttController",
+      "type": "component",
+      "module": "Forja",
+      "name": "RoadmapGanttController",
+      "desc": "roadmap Gantt (/forja/roadmap-gantt): tasks no tempo via mcp_cycles+mcp_tasks, com reschedule de due_date por drag-drop. Recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B + 0367 D4). CONVIVE com o quarter view acima — são duas leituras do mesmo backlog e nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id); a 0367 D7 diz que o quarter só sai quando o Gantt provar que substitui"
     },
     {
       "id": "component:Forja/ScorecardController + ScorecardBuilderService",
@@ -1876,6 +1883,13 @@
       "desc": "drill-down mcp_audit_log filtrável (período/actor/endpoint/status)"
     },
     {
+      "id": "component:Governance/CustosController",
+      "type": "component",
+      "module": "Governance",
+      "name": "CustosController",
+      "desc": "/governance/custos dashboard de custo de IA por business (US-COPI-070; recebido do Modules/Jana em 2026-08-05, ADR 0366 §D-B — o `Chat.charter.md` já mandava 'custo vai pra /governance')"
+    },
+    {
       "id": "component:Governance/DashboardController",
       "type": "component",
       "module": "Governance",
@@ -1925,11 +1939,11 @@
       "desc": "CRUD inline mcp_governance_rules (toggle enabled MVP; edit JSON futuro)"
     },
     {
-      "id": "component:Jana/Admin/CustosController",
+      "id": "component:Governance/QualidadeIaController",
       "type": "component",
-      "module": "Jana",
-      "name": "Admin/CustosController",
-      "desc": "dashboard custos LLM"
+      "module": "Governance",
+      "name": "QualidadeIaController",
+      "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual module-grades e drift)"
     },
     {
       "id": "component:Jana/Admin/JanaProController",
@@ -1939,32 +1953,11 @@
       "desc": "brief diário invocável (US-COPI-203)"
     },
     {
-      "id": "component:Jana/Admin/QualidadeController",
-      "type": "component",
-      "module": "Jana",
-      "name": "Admin/QualidadeController",
-      "desc": "qualidade RAG/memória (RAGAS)"
-    },
-    {
-      "id": "component:Jana/Admin/RoadmapController",
-      "type": "component",
-      "module": "Jana",
-      "name": "Admin/RoadmapController",
-      "desc": "timeline Gantt do cycle ativo (Onda 5 V1)"
-    },
-    {
       "id": "component:Jana/AlertasController",
       "type": "component",
       "module": "Jana",
       "name": "AlertasController",
       "desc": "alerts gerenciados pela IA"
-    },
-    {
-      "id": "component:Jana/BriefController",
-      "type": "component",
-      "module": "Jana",
-      "name": "BriefController",
-      "desc": "stub /jana/brief (UI dedicada Onda C; brief gerado por BriefDiarioAgent)"
     },
     {
       "id": "component:Jana/ChatController",
@@ -1981,13 +1974,6 @@
       "desc": "check jana_lesson_ledger_graduation valida o loop de graduação do ledger (advisory)"
     },
     {
-      "id": "component:Jana/DashboardController",
-      "type": "component",
-      "module": "Jana",
-      "name": "DashboardController",
-      "desc": "resumo executivo"
-    },
-    {
       "id": "component:Jana/DataController",
       "type": "component",
       "module": "Jana",
@@ -2000,6 +1986,13 @@
       "module": "Jana",
       "name": "Entities/jana_memoria_*",
       "desc": "memória persistente do business (rename ADR 0092)"
+    },
+    {
+      "id": "component:Jana/IndexController",
+      "type": "component",
+      "module": "Jana",
+      "name": "IndexController",
+      "desc": "Painel (raiz /ia): brief · KPIs · análises · ações · metas"
     },
     {
       "id": "component:Jana/InstallController",
@@ -2023,13 +2016,6 @@
       "desc": "metas do business"
     },
     {
-      "id": "component:Jana/PainelController",
-      "type": "component",
-      "module": "Jana",
-      "name": "PainelController",
-      "desc": "Cockpit Analista IA (Jana V2) — visual canon chat-jana.jsx · US-JANA-PAINEL-001 ondas A1-D"
-    },
-    {
       "id": "component:Jana/PeriodosController",
       "type": "component",
       "module": "Jana",
@@ -2042,13 +2028,6 @@
       "module": "Jana",
       "name": "ProController",
       "desc": "paywall Jana Pro (/ia/pro), tela de conversão F3 design (#2069)"
-    },
-    {
-      "id": "component:Jana/RegrasController",
-      "type": "component",
-      "module": "Jana",
-      "name": "RegrasController",
-      "desc": "stub /jana/regras (UI dedicada futura; policies PolicyEngine ADS + governance MCP)"
     },
     {
       "id": "component:Jana/Services/Memoria/*",
@@ -3332,7 +3311,7 @@
       "id": "module:Arquivos",
       "type": "module",
       "module": "Arquivos",
-      "purpose": "DMS backbone — todo arquivo anexado do oimpresso deve cair aqui. Tabelas arquivos + arquivos_audit_log + arquivos_dedupe. Trait HasArquivos morphMany pra opt-in por entidade. Curador engine PHP + parity com JS scripts/curador. Signed URLs + soft-delete + dedupe sha256.",
+      "purpose": "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe sha256, signed URL e soft-delete. Não tem tela própria: a UI é do módulo dono. Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "arquivos.*",
@@ -3345,7 +3324,7 @@
       "id": "module:AssetManagement",
       "type": "module",
       "module": "AssetManagement",
-      "purpose": "UltimatePOS herdado.",
+      "purpose": "Patrimônio da empresa: cadastro de ativos físicos, alocação e devolução a colaboradores, manutenção e garantia — bem de uso interno, nunca item vendável de estoque.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "assetmanagement.*",
@@ -3358,7 +3337,7 @@
       "id": "module:Auditoria",
       "type": "module",
       "module": "Auditoria",
-      "purpose": "Leitura, investigação e REVERSÃO segura da trilha por-registro (activity_log). Responde 'quem mudou este registro, o quê, quando — e dá pra desfazer?'. Guarda o que NÃO pode ser desfeito (append-only por lei) e o isolamento multi-tenant no undo.",
+      "purpose": "Quem mudou este registro, o quê e quando? — lê e investiga a trilha por-registro (activity_log) com isolamento multi-tenant e guarda o registry do que a lei não deixa desfazer. A reversão está codificada (RevertService) porém desligada do caminho HTTP: POST /{id}/revert responde 501.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "auditoria.*",
@@ -3384,7 +3363,7 @@
       "id": "module:Cms",
       "type": "module",
       "module": "Cms",
-      "purpose": "Mini CMS — landing page, blog, contact-us. Routes /, /c/page/{x}, /c/blogs.",
+      "purpose": "Site institucional público do próprio oimpresso — home, páginas, blog e contato — servido em Inertia na raiz do domínio. Single-tenant por natureza (não tem business_id) e edição superadmin-only. O formulário de contato é o canal de lead comercial: notifica o e-mail configurado e registra com PII redactada.",
       "trust": "L4",
       "owner": "wagner",
       "permission_prefix": "cms.*",
@@ -3397,7 +3376,7 @@
       "id": "module:Compras",
       "type": "module",
       "module": "Compras",
-      "purpose": "Gestão de compras (entrada de mercadoria) — substitui UltimatePOS Purchase legacy.",
+      "purpose": "Cockpit de leitura de compras (/compras): lista, KPIs e drawer de detalhe sobre transactions type=purchase. Complementa — não substitui — o CRUD /purchases do core, pra onde delega criar, editar e excluir.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "compras.*",
@@ -3410,7 +3389,7 @@
       "id": "module:ComunicacaoVisual",
       "type": "module",
       "module": "ComunicacaoVisual",
-      "purpose": "Vertical gráfica rápida BR (CNAE 1813-0/01). Diferencial: cálculo m² + PCP gráfico + apontamento + NFe-de-boleto-pago + IA conversacional. Greenfield aguardando piloto Q3/2026 entre OfficeImpresso clients.",
+      "purpose": "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto: hoje entrega cálculo de orçamento por m2 server-authoritative e apontamento de produção. PCP/FSM, materiais e integração fiscal existem como schema e contrato, não como fluxo navegável.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "com_visual.*",
@@ -3423,7 +3402,7 @@
       "id": "module:Connector",
       "type": "module",
       "module": "Connector",
-      "purpose": "POS APIs UltimatePOS — coração dos POS clientes. Só Wagner toca.",
+      "purpose": "Porta REST externa única do oimpresso (Passport auth:api, contrato congelado): expõe o núcleo do ERP a consumidores de fora — app POS móvel e integrações — e sustenta o handshake de licenciamento, registro e versão dos clientes Delphi WR Comercial em migração.",
       "trust": "L0",
       "owner": "wagner",
       "permission_prefix": "connector.*",
@@ -3436,7 +3415,7 @@
       "id": "module:ConsultaOs",
       "type": "module",
       "module": "ConsultaOs",
-      "purpose": "Portal público de consulta de Ordem de Serviço. Cliente acompanha pipeline produção.",
+      "purpose": "Casca de portal público de consulta de OS — backend completo (rota sem auth, anti-enumeration, auditoria LGPD, throttle, OTel, Repository trocável) rodando sobre dataset FAKE de 4 OS. Não lê banco: existe para validar UX e segurança antes de US-CONSULTA-001 ligar a query real.",
       "trust": "L4",
       "owner": "wagner",
       "permission_prefix": "consultaos.*",
@@ -3449,7 +3428,7 @@
       "id": "module:Crm",
       "type": "module",
       "module": "Crm",
-      "purpose": "Módulo de CLIENTE / contatos do cliente (UPOS herdou o nome 'Crm'; NÃO existe Modules/Cliente): cadastro, drawer 760px com aba Endereço, múltiplos endereços (US-CRM-078).",
+      "purpose": "Pipeline pré-venda herdado do UltimatePOS (leads, follow-ups, campanhas, propostas, call logs) — EM DEPRECAÇÃO por ADR 0301. Hospeda ainda, por acidente histórico, os endpoints JSON do drawer de Cliente (/cliente/*) e o portal do contato (/contact/*), cujo dono real é o ContactController do core.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "crm.*",
@@ -3462,7 +3441,7 @@
       "id": "module:Essentials",
       "type": "module",
       "module": "Essentials",
-      "purpose": "UltimatePOS HRM herdado. Notas (NEW) extrai gradual em Fase 3.10.",
+      "purpose": "Infraestrutura interna compartilhada herdada do UltimatePOS: HRM sob /hrm/* (folgas, presença, folha, turnos, feriados, metas) e produtividade sob /essentials/* (tarefas, lembretes, mensagens, documentos, base de conhecimento). Não é vertical vendável; é fundação consumida por todos os business.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "essentials.*",
@@ -3475,7 +3454,7 @@
       "id": "module:Financeiro",
       "type": "module",
       "module": "Financeiro",
-      "purpose": "Contas a pagar/receber, fluxo de caixa, DRE BR.",
+      "purpose": "Razão financeira do negócio — espelha vendas, compras e caixa do core em títulos (fin_titulos) e opera o ciclo do dinheiro sobre eles: contas a pagar e receber, baixa, conciliação bancária OFX, fluxo de caixa, DRE BR e portal read-only do contador externo.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "financeiro.*",
@@ -3488,7 +3467,7 @@
       "id": "module:Fiscal",
       "type": "module",
       "module": "Fiscal",
-      "purpose": "Cockpit fiscal unificado — agregador thin sobre NfeBrasil + NFSe (sem duplicação). 7 sub-páginas (Cockpit, NF-e, NFS-e, DF-e, Eventos, Config, SPED) conforme design Cowork KB-9.75 todas entregues. Ações cancelar/CC-e/inutilização/retransmitir + ⌘K palette cross-fiscal + gerador SPED EFD-ICMS/IPI v3.1.1 perfil A em produção pós-Waves 1-9 (PRs #1183, #1185, #1189, #1190, #1249, #1253, #1257, #1259, #1261).",
+      "purpose": "Cara única (UI e sidebar) do domínio fiscal: agrega leitura de NfeBrasil e NFSe, delega toda ação SEFAZ aos Services deles, e é dono próprio do gerador SPED EFD-ICMS/IPI.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "fiscal.*",
@@ -3501,7 +3480,7 @@
       "id": "module:Forja",
       "type": "module",
       "module": "Forja",
-      "purpose": "Gerenciamento Jira-style do time interno: Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown sobre `mcp_jira_projects/epics/cycles/tasks`.",
+      "purpose": "Cockpit de trabalho do time interno (Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown) e host da infraestrutura MCP da plataforma: identidade e emissão de token (mcp_actors), endpoints /api/mcp e /api/cc, Daily Brief, loop de handoff Cowork-Code, hub Equipe e Admin do MCP.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "projectmgmt.*",
@@ -3514,7 +3493,7 @@
       "id": "module:Governance",
       "type": "module",
       "module": "Governance",
-      "purpose": "Governança consolidada — ActionGate runtime, audit dashboard, ADRs pending approvals, policies CRUD, drift alerts. Constituição Art. 8 + Art. 9 operacional.",
+      "purpose": "A regra está sendo cumprida? — mede e mostra o cumprimento (drift de escopo/deploy/índice, nota de módulo, scorecard SDD, policies, trilha de tool MCP) e injeta o veredito no Daily Brief. Quem bloqueia merge é o CI em scripts/governance/, não este módulo.",
       "trust": "L1",
       "owner": "wagner",
       "permission_prefix": "governance.*",
@@ -3527,7 +3506,7 @@
       "id": "module:Jana",
       "type": "module",
       "module": "Jana",
-      "purpose": "Chat IA do business — conversa, sugere metas, monitora execução. Tenancy híbrida (business_id nullable). Inclui custos LLM, qualidade RAG, alertas, períodos. Renomeado de Copiloto em Fase 3.7 PR-2 (2026-05-06). URLs/permissions/config keys mantêm prefixo legacy `copiloto.*` por compatibilidade.",
+      "purpose": "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. ATENÇÃO fronteira em aberto: este módulo hospeda hoje também a plataforma MCP do time (servidor JSON-RPC /api/mcp, 44 tabelas mcp_* e 30 entidades Entities/Mcp/), cujo destino declarado em not_contains é Modules/Forja — movimento ainda não executado.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "jana.*",
@@ -3540,7 +3519,7 @@
       "id": "module:KB",
       "type": "module",
       "module": "KB",
-      "purpose": "Knowledge Base — biblioteca compartilhada de ADRs, sessions, runbooks, specs, comparativos. Browse/search/graph sobre `mcp_memory_documents`. Split do Copiloto pra desacoplar chat IA de browsing canônico.",
+      "purpose": "Onde está escrito? — indexa, classifica e serve o conhecimento consultável da empresa (o canônico vindo do git, artigos e trilhas editáveis, e a estrutura extraída do próprio código) e responde pergunta em linguagem natural sobre ele via RAG.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "kb.*",
@@ -3553,7 +3532,7 @@
       "id": "module:Manufacturing",
       "type": "module",
       "module": "Manufacturing",
-      "purpose": "UltimatePOS manufacturing.",
+      "purpose": "Receita/BOM e ordem de produção: transforma insumos em produto acabado (transactions.type=production_purchase), calculando custo unitário com perda e baixando estoque dos ingredientes.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "manufacturing.*",
@@ -3566,7 +3545,7 @@
       "id": "module:NfeBrasil",
       "type": "module",
       "module": "NfeBrasil",
-      "purpose": "NFC-e + NF-e + SPED brasileiro. Spec-ready.",
+      "purpose": "Motor headless de comunicação com a SEFAZ: emite NF-e/NFC-e/NFS-e, guarda e opera o certificado A1, aplica eventos (cancelamento, CC-e, inutilização, manifestação DF-e) e calcula tributos. Não tem tela própria no sidebar — a UI é do Modules/Fiscal.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "nfebrasil.*",
@@ -3579,7 +3558,7 @@
       "id": "module:NFSe",
       "type": "module",
       "module": "NFSe",
-      "purpose": "Emissão NFSe via Sistema Nacional (LC 214/2025). Spec-ready, ativar com NfeBrasil.",
+      "purpose": "Emissão, consulta e cancelamento de NFS-e pelo Sistema Nacional (sefin.nfse.gov.br) com certificado A1 e ambiente por business. Dono do schema nfse_emissoes em produção; serve as telas /nfse e é consumido pela tela de venda e pelo cockpit Fiscal.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "nfse.*",
@@ -3605,7 +3584,7 @@
       "id": "module:Officeimpresso",
       "type": "module",
       "module": "Officeimpresso",
-      "purpose": "Sistema Office Impresso desktop licenciamento (Superadmin-only).",
+      "purpose": "Licenciamento, bloqueio e auditoria das máquinas do Office Impresso desktop (Delphi) — CRUD de licenças e logs, credenciais OAuth Passport e API de acesso do desktop, delegáveis ao suporte por permissão. Inclui o importador Firebird do WR Comercial legado.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "officeimpresso.*",
@@ -3618,7 +3597,7 @@
       "id": "module:OficinaAuto",
       "type": "module",
       "module": "OficinaAuto",
-      "purpose": "Vertical oficinas automotivas BR (mecânica geral, recapagem, locação caçamba). Schema próprio veículo+placa (≠ Repair que usa serial_no+device neutro).",
+      "purpose": "Vertical de oficina de REPARO de veículo (CNAE 4520-0/01) — OS própria (service_orders) com FSM canônica, vistoria DVI, aprovação pública do cliente por WhatsApp e PIN, e faturamento automático em Transaction (os_ref SO-). Schema veículo+placa, distinto do Repair genérico (serial_no+device).",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "oficina_auto.*",
@@ -3631,7 +3610,7 @@
       "id": "module:PaymentGateway",
       "type": "module",
       "module": "PaymentGateway",
-      "purpose": "Camada técnica de cobrança BR — drivers Inter/C6/Asaas/Pix Automático BCB, webhooks, CNAB, credenciais. Consumida por Sell, RecurringBilling, NFSe, Superadmin license.",
+      "purpose": "Camada técnica de cobrança BR — drivers de API bancária (Inter, C6, Asaas, Pagar.me, Sicoob, Pix Automático BCB) e 11 drivers CNAB, webhooks assinados e cofre de credenciais, atrás do PaymentGatewayContract. Consumida hoje por Financeiro, Sell (core) e Superadmin.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "paymentgateway.*",
@@ -3644,7 +3623,7 @@
       "id": "module:Ponto",
       "type": "module",
       "module": "Ponto",
-      "purpose": "Ponto eletrônico Portaria 671/2021. Renomeado de PontoWr2 em Fase 3.7 PR-2 (2026-05-06). URLs/permissions/config keys mantêm prefixo legacy `pontowr2.*` por compatibilidade.",
+      "purpose": "Ponto eletrônico CLT sob Portaria MTP 671/2021 — marcação append-only imutável (trigger MySQL mais override no Model; correção só por anulação) com NSR sequencial por REP e importação de AFD. Sobre isso: apuração de jornada, banco de horas, intercorrências com aprovação e espelho. Multi-tenant Tier 0.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "pontowr2.*",
@@ -3657,7 +3636,7 @@
       "id": "module:ProductCatalogue",
       "type": "module",
       "module": "ProductCatalogue",
-      "purpose": "Catálogo & menu público.",
+      "purpose": "Vitrine pública read-only de produto por business e location, acessível sem login via URL ou QR code — zero entidade própria, zero escrita, subordinada ao hub Vendas.",
       "trust": "L4",
       "owner": "wagner",
       "permission_prefix": "productcatalogue.*",
@@ -3696,7 +3675,7 @@
       "id": "module:RecurringBilling",
       "type": "module",
       "module": "RecurringBilling",
-      "purpose": "Cobrança recorrente BR — Pix Automático, smart retries, NFSe automática. Spec-ready.",
+      "purpose": "Assinaturas, planos e faturas recorrentes (schema rb_*) com pilha própria de boleto e PIX (Inter, C6, Asaas) e webhooks. Gera faturas por schedule diário em live; a régua de dunning é declarativa e a cobrança automática (ChargeAttempt) ainda não é criada por código de produção.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "recurringbilling.*",
@@ -3709,7 +3688,7 @@
       "id": "module:Repair",
       "type": "module",
       "module": "Repair",
-      "purpose": "UltimatePOS repair shops.",
+      "purpose": "Ciclo de vida da ordem de serviço (recepção, diagnóstico, execução, entrega) sobre transactions.sub_type=repair e job_sheets, com FSM, Kanban de produção e faturamento derivado. Infraestrutura de OS compartilhada entre verticais.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "repair.*",
@@ -3735,7 +3714,7 @@
       "id": "module:Spreadsheet",
       "type": "module",
       "module": "Spreadsheet",
-      "purpose": "Planilhas internas — uso interno do time.",
+      "purpose": "Planilhas Luckysheet dentro do ERP — CRUD, pastas e compartilhamento com usuário, papel ou tarefa do próprio business. Módulo legado UltimatePOS vendido por assinatura, em manutenção bug-fix only.",
       "trust": "L4",
       "owner": "wagner",
       "permission_prefix": "spreadsheet.*",
@@ -3761,7 +3740,7 @@
       "id": "module:Superadmin",
       "type": "module",
       "module": "Superadmin",
-      "purpose": "Pacotes + subscription multi-tenant. Só Wagner toca.",
+      "purpose": "Console do operador da plataforma (superadmin-only, cross-tenant por desenho). Vende e administra o produto — pacotes, assinaturas e checkout — e administra os tenants e o acesso: criar, desativar e destruir business, resetar senha, e a vista Usuário 360 com roles, permissões efetivas, tokens, sessões e lockouts. É o único módulo que fura o business_id global scope legitimamente.",
       "trust": "L0",
       "owner": "wagner",
       "permission_prefix": "superadmin.*",
@@ -3774,7 +3753,7 @@
       "id": "module:Vestuario",
       "type": "module",
       "module": "Vestuario",
-      "purpose": "Vertical lojas de vestuário/moda BR (CNAE 4781-4/00). Encapsula customizações ROTA LIVRE (cliente piloto biz=4) e habilita revenda do módulo. Consome Modules/Repair shared infra opcional (kanban costureira→revisão→finalização) via vocabulário shared.",
+      "purpose": "Vertical lojas de vestuário e moda BR (CNAE 4781-4/00): capacidades que o núcleo não tem por serem específicas do ramo — etiqueta TAG térmica (ZPL e PDF, tamanho x cor x coleção) e devolução/troca CDC com crédito-ficha — mais os settings por business do vertical.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "vestuario.*",
@@ -3787,7 +3766,7 @@
       "id": "module:VozDoCliente",
       "type": "module",
       "module": "VozDoCliente",
-      "purpose": "Voz do Cliente — canal de sinal dentro do sistema. Quem usa o ERP relata a dor na tela em que ela acontece; o sinal é gravado com contexto, roteado ao módulo dono e triado até virar melhoria rastreável. Implementa ADR 0105 'cliente como sinal qualificado'.",
+      "purpose": "Recebe e guarda o relato de quem opera o ERP, dentro do login: texto literal (nunca reescrito), a URL da tela onde a dor aconteceu, severidade auto-declarada e autor, deduplicado por texto e escopado ao business. Hoje entrega só isso — a caixa é leitura sem ação de triagem, o roteamento por módulo não está ligado, e ainda não existe chamador do endpoint de gravação no frontend.",
       "trust": "",
       "owner": "wagner",
       "permission_prefix": "",
@@ -3800,7 +3779,7 @@
       "id": "module:Whatsapp",
       "type": "module",
       "module": "Whatsapp",
-      "purpose": "Whatsapp transacional unificado (Z-API default + Meta Cloud fallback obrigatório; BaileysDriver custom autorizado Sprint 3; Evolution PROIBIDO permanente) — status OS Repair, boleto/NFe RecurringBilling, lembrete Financeiro, ConsultaOs acompanhamento, bot Jana HITL",
+      "purpose": "Plataforma de atendimento do oimpresso (/atendimento/*): caixa unificada, canais, filas, macros, CSAT, métricas, IA de apoio na thread e voz do cliente. Canal implementado hoje = WhatsApp (Meta Cloud default; baileys/evolution/whatsapp-web.js proibidos, ADR 0202); Instagram, Messenger, Email e Mercado Livre são tipos declarados sem driver.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "whatsapp.*",
@@ -3813,7 +3792,7 @@
       "id": "module:Woocommerce",
       "type": "module",
       "module": "Woocommerce",
-      "purpose": "Integração POS ↔ WooCommerce.",
+      "purpose": "Canal de venda WooCommerce: espelha o catálogo do oimpresso na loja WordPress (produtos, variações, categorias, tax rates, mídia) e converte pedido recebido por webhook em venda (transaction) no núcleo. Subordinado ao hub Vendas; não é loja nem gateway.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "woocommerce.*",
@@ -3893,7 +3872,9 @@
       "type": "table",
       "name": "copiloto_memoria_metricas",
       "owners": [],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [
         "Jana"
       ],
@@ -4016,7 +3997,9 @@
       "owners": [
         "Jana"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4038,7 +4021,9 @@
       "owners": [
         "Jana"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4060,7 +4045,9 @@
       "owners": [
         "Jana"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -4261,6 +4248,17 @@
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_audit_log",
+      "type": "table",
+      "name": "mcp_audit_log",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:mcp_components",
@@ -4492,6 +4490,17 @@
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_usage_diaria",
+      "type": "table",
+      "name": "mcp_usage_diaria",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:mcp_user_module_access",
@@ -5962,6 +5971,12 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "module:Compras",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -5980,6 +5995,12 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:Sells",
+      "type": "dependsOn",
+      "source": "depends_on"
     },
     {
       "from": "module:Financeiro",
@@ -6551,6 +6572,12 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/RoadmapGanttController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/ScorecardController + ScorecardBuilderService",
       "type": "hasComponent",
       "source": "contains"
@@ -6749,6 +6776,42 @@
     },
     {
       "from": "module:Governance",
+      "to": "table:copiloto_memoria_metricas",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:jana_conversas",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:jana_memoria_gabarito",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:jana_mensagens",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_audit_log",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_usage_diaria",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
       "to": "module:Admin",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -6781,13 +6844,6 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Tokens MCP CRUD"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:Jana",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP usage cross-team dashboard (/jana/admin/governanca)"
     },
     {
       "from": "module:Governance",
@@ -6835,8 +6891,22 @@
       "from": "module:Governance",
       "to": "module:Jana",
       "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP usage cross-team dashboard (/jana/admin/governanca)"
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "jana_conversas"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "jana_memoria_gabarito"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "jana_mensagens"
     },
     {
       "from": "module:Governance",
@@ -6883,6 +6953,12 @@
     },
     {
       "from": "module:Governance",
+      "to": "component:Governance/CustosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
       "to": "component:Governance/DashboardController",
       "type": "hasComponent",
       "source": "contains"
@@ -6920,6 +6996,12 @@
     {
       "from": "module:Governance",
       "to": "component:Governance/PoliciesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
+      "to": "component:Governance/QualidadeIaController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7091,37 +7173,13 @@
     },
     {
       "from": "module:Jana",
-      "to": "component:Jana/Admin/CustosController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
       "to": "component:Jana/Admin/JanaProController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Jana",
-      "to": "component:Jana/Admin/QualidadeController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/Admin/RoadmapController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
       "to": "component:Jana/AlertasController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/BriefController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7139,12 +7197,6 @@
     },
     {
       "from": "module:Jana",
-      "to": "component:Jana/DashboardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
       "to": "component:Jana/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -7152,6 +7204,12 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/Entities/jana_memoria_*",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Jana",
+      "to": "component:Jana/IndexController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7175,12 +7233,6 @@
     },
     {
       "from": "module:Jana",
-      "to": "component:Jana/PainelController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
       "to": "component:Jana/PeriodosController",
       "type": "hasComponent",
       "source": "contains"
@@ -7188,12 +7240,6 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/ProController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
-      "to": "component:Jana/RegrasController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9853,7 +9899,20 @@
     ],
     "dangling_module_refs": [],
     "dangling_adr_refs": [],
-    "consumed_tables_without_catalog_owner": [],
+    "consumed_tables_without_catalog_owner": [
+      {
+        "table": "mcp_audit_log",
+        "consumers": [
+          "Governance"
+        ]
+      },
+      {
+        "table": "mcp_usage_diaria",
+        "consumers": [
+          "Governance"
+        ]
+      }
+    ],
     "tables_owned_by_multiple": []
   }
 }

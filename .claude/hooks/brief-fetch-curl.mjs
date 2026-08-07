@@ -26,12 +26,18 @@
 
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 
 const ENDPOINT = 'https://mcp.oimpresso.com/api/mcp';
 const TIMEOUT_MS = 10000;
 const HANDOFF = 'memory/08-handoff.md';
+// Cofre local-pessoal (ADR 0131 — "só seu → oimpresso-local"). FORA da árvore do repo de
+// propósito: settings.local.json é gitignored, logo NÃO tem backup no git. Em 2026-08-07 ele
+// sumiu do repo principal e derrubou o MCP em TODOS os 33 worktrees de uma vez (eles herdam
+// dali via resolveSettingsPath subindo a árvore). Este é o único backup.
+const VAULT_REL = ['.claude', 'oimpresso-local', 'mcp-settings.local.json'];
 
 // ── resolução do settings.local.json (cwd primeiro, subindo a árvore) ──
 export function resolveSettingsPath(startCwd = process.cwd()) {
@@ -43,6 +49,64 @@ export function resolveSettingsPath(startCwd = process.cwd()) {
     if (parent === dir) return null; // raiz do filesystem
     dir = parent;
   }
+}
+
+// ── cofre local-pessoal: caminho (injetável pro selftest) ──
+export function vaultPath(home) {
+  return join(home || homedir(), ...VAULT_REL);
+}
+
+// ── raiz do repo PRINCIPAL. De dentro de um worktree, --git-common-dir aponta pro .git do
+// principal (medido 2026-08-07: worktree → "D:/oimpresso.com/.git"), então restauramos NA RAIZ
+// e os 33 worktrees voltam de uma vez, em vez de espalhar o token em 33 cópias.
+// Devolve null fora de repo git — e aí o restore NÃO age (guarda anti-escrita em dir aleatório).
+export function findRepoRoot(cwd = process.cwd(), runner = spawnSync) {
+  try {
+    const r = runner('git', ['rev-parse', '--git-common-dir'], { cwd, encoding: 'utf8' });
+    if (!r || r.status !== 0 || typeof r.stdout !== 'string') return null;
+    const gitDir = r.stdout.trim();
+    if (!gitDir) return null;
+    const abs = resolve(cwd, gitDir);
+    return /[\\/]\.git$/.test(abs) ? dirname(abs) : null;
+  } catch { return null; }
+}
+
+// Razões FIXAS (requisito 3: nunca interpolam conteúdo do cofre nem do erro).
+const MOTIVO_RESTORE = {
+  'cofre-ausente': 'settings.local.json não encontrado e sem cofre local pra restaurar',
+  'cofre-ilegivel': 'settings.local.json não encontrado e cofre local ilegível',
+  'cofre-sem-token': 'settings.local.json não encontrado e cofre local sem token válido',
+  'fora-de-repo': 'settings.local.json não encontrado (fora de repo git — nada a restaurar)',
+  'destino-ja-existe': 'settings.local.json não encontrado pela árvore (destino já ocupado)',
+  'escrita-falhou': 'settings.local.json não encontrado e restauração do cofre falhou ao escrever',
+};
+
+// ── auto-recuperação. Só age quando a árvore INTEIRA não tem settings.local.json (chamado
+// apenas nesse caminho) E o cofre tem token válido E estamos dentro de um repo git.
+// NUNCA sobrescreve destino existente. Todo caminho de falha devolve motivo fixo (fail-open).
+export function restoreFromVault(opts = {}) {
+  const cwd = opts.cwd || process.cwd();
+  const ex = opts.existsFn || existsSync;
+  const rd = opts.readFn || readFileSync;
+  const wr = opts.writeFn || writeFileSync;
+  const mk = opts.mkdirFn || mkdirSync;
+  const vault = opts.vaultFile || vaultPath(opts.home);
+
+  if (!ex(vault)) return { ok: false, reason: 'cofre-ausente' };
+  let texto;
+  try { texto = rd(vault, 'utf8'); } catch { return { ok: false, reason: 'cofre-ilegivel' }; }
+  // placeholder do .example começa com "Bearer mcp_" e passaria no readAuthHeader — rejeita.
+  const auth = readAuthHeader(texto);
+  if (!auth || auth.includes('COLE_SEU')) return { ok: false, reason: 'cofre-sem-token' };
+
+  const root = opts.repoRoot !== undefined ? opts.repoRoot : findRepoRoot(cwd, opts.runner);
+  if (!root) return { ok: false, reason: 'fora-de-repo' };
+
+  const dest = join(root, '.claude', 'settings.local.json');
+  if (ex(dest)) return { ok: false, reason: 'destino-ja-existe' };
+  try { mk(join(root, '.claude'), { recursive: true }); wr(dest, texto, 'utf8'); }
+  catch { return { ok: false, reason: 'escrita-falhou' }; }
+  return { ok: true, dest, texto };
 }
 
 // ── token: lê Authorization e valida prefixo. NUNCA devolve o valor em mensagem. ──
@@ -85,13 +149,14 @@ export function readHandoffTail(n = 30, cwd = process.cwd()) {
   } catch { return null; }
 }
 
-export function fallbackText(reason, handoffTail) {
+export function fallbackText(reason, handoffTail, dica) {
   const out = [
     '',
     `=== [brief-fetch hook] FALLBACK ATIVADO — motivo: ${reason} ===`,
     'MCP brief-fetch indisponível. Use ÍNDICE de handoffs como contexto inicial:',
     '',
   ];
+  if (dica) { out.push(dica, ''); }
   out.push(handoffTail != null ? handoffTail : `(${HANDOFF} não encontrado neste worktree)`);
   out.push('');
   out.push('⚠ Claude — sem brief, você opera com dados parciais. Rode brief-fetch manual (tool MCP) se conectado.');
@@ -139,25 +204,39 @@ export async function runBrief(opts = {}) {
   const cwd = opts.cwd || process.cwd();
   const handoffTail = () => readHandoffTail(30, cwd);
   try {
-    // 1. settings path
+    // 1. settings path (+ auto-recuperação do cofre local se a árvore INTEIRA não tiver)
     let settingsText = opts.settingsTextOverride;
+    let avisoRestore = '';
     if (settingsText == null) {
       const path = opts.settingsPath || resolveSettingsPath(cwd);
-      if (!path) return fallbackText('settings.local.json não encontrado (token MCP indisponível)', handoffTail());
-      try { settingsText = readFileSync(path, 'utf8'); }
-      catch { return fallbackText('settings.local.json ilegível (token indisponível)', handoffTail()); }
+      if (!path) {
+        const restore = opts.restoreFn || restoreFromVault;
+        const rec = restore({ cwd, home: opts.home, vaultFile: opts.vaultFile, repoRoot: opts.repoRoot, runner: opts.runner });
+        if (!rec.ok) {
+          return fallbackText(
+            MOTIVO_RESTORE[rec.reason] || 'settings.local.json não encontrado (token MCP indisponível)',
+            handoffTail(),
+            '↳ CONSERTO: copie .claude/settings.local.json.example para .claude/settings.local.json na RAIZ do repo (os worktrees herdam dali) e cole seu token de https://oimpresso.com/copiloto/admin/team.',
+          );
+        }
+        settingsText = rec.texto;
+        avisoRestore = `[brief-fetch] settings.local.json estava AUSENTE — restaurado do cofre local em ${rec.dest}\n`;
+      } else {
+        try { settingsText = readFileSync(path, 'utf8'); }
+        catch { return fallbackText('settings.local.json ilegível (token indisponível)', handoffTail()); }
+      }
     }
     // 2. token
     const authHeader = readAuthHeader(settingsText);
-    if (!authHeader) return fallbackText('token Authorization ausente/inválido em settings.local.json', handoffTail());
+    if (!authHeader) return avisoRestore + fallbackText('token Authorization ausente/inválido em settings.local.json', handoffTail());
     // 3. POST
     const r = await fetchBrief({ fetchImpl: opts.fetchImpl, endpoint: opts.endpoint, authHeader, timeoutMs: opts.timeoutMs });
-    if (!r.ok) return fallbackText(r.reason, handoffTail());
+    if (!r.ok) return avisoRestore + fallbackText(r.reason, handoffTail());
     // 4. extrai
     const ex = extractBrief(r.json);
-    if (!ex.ok) return fallbackText(ex.reason, handoffTail());
+    if (!ex.ok) return avisoRestore + fallbackText(ex.reason, handoffTail());
     // 5. sucesso
-    return successText(ex.text);
+    return avisoRestore + successText(ex.text);
   } catch {
     // fail-open blindado — qualquer coisa inesperada NÃO derruba o SessionStart
     return fallbackText('erro inesperado no hook (fail-open)', handoffTail());

@@ -97,7 +97,7 @@ const closingPatterns = [
     }
 
     // Emite system-reminder
-    const reminder = `🔔 **R12 PROTOCOLO-WAGNER-SEMPRE — sinal de fechamento detectado** (hook \`force-r12-closing-signal.mjs\` cross-platform)
+    const reminder = `[force-r12-closing-signal] 🔔 **R12 PROTOCOLO-WAGNER-SEMPRE — sinal de fechamento detectado** (hook \`force-r12-closing-signal.mjs\` cross-platform)
 
 Pattern detectado: \`${matched}\`
 

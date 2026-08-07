@@ -16,8 +16,7 @@
       </div>
     @elseif ($termo === '')
       <div class="vazio">
-        <p>Digite um termo acima para buscar em <strong>decisões (ADR), referências,
-           specs e runbooks</strong>.</p>
+        <p>Digite um termo acima para buscar em <strong>{{ $escopoProsa }}</strong>.</p>
         <p>Diário de bordo — sessões e handoffs — fica de fora de propósito: são
            registros datados, não documentação, e misturá-los enterraria o que você procura.</p>
       </div>
@@ -29,7 +28,7 @@
     @else
       <div class="colophon">
         <span><b>{{ $resultados->count() }}</b> resultado(s) para “{{ $termo }}”</span>
-        <span><b>Escopo</b> adr · reference · spec · runbook</span>
+        <span><b>Escopo</b> {{ implode(' · ', $escopoTipos) }}</span>
       </div>
 
       @foreach ($resultados as $r)

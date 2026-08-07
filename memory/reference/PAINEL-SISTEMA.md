@@ -1,14 +1,18 @@
 ---
-name: PAINEL-SISTEMA — índice gerado do estado do sistema oimpresso
+id: reference-painel-sistema
+name: Técnico — Painel do sistema
 description: MATRIZ gerada por scripts/governance/system-map.mjs. NÃO editar à mão (regenera). Índice que aponta pros donos canônicos + fatos deriváveis + frescor real.
 type: reference
 authority: generated
 lifecycle: ativo
+nav_group: tecnico
+nav_order: 20
+lente: [construir]
 ---
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-03**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-07**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -24,15 +28,15 @@ lifecycle: ativo
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-23 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-27 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-07-28 |
-| Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-07-23 |
+| Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-07-23 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-30 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-27 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-05 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-27 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-01 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-27 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-30 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-05 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-05 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
@@ -42,8 +46,8 @@ lifecycle: ativo
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-27 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
-| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-03 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-23 |
+| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-08-06 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-01 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
@@ -61,14 +65,14 @@ lifecycle: ativo
 - **Provedores** declarados em `config/ai.php`: **15** · default = `openai` — anthropic, azure, bedrock, cohere, deepseek, eleven, gemini, groq, jina, mistral, ollama, openai, openrouter, voyageai, xai. _Declarado ≠ com chave_: a credencial mora no ambiente.
 - **Implementações de `MemoriaContrato`**: McpMemoriaDriver · MeilisearchDriver · NullMemoriaDriver · RetrievalTelemetryDecorator
 - **Rerankers** (`implements Reranker`): BgeReranker · LlmRerankerAdapter · NullReranker · RrfReranker
-- **Tools SQL do Brief Diário**: **5** · **agentes de engenharia**: **26** — catálogo separado do runtime PHP.
+- **Tools SQL do Brief Diário**: **5** · **agentes de engenharia**: **27** — catálogo separado do runtime PHP.
 - Arquitetura completa, topologia, compose e probes: [`Jana/ARCHITECTURE.md`](../requisitos/Jana/ARCHITECTURE.md) — gerada por esta mesma máquina.
 
 > Não derivável e por isso NÃO listado aqui: quais pipelines de retrieval existem e qual está ligado — isso mora na config e no BRIEFING da Jana, e um número inventado aqui seria pior que a ausência.
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **342**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **340**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -76,66 +80,73 @@ lifecycle: ativo
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 35 required (enforcement: everyone)
+### Bloqueiam merge — 41 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
+- anchor entry/covers gate
+- anchor-lint ADR 0273
 - Ancora de design nao-shell (F2/F6 required)
 - Append-only canon (ADRs, handoffs, Constituição)
 - Casos-coverage · ratchet (trio + rastreabilidade)
+- catalog.json == SCOPEs + Classes B
 - Charter (resources/js/Pages/**/*.charter.md)
-- DS gate
+- charter status:live precisa de sinal de prod
+- deadlink-gate (ratchet · integridade referencial)
 - Dominio-dict · ratchet (enum ⇔ dicionário)
+- doneness-lint ADR 0302
+- DS gate
 - ESLint · ratchet vs baseline
 - Frontend / Vite build
+- gate selftest (as catracas mordem · GT-G6)
 - Layout primitives · ratchet
 - Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
+- PHP / Pest (Compras · MySQL)
+- PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)
 - PHP / Pest (NfeBrasil · MySQL)
+- PHP / Pest (Ponto · MySQL)
 - PHP / Pest (Unit)
 - PHPStan / Larastan · ratchet vs baseline
 - PII scan (CPF/CNPJ literal)
+- screen-coverage-gate
 - SDD scorecard ratchet (métrica armada não regride · GT-G3)
-- SPEC (memory/requisitos/*/SPEC.md)
 - Secret scan (gitleaks · só linhas novas do PR)
+- Self-test — classificação por papel + montagem determinística
+- SPEC (memory/requisitos/*/SPEC.md)
 - Stylelint · ratchet vs baseline
+- SUPERFICIE.md == árvore (módulos vivos + adotados)
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
-- anchor entry/covers gate
-- anchor-lint ADR 0273
-- charter status:live precisa de sinal de prod
-- doneness-lint ADR 0302
-- gate selftest (as catracas mordem · GT-G6)
-- screen-coverage-gate
 - visual-regression
-- deadlink-gate (ratchet · integridade referencial)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 117 workflows por classe
+### Censo — 120 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 86 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 88 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
+| governanca | 1 | required-always-run |
 | qualidade | 1 | brl-scan |
 
 ## Decisões (ADRs)
 
-- **369** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 334 · superseded: 16 · deprecated: 12 · proposto: 5 · rascunho: 1 · recusado: 1.
+- **374** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 338 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 74 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 84 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -212,6 +223,16 @@ lifecycle: ativo
 - ~~2026-08-02 — Ressuscitar o `Modules/ADS` (núcleo dual-brain), recriar suas tabelas, ou religar o daemon `ads-brain-a` no CT 100~~
 - ~~2026-08-02 — Corrigir UMA de N implementações duplicadas: o fix pousou na cópia que o consumidor não usa~~
 - ~~2026-08-03 — Consertar UM comprimento da família de regex e não medir os IRMÃOS~~
+- ~~2026-08-03 — Construir máquina PARALELA ao dono DEPOIS de ter lido o dono; e despachar escrita em massa sobre base que envelheceu sozinha~~
+- ~~2026-08-03 — Colher as guidelines/skills do `laravel/boost` pra fechar a nota baixa de "contexto de framework versionado"~~
+- ~~2026-08-04 — Placeholder `{{X}}` **sem aspas** em frontmatter YAML (quebra consumidor em fail-open, e a técnica foi vendida como "FP zero")~~
+- ~~2026-08-04 — Isentar do gate a população que a MÁQUINA SEMPRE PRODUZ (o `shipped-log-gate` nunca teve como reprovar — e a isenção estava INVERTIDA)~~
+- ~~2026-08-05 — Tratar alerta de ferramenta deduzindo a causa do ARQUIVO SUSPEITO, sem ler o que ela reportou (6 tentativas · e o `.gitleaksignore` era o vazamento)~~
+- ~~2026-08-05 — Confiar que o merge do git protege frontmatter YAML (dois PRs, sem conflito, chave DUPLICADA em produção)~~
+- ~~2026-08-06 — Navegação tem CINCO superfícies na Forja: deduzir camada-a-camada em vez de perguntar ao runtime (8 diagnósticos errados)~~
+- ~~2026-08-07 — Declarar "o protótipo não está no repo" varrendo SÓ o git, com o `DesignSync` à mão (e o hook do incidente gêmeo mudo)~~
+- ~~2026-08-07 — Validar teste em UMA plataforma e concluir que passa (literal `D:/...` é absoluto no Windows e RELATIVO no POSIX)~~
+- ~~2026-08-07 — Ler o `routes.php` do módulo e NÃO ler o `SPEC.md` — o plano nasce paralelo à US que já é dona~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -222,14 +243,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **361** handoffs · **576** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **375** handoffs · **592** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-08-03-triagem-quarentena-financeiro`
-  - `2026-08-03-documentacao-do-sistema-rota-agente-diagramas`
-  - `2026-08-02-e5-ads-b3-rag-redactor-swimm`
-  - `2026-08-02-b7-cobertura-ponto-atributo-fantasma`
-  - `2026-08-02-b7-cobertura-conciliacao-quarentena-ledger`
-  - `2026-08-02-b6-subtracao-fosseis-b7-censo`
+  - `2026-08-07-jana-fusao-onda1`
+  - `2026-08-05-sdd-flow-feature-smart-token`
+  - `2026-08-05-plano-documentacao-tecnica-operacional`
+  - `2026-08-05-maquinas-que-existiam-e-nao-avisavam`
+  - `2026-08-05-hooks-condicionais-observaveis`
+  - `2026-08-05-governanca-recebe-telas-e-contrato-visual`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-03 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-07 · deriva das fontes canônicas, não as substitui._

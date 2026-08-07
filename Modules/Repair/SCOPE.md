@@ -1,6 +1,7 @@
 ---
 module: Repair
-purpose: "UltimatePOS repair shops."
+purpose: "Ciclo de vida da ordem de serviço (recepção, diagnóstico, execução, entrega) sobre transactions.sub_type=repair e job_sheets, com FSM, Kanban de produção e faturamento derivado. Infraestrutura de OS compartilhada entre verticais."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "CustomerRepairStatusController"
   - "DashboardController"

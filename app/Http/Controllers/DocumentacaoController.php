@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
@@ -29,6 +30,9 @@ class DocumentacaoController extends Controller
     /** Documento dono da leitura guiada, relativo à raiz do repo. */
     private const FONTE = 'memory/GUIA-DO-SISTEMA.md';
 
+    /** Plano dono do programa de documentação (Trilha D), relativo à raiz do repo. */
+    private const PLANO = 'memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md';
+
     /** Base para reescrever links relativos do markdown (que apontam pra árvore do git). */
     private const BLOB = 'https://github.com/wagnerra23/oimpresso.com/blob/main/';
 
@@ -41,9 +45,49 @@ class DocumentacaoController extends Controller
      * Fora de propósito: `session` e `handoff` (diário de bordo, não guia — misturá-los
      * piora a busca: procurar "financeiro" traria 40 handoffs antes do briefing do
      * módulo), e `audit`/`changelog`/`comparativo`/`current`/`tasks`/`other`, que são
-     * retratos datados. Os 4 abaixo são os que respondem "como isto funciona".
+     * retratos datados. Os abaixo são os que respondem "como isto funciona".
+     *
+     * `feature` entrou em 2026-08-04 (pedido [W]): é o trio
+     * `memory/requisitos/<Mod>/features/<slug>/{requirements,plan,tasks}.md` — o degrau
+     * "spec por feature" (proposal `feature-trio-requirements-plan-tasks`). Não é retrato
+     * datado: é contrato vivo de UMA feature (acceptance EARS + plug-points + DoD), a
+     * mesma natureza do `spec`, um nível abaixo.
+     *
+     * Fora AINDA (decisão pendente [W], não esquecimento): `charter` e `casos` — entram no
+     * ÍNDICE desde 2026-08-02 (B3) mas não neste filtro, de propósito. Estar na TABELA não
+     * é estar no ACERVO; adicioná-los é decisão, não conserto.
+     *
+     * `briefing` entrou em 2026-08-05 (autorização [W]: *"pode incluir"*). Era o único tipo
+     * que não estava nem na lista nem entre as exclusões justificadas acima — assinatura de
+     * omissão, não de decisão. É o dono da camada de PRODUTO por módulo (`requisitos/<Mod>/
+     * BRIEFING.md`, entrada da Camada A no README), já indexado com `type='briefing'` desde
+     * 2026-07-22 e já buscável pela Jana (`KbAnswerService::TIPOS_VALIDOS`) — só a rota
+     * humana não o enxergava. Não é retrato datado: é estado vivo do módulo, mantido por
+     * PR (skill `brief-update`) e vigiado por `briefing-code-staleness.mjs`.
      */
-    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook'];
+    private const TIPOS_DOC = ['adr', 'reference', 'spec', 'runbook', 'feature', 'briefing'];
+
+    /**
+     * Rótulo humano de cada tipo — para a PROSA das views ("cobre decisões, referências…").
+     *
+     * Só o rótulo mora aqui; QUAIS tipos entram é sempre `TIPOS_DOC`. Esta tabela precisa
+     * cobrir TODOS os tipos de lá — e quem cobra isso é o PHPStan, porque `escopoEmProsa()`
+     * indexa direto, sem fallback: tipo novo sem rótulo derruba o CI nomeando o tipo.
+     *
+     * O defeito que motivou tudo isto: até 2026-08-05 as views enumeravam
+     * "adr · reference · spec · runbook" DIGITADO em 4 lugares, e a lista ficou mentindo
+     * duas vezes seguidas — `feature` entrou em 08-04, `briefing` em 08-05, e nenhum dos
+     * quatro rótulos acompanhou. Descrição de máquina mora dentro da máquina; o que a view
+     * mostra é derivado dela, nunca redigitado ([W] 2026-08-05 · ADR 0256).
+     */
+    private const TIPOS_DOC_ROTULO = [
+        'adr' => 'decisões (ADR)',
+        'reference' => 'referências',
+        'spec' => 'specs',
+        'runbook' => 'runbooks',
+        'feature' => 'features',
+        'briefing' => 'briefings de módulo',
+    ];
 
     private const POR_PAGINA = 25;
 
@@ -60,6 +104,53 @@ class DocumentacaoController extends Controller
     ];
 
     private const LENTES = ['operar' => 'Operar', 'construir' => 'Construir'];
+
+    /**
+     * Publica o escopo do acervo pra TODA view desta rota — inclusive o layout, que é
+     * quem carrega o `aria-label` da busca e não recebe payload de método nenhum.
+     *
+     * `View::share` aqui (e não em provider) porque o alcance é exatamente este
+     * controller: quem renderiza `documentacao.*` é só ele.
+     */
+    public function __construct()
+    {
+        ViewFacade::share('escopoTipos', self::TIPOS_DOC);
+        ViewFacade::share('escopoProsa', self::escopoEmProsa());
+    }
+
+    /**
+     * Os tipos do acervo em prosa PT-BR: "a, b, c e d".
+     *
+     * Deriva de `TIPOS_DOC` — a lista de tipos é dona; este método só a veste, na ordem
+     * dela.
+     *
+     * A busca é DIRETA, sem `?? $slug` de fallback, e isso é deliberado: quem garante que
+     * todo tipo tem rótulo é o **PHPStan**. Adicionou tipo em `TIPOS_DOC` e esqueceu o
+     * rótulo? O CI falha com `Offset 'novo' does not exist`, nomeando o tipo. Um fallback
+     * aqui só empurraria o defeito pra produção em forma de slug cru — e, pior, seria
+     * código comprovadamente morto (PHPStan reprovou o `??` exatamente por isso em
+     * 2026-08-05). A garantia mora no analisador, não numa linha inalcançável.
+     *
+     * O caso em `DocumentacaoRouteTest` cobre a mesma invariante por outro caminho
+     * (diferença de conjuntos), pra ela não depender de uma ferramenta só.
+     *
+     * Sem guard de lista curta, pelo mesmo motivo: com `TIPOS_DOC` sabidamente não-vazio,
+     * qualquer `if (count(...) < 2)` é comparação estaticamente sempre-falsa — PHPStan
+     * reprovou uma dessas junto com o `??`. O formato assume ≥2 tipos, o que é verdade
+     * desde que o acervo existe.
+     */
+    private static function escopoEmProsa(): string
+    {
+        $rotulos = [];
+
+        foreach (self::TIPOS_DOC as $tipo) {
+            $rotulos[] = self::TIPOS_DOC_ROTULO[$tipo];
+        }
+
+        $ultimo = array_pop($rotulos);
+
+        return implode(', ', $rotulos) . ' e ' . $ultimo;
+    }
 
     public function index(Request $request): View
     {
@@ -83,6 +174,201 @@ class DocumentacaoController extends Controller
             'nav' => $this->navegacao($this->lenteAtiva($request)),
             'atual' => null,   // a capa não é item do rail; é a rota raiz
         ]);
+    }
+
+    /**
+     * Programa de documentação (Trilha D) — a vista estruturada do plano.
+     *
+     * MESMA DOUTRINA DA CAPA, um passo adiante: a capa renderiza o markdown do Guia;
+     * esta rota LÊ O PLANO e o apresenta como ciclo, ondas e caminhos. Em nenhum dos
+     * dois casos existe cópia commitada — mudou o plano por PR, a tela muda no próximo
+     * acesso (ADR 0256).
+     *
+     * POR QUE PARSEAR EM VEZ DE ESCREVER OS ONZE PASSOS NA VIEW: uma lista escrita aqui
+     * seria um segundo dono do mesmo fato, e drifaria do plano em silêncio — exatamente
+     * o que a § Trilha D proíbe ("ponteiro > cópia"). Se a estrutura esperada some do
+     * plano, a rota falha alto (503 dizendo o que faltou) em vez de exibir tela vazia:
+     * ausência de fonte é defeito, não conteúdo.
+     *
+     * O ESTADO DE EXECUÇÃO (que onda está em curso, qual task) NÃO mora aqui nem na
+     * view: sai da linha da Trilha D no `## Status vivo`, que a ADR 0294 faz dona
+     * ("1 plano = 1 registro"). A fila real continua nas tasks MCP.
+     */
+    public function programa(): View
+    {
+        $caminho = base_path(self::PLANO);
+
+        if (! File::exists($caminho)) {
+            abort(503, 'Plano ausente no deploy: ' . self::PLANO);
+        }
+
+        $markdown = File::get($caminho);
+
+        $ondas = $this->linhasDeTabela($this->secaoDoPlano($markdown, 'D.3'));
+        $estacoes = $this->estacoesDoCiclo($this->secaoDoPlano($markdown, 'D.4'));
+        $caminhos = $this->linhasDeTabela($this->secaoDoPlano($markdown, 'D.5'));
+        $batimento = $this->linhasDeTabela($this->secaoDoPlano($markdown, 'D.6'));
+        $dod = $this->itensDeLista($this->secaoDoPlano($markdown, 'D.7'));
+
+        // Falha honesta: sem as quatro estruturas não há o que apresentar, e uma tela
+        // com seções vazias mentiria dizendo "o programa não tem ondas".
+        foreach (['D.3 ondas' => $ondas, 'D.4 estações' => $estacoes, 'D.5 caminhos' => $caminhos, 'D.6 batimento' => $batimento, 'D.7 DoD' => $dod] as $qual => $bloco) {
+            if ($bloco === []) {
+                abort(503, 'Estrutura ausente na § Trilha D do plano: ' . $qual);
+            }
+        }
+
+        $execucao = $this->execucaoDaTrilha($markdown, $ondas);
+
+        return view('documentacao.programa', [
+            'fonte' => self::PLANO,
+            'blob' => self::BLOB . self::PLANO,
+            'atualizadoEm' => $this->dataDoFrontmatter($markdown),
+            'ondas' => $ondas,
+            'estacoes' => $estacoes,
+            'caminhos' => $caminhos,
+            'batimento' => $batimento,
+            'dod' => $dod,
+            'execucao' => $execucao,
+            'nav' => $this->navegacao($this->lenteAtiva(request())),
+            'atual' => null,
+        ]);
+    }
+
+    /**
+     * Recorta uma subseção `### <codigo> ...` até o próximo `###`/`##`.
+     *
+     * Casa pelo CÓDIGO (`D.3`), não pelo título: o título é prosa e pode ser reescrito
+     * sem aviso; o código é o identificador estável dentro da seção.
+     */
+    private function secaoDoPlano(string $markdown, string $codigo): string
+    {
+        $padrao = '/^###\s+' . preg_quote($codigo, '/') . '\s.*?$(.*?)(?=^#{2,3}\s|\z)/ms';
+
+        return preg_match($padrao, $markdown, $m) === 1 ? $m[1] : '';
+    }
+
+    /**
+     * Linhas de uma tabela markdown → [rotulo, colunas].
+     *
+     * O cabeçalho é descartado pela ESTRUTURA (tudo que vem antes da linha separadora
+     * `|---|`), não por aparência. A primeira versão exigia `**` na 1ª célula pra
+     * distinguir dado de cabeçalho, e isso derrubou a tabela inteira do batimento, cujos
+     * rótulos não são negrito — a tela escondia a seção sem erro nenhum. Formatação não
+     * é contrato; a separadora é.
+     */
+    private function linhasDeTabela(string $trecho): array
+    {
+        $linhas = [];
+        $passouCabecalho = false;
+
+        foreach (preg_split('/\R/', $trecho) ?: [] as $linha) {
+            $linha = trim($linha);
+
+            if (! str_starts_with($linha, '|')) {
+                continue;
+            }
+
+            if (preg_match('/^\|[\s:\-|]+\|$/', $linha) === 1) {
+                $passouCabecalho = true;
+
+                continue;
+            }
+
+            if (! $passouCabecalho) {
+                continue;
+            }
+
+            $celulas = array_map('trim', explode('|', trim($linha, '|')));
+
+            if ($celulas === [] || $celulas[0] === '') {
+                continue;
+            }
+
+            $rotulo = trim(str_replace('**', '', $celulas[0]));
+
+            $linhas[] = [
+                'rotulo' => $rotulo,
+                'codigo' => preg_match('/^(D\d+)\s*·\s*(.*)$/u', $rotulo, $m) === 1 ? $m[1] : null,
+                'nome' => isset($m[2]) ? $m[2] : $rotulo,
+                'colunas' => array_slice($celulas, 1),
+            ];
+        }
+
+        return $linhas;
+    }
+
+    /**
+     * Itens `- ...` de uma lista markdown, sem o marcador.
+     *
+     * Sem `?? []` no grupo 1: `preg_match_all` sempre popula o índice, então o coalesce
+     * seria código comprovadamente morto — e o PHPStan reprova. É a mesma lição que o
+     * `escopoEmProsa()` acima já carrega, de 2026-08-05.
+     */
+    private function itensDeLista(string $trecho): array
+    {
+        preg_match_all('/^-\s+(.*?)(?=^-\s|\z)/ms', $trecho, $m);
+
+        return array_values(array_filter(array_map(
+            static fn (string $item): string => trim((string) preg_replace('/\s+/', ' ', rtrim(trim($item), ';.'))),
+            $m[1]
+        )));
+    }
+
+    /**
+     * Estações do ciclo: itens `N. **Título:** corpo` da D.4.
+     *
+     * Numeradas na fonte, então a ordem e a contagem vêm do documento — a view nunca
+     * escreve "onze".
+     */
+    private function estacoesDoCiclo(string $trecho): array
+    {
+        preg_match_all('/^(\d+)\.\s+\*\*(.+?):?\*\*:?\s*(.*?)(?=^\d+\.\s|\z)/ms', $trecho, $m, PREG_SET_ORDER);
+
+        return array_map(static function (array $item): array {
+            return [
+                'n' => str_pad($item[1], 2, '0', STR_PAD_LEFT),
+                'titulo' => trim($item[2]),
+                'corpo' => trim(preg_replace('/\s+/', ' ', $item[3])),
+            ];
+        }, $m);
+    }
+
+    /**
+     * Estado de execução da Trilha D, lido da linha dela no `## Status vivo`.
+     *
+     * Dona do fato: ADR 0294 (1 plano = 1 registro). Se a linha sumir ou mudar de forma,
+     * os campos voltam nulos e a view omite os cartões — melhor um vazio honesto que um
+     * "D0" fossilizado no código.
+     */
+    private function execucaoDaTrilha(string $markdown, array $ondas): array
+    {
+        $linha = null;
+
+        foreach (preg_split('/\R/', $markdown) ?: [] as $l) {
+            if (str_starts_with(trim($l), '|') && str_contains($l, 'Trilha D')) {
+                $linha = $l;
+            }
+        }
+
+        $ondaAtual = ($linha !== null && preg_match('/\bD(\d+)\b\s+em execução/u', $linha, $m) === 1)
+            ? 'D' . $m[1]
+            : null;
+
+        $posicao = null;
+        foreach ($ondas as $i => $onda) {
+            if ($onda['codigo'] === $ondaAtual) {
+                $posicao = $i + 1;
+            }
+        }
+
+        return [
+            'onda' => $ondaAtual,
+            'onda_nome' => $posicao !== null ? $ondas[$posicao - 1]['nome'] : null,
+            'posicao' => $posicao,
+            'total' => count($ondas),
+            'task' => ($linha !== null && preg_match('/\b(US-[A-Z]+-\d+)\b/', $linha, $m) === 1) ? $m[1] : null,
+        ];
     }
 
     /** Busca full-text no corpus sincronizado do git. */

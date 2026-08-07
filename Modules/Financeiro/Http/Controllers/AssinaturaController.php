@@ -20,7 +20,7 @@ use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
  * Constituicao v2 §5).
  *
  * Multi-tenant Tier 0 (ADR 0093): businessId SEMPRE da session, NUNCA do request.
- * Permissao: recurringbilling.assinatura.update (skill multi-tenant-patterns).
+ * Permissao: recurringbilling.subscriptions.manage (skill multi-tenant-patterns).
  *
  * Cuidado: este Controller serve cliente piloto ROTA LIVRE (biz=4) em prod.
  * Toda alteracao requer canary + aprovacao Wagner (publication-policy).
@@ -68,10 +68,17 @@ class AssinaturaController extends Controller
      */
     public function atualizar(UpdateAssinaturaRequest $request, int $assinatura): JsonResponse
     {
-        if (! auth()->user()?->can('recurringbilling.assinatura.update')) {
+        // `subscriptions.manage` é a permissão que EXISTE e cobre este caso: a
+        // SubscriptionPolicy do próprio RecurringBilling a documenta como
+        // "create/update/pause/resume" e o label diz "Criar/editar assinaturas".
+        // Era `recurringbilling.assinatura.update`, que não é declarada em lugar
+        // nenhum — fora do padrão do módulo em duas frentes (português em vez de
+        // inglês, e recurso no singular). Ninguém podia recebê-la, então editar
+        // assinatura só funcionava pra admin via Gate::before. US-GOV-059 classe C.
+        if (! auth()->user()?->can('recurringbilling.subscriptions.manage')) {
             return response()->json([
                 'ok' => false,
-                'error' => 'Sem permissao recurringbilling.assinatura.update',
+                'error' => 'Sem permissao recurringbilling.subscriptions.manage',
             ], 403);
         }
 

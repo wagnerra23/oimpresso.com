@@ -33,6 +33,8 @@ export function formatMessage(lines) {
   const head = lines.slice(0, 10).map((l) => `    ${l}`);
   const extra = lines.length > 10 ? [`    ... +${lines.length - 10} outros`] : [];
   return [
+    // tag PRIMEIRO — a sonda do `hook-bites` casa `"content":"[<tag>]` no início do valor.
+    '[memory-pending]',
     '',
     `⚠️  ${lines.length} arquivo(s) em memory/governança sem push:`,
     ...head,

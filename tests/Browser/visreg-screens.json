@@ -54,5 +54,45 @@
     "route": "/financeiro/contas-bancarias",
     "anchor": "Contas Bancárias",
     "baseline": "it_Financeiro_ContasBancarias_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Governance/Dashboard",
+    "source": "governance/Dashboard",
+    "component": "governance/Dashboard",
+    "route": "/governance/dashboard",
+    "anchor": "Governança",
+    "baseline": "it_Governance_Dashboard_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Governance/Audit",
+    "source": "governance/Audit",
+    "component": "governance/Audit",
+    "route": "/governance/audit",
+    "anchor": "Audit Log",
+    "baseline": "it_Governance_Audit_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Governance/Policies",
+    "source": "governance/Policies",
+    "component": "governance/Policies",
+    "route": "/governance/policies",
+    "anchor": "Policies (Governança)",
+    "baseline": "it_Governance_Policies_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Governance/Drift",
+    "source": "governance/DriftAlerts",
+    "component": "governance/DriftAlerts",
+    "route": "/governance/drift",
+    "anchor": "Drift Alerts",
+    "baseline": "it_Governance_Drift_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Governance/DsRollout",
+    "source": "governance/DsRollout",
+    "component": "governance/DsRollout",
+    "route": "/governance/ds-rollout",
+    "anchor": "Rollout do Design System",
+    "baseline": "it_Governance_DsRollout_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

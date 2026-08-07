@@ -78,7 +78,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
-Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php  # 6 failed, 2 passed (2 assertions)
 Modules/Financeiro/Tests/Feature/CobrancaControllerTest.php  # 4 failed, 11 passed (51 assertions)
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)

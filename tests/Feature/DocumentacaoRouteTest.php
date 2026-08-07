@@ -4,7 +4,7 @@
  * Contrato das rotas /documentacao (ADR 0256 — a página É a fonte, renderizada).
  *
  * O que cada caso defende:
- *   1. as 3 rotas exigem login (decisão [W] 2026-08-02: doc interna não fica pública);
+ *   1. as 4 rotas exigem login (decisão [W] 2026-08-02: doc interna não fica pública);
  *   2. o documento fonte EXISTE no repo — defeito mais provável: alguém renomeia o
  *      GUIA e a página vira 503 silencioso em produção;
  *   3. `/documentacao/buscar` resolve pra BUSCA, não pra documento de slug "buscar" —
@@ -21,7 +21,7 @@
 use App\User;
 
 it('exige login nas tres rotas de documentacao', function () {
-    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/qualquer-slug'] as $rota) {
+    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/programa', '/documentacao/qualquer-slug'] as $rota) {
         $r = $this->get($rota);
         expect($r->getStatusCode())->toBe(302, "rota {$rota} deveria redirecionar pro login");
         expect($r->headers->get('Location'))->toContain('login');
@@ -51,19 +51,120 @@ it('/documentacao/buscar resolve pra busca, nao pra documento de slug "buscar"',
     expect($rota->getActionMethod())->toBe('buscar');
 });
 
-it('os tipos filtrados existem no enum da tabela do acervo', function () {
-    // Espelha TIPOS_DOC do controller. Se a migration mudar o enum e estes valores
-    // sumirem, o whereIn não dá erro — só devolve vazio pra sempre. Este caso pega.
-    $tiposDoController = ['adr', 'reference', 'spec', 'runbook'];
+it('/documentacao/programa resolve pra programa, nao pra documento de slug "programa"', function () {
+    // Mesmo defeito de ordem que já mordeu a busca: /{slug} tem regex que casa
+    // "programa", então declarar a rota depois dela daria 404 de documento.
+    $rota = app('router')->getRoutes()->match(
+        Illuminate\Http\Request::create('/documentacao/programa', 'GET')
+    );
 
-    $migrations = glob(base_path('Modules/Jana/Database/Migrations/*mcp_memory_documents*.php'));
+    expect($rota->getName())->toBe('documentacao.programa');
+    expect($rota->getActionMethod())->toBe('programa');
+});
+
+it('o plano que a tela do programa renderiza existe e tem a estrutura que o controller parseia', function () {
+    // Espelha a const PLANO do DocumentacaoController. Sem qualquer uma destas
+    // subseções o controller aborta 503 — melhor descobrir aqui que em produção.
+    $plano = base_path('memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md');
+
+    expect(file_exists($plano))->toBeTrue();
+
+    $conteudo = file_get_contents($plano);
+
+    foreach (['D.3', 'D.4', 'D.5', 'D.7'] as $codigo) {
+        expect($conteudo)->toMatch('/^###\s+' . preg_quote($codigo, '/') . '\s/m');
+    }
+
+    // A linha da Trilha D no Status vivo é a dona do estado de execução (ADR 0294).
+    // Se ela sumir, os cartões de onda/task somem da tela — silenciosamente.
+    expect($conteudo)->toMatch('/^\|.*Trilha D.*US-[A-Z]+-\d+/m');
+});
+
+it('a tela do programa NAO carrega a lista de estacoes escrita a mao', function () {
+    // ESTE É O CASO QUE IMPORTA. A tela promete no rodapé que "renderiza o plano, não é
+    // cópia commitada". Se alguém colar as estações/ondas na Blade pra "ficar mais
+    // simples", a promessa vira mentira e a tela drifa do plano em silêncio — que é
+    // exatamente o que a § Trilha D proíbe ("ponteiro > cópia").
+    //
+    // Bite-test: colar qualquer título de estação do plano na view quebra este caso.
+    $view = base_path('resources/views/documentacao/programa.blade.php');
+    expect(file_exists($view))->toBeTrue();
+
+    $blade = file_get_contents($view);
+    $plano = file_get_contents(base_path('memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md'));
+
+    preg_match('/^###\s+D\.4\s.*?$(.*?)(?=^#{2,3}\s)/ms', $plano, $secao);
+    preg_match_all('/^\d+\.\s+\*\*(.+?):?\*\*/m', $secao[1] ?? '', $titulos);
+
+    expect($titulos[1])->not->toBeEmpty('a D.4 do plano deveria ter estações numeradas');
+
+    foreach ($titulos[1] as $titulo) {
+        expect($blade)->not->toContain(trim($titulo));
+    }
+});
+
+it('os tipos filtrados existem no enum VIGENTE da tabela do acervo', function () {
+    // TIPOS_DOC vem por reflexão, não copiado aqui: espelho escrito à mão drifa do
+    // controller e o caso passa a defender uma lista que ninguém usa.
+    $tiposDoController = (new ReflectionClass(App\Http\Controllers\DocumentacaoController::class))
+        ->getConstant('TIPOS_DOC');
+
+    expect($tiposDoController)->toBeArray()->not->toBeEmpty();
+
+    // As migrations do enum se chamam `*_to_mcp_type_enum.php` — um glob por
+    // `*mcp_memory_documents*` no NOME deixava as duas últimas de fora. Filtra por
+    // CONTEÚDO e ordena por nome (= ordem de aplicação).
+    $migrations = array_values(array_filter(
+        glob(base_path('Modules/Jana/Database/Migrations/*.php')),
+        fn ($f) => str_contains((string) file_get_contents($f), 'mcp_memory_documents')
+    ));
+    sort($migrations);
     expect($migrations)->not->toBeEmpty();
 
-    $sql = implode("\n", array_map('file_get_contents', $migrations));
-
-    foreach ($tiposDoController as $tipo) {
-        expect($sql)->toContain("'{$tipo}'", "tipo '{$tipo}' não aparece no enum das migrations");
+    // O enum VIGENTE é o da ÚLTIMA migration que o redefine. Procurar a string solta
+    // em todos os arquivos passaria com o tipo aparecendo só no ENUM_ANTIGO de um
+    // `down()` — ou seja, num tipo que foi REMOVIDO. Presença ≠ estado atual.
+    $vigente = null;
+    foreach ($migrations as $arquivo) {
+        $src = (string) file_get_contents($arquivo);
+        if (preg_match('/ENUM_NOVO\s*=\s*"([^"]+)"/', $src, $m)) {
+            $vigente = $m[1];                                   // migration de expansão
+        } elseif (preg_match("/->enum\('type',\s*\[(.*?)\]\)/s", $src, $m)) {
+            $vigente = $m[1];                                   // create table original
+        }
     }
+
+    // Falha visível se o formato mudar — nunca "não achei, então passa".
+    expect($vigente)->not->toBeNull();
+
+    $enum = array_map(fn ($v) => trim($v, " \t\n'\""), explode(',', (string) $vigente));
+
+    // Por diferença de conjuntos, NÃO `toContain($tipo, "mensagem")`: `toContain` é
+    // VARIÁDICO no Pest, então a mensagem entra como segundo NEEDLE e o caso falha
+    // sempre (proibicoes §5 2026-07-28). Era o estado do `main` até este PR — passava
+    // despercebido porque este arquivo não roda em lane nenhuma. O diff também é
+    // melhor diagnóstico: mostra exatamente qual tipo sumiu do enum.
+    $foraDoEnum = array_values(array_diff($tiposDoController, $enum));
+
+    expect($foraDoEnum)->toBe([]);
+});
+
+it('o trio de feature chega ao acervo: o tipo que o indexador produz é o que o filtro aceita', function () {
+    // O par tem DOIS lados e falhar em qualquer um é silencioso: sem o glob o doc não
+    // entra na tabela; sem o tipo em TIPOS_DOC ele entra e nunca aparece em
+    // /documentacao. É o que acontece hoje com charter/casos — indexados desde
+    // 2026-08-02, fora deste filtro por decisão.
+    $indexador = (string) file_get_contents(
+        base_path('Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php')
+    );
+
+    expect($indexador)->toContain('memory/requisitos/*/features/*/*.md');
+    expect($indexador)->toContain("'type'   => 'feature'");
+
+    $tiposDoController = (new ReflectionClass(App\Http\Controllers\DocumentacaoController::class))
+        ->getConstant('TIPOS_DOC');
+
+    expect($tiposDoController)->toContain('feature');
 });
 
 it('nenhum link do guia sai da rota como href relativo cru ou apontando pra caminho inexistente', function () {
@@ -340,7 +441,14 @@ it('documento sem nav_group nao entra no rail', function () {
 });
 
 it('responde 200 e renderiza o conteudo do dono quando autenticado', function () {
-    $user = User::query()->whereNotNull('email')->first();
+    // `hasTable` ANTES do query: na lane sqlite (:memory:, sem migrate) o
+    // `User::query()` lançava "no such table: users" e derrubava o caso, em vez de
+    // cair no skip que o cabeçalho deste arquivo já promete. Promessa não testada
+    // apodrece calada — e era ela que impedia o arquivo de entrar na lane.
+    $user = Illuminate\Support\Facades\Schema::hasTable('users')
+        ? User::query()->whereNotNull('email')->first()
+        : null;
+
     if (! $user) {
         $this->markTestSkipped('Sem users no DB — este caso não executou.');
     }
@@ -354,4 +462,42 @@ it('responde 200 e renderiza o conteudo do dono quando autenticado', function ()
     expect($html)->not->toContain('slug: guia-do-sistema');  // frontmatter não vazou
     expect($html)->toContain('<h2');                          // markdown virou HTML de verdade
     expect($html)->toContain('documentacao/buscar');           // a busca está oferecida
+});
+
+it('o escopo que a pagina MOSTRA e derivado de TIPOS_DOC — nenhum tipo some calado', function () {
+    // O defeito que este caso mata (2026-08-05): as views enumeravam
+    // "adr · reference · spec · runbook" DIGITADO à mão, em 4 lugares. A lista ficou
+    // mentindo duas vezes seguidas — `feature` entrou em 08-04, `briefing` em 08-05, e
+    // nenhum dos rótulos acompanhou. Quem lia a página concluía que o acervo era menor
+    // do que é. Não é presence-gate (não olha o texto do .blade): mede a DERIVAÇÃO —
+    // se um tipo novo entrar em TIPOS_DOC sem chegar ao que a página mostra, cai aqui.
+    $classe = new ReflectionClass(App\Http\Controllers\DocumentacaoController::class);
+    $tipos = $classe->getConstant('TIPOS_DOC');
+    $rotulos = $classe->getConstant('TIPOS_DOC_ROTULO');
+
+    // 1. Todo tipo tem rótulo humano. O PHPStan já cobra isto — escopoEmProsa() indexa
+    //    direto, sem fallback, então tipo sem rótulo derruba a análise estática nomeando
+    //    o tipo. A invariante é importante demais pra depender de uma ferramenta só.
+    $semRotulo = array_values(array_diff($tipos, array_keys($rotulos)));
+    expect($semRotulo)->toBe([]);
+
+    // 2. A prosa cobre TODOS os tipos. Por diferença de conjuntos, não por toContain
+    //    com mensagem — o diagnóstico mostra exatamente qual tipo ficou de fora.
+    $escopoEmProsa = $classe->getMethod('escopoEmProsa');
+    $escopoEmProsa->setAccessible(true);
+    $prosa = $escopoEmProsa->invoke(null);
+
+    $foraDaProsa = array_values(array_filter(
+        $tipos,
+        fn (string $t): bool => ! str_contains($prosa, $rotulos[$t] ?? $t)
+    ));
+    expect($foraDaProsa)->toBe([]);
+
+    // 3. O construtor PUBLICA os dois pra toda view da rota — incluindo o layout, que
+    //    carrega o aria-label da busca e não recebe payload de método nenhum. Sem esta
+    //    perna, a derivação existiria e não chegaria na tela.
+    new App\Http\Controllers\DocumentacaoController;
+
+    expect(Illuminate\Support\Facades\View::shared('escopoTipos'))->toBe($tipos);
+    expect(Illuminate\Support\Facades\View::shared('escopoProsa'))->toBe($prosa);
 });

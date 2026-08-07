@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const SCRIPT = 'scripts/governance/maquinas-inventario.mjs';
-const REAL = 'governance/MAQUINAS-INVENTARIO.md';
+const REAL = 'memory/reference/MAQUINAS-INVENTARIO.md';
 const fixture = join(mkdtempSync(join(tmpdir(), 'maq-')), 'inv.md');
 
 // roda o --check com o doc apontado pra `path`; devolve o exit code

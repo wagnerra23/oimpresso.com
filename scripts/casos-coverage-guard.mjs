@@ -233,7 +233,27 @@ function tetoDeProva(ucDecls, testCorpus) {
   // "preso" = citado em ALGUM teste (satisfaz G-2) mas NUNCA no título → inalcançável pelo G-7.
   // UC sem citação alguma não conta aqui: já é violação `uc-orphan`, outro problema.
   const soDocblock = distintos.filter((uc) => !tituloCorpus.includes(uc) && testCorpus.includes(uc));
-  return { distintos: distintos.length, noTitulo: noTitulo.length, soDocblock: soDocblock.length };
+
+  // POR QUE AGRUPAR (2026-08-04): o contador sozinho não é acionável — pra descobrir ONDE
+  // estão os presos foi preciso escrever script ad-hoc replicando esta função. O dono do
+  // tema já sabia a resposta e não a publicava. Agrupa pelo módulo do casos.md que declara.
+  const moduloDo = (f) => (String(f).replace(/\\/g, '/').split('resources/js/Pages/')[1] || '?').split('/')[0];
+  const presos = new Set(soDocblock);
+  const porModulo = {};
+  for (const { uc, file } of ucDecls) {
+    if (!presos.has(uc)) continue;
+    (porModulo[moduloDo(file)] ||= new Set()).add(uc);
+  }
+  const presosPorModulo = Object.entries(porModulo)
+    .map(([modulo, set]) => ({ modulo, ucs: [...set].sort() }))
+    .sort((a, b) => b.ucs.length - a.ucs.length || a.modulo.localeCompare(b.modulo));
+
+  return {
+    distintos: distintos.length,
+    noTitulo: noTitulo.length,
+    soDocblock: soDocblock.length,
+    presosPorModulo,
+  };
 }
 
 function orphanUcViolations(ucDecls, testCorpus) {
@@ -472,6 +492,7 @@ function computeViolations() {
       teto_no_titulo: teto.noTitulo,
       teto_so_docblock: teto.soDocblock,
       teto_distintos: teto.distintos,
+      teto_presos_por_modulo: teto.presosPorModulo,
     },
   };
 }
@@ -558,6 +579,11 @@ function main() {
       '  → conserto é converter o teste pra `it(\'UC-XXX-NN · …\')`, não rodar mais teste. ' +
         'Forward-only/oportunístico: varrer em lote acorda gate diff-aware sobre dívida alheia.',
     );
+    // ONDE estão os presos — o contador sozinho não é acionável (quem quis saber teve de
+    // escrever script ad-hoc replicando `tetoDeProva`). 1 módulo por PR, forward-only.
+    for (const { modulo, ucs } of stats.teto_presos_por_modulo || []) {
+      console.log(`     ⛓ ${String(ucs.length).padStart(3)} ${modulo}: ${ucs.join(' ')}`);
+    }
     console.log('\n→ F1 fotografa isso no baseline (não-bloqueante). F3 ratchet zera tela-a-tela.');
     process.exit(0);
   }

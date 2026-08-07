@@ -4,9 +4,9 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.3.0"
+version: "1.4.0"
 maintained_by: wagner
-last_updated: "2026-08-03"
+last_updated: "2026-08-05"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -20,7 +20,7 @@ pii: false
 
 <!-- documentation-entrypoint: route:produto-operacao -->
 
-> 🧭 Este guia é a **leitura humana** do sistema. Para o **retrato gerado** (estado vivo de módulos, gates required, workflows, ADRs) veja [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
+> 🧭 Este guia é a **leitura humana** do sistema, publicada em [`https://oimpresso.com/documentacao`](https://oimpresso.com/documentacao) para usuários autenticados. Para o **retrato gerado** (estado vivo de módulos, gates required, workflows, ADRs) veja [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
 
 > **Pra quem:** Wagner e time, depois de escolher a rota **produto/operação** no [`README.md` da raiz](../README.md). Este guia explica o sistema numa página e aponta como operá-lo com agentes de IA.
 >
@@ -249,7 +249,7 @@ Fonte completa: [proibicoes.md](proibicoes.md). As que mais te afetam:
 
 - **Não existe um chefe/agente único de documentação.** Cada tipo de doc tem um **dono-máquina**: um gerador que a **DERIVA** da fonte + um gate que **morde** quando ela drifta (ADR 0256: *derivado+enforçado sobrevive; escrito+lembrado apodrece*).
 - **Quem decide o canon é humano** ([W]/[F]): ADR, proposal, token/componente novo. A IA **gera e mantém sob os gates** — não altera sozinha a máquina que a fiscaliza.
-- **O censo de TODAS as máquinas** (geradores + gates + hooks + skills + agents) é **derivado**, não escrito à mão: [governance/MAQUINAS-INVENTARIO.md](../governance/MAQUINAS-INVENTARIO.md) (regerado por `maquinas-inventario.mjs`). Donos por camada: [reference/PAINEL-SISTEMA.md](reference/PAINEL-SISTEMA.md). Saúde do ciclo documental (snapshot antes→correção no dono→depois): `documentation-loop.mjs`.
+- **O censo de TODAS as máquinas** (geradores + gates + hooks + skills + agents) é **derivado**, não escrito à mão: [reference/MAQUINAS-INVENTARIO.md](reference/MAQUINAS-INVENTARIO.md) (regerado por `maquinas-inventario.mjs`). Donos por camada: [reference/PAINEL-SISTEMA.md](reference/PAINEL-SISTEMA.md). Saúde do ciclo documental (snapshot antes→correção no dono→depois): `documentation-loop.mjs`.
 - ⛔ A resposta pra *"onde acho X / quem faz Y"* **NÃO é um índice/mapa novo** — foi tentado e reprovado 2× ([proibicoes.md](proibicoes.md) §5 2026-07-23 e 2026-07-25). Os donos já existem: **estende ou aponta**, nunca abre paralelo.
 
 #### B6.1 — Como pedir mudança de documentação (fluxo de 6 passos)
@@ -278,6 +278,305 @@ Origem: [W] 2026-08-02 — *"preciso de um responsável que não se desvie do fo
 - **Nada de cópia.** Nenhum HTML commitado, nenhum resumo paralelo. Se existe cópia, alguém tem que sincronizar — e ninguém sincroniza.
 - **Nada de documento novo quando o dono existe.** A pergunta antes de criar é sempre: *quem já é dono deste assunto?*
 - **Achado adjacente não emenda.** Encontrou outro problema no caminho? Reporta em UMA linha e **para**. [W] decide se vira trabalho, e quando. _(O que deu errado naquela sessão: cada achado adjacente virou "sim" por reflexo, e o pedido original — a documentação — ficou parado no meio.)_
+
+#### B6.2 — Plano técnico e operacional ponta a ponta
+
+[W] autorizou em 2026-08-05 a **Trilha D** do
+[`PLANO-MESTRE`](requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md). Ela passou a organizar a
+documentação que começa nas máquinas existentes e atravessa seis frentes:
+
+| Frente | O que o leitor encontra |
+|---|---|
+| **Infraestrutura** | Hostinger, Proxmox, CT 100, GitHub Actions, Windows/Firebird, rede e dispositivos |
+| **Plataforma** | hooks, MCP, CI, skills, agents, scripts, baselines e observabilidade |
+| **Aplicação** | kernel, módulos transversais, verticais, integrações e legado |
+| **Fluxos** | venda, estoque, financeiro, fiscal, WhatsApp, Jana, migração, deploy e recuperação |
+| **Operação** | acesso, monitoramento, manutenção, backup, restore, rollback e incidentes |
+| **Visão humana** | a rota `/documentacao` autenticada, que renderiza este Guia |
+
+A leitura humana do programa — as onze estações do ciclo, as onze ondas e a regra de onde o estado
+mora — está em
+[reference/GOV-PROGRAMA-DOCUMENTACAO.md](reference/GOV-PROGRAMA-DOCUMENTACAO.md).
+
+O plano fica no Git; as ondas e critérios vivem no plano mestre; o estado `todo/doing/done` vive nas
+tasks MCP com `parent_plan=programa-ondas`; este Guia traduz e aponta; a rota
+[`/documentacao`](https://oimpresso.com/documentacao) publica. O ciclo executável é:
+
+```mermaid
+flowchart LR
+    MEDIR["Medir<br/>inventário + probe"] --> DONO["Localizar o dono"]
+    DONO --> TRADUZIR["Traduzir no Git"]
+    TRADUZIR --> VALIDAR["Validar técnica + operação"]
+    VALIDAR --> RECIBO["Recibo antes → depois"]
+    RECIBO --> PUBLICAR["PR + merge + /documentacao"]
+    PUBLICAR --> OPERAR["Operar e observar"]
+    OPERAR --> DRIFT["Drift ou incidente"]
+    DRIFT --> MEDIR
+```
+
+O workflow [`documentacao-tecnica`](../.claude/workflows/documentacao-tecnica.js) consome exatamente
+um achado por execução. `system-map`, `maquinas-inventario`, `documentation-loop` e
+`briefing-code-staleness` medem; o especialista traduz; [W] decide o merge. A trilha permanece ativa
+enquanto houver task aberta, revisão fresca e consumo dos achados — não por criar outro gate.
+
+### B7. Como especificar e executar uma feature complexa (SDD)
+
+> **Não instalar outro kit nem criar outro `spec.md`.** O fluxo local já operacionaliza
+> `specify → clarify → plan → tasks → implement` no trio
+> [`requirements.md` + `plan.md` + `tasks.md`](requisitos/_TEMPLATE_FEATURE/BRIEFING.md),
+> ligado à US do `SPEC.md`. Referências: o piloto financeiro protegido
+> [`RecurringBilling/gateway-ativacao`](requisitos/RecurringBilling/features/gateway-ativacao/requirements.md)
+> e o piloto de adoção segura
+> [`Connector/openapi-connector`](requisitos/Connector/features/openapi-connector/requirements.md).
+
+**Quando usar:** US que virará execução multi-sessão, com pelo menos 3 tarefas e uma dependência
+real; ou mudança com regra de negócio, integração, fila, multi-tenant, valor ou estoque. Fix tático
+de uma tarefa segue direto por task MCP + PR. Tela nova ou alterada também precisa do respectivo
+`<Tela>.casos.md`; o trio não substitui o contrato da tela.
+
+| Camada | Dono | Pergunta que responde |
+|---|---|---|
+| Sinal + requisito-mãe | `requisitos/<Mod>/SPEC.md` (`US-*`) | **Por quê e o quê?** |
+| Contrato do domínio/família | `requisitos/<Mod>/SDD-<domínio>-vN.md` (§5/§6) | **Como o domínio funciona e quais CU precisam sobreviver?** |
+| Especificação executável | `features/<slug>/requirements.md` | **Quais comportamentos e critérios `AC-N` provam o resultado?** |
+| Plano técnico | `features/<slug>/plan.md` | **Como encaixa no código existente sem duplicar?** |
+| Grafo de execução | `features/<slug>/tasks.md` | **Em qual ordem, cobrindo quais ACs, com qual DoD?** |
+| Estado vivo | tasks MCP com `parent_plan:<slug>` | **Quem está fazendo e em que estado?** |
+| Prova | Pest/CI + smoke real + anchor da US | **Executou, funciona e ficou rastreável?** |
+
+**Receita operacional:**
+
+1. **Confirmar o sinal.** A US só entra se cliente que paga reportou a dor ou uma métrica mostrou
+   drift ([ADR 0105](decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Hipótese sem sinal não
+   vira feature ativa.
+2. **Gerar pela máquina dona, nunca copiar à mão:**
+
+   ```bash
+   npm run sdd:init -- <Mod>/<slug> --us US-<MOD>-<NNN> \
+     --sdd auto --cu CU-<MOD>-NN --screen <Mod>/<Tela>
+   ```
+
+   O modo `--init` do `feature-lint.mjs` valida que módulo/SPEC/US existem, gera somente
+   `requirements.md`, `plan.md` e `tasks.md` a partir dos templates canônicos e recusa
+   sobrescrever um destino. Use `--dry-run` para conferir sem escrever. O
+   [`BRIEFING.md`](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) é a porta do template e **não se copia**.
+3. **Especificar e esclarecer.** Em `requirements.md`, ligar a US do SPEC, escrever critérios
+   EARS `AC-N`, fora-de-escopo e registrar respostas em `Clarifications`. Ambiguidade relevante
+   não resolvida bloqueia o plano; não se completa por palpite.
+4. **Planejar no brownfield.** Em `plan.md`, inventariar plug-points antes de criar símbolos,
+   declarar dados/contratos tocados e marcar conscientemente os riscos Tier 0: `business_id`,
+   valor/estoque, PII, tela e runtime.
+5. **Quebrar em tarefas atômicas.** Cada `T-NN` declara `blocked_by`, `covers`, `us` e um DoD
+   verificável. A última tarefa sempre contém smoke real + atualização de `**Implementado em:**`
+   na US; status `todo/doing/done` fica no MCP, nunca no markdown.
+6. **Validar antes de implementar:**
+
+   ```bash
+   npm run sdd:flow:check -- <Mod>/<slug>
+   ```
+
+7. **Executar em ordem topológica.** Para cada tarefa: teste que prova o AC falha → menor
+   implementação que o satisfaz → teste passa → DoD registrado. Pest/PHPStan rodam no CT 100,
+   nunca no Hostinger ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md)).
+8. **Fechar o loop.** Smoke real, âncora `verificado@<sha7>` na US e recibo final:
+
+   ```bash
+   npm run sdd:flow:receipt -- <Mod>/<slug>
+   ```
+
+   O recibo estrutural não declara teste verde por conta própria. Ele verifica o smart token Git
+   `verificado@<sha7>` da US com `anchor-lint --stale` (incluindo a base derivada pós-squash) e
+   exige hash válido nas referências `arquivo:linha` da feature/tela por meio de
+   `ancora-codigo-sync --check --require-stamp`; `casos-gate` e a lane CT 100 aplicável continuam
+   sendo autoridades separadas. Em valor/estoque,
+   `--apply` só ocorre após dry-run com impacto antes→depois e aprovação humana explícita.
+
+**Critério de pronto da especificação:** todo `AC-N` é coberto por pelo menos uma tarefa; toda
+tarefa tem DoD; o grafo não tem ciclo; a US existe no SPEC. **Critério de pronto da feature:**
+o comportamento foi executado e provado, o smoke passou e a âncora da US ficou viva — documentos
+preenchidos, sozinhos, não significam entrega.
+
+#### B7.1 Tutorial completo: da US à entrega provada
+
+Este tutorial acompanha uma feature do começo ao fim. O exemplo real já preenchido é
+[`Connector/openapi-connector`](requisitos/Connector/features/openapi-connector/requirements.md).
+Use-o para comparar o resultado, mas **não tente recriá-lo**: a máquina recusa sobrescrever a
+pasta existente.
+
+##### Passo 0 — decidir se precisa do trio
+
+Use o trio quando a resposta for “sim” para pelo menos uma destas perguntas:
+
+- a execução terá três ou mais tarefas ou atravessará sessões diferentes?;
+- existe uma dependência real entre tarefas?;
+- toca integração, fila, regra de negócio, `business_id`, PII, valor ou estoque?;
+- outra pessoa precisará continuar sem refazer as decisões?
+
+Um fix pequeno, de uma tarefa e sem esses riscos, segue por task MCP + teste + PR. Não crie pasta
+só para cumprir cerimônia.
+
+##### Passo 1 — confirmar a US-mãe
+
+Abra `memory/requisitos/<Modulo>/SPEC.md` e confirme que a US existe. Ela deve registrar o sinal,
+o resultado esperado e a prioridade. Exemplo de identidade:
+
+```text
+US-CONN-013
+```
+
+Não invente um ID no comando. Se a US ainda não existe, primeiro registre-a no `SPEC.md` usando o
+próximo número real do módulo. A máquina valida o ID exato e recusa prefixos parecidos.
+
+##### Passo 2 — pedir ajuda à própria máquina
+
+```bash
+npm run feature:tutorial
+```
+
+O comando mostra quando usar, a ordem completa, os arquivos produzidos e o exemplo real. Essa é
+a ajuda curta para o terminal; esta seção é a versão explicada.
+
+##### Passo 3 — simular sem escrever
+
+Substitua os três campos: `<Modulo>`, `<slug>` e `US-<MOD>-<NNN>`.
+
+```bash
+npm run sdd:init -- <Modulo>/<slug> --us US-<MOD>-<NNN> --dry-run
+```
+
+Exemplo de formato — use uma US e um slug que pertençam à feature real:
+
+```bash
+npm run sdd:init -- Connector/minha-integracao --us US-CONN-013 --dry-run
+```
+
+O resultado esperado lista exatamente três caminhos com a palavra `criaria`. Confirme também que
+a pasta não apareceu no disco. O dry-run não é permissão para duplicar a US-CONN-013: o comando
+acima demonstra apenas a forma; uma feature nova usa sua própria US.
+
+Quando já houver SDD e/ou tela afetada, acrescente `--sdd auto`, um ou mais `--cu CU-<MOD>-NN`
+e `--screen <Mod>/<Tela>`. `auto` só aceita exatamente um SDD no módulo; se houver mais de uma
+família, informe o arquivo explicitamente. Feature exclusivamente backend pode omitir `--screen`.
+
+##### Passo 4 — gerar a pasta
+
+Depois de conferir módulo, slug e US, remova apenas `--dry-run`:
+
+```bash
+npm run sdd:init -- <Modulo>/<slug> --us US-<MOD>-<NNN>
+```
+
+A máquina cria:
+
+```text
+memory/requisitos/<Modulo>/features/<slug>/
+├── requirements.md
+├── plan.md
+└── tasks.md
+```
+
+Ela não cria nem copia `BRIEFING.md`. O BRIEFING pertence ao template central. Também não
+sobrescreve destino existente; ajuste a feature no lugar, nunca crie `<slug>-v2`.
+
+##### Passo 5 — preencher `requirements.md` (o que precisa acontecer)
+
+Preencha, nesta ordem:
+
+1. `User story`: persona real, capacidade e resultado;
+2. `Clarifications`: perguntas relevantes e decisões; pendência importante bloqueia o plano;
+3. critérios `AC-N` observáveis, preferencialmente no formato EARS;
+4. forma de prova de cada AC;
+5. fora de escopo e referências.
+
+Exemplo reduzido:
+
+```markdown
+- **AC-1** — QUANDO o usuário autorizado solicitar a documentação,
+  O SISTEMA DEVE devolver somente os endpoints Connector. _Prova: teste de rota._
+- **AC-2** — SE não houver autenticação válida,
+  ENTÃO O SISTEMA DEVE negar o acesso. _Prova: teste HTTP com status 401 ou 403._
+```
+
+Critério para avançar: outra pessoa consegue dizer “passou ou falhou” sem perguntar o que o texto
+quis dizer.
+
+##### Passo 6 — preencher `plan.md` (como encaixa no sistema existente)
+
+Antes de propor classe, comando ou pacote novo, inventarie os plug-points existentes. Registre:
+
+- decisões técnicas e suas âncoras;
+- símbolos que serão reutilizados, estendidos ou comparados;
+- tabelas, colunas, rotas, eventos e jobs tocados;
+- riscos Tier 0 marcados conscientemente, inclusive quando forem `N/A`;
+- gate de saída e kill-condition.
+
+Se surgir decisão arquitetural nova, crie ADR; o `plan.md` referencia a decisão, não a substitui.
+
+##### Passo 7 — preencher `tasks.md` (ordem executável)
+
+Cada tarefa precisa de título imperativo, `blocked_by`, `covers`, `us` e `DoD`. Exemplo:
+
+```markdown
+### T-01 · Criar teste do acesso autenticado
+> blocked_by: — · covers: AC-1, AC-2 · us: US-CONN-013 · estimate: 1h
+
+**DoD:** o teste falha antes da implementação e prova status 200 autorizado + 401 ou 403 anônimo.
+
+### T-02 · Implementar o menor caminho seguro
+> blocked_by: T-01 · covers: AC-1, AC-2 · us: US-CONN-013 · estimate: 1h
+
+**DoD:** T-01 passa sem ampliar as rotas públicas.
+```
+
+A última tarefa fecha o loop: smoke real e atualização de `**Implementado em:**` na US com
+`verificado@<sha7>`.
+
+##### Passo 8 — validar antes de implementar
+
+```bash
+node scripts/governance/feature-lint.mjs <Modulo>/<slug> --check
+```
+
+Corrija todos os erros. Os mais comuns são:
+
+| Erro | Correção |
+|---|---|
+| `placeholder-nao-curado` | substituir todos os `{{...}}` pelo conteúdo real |
+| `us-fora-do-spec` | usar uma US que exista no `SPEC.md` do módulo |
+| `blocked-by-quebrado` | apontar para uma `T-NN` existente ou usar `—` na raiz |
+| `ciclo` | reorganizar dependências até existir ordem executável |
+| `covers-ac-inexistente` | corrigir o `AC-N` ou criá-lo em requirements |
+| `task-sem-dod` | escrever uma prova objetiva para a tarefa |
+
+O resultado que libera a implementação é `0 erros`. Aviso de AC sem tarefa também precisa ser
+resolvido para a especificação estar pronta, embora a catraca ainda seja advisory.
+
+##### Passo 9 — executar e fechar
+
+Execute as tarefas na ordem de `blocked_by`:
+
+```text
+teste que prova o AC falha
+→ menor implementação necessária
+→ teste passa
+→ DoD registrado
+→ próxima tarefa
+```
+
+No final: smoke real, lint novamente e âncora viva na US. Em valor ou estoque, pare antes de
+qualquer escrita: dry-run, impacto antes→depois, dupla confirmação e aprovação humana são
+obrigatórios.
+
+##### Checklist de saída
+
+- [ ] a US existe no `SPEC.md` e possui sinal real;
+- [ ] todos os placeholders foram curados;
+- [ ] cada AC tem forma de prova e pelo menos uma tarefa;
+- [ ] toda tarefa tem DoD e o grafo não possui ciclo;
+- [ ] testes e análises PHP rodaram no CT 100;
+- [ ] smoke real foi registrado;
+- [ ] `**Implementado em:**` recebeu `verificado@<sha7>`;
+- [ ] o lint final terminou com zero erros.
 
 ---
 
@@ -325,13 +624,17 @@ flowchart LR
 | Quero... | Vá pra |
 |---|---|
 | Mapa técnico do produto (arc42) | [governance/ARCHITECTURE.md](governance/ARCHITECTURE.md) |
-| Quem gera/enforça a documentação (todas as máquinas) | [governance/MAQUINAS-INVENTARIO.md](../governance/MAQUINAS-INVENTARIO.md) |
+| Quem gera/enforça a documentação (todas as máquinas) | [reference/MAQUINAS-INVENTARIO.md](reference/MAQUINAS-INVENTARIO.md) |
+| Plano técnico e operacional ponta a ponta | [PLANO-MESTRE § Trilha D](requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md) |
+| Como o programa de documentação funciona (leitura humana) | [reference/GOV-PROGRAMA-DOCUMENTACAO.md](reference/GOV-PROGRAMA-DOCUMENTACAO.md) |
+| Visão humana publicada | [oimpresso.com/documentacao](https://oimpresso.com/documentacao) |
 | Voltar à porta global / escolher outra rota | [README.md da raiz](../README.md) |
 | Procurar um documento conhecido | [INDEX.md](INDEX.md) · [INDEX_TEMATICO.md](INDEX_TEMATICO.md) |
 | Regras de sessão / como trabalhar | [how-trabalhar.md](how-trabalhar.md) · [CLAUDE.md](../CLAUDE.md) |
 | Linhas vermelhas | [proibicoes.md](proibicoes.md) |
 | Time e papéis | [regras-time.md](regras-time.md) · [TEAM.md](../TEAM.md) |
 | Responsabilidade de um módulo | `Modules/<X>/SCOPE.md` + `BRIEFING.md` |
+| Planejar uma feature complexa por SDD | [B7 deste guia](#b7-como-especificar-e-executar-uma-feature-complexa-sdd) · [template do trio](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) |
 | Conectar um dev novo ao MCP | [MEMORY_TEAM_ONBOARDING.md](../MEMORY_TEAM_ONBOARDING.md) |
 
 ---

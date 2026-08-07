@@ -21,7 +21,12 @@
     @component('components.widget')
     <div class="box-header">
         <h3 class="box-title">@lang( 'restaurant.all_your_modifiers' )</h3>
-        @can('restaurant.create')
+        {{-- `product.create` é o que o ModifierSetsController::create() exige (L91).
+             Antes aqui estava `restaurant.create`, que não é declarada em lugar nenhum:
+             ninguém podia recebê-la, então o botão só aparecia pra admin via Gate::before
+             — escondendo de quem TEM product.create uma ação que o endpoint liberaria.
+             Mesmo defeito do `kb.ai` (US-GOV-059 classe A caso 1). --}}
+        @can('product.create')
             <div class="box-tools">
                     <button class="tw-dw-btn tw-bg-gradient-to-r tw-from-indigo-600 tw-to-blue-500 tw-font-bold tw-text-white tw-border-none tw-rounded-full btn-modal"
                     data-href="{{action([\App\Http\Controllers\Restaurant\ModifierSetsController::class, 'create'])}}" 
@@ -38,7 +43,13 @@
         @endcan
     </div>
     <div class="box-body">
-        @can('restaurant.view')
+        {{-- `product.view` pelo mesmo motivo do `product.create` acima: o módulo
+             de restaurante não existe nesta árvore e `restaurant.view` não é
+             declarada em lugar nenhum — ninguém podia recebê-la, então a tabela
+             só aparecia pra admin via Gate::before, escondendo de quem tem
+             product.view uma listagem que o endpoint já servia. O controller
+             inteiro gateia por `product.*` (create/update). US-GOV-059 classe B. --}}
+        @can('product.view')
             <table class="table table-bordered table-striped" id="modifier_table">
                 <thead>
                     <tr>

@@ -1421,11 +1421,34 @@
 /* Sidebar single-pane removeu SidebarChat. Conv switcher agora vive aqui dentro
    da Page Chat.tsx, à esquerda da Thread. */
 .cockpit .copiloto-chat-layout {
+  position: relative; /* âncora da sobreposição + scrim em telas estreitas */
   display: grid;
   grid-template-columns: 280px 1fr;
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+/* Histórico recolhido: rail de 40px carrega o atalho de volta. */
+.cockpit .copiloto-chat-layout.hist-collapsed { grid-template-columns: 40px 1fr; }
+/* ≤1100px com histórico aberto: sobrepõe a thread em vez de sumir. */
+.cockpit .copiloto-chat-layout.hist-overlay { grid-template-columns: 40px 1fr; }
+.cockpit .copiloto-chat-layout.hist-overlay .copiloto-chat-convs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(300px, 86%);
+  z-index: 6;
+  box-shadow: 16px 0 40px -14px rgb(0 0 0 / 0.45);
+}
+.cockpit .copiloto-chat-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border: none;
+  padding: 0;
+  background: oklch(0.15 0 0 / 0.35);
+  cursor: pointer;
 }
 .cockpit .copiloto-chat-convs {
   border-right: 1px solid var(--border);
@@ -1442,11 +1465,10 @@
   min-height: 0;
   overflow: hidden;
 }
-@media (max-width: 1023px) {
-  /* Em telas menores, lista some — usa breadcrumb dropdown pra trocar */
-  .cockpit .copiloto-chat-layout { grid-template-columns: 1fr; }
-  .cockpit .copiloto-chat-convs { display: none; }
-}
+/* 2026-08-07: o `display:none` em ≤1023px foi REMOVIDO — ele deixava a lista
+   inalcançável (sem jeito de trocar de conversa em tela estreita). Agora o
+   JS (matchMedia ≤1100px, Chat.tsx) aplica .hist-overlay: o histórico vira
+   sobreposição com scrim e o rail de 40px mantém o atalho sempre visível. */
 
 /* ConvSidePanel header (Chat title + filtros + nova conv)
    Cowork chat.jsx visual port — gate F1.5 Chat-visual-comparison.md.
@@ -1574,24 +1596,74 @@
   border-color: var(--text);
 }
 
-/* Empty state pros tabs ainda não funcionais (Minhas/Compartilhadas/Arquivadas) */
-.cockpit .copiloto-chat-convs .cs-empty {
-  display: flex;
+/* `.cs-empty` (empty state "Em breve" das 3 abas decorativas) foi removido em
+   2026-08-07 junto com as abas Minhas/Compartilhadas — ver Chat.tsx §FILTROS. */
+
+/* Contador de conversas visíveis no header do painel */
+.cockpit .copiloto-chat-convs .cs-count {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-mute);
+}
+
+/* Região viva (aria-live) — anuncia a troca de conversa sem ocupar pixel */
+.cockpit .copiloto-chat-convs .cs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Rail recolhido: rótulo vertical + contagem, no fluxo (nunca sobre as abas) */
+.cockpit .copiloto-chat-convs.collapsed {
+  align-items: center;
+  padding: 12px 0;
+  overflow: hidden;
+}
+.cockpit .copiloto-chat-convs .cs-peek {
+  display: inline-flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 32px 16px;
-  text-align: center;
+  gap: 8px;
+  width: 26px;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
   color: var(--text-mute);
-  font-size: var(--fs-3);
-  gap: 4px;
-}
-.cockpit .copiloto-chat-convs .cs-empty small {
   font-size: 10.5px;
-  opacity: 0.8;
-  max-width: 200px;
-  line-height: 1.4;
+  letter-spacing: 0.06em;
+  cursor: pointer;
 }
+.cockpit .copiloto-chat-convs .cs-peek:hover { color: var(--text); }
+.cockpit .copiloto-chat-convs .cs-peek-l {
+  writing-mode: vertical-rl;
+  text-transform: uppercase;
+}
+.cockpit .copiloto-chat-convs .cs-peek-n {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+/* Dica de atalhos — encostada no rodapé do painel */
+.cockpit .copiloto-chat-convs .cs-keys {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+  padding: 10px 4px 2px;
+  font-size: 10.5px;
+  color: var(--text-mute);
+}
+.cockpit .copiloto-chat-convs .cs-keys .kbd {
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+.cockpit .copiloto-chat-convs .cs-keys-sep { opacity: 0.5; }
 
 /* Badge unread minúscula ao lado direito do sb-conv-t (backend já expõe `unread`) */
 .cockpit .copiloto-chat-convs .sb-conv-badge {

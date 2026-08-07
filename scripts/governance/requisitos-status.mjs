@@ -456,6 +456,19 @@ const usBacklog = us.filter((u) => !US_ENTREGUE.has(u.status) && !cobreAncorado(
 
 const linhas = [];
 const P = (s = '') => linhas.push(s);
+// `authority: generated` NÃO é decoração — é o que faz o `distiller_freshness`
+// (sdd-scorecard, gate REQUIRED GT-G3) IGNORAR este arquivo ao procurar "o doc mais
+// novo do módulo". Sem ele, regenerar este índice marca a BRIEFING do módulo como
+// stale por FALSO — conhecimento novo nenhum apareceu, só uma máquina rodou.
+// Medido 2026-08-05: regenerar Financeiro/KB/Ponto levou distiller_freshness 0 → 1
+// e avermelhou um gate required; com o campo, volta a 0. Mesmo defeito que o
+// #5298 consertou pro Jana/ARCHITECTURE.md — lá a regra era por NOME e deixava
+// passar o irmão; hoje é por `authority`, e este gerador não emitia o campo.
+// §5 2026-07-12 / 2026-07-17: conserta o MEDIDOR (aqui, a fonte dele), não o baseline.
+P('---');
+P('authority: generated');
+P('---');
+P('');
 P(`<!-- GERADO por scripts/governance/requisitos-status.mjs — NÃO editar à mão.`);
 P(`     Status é DERIVADO da cadeia US→CU→UC→teste. Editar aqui não muda nada:`);
 P(`     mude o SPEC/SDD/casos/teste e re-rode. (ADR 0256: derivado sobrevive.) -->`);

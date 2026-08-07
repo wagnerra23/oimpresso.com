@@ -9,7 +9,10 @@
     </a>
 
     <ul class="treeview-menu">
-        @can('add_essentials_leave_type')
+        {{-- US-GOV-059 classe D: o menu checava `add_essentials_leave_type`, que nao
+             existe; o EssentialsLeaveTypeController exige `essentials.crud_leave_type`
+             (declarada no DataController do modulo). Alinhado ao gate do endpoint. --}}
+        @can('essentials.crud_leave_type')
             <li class="{{ $request->segment(2) == 'leave-type' ? 'active active-sub' : '' }}">
                 <a href="{{action([\Modules\Essentials\Http\Controllers\EssentialsLeaveTypeController::class, 'index'])}}">
                     <i class="fa fa-star"></i>

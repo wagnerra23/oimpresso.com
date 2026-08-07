@@ -685,6 +685,37 @@ function checkGovernanceCeiling() {
     fails.push({ check: 'M', kind: 'gate-novo-sem-teto', count: violacoes.length, sample: violacoes.slice(0, 15),
       msg: `workflow(s) NOVO(s) sem o teto de governança (ADR 0298): todo gate novo declara terminal+anchor no gates-registry (advisory exige promote_by). "A torneira, não o balde" — só nasce gate com fim-de-vida e sinal de custo. Preencha os campos, ou rode --update-baseline se for grandfather consciente.` });
   }
+
+  // ── M-b: o prazo VENCEU? (warn datado — o fail acima segue determinístico) ──
+  // A delegação era ÓRFÃ: o comentário do Check M diz "o vencimento ≤14d é cobrado pelo
+  // ZELADOR, não aqui, pra manter o check determinístico" — e o ZELADOR (charter
+  // `scripts/governance/ZELADOR.md` E o SKILL.md agendado que de fato roda, diário 07:08,
+  // vivo) tem ZERO ocorrência de `promote_by`. Medido 2026-08-05: nunca lhe disseram que
+  // o item era dele. Resultado: 16 de 30 advisory com prazo vencido — um há 20 dias — sem
+  // um único aviso. Classe LC-15 ("mecanismo anuncia saída que ele não implementa").
+  //
+  // POR QUE WARN E NÃO FAIL, sem sacrificar o determinismo: o fail do Check M continua
+  // puro (só presença de campo — reprodutível em qualquer re-run). Só o AVISO é datado,
+  // exatamente como o Check H já faz com carimbo "✓lido @main" >14d — precedente do
+  // próprio arquivo. Fail datado bloquearia merge por dívida pré-existente (16 de uma vez)
+  // e acordaria o legado: é o que a lápide §5 2026-07-12 proíbe.
+  //
+  // Cobre TODO advisory, inclusive grandfather: o campo existe em 30/30, e prazo vencido
+  // é fato do mundo — não dívida de preenchimento (que é o que o ratchet isenta).
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const vencidos = [];
+  for (const [wf, meta] of Object.entries(reg)) {
+    if (String(meta.terminal || '').trim().toLowerCase() !== 'advisory') continue;
+    const p = String(meta.promote_by || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(p) || p >= hojeISO) continue;
+    vencidos.push({ wf, p, dias: Math.floor((Date.parse(hojeISO) - Date.parse(p)) / 86400000) });
+  }
+  if (vencidos.length) {
+    vencidos.sort((a, b) => b.dias - a.dias);
+    const amostra = vencidos.slice(0, 8).map((v) => `${v.wf} (venceu ${v.p}, há ${v.dias}d)`);
+    warns.push({ check: 'M', kind: 'advisory-prazo-vencido', count: vencidos.length, sample: amostra,
+      msg: `${vencidos.length} gate(s) advisory com promote_by VENCIDO (ADR 0298 — advisory não nasce eterno): ${amostra.join(' · ')}${vencidos.length > 8 ? ` … +${vencidos.length - 8}` : ''}. Cada um pede UMA decisão: promover a required (emenda à ADR 0314 + flip [W]), estender o prazo COM razão, ou podar o gate. Adiar sem decidir é o "advisory eterno" que a 0298 existe pra impedir.` });
+  }
 }
 
 // ── Check H: frescor de doc-cache "✓lido @main <data>" (Onda Q5) ────────────

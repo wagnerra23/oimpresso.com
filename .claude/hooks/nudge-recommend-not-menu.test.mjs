@@ -49,7 +49,11 @@ const tpNudge = join(tmp, 'nudge.jsonl');
 writeFileSync(tpNudge, JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Opções:\n1. A\n2. B\nQual você prefere?' }] } }));
 const fired = runHook({ transcript_path: tpNudge });
 check('E2E: menu-sem-recomendação → exit 0 + nudge no stdout', fired.status === 0 && fired.stdout.includes('[R13]'));
-check('E2E: NUDGE const bate com o output', NUDGE.startsWith('[R13]'));
+check('E2E: NUDGE const bate com o output (conteudo R13 preservado)', NUDGE.includes('[R13]'));
+// A tag de observabilidade nao e' cosmetica: o `hook-bites` conta por `"content":"[<tag>]`,
+// que casa no INICIO do valor. Se alguem tirar a tag ou empurrar texto na frente dela,
+// o hook volta a ser indistinguivel de morto — e nada mais avisaria. Por isso e' contrato.
+check('observabilidade: saida COMECA com a tag do arquivo', NUDGE.startsWith('[nudge-recommend-not-menu]') && fired.stdout.startsWith('[nudge-recommend-not-menu]'));
 const tpQuiet = join(tmp, 'quiet.jsonl');
 writeFileSync(tpQuiet, JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Recomendo A. Fiz e testei.' }] } }));
 check('E2E: com recomendação → exit 0 silencioso', (() => { const r = runHook({ transcript_path: tpQuiet }); return r.status === 0 && !/\[R13\]/.test(r.stdout); })());

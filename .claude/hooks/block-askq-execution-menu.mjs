@@ -106,7 +106,7 @@ async function readStdin() {
 
   if (block && !allow) {
     const msg = [
-      '[BLOCKED: menu de execução/fato — feedback-recomendado-quando-tecnico.md]',
+      '[block-askq-execution-menu] [BLOCKED: menu de execução/fato — feedback-recomendado-quando-tecnico.md]',
       '',
       'Esta AskUserQuestion parece pedir pro Wagner ESCOLHER um próximo passo de',
       'execução OU adjudicar um FATO que VOCÊ consegue apurar. Wagner já corrigiu',

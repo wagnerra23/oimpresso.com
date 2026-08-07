@@ -20,7 +20,7 @@
         {{-- <div class="box">
         <div class="box-header">
         	<h3 class="box-title">@lang( 'restaurant.all_your_tables' )</h3>
-            @can('restaurant.create')
+            @can('access_tables')
             	<div class="box-tools">
                     <button type="button" class="btn btn-block btn-primary btn-modal" 
                     	data-href="{{action([\App\Http\Controllers\Restaurant\TableController::class, 'create'])}}" 
@@ -30,7 +30,7 @@
             @endcan
         </div>
         <div class="box-body">
-            @can('restaurant.view')
+            @can('access_tables')
             	<table class="table table-bordered table-striped" id="tables_table">
             		<thead>
             			<tr>
@@ -45,10 +45,18 @@
         </div>
     </div> --}}
 
+        {{-- `access_tables` é a ÚNICA permissão que a tela de papéis oferece pra Mesas
+             (role/create.blade.php, seção "Restaurante") e é a que o TableController exige
+             em TODA ação (L21/59/78...). Antes daqui saía `restaurant.create`/`restaurant.view`,
+             que não são declaradas em lugar nenhum: ninguém podia recebê-las, então quem
+             ganhava `access_tables` abria a tela e não via nem o botão nem a tabela — só
+             admin via, por Gate::before. Mesmo defeito do `kb.ai` (US-GOV-059 classe A).
+             O bloco comentado acima é duplicata legada; o nome foi trocado lá também pra
+             não deixar uso morto que o detector conta como vivo. --}}
         @component('components.widget')
             <div class="box-header">
                 <h3 class="box-title">@lang('restaurant.all_your_tables')</h3>
-                @can('restaurant.create')
+                @can('access_tables')
                     <div class="box-tools">
                         {{-- <button type="button" class="btn btn-block btn-primary btn-modal"
                             data-href="{{ action([\App\Http\Controllers\Restaurant\TableController::class, 'create']) }}"
@@ -69,7 +77,7 @@
                 @endcan
             </div>
             <div class="box-body">
-                @can('restaurant.view')
+                @can('access_tables')
                     <table class="table table-bordered table-striped" id="tables_table">
                         <thead>
                             <tr>

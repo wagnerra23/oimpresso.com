@@ -301,8 +301,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // acesso à IA). O que muda é só o DESTINO: quem não tem `jana.access` cai no
     // dashboard legado UltimatePOS, que não tem `can:` nenhum — some o 403, e
     // ninguém ganha acesso que não tinha.
+    // Onda 3 da fusão (US-COPI-148, 2026-08-07): o destino passou de
+    // `/ia/dashboard` pra `/ia` — a MESMA tela, que mudou de endereço. Apontar
+    // direto evita a cadeia 302→301 em TODO login de quem tem `jana.access`.
     Route::get('/home', fn () => auth()->user()?->can('jana.access')
-        ? redirect('/ia/dashboard', 302)
+        ? redirect('/ia', 302)
         : redirect('/dashboard-legacy', 302)
     )->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
@@ -518,6 +521,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/sells/{id}/ai-ask', [SellController::class, 'aiAsk']);
     // US-OFICINA-OS-LINK — Criar OS a partir da venda (modos: auto/single/per_line).
     Route::post('/sells/{id}/create-os', [SellController::class, 'createOs'])->name('sells.create-os');
+    // Venda V3 — PREVIEW DE DESIGN, paralelo. Rota NOVA + controller NOVO.
+    // Existe porque a tela viva (/pos/create → Sells/Create.tsx) não pode mudar:
+    // ROTA LIVRE (biz=4) opera nela. Só GET, não grava, não calcula valor.
+    // Ver app/Http/Controllers/SellsV3Controller.php pro racional completo.
+    Route::get('/sells/create-v3', [\App\Http\Controllers\SellsV3Controller::class, 'create'])
+        ->name('sells.create-v3');
     // US-SELL-COWORK-R4-C1 — Transcript PDF server-side via Browsershot Chrome headless.
     // Substitui window.print() do modal SaleTranscriptPDF.tsx por download forçado.
     // Fallback 503 estruturado em runtimes sem Chrome (Hostinger shared) — frontend
@@ -883,6 +892,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/documentacao/buscar',
         [\App\Http\Controllers\DocumentacaoController::class, 'buscar']
     )->name('documentacao.buscar');
+
+    // Programa de documentação (Trilha D) — vista estruturada do PLANO-MESTRE.
+    // Mesma razão de ordem que /buscar abaixo: precisa vir ANTES de /{slug}, senão
+    // "programa" casaria como nome de documento e daria 404.
+    Route::get('/documentacao/programa',
+        [\App\Http\Controllers\DocumentacaoController::class, 'programa']
+    )->name('documentacao.programa');
 
     // Documento do acervo. Declarada DEPOIS de /buscar e com regex restrita no
     // slug — sem as duas coisas, /documentacao/buscar casaria aqui primeiro e a

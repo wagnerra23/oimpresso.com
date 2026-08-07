@@ -1,11 +1,13 @@
 ---
 module: Forja
 depends_on_phase: 3.8 (DELETE Project legado UltimatePOS)
-purpose: "Gerenciamento Jira-style do time interno: Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown sobre `mcp_jira_projects/epics/cycles/tasks`."
+purpose: "Cockpit de trabalho do time interno (Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown) e host da infraestrutura MCP da plataforma: identidade e emissão de token (mcp_actors), endpoints /api/mcp e /api/cc, Daily Brief, loop de handoff Cowork-Code, hub Equipe e Admin do MCP."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "BoardController — Kanban view"
   - "BacklogController — backlog priorizado"
-  - "RoadmapController — roadmap quarterly"
+  - "RoadmapController — roadmap quarterly (/project-mgmt/roadmap): epics agrupados por target_quarter"
+  - "RoadmapGanttController — roadmap Gantt (/forja/roadmap-gantt): tasks no tempo via mcp_cycles+mcp_tasks, com reschedule de due_date por drag-drop. Recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B + 0367 D4). CONVIVE com o quarter view acima — são duas leituras do mesmo backlog e nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id); a 0367 D7 diz que o quarter só sai quando o Gantt provar que substitui"
   - "MyWorkController — tasks do owner logado"
   - "TriageController — tasks órfãs (sem owner/priority/backlog); paridade tool MCP `triage`"
   - "InboxController — caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"

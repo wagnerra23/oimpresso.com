@@ -92,7 +92,7 @@ afterEach(function () {
     }
 });
 
-it('GET /project-mgmt/inbox sem permission retorna 403', function () {
+it('UC-INBOX-01 · GET /project-mgmt/inbox sem permission retorna 403', function () {
     $user = inboxBootstrapUser();
     inboxRevokePerm($user);
 
@@ -101,7 +101,7 @@ it('GET /project-mgmt/inbox sem permission retorna 403', function () {
     expect($response->status())->toBe(403);
 });
 
-it('GET /project-mgmt/inbox com permission retorna Inertia Forja/Inbox/Index', function () {
+it('UC-INBOX-02 · GET /project-mgmt/inbox com permission retorna Inertia Forja/Inbox/Index', function () {
     $user = inboxBootstrapUser();
     inboxGivePerm($user);
 
@@ -122,7 +122,7 @@ it('GET /project-mgmt/inbox com permission retorna Inertia Forja/Inbox/Index', f
     );
 });
 
-it('inbox lista unread do auth user e NÃO vaza notif de outro user (Tier 0)', function () {
+it('UC-INBOX-03 · inbox lista unread do auth user e NÃO vaza notif de outro user (Tier 0)', function () {
     $user = inboxBootstrapUser();
     inboxGivePerm($user);
 
@@ -146,7 +146,7 @@ it('inbox lista unread do auth user e NÃO vaza notif de outro user (Tier 0)', f
     });
 });
 
-it('PATCH /inbox/{id}/read seta read_at e remove do unread', function () {
+it('UC-INBOX-04 · PATCH /inbox/{id}/read seta read_at e remove do unread', function () {
     $user = inboxBootstrapUser();
     inboxGivePerm($user);
     $notif = inboxMakeNotif((int) $user->id);
@@ -166,7 +166,7 @@ it('PATCH /inbox/{id}/read seta read_at e remove do unread', function () {
     expect($notif->fresh()->read_at)->not->toBeNull();
 });
 
-it('PATCH /inbox/{id}/read de notif de OUTRO user retorna 404 (não marca)', function () {
+it('UC-INBOX-06 · PATCH /inbox/{id}/read de notif de OUTRO user retorna 404 (não marca)', function () {
     $user = inboxBootstrapUser();
     inboxGivePerm($user);
 
@@ -180,7 +180,7 @@ it('PATCH /inbox/{id}/read de notif de OUTRO user retorna 404 (não marca)', fun
     expect($theirs->fresh()->read_at)->toBeNull(); // não marcou notif alheia
 });
 
-it('PATCH /inbox/read-all marca todas as não-lidas do auth user', function () {
+it('UC-INBOX-05 · PATCH /inbox/read-all marca todas as não-lidas do auth user', function () {
     $user = inboxBootstrapUser();
     inboxGivePerm($user);
 
@@ -202,7 +202,7 @@ it('PATCH /inbox/read-all marca todas as não-lidas do auth user', function () {
     expect($n2->fresh()->read_at)->not->toBeNull();
 });
 
-it('PATCH /inbox/read-all sem permission retorna 403', function () {
+it('UC-INBOX-01 · PATCH /inbox/read-all sem permission retorna 403', function () {
     $user = inboxBootstrapUser();
     inboxRevokePerm($user);
 

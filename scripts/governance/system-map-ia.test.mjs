@@ -28,12 +28,29 @@ import {
   linhaAgentes,
   parseToolsRegistry,
   linhaTools,
+  deadLinks,
+  assertFreshnessCommitUsable,
 } from './system-map.mjs';
 
 let fails = 0;
 const ok = (cond, msg) => { if (cond) console.log(`  ✓ ${msg}`); else { console.error(`  ✗ ${msg}`); fails++; } };
 
 console.log('\n  system-map · camada de IA — self-test do núcleo puro\n');
+
+// Frescor exige histórico real — clone raso não pode parecer atualizado.
+{
+  let mordeu = false;
+  try {
+    assertFreshnessCommitUsable(true, 'memory/requisitos/Financeiro/BRIEFING.md');
+  } catch { mordeu = true; }
+  ok(mordeu, 'MORDE: clone raso não fabrica último toque de todos os BRIEFINGs');
+
+  let liberou = true;
+  try {
+    assertFreshnessCommitUsable(false, 'memory/requisitos/Financeiro/BRIEFING.md');
+  } catch { liberou = false; }
+  ok(liberou, 'LIBERA: histórico completo permite medir frescor');
+}
 
 // ── A) MORDE: o erro humano real — `caching.embeddings` não é provider ────────
 {
@@ -234,6 +251,19 @@ class OimpressoMcpServer {
     assertOrderedMarkers(compacto, ["Mensagem::create([ 'role' => 'assistant'"], 'newline');
   } catch { mordeuNewline = true; }
   ok(mordeuNewline, 'MORDE: só espaço/tab colapsa — newline continua separando linhas');
+}
+
+// ── K) path histórico não é promessa de existência ───────────────────────
+// A isenção mudou de FORMA no main: era `~~riscado~~` (heurística de estilo), virou o
+// bloco delimitado `<!-- transcrito-de: … -->` (RE_TRANSCRITO) — mais preciso, porque
+// declara a PROVENIÊNCIA do texto em vez de adivinhar pela formatação. A cobertura do
+// caso vive inteira em `system-map-deadlinks.test.mjs` (7 asserts, incl. o controle
+// negativo e o bloco aberto-e-não-fechado). Aqui fica só o lado que não mudou:
+{
+  const out = 'memory/reference/fixture-system-map.md';
+  const live = deadLinks('Use `Modules/ModuloQueNaoExiste` agora.', out);
+  ok(live.some((x) => x.includes('Modules/ModuloQueNaoExiste')),
+    'MORDE: path vivo inexistente continua falhando');
 }
 
 console.log(fails === 0 ? '\n  OK — núcleo da camada de IA morde e não falsa-positiva.\n' : `\n  ${fails} FALHA(S)\n`);

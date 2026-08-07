@@ -56,6 +56,7 @@ Toda manhã, fazer o estado declarado convergir pra verdade, decidir o decidíve
      declarar sucesso. Isto é recibo do detector dono, não presence-gate de "doc no diff".
    - **Bite-log dos gates de design (DR-2a · [ADR 0336](../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)):** rodar `node scripts/governance/design-gate-bites.mjs --scan --sha <sha-do-main> [--pr <n>]`. Registra em `memory/governance/design-gate-bites.jsonl` cada violação de design que MERGEOU (gate advisory que não segurou; dedup por `sig` — persistente não infla). Se houver mordida NOVA, **incluí-la no PR diário** (o ZELADOR é o único coletor — não há workflow que commita no main sob `enforce_admins`). Depois `--tally`: gate com **≥2 PRs distintos** vira candidato a required (DR-3) → escalar como **resíduo** (passo 3 do trilho) com draft de emenda à 0314, **NUNCA promover sozinho**.
    - **Frescor das réguas (o batimento do looping · [proposta reguas-loop](../../memory/decisions/proposals/reguas-loop-maquina-evolucao.md)):** rodar `node scripts/governance/reguas-indexar.mjs` (report-only) + ler a `data` do topo de `memory/reguas/retratos.json`. Isto é SONDA (insumo, não notificação — o ZELADOR **não roda a grade** nem persiste; medir+persistir custa tokens e é o Órgão 2, fora da missão de subtração). Se **(a)** o retrato do topo tem >30 dias **OU (b)** a fila de indexação tem itens: 1 linha no relatório (`reguas: retrato Nd · fila M`). Se acionável (retrato stale E há Δ de commits em paths mapeados), **escalar como resíduo** (passo 3) com draft de 1 OK *"rodar `Workflow reguas-do-sistema {modo:'delta'}`?"* — a execução (delta) é do [W]/sessão dedicada, **NUNCA do ZELADOR**. A fila de indexação em si NÃO abre doc (mesma regra do knowledge-drift acima).
+   - **Prazo de advisory vencido (o teto da [ADR 0298](../../memory/decisions/0298-teto-de-governanca-anti-proliferacao-gates.md)):** ler o warn `[M] advisory-prazo-vencido` do `memory-health` (já roda em todo PR; **não** rodar de novo aqui). Cada gate listado pede UMA decisão: **promover** a required (emenda à 0314 + flip [W]), **estender** o prazo COM razão escrita no `promote_by`, ou **podar** o gate. O ZELADOR **nunca promove nem poda sozinho** — consolida a lista em 1 linha do relatório (`advisory vencidos: N (mais velho Xd)`) e, se houver algum >14d além do prazo, **escala como resíduo** (passo 3) com draft de 1 OK. _Este item existia como promessa órfã: o Check M do `memory-health` dizia desde sempre "o vencimento é cobrado pelo ZELADOR", e este charter nunca mencionou `promote_by` — 16 de 30 advisory venceram (o mais velho há 20d) sem um aviso. Medido e fechado em 2026-08-05 (classe LC-15)._
 3. **Caça ao ruído (subtração):** identificar fonte de notificação/bot/check cujo output não mudou
    NENHUMA decisão nos últimos 30d (ex.: tabela "all clear" de 36 módulos do module-grades).
    Propor demote/mute como item do relatório (1 por dia no máximo). Execução do demote = PR
@@ -104,15 +105,25 @@ cadência, mas não substitui a máquina.
 | Fase | Entrega verificável | Saída |
 |---|---|---|
 | 0 — anti-falso-verde | recibo recusa porta apagada, conteúdo vazio e BRIEFING alterado só no carimbo | bite + controles no `documentation-loop --selftest` |
-| 1 — impacto | `base_sha`, `head_sha`, arquivos, módulos diretos, vizinhos de 1 salto e documentos donos | `--impact-ref <base> --head-ref <head> --json` |
-| 2 — piloto Financeiro | mudança sintética em `Modules/Financeiro/` encontra Financeiro, vizinho e BRIEFING+SDD reais | fixture que roda no mesmo selftest do CLI |
+| 1 — impacto | `base_sha`, `head_sha`, inventário Git classificado, módulos diretos, fecho transitivo e documentos donos | `--impact-ref <base> --head-ref <head> --json` |
+| 2 — piloto Financeiro | mudança sintética encontra Financeiro → Sells e o contrato documental real; fixture profunda prova A → B → C | fixtures do mesmo selftest do CLI |
 | 3 — observação | reporter advisory em PR; coletar falso-positivo, falso-negativo e mordida real | promoção só por decisão [W] e ADR 0336 |
-| 4 — frota | snapshot semanal segue cobrindo os detectores de todos os módulos; no máximo 1 correção por run | denominador conferido por `module-surface --all --check`, nunca lista lembrada |
+| 4 — ativação | novo `Modules/<M>/module.json` só fecha com runtime, docs semânticos, teste e projeções no mesmo commit | `--enforce-activation`; fixture positiva + negativa no selftest |
+| 5 — frota | todos os manifestos atuais têm SCOPE, BRIEFING, SPEC, SUPERFICIE, teste e nó de catálogo; no máximo 1 correção semântica por run | `module_documentation_fleet` + `module-surface --all --check`, nunca lista lembrada |
 
 **Corte por tipo de artefato:** gerado/determinístico deve ser regenerado pelo dono; documento
 semântico exige evidência do fato contra código/runtime; “sem impacto documental” é conclusão
 explícita do mapa, não ausência de arquivo no diff. Mudança em runtime compartilhado, módulo fora
 do catálogo ou fan-out maior que 8 sempre vira `revisao-ampla`.
+
+**Ativação de módulo:** `module.json` novo é o evento. A máquina confere no mesmo commit
+`composer.json`, providers, controllers/rotas de instalação, `modules_statuses.json`, `SCOPE`,
+`BRIEFING`, `SPEC`, `SUPERFICIE`, ao menos um teste, catálogo e painel. A máquina não escreve
+prosa semântica; ela nomeia o dono ausente, e o agente corrige/regenera até o exit ser zero.
+
+**Inventário e frota:** o universo é `git ls-files -z`. Cada path recebe classe e contexto;
+fallback desconhecido fica em `unclassified` e uma mudança nessa classe reprova. Além do módulo
+novo, cada run audita todos os `module.json` atuais no bloco `module_documentation_fleet`.
 
 **Commit e links:** a máquina cobra o conjunto afetado e o recibo no mesmo commit, mas não exige
 “todo doc tocado” — isso seria presence-gate. Links continuam sob o `deadlink-gate` existente:
@@ -121,16 +132,16 @@ segundo scanner nem se bloqueia PR alheio exigindo zerar toda a dívida históri
 
 ### Grade comparativa do desenho
 
-Escala 0–10, evidência do repo em 2026-07-29; não é claim atemporal.
+Escala 0–10, evidência do repo em 2026-07-30; não é claim atemporal.
 
 | Eixo | Antes | Este corte | Referência aplicada |
 |---|---:|---:|---|
 | dono único / não duplicação | 8 | 9 | Backstage-like: catálogo existente + um workflow dono |
-| impacto `base→head` | 2 | 8 | grafo tipado, vizinhança limitada e escape para revisão |
+| impacto `base→head` | 2 | 9 | grafo tipado, fecho transitivo e escape para revisão |
 | correção semântica | 4 | 6 | alvo conhecido de data/remoção/vazio coberto; sem fingir prova universal |
 | verificador independente | 7 | 9 | executor e juiz separados, com `executed:true` |
 | liveness / invocação | 6 | 8 | PR advisory + ZELADOR semanal, ambos no wiring existente |
-| escala / custo | 5 | 8 | diff primeiro, 1 salto, fan-out cap, 1 correção por run |
+| escala / custo | 5 | 8 | diff primeiro, fechamento por grafo, fan-out cap, 1 correção por run |
 
 **Comparação com o passo SDD:** ambos derivam da fonte, exigem bite-test, invocador real e recibo
 de execução. O SDD cria contrato e teste por módulo; este ciclo apenas reconcilia documentos donos.

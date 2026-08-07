@@ -1,27 +1,38 @@
 ---
 module: Jana
-purpose: "Chat IA do business — conversa, sugere metas, monitora execução. Tenancy híbrida (business_id nullable). Inclui custos LLM, qualidade RAG, alertas, períodos. Renomeado de Copiloto em Fase 3.7 PR-2 (2026-05-06). URLs/permissions/config keys mantêm prefixo legacy `copiloto.*` por compatibilidade."
+purpose: "Chat IA do business servido em /ia — conversa com memória, metas, períodos, alertas, custos LLM e qualidade RAG. ATENÇÃO fronteira em aberto: este módulo hospeda hoje também a plataforma MCP do time (servidor JSON-RPC /api/mcp, 44 tabelas mcp_* e 30 entidades Entities/Mcp/), cujo destino declarado em not_contains é Modules/Forja — movimento ainda não executado."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   # Chat IA core
   - "ChatController — UI chat principal"
-  - "DashboardController — resumo executivo"
-  - "PainelController — Cockpit Analista IA (Jana V2) — visual canon chat-jana.jsx · US-JANA-PAINEL-001 ondas A1-D"
+  - "IndexController — Painel (raiz /ia): brief · KPIs · análises · ações · metas"
+  # PainelController: removido 2026-08-06 [W] — onda 1 da fusão das telas da Jana.
+  #   Era hub de 3 links + `buildMockPayload()`; a capacidade (brief · KPIs ·
+  #   análises · ações) já vive em IndexController com dado real do
+  #   SellsCockpitAggregator. A `US-JANA-PAINEL-001` que esta linha citava NUNCA
+  #   existiu no SPEC do módulo — era id fantasma, vivo só aqui, no charter e no
+  #   teste (e daqui vazava pro catalog.json, que é derivado deste arquivo).
   - "Services/Memoria/* — recall hybrid (Hyde, Reranker, Meilisearch)"
   - "Entities/jana_memoria_* — memória persistente do business (rename ADR 0092)"
-  # Custos / Qualidade
-  - "Admin/CustosController — dashboard custos LLM"
+  # Custos / Qualidade — SAÍRAM pra Modules/Governance em 2026-08-05 (ADR 0366 §D-B).
+  # Admin/CustosController e Admin/QualidadeController não moram mais aqui; os
+  # Services (CustosService, MemoriaMetrica) FICARAM — mudou o dono da tela, não o do dado.
   - "Admin/JanaProController — brief diário invocável (US-COPI-203)"
   - "ProController — paywall Jana Pro (/ia/pro), tela de conversão F3 design (#2069)"
-  - "Admin/QualidadeController — qualidade RAG/memória (RAGAS)"
-  - "Admin/RoadmapController — timeline Gantt do cycle ativo (Onda 5 V1)"
+  # Admin/RoadmapController SAIU pra Modules/Forja em 2026-08-05 (ADR 0366 §D-B +
+  # ADR 0367 D4): usa TaskCrudService/McpTask — é tasks, e tasks é Forja.
   # Metas / Períodos
   - "MetasController — metas do business"
   - "PeriodosController — períodos de apuração"
   # Alertas
   - "AlertasController — alerts gerenciados pela IA"
-  # Ghosts canon hub IA (stubs ADR 0182 + GUIA-SIDEBAR-V3)
-  - "BriefController — stub /jana/brief (UI dedicada Onda C; brief gerado por BriefDiarioAgent)"
-  - "RegrasController — stub /jana/regras (UI dedicada futura; policies PolicyEngine ADS + governance MCP)"
+  # Ghosts canon hub IA (stubs ADR 0182 + GUIA-SIDEBAR-V3) — os DOIS foram apagados.
+  # BriefController: removido 2026-06-15 [W] (stub redundante com brief-fetch/chat).
+  #   ⚠️ Ficou listado aqui por ~7 semanas depois de deixar de existir — nenhuma
+  #   máquina compara `contains` com a árvore, então o SCOPE apodreceu calado.
+  # RegrasController: removido 2026-08-04 [W] — cobria policies do PolicyEngine ADS
+  #   + governance MCP cross-team, DOIS domínios fora da Jana (núcleo do ADS foi pra
+  #   Modules/Forja em jul/2026; este SCOPE declara só tabelas jana_*). Lia zero tabela.
   # Boilerplate
   - "DataController — sidebar/permissions"
   - "InstallController — install/uninstall hooks"
