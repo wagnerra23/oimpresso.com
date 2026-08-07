@@ -39,6 +39,13 @@ interface Meta {
   periodo_atual: Periodo | null
   ultima_apuracao: Apuracao | null
   apuracoes_recentes: Apuracao[]
+  /**
+   * Veredito do farol, calculado pelo SERVIDOR (`ApuracaoService::farol`).
+   * Opcional de propósito: durante a janela de deploy o payload antigo ainda
+   * chega sem o campo, e `farolDaMeta()` degrada pra 'cinza' — que já é o
+   * rótulo de "não dá pra dizer" na própria regra.
+   */
+  farol?: 'verde' | 'amarelo' | 'vermelho' | 'cinza'
 }
 
 interface Props {
@@ -54,30 +61,20 @@ interface Props {
   }
 }
 
-function calcularFarol(
-  meta: Meta
-): 'verde' | 'amarelo' | 'vermelho' | 'cinza' {
-  const periodo = meta.periodo_atual
-  const ultima  = meta.ultima_apuracao
+// Onda de fidelidade (2026-08-07): o farol NÃO é mais calculado aqui.
+//
+// O `Index.charter.md` proibia isto em dois lugares — §Goals ("frontend só
+// consome") e §Anti-hooks ("⛔ Cálculo de farol no frontend") — e a regra vivia
+// no frontend mesmo assim. A fonte autoritativa passou a ser
+// `ApuracaoService::farol()`, que chega pronto no payload.
+//
+// Fallback 'cinza' quando o backend não manda: 'cinza' já é o rótulo de "não dá
+// pra dizer" na própria regra, então um payload antigo (deploy a meio) degrada
+// pro estado neutro em vez de inventar um veredito.
+type Farol = 'verde' | 'amarelo' | 'vermelho' | 'cinza'
 
-  if (! periodo || ! ultima) return 'cinza'
-
-  const hoje          = new Date()
-  const ini           = new Date(periodo.data_ini)
-  const fim           = new Date(periodo.data_fim)
-  const totalMs       = fim.getTime() - ini.getTime()
-  const decorridoMs   = hoje.getTime() - ini.getTime()
-  const progresso     = Math.min(1, Math.max(0, decorridoMs / totalMs))
-  const projetado     = periodo.valor_alvo * progresso
-  const realizado     = ultima.valor_realizado
-
-  if (projetado <= 0) return 'cinza'
-
-  const desvioPct = ((realizado - projetado) / projetado) * 100
-
-  if (desvioPct >= -5) return 'verde'
-  if (desvioPct >= -15) return 'amarelo'
-  return 'vermelho'
+function farolDaMeta(meta: Meta): Farol {
+  return meta.farol ?? 'cinza'
 }
 
 const FAROL_CLASSES: Record<string, string> = {
@@ -136,7 +133,7 @@ function Sparkline({ dados }: { dados: Apuracao[] }) {
 }
 
 function MetaCard({ meta }: { meta: Meta }) {
-  const farol        = calcularFarol(meta)
+  const farol        = farolDaMeta(meta)
   const realizado    = meta.ultima_apuracao?.valor_realizado ?? null
   const alvo         = meta.periodo_atual?.valor_alvo ?? null
   const progresso    = alvo && realizado !== null ? Math.min(100, (realizado / alvo) * 100) : null
