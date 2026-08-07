@@ -1,7 +1,7 @@
 ---
-id: resources-js-pages-jana-dashboard-charter
-page: /copiloto/dashboard
-component: resources/js/Pages/Jana/Dashboard.tsx
+id: resources-js-pages-jana-index-charter
+page: /ia
+component: resources/js/Pages/Jana/Index.tsx
 related_prototype: prototipo-ui/cowork/chat-jana.jsx
 owner: wagner
 status: live
@@ -9,14 +9,13 @@ last_validated: "2026-05-18"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
-related_us: [US-COPI-010, US-COPI-011, US-COPI-012, US-COPI-146]
+related_us: [US-COPI-010, US-COPI-011, US-COPI-012, US-COPI-146, US-COPI-148]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
   - resources/js/Pages/Jana/Cockpit.charter.md
 related_specs:
   - memory/requisitos/Jana/SPEC.md (US-COPI-010, US-COPI-011, US-COPI-012)
-absorbs_when_live:
-  - (futuro) — vira tab `dashboard` dentro de `/jana/cockpit` quando F1.5 ≥80 (ver Cockpit.charter.md)
+runbook: memory/requisitos/Jana/RUNBOOK-index.md
 tier: A
 charter_version: 2
 permissao: copiloto.access

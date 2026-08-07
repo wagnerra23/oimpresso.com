@@ -43,7 +43,10 @@
                         <li @if(request()->segment(1) == 'brands') class="active" @endif><a href="{{action([\App\Http\Controllers\BrandController::class, 'index'])}}">@lang('brand.brands')</a></li>
                     @endif
 
-                    @if (auth()->user()->can('edit_repair_settings'))
+                    {{-- US-GOV-059 classe D: o menu checava `edit_repair_settings`, que
+                         nao existe; o RepairSettingsController exige `repair.create`
+                         (mais a assinatura do repair_module). Alinhado ao endpoint. --}}
+                    @if (auth()->user()->can('repair.create'))
                         <li @if(request()->segment(1) == 'repair' && request()->segment(2) == 'repair-settings') class="active" @endif><a href="{{action([\Modules\Repair\Http\Controllers\RepairSettingsController::class, 'index'])}}">@lang('messages.settings')</a></li>
                     @endif
                 </ul>

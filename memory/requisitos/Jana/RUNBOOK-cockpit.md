@@ -4,16 +4,39 @@ slug: jana-runbook-cockpit
 title: "Jana — Runbook da tela Cockpit V2 Analista IA (/ia/cockpit)"
 type: runbook
 module: Jana
-owner: W
-status: ativo
 date: "2026-07-09"
-last_validated: "2026-07-09"
+owner: W
+status: arquivado
+last_validated: "2026-08-07"
 ---
+
+> # ⚰️ TELA REMOVIDA — onda 4 da fusão (US-COPI-148, 2026-08-07)
+>
+> `resources/js/Pages/Jana/Cockpit.tsx` e o `ChatController@cockpit` foram
+> **apagados**, junto com o `Cockpit.charter.md` e o ghost do menu. `/ia/cockpit`
+> responde **301 → /ia**.
+>
+> **Fundida, não substituída em-place.** O charter dela previa "supersedes_in_place
+> Cockpit.tsx" — a decisão mudou: quem sobrevive é o **Painel** (`Jana/Index.tsx` em
+> `/ia`), que já entregava a mesma capacidade (brief · KPIs · análises · ações) com
+> **dado real** do `SellsCockpitAggregator`. O Cockpit servia MOCK.
+>
+> **Fechou a US-COPI-123 (p0) de graça.** As duas metades do mock em rota live
+> saíram juntas: o `startMockStream` (Cockpit.tsx:707/780) e o `mockJanaPayload()`
+> (ChatController). Medido antes de apagar: `startMockStream` existia em **2**
+> ocorrências no repo inteiro, ambas neste arquivo; `mockJanaPayload()` era chamado
+> **só** por `cockpit()`.
+>
+> ⚠️ **NÃO confundir com o `JanaCockpitV2.tsx`**, que **continua vivo** servindo a
+> tab Insights de `/sells` — ver [`RUNBOOK-components.md`](RUNBOOK-components.md).
+>
+> O corpo abaixo é o RUNBOOK da tela como ela existiu. Fica como registro do que
+> foi, não como receita do que fazer.
 
 # RUNBOOK — Cockpit V2 Analista IA (`/ia/cockpit`)
 
 > **Tipo:** runbook reproduzível
-> **Refs:** [ADR 0026](../../decisions/0026-posicionamento-erp-grafico-com-ia.md), [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md), [charter](../../../resources/js/Pages/Jana/Cockpit.charter.md)
+> **Refs:** [ADR 0026](../../decisions/0026-posicionamento-erp-grafico-com-ia.md), [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md), `charter`
 > **Validado:** re-validação **estática** contra `origin/main` em 2026-07-09 (rotas, controller, Page conferidos arquivo a arquivo). ⚠️ **Fluxo vivo (render em prod, troca de tab, chat streaming) NÃO exercitado em 2026-07.**
 
 > **✅ SUPERSEDE CONSUMADO (registrado 2026-07-09):** o aviso de 2026-05-15 previa que o `Cockpit.tsx` V1 (138 lin · anti-pattern WhatsApp-style: tabs Todos/OS/Equipe/Clientes, `setTimeout(reply, 2400)`, resposta literal *"Recebido, vou verificar e te respondo já já 👍"*) seria substituído in-place pelo **V2 Analista IA** quando o pivot Cowork fosse aceito. **Aconteceu**: o `Cockpit.tsx` atual (1022 lin) é o V2 — header `@memcofre` declara `status: live (pivot Cowork aceito · supersedes MVP-piloto WhatsApp anti-pattern)`, story US-COPI-COCKPIT-002. A descrição do V1 foi movida pra seção **HISTÓRICO** no fim deste doc; as §1-§11 abaixo descrevem o V2 em prod.
@@ -44,8 +67,8 @@ Multi-tenant: Controller filtra `session('user.business_id')`; superadmin/`user_
 
 - [ ] Módulo `Jana` instalado em `/manage-modules`
 - [ ] Rota `Route::get('/cockpit', 'ChatController@cockpit')->name('jana.cockpit')` em [`Modules/Jana/Http/routes.php:40`](../../../Modules/Jana/Http/routes.php) — dentro do grupo prefix `ia` (middleware stack UltimatePOS + `throttle:120,1`)
-- [ ] Page Inertia em [`resources/js/Pages/Jana/Cockpit.tsx`](../../../resources/js/Pages/Jana/Cockpit.tsx) (1022 lin) — módulo em **PascalCase**
-- [ ] Charter ao lado: [`Cockpit.charter.md`](../../../resources/js/Pages/Jana/Cockpit.charter.md) (⚠️ frontmatter do charter ainda diz `status: spec-ahead-of-impl` e `page: /jana/cockpit` — drift a corrigir em PR próprio; a impl já alcançou a spec)
+- [ ] Page Inertia em `resources/js/Pages/Jana/Cockpit.tsx` (1022 lin) — módulo em **PascalCase**
+- [ ] Charter ao lado: `Cockpit.charter.md` (⚠️ frontmatter do charter ainda diz `status: spec-ahead-of-impl` e `page: /jana/cockpit` — drift a corrigir em PR próprio; a impl já alcançou a spec)
 - [ ] Skill irmã `jana-arch` (stack ADRs 0035-0053) + `multi-tenant-patterns`
 - [ ] **NÃO** esperar dados reais — payload `jana` é mock estruturado até F2 (ver §1)
 

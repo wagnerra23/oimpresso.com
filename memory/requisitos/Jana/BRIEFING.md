@@ -59,7 +59,7 @@ Cada linha **aponta pro dono do número** em vez de repeti-lo ([proibicoes.md](.
 
 | Gap | Onde se vê / evidência | Dono |
 |---|---|---|
-| **Mock em rota LIVE** — `/ia/cockpit` responde mock no chat **e** no payload, sem feature-flag, e está no sidebar | `Cockpit.tsx:707` define / `:780` chama `startMockStream`; `ChatController.php:533` chama `mockJanaPayload()` (`:555`) | US-COPI-123 `todo` · [RUNBOOK-cockpit.md](RUNBOOK-cockpit.md) §10 |
+| ~~**Mock em rota LIVE**~~ — **RESOLVIDO 2026-08-07** por remoção, não por conserto: `/ia/cockpit` deixou de existir (301 → `/ia`) e as duas metades do mock saíram junto com a tela | `Cockpit.tsx` apagado · `ChatController@cockpit` + `mockJanaPayload()` removidos | US-COPI-123 `done` · onda 4 da US-COPI-148 · [RUNBOOK-cockpit.md](RUNBOOK-cockpit.md) (lápide) |
 | `context_recall` **baixo** — o piso já não deixa degradar calado (landou 2026-07-17), mas o valor segue baixo | rodar `jana:ragas-real-eval`; piso vive em `thresholds_regressao` | [`governance/jana-ragas-real-baseline.json`](../../../governance/jana-ragas-real-baseline.json) · US-COPI-136 **`done`** ([#4412](https://github.com/wagnerra23/oimpresso.com/pull/4412)) |
 | Eval online em ativação controlada | flag canônica autorizada por [W] em 2026-07-29; cobertura e ausência de score são advisory no `jana:health-check` | [`OBSERVABILITY.md`](OBSERVABILITY.md) Etapa 3 · US-COPI-137 |
 | Fluxo Langfuse | heartbeat do destino já foi construído; recibo atual vem de `jana:health-check --json`, não de texto estático | [`OBSERVABILITY.md`](OBSERVABILITY.md) Etapa 0 · US-COPI-138 |

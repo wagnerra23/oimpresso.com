@@ -111,7 +111,7 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 3. Dashboard.tsx — 74/100 🟡
 
-**Arquivo:** [resources/js/Pages/Jana/Dashboard.tsx](../../../resources/js/Pages/Jana/Dashboard.tsx) (224 linhas)
+**Arquivo:** [resources/js/Pages/Jana/Index.tsx](../../../resources/js/Pages/Jana/Index.tsx) (224 linhas)
 **Categoria BENCHMARKS:** §3 Dashboard/KPI overview (cards de meta com farol).
 
 ### Score detalhado
@@ -126,14 +126,14 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 ### Top 3 violações
 
 1. **`Dashboard.tsx:182-196`** — header inline (`<h1 className="text-2xl font-semibold">Dashboard de Metas</h1>`) em vez de `<PageHeader/>` shared como Custos/Index/Governança fazem. Inconsistência cross-Jana (H4).
-2. **`Dashboard.tsx:54-70`** — `calcularFarol` assume trajetória linear hardcoded; meta sazonal (faturamento Dezembro) vai acender vermelho injustamente. RUNBOOK-dashboard.md já documenta como pegadinha mas não foi resolvido. Severidade: a meta `R$ [redacted Tier 0]MM/ano` usa esse cálculo.
+2. **`Dashboard.tsx:54-70`** — `calcularFarol` assume trajetória linear hardcoded; meta sazonal (faturamento Dezembro) vai acender vermelho injustamente. RUNBOOK-index.md já documenta como pegadinha mas não foi resolvido. Severidade: a meta `R$ [redacted Tier 0]MM/ano` usa esse cálculo.
 3. **`Dashboard.tsx:198-205`** — empty state inline (12 linhas de JSX) em vez de `<EmptyState/>` shared. Mesmo gap detectado em Custos/Index.
 
 ### Top 3 vitórias
 
-1. **Sparkline SVG inline + tendência up/down/flat** com lucide icons — [Dashboard.tsx:87-125](../../../resources/js/Pages/Jana/Dashboard.tsx). Boa aplicação de R-DS-003.
-2. **Farol semântico com 4 estados** + `aria-hidden="true"` na faixa lateral — [Dashboard.tsx:136](../../../resources/js/Pages/Jana/Dashboard.tsx). A11y consciente.
-3. **Persistent Layout** correto via `Dashboard.layout = (page) => <AppShellV2>...` — [Dashboard.tsx:220-224](../../../resources/js/Pages/Jana/Dashboard.tsx). Padrão Anthropic atendido.
+1. **Sparkline SVG inline + tendência up/down/flat** com lucide icons — [Dashboard.tsx:87-125](../../../resources/js/Pages/Jana/Index.tsx). Boa aplicação de R-DS-003.
+2. **Farol semântico com 4 estados** + `aria-hidden="true"` na faixa lateral — [Dashboard.tsx:136](../../../resources/js/Pages/Jana/Index.tsx). A11y consciente.
+3. **Persistent Layout** correto via `Dashboard.layout = (page) => <AppShellV2>...` — [Dashboard.tsx:220-224](../../../resources/js/Pages/Jana/Index.tsx). Padrão Anthropic atendido.
 
 ### Prioridade fix
 
@@ -249,14 +249,14 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 7. Cockpit.tsx — 48/100 🔴
 
-**Arquivo:** [resources/js/Pages/Jana/Cockpit.tsx](../../../resources/js/Pages/Jana/Cockpit.tsx) (138 linhas)
+**Arquivo:** `resources/js/Pages/Jana/Cockpit.tsx` (138 linhas)
 **Categoria BENCHMARKS:** §1 Inbox conversacional — **MVP/piloto declarado**.
 
 ### Score detalhado
 
 | Categoria | Score | Detalhe |
 |-----------|-------|---------|
-| DS (40) | 22/40 | 0 CRITICAL diretos (delega ao `Thread`/`Composer` shared); 2 WARN (`👍` emoji literal em [Cockpit.tsx:103](../../../resources/js/Pages/Jana/Cockpit.tsx) — R-DS-003), 1 WARN (`localStorage.setItem` fora de useEffect — render-side-effect anti-pattern React) |
+| DS (40) | 22/40 | 0 CRITICAL diretos (delega ao `Thread`/`Composer` shared); 2 WARN (`👍` emoji literal em `Cockpit.tsx:103` — R-DS-003), 1 WARN (`localStorage.setItem` fora de useEffect — render-side-effect anti-pattern React) |
 | ADR (30) | 12/30 | **3 violações graves**: (a) ADR 0094 §1 (context as product) — typing/reply mockados com `setTimeout` em produção; (b) ADR 0094 §4 (loop fechado por métrica) — não há fetch real, sem telemetria; (c) GOTCHAS.md "Cache/estado preservado" — usa `setMensagensLocal` local em vez de Inertia state, ao trocar conversa perde |
 | UX (30) | 14/30 | **1 CRITICAL (Q1)** — usuário em produção que digita uma mensagem recebe "Recebido, vou verificar e te respondo já já 👍" hardcoded — induz erro grave; **1 CRITICAL (H1)** — visibility of system status mente (mostra typing falso); 1 WARN (Q4 — sem loading real) |
 | **TOTAL** | **48/100** | 🔴 **Reescrever ou matar a rota** — risco de cliente acreditar que Jana respondeu |
@@ -269,8 +269,8 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ### Top 3 vitórias
 
-1. **AppShellV2 com `conversaFoco` + `activeConvId` + `onSelectConv`** — [Cockpit.tsx:111-126](../../../resources/js/Pages/Jana/Cockpit.tsx). Usa o canal canônico do shell (não duplica como Chat.tsx faz com ConvSidePanel).
-2. **Compõe `ChatTabs` + `ThreadHeader` + `Thread` + `Composer` shareds** — [Cockpit.tsx:127-135](../../../resources/js/Pages/Jana/Cockpit.tsx). Reuso máximo, código mínimo.
+1. **AppShellV2 com `conversaFoco` + `activeConvId` + `onSelectConv`** — `Cockpit.tsx:111-126`. Usa o canal canônico do shell (não duplica como Chat.tsx faz com ConvSidePanel).
+2. **Compõe `ChatTabs` + `ThreadHeader` + `Thread` + `Composer` shareds** — `Cockpit.tsx:127-135`. Reuso máximo, código mínimo.
 3. **138 linhas total** — densidade boa pra MVP. Bem comentado sobre status piloto.
 
 ### Prioridade fix

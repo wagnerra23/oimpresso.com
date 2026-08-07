@@ -1,6 +1,7 @@
 * text=auto eol=lf
 .github/ci-sqlite-pest.list merge=union
 .github/financeiro-pest-quarantine.list merge=union
+.github/estoque-pest-quarantine.list merge=union
 
 # Biblioteca de terceiros servida do nosso domínio (nunca CDN — a /documentacao
 # não carrega recurso externo). Marcada como vendored para não poluir diff, busca

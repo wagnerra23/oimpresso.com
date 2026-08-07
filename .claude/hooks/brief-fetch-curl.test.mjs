@@ -157,9 +157,16 @@ check('NEG: escrita falha → motivo fixo, sem throw', restoreFromVault(mkVaultF
 const fsLeak = mkVaultFs({ vaultExiste: false });
 noLeak('reason do restore', JSON.stringify(restoreFromVault(fsLeak)));
 
-// findRepoRoot: runner injetado (de dentro de worktree, --git-common-dir → .git do PRINCIPAL)
-const runnerOk = () => ({ status: 0, stdout: 'D:/repo/.git\n' });
-check('findRepoRoot: --git-common-dir → raiz do repo principal', String(findRepoRoot('/qualquer', runnerOk)).replace(/\\/g, '/') === 'D:/repo');
+// findRepoRoot: runner injetado (de dentro de worktree, --git-common-dir → .git do PRINCIPAL).
+// CROSS-PLATAFORMA: nada de 'D:/...' literal — é absoluto no Windows e RELATIVO no POSIX
+// (o CI roda Linux; o time MCP usa Mac/Linux — é o motivo de o hook ser .mjs, US-GOV-052).
+const rootAbs = findRepoRoot('/qualquer', () => ({ status: 0, stdout: join('/repo', '.git') + '\n' }));
+check('findRepoRoot: --git-common-dir absoluto → raiz do repo (tira o /.git)',
+  typeof rootAbs === 'string' && /[\\/]repo$/.test(rootAbs) && !/\.git$/.test(rootAbs));
+// caso REAL mais comum: na raiz do repo o git devolve ".git" RELATIVO → resolve contra o cwd
+const rootRel = findRepoRoot(process.cwd(), () => ({ status: 0, stdout: '.git\n' }));
+check('findRepoRoot: --git-common-dir relativo (".git") → resolve contra o cwd',
+  rootRel === process.cwd());
 check('findRepoRoot: git falha → null (guarda anti-escrita)', findRepoRoot('/qualquer', () => ({ status: 128, stdout: '' })) === null);
 check('findRepoRoot: git ausente (throw) → null', findRepoRoot('/qualquer', () => { throw new Error('ENOENT'); }) === null);
 check('vaultPath fica FORA da árvore do repo (~/.claude/oimpresso-local)', vaultPath('/home/x').replace(/\\/g, '/') === '/home/x/.claude/oimpresso-local/mcp-settings.local.json');
