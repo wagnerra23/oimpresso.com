@@ -1974,13 +1974,6 @@
       "desc": "check jana_lesson_ledger_graduation valida o loop de graduação do ledger (advisory)"
     },
     {
-      "id": "component:Jana/DashboardController",
-      "type": "component",
-      "module": "Jana",
-      "name": "DashboardController",
-      "desc": "resumo executivo"
-    },
-    {
       "id": "component:Jana/DataController",
       "type": "component",
       "module": "Jana",
@@ -1993,6 +1986,13 @@
       "module": "Jana",
       "name": "Entities/jana_memoria_*",
       "desc": "memória persistente do business (rename ADR 0092)"
+    },
+    {
+      "id": "component:Jana/IndexController",
+      "type": "component",
+      "module": "Jana",
+      "name": "IndexController",
+      "desc": "Painel (raiz /ia): brief · KPIs · análises · ações · metas"
     },
     {
       "id": "component:Jana/InstallController",
@@ -7197,12 +7197,6 @@
     },
     {
       "from": "module:Jana",
-      "to": "component:Jana/DashboardController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Jana",
       "to": "component:Jana/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -7210,6 +7204,12 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/Entities/jana_memoria_*",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Jana",
+      "to": "component:Jana/IndexController",
       "type": "hasComponent",
       "source": "contains"
     },
