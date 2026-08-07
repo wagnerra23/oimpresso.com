@@ -6,6 +6,11 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 
+// Sem isto o `$this->get()` do último caso morre com "Call to undefined method"
+// — os 3 casos de arquivo passam sem TestCase (são asserções PHP puras) e o
+// vermelho só aparece no que faz request. Espelha o irmão `JanaAccessGateTest`.
+uses(Tests\TestCase::class);
+
 /**
  * US-COPI-123 (p0) — o mock em rota LIVE não pode voltar.
  *
