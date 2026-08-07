@@ -10,6 +10,7 @@ return [
     'permissao_plans_manage'          => 'Cobrança Recorrente: Gerenciar planos',
     'permissao_invoices_view'         => 'Cobrança Recorrente: Ver faturas',
     'permissao_invoices_charge'       => 'Cobrança Recorrente: Cobrar faturas (charge)',
+    'permissao_invoices_cancel'       => 'Cobrança Recorrente: Cancelar faturas',
     'permissao_notes_write'           => 'Cobrança Recorrente: Anotações em assinaturas',
     'permissao_favorites_write'       => 'Cobrança Recorrente: Favoritar assinaturas',
     'permissao_configuracoes_manage'  => 'Cobrança Recorrente: Gerenciar configurações (gateways/régua/webhooks)',

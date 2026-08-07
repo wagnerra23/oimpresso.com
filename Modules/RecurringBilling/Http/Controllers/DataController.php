@@ -49,6 +49,7 @@ class DataController extends Controller
             ['value' => 'recurringbilling.plans.manage',              'label' => __('recurringbilling::recurringbilling.permissao_plans_manage'),              'default' => false],
             ['value' => 'recurringbilling.invoices.view',             'label' => __('recurringbilling::recurringbilling.permissao_invoices_view'),             'default' => false],
             ['value' => 'recurringbilling.invoices.charge',           'label' => __('recurringbilling::recurringbilling.permissao_invoices_charge'),           'default' => false],
+            ['value' => 'recurringbilling.invoices.cancel',           'label' => __('recurringbilling::recurringbilling.permissao_invoices_cancel'),           'default' => false],
             ['value' => 'recurringbilling.notes.write',               'label' => __('recurringbilling::recurringbilling.permissao_notes_write'),               'default' => false],
             ['value' => 'recurringbilling.favorites.write',           'label' => __('recurringbilling::recurringbilling.permissao_favorites_write'),           'default' => false],
             ['value' => 'recurringbilling.configuracoes.manage',      'label' => __('recurringbilling::recurringbilling.permissao_configuracoes_manage'),      'default' => false],

@@ -1036,6 +1036,30 @@ Como a permissão não existe, o termo é sempre `false`, e `false || X === X` �
 
 **Achado adjacente, não corrigido (é outro escopo):** o `ModifierSetsController::index()` **não tem gate de permissão** — filtra só por `business_id`. A view escondia a tabela, mas o endpoint AJAX já servia os dados a qualquer usuário autenticado do business. Ou seja, o `@can` da view nunca foi a barreira real; trocá-lo não afrouxa nada. Se a listagem de modificadores devia ser restrita, o gate precisa estar no controller — decisão [W].
 
+#### Classe C triada — 2026-08-07
+
+Duas medições que mudam o tamanho do problema:
+
+**1. O gap do denominador NÃO explica a classe C.** Nenhuma das 15 está declarada em fonte fora das 5 que o detector lê — são órfãs de verdade. Os 8 módulos envolvidos têm `DataController` declarando irmãs, então há destino claro para cada uma.
+
+**2. Metade é scaffolding, não bug de acesso.** O teste é *o consumidor tem rota viva?*:
+
+| situação | n | quais |
+|---|---:|---|
+| **endpoint vivo** — permissão inexistente bloqueia de verdade (só admin passa) | 8 | `crm.add_proposal_template` · `crm.delete_campaign` (Policy) · `crm.view_reports` (nav) · `financeiro.lancamentos.create` · `ponto.importacoes.criar` · `recurringbilling.assinatura.update` · `recurringbilling.invoice.cancel` · `whatsapp.view-all-phones` |
+| **scaffolding** — FormRequest sem controller que o injete | 7 | `arquivos.restore` · `auditoria.export` · `auditoria.note.write` · `auditoria.revert` · `brief.history.view` · `brief.purge` · `crm.proposal.delete` |
+
+O caso mais claro do 2º grupo é o `auditoria.revert`: vive no `BulkRevertActivityRequest`, cujo endpoint (`revert-bulk`) **nunca foi ligado** — não existe rota, logo não há acesso bloqueado. O irmão que funciona (`RevertActivityRequest`, revert individual) faz **auth básica** e delega o RBAC fino ao `RevertService::canRevert()`. Declarar permissão para endpoint inexistente seria ruído; mexer no gate de código não-ligado, risco sem ganho. **O grupo scaffolding fica como resíduo declarado** — quando o endpoint for ligado, quem o ligar decide o gate.
+
+**RecurringBilling — 2 de 8 fechados** (piloto do grupo "endpoint vivo"), com dois desfechos diferentes de propósito:
+
+- **`recurringbilling.assinatura.update` → `subscriptions.manage`** (nenhuma permissão nova). O nome desviava do padrão do módulo em duas frentes — português em vez de inglês, recurso no singular — e a permissão certa **já existia**: a `SubscriptionPolicy` documenta `subscriptions.manage` como *"create/update/pause/resume"* e o label diz *"Criar/editar assinaturas"*, que é exatamente o que o `AssinaturaController::atualizar()` faz.
+- **`recurringbilling.invoice.cancel` → `invoices.cancel`** (plural, como as irmãs) **+ declarada**. Aqui **não havia** permissão existente que cobrisse: `invoices.view` e `invoices.charge` não são cancelamento.
+
+⚠️ **Os dois AMPLIAM acesso** de "só admin" para "quem tiver a permissão" — que é a intenção, mas é ampliação real, e nenhuma é concedida automaticamente (ambas `default => false`). **Nenhuma linha de cálculo foi tocada**: os arquivos são de cobrança/fatura, mas o diff mexe só no nome da permissão no gate — verificado por varredura do diff contra `valor|total|desconto|price|qty|estoque`, zero ocorrências.
+
+**Contador: 43 → 32.** Restam 6 do grupo "endpoint vivo" (Crm 3, Financeiro 1, Ponto 1, Whatsapp 1) + 7 scaffolding + classe D.
+
 **A conferência foi FEITA — e o ponto cego NÃO explica a classe C.** Medido em 2026-08-06 (recibo abaixo): das **37** órfãs do censo, **1 única** aparece declarada em seeder — `fiscal.inutilizar`, em [`NfeFiscalActionsSeeder.php:51`](../../../database/seeders/NfeFiscalActionsSeeder.php) mais o `syncRoles` da L173, que é justamente o caso A-2 já conhecido acima. As outras **36 não existem em seeder algum**. Consequência para quem for triar: a classe C **não pode ser descartada como cegueira do detector** — aquelas permissões estão mesmo sem declaração em lugar nenhum, e a decisão sobre elas (declarar × remover o `can()`) é de mérito, não de instrumento.
 
 ```bash
