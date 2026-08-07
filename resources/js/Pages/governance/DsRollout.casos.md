@@ -4,7 +4,7 @@ casos: DS Rollout · Ledger de Conformidade DS · /governance/ds-rollout
 irmaos: DsRollout.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-06-12"
+last_run: "2026-08-05"
 ---
 
 # Casos de uso — /governance/ds-rollout

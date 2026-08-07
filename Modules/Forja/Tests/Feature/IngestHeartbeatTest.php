@@ -13,7 +13,7 @@ uses(Tests\TestCase::class);
  * B-LIVE-HB (SDD · ADR 0278) — Heartbeat do ingest (núcleo do fim do SPOF).
  *
  * Testa o WRITER do heartbeat (CcIngestController::bumpHeartbeat), que vive em
- * Modules/TeamMcp (dono do ingest, NÃO Jana). O reader/liveness service é tarefa
+ * Modules/Forja (dono do ingest, NÃO Jana). O reader/liveness service é tarefa
  * SEPARADA e não é coberto aqui.
  *
  * Estratégia era-sqlite sintética: a tabela real `mcp_ingest_heartbeat` é criada
@@ -31,7 +31,7 @@ uses(Tests\TestCase::class);
  * gerada).
  *
  * @see Modules\Forja\Http\Controllers\Mcp\CcIngestController::bumpHeartbeat
- * @see Modules\TeamMcp\Database\Migrations\2026_06_15_100000_create_mcp_ingest_heartbeat_table.php
+ * @see Modules\Forja\Database\Migrations\2026_06_15_100000_create_mcp_ingest_heartbeat_table.php
  */
 
 /**

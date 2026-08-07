@@ -3,7 +3,7 @@ slug: 0333-emenda-0330-eixo-rodar-e-observar-submedido
 number: 333
 title: "Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (ponto cego + 4 dimensões de medição)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: meta

@@ -1,14 +1,13 @@
 ---
 id: requisitos-nfse-briefing
 module: NFSe
-status: homologação SN-NFSe federal (cert A1 pendente Wagner) — recente 2026-05-01
-piloto: oimpresso biz=1 (Wagner empresa, Tubarão-SC) — cliente único interno
-last_review: 2026-05-16
+status: homologação SN-NFSe federal + cutover fiscal por-business habilitado (biz=164 Martinho — #2147); cert A1 pendente Wagner
+piloto: oimpresso biz=1 (Wagner, Tubarão-SC) homologação + biz=164 (Martinho OficinaAuto) cutover por-business
+last_review: 2026-08-01
 owner: eliana
 parent_adr: ARQ-0001
 related_adrs: [0093, 0101, 0121, 0153, 0155, 0156]
-nota_atual_v2: "~56/100 (injusto — D5 penaliza cliente único interno em homologação)"
-nota_esperada_v3: "~65-75/100 pós-PR4 na_justified D5 declarado"
+nota_stale: "número de module-grade abaixo é HISTÓRICO (2026-05-16). Fonte viva: php artisan module:grade NFSe --detail (CT 100) — não restatear à mão (LC-08)"
 na_justified: [D5]
 ---
 
@@ -18,7 +17,7 @@ na_justified: [D5]
 > **Refs:** [proibicoes.md §Sempre fazer](../../proibicoes.md) — Tier 0 "BRIEFING.md atualizado em todo PR mergeado"
 > **Skill auto-trigger:** `brief-update` (Tier B)
 > **Owner:** Eliana[E] · **Paralelo a:** Cycle 01 (não bloqueia)
-> Última atualização: 2026-05-16 (Wave 5 re-try — `na_justified` D5 declarado no SPEC pareado)
+> Última atualização: 2026-08-01 (catch-up 76d — reflete até `origin/main` 2026-07-31; deltas §13.1)
 
 ---
 
@@ -28,7 +27,7 @@ na_justified: [D5]
 **Backend:** `Modules/NFSe/`
 **Frontend:** `resources/js/Pages/Nfse/` (Index, Emitir, Show)
 
-Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (LC 214/2025), direto SEFIN nacional sem provider terceiro. Cliente piloto interno: empresa **oimpresso** (Wagner, Tubarão-SC). Pareado com `Modules/NfeBrasil` para módulo `Modules/ComunicacaoVisual` (CNAE 1813-0/01 — produtos e serviços conjuntos).
+Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (LC 214/2025), direto SEFIN nacional sem provider terceiro. Município: Tubarão-SC (IBGE 4218707). Bucket de governança = `functional_horizontal` ([module.json](../../../Modules/NFSe/module.json), 2026-05-17 [W]) — **infra fiscal cross-vertical, não cliente único**. Consumidores hoje: **biz=1** (Wagner, homologação) + **biz=164** (Martinho/OficinaAuto — cutover fiscal por-business habilitado, #2147). Pareado com `Modules/NfeBrasil` (cert A1 + schema `nfe_certificados` unificados).
 
 ## 2. Estado consolidado
 
@@ -41,15 +40,16 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 | Documentação canon (SPEC + ACESSOS + PESQUISA + RUNBOOK) | 80% | 2026-05-16 |
 | Deploy/ops (prod) | 0% — homologação | 2026-05-16 (cert A1 pendente Wagner) |
 
-### Score module-grade (v3 pós-PR4)
+### Score module-grade
 
-| Versão | Score | Observação |
+> ⚠️ **Números abaixo são HISTÓRICO datado (2026-05-16), não o estado atual.** Fonte viva da nota = `php artisan module:grade NFSe --detail` (roda no CT 100, baseline em `governance/module-grades-baseline.json`). Não restatear o número à mão (LC-08 · lápide 2026-07-17 "não repetir número que outro sistema sabe melhor").
+
+| Versão (datada) | Score | Observação |
 |---|---|---|
-| v2 (pré-PR4) | ~56/100 | Penalizava D5 (cliente externo) — homologação com biz=1 oimpresso interno único |
-| **v3 (pós-PR4)** | **~65-75/100** (esperado) | `na_justified` D5 declarado no SPEC → rubrica v3 redistribui peso (ADR 0156) + cobertura prefeituras inicial limita upside |
+| v2 (2026-05-16) | ~56/100 | Penalizava D5 (cliente externo) — então biz=1 interno único |
+| v3 esperado (2026-05-16) | ~65-75/100 | `na_justified` D5 → rubrica v3 redistribui peso (ADR 0156) |
 
-**`na_justified` declarado no SPEC:**
-- **D5 (cliente externo):** módulo recente (2026-05-01), homologação SEFIN com biz=1 oimpresso interno (Wagner empresa, Tubarão-SC). Sem cliente externo pagante ainda — próximo canary ComunicacaoVisual (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo) aguarda ativação Modules/ComunicacaoVisual produção. NUNCA biz=4 ROTA LIVRE (vestuário CNAE 4781-4/00 só emite NFCe).
+**`na_justified` D5 declarado no SPEC:** módulo fiscal foundation-horizontal; sem cliente externo pagante isolado enquanto biz=1 (homologação) e biz=164 (cutover Martinho) são os consumidores. **NUNCA biz=4 ROTA LIVRE** (vestuário CNAE 4781-4/00 só emite NFCe).
 
 ## 3. Capacidades hoje
 
@@ -58,9 +58,12 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 - **Tela listagem**: `Nfse/Index.tsx` — filtros status/competência/tomador + paginate 25
 - **Tela detalhe**: `Nfse/Show.tsx` — status real-time, link DANFSE proxy, cancelamento
 - **Service `NfseEmissaoService`**: idempotência via `idempotency_key`, retry 3× com backoff exponencial em timeout, log estruturado canal `nfse`
+- **Ambiente POR-BUSINESS (cutover fiscal)**: emissão resolve `homologacao`/`producao` de `nfse_provider_configs.ambiente` do tenant (`montarPayload` L76-80 + `SnNfseAdapter::resolveBaseUrl`), NÃO do bind global — ligar produção pra biz=164 não afeta os demais (#2147, teste `AmbientePorBusinessTest`)
 - **Job assíncrono**: `EmitirNfseJob` na fila `nfse` com payload DTO (cert A1 em base64 + senha decriptada)
-- **Cert A1**: storage encriptado (`cert_pfx_encrypted`), `senhaDecriptada()` + `pfxDecriptado()` runtime
-- **Cancelamento**: motivo min 15 chars (SEFIN exige), update status, log canal nfse
+- **Cert A1**: storage encriptado, delegado ao `CertificadoService` do NfeBrasil (schema unificado migration 2026_05_07_210000). Import via `php artisan nfse:importar-cert --pfx=<arquivo.pfx> --senha=<senha> --business=<id>` (`ImportarCertificadoCommand`)
+- **Health check**: `php artisan nfse:health` — 6 sinais (tabelas, providers ativos, **cert vencendo ≤30d**, rejeitadas 24h) — `NfseHealthCommand`, Wave 23 D6
+- **Cancelamento**: motivo obrigatório, bloqueia dupla cancelação (`NfseJaCanceladaException`), span OTel `nfse.cancelar` (Wave 28, #2678), log canal nfse
+- **Observabilidade**: spans OTel `nfse.emissao` + `nfse.cancelar` com atributo `businessId` (correlação prod cross-tenant)
 
 ## 4. Diferenciais únicos (não-replicáveis BSPs)
 
@@ -72,13 +75,14 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 
 ## 5. Gaps remanescentes (próxima onda)
 
-| # | PR alvo | Esforço IA-pair | Score impact |
+| # | PR alvo | Esforço IA-pair | Nota |
 |---|---|---|---|
-| 1 | Pest cobertura emissão end-to-end (biz=1 NUNCA biz=4) | 4h | +3pp |
-| 2 | Bulk emissão (recurring invoices mensais) | 6h | +4pp |
-| 3 | Dashboard métricas NFSe (volume/erro/ISS pago) | 4h | +2pp |
-| 4 | UI configuração cert A1 + provider (substituir Tinker manual) | 8h | +3pp |
-| 5 | Webhook callback SEFIN async (em vez de polling) | 6h | +2pp |
+| 1 | Pest emissão end-to-end com hit DB real (Waves 25/27/28 são reflection+source-grep, ZERO hit DB — CHANGELOG) | 4h | cobertura de comportamento ainda não é DB-real |
+| 2 | Bulk emissão (recurring invoices mensais) | 6h | aberto |
+| 3 | Dashboard métricas NFSe (volume/erro/ISS pago) | 4h | **parcial** — `nfse:health` já dá 6 sinais CLI; falta tela |
+| 4 | UI configuração cert A1 + provider | 8h | **parcial** — `nfse:importar-cert` substituiu Tinker; falta UI web |
+| 5 | Webhook callback SEFIN async (em vez de polling) | 6h | aberto |
+| 6 | Non-Goals/Anti-hooks dos 3 charters (status `draft`, pendem aprovação [W] pra virar `live`) | — | #4113 criou os charters; falta [W] |
 
 ## 6. Bloqueadores manuais Wagner
 
@@ -97,7 +101,7 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 
 ## 8. Risks ativos
 
-- 🔴 **Cert A1 expira** sem alerta proativo — adicionar cron alerta D-30/D-7/D-1 (US futuro)
+- 🟡 **Cert A1 expira** — `nfse:health` já sinaliza `cert_vencimento_alarme` ≤30d (era 🔴 no BRIEFING de 05-16); falta cron que dispare o alerta proativamente (D-30/D-7/D-1)
 - 🟡 **SN-NFSe LC 214/2025 ainda em adoção** — algumas prefeituras retardatárias podem voltar a exigir ABRASF municipal (cobertura SEFIN evolui em 2026)
 - 🟡 **Idempotência só cobre store()** — race em update concorrente status precisa lock pessimista futuro
 - 🟢 **Sem cliente real em prod ainda** — risco financeiro contido a homologação
@@ -111,8 +115,9 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 
 ## 10. Cliente piloto / canary
 
-- **Atual:** oimpresso biz=1 (Wagner empresa) — homologação SEFIN
-- **Próximo canary:** ComunicacaoVisual candidatos (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo) quando ativar `Modules/ComunicacaoVisual` produção
+- **biz=1** (Wagner/oimpresso, Tubarão-SC) — homologação SEFIN
+- **biz=164** (Martinho / OficinaAuto) — **cutover fiscal por-business habilitado no código** (#2147, 2026-06-03). O ambiente do tenant é lido de `nfse_provider_configs.ambiente`; se/qual business está de fato flipado pra `producao` em prod é fato de runtime (CT 100/prod DB) — não afirmar "LIVE emitindo" sem medir
+- **Próximo canary:** ComunicacaoVisual (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo) quando `Modules/ComunicacaoVisual` for a produção
 - **NUNCA biz=4 ROTA LIVRE** — Larissa é vestuário CNAE 4781-4/00, não emite NFSe (só NFCe)
 
 ## 11. ADRs centrais do módulo

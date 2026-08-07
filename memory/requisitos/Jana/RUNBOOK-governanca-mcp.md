@@ -38,7 +38,7 @@ Dashboard de governança para Wagner acompanhar consumo do MCP server em tempo r
 - [ ] Módulo `Jana` instalado em `/manage-modules`
 - [ ] Permissão `jana.mcp.usage.all` atribuída ao role do usuário (somente Wagner/superadmin)
 - [ ] Rota registrada em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Routes/web.php) como `GET /copiloto/admin/governanca`
-- [ ] Page Inertia em [`resources/js/Pages/Jana/Admin/Governanca/Index.tsx`](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx)
+- [ ] Page Inertia em [`resources/js/Pages/governance/Dashboard.tsx`](../../../resources/js/Pages/governance/Dashboard.tsx)
 - [ ] Tabela `mcp_audit_log` existindo e com dados (ADR 0053)
 - [ ] Skill irmã `copiloto-arch` carregada se for mexer na lógica de métricas
 
@@ -61,7 +61,7 @@ Route::prefix('copiloto/admin')
 ### 2. Controller — query + Inertia render
 
 ```php
-// Modules/Jana/Http/Controllers/Admin/GovernancaController.php
+// Modules/Governance/Http/Controllers/DashboardController.php
 public function index(Request $request): Response
 {
     $preset  = $request->input('preset', '7d');
@@ -86,7 +86,7 @@ public function index(Request $request): Response
 ### 3. Page Inertia — Persistent Layout
 
 ```tsx
-// resources/js/Pages/Jana/Admin/Governanca/Index.tsx
+// resources/js/Pages/governance/Dashboard.tsx
 
 GovernancaIndex.layout = (page: ReactNode) => (
   <AppShellV2

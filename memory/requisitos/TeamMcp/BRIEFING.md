@@ -1,11 +1,19 @@
 ---
 id: requisitos-team-mcp-briefing
+module: TeamMcp
+status: deprecated
+status_nota: "REMOVIDO em 2026-07-31 (decisão [W] \"MCP vai para forja\" + \"pode apagar\"). Ciclo E1→E7 fechado em 7 PRs (#5111 #5114 #5116 #5117 #5118 #5120 #5122), 89 → 0 arquivos. Todo o conteúdo foi dissolvido em Modules/Forja; NADA foi perdido — URLs /api/mcp/*, /api/cc/ingest, /team-mcp/*, /forja/* e /ads/admin/* preservadas (ADR 0087), e as tabelas mcp_tokens/mcp_actors/mcp_ingest_heartbeat/cowork_handoffs NÃO foram tocadas (CT 100 e Hostinger leem o mesmo banco — troca de dono no código, zero DDL). Esta pasta é canon HISTÓRICO. Destino por cluster na lápide SUPERFICIE.md; roteiro e medições no DEPRECATION-PLAN.md. Não recriar."
+updated_at: "2026-07-31"
+owner: W
+related_adrs: [0053-mcp-server-governanca-como-produto, 0081-identity-mesh-mcp-actors, 0087-drift-resolution-sem-mover-url, 0283-handoff-loop-zero-paste, 0361-errata-0354-teammcp-pest-required-nunca-executado]
+lifecycle: arquivado
 ---
 
-# BRIEFING — Modules/TeamMcp
+# BRIEFING — Modules/TeamMcp (REMOVIDO)
 
 > Estado consolidado 1-pager · Última atualização: 2026-07-28 (SDD + contratos) · nota reconciliada 2026-07-17
-> Owner: Wagner [W] · Trust: L1 · Status prod: ✅ live
+> Owner: Wagner [W] · Trust: L1 · **Status prod: ⚰️ REMOVIDO em 2026-07-31** — o módulo não existe mais;
+> o que segue abaixo é retrato do que ele ERA, mantido como registro. Sucessor: `Modules/Forja`.
 > **Module grade: 79/100 (Bom) em 2026-07-17.** Dono do número: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) — recomputar com `php artisan module:grade TeamMcp`. Era **29/100 (Crítico)** em 2026-05-16, quando este 1-pager nasceu: a rubrica evoluiu pra v3 ([ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)) e o módulo recebeu PRs desde então. Os gaps listados abaixo são de 2026-05-16 e podem estar fechados.
 
 ## O que faz (1 frase)
@@ -92,7 +100,7 @@ por módulo é hoje **decorativa em runtime** (`CU-TEAM-05` 🔴 · US-TEAM-005 
 ## Referências canon
 
 - SPEC: [memory/requisitos/TeamMcp/SPEC.md](SPEC.md)
-- SCOPE: [Modules/TeamMcp/SCOPE.md](../../../Modules/TeamMcp/SCOPE.md)
+- SCOPE: [Modules/TeamMcp/SCOPE.md](../../../Modules/Forja/SCOPE.md)
 - ADRs: 0053 (MCP server), 0070 (Jira-style), 0079 (Constituição 7 camadas), 0080 (Trust tiers), **0081 (Identity Mesh — mãe)**, 0086 (ActionGate Fase 5), 0093 (Multi-tenant Tier 0)
 - Testes Pest: `Modules/TeamMcp/Tests/Feature/` — 5 arquivos cobrindo seeder + isolamento + smoke + scaffold + matriz permissões
 

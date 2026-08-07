@@ -11,6 +11,7 @@ on:
     paths:
       - 'resources/css/tokens/**'
       - 'scripts/design-sync/ds-token-version.mjs'
+      - '.github/workflows/ds-token-version.yml'
   workflow_dispatch:
 
 concurrency:
@@ -31,10 +32,14 @@ jobs:
           node-version: '20'
       # Tokens são build inputs rastreados (ver .gitignore) — não precisa buildar; o script
       # lê os _generated-*.css do repo direto.
+      # O `--check` MORDE: exit≠0 derruba o passo (job vermelho e visível). Job segue
+      # NÃO-required — não bloqueia o merge. Advisory = "não bloqueia", NUNCA = "não pode
+      # ficar vermelho" (proibicoes.md §5, lápide 2026-07-09). O `||` só ENFEITA o erro com
+      # a receita de conserto e re-levanta o exit — engolir o status era o gate mudo.
       - name: Versão do pacote de tokens em dia?
         run: |
-          if node scripts/design-sync/ds-token-version.mjs --check; then
-            echo "✅ version.json + CHANGELOG em dia com a superfície de tokens."
-          else
-            echo "::warning title=DS token version::Superfície de tokens mudou sem bump — rode 'npm run tokens:version:write' e commite version.json + CHANGELOG.md (advisory, não bloqueia)."
-          fi
+          node scripts/design-sync/ds-token-version.mjs --check || {
+            echo "::error title=DS token version::Superfície de tokens mudou sem bump — rode 'npm run tokens:version:write' e commite version.json + CHANGELOG.md."
+            exit 1
+          }
+          echo "✅ version.json + CHANGELOG em dia com a superfície de tokens."

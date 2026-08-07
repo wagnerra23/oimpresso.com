@@ -1,23 +1,202 @@
 {
   "_meta": {
-    "generated_at": "2026-07-27T20:54:31.058Z",
+    "generated_at": "2026-08-07T15:36:46.409Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
-      "pages": 235,
-      "casos_files": 45,
-      "ucs_declared": 203,
+      "pages": 205,
+      "casos_files": 87,
+      "ucs_declared": 445,
       "missing_charter": 0,
-      "missing_casos": 191,
-      "orphan_ucs": 20,
+      "missing_casos": 119,
+      "orphan_ucs": 12,
       "metadata_issues": 0,
       "stale_cases": 0,
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
-      "exec_backed_ucs": 32,
-      "exec_backed_declared": 203,
-      "exec_backed_pct": 16
+      "exec_backed_ucs": 166,
+      "exec_backed_declared": 445,
+      "exec_backed_pct": 37,
+      "teto_no_titulo": 329,
+      "teto_so_docblock": 104,
+      "teto_distintos": 445,
+      "teto_presos_por_modulo": [
+        {
+          "modulo": "Cliente",
+          "ucs": [
+            "UC-CCRE-01",
+            "UC-CCRE-02",
+            "UC-CCRE-03",
+            "UC-CEDI-01",
+            "UC-CEDI-02",
+            "UC-CEDI-03",
+            "UC-CEDI-04",
+            "UC-CIDX-01",
+            "UC-CIDX-02",
+            "UC-CIDX-03",
+            "UC-CIDX-04",
+            "UC-CIMP-01",
+            "UC-CLED-01",
+            "UC-CLED-02",
+            "UC-CLED-03",
+            "UC-CLED-04",
+            "UC-CLED-05",
+            "UC-CMAP-01",
+            "UC-CMAP-02",
+            "UC-CSHW-01",
+            "UC-CSHW-02"
+          ]
+        },
+        {
+          "modulo": "OficinaAuto",
+          "ucs": [
+            "UC-OCR-01",
+            "UC-OCR-02",
+            "UC-OCR-03",
+            "UC-OCR-04",
+            "UC-OED-01",
+            "UC-OED-02",
+            "UC-OED-05",
+            "UC-OSH-01",
+            "UC-OSH-02",
+            "UC-OSH-03",
+            "UC-OSH-04"
+          ]
+        },
+        {
+          "modulo": "ComunicacaoVisual",
+          "ucs": [
+            "UC-CV-01",
+            "UC-CV-02",
+            "UC-CV-03",
+            "UC-CV-04",
+            "UC-CV-05",
+            "UC-CV-06",
+            "UC-CV-08",
+            "UC-CV-10",
+            "UC-CV-11",
+            "UC-CV-12"
+          ]
+        },
+        {
+          "modulo": "Ponto",
+          "ucs": [
+            "UC-APROV-01",
+            "UC-APROV-02",
+            "UC-APROV-03",
+            "UC-APROV-04",
+            "UC-BHSHOW-01",
+            "UC-BHSHOW-02",
+            "UC-BHSHOW-03",
+            "UC-ESPIDX-01",
+            "UC-ESPIDX-02",
+            "UC-ESPIDX-03"
+          ]
+        },
+        {
+          "modulo": "kb",
+          "ucs": [
+            "UC-KBV2-01",
+            "UC-KBV2-02",
+            "UC-KBV2-03",
+            "UC-KBV2-04",
+            "UC-KBV2-05",
+            "UC-KBV2-07",
+            "UC-KBV2-08"
+          ]
+        },
+        {
+          "modulo": "RecurringBilling",
+          "ucs": [
+            "UC-RBPLN-01",
+            "UC-RBPLN-02",
+            "UC-RBPLN-03",
+            "UC-RBPNC-01",
+            "UC-RBPNC-02",
+            "UC-RBPNE-01",
+            "UC-RBPNE-02"
+          ]
+        },
+        {
+          "modulo": "Compras",
+          "ucs": [
+            "UC-CMP-01",
+            "UC-CMP-02",
+            "UC-CMP-03",
+            "UC-CMP-04",
+            "UC-CMP-05",
+            "UC-CMP-09"
+          ]
+        },
+        {
+          "modulo": "Jana",
+          "ucs": [
+            "UC-PRO-01",
+            "UC-PRO-02",
+            "UC-PRO-03",
+            "UC-PRO-04",
+            "UC-PRO-05",
+            "UC-PRO-06"
+          ]
+        },
+        {
+          "modulo": "Produto",
+          "ucs": [
+            "UC-PEDIT-01",
+            "UC-PEDIT-02",
+            "UC-PEDIT-04",
+            "UC-PSHOW-04",
+            "UC-PSHOW-05",
+            "UC-PSHOW-07"
+          ]
+        },
+        {
+          "modulo": "Financeiro",
+          "ucs": [
+            "UC-IMP-04",
+            "UC-PV-01",
+            "UC-PV-02",
+            "UC-PV-04",
+            "UC-PV-06"
+          ]
+        },
+        {
+          "modulo": "Vestuario",
+          "ucs": [
+            "UC-VET-01",
+            "UC-VET-04",
+            "UC-VET-07",
+            "UC-VET-08",
+            "UC-VET-09"
+          ]
+        },
+        {
+          "modulo": "Whatsapp",
+          "ucs": [
+            "UC-FBP-01",
+            "UC-FBP-02",
+            "UC-FBP-03",
+            "UC-FBP-04",
+            "UC-FBP-05"
+          ]
+        },
+        {
+          "modulo": "governance",
+          "ucs": [
+            "UC-DSR-01B",
+            "UC-DSR-04B",
+            "UC-DSR-05",
+            "UC-DSR-08B"
+          ]
+        },
+        {
+          "modulo": "Sells",
+          "ucs": [
+            "UC-S02"
+          ]
+        }
+      ]
     },
     "nota": "Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write",
     "refs": [
@@ -27,31 +206,9 @@
     ]
   },
   "violations": [
-    "trio:missing-casos:resources/js/Pages/Admin/FeatureFlags/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Admin/FeatureFlags/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/Admin/GovernanceV4.tsx",
-    "trio:missing-casos:resources/js/Pages/Admin/GovernanceV4Dashboard.tsx",
-    "trio:missing-casos:resources/js/Pages/Admin/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Admin/RagQualityDashboard.tsx",
-    "trio:missing-casos:resources/js/Pages/Admin/ScreenReview.tsx",
-    "trio:missing-casos:resources/js/Pages/Admin/ScreenReviewDashboard.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Confidence.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Conflicts.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/DecisaoShow.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Decisoes.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/Graph.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Learning.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/MetaSkills.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Metricas.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Patterns.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Policy.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/Projects.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/ProjectShow.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Skills/Edit.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Skills/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Skills/Review.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Skills/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/ads/Admin/Skills/Test.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/TeamScopes.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/Tools.tsx",
     "trio:missing-casos:resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
@@ -64,8 +221,6 @@
     "trio:missing-casos:resources/js/Pages/Atendimento/Metricas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Auditoria/Detail.tsx",
     "trio:missing-casos:resources/js/Pages/Auditoria/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Compras/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/ComunicacaoVisual/Index.tsx",
     "trio:missing-casos:resources/js/Pages/ConsultaOs/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Essentials/Documents/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Essentials/Holidays/Index.tsx",
@@ -83,10 +238,8 @@
     "trio:missing-casos:resources/js/Pages/Financeiro/Advisor/Dashboard.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Advisor/Login.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Caixa/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Categorias/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Cobranca/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Conciliacao/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Configuracoes/Contador.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/ContasBancarias/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Dashboard/Index.tsx",
@@ -96,81 +249,41 @@
     "trio:missing-casos:resources/js/Pages/Financeiro/PlanoContas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Relatorios/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Unificado/Novo.tsx",
+    "trio:missing-casos:resources/js/Pages/Forja/Activity/Index.tsx",
+    "trio:missing-casos:resources/js/Pages/Forja/Backlog/Index.tsx",
+    "trio:missing-casos:resources/js/Pages/Forja/Board/DetailSheet.tsx",
+    "trio:missing-casos:resources/js/Pages/Forja/Burndown/Index.tsx",
+    "trio:missing-casos:resources/js/Pages/Forja/MyWork/Index.tsx",
+    "trio:missing-casos:resources/js/Pages/Forja/Roadmap/Index.tsx",
     "trio:missing-casos:resources/js/Pages/governance/Audit.tsx",
+    "trio:missing-casos:resources/js/Pages/governance/Custos.tsx",
     "trio:missing-casos:resources/js/Pages/governance/Dashboard.tsx",
     "trio:missing-casos:resources/js/Pages/governance/DriftAlerts.tsx",
     "trio:missing-casos:resources/js/Pages/governance/ModuleGrades/Index.tsx",
     "trio:missing-casos:resources/js/Pages/governance/ModuleGrades/Show.tsx",
     "trio:missing-casos:resources/js/Pages/governance/Policies.tsx",
+    "trio:missing-casos:resources/js/Pages/governance/QualidadeIa.tsx",
     "trio:missing-casos:resources/js/Pages/Home/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Admin/Custos/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Admin/Governanca/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Admin/Qualidade/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Admin/Roadmap.tsx",
     "trio:missing-casos:resources/js/Pages/Jana/Chat.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Cockpit.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Dashboard.tsx",
+    "trio:missing-casos:resources/js/Pages/Jana/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Jana/Memoria.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Painel.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Regras/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/kb/Graph.tsx",
-    "trio:missing-casos:resources/js/Pages/kb/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Manufacturing/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Modules/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx",
-    "trio:missing-casos:resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx",
-    "trio:missing-casos:resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.tsx",
-    "trio:missing-casos:resources/js/Pages/NfeBrasil/Tributacao/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Emitir.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx",
-    "trio:missing-casos:resources/js/Pages/OficinaAuto/Vehicles/Create.tsx",
-    "trio:missing-casos:resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx",
-    "trio:missing-casos:resources/js/Pages/OficinaAuto/Vehicles/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/OficinaAuto/Vehicles/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/BancoHoras/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/BancoHoras/Show.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Colaboradores/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Configuracoes/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Dashboard/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Escalas/Form.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Escalas/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Espelho/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Espelho/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Importacoes/Create.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Importacoes/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Importacoes/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Intercorrencias/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/Ponto/Relatorios/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Welcome.tsx",
     "trio:missing-casos:resources/js/Pages/Produto/Unificado/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/Activity/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/Backlog/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/Board/DetailSheet.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/Board/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/Burndown/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/Inbox/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/MyWork/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/Roadmap/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Forja/Triage/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Purchase/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Purchase/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/Purchase/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Purchase/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/RecurringBilling/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/RecurringBilling/Planos/Create.tsx",
-    "trio:missing-casos:resources/js/Pages/RecurringBilling/Planos/Edit.tsx",
-    "trio:missing-casos:resources/js/Pages/RecurringBilling/Planos/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/Dashboard/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/DeviceModels/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/DeviceModels/Edit.tsx",
@@ -209,7 +322,6 @@
     "trio:missing-casos:resources/js/Pages/TransactionPayment/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/TransactionPayment/Index.tsx",
     "trio:missing-casos:resources/js/Pages/TransactionPayment/Show.tsx",
-    "trio:missing-casos:resources/js/Pages/Vestuario/Etiquetas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Whatsapp/Settings.tsx",
     "trio:missing-casos:resources/js/Pages/Whatsapp/Templates/Index.tsx",
     "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-07",
@@ -218,19 +330,11 @@
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-06",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-07",
     "uc-orphan:resources/js/Pages/kb/Index.v2.casos.md#UC-KBV2-09",
-    "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-02",
     "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-03",
-    "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-05",
     "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-08",
     "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-09",
     "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-10",
-    "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-01",
     "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-02",
-    "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-03",
-    "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-04",
-    "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-05",
-    "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-06",
-    "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-07",
-    "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-08"
+    "uc-orphan:resources/js/Pages/team-mcp/Scorecard/Index.casos.md#UC-SC-06"
   ]
 }

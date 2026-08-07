@@ -1,8 +1,8 @@
 ---
 id: requisitos-connector-spec
 module: Connector
-version: "1.0"
-last_updated: "2026-05-16"
+version: "1.1"
+last_updated: "2026-08-03"
 status: ativo
 owner: wagner
 na_justified:
@@ -119,6 +119,29 @@ REST API externa do oimpresso. Exposta sob prefixo `/connector/api/*` com middle
 **Status:** ✅ ativo (sub-grupo `connector/api/crm/*` com mesmo stack `auth:api`)
 **Implementado em:** `Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php` · `Modules/Connector/Http/Controllers/Api/Crm/CallLogsController.php` · verificado@8af585a (2026-07-02) — grupo connector/api/crm (follow-ups, follow-up-resources, leads, call-logs) em Routes/api.php
 
+### US-CONN-013 · Documentar a API Connector em OpenAPI 3.0 sem expor dados reais
+
+> owner: [F] · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+> parent_plan: connector-openapi
+
+**Implementado em:** _pendente_ — a especificação executável foi criada; nenhuma documentação
+foi gerada ou publicada e nenhum contrato runtime foi alterado.
+
+**Detalhamento:** [features/openapi-connector/](features/openapi-connector/requirements.md) — trio
+`requirements.md`/`plan.md`/`tasks.md`, validado por `feature-lint.mjs`.
+
+**Sinal (ADR 0105):** gap P0 do BRIEFING; Felipe/Maiara não conseguem prestar suporte sem
+mergulhar no código, e os clientes em migração dependem do Connector. O próprio SPEC já registrava
+“clientes pedem” para a documentação OpenAPI.
+
+**DoD:**
+- OpenAPI 3.0 cobre o inventário `/connector/api/*` sem incluir `oauth/*` por acidente.
+- Geração não realiza response calls, não consulta registros reais e não incorpora token, segredo ou PII.
+- Payloads, responses e ordem dos middlewares legados permanecem byte/semanticamente compatíveis.
+- Audiência e URL são decididas explicitamente antes de qualquer publicação.
+- Felipe/Maiara completam uma jornada de suporte usando a documentação, com evidência de smoke.
+
 ## Pegadinhas catalogadas
 
 - **3 formatos de body Delphi** (`array_tabelas`, `json_flat`, `pipe`) — todos suportados em `DelphiSyncService::detectBodyFormat()`
@@ -128,7 +151,7 @@ REST API externa do oimpresso. Exposta sob prefixo `/connector/api/*` com middle
 
 ## Próximos passos potenciais
 
-- Documentação OpenAPI 3.0 gerada via `scribe` (pendente — clientes pedem)
+- Documentação OpenAPI 3.0 via `scribe` — formalizada na US-CONN-013; implementação pendente
 - Rate limiting per-business em `/connector/api/*` (Hostinger shared = throttle 60/min default)
 - WebHook outbound pra clientes Delphi notificarem mudanças (push em vez de poll)
 

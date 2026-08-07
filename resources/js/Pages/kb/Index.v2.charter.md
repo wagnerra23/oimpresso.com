@@ -217,7 +217,7 @@ que fingisse medir isso lá seria teatro.
 
 ### 🧊 O bloqueador real: **`category_id` NULL na quase totalidade** (ver recibo)
 
-`Index.v2.tsx:147` filtra `n.category_id === cat.id`. Com o campo nulo em 1.412 de 1.415 (recibo),
+`Index.v2.tsx:147 (verificado@d4afe95)` filtra `n.category_id === cat.id`. Com o campo nulo em 1.412 de 1.415 (recibo),
 **toda categoria de biz=1 renderiza zero linhas** — a tela nasceria **vazia**, e o CI passaria
 **100% verde** (os testes olham a *prop*, que vem cheia; o pixel não olha a tela; o único teste que
 descrevia o estado de dado era revogado no mesmo commit). Não é detalhe de implementação: é **o**
@@ -358,7 +358,7 @@ Corte/Acabamento · Instalação) · `Equipamentos` · `Pré-impressão` · `Ate
 
 > **Errata:** a v2.0 mandava **contratar a tela no visreg PRIMEIRO**, alegando que o gate reprovaria
 > o Controller. **Falso, e medido errado** — rodei `classifyFile`, não `validateExecution`. O gate
-> só morde em diff **Page-only**: um PR com Controller vira `scope: global` (`ui-impact.mjs:283`
+> só morde em diff **Page-only**: um PR com Controller vira `scope: global` (`ui-impact.mjs:283 (verificado@d4afe95)`
 > não cobra `uncovered` no global). Consequência: eu ia te pedir **3 aprovações F1.5** (baseline do
 > mock → re-aprovar com dado real → re-aprovar pós-cores) onde **1 basta** — e a primeira congelaria
 > em pixel a tela **mock**, virando lixo por construção.

@@ -18,12 +18,31 @@ last_run: "2026-07-28"
 > **Por que nasce agora:** o módulo tinha 6 telas, 39 testes e **zero `casos.md`** — a cadeia
 > `US → CU → UC → teste` quebrava no elo do meio. O SDD nasceu no mesmo PR; estes UC o citam.
 >
-> ⚠️ **Força do veredito — leia antes de confiar no status.** Os testes citados aqui **rodam** (a
-> testsuite `Feature` do `phpunit.xml` inclui `Modules/RecurringBilling/Tests/Feature`, e o
-> `shards-plan.mjs` os enumera na nightly CT100), mas **não rodam no PR** e **não bloqueiam merge**:
-> nenhuma linha de `RecurringBilling` em `.github/ci-sqlite-pest.list`, nenhum workflow que o cite.
-> A linha proposta pro parent está no [SDD §8.2](../../../../memory/requisitos/RecurringBilling/SDD-cobranca-recorrente-v1.0.md).
-> Por isso o status abaixo é **🧪, nunca ✅** — eu não rodei nada (CT 100, [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
+> ⚠️ **Força do veredito — leia antes de confiar no status.** _(atualizado 2026-08-02; a redação
+> anterior dizia "nenhuma linha de `RecurringBilling` em `.github/ci-sqlite-pest.list`" — era
+> verdade até [PR #5194](https://github.com/wagnerra23/oimpresso.com/pull/5194) e deixou de ser.)_
+>
+> Duas coisas mudaram: os `it()` passaram a carregar o **UC-id no título** (antes só no docblock, o
+> que os deixava fora do manifesto G-7 por construção) e os arquivos entraram na **lane sqlite** do
+> `ci.yml`, que o `casos-results-publish` colhe — **9 de 13** em 02/08, **12 de 13** desde 03/08.
+>
+> **`UC-RBSUB-01..04` — destravados em 2026-08-03.** _(A redação de 02/08 dizia que seguiam "SEM
+> lane de PR" e atribuía a falha a "a lane sqlite não semeia as permissions Spatie". A primeira
+> metade deixou de ser verdade; a segunda estava **errada** — o diagnóstico é outro, abaixo.)_
+>
+> `Wave21NewSubscriptionTest` (4 errors) e `Wave23EditarAssinaturaTest` (1 failure + 2 errors)
+> reprovaram na primeira vez que a lane os rodou. **Não era permission Spatie faltando** — era o
+> teste nunca autenticar, por duas causas somadas: (a) `authorize()` devolve `$this->user() !== null`,
+> logo exige **usuário**, não permissão; (b) `Gate::before(fn () => true)` tem **zero parâmetros**, e
+> o Laravel só invoca before-callback para visitante anônimo quando o callback aceita `null` no 1º
+> parâmetro (`Gate::callbackAllowsGuests`) — sem usuário logado o callback **nem dispara**. Os dois
+> arquivos declaravam no docblock "auth bypassado via `Gate::before`", o que era falso.
+>
+> Fix: `actingAs(user biz=1)` no `beforeEach`, padrão vivo do `RefundCobrancaAsaasJobTest`.
+> **Zero mudança em código de produto.** `UC-RBSUB-05` continua fora de propósito (🔴 failing-first).
+>
+> Status segue **🧪** em tudo: quem carimba ✅ é o cron `casos-results-publish` (07:30 BRT), e eu
+> não rodei nada localmente (CT 100, [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 >
 > **Legenda:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC, veredito pendente da lane ·
 > ⬜ não verificado · ❌ quebrou.

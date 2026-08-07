@@ -21,7 +21,9 @@
  * Modos:
  *   (default) dry-run no stdout
  *   --write   grava memory/governance/shipped/<CYCLE>.md
- *   --check   gate CI: falha (exit 1) se algum shipped-log versionado está STALE (> FRESH_DAYS desde `generated`)
+ *   --check   gate CI: falha (exit 1) se o shipped-log VIVO (o que cobre a janela mais recente — o
+ *             único que o cron regenera) está STALE (> FRESH_DAYS desde `generated`). Log de cycle
+ *             fechado é registro final e não conta freshness — ver evalShippedHealth.
  *   --json    saúde do registro em JSON (pro Daily Brief / ShippedLogBriefLineService) — {ok,cycles,stale,findings}
  *
  * Uso:
@@ -196,16 +198,60 @@ export function inBrtRange(mergedAtIso, since, until) {
   return t >= lo && t <= hi;
 }
 
-/** Saúde do registro versionado (pura): findings de freshness por arquivo. */
+/** Frontmatter mínimo de cada log (puro). `until` = fim da janela; cai pra `generated` se ausente. */
+export function parseShippedMeta(files) {
+  return files.map(({ name, text }) => {
+    const gen = (text.match(/^generated:\s*"?(\d{4}-\d{2}-\d{2})"?/m) || [])[1] || null;
+    const until = (text.match(/^window:\s*"?\d{4}-\d{2}-\d{2}\.\.(\d{4}-\d{2}-\d{2})"?/m) || [])[1] || null;
+    return { name, gen, until: until || gen };
+  });
+}
+
+/**
+ * Os logs VIVOS: os que cobrem a janela mais recente (maior `until`). É o único
+ * conjunto que o cron regenera — ele roda `--until=hoje` sobre o cycle ATIVO.
+ * Log de cycle anterior é registro FINAL, congelado: cobrar freshness dele daria
+ * vermelho eterno (gate que não pode ficar verde = ruído que se aprende a ignorar).
+ * Empate no `until` → todos são vivos (ninguém escapa por desempate arbitrário).
+ *
+ * ⚠️ Elege por FIM-DE-JANELA (fato derivado), NUNCA pelo rótulo `status`. Ao virar o
+ * cycle, o log velho NÃO vira `ativo` — congela como `parcial`, porque o carimbo foi
+ * calculado no dia em que ele foi gerado (`partial = until >= hoje`, avaliado então).
+ * Medido 2026-08-04: `ativo` nunca existiu no registro — 13/13 versões `parcial`.
+ * Discriminar por rótulo reabriria o buraco com outro sinal.
+ *
+ * Limite conhecido (fail-CLOSED, de propósito): um log gerado à mão com `--until` no
+ * FUTURO vira o "vivo" pra sempre e reprova até ser regenerado ou removido. Preferido
+ * ao inverso — eleger pelo `generated` mais novo deixaria alguém mascarar cron morto
+ * regenerando um cycle antigo (falha ABERTA, pior). Saída legítima existe e é barata.
+ */
+export function pickLiveLogs(metas) {
+  const medible = metas.filter((m) => m.gen);
+  if (!medible.length) return [];
+  const newest = medible.reduce((max, m) => (m.until > max ? m.until : max), '');
+  return medible.filter((m) => m.until === newest);
+}
+
+/**
+ * Saúde do registro versionado (pura): freshness do(s) log(s) VIVO(s).
+ *
+ * ⚠️ NÃO isentar por `status: parcial`. O gerador carimba `parcial` sempre que
+ * `until >= hoje` (L~314/129) e o cron SEMPRE passa `--until=hoje` → todo log que
+ * o cron produz nasce `parcial`. A isenção anterior (`if parcial continue`) era a
+ * INVERSA da correta: esvaziava o conjunto verificado por construção — o gate
+ * nunca teve como reprovar — e ao mesmo tempo cobrava os logs congelados, que são
+ * os que legitimamente não são regenerados. Medido 2026-08-04: o auto-PR #5058
+ * ficou 4 dias preso (30/07→03/08) com o registro envelhecendo, e o gate rodou
+ * VERDE todo dia. Quem decide isenção agora é o papel no registro (vivo ×
+ * histórico), derivado da janela — não o rótulo.
+ */
 export function evalShippedHealth(files, today) {
   const findings = [];
-  for (const { name, text } of files) {
-    const mGen = text.match(/^generated:\s*"?(\d{4}-\d{2}-\d{2})"?/m);
-    const mStatus = text.match(/^status:\s*(\w+)/m);
-    if (!mGen) { findings.push({ cycle: name, issue: 'sem campo generated', level: 'fail' }); continue; }
-    if (mStatus && mStatus[1] === 'parcial') continue; // parcial é regenerado por cron; não morde
-    const ageDays = Math.round((today - Date.parse(mGen[1] + 'T00:00:00Z')) / 86400000);
-    if (ageDays > FRESH_DAYS) findings.push({ cycle: name, issue: `generated há ${ageDays}d (> ${FRESH_DAYS}d) — STALE`, level: 'fail' });
+  const metas = parseShippedMeta(files);
+  for (const m of metas) if (!m.gen) findings.push({ cycle: m.name, issue: 'sem campo generated', level: 'fail' });
+  for (const m of pickLiveLogs(metas)) {
+    const ageDays = Math.round((today - Date.parse(m.gen + 'T00:00:00Z')) / 86400000);
+    if (ageDays > FRESH_DAYS) findings.push({ cycle: m.name, issue: `generated há ${ageDays}d (> ${FRESH_DAYS}d) — STALE`, level: 'fail' });
   }
   return findings;
 }
@@ -280,7 +326,14 @@ function runHealth(root, jsonOut) {
   const names = readdirSync(dir).filter((f) => f.endsWith('.md'));
   const files = names.map((name) => ({ name, text: readFileSync(join(dir, name), 'utf8') }));
   const today = Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
-  const findings = evalShippedHealth(files, today);
+  // Diretório existe mas vazio = registro apagado. Sair 0 aqui seria gate mudo
+  // (parece cobertura). O caso pré-rollout já saiu acima, por !existsSync.
+  // Limite declarado: este fail é VISÍVEL no CI e INVISÍVEL no Daily Brief —
+  // ShippedLogBriefLineService::line() devolve null quando `cycles === 0`, antes de
+  // olhar `stale`. O gate é o enforcement; a linha do brief é conveniência.
+  const findings = names.length
+    ? evalShippedHealth(files, today)
+    : [{ cycle: SHIPPED_DIR, issue: 'diretório existe mas não tem nenhum log — registro apagado?', level: 'fail' }];
   const stale = findings.length;
   const ok = stale === 0;
   if (jsonOut) { console.log(JSON.stringify({ ok, cycles: names.length, stale, findings })); return ok ? 0 : 1; }
@@ -290,7 +343,10 @@ function runHealth(root, jsonOut) {
     console.error(`Conserto: rode o gerador --write (ou destrave o cron shipped-log-cron.yml).`);
     return 1;
   }
-  console.log(`✓ shipped-log fresco (${names.length} cycle(s), todos ≤ ${FRESH_DAYS}d ou parciais).`);
+  const vivos = pickLiveLogs(parseShippedMeta(files));
+  const quem = vivos.map((m) => `${m.name} (generated ${m.gen})`).join(', ');
+  const hist = names.length - vivos.length;
+  console.log(`✓ shipped-log vivo fresco: ${quem} ≤ ${FRESH_DAYS}d · ${names.length} cycle(s) no registro${hist ? `, ${hist} de cycle fechado (registro final, freshness não se aplica)` : ''}.`);
   return 0;
 }
 

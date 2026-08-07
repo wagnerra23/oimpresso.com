@@ -4,7 +4,9 @@ id: requisitos-woocommerce-briefing
 
 # BRIEFING — Modules/Woocommerce
 
-> **Estado:** 🟡 scaffold preservado, sem cliente ativo hoje, manutenção dormente | **Atualizado:** 2026-05-16 | **Owner:** sem owner ativo
+> **Estado:** 🟡 scaffold preservado, sem cliente ativo hoje, manutenção dormente | **Atualizado:** 2026-08-01 | **Owner:** sem owner ativo
+
+> **Portas canônicas** (existem desde a última revisão): [`SCOPE.md`](../../../Modules/Woocommerce/SCOPE.md) (fronteira/ownership) · [`SUPERFICIE.md`](SUPERFICIE.md) (índice de código gerado por `module-surface.mjs` — 59 arquivos, 13 papéis) · [`SPEC.md`](SPEC.md). Não recopiar a lista de arquivos aqui — consultar a porta.
 
 ## O que é
 
@@ -48,11 +50,9 @@ WooCommerce é a plataforma de e-commerce mais usada no Brasil entre PMEs (lojis
 - 🟡 Blade não migrado MWART (uso dormente, sem prioridade)
 - 🟡 Sem dashboard consolidado Woo (revenue/conversão) — usa UI Woo
 
-## Estado de testes (Wave B)
+## Estado de testes
 
-- `Tests/Feature/MultiTenantIsolationTest.php` — garante que sync log não vaza cross-tenant
-- `Tests/Feature/ScaffoldTest.php`
-- `Tests/Feature/SmokeRoutesTest.php`
+**8 arquivos** em `Modules/Woocommerce/Tests/Feature/` (contagem viva na porta gerada [`SUPERFICIE.md`](SUPERFICIE.md) §Testes — regenerar com `module-surface.mjs`, não editar à mão): `MultiTenantIsolationTest` (sync log não vaza cross-tenant), `ScaffoldTest`, `SmokeRoutesTest`, `ArchitectureTest`, `Wave18/23/25/27SaturationTest`.
 
 ## Decisões relacionadas
 

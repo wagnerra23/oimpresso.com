@@ -80,6 +80,23 @@ const rank = (s) => {
   return m ? MODEL_RANK[m[0]] : 0;
 };
 
+// Gerador NÃO-Anthropic (emenda 2026-07-30, refutação GT-G5 rodada 2 do PR #5069).
+// A escala de tiers acima só conhece modelos Anthropic, então `rank() === 0` reprovava
+// um lote gerado pelo Codex INDEPENDENTEMENTE do veredito — o gate ficava fechado sem
+// caminho honesto de abertura, e a única saída "prática" era falsear o campo `gerador`.
+//
+// O que a regra de tier protege é DECORRELAÇÃO: gerador e refutador do mesmo modelo
+// alucinam igual (avaliação 2026-07-01). Vendor cruzado satisfaz isso por construção —
+// treinos, tokenizadores e modos de falha distintos decorrelacionam MAIS que
+// opus-refuta-opus, que a regra já aceita no tier máximo.
+//
+// Portanto: gerador externo é aceito, e em troca exige-se refutador Anthropic de tier
+// ALTO (>= opus). O refutador continua tendo que ser de tier conhecido — não sabemos
+// ranquear um refutador externo, e afrouxar os dois lados de uma vez esvaziaria o campo.
+const EXTERNAL_RE = /codex|gpt-?[0-9]|chatgpt|o[0-9]-(mini|preview)|gemini|llama|mistral|grok|deepseek|qwen/;
+const isExternal = (s) => EXTERNAL_RE.test(String(s || '').toLowerCase());
+const MIN_RANK_VS_EXTERNAL = MODEL_RANK.opus;
+
 function changedFiles() {
   if (FILES_FROM) {
     return readFileSync(FILES_FROM, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
@@ -99,7 +116,12 @@ function validateEntry(e) {
   }
   if (e.pii_scan !== true) v.push('pii_scan != true (repo publico — scan CPF/CNPJ/nomes obrigatorio)');
   if (e.pii_hits !== 0) v.push(`pii_hits=${e.pii_hits} (obrigatorio 0)`);
-  if (rank(e.refutador) === 0 || rank(e.gerador) === 0) {
+  if (isExternal(e.gerador) && rank(e.gerador) === 0) {
+    // Vendor cruzado já decorrelaciona; em troca, o refutador tem que ser Anthropic forte.
+    if (rank(e.refutador) < MIN_RANK_VS_EXTERNAL) {
+      v.push(`gerador externo ("${e.gerador}") exige refutador Anthropic >= opus — veio "${e.refutador}"`);
+    }
+  } else if (rank(e.refutador) === 0 || rank(e.gerador) === 0) {
     v.push(`gerador="${e.gerador}" / refutador="${e.refutador}" sem modelo reconhecivel (haiku|sonnet|opus|fable|mythos)`);
   } else if (rank(e.refutador) < rank(e.gerador)) {
     v.push(`refutador (${e.refutador}) < gerador (${e.gerador}) — exigido tier SUPERIOR`);

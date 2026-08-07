@@ -1,5 +1,7 @@
 # Índice de Specs dos Módulos
 
+> ⚠️ **FÓSSIL DATADO — não é o estado atual.** Congelado em **2026-05-29** (`php artisan module:specs`); módulos removidos aparecem ~~tachados~~ à mão. Para o **retrato vivo** de módulos, gates required, workflows e ADRs → [`../reference/PAINEL-SISTEMA.md`](../reference/PAINEL-SISTEMA.md) (gerado por `system-map.mjs`, derivado da árvore). Mantido como história até o mapa por-módulo derivado cobri-lo.
+
 Gerado por `php artisan module:specs` em 2026-05-29 08:06.
 
 **Total:** 44 módulos únicos encontrados em todas as branches conhecidas (atual, `main-wip-2026-04-22`, `origin/3.7-com-nfe`).
@@ -33,7 +35,7 @@ Gerado por `php artisan module:specs` em 2026-05-29 08:06.
 | 23 | [Officeimpresso](Officeimpresso.md) | média | médio | 21 | 18 | 8 | 1 | 3 |
 | 24 | [KB](KB.md) | baixa (grande, fazer por último ou dividir) | alto | 43 | 0 | 12 | 4 | 3 |
 | 25 | [NfeBrasil](NfeBrasil.md) | baixa (grande, fazer por último ou dividir) | alto | 39 | 4 | 16 | 9 | 3 |
-| 26 | [ADS](ADS.md) | baixa (grande, fazer por último ou dividir) | alto | 46 | 0 | 15 | 0 | 3 |
+| 26 | ~~[ADS](ADS.md)~~ ⛔ removido 2026-07-31 (ADR 0363) | — | — | — | — | — | — | — |
 | 27 | [Jana](Jana.md) | baixa (grande, fazer por último ou dividir) | alto | 39 | 9 | 64 | 5 | 3 |
 | 28 | [Whatsapp](Whatsapp.md) | baixa (grande, fazer por último ou dividir) | alto | 59 | 1 | 42 | 0 | 3 |
 | 29 | [Cms](Cms.md) | baixa (grande, fazer por último ou dividir) | alto | 16 | 45 | 5 | 1 | 3 |

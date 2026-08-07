@@ -11,11 +11,15 @@ use Modules\Forja\Console\Commands\HandoffStaleAlertCommand;
 use Modules\Forja\Console\Commands\GenerateBriefCommand;
 use Modules\Forja\Console\Commands\SkillTierReviewCommand;
 use Modules\Forja\Console\Commands\SeedActorsCommand;
+use Modules\Forja\Services\DecisionLinksService;
+use Modules\Forja\Services\ProjectDecomposerService;
+use Modules\Forja\Services\ToolRegistry;
+use Modules\Forja\Services\UserScopeService;
 
 /**
  * ServiceProvider do módulo Forja.
  *
- * Modelado conforme Modules/TeamMcp/Providers/TeamMcpServiceProvider.php.
+ * Modelado conforme Modules/Forja/Providers/TeamMcpServiceProvider.php.
  * Rotas carregadas via start.php (ver module.json "files").
  */
 class ForjaServiceProvider extends ServiceProvider
@@ -74,6 +78,22 @@ class ForjaServiceProvider extends ServiceProvider
             __DIR__ . '/../Config/brief-retention.php',
             'brief'
         );
+
+        // Registro do ADS, recebido em 2026-07-31 JUNTO com as classes
+        // (`AdsServiceProvider::register` deixou de registrá-las no mesmo PR).
+        // Os 3 consumidores vivos são controllers desta casa:
+        // Admin/ToolsController, Admin/TeamScopesController, Admin/ProjectsController.
+        // `singleton` (e não bind) é o que preserva a semântica anterior — o
+        // ToolRegistry monta 11 tools no construtor.
+        $this->app->singleton(ToolRegistry::class);
+        $this->app->singleton(UserScopeService::class);
+        $this->app->singleton(ProjectDecomposerService::class);
+
+        // Recebido na parte 6 (ADR 0363) pelo mesmo motivo: o
+        // `ProjectDecomposerService` acima injeta `DecisionLinksService` no
+        // construtor, então a classe veio junto em vez de morrer com o núcleo
+        // do ADS — e o registro vem junto da classe, como o bloco acima ensina.
+        $this->app->singleton(DecisionLinksService::class);
     }
 
     protected function registerConfig(): void

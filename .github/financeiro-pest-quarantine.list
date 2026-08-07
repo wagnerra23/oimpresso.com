@@ -43,50 +43,50 @@ Modules/Financeiro/Tests/Feature/DrawerCoworkV2Test.php  # 12 skipped (0 asserti
 Modules/Financeiro/Tests/Feature/Onda5CuradoriaR1Test.php  # 12 skipped (0 assertions)
 Modules/Financeiro/Tests/Feature/Onda6IaR2Test.php  # 3 failed, 6 passed (38 assertions)
 Modules/Financeiro/Tests/Feature/Onda7OutputR3Test.php  # 2 failed, 7 passed (56 assertions)
-Modules/Financeiro/Tests/Feature/Onda7bTroubleshootPresentTest.php  # 1 failed, 11 passed (44 assertions)
 Modules/Financeiro/Tests/Feature/Onda7cTranscriptFavsTest.php  # 2 failed, 16 passed (55 assertions)
 Modules/Financeiro/Tests/Feature/Onda8CoworkRewriteTest.php  # 3 failed, 6 passed (41 assertions)
 Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 passed (25 assertions)
-Modules/Financeiro/Tests/Feature/Onda9ResumirMesTest.php  # 1 failed, 13 passed (42 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
-# B) RefreshDatabase — incompatível com o processo compartilhado da lane (11)
-#    A própria lane já documentava: dropam o schema (FK) e LIMPAM o biz=1
-#    seedado, envenenando os demais. Três deles PASSAM isolados
-#    (ConciliacaoMatchScore, ConciliacaoUploadDedupe, ExtratoNavRedirect) e
-#    ficam aqui só por causa do compartilhamento.
+# B) RefreshDatabase — incompatível com o processo compartilhado da lane (1)
+#    Dropa o schema (FK) e LIMPA o biz=1 seedado, envenenando os demais.
 #    ENCAMINHAMENTO: job separado com banco próprio — não é defeito do teste.
+#
+#    ⚠️ CORREÇÃO 2026-08-02 — este bucket tinha 11 arquivos e a classificação
+#    estava ERRADA em 10 deles. Foi montada por GREP da string "RefreshDatabase",
+#    e a string casou em COMENTÁRIO que diz o OPOSTO: os 10 carregam frases como
+#    "NÃO usa RefreshDatabase (UltimatePOS legacy migrations não rodam em SQLite)".
+#    Medido (uses(RefreshDatabase::class) ou `use RefreshDatabase;` real, não menção):
+#      USA de verdade  → 1  (CashRegisterBridgeFinanceiroTest)
+#      só CITAM        → 10
+#    Logo a justificativa "dropam o schema e envenenam os demais" era falsa pros 10:
+#    eles não dropam nada. Os que FALHAM foram pro bucket C (defeito real, onde
+#    sempre pertenceram); os que PASSAM saíram da quarentena (ver rodapé).
+#    Mesma classe do §5 2026-07-28: "hit que volta como comentário não é evidência".
 Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 failed (0 assertions)
-Modules/Financeiro/Tests/Feature/ConciliacaoAuditReabrirTest.php  # 1 failed, 4 passed (15 assertions)
-Modules/Financeiro/Tests/Feature/ConciliacaoMatchScoreTest.php  # 3 passed (15 assertions)
-Modules/Financeiro/Tests/Feature/ConciliacaoUploadDedupeTest.php  # 4 passed (24 assertions)
-Modules/Financeiro/Tests/Feature/ExtratoControllerTest.php  # 1 failed, 2 passed (2 assertions)
-Modules/Financeiro/Tests/Feature/ExtratoNavRedirectTest.php  # 4 passed (11 assertions)
-Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions)
-Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # 1 failed, 11 passed (24 assertions)
-Modules/Financeiro/Tests/Feature/ProvaVivaContractTest.php  # 1 failed, 1 passed (10 assertions)
-Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions)
-Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
-# C) DB-dependente FALHANDO — defeito real a investigar (14)
+# C) DB-dependente FALHANDO — defeito real a investigar (13)
 #    Estes são o achado de maior valor: falham contra MySQL semeado, não por
 #    formatação. Podem ser regressão de produto OU teste desatualizado —
 #    exige olhar caso a caso, não conserto em lote.
-Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php  # 6 failed, 2 passed (2 assertions)
+#
+#    +5 vindos do bucket B em 2026-08-02 (reclassificação — ver nota no B): falham
+#    de verdade contra MySQL semeado e NÃO usam RefreshDatabase, logo o motivo
+#    "envenena o processo compartilhado" nunca se aplicou a eles. Ficam
+#    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
+Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
+Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 7 failed, 1 passed (8 assertions) — ex-B
+Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php  # 4 failed, 1 passed (8 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/CobrancaControllerTest.php  # 4 failed, 11 passed (51 assertions)
 Modules/Financeiro/Tests/Feature/DreControllerTest.php  # 4 failed, 7 passed (103 assertions)
-Modules/Financeiro/Tests/Feature/FluxoControllerTest.php  # 3 failed, 3 passed (39 assertions)
 Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php  # 6 failed, 4 passed (42 assertions)
 Modules/Financeiro/Tests/Feature/Onda26InterWebhookIntegrationTest.php  # 2 failed (0 assertions)
-Modules/Financeiro/Tests/Feature/ProvaVivaControllerTest.php  # 1 failed, 1 passed (3 assertions)
 Modules/Financeiro/Tests/Feature/ResyncFromCoreCommandTest.php  # 4 failed, 1 passed (1 assertions)
-Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions)
-Modules/Financeiro/Tests/Feature/TituloCriadoEventTest.php  # 1 failed, 1 passed (3 assertions)
+Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 Modules/Financeiro/Tests/Feature/UnificadoControllerTest.php  # 2 failed, 1 skipped, 10 passed (75 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php  # 6 failed, 1 passed (23 assertions)
 Modules/Financeiro/Tests/Feature/UnificadoStoreTest.php  # 3 failed, 3 passed (21 assertions)
-Modules/Financeiro/Tests/Feature/Wave23SaturationTest.php  # 1 failed, 6 passed (17 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
 # D) SKIP TOTAL — 'passa' com ZERO assertions, logo não prova nada (1)
@@ -117,3 +117,368 @@ Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php  # 3 skipped (0 asser
 #    fix neste PR — e um fix não provado deixaria o main vermelho se errasse.
 #    Quarentena restaura o verde de forma determinística; o fix é decisão [W].
 Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado · 1 failed em main (run 30378571902)
+Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 — flake por ORDEM (403 no processo compartilhado). Ver rodape.
+
+# ═════════════════════════════════════════════════════════════════════════
+# SAÍRAM DA QUARENTENA em 2026-08-02 (a lista deve encolher — cabeçalho)
+# ═════════════════════════════════════════════════════════════════════════
+# Os 4 abaixo estavam no bucket B pelo motivo FALSO descrito lá (grep casou
+# comentário que dizia o oposto). Nenhum usa RefreshDatabase; nenhum pode
+# envenenar o processo compartilhado. Todos com veredito PASSA medido:
+#
+#   ConciliacaoMatchScoreTest      3 passed (15 assertions)
+#   ConciliacaoUploadDedupeTest    4 passed (24 assertions)
+#   ExtratoNavRedirectTest         4 passed (11 assertions)
+#   ConciliacaoAuditReabrirTest    4 passed + 1 CONSERTADO neste PR
+#
+# O AuditReabrir era "1 failed" por FIXTURE, não por produto: montava a linha
+# com titulo_id = 12345 hardcoded, violava a FK fin_bank_statement_lines_
+# titulo_id_foreign e MORRIA NO SETUP, sem nunca exercer reabrir() — o [must]
+# [T0] do UC-FCC-06 ficava sem prova enquanto o arquivo parecia defeito de
+# produto. Fix = criar título real, mesmo padrão do caso irmão UC-FCC-09 que
+# já fazia certo no MESMO arquivo.
+#
+# RESSALVA QUE NÃO CADUCA (a mesma do cabeçalho): os vereditos acima vêm de run
+# ISOLADO (1 arquivo por processo). A lane roda TODOS num processo só, com
+# executionOrder="random". Quem prova é o run da lane deste PR — se algum ficar
+# vermelho lá, volta pra cá com o motivo REAL escrito, não com o motivo herdado.
+#
+# ── Onda7bTroubleshootPresentTest (2026-08-03, triagem 10/N — bucket A) ──
+#   1 failed, 11 passed (44 assertions)  →  12 passed (48 assertions)
+#
+# MESMO molde do Onda9ResumirMesTest (triagem 9). É literalmente o exemplo que o
+# cabeçalho deste bucket cita: "os botões viraram array data-driven, então
+# 'onClick={() => setPresentOpen(true)}' (sintaxe JSX) não existe mais".
+#
+# Medido no .tsx — o recurso está INTACTO:
+#   1345: const [presentOpen, setPresentOpen] = useState(false)
+#   1642: { key:'apresentar', ..., onClick: () => setPresentOpen(true) }
+#   2988: <FinPresentationMode open={presentOpen} ...
+#   alert('Apresentar: → 0 ocorrências (removido, como o caso exige)
+#
+# Asserção de SINTAXE → asserção de CADEIA DE WIRING (estado → handler →
+# componente montado com o MESMO estado). Mesmo limite honesto do caso 9:
+# ⚠️ NÃO É teste de comportamento, é grep de fonte com meia-vida maior; o
+# "comportamento" de verdade é Playwright (lane E2E) — dívida NOMEADA.
+#
+# BITE-TEST: `open={presentOpen}` → `open={false}` no .tsx → 1 failed apontando
+# "To contain: open={presentOpen}". Restaurado → 12 passed.
+# ── Onda9ResumirMesTest (2026-08-03, triagem 9/N — 1o do bucket A) ─────
+#   1 failed, 13 passed (42 assertions)  →  14 passed (46 assertions)
+#
+# Classificação: exatamente o que o cabeçalho do bucket A previu — "o recurso
+# AINDA EXISTE; o que quebrou foi a forma escrita". Medido no .tsx:
+#   linha 1640: { key:'resumir', ..., onClick: () => setResumoOpen(true) }
+#   linha 3008: <FinMonthResumeDialog open={resumoOpen} ...
+#   alert('Resumir mês: → 0 ocorrências (removido, como o caso exige)
+# Só a SINTAXE JSX `onClick={() => setResumoOpen(true)}` morreu, porque os
+# botões viraram array data-driven.
+#
+# O QUE FIZ, e o limite honesto disso: NÃO "consertei a string" (o cabeçalho
+# proibe — só reinicia o relógio). Troquei a asserção de SINTAXE por asserção de
+# CADEIA DE WIRING, que é o que o caso promete e sobrevive a refactor de forma:
+#   setResumoOpen existe · alguém chama setResumoOpen(true) · <FinMonthResumeDialog
+#   é montado · está ligado ao MESMO estado (open={resumoOpen})
+#
+# ⚠️ ISTO NÃO É UM TESTE DE COMPORTAMENTO. É grep de fonte com meia-vida maior.
+# Um teste PHP que lê .tsx NÃO TEM COMO ser de comportamento — o "reescrever como
+# COMPORTAMENTO" do cabeçalho, levado a sério, significa Playwright (lane
+# "E2E Playwright · UCs críticos") ou UC no casos.md. Isso fica como dívida
+# nomeada, não como promessa cumprida.
+#
+# BITE-TEST (a cadeia morde de verdade): desliguei o diálogo do estado no .tsx
+# (`open={resumoOpen}` → `open={false}`) → 2 failed, apontando
+# "To contain: open={resumoOpen}". Restaurado → 14 passed.
+#
+# Medido no CT 100 (worktree em origin/main, DB oimpresso_qa — receita do CI).
+# ── TituloAutoServiceExpenseTest (2026-08-03, triagem 8/N) — FICA, com motivo
+#    REAL escrito. NÃO consertei: o eixo é VALOR (Tier 0) e a decisão é [W].
+#
+# O motivo herdado ("DB-dependente FALHANDO — defeito real a investigar") era
+# vago demais pra ser acionado. Medido, as 2 falhas têm UMA causa só:
+#
+#   linha 184: SQLSTATE 42S22 — Unknown column 'total_remaining_amount' in 'SET'
+#   linha 161: esperava status 'parcial', veio 'aberto'
+#
+# O teste monta o cenário "pago parcialmente" escrevendo em
+# `transactions.total_remaining_amount`. Essa coluna NÃO EXISTE. Medido no CT 100
+# com Schema::hasColumn: NAO. Sem accessor no Model (`getTotalRemainingAmount…`:
+# NAO) e sem `$appends` (vazio). O próprio código de produção registra isso em
+# BridgeExpenseToTitulosCommand:30 — "nunca existiu no UltimatePOS".
+#
+# CONSEQUÊNCIA no produto (o que exige olho do [W]): TituloAutoService:100 faz
+#     $valorAberto = (float) ($tx->total_remaining_amount ?? $tx->final_total);
+# Como o atributo é SEMPRE null, o fallback é SEMPRE tomado — a leitura é código
+# morto e o comentário acima dela ("Pra sell/purchase paga/parcial: usa
+# total_remaining_amount") descreve uma intenção irrealizável.
+#
+# POR QUE ISSO PROVAVELMENTE NÃO É BUG DE PRODUÇÃO (e por isso NÃO toquei):
+# existe caminho downstream que corrige. FinanceiroServiceProvider:73 registra o
+# TransactionPaymentObserver; o `created` chama registrarPagamento(), que cria
+# TituloBaixa e atualiza valor_aberto/status. Ou seja, o desenho real é
+# "Service cria o título ABERTO; as baixas aplicam os pagamentos". O teste tenta
+# provar 'parcial' pelo Service SOZINHO, por um atalho que não existe.
+#
+# O QUE FALTA DECIDIR ([W]) — duas saídas legítimas e incompatíveis:
+#   (a) o teste passa a montar o cenário como a produção monta (criar
+#       transaction_payments) OU passa a asserir o contrato REAL do Service
+#       (título nasce 'aberto'; 'parcial' é responsabilidade da baixa);
+#   (b) remover a leitura morta de TituloAutoService:100 + o comentário que
+#       promete o que não acontece.
+# (b) mexe em cálculo de VALOR — REGRA MESTRE de proibicoes.md exige dupla
+# conferência + apresentação de impacto antes→depois + aprovação. Não fiz.
+#
+# Recibo: CT 100, DB oimpresso_qa (receita do CI). Sonda:
+#   coluna transactions.total_remaining_amount existe? NAO
+#   accessor no Model? NAO   |   appends: []
+# Varredura contada do símbolo: 10 arquivos .php — 8 são teste, 2 são produção
+# (TituloAutoService, BridgeExpenseToTitulosCommand). O Bridge já DERIVA o
+# restante de Σ pagamentos (está correto); só o Service tem a leitura morta.
+# ── Onda23OcrBoletoTest — VOLTOU pra quarentena em 2026-08-03 ──────────
+#
+# AUTOCORREÇÃO do PR #5200 (meu). O veredito de lá era de run ISOLADO e NÃO
+# sobreviveu à lane. É exatamente a ressalva do cabeçalho se materializando:
+# "quem prova é o run da lane — se algum ficar vermelho lá, volta pra cá com o
+# motivo REAL escrito, não com o motivo herdado". Está sendo cumprida.
+#
+# O QUE ACONTECEU: no run da lane do PR #5216 (run 30788554095), com
+# `quarentena: 26 · RODANDO: 56`, o arquivo deu 5 failed — TODAS iguais:
+#     Expected response status code [422] but received 403
+#     (linhas 29, 44, 58, 95, 163 — todo caso que bate no endpoint)
+# 403 = gate de permissão/subscription barrando a rota ANTES de chegar na
+# validação que devolveria 422.
+#
+# É FLAKE POR ORDEM, não regressão: o `main` está VERDE nos commits que
+# mergearam #5200 e #5198 (runs 30787806969 e 30788489353, ambos success), e o
+# próprio #5200 passou na lane antes de entrar. Com executionOrder="random" e
+# um run-set que muda a cada PR, a ordem decide se o 403 aparece.
+#
+# CAUSA-RAIZ (hipótese medida, NÃO confirmada): vazamento de estado compartilhado
+# de permissão. 20+ arquivos que RODAM na lane mexem em permissão
+# (givePermissionTo/revokePermissionTo/syncPermissions/assignRole). O padrão mais
+# perigoso é `syncPermissions`, que SUBSTITUI o conjunto do role em vez de somar
+# — CobrancaControllerTest:45 faz isso, mas segue quarentenado, então não é ele.
+# Identificar o vazador exige rodar a lane com seed fixo e bisseccionar. NÃO FIZ.
+#
+# O QUE ISTO NÃO É: não é defeito do fix do #5200. Aquele fix (tornar a ausência
+# de OPENAI_API_KEY determinística) continua correto e provado — em CI a variável
+# nem existe, então o `finally` de restauração é no-op. O 403 é anterior e
+# independente; ficou LATENTE enquanto o arquivo estava fora da lane, e o #5200
+# o expôs ao trazer o arquivo de volta pro run-set.
+#
+# ENCAMINHAMENTO: mesma classe do BackfillExtratoOfxTest logo acima (bucket E,
+# flake por ordem). Sai da lane pra restaurar o verde determinístico; o conserto
+# é achar o vazador de permissão — decisão [W], porque mexe em teste que hoje
+# passa e o custo de bissecção não é trivial.
+#
+# ── FluxoControllerTest (2026-08-03, triagem 7/N do bucket C) ─────────
+#   3 failed, 3 passed (39 assertions)  →  6 passed (46 assertions)
+#
+# Classificação: TRÊS drifts do lado do TESTE, zero regressão de produto. Cada
+# um foi conferido contra o fonte antes de tocar:
+#
+#   (1) linha 77 — asserção IMPOSSÍVEL do header X-Inertia, idêntica à do
+#       ProvaVivaControllerTest (PR #5196): o header só existe em request XHR, e
+#       nesse modo o assertInertia dos casos vizinhos falharia. Trocada pela
+#       prova mais forte (component montado).
+#
+#   (2) linha 109 — `->where('margem_minima', 5000.0)` falhava com
+#       "5000 is identical to 5000.0". A constante É float no PHP
+#       (FluxoCaixaService::MARGEM_MINIMA_PADRAO = 5000.0); o JSON do Inertia
+#       serializa como `5000` e o json_decode devolve int. Artefato de round-trip
+#       JSON — o produto nunca mudou. Agora compara numericamente.
+#
+#   (3) linha 129 — `fn (array $dias)` estourava TypeError: o
+#       Illuminate\Testing\Fluent\Concerns\Matching::where() embrulha o valor em
+#       Collection antes de chamar o closure
+#       (`is_array($actual) ? new Collection($actual) : $actual`, Matching.php:29).
+#       Drift de FRAMEWORK, não de produto. Type hint corrigido pra Collection.
+#
+# PROVA DE EXECUÇÃO: assertions 39 → 46 (+7) com os mesmos 6 casos — o salto é
+# exatamente o que os 3 casos abortados deixavam de asserir.
+#
+# BITE-TEST da única asserção que foi AFROUXADA (a #2, de estrita-por-tipo pra
+# numérica): mudei MARGEM_MINIMA_PADRAO pra 6000.0 no container →
+# "Property [margem_minima] was marked as invalid using a closure", 1 failed.
+# Restaurado → 6 passed. Não virou tautologia.
+#
+# Medido no CT 100 (worktree em origin/main, DB oimpresso_qa provisionada pela
+# receita do CI .github/actions/pest-mysql-setup).
+#
+# ── Wave23SaturationTest (2026-08-02, triagem 5/N do bucket C) ────────
+#   1 failed, 6 passed (17 assertions)  →  7 passed (17 assertions)
+#
+# Classificação: TESTE PODRE por CRESCIMENTO LEGÍTIMO — não há defeito de
+# produto. O caso asseria o número EXATO de checks de `financeiro:health`:
+#
+#   // Wave 23 adicionou 2 checks → total 8
+#   expect(count($decoded['checks']))->toBe(8);
+#
+# A Wave 25 D9 acrescentou dois checks (contas_bancarias_ativas,
+# caixa_movimento_freshness) e o `toBe(8)` virou "10 !== 8". Medido rodando o
+# próprio comando no CT 100: 10 checks — titulos_table, baixas_table,
+# caixa_table, titulos_per_business, vencidos_alarme, retention_policy,
+# orphan_baixas, valor_aberto_consistente, contas_bancarias_ativas,
+# caixa_movimento_freshness. O comando cresceu de propósito; o teste cobrava
+# que ele não crescesse.
+#
+# É o mesmo desenho-pra-apodrecer que o bucket A descreve ("asserta
+# 'charter_version: 3' num campo que o processo OBRIGA a subir"). Por isso o
+# encaminhamento aqui NÃO foi trocar 8 por 10 — isso só reinicia o relógio.
+#
+# Fix = inverter o contrato: asserir INCLUSÃO do conjunto esperado (array_diff).
+# Morde quando um check SOME (o risco real: regressão silenciosa de cobertura de
+# health) e fica calada quando uma onda futura adiciona. Produção intocada.
+#
+# BITE-TEST (controle negativo ANTES de tirar da quarentena): removi
+# `checkOrphanBaixas` do comando dentro do container →
+# "check(s) removido(s) de financeiro:health: orphan_baixas", 1 failed.
+# Restaurado → 7 passed. A asserção nova morde de verdade.
+# ── Onda23OcrBoletoTest (2026-08-02, triagem 6/N do bucket C) ─────────
+#   1 failed, 11 passed (24 assertions)  →  12 passed (25 assertions)
+#
+# Classificação: ARTEFATO DO AMBIENTE DE MEDIÇÃO — nem produto, nem (a rigor)
+# defeito que o CI veria. O motivo pelo qual ele entrou aqui NÃO existe em CI.
+#
+# O caso "fail secure sem openai key" fazia:
+#     config(['services.openai.key' => null]);
+#     putenv('OPENAI_API_KEY=');
+# e esperava a mensagem do guard de chave ausente (contém "OpenAI").
+#
+# MAS o helper env() do Laravel lê pelos adapters ServerConst/EnvConst
+# ($_SERVER/$_ENV) — que putenv() NÃO toca. O container do CT 100 (onde o
+# baseline de 2026-07-28 foi medido) tem OPENAI_API_KEY REAL no ambiente, então
+# o guard era pulado, o teste fazia uma chamada REAL pra api.openai.com e caia
+# no branch genérico de erro HTTP ("OCR falhou. Tente outro arquivo..."), sem a
+# palavra "OpenAI". Em CI passava — por acidente, porque o runner não tem a var.
+#
+# PROVADO rodando o MESMO commit das duas formas no CT 100:
+#   com    OPENAI_API_KEY no processo  →  1 failed, 11 passed (24 assertions)
+#   sem    OPENAI_API_KEY no processo  →  12 passed (25 assertions)
+#
+# Mesma família do erro do bucket B (motivo herdado que nunca existiu), aqui com
+# a fonte sendo o AMBIENTE de medição e não um grep.
+#
+# Fix (endurecimento, opcional pro CI mas correto): tornar a ausência de chave
+# DETERMINÍSTICA — limpar $_SERVER/$_ENV/putenv e restaurar no finally (a lane
+# roda tudo num processo só; vazar mutacão global envenenaria os demais).
+# Env::getRepository()->clear() foi TESTADO e não serve: o repositório do
+# Laravel é immutable(), delete de var já setada é no-op.
+# Efeito colateral bom: o teste parou de fazer chamada paga real — duração caiu
+# de ~10,0s para ~6,7s no ambiente que tem chave.
+#
+# DEPOIS do fix, os dois ambientes concordam: 12 passed (25 assertions).
+# ── ExtratoControllerTest (2026-08-02, triagem 2/N do bucket C) ──────────
+#   1 failed, 2 passed (2 assertions)  →  3 passed (3 assertions)
+#
+# Classificação: FIXTURE quebrada, NÃO regressão de produto — e o caso que
+# morria era justamente o [T0] cross-tenant ("404 quando conta é de outro
+# business"). Ele montava o cenário com um business SINTÉTICO
+# (`$this->business->id + 9999`), id que não existe; `fin_contas_bancarias`
+# tem FK pra `business`, então o insert estourava SQLSTATE 23000/1452 e o caso
+# MORRIA ANTES de exercer o 404. O isolamento desta tela nunca foi provado.
+#
+# Exatamente a forma do precedente ConciliacaoAuditReabrirTest (#5178): id
+# hardcoded → viola FK → morre no setup → parece "defeito de produto".
+#
+# Fix = usar um segundo business REAL, o padrão canônico do próprio módulo
+# (BackfillExtratoOfxTest:256, BridgeExpenseToTitulosCommandTest:281). Em CI o
+# seed garante biz=2 justamente "pros testes de isolamento multi-tenant terem
+# um segundo business real". Produção intocada.
+#
+# A PROVA de que o caso passou a EXECUTAR (não só a ficar verde): as assertions
+# subiram 2 → 3 com o mesmo número de casos. O +1 é o assertSame(404) que antes
+# nunca era alcançado (§5 LC-13 — "0 failed" não prova execução, assertions sim).
+# ── ProvaVivaContractTest (2026-08-02, triagem 4/N do bucket C) ───────
+#   1 failed, 1 passed (10 assertions)  →  2 passed (10 assertions)
+#
+# Classificação: TESTE PODRE, NÃO regressão de produto — e a única "ofensa" do
+# arquivo era a PRÓPRIA DOCUMENTAÇÃO da regra.
+#
+# O UC-PV-05 varre ProvaViva.tsx procurando `className="... flex ..."` solto
+# (ADR 0253 — tela 100% primitivos). Varria TODAS as linhas, inclusive
+# comentário. A linha 10 do .tsx é o cabeçalho que DOCUMENTA a regra citando o
+# literal proibido: 'zero `<div className="flex">` solto'. O guard acusava a
+# frase que explica o guard.
+#
+# Medido: das 8 linhas do .tsx com `flex` em className, 7 usam só os tokens
+# permitidos (inline-flex, flex-1) e 1 é o comentário. Markup real: ZERO
+# ofensores. O produto estava certo o tempo todo.
+#
+# Mesma família do §5 2026-07-26 (auto-silenciamento do modulo-preflight-warning),
+# aqui na forma invertida: auto-ACUSAÇÃO.
+#
+# Fix = pular linhas que SÃO comentário (// , /* */, * ) antes da varredura.
+# Limitação aceita de propósito: comentário no FIM de uma linha de JSX real
+# continua varrido — lado seguro, não deixa markup escapar.
+#
+# BITE-TEST (o guard continua mordendo, não virou presence-gate): injetei
+# `<div className="flex items-center">` real no .tsx dentro do container →
+# 1 failed, apontando "627: <div className=\"flex items-center\">". Restaurado
+# o arquivo → 2 passed. Controle negativo feito ANTES de tirar da quarentena.
+# ── TituloCriadoEventTest (2026-08-02, triagem 1/N do bucket C) ──────────
+#   1 failed, 1 passed (3 assertions)  →  2 passed (3 assertions)
+#
+# Classificação: FIXTURE quebrada, NÃO regressão de produto. As duas asserções
+# do caso (assertRedirect + assertDispatched) PASSAVAM; o que estourava era o
+# CLEANUP na última linha — `Titulo::...->each->forceDelete()`. `forceDelete()`
+# do SoftDeletes chama `$this->delete()`, e `Titulo::delete()` lança
+# DomainException ("fin_titulos não permite delete") por regra de domínio
+# append-only. Ou seja: o teste morria DEPOIS de provar o que se propunha.
+#
+# Não é apodrecimento: o override de delete() existe desde 2026-04-24
+# (Sub-Onda 1A, 6072794f817) e o teste nasceu em 2026-05-25 (#1549) — o cleanup
+# NUNCA funcionou. Ficou invisível porque antes da lane MySQL o arquivo skipava
+# em `Business::first()` (verde por não-execução). Quando a lane passou a rodar
+# de verdade, apareceu como "1 failed" e foi lido como defeito de produto.
+#
+# Fix = limpar pelo query builder, o padrão que o irmão
+# BaixaConservacaoValorContratoTest:96 já documentava no MESMO módulo
+# ("fin_titulos recusa forceDelete — DomainException"). Produção intocada.
+#
+# Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa provisionada
+# pela receita do CI): antes 1 failed/1 passed · depois 2 passed, 3 assertions
+# nos dois (as asserções são as mesmas — o que mudou foi só o teardown).
+#
+# SEGUNDO ACHADO, no run REAL da lane (#5192, run 30778447731): o arquivo ficou
+# verde mas o 2o caso deu SKIP ("- it update NAO dispatch"). Ele dependia de ja
+# existir um titulo 'aberto' no banco — num banco FRESCO (CI) com
+# executionOrder="random" isso nao e garantido. Skip e verde por NAO-EXECUCAO
+# (§5 LC-13), entao o arquivo sairia da quarentena provando metade.
+# Fix no mesmo PR: o caso passou a criar o pre-requisito pelo MESMO caminho de
+# produto (POST /financeiro/unificado; status nasce 'aberto' por default de
+# schema) e limpa depois. CONTROLE NEGATIVO: escondi os 19 titulos abertos do
+# biz=1 no DB de QA (status->cancelado), rodei -> 2 passed (3 assertions), e
+# restaurei -> 19 de volta. Sob a condicao EXATA que causou o skip, o caso agora
+# executa.
+# ── ProvaVivaControllerTest (2026-08-02, triagem 3/N do bucket C) ────────
+#   1 failed, 1 passed (3 assertions)  →  2 passed (9 assertions)
+#
+# Classificação: TESTE PODRE (asserção impossível), NÃO regressão de produto.
+# O caso fazia um GET simples e então exigia DUAS coisas mutuamente exclusivas:
+#
+#   expect($response->headers->get('X-Inertia'))->not()->toBeNull();  ← exige XHR
+#   $response->assertInertia(...)                                    ← exige HTML
+#
+# O Inertia só emite o header X-Inertia na RESPOSTA quando o REQUEST é XHR
+# (X-Inertia: true) — e nesse modo devolve JSON. Já assertInertia() começa com
+# assertViewHas('page') (AssertableInertia:71), logo exige a root view HTML.
+# Provado empiricamente nesta triagem: com os headers XHR o status vira 200 e o
+# header aparece, mas o assertInertia passa a falhar "Not a valid Inertia
+# response". Nenhuma das duas formas satisfaz as duas linhas juntas.
+#
+# Fix = manter a primeira visita (GET simples) e REMOVER a linha do header, que
+# nunca podia passar. Fica a asserção mais forte: assertInertia prova que a rota
+# é servida pelo Inertia E qual componente ela monta (Financeiro/ProvaViva).
+# Produção intocada.
+#
+# PROVA DE EXECUÇÃO: assertions 3 → 9. O salto é o assertInertia, que antes
+# nunca era alcançado porque a linha anterior abortava o caso.
+#
+# ⚠️ MESMA LINHA COPIADA EM 3 IRMÃOS AINDA EM QUARENTENA — DreControllerTest:80,
+# FluxoControllerTest:77 e UnificadoControllerTest:77. NÃO consertados aqui de
+# propósito (um arquivo por PR): cada um tem outras falhas além desta, e
+# conserto em lote é exatamente o que o cabeçalho proíbe.
+#
+# Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa
+# provisionada pela receita do CI .github/actions/pest-mysql-setup).

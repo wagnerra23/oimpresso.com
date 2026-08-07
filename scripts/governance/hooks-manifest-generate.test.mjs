@@ -37,6 +37,34 @@ function makeRepo() {
   hook('orfao-solto.mjs', 'process.exit(0)\n');
   // gêmeo cross-platform (o .ps1 é wired, o .sh não): órfão com nota específica
   hook('charter-y.sh', 'echo advisory\n');
+  // MULTI-EVENTO (achado 2026-08-04): grava flag no UserPromptSubmit, BLOQUEIA no PreToolUse.
+  // As armadilhas do parser estão de propósito: regex com aspas (/['"]deny['"]/ engana contador
+  // ingênuo de chaves), template literal com ${} aninhado e chave dentro de string.
+  // EXECUTÁVEIS de propósito: o teste roda as duas com payload real de cada evento e confere
+  // que a coluna do manifesto bate com o exit code — sem isso a fixture provaria só a forma.
+  hook('multi-evento.mjs', [
+    "let raw = ''; process.stdin.on('data', (d) => (raw += d)); process.stdin.on('end', () => {",
+    "  const rotulo = (x) => `alvo: ${x ? `{${x}}` : 'nenhum'}`;",
+    "  const temAspas = /['\"]marcador['\"]/;",
+    "  const event = JSON.parse(raw).hook_event_name;",
+    "  if (event === 'UserPromptSubmit') {",
+    "    console.error(rotulo('opt-in')); // { chave solta em string } — grava flag, não corta",
+    "    process.exit(0);",
+    "  }",
+    "  if (event === 'PreToolUse') {",
+    "    if (temAspas.test(JSON.stringify(JSON.parse(raw).tool_input || {}))) { process.exit(2); }",
+    "  }",
+    "  process.exit(0);",
+    "});",
+  ].join('\n') + '\n');
+  // saída-cedo: `!== 'PreToolUse'` — no UserPromptSubmit o hook nem chega a agir
+  hook('so-pretooluse.mjs', [
+    "let raw = ''; process.stdin.on('data', (d) => (raw += d)); process.stdin.on('end', () => {",
+    "  const p = JSON.parse(raw);",
+    "  if (p.hook_event_name !== 'PreToolUse') process.exit(0);",
+    "  process.exit(2);",
+    "});",
+  ].join('\n') + '\n');
   writeFileSync(join(tmp, '.claude', 'settings.json'), JSON.stringify({
     hooks: {
       PreToolUse: [
@@ -46,6 +74,16 @@ function makeRepo() {
         ] },
         { matcher: 'Bash', hooks: [
           { type: 'command', command: 'powershell -File .claude/hooks/nudge-z.ps1' },
+        ] },
+        { matcher: 'DesignSync', hooks: [
+          { type: 'command', command: 'node .claude/hooks/multi-evento.mjs' },
+          { type: 'command', command: 'node .claude/hooks/so-pretooluse.mjs' },
+        ] },
+      ],
+      UserPromptSubmit: [
+        { matcher: '*', hooks: [
+          { type: 'command', command: 'node .claude/hooks/multi-evento.mjs' },
+          { type: 'command', command: 'node .claude/hooks/so-pretooluse.mjs' },
         ] },
       ],
     },
@@ -68,6 +106,29 @@ check('manifesto lista o advisory sem sinal (—)', /nudge-z\.ps1.*\| — \|/.te
 check('manifesto deriva ponto-de-corte geração pra Write/Edit', /geração \(pré-Write\/Edit\)/.test(md));
 check('manifesto copia os gates CI do baseline', md.includes('visual-regression') && md.includes('Governance Gate'));
 check('órfão solto reportado na seção Órfãos', /orfao-solto\.mjs/.test(md));
+
+// ── sinal por RAMO DE EVENTO (achado 2026-08-04: exit(2) do ramo PreToolUse vazava pra
+// linha do UserPromptSubmit). O MESMO arquivo tem que sair com sinal numa linha e sem na
+// outra — é o bite-test do fatiamento; sem ele o gerador "passa" marcando as duas iguais.
+const linha = (ev, arq) => (md.split(/\r?\n/).find((l) => l.startsWith(`| ${ev} |`) && l.includes(arq)) || '');
+const semSinal = (l) => /\| — \|/.test(l);
+check('multi-evento: linha PreToolUse MANTÉM exit-2 (ramo que morde)', /exit-2/.test(linha('PreToolUse', 'multi-evento.mjs')));
+check('multi-evento: linha UserPromptSubmit SEM sinal (ramo que só grava flag)', semSinal(linha('UserPromptSubmit', 'multi-evento.mjs')));
+check('saída-cedo: linha PreToolUse MANTÉM exit-2', /exit-2/.test(linha('PreToolUse', 'so-pretooluse.mjs')));
+check("saída-cedo: linha UserPromptSubmit SEM sinal (`!== 'PreToolUse'` sai antes)", semSinal(linha('UserPromptSubmit', 'so-pretooluse.mjs')));
+// controle negativo: hook mono-evento não pode perder sinal com o fatiamento
+check('mono-evento: block-x.mjs segue com exit-2 (sem regressão do fatiamento)', /exit-2/.test(linha('PreToolUse', 'block-x.mjs')));
+
+// ── a coluna casa com o RUNTIME? roda as fixtures com payload real dos dois eventos.
+// (Sem este passo a fixture provaria só a FORMA — presence-gate, LC-11.)
+const rodaHook = (arq, payload) => spawnSync('node', [join(tmp, '.claude', 'hooks', arq)], { input: JSON.stringify(payload), encoding: 'utf8' }).status;
+const pPre = { hook_event_name: 'PreToolUse', tool_name: 'DesignSync', tool_input: { alvo: "'marcador'" } };
+const pPrompt = { hook_event_name: 'UserPromptSubmit', prompt: 'texto qualquer' };
+for (const arq of ['multi-evento.mjs', 'so-pretooluse.mjs']) {
+  const rPre = rodaHook(arq, pPre), rPrompt = rodaHook(arq, pPrompt);
+  check(`runtime confere ${arq}: PreToolUse sai 2 (coluna diz exit-2)`, rPre === 2 && /exit-2/.test(linha('PreToolUse', arq)));
+  check(`runtime confere ${arq}: UserPromptSubmit sai 0 (coluna diz —)`, rPrompt === 0 && semSinal(linha('UserPromptSubmit', arq)));
+}
 check('gêmeo cross-platform .sh reportado como órfão com nota', /charter-y\.sh.*gêmeo cross-platform/.test(md));
 check('--check passa em repo recem-gerado (release)', run(tmp, '--check').status === 0);
 
@@ -100,7 +161,7 @@ rmSync(tmp, { recursive: true, force: true });
 
 console.log('');
 if (fails === 0) {
-  console.log('[PASS] hooks-manifest-generate morde e libera (12/12).');
+  console.log('[PASS] hooks-manifest-generate morde e libera.');
   process.exit(0);
 } else {
   console.log(`[FAIL] ${fails} caso(s) — o gerador/catraca do manifesto de hooks regrediu.`);

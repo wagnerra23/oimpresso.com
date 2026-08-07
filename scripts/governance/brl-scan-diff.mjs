@@ -39,8 +39,9 @@
  *   node scripts/governance/brl-scan-diff.mjs --selftest
  */
 
-import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync, existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scanBrlLeak } from '../../.claude/hooks/block-brl-values-in-memory.mjs';
@@ -154,7 +155,45 @@ function selftest() {
   if (typeof scanBrlLeak === 'function' && scanBrlLeak('R$ 5,00').blocked) ok++;
   else falhas.push('  x predicado do hook nao importado');
 
-  const total = casos.length + 3;
+  // ── E2E da guarda anti-vácuo (sandbox git real, CLI de fora) ────────────────
+  // NÃO é assert de helper puro: a guarda vive no fluxo do CLI, e testar um helper
+  // exportado provaria a função, não o contrato do pipeline (§5 LC-15). Por isso
+  // sandbox por cwd + `spawnSync` do próprio script, lendo o exit code.
+  const e2e = [];
+  const gitS = (cwd, ...a) => spawnSync('git', a, { cwd, encoding: 'utf8' });
+  let sandbox = '';
+  try {
+    sandbox = mkdtempSync(join(tmpdir(), 'brl-vacuo-'));
+    gitS(sandbox, 'init', '-q');
+    gitS(sandbox, 'config', 'user.email', 't@t');
+    gitS(sandbox, 'config', 'user.name', 't');
+    writeFileSync(join(sandbox, 'a.txt'), 'linha um\nlinha dois\n');
+    gitS(sandbox, 'add', '-A');
+    gitS(sandbox, 'commit', '-q', '-m', 'base');
+    const base = gitS(sandbox, 'rev-parse', 'HEAD').stdout.trim();
+
+    // (a) SUBTRAÇÃO PURA — remove o arquivo: 0 adições, mas HÁ remoção → libera
+    rmSync(join(sandbox, 'a.txt'));
+    gitS(sandbox, 'add', '-A');
+    gitS(sandbox, 'commit', '-q', '-m', 'remove tudo');
+    const rmOnly = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--base', base], { cwd: sandbox, encoding: 'utf8' });
+    if (rmOnly.status === 0) ok++;
+    else e2e.push(`  x subtração pura deveria LIBERAR (exit 0), veio ${rmOnly.status}`);
+
+    // (b) CEGO de verdade — commit vazio: 0 adições E 0 remoções, HEAD != base → morde
+    const base2 = gitS(sandbox, 'rev-parse', 'HEAD').stdout.trim();
+    gitS(sandbox, 'commit', '-q', '--allow-empty', '-m', 'vazio');
+    const vazio = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--base', base2], { cwd: sandbox, encoding: 'utf8' });
+    if (vazio.status === 2) ok++;
+    else e2e.push(`  x diff totalmente vazio deveria MORDER (exit 2), veio ${vazio.status}`);
+  } catch (e) {
+    e2e.push(`  x sandbox E2E falhou: ${e.message}`);
+  } finally {
+    if (sandbox) { try { rmSync(sandbox, { recursive: true, force: true }); } catch { /* ignore */ } }
+  }
+  falhas.push(...e2e);
+
+  const total = casos.length + 5;
   console.log(`brl-scan-diff selftest: ${ok}/${total}`);
   if (falhas.length) { console.error(falhas.join('\n')); process.exit(1); }
   console.log('  ACHA: linha + com valor, em qualquer extensao, dentro e fora de memory/');
@@ -226,11 +265,27 @@ function main() {
     // Conta o TOTAL adicionado (inclui isentos) — um PR que só toca a própria
     // ferramenta é legítimo e teria 0 varríveis sem estar cego.
     if (adicionadas.length === 0) {
+      // SUBTRAÇÃO PURA não é cegueira. A premissa original ("um PR com commits sempre
+      // tem linha adicionada") é FALSA pra PR que só REMOVE — e não é hipótese: o
+      // PR #5300 (aposenta 2 scripts de deploy one-shot; dois `git rm`, zero adições)
+      // reprovou aqui em 2026-08-05 sem ter valor monetário nenhum.
+      //
+      // O discriminador é o PRÓPRIO diff: se há linha REMOVIDA, o `git diff` produziu
+      // saída — o instrumento enxergou. Cego é diff TOTALMENTE vazio (nem + nem −), que
+      // é o sintoma real de base inalcançável/shallow. E o risco que este gate existe
+      // pra pegar é INTRODUÇÃO de valor: linha removida não introduz nada.
+      //
+      // Cuidado no regex: `--- a/arquivo` também começa com `-`; só conta o `-` que
+      // NÃO seja o cabeçalho `---`.
+      const temRemocao = /^-(?!--)/m.test(diff);
       let head = '';
       try { head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { /* ignore */ }
-      if (head && !head.startsWith(String(base).slice(0, 7))) {
-        console.error(`brl-scan-diff: 0 linhas adicionadas entre ${String(base).slice(0, 10)} e HEAD — suspeito.`);
-        console.error('Um PR com commits sempre tem linha adicionada. Instrumento provavelmente cego.');
+      if (temRemocao) {
+        console.log('brl-scan-diff: 0 linha(s) adicionada(s), mas HÁ remoções — PR de SUBTRAÇÃO pura.');
+        console.log('Nada a varrer: linha removida não introduz valor. Instrumento OK (o diff produziu saída).');
+      } else if (head && !head.startsWith(String(base).slice(0, 7))) {
+        console.error(`brl-scan-diff: diff VAZIO entre ${String(base).slice(0, 10)} e HEAD — suspeito.`);
+        console.error('Nem adição nem remoção, com HEAD != base: instrumento provavelmente cego (base inalcançável/shallow).');
         process.exit(2);
       }
     }

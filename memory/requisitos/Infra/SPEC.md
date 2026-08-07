@@ -7,8 +7,8 @@ module: Infra
 project: COPI
 status: ativo
 owner: wagner
-version: "1.2"
-last_updated: "2026-06-04"
+version: "1.3"
+last_updated: "2026-08-05"
 na_justified:
   D5: "Infra é loop de governança fechado (META → SINAL → DESVIO → RECÁLCULO — ADR 0105) servindo o projeto inteiro, NÃO módulo de features cliente. Não há biz=4 ROTA LIVRE consumindo GrowthBook/APM/MCP server diretamente — são fundações da plataforma. D5 cliente real não aplica por design."
   D4.b: "Infra não tem state machine FSM (ADR 0143). Concentra runbooks operacionais (deploy Centrifugo, Hostinger, CT 100, GrowthBook) e SPECs de infra — sem Eloquent Models com transições. D4.b FSM canônica N/A."
@@ -160,9 +160,9 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-005 · S5 ADS adiantado (Risk + Confidence + Policy core)
 
-**Implementado em:** _parcial_ · `Modules/ADS/Services/RiskEngine.php` · `Modules/ADS/Services/ConfidenceEngine.php` · `Modules/ADS/Services/PolicyEngine.php` · `Modules/ADS/Services/DecisionRouter.php` · `resources/js/Pages/ads/Admin/Decisoes.tsx` · verificado@8af585a (2026-07-02) — núcleo do ADS (4 outcomes ALLOW_BRAIN_A/REQUIRE_BRAIN_B/REQUIRE_HUMAN_REVIEW/BLOCK_ALWAYS + tela admin + Pest PolicyEngine/Risk/Confidence/DecisionRouter) landou; falta só o wire em `client_signal_triage` (depende de US-INFRA-002, não construída)
+**Implementado em:** _pendente_ — **desimplementada** em 2026-07-31 pela [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md). O que ancorava esta US era o núcleo dual-brain do ADS (`RiskEngine`, `ConfidenceEngine`, `DecisionRouter` + a tela `ads/Admin/Decisoes`), removido com o módulo — não há substituto, porque nenhum módulo vivo decide. Sobrevive só o `PolicyEngine`, hoje em `Modules/Governance/Services/PolicyEngine.php` ([PR #5128](https://github.com/wagnerra23/oimpresso.com/pull/5128)). Estado anterior, pra história: `_parcial_` · verificado@8af585a (2026-07-02) — os 4 outcomes + tela admin + Pest tinham landado; faltava o wire em `client_signal_triage` (US-INFRA-002, nunca construída).
 
-> owner: wagner · priority: p1 · estimate: 12h · status: done · type: epic · origin: adr-0106-recalibracao
+> owner: wagner · priority: p1 · estimate: 12h · status: superseded · type: epic · origin: adr-0106-recalibracao · superseded_by: adr-0363
 > blocked_by: US-INFRA-002
 
 **Contexto.** ADS Universal previsto pra jul/2026 (skill `ads-decision-flow` lista S5). [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) recalibra: ~80h antigos → ~12h reais. Nova janela ~30 maio/2026. Adiantar pra **viabilizar US-INFRA-002 triage automática** ainda em 2026-Q2.
@@ -1031,3 +1031,32 @@ volume é inventar sinal — e a ADR 0105 já diz que item só entra com cliente
 detectando.
 
 **Refs:** [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) · [`Modules/VozDoCliente/SCOPE.md`](../../../Modules/VozDoCliente/SCOPE.md) · US-INFRA-002
+
+### US-INFRA-048 · Ativar a documentação técnica e operacional ponta a ponta
+
+**Implementado em:** _pendente_ — a US rastreia a execução da D0; plano e visão humana já foram preparados, mas inventário inicial e owners ainda serão fechados nesta onda
+
+> owner: wagner · priority: p1 · estimate: 4h · status: doing · type: story
+> blocked_by: —
+> parent_plan: programa-ondas
+
+**Contexto.** A Trilha D do programa de ondas organiza, no mesmo ciclo, a documentação das
+máquinas existentes, hooks, MCP, CI/CD, observabilidade, módulos e fluxos operacionais. O estado
+canônico fica no Git; a fila MCP acompanha a execução; e a visão humana é publicada em
+`https://oimpresso.com/documentacao` a partir de `memory/GUIA-DO-SISTEMA.md`.
+
+**Escopo da D0:**
+- [ ] consolidar o inventário derivado das máquinas existentes e registrar criticidade, owner e evidência;
+- [ ] confrontar hooks, MCP, workflows, schedules, comandos, agentes, skills, módulos e runbooks com seus invocadores reais;
+- [ ] classificar gaps por `ausente`, `parcial`, `obsoleto` ou `sem evidência`;
+- [ ] abrir somente o próximo item acionável da fila, preservando `parent_plan=programa-ondas`;
+- [ ] manter o Guia do Sistema como visão humana e o Plano Mestre como dono das ondas.
+
+**Acceptance criteria:**
+- [ ] `node scripts/governance/maquinas-inventario.mjs --check` verde e contagens registradas;
+- [ ] matriz inicial `máquina → invocador → owner → documento → evidência` revisada;
+- [ ] pelo menos um gap priorizado com task canônica, ou evidência explícita de zero gaps acionáveis;
+- [ ] visão humana aponta para a Trilha D sem duplicar o estado da fila;
+- [ ] handoff e session log registram validações, bloqueios e próximo passo.
+
+**Refs:** [PLANO-MESTRE § Trilha D](../_Governanca/programa-ondas/PLANO-MESTRE.md) · [GUIA-DO-SISTEMA § B6.2](../../GUIA-DO-SISTEMA.md)

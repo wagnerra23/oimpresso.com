@@ -118,7 +118,7 @@ it('aceita webhook novo, registra em pg_webhook_events e dispatcha job', functio
     Queue::assertPushed(ProcessAsaasWebhookJob::class, 1);
 });
 
-it('rejeita 2ª chamada com mesmo event_id sem dispatchar job (idempotência)', function () {
+it('UC-RBCFG-07 · rejeita 2ª chamada com mesmo event_id sem dispatchar job (idempotência)', function () {
     Queue::fake();
     seedAsaasCredential(businessId: 1);
 
@@ -140,7 +140,7 @@ it('rejeita 2ª chamada com mesmo event_id sem dispatchar job (idempotência)', 
     Queue::assertPushed(ProcessAsaasWebhookJob::class, 1);
 });
 
-it('gera event_id determinístico via md5(event+payment.id) quando Asaas não envia id', function () {
+it('UC-RBCFG-07 · gera event_id determinístico via md5(event+payment.id) quando Asaas não envia id', function () {
     Queue::fake();
     seedAsaasCredential(businessId: 1);
 
@@ -160,7 +160,7 @@ it('gera event_id determinístico via md5(event+payment.id) quando Asaas não en
         ->toBe(1);
 });
 
-it('UNIQUE constraint pg_webhook_events(provider, event_id) é enforced no DB', function () {
+it('UC-RBCFG-07 · UNIQUE constraint pg_webhook_events(provider, event_id) é enforced no DB', function () {
     DB::table('pg_webhook_events')->insert([
         'provider' => 'asaas', 'event_id' => 'evt_unique',
         'event_type' => 'PAYMENT_RECEIVED', 'payload' => '{}',
@@ -176,7 +176,7 @@ it('UNIQUE constraint pg_webhook_events(provider, event_id) é enforced no DB', 
     ]))->toThrow(\Illuminate\Database\QueryException::class);
 });
 
-it('eventos de providers diferentes podem ter mesmo event_id (cross-provider OK)', function () {
+it('UC-RBCFG-07 · eventos de providers diferentes podem ter mesmo event_id (cross-provider OK)', function () {
     DB::table('pg_webhook_events')->insert([
         'provider' => 'asaas', 'event_id' => 'shared_id',
         'event_type' => 'X', 'payload' => '{}',

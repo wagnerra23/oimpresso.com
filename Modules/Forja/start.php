@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| Register Routes (padrão UltimatePOS, ref.: Modules/TeamMcp/start.php)
+| Register Routes (padrão UltimatePOS, ref.: Modules/Forja/start.php)
 |--------------------------------------------------------------------------
 |
 | Carregado automaticamente pelo nWidart/laravel-modules ao dar boot no módulo,

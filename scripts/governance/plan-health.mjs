@@ -12,7 +12,9 @@
 //   - índice apontando pra arquivo inexistente (dangling)
 //   - plano registrado sem o bloco `## Status vivo`
 // (drift status≠tasks NÃO mora aqui: precisa do MCP — vive no par PHP `jana:plan-drift`,
-//  ADR 0294 Onda 2; ambos entram no agregador governance-audit.)
+//  ADR 0294 Onda 2. Desde 2026-08-04 o par roda via PlanDriftChecker dentro do
+//  `governance:audit --all --notify` (cron diário 06:35, prod) — NÃO via o agregador
+//  governance-audit.mjs, que foi declarado morto por nunca ter tido invocador.)
 //
 // No-op gracioso se PLANS-INDEX.md ausente (ainda não mergeado no main) → exit 0.
 // Advisory por padrão (exit 0); --check morde (exit 1) pra virar ratchet depois.

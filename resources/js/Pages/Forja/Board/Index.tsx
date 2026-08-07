@@ -7,11 +7,14 @@
 //   status: implementada (PR1)
 //   permissao: jana.mcp.usage.all
 //
-// Atalhos (DESIGN.md §13):
+// Atalhos (DESIGN.md §13) — lógica em ./_components/useBoardShortcuts:
 //   J / K    navegar cards (próximo / anterior)
 //   E        avançar status do card selecionado (todo→doing→review→done)
 //   A        voltar status do card selecionado
 //   /        focar busca da lista
+//   Enter    abrir o Detail Sheet do card selecionado   (PMG-008)
+//   ?        abrir/fechar o overlay de atalhos          (PMG-008)
+//   Esc      fechar o overlay                           (PMG-008)
 //
 // Persistência (DESIGN.md §12 — prefixo oimpresso.):
 //   oimpresso.board.cycle    cycle id em foco
@@ -34,6 +37,8 @@ import BoardColumn from '@/Components/board/BoardColumn';
 import { type BoardTask } from '@/Components/board/TaskCard';
 import { nextStatus, prevStatus, type Status } from '@/Components/board/badges';
 import DetailSheet from './DetailSheet';
+import useBoardShortcuts from './_components/useBoardShortcuts';
+import ShortcutsOverlay from './_components/ShortcutsOverlay';
 
 interface CycleHeader {
   id: number;
@@ -278,55 +283,27 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics = [], cycles 
     }
   }, [linearTasks, selectedId]);
 
-  // ── Atalhos J/K/E/A + /
+  // ── Atalhos J/K/E/A + / + Enter/?/Esc (PMG-008) — lógica em ./_components/useBoardShortcuts
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const target = e.target as HTMLElement | null;
-      const isTyping = target && (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      );
-
-      // "/" sempre foca busca, mesmo digitando? não — só quando NÃO está digitando
-      if (e.key === '/' && !isTyping) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-        return;
-      }
-
-      if (isTyping) return;
-
-      const idx = selectedId ? linearTasks.findIndex((t) => t.task_id === selectedId) : -1;
-      const current = idx >= 0 ? linearTasks[idx] : null;
-
-      if (e.key === 'j' || e.key === 'J') {
-        e.preventDefault();
-        const next = idx < 0 ? 0 : Math.min(linearTasks.length - 1, idx + 1);
-        setSelectedId(linearTasks[next]?.task_id ?? null);
-      } else if (e.key === 'k' || e.key === 'K') {
-        e.preventDefault();
-        const prev = idx <= 0 ? 0 : idx - 1;
-        setSelectedId(linearTasks[prev]?.task_id ?? null);
-      } else if (e.key === 'e' || e.key === 'E') {
-        if (!current) return;
-        e.preventDefault();
-        const ns = nextStatus(current.status);
-        if (ns !== current.status) patchStatus(current.task_id, ns);
-      } else if (e.key === 'a' || e.key === 'A') {
-        if (!current) return;
-        e.preventDefault();
-        const ps = prevStatus(current.status);
-        if (ps !== current.status) patchStatus(current.task_id, ps);
-      }
-    }
-
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linearTasks, selectedId]);
+  useBoardShortcuts<BoardTask>({
+    tasks: linearTasks,
+    selectedId,
+    onSelect: setSelectedId,
+    onAdvance: (t) => {
+      const ns = nextStatus(t.status);
+      if (ns !== t.status) patchStatus(t.task_id, ns);
+    },
+    onRetreat: (t) => {
+      const ps = prevStatus(t.status);
+      if (ps !== t.status) patchStatus(t.task_id, ps);
+    },
+    onOpenDetail: openDetail,
+    onFocusSearch: () => searchInputRef.current?.focus(),
+    helpOpen,
+    onHelpToggle: setHelpOpen,
+  });
 
   // ── Polling 10s + on-focus
   useEffect(() => {
@@ -492,7 +469,14 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics = [], cycles 
             <kbd className="px-1 py-0.5 rounded bg-muted">K</kbd> navegar ·{' '}
             <kbd className="px-1 py-0.5 rounded bg-muted">E</kbd> avançar ·{' '}
             <kbd className="px-1 py-0.5 rounded bg-muted">A</kbd> voltar ·{' '}
-            <kbd className="px-1 py-0.5 rounded bg-muted">/</kbd> buscar
+            <kbd className="px-1 py-0.5 rounded bg-muted">/</kbd> buscar ·{' '}
+            <button
+              type="button"
+              onClick={() => setHelpOpen(true)}
+              className="underline-offset-2 hover:underline"
+            >
+              <kbd className="px-1 py-0.5 rounded bg-muted">?</kbd> atalhos
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -526,6 +510,9 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics = [], cycles 
 
       {/* PMG-004 — Detail Sheet abre via URL ?task=ID */}
       <DetailSheet taskId={openTaskId} onClose={closeDetail} />
+
+      {/* PMG-008 — overlay de atalhos (tecla `?`) */}
+      <ShortcutsOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
     </>
   );
 }

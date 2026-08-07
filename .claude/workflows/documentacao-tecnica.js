@@ -16,8 +16,10 @@ const LEIS = `Working dir D:/oimpresso.com.
 - Leia CLAUDE.md + memory/proibicoes.md §5 antes de agir.
 - Presença ≠ correção: tocar doc, bumpar data ou melhorar parcialmente a nota NÃO fecha.
 - Use node scripts/governance/documentation-loop.mjs --snapshot --json como inventário.
-- Em PR, use --impact-ref origin/main --head-ref HEAD --json para cobrar módulos diretos,
-  vizinhos de 1 salto e os documentos donos; CI roteia, mas NÃO edita.
+- Em PR, use --impact-ref origin/main --head-ref HEAD --enforce-activation --json para cobrar
+  módulos diretos, o fecho transitivo de dependências e os documentos donos; CI roteia, mas NÃO edita.
+- Novo Modules/<M>/module.json é uma ativação atômica: runtime, SCOPE, BRIEFING, SPEC,
+  SUPERFICIE, teste, modules_statuses, catálogo e painel precisam fechar no mesmo commit.
 - Todo achado aterrissa no DONO EXISTENTE (memory-health, briefing-code-staleness ou doc-freshness); zero gate/baseline/ledger novo.
 - ADR aceita e handoff antigo são append-only. Nunca os edite para apagar alerta; use supersede/tombstone/ponteiro vivo quando aplicável.
 - Não mexa em valor/estoque, PII, tenant ou prod. Se o alvo tocar Tier 0, pare e escale.
@@ -81,7 +83,7 @@ CORREÇÃO REPORTADA: ${JSON.stringify(correction)}
 
 Rode exatamente:
 node scripts/governance/documentation-loop.mjs --compare-ref origin/main --expect "${selected.issue_id}" --json
-node scripts/governance/documentation-loop.mjs --impact-ref origin/main --head-ref HEAD --json
+node scripts/governance/documentation-loop.mjs --impact-ref origin/main --head-ref HEAD --enforce-activation --json
 
 O exit precisa ser 0, missing_expected e receipt_evidence.rejected precisam ser [], executed
 precisa ser true e o ID deve estar em resolved. Se a métrica só mudou, a porta foi apagada,

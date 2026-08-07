@@ -12,13 +12,14 @@ module: Governance
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Governance --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Governance/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 145 arquivos em 14 papéis.
+**Total mapeado:** 166 arquivos em 15 papéis.
 
-## Controllers — 8
+## Controllers — 10
 
 - [AuditController.php](../../../Modules/Governance/Http/Controllers/AuditController.php)
+- [CustosController.php](../../../Modules/Governance/Http/Controllers/CustosController.php)
 - [DashboardController.php](../../../Modules/Governance/Http/Controllers/DashboardController.php)
 - [DataController.php](../../../Modules/Governance/Http/Controllers/DataController.php)
 - [DriftAlertsController.php](../../../Modules/Governance/Http/Controllers/DriftAlertsController.php)
@@ -26,6 +27,7 @@ module: Governance
 - [InstallController.php](../../../Modules/Governance/Http/Controllers/InstallController.php)
 - [ModuleGradeController.php](../../../Modules/Governance/Http/Controllers/ModuleGradeController.php)
 - [PoliciesController.php](../../../Modules/Governance/Http/Controllers/PoliciesController.php)
+- [QualidadeIaController.php](../../../Modules/Governance/Http/Controllers/QualidadeIaController.php)
 
 ## Requests (validação) — 4
 
@@ -38,7 +40,7 @@ module: Governance
 
 - [ActionGate.php](../../../Modules/Governance/Http/Middleware/ActionGate.php)
 
-## Services — 32
+## Services — 36
 
 - [AdrPendenteBriefLineService.php](../../../Modules/Governance/Services/AdrPendenteBriefLineService.php)
 - [AdrReviewBriefLineService.php](../../../Modules/Governance/Services/AdrReviewBriefLineService.php)
@@ -55,6 +57,7 @@ module: Governance
 - [MeilisearchSettingsDriftChecker.php](../../../Modules/Governance/Services/Checkers/MeilisearchSettingsDriftChecker.php)
 - [MultiTenantScopeChecker.php](../../../Modules/Governance/Services/Checkers/MultiTenantScopeChecker.php)
 - [NpmAuditChecker.php](../../../Modules/Governance/Services/Checkers/NpmAuditChecker.php)
+- [PlanDriftChecker.php](../../../Modules/Governance/Services/Checkers/PlanDriftChecker.php)
 - [RoutesZombieChecker.php](../../../Modules/Governance/Services/Checkers/RoutesZombieChecker.php)
 - [PersistsDriftAlert.php](../../../Modules/Governance/Services/Concerns/PersistsDriftAlert.php)
 - [PublishesDriftToCentrifugo.php](../../../Modules/Governance/Services/Concerns/PublishesDriftToCentrifugo.php)
@@ -63,11 +66,14 @@ module: Governance
 - [DriftCheckerRegistry.php](../../../Modules/Governance/Services/DriftCheckerRegistry.php)
 - [DriftFinding.php](../../../Modules/Governance/Services/DriftFinding.php)
 - [ExposicaoTier0BriefLineService.php](../../../Modules/Governance/Services/ExposicaoTier0BriefLineService.php)
+- [GovernanceRulesService.php](../../../Modules/Governance/Services/GovernanceRulesService.php)
 - [InitiativeService.php](../../../Modules/Governance/Services/InitiativeService.php)
 - [ModuleGradeService.php](../../../Modules/Governance/Services/ModuleGradeService.php)
 - [ObraParadaBriefLineService.php](../../../Modules/Governance/Services/ObraParadaBriefLineService.php)
 - [ObservabilitySnapshotService.php](../../../Modules/Governance/Services/ObservabilitySnapshotService.php)
 - [PlanHealthBriefLineService.php](../../../Modules/Governance/Services/PlanHealthBriefLineService.php)
+- [PolicyEngine.php](../../../Modules/Governance/Services/PolicyEngine.php)
+- [PolicyResult.php](../../../Modules/Governance/Services/PolicyResult.php)
 - [PolicyToggleService.php](../../../Modules/Governance/Services/PolicyToggleService.php)
 - [ScopedScorecardEvaluator.php](../../../Modules/Governance/Services/ScopedScorecardEvaluator.php)
 - [SddBriefLineService.php](../../../Modules/Governance/Services/SddBriefLineService.php)
@@ -115,36 +121,52 @@ module: Governance
 - [config.php](../../../Modules/Governance/Config/config.php)
 - [retention.php](../../../Modules/Governance/Config/retention.php)
 
-## Telas (Inertia/React) — 7
+## Telas (Inertia/React) — 9
 
 - [Audit.tsx](../../../resources/js/Pages/governance/Audit.tsx)
+- [Custos.tsx](../../../resources/js/Pages/governance/Custos.tsx)
 - [Dashboard.tsx](../../../resources/js/Pages/governance/Dashboard.tsx)
 - [DriftAlerts.tsx](../../../resources/js/Pages/governance/DriftAlerts.tsx)
 - [DsRollout.tsx](../../../resources/js/Pages/governance/DsRollout.tsx)
 - [Index.tsx](../../../resources/js/Pages/governance/ModuleGrades/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/governance/ModuleGrades/Show.tsx)
 - [Policies.tsx](../../../resources/js/Pages/governance/Policies.tsx)
+- [QualidadeIa.tsx](../../../resources/js/Pages/governance/QualidadeIa.tsx)
 
-## Charters (lei da tela) — 7
+## Componentes / apoio de tela — 1
+
+- [GovernancaSubNav.tsx](../../../resources/js/Pages/governance/_shared/GovernancaSubNav.tsx)
+
+## Charters (lei da tela) — 9
 
 - [Audit.charter.md](../../../resources/js/Pages/governance/Audit.charter.md)
+- [Custos.charter.md](../../../resources/js/Pages/governance/Custos.charter.md)
 - [Dashboard.charter.md](../../../resources/js/Pages/governance/Dashboard.charter.md)
 - [DriftAlerts.charter.md](../../../resources/js/Pages/governance/DriftAlerts.charter.md)
 - [DsRollout.charter.md](../../../resources/js/Pages/governance/DsRollout.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/governance/ModuleGrades/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/governance/ModuleGrades/Show.charter.md)
 - [Policies.charter.md](../../../resources/js/Pages/governance/Policies.charter.md)
+- [QualidadeIa.charter.md](../../../resources/js/Pages/governance/QualidadeIa.charter.md)
 
 ## Casos (contrato UC) — 1
 
 - [DsRollout.casos.md](../../../resources/js/Pages/governance/DsRollout.casos.md)
 
-## Testes (Pest) — 55
+## Testes (Pest) — 57
 
-- 55 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 57 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 3
+## Demais arquivos (manifestos, docs, assets e misc) — 11
 
+- [CHANGELOG.md](../../../Modules/Governance/CHANGELOG.md)
 - [DriftChecker.php](../../../Modules/Governance/Contracts/DriftChecker.php)
 - [routes.php](../../../Modules/Governance/Http/routes.php)
+- [governance.php](../../../Modules/Governance/Resources/lang/en/governance.php)
+- [governance.php](../../../Modules/Governance/Resources/lang/pt-BR/governance.php)
+- [governance.php](../../../Modules/Governance/Resources/lang/pt/governance.php)
+- [topnav.php](../../../Modules/Governance/Resources/menus/topnav.php)
+- [SCOPE.md](../../../Modules/Governance/SCOPE.md)
+- [composer.json](../../../Modules/Governance/composer.json)
+- [module.json](../../../Modules/Governance/module.json)
 - [start.php](../../../Modules/Governance/start.php)

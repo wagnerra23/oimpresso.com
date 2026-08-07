@@ -1,6 +1,7 @@
 ---
 module: Auditoria
-purpose: "Leitura, investigação e REVERSÃO segura da trilha por-registro (activity_log). Responde 'quem mudou este registro, o quê, quando — e dá pra desfazer?'. Guarda o que NÃO pode ser desfeito (append-only por lei) e o isolamento multi-tenant no undo."
+purpose: "Quem mudou este registro, o quê e quando? — lê e investiga a trilha por-registro (activity_log) com isolamento multi-tenant e guarda o registry do que a lei não deixa desfazer. A reversão está codificada (RevertService) porém desligada do caminho HTTP: POST /{id}/revert responde 501."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "AuditoriaController (index · show · revert)"
   - "AuditEntryService — leitura paginada e detalhe de activity_log"
@@ -15,7 +16,7 @@ not_contains:
   - "Trilha de chamada de tool MCP (mcp_audit_log) → Modules/Jana"
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
-  - "MCP server admin → Modules/TeamMcp"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: auditoria.*

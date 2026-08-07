@@ -24,11 +24,12 @@
 //   node scripts/governance/system-map.mjs --check      # exit 1 se o .md commitado difere do gerado (CI)
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, statSync } from 'node:fs';
-import { execSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { join, dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
+const GIT_SAFE_ARGS = ['-c', `safe.directory=${resolve(ROOT).replaceAll('\\', '/')}`];
 // só roda a geração/CI quando invocado DIRETO (node system-map.mjs). Importado
 // (ex: onboarding-paths-check.mjs reusa deadLinks) NÃO dispara escrita nem process.exit.
 const IS_DIRECT_RUN = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
@@ -56,6 +57,39 @@ const ls = (p) => { try { return readdirSync(p); } catch { return []; } };
  * ONBOARDING pararam de regenerar EM SILÊNCIO.
  */
 const normalizeHorizontalSpace = (s) => s.replace(/[ \t]+/g, ' ');
+
+/** Impede que a fronteira de um clone raso seja tratada como último toque real. */
+export function assertFreshnessCommitUsable(isShallowBoundary, relPath = '<path>') {
+  if (isShallowBoundary) {
+    throw new Error(
+      `[system-map] histórico Git insuficiente para medir frescor de ${relPath}. `
+      + 'Use checkout fetch-depth: 0 ou rode `git fetch --unshallow`.',
+    );
+  }
+}
+
+let SHALLOW_BOUNDARIES = null;
+function shallowBoundaries() {
+  if (SHALLOW_BOUNDARIES) return SHALLOW_BOUNDARIES;
+  try {
+    const isShallow = execFileSync(
+      'git',
+      [...GIT_SAFE_ARGS, 'rev-parse', '--is-shallow-repository'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim() === 'true';
+    if (!isShallow) return (SHALLOW_BOUNDARIES = new Set());
+    const shallowPath = execFileSync(
+      'git',
+      [...GIT_SAFE_ARGS, 'rev-parse', '--git-path', 'shallow'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim();
+    const absolute = resolve(ROOT, shallowPath);
+    return (SHALLOW_BOUNDARIES = new Set(read(absolute).split(/\r?\n/).filter(Boolean)));
+  } catch (error) {
+    const detalhe = error instanceof Error ? error.message : String(error);
+    throw new Error(`[system-map] não foi possível verificar a fronteira rasa do Git: ${detalhe}`);
+  }
+}
 
 /**
  * Âncora estrutural mínima para explicações de fluxo. O diagrama continua sendo
@@ -186,12 +220,16 @@ function frontmatter(txt) {
 }
 // último commit que tocou um path (data ISO curta) — frescor REAL, não declarado
 function gitLastDate(relPath) {
+  let out;
   try {
-    const out = execSync(`git log -1 --format=%cs -- "${relPath}"`, {
+    out = execFileSync('git', [...GIT_SAFE_ARGS, 'log', '-1', '--format=%H%x00%cs', '--', relPath], {
       cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'],
     }).toString().trim();
-    return out || null;
   } catch { return null; }
+  if (!out) return null;
+  const [commit, date] = out.split('\0');
+  assertFreshnessCommitUsable(shallowBoundaries().has(commit), relPath);
+  return date || null;
 }
 function daysSince(isoDate) {
   if (!isoDate) return null;
@@ -238,7 +276,11 @@ function measureProibicoes() {
 // ── fonte 3: módulos + frescor do BRIEFING (curado; linka o dono) ─────────────
 function measureModules() {
   const modDir = join(ROOT, 'Modules');
-  const mods = ls(modDir).filter((d) => { try { return statSync(join(modDir, d)).isDirectory(); } catch { return false; } });
+  const mods = ls(modDir).filter((d) => {
+    try {
+      return statSync(join(modDir, d)).isDirectory() && existsSync(join(modDir, d, 'module.json'));
+    } catch { return false; }
+  });
   const rows = [];
   for (const m of mods) {
     const brief = `memory/requisitos/${m}/BRIEFING.md`; // forward-slash sempre (link markdown + git)
@@ -478,7 +520,7 @@ export function linhaTools(ia) {
  * NÚCLEO PURO: lê o REGISTRO de tools do `OimpressoMcpServer` — a lista que o servidor
  * de fato publica. Fonte deliberadamente diferente da PASTA: um `*Tool.php` que ninguém
  * registrou não sobe, e um registro pode apontar pra outro módulo. Duas formas convivem
- * no array: FQN (`\Modules\Forja\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
+ * no array: FQN (`\Modules\Brief\Mcp\Tools\X::class`) e relativa (`Tools\Y::class`, que
  * resolve no namespace do próprio servidor, Jana).
  *
  * Foi aqui que a 1ª versão desta seção errou: contou a pasta de UM módulo (39) pra
@@ -514,7 +556,7 @@ export function parseToolsRegistry(txt, donoDoArquivo = 'Jana') {
  */
 function gitGrepFiles(padrao) {
   try {
-    const out = execSync(`git grep -lE "${padrao}" -- "Modules"`, {
+    const out = execFileSync('git', [...GIT_SAFE_ARGS, 'grep', '-lE', padrao, '--', 'Modules'], {
       cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
     });
     return { ok: true, files: out.split('\n').map((s) => s.trim()).filter(Boolean) };
@@ -526,7 +568,7 @@ function gitGrepFiles(padrao) {
 }
 function gitLsFiles(pathspec) {
   try {
-    const out = execSync(`git ls-files "${pathspec}"`, {
+    const out = execFileSync('git', [...GIT_SAFE_ARGS, 'ls-files', pathspec], {
       cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
     });
     return out.split('\n').map((s) => s.trim()).filter(Boolean);
@@ -581,11 +623,25 @@ function render(data) {
 
   const L = [];
   L.push('---');
-  L.push('name: PAINEL-SISTEMA — índice gerado do estado do sistema oimpresso');
+  // `id` NÃO é decorativo: o rail de /documentacao linka por ele
+  // (`route('documentacao.documento', $item['id'])`) e o controller resolve
+  // `where('slug', …)` em mcp_memory_documents — cujo slug é DERIVADO do caminho
+  // (`reference-` + path slugificado · IndexarMemoryGitParaDb::coletarRecursivo).
+  // Os dois têm que bater, senão o item do rail 404. Mudou o caminho → mude aqui.
+  L.push('id: reference-painel-sistema');
+  // O rail rotula com o que vem DEPOIS do travessão (Str::after(name, '—')), então o
+  // padrão `Grupo — Assunto` dos 10 vizinhos vira "Painel do sistema" no menu.
+  L.push('name: Técnico — Painel do sistema');
   L.push('description: MATRIZ gerada por scripts/governance/system-map.mjs. NÃO editar à mão (regenera). Índice que aponta pros donos canônicos + fatos deriváveis + frescor real.');
   L.push('type: reference');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
+  // Opt-in do rail de /documentacao (DocumentacaoController::navegacao): sem `nav_group`
+  // o doc fica FORA do menu — era por isso que o painel só era alcançável pela busca.
+  // `tecnico` = grupo do irmão TECNICO-ARQUITETURA (nav_order 10); este vem depois.
+  L.push('nav_group: tecnico');
+  L.push('nav_order: 20');
+  L.push('lente: [construir]');
   L.push('---');
   L.push('');
   L.push('# 🗺️ PAINEL-SISTEMA — estado do oimpresso');
@@ -687,14 +743,21 @@ function render(data) {
   L.push('');
   L.push(`> Dono canônico: [\`memory/proibicoes.md §5\`](../proibicoes.md). ${proib.descartadas.length} entradas.`);
   L.push('');
-  for (const d of proib.descartadas) L.push(`- ~~${d}~~`);
+  // Títulos TRANSCRITOS literalmente de proibicoes.md §5 — não são ponteiros deste
+  // doc. Lápide cita path deletado de propósito ("não ressuscite `Modules/SRS`"),
+  // então o validador de path morto não se aplica aqui (ver RE_TRANSCRITO).
+  L.push('<!-- transcrito-de: memory/proibicoes.md §5 -->');
+  for (const d of proib.descartadas) L.push(`- ~~${semComentarioHtml(d)}~~`);
+  L.push('<!-- /transcrito-de -->');
   L.push('');
 
   // Tier 0 gaps
   if (proib.tier0gaps.length) {
     L.push('## Tier 0 gaps (esperam decisão/desbloqueio)');
     L.push('');
-    for (const g of proib.tier0gaps) L.push(`- ⛔ ${g}`);
+    L.push('<!-- transcrito-de: memory/proibicoes.md §Tier 0 gaps -->');
+    for (const g of proib.tier0gaps) L.push(`- ⛔ ${semComentarioHtml(g)}`);
+    L.push('<!-- /transcrito-de -->');
     L.push('');
   }
 
@@ -1055,6 +1118,28 @@ function renderOnboardingAgent(data) {
 // tratado como PATH (relativo à RAIZ do repo) e verificado. Fecha o furo que deixou
 // `Modules/Project` (inexistente) passar — antes só links markdown eram checados.
 const REPO_DIRS = /^(Modules|app|resources|scripts|governance|database|tests|config|routes|bootstrap|\.github|\.claude|memory)\/\S/;
+
+// Escopo mínimo de propósito: pula SÓ o path inline dentro do bloco transcrito. Links
+// markdown seguem valendo no doc INTEIRO — inclusive dentro do bloco (há caso de
+// bite-test garantindo isso). A justificativa é simples: path em título de lápide não é
+// ponteiro de navegação, e link markdown nunca foi o modo de falha.
+const RE_TRANSCRITO = /<!-- transcrito-de:[^>]*-->[\s\S]*?<!-- \/transcrito-de -->/g;
+
+/**
+ * Escapa `<!--` ao transcrever texto de `proibicoes.md` pro painel gerado.
+ *
+ * Uma lápide do §5 que contenha um comentário HTML abriria um comentário no meio do
+ * markdown gerado e engoliria o resto do documento. A falha era fail-closed (mata o
+ * gerador, não abre buraco), mas o custo era outro silêncio de dias — que é o que o
+ * eixo 3 do cron-watchdog passou a vigiar.
+ *
+ * Escapar só `<!--` basta: abertura e fechamento começam por ele. O `&lt;!--` renderiza
+ * como texto visível no markdown, então a lápide continua legível.
+ */
+export function semComentarioHtml(s) {
+  return String(s).replace(/<!--/g, '&lt;!--');
+}
+
 export function deadLinks(md, outPath) {
   const base = dirname(outPath);
   const dead = [];
@@ -1069,7 +1154,7 @@ export function deadLinks(md, outPath) {
   // Remove blocos cercados ``` … ``` ANTES de casar inline: os backticks internos
   // do bloco bagunçam o pareamento do regex e engoliriam paths inline reais depois
   // dele (Modules/Jana, app/Domain/Fsm ficavam SEM verificação — furo silencioso).
-  const noFences = md.replace(/```[\s\S]*?```/g, '');
+  const noFences = md.replace(/```[\s\S]*?```/g, '').replace(RE_TRANSCRITO, '');
   const reCode = /`([^`]+)`/g;
   while ((m = reCode.exec(noFences)) !== null) {
     const t = m[1].trim();
@@ -1082,7 +1167,11 @@ export function deadLinks(md, outPath) {
   return dead;
 }
 export function assertLinksLive(pairs) {
-  const problems = pairs.flatMap(([md, out]) => deadLinks(md, out).map((l) => `${out}: ${l}`));
+  const problems = pairs.flatMap(([md, out]) => deadLinks(md, out).map((l) => {
+    const needle = l.replace(/^\(inline\)\s*/, '');
+    const line = md.split('\n').find((row) => row.includes(needle))?.trim();
+    return `${out}: ${l}${line ? `\n    em: ${line}` : ''}`;
+  }));
   if (problems.length) {
     console.error('[system-map] PATH MORTO — o gerador se recusa a emitir link quebrado (regra):');
     problems.forEach((p) => console.error('  ✗ ' + p));

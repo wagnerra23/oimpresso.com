@@ -49,7 +49,7 @@ Ver [ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) §"
 
 ## Schedule em `app/Console/Kernel.php`
 
-- Health checks recurring: `php artisan jana:health-check` daily 06:00 BRT (5 checks SQL)
+- Health checks recurring: `php artisan jana:health-check` daily 06:00 BRT (checks no próprio `HealthCheckCommand.php` — não fixar contagem à mão, LC-08)
 - Commands cross-business: iterate `Business::active()->each()` dentro do command, NUNCA dispatch parallel scheduler (race condition session())
 
 ## Skills relacionadas

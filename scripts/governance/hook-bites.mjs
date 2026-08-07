@@ -23,7 +23,7 @@
 //
 // Uso:  node scripts/governance/hook-bites.mjs [--dias N] [--json] [--selftest]
 
-import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { homedir } from 'node:os';
@@ -42,7 +42,27 @@ export const ALIASES = {
   'commit-discipline-check': 'commit-discipline',
   'post-merge-ui-smoke-required': 'ui-smoke-required',
   'preflight-new-capability': 'oimpresso-anti-reinvencao',
-  'mcp-first-nudge': 'oimpresso-mcp-first',
+  // REMOVIDO 2026-08-05: `mcp-first-nudge` -> `oimpresso-mcp-first`. O arquivo NAO EXISTE
+  // (o `mcp-first-warning` foi aposentado no #4587, 2026-07-20) — alias apontando pra
+  // fantasma. Foi o `--check-aliases`, no seu primeiro uso, que achou. As 36 emissoes
+  // historicas de `[oimpresso-mcp-first]` seguem no corpus e continuam listadas como
+  // ORFAS — que e' o comportamento certo: o relatorio ja trata "tag de hook aposentado
+  // que segue emitindo" como sinal util, nao como erro a silenciar.
+  // `memory-schema-guard` JÁ emitia `[memory-schema]` em produção — a tag existe e é
+  // distintiva, só não estava registrada aqui. Registrar o ALIAS (em vez de trocar a
+  // mensagem) o torna observável RETROATIVAMENTE: as emissões históricas passam a
+  // contar. Trocar a string zeraria esse rastro. Medido 2026-08-05.
+  'memory-schema-guard': 'memory-schema',
+  // idem: `php-syntax-after-write` já emite `[php-syntax]`. Alias preserva o histórico.
+  'php-syntax-after-write': 'php-syntax',
+  // Leva dos condicionais (2026-08-05). Estes 2 também já emitiam tag própria e só
+  // faltava registrá-la — mesma forma (a) do #5314, mesmo ganho retroativo.
+  // `tema-owner` tem rastro MEDIDO: 8 emissões no corpus, listadas como órfãs.
+  'tema-owner-advisory': 'tema-owner',
+  // `charter-da-tela` tem 0 no corpus, e o motivo é dispararem POUCO, não canal morto:
+  // é PreToolUse:Read (32 attachments no corpus inteiro) com condição estreita. O canal
+  // (stderr) é comprovadamente contável — block-destructive, stderr puro, tem 279.
+  'charter-da-tela-que-o-controller-serve': 'charter-da-tela',
 };
 
 /** hooks wired no settings.json → [{arquivo, evento, matcher}] */
@@ -169,9 +189,65 @@ export function relatorio({ wired, contagem, naoObservaveis, sessoes, segundos, 
   return L.join('\n');
 }
 
+/**
+ * `--check-aliases`: confere que cada par de ALIASES ainda casa a realidade — o arquivo
+ * existe E contém `[<alvo>]`. Alias que deixou de casar NÃO dá erro: o hook só volta,
+ * calado, pra lista de não-observáveis. Ou seja, a garantia mais forte do mecanismo
+ * (observabilidade retroativa) dependia de alguém reparar num item a mais numa lista.
+ *
+ * O cabeçalho dos ALIASES prometia este modo desde que nasceu; ele não existia. Fica
+ * como lembrete de que anúncio sem teste de contrato apodrece calado (§5 2026-07-27).
+ *
+ * Retorna { ok, quebrados[] } — quem chama decide o exit code.
+ */
+export function checarAliases(dirHooks = DIR_HOOKS) {
+  const quebrados = [];
+  for (const [arquivo, alvo] of Object.entries(ALIASES)) {
+    const p = join(dirHooks, arquivo + '.mjs');
+    if (!existsSync(p)) { quebrados.push({ arquivo, alvo, motivo: 'arquivo nao existe' }); continue; }
+    let src = ''; try { src = readFileSync(p, 'utf8'); } catch { /* ilegivel = quebrado */ }
+    if (!src.includes('[' + alvo + ']')) quebrados.push({ arquivo, alvo, motivo: `nao emite mais [${alvo}]` });
+  }
+  return { ok: quebrados.length === 0, quebrados };
+}
+
+/**
+ * Throttle do --heartbeat. Custo MEDIDO da análise: 1,9s (7d) / 3,2s (14d) sobre
+ * ~735MB de transcript. Barato pra 1×/dia, caro pra toda sessão — e o SessionStart
+ * já carrega 7 hooks. Estado em `.claude/run/` (gitignored, por-dev). Fail-open:
+ * qualquer erro de I/O deixa passar (prefere rodar de novo a ficar mudo).
+ */
+function heartbeatJaRodou(root, horas) {
+  const marca = join(root, '.claude', 'run', '.last-hook-bites');
+  try {
+    if (existsSync(marca)) {
+      const idadeH = (Date.now() - statSync(marca).mtimeMs) / 36e5;
+      if (idadeH < horas) return true;
+    }
+    mkdirSync(join(root, '.claude', 'run'), { recursive: true });
+    writeFileSync(marca, new Date().toISOString());
+  } catch { /* fail-open */ }
+  return false;
+}
+
 function main() {
   const argv = process.argv.slice(2);
+  if (argv.includes('--check-aliases')) {
+    const { ok, quebrados } = checarAliases();
+    if (ok) {
+      console.log(`[hook-bites] --check-aliases OK — ${Object.keys(ALIASES).length}/${Object.keys(ALIASES).length} pares casam a realidade.`);
+      process.exit(0);
+    }
+    console.error(`[hook-bites] --check-aliases: ${quebrados.length} alias(es) quebrado(s) — o hook volta a NAO-OBSERVAVEL calado:`);
+    for (const q of quebrados) console.error(`   ${q.arquivo} -> [${q.alvo}]  (${q.motivo})`);
+    process.exit(1);
+  }
   const dias = (() => { const i = argv.indexOf('--dias'); return i >= 0 ? parseInt(argv[i + 1], 10) : 0; })();
+  if (argv.includes('--heartbeat')) {
+    const i = argv.indexOf('--throttle-horas');
+    const horas = i >= 0 ? parseInt(argv[i + 1], 10) : 20;
+    if (heartbeatJaRodou(RAIZ, horas)) process.exit(0);        // silencioso: já falou hoje
+  }
   const t0 = Date.now();
   let settings = {};
   try { settings = JSON.parse(readFileSync(SETTINGS, 'utf8')); } catch { /* fail-open */ }
@@ -199,6 +275,22 @@ function main() {
     for (const [t, n] of tagsOrfas(txt, conhecidas)) orfas.set(t, (orfas.get(t) || 0) + n);
   }
   const segundos = ((Date.now() - t0) / 1000).toFixed(1);
+  if (argv.includes('--heartbeat')) {
+    // Resumo de 4 linhas pro SessionStart. Existe porque a análise completa é boa e
+    // NINGUÉM a invocava: o dead man's switch estava, ele próprio, órfão (medido em
+    // 2026-07-27 e ainda em 2026-08-05). Sem invocador, "não sei se está funcionando"
+    // vira o estado permanente — que é exatamente a queixa que isto responde.
+    const semEntrega = wired.filter((h) => h.tag && !(contagem.get(h.tag) || 0));
+    const comEntrega = wired.filter((h) => h.tag && (contagem.get(h.tag) || 0));
+    const curto = (a) => a.replace(/\.mjs$/, '');
+    console.log(`\n=== MAQUINAS: os hooks entregaram? (hook-bites · janela ${dias || 'toda'}d · ${segundos}s) ===`);
+    console.log(`  ${comEntrega.length} entregaram · ${semEntrega.length} wired com ZERO entrega · ${naoObservaveis.length} nao-observaveis (silencio = indistinguivel de morte)`);
+    if (semEntrega.length) {
+      console.log(`  zero entrega: ${semEntrega.slice(0, 6).map((h) => curto(h.arquivo)).join(', ')}${semEntrega.length > 6 ? ` (+${semEntrega.length - 6})` : ''}`);
+    }
+    console.log(`  detalhe: node scripts/governance/hook-bites.mjs --dias ${dias || 14}\n`);
+    process.exit(0);
+  }
   if (argv.includes('--json')) {
     console.log(JSON.stringify({
       sessoes: arquivos.length, segundos: Number(segundos),

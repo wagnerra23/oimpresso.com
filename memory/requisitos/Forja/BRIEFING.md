@@ -1,89 +1,70 @@
 ---
-id: requisitos-project-mgmt-briefing
+id: requisitos-forja-briefing
 module: Forja
-modulo: Forja
-status: parcial
-status_nota: Fase 1+2 done (2026-05-08) · Fase 3+4 backlog
-last_pr: PR #211 (PMG-001 optimistic-lock)
-nota_atual: 32/100 (Crítico) — D1 10/30 · D2 8/20 · D3 6/15
+status: producao
+status_nota: "Uso interno diário do time (Kanban/Backlog/MyWork) + host da infra MCP viva (brief-fetch, handoff loop, identity/token, CC ingest). NÃO cliente-facing."
+updated_at: "2026-08-01"
 owner: W
 piloto: time interno oimpresso (uso próprio)
-adr_mae: ADR 0100 (UI redesign) · ADR 0070 (Jira-style tasks)
-charter: CHARTER-board.md
+related_adrs:
+  - 0070-jira-style-task-management-current-md-removed
+  - 0079-constituicao-oimpresso-7-camadas-governanca
+  - 0080-trust-tiers-operacional-audit-findings
+adr_mae: ADR 0070 (Jira-style tasks) · ADR 0088 (rename ProjectMgmt→Forja)
+charter: charters ao lado das Pages (Board/Triage/MyWork/Inbox/Backlog/Roadmap/Activity/Burndown/DetailSheet)
 spec: SPEC.md + SPEC-COMPLEMENTO.md
-capterra: CAPTERRA-FICHA.md (24 capacidades) · CAPTERRA-INVENTARIO.md
-updated_at: "2026-05-16"
-updated: 2026-05-16
 ---
 
-# Forja — Briefing executivo (1 página)
+# BRIEFING — `Forja`
 
-## Pra que serve
+> **Função única:** resumo executivo e índice. Aponta para os donos; não recopia SCOPE, SUPERFICIE, SPEC ou contratos de tela.
+> **Contrato:** `scripts/memory-schemas/briefing.schema.json`.
 
-Gestão Jira-style de projetos, épicos, sprints/cycles e tasks **internas do time oimpresso** — substitui Trello/Linear/Jira pra alinhar Wagner + Felipe + Maiara + Eliana + Luiz. Estado vivo das tasks fica em `mcp_tasks` (governado por tools MCP — ADR 0070), e este módulo é a **interface visual** sobre essas tabelas: Kanban, Backlog, Roadmap, My Work, Inbox, Burndown, Activity.
+## O que é
 
-## Estado consolidado
+Cockpit de trabalho do **time interno oimpresso** (Wagner + Felipe + Maiara + Eliana + Luiz) estilo Jira — Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown, Activity — como **interface visual** sobre as tabelas `mcp_jira_*` governadas por tools MCP (ADR 0070). Renomeado `ProjectMgmt → Forja` em 2026-07-30 (module.json + PR-5 Pages; URL/alias/permission legacy por compat).
 
-| Dimensão | Nota | Evidência |
-|---|---|---|
-| D1 Cobertura funcional | 10/30 | Kanban + drag-drop + Detail Sheet + Cmd+K + @mentions + watchers + subtasks em prod. Faltam: time tracking, sprint planning UI, saved views backend, presence real-time. |
-| D2 UX/UI | 8/20 | Linear-tier ainda não atingido (~50% gap). Otimismo+409 implementado; faltam atalhos avançados, cycle close UI. |
-| D3 Testes Pest | 6/15 | 2 tests pré-existentes (BoardControllerTest com ~38 cenários PMG-003→007, SearchControllerTest). +3 novos esta wave (multi-tenant, smoke routes, scaffold). |
-| D4 Multi-tenant | — | `business_id` scope aplicado via `session('user.business_id')` nos Controllers. Anti-vazamento validado em Pest. |
-| D5 Docs canon | — | SPEC.md + CHARTER-board.md + CAPTERRA-FICHA.md + INVENTARIO.md + BRIEFING.md (este). |
+**Desde a última porta (2026-05-16) o módulo deixou de ser só a UI Jira:** absorveu, sem mudar URLs, a infraestrutura MCP do time (identity/token, endpoints `/api/mcp`, Daily Brief, loop de handoff, ingest de sessões Claude Code, hub Equipe, Admin do MCP e o núcleo de registro/decompose do ADS). Fronteira e proveniência de cada peça em [`SCOPE.md`](../../../Modules/Forja/SCOPE.md).
 
-## O que tem vivo em prod (Fase 1+2 done)
+## Estado atual
 
-- **Board (Kanban)** — colunas drag-drop, 5 KPIs (total/doing/blocked/p0/sprint), 6 filtros, optimistic-lock 409 ([PMG-001](SPEC.md))
-- **Cmd+K Global Search** — cross-resource (tasks/epics/cycles/projects), debounced 220ms ([PMG-002](SPEC.md))
-- **Detail Sheet** — drawer com task/comments/events/subtasks/dependencies/watchers ([PMG-004](SPEC.md))
-- **Comments + @mentions** — body + `mcp_task_comment` + suggest users ([PMG-005](SPEC.md))
-- **Watchers (Follow/Unfollow)** — toggle idempotente + counts ([PMG-006](SPEC.md))
-- **Subtasks UI** — create inline com `parent_task_id` ([PMG-007](SPEC.md))
-- **My Work + Inbox** — mark read/all + bump status ([US-TR-204](SPEC.md))
-- **Backlog + Roadmap + Activity + Burndown** — listings + bulk + chart ([US-TR-202..206](SPEC.md))
+- **Superfície de código:** 180 arquivos em 14 papéis — 23 Controllers, 26 Services, 23 FormRequests, 9 telas React, 8 comandos artisan, 51 arquivos Pest. Fonte viva (regenerável): [`SUPERFICIE.md`](SUPERFICIE.md) via `node scripts/governance/module-surface.mjs Forja --check`.
+- **Nota do módulo:** não fixar aqui (o `32/100` das portas antigas está stale). Rode `php artisan module:grade Forja --detail`.
+- **Consolidação 2026-07-30/31 (ancorada em SCOPE + commits):**
+  - MCP endpoints vindos da Jana — `Mcp/{Health,SyncMemoryWebhook}Controller`, `/api/mcp/*` inalteradas (PR #5101).
+  - Daily Brief (ex-`Modules/Brief`, ADR 0091) — `BriefFetchController` + `BriefGeneratorService`/`BriefValidator` + `mcp:generate-brief` + `Mcp/Tools/BriefFetchTool` (PR #5098).
+  - `Modules/TeamMcp` **deletado** (89 → 0 arquivos, PR #5122); suas capacidades **movidas** (não fundidas) pra cá: identidade MCP + emissão de token (PR #5111), loop de handoff zero-paste (PR #5114), CC ingest (PR #5116), Admin do MCP (PR #5117), hub Equipe (PR #5118), cockpit `/forja` 6 abas (PR #5120).
+  - Núcleo de registro do ADS — `ToolRegistry` + `UserScopeService` + `ProjectDecomposerService`/Agent (PRs #5131/#5132/#5134); URLs `/ads/admin/*` e permissions `ads.*` mantidas (ADR 0087).
+- **Tela nova desde a porta:** Triage (`TriageController` + `Triage/Index.tsx` + `TriageDossier.tsx`) — tasks órfãs com fluxo assign/aprovar/rejeitar/fundir; paridade da tool MCP `triage` (rotas em `Http/routes.php`).
+- **⚠️ Sobreposição conhecida (não resolvida):** as abas do cockpit `/forja` (triagem/backlog/quadro/changelog) sobrepõem Triage/Backlog/Board/Activity deste módulo — MOVIDO, não fundido; fundir = deletar uma implementação = decisão [W] (SCOPE §cockpit).
 
-## Backlog priorizado (Fase 3+4)
+## Portas canônicas
 
-- **P0** — Tests Pest mais profundos (esta wave): multi-tenant cross-business, smoke routes, scaffold (subir nota D3 6 → 12)
-- **P1** — Sprint planning UI (criar/fechar cycle com goals trackables)
-- **P1** — Atalhos avançados (j/k navegação, c criar, e editar inline)
-- **P2** — Saved views backend (presets de filtros persistidos)
-- **P2** — Real-time presence (Centrifugo CT 100 — quem está vendo a task agora)
-- **P3** — Time tracking (estimate vs actual por task, burndown enriched)
+- **Herança geral (componentes/layouts compartilhados):** [`../_Geral/BRIEFING.md`](../_Geral/BRIEFING.md)
+- **Fronteira/ownership + proveniência das absorções:** [`SCOPE.md`](../../../Modules/Forja/SCOPE.md)
+- **Superfície derivada de código:** [`SUPERFICIE.md`](SUPERFICIE.md)
+- **Requisitos:** [`SPEC.md`](SPEC.md) + [`SPEC-COMPLEMENTO.md`](SPEC-COMPLEMENTO.md)
+- **Concorrência/mercado:** [`CAPTERRA-FICHA.md`](CAPTERRA-FICHA.md) + [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md)
+- **Telas:** `resources/js/Pages/Forja/**` + charters/casos ao lado das Pages
+- **Tabelas de dados (donas):** `mcp_jira_*` + 5 herdadas do ADS extinto (`mcp_projects`/`mcp_project_parts`/`mcp_decision_links`/`mcp_tool_executions`/`mcp_user_module_access`) — lista em SCOPE `db_tables_owned`.
 
-## Diferenciais vs concorrentes (CAPTERRA)
+## Decisões e riscos que exigem atenção
 
-Ver [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — comparado com Linear, Jira, ClickUp, Asana, Monday. Forças: integração nativa com Jana IA + memória persistente + multi-tenant Tier 0 + governança ADR. Gaps: UX fluidez (~50% Linear), real-time, saved views.
+- ⛔ **Multi-tenant Tier 0 (ADR 0093):** nunca `withoutGlobalScopes` em models `mcp_*` sem `// SUPERADMIN: <razão>`. Exceções POR DESIGN cross-business: `mcp_actors`, `cowork_handoffs` (Identity Mesh ADR 0081 / handoff ADR 0283) — documentadas em SCOPE, não replicar sem base.
+- ⛔ **Stack de middlewares completa** em `Http/routes.php` — sem `SetSessionData`, `session('user.business_id')` fica null → vazamento.
+- ⚠️ **Schema não é dono da Forja pra `mcp_jira_*`** originalmente — mas as 5 tabelas do ADS extinto foram declaradas `db_tables_owned` aqui de propósito (senão a próxima varredura de deprecação as acha órfãs — errata C5 do plano do ADS).
+- ⚠️ **Permission legacy** — `jana.mcp.usage.all` (herdada); não criar permission própria da Forja.
+- ⚠️ **URLs legadas preservadas** por compat: `/ads/admin/*`, `/api/mcp/*`, `/team-mcp/*`, `/forja/*`, prefixo web legacy (ver SCOPE `url_prefixes`). Renomear é decisão [W] separada.
 
-## Riscos / pegadinhas
+## Próxima ação verificável
 
-- ⛔ **NUNCA `withoutGlobalScopes` em McpTask/McpProject** sem comentário `// SUPERADMIN: <razão>` — multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093)
-- ⛔ **Tabelas `mcp_*` são canônicas pro time** — UPDATE direto via tinker em prod = drift catalogado
-- ⛔ **Stack middlewares completa obrigatória** em Http/routes.php — sem `SetSessionData` o `session('user.business_id')` é null → vazamento
-- ⚠️ **Schema migration** — `mcp_projects` + `mcp_tasks` vivem em Modules/Jana (Jana) — Forja é UI sobre essas tabelas, não dono do schema
-- ⚠️ **Permission canônica** — `jana.mcp.usage.all` (herdada do Copiloto, igual ao TeamMcp anterior) — não criar permission própria do Forja
+- **Decisão [W] pendente:** resolver a sobreposição cockpit `/forja` × telas nativas (Triage/Backlog/Board/Activity) — fundir = deletar uma implementação. Evidência de conclusão: uma das duas implementações removida + SCOPE §cockpit atualizado.
+- **Rename Project (Fase 3.9, ADR 0079):** bloqueado por Fase 3.8 (delete `Modules/Project` legado). Evidência: `Modules/Project` removido + `git mv` executado.
 
-## Wave 18 Saturação (2026-05-16)
+## Regra de manutenção
 
-**Meta:** 97/100 module-grade (D5 +12, D8 +3, D1 +5).
-
-| Δ | Entrega |
-|---|---|
-| D5 +12 (3→15) | Yaml `module_clients.yaml` Forja: `backlog_hipotese` → `internal_governance_active` (ADR 0159 — Wagner usa Board/Backlog/MyWork diário pra gerir 25+ cycles; time MCP futuro depende) |
-| D8 +1→3 | 2 FormRequests novos: `UpdateTaskStatusRequest` (Kanban drag-drop status in:todo,doing,blocked,done) + `UpdateTaskRequest` (priority P0-P3 + estimate 1-240h) — ratio 5/10=0.5 |
-| D1 +5 | Pest `CrossTenantSaturationTest`: epics biz=1 vs biz=99 isolation + 6 FormRequest sanity check (PT-BR messages + Kanban states + priority range) |
-| module.json | `governance.fsm_n_a: true` justificado (Forja usa Kanban free-flow, NÃO FSM tabular — ADR 0143 aplica a Sells/Repair com cancel cascade) |
-
-Services spans já cobertos pré-Wave 18 (ProjectService.list/create/update/find_detail/calculate_kpis + ForjaAuditService.log via `OtelHelper::spanBiz`).
-
-## Wave 18 RETRY (2026-05-16)
-
-**Meta:** subir D8 ratio 5→9 FormRequests + completar coverage PMG-005/006/007 + Bulk.
-
-| Δ | Entrega |
-|---|---|
-| D8 +4 FormRequests | `AddCommentRequest` (body 1-5000 + 50 mentions PMG-005) + `AddSubtaskRequest` (title + estimate 1-240h + P0-P3 PMG-007) + `WatchTaskRequest` (20 user_ids + notify_method PMG-006) + `BulkBacklogRequest` (op in:5 + confirm:accepted destrutivos) — ratio agora 9/10 = 0.90 |
-| D1 +1 test file | `CrossTenantSaturationRetryTest` — 7 testes (1 cross-tenant em mcp_jira_cycles + 6 FormRequest sanity PMG-005/006/007 + Bulk) |
-| Pest local | 6/6 passed (22 assertions, 2.12s) + 1 skipped por env minimal (mcp_jira_projects/cycles ausente local) |
-| D6/D9 | Já saturados pré-Wave 18 (Controllers Inertia::defer + Services OtelHelper::spanBiz cobertura completa) |
+1. Mudou árvore de código: regenere `SUPERFICIE.md` (`module-surface.mjs Forja --write`); não edite a lista aqui.
+2. Mudou requisito: altere `SPEC.md`/charter/casos.
+3. Mudou fronteira/absorveu módulo: altere `SCOPE.md` (dono da proveniência), ajuste só a linha-resumo aqui.
+4. Métrica (nota, contagem) sempre via comando reexecutável — nunca número solto que apodrece.
+5. Componente/layout compartilhado não se copia: consulte `_Geral`, valide o contrato, aponte pro dono único.

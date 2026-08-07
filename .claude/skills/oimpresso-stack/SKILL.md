@@ -27,7 +27,7 @@ ERP gráfico brasileiro pra setor comunicação visual (gráficas rápidas, plot
 
 ## Stack-alvo IA (canônica ADR 0035 + 0036 + 0048)
 
-- **Camada A:** `laravel/ai` ^0.6.3 (oficial fev/2026)
+- **Camada A:** `laravel/ai` ^0.10 (oficial fev/2026)
 - **Camada B:** ~~Vizra ADK~~ → **rejeitado** (ADR 0048 — quebrou L13)
 - **Camada C:** `MemoriaContrato` + `MeilisearchDriver` default + `NullDriver` dev
 - **MCP server:** `mcp.oimpresso.com` (CT 100 Proxmox) — ADR 0053

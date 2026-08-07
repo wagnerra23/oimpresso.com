@@ -1,7 +1,50 @@
 #!/usr/bin/env node
-// governance-audit.mjs — AGREGADOR da bateria de sentinelas (auditoria de sentinelas
-// 2026-06-20). Resolve o buraco "não tem um botão": antes a verdade da governança
-// vivia espalhada em ~8 comandos soltos. Aqui é UM comando → UM scorecard.
+// governance-audit.mjs — DEPRECADO 2026-08-04: agregador SEM invocador e sem casa honesta
+// (mantido no repo por decisão de escopo — podar capacidade é ato de [W], não de agente).
+//
+// ── VEREDITO (o "invocar ou declarar morto" de proibicoes.md §"Sempre fazer" item 2) ──
+// A regra diz que máquina sem invocador é BUG, não neutralidade — e manda LIGAR quando é
+// medidor. Este é medidor, e mesmo assim o veredito é MORTO, porque não existe lugar onde
+// ligá-lo não seja mudo ou duplicado. Medido em origin/main @69039c8cd45, 2026-08-04:
+//
+//   1. NÃO tem invocador — e nunca teve. `git grep "governance-audit"` → 32 ocorrências;
+//      fora de .md, do próprio arquivo e do falso-positivo de substring
+//      `governance-auditoria` em doc-id-index.json, sobram 8 — e NENHUMA invoca: 7 são
+//      COMENTÁRIO/docblock e a 8ª é texto de descrição dentro da string `$signature` do
+//      PlanDriftCommand (`{--json : Output JSON (agregador governance-audit ...)}`).
+//      Zero em .github/workflows, package.json, .claude/ ou cron. O próprio
+//      selftest-registry-check.mjs:215 já registrava o caso por nome.
+//   2. Ligar em CI seria 43% MUDO. As 6 entradas `runtime:'php'` precisam de
+//      `php artisan` + DB; no runner node elas caem todas em `skip: php indisponível`.
+//      Scorecard cujas linhas infra-dependentes são ⊘ por construção é o "gate mudo é pior
+//      que gate ausente" (proibicoes §"Sempre fazer" item 5).
+//   3. Ligar em CI seria duplicado no resto. O exit code só morde nos 2 `kind:'required'`
+//      (memory-health, gate-selftest) — e os DOIS já rodam como check required no
+//      Governance Gate. Os outros 6 node (anchor-lint, sdd-scorecard, plan-health,
+//      knowledge-drift, integrity-check, ds-guard) também já têm invocador próprio. Segundo
+//      juiz pro mesmo tema é o que o §5 chama de "duplica régua consolidada" (2026-07-09).
+//   4. Ligar em PROD é frágil e fora de contrato. Node existe no Hostinger só via nvm
+//      (`~/.nvm/versions/node/v24.15.0/bin/node`), sem garantia de estar no PATH do cron; e
+//      rodar 8 sentinelas node no shared hosting rema contra a separação Hostinger ≠ CT 100
+//      (ADR 0062). O painel que o Daily Brief precisa já vem de serviço PHP próprio.
+//   5. A única linha que ele carregava SOZINHO era `jana:plan-drift` (L45) — e ela ganhou
+//      invocador de 1ª classe em 2026-08-04: PlanDriftChecker, dentro do
+//      `governance:audit --all --notify` (PHP) que JÁ roda diário 06:35 em prod.
+//
+// EFEITO COLATERAL DECLARADO — e é o valor de matar a ficção: com esta bateria fora de
+// cena, `mem:audit` e `jana:validate-memory` ficam VISIVELMENTE sem invocador (medido:
+// 0 schedules em Kernel.php e 0 no `schedule:list` de prod; a única menção de
+// `jana:validate-memory` a um cron é um comentário em memory-schema-gate.yml:5 que afirma
+// uma cadência que não existe). Eles JÁ não rodavam — a bateria só os fazia PARECER
+// cobertos. Triá-los é trabalho seguinte, com dono humano.
+//
+// @deprecated 2026-08-04 — não wirar em CI/cron. Se um dia o painel único voltar a ser
+// desejado, ele nasce onde o PHP roda (comando artisan agregador), não aqui.
+//
+// ── Intenção original (2026-06-20), preservada ────────────────────────────────────────
+// AGREGADOR da bateria de sentinelas. Resolvia o buraco "não tem um botão": antes a
+// verdade da governança vivia espalhada em ~8 comandos soltos. Aqui era UM comando → UM
+// scorecard.
 //
 // Roda a bateria inteira e devolve {ok, results[]}. Cobre os sentinelas Node
 // (determinísticos, sem infra) + os health-checks PHP (best-effort: skip gracioso
@@ -26,6 +69,16 @@ const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
 const NODE_ONLY = process.argv.includes('--node-only');
 const stripAnsi = (s) => s.replace(/\x1b\[[0-9;]*m/g, '');
+
+// Banner de depreciação em STDERR (nunca stdout — `--json` precisa continuar parseável).
+// Existe para que quem RODAR veja o veredito, não só quem abrir o arquivo: cabeçalho é
+// lido por quem já desconfia; banner alcança quem ia wirar sem ler.
+process.stderr.write(
+  '\n  ⚠ governance-audit.mjs está DEPRECADO (2026-08-04) — agregador sem invocador.\n' +
+  '    Não wirar em CI (as 6 entradas PHP ficam ⊘) nem em cron (node só via nvm no Hostinger).\n' +
+  '    jana:plan-drift, a única linha exclusiva daqui, agora roda via PlanDriftChecker\n' +
+  '    dentro do `governance:audit --all --notify` (cron diário 06:35, prod). Ver cabeçalho.\n\n',
+);
 
 // runtime: node = process.execPath <script>; php = php artisan <cmd>
 // kind: required (entra no exit) | advisory (só reporta)

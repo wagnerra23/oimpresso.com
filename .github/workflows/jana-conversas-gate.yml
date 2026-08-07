@@ -1,0 +1,73 @@
+name: Jana Conversas Gate — histórico do chat (filtro real + J/K + ⌘⇧H + aria-live)
+
+# Fatia C da fusão da Jana (pacote JANA-FUSAO-2026-08-06; fonte
+# prototipo-ui/cowork/jana-merge.jsx §JmConversa). A lógica de filtro e teclado
+# vive no ConvSidePanel de resources/js/Pages/Jana/Chat.tsx, exportado como named
+# export justamente pra ser montável em jsdom sem AppShellV2/Inertia/assistant-ui.
+#
+# POR QUE ESTA LANE EXISTE: NENHUMA lane roda `vitest run` sem argumento — cada
+# spec que morde tem workflow próprio apontando pro arquivo (medido de novo em
+# 2026-08-07: os 10 workflows que citam vitest listam o spec um a um). Sem esta
+# lane, tests/jana-chat-conversas.test.tsx nunca executaria em CI e seria
+# verde-por-não-execução (LC-13) — pior que teste ausente, porque parece
+# cobertura. O Pest do módulo não alcança tecla nenhuma.
+#
+# O que ele trava:
+#   - o filtro FILTRA (aba "Todas" esconde arquivada; "Arquivadas" mostra só ela).
+#     Antes eram 4 abas decorativas com empty state "Em breve"; o caso
+#     'nenhuma aba mostra "Em breve"' impede a fachada de voltar.
+#   - só existem 2 abas. "Minhas" era tautológica (a query já é where user_id) e
+#     "Compartilhadas" seria sempre vazia (403 de posse em 4 pontos do
+#     ChatController). Reintroduzir sem backend fica vermelho aqui.
+#   - J/K anda entre CONVERSAS, não entre mensagens (Chat.charter.md v3 §Histórico).
+#   - o guard de digitação: apertar "j" com foco no campo de busca não pode
+#     trocar de conversa.
+#   - ⌘⇧H e Ctrl+⇧H recolhem, e o rail recolhido mantém o atalho — a lista não
+#     pode voltar a ficar inalcançável (o `display:none` ≤1023px que fazia isso
+#     foi removido do cockpit.css).
+#
+# Mordida provada antes do merge (2 mutações, restore = 15/15 verde):
+#   `return` no topo do handler de teclado  → 5 failed (J/K + ⌘⇧H)
+#   `keep` do filtro forçado a `true`       → 3 failed (as 2 abas + J/K sob filtro)
+#
+# Path-scoped (faz npm ci): roda quando a Page, o tipo do payload, o spec ou este
+# workflow mudam. Comando local: npx vitest run tests/jana-chat-conversas.test.tsx
+#
+# Advisory (ADR 0271/0314 — atalho e filtro de tela é qualidade/higiene, não
+# Tier-0). Promoção a required, se um dia fizer sentido, é flip [W] com mordida
+# real coletada (ADR 0336 DR-2) — não se auto-promove.
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/Pages/Jana/Chat.tsx'
+      - 'resources/js/Components/cockpit/shared.ts'
+      - 'tests/jana-chat-conversas.test.tsx'
+      - '.github/workflows/jana-conversas-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Jana/Chat.tsx'
+      - 'resources/js/Components/cockpit/shared.ts'
+      - 'tests/jana-chat-conversas.test.tsx'
+
+concurrency:
+  group: jana-conversas-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  jana-conversas:
+    name: Jana · histórico de conversas (filtro real · J/K · ⌘⇧H · aria-live)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: histórico de conversas da Jana (vitest/jsdom)
+        run: npx vitest run tests/jana-chat-conversas.test.tsx

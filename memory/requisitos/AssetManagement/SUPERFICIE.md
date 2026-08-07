@@ -12,9 +12,9 @@ module: AssetManagement
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs AssetManagement --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/AssetManagement/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 64 arquivos em 13 papéis.
+**Total mapeado:** 103 arquivos em 13 papéis.
 
 ## Controllers — 7
 
@@ -89,8 +89,47 @@ module: AssetManagement
 
 - 9 arquivos em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 3
+## Demais arquivos (manifestos, docs, assets e misc) — 42
 
+- [CHANGELOG.md](../../../Modules/AssetManagement/CHANGELOG.md)
+- [.gitkeep](../../../Modules/AssetManagement/Config/.gitkeep)
+- [.gitkeep](../../../Modules/AssetManagement/Console/.gitkeep)
+- [.gitkeep](../../../Modules/AssetManagement/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/AssetManagement/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/AssetManagement/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/AssetManagement/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/AssetManagement/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/AssetManagement/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/AssetManagement/Http/Requests/.gitkeep)
 - [AssetAssignedForMaintenance.php](../../../Modules/AssetManagement/Notifications/AssetAssignedForMaintenance.php)
 - [AssetSentForMaintenance.php](../../../Modules/AssetManagement/Notifications/AssetSentForMaintenance.php)
+- [.gitkeep](../../../Modules/AssetManagement/Providers/.gitkeep)
+- [README.md](../../../Modules/AssetManagement/README.md)
+- [.gitkeep](../../../Modules/AssetManagement/Resources/assets/.gitkeep)
+- [assetmanagement.js](../../../Modules/AssetManagement/Resources/assets/js/assetmanagement.js)
+- [assetmanagement.css](../../../Modules/AssetManagement/Resources/assets/sass/assetmanagement.css)
+- [.gitkeep](../../../Modules/AssetManagement/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/ar/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/ce/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/de/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/en/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/es/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/fr/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/hi/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/id/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/lo/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/nl/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/ps/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/pt/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/ro/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/sq/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/tr/lang.php)
+- [lang.php](../../../Modules/AssetManagement/Resources/lang/vi/lang.php)
+- [.gitkeep](../../../Modules/AssetManagement/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/AssetManagement/SCOPE.md)
+- [.gitkeep](../../../Modules/AssetManagement/Tests/.gitkeep)
 - [AssetUtil.php](../../../Modules/AssetManagement/Utils/AssetUtil.php)
+- [composer.json](../../../Modules/AssetManagement/composer.json)
+- [module.json](../../../Modules/AssetManagement/module.json)
+- [package.json](../../../Modules/AssetManagement/package.json)
+- [webpack.mix.js](../../../Modules/AssetManagement/webpack.mix.js)

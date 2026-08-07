@@ -16,7 +16,7 @@ relates_to:
 
 > **SRS já saiu** (E1→E6 em 2026-07-29, [ADR 0357](../0357-deprecar-srs-sucessor-kb-jana-governance.md), [#5036](https://github.com/wagnerra23/oimpresso.com/pull/5036)). Restam **6**: Admin · ADS · TeamMcp · Brief · Auditoria · Governance.
 
-> ⚠️ **O Governance já tem plano, e ele conclui o OPOSTO.** [`requisitos/Governance/DEPRECATION-PLAN.md`](../../requisitos/Governance/DEPRECATION-PLAN.md) ([#5050](https://github.com/wagnerra23/oimpresso.com/pull/5050), sessão paralela, 29/07) fez o inventário **para viabilizar a deleção e concluiu "NÃO deprecar"** — é infraestrutura consumida por 6 módulos vivos, sem receptor para as duas peças centrais, *"caro e o ganho é negativo"*. **Esse veredito técnico não foi refutado por esta medição** — segue valendo como análise. O que mudou é que em 30/07 [W] decidiu deletar assim mesmo, e a decisão é soberana. Este doc não re-abre o mérito: ele responde *"se vai sair, em que ordem, sem quebrar os outros cinco"*.
+> ⚠️ **O Governance tinha plano, e ele concluía o OPOSTO** ([#5050](https://github.com/wagnerra23/oimpresso.com/pull/5050), sessão paralela, 29/07): o inventário foi feito **para viabilizar a deleção e concluiu "NÃO deprecar"** — infraestrutura consumida por módulos vivos, sem receptor para as duas peças centrais, *"caro e o ganho é negativo"*. Em 30/07 [W] decidiu deletar assim mesmo (decisão soberana; este doc respondia *"se vai sair, em que ordem"*, sem reabrir o mérito). **Em 31/07 [W] reverteu — o módulo FICA**, e o plano foi deletado. Ver o adendo do fim + a [lápide §5](../../proibicoes.md).
 >
 > **Este doc não substitui nenhum plano por módulo.** Os 5 novos estão em `memory/requisitos/<Mod>/DEPRECATION-PLAN.md`; o do Governance ganhou um **adendo** com a medição de produção (o limite nº 1 que ele mesmo declarava aberto), não uma reescrita.
 
@@ -194,3 +194,32 @@ Duas decisões deste conjunto **contradizem canon aceito** e por append-only nã
 - **Pest não rodado** — Tier 0 manda no CT 100. Os acopladores listados são leitura de código, não veredito de execução.
 - **Telas não inventariadas aqui**: ADS 19 `.tsx` · Governance 7 · Auditoria 2 · Admin 8. O dono desse número é `npm run screen-coverage:report`, não este doc.
 - **`Brief` não tem tabela própria** — o `mcp_briefs` é de outro dono. Quem apagar `Modules/Brief` **não** deve apagar a tabela sem checar quem mais escreve nela.
+
+## ⚠️ ADENDO 2026-07-31 — `Governance` SAI da fila, e a fila que sobrou tem **1** módulo
+
+Duas coisas mudaram, e as duas são fato medido em `origin/main`, não previsão.
+
+### 1. `Governance` fica — [W] reverteu na execução
+
+*"entendi o modulo ele não vai mais ser removido"* ([W], 2026-07-31, com a E1 já em andamento). **Nada de código foi removido**; o único PR que a tentativa produziu ([#5112](https://github.com/wagnerra23/oimpresso.com/pull/5112)) não tocou um arquivo sequer do módulo. O `DEPRECATION-PLAN.md` dele foi **deletado** — mesmo precedente do Auditoria (*"plano suspenso ainda é armadilha"*); o registro do episódio é a **lápide §5** em [`proibicoes.md`](../../proibicoes.md), não um plano com selo de "não execute".
+
+Ao contrário do Auditoria, aqui **a análise e a decisão convergiram**: o plano já concluía "não deprecar" desde 29/07. O que a tentativa deixou de valor foi um achado **independente da deprecação** — o required `ADR 0216 PR scan` era incapaz de reprovar (`--diff-only` lê `git diff --cached`, vazio em CI → `models_scanned: 0` em todo PR; e ele é o único dos 12 checkers com `enforcement=block`). A varredura Tier-0 foi reconstruída na lane que já é required. Detalhe na lápide.
+
+### 2. O destino de `Brief` e `TeamMcp` foi **absorção**, não deleção — e isso muda o placar
+
+O corpo deste doc previa DELETAR os dois. O que aconteceu em 30-31/07 foi outra coisa:
+
+| Módulo | Previsto aqui | O que de fato aconteceu |
+|---|---|---|
+| Auditoria | #1 deletar | **fica** (adendo anterior) |
+| Admin | #2 deletar | **removido** ([ADR 0360](../0360-deprecacao-admin-center-supersede-0122.md)) |
+| Brief | #3 deletar | **absorvido pelo `Modules/Forja`** ([#5098](https://github.com/wagnerra23/oimpresso.com/pull/5098) — tool, cron e serviços migraram) |
+| ADS | #4 deletar | **de pé** — único remanescente |
+| TeamMcp | #5 deletar | **desmontado pro `Modules/Forja`** em 7 etapas ([#5114](https://github.com/wagnerra23/oimpresso.com/pull/5114)…[#5122](https://github.com/wagnerra23/oimpresso.com/pull/5122)), 89 → 0 arquivos |
+| Governance | #6 deletar | **fica** (item 1 acima) |
+
+**Restou 1: `ADS`.** Dos 6 originais, 2 ficaram por decisão [W], 1 foi removido e 2 foram **absorvidos** — que não é o mesmo desfecho que este doc planejava, e vale registrar: absorção preserva a capacidade e move o dono; deleção não.
+
+Consequência direta pro que este doc chamava de risco: o **R2** (*"`brief-fetch` morre e o protocolo de sessão vai com ele"*) **não se materializou** — o `GenerateBriefCommand` vive em `Modules/Forja` e segue injetando os 8 `*BriefLineService`, que continuam no Governance. O **R1** (time perde acesso ao MCP) idem: o TeamMcp foi movido, não apagado.
+
+**Resíduo honesto:** com Governance ficando, o `MultiTenantScopeChecker` segue no `drift_checkers` **e** existe agora um teste Pest medindo o mesmo tema na lane required — dois medidores para um tema, o que este projeto proíbe por §5. Isso é decisão [W] em aberto, registrada na lápide.

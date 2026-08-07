@@ -12,9 +12,9 @@ module: Financeiro
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Financeiro --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Financeiro/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 294 arquivos em 22 papéis.
+**Total mapeado:** 335 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -274,9 +274,10 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 6
+## Casos (contrato UC) — 7
 
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Caixa/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Conciliacao/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasPagar/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasReceber/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Impostos/Index.casos.md)
@@ -287,9 +288,49 @@ module: Financeiro
 
 - 81 arquivos em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 4
+## Demais arquivos (manifestos, docs, assets e misc) — 44
 
+- [CHANGELOG.md](../../../Modules/Financeiro/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Financeiro/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Console/.gitkeep)
 - [BoletoStrategy.php](../../../Modules/Financeiro/Contracts/BoletoStrategy.php)
+- [.gitkeep](../../../Modules/Financeiro/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Entities/.gitkeep)
 - [DreExport.php](../../../Modules/Financeiro/Exports/DreExport.php)
+- [.gitkeep](../../../Modules/Financeiro/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Http/Requests/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Providers/.gitkeep)
 - [BaixaRepository.php](../../../Modules/Financeiro/Repositories/BaixaRepository.php)
 - [TituloRepository.php](../../../Modules/Financeiro/Repositories/TituloRepository.php)
+- [.gitkeep](../../../Modules/Financeiro/Resources/assets/.gitkeep)
+- [app.js](../../../Modules/Financeiro/Resources/assets/js/app.js)
+- [app.scss](../../../Modules/Financeiro/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/Financeiro/Resources/lang/.gitkeep)
+- [financeiro.php](../../../Modules/Financeiro/Resources/lang/pt/financeiro.php)
+- [topnav.php](../../../Modules/Financeiro/Resources/menus/topnav.php)
+- [.gitkeep](../../../Modules/Financeiro/Resources/views/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Routes/.gitkeep)
+- [SCOPE.md](../../../Modules/Financeiro/SCOPE.md)
+- [.gitkeep](../../../Modules/Financeiro/Tests/Feature/.gitkeep)
+- [.gitkeep](../../../Modules/Financeiro/Tests/Unit/.gitkeep)
+- [composer.json](../../../Modules/Financeiro/composer.json)
+- [module.json](../../../Modules/Financeiro/module.json)
+- [package.json](../../../Modules/Financeiro/package.json)
+- [vite.config.js](../../../Modules/Financeiro/vite.config.js)
+- [cobranca-shared.ts](../../../resources/js/Pages/Financeiro/Cobranca/_lib/cobranca-shared.ts)
+- [forma-pagamento.ts](../../../resources/js/Pages/Financeiro/Unificado/_lib/forma-pagamento.ts)
+- [README.md](../../../resources/js/Pages/Financeiro/_cowork-bundle/README.md)
+- [financeiro-ai.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-ai.jsx)
+- [financeiro-app.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-app.jsx)
+- [financeiro-curation.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-curation.jsx)
+- [financeiro-data.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-data.jsx)
+- [financeiro-icons.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-icons.jsx)
+- [financeiro-output.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-output.jsx)
+- [financeiro-telas-extras.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-telas-extras.jsx)
+- [fsm-stepper.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/fsm-stepper.jsx)
+- [shell-app.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/shell-app.jsx)
+- [shell-data.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/shell-data.jsx)
+- [financeiroMenu.ts](../../../resources/js/Pages/Financeiro/_shared/financeiroMenu.ts)

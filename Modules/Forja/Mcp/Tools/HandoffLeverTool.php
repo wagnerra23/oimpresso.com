@@ -31,7 +31,7 @@ use Throwable;
  *
  * **Fonte única (PR-7b):** a mutação vive em {@see HandoffLeverService} — MESMO
  * núcleo que o endpoint web do cockpit
- * ({@see \Modules\TeamMcp\Http\Controllers\ForjaController::handoffLever}) chama
+ * ({@see \Modules\Forja\Http\Controllers\ForjaController::handoffLever}) chama
  * pros botões do front. Nada de duplicar a regra (espelha o par
  * `handoff:ingest`/`handoff-submit` sobre {@see \Modules\Forja\Services\HandoffIngestService}).
  *

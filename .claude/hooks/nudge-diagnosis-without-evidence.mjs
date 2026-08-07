@@ -18,7 +18,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readFileSync, existsSync } from 'node:fs';
 
-export const NUDGE = "[R1+ / ADR 0233] Voce AFIRMOU uma causa/diagnostico. Mostre a EVIDENCIA (grep/log/SQL/trace/Read) que prova, antes de cravar. Nao chute (sessao 2026-05-29 chutou causa do 500 2x). Se ainda nao tem evidencia, diga 'hipotese a confirmar'.";
+export const NUDGE = "[nudge-diagnosis-without-evidence] [R1+ / ADR 0233] Voce AFIRMOU uma causa/diagnostico. Mostre a EVIDENCIA (grep/log/SQL/trace/Read) que prova, antes de cravar. Nao chute (sessao 2026-05-29 chutou causa do 500 2x). Se ainda nao tem evidencia, diga 'hipotese a confirmar'.";
 
 /** classificador PURO: afirmou causa/diagnóstico com certeza E sem marcador de evidência? */
 export function shouldNudge(text) {

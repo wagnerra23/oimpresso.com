@@ -58,6 +58,6 @@ Se Claude está editando `Pages/<Mod>/<Tela>.tsx` e percebe que está PULANDO el
 
 - [ADR 0114](../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — Cowork loop formaliza F1.5 critique + F2 screenshot approval
 - [ADR 0107](../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — visual-comparison.md como gate
-- [ADR 0141](../decisions/0141-migracao-blade-react-skill.md) — migração massiva Blade→React
+- [ADR 0141](../decisions/0141-skill-migracao-blade-react.md) — migração massiva Blade→React
 - [`prototipo-ui/PROTOCOL.md`](../../prototipo-ui/PROTOCOL.md) — 6 papéis + 7 fases
 - [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — anti-padrões da era pré-cópia-integral

@@ -1,0 +1,65 @@
+name: Forja Shortcuts Gate — atalhos do Board (overlay `?` + J/K/E/A que o charter fixa)
+
+# PMG-008. O Board da Forja é operado por teclado pelo time interno; a lógica vive
+# em resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts (extraída do
+# Index.tsx justamente pra ser montável em jsdom sem AppShellV2/Inertia).
+#
+# POR QUE ESTA LANE EXISTE: medido em 2026-08-03 — NENHUMA lane roda `vitest run`
+# sem argumento; cada spec que morde tem workflow próprio apontando pro arquivo.
+# Sem esta lane, tests/forjaBoardShortcuts.spec.tsx nunca executaria em CI e seria
+# verde-por-não-execução (LC-13), que é pior que teste ausente porque parece
+# cobertura. O Pest do módulo (BoardControllerTest) não alcança tecla nenhuma.
+#
+# O que ele trava, além do que a PMG-008 adicionou (`?` overlay · Esc · Enter):
+#   - E = avançar status / A = voltar. A US pedia `e` = "editar"; Board/Index.charter.md
+#     (lei) fixa E = avançar, e a precedência de memory/proibicoes.md é charter > SPEC.
+#     Reatribuir fica vermelho aqui.
+#   - o guard de digitação (digitar "java" na busca não pode mover card nem mudar status).
+#
+# Mordida provada antes do merge (2 mutações no hook, restore = 9/9 verde):
+#   remover o guard `!typing` do `?`     → 1 failed (guard de digitação)
+#   trocar onAdvance por onOpenDetail    → 1 failed (anti-regressão do charter)
+#
+# Path-scoped (faz npm ci): roda só quando o hook, o overlay, a Page, o spec ou
+# este workflow mudam. Comando local: npx vitest run tests/forjaBoardShortcuts.spec.tsx
+#
+# Advisory (ADR 0271/0314 — atalho de tela é qualidade/higiene, não Tier-0).
+# Promoção a required, se um dia fizer sentido, é flip [W] com mordida real
+# coletada (ADR 0336 DR-2) — não se auto-promove.
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts'
+      - 'resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx'
+      - 'resources/js/Pages/Forja/Board/Index.tsx'
+      - 'tests/forjaBoardShortcuts.spec.tsx'
+      - '.github/workflows/forja-shortcuts-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts'
+      - 'resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx'
+      - 'resources/js/Pages/Forja/Board/Index.tsx'
+      - 'tests/forjaBoardShortcuts.spec.tsx'
+
+concurrency:
+  group: forja-shortcuts-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  forja-shortcuts:
+    name: Forja · atalhos do Board (overlay `?` · Enter · J/K/E/A anti-regressão)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: atalhos do Board (vitest/jsdom)
+        run: npx vitest run tests/forjaBoardShortcuts.spec.tsx

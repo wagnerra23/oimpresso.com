@@ -68,7 +68,7 @@ class TransactionPaymentController extends Controller
 
             $transaction_before = $transaction->replicate();
 
-            if (! (auth()->user()->can('purchase.payments') || auth()->user()->can('hms.add_booking_payment') || auth()->user()->can('sell.payments') || auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense'))) {
+            if (! (auth()->user()->can('purchase.payments') || auth()->user()->can('sell.payments') || auth()->user()->can('all_expense.access') || auth()->user()->can('view_own_expense'))) {
                 abort(403, 'Unauthorized action.');
             }
 
@@ -166,7 +166,7 @@ class TransactionPaymentController extends Controller
      */
     public function show($id)
     {
-        if (! (auth()->user()->can('sell.payments') || auth()->user()->can('purchase.payments') || auth()->user()->can('hms.add_booking_payment'))) {
+        if (! (auth()->user()->can('sell.payments') || auth()->user()->can('purchase.payments'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -199,7 +199,7 @@ class TransactionPaymentController extends Controller
      */
     public function edit($id)
     {
-        if (! auth()->user()->can('edit_purchase_payment') && ! auth()->user()->can('edit_sell_payment') && !auth()->user()->can('hms.edit_booking_payment')) {
+        if (! auth()->user()->can('edit_purchase_payment') && ! auth()->user()->can('edit_sell_payment')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -232,7 +232,7 @@ class TransactionPaymentController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (! auth()->user()->can('edit_purchase_payment') && ! auth()->user()->can('edit_sell_payment') && ! auth()->user()->can('all_expense.access') && ! auth()->user()->can('view_own_expense') && !auth()->user()->can('hms.edit_booking_payment')) {
+        if (! auth()->user()->can('edit_purchase_payment') && ! auth()->user()->can('edit_sell_payment') && ! auth()->user()->can('all_expense.access') && ! auth()->user()->can('view_own_expense')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -320,7 +320,7 @@ class TransactionPaymentController extends Controller
      */
     public function destroy($id)
     {
-        if (! auth()->user()->can('delete_purchase_payment') && ! auth()->user()->can('delete_sell_payment') && ! auth()->user()->can('all_expense.access') && ! auth()->user()->can('view_own_expense') && !auth()->user()->can('hms.delete_booking_payment')) {
+        if (! auth()->user()->can('delete_purchase_payment') && ! auth()->user()->can('delete_sell_payment') && ! auth()->user()->can('all_expense.access') && ! auth()->user()->can('view_own_expense')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -383,7 +383,7 @@ class TransactionPaymentController extends Controller
      */
     public function addPayment($transaction_id)
     {
-        if (! auth()->user()->can('purchase.payments') && ! auth()->user()->can('sell.payments') && ! auth()->user()->can('all_expense.access') && ! auth()->user()->can('view_own_expense') && !auth()->user()->can('hms.add_booking_payment')) {
+        if (! auth()->user()->can('purchase.payments') && ! auth()->user()->can('sell.payments') && ! auth()->user()->can('all_expense.access') && ! auth()->user()->can('view_own_expense')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -599,8 +599,7 @@ class TransactionPaymentController extends Controller
                 auth()->user()->can('edit_sell_payment') ||
                 auth()->user()->can('delete_sell_payment') ||
                 auth()->user()->can('edit_purchase_payment') ||
-                auth()->user()->can('delete_purchase_payment') ||
-                auth()->user()->can('hms.add_booking_payment')
+                auth()->user()->can('delete_purchase_payment')
             )) {
             abort(403, 'Unauthorized action.');
         }
@@ -850,7 +849,7 @@ class TransactionPaymentController extends Controller
      */
     public function editInertia($id)
     {
-        if (! auth()->user()->can('edit_purchase_payment') && ! auth()->user()->can('edit_sell_payment') && ! auth()->user()->can('hms.edit_booking_payment')) {
+        if (! auth()->user()->can('edit_purchase_payment') && ! auth()->user()->can('edit_sell_payment')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -891,8 +890,7 @@ class TransactionPaymentController extends Controller
                 auth()->user()->can('edit_sell_payment') ||
                 auth()->user()->can('delete_sell_payment') ||
                 auth()->user()->can('edit_purchase_payment') ||
-                auth()->user()->can('delete_purchase_payment') ||
-                auth()->user()->can('hms.add_booking_payment')
+                auth()->user()->can('delete_purchase_payment')
             )) {
             abort(403, 'Unauthorized action.');
         }

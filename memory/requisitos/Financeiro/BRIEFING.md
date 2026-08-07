@@ -2,9 +2,9 @@
 id: requisitos-financeiro-briefing
 module: Financeiro
 status: producao
-updated_at: "2026-07-23"
-distilled_at: "2026-07-27"
-distilled_by: "manual [C] — redestilação PARCIAL: o módulo ganhou SDD + contratos de tela no chip do passo 5 (PR #4867). O resto do corpo NÃO foi re-lido; só a seção Contrato de tela é nova."
+updated_at: "2026-08-05"
+distilled_at: "2026-08-05"
+distilled_by: "manual [C] — redestilação PARCIAL: seções Gaps + Última mudança atualizadas pela triagem da quarentena da lane (US-FIN-068). O resto do corpo NÃO foi re-lido; a seção Contrato de tela permanece do PR #4867."
 ---
 
 # BRIEFING — Financeiro (verdade destilada)
@@ -22,9 +22,12 @@ O módulo "Financeiro" fornece uma visão unificada de Contas a Receber (AR), Co
 - Sicoob aguarda credenciais sandbox do cliente (Inter/C6/Asaas/BcbPix já ativos; flags OFF em prod — ADR 0170).
 - Mobile/PWA e notificações de vencimento (bucket ❌ do inventário).
 - Import CSV (bucket ❌ do inventário); parser de retorno CNAB pendente (🟡 P6 — sem parser em `Services/`).
+- **Testes do módulo em quarentena na lane** — parte da suíte não roda no CI e portanto não produz veredito. A lista viva (com o motivo de cada arquivo) é o dono do número: [`.github/financeiro-pest-quarantine.list`](../../../.github/financeiro-pest-quarantine.list); a lane que a consome é `.github/workflows/financeiro-pest.yml`. _Recibo: em 2026-08-05 a triagem dos 13 do grupo C ("defeito real") apontou 2 bugs de produto — US-FIN-068 (fechada) e US-FIN-055 (`total_remaining_amount`, aberta) —, 1 suspeita não fechada em `aprovacao_status` (toca US-FIN-027/028) e 5 testes desatualizados. Re-rode a lista, não edite este parágrafo._
 
 ## Última mudança
-As ações em lote na Visão Unificada (`POST /unificado/bulk`, ≤500 títulos por chamada, com audit trail) foram entregues pela US-FIN-031 (PR #3905, 2026-07-06). A cobertura de 87% já havia sido atingida antes, nas Ondas 12-21 (2026-05-19) — sem relação causal com a emissão de boleto.
+O comando `financeiro:bridge-expense-to-titulos` (bridge despesa do core → título AP) estava **quebrado em produção** e voltou a funcionar (US-FIN-068). Ele filtrava por `transactions.deleted_at`, coluna que não existe — medido em 3 fontes, incluindo produção — e falhava com `SQLSTATE[42S22]` em toda execução. O comando **não é agendado**, então a falha era silenciosa: só aparecia para quem o rodasse à mão. Corrigido removendo o filtro; o teste saiu de `6 failed / 2 assertions` para `8 passed / 26 assertions` e deixou a quarentena da lane (25 → 24).
+
+Antes disso: ações em lote na Visão Unificada (`POST /unificado/bulk`, ≤500 títulos por chamada, com audit trail) entregues pela US-FIN-031 (PR #3905, 2026-07-06). A cobertura de 87% já havia sido atingida antes, nas Ondas 12-21 (2026-05-19) — sem relação causal com a emissão de boleto.
 
 ## Proveniência (destilado de)
 

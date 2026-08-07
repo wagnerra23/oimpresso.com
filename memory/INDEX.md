@@ -6,6 +6,8 @@
 
 > ℹ️ Contagens aqui são aproximadas (navegação). A lista canônica de ADRs é **GERADA**: [`decisions/_INDEX-GENERATED.md`](decisions/_INDEX-GENERATED.md) (ADR 0258).
 
+> 🧭 Este é o **catálogo de arquivos** de `memory/`. O **retrato gerado do sistema** (módulos, gates required, workflows, ADRs) fica em [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
+
 > Mapa pra navegar `memory/`. Para **estado VIVO** (cycle ativo, tasks, brief), use tools MCP: `brief-fetch`, `my-work`, `cycles-active`, `decisions-search`.
 > Documento canônico — atualizar quando criar nova categoria. Reorg: ver [AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13](requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) §5 (G2).
 
@@ -98,7 +100,7 @@
 - [Jana/](requisitos/Jana/) — IA + memória (`ARCHITECTURE.md`, `RUNBOOK-*.md`, auditorias 2026-05-13) — ex-`Copiloto/` (rename ADR 0088; ghost-dir migrado 2026-07-01)
 - [Financeiro/](requisitos/Financeiro/) · [FinanceiroAvancado/](requisitos/FinanceiroAvancado/) ⚰️→Financeiro · [NfeBrasil/](requisitos/NfeBrasil/) · [NFSe/](requisitos/NFSe/)
 - [Repair/](requisitos/Repair/) (Kanban OS shared) · [Sells/](requisitos/Sells/) · [Purchase/](requisitos/Purchase/) · [Inventory/](requisitos/Inventory/) · [Produto/](requisitos/Produto/)
-- [RecurringBilling/](requisitos/RecurringBilling/) · [MemCofre/](requisitos/MemCofre/) ⚰️→SRS · [Crm/](requisitos/Crm/) · [Chat/](requisitos/Chat/) ⚰️→Jana · [Whatsapp/](requisitos/Whatsapp/) · [EvolutionAgent/](requisitos/EvolutionAgent/) ⚰️MATAR
+- [RecurringBilling/](requisitos/RecurringBilling/) · [Crm/](requisitos/Crm/) · [Chat/](requisitos/Chat/) ⚰️→Jana · [Whatsapp/](requisitos/Whatsapp/) · [EvolutionAgent/](requisitos/EvolutionAgent/) ⚰️MATAR
 
 **Plataforma/auxiliares:**
 - [ADS/](requisitos/ADS/) (decisão automatizada) · [Admin/](requisitos/Admin/) · [Auditoria/](requisitos/Auditoria/) · [BI/](requisitos/BI/) ⚰️MATAR · [Cms/](requisitos/Cms/) · [Comissao/](requisitos/Comissao/) · [Essentials/](requisitos/Essentials/) · [Garantia/](requisitos/Garantia/) · [Grow/](requisitos/Grow/) ⚰️MATAR · [Manufacturing/](requisitos/Manufacturing/) · [Marketplaces/](requisitos/Marketplaces/) · [Pcp/](requisitos/Pcp/) · [PontoWr2/](requisitos/PontoWr2/) ⚰️→Ponto · [Forja/](requisitos/Forja/) (ex-ProjectMgmt) · [TaskRegistry/](requisitos/TaskRegistry/) ⚰️→TeamMcp · [Officeimpresso/](requisitos/Officeimpresso/) · [Accounting/](requisitos/Accounting/) · [Arquivos/](requisitos/Arquivos/) · [LaravelAI/](requisitos/LaravelAI/) ⚰️→Jana · [MemoriaAutonoma/](requisitos/MemoriaAutonoma/) ⚰️→Jana · [Mwart/](requisitos/Mwart/) · [SRS/](requisitos/SRS/)

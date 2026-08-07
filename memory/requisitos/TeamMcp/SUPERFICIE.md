@@ -1,100 +1,37 @@
 ---
-name: "SUPERFÍCIE — TeamMcp"
-description: "Índice GERADO dos artefatos do módulo TeamMcp reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
-type: reference
-authority: generated
-lifecycle: ativo
-module: TeamMcp
+id: requisitos-teammcp-superficie
 ---
 
-# 🗺️ Superfície de código — TeamMcp
+# SUPERFÍCIE — Modules/TeamMcp ⚰️ REMOVIDO
 
-> ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
-> Regenerar: `node scripts/governance/module-surface.mjs TeamMcp --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
+> ⚠️ **Este documento é uma lápide.** O `Modules/TeamMcp` foi **apagado em 2026-07-31**
+> (decisão [W]: *"MCP vai para forja"* + *"pode apagar"*). Não há mais superfície a derivar —
+> o gerador `module-surface.mjs` não produz este arquivo, porque o módulo não existe.
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/TeamMcp/**` + `resources/js/Pages/team-mcp/**` (namespace Inertia `team-mcp`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `TeamMcp`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> Mantido no lugar **de propósito**: 3 docs vivos linkam pra cá, e apagar criaria link morto
+> em vez de registro. Quem chegou aqui procurando a superfície, ela está em
+> [`memory/requisitos/Forja/SUPERFICIE.md`](../Forja/SUPERFICIE.md).
 
-**Total mapeado:** 61 arquivos em 12 papéis.
+## Para onde foi cada coisa
 
-## Controllers — 7
+O módulo saiu em **7 etapas**, todas com PR e CI verde. Nada foi perdido — a regra do [W] era
+*"nada pode ser perdido"*, e o destino de cada peça está no
+[DEPRECATION-PLAN](DEPRECATION-PLAN.md).
 
-- [CcSessionsController.php](../../../Modules/TeamMcp/Http/Controllers/CcSessionsController.php)
-- [DataController.php](../../../Modules/TeamMcp/Http/Controllers/DataController.php)
-- [ForjaController.php](../../../Modules/TeamMcp/Http/Controllers/ForjaController.php)
-- [InstallController.php](../../../Modules/TeamMcp/Http/Controllers/InstallController.php)
-- [ScorecardController.php](../../../Modules/TeamMcp/Http/Controllers/ScorecardController.php)
-- [TasksAdminController.php](../../../Modules/TeamMcp/Http/Controllers/TasksAdminController.php)
-- [TeamController.php](../../../Modules/TeamMcp/Http/Controllers/TeamController.php)
+| Cluster | Foi para |
+|---|---|
+| `/api/mcp` (SyncMemoryWebhook · Health) | `Modules/Forja/Http/Controllers/Mcp/` |
+| Identidade (McpActor · ActorResolver · McpActorRepository · McpTokenIssuer) | `Modules/Forja/{Entities,Services}/` |
+| Loop de handoff (4 tools MCP · CoworkHandoff · Ingest/LeverService) | `Modules/Forja/{Mcp/Tools,Entities,Services}/` |
+| Ingest CC (CcIngest* · McpIngestHeartbeat · IngestLivenessService) | `Modules/Forja/` |
+| Admin do MCP (ToolsController · TeamScopesController) | `Modules/Forja/Http/Controllers/Admin/` |
+| Hub Equipe (Team · TasksAdmin · CcSessions · Scorecard) | `Modules/Forja/Http/Controllers/` |
+| Cockpit `/forja` (ForjaController · 4 services · PrChecksResolver) | `Modules/Forja/` |
 
-## Requests (validação) — 3
+**URLs preservadas:** `/api/mcp/*` · `/api/cc/ingest` · `/team-mcp/*` · `/forja/*` · `/ads/admin/*`
+seguem idênticas — nenhum watcher, bookmark ou webhook precisou ser reconfigurado
+([ADR 0087](../../decisions/0087-drift-resolution-sem-mover-url.md), *drift resolution sem mover URL*).
 
-- [ExportUsageCsvRequest.php](../../../Modules/TeamMcp/Http/Requests/ExportUsageCsvRequest.php)
-- [IssueActorTokenRequest.php](../../../Modules/TeamMcp/Http/Requests/IssueActorTokenRequest.php)
-- [UpdateQuotaRequest.php](../../../Modules/TeamMcp/Http/Requests/UpdateQuotaRequest.php)
-
-## Services — 8
-
-- [ForjaBacklogService.php](../../../Modules/TeamMcp/Services/Forja/ForjaBacklogService.php)
-- [ForjaChangelogService.php](../../../Modules/TeamMcp/Services/Forja/ForjaChangelogService.php)
-- [ForjaMcpService.php](../../../Modules/TeamMcp/Services/Forja/ForjaMcpService.php)
-- [ForjaQuadroService.php](../../../Modules/TeamMcp/Services/Forja/ForjaQuadroService.php)
-- [PrChecksResolver.php](../../../Modules/TeamMcp/Services/PrChecksResolver.php)
-- [ScorecardBuilderService.php](../../../Modules/TeamMcp/Services/ScorecardBuilderService.php)
-- [TeamUsageAggregator.php](../../../Modules/TeamMcp/Services/TeamUsageAggregator.php)
-- [UsageCsvExporter.php](../../../Modules/TeamMcp/Services/UsageCsvExporter.php)
-
-## Providers — 1
-
-- [TeamMcpServiceProvider.php](../../../Modules/TeamMcp/Providers/TeamMcpServiceProvider.php)
-
-## Seeders — 1
-
-- [ForjaDemoTicketsSeeder.php](../../../Modules/TeamMcp/Database/Seeders/ForjaDemoTicketsSeeder.php)
-
-## Config — 2
-
-- [config.php](../../../Modules/TeamMcp/Config/config.php)
-- [retention.php](../../../Modules/TeamMcp/Config/retention.php)
-
-## Telas (Inertia/React) — 5
-
-- [Index.tsx](../../../resources/js/Pages/team-mcp/CcSessions/Index.tsx)
-- [Cockpit.tsx](../../../resources/js/Pages/team-mcp/Forja/Cockpit.tsx)
-- [Index.tsx](../../../resources/js/Pages/team-mcp/Scorecard/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/team-mcp/Tasks/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/team-mcp/Team/Index.tsx)
-
-## Componentes / apoio de tela — 10
-
-- [SessionDrawer.tsx](../../../resources/js/Pages/team-mcp/CcSessions/_components/SessionDrawer.tsx)
-- [ForjaBacklog.tsx](../../../resources/js/Pages/team-mcp/Forja/_components/ForjaBacklog.tsx)
-- [ForjaChangelog.tsx](../../../resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx)
-- [ForjaDossier.tsx](../../../resources/js/Pages/team-mcp/Forja/_components/ForjaDossier.tsx)
-- [ForjaHub.tsx](../../../resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx)
-- [ForjaMcp.tsx](../../../resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx)
-- [ForjaQuadro.tsx](../../../resources/js/Pages/team-mcp/Forja/_components/ForjaQuadro.tsx)
-- [ForjaTriage.tsx](../../../resources/js/Pages/team-mcp/Forja/_components/ForjaTriage.tsx)
-- [TaskDrawer.tsx](../../../resources/js/Pages/team-mcp/Tasks/_components/TaskDrawer.tsx)
-- [taskBadges.tsx](../../../resources/js/Pages/team-mcp/Tasks/_components/taskBadges.tsx)
-
-## Charters (lei da tela) — 5
-
-- [Index.charter.md](../../../resources/js/Pages/team-mcp/CcSessions/Index.charter.md)
-- [Cockpit.charter.md](../../../resources/js/Pages/team-mcp/Forja/Cockpit.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/team-mcp/Scorecard/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/team-mcp/Tasks/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/team-mcp/Team/Index.charter.md)
-
-## Casos (contrato UC) — 2
-
-- [Cockpit.casos.md](../../../resources/js/Pages/team-mcp/Forja/Cockpit.casos.md)
-- [Index.casos.md](../../../resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
-
-## Testes (Pest) — 15
-
-- 15 arquivos em [Modules/TeamMcp/Tests/Feature/](../../../Modules/TeamMcp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
-
-## Outros (raiz/misc) — 2
-
-- [routes.php](../../../Modules/TeamMcp/Http/routes.php)
-- [start.php](../../../Modules/TeamMcp/start.php)
+**Tabelas:** `mcp_tokens` · `mcp_actors` · `mcp_ingest_heartbeat` · `cowork_handoffs` **não foram
+tocadas** — o CT 100 e o Hostinger leem o mesmo banco, então a migração foi troca de dono **no
+código**, nunca DDL.

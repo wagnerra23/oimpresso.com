@@ -10,10 +10,10 @@
  * co-locado (`memory/requisitos/<Mod>/SUPERFICIE.md`) que a próxima geração recalcula.
  * "Derivado sobrevive; escrito+lembrado apodrece" (ADR 0256).
  *
- * ONDE ele mede: artefatos reconhecidos por papel em `Modules/<Mod>/**` +
- * `resources/js/Pages/<Mod>/**` (telas, componentes, charters e casos). NÃO é um manifesto
- * byte-a-byte da pasta. Âncoras cross-cutting (bridge em app/, FSM) NÃO são deriváveis por
- * path — ficam narradas no BRIEFING (curado/destilado), não aqui. Honesto por construção.
+ * ONDE ele mede: TODO arquivo em `Modules/<Mod>/**` + `resources/js/Pages/<Mod>/**`,
+ * agrupado por papel quando reconhecido e preservado em "Demais arquivos" quando não.
+ * Assim o inventário do contexto é completo sem fingir que âncoras cross-cutting fora
+ * dessas raízes pertencem ao módulo; bridges em app/ e FSM seguem declaradas no SCOPE/BRIEFING.
  *
  * O que ele NÃO faz (delega): contagem de cobertura, nota, status por tela — donos são
  * `screen-coverage-map.mjs` + `casos-gate`. Aqui é só ONDE o código mora (ponteiro, não cópia).
@@ -30,8 +30,9 @@
  * Refs: ADR 0256 (survival, fonte única gerada) · dor estado-da-arte 2026-07-21
  *       (memory/sessions/2026-07-21-arte-contexto-vivo-descoberta.md, Gap 2).
  */
-import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { isPageScreenPath } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
@@ -47,6 +48,59 @@ const RAIZES_GERAIS = [
   'resources/views/layouts',
   'memory/requisitos/_DesignSystem/templates',
 ];
+
+/** @type {string[] | null} */
+let INVENTARIO_REPO = null;
+
+/** Retorna grupos de paths que só diferem por casing — inválidos num checkout cross-platform. */
+function colisoesDeCasing(paths) {
+  const porFold = new Map();
+  for (const path of paths) {
+    const key = path.toLowerCase();
+    const grupo = porFold.get(key) || [];
+    grupo.push(path);
+    porFold.set(key, grupo);
+  }
+  return [...porFold.values()].filter((grupo) => grupo.length > 1);
+}
+
+/**
+ * Universo exato do checkout: índice Git + arquivos novos não ignorados, menos paths deletados.
+ * O Git é a autoridade para casing; percorrer o filesystem fazia Windows colapsar `pt-BR`/`pt-br`
+ * enquanto Linux via ambos, gerando um verde local falso.
+ */
+function inventarioRepo() {
+  if (INVENTARIO_REPO) return INVENTARIO_REPO;
+  const safeRoot = ROOT.replaceAll('\\', '/');
+  let raw;
+  try {
+    raw = execFileSync(
+      'git',
+      ['-c', `safe.directory=${safeRoot}`, 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+  } catch (error) {
+    const detalhe = error instanceof Error ? error.message : String(error);
+    throw new Error(`[module-surface] não foi possível obter o inventário Git: ${detalhe}`);
+  }
+  const paths = [...new Set(raw.split('\0').filter(Boolean))]
+    .filter((path) => existsSync(join(ROOT, path)))
+    .sort();
+  const colisoes = colisoesDeCasing(paths);
+  if (colisoes.length) {
+    const detalhe = colisoes.map((grupo) => grupo.join(' ⇄ ')).join('; ');
+    throw new Error(`[module-surface] colisão de casing no índice Git: ${detalhe}`);
+  }
+  INVENTARIO_REPO = paths;
+  return INVENTARIO_REPO;
+}
+
+/** Seleciona arquivos sob uma raiz sem depender da semântica de casing do sistema operacional. */
+function pathsSobRaiz(paths, rel) {
+  const raiz = rel.replaceAll('\\', '/').replace(/\/+$/, '');
+  const prefixo = `${raiz}/`;
+  return paths.filter((path) => path === raiz || path.startsWith(prefixo)).sort();
+}
 
 /**
  * Módulos CLASSE B — o código NÃO mora em `Modules/<Mod>/`, mora no núcleo UltimatePOS (`app/`).
@@ -192,18 +246,9 @@ const PAPEIS = [
   { rot: 'Testes (Pest)', re: /^Modules\/[^/]+\/Tests\/.*\.php$/, listar: false },
 ];
 
-/** Walk recursivo determinístico (sort). Retorna paths relativos à raiz, com forward-slash. */
+/** Walk determinístico sobre o inventário Git. Retorna paths relativos à raiz. */
 function walk(rel) {
-  const abs = join(ROOT, rel);
-  if (!existsSync(abs)) return [];
-  const out = [];
-  for (const name of readdirSync(abs).sort()) {
-    const childRel = `${rel}/${name}`;
-    const st = statSync(join(ROOT, childRel));
-    if (st.isDirectory()) out.push(...walk(childRel));
-    else out.push(childRel);
-  }
-  return out;
+  return pathsSobRaiz(inventarioRepo(), rel);
 }
 
 /** Expande a semente CLASSE B: cada prefixo é arquivo exato OU dir (walk). Ignora inexistente. */
@@ -222,8 +267,9 @@ function expandirPrefixos(prefixos) {
  * CORE_APP_MODULES (CLASSE B, ex. Sells — não tem diretório modular homônimo, mas tem semente no core).
  */
 function listarModulos() {
-  const dir = join(ROOT, 'Modules');
-  const classeA = existsSync(dir) ? readdirSync(dir).sort().filter((m) => existsSync(join(dir, m, 'module.json'))) : [];
+  const classeA = inventarioRepo()
+    .map((path) => path.match(/^Modules\/([^/]+)\/module\.json$/)?.[1])
+    .filter(Boolean);
   return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES), CONTEXTO_GERAL])].sort();
 }
 
@@ -270,9 +316,9 @@ function coletar(mod) {
   for (const f of files) {
     const g = grupos.find((p) => p.re.test(f) && (!p.aceita || p.aceita(f)));
     if (g) g.files.push(f);
-    // "Outros" = código .php membro de dir não-reconhecido (drop lang/menus/assets/views —
-    // `/Resources/` cobre Modules, `/resources/` cobre o core CLASSE B).
-    else if (f.endsWith('.php') && !f.includes('/Resources/') && !f.includes('/resources/')) outros.push(f);
+    // Nenhum arquivo some: manifesto, documentação local, assets, lang, .gitkeep e
+    // extensões futuras ficam em "Demais arquivos" até ganhar papel próprio.
+    else outros.push(f);
   }
   return { grupos, outros };
 }
@@ -309,7 +355,7 @@ function montar(mod, grupos, outros) {
   } else if (core) {
     L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
-    L.push('> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
+    L.push('> **O que isto é:** o inventário completo das raízes `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/' + mod + '/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).');
   }
   L.push('');
   L.push(`**Total mapeado:** ${total} arquivos em ${totalPapeis} papéis.`);
@@ -331,7 +377,7 @@ function montar(mod, grupos, outros) {
     L.push('');
   }
   if (outros.length) {
-    L.push(`## Outros (raiz/misc) — ${outros.length}`);
+    L.push(`## Demais arquivos (manifestos, docs, assets e misc) — ${outros.length}`);
     L.push('');
     for (const f of outros) L.push(`- [${f.split('/').pop()}](${linkDe(f)})`);
     L.push('');
@@ -401,4 +447,16 @@ function main() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
 
-export { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, CONTEXTO_GERAL, isSurfaceRequired, manifestExigeSuperficie };
+export {
+  PAPEIS,
+  coletar,
+  montar,
+  CORE_APP_MODULES,
+  PAGES_NS,
+  RAIZES_GERAIS,
+  CONTEXTO_GERAL,
+  isSurfaceRequired,
+  manifestExigeSuperficie,
+  colisoesDeCasing,
+  pathsSobRaiz,
+};

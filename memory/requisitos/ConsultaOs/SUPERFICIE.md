@@ -12,9 +12,9 @@ module: ConsultaOs
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs ConsultaOs --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/ConsultaOs/**` + `resources/js/Pages/ConsultaOs/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/ConsultaOs/**` + `resources/js/Pages/ConsultaOs/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ConsultaOs/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 32 arquivos em 12 papéis.
+**Total mapeado:** 37 arquivos em 12 papéis.
 
 ## Controllers — 3
 
@@ -69,7 +69,12 @@ module: ConsultaOs
 
 - 11 arquivos em [Modules/ConsultaOs/Tests/Feature/](../../../Modules/ConsultaOs/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 2
+## Demais arquivos (manifestos, docs, assets e misc) — 7
 
+- [CHANGELOG.md](../../../Modules/ConsultaOs/CHANGELOG.md)
 - [ConsultaOsRepositoryInterface.php](../../../Modules/ConsultaOs/Contracts/ConsultaOsRepositoryInterface.php)
+- [README.md](../../../Modules/ConsultaOs/README.md)
 - [MockConsultaOsRepository.php](../../../Modules/ConsultaOs/Repositories/MockConsultaOsRepository.php)
+- [SCOPE.md](../../../Modules/ConsultaOs/SCOPE.md)
+- [composer.json](../../../Modules/ConsultaOs/composer.json)
+- [module.json](../../../Modules/ConsultaOs/module.json)

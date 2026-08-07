@@ -1,6 +1,9 @@
 ---
 id: reference-feedback-cron-slot-06h15-brt-disputado
+name: feedback-cron-slot-06h15-brt-disputado
+description: "Slot 06:15 BRT tem 4 schedules disputando — inventário 06:00-08:00 e receita pra escolher slot alternativo em app/Console/Kernel.php."
 type: feedback
+authority: canonical
 domain: scheduling
 date: 2026-05-28
 discovered_in: ADR 0216 Drift Framework wire-up (PR #1874)
@@ -33,8 +36,21 @@ Risco real: 4 commands rodando concurrentemente em CT 100 → DB connection pool
 Ao adicionar `$schedule->command('...')->dailyAt('HH:MM')` em `app/Console/Kernel.php`:
 
 1. **Default novo schedule diário pós-brief:** `06:35` ou `06:45`
-2. **Sempre** acompanhar com `->onOneServer()->withoutOverlapping(60)->environments(['live'])`
-3. **Sempre** adicionar `->onFailure(fn() => Log::channel('single')->error(...))`
+2. **Sempre** acompanhar com `->withoutOverlapping(60)->environments(['live'])`
+   ⚠️ **`->onOneServer()` saiu do "sempre" em 2026-08-04** — desvio declarado, não esquecimento.
+   Ele dedupa entre HOSTS, e só um host roda `schedule:run` com `APP_ENV=live` (o cron do hPanel —
+   `memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md`; no CT 100 o `schedule:run` é 0, medido
+   2026-07-17 em `memory/requisitos/Jana/SPEC.md`). Num host único ele não dedupa nada e **adiciona
+   uma via de skip silencioso** dependente de cache (`CACHE_DRIVER=file`): quando o `add()` do
+   `CacheSchedulingMutex` devolve false, o evento é pulado sem `onFailure` e sem log.
+   Caso que motivou: `mcp:tasks:unassigned` (06:45, **com** `onOneServer`) fez 6/8 dias em
+   07-28..08-04, enquanto `mcp:tasks:health-check` (06:20, **sem**) fez 12/12 — era a única
+   diferença estrutural entre os dois. **NÃO é prova** (Fisher 1-cauda = 0,1474, n=8); a remoção é
+   mitigação que discrimina. Use `onOneServer()` só quando houver de fato >1 host, e prefira-o
+   quando o comando ESCREVE (aqui é um SELECT + log: rodar 2× é inócuo).
+3. **Sempre** adicionar `->onFailure(fn() => Log::channel('single')->error(...))` — ciente de que
+   ele cobre **exit != 0** e é cego a "nunca começou" (evento pulado por filtro, ou `schedule:run`
+   que morre antes; comandos rodam in-process, sem `runInBackground`).
 4. **Nunca** adicionar mais ao 06:15 sem decisão arquitetural explícita
 
 ## Validado

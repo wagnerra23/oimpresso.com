@@ -105,7 +105,7 @@ function paymentReceivedPayload(string $eventId = 'evt_sec', float $value = 9999
     ];
 }
 
-it('rejeita 404 quando business não tem credencial Asaas ativa', function () {
+it('UC-RBCFG-06 · rejeita 404 quando business não tem credencial Asaas ativa', function () {
     Queue::fake();
 
     $response = $this->postJson('/api/webhooks/asaas/1', paymentReceivedPayload());
@@ -115,7 +115,7 @@ it('rejeita 404 quando business não tem credencial Asaas ativa', function () {
     expect(DB::table('pg_webhook_events')->count())->toBe(0);
 });
 
-it('EXPLOIT: webhook sem header asaas-access-token NÃO credita (401)', function () {
+it('UC-RBCFG-05 · EXPLOIT: webhook sem header asaas-access-token NÃO credita (401)', function () {
     Queue::fake();
     seedAsaasCred(businessId: 1);
 
@@ -127,7 +127,7 @@ it('EXPLOIT: webhook sem header asaas-access-token NÃO credita (401)', function
     expect(DB::table('pg_webhook_events')->count())->toBe(0);
 });
 
-it('EXPLOIT: webhook com token errado (atacante) NÃO credita (401)', function () {
+it('UC-RBCFG-05 · EXPLOIT: webhook com token errado (atacante) NÃO credita (401)', function () {
     Queue::fake();
     seedAsaasCred(businessId: 1, secret: 'segredo-real');
 
@@ -139,7 +139,7 @@ it('EXPLOIT: webhook com token errado (atacante) NÃO credita (401)', function (
     expect(DB::table('pg_webhook_events')->count())->toBe(0);
 });
 
-it('aceita e dispatcha quando token é válido (comportamento legítimo preservado)', function () {
+it('UC-RBCFG-06 · aceita e dispatcha quando token é válido (comportamento legítimo preservado)', function () {
     Queue::fake();
     seedAsaasCred(businessId: 1, secret: 'asaas-ok');
 
@@ -156,7 +156,7 @@ it('aceita e dispatcha quando token é válido (comportamento legítimo preserva
     Queue::assertPushed(ProcessAsaasWebhookJob::class, 1);
 });
 
-it('credencial Asaas inativa rejeita 404 (não autentica contra credencial desligada)', function () {
+it('UC-RBCFG-06 · credencial Asaas inativa rejeita 404 (não autentica contra credencial desligada)', function () {
     Queue::fake();
     seedAsaasCred(businessId: 1, secret: 'asaas-ok', ativo: false);
 
@@ -167,7 +167,7 @@ it('credencial Asaas inativa rejeita 404 (não autentica contra credencial desli
     Queue::assertNothingPushed();
 });
 
-it('multi-tenant Tier 0: token do business 1 NÃO credita no business 2', function () {
+it('UC-RBCFG-06 · multi-tenant Tier 0: token do business 1 NÃO credita no business 2', function () {
     Queue::fake();
     seedAsaasCred(businessId: 1, secret: 'tok-biz-1');
     seedAsaasCred(businessId: 2, secret: 'tok-biz-2');

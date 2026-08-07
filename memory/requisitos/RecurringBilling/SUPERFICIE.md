@@ -12,9 +12,9 @@ module: RecurringBilling
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs RecurringBilling --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/RecurringBilling/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 145 arquivos em 20 papéis.
+**Total mapeado:** 174 arquivos em 20 papéis.
 
 ## Controllers — 11
 
@@ -168,15 +168,44 @@ module: RecurringBilling
 
 - 40 arquivos em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 10
+## Demais arquivos (manifestos, docs, assets e misc) — 39
 
+- [CHANGELOG.md](../../../Modules/RecurringBilling/CHANGELOG.md)
+- [.gitkeep](../../../Modules/RecurringBilling/Config/.gitkeep)
+- [.gitkeep](../../../Modules/RecurringBilling/Console/.gitkeep)
 - [BankStatementDriverContract.php](../../../Modules/RecurringBilling/Contracts/BankStatementDriverContract.php)
 - [BoletoCredentialResolverInterface.php](../../../Modules/RecurringBilling/Contracts/BoletoCredentialResolverInterface.php)
 - [BoletoDriverContract.php](../../../Modules/RecurringBilling/Contracts/BoletoDriverContract.php)
+- [.gitkeep](../../../Modules/RecurringBilling/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/RecurringBilling/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/RecurringBilling/Database/factories/.gitkeep)
 - [BoletoResult.php](../../../Modules/RecurringBilling/Dto/BoletoResult.php)
 - [PixCobResult.php](../../../Modules/RecurringBilling/Dto/PixCobResult.php)
 - [StatementLineDto.php](../../../Modules/RecurringBilling/Dto/StatementLineDto.php)
+- [.gitkeep](../../../Modules/RecurringBilling/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/RecurringBilling/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/RecurringBilling/Http/Middleware/.gitkeep)
 - [SubscriptionIndexPresenter.php](../../../Modules/RecurringBilling/Http/Presenters/SubscriptionIndexPresenter.php)
+- [.gitkeep](../../../Modules/RecurringBilling/Http/Requests/.gitkeep)
 - [SubscriptionPolicy.php](../../../Modules/RecurringBilling/Policies/SubscriptionPolicy.php)
+- [.gitkeep](../../../Modules/RecurringBilling/Providers/.gitkeep)
+- [README.md](../../../Modules/RecurringBilling/README.md)
 - [InvoiceRepository.php](../../../Modules/RecurringBilling/Repositories/InvoiceRepository.php)
 - [SubscriptionRepository.php](../../../Modules/RecurringBilling/Repositories/SubscriptionRepository.php)
+- [.gitkeep](../../../Modules/RecurringBilling/Resources/assets/.gitkeep)
+- [app.js](../../../Modules/RecurringBilling/Resources/assets/js/app.js)
+- [app.scss](../../../Modules/RecurringBilling/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/RecurringBilling/Resources/lang/.gitkeep)
+- [recurringbilling.php](../../../Modules/RecurringBilling/Resources/lang/pt-BR/recurringbilling.php)
+- [.gitkeep](../../../Modules/RecurringBilling/Resources/views/.gitkeep)
+- [.gitkeep](../../../Modules/RecurringBilling/Routes/.gitkeep)
+- [SCOPE.md](../../../Modules/RecurringBilling/SCOPE.md)
+- [.gitkeep](../../../Modules/RecurringBilling/Tests/Feature/.gitkeep)
+- [.gitkeep](../../../Modules/RecurringBilling/Tests/Unit/.gitkeep)
+- [composer.json](../../../Modules/RecurringBilling/composer.json)
+- [module.json](../../../Modules/RecurringBilling/module.json)
+- [package.json](../../../Modules/RecurringBilling/package.json)
+- [vite.config.js](../../../Modules/RecurringBilling/vite.config.js)
+- [printExtractStyles.ts](../../../resources/js/Pages/RecurringBilling/_components/printExtractStyles.ts)
+- [troubleshooters-data.ts](../../../resources/js/Pages/RecurringBilling/_components/troubleshooters-data.ts)
+- [useJanaAsk.ts](../../../resources/js/Pages/RecurringBilling/_components/useJanaAsk.ts)

@@ -4,7 +4,8 @@ module: Crm
 # "Crm" — NÃO existe Modules/Cliente. Requisitos canônicos: memory/requisitos/Crm/
 # (a antiga memory/requisitos/Cliente/ foi consolidada aqui em 2026-06-01).
 # Ver memory/reference/crm-e-o-modulo-de-cliente.md
-purpose: "Módulo de CLIENTE / contatos do cliente (UPOS herdou o nome 'Crm'; NÃO existe Modules/Cliente): cadastro, drawer 760px com aba Endereço, múltiplos endereços (US-CRM-078)."
+purpose: "Pipeline pré-venda herdado do UltimatePOS (leads, follow-ups, campanhas, propostas, call logs) — EM DEPRECAÇÃO por ADR 0301. Hospeda ainda, por acidente histórico, os endpoints JSON do drawer de Cliente (/cliente/*) e o portal do contato (/contact/*), cujo dono real é o ContactController do core."
+migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
 contains:
   - "CallLogController"
   - "CampaignController"
@@ -37,7 +38,7 @@ contains:
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
-  - "MCP server admin → Modules/TeamMcp"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: crm.*

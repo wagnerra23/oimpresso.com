@@ -4,15 +4,15 @@
 > Regenerar: `node scripts/governance/hooks-manifest-generate.mjs --write` · drift acusado por `--check`.
 >
 > **Como ler as colunas computadas** (nada aqui é declarado à mão):
-> - **Sinal de bloqueio** = heurística estática sobre o conteúdo do arquivo na geração (`deny` quoted · `exit-2`/`return 2`) — critério da [ADR 0224](../../memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md) ("mecanismo real, não o nome"). É CAPACIDADE detectada no código (deny condicional/strict conta); ausência de sinal ≠ classificação advisory, e presença ≠ afirmação de runtime.
+> - **Sinal de bloqueio** = heurística estática sobre o **ramo de evento daquela linha** (`deny` quoted · `exit-2`/`return 2`) — critério da [ADR 0224](../../memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md) ("mecanismo real, não o nome"). Hook multi-evento é fatiado: o `exit(2)` que só existe dentro de `if (event === 'PreToolUse')` **não** conta na linha do `UserPromptSubmit` do mesmo arquivo (2026-08-04 — antes contava; bite-test com payload real mostrou 0 de 6 hooks do `UserPromptSubmit` bloqueando). É CAPACIDADE detectada no código (deny condicional/strict conta); ausência de sinal ≠ classificação advisory, e presença ≠ afirmação de runtime.
 > - **Ponto-de-corte** = derivado de evento+matcher (hooks) ou da presença no baseline (gates CI → merge).
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **53** wirings em `settings.json` (5 eventos) · **49** arquivos de hook distintos wired
-- **49** arquivos de hook no disco (+40 `*.test.*` — testes, fora da conta de órfãos)
+- **54** wirings em `settings.json` (5 eventos) · **49** arquivos de hook distintos wired
+- **49** arquivos de hook no disco (+42 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **34** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **40** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -24,6 +24,7 @@
 | SessionStart | `*` | loop-fechar-check.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | licoes-code-two-strikes.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | git-base-freshness-guard.mjs | node | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | (inline no settings.json) | node | sessão (início — injeção de contexto) | — |
 | PreToolUse | `Skill/DesignSync/design-login` | diag-pretooluse-trace.mjs | node | ferramenta (pré-uso do matcher) | — |
 | PreToolUse | `AskUserQuestion` | block-askq-execution-menu.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Read/Glob/Grep` | block-ancora-no-olho.mjs | node | leitura (pré-Read/Glob/Grep) | exit-2 |
@@ -66,8 +67,8 @@
 | Stop | `*` | nudge-auditoria-resposta.mjs | node | fim de turno | — |
 | UserPromptSubmit | `*` | force-r12-closing-signal.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-handoff-reprocess.mjs | node | prompt (pré-turno) | — |
-| UserPromptSubmit | `*` | block-figma-without-optin.mjs | node | prompt (pré-turno) | exit-2 |
-| UserPromptSubmit | `*` | block-design-sync-without-optin.mjs | node | prompt (pré-turno) | exit-2 |
+| UserPromptSubmit | `*` | block-figma-without-optin.mjs | node | prompt (pré-turno) | — |
+| UserPromptSubmit | `*` | block-design-sync-without-optin.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-compare-protocol.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-agente-ativa.mjs | node | prompt (pré-turno) | — |
 
@@ -78,41 +79,47 @@ Nenhum.
 Nenhum.
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (34):
+Contexts `classic_protection` (40):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
+- anchor entry/covers gate
+- anchor-lint ADR 0273
 - Ancora de design nao-shell (F2/F6 required)
 - Append-only canon (ADRs, handoffs, Constituição)
 - Casos-coverage · ratchet (trio + rastreabilidade)
+- catalog.json == SCOPEs + Classes B
 - Charter (resources/js/Pages/**/*.charter.md)
-- DS gate
+- charter status:live precisa de sinal de prod
+- deadlink-gate (ratchet · integridade referencial)
 - Dominio-dict · ratchet (enum ⇔ dicionário)
+- doneness-lint ADR 0302
+- DS gate
 - ESLint · ratchet vs baseline
 - Frontend / Vite build
+- gate selftest (as catracas mordem · GT-G6)
 - Layout primitives · ratchet
 - Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
+- PHP / Pest (Compras · MySQL)
+- PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)
 - PHP / Pest (NfeBrasil · MySQL)
+- PHP / Pest (Ponto · MySQL)
 - PHP / Pest (Unit)
 - PHPStan / Larastan · ratchet vs baseline
 - PII scan (CPF/CNPJ literal)
+- screen-coverage-gate
 - SDD scorecard ratchet (métrica armada não regride · GT-G3)
-- SPEC (memory/requisitos/*/SPEC.md)
 - Secret scan (gitleaks · só linhas novas do PR)
+- Self-test — classificação por papel + montagem determinística
+- SPEC (memory/requisitos/*/SPEC.md)
 - Stylelint · ratchet vs baseline
+- SUPERFICIE.md == árvore (módulos vivos + adotados)
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
-- anchor entry/covers gate
-- anchor-lint ADR 0273
-- charter status:live precisa de sinal de prod
-- doneness-lint ADR 0302
-- gate selftest (as catracas mordem · GT-G6)
-- screen-coverage-gate
 - visual-regression
-- deadlink-gate (ratchet · integridade referencial)
 
 Contexts `rulesets` (1):
 - Governance Gate (índice + memory-health + meta-teste)

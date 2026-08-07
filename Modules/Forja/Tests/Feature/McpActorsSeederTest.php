@@ -35,7 +35,7 @@ uses(Tests\TestCase::class);
  * legacy-delphi/* · Eliana write em NfeBrasil · Maiara blocked em NfeBrasil ·
  * parent_actor_id de não-Wagner apontando pra wagner.id.
  *
- * @see Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php
+ * @see Modules/Forja/Database/Seeders/McpActorsSeeder.php
  * @see memory/decisions/0081-identity-mesh-mcp-actors.md
  * @see memory/decisions/0086-fase-5-mvp-governance-actiongate-warn.md
  * @see memory/governance/IDENTITY-MESH-MANIFESTS.md

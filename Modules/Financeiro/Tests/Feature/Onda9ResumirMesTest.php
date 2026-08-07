@@ -116,7 +116,20 @@ describe('Onda 9 — wire-up Index.tsx', function () {
 
     it('Botão ✦ Resumir mês agora abre dialog (alert removido)', function () {
         $src = file_get_contents(FIN_BASE_9 . '/Index.tsx');
-        expect($src)->toContain('onClick={() => setResumoOpen(true)}');
+
+        // NÃO asserta a SINTAXE do handler. A versão anterior exigia o literal
+        // `onClick={() => setResumoOpen(true)}` (forma JSX). Os botões viraram array
+        // data-driven — `{ key, label, icon, onClick: () => setResumoOpen(true) }` —
+        // então a string morreu enquanto o RECURSO seguia intacto. Foi por isso que
+        // este arquivo caiu na quarentena (bucket A).
+        //
+        // Asserimos a CADEIA DE WIRING, que é o que o caso realmente promete e o que
+        // sobrevive a refactor de forma: estado → handler → diálogo montado com ele.
+        expect($src)->toContain('setResumoOpen');            // handler existe
+        expect($src)->toContain('setResumoOpen(true)');      // alguém ABRE o diálogo
+        expect($src)->toContain('<FinMonthResumeDialog');    // o diálogo é montado
+        expect($src)->toContain('open={resumoOpen}');        // ligado ao MESMO estado
+
         // alert original removido
         expect($src)->not->toContain("alert('Resumir mês:");
     });

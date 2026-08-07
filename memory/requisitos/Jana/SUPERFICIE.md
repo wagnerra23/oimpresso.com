@@ -12,27 +12,21 @@ module: Jana
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Jana --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 571 arquivos em 19 papéis.
+**Total mapeado:** 570 arquivos em 19 papéis.
 
-## Controllers — 16
+## Controllers — 10
 
-- [CustosController.php](../../../Modules/Jana/Http/Controllers/Admin/CustosController.php)
-- [GovernancaController.php](../../../Modules/Jana/Http/Controllers/Admin/GovernancaController.php)
 - [JanaProController.php](../../../Modules/Jana/Http/Controllers/Admin/JanaProController.php)
-- [QualidadeController.php](../../../Modules/Jana/Http/Controllers/Admin/QualidadeController.php)
-- [RoadmapController.php](../../../Modules/Jana/Http/Controllers/Admin/RoadmapController.php)
 - [AlertasController.php](../../../Modules/Jana/Http/Controllers/AlertasController.php)
 - [ChatController.php](../../../Modules/Jana/Http/Controllers/ChatController.php)
-- [DashboardController.php](../../../Modules/Jana/Http/Controllers/DashboardController.php)
 - [DataController.php](../../../Modules/Jana/Http/Controllers/DataController.php)
+- [IndexController.php](../../../Modules/Jana/Http/Controllers/IndexController.php)
 - [InstallController.php](../../../Modules/Jana/Http/Controllers/InstallController.php)
 - [MetasController.php](../../../Modules/Jana/Http/Controllers/MetasController.php)
-- [PainelController.php](../../../Modules/Jana/Http/Controllers/PainelController.php)
 - [PeriodosController.php](../../../Modules/Jana/Http/Controllers/PeriodosController.php)
 - [ProController.php](../../../Modules/Jana/Http/Controllers/ProController.php)
-- [RegrasController.php](../../../Modules/Jana/Http/Controllers/RegrasController.php)
 - [SuperadminController.php](../../../Modules/Jana/Http/Controllers/SuperadminController.php)
 
 ## Requests (validação) — 8
@@ -50,7 +44,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 89
+## Services — 91
 
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
 - [ClarifyCascadeService.php](../../../Modules/Jana/Services/Ai/Clarify/ClarifyCascadeService.php)
@@ -125,9 +119,11 @@ module: Jana
 - [NullReranker.php](../../../Modules/Jana/Services/Retrieval/NullReranker.php)
 - [Reranker.php](../../../Modules/Jana/Services/Retrieval/Reranker.php)
 - [RrfReranker.php](../../../Modules/Jana/Services/Retrieval/RrfReranker.php)
+- [ScaffoldSkillFromMissionService.php](../../../Modules/Jana/Services/ScaffoldSkillFromMissionService.php)
 - [AiScorecardJudge.php](../../../Modules/Jana/Services/Scorecard/AiScorecardJudge.php)
 - [PublicarSkillNoGitService.php](../../../Modules/Jana/Services/Skills/PublicarSkillNoGitService.php)
 - [SkillTestRunnerService.php](../../../Modules/Jana/Services/Skills/SkillTestRunnerService.php)
+- [SkillsService.php](../../../Modules/Jana/Services/SkillsService.php)
 - [SuggestionEngine.php](../../../Modules/Jana/Services/SuggestionEngine.php)
 - [AutoSummarizerHelper.php](../../../Modules/Jana/Services/Summarizer/AutoSummarizerHelper.php)
 - [AutoSummarizerService.php](../../../Modules/Jana/Services/Summarizer/AutoSummarizerService.php)
@@ -204,7 +200,7 @@ module: Jana
 - [NotificarDesvioListener.php](../../../Modules/Jana/Listeners/NotificarDesvioListener.php)
 - [LangfuseAgentTelemetryListener.php](../../../Modules/Jana/Listeners/Telemetry/LangfuseAgentTelemetryListener.php)
 
-## Console / Commands — 45
+## Console / Commands — 46
 
 - [ApurarMetricasCommand.php](../../../Modules/Jana/Console/Commands/ApurarMetricasCommand.php)
 - [AutomationsSyncCommand.php](../../../Modules/Jana/Console/Commands/AutomationsSyncCommand.php)
@@ -249,6 +245,7 @@ module: Jana
 - [RetentionPurgeCommand.php](../../../Modules/Jana/Console/Commands/RetentionPurgeCommand.php)
 - [SeedAdrsCommand.php](../../../Modules/Jana/Console/Commands/SeedAdrsCommand.php)
 - [SinteseSemanalCommand.php](../../../Modules/Jana/Console/Commands/SinteseSemanalCommand.php)
+- [SkillScaffoldCommand.php](../../../Modules/Jana/Console/Commands/SkillScaffoldCommand.php)
 - [SystemAuditCommand.php](../../../Modules/Jana/Console/Commands/SystemAuditCommand.php)
 - [UiJudgeTrendCommand.php](../../../Modules/Jana/Console/Commands/UiJudgeTrendCommand.php)
 
@@ -256,7 +253,7 @@ module: Jana
 
 - [JanaServiceProvider.php](../../../Modules/Jana/Providers/JanaServiceProvider.php)
 
-## Migrations (schema) — 78
+## Migrations (schema) — 81
 
 - [2026_04_24_000001_create_copiloto_metas_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000001_create_copiloto_metas_table.php)
 - [2026_04_24_000002_create_copiloto_meta_periodos_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000002_create_copiloto_meta_periodos_table.php)
@@ -336,6 +333,9 @@ module: Jana
 - [2026_07_18_120000_add_model_to_mcp_cc_messages.php](../../../Modules/Jana/Database/Migrations/2026_07_18_120000_add_model_to_mcp_cc_messages.php)
 - [2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php)
 - [2026_07_28_120000_create_mcp_handoff_drafts_table.php](../../../Modules/Jana/Database/Migrations/2026_07_28_120000_create_mcp_handoff_drafts_table.php)
+- [2026_08_02_100000_add_charter_casos_to_mcp_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_08_02_100000_add_charter_casos_to_mcp_type_enum.php)
+- [2026_08_04_100000_add_feature_to_mcp_memory_documents_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_08_04_100000_add_feature_to_mcp_memory_documents_type_enum.php)
+- [2026_08_04_190000_add_pending_approval_status_to_mcp_tasks.php](../../../Modules/Jana/Database/Migrations/2026_08_04_190000_add_pending_approval_status_to_mcp_tasks.php)
 
 ## Seeders — 4
 
@@ -354,43 +354,30 @@ module: Jana
 
 - 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 11
+## Telas (Inertia/React) — 4
 
-- [Index.tsx](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx)
-- [Roadmap.tsx](../../../resources/js/Pages/Jana/Admin/Roadmap.tsx)
 - [Chat.tsx](../../../resources/js/Pages/Jana/Chat.tsx)
-- [Cockpit.tsx](../../../resources/js/Pages/Jana/Cockpit.tsx)
-- [Dashboard.tsx](../../../resources/js/Pages/Jana/Dashboard.tsx)
+- [Index.tsx](../../../resources/js/Pages/Jana/Index.tsx)
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
-- [Painel.tsx](../../../resources/js/Pages/Jana/Painel.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
-- [Index.tsx](../../../resources/js/Pages/Jana/Regras/Index.tsx)
 
-## Componentes / apoio de tela — 7
+## Componentes / apoio de tela — 8
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
+- [JanaDrillDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx)
 - [JanaPrimaryButton.tsx](../../../resources/js/Pages/Jana/_shared/JanaPrimaryButton.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
 - [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
 - [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
-## Charters (lei da tela) — 11
+## Charters (lei da tela) — 4
 
-- [Index.charter.md](../../../resources/js/Pages/Jana/Admin/Custos/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Jana/Admin/Governanca/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.charter.md)
-- [Roadmap.charter.md](../../../resources/js/Pages/Jana/Admin/Roadmap.charter.md)
 - [Chat.charter.md](../../../resources/js/Pages/Jana/Chat.charter.md)
-- [Cockpit.charter.md](../../../resources/js/Pages/Jana/Cockpit.charter.md)
-- [Dashboard.charter.md](../../../resources/js/Pages/Jana/Dashboard.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Jana/Index.charter.md)
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
-- [Painel.charter.md](../../../resources/js/Pages/Jana/Painel.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Jana/Regras/Index.charter.md)
 
 ## Casos (contrato UC) — 1
 
@@ -398,9 +385,9 @@ module: Jana
 
 ## Testes (Pest) — 155
 
-- 155 arquivos em [Modules/Jana/Tests/Feature/Admin/](../../../Modules/Jana/Tests/Feature/Admin) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 155 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 79
+## Demais arquivos (manifestos, docs, assets e misc) — 91
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -424,6 +411,7 @@ module: Jana
 - [VendasPeriodoTool.php](../../../Modules/Jana/Ai/Tools/BriefDiario/VendasPeriodoTool.php)
 - [UiDeterministicScorer.php](../../../Modules/Jana/Ai/UiDeterministicScorer.php)
 - [UiJudgeConsensus.php](../../../Modules/Jana/Ai/UiJudgeConsensus.php)
+- [CHANGELOG.md](../../../Modules/Jana/CHANGELOG.md)
 - [AiAdapter.php](../../../Modules/Jana/Contracts/AiAdapter.php)
 - [CalculaMeta.php](../../../Modules/Jana/Contracts/CalculaMeta.php)
 - [MemoriaContrato.php](../../../Modules/Jana/Contracts/MemoriaContrato.php)
@@ -431,9 +419,12 @@ module: Jana
 - [Reconciler.php](../../../Modules/Jana/Contracts/Reconciler.php)
 - [SqlDriver.php](../../../Modules/Jana/Drivers/Sql/SqlDriver.php)
 - [routes.php](../../../Modules/Jana/Http/routes.php)
+- [LICOES-OPERACAO.md](../../../Modules/Jana/LICOES-OPERACAO.md)
 - [WeeklyDigestMail.php](../../../Modules/Jana/Mail/WeeklyDigestMail.php)
 - [OimpressoMcpServer.php](../../../Modules/Jana/Mcp/OimpressoMcpServer.php)
 - [BriefingOimpressoPrompt.php](../../../Modules/Jana/Mcp/Prompts/BriefingOimpressoPrompt.php)
+- [CurrentResource.php](../../../Modules/Jana/Mcp/Resources/CurrentResource.php)
+- [HandoffResource.php](../../../Modules/Jana/Mcp/Resources/HandoffResource.php)
 - [AutomationsListTool.php](../../../Modules/Jana/Mcp/Tools/AutomationsListTool.php)
 - [CcSearchTool.php](../../../Modules/Jana/Mcp/Tools/CcSearchTool.php)
 - [CharterFetchTool.php](../../../Modules/Jana/Mcp/Tools/CharterFetchTool.php)
@@ -475,9 +466,17 @@ module: Jana
 - [WhatsActiveTool.php](../../../Modules/Jana/Mcp/Tools/WhatsActiveTool.php)
 - [WhatsLockedTool.php](../../../Modules/Jana/Mcp/Tools/WhatsLockedTool.php)
 - [MetaDesvioNotification.php](../../../Modules/Jana/Notifications/MetaDesvioNotification.php)
+- [copiloto.php](../../../Modules/Jana/Resources/lang/pt/copiloto.php)
+- [topnav.php](../../../Modules/Jana/Resources/menus/topnav.php)
+- [permissions.php](../../../Modules/Jana/Resources/permissions.php)
+- [SCOPE.md](../../../Modules/Jana/SCOPE.md)
 - [ScopeByBusiness.php](../../../Modules/Jana/Scopes/ScopeByBusiness.php)
 - [ScopeByBusinessViaParent.php](../../../Modules/Jana/Scopes/ScopeByBusinessViaParent.php)
 - [ClarifyResult.php](../../../Modules/Jana/Support/ClarifyResult.php)
 - [ContextoNegocio.php](../../../Modules/Jana/Support/ContextoNegocio.php)
 - [RetrievalStatus.php](../../../Modules/Jana/Support/RetrievalStatus.php)
+- [baseline-responses.json](../../../Modules/Jana/Tests/Feature/Ai/fixtures/baseline-responses.json)
+- [jana-gold-set.json](../../../Modules/Jana/Tests/Feature/Ai/fixtures/jana-gold-set.json)
+- [composer.json](../../../Modules/Jana/composer.json)
+- [module.json](../../../Modules/Jana/module.json)
 - [start.php](../../../Modules/Jana/start.php)

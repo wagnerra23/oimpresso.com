@@ -56,7 +56,10 @@ class KbAnswerTool extends Tool
     protected string $description = 'Q&A natural sobre KB do oimpresso (ADRs, SPECs, sessions, handoffs, requisitos). Sintetiza resposta com 3-5 citações inline. Usa memoria-search + decisions-search internamente (FULLTEXT em mcp_memory_documents) + síntese gpt-4o-mini. Idiomático: "qual ADR fala sobre X", "como decidimos Y", "estado de Z módulo". Custo ~R$ [redacted Tier 0]/call.';
 
     /** Tipos canônicos persistidos em `mcp_memory_documents.type`. */
-    protected const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'all'];
+    // Espelha KbAnswerService::TIPOS_VALIDOS (a lista vive nos dois — drift conhecido).
+    // `charter`/`casos` entram com o B3 (2026-08-02): sem isso esta validação REJEITA
+    // `categoria:charter` na porta, e o trio indexado fica inalcançável por filtro.
+    protected const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'charter', 'casos', 'all'];
 
     public function schema(JsonSchema $schema): array
     {

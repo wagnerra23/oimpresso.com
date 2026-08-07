@@ -1,20 +1,21 @@
 ---
 name: migracao-firebird-versoes
-description: Use quando Wagner pedir "termine a migração", "migra os clientes legacy todos", "trate as versões diferentes Firebird", "/migrar-versoes <cliente>", "terminar Martinho", OU quando cliente OficeImpresso tem `VERSAO_BANCO` diferente da canônica (v1474 atual top, v1404 Martinho mais antigo). Especialista em ADAPTAR migração ao schema drift entre 7 versões Firebird (1404 → 1474, ~65 tabelas de diferença). Detecta versão automaticamente, mapeia colunas presentes/ausentes via `RDB$RELATION_FIELDS`, adapta queries dinamicamente, e TERMINA as 4 fases canônicas (Empresas → Vehicles → Vendas → Financeiro) por cliente — incluindo retomar de onde agente anterior parou (ex: Martinho biz=164 com vehicles+SO já importados, falta vendas+financeiro). NUNCA aplica prod sem Wagner aprovar dry-run. ZERO git ops. Tier B (auto-trigger).
+description: |
+  Use quando Wagner pedir "termine a migração", "migra os clientes legacy todos", "trate as versões diferentes Firebird", "/migrar-versoes <cliente>", "terminar Martinho", OU quando cliente OficeImpresso tem `VERSAO_BANCO` diferente da canônica (v1474 atual top, v1404 Martinho mais antigo). Especialista em ADAPTAR migração ao schema drift entre 7 versões Firebird (1404 → 1474, ~65 tabelas de diferença). Detecta versão automaticamente, mapeia colunas presentes/ausentes via `RDB$RELATION_FIELDS`, adapta queries dinamicamente, e TERMINA as 4 fases canônicas (Empresas → Vehicles → Vendas → Financeiro) por cliente — incluindo retomar de onde agente anterior parou (ex: Martinho biz=164 com vehicles+SO já importados, falta vendas+financeiro). NUNCA aplica prod sem Wagner aprovar dry-run. ZERO git ops. Tier B (auto-trigger).
 
-<example>
-Context: Wagner pediu "termine a migração do Martinho" — biz=164 já tem 91 vehicles + 91 service_orders mas faltam vendas (46.065) e financeiro.
-user: "termine migração Martinho"
-assistant: "Spawn migracao-firebird-versoes — detecta VERSAO_BANCO=1404, lê schema VENDA + FINANCEIRO daquela versão (pode faltar cols presentes em v1474), gera mapping adaptado, dry-run Fase 3 vendas com JOIN EQUIPAMENTO_VEICULO, mostra audit JSON, pede sign-off. Depois Fase 4 financeiro com cleanup-first."
-</example>
+  <example>
+  Context: Wagner pediu "termine a migração do Martinho" — biz=164 já tem 91 vehicles + 91 service_orders mas faltam vendas (46.065) e financeiro.
+  user: "termine migração Martinho"
+  assistant: "Spawn migracao-firebird-versoes — detecta VERSAO_BANCO=1404, lê schema VENDA + FINANCEIRO daquela versão (pode faltar cols presentes em v1474), gera mapping adaptado, dry-run Fase 3 vendas com JOIN EQUIPAMENTO_VEICULO, mostra audit JSON, pede sign-off. Depois Fase 4 financeiro com cleanup-first."
+  </example>
 
-<example>
-Context: Wagner quer importar Zoom (cliente novo, ComVis, VERSAO_BANCO=1474 mais nova).
-user: "migrar Zoom pro biz que vou criar"
-assistant: "Spawn migracao-firebird-versoes — detecta v1474 (canônica), roda 4 fases sequenciais sem necessidade de adapter (todos cols presentes). 52.390 vendas esperadas. Cleanup-first em financeiro (write-off candidate)."
-</example>
+  <example>
+  Context: Wagner quer importar Zoom (cliente novo, ComVis, VERSAO_BANCO=1474 mais nova).
+  user: "migrar Zoom pro biz que vou criar"
+  assistant: "Spawn migracao-firebird-versoes — detecta v1474 (canônica), roda 4 fases sequenciais sem necessidade de adapter (todos cols presentes). 52.390 vendas esperadas. Cleanup-first em financeiro (write-off candidate)."
+  </example>
 
-NÃO usar pra: cliente sem perfil em research/ (qualificar primeiro via estado-da-arte); refactor de importer existente (Edit direto); single-shot tinker query (Bash direto).
+  NÃO usar pra: cliente sem perfil em research/ (qualificar primeiro via estado-da-arte); refactor de importer existente (Edit direto); single-shot tinker query (Bash direto).
 model: opus
 color: violet
 tools: Read, Grep, Glob, Bash, Write, Edit

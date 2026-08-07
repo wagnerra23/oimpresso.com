@@ -2,9 +2,10 @@
 id: reference-project-octane-mcp-prod-deps
 name: laravel/octane + laravel/mcp em prod-deps — ADR estrutural pendente
 description: composer.json tem laravel/octane e laravel/mcp em require (não require-dev); são prod-core hoje, mover quebra config:cache no Hostinger; exige ADR estrutural Wagner
-type: project
+type: reference
+authority: canonical
 ---
-`composer.json` na raiz do oimpresso tem `laravel/mcp ^0.7.0` e `laravel/octane ^2.15` no bloco `require` (production deps). Hostinger faz `composer install` no deploy → baixa esses pacotes em shared hosting.
+`composer.json` na raiz do oimpresso tem `laravel/mcp ^0.9.0` e `laravel/octane ^2.15` no bloco `require` (production deps). Hostinger faz `composer install` no deploy → baixa esses pacotes em shared hosting.
 
 **Por que é problema**: ADR 0062 separa runtime — Hostinger é shared hosting; daemons (Reverb, Centrifugo, Octane, MCP server) só rodam em CT 100 Proxmox. Octane/Mcp em prod-deps contamina vendor/ do Hostinger mesmo quando não usados.
 

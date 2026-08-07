@@ -1,0 +1,484 @@
+<style>
+  :root {
+    --bg: #f5f8f7;
+    --surface: #ffffff;
+    --surface-2: #eef3f1;
+    --ink: #15201e;
+    --muted: #58635f;
+    --border: #dde5e2;
+    --accent: #0e6b63;
+    --accent-soft: #e4f1ee;
+    --ok: #2f7d4f;
+    --ok-soft: #e6f2ea;
+    --warn: #9a6410;
+    --warn-soft: #f6edda;
+    --bad: #b23f3a;
+    --bad-soft: #f6e3e1;
+    --shadow: 0 1px 2px rgba(15,30,28,.05), 0 8px 24px rgba(15,30,28,.04);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1413;
+      --surface: #151d1b;
+      --surface-2: #1b2523;
+      --ink: #e6ece9;
+      --muted: #97a5a1;
+      --border: #263230;
+      --accent: #4fd1c3;
+      --accent-soft: #123029;
+      --ok: #5fca85;
+      --ok-soft: #14281c;
+      --warn: #e0a94a;
+      --warn-soft: #2b2312;
+      --bad: #e57a72;
+      --bad-soft: #2c1917;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1413; --surface: #151d1b; --surface-2: #1b2523; --ink: #e6ece9;
+    --muted: #97a5a1; --border: #263230; --accent: #4fd1c3; --accent-soft: #123029;
+    --ok: #5fca85; --ok-soft: #14281c; --warn: #e0a94a; --warn-soft: #2b2312;
+    --bad: #e57a72; --bad-soft: #2c1917;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f8f7; --surface: #ffffff; --surface-2: #eef3f1; --ink: #15201e;
+    --muted: #58635f; --border: #dde5e2; --accent: #0e6b63; --accent-soft: #e4f1ee;
+    --ok: #2f7d4f; --ok-soft: #e6f2ea; --warn: #9a6410; --warn-soft: #f6edda;
+    --bad: #b23f3a; --bad-soft: #f6e3e1;
+    --shadow: 0 1px 2px rgba(15,30,28,.05), 0 8px 24px rgba(15,30,28,.04);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    line-height: 1.62; margin: 0; -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 2.4rem 1.5rem 5rem; }
+  .layout { display: grid; grid-template-columns: 1fr; gap: 2.5rem; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: 232px 1fr; align-items: start; }
+  }
+
+  /* ---------- header ---------- */
+  header.masthead { margin-bottom: 2.6rem; }
+  .eyebrow {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+    display: flex; align-items: center; gap: .6rem; margin-bottom: .9rem;
+  }
+  .eyebrow::before {
+    content: ""; width: 26px; height: 2px; background: var(--accent); display: inline-block;
+  }
+  h1 {
+    font-size: clamp(1.7rem, 4.4vw, 2.5rem); line-height: 1.1; margin: 0 0 .7rem;
+    letter-spacing: -.02em; text-wrap: balance; font-weight: 700;
+  }
+  .lede { font-size: 1.08rem; color: var(--muted); max-width: 64ch; margin: 0 0 1.4rem; text-wrap: pretty; }
+  .meta { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .chip {
+    font-family: var(--mono); font-size: .74rem; padding: .28rem .6rem;
+    border: 1px solid var(--border); border-radius: 999px; color: var(--muted);
+    background: var(--surface); white-space: nowrap;
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- nav ---------- */
+  nav.toc { font-size: .9rem; }
+  @media (min-width: 1000px) { nav.toc { position: sticky; top: 1.5rem; } }
+  nav.toc .toc-title {
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .8rem;
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; margin: .1rem 0; }
+  nav.toc a {
+    display: flex; gap: .6rem; align-items: baseline; text-decoration: none; color: var(--muted);
+    padding: .34rem .5rem; border-radius: 7px; border-left: 2px solid transparent;
+    transition: background .15s, color .15s;
+  }
+  nav.toc a::before {
+    content: counter(toc, decimal-leading-zero); font-family: var(--mono); font-size: .72rem;
+    color: var(--accent); opacity: .75;
+  }
+  nav.toc a:hover { background: var(--accent-soft); color: var(--ink); }
+
+  /* ---------- content ---------- */
+  main { min-width: 0; }
+  section { margin-bottom: 2.9rem; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: 1.32rem; letter-spacing: -.01em; margin: 0 0 .3rem; padding-bottom: .55rem;
+    border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: .7rem;
+  }
+  h2 .num { font-family: var(--mono); font-size: .82rem; color: var(--accent); font-weight: 600; }
+  h3 { font-size: 1.02rem; margin: 1.6rem 0 .5rem; letter-spacing: -.005em; }
+  p { margin: .7rem 0; }
+  .section-note { color: var(--muted); font-size: .96rem; margin-top: .2rem; }
+  strong { font-weight: 650; }
+  code {
+    font-family: var(--mono); font-size: .86em; background: var(--surface-2);
+    padding: .1em .38em; border-radius: 5px; border: 1px solid var(--border);
+  }
+  a.ext { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--border); }
+  a.ext:hover { border-color: var(--accent); }
+
+  /* ---------- callout ---------- */
+  .callout {
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 1rem 1.2rem; margin: 1.2rem 0; box-shadow: var(--shadow);
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout .k {
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; display: block; margin-bottom: .35rem;
+  }
+  .callout.warn .k { color: var(--warn); }
+
+  /* ---------- tree ---------- */
+  .treewrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); box-shadow: var(--shadow); }
+  .treewrap .bar {
+    display: flex; align-items: center; gap: .5rem; padding: .55rem .9rem; border-bottom: 1px solid var(--border);
+    background: var(--surface-2); font-family: var(--mono); font-size: .74rem; color: var(--muted);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .dot.r { background: #e5675e; } .dot.y { background: #e6b34d; } .dot.g { background: #5bbd7e; }
+  pre.tree {
+    font-family: var(--mono); font-size: .82rem; line-height: 1.55; margin: 0; padding: 1.1rem 1.2rem;
+    white-space: pre; color: var(--ink); tab-size: 2;
+  }
+  pre.tree .root { color: var(--accent); font-weight: 600; }
+  pre.tree .dir { color: var(--ink); }
+  pre.tree .cnt { color: var(--muted); }
+  pre.tree .ok { color: var(--ok); }
+  pre.tree .add { color: var(--accent); font-weight: 600; }
+  .tag {
+    font-family: var(--mono); font-size: .72rem; padding: .04rem .4rem; border-radius: 5px;
+    border: 1px solid var(--border); white-space: nowrap;
+  }
+  .tag.ok { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
+  .tag.warn { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+  .tag.bad { color: var(--bad); background: var(--bad-soft); border-color: transparent; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: .5rem .9rem; margin: .9rem 0 0; font-size: .82rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: .4rem; }
+
+  /* ---------- tables ---------- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; background: var(--surface); }
+  th, td { text-align: left; padding: .7rem .85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 600;
+    background: var(--surface-2); position: sticky; top: 0; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  td .who { font-family: var(--mono); font-size: .82rem; color: var(--accent); }
+  .pill { font-family: var(--mono); font-size: .72rem; padding: .12rem .45rem; border-radius: 6px; white-space: nowrap; }
+  .pill.g { color: var(--ok); background: var(--ok-soft); }
+  .pill.y { color: var(--warn); background: var(--warn-soft); }
+  .pill.r { color: var(--bad); background: var(--bad-soft); }
+
+  /* ---------- before/after ---------- */
+  .ba { display: grid; grid-template-columns: 1fr; gap: 1rem; margin: 1.1rem 0; }
+  @media (min-width: 720px) { .ba { grid-template-columns: 1fr auto 1fr; align-items: center; } }
+  .ba .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; box-shadow: var(--shadow); }
+  .ba .card h4 { margin: 0 0 .6rem; font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .ba .card.after h4 { color: var(--accent); }
+  .ba pre { font-family: var(--mono); font-size: .78rem; line-height: 1.5; margin: 0; white-space: pre-wrap; word-break: break-word; }
+  .ba .arrow { text-align: center; font-size: 1.4rem; color: var(--accent); }
+  @media (max-width: 719px) { .ba .arrow { transform: rotate(90deg); } }
+
+  .rec { display: inline-block; font-family: var(--mono); font-size: .72rem; color: var(--accent);
+    background: var(--accent-soft); padding: .1rem .45rem; border-radius: 5px; font-weight: 600; }
+
+  footer { margin-top: 3rem; padding-top: 1.4rem; border-top: 1px solid var(--border); font-size: .84rem; color: var(--muted); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer ul { padding-left: 1.1rem; }
+  footer li { margin: .2rem 0; }
+  hr.soft { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">Arquitetura · Governança de conhecimento</div>
+    <h1>Consolidação física do trio em <code>memory/</code></h1>
+    <p class="lede">Onde vão morar os <b>charter</b> + <b>casos</b> de cada tela depois da Opção A — a árvore final, o índice, e o que quem já fez esse movimento aprendeu. Documento para bater o martelo <em>antes</em> de mexer em código.</p>
+    <div class="meta">
+      <span class="chip">ADR: <b>documentacao-do-fonte-layout-canonico</b></span>
+      <span class="chip">status: <b>proposal</b></span>
+      <span class="chip">branch: <b>migracao-a-dual-resolver</b></span>
+      <span class="chip">medido: <b>210 charters · 74 casos</b></span>
+      <span class="chip">2026-08-01</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Índice">
+      <div class="toc-title">Índice</div>
+      <ol>
+        <li><a href="#ideia">A ideia em uma imagem</a></li>
+        <li><a href="#arvore">A árvore final (38 módulos)</a></li>
+        <li><a href="#zoom">Zoom: uma tela por dentro</a></li>
+        <li><a href="#indice">O índice de módulos</a></li>
+        <li><a href="#mercado">Quem já fez isso</a></li>
+        <li><a href="#decisoes">As 6 decisões que definem "profissional"</a></li>
+        <li><a href="#melhora">Onde ainda dá pra melhorar</a></li>
+        <li><a href="#ordem">Ordem de execução</a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <section id="ideia">
+        <h2><span class="num">01</span> A ideia em uma imagem</h2>
+        <p class="section-note">Hoje o trio (código + contrato + casos) vive espalhado dentro de <code>resources/js/Pages/</code>. A Opção A tira só os dois documentos de contrato e os leva pra raiz <code>memory/</code>. O <code>.tsx</code> continua sendo código e fica onde está.</p>
+        <div class="ba">
+          <div class="card before">
+            <h4>Hoje — trio no código</h4>
+<pre>resources/js/Pages/Produto/
+├── Edit.tsx
+├── Edit.charter.md   ← contrato
+└── Edit.casos.md     ← casos de uso</pre>
+          </div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="card after">
+            <h4>Depois — contrato na memória</h4>
+<pre>resources/js/Pages/Produto/
+└── Edit.tsx                        (só código)
+
+memory/requisitos/Produto/_telas/
+├── Edit.charter.md   ← MOVE
+└── Edit.casos.md     ← MOVE
+      frontmatter:
+      tela: resources/js/Pages/Produto/Edit.tsx</pre>
+          </div>
+        </div>
+        <div class="callout warn">
+          <span class="k">Honestidade da proposta</span>
+          O move <b>não é requisito técnico</b> — o RAG da Jana indexaria o trio sem mover nada. É uma <b>decisão organizacional do [F]</b> ("raiz é <code>memory/</code>, nada de contrato fora dela"). Isso muda o critério de sucesso: como não é obrigatório, ele só se justifica se ficar <b>mais organizado</b> que hoje. É disso que trata este documento.
+        </div>
+      </section>
+
+      <section id="arvore">
+        <h2><span class="num">02</span> A árvore final — os 38 módulos</h2>
+        <p class="section-note">Cada bloco de tela vai pra <code>memory/requisitos/&lt;Módulo&gt;/_telas/</code>. A casa <b>não é nova</b>: 4 módulos já têm <code>_telas/</code> e já guardam RUNBOOK + visual-comparison + alguns casos lá. A migração só completa o padrão.</p>
+        <div class="treewrap">
+          <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span>memory/requisitos/ &nbsp;— destino do trio (ordenado por nº de telas)</span></div>
+<pre class="tree"><span class="root">memory/requisitos/</span>
+├── <span class="dir">Financeiro/</span>_telas/        <span class="cnt">21 telas</span>
+├── <span class="dir">Ponto/</span>_telas/             <span class="cnt">20 telas</span>
+├── <span class="dir">Repair/</span>_telas/            <span class="cnt">13 telas</span>
+├── <span class="dir">Essentials/</span>_telas/        <span class="cnt">13 telas</span>
+├── <span class="dir">Jana/</span>_telas/              <span class="cnt">11 telas</span>
+├── <span class="dir">OficinaAuto/</span>_telas/        <span class="cnt"> 9 telas</span>  <span class="ok">✓ já existe</span>
+├── <span class="dir">Forja/</span>_telas/             <span class="cnt"> 9 telas</span>
+├── <span class="dir">Sells/</span>_telas/             <span class="cnt"> 8 telas</span>
+├── <span class="dir">Produto/</span>_telas/           <span class="cnt"> 8 telas</span>  <span class="ok">✓ já existe</span>
+├── <span class="dir">Atendimento/</span>_telas/        <span class="cnt"> 8 telas</span>
+├── <span class="dir">Governance/</span>_telas/        <span class="cnt"> 7 telas</span>  <span class="tag warn">casing: Pages/governance</span>
+├── <span class="dir">Site/</span>_telas/              <span class="cnt"> 7 telas</span>
+├── <span class="dir">Fiscal/</span>_telas/            <span class="cnt"> 7 telas</span>
+├── <span class="dir">Cliente/</span>_telas/           <span class="cnt"> 7 telas</span>
+├── <span class="dir">KB/</span>_telas/                <span class="cnt"> 6 telas</span>  <span class="tag warn">casing: Pages/kb</span>
+├── <span class="dir">RecurringBilling/</span>_telas/   <span class="cnt"> 6 telas</span>
+├── <span class="dir">NfeBrasil/</span>_telas/         <span class="cnt"> 6 telas</span>
+├── <span class="dir">TeamMcp/</span>_telas/           <span class="cnt"> 5 telas</span>  <span class="tag warn">casing: Pages/team-mcp</span>
+├── <span class="dir">ADS/</span>_telas/               <span class="cnt"> 5 telas</span>  <span class="tag warn">casing: Pages/ads</span>
+├── <span class="dir">Compras/</span>_telas/           <span class="cnt"> 5 telas</span>  <span class="tag warn">merge: Pages/Purchase (4) + Compras (1)</span>
+├── <span class="dir">Whatsapp/</span>_telas/          <span class="cnt"> 3 telas</span>
+├── <span class="dir">Fiscal/</span>… <span class="dir">TransactionPayment</span>   <span class="cnt"> 3 telas</span>  <span class="tag bad">órfão: sem casa (→ Financeiro? PaymentGateway?)</span>
+├── <span class="dir">NFSe/</span>_telas/              <span class="cnt"> 3 telas</span>  <span class="tag warn">casing: Pages/Nfse</span>
+├── <span class="dir">Superadmin/</span>_telas/        <span class="cnt"> 2 telas</span>  <span class="tag warn">casing: Pages/superadmin</span>
+├── <span class="dir">Suporte/</span>_telas/           <span class="cnt"> 2 telas</span>
+├── <span class="dir">Estoque/</span>_telas/           <span class="cnt"> 2 telas</span>  <span class="tag warn">dedup: Pages/StockTransfer → Estoque?</span>
+├── <span class="dir">Estoque/</span>_telas/           <span class="cnt"> 2 telas</span>  <span class="tag warn">dedup: Pages/StockAdjustment → Estoque?</span>
+├── <span class="dir">Settings</span>                   <span class="cnt"> 2 telas</span>  <span class="tag bad">órfão: sem casa (→ Infra? criar?)</span>
+├── <span class="dir">Auditoria/</span>_telas/         <span class="cnt"> 2 telas</span>
+├── <span class="dir">Vestuario/</span>_telas/         <span class="cnt"> 1 tela </span>
+├── <span class="dir">User/</span>_telas/              <span class="cnt"> 1 tela </span>
+├── <span class="dir">Tarefas/</span>_telas/           <span class="cnt"> 1 tela </span>
+├── <span class="dir">Modules/</span>_telas/           <span class="cnt"> 1 tela </span>
+├── <span class="dir">Manufacturing/</span>_telas/     <span class="cnt"> 1 tela </span>
+├── <span class="dir">Home</span>                       <span class="cnt"> 1 tela </span>  <span class="tag bad">órfão: sem casa (→ Dashboard? _Geral?)</span>
+├── <span class="dir">ConsultaOs/</span>_telas/        <span class="cnt"> 1 tela </span>
+└── <span class="dir">ComunicacaoVisual/</span>_telas/  <span class="cnt"> 1 tela </span>
+</pre>
+        </div>
+        <div class="legend">
+          <span><span class="tag ok">✓ já existe</span> a pasta <code>_telas/</code> já está no repo</span>
+          <span><span class="tag warn">casing / merge / dedup</span> mapeamento a resolver</span>
+          <span><span class="tag bad">órfão</span> sem dono em <code>requisitos/</code> — decisão do [F]</span>
+        </div>
+      </section>
+
+      <section id="zoom">
+        <h2><span class="num">03</span> Zoom — uma tela por dentro (Produto)</h2>
+        <p class="section-note">O <code>_telas/</code> do Produto já tem RUNBOOK + visual-comparison + parte dos casos. As linhas <span class="add">verdes</span> são o que a migração adiciona.</p>
+        <div class="treewrap">
+          <div class="bar"><span>memory/requisitos/Produto/</span></div>
+<pre class="tree"><span class="root">memory/requisitos/Produto/</span>
+├── BRIEFING.md
+├── SPEC.md
+├── CAPTERRA-FICHA.md
+└── <span class="dir">_telas/</span>
+    ├── <span class="add">Index.charter.md</span>                    <span class="cnt">← MOVE (de Pages/Produto/)</span>
+    ├── <span class="add">Index.casos.md</span>                      <span class="cnt">← MOVE</span>
+    ├── produto-index-visual-comparison.md   <span class="ok">(já existe)</span>
+    ├── RUNBOOK-produto-index.md              <span class="ok">(já existe)</span>
+    ├── <span class="add">Create.charter.md</span>                   <span class="cnt">← MOVE</span>
+    ├── <span class="add">Create.casos.md</span>                     <span class="cnt">← MOVE</span>
+    ├── produto-create-visual-comparison.md  <span class="ok">(já existe)</span>
+    ├── RUNBOOK-produto-create.md             <span class="ok">(já existe)</span>
+    ├── <span class="add">Edit.charter.md</span> · <span class="add">Show</span> · <span class="add">SellingPrices</span> · <span class="add">StockHistory</span> · <span class="add">BulkEdit</span>  <span class="cnt">← MOVE</span>
+    └── …
+</pre>
+        </div>
+        <div class="callout">
+          <span class="k">O nó da questão estética</span>
+          Repare que o mesmo assunto ("tela Create") gera <b>três nomes diferentes</b>: <code>Create.charter.md</code>, <code>produto-create-visual-comparison.md</code>, <code>RUNBOOK-produto-create.md</code>. Isso é o que faz um <code>_telas/</code> flat parecer bagunçado quando cresce. Ver a melhoria na seção 07.
+        </div>
+      </section>
+
+      <section id="indice">
+        <h2><span class="num">04</span> O índice de módulos já existe</h2>
+        <p class="section-note">Não precisa criar um índice novo. A própria raiz <code>memory/requisitos/</code> <b>é</b> o índice — 72 diretórios de módulo, um por dono. E o mapa "qual tela tem charter/casos/teste" continua <b>derivado por comando</b> (<code>npm run screen:files</code> / <code>casos:report</code>), nunca um <code>.md</code> escrito à mão que apodrece.</p>
+        <div class="callout">
+          <span class="k">Por que isso importa</span>
+          A lei-mãe do projeto (<a class="ext" href="#">ADR 0256</a>) diz: <em>derivado + enforçado sobrevive; escrito + lembrado apodrece</em>. O índice de módulos é a árvore de pastas (auto-verdadeira). O índice de artefatos por tela é um <b>comando</b>, não um arquivo. Nenhum dos dois é um documento que alguém precise manter à mão.
+        </div>
+      </section>
+
+      <section id="mercado">
+        <h2><span class="num">05</span> Quem já fez isso — e o que aprendeu</h2>
+        <p class="section-note">A pergunta certa não é "centralizar é bom?" — é "quem centralizou, como não deixou virar bagunça?". Duas escolas, e o oimpresso está entre elas.</p>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th>Quem</th><th>O que fez</th><th>A lição que importa aqui</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="who">Grab</span><br><span class="pill g">mesmo movimento</span></td>
+                <td>Docs-as-code <b>descentralizado → repositório centralizado</b> (mai/2026). É literalmente a Opção A, num monorepo grande.</td>
+                <td>Centralizar só compensa se entregar <b>uma taxonomia, uma navegação, um vocabulário</b>. O ganho é <em>consistência + achabilidade</em>; sem isso, você paga o custo do move e não colhe o benefício.</td>
+              </tr>
+              <tr>
+                <td><span class="who">Diátaxis</span><br><span class="pill g">valida a árvore</span></td>
+                <td>Framework de docs da Canonical/Ubuntu. Regra central: <em>"a arquitetura da referência deve espelhar a estrutura daquilo que descreve — como um mapa."</em></td>
+                <td><code>memory/requisitos/&lt;Mód&gt;/_telas/&lt;Tela&gt;</code> espelhando <code>Pages/&lt;Mód&gt;/&lt;Tela&gt;</code> é <b>exatamente</b> o que o Diátaxis prescreve. A estrutura da Opção A é canônica.</td>
+              </tr>
+              <tr>
+                <td><span class="who">Spec Kit / Kiro</span><br><span class="pill y">fazem o oposto</span></td>
+                <td>GitHub Spec Kit e AWS Kiro <b>colocam</b> a spec ao lado da feature (<code>.specify/</code>, <code>.kiro/specs/</code>), perto do código.</td>
+                <td>O contra-exemplo honesto: a maré spec-driven <b>coloca</b>, não centraliza — o argumento é "o dev atualiza o doc quando ele está do lado do código". A Opção A vai contra essa maré <b>de propósito</b> (ver tradução abaixo).</td>
+              </tr>
+              <tr>
+                <td><span class="who">Swimm</span><br><span class="pill g">já comparado</span></td>
+                <td>Plataforma de doc acoplada ao código com sync doc↔código. O projeto já se mediu contra ela (85 vs 87).</td>
+                <td>O valor não é <em>onde</em> o doc mora — é o <b>enforcement que trava o merge</b> quando o doc drifta. Mover o arquivo não muda a nota; o gate é que segura.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <span class="k">Traduzir a premissa, não copiar a solução (LC-09)</span>
+          A premissa de quem <b>coloca</b> (Spec Kit/Kiro) é "dev mexe no doc se ele estiver junto do código". A premissa do oimpresso pra <b>centralizar</b> é outra: o trio é <b>contrato de governança</b> (não comentário de código), a fonte da Jana é o <code>memory/</code>, e o [F] quer um lugar só. As duas premissas são legítimas — mas a advertência do Grab/Diátaxis vale igual: <b>o benefício da centralização É a consistência</b>. Se centralizar mantendo casing torto, órfãos e nomes inconsistentes, perde o único ganho e fica com o custo.
+        </div>
+      </section>
+
+      <section id="decisoes">
+        <h2><span class="num">06</span> As 6 decisões que definem "profissional ou bagunçado"</h2>
+        <p class="section-note">A árvore em si é limpa. O que faz parecer amador é o <b>mapeamento</b>. Cada linha aqui é uma aresta real medida no repo — e é decisão sua/[W], não consequência técnica.</p>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Aresta</th><th>Como está hoje</th><th>Recomendação</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="num">1</td><td><b>Casing</b> Pages ≠ requisitos</td><td><code>kb→KB</code>, <code>governance→Governance</code>, <code>team-mcp→TeamMcp</code>, <code>ads→ADS</code>, <code>Nfse→NFSe</code>, <code>superadmin→Superadmin</code></td><td><span class="rec">normalizar</span> pelo nome do dir de <code>requisitos/</code> (o dono canônico)</td></tr>
+              <tr><td class="num">2</td><td><b>Purchase vs Compras</b></td><td>4 telas em <code>Pages/Purchase</code>, mas <code>Compras/_telas</code> já tem os RUNBOOKs <code>purchase-*</code></td><td><span class="rec">fundir em Compras</span> — juntar com o que já existe lá</td></tr>
+              <tr><td class="num">3</td><td><b>Stock* vs Estoque</b></td><td><code>StockTransfer</code>/<code>StockAdjustment</code> têm dir próprio <b>e</b> <code>Estoque/_telas</code> já tem os RUNBOOKs deles</td><td><span class="rec">consolidar em Estoque</span> — senão duplica o dono</td></tr>
+              <tr><td class="num">4</td><td><b>Órfãos sem casa</b></td><td><code>TransactionPayment</code>, <code>Settings</code>, <code>Home</code> não têm dir em <code>requisitos/</code></td><td><b>[F] decide</b>: criar o dir OU apontar pro dono (ex.: <code>Settings→Infra</code>, <code>Home→Dashboard</code>)</td></tr>
+              <tr><td class="num">5</td><td><b>Flat vs subpasta por tela</b></td><td><code>_telas/</code> hoje é flat com prefixo — nomes inconsistentes (ver seção 03)</td><td>bifurcação real → ver seção 07</td></tr>
+              <tr><td class="num">6</td><td><b>Naming interno</b></td><td>mistura <code>Create.charter.md</code> · <code>produto-create-visual-comparison.md</code> · <code>RUNBOOK-produto-create.md</code></td><td><span class="rec">uma convenção única</span> de prefixo por tela</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="section-note">Os pontos <b>1–4</b> são os que mais pesam na sensação de "profissional". O <b>5</b> é a bifurcação estética. O <b>6</b> é o que Diátaxis e Grab chamam de "consistência" — o benefício inteiro do move.</p>
+      </section>
+
+      <section id="melhora">
+        <h2><span class="num">07</span> Onde ainda dá pra melhorar — sua intuição estava certa</h2>
+        <p class="section-note">Você disse que a proposta pode melhorar. Pode: a versão da ADR é <b>flat</b> (<code>_telas/Edit.charter.md</code>), e é o que já existe hoje. Mas a coisa que o Diátaxis e o Grab dizem que faz centralização parecer profissional — <b>agrupamento + naming consistente</b> — aponta pra uma variante mais limpa.</p>
+        <div class="ba">
+          <div class="card before">
+            <h4>Opção A (flat) — como está na ADR</h4>
+<pre>Produto/_telas/
+├── Edit.charter.md
+├── Edit.casos.md
+├── RUNBOOK-produto-edit.md
+├── produto-edit-visual-comparison.md
+├── Create.charter.md
+├── Create.casos.md
+├── RUNBOOK-produto-create.md
+└── produto-create-visual-comparison.md</pre>
+          </div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="card after">
+            <h4>Opção A′ (subpasta por tela) — mais navegável</h4>
+<pre>Produto/_telas/
+├── edit/
+│   ├── charter.md
+│   ├── casos.md
+│   ├── runbook.md
+│   └── visual-comparison.md
+└── create/
+    ├── charter.md
+    ├── casos.md
+    ├── runbook.md
+    └── visual-comparison.md</pre>
+          </div>
+        </div>
+        <div class="callout">
+          <span class="k">Trade-off honesto</span>
+          <b>A′ (subpasta por tela)</b> agrupa tudo de uma tela num lugar, mata a inconsistência de nome (aresta 6 some por construção) e é o que o Diátaxis chama de "espelhar a estrutura". <b>Custo:</b> muda o resolver do gate mais uma vez (o passo caro), e o adversário precisa revalidar os globs (<code>_telas/*/charter.md</code> é 3 níveis, não 2 — a mesma pegadinha de glob que a ADR já anotou). <b>Minha recomendação:</b> decidir A vs A′ <b>agora</b>, antes do passo 1 — porque o dual-resolver do <code>casos-gate</code> é escrito uma vez, e refazer depois é caro. Não vale mover flat e "arrumar depois".
+        </div>
+      </section>
+
+      <section id="ordem">
+        <h2><span class="num">08</span> Ordem de execução (quando [W] der o go)</h2>
+        <p class="section-note">Nada aqui toca código ainda. Quando a ADR virar <code>accepted</code>, executo <b>um passo por PR</b>, cada um [W]-gated, com adversarial + bite-test antes de qualquer flip de gate required.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Passo</th><th>O que faz</th><th>Move arquivo?</th><th>Risco</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td><b>Dual-resolver</b> do <code>casos-coverage-guard.mjs</code> — ensina o gate a achar o trio nas duas árvores</td><td>não</td><td><span class="pill y">gate required</span></td></tr>
+              <tr><td class="num">2</td><td>Glob + <code>type</code> no indexer do RAG + schema (Jana, CODEOWNERS [W])</td><td>não</td><td><span class="pill y">Jana / [W]</span></td></tr>
+              <tr><td class="num">3</td><td>Atualizar os consumidores + os gates required omitidos (anchor-content, charter-live, visreg, requisitos-status)</td><td>não</td><td><span class="pill r">≥5 gates required</span></td></tr>
+              <tr><td class="num">4</td><td><code>git mv</code> de um módulo, forward-only, verde a verde</td><td><b>sim</b></td><td><span class="pill r">diff-aware · schema strict</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <span class="k">Gatilho pra arrancar</span>
+          Estou em espera. Começo quando <b>[W] flipar a ADR pra <code>accepted</code></b> (com o label <code>adr-metadata-normalization</code>) <b>ou</b> der um "go" explícito. Merge do proposal ≠ ratificação. E antes do passo 1, preciso da sua decisão <b>A vs A′</b> (seção 07).
+        </div>
+      </section>
+
+      <footer>
+        <p><b>Fontes da comparação (2026):</b></p>
+        <ul>
+          <li><a href="https://noise.getoto.net/2026/05/29/from-decentralized-docs-as-code-to-a-centralized-repository-evolving-grabs-documentation-strategy/">Grab — de docs-as-code descentralizado para repositório centralizado</a></li>
+          <li><a href="https://diataxis.fr/">Diátaxis</a> · <a href="https://ubuntu.com/blog/diataxis-a-new-foundation-for-canonical-documentation">Diátaxis na Canonical/Ubuntu</a></li>
+          <li><a href="https://passo.uno/docs-as-code-topologies/">Docs-as-code topologies (sidecar vs federated)</a> · <a href="https://www.writethedocs.org/guide/docs-as-code/">Write the Docs — Docs as Code</a></li>
+          <li><a href="https://github.com/github/spec-kit">GitHub Spec Kit</a> · <a href="https://kiro.dev/docs/specs/">AWS Kiro — Specs</a></li>
+          <li>Repo: <code>memory/sessions/2026-07-17-arte-artefatos-por-tela.md</code> · <code>2026-07-23-grade-swimm-vs-kb-doc-codigo.md</code> · ADR <code>documentacao-do-fonte-layout-canonico</code></li>
+        </ul>
+        <p>Gerado para decisão [F] · dado medido em <code>git ls-files</code> no branch <code>claude/migracao-a-dual-resolver-g28amj</code> · nenhuma linha de código tocada.</p>
+      </footer>
+    </main>
+  </div>
+</div>

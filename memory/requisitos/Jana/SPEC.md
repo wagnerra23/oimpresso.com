@@ -142,7 +142,7 @@ related_adrs:
 ### Área Dashboard
 
 #### US-COPI-050 · Dashboard consolidado
-**Implementado em:** `Modules/Jana/Http/Controllers/DashboardController.php` · `resources/js/Pages/Jana/Dashboard.tsx` · verificado@dd3ed7c (2026-07-01) — index() renderiza a page Jana Dashboard com metas ativas (cards + sparkline via buildMetasPayload, scope multi-tenant); rota viva GET /ia/dashboard (jana.dashboard.index)
+**Implementado em:** `Modules/Jana/Http/Controllers/IndexController.php` · `resources/js/Pages/Jana/Index.tsx` — index() renderiza o Painel com metas ativas (cards + sparkline via buildMetasPayload, scope multi-tenant); rota viva **GET /ia** (`jana.index`). Renomeado na onda 3 da US-COPI-148 (2026-08-07): era `DashboardController`/`Dashboard.tsx` em `/ia/dashboard`, hoje 301 pra `/ia`. O `verificado@dd3ed7c` sai porque o sha ancorava os caminhos ANTIGOS — mantê-lo seria carimbo apontando pra arquivo inexistente.
 - **Rota:** `GET /copiloto/dashboard`
 - **Controller:** `DashboardController@index`
 - **DoD extra:** cards por meta ativa; sparkline inline; farol; link direto pro detalhe.
@@ -162,9 +162,9 @@ related_adrs:
 ### Área Administração — Onda 1 (ROI direto, ver ADR [`arq/0003`](adr/arq/0003-administracao-roi-governance.md))
 
 #### US-COPI-070 · Dashboard de custo IA
-**Implementado em:** `Modules/Jana/Http/Controllers/Admin/CustosController.php` · `resources/js/Pages/Jana/Admin/Custos/Index.tsx` · `Modules/Jana/Services/CustosService.php` · verificado@dd3ed7c (2026-07-01) — index() renderiza a page Custos com card/tabela por usuário + custo (rota viva GET /ia/admin/custos, jana.admin.custos.index)
+**Implementado em:** `Modules/Governance/Http/Controllers/CustosController.php` · `resources/js/Pages/governance/Custos.tsx` · `Modules/Jana/Services/CustosService.php` · verificado@9bc4503 (2026-08-05) — index() renderiza a page Custos com card/tabela por usuário + custo (rota viva GET /governance/custos, governance.custos.index; /ia/admin/custos redireciona 301 preservando a query)
 - **Rota:** `GET /copiloto/admin/custos`
-- **Controller:** `Admin\CustosController@index`
+- **Controller:** `Modules\Governance\Http\Controllers\CustosController@index` _(era `Jana\Admin\CustosController` — movido 2026-08-05, ADR 0366 §D-B; a US fica registrada aqui porque nasceu no Jana, o código é da Governança)_
 - **Como** admin do business **quero** ver quanto a IA custou esse mês **para** controlar orçamento e justificar ROI.
 - **DoD extra:** card "Esse mês" (R$, #mensagens, #tokens, #usuários ativos); tabela por usuário (nome, #conversas, #mensagens, tokens consumidos, R$ aprox); gráfico diário 90d; preço lido de `config('copiloto.ai.pricing.{modelo}.{input,output}')` em USD/1k tokens × câmbio configurável; permissão `copiloto.admin.custos.view`.
 
@@ -306,7 +306,7 @@ Cenário: Desvio acima do threshold dispara alerta
 
 ## US-COPI-076..081 · Cronograma Cycle 01 (semanas W19+W20)
 
-**Implementado em:** _parcial_ · `memory/decisions/0064-modularizacao-split-teammcp-kb-superadmin360.md` · `memory/decisions/0065-permission-registry-contract.md` · `Modules/ADS/Services/ContextForTaskService.php` · `app/Console/Commands/EvalRagasBaselineCommand.php` · verificado@dd3ed7c (2026-07-01) — epic agregado: 076/077/078/081/082/083 entregues (ADRs + contexto MCP + KB tipado + RAGAS baseline); US-079 (demo Maiara) e US-080 (buffer fix) seguem `todo`
+**Implementado em:** _parcial_ · `memory/decisions/0064-modularizacao-split-teammcp-kb-superadmin360.md` · `memory/decisions/0065-permission-registry-contract.md` · `app/Console/Commands/EvalRagasBaselineCommand.php` · verificado@dd3ed7c (2026-07-01) — epic agregado: 076/078/081/082/083 entregues (ADRs + KB tipado + RAGAS baseline); US-079 (demo Maiara) e US-080 (buffer fix) seguem `todo`. **US-077 saiu do agregado** em 2026-07-31: o `ContextForTaskService` que a ancorava foi removido com o núcleo do ADS ([ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md)) — ver a linha da própria US-077 abaixo.
 Tasks criadas após sessão 2026-05-04 que entregou 4 PRs de modularização (split TeamMcp, split KB, Usuário 360°, delete /ads/admin/kb duplicado). Sequência prioriza fechar dívida documental, evoluir contexto Claude, validar com user real, e medir com RAGAS no fim do cycle.
 
 ### US-COPI-076 · ADRs formais split modular + Permission Registry + atualizar 5 ADRs com URLs antigas
@@ -325,9 +325,9 @@ Fechar dívida documental da sessão 2026-05-04:
 
 ### US-COPI-077 · ContextForTaskService consumir tasks-current MCP em vez de ler CURRENT.md
 
-**Implementado em:** `Modules/ADS/Services/ContextForTaskService.php` · verificado@dd3ed7c (2026-07-01) — lê `mcp_dual_brain_decisions` (outcome success, LIMIT 5, business_id scoped) em vez de filesystem CURRENT.md
+**Implementado em:** _pendente_ — **desimplementada** em 2026-07-31 pela [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md): o `ContextForTaskService` era do núcleo do ADS e foi removido com o módulo, junto da `mcp_dual_brain_decisions` que ele lia. Sem substituto — nenhum módulo vivo consome essa fila. Estado anterior, pra história: verificado@dd3ed7c (2026-07-01) — lia `mcp_dual_brain_decisions` (outcome success, LIMIT 5, business_id scoped) em vez do filesystem CURRENT.md.
 
-> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: done · done_at: 2026-05-04 · commit: 6bca4c1b
+> owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: superseded · done_at: 2026-05-04 · commit: 6bca4c1b · superseded_by: adr-0363
 
 Wagner reclamou 2026-05-03: "CURRENT.md ativo deve ser substituido pelas tarefas que ja foi feito". Hoje `Modules/ADS/Services/ContextForTaskService.php::buildCycleFocus()` lê filesystem CURRENT.md.
 
@@ -755,7 +755,7 @@ Disparada por: `/module-completeness-audit` (skill `module-completeness-audit` v
 | 1 | Multi-instance scope | 🟡 PARCIAL | `ChatController.php:37-41` filtra business_id+user_id, mas UI sem business switcher mid-conversa (props já em `shellPropsFor():124`, falta render) |
 | 2 | Permissions middleware + UI | 🟡 PARCIAL | `McpAuthMiddleware.php:55` + permissions Spatie `jana.*` (migration 2026-05-09) OK; mas sem `Pages/Jana/Admin/Permissions.tsx` — gestão via painel Spatie genérico |
 | 3 | Charter | ✅ APROVADO | `Pages/Jana/Chat.charter.md` status:live, atualizado 2026-05-09, 11 seções + 12 Pest GUARD tests canônicos |
-| 4 | RUNBOOK | ✅ APROVADO | 8+ RUNBOOKs (RUNBOOK.md, RUNBOOK-chat.md, RUNBOOK-cockpit.md, RUNBOOK-memoria-semanal.md, RUNBOOK-governanca-mcp.md, RUNBOOK-qualidade-admin.md, RUNBOOK-custos-admin.md, RUNBOOK-dashboard.md) |
+| 4 | RUNBOOK | ✅ APROVADO | 8+ RUNBOOKs (RUNBOOK.md, RUNBOOK-chat.md, RUNBOOK-cockpit.md, RUNBOOK-memoria-semanal.md, RUNBOOK-governanca-mcp.md, RUNBOOK-qualidade-admin.md, RUNBOOK-custos-admin.md, RUNBOOK-index.md) |
 | 5 | Pest golden + cross-tenant biz=99 | 🟡 PARCIAL | `JanaHealthCheckTest.php:1-76` (golden smoke OK) + `HitTrackerServiceTest.php:12-20` (cross-tenant scoped); sem `biz_99` hardcoded como pattern canon |
 | 6 | AuditLog em mutações | ✅ APROVADO | `McpAuthMiddleware.php:113-127` chama `McpAuditLog::registrar()` em toda request MCP com user_id, business_id, endpoint, tokens, custo, ip, duration |
 | 7 | business_id global scope | ✅ APROVADO | 32+ migrations com business_id; `ChatController.php:40-42` + `DashboardController.php:20-24` aplicam scope; TIER 0 IRREVOGÁVEL conformado |
@@ -950,7 +950,7 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 
 ### US-COPI-106 · Jana V2 demo — tela navegável apresentável a 1 cliente piloto
 
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/PainelController.php` · `resources/js/Pages/Jana/Painel.tsx` · verificado@dd3ed7c (2026-07-01) — tela Cockpit Analista IA (`/ia/painel`, charter live) existe, mas ainda com `buildMockPayload` (mock data); fluxo navegável real biz=4 + smoke + demo script a cliente piloto não confirmados (status todo)
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/IndexController.php` · `resources/js/Pages/Jana/Index.tsx` — REANCORADA 2×: apontava pro `PainelController`/`Painel.tsx` (removidos na onda 1, 2026-08-06 [W]) e depois pro `DashboardController`/`Dashboard.tsx`, renomeados na onda 3 (2026-08-07). O `verificado@ee54ee50373` sai porque o sha ancorava os caminhos ANTIGOS — carimbo apontando pra arquivo inexistente é pior que carimbo ausente. O receptor é o `/ia`, que entrega o mesmo cockpit (brief · KPIs · análises · ações via `resources/js/Pages/Jana/_components/JanaCockpit.tsx`) porém com dado REAL do SellsCockpitAggregator — o Painel servia buildMockPayload(). Segue `_parcial_` pelo mesmo motivo de antes: smoke biz=4 + demo script a cliente piloto não confirmados (status todo)
 
 > owner: wagner · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
@@ -1123,9 +1123,9 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** rota `/copiloto/admin/roadmap` com Gantt visual cronológico (SVAR React Gantt MIT) + sub-issues hierarchy view (parent_task_id) + drag-drop datas + filtro current cycle default
 **Para** fechar gap Viz (5%→70%) — listas markdown via tools MCP não mostram cronologia/dependências; Linear/Plane/GitHub Projects vão 5 anos à frente em viz
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Jana/Admin/Roadmap.tsx` · `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` · `resources/js/Pages/Jana/Admin/Roadmap.charter.md` · verificado@a68b435 (2026-07-12, máquina) — **CORREÇÃO de página:** o Gantt do V1 vive na tela Jana Admin Roadmap (não na tela ProjectMgmt Roadmap, que é outra — colunas por quarter). O Gantt SVAR de LEITURA já estava construído (barras + summary por módulo + dependency arrows via `blocked_by` + drawer de detalhe), roteado em `/ia/admin/roadmap` e surfaced no menu IA (ghost em `DataController`). **B2 — drag-drop reschedule (Wagner-explícito 2026-07-12, override do Non-Goal do charter):** arrastar/redimensionar a barra reagenda o PRAZO (`due_date`) via PATCH em /ia/admin/roadmap/tasks/{taskId}/schedule (gated `jana.mcp.tasks.write`, persiste pelo `TaskCrudService` canônico). `started_at` fica lifecycle-managed (não arrastável). **Gate visual R7/R1 FECHADO (2026-07-12):** Wagner arrastou a barra "Listar Budget" em prod (tela /ia/admin/roadmap no oimpresso.com) e o prazo persistiu — evidência objetiva: Duration 6→8 entre dois screenshots (due_date estendido, recalculado e servido pelo backend) + confirmação humana "persistiu". Deploy Hostinger @f8d68b232d. Backend coberto por 3 Pest (403/422/update). status→done.
+**Implementado em:** _parcial_ · `resources/js/Pages/Forja/Roadmap/Gantt.tsx` · `Modules/Forja/Http/Controllers/RoadmapGanttController.php` · `resources/js/Pages/Forja/Roadmap/Gantt.charter.md` · verificado@a68b435 (2026-07-12, máquina) — **CORREÇÃO de página:** o Gantt do V1 vive na tela Jana Admin Roadmap (não na tela ProjectMgmt Roadmap, que é outra — colunas por quarter). O Gantt SVAR de LEITURA já estava construído (barras + summary por módulo + dependency arrows via `blocked_by` + drawer de detalhe), roteado em `/forja/roadmap-gantt` e surfaced no menu IA (ghost em `DataController`). **B2 — drag-drop reschedule (Wagner-explícito 2026-07-12, override do Non-Goal do charter):** arrastar/redimensionar a barra reagenda o PRAZO (`due_date`) via PATCH em /forja/roadmap-gantt/tasks/{taskId}/schedule (gated `jana.mcp.tasks.write`, persiste pelo `TaskCrudService` canônico). `started_at` fica lifecycle-managed (não arrastável). **Gate visual R7/R1 FECHADO (2026-07-12):** Wagner arrastou a barra "Listar Budget" em prod (tela /forja/roadmap-gantt no oimpresso.com) e o prazo persistiu — evidência objetiva: Duration 6→8 entre dois screenshots (due_date estendido, recalculado e servido pelo backend) + confirmação humana "persistiu". Deploy Hostinger @f8d68b232d. Backend coberto por 3 Pest (403/422/update). status→done.
 
-**Testado em:** `Modules/Jana/Tests/Feature/Roadmap/RoadmapControllerTest.php` (reschedule: 403 sem write, 422 sem due_date, update de due_date pelo TaskCrudService; `// @covers-us US-COPI-111`)
+**Testado em:** `Modules/Forja/Tests/Feature/Roadmap/RoadmapGanttControllerTest.php` (reschedule: 403 sem write, 422 sem due_date, update de due_date pelo TaskCrudService; `// @covers-us US-COPI-111`)
 
 **Definition of Done:**
 - [ ] npm dep `@svar-widgets/react-gantt` (MIT, ~80KB, React 19 nativo — rejeitado DHTMLX/Bryntum/Frappe por licença ou bundle)
@@ -1350,11 +1350,13 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-123 · Remover startMockStream da rota live /ia/dashboard (Cockpit responde mock)
 
-**Implementado em:** _pendente_ — fix não aplicado: `resources/js/Pages/Jana/Cockpit.tsx` ainda define e chama `startMockStream` (linhas ~707/780) na rota live `/ia/cockpit`; falta plugar streaming real (Jana chat/SSE) com fallback (status todo)
+**Implementado em:** `Modules/Jana/Http/Controllers/ChatController.php` — RESOLVIDA POR REMOÇÃO na onda 4 da US-COPI-148 (2026-08-07), não por conserto. As DUAS metades do mock em rota live saíram juntas: o `startMockStream` (que vivia só no `Cockpit.tsx`, medido — 2 ocorrências no repo inteiro, ambas nele) e o `mockJanaPayload()` deste controller (chamado **só** por `cockpit()`). A capacidade tem receptor vivo em `/ia` (`IndexController`), que entrega brief · KPIs · análises · ações com dado REAL do `SellsCockpitAggregator` — nunca foi preciso "plugar SSE real no cockpit", bastou parar de servir a tela mock. Correção de rota: o título desta US dizia `/ia/dashboard`, mas o mock estava em `/ia/cockpit`; o corpo (que dizia certo) prevaleceu.
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: —
 > parent_plan: adr0270-cockpit-mock-kill
+
+**Testado em:** `Modules/Jana/Tests/Feature/CockpitMockRemovidoTest.php` (`// @covers-us US-COPI-123`) — 4 casos que travam a PROIBIÇÃO que a US pede, não o código que a implementa: a Page não existe · `startMockStream` não aparece em nenhuma Page da Jana · o ChatController não tem `cockpit()` nem `mockJanaPayload()` (com controle negativo: `iniciais()` FICOU, porque index/show usam) · `/ia/cockpit` responde 301 pro Painel. Reintroduzir qualquer metade do mock, ou ressuscitar a rota, deixa vermelho.
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
@@ -1922,7 +1924,7 @@ Ação de credencial/infra que destrava a dimensão erp-ia-produto (o mecanismo 
 > owner: — · priority: p2 · status: todo · type: story
 > blocked_by: —
 
-O `/ia/dashboard` (Pages/Jana/Dashboard.tsx + JanaCockpitV2) viola PT-04-Dashboard L80: aplica o wrapper `.sells-cowork` (bundle do módulo Sells) e consome tokens `.vd-insights-*` do `sells-cowork-insights.css` — ilha CSS paralela, não usa os shared canônicos. Consequência: dark mode quebrado (cores light hardcoded no bundle) + acoplamento cross-module.
+O `/ia` (Pages/Jana/Index.tsx + `_components/JanaCockpit`) viola PT-04-Dashboard L80: aplica o wrapper `.sells-cowork` (bundle do módulo Sells) e consome tokens `.vd-insights-*` do `sells-cowork-insights.css` — ilha CSS paralela, não usa os shared canônicos. Consequência: dark mode quebrado (cores light hardcoded no bundle) + acoplamento cross-module.
 
 A catraca já existe (ui:lint R7 · PR #4582 · `UiLintCommand::checkR7`): a dívida está travada no baseline (`Jana/Dashboard` R7:1), ninguém pode piorar, mas a migração é manual.
 
@@ -1977,3 +1979,34 @@ Escopo:
 **DoD:** nenhuma tabela da camada de IA promete no docblock o que o banco não garante, e nenhum código escreve em tabela que não existe.
 
 **Refs:** [ADR 0084](../../decisions/0084-triggers-mysql-imutabilidade-mcp-audit-log.md) · [ADR 0280](../../decisions/0280-postura-multi-tenant-tabelas-mcp-governanca.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · `ProjectMgmt/SPEC.md` PMG-012 · `TaskRegistry/SPEC.md` D1 · proibicoes.md §5 2026-07-17 (recibo datado, não número atemporal)
+
+---
+
+### US-COPI-148 · Fundir as telas da Jana numa tela única `/ia` com abas Painel | Conversa | Memória
+
+> owner: wagner · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — a onda 1 saiu no [PR #5357](https://github.com/wagnerra23/oimpresso.com/pull/5357) (2026-08-06), mas a US só ancora em código quando as 4 ondas fecharem e houver teste citando-a. Âncora de path real com `status: todo` avermelha o `anchor entry/covers` e o `doneness-lint` ao mesmo tempo — por isso `_pendente_` até o gate.
+
+**Origem:** pedido [CC] `JANA-FUSAO-2026-08-06`, ratificado [W] 2026-08-06. Hoje o módulo espalha a mesma capacidade por 4 superfícies (`/ia` chat · `/ia/cockpit` · `/ia/dashboard` · `/ia/painel`) e o nível de navegação entre elas é o que a fusão elimina. **Todo número abaixo foi medido no repo vivo em 2026-08-06** — o pedido original foi escrito contra um espelho local, e 4 pontos dele não batiam com `origin/main`.
+
+**✅ Onda 1 — ENTREGUE.** Removido o `/ia/painel`: era hub de 3 links + `buildMockPayload()`, com **0 hits** no ledger `governance/route-hits.json` (janela 30d) contra 4 do `/ia/dashboard` na mesma janela, e o link `/ia/chat` do próprio hub apontava pra rota inexistente. A capacidade tem receptor vivo — `/ia/dashboard` entrega brief · KPIs · análises · ações via `resources/js/Pages/Jana/_components/JanaCockpit.tsx`, alimentado pelo `SellsCockpitAggregator` com dado real. `US-COPI-106` reancorada no Dashboard. A `US-JANA-PAINEL-001` citada no charter/teste/`SCOPE.md` **nunca existiu neste SPEC** — era id fantasma.
+
+**✅ Onda 2 — ENTREGUE (2026-08-07, [PR #5380](https://github.com/wagnerra23/oimpresso.com/pull/5380)).** O vocabário das abas virou `Painel | Conversa | Memória` — e a onda inteira morou no `DataController` (PHP), porque é de lá que os ghosts vêm, como esta própria US avisava. Só o **label** mudou: as `key` são casadas com o `activeGhostKey` do `PageHeaderTabs` e com o `mapActiveToGhostKey`, então renomeá-las quebraria o match **em silêncio** (a aba deixaria de acender) sem ganho visível. Junto, um hop a menos: o href do ghost `memorias` apontava pra `/ia/memorias`, que é um 302 — passou a apontar pro destino real, pela mesma regra da "fronteira suja" que tirou o ghost `kb` deste mesmo bloco em 2026-08-05 (ADR 0366). ⛔ `JanaTabs.tsx` **não** foi criado. Achado registrado sem consertar: **duas** entries declaram `group => 'ia'` (Jana `order(90)`, KB `order(91)`) e o `JanaSubNav` pega a primeira — mesma forma do bug que derrubou o Financeiro em prod (WR2, 2026-06-16); aqui não está vivo por duas razões independentes (a Jana vem antes E o KB não declara `ghosts`), o que foi confirmado ao vivo no smoke.
+
+**~~⏳ Onda 2 — abas.~~** (texto original, preservado) Estender `resources/js/Pages/Jana/components/JanaAreaHeader.tsx` + `resources/js/Pages/Jana/_shared/JanaSubNav.tsx` pro vocabulário `Painel | Conversa | Memória`. Os dois **já existem** e já servem as 4 telas (`Chat.tsx:268` · `Cockpit.tsx:963` · `Dashboard.tsx:271` · `Memoria.tsx:150`). ⛔ **Não criar `JanaTabs.tsx`** como o pedido propõe: seria máquina paralela a tema que já tem dono (classe LC-19, lápide §5 2026-08-03). Precedente de como fazer: a Governança saiu deste mesmo header pra strip própria em 2026-08-05.
+
+**✅ Onda 3 — ENTREGUE (2026-08-07).** `Dashboard.tsx` → `Index.tsx`, `DashboardController` → `IndexController`, e a rota do Painel foi de `/ia/dashboard` para **`/ia`** — medido antes de mover: `routes/web.php` já fazia `/home → redirect('/ia/dashboard')`, logo o Painel JÁ ERA o destino pós-login e a troca alinha a URL com o que acontecia (o `/home` passou a apontar direto, economizando um hop por login). A Conversa saiu da raiz para **`/ia/conversa`** (`jana.chat.index` preservado como nome). `/ia/dashboard` e `/ia/cockpit` viraram **301** pra `/ia`; o `/ia/painel` (onda 1) foi reapontado pra não virar cadeia 301→301. Além do previsto: os 2 baselines de lint + 4 catracas chaveadas por path + 9 linhas do `phpstan-baseline` + o `scorecards/screens/jana-dashboard.yaml` (que precisou trocar de NOME — só editar o conteúdo deixava a tela sem scorecard no `screen-coverage`, achado ao regenerar o baseline da árvore em vez de confiar no sed). Resíduo declarado: `Pro.tsx` mantém `voltar → /ia` (agora o Painel, não o chat) e o comentário "Esc volta ao chat" ficou stale — consertar exige `RUNBOOK-pro.md`, que não existe, e criar um RUNBOOK para consertar um comentário é desproporcional.
+
+**~~⏳ Onda 3 — rename.~~** (texto original, preservado) `Dashboard.tsx` → `Index.tsx` + `DashboardController` → `IndexController` + redirects 301 de `/cockpit` e `/dashboard` + conserto da âncora do SPEC + `DataController.php:204`, que é o **único** consumidor de código de `jana.dashboard.index`.
+
+**✅ Onda 4 — ENTREGUE (2026-08-07).** `Cockpit.tsx` **apagado** (não substituído em-place, como o charter dele previa — a decisão mudou: quem sobrevive é o Painel). Saíram juntos, por dependência mútua medida: a Page, o `ChatController@cockpit`, o `mockJanaPayload()` (chamado só por ele) e o `saudacaoPorHora()` (chamado só pelo payload) — **188 linhas** do controller. Também: o ghost do menu, o membro `cockpit` do `JanaAreaTab`, o `Cockpit.charter.md` (o schema de charter não tem `historical` — o enum é draft|live|deprecated — e `component` é obrigatório, então charter apontando pra arquivo apagado quebraria o `charter-refs`; nenhum dos 3 charters `deprecated` do repo tem component inexistente, logo não há esse padrão aqui), o scorecard, o proto-baseline e 4 chaves de baseline de lint. O registro do "por quê" ficou no [`RUNBOOK-cockpit.md`](RUNBOOK-cockpit.md), arquivado com lápide. `/ia/cockpit` segue **301 → /ia** (da onda 3). **Fechou a `US-COPI-123` (p0) de graça.** ⚠️ O `JanaCockpitV2.tsx` **NÃO** foi tocado — serve a tab Insights de `/sells`.
+
+**~~⏳ Onda 4 — destino do `Cockpit.tsx`~~** (texto original, preservado) (1022 ln). ⚠️ **Medido, contra o que o pedido afirma:** o cockpit **não** está implementado 2×, são **3** arquivos — e `resources/js/Pages/Jana/components/JanaCockpitV2.tsx` serve a tab Insights de `/sells` (`resources/js/Pages/Sells/Index.tsx:55`), logo **não é duplicata da Jana e não pode ser apagado**. Apagar `Cockpit.tsx` exige remover junto `ChatController@cockpit`, que faz `Inertia::render('Jana/Cockpit')` em `Modules/Jana/Http/Controllers/ChatController.php:666`.
+
+**Fora da fusão** (ficam FOCO, sem abas): `/ia/pro` e `/ia/metas*`. **Superfície não tratada pelo pedido:** `/ia/alertas` · `/ia/alertas/config` · `/ia/superadmin/metas` · `/ia/admin/*`.
+
+**Pendências [W]** (herdadas do pedido, não são do [CL]): dados por empresa no protótipo — o mock é do Martinho nas três empresas; arquivar/renomear/apagar conversa; inserir fato manual; paginação da memória; período custom nas metas.
+
+**DoD:** `/ia` serve as 3 abas · nenhuma rota órfã (`route:list` sem `Jana/*` apontando pra Page inexistente) · charters fundidos com `casos.md` por aba · smoke real pós-deploy colado no PR de cada onda.

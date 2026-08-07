@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **366** arquivos · **351** números únicos · máx **0361**
-- **ADRs ATIVOS (lifecycle ativo): 329** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 331 · superseded 15 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 329 · arquivado 22 · substituido 15
+- **375** arquivos · **360** números únicos · máx **0371**
+- **ADRs ATIVOS (lifecycle ativo): 337** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 338 · superseded 16 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 337 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (366)
+## Todas as ADRs (375)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -181,7 +181,7 @@ _(nenhuma)_
 | 0142 | aceito | ativo | decision | Notas internas como sinal de treino pra Jana — slash commands + 3 tabelas + pars |
 | 0143 | aceito | ativo | decision | FSM Pipeline Canônico LIVE em prod biz=1 — marco 2026-05-12 (40+ PRs em ~10h) |
 | 0144 | aceito | ativo | decision | TaskRegistry — DB é canon de estado vivo, SPEC.md é template descritivo |
-| 0145 | aceito | ativo | decision | IA Administradora do oimpresso — pivot ADS↔FSM + piloto Cobradora ROTA LIVRE |
+| 0145 | superseded | substituido | decision | IA Administradora do oimpresso — pivot ADS↔FSM + piloto Cobradora ROTA LIVRE |
 | 0146 | deprecated | arquivado | decision | Refactor contact_lid como chave canônica de identidade WhatsApp |
 | 0147 | aceito | ativo | decision | Cascade Review §10.4 — Defesa em profundidade contra drift pré-entrada time MCP |
 | 0148 | aceito | ativo | decision | Cascade Review §10.4 — Onda 6 fechamento roadmap memoria-senior pra nota 98 |
@@ -375,7 +375,7 @@ _(nenhuma)_
 | 0330 | aceito | ativo | meta | Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda d |
 | 0331 | aceito | ativo | decision | Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector  |
 | 0332 | aceito | ativo | decision | Importers complementares Wave 2 (compras/estoque/contacts-NFe-fornecedores/daemo |
-| 0333 | proposto | ativo | meta | Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (pon |
+| 0333 | aceito | ativo | meta | Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (pon |
 | 0334 | aceito | ativo | meta | Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia |
 | 0335 | aceito | ativo | decision | Fechamento do loop diff-first DS-sync: nota honesta (B−/C+ vs SOTA A−), régua re |
 | 0336 | aceito | ativo | decision | Emenda à 0314 — gates de design PODEM virar required quando provarem mordida REA |
@@ -404,3 +404,12 @@ _(nenhuma)_
 | 0359 | aceito | ativo | errata | Errata à 0358 — remover a ADR resolveu a colisão NO DISCO, mas o número 0101 não |
 | 0360 | aceito | ativo | decision | Depreciação do Admin Center (Modules/Admin) — o painel nunca foi alcançável e nã |
 | 0361 | aceito | ativo | errata | Errata à 0354 — a promoção de `teammcp-pest` a required nunca chegou à proteção  |
+| 0363 | aceito | ativo | decision | Modules/Governance incorpora o Modules/ADS — a política tinha posse partida e o  |
+| 0364 | aceito | ativo | decision | O trio de tela (charter + casos) muda de casa para memory/requisitos/<Modulo>/_t |
+| 0365 | aceito | ativo | decision | O trio de tela (charter + casos) FICA colocado ao lado do .tsx; a doc espelha o  |
+| 0366 | aceito | ativo | decision | Fronteira dos 4 módulos emaranhados — Jana (IA) · Forja (trabalho + MCP) · Gover |
+| 0367 | proposto | ativo | decision | Cockpit único do time: /project-mgmt morre, /forja e /team-mcp/tasks ficam — cin |
+| 0368 | aceito | ativo | decision | Funil de admissão de feature — a pesquisa de mercado propõe, [W] admite ou recus |
+| 0369 | aceito | ativo | decision | Emenda à 0314 — Compras, Estoque e Ponto (Pest MySQL) promovidos a REQUIRED (val |
+| 0370 | aceito | ativo | decision | Emenda à 0314 — module-surface e catalog-graph promovidos a REQUIRED (índice der |
+| 0371 | proposto | ativo | decision | Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob raja |

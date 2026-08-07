@@ -113,7 +113,7 @@ function concilScore_cleanup(array $lineIds, array $origemIds): void
         ->forceDelete();
 }
 
-it('valor exato + mesmo dia gera score ~1.0 (NÃO o constante 0.85)', function () {
+it('UC-FCC-04 · valor exato + mesmo dia gera score ~1.0 (NÃO o constante 0.85)', function () {
     $user = concilScore_userBiz1();
 
     // Âncora no passado pra estabilidade (sem interferir com schedulers/aging).
@@ -136,7 +136,7 @@ it('valor exato + mesmo dia gera score ~1.0 (NÃO o constante 0.85)', function (
     concilScore_cleanup([$lineId], [$origemId]);
 });
 
-it('candidato com data afastada tem score estritamente menor que o exato', function () {
+it('UC-FCC-05 · candidato com data afastada tem score estritamente menor que o exato', function () {
     $user = concilScore_userBiz1();
 
     $diaLinha = CarbonImmutable::parse('2026-01-15');
@@ -176,7 +176,7 @@ it('candidato com data afastada tem score estritamente menor que o exato', funct
     concilScore_cleanup([$lineExato, $lineLonge], [$origemExato, $origemLonge]);
 });
 
-it('score nunca é o constante 0.85 pra candidatos distintos', function () {
+it('UC-FCC-04 · score nunca é o constante 0.85 pra candidatos distintos', function () {
     $user = concilScore_userBiz1();
 
     $diaLinha = CarbonImmutable::parse('2026-01-15');

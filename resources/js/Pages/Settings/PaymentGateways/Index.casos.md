@@ -31,7 +31,7 @@ last_run: "2026-07-03"
 - **[BACKLOG · 🧪 tem teste] Lista gateways do business + warn deprecated** — PesaPal aparece com label `warn`. _Coberto por `...ControllerTest::lista gateways + warn deprecated PesaPal`._
 - **[BACKLOG · 🧪 tem teste] Novo gateway (wizard) cria credencial Inter sandbox** — e rejeita duplicata `(business_id, gateway_key, ambiente)`, rejeita conta de outro business (Tier 0), valida enum de `gateway_key`. _Coberto por `PaymentGatewaysControllerStoreTest` (4 casos)._
 - **[BACKLOG · ⬜ sem teste] Health check on-demand atualiza `health_status`** — Dado botão "Testar todos" / "Rodar agora" · Quando aciono · Então o endpoint atualiza `health_status`/`latencia`/`last_check` no DB. _Charter prevê Pest GUARD `health-check endpoint atualiza health_status` mas o teste ainda não existe — candidato a UC + Pest._
-- **[BACKLOG · ⬜ sem teste · UI] Ações de linha não-wired** — os botões por-linha `RefreshCw` (rodar health check) e `MoreHorizontal` (mais ações) não têm `onClick` (Index.tsx:248,250). Candidato a UC E2E quando forem ligados.
+- **[BACKLOG · ⬜ sem teste · UI] Ações de linha não-wired** — os botões por-linha `RefreshCw` (rodar health check) e `MoreHorizontal` (mais ações) não têm `onClick` (Index.tsx:248 (verificado@d4afe95),250). Candidato a UC E2E quando forem ligados.
 
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane do PaymentGateway no CT100 ([ADR 0062]) — `PaymentGatewaysControllerTest` + `...StoreTest` já verdes.

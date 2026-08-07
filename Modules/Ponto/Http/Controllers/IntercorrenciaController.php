@@ -96,8 +96,23 @@ class IntercorrenciaController extends Controller
 
     public function store(IntercorrenciaRequest $request): RedirectResponse
     {
+        // US-PONTO-013 — o `business_id` NUNCA era atribuído no caminho de criação, e a
+        // coluna é NOT NULL + FK sem default: registrar intercorrência pela tela não
+        // gravava. Cadeia medida: o FormRequest não declara a chave (logo `validated()`
+        // não a devolve) · o Service seta só `codigo`/`solicitante_id`/`estado` · o
+        // `creating` só gera UUID · o trait `HasBusinessScope` só adiciona o scope de
+        // LEITURA · 0 `observe()` no módulo. O próprio Service denunciava que sabia:
+        // usa `($dados['business_id'] ?? 0)` no span.
+        //
+        // Injetado AQUI (e não no FormRequest) seguindo o padrão do próprio módulo —
+        // `EscalaController@store` faz igual, e o docblock do `StoreEscalaRequest` crava
+        // a regra: "business_id injetado pelo Controller via session/auth; nunca aceito
+        // do request body (anti-tampering cross-tenant)" — ADR 0093.
+        $dados = $request->validated();
+        $dados['business_id'] = session('business.id') ?: $request->user()->business_id;
+
         $intercorrencia = $this->service->criar(
-            $request->validated(),
+            $dados,
             $request->user()->id
         );
 

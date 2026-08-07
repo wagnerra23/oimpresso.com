@@ -162,7 +162,7 @@ afterEach(function () {
     }
 });
 
-it('D5 — Customer Journey completo (9 passos)', function () {
+it('UC-RBSUB-08 · D5 — Customer Journey completo (9 passos)', function () {
     // ───────── Setup ─────────
     $subRepo = new SubscriptionRepository();
     $invRepo = new InvoiceRepository();
@@ -249,7 +249,7 @@ it('D5 — Customer Journey completo (9 passos)', function () {
     expect($subRepo->mrrBaselineCached(1))->toBe(0.0); // canceled não soma MRR
 });
 
-it('D5 — Multi-tenant journey: biz=99 não interfere com biz=1', function () {
+it('UC-RBSUB-08 · D5 — Multi-tenant journey: biz=99 não interfere com biz=1', function () {
     $subRepo = new SubscriptionRepository();
     $service = new AssinaturaService($subRepo);
     $plan = Plan::where('business_id', 1)->first();

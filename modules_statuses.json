@@ -1,5 +1,4 @@
 {
-    "ADS": true,
     "Accounting": false,
     "Arquivos": true,
     "AssetManagement": true,
@@ -34,7 +33,6 @@
     "Repair": true,
     "Spreadsheet": true,
     "Superadmin": true,
-    "TeamMcp": true,
     "Vestuario": true,
     "VozDoCliente": true,
     "Whatsapp": true,

@@ -1,6 +1,7 @@
 ---
 module: Spreadsheet
-purpose: "Planilhas internas — uso interno do time."
+purpose: "Planilhas Luckysheet dentro do ERP — CRUD, pastas e compartilhamento com usuário, papel ou tarefa do próprio business. Módulo legado UltimatePOS vendido por assinatura, em manutenção bug-fix only."
+migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
 contains:
   - "DataController"
   - "InstallController"
@@ -8,7 +9,7 @@ contains:
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
-  - "MCP server admin → Modules/TeamMcp"
+  - "MCP server admin → Modules/Forja"
 trust_required: L4
 owner: wagner
 permission_prefix: spreadsheet.*

@@ -90,6 +90,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\DesignIngestZipCommand::class, // plano vectorized-badger PR-2 — ingestão de design-zip (prepare-only)
                 \Modules\Jana\Console\Commands\DesignMineRawCommand::class, // plano vectorized-badger PR-3 — minera raw→candidatos 🔍 (human-gated)
                 \Modules\Jana\Console\Commands\ProfileDistillCommand::class, // COPI-26 — job que faltava: regenera jana_business_profile (distiller nunca foi agendado; L-OP-002)
+                \Modules\Jana\Console\Commands\SkillScaffoldCommand::class,  // vindo do ADS 2026-07-31 — as tabelas mcp_skills* sempre foram da Jana
             ]);
         }
     }
@@ -103,6 +104,9 @@ class JanaServiceProvider extends ServiceProvider
         $this->app->singleton(\Modules\Jana\Services\ApuracaoService::class);
         $this->app->singleton(\Modules\Jana\Services\ContextSnapshotService::class);
         $this->app->singleton(\Modules\Jana\Services\AlertaService::class);
+        // Vindos do Modules/ADS em 2026-07-31 (incorporação): o service estava do lado
+        // errado da fronteira desde sempre — as 5 tabelas mcp_skills* já eram da Jana.
+        $this->app->singleton(\Modules\Jana\Services\ScaffoldSkillFromMissionService::class);
 
         // Freshness (GAP D7 #2 · revisão adversarial 2026-05-29 finding #2):
         // StalenessDetectorService é STATEFUL (repoBasePath). Sem singleton, o
