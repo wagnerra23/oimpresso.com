@@ -979,7 +979,9 @@ Logo as duas são **bug de acesso (classe A)**, com a forma exata do `kb.ai`:
 
 **Corrigido:** os 5 pontos acima passam a citar a permissão que o endpoint realmente exige. Órfãs **37 → 36** (`restaurant.create` saiu do censo).
 
-**Fica pendente de decisão [W] — 1 ponto:** `@can('restaurant.view')` na listagem de `modifier_sets`. O `ModifierSetsController::index()` **não tem guard nenhum**, e as ações por linha usam `product.update`/`product.delete`. Não há permissão equivalente pra "ver a lista": escolher uma (ou remover o `@can` e alinhar com o endpoint, que hoje não restringe) é desenho de autorização — não foi inventado aqui.
+**`@can('restaurant.view')` na listagem de `modifier_sets` — DECIDIDO [W] 2026-08-07: fica como está.** O `ModifierSetsController::index()` não tem guard nenhum e as ações por linha usam `product.update`/`product.delete`; não há permissão equivalente a "ver a lista", e as duas saídas (declarar uma × remover o `@can` e alinhar com o endpoint) são desenho de autorização. [W] decidiu **não mexer** — *"pode deixar os botão"* — no mesmo turno em que informou que **a feature Restaurante existe mas não está em uso agora**. Consequência aceita conscientemente: a listagem segue visível só a admin (via `Gate::before`), porque `restaurant.view` continua sem declaração. **Não reabrir sem [W]**; se a feature entrar em uso, é aí que a escolha passa a custar.
+
+> Contexto que essa decisão fixa, e que a triagem original errava: **Restaurante/Mesas é feature existente**, confirmada pelo dono — não "módulo legado que sumiu". A classificação B ("feature legada sem módulo") estava errada quanto ao fato, não só quanto ao efeito.
 
 **`hms.*` (3) — a classe B procede, e a remoção é inerte.** Eles aparecem só em cadeias `OR` com permissões reais (`purchase.payments`, `sell.payments`, `delete_sell_payment`…) em `TransactionPaymentController` e `show_payments.blade.php`. Um termo sempre-falso num `OR` não muda veredito, então tirá-los preserva comportamento — mas **antes de remover, confirmar na base de produção** se `hms.*` não foi semeada historicamente pelo upstream UltimatePOS: o detector lê código, não o `permissions` vivo.
 
