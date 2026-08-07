@@ -988,6 +988,31 @@ Logo as duas são **bug de acesso (classe A)**, com a forma exata do `kb.ai`:
 >
 > Consertar renderia **0 falso-positivo removido** e mexeria num strip deliberadamente conservador (o cabeçalho dele explica por que não corta `//` no meio da linha). Fica **registrado, não construído** — se algum dia um `@can` comentado não tiver gêmeo vivo, o número deixa de ser 0 e aí o conserto se paga. Reabrir exige re-rodar a medição acima, não a leitura do código.
 
+#### Confronto com a BASE DE PRODUÇÃO — a 6ª fonte que faltava (2026-08-06)
+
+A ressalva que travava a remoção era sempre a mesma: *"o detector lê código, não o `permissions` vivo"*. **Foi consultado.** As 36 órfãs do censo confrontadas com `permissions` × `role_has_permissions` em prod (SSH Hostinger, leitura pura):
+
+| | |
+|---|---|
+| Existem em produção | **1 de 36** |
+| Qual | **`sale.history.view`** — concedida ao papel `Admin#164` (**business 164 = Martinho, OficinaAuto LIVE**, 5 usuários) |
+| As outras 35 | não existem na tabela — ninguém pode recebê-las, o detector está certo |
+
+**O que isso decide:**
+
+- **`hms.*` (classe B) — remoção liberada.** Não existem em prod, e no código só aparecem em cadeias `OR` com permissões reais. Ausentes da tabela + termo sempre-falso num `OR` = remover preserva comportamento nos dois eixos. A ressalva que faltava está paga.
+- **`sale.history.view` (classe D) — NÃO remover sem decisão [W].** É a única com concessão real, e num cliente vivo. Que o papel seja `Admin#...` (que já passa por `Gate::before`) torna a concessão possivelmente cosmética — mas "possivelmente" não é base pra apagar permissão de tenant em produção. Decisão de mérito.
+- **As outras 34 — o instrumento não é mais objeção.** Declarar × remover o `can()` passa a ser decisão de produto, sem "e se existir em prod?" pendurado.
+
+```bash
+# recibo — leitura pura, sem escrita:
+# SELECT name, COUNT(DISTINCT rhp.role_id) FROM permissions p
+#   LEFT JOIN role_has_permissions rhp ON rhp.permission_id = p.id
+#   WHERE p.name IN (<as 36 do --json>) GROUP BY p.name;
+```
+
+⚠️ **O número é datado, não perene:** mede o `permissions` de **2026-08-06**. Um seeder futuro, um cliente novo ou um `syncPermissions` mudam a resposta — quem for agir sobre ele **re-roda a consulta**, não cita esta linha.
+
 **Nota sobre B/C/D:** o denominador de declaração do detector são 5 fontes (`DataController`, `Resources/permissions.php`, `role/*.blade.php`, `PermissionsTableSeeder`, `syncPermissions` em runtime). Seeders de módulo (ex.: `NfeFiscalActionsSeeder`) **não** entram — foi o que fez `fiscal.inutilizar` aparecer. Antes de declarar qualquer permissão da classe C, conferir se ela já existe em fonte fora dessas cinco.
 
 **A conferência foi FEITA — e o ponto cego NÃO explica a classe C.** Medido em 2026-08-06 (recibo abaixo): das **37** órfãs do censo, **1 única** aparece declarada em seeder — `fiscal.inutilizar`, em [`NfeFiscalActionsSeeder.php:51`](../../../database/seeders/NfeFiscalActionsSeeder.php) mais o `syncRoles` da L173, que é justamente o caso A-2 já conhecido acima. As outras **36 não existem em seeder algum**. Consequência para quem for triar: a classe C **não pode ser descartada como cegueira do detector** — aquelas permissões estão mesmo sem declaração em lugar nenhum, e a decisão sobre elas (declarar × remover o `can()`) é de mérito, não de instrumento.
