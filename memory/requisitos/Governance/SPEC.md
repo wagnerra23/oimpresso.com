@@ -1268,3 +1268,33 @@ A perna 2 só existe porque a 1, sozinha, **cria** a classe A (link visível →
 - Nenhuma linha de cálculo tocada: o diff mexe só em predicado de autorização.
 
 _Esta subseção foi reescrita depois de uma revisão adversarial read-only, que derrubou a razão do resíduo 1, achou a mutação por GET do `markAsCooked`, o over-grant do `Waiter#5` e o marcador em presente. O que ela **confirmou**: a correção de premissa sobre o `ModifierSets`, o retrato das 5 telas (5/5), a inexistência de outra superfície de menu apontando pra Cozinha (varredura repo-inteiro), e que nenhum teste existente quebra._
+
+### US-GOV-060 · 5 testes dropam tabela CORE sem skip — risco sobre o `oimpresso-staging` persistente
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — é achado a triar + decisão de caminho, não construção; os arquivos já existem e o risco é latente (só dispara se a suíte inteira rodar contra o staging).
+
+Achado medido em 2026-08-07 (`git grep` contado, durante o [#5396](https://github.com/wagnerra23/oimpresso.com/pull/5396)) enquanto se convertia o 1º arquivo da quarentena era-sqlite.
+
+**95** testes chamam `Schema::dropIfExists` **sem** o guard `markTestSkipped` fora do sqlite. Destes, **5 dropam tabela CORE**:
+
+| arquivo | dropa |
+|---|---|
+| `Modules/Whatsapp/Tests/Feature/WhatsmeowWebhookAuthTest.php` | `business` |
+| `Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php` | `users` + `contacts` |
+| `Modules/RecurringBilling/Tests/Feature/Wave23EditarAssinaturaTest.php` | `users` |
+| `Modules/RecurringBilling/Tests/Feature/Wave2Observer3ActionsTest.php` | `contacts` |
+| `Modules/RecurringBilling/Tests/Feature/{Wave6PlanCrud,Wave9NotesFavorites}Test.php` | `contacts` |
+
+**O risco depende do ambiente, e os dois MySQL do CT 100 se comportam de forma oposta.** O [`ct100-fullsuite.sh`](../../../scripts/tests/ct100-fullsuite.sh) roda contra DB `*_test` **recriada a cada run**, com guard que aborta se o nome não terminar em `_test` — ali o drop é inofensivo. Já o `oimpresso-staging` **persiste** (367 tabelas, clone de prod) e é o comando canônico do [`proibicoes.md`](../../proibicoes.md) §Ambiente — ali apaga tabela core do clone.
+
+Latente: só dispara se alguém rodar esses arquivos contra o staging. **Não endereçado no #5396 de propósito** — o escopo era o piloto de conversão, e misturar esconderia as duas coisas.
+
+**Caminhos possíveis (decisão [W]):**
+1. Adicionar o guard skip-unless-sqlite nesses 5, igual aos 142 irmãos — barato, mas soma à quarentena que se está tentando drenar.
+2. Convertê-los pro schema real, como o piloto fez — custo medido: helper de FK + asserções reescritas + run no CT 100.
+3. Proteger na origem: recusar `dropIfExists` de tabela CORE quando o nome da DB não terminar em `_test`. Fecha a classe inteira, inclusive os 142, mas é máquina nova — exige FP medido antes (regra "LIGUE A MÁQUINA" item 4).
+
+Refs: [#5396](https://github.com/wagnerra23/oimpresso.com/pull/5396) · [handoff 2026-08-07 15:30](../../handoffs/2026-08-07-1530-quarentena-era-sqlite-piloto-lane-whatsapp.md) · [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)
