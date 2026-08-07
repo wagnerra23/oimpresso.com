@@ -165,10 +165,9 @@ function runGit(root, args) {
   return result.stdout;
 }
 
-function normalizeFiles(raw) {
-  return raw.split(/\r?\n/).map((line) => line.trim().replaceAll('\\', '/')).filter(Boolean);
-}
-
+// `normalizeFiles` (split por linha) foi REMOVIDO em 2026-08-07 junto com o fix de
+// quotePath: ele só existia pros callers sem `-z`, e deixá-lo aqui convidaria a
+// reintroduzir o bug no próximo caller. Caminho de git nesta base entra por NUL.
 function normalizeNullFiles(raw) {
   return raw.split('\0').map((file) => file.replaceAll('\\', '/')).filter(Boolean);
 }
@@ -177,15 +176,26 @@ function trackedFiles(root = ROOT) {
   return normalizeNullFiles(runGit(root, ['ls-files', '-z']));
 }
 
+// `-z` nas TRÊS chamadas, igual ao `trackedFiles` acima — e é obrigatório, não estilo.
+// Sem `-z`, o git aplica `core.quotePath` e devolve caminho não-ASCII ENVELOPADO EM
+// ASPAS com escape octal: `"…de_pixel__n\303\272cleo_6_.snap"`. Aí o `.replaceAll('\\','/')`
+// do normalizeFiles (que existe pra barra do Windows) transforma `\303\272` em `/303/272`,
+// e o caminho resultante não casa regra de dono nenhuma → `class: "unclassified"` →
+// `--enforce-activation` recusa a ativação. O inventário nunca viu isso porque
+// `ls-files -z` não passa pelo quotePath: os dois lados do mesmo script discordavam.
+// Descoberto em 2026-08-07 (#5413): a baseline `it_Produto_Unificado_…núcleo_6_.snap` é o
+// primeiro arquivo com acento ADICIONADO desde que o gate virou enforcing (#5327, 05/08) —
+// os 12 snaps irmãos, com o mesmo `núcleo` no nome, entraram um dia ANTES e por isso
+// nunca tropeçaram.
 function worktreeChangedFiles(root = ROOT) {
   return [...new Set([
-    ...normalizeFiles(runGit(root, ['diff', '--name-only', 'HEAD'])),
-    ...normalizeFiles(runGit(root, ['ls-files', '--others', '--exclude-standard'])),
+    ...normalizeNullFiles(runGit(root, ['diff', '--name-only', '-z', 'HEAD'])),
+    ...normalizeNullFiles(runGit(root, ['ls-files', '--others', '--exclude-standard', '-z'])),
   ])].sort();
 }
 
 function changedFiles(base, head = 'HEAD', root = ROOT) {
-  const committed = normalizeFiles(runGit(root, ['diff', '--name-only', `${base}...${head}`]));
+  const committed = normalizeNullFiles(runGit(root, ['diff', '--name-only', '-z', `${base}...${head}`]));
   const worktree = head === 'HEAD' ? worktreeChangedFiles(root) : [];
   return [...new Set([...committed, ...worktree])].sort();
 }
@@ -753,6 +763,25 @@ function selftest() {
     const immutable = gitSha(fixture);
     check('Controle: comparação entre SHAs imutáveis ignora o worktree',
       changedFiles(immutable, immutable, fixture).length === 0);
+
+    // BITE do quotePath (#5413, 2026-08-07): sem `-z` o git devolve
+    // `"…acentuado__núcleo_.snap"` com aspas + escape octal, e o caminho vira
+    // `/303/272` no normalize → `unclassified` → `--enforce-activation` recusa.
+    // Cobre os DOIS caminhos: arquivo novo (untracked, via worktreeChangedFiles) e
+    // arquivo já commitado num diff base...head.
+    const acentuado = 'tests/.pest/snapshots/it_baseline__núcleo_6_.snap';
+    mkdirSync(join(fixture, 'tests', '.pest', 'snapshots'), { recursive: true });
+    writeFileSync(join(fixture, acentuado), 'PNG\n');
+    check('BITE: caminho com acento chega inteiro (untracked) — sem aspas nem escape octal',
+      changedFiles('HEAD', 'HEAD', fixture).includes(acentuado));
+    runGit(fixture, ['add', '--', acentuado]);
+    runGit(fixture, ['-c', 'user.name=Documentation Loop', '-c', 'user.email=docs@example.invalid',
+      'commit', '-m', 'acento']);
+    const comAcento = gitSha(fixture);
+    check('BITE: caminho com acento chega inteiro (commitado, base...head)',
+      changedFiles(immutable, comAcento, fixture).includes(acentuado));
+    check('Controle: caminho ASCII segue intacto e nenhum caminho volta com aspas/octal',
+      changedFiles(immutable, comAcento, fixture).every((f) => !f.startsWith('"') && !f.includes('/303/')));
 
     const novo = 'NovoModulo';
     for (const dir of [
