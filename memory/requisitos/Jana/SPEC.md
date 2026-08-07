@@ -1356,6 +1356,8 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 > blocked_by: —
 > parent_plan: adr0270-cockpit-mock-kill
 
+**Testado em:** `Modules/Jana/Tests/Feature/CockpitMockRemovidoTest.php` (`// @covers-us US-COPI-123`) — 4 casos que travam a PROIBIÇÃO que a US pede, não o código que a implementa: a Page não existe · `startMockStream` não aparece em nenhuma Page da Jana · o ChatController não tem `cockpit()` nem `mockJanaPayload()` (com controle negativo: `iniciais()` FICOU, porque index/show usam) · `/ia/cockpit` responde 301 pro Painel. Reintroduzir qualquer metade do mock, ou ressuscitar a rota, deixa vermelho.
+
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
 
