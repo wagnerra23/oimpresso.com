@@ -755,7 +755,7 @@ Disparada por: `/module-completeness-audit` (skill `module-completeness-audit` v
 | 1 | Multi-instance scope | 🟡 PARCIAL | `ChatController.php:37-41` filtra business_id+user_id, mas UI sem business switcher mid-conversa (props já em `shellPropsFor():124`, falta render) |
 | 2 | Permissions middleware + UI | 🟡 PARCIAL | `McpAuthMiddleware.php:55` + permissions Spatie `jana.*` (migration 2026-05-09) OK; mas sem `Pages/Jana/Admin/Permissions.tsx` — gestão via painel Spatie genérico |
 | 3 | Charter | ✅ APROVADO | `Pages/Jana/Chat.charter.md` status:live, atualizado 2026-05-09, 11 seções + 12 Pest GUARD tests canônicos |
-| 4 | RUNBOOK | ✅ APROVADO | 8+ RUNBOOKs (RUNBOOK.md, RUNBOOK-chat.md, RUNBOOK-cockpit.md, RUNBOOK-memoria-semanal.md, RUNBOOK-governanca-mcp.md, RUNBOOK-qualidade-admin.md, RUNBOOK-custos-admin.md, RUNBOOK-dashboard.md) |
+| 4 | RUNBOOK | ✅ APROVADO | 8+ RUNBOOKs (RUNBOOK.md, RUNBOOK-chat.md, RUNBOOK-cockpit.md, RUNBOOK-memoria-semanal.md, RUNBOOK-governanca-mcp.md, RUNBOOK-qualidade-admin.md, RUNBOOK-custos-admin.md, RUNBOOK-index.md) |
 | 5 | Pest golden + cross-tenant biz=99 | 🟡 PARCIAL | `JanaHealthCheckTest.php:1-76` (golden smoke OK) + `HitTrackerServiceTest.php:12-20` (cross-tenant scoped); sem `biz_99` hardcoded como pattern canon |
 | 6 | AuditLog em mutações | ✅ APROVADO | `McpAuthMiddleware.php:113-127` chama `McpAuditLog::registrar()` em toda request MCP com user_id, business_id, endpoint, tokens, custo, ip, duration |
 | 7 | business_id global scope | ✅ APROVADO | 32+ migrations com business_id; `ChatController.php:40-42` + `DashboardController.php:20-24` aplicam scope; TIER 0 IRREVOGÁVEL conformado |
@@ -950,7 +950,7 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 
 ### US-COPI-106 · Jana V2 demo — tela navegável apresentável a 1 cliente piloto
 
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/DashboardController.php` · `resources/js/Pages/Jana/Dashboard.tsx` · verificado@ee54ee50373 (2026-08-06) — REANCORADA: apontava pro `PainelController`/`Painel.tsx`, removidos em 2026-08-06 [W] (onda 1 da fusão das telas da Jana). O receptor é o `/ia/dashboard`, que entrega o mesmo cockpit (brief · KPIs · análises · ações via `resources/js/Pages/Jana/_components/JanaCockpit.tsx`) porém com dado REAL do SellsCockpitAggregator — o Painel servia buildMockPayload(). Segue `_parcial_` pelo mesmo motivo de antes: smoke biz=4 + demo script a cliente piloto não confirmados (status todo)
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/IndexController.php` · `resources/js/Pages/Jana/Index.tsx` — REANCORADA 2×: apontava pro `PainelController`/`Painel.tsx` (removidos na onda 1, 2026-08-06 [W]) e depois pro `DashboardController`/`Dashboard.tsx`, renomeados na onda 3 (2026-08-07). O `verificado@ee54ee50373` sai porque o sha ancorava os caminhos ANTIGOS — carimbo apontando pra arquivo inexistente é pior que carimbo ausente. O receptor é o `/ia`, que entrega o mesmo cockpit (brief · KPIs · análises · ações via `resources/js/Pages/Jana/_components/JanaCockpit.tsx`) porém com dado REAL do SellsCockpitAggregator — o Painel servia buildMockPayload(). Segue `_parcial_` pelo mesmo motivo de antes: smoke biz=4 + demo script a cliente piloto não confirmados (status todo)
 
 > owner: wagner · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
@@ -1922,7 +1922,7 @@ Ação de credencial/infra que destrava a dimensão erp-ia-produto (o mecanismo 
 > owner: — · priority: p2 · status: todo · type: story
 > blocked_by: —
 
-O `/ia/dashboard` (Pages/Jana/Dashboard.tsx + JanaCockpitV2) viola PT-04-Dashboard L80: aplica o wrapper `.sells-cowork` (bundle do módulo Sells) e consome tokens `.vd-insights-*` do `sells-cowork-insights.css` — ilha CSS paralela, não usa os shared canônicos. Consequência: dark mode quebrado (cores light hardcoded no bundle) + acoplamento cross-module.
+O `/ia` (Pages/Jana/Index.tsx + `_components/JanaCockpit`) viola PT-04-Dashboard L80: aplica o wrapper `.sells-cowork` (bundle do módulo Sells) e consome tokens `.vd-insights-*` do `sells-cowork-insights.css` — ilha CSS paralela, não usa os shared canônicos. Consequência: dark mode quebrado (cores light hardcoded no bundle) + acoplamento cross-module.
 
 A catraca já existe (ui:lint R7 · PR #4582 · `UiLintCommand::checkR7`): a dívida está travada no baseline (`Jana/Dashboard` R7:1), ninguém pode piorar, mas a migração é manual.
 

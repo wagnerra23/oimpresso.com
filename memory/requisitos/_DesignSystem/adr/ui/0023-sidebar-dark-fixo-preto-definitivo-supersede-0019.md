@@ -54,7 +54,7 @@ Linha do tempo verificada em git+código:
   |---|---|---|
   | [`Suporte/Visao.charter.md:40`](../../../../../resources/js/Pages/Suporte/Visao.charter.md) | `charter-us-lint --check` | `related_us` (é 1 dos **133 charters sem US**, cobertura 43,9%) |
   | [`Suporte/Empresas.charter.md:38`](../../../../../resources/js/Pages/Suporte/Empresas.charter.md) | `charter-us-lint --check` | idem |
-  | [`Jana/RUNBOOK-dashboard.md:13,23`](../../../Jana/RUNBOOK-dashboard.md) | `RUNBOOK` schema gate | `owner` · `last_validated` · `status` fora do enum (`active` ≠ `ativo`) |
+  | [`Jana/RUNBOOK-dashboard.md:13,23`](../../../Jana/RUNBOOK-index.md) | `RUNBOOK` schema gate | `owner` · `last_validated` · `status` fora do enum (`active` ≠ `ativo`) |
   | [`Jana/RUNBOOK-governanca-mcp.md:350`](../../../Jana/RUNBOOK-governanca-mcp.md) | `RUNBOOK` schema gate | idem |
   | [`Sells/RUNBOOK-create.md:384`](../../../Sells/RUNBOOK-create.md) | `RUNBOOK` schema gate | idem |
 

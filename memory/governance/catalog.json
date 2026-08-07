@@ -1974,7 +1974,7 @@
       "desc": "check jana_lesson_ledger_graduation valida o loop de graduação do ledger (advisory)"
     },
     {
-      "id": "component:Jana/IndexController",
+      "id": "component:Jana/DashboardController",
       "type": "component",
       "module": "Jana",
       "name": "DashboardController",
@@ -7197,7 +7197,7 @@
     },
     {
       "from": "module:Jana",
-      "to": "component:Jana/IndexController",
+      "to": "component:Jana/DashboardController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -14,7 +14,7 @@ last_validated: "2026-05-05"
 
 > ### ⚠️ Renomeado na onda 3 da fusão (US-COPI-148, 2026-08-07)
 >
-> Era `RUNBOOK-dashboard.md`, da tela `Jana/Dashboard.tsx` em `/ia/dashboard`.
+> Era `RUNBOOK-index.md`, da tela `Jana/Dashboard.tsx` em `/ia/dashboard`.
 > A onda 3 renomeou a tela para `Jana/Index.tsx` e moveu a rota para **`/ia`** —
 > o Painel já era o destino pós-login (`/home → /ia/dashboard`, `routes/web.php`),
 > então a mudança alinha a URL com o que já acontecia. `/ia/dashboard` e
@@ -55,8 +55,8 @@ Painel read-only de leitura rápida do estado das **metas ativas** que o cliente
 
 - [ ] Módulo `Jana` instalado em `/manage-modules` (ADR 0024 — botão Install funcional)
 - [ ] Permissão `copiloto.access` atribuída ao role do usuário
-- [ ] Rotas registradas em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Routes/web.php) — pelo menos `/ia` apontando pro Controller que renderiza `Jana/Dashboard`
-- [ ] Page Inertia em [`resources/js/Pages/Jana/Dashboard.tsx`](../../../resources/js/Pages/Jana/Dashboard.tsx) — módulo em **PascalCase** (`Jana`, não `copiloto`)
+- [ ] Rotas registradas em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Http/routes.php) — pelo menos `/ia` apontando pro Controller que renderiza `Jana/Dashboard`
+- [ ] Page Inertia em [`resources/js/Pages/Jana/Index.tsx`](../../../resources/js/Pages/Jana/Index.tsx) — módulo em **PascalCase** (`Jana`, não `copiloto`)
 - [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos da Jana
 - [ ] Skill irmã `multi-tenant-patterns` se Controller filtrar por `business_id`
 - [ ] Seed: `php artisan module:seed Jana` popula 5 metas template + meta raiz Wagner ROI
@@ -105,7 +105,7 @@ class DashboardController extends Controller
 ### 2. Page Inertia recebe Props tipados
 
 ```tsx
-// resources/js/Pages/Jana/Dashboard.tsx
+// resources/js/Pages/Jana/Index.tsx
 interface Apuracao { data_ref: string; valor_realizado: number }
 interface Periodo  { data_ini: string; data_fim: string; valor_alvo: number; trajetoria: string }
 interface Meta {
@@ -403,7 +403,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 
 **Stories cobertas:** US-COPI-010, US-COPI-011, US-COPI-012 ([SPEC.md](SPEC.md))
 **Rules:** R-COPI-002 (semáforo de metas), R-COPI-FAROL-001 (cálculo de desvio % vs trajetória) — formalmente em [SPEC.md](SPEC.md)
-**Tests:** [tests/Feature/Modules/Jana/MemoriaContratoTest](../../../tests/Feature/Modules/Jana/MemoriaContratoTest.php)
+**Tests:** [tests/Feature/Modules/Jana/MemoriaContratoTest](../../../tests/Feature/Modules/Copiloto/MemoriaContratoTest.php)
 
 ---
 
