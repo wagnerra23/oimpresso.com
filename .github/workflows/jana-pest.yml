@@ -123,7 +123,8 @@ jobs:
             Modules/Jana/Tests/Feature/PeriodosControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/FontesControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/JanaAccessGateTest.php \
-            Modules/Jana/Tests/Feature/Console/JanaRagasFailuresNoSilentCapTest.php
+            Modules/Jana/Tests/Feature/Console/JanaRagasFailuresNoSilentCapTest.php \
+            Modules/Jana/Tests/Feature/Wave14GovernanceV3Test.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
