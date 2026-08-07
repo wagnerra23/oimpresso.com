@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-06**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-07**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -47,7 +47,7 @@ lente: [construir]
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-27 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-23 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-08-06 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-01 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
@@ -146,7 +146,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 80 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 81 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -229,6 +229,7 @@ lente: [construir]
 - ~~2026-08-04 — Isentar do gate a população que a MÁQUINA SEMPRE PRODUZ (o `shipped-log-gate` nunca teve como reprovar — e a isenção estava INVERTIDA)~~
 - ~~2026-08-05 — Tratar alerta de ferramenta deduzindo a causa do ARQUIVO SUSPEITO, sem ler o que ela reportou (6 tentativas · e o `.gitleaksignore` era o vazamento)~~
 - ~~2026-08-05 — Confiar que o merge do git protege frontmatter YAML (dois PRs, sem conflito, chave DUPLICADA em produção)~~
+- ~~2026-08-06 — Navegação tem CINCO superfícies na Forja: deduzir camada-a-camada em vez de perguntar ao runtime (8 diagnósticos errados)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -239,14 +240,14 @@ lente: [construir]
 
 ## Rastro
 
-- **373** handoffs · **591** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **374** handoffs · **592** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-07-jana-fusao-onda1`
   - `2026-08-05-sdd-flow-feature-smart-token`
   - `2026-08-05-plano-documentacao-tecnica-operacional`
   - `2026-08-05-maquinas-que-existiam-e-nao-avisavam`
   - `2026-08-05-hooks-condicionais-observaveis`
   - `2026-08-05-governanca-recebe-telas-e-contrato-visual`
-  - `2026-08-05-duplicacao-roadmap-forja`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-06 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-07 · deriva das fontes canônicas, não as substitui._
