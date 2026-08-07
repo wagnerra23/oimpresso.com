@@ -16,7 +16,7 @@ related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
   - resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md
 absorbs_when_live:
-  - resources/js/Pages/Jana/Dashboard.tsx (vira tab `dashboard`)
+  - resources/js/Pages/Jana/Index.tsx (vira tab `painel`)
 supersedes_in_place:
   - resources/js/Pages/Jana/Cockpit.tsx (impl atual = anti-pattern WhatsApp-style do amendment 2026-05-14)
 tier: A
@@ -234,7 +234,7 @@ Lista canônica: ver §UX Anti-patterns acima. Estimativa Cowork: ~3-4h. CRITIQU
 - Pós-canary aprovado: `Dashboard.tsx` (`/jana/dashboard`) vira tab `dashboard` do `Cockpit.tsx`
 - Charter `Dashboard.charter.md` (criar se não existir) → `status: historical`
 - Redirect `/jana/dashboard` → `/jana/cockpit?tab=dashboard` (301)
-- Remover `Pages/Jana/Dashboard.tsx` em PR seguinte (~1h)
+- ~~Remover `Pages/Jana/Dashboard.tsx`~~ — invertido pela US-COPI-148: quem sai é o `Cockpit.tsx` (onda 4); o Painel virou `Pages/Jana/Index.tsx` em `/ia`
 
 ---
 

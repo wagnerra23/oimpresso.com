@@ -301,8 +301,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // acesso à IA). O que muda é só o DESTINO: quem não tem `jana.access` cai no
     // dashboard legado UltimatePOS, que não tem `can:` nenhum — some o 403, e
     // ninguém ganha acesso que não tinha.
+    // Onda 3 da fusão (US-COPI-148, 2026-08-07): o destino passou de
+    // `/ia/dashboard` pra `/ia` — a MESMA tela, que mudou de endereço. Apontar
+    // direto evita a cadeia 302→301 em TODO login de quem tem `jana.access`.
     Route::get('/home', fn () => auth()->user()?->can('jana.access')
-        ? redirect('/ia/dashboard', 302)
+        ? redirect('/ia', 302)
         : redirect('/dashboard-legacy', 302)
     )->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');

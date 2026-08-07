@@ -5,10 +5,10 @@ migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em modu
 contains:
   # Chat IA core
   - "ChatController — UI chat principal"
-  - "DashboardController — resumo executivo"
+  - "IndexController — Painel (raiz /ia): brief · KPIs · análises · ações · metas"
   # PainelController: removido 2026-08-06 [W] — onda 1 da fusão das telas da Jana.
   #   Era hub de 3 links + `buildMockPayload()`; a capacidade (brief · KPIs ·
-  #   análises · ações) já vive em DashboardController com dado real do
+  #   análises · ações) já vive em IndexController com dado real do
   #   SellsCockpitAggregator. A `US-JANA-PAINEL-001` que esta linha citava NUNCA
   #   existiu no SPEC do módulo — era id fantasma, vivo só aqui, no charter e no
   #   teste (e daqui vazava pro catalog.json, que é derivado deste arquivo).

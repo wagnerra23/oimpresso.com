@@ -233,7 +233,7 @@
     "resources/js/Pages/Home/Index.tsx|no-restricted-syntax": 12,
     "resources/js/Pages/Jana/Chat.tsx|no-restricted-syntax": 1,
     "resources/js/Pages/Jana/Cockpit.tsx|no-restricted-syntax": 6,
-    "resources/js/Pages/Jana/Dashboard.tsx|no-restricted-syntax": 6,
+    "resources/js/Pages/Jana/Index.tsx|no-restricted-syntax": 6,
     "resources/js/Pages/Jana/Pro.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Jana/_components/AssistantUiChat.tsx|@typescript-eslint/no-explicit-any": 2,
     "resources/js/Pages/Jana/_shared/JanaPrimaryButton.tsx|no-restricted-syntax": 3,

@@ -18,8 +18,8 @@ return [
     'label' => 'copiloto::copiloto.module_label',
     'icon'  => 'Compass',
     'items' => [
-        ['label' => 'copiloto::copiloto.menu.conversar',  'href' => '/ia',                  'icon' => 'MessageSquare',   'can' => 'jana.chat'],
-        ['label' => 'copiloto::copiloto.menu.dashboard',  'href' => '/ia/dashboard',        'icon' => 'LayoutDashboard', 'can' => 'jana.access'],
+        ['label' => 'copiloto::copiloto.menu.conversar',  'href' => '/ia/conversa',         'icon' => 'MessageSquare',   'can' => 'jana.chat'],
+        ['label' => 'copiloto::copiloto.menu.dashboard',  'href' => '/ia',                  'icon' => 'LayoutDashboard', 'can' => 'jana.access'],
         ['label' => 'copiloto::copiloto.menu.metas',      'href' => '/ia/metas',            'icon' => 'Target',          'can' => 'jana.metas.manage'],
         // Wagner 2026-05-25: /ia/alertas REMOVIDO do topnav legacy — tela é STUB
         // ("spec-ready ver US-COPI-060"). Reativar quando US-COPI-060 entregar.

@@ -21,8 +21,8 @@ module: Jana
 - [JanaProController.php](../../../Modules/Jana/Http/Controllers/Admin/JanaProController.php)
 - [AlertasController.php](../../../Modules/Jana/Http/Controllers/AlertasController.php)
 - [ChatController.php](../../../Modules/Jana/Http/Controllers/ChatController.php)
-- [DashboardController.php](../../../Modules/Jana/Http/Controllers/DashboardController.php)
 - [DataController.php](../../../Modules/Jana/Http/Controllers/DataController.php)
+- [IndexController.php](../../../Modules/Jana/Http/Controllers/IndexController.php)
 - [InstallController.php](../../../Modules/Jana/Http/Controllers/InstallController.php)
 - [MetasController.php](../../../Modules/Jana/Http/Controllers/MetasController.php)
 - [PeriodosController.php](../../../Modules/Jana/Http/Controllers/PeriodosController.php)
@@ -358,7 +358,7 @@ module: Jana
 
 - [Chat.tsx](../../../resources/js/Pages/Jana/Chat.tsx)
 - [Cockpit.tsx](../../../resources/js/Pages/Jana/Cockpit.tsx)
-- [Dashboard.tsx](../../../resources/js/Pages/Jana/Dashboard.tsx)
+- [Index.tsx](../../../resources/js/Pages/Jana/Index.tsx)
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
@@ -376,7 +376,7 @@ module: Jana
 
 - [Chat.charter.md](../../../resources/js/Pages/Jana/Chat.charter.md)
 - [Cockpit.charter.md](../../../resources/js/Pages/Jana/Cockpit.charter.md)
-- [Dashboard.charter.md](../../../resources/js/Pages/Jana/Dashboard.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Jana/Index.charter.md)
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
 

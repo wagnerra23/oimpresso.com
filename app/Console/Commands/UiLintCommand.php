@@ -501,7 +501,7 @@ class UiLintCommand extends Command
      *
      * Cross-module de propósito (menor falso-positivo): a tela DONA usar o
      * próprio bundle é legítimo; só a página de OUTRO módulo aplicando o
-     * wrapper dispara. Medido 2026-07-20: 1 hit (Pages/Jana/Dashboard.tsx →
+     * wrapper dispara. Medido 2026-07-20: 1 hit (Pages/Jana/Index.tsx →
      * `.sells-cowork`), 0 nas 27 telas-donas. Ratchet vs baseline trava a
      * reincidência sem forçar a migração imediata (a dívida entra no baseline).
      *

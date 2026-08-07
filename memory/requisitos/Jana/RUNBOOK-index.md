@@ -1,17 +1,38 @@
 ---
-slug: copiloto-runbook-dashboard
-title: "Jana — Runbook da tela Dashboard de Metas"
+id: requisitos-jana-runbook-index
+slug: jana-runbook-index
+title: "Jana — Runbook da tela Painel (/ia)"
 type: runbook
 module: Jana
-status: active
-date: 2026-05-05
+owner: W
+status: ativo
+date: "2026-05-05"
+last_validated: "2026-05-05"
 ---
 
-# RUNBOOK — Dashboard de Metas (Jana)
+# RUNBOOK — Painel da Jana (`/ia`)
+
+> ### ⚠️ Renomeado na onda 3 da fusão (US-COPI-148, 2026-08-07)
+>
+> Era `RUNBOOK-index.md`, da tela `Jana/Dashboard.tsx` em `/ia/dashboard`.
+> A onda 3 renomeou a tela para `Jana/Index.tsx` e moveu a rota para **`/ia`** —
+> o Painel já era o destino pós-login (`/home → /ia/dashboard`, `routes/web.php`),
+> então a mudança alinha a URL com o que já acontecia. `/ia/dashboard` e
+> `/ia/cockpit` viraram **301** para `/ia`.
+>
+> O rename deste arquivo **não é higiene**: o hook `block-mwart-violation` resolve
+> o candidato de um `Pages/<Mod>/<Tela>.tsx` flat só por `RUNBOOK-<kebab(tela)>.md`.
+> Sem `RUNBOOK-index.md` o `Index.tsx` fica bloqueado para edição — medido com
+> bite-test antes do rename, não deduzido.
+>
+> O corpo abaixo descreve o Painel **antes** da fusão (metas + farol + FAB). As
+> seções novas (brief diário, 4 KPIs, análises, ações HITL, drill-down) entram
+> quando as ondas 3.x as implementarem — este RUNBOOK acompanha a tela, não
+> promete o que ela ainda não faz.
 
 > **Tipo:** runbook reproduzível
 > **Refs:** [ADR 0026](../../decisions/0026-posicionamento-erp-grafico-com-ia.md), [ADR 0031](../../decisions/0031-memoriacontrato-mem0-default.md), [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0036](../../decisions/0036-replanejamento-meilisearch-first.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [_DS UI-0008](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md), [_DS UI-0009](../_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)
-> **Validado:** tela em produção `https://oimpresso.com/copiloto/dashboard`
+> **Validado:** tela em produção `https://oimpresso.com/ia`
 
 Tela read-only que lista as metas ativas do business em foco como cards com **farol** (verde/amarelo/vermelho/cinza) calculado client-side. Persona: dono operador (Larissa, ROTA LIVRE biz=4) abre de manhã pra ver "como tô indo nas metas que conversei com a Jana". Vive dentro do `AppShellV2` (Cockpit) — sem coluna direita, sem master/detail. Acesso ao detalhe da meta é via `Link` pra `/copiloto/metas/{id}` (outra rota). FAB inferior direito conduz ao chat da Jana com contexto preservado.
 
@@ -19,23 +40,23 @@ Tela read-only que lista as metas ativas do business em foco como cards com **fa
 
 | Verificação | Como conferir |
 |---|---|
-| Tela renderiza em `/copiloto/dashboard` | Login com `copiloto.access` → URL → header "Dashboard de Metas" + N cards |
+| Tela renderiza em `/ia` | Login com `copiloto.access` → URL → header "Dashboard de Metas" + N cards |
 | AppShellV2 envolvendo | Inspetor: `<div class="cockpit">` ao redor; sidebar light + breadcrumb "Jana / Dashboard" |
 | Farol lateral colorido em cada card | Faixa de 1px à esquerda do card: emerald/amber/rose/muted-foreground/30 |
 | Sparkline renderiza com ≥ 2 apurações | SVG inline 120×32 + ícone TrendingUp/Down/Minus |
 | Empty state quando `metas.length === 0` | Icon MessageSquare + "Nenhuma meta ativa" + Button "Iniciar conversa" → `/copiloto` |
-| FAB Jana fixo bottom-right | Link circular 56px com MessageSquare → `/copiloto?context=/copiloto/dashboard` |
+| FAB Jana fixo bottom-right | Link circular 56px com MessageSquare → `/copiloto?context=/ia` |
 
 ## 1. Objetivo
 
-Painel read-only de leitura rápida do estado das **metas ativas** que o cliente operacional configurou via chat com a Jana IA (US-COPI-010, 011, 012). Renderiza N cards (1/2/3 colunas conforme breakpoint) com farol semafórico calculado on-the-fly em client-side via `calcularFarol()`, valor realizado vs alvo, sparkline das últimas apurações e link pra detalhe da meta. Não há master/detail interno — cada card é independente. FAB no canto inferior direito permite voltar ao chat preservando contexto via query string `?context=/copiloto/dashboard`. Cliente é o dono operador (persona Larissa, business=4); dev/superadmin também usa pra debugar metas seedadas.
+Painel read-only de leitura rápida do estado das **metas ativas** que o cliente operacional configurou via chat com a Jana IA (US-COPI-010, 011, 012). Renderiza N cards (1/2/3 colunas conforme breakpoint) com farol semafórico calculado on-the-fly em client-side via `calcularFarol()`, valor realizado vs alvo, sparkline das últimas apurações e link pra detalhe da meta. Não há master/detail interno — cada card é independente. FAB no canto inferior direito permite voltar ao chat preservando contexto via query string `?context=/ia`. Cliente é o dono operador (persona Larissa, business=4); dev/superadmin também usa pra debugar metas seedadas.
 
 ## 2. Pré-condições
 
 - [ ] Módulo `Jana` instalado em `/manage-modules` (ADR 0024 — botão Install funcional)
 - [ ] Permissão `copiloto.access` atribuída ao role do usuário
-- [ ] Rotas registradas em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Routes/web.php) — pelo menos `/copiloto/dashboard` apontando pro Controller que renderiza `Jana/Dashboard`
-- [ ] Page Inertia em [`resources/js/Pages/Jana/Dashboard.tsx`](../../../resources/js/Pages/Jana/Dashboard.tsx) — módulo em **PascalCase** (`Jana`, não `copiloto`)
+- [ ] Rotas registradas em [`Modules/Jana/Routes/web.php`](../../../Modules/Jana/Http/routes.php) — pelo menos `/ia` apontando pro Controller que renderiza `Jana/Dashboard`
+- [ ] Page Inertia em [`resources/js/Pages/Jana/Index.tsx`](../../../resources/js/Pages/Jana/Index.tsx) — módulo em **PascalCase** (`Jana`, não `copiloto`)
 - [ ] Skill irmã carregada: `copiloto-arch` (stack ADRs 0035-0053) — tela toca conceitos da Jana
 - [ ] Skill irmã `multi-tenant-patterns` se Controller filtrar por `business_id`
 - [ ] Seed: `php artisan module:seed Jana` popula 5 metas template + meta raiz Wagner ROI
@@ -84,7 +105,7 @@ class DashboardController extends Controller
 ### 2. Page Inertia recebe Props tipados
 
 ```tsx
-// resources/js/Pages/Jana/Dashboard.tsx
+// resources/js/Pages/Jana/Index.tsx
 interface Apuracao { data_ref: string; valor_realizado: number }
 interface Periodo  { data_ini: string; data_fim: string; valor_alvo: number; trajetoria: string }
 interface Meta {
@@ -117,7 +138,7 @@ Dashboard.layout = (page: React.ReactNode) => (
 )
 ```
 
-**Validação:** abrir `/copiloto/dashboard`; topbar mostra `Jana / Dashboard`; aba do navegador `Jana — Dashboard`.
+**Validação:** abrir `/ia`; topbar mostra `Jana / Dashboard`; aba do navegador `Jana — Dashboard`.
 
 ### 4. Função `calcularFarol()` — regra R-COPI-FAROL-001
 
@@ -214,12 +235,12 @@ import FabJana from './components/FabJana'
 return (
   <>
     <div className="space-y-6 p-6">{/* header + grid de cards */}</div>
-    <FabJana contextRoute="/copiloto/dashboard" />
+    <FabJana contextRoute="/ia" />
   </>
 )
 ```
 
-`FabJana` gera `Link` pra `/copiloto?context=%2Fcopiloto%2Fdashboard`. O chat da Jana lê a query string e injeta `Tela: /copiloto/dashboard` no `ContextoNegocio` enviado ao LLM.
+`FabJana` gera `Link` pra `/copiloto?context=%2Fcopiloto%2Fdashboard`. O chat da Jana lê a query string e injeta `Tela: /ia` no `ContextoNegocio` enviado ao LLM.
 
 ### 8. Build local + smoke
 
@@ -382,7 +403,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 
 **Stories cobertas:** US-COPI-010, US-COPI-011, US-COPI-012 ([SPEC.md](SPEC.md))
 **Rules:** R-COPI-002 (semáforo de metas), R-COPI-FAROL-001 (cálculo de desvio % vs trajetória) — formalmente em [SPEC.md](SPEC.md)
-**Tests:** [tests/Feature/Modules/Jana/MemoriaContratoTest](../../../tests/Feature/Modules/Jana/MemoriaContratoTest.php)
+**Tests:** [tests/Feature/Modules/Jana/MemoriaContratoTest](../../../tests/Feature/Modules/Copiloto/MemoriaContratoTest.php)
 
 ---
 
