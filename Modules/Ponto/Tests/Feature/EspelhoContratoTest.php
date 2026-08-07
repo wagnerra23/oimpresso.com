@@ -43,6 +43,7 @@ class EspelhoContratoTest extends PontoTestCase
     protected function tearDown(): void
     {
         $this->limparFixtures();
+        $this->removerBizAlheio(); // depois do cleanup: FK sem CASCADE (ver PontoTestCase)
         parent::tearDown();
     }
 
@@ -297,10 +298,10 @@ class EspelhoContratoTest extends PontoTestCase
         $this->precisaDeSchema();
 
         // Colaborador que existe, mas pertence a OUTRO business (fictício, nunca biz=4).
-        $bizAlheio = 99;
-        if ((int) $this->business->id === $bizAlheio) {
+        if ((int) $this->business->id === self::BIZ_ALHEIO_FICTICIO) {
             $this->markTestSkipped('Business logado colide com o business fictício do teste.');
         }
+        $bizAlheio = $this->garantirBizAlheio();
 
         $alheioId = DB::table('ponto_colaborador_config')->insertGetId([
             'business_id'    => $bizAlheio,
@@ -407,10 +408,13 @@ class EspelhoContratoTest extends PontoTestCase
         $this->actAsAdmin();
         $this->precisaDeSchema();
 
-        $bizAlheio = 99;
-        if ((int) $this->business->id === $bizAlheio) {
+        if ((int) $this->business->id === self::BIZ_ALHEIO_FICTICIO) {
             $this->markTestSkipped('Business logado colide com o business fictício do teste.');
         }
+        $bizAlheio = $this->garantirBizAlheio();
+
+        // O MEU, que TEM de aparecer — é a pré-condição anti-vácuo (ver asserção abaixo).
+        $meu = $this->criarColaborador();
 
         $alheioId = DB::table('ponto_colaborador_config')->insertGetId([
             'business_id'    => $bizAlheio,
@@ -426,6 +430,16 @@ class EspelhoContratoTest extends PontoTestCase
             $resp->assertStatus(200);
 
             $ids = collect($resp->json('props.colaboradores.data') ?? [])->pluck('id')->all();
+
+            // Sem isto, "o alheio não está na lista" seria verdade por LISTA VAZIA — o
+            // caso ficaria verde com o escopo quebrado, com a query quebrada, ou com a
+            // tela em branco. É o mesmo par que os casos verdes do módulo já usam.
+            $this->assertContains(
+                $meu->id,
+                $ids,
+                'O colaborador do MEU empregador tem de estar na lista — senão o caso '
+                . 'não exerce isolamento nenhum, só constata que a lista veio vazia.'
+            );
             $this->assertNotContains(
                 $alheioId,
                 $ids,

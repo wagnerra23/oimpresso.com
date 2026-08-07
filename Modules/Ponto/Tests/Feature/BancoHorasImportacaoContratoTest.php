@@ -37,11 +37,13 @@ use Modules\Ponto\Entities\Importacao;
 class BancoHorasImportacaoContratoTest extends PontoTestCase
 {
     private const MARCADOR = 'SDD-BH-IMP-CONTRATO';
-    private const BIZ_ALHEIO = 99;
+    /** Alias local do empregador fictício herdado — um vocabulário só (PontoTestCase). */
+    private const BIZ_ALHEIO = self::BIZ_ALHEIO_FICTICIO;
 
     protected function tearDown(): void
     {
         $this->limparFixtures();
+        $this->removerBizAlheio(); // depois do cleanup: FK sem CASCADE (ver PontoTestCase)
         parent::tearDown();
     }
 
@@ -236,6 +238,13 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
             $this->markTestSkipped('Business logado colide com o business fictício do teste.');
         }
 
+        $this->garantirBizAlheio();
+
+        // Controle positivo: o MEU extrato abre. Sem ele, 404 de rota quebrada ou
+        // permissão ausente passaria por "isolamento funcionando".
+        $meu = $this->criarColaboradorComSaldo($this->business->id);
+        $this->inertiaGet("/ponto/banco-horas/{$meu->id}")->assertStatus(200);
+
         $alheio = $this->criarColaboradorComSaldo(self::BIZ_ALHEIO);
 
         $this->inertiaGet("/ponto/banco-horas/{$alheio->id}")
@@ -309,11 +318,21 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
     /**
      * UC-IMPSHOW-02 · A dedup é do meu empregador, não global. [must][T0]
      *
-     * Contrato: CU-PONTO-10 + ImportacaoController@store (busca de duplicata é
-     * where business_id + hash_arquivo) + ADR 0093.
+     * Contrato: CU-PONTO-10 + ADR 0093. Vetor INVERSO do vazamento: aqui o risco é
+     * negação de serviço cross-tenant — o arquivo de um empregador bloqueando a
+     * importação de outro.
      *
-     * Vetor INVERSO do vazamento: aqui o risco é negação de serviço cross-tenant —
-     * o arquivo de um empregador bloqueando a importação de outro.
+     * ⚠️ O QUE ESTE CASO MEDE, exatamente: a camada de SCHEMA — que a unicidade é
+     * `(business_id, hash_arquivo)` e não `hash_arquivo` global. Se o índice fosse
+     * global, o segundo INSERT estouraria. É prova real, e é a que sustenta a
+     * garantia mesmo se o controller mudar.
+     *
+     * ⚠️ O QUE ELE NÃO MEDE: o `where('business_id')->where('hash_arquivo')` do
+     * `ImportacaoController@store`. A redação anterior citava esse método como
+     * contrato, mas o caso nunca chamou a rota — exercitá-la exige POST com upload
+     * e a permissão `ponto.importacoes.criar`, que o `PontoTestCase` não concede
+     * (é o escopo do PR da permissão AFD). Enquanto isso não existir, o texto aqui
+     * declara o alcance em vez de prometer o que não entrega.
      */
     #[\PHPUnit\Framework\Attributes\Test]
     public function uc_impshow_02_dedup_e_por_empregador_nao_global(): void
@@ -324,6 +343,8 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
         if ((int) $this->business->id === self::BIZ_ALHEIO) {
             $this->markTestSkipped('Business logado colide com o business fictício do teste.');
         }
+
+        $this->garantirBizAlheio();
 
         // Dois REP-A do mesmo modelo podem gerar arquivos byte-idênticos.
         $hash = hash('sha256', 'afd-identico-entre-empregadores');
@@ -347,6 +368,16 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
             'Arquivo idêntico já importado por OUTRO empregador não pode bloquear a minha '
             . 'importação — a dedup é escopada por business (CU-PONTO-10, ADR 0093).'
         );
+
+        // Pré-condição anti-vácuo: prova que a COLISÃO foi de fato montada. Sem isto,
+        // "a minha entrou" seria verdade também se a linha alheia nunca tivesse
+        // existido — e o caso passaria sem haver colisão nenhuma pra escopar.
+        $this->assertSame(
+            2,
+            DB::table('ponto_importacoes')->where('hash_arquivo', $hash)->count(),
+            'As duas importações (minha + alheia) têm de coexistir com o MESMO hash — '
+            . 'é isso que prova que a unicidade é (business_id, hash_arquivo) e não global.'
+        );
     }
 
     /**
@@ -365,6 +396,12 @@ class BancoHorasImportacaoContratoTest extends PontoTestCase
         if ((int) $this->business->id === self::BIZ_ALHEIO) {
             $this->markTestSkipped('Business logado colide com o business fictício do teste.');
         }
+
+        $this->garantirBizAlheio();
+
+        // Controle positivo: a MINHA abre.
+        $minha = $this->criarImportacao();
+        $this->inertiaGet("/ponto/importacoes/{$minha->id}")->assertStatus(200);
 
         $alheioId = DB::table('ponto_importacoes')->insertGetId([
             'business_id'   => self::BIZ_ALHEIO,
