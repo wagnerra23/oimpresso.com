@@ -107,7 +107,8 @@ export default function SellsCreateV3({ cena }: Props) {
       <Inline
         gap={3}
         align="center"
-        className="flex-wrap rounded-lg border border-warning/30 bg-warning-soft px-4 py-3"
+        wrap
+        className="rounded-lg border border-warning/30 bg-warning-soft px-4 py-3"
       >
         <FlaskConical className="size-4 flex-none text-warning-fg" aria-hidden />
         <div className="min-w-0 text-sm">
@@ -119,7 +120,7 @@ export default function SellsCreateV3({ cena }: Props) {
         </div>
       </Inline>
 
-      <Inline gap={3} align="center" className="flex-wrap">
+      <Inline gap={3} align="center" wrap>
         <h1 className="text-xl font-semibold">Nova venda</h1>
         <Badge variant="outline">V3</Badge>
         <p className="text-sm text-muted-foreground">
@@ -155,13 +156,17 @@ export default function SellsCreateV3({ cena }: Props) {
           <Card>
             <CardContent className="p-4">
               <Stack gap={4}>
-                <Inline gap={3} align="center" className="flex-wrap">
+                <Inline gap={3} align="center" wrap>
                   <Passo n={2} titulo="Itens" icone={<Package className="size-4" aria-hidden />} />
                   <Badge variant="secondary">{itens.length}</Badge>
                 </Inline>
 
+                {/* min-width medida, não escolhida no olho: a coluna útil desta tela é
+                    442px a 1440 (o rail de 320 liga aí) e 602px a 1280. Um piso de 640
+                    escondia "R$ total" atrás de rolagem em TODA largura testada — e o
+                    total é justamente o que se lê primeiro numa linha de venda. */}
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
+                  <table className="w-full min-w-[420px] border-separate border-spacing-0 text-sm">
                     <thead>
                       <tr>
                         {[
@@ -225,7 +230,7 @@ export default function SellsCreateV3({ cena }: Props) {
             <Card>
               <CardContent className="p-4">
                 <Stack gap={4}>
-                  <Inline gap={2} align="center" className="flex-wrap justify-between">
+                  <Inline gap={2} align="center" justify="between" wrap>
                     <Passo
                       n={3}
                       titulo="Fechamento"
