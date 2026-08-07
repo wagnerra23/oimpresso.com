@@ -92,4 +92,8 @@ return [
     'dashboard.data' => 'View Home data',
     'profit_loss_report.view' => 'View profit/loss report',
     'direct_sell.access' => 'Access sell',
+    // US-GOV-059 class D — permissions the code already required and nobody could grant.
+    'send_notification' => 'Notification templates (view, edit and send to customer)',
+    'configure_dashboard' => 'Configure home screen cards',
+    'sale.history.view' => 'View sale history and timeline',
 ];

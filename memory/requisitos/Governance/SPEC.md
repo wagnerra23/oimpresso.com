@@ -1092,3 +1092,113 @@ node scripts/governance/permission-drift.mjs --json   # a lista COMPLETA vem daq
 ⚠️ **Duas armadilhas de método, pagas na própria medição** (registradas porque a próxima pessoa cai nas mesmas):
 - **A saída de texto TRUNCA em 25** (`… +12` no rodapé da seção). Quem parsear o texto mede 25 de 37 e chama de completo. A lista inteira só sai no `--json`.
 - **Casar o nome por substring reprova o legítimo e aprova o errado.** O primeiro cruzamento acusou `admin` como "declarada em 15 seeders"; era a palavra *admin* dentro de comentário em prosa (*"chamável via UI admin fiscal"*). É a mesma classe de falso-positivo que o [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) acabou de remover do próprio detector — reproduzida por fora dele. Cruzamento de permissão pede âncora (aspas, item de array, argumento de `syncRoles`), nunca `grep` de substring.
+
+#### Classe D triada — 2026-08-07
+
+**Confronto com produção primeiro** (a regra que a classe C fixou). As **16** da classe D consultadas em `permissions` × `role_has_permissions` na base de produção, leitura pura:
+
+| | |
+|---|---|
+| Total de permissões na tabela | **495** |
+| Das 16, existem em produção | **1** |
+| Qual | `sale.history.view` — concedida a `Admin#164` (business 164 = Martinho, OficinaAuto LIVE) |
+
+Bate com a medição de 2026-08-06, e reforça a mesma conclusão: as outras 15 não existem na tabela, ninguém pode recebê-las, e o que fazia as telas "funcionarem" era o `Gate::before`. ⚠️ **Número datado, não perene** — quem for agir re-roda a consulta.
+
+##### O achado que reclassifica 4 das 16: o `Gate::before` tem DUAS pernas, e o detector modela UMA
+
+O detector isenta as abilities da **lista nomeada** do `Gate::before` (`backup`, `superadmin`, `manage_modules`) — derivadas do arquivo, não hardcodadas, e isso está certo. Mas o [`AuthServiceProvider`](../../../app/Providers/AuthServiceProvider.php) tem um `else`:
+
+```php
+Gate::before(function ($user, $ability) {
+    if (in_array($ability, ['backup', 'superadmin', 'manage_modules'])) { /* lista de username */ }
+    else { if ($user->hasRole('Admin#'.$user->business_id)) return true; }   // ← toda OUTRA ability
+});
+```
+
+A perna `else` faz **qualquer** ability não-declarada responder *"sim para admin, não para o resto"*. Quatro nomes desta classe **exploram isso de propósito** — não são permissão faltando, são o idioma "só admin" escrito com o vocabulário do `can()`:
+
+| permissão | onde | por que declarar seria NOCIVO |
+|---|---|---|
+| `admin` | `sale_pos/partials/pos_form_actions.blade.php` (9×) + `pos_form_totals.blade.php` | é o **escape hatch das permissões negativas**. Os `disable_*` (`disable_pay_checkout`, `disable_draft`, `disable_discount`…) **são declarados**, e o `Gate::before` dá **todos** eles ao admin — logo `!Gate::check('disable_X')` é sempre `false` para admin, e sem o `\|\| can('admin')` o admin perderia os botões do PDV. Declarar viraria checkbox concedível que **fura os `disable_*`** de qualquer papel |
+| `only_admin` | nav do AssetManagement (categorias de ativo + configurações) | o nome **é** a intenção; declarar criaria um "só admin" concedível a não-admin |
+| `edit_essentials_settings` | 4 navs do Essentials | o endpoint é **admin-only por desenho**: `EssentialsSettingsController::authorizeAdmin()` exige `is_admin()` e aborta com *"Apenas administradores podem ver/editar as configurações do Essentials."* Menu e endpoint **concordam**; declarar criaria checkbox que o endpoint depois rejeita |
+| `subscribe` | `SuperadminSubscriptionsController::store` | a rota vive no grupo `/superadmin` com middleware **`superadmin`** — a barreira real. O `can('subscribe')` é gate redundante que não-superadmin nunca alcança; declarar **fabricaria teatro** (checkbox que não concede nada) |
+
+**Ficam como resíduo declarado.** Não é dívida: é código correto que o detector reporta porque enxerga metade do `Gate::before`. Ensinar a outra metade ao detector exigiria distinguir "nome que denota o próprio check de admin" — critério **por nome**, a família de guard sintático já morta 4× no §5 das proibições. Não vale.
+
+##### Scaffolding — 3 de 16 (endpoint nunca alcançável)
+
+`visit.create` · `visit.view_all` · `visit.view_own`, no `FieldForceController` do Connector. **Rota existe, endpoint não é alcançável:** os três métodos abrem com `isModuleInstalled('FieldForce')`, e `Module::has()` varre o diretório de módulos — o módulo **não existe nesta árvore** (o `modules_statuses.json` tem a chave `"FieldForce": true`, mas ele só guarda ativo/inativo; quem decide existência é a varredura). Mesmo critério que classificou os 7 scaffolding da classe C. **Resíduo declarado.**
+
+> ⚠️ **Achado a entregar junto com o módulo, se algum dia ele entrar:** o par `view_all`/`view_own` **falha ABERTO**, não fechado — ao contrário de todo o resto desta US. O filtro é
+> `if (! can('visit.view_all') && can('visit.view_own')) { $query->where('assigned_to', $user->id); }`
+> Com as duas inexistentes, um não-admin resolve `true && false` = **false** → o filtro **não é aplicado** → veria as visitas de todos os usuários do business, em vez de só as próprias. O `index()` não tem gate de acesso nenhum além do `isModuleInstalled`. Hoje é inerte (o endpoint aborta antes); quem ligar o módulo precisa declarar as duas **antes**, senão liga com vazamento intra-tenant.
+
+##### Corrigidas — 4 trocas de nome (zero permissão nova)
+
+Todas na forma já conhecida do `kb.ai`: o **menu** cita um nome que não existe enquanto o **endpoint** exige outro, que existe. O menu passa a citar o gate real do endpoint — não amplia nada além de tornar o item visível a quem o endpoint já deixaria entrar.
+
+| onde | checava | passa a checar | quem é o dono da verdade |
+|---|---|---|---|
+| `AdminSidebarMenu.php` (dropdown Configurações) | `access_package_subscriptions` | `superadmin.access_package_subscriptions` | o módulo Superadmin declara o nome com prefixo no `DataController` e gateia o `SubscriptionController` com ele; o sidebar do core ficou com o nome sem prefixo — drift de namespace, o mesmo do `copiloto.superadmin`→`jana.superadmin` citado no cabeçalho do detector |
+| `AdminSidebarMenu.php` (Modelos de notificação) | `send_notifications` (plural) | `send_notification` (singular) | `NotificationTemplateController::index/store` exige o **singular** — o menu apontava pro plural, que não existe em lugar nenhum |
+| `Essentials/…/sidebar_hrm.blade.php` | `add_essentials_leave_type` | `essentials.crud_leave_type` | é o gate do próprio `EssentialsLeaveTypeController`, declarado no `DataController` do módulo |
+| `Repair/…/nav.blade.php` | `edit_repair_settings` | `repair.create` | `RepairSettingsController` exige `repair.create` (+ assinatura do `repair_module`) nos 3 métodos |
+
+##### Declaradas — 3 (todas `default => false`)
+
+| permissão | consumidor (rota viva) | por que declarar, e não reaproveitar irmã |
+|---|---|---|
+| `send_notification` | `NotificationTemplateController::index/store` + menu de ações do Repair | não há irmã; é o nome que **o endpoint já exige** |
+| `configure_dashboard` | `DashboardConfiguratorController::update` (`Route::resource('dashboard-configurator')`) | não há irmã. ⚠️ o comentário do detector afirma que esta era *"permissão core perfeitamente declarada"* no seeder — **é impreciso**: `git log -S` no seeder (clone completo, 6.249 commits) mostra que ela **nunca esteve lá** |
+| `sale.history.view` | `SaleHistoryController::index/timelineUnified` (`/api/sells/{id}/history`) | controller **somente leitura** (zero escrita). É a única já existente em produção — declarar alinha o código ao que o banco já tem |
+
+Declaradas no `resources/views/role/{create,edit}.blade.php` — que é a fonte **operante** para business existente (o seeder só roda em instalação nova; quem cria a linha em `permissions` é o `RoleController::__createPermissionIfNotExists` a partir do checkbox). Labels em `lang/{pt,en}/role.php`.
+
+**Confirmado que nenhuma virou "teatro"**: o detector segue reportando as três como *usadas* — declarar sem uso só trocaria um problema pelo outro.
+
+##### ⛔ NÃO aplicadas — 2 sob a regra-mestre VALOR/ESTOQUE, aguardando decisão [W]
+
+A regra manda **apresentar o impacto e só aplicar após confirmação**. Estão medidas e apresentadas; **nenhuma linha foi tocada**.
+
+**1. `edit_purchase_price`** — `PurchaseController` (2×), `StockAdjustmentController`, `StockTransferController`, sempre na forma `'edit_price' => $user->can('edit_purchase_price')`.
+
+| | hoje | se declarada |
+|---|---|---|
+| Admin | campo de preço de compra **editável** (via `Gate::before`) | igual |
+| Não-admin **sem** a permissão | campo **readonly** | igual |
+| Não-admin **com** a permissão | não existe — ninguém pode receber | campo **editável** |
+
+É **flag de UI pura**: viaja como prop Inertia `permissions.edit_price` e só decide o `readonly` do input. **Não há enforcement server-side** — o `store()`/`update()` não re-checa a permissão, então o valor postado é aceito independentemente dela. Recomendo **declarar** (restaura a capacidade que o nome promete a um comprador não-admin) **e** registrar que o flag não é barreira de segurança — se a intenção é barrar de verdade, o gate precisa ir para o servidor, o que é decisão de desenho separada.
+
+**2. `report.stock_details`** — `ReportController::productStockDetails` (leitura) **e** `ReportController::adjustProductStock`, que chama `productUtil->fixVariationStockMisMatch(...)` — **escrita de estoque**.
+
+Uma permissão gateia os dois. Reaproveitar a irmã declarada `stock_report.view` seria **errado**: é permissão de leitura e passaria a autorizar ajuste de estoque — exatamente o "`access_*` é leitura, não autoriza deletar" que o método proíbe. Mas declarar `report.stock_details` como está tem o problema espelhado: o **nome diz relatório e o efeito inclui mutação de estoque** — vira armadilha para quem marcar o checkbox achando que concedeu leitura.
+
+As duas saídas, e nenhuma é minha para escolher:
+
+- **(i)** declarar `report.stock_details` como está — 1 linha, preserva a semântica atual exata, e a armadilha do nome fica registrada;
+- **(ii)** separar: `report.stock_details` para a leitura e um nome explícito de mutação (ex.: `stock.adjust_mismatch`) para o `adjustProductStock`.
+
+Recomendo **(ii)** por ser o desenho correto, com a ressalva honesta de que ela mexe em quem pode mutar estoque e por isso pede o ciclo completo da regra-mestre (dupla confirmação + antes→depois por registro afetado). **Decisão [W].**
+
+##### Contador e o que sobra
+
+**24 → 17** nesta rodada (−4 trocas, −3 declarações). A composição das 17:
+
+| grupo | n | estado |
+|---|---:|---|
+| scaffolding classe C (endpoint não ligado) | 7 | resíduo declarado, razão acima |
+| idioma `Gate::before` (`admin`, `only_admin`, `edit_essentials_settings`, `subscribe`) | 4 | resíduo declarado — declarar seria nocivo |
+| scaffolding classe D (`visit.*`) | 3 | resíduo declarado + achado de fail-open anexado |
+| `ponto.importacoes.criar` | 1 | PR separado, travado na lane vermelha do Ponto |
+| **VALOR/ESTOQUE aguardando [W]** | **2** | `edit_purchase_price` · `report.stock_details` |
+
+Ou seja: das 17, **15 têm razão escrita para ficar** e **2 aguardam decisão**. A classe D está triada.
+
+##### Achados adjacentes — registrados, não corrigidos (outro escopo)
+
+- **`NotificationController::send()` tem o gate COMENTADO** (`// if (!auth()->user()->can('send_notification'))`). O `getTemplate()` não tem gate nenhum. Ou seja: mesmo com `send_notification` agora declarada, o **envio** em si não é gateado — só a tela de modelos. Decisão de desenho.
+- **`ModifierSetsController::index()` sem gate** — já registrado na classe B, segue valendo.
+- **O comentário do detector sobre a 4ª fonte é impreciso** (ver `configure_dashboard` acima). Não altera nenhum veredito; fica anotado para quem for lê-lo como recibo.
