@@ -234,12 +234,22 @@ class EspelhoContratoTest extends PontoTestCase
         $colaborador = $this->criarColaborador();
         $dia = sprintf('%04d-%02d-07', self::ANO, self::MES);
 
+        // `usuario_criador_id` é obrigatório: coluna `int NOT NULL` sem default, guardada
+        // pela FK `ponto_marcacoes_usuario_criador_id_foreign` → `users`. O Model NÃO
+        // preenche (sem default, sem observer); quem exige é o Service —
+        // `MarcacaoService::registrar()` lança `RuntimeException` se vier vazio. Este caso
+        // monta o estado pelo Model de propósito, pra testar a LEITURA do espelho, então
+        // precisa passar o campo à mão. Sem ele o MySQL usa o 0 implícito, a FK reprova
+        // com 1452, e o caso morre no fixture — antes de exercer o contrato de anulação
+        // (CU-PONTO-13 · Portaria MTP 671/2021). Os 6 testes verdes do módulo que criam
+        // Marcacao pelo Model já passam o campo; só este arquivo não passava.
         Marcacao::create([
             'business_id'           => $this->business->id,
             'colaborador_config_id' => $colaborador->id,
             'momento'               => $dia . ' 08:00:00',
             'origem'                => Marcacao::ORIGEM_REP_P,
             'tipo'                  => Marcacao::TIPO_ENTRADA,
+            'usuario_criador_id'    => $this->admin->id,
         ]);
 
         // A correção legal: NÃO edita a anterior — acrescenta a anulação.
@@ -249,6 +259,7 @@ class EspelhoContratoTest extends PontoTestCase
             'momento'               => $dia . ' 09:00:00',
             'origem'                => Marcacao::ORIGEM_ANULACAO,
             'tipo'                  => Marcacao::TIPO_ENTRADA,
+            'usuario_criador_id'    => $this->admin->id,
         ]);
 
         $url = "/ponto/espelho/{$colaborador->id}?mes=" . $this->mesRef();

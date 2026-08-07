@@ -12,7 +12,8 @@ class GenerateModuleSpecsCommand extends Command
     protected $signature = 'module:specs
                             {module? : Nome do módulo (default: todos)}
                             {--stdout : Imprimir no stdout em vez de salvar em memory/modulos/}
-                            {--index-only : Regenerar somente o índice atual, sem tocar specs individuais}';
+                            {--index-only : Regenerar somente o índice atual, sem tocar specs individuais}
+                            {--aceito-perda-de-branch : Regravar mesmo quando uma branch histórica sumiu e o registro dela for insubstituível}';
 
     protected $description = 'Inspeciona módulos atuais; mantém snapshots técnicos legados e o índice de autoridade.';
 
@@ -39,6 +40,14 @@ class GenerateModuleSpecsCommand extends Command
         $this->info(count($targets) . ' módulos registrados no checkout atual.');
 
         $outDir = base_path('memory/modulos');
+
+        // Só corre risco de perda quem de fato reescreve os specs individuais.
+        // `--stdout` não grava; `--index-only` só toca INDEX.md, que não carrega
+        // coluna de presença-em-branch (ver writeIndex) — nenhum dos dois apaga registro.
+        if (! $toStdout && ! $indexOnly && ! $this->guardaPerdaDeBranch($gen, $outDir)) {
+            return self::FAILURE;
+        }
+
         if (!$toStdout && !File::isDirectory($outDir)) {
             File::makeDirectory($outDir, 0755, true);
         }
@@ -84,6 +93,75 @@ class GenerateModuleSpecsCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Impede que regenerar apague, em silêncio, o único registro de uma branch que sumiu.
+     *
+     * `memory/modulos/` é a ÚNICA memória de módulos que não existem mais em lugar nenhum:
+     * `main-wip-2026-04-22` (backup) sumiu do repo e do remoto, e 6 módulos só constam
+     * dela — Accounting, AiAssistance, Grow, IProduction, Officeimpresso1, Writebot,
+     * todos ausentes também de `origin/3.7-com-nfe` (medido 2026-07-30). Como o git não
+     * sabe mais responder por essa branch, regravar as specs trocaria o `✅` deles por
+     * `n/d` e o fato se perderia — sem erro, sem aviso, sem volta.
+     *
+     * Então: se uma branch histórica sumiu E existe arquivo que a registra, aborta e
+     * mostra quais. `--aceito-perda-de-branch` segue adiante, agora como escolha.
+     *
+     * Histórico: nasceu no #5085 (2026-07-30) e foi removido pelo #5327 (2026-08-06),
+     * que trouxe este arquivo de uma branch anterior ao guard — revert não-declarado.
+     * O bite-test que o cobre é `ModuleSpecBranchPresenceTest`, e ele ficou vermelho no
+     * mesmo dia; a lane `PHP / Pest (Ponto · MySQL)` já estava vermelha por outra causa,
+     * então ninguém viu. Restaurado aqui sobre a versão atual do arquivo (o `--index-only`
+     * e o `discoverAllModules` enxuto do #5327 seguem intactos).
+     */
+    protected function guardaPerdaDeBranch(ModuleSpecGenerator $gen, string $outDir): bool
+    {
+        $ausentes = $gen->branchesAusentes();
+        if ($ausentes === [] || ! File::isDirectory($outDir)) {
+            return true;
+        }
+
+        $emRisco = [];
+        foreach (File::files($outDir) as $arquivo) {
+            if ($arquivo->getExtension() !== 'md') {
+                continue;
+            }
+            $conteudo = (string) File::get($arquivo->getPathname());
+            foreach ($ausentes as $branch) {
+                if (preg_match('/^\|.*' . preg_quote($branch, '/') . '.*✅.*\|$/mu', $conteudo)) {
+                    $emRisco[$branch][] = $arquivo->getFilenameWithoutExtension();
+                }
+            }
+        }
+
+        if ($emRisco === []) {
+            foreach ($ausentes as $branch) {
+                $this->warn("Branch histórica `{$branch}` não existe mais — a presença nela sai como `n/d`.");
+            }
+
+            return true;
+        }
+
+        if ($this->option('aceito-perda-de-branch')) {
+            foreach ($emRisco as $branch => $modulos) {
+                $this->warn("Regravando mesmo assim: `{$branch}` (" . count($modulos) . ' módulo(s) perdem o registro).');
+            }
+
+            return true;
+        }
+
+        $this->error('ABORTADO — regravar apagaria o único registro de uma branch que não existe mais.');
+        foreach ($emRisco as $branch => $modulos) {
+            sort($modulos);
+            $this->line("  <fg=yellow>{$branch}</> (sumiu do repo) é registrada por: " . implode(', ', $modulos));
+        }
+        $this->newLine();
+        $this->line('  Esses arquivos são a última prova de que esses módulos existiram.');
+        $this->line('  Confira antes: <fg=cyan>git show HEAD:memory/modulos/<Modulo>.md</>');
+        $this->line('  Ciente e quer prosseguir: <fg=cyan>php artisan module:specs --aceito-perda-de-branch</>');
+
+        return false;
     }
 
     /** Lista somente módulos registrados no checkout atual. Histórico continua no Git. */
