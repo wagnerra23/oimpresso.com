@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 120 (40 contexts required)
+## 1. Workflows / Gates de CI — 121 (40 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -85,6 +85,7 @@ lifecycle: ativo
 | `handoff-scope-guard.yml` | Handoff Scope Guard (files_json · escopo duro do handoff de design, ADR 0283 Fase 0) |
 | `handoff-sign-submit.yml` | Handoff Sign & Submit (on-push · assina HMAC + POST handoff-submit → pending; advisory · PR-6b ADR 0283) |
 | `infra-contract-required.yml` | Infra Contract Required |
+| `jana-conversas-gate.yml` | Jana Conversas — histórico do chat (filtro real · J/K · ⌘⇧H · aria-live) |
 | `jana-logica-pura-pest.yml` | Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295) |
 | `jana-pest.yml` | Jana · Pest (MySQL) |
 | `jana-ragas-canary.yml` | Jana RAGAS Canary (daily 06:00 UTC) |
