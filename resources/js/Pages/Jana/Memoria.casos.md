@@ -72,9 +72,13 @@ motivo: o protótipo confirma o apagar inline, sem campo.
 - ⬜ **Salvar desabilitado** enquanto texto **ou** motivo estiverem vazios (o servidor já é travado por UC-MEM-01).
 - ⬜ **Copy literal do Alert** — "Memória da Jana — LGPD Art. 18" + "Você vê, corrige e apaga qualquer fato que a Jana aprendeu sobre o seu negócio. Toda alteração registra autor e motivo no log de auditoria."
 - ⬜ **Rodapé da edição** "Toda correção registra autor, horário e motivo."
-- ⬜ **Busca** "Buscar em fatos…" e **filtro por categoria** (fatia D itens 3 e 4 — não entram neste PR).
-- ⬜ **Confirmação inline** do apagar, no lugar do `confirm()` nativo (fatia D item 6).
-- ⬜ **Empty state** com a copy do protótipo (fatia D item 7).
+- ⬜ **Busca** "Buscar em fatos…" e **filtro por categoria** — implementados; a lista agora FILTRA
+  em vez de AGRUPAR. Os chips são **derivados do dado**, não da lista literal do protótipo: aquela
+  (`preferência/operação/financeiro/…`) é a taxonomia do mock do Martinho, a de produção é outra
+  (`CATEGORIA_LABELS`). Traduz-se o comportamento, não a lista (§5 2026-07-16).
+- ⬜ **Confirmação inline** do apagar, no lugar do `confirm()` nativo — implementada.
+- ⬜ **Os DOIS empty states** ("nada aprendido" × "nenhum fato com esse filtro" + Limpar filtro) —
+  implementados com a copy literal. Produção tinha só um, com texto diferente.
 
 ## Divergências protótipo × produção ainda ABERTAS (decisão [W])
 
