@@ -1249,14 +1249,18 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 ### US-SELL-058 · Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar na tela que a ROTA LIVRE opera
 
-**Implementado em:** `resources/js/Pages/Sells/CreateV3.tsx` · `app/Http/Controllers/SellsV3Controller.php` · `routes/web.php` · verificado@70ebd92 (2026-08-07) — preview de design servido em GET /sells/create-v3; sem store(), sem POST, sem cálculo de valor (números são dados de cena formatados no controller)
+**Implementado em:** _parcial_ · `resources/js/Pages/Sells/CreateV3.tsx` · `app/Http/Controllers/SellsV3Controller.php` · `routes/web.php` · verificado@70ebd92 (2026-08-07) — o **scaffold** do preview shipou: rota GET /sells/create-v3, tela e dados de cena (sem store(), sem POST, sem cálculo de valor). A US **não** está fechada — falta o smoke real e a decisão [W] sobre ligar dados reais, que é onde entra o território `[V0]`
 
 **Testado em:** `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (covers US-SELL-058) — UC-V301 rota registrada · UC-V302 nenhuma rota de escrita · UC-V303 fronteira (o V3 não encosta em Create.tsx/SellPosController). Na allowlist da lane `Pest (Sells · MySQL)`; **nunca executado** até o primeiro run de CI deste PR
 
 > owner: luiz · priority: p2 · estimate: 6h · type: story
 > blocked_by: —
 
-O campo de estado legado foi **omitido de propósito** ([ADR 0302](../../decisions/0302-doneness-fonte-unica-implementado-em.md) — aposentado; a fonte única de done-ness é `**Implementado em:**`). Os dois fatos convivem sem contradição assim: o código **está** implementado e ancorado acima, e a US **não** está aceita — quem carrega isso são os dois itens abertos no Aceite (smoke real · decisão [W] sobre dados reais). Declarar aquele campo ao lado de âncora válida é leitura contraditória, e o `doneness-lint` morde com razão. ⚠️ Se for reescrever esta nota, não reproduza o nome do campo seguido de dois-pontos dentro do bloco `>` acima — o lint parseia aquele bloco e a própria explicação vira a violação.
+<!-- Sem `status:` de propósito, como a US-SELL-001 (mesmo caso: epic parcialmente
+     landado). ADR 0302: `status:` é legado derivado/aposentado — a fonte única de
+     done-ness é `**Implementado em:**`, que aqui diz `_parcial_` e explica o que falta.
+     Escrever `status: done` com smoke pendente seria mentira; `status: doing` com
+     âncora viva é o conflito que o doneness-lint morde, com razão. -->
 
 **Origem:** restrição de negócio declarada por **[L] Luiz** em 2026-08-06, textual: *"Tela do Guilherme e da Larissa não pode ser alterada de forma alguma, se não eles quebram contrato e perdemos dinheiro."*
 
