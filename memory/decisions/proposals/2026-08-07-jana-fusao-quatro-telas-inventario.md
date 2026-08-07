@@ -73,7 +73,7 @@ A instrução equivalente que **vale**: não renomear `jana.*` — permission Sp
 | `Cockpit.charter.md` | `/jana/cockpit` | `/ia/cockpit` | `draft` (`spec-ahead-of-impl`) |
 | `Memoria.charter.md` | `/copiloto/memoria` | `/ia/memoria` | `draft` (corpo diz live desde 2026-04) |
 
-Os 4 apontam pra prefixos que hoje só existem como **301**: a [ADR 0180](../0180-sidebar-v3-vertical-slice-ia.md)
+Os 4 apontam pra prefixos que hoje só existem como **301**: a [ADR 0180](../0180-sidebar-v3-5-grupos-ghosts-header.md)
 renomeou `/jana` → `/ia` em 2026-05-22 e os charters não acompanharam. Cada charter tocado
 numa onda corrige o próprio `page:` **no mesmo PR** — forward-only, **não** backfill dos 4
 de uma vez (§5 2026-07-12: tocar legado em massa acorda gate diff-aware que o grandfather
@@ -101,8 +101,16 @@ Fonte: `jana-merge.jsx` no DesignSync (projeto `019dcfd3…`, leitura livre — 
   (Metas vira seção do Painel). O pedido escolheu `"secao"`. Não há divergência — registro
   aqui só pra não ser redecidido na onda 3.
 - **O protótipo desenha 6 KPI cards**; o pedido §2 diz "4 KPIs". Não resolvi por leitura:
-  quem arbitra é o `--check` do contrato ([ADR 0286](../0286-contrato-de-tela-copy-literal.md)),
+  quem arbitra é o `--check` do **contrato de tela** —
+  [`scripts/contrato-de-tela.mjs`](../../../scripts/contrato-de-tela.mjs) +
+  [`RUNBOOK-contrato-de-tela.md`](../../requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md) —
   que lê o `.jsx`. Registrado como divergência **aberta**, não como fato.
+
+  > ⚠️ O pedido [CC] §1.5 atribui esse gate à **"ADR 0286"**. A 0286 deste repo é
+  > `0286-channel-health-corroborado-por-mensagem-real` — outro assunto. Não localizei ADR
+  > que governe o contrato de tela sob esse número, então aponto pro **mecanismo**, que
+  > verifiquei existir, em vez de repetir um número que não confere. Quem souber o id certo,
+  > corrija aqui.
 
 > Nota sobre o `jana-merge.jsx`: o handoff de 08-07 diz que ele *"nunca chegou ao repo e
 > deixou de ser necessário"*, porque as peças equivalentes existem no Design System
