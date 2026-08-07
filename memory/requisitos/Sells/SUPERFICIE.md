@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 169 arquivos em 9 papéis.
+**Total mapeado:** 172 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -72,10 +72,11 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 
 - 70 arquivos em [resources/views/sale_pos/](../../../resources/views/sale_pos) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 8
+## Telas (Inertia/React) — 9
 
 - [Index.tsx](../../../resources/js/Pages/Sells/Caixa/Index.tsx)
 - [Create.tsx](../../../resources/js/Pages/Sells/Create.tsx)
+- [CreateV3.tsx](../../../resources/js/Pages/Sells/CreateV3.tsx)
 - [Drafts.tsx](../../../resources/js/Pages/Sells/Drafts.tsx)
 - [Edit.tsx](../../../resources/js/Pages/Sells/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Sells/Index.tsx)
@@ -121,10 +122,11 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [VdNfseEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdNfseEmitModal.tsx)
 - [VdSource.tsx](../../../resources/js/Pages/Sells/_components/VdSource.tsx)
 
-## Charters (lei da tela) — 8
+## Charters (lei da tela) — 9
 
 - [Index.charter.md](../../../resources/js/Pages/Sells/Caixa/Index.charter.md)
 - [Create.charter.md](../../../resources/js/Pages/Sells/Create.charter.md)
+- [CreateV3.charter.md](../../../resources/js/Pages/Sells/CreateV3.charter.md)
 - [Drafts.charter.md](../../../resources/js/Pages/Sells/Drafts.charter.md)
 - [Edit.charter.md](../../../resources/js/Pages/Sells/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Sells/Index.charter.md)
@@ -132,9 +134,10 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.charter.md](../../../resources/js/Pages/Sells/Show.charter.md)
 - [Subscriptions.charter.md](../../../resources/js/Pages/Sells/Subscriptions.charter.md)
 
-## Casos (contrato UC) — 3
+## Casos (contrato UC) — 4
 
 - [Create.casos.md](../../../resources/js/Pages/Sells/Create.casos.md)
+- [CreateV3.casos.md](../../../resources/js/Pages/Sells/CreateV3.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Sells/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 
