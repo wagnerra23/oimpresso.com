@@ -1,23 +1,24 @@
 ---
-page: /copiloto/memoria
+page: /ia/memoria
 component: resources/js/Pages/Jana/Memoria.tsx
 owner: wagner
 status: draft
-last_validated: "2026-05-16"
+last_validated: "2026-08-07"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [31, 33, 35, 36, 37, 52, 61, 93, 94, 131]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
-related_specs:
-  - memory/requisitos/Jana/SPEC.md (US-COPI-MEM-005, US-COPI-MEM-008, US-COPI-MEM-012)
+related_runbook: memory/requisitos/Jana/RUNBOOK-memoria.md
+related_casos:
+  - resources/js/Pages/Jana/Memoria.casos.md
 tier: A
-charter_version: 1
+charter_version: 2
 permissao: copiloto.memoria.manage
 lgpd_sensitive: true
 ---
 
-# Page Charter — `/copiloto/memoria`
+# Page Charter — `/ia/memoria`
 
 > **Status:** `live` — implementada e em uso prod biz=1 desde 2026-04. Charter retroativo Wave M 2026-05-16.
 >
@@ -70,3 +71,19 @@ Audiência primária: **dono/gestor do business** (Wagner, Larissa). Acesso `bus
 ## Charter version log
 
 - v1 (2026-05-16) — Charter retroativo Wave M boost Modules/Jana 64→78
+- **v2 (2026-08-07)** — O Goal do `motivo` e o Anti-hook do `activitylog` **passaram a valer**:
+  até aqui o charter mandava registrar "autor/quando/motivo" e o código validava só `fato`
+  (0 hits de `motivo` na Page, medido). Agora o servidor rejeita edição sem motivo e a trilha
+  sai em `activity_log` (`jana_memoria_fato_editado` / `_esquecido`), com o motivo redigido por
+  `PiiRedactor`. Defendido por `MemoriaEdicaoMotivoTest` (UC-MEM-01..05) na lane `jana-pest.yml`.
+  Junto: nasceram o [RUNBOOK](../../../../memory/requisitos/Jana/RUNBOOK-memoria.md) (a tela estava
+  live desde 2026-04 **sem** F1 PLAN) e o [`Memoria.casos.md`](Memoria.casos.md), fechando o trio.
+  URL corrigida `/copiloto/memoria` → `/ia/memoria` (a rota migrou em duas fases; o charter ficou
+  no prefixo antigo). **Removidos os ids fantasma** `US-COPI-MEM-005/008/012` do `related_specs`:
+  não existem no SPEC da Jana (0 hits, medido) — mesmo padrão do `US-JANA-PAINEL-001` que a onda 1
+  da US-COPI-148 pegou. Nada foi posto no lugar: não há US real pra esta fatia, e inventar id pra
+  satisfazer lint seria teatro.
+
+> ⚠️ **Divergência de status não resolvida aqui:** o frontmatter diz `draft`, o corpo diz `live`
+> ("em uso prod biz=1 desde 2026-04"). Promover `draft→live` é decisão [W], não do agente — fica
+> registrado, não mexido.

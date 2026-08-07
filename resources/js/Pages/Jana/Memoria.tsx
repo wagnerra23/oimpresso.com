@@ -12,6 +12,7 @@ import AppShellV2 from '@/Layouts/AppShellV2'
 import { router, useForm } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 import { Badge } from '@/Components/ui/badge'
 import { Brain, Trash2, Pencil, Save, X } from 'lucide-react'
 import FabJana from './components/FabJana'
@@ -61,18 +62,32 @@ function formatData(iso: string | null): string {
 
 function FatoCard({ memoria }: { memoria: MemoriaFato }) {
   const [editando, setEditando] = useState(false)
-  const { data, setData, patch, processing, reset } = useForm({
+  const { data, setData, patch, processing, reset, errors, clearErrors } = useForm({
     fato: memoria.fato,
+    // LGPD: toda correção registra autor + motivo no log de auditoria. O backend
+    // rejeita (422) sem motivo — este campo é a conveniência, não a garantia.
+    motivo: '',
   })
+  const podeSalvar = data.fato.trim() !== '' && data.motivo.trim() !== ''
   const cat = memoria.metadata?.categoria as string | undefined
   const catCfg = (cat && CATEGORIA_LABELS[cat]) || { label: cat || 'sem categoria', color: 'bg-gray-100 text-gray-700' }
   const rel = memoria.metadata?.relevancia as number | undefined
 
   const onSalvar = () => {
+    if (!podeSalvar) return
     patch(`/ia/memoria/${memoria.id}`, {
       preserveScroll: true,
-      onSuccess: () => setEditando(false),
+      onSuccess: () => {
+        setEditando(false)
+        setData('motivo', '') // motivo é por-correção: nunca reaproveita o anterior
+      },
     })
+  }
+
+  const onCancelar = () => {
+    reset()
+    clearErrors()
+    setEditando(false)
   }
 
   const onEsquecer = () => {
@@ -107,10 +122,16 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
               </>
             ) : (
               <>
-                <Button size="sm" variant="ghost" onClick={onSalvar} disabled={processing} title="Salvar">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onSalvar}
+                  disabled={processing || !podeSalvar}
+                  title={podeSalvar ? 'Salvar' : 'Preencha o fato e o motivo da correção'}
+                >
                   <Save className="size-4 text-success" />
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => { reset(); setEditando(false) }} title="Cancelar">
+                <Button size="sm" variant="ghost" onClick={onCancelar} title="Cancelar">
                   <X className="size-4" />
                 </Button>
               </>
@@ -121,12 +142,33 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
         {!editando ? (
           <p className="text-sm">{memoria.fato}</p>
         ) : (
-          <textarea
-            className="w-full text-sm rounded-md border p-2 min-h-[80px]"
-            value={data.fato}
-            onChange={(e) => setData('fato', e.target.value)}
-            disabled={processing}
-          />
+          <div className="space-y-2">
+            <textarea
+              className="w-full text-sm rounded-md border p-2 min-h-[80px]"
+              value={data.fato}
+              onChange={(e) => setData('fato', e.target.value)}
+              disabled={processing}
+              aria-label="Texto do fato"
+            />
+            {errors.fato && <p className="text-xs text-destructive">{errors.fato}</p>}
+
+            <label className="block text-xs text-muted-foreground">
+              Motivo da correção
+              <input
+                className="mt-1 w-full text-sm rounded-md border p-2"
+                value={data.motivo}
+                onChange={(e) => setData('motivo', e.target.value)}
+                disabled={processing}
+                placeholder="fica no log de auditoria"
+                aria-label="Motivo da correção"
+              />
+            </label>
+            {errors.motivo && <p className="text-xs text-destructive">{errors.motivo}</p>}
+
+            <p className="text-xs text-muted-foreground">
+              Toda correção registra autor, horário e motivo.
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>
@@ -152,14 +194,18 @@ function Memoria({ memorias }: Props) {
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div className="flex items-center gap-3">
           <Brain className="size-7 text-primary" />
-          <div>
-            <h1 className="text-2xl font-semibold">O Copiloto lembra de você</h1>
-            <p className="text-sm text-muted-foreground">
-              Estes são os fatos que o Copiloto guarda sobre seu negócio. Você pode editar ou esquecer
-              qualquer um a qualquer momento (LGPD).
-            </p>
-          </div>
+          <h1 className="text-2xl font-semibold">O Copiloto lembra de você</h1>
         </div>
+
+        {/* Copy literal do protótipo (JmMemoria, prototipo-ui/cowork/jana-merge.jsx) —
+            §1.5 do pacote exige copy literal, não paráfrase. */}
+        <Alert>
+          <AlertTitle>Memória da Jana — LGPD Art. 18</AlertTitle>
+          <AlertDescription>
+            Você vê, corrige e apaga qualquer fato que a Jana aprendeu sobre o seu negócio.
+            Toda alteração registra autor e motivo no log de auditoria.
+          </AlertDescription>
+        </Alert>
 
         {memorias.length === 0 ? (
           <Card>
