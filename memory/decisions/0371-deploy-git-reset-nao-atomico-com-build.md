@@ -3,7 +3,7 @@ slug: 0371-deploy-git-reset-nao-atomico-com-build
 number: 371
 title: "Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob rajada de merge + runner saturado, produção fica com fonte novo e vendor/build velho"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
