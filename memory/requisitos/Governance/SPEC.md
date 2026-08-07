@@ -976,7 +976,17 @@ Logo as duas são **bug de acesso (classe A)**, com a forma exata do `kb.ai`:
 
 **`hms.*` (3) — a classe B procede, e a remoção é inerte.** Eles aparecem só em cadeias `OR` com permissões reais (`purchase.payments`, `sell.payments`, `delete_sell_payment`…) em `TransactionPaymentController` e `show_payments.blade.php`. Um termo sempre-falso num `OR` não muda veredito, então tirá-los preserva comportamento — mas **antes de remover, confirmar na base de produção** se `hms.*` não foi semeada historicamente pelo upstream UltimatePOS: o detector lê código, não o `permissions` vivo.
 
-> ⚠️ **Gap do detector achado nesta medição:** o strip de comentário do [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) cobre comentário **PHP** (`//`, `*`, `/*` no início da linha) — **não** cobre comentário **Blade** `{{-- --}}`, que envolve blocos inteiros de `@can()`. Prova: 2 dos 4 `@can('restaurant.*')` do `table/index` estavam dentro de `{{-- --}}` e contavam como uso vivo. Mesma família do FP-4, um formato adiante.
+> ⚠️ **Gap do detector — real, mas com impacto MEDIDO = 0. Não vale conserto hoje.**
+> O strip de comentário do [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) cobre comentário **PHP** (`//`, `*`, `/*` no início da linha) e **não** cobre **Blade** `{{-- --}}`, que envolve blocos inteiros de `@can()` — 2 dos 4 `@can('restaurant.*')` do `table/index` estavam lá dentro e eram lidos como código.
+>
+> **Mas medir quantas órfãs isso fabrica dá zero** — no `main` e na correção. Motivo: as ocorrências comentadas eram **duplicatas** de usos vivos no mesmo arquivo, então nenhuma permissão entrou no censo *por causa* do comentário. Medição (leitor que remove `{{--…--}}` com a semântica do próprio Blade, `/\{\{--[\s\S]*?--\}\}/`, contra `coletarUsadas`):
+>
+> | corpus | usadas hoje | ignorando comentário Blade | só-em-comentário |
+> |---|---:|---:|---:|
+> | `origin/main` | 334 | 334 | **0** |
+> | com esta correção | 333 | 333 | **0** |
+>
+> Consertar renderia **0 falso-positivo removido** e mexeria num strip deliberadamente conservador (o cabeçalho dele explica por que não corta `//` no meio da linha). Fica **registrado, não construído** — se algum dia um `@can` comentado não tiver gêmeo vivo, o número deixa de ser 0 e aí o conserto se paga. Reabrir exige re-rodar a medição acima, não a leitura do código.
 
 **Nota sobre B/C/D:** o denominador de declaração do detector são 5 fontes (`DataController`, `Resources/permissions.php`, `role/*.blade.php`, `PermissionsTableSeeder`, `syncPermissions` em runtime). Seeders de módulo (ex.: `NfeFiscalActionsSeeder`) **não** entram — foi o que fez `fiscal.inutilizar` aparecer. Antes de declarar qualquer permissão da classe C, conferir se ela já existe em fonte fora dessas cinco.
 
