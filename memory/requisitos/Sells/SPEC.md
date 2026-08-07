@@ -1246,3 +1246,31 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - **ADR 0105:** MEDIR Web Vitals reais em biz=4 antes (é percepção, não bug). Esforço S (~3h).
 - NÃO confundir com US-SELL-003 (skeleton do AppShellV2/props contract) — este é perceived-perf de carregamento de dados.
 - Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-06
+
+### US-SELL-058 · Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar na tela que a ROTA LIVRE opera
+
+**Implementado em:** `resources/js/Pages/Sells/CreateV3.tsx` · `app/Http/Controllers/SellsV3Controller.php` · `routes/web.php` · verificado@70ebd92 (2026-08-07) — preview de design servido em GET /sells/create-v3; sem store(), sem POST, sem cálculo de valor (números são dados de cena formatados no controller)
+
+**Testado em:** `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (covers US-SELL-058) — UC-V301 rota registrada · UC-V302 nenhuma rota de escrita · UC-V303 fronteira (o V3 não encosta em Create.tsx/SellPosController). Na allowlist da lane `Pest (Sells · MySQL)`; **nunca executado** até o primeiro run de CI deste PR
+
+> owner: luiz · priority: p2 · estimate: 6h · status: doing · type: story
+> blocked_by: —
+
+**Origem:** restrição de negócio declarada por **[L] Luiz** em 2026-08-06, textual: *"Tela do Guilherme e da Larissa não pode ser alterada de forma alguma, se não eles quebram contrato e perdemos dinheiro."*
+
+**Problema:** o cadastro de venda precisa de redesenho, mas a tela viva (`Sells/Create.tsx` em `/pos/create`) é operada pela **ROTA LIVRE** (`biz=4` — Larissa dona, Guilherme retaguarda), 99% do volume. E a feature flag **não protege**: `FeatureFlagService::$fallbackDefaults['useV2SellsCreate'] = true` desde 2026-05-27 — a V2 React está ligada por padrão pra todos, então editar `Create.tsx` e deployar atinge o cliente direto. Daí **arquivo novo + rota nova**, não branch de flag.
+
+**Aceite:**
+- [x] Rota `GET /sells/create-v3` + `SellsV3Controller` novos, dentro do mesmo grupo de middleware da tela viva.
+- [x] Mesma alçada de permissão da venda real (`sell.create` ou `superadmin`) — preview não afrouxa gate.
+- [x] Fronteira verificável no diff: `Sells/Create.tsx`, `SellPosController.php` e componentes compartilhados **não aparecem**.
+- [x] Sem `store()`, sem POST, sem migration; botão "Finalizar venda" renderizado `disabled`.
+- [x] Faixa permanente no topo avisando que não é produção.
+- [ ] Smoke real pós-deploy: `/sells/create-v3` responde + `/pos/create` e `/sells` inalteradas (regression adjacent) + screenshot 1440/1280.
+- [ ] Decisão [W] sobre ligar dados reais (hoje são dados de cena) — é aí que entra território `[V0]` da REGRA MESTRE de valor/estoque.
+
+**Contrato de não-regressão (o que esta US promete NÃO fazer):** enquanto `status != done`, nenhum PR desta US pode tocar `resources/js/Pages/Sells/Create.tsx`, `app/Http/Controllers/SellPosController.php` nem componentes que a tela viva consome. Quebrar isso é quebrar o motivo de a tela existir.
+
+- Charter: [`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) · casos: [`CreateV3.casos.md`](../../../resources/js/Pages/Sells/CreateV3.casos.md) · RUNBOOK: [RUNBOOK-create-v3.md](RUNBOOK-create-v3.md)
+- Âncora de design: `prototipo-ui/design-oimpresso/04-modulos/vendas/sells-create.jsx`
+- Landado em [#5356](https://github.com/wagnerra23/oimpresso.com/pull/5356) — [L] não mergeia sozinho ([F] ou [W] aprova).

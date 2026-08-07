@@ -5,6 +5,7 @@ owner: luiz
 status: draft
 last_validated: "2026-08-07"
 parent_module: Sells
+related_us: [US-SELL-058]
 related_adrs: [253, 104, 93, 62]
 tier: C
 charter_version: 1
