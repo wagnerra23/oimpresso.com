@@ -197,6 +197,11 @@ jobs:
         run: node scripts/governance/settings-portlote-ps1-mjs-registration.test.mjs
       - name: Memory-pending PORTE .mjs (Stop · skill memory-sync · ADR 0070 · roda em Linux)
         run: node .claude/hooks/memory-pending.test.mjs
+      # Corpus REAL (19 prompts da sessão 2026-08-07 da fusão Jana) + controle negativo.
+      # Wirado junto com a ampliação do INTENT: selftest sem invocador é a máquina
+      # que existe e não avisa — o defeito que esta própria sessão catalogou.
+      - name: Design-agente-ativa (gatilho INTENT × DESIGN · verbos de acesso · bite + controle negativo)
+        run: node .claude/hooks/design-agente-ativa.mjs --selftest
       - name: Nudge-recommend-not-menu PORTE .mjs (R13 · advisory · roda em Linux)
         run: node .claude/hooks/nudge-recommend-not-menu.test.mjs
       - name: Nudge-diagnosis-without-evidence PORTE .mjs (R1 · advisory · roda em Linux)
