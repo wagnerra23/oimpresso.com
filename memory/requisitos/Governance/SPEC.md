@@ -961,7 +961,7 @@ Classificação das **38** restantes:
 
 A classe B dizia *"feature legada sem módulo… sobrou código no core"* e apontava remoção. **Vale para `hms.*` (3), não para `restaurant.*` (2).**
 
-**`restaurant.*` é feature VIVA, não legado.** Medido: rotas ativas (`Route::resource('tables', Restaurant\TableController::class)` + `modifiers`), controllers em `app/Http/Controllers/Restaurant/`, e gate por business via `isModuleEnabled('tables')` — é a **Mesas**, um dos módulos core habilitáveis em `/business/settings` (Camada 2 do CLAUDE.md). Não existe `Modules/Restaurant` porque nunca foi módulo nWidart; é core.
+**`restaurant.*` é feature VIVA, não legado.** Medido: rotas ativas (`Route::resource('tables', Restaurant\TableController::class)` + `modifiers`), controllers em `app/Http/Controllers/Restaurant/`, e gate por business via `isModuleEnabled('tables')` — é a **Mesas**, um dos módulos core habilitáveis em `/business/settings` (Camada 2 do CLAUDE.md). Não há diretório de módulo nWidart correspondente porque a feature **nunca foi um módulo** — sempre viveu no core. _(Path não citado de propósito, pela mesma razão da nota da classe B: a catraca anti-ghost trata citação de módulo inexistente como referência podre, e ela está certa.)_
 
 Logo as duas são **bug de acesso (classe A)**, com a forma exata do `kb.ai`:
 
