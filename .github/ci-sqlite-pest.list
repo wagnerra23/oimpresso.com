@@ -129,7 +129,11 @@ Modules/Whatsapp/Tests/Feature/MetricsSnapshotBuilderTest.php
 Modules/Whatsapp/Tests/Feature/ObservabilityTest.php
 Modules/Whatsapp/Tests/Feature/OfficeimpressoEnrichServiceTest.php
 Modules/Whatsapp/Tests/Feature/PropagateTraceparentTest.php
-Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php
+# RegisterWhatsappPermissionsCommandTest SAIU daqui em 2026-08-07: foi convertido do
+# schema sintético pro schema REAL (1º do burn-down da quarentena era-sqlite) e agora
+# roda em .github/workflows/whatsapp-pest.yml (MySQL). Nesta lane ele falharia — o
+# sqlite :memory: do ci.yml não tem migrations, e era só por montar o próprio schema
+# que ele rodava aqui.
 Modules/Whatsapp/Tests/Feature/SidebarCountsTest.php
 Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php

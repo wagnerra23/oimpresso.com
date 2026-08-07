@@ -1,0 +1,130 @@
+name: Whatsapp · Pest (MySQL)
+
+# Lane dedicada pra rodar a suíte Pest MySQL-only do Modules/Whatsapp contra MySQL
+# REAL + seed mínimo multi-tenant (via .github/actions/pest-mysql-setup: biz=1, biz=98
+# e biz=2). Espelha kb-pest.yml, que nasceu do MESMO problema.
+#
+# POR QUE existe (medido 2026-08-07, ao tirar o 1º arquivo da quarentena era-sqlite):
+# NENHUM teste do Modules/Whatsapp roda contra MySQL no CI por-PR. O modules-pest.yml
+# matrix não inclui Whatsapp (só Arquivos/ComunicacaoVisual/Fiscal/NfeBrasil/Repair/
+# Vestuario) e não havia lane dedicada; os ~57 arquivos do Whatsapp que rodam em CI
+# rodam na lane SQLITE (.github/ci-sqlite-pest.list), montando o próprio schema.
+#
+# O efeito colateral disso é o que esta lane existe pra corrigir: enquanto o único
+# home for sqlite-com-schema-sintético, nenhum teste do módulo pode exercitar as FKs
+# reais — e 73 arquivos do Whatsapp estavam com `markTestSkipped` fora do sqlite
+# ("quarentena Onda 2 SDD floor; burn-down converte depois"), ou seja, VERDE POR
+# NÃO-EXECUÇÃO em todo ambiente MySQL.
+#
+# Esta lane é o HOME do burn-down: cada arquivo convertido pro schema real entra
+# na allowlist ABAIXO no mesmo PR que o converte. Teste que não roda na lane não
+# defende nada.
+#
+# CATRACA: só entram arquivos comprovadamente verdes contra MySQL real. NÃO incluir
+# testes com RefreshDatabase/migrate:fresh — dropam o schema baseline e o seed
+# (ver Tests\TestCase::healCanonicalTenantIfWiped: cascata de 454 falhas medida no
+# nightly). O padrão canônico do burn-down é DatabaseTransactions (rollback por
+# teste, sem tocar no schema).
+#
+# Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0358 (tenant canônico biz=98; biz=4
+# PROIBIDO) · ADR 0062 (testes no CT 100, nunca local) · ADR 0271 onda 2
+# (required-readiness) · ADR 0275 (calendário advisory→required).
+
+on:
+  workflow_dispatch: {}
+  # always-run (SEM paths) + skip-as-pass interno (dorny/paths-filter): se nada do
+  # Whatsapp mudou, pula o pesado e conclui verde. Promovível a required sem deadlock
+  # "Expected — waiting" (ADR 0271 onda 2). push segue path-filtered (contém custo no main).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Whatsapp/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/whatsapp-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: whatsapp-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Whatsapp · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Whatsapp (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            whatsapp:
+              - 'Modules/Whatsapp/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/whatsapp-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Whatsapp mudou)
+        if: steps.changes.outputs.whatsapp == 'false'
+        run: echo "✅ Sem mudanças no Modules/Whatsapp — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=98/biz=2)
+        if: steps.changes.outputs.whatsapp == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Run Pest (Whatsapp · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.whatsapp == 'true'
+        # phpunit.xml declara DB_CONNECTION=sqlite (sem force=true) — exportar aqui
+        # faz a suíte rodar no MySQL real semeado, não no :memory:.
+        #
+        # ── ALLOWLIST (1 arquivo · burn-down da quarentena era-sqlite começou 2026-08-07) ──
+        # RegisterWhatsappPermissionsCommandTest: 1º convertido. PROVADO VERDE contra MySQL
+        # real no CT 100 antes do merge — 10 passed / 34 assertions (ADR 0062: teste roda no
+        # CT 100, nunca local). O run anterior, com o checkout velho do container (pré-#5381,
+        # 6 permissions), deu 5 failed / 21 assertions dizendo "6 !== 7": o teste PEGOU a
+        # diferença de contrato, que é a prova de que ele não é tautológico. Com o
+        # DataController de main (7 permissions) fica 10/10, e o estado do banco ficou
+        # BYTE-A-BYTE igual antes e depois (DatabaseTransactions reverteu: biz 97/98 não
+        # sobraram, users rwp_owner_* = 0).
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-whatsapp-junit.xml \
+            Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php
+
+      - name: Sumario JUnit (prova de EXECUÇÃO — skip sai exit 0, leia assertions)
+        if: always() && steps.changes.outputs.whatsapp == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-whatsapp-junit.xml --out test-results/pest-whatsapp-summary.json
+
+      - name: Upload artefatos
+        if: always() && steps.changes.outputs.whatsapp == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-whatsapp-mysql
+          path: test-results/
+          if-no-files-found: warn
