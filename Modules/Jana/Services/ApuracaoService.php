@@ -150,8 +150,13 @@ class ApuracaoService
      */
     public function farol(Meta $meta, ?Carbon $agora = null): string
     {
+        // @var: as relações são `HasOne`, e o PHPStan vê o retorno como `Model`
+        // genérico — sem isto ele acusa `property.notFound` em data_ini/data_fim/
+        // valor_alvo/valor_realizado (medido no CT 100: 15 erros).
+        /** @var \Modules\Jana\Entities\MetaPeriodo|null $periodo */
         $periodo = $meta->periodoAtual;
-        $ultima  = $meta->ultimaApuracao;
+        /** @var \Modules\Jana\Entities\MetaApuracao|null $ultima */
+        $ultima = $meta->ultimaApuracao;
 
         if (! $periodo || ! $ultima) {
             return 'cinza';

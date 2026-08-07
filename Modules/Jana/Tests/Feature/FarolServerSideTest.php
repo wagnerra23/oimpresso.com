@@ -56,9 +56,12 @@ function metaComFarol(float $alvo, float $realizado, float $fracaoDecorrida): ar
     $meta->setRelation('periodoAtual', $periodo);
     $meta->setRelation('ultimaApuracao', $apuracao);
 
-    $agora = $ini->copy()->addSeconds(
-        (int) round($fim->diffInSeconds($ini) * $fracaoDecorrida)
-    );
+    // Timestamp direto em vez de `diffInSeconds`: no Carbon 3 o diff é ORIENTADO
+    // (`$fim->diffInSeconds($ini)` devolve negativo quando $fim > $ini), e com o
+    // sinal invertido `$agora` caía ANTES do início — progresso 0, projetado 0,
+    // e todo caso de fronteira virava 'cinza'. Custou um vermelho no CI.
+    $duracaoSeg = $fim->getTimestamp() - $ini->getTimestamp();
+    $agora      = $ini->copy()->addSeconds((int) round($duracaoSeg * $fracaoDecorrida));
 
     return [$meta, $agora];
 }
