@@ -1,6 +1,6 @@
 ---
 id: requisitos-jana-briefing
-distilled_at: "2026-07-28"
+distilled_at: "2026-08-05"
 distilled_by: "manual [W/C] — consolidação de donos: intenção e decisões abertas ficam aqui; topologia/inventário ficam nos artefatos gerados; execução de observabilidade fica em OBSERVABILITY.md"
 module: Jana
 status: producao
@@ -10,6 +10,10 @@ updated_at: "2026-07-29"
 # BRIEFING — Jana (verdade destilada)
 
 ## Estado atual
+
+> **2026-08-05 — Custos de IA e Qualidade IA sairam pra Modules/Governance** (ADR 0366 §D-B, ratificada por [W] em 2026-08-03: cada modulo responde UMA pergunta, e a da Jana e "como esta meu negocio e o que eu faco?"). Muda o dono da TELA, nao o do DADO: CustosService e MemoriaMetrica continuam aqui, e as permissions jana.admin.custos.view / jana.mcp.usage.all foram PRESERVADAS — renomear revogaria acesso em silencio (ADR 0087). URLs antigas seguem vivas por 301 preservando a query. O item 4 do plano (mover as Mcp*) NAO esta autorizado.
+> **2026-08-05 — a tela de Governanca MCP saiu da Jana** (ADR 0366 §D-C item 1). Ela nao foi movida: foi FUNDIDA no painel do Modules/Governance, porque era a mesma tela que o dashboard de la (sobreposicao #4 da ADR). Fecha um drift que o SCOPE.md da Governanca declarava desde 2026-05-17 com eta_migracao Fase 5. O GovernancaService FICA aqui — mudou o dono da TELA, nao o do DADO; a permission jana.mcp.usage.all foi PRESERVADA e continua gateando a secao MCP dentro do painel novo. A URL antiga /ia/admin/governanca redireciona 301.
+> **2026-08-05 — a Jana está devolvendo as telas admin que não são dela** (ADR 0366 §D-B, ratificada por [W] em 2026-08-03: cada módulo responde UMA pergunta, e a da Jana é *"como está meu negócio e o que eu faço?"*). O Roadmap Gantt (`/ia/admin/roadmap`) foi pra **Forja** — usa `TaskCrudService`/`McpTask`, e tasks é Forja; mandar pro Governance criaria a 3ª tela de roadmap. Em PRs irmãos: Custos, Qualidade IA e a Governança MCP vão pra **Governance**. Em todos os casos **muda o dono da TELA, não o do DADO** — `CustosService`, `MemoriaMetrica`, `GovernancaService` e `TaskCrudService` continuam aqui; o item 4 do plano (mover as `Mcp*`) **não está autorizado**. URLs antigas sobrevivem por 301. Permissions `jana.*` **preservadas**: renomear revogaria acesso em silêncio ([ADR 0087](../../decisions/0087-drift-resolution-sem-mover-url.md)).
 
 Camada de IA do oimpresso: chat com memória persistente, brief diário, sugestões de metas e evals, sobre a stack canônica `laravel/ai` + Agents próprios ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)). Em produção.
 
@@ -55,7 +59,7 @@ Cada linha **aponta pro dono do número** em vez de repeti-lo ([proibicoes.md](.
 
 | Gap | Onde se vê / evidência | Dono |
 |---|---|---|
-| **Mock em rota LIVE** — `/ia/cockpit` responde mock no chat **e** no payload, sem feature-flag, e está no sidebar | `Cockpit.tsx:707` define / `:780` chama `startMockStream`; `ChatController.php:533` chama `mockJanaPayload()` (`:555`) | US-COPI-123 `todo` · [RUNBOOK-cockpit.md](RUNBOOK-cockpit.md) §10 |
+| ~~**Mock em rota LIVE**~~ — **RESOLVIDO 2026-08-07** por remoção, não por conserto: `/ia/cockpit` deixou de existir (301 → `/ia`) e as duas metades do mock saíram junto com a tela | `Cockpit.tsx` apagado · `ChatController@cockpit` + `mockJanaPayload()` removidos | US-COPI-123 `done` · onda 4 da US-COPI-148 · [RUNBOOK-cockpit.md](RUNBOOK-cockpit.md) (lápide) |
 | `context_recall` **baixo** — o piso já não deixa degradar calado (landou 2026-07-17), mas o valor segue baixo | rodar `jana:ragas-real-eval`; piso vive em `thresholds_regressao` | [`governance/jana-ragas-real-baseline.json`](../../../governance/jana-ragas-real-baseline.json) · US-COPI-136 **`done`** ([#4412](https://github.com/wagnerra23/oimpresso.com/pull/4412)) |
 | Eval online em ativação controlada | flag canônica autorizada por [W] em 2026-07-29; cobertura e ausência de score são advisory no `jana:health-check` | [`OBSERVABILITY.md`](OBSERVABILITY.md) Etapa 3 · US-COPI-137 |
 | Fluxo Langfuse | heartbeat do destino já foi construído; recibo atual vem de `jana:health-check --json`, não de texto estático | [`OBSERVABILITY.md`](OBSERVABILITY.md) Etapa 0 · US-COPI-138 |

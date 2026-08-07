@@ -51,7 +51,7 @@ const DESIGN = /\b(design|desing|dising|desgin|prot[oó]tipo|protipo|cowork|mock
     // custa 1 reminder; errar pra menos custou os strikes 1 e 2)
     if (!(INTENT.test(prompt) && DESIGN.test(prompt))) process.exit(0);
 
-    console.log(`⚠️ **COMPARAÇÃO DESIGN×PROD detectada — protocolo LC-06 (comparação é MEDIDA, nunca no olho)**
+    console.log(`[design-compare-protocol] ⚠️ **COMPARAÇÃO DESIGN×PROD detectada — protocolo LC-06 (comparação é MEDIDA, nunca no olho)**
 
 Antes de qualquer veredito "igual/aplicado/fiel", cumpra o fluxo da skill \`comparar-design-prod\`:
 1. **Fonte provada**: \`cowork-mirror-freshness --compare --check\` = SYNC (senão está comparando design velho).

@@ -12,6 +12,32 @@ id: requisitos-design-system-sdd-template
 >
 > **O SDD não substitui nada.** Ele é o mapa de cima: o `SPEC.md` guarda as US, os `*.charter.md` guardam a lei por tela, os `*.casos.md` guardam o contrato de teste. O SDD amarra os três e é **de onde o UC deriva** — nunca do `.tsx`.
 
+## Duas coisas chamadas “SDD” — não misturar
+
+- **SDD como processo** (*Spec-Driven Development*) é a cadeia inteira: US no `SPEC` → contrato
+  da feature (`requirements/plan/tasks`) → CU deste documento → UC de tela → teste → âncora da US.
+- **`SDD-*.md` como documento** é somente o mapa durável do domínio/família: arquitetura (§5),
+  fluxos e casos de uso (§6). Ele **não** é o plano de execução de uma feature.
+
+O trio `requirements.md` + `plan.md` + `tasks.md` nasce por **feature**, não por tela. Uma feature
+pode atravessar várias telas; uma tela pode receber várias features. Automatização:
+
+```bash
+npm run sdd:init -- <Mod>/<slug> --us US-<MOD>-<NNN> --sdd auto --cu CU-<MOD>-NN --screen <Mod>/<Tela>
+npm run sdd:flow -- <Mod>/<slug>
+```
+
+`sdd:flow` é um recibo/orquestrador: não reimplementa `feature-lint`, `anchor-lint`,
+`ancora-codigo-sync` ou `casos-gate`; ele mostra os elos e consome a máquina autoritativa de
+cada prova. O hash é o smart token Git já adotado no projeto: `verificado@<sha7>`. O recibo usa
+`anchor-lint --stale` (com base derivada quando houve squash) na US e
+`ancora-codigo-sync --check --require-stamp` nas referências `arquivo:linha` dos documentos
+exclusivos da feature/tela. Não existe um segundo hash de conteúdo concorrente.
+
+> **Nome legado:** vários arquivos ainda se chamam `SDD-tela-*`. O nome não muda a unidade e não
+> autoriza criar um por tela. Novos documentos devem preferir `SDD-<dominio>-v<N>.md`; renomear os
+> legados em massa é proibido sem plano de realocação, porque quebraria ponteiros vivos.
+
 ---
 
 ## Regras duras (violá-las torna o SDD pior que a ausência dele)

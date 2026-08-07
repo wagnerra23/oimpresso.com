@@ -10,9 +10,9 @@
 
 ## Resumo
 - **54** wirings em `settings.json` (5 eventos) · **49** arquivos de hook distintos wired
-- **49** arquivos de hook no disco (+40 `*.test.*` — testes, fora da conta de órfãos)
+- **49** arquivos de hook no disco (+42 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **34** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **40** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -79,41 +79,47 @@ Nenhum.
 Nenhum.
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (34):
+Contexts `classic_protection` (40):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
+- anchor entry/covers gate
+- anchor-lint ADR 0273
 - Ancora de design nao-shell (F2/F6 required)
 - Append-only canon (ADRs, handoffs, Constituição)
 - Casos-coverage · ratchet (trio + rastreabilidade)
+- catalog.json == SCOPEs + Classes B
 - Charter (resources/js/Pages/**/*.charter.md)
-- DS gate
+- charter status:live precisa de sinal de prod
+- deadlink-gate (ratchet · integridade referencial)
 - Dominio-dict · ratchet (enum ⇔ dicionário)
+- doneness-lint ADR 0302
+- DS gate
 - ESLint · ratchet vs baseline
 - Frontend / Vite build
+- gate selftest (as catracas mordem · GT-G6)
 - Layout primitives · ratchet
 - Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
+- PHP / Pest (Compras · MySQL)
+- PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)
 - PHP / Pest (NfeBrasil · MySQL)
+- PHP / Pest (Ponto · MySQL)
 - PHP / Pest (Unit)
 - PHPStan / Larastan · ratchet vs baseline
 - PII scan (CPF/CNPJ literal)
+- screen-coverage-gate
 - SDD scorecard ratchet (métrica armada não regride · GT-G3)
-- SPEC (memory/requisitos/*/SPEC.md)
 - Secret scan (gitleaks · só linhas novas do PR)
+- Self-test — classificação por papel + montagem determinística
+- SPEC (memory/requisitos/*/SPEC.md)
 - Stylelint · ratchet vs baseline
+- SUPERFICIE.md == árvore (módulos vivos + adotados)
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
-- anchor entry/covers gate
-- anchor-lint ADR 0273
-- charter status:live precisa de sinal de prod
-- doneness-lint ADR 0302
-- gate selftest (as catracas mordem · GT-G6)
-- screen-coverage-gate
 - visual-regression
-- deadlink-gate (ratchet · integridade referencial)
 
 Contexts `rulesets` (1):
 - Governance Gate (índice + memory-health + meta-teste)

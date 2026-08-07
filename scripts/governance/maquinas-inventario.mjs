@@ -4,8 +4,9 @@
 // PRÓPRIAS fontes — reusa os índices já gerados (hooks/skills/workflows) e preenche o
 // gap não-catalogado (scripts/** + agents). NÃO escreve descrição à mão: cada linha vem
 // do cabeçalho/frontmatter/_meta do próprio arquivo. Regerar: node scripts/governance/maquinas-inventario.mjs --write
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 const MODE = process.argv.includes('--write') ? 'write'
@@ -143,19 +144,114 @@ for (const f of agents.sort()) {
 P('');
 
 // ===== 5. SCRIPTS (o GAP real — nenhum índice cobre scripts/**) =====
+
+// --- eixo INVOCADOR (Trilha D · D0): quem EXECUTA cada script ---------------
+// Derivado, nunca escrito à mão. Responde a pergunta que o censo sozinho não
+// respondia: "esta máquina roda em algum lugar?" — a regra "LIGUE A MÁQUINA"
+// item 2 trata medidor sem invocador como BUG, não como neutralidade.
+//
+// Duas distinções que a v1 desta medição errou (registradas para quem mexer):
+//   (a) o corpus PRECISA incluir PHP — `generate-dxt.js` é chamado por um
+//       comando artisan (`McpGenerateDxtCommand.php`), e sem PHP ele aparecia
+//       como órfão. Medir com corpus incompleto é afirmar da fonte errada.
+//   (b) CI rodar `x.test.mjs` NÃO é o mesmo que CI rodar `x.mjs`. O teste prova
+//       a lógica numa fixture; o script pode nunca ser apontado para o repo.
+//       Essa é a diferença entre "o mecanismo está correto" e "o mecanismo é
+//       invocado" — marcada abaixo como `só .test`.
+//
+// NÃO julga: reporta o fato e o humano triaga. Um one-shot (codemod, probe,
+// PoC) é órfão POR DESIGN e não deve ser "ligado"; um medidor órfão é dívida.
+const readTree = (dir, exts, acc = [], depth = 0) => {
+  if (!existsSync(join(ROOT, dir)) || depth > 4) return acc;
+  for (const e of readdirSync(join(ROOT, dir))) {
+    const rel = `${dir}/${e}`;
+    let st; try { st = statSync(join(ROOT, rel)); } catch { continue; }
+    if (st.isDirectory()) readTree(rel, exts, acc, depth + 1);
+    else if (exts.some((x) => e.endsWith(x))) {
+      try { acc.push({ rel, txt: readFileSync(join(ROOT, rel), 'utf8') }); } catch {}
+    }
+  }
+  return acc;
+};
+const FONTES_INVOC = [
+  ['ci',     readTree('.github/workflows', ['.yml', '.yaml'])],
+  ['npm',    existsSync(join(ROOT, 'package.json')) ? [{ rel: 'package.json', txt: readFileSync(join(ROOT, 'package.json'), 'utf8') }] : []],
+  ['agente', readTree('.claude', ['.json', '.md', '.js', '.mjs'])],
+  ['script', readTree('scripts', ['.mjs', '.js', '.cjs', '.sh'])],
+];
+// Uma citação só conta como invocação do SCRIPT se sobrar depois de remover
+// todas as ocorrências do nome do teste irmão.
+const citaOScript = (txt, file, testFile) => txt.split(testFile).join('§').includes(file);
+
+// Estágio 2 (só para quem deu zero no índice em memória): varredura ampla no
+// versionado — pega PHP, blade, sh, qualquer consumidor fora das 4 fontes.
+// rc 1 = "não achou" (fato); qualquer outro rc = o INSTRUMENTO falhou, e aí a
+// resposta honesta é `?`, nunca `—` (que afirmaria ausência não medida).
+const grepAmplo = (pattern) => {
+  try {
+    const r = execFileSync('git', ['grep', '-l', '-e', pattern, '--', '.'],
+      { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
+    return { ok: true, files: r.split('\n').filter(Boolean) };
+  } catch (e) {
+    if (e.status === 1) return { ok: true, files: [] };
+    return { ok: false, files: [] };
+  }
+};
+
+// Este gerador DOCUMENTA máquinas — não invoca nenhuma. Se ele contasse como
+// fonte, todo script citado num comentário daqui ganharia um invocador falso:
+// foi o que aconteceu na 1ª versão (o comentário acima cita um `.js` como
+// exemplo, e o script passou a se ver como invocado por este arquivo). É o
+// auto-silenciamento já catalogado — o mecanismo casando com o próprio texto.
+const SELF_REL = 'scripts/governance/maquinas-inventario.mjs';
+
+const invocadorDe = (rel, file) => {
+  const testFile = file.replace(/\.(mjs|js|cjs)$/, '.test.$1');
+  const testRel = rel.replace(/\.(mjs|js|cjs)$/, '.test.$1');
+  const kinds = new Set();
+  let soTeste = false;
+  for (const [kind, arr] of FONTES_INVOC) {
+    for (const a of arr) {
+      if (a.rel === rel) continue;
+      if (a.rel === SELF_REL) continue; // documenta, não invoca (ver nota acima)
+      if (a.rel === testRel) { soTeste = true; continue; }
+      if (!a.txt.includes(file)) continue;
+      if (citaOScript(a.txt, file, testFile)) kinds.add(kind);
+      else soTeste = true;
+    }
+  }
+  if (kinds.size === 0) {
+    const g = grepAmplo(file);
+    if (!g.ok) return '?'; // não medido — não afirmar ausência
+    if (g.files.some((f) => f.endsWith('.php') && f !== rel)) kinds.add('php');
+  }
+  if (kinds.size) return [...kinds].sort().join(', ');
+  return soTeste ? '— (só `.test`)' : '—';
+};
+
 const dumpScripts = (dir, titulo) => {
   const files = lsDir(dir).filter((f) => /\.(mjs|js|cjs)$/.test(f) && !f.includes('.test.'));
   P(`### ${titulo} — ${files.length}`);
   P('');
-  P('| Script | Descrição (cabeçalho) |');
-  P('|---|---|');
+  P('| Script | Invocador | Descrição (cabeçalho) |');
+  P('|---|---|---|');
   for (const f of files.sort()) {
     const txt = readFileSync(join(ROOT, dir, f), 'utf8');
-    P(`| \`${f}\` | ${trunc(firstDescComment(txt), 160)} |`);
+    P(`| \`${f}\` | ${invocadorDe(`${dir}/${f}`, f)} | ${trunc(firstDescComment(txt), 160)} |`);
   }
   P('');
 };
 P('## 5. Scripts (`scripts/**`) — o gap sem índice-dono');
+P('');
+P('> **Coluna `Invocador` — DERIVADA** (Trilha D · D0). Quem de fato executa o script:');
+P('> `ci` (workflow) · `npm` (package.json) · `agente` (`.claude/**`) · `script` (outro script) ·');
+P('> `php` (comando artisan/serviço). `—` = nenhum invocador encontrado; `— (só \\`.test\\`)` = o');
+P('> CI roda o **teste** dele, mas o script em si nunca é apontado para o repo; `?` = a varredura');
+P('> falhou (não medido — nunca leia como ausência).');
+P('>');
+P('> ⚠️ `—` **não** significa "apagar": one-shot (codemod, probe, PoC de migração) é órfão **por');
+P('> design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,');
+P('> e nada a executa. A matriz reporta o fato; a triagem é humana.');
 P('');
 dumpScripts('scripts/governance', '5.1 `scripts/governance/`');
 dumpScripts('scripts/tests', '5.2 `scripts/tests/`');

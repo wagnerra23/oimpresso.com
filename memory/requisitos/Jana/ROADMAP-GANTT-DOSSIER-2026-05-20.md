@@ -16,7 +16,7 @@ related_us: [US-COPI-111]
 parent_artifacts:
   - memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md
   - memory/requisitos/Jana/SPEC.md
-  - resources/js/Pages/Jana/Admin/Roadmap.charter.md
+  - resources/js/Pages/Forja/Roadmap/Gantt.charter.md
   - resources/js/Pages/Jana/Admin/Roadmap.review.md
 authors: [audit-senior-expert]
 ---
@@ -32,7 +32,7 @@ authors: [audit-senior-expert]
 ## 1. TL;DR pra Wagner (10 bullets)
 
 1. **SVAR mantido.** SVAR React Gantt v2.6 (mar/2026) é a escolha certa em 2026 — destrava `filter-tasks` action + rollups + smooth zoom; não apareceu alternativa MIT melhor desde 13/mai. Versão instalada já é `@svar-ui/react-gantt ^2.6.1`. Source: [SVAR Gantt v2.6 release blog](https://svar.dev/blog/svar-react-gantt-2-6-released/).
-2. **A maior parte do V1 está no main.** `RoadmapController@index` ([Modules/Jana/Http/Controllers/Admin/RoadmapController.php](../../../Modules/Jana/Http/Controllers/Admin/RoadmapController.php)) + `Roadmap.tsx` ([resources/js/Pages/Jana/Admin/Roadmap.tsx](../../../resources/js/Pages/Jana/Admin/Roadmap.tsx)) + 6 Pest ([Modules/Jana/Tests/Feature/Roadmap/RoadmapControllerTest.php](../../../Modules/Jana/Tests/Feature/Roadmap/RoadmapControllerTest.php)) + charter `status:live` ([Roadmap.charter.md](../../../resources/js/Pages/Jana/Admin/Roadmap.charter.md)) + rota [`/jana/admin/roadmap`](../../../Modules/Jana/Http/routes.php) já mergeados.
+2. **A maior parte do V1 está no main.** `RoadmapController@index` ([Modules/Forja/Http/Controllers/RoadmapGanttController.php](../../../Modules/Forja/Http/Controllers/RoadmapGanttController.php)) + `Roadmap.tsx` ([resources/js/Pages/Forja/Roadmap/Gantt.tsx](../../../resources/js/Pages/Forja/Roadmap/Gantt.tsx)) + 6 Pest ([Modules/Forja/Tests/Feature/Roadmap/RoadmapGanttControllerTest.php](../../../Modules/Forja/Tests/Feature/Roadmap/RoadmapGanttControllerTest.php)) + charter `status:live` ([Roadmap.charter.md](../../../resources/js/Pages/Forja/Roadmap/Gantt.charter.md)) + rota [`/jana/admin/roadmap`](../../../Modules/Jana/Http/routes.php) já mergeados.
 3. **Rota canônica final:** **`/jana/admin/roadmap`** (NÃO `/copiloto/admin/*` que é legacy redirect 301). Consistência com `/jana/admin/custos`, `/jana/admin/governanca`, `/jana/admin/qualidade`. Wagner já validou implicitamente via PR mergeado.
 4. **Schema OK.** `mcp_tasks.parent_task_id` JÁ EXISTE (migration `2026_05_04_180015_extend_mcp_tasks_for_jira_style.php` ADR 0070) — nullable, índice `idx_mcp_tasks_parent`. **Não precisa migration nova.**
 5. **5 gaps reais a fechar** (não 32 h novos; ~12 h de remate + V2): (a) **sidebar entry ausente** → URL órfã; (b) **RUNBOOK ausente** → review.md aponta P0; (c) **HasBusinessScope correctness check** review aponta P1 (cross-tenant teste skipped); (d) **drag-drop datas desligado** (`readonly` hardcoded); (e) **sub-issues hierarchy nested** (charter Non-Goal V1, alvo V2).
@@ -232,7 +232,7 @@ Charter (linha 152) e controller (linhas 19-22) documentam: **`mcp_tasks` é cac
 - **Edit (append-only):** `D:/oimpresso.com/resources/js/Pages/Jana/Admin/Roadmap.review.md` — adicionar `## Round 2 - Conclusão V1.1 (2026-05-XX)` reportando RUNBOOK criado, ADR mergeada, sidebar entry adicionada.
 
 #### Pest novos (V1.1)
-- **Edit:** `D:/oimpresso.com/Modules/Jana/Tests/Feature/Roadmap/RoadmapControllerTest.php` — adicionar:
+- **Edit:** `D:/oimpresso.com/Modules/Forja/Tests/Feature/Roadmap/RoadmapGanttControllerTest.php` — adicionar:
   ```php
   it('aparece no sidebar Jana sub-menu pra user com jana.mcp.tasks.read')
   it('NÃO aparece no sidebar pra user sem permission')
@@ -253,7 +253,7 @@ Charter (linha 152) e controller (linhas 19-22) documentam: **`mcp_tasks` é cac
 - Default seed superadmin: já tem grant via `auth()->user()->can('superadmin')`
 
 #### Create — Controller method update
-- **Edit:** `D:/oimpresso.com/Modules/Jana/Http/Controllers/Admin/RoadmapController.php`:
+- **Edit:** `D:/oimpresso.com/Modules/Forja/Http/Controllers/RoadmapGanttController.php`:
   ```php
   public function update(Request $request, int $taskId): JsonResponse
   {
@@ -289,7 +289,7 @@ Charter (linha 152) e controller (linhas 19-22) documentam: **`mcp_tasks` é cac
 - Rota nova: `Route::patch('/admin/roadmap/tasks/{id}', 'Admin\RoadmapController@update')->name('jana.admin.roadmap.tasks.update')->middleware('can:jana.mcp.tasks.write');`
 
 #### Edit — Roadmap.tsx — habilitar drag-drop condicional
-- **Edit:** `D:/oimpresso.com/resources/js/Pages/Jana/Admin/Roadmap.tsx`:
+- **Edit:** `D:/oimpresso.com/resources/js/Pages/Forja/Roadmap/Gantt.tsx`:
   - Receber prop `canEdit: boolean` do controller (`auth()->user()->can('jana.mcp.tasks.write')`)
   - Trocar `readonly` (linha 553) por `readonly={!canEdit}`
   - Adicionar handler:
@@ -309,7 +309,7 @@ Charter (linha 152) e controller (linhas 19-22) documentam: **`mcp_tasks` é cac
     ```
 
 #### Create — Hierarchy nested (depth 3)
-- **Edit:** `D:/oimpresso.com/resources/js/Pages/Jana/Admin/Roadmap.tsx` — refactor `toGanttTasks()`:
+- **Edit:** `D:/oimpresso.com/resources/js/Pages/Forja/Roadmap/Gantt.tsx` — refactor `toGanttTasks()`:
   - Antes de agrupar by module, agrupar by `parent_task_id` recursivamente
   - Respeitar `config('jana.roadmap.hierarchy_max_depth', 3)` exposto via Inertia shared
   - `summary` task type pra parents; `task` pra leaves; `milestone` pra `type='epic-stub'`
@@ -409,7 +409,7 @@ Total real **maior** que 32 h estimativa, mas **50 % entregue**. Restam **16 h I
 | 1 | npm `@svar-ui/react-gantt ^2.6.1` instalado | `grep svar-ui package.json` | `npm i @svar-ui/react-gantt@^2.6.1` (já feito ✅) |
 | 2 | Rota `/jana/admin/roadmap` registrada | `php artisan route:list | grep roadmap` | rever Modules/Jana/Http/routes.php:132 |
 | 3 | `mcp_tasks.parent_task_id` existe | `php artisan db:show mcp_tasks --detail` | NÃO precisa (migration 2026_05_04_180015 ✅) |
-| 4 | Charter `status: live` | `grep status: resources/js/Pages/Jana/Admin/Roadmap.charter.md` | já live ✅ |
+| 4 | Charter `status: live` | `grep status: resources/js/Pages/Forja/Roadmap/Gantt.charter.md` | já live ✅ |
 | 5 | Pest atual passa | `vendor/bin/pest Modules/Jana/Tests/Feature/Roadmap/` | fix antes de adicionar V1.1 Pest |
 | 6 | Wagner aprovou rota `/jana/admin/...` vs `/copiloto/admin/...` | confirmar antes PR1 | usar canon `/jana/admin/` se em dúvida |
 | 7 | Wagner aprovou ADR npm dep | PR1 inclui ADR proposta — Wagner aprova no mesmo review | bloqueio merge se Wagner pede alternativa |
@@ -463,11 +463,11 @@ Total real **maior** que 32 h estimativa, mas **50 % entregue**. Restam **16 h I
 ### Artefatos internos consultados
 - [ONDA-5-DOSSIER §V1 (13/mai)](ONDA-5-DOSSIER-2026-05-13.md)
 - [SPEC.md US-COPI-111 (20/mai PR #1268)](SPEC.md)
-- [Roadmap.charter.md status:live](../../../resources/js/Pages/Jana/Admin/Roadmap.charter.md)
+- [Roadmap.charter.md status:live](../../../resources/js/Pages/Forja/Roadmap/Gantt.charter.md)
 - [Roadmap.review.md Round 1](../../../resources/js/Pages/Jana/Admin/Roadmap.review.md)
-- [Roadmap.tsx 582 LOC](../../../resources/js/Pages/Jana/Admin/Roadmap.tsx)
-- [RoadmapController.php 196 LOC](../../../Modules/Jana/Http/Controllers/Admin/RoadmapController.php)
-- [RoadmapControllerTest.php 316 LOC (6 Pest)](../../../Modules/Jana/Tests/Feature/Roadmap/RoadmapControllerTest.php)
+- [Roadmap.tsx 582 LOC](../../../resources/js/Pages/Forja/Roadmap/Gantt.tsx)
+- [RoadmapController.php 196 LOC](../../../Modules/Forja/Http/Controllers/RoadmapGanttController.php)
+- [RoadmapControllerTest.php 316 LOC (6 Pest)](../../../Modules/Forja/Tests/Feature/Roadmap/RoadmapGanttControllerTest.php)
 - [Migration extend_mcp_tasks_for_jira_style](../../../Modules/Jana/Database/Migrations/2026_05_04_180015_extend_mcp_tasks_for_jira_style.php)
 
 ---

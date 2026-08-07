@@ -207,20 +207,13 @@
     "resources/js/Pages/governance/ModuleGrades/Show.tsx": 16,
     "resources/js/Pages/governance/Policies.tsx": 2,
     "resources/js/Pages/Home/Index.tsx": 7,
-    "resources/js/Pages/Jana/Admin/Custos/Index.tsx": 4,
-    "resources/js/Pages/Jana/Admin/Governanca/Index.tsx": 11,
-    "resources/js/Pages/Jana/Admin/Qualidade/Index.tsx": 4,
-    "resources/js/Pages/Jana/Admin/Roadmap.tsx": 6,
     "resources/js/Pages/Jana/Brief/Index.tsx": 3,
     "resources/js/Pages/Jana/Chat.tsx": 6,
-    "resources/js/Pages/Jana/Cockpit.tsx": 32,
     "resources/js/Pages/Jana/components/FabJana.tsx": 1,
     "resources/js/Pages/Jana/components/JanaAreaHeader.tsx": 2,
-    "resources/js/Pages/Jana/Dashboard.tsx": 11,
+    "resources/js/Pages/Jana/Index.tsx": 11,
     "resources/js/Pages/Jana/Memoria.tsx": 5,
-    "resources/js/Pages/Jana/Painel.tsx": 3,
     "resources/js/Pages/Jana/Pro.tsx": 27,
-    "resources/js/Pages/Jana/Regras/Index.tsx": 3,
     "resources/js/Pages/kb/_components/BlockRenderer.tsx": 1,
     "resources/js/Pages/kb/_components/CategorySidebar.tsx": 6,
     "resources/js/Pages/kb/_components/KbCommandPalette.tsx": 3,
@@ -401,6 +394,8 @@
     "resources/js/Pages/Whatsapp/_components/MediaPreviewCard.tsx": 3,
     "resources/js/Pages/Whatsapp/_components/TemplatePicker.tsx": 4,
     "resources/js/Pages/Whatsapp/Settings.tsx": 3,
-    "resources/js/Pages/Whatsapp/Templates/Index.tsx": 10
+    "resources/js/Pages/Whatsapp/Templates/Index.tsx": 10,
+    "resources/js/Pages/governance/Custos.tsx": 4,
+    "resources/js/Pages/governance/QualidadeIa.tsx": 4
   }
 }

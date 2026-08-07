@@ -56,7 +56,7 @@
       ]
     },
     {
-      "tela": "Jana/Dashboard",
+      "tela": "Jana/Index",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/chat-jana.jsx",
       "falta": [

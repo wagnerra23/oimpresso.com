@@ -7,7 +7,7 @@
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { hooksWired, tagDe, sondas, contarNoTexto, relatorio, ALIASES } from './hook-bites.mjs';
+import { hooksWired, tagDe, sondas, contarNoTexto, relatorio, ALIASES, checarAliases } from './hook-bites.mjs';
 
 let fails = 0;
 const check = (n, c) => { console.log((c ? '[OK]   ' : '[FAIL] ') + n); if (!c) fails++; };
@@ -70,5 +70,36 @@ check('relatorio explica o FP do zero (condicao nunca satisfeita)', /Figma/.test
 check('relatorio expoe os NAO-OBSERVAVEIS', /NAO-OBSERVAVEIS/.test(rel) && /sem-tag/.test(rel));
 check('relatorio diz que a convencao e forward-only', /Forward-only|forward-only/i.test(rel));
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — mede ENTREGA real, ignora tag em codigo-fonte/prosa, zero e OLHAR nao falha.');
+// ── checarAliases: a promessa do cabecalho dos ALIASES, que ate 2026-08-05 nao existia ──
+// Alias que para de casar NAO da erro em lugar nenhum: o hook so volta, calado, pra lista
+// de nao-observaveis. Por isso o modo precisa MORDER — e precisa ser provado que morde.
+{
+  const dir = mkdtempSync(join(tmpdir(), 'hb-alias-'));
+  // fixture BOA: o arquivo existe e contem a tag que o alias promete
+  writeFileSync(join(dir, 'charter-validate.mjs'), 'process.stderr.write("[charter-first] oi")');
+  const soUm = Object.fromEntries(Object.entries(ALIASES).filter(([k]) => k === 'charter-validate'));
+  check('checarAliases: retorna estrutura {ok, quebrados}', (() => {
+    const r = checarAliases(dir);
+    return typeof r.ok === 'boolean' && Array.isArray(r.quebrados);
+  })());
+  check('FIXTURE BOA: alias que casa nao e acusado', (() => {
+    const r = checarAliases(dir);
+    return !r.quebrados.some((q) => q.arquivo === 'charter-validate');
+  })() && Object.keys(soUm).length === 1);
+  // fixture RUIM 1: arquivo existe mas nao emite mais a tag (alguem trocou a string)
+  writeFileSync(join(dir, 'charter-validate.mjs'), 'process.stderr.write("mensagem nova sem tag")');
+  check('FIXTURE RUIM: tag trocada no arquivo => MORDE', (() => {
+    const r = checarAliases(dir);
+    const q = r.quebrados.find((x) => x.arquivo === 'charter-validate');
+    return r.ok === false && !!q && /nao emite mais/.test(q.motivo);
+  })());
+  // fixture RUIM 2: arquivo sumiu (foi o caso REAL do mcp-first-nudge, achado no 1o uso)
+  check('FIXTURE RUIM: arquivo inexistente => MORDE com motivo proprio', (() => {
+    const r = checarAliases(join(dir, 'vazio-de-proposito'));
+    return r.ok === false && r.quebrados.every((q) => q.motivo === 'arquivo nao existe');
+  })());
+  check('checarAliases: o estado REAL do repo esta limpo', checarAliases().ok === true);
+}
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — mede ENTREGA real, ignora tag em codigo-fonte/prosa, zero e OLHAR nao falha, e --check-aliases morde.');
 process.exit(fails ? 1 : 0);

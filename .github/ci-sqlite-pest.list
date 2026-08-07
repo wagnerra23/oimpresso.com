@@ -129,7 +129,11 @@ Modules/Whatsapp/Tests/Feature/MetricsSnapshotBuilderTest.php
 Modules/Whatsapp/Tests/Feature/ObservabilityTest.php
 Modules/Whatsapp/Tests/Feature/OfficeimpressoEnrichServiceTest.php
 Modules/Whatsapp/Tests/Feature/PropagateTraceparentTest.php
-Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php
+# RegisterWhatsappPermissionsCommandTest SAIU daqui em 2026-08-07: foi convertido do
+# schema sintético pro schema REAL (1º do burn-down da quarentena era-sqlite) e agora
+# roda em .github/workflows/whatsapp-pest.yml (MySQL). Nesta lane ele falharia — o
+# sqlite :memory: do ci.yml não tem migrations, e era só por montar o próprio schema
+# que ele rodava aqui.
 Modules/Whatsapp/Tests/Feature/SidebarCountsTest.php
 Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php
@@ -403,3 +407,12 @@ tests/Feature/DocumentacaoRouteTest.php
 # estava aqui, então não rodava em lugar NENHUM. Entra com o estado `pending_approval`
 # (ADR 0368 §3) pra que o caso novo possa de fato reprovar. Schema manual sqlite-safe.
 Modules/Jana/Tests/Feature/Mcp/McpTasksHealthCheckCommandTest.php
+# Gate de sidebar da Governanca (reativacao 2026-08-05). Os 4 casos de string deste
+# arquivo passaram VERDES os ~2 meses em que um `return;` incondicional no topo de
+# modifyAdminMenu() tornava os 2 gates (pacote da subscription + permission Spatie)
+# INALCANCAVEIS — presence-gate, classe LC-11. Somei 2 casos que medem a forma do
+# `return;` e o caminho real (guest -> menu publicado), e ai medi que o arquivo NAO
+# estava em lane nenhuma: escrever teste que nao roda em lugar nenhum e LC-13. Entra
+# aqui pra que os casos novos possam de fato reprovar. Sqlite-safe: file_get_contents,
+# Menu em memoria via Menu::create, e LegacyMenuAdapter->build() sobre menu vazio — DB-less.
+Modules/Governance/Tests/Feature/GovernanceModuleSubscriptionGateTest.php

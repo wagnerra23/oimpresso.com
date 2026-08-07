@@ -8,8 +8,10 @@
 //   module: Copiloto
 
 import { Head, router } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
-import { Bell, Cog, Inbox, Pin, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Bell, ChevronLeft, Cog, Inbox, List, Pin, Plus, Search, SlidersHorizontal,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -95,7 +97,34 @@ function formatCurrency(value: number) {
 }
 
 // Gradiente do avatar do Copiloto (usado em todas msgs do assistant)
-const COPILOTO_AVATAR: AvatarRef = { iniciais: 'CP', gradId: 17 };
+const COPILOTO_AVATAR: AvatarRef = { iniciais: 'JA', gradId: 17 };
+
+// ── histórico recolhível: persistência + breakpoint ────────────────────
+// Charter §Goals: localStorage com prefix `oimpresso.jana.*` (nunca sessionStorage).
+const HIST_KEY = 'oimpresso.jana.hist';
+const HIST_BREAKPOINT = '(max-width: 1100px)';
+
+function lerHistAberto(): boolean {
+  try {
+    return localStorage.getItem(HIST_KEY) !== '0';
+  } catch {
+    return true; // storage bloqueado (modo privado/iframe) → default aberto
+  }
+}
+
+function gravarHistAberto(aberto: boolean): void {
+  try {
+    localStorage.setItem(HIST_KEY, aberto ? '1' : '0');
+  } catch {
+    /* storage bloqueado — o estado segue só em memória nesta sessão */
+  }
+}
+
+function mediaEstreita(): MediaQueryList | null {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia(HIST_BREAKPOINT)
+    : null;
+}
 
 // Adaptador: converte Mensagem do backend (role/content) → Mensagem do Cockpit (autor/texto)
 function adaptarMensagem(m: MensagemBackend): CockpitMensagem {
@@ -232,6 +261,35 @@ export default function Chat({
     mensagens: mensagensCockpit,
   }), [conversa, mensagensCockpit]);
 
+  // Histórico recolhível (protótipo jana-merge.jsx §JmConversa). Persistido em
+  // localStorage prefix `oimpresso.jana.*` — Charter §Goals (nunca sessionStorage).
+  const [histAberto, setHistAberto] = useState(lerHistAberto);
+
+  // Tela estreita (≤1100px): o histórico vira sobreposição em vez de sumir.
+  // Antes o CSS fazia `display:none` em ≤1023px e a lista ficava INALCANÇÁVEL —
+  // não dava pra trocar de conversa. O rail de 40px sempre carrega o atalho.
+  const [estreito, setEstreito] = useState(() => mediaEstreita()?.matches ?? false);
+
+  useEffect(() => {
+    const mq = mediaEstreita();
+    if (!mq) return;
+    const onChange = (e: MediaQueryListEvent) => {
+      setEstreito(e.matches);
+      if (e.matches) setHistAberto(false);
+    };
+    if (mq.matches) setHistAberto(false);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  function toggleHist() {
+    setHistAberto((v) => {
+      const nv = !v;
+      gravarHistAberto(nv);
+      return nv;
+    });
+  }
+
   function selectConv(id: string) {
     // D-14: partial reload — troca de conversa só re-busca conversa/mensagens/
     // sugestões (ref PR #3889). Shell (conversas, businesses, usuário) não
@@ -269,12 +327,21 @@ export default function Chat({
 
       {/* Master/detail interno — UI-0011 (sidebar single-pane) migrou conv
           switcher pra dentro da própria Page. 320px lista + 1fr thread. */}
-      <div className="copiloto-chat-layout">
+      <div
+        className={
+          'copiloto-chat-layout'
+          + (histAberto ? '' : ' hist-collapsed')
+          + (estreito && histAberto ? ' hist-overlay' : '')
+        }
+      >
         <ConvSidePanel
           fixadas={conversas.fixadas}
           recentes={conversas.recentes}
           activeConvId={String(conversa.id)}
           onSelectConv={selectConv}
+          aberto={histAberto}
+          estreito={estreito}
+          onToggle={toggleHist}
         />
         <div className="copiloto-chat-thread">
           <ThreadHeader conv={conversaFoco} />
@@ -297,6 +364,16 @@ export default function Chat({
             }
           />
         </div>
+
+        {/* Scrim da sobreposição (≤1100px) — clicar fora fecha o histórico. */}
+        {estreito && histAberto && (
+          <button
+            type="button"
+            className="copiloto-chat-scrim"
+            aria-label="Fechar histórico"
+            onClick={toggleHist}
+          />
+        )}
       </div>
     </AppShellV2>
   );
@@ -309,60 +386,167 @@ export default function Chat({
 // Minhas/Compartilhadas/Arquivadas — não OS/Equipe/Clientes do Cowork que
 // conflitam com semântica Jana IA). Gate F1.5 em Chat-visual-comparison.md.
 //
-// Hoje só 'todas' filtra de fato (backend não expõe flag compartilhada/
-// arquivada em ConversaResumo). 'minhas/compartilhadas/arquivadas' mostram
-// empty state "Em breve" pra dar preview do roadmap.
+// FILTROS (2026-08-07) — eram 4 abas decorativas mostrando "Em breve"; hoje são
+// 2 que filtram de verdade. As outras duas não eram "backend ainda não expõe":
+//   · "Minhas" era TAUTOLÓGICA — buildConversasListPayload já faz
+//     `Conversa::where('user_id', $userId)`, então tudo na lista já é do usuário.
+//   · "Compartilhadas" seria SEMPRE vazia — não existe compartilhamento de
+//     conversa: o ChatController tem `abort_unless($conversa->user_id ===
+//     auth()->id(), 403)` em 4 pontos. Ninguém lê a conversa de outro, nem admin.
+// "Arquivadas" ficou porque a coluna `status` já existia, já vinha no get() e o
+// PATCH jana.conversas.update já a aceita — só não trafegava pro frontend.
+// Reabrir "Compartilhadas" exige modelar participantes + afrouxar o 403: é PR
+// próprio e decisão [W], não flag esquecida.
 
-type ConvTab = 'todas' | 'minhas' | 'compartilhadas' | 'arquivadas';
+type ConvTab = 'todas' | 'arquivadas';
 
 const CONV_TABS: Array<{ id: ConvTab; label: string }> = [
-  { id: 'todas',           label: 'Todas'         },
-  { id: 'minhas',          label: 'Minhas'        },
-  { id: 'compartilhadas',  label: 'Compartilhadas'},
-  { id: 'arquivadas',      label: 'Arquivadas'    },
+  { id: 'todas',      label: 'Todas'      },
+  { id: 'arquivadas', label: 'Arquivadas' },
 ];
+
+const STATUS_ARQUIVADA = 'arquivada';
+
+function isArquivada(c: ConversaResumo): boolean {
+  return c.status === STATUS_ARQUIVADA;
+}
 
 // Normaliza pra busca acento-insensitive
 function normalizeSearch(s: string): string {
   return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
 }
 
-function ConvSidePanel({
+// Exportado (além do default `Chat`) só pra ser exercitável em jsdom —
+// tests/jana-chat-conversas.test.tsx cobre filtro + J/K + ⌘⇧H + aria-live.
+// Inertia resolve a Page pelo default export; named export extra é inerte.
+export function ConvSidePanel({
   fixadas,
   recentes,
   activeConvId,
   onSelectConv,
+  aberto,
+  estreito,
+  onToggle,
 }: {
   fixadas: ConversaResumo[];
   recentes: ConversaResumo[];
   activeConvId: string;
   onSelectConv: (id: string) => void;
+  aberto: boolean;
+  estreito: boolean;
+  onToggle: () => void;
 }) {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<ConvTab>('todas');
+  const liveRef = useRef<HTMLSpanElement>(null);
+  const ultimoAnunciado = useRef(activeConvId);
 
-  const { fixadasShow, recentesShow, showEmptyTabPlaceholder } = useMemo(() => {
-    if (tab !== 'todas') {
-      // Backend ainda não expõe flag compartilhada/arquivada — mostra empty
-      // state e mantém lista vazia até backend evoluir.
-      return { fixadasShow: [], recentesShow: [], showEmptyTabPlaceholder: true };
-    }
+  const { fixadasShow, recentesShow, visiveis } = useMemo(() => {
     const q = normalizeSearch(query.trim());
-    if (!q) {
-      return { fixadasShow: fixadas, recentesShow: recentes, showEmptyTabPlaceholder: false };
-    }
-    const matchQ = (c: ConversaResumo) => normalizeSearch(c.titulo).includes(q);
-    return {
-      fixadasShow: fixadas.filter(matchQ),
-      recentesShow: recentes.filter(matchQ),
-      showEmptyTabPlaceholder: false,
-    };
+    // 'todas' = tudo que NÃO está arquivado (espelha o protótipo:
+    // `filtro === 'todas' ? t.escopo !== 'arquivadas' : t.escopo === filtro`).
+    const keep = (c: ConversaResumo) =>
+      (tab === 'arquivadas' ? isArquivada(c) : !isArquivada(c))
+      && (!q || normalizeSearch(c.titulo).includes(q));
+
+    const f = fixadas.filter(keep);
+    const r = recentes.filter(keep);
+    // Ordem visual da lista — é o que J/K percorre.
+    return { fixadasShow: f, recentesShow: r, visiveis: [...f, ...r] };
   }, [fixadas, recentes, query, tab]);
+
+  // Região viva: anuncia a troca de conversa pra leitor de tela (clique OU J/K).
+  // Guarda por id pra não re-anunciar a mesma conversa em re-render.
+  useEffect(() => {
+    if (ultimoAnunciado.current === activeConvId) return;
+    ultimoAnunciado.current = activeConvId;
+    const atual = [...fixadas, ...recentes].find((c) => c.id === activeConvId);
+    if (liveRef.current) {
+      liveRef.current.textContent = atual ? `Conversa: ${atual.titulo}` : '';
+    }
+  }, [activeConvId, fixadas, recentes]);
+
+  // Teclado (Larissa/Wagner trabalham no teclado): J/K anda entre CONVERSAS,
+  // ⌘⇧H recolhe o histórico. Trocar de conversa é o que se faz o dia todo;
+  // rolar mensagem é ↑/↓ nativo do scroll — ref. pacote JANA-FUSAO-2026-08-06.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const el = document.activeElement as HTMLElement | null;
+      const digitando = !!el
+        && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'h' || e.key === 'H')) {
+        e.preventDefault();
+        onToggle();
+        return;
+      }
+      // J/K são letras cruas: não roubar do composer nem de combos do browser.
+      if (digitando || e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const k = e.key.toLowerCase();
+      if (k !== 'j' && k !== 'k') return;
+      if (visiveis.length === 0) return;
+
+      const i = visiveis.findIndex((c) => c.id === activeConvId);
+      // Conversa ativa fora do filtro corrente (ex.: arquivada com aba "Todas")
+      // → entra pela ponta em vez de ficar inerte.
+      const prox = i === -1
+        ? (k === 'j' ? 0 : visiveis.length - 1)
+        : (k === 'j' ? Math.min(i + 1, visiveis.length - 1) : Math.max(i - 1, 0));
+
+      const alvo = visiveis[prox];
+      if (!alvo || alvo.id === activeConvId) return;
+      e.preventDefault();
+      onSelectConv(alvo.id);
+    }
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visiveis, activeConvId, onSelectConv, onToggle]);
+
+  // Na sobreposição, escolher conversa fecha o histórico (libera a thread).
+  function escolher(id: string) {
+    onSelectConv(id);
+    if (estreito) onToggle();
+  }
+
+  // Recolhido: o rail de 40px carrega o atalho — nada fica inalcançável.
+  if (!aberto) {
+    return (
+      <aside className="copiloto-chat-convs collapsed">
+        <span ref={liveRef} className="cs-sr" aria-live="polite" />
+        <button
+          type="button"
+          className="cs-peek"
+          onClick={onToggle}
+          title="Expandir histórico · ⌘⇧H"
+          aria-label="Expandir histórico de conversas"
+          aria-expanded={false}
+        >
+          <List size={14} />
+          <span className="cs-peek-l">Histórico</span>
+          <span className="cs-peek-n">{visiveis.length}</span>
+        </button>
+      </aside>
+    );
+  }
 
   return (
     <aside className="copiloto-chat-convs">
+      <span ref={liveRef} className="cs-sr" aria-live="polite" />
       <header className="cs-head">
+        <button
+          type="button"
+          className="cs-iconbtn"
+          onClick={onToggle}
+          title="Recolher histórico · ⌘⇧H"
+          aria-label="Recolher histórico de conversas"
+          aria-expanded={true}
+        >
+          <ChevronLeft size={14} />
+        </button>
         <h2>Chat</h2>
+        <span className="cs-count">{visiveis.length}</span>
         <button type="button" className="cs-iconbtn" title="Filtros" aria-label="Filtros">
           <SlidersHorizontal size={14} />
         </button>
@@ -411,36 +595,44 @@ function ConvSidePanel({
         </div>
       </div>
 
-      {showEmptyTabPlaceholder ? (
-        <div className="cs-empty">
-          <span>Em breve</span>
-          <small>Filtro disponível quando o backend expor o campo.</small>
+      <div className="sb-section-h">Fixadas</div>
+      {fixadasShow.length === 0 ? (
+        <div className="sb-action" style={{ opacity: 0.6 }}>
+          <Pin size={14} /> <span>{query ? 'Nenhuma fixada nesta busca' : 'Arraste para fixar'}</span>
         </div>
       ) : (
-        <>
-          <div className="sb-section-h">Fixadas</div>
-          {fixadasShow.length === 0 ? (
-            <div className="sb-action" style={{ opacity: 0.6 }}>
-              <Pin size={14} /> <span>{query ? 'Nenhuma fixada nesta busca' : 'Arraste para fixar'}</span>
-            </div>
-          ) : (
-            fixadasShow.map((c) => (
-              <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={onSelectConv} />
-            ))
-          )}
-
-          <div className="sb-section-h">Recentes</div>
-          {recentesShow.length === 0 ? (
-            <div className="sb-action" style={{ opacity: 0.6 }}>
-              <span>{query ? 'Nenhuma recente nesta busca' : 'Nenhuma conversa ainda'}</span>
-            </div>
-          ) : (
-            recentesShow.map((c) => (
-              <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={onSelectConv} />
-            ))
-          )}
-        </>
+        fixadasShow.map((c) => (
+          <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={escolher} />
+        ))
       )}
+
+      <div className="sb-section-h">{tab === 'arquivadas' ? 'Arquivadas' : 'Recentes'}</div>
+      {recentesShow.length === 0 ? (
+        <div className="sb-action" style={{ opacity: 0.6 }}>
+          <span>
+            {query
+              ? 'Nenhuma conversa nesta busca'
+              : tab === 'arquivadas'
+                ? 'Nenhuma conversa arquivada'
+                : 'Nenhuma conversa ainda'}
+          </span>
+        </div>
+      ) : (
+        recentesShow.map((c) => (
+          <SbConvItem key={c.id} c={c} active={c.id === activeConvId} onSelect={escolher} />
+        ))
+      )}
+
+      {/* Dica visível dos atalhos — protótipo §jm-hist-keys. O atalho que não
+          se anuncia não existe pra quem não leu o charter. */}
+      <div className="cs-keys">
+        <span className="kbd">J</span>
+        <span className="kbd">K</span>
+        <span>anda</span>
+        <span className="cs-keys-sep">·</span>
+        <span className="kbd">⌘⇧H</span>
+        <span>recolhe</span>
+      </div>
     </aside>
   );
 }

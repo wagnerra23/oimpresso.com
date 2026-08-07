@@ -12,9 +12,9 @@ module: Ponto
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Ponto --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Ponto/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 190 arquivos em 18 papéis.
+**Total mapeado:** 201 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -187,12 +187,23 @@ module: Ponto
 
 - 39 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 7
+## Demais arquivos (manifestos, docs, assets e misc) — 18
 
+- [.gitignore](../../../Modules/Ponto/.gitignore)
+- [CHANGELOG.md](../../../Modules/Ponto/CHANGELOG.md)
+- [test_write.tmp](../../../Modules/Ponto/Database/Migrations/test_write.tmp)
 - [ColaboradorFactory.php](../../../Modules/Ponto/Database/factories/ColaboradorFactory.php)
 - [EscalaFactory.php](../../../Modules/Ponto/Database/factories/EscalaFactory.php)
 - [EscalaTurnoFactory.php](../../../Modules/Ponto/Database/factories/EscalaTurnoFactory.php)
 - [IntercorrenciaFactory.php](../../../Modules/Ponto/Database/factories/IntercorrenciaFactory.php)
 - [MarcacaoFactory.php](../../../Modules/Ponto/Database/factories/MarcacaoFactory.php)
 - [routes.php](../../../Modules/Ponto/Http/routes.php)
+- [README.md](../../../Modules/Ponto/README.md)
+- [ponto.php](../../../Modules/Ponto/Resources/lang/pt-BR/ponto.php)
+- [ponto.php](../../../Modules/Ponto/Resources/lang/pt/ponto.php)
+- [topnav.php](../../../Modules/Ponto/Resources/menus/topnav.php)
+- [SCOPE.md](../../../Modules/Ponto/SCOPE.md)
+- [composer.json](../../../Modules/Ponto/composer.json)
+- [module.json](../../../Modules/Ponto/module.json)
+- [package.json](../../../Modules/Ponto/package.json)
 - [start.php](../../../Modules/Ponto/start.php)

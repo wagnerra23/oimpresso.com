@@ -2,9 +2,9 @@
 id: requisitos-ponto-briefing
 module: Ponto
 status: parcial
-updated_at: "2026-07-27"
-distilled_at: "2026-07-27"
-distilled_by: "manual [C] — redestilação PARCIAL: o módulo ganhou SDD + contratos de tela no chip do passo 5 (PR #4865). O resto do corpo NÃO foi re-lido."
+updated_at: "2026-08-07"
+distilled_at: "2026-08-07"
+distilled_by: "manual [C] — redestilação PARCIAL: só a §Cobertura de teste foi re-medida (arvore vs allowlist da lane required `ponto-pest`, origin/main 2026-08-07) e ganhou a ressalva presença≠execução. O resto do corpo NÃO foi re-lido — o retrato de 2026-07-27 (SDD + contratos de tela, PR #4865) segue valendo para as demais seções."
 ---
 
 # BRIEFING — Modules/Ponto
@@ -84,6 +84,12 @@ Ponto eletronico CLT-compliance (Portaria MTP 671/2021) com **marcacao append-on
 | `MultiTenantAppendOnlyTest` (Pest functional) | Append-only Marcacao + BancoHorasMov + Intercorrencia scoped | ✅ adicionado Wave Massive 2026-05-16 |
 | `CrossTenantMarcacaoTest` (Pest functional) | Anti-vazamento bidirecional biz=1↔biz=99 + JOIN ANULACAO | ✅ adicionado Wave Massive 2026-05-16 |
 | `AprovacaoTest` / `BancoHorasTest` / `DashboardTest` / `IntercorrenciaAIClassifierTest` / `ModuleManagerTest` / `SpatiePermissionsTest` / `TelasNavegacaoTest` | Smoke + workflow + permissoes | ✅ existentes |
+
+> ⚠️ **O `✅` desta tabela e PRESENCA, nao EXECUCAO** (medido 2026-08-07, `origin/main`). A lane `PHP / Pest (Ponto · MySQL)` — **required** desde 2026-08-05 (ADR 0369) — seleciona por allowlist inline: **38 arquivos na arvore, 11 nomeados, 27 fora (71%)**. **Todos os 7 testes das 3 primeiras linhas desta tabela estao entre os 27 de fora** — incluindo `MultiTenantIsolationTest`, `MultiTenantAppendOnlyTest` e `CrossTenantMarcacaoTest`, que sao justamente os que defendem o Tier 0 append-only da Portaria 671/2021.
+>
+> Estar fora da lane de PR **nao** significa "nunca roda": a nightly do CT 100 (`ct100-fullsuite.sh` → `shards-plan --roots tests,Modules`) varre por diretorio. O que se pode afirmar com recibo e que **nenhum gate de merge os executa**. Qual deles hoje passa e **dado a medir**, um a um — nao presumir.
+>
+> A lane esta em `failure` nos 5 ultimos runs do `main` (step `Run Pest — ALLOWLIST VERDE`, falha de teste, nao de infra). Conserto rastreado em **US-PONTO-014**; a receita ja esta provada 2× no repo (`financeiro-pest.yml` e `estoque-pest.yml`, [#5387](https://github.com/wagnerra23/oimpresso.com/pull/5387)).
 
 ## Nota auditoria (estado 2026-05-16)
 

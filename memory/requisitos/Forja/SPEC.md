@@ -23,6 +23,8 @@ us_list:
   - US-TR-311
 na_justified:
   D9.b: "Forja sem jobs assíncronos por design (operações síncronas Kanban) — failed_jobs N/A."
+na_justified_v3:
+  D6.a: "RoadmapGanttController NÃO usa Inertia::defer POR DECISÃO DE INCIDENTE, não por descuido. O HOTFIX de 2026-05-25 REMOVEU o defer da tela de origem porque o .tsx desestruturava direto e dava TypeError undefined.map — tela branca em prod. Os dropdowns usam closure, que roda no load cheio e pula no partial reload, entregando o mesmo ganho sem o risco. Reintroduzir defer só com <Deferred fallback> no .tsx: é mudança visual e exige aval [W]. Travado por UC-RGT-03 (Gantt.casos.md), pelo charter e pelo RUNBOOK-gantt §3. Decisão [W] 2026-08-05 ao ver o diagnóstico: a métrica pedia o que a produção proíbe."
 ---
 
 # Forja — SPEC

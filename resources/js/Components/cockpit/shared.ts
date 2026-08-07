@@ -11,6 +11,8 @@ export interface ConversaResumo {
   titulo: string;
   unread?: number;
   origem?: string | null;
+  /** 'ativa' | 'arquivada' — filtro Todas|Arquivadas do Chat da Jana. */
+  status?: string | null;
   ativa?: boolean;
 }
 

@@ -21,7 +21,7 @@ gate_visual: F1.5-pendente
 
 ## 0. TL;DR
 
-Migrar 4 telas Blade legacy + 1 superadmin pra Inertia/React seguindo padrão Cockpit V2 ([ADR 0110](../../decisions/0110-cockpit-pattern-v2.md)) e [RUNBOOK-dashboard.md](RUNBOOK-dashboard.md) como referência. **Correção honesta 2026-05-09:** primeira versão deste PLAN levantou ALERT Tier 0 falso — Meta JÁ tem `HasBusinessScope` aplicado. Issue real é P1 (cross-tenant pollution via `store()` aceitando `business_id` do client), não P0 vazamento. PLAN aguarda aprovação Wagner ANTES de qualquer mexida em código tenancy ([feedback memory](~/.claude/projects/D--oimpresso-com/memory/feedback_tenancy_changes_require_pest_local.md): mudanças tenancy exigem Pest verde local).
+Migrar 4 telas Blade legacy + 1 superadmin pra Inertia/React seguindo padrão Cockpit V2 ([ADR 0110](../../decisions/0110-cockpit-pattern-v2.md)) e [RUNBOOK-index.md](RUNBOOK-index.md) como referência. **Correção honesta 2026-05-09:** primeira versão deste PLAN levantou ALERT Tier 0 falso — Meta JÁ tem `HasBusinessScope` aplicado. Issue real é P1 (cross-tenant pollution via `store()` aceitando `business_id` do client), não P0 vazamento. PLAN aguarda aprovação Wagner ANTES de qualquer mexida em código tenancy ([feedback memory](~/.claude/projects/D--oimpresso-com/memory/feedback_tenancy_changes_require_pest_local.md): mudanças tenancy exigem Pest verde local).
 
 ## 1. Inventário do estado atual
 
@@ -55,7 +55,7 @@ Migrar 4 telas Blade legacy + 1 superadmin pra Inertia/React seguindo padrão Co
 
 ### US cobertas (já existem em SPEC)
 
-US-COPI-010, US-COPI-011, US-COPI-012 (mesmas que cobrem [Dashboard](RUNBOOK-dashboard.md))
+US-COPI-010, US-COPI-011, US-COPI-012 (mesmas que cobrem [Dashboard](RUNBOOK-index.md))
 
 ## 2. ⚠️ Re-análise honesta — Tier 0 NÃO é violado (correção 2026-05-09)
 
@@ -141,7 +141,7 @@ Cada screenshot vai a `memory/requisitos/Jana/metas-visual-comparison.md` (15 di
 
 Ordem proposta de telas (incremental, 1 PR por tela):
 
-1. **`Pages/Jana/Metas/Index.tsx`** — lista. Reutilizar pattern de `Pages/Jana/Dashboard.tsx` (cards com farol). Botão "Nova meta" no PageHeader. Empty state.
+1. **`Pages/Jana/Metas/Index.tsx`** — lista. Reutilizar pattern de `Pages/Jana/Index.tsx` (cards com farol). Botão "Nova meta" no PageHeader. Empty state.
 2. **`Pages/Jana/Metas/Show.tsx`** — detalhe. Header + KpiGrid últimas apurações + Sparkline + botão Reapurar (placeholder até US separada) + Link cross-module pra `/copiloto/metas/{id}/fonte` (mantém Blade legacy KB).
 3. **`Pages/Jana/Metas/Create.tsx`** + **`Pages/Jana/Metas/Edit.tsx`** — Form unificado com `<Form>` shared (reusar de Pages/Repair se houver). React Hook Form + zod schema com 4 campos.
 4. **`Pages/Jana/Superadmin/Metas.tsx`** — Tabs (cliente/plataforma) + tabelas separadas. Acesso `copiloto.superadmin`.

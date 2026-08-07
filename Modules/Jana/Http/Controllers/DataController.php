@@ -193,19 +193,23 @@ class DataController extends Controller
                                 __('copiloto::copiloto.menu.conversar'),
                                 [
                                     'icon'   => 'fa fas fa-comments',
-                                    'active' => request()->segment(1) == 'jana'
-                                                && ! request()->segment(2),
+                                    // Onda 3: a Conversa saiu da raiz pra /ia/conversa.
+                                    // O segment(1) era 'jana' (prefixo morto desde a
+                                    // ADR 0180) E sem segment(2) — ou seja, nunca casava.
+                                    'active' => request()->segment(2) === 'conversa',
                                 ]
                             );
                         }
 
-                        // Dashboard
+                        // Painel (onda 3: era Dashboard em /ia/dashboard; virou a
+                        // raiz /ia, e `jana.dashboard.index` deixou de existir).
                         $sub->url(
-                            route('jana.dashboard.index'),
+                            route('jana.index'),
                             __('copiloto::copiloto.menu.dashboard'),
                             [
                                 'icon'   => 'fa fas fa-tachometer-alt',
-                                'active' => request()->segment(2) == 'dashboard',
+                                'active' => request()->segment(1) === 'ia'
+                                            && ! request()->segment(2),
                             ]
                         );
 
@@ -226,18 +230,12 @@ class DataController extends Controller
                         // implementação real. Reativar quando US-COPI-060 entregar.
                         // Rota e Controller mantidos pra não quebrar bookmarks externos.
 
-                        // Custos de IA (admin do business — US-COPI-070)
-                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.admin.custos.view')) {
-                            $sub->url(
-                                route('jana.admin.custos.index'),
-                                __('copiloto::copiloto.menu.custos'),
-                                [
-                                    'icon'   => 'fa fas fa-coins',
-                                    'active' => request()->segment(2) == 'admin'
-                                                && request()->segment(3) == 'custos',
-                                ]
-                            );
-                        }
+                        // Custos de IA MOVIDO pra Modules/Governance em 2026-08-05
+                        // (ADR 0366 §D-B). Este bloco tinha que sair JUNTO com a rota:
+                        // ele chamava `route('jana.admin.custos.index')`, e um nome de
+                        // rota inexistente lança RouteNotFoundException — derrubaria o
+                        // sidebar INTEIRO, não só este item. A entrada agora vive no
+                        // ghost `custos` do DataController da Governança.
 
                         // Plataforma (superadmin-only)
                         if (auth()->user()->can('superadmin') || auth()->user()->can('jana.superadmin')) {
@@ -259,7 +257,9 @@ class DataController extends Controller
                         'shortcut' => 'G I',
                         'primary'  => [
                             'label'    => 'Conversar com Jana',
-                            'href'     => '/ia',
+                            // Onda 3: a Conversa saiu da raiz. Sem isto o botao
+                            // "Conversar" cairia no Painel — loop silencioso.
+                            'href'     => '/ia/conversa',
                             'shortcut' => 'N',
                         ],
                         // ADR 0182 + GUIA-SIDEBAR-V3 Wagner 2026-05-21: hub IA com
@@ -273,17 +273,33 @@ class DataController extends Controller
                         'ghosts'   => [
                             // Wagner 2026-05-25: Dashboard PROMOVIDO pra primeira aba canon
                             // da Jana — destino pós-login (`/home → /ia/dashboard`). Charter
-                            // Pages/Jana/Dashboard.charter.md já cobre empty state. Substitui
+                            // Pages/Jana/Index.charter.md já cobre empty state. Substitui
                             // Copiloto (chat) como entry-point default da Jana — chat continua
                             // acessível em 2ª aba e via FAB. Tentativas anteriores travaram em
                             // DashboardController@index redirect "sem metas → chat" (removido).
-                            ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
-                            ['key' => 'copiloto',  'label' => 'Copiloto',  'href' => '/ia'],
+                            // ── Onda 2 da fusão (US-COPI-148, 2026-08-07) ──────────────
+                            // Vocabulário das abas passa a ser `Painel | Conversa | Memória`,
+                            // que é o do protótipo aprovado. Só o LABEL muda: as `key` são
+                            // identificador interno, casadas com `activeGhostKey` do
+                            // PageHeaderTabs e com o `mapActiveToGhostKey` do JanaAreaHeader —
+                            // renomeá-las quebraria o match em silêncio (a aba simplesmente
+                            // deixaria de acender) sem nenhum ganho visível. As `key` viram
+                            // `painel`/`conversa` na onda 3, junto com o rename do arquivo.
+                            ['key' => 'dashboard', 'label' => 'Painel',   'href' => '/ia'],
+                            ['key' => 'copiloto',  'label' => 'Conversa', 'href' => '/ia/conversa'],
                             // Ghost 'brief' removido 2026-06-15 (Wagner): /ia/brief era stub
                             // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
                             // diário" do dashboard). Rota + BriefController + Page apagados.
-                            ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
-                            ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
+                            // href passa a apontar pro destino REAL. `/ia/memorias` é
+                            // `Route::redirect(…, '/ia/memoria', 302)` (routes.php:243) — item de
+                            // menu que só redireciona é a "fronteira suja" que motivou a remoção
+                            // do ghost `kb` neste mesmo bloco em 2026-08-05 (ADR 0366). A key
+                            // `memorias` fica: é o alvo do `mapActiveToGhostKey('memoria')`.
+                            ['key' => 'memorias',  'label' => 'Memória',  'href' => '/ia/memoria'],
+                            // Ghost 'kb' removido 2026-08-05 ([W]: "governança, KB, saem"):
+                            // `/ia/kb` é `Route::redirect(…, '/kb', 302)` — apontava pro
+                            // redirect de uma tela que é do Modules/KB e tem entrada própria.
+                            // Item de menu que só redireciona é fronteira suja (ADR 0366).
                             // Ghost 'regras' removido 2026-08-04 [W]: /ia/regras era stub de
                             // domínio ALHEIO — cobria policies do PolicyEngine ADS + governance
                             // MCP cross-team, e o núcleo do ADS foi pra Modules/Forja em jul/2026.
@@ -295,15 +311,19 @@ class DataController extends Controller
                             ['key' => 'pro',       'label' => 'Jana Pro',  'href' => '/ia/pro'],
                             // Wagner 2026-05-25: Governança canon (Modules/Governance · policies/audit/
                             // drift/module-grades) entra como ghost da Jana — "governança é da IA".
-                            // Entry sidebar foi desligada no mesmo dia (Modules/Governance/DataController
-                            // modifyAdminMenu early-return). Sub-views Dashboard/Policies/Audit/Drift/
-                            // Module Grades navegáveis pelo PageHeader da própria Governança.
-                            ['key' => 'governanca', 'label' => 'Governança', 'href' => '/governance/dashboard'],
+                            // Ghost 'governanca' removido 2026-08-05 ([W]: "governança, KB, saem").
+                            // A justificativa original deste ghost era que a entry de sidebar da
+                            // Governança estava DESLIGADA (early-return no modifyAdminMenu dela), então
+                            // a Jana emprestava o acesso. Isso deixou de valer: o #5308 REATIVOU a
+                            // entry, e a Governança ganhou faixa própria com as 7 sub-views. O ghost
+                            // virou 2ª porta pro mesmo lugar — e o comentário que o defendia estava
+                            // descrevendo um mundo que não existe mais desde o mesmo dia.
                             // Wagner 2026-05-23: ghost 'metas' removido — MetasController@index ainda
                             // retorna Blade view ('copiloto::metas.index'), o que faz Inertia Link no
                             // PageHeaderTabs silenciar (click no-op). Reintroduzir quando MetasController
                             // for migrado pra Inertia::render via MWART.
-                            ['key' => 'custos',    'label' => 'Custos',    'href' => '/ia/admin/custos'],
+                            // Ghost 'custos' removido 2026-08-05 (ADR 0366 §D-B): a tela
+                            // foi pra /governance/custos e agora é ghost da Governança.
                             // Ghost 'ads' REMOVIDO na parte 6 (ADR 0363): apontava pra
                             // /ads/admin/decisoes, tela do núcleo dual-brain que deixou de existir
                             // junto com o Modules/ADS. As telas que continuam sob /ads/ (projects,
@@ -314,14 +334,29 @@ class DataController extends Controller
                             //  - cockpit: Jana V2 Analista IA (Brief + KPIs + análises) — Pages/Jana/Cockpit.tsx
                             //  - roadmap: Timeline Gantt das tasks MCP — Pages/Jana/Admin/Roadmap.tsx
                             // Painel.tsx fica acessível só por URL (mock Onda A1, sobreposto ao Cockpit).
-                            ['key' => 'cockpit',  'label' => 'Cockpit',  'href' => '/ia/cockpit'],
-                            ['key' => 'roadmap',  'label' => 'Roadmap',  'href' => '/ia/admin/roadmap'],
-                            // Wagner 2026-05-22 P2: zera 2 órfãs (telas Jana Admin Governança + Qualidade).
-                            // Wagner 2026-05-25: rename 'Governança Jana' → 'Governança MCP' (alinha
-                            // com topnav.php que já chama de MCP — clarifica vs ghost 'governanca'
-                            // canon que aponta /governance/dashboard outro módulo).
-                            ['key' => 'governanca-mcp', 'label' => 'Governança MCP', 'href' => '/ia/admin/governanca'],
-                            ['key' => 'qualidade-jana', 'label' => 'Qualidade IA',   'href' => '/ia/admin/qualidade'],
+                            // Ghost 'cockpit' REMOVIDO na onda 4 (US-COPI-148, 2026-08-07):
+                            // a Page `Jana/Cockpit.tsx` e o `ChatController@cockpit` sairam
+                            // juntos — ela servia MOCK em rota live (US-COPI-123 p0). O
+                            // destino vivo e o Painel (`/ia`), que ja e a 1a aba desta faixa.
+                            // `/ia/cockpit` segue como 301 -> /ia (routes.php).
+                            // Ghost 'roadmap' removido 2026-08-05 (ADR 0366 §D-B + 0367 D4):
+                            // o Gantt virou aba da Forja (/forja/roadmap-gantt). Tasks é Forja.
+                            // Ghost 'qualidade-jana' removido 2026-08-05 (ADR 0366 §D-B):
+                            // eval é gate de conformidade, foi pra /governance/qualidade-ia.
+                            // Ghost 'governanca-mcp' removido 2026-08-05: a tela foi FUNDIDA
+                            // no /governance/dashboard (ADR 0366 §D-C item 1). O ghost
+                            // 'governanca' logo acima já aponta pra lá — manter os dois
+                            // seria duas entradas pro mesmo destino.
+                            //
+                            // ⚠️ 2026-08-05 (2ª passada, [W] viu em PRODUÇÃO): os dois comentários
+                            // acima chegaram no main SEM as remoções que anunciavam. #5312 tirou o
+                            // 'governanca-mcp' e #5309 tirou o 'qualidade-jana', em hunks distintos
+                            // do MESMO bloco — o git mergeou os dois comentários e preservou a linha
+                            // que o outro PR apagava. Comentário dizia "removido", menu mostrava os
+                            // dois. Mesma família do `drift_alerts` duplicado no SCOPE.md (#5328):
+                            // merge paralelo no mesmo bloco não gera conflito e não valida o
+                            // resultado. Agora as linhas saíram DE FATO — confira pelo menu, não
+                            // por este comentário.
                         ],
                     ]
                 )->order(90); // Logo após PontoWr2 (88)

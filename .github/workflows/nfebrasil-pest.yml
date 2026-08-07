@@ -192,6 +192,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
             Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \

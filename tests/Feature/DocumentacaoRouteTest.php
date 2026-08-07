@@ -4,7 +4,7 @@
  * Contrato das rotas /documentacao (ADR 0256 — a página É a fonte, renderizada).
  *
  * O que cada caso defende:
- *   1. as 3 rotas exigem login (decisão [W] 2026-08-02: doc interna não fica pública);
+ *   1. as 4 rotas exigem login (decisão [W] 2026-08-02: doc interna não fica pública);
  *   2. o documento fonte EXISTE no repo — defeito mais provável: alguém renomeia o
  *      GUIA e a página vira 503 silencioso em produção;
  *   3. `/documentacao/buscar` resolve pra BUSCA, não pra documento de slug "buscar" —
@@ -21,7 +21,7 @@
 use App\User;
 
 it('exige login nas tres rotas de documentacao', function () {
-    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/qualquer-slug'] as $rota) {
+    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/programa', '/documentacao/qualquer-slug'] as $rota) {
         $r = $this->get($rota);
         expect($r->getStatusCode())->toBe(302, "rota {$rota} deveria redirecionar pro login");
         expect($r->headers->get('Location'))->toContain('login');
@@ -49,6 +49,58 @@ it('/documentacao/buscar resolve pra busca, nao pra documento de slug "buscar"',
 
     expect($rota->getName())->toBe('documentacao.buscar');
     expect($rota->getActionMethod())->toBe('buscar');
+});
+
+it('/documentacao/programa resolve pra programa, nao pra documento de slug "programa"', function () {
+    // Mesmo defeito de ordem que já mordeu a busca: /{slug} tem regex que casa
+    // "programa", então declarar a rota depois dela daria 404 de documento.
+    $rota = app('router')->getRoutes()->match(
+        Illuminate\Http\Request::create('/documentacao/programa', 'GET')
+    );
+
+    expect($rota->getName())->toBe('documentacao.programa');
+    expect($rota->getActionMethod())->toBe('programa');
+});
+
+it('o plano que a tela do programa renderiza existe e tem a estrutura que o controller parseia', function () {
+    // Espelha a const PLANO do DocumentacaoController. Sem qualquer uma destas
+    // subseções o controller aborta 503 — melhor descobrir aqui que em produção.
+    $plano = base_path('memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md');
+
+    expect(file_exists($plano))->toBeTrue();
+
+    $conteudo = file_get_contents($plano);
+
+    foreach (['D.3', 'D.4', 'D.5', 'D.7'] as $codigo) {
+        expect($conteudo)->toMatch('/^###\s+' . preg_quote($codigo, '/') . '\s/m');
+    }
+
+    // A linha da Trilha D no Status vivo é a dona do estado de execução (ADR 0294).
+    // Se ela sumir, os cartões de onda/task somem da tela — silenciosamente.
+    expect($conteudo)->toMatch('/^\|.*Trilha D.*US-[A-Z]+-\d+/m');
+});
+
+it('a tela do programa NAO carrega a lista de estacoes escrita a mao', function () {
+    // ESTE É O CASO QUE IMPORTA. A tela promete no rodapé que "renderiza o plano, não é
+    // cópia commitada". Se alguém colar as estações/ondas na Blade pra "ficar mais
+    // simples", a promessa vira mentira e a tela drifa do plano em silêncio — que é
+    // exatamente o que a § Trilha D proíbe ("ponteiro > cópia").
+    //
+    // Bite-test: colar qualquer título de estação do plano na view quebra este caso.
+    $view = base_path('resources/views/documentacao/programa.blade.php');
+    expect(file_exists($view))->toBeTrue();
+
+    $blade = file_get_contents($view);
+    $plano = file_get_contents(base_path('memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md'));
+
+    preg_match('/^###\s+D\.4\s.*?$(.*?)(?=^#{2,3}\s)/ms', $plano, $secao);
+    preg_match_all('/^\d+\.\s+\*\*(.+?):?\*\*/m', $secao[1] ?? '', $titulos);
+
+    expect($titulos[1])->not->toBeEmpty('a D.4 do plano deveria ter estações numeradas');
+
+    foreach ($titulos[1] as $titulo) {
+        expect($blade)->not->toContain(trim($titulo));
+    }
 });
 
 it('os tipos filtrados existem no enum VIGENTE da tabela do acervo', function () {

@@ -9,25 +9,27 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
 /**
- * Gera arquivos de requisitos funcionais por módulo em `memory/requisitos/`.
+ * Gera arquivos de requisitos funcionais em `memory/requisitos/<Modulo>/SPEC.md`.
  *
- * Complementa o `module:specs` (técnico) com foco funcional/negócio:
- * user stories, regras Gherkin, DoD, rastreabilidade.
+ * Mantém o contrato funcional canônico ao lado de BRIEFING e SUPERFICIE:
+ * user stories, regras Gherkin, DoD e rastreabilidade.
  *
  * Uso:
- *   php artisan module:requirements              # todos os módulos
+ *   php artisan module:requirements              # cria somente SPECs ausentes
  *   php artisan module:requirements Essentials   # 1 módulo
- *   php artisan module:requirements --force      # sobrescreve arquivos existentes
+ *   php artisan module:requirements --force      # sobrescreve contratos (destrutivo)
  *   php artisan module:requirements --stdout     # imprime sem salvar
+ *   php artisan module:requirements --index-only # regenera somente o índice
  */
 class GenerateModuleRequirementsCommand extends Command
 {
     protected $signature = 'module:requirements
                             {module? : Nome do módulo (default: todos)}
                             {--force : Sobrescreve arquivos existentes (cuidado: perde edições manuais)}
-                            {--stdout : Imprime no stdout em vez de salvar}';
+                            {--stdout : Imprime no stdout em vez de salvar}
+                            {--index-only : Regenerar somente o índice atual, sem tocar SPECs}';
 
-    protected $description = 'Gera memory/requisitos/<Modulo>.md com user stories + regras Gherkin + DoD.';
+    protected $description = 'Gera memory/requisitos/<Modulo>/SPEC.md com user stories + regras Gherkin + DoD.';
 
     public function handle(
         ModuleSpecGenerator $specGen,
@@ -37,6 +39,12 @@ class GenerateModuleRequirementsCommand extends Command
         $single = $this->argument('module');
         $force = (bool) $this->option('force');
         $toStdout = (bool) $this->option('stdout');
+        $indexOnly = (bool) $this->option('index-only');
+
+        if ($single && $indexOnly) {
+            $this->error('--index-only não aceita módulo individual.');
+            return self::INVALID;
+        }
 
         $targets = $single
             ? [$single]
@@ -64,6 +72,15 @@ class GenerateModuleRequirementsCommand extends Command
                 continue;
             }
 
+            if ($indexOnly) {
+                $summary[] = [
+                    'name' => $name,
+                    'active' => $spec['signals']['active'] ?? false,
+                    'exists_in_current' => true,
+                ];
+                continue;
+            }
+
             $md = $reqGen->render($spec);
 
             if ($toStdout) {
@@ -72,7 +89,11 @@ class GenerateModuleRequirementsCommand extends Command
                 continue;
             }
 
-            $file = $outDir . DIRECTORY_SEPARATOR . $name . '.md';
+            $moduleOutDir = $outDir . DIRECTORY_SEPARATOR . $name;
+            if (! File::isDirectory($moduleOutDir)) {
+                File::makeDirectory($moduleOutDir, 0755, true);
+            }
+            $file = $moduleOutDir . DIRECTORY_SEPARATOR . 'SPEC.md';
             $existed = File::exists($file);
 
             if ($existed && ! $force) {
@@ -101,82 +122,35 @@ class GenerateModuleRequirementsCommand extends Command
 
     protected function discoverAllModules(ModuleManagerService $mgr): array
     {
-        // Inclui tanto os ativos em Modules/ quanto os "perdidos" em branches antigas.
-        // Reusa a descoberta do module:specs: lê memory/modulos/*.md.
-        $modulesDir = base_path('Modules');
-        $current = [];
-        if (File::isDirectory($modulesDir)) {
-            foreach (File::directories($modulesDir) as $dir) {
-                $current[] = basename($dir);
-            }
-        }
-
-        $specs = [];
-        $specsDir = base_path('memory/modulos');
-        if (File::isDirectory($specsDir)) {
-            foreach (File::files($specsDir) as $f) {
-                $fname = $f->getFilenameWithoutExtension();
-                if (in_array($fname, ['INDEX', 'RECOMENDACOES'], true)) continue;
-                $specs[] = $fname;
-            }
-        }
-
-        $all = array_unique(array_merge($current, $specs));
-        sort($all);
-        return $all;
+        $current = array_column($mgr->list(), 'name');
+        sort($current);
+        return $current;
     }
 
     protected function writeIndex(string $dir, array $summary): void
     {
-        $active = array_filter($summary, fn ($s) => $s['active'] ?? false);
-        $inactive = array_filter($summary, fn ($s) => ! ($s['active'] ?? true) && ($s['exists_in_current'] ?? false));
-        $legacy = array_filter($summary, fn ($s) => ! ($s['exists_in_current'] ?? true));
-
         $md = "# Índice — Requisitos funcionais por módulo\n\n";
-        $md .= "> Documentação viva, complementa `memory/modulos/` (spec técnica)\n";
-        $md .= "> com foco no **valor de negócio** — user stories, regras Gherkin, DoD.\n";
-        $md .= ">\n";
-        $md .= "> **Atualizado em " . now()->format('Y-m-d H:i') . "**\n\n";
-
-        $md .= "## Resumo\n\n";
-        $md .= "| Categoria | Módulos | % |\n";
-        $md .= "|---|---:|---:|\n";
-        $total = count($summary);
-        if ($total > 0) {
-            $md .= "| 🟢 Ativos | " . count($active) . " | " . round(count($active) / $total * 100) . "% |\n";
-            $md .= "| ⚪ Inativos (presentes) | " . count($inactive) . " | " . round(count($inactive) / $total * 100) . "% |\n";
-            $md .= "| ⚠️ Legados (ausentes) | " . count($legacy) . " | " . round(count($legacy) / $total * 100) . "% |\n";
-            $md .= "| **Total** | **{$total}** | 100% |\n\n";
-        }
-
-        $md .= "## Módulos ativos\n\n";
-        $md .= "Clique para ver requisitos funcionais.\n\n";
-        foreach ($active as $m) {
-            $md .= "- [{$m['name']}]({$m['name']}.md)\n";
+        $md .= "> ⚙️ Gerado por `php artisan module:requirements --index-only` a partir dos módulos registrados no checkout atual. Histórico fica no Git; este índice não mistura branches antigas.\n\n";
+        $md .= "**Total atual:** " . count($summary) . " módulos registrados.\n\n";
+        $md .= "| Módulo | BRIEFING | SPEC | SUPERFÍCIE |\n";
+        $md .= "|---|:---:|:---:|:---:|\n";
+        foreach ($summary as $m) {
+            $name = $m['name'];
+            $brief = File::exists(base_path("memory/requisitos/{$name}/BRIEFING.md"))
+                ? "[abrir]({$name}/BRIEFING.md)" : "❌ ausente";
+            $spec = File::exists(base_path("memory/requisitos/{$name}/SPEC.md"))
+                ? "[abrir]({$name}/SPEC.md)" : "❌ ausente";
+            $surface = File::exists(base_path("memory/requisitos/{$name}/SUPERFICIE.md"))
+                ? "[abrir]({$name}/SUPERFICIE.md)" : "❌ ausente";
+            $md .= "| **{$name}** | {$brief} | {$spec} | {$surface} |\n";
         }
         $md .= "\n";
-
-        if (! empty($inactive)) {
-            $md .= "## Módulos inativos (presentes no branch atual)\n\n";
-            foreach ($inactive as $m) {
-                $md .= "- [{$m['name']}]({$m['name']}.md)\n";
-            }
-            $md .= "\n";
-        }
-
-        if (! empty($legacy)) {
-            $md .= "## Módulos legados (ausentes — decidir ressuscitar/deprecar)\n\n";
-            foreach ($legacy as $m) {
-                $md .= "- [{$m['name']}]({$m['name']}.md) ⚠️\n";
-            }
-            $md .= "\n";
-        }
 
         $md .= "## Como trabalhar com estes arquivos\n\n";
         $md .= "1. **Formato estruturado** — cada arquivo tem frontmatter YAML + user stories (`US-XXX-NNN`)\n";
         $md .= "   + regras Gherkin (`R-XXX-NNN`) + DoD rastreável com a tela React.\n";
-        $md .= "2. **Fonte única da verdade funcional** — quando o código muda, atualizar o requisito.\n";
-        $md .= "3. **Regerar** — `php artisan module:requirements` gera arquivos faltantes\n";
+        $md .= "2. **Fonte única da verdade funcional** — `memory/requisitos/<Módulo>/SPEC.md`.\n";
+        $md .= "3. **Regerar** — `php artisan module:requirements` gera SPECs faltantes\n";
         $md .= "   sem sobrescrever edições manuais. Use `--force` com cuidado.\n";
         // O item 4 dizia que "Modules/SRS consome esses arquivos e linka com evidências".
         // O módulo foi REMOVIDO em 2026-07-29 (ADR 0357) — manter a frase faria este
@@ -184,7 +158,7 @@ class GenerateModuleRequirementsCommand extends Command
         $md .= "4. **Acervo/busca** — `Modules/KB` (`kb_nodes` + `mcp_memory_documents`).\n\n";
 
         $md .= "---\n";
-        $md .= "_Regerar índice: `php artisan module:requirements`_\n";
+        $md .= "_Regerar índice: `php artisan module:requirements --index-only`_\n";
 
         File::put($dir . DIRECTORY_SEPARATOR . 'INDEX.md', $md);
     }

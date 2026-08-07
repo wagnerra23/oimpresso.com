@@ -4,9 +4,9 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.3.0"
+version: "1.4.0"
 maintained_by: wagner
-last_updated: "2026-08-03"
+last_updated: "2026-08-05"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -20,7 +20,7 @@ pii: false
 
 <!-- documentation-entrypoint: route:produto-operacao -->
 
-> 🧭 Este guia é a **leitura humana** do sistema. Para o **retrato gerado** (estado vivo de módulos, gates required, workflows, ADRs) veja [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
+> 🧭 Este guia é a **leitura humana** do sistema, publicada em [`https://oimpresso.com/documentacao`](https://oimpresso.com/documentacao) para usuários autenticados. Para o **retrato gerado** (estado vivo de módulos, gates required, workflows, ADRs) veja [`reference/PAINEL-SISTEMA.md`](reference/PAINEL-SISTEMA.md) (via `system-map.mjs`).
 
 > **Pra quem:** Wagner e time, depois de escolher a rota **produto/operação** no [`README.md` da raiz](../README.md). Este guia explica o sistema numa página e aponta como operá-lo com agentes de IA.
 >
@@ -279,6 +279,46 @@ Origem: [W] 2026-08-02 — *"preciso de um responsável que não se desvie do fo
 - **Nada de documento novo quando o dono existe.** A pergunta antes de criar é sempre: *quem já é dono deste assunto?*
 - **Achado adjacente não emenda.** Encontrou outro problema no caminho? Reporta em UMA linha e **para**. [W] decide se vira trabalho, e quando. _(O que deu errado naquela sessão: cada achado adjacente virou "sim" por reflexo, e o pedido original — a documentação — ficou parado no meio.)_
 
+#### B6.2 — Plano técnico e operacional ponta a ponta
+
+[W] autorizou em 2026-08-05 a **Trilha D** do
+[`PLANO-MESTRE`](requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md). Ela passou a organizar a
+documentação que começa nas máquinas existentes e atravessa seis frentes:
+
+| Frente | O que o leitor encontra |
+|---|---|
+| **Infraestrutura** | Hostinger, Proxmox, CT 100, GitHub Actions, Windows/Firebird, rede e dispositivos |
+| **Plataforma** | hooks, MCP, CI, skills, agents, scripts, baselines e observabilidade |
+| **Aplicação** | kernel, módulos transversais, verticais, integrações e legado |
+| **Fluxos** | venda, estoque, financeiro, fiscal, WhatsApp, Jana, migração, deploy e recuperação |
+| **Operação** | acesso, monitoramento, manutenção, backup, restore, rollback e incidentes |
+| **Visão humana** | a rota `/documentacao` autenticada, que renderiza este Guia |
+
+A leitura humana do programa — as onze estações do ciclo, as onze ondas e a regra de onde o estado
+mora — está em
+[reference/GOV-PROGRAMA-DOCUMENTACAO.md](reference/GOV-PROGRAMA-DOCUMENTACAO.md).
+
+O plano fica no Git; as ondas e critérios vivem no plano mestre; o estado `todo/doing/done` vive nas
+tasks MCP com `parent_plan=programa-ondas`; este Guia traduz e aponta; a rota
+[`/documentacao`](https://oimpresso.com/documentacao) publica. O ciclo executável é:
+
+```mermaid
+flowchart LR
+    MEDIR["Medir<br/>inventário + probe"] --> DONO["Localizar o dono"]
+    DONO --> TRADUZIR["Traduzir no Git"]
+    TRADUZIR --> VALIDAR["Validar técnica + operação"]
+    VALIDAR --> RECIBO["Recibo antes → depois"]
+    RECIBO --> PUBLICAR["PR + merge + /documentacao"]
+    PUBLICAR --> OPERAR["Operar e observar"]
+    OPERAR --> DRIFT["Drift ou incidente"]
+    DRIFT --> MEDIR
+```
+
+O workflow [`documentacao-tecnica`](../.claude/workflows/documentacao-tecnica.js) consome exatamente
+um achado por execução. `system-map`, `maquinas-inventario`, `documentation-loop` e
+`briefing-code-staleness` medem; o especialista traduz; [W] decide o merge. A trilha permanece ativa
+enquanto houver task aberta, revisão fresca e consumo dos achados — não por criar outro gate.
+
 ### B7. Como especificar e executar uma feature complexa (SDD)
 
 > **Não instalar outro kit nem criar outro `spec.md`.** O fluxo local já operacionaliza
@@ -297,6 +337,7 @@ de uma tarefa segue direto por task MCP + PR. Tela nova ou alterada também prec
 | Camada | Dono | Pergunta que responde |
 |---|---|---|
 | Sinal + requisito-mãe | `requisitos/<Mod>/SPEC.md` (`US-*`) | **Por quê e o quê?** |
+| Contrato do domínio/família | `requisitos/<Mod>/SDD-<domínio>-vN.md` (§5/§6) | **Como o domínio funciona e quais CU precisam sobreviver?** |
 | Especificação executável | `features/<slug>/requirements.md` | **Quais comportamentos e critérios `AC-N` provam o resultado?** |
 | Plano técnico | `features/<slug>/plan.md` | **Como encaixa no código existente sem duplicar?** |
 | Grafo de execução | `features/<slug>/tasks.md` | **Em qual ordem, cobrindo quais ACs, com qual DoD?** |
@@ -311,7 +352,8 @@ de uma tarefa segue direto por task MCP + PR. Tela nova ou alterada também prec
 2. **Gerar pela máquina dona, nunca copiar à mão:**
 
    ```bash
-   npm run feature:init -- <Mod>/<slug> --us US-<MOD>-<NNN>
+   npm run sdd:init -- <Mod>/<slug> --us US-<MOD>-<NNN> \
+     --sdd auto --cu CU-<MOD>-NN --screen <Mod>/<Tela>
    ```
 
    O modo `--init` do `feature-lint.mjs` valida que módulo/SPEC/US existem, gera somente
@@ -330,13 +372,23 @@ de uma tarefa segue direto por task MCP + PR. Tela nova ou alterada também prec
 6. **Validar antes de implementar:**
 
    ```bash
-   node scripts/governance/feature-lint.mjs <Mod>/<slug> --check
+   npm run sdd:flow:check -- <Mod>/<slug>
    ```
 
 7. **Executar em ordem topológica.** Para cada tarefa: teste que prova o AC falha → menor
    implementação que o satisfaz → teste passa → DoD registrado. Pest/PHPStan rodam no CT 100,
    nunca no Hostinger ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md)).
-8. **Fechar o loop.** Smoke real, âncora `verificado@<sha7>` na US e lint final. Em valor/estoque,
+8. **Fechar o loop.** Smoke real, âncora `verificado@<sha7>` na US e recibo final:
+
+   ```bash
+   npm run sdd:flow:receipt -- <Mod>/<slug>
+   ```
+
+   O recibo estrutural não declara teste verde por conta própria. Ele verifica o smart token Git
+   `verificado@<sha7>` da US com `anchor-lint --stale` (incluindo a base derivada pós-squash) e
+   exige hash válido nas referências `arquivo:linha` da feature/tela por meio de
+   `ancora-codigo-sync --check --require-stamp`; `casos-gate` e a lane CT 100 aplicável continuam
+   sendo autoridades separadas. Em valor/estoque,
    `--apply` só ocorre após dry-run com impacto antes→depois e aprovação humana explícita.
 
 **Critério de pronto da especificação:** todo `AC-N` é coberto por pelo menos uma tarefa; toda
@@ -389,25 +441,29 @@ a ajuda curta para o terminal; esta seção é a versão explicada.
 Substitua os três campos: `<Modulo>`, `<slug>` e `US-<MOD>-<NNN>`.
 
 ```bash
-npm run feature:init -- <Modulo>/<slug> --us US-<MOD>-<NNN> --dry-run
+npm run sdd:init -- <Modulo>/<slug> --us US-<MOD>-<NNN> --dry-run
 ```
 
 Exemplo de formato — use uma US e um slug que pertençam à feature real:
 
 ```bash
-npm run feature:init -- Connector/minha-integracao --us US-CONN-013 --dry-run
+npm run sdd:init -- Connector/minha-integracao --us US-CONN-013 --dry-run
 ```
 
 O resultado esperado lista exatamente três caminhos com a palavra `criaria`. Confirme também que
 a pasta não apareceu no disco. O dry-run não é permissão para duplicar a US-CONN-013: o comando
 acima demonstra apenas a forma; uma feature nova usa sua própria US.
 
+Quando já houver SDD e/ou tela afetada, acrescente `--sdd auto`, um ou mais `--cu CU-<MOD>-NN`
+e `--screen <Mod>/<Tela>`. `auto` só aceita exatamente um SDD no módulo; se houver mais de uma
+família, informe o arquivo explicitamente. Feature exclusivamente backend pode omitir `--screen`.
+
 ##### Passo 4 — gerar a pasta
 
 Depois de conferir módulo, slug e US, remova apenas `--dry-run`:
 
 ```bash
-npm run feature:init -- <Modulo>/<slug> --us US-<MOD>-<NNN>
+npm run sdd:init -- <Modulo>/<slug> --us US-<MOD>-<NNN>
 ```
 
 A máquina cria:
@@ -569,6 +625,9 @@ flowchart LR
 |---|---|
 | Mapa técnico do produto (arc42) | [governance/ARCHITECTURE.md](governance/ARCHITECTURE.md) |
 | Quem gera/enforça a documentação (todas as máquinas) | [reference/MAQUINAS-INVENTARIO.md](reference/MAQUINAS-INVENTARIO.md) |
+| Plano técnico e operacional ponta a ponta | [PLANO-MESTRE § Trilha D](requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md) |
+| Como o programa de documentação funciona (leitura humana) | [reference/GOV-PROGRAMA-DOCUMENTACAO.md](reference/GOV-PROGRAMA-DOCUMENTACAO.md) |
+| Visão humana publicada | [oimpresso.com/documentacao](https://oimpresso.com/documentacao) |
 | Voltar à porta global / escolher outra rota | [README.md da raiz](../README.md) |
 | Procurar um documento conhecido | [INDEX.md](INDEX.md) · [INDEX_TEMATICO.md](INDEX_TEMATICO.md) |
 | Regras de sessão / como trabalhar | [how-trabalhar.md](how-trabalhar.md) · [CLAUDE.md](../CLAUDE.md) |

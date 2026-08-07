@@ -12,14 +12,21 @@ class GenerateModuleSpecsCommand extends Command
     protected $signature = 'module:specs
                             {module? : Nome do módulo (default: todos)}
                             {--stdout : Imprimir no stdout em vez de salvar em memory/modulos/}
+                            {--index-only : Regenerar somente o índice atual, sem tocar specs individuais}
                             {--aceito-perda-de-branch : Regravar mesmo quando uma branch histórica sumiu e o registro dela for insubstituível}';
 
-    protected $description = 'Inspeciona módulo(s) e gera spec markdown em memory/modulos/';
+    protected $description = 'Inspeciona módulos atuais; mantém snapshots técnicos legados e o índice de autoridade.';
 
     public function handle(ModuleSpecGenerator $gen, ModuleManagerService $mgr): int
     {
         $single = $this->argument('module');
         $toStdout = (bool) $this->option('stdout');
+        $indexOnly = (bool) $this->option('index-only');
+
+        if ($single && $indexOnly) {
+            $this->error('--index-only não aceita módulo individual.');
+            return self::INVALID;
+        }
 
         $targets = $single
             ? [$single]
@@ -30,11 +37,14 @@ class GenerateModuleSpecsCommand extends Command
             return self::SUCCESS;
         }
 
-        $this->info(count($targets) . ' módulos descobertos (atuais + perdidos em branches antigas)');
+        $this->info(count($targets) . ' módulos registrados no checkout atual.');
 
         $outDir = base_path('memory/modulos');
 
-        if (! $toStdout && ! $this->guardaPerdaDeBranch($gen, $outDir)) {
+        // Só corre risco de perda quem de fato reescreve os specs individuais.
+        // `--stdout` não grava; `--index-only` só toca INDEX.md, que não carrega
+        // coluna de presença-em-branch (ver writeIndex) — nenhum dos dois apaga registro.
+        if (! $toStdout && ! $indexOnly && ! $this->guardaPerdaDeBranch($gen, $outDir)) {
             return self::FAILURE;
         }
 
@@ -51,16 +61,16 @@ class GenerateModuleSpecsCommand extends Command
                 $this->error($spec['error']);
                 continue;
             }
-            $md = $gen->renderMarkdown($spec);
-
-            if ($toStdout) {
-                $this->line($md);
-                continue;
+            if (! $indexOnly) {
+                $md = $gen->renderMarkdown($spec);
+                if ($toStdout) {
+                    $this->line($md);
+                } else {
+                    $file = $outDir . DIRECTORY_SEPARATOR . $name . '.md';
+                    File::put($file, $md);
+                    $this->line("   <fg=green>✓</> " . str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file));
+                }
             }
-
-            $file = $outDir . DIRECTORY_SEPARATOR . $name . '.md';
-            File::put($file, $md);
-            $this->line("   <fg=green>✓</> " . str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file));
 
             $index[] = [
                 'name'        => $name,
@@ -86,23 +96,24 @@ class GenerateModuleSpecsCommand extends Command
     }
 
     /**
-     * Lista TODOS os módulos únicos encontrados em qualquer branch conhecida:
-     *  - atual (working dir / main)
-     *  - main-wip-2026-04-22 (backup Wagner)
-     *  - origin/3.7-com-nfe (versão antiga)
-     */
-    /**
      * Impede que regenerar apague, em silêncio, o único registro de uma branch que sumiu.
      *
      * `memory/modulos/` é a ÚNICA memória de módulos que não existem mais em lugar nenhum:
      * `main-wip-2026-04-22` (backup) sumiu do repo e do remoto, e 6 módulos só constam
      * dela — Accounting, AiAssistance, Grow, IProduction, Officeimpresso1, Writebot,
-     * todos ausentes de `origin/3.7-com-nfe` (medido 2026-07-30). Como o git não sabe
-     * mais responder por essa branch, regravar as specs trocaria o `✅` deles por `n/d`
-     * e o fato se perderia — sem erro, sem aviso, sem volta.
+     * todos ausentes também de `origin/3.7-com-nfe` (medido 2026-07-30). Como o git não
+     * sabe mais responder por essa branch, regravar as specs trocaria o `✅` deles por
+     * `n/d` e o fato se perderia — sem erro, sem aviso, sem volta.
      *
      * Então: se uma branch histórica sumiu E existe arquivo que a registra, aborta e
      * mostra quais. `--aceito-perda-de-branch` segue adiante, agora como escolha.
+     *
+     * Histórico: nasceu no #5085 (2026-07-30) e foi removido pelo #5327 (2026-08-06),
+     * que trouxe este arquivo de uma branch anterior ao guard — revert não-declarado.
+     * O bite-test que o cobre é `ModuleSpecBranchPresenceTest`, e ele ficou vermelho no
+     * mesmo dia; a lane `PHP / Pest (Ponto · MySQL)` já estava vermelha por outra causa,
+     * então ninguém viu. Restaurado aqui sobre a versão atual do arquivo (o `--index-only`
+     * e o `discoverAllModules` enxuto do #5327 seguem intactos).
      */
     protected function guardaPerdaDeBranch(ModuleSpecGenerator $gen, string $outDir): bool
     {
@@ -153,105 +164,33 @@ class GenerateModuleSpecsCommand extends Command
         return false;
     }
 
+    /** Lista somente módulos registrados no checkout atual. Histórico continua no Git. */
     protected function discoverAllModules(ModuleManagerService $mgr): array
     {
         $names = array_column($mgr->list(), 'name');
-
-        $branches = ['main-wip-2026-04-22', 'origin/3.7-com-nfe'];
-        // Redirecionamento compatível com Windows (NUL) e Unix (/dev/null)
-        $nullDev = stripos(PHP_OS, 'WIN') === 0 ? 'NUL' : '/dev/null';
-        foreach ($branches as $br) {
-            $cmd = 'git -C ' . escapeshellarg(base_path())
-                 . ' ls-tree --name-only ' . escapeshellarg($br) . ' Modules/ 2>' . $nullDev;
-            $out = shell_exec($cmd);
-            if (!$out) continue;
-            foreach (array_filter(explode("\n", trim($out))) as $line) {
-                $name = basename(trim($line));
-                if ($name !== '' && !in_array($name, $names)) {
-                    $names[] = $name;
-                }
-            }
-        }
         sort($names);
         return $names;
     }
 
     protected function writeIndex(string $dir, array $index): void
     {
-        usort($index, function ($a, $b) {
-            // ativos primeiro
-            if ($a['active'] !== $b['active']) return $a['active'] ? -1 : 1;
-            // menor complexidade primeiro (alta prioridade = mais fácil)
-            $ca = $a['routes'] + $a['views'];
-            $cb = $b['routes'] + $b['views'];
-            return $ca <=> $cb;
-        });
+        usort($index, fn ($a, $b) => strcmp($a['name'], $b['name']));
 
-        $md  = "# Índice de Specs dos Módulos\n\n";
-        $md .= "Gerado por `php artisan module:specs` em " . now()->format('Y-m-d H:i') . ".\n\n";
-        $md .= "**Total:** " . count($index) . " módulos únicos encontrados em todas as branches conhecidas (atual, `main-wip-2026-04-22`, `origin/3.7-com-nfe`).\n\n";
-
-        // Separar em 3 grupos: ativos / inativos locais / perdidos (não existem no atual)
-        $active = array_values(array_filter($index, fn($r) => $r['active']));
-        $inactiveLocal = array_values(array_filter($index, fn($r) => !$r['active'] && $r['in_current']));
-        $lost = array_values(array_filter($index, fn($r) => !$r['in_current']));
-
-        $md .= "## 🟢 Ativos (" . count($active) . ")\n\n";
-        $md .= $this->renderIndexTable($active);
-
-        if (!empty($inactiveLocal)) {
-            $md .= "\n## ⚪ Inativos no branch atual (" . count($inactiveLocal) . ")\n\n";
-            $md .= "_Existem em `Modules/` mas com flag `false` em `modules_statuses.json`._\n\n";
-            $md .= $this->renderIndexTable($inactiveLocal);
+        $md  = "# Índice técnico dos módulos\n\n";
+        $md .= "> Projeção determinística dos diretórios atuais que possuem `Modules/<M>/module.json`.\n";
+        $md .= "> Regenerar com `php artisan module:specs --index-only`.\n\n";
+        $md .= "**Autoridade:** `module.json` declara a existência; `SCOPE.md` declara a fronteira;\n";
+        $md .= "`memory/requisitos/<M>/SPEC.md` declara comportamento; `SUPERFICIE.md` é inventário\n";
+        $md .= "gerado. Os arquivos históricos `memory/modulos/<M>.md` permanecem como snapshots e não\n";
+        $md .= "definem quais módulos existem.\n\n";
+        $md .= "**Total atual:** " . count($index) . " módulos.\n\n";
+        $md .= "| Módulo | Manifesto | Fronteira | Superfície | Requisitos |\n";
+        $md .= "|---|---|---|---|---|\n";
+        foreach ($index as $row) {
+            $name = $row['name'];
+            $md .= "| {$name} | [module.json](../../Modules/{$name}/module.json) | [SCOPE](../../Modules/{$name}/SCOPE.md) | [SUPERFICIE](../requisitos/{$name}/SUPERFICIE.md) | [SPEC](../requisitos/{$name}/SPEC.md) |\n";
         }
-
-        if (!empty($lost)) {
-            $md .= "\n## ❌ Perdidos na migração 3.7 → 6.7 (" . count($lost) . ")\n\n";
-            $md .= "_**Existem em branches antigas** (`main-wip-2026-04-22` ou `origin/3.7-com-nfe`) **mas não na branch atual 6.7-react.**_\n";
-            $md .= "_Potenciais funcionalidades que ficaram para trás. Decidir se trazer de volta ou abandonar._\n\n";
-            $md .= "| Módulo | main-wip | 3.7 | Ação sugerida |\n";
-            $md .= "|---|:-:|:-:|---|\n";
-            foreach ($lost as $row) {
-                $mw = ($row['branches']['main-wip-2026-04-22'] ?? false) ? '✅' : '—';
-                $v37 = ($row['branches']['origin/3.7-com-nfe'] ?? false) ? '✅' : '—';
-                $md .= "| [{$row['name']}]({$row['name']}.md) | {$mw} | {$v37} | (definir) |\n";
-            }
-        }
-
-        $md .= "\n## Como usar\n\n";
-        $md .= "1. Abra o spec de um módulo (coluna 'Módulo' é link).\n";
-        $md .= "2. Na seção **'Gaps & próximos passos'**, preencha customizações suas conhecidas.\n";
-        $md .= "3. Compare com o código original do UltimatePOS 6.7 para identificar o diff (seção automática).\n";
-        $md .= "4. Use 'Prioridade' e 'Risco' para definir ordem de migração.\n\n";
-        $md .= "## Regenerar\n\n";
-        $md .= "```bash\n";
-        $md .= "php artisan module:specs              # todos\n";
-        $md .= "php artisan module:specs Ponto        # um só\n";
-        $md .= "php artisan module:specs --stdout     # ver sem salvar\n";
-        $md .= "```\n";
 
         File::put($dir . DIRECTORY_SEPARATOR . 'INDEX.md', $md);
-    }
-
-    protected function renderIndexTable(array $rows): string
-    {
-        $md  = "| # | Módulo | Prioridade | Risco | Rotas | Views | Migrations | Permissões | Hooks |\n";
-        $md .= "|--:|---|---|---|--:|--:|--:|--:|--:|\n";
-        foreach ($rows as $i => $row) {
-            $md .= sprintf(
-                "| %d | [%s](%s.md) | %s | %s | %d | %d | %d | %d | %d |\n",
-                $i + 1,
-                $row['name'],
-                $row['name'],
-                $row['priority'],
-                $row['risk'],
-                $row['routes'],
-                $row['views'],
-                $row['migrations'],
-                $row['permissions'],
-                $row['upos_hooks']
-            );
-        }
-        return $md;
     }
 }

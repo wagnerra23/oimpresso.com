@@ -244,8 +244,12 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     label: 'SISTEMA',
     // Wagner 2026-05-22: Auditoria/Modelos de notificação/Relatórios/Dashboard
     // adicionados (eram módulos soltos em MAIS).
-    // Wagner 2026-05-25: 'Governança' REMOVIDO — entry sidebar desligada no
-    // Modules/Governance/DataController.modifyAdminMenu (acesso via URL direta).
+    // Wagner 2026-05-25: 'Governança' foi retirado desta lista quando a entry de
+    // sidebar do Modules/Governance foi desligada. Em 2026-08-05 a entry voltou
+    // ([W] — a Governança passa a receber telas do Jana, ADR 0366 §D-B), e ela
+    // NÃO precisa voltar pra cá: o DataController declara `group => 'sistema'`,
+    // que `findGroupKey` resolve no passo 1. Esta lista é só o fallback por label
+    // pra módulo que não declara `group`.
     items: ['Plataforma', 'Auditoria',
             'Modelos de notificação', 'Modelo de notificação',
             'Relatórios', 'Dashboard',
@@ -1017,6 +1021,16 @@ function SidebarUserMenu({
           <Keyboard size={14} className="ic" />
           <span className="label">Atalhos</span>
           <span className="kbd">⌘/</span>
+        </a>
+        {/* ÚNICO ponto de entrada pra /documentacao. A rota existe desde o PR do guia,
+            mas NENHUM link apontava pra ela — varredura em app/**\/*.php, resources/views/
+            e resources/js/ deu 0 ocorrências, então só se chegava digitando a URL.
+            Fica no rodapé (e não em shell.menu) porque não é item de módulo: a rota é
+            `auth` puro — leitura, sem business_id/SetSessionData —, logo não tem guard
+            de módulo/permissão pra publicar via DataController (ADR 0180 contrato v2). */}
+        <a href="/documentacao" className="um-item">
+          <BookOpen size={14} className="ic" />
+          <span className="label">Documentação</span>
         </a>
         <a href="/business/settings" className="um-item">
           <Search size={14} className="ic" />

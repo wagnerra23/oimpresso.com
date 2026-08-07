@@ -153,7 +153,11 @@ function maskValue(line) {
 
 function denyMessage(filePath, r) {
   return [
-    '[BLOCKED: valor BRL em memory/ — proibicoes.md §"NUNCA commitar valores BRL" (Tier 0 dinheiro)]',
+    // A tag `[block-brl-values-in-memory]` é o que torna este hook OBSERVÁVEL pro
+    // `hook-bites` (dead man's switch). Sem ela o silêncio dele é indistinguível de
+    // morte — medido 2026-08-05: era 1 dos 11 BLOQUEADORES não-observáveis, e este
+    // guarda Tier 0 (dinheiro). Convenção: a mensagem carrega `[<nome-do-arquivo>]`.
+    '[block-brl-values-in-memory] [BLOCKED: valor BRL em memory/ — proibicoes.md §"NUNCA commitar valores BRL" (Tier 0 dinheiro)]',
     '',
     `Arquivo: ${filePath}`,
     `Linha ${r.lineNumber}: ${maskValue(r.line)}`,
