@@ -23,20 +23,20 @@
       "detail": {
         "coverage_pct": 88,
         "specs_total": 51,
-        "us_total": 952,
+        "us_total": 953,
         "anchor_coverage_pct": 88,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
           "pendente": 400,
-          "parcial": 111,
+          "parcial": 112,
           "anchored_ok": 327,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 846,
+        "fields_total": 847,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 787,
+        "fields_grammar_ok": 788,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -46,7 +46,7 @@
         "req_sem_lane_total": 53,
         "behavior_known": false,
         "servido_total": 17,
-        "nao_servido_total": 88,
+        "nao_servido_total": 89,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -170,8 +170,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 274,
-        "effectively_guarded": 274
+        "with_manual_ddl": 273,
+        "effectively_guarded": 273
       },
       "stream": "FV"
     },
