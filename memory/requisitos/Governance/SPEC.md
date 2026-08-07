@@ -957,6 +957,27 @@ Classificação das **38** restantes:
 
    Escolher é desenho de autorização em endpoint **fiscal**; não foi inventado aqui.
 
+#### Classe B reaberta — 2 das 5 eram classe A, não legado (2026-08-06)
+
+A classe B dizia *"feature legada sem módulo… sobrou código no core"* e apontava remoção. **Vale para `hms.*` (3), não para `restaurant.*` (2).**
+
+**`restaurant.*` é feature VIVA, não legado.** Medido: rotas ativas (`Route::resource('tables', Restaurant\TableController::class)` + `modifiers`), controllers em `app/Http/Controllers/Restaurant/`, e gate por business via `isModuleEnabled('tables')` — é a **Mesas**, um dos módulos core habilitáveis em `/business/settings` (Camada 2 do CLAUDE.md). Não existe `Modules/Restaurant` porque nunca foi módulo nWidart; é core.
+
+Logo as duas são **bug de acesso (classe A)**, com a forma exata do `kb.ai`:
+
+| Onde | Checava | Endpoint exige | Efeito |
+|---|---|---|---|
+| `restaurant/table/index` (2 vivos + 2 em bloco comentado) | `restaurant.create` · `restaurant.view` | `access_tables` (`TableController` L21/59/78…) | quem recebe `access_tables` — a **única** permissão que a tela de papéis oferece pra Mesas — abre a tela e não vê botão nem tabela; só admin vê, por `Gate::before` |
+| `restaurant/modifier_sets/index` (botão Adicionar) | `restaurant.create` | `product.create` (`ModifierSetsController` L91) | idem |
+
+**Corrigido:** os 5 pontos acima passam a citar a permissão que o endpoint realmente exige. Órfãs **37 → 36** (`restaurant.create` saiu do censo).
+
+**Fica pendente de decisão [W] — 1 ponto:** `@can('restaurant.view')` na listagem de `modifier_sets`. O `ModifierSetsController::index()` **não tem guard nenhum**, e as ações por linha usam `product.update`/`product.delete`. Não há permissão equivalente pra "ver a lista": escolher uma (ou remover o `@can` e alinhar com o endpoint, que hoje não restringe) é desenho de autorização — não foi inventado aqui.
+
+**`hms.*` (3) — a classe B procede, e a remoção é inerte.** Eles aparecem só em cadeias `OR` com permissões reais (`purchase.payments`, `sell.payments`, `delete_sell_payment`…) em `TransactionPaymentController` e `show_payments.blade.php`. Um termo sempre-falso num `OR` não muda veredito, então tirá-los preserva comportamento — mas **antes de remover, confirmar na base de produção** se `hms.*` não foi semeada historicamente pelo upstream UltimatePOS: o detector lê código, não o `permissions` vivo.
+
+> ⚠️ **Gap do detector achado nesta medição:** o strip de comentário do [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) cobre comentário **PHP** (`//`, `*`, `/*` no início da linha) — **não** cobre comentário **Blade** `{{-- --}}`, que envolve blocos inteiros de `@can()`. Prova: 2 dos 4 `@can('restaurant.*')` do `table/index` estavam dentro de `{{-- --}}` e contavam como uso vivo. Mesma família do FP-4, um formato adiante.
+
 **Nota sobre B/C/D:** o denominador de declaração do detector são 5 fontes (`DataController`, `Resources/permissions.php`, `role/*.blade.php`, `PermissionsTableSeeder`, `syncPermissions` em runtime). Seeders de módulo (ex.: `NfeFiscalActionsSeeder`) **não** entram — foi o que fez `fiscal.inutilizar` aparecer. Antes de declarar qualquer permissão da classe C, conferir se ela já existe em fonte fora dessas cinco.
 
 **A conferência foi FEITA — e o ponto cego NÃO explica a classe C.** Medido em 2026-08-06 (recibo abaixo): das **37** órfãs do censo, **1 única** aparece declarada em seeder — `fiscal.inutilizar`, em [`NfeFiscalActionsSeeder.php:51`](../../../database/seeders/NfeFiscalActionsSeeder.php) mais o `syncRoles` da L173, que é justamente o caso A-2 já conhecido acima. As outras **36 não existem em seeder algum**. Consequência para quem for triar: a classe C **não pode ser descartada como cegueira do detector** — aquelas permissões estão mesmo sem declaração em lugar nenhum, e a decisão sobre elas (declarar × remover o `can()`) é de mérito, não de instrumento.
