@@ -143,6 +143,10 @@ jobs:
               - 'tests/Support/EstoqueFixture.php'
               - 'tests/Support/EstoqueProduto.php'
               - 'app/Http/Controllers/ProductController.php'
+              # Arquivos SOB TESTE do ProdutoUnificadoCategoriasContratoTest. Sem eles no
+              # trigger, mexer no controller não dispara o teste dele (§5 2026-08-02).
+              - 'app/Http/Controllers/ProdutoUnificadoController.php'
+              - 'app/Category.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'
@@ -209,7 +213,8 @@ jobs:
             tests/Feature/Produto/EstoqueInicialContratoTest.php \
             tests/Feature/Produto/ProdutoBomContratoTest.php \
             tests/Feature/Produto/QuickAddProdutoContratoTest.php \
-            tests/Feature/Produto/AjusteEstoqueRelatorioContratoTest.php
+            tests/Feature/Produto/AjusteEstoqueRelatorioContratoTest.php \
+            tests/Feature/Produto/ProdutoUnificadoCategoriasContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
