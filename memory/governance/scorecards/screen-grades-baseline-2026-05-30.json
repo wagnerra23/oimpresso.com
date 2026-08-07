@@ -2477,7 +2477,7 @@
       ]
     },
     {
-      "screen": "Jana/Dashboard",
+      "screen": "Jana/Index",
       "found": true,
       "archetype": "dashboard",
       "persona": "misto",

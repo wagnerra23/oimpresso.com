@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  *
  *  D6.a Inertia::defer:
  *   009. (removido 2026-08-06 — PainelController deletado; ver nota no corpo)
- *   010. DashboardController: `metas` eager (hotfix 2026-05-25) e defer só no payload seguro
+ *   010. IndexController: `metas` eager (hotfix 2026-05-25) e defer só no payload seguro
  *
  *  D8.a throttle:
  *   011. routes.php Jana group declara throttle:120,1
@@ -130,7 +130,7 @@ it('008. GovernancaService importa OtelHelper (instrumentado D9.a)', function ()
 // VERMELHO na nightly do CT 100 por 15 runs consecutivos (24/07→07/08), sem
 // ninguém agir: ele exigia `'metas' => Inertia::defer(` num controller que traz,
 // desde 2026-05-25, o comentário "HOTFIX pós-PR #1547: `metas` SEM Inertia::defer
-// porque Dashboard.tsx lê `metas.length` direto" — o defer ali dava TypeError em
+// porque a Page lê `metas.length` direto" — o defer ali dava TypeError em
 // prod, pego por smoke browser. Ou seja: o CÓDIGO está certo e o TESTE estava
 // errado, afirmando uma intenção que [W] revogou com evidência.
 //
@@ -140,8 +140,8 @@ it('008. GovernancaService importa OtelHelper (instrumentado D9.a)', function ()
 //
 // ⚠️ Asserts separados de propósito: `toContain` é variádico no Pest — passar
 // dois argumentos procura AMBOS como needles, não "isto E aquilo" (§5 2026-07-28).
-it('010. DashboardController: metas eager (hotfix) e defer só no payload seguro', function () {
-    $source = file_get_contents(base_path('Modules/Jana/Http/Controllers/DashboardController.php'));
+it('010. IndexController: metas eager (hotfix) e defer só no payload seguro', function () {
+    $source = file_get_contents(base_path('Modules/Jana/Http/Controllers/IndexController.php'));
 
     // O padrão Inertia::defer continua em uso no controller...
     expect($source)->toContain('Inertia::defer(');

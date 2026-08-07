@@ -52,12 +52,32 @@ Route::group(
         'namespace'  => 'Modules\Jana\Http\Controllers',
     ],
     function () {
-        // ---- Chat (entry-point, ver adr/arq/0002) --------------------------
-        Route::get('/',                                    'ChatController@index')->name('jana.chat.index');
+        // ---- Painel — a RAIZ do módulo (onda 3 da fusão, US-COPI-148) -------
+        // Era `/ia/dashboard`. Mudou pra cá porque o Painel JÁ ERA o destino
+        // pós-login: `routes/web.php` fazia `/home → redirect('/ia/dashboard')`.
+        // Alinhar a URL com o que já acontecia custa 1 hop a menos por login e
+        // não inverte produto. `/ia/dashboard` vira 301 (bloco 1.b).
+        //
+        // FQCN obrigatório em rota nova (.claude/rules/routes.md): string
+        // 'Controller@method' quebra `route:cache` com ReflectionException.
+        Route::get('/', [\Modules\Jana\Http\Controllers\IndexController::class, 'index'])
+            ->name('jana.index');
 
-        // ---- Cockpit MVP (padrao "Chat Cockpit", ADR 0039 - rota paralela
-        //      pra validacao visual sem substituir a /copiloto atual). ----------
-        Route::get('/cockpit',                             'ChatController@cockpit')->name('jana.cockpit');
+        // ---- Conversa (o chat) ---------------------------------------------
+        // Era a raiz `/ia`. O comentário antigo dizia "entry-point do módulo,
+        // adr/arq/0002" — isso deixou de valer em 2026-05-25, quando [W] promoveu
+        // o Dashboard a destino pós-login; só a URL não tinha acompanhado.
+        // `jana.chat.index` PRESERVADO como nome: é o que DataController:192 usa,
+        // e renomear route name quebra `route()` de terceiros em silêncio.
+        Route::get('/conversa', [\Modules\Jana\Http\Controllers\ChatController::class, 'index'])
+            ->name('jana.chat.index');
+
+        // ---- Cockpit — DESATIVADO na onda 3, arquivo removido na onda 4 ------
+        // O `ChatController@cockpit` renderizava `Jana/Cockpit`, que responde MOCK
+        // em rota live (`startMockStream`, Cockpit.tsx:707/780 — é a US-COPI-123,
+        // p0 aberta). A onda 4 apaga a Page e o método; aqui só paramos de servir
+        // o mock. 301 pro Painel no bloco 1.b — o Painel entrega a mesma
+        // capacidade (brief · KPIs · análises · ações) com dado real.
 
         // ---- Painel Analista IA — REMOVIDO 2026-08-06 [W] (onda 1 da fusão
         //      das telas da Jana). Era um hub de 3 links + `buildMockPayload()`;
@@ -86,8 +106,11 @@ Route::group(
         Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')->name('jana.sugestoes.escolher');
         Route::post('/sugestoes/{id}/rejeitar',            'ChatController@rejeitar')->name('jana.sugestoes.rejeitar');
 
-        // ---- Dashboard -----------------------------------------------------
-        Route::get('/dashboard',                           'DashboardController@index')->name('jana.dashboard.index');
+        // ---- Dashboard — virou a raiz `/ia` na onda 3; 301 no bloco 1.b -----
+        // O route name `jana.dashboard.index` some junto. Consumidor de código
+        // era UM só (`DataController.php:204`, medido) e foi atualizado no mesmo
+        // PR; `governance/route-hits.json` registrava 4 hits (último 2026-07-25),
+        // que o 301 preserva.
 
         // ---- JANA Pro — paywall/upgrade cliente-facing (ADR 0140) ----------
         // Tela de ativação do plano Pro. Qualquer usuário auth do business (o
@@ -246,7 +269,20 @@ Route::redirect('/ia/memorias', '/ia/memoria', 302);
 // Jana) — ver comentário no grupo acima. 301 porque a remoção é permanente e o
 // destino serve a MESMA capacidade com dado real. Sem query string a preservar
 // (o hub não tinha filtro), então `Route::redirect` basta aqui.
-Route::redirect('/ia/painel', '/ia/dashboard', 301);
+// ⚠️ Este alvo mudou na onda 3: era `/ia/dashboard`, que agora é ele próprio um
+// 301 pra `/ia`. Apontar direto evita a cadeia 301→301 num link já legado.
+Route::redirect('/ia/painel', '/ia', 301);
+
+// ---- Onda 3 da fusão (US-COPI-148, 2026-08-07) --------------------------------
+// O Painel mudou de `/ia/dashboard` pra `/ia`, e o Cockpit deixou de ser servido.
+// 301 (não 302) porque as duas mudanças são permanentes e o destino entrega a
+// MESMA capacidade — o Painel é o dono de brief · KPIs · análises · ações.
+//
+// `Route::redirect` basta aqui: nenhuma das duas telas carrega filtro em query
+// string (diferente do Custos/Qualidade/Gantt no rodapé, que precisaram de
+// closure pra não perder `?preset=` e cia).
+Route::redirect('/ia/dashboard', '/ia', 301);
+Route::redirect('/ia/cockpit',   '/ia', 301);
 
 // Custos + Qualidade IA → Modules/Governance (ADR 0366 §D-B, [W] 2026-08-03;
 // movidas em 2026-08-05). Closure em vez de `Route::redirect` de propósito: as

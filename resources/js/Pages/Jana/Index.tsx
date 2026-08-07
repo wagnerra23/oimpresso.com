@@ -250,7 +250,7 @@ function ProximaAcaoCard() {
           Quando houver sinal claro nas metas, a Jana vai sugerir aqui o próximo passo prático — sem você precisar perguntar.
         </p>
         <div className="mt-3">
-          <Link href="/ia">
+          <Link href="/ia/conversa">
             <Button size="sm" variant="outline" className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversar agora
@@ -320,7 +320,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                 Jana Pro
               </Button>
             </Link>
-            <Link href="/ia">
+            <Link href="/ia/conversa">
               <Button variant="outline" className="gap-2">
                 <MessageSquare className="h-4 w-4" />
                 Conversar com a Jana
@@ -345,7 +345,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                   Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
                 </p>
               </div>
-              <Link href="/ia">
+              <Link href="/ia/conversa">
                 <Button className="gap-2">
                   <MessageSquare className="h-4 w-4" />
                   Pergunte algo a Jana

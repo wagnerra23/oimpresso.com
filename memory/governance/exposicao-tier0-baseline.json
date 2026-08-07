@@ -674,7 +674,7 @@
       "exposure_score": 4
     },
     {
-      "screen": "Jana/Dashboard.tsx",
+      "screen": "Jana/Index.tsx",
       "module": "Jana",
       "categories": [
         "dinheiro"

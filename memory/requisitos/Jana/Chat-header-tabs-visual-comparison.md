@@ -7,7 +7,7 @@ module: Jana
 status: pending_approval
 target_pages:
   - resources/js/Pages/Jana/Chat.tsx
-  - resources/js/Pages/Jana/Dashboard.tsx
+  - resources/js/Pages/Jana/Index.tsx
 target_charter: resources/js/Pages/Jana/Chat.charter.md
 visual_source: prototipo-ui/_cowork-export-2026-05-15/app.jsx (Header function L247-336)
 visual_source_companion: prototipo-ui/_cowork-export-2026-05-15/data.jsx (MENU + GROUP_META)
@@ -66,11 +66,11 @@ Aplicar **header sticky** acima do conteúdo da área `/jana` espelhando `app.js
 
 **Arquivos tocados (2):**
 - `resources/js/Pages/Jana/Chat.tsx` — adiciona `<JanaAreaHeader active="chat" />` acima de `copiloto-chat-layout` (~3 linhas)
-- `resources/js/Pages/Jana/Dashboard.tsx` — adiciona `<JanaAreaHeader active="dashboard" />` acima do conteúdo (~3 linhas)
+- `resources/js/Pages/Jana/Index.tsx` — adiciona `<JanaAreaHeader active="dashboard" />` acima do conteúdo (~3 linhas)
 
 **Arquivos charter (1):**
 - `resources/js/Pages/Jana/Chat.charter.md` — adicionar Goal "Header sticky com tabs Dashboard | Chat (navegação Inertia)" + atualizar `last_validated`
-- `resources/js/Pages/Jana/Dashboard.charter.md` — mesmo Goal (charter compartilhado)
+- `resources/js/Pages/Jana/Index.charter.md` — mesmo Goal (charter compartilhado)
 
 **Pseudo-código JanaAreaHeader:**
 
@@ -152,7 +152,7 @@ it('does not show search/bell buttons (charter Non-Goal)')
 ## Refs
 
 - [Chat.charter.md](../../../resources/js/Pages/Jana/Chat.charter.md) — Goals + Non-Goals
-- [Dashboard.charter.md](../../../resources/js/Pages/Jana/Dashboard.charter.md)
+- [Dashboard.charter.md](../../../resources/js/Pages/Jana/Index.charter.md)
 - [prototipo-ui/_cowork-export-2026-05-15/app.jsx#L247-336](../../../prototipo-ui/_cowork-export-2026-05-15/app.jsx) — Header function canon
 - [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
 - [ADR 0110](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
