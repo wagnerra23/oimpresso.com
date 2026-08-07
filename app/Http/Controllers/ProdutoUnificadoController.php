@@ -177,7 +177,11 @@ class ProdutoUnificadoController extends Controller
             'id'    => (int) $c->id,
             'slug'  => $c->slug ?? str($c->name)->slug(),
             'label' => (string) $c->name,
-            'count' => (int) $c->count,
+            // `count` é alias do COUNT(), não coluna de `categories` — lido por getAttribute()
+            // pra não introduzir "Access to an undefined property" novo. A mesma leitura em
+            // ProductController::buildProdutoIndexCategorias() usa `$c->count` e só passa
+            // por estar grandfathered no phpstan-baseline.neon; código novo não herda isenção.
+            'count' => (int) $c->getAttribute('count'),
         ])->all();
     }
 
