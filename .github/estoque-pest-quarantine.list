@@ -7,10 +7,20 @@
 #
 # O QUE ESTAVA ESCURO (medido em origin/main, 2026-08-07): a árvore tem 40 arquivos
 # de teste; a allowlist inline do workflow nomeava 25. Os 15 de fora não rodavam
-# aqui — e 14 deles (os `Wave2*`) não rodavam em lane NENHUMA: varredura contada
-# do basename em `.github/`, `scripts/` e `package.json` devolveu ZERO ocorrências
-# pra cada um. Eles não "passavam": nunca foram executados. Agora estão listados,
-# o que os torna dívida VISÍVEL em vez de cobertura fingida.
+# aqui — e 14 deles (os `Wave2*`) não rodavam em lane de PR NENHUMA: varredura
+# contada do basename em `.github/`, `scripts/` e `package.json` devolveu ZERO
+# ocorrências pra cada um. Eles não "passavam": nenhum gate de merge os executa.
+# Agora estão listados, o que os torna dívida VISÍVEL em vez de cobertura fingida.
+#
+# ERRATA (2026-08-07, mesmo dia, revisão adversarial): a 1ª redação desta seção
+# dizia "não rodavam em lane NENHUMA" e "nunca foram executados" — as duas frases
+# EXCEDEM o que foi medido. O basename-grep cobre lane de PR; ele não enxerga a
+# nightly do CT 100, que seleciona por DIRETÓRIO (`ct100-fullsuite.sh` →
+# `shards-plan.mjs --roots tests,Modules`) e portanto inclui `tests/Feature/Produto`.
+# O dono do inventário avisa isso em prosa: `scripts/governance/test-lane-coverage.mjs`
+# diz que chamar "fora do CI de PR" de "nunca roda" "mediria a fonte errada".
+# O rótulo do bloco (B) abaixo — "status desconhecido, não verde" — já estava certo;
+# só o parágrafo é que passou do ponto. Corrigido acima, sem apagar o registro.
 #
 # A lane é REQUIRED (governance/required-checks-baseline.json — promovida em
 # 2026-08-05 pela ADR 0369). Por isso a quarentena nasce CONSERVADORA: entra

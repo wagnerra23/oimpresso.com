@@ -1,12 +1,12 @@
 {
   "_meta": {
-    "generated_at": "2026-08-07T18:33:13.744Z",
+    "generated_at": "2026-08-07T19:13:06.134Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
-      "pages": 203,
-      "casos_files": 87,
-      "ucs_declared": 450,
+      "pages": 204,
+      "casos_files": 88,
+      "ucs_declared": 453,
       "missing_charter": 0,
       "missing_casos": 117,
       "orphan_ucs": 12,
@@ -15,12 +15,12 @@
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
-      "exec_backed_ucs": 166,
-      "exec_backed_declared": 450,
+      "exec_backed_ucs": 169,
+      "exec_backed_declared": 453,
       "exec_backed_pct": 37,
-      "teto_no_titulo": 334,
+      "teto_no_titulo": 337,
       "teto_so_docblock": 104,
-      "teto_distintos": 450,
+      "teto_distintos": 453,
       "teto_presos_por_modulo": [
         {
           "modulo": "Cliente",
