@@ -150,6 +150,10 @@ jobs:
               - 'tests/Support/EstoqueFixture.php'
               - 'tests/Support/EstoqueProduto.php'
               - 'app/Http/Controllers/ProductController.php'
+              # Arquivos SOB TESTE do ProdutoUnificadoCategoriasContratoTest. Sem eles no
+              # trigger, mexer no controller não dispara o teste dele (§5 2026-08-02).
+              - 'app/Http/Controllers/ProdutoUnificadoController.php'
+              - 'app/Category.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'
