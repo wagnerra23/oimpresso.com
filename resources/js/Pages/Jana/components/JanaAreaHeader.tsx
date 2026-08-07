@@ -26,23 +26,31 @@ import JanaSubNav from '@/Pages/Jana/_shared/JanaSubNav';
 import JanaPrimaryButton from '@/Pages/Jana/_shared/JanaPrimaryButton';
 import { router } from '@inertiajs/react';
 
+// Onda 3 da fusão (US-COPI-148, 2026-08-07) — o type tinha 15 membros e MEDIDOS
+// só 4 eram passados por alguém (`chat` · `dashboard` · `memoria` · `cockpit`,
+// mais `copiloto` num uso direto de JanaSubNav). Os 9 removidos são ghosts que já
+// não existem no DataController: cada um sobreviveu à remoção do próprio ghost e
+// virou membro que o TypeScript aceita alegremente para produzir uma aba que não
+// renderiza.
+//
+//   painel                            onda 1 desta fusão (2026-08-06)
+//   brief                             2026-06-15
+//   metas                             2026-05-23 (MetasController ainda é Blade)
+//   regras                            2026-08-04
+//   kb · custos · roadmap
+//   governanca-mcp · qualidade-jana   2026-08-05 (ADR 0366)
+//
+// A US nomeava só o `painel` (resíduo da onda 1); os outros 8 são o mesmo defeito
+// com a mesma prova — ghost removido + zero consumidor —, então saem juntos.
 export type JanaAreaTab =
   | 'chat'      // = copiloto
-  | 'dashboard'
+  | 'dashboard' // = o Painel; a key vira 'painel' quando o ghost for rekeyado
   | 'memoria'   // = memorias
   | 'cockpit'   // ghost canon próprio (DataController Wagner 2026-05-25)
-  | 'custos'
-  | 'metas'
-  | 'brief'
-  | 'kb'
-  | 'regras'
+  // Ghost keys canon — ninguém passa hoje, mas são os alvos do map abaixo e
+  // valem como valor direto (o PageHeaderTabs casa por key).
   | 'copiloto'
-  | 'memorias'
-  // Wagner 2026-05-25 (propagação JanaAreaHeader pra 6 telas faltantes):
-  | 'painel'
-  | 'roadmap'
-  | 'governanca-mcp'
-  | 'qualidade-jana';
+  | 'memorias';
 
 // Map retrocompat — telas antigas passam 'chat'/'memoria'; convertemos pro
 // ghost key canon do DataController Jana. NOTA: 'cockpit' tem ghost próprio
@@ -53,10 +61,6 @@ function mapActiveToGhostKey(active: JanaAreaTab): string {
       return 'copiloto';
     case 'memoria':
       return 'memorias';
-    case 'painel':
-      // Painel.tsx é mock Onda A1 (sobreposto ao Cockpit). Não tem ghost próprio
-      // — usa 'copiloto' como destaque ativo (Wagner avalia se promove a ghost).
-      return 'copiloto';
     default:
       return active;
   }
@@ -87,9 +91,10 @@ export function JanaAreaHeader({ active }: { active: JanaAreaTab }): ReactNode {
         <JanaSubNav active={ghostKey} hidePrimary />
       </div>
 
-      {/* Right — primary "Conversar" hue 220 azul (canon ADR 0182) */}
+      {/* Right — primary "Conversar" hue 220 azul (canon ADR 0182).
+          Onda 3: destino passou de `/ia` (que virou o Painel) pra `/ia/conversa`. */}
       <div className="shrink-0">
-        <JanaPrimaryButton onClick={() => router.visit('/ia')}>
+        <JanaPrimaryButton onClick={() => router.visit('/ia/conversa')}>
           Conversar
         </JanaPrimaryButton>
       </div>

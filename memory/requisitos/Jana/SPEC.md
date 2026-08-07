@@ -142,7 +142,7 @@ related_adrs:
 ### Área Dashboard
 
 #### US-COPI-050 · Dashboard consolidado
-**Implementado em:** `Modules/Jana/Http/Controllers/DashboardController.php` · `resources/js/Pages/Jana/Dashboard.tsx` · verificado@dd3ed7c (2026-07-01) — index() renderiza a page Jana Dashboard com metas ativas (cards + sparkline via buildMetasPayload, scope multi-tenant); rota viva GET /ia/dashboard (jana.dashboard.index)
+**Implementado em:** `Modules/Jana/Http/Controllers/IndexController.php` · `resources/js/Pages/Jana/Index.tsx` — index() renderiza o Painel com metas ativas (cards + sparkline via buildMetasPayload, scope multi-tenant); rota viva **GET /ia** (`jana.index`). Renomeado na onda 3 da US-COPI-148 (2026-08-07): era `DashboardController`/`Dashboard.tsx` em `/ia/dashboard`, hoje 301 pra `/ia`. O `verificado@dd3ed7c` sai porque o sha ancorava os caminhos ANTIGOS — mantê-lo seria carimbo apontando pra arquivo inexistente.
 - **Rota:** `GET /copiloto/dashboard`
 - **Controller:** `DashboardController@index`
 - **DoD extra:** cards por meta ativa; sparkline inline; farol; link direto pro detalhe.
@@ -1993,7 +1993,9 @@ Escopo:
 
 **⏳ Onda 2 — abas.** Estender `resources/js/Pages/Jana/components/JanaAreaHeader.tsx` + `resources/js/Pages/Jana/_shared/JanaSubNav.tsx` pro vocabulário `Painel | Conversa | Memória`. Os dois **já existem** e já servem as 4 telas (`Chat.tsx:268` · `Cockpit.tsx:963` · `Dashboard.tsx:271` · `Memoria.tsx:150`). ⛔ **Não criar `JanaTabs.tsx`** como o pedido propõe: seria máquina paralela a tema que já tem dono (classe LC-19, lápide §5 2026-08-03). Precedente de como fazer: a Governança saiu deste mesmo header pra strip própria em 2026-08-05.
 
-**⏳ Onda 3 — rename.** `Dashboard.tsx` → `Index.tsx` + `DashboardController` → `IndexController` + redirects 301 de `/cockpit` e `/dashboard` + conserto da âncora do SPEC + `DataController.php:204`, que é o **único** consumidor de código de `jana.dashboard.index`.
+**✅ Onda 3 — ENTREGUE (2026-08-07).** `Dashboard.tsx` → `Index.tsx`, `DashboardController` → `IndexController`, e a rota do Painel foi de `/ia/dashboard` para **`/ia`** — medido antes de mover: `routes/web.php` já fazia `/home → redirect('/ia/dashboard')`, logo o Painel JÁ ERA o destino pós-login e a troca alinha a URL com o que acontecia (o `/home` passou a apontar direto, economizando um hop por login). A Conversa saiu da raiz para **`/ia/conversa`** (`jana.chat.index` preservado como nome). `/ia/dashboard` e `/ia/cockpit` viraram **301** pra `/ia`; o `/ia/painel` (onda 1) foi reapontado pra não virar cadeia 301→301. Além do previsto: os 2 baselines de lint + 4 catracas chaveadas por path + 9 linhas do `phpstan-baseline` + o `scorecards/screens/jana-dashboard.yaml` (que precisou trocar de NOME — só editar o conteúdo deixava a tela sem scorecard no `screen-coverage`, achado ao regenerar o baseline da árvore em vez de confiar no sed). Resíduo declarado: `Pro.tsx` mantém `voltar → /ia` (agora o Painel, não o chat) e o comentário "Esc volta ao chat" ficou stale — consertar exige `RUNBOOK-pro.md`, que não existe, e criar um RUNBOOK para consertar um comentário é desproporcional.
+
+**~~⏳ Onda 3 — rename.~~** (texto original, preservado) `Dashboard.tsx` → `Index.tsx` + `DashboardController` → `IndexController` + redirects 301 de `/cockpit` e `/dashboard` + conserto da âncora do SPEC + `DataController.php:204`, que é o **único** consumidor de código de `jana.dashboard.index`.
 
 **⏳ Onda 4 — destino do `Cockpit.tsx`** (1022 ln). ⚠️ **Medido, contra o que o pedido afirma:** o cockpit **não** está implementado 2×, são **3** arquivos — e `resources/js/Pages/Jana/components/JanaCockpitV2.tsx` serve a tab Insights de `/sells` (`resources/js/Pages/Sells/Index.tsx:55`), logo **não é duplicata da Jana e não pode ser apagado**. Apagar `Cockpit.tsx` exige remover junto `ChatController@cockpit`, que faz `Inertia::render('Jana/Cockpit')` em `Modules/Jana/Http/Controllers/ChatController.php:666`.
 

@@ -6,9 +6,12 @@ interface Props {
 }
 
 export default function FabJana({ contextRoute }: Props) {
+  // Onda 3 da fusao (US-COPI-148): o FAB leva a CONVERSA. A raiz `/ia` virou o
+  // Painel, entao sem isto o botao de chat cairia no Painel — de onde ele e
+  // renderizado. Loop silencioso: nada quebra, o chat so fica inalcancavel.
   const href = contextRoute
-    ? `/ia?context=${encodeURIComponent(contextRoute)}`
-    : '/ia'
+    ? `/ia/conversa?context=${encodeURIComponent(contextRoute)}`
+    : '/ia/conversa'
 
   return (
     <Link

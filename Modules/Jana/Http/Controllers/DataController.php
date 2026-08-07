@@ -193,19 +193,23 @@ class DataController extends Controller
                                 __('copiloto::copiloto.menu.conversar'),
                                 [
                                     'icon'   => 'fa fas fa-comments',
-                                    'active' => request()->segment(1) == 'jana'
-                                                && ! request()->segment(2),
+                                    // Onda 3: a Conversa saiu da raiz pra /ia/conversa.
+                                    // O segment(1) era 'jana' (prefixo morto desde a
+                                    // ADR 0180) E sem segment(2) — ou seja, nunca casava.
+                                    'active' => request()->segment(2) === 'conversa',
                                 ]
                             );
                         }
 
-                        // Dashboard
+                        // Painel (onda 3: era Dashboard em /ia/dashboard; virou a
+                        // raiz /ia, e `jana.dashboard.index` deixou de existir).
                         $sub->url(
-                            route('jana.dashboard.index'),
+                            route('jana.index'),
                             __('copiloto::copiloto.menu.dashboard'),
                             [
                                 'icon'   => 'fa fas fa-tachometer-alt',
-                                'active' => request()->segment(2) == 'dashboard',
+                                'active' => request()->segment(1) === 'ia'
+                                            && ! request()->segment(2),
                             ]
                         );
 
@@ -253,7 +257,9 @@ class DataController extends Controller
                         'shortcut' => 'G I',
                         'primary'  => [
                             'label'    => 'Conversar com Jana',
-                            'href'     => '/ia',
+                            // Onda 3: a Conversa saiu da raiz. Sem isto o botao
+                            // "Conversar" cairia no Painel — loop silencioso.
+                            'href'     => '/ia/conversa',
                             'shortcut' => 'N',
                         ],
                         // ADR 0182 + GUIA-SIDEBAR-V3 Wagner 2026-05-21: hub IA com
@@ -267,7 +273,7 @@ class DataController extends Controller
                         'ghosts'   => [
                             // Wagner 2026-05-25: Dashboard PROMOVIDO pra primeira aba canon
                             // da Jana — destino pós-login (`/home → /ia/dashboard`). Charter
-                            // Pages/Jana/Dashboard.charter.md já cobre empty state. Substitui
+                            // Pages/Jana/Index.charter.md já cobre empty state. Substitui
                             // Copiloto (chat) como entry-point default da Jana — chat continua
                             // acessível em 2ª aba e via FAB. Tentativas anteriores travaram em
                             // DashboardController@index redirect "sem metas → chat" (removido).
@@ -279,8 +285,8 @@ class DataController extends Controller
                             // renomeá-las quebraria o match em silêncio (a aba simplesmente
                             // deixaria de acender) sem nenhum ganho visível. As `key` viram
                             // `painel`/`conversa` na onda 3, junto com o rename do arquivo.
-                            ['key' => 'dashboard', 'label' => 'Painel',   'href' => '/ia/dashboard'],
-                            ['key' => 'copiloto',  'label' => 'Conversa', 'href' => '/ia'],
+                            ['key' => 'dashboard', 'label' => 'Painel',   'href' => '/ia'],
+                            ['key' => 'copiloto',  'label' => 'Conversa', 'href' => '/ia/conversa'],
                             // Ghost 'brief' removido 2026-06-15 (Wagner): /ia/brief era stub
                             // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
                             // diário" do dashboard). Rota + BriefController + Page apagados.
