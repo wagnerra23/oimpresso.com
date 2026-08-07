@@ -117,4 +117,76 @@ class ApuracaoService
 
         throw new \RuntimeException("Driver '{$tipoDriver}' não encontrado para meta #{$metaId}.");
     }
+
+    /**
+     * Farol da meta — FONTE AUTORITATIVA (o frontend só consome).
+     *
+     * O `Index.charter.md` já declarava isto em dois lugares:
+     *   §Goals    "Farol calculado server-side … frontend só consome"
+     *   §Anti-hooks "⛔ Cálculo de farol no frontend"
+     * e mesmo assim a regra vivia em `Index.tsx::calcularFarol`. O charter
+     * apontava `MetricasApurador::farol`, mas aquela classe é de métrica da
+     * PRÓPRIA Jana (latência, tokens, bloat) — domínio diferente. O lugar do
+     * farol é aqui, ao lado da apuração que produz o valor que ele lê.
+     *
+     * A regra é **port literal** do que o frontend fazia, para que a troca seja
+     * invisível ao usuário (provado por tabela antes→depois no PR):
+     *
+     *   progresso  = clamp(0..1) do tempo decorrido no período
+     *   projetado  = valor_alvo * progresso     (linha reta até a meta)
+     *   desvio%    = (realizado - projetado) / projetado * 100
+     *
+     *   desvio >= -5%   verde
+     *   desvio >= -15%  amarelo
+     *   senão           vermelho
+     *
+     * `cinza` = **não dá pra dizer**, e são três casos distintos que colapsam no
+     * mesmo rótulo de propósito: sem período, sem apuração, ou projetado <= 0
+     * (período que ainda não começou, ou alvo zero/negativo). Nenhum deles é
+     * "ruim" — são ausência de base para julgar.
+     *
+     * ⚠️ `$agora` injetável: o teste precisa fixar o relógio, senão o `progresso`
+     * muda a cada execução e o caso fica impossível de travar.
+     */
+    public function farol(Meta $meta, ?Carbon $agora = null): string
+    {
+        $periodo = $meta->periodoAtual;
+        $ultima  = $meta->ultimaApuracao;
+
+        if (! $periodo || ! $ultima) {
+            return 'cinza';
+        }
+
+        $agora   = $agora ?: Carbon::now();
+        $ini     = Carbon::parse($periodo->data_ini);
+        $fim     = Carbon::parse($periodo->data_fim);
+
+        $totalMs = $fim->getTimestampMs() - $ini->getTimestampMs();
+
+        // Período de duração zero/negativa: divisão por zero no JS dava NaN, e
+        // `NaN >= -5` é false nos dois ramos → caía em 'vermelho'. Aqui isso vira
+        // 'cinza' explicitamente: dados incoerentes não são "meta indo mal".
+        if ($totalMs <= 0) {
+            return 'cinza';
+        }
+
+        $decorridoMs = $agora->getTimestampMs() - $ini->getTimestampMs();
+        $progresso   = min(1.0, max(0.0, $decorridoMs / $totalMs));
+        $projetado   = ((float) $periodo->valor_alvo) * $progresso;
+
+        if ($projetado <= 0) {
+            return 'cinza';
+        }
+
+        $desvioPct = ((((float) $ultima->valor_realizado) - $projetado) / $projetado) * 100;
+
+        if ($desvioPct >= -5) {
+            return 'verde';
+        }
+        if ($desvioPct >= -15) {
+            return 'amarelo';
+        }
+
+        return 'vermelho';
+    }
 }

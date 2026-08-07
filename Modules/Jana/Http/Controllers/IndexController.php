@@ -7,6 +7,7 @@ use App\Services\Sells\SellsCockpitAggregator;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Jana\Entities\Meta;
+use Modules\Jana\Services\ApuracaoService;
 
 /**
  * Painel da Jana — a raiz do módulo (`GET /ia`).
@@ -24,8 +25,11 @@ use Modules\Jana\Entities\Meta;
  */
 class IndexController extends Controller
 {
-    public function index(Request $request, SellsCockpitAggregator $cockpitAggregator)
-    {
+    public function index(
+        Request $request,
+        SellsCockpitAggregator $cockpitAggregator,
+        ApuracaoService $apuracao
+    ) {
         $businessId = (int) $request->session()->get('user.business_id');
         $businessName = (string) ($request->session()->get('business.name') ?? '');
 
@@ -33,7 +37,7 @@ class IndexController extends Controller
         // a Page lê `metas.length` direto. coworkAggregates pode usar defer
         // (o cockpit é resiliente — sparkline opcional, idem em /sells).
         return Inertia::render('Jana/Index', [
-            'metas' => $this->buildMetasPayload($businessId),
+            'metas' => $this->buildMetasPayload($businessId, $apuracao),
 
             // Jana V2 cockpit (movido de /sells — agora canon aqui).
             'sellKpis' => $cockpitAggregator->buildSellKpis($businessId),
@@ -53,7 +57,7 @@ class IndexController extends Controller
      * D6.a defer closure — hidrata metas ativas do business com eager loads.
      * Multi-tenant Tier 0: filtra por business_id (ou repo-wide null) — ADR 0093.
      */
-    protected function buildMetasPayload(int $businessId): \Illuminate\Support\Collection
+    protected function buildMetasPayload(int $businessId, ApuracaoService $apuracao): \Illuminate\Support\Collection
     {
         $metas = Meta::where('ativo', true)
             ->where(function ($q) use ($businessId) {
@@ -68,6 +72,10 @@ class IndexController extends Controller
             ->get();
 
         return $metas->map(fn ($meta) => [
+            // Farol vem do SERVIDOR (ApuracaoService::farol) — o charter exigia
+            // isso em §Goals e §Anti-hooks desde sempre, e o frontend calculava
+            // assim mesmo. Agora ele só consome.
+            'farol'              => $apuracao->farol($meta),
             'id'                 => $meta->id,
             'slug'               => $meta->slug,
             'nome'               => $meta->nome,
