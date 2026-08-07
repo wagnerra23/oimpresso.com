@@ -23,18 +23,18 @@
       "detail": {
         "coverage_pct": 88,
         "specs_total": 51,
-        "us_total": 949,
+        "us_total": 950,
         "anchor_coverage_pct": 88,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 398,
+          "pendente": 399,
           "parcial": 111,
           "anchored_ok": 326,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 843,
+        "fields_total": 844,
         "fields_placeholder": 1,
         "fields_grammar_ok": 787,
         "orphan_fields": 6,
@@ -45,8 +45,8 @@
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 53,
         "behavior_known": false,
-        "servido_total": 16,
-        "nao_servido_total": 89,
+        "servido_total": 17,
+        "nao_servido_total": 88,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -282,10 +282,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 46,
+        "entries_aprovadas": 47,
         "max_error_rate_pct": 1.82,
-        "last_pr": 5165,
-        "last_lote": "B6-fosseis-raiz-requisitos-01"
+        "last_pr": 5327,
+        "last_lote": "SA-modulos-ativacao-documental-w-override-5327"
       },
       "stream": "GT"
     }
