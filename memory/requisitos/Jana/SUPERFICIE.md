@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 569 arquivos em 19 papéis.
+**Total mapeado:** 571 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -378,13 +378,14 @@ module: Jana
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
+- [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 155
+## Testes (Pest) — 156
 
-- 155 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 156 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 91
 
