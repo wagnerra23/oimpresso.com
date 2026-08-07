@@ -5,6 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-08-07"
 parent_module: Jana
+related_us: [US-COPI-001, US-COPI-005, US-COPI-148]
 related_adrs: [110, 94, 107, 114, 180]
 tier: A
 charter_version: 3
