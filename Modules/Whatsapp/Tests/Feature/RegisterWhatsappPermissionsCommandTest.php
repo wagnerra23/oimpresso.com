@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
  * Hotfix — RegisterWhatsappPermissionsCommand.
  *
  * Cobre os cenários canônicos:
- *  R-WA-RWP-001 — registra 6 permissions em tabela vazia
+ *  R-WA-RWP-001 — registra 7 permissions em tabela vazia
  *  R-WA-RWP-002 — idempotência: 2 runs não duplicam permissions
  *  R-WA-RWP-003 — --business=1 atribui ao Admin#1
  *  R-WA-RWP-004 — --business=all atribui pra todos Admin#{biz} existentes
@@ -179,7 +179,7 @@ function rwpMakeBusinessNoRole(int $bizId): void
     ]);
 }
 
-it('R-WA-RWP-001 — registra 6 permissions em tabela vazia', function () {
+it('R-WA-RWP-001 — registra 7 permissions em tabela vazia', function () {
     rwpMakeBusinessWithAdminRole(1);
 
     expect(Permission::count())->toBe(0);
@@ -187,7 +187,7 @@ it('R-WA-RWP-001 — registra 6 permissions em tabela vazia', function () {
     $exit = Artisan::call('whatsapp:register-permissions', ['--business' => '1']);
 
     expect($exit)->toBe(0);
-    expect(Permission::count())->toBe(6);
+    expect(Permission::count())->toBe(7);
 
     $expectedNames = [
         'whatsapp.access',
@@ -196,6 +196,7 @@ it('R-WA-RWP-001 — registra 6 permissions em tabela vazia', function () {
         'whatsapp.templates.manage',
         'whatsapp.settings.manage',
         'whatsapp.metricas.view',
+        'whatsapp.view-all-phones',
     ];
     $names = Permission::orderBy('name')->pluck('name')->all();
     sort($expectedNames);
@@ -206,10 +207,10 @@ it('R-WA-RWP-002 — idempotência: 2 runs não duplicam permissions', function 
     rwpMakeBusinessWithAdminRole(1);
 
     Artisan::call('whatsapp:register-permissions', ['--business' => '1']);
-    expect(Permission::count())->toBe(6);
+    expect(Permission::count())->toBe(7);
 
     Artisan::call('whatsapp:register-permissions', ['--business' => '1']);
-    expect(Permission::count())->toBe(6); // nada duplicado
+    expect(Permission::count())->toBe(7); // nada duplicado
 });
 
 it('R-WA-RWP-003 — --business=1 atribui ao Admin#1', function () {
@@ -220,7 +221,7 @@ it('R-WA-RWP-003 — --business=1 atribui ao Admin#1', function () {
 
     $role->refresh();
     $rolePerms = $role->permissions()->pluck('name')->sort()->values()->all();
-    expect($rolePerms)->toHaveCount(6);
+    expect($rolePerms)->toHaveCount(7);
     expect($rolePerms)->toContain('whatsapp.access');
     expect($rolePerms)->toContain('whatsapp.send');
     expect($rolePerms)->toContain('whatsapp.assign');
@@ -242,7 +243,7 @@ it('R-WA-RWP-004 — --business=all atribui pra todos Admin#{biz} existentes', f
 
     foreach ([$role1, $role4, $role99] as $r) {
         $r->refresh();
-        expect($r->permissions()->count())->toBe(6);
+        expect($r->permissions()->count())->toBe(7);
     }
 });
 
@@ -252,7 +253,7 @@ it('R-WA-RWP-005 — business sem Admin#{biz}: skip + warning (não cria role)',
     $exit = Artisan::call('whatsapp:register-permissions', ['--business' => '7']);
 
     expect($exit)->toBe(0); // não falha
-    expect(Permission::count())->toBe(6); // permissions registradas mesmo assim
+    expect(Permission::count())->toBe(7); // permissions registradas mesmo assim
     expect(Role::count())->toBe(0); // mas role NÃO foi criada
 });
 
