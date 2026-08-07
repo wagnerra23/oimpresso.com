@@ -3,9 +3,20 @@ slug: sells-runbook-create-v3
 title: "Sells — Runbook da tela Venda V3 (preview de design, paralelo)"
 type: runbook
 module: Sells
-status: active
+owner: L
+status: rascunho
+last_validated: "2026-08-06"
 date: 2026-08-06
 ---
+
+<!--
+  `status: rascunho` e não `ativo` de propósito: o §F4 (smoke em staging) NUNCA RODOU
+  — o CT 100 está inalcançável desta máquina (sem Tailscale). `last_validated` é a data
+  em que o §F1 foi conferido contra o código (flag `useV2SellsCreate`, SellPosController,
+  deploy.yml), não a data de um smoke. Quando o §F4 rodar de verdade, sobe a data E o status.
+-->
+
+
 
 # RUNBOOK — Venda V3 (`/sells/create-v3`)
 

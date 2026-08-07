@@ -28,6 +28,9 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+// Layout é COMPOSIÇÃO destes primitivos — `<div className="flex …">` solto é
+// barrado pelo gate `Layout primitives · ratchet` (ADR 0253).
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 type Cliente = {
   codigo: string;
@@ -70,28 +73,28 @@ type Props = {
 /** Passo numerado — o "1 Cliente / 2 Itens / 3 Fechamento" do protótipo. */
 function Passo({ n, titulo, icone }: { n: number; titulo: string; icone: ReactNode }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="flex size-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+    <Inline gap={3} align="center">
+      <span className="inline-flex size-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
         {n}
       </span>
-      <span className="flex items-center gap-2 text-sm font-semibold">
+      <span className="inline-flex items-center gap-2 text-sm font-semibold">
         {icone}
         {titulo}
       </span>
-    </div>
+    </Inline>
   );
 }
 
 /** Linha do resumo de fechamento — rótulo, régua pontilhada, valor. */
 function Linha({ label, valor, forte }: { label: string; valor: string; forte?: boolean }) {
   return (
-    <div className="flex items-baseline gap-3 py-1">
+    <Inline gap={3} align="baseline" className="py-1">
       <span className={`text-xs ${forte ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
         {label}
       </span>
       <span className="min-w-0 flex-1 border-b border-dotted border-border" />
       <span className="font-mono text-sm tabular-nums">{valor}</span>
-    </div>
+    </Inline>
   );
 }
 
@@ -99,9 +102,13 @@ export default function SellsCreateV3({ cena }: Props) {
   const { cliente, itens, fechamento } = cena;
 
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-4 p-4">
+    <Stack gap={4} className="mx-auto max-w-[1400px] p-4">
       {/* Marcador honesto: quem abrir por engano precisa saber em 1 segundo. */}
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+      <Inline
+        gap={3}
+        align="center"
+        className="flex-wrap rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3"
+      >
         <FlaskConical className="size-4 flex-none text-amber-600" aria-hidden />
         <div className="min-w-0 text-sm">
           <b className="font-semibold">Preview de design — não é a tela de produção.</b>{' '}
@@ -110,52 +117,61 @@ export default function SellsCreateV3({ cena }: Props) {
             continua em <code className="rounded bg-muted px-1 py-0.5 text-xs">/pos/create</code>.
           </span>
         </div>
-      </div>
+      </Inline>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <Inline gap={3} align="center" className="flex-wrap">
         <h1 className="text-xl font-semibold">Nova venda</h1>
         <Badge variant="outline">V3</Badge>
         <p className="text-sm text-muted-foreground">
           Cliente, itens, pagamento. O resto tem valor padrão.
         </p>
-      </div>
+      </Inline>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_336px]">
+      <Grid gap={4} className="lg:grid-cols-[minmax(0,1fr)_336px]">
         {/* ————— coluna de trabalho ————— */}
-        <div className="flex flex-col gap-4">
+        <Stack gap={4}>
           <Card>
-            <CardContent className="flex flex-col gap-4 p-4">
-              <Passo n={1} titulo="Cliente" icone={<User className="size-4" aria-hidden />} />
-              <div className="grid gap-3 sm:grid-cols-[120px_minmax(0,1fr)]">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="v3-cod">Código</Label>
-                  <Input id="v3-cod" readOnly value={cliente.codigo} className="font-mono" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="v3-cli">Cliente / destinatário</Label>
-                  <Input id="v3-cli" readOnly value={cliente.nome} />
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {cliente.endereco} · grupo <b>{cliente.grupo}</b> · prazo <b>{cliente.prazo}</b> ·
-                tabela <b>{cliente.tabela}</b>
-              </p>
+            <CardContent className="p-4">
+              <Stack gap={4}>
+                <Passo n={1} titulo="Cliente" icone={<User className="size-4" aria-hidden />} />
+                <Grid gap={3} className="sm:grid-cols-[120px_minmax(0,1fr)]">
+                  <Stack className="gap-1.5">
+                    <Label htmlFor="v3-cod">Código</Label>
+                    <Input id="v3-cod" readOnly value={cliente.codigo} className="font-mono" />
+                  </Stack>
+                  <Stack className="gap-1.5">
+                    <Label htmlFor="v3-cli">Cliente / destinatário</Label>
+                    <Input id="v3-cli" readOnly value={cliente.nome} />
+                  </Stack>
+                </Grid>
+                <p className="text-xs text-muted-foreground">
+                  {cliente.endereco} · grupo <b>{cliente.grupo}</b> · prazo <b>{cliente.prazo}</b> ·
+                  tabela <b>{cliente.tabela}</b>
+                </p>
+              </Stack>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="flex flex-col gap-4 p-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <Passo n={2} titulo="Itens" icone={<Package className="size-4" aria-hidden />} />
-                <Badge variant="secondary">{itens.length}</Badge>
-              </div>
+            <CardContent className="p-4">
+              <Stack gap={4}>
+                <Inline gap={3} align="center" className="flex-wrap">
+                  <Passo n={2} titulo="Itens" icone={<Package className="size-4" aria-hidden />} />
+                  <Badge variant="secondary">{itens.length}</Badge>
+                </Inline>
 
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
-                  <thead>
-                    <tr>
-                      {['Produto / serviço', 'Quant.', 'R$ valor', 'Desc. %', 'Acrésc. %', 'R$ total'].map(
-                        (h, i) => (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
+                    <thead>
+                      <tr>
+                        {[
+                          'Produto / serviço',
+                          'Quant.',
+                          'R$ valor',
+                          'Desc. %',
+                          'Acrésc. %',
+                          'R$ total',
+                        ].map((h, i) => (
                           <th
                             key={h}
                             className={`border-b border-border bg-muted/50 px-3 py-2 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground ${
@@ -164,82 +180,92 @@ export default function SellsCreateV3({ cena }: Props) {
                           >
                             {h}
                           </th>
-                        ),
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {itens.map((l) => (
-                      <tr key={l.sku}>
-                        <td className="border-b border-border/60 px-3 py-2">
-                          <b className="font-semibold">{l.nome}</b>
-                          <span className="block font-mono text-[11.5px] text-muted-foreground">
-                            {l.sku} · {l.un}
-                            {l.medidas ? ` · ${l.medidas}` : ''}
-                          </span>
-                        </td>
-                        {[l.qtd, l.valor, l.desc, l.acr].map((v, i) => (
-                          <td
-                            key={i}
-                            className="border-b border-border/60 px-3 py-2 text-right font-mono tabular-nums"
-                          >
-                            {v}
-                          </td>
                         ))}
-                        <td className="border-b border-border/60 px-3 py-2 text-right font-mono font-semibold tabular-nums">
-                          {l.total}
-                        </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {itens.map((l) => (
+                        <tr key={l.sku}>
+                          <td className="border-b border-border/60 px-3 py-2">
+                            <b className="font-semibold">{l.nome}</b>
+                            <span className="block font-mono text-[11.5px] text-muted-foreground">
+                              {l.sku} · {l.un}
+                              {l.medidas ? ` · ${l.medidas}` : ''}
+                            </span>
+                          </td>
+                          {[l.qtd, l.valor, l.desc, l.acr].map((v, i) => (
+                            <td
+                              key={i}
+                              className="border-b border-border/60 px-3 py-2 text-right font-mono tabular-nums"
+                            >
+                              {v}
+                            </td>
+                          ))}
+                          <td className="border-b border-border/60 px-3 py-2 text-right font-mono font-semibold tabular-nums">
+                            {l.total}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              <p className="text-xs text-muted-foreground">
-                Grid somente leitura neste preview — a edição de linha mexe em valor e estoque, que é
-                território [V0].
-              </p>
+                <p className="text-xs text-muted-foreground">
+                  Grid somente leitura neste preview — a edição de linha mexe em valor e estoque, que
+                  é território [V0].
+                </p>
+              </Stack>
             </CardContent>
           </Card>
-        </div>
+        </Stack>
 
         {/* ————— coluna de fechamento ————— */}
-        <aside className="flex flex-col gap-4">
-          <Card>
-            <CardContent className="flex flex-col gap-4 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <Passo n={3} titulo="Fechamento" icone={<Receipt className="size-4" aria-hidden />} />
-                <Badge variant="destructive">{fechamento.situacao}</Badge>
-              </div>
+        <Stack gap={4} asChild>
+          <aside>
+            <Card>
+              <CardContent className="p-4">
+                <Stack gap={4}>
+                  <Inline gap={2} align="center" className="flex-wrap justify-between">
+                    <Passo
+                      n={3}
+                      titulo="Fechamento"
+                      icone={<Receipt className="size-4" aria-hidden />}
+                    />
+                    <Badge variant="destructive">{fechamento.situacao}</Badge>
+                  </Inline>
 
-              {/* plate escuro — o único bloco de peso visual da tela */}
-              <div className="rounded-xl bg-slate-900 p-4 text-slate-50">
-                <span className="text-[10.5px] font-semibold uppercase tracking-wider text-slate-400">
-                  Total da venda
-                </span>
-                <b className="mt-1 block font-mono text-3xl tabular-nums">R$ {fechamento.total}</b>
-              </div>
+                  {/* plate escuro — o único bloco de peso visual da tela */}
+                  <div className="rounded-xl bg-slate-900 p-4 text-slate-50">
+                    <span className="text-[10.5px] font-semibold uppercase tracking-wider text-slate-400">
+                      Total da venda
+                    </span>
+                    <b className="mt-1 block font-mono text-3xl tabular-nums">
+                      R$ {fechamento.total}
+                    </b>
+                  </div>
 
-              <div>
-                <Linha label="Subtotal" valor={fechamento.subtotal} />
-                <Linha label="Desconto" valor={fechamento.desconto} />
-                <Linha label="Imposto" valor={fechamento.imposto} />
-                <Linha label="Acréscimo" valor={fechamento.acrescimo} />
-                <Linha label="Frete" valor={fechamento.frete} />
-                <Linha label="Falta receber" valor={fechamento.falta} forte />
-              </div>
+                  <div>
+                    <Linha label="Subtotal" valor={fechamento.subtotal} />
+                    <Linha label="Desconto" valor={fechamento.desconto} />
+                    <Linha label="Imposto" valor={fechamento.imposto} />
+                    <Linha label="Acréscimo" valor={fechamento.acrescimo} />
+                    <Linha label="Frete" valor={fechamento.frete} />
+                    <Linha label="Falta receber" valor={fechamento.falta} forte />
+                  </div>
 
-              <Button className="w-full" disabled>
-                Finalizar venda
-              </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Desabilitado de propósito — preview não grava.
-              </p>
-            </CardContent>
-          </Card>
-        </aside>
-      </div>
-    </div>
+                  <Button className="w-full" disabled>
+                    Finalizar venda
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Desabilitado de propósito — preview não grava.
+                  </p>
+                </Stack>
+              </CardContent>
+            </Card>
+          </aside>
+        </Stack>
+      </Grid>
+    </Stack>
   );
 }
 
