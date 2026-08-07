@@ -1350,11 +1350,13 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-123 · Remover startMockStream da rota live /ia/dashboard (Cockpit responde mock)
 
-**Implementado em:** _pendente_ — fix não aplicado: `resources/js/Pages/Jana/Cockpit.tsx` ainda define e chama `startMockStream` (linhas ~707/780) na rota live `/ia/cockpit`; falta plugar streaming real (Jana chat/SSE) com fallback (status todo)
+**Implementado em:** `Modules/Jana/Http/Controllers/ChatController.php` — RESOLVIDA POR REMOÇÃO na onda 4 da US-COPI-148 (2026-08-07), não por conserto. As DUAS metades do mock em rota live saíram juntas: o `startMockStream` (que vivia só no `Cockpit.tsx`, medido — 2 ocorrências no repo inteiro, ambas nele) e o `mockJanaPayload()` deste controller (chamado **só** por `cockpit()`). A capacidade tem receptor vivo em `/ia` (`IndexController`), que entrega brief · KPIs · análises · ações com dado REAL do `SellsCockpitAggregator` — nunca foi preciso "plugar SSE real no cockpit", bastou parar de servir a tela mock. Correção de rota: o título desta US dizia `/ia/dashboard`, mas o mock estava em `/ia/cockpit`; o corpo (que dizia certo) prevaleceu.
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: —
 > parent_plan: adr0270-cockpit-mock-kill
+
+**Testado em:** `Modules/Jana/Tests/Feature/CockpitMockRemovidoTest.php` (`// @covers-us US-COPI-123`) — 4 casos que travam a PROIBIÇÃO que a US pede, não o código que a implementa: a Page não existe · `startMockStream` não aparece em nenhuma Page da Jana · o ChatController não tem `cockpit()` nem `mockJanaPayload()` (com controle negativo: `iniciais()` FICOU, porque index/show usam) · `/ia/cockpit` responde 301 pro Painel. Reintroduzir qualquer metade do mock, ou ressuscitar a rota, deixa vermelho.
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
@@ -1997,7 +1999,9 @@ Escopo:
 
 **~~⏳ Onda 3 — rename.~~** (texto original, preservado) `Dashboard.tsx` → `Index.tsx` + `DashboardController` → `IndexController` + redirects 301 de `/cockpit` e `/dashboard` + conserto da âncora do SPEC + `DataController.php:204`, que é o **único** consumidor de código de `jana.dashboard.index`.
 
-**⏳ Onda 4 — destino do `Cockpit.tsx`** (1022 ln). ⚠️ **Medido, contra o que o pedido afirma:** o cockpit **não** está implementado 2×, são **3** arquivos — e `resources/js/Pages/Jana/components/JanaCockpitV2.tsx` serve a tab Insights de `/sells` (`resources/js/Pages/Sells/Index.tsx:55`), logo **não é duplicata da Jana e não pode ser apagado**. Apagar `Cockpit.tsx` exige remover junto `ChatController@cockpit`, que faz `Inertia::render('Jana/Cockpit')` em `Modules/Jana/Http/Controllers/ChatController.php:666`.
+**✅ Onda 4 — ENTREGUE (2026-08-07).** `Cockpit.tsx` **apagado** (não substituído em-place, como o charter dele previa — a decisão mudou: quem sobrevive é o Painel). Saíram juntos, por dependência mútua medida: a Page, o `ChatController@cockpit`, o `mockJanaPayload()` (chamado só por ele) e o `saudacaoPorHora()` (chamado só pelo payload) — **188 linhas** do controller. Também: o ghost do menu, o membro `cockpit` do `JanaAreaTab`, o `Cockpit.charter.md` (o schema de charter não tem `historical` — o enum é draft|live|deprecated — e `component` é obrigatório, então charter apontando pra arquivo apagado quebraria o `charter-refs`; nenhum dos 3 charters `deprecated` do repo tem component inexistente, logo não há esse padrão aqui), o scorecard, o proto-baseline e 4 chaves de baseline de lint. O registro do "por quê" ficou no [`RUNBOOK-cockpit.md`](RUNBOOK-cockpit.md), arquivado com lápide. `/ia/cockpit` segue **301 → /ia** (da onda 3). **Fechou a `US-COPI-123` (p0) de graça.** ⚠️ O `JanaCockpitV2.tsx` **NÃO** foi tocado — serve a tab Insights de `/sells`.
+
+**~~⏳ Onda 4 — destino do `Cockpit.tsx`~~** (texto original, preservado) (1022 ln). ⚠️ **Medido, contra o que o pedido afirma:** o cockpit **não** está implementado 2×, são **3** arquivos — e `resources/js/Pages/Jana/components/JanaCockpitV2.tsx` serve a tab Insights de `/sells` (`resources/js/Pages/Sells/Index.tsx:55`), logo **não é duplicata da Jana e não pode ser apagado**. Apagar `Cockpit.tsx` exige remover junto `ChatController@cockpit`, que faz `Inertia::render('Jana/Cockpit')` em `Modules/Jana/Http/Controllers/ChatController.php:666`.
 
 **Fora da fusão** (ficam FOCO, sem abas): `/ia/pro` e `/ia/metas*`. **Superfície não tratada pelo pedido:** `/ia/alertas` · `/ia/alertas/config` · `/ia/superadmin/metas` · `/ia/admin/*`.
 

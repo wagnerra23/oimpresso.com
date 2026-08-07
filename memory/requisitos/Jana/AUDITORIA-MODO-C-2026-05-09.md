@@ -249,14 +249,14 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ## 7. Cockpit.tsx — 48/100 🔴
 
-**Arquivo:** [resources/js/Pages/Jana/Cockpit.tsx](../../../resources/js/Pages/Jana/Cockpit.tsx) (138 linhas)
+**Arquivo:** `resources/js/Pages/Jana/Cockpit.tsx` (138 linhas)
 **Categoria BENCHMARKS:** §1 Inbox conversacional — **MVP/piloto declarado**.
 
 ### Score detalhado
 
 | Categoria | Score | Detalhe |
 |-----------|-------|---------|
-| DS (40) | 22/40 | 0 CRITICAL diretos (delega ao `Thread`/`Composer` shared); 2 WARN (`👍` emoji literal em [Cockpit.tsx:103](../../../resources/js/Pages/Jana/Cockpit.tsx) — R-DS-003), 1 WARN (`localStorage.setItem` fora de useEffect — render-side-effect anti-pattern React) |
+| DS (40) | 22/40 | 0 CRITICAL diretos (delega ao `Thread`/`Composer` shared); 2 WARN (`👍` emoji literal em `Cockpit.tsx:103` — R-DS-003), 1 WARN (`localStorage.setItem` fora de useEffect — render-side-effect anti-pattern React) |
 | ADR (30) | 12/30 | **3 violações graves**: (a) ADR 0094 §1 (context as product) — typing/reply mockados com `setTimeout` em produção; (b) ADR 0094 §4 (loop fechado por métrica) — não há fetch real, sem telemetria; (c) GOTCHAS.md "Cache/estado preservado" — usa `setMensagensLocal` local em vez de Inertia state, ao trocar conversa perde |
 | UX (30) | 14/30 | **1 CRITICAL (Q1)** — usuário em produção que digita uma mensagem recebe "Recebido, vou verificar e te respondo já já 👍" hardcoded — induz erro grave; **1 CRITICAL (H1)** — visibility of system status mente (mostra typing falso); 1 WARN (Q4 — sem loading real) |
 | **TOTAL** | **48/100** | 🔴 **Reescrever ou matar a rota** — risco de cliente acreditar que Jana respondeu |
@@ -269,8 +269,8 @@ framework: cockpit-runbook Modo C + BENCHMARKS.md (6 categorias) + Nielsen 8H + 
 
 ### Top 3 vitórias
 
-1. **AppShellV2 com `conversaFoco` + `activeConvId` + `onSelectConv`** — [Cockpit.tsx:111-126](../../../resources/js/Pages/Jana/Cockpit.tsx). Usa o canal canônico do shell (não duplica como Chat.tsx faz com ConvSidePanel).
-2. **Compõe `ChatTabs` + `ThreadHeader` + `Thread` + `Composer` shareds** — [Cockpit.tsx:127-135](../../../resources/js/Pages/Jana/Cockpit.tsx). Reuso máximo, código mínimo.
+1. **AppShellV2 com `conversaFoco` + `activeConvId` + `onSelectConv`** — `Cockpit.tsx:111-126`. Usa o canal canônico do shell (não duplica como Chat.tsx faz com ConvSidePanel).
+2. **Compõe `ChatTabs` + `ThreadHeader` + `Thread` + `Composer` shareds** — `Cockpit.tsx:127-135`. Reuso máximo, código mínimo.
 3. **138 linhas total** — densidade boa pra MVP. Bem comentado sobre status piloto.
 
 ### Prioridade fix

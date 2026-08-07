@@ -1,5 +1,5 @@
-// JanaAreaHeader — header sticky compartilhado entre telas Jana (Chat / Dashboard /
-// Memoria / Cockpit / Admin/*).
+// JanaAreaHeader — header sticky compartilhado entre as telas Jana
+// (Index/Painel · Chat/Conversa · Memoria · Pro).
 //
 // ADR 0182 + GUIA-SIDEBAR-V3 Wagner 2026-05-21: refatorado pra usar JanaSubNav
 // canon (ghosts ARIA tablist com auto-promoção do ativo + overflow ⋯ Mais)
@@ -11,8 +11,6 @@
 //   active="chat"      → ghost `copiloto` (canon)
 //   active="dashboard" → ghost `dashboard`
 //   active="memoria"   → ghost `memorias`
-//   active="cockpit"   → ghost `copiloto` (Cockpit = visão consolidada)
-//   active="custos"    → ghost `custos`
 //   (qualquer string) → passada direta como activeGhostKey
 //
 // Refs:
@@ -46,15 +44,14 @@ export type JanaAreaTab =
   | 'chat'      // = copiloto
   | 'dashboard' // = o Painel; a key vira 'painel' quando o ghost for rekeyado
   | 'memoria'   // = memorias
-  | 'cockpit'   // ghost canon próprio (DataController Wagner 2026-05-25)
   // Ghost keys canon — ninguém passa hoje, mas são os alvos do map abaixo e
   // valem como valor direto (o PageHeaderTabs casa por key).
   | 'copiloto'
   | 'memorias';
 
 // Map retrocompat — telas antigas passam 'chat'/'memoria'; convertemos pro
-// ghost key canon do DataController Jana. NOTA: 'cockpit' tem ghost próprio
-// desde Wagner 2026-05-25 (DataController linha 268), não cai mais em 'copiloto'.
+// ghost key canon do DataController Jana. O 'cockpit' saiu do type na onda 4
+// (US-COPI-148) junto com a Page e o ghost do menu.
 function mapActiveToGhostKey(active: JanaAreaTab): string {
   switch (active) {
     case 'chat':

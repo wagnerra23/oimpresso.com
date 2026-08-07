@@ -334,7 +334,11 @@ class DataController extends Controller
                             //  - cockpit: Jana V2 Analista IA (Brief + KPIs + análises) — Pages/Jana/Cockpit.tsx
                             //  - roadmap: Timeline Gantt das tasks MCP — Pages/Jana/Admin/Roadmap.tsx
                             // Painel.tsx fica acessível só por URL (mock Onda A1, sobreposto ao Cockpit).
-                            ['key' => 'cockpit',  'label' => 'Cockpit',  'href' => '/ia/cockpit'],
+                            // Ghost 'cockpit' REMOVIDO na onda 4 (US-COPI-148, 2026-08-07):
+                            // a Page `Jana/Cockpit.tsx` e o `ChatController@cockpit` sairam
+                            // juntos — ela servia MOCK em rota live (US-COPI-123 p0). O
+                            // destino vivo e o Painel (`/ia`), que ja e a 1a aba desta faixa.
+                            // `/ia/cockpit` segue como 301 -> /ia (routes.php).
                             // Ghost 'roadmap' removido 2026-08-05 (ADR 0366 §D-B + 0367 D4):
                             // o Gantt virou aba da Forja (/forja/roadmap-gantt). Tasks é Forja.
                             // Ghost 'qualidade-jana' removido 2026-08-05 (ADR 0366 §D-B):

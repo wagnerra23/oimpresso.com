@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 569 arquivos em 19 papéis.
+**Total mapeado:** 568 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -354,10 +354,9 @@ module: Jana
 
 - 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 5
+## Telas (Inertia/React) — 4
 
 - [Chat.tsx](../../../resources/js/Pages/Jana/Chat.tsx)
-- [Cockpit.tsx](../../../resources/js/Pages/Jana/Cockpit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Jana/Index.tsx)
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
@@ -372,10 +371,9 @@ module: Jana
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
 - [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
-## Charters (lei da tela) — 5
+## Charters (lei da tela) — 4
 
 - [Chat.charter.md](../../../resources/js/Pages/Jana/Chat.charter.md)
-- [Cockpit.charter.md](../../../resources/js/Pages/Jana/Cockpit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Jana/Index.charter.md)
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
@@ -384,9 +382,9 @@ module: Jana
 
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 153
+## Testes (Pest) — 154
 
-- 153 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 154 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 91
 
