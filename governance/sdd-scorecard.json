@@ -67,43 +67,12 @@
       "stream": "SA"
     },
     "full_suite_pass_rate": {
-      "status": "measured",
-      "value": 342,
-      "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "down",
       "target": 0,
-      "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
-      "detail": {
-        "floor_files_hash": "7829441c26885455",
-        "runs": [
-          {
-            "sha": "ec2d7f85",
-            "ts": "20260804-020001",
-            "failed": 657,
-            "errors": 384,
-            "skipped": 2288,
-            "all_shards_measured": true
-          },
-          {
-            "sha": "017eac4d",
-            "ts": "20260805-020001",
-            "failed": 660,
-            "errors": 392,
-            "skipped": 2249,
-            "all_shards_measured": true
-          },
-          {
-            "sha": null,
-            "ts": "20260806-020001",
-            "failed": 647,
-            "errors": 408,
-            "skipped": 2242,
-            "all_shards_measured": true
-          }
-        ],
-        "computed_at": "20260806-020001",
-        "intersection_of": 3
-      },
+      "source": "governance/nightly-floor.json ainda não publicado pelo write-side CT100 (ADR 0279 PR-2 — precisa de credencial de push no CT100). A nightly FV-F3 roda (15+ runs reais); falta o transporte.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
     "n_quarantine": {
@@ -119,41 +88,12 @@
       "stream": "FV"
     },
     "coverage_pct": {
-      "status": "measured",
-      "value": 20.3,
-      "unit": "%",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
-      "detail": {
-        "covered": 47599,
-        "total": 234984,
-        "runs": [
-          {
-            "sha": "ec2d7f85",
-            "ts": "20260804-020001",
-            "coverage_pct": 19.4,
-            "covered": 45639,
-            "total": 234787
-          },
-          {
-            "sha": "017eac4d",
-            "ts": "20260805-020001",
-            "coverage_pct": 19.5,
-            "covered": 45705,
-            "total": 234944
-          },
-          {
-            "sha": null,
-            "ts": "20260806-020001",
-            "coverage_pct": 20.3,
-            "covered": 47599,
-            "total": 234984
-          }
-        ],
-        "computed_at": "20260806-020001",
-        "measured_of": 3
-      },
+      "source": "governance/nightly-coverage.json ainda não publicado pelo write-side CT100 (SDD P07 — pcov instrumentado em ct100-fullsuite.sh; falta rebuild da imagem com pcov + 1ª nightly). Hoje ci.yml roda coverage: none / --no-coverage no lane sqlite (fonte honesta é a suíte inteira CT100 — ADR 0275:68).",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
     "sqlite_corruptors": {
@@ -177,7 +117,7 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 12,
+      "value": 13,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
@@ -210,25 +150,12 @@
       "stream": "MEM"
     },
     "ragas_real_uptime": {
-      "status": "measured",
-      "value": 60,
-      "unit": "%",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "up",
-      "target": 95,
-      "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
-      "detail": {
-        "weeks_expected": 5,
-        "weeks_valid": 3,
-        "first_scheduled": "2026-07-05",
-        "last_week": "2026-08-02",
-        "latest": {
-          "gate_status": "skipped",
-          "n_evaluated": 0,
-          "faithfulness_avg": null,
-          "relevancy_avg": null,
-          "context_recall_avg": null
-        }
-      },
+      "target": "≥95%",
+      "source": "governance/ragas-real-trend.json ainda não publicado pelo write-side CT100 — jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318; baseline honesto em governance/jana-ragas-real-baseline.json). Transporte: órfã governance/ragas-real-trend (write-side ct100-ragas-publish.sh · pattern nightly-floor ADR 0279); 1ª execução do cron 2026-07-05.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "MEM"
     },
     "distiller_freshness": {
@@ -256,7 +183,7 @@
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
         "modules": 75,
-        "hops_worst": 13
+        "hops_worst": 1
       },
       "stream": "MEM"
     },
