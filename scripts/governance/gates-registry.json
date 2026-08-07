@@ -130,6 +130,13 @@
       "nome": "Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295)",
       "classe": "gate"
     },
+    "jana-conversas-gate.yml": {
+      "nome": "Jana Conversas — histórico do chat (filtro real · J/K · ⌘⇧H · aria-live)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Fatia C do pacote JANA-FUSAO-2026-08-06 (US-COPI-148), fonte prototipo-ui/cowork/jana-merge.jsx §JmConversa. Trava o COMPORTAMENTO de filtro e teclado do histórico de conversas — que o Pest do módulo não alcança — em vitest/jsdom sobre o ConvSidePanel de Pages/Jana/Chat.tsx (exportado como named export justamente pra ser montável sem AppShellV2/Inertia/assistant-ui). Defende (a) que o filtro FILTRA: as 4 abas eram fachada com empty state 'Em breve', e o caso 'nenhuma aba mostra Em breve' impede a fachada de voltar; (b) que só existem 2 abas — 'Minhas' era tautológica (a query já é where user_id) e 'Compartilhadas' seria sempre vazia (403 de posse em 4 pontos do ChatController), então reintroduzi-las sem backend fica vermelho; (c) J/K anda entre CONVERSAS, não mensagens (Chat.charter.md v3); (d) o guard de digitação — sem ele, digitar 'j' na busca troca de conversa; (e) ⌘⇧H/Ctrl+⇧H recolhem e o rail recolhido mantém o atalho, pra a lista não voltar a ficar inalcançável (o display:none ≤1023px que fazia isso saiu do cockpit.css). Lane PRÓPRIA porque NENHUMA lane roda `vitest run` sem argumento (re-medido 2026-08-07 nos 10 workflows que citam vitest): spec sem lane nunca executa, e verde-por-não-execução (LC-13) é pior que teste ausente porque parece cobertura. || mordida PROVADA antes do merge (2 mutações, restore = 15/15 verde): `return` no topo do handler de teclado -> 5 failed; `keep` do filtro forçado a true -> 3 failed. || sinal de custo: filtro e atalho de tela é qualidade/higiene, não Tier-0 -> advisory (ADR 0271/0314); promoção a required só com mordida real coletada em main (ADR 0336 DR-2), não se auto-promove.",
+      "promote_by": "2026-09-30"
+    },
     "nfebrasil-pest.yml": {
       "nome": "NfeBrasil · Pest (MySQL) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b",
       "classe": "gate",
