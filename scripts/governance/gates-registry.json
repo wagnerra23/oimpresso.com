@@ -333,6 +333,12 @@
       "promote_by": "2026-08-06",
       "anchor": "sinal de custo: NENHUM teste do Modules/KB rodava no CI por-PR (não está no modules-pest.yml matrix, sem lane própria, só KbDriftPersistenceTest na allowlist sqlite) — regressão do KB só aparecia no CT100 nightly (dia seguinte); o #4715 (Fase A1 doc↔código) mergeou com 91 checks verdes sem exercitar teste nenhum do KB. Nasce com 11 arquivos comprovadamente verdes no MySQL efêmero (probe CT100 @ main 2026-07-23). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); a própria lane já pegou 2 gaps reais que o staging poluído mascarava (kb_categories.sort ausente + grants Spatie 403 no MySQL fresco) → 8 arquivos ratchet-pendentes documentados no workflow. promote_by força a decisão de promoção a required."
     },
+    "whatsapp-pest.yml": {
+      "nome": "Whatsapp · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "sinal de custo: NENHUM teste do Modules/Whatsapp roda contra MySQL no CI por-PR (nao esta no modules-pest.yml matrix, sem lane propria; os ~57 em CI rodam na lane sqlite montando schema sintetico). 73 arquivos do modulo estavam com markTestSkipped fora do sqlite (quarentena era-sqlite) = verde por nao-execucao em todo ambiente MySQL. Esta lane e o HOME do burn-down: cada arquivo convertido pro schema real entra na allowlist no mesmo PR. Nasce com 1 (RegisterWhatsappPermissionsCommandTest, provado 10 passed/34 assertions no CT 100)."
+    },
     "ponto-pest.yml": {
       "nome": "Ponto · Pest (MySQL)",
       "classe": "gate",
