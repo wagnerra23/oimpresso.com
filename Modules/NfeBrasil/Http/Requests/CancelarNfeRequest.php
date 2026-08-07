@@ -22,9 +22,42 @@ use Illuminate\Validation\Rule;
  */
 class CancelarNfeRequest extends FormRequest
 {
+    /**
+     * `fiscal.inutilizar` é ROLE, não permissão — daí `hasRole`, não `can`.
+     *
+     * Era `can('fiscal.inutilizar')`, e esse nome não existe como permissão
+     * Spatie em fonte nenhuma. Quem o cria é o `NfeFiscalActionsSeeder`, como
+     * ROLE per-business na convenção UltimatePOS (sufixo `#{business_id}`), pra
+     * autorizar a action FSM crítica `inutilizar_faixa`. `can()` procura
+     * permissão e nunca casa com role homônima ⇒ o gate caía sempre em false e
+     * só o superadmin passava, pelo `Gate::before` — contra a intenção que o
+     * docblock do `NfeInutilizacaoController` e o comentário da rota já
+     * declaravam ("role per-business — seeder NfeFiscalActionsSeeder").
+     * Achado pelo `permission-drift` (US-GOV-059, classe A).
+     *
+     * NÃO afrouxa: quem não tem a role segue barrado, e o superadmin continua
+     * passando pelo `Gate::before`. A role só existe onde o seeder rodou — ele
+     * não está no `DatabaseSeeder`, então nada é concedido automaticamente.
+     *
+     * O fallback sem sufixo espelha o guard do próprio seeder
+     * (`Schema::hasColumn('roles', 'business_id')`): onde a coluna não existe,
+     * ele cria a role com o nome puro.
+     */
     public function authorize(): bool
     {
-        return $this->user()?->can('fiscal.inutilizar') ?? false;
+        $user = $this->user();
+        if ($user === null) {
+            return false;
+        }
+
+        // Multi-tenant Tier 0 (ADR 0093): business_id SEMPRE da sessão, nunca do request.
+        $businessId = (int) $this->session()->get('business.id', 0);
+        if ($businessId === 0) {
+            return false;
+        }
+
+        return $user->hasRole("fiscal.inutilizar#{$businessId}")
+            || $user->hasRole('fiscal.inutilizar');
     }
 
     public function rules(): array
