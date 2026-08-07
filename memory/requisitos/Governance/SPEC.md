@@ -951,11 +951,18 @@ Classificação das **38** restantes:
 
 1. **`kb.ai` — RESOLVIDO.** `KbController` montava o flag `ai_ask` da UI com `can('kb.ai')`, mas o registry declara **`kb.ai.ask`** e o endpoint real (`KbAiController`) exige `can:kb.ai.ask|jana.mcp.memory.manage`. A UI escondia o botão de uma feature que o endpoint teria liberado. Corrigido para o nome declarado.
 
-2. **`fiscal.inutilizar` — NÃO corrigido; exige decisão [W].** `CancelarNfeRequest::authorize()` faz `can('fiscal.inutilizar')`, e esse nome **não é permissão** — é **role** criada por `NfeFiscalActionsSeeder` com a convenção UltimatePOS de sufixo (`fiscal.inutilizar#{business_id}`). `can()` procura permissão, não casa com role homônima, então **a inutilização de faixa fiscal NFe está acessível só a admin** (via `Gate::before`), o que não é a intenção — o próprio docblock do `NfeInutilizacaoController` diz *"role per-business — seeder NfeFiscalActionsSeeder"*. Há dois consertos possíveis, com consequências diferentes:
-   - **(i)** trocar por `hasRole("fiscal.inutilizar#{$businessId}")` — fiel ao que está documentado, mas acopla o código à convenção de sufixo;
-   - **(ii)** declarar `fiscal.inutilizar` como permissão e concedê-la à role no seeder — mais idiomático em Spatie (role carrega permissão, código checa permissão), porém cria dois objetos de mesmo nome (a role FSM e a permissão).
+2. **`fiscal.inutilizar` — RESOLVIDO pela opção (i)** ([W] delegou a decisão em 2026-08-06: *"decida sem problemas"*). `CancelarNfeRequest::authorize()` fazia `can('fiscal.inutilizar')`, e esse nome **não é permissão** — é **role** criada por `NfeFiscalActionsSeeder` com a convenção UltimatePOS de sufixo (`fiscal.inutilizar#{business_id}`). `can()` procura permissão, não casa com role homônima, então **a inutilização de faixa fiscal NFe ficava acessível só a admin** (via `Gate::before`), contra a intenção declarada no docblock do `NfeInutilizacaoController` e no comentário da rota.
 
-   Escolher é desenho de autorização em endpoint **fiscal**; não foi inventado aqui.
+   As duas opções eram **(i)** `hasRole` com o sufixo — fiel ao documentado, acopla à convenção — e **(ii)** declarar a permissão e concedê-la à role no seeder — mais idiomático em Spatie, porém cria dois objetos de mesmo nome. **Escolhida a (i)**, por quatro fatos verificados no código:
+
+   - a role **tem propósito vivo**: está vinculada à action FSM `inutilizar_faixa` (`is_critical: true`, `requires_confirmation: true`) — não é vestigial, e a (ii) criaria role e permissão homônimas com semânticas diferentes;
+   - a intenção **sempre foi role** — declarada em dois lugares independentes (docblock do Controller e comentário da rota);
+   - a (ii) exigiria **mexer no seeder do FSM**, risco desnecessário para um gate de endpoint;
+   - escopo estreito: `CancelarNfeRequest` tem **um único consumidor** (`NfeInutilizacaoController::store` — a citação no NFSe é só `@see` em docblock).
+
+   **Não afrouxa nada:** quem não tem a role segue barrado e o superadmin continua passando pelo `Gate::before`. A role só existe onde o seeder rodou — e ele **não está no `DatabaseSeeder`**, então nenhum acesso é concedido automaticamente. O fallback sem sufixo espelha o guard do próprio seeder (`Schema::hasColumn('roles','business_id')`).
+
+   Defendido por [`InutilizacaoAuthorizeRoleTest`](../../../Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php), registrado na allowlist da lane `nfebrasil-pest` (lane lista arquivo — teste fora dela não roda). O teste usa **payload inválido de propósito**: sem role → **403** (gate barrou), com role → **422** (gate passou, validação barrou), o que prova a autorização **sem jamais chamar a SEFAZ**. Cobre também cross-tenant (role de outro business não autoriza) e ausência de contexto de business na sessão.
 
 **Nota sobre B/C/D:** o denominador de declaração do detector são 5 fontes (`DataController`, `Resources/permissions.php`, `role/*.blade.php`, `PermissionsTableSeeder`, `syncPermissions` em runtime). Seeders de módulo (ex.: `NfeFiscalActionsSeeder`) **não** entram — foi o que fez `fiscal.inutilizar` aparecer. Antes de declarar qualquer permissão da classe C, conferir se ela já existe em fonte fora dessas cinco.
 
