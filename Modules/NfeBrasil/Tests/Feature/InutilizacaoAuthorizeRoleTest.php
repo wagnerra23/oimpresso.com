@@ -97,9 +97,15 @@ it('CROSS-TENANT: role de OUTRO business não autoriza (Tier 0 · ADR 0093)', fu
         $this->markTestSkipped('sem roles.business_id não há sufixo — o cross-tenant não se aplica');
     }
 
+    // O "outro business" é o 2, NÃO o 99: `roles.business_id` tem FK pra
+    // `business`, e o `pest-mysql-setup` da lane semeia apenas biz=1 e biz=2.
+    // Criar a role apontando pra um business inexistente estoura QueryException
+    // (FK) — o teste morreria no setup sem chegar a exercer o gate.
+    $outroBusiness = 2;
+
     $user = inutUsuarioDe(1);
     $user->roles()->detach();
-    $user->assignRole(inutRoleFiscal(99)); // role do tenant fictício, não do dele
+    $user->assignRole(inutRoleFiscal($outroBusiness)); // role do outro tenant, não do dele
 
     $this->actingAs($user)
         ->withSession(['business.id' => 1, 'user.business_id' => 1])
