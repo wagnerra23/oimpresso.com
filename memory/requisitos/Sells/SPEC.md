@@ -1253,8 +1253,10 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Testado em:** `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (covers US-SELL-058) — UC-V301 rota registrada · UC-V302 nenhuma rota de escrita · UC-V303 fronteira (o V3 não encosta em Create.tsx/SellPosController). Na allowlist da lane `Pest (Sells · MySQL)`; **nunca executado** até o primeiro run de CI deste PR
 
-> owner: luiz · priority: p2 · estimate: 6h · status: doing · type: story
+> owner: luiz · priority: p2 · estimate: 6h · type: story
 > blocked_by: —
+
+O campo de estado legado foi **omitido de propósito** ([ADR 0302](../../decisions/0302-doneness-fonte-unica-implementado-em.md) — aposentado; a fonte única de done-ness é `**Implementado em:**`). Os dois fatos convivem sem contradição assim: o código **está** implementado e ancorado acima, e a US **não** está aceita — quem carrega isso são os dois itens abertos no Aceite (smoke real · decisão [W] sobre dados reais). Declarar aquele campo ao lado de âncora válida é leitura contraditória, e o `doneness-lint` morde com razão. ⚠️ Se for reescrever esta nota, não reproduza o nome do campo seguido de dois-pontos dentro do bloco `>` acima — o lint parseia aquele bloco e a própria explicação vira a violação.
 
 **Origem:** restrição de negócio declarada por **[L] Luiz** em 2026-08-06, textual: *"Tela do Guilherme e da Larissa não pode ser alterada de forma alguma, se não eles quebram contrato e perdemos dinheiro."*
 
