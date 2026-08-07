@@ -80,13 +80,19 @@ motivo: o protótipo confirma o apagar inline, sem campo.
 - ⬜ **Os DOIS empty states** ("nada aprendido" × "nenhum fato com esse filtro" + Limpar filtro) —
   implementados com a copy literal. Produção tinha só um, com texto diferente.
 
-## Divergências protótipo × produção ainda ABERTAS (decisão [W])
+## Divergências protótipo × produção — decididas
 
-- ❓ **Escala de relevância** — protótipo usa **1–5**, produção exibe **/10**. Mudar é **migração de
-  dado** (`metadata.relevancia` já gravado), então segue como está até [W] decidir. Ver §5 da regra
-  mestre de valor: mudança que mexe em dado gravado exige apresentar o antes→depois primeiro.
-- ❓ **`origem` não é renderizada** em produção, mas o charter a exige no Goal 4 (*"Mostrar `origem`
-  do fato (chat / brief auto / inserção manual) — transparência"*) e o protótipo mostra.
+- ✅ **Escala de relevância — FICA `/10`.** Decisão [W] 2026-08-07: a **produção é a fonte** e o
+  protótipo (que desenha 1–5) é que se adapta. Mudar seria migração de `metadata.relevancia` já
+  gravado, sem razão de domínio que a justifique. **Não re-propor** sem sinal novo: divergência
+  protótipo×prod não é, por si, motivo pra mexer em dado persistido.
+- ✅ **`origem` passou a ser renderizada** (decisão [W] 2026-08-07, PR à parte). O dado já vinha no
+  payload e não aparecia — o titular via *o que* a Jana aprendeu, mas não *de onde*. Fecha o Goal 4
+  do charter (*"Mostrar `origem` do fato (chat / brief auto / inserção manual) — transparência"*).
+
+## Ainda ABERTAS (sem decisão)
+
 - ❓ **Edição parcial** — o protótipo edita `categoria` e `relevância`; a produção só edita o texto.
 - ❓ **Naming** — a tela ainda diz "O Copiloto lembra de você" (h1 + título do shell) enquanto o
-  resto do módulo já é "Jana" (`RUNBOOK-chat.md`: *"Em texto novo sempre Jana"*).
+  resto do módulo já é "Jana" (`RUNBOOK-chat.md`: *"Em texto novo sempre Jana"*). Mexer no título
+  toca o breadcrumb do shell, então não é edição de 1 linha.

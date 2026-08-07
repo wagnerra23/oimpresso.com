@@ -72,7 +72,11 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
   const podeSalvar = data.fato.trim() !== '' && data.motivo.trim() !== ''
   const cat = memoria.metadata?.categoria as string | undefined
   const catCfg = (cat && CATEGORIA_LABELS[cat]) || { label: cat || 'sem categoria', color: 'bg-gray-100 text-gray-700' }
+  // Escala /10 MANTIDA — decisão [W] 2026-08-07: a produção é a fonte e o protótipo
+  // (que desenha 1–5) se adapta. Mudar a escala seria migração de `metadata.relevancia`
+  // já gravado, e não há razão de domínio pra isso.
   const rel = memoria.metadata?.relevancia as number | undefined
+  const origem = memoria.metadata?.origem as string | undefined
 
   const onSalvar = () => {
     if (!podeSalvar) return
@@ -108,6 +112,14 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
             {rel !== undefined && (
               <span className="text-xs text-muted-foreground">
                 relevância {rel}/10
+              </span>
+            )}
+            {/* Charter Goal 4: "Mostrar `origem` do fato (chat / brief auto / inserção
+                manual) — transparência". O dado já vinha no payload e não era renderizado:
+                o titular via O QUE a Jana aprendeu, mas não DE ONDE. */}
+            {origem && (
+              <span className="text-xs text-muted-foreground">
+                · origem: {origem}
               </span>
             )}
             <span className="text-xs text-muted-foreground">
