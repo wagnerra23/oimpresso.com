@@ -132,19 +132,48 @@ class ProdutoUnificadoController extends Controller
         })->all();
     }
 
+    /**
+     * DUPLICAÇÃO PROVISÓRIA de ProductController::buildProdutoIndexCategorias().
+     *
+     * `Category::withCount('products')` estourava BadMethodCallException: `App\Category`
+     * não declara `products()` (os únicos métodos do arquivo são getActivitylogOptions,
+     * catAndSubCategories, forDropdown, sub_categories, scopeOnlyParent). Como `categorias`
+     * é closure do render inicial, a rota dava 500 em QUALQUER sub-tela.
+     *
+     * A contagem por leftJoin + COUNT já roda em produção na lista React de /products
+     * (ProductController::buildProdutoIndexCategorias). O método lá é `protected`, então
+     * duplico em vez de expor/mover — não encostar no controller que serve a Blade viva.
+     *
+     * ⚠️ `categories.` qualificado em TODA cláusula: o leftJoin traz `products`, que também
+     * tem `business_id` — sem qualificar o MySQL responde "Column 'business_id' in where
+     * clause is ambiguous" (SQLSTATE 23000) e a tela volta a dar 500 por outro caminho.
+     *
+     * ⚠️ RESIDUAL declarado: a contagem NÃO escopa o lado `products` por business_id —
+     * herdado do helper de produção. `category_id` é por business na prática, então não há
+     * vazamento conhecido, mas não está defendido. Divergir aqui faria as duas cópias
+     * driftarem; mudar a semântica da lista viva é decisão do dono.
+     *
+     * TODO: quando alguém extrair um Service/scope de categorias-com-contagem, apagar esta
+     * cópia e consumir a fonte única. Enquanto forem duas, mudança numa exige a outra.
+     */
     private function categorias(int $business_id): array
     {
-        return Category::where('business_id', $business_id)
-            ->where('category_type', 'product')
-            ->whereNull('parent_id')
-            ->withCount('products')
-            ->orderBy('name')->get()
-            ->map(fn ($c) => [
-                'id'    => $c->id,
-                'slug'  => $c->slug ?? str($c->name)->slug(),
-                'label' => $c->name,
-                'count' => (int) $c->products_count,
-            ])->all();
+        $cats = Category::where('categories.business_id', $business_id)
+            ->where('categories.category_type', 'product')
+            ->whereNull('categories.parent_id')
+            ->select('categories.id', 'categories.name', 'categories.slug')
+            ->leftJoin('products', 'products.category_id', '=', 'categories.id')
+            ->groupBy('categories.id', 'categories.name', 'categories.slug')
+            ->selectRaw('COUNT(products.id) as count')
+            ->orderBy('categories.name')
+            ->get();
+
+        return $cats->map(fn ($c) => [
+            'id'    => (int) $c->id,
+            'slug'  => $c->slug ?? str($c->name)->slug(),
+            'label' => (string) $c->name,
+            'count' => (int) $c->count,
+        ])->all();
     }
 
     /**
