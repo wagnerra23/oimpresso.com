@@ -9,6 +9,7 @@ parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [31, 33, 35, 36, 37, 52, 61, 93, 94, 131]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
+related_us: [US-COPI-148]
 related_runbook: memory/requisitos/Jana/RUNBOOK-memoria.md
 related_casos:
   - resources/js/Pages/Jana/Memoria.casos.md
@@ -81,8 +82,13 @@ Audiência primária: **dono/gestor do business** (Wagner, Larissa). Acesso `bus
   URL corrigida `/copiloto/memoria` → `/ia/memoria` (a rota migrou em duas fases; o charter ficou
   no prefixo antigo). **Removidos os ids fantasma** `US-COPI-MEM-005/008/012` do `related_specs`:
   não existem no SPEC da Jana (0 hits, medido) — mesmo padrão do `US-JANA-PAINEL-001` que a onda 1
-  da US-COPI-148 pegou. Nada foi posto no lugar: não há US real pra esta fatia, e inventar id pra
-  satisfazer lint seria teatro.
+  da US-COPI-148 pegou. **Errata do próprio autor (mesma sessão):** a 1ª redação dizia "nada foi
+  posto no lugar — inventar id pra satisfazer lint seria teatro". Isso confundia duas perguntas
+  diferentes. O `related_us` mede o **join US→tela** ("User Stories que esta tela atende", per o
+  schema), não "qual US implementa esta mudança". A `US-COPI-148` atende esta tela de fato: é dona
+  da aba Memória (renomeou o vocabulário na onda 2) e o DoD dela pede "charters fundidos com
+  `casos.md` por aba" — que é exatamente o `Memoria.casos.md` criado aqui. Linkar é honesto;
+  o que seria teatro é inventar um id inexistente, e não é o caso.
 
 > ⚠️ **Divergência de status não resolvida aqui:** o frontmatter diz `draft`, o corpo diz `live`
 > ("em uso prod biz=1 desde 2026-04"). Promover `draft→live` é decisão [W], não do agente — fica
