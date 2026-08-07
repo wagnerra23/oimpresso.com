@@ -613,8 +613,19 @@
                 <div class="col-md-12">
                     <div class="checkbox">
                       <label>
-                        {!! Form::checkbox('permissions[]', 'sell.delete', in_array('sell.delete', $role_permissions), 
+                        {!! Form::checkbox('permissions[]', 'sell.delete', in_array('sell.delete', $role_permissions),
                         [ 'class' => 'input-icheck']); !!} {{ __( 'role.sell.delete' ) }}
+                      </label>
+                    </div>
+                </div>
+                {{-- US-GOV-059 classe D: `sale.history.view` era exigida pelo
+                     SaleHistoryController (timeline FSM, somente leitura) sem estar
+                     declarada. Unica das 16 que ja existe no banco de producao. --}}
+                <div class="col-md-12">
+                    <div class="checkbox">
+                      <label>
+                        {!! Form::checkbox('permissions[]', 'sale.history.view', in_array('sale.history.view', $role_permissions),
+                        [ 'class' => 'input-icheck']); !!} {{ __( 'role.sale.history.view' ) }}
                       </label>
                     </div>
                 </div>
@@ -1461,6 +1472,27 @@
               <label>
                 {!! Form::checkbox('permissions[]', 'access_printers', in_array('access_printers', $role_permissions),['class' => 'input-icheck']); !!}
                 {{ __('lang_v1.access_printers') }}
+              </label>
+            </div>
+          </div>
+          {{-- US-GOV-059 classe D: `send_notification` era exigida pelo
+               NotificationTemplateController (index/store) e pelo menu de acoes do
+               Repair sem estar declarada em lugar nenhum — so admin passava. --}}
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'send_notification', in_array('send_notification', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.send_notification' ) }}
+              </label>
+            </div>
+          </div>
+          {{-- US-GOV-059 classe D: `configure_dashboard` era exigida pelo
+               DashboardConfiguratorController (rota viva) sem estar declarada. --}}
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'configure_dashboard', in_array('configure_dashboard', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.configure_dashboard' ) }}
               </label>
             </div>
           </div>

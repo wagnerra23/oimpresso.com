@@ -839,7 +839,11 @@ class AdminSidebarMenu
             }
 
             //Notification template menu
-            if (auth()->user()->can('send_notifications')) {
+            // US-GOV-059 classe D: o menu checava `send_notifications` (plural) e o
+            // endpoint de destino (NotificationTemplateController::index/store) exige
+            // `send_notification` (singular). Nenhuma das duas era declarada, logo o
+            // item so aparecia pra admin (Gate::before). Alinhado ao gate do endpoint.
+            if (auth()->user()->can('send_notification')) {
                 $menu->url(action([\App\Http\Controllers\NotificationTemplateController::class, 'index']), __('lang_v1.notification_templates'), ['icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
@@ -854,7 +858,11 @@ class AdminSidebarMenu
                 auth()->user()->can('invoice_settings.access') ||
                 auth()->user()->can('tax_rate.view') ||
                 auth()->user()->can('tax_rate.create') ||
-                auth()->user()->can('access_package_subscriptions')) {
+                // US-GOV-059 classe D: drift de namespace. O modulo Superadmin declara
+                // `superadmin.access_package_subscriptions` (DataController) e gateia o
+                // SubscriptionController com esse nome; o sidebar do core ficou com o
+                // nome sem prefixo, que nao existe em lugar nenhum.
+                auth()->user()->can('superadmin.access_package_subscriptions')) {
                 $menu->dropdown(
                     __('business.settings'),
                     function ($sub) use ($enabled_modules) {
