@@ -521,6 +521,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/sells/{id}/ai-ask', [SellController::class, 'aiAsk']);
     // US-OFICINA-OS-LINK — Criar OS a partir da venda (modos: auto/single/per_line).
     Route::post('/sells/{id}/create-os', [SellController::class, 'createOs'])->name('sells.create-os');
+    // Venda V3 — PREVIEW DE DESIGN, paralelo. Rota NOVA + controller NOVO.
+    // Existe porque a tela viva (/pos/create → Sells/Create.tsx) não pode mudar:
+    // ROTA LIVRE (biz=4) opera nela. Só GET, não grava, não calcula valor.
+    // Ver app/Http/Controllers/SellsV3Controller.php pro racional completo.
+    Route::get('/sells/create-v3', [\App\Http\Controllers\SellsV3Controller::class, 'create'])
+        ->name('sells.create-v3');
     // US-SELL-COWORK-R4-C1 — Transcript PDF server-side via Browsershot Chrome headless.
     // Substitui window.print() do modal SaleTranscriptPDF.tsx por download forçado.
     // Fallback 503 estruturado em runtimes sem Chrome (Hostinger shared) — frontend

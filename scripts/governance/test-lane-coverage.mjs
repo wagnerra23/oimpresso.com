@@ -198,12 +198,34 @@ function testesExistentes() {
     .sort();
 }
 
+/**
+ * Regra ÚNICA de leitura de `.list` — PARIDADE EXATA com o que as lanes fazem no
+ * shell (o `sed` delas corta do `#` ao fim da linha e apara espaço à direita):
+ * corta do primeiro `#` até o fim da linha, trima, descarta vazio.
+ *
+ * Por que virou helper único (2026-08-07): havia DUAS leituras do mesmo formato
+ * neste arquivo, ambas `trim()` + `startsWith('#')` — que só remove a linha
+ * INTEIRA de comentário e deixa o inline colado no path. Medido em origin/main:
+ * `financeiro-pest-quarantine.list` 24/24 e `estoque-pest-quarantine.list` 21/21
+ * usam comentário inline (o motivo por linha é OBRIGATÓRIO por desenho das duas
+ * listas). Resultado: as 45 entradas viravam strings do tipo
+ * `"caminho/X.php   # motivo"`, que não casam path nenhum — e os 45 arquivos
+ * conscientemente quarentenados eram contados como ÓRFÃOS, apagando justamente
+ * a distinção que este script existe pra mostrar.
+ *
+ * `ci-sqlite-pest.list` não tinha inline nenhum (0/149) — lá o defeito era
+ * latente, não ativo. Uma regra só pros dois evita que ele acorde depois.
+ */
+function entradasDeLista(txt) {
+  return txt
+    .split(/\r?\n/)
+    .map((l) => l.split('#')[0].trim())
+    .filter(Boolean);
+}
+
 function entradasDaListaCurada() {
   if (!existsSync(LISTA_CURADA)) return [];
-  return readFileSync(LISTA_CURADA, 'utf8')
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith('#'));
+  return entradasDeLista(readFileSync(LISTA_CURADA, 'utf8'));
 }
 
 /**
@@ -217,10 +239,7 @@ function emQuarentena() {
   if (!existsSync(dir)) return [];
   const out = new Set();
   for (const f of readdirSync(dir).filter((f) => /quarantine.*\.list$/i.test(f))) {
-    for (const l of readFileSync(join(dir, f), 'utf8').split(/\r?\n/)) {
-      const t = l.trim();
-      if (t && !t.startsWith('#')) out.add(t);
-    }
+    for (const t of entradasDeLista(readFileSync(join(dir, f), 'utf8'))) out.add(t);
   }
   return [...out];
 }
@@ -314,6 +333,35 @@ function selftest() {
     estaCoberto('Modules/Alpha/Tests/Unit/QualquerTest.php', aMatriz));
   ok('CONTROLE NEGATIVO: módulo fora da matriz não é coberto',
     !estaCoberto('Modules/Gama/Tests/Unit/QualquerTest.php', aMatriz));
+
+  // ── entradasDeLista: paridade com o `sed 's/#.*//'` das lanes ──────────────
+  // BITE do defeito real (2026-08-07): comentário INLINE é obrigatório nas duas
+  // listas de quarentena (motivo por linha), e a regra antiga o colava no path.
+  const listaInline = [
+    '# cabeçalho de bloco — linha inteira, some',
+    'tests/Feature/Produto/AlvoTest.php          # UC-X-01: motivo escrito',
+    '   tests/Feature/Produto/OutroTest.php\t# outro motivo',
+    '',
+    'tests/Feature/Produto/LimpoTest.php',
+    '   # comentário indentado também some',
+  ].join('\n');
+  const eInline = entradasDeLista(listaInline);
+  ok('BITE: comentário inline NÃO gruda no path',
+    eInline.includes('tests/Feature/Produto/AlvoTest.php'));
+  ok('BITE: nenhuma entrada carrega "#" depois do parse',
+    eInline.every((e) => !e.includes('#')));
+  ok('LIBERA: linha sem comentário passa intacta',
+    eInline.includes('tests/Feature/Produto/LimpoTest.php'));
+  ok('trima espaço à esquerda e tab antes do #',
+    eInline.includes('tests/Feature/Produto/OutroTest.php'));
+  ok('CONTROLE NEGATIVO: linha 100% comentário não vira entrada',
+    eInline.length === 3);
+  ok('CONTROLE NEGATIVO: linha vazia não vira entrada',
+    !eInline.includes(''));
+  // Fecha o laço com o consumidor: entrada parseada tem que CASAR o teste real,
+  // senão o arquivo quarentenado volta a ser contado como órfão.
+  ok('BITE (ponta-a-ponta): entrada parseada casa o path do teste',
+    estaCoberto('tests/Feature/Produto/AlvoTest.php', eInline));
 
   // lista curada
   const wfLista = ['jobs:', '  x:', '    steps:', '      - run: |',
