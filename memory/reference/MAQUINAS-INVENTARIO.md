@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 119 (40 contexts required)
+## 1. Workflows / Gates de CI — 120 (40 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -140,6 +140,7 @@ lifecycle: ativo
 | `tier0-guards-advisory.yml` | Tier-0 guards (WithoutGlobalScopes + BusinessId) |
 | `ui-architecture-gate.yml` | UI architecture gate |
 | `visual-regression.yml` | Visual Regression (Pest 4 Browser) |
+| `whatsapp-pest.yml` | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
 
 ## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — 49 arquivos

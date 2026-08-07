@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **342**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **340**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -125,13 +125,13 @@ lente: [construir]
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 119 workflows por classe
+### Censo — 120 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 87 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 88 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -146,7 +146,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 81 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 84 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -230,6 +230,9 @@ lente: [construir]
 - ~~2026-08-05 — Tratar alerta de ferramenta deduzindo a causa do ARQUIVO SUSPEITO, sem ler o que ela reportou (6 tentativas · e o `.gitleaksignore` era o vazamento)~~
 - ~~2026-08-05 — Confiar que o merge do git protege frontmatter YAML (dois PRs, sem conflito, chave DUPLICADA em produção)~~
 - ~~2026-08-06 — Navegação tem CINCO superfícies na Forja: deduzir camada-a-camada em vez de perguntar ao runtime (8 diagnósticos errados)~~
+- ~~2026-08-07 — Declarar "o protótipo não está no repo" varrendo SÓ o git, com o `DesignSync` à mão (e o hook do incidente gêmeo mudo)~~
+- ~~2026-08-07 — Validar teste em UMA plataforma e concluir que passa (literal `D:/...` é absoluto no Windows e RELATIVO no POSIX)~~
+- ~~2026-08-07 — Ler o `routes.php` do módulo e NÃO ler o `SPEC.md` — o plano nasce paralelo à US que já é dona~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -240,7 +243,7 @@ lente: [construir]
 
 ## Rastro
 
-- **374** handoffs · **592** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **375** handoffs · **592** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-08-07-jana-fusao-onda1`
   - `2026-08-05-sdd-flow-feature-smart-token`
