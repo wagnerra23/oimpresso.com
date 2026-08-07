@@ -1251,7 +1251,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Sells/CreateV3.tsx` · `app/Http/Controllers/SellsV3Controller.php` · `routes/web.php` · verificado@70ebd92 (2026-08-07) — o **scaffold** do preview shipou: rota GET /sells/create-v3, tela e dados de cena (sem store(), sem POST, sem cálculo de valor). A US **não** está fechada — falta o smoke real e a decisão [W] sobre ligar dados reais, que é onde entra o território `[V0]`
 
-**Testado em:** `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (covers US-SELL-058) — UC-V301 rota registrada · UC-V302 nenhuma rota de escrita · UC-V303 fronteira (o V3 não encosta em Create.tsx/SellPosController). Na allowlist da lane `Pest (Sells · MySQL)`; **nunca executado** até o primeiro run de CI deste PR
+**Testado em:** `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (covers US-SELL-058) — UC-V301 rota registrada · UC-V302 nenhuma rota de escrita · UC-V303 fronteira (o V3 não encosta em Create.tsx/SellPosController). Na allowlist da lane `Pest (Sells · MySQL)` e **verde** no run 31203571574 sobre `c0214c6` (`40 passed · 133 assertions`; este arquivo `passed: 3 · failed: 0`), com veredito dos 3 UCs no manifesto do G-7
 
 > owner: luiz · priority: p2 · estimate: 6h · type: story
 > blocked_by: —

@@ -32,11 +32,17 @@ visível pra quem for escrever o teste, sem gate que ela não possa cumprir. Cad
 O resto segue backlog — de propósito: eles exigem sessão autenticada, permissão semeada ou
 render, e nada disso foi escrito ainda.
 
+⚠️ **`✅` não é "o teste passou" — é "o manifesto do G-7 provou".** A primeira redação daqui
+dizia *"vira ✅ com run verde citado"*, e estava errada: o `casos-gate` (required) lê
+`scripts/casos-test-results.json`, e `✅` sem entrada lá vira `status:unverified` e **derruba o
+gate**. Run verde é insumo; o veredito é o manifesto, alimentado por
+`node scripts/casos-results-collect.mjs` (merge per-UC) a partir do JUnit da lane.
+
 ---
 
 ## UC-V301 · A rota de leitura existe e é servida pelo controller do preview
 
-**Status:** 🧪 — teste escrito, **nunca executado** (a lane Pest roda no CI/CT 100, nunca local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). Vira ✅ com run verde citado.
+**Status:** ✅ — verde na lane `Pest (Sells · MySQL)`, [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) sobre `c0214c6` (`40 passed · 133 assertions`; o arquivo contribuiu `passed: 3 · failed: 0`), com o veredito no manifesto do G-7.
 
 - **Dado** o roteador da aplicação carregado,
 - **Quando** se procura a rota nomeada `sells.create-v3`,
@@ -50,7 +56,7 @@ não "a rota está registrada" ([§5](../../../../memory/proibicoes.md), 2026-07
 
 ## UC-V302 · A tela não grava — nenhuma rota de escrita aponta pro controller do preview
 
-**Status:** 🧪 — teste escrito, **nunca executado**. Vira ✅ com run verde citado.
+**Status:** ✅ — verde no mesmo [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574), veredito no manifesto do G-7.
 
 - **Dado** que o preview existe para ensaiar desenho, não para vender,
 - **Quando** se enumeram todas as rotas cujo controller é `SellsV3Controller`,
@@ -63,7 +69,7 @@ escrita" também seria verdade num mundo onde o controller não existe.
 
 ## UC-V303 · Fronteira: o preview não encosta nos artefatos da tela viva
 
-**Status:** 🧪 — teste escrito, **nunca executado**. Vira ✅ com run verde citado.
+**Status:** ✅ — verde no mesmo [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574), veredito no manifesto do G-7.
 
 - **Dado** que a razão de a tela existir é não tocar em `Sells/Create.tsx` (ROTA LIVRE, 99% do volume),
 - **Quando** se inspecionam o controller e a Page do preview,
@@ -97,6 +103,7 @@ pertence a `Sells/Create`, não aqui:
 
 ## Pendências declaradas
 
-- Testes: **1 arquivo** — `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Escrito, ainda não executado**: a lane roda no CI/CT 100, nunca local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)) — o primeiro run verde é que troca os 🧪 por ✅.
+- Testes: **1 arquivo** — `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
+- O que os 3 UCs **não** cobrem: nada de auth, permissão, render ou valor. São contrato de roteamento e de fronteira — os itens de `[BACKLOG]` acima seguem sem prova.
 - Smoke real de tela: pendente. O RUNBOOK ([`RUNBOOK-create-v3.md`](../../../../memory/requisitos/Sells/RUNBOOK-create-v3.md) §F4) prevê smoke em staging; nada disso rodou.
 - Tenant de teste é o fictício **98** ([ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)) — `biz=4` é proibido em teste, fixture ou smoke.
