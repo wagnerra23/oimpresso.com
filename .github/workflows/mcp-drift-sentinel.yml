@@ -49,14 +49,23 @@ jobs:
         if: failure() && steps.drift.outcome == 'failure'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Via env, NÃO interpolado no corpo do `run:` — parte da razão deriva da resposta do
+          # endpoint, e `${{ }}` dentro do script seria superfície de injeção de shell.
+          REASON: ${{ steps.drift.outputs.reason }}
         run: |
           set -euo pipefail
           # Repo é PÚBLICO → corpo enxuto, sem runbook/host/paths (o procedimento de
           # cura fica no README versionado, não numa issue world-readable).
-          TITLE="[mcp-drift] MCP server servindo código velho"
+          #
+          # O corpo carrega a RAZÃO MEDIDA. Antes era fixo ("serve um commit atrás de main"):
+          # afirmava um diagnóstico que o script podia não ter concluído — e de fato os 6 falsos
+          # positivos de "servidor à frente" (ver cabeçalho do .mjs) foram todos reportados aqui
+          # como "commit atrás", o oposto do que havia acontecido.
+          TITLE="[mcp-drift] MCP server fora de sincronia com main"
           BODY=$(cat <<EOF
-          A sentinela detectou que **mcp.oimpresso.com** serve um commit atrás de \`main\`
-          além do limite tolerado (provável: o cron de cura no CT 100 parou).
+          A sentinela ALARMOU sobre **mcp.oimpresso.com**.
+
+          **Razão medida:** ${REASON:-(razão não reportada pelo script)}
 
           **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
