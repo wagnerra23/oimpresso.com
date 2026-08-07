@@ -28,11 +28,13 @@ use Modules\Ponto\Entities\Intercorrencia;
 class JornadaWorkflowContratoTest extends PontoTestCase
 {
     private const MARCADOR = 'SDD-WORKFLOW-CONTRATO';
-    private const BIZ_ALHEIO = 99;
+    /** Alias local do empregador fictício herdado — um vocabulário só (PontoTestCase). */
+    private const BIZ_ALHEIO = self::BIZ_ALHEIO_FICTICIO;
 
     protected function tearDown(): void
     {
         $this->limparFixtures();
+        $this->removerBizAlheio(); // depois do cleanup: FK sem CASCADE (ver PontoTestCase)
         parent::tearDown();
     }
 
@@ -161,11 +163,33 @@ class JornadaWorkflowContratoTest extends PontoTestCase
             $this->markTestSkipped('Business logado colide com o business fictício do teste.');
         }
 
+        $this->garantirBizAlheio();
+
         $meu    = $this->criarIntercorrencia();
         $alheio = $this->criarIntercorrencia(['business_id' => self::BIZ_ALHEIO]);
 
         $this->from('/ponto/aprovacoes')
             ->post('/ponto/aprovacoes/lote', ['ids' => [$meu, $alheio]]);
+
+        // Pré-condição anti-vácuo: PROVA que o lote executou.
+        //
+        // Sem isto o caso mede não-execução e chama de isolamento: um POST que falhe
+        // por QUALQUER motivo (validação do `ids.*|uuid`, 419, 403, 500, rota morta)
+        // deixa o alheio PENDENTE — e as duas asserções de baixo passam felizes, com
+        // o guard Tier 0 nunca exercido. É a classe LC-13 do §5 (2026-07-24): teste
+        // que afirma "X foi preservado" tem de provar, no MESMO caso, que a operação
+        // aconteceu.
+        $this->assertSame(
+            Intercorrencia::ESTADO_APROVADA,
+            $this->lerCru($meu)->estado,
+            'O lote precisa ter APROVADO a intercorrência do meu empregador — se não '
+            . 'aprovou nada, o caso não provou isolamento, provou que o POST falhou.'
+        );
+        $this->assertSame(
+            $this->admin->id,
+            (int) $this->lerCru($meu)->aprovador_id,
+            'O aprovador gravado tem de ser quem executou o lote.'
+        );
 
         $this->assertSame(
             Intercorrencia::ESTADO_PENDENTE,
@@ -330,6 +354,13 @@ class JornadaWorkflowContratoTest extends PontoTestCase
         if ((int) $this->business->id === self::BIZ_ALHEIO) {
             $this->markTestSkipped('Business logado colide com o business fictício do teste.');
         }
+
+        $this->garantirBizAlheio();
+
+        // Controle positivo: a MINHA abre. Sem ele, um 404 vindo de rota quebrada,
+        // permissão ausente ou tela morta passaria por "isolamento funcionando".
+        $meu = $this->criarIntercorrencia();
+        $this->inertiaGet("/ponto/intercorrencias/{$meu}")->assertStatus(200);
 
         $alheio = $this->criarIntercorrencia(['business_id' => self::BIZ_ALHEIO]);
 
