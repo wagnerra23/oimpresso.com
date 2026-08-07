@@ -354,6 +354,28 @@ class DataController extends Controller
                 'radio_input_name' => 'campaigns_view',
                 'end_group' => true,
             ],
+            // US-GOV-059 classe C — as 3 abaixo já eram EXIGIDAS pelo código e não
+            // existiam nem aqui nem na tabela `permissions` (verificado em prod:
+            // 495 permissões, nenhuma delas). Sem declaração ninguém podia
+            // recebê-las, então as ações só funcionavam pra admin via Gate::before.
+            // Declaradas em vez de reaproveitar irmãs, porque nenhuma cobre:
+            // deletar ≠ acessar (`access_all_campaigns` é leitura), template de
+            // proposta ≠ `access_proposal`, e não há permissão de relatórios.
+            [
+                'value' => 'crm.delete_campaign',
+                'label' => __('crm::lang.delete_campaign'),
+                'default' => false,
+            ],
+            [
+                'value' => 'crm.add_proposal_template',
+                'label' => __('crm::lang.add_proposal_template'),
+                'default' => false,
+            ],
+            [
+                'value' => 'crm.view_reports',
+                'label' => __('crm::lang.view_reports'),
+                'default' => false,
+            ],
             [
                 'value' => 'crm.access_contact_login',
                 'label' => __('crm::lang.access_contact_login'),

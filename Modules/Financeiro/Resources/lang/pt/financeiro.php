@@ -16,6 +16,7 @@ return [
     'permissao_contas_receber_baixar' => 'Financeiro: baixar contas a receber',
     'permissao_contas_pagar_view' => 'Financeiro: ver contas a pagar',
     'permissao_contas_pagar_create' => 'Financeiro: criar contas a pagar',
+    'permissao_lancamentos_create' => 'Financeiro: criar lançamentos no caixa',
     'permissao_contas_pagar_pagar' => 'Financeiro: pagar contas a pagar',
     'permissao_titulo_aprovar' => 'Financeiro: aprovar/rejeitar títulos pendentes (workflow)',
     'permissao_caixa_view' => 'Financeiro: ver caixa e fluxo',
