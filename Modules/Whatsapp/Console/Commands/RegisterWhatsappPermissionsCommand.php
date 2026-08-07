@@ -20,7 +20,7 @@ use Spatie\Permission\PermissionRegistrar;
  * Sem registry, roles não conseguem atribuir e atendentes nunca tiveram acesso ao
  * Whatsapp — atalho só visível via gate `whatsapp.view-all-phones` (Admin#{biz} bypass).
  *
- * Fonte canônica das 6 permissions: `DataController::user_permissions()`.
+ * Fonte canônica das 7 permissions: `DataController::user_permissions()`.
  *
  * Uso pós-deploy (sequência recomendada):
  *   1) Preview:   php artisan whatsapp:register-permissions --business=1 --dry-run
