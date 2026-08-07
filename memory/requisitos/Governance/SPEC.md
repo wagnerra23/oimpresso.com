@@ -1022,6 +1022,20 @@ A ressalva que travava a remoção era sempre a mesma: *"o detector lê código,
 
 **Nota sobre B/C/D:** o denominador de declaração do detector são 5 fontes (`DataController`, `Resources/permissions.php`, `role/*.blade.php`, `PermissionsTableSeeder`, `syncPermissions` em runtime). Seeders de módulo (ex.: `NfeFiscalActionsSeeder`) **não** entram — foi o que fez `fiscal.inutilizar` aparecer. Antes de declarar qualquer permissão da classe C, conferir se ela já existe em fonte fora dessas cinco.
 
+#### Classe B triada — 2026-08-07
+
+**`restaurant.view` — CORRIGIDO.** A view escondia a tabela de modificadores atrás de `restaurant.view`, que não existe; o `ModifierSetsController` inteiro gateia por `product.*` (`create`/`update`), e a própria datatable monta os botões com `@can("product.update")`. Trocado por `product.view` (declarada no `PermissionsTableSeeder` e nas telas de papel). **Precedente no mesmo arquivo:** o `restaurant.create` já tinha sido corrigido para `product.create` antes, com a explicação idêntica no comentário — este PR só fecha o irmão que sobrou. `restaurant.create` já não aparece no relatório desde o fix do detector (a menção restante é comentário).
+
+**As 3 `hms.*` — NÃO tocadas, por decisão.** `hms.add_booking_payment`, `hms.edit_booking_payment` e `hms.delete_booking_payment` vivem no `TransactionPaymentController` (core UltimatePOS), e em **todas** as ocorrências aparecem como termo adicional de um **OR** com permissões que existem:
+
+```php
+can('purchase.payments') || can('hms.add_booking_payment') || can('sell.payments') || …
+```
+
+Como a permissão não existe, o termo é sempre `false`, e `false || X === X` — **são funcionalmente inócuas**. Removê-las seria neutro no comportamento e traria −3 no contador, mas o preço é editar autorização de **pagamento**, que cai sob a regra-mestre VALOR/ESTOQUE (dupla confirmação + impacto apresentado). Risco desproporcional ao ganho, num arquivo de fork upstream que pode ser rebaseado. Ficam como **resíduo declarado**: aparecem no relatório e a razão está aqui.
+
+**Achado adjacente, não corrigido (é outro escopo):** o `ModifierSetsController::index()` **não tem gate de permissão** — filtra só por `business_id`. A view escondia a tabela, mas o endpoint AJAX já servia os dados a qualquer usuário autenticado do business. Ou seja, o `@can` da view nunca foi a barreira real; trocá-lo não afrouxa nada. Se a listagem de modificadores devia ser restrita, o gate precisa estar no controller — decisão [W].
+
 **A conferência foi FEITA — e o ponto cego NÃO explica a classe C.** Medido em 2026-08-06 (recibo abaixo): das **37** órfãs do censo, **1 única** aparece declarada em seeder — `fiscal.inutilizar`, em [`NfeFiscalActionsSeeder.php:51`](../../../database/seeders/NfeFiscalActionsSeeder.php) mais o `syncRoles` da L173, que é justamente o caso A-2 já conhecido acima. As outras **36 não existem em seeder algum**. Consequência para quem for triar: a classe C **não pode ser descartada como cegueira do detector** — aquelas permissões estão mesmo sem declaração em lugar nenhum, e a decisão sobre elas (declarar × remover o `can()`) é de mérito, não de instrumento.
 
 ```bash

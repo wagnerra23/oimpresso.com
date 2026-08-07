@@ -43,7 +43,13 @@
         @endcan
     </div>
     <div class="box-body">
-        @can('restaurant.view')
+        {{-- `product.view` pelo mesmo motivo do `product.create` acima: o módulo
+             de restaurante não existe nesta árvore e `restaurant.view` não é
+             declarada em lugar nenhum — ninguém podia recebê-la, então a tabela
+             só aparecia pra admin via Gate::before, escondendo de quem tem
+             product.view uma listagem que o endpoint já servia. O controller
+             inteiro gateia por `product.*` (create/update). US-GOV-059 classe B. --}}
+        @can('product.view')
             <table class="table table-bordered table-striped" id="modifier_table">
                 <thead>
                     <tr>
