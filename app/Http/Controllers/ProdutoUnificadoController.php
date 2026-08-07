@@ -160,7 +160,12 @@ class ProdutoUnificadoController extends Controller
     {
         $cats = Category::where('categories.business_id', $business_id)
             ->where('categories.category_type', 'product')
-            ->whereNull('categories.parent_id')
+            // Raiz em UltimatePOS é `parent_id = 0`, NUNCA NULL — a coluna é int(11) NOT NULL
+            // e a convenção está declarada em três lugares independentes de App\Category:
+            // catAndSubCategories() compara `== 0`, forDropdown() usa where('parent_id', 0),
+            // scopeOnlyParent() idem. O `whereNull` que estava aqui não casava linha nenhuma:
+            // mesmo sem o 500, a sub-tela Categorias voltava vazia com o banco cheio.
+            ->where('categories.parent_id', 0)
             ->select('categories.id', 'categories.name', 'categories.slug')
             ->leftJoin('products', 'products.category_id', '=', 'categories.id')
             ->groupBy('categories.id', 'categories.name', 'categories.slug')
