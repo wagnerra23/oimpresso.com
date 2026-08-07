@@ -1,16 +1,16 @@
 ---
-page: /jana/chat
+page: /ia/conversa
 component: resources/js/Pages/Jana/Chat.tsx
 owner: wagner
 status: live
-last_validated: "2026-05-18"
+last_validated: "2026-08-07"
 parent_module: Jana
-related_adrs: [110, 94, 107, 114]
+related_adrs: [110, 94, 107, 114, 180]
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
-# Page Charter — /jana/chat
+# Page Charter — /ia/conversa
 
 > **Status:** novo (P2 do `TELAS_REVIEW_QUEUE.md`). Charter criado ANTES do refator visual pra fixar escopo — evita virar Christmas tree de features. Este é o **único ponto de IA conversacional cliente-facing** do oimpresso (Brain B / Sonnet via gateway interno).
 
@@ -27,7 +27,10 @@ Conversar com a Jana (IA assistente do oimpresso) pra **consultar dados** (venda
 - AppShellV2 + topnav inline com breadcrumb (Cockpit V2 canon)
 - **Header sticky área "JANA"** com dot da área (hue 220 — SIDEBAR_GROUP_HUE.ia) + label "JANA" à esquerda + **tabs `Dashboard | Chat`** (navegação Inertia entre `/jana/dashboard` e `/jana`). Espelha `prototipo-ui/_cowork-export-2026-05-15/app.jsx` Header function (L247-336). Componente compartilhado `JanaAreaHeader` plugado em Chat.tsx + Dashboard.tsx. Tabs usam `<Link>` (Inertia router.get) com `data-active` baseado em URL atual. Sticky `top-0 z-10 backdrop-blur` mantém referência visual durante scroll thread. Charter §UX Anti-patterns respeitado: ícones lucide (LayoutDashboard + MessageSquare), nunca emoji.
 - Layout 2-col: histórico de conversas (lista esquerda, ~280px) + thread ativa (centro, fluido)
-- Sidebar "Conversas" com pills de filtro `rounded-full`: Todas / Minhas / Compartilhadas / Arquivadas
+- Sidebar "Conversas" com pills de filtro `rounded-full`: **Todas / Arquivadas** (2 abas, v3 — ver §Histórico). `Todas` = tudo que **não** está arquivado; `Arquivadas` = `status === 'arquivada'`, campo que o `ChatController::buildConversasListPayload` envia em `ConversaResumo.status`
+- **Histórico recolhível**: painel de conversas colapsa pra rail de 40px (⌘⇧H / Ctrl+⇧H, ou o chevron no header), com dica visível `J K anda · ⌘⇧H recolhe` no rodapé do painel. Estado persistido em `localStorage['oimpresso.jana.hist']`. Recolhido, o rail mantém o rótulo vertical "Histórico" + contagem — nunca fica inalcançável
+- **Sobreposição ≤1100px**: em tela estreita o histórico vira overlay sobre a thread (com scrim clicável), em vez de sumir. Escolher conversa fecha o overlay
+- **Região viva `aria-live="polite"`** anuncia a troca de conversa (`Conversa: <título>`) — cobre tanto clique quanto J/K
 - Thread central com bubbles separadas por papel: `user` (direita, `bg-primary/5`) e `assistant` (esquerda, `bg-card`)
 - Cada mensagem do assistente pode renderizar **blocos estruturados** alinhados com o output do Brain B:
   - `tool_use` — chip mostrando ferramenta acionada (ex: "Consultou /sells-list-json")
@@ -37,7 +40,7 @@ Conversar com a Jana (IA assistente do oimpresso) pra **consultar dados** (venda
 - Composer fixo no bottom, multi-line, com `⌘+Enter` / `Ctrl+Enter` pra enviar
 - Indicador "Jana está pensando..." (`animate-pulse` curto, sem skeleton infinito) durante stream
 - Streaming token-a-token (resposta aparece progressiva, não em bloco)
-- Atalhos teclado: `/` foca composer, `J/K` navega entre mensagens da thread, `Esc` desfoca
+- Atalhos teclado: `/` foca composer, **`J/K` navega entre CONVERSAS do histórico** (v3 — era "entre mensagens da thread"; ver §Histórico), `⌘⇧H` recolhe o histórico, `Esc` desfoca. J/K são letras cruas: inertes enquanto o foco está em `input`/`textarea`/`contentEditable`
 - Persistência: thread atual + filtro lista em localStorage prefix `oimpresso.jana.*`
 - Multi-tenant Tier 0: toda thread, mensagem e ação respeitam `business_id` global scope
 - PII: composer mostra aviso sutil quando detecta padrão CPF/CNPJ/cartão antes de enviar
@@ -161,4 +164,5 @@ it('pauses auto-scroll when user scrolls up mid-stream')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-09 | [CC] (Cowork) + [W] | Charter criado em P2 do TELAS_REVIEW_QUEUE.md, antes de qualquer refator visual. Disparado pela auditoria dos 9 charters P0/P1 (sessão 2026-05-09). |
+| 2026-08-07 | [CL] Claude Code | charter_version → 3 (fatia C da fusão Jana, pacote `JANA-FUSAO-2026-08-06`; fonte: `prototipo-ui/cowork/jana-merge.jsx` §`JmConversa` no DesignSync). **(a) `page:` corrigido `/jana/chat` → `/ia/conversa`** — a URL mudou na onda 3 ([routes.php](../../../../Modules/Jana/Http/routes.php), route name `jana.chat.index` preservado) e o charter tinha ficado para trás. **(b) J/K passa a navegar CONVERSAS, não mensagens** — trocar de conversa é o que se faz o dia todo; rolar mensagem é ↑/↓ nativo. Revoga a redação v1/v2 do goal de atalhos. ⚠️ Nota honesta: J/K **nunca chegou a existir** pra mensagens — era goal não-implementado (zero handler de teclado no `.tsx` até aqui), então não há regressão, há goal reescrito antes de nascer. **(c) filtros 4 → 2 abas.** As 3 abas extras mostravam empty state "Em breve"; medido no backend, duas eram estruturalmente impossíveis, não "flag pendente": `Minhas` é TAUTOLÓGICA (`buildConversasListPayload` já faz `where('user_id', $userId)`) e `Compartilhadas` seria SEMPRE vazia (não existe compartilhamento — `abort_unless($conversa->user_id === auth()->id(), 403)` em 4 pontos do ChatController). `Arquivadas` ficou porque a coluna `status` já existia e o PATCH já a aceitava. Reabrir `Compartilhadas` = modelar participantes + afrouxar o 403 → PR próprio e decisão [W]. **(d) histórico recolhível (⌘⇧H) + dica visível + sobreposição ≤1100px + `aria-live`.** O `display:none` em ≤1023px do [cockpit.css](../../../css/cockpit.css) foi removido: ele deixava a lista inalcançável em tela estreita. |
 | 2026-05-18 | [CL] Claude Code + [W] | charter_version → 2. Goal novo: header sticky com tabs `Dashboard | Chat` espelhando `app.jsx` Header function (linhas 247-336 protótipo Cockpit). Componente compartilhado `JanaAreaHeader` em Chat.tsx + Dashboard.tsx. Gate F1.5: `memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md`. Pareado com PR #1053 (Fase 1+2 sidebar reordenada: shortcut Chat→IA). |
