@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 21 |
+| US no SPEC | 22 |
 | CU no SDD | 9 |
 | Telas (.tsx) | 1 |
 | Telas com `casos.md` | 1 |
@@ -60,6 +60,7 @@ authority: generated
 | US-COM-019 | `todo` | Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` |
 | US-COM-020 | `todo` | A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) |
 | US-COM-021 | `todo` | Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 |
+| US-COM-022 | `todo` | Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 run |
 
 ## UC por status
 
