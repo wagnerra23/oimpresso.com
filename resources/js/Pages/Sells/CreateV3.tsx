@@ -107,9 +107,9 @@ export default function SellsCreateV3({ cena }: Props) {
       <Inline
         gap={3}
         align="center"
-        className="flex-wrap rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3"
+        className="flex-wrap rounded-lg border border-warning/30 bg-warning-soft px-4 py-3"
       >
-        <FlaskConical className="size-4 flex-none text-amber-600" aria-hidden />
+        <FlaskConical className="size-4 flex-none text-warning-fg" aria-hidden />
         <div className="min-w-0 text-sm">
           <b className="font-semibold">Preview de design — não é a tela de produção.</b>{' '}
           <span className="text-muted-foreground">
@@ -234,9 +234,11 @@ export default function SellsCreateV3({ cena }: Props) {
                     <Badge variant="destructive">{fechamento.situacao}</Badge>
                   </Inline>
 
-                  {/* plate escuro — o único bloco de peso visual da tela */}
-                  <div className="rounded-xl bg-slate-900 p-4 text-slate-50">
-                    <span className="text-[10.5px] font-semibold uppercase tracking-wider text-slate-400">
+                  {/* plate escuro — o único bloco de peso visual da tela.
+                      Invertido por TOKEN (foreground/background), não por cor crua da paleta
+                      Tailwind: aquela reprova no ds/no-raw-palette-color e não acompanha o tema. */}
+                  <div className="rounded-lg bg-foreground p-4 text-background">
+                    <span className="text-[10.5px] font-semibold uppercase tracking-wider text-background/70">
                       Total da venda
                     </span>
                     <b className="mt-1 block font-mono text-3xl tabular-nums">
