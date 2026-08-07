@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { useBusiness } from '@/Hooks/usePageProps';
+import { usePageProps, useBusiness } from '@/Hooks/usePageProps';
 import { useState, useCallback } from 'react';
 import type { ReactNode, KeyboardEvent } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
@@ -84,11 +84,26 @@ const fmtBRL = (n: number) =>
 const fmtPct = (n: number) => Math.round(n * 100) + '%';
 
 function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insumos, tabelas, historico }: Props) {
-  // O nome da empresa vem do prop compartilhado do Inertia (HandleInertiaRequests),
-  // que o lê da SESSÃO — nunca do cliente (Tier 0, ADR 0093). Até 2026-08-07 esta
-  // tela trazia "ROTA LIVRE" escrito fixo no lugar: toda empresa via o nome de uma
-  // cliente real no cabeçalho. Sem fallback inventado — se o prop faltar, some.
-  const businessName = useBusiness()?.name ?? null;
+  // Nome da empresa: MESMA fonte que o AppShellV2 usa na sidebar
+  // (`shell.cockpit.businessNome`, AppShellV2.tsx:273), que sai de uma query em
+  // `App\Business` — robusta. O `business.name` do shared prop vem da SESSÃO e
+  // chega VAZIO em ambiente de teste, então serve só de fallback: a 1ª versão
+  // deste fix usava só ele e o cabeçalho ficou sem nome nenhum na baseline de
+  // 2026-08-07, enquanto a sidebar ao lado mostrava o tenant certo.
+  // Sem default inventado — `AppShellV2` cai em 'Oimpresso' quando não sabe, e
+  // imprimir isso aqui seria afirmar um tenant que não é o do usuário. Se as duas
+  // fontes falharem, o sufixo some.
+  // Até 2026-08-07 esta linha era "ROTA LIVRE" ESCRITO FIXO: toda empresa via o
+  // nome de uma cliente real no cabeçalho (Tier 0, ADR 0093).
+  // Os DOIS hooks são chamados incondicionalmente de propósito: `a ?? b` não avalia
+  // `b` quando `a` tem valor, e hook em avaliação condicional quebra as Rules of Hooks.
+  // `ShellProps` (types/index.ts:59) ainda não declara `cockpit` — o próprio
+  // AppShellV2 (:244) contorna com tipo local. Mesmo contorno aqui, escopado, em
+  // vez de mexer no tipo compartilhado dentro de um PR de tela.
+  const shell = usePageProps().shell as ({ cockpit?: { businessNome?: string } } | undefined);
+  const nomeDoShell = shell?.cockpit?.businessNome ?? null;
+  const nomeDaSessao = useBusiness()?.name ?? null;
+  const businessName = nomeDoShell ?? nomeDaSessao;
   // Tweaks persistidos (densidade, view, mostrar custo).
   const [tweaks, setTweaksState] = useState<Tweaks>(() => {
     try {
