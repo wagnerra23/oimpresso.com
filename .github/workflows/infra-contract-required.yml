@@ -25,6 +25,14 @@ on:
       # e TODOS os webhooks são de módulo.
       - 'Modules/**/Http/Middleware/**'
       - 'Modules/**/Routes/**'
+      # `Http/routes.php` é a MINORIA convivendo com o padrão acima, e escapava:
+      # medido 2026-08-07 — `Modules/*/Routes/*` = 50 arquivos (padrão dominante),
+      # `Modules/*/Http/routes.php` = 5 (Forja · Governance · Jana · KB · Ponto),
+      # com 57 commits em 90d. O #5357 mexeu numa rota da Jana (redirect 301 de
+      # /ia/painel) e passou sem Infra Contract exatamente por este vão.
+      # Enforcement deste workflow: ver governance/required-checks-baseline.json —
+      # o nome do arquivo não é fonte disso (§5 2026-07-16).
+      - 'Modules/**/Http/routes.php'
       - 'Modules/**/Providers/*ServiceProvider.php'
       - 'Modules/**/Http/Controllers/**/*Webhook*.php'
 

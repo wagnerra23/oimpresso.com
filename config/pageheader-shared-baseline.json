@@ -49,7 +49,6 @@
     "resources/js/Pages/governance/ModuleGrades/Index.tsx",
     "resources/js/Pages/governance/ModuleGrades/Show.tsx",
     "resources/js/Pages/governance/Policies.tsx",
-    "resources/js/Pages/Jana/Regras/Index.tsx",
     "resources/js/Pages/kb/Graph.tsx",
     "resources/js/Pages/kb/Index.tsx",
     "resources/js/Pages/kb/Index.v2.tsx",
