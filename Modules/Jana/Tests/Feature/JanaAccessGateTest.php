@@ -107,11 +107,17 @@ it('NÃO TRANCA O ERP: sem jana.access, /home leva ao dashboard legado — nunca
     $response->assertRedirect('/dashboard-legacy');
 });
 
-it('com jana.access, /home segue levando ao dashboard da Jana (destino canon intacto)', function () {
+// Onda 3 da fusão (US-COPI-148, 2026-08-07): o destino continua sendo o Painel da
+// Jana — MESMA tela, endereço novo. Era `/ia/dashboard`, virou a raiz `/ia`, e o
+// `/home` passou a apontar direto (antes seria 302→301, um hop por login).
+//
+// O contrato que este teste defende não mudou: "quem tem jana.access cai no Painel
+// da Jana, não no dashboard legado". Só o literal da URL acompanhou o rename.
+it('com jana.access, /home segue levando ao Painel da Jana (destino canon intacto)', function () {
     $this->user->givePermissionTo('jana.access');
     $this->user->forgetCachedPermissions();
 
-    $this->actingAs($this->user)->get('/home')->assertRedirect('/ia/dashboard');
+    $this->actingAs($this->user)->get('/home')->assertRedirect('/ia');
 });
 
 it('LIMITE HONESTO: admin passa MESMO sem a permissão (Gate::before)', function () {

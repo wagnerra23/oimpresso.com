@@ -9,14 +9,20 @@ use Inertia\Inertia;
 use Modules\Jana\Entities\Meta;
 
 /**
- * Dashboard canon da Jana V2 — JanaCockpitV2 (brief diário + KPIs + análises + ações)
- * hospedado em /ia/dashboard, com Metas como bloco secundário.
+ * Painel da Jana — a raiz do módulo (`GET /ia`).
  *
- * Antes da Onda 2026-05-26 (jana-cockpit-move), este controller passava só `metas`
- * e o cockpit V2 vivia como tab em /sells. Hoje JanaCockpitV2 é o conteúdo primário —
- * a marca IA (Jana) ganha sua tela própria.
+ * Onda 3 da fusão (US-COPI-148, 2026-08-07): era `DashboardController` em
+ * `/ia/dashboard`. A rota mudou para `/ia` porque o Painel JÁ ERA o destino
+ * pós-login — `routes/web.php` fazia `/home → redirect('/ia/dashboard')` —,
+ * então a troca alinha a URL com o que já acontecia, em vez de inverter produto.
+ * `/ia/dashboard` e `/ia/cockpit` viraram **301** para `/ia`.
+ *
+ * ⚠️ O conteúdo primário vem do `_components/JanaCockpit.tsx` (PT-04), NÃO do
+ * `components/JanaCockpitV2.tsx` — este último carrega o bundle `.sells-cowork` e
+ * serve a tab Insights de `/sells`. Trocar um pelo outro reintroduz o bundle
+ * paralelo que a R7 do `ui:lint` proíbe. Ver `RUNBOOK-components.md`.
  */
-class DashboardController extends Controller
+class IndexController extends Controller
 {
     public function index(Request $request, SellsCockpitAggregator $cockpitAggregator)
     {
@@ -24,9 +30,9 @@ class DashboardController extends Controller
         $businessName = (string) ($request->session()->get('business.name') ?? '');
 
         // Wagner 2026-05-25 HOTFIX pós-PR #1547: `metas` SEM Inertia::defer porque
-        // Dashboard.tsx lê `metas.length` direto. coworkAggregates pode usar defer
-        // (JanaCockpitV2 é resiliente — sparkline opcional, idem em /sells).
-        return Inertia::render('Jana/Dashboard', [
+        // a Page lê `metas.length` direto. coworkAggregates pode usar defer
+        // (o cockpit é resiliente — sparkline opcional, idem em /sells).
+        return Inertia::render('Jana/Index', [
             'metas' => $this->buildMetasPayload($businessId),
 
             // Jana V2 cockpit (movido de /sells — agora canon aqui).
