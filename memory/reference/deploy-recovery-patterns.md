@@ -554,3 +554,45 @@ Cross-ref: `hostinger.md` (SSH/composer/php paths) · [session 2026-06-20](../se
 §10 desaconselha **outro boot-smoke console** e **dump-autoload extra incondicional** — corretos, pois lá o gap era **runtime/cadência do cron** (deploy já cobria seu próprio sinal). Aqui o gap é **deploy-time e de eixo WEB**: o deploy declarava sucesso / deixava o site no ar com middleware web irresolvível que o `about` não enxerga. O `verify-classmap` é **condicional** (re-dump só se stale) e o boot gate é **no SAPI real** (não um about a mais). Mitigação de processo do §10 (bachar merges, não cancelar deploy no meio, não trocar pra `cancel-in-progress:true`) **continua valendo** — o release atômico (avaliado em [session 2026-06-23](../sessions/2026-06-23-incidente-deploy-stale-classmap-web-middleware.md)) é o fix durável da causa-raiz (deploy cancelado nunca toca o que está no ar).
 
 Cross-ref: [session 2026-06-23](../sessions/2026-06-23-incidente-deploy-stale-classmap-web-middleware.md) · `incidente-deploy-stale-classmap-500` (auto-mem) · [ADR 0269](../decisions/0269-deploy-automatico-build-no-runner.md) · `scripts/deploy/verify-classmap.php`.
+
+---
+
+## 12. PR aberto durante outage do GitHub Actions nasce SEM workflow nenhum (e a fila drena sem ele)
+
+> Vivido em 2026-08-07 no [#5357](https://github.com/wagnerra23/oimpresso.com/pull/5357). Entra aqui, e não num doc novo, porque o outage derruba **o mesmo pipeline** que serve o deploy — o `Deploy to Hostinger` também ficou `queued` na mesma janela.
+
+### Assinatura (reconhecer em 30s)
+
+- `gh pr checks <N>` responde **`no checks reported`**; `statusCheckRollup` tem **`total: 0`**.
+- `mergeStateStatus: BLOCKED` **sem nenhuma falha** — bloqueia porque os required nunca chegaram, não porque reprovaram.
+- `gh api "repos/<owner>/<repo>/actions/runs?head_sha=<sha>"` devolve **`total_count: 0`** — os runs não existem, não estão só atrasados.
+- `check-suites` do commit mostram só as dos **apps** (`claude`, `cursor`), **sem a do `github-actions`**.
+
+### Como distinguir de "fila cheia" (que se resolve sozinha)
+
+| Sinal | Fila cheia | Evento perdido |
+|---|---|---|
+| runs do SEU sha | existem, `queued` | **`total_count: 0`** |
+| fila do repo | drena e o seu entra | **drena e o seu continua ausente** |
+
+O segundo caso foi o real: a fila caiu de 82 → 4 e o PR seguiu com 0 checks. Isso prova que **não era espera** — o evento `pull_request opened` se perdeu durante a queda e o GitHub **não reprocessa**.
+
+### Receita
+
+```bash
+# 1) Confirmar que é o Actions e não o repo (o oráculo é o status público, não o palpite)
+curl -s https://www.githubstatus.com/api/v2/status.json
+gh api repos/<owner>/<repo>/actions/permissions   # esperado: enabled:true
+
+# 2) Se o Actions está de pé e o SEU sha tem total_count:0 → re-disparar
+gh pr close  <N> && sleep 5 && gh pr reopen <N>
+```
+
+`close`+`reopen` emite `pull_request: reopened`, que é um dos tipos do **default** do trigger (`opened, synchronize, reopened`) — ou seja, funciona em todo workflow que declara `pull_request:` sem `types:` explícito. No #5357 recriou **119 checks** na hora. Alternativa equivalente: `git commit --allow-empty` + push (emite `synchronize`), ao custo de sujar o histórico.
+
+### O que NÃO fazer
+
+- **Não** partir pra `--admin` / desligar `enforce_admins`: o merge está bloqueado por **ausência** de checks, não por reprovação — bypassar aqui manda pra `main` código que gate nenhum olhou. Foi o caminho recusado no #5357, e o `close`+`reopen` resolveu sem tocar em proteção.
+- **Não** tentar cancelar os runs presos durante o outage: `cancel` e `force-cancel` devolvem **HTTP 500** enquanto a API de Actions está degradada (medido nos 4 zumbis de 2026-05-15, que sobrevivem há meses justamente por isso).
+
+Cross-ref: [session 2026-08-07](../sessions/2026-08-07-jana-fusao-onda1.md) · §2.1 (checklist "tela não aparece pós-merge") · [ADR 0269](../decisions/0269-deploy-automatico-build-no-runner.md).
