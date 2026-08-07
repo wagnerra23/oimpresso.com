@@ -95,7 +95,7 @@ function formatCurrency(value: number) {
 }
 
 // Gradiente do avatar do Copiloto (usado em todas msgs do assistant)
-const COPILOTO_AVATAR: AvatarRef = { iniciais: 'CP', gradId: 17 };
+const COPILOTO_AVATAR: AvatarRef = { iniciais: 'JA', gradId: 17 };
 
 // Adaptador: converte Mensagem do backend (role/content) → Mensagem do Cockpit (autor/texto)
 function adaptarMensagem(m: MensagemBackend): CockpitMensagem {
