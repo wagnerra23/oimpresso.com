@@ -18,6 +18,7 @@
 import React, { type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
+import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import KpiGrid from '@/Components/shared/KpiGrid'
@@ -224,6 +225,7 @@ const DsRollout: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
 
   return (
     <div className="mx-auto max-w-5xl">
+      <GovernancaSubNav active="ds-rollout" />
       <PageHeader
         title="Rollout do Design System"
         suffix=" · em ondas medíveis"

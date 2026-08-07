@@ -12,9 +12,9 @@ module: NfeBrasil
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs NfeBrasil --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/NfeBrasil/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 167 arquivos em 19 papéis.
+**Total mapeado:** 204 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -175,13 +175,49 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 52
+## Testes (Pest) — 53
 
-- 52 arquivos em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 53 arquivos em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 4
+## Demais arquivos (manifestos, docs, assets e misc) — 40
 
+- [CHANGELOG.md](../../../Modules/NfeBrasil/CHANGELOG.md)
+- [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
 - [NfseCancelDriverInterface.php](../../../Modules/NfeBrasil/Contracts/NfseCancelDriverInterface.php)
+- [.gitkeep](../../../Modules/NfeBrasil/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Entities/.gitkeep)
 - [NcmObrigatorioException.php](../../../Modules/NfeBrasil/Exceptions/NcmObrigatorioException.php)
 - [TributacaoNaoConfiguradaException.php](../../../Modules/NfeBrasil/Exceptions/TributacaoNaoConfiguradaException.php)
+- [.gitkeep](../../../Modules/NfeBrasil/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Http/Requests/.gitkeep)
 - [DanfeNotaFiscalMail.php](../../../Modules/NfeBrasil/Mail/DanfeNotaFiscalMail.php)
+- [.gitkeep](../../../Modules/NfeBrasil/Providers/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Resources/assets/.gitkeep)
+- [app.js](../../../Modules/NfeBrasil/Resources/assets/js/app.js)
+- [app.scss](../../../Modules/NfeBrasil/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/NfeBrasil/Resources/lang/.gitkeep)
+- [nfebrasil.php](../../../Modules/NfeBrasil/Resources/lang/pt-BR/nfebrasil.php)
+- [comercio-atacado-simples-sp.php](../../../Modules/NfeBrasil/Resources/templates/comercio-atacado-simples-sp.php)
+- [comercio-varejo-presumido-sp.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-presumido-sp.php)
+- [comercio-varejo-real-sp.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-real-sp.php)
+- [comercio-varejo-simples-mg.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-simples-mg.php)
+- [comercio-varejo-simples-rj.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-simples-rj.php)
+- [comercio-varejo-simples-rs.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-simples-rs.php)
+- [comercio-varejo-simples-sc.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-simples-sc.php)
+- [comercio-varejo-simples-sp.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-simples-sp.php)
+- [industria-grafica-presumido-sp.php](../../../Modules/NfeBrasil/Resources/templates/industria-grafica-presumido-sp.php)
+- [industria-grafica-simples-sp.php](../../../Modules/NfeBrasil/Resources/templates/industria-grafica-simples-sp.php)
+- [mei-varejo-sp.php](../../../Modules/NfeBrasil/Resources/templates/mei-varejo-sp.php)
+- [.gitkeep](../../../Modules/NfeBrasil/Resources/views/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Routes/.gitkeep)
+- [SCOPE.md](../../../Modules/NfeBrasil/SCOPE.md)
+- [.gitkeep](../../../Modules/NfeBrasil/Tests/Feature/.gitkeep)
+- [.gitkeep](../../../Modules/NfeBrasil/Tests/Unit/.gitkeep)
+- [composer.json](../../../Modules/NfeBrasil/composer.json)
+- [module.json](../../../Modules/NfeBrasil/module.json)
+- [package.json](../../../Modules/NfeBrasil/package.json)
+- [vite.config.js](../../../Modules/NfeBrasil/vite.config.js)

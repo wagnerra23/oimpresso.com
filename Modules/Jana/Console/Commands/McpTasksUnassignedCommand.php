@@ -13,7 +13,7 @@ use Modules\Jana\Entities\Mcp\McpTask;
  *
  * Por que importa (furo #2 da auditoria 2026-06-21, US-INFRA-043): toda US criada
  * por `tasks-create` nasce `todo`/`unowned`/sem-cycle. Jana filtra o roadmap por
- * `cycle_id` (e ProjectMgmt por `epic_id`) — então a US fica INVISÍVEL no roadmap
+ * `cycle_id` (e Forja por `epic_id`) — então a US fica INVISÍVEL no roadmap
  * até alguém escrever `cycle:` na linha do SPEC.md à mão (foi o que o #3165 teve
  * que fazer nas 6 US do #3164). Nada cobrava a triagem: o `triage` é não-bloqueante
  * e afogado, e `mcp:tasks:orphans` mede a direção oposta (DB sem SPEC).

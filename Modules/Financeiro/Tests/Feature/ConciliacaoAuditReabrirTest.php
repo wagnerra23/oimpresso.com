@@ -84,7 +84,7 @@ function inserirLinhaConciliacao(int $businessId, array $overrides = []): int
     ], $overrides));
 }
 
-it('match() escreve entrada de auditoria via FinanceiroAuditLogger', function () {
+it('UC-FCC-09 · match() escreve entrada de auditoria via FinanceiroAuditLogger', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 
@@ -134,7 +134,7 @@ it('match() escreve entrada de auditoria via FinanceiroAuditLogger', function ()
     DB::table('fin_titulos')->where('id', $tituloId)->delete();
 });
 
-it('ignorar() escreve entrada de auditoria via FinanceiroAuditLogger', function () {
+it('UC-FCC-09 · ignorar() escreve entrada de auditoria via FinanceiroAuditLogger', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 
@@ -160,14 +160,37 @@ it('ignorar() escreve entrada de auditoria via FinanceiroAuditLogger', function 
     DB::table('fin_bank_statement_lines')->where('id', $lineId)->delete();
 });
 
-it('reabrir() volta status pra pendente e zera titulo_id/match_score', function () {
+it('UC-FCC-06 · reabrir() volta status pra pendente e zera titulo_id/match_score', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
+
+    // titulo_id REAL — fin_bank_statement_lines.titulo_id tem FK → fin_titulos.
+    // (Antes: 12345 hardcoded → SQLSTATE[23000] fin_bank_statement_lines_titulo_id_foreign
+    // e o caso morria no SETUP, sem NUNCA exercer reabrir(). O [must] [T0] deste UC ficava
+    // sem prova enquanto o arquivo parecia "1 failed" de produto. Mesmo padrão do caso
+    // irmão UC-FCC-09 acima, que já criava título real.)
+    $tituloId = (int) DB::table('fin_titulos')->insertGetId([
+        'business_id'     => $businessId,
+        'numero'          => 'REABRIR-'.uniqid(),
+        'tipo'            => 'receber',
+        'status'          => 'aberto',
+        'valor_total'     => 100.00,
+        'valor_aberto'    => 100.00,
+        'moeda'           => 'BRL',
+        'emissao'         => now()->toDateString(),
+        'vencimento'      => now()->toDateString(),
+        'competencia_mes' => now()->format('Y-m'),
+        'origem'          => 'manual',
+        'origem_id'       => random_int(900000, 999999),
+        'created_by'      => $user->id,
+        'created_at'      => now(),
+        'updated_at'      => now(),
+    ]);
 
     // Linha já conciliada (com titulo_id + match_score) pra ter o que desfazer.
     $lineId = inserirLinhaConciliacao($businessId, [
         'status'        => 'conciliado',
-        'titulo_id'     => 12345,
+        'titulo_id'     => $tituloId,
         'match_score'   => 0.85,
         'conciliado_by' => $user->id,
         'conciliado_at' => now(),
@@ -185,9 +208,10 @@ it('reabrir() volta status pra pendente e zera titulo_id/match_score', function 
     expect($linha->match_score)->toBeNull();
 
     DB::table('fin_bank_statement_lines')->where('id', $lineId)->delete();
+    DB::table('fin_titulos')->where('id', $tituloId)->delete();
 });
 
-it('reabrir() é idempotente — linha já pendente continua pendente (sem erro)', function () {
+it('UC-FCC-07 · reabrir() é idempotente — linha já pendente continua pendente (sem erro)', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 
@@ -205,7 +229,7 @@ it('reabrir() é idempotente — linha já pendente continua pendente (sem erro)
     DB::table('fin_bank_statement_lines')->where('id', $lineId)->delete();
 });
 
-it('Tier 0: reabrir() de linha de OUTRO business retorna 404 (ADR 0093)', function () {
+it('UC-FCC-08 · Tier 0: reabrir() de linha de OUTRO business retorna 404 (ADR 0093)', function () {
     $user = conciliacaoBootstrap();
     $businessId = (int) session('user.business_id');
 

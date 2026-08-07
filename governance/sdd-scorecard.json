@@ -15,42 +15,44 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 87.8,
+      "value": 88.1,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 87.8,
+        "coverage_pct": 88.1,
         "specs_total": 51,
-        "us_total": 930,
-        "anchor_coverage_pct": 87.8,
+        "us_total": 954,
+        "anchor_coverage_pct": 88.1,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 379,
-          "parcial": 114,
-          "anchored_ok": 324,
-          "anchored_dead": 0,
+          "pendente": 401,
+          "parcial": 112,
+          "anchored_ok": 327,
+          "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 823,
+        "fields_total": 848,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 772,
-        "orphan_fields": 5,
+        "fields_grammar_ok": 789,
+        "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 248,
-        "req_sem_covering_test_total": 353,
+        "req_sem_aceite_total": 245,
+        "req_sem_covering_test_total": 349,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 56,
+        "req_sem_lane_total": 53,
         "behavior_known": false,
-        "servido_total": 16,
+        "servido_total": 17,
         "nao_servido_total": 89,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
         "anchor_stale_fresco_total": null,
+        "anchor_stale_via_base_derivada_total": null,
+        "anchor_stale_via_base_motivos": null,
         "anchor_stale_unknown_total": null,
         "anchor_stale_unknown_motivos": null,
         "baseline_applied": null,
@@ -59,7 +61,7 @@
           "covering_test": 0,
           "covers": 0
         },
-        "v1_files": 5,
+        "v1_files": 6,
         "v1_violations": "0[object Object]"
       },
       "stream": "SA"
@@ -72,34 +74,34 @@
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "b387d15388b36bf2",
+        "floor_files_hash": "0ff8c3d0f2d33dc7",
         "runs": [
           {
-            "sha": "92b0f655",
-            "ts": "20260728-020001",
-            "failed": 673,
-            "errors": 493,
-            "skipped": 2229,
+            "sha": "017eac4d",
+            "ts": "20260805-020001",
+            "failed": 660,
+            "errors": 392,
+            "skipped": 2249,
             "all_shards_measured": true
           },
           {
-            "sha": "2829d201",
-            "ts": "20260729-020001",
-            "failed": 682,
-            "errors": 426,
-            "skipped": 2260,
+            "sha": "b611860f",
+            "ts": "20260806-020001",
+            "failed": 647,
+            "errors": 408,
+            "skipped": 2242,
             "all_shards_measured": true
           },
           {
             "sha": null,
-            "ts": "20260730-020001",
-            "failed": 650,
-            "errors": 477,
-            "skipped": 2242,
+            "ts": "20260807-020001",
+            "failed": 653,
+            "errors": 393,
+            "skipped": 2253,
             "all_shards_measured": true
           }
         ],
-        "computed_at": "20260730-020001",
+        "computed_at": "20260807-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -118,38 +120,38 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 17.8,
+      "value": 19.9,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 42870,
-        "total": 240778,
+        "covered": 46714,
+        "total": 234912,
         "runs": [
           {
-            "sha": "db9001b2",
-            "ts": "20260723-020001",
-            "coverage_pct": 17.7,
-            "covered": 42684,
-            "total": 240594
+            "sha": "017eac4d",
+            "ts": "20260805-020001",
+            "coverage_pct": 19.5,
+            "covered": 45705,
+            "total": 234944
           },
           {
-            "sha": "afb9f347",
-            "ts": "20260726-020001",
-            "coverage_pct": 17.6,
-            "covered": 42502,
-            "total": 241024
+            "sha": "b611860f",
+            "ts": "20260806-020001",
+            "coverage_pct": 20.3,
+            "covered": 47599,
+            "total": 234984
           },
           {
-            "sha": "8ae17699",
-            "ts": "20260727-020001",
-            "coverage_pct": 17.8,
-            "covered": 42870,
-            "total": 240778
+            "sha": null,
+            "ts": "20260807-020001",
+            "coverage_pct": 19.9,
+            "covered": 46714,
+            "total": 234912
           }
         ],
-        "computed_at": "20260727-020001",
+        "computed_at": "20260807-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -168,20 +170,20 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 275,
-        "effectively_guarded": 275
+        "with_manual_ddl": 273,
+        "effectively_guarded": 273
       },
       "stream": "FV"
     },
     "ghost_count": {
       "status": "measured",
-      "value": 8,
+      "value": 12,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 12
+        "citing_modules": 23
       },
       "stream": "KL"
     },
@@ -193,8 +195,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 76,
-        "modules": 76
+        "with_door": 75,
+        "modules": 75
       },
       "stream": "MEM"
     },
@@ -209,22 +211,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 75,
+      "value": 60,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 4,
+        "weeks_expected": 5,
         "weeks_valid": 3,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-07-26",
+        "last_week": "2026-08-02",
         "latest": {
-          "gate_status": "fail",
-          "n_evaluated": 51,
-          "faithfulness_avg": 0.6865,
-          "relevancy_avg": 0.8294,
-          "context_recall_avg": 0.3461
+          "gate_status": "skipped",
+          "n_evaluated": 0,
+          "faithfulness_avg": null,
+          "relevancy_avg": null,
+          "context_recall_avg": null
         }
       },
       "stream": "MEM"
@@ -237,9 +239,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
-        "portas": 79,
+        "portas": 78,
         "carimbadas": 14,
-        "sem_carimbo": 65,
+        "sem_carimbo": 64,
         "stale": 0,
         "oldest_distilled_at": "2026-07-17"
       },
@@ -253,7 +255,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 76,
+        "modules": 75,
         "hops_worst": 13
       },
       "stream": "MEM"
@@ -280,10 +282,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 45,
+        "entries_aprovadas": 47,
         "max_error_rate_pct": 1.82,
-        "last_pr": 5036,
-        "last_lote": "SRS-E5E6-saneamento-ghost-05"
+        "last_pr": 5327,
+        "last_lote": "SA-modulos-ativacao-documental-w-override-5327"
       },
       "stream": "GT"
     }

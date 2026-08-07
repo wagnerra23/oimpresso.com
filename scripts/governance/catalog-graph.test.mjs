@@ -35,6 +35,8 @@ contains:
 not_contains:
   - "Coisa fiscal → Modules/Beta (lê via Service)"
   - "Outra coisa → Modules/Fantasma ou Modules/Beta"
+depends_on:
+  - Beta
 db_tables_owned:
   - alpha_things (tabela principal)
   - alpha_a, alpha_b (duas de uma vez)
@@ -87,6 +89,7 @@ function recordsFromSynthetic() {
       url_prefixes: asList(fields.url_prefixes),
       contains: asList(fields.contains),
       not_contains: asList(fields.not_contains),
+      depends_on: asList(fields.depends_on),
       db_tables_owned: asList(fields.db_tables_owned),
       db_tables_consumed: asList(fields.db_tables_consumed),
       db_tables_legacy_views: asList(fields.db_tables_legacy_views),
@@ -194,6 +197,7 @@ test('diagnostics: módulo sem SCOPE vira nó referenced-only, não aresta estru
 test('dependsOn é derivado da fronteira declarada e do consumo de tabela com dono', () => {
   const g = buildGraph(recordsFromSynthetic());
   const deps = g.edges.filter((e) => e.type === 'dependsOn' && e.from === 'module:Alpha');
+  assert.ok(deps.some((e) => e.to === 'module:Beta' && e.source === 'depends_on'));
   assert.ok(deps.some((e) => e.to === 'module:Beta' && e.source === 'delegatesTo'));
   assert.ok(deps.some((e) => e.to === 'module:Beta' && e.source === 'db_tables_consumed→db_tables_owned'));
 });

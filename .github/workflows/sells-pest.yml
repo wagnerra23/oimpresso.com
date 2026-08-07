@@ -33,6 +33,9 @@ on:
       - 'tests/Feature/Sells/**'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/SellPosController.php'
+      # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
+      # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
+      - 'app/Http/Controllers/SellsV3Controller.php'
       - 'app/Utils/TransactionUtil.php'
       - 'resources/js/Pages/Sells/**'
       - 'database/schema/mysql-schema.sql'
@@ -73,6 +76,7 @@ jobs:
             sells:
               - 'tests/Feature/Sells/**'
               - 'app/Http/Controllers/SellPosController.php'
+              - 'app/Http/Controllers/SellsV3Controller.php'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Http/Controllers/SellController.php'
               - 'resources/js/Pages/Sells/**'
@@ -115,6 +119,14 @@ jobs:
         #     diretório inexistente) e ninguém via, porque nada os executava.
         # Os 2 Wave1 não precisam de MySQL (leem arquivo), mas entram aqui em vez da lane
         # sqlite porque é onde o gatilho por-path de Sells já existe — 1 chokepoint, não 2.
+        #
+        # 2026-08-07 — allowlist 4 → 5. SellsCreateV3ContratoTest (US-SELL-058, UC-V301/302/303):
+        # contrato da tela de preview /sells/create-v3 — rota registrada, ausência de rota de
+        # escrita, e a FRONTEIRA que justifica a tela existir (o V3 não encosta em Create.tsx
+        # nem em SellPosController). Não toca DB: lê o roteador em runtime + os arquivos.
+        # Entra aqui pelo mesmo motivo dos 2 Wave1 — é onde o gatilho por-path de Sells já mora.
+        # NASCE SEM RUN: nunca foi executado (lane roda no CI, nunca local · ADR 0062). Se este
+        # PR ficar vermelho aqui, é este arquivo — não regressão dos 4 anteriores.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -128,9 +140,26 @@ jobs:
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
+            tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php
 
+
+      # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
+      # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
+      # o FP do --check-assertions ANTES de arma-lo. Aqui so REPORTA (if: always()).
+      - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-sells-junit.xml --out test-results/pest-sells-junit-summary.json || true
+
+      - name: Upload sumario JUnit (pest-sells-junit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-sells-junit-summary
+          path: test-results/pest-sells-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Upload JUnit (Sells · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.sells == 'true' }}
         uses: actions/upload-artifact@v4

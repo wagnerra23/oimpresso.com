@@ -116,7 +116,7 @@ Em ordem de precedência (regra mais alta vence em conflito):
 6. **Cockpit Pattern V2** ([ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)) — list+detail consolidado (ver §16).
 7. **Canon visual vivo** ([UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md)) — DS v6 + primitivos + Manual (supersede o zip-cowork UI-0010/0012, agora `_BACKUP-NAO-USAR-`).
 8. **Layout-mãe "Chat Cockpit"** ([ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) + [_DS UI-0008](memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)).
-9. **Sidebar light por padrão** ([_DS UI-0009](memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) + [UI-0014](memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md)) — sobrevive a UI v2 (Wagner explícito).
+9. **Sidebar DARK-FIXO — PRETA** ([UI-0023](memory/requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md), `accepted` 2026-07-16) — preta nos **dois** modos (claro e escuro). **Fonte da verdade (código):** [`resources/css/cockpit.css`](resources/css/cockpit.css), bloco `/* Sidebar — DARK FIXO */`, que sobrescreve os tokens `--sb-*` dentro de `.cockpit .sb` com paleta escura, **independente do `data-theme`**. Os valores vivem lá; não os copie pra cá. Supersede [UI-0019](memory/requisitos/_DesignSystem/adr/ui/0019-sidebar-light-definitivo-supersede-0009-0014.md) e confirma como históricas [UI-0009](memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) + [UI-0014](memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md) — as três afirmavam "light" e **estavam erradas**. ⚠️ O doc divergiu do código de 2026-05-05 (quando [W] mandou *"Menu Fundo Black como no cokpit"*) até 2026-07-16; se ler "sidebar light" em qualquer doc, é resíduo dessa janela.
 10. **Padrão Jana** ([ADR 0011](memory/decisions/0011-alinhamento-padrao-jana.md)) — UltimatePOS-like estrutura modular; vale pra DataController/Install (não-visual).
 11. **Componentes shared** (`PageHeader`, `DataTable`, `PageFilters`, `KpiCard`, `ModuleTopNav`, `StatusBadge`, `EmptyState`) — usar antes de criar novo.
 12. **Convenções 04** (`memory/04-conventions.md`) — naming PHP, rotas, blade.
@@ -245,7 +245,7 @@ Quick-check resumido:
 | Workflow | O que bloqueia |
 |---|---|
 | `ui-lint.yml` (Onda 2.1) | Hex/RGB/HSL crua, FontAwesome, emoji em UI (ratchet vs baseline) |
-| `visual-regression.yml` ([ADR 0108](memory/decisions/0108-regressao-visual-pest-browser-tier-2.md)) | Diff de screenshots Pest 4 Browser > threshold (atualmente INFRA-ONLY, ver [US-INFRA-012](memory/requisitos/Infra/SPEC.md)) |
+| `visual-regression.yml` ([ADR 0108](memory/decisions/0108-regressao-visual-pest-browser-tier-2.md)) | **Job required** ([ADR 0314](memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md)). Pixel-diff e `Tier0RenderIsolation` **enforcing**; estados isolados e perf Lighthouse seguem advisory dentro do job. Estado vivo: [`governance/required-checks-baseline.json`](governance/required-checks-baseline.json) |
 | `module-grades-gate.yml` ([ADR 0155](memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)) | Regressão de nota módulo vs baseline |
 
 > **Deletados na ADR 0271 onda 2 (2026-06-11):** `pr-ui-judge.yml` (kill-switch OFF/dormente — judge segue disponível manual via skill `pr-ui-judge-manual`), `mwart-gate.yml` (soft/teatro — cobertura migrou pro `casos-gate` required ADR 0264) e `charter-gate.yml` (régua migrou pro `casos-gate`).
@@ -255,7 +255,7 @@ Quick-check resumido:
 ## 16. Cockpit Pattern V2 — list+detail consolidado (ADR 0110)
 
 > **Pra páginas tipo "lista de entidades transacionais"** (vendas, compras, OSes, despesas, contas, clientes, produtos). Espelha `os-page.jsx` da §6 + adiciona spec concreto de tipografia, cores semânticas e endpoints REST.
-> Fonte da verdade: [ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md). Pages canon vivos: [Sells/Index.tsx](resources/js/Pages/Sells/Index.tsx), [Sells/Create.tsx](resources/js/Pages/Sells/Create.tsx), [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx), [governance/Dashboard.tsx](resources/js/Pages/governance/Dashboard.tsx), [ProjectMgmt/Board/Index.tsx](resources/js/Pages/ProjectMgmt/Board/Index.tsx).
+> Fonte da verdade: [ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md). Pages canon vivos: [Sells/Index.tsx](resources/js/Pages/Sells/Index.tsx), [Sells/Create.tsx](resources/js/Pages/Sells/Create.tsx), [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx), [governance/Dashboard.tsx](resources/js/Pages/governance/Dashboard.tsx), [Forja/Board/Index.tsx](resources/js/Pages/Forja/Board/Index.tsx).
 
 ### 16.1. Anatomia (5 partes obrigatórias)
 
@@ -383,6 +383,8 @@ Tests automatizados:
 
 ---
 
+> **2026-08-02 — correção de fato errado (§7 item 9 + §15).** O item 9 ensinava *"sidebar light por padrão"* citando UI-0009/UI-0014: estava **dois saltos atrás** do canon (UI-0019 → **UI-0023** dark-fixo preto, `accepted` 2026-07-16) e era instrução ativa pra regressão. §15 dizia que o `visual-regression` era "INFRA-ONLY" quando o job já é **required**. Só fatos foram corrigidos — o papel do documento (porta × manual técnico) segue como estava, é decisão de [W]. ⚠️ **A data abaixo estava errada**: dizia 2026-05-25, mas o arquivo foi tocado em 2026-07-30 (`git log -1 -- DESIGN.md`).
+>
 > **Última atualização:** 2026-05-25 — patch §2/§7/§9/§15 refletindo evolução pós-2026-05-08: ADR UI-0013 Constituição UI v2 (4 camadas — mãe atual em §7) · ADR 0190 primary roxo universal 295 (§9) · ADR 0114 prototipo-ui/PROTOCOL.md loop formalizado (§2) · ADR 0180/0182/0189 PageHeader canon v3 (§7) · pr-ui-judge.yml ligado (§15 gates CI) · PRE-MERGE-UI.md link canônico (§15). Fecha US-_DESIGNSYSTEM-001 (era redundante — este arquivo já existia).
-> **2026-05-08:** §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, ProjectMgmt/Board/Index.
+> **2026-05-08:** §16 adicionada (Cockpit Pattern V2 ADR 0110 consolidado consultivo). Pages canon vivas: Sells/Index, Sells/Create, SaleSheet, governance/Dashboard, Forja/Board/Index.
 > **Próxima revisão sugerida:** quando US-_DESIGNSYSTEM-002 (`/dev/components` Inertia) e US-INFRA-012 (visual-regression strict mode) fecharem.

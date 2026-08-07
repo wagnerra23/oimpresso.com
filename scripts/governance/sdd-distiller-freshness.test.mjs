@@ -11,7 +11,7 @@
 //      fonte injetada ignora o guard  (incidente 2026-07-08→12: publish shallow publicou 6)
 // `newestDocDate` é injetado (mapa) → sem git/FS real, determinístico.
 // Uso: node scripts/governance/sdd-distiller-freshness.test.mjs
-import { measureDistillerFreshness } from './sdd-scorecard.mjs';
+import { measureDistillerFreshness, isDocGerado } from './sdd-scorecard.mjs';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, basename } from 'node:path';
@@ -89,6 +89,26 @@ ok(
   measureDistillerFreshness(join(tmpdir(), `req-inexistente-${process.pid}`)).status === 'not_yet_measured',
   'reqDir ausente → not_yet_measured',
 );
+
+// ── G: doc GERADO não conta como "conhecimento novo" (2026-08-05) ───────────
+// O que o `newestDocDate` injetado dos casos acima NÃO alcança: a regra de exclusão que
+// roda DENTRO do walk. Era por NOME (`SUPERFICIE.md`) e deixava passar o irmão gerado
+// (`Jana/ARCHITECTURE.md`, do system-map.mjs) → falso-stale que avermelhou um gate
+// REQUIRED (PR #5298). O critério agora é o `authority: generated` do frontmatter.
+// Controles NEGATIVOS junto: doc normal e `authority` citado na prosa CONTAM.
+const ler = (m) => () => m;
+ok(isDocGerado('x.md', ler('---\nauthority: generated\n---\n# t\n')),
+  'frontmatter authority: generated → é doc gerado (exclui do "doc mais novo")');
+ok(isDocGerado('x.md', ler('---\nid: a\nauthority:   generated  \nlifecycle: ativo\n---\n')),
+  'espaço extra em volta do valor não engana o match');
+ok(!isDocGerado('x.md', ler('---\nauthority: canonical\n---\n# t\n')),
+  'authority: canonical → CONTA como conhecimento (controle negativo)');
+ok(!isDocGerado('x.md', ler('---\nid: a\n---\n\nO campo authority: generated é explicado aqui.\n')),
+  'authority citado no CORPO não classifica — só o bloco de abertura (controle negativo)');
+ok(!isDocGerado('x.md', ler('# sem frontmatter\n')),
+  'doc sem frontmatter → CONTA como conhecimento (controle negativo)');
+ok(!isDocGerado('x.md', () => { throw new Error('EACCES'); }),
+  'ilegível → false: na dúvida o doc CONTA (erra pro lado de acusar stale, não de esconder)');
 
 console.log(fails === 0 ? '\n  distiller_freshness read-side (ADR 0291 D-D): OK\n' : `\n  distiller_freshness: ${fails} FALHA(S)\n`);
 process.exit(fails === 0 ? 0 : 1);

@@ -47,9 +47,6 @@
 - **mwart-process** _(path)_ — único caminho Blade→Inertia (5 fases) — [ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - **preflight-modulo** _(path)_ — dispara em Edit `Modules/<X>/`
 - **session-start-check** _(session_start)_ — whats-active pós-brief — detecta sessão paralela tocando o mesmo path ([ADR 0119](memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
-
-**Dormente** (tier A com `enabled: false`):
-- **ads-route** — roteia mudança custosa via `decide(domain,intent,payload)` — ativa quando S5 entregar ADS Universal
 <!-- AUTO:SKILLS-END -->
 
 > **Estimates 2026-05-08+:** todos novos SPECs nascem recalibrados ([ADR 0106](memory/decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) — fator 10x em tarefas codáveis com IA-pair + margem 2x; tarefas humano-limitadas (canary 7d, monitor 30d, smoke real) mantém relógio do mundo real.
@@ -108,7 +105,7 @@ Detalhes em `memory/proibicoes.md`. Resumo:
 ## Métricas de saúde
 
 Rodar `php artisan jana:health-check` (ou ver schedule daily 06:00 BRT em `app/Console/Kernel.php`).
-5 checks SQL: multi_tenant_isolation, brief_uptime_24h, custo_brain_b_24h, pii_leak_in_assistant_responses, profile_distiller_drift.
+Os checks vivem no próprio comando (`Modules/Jana/Console/Commands/HealthCheckCommand.php`, `$description` se auto-reporta a contagem de duros) — não fixar número aqui (apodrece · fact-anchor §5). Tier-0 críticos incl. multi_tenant_isolation, pii_leak_in_assistant_responses, profile_distiller_drift.
 
 Se algum falhar → investigar `storage/logs/laravel.log` ALERT entries.
 

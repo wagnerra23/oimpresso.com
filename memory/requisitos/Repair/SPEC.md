@@ -26,6 +26,29 @@ _[TODO — escrever user stories no formato abaixo.]_
 **Definition of Done:**
 - [ ] [critério]
 
+### US-REPA-002 · 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — o defeito está diagnosticado; o conserto exige rodar no CT 100.
+
+Achado da sessão 2026-08-05, ao diagnosticar a falha `Pest Repair` no [PR #5327](https://github.com/wagnerra23/oimpresso.com/pull/5327) — que **não tocou** `Modules/Repair/` (zero diff, medido).
+
+**Sintoma:** 3 testes de `Modules/Repair/Tests/Feature/Wave18RepairSaturationTest.php` falham com `Call to undefined method Illuminate\Container\Container::basePath()`, em `vendor/laravel/framework/.../Foundation/helpers.php:206` (`base_path()` → `app()->basePath()`). Linhas do teste: **19** e **47**.
+
+Afetados: `D2 Code Quality FormRequests → StartFsmActionRequest existe e tem rules` · `D7 retention canonica → Config/retention.php declara repair_job_sheets` · `D7 retention canonica → default enabled=false (gate manual ADR 0105)`.
+
+**Hipótese (NÃO medida — exige CT 100):** o `app()` resolvido é o Container puro, sem `basePath()` — o grupo não está associado ao `TestCase` do Laravel (falta `uses(TestCase::class)`, ou o arquivo caiu fora do escopo do `uses()` do `Pest.php`). Os arquivos procurados **existem** (`Config/retention.php` declara `enabled`, `tabelas`, `repair_job_sheets => 1825`), logo não é ausência de arquivo: o helper falha **antes** de checar.
+
+**Por que ninguém viu:** o job vem do `modules-pest.yml`, que é **matrix** — roda Arquivos, ComunicacaoVisual, Fiscal, NfeBrasil, Repair e Vestuario juntos sempre que **qualquer** path da lista muda. O #5327 tocou `Modules/NfeBrasil/Resources/lang/` e acordou a lane do Repair. E `Pest Repair` **não** está no `governance/required-checks-baseline.json` — é advisory, então o vermelho não bloqueia merge e passa despercebido. Mesma família da lápide §5 2026-07-28 em [`proibicoes.md`](../../proibicoes.md): *"defeito em teste que não roda é invisível até a lane ligar"*.
+
+**Recibo:** [run 31040822015](https://github.com/wagnerra23/oimpresso.com/actions/runs/31040822015) — `Tests: 3 failed, 65 skipped, 80 passed (274 assertions)`.
+
+**Definition of Done:**
+- [ ] Os 3 voltam a verde **no CT 100**, com a causa escrita — e por conserto, não por `skip`.
+- [ ] Se a correção for `uses(TestCase::class)`, conferir se outros describes do mesmo arquivo passavam **por acidente** dependendo do bootstrap ausente.
+
 ## 4. Regras de negócio (Gherkin)
 
 > Formato: `Dado ... Quando ... Então ...`. Cada regra deve ser

@@ -172,43 +172,43 @@ parameters:
 			message: '#^Anonymous function has an unused use \$mission\.$#'
 			identifier: closure.unusedUse
 			count: 1
-			path: Modules/ADS/Services/ScaffoldSkillFromMissionService.php
+			path: Modules/Jana/Services/ScaffoldSkillFromMissionService.php
 
 		-
-			message: '#^Constant Modules\\ADS\\Services\\ScaffoldSkillFromMissionService\:\:META_SLUG is unused\.$#'
+			message: '#^Constant Modules\\Jana\\Services\\ScaffoldSkillFromMissionService\:\:META_SLUG is unused\.$#'
 			identifier: classConstant.unused
 			count: 1
-			path: Modules/ADS/Services/ScaffoldSkillFromMissionService.php
+			path: Modules/Jana/Services/ScaffoldSkillFromMissionService.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$body_markdown\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/ADS/Services/SkillsService.php
+			path: Modules/Jana/Services/SkillsService.php
 
 		-
 			message: '#^Parameter \#2 \$attributes of static method App\\Util\\OtelHelper\:\:span\(\) expects array\<string, mixed\>, Closure given\.$#'
 			identifier: argument.type
 			count: 2
-			path: Modules/ADS/Services/SkillsService.php
+			path: Modules/Jana/Services/SkillsService.php
 
 		-
 			message: '#^Static method App\\Util\\OtelHelper\:\:span\(\) invoked with 2 parameters, 3 required\.$#'
 			identifier: arguments.count
 			count: 2
-			path: Modules/ADS/Services/SkillsService.php
+			path: Modules/Jana/Services/SkillsService.php
 
 		-
 			message: '#^Offset ''ok'' on array\{ok\: bool, output\: mixed, error\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
-			path: Modules/ADS/Services/ToolRegistry.php
+			path: Modules/Forja/Services/ToolRegistry.php
 
 		-
-			message: '#^PHPDoc tag @var for constant Modules\\ADS\\Tools\\BoostToolAdapter\:\:BOOST_TOOLS with type array\<string, array\{class\: string, label\: string, description\: string, schema\: array\}\> is incompatible with value array\{application\-info\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\ApplicationInfo'', label\: ''application\-info'', description\: ''\[Boost\] Info do app…''\}, database\-connections\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\DatabaseConnections'', label\: ''database\-connections'', description\: ''\[Boost\] Lista todas…''\}, database\-query\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\DatabaseQuery'', label\: ''database\-query'', description\: ''\[Boost\] Executa…''\}, database\-schema\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\DatabaseSchema'', label\: ''database\-schema'', description\: ''\[Boost\] Inspeciona…''\}, last\-error\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\LastError'', label\: ''last\-error'', description\: ''\[Boost\] Última…''\}, read\-log\-entries\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\ReadLogEntries'', label\: ''read\-log\-entries'', description\: ''\[Boost\] Lê últimas…''\}, search\-docs\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\SearchDocs'', label\: ''search\-docs'', description\: ''\[Boost\] Busca na…''\}, get\-absolute\-url\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\GetAbsoluteUrl'', label\: ''get\-absolute\-url'', description\: ''\[Boost\] Constrói…''\}\}\.$#'
+			message: '#^PHPDoc tag @var for constant Modules\\Forja\\Tools\\BoostToolAdapter\:\:BOOST_TOOLS with type array\<string, array\{class\: string, label\: string, description\: string, schema\: array\}\> is incompatible with value array\{application\-info\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\ApplicationInfo'', label\: ''application\-info'', description\: ''\[Boost\] Info do app…''\}, database\-connections\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\DatabaseConnections'', label\: ''database\-connections'', description\: ''\[Boost\] Lista todas…''\}, database\-query\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\DatabaseQuery'', label\: ''database\-query'', description\: ''\[Boost\] Executa…''\}, database\-schema\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\DatabaseSchema'', label\: ''database\-schema'', description\: ''\[Boost\] Inspeciona…''\}, last\-error\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\LastError'', label\: ''last\-error'', description\: ''\[Boost\] Última…''\}, read\-log\-entries\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\ReadLogEntries'', label\: ''read\-log\-entries'', description\: ''\[Boost\] Lê últimas…''\}, search\-docs\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\SearchDocs'', label\: ''search\-docs'', description\: ''\[Boost\] Busca na…''\}, get\-absolute\-url\: array\{class\: ''Laravel\\\\Boost\\\\Mcp\\\\Tools\\\\GetAbsoluteUrl'', label\: ''get\-absolute\-url'', description\: ''\[Boost\] Constrói…''\}\}\.$#'
 			identifier: classConstant.phpDocType
 			count: 1
-			path: Modules/ADS/Tools/BoostToolAdapter.php
+			path: Modules/Forja/Tools/BoostToolAdapter.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -1030,13 +1030,13 @@ parameters:
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 3
-			path: Modules/Brief/Config/retention.php
+			path: Modules/Forja/Config/brief-retention.php
 
 		-
 			message: '#^Call to an undefined method Laravel\\Mcp\\Request\:\:header\(\)\.$#'
 			identifier: method.notFound
 			count: 1
-			path: Modules/Brief/Mcp/Tools/BriefFetchTool.php
+			path: Modules/Forja/Mcp/Tools/BriefFetchTool.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -6485,7 +6485,7 @@ parameters:
 			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
 			identifier: oimpresso.silentFallback
 			count: 1
-			path: Modules/Jana/Http/Controllers/Admin/QualidadeController.php
+			path: Modules/Governance/Http/Controllers/QualidadeIaController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Jana\\Entities\\Sugestao\>\|Modules\\Jana\\Entities\\Sugestao\:\:\$conversa\.$#'
@@ -6521,55 +6521,55 @@ parameters:
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$data_fim\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$data_ini\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$data_ref\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$trajetoria\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$valor_alvo\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$valor_realizado\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
-			message: '#^Anonymous function should return array\{id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, apuracoes_recentes\: Illuminate\\Support\\Collection\<int, array\{data_ref\: mixed, valor_realizado\: float\}\>\} but returns array\{id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, apuracoes_recentes\: Illuminate\\Support\\Collection\<int, array\{data_ref\: mixed, valor_realizado\: float\}\>\}\.$#'
+			message: '#^Anonymous function should return array\{farol\: string, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, \.\.\.\} but returns array\{farol\: string, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, \.\.\.\}\.$#'
 			identifier: return.type
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Meta\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
@@ -9084,7 +9084,7 @@ parameters:
 			path: Modules/Ponto/Http/Controllers/DashboardController.php
 
 		-
-			message: '#^Method Modules\\Ponto\\Http\\Controllers\\DashboardController\:\:buildAprovacoes\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: mixed, tipo\: mixed, prioridade\: mixed, data_inicio\: mixed, data_fim\: mixed, justificativa\: mixed, estado\: mixed, created_at\: mixed, \.\.\.\}\>\.$#'
+			message: '#^Method Modules\\Ponto\\Http\\Controllers\\DashboardController\:\:buildAprovacoes\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: mixed, tipo\: mixed, prioridade\: mixed, data_inicio\: mixed, data_fim\: null, justificativa\: mixed, estado\: mixed, created_at\: mixed, \.\.\.\}\>\.$#'
 			identifier: return.type
 			count: 1
 			path: Modules/Ponto/Http/Controllers/DashboardController.php
@@ -9095,17 +9095,7 @@ parameters:
 			count: 1
 			path: Modules/Ponto/Http/Controllers/DashboardController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$almoco_fim\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$almoco_inicio\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$dia_semana\.$#'
@@ -9113,11 +9103,6 @@ parameters:
 			count: 1
 			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$entrada\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
@@ -9125,11 +9110,6 @@ parameters:
 			count: 1
 			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$saida\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/Ponto/Http/Controllers/EscalaController.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Http\\Request\:\:validated\(\)\.$#'
@@ -9357,163 +9337,163 @@ parameters:
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
-			path: Modules/ProjectMgmt/Config/config.php
+			path: Modules/Forja/Config/config.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2
-			path: Modules/ProjectMgmt/Config/retention.php
+			path: Modules/Forja/Config/retention.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\ActivityController\:\:index\(\)` faz Eloquent query \(7\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\ActivityController\:\:index\(\)` faz Eloquent query \(7\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/ActivityController.php
+			path: Modules/Forja/Http/Controllers/ActivityController.php
 
 		-
 			message: '#^Offset ''bulk_op_id'' does not exist on array\{updated\: int, errors\: list\<array\{task_id\: string, error\: string\}\>\}\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BacklogController.php
+			path: Modules/Forja/Http/Controllers/BacklogController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$first_name\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$last_name\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$username\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$project\.$#'
 			identifier: property.notFound
 			count: 3
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:addSubtask\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\BoardController\:\:addSubtask\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\BoardController\:\:index\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:show\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\BoardController\:\:show\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:suggestUsers\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\BoardController\:\:suggestUsers\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:unwatch\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\BoardController\:\:unwatch\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:updateStatus\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\BoardController\:\:updateStatus\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\BoardController\:\:watch\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\BoardController\:\:watch\(\)` faz Eloquent query \(5\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
 			message: '#^Offset ''task_id'' on array\{task_id\: string, identifier\: string\|null, markdown\: string\|null, spec_path\: string\|null, written\: bool\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Mcp\\McpTaskWatcher\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
 			message: '#^Relation ''project'' is not found in Modules\\Jana\\Entities\\Mcp\\McpTask model\.$#'
 			identifier: larastan.relationExistence
 			count: 6
-			path: Modules/ProjectMgmt/Http/Controllers/BoardController.php
+			path: Modules/Forja/Http/Controllers/BoardController.php
 
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/DataController.php
+			path: Modules/Forja/Http/Controllers/DataController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\InboxController\:\:markAllRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\InboxController\:\:markAllRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+			path: Modules/Forja/Http/Controllers/InboxController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\InboxController\:\:markRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\InboxController\:\:markRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+			path: Modules/Forja/Http/Controllers/InboxController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\MyWorkController\:\:markAllRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\MyWorkController\:\:markAllRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/MyWorkController.php
+			path: Modules/Forja/Http/Controllers/MyWorkController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\MyWorkController\:\:markRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\MyWorkController\:\:markRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/MyWorkController.php
+			path: Modules/Forja/Http/Controllers/MyWorkController.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpCycle\:\:\$project\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/ProjectMgmt/Http/Controllers/SearchController.php
+			path: Modules/Forja/Http/Controllers/SearchController.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpEpic\:\:\$project\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/ProjectMgmt/Http/Controllers/SearchController.php
+			path: Modules/Forja/Http/Controllers/SearchController.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$project\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/ProjectMgmt/Http/Controllers/SearchController.php
+			path: Modules/Forja/Http/Controllers/SearchController.php
 
 		-
-			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\SearchController\:\:index\(\)` faz Eloquent query \(4\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\SearchController\:\:index\(\)` faz Eloquent query \(4\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/ProjectMgmt/Http/Controllers/SearchController.php
+			path: Modules/Forja/Http/Controllers/SearchController.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -12915,85 +12895,85 @@ parameters:
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2
-			path: Modules/TeamMcp/Config/retention.php
+			path: Modules/Forja/Config/retention-mcp.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/TeamMcp/Entities/McpActor.php
+			path: Modules/Forja/Entities/McpActor.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/TeamMcp/Entities/McpActor.php
+			path: Modules/Forja/Entities/McpActor.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isRevoked\(\)\.$#'
 			identifier: method.notFound
 			count: 2
-			path: Modules/TeamMcp/Entities/McpActor.php
+			path: Modules/Forja/Entities/McpActor.php
 
 		-
 			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpCcSession\:\:\$user_nome\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/CcSessionsController.php
+			path: Modules/Forja/Http/Controllers/CcSessionsController.php
 
 		-
-			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\CcSessionsController\:\:show\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\CcSessionsController\:\:show\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/CcSessionsController.php
+			path: Modules/Forja/Http/Controllers/CcSessionsController.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/Mcp/SyncMemoryWebhookController.php
+			path: Modules/Forja/Http/Controllers/Mcp/SyncMemoryWebhookController.php
 
 		-
 			message: '#^Anonymous function should return Illuminate\\Support\\Collection\<int, array\{task_id\: mixed, title\: mixed, module\: mixed, owner\: mixed, sprint\: mixed, priority\: mixed, estimate_h\: mixed, blocked_by\: mixed, \.\.\.\}\> but returns Illuminate\\Support\\Collection\<int, array\{task_id\: mixed, title\: mixed, module\: mixed, owner\: mixed, sprint\: mixed, priority\: mixed, estimate_h\: mixed, blocked_by\: mixed, \.\.\.\}\>\.$#'
 			identifier: return.type
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/TasksAdminController.php
+			path: Modules/Forja/Http/Controllers/TasksAdminController.php
 
 		-
-			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TasksAdminController\:\:index\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\TasksAdminController\:\:index\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/TasksAdminController.php
+			path: Modules/Forja/Http/Controllers/TasksAdminController.php
 
 		-
-			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TeamController\:\:atualizarQuota\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\TeamController\:\:atualizarQuota\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/TeamController.php
+			path: Modules/Forja/Http/Controllers/TeamController.php
 
 		-
-			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TeamController\:\:gerarDxt\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\TeamController\:\:gerarDxt\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/TeamController.php
+			path: Modules/Forja/Http/Controllers/TeamController.php
 
 		-
-			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TeamController\:\:gerarToken\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\TeamController\:\:gerarToken\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/TeamController.php
+			path: Modules/Forja/Http/Controllers/TeamController.php
 
 		-
-			message: '#^Método `Modules\\TeamMcp\\Http\\Controllers\\TeamController\:\:revogarToken\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Forja\\Http\\Controllers\\TeamController\:\:revogarToken\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
-			path: Modules/TeamMcp/Http/Controllers/TeamController.php
+			path: Modules/Forja/Http/Controllers/TeamController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/TeamMcp/Services/ActorResolver.php
+			path: Modules/Forja/Services/ActorResolver.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -27473,9 +27453,3 @@ parameters:
 			count: 1
 			path: app/Warranty.php
 
-
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/TeamMcp/Config/config.php

@@ -27,8 +27,13 @@ uses(Tests\TestCase::class);
 // C3 Reflexividade — BRIEFING.md + ADRs referenciadas
 // ------------------------------------------------------------------
 
+// 2026-07-30 ([W] "quero mover tudo para memory, apagar os outros e revisar os vinculos"):
+// a lapide-ponteiro Modules/Governance/BRIEFING.md foi DELETADA. A casa unica do BRIEFING
+// e memory/requisitos/<X>/BRIEFING.md — mesmo path que o gate REQUIRED
+// `briefing-coverage-required.yml` ja consulta. O teste segue provando C3 Reflexividade,
+// agora contra o dono canonico em vez do stub.
 it('Governance BRIEFING.md existe (C3 Reflexividade)', function () {
-    $path = base_path('Modules/Governance/BRIEFING.md');
+    $path = base_path('memory/requisitos/Governance/BRIEFING.md');
     expect(file_exists($path))->toBeTrue();
 });
 

@@ -6,7 +6,7 @@ type: protocol
 date: 2026-05-17
 session-origem: stupefied-noether-89f83d
 status: canon-tier-A-irrevogavel
-related_adrs: [0094, 0095, 0061, 0093, 0101, 0104, 0106, 0114, 0119, 0130, 0143, 0167]
+related_adrs: [0094, 0095, 0061, 0093, 0358, 0104, 0106, 0114, 0119, 0130, 0143, 0167]
 related_skills: [brief-first, mcp-first, multi-tenant-patterns, commit-discipline, preflight-modulo, smoke-prod-evidence, charter-first, wagner-request-refiner, wagner-protocol-enforce, mwart-comparative, brief-update]
 related_agents: [wagner-understand]
 supersedes: null
@@ -135,7 +135,7 @@ const mainBody = document.querySelector('.cockpit .main-body');
 1. Garantir `business_id` global scope ([ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md)).
 2. Jobs/Commands recebem `$businessId` no constructor (session() não funciona em fila).
 3. Migration nova: `business_id` indexado + FK obrigatórios.
-4. Pest cross-tenant biz=1 vs biz=99 obrigatório.
+4. Pest cross-tenant **biz=98 vs biz=99** obrigatório ([ADR 0358](../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) — o 99 segue sendo o adversário, o que mudou foi o principal: era biz=1, empresa REAL).
 5. PII real (CPF/CNPJ cliente) NUNCA em PR/commit/log — usar `[REDACTED]` ou `PiiRedactor`.
 
 **Sinal de violação:** `withoutGlobalScopes()` sem comentário `// SUPERADMIN: <razão>` ou Pest sem isolamento.
@@ -167,7 +167,7 @@ const mainBody = document.querySelector('.cockpit .main-body');
 
 **O que fazer (Claude executa):**
 
-1. Pest sempre `business_id=1` (Wagner WR2 SC) — [ADR 0101](../decisions/0101-tests-business-id-1-nunca-cliente.md).
+1. Pest sempre `business_id=98` — tenant FICTÍCIO, via `seededTenant()` ([ADR 0358](../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)). Era `business_id=1` até 2026-07-29, quando a `0101-tests` foi superseded e esquecida fisicamente: **biz=1 é a WR2 Sistemas, empresa REAL**, e no CT 100 a base é clone de prod que não se limpa entre runs — teste em biz=1 semeava dado no espelho da empresa de verdade.
 2. Smoke prod abre `oimpresso.com` logado como Wagner (biz=1 ou biz=164) — NÃO Larissa (biz=4 ROTA LIVRE 99% volume vendas, qualquer click pode disparar email/whatsapp pra cliente real).
 3. Mock/fixture com nome "João Silva" (genérico) — NÃO "Larissa Rotti" / dados reais.
 4. Cliente piloto Larissa monitor 1280px — validar layout não quebra nesse breakpoint ([proibições §Cliente piloto](../proibicoes.md)).
@@ -435,7 +435,7 @@ Após cada turno, Claude se pergunta:
 - Wagner aprovou design? estou copiando integral, não slice? (R2)
 - Vou commit/push/merge? Wagner autorizou ESCOPO/CAMINHO (não só ação isolada)? (R10 + R11)
 - Texto UI/commit em PT-BR? (R5)
-- Estou em Pest? business_id=1, não biz=4 cliente? (R6)
+- Estou em Pest? `business_id=98` (fictício, via `seededTenant()`) — não biz=4 cliente, e não mais biz=1? (R6 · [ADR 0358](../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
 - Vou Write em `~/.claude/projects/*/memory/`? Mover pra `memory/reference/` git canon? (R9)
 - **Estou no meio de escopo pré-aprovado? Vou continuar até desfecho final ou vou parar e fazer Wagner perguntar "e aí?"** (R11)
 - **Wagner sinalizou fechamento ("ok"/"salve"/"depois"/"baixa prioridade"/"obrigado")? Já fiz MCP-first checklist + handoff append-only em `memory/handoffs/` + índice `08-handoff.md` atualizado + commit + push?** (R12)

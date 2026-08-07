@@ -7,8 +7,15 @@ use Illuminate\Support\Facades\DB;
 
 uses(Tests\TestCase::class);
 
+// @covers-us US-FIN-068
+
 /**
  * US-FIN-BRIDGE-EXP — guard do BridgeExpenseToTitulosCommand (F5 deprecação legacy).
+ *
+ * `@covers-us US-FIN-068`: este arquivo é o teste que prova a correção do filtro
+ * por `transactions.deleted_at` (coluna inexistente). Antes do fix ele dava
+ * `6 failed, 2 passed (2 assertions)` — abortava no SQLSTATE[42S22] antes de
+ * exercer as invariantes abaixo. Depois: `8 passed (26 assertions)`.
  *
  * Cobre invariantes:
  *  1. --business obrigatório (Tier 0 IRREVOGÁVEL ADR 0093)

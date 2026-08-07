@@ -31,7 +31,7 @@ Acompanhar o **status fiscal pós-venda de TODOS os documentos gerados** para um
 >
 > Os fatos medidos em `origin/main` 2026-07-28 (esses seguem valendo):
 > - `NfeEmissaoController::listar` (`GET transactions/{tx}/emissoes`) **não filtra modelo nenhum** — já devolve 55/65/67, e o enum da tabela é `['55','65','67']` desde a migration original.
-> - `useEmissoesPorTransaction.ts` declara no cabeçalho *"substitui useNfceStatus (que só pegava modelo 65)"* e já roda em `Sells/FiscalSection` + `Sells/Index`. **Esta tela é a que não migrou** (`NfceStatus.tsx:59`).
+> - `useEmissoesPorTransaction.ts` declara no cabeçalho *"substitui useNfceStatus (que só pegava modelo 65)"* e já roda em `Sells/FiscalSection` + `Sells/Index`. **Esta tela é a que não migrou** (`NfceStatus.tsx:59 (verificado@d4afe95)`).
 >
 > **Consequência de implementação** (medida, não estimada): trocar `useNfceStatus` → `useEmissoesPorTransaction` cobre 55/65/67 **sem tocar backend**. Já a **NFS-e vive em outra tabela e outro módulo** (`nfse_emissoes`, `Modules/NFSe/Models/NfseEmissao`), então exige uma 2ª fonte — e o precedente canônico a imitar ([ADR 0011](../../../../../memory/decisions/0011-alinhamento-padrao-jana.md)) é o `Modules/Fiscal/Http/Controllers/CockpitController.php`, que já importa `NfeEmissao` **e** `NfseEmissao` no mesmo controller.
 >

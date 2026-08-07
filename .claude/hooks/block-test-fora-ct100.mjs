@@ -58,7 +58,10 @@ export function shouldBlock(cmd) {
   return true;
 }
 
-export const BLOCK_MESSAGE = `[FEEDBACK 2026-06-01 / ADR 0062] BLOQUEADO: teste/PHPStan na maquina LOCAL.
+// A tag `[block-test-fora-ct100]` torna este hook OBSERVÁVEL pro `hook-bites`
+// (convenção: a mensagem carrega `[<nome-do-arquivo>]`). Sem ela, o silêncio dele é
+// indistinguível de morte. Medido 2026-08-05: era 1 dos 11 BLOQUEADORES mudos.
+export const BLOCK_MESSAGE = `[block-test-fora-ct100] [FEEDBACK 2026-06-01 / ADR 0062] BLOQUEADO: teste/PHPStan na maquina LOCAL.
 
 Wagner (textual): "os testes nao devem ser feito local, as maquinas nao
 suportariam, faca no ct 100 obrigatoriamente la tem recursos para isso."

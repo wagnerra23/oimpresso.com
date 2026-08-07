@@ -2477,7 +2477,7 @@
       ]
     },
     {
-      "screen": "Jana/Dashboard",
+      "screen": "Jana/Index",
       "found": true,
       "archetype": "dashboard",
       "persona": "misto",
@@ -3376,7 +3376,7 @@
       "resumo": "Form de upload AFD enxuto, DS v4 + toast, mas header canon nao estilizado (os-page-h orfao) e sem charter."
     },
     {
-      "screen": "ProjectMgmt/Roadmap/Index",
+      "screen": "Forja/Roadmap/Index",
       "found": true,
       "archetype": "dashboard",
       "persona": "wagner",
@@ -4623,7 +4623,7 @@
       "resumo": "Cadastro Cowork com avancado colapsavel persistido + dedup; usa Deferred? nao, e perde em tokens crus + feedback de erro so no nome."
     },
     {
-      "screen": "ProjectMgmt/Activity/Index",
+      "screen": "Forja/Activity/Index",
       "found": true,
       "archetype": "dashboard",
       "persona": "wagner",
@@ -4652,7 +4652,7 @@
       ]
     },
     {
-      "screen": "ProjectMgmt/Burndown/Index",
+      "screen": "Forja/Burndown/Index",
       "found": true,
       "archetype": "dashboard",
       "persona": "wagner",
@@ -5435,7 +5435,7 @@
       "resumo": "Catalogo Cowork forte: Inertia Deferred+skeletons, KPIs, tabs categoria, localStorage de prefs; perde em tokens crus e densidade card vs tabela p/ balcao."
     },
     {
-      "screen": "ProjectMgmt/MyWork/Index",
+      "screen": "Forja/MyWork/Index",
       "found": true,
       "archetype": "dashboard",
       "persona": "wagner",
@@ -5667,7 +5667,7 @@
       "resumo": "Lista madura com atalhos J/K/N//, filtros persistidos e tooltips; perde no token roxo e Select value vazio (bug Radix)."
     },
     {
-      "screen": "ProjectMgmt/Backlog/Index",
+      "screen": "Forja/Backlog/Index",
       "found": true,
       "archetype": "list",
       "persona": "wagner",
@@ -5812,7 +5812,7 @@
       "resumo": "Cockpit rico (KPIs clicaveis, presenca ao vivo, chart 7d, polling only:[]) — peca skeleton, a11y do chart e charter."
     },
     {
-      "screen": "ProjectMgmt/Triage/Index",
+      "screen": "Forja/Triage/Index",
       "found": true,
       "archetype": "list",
       "persona": "wagner",
@@ -6073,7 +6073,7 @@
       "resumo": "Lista densa estado-da-arte (KPI-filtro, bulk, dialogs, empty/search, toasts); peca por cores cruas, confirm() nativo e zero charter."
     },
     {
-      "screen": "ProjectMgmt/Inbox/Index",
+      "screen": "Forja/Inbox/Index",
       "found": true,
       "archetype": "list",
       "persona": "wagner",
@@ -6305,7 +6305,7 @@
       "resumo": "Login estado-da-arte: token-puro, floating-label, social IdP, show/hide, flash error, copy PT-BR caloroso; falta wiring a11y de erro de campo."
     },
     {
-      "screen": "ProjectMgmt/Board/Index",
+      "screen": "Forja/Board/Index",
       "found": true,
       "archetype": "kanban",
       "persona": "wagner",

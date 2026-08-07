@@ -18,23 +18,26 @@
             <directory>./Modules/Essentials/Tests/Feature</directory>
             <directory>./Modules/Cms/Tests/Feature</directory>
             <directory>./Modules/Jana/Tests/Feature</directory>
+            <!-- Unit da Jana estava FORA do CI: 10 arquivos de teste que nunca rodaram
+                 (falsa cobertura — proibicoes "não criar Modules/X/Tests/ sem registrar
+                 aqui"). Descoberto em 2026-08-02 ao notar que 6 casos novos não mudavam
+                 o total da lane. Registro só a Jana; Modules/{NfeBrasil,RecurringBilling}
+                 /Tests/Unit seguem fora e ficam como achado reportado, não big-bang. -->
+            <directory>./Modules/Jana/Tests/Unit</directory>
             <directory>./Modules/RecurringBilling/Tests/Feature</directory>
             <directory>./Modules/PaymentGateway/Tests/Feature</directory>
             <directory>./Modules/Financeiro/Tests/Feature</directory>
             <directory>./Modules/Financeiro/Tests/Unit</directory>
             <directory>./Modules/NfeBrasil/Tests/Feature</directory>
             <directory>./Modules/Repair/Tests/Feature</directory>
-            <directory>./Modules/ProjectMgmt/Tests/Feature</directory>
+            <directory>./Modules/Forja/Tests/Feature</directory>
             <directory>./Modules/Whatsapp/Tests/Feature</directory>
             <directory>./Modules/Arquivos/Tests/Feature</directory>
             <directory>./Modules/Ponto/Tests/Feature</directory>
             <directory>./Modules/Ponto/Tests/Unit</directory>
-            <directory>./Modules/ADS/Tests/Feature</directory>
-            <directory>./Modules/ADS/Tests/Unit</directory>
             <directory>./Modules/Vestuario/Tests/Feature</directory>
             <directory>./Modules/ComunicacaoVisual/Tests/Feature</directory>
             <directory>./Modules/OficinaAuto/Tests/Feature</directory>
-            <directory>./Modules/TeamMcp/Tests/Feature</directory>
             <directory>./Modules/KB/Tests/Feature</directory>
             <directory>./Modules/KB/Tests/Unit</directory>
             <directory>./Modules/Auditoria/Tests/Feature</directory>
@@ -50,7 +53,6 @@
             <directory>./Modules/Spreadsheet/Tests/Feature</directory>
             <directory>./Modules/ProductCatalogue/Tests/Feature</directory>
             <directory>./Modules/ConsultaOs/Tests/Feature</directory>
-            <directory>./Modules/Brief/Tests/Feature</directory>
             <directory>./Modules/Woocommerce/Tests/Feature</directory>
             <directory>./Modules/Compras/Tests/Feature</directory>
             <directory>./Modules/VozDoCliente/Tests/Feature</directory>

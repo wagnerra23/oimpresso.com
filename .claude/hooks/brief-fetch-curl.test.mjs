@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import {
   resolveSettingsPath, readAuthHeader, buildBody, extractBrief,
   fetchBrief, runBrief, fallbackText, successText,
+  restoreFromVault, findRepoRoot, vaultPath,
 } from './brief-fetch-curl.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -104,6 +105,83 @@ const outNoSettings = await runBrief({ cwd: cwdSemHandoff, settingsPath: null, t
 // settingsPath null força resolveSettingsPath(cwd) — o tmp não tem .claude/settings.local.json na árvore (em CI /tmp)
 check('runBrief sem settings na árvore → fallback', outNoSettings.includes('FALLBACK'));
 rmSync(cwdSemHandoff, { recursive: true, force: true });
+
+// ═══════════════════════════════════════════════════════════════════════════════════════
+// AUTO-RECUPERAÇÃO DO COFRE (2026-08-07) — settings.local.json é gitignored, logo sem backup
+// no git. Ele sumiu do repo principal e derrubou o MCP nos 33 worktrees de uma vez (herdam
+// dali). Tudo INJETADO: nenhum fs real é tocado nestes casos.
+// ═══════════════════════════════════════════════════════════════════════════════════════
+const VAULT = '/cofre/mcp-settings.local.json';
+const ROOT = '/repo';
+const DEST = join(ROOT, '.claude', 'settings.local.json').replace(/\\/g, '/');
+const mkVaultFs = ({ vaultExiste = true, destExiste = false, conteudo = SETTINGS_OK, escritaThrow = false } = {}) => {
+  const escritas = [];
+  return {
+    escritas,
+    existsFn: (p) => { const s = String(p).replace(/\\/g, '/'); if (s === VAULT) return vaultExiste; if (s === DEST) return destExiste; return false; },
+    readFn: () => conteudo,
+    writeFn: (p, d) => { if (escritaThrow) throw new Error('EACCES'); escritas.push({ p: String(p).replace(/\\/g, '/'), d }); },
+    mkdirFn: () => {},
+    vaultFile: VAULT, repoRoot: ROOT,
+  };
+};
+
+// BITE-TEST: cofre válido + destino vazio → RESTAURA na raiz do repo
+const fsOk = mkVaultFs();
+const recOk = restoreFromVault(fsOk);
+check('MORDE: árvore sem settings + cofre válido → restaura', recOk.ok === true);
+check('MORDE: escreveu na RAIZ do repo (1 arquivo, não 33 cópias)', fsOk.escritas.length === 1 && fsOk.escritas[0].p === DEST);
+check('MORDE: conteúdo restaurado é o do cofre', fsOk.escritas[0].d === SETTINGS_OK);
+
+// CONTROLE NEGATIVO 1: destino JÁ existe → nunca sobrescreve
+const fsDest = mkVaultFs({ destExiste: true });
+check('NEG: destino já existe → NÃO sobrescreve', restoreFromVault(fsDest).reason === 'destino-ja-existe' && fsDest.escritas.length === 0);
+
+// CONTROLE NEGATIVO 2: sem cofre → não escreve nada
+const fsSem = mkVaultFs({ vaultExiste: false });
+check('NEG: cofre ausente → não escreve', restoreFromVault(fsSem).reason === 'cofre-ausente' && fsSem.escritas.length === 0);
+
+// CONTROLE NEGATIVO 3: cofre com placeholder (sem token válido) → não escreve
+const fsPh = mkVaultFs({ conteudo: JSON.stringify({ mcpServers: { oimpresso: { headers: { Authorization: 'Bearer mcp_COLE_SEU_TOKEN_AQUI' } } } }) });
+const recPh = restoreFromVault(fsPh);
+check('NEG: cofre com PLACEHOLDER do .example → não escreve', recPh.reason === 'cofre-sem-token' && fsPh.escritas.length === 0);
+
+// CONTROLE NEGATIVO 4: fora de repo git → nunca escreve em diretório aleatório
+const fsFora = { ...mkVaultFs(), repoRoot: null };
+check('NEG: fora de repo git → não escreve', restoreFromVault(fsFora).reason === 'fora-de-repo');
+
+// CONTROLE NEGATIVO 5: escrita falha → fail-open com motivo fixo (não crasha)
+check('NEG: escrita falha → motivo fixo, sem throw', restoreFromVault(mkVaultFs({ escritaThrow: true })).reason === 'escrita-falhou');
+
+// REDAÇÃO: motivo do restore nunca carrega token
+const fsLeak = mkVaultFs({ vaultExiste: false });
+noLeak('reason do restore', JSON.stringify(restoreFromVault(fsLeak)));
+
+// findRepoRoot: runner injetado (de dentro de worktree, --git-common-dir → .git do PRINCIPAL).
+// CROSS-PLATAFORMA: nada de 'D:/...' literal — é absoluto no Windows e RELATIVO no POSIX
+// (o CI roda Linux; o time MCP usa Mac/Linux — é o motivo de o hook ser .mjs, US-GOV-052).
+const rootAbs = findRepoRoot('/qualquer', () => ({ status: 0, stdout: join('/repo', '.git') + '\n' }));
+check('findRepoRoot: --git-common-dir absoluto → raiz do repo (tira o /.git)',
+  typeof rootAbs === 'string' && /[\\/]repo$/.test(rootAbs) && !/\.git$/.test(rootAbs));
+// caso REAL mais comum: na raiz do repo o git devolve ".git" RELATIVO → resolve contra o cwd
+const rootRel = findRepoRoot(process.cwd(), () => ({ status: 0, stdout: '.git\n' }));
+check('findRepoRoot: --git-common-dir relativo (".git") → resolve contra o cwd',
+  rootRel === process.cwd());
+check('findRepoRoot: git falha → null (guarda anti-escrita)', findRepoRoot('/qualquer', () => ({ status: 128, stdout: '' })) === null);
+check('findRepoRoot: git ausente (throw) → null', findRepoRoot('/qualquer', () => { throw new Error('ENOENT'); }) === null);
+check('vaultPath fica FORA da árvore do repo (~/.claude/oimpresso-local)', vaultPath('/home/x').replace(/\\/g, '/') === '/home/x/.claude/oimpresso-local/mcp-settings.local.json');
+
+// E2E do orquestrador: sem settings na árvore + cofre válido → restaura e SEGUE pro brief
+const tmpRec = mkdtempSync(join(tmpdir(), 'brief-rec-'));
+const outRec = await runBrief({ cwd: tmpRec, settingsPath: null, timeoutMs: 200, fetchImpl: fetchCapture, restoreFn: () => ({ ok: true, dest: DEST, texto: SETTINGS_OK }) });
+check('runBrief: restaurou → NÃO cai em fallback, entrega o brief', !outRec.includes('FALLBACK') && outRec.includes('BRIEF: cycle X'));
+check('runBrief: avisa que restaurou (mensagem honesta)', outRec.includes('restaurado do cofre local'));
+noLeak('runBrief caminho de RESTAURAÇÃO', outRec);
+
+// E sem cofre → fallback COM a dica acionável (a mensagem promete só o que existe)
+const outSemCofre = await runBrief({ cwd: tmpRec, settingsPath: null, timeoutMs: 200, restoreFn: () => ({ ok: false, reason: 'cofre-ausente' }) });
+check('runBrief: sem cofre → fallback com CONSERTO acionável', outSemCofre.includes('FALLBACK') && outSemCofre.includes('CONSERTO') && outSemCofre.includes('settings.local.json.example'));
+rmSync(tmpRec, { recursive: true, force: true });
 
 // ── fallbackText/successText nunca vazam por construção ──
 noLeak('fallbackText', fallbackText('motivo qualquer', 'tail do handoff'));

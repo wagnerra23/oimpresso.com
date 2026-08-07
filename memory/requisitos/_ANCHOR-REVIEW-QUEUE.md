@@ -56,7 +56,7 @@ Detectadas nos lotes de `related_us`; cada uma precisa de decisão: criar US no 
 | `Pages/Jana/Pro.charter.md` | `[US-COPI-118, US-COPI-119]` | smoke ou prod-flags `Jana/Pro` |
 | `Pages/Jana/Memoria.charter.md` | `[US-COPI-MEM-005, US-COPI-MEM-008, US-COPI-MEM-012]` (⚠️ MEM-* vivem fora do SPEC — ver §3) | smoke ou prod-flags `Jana/Memoria` |
 | `Pages/Jana/Admin/Roadmap.charter.md` | `[US-COPI-111]` | smoke ou prod-flags `Jana/Admin/Roadmap` |
-| `Pages/Jana/Painel.charter.md` | `[US-JANA-PAINEL-001, US-COPI-106]` (106 MOVIDA do Chat — correção do refutador) | smoke ou prod-flags `Jana/Painel` |
+| ~~`Pages/Jana/Painel.charter.md`~~ | **RESOLVIDO 2026-08-06 [W]** — charter e tela apagados (onda 1 da fusão das telas da Jana). `US-COPI-106` foi **reancorada** em `Pages/Jana/Dashboard.tsx` (SPEC L953), que serve a mesma capacidade com dado real. `US-JANA-PAINEL-001` **nunca existiu no SPEC** — era id fantasma, vivo só no charter, no teste e no SCOPE.md. | — |
 | `Pages/Whatsapp/Settings.charter.md` | `[US-WA-001, US-WA-014]` (PR #3547 fechado por isso) | smoke ou prod-flags `Whatsapp/Settings` |
 | `Pages/OficinaAuto/ServiceOrders/Create.charter.md` | `[US-OFICINA-001, US-OFICINA-038, US-OFICINA-039]` | smoke ou prod-flags `OficinaAuto/ServiceOrders/Create` |
 | `Pages/OficinaAuto/ServiceOrders/Edit.charter.md` | `[US-OFICINA-001]` (005 REMOVIDA — refutador: '005-bis'≠005) | smoke ou prod-flags `OficinaAuto/ServiceOrders/Edit` |
@@ -67,7 +67,7 @@ Detectadas nos lotes de `related_us`; cada uma precisa de decisão: criar US no 
 | `Pages/Atendimento/JanaTemplates.charter.md` | `[US-WA-070]` | smoke ou prod-flags `Atendimento/JanaTemplates` |
 | `Pages/Atendimento/Macros/Index.charter.md` | `[US-WA-048]` | smoke ou prod-flags `Atendimento/Macros/Index` |
 | `Pages/Atendimento/Metricas/Index.charter.md` | `[US-WA-041]` | smoke ou prod-flags `Atendimento/Metricas/Index` |
-| `Pages/ProjectMgmt/Board/Index.charter.md` | `[US-TR-307]` (TR-308 é topicamente da tela mas está `todo`/gap — só listar quando entregue) | smoke ou prod-flags `ProjectMgmt/Board/Index` |
+| `Pages/Forja/Board/Index.charter.md` | `[US-TR-307]` (TR-308 é topicamente da tela mas está `todo`/gap — só listar quando entregue) | smoke ou prod-flags `Forja/Board/Index` |
 | `Pages/RecurringBilling/Faturas/Index.charter.md` | `[US-RB-042]` (RECURRINGBILLING-007 é duplicata declarada da 042 — refutador: não listar as duas) | smoke ou prod-flags `RecurringBilling/Faturas/Index` |
 | `Pages/RecurringBilling/Planos/Index.charter.md` | `[US-RB-001]` | smoke ou prod-flags `RecurringBilling/Planos/Index` |
 | `Pages/RecurringBilling/Configuracoes/Index.charter.md` | `[US-RB-010]` (anchor cita ConfiguracoesController → `Inertia::render('RecurringBilling/Configuracoes/Index')`) | smoke ou prod-flags `RecurringBilling/Configuracoes/Index` |
@@ -111,7 +111,7 @@ Aterrissaram direto (sem gate — status draft/deprecated/live-ok): Financeiro/A
 | Financeiro | US-FIN-001/004/009 (sem teste) | **A** — teste real | Tier-0 dinheiro | |
 | Vestuario | US-VEST-001..009 (sem aceite E sem teste) | **A** — aceite rascunhado por IA + teste real | cliente piloto ROTA LIVRE em produção | |
 | KB | US-KB-001..006 (sem aceite E sem teste) | **B ou C** | módulo interno, risco baixo — rebaixar ou `_lacuna_` | |
-| ProjectMgmt | US-TR-301..308 + 304/305/306/307/310/311 (sem aceite E sem teste) | **B ou C** | idem | |
+| Forja | US-TR-301..308 + 304/305/306/307/310/311 (sem aceite E sem teste) | **B ou C** | idem | |
 | PaymentGateway | US-PG-001/002 (sem aceite E sem teste) + US-PG-005 (sem teste) | **A** — teste real | Tier-0 dinheiro (Onda 0 docs-only: validar se anchor não está otimista) | |
 | Compras | US-COM-001/005 (sem aceite E sem teste) | **C** — `_lacuna_` + backlog | módulo em convergência C1 | |
 | Governance | US-GOV-021 (sem aceite E sem teste) | **C** — `_lacuna_` + backlog | meta-módulo | |

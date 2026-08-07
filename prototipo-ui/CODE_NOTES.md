@@ -1080,7 +1080,7 @@ Gap 3 levers · Gap 2 badge `conflito` · publisher Cowork→repo (zero-toque re
 ### new_design_memories
 - **golden**: handoff de INFRA (não-UI) também exige auditar o `main` fresco (§10.4) — a fundação (PR-1..5) vivia só no `main`, ausente da branch da cwd; abrir branch off `origin/main`.
 - **golden**: validação compartilhada por 2 caminhos (ingest por arquivo + por HTTP) vira **Service extraído**, não cópia (`HandoffIngestService`) — uma fonte de verdade pro HMAC/append-only.
-- **golden**: `Mcp::web` (laravel/mcp ^0.7) é JSON-RPC **síncrono/stateless** — `tools/call` num POST sem handshake `initialize` (`vendor/.../Server.php:198`); por isso uma GitHub Action chama tool MCP por `curl`.
+- **golden**: `Mcp::web` (laravel/mcp ^0.9) é JSON-RPC **síncrono/stateless** — `tools/call` num POST sem handshake `initialize` (`vendor/.../Server.php:198`); por isso uma GitHub Action chama tool MCP por `curl`.
 - **gotcha**: teste de `Modules/TeamMcp` SÓ roda em CI se estiver no `.github/ci-sqlite-pest.list` (não há lane TeamMcp; `modules-pest.yml` não cobre). PR-1/2 não estavam → não mordiam.
 - **gotcha**: workflow novo SEM registro em `scripts/governance/gates-registry.json` no MESMO PR → `memory-health` (enforce) 🔴 bloqueia ("censo de gates").
 - **gotcha**: **`--auto` merge durante lag do GitHub squasha o head que o *PR-object* enxerga, NÃO a ref real da branch.** O PR-object ficou preso 1 commit atrás (lag de minutos); o auto-merge squashou o head defasado e o último commit recém-pushado (este doc) ficou de fora. Pós-merge, conferir `git show --stat <mergeCommit>` e re-landar o que faltou. Esta entrada é o re-land.

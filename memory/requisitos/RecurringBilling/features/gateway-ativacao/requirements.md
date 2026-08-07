@@ -4,6 +4,9 @@ feature: gateway-ativacao
 module: RecurringBilling
 us: ["US-RB-052"]
 parent_plan: recurring-billing-gateway-ativacao
+sdd: ["memory/requisitos/RecurringBilling/SDD-cobranca-recorrente-v1.0.md"]
+related_cus: ["CU-RB-15"]
+screens: []
 created: "2026-07-09"
 ---
 

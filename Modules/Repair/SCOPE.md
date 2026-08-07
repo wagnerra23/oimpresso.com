@@ -1,6 +1,7 @@
 ---
 module: Repair
-purpose: "UltimatePOS repair shops."
+purpose: "Ciclo de vida da ordem de serviço (recepção, diagnóstico, execução, entrega) sobre transactions.sub_type=repair e job_sheets, com FSM, Kanban de produção e faturamento derivado. Infraestrutura de OS compartilhada entre verticais."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "CustomerRepairStatusController"
   - "DashboardController"
@@ -15,8 +16,8 @@ contains:
   - "RepairStatusController"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
-  - "MCP server admin → Modules/TeamMcp"
+  - "Tasks Jira-style → Modules/Forja"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: repair.*

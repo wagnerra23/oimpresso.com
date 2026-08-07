@@ -12,9 +12,9 @@ module: Spreadsheet
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Spreadsheet --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Spreadsheet/**` + `resources/js/Pages/Spreadsheet/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Spreadsheet/**` + `resources/js/Pages/Spreadsheet/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Spreadsheet/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 41 arquivos em 13 papéis.
+**Total mapeado:** 79 arquivos em 13 papéis.
 
 ## Controllers — 3
 
@@ -78,6 +78,44 @@ module: Spreadsheet
 
 - 9 arquivos em [Modules/Spreadsheet/Tests/Feature/](../../../Modules/Spreadsheet/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 1
+## Demais arquivos (manifestos, docs, assets e misc) — 39
 
+- [CHANGELOG.md](../../../Modules/Spreadsheet/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Spreadsheet/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Console/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Http/Requests/.gitkeep)
 - [SpreadsheetShared.php](../../../Modules/Spreadsheet/Notifications/SpreadsheetShared.php)
+- [.gitkeep](../../../Modules/Spreadsheet/Providers/.gitkeep)
+- [.gitkeep](../../../Modules/Spreadsheet/Resources/assets/.gitkeep)
+- [app.js](../../../Modules/Spreadsheet/Resources/assets/js/app.js)
+- [app.scss](../../../Modules/Spreadsheet/Resources/assets/sass/app.scss)
+- [.gitkeep](../../../Modules/Spreadsheet/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/ar/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/ce/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/de/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/en/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/es/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/fr/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/hi/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/id/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/lo/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/nl/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/ps/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/pt/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/ro/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/sq/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/tr/lang.php)
+- [lang.php](../../../Modules/Spreadsheet/Resources/lang/vi/lang.php)
+- [.gitkeep](../../../Modules/Spreadsheet/Resources/views/.gitkeep)
+- [SCOPE.md](../../../Modules/Spreadsheet/SCOPE.md)
+- [.gitkeep](../../../Modules/Spreadsheet/Tests/.gitkeep)
+- [composer.json](../../../Modules/Spreadsheet/composer.json)
+- [module.json](../../../Modules/Spreadsheet/module.json)
+- [package.json](../../../Modules/Spreadsheet/package.json)
+- [webpack.mix.js](../../../Modules/Spreadsheet/webpack.mix.js)

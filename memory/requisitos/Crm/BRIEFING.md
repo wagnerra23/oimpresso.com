@@ -1,13 +1,17 @@
 ---
 id: requisitos-crm-briefing
-distilled_at: "2026-07-22"
-distilled_by: jana:distill-module-truth
+distilled_at: "2026-07-30"
+distilled_by: reconciliacao-manual-2026-07-30
 module: Crm
 status: producao
-updated_at: "2026-07-22"
+updated_at: "2026-07-30"
 ---
 
 # BRIEFING — Crm (verdade destilada)
+
+> **Reconciliação 2026-07-30 (manual, não destilação).** O `distiller_freshness` (métrica ARMADA, GT-G3) acusou este BRIEFING como *porta atrás dos eventos* porque um doc do módulo mudou depois do último carimbo. O evento foi **uma linha** em [`DEPRECATION-PLAN-pipeline.md`](DEPRECATION-PLAN-pipeline.md): a lápide-ponteiro `Modules/Crm/BRIEFING.md` foi **deletada** ([W] 2026-07-30, *"apagar os outros e revisar os vínculos"*) e a linha da etapa E6 foi repontada pra este arquivo — a **casa única** do BRIEFING.
+>
+> **Conferido:** Estado, Capacidades e Gaps abaixo **seguem válidos**; nada no código do Crm mudou. O carimbo sobe porque a reconciliação foi feita de fato, não pra passar o gate — `distilled_by` declara que foi **manual**, não `jana:distill-module-truth` (o schedule do distiller segue desligado, [ADR 0291](../../decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md)).
 
 # BRIEFING — Modules/Crm
 

@@ -57,7 +57,7 @@ V1 hoje: visualização read-only. V2 (Cycle 02): HITL "essa resposta foi boa?" 
 - [ ] Módulo `Jana` instalado em `/manage-modules` (ADR 0024)
 - [ ] Permissão `jana.mcp.usage.all` atribuída ao role do usuário (geralmente Wagner/superadmin)
 - [ ] Rota `Route::get('/admin/qualidade', 'Admin\QualidadeController@index')->name('jana.admin.qualidade.index')` em [`Modules/Jana/Http/routes.php:106`](../../../Modules/Jana/Http/routes.php) — dentro do prefix `/copiloto`
-- [ ] Page Inertia em [`resources/js/Pages/Jana/Admin/Qualidade/Index.tsx`](../../../resources/js/Pages/Jana/Admin/Qualidade/Index.tsx)
+- [ ] Page Inertia em [`resources/js/Pages/governance/QualidadeIa.tsx`](../../../resources/js/Pages/governance/QualidadeIa.tsx)
 - [ ] Tabela `copiloto_memoria_metricas` (Entity `MemoriaMetrica`) com scope `ultimosDias($dias)` — alimentada pelo cron `copiloto:metrics:apurar` (daily 23:55) E pelo command `copiloto:eval --persist`
 - [ ] Tabela `jana_memoria_gabarito` populada com perguntas ativas + `categoria` (personal/negocio/etc) — pra contagem do filtro
 - [ ] Tabela `mcp_memory_documents` populada (usada pra listar businesses no filtro — ver pegadinha §10)
@@ -69,7 +69,7 @@ V1 hoje: visualização read-only. V2 (Cycle 02): HITL "essa resposta foi boa?" 
 ### 1. Controller agrupa séries por business + monta gates canônicos
 
 ```php
-// Modules/Jana/Http/Controllers/Admin/QualidadeController.php
+// Modules/Governance/Http/Controllers/QualidadeIaController.php
 class QualidadeController extends Controller
 {
     public function __construct()
@@ -157,7 +157,7 @@ class QualidadeController extends Controller
 ### 2. Page Inertia recebe Props tipadas
 
 ```tsx
-// resources/js/Pages/Jana/Admin/Qualidade/Index.tsx
+// resources/js/Pages/governance/QualidadeIa.tsx
 interface Ponto {
   data: string;
   recall_at_3: number | null;

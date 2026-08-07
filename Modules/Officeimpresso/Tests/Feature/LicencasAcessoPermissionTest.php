@@ -39,11 +39,18 @@ uses(Tests\TestCase::class);
 defined('PERM_OI_ACCESS') || define('PERM_OI_ACCESS', 'officeimpresso.access');
 defined('PERM_OI_GERENCIAR') || define('PERM_OI_GERENCIAR', 'officeimpresso.licencas.gerenciar');
 defined('PERM_OI_CLIENTES') || define('PERM_OI_CLIENTES', 'officeimpresso.clientes.liberar');
+defined('PERM_OI_EMPRESA') || define('PERM_OI_EMPRESA', 'officeimpresso.empresa.gerenciar');
+defined('PERM_OI_EXCLUIR') || define('PERM_OI_EXCLUIR', 'officeimpresso.licencas.excluir');
 
 // ID que não existe: o gate roda ANTES do service, então o caso "com permissão"
 // atravessa a guarda e morre no findOrFail (try/catch → redirect), sem escrever
 // em nenhuma licença real.
 defined('LICENCA_INEXISTENTE') || define('LICENCA_INEXISTENTE', 999999999);
+
+// Mesma razão, pro escopo empresa-inteira: businessbloqueado() faz TOGGLE real
+// (alternarBloqueioEmpresa → save). Com id inexistente o findOrFail estoura e o
+// controller cai no catch — o gate é exercido sem bloquear cliente nenhum.
+defined('BUSINESS_INEXISTENTE') || define('BUSINESS_INEXISTENTE', 999999999);
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -51,11 +58,16 @@ beforeEach(function () {
     }
 });
 
-it('declara as duas permissões no user_permissions (assináveis na UI de Funções)', function () {
+it('declara as permissões no user_permissions (assináveis na UI de Funções)', function () {
     $values = array_column((new DataController())->user_permissions(), 'value');
 
+    // Sem estar aqui, a permissão não vira checkbox na tela de Funções — e
+    // permissão que não aparece na tela é permissão que ninguém consegue dar.
     expect($values)->toContain(PERM_OI_ACCESS)
-        ->and($values)->toContain(PERM_OI_GERENCIAR);
+        ->and($values)->toContain(PERM_OI_GERENCIAR)
+        ->and($values)->toContain(PERM_OI_CLIENTES)
+        ->and($values)->toContain(PERM_OI_EMPRESA)
+        ->and($values)->toContain(PERM_OI_EXCLUIR);
 });
 
 it('concede acesso às licenças SEM abrir superadmin nem Financeiro (no-leak)', function () {
@@ -135,12 +147,14 @@ it('exige licencas.gerenciar pra liberar/bloquear máquina — ver não basta', 
     $suporte->forceDelete();
 });
 
-it('mantém bloqueio da EMPRESA inteira como superadmin-only', function () {
+it('mexer em máquina NÃO concede escopo empresa-inteira (no-leak)', function () {
     $business = $this->seededTenant();
 
     Permission::firstOrCreate(['name' => PERM_OI_GERENCIAR, 'guard_name' => 'web']);
 
     // Suporte pode mexer em máquina individual, mas não derrubar o cliente todo.
+    // Desde 2026-07-30 isso deixou de ser superadmin-only e virou a permissão
+    // própria PERM_OI_EMPRESA — que este nível NÃO tem.
     $suporte = makeOiAcessoTestUser($business->id);
     $suporte->givePermissionTo(PERM_OI_GERENCIAR);
     $this->actingAs($suporte);
@@ -150,6 +164,60 @@ it('mantém bloqueio da EMPRESA inteira como superadmin-only', function () {
         ->assertForbidden();
 
     $suporte->forceDelete();
+});
+
+it('delega escopo empresa-inteira via officeimpresso.empresa.gerenciar', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_EMPRESA, 'guard_name' => 'web']);
+
+    $gestor = makeOiAcessoTestUser($business->id);
+    $gestor->givePermissionTo(PERM_OI_EMPRESA);
+    $this->actingAs($gestor);
+    session(['user.business_id' => $business->id]);
+
+    // BUSINESS_INEXISTENTE de propósito: o gate roda ANTES do service, então o
+    // caso "com permissão" atravessa a guarda e morre no findOrFail (catch →
+    // redirect) — sem alternar o bloqueio de NENHUMA empresa real.
+    expect($this->get('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)->status())
+        ->not->toBe(403);
+
+    $gestor->forceDelete();
+});
+
+it('no-leak: gerir a empresa NÃO concede EXCLUIR licença (destrutivo)', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_EMPRESA, 'guard_name' => 'web']);
+
+    // Bloquear o cliente é reversível; apagar o registro não é. Quem tem uma
+    // não ganha a outra de brinde.
+    $gestor = makeOiAcessoTestUser($business->id);
+    $gestor->givePermissionTo(PERM_OI_EMPRESA);
+    $this->actingAs($gestor);
+    session(['user.business_id' => $business->id]);
+
+    $this->delete('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE)
+        ->assertForbidden();
+
+    $gestor->forceDelete();
+});
+
+it('delega exclusão via officeimpresso.licencas.excluir', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_EXCLUIR, 'guard_name' => 'web']);
+
+    $user = makeOiAcessoTestUser($business->id);
+    $user->givePermissionTo(PERM_OI_EXCLUIR);
+    $this->actingAs($user);
+    session(['user.business_id' => $business->id]);
+
+    // Atravessa o gate e morre no find() → 404 JSON. Nenhuma licença real some.
+    expect($this->delete('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE)->status())
+        ->not->toBe(403);
+
+    $user->forceDelete();
 });
 
 it('manda /officeimpresso pra primeira tela que o nível consegue abrir', function () {
@@ -186,6 +254,48 @@ it('nega a porta de entrada pra autenticado sem permissão do módulo', function
 
     // Não redireciona pra uma tela que negaria do mesmo jeito — nega aqui.
     $this->get('/officeimpresso')->assertForbidden();
+
+    $user->forceDelete();
+});
+
+it('lista os links de licença no menu Blade pra quem tem access (não só superadmin)', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_ACCESS, 'guard_name' => 'web']);
+
+    $suporte = makeOiAcessoTestUser($business->id);
+    $suporte->givePermissionTo(PERM_OI_ACCESS);
+    $this->actingAs($suporte);
+    session(['user.business_id' => $business->id]);
+
+    $html = view('officeimpresso::layouts.nav')->render();
+
+    // Regressão real (2026-07-30): o suporte ABRIA /officeimpresso/computadores
+    // — o controller aceita `access` — mas não via link NENHUM pra navegar,
+    // porque esta nav (3ª fonte de menu do módulo, a que as telas Blade legacy
+    // renderizam) ainda gateava tudo por @can('superadmin'). O #5044 corrigiu o
+    // topnav.php e a sidebar e passou por aqui. Menu e guarda têm que contar a
+    // mesma história.
+    expect($html)->toContain('/officeimpresso/businessall')
+        ->and($html)->toContain('/officeimpresso/computadores')
+        ->and($html)->toContain('/officeimpresso/licenca_log');
+
+    $suporte->forceDelete();
+});
+
+it('não lista os links de licença pra quem não tem access', function () {
+    $business = $this->seededTenant();
+
+    // Controle negativo: sem o teste abaixo, o de cima passaria com uma nav que
+    // mostra tudo pra todo mundo — que é o outro lado do buraco do #5044.
+    $user = makeOiAcessoTestUser($business->id);
+    $this->actingAs($user);
+    session(['user.business_id' => $business->id]);
+
+    $html = view('officeimpresso::layouts.nav')->render();
+
+    expect($html)->not->toContain('/officeimpresso/businessall')
+        ->and($html)->not->toContain('/officeimpresso/licenca_log');
 
     $user->forceDelete();
 });

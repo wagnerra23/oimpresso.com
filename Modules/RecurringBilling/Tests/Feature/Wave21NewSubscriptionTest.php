@@ -13,6 +13,8 @@ declare(strict_types=1);
  *   UC-RBSUB-03 — busca de cliente não vaza outro business nem tipo errado [T0]
  */
 
+use App\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
@@ -20,6 +22,7 @@ use Modules\RecurringBilling\Http\Controllers\RecurringBillingController;
 use Modules\RecurringBilling\Http\Requests\StoreAssinaturaRequest;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(Tests\TestCase::class);
 
@@ -32,7 +35,10 @@ uses(Tests\TestCase::class);
  *  - RecurringBillingController::searchContacts scopa por business_id (Tier 0).
  *
  * SQLite in-memory (espelha Wave6PlanCrudTest) — migrations legadas UltimatePOS
- * usam sintaxe MySQL-only. Auth Spatie/Gate é bypassado via Gate::before.
+ * usam sintaxe MySQL-only. Auth: usuário biz=1 autenticado no beforeEach (obrigatório —
+ * `authorize()` exige `$this->user() !== null`) + `Gate::before` pra dispensar a permission
+ * Spatie. Ver o comentário longo no beforeEach: só o `Gate::before` NÃO basta, e a redação
+ * anterior desta linha ("bypassado via Gate::before") era falsa.
  *
  * Multi-tenant Tier 0 (ADR 0093) + biz=1 (ADR 0101): NUNCA biz=4.
  */
@@ -112,8 +118,85 @@ beforeEach(function () {
         $t->softDeletes();
     });
 
-    // Bypass auth/Gate — qualquer authorize() passa.
+    Schema::dropIfExists('users');
+    Schema::create('users', function (Blueprint $t) {
+        $t->increments('id');
+        $t->string('username')->unique();
+        $t->string('password');
+        $t->integer('business_id')->nullable();
+        $t->rememberToken();
+        $t->softDeletes();
+        $t->timestamps();
+    });
+
+    // Tabelas Spatie — o PermissionServiceProvider registra um `Gate::before` no boot
+    // que consulta `permissions`. Ele roda ANTES do nosso (ordem de registro), então
+    // sem estas tabelas o `Gate::authorize` do controller morre em
+    // "no such table: permissions" em vez de ser dispensado. Padrão idêntico ao do
+    // RefundCobrancaAsaasJobTest; sufixo dos índices é por-arquivo (identificador
+    // MySQL é global).
+    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions'] as $tbl) {
+        Schema::dropIfExists($tbl);
+    }
+    Schema::create('permissions', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('name');
+        $t->string('guard_name');
+        $t->timestamps();
+        $t->unique(['name', 'guard_name']);
+    });
+    Schema::create('roles', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('name');
+        $t->string('guard_name');
+        $t->timestamps();
+        $t->unique(['name', 'guard_name']);
+    });
+    Schema::create('model_has_permissions', function (Blueprint $t) {
+        $t->unsignedBigInteger('permission_id');
+        $t->string('model_type');
+        $t->unsignedBigInteger('model_id');
+        $t->primary(['permission_id', 'model_id', 'model_type'], 'mhp_pk_rbw21');
+    });
+    Schema::create('model_has_roles', function (Blueprint $t) {
+        $t->unsignedBigInteger('role_id');
+        $t->string('model_type');
+        $t->unsignedBigInteger('model_id');
+        $t->primary(['role_id', 'model_id', 'model_type'], 'mhr_pk_rbw21');
+    });
+    Schema::create('role_has_permissions', function (Blueprint $t) {
+        $t->unsignedBigInteger('permission_id');
+        $t->unsignedBigInteger('role_id');
+        $t->primary(['permission_id', 'role_id']);
+    });
+
+    // AUTENTICAR É OBRIGATÓRIO, não opcional (fix 2026-08-03).
+    //
+    // A redação anterior era `Gate::before(fn () => true)` sozinho, com o comentário
+    // "Bypass auth/Gate — qualquer authorize() passa". Era FALSO, por dois motivos
+    // independentes, e o arquivo inteiro morria em AuthorizationException:
+    //
+    //  1. `StoreAssinaturaRequest::authorize()` devolve `$this->user() !== null` —
+    //     exige USUÁRIO, não permissão. Nenhum before-callback do Gate satisfaz isso.
+    //  2. `Gate::before(fn () => true)` tem ZERO parâmetros, e o Laravel só invoca
+    //     before-callback para visitante anônimo quando o callback declara o 1º
+    //     parâmetro aceitando null (Gate::callbackAllowsGuests usa
+    //     `isset($reflection->getParameters()[0])`). Sem usuário logado o callback
+    //     NUNCA dispara — então o `Gate::authorize('create', Subscription::class)`
+    //     do RecurringBillingController::store/searchContacts negava.
+    //
+    // Autenticar resolve os dois de uma vez: `$this->user()` deixa de ser null E os
+    // before-callbacks passam a ser invocados. Padrão vivo do módulo:
+    // RefundCobrancaAsaasJobTest (verde na lane sqlite).
+    //
+    // biz=1 sempre — NUNCA biz=4, que é cliente real (ADR 0101).
+    $this->actingAs(User::forceCreate([
+        'username' => 'rbw21_biz1_' . uniqid(),
+        'password' => bcrypt('x'),
+        'business_id' => 1,
+    ]));
     Gate::before(fn () => true);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
     session(['user.business_id' => 1]);
 });
 
@@ -127,7 +210,11 @@ afterEach(function () {
         && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         Schema::dropIfExists('rb_subscriptions');
         Schema::dropIfExists('rb_plans');
+        foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 function validateStoreAssinatura(array $payload): \Illuminate\Contracts\Validation\Validator
@@ -161,13 +248,13 @@ it('R-RB-WAVE21-2 — request aceita plan_id inteiro (campo novo da Onda 21)', f
     expect(validateStoreAssinatura(validPayload(['plan_id' => 7]))->passes())->toBeTrue();
 });
 
-it('R-RB-WAVE21-3 — request rejeita contact_id ausente', function () {
+it('UC-RBSUB-02 · R-RB-WAVE21-3 — request rejeita contact_id ausente', function () {
     $v = validateStoreAssinatura(validPayload(['contact_id' => null]));
     expect($v->fails())->toBeTrue()
         ->and($v->errors()->has('contact_id'))->toBeTrue();
 });
 
-it('R-RB-WAVE21-4 — request rejeita ciclo/gateway/forma fora do enum + data no passado', function () {
+it('UC-RBSUB-02 · R-RB-WAVE21-4 — request rejeita ciclo/gateway/forma fora do enum + data no passado', function () {
     $v = validateStoreAssinatura(validPayload([
         'ciclo'                 => 'quinzenal',
         'gateway'               => 'paypal',
@@ -183,7 +270,7 @@ it('R-RB-WAVE21-4 — request rejeita ciclo/gateway/forma fora do enum + data no
 
 // ─── store() cria Subscription ─────────────────────────────────────────
 
-it('R-RB-WAVE21-5 — store cria Subscription biz=1 mapeando forma_pagamento→payment_method', function () {
+it('UC-RBSUB-01 · R-RB-WAVE21-5 — store cria Subscription biz=1 mapeando forma_pagamento→payment_method', function () {
     \App\Contact::create(['business_id' => 1, 'name' => 'Cliente Teste', 'type' => 'customer']);
 
     $controller = new RecurringBillingController(new SubscriptionRepository());
@@ -193,6 +280,10 @@ it('R-RB-WAVE21-5 — store cria Subscription biz=1 mapeando forma_pagamento→p
         'valor'           => 250.00,
         'ciclo'           => 'mensal',
     ]));
+    // setUserResolver é OBRIGATÓRIO num FormRequest sintético: `Request::create()` não
+    // herda o usuário do `actingAs`, então `authorize()` (`$this->user() !== null`)
+    // veria null e lançaria AuthorizationException antes de qualquer regra de negócio.
+    $request->setUserResolver(fn () => auth()->user());
     $request->setContainer(app())->validateResolved();
 
     $controller->store($request);
@@ -208,7 +299,7 @@ it('R-RB-WAVE21-5 — store cria Subscription biz=1 mapeando forma_pagamento→p
 
 // ─── searchContacts() scoping Tier 0 ───────────────────────────────────
 
-it('R-RB-WAVE21-6 — searchContacts só retorna contatos do business da sessão', function () {
+it('UC-RBSUB-03 · R-RB-WAVE21-6 — searchContacts só retorna contatos do business da sessão', function () {
     \App\Contact::create(['business_id' => 1, 'name' => 'Larissa Costa', 'type' => 'customer']);
     \App\Contact::create(['business_id' => 99, 'name' => 'Larissa Outra Empresa', 'type' => 'customer']);
 
@@ -221,7 +312,7 @@ it('R-RB-WAVE21-6 — searchContacts só retorna contatos do business da sessão
         ->and($json['contacts'][0]['name'])->toBe('Larissa Costa');
 });
 
-it('R-RB-WAVE21-7 — searchContacts ignora query < 2 chars', function () {
+it('UC-RBSUB-03 · R-RB-WAVE21-7 — searchContacts ignora query < 2 chars', function () {
     \App\Contact::create(['business_id' => 1, 'name' => 'Ab', 'type' => 'customer']);
 
     $controller = new RecurringBillingController(new SubscriptionRepository());
@@ -232,7 +323,7 @@ it('R-RB-WAVE21-7 — searchContacts ignora query < 2 chars', function () {
     expect($json['contacts'])->toBe([]);
 });
 
-it('R-RB-WAVE21-8 — searchContacts exclui type=lead/supplier (só customer/both)', function () {
+it('UC-RBSUB-03 · R-RB-WAVE21-8 — searchContacts exclui type=lead/supplier (só customer/both)', function () {
     \App\Contact::create(['business_id' => 1, 'name' => 'Lead Frio', 'type' => 'lead']);
     \App\Contact::create(['business_id' => 1, 'name' => 'Lead Ambos', 'type' => 'both']);
 

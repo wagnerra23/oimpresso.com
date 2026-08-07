@@ -1,11 +1,18 @@
-# Módulo: SRS
+# Módulo: SRS — REMOVIDO
+
+> ⛔ **Removido em 2026-07-29** — [ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md).
+> `Modules/SRS/` não existe mais. Tudo abaixo é retrato do dia em que foi removido, mantido como histórico.
+> Sucessores: **KB** (acervo) · **Jana** (chat) · **Governance** + `mcp_audit_log` (validação).
+> As 6 telas saíram em 2026-07-30 (#5088) e os docs de `memory/requisitos/MemCofre/` em #5092 — as 3 ADRs
+> de navegação que governavam código vivo migraram para `_DesignSystem/adr/ui/` (UI-0024..0026).
+> As URLs `/memcofre/*` seguem como redirect 301 em `routes/web.php`, só para preservar bookmarks.
 
 > **SRS — System Requirements Spec (ex-MemCofre, renomeado Fase 3.7 PR-2). Cofre de documentação viva — ingestão de evidências (screenshots, chat logs, erros) → IA classifica → vira requisitos estruturados em memory/requisitos/. URL/permissions/config keys mantêm prefixo legacy `memcofre.*` por compatibilidade.**
 
 - **Alias:** `srs`
 - **Versão:** ?
 - **Path:** `D:\oimpresso.com\Modules/SRS`
-- **Status:** 🟢 ativo
+- **Status:** ⛔ removido (2026-07-29, ADR 0357)
 - **Providers:** Modules\SRS\Providers\SrsServiceProvider
 - **Requires (módulo.json):** nenhum
 

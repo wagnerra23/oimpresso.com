@@ -11,6 +11,8 @@ declare(strict_types=1);
  *   UC-RBSUB-04 — editar cobrança: 404 cross-tenant · 422 se cancelada [T0][V0]
  */
 
+use App\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -21,6 +23,7 @@ use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
 use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(Tests\TestCase::class);
 
@@ -71,7 +74,69 @@ beforeEach(function () {
         $t->timestamps();
     });
 
+    Schema::dropIfExists('users');
+    Schema::create('users', function (Blueprint $t) {
+        $t->increments('id');
+        $t->string('username')->unique();
+        $t->string('password');
+        $t->integer('business_id')->nullable();
+        $t->rememberToken();
+        $t->softDeletes();
+        $t->timestamps();
+    });
+
+    // Tabelas Spatie — o PermissionServiceProvider registra um `Gate::before` no boot
+    // que consulta `permissions`, e ele roda ANTES do nosso. Sem elas, o
+    // `Gate::authorize('update', $sub)` morre em "no such table: permissions".
+    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions'] as $tbl) {
+        Schema::dropIfExists($tbl);
+    }
+    Schema::create('permissions', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('name');
+        $t->string('guard_name');
+        $t->timestamps();
+        $t->unique(['name', 'guard_name']);
+    });
+    Schema::create('roles', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('name');
+        $t->string('guard_name');
+        $t->timestamps();
+        $t->unique(['name', 'guard_name']);
+    });
+    Schema::create('model_has_permissions', function (Blueprint $t) {
+        $t->unsignedBigInteger('permission_id');
+        $t->string('model_type');
+        $t->unsignedBigInteger('model_id');
+        $t->primary(['permission_id', 'model_id', 'model_type'], 'mhp_pk_rbw23');
+    });
+    Schema::create('model_has_roles', function (Blueprint $t) {
+        $t->unsignedBigInteger('role_id');
+        $t->string('model_type');
+        $t->unsignedBigInteger('model_id');
+        $t->primary(['role_id', 'model_id', 'model_type'], 'mhr_pk_rbw23');
+    });
+    Schema::create('role_has_permissions', function (Blueprint $t) {
+        $t->unsignedBigInteger('permission_id');
+        $t->unsignedBigInteger('role_id');
+        $t->primary(['permission_id', 'role_id']);
+    });
+
+    // AUTENTICAR É OBRIGATÓRIO, não opcional (fix 2026-08-03) — mesma causa do
+    // Wave21NewSubscriptionTest, ver o comentário longo de lá. Resumo:
+    //  1. `UpdateAssinaturaRequest::authorize()` devolve `$this->user() !== null`.
+    //  2. `Gate::before(fn () => true)` tem ZERO parâmetros e, sem usuário logado, o
+    //     Laravel nem invoca o callback (Gate::callbackAllowsGuests) — logo o
+    //     `Gate::authorize('update', $sub)` do controller negava.
+    // biz=1 sempre — NUNCA biz=4, que é cliente real (ADR 0101).
+    $this->actingAs(User::forceCreate([
+        'username' => 'rbw23_biz1_' . uniqid(),
+        'password' => bcrypt('x'),
+        'business_id' => 1,
+    ]));
     Gate::before(fn () => true);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
     Event::fake([AssinaturaAtualizada::class]);
     session(['user.business_id' => 1]);
 });
@@ -84,7 +149,11 @@ afterEach(function () {
     if (config('database.default') === 'sqlite'
         && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         Schema::dropIfExists('rb_subscriptions');
+        foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
     Mockery::close();
 });
 
@@ -102,6 +171,11 @@ function jsonPutRequest(array $payload): UpdateAssinaturaRequest
 {
     $req = UpdateAssinaturaRequest::create('/recurring-billing/1', 'PUT', $payload);
     $req->headers->set('Accept', 'application/json');
+    // setUserResolver é OBRIGATÓRIO: `Request::create()` não herda o usuário do
+    // `actingAs`, então `authorize()` (`$this->user() !== null`) veria null e lançaria
+    // AuthorizationException ANTES de qualquer regra — inclusive antes do abort(404)
+    // cross-tenant que o R-RB-WAVE23-2 quer observar.
+    $req->setUserResolver(fn () => auth()->user());
     $req->setContainer(app())->validateResolved();
 
     return $req;
@@ -109,7 +183,7 @@ function jsonPutRequest(array $payload): UpdateAssinaturaRequest
 
 // ─── Wiring ────────────────────────────────────────────────────────────
 
-it('R-RB-WAVE23-1 — controller.update altera valor da assinatura biz=1 (local-only)', function () {
+it('UC-RBSUB-04 · R-RB-WAVE23-1 — controller.update altera valor da assinatura biz=1 (local-only)', function () {
     $sub = Subscription::create([
         'business_id' => 1, 'contact_id' => 10, 'status' => 'active',
         'start_date' => '2026-01-01', 'next_due_date' => '2026-06-01',
@@ -125,7 +199,7 @@ it('R-RB-WAVE23-1 — controller.update altera valor da assinatura biz=1 (local-
     expect((float) $sub->metadata['valor'])->toBe(350.0);
 });
 
-it('R-RB-WAVE23-2 — controller.update aborta 404 cross-tenant (sub biz=99, sessão biz=1)', function () {
+it('UC-RBSUB-04 · R-RB-WAVE23-2 — controller.update aborta 404 cross-tenant (sub biz=99, sessão biz=1)', function () {
     $sub = Subscription::create([
         'business_id' => 99, 'contact_id' => 10, 'status' => 'active',
         'start_date' => '2026-01-01', 'next_due_date' => '2026-06-01',
@@ -140,7 +214,7 @@ it('R-RB-WAVE23-2 — controller.update aborta 404 cross-tenant (sub biz=99, ses
     expect((float) $sub->metadata['valor'])->toBe(100.0);
 });
 
-it('R-RB-WAVE23-3 — controller.update devolve erro do serviço (assinatura cancelada → 422)', function () {
+it('UC-RBSUB-04 · R-RB-WAVE23-3 — controller.update devolve erro do serviço (assinatura cancelada → 422)', function () {
     $sub = Subscription::create([
         'business_id' => 1, 'contact_id' => 10, 'status' => 'canceled',
         'start_date' => '2026-01-01', 'next_due_date' => '2026-06-01',

@@ -332,13 +332,13 @@
       "stale": false
     },
     {
-      "mod": "ProjectMgmt",
+      "mod": "Forja",
       "classe": "resto",
       "telas": 9,
       "com_scorecard": 8,
       "sem_scorecard": 1,
       "nota_min": 76,
-      "pior_tela": "ProjectMgmt/Roadmap/Index",
+      "pior_tela": "Forja/Roadmap/Index",
       "nota_media": 84,
       "idade_max_dias": 19,
       "charter_pct": 100,
@@ -572,8 +572,8 @@
   ],
   "fila_prioridade": [
     {
-      "screen": "ProjectMgmt/Board/DetailSheet",
-      "mod": "ProjectMgmt",
+      "screen": "Forja/Board/DetailSheet",
+      "mod": "Forja",
       "classe": "resto",
       "nota": null,
       "stale": true,

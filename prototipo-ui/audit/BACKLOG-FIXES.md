@@ -101,7 +101,7 @@
 | `ads/Admin/Decisoes` | 91 | R7 | 1 |
 | `Cliente/Map` | 91 | R9 | 1 |
 | `Produto/Edit` | 91 | R9 | 1 |
-| `ProjectMgmt/Activity/Index` | 91 | R7 | 1 |
+| `Forja/Activity/Index` | 91 | R7 | 1 |
 | `Repair/JobSheet/Show` | 91 | R7 | 1 |
 | `Vestuario/Etiquetas/Index` | 91 | R7 | 1 |
 | `Admin/ScreenReviewDashboard` | 92 | R7 | 0 |
@@ -114,10 +114,10 @@
 | `ads/Admin/DecisaoShow` | 94 | R6 | 2 |
 | `Financeiro/Advisor/Login` | 94 | R4 | 2 |
 | `Jana/Dashboard` | 94 | R4 | 2 |
-| `ProjectMgmt/MyWork/Index` | 94 | R6 | 2 |
+| `Forja/MyWork/Index` | 94 | R6 | 2 |
 | `Site/Pricing` | 95 | R6 | 1 |
 | `ads/Admin/Graph` | 96 | R6 | 0 |
-| `ProjectMgmt/Burndown/Index` | 96 | R4 | 0 |
+| `Forja/Burndown/Index` | 96 | R4 | 0 |
 | `Repair/Dashboard/Index` | 96 | R4 | 0 |
 
 ## Telas <70 na métrica mecanizada (dívida de conformidade-DS — atacar primeiro)

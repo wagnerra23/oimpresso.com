@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/forja",
+    "description": "Forja — cockpit de trabalho do time sobre o stack MCP: Kanban, Backlog, Roadmap, My Work, Inbox, Triage. Promovido a módulo próprio em 2026-05-04 (ADR 0070); renomeado ProjectMgmt→Forja em 2026-07-30 (PHP-only, padrão ADR 0088).",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Forja\\Providers\\ForjaServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Forja\\": ""
+        }
+    }
+}

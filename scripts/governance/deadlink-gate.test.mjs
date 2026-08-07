@@ -164,6 +164,72 @@ function writeTombstones(root, slugs) {
   rmSync(root, { recursive: true, force: true });
 }
 
+// ── 8. Rename-aware (par do tombstone, 2026-07-30) ───────────────────────────
+// Rename de pasta fabrica link morto em ADR aceita, que o append-only PROÍBE editar.
+// Referência a path RENOMEADO resolve pelo rename-map classe A; rename que aponta pra
+// lugar nenhum continua mordendo (é o caso que o gate tem que pegar).
+function writeRenameMap(root, pairs) {
+  const renames = {};
+  for (const [from, to, cls] of pairs) renames[from] = { to, class: cls || 'A', evidence: ['teste'] };
+  writeFileSync(join(root, 'governance', 'ghost-rename-map.json'), JSON.stringify({ renames }, null, 2));
+}
+{
+  // RELEASE: alvo antigo não existe, mas o destino renomeado existe → resolve
+  const root = makeRepo();
+  writeRenameMap(root, [['ProjectMgmt', 'Forja']]);
+  mkdirSync(join(root, 'memory', 'requisitos', 'Forja'), { recursive: true });
+  writeFileSync(join(root, 'memory', 'requisitos', 'Forja', 'SPEC.md'), '# spec\n');
+  writeFileSync(join(root, 'memory', 'decisions', '0010-cita-renomeado.md'),
+    'ver [antigo](../requisitos/ProjectMgmt/SPEC.md)\n');
+  const r = run(root, '--check');
+  check('rename RELEASE: link pra path renomeado NAO conta como morto (exit 0)', r.status === 0);
+  check('rename RELEASE: a absorcao aparece no output (nao e silenciosa)', /PATH RENOMEADO resolvidas pelo rename-map/.test(r.stdout));
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // BITE: rename mapeado, mas o destino NÃO existe → segue morto
+  const root = makeRepo();
+  writeRenameMap(root, [['ProjectMgmt', 'Forja']]);
+  writeFileSync(join(root, 'memory', 'decisions', '0011-destino-inexistente.md'),
+    'ver [antigo](../requisitos/ProjectMgmt/SPEC.md)\n');
+  const r = run(root, '--check');
+  check('rename BITE: destino renomeado inexistente segue morto (exit 1)', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // BITE: classe != A (curadoria humana pendente) NAO resolve, mesmo com destino vivo
+  const root = makeRepo();
+  writeRenameMap(root, [['Project', 'Forja', 'AMBIGUO']]);
+  mkdirSync(join(root, 'memory', 'requisitos', 'Forja'), { recursive: true });
+  writeFileSync(join(root, 'memory', 'requisitos', 'Forja', 'SPEC.md'), '# spec\n');
+  writeFileSync(join(root, 'memory', 'decisions', '0012-classe-ambigua.md'),
+    'ver [antigo](../requisitos/Project/SPEC.md)\n');
+  const r = run(root, '--check');
+  check('rename BITE: classe AMBIGUO nao resolve (so classe A curada)', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // BITE: match e por SEGMENTO de path, nao substring (ProjectMgmtLegado != ProjectMgmt)
+  const root = makeRepo();
+  writeRenameMap(root, [['ProjectMgmt', 'Forja']]);
+  mkdirSync(join(root, 'memory', 'requisitos', 'Forja'), { recursive: true });
+  writeFileSync(join(root, 'memory', 'requisitos', 'Forja', 'SPEC.md'), '# spec\n');
+  writeFileSync(join(root, 'memory', 'decisions', '0013-substring.md'),
+    'ver [antigo](../requisitos/ProjectMgmtLegado/SPEC.md)\n');
+  const r = run(root, '--check');
+  check('rename BITE: substring (ProjectMgmtLegado) nao resolve — so segmento inteiro', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // Sem rename-map no repo: comportamento identico ao de antes (zero efeito colateral)
+  const root = makeRepo();
+  writeFileSync(join(root, 'memory', 'decisions', '0014-sem-map.md'),
+    'ver [antigo](../requisitos/ProjectMgmt/SPEC.md)\n');
+  const r = run(root, '--check');
+  check('rename AUSENTE: sem rename-map, link segue morto (exit 1)', r.status === 1);
+  rmSync(root, { recursive: true, force: true });
+}
+
 console.log('');
 if (fails > 0) { console.error(`${fails} check(s) falharam`); process.exit(1); }
 console.log('deadlink-gate.test: todos os checks passaram');

@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import PageHeader from '@/Components/shared/PageHeader'
+import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import { Shield, TriangleAlert, Info } from 'lucide-react'
@@ -147,6 +148,7 @@ function ModuleGradesIndex({ grades, kpis, catalog }: Props): React.ReactElement
   return (
     <>
       <Head title="Module Grades — Governance" />
+      <GovernancaSubNav active="module-grades" />
       <PageHeader
         title="Module Grades"
         subtitle="Rubrica oficial module-grade-v3 (ADR 0155) — nota 0-100 normalizada de 9 dimensões (raw /118)"

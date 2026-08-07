@@ -434,7 +434,7 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 > parent_plan: us-gov-021-isolamento-era-sqlite
 > related_adrs: [275, 276, 279, 283]
 
-**Implementado em:** `scripts/audit/sqlite-test-corruptors.mjs` · `.github/workflows/governance-gate-umbrella.yml` · `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` · `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` · verificado@2026-06-30 — **0 corruptores** (auditor `--strict --tier=A` exit 0; 11 dos lotes 2-3 + 1 novo PaymentGateway isolados via GUARDAR-TEARDOWN). DoD-2 (floor cai em 2 nightlies) blocked_by P04.
+**Implementado em:** `scripts/audit/sqlite-test-corruptors.mjs` · `.github/workflows/governance-gate-umbrella.yml` · `Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php` · `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` · verificado@2026-06-30 — **0 corruptores** (auditor `--strict --tier=A` exit 0; 11 dos lotes 2-3 + 1 novo PaymentGateway isolados via GUARDAR-TEARDOWN). DoD-2 (floor cai em 2 nightlies) blocked_by P04.
 
 **Root cause PROVADO** (referenciado em US-GOV-020 "Lever real do floor" `:408-409`): o nightly full-suite roda contra um MySQL **persistente compartilhado**. ~18 testes "era-sqlite" criam tabelas sintéticas via `Schema::create`/`Schema::drop` em `beforeEach`/`afterEach` SEM guarda de driver — projetados pra rodar no sqlite `:memory:`. No MySQL persistente o `Schema::drop` **dropa a tabela real** → o próximo teste na mesma conexão acha tabela ausente → cascata `Base table not found`. Esse isolamento é o **lever real** do floor — **não é tweak de harness** (a Frente C/A.2 de US-GOV-020 já provou que FK-off é net-harmful; falhar-seguro é melhor).
 
@@ -444,14 +444,14 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 
 | Arquivo | tier | ação | status |
 |---|---|---|---|
-| `Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/HandoffStaleAlertTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffToolsTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffIngestTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffLeverToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/HandoffSubmitToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php` | A 60 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
@@ -916,3 +916,385 @@ Dono do ato = quem opera o loop Cowork. Escalado a [W] porque **17 dias de verme
 **Contexto que mata o pedido original** (investigação 2026-07-27): o eixo `path::simbolo` **não é o problema** — **0 de 469** renames em 180d deixaram âncora apontando path antigo; `anchored_dead=1` e `anchored_zombie=0` em 981 US; símbolo aparece na lista canônica de só 19 dos 447 campos (4,3%) e **0 estão mortos**. O P6 rename-proof já foi **cortado conscientemente** em 2026-06-23 (*"refatoração de pasta é rara num ERP de 5 devs; `anchored_dead` é ruído visível, não mentira silenciosa"*).
 
 **Aceite:** emenda ao [ADR 0303](../../decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md) (dono do testado-check) define a receita; `anchor-lint --stale` mostra `sha_fora_da_ancestralidade` **caindo** nas âncoras novas. Refs: US-GOV-055 · ADR 0273 · ADR 0303.
+
+### US-GOV-059 · Triar as 43 permissões órfãs — usadas no código, declaradas em lugar nenhum
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — o detector existe (`scripts/governance/permission-drift.mjs`); falta a TRIAGEM das 43.
+
+Achado da sessão 2026-08-05, na triagem dos scripts órfãos: o `permission-drift.mjs` estava sem invocador, e rodá-lo revelou a dívida.
+
+**Medido no main** (`node scripts/governance/permission-drift.mjs`, ~2,2s): **357** permissões declaradas · **340** usadas com alvo literal · **30** chamadas com alvo DINÂMICO (quarentena — indecidível por texto) · **43 ÓRFÃS**.
+
+Órfã = usada no código (`can()`, FormRequest, blade) e declarada em lugar **nenhum**. A consequência está no próprio relatório: *"ninguém consegue conceder; com o `Gate::before`, viram 'só admin' por acidente"* — a feature fica inacessível a qualquer papel não-admin, em silêncio. Amostra: `auditoria.revert`, `auditoria.export`, `arquivos.restore`, `brief.purge`, `api.access`, `configure_dashboard`.
+
+**NÃO é pedido de gate.** O output do script declara: *"advisory por construção nesta fase — decidir forma de gate SÓ depois do FP medido"*. O trabalho é a triagem: cada uma das 43 é (a) permissão que falta declarar no seeder/config, (b) chamada morta a remover, ou (c) falso-positivo do detector (alvo dinâmico mal classificado).
+
+**Aceite:** as 43 classificadas nas 3 categorias, com as de tipo (a) declaradas e as de tipo (b) removidas; o número cai e o que sobra tem razão escrita. Refs: sessão 2026-08-05.
+
+#### Triagem executada — 2026-08-06
+
+**43 → 38.** Cinco eram **falso-positivo do detector**, não permissão: a forma `middleware` (`/(?:can|permission):([a-zA-Z][\w.\-]*)/`) casava dentro de **comentário**, e o corpus tem 36 linhas de prosa citando `can:`/`permission:`. Os cinco (`x`, `kb.`, `financeiro.`, `financeiro.dashboard.view.`, `api.access`) foram verificados um a um no arquivo de origem. Corrigido no detector com 5 asserts `FP-4` + 2 controles negativos provando que o strip não come código.
+
+Classificação das **38** restantes:
+
+| Classe | N | O que é |
+|---|---:|---|
+| **A · bug de acesso confirmado** | 2 | código exige permissão que não existe → feature vira só-admin em silêncio |
+| **B · feature legada sem módulo** | 5 | `hms.*` (3) e `restaurant.*` (2) — os módulos correspondentes (HMS/hospitalidade e restaurante, do UltimatePOS upstream) **não existem** nesta árvore; sobrou código no core (`TransactionPaymentController`, `resources/views/restaurant/`). _Paths de módulo não citados de propósito: a catraca anti-ghost trata citação de `Modules/<X>` inexistente como referência podre, e ela está certa — a ausência se comunica sem o path._ |
+| **C · módulo nosso, nunca declarada** | ~13 | `auditoria.export/note.write/revert` · `brief.history.view/purge` · `crm.*` (4) · `arquivos.restore` · `financeiro.lancamentos.create` · `ponto.importacoes.criar` · `recurringbilling.*` (2) · `whatsapp.view-all-phones` |
+| **D · core UltimatePOS** | ~18 | `admin` · `only_admin` · `subscribe` · `edit_purchase_price` · `configure_dashboard` · `send_notification(s)` · `report.stock_details` · `sale.history.view` · `*_essentials_*` · `edit_repair_settings` … |
+
+**Classe A — os dois casos, com veredito:**
+
+1. **`kb.ai` — RESOLVIDO.** `KbController` montava o flag `ai_ask` da UI com `can('kb.ai')`, mas o registry declara **`kb.ai.ask`** e o endpoint real (`KbAiController`) exige `can:kb.ai.ask|jana.mcp.memory.manage`. A UI escondia o botão de uma feature que o endpoint teria liberado. Corrigido para o nome declarado.
+
+2. **`fiscal.inutilizar` — RESOLVIDO pela opção (i)** ([W] delegou a decisão em 2026-08-06: *"decida sem problemas"*). `CancelarNfeRequest::authorize()` fazia `can('fiscal.inutilizar')`, e esse nome **não é permissão** — é **role** criada por `NfeFiscalActionsSeeder` com a convenção UltimatePOS de sufixo (`fiscal.inutilizar#{business_id}`). `can()` procura permissão, não casa com role homônima, então **a inutilização de faixa fiscal NFe ficava acessível só a admin** (via `Gate::before`), contra a intenção declarada no docblock do `NfeInutilizacaoController` e no comentário da rota.
+
+   As duas opções eram **(i)** `hasRole` com o sufixo — fiel ao documentado, acopla à convenção — e **(ii)** declarar a permissão e concedê-la à role no seeder — mais idiomático em Spatie, porém cria dois objetos de mesmo nome. **Escolhida a (i)**, por quatro fatos verificados no código:
+
+   - a role **tem propósito vivo**: está vinculada à action FSM `inutilizar_faixa` (`is_critical: true`, `requires_confirmation: true`) — não é vestigial, e a (ii) criaria role e permissão homônimas com semânticas diferentes;
+   - a intenção **sempre foi role** — declarada em dois lugares independentes (docblock do Controller e comentário da rota);
+   - a (ii) exigiria **mexer no seeder do FSM**, risco desnecessário para um gate de endpoint;
+   - escopo estreito: `CancelarNfeRequest` tem **um único consumidor** (`NfeInutilizacaoController::store` — a citação no NFSe é só `@see` em docblock).
+
+   **Não afrouxa nada:** quem não tem a role segue barrado e o superadmin continua passando pelo `Gate::before`. A role só existe onde o seeder rodou — e ele **não está no `DatabaseSeeder`**, então nenhum acesso é concedido automaticamente. O fallback sem sufixo espelha o guard do próprio seeder (`Schema::hasColumn('roles','business_id')`).
+
+   Defendido por [`InutilizacaoAuthorizeRoleTest`](../../../Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php), registrado na allowlist da lane `nfebrasil-pest` (lane lista arquivo — teste fora dela não roda). O teste usa **payload inválido de propósito**: sem role → **403** (gate barrou), com role → **422** (gate passou, validação barrou), o que prova a autorização **sem jamais chamar a SEFAZ**. Cobre também cross-tenant (role de outro business não autoriza) e ausência de contexto de business na sessão.
+
+#### Classe B reaberta — 2 das 5 eram classe A, não legado (2026-08-06)
+
+A classe B dizia *"feature legada sem módulo… sobrou código no core"* e apontava remoção. **Vale para `hms.*` (3), não para `restaurant.*` (2).**
+
+**`restaurant.*` é feature VIVA, não legado.** Medido: rotas ativas (`Route::resource('tables', Restaurant\TableController::class)` + `modifiers`), controllers em `app/Http/Controllers/Restaurant/`, e gate por business via `isModuleEnabled('tables')` — é a **Mesas**, um dos módulos core habilitáveis em `/business/settings` (Camada 2 do CLAUDE.md). Não há diretório de módulo nWidart correspondente porque a feature **nunca foi um módulo** — sempre viveu no core. _(Path não citado de propósito, pela mesma razão da nota da classe B: a catraca anti-ghost trata citação de módulo inexistente como referência podre, e ela está certa.)_
+
+Logo as duas são **bug de acesso (classe A)**, com a forma exata do `kb.ai`:
+
+| Onde | Checava | Endpoint exige | Efeito |
+|---|---|---|---|
+| `restaurant/table/index` (2 vivos + 2 em bloco comentado) | `restaurant.create` · `restaurant.view` | `access_tables` (`TableController` L21/59/78…) | quem recebe `access_tables` — a **única** permissão que a tela de papéis oferece pra Mesas — abre a tela e não vê botão nem tabela; só admin vê, por `Gate::before` |
+| `restaurant/modifier_sets/index` (botão Adicionar) | `restaurant.create` | `product.create` (`ModifierSetsController` L91) | idem |
+
+**Corrigido:** os 5 pontos acima passam a citar a permissão que o endpoint realmente exige. Órfãs **37 → 36** (`restaurant.create` saiu do censo).
+
+**`@can('restaurant.view')` na listagem de `modifier_sets` — DECIDIDO [W] 2026-08-07: fica como está.** O `ModifierSetsController::index()` não tem guard nenhum e as ações por linha usam `product.update`/`product.delete`; não há permissão equivalente a "ver a lista", e as duas saídas (declarar uma × remover o `@can` e alinhar com o endpoint) são desenho de autorização. [W] decidiu **não mexer** — *"pode deixar os botão"* — no mesmo turno em que informou que **a feature Restaurante existe mas não está em uso agora**. Consequência aceita conscientemente: a listagem segue visível só a admin (via `Gate::before`), porque `restaurant.view` continua sem declaração. **Não reabrir sem [W]**; se a feature entrar em uso, é aí que a escolha passa a custar.
+
+> Contexto que essa decisão fixa, e que a triagem original errava: **Restaurante/Mesas é feature existente**, confirmada pelo dono — não "módulo legado que sumiu". A classificação B ("feature legada sem módulo") estava errada quanto ao fato, não só quanto ao efeito.
+
+**`hms.*` (3) — a classe B procede, e a remoção é inerte.** Eles aparecem só em cadeias `OR` com permissões reais (`purchase.payments`, `sell.payments`, `delete_sell_payment`…) em `TransactionPaymentController` e `show_payments.blade.php`. Um termo sempre-falso num `OR` não muda veredito, então tirá-los preserva comportamento — mas **antes de remover, confirmar na base de produção** se `hms.*` não foi semeada historicamente pelo upstream UltimatePOS: o detector lê código, não o `permissions` vivo.
+
+> ⚠️ **Gap do detector — real, mas com impacto MEDIDO = 0. Não vale conserto hoje.**
+> O strip de comentário do [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) cobre comentário **PHP** (`//`, `*`, `/*` no início da linha) e **não** cobre **Blade** `{{-- --}}`, que envolve blocos inteiros de `@can()` — 2 dos 4 `@can('restaurant.*')` do `table/index` estavam lá dentro e eram lidos como código.
+>
+> **Mas medir quantas órfãs isso fabrica dá zero** — no `main` e na correção. Motivo: as ocorrências comentadas eram **duplicatas** de usos vivos no mesmo arquivo, então nenhuma permissão entrou no censo *por causa* do comentário. Medição (leitor que remove `{{--…--}}` com a semântica do próprio Blade, `/\{\{--[\s\S]*?--\}\}/`, contra `coletarUsadas`):
+>
+> | corpus | usadas hoje | ignorando comentário Blade | só-em-comentário |
+> |---|---:|---:|---:|
+> | `origin/main` | 334 | 334 | **0** |
+> | com esta correção | 333 | 333 | **0** |
+>
+> Consertar renderia **0 falso-positivo removido** e mexeria num strip deliberadamente conservador (o cabeçalho dele explica por que não corta `//` no meio da linha). Fica **registrado, não construído** — se algum dia um `@can` comentado não tiver gêmeo vivo, o número deixa de ser 0 e aí o conserto se paga. Reabrir exige re-rodar a medição acima, não a leitura do código.
+
+#### Confronto com a BASE DE PRODUÇÃO — a 6ª fonte que faltava (2026-08-06)
+
+A ressalva que travava a remoção era sempre a mesma: *"o detector lê código, não o `permissions` vivo"*. **Foi consultado.** As 36 órfãs do censo confrontadas com `permissions` × `role_has_permissions` em prod (SSH Hostinger, leitura pura):
+
+| | |
+|---|---|
+| Existem em produção | **1 de 36** |
+| Qual | **`sale.history.view`** — concedida ao papel `Admin#164` (**business 164 = Martinho, OficinaAuto LIVE**, 5 usuários) |
+| As outras 35 | não existem na tabela — ninguém pode recebê-las, o detector está certo |
+
+**O que isso decide:**
+
+- **`hms.*` (classe B) — remoção liberada.** Não existem em prod, e no código só aparecem em cadeias `OR` com permissões reais. Ausentes da tabela + termo sempre-falso num `OR` = remover preserva comportamento nos dois eixos. A ressalva que faltava está paga.
+- **`sale.history.view` (classe D) — NÃO remover sem decisão [W].** É a única com concessão real, e num cliente vivo. Que o papel seja `Admin#...` (que já passa por `Gate::before`) torna a concessão possivelmente cosmética — mas "possivelmente" não é base pra apagar permissão de tenant em produção. Decisão de mérito.
+- **As outras 34 — o instrumento não é mais objeção.** Declarar × remover o `can()` passa a ser decisão de produto, sem "e se existir em prod?" pendurado.
+
+```bash
+# recibo — leitura pura, sem escrita:
+# SELECT name, COUNT(DISTINCT rhp.role_id) FROM permissions p
+#   LEFT JOIN role_has_permissions rhp ON rhp.permission_id = p.id
+#   WHERE p.name IN (<as 36 do --json>) GROUP BY p.name;
+```
+
+⚠️ **O número é datado, não perene:** mede o `permissions` de **2026-08-06**. Um seeder futuro, um cliente novo ou um `syncPermissions` mudam a resposta — quem for agir sobre ele **re-roda a consulta**, não cita esta linha.
+
+**Nota sobre B/C/D:** o denominador de declaração do detector são 5 fontes (`DataController`, `Resources/permissions.php`, `role/*.blade.php`, `PermissionsTableSeeder`, `syncPermissions` em runtime). Seeders de módulo (ex.: `NfeFiscalActionsSeeder`) **não** entram — foi o que fez `fiscal.inutilizar` aparecer. Antes de declarar qualquer permissão da classe C, conferir se ela já existe em fonte fora dessas cinco.
+
+#### Classe B triada — 2026-08-07
+
+**`restaurant.view` — CORRIGIDO.** A view escondia a tabela de modificadores atrás de `restaurant.view`, que não existe; o `ModifierSetsController` inteiro gateia por `product.*` (`create`/`update`), e a própria datatable monta os botões com `@can("product.update")`. Trocado por `product.view` (declarada no `PermissionsTableSeeder` e nas telas de papel). **Precedente no mesmo arquivo:** o `restaurant.create` já tinha sido corrigido para `product.create` antes, com a explicação idêntica no comentário — este PR só fecha o irmão que sobrou. `restaurant.create` já não aparece no relatório desde o fix do detector (a menção restante é comentário).
+
+**As 3 `hms.*` — NÃO tocadas, por decisão.** `hms.add_booking_payment`, `hms.edit_booking_payment` e `hms.delete_booking_payment` vivem no `TransactionPaymentController` (core UltimatePOS), e em **todas** as ocorrências aparecem como termo adicional de um **OR** com permissões que existem:
+
+```php
+can('purchase.payments') || can('hms.add_booking_payment') || can('sell.payments') || …
+```
+
+Como a permissão não existe, o termo é sempre `false`, e `false || X === X` — **são funcionalmente inócuas**. Removê-las seria neutro no comportamento e traria −3 no contador, mas o preço é editar autorização de **pagamento**, que cai sob a regra-mestre VALOR/ESTOQUE (dupla confirmação + impacto apresentado). Risco desproporcional ao ganho, num arquivo de fork upstream que pode ser rebaseado. Ficam como **resíduo declarado**: aparecem no relatório e a razão está aqui.
+
+**Achado adjacente, não corrigido (é outro escopo):** o `ModifierSetsController::index()` **não tem gate de permissão** — filtra só por `business_id`. A view escondia a tabela, mas o endpoint AJAX já servia os dados a qualquer usuário autenticado do business. Ou seja, o `@can` da view nunca foi a barreira real; trocá-lo não afrouxa nada. Se a listagem de modificadores devia ser restrita, o gate precisa estar no controller — decisão [W].
+
+#### Classe C triada — 2026-08-07
+
+Duas medições que mudam o tamanho do problema:
+
+**1. O gap do denominador NÃO explica a classe C.** Nenhuma das 15 está declarada em fonte fora das 5 que o detector lê — são órfãs de verdade. Os 8 módulos envolvidos têm `DataController` declarando irmãs, então há destino claro para cada uma.
+
+**2. Metade é scaffolding, não bug de acesso.** O teste é *o consumidor tem rota viva?*:
+
+| situação | n | quais |
+|---|---:|---|
+| **endpoint vivo** — permissão inexistente bloqueia de verdade (só admin passa) | 8 | `crm.add_proposal_template` · `crm.delete_campaign` (Policy) · `crm.view_reports` (nav) · `financeiro.lancamentos.create` · `ponto.importacoes.criar` · `recurringbilling.assinatura.update` · `recurringbilling.invoice.cancel` · `whatsapp.view-all-phones` |
+| **scaffolding** — FormRequest sem controller que o injete | 7 | `arquivos.restore` · `auditoria.export` · `auditoria.note.write` · `auditoria.revert` · `brief.history.view` · `brief.purge` · `crm.proposal.delete` |
+
+O caso mais claro do 2º grupo é o `auditoria.revert`: vive no `BulkRevertActivityRequest`, cujo endpoint (`revert-bulk`) **nunca foi ligado** — não existe rota, logo não há acesso bloqueado. O irmão que funciona (`RevertActivityRequest`, revert individual) faz **auth básica** e delega o RBAC fino ao `RevertService::canRevert()`. Declarar permissão para endpoint inexistente seria ruído; mexer no gate de código não-ligado, risco sem ganho. **O grupo scaffolding fica como resíduo declarado** — quando o endpoint for ligado, quem o ligar decide o gate.
+
+**RecurringBilling — 2 de 8 fechados** (piloto do grupo "endpoint vivo"), com dois desfechos diferentes de propósito:
+
+- **`recurringbilling.assinatura.update` → `subscriptions.manage`** (nenhuma permissão nova). O nome desviava do padrão do módulo em duas frentes — português em vez de inglês, recurso no singular — e a permissão certa **já existia**: a `SubscriptionPolicy` documenta `subscriptions.manage` como *"create/update/pause/resume"* e o label diz *"Criar/editar assinaturas"*, que é exatamente o que o `AssinaturaController::atualizar()` faz.
+- **`recurringbilling.invoice.cancel` → `invoices.cancel`** (plural, como as irmãs) **+ declarada**. Aqui **não havia** permissão existente que cobrisse: `invoices.view` e `invoices.charge` não são cancelamento.
+
+⚠️ **Os dois AMPLIAM acesso** de "só admin" para "quem tiver a permissão" — que é a intenção, mas é ampliação real, e nenhuma é concedida automaticamente (ambas `default => false`). **Nenhuma linha de cálculo foi tocada**: os arquivos são de cobrança/fatura, mas o diff mexe só no nome da permissão no gate — verificado por varredura do diff contra `valor|total|desconto|price|qty|estoque`, zero ocorrências.
+
+**Contador: 43 → 32.** Restam 6 do grupo "endpoint vivo" (Crm 3, Financeiro 1, Ponto 1, Whatsapp 1) + 7 scaffolding + classe D.
+
+##### Grupo "endpoint vivo" — 2026-08-07 (5 entregues + 1 separado)
+
+> ⚠️ **O caso do Ponto saiu em PR próprio, por decisão [W].** A lane `PHP / Pest (Ponto · MySQL)` é **required** e está **vermelha no `main`** (5 de 5 runs desde 2026-08-03), com **9 testes falhando — 8 deles de isolamento cross-tenant** (*"de outro empregador dá 404"*). Isso trava o merge de **qualquer** PR que dispare a lane, não só este. Nenhum dos 9 cita a permissão que mudei. Separar entregou os outros 5 sem esperar dívida alheia; o Ponto fica pendurado até a lane ser resolvida. **A causa dos 8 cross-tenant não foi confirmada** — pode ser regressão real de isolamento (Tier 0) ou testes inconsistentes com o tenant canônico, que mudou de `biz=1` para `biz=98` poucos dias antes. Essa distinção é urgente e merece investigação própria.
+
+⚠️ **A verificação que faltava, e que [W] exigiu:** o `RoleController::__createPermissionIfNotExists` (L350) faz `Permission::create()` para qualquer nome vindo do input da tela de papéis — ou seja, **permissão pode existir no banco sem estar em código**, e toda a triagem anterior tinha lido apenas código. Consultado o banco de **produção** antes de mexer: **495 permissões no total, nenhuma das investigadas presente**. As órfãs são reais, e o que fazia as funcionalidades "funcionarem" era o `Gate::before` de superadmin. **Dado colateral: 495 no banco × 357 em código ⇒ ~138 existem só na tabela** — ninguém deve triar o grupo "teatro" (63) sem consultar o banco antes.
+
+| permissão | desfecho | por quê |
+|---|---|---|
+| `crm.delete_campaign` | **declarada** | `access_all_campaigns` é leitura; deletar ≠ acessar — reaproveitar ampliaria semântica de VER para DELETAR |
+| `crm.add_proposal_template` | **declarada** | template é config distinta de `access_proposal` |
+| `crm.view_reports` | **declarada** | não havia permissão de relatórios no módulo |
+| `financeiro.lancamentos.create` | **declarada** | `.create` já é o padrão do módulo (`contas_pagar`/`contas_receber`) |
+| `whatsapp.view-all-phones` | **declarada como está** | o hífen desvia do padrão de ponto, mas renomear exigiria tocar o consumidor sem ganho funcional |
+| `ponto.importacoes.criar` | **renomeada → `.manage`** + declarada — **em PR separado** (ver aviso acima) | `.criar` estava em português e sozinho; os três irmãos usam `.manage` |
+
+Todas `default => false` — nenhuma é concedida automaticamente. **Nenhuma virou "teatro"**: o detector confirma que as 6 continuam sendo usadas (declarar sem uso só trocaria um problema por outro).
+
+**Achado de segurança corrigido junto:** o `ImportacaoAfdRequest::authorize()` era `$user ? $user->can(...) : true` — **sem usuário autenticado retornava `true`**, ou seja, autorizava. O middleware `auth` cobre na prática, mas o padrão do projeto é negar por ausência (`RevertActivityRequest`: `return $this->user() !== null`). Agora é fail-secure.
+
+**Contador: 43 → 23.** Resta o grupo scaffolding (7, resíduo declarado — endpoint não ligado) + classe D (~18, core UltimatePOS).
+
+**A conferência foi FEITA — e o ponto cego NÃO explica a classe C.** Medido em 2026-08-06 (recibo abaixo): das **37** órfãs do censo, **1 única** aparece declarada em seeder — `fiscal.inutilizar`, em [`NfeFiscalActionsSeeder.php:51`](../../../database/seeders/NfeFiscalActionsSeeder.php) mais o `syncRoles` da L173, que é justamente o caso A-2 já conhecido acima. As outras **36 não existem em seeder algum**. Consequência para quem for triar: a classe C **não pode ser descartada como cegueira do detector** — aquelas permissões estão mesmo sem declaração em lugar nenhum, e a decisão sobre elas (declarar × remover o `can()`) é de mérito, não de instrumento.
+
+```bash
+node scripts/governance/permission-drift.mjs --json   # a lista COMPLETA vem daqui
+```
+
+⚠️ **Duas armadilhas de método, pagas na própria medição** (registradas porque a próxima pessoa cai nas mesmas):
+- **A saída de texto TRUNCA em 25** (`… +12` no rodapé da seção). Quem parsear o texto mede 25 de 37 e chama de completo. A lista inteira só sai no `--json`.
+- **Casar o nome por substring reprova o legítimo e aprova o errado.** O primeiro cruzamento acusou `admin` como "declarada em 15 seeders"; era a palavra *admin* dentro de comentário em prosa (*"chamável via UI admin fiscal"*). É a mesma classe de falso-positivo que o [#5351](https://github.com/wagnerra23/oimpresso.com/pull/5351) acabou de remover do próprio detector — reproduzida por fora dele. Cruzamento de permissão pede âncora (aspas, item de array, argumento de `syncRoles`), nunca `grep` de substring.
+
+#### Classe D triada — 2026-08-07
+
+**Confronto com produção primeiro** (a regra que a classe C fixou). As **16** da classe D consultadas em `permissions` × `role_has_permissions` na base de produção, leitura pura:
+
+| | |
+|---|---|
+| Total de permissões na tabela | **495** |
+| Das 16, existem em produção | **1** |
+| Qual | `sale.history.view` — concedida a `Admin#164` (business 164 = Martinho, OficinaAuto LIVE) |
+
+Bate com a medição de 2026-08-06, e reforça a mesma conclusão: as outras 15 não existem na tabela, ninguém pode recebê-las, e o que fazia as telas "funcionarem" era o `Gate::before`. ⚠️ **Número datado, não perene** — quem for agir re-roda a consulta.
+
+##### O achado que reclassifica 4 das 16: o `Gate::before` tem DUAS pernas, e o detector modela UMA
+
+O detector isenta as abilities da **lista nomeada** do `Gate::before` (`backup`, `superadmin`, `manage_modules`) — derivadas do arquivo, não hardcodadas, e isso está certo. Mas o [`AuthServiceProvider`](../../../app/Providers/AuthServiceProvider.php) tem um `else`:
+
+```php
+Gate::before(function ($user, $ability) {
+    if (in_array($ability, ['backup', 'superadmin', 'manage_modules'])) { /* lista de username */ }
+    else { if ($user->hasRole('Admin#'.$user->business_id)) return true; }   // ← toda OUTRA ability
+});
+```
+
+A perna `else` faz **qualquer** ability não-declarada responder *"sim para admin, não para o resto"*. Quatro nomes desta classe **exploram isso de propósito** — não são permissão faltando, são o idioma "só admin" escrito com o vocabulário do `can()`:
+
+| permissão | onde | por que declarar seria NOCIVO |
+|---|---|---|
+| `admin` | `sale_pos/partials/pos_form_actions.blade.php` (9×) + `pos_form_totals.blade.php` | é o **escape hatch das permissões negativas**. Os `disable_*` (`disable_pay_checkout`, `disable_draft`, `disable_discount`…) **são declarados**, e o `Gate::before` dá **todos** eles ao admin — logo `!Gate::check('disable_X')` é sempre `false` para admin, e sem o `\|\| can('admin')` o admin perderia os botões do PDV. Declarar viraria checkbox concedível que **fura os `disable_*`** de qualquer papel |
+| `only_admin` | nav do AssetManagement (categorias de ativo + configurações) | o nome **é** a intenção; declarar criaria um "só admin" concedível a não-admin |
+| `edit_essentials_settings` | 4 navs do Essentials | o endpoint é **admin-only por desenho**: `EssentialsSettingsController::authorizeAdmin()` exige `is_admin()` e aborta com *"Apenas administradores podem ver/editar as configurações do Essentials."* Menu e endpoint **concordam**; declarar criaria checkbox que o endpoint depois rejeita |
+| `subscribe` | `SuperadminSubscriptionsController::store` | a rota vive no grupo `/superadmin` com middleware **`superadmin`** — a barreira real. O `can('subscribe')` é gate redundante que não-superadmin nunca alcança; declarar **fabricaria teatro** (checkbox que não concede nada) |
+
+**Ficam como resíduo declarado.** Não é dívida: é código correto que o detector reporta porque enxerga metade do `Gate::before`. Ensinar a outra metade ao detector exigiria distinguir "nome que denota o próprio check de admin" — critério **por nome**, a família de guard sintático já morta 4× no §5 das proibições. Não vale.
+
+##### Scaffolding — 3 de 16 (endpoint nunca alcançável)
+
+`visit.create` · `visit.view_all` · `visit.view_own`, no `FieldForceController` do Connector. **Rota existe, endpoint não é alcançável:** os três métodos abrem com `isModuleInstalled('FieldForce')`, e `Module::has()` varre o diretório de módulos — o módulo **não existe nesta árvore** (o `modules_statuses.json` tem a chave `"FieldForce": true`, mas ele só guarda ativo/inativo; quem decide existência é a varredura). Mesmo critério que classificou os 7 scaffolding da classe C. **Resíduo declarado.**
+
+> ⚠️ **Achado a entregar junto com o módulo, se algum dia ele entrar:** o par `view_all`/`view_own` **falha ABERTO**, não fechado — ao contrário de todo o resto desta US. O filtro é
+> `if (! can('visit.view_all') && can('visit.view_own')) { $query->where('assigned_to', $user->id); }`
+> Com as duas inexistentes, um não-admin resolve `true && false` = **false** → o filtro **não é aplicado** → veria as visitas de todos os usuários do business, em vez de só as próprias. O `index()` não tem gate de acesso nenhum além do `isModuleInstalled`. Hoje é inerte (o endpoint aborta antes); quem ligar o módulo precisa declarar as duas **antes**, senão liga com vazamento intra-tenant.
+
+##### Corrigidas — 4 trocas de nome (zero permissão nova)
+
+Todas na forma já conhecida do `kb.ai`: o **menu** cita um nome que não existe enquanto o **endpoint** exige outro, que existe. O menu passa a citar o gate real do endpoint — não amplia nada além de tornar o item visível a quem o endpoint já deixaria entrar.
+
+| onde | checava | passa a checar | quem é o dono da verdade |
+|---|---|---|---|
+| `AdminSidebarMenu.php` (dropdown Configurações) | `access_package_subscriptions` | `superadmin.access_package_subscriptions` | o módulo Superadmin declara o nome com prefixo no `DataController` e gateia o `SubscriptionController` com ele; o sidebar do core ficou com o nome sem prefixo — drift de namespace, o mesmo do `copiloto.superadmin`→`jana.superadmin` citado no cabeçalho do detector |
+| `AdminSidebarMenu.php` (Modelos de notificação) | `send_notifications` (plural) | `send_notification` (singular) | `NotificationTemplateController::index/store` exige o **singular** — o menu apontava pro plural, que não existe em lugar nenhum |
+| `Essentials/…/sidebar_hrm.blade.php` | `add_essentials_leave_type` | `essentials.crud_leave_type` | é o gate do próprio `EssentialsLeaveTypeController`, declarado no `DataController` do módulo |
+| `Repair/…/nav.blade.php` | `edit_repair_settings` | `repair.create` | `RepairSettingsController` exige `repair.create` (+ assinatura do `repair_module`) nos 3 métodos |
+
+##### Declaradas — 3 (todas `default => false`)
+
+| permissão | consumidor (rota viva) | por que declarar, e não reaproveitar irmã |
+|---|---|---|
+| `send_notification` | `NotificationTemplateController::index/store` + menu de ações do Repair | não há irmã; é o nome que **o endpoint já exige** |
+| `configure_dashboard` | `DashboardConfiguratorController::update` (`Route::resource('dashboard-configurator')`) | não há irmã. ⚠️ o comentário do detector afirma que esta era *"permissão core perfeitamente declarada"* no seeder — **é impreciso**: `git log -S` no seeder (clone completo, 6.249 commits) mostra que ela **nunca esteve lá** |
+| `sale.history.view` | `SaleHistoryController::index/timelineUnified` (`/api/sells/{id}/history`) | controller **somente leitura** (zero escrita). É a única já existente em produção — declarar alinha o código ao que o banco já tem |
+
+Declaradas no `resources/views/role/{create,edit}.blade.php` — que é a fonte **operante** para business existente (o seeder só roda em instalação nova; quem cria a linha em `permissions` é o `RoleController::__createPermissionIfNotExists` a partir do checkbox). Labels em `lang/{pt,en}/role.php`.
+
+**Confirmado que nenhuma virou "teatro"**: o detector segue reportando as três como *usadas* — declarar sem uso só trocaria um problema pelo outro.
+
+##### ⛔ NÃO aplicadas — 2 sob a regra-mestre VALOR/ESTOQUE, aguardando decisão [W]
+
+A regra manda **apresentar o impacto e só aplicar após confirmação**. Estão medidas e apresentadas; **nenhuma linha foi tocada**.
+
+**1. `edit_purchase_price`** — `PurchaseController` (2×), `StockAdjustmentController`, `StockTransferController`, sempre na forma `'edit_price' => $user->can('edit_purchase_price')`.
+
+| | hoje | se declarada |
+|---|---|---|
+| Admin | campo de preço de compra **editável** (via `Gate::before`) | igual |
+| Não-admin **sem** a permissão | campo **readonly** | igual |
+| Não-admin **com** a permissão | não existe — ninguém pode receber | campo **editável** |
+
+É **flag de UI pura**: viaja como prop Inertia `permissions.edit_price` e só decide o `readonly` do input. **Não há enforcement server-side** — o `store()`/`update()` não re-checa a permissão, então o valor postado é aceito independentemente dela. Recomendo **declarar** (restaura a capacidade que o nome promete a um comprador não-admin) **e** registrar que o flag não é barreira de segurança — se a intenção é barrar de verdade, o gate precisa ir para o servidor, o que é decisão de desenho separada.
+
+**2. `report.stock_details`** — `ReportController::productStockDetails` (leitura) **e** `ReportController::adjustProductStock`, que chama `productUtil->fixVariationStockMisMatch(...)` — **escrita de estoque**.
+
+Uma permissão gateia os dois. Reaproveitar a irmã declarada `stock_report.view` seria **errado**: é permissão de leitura e passaria a autorizar ajuste de estoque — exatamente o "`access_*` é leitura, não autoriza deletar" que o método proíbe. Mas declarar `report.stock_details` como está tem o problema espelhado: o **nome diz relatório e o efeito inclui mutação de estoque** — vira armadilha para quem marcar o checkbox achando que concedeu leitura.
+
+As duas saídas, e nenhuma é minha para escolher:
+
+- **(i)** declarar `report.stock_details` como está — 1 linha, preserva a semântica atual exata, e a armadilha do nome fica registrada;
+- **(ii)** separar: `report.stock_details` para a leitura e um nome explícito de mutação (ex.: `stock.adjust_mismatch`) para o `adjustProductStock`.
+
+Recomendo **(ii)** por ser o desenho correto, com a ressalva honesta de que ela mexe em quem pode mutar estoque e por isso pede o ciclo completo da regra-mestre (dupla confirmação + antes→depois por registro afetado). **Decisão [W].**
+
+##### Contador e o que sobra
+
+**24 → 17** nesta rodada (−4 trocas, −3 declarações). A composição das 17:
+
+| grupo | n | estado |
+|---|---:|---|
+| scaffolding classe C (endpoint não ligado) | 7 | resíduo declarado, razão acima |
+| idioma `Gate::before` (`admin`, `only_admin`, `edit_essentials_settings`, `subscribe`) | 4 | resíduo declarado — declarar seria nocivo |
+| scaffolding classe D (`visit.*`) | 3 | resíduo declarado + achado de fail-open anexado |
+| `ponto.importacoes.criar` | 1 | PR separado, travado na lane vermelha do Ponto |
+| **VALOR/ESTOQUE aguardando [W]** | **2** | `edit_purchase_price` · `report.stock_details` |
+
+Ou seja: das 17, **15 têm razão escrita para ficar** e **2 aguardam decisão**. A classe D está triada.
+
+##### Achados adjacentes — registrados, não corrigidos (outro escopo)
+
+- **`NotificationController::send()` tem o gate COMENTADO** (`// if (!auth()->user()->can('send_notification'))`). O `getTemplate()` não tem gate nenhum. Ou seja: mesmo com `send_notification` agora declarada, o **envio** em si não é gateado — só a tela de modelos. Decisão de desenho.
+- **`ModifierSetsController::index()` sem gate** — já registrado na classe B, segue valendo.
+- **O comentário do detector sobre a 4ª fonte é impreciso** (ver `configure_dashboard` acima). Não altera nenhum veredito; fica anotado para quem for lê-lo como recibo.
+
+#### Cozinha (`restaurant/kitchen`) — gate reativado, com o menu junto — 2026-08-07
+
+> ⚠️ **Escrito em 2026-08-07 aguardando decisão [W]** — a mudança tem duas pernas e elas se decidem separado (ver abaixo). _(Redação datada de propósito: "decisão pendente" em presente vira falsa no minuto em que [W] decidir, e ninguém volta pra consertar — §5 2026-07-16.)_
+
+Mesma família dos `restaurant.*` acima, um grau mais sensível: o `KitchenController::index()` tinha o gate **comentado** e servia os **pedidos** da cozinha — transações, não nomes de catálogo — a qualquer usuário autenticado do business. `business_id` intacto (Tier 0 não foi violado); o que faltava era RBAC **dentro** do tenant.
+
+> ⚠️ "Comentado **desde o upstream**" é **inferência plausível, não recibo**: `git log -S"can('sell.view')"` sobre o arquivo só alcança `8cd20a34863` (*"restaura codebase apagado pelo squash do #2413"*) — a linhagem anterior foi apagada pelo squash, então a origem **não é medível neste repo**. O código ser UltimatePOS puro sustenta a leitura; o git não a prova.
+
+**Correção de premissa do pedido que abriu este trabalho (medido, não lido).** O brief afirmava que `ModifierSetsController::index()` passou a gatear com `product.view || product.create` em 2026-08-07. **Não passou.** Esse predicado é da **linha do menu** (`AdminSidebarMenu.php:906`); o `index()` daquele controller **segue sem gate** — que é exatamente o que o *"Achado adjacente, não corrigido"* acima registra. Confundir predicado-de-menu com gate-de-controller é o que faria alguém "espelhar" um gate inexistente.
+
+**Retrato das 5 telas da pasta** (medido em `origin/main`, worktree em 0/0):
+
+| Tela | Predicado do MENU | Gate do `index()` | Casam? |
+|---|---|---|---|
+| Mesas | módulo + `access_tables` | `access_tables` | ✅ espelho exato |
+| Reservas | módulo + (`crud_all_bookings` \|\| `crud_own_bookings`) | o mesmo OR | ✅ espelho exato |
+| Modificadores | módulo + (`product.view` \|\| `product.create`) | **nenhum** | ❌ menu mais estrito |
+| **Cozinha** | **só o módulo** — permissão nenhuma | **nenhum** (comentado) | — nada a espelhar |
+| Pedidos | **só o módulo** (`service_staff`) | **nenhum** (comentado, `sell.view`) | — |
+
+Ou seja: **"espelhar o predicado do menu" não era executável como escrito** — o menu da Cozinha não declara permissão. Espelhá-lo ao pé da letra deixaria o buraco aberto; e qualquer permissão no endpoint o torna **mais estrito que o menu**, que é a classe A (link visível → 403) que esta US existe pra matar. Por isso o gate saiu **nas duas pernas, no mesmo PR**:
+
+1. `KitchenController::index()` — gate ativo com **`sell.view`**.
+2. `AdminSidebarMenu.php`, menu Cozinha — o **mesmo** `sell.view` no predicado do link.
+
+**Por que `sell.view`:** é a permissão que o **gate comentado já nomeava** (proveniência escrita, não invenção); é **declarada** (`PermissionsTableSeeder.php:43`) e está na tela de papéis (`role/edit.blade.php:590` · `create.blade.php:595`); e a tela lê *sell lines* — é dado de venda.
+
+**O fork de [W] — com o custo medido, que a 1ª redação pedia sem dar.** Não existe permissão que exprima "é da cozinha": `is_service_staff` é **flag da role** (`roles.is_service_staff`), não permissão. E `sell.view` é **over-grant** para quem opera a cozinha — o único papel de serviço canônico do repo é `Waiter#5` (`DummyBusinessSeeder.php:1396-1401`), `is_service_staff => 1`, com **`syncPermissions(['dashboard.data'])` e nada mais**; já `sell.view` é o que abre a **listagem inteira de Vendas** (`SellController@index`). Ou seja: para um cozinheiro ver a Cozinha, [W] teria de lhe dar a lista de vendas junto. A alternativa é `access_tables ||` (a única permissão que a tela de papéis oferece sob o título "Restaurante") — mas **nenhuma fonte declara esse OR**, e inventá-lo seria o oposto de espelhar. **É esse par — over-grant × OR não declarado — que torna a escolha decidível, e ela é de [W].**
+
+**Assimetria colateral, não resolvida:** o menu Vendas (`AdminSidebarMenu.php:311`) abre com `hasAnyPermission([...12 permissões...])`, incluindo `view_own_sell_only`, `direct_sell.access` e `direct_sell.view`. Quem tem só uma dessas continua vendo **Vendas** e passa a **não ver Cozinha**. Não é buraco de segurança — é inconsistência de UX que uma US sobre classe A deve nomear em vez de deixar para alguém descobrir.
+
+**⚠️ O que este PR NÃO fecha — e impede chamá-lo de "vedado".** Fechar o `index()` fecha a **porta**, não o **dado**. Os três resíduos, com o tamanho real de cada um (medido, depois de uma revisão adversarial ter derrubado a primeira redação desta seção):
+
+1. **`POST /modules/refresh-orders-list` (`refreshOrdersList`) — sem gate, e expõe MAIS que a Cozinha.** É o polling de `public/js/restaurant.js:111`. O `$filter` só é populado quando `orders_for` é `'kitchen'` ou `'waiter'`; com o campo **ausente ou qualquer outro valor**, `$filter = []` e cai em `RestaurantUtil::getAllOrders($business_id, [])`, que devolve **todas** as `transactions` `type=sell` · `status=final` · `res_order_status != 'served'` (ou NULL) do business — não só as da cozinha.
+2. **`markAsCooked` — mutação por `GET`, ainda aberta.** `Route::get('/kitchen/mark-as-cooked/{id}')` (`routes/web.php:797`), gate `sell.update` comentado. O botão que a dispara vem de `restaurant/partials/show_orders.blade.php:33` e `line_orders.blade.php:40` — **as mesmas partials que o `refreshOrdersList`/`refreshLineOrdersList` servem sem gate**. Ou seja: quem não passa no `index()` ainda obtém o HTML com o botão *e* executa a mutação. **É o maior dos três**, não um resíduo menor.
+3. `refreshLineOrdersList` — mesma forma do item 1.
+
+> ⚠️ **Errata da 1ª redação desta seção (registrada, não apagada).** Ela justificava o não-toque com *"o predicado dele arrasta a decisão do `OrderController` junto"*. **É meia-verdade:** o método **já ramifica** em `$orders_for`, então um gate dentro do ramo `kitchen` não tocaria o caminho `waiter`. A razão real é mais forte e é outra: **gatear só o ramo `kitchen` não fecharia nada**, porque o caminho de filtro vazio (item 1) continua aberto — e um gate no topo do método, que fecharia, aí sim arrasta o waiter. A conclusão sobrevive; a razão escrita, não. Razão errada em canon é pior que razão ausente.
+
+> É a mesma lição que o `@can` do `modifier_sets` já tinha ensinado nesta US — *o gate da view nunca foi a barreira real*. Aqui: **o gate do `index()` não é a barreira real do dado.**
+
+**Sem teste e sem lane, e o custo de wirar é menor do que o brief supunha.** `rg --hidden` por `KitchenController|modules/kitchen` em `tests/` e `.github/` volta **rc=1** (rodou, não achou). O `ci.yml` **não** roda "só `tests/Feature/Form`": ele roda uma **lista curada**, `.github/ci-sqlite-pest.list` (~150 alvos, `tests/Feature/Form` é *uma linha* dela). Logo um teste em `tests/Feature/Restaurant/` não rodaria por estar lá — mas ligá-lo é **uma linha nessa lista**, não uma lane nova. Fica como decisão [W]: criar o arquivo sem a linha seria cobertura de mentira (LC-13).
+
+**Custo da janela:** [W] informou em 2026-08-07 que a feature Restaurante **existe mas não está em uso**. Fechar agora é reversível; depois de entrar em uso, apertar o gate vira breaking change — e apertar o **menu** junto passa a esconder link de quem já usava.
+
+**As duas pernas se decidem SEPARADO — não são um pacote:**
+
+| Perna | O que é | Natureza da decisão |
+|---|---|---|
+| 1 · endpoint (`index()`) | fecha buraco de acesso | corretiva — a classe A desta US |
+| 2 · menu (link Cozinha) | esconde link de quem não tem `sell.view` | **de produto** — [W] acabou de dizer "pode deixar" sobre visibilidade nesta mesma família (§ decisão de 2026-08-07 acima) |
+
+A perna 2 só existe porque a 1, sozinha, **cria** a classe A (link visível → 403). Se [W] recusar a 2, a 1 sozinha não deve ir — a saída aí é não mexer, não entregar meia simetria.
+
+**Relação com a decisão [W] de 2026-08-07 nesta mesma US — não é reabertura, é extensão de escopo na mesma família.** O texto daquela decisão nomeia o sujeito três vezes e é sempre o mesmo: *"`@can('restaurant.view')` na listagem de `modifier_sets`"*, e a citação (*"pode deixar os botão"*) é sobre botões de linha de datatable, não sobre gate de endpoint de outra tela. O `"Não reabrir sem [W]"` está preso a esse sujeito. **Mas** duas cláusulas do mesmo parágrafo falam da **feature inteira** (*"a feature Restaurante existe mas não está em uso agora"*, *"se a feature entrar em uso, é aí que a escolha passa a custar"*) — então [W] deu, no mesmo turno, um sinal sobre a família `restaurant.*`, e isto age nela um dia depois. Por isso a aprovação [W] é **condição de merge, não formalidade**. _(Proveniência: o escopo daquela decisão só existe na redação deste SPEC — não há session log de 2026-08-07 registrando o turno. Quem quiser esticar ou encolher o escopo depende de [W], não do arquivo.)_
+
+**Recibos:**
+
+- `php -l` nos dois arquivos tocados, PHP 8.4.22 no CT 100 (`oimpresso-staging`) — *No syntax errors detected* nos dois.
+- `permission-drift.mjs --json` (o detector desta própria US, que **lê** o `AdminSidebarMenu.php` que o PR muda): **24 órfãs**, e `sell.view` **não** está entre elas — o uso novo não fabrica órfã.
+- `anchor-drift`: os **3** modos que o job roda, rc=0 nos três. `sdd-scorecard --ratchet` rc=0 (com a órfã `nightly-floor` materializada como o CI faz). Schema do SPEC validado no modo **por arquivo** — o modo `--glob` dava verde medindo **zero** arquivo (verde por não-execução), e um bite-test com frontmatter inválido na mesma família provou que o validador morde (rc=1, 3 violações nomeadas).
+- `multi-tenant-gate` **não foi rodado** (é Pest, CT 100-only, e o checkout do container está defasado). Proxy: os 7 patterns banidos por `NoHardcodeBusinessIdInModulesTest` — que **varre** o `AdminSidebarMenu.php` (glob na L70) — rodados contra os 2 arquivos, rc=1 (rodou, não achou).
+- Nenhuma linha de cálculo tocada: o diff mexe só em predicado de autorização.
+
+_Esta subseção foi reescrita depois de uma revisão adversarial read-only, que derrubou a razão do resíduo 1, achou a mutação por GET do `markAsCooked`, o over-grant do `Waiter#5` e o marcador em presente. O que ela **confirmou**: a correção de premissa sobre o `ModifierSets`, o retrato das 5 telas (5/5), a inexistência de outra superfície de menu apontando pra Cozinha (varredura repo-inteiro), e que nenhum teste existente quebra._
+
+### US-GOV-060 · 5 testes dropam tabela CORE sem skip — risco sobre o `oimpresso-staging` persistente
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — é achado a triar + decisão de caminho, não construção; os arquivos já existem e o risco é latente (só dispara se a suíte inteira rodar contra o staging).
+
+Achado medido em 2026-08-07 (`git grep` contado, durante o [#5396](https://github.com/wagnerra23/oimpresso.com/pull/5396)) enquanto se convertia o 1º arquivo da quarentena era-sqlite.
+
+**95** testes chamam `Schema::dropIfExists` **sem** o guard `markTestSkipped` fora do sqlite. Destes, **5 dropam tabela CORE**:
+
+| arquivo | dropa |
+|---|---|
+| `Modules/Whatsapp/Tests/Feature/WhatsmeowWebhookAuthTest.php` | `business` |
+| `Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php` | `users` + `contacts` |
+| `Modules/RecurringBilling/Tests/Feature/Wave23EditarAssinaturaTest.php` | `users` |
+| `Modules/RecurringBilling/Tests/Feature/Wave2Observer3ActionsTest.php` | `contacts` |
+| `Modules/RecurringBilling/Tests/Feature/{Wave6PlanCrud,Wave9NotesFavorites}Test.php` | `contacts` |
+
+**O risco depende do ambiente, e os dois MySQL do CT 100 se comportam de forma oposta.** O [`ct100-fullsuite.sh`](../../../scripts/tests/ct100-fullsuite.sh) roda contra DB `*_test` **recriada a cada run**, com guard que aborta se o nome não terminar em `_test` — ali o drop é inofensivo. Já o `oimpresso-staging` **persiste** (367 tabelas, clone de prod) e é o comando canônico do [`proibicoes.md`](../../proibicoes.md) §Ambiente — ali apaga tabela core do clone.
+
+Latente: só dispara se alguém rodar esses arquivos contra o staging. **Não endereçado no #5396 de propósito** — o escopo era o piloto de conversão, e misturar esconderia as duas coisas.
+
+**Caminhos possíveis (decisão [W]):**
+1. Adicionar o guard skip-unless-sqlite nesses 5, igual aos 142 irmãos — barato, mas soma à quarentena que se está tentando drenar.
+2. Convertê-los pro schema real, como o piloto fez — custo medido: helper de FK + asserções reescritas + run no CT 100.
+3. Proteger na origem: recusar `dropIfExists` de tabela CORE quando o nome da DB não terminar em `_test`. Fecha a classe inteira, inclusive os 142, mas é máquina nova — exige FP medido antes (regra "LIGUE A MÁQUINA" item 4).
+
+Refs: [#5396](https://github.com/wagnerra23/oimpresso.com/pull/5396) · [handoff 2026-08-07 15:30](../../handoffs/2026-08-07-1530-quarentena-era-sqlite-piloto-lane-whatsapp.md) · [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)

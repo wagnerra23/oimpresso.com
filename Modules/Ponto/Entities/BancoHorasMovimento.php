@@ -72,6 +72,30 @@ class BancoHorasMovimento extends Model
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
         });
+
+        // US-PONTO-011 — o override de update()/delete() abaixo NÃO cobre `save()`.
+        //
+        // Por quê: `Model::save()` em registro existente chama `performUpdate()`
+        // DIRETO, sem passar pelo método público `update()`. Logo
+        // `$mov->minutos = 999; $mov->save()` GRAVAVA, e a `Marcacao` só não sofre
+        // do mesmo porque tem trigger MySQL — esta tabela não tinha (SDD §9 D-6).
+        // Uma camada só, e com buraco.
+        //
+        // Provado pelo `UC-BHSHOW-01` (escrito em 2026-07-27, reprovou na lane em
+        // 2026-08-03: "Failed asserting that true is false"). Ficou invisível
+        // porque a lane não rodava havia >100 runs.
+        //
+        // `updating` (e não `saving`) porque é o evento que `performUpdate()`
+        // dispara — `saving` também pegaria o INSERT, que é legítimo. Closure e
+        // não Observer: `static::observe()` dentro de boot dispara
+        // "bootIfNotBooted may not be called" (lição do hotfix #639).
+        static::updating(function () {
+            throw new RuntimeException(
+                'Movimentos de banco de horas são append-only — nem por save(). '
+                . 'Corrigir saldo é ACRESCENTAR movimento (tipo AJUSTE), nunca editar '
+                . 'o anterior: o extrato é prova em reclamatória (CLT Art. 59 §5º).'
+            );
+        });
     }
 
     protected $fillable = [

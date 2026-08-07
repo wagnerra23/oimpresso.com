@@ -19,9 +19,38 @@ last_run: "2026-07-28"
 > artefato que eles produzem e desfazem** (a fatura). Criar um arquivo paralelo pra "fluxo sem tela"
 > seria tipo novo — proibido ([ADR 0351](../../../../../memory/decisions/0351-sdd-from-source.md) D-B).
 >
-> ⚠️ **Força do veredito:** os testes citados **rodam na nightly CT100** (`phpunit.xml` inclui
-> `Modules/RecurringBilling/Tests/Feature`) mas **não rodam no PR** e **não bloqueiam merge** — zero
-> linhas do módulo em `.github/ci-sqlite-pest.list`. Status **🧪, nunca ✅**: não rodei nada (CT 100).
+> ⚠️ **Força do veredito.** _(atualizado 2026-08-02; a redação anterior dizia "zero linhas do módulo
+> em `.github/ci-sqlite-pest.list`" — era verdade até
+> [PR #5194](https://github.com/wagnerra23/oimpresso.com/pull/5194) e deixou de ser.)_
+>
+> Os `it()` passaram a carregar o **UC-id no título** (antes só no docblock, o que os deixava fora do
+> manifesto G-7 por construção) e os arquivos desta tela entraram na **lane sqlite** do `ci.yml`, que
+> o `casos-results-publish` colhe — **os 4, desde 2026-08-03**.
+>
+> ### `UC-RBFAT-08` — o que a lane revelou, e a errata do meu próprio diagnóstico
+>
+> _(A redação de 02/08 dizia que **o contador do serviço** estava errado e que o remédio era `[V0]`
+> de [W]. **Estava errado — o defeito era do teste.** Fica registrado, não apagado.)_
+>
+> Quando a lane rodou `InvoiceGeneratorServiceTest` pela primeira vez (run 30778559754),
+> `2. Idempotência: 2x run() nao duplica invoice` reprovou em `skipped == 1` (veio `0`).
+>
+> O que estava realmente acontecendo: o teste simulava a re-execução com
+> `$sub->update(['next_due_date' => …])` sobre uma instância **stale**. O 1º run já gravara
+> `2026-08-15` no banco, mas o modelo em memória ainda acreditava valer `2026-07-15` — então
+> `getDirty()` vinha **vazio** e o Eloquent **não emitia UPDATE nenhum**. A linha continuava em
+> agosto, o 2º run **não achava candidato**, e `generated == 0` passava por **ausência de trabalho**.
+>
+> Ou seja: o assert que "passava" (linha 225) passava pelo motivo errado — **verde por não-execução**
+> (`LC-13`) dentro do teste que afirma provar idempotência. O `skipped == 1` era o **único** assert
+> que denunciava isso, e eu o li como "o contador mente".
+>
+> Fix: `UPDATE` de query-builder (que sempre emite SQL) + **pré-condição anti-vácuo** provando que a
+> assinatura voltou a ser candidata antes de afirmar qualquer coisa sobre o 2º run.
+> **O serviço está correto e não foi tocado** — zero mudança em código que mexe com valor.
+>
+> Status segue **🧪**: quem carimba ✅ é o cron `casos-results-publish` (07:30 BRT); não rodei nada
+> localmente (CT 100).
 
 ## Rastreabilidade
 

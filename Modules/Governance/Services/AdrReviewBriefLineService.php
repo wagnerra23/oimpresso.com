@@ -35,7 +35,7 @@ use Throwable;
  * @see scripts/governance/memory-health.mjs (sentinela --json · shape {fails,warns,ok})
  * @see Modules\Governance\Console\Commands\AdrReviewFlushCommand (flush trimestral, fila completa)
  * @see Modules\Governance\Services\PlanHealthBriefLineService (pattern irmão)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 final class AdrReviewBriefLineService
 {

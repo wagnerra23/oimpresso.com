@@ -1,7 +1,7 @@
 <?php
 
 /**
- * TopNav declarativo do Officeimpresso (ADR 0011 MemCofre).
+ * TopNav declarativo do Officeimpresso (ADR UI-0026 · _DesignSystem).
  *
  * Fonte INDEPENDENTE da sidebar (que vem de DataController::modifyAdminMenu)
  * e do Blade `Resources/views/layouts/nav.blade.php`. Usado por React/Inertia

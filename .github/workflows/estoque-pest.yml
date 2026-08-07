@@ -13,8 +13,14 @@ name: Estoque · Pest (MySQL)
 # Usa o SCHEMA BASELINE (database/schema/mysql-schema.sql). `migrate` carrega o schema final
 # num passo + roda só as migrations novas → sem fresh-install (FK ordering) das migrations legacy.
 #
-# CATRACA (allowlist verde): a lane roda só os arquivos comprovadamente verdes. Cada PR de
-# cobertura adiciona arquivos AQUI (ratchet up). Modelado em .github/workflows/financeiro-pest.yml.
+# CATRACA — desde 2026-08-07 a seleção é ÁRVORE MENOS QUARENTENA, não allowlist inline.
+# O run-set é tudo em tests/Feature/{Estoque,Produto}/*Test.php menos o que
+# .github/estoque-pest-quarantine.list nomeia (com motivo por linha). Partição TOTAL:
+# arquivo NOVO entra RODANDO, e não existe mais o terceiro estado "escuro".
+# Cada PR de cobertura TIRA linha da quarentena (ratchet down). Mesmo mecanismo do irmão
+# .github/workflows/financeiro-pest.yml, de onde foi copiado.
+# O histórico abaixo (2026-07-15 em diante) descreve as adições feitas na era da allowlist
+# inline — os arquivos citados seguem no run-set, exceto os que hoje estão na quarentena.
 #
 # 2026-07-15 — ESCOPO ESTENDIDO a `tests/Feature/Produto/**` (mesma doença, mesmo remédio).
 # O contrato da tabela de preço (TabelaPrecoContratoTest — CU-PROD-03) precisa de MySQL real +
@@ -96,14 +102,26 @@ on:
     branches: [main]
   push:
     branches: [main]
+    # 2026-08-07 — este bloco tem que ser IDÊNTICO ao paths-filter interno do job.
+    # No irmão financeiro-pest.yml eles já eram iguais; aqui divergiam em 2 entradas
+    # (`tests/Feature/Produto/**` e `ProductController.php`), resíduo de 2026-07-15,
+    # quando o escopo da lane cresceu pra Produto e só o filtro interno foi estendido.
+    # Efeito medido: merge que tocasse SÓ Produto não disparava a lane no main — e é
+    # exatamente onde mora 100% da dívida em quarentena. Não afetava o merge (no PR o
+    # gatilho é always-run e o filtro interno já incluía), só o sinal pós-merge.
     paths:
       - 'tests/Feature/Estoque/**'
+      - 'tests/Feature/Produto/**'
       - 'tests/Support/EstoqueFixture.php'
       - 'tests/Support/EstoqueProduto.php'
       - 'app/Utils/ProductUtil.php'
       - 'app/Utils/TransactionUtil.php'
+      - 'app/Http/Controllers/ProductController.php'
+      - 'app/Http/Controllers/ProdutoUnificadoController.php'
+      - 'app/Category.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/estoque-pest.yml'
+      - '.github/estoque-pest-quarantine.list'
       - '.github/actions/pest-mysql-setup/**'
 
 concurrency:
@@ -143,10 +161,15 @@ jobs:
               - 'tests/Support/EstoqueFixture.php'
               - 'tests/Support/EstoqueProduto.php'
               - 'app/Http/Controllers/ProductController.php'
+              # Arquivos SOB TESTE do ProdutoUnificadoCategoriasContratoTest. Sem eles no
+              # trigger, mexer no controller não dispara o teste dele (§5 2026-08-02).
+              - 'app/Http/Controllers/ProdutoUnificadoController.php'
+              - 'app/Category.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/estoque-pest.yml'
+              - '.github/estoque-pest-quarantine.list'
               - '.github/actions/pest-mysql-setup/**'
 
       - name: Skip-as-pass (nada de Estoque mudou)
@@ -168,12 +191,19 @@ jobs:
           }
           EOF
 
-      - name: Run Pest (Estoque · MySQL) — ALLOWLIST VERDE (catraca)
+      - name: Run Pest (Estoque · MySQL) — ÁRVORE MENOS QUARENTENA (partição total)
         if: steps.changes.outputs.est == 'true'
         # phpunit.xml força sqlite :memory: — exportar DB_CONNECTION=mysql aqui faz rodar
         # no MySQL real semeado (senão os testes SKIPam via EstoqueFixture::schemaReady()).
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema e limpam
         # o biz=1 seedado, envenenando os demais.
+        #
+        # 2026-08-07 — a allowlist INLINE virou árvore-menos-quarentena. Motivo medido:
+        # a árvore tem 40 arquivos, a allowlist nomeava 25, e 14 dos 15 de fora (os
+        # `Wave2*`) não rodavam em lane NENHUMA (basename com 0 ocorrências em
+        # `.github/`, `scripts/` e `package.json`). Allowlist inline cria um terceiro
+        # estado ESCURO — arquivo que não roda e não aparece. Agora a partição é total:
+        # roda, ou está listado com motivo. Mesmo mecanismo do irmão financeiro-pest.yml.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -182,35 +212,51 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: root
         run: |
+          set -uo pipefail
           mkdir -p test-results
+          QUAR_FILE=.github/estoque-pest-quarantine.list
+
+          # remove comentário de linha INTEIRA e comentário INLINE (path  # motivo)
+          sed 's/#.*//; s/[[:space:]]*$//' "$QUAR_FILE" | grep -vE '^$' | sort -u > /tmp/quar.txt
+
+          # A quarentena NÃO pode apodrecer: path que não existe mais vira erro.
+          # (sem isso a lista viraria o mesmo ponto cego que ela substitui)
+          RC=0
+          while read -r q; do
+            [ -f "$q" ] || { echo "::error::quarentena aponta arquivo inexistente: $q"; RC=1; }
+          done < /tmp/quar.txt
+          [ "$RC" -eq 0 ] || { echo "Limpe $QUAR_FILE — arquivo removido continua listado."; exit 1; }
+
+          find tests/Feature/Estoque tests/Feature/Produto -name '*Test.php' | sort > /tmp/all.txt
+          comm -23 /tmp/all.txt /tmp/quar.txt > /tmp/run.txt
+
+          # Visibilidade obrigatória: quarentena silenciosa vira cobertura fingida.
+          echo "Árvore: $(wc -l < /tmp/all.txt) · quarentena: $(wc -l < /tmp/quar.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
+          echo "--- em quarentena (NÃO rodam) ---"; cat /tmp/quar.txt
+
+          mapfile -t TARGETS < /tmp/run.txt
+          [ "${#TARGETS[@]}" -gt 0 ] || { echo "::error::run-set vazio"; exit 1; }
+
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-estoque-junit.xml \
-            tests/Feature/Estoque/EstoqueMovimentacaoVendaTest.php \
-            tests/Feature/Estoque/EstoqueMovimentacaoCompraTest.php \
-            tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php \
-            tests/Feature/Estoque/EstoqueDevolucaoVestuarioTest.php \
-            tests/Feature/Estoque/EstoqueAjusteTest.php \
-            tests/Feature/Estoque/EstoqueTransferenciaTest.php \
-            tests/Feature/Estoque/EstoqueOpeningStockTest.php \
-            tests/Feature/Estoque/EstoqueFabricacaoTest.php \
-            tests/Feature/Estoque/EstoqueInvarianteRascunhoTest.php \
-            tests/Feature/Estoque/EstoqueInvarianteTransacaoTest.php \
-            tests/Feature/Estoque/EstoqueInvarianteEnableStockTest.php \
-            tests/Feature/Estoque/EstoqueInvarianteTenantTest.php \
-            tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php \
-            tests/Feature/Produto/TabelaPrecoContratoTest.php \
-            tests/Feature/Produto/CadastroProdutoContratoTest.php \
-            tests/Feature/Produto/StockHistoryContratoTest.php \
-            tests/Feature/Produto/ProdutoEditContratoTest.php \
-            tests/Feature/Produto/ProdutoEditPayloadContratoTest.php \
-            tests/Feature/Produto/ProdutoShowContratoTest.php \
-            tests/Feature/Produto/ProdutoIndexContratoTest.php \
-            tests/Feature/Produto/ProdutoBulkEditContratoTest.php \
-            tests/Feature/Produto/EstoqueInicialContratoTest.php \
-            tests/Feature/Produto/ProdutoBomContratoTest.php \
-            tests/Feature/Produto/QuickAddProdutoContratoTest.php \
-            tests/Feature/Produto/AjusteEstoqueRelatorioContratoTest.php
+            "${TARGETS[@]}"
 
+
+      # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
+      # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
+      # o FP do --check-assertions ANTES de arma-lo. Aqui so REPORTA (if: always()).
+      - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-estoque-junit.xml --out test-results/pest-estoque-junit-summary.json || true
+
+      - name: Upload sumario JUnit (pest-estoque-junit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-estoque-junit-summary
+          path: test-results/pest-estoque-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
         uses: actions/upload-artifact@v4

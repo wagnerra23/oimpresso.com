@@ -1,4 +1,4 @@
-// @memcofre componente=CommandPalette modulo=ProjectMgmt
+// @memcofre componente=CommandPalette modulo=Forja
 // PMG-002 (ADR 0100) — Cmd+K Search Global
 //
 // Wrapper de cmdk (via shadcn `command.tsx`) que faz fetch debounced em
@@ -8,7 +8,7 @@
 // Props:
 //   open / onOpenChange — controlled state (AppShellV2 é dono do trigger Cmd+K)
 //
-// Endpoint backend: Modules/ProjectMgmt/Http/Controllers/SearchController.php
+// Endpoint backend: Modules/Forja/Http/Controllers/SearchController.php
 
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';

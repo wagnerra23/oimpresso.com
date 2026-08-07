@@ -21,7 +21,7 @@ authors: [audit-team-os-expert]
 score_os_solo: 82/100 (lente "Wagner + Claude solo" — MCP-first é feature pra agente IA)
 score_team_os: 70/100 (lente "5 humanos + clientes B2B" — esta é a lente que importa)
 nota_ponderada_12_funcoes: 7.0/10 (P0=4 · P1=2 · P2=1)
-correcao_v2: "2026-05-29 — UI Fase 7 JÁ existe em Modules/ProjectMgmt (Board/Backlog/MyWork/Roadmap/Burndown/Activity, 2822 linhas). Função 9 corrigida 2.5→7; Team OS 64→70. Faltam só Triage + Inbox + push."
+correcao_v2: "2026-05-29 — UI Fase 7 JÁ existe em Modules/Forja (Board/Backlog/MyWork/Roadmap/Burndown/Activity, 2822 linhas). Função 9 corrigida 2.5→7; Team OS 64→70. Faltam só Triage + Inbox + push."
 decisao_wagner_firme: "NÃO ligar 2º cérebro / Brain B / autonomia ADS agora (custo recorrente indesejado)"
 artefatos_alvo:
   - memory/decisions/proposals/drafts/automation-registry-mcp.md
@@ -33,7 +33,7 @@ artefatos_alvo:
 
 # AUDIT Team OS — 2026-05-29
 
-> ⚠️ **CORREÇÃO v2 (2026-05-29, pós-verificação paralela):** a v1 deste audit afirmou que a **UI Fase 7 "nunca foi construída" (função 9 = 2.5)**. **Errado.** A verificação durante a geração dos deliverables encontrou `Modules/ProjectMgmt` com **UI real e quality-gated**: `Board/Index.tsx` (527 linhas) + `Board/DetailSheet.tsx` (801) + `Backlog` (390) + `MyWork` (461) + `Activity` (254) + `Burndown` (243) + `Roadmap` (146) = **2.822 linhas**, todas com `.charter.md` + `.review.md`. **Kanban, Backlog, MyWork, Roadmap, Burndown e Activity JÁ EXISTEM.** Faltam apenas **Triage** e **Inbox** (dedicados) + **push de notificação**. Correção aplicada: função 9 = 2.5 → **7**; Team OS = 64 → **70**; Onda 2 reescopada de "construir Fase 7" para "completar 2 telas + polish". O erro v1 veio de um `find -iname "*board*"` que não casou `Board/Index.tsx` (nome do arquivo é `Index.tsx`). Lição: verificar com `ls` da árvore, não só por nome de arquivo.
+> ⚠️ **CORREÇÃO v2 (2026-05-29, pós-verificação paralela):** a v1 deste audit afirmou que a **UI Fase 7 "nunca foi construída" (função 9 = 2.5)**. **Errado.** A verificação durante a geração dos deliverables encontrou `Modules/Forja` com **UI real e quality-gated**: `Board/Index.tsx` (527 linhas) + `Board/DetailSheet.tsx` (801) + `Backlog` (390) + `MyWork` (461) + `Activity` (254) + `Burndown` (243) + `Roadmap` (146) = **2.822 linhas**, todas com `.charter.md` + `.review.md`. **Kanban, Backlog, MyWork, Roadmap, Burndown e Activity JÁ EXISTEM.** Faltam apenas **Triage** e **Inbox** (dedicados) + **push de notificação**. Correção aplicada: função 9 = 2.5 → **7**; Team OS = 64 → **70**; Onda 2 reescopada de "construir Fase 7" para "completar 2 telas + polish". O erro v1 veio de um `find -iname "*board*"` que não casou `Board/Index.tsx` (nome do arquivo é `Index.tsx`). Lição: verificar com `ls` da árvore, não só por nome de arquivo.
 
 > **Pedido Wagner via parent agent:** auditar o "Team OS" do oimpresso — o sistema MCP de tasks + governança ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) / [ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) / [ADR 0055](../../decisions/0055-self-host-equivalent-anthropic-team.md)) — comparando com Jira (Atlassian Team '26 + Rovo) e Claude Code Agent Teams (Opus 4.6, fev/2026).
 >
@@ -97,7 +97,7 @@ Avaliação ponderada por peso de cada função (P0=4, P1=2, P2=1). Estado atual
 | 6 | Integração com conhecimento | P0 | `mcp_task_memory_links` (task↔ADR/SPEC) + RAG | **diferencial**, mas manual vs Teamwork Graph automático | **8.5** |
 | 7 | Execução AI-native (agente assignee) | P0 | `tasks-suggest-*` designed; ADS/Brain B **DORMENTE** | Rovo Max executa multi-step; nós só sugerimos | **4.5** |
 | 8 | Coordenação & presença de time | P1 | request-response via tools; **sem presença** | Agent Teams lead+teammates; Jira presença live | **4** |
-| 9 | UI/acessibilidade (board, não-técnico, cliente) | P0 | **Board/Backlog/MyWork/Roadmap/Burndown/Activity JÁ existem** (`Modules/ProjectMgmt`, 2822 linhas, charters+reviews); faltam **Triage + Inbox** dedicados | Jira/Linear UI-first; completar 2 telas + validar acessibilidade não-técnico/B2B | **7** |
+| 9 | UI/acessibilidade (board, não-técnico, cliente) | P0 | **Board/Backlog/MyWork/Roadmap/Burndown/Activity JÁ existem** (`Modules/Forja`, 2822 linhas, charters+reviews); faltam **Triage + Inbox** dedicados | Jira/Linear UI-first; completar 2 telas + validar acessibilidade não-técnico/B2B | **7** |
 | 10 | Governança & audit | P0 | `mcp_task_events` append-only + Spatie RBAC + ADS policy | best-in-class, **ACIMA de Jira** (audit irrevogável) | **9** |
 | 11 | Registry de automações (crons/hooks/rotinas) | P1 | **INEXISTENTE** — invisível ao MCP | entidade **governada + auditável** | **2** |
 | 12 | Multi-tenant / board B2B | P2 | `business_id` pronto, **não exercitado** | board de cliente; falta ativar | **7** |
@@ -132,7 +132,7 @@ P2 (funções 4, 12):          7 + 7                 = 14.0  ×1 =  14
 | # | Função faltante | Resolve | Dado já existe? |
 |---:|---|---|---|
 | 1 | **Registry de Automações** (`mcp_automations`) | **a pergunta-origem** — crons/hooks/rotinas viram entidade governada | parcial (rotinas existem em `.claude/`, mas fora do MCP) |
-| 2 | **Completar UI** (Triage + Inbox dedicados) — Board/Backlog/Roadmap/MyWork/Burndown/Activity **já existem** em `Modules/ProjectMgmt` | função 9 (já em 7) | backend 100% pronto; UI ~80% pronta |
+| 2 | **Completar UI** (Triage + Inbox dedicados) — Board/Backlog/Roadmap/MyWork/Burndown/Activity **já existem** em `Modules/Forja` | função 9 (já em 7) | backend 100% pronto; UI ~80% pronta |
 | 3 | **Push de notificações** (Slack/email/WhatsApp) | função 5 (`my-inbox` deixa de ser pull-only) | `mcp_inbox_notifications` já existe |
 | 4 | **Agente-como-assignee que executa** | função 7 (efeito Rovo Max) | `tasks-suggest-*` designed |
 | 5 | **Teamwork Graph leve** | função 6 — grafo automático task↔commit↔doc↔pessoa | **sim** — `git_links` + `memory_links` + `events` |
@@ -163,7 +163,7 @@ P2 (funções 4, 12):          7 + 7                 = 14.0  ×1 =  14
 |---:|---|:---:|---|
 | 2.1 | **Completar UI** — telas **Triage** + **Inbox** dedicadas + polish de acessibilidade/não-técnico no Board/Backlog existentes (Inertia, **AppShellV2 + PT-01**) | ~5-7h | função 9: 7→9 |
 
-**Correção v2:** a Fase 7 do [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) **já foi ~80% construída** em `Modules/ProjectMgmt` (Board/Backlog/MyWork/Roadmap/Burndown/Activity, 2822 linhas, charters+reviews). A Onda 2 deixa de ser "construir o board" e vira "completar Triage + Inbox + validar usabilidade não-técnica". SPEC-alvo: [`SPEC-UI-FASE7.md`](SPEC-UI-FASE7.md).
+**Correção v2:** a Fase 7 do [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) **já foi ~80% construída** em `Modules/Forja` (Board/Backlog/MyWork/Roadmap/Burndown/Activity, 2822 linhas, charters+reviews). A Onda 2 deixa de ser "construir o board" e vira "completar Triage + Inbox + validar usabilidade não-técnica". SPEC-alvo: [`SPEC-UI-FASE7.md`](SPEC-UI-FASE7.md).
 
 ### Onda 3 — AI-native barato (efeito Rovo SEM Brain B)
 
@@ -219,4 +219,4 @@ ONDA 1 (custo ~zero — governança)        ONDA 2 (completar UI)            OND
 
 ---
 
-**Última atualização:** 2026-05-29 (**v2** — correção UI Fase 7) — audit-team-os-expert · TaskRegistry MCP vs Jira Team '26/Rovo + Claude Agent Teams · veredito: ~82/100 solo, ~70/100 Team OS (nota ponderada 7.0/10) · decisão Wagner: NÃO ligar Brain B agora · Onda 1.1 (`mcp_automations`) resolve a pergunta-origem · UI Fase 7 já existe em Modules/ProjectMgmt (faltam Triage+Inbox).
+**Última atualização:** 2026-05-29 (**v2** — correção UI Fase 7) — audit-team-os-expert · TaskRegistry MCP vs Jira Team '26/Rovo + Claude Agent Teams · veredito: ~82/100 solo, ~70/100 Team OS (nota ponderada 7.0/10) · decisão Wagner: NÃO ligar Brain B agora · Onda 1.1 (`mcp_automations`) resolve a pergunta-origem · UI Fase 7 já existe em Modules/Forja (faltam Triage+Inbox).

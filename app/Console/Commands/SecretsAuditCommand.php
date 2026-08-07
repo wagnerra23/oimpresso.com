@@ -27,8 +27,12 @@ use Illuminate\Support\Facades\Log;
  *   - minio_credentials— mc admin info OR curl health
  *   - docker_env       — docker inspect container env
  *
- * Flag --auto-pr (cron only): se status mudou, commita atualização +
- * abre PR auto via gh CLI pra Wagner revisar.
+ * Flag --auto-pr (cron only): se status mudou, abre ISSUE de drift via gh CLI
+ * pra [W] agir. O nome da flag é mantido porque é o contrato citado em ADR 0215
+ * (append-only), ADR 0216, `app/Console/Kernel.php` e `governance-drift.yml` —
+ * mas o que ela faz hoje é issue, não PR: abrir PR exigiria o bot ESCREVER em
+ * `memory/_INDEX-SECRETS.md` (canon de segredo), decisão [W] ainda pendente.
+ * Ver `abrirIssueDeDrift()` pro histórico medido de por que o PR nunca saiu.
  *
  * Flag --notify (cron only): publica Centrifugo channel governance:secrets
  * pra Wagner ver no Brief Diário Jana.
@@ -40,7 +44,7 @@ use Illuminate\Support\Facades\Log;
 class SecretsAuditCommand extends Command
 {
     protected $signature = 'secrets:audit
-                            {--auto-pr : commitar + abrir PR se status mudou}
+                            {--auto-pr : abrir issue de drift (nome mantido: é o contrato citado em ADR 0215/0216, Kernel e workflow)}
                             {--notify : publicar Centrifugo governance:secrets}
                             {--filter= : auditar apenas entries com nome contendo string}';
 
@@ -67,6 +71,7 @@ class SecretsAuditCommand extends Command
         $this->info(sprintf('[secrets:audit] %d entries carregadas', count($entries)));
 
         $changes = [];
+        $naoMedidos = [];
         foreach ($entries as $entry) {
             if ($this->option('filter') && ! str_contains(strtolower($entry['name']), strtolower($this->option('filter')))) {
                 continue;
@@ -75,20 +80,33 @@ class SecretsAuditCommand extends Command
             $oldStatus = $entry['status'];
             $newStatus = $this->validateEntry($entry);
 
-            if ($oldStatus !== $newStatus) {
+            if (self::ehDrift($oldStatus, $newStatus)) {
                 $changes[] = [
                     'name' => $entry['name'],
                     'old' => $oldStatus,
                     'new' => $newStatus,
                 ];
                 $this->warn(sprintf('  ⚠️  %s: %s → %s', $entry['name'], $oldStatus, $newStatus));
+            } elseif (trim($newStatus) === self::NAO_MEDIDO) {
+                // Não afirmar ✅ sobre o que não foi medido — o relatório passa a
+                // distinguir "validei e bate" de "não consegui validar".
+                $naoMedidos[] = $entry['name'];
+                $this->line(sprintf('  ⏸  %s: NÃO MEDIDO (índice diz: %s)', $entry['name'], $oldStatus));
             } else {
                 $this->line(sprintf('  ✅ %s: %s', $entry['name'], $newStatus));
             }
         }
 
         if (count($changes) === 0) {
-            $this->info('[secrets:audit] ✅ todos secrets em estado consistente, sem drift');
+            if ($naoMedidos !== []) {
+                $this->info(sprintf(
+                    '[secrets:audit] ✅ nenhum drift de ESTADO nos medidos — ⏸ %d NÃO medido(s): %s. Sobre esse(s) nada se afirma.',
+                    count($naoMedidos),
+                    implode(', ', $naoMedidos)
+                ));
+            } else {
+                $this->info('[secrets:audit] ✅ todos secrets em estado consistente, sem drift');
+            }
             return self::SUCCESS;
         }
 
@@ -106,7 +124,7 @@ class SecretsAuditCommand extends Command
         }
 
         if ($this->option('auto-pr')) {
-            $this->createAutoPullRequest($changes);
+            $this->abrirIssueDeDrift($changes);
         }
 
         return self::FAILURE; // exit code 1 indica drift detectado (CI-friendly)
@@ -149,6 +167,56 @@ class SecretsAuditCommand extends Command
     /**
      * Roteia validação por heurística do nome/tipo da entry.
      */
+    /**
+     * Sentinela devolvido pelos validadores quando NÃO foi possível medir (fonte
+     * ausente, credencial indisponível, tipo sem validador implementado).
+     */
+    public const NAO_MEDIDO = '⏸ pending';
+
+    /**
+     * Extrai o ESTADO do texto de status, descartando anotação humana.
+     *
+     * O índice carrega prosa junto do estado — `✅ active (verificado 2026-06-05 —
+     * conecta + oimpresso-staging vivo)` — e a comparação string-exata contra o
+     * `✅ active` devolvido pelo validador acusava drift onde o estado é o MESMO.
+     */
+    public static function estadoDe(string $status): string
+    {
+        $s = trim($status);
+        foreach (['✅', '🔴', '🟡', '⏸', '🔒'] as $marcador) {
+            if (str_starts_with($s, $marcador)) {
+                return $marcador;
+            }
+        }
+        // Sem marcador: cai no primeiro token, normalizado (entradas legadas).
+        $primeiro = strtok(mb_strtolower($s), " \t\n(—-");
+        return $primeiro === false ? '' : $primeiro;
+    }
+
+    /**
+     * Drift = o ESTADO mudou. Duas coisas que NÃO são drift, e que mantiveram o
+     * `governance-drift.yml` vermelho em 52 runs agendadas seguidas (medido
+     * 2026-08-03; último sucesso 2026-06-11):
+     *
+     *  1. NÃO-MEDIÇÃO. `validateHostingerApi` lê `memory/claude/reference_hostinger_hpanel.md`
+     *     — diretório PURGADO na auditoria de memória de 2026-06-07 — e por isso
+     *     devolve `⏸ pending` todo dia. Comparar "não consegui medir" com o status do
+     *     índice e chamar de mudança é o mesmo fail-open que a ADR 0317 §2 pune no
+     *     `cron-watchdog`: ausência de medição não é estado do segredo.
+     *  2. ANOTAÇÃO HUMANA. `✅ active (verificado …)` × `✅ active` é o mesmo estado.
+     *
+     * O que NÃO muda: dívida real de segredo (Meilisearch comprometida, Vaultwarden
+     * ADMIN_TOKEN a rotacionar) segue registrada no índice e visível no relatório —
+     * ela é STATUS CONHECIDO, não drift. Este alarme é sobre MUDANÇA, e não havia.
+     */
+    public static function ehDrift(string $statusIndice, string $statusValidado): bool
+    {
+        if (trim($statusValidado) === self::NAO_MEDIDO) {
+            return false;
+        }
+        return self::estadoDe($statusIndice) !== self::estadoDe($statusValidado);
+    }
+
     private function validateEntry(array $entry): string
     {
         $name = strtolower($entry['name']);
@@ -236,24 +304,131 @@ class SecretsAuditCommand extends Command
     }
 
     /**
-     * Cria branch + commit + PR auto via gh CLI quando drift detectado.
+     * Identidade da issue de drift: título estável + hash do CONJUNTO de drifts.
+     *
+     * O hash é o que dá idempotência sem estado externo. O cron roda diariamente;
+     * sem ele seriam ~365 issues/ano dizendo a mesma coisa. Com ele:
+     *   · mesmo conjunto de drifts → mesmo título → não duplica;
+     *   · conjunto MUDA (secret novo expira, um é rotacionado) → título novo →
+     *     issue nova, porque é outro estado do mundo e merece outro aviso.
+     *
+     * Ordena antes de hashear: a ordem de leitura do índice não pode mudar a
+     * identidade do conjunto.
+     *
+     * @param array<int,array{name:string,old:string,new:string}> $changes
      */
-    private function createAutoPullRequest(array $changes): void
+    public static function tituloDaIssue(array $changes): string
     {
-        $changeSummary = implode(', ', array_map(fn ($c) => "{$c['name']}: {$c['old']} → {$c['new']}", $changes));
-        $branch = 'chore/secrets-drift-' . now()->format('Y-m-d-His');
+        $assinatura = array_map(fn ($c) => "{$c['name']}|{$c['old']}|{$c['new']}", $changes);
+        sort($assinatura);
 
-        $cmd = [
-            "cd " . base_path(),
-            "git switch -c {$branch}",
-            "git add memory/_INDEX-SECRETS.md",
-            "git commit -m 'chore(secrets): drift detectado " . now()->format('Y-m-d') . " — " . substr($changeSummary, 0, 100) . "'",
-            "git push -u origin {$branch}",
-            "gh pr create --title 'chore(secrets): drift detectado pelo cron audit' --body 'Auto-detectado por secrets:audit cron. Mudanças: " . substr($changeSummary, 0, 500) . ". Wagner revisa + aceita ou rotaciona conforme tipo de drift.'",
-        ];
+        return sprintf(
+            '[secrets:audit] %d drift(s) no índice de segredos (%s)',
+            count($changes),
+            substr(sha1(implode("\n", $assinatura)), 0, 7)
+        );
+    }
 
-        $script = implode(' && ', $cmd);
-        $output = shell_exec($script . ' 2>&1');
-        $this->info('[secrets:audit] 🔀 PR auto criado: ' . substr((string) $output, -200));
+    /**
+     * Corpo da issue. Puro (sem I/O) porque é o que o teste consegue exercer.
+     *
+     * ⛔ Só `name`/`old`/`new` — que são NOMES e ESTADOS ("active", "expired"),
+     * nunca o valor do segredo. O comando não lê valor nenhum; o índice canon
+     * também não os guarda. Se algum dia passar a guardar, este método é o
+     * chokepoint que precisa continuar não os imprimindo.
+     *
+     * @param array<int,array{name:string,old:string,new:string}> $changes
+     */
+    public static function corpoDaIssue(array $changes, string $quando): string
+    {
+        $linhas = array_map(
+            fn ($c) => sprintf('| `%s` | %s | %s |', $c['name'], $c['old'], $c['new']),
+            $changes
+        );
+
+        return implode("\n", [
+            'Detectado por `secrets:audit` (cron diário, ADR 0215 Camada 3) em ' . $quando . '.',
+            '',
+            '| Secret | Índice diz | Validação diz |',
+            '|---|---|---|',
+            ...$linhas,
+            '',
+            '**O que fazer:** rotacionar/regerar o que estiver `expired`/`comprometida` e',
+            'atualizar `memory/_INDEX-SECRETS.md`. Enquanto o índice discordar da validação,',
+            'o job `Secrets audit --auto-pr` segue vermelho — e isso é o alarme funcionando,',
+            'não um cron quebrado.',
+            '',
+            '_Fecha sozinho? Não. Feche a issue depois de rotacionar; se o drift persistir,',
+            'o próximo cron abre outra com o mesmo título (idempotente por conjunto de drifts)._',
+        ]);
+    }
+
+    /**
+     * Abre UMA issue por conjunto de drifts, via gh CLI.
+     *
+     * ⚠️ POR QUE ISSUE E NÃO PR (o histórico importa): esta rota nasceu como
+     * auto-PR na ADR 0215 (2026-05-28) e NUNCA abriu um PR — medido em 2026-08-03
+     * (`git ls-remote --heads origin 'refs/heads/chore/secrets-drift-*'` vazio,
+     * zero commits do bot, nenhum PR em qualquer estado). A causa é estrutural:
+     * `secrets:audit` só LÊ o índice, então `git add` + `git commit` caíam sempre
+     * em `nothing to commit, working tree clean`, o commit saía != 0 e a cadeia
+     * `&&` abortava antes do `gh pr create`.
+     *
+     * Fazer PR exigiria o comando ESCREVER em `memory/_INDEX-SECRETS.md` — bot
+     * commitando em canon de segredo, que segue sendo decisão [W] e continua fora
+     * daqui. A issue entrega o que o PR prometia (aviso visível, com histórico e
+     * dono) sem atravessar essa fronteira.
+     *
+     * Autorizado por [W] em 2026-08-04 ("pode arrumar"); antes disso o defeito
+     * estava diagnosticado e explicitamente não-autorizado (handoff 2026-07-29).
+     *
+     * @param array<int,array{name:string,old:string,new:string}> $changes
+     */
+    private function abrirIssueDeDrift(array $changes): void
+    {
+        $titulo = self::tituloDaIssue($changes);
+
+        // Idempotência: já existe issue aberta pra ESTE conjunto? Então o aviso
+        // já está dado — não duplica.
+        exec(
+            'gh issue list --state open --search ' . escapeshellarg($titulo . ' in:title')
+            . ' --json number --jq ' . escapeshellarg('.[0].number // empty') . ' 2>&1',
+            $saidaBusca,
+            $exitBusca
+        );
+
+        if ($exitBusca === 0 && trim(implode('', $saidaBusca)) !== '') {
+            $this->info(sprintf(
+                '[secrets:audit] issue de drift já aberta (#%s) — não duplicada.',
+                trim(implode('', $saidaBusca))
+            ));
+
+            return;
+        }
+
+        exec(
+            'gh issue create --title ' . escapeshellarg($titulo)
+            . ' --body ' . escapeshellarg(self::corpoDaIssue($changes, now()->format('Y-m-d H:i')))
+            . ' 2>&1',
+            $saidaCriacao,
+            $exitCriacao
+        );
+
+        $cauda = substr(implode("\n", $saidaCriacao), -200);
+
+        if ($exitCriacao === 0) {
+            $this->info('[secrets:audit] 🔔 issue de drift aberta: ' . $cauda);
+
+            return;
+        }
+
+        // Falha aqui NÃO é silenciosa: o relatório diz o exit code e a saída, e o
+        // comando segue retornando FAILURE por causa do drift. Nunca afirmar que
+        // avisou sem ter avisado (LC-10).
+        $this->warn(sprintf(
+            '[secrets:audit] ⚠️ issue NÃO abriu (exit %d) — drift segue só neste relatório. Saída: %s',
+            $exitCriacao,
+            $cauda
+        ));
     }
 }

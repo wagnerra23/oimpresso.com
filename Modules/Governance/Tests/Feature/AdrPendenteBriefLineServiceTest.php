@@ -18,7 +18,7 @@ uses(Tests\TestCase::class);
  * não os checks A/B/C (esses têm selftest hermético próprio no .mjs).
  *
  * @see Modules/Governance/Services/AdrPendenteBriefLineService.php
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 /** Stub do shell-out Node: devolve o JSON dado no stdout (reporter — exit 0 sem --strict). */

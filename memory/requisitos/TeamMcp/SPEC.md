@@ -35,8 +35,8 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 ## User Stories (US-TEAM-NNN)
 
 ### US-TEAM-001 — Actor onboarding (cadastro humano novo no time)
-**Implementado em:** `Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php` · `Modules/TeamMcp/Entities/McpActor.php` · verificado@8af585a (2026-07-02)
-**Testado em:** `Modules/TeamMcp/Tests/Feature/McpActorsSeederTest.php`
+**Implementado em:** `Modules/Forja/Database/Seeders/McpActorsSeeder.php` · `Modules/Forja/Entities/McpActor.php` · verificado@8af585a (2026-07-02)
+**Testado em:** `Modules/Forja/Tests/Feature/McpActorsSeederTest.php`
 **Como** Wagner (L0/superadmin)
 **Quero** cadastrar Felipe/Maiara/Luiz/Eliana em `mcp_actors` com manifest declarado (trust_level + modules_write/read/blocked + skills_required + actions_blocked + audit_required + parent_actor=wagner)
 **Pra** rastrear cada ação no MCP server à pessoa física certa, com cadeia de delegação clara (Constituição Art. 6 Identity Mesh).
@@ -50,7 +50,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `McpActorsSeederTest.php` (7 invariantes), `ActorPermissionMatrixTest.php`
 
 ### US-TEAM-002 — Token MCP issue (gerar token pra dev/IA)
-**Implementado em:** `Modules/TeamMcp/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/TeamMcp/Http/routes.php` · verificado@8af585a (2026-07-02) — rota POST /team-mcp/team/{user}/token → TeamController::gerarToken chama McpToken::gerar inline (McpTokenIssuer::issue é extração Wave 18 NÃO religada à rota; caller de prod só RotateTokenCommand)
+**Implementado em:** `Modules/Forja/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/Forja/Http/routes.php` · verificado@8af585a (2026-07-02) — rota POST /team-mcp/team/{user}/token → TeamController::gerarToken chama McpToken::gerar inline (McpTokenIssuer::issue é extração Wave 18 NÃO religada à rota; caller de prod só RotateTokenCommand)
 **Testado em:** _lacuna — a EMISSÃO pela rota POST não tem teste (2026-07-28). O smoke de rotas só prova o gate de auth, e o teste de rotação exercita a geração por dentro do rotate, nunca o endpoint. Cobertura a criar — ver CU-TEAM-01 do SDD._
 **Como** Wagner
 **Quero** gerar token MCP via `POST /team-mcp/team/{user}/token` que bind a um `user_id` + `actor_id`
@@ -63,8 +63,8 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `SmokeRoutesTest.php` (smoke auth gate)
 
 ### US-TEAM-003 — Token MCP revoke (revogar token comprometido)
-**Implementado em:** `Modules/TeamMcp/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` · verificado@8af585a (2026-07-02) — DELETE /team-mcp/team/token/{token} → revogarToken seta revoked_at inline + soft-delete (McpTokenIssuer::revoke NÃO religado à rota; caller de prod só RotateTokenCommand); token revogado rejeitado por McpToken::encontrarPorRaw (whereNull revoked_at) via McpAuthMiddleware
-**Testado em:** `Modules/TeamMcp/Tests/Feature/TokensListAndRevokeTest.php` · `Modules/TeamMcp/Tests/Feature/MultiTenantTokenIsolationTest.php`
+**Implementado em:** `Modules/Forja/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` · verificado@8af585a (2026-07-02) — DELETE /team-mcp/team/token/{token} → revogarToken seta revoked_at inline + soft-delete (McpTokenIssuer::revoke NÃO religado à rota; caller de prod só RotateTokenCommand); token revogado rejeitado por McpToken::encontrarPorRaw (whereNull revoked_at) via McpAuthMiddleware
+**Testado em:** `Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php` · `Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php`
 **Como** Wagner
 **Quero** revogar token via `DELETE /team-mcp/team/token/{token}`
 **Pra** invalidar imediatamente acesso (dev desligado, IA descontinuada, credencial vazada).
@@ -75,8 +75,8 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `MultiTenantTokenIsolationTest.php` (testa revoked_at NÃO resolve)
 
 ### US-TEAM-004 — Isolamento token A vs token B
-**Implementado em:** `Modules/TeamMcp/Services/ActorResolver.php` · `Modules/TeamMcp/Entities/McpActor.php` · verificado@8af585a (2026-07-02)
-**Testado em:** `Modules/TeamMcp/Tests/Feature/MultiTenantTokenIsolationTest.php`
+**Implementado em:** `Modules/Forja/Services/ActorResolver.php` · `Modules/Forja/Entities/McpActor.php` · verificado@8af585a (2026-07-02)
+**Testado em:** `Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php`
 **Como** sistema MCP
 **Quero** garantir que token gerado pra dev A nunca resolve actor B
 **Pra** vazamento de token NÃO virar elevação de privilégio (Felipe token NÃO pode ler dados Eliana NfeBrasil).
@@ -87,8 +87,8 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `MultiTenantTokenIsolationTest.php` (8 cenários)
 
 ### US-TEAM-005 — Permission per tool/módulo (gates execução)
-**Implementado em:** _parcial_ · `Modules/TeamMcp/Entities/McpActor.php` · `Modules/Governance/Http/Middleware/ActionGate.php` · verificado@8af585a (2026-07-02) — canWriteModule/isActionBlocked existem no entity (cobertos por test); FALTA wiring de runtime: ActionGate (Modules/Governance, ADR 0086) tem alias `actiongate` registrado mas aplicado a ZERO rotas, e nenhum código de produção chama canWriteModule/isActionBlocked (só os Tests) — enforce ainda não liga
-**Testado em:** `Modules/TeamMcp/Tests/Feature/ActorPermissionMatrixTest.php`
+**Implementado em:** _parcial_ · `Modules/Forja/Entities/McpActor.php` · `Modules/Governance/Http/Middleware/ActionGate.php` · verificado@8af585a (2026-07-02) — canWriteModule/isActionBlocked existem no entity (cobertos por test); FALTA wiring de runtime: ActionGate (Modules/Governance, ADR 0086) tem alias `actiongate` registrado mas aplicado a ZERO rotas, e nenhum código de produção chama canWriteModule/isActionBlocked (só os Tests) — enforce ainda não liga
+**Testado em:** `Modules/Forja/Tests/Feature/ActorPermissionMatrixTest.php`
 **Como** Wagner
 **Quero** que cada tool MCP cheque `canWriteModule()` + `isActionBlocked()` antes de executar
 **Pra** Felipe NÃO conseguir invocar tool que escreve em NfeBrasil mesmo com token válido.
@@ -99,8 +99,8 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `ActorPermissionMatrixTest.php` (matriz 5 humanos × módulos críticos)
 
 ### US-TEAM-006 — IA pareada → audit trail no humano parent
-**Implementado em:** `Modules/TeamMcp/Entities/McpActor.php` · `Modules/TeamMcp/Services/ActorResolver.php` · verificado@8af585a (2026-07-02) — effectiveHumanSlug/effectiveHumanUserId no entity; effectiveDisplayName vive no ActorResolver (não no McpActor como o aceite sugere)
-**Testado em:** `Modules/TeamMcp/Tests/Feature/ActorPermissionMatrixTest.php`
+**Implementado em:** `Modules/Forja/Entities/McpActor.php` · `Modules/Forja/Services/ActorResolver.php` · verificado@8af585a (2026-07-02) — effectiveHumanSlug/effectiveHumanUserId no entity; effectiveDisplayName vive no ActorResolver (não no McpActor como o aceite sugere)
+**Testado em:** `Modules/Forja/Tests/Feature/ActorPermissionMatrixTest.php`
 **Como** Wagner
 **Quero** que IA actor (ex: `claude-code-wagner-laptop`) tenha `parent_actor_id` = humano L0/L1
 **Pra** auditoria atribuir ações IA ao humano responsável (Felipe pareou Claude → Felipe responde).

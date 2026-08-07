@@ -1,8 +1,9 @@
 ---
 id: reference-ideia-chat-ia-contextual
 name: Ideia — Chat IA contextual no AppShell
-description: Wagner quer um chat IA flutuante que sabe EXATAMENTE em qual tela o usuário está, que dados estão carregados, que módulo, e responde sobre o contexto. Diferente de /memcofre/chat (generic), este é embedded na UI.
-type: ideia
+description: Wagner quer um chat IA flutuante que sabe EXATAMENTE em qual tela o usuário está, que dados estão carregados, que módulo, e responde sobre o contexto. Diferente do chat genérico que existia em /memcofre/chat (módulo removido em 2026-07-29), este é embedded na UI.
+type: reference
+authority: canonical
 ---
 # Chat IA contextual — feature idealizada por Wagner em 2026-04-24
 
@@ -76,8 +77,10 @@ Sem o usuário precisar repetir o contexto — o chat já sabe.
 
 ## Como isso conecta com o que já existe
 
-- `Modules/SRS/Services/ChatAssistant.php` — já tem o esqueleto offline/AI
-- `Modules/SRS/Entities/DocChatMessage.php` — já persiste chat
+> ⚠️ **Datado — as duas âncoras abaixo já não existem.** `Modules/SRS` foi REMOVIDO em 2026-07-29 ([ADR 0357](../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)); em produção as tabelas `docs_*` tinham **0 linhas** (o módulo nunca foi usado). Esta ideia continua válida como ideia — mas o "já existe" abaixo é de 2026-04, não de hoje.
+
+- ~~`Modules/SRS/Services/ChatAssistant.php`~~ — tinha o esqueleto offline/AI (removido)
+- ~~`Modules/SRS/Entities/DocChatMessage.php`~~ — persistia chat (removido; `docs_chat_messages` = 0 linhas em prod)
 - `docs_pages` — já mapeia `{tela → stories/rules/adrs}` via `@memcofre`
 - `memory/requisitos/_DesignSystem/adr/ui/0005-*` — camada de componentes shared
 - Faltaria: `ContextualChatButton` component + `/ai/chat/contextual` endpoint + tool-use layer

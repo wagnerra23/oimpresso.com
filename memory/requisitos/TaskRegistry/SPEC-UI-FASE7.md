@@ -1,7 +1,7 @@
 ---
 id: requisitos-task-registry-spec-ui-fase7
 module: TaskRegistry
-title: "SPEC — Completar UI do Team OS (Triage + Inbox + polish) sobre Modules/ProjectMgmt"
+title: "SPEC — Completar UI do Team OS (Triage + Inbox + polish) sobre Modules/Forja"
 type: spec
 status: draft
 lifecycle: ativo
@@ -9,13 +9,13 @@ quarter: Q2-2026
 related_adrs: [0070, 0064, "UI-0013"]
 depende_de: AUDIT-TEAM-OS-2026-05-29 (Onda 2)
 project_key: TR
-owner_module: Modules/ProjectMgmt
+owner_module: Modules/Forja
 decided_at: 2026-05-29
 ---
 
 # SPEC — Completar UI do Team OS (Onda 2)
 
-> **Correção v2 importante (2026-05-29):** este SPEC **NÃO é "construir a Fase 7 do zero"**. A verificação encontrou que `Modules/ProjectMgmt` **já tem** Board (Kanban), Backlog, MyWork, Roadmap, Burndown e Activity — **2.822 linhas de Inertia/React com `.charter.md` + `.review.md`** (passaram pelo MWART). O backend ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) Fases 1-6) está 100% pronto. **Falta apenas: Triage dedicado + Inbox dedicado + um polish de usabilidade não-técnica.** Escopo real ≈ **5-7h IA-pair**, não 12-16h.
+> **Correção v2 importante (2026-05-29):** este SPEC **NÃO é "construir a Fase 7 do zero"**. A verificação encontrou que `Modules/Forja` **já tem** Board (Kanban), Backlog, MyWork, Roadmap, Burndown e Activity — **2.822 linhas de Inertia/React com `.charter.md` + `.review.md`** (passaram pelo MWART). O backend ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) Fases 1-6) está 100% pronto. **Falta apenas: Triage dedicado + Inbox dedicado + um polish de usabilidade não-técnica.** Escopo real ≈ **5-7h IA-pair**, não 12-16h.
 
 ## §1. Objetivo & escopo
 
@@ -59,14 +59,14 @@ A UI é casca Inertia sobre o que já existe (ADR 0070 Fases 1-6):
 
 ## §4. Arquitetura Inertia
 
-Tudo dentro de **`Modules/ProjectMgmt`** (dono canônico do board — [ADR 0064](../../decisions/0064-modularizacao-split-teammcp-kb-superadmin.md)), espelhando o padrão dos controllers/pages existentes (`BoardController`, `MyWorkController`).
+Tudo dentro de **`Modules/Forja`** (dono canônico do board — [ADR 0064](../../decisions/0064-modularizacao-split-teammcp-kb-superadmin.md)), espelhando o padrão dos controllers/pages existentes (`BoardController`, `MyWorkController`).
 
 | Camada | Novo | Padrão a seguir |
 |---|---|---|
 | Controller | `TriageController` + `InboxController` | igual `MyWorkController` (Inertia::render + `Inertia::defer` na lista) |
-| Pages | `resources/js/Pages/ProjectMgmt/Triage/Index.tsx` + `Inbox/Index.tsx` (+ `.charter.md` + `.review.md`) | igual `Board/Index.tsx`, `MyWork/Index.tsx` |
+| Pages | `resources/js/Pages/Forja/Triage/Index.tsx` + `Inbox/Index.tsx` (+ `.charter.md` + `.review.md`) | igual `Board/Index.tsx`, `MyWork/Index.tsx` |
 | Shell | `AppShellV2` + `PageHeader` canon (modo NAV com SubNav) | [ADR UI-0013](../_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [PT-01](../_DesignSystem/padroes-tela/PT-01-Lista.md) |
-| Rotas | `/projects/triage`, `/projects/inbox` (ou prefixo já usado pelo módulo) | `Modules/ProjectMgmt/Routes/web.php`, FQCN ([.claude/rules/routes.md](../../../.claude/rules/routes.md)) |
+| Rotas | `/projects/triage`, `/projects/inbox` (ou prefixo já usado pelo módulo) | `Modules/Forja/Routes/web.php`, FQCN ([.claude/rules/routes.md](../../../.claude/rules/routes.md)) |
 | Realtime | canal Centrifugo `inbox.{user_id}` pro badge | [ADR 0058](../../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md) |
 
 **Tokens/CSS:** somente tokens canônicos da Constituição UI v2 (cor/tipo/espaço); zero hex hardcoded. Rodar [PRE-MERGE-UI](../_DesignSystem/PRE-MERGE-UI.md) antes do PR.
@@ -93,7 +93,7 @@ Tudo dentro de **`Modules/ProjectMgmt`** (dono canônico do board — [ADR 0064]
 
 - Auditoria origem: [`AUDIT-TEAM-OS-2026-05-29.md`](AUDIT-TEAM-OS-2026-05-29.md) — Onda 2 (função 9: 7→9).
 - [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) — Fase 7 (UI) + hierarquia + tools.
-- UI existente a reusar: `resources/js/Pages/ProjectMgmt/{Board,Backlog,MyWork,Roadmap,Burndown,Activity}/Index.tsx`.
+- UI existente a reusar: `resources/js/Pages/Forja/{Board,Backlog,MyWork,Roadmap,Burndown,Activity}/Index.tsx`.
 
 ---
 

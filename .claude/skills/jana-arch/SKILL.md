@@ -15,7 +15,7 @@ parent_adr: 0095
 
 | Camada | Componente | Estado |
 |---|---|---|
-| A | `laravel/ai ^0.6.3` + `config/ai.php` (gpt-4o-mini) | ✅ ativo |
+| A | `laravel/ai ^0.10` + `config/ai.php` (gpt-4o-mini) | ✅ ativo |
 | B | `LaravelAiSdkDriver` + 4 Agents (~~Vizra rejeitado ADR 0048~~) | ✅ |
 | C Hot | `SqlDriver` (conversas DB) | ✅ |
 | C Cold | `MeilisearchDriver` hybrid (`semanticRatio: 0.7`) | ✅ MEM-HOT-1 |

@@ -52,19 +52,41 @@ Route::group(
         'namespace'  => 'Modules\Jana\Http\Controllers',
     ],
     function () {
-        // ---- Chat (entry-point, ver adr/arq/0002) --------------------------
-        Route::get('/',                                    'ChatController@index')->name('jana.chat.index');
+        // ---- Painel — a RAIZ do módulo (onda 3 da fusão, US-COPI-148) -------
+        // Era `/ia/dashboard`. Mudou pra cá porque o Painel JÁ ERA o destino
+        // pós-login: `routes/web.php` fazia `/home → redirect('/ia/dashboard')`.
+        // Alinhar a URL com o que já acontecia custa 1 hop a menos por login e
+        // não inverte produto. `/ia/dashboard` vira 301 (bloco 1.b).
+        //
+        // FQCN obrigatório em rota nova (.claude/rules/routes.md): string
+        // 'Controller@method' quebra `route:cache` com ReflectionException.
+        Route::get('/', [\Modules\Jana\Http\Controllers\IndexController::class, 'index'])
+            ->name('jana.index');
 
-        // ---- Cockpit MVP (padrao "Chat Cockpit", ADR 0039 - rota paralela
-        //      pra validacao visual sem substituir a /copiloto atual). ----------
-        Route::get('/cockpit',                             'ChatController@cockpit')->name('jana.cockpit');
+        // ---- Conversa (o chat) ---------------------------------------------
+        // Era a raiz `/ia`. O comentário antigo dizia "entry-point do módulo,
+        // adr/arq/0002" — isso deixou de valer em 2026-05-25, quando [W] promoveu
+        // o Dashboard a destino pós-login; só a URL não tinha acompanhado.
+        // `jana.chat.index` PRESERVADO como nome: é o que DataController:192 usa,
+        // e renomear route name quebra `route()` de terceiros em silêncio.
+        Route::get('/conversa', [\Modules\Jana\Http\Controllers\ChatController::class, 'index'])
+            ->name('jana.chat.index');
 
-        // ---- Painel Analista IA (Jana V2 — cycle CYCLE-06 goal #4) ---------
-        // Canon Cowork: prototipo-ui/cowork-snapshot/chat-jana.jsx (491 ln IIFE).
-        // Render Inertia/React via resources/js/Pages/Jana/Painel.tsx.
-        // Onda A1: esqueleto + mock data · Onda B: queries SQL reais · Onda C: BriefDiarioAgent.
-        Route::get('/painel',                              'PainelController@index')->name('jana.painel');
+        // ---- Cockpit — DESATIVADO na onda 3, arquivo removido na onda 4 ------
+        // O `ChatController@cockpit` renderizava `Jana/Cockpit`, que responde MOCK
+        // em rota live (`startMockStream`, Cockpit.tsx:707/780 — é a US-COPI-123,
+        // p0 aberta). A onda 4 apaga a Page e o método; aqui só paramos de servir
+        // o mock. 301 pro Painel no bloco 1.b — o Painel entrega a mesma
+        // capacidade (brief · KPIs · análises · ações) com dado real.
 
+        // ---- Painel Analista IA — REMOVIDO 2026-08-06 [W] (onda 1 da fusão
+        //      das telas da Jana). Era um hub de 3 links + `buildMockPayload()`;
+        //      a capacidade real (brief · KPIs · análises · ações) já vive em
+        //      /ia/dashboard, alimentada por SellsCockpitAggregator com dado de
+        //      verdade — o Painel era a versão mock dela. Redirect 301 no bloco
+        //      do fim deste arquivo. Medido antes de apagar: 0 hits no ledger
+        //      governance/route-hits.json (janela 30d) e o link `/ia/chat` do
+        //      próprio hub apontava pra rota inexistente.
         Route::post('/conversas',                          'ChatController@criarConversa')->name('jana.conversas.store');
         // Atalho GET — link "Nova conversa" da sidebar (UX Wagner 2026-05-08).
         // Cria conversa e redireciona pro /conversas/{id}. Antes era 404.
@@ -84,8 +106,11 @@ Route::group(
         Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')->name('jana.sugestoes.escolher');
         Route::post('/sugestoes/{id}/rejeitar',            'ChatController@rejeitar')->name('jana.sugestoes.rejeitar');
 
-        // ---- Dashboard -----------------------------------------------------
-        Route::get('/dashboard',                           'DashboardController@index')->name('jana.dashboard.index');
+        // ---- Dashboard — virou a raiz `/ia` na onda 3; 301 no bloco 1.b -----
+        // O route name `jana.dashboard.index` some junto. Consumidor de código
+        // era UM só (`DataController.php:204`, medido) e foi atualizado no mesmo
+        // PR; `governance/route-hits.json` registrava 4 hits (último 2026-07-25),
+        // que o 301 preserva.
 
         // ---- JANA Pro — paywall/upgrade cliente-facing (ADR 0140) ----------
         // Tela de ativação do plano Pro. Qualquer usuário auth do business (o
@@ -128,27 +153,36 @@ Route::group(
         Route::delete('/memoria/{id}',                     [\Modules\KB\Http\Controllers\MemoriaController::class, 'destroy'])->name('jana.memoria.destroy');
 
         // ---- Ghosts canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21) -----
-        // Destinos canon do hub IA: Copiloto / Memórias / KB / Regras.
-        // Regras é stub "Em construção" (tela dedicada vem em onda futura);
+        // Destinos canon do hub IA: Copiloto / Memórias / KB.
         // Memórias e KB redirecionam pras rotas existentes preservando o ghost
         // clicável no header canon.
         // /brief removido 2026-06-15 (Wagner): stub redundante com o brief já
         // entregue via chat + brief-fetch (MCP) + seção "Brief diário" do dashboard.
-        Route::get('/regras',                              'RegrasController@index')->name('jana.regras.index');
+        // /regras removido 2026-08-04 [W]: o stub cobria "policies do PolicyEngine ADS
+        // + governance MCP cross-team" — DOIS domínios que não são da Jana (o núcleo do
+        // ADS foi pra Modules/Forja em jul/2026; o SCOPE da Jana declara só tabelas
+        // jana_*). O controller lia ZERO tabela e só apontava pra /ia/admin/governanca.
+        // Rota + RegrasController + Page + charter + scorecard apagados.
 
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------
         Route::get('/superadmin/metas',                    'SuperadminController@metas')->name('jana.superadmin.metas');
 
-        // ---- Administração — Onda 1 (ROI direto, ver adr/arq/0003) ----------
-        // US-COPI-070: dashboard de custo de IA por business
-        Route::get('/admin/custos',                        'Admin\CustosController@index')
-            ->name('jana.admin.custos.index');
+        // ---- Custos de IA MOVIDO pra Modules/Governance (ADR 0366 §D-B) ------
+        // US-COPI-070 saiu daqui em 2026-08-05: o `Chat.charter.md` já mandava
+        // "custo vai pra /governance — Wagner-only", e a 0366 §D-B ratificou.
+        // Agora é `governance.custos.index` (/governance/custos). Permission
+        // `jana.admin.custos.view` PRESERVADA — rename de permission é ADR +
+        // migration própria, não vem de carona numa mudança de dono.
+        // Redirect 301 da URL antiga no rodapé deste arquivo.
 
         // ---- Administração — Governança MCP (MEM-MCP-1.e, ADR 0053) --------
         // Visão cross-team do consumo do MCP server.
         // Permission: jana.mcp.usage.all (Wagner/superadmin).
-        Route::get('/admin/governanca',                    'Admin\GovernancaController@index')
-            ->name('jana.admin.governanca.index');
+        // FUNDIDA no /governance/dashboard em 2026-08-05 (ADR 0366 §D-C item 1:
+        // "é a mesma tela que governance/Dashboard — sobreposição #4, funde").
+        // Fecha o drift que o próprio Modules/Governance/SCOPE.md declarava desde
+        // 2026-05-17. O GovernancaService FICA no Jana — mudou o dono da tela,
+        // não o do dado. Redirect 301 no rodapé deste arquivo.
 
         // ---- Team admin / Tasks / CC sessions MOVIDOS pra Modules/TeamMcp/ ----
         // URLs antigas redirecionam via Route::redirect 301 (ver fim deste arquivo).
@@ -162,22 +196,29 @@ Route::group(
         // GET ficam no fim deste arquivo (DELETE/POST não redirecionam — clients
         // novos chamam /kb diretamente).
 
-        // ---- MEM-MET-4 (ADR 0050) — Page /copiloto/admin/qualidade
-        Route::get('/admin/qualidade',                     'Admin\QualidadeController@index')
-            ->name('jana.admin.qualidade.index');
+        // ---- Qualidade IA MOVIDA pra Modules/Governance (ADR 0366 §D-B) ------
+        // MEM-MET-4 (ADR 0050) saiu daqui em 2026-08-05. Decisão [W] 2026-08-03
+        // registrada na 0366: eval é **gate de conformidade**, medido contra
+        // piso/baseline igual `module-grades` e `drift` — logo, Governança.
+        // Agora é `governance.qualidade-ia.index` (/governance/qualidade-ia).
+        // Permission `jana.mcp.usage.all` PRESERVADA (rename = ADR próprio).
+        // Redirect 301 da URL antiga no rodapé deste arquivo.
 
         // ---- Onda 5 V1 — Roadmap timeline (SVAR React Gantt MIT) -----------
         // Visualiza mcp_cycles + mcp_tasks como Gantt. Filtros cycle/owner/
         // priority/module via query params. Permission: jana.mcp.tasks.read.
         // Ver memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md §V1.
-        Route::get('/admin/roadmap',                       'Admin\RoadmapController@index')
-            ->name('jana.admin.roadmap.index');
+        // MOVIDO pra Modules/Forja em 2026-08-05 → GET /forja/roadmap-gantt
+        // (forja.roadmap-gantt.index). ADR 0366 §D-B + ADR 0367 D4: é tasks, e
+        // tasks é Forja. Redirect 301 no rodapé deste arquivo.
 
         // US-COPI-111 B2 (Wagner 2026-07-12) — reschedule do prazo via drag-drop no
         // Gantt. PATCH gated por jana.mcp.tasks.write (controller ->only). {taskId} =
         // task_id string (ex US-COPI-110), mapeado no frontend via $payload.
-        Route::patch('/admin/roadmap/tasks/{taskId}/schedule', 'Admin\RoadmapController@updateSchedule')
-            ->name('jana.admin.roadmap.schedule');
+        // MOVIDO junto → PATCH /forja/roadmap-gantt/tasks/{taskId}/schedule.
+        // Este NÃO ganha redirect 301: redirecionar PATCH não é seguro (o
+        // browser pode rebaixar pra GET e o corpo se perde). O frontend novo já
+        // aponta pro endereço novo e não havia consumidor server-to-server.
 
         // ---- JANA Pro Sprint A (US-COPI-201, ADR 0140) — preview brief diário
         // Endpoint admin pra rodar BriefDiarioService manualmente e ver JSON
@@ -223,6 +264,67 @@ Route::middleware(['web'])->group(function () {
 // Mesma decisão arquitetural do PR #1387 que escondeu a entrada Essentials no
 // sidebar quando KB canon está instalado.
 Route::redirect('/ia/memorias', '/ia/memoria', 302);
+
+// Painel Analista IA removido em 2026-08-06 [W] (onda 1 da fusão das telas da
+// Jana) — ver comentário no grupo acima. 301 porque a remoção é permanente e o
+// destino serve a MESMA capacidade com dado real. Sem query string a preservar
+// (o hub não tinha filtro), então `Route::redirect` basta aqui.
+// ⚠️ Este alvo mudou na onda 3: era `/ia/dashboard`, que agora é ele próprio um
+// 301 pra `/ia`. Apontar direto evita a cadeia 301→301 num link já legado.
+Route::redirect('/ia/painel', '/ia', 301);
+
+// ---- Onda 3 da fusão (US-COPI-148, 2026-08-07) --------------------------------
+// O Painel mudou de `/ia/dashboard` pra `/ia`, e o Cockpit deixou de ser servido.
+// 301 (não 302) porque as duas mudanças são permanentes e o destino entrega a
+// MESMA capacidade — o Painel é o dono de brief · KPIs · análises · ações.
+//
+// `Route::redirect` basta aqui: nenhuma das duas telas carrega filtro em query
+// string (diferente do Custos/Qualidade/Gantt no rodapé, que precisaram de
+// closure pra não perder `?preset=` e cia).
+Route::redirect('/ia/dashboard', '/ia', 301);
+Route::redirect('/ia/cockpit',   '/ia', 301);
+
+// Custos + Qualidade IA → Modules/Governance (ADR 0366 §D-B, [W] 2026-08-03;
+// movidas em 2026-08-05). Closure em vez de `Route::redirect` de propósito: as
+// duas telas carregam filtro na query (`?preset=` no Custos, `?dias=` +
+// `?business_id=` na Qualidade) e o `Route::redirect` DESCARTA a query string —
+// bookmark com filtro cairia no default sem avisar ninguém.
+// `getQueryString()` devolve null quando não há query, daí o ternário.
+//
+// Bookmark antigo de /copiloto ou /jana chega aqui pela cadeia genérica do
+// bloco 1.c (/copiloto → /jana → /ia) e então faz o último hop pro destino.
+Route::get('/ia/admin/custos', function () {
+    $qs = request()->getQueryString();
+
+    return redirect()->to('/governance/custos'.($qs ? '?'.$qs : ''), 301);
+});
+
+Route::get('/ia/admin/qualidade', function () {
+    $qs = request()->getQueryString();
+
+    return redirect()->to('/governance/qualidade-ia'.($qs ? '?'.$qs : ''), 301);
+});
+
+// Governança MCP → fundida no painel da Governança (ADR 0366 §D-C item 1).
+// `Route::redirect` simples serve aqui: os filtros da tela antiga (`preset`,
+// `de`, `ate`, `secao`) NÃO sobrevivem à fusão — na tela nova eles têm prefixo
+// (`mcp_preset`/`mcp_de`/`mcp_ate`) pra não colidir com outras seções do painel.
+// Repassar a query crua levaria parâmetro que o destino ignora, o que é pior
+// que perdê-la: dá a impressão de que o filtro foi aplicado.
+Route::redirect('/ia/admin/governanca', '/governance/dashboard', 301);
+// Roadmap Gantt → Modules/Forja (ADR 0366 §D-B + ADR 0367 D4, 2026-08-05).
+// Closure em vez de `Route::redirect` porque a tela carrega 4 filtros na query
+// (`?cycle=`, `?owner=`, `?priority=`, `?module=`) e o `Route::redirect`
+// DESCARTA a query string — link compartilhado com filtro cairia no cycle
+// ativo sem avisar. `getQueryString()` devolve null quando não há query.
+//
+// Só o GET redireciona. O PATCH de reschedule não: redirect de PATCH não é
+// seguro (o browser pode rebaixar pra GET e perder o corpo).
+Route::get('/ia/admin/roadmap', function () {
+    $qs = request()->getQueryString();
+
+    return redirect()->to('/forja/roadmap-gantt'.($qs ? '?'.$qs : ''), 301);
+});
 Route::redirect('/ia/kb',       '/kb',         302);
 
 // ===========================================================================
@@ -257,61 +359,13 @@ Route::redirect('/jana/install',               '/ia/install',           301);
 Route::redirect('/jana/install/uninstall',     '/ia/install/uninstall', 301);
 Route::redirect('/jana/install/update',        '/ia/install/update',    301);
 
-// ===========================================================================
-// 3) MCP server endpoints (ADR 0053) — prefixo /api/mcp
-// ===========================================================================
-// Públicos (sem auth):
-//   POST /api/mcp/sync-memory  — webhook GitHub (auth via X-MCP-Sync-Token)
-//   GET  /api/mcp/health       — status básico do server
-// Autenticados (Bearer mcp_*):
-//   GET  /api/mcp/health/auth  — info do user/token autenticado
-// Controllers migrados pra Modules/TeamMcp em Fase 3.7 (drift resolution).
-// URLs mantêm /api/mcp/* — só o namespace prefix mudou.
-Route::group(
-    [
-        'middleware' => ['api'],
-        'prefix'     => 'api/mcp',
-        'namespace'  => 'Modules\TeamMcp\Http\Controllers\Mcp',
-    ],
-    function () {
-        // Públicos
-        Route::post('/sync-memory', 'SyncMemoryWebhookController@handle')
-            ->name('jana.mcp.sync-memory');
-        Route::get('/health', 'HealthController@publico')
-            ->name('jana.mcp.health');
+// 3) MCP server endpoints /api/mcp/{sync-memory,health,version,cycle-active}
+//    MUDARAM pra Modules/Forja/Http/routes.php em 2026-07-30 (decisão [W]
+//    "MCP vai para Forja"). URLs e names (jana.mcp.*) INALTERADOS.
+//    O POST /api/mcp (JSON-RPC) e o /api/cc/ingest seguem AQUI — saem na F4.
 
-        // Drift sentinel (ADR 0256): token DEDICADO MCP_DRIFT_TOKEN checado no
-        // controller (sem mcp.auth/RBAC/user) — vazar revela só o SHA do commit.
-        Route::get('/version', 'HealthController@versao')
-            ->name('jana.mcp.version');
-
-        // G6 (porta de saída do loop): cycle ATIVO pro cron do shipped-log descobrir
-        // cycle+janela sem depender do shipped-log anterior. Mesmo token do /version.
-        Route::get('/cycle-active', 'HealthController@cicloAtivo')
-            ->name('jana.mcp.cycle-active');
-
-        // Autenticados via McpAuth
-        Route::group(['middleware' => 'mcp.auth'], function () {
-            Route::get('/health/auth', 'HealthController@autenticado')
-                ->name('jana.mcp.health.auth');
-        });
-    }
-);
-
-// MEM-CC-1 (ADR 0053 + SPEC-cc-sessions) — Endpoint ingest pra watcher Node
-//   POST /api/cc/ingest  — Bearer mcp_*  — payload {session, messages}
-// CcIngestController migrado pra Modules/TeamMcp em Fase 3.7 (URL mantida).
-Route::group(
-    [
-        'middleware' => ['api', 'mcp.auth'],
-        'prefix'     => 'api/cc',
-        'namespace'  => 'Modules\TeamMcp\Http\Controllers\Mcp',
-    ],
-    function () {
-        Route::post('/ingest', 'CcIngestController@ingest')
-            ->name('jana.cc.ingest');
-    }
-);
+// MEM-CC-1 — POST /api/cc/ingest MUDOU-SE pra Modules/Forja/Http/routes.php em
+// 2026-07-31 (cluster de ingest). URL e name inalterados.
 
 // MEM-MCP-1.c (ADR 0053) — Servidor MCP protocol (JSON-RPC) via laravel/mcp
 // Auth via mcp.auth middleware (mesmo Bearer mcp_* do health/auth).

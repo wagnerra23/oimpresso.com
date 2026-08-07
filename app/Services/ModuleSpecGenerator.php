@@ -73,20 +73,67 @@ class ModuleSpecGenerator
         return $spec;
     }
 
+    /** Branches históricas consultadas para saber onde um módulo existiu. */
+    public const BRANCHES_DE_INTERESSE = ['main-wip-2026-04-22', 'origin/3.7-com-nfe'];
+
     /**
      * Verifica em quais branches do git o módulo existe.
-     * Branches de interesse: current (working dir), main-wip-2026-04-22, origin/3.7-com-nfe.
+     * Branches de interesse: current (working dir) + self::BRANCHES_DE_INTERESSE.
+     *
+     * Cada branch devolve `true` (existe lá), `false` (não existe lá) ou `null`
+     * (INDETERMINADO — a branch em si sumiu do repo, então não dá pra medir).
+     *
+     * O `null` é o ponto todo deste método: `git ls-tree <branch-inexistente>` falha
+     * e o {@see runGit} manda o stderr pro /dev/null, então a saída vazia era lida
+     * como "o módulo não estava lá" — afirmação FALSA feita a partir de um comando
+     * que nem rodou. Como `main-wip-2026-04-22` não existe mais (confirmado na API
+     * do GitHub em 2026-07-30), regenerar as specs gravaria ❌ em 6 módulos cujo
+     * único registro sobrevivente é justamente esse ✅.
      */
     protected function checkBranchPresence(string $name): array
     {
-        $branches = ['main-wip-2026-04-22', 'origin/3.7-com-nfe'];
         $out = [
             'current' => File::isDirectory(base_path("Modules/{$name}")),
         ];
-        foreach ($branches as $br) {
-            $out[$br] = $this->runGit(['ls-tree', '-d', '--name-only', $br, "Modules/{$name}"]) !== '';
+        foreach (self::BRANCHES_DE_INTERESSE as $br) {
+            $out[$br] = $this->branchExiste($br)
+                ? $this->runGit(['ls-tree', '-d', '--name-only', $br, "Modules/{$name}"]) !== ''
+                : null;
         }
         return $out;
+    }
+
+    /**
+     * A ref existe neste repo? Distingue "módulo ausente da branch" de "branch ausente".
+     */
+    public function branchExiste(string $ref): bool
+    {
+        return $this->runGit(['rev-parse', '--verify', '--quiet', $ref . '^{commit}']) !== '';
+    }
+
+    /**
+     * Rótulo de presença: ✅ medido presente · ❌ medido ausente · n/d indeterminado.
+     */
+    protected function rotuloPresenca(?bool $presente): string
+    {
+        return match ($presente) {
+            true  => '✅',
+            false => '❌',
+            null  => 'n/d',
+        };
+    }
+
+    /**
+     * Branches de interesse que sumiram do repo — logo, não são mais verificáveis.
+     *
+     * @return list<string>
+     */
+    public function branchesAusentes(): array
+    {
+        return array_values(array_filter(
+            self::BRANCHES_DE_INTERESSE,
+            fn (string $br): bool => ! $this->branchExiste($br)
+        ));
     }
 
     /**
@@ -98,19 +145,20 @@ class ModuleSpecGenerator
         $result = [];
         $path = "Modules/{$name}";
 
-        // vs 3.7 (origem)
-        $diff37 = $this->runGit(['diff', '--stat', 'origin/3.7-com-nfe...HEAD', '--', $path]);
-        $result['vs_3.7'] = [
-            'summary' => $this->parseDiffStat($diff37),
-            'files'   => $this->listChangedFiles('origin/3.7-com-nfe', 'HEAD', $path),
-        ];
+        // Branch ausente => diff impossível. Sem esta guarda o `git diff` falha, o stderr
+        // vai pro /dev/null e o parse do stat vazio devolve "0 arquivos alterados" — que
+        // se lê como "nada mudou" quando o certo é "não deu pra comparar".
+        foreach ([['vs_3.7', 'origin/3.7-com-nfe'], ['vs_main_wip', 'main-wip-2026-04-22']] as [$chave, $br]) {
+            if (! $this->branchExiste($br)) {
+                $result[$chave] = ['summary' => null, 'files' => [], 'branch_ausente' => true];
+                continue;
+            }
 
-        // vs main-wip (backup customizações Wagner)
-        $diffWip = $this->runGit(['diff', '--stat', 'main-wip-2026-04-22...HEAD', '--', $path]);
-        $result['vs_main_wip'] = [
-            'summary' => $this->parseDiffStat($diffWip),
-            'files'   => $this->listChangedFiles('main-wip-2026-04-22', 'HEAD', $path),
-        ];
+            $result[$chave] = [
+                'summary' => $this->parseDiffStat($this->runGit(['diff', '--stat', "{$br}...HEAD", '--', $path])),
+                'files'   => $this->listChangedFiles($br, 'HEAD', $path),
+            ];
+        }
 
         return $result;
     }
@@ -418,9 +466,14 @@ class ModuleSpecGenerator
         if (!empty($pres)) {
             $md .= "## Presença em branches\n\n";
             $md .= "| Branch | Presente |\n|---|:-:|\n";
-            $md .= "| atual (main) | " . ($pres['current'] ?? false ? '✅' : '❌') . " |\n";
-            $md .= "| `main-wip-2026-04-22` (backup Wagner) | " . ($pres['main-wip-2026-04-22'] ?? false ? '✅' : '❌') . " |\n";
-            $md .= "| `origin/3.7-com-nfe` (versão antiga) | " . ($pres['origin/3.7-com-nfe'] ?? false ? '✅' : '❌') . " |\n\n";
+            $md .= "| atual (main) | " . $this->rotuloPresenca($pres['current'] ?? false) . " |\n";
+            $md .= "| `main-wip-2026-04-22` (backup Wagner) | " . $this->rotuloPresenca($pres['main-wip-2026-04-22'] ?? null) . " |\n";
+            $md .= "| `origin/3.7-com-nfe` (versão antiga) | " . $this->rotuloPresenca($pres['origin/3.7-com-nfe'] ?? null) . " |\n\n";
+
+            if (in_array(null, $pres, true)) {
+                $md .= "> `n/d` = a **branch** não existe mais neste repo, então a presença do módulo nela\n";
+                $md .= "> não é verificável. Não confunda com ❌ (\"medido, não estava lá\").\n\n";
+            }
         }
 
         // Git changes (diffs)

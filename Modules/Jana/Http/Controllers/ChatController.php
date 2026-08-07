@@ -190,11 +190,17 @@ class ChatController extends Controller
             ->orderByDesc('iniciada_em')
             ->get(['id', 'titulo', 'status', 'iniciada_em']);
 
+        // `status` alimenta o filtro Todas|Arquivadas do ConvSidePanel (Chat.tsx).
+        // A coluna já existia e já vinha no get() acima — só não trafegava pro
+        // frontend, o que deixava a barra de filtro decorativa. Vocabulário:
+        // 'ativa' (default de criarConversa) | 'arquivada' (via PATCH
+        // jana.conversas.update, que já aceita o campo).
         $recentes = collect($conversasReais)->map(fn ($c) => [
             'id'     => (string) $c->id,
             'titulo' => $c->titulo,
             'unread' => 0,
             'origem' => 'COPI',
+            'status' => $c->status,
             'ativa'  => $conversaFoco && (int) $c->id === (int) $conversaFoco->id,
         ])->values()->all();
 
@@ -626,210 +632,22 @@ class ChatController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    /**
-     * MVP do padrão "Chat Cockpit" (ADR 0039) — rota paralela ao /copiloto.
-     *
-     * Não substitui o ChatController@index. Coexiste em /copiloto/cockpit pra
-     * Wagner comparar a UX nova com a atual, lado-a-lado, sem risco. Mock data
-     * por enquanto — o backend real só será plugado depois da validação visual.
-     */
-    public function cockpit(Request $request)
-    {
-        $businessId = $request->session()->get('user.business_id');
-        $user       = auth()->user();
-        $isSuper    = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
-
-        // Lista de businesses disponíveis pro CompanyPicker:
-        // - Superadmin/admin oimpresso: TODAS as businesses ativas
-        // - Outros: apenas a business atual do user
-        // Tier 0 ADR 0093: filtro explícito por business_id pra não-super
-        $businessesDisponiveis = $isSuper
-            ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
-            : \App\Business::where('id', $businessId)->get(['id', 'name']);
-
-        $businesses = $businessesDisponiveis->map(fn ($b) => [
-            'id'       => $b->id,
-            'nome'     => $b->name,
-            'iniciais' => $this->iniciais($b->name),
-            'ativa'    => $b->id === (int) $businessId,
-        ])->values();
-
-        $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
-
-        // Payload `jana` = mock estruturado seguindo charter Cockpit.charter.md
-        // Visual source: prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx
-        // F2 (próxima): plugar JanaCockpitDataService (brief diário real
-        // + KPIs via Service consultando Sells/Receivables/Frota com business_id scope).
-        // PII redaction client-side é UX warning · server-side PiiRedactor faz redação real no audit log.
-        $jana = $this->mockJanaPayload();
-
-        return Inertia::render('Jana/Cockpit', [
-            'businessNome'      => session('business.name', 'Oimpresso Matriz'),
-            'businesses'        => $businesses,
-            'usuarioNome'       => $userNome,
-            'usuarioNomeCurto'  => $user->first_name ?? 'Usuário',
-            'usuarioEmail'      => $user->email ?? '',
-            'usuarioCargo'      => $isSuper ? 'Administrador' : 'Usuário',
-            'usuarioIniciais'   => $this->iniciais($userNome),
-            'jana'              => $jana,
-        ]);
-    }
-
-    /**
-     * Mock payload do Cockpit Analista IA — espelha o protótipo Cowork
-     * `chat-jana.jsx` (export 2026-05-15). Estrutura Martinho Caçambas
-     * (biz=164 legacy migrado · cliente OfficeImpresso).
-     *
-     * F2 substitui por `JanaCockpitDataService::buildPayload($businessId)`
-     * que consulta Sells/Receivables/Frota com business_id scope.
-     */
-    protected function mockJanaPayload(): array
-    {
-        return [
-            'person'    => ['name' => 'Jana', 'role' => 'Analista IA'],
-            'biz'       => ['code' => 'biz=164', 'version' => 'v1404 legacy migrado'],
-            'updatedAt' => now()->format('H:i'),
-            'today'     => now()->locale('pt_BR')->isoFormat('D [de] MMMM [de] YYYY'),
-            'brief'     => [
-                'greeting'   => $this->saudacaoPorHora() . ', ' . (auth()->user()->first_name ?? 'Wagner') . '.',
-                'paragraphs' => [
-                    ['kind' => 'text', 'body' => [
-                        ['normal', 'Maio até hoje somou '],
-                        ['strong', 'R$ [redacted Tier 0]'],
-                        ['normal', ' (vs R$ [redacted Tier 0]k em maio/25 — '],
-                        ['danger', '-68%'],
-                        ['normal', ' · investigar sazonalidade ou causa estrutural).'],
-                    ]],
-                    ['kind' => 'text', 'body' => [
-                        ['danger', 'R$ [redacted Tier 0]'],
-                        ['normal', ' em 4.255 títulos vencidos (excluído lixo de saldos virtuais e parcelas agrupadas). '],
-                        ['strong', 'Top 20 clientes concentram R$ [redacted Tier 0]k (~47%)'],
-                        ['normal', ' da inadimplência.'],
-                    ]],
-                    ['kind' => 'action', 'icon' => '🎯', 'body' => [
-                        ['strong', 'Ação sugerida HOJE: '],
-                        ['normal', '8 clientes "ouro" (LTV >R$ [redacted Tier 0]k) estão >90d sem comprar — score reativação alto. Posso disparar régua WhatsApp HITL?'],
-                    ]],
-                    ['kind' => 'anomaly', 'body' => [
-                        ['normal', 'Anomalia detectada: ticket médio caiu de R$ [redacted Tier 0] para R$ [redacted Tier 0] (-22%) — 4 meses consecutivos. Margem mantida (preço por m³ estável) → indica mix de produto mudando (mais caçambas pequenas/curtas).'],
-                    ]],
-                ],
-                'chips' => [
-                    ['tone' => 'primary', 'icon' => '📨', 'label' => 'Disparar régua 8 clientes'],
-                    ['tone' => 'ghost',   'icon' => '📋', 'label' => 'Ver top 20 devedores'],
-                    ['tone' => 'ghost',   'icon' => '🔍', 'label' => 'Investigar queda ticket médio'],
-                    ['tone' => 'ghost',   'icon' => '💡', 'label' => 'Por que -68% MoM?'],
-                ],
-            ],
-            'kpis' => [
-                ['label' => 'Receita mês',       'value' => 'R$ [redacted Tier 0]k',   'delta' => '↓ -68% vs mai/25', 'deltaCls' => 'down', 'icon' => '💰'],
-                ['label' => 'A receber vencido', 'value' => 'R$ [redacted Tier 0]M',  'deltaCls' => 'red big', 'icon' => '🚨', 'sub' => '4.255 títulos · 76% inadimplência', 'emphasize' => true],
-                ['label' => 'Ticket médio',      'value' => 'R$ [redacted Tier 0]', 'delta' => '↓ -22% 4m', 'deltaCls' => 'down', 'icon' => '📈'],
-                ['label' => 'Frota utilização',  'value' => '33%',      'deltaCls' => 'info', 'icon' => '🚚', 'sub' => '30/91 · 8 paradas >7d'],
-            ],
-            'analises' => [
-                ['id' => 'inad', 'title' => 'Inadimplência', 'sub' => 'Top 20 devedores', 'pill' => ['tone' => 'crit', 'label' => 'CRÍTICO'], 'icon' => '🚨', 'kind' => 'buckets',
-                 'big' => ['value' => 'R$ [redacted Tier 0]', 'color' => 'danger'],
-                 'buckets' => [
-                     ['label' => '0–30d',   'bar' => 18, 'val' => 'R$ [redacted Tier 0]M', 'color' => '#d4910f'],
-                     ['label' => '30–90d',  'bar' => 14, 'val' => 'R$ [redacted Tier 0]k', 'color' => '#e0791a'],
-                     ['label' => '90–365d', 'bar' => 31, 'val' => 'R$ [redacted Tier 0]M', 'color' => '#d65a3a'],
-                     ['label' => '>365d',   'bar' => 13, 'val' => 'R$ [redacted Tier 0]k', 'color' => '#2a2a2a'],
-                 ],
-                 'footer' => 'Top 1: VARGAS LEANDRO R$ [redacted Tier 0]k (246 parcelas)'],
-                ['id' => 'fat', 'title' => 'Faturamento', 'sub' => 'Curva 24 meses', 'pill' => ['tone' => 'warn', 'label' => 'QUEDA'], 'icon' => '📈', 'kind' => 'sparkline',
-                 'big' => ['value' => 'R$ [redacted Tier 0]M', 'color' => 'ok'],
-                 'spark' => [1.0, 0.95, 1.05, 1.10, 1.15, 1.18, 1.16, 1.12, 1.08, 1.05, 1.10, 1.15, 1.18, 1.19, 1.14, 1.08, 1.02, 0.95, 0.92, 0.87, 0.82, 0.74, 0.62, 0.55],
-                 'sparkRange' => ['mai/24', 'mai/26'],
-                 'footer' => 'Melhor mês: nov/24 R$ [redacted Tier 0]M · Pico sazonal: out-fev'],
-                ['id' => 'conc', 'title' => 'Concentração', 'sub' => 'Top clientes Pareto', 'pill' => ['tone' => 'ok', 'label' => 'OK'], 'icon' => '🎯', 'kind' => 'bars',
-                 'big' => ['value' => '8.856 clientes'],
-                 'bars' => [
-                     ['label' => 'Top 10',  'bar' => 24, 'pct' => '24%'],
-                     ['label' => 'Top 50',  'bar' => 55, 'pct' => '55%'],
-                     ['label' => 'Top 100', 'bar' => 73, 'pct' => '73%'],
-                 ],
-                 'footer' => '4.500 one-shot (~51%) · saudável mecânica pesada caminhão basculante (Martinho · sub-vertical 4 ADR 0194)'],
-                ['id' => 'churn', 'title' => 'Churn ouro', 'sub' => 'LTV alto inativos', 'pill' => ['tone' => 'react', 'label' => 'REATIVAR'], 'icon' => '⏰', 'kind' => 'list',
-                 'big' => ['value' => '8 clientes'],
-                 'list' => [
-                     ['left' => 'CONSTRUFERRO IND.', 'right' => 'LTV R$ [redacted Tier 0]k · 124d'],
-                     ['left' => 'EXTREMA SOLDAS',    'right' => 'LTV R$ [redacted Tier 0]k · 98d'],
-                     ['left' => 'CAPITAL CARGAS',    'right' => 'LTV R$ [redacted Tier 0]k · 112d'],
-                 ],
-                 'footer' => 'Cohort 2024: retenção 35% (target 60%) · drift alto'],
-                ['id' => 'frota', 'title' => 'Frota', 'sub' => '91 caminhões basculantes (sub-vertical 4 ADR 0194)', 'pill' => ['tone' => 'warn', 'label' => 'PARADAS'], 'icon' => '🚛', 'kind' => 'donut',
-                 'donut' => ['pct' => 33, 'segs' => [
-                     ['color' => '#2563eb', 'pct' => 33],
-                     ['color' => '#22c55e', 'pct' => 58],
-                     ['color' => '#e0791a', 'pct' => 9],
-                 ]],
-                 'legend' => [
-                     ['color' => '#2563eb', 'label' => 'Locadas',     'val' => '30'],
-                     ['color' => '#22c55e', 'label' => 'Disponíveis', 'val' => '61'],
-                     ['color' => '#e0791a', 'label' => 'Paradas >7d', 'val' => '8', 'danger' => true],
-                 ],
-                 'footer' => '3 overdue HOJE · target util 70%'],
-                ['id' => 'cheq', 'title' => 'Cheques previsão', 'sub' => 'Na mão / a depositar', 'icon' => '🧾', 'kind' => 'text',
-                 'big' => ['value' => '4.421 cheques'],
-                 'text' => [
-                     'Total circulou histórico: R$ [redacted Tier 0]',
-                     'Quitados: 4.420 (99,9%)',
-                     'Ativos hoje: 1 (R$ [redacted Tier 0] — teste)',
-                 ],
-                 'footnote' => 'Atalho HITL: Jana lembra Larissa qual dia depositar cada cheque'],
-            ],
-            'acoes' => [
-                ['id' => 'a1', 'icon' => '📨', 'tone' => 'rose',   'title' => 'Régua WhatsApp · 8 clientes >90d sem contato',  'sub' => 'Potencial recuperação: R$ [redacted Tier 0]k · HITL aprovação cada msg', 'cta' => ['label' => 'Disparar', 'tone' => 'danger']],
-                ['id' => 'a2', 'icon' => '❤️', 'tone' => 'violet', 'title' => 'Reativação · 8 clientes "ouro" inativos',         'sub' => 'LTV combinado R$ [redacted Tier 0]k · oferta retorno personalizada',     'cta' => ['label' => 'Preparar', 'tone' => 'violet']],
-                ['id' => 'a3', 'icon' => '🚛', 'tone' => 'peach',  'title' => 'Outbound · 8 caçambas paradas há >7d',           'sub' => 'Top 3 últimos clientes mesma região · ligar HOJE',          'cta' => ['label' => 'Listar', 'tone' => 'orange']],
-                ['id' => 'a4', 'icon' => '🗑️', 'tone' => 'grey',   'title' => 'Cleanup · 2.470 títulos write-off candidatos',   'sub' => 'R$ [redacted Tier 0]k incobráveis >365d · liberar dashboard',             'cta' => ['label' => 'Revisar', 'tone' => 'dark']],
-            ],
-            'chat' => [
-                'messages' => [
-                    ['from' => 'user', 'kind' => 'text', 'text' => 'Quais os top 5 devedores agora?'],
-                    ['from' => 'jana', 'kind' => 'tool_use', 'tool' => 'financeiro.devedores.top', 'status' => 'done'],
-                    ['from' => 'jana', 'kind' => 'data_table',
-                     'caption' => '5 devedores ativos (sem agrupados duplicados)',
-                     'columns' => ['Cliente', 'Saldo', 'Parcelas'],
-                     'rows' => [
-                         ['VARGAS LEANDRO COM. VAREJISTA', 'R$ [redacted Tier 0]', '229'],
-                         ['TORK COMERCIO DE PECAS AUTO',   'R$ [redacted Tier 0]', '167'],
-                         ['AMS SOLDAS E MAQUINAS',         'R$ [redacted Tier 0]', '71'],
-                         ['BUSSOLO E PRUDENCIO',           'R$ [redacted Tier 0]', '43'],
-                         ['FAN COM. DE PECAS E IMPLEMENTOS', 'R$ [redacted Tier 0]', '166'],
-                     ]],
-                    ['from' => 'jana', 'kind' => 'markdown',
-                     'text' => "Top 5 concentra **R$ [redacted Tier 0]k** (~20% inadimplência). VARGAS sozinho concentra **8,5%** [1] — risco alto, mas é cliente recorrente (229 parcelas) [2] então tem relacionamento.",
-                     'sources' => [
-                         ['n' => 1, 'label' => 'Inadimplência por cliente', 'href' => '/financeiro/inadimplencia?cliente=vargas'],
-                         ['n' => 2, 'label' => 'Histórico VARGAS',          'href' => '/clientes/vargas'],
-                     ]],
-                    ['from' => 'jana', 'kind' => 'action_card',
-                     'summary' => 'Disparar régua WhatsApp pra VARGAS LEANDRO (último contato 47d)',
-                     'confirm_required' => true],
-                ],
-                'suggestions' => [
-                    ['icon' => '🤔', 'label' => 'Quem deve mais?'],
-                    ['icon' => '💸', 'label' => 'Vendi ontem?'],
-                    ['icon' => '🧭', 'label' => 'Onde estou perdendo?'],
-                    ['icon' => '🎯', 'label' => 'Quais ações HOJE?'],
-                    ['icon' => '🚛', 'label' => 'Caçambas paradas'],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Saudação por hora do dia (BRT — sem TZ awareness por enquanto).
-     */
-    protected function saudacaoPorHora(): string
-    {
-        $h = (int) now()->format('H');
-        if ($h < 12) return 'Bom dia';
-        if ($h < 18) return 'Boa tarde';
-        return 'Boa noite';
-    }
+    // ── Cockpit REMOVIDO na onda 4 da fusão (US-COPI-148, 2026-08-07) ───────
+    //
+    // Saíram daqui juntos, por dependência mútua medida:
+    //   cockpit()          renderizava `Jana/Cockpit`, a Page apagada nesta onda
+    //   mockJanaPayload()  só era chamado por cockpit() — payload MOCK (Martinho
+    //                      biz=164) sendo servido numa rota LIVE
+    //   saudacaoPorHora()  só era chamado por mockJanaPayload()
+    //
+    // Isto FECHA a US-COPI-123 (p0). Ela pedia tirar o mock da rota live, e as
+    // DUAS metades do mock eram este par: o `startMockStream` do Cockpit.tsx e o
+    // `mockJanaPayload()` daqui. Não houve conserto — a capacidade tem receptor
+    // vivo em `/ia` (IndexController), que entrega brief · KPIs · análises · ações
+    // com dado REAL do SellsCockpitAggregator.
+    //
+    // `iniciais()` FICOU: index() e show() usam (linhas 148 · 174 · 225 · 262).
+    // `/ia/cockpit` segue como 301 → /ia (routes.php, onda 3).
 
     /**
      * Iniciais (até 2 letras) pra usar em avatars: "Wagner Rocha" -> "WR".

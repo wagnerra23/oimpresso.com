@@ -254,7 +254,11 @@ class ModuleRequirementsGenerator
 
         $md .= "## Referências\n\n";
         $md .= "- Spec técnica (se existir): `memory/modulos/{$name}.md`\n";
-        $md .= "- Recomendações: `memory/modulos/RECOMENDACOES.md`\n\n";
+        // Datado de propósito: o RECOMENDACOES é um instantâneo de 2026-04-22, e vários
+        // vereditos dele a história reverteu (mandava descartar a Jana). Citá-lo sem a
+        // data o apresentava como recomendação vigente em todo doc novo que este gerador
+        // escreve — era o vetor que espalhava o julgamento morto.
+        $md .= "- Recomendações de 2026-04-22 (instantâneo histórico, **não vigente**): `memory/modulos/RECOMENDACOES.md`\n\n";
 
         $md .= "---\n";
         $md .= "_Gerado por `module:requirements` em " . now()->format('Y-m-d H:i') . "_\n";

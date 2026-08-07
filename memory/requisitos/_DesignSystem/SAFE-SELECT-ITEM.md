@@ -64,8 +64,8 @@ origem, não só abafe.
 - `Pages/kb/Index.tsx` — `Object.keys(kpis.tipos)`, `Object.keys(kpis.modulos)`
 - `Pages/team-mcp/Tasks/Index.tsx` — `modulos`, `owners`, `sprints`
 - `Pages/team-mcp/CcSessions/Index.tsx` — `projList`
-- `Pages/ProjectMgmt/Backlog/Index.tsx` — `owners` (×2), `sprints`
-- `Pages/ProjectMgmt/Activity/Index.tsx` — `event_types`, `authors`
+- `Pages/Forja/Backlog/Index.tsx` — `owners` (×2), `sprints`
+- `Pages/Forja/Activity/Index.tsx` — `event_types`, `authors`
 
 **Corrigido via sentinela** (item "Todos" literal `value=""` — crash latente vivo):
 
@@ -85,7 +85,7 @@ pra priorizar:
   é `''`) e maps sobre **arrays constantes** (`CARD_TYPES`, `CARD_MONTHS`, `UFS`,
   `[20,50,100…]`, `Object.values(DRIVERS)`, listas `{value,label}` de enum fixo).
 - **Candidatos a adotar `<SafeSelectItem>` (rever):** onde o `value` é uma **string
-  distinct/texto-livre** — ex. `ProjectMgmt/Triage` e `ProjectMgmt/Board` (`owners`),
+  distinct/texto-livre** — ex. `Forja/Triage` e `Forja/Board` (`owners`),
   e qualquer `value={k}`/`value={u}` cujo `k`/`u` venha de `Object.keys`/distinct de
   dado (checar por arquivo antes de assumir; muitos `k` são enum constante).
 

@@ -96,13 +96,21 @@ jobs:
       # requisitos com cadeia COMPLETA da origem à evidência. O casos-gate vê UC↔teste e o
       # anchor-lint vê US↔código; NINGUÉM percorria a cadeia inteira nem dizia ONDE quebra.
       # O gerado é a FILA DE CRESCIMENTO: cada elo faltante é o próximo requisito a escrever.
-      # Advisory + forward-only: por ora só o Produto (piloto); outros módulos entram quando
-      # ganharem o arquivo (gerar 59 de uma vez seria big-bang de legado · §5 2026-07-12).
+      # Advisory + forward-only: só os módulos que JÁ têm _STATUS-GENERATED.md (não gera 59 de
+      # uma vez — big-bang de legado · §5 2026-07-12). Estendido do só-Produto pra TODOS os que
+      # têm o arquivo — mapa falha→defesa 2026-08-01: 4 (Sells/KB/Financeiro/Fiscal) drifavam em
+      # silêncio porque o --check só olhava Produto. Estende o dono, não abre paralelo (§5 07-09).
       - name: self-test requisitos-status (extratores + classificador)
         run: node scripts/governance/requisitos-status.mjs --selftest
-      - name: Cadeia de requisitos em dia (Produto · gerado × commitado)
+      - name: Cadeia de requisitos em dia (módulos com _STATUS-GENERATED · gerado × commitado)
         continue-on-error: true
-        run: node scripts/governance/requisitos-status.mjs Produto --check
+        run: |
+          fail=0
+          for f in memory/requisitos/*/_STATUS-GENERATED.md; do
+            mod=$(basename "$(dirname "$f")")
+            node scripts/governance/requisitos-status.mjs "$mod" --check || fail=1
+          done
+          exit $fail
       # ENFORCE (GT-G5 · ledger §D — promovido 2026-07-04, avaliação adversarial SDD
       # 2026-07-03 risco sistêmico nº2): refutação adversarial de lote-IA de BRIEFINGs/SPECs
       # (PROTOCOLO-REFUTADOR-BACKFILL). Só dispara em PR com >10 arquivos em memory/requisitos/

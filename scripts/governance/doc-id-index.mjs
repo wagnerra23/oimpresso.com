@@ -26,13 +26,27 @@
  *   node scripts/governance/doc-id-index.mjs            (dry-run: resumo + colisões)
  *   node scripts/governance/doc-id-index.mjs --json     (imprime o índice completo em JSON)
  *   node scripts/governance/doc-id-index.mjs --write    (grava governance/doc-id-index.json)
- *   node scripts/governance/doc-id-index.mjs --check     (CI: exit 1 se o gerado ≠ commitado, OU se houver colisão)
+ *   node scripts/governance/doc-id-index.mjs --check     (exit 1 se o gerado ≠ commitado, OU se houver colisão)
+ *   node scripts/governance/doc-id-index.mjs --check-collisions  (CI: SÓ colisão de id — ver nota)
  *   node scripts/governance/doc-id-index.mjs --selftest  (fixture hermético)
+ *
+ * NOTA — por que o CI roda `--check-collisions` e NÃO o `--check` (medido 2026-07-30):
+ * o `--check` junta DUAS asserções de natureza diferente. (1) COLISÃO é semântica e estável:
+ * só fica vermelha quando dois docs reivindicam a mesma identidade — defeito real, FP 0 por
+ * construção. (2) FRESCOR (`gerado ≠ commitado`) corre com o main: o CI avalia o *merge commit*,
+ * e 203 dos 319 commits dos últimos 7 dias (64% · ~29/dia) tocam `memory/**.md`, então o índice
+ * drifa várias vezes por dia e QUALQUER PR aberto por algumas horas fica vermelho sem culpa do
+ * autor. Gate cronicamente vermelho é ruído que se aprende a ignorar — o espelho do gate-de-teatro
+ * (§5 proibicoes.md 2026-07-28) — e afogaria justamente o sinal de colisão. Pior: exigir a
+ * regeneração em todo PR põe TODOS os PRs a conflitar neste JSON global (já observado entre os
+ * PRs #5086 e #5087 no mesmo dia). Por isso: colisão MORDE no CI; frescor é ato de consolidação
+ * (`--write`), como as sessions de 2026-07-28 já haviam concluído.
  *   ... [--root <dir>] pra corpus alternativo (testes)
  *
  * Refs: ADR 0256 (survival, fonte única gerada) · design proposal 2026-07-23 · deadlink-gate.mjs (irmão detector).
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, resolve, relative, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -153,6 +167,22 @@ function runSelftest() {
     check('MORDE: id repetido vira colisão', idx2.collisions.some((c) => c.id === 'repetido' && c.paths.length === 2), idx2.collisions);
     // Determinismo: mesmo corpus → mesma serialização.
     check('determinístico (mesmo input → mesmo output)', serialize(buildIndex(fixture)) === serialize(buildIndex(fixture)));
+
+    // Bite-test do MODO --check-collisions: prova o EXIT CODE, não só a lógica interna.
+    // (É o modo que roda no CI; "a lógica detecta" não prova que o step morde.)
+    const self = fileURLToPath(import.meta.url);
+    const exitOf = (root) => {
+      try { execFileSync(process.execPath, [self, '--check-collisions', '--root', root], { stdio: 'pipe' }); return 0; }
+      catch (error) { return error.status ?? -1; }
+    };
+    const comColisao = exitOf(fixture);                       // dup-a + dup-b ainda no fixture
+    rmSync(join(fixture, 'memory/reference/dup-b.md'));       // desfaz a colisão
+    const semColisao = exitOf(fixture);
+    check('MORDE (CLI): --check-collisions sai != 0 com colisão', comColisao !== 0, { exit: comColisao });
+    check('SOLTA (CLI): --check-collisions sai 0 sem colisão', semColisao === 0, { exit: semColisao });
+    // Controle negativo: o modo NÃO pode reprovar por drift do índice (é a razão de ele existir).
+    writeFileSync(join(fixture, 'memory/reference/doc-novo-sem-indice.md'), '---\nid: doc-novo\n---\n');
+    check('NÃO morde por drift do índice (só colisão importa aqui)', exitOf(fixture) === 0, { exit: exitOf(fixture) });
   } finally {
     if (fixture.startsWith(tmpdir())) rmSync(fixture, { recursive: true, force: true });
   }
@@ -175,6 +205,18 @@ function main() {
   if (args.includes('--write')) {
     writeFileSync(join(root, OUT), serialize(index), 'utf8');
     console.log(`escrito ${OUT} — ${index.stats.resolved} ids, ${index.stats.unstamped} sem id, ${index.stats.collisions} colisão(ões)`);
+    return;
+  }
+
+  // SÓ a asserção semântica (id duplicado). Não compara o arquivo commitado — ver NOTA no topo.
+  if (args.includes('--check-collisions')) {
+    if (index.collisions.length) {
+      console.error(`FALHA: ${index.collisions.length} colisão(ões) de id (dois docs reivindicam a mesma identidade):`);
+      for (const c of index.collisions) console.error(`  ${c.id}: ${c.paths.join(' , ')}`);
+      console.error('Cura: renomeie o doc de MENOS backlinks (meça antes) ou carimbe `id:` no frontmatter.');
+      process.exit(1);
+    }
+    console.log(`OK: 0 colisão de id em ${index.stats.resolved} ids. (frescor do índice NÃO é checado aqui — use --check)`);
     return;
   }
 

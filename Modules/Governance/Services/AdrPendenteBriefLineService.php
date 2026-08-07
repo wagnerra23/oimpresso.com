@@ -35,7 +35,7 @@ use Throwable;
  *
  * @see scripts/governance/adr-proposto-parado.mjs (sentinela · shape {gate,dias,A,B,C,C_total})
  * @see Modules\Governance\Services\AdrReviewBriefLineService (pattern irmão — fila O/R ≠ ratificação A/B/C)
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 final class AdrPendenteBriefLineService
 {

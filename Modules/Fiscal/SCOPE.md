@@ -1,6 +1,7 @@
 ---
 module: Fiscal
-purpose: "Cockpit fiscal unificado — agregador thin sobre NfeBrasil + NFSe (sem duplicação). 7 sub-páginas (Cockpit, NF-e, NFS-e, DF-e, Eventos, Config, SPED) conforme design Cowork KB-9.75 todas entregues. Ações cancelar/CC-e/inutilização/retransmitir + ⌘K palette cross-fiscal + gerador SPED EFD-ICMS/IPI v3.1.1 perfil A em produção pós-Waves 1-9 (PRs #1183, #1185, #1189, #1190, #1249, #1253, #1257, #1259, #1261)."
+purpose: "Cara única (UI e sidebar) do domínio fiscal: agrega leitura de NfeBrasil e NFSe, delega toda ação SEFAZ aos Services deles, e é dono próprio do gerador SPED EFD-ICMS/IPI."
+migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "AcoesController — PR #4 thin delegate NfeService::cancelar + ManifestacaoService (4 ações DF-e)"
   - "CockpitController — sub-página 1 (KPIs + alertas + sparklines + quick links)"
@@ -18,7 +19,7 @@ not_contains:
   - "Emissão fiscal (XML + SEFAZ) → Modules/NfeBrasil (lê via Service)"
   - "NFSe federal LC 214/2025 → Modules/NFSe (futura sub-página 3)"
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
-  - "Tasks Jira-style → Modules/ProjectMgmt"
+  - "Tasks Jira-style → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: fiscal.*

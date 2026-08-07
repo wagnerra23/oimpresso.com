@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Process;
-use Modules\Brief\Services\BriefValidator;
+use Modules\Forja\Services\BriefValidator;
 use Modules\Governance\Services\AgentOutcomeBriefSectionService;
 
 // EXPLÍCITO (não confiar só no Pest.php do módulo): quando ci.yml roda este
@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * selftest hermético próprio no .mjs / governance-script-tests.yml).
  *
  * @see Modules/Governance/Services/AgentOutcomeBriefSectionService.php
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 /**

@@ -462,7 +462,10 @@ class Kernel extends ConsoleKernel
         //
         // Skip-guard honesto (2026-06-20): SEM OPENAI_API_KEY o canary NÃO falha o
         // cron toda semana (era ruído / falso "DRIFT 100%") — sai DORMANT (exit 0,
-        // status=dormant), visível como ⊘ no agregador governance-audit.mjs. O
+        // status=dormant). ⚠️ 2026-08-04: a redação anterior dizia que isso era "visível
+        // como ⊘ no agregador governance-audit.mjs" — o agregador NUNCA teve invocador
+        // (medido; declarado morto no cabeçalho dele), então o dormant não era visível em
+        // lugar nenhum além do log deste schedule. Fica o fato, sem a visibilidade falsa. O
         // onFailure abaixo só dispara em drift REAL acima do threshold. Domingo cedo
         // pra não disputar DB com os health-checks diários (06:00-06:30).
         $schedule->command('jana:drift-sentinel')
@@ -619,11 +622,46 @@ class Kernel extends ConsoleKernel
         //
         // Slot 06:45: 06:15 disputado (4), 06:20/06:30/06:35 ocupados — canon em
         // memory/reference/feedback-cron-slot-06h15-brt-disputado.md (verificado hoje).
+        //
+        // ── 2026-08-04 — REMOVIDO o ->onOneServer(). CAUSA NÃO ESTABELECIDA. ────────
+        // Medido em prod (Hostinger), `grep "mcp:tasks:unassigned" storage/logs/laravel.log
+        // | grep -o "2026-..-.. [0-9:]*" | sort | uniq -c`, 8 dias 07-28..08-04: a série
+        // tem 2 buracos — 07-29 e 08-04 — sem NENHUM registro.
+        //
+        // O comando loga INCONDICIONALMENTE no fim do handle(), então "sem linha" = não
+        // completou. E `grep -c "mcp:tasks:unassigned FALHOU"` = 0: o onFailure abaixo
+        // nunca disparou, porque ele só cobre exit != 0 e é CEGO a "nunca começou" —
+        // inclusive ao caso em que o próprio schedule:run morre (o comando roda in-process,
+        // sem runInBackground).
+        //
+        // Descartado com evidência: deploy (`schedule:list` em prod, 2026-08-04, lista
+        // `45 6 * * *`; e `gh run list --workflow=deploy.yml` não tem run na janela dos
+        // 2 dias) · disco (`df -h`: 75% usado, 5,4T livres) · OOM (nenhum fatal/memory no
+        // log em 06:40-06:55 dos 2 dias; memory_limit CLI = 3072M pra ~672 linhas).
+        //
+        // NÃO descartado — e é por isso que este ->onOneServer() sai: comparando os
+        // DOIS únicos comandos com log incondicional, o vizinho mcp:tasks:health-check
+        // (06:20) fez 12/12 dias e este fez 6/8, e a ÚNICA diferença estrutural entre
+        // eles era o ->onOneServer(). Não é prova (Fisher 1-cauda = 0,1474 com n=8), mas
+        // ele é uma via de SKIP SILENCIOSO dependente de cache (CACHE_DRIVER=file) e não
+        // tem função aqui: um único host roda schedule:run com APP_ENV=live (o cron do
+        // hPanel — memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md; no CT 100 o
+        // schedule:run é 0, medido 2026-07-17 em memory/requisitos/Jana/SPEC.md).
+        // Mesmo que um 2º host surgisse, rodar 2× é inócuo: o comando é SELECT + log.
+        //
+        // Isto é uma MITIGAÇÃO QUE DISCRIMINA, não um conserto de causa conhecida: se os
+        // buracos persistirem sem o onOneServer, a causa está noutro lugar e o dado passa
+        // a valer. NÃO fecha a visibilidade — nada hoje ALARMA quando o cron falta, e o
+        // cron-watchdog.mjs põe os schedules Laravel fora do eixo 1 (sem API de liveness).
+        // Heartbeat em DB é a opção que fecharia, e é decisão [W].
+        // Ver memory/sessions/2026-08-04-cron-unassigned-buraco-na-serie.md.
+        //
+        // Diverge de propósito do passo 2 do canon do slot (que prescreve "sempre"
+        // onOneServer) — desvio declarado lá, no mesmo PR.
         $schedule->command('mcp:tasks:unassigned')
             ->dailyAt('06:45')
             ->timezone('America/Sao_Paulo')
             ->environments(['live'])
-            ->onOneServer()
             ->withoutOverlapping(60)
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
@@ -770,47 +808,27 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // ADS Reviewer (T11 G-Eval) — review automático cada 15min de decisions sem score.
-        $schedule->command('ads:review-decisions --limit=10')
-            ->everyFifteenMinutes()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule ADS Reviewer (ads:review-decisions) FALHOU'
-                );
-            });
-
-        // ADS Pattern Learning (T15 Wilson Score) — diário 02:00.
-        $schedule->command('ads:learn-patterns --business=all --detect-drift')
-            ->dailyAt('02:00')
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Auto Task Generator (T7 Self-Instruct) — horário de 9h às 18h.
-        $schedule->command('ads:auto-generate-tasks')
-            ->cron('0 9-18 * * 1-5')
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Planner (T9 PlannerAgent) — decompõe decisions complexas a cada 10min.
-        $schedule->command('ads:plan-decisions --limit=3')
-            ->everyTenMinutes()
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Brain B — processa decisions com destination=brain_b a cada 5 min.
-        // Custo estimado ~$0.05/dia em prod com prompt caching Sonnet. Limit=5
-        // por execução evita gastos descontrolados; ajustar via Policy se necessário.
-        $schedule->command('ads:process-brain-b --limit=5')
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule ADS Brain B (ads:process-brain-b) FALHOU'
-                );
-            });
+        // ── ADS · 5 schedules REMOVIDOS em 2026-07-31 (decisão [W]) ──────────────
+        // Eram: ads:review-decisions (15min) · ads:learn-patterns (02:00) ·
+        // ads:auto-generate-tasks (9-18h úteis) · ads:plan-decisions (10min) ·
+        // ads:process-brain-b (5min). Os cinco alimentavam `mcp_dual_brain_decisions`.
+        //
+        // POR QUE SAÍRAM, medido em prod 2026-07-30/31 (não estimado):
+        //   - 36.862 linhas acumuladas, `resolved_by` em 41 (0,11%);
+        //   - `pr_url NOT NULL` = 0 e `commit_sha NOT NULL` = 0 — nenhuma decisão
+        //     virou PR ou commit em ~3 meses;
+        //   - `outcome` em 100% no DEFAULT da coluna ('cancelled'), que o próprio
+        //     DecisionPresenter exibe como "Aguardando você decidir": a fila nunca
+        //     saiu do estado inicial, e sem outcome o PatternLearning não aprende.
+        //   - cadência medida: +204 linhas em ~24h.
+        //
+        // O produtor externo (daemon systemd `ads-brain-a` no CT 100, que fazia poll
+        // de /api/ads/*) foi desligado no mesmo movimento — desligar só os crons
+        // deixaria a escrita em vôo pela outra ponta.
+        //
+        // O Governance incorpora a POLÍTICA do ADS (PolicyEngine + GovernanceRules
+        // + mcp_governance_rules); o núcleo dual-brain não tem receptor e acaba.
+        // Ver ADR de deprecação (supersedes 0145) + memory/requisitos/ADS/DEPRECATION-PLAN.md.
 
         // G1 P0 AUDIT-SENIOR-2026-05-25 §6 — D7.d LGPD purge job daily 03:00 BRT.
         // Aplica Modules/Jana/Config/retention.php sobre 7 entidades PII-relevantes

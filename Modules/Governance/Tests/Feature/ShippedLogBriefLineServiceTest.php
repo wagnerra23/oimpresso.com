@@ -17,7 +17,7 @@ uses(Tests\TestCase::class);
  * check de freshness (esse tem seu próprio teste em shipped-log-generate.test.mjs).
  *
  * @see Modules/Governance/Services/ShippedLogBriefLineService.php
- * @see Modules/Brief/Console/Commands/GenerateBriefCommand.php (plug-point inject)
+ * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
 /** Stub do shell-out Node: devolve o JSON dado no stdout (exit 1 quando há stale). */

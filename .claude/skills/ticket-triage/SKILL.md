@@ -152,7 +152,7 @@ Não invente. Se faltar dado, retorne null no campo.
 """
 ```
 
-LLM via stack canônica ADR 0035: `laravel/ai` ^0.6.3 Camada A → Vizra ADK
+LLM via stack canônica ADR 0035: `laravel/ai` ^0.10 Camada A → Vizra ADK
 Camada B (`LaravelAiSdkDriver`). Memória Camada C consulta namespaces
 `negocio` + `interacoes` do `business_id`.
 

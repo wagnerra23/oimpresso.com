@@ -1,3 +1,7 @@
+---
+authority: generated
+---
+
 <!-- GERADO por scripts/governance/requisitos-status.mjs — NÃO editar à mão.
      Status é DERIVADO da cadeia US→CU→UC→teste. Editar aqui não muda nada:
      mude o SPEC/SDD/casos/teste e re-rode. (ADR 0256: derivado sobrevive.) -->
@@ -15,9 +19,9 @@
 | US no SPEC | 51 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 8 |
-| Telas com `casos.md` | 2 |
-| UC declarados | 9 |
-| UC com teste que os cita | 8 |
+| Telas com `casos.md` | 3 |
+| UC declarados | 16 |
+| UC com teste que os cita | 15 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -27,7 +31,6 @@
 | Tela `Drafts` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Edit` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Quotations` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Show` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Subscriptions` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `CU-SELL-05` sem UC | caso de uso que o exercite — Editar linha em pt-BR sem inflar o decimal |
 | `CU-SELL-06` sem UC | caso de uso que o exercite — Venda a prazo (fiado) fecha com saldo devedor |
@@ -108,6 +111,13 @@
 | UC-S1X | Index | 📝 sem_teste |
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
+| UC-VSHOW-01 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-02 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-03 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-04 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-05 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-06 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-07 | Show | 🧪 aguarda veredito da lane |
 
 ---
 

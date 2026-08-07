@@ -4,9 +4,9 @@ id: requisitos-jana-demo-pilot-2026-05-16-screenshot-guide
 
 # Screenshot Guide — Jana Demo Pilot 2026-05-16
 
-> **Contexto:** demo CYCLE-06 G3 — tela polida `/copiloto/dashboard` (`resources/js/Pages/Jana/Dashboard.tsx`).
+> **Contexto:** demo CYCLE-06 G3 — tela polida `/copiloto/dashboard` (`resources/js/Pages/Jana/Index.tsx`).
 > **Audiência:** Wagner + cliente piloto (Larissa / ROTA LIVRE biz=4) ou prospect.
-> **Charter de referência:** [`resources/js/Pages/Jana/Dashboard.charter.md`](../../../../resources/js/Pages/Jana/Dashboard.charter.md) v2.
+> **Charter de referência:** [`resources/js/Pages/Jana/Index.charter.md`](../../../../resources/js/Pages/Jana/Index.charter.md) v2.
 
 ---
 
@@ -96,6 +96,6 @@ id: requisitos-jana-demo-pilot-2026-05-16-screenshot-guide
 
 ## Referências
 
-- Charter: [`resources/js/Pages/Jana/Dashboard.charter.md`](../../../../resources/js/Pages/Jana/Dashboard.charter.md) v2
-- Runbook operacional: [`memory/requisitos/Jana/RUNBOOK-dashboard.md`](../RUNBOOK-dashboard.md)
+- Charter: [`resources/js/Pages/Jana/Index.charter.md`](../../../../resources/js/Pages/Jana/Index.charter.md) v2
+- Runbook operacional: [`memory/requisitos/Jana/RUNBOOK-index.md`](../RUNBOOK-index.md)
 - ADRs: [0052 memória 3 ângulos](../../../decisions/0052-memoria-jana-3-angulos-faturamento.md) · [0094 constituição](../../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) · [0101 tests biz=1](../../../decisions/0101-tests-business-id-1-nunca-cliente.md)

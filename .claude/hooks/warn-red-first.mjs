@@ -74,6 +74,8 @@ export function testTouchedRecently(root, hours) {
 export function warnLines(rel) {
   const base = rel.replace(/^.*\//, '').replace(/\.php$/i, '');
   return [
+    // tag PRIMEIRO — a sonda do `hook-bites` casa `"content":"[<tag>]` no início do valor.
+    '[warn-red-first]',
     '',
     '[RED-FIRST - advisory / SDD FV-T0]',
     `  Voce vai editar codigo de PRODUCAO (${rel}) sem nenhum teste tocado nesta sessao.`,

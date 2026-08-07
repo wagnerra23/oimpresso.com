@@ -35,6 +35,11 @@ class DataController extends Controller
             ['value' => 'whatsapp.templates.manage', 'label' => 'Whatsapp: gerenciar templates HSM/locais',  'default' => false],
             ['value' => 'whatsapp.settings.manage',  'label' => 'Whatsapp: configurar drivers (Z-API/Meta)', 'default' => false],
             ['value' => 'whatsapp.metricas.view',    'label' => 'Whatsapp: ver métricas (custo/deflection)', 'default' => false],
+            // US-GOV-059 classe C: exigida pelo BroadcastController (L138) e
+            // inexistente em código e na tabela `permissions` (verificado em prod).
+            // Nome mantido como o código usa — o hífen desvia do padrão de ponto
+            // do módulo, mas renomear exigiria tocar o consumidor sem ganho funcional.
+            ['value' => 'whatsapp.view-all-phones',  'label' => 'Whatsapp: ver conversas de TODOS os números', 'default' => false],
         ];
     }
 

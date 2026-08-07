@@ -12,9 +12,9 @@ module: Cms
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Cms --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Cms/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 100 arquivos em 13 papéis.
+**Total mapeado:** 139 arquivos em 13 papéis.
 
 ## Controllers — 5
 
@@ -89,8 +89,47 @@ module: Cms
 
 - 17 arquivos em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Outros (raiz/misc) — 3
+## Demais arquivos (manifestos, docs, assets e misc) — 42
 
+- [CHANGELOG.md](../../../Modules/Cms/CHANGELOG.md)
+- [.gitkeep](../../../Modules/Cms/Config/.gitkeep)
+- [.gitkeep](../../../Modules/Cms/Console/.gitkeep)
+- [.gitkeep](../../../Modules/Cms/Database/Migrations/.gitkeep)
+- [.gitkeep](../../../Modules/Cms/Database/Seeders/.gitkeep)
+- [.gitkeep](../../../Modules/Cms/Database/factories/.gitkeep)
+- [.gitkeep](../../../Modules/Cms/Entities/.gitkeep)
+- [.gitkeep](../../../Modules/Cms/Http/Controllers/.gitkeep)
+- [.gitkeep](../../../Modules/Cms/Http/Middleware/.gitkeep)
+- [.gitkeep](../../../Modules/Cms/Http/Requests/.gitkeep)
 - [NewLeadGeneratedNotification.php](../../../Modules/Cms/Notifications/NewLeadGeneratedNotification.php)
+- [.gitkeep](../../../Modules/Cms/Providers/.gitkeep)
 - [CmsPageRepository.php](../../../Modules/Cms/Repositories/CmsPageRepository.php)
+- [.gitkeep](../../../Modules/Cms/Resources/assets/.gitkeep)
+- [cms.css](../../../Modules/Cms/Resources/assets/css/cms.css)
+- [contact.jpg](../../../Modules/Cms/Resources/assets/img/contact.jpg)
+- [default.png](../../../Modules/Cms/Resources/assets/img/default.png)
+- [home.png](../../../Modules/Cms/Resources/assets/img/home.png)
+- [cms.js](../../../Modules/Cms/Resources/assets/js/cms.js)
+- [.gitkeep](../../../Modules/Cms/Resources/lang/.gitkeep)
+- [lang.php](../../../Modules/Cms/Resources/lang/en/lang.php)
+- [.gitkeep](../../../Modules/Cms/Resources/views/.gitkeep)
+- [cp-chaticon.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-chaticon.png)
+- [cp-close.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-close.png)
+- [cp-email.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-email.png)
+- [cp-instagram.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-instagram.png)
+- [cp-linkedin.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-linkedin.png)
+- [cp-messenger.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-messenger.png)
+- [cp-skype.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-skype.png)
+- [cp-telegram.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-telegram.png)
+- [cp-telephone.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-telephone.png)
+- [cp-twitter.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-twitter.png)
+- [cp-viber.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-viber.png)
+- [cp-whatsapp.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-whatsapp.png)
+- [main-logo.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/main-logo.png)
+- [SCOPE.md](../../../Modules/Cms/SCOPE.md)
+- [.gitkeep](../../../Modules/Cms/Tests/.gitkeep)
 - [CmsUtil.php](../../../Modules/Cms/Utils/CmsUtil.php)
+- [composer.json](../../../Modules/Cms/composer.json)
+- [module.json](../../../Modules/Cms/module.json)
+- [package.json](../../../Modules/Cms/package.json)
+- [webpack.mix.js](../../../Modules/Cms/webpack.mix.js)

@@ -20,7 +20,7 @@ proximo_review: trimestral — quando próxima onda boost retrieval/eval mergead
 
 Jana é o **analista IA do oimpresso** — Não é wrapper-de-LLM nem chatbot genérico. É um **agente IA ERP-nativo multi-tenant LGPD** com 4 camadas canônicas ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)):
 
-- **Camada A (LLM wrapper):** `laravel/ai ^0.6.3` oficial (fev/2026)
+- **Camada A (LLM wrapper):** `laravel/ai ^0.10` oficial (fev/2026)
 - **Camada B (Agents):** 9 Agents próprios em `Modules/Jana/Ai/Agents/` (`BriefDiarioAgent`, `BriefingAgent`, `ChatCopilotoAgent`, `ExtrairFatosAgent`, `HealthNarratorAgent`, `KbAnswerAgent`, `SinteseSemanalAgent`, `SugestoesMetasAgent`, `WeeklyDigestAgent`) — **Vizra ADK rejeitada** ([ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md))
 - **Camada C (Memória):** `MemoriaContrato` + 4 drivers (`MeilisearchDriver` hybrid default + `McpMemoriaDriver` + `NullMemoriaDriver` dev + telemetry decorator)
 - **Camada D (Tools/MCP):** 5 tools Brief Diário (`InadimplenciaTool`, `NfeStatusTool`, `OportunidadesTool`, `TicketsTopTool`, `VendasPeriodoTool`) + MCP server `mcp.oimpresso.com` em CT 100 com 352+ docs ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md))
@@ -136,7 +136,7 @@ Escala 0-10 (10 = best-in-class 2026). Ponderações P0/P1/P2 alinhadas a [ADR 0
 1. **PiiRedactor BR pré-LLM** — concorrentes globais (Vellum/Braintrust/LangSmith) detectam PII US (SSN/credit card); CPF/CNPJ/CEP BR requer regex+contexto BR — somos únicos no mercado
 2. **3 ângulos faturamento canônico** ([ADR 0052](../../decisions/0052-memoria-jana-3-angulos-faturamento.md)) — contrato fixo Jana sabe responder qualquer pergunta financeira sem alucinar (NFe-emitida vs caixa vs receita reconhecida)
 3. **MCP server governança como produto** ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md)) — único ERP BR com MCP exposto; time consome via Claude Code (50+ tools)
-4. **Stack canônica congelada por ADR** — `laravel/ai` ^0.6.3 oficial + Vizra rejeitada formal ([ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md)) — concorrentes brigam por framework SDK
+4. **Stack canônica congelada por ADR** — `laravel/ai` ^0.10 oficial + Vizra rejeitada formal ([ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md)) — concorrentes brigam por framework SDK
 5. **Memória multi-tenant Tier 0** — fato vazado entre business = bug Tier 0 IRREVOGÁVEL; SaaS competitors não têm isolation formal LGPD
 
 ## 8. Custo IA tracking (LLM observability real)
