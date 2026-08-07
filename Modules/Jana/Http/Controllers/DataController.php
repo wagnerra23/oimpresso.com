@@ -271,12 +271,25 @@ class DataController extends Controller
                             // Copiloto (chat) como entry-point default da Jana — chat continua
                             // acessível em 2ª aba e via FAB. Tentativas anteriores travaram em
                             // DashboardController@index redirect "sem metas → chat" (removido).
-                            ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
-                            ['key' => 'copiloto',  'label' => 'Copiloto',  'href' => '/ia'],
+                            // ── Onda 2 da fusão (US-COPI-148, 2026-08-07) ──────────────
+                            // Vocabulário das abas passa a ser `Painel | Conversa | Memória`,
+                            // que é o do protótipo aprovado. Só o LABEL muda: as `key` são
+                            // identificador interno, casadas com `activeGhostKey` do
+                            // PageHeaderTabs e com o `mapActiveToGhostKey` do JanaAreaHeader —
+                            // renomeá-las quebraria o match em silêncio (a aba simplesmente
+                            // deixaria de acender) sem nenhum ganho visível. As `key` viram
+                            // `painel`/`conversa` na onda 3, junto com o rename do arquivo.
+                            ['key' => 'dashboard', 'label' => 'Painel',   'href' => '/ia/dashboard'],
+                            ['key' => 'copiloto',  'label' => 'Conversa', 'href' => '/ia'],
                             // Ghost 'brief' removido 2026-06-15 (Wagner): /ia/brief era stub
                             // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
                             // diário" do dashboard). Rota + BriefController + Page apagados.
-                            ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
+                            // href passa a apontar pro destino REAL. `/ia/memorias` é
+                            // `Route::redirect(…, '/ia/memoria', 302)` (routes.php:243) — item de
+                            // menu que só redireciona é a "fronteira suja" que motivou a remoção
+                            // do ghost `kb` neste mesmo bloco em 2026-08-05 (ADR 0366). A key
+                            // `memorias` fica: é o alvo do `mapActiveToGhostKey('memoria')`.
+                            ['key' => 'memorias',  'label' => 'Memória',  'href' => '/ia/memoria'],
                             // Ghost 'kb' removido 2026-08-05 ([W]: "governança, KB, saem"):
                             // `/ia/kb` é `Route::redirect(…, '/kb', 302)` — apontava pro
                             // redirect de uma tela que é do Modules/KB e tem entrada própria.
