@@ -1,0 +1,69 @@
+# Quarentena da lane "PHP / Pest (Estoque · MySQL)" — .github/workflows/estoque-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em tests/Feature/{Estoque,Produto}/*Test.php
+# MENOS o que este arquivo lista. A partição é TOTAL: todo arquivo da árvore está
+# em exatamente um dos dois lados, e arquivo NOVO entra RODANDO. Não existe um
+# terceiro estado "escuro" — que é o bug que esta lista substitui.
+#
+# O QUE ESTAVA ESCURO (medido em origin/main, 2026-08-07): a árvore tem 40 arquivos
+# de teste; a allowlist inline do workflow nomeava 25. Os 15 de fora não rodavam
+# aqui — e 14 deles (os `Wave2*`) não rodavam em lane NENHUMA: varredura contada
+# do basename em `.github/`, `scripts/` e `package.json` devolveu ZERO ocorrências
+# pra cada um. Eles não "passavam": nunca foram executados. Agora estão listados,
+# o que os torna dívida VISÍVEL em vez de cobertura fingida.
+#
+# A lane é REQUIRED (governance/required-checks-baseline.json — promovida em
+# 2026-08-05 pela ADR 0369). Por isso a quarentena nasce CONSERVADORA: entra
+# tudo que não foi PROVADO verde nesta lane.
+#
+# 1 path por linha · '#' comenta · merge=union no .gitattributes (PRs concorrentes
+# que adicionam linhas são unidos sem conflito — mesma receita do irmão
+# .github/financeiro-pest-quarantine.list, de onde este mecanismo foi copiado).
+#
+# TIRAR DAQUI é o movimento desejado (a lista deve encolher). PÔR aqui exige
+# motivo escrito na linha — sem isso vira gaveta de silenciar vermelho.
+#
+# ANTI-APODRECIMENTO: o step do workflow FALHA se um path listado aqui não existir
+# mais. Arquivo removido não pode continuar listado.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# (A) FAILING-FIRST — vermelhos por desenho, adicionados à lane SEM serem verdes.
+#     Documentados como tal no cabeçalho do próprio workflow (linhas 39/46/53/62).
+#     Medido no run 30942624811 (main): 11 falhas nestes 6 arquivos.
+#     Cada linha diz QUAL contrato falha — a lista é o inventário da dívida.
+# ─────────────────────────────────────────────────────────────────────────────
+
+tests/Feature/Produto/ProdutoShowContratoTest.php          # UC-PSHOW-01: custo vaza na ficha p/ quem não tem view_purchase_price (branch Inertia não consulta a permission; Blade gateia com @can)
+tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/03/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor + custo vaza na linha
+tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: writer trata ausência de chave como zero (enable_stock, not_for_selling) e a edição não persiste — eixo ESTOQUE, regra-mestre: fix é decisão [W]
+tests/Feature/Produto/ProdutoBulkEditContratoTest.php      # UC-PBULK-05: writer lê 5 chaves/variação, a tela manda 2; ErrorException engolida por catch genérico reverte o lote — eixo VALOR, regra-mestre: fix é decisão [W]
+tests/Feature/Produto/QuickAddProdutoContratoTest.php      # UC-PQCK-02: quick-add aceita category_id de OUTRO business (request->only + Product::create sem validação de tenant) — Tier 0, mesma família do UC-PTAB-04 (#4300)
+tests/Feature/Produto/ProdutoBomContratoTest.php           # UC-PBOM-02: BOM aceita component_variation_id de OUTRO business (component_id é validado, a variação passa por "nullable|integer") — Tier 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# (B) NUNCA RODARAM — status desconhecido, não "verde".
+#     Zero ocorrências do basename em .github/, scripts/ e package.json.
+#     Entram aqui pela regra conservadora: só sai da quarentena o que for
+#     PROVADO verde nesta lane, um a um.
+# ─────────────────────────────────────────────────────────────────────────────
+
+tests/Feature/Produto/Wave2BulkEditBaselineTest.php        # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2BulkEditInertiaTest.php         # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2CreateBaselineTest.php          # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2CreateInertiaTest.php           # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2EditBaselineTest.php            # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2EditInertiaTest.php             # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2IndexBaselineTest.php           # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2IndexInertiaTest.php            # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2SellingPricesBaselineTest.php   # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2SellingPricesInertiaTest.php    # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2ShowBaselineTest.php            # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2ShowInertiaTest.php             # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2StockHistoryBaselineTest.php    # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+tests/Feature/Produto/Wave2StockHistoryInertiaTest.php     # nunca rodou em lane nenhuma (medido 2026-08-07) — provar antes de ligar
+
+# ─────────────────────────────────────────────────────────────────────────────
+# (C) TEM LANE PRÓPRIA — fora daqui não é dívida, é evitar execução duplicada.
+# ─────────────────────────────────────────────────────────────────────────────
+
+tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php  # roda na lane sqlite (.github/ci-sqlite-pest.list linha 211) — não duplicar aqui
