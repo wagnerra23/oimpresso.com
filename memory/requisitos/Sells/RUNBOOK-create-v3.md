@@ -115,6 +115,13 @@ porque o alvo passa a ser justamente o arquivo que hoje é intocável.
 
 ## Pendências declaradas
 
-- Trio (charter + casos) ainda não existe para esta tela — nasce quando o desenho assentar.
+- **Trio:** charter e casos existem ([`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) · [`CreateV3.casos.md`](../../../resources/js/Pages/Sells/CreateV3.casos.md)).
+  Falta a 3ª perna: **nenhum teste**. Por isso o `casos.md` traz `[BACKLOG]` sem id e não `UC-*` —
+  UC sem teste quebra o G-2 do `casos-gate` (required) e nasceria órfão.
+- **§F4 nunca rodou.** O CT 100 está inalcançável desta máquina (Tailscale não instalado, verificado
+  em PATH, serviço e 3 raízes de disco). Por isso o frontmatter é `status: rascunho`.
+- **Charter incompleto por disciplina, não por esquecimento:** Non-Goals além dos declarados por [L],
+  Automation Anti-hooks e Contrato visual ficam `_pendente [W]_` — a skill `charter-write` é proibida
+  de inferir esses campos, e anti-padrão inventado no charter é pior que ausente porque parece canon.
 - `php -l` local não valida este módulo: a máquina tem **PHP 7.4** e o projeto exige **^8.3**.
   Sintaxe PHP 8 (`?->`) reprova localmente mesmo em arquivo íntegro do `main`. Validação real é CI/CT 100.
