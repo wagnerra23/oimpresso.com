@@ -23,8 +23,76 @@ use Tests\TestCase;
  */
 abstract class PontoTestCase extends TestCase
 {
+    /**
+     * Empregador FICTÍCIO usado como "o outro" nos casos Tier 0 (ADR 0093/0101).
+     *
+     * Nunca biz=4 (ROTA LIVRE, cliente real). O 99 é o `SUPPORT_CLIENT_TENANT_ID`
+     * (Tests\Support\WithSeededTenant) e é o mesmo id que os casos verdes deste
+     * módulo já usam — mantido pra não criar um segundo vocabulário de adversário.
+     */
+    protected const BIZ_ALHEIO_FICTICIO = 99;
+
+    /** Nome próprio do stub: o cleanup só apaga o que ELE criou. */
+    protected const BIZ_ALHEIO_NOME = 'Ponto Test Biz Adversario#99';
+
     protected ?User $admin = null;
     protected ?Business $business = null;
+
+    /**
+     * Garante que o empregador fictício EXISTE antes do caso inserir dado nele.
+     *
+     * Sem isto o INSERT morre na FK (`ponto_colaborador_config_business_id_foreign`,
+     * `ponto_importacoes_business_id_foreign`, …) com SQLSTATE 23000/1452 — e o caso
+     * morre no FIXTURE, sem nunca chegar à asserção de isolamento. Foi o que deixou
+     * 7 guards Tier 0 do módulo sem rodar entre 2026-07-27 e 2026-08-07: verde nenhum,
+     * mas também prova nenhuma. O seed do CI cria biz 1, 2 e 98 — nunca o 99
+     * (deliberado: .github/actions/pest-mysql-setup declara por quê).
+     *
+     * Idempotente. Os casos verdes do módulo (ImportacaoIndex/BancoHorasIndex/
+     * EscalaForm/Intercorrencia) já faziam isto com função própria por arquivo; aqui
+     * o idioma fica UM, no lugar que todos herdam, em vez de na 8ª cópia.
+     */
+    protected function garantirBizAlheio(): int
+    {
+        if (! Business::query()->whereKey(self::BIZ_ALHEIO_FICTICIO)->exists()) {
+            Business::forceCreate([
+                'id'                              => self::BIZ_ALHEIO_FICTICIO,
+                'name'                            => self::BIZ_ALHEIO_NOME,
+                'currency_id'                     => optional(DB::table('currencies')->first())->id ?? 1,
+                'start_date'                      => now()->toDateString(),
+                'default_profit_percent'          => 0,
+                'owner_id'                        => $this->admin?->id ?? 1,
+                'stop_selling_before'             => 0,
+                'weighing_scale_setting'          => '',
+                'certificado'                     => '',
+                'officeimpresso_numerodemaquinas' => 0,
+            ]);
+        }
+
+        return self::BIZ_ALHEIO_FICTICIO;
+    }
+
+    /**
+     * Remove o stub — só se foi ESTE helper que o criou (guarda pelo nome próprio).
+     *
+     * Chamar DEPOIS do cleanup de fixtures do caso: `ponto_importacoes` e
+     * `ponto_intercorrencias` têm FK pra `business` SEM `ON DELETE CASCADE`
+     * (mysql-schema.sql), então uma linha sobrando faz o DELETE estourar 1451.
+     * Em CI isso é inócuo (DB descartável); no CT 100 a base é clone de prod que
+     * NÃO se limpa entre runs, e o stub vazaria em silêncio dentro do `catch`.
+     */
+    protected function removerBizAlheio(): void
+    {
+        try {
+            Business::query()
+                ->whereKey(self::BIZ_ALHEIO_FICTICIO)
+                ->where('name', self::BIZ_ALHEIO_NOME)
+                ->delete();
+        } catch (\Throwable $e) {
+            // Sobrou dependente (FK sem CASCADE) ou schema ausente — best-effort.
+            // O stub é de um tenant fictício; deixá-lo não contamina caso nenhum.
+        }
+    }
 
     protected function actAsAdmin(): User
     {
