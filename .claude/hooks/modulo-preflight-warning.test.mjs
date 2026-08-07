@@ -37,7 +37,7 @@ check('hasReadEvidence: Read do SPEC (posix) → true',
 check('hasReadEvidence: Read do SPEC (backslash Windows) → true',
   hasReadEvidence(evento('Read', { file_path: ['D:', 'oimpresso.com', 'memory', 'requisitos', 'Jana', 'SPEC.md'].join(BS) }), 'Jana') === true);
 check('hasReadEvidence: Read do charter da tela → true',
-  hasReadEvidence(evento('Read', { file_path: 'resources/js/Pages/Jana/Cockpit.charter.md' }), 'Jana') === true);
+  hasReadEvidence(evento('Read', { file_path: 'resources/js/Pages/Jana/Index.charter.md' }), 'Jana') === true);
 check('hasReadEvidence: Glob em requisitos/<Mod> → true',
   hasReadEvidence(evento('Glob', { pattern: 'memory/requisitos/Jana/*.md' }), 'Jana') === true);
 check('hasReadEvidence: decisions-search do modulo → true',

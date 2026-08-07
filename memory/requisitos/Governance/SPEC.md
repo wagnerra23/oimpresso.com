@@ -1202,3 +1202,69 @@ Ou seja: das 17, **15 têm razão escrita para ficar** e **2 aguardam decisão**
 - **`NotificationController::send()` tem o gate COMENTADO** (`// if (!auth()->user()->can('send_notification'))`). O `getTemplate()` não tem gate nenhum. Ou seja: mesmo com `send_notification` agora declarada, o **envio** em si não é gateado — só a tela de modelos. Decisão de desenho.
 - **`ModifierSetsController::index()` sem gate** — já registrado na classe B, segue valendo.
 - **O comentário do detector sobre a 4ª fonte é impreciso** (ver `configure_dashboard` acima). Não altera nenhum veredito; fica anotado para quem for lê-lo como recibo.
+
+#### Cozinha (`restaurant/kitchen`) — gate reativado, com o menu junto — 2026-08-07
+
+> ⚠️ **Escrito em 2026-08-07 aguardando decisão [W]** — a mudança tem duas pernas e elas se decidem separado (ver abaixo). _(Redação datada de propósito: "decisão pendente" em presente vira falsa no minuto em que [W] decidir, e ninguém volta pra consertar — §5 2026-07-16.)_
+
+Mesma família dos `restaurant.*` acima, um grau mais sensível: o `KitchenController::index()` tinha o gate **comentado** e servia os **pedidos** da cozinha — transações, não nomes de catálogo — a qualquer usuário autenticado do business. `business_id` intacto (Tier 0 não foi violado); o que faltava era RBAC **dentro** do tenant.
+
+> ⚠️ "Comentado **desde o upstream**" é **inferência plausível, não recibo**: `git log -S"can('sell.view')"` sobre o arquivo só alcança `8cd20a34863` (*"restaura codebase apagado pelo squash do #2413"*) — a linhagem anterior foi apagada pelo squash, então a origem **não é medível neste repo**. O código ser UltimatePOS puro sustenta a leitura; o git não a prova.
+
+**Correção de premissa do pedido que abriu este trabalho (medido, não lido).** O brief afirmava que `ModifierSetsController::index()` passou a gatear com `product.view || product.create` em 2026-08-07. **Não passou.** Esse predicado é da **linha do menu** (`AdminSidebarMenu.php:906`); o `index()` daquele controller **segue sem gate** — que é exatamente o que o *"Achado adjacente, não corrigido"* acima registra. Confundir predicado-de-menu com gate-de-controller é o que faria alguém "espelhar" um gate inexistente.
+
+**Retrato das 5 telas da pasta** (medido em `origin/main`, worktree em 0/0):
+
+| Tela | Predicado do MENU | Gate do `index()` | Casam? |
+|---|---|---|---|
+| Mesas | módulo + `access_tables` | `access_tables` | ✅ espelho exato |
+| Reservas | módulo + (`crud_all_bookings` \|\| `crud_own_bookings`) | o mesmo OR | ✅ espelho exato |
+| Modificadores | módulo + (`product.view` \|\| `product.create`) | **nenhum** | ❌ menu mais estrito |
+| **Cozinha** | **só o módulo** — permissão nenhuma | **nenhum** (comentado) | — nada a espelhar |
+| Pedidos | **só o módulo** (`service_staff`) | **nenhum** (comentado, `sell.view`) | — |
+
+Ou seja: **"espelhar o predicado do menu" não era executável como escrito** — o menu da Cozinha não declara permissão. Espelhá-lo ao pé da letra deixaria o buraco aberto; e qualquer permissão no endpoint o torna **mais estrito que o menu**, que é a classe A (link visível → 403) que esta US existe pra matar. Por isso o gate saiu **nas duas pernas, no mesmo PR**:
+
+1. `KitchenController::index()` — gate ativo com **`sell.view`**.
+2. `AdminSidebarMenu.php`, menu Cozinha — o **mesmo** `sell.view` no predicado do link.
+
+**Por que `sell.view`:** é a permissão que o **gate comentado já nomeava** (proveniência escrita, não invenção); é **declarada** (`PermissionsTableSeeder.php:43`) e está na tela de papéis (`role/edit.blade.php:590` · `create.blade.php:595`); e a tela lê *sell lines* — é dado de venda.
+
+**O fork de [W] — com o custo medido, que a 1ª redação pedia sem dar.** Não existe permissão que exprima "é da cozinha": `is_service_staff` é **flag da role** (`roles.is_service_staff`), não permissão. E `sell.view` é **over-grant** para quem opera a cozinha — o único papel de serviço canônico do repo é `Waiter#5` (`DummyBusinessSeeder.php:1396-1401`), `is_service_staff => 1`, com **`syncPermissions(['dashboard.data'])` e nada mais**; já `sell.view` é o que abre a **listagem inteira de Vendas** (`SellController@index`). Ou seja: para um cozinheiro ver a Cozinha, [W] teria de lhe dar a lista de vendas junto. A alternativa é `access_tables ||` (a única permissão que a tela de papéis oferece sob o título "Restaurante") — mas **nenhuma fonte declara esse OR**, e inventá-lo seria o oposto de espelhar. **É esse par — over-grant × OR não declarado — que torna a escolha decidível, e ela é de [W].**
+
+**Assimetria colateral, não resolvida:** o menu Vendas (`AdminSidebarMenu.php:311`) abre com `hasAnyPermission([...12 permissões...])`, incluindo `view_own_sell_only`, `direct_sell.access` e `direct_sell.view`. Quem tem só uma dessas continua vendo **Vendas** e passa a **não ver Cozinha**. Não é buraco de segurança — é inconsistência de UX que uma US sobre classe A deve nomear em vez de deixar para alguém descobrir.
+
+**⚠️ O que este PR NÃO fecha — e impede chamá-lo de "vedado".** Fechar o `index()` fecha a **porta**, não o **dado**. Os três resíduos, com o tamanho real de cada um (medido, depois de uma revisão adversarial ter derrubado a primeira redação desta seção):
+
+1. **`POST /modules/refresh-orders-list` (`refreshOrdersList`) — sem gate, e expõe MAIS que a Cozinha.** É o polling de `public/js/restaurant.js:111`. O `$filter` só é populado quando `orders_for` é `'kitchen'` ou `'waiter'`; com o campo **ausente ou qualquer outro valor**, `$filter = []` e cai em `RestaurantUtil::getAllOrders($business_id, [])`, que devolve **todas** as `transactions` `type=sell` · `status=final` · `res_order_status != 'served'` (ou NULL) do business — não só as da cozinha.
+2. **`markAsCooked` — mutação por `GET`, ainda aberta.** `Route::get('/kitchen/mark-as-cooked/{id}')` (`routes/web.php:797`), gate `sell.update` comentado. O botão que a dispara vem de `restaurant/partials/show_orders.blade.php:33` e `line_orders.blade.php:40` — **as mesmas partials que o `refreshOrdersList`/`refreshLineOrdersList` servem sem gate**. Ou seja: quem não passa no `index()` ainda obtém o HTML com o botão *e* executa a mutação. **É o maior dos três**, não um resíduo menor.
+3. `refreshLineOrdersList` — mesma forma do item 1.
+
+> ⚠️ **Errata da 1ª redação desta seção (registrada, não apagada).** Ela justificava o não-toque com *"o predicado dele arrasta a decisão do `OrderController` junto"*. **É meia-verdade:** o método **já ramifica** em `$orders_for`, então um gate dentro do ramo `kitchen` não tocaria o caminho `waiter`. A razão real é mais forte e é outra: **gatear só o ramo `kitchen` não fecharia nada**, porque o caminho de filtro vazio (item 1) continua aberto — e um gate no topo do método, que fecharia, aí sim arrasta o waiter. A conclusão sobrevive; a razão escrita, não. Razão errada em canon é pior que razão ausente.
+
+> É a mesma lição que o `@can` do `modifier_sets` já tinha ensinado nesta US — *o gate da view nunca foi a barreira real*. Aqui: **o gate do `index()` não é a barreira real do dado.**
+
+**Sem teste e sem lane, e o custo de wirar é menor do que o brief supunha.** `rg --hidden` por `KitchenController|modules/kitchen` em `tests/` e `.github/` volta **rc=1** (rodou, não achou). O `ci.yml` **não** roda "só `tests/Feature/Form`": ele roda uma **lista curada**, `.github/ci-sqlite-pest.list` (~150 alvos, `tests/Feature/Form` é *uma linha* dela). Logo um teste em `tests/Feature/Restaurant/` não rodaria por estar lá — mas ligá-lo é **uma linha nessa lista**, não uma lane nova. Fica como decisão [W]: criar o arquivo sem a linha seria cobertura de mentira (LC-13).
+
+**Custo da janela:** [W] informou em 2026-08-07 que a feature Restaurante **existe mas não está em uso**. Fechar agora é reversível; depois de entrar em uso, apertar o gate vira breaking change — e apertar o **menu** junto passa a esconder link de quem já usava.
+
+**As duas pernas se decidem SEPARADO — não são um pacote:**
+
+| Perna | O que é | Natureza da decisão |
+|---|---|---|
+| 1 · endpoint (`index()`) | fecha buraco de acesso | corretiva — a classe A desta US |
+| 2 · menu (link Cozinha) | esconde link de quem não tem `sell.view` | **de produto** — [W] acabou de dizer "pode deixar" sobre visibilidade nesta mesma família (§ decisão de 2026-08-07 acima) |
+
+A perna 2 só existe porque a 1, sozinha, **cria** a classe A (link visível → 403). Se [W] recusar a 2, a 1 sozinha não deve ir — a saída aí é não mexer, não entregar meia simetria.
+
+**Relação com a decisão [W] de 2026-08-07 nesta mesma US — não é reabertura, é extensão de escopo na mesma família.** O texto daquela decisão nomeia o sujeito três vezes e é sempre o mesmo: *"`@can('restaurant.view')` na listagem de `modifier_sets`"*, e a citação (*"pode deixar os botão"*) é sobre botões de linha de datatable, não sobre gate de endpoint de outra tela. O `"Não reabrir sem [W]"` está preso a esse sujeito. **Mas** duas cláusulas do mesmo parágrafo falam da **feature inteira** (*"a feature Restaurante existe mas não está em uso agora"*, *"se a feature entrar em uso, é aí que a escolha passa a custar"*) — então [W] deu, no mesmo turno, um sinal sobre a família `restaurant.*`, e isto age nela um dia depois. Por isso a aprovação [W] é **condição de merge, não formalidade**. _(Proveniência: o escopo daquela decisão só existe na redação deste SPEC — não há session log de 2026-08-07 registrando o turno. Quem quiser esticar ou encolher o escopo depende de [W], não do arquivo.)_
+
+**Recibos:**
+
+- `php -l` nos dois arquivos tocados, PHP 8.4.22 no CT 100 (`oimpresso-staging`) — *No syntax errors detected* nos dois.
+- `permission-drift.mjs --json` (o detector desta própria US, que **lê** o `AdminSidebarMenu.php` que o PR muda): **24 órfãs**, e `sell.view` **não** está entre elas — o uso novo não fabrica órfã.
+- `anchor-drift`: os **3** modos que o job roda, rc=0 nos três. `sdd-scorecard --ratchet` rc=0 (com a órfã `nightly-floor` materializada como o CI faz). Schema do SPEC validado no modo **por arquivo** — o modo `--glob` dava verde medindo **zero** arquivo (verde por não-execução), e um bite-test com frontmatter inválido na mesma família provou que o validador morde (rc=1, 3 violações nomeadas).
+- `multi-tenant-gate` **não foi rodado** (é Pest, CT 100-only, e o checkout do container está defasado). Proxy: os 7 patterns banidos por `NoHardcodeBusinessIdInModulesTest` — que **varre** o `AdminSidebarMenu.php` (glob na L70) — rodados contra os 2 arquivos, rc=1 (rodou, não achou).
+- Nenhuma linha de cálculo tocada: o diff mexe só em predicado de autorização.
+
+_Esta subseção foi reescrita depois de uma revisão adversarial read-only, que derrubou a razão do resíduo 1, achou a mutação por GET do `markAsCooked`, o over-grant do `Waiter#5` e o marcador em presente. O que ela **confirmou**: a correção de premissa sobre o `ModifierSets`, o retrato das 5 telas (5/5), a inexistência de outra superfície de menu apontando pra Cozinha (varredura repo-inteiro), e que nenhum teste existente quebra._

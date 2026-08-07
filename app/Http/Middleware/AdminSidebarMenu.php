@@ -822,7 +822,12 @@ class AdminSidebarMenu
             }
 
             //Kitchen menu
-            if (in_array('kitchen', $enabled_modules)) {
+            // Predicado espelha o gate de KitchenController::index() (US-GOV-059, 2026-08-07).
+            // Antes o link aparecia só com o módulo habilitado, sem permissão nenhuma —
+            // e o endpoint também não gateava. Ao fechar o endpoint, o menu tem de carregar
+            // o MESMO predicado, senão o link fica visível pra quem toma 403 (classe A).
+            // Mesma forma de Mesas (access_tables) e Reservas (crud_*_bookings).
+            if (in_array('kitchen', $enabled_modules) && auth()->user()->can('sell.view')) {
                 $menu->url(action([\App\Http\Controllers\Restaurant\KitchenController::class, 'index']), __('restaurant.kitchen'), ['icon' => '<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-flame"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z" /></svg>', 'active' => request()->segment(1) == 'modules' && request()->segment(2) == 'kitchen'])->order(70);
             }
 
