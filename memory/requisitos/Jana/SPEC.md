@@ -950,7 +950,7 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 
 ### US-COPI-106 · Jana V2 demo — tela navegável apresentável a 1 cliente piloto
 
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/PainelController.php` · `resources/js/Pages/Jana/Painel.tsx` · verificado@dd3ed7c (2026-07-01) — tela Cockpit Analista IA (`/ia/painel`, charter live) existe, mas ainda com `buildMockPayload` (mock data); fluxo navegável real biz=4 + smoke + demo script a cliente piloto não confirmados (status todo)
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/DashboardController.php` · `resources/js/Pages/Jana/Dashboard.tsx` · verificado@ee54ee50373 (2026-08-06) — REANCORADA: apontava pro `PainelController`/`Painel.tsx`, removidos em 2026-08-06 [W] (onda 1 da fusão das telas da Jana). O receptor é o `/ia/dashboard`, que entrega o mesmo cockpit (brief · KPIs · análises · ações via `resources/js/Pages/Jana/_components/JanaCockpit.tsx`) porém com dado REAL do SellsCockpitAggregator — o Painel servia buildMockPayload(). Segue `_parcial_` pelo mesmo motivo de antes: smoke biz=4 + demo script a cliente piloto não confirmados (status todo)
 
 > owner: wagner · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
@@ -1977,3 +1977,28 @@ Escopo:
 **DoD:** nenhuma tabela da camada de IA promete no docblock o que o banco não garante, e nenhum código escreve em tabela que não existe.
 
 **Refs:** [ADR 0084](../../decisions/0084-triggers-mysql-imutabilidade-mcp-audit-log.md) · [ADR 0280](../../decisions/0280-postura-multi-tenant-tabelas-mcp-governanca.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · `ProjectMgmt/SPEC.md` PMG-012 · `TaskRegistry/SPEC.md` D1 · proibicoes.md §5 2026-07-17 (recibo datado, não número atemporal)
+
+---
+
+### US-COPI-148 · Fundir as telas da Jana numa tela única `/ia` com abas Painel | Conversa | Memória
+
+> owner: wagner · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — a onda 1 saiu no [PR #5357](https://github.com/wagnerra23/oimpresso.com/pull/5357) (2026-08-06), mas a US só ancora em código quando as 4 ondas fecharem e houver teste citando-a. Âncora de path real com `status: todo` avermelha o `anchor entry/covers` e o `doneness-lint` ao mesmo tempo — por isso `_pendente_` até o gate.
+
+**Origem:** pedido [CC] `JANA-FUSAO-2026-08-06`, ratificado [W] 2026-08-06. Hoje o módulo espalha a mesma capacidade por 4 superfícies (`/ia` chat · `/ia/cockpit` · `/ia/dashboard` · `/ia/painel`) e o nível de navegação entre elas é o que a fusão elimina. **Todo número abaixo foi medido no repo vivo em 2026-08-06** — o pedido original foi escrito contra um espelho local, e 4 pontos dele não batiam com `origin/main`.
+
+**✅ Onda 1 — ENTREGUE.** Removido o `/ia/painel`: era hub de 3 links + `buildMockPayload()`, com **0 hits** no ledger `governance/route-hits.json` (janela 30d) contra 4 do `/ia/dashboard` na mesma janela, e o link `/ia/chat` do próprio hub apontava pra rota inexistente. A capacidade tem receptor vivo — `/ia/dashboard` entrega brief · KPIs · análises · ações via `resources/js/Pages/Jana/_components/JanaCockpit.tsx`, alimentado pelo `SellsCockpitAggregator` com dado real. `US-COPI-106` reancorada no Dashboard. A `US-JANA-PAINEL-001` citada no charter/teste/`SCOPE.md` **nunca existiu neste SPEC** — era id fantasma.
+
+**⏳ Onda 2 — abas.** Estender `resources/js/Pages/Jana/components/JanaAreaHeader.tsx` + `resources/js/Pages/Jana/_shared/JanaSubNav.tsx` pro vocabulário `Painel | Conversa | Memória`. Os dois **já existem** e já servem as 4 telas (`Chat.tsx:268` · `Cockpit.tsx:963` · `Dashboard.tsx:271` · `Memoria.tsx:150`). ⛔ **Não criar `JanaTabs.tsx`** como o pedido propõe: seria máquina paralela a tema que já tem dono (classe LC-19, lápide §5 2026-08-03). Precedente de como fazer: a Governança saiu deste mesmo header pra strip própria em 2026-08-05.
+
+**⏳ Onda 3 — rename.** `Dashboard.tsx` → `Index.tsx` + `DashboardController` → `IndexController` + redirects 301 de `/cockpit` e `/dashboard` + conserto da âncora do SPEC + `DataController.php:204`, que é o **único** consumidor de código de `jana.dashboard.index`.
+
+**⏳ Onda 4 — destino do `Cockpit.tsx`** (1022 ln). ⚠️ **Medido, contra o que o pedido afirma:** o cockpit **não** está implementado 2×, são **3** arquivos — e `resources/js/Pages/Jana/components/JanaCockpitV2.tsx` serve a tab Insights de `/sells` (`resources/js/Pages/Sells/Index.tsx:55`), logo **não é duplicata da Jana e não pode ser apagado**. Apagar `Cockpit.tsx` exige remover junto `ChatController@cockpit`, que faz `Inertia::render('Jana/Cockpit')` em `Modules/Jana/Http/Controllers/ChatController.php:666`.
+
+**Fora da fusão** (ficam FOCO, sem abas): `/ia/pro` e `/ia/metas*`. **Superfície não tratada pelo pedido:** `/ia/alertas` · `/ia/alertas/config` · `/ia/superadmin/metas` · `/ia/admin/*`.
+
+**Pendências [W]** (herdadas do pedido, não são do [CL]): dados por empresa no protótipo — o mock é do Martinho nas três empresas; arquivar/renomear/apagar conversa; inserir fato manual; paginação da memória; período custom nas metas.
+
+**DoD:** `/ia` serve as 3 abas · nenhuma rota órfã (`route:list` sem `Jana/*` apontando pra Page inexistente) · charters fundidos com `casos.md` por aba · smoke real pós-deploy colado no PR de cada onda.
