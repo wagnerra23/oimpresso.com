@@ -3,7 +3,7 @@ date: "2026-08-08"
 hour: "19:36 BRT"
 topic: "O CI não estava saturado: promover 3 jobs a required no mesmo commit que removeu o `paths:` deixou 4 PRs esperando checks que nunca iam nascer — 2 dias de deadlock"
 authors: [C, W]
-prs: []
+prs: [5430, 5077, 5255]
 us: []
 outcomes:
   - "Causa raiz PROVADA: o commit 9199a82a12f (05/08, ADR 0370, PR #5318) removeu o `paths:` de module-surface.yml e catalog-graph.yml E promoveu 3 jobs deles a required no MESMO commit. PRs abertos antes disso tiveram os check-runs computados quando ainda havia filtro de path — os jobs nunca nasceram naquele SHA, e agora são exigidos. `Expected — waiting for status` permanente."
@@ -12,6 +12,8 @@ outcomes:
   - "Minha primeira hipótese (saturação de concorrência) foi REFUTADA por medição própria: o CI leva 48min de mediana por PR (medido em 9 PRs, 977 check-runs), a fila drenou sozinha de 378 para 150 durante a sessão, e os PRs de hoje fecharam com 0 pendentes. 1 PR custa 65,7 min de máquina contra 28.800 min-slot/dia de capacidade — daria 438 PRs/dia. LC-08 ocorrência 59."
   - "Consolidação de 65 jobs advisory em steps: AVALIADA e DESCARTADA por medição (workflow de 11 agentes, 3,1M tokens). Ganho real ~17% (não os ~60% que eu havia estimado) porque `services:` e `strategy.matrix` são job-level e não existem como step; e 4 céticos acharam 25 problemas, 2 deles bloqueadores que derrubariam o required `Governance Gate` no primeiro PR (Check G do registry + Check M do teto ADR 0298). Vira lápide §5."
   - "Gap estrutural registrado: `required-always-run.mjs` dá verde (41 required / 41 always-run / 0 filtrados) porque mede o MAIN. Ninguém mede se PRs JÁ ABERTOS conseguem satisfazer um check recém-promovido — e é isso que trava o repo inteiro."
+  - "Desfecho: dos 4 PRs travados, 3 mergearam sem uma linha de código alterada — 5068 sozinho (911e4cc8c4f, 07/08 21:22, horas após o update-branch), 5077 (c5fbc7f31e8) e 5255 (2318195c9a2) com autorização do [W]. O 5119 é draft e revelou 7 falhas próprias que o deadlock mascarava."
+  - "[W] pediu 'confira eles antes se ainda sao validos' — e CI verde NÃO responde isso. O teste certo é se o gap que o PR fecha ainda existe no main: o 5068 estava verde, mergeável e 100% redundante (arquivos byte-idênticos). Prática que fica: antes de mergear PR parado há dias, provar que o problema ainda existe no alvo."
 related_adrs: [0370-module-surface-catalog-graph-required-emenda-0314, 0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314, 0298-teto-de-governanca-anti-proliferacao-gates, 0271-revisao-gates-ci-estado-real-required-e-subtracao-segura]
 ---
 
@@ -212,6 +214,51 @@ construí a causa raiz em cima disso.
 
 Nas três, o padrão é o mesmo e é o que o LC-08 já descreve: **o instrumento respondeu uma
 pergunta parecida com a que eu fiz, e devolveu um número** — e número dá confiança.
+
+---
+
+## 8. Desfecho — e a pergunta do [W] que evitou um merge inútil
+
+Com os 4 PRs destravados e verdes, ofereci mergear. O [W] respondeu: ***"confira eles antes se ainda sao validos"***.
+
+Era a pergunta certa, e **CI verde não a responde**. Um PR de 5 a 8 dias pode ter sido
+superado por outro trabalho — e aí verde significa só *"não quebra nada"*, nunca *"ainda serve"*.
+O teste que responde é outro: **o problema que o PR resolve ainda existe no `main`?**
+
+| PR | aberto desde | veredito | prova |
+|---|---|---|---|
+| **5068** | 30/07 | ⚫ **redundante — já mergeado** | `state=MERGED` em 07/08 21:22 (`911e4cc8c4f`); os 3 arquivos **byte-idênticos** ao main |
+| **5077** | 30/07 | ✅ válido | o main **não** tinha tratamento de `heredoc` no hook — o bug seguia vivo |
+| **5255** | 03/08 | ✅ válido | o main **não** tinha `ehPlaceholderDePath` — o gap seguia aberto |
+| **5119** | 31/07 | ⏸ draft | destravou, mas apareceram **7 falhas próprias** |
+
+Mergeados com autorização do [W]: **5077** (`c5fbc7f31e8`) e **5255** (`2318195c9a2`) — confirmados
+no main **pelo conteúdo**, não pelo status (`gh pr merge` não imprimiu nada, e saída vazia não é
+prova; §5 2026-08-01).
+
+**Placar:** dos 4 travados, **3 mergearam sem uma linha de código alterada** — só faltava a branch
+enxergar os workflows novos. O **5068 mergeou sozinho** horas depois do `update-branch`, antes
+mesmo de eu conferir: o fix se pagou sem intervenção.
+
+### O quase-erro que a conferência produziu (e por que não virou lápide nova)
+
+Minha primeira comparação disse que os 3 arquivos do 5068 **"não existiam em um dos lados"** —
+o que me levaria a concluir que ele ainda era necessário e **recomendar merge de um PR morto**.
+
+Era falso: **MSYS mangling** no Git Bash — `git show <ref>:<path>` devolve stdout **vazio** porque
+o `:` é convertido. A assinatura é exata e já está catalogada (§5 2026-07-31/08-01 + nota de
+auto-mem): **`ls-tree` acha o blob e `show` volta vazio**. Refeito com `MSYS_NO_PATHCONV=1` **e um
+controle positivo** (140 linhas) antes de confiar em qualquer comparação, os 3 saíram idênticos.
+
+Não vira lápide nova — a classe já existe e a regra já está escrita. Fica como **recibo-instância**
+(precedente de forma: §5 2026-07-22): o valor aqui é que o controle positivo *antes* de interpretar
+foi o que separou "arquivo não existe" de "meu comando não funcionou".
+
+### O que fica como prática, não como gate
+
+**Antes de mergear PR parado há dias, provar que o gap que ele fecha ainda existe no alvo.** Não
+propus máquina: o predicado é semântico (*"isso ainda é necessário?"*) e a família de guard
+sintático já morreu 5× no §5. A defesa é a pergunta — que foi do [W], não minha.
 
 ---
 
