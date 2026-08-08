@@ -149,6 +149,46 @@ export function contextsDoWorkflow(srcCru) {
   return out;
 }
 
+// ── `name:` que quebra o parser do GitHub — o caso EXTREMO deste mesmo lint ──
+// Este script pergunta "o context required NASCE?". Um workflow que **não parseia**
+// é a forma mais severa de não-nascer: o run sai `startup_failure` com ZERO jobs,
+// nenhum step reporta nada porque nenhum step chega a existir, e a lane inteira
+// morre em silêncio — em toda branch, inclusive `main`.
+//
+// Aconteceu em 2026-08-08 (#5424): `- name: Censo Blade->React (bite: resource-string
+// … NEG: json/ciclo/mailable)`. Escalar YAML **puro** (não citado) não aceita
+// dois-pontos-espaço: o `bite: ` vira chave de mapa e o arquivo todo deixa de
+// parsear (`bad indentation of a mapping entry (53:39)`). 46 `success` no dia
+// anterior → 47 `failure` no dia. E a lane morta escondeu 2 outras dívidas do
+// próprio PR, porque era ela que as vigiava.
+//
+// POR QUE TEXTUAL, e não `js-yaml`: o `js-yaml` **não é dependência declarada**
+// (nem `dependencies` nem `devDependencies` — resolve só transitivamente) e o
+// `governance-script-tests.yml` não roda `npm ci`. Vale aqui a mesma razão do
+// cabeçalho: um lint que só roda onde há `npm ci` é um lint que não roda.
+//
+// FP MEDIDO ANTES DE ARMAR (2026-08-08, 121 workflows): escopo `name:` → **0 hits**.
+// O escopo largo (qualquer chave) daria 17, TODOS legítimos — comentário depois do
+// valor (`true   # advisory: …`) e flow mapping (`{ fetch-depth: 0 }`) —, por isso
+// o escopo é `name:`, que é onde mora prosa livre. Comentário é removido antes de
+// medir (em escalar puro, ` #` inicia comentário, então o `: ` de dentro dele não conta).
+//
+// LIMITE HONESTO: pega esta família (dois-pontos-espaço em `name:` não citado), não
+// "todo YAML inválido" — indentação torta, tab, aspas não fechadas passam. E se o
+// workflow QUEBRADO for o que hospeda este lint, ele não roda pra se denunciar.
+export function nomesQueQuebramOParser(src, arquivo = '') {
+  const achados = [];
+  src.split('\n').forEach((linha, i) => {
+    const m = linha.replace(/\r$/, '').match(/^(\s*-?\s*)name:\s+(.+)$/);
+    if (!m) return;
+    const valor = m[2].replace(/\s+#.*$/, '').trim();     // ` #` = comentário em escalar puro
+    if (!valor || /^["'|>&*]/.test(valor)) return;        // citado, block scalar ou âncora = seguro
+    if (!/: /.test(valor)) return;
+    achados.push({ arquivo, linha: i + 1, valor });
+  });
+  return achados;
+}
+
 function auditar(root = ROOT) {
   const baseP = join(root, 'governance', 'required-checks-baseline.json');
   // O baseline guarda o required em DUAS chaves — `classic_protection` (branch protection
@@ -164,8 +204,10 @@ function auditar(root = ROOT) {
   ])];
   const dir = join(root, '.github', 'workflows');
   const mapa = new Map();                                   // context → {arquivo, gatilho, via}
+  const parserQuebrado = [];                                // `name:` que mata o workflow inteiro
   for (const f of readdirSync(dir).filter((x) => /\.ya?ml$/.test(x))) {
     const src = readFileSync(join(dir, f), 'utf8');
+    parserQuebrado.push(...nomesQueQuebramOParser(src, f));
     const g = gatilhoPR(src);
     for (const c of contextsDoWorkflow(src)) {
       if (!mapa.has(c.context)) mapa.set(c.context, { arquivo: f, gatilho: g, via: c.via });
@@ -179,7 +221,7 @@ function auditar(root = ROOT) {
     else if (!m.gatilho.temPR) semPR.push({ ctx, ...m });
     else ok.push({ ctx, ...m });
   }
-  return { required, filtrados, semPR, naoResolvidos, ok };
+  return { required, filtrados, semPR, naoResolvidos, ok, parserQuebrado };
 }
 
 // ── selftest: fixtures herméticas, com controle negativo ────────────────────
@@ -248,6 +290,33 @@ function selftest() {
     writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
       JSON.stringify({ classic_protection: { contexts: ['Job A'] }, rulesets: { contexts: ['Job A'] } }));
     ok(auditar(dir).required.length === 1, 'context repetido nas 2 chaves conta 1× (união, não concatenação)');
+    // ── `name:` que quebra o parser (2026-08-08 · #5424) ────────────────────
+    // A linha REAL que matou a lane, verbatim. Se este assert cair, o lint parou
+    // de pegar o incidente que o originou.
+    const quebra = '      - name: Censo Blade->React (bite: resource-string, namespace de grupo, indirecao $this-> · NEG: json/ciclo/mailable)';
+    ok(nomesQueQuebramOParser(quebra).length === 1,
+      'MORDE: `name:` não citado com `: ` (a linha real do #5424)');
+    ok(nomesQueQuebramOParser(quebra.replace(/\r?$/, '\r')).length === 1,
+      'MORDE em CRLF também (o repo é Windows)');
+    // controles negativos — cada um é uma forma LEGÍTIMA que não pode acusar
+    ok(nomesQueQuebramOParser("      - name: 'Censo (bite: x · NEG: y)'").length === 0,
+      'LIBERA: o mesmo texto CITADO (é o conserto — não pode seguir vermelho)');
+    ok(nomesQueQuebramOParser('      - name: Roda o guard   # advisory: não derruba').length === 0,
+      'LIBERA: `: ` dentro de COMENTÁRIO (em escalar puro ` #` inicia comentário)');
+    ok(nomesQueQuebramOParser('      - name: ${{ matrix.label }}').length === 0,
+      'LIBERA: expressão de matrix (sem dois-pontos-espaço)');
+    ok(nomesQueQuebramOParser('      - name: Passo simples\n  name: Workflow X').length === 0,
+      'LIBERA: `name:` comum, no step e no topo do workflow');
+    ok(nomesQueQuebramOParser('        run: node x.mjs --a b: c').length === 0,
+      'LIBERA: outra chave que não `name:` (escopo medido — 17 hits legítimos fora dele)');
+    // E2E: o arquivo quebrado derruba o auditar() inteiro, não só a função pura
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'),
+      semPaths.replace('name: Job A', 'name: Job A (bite: x)'));
+    ok(auditar(dir).parserQuebrado.length === 1,
+      'BITE E2E: auditar() acusa o workflow que não parsearia');
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), semPaths);
+    ok(auditar(dir).parserQuebrado.length === 0, 'LIBERA E2E: árvore limpa não acusa');
+
     // controle: baseline sem a chave `rulesets` segue funcionando (retrocompat)
     writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
       JSON.stringify({ classic_protection: { contexts: ['Job A'] } }));
@@ -283,7 +352,17 @@ function main() {
 const r = auditar();
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify(r, null, 2));
-  process.exit(r.filtrados.length ? 1 : 0);
+  process.exit(r.filtrados.length || r.parserQuebrado.length ? 1 : 0);
+}
+
+if (r.parserQuebrado.length) {
+  console.log(`\n  ❌ ${r.parserQuebrado.length} \`name:\` NÃO CITADO com dois-pontos-espaço — o workflow inteiro deixa de parsear:\n`);
+  for (const p of r.parserQuebrado) console.log(`     ${p.arquivo}:${p.linha}\n       name: ${p.valor}`);
+  console.log(`\n  Escalar YAML puro não aceita \`: \` — vira chave de mapa e o run sai \`startup_failure\``);
+  console.log(`  com ZERO jobs: nenhum step reporta nada porque nenhum step chega a existir, em toda`);
+  console.log(`  branch inclusive \`main\` (incidente 2026-08-08 · #5424).`);
+  console.log(`  CONSERTO: cite o valor — \`- name: 'Texto (com: dois-pontos)'\`.\n`);
+  process.exit(1);
 }
 
 console.log(`\n  REQUIRED ALWAYS-RUN — ${r.required.length} contexts required · ${r.ok.length} always-run · ${r.filtrados.length} FILTRADO(s) · ${r.naoResolvidos.length} não-resolvido(s)\n`);
