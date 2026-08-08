@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-08-08"
 last_run_ci: "0 UC executado — UC-FUNI-01..04 nascem neste PR; veredito pendente da lane PHP / Pest (Financeiro · MySQL)"
 sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ---
@@ -160,3 +160,7 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - 2026-07-10 · [CC] revalidado (bump last_run): pacote fidelidade proto (mandato [W] "zerar diferenças", charter v19) — (a) rodapé/toggles dark theme-aware (`white`→`var(--surface)` em fin-cowork.css; emoji 🗄→lucide Archive); (b) ícones opt-in nas abas da subnav; (c) segmented 12.5px/500/600 + sombra do ativo; (d) IBM Plex Mono nos números (KPI/Valor/rodapé); (e) doc-chip inline NFe/Doc (dado do payload, zero backend). SÓ apresentação (className/CSS/ícone; zero lógica/valor/rota — REGRA MESTRE n/a). UC-F01..04 (fluxo backend + bulk) intocados — seguem ✅ por RetencaoLoopE2ETest + UnificadoBulkGuardTest.
 - 2026-07-09 · [CC] revalidado (bump last_run): fix "duas cores" no header/footer da lista ([W] screenshot anotado) — remove o tint `bg-muted/30` do `<thead>` e `bg-muted/40` do rodapé de paginação, que no dark liam mais escuros que o card (2ª cor emoldurando topo/fim). Agora header/footer herdam a cor do card (1 cor), separados só pela régua `border-b`/`border-t`. SÓ cor/className (diff = 2 classes removidas; zero lógica/valor — REGRA MESTRE n/a). UC-F01..04 (fluxo backend + bulk) intocados — seguem ✅ por RetencaoLoopE2ETest + UnificadoBulkGuardTest.
 - 2026-07-14 · [CC] US-FIN-038 PR1/3 (Visão Unificada): novo **UC-F05** — pill "Conta indefinida" na coluna Conta (linha + drawer) quando a baixa tem `conta_bancaria_id NULL` (ADR 0175), CTA pra cadastro de conta. Backend `shapeTitulo.conta_indefinida` (booleano de exibição; zero valor/estoque — REGRA MESTRE n/a). GUARD real `UnificadoContaIndefinidaGuardTest` (G1 null→pill · G2 vinculada→sem pill · G3 sem baixa→sem pill) na allowlist financeiro-pest. ContasReceber/Cobranca herdam o componente nas PRs 2/3 (US-FIN-038 segue `doing`). UC-F01..04 intocados.
+- 2026-08-08 · [CC] revalidado (bump `last_run`): 1 palavra de COMENTÁRIO — a referência ao
+  `FinanceiroPrimaryButton` (shim deletado neste PR) passou a apontar `PageHeaderPrimary`. O botão
+  "Novo título" desta tela NÃO mudou (segue o fix inline de 2026-07-07). UC-F01..03 são do fluxo
+  backend venda→título→caixa, intocados — seguem ✅ pelo mesmo RetencaoLoopE2ETest.
