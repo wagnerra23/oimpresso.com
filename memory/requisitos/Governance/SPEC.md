@@ -1220,12 +1220,27 @@ A regra manda **apresentar o impacto e só aplicar após confirmação**. Foram 
 
 Uma permissão gateia os dois. Reaproveitar a irmã declarada `stock_report.view` seria **errado**: é permissão de leitura e passaria a autorizar ajuste de estoque — exatamente o "`access_*` é leitura, não autoriza deletar" que o método proíbe. Mas declarar `report.stock_details` como está tem o problema espelhado: o **nome diz relatório e o efeito inclui mutação de estoque** — vira armadilha para quem marcar o checkbox achando que concedeu leitura.
 
-As duas saídas, e nenhuma é minha para escolher:
+As duas saídas eram:
 
 - **(i)** declarar `report.stock_details` como está — 1 linha, preserva a semântica atual exata, e a armadilha do nome fica registrada;
 - **(ii)** separar: `report.stock_details` para a leitura e um nome explícito de mutação (ex.: `stock.adjust_mismatch`) para o `adjustProductStock`.
 
-Recomendo **(ii)** por ser o desenho correto, com a ressalva honesta de que ela mexe em quem pode mutar estoque e por isso pede o ciclo completo da regra-mestre (dupla confirmação + antes→depois por registro afetado). **Decisão [W].**
+**RESOLVIDO em 2026-08-08 — escolhida a (ii), com uma emenda que a torna delta-zero.**
+
+A (ii) crua ainda tinha um custo que a redação original não tinha isolado: **declarar `stock.adjust_mismatch` como checkbox tornaria concedível uma escrita de estoque** que (a) roda em **GET sem CSRF**, (b) **sobrescreve** o saldo em vez de movimentar e (c) **não deixa rastro no kardex** (`AR-PROD-064` exige origem + usuário em cada movimento) — os três já registrados como backlog em [`ajuste-estoque-relatorio.casos.md`](../Produto/_telas/ajuste-estoque-relatorio.casos.md). Ampliar quem pode chamar isso é exatamente o que a regra-mestre existe para impedir.
+
+**A emenda:** separar os nomes **sem declarar o de mutação**.
+
+| | antes | depois |
+|---|---|---|
+| `productStockDetails` (leitura) | gate `report.stock_details` — **não declarada** ⇒ só admin | gate `report.stock_details` — **declarada** ⇒ concedível a não-admin |
+| `adjustProductStock` (**escrita de estoque**) | gate `report.stock_details` ⇒ só admin | gate **`stock.adjust_mismatch`** — deliberadamente **não declarada** ⇒ **segue só admin** |
+
+**Antes → depois por registro afetado: conjunto vazio.** Medido em produção: **0 roles** possuíam `report.stock_details`, logo ninguém perde nem ganha nada no deploy. A mutação preserva a semântica **exata** de hoje (só admin, via `Gate::before`); o que muda é que a **leitura** deixa de ser refém do nome e pode ser concedida.
+
+**Onde `stock.adjust_mismatch` fica:** no grupo **"idioma `Gate::before`"** — o mesmo precedente que esta US já estabeleceu para `admin`/`only_admin`/`edit_essentials_settings`/`subscribe`: nome não declarado **de propósito**, com razão escrita, que o detector reporta por enxergar metade do mecanismo. A razão está no docblock do próprio método.
+
+**O que NÃO foi feito, e é dito de propósito:** a separação entrou **sem teste**. O caso que a provaria — *"quem tem `report.stock_details` não consegue reconciliar saldo"* — é o caso negativo que o `casos.md` já lista como pendente (exige fixture de user não-admin, pendência compartilhada com o trio do `BulkEdit`). Montá-la é trabalho novo, não parte da decisão. Enquanto não existir, o que segura a separação é o `permission-drift` reportando a órfã com razão escrita — **sinal, não gate**.
 
 ##### Contador e o que sobra
 
@@ -1237,6 +1252,9 @@ Recomendo **(ii)** por ser o desenho correto, com a ressalva honesta de que ela 
 |---|---:|---:|
 | `origin/main` (base) | 367 | **16** |
 | base + `edit_purchase_price` declarada | 368 | **15** |
+| + separação `report.stock_details` / `stock.adjust_mismatch` | 369 | **15** |
+
+> A 3ª linha **não move o contador de propósito, e isso é o desenho, não um empate**: `report.stock_details` sai da lista (foi declarada) e `stock.adjust_mismatch` entra (não declarada de propósito). Conferido no detector que a leitura **não virou "teatro"** — ela segue *usada* pelo `productStockDetails`, então declarar não trocou um problema pelo outro.
 
 > O `17` acima é o **retrato de ontem** e fica como está (é história, não afirmação em presente). A base de hoje mede **16**: o `ponto.importacoes.criar` já não aparece na lista. **Não investiguei qual PR o tirou** — registro o fato medido, não a causa.
 
@@ -1245,11 +1263,10 @@ Composição das **15**, conferida item a item contra a saída do detector:
 | grupo | n | estado |
 |---|---:|---|
 | scaffolding classe C (endpoint não ligado) | 7 | `arquivos.restore` · `auditoria.{export,note.write,revert}` · `brief.{history.view,purge}` · `crm.proposal.delete` — resíduo declarado, razão acima |
-| idioma `Gate::before` | 4 | `admin` · `only_admin` · `edit_essentials_settings` · `subscribe` — resíduo declarado, declarar seria nocivo |
+| idioma `Gate::before` | 5 | `admin` · `only_admin` · `edit_essentials_settings` · `subscribe` · **`stock.adjust_mismatch`** — resíduo declarado, declarar seria nocivo |
 | scaffolding classe D (`visit.*`) | 3 | resíduo declarado + achado de fail-open anexado |
-| **`report.stock_details`** | **1** | decisão registrada acima; **aplicação em PR próprio** (mexe em gate de mutação de estoque, intent separada) |
 
-Ou seja: das 15, **14 têm razão escrita para ficar** e 1 tem PR próprio a caminho. A classe D está triada.
+Ou seja: das 15, **as 15 têm razão escrita para ficar**. A classe D está triada e **as 2 pendências de [W] estão resolvidas** — não sobra órfã sem razão.
 
 ##### Achados adjacentes — registrados, não corrigidos (outro escopo)
 
