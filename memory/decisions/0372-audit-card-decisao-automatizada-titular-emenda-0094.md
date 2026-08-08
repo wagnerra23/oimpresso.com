@@ -3,7 +3,7 @@ slug: 0372-audit-card-decisao-automatizada-titular-emenda-0094
 number: 372
 title: "Emenda à 0094 — princípio 9 (Audit Card): decisão automatizada que afeta titular exige registro, identificação e revisão humana (LGPD Art. 20)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

@@ -1398,8 +1398,16 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
-                {!! Form::checkbox('permissions[]', 'stock_report.view', in_array('stock_report.view', $role_permissions), 
+                {!! Form::checkbox('permissions[]', 'stock_report.view', in_array('stock_report.view', $role_permissions),
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.stock_report.view' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'report.stock_details', in_array('report.stock_details', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.report.stock_details' ) }}
               </label>
             </div>
           </div>
