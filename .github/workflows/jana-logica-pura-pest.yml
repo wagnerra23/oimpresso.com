@@ -75,7 +75,7 @@ permissions:
 
 jobs:
   pest:
-    name: Pest Jana lógica pura (event-time + histórico + audit-chain)
+    name: Pest lógica pura (event-time · histórico · audit-chain · migração Blade)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -122,7 +122,7 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (Jana lógica pura — 10 suites Unit)
+      - name: Run Pest (lógica pura — 11 suites Unit)
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
