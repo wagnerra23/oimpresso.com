@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { cn, formatMinutes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
-import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
+import { PageHeaderPrimary } from '@/Components/PageHeader';
 import { Grid } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -141,9 +141,7 @@ export default function DashboardIndex({
           </div>
           <div className="os-page-h-r">
             <PontoSubNav active="dashboard" hidePrimary />
-            <PontoPrimaryButton onClick={() => router.visit('/ponto')}>
-              Bater ponto
-            </PontoPrimaryButton>
+            <PageHeaderPrimary label="Bater ponto" onClick={() => router.visit('/ponto')} />
           </div>
         </header>
 
