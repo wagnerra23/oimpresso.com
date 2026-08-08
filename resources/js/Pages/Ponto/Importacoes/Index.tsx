@@ -17,7 +17,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { formatBytes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
-import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
+import { PageHeaderPrimary } from '@/Components/PageHeader';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
 
@@ -67,9 +67,7 @@ export default function ImportacoesIndex({ importacoes }: Props) {
           </div>
           <div className="os-page-h-r">
             <PontoSubNav active="importacoes" hidePrimary />
-            <PontoPrimaryButton onClick={() => router.visit('/ponto/importacoes/novo')}>
-              Nova importação
-            </PontoPrimaryButton>
+            <PageHeaderPrimary label="Nova importação" onClick={() => router.visit('/ponto/importacoes/novo')} />
           </div>
         </header>
 

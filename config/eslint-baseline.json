@@ -290,7 +290,6 @@
     "resources/js/Pages/Ponto/Relatorios/Index.tsx|no-restricted-syntax": 1,
     "resources/js/Pages/Ponto/_components/ActivityFeed.tsx|@typescript-eslint/no-unused-vars": 1,
     "resources/js/Pages/Ponto/_components/MonthHeatmap.tsx|no-restricted-syntax": 2,
-    "resources/js/Pages/Ponto/_shared/PontoPrimaryButton.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Ponto/_shared/PontoSubNav.tsx|@typescript-eslint/no-explicit-any": 1,
     "resources/js/Pages/Produto/BulkEdit.tsx|@typescript-eslint/no-unused-vars": 1,
     "resources/js/Pages/Produto/BulkEdit.tsx|no-restricted-syntax": 17,
