@@ -1,0 +1,32 @@
+{
+  "schema": "nightly-coverage/v1 (SDD P07 · ADR 0275)",
+  "coverage_pct": 19.7,
+  "covered": 46266,
+  "total": 234924,
+  "runs": [
+    {
+      "sha": "b611860f",
+      "ts": "20260806-020001",
+      "coverage_pct": 20.3,
+      "covered": 47599,
+      "total": 234984
+    },
+    {
+      "sha": "4a70c2db",
+      "ts": "20260807-020001",
+      "coverage_pct": 19.9,
+      "covered": 46714,
+      "total": 234912
+    },
+    {
+      "sha": null,
+      "ts": "20260808-020001",
+      "coverage_pct": 19.7,
+      "covered": 46266,
+      "total": 234924
+    }
+  ],
+  "computed_at": "20260808-020001",
+  "measured_of": 3,
+  "note": "coverage_pct = line-rate do clover mais recente valido (suite inteira CT100 · 3 run(s) na janela)"
+}
