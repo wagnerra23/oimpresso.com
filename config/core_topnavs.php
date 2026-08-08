@@ -107,6 +107,12 @@ return [
             // (Resources/menus/topnav.php) foi removido, este é o ÚNICO que casa
             // /team-mcp/* no useAutoModuleNav — então a nav é a mesma em todo o hub.
             // badge=3 ESTÁTICO (sementes FORJA); contador vivo via `triagemCount` na aba.
+            // Aprovações — 2026-08-08. Superfície do funil de admissão (ADR 0368):
+            // o que espera decisão de [W] (`mcp_tasks.status = pending_approval`),
+            // mais antigo primeiro. Vem PRIMEIRO porque é a fila que custa parada.
+            // SEM badge estático aqui: a contagem é viva (prop deferida `contagem`)
+            // — número chumbado em config é o vício que a Triagem abaixo carrega.
+            ['label' => 'Aprovações',  'href' => '/forja/aprovacoes',     'icon' => 'Gavel',         'can' => 'jana.mcp.usage.all'],
             ['label' => 'Triagem',     'href' => '/forja',                'icon' => 'Inbox',         'can' => 'jana.mcp.usage.all', 'badge' => 3],
             ['label' => 'Backlog',     'href' => '/forja/backlog',        'icon' => 'List',          'can' => 'jana.mcp.usage.all'],
             ['label' => 'Quadro',      'href' => '/forja/quadro',         'icon' => 'KanbanSquare',  'can' => 'jana.mcp.usage.all'],

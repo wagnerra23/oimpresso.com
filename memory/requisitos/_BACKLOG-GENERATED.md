@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **880 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **881 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -26,7 +26,7 @@
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
-| [`Forja`](#forja) | 17 | 0 | 1 | 0 | 7 |
+| [`Forja`](#forja) | 18 | 0 | 1 | 0 | 7 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
@@ -831,6 +831,7 @@
 - **US-FORJA-002** — Política de expurgo (usar o `cancelled` que já existe) _(`p0` · @[W])_
 - **US-FORJA-005** — Rito de cycle — reativar ou aposentar (decisão [W], 0h de código) _(`p0` · @[W])_
 - **US-FORJA-009** — Pôr os testes da Forja numa lane de CI (41+ nunca executam) _(`p0` · @[W])_
+- **US-FORJA-010** — Mesa de Aprovações — a superfície do funil de admissão _(`p0` · @[W])_
 - **US-FORJA-003** — Estender `mcp:tasks:unassigned` (idade + delta semanal) _(`p1` · @[W])_
 - **US-FORJA-004** — Ligar a superfície do alarme de `review` parado (o detector já existe) _(`p1` · @[W])_
 - **US-FORJA-006** — Sobreposição cockpit `/forja` × telas nativas (decisão [W] + código) _(`p1` · @[W])_
