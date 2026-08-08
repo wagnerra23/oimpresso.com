@@ -62,10 +62,15 @@ it('mantem no path as migrations das tabelas que os crons de governanca escrevem
         'mcp_sdd_scorecard_history',  // governance:sdd-scorecard-snapshot (CT 100)
     ];
 
-    foreach ($tabelas as $tabela) {
-        expect($arquivos)->toContain(
-            $tabela,
-            "migration de `{$tabela}` sumiu de Modules/Governance/Database/Migrations"
-        );
-    }
+    // ⚠️ NÃO usar `toContain($tabela, "mensagem")`: `toContain` é VARIÁDICO no Pest
+    // (`Mixins/Expectation.php` — `foreach ($needles as $needle)`), então a mensagem
+    // vira um 2º needle e o assert falha SEMPRE. É a lápide §5 2026-07-28 — caí nela
+    // ao escrever este arquivo e o CI pegou (`To contain: migration de ... sumiu de`).
+    // Aqui o diagnóstico vem do próprio array: a saída do fail nomeia qual tabela.
+    $faltando = array_values(array_filter(
+        $tabelas,
+        fn (string $t): bool => ! str_contains($arquivos, $t)
+    ));
+
+    expect($faltando)->toBe([]);
 });
