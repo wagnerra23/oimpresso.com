@@ -1587,7 +1587,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   (cowork-canon-financeiro-bundle.css). Logo o `var(--accent)` nunca era
                   aplicado (botão ghost) e, quando era, herdava o `--accent` tweakável do
                   AppShellV2 (magenta 330 no browser do Wagner). Estilo inline = imune ao
-                  escopo E ao Tweaks slider, travado no roxo 295 canon (== FinanceiroPrimaryButton). */}
+                  escopo E ao Tweaks slider, travado no roxo 295 canon (== PageHeaderPrimary). */}
               {/* Smoke dark 2026-07-07 [W] "botão desconfigurado": além da COR, o LAYOUT
                   do .os-btn também é escopado .fin-cowork — fora do wrapper o botão
                   rendia nu (padding 0, radius 0, 66px, texto em 2 linhas). Layout do
