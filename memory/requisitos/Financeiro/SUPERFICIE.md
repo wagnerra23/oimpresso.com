@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Financeiro/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 335 arquivos em 22 papéis.
+**Total mapeado:** 334 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -208,7 +208,7 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)
 - [Novo.tsx](../../../resources/js/Pages/Financeiro/Unificado/Novo.tsx)
 
-## Componentes / apoio de tela — 39
+## Componentes / apoio de tela — 38
 
 - [CategoriaSheet.tsx](../../../resources/js/Pages/Financeiro/Categorias/components/CategoriaSheet.tsx)
 - [AiResumoMes.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/AiResumoMes.tsx)
@@ -247,7 +247,6 @@ module: Financeiro
 - [TituloEditSheet.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/TituloEditSheet.tsx)
 - [useFinFavs.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/useFinFavs.tsx)
 - [FinStatStrip.tsx](../../../resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx)
-- [FinanceiroPrimaryButton.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroPrimaryButton.tsx)
 - [FinanceiroSubNav.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx)
 
 ## Charters (lei da tela) — 21
