@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Ponto/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 201 arquivos em 18 papéis.
+**Total mapeado:** 200 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -135,13 +135,12 @@ module: Ponto
 - [Index.tsx](../../../resources/js/Pages/Ponto/Relatorios/Index.tsx)
 - [Welcome.tsx](../../../resources/js/Pages/Ponto/Welcome.tsx)
 
-## Componentes / apoio de tela — 6
+## Componentes / apoio de tela — 5
 
 - [ActivityFeed.tsx](../../../resources/js/Pages/Ponto/_components/ActivityFeed.tsx)
 - [AlertInbox.tsx](../../../resources/js/Pages/Ponto/_components/AlertInbox.tsx)
 - [MonthHeatmap.tsx](../../../resources/js/Pages/Ponto/_components/MonthHeatmap.tsx)
 - [PresenceStrip.tsx](../../../resources/js/Pages/Ponto/_components/PresenceStrip.tsx)
-- [PontoPrimaryButton.tsx](../../../resources/js/Pages/Ponto/_shared/PontoPrimaryButton.tsx)
 - [PontoSubNav.tsx](../../../resources/js/Pages/Ponto/_shared/PontoSubNav.tsx)
 
 ## Charters (lei da tela) — 20

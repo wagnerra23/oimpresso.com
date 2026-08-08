@@ -33,7 +33,7 @@
 
 import { useState, type ReactNode } from 'react';
 import JanaSubNav from '@/Pages/Jana/_shared/JanaSubNav';
-import JanaPrimaryButton from '@/Pages/Jana/_shared/JanaPrimaryButton';
+import { PageHeaderPrimary } from '@/Components/PageHeader';
 import { PageHeader } from '@/Components/PageHeader';
 import { router } from '@inertiajs/react';
 
@@ -125,6 +125,17 @@ export function JanaAreaHeader({
       // não traz isso por default, então preservamos via className pra não
       // regredir o comportamento de scroll das 3 telas.
       className="sticky top-0 z-10 bg-card/95 backdrop-blur"
+      // Dot da área (hue 220 = SIDEBAR_GROUP_HUE.ia). Estava no header antigo,
+      // sumiu na 1ª versão desta onda porque o PageHeader canon não tinha slot
+      // — [W] pediu de volta ao ver a tela em prod (2026-08-08). Voltou pelo
+      // slot `leading` opt-in, não por header hand-rolado fora do padrão.
+      leading={
+        <span
+          aria-hidden
+          className="mr-2 inline-block size-2 shrink-0 rounded-full align-middle"
+          style={{ background: 'oklch(0.62 0.13 220)' }}
+        />
+      }
       title="Jana"
       suffix=" · Analista IA"
       subtitle={
@@ -156,11 +167,14 @@ export function JanaAreaHeader({
       actions={
         <>
           {actions}
-          {/* primary "Conversar" hue 220 azul (canon ADR 0182).
-              Onda 3: destino passou de `/ia` (que virou o Painel) pra `/ia/conversa`. */}
-          <JanaPrimaryButton onClick={() => router.visit('/ia/conversa')}>
-            Conversar
-          </JanaPrimaryButton>
+          {/* primary "Conversar" roxo 295 universal (ADR 0190, supersede o hue 220
+              azul da ADR 0182). Onda 3: destino passou de `/ia` (que virou o Painel)
+              pra `/ia/conversa`.
+              2026-08-08: migrado do shim JanaPrimaryButton pro canon <PageHeaderPrimary>.
+              O shim emitia `.os-btn primary`, mas no CSS servido a única família de
+              regras `.os-btn` é escopada `.sells-cowork` → nenhuma casava e o botão
+              rendia nu (medido em /ia/memoria: padding 0, radius 0, texto em 2 linhas). */}
+          <PageHeaderPrimary label="Conversar" onClick={() => router.visit('/ia/conversa')} />
         </>
       }
     />
