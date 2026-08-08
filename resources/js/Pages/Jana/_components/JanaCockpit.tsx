@@ -20,11 +20,9 @@ import {
   Calendar,
   ClipboardList,
   CreditCard,
-  Download,
   Lightbulb,
   MessageSquare,
   Search,
-  Settings,
   Sparkles,
   Target,
   TrendingDown,
@@ -63,8 +61,6 @@ export interface JanaCockpitProps {
     totalAReceber: number;
   };
   userName?: string;
-  businessName?: string;
-  businessId?: number;
 }
 
 const fmtBRL = (n: number) =>
@@ -79,9 +75,6 @@ const greeting = (): string => {
   if (h < 18) return 'Boa tarde';
   return 'Boa noite';
 };
-
-const formatTimeShort = (): string =>
-  new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
@@ -152,8 +145,8 @@ export default function JanaCockpit({
   coworkAggregates,
   insightsAggregates,
   userName,
-  businessName,
-  businessId,
+  // `businessName`/`businessId` saíram junto com o header próprio (onda de
+  // fusão 2026-08-07) — quem os exibe agora é o `JanaAreaHeader`.
 }: JanaCockpitProps): ReactNode {
   // ── Brief calculations (idêntico ao V2) ──────────────────────────────────
   const faturadoHoje = coworkAggregates?.faturadoHojeTotal ?? 0;
@@ -251,40 +244,16 @@ export default function JanaCockpit({
 
   return (
     <div className="space-y-4">
-      {/* Header do cockpit ─────────────────────────────────────────────────── */}
-      <header className="flex flex-wrap items-center gap-3">
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
-          <Sparkles size={22} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold text-foreground">
-            Jana <span className="mx-0.5 text-muted-foreground">·</span> Analista IA
-          </h2>
-          <p className="mt-0.5 font-mono text-[11px] tracking-wide text-muted-foreground">
-            <span className="font-semibold text-muted-foreground">
-              {(businessName || 'OIMPRESSO').toUpperCase()}
-            </span>
-            {businessId != null && (
-              <>
-                <span className="mx-1.5 opacity-40">·</span>biz={businessId}
-              </>
-            )}
-            <span className="mx-1.5 opacity-40">·</span>v2026.05
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="mr-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-success" />
-            Atualizado {formatTimeShort()}
-          </span>
-          <Button variant="outline" size="sm" title="Configurar Brain B Jana (em breve)">
-            <Settings size={13} /> Configurar
-          </Button>
-          <Button size="sm" title="Exportar relatório (em breve)">
-            <Download size={13} /> Exportar
-          </Button>
-        </div>
-      </header>
+      {/* Header do cockpit — REMOVIDO na onda de fusão (2026-08-07, US-COPI-148).
+          Era a SEGUNDA barra da tela: identidade (Jana · Analista IA + business +
+          biz) e ações (Atualizado / Configurar / Exportar) duplicavam o que já
+          estava logo acima, e nenhuma das duas usava o `<PageHeader>` shared
+          exigido por PT-04 R6. Tudo subiu pro `JanaAreaHeader`, que agora É o
+          PageHeader canon — barra única, com o SubNav dentro (padrão
+          `Financeiro/Caixa/Index.tsx:95-112`).
+
+          Por isso este componente não recebe mais `businessName`/`businessId`:
+          sem o header, ele não tinha mais nenhum consumidor pra esses dois. */}
 
       {/* Brief diário ──────────────────────────────────────────────────────── */}
       <Card className="border-primary/20 bg-primary/5">

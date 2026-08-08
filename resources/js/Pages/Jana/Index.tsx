@@ -13,7 +13,7 @@ import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap } from 'lucide-react'
+import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap, Settings, Download } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
 import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
@@ -262,10 +262,26 @@ function ProximaAcaoCard() {
 export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkAggregates, janaContext }: Props) {
   return (
     <>
-      {/* JanaAreaHeader — header sticky com tabs Dashboard | Chat (Wagner
-          2026-05-18). Compartilhado com Chat.tsx. Gate F1.5 em
+      {/* JanaAreaHeader — barra ÚNICA da área Jana (PageHeader canon).
+          Onda de fusão 2026-08-07: identidade (business + biz), "Atualizado" e
+          as ações Configurar/Exportar SUBIRAM do header próprio do JanaCockpit,
+          que era a segunda barra da tela e foi removido. Gate F1.5 em
           memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md */}
-      <JanaAreaHeader active="dashboard" />
+      <JanaAreaHeader
+        active="dashboard"
+        businessName={janaContext.businessName || undefined}
+        businessId={janaContext.businessId ?? undefined}
+        actions={
+          <>
+            <Button variant="outline" size="sm" title="Configurar Brain B Jana (em breve)">
+              <Settings className="h-3.5 w-3.5" /> Configurar
+            </Button>
+            <Button variant="outline" size="sm" title="Exportar relatório (em breve)">
+              <Download className="h-3.5 w-3.5" /> Exportar
+            </Button>
+          </>
+        }
+      />
 
       {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do JanaCockpitV2, US-COPI-146).
           Sem wrapper .sells-cowork: o cockpit agora usa shared KpiGrid/KpiCard + Card +
@@ -279,8 +295,6 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           insightsAggregates={insightsAggregates}
           coworkAggregates={coworkAggregates}
           userName={janaContext.userName ?? undefined}
-          businessName={janaContext.businessName || undefined}
-          businessId={janaContext.businessId ?? undefined}
         />
       </div>
 
