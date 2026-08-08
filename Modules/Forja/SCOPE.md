@@ -10,6 +10,7 @@ contains:
   - "RoadmapGanttController — roadmap Gantt (/forja/roadmap-gantt): tasks no tempo via mcp_cycles+mcp_tasks, com reschedule de due_date por drag-drop. Recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B + 0367 D4). CONVIVE com o quarter view acima — são duas leituras do mesmo backlog e nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id); a 0367 D7 diz que o quarter só sai quando o Gantt provar que substitui"
   - "MyWorkController — tasks do owner logado"
   - "TriageController — tasks órfãs (sem owner/priority/backlog); paridade tool MCP `triage`"
+  - "AprovacoesController + ForjaAprovacoesService — mesa de aprovações (/forja/aprovacoes): fila de mcp_tasks em `pending_approval` (o que espera decisão de [W]) em ordem de espera, e a decisão admitir/parquear/recusar. Superfície da ADR 0368, que fechou a política e deixou o código pra PR próprio; estado+FSM+trava de recusa-sem-motivo já vieram em #5283/#5288. Escrita 100% via TaskCrudService — mesmo chokepoint da tool MCP `tasks-update`, sem 2º caminho"
   - "InboxController — caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"
   - "BurndownController — burndown chart por cycle"
   - "ActivityController — atividade recente"

@@ -268,9 +268,9 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
           </Card>
         )}
 
+        {/* 1fr + coluna fixa de decisões: `cols` do primitivo é uniforme, então a
+            proporção vai em className — o `Grid` segue dono do display e do gap. */}
         {atual && (
-          {/* 1fr + coluna fixa de decisões: `cols` do primitivo é uniforme, então a
-              proporção vai em className — o `Grid` segue dono do display e do gap. */}
           <Grid gap={4} className="lg:grid-cols-[1fr_18rem]">
             {/* O artefato no centro — é o que se decide, não a linha da lista. */}
             <Card data-testid="mesa-artefato">
