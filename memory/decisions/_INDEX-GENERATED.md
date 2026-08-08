@@ -7,7 +7,7 @@
 ## Resumo
 - **375** arquivos · **360** números únicos · máx **0371**
 - **ADRs ATIVOS (lifecycle ativo): 337** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 338 · superseded 16 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
+- Por status: aceito 339 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 337 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -412,4 +412,4 @@ _(nenhuma)_
 | 0368 | aceito | ativo | decision | Funil de admissão de feature — a pesquisa de mercado propõe, [W] admite ou recus |
 | 0369 | aceito | ativo | decision | Emenda à 0314 — Compras, Estoque e Ponto (Pest MySQL) promovidos a REQUIRED (val |
 | 0370 | aceito | ativo | decision | Emenda à 0314 — module-surface e catalog-graph promovidos a REQUIRED (índice der |
-| 0371 | proposto | ativo | decision | Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob raja |
+| 0371 | aceito | ativo | decision | Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob raja |
