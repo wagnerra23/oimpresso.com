@@ -45,6 +45,13 @@ jobs:
         run: node scripts/governance/ancora-codigo-sync.mjs --selftest
       - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
         run: node scripts/governance/maquinas-inventario.test.mjs
+      # O contrato de completude da ADR 0277 ("migrado = route Blade morto") foi decidido em
+      # 2026-06-13 e NUNCA ganhou maquina — medido: 0 scripts, 0 workflows contavam route Blade
+      # vivo, e o censo A-L do roadmap era digitado a mao. Este selftest defende o MEDIDOR;
+      # o censo em si e relato (--report), nao gate. Ligado aqui porque script sem invocador
+      # e bug (proibicoes.md §Sempre-fazer #2), nao neutralidade.
+      - name: Censo Blade->React (bite: resource-string, namespace de grupo, indirecao $this-> · NEG: json/ciclo/mailable)
+        run: node scripts/governance/blade-migration-census.mjs --selftest
       # A lista de lanes que alimentam o manifesto por-UC (G-7) e DERIVADA desde 2026-08-04
       # (a lista a mao apodreceu: 4 lanes emitiam JUnit e ninguem lia). Sem este bite-test,
       # quebrar a derivacao volta a congelar a colheita EM SILENCIO -- que foi o defeito.

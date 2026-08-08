@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 569 arquivos em 19 papéis.
+**Total mapeado:** 572 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -361,10 +361,11 @@ module: Jana
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
-## Componentes / apoio de tela — 7
+## Componentes / apoio de tela — 8
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
+- [JanaDrillDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx)
 - [JanaPrimaryButton.tsx](../../../resources/js/Pages/Jana/_shared/JanaPrimaryButton.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
 - [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
@@ -378,13 +379,14 @@ module: Jana
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
+- [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 155
+## Testes (Pest) — 156
 
-- 155 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 156 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 91
 
