@@ -12,7 +12,7 @@
 // Golden de referência: resources/js/Pages/governance/Dashboard.tsx
 // Âncora de design: prototipo-ui/cowork/chat-jana.jsx (.jc-* · "dark herda via token")
 
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -33,6 +33,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
+import JanaDrillDrawer, { type DrillAnalise } from './JanaDrillDrawer';
 
 export interface JanaCockpitProps {
   sellKpis: {
@@ -101,6 +102,7 @@ function AnalysisCard({
   pill,
   big,
   children,
+  onClick,
 }: {
   icon: ReactNode;
   title: string;
@@ -108,6 +110,8 @@ function AnalysisCard({
   pill?: { label: string; tone: 'crit' | 'ok' | 'warn' };
   big: ReactNode;
   children: ReactNode;
+  /** Quando passado, o card abre o drawer "de onde vem esse número". */
+  onClick?: () => void;
 }) {
   const pillTone =
     pill?.tone === 'crit'
@@ -116,8 +120,8 @@ function AnalysisCard({
         ? 'bg-warning-soft text-warning-fg'
         : 'bg-success-soft text-success-fg';
 
-  return (
-    <Card>
+  const card = (
+    <Card className={onClick ? 'h-full transition-colors hover:border-primary/40' : undefined}>
       <CardContent className="flex flex-col gap-3 p-4">
         <header className="flex items-center gap-2.5">
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
@@ -137,6 +141,22 @@ function AnalysisCard({
         {children}
       </CardContent>
     </Card>
+  );
+
+  if (!onClick) return card;
+
+  // <button> nativo em vez de div[role=button]: o protótipo usa div + onKeyDown
+  // manual, mas o botão real já traz Enter/Espaço, foco e leitura de tela de
+  // graça — mesmo caminho que o KpiCard canônico escolheu (KpiCard.tsx:144).
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Ver de onde vem o número de ${title}`}
+      className="w-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {card}
+    </button>
   );
 }
 
@@ -241,6 +261,36 @@ export default function JanaCockpit({
     }
     return list;
   }, [overdueCount, overdueValue, deltaTicket, faturadoHoje, pixHoje, totalPendentes, topDevedor]);
+
+  // ── Drill-down "de onde vem esse número" ─────────────────────────────────
+  // Âncora: prototipo-ui/cowork/jana-merge.jsx :887 (`JM_KPI_DRILL`).
+  //
+  // A regra fina do protótipo: o KPI só vira clicável quando existe uma análise
+  // do MESMO dado — "ticket médio não abre faturamento". Aqui isso deixa 2 dos 4
+  // KPIs clicáveis:
+  //   Faturamento mês     → análise Faturamento   ✓ mesmo dado
+  //   Inadimplência total → análise Inadimplência ✓ mesmo dado
+  //   Ticket médio        → não há análise de ticket médio        ✗
+  //   PIX hoje            → "Métodos de pagamento" é a quebra de TODAS as
+  //                         formas em 30d, não o PIX de hoje — dado e janela
+  //                         diferentes, então não abre.            ✗
+  const [drill, setDrill] = useState<DrillAnalise | null>(null);
+
+  // `leitura` só entra quando existe fato REAL pra contar. Onde não existe, o
+  // drawer mostra Fonte + Escopo e cala — melhor que inventar uma frase.
+  const abrirInad = () =>
+    setDrill({
+      id: 'inad',
+      title: 'Inadimplência',
+      sub: `${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`,
+      leitura: topDevedor
+        ? `Maior venda vencida: ${topDevedor.name} (${fmtShort(topDevedor.total)}).`
+        : undefined,
+    });
+  const abrirFat = () => setDrill({ id: 'fat', title: 'Faturamento', sub: '30 dias' });
+  const abrirConc = () => setDrill({ id: 'conc', title: 'Top 5 clientes', sub: 'concentração' });
+  const abrirMetodos = () =>
+    setDrill({ id: 'metodos', title: 'Métodos de pagamento', sub: `top ${methodsAggList.length}` });
 
   return (
     <div className="space-y-4">
@@ -388,6 +438,7 @@ export default function JanaCockpit({
           icon="wallet"
           tone="default"
           delta={deltaRev !== null ? { value: deltaRev, label: 'vs ontem' } : undefined}
+          onClick={abrirFat}
         />
         <KpiCard
           label="Inadimplência total"
@@ -399,6 +450,7 @@ export default function JanaCockpit({
               ? `${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`
               : 'tudo em dia'
           }
+          onClick={abrirInad}
         />
         <KpiCard
           label="Ticket médio"
@@ -421,7 +473,12 @@ export default function JanaCockpit({
       </KpiGrid>
 
       {/* Análises principais ───────────────────────────────────────────────── */}
-      <SectionTitle icon={<BarChart3 size={14} />}>Análises principais</SectionTitle>
+      <SectionTitle icon={<BarChart3 size={14} />}>
+        Análises principais
+        <span className="ml-1 text-[11px] font-normal normal-case tracking-normal text-muted-foreground/80">
+          clique num card pra ver de onde vem o número
+        </span>
+      </SectionTitle>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Inadimplência buckets */}
@@ -431,6 +488,7 @@ export default function JanaCockpit({
           subtitle={`${overdueCount} ${plural(overdueCount, 'venda vencida', 'vendas vencidas')}`}
           pill={{ label: overdueCount > 0 ? 'Crítico' : 'OK', tone: overdueCount > 0 ? 'crit' : 'ok' }}
           big={<span className="text-destructive">{fmtShort(ageingTotal)}</span>}
+          onClick={abrirInad}
         >
           <div className="flex flex-col gap-2">
             {Object.entries(ageingBuckets).map(([label, v]) => (
@@ -461,6 +519,7 @@ export default function JanaCockpit({
               : undefined
           }
           big={<span className="text-success">{fmtShort(sparkSum)}</span>}
+          onClick={abrirFat}
         >
           {sparkline.length === 0 ? (
             <div className="py-2 text-xs text-muted-foreground">Carregando sparkline…</div>
@@ -488,6 +547,7 @@ export default function JanaCockpit({
           title="Top 5 clientes"
           subtitle="concentração"
           big={<span>{topClientesList.length}</span>}
+          onClick={abrirConc}
         >
           <div className="flex flex-col gap-2">
             {topClientesList.length === 0 ? (
@@ -519,6 +579,7 @@ export default function JanaCockpit({
           title="Métodos de pagamento"
           subtitle={`top ${methodsAggList.length}`}
           big={<span>{fmtShort(methodsTotal)}</span>}
+          onClick={abrirMetodos}
         >
           <div className="flex flex-col gap-2">
             {methodsAggList.length === 0 ? (
@@ -576,6 +637,9 @@ export default function JanaCockpit({
         Insights baseados em vendas filtradas atual + agregados 30d. Próximas ondas: ações HITL real
         (régua WhatsApp · investigar anomalias) + agentes Brain B Jana real.
       </p>
+
+      {/* Drawer "de onde vem esse número" — aberto por KPI ou card de análise. */}
+      <JanaDrillDrawer analise={drill} onClose={() => setDrill(null)} />
 
       {/* Anti-flicker placeholder de totalAReceber pra reuso futuro do hook. */}
       <span hidden data-total-a-receber={totalAReceber} />

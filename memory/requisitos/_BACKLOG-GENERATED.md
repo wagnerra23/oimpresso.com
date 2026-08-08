@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **878 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **880 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,8 +10,8 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 51 | 0 | 0 | 0 | 51 |
-| [`Governance`](#governance) | 46 | 0 | 0 | 3 | 43 |
+| [`Sells`](#sells) | 52 | 0 | 0 | 0 | 52 |
+| [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
 | [`Infra`](#infra) | 46 | 0 | 0 | 0 | 46 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
@@ -281,6 +281,7 @@
 - **US-SELL-051** — Migrar dados históricos transaction_date (timezone/format) — afeta ROTA LIVRE
 - **US-SELL-052** — Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado)
 - **US-SELL-053** — FieldError por campo + auto-open details em erro
+- **US-SELL-058** — Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar na tela que a ROTA LIVRE opera
 
 ## Governance
 
@@ -304,6 +305,7 @@
 - **US-GOV-049** — Ratificar ADR 0329 (doutrina documentação de processo) — flip proposto→aceito _(`p1` · @wagner)_
 - **US-GOV-050** — Ratificar 0314 (por-item) + 0299 e mover 0320 aceita presa em proposals/ _(`p1` · @wagner)_
 - **US-GOV-051** — Review + merge PRs #4009 (tombstones P16) e #4010 (ref-integrity P10) _(`p1` · @wagner)_
+- **US-GOV-060** — 5 testes dropam tabela CORE sem skip — risco sobre o `oimpresso-staging` persistente _(`p1`)_
 - **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
 - **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
 - **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_

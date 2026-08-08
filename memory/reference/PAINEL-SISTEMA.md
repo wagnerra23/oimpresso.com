@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-07**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-08**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -36,7 +36,7 @@ lente: [construir]
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-27 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-01 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-05 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-05 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-07 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-23 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-28 |
@@ -44,7 +44,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-27 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-23 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-27 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-08-07 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-08-06 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **342**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **340**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -125,13 +125,13 @@ lente: [construir]
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 119 workflows por classe
+### Censo — 121 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 87 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 89 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -140,13 +140,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **374** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 338 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **375** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 339 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 81 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 85 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -230,6 +230,10 @@ lente: [construir]
 - ~~2026-08-05 — Tratar alerta de ferramenta deduzindo a causa do ARQUIVO SUSPEITO, sem ler o que ela reportou (6 tentativas · e o `.gitleaksignore` era o vazamento)~~
 - ~~2026-08-05 — Confiar que o merge do git protege frontmatter YAML (dois PRs, sem conflito, chave DUPLICADA em produção)~~
 - ~~2026-08-06 — Navegação tem CINCO superfícies na Forja: deduzir camada-a-camada em vez de perguntar ao runtime (8 diagnósticos errados)~~
+- ~~2026-08-07 — Declarar "o protótipo não está no repo" varrendo SÓ o git, com o `DesignSync` à mão (e o hook do incidente gêmeo mudo)~~
+- ~~2026-08-07 — Validar teste em UMA plataforma e concluir que passa (literal `D:/...` é absoluto no Windows e RELATIVO no POSIX)~~
+- ~~2026-08-07 — Ler o `routes.php` do módulo e NÃO ler o `SPEC.md` — o plano nasce paralelo à US que já é dona~~
+- ~~2026-08-07 — Comparar contra o SNAPSHOT CONGELADO do CI (`github.sha`) achando que é o tip vivo — e teste de ancestralidade ASSIMÉTRICO que não sabe dizer "o servidor está à frente"~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -240,14 +244,14 @@ lente: [construir]
 
 ## Rastro
 
-- **374** handoffs · **592** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **379** handoffs · **595** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-07-lanes-required-vermelhas-e-quarentena`
+  - `2026-08-07-jana-fusao-ondas-2-a-4-e-lista-de-diferencas`
   - `2026-08-07-jana-fusao-onda1`
+  - `2026-08-07-cozinha-gate-duas-pernas-adversario`
   - `2026-08-05-sdd-flow-feature-smart-token`
   - `2026-08-05-plano-documentacao-tecnica-operacional`
-  - `2026-08-05-maquinas-que-existiam-e-nao-avisavam`
-  - `2026-08-05-hooks-condicionais-observaveis`
-  - `2026-08-05-governanca-recebe-telas-e-contrato-visual`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-07 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-08 · deriva das fontes canônicas, não as substitui._

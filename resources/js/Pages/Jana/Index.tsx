@@ -379,7 +379,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
 }
 
 Dashboard.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="Copiloto — Dashboard" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Dashboard' }]}>
+  <AppShellV2 title="Jana — Dashboard" breadcrumbItems={[{ label: 'Jana' }, { label: 'Dashboard' }]}>
     {page}
   </AppShellV2>
 )
