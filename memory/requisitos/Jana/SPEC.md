@@ -1434,7 +1434,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-COPI-127 · Criar view cliente /copiloto/decisoes/{id}/revisao (LGPD Art.20)
 
-**Implementado em:** _pendente_ — rota + página de revisão de decisão automatizada pro cliente-final (`/copiloto/decisoes/{id}/revisao`) não existe (grep zero nas rotas); só há UI admin do HITL (status todo)
+**Implementado em:** _pendente_ — e **o sujeito da US não existe mais**. Medido em 2026-08-08 (não lido): (a) `mcp_dual_brain_decisions` foi **dropada** pela migration `2026_07_31_235000_drop_ads_dual_brain_core_tables.php` ([ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) E5) — não há `{id}` a revisar; (b) as "ações que a Jana sugere" são um `useMemo` **no frontend** ([`JanaCockpit.tsx:216`](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)), não decisão automatizada calculada no servidor; (c) a "UI admin do HITL" que o §Sinal abaixo cita **também saiu** — `Decisoes.tsx`/`DecisaoShow` foram deletados na E4 ([#5135](https://github.com/wagnerra23/oimpresso.com/pull/5135)); varredura contada: 4 hits no repo, todos em `handoffs/`/`sessions/`, nenhum em código. A US foi recuperada numa triagem de **2026-06-20**, quando o ADS estava vivo com 36.862 decisões — o bookkeeping envelheceu junto com o módulo. Construí-la hoje seria tela sobre corpus vazio (o anti-padrão que o §5 de [`proibicoes.md`](../../proibicoes.md) persegue). ⚠️ **O dever NÃO caduca:** a §Herança da 0363 o define como *"cumprir **antes** do primeiro agente que volte a decidir sobre titular"* — logo o Audit Card nasce **junto** com a primeira decisão automatizada (a fatia D da fase 2 da Jana), não sozinho e antes dela.
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
@@ -1443,12 +1443,18 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
 
-**Sinal (ADR 0105 · LGPD Art.20):** direito de revisão de decisão automatizada — a UI admin do HITL existe, mas falta a view do **cliente-final** em `/copiloto/decisoes/{id}/revisao`.
+**Sinal (ADR 0105 · LGPD Art.20):** direito de revisão de decisão automatizada. ~~a UI admin do HITL existe, mas falta a view do **cliente-final**~~ — redação de 2026-06-20, **falsa desde 2026-07-31**: a UI admin saiu com o ADS (ver §Implementado em). O sinal em si **permanece válido** e é legal, não arquitetural: LGPD Art. 20 + ANPD NT 12/2025 obrigam informar que a decisão é automatizada e oferecer canal de revisão humana. Hoje a exposição é **zero e prospectiva** — nenhuma decisão automatizada chega a titular (a 0363 mediu: `pr_url` e `commit_sha` em 0, 100% do volume em `business_id=1` interno).
 
-**DoD:**
-- Rota + página de revisão da decisão (cliente-final).
-- Permissions adequadas (cliente vê só as próprias).
+**⚠️ Nota de vocabulário (2026-08-08):** existem **dois** "HITL" no projeto e eles não são o mesmo. Esta US é sobre o **Audit Card** — revisão de decisão automatizada pelo *titular de dados*. O que está vivo e não serve aqui é [`HitlEscalationService`](../../../Modules/Jana/Services/TaskRegistry/HitlEscalationService.php), que transporta pendência de sentinela para `mcp_tasks` `blocked`/`wagner` (o que o brief lê). Reusar o nome cria colisão.
+
+**DoD (revisado 2026-08-08 — o original pressupunha o ADS vivo):**
+- ~~Rota + página de revisão da decisão (cliente-final).~~ Só faz sentido com um sujeito: **nasce no mesmo movimento** que a primeira decisão automatizada persistida.
+- A decisão precisa ser **registrada** (quem/quando/por qual regra/qual dado) antes de poder ser revisada — hoje não há onde gravar.
+- Permissions adequadas (cliente vê só as próprias) + `business_id` scopado ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
 - Audit log da revisão.
+- ⛔ **Não recriar o ADS sob outro nome** — `DecisionRouter`/`RiskEngine`/`ConfidenceEngine` e as 5 tabelas estão proibidos nominalmente ([`proibicoes.md`](../../proibicoes.md) §5 2026-08-02). O precedente é duro: `mcp_dual_brain_decisions` teve **36.862** linhas com `outcome='cancelled'` (default de coluna) exibido como *"Aguardando você decidir"* — fila de aprovação cujo passo humano nunca teve dono.
+
+**Bloqueio de lei (achado 2026-08-08):** a [ADR 0145](../../decisions/0145-ia-administradora-pivot-ads-fsm-piloto-cobradora.md) declarou `amends: [0094]` acrescentando o princípio Tier 0 *"Audit Card visível ao cliente final"* à Constituição, e a [0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) diz que ele *"sobrevive à supersessão"*. **Mas a emenda nunca foi escrita** no texto da 0094 nem da [`CONSTITUTION.md`](../../governance/CONSTITUTION.md) — varredura contada: `git grep -l "Audit Card"` devolve **9** arquivos, e o documento-mãe não está entre eles. A lei que obriga esta US existe só por referência nas ADRs que falam dela. Proposta de emenda: [`proposals/2026-08-08-emenda-0094-audit-card-lgpd-art-20.md`](../../decisions/proposals/2026-08-08-emenda-0094-audit-card-lgpd-art-20.md).
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
 
