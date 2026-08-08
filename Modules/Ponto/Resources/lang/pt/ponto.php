@@ -33,6 +33,7 @@ return [
     'permissao_aprovacoes'     => 'Ponto — Aprovar intercorrências',
     'permissao_relatorios'     => 'Ponto — Visualizar relatórios',
     'permissao_configuracoes'  => 'Ponto — Gerenciar configurações',
+    'permissao_importacoes'    => 'Ponto — Importar AFD/AFDT/CSV',
 
     'intercorrencia' => [
         'tipos' => [
