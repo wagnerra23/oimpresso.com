@@ -33,7 +33,7 @@
 
 import { useState, type ReactNode } from 'react';
 import JanaSubNav from '@/Pages/Jana/_shared/JanaSubNav';
-import JanaPrimaryButton from '@/Pages/Jana/_shared/JanaPrimaryButton';
+import { PageHeaderPrimary } from '@/Components/PageHeader';
 import { PageHeader } from '@/Components/PageHeader';
 import { router } from '@inertiajs/react';
 
@@ -156,11 +156,14 @@ export function JanaAreaHeader({
       actions={
         <>
           {actions}
-          {/* primary "Conversar" hue 220 azul (canon ADR 0182).
-              Onda 3: destino passou de `/ia` (que virou o Painel) pra `/ia/conversa`. */}
-          <JanaPrimaryButton onClick={() => router.visit('/ia/conversa')}>
-            Conversar
-          </JanaPrimaryButton>
+          {/* primary "Conversar" roxo 295 universal (ADR 0190, supersede o hue 220
+              azul da ADR 0182). Onda 3: destino passou de `/ia` (que virou o Painel)
+              pra `/ia/conversa`.
+              2026-08-08: migrado do shim JanaPrimaryButton pro canon <PageHeaderPrimary>.
+              O shim emitia `.os-btn primary`, mas no CSS servido a única família de
+              regras `.os-btn` é escopada `.sells-cowork` → nenhuma casava e o botão
+              rendia nu (medido em /ia/memoria: padding 0, radius 0, texto em 2 linhas). */}
+          <PageHeaderPrimary label="Conversar" onClick={() => router.visit('/ia/conversa')} />
         </>
       }
     />
