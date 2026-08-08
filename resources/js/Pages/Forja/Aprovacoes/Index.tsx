@@ -88,8 +88,8 @@ const JANELA_DESFAZER_S = 6;
 
 const SLA_CLASSE: Record<Sla, string> = {
   ok: 'text-muted-foreground',
-  atencao: 'text-amber-600 dark:text-amber-400',
-  urgente: 'text-red-600 dark:text-red-400',
+  atencao: 'text-warning',
+  urgente: 'text-destructive',
 };
 
 const SLA_TITULO: Record<Sla, string> = {
@@ -251,7 +251,7 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
         )}
 
         {erro && (
-          <p role="alert" className="text-sm text-red-600 dark:text-red-400" data-testid="mesa-erro">
+          <p role="alert" className="text-sm text-destructive" data-testid="mesa-erro">
             {erro}
           </p>
         )}
