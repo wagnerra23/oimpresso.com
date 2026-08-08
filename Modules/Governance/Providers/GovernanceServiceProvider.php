@@ -72,6 +72,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\UiCatalogGenerateCommand::class,      // gera memory/requisitos/<Mod>/UI-CATALOG.md — resgatado da depreciação do Modules/Admin (lá vivia SEM registro)
                 \Modules\Governance\Console\Commands\RecordStagingFreshnessAlertCommand::class, // sink da sentinela de frescor do staging (host → mcp_alertas, ADR 0216)
                 \Modules\Governance\Console\Commands\RecordRagasEvalAlertCommand::class, // sink do eval REAL da Jana medido no CT 100 (staging → mcp_alertas, ADR 0216)
+                \Modules\Governance\Console\Commands\BladeMigrationSentinelCommand::class, // ADR 0277 — cobra a rota Blade→React (escala pro brief quando regride/estagna)
             ]);
         }
     }
