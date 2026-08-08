@@ -325,7 +325,7 @@ lifecycle: ativo
 > design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,
 > e nada a executa. A matriz reporta o fato; a triagem é humana.
 
-### 5.1 `scripts/governance/` — 107
+### 5.1 `scripts/governance/` — 108
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
@@ -340,6 +340,7 @@ lifecycle: ativo
 | `anchor-lint.mjs` | agente, ci, script | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
 | `ancora-codigo-sync.mjs` | ci, script | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
 | `baseline-tamper-guard.mjs` | ci, script | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
+| `blade-migration-census.mjs` | ci | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
 | `briefing-code-staleness.mjs` | agente, ci, npm, script | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
 | `brl-scan-diff.mjs` | ci | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
 | `catalog-graph.mjs` | ci, script | GERADOR determinístico do GRAFO TIPADO de módulos. |
@@ -498,6 +499,7 @@ lifecycle: ativo
 | `governance/adr-collisions-baseline.json` | Colisões de número de ADR — catraca anti-bifurcação (só encolhe). O detector já existia (adr-index-generate.mjs lista as colisões desde sempre); este … |
 | `governance/adr-tombstones.json` | (baseline/estado) |
 | `governance/anchor-entry-baseline.json` | anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário) |
+| `governance/blade-migration-baseline.json` | Censo de migração Blade→React — catraca só-desce por escopo (ADR 0277 contrato de completude) |
 | `governance/charter-refs-baseline.json` | (baseline/estado) |
 | `governance/deadlink-baseline.json` | (baseline/estado) |
 | `governance/doc-id-index.json` | (baseline/estado) |
@@ -536,4 +538,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 41 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 42 · (mais ~5 dot-baselines na raiz + fixtures em tests/).

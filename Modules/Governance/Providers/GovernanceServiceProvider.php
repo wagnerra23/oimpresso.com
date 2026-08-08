@@ -17,9 +17,44 @@ class GovernanceServiceProvider extends ServiceProvider
     {
         $this->registerTranslations();
         $this->registerConfig();
+        $this->registerMigrations();
         $this->registerMiddleware();
         $this->registerCommands();
         $this->registerDriftCheckers();
+    }
+
+    /**
+     * Registra o path de migrations do módulo (padrão nWidart — 30 dos 33 módulos
+     * já faziam isto; Governance era exceção não-intencional).
+     *
+     * **O bug que isto conserta (medido em prod 2026-08-08):** este SP NUNCA chamou
+     * `loadMigrationsFrom`, então o `php artisan migrate --force` do deploy (path
+     * default) **pulava** as 5 migrations de `Modules/Governance/`. Estado medido na
+     * prod DB `u906587222_oimpresso`:
+     *
+     *   mcp_module_grades_history          AUSENTE
+     *   mcp_scorecard_runs                 AUSENTE
+     *   mcp_observability_spans            AUSENTE
+     *   mcp_observability_aggregates_daily AUSENTE
+     *   mcp_governance_initiatives         AUSENTE
+     *   mcp_sdd_scorecard_history          EXISTE   ← única com row em `migrations`
+     *                                                (batch 188, aplicada fora-de-banda
+     *                                                por path único no pré-req do P06)
+     *
+     * Efeito visível: `module:grade-snapshot` (cron 06:05 BRT) morria todo dia com
+     * `SQLSTATE[42S02] ... mcp_module_grades_history doesn't exist` — **120 ocorrências**
+     * no `laravel.log` de prod — e a sparkline 7d nunca teve o que renderizar.
+     *
+     * Seguro por construção: as 5 migrations são guardadas por `Schema::hasTable()`,
+     * então o próximo `migrate --force` cria as 4 ausentes e pula a que já existe.
+     *
+     * Precedente idêntico: `KBServiceProvider` (bug 2026-07-23, mesma causa, mesmo fix).
+     *
+     * @see Modules\Governance\Tests\Unit\GovernanceMigrationsRegisteredTest
+     */
+    protected function registerMigrations(): void
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
     }
 
     /**

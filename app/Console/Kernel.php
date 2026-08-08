@@ -414,6 +414,40 @@ class Kernel extends ConsoleKernel
         // O premissa antiga do RUNBOOK ("schedule:run não roda no Hostinger") era
         // FALSA: roda, e é por isso que o duplicado falhava visivelmente.
 
+        // ADR 0277 peça 3/3 — a COBRANÇA da rota de migração Blade→React.
+        //
+        // SEMANAL (dom 07:45 BRT), não diário: estagnação se mede em dias e o
+        // default de `--dias-estagnacao` é 30 — rodar todo dia só multiplicaria a
+        // mesma linha. Domingo 07:45 fica fora do cluster 06:00-07:00 (drift-sentinel,
+        // recall-eval, scorecard-snapshot) pra não disputar DB.
+        //
+        // ⚠️ ONDE A COBRANÇA APARECE: numa task `blocked`/`wagner` em `mcp_tasks`
+        // (via HitlEscalationService, `task_id` determinístico) que o brief lê. NÃO
+        // é no `onFailure` abaixo — medido em prod 2026-08-08, o pile de
+        // "Schedule ... FALHOU" tem ~10 schedules com falha repetida e
+        // `whatsapp:channels-reconcile` sozinho com 8996 linhas. Log de falha aqui é
+        // rastro pra quem já está investigando, nunca o canal de cobrança.
+        //
+        // Sem `--dry-run` de propósito: escalar quando regride/estagna É o trabalho.
+        //
+        // O comando não morre sem `node` (o cron do Hostinger não alcança o nvm —
+        // mesma causa da remoção acima): ele degrada pro estado `cego`, que segue
+        // cobrando ESTAGNAÇÃO (sai do baseline versionado, não precisa de node) e
+        // NOMEIA que a regressão não foi conferida — eixo que já tem dono na catraca
+        // `blade-migration-census.mjs --ratchet` do governance-gate, a cada PR.
+        $schedule->command('governance:blade-migration-sentinel')
+            ->weeklyOn(0, '07:45')
+            ->timezone('America/Sao_Paulo')
+            ->onOneServer()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:blade-migration-sentinel FALHOU — baseline ausente/inválido ' .
+                    '(governance/blade-migration-baseline.json). Censo sem node NÃO falha: sai `cego`.'
+                );
+            });
+
         // Wave 28 Agent 1 (2026-05-17) — Initiatives Cortex-style.
         // Sync diário Initiatives ↔ scorecards: abre breach (rule abaixo target),
         // fecha recuperadas (score_after >= target), expira deadlines passadas.

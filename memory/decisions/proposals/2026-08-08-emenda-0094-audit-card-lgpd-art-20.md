@@ -105,3 +105,11 @@ o princípio, que é obrigação legal e não escolha de arquitetura.
 Merge deste PR **não** ratifica o princípio — proposal não é canon. A ratificação é o merge da
 ADR que esta proposal pede, e é ato de [W] (R10). Este documento existe para que a decisão seja
 tomada com o quadro medido, não para tomá-la.
+
+> ➡️ **A ADR foi escrita em 2026-08-08:**
+> [ADR 0372 — princípio 9 (Audit Card)](../0372-audit-card-decisao-automatizada-titular-emenda-0094.md),
+> `amends: [0094]`, nasce `status: proposto`. Ela redige o princípio, define os termos
+> (*decisão* · *automatizada* · *titular* · *afeta*), carrega a Cascade Review §10.4 e mantém as
+> três exclusões desta proposal (não constrói a tela · não recria o ADS · não cria gate).
+> **O que ainda falta é só o ato de [W]** — ratificar (flip `proposto → aceito`), recusar, ou pedir
+> mudança de redação. Ver §Ratificação de lá para as duas saídas e o custo de cada uma.

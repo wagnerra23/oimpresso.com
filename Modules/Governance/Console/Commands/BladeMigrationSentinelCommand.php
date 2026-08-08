@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Modules\Jana\Services\TaskRegistry\HitlEscalationService;
 use RuntimeException;
 use Symfony\Component\Process\Process;
+use Throwable;
 
 /**
  * governance:blade-migration-sentinel — a COBRANÇA da rota de migração Blade→React.
@@ -37,6 +38,31 @@ use Symfony\Component\Process\Process;
  * O `escalar()` usa `task_id` determinístico, então re-escalar ATUALIZA a mesma
  * task em vez de criar a enésima; e se um humano fechar a task (done/cancelled),
  * o sentinela NÃO reabre. Nag perpétuo é ruído com cara de vigilância.
+ *
+ * ── POR QUE EXISTE O ESTADO `cego` (medido em prod 2026-08-08) ──────────────
+ * No cron do Hostinger o `node` NÃO é alcançável: o PATH herdado é
+ * `/usr/local/bin:/usr/bin` e o node vive só em `~/.nvm/.../v24.15.0/bin`
+ * (não há `/usr/bin/node`). Medido na própria prod, não suposto — é a MESMA
+ * causa que fez o PR #5444 tirar o `governance:sdd-scorecard-snapshot` do Kernel
+ * horas antes deste agendamento.
+ *
+ * Então o censo pode faltar. As duas saídas óbvias estão as duas erradas:
+ *   - `mustRun()` + `onFailure(Log::error)`: cai num pile de falha que é
+ *     PROVADAMENTE ignorado (medido em prod: ~10 schedules com falha repetida,
+ *     `whatsapp:channels-reconcile` com 8996 linhas). Falha invisível.
+ *   - engolir e devolver `ok`: seria afirmar verde sem ter medido — a lápide
+ *     §5 2026-07-29 ("instrumento afirmar verde quando não conseguiu MEDIR").
+ *
+ * A saída certa vem de qual eixo depende de quê:
+ *   - REGRESSÃO exige o censo (node) — e JÁ TEM DONO: a catraca
+ *     `blade-migration-census.mjs --ratchet` roda no `governance-gate.yml` a cada
+ *     PR, em Linux, contra o MESMO baseline único.
+ *   - ESTAGNAÇÃO não precisa de node: sai de `gerado_em` + `total_blade` do
+ *     baseline VERSIONADO. E é exatamente o eixo que a catraca do CI ignora DE
+ *     PROPÓSITO (selftest: "catraca ignora tempo").
+ *
+ * Logo: sem censo, o sentinela ainda cobra estagnação (seu valor único) e, quando
+ * não há o que cobrar, diz `cego` NOMEANDO o que não mediu — nunca "ok".
  *
  * @see memory/decisions/0277-rota-migracao-blade-ondas-completude.md
  * @see memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md
@@ -69,7 +95,11 @@ class BladeMigrationSentinelCommand extends Command
 
         $this->line($veredito['resumo']);
 
-        if ($veredito['veredito'] === 'ok' || $veredito['veredito'] === 'progresso') {
+        // `cego` = não consegui medir o censo E não há estagnação a cobrar. Não é
+        // verde (a mensagem diz o que ficou sem conferir), e não escala: o eixo que
+        // ficou sem medida — regressão — tem dono no CI (--ratchet). Escalar aqui
+        // seria nag semanal sobre um buraco que já é coberto por outra máquina.
+        if (in_array($veredito['veredito'], ['ok', 'progresso', 'cego'], true)) {
             return self::SUCCESS;
         }
 
@@ -83,7 +113,7 @@ class BladeMigrationSentinelCommand extends Command
             chave: 'BLADE-MIGRACAO',
             titulo: $veredito['veredito'] === 'regressao'
                 ? sprintf('Rota Blade NOVA em %d escopo(s) — a migração regrediu', count($veredito['regressoes']))
-                : sprintf('Migração Blade→React parada há %dd — %d endpoints ainda em Blade', $veredito['dias'], $atual['total_blade']),
+                : sprintf('Migração Blade→React parada há %dd — %d endpoints ainda em Blade', $veredito['dias'], $veredito['total']),
             descricao: $veredito['resumo']
                 . "\n\nRota: memory/requisitos/Mwart/ROADMAP-ONDAS-BLADE-ADVERSARIOS.md (10 ondas, ADR 0277)."
                 . "\nMedir agora: `node scripts/governance/blade-migration-census.mjs --report`."
@@ -105,14 +135,20 @@ class BladeMigrationSentinelCommand extends Command
      * frente (senão um escopo pioraria escondido atrás do progresso alheio — é o
      * mesmo whack-a-mole que a ADR 0277 §1 proíbe na contagem).
      *
-     * @param  array{total_blade:int,por_escopo:array<string,array{blade:int}>}  $atual
+     * `$atual === null` = o censo NÃO foi obtido (node ausente no cron). Aí a
+     * regressão fica sem medida — e o veredito NÃO pode ser "ok" (§5 2026-07-29).
+     * A estagnação segue medível, porque sai só do baseline versionado.
+     *
+     * @param  array{total_blade:int,por_escopo:array<string,array{blade:int}>}|null  $atual
      * @param  array{gerado_em?:string,total_blade?:int,por_escopo:array<string,array{blade:int}>}  $baseline
-     * @return array{veredito:string,regressoes:array<string,array{de:int,para:int}>,delta:int,dias:int,resumo:string}
+     * @return array{veredito:string,regressoes:array<string,array{de:int,para:int}>,delta:int,dias:int,total:int,resumo:string}
      */
-    public static function avaliar(array $atual, array $baseline, string $hoje, int $diasEstagnacao = 30): array
+    public static function avaliar(?array $atual, array $baseline, string $hoje, int $diasEstagnacao = 30): array
     {
+        $mediu = $atual !== null;
+
         $regressoes = [];
-        foreach ($atual['por_escopo'] as $escopo => $dados) {
+        foreach (($atual['por_escopo'] ?? []) as $escopo => $dados) {
             $antes = (int) ($baseline['por_escopo'][$escopo]['blade'] ?? 0);
             $agora = (int) ($dados['blade'] ?? 0);
             if ($agora > $antes) {
@@ -120,8 +156,10 @@ class BladeMigrationSentinelCommand extends Command
             }
         }
 
-        $totalAtual = (int) ($atual['total_blade'] ?? 0);
         $totalBase = (int) ($baseline['total_blade'] ?? 0);
+        // Sem censo, o total conhecido é o do baseline — e o delta é 0 por ignorância,
+        // não por medida: por isso o ramo `progresso` abaixo exige `$mediu`.
+        $totalAtual = $mediu ? (int) ($atual['total_blade'] ?? 0) : $totalBase;
         $delta = $totalAtual - $totalBase;
 
         $dias = 0;
@@ -141,27 +179,55 @@ class BladeMigrationSentinelCommand extends Command
                 'regressoes' => $regressoes,
                 'delta' => $delta,
                 'dias' => $dias,
+                'total' => $totalAtual,
                 'resumo' => "⛔ REGRESSÃO — rota Blade nova em: {$lista}",
             ];
         }
 
-        if ($delta < 0) {
+        // `$mediu` guarda o ramo: sem censo o delta é 0 por ignorância, então sem
+        // esta perna um baseline com total 0 viraria "progresso" fabricado.
+        if ($mediu && $delta < 0) {
             return [
                 'veredito' => 'progresso',
                 'regressoes' => [],
                 'delta' => $delta,
                 'dias' => $dias,
+                'total' => $totalAtual,
                 'resumo' => sprintf('✅ progresso: %d endpoint(s) saíram do Blade (%d → %d). Regrave o baseline.', -$delta, $totalBase, $totalAtual),
             ];
         }
 
+        // Estagnação sai do baseline versionado — logo continua medível SEM node.
         if ($dias > $diasEstagnacao) {
             return [
                 'veredito' => 'estagnado',
                 'regressoes' => [],
                 'delta' => $delta,
                 'dias' => $dias,
-                'resumo' => sprintf('⏳ ESTAGNADA há %dd — %d endpoints ainda servem Blade e o número não desceu.', $dias, $totalAtual),
+                'total' => $totalAtual,
+                'resumo' => sprintf(
+                    '⏳ ESTAGNADA há %dd — %d endpoints ainda servem Blade e o número não desceu.%s',
+                    $dias,
+                    $totalAtual,
+                    $mediu ? '' : ' (censo não medido: total vem do baseline; regressão NÃO conferida)',
+                ),
+            ];
+        }
+
+        if (! $mediu) {
+            return [
+                'veredito' => 'cego',
+                'regressoes' => [],
+                'delta' => 0,
+                'dias' => $dias,
+                'total' => $totalAtual,
+                'resumo' => sprintf(
+                    '⚠️ CEGO — não consegui rodar o censo (node ausente?), então NADA de regressão foi conferido aqui. '
+                    . 'Sem estagnação a cobrar (baseline de %dd atrás, %d endpoints). '
+                    . 'Esse eixo tem dono: `blade-migration-census.mjs --ratchet` no governance-gate, a cada PR.',
+                    $dias,
+                    $totalAtual,
+                ),
             ];
         }
 
@@ -170,24 +236,51 @@ class BladeMigrationSentinelCommand extends Command
             'regressoes' => [],
             'delta' => $delta,
             'dias' => $dias,
+            'total' => $totalAtual,
             'resumo' => sprintf('ok — %d endpoints em Blade, sem regressão (baseline de %dd atrás).', $totalAtual, $dias),
         ];
     }
 
-    /** @return array{total_blade:int,por_escopo:array<string,array{blade:int}>} */
-    private function obterCenso(): array
+    /**
+     * O censo, ou `null` quando não deu pra medir.
+     *
+     * `--input` explícito é contrato do chamador: se ele aponta pra um arquivo
+     * ruim, isso é ERRO (lança). Já a ausência de `node` é uma condição de
+     * AMBIENTE conhecida e medida (ver docblock da classe) — devolve `null`, e
+     * quem decide o que fazer com a cegueira é `avaliar()`, não este método.
+     *
+     * @return array{total_blade:int,por_escopo:array<string,array{blade:int}>}|null
+     */
+    private function obterCenso(): ?array
     {
         if ($input = $this->option('input')) {
-            $raw = (string) file_get_contents((string) $input);
-        } else {
-            $process = new Process(['node', 'scripts/governance/blade-migration-census.mjs', '--resumo-json'], base_path(), null, null, 180);
-            $process->mustRun();
-            $raw = $process->getOutput();
+            $json = json_decode((string) file_get_contents((string) $input), true);
+            if (! is_array($json) || ! isset($json['por_escopo'])) {
+                throw new RuntimeException("--input não é JSON válido com chave `por_escopo`: {$input}");
+            }
+
+            return $json;
         }
 
-        $json = json_decode($raw, true);
+        try {
+            $process = new Process(['node', 'scripts/governance/blade-migration-census.mjs', '--resumo-json'], base_path(), null, null, 180);
+            $process->run();
+            if (! $process->isSuccessful()) {
+                $this->warn('  censo não rodou: ' . trim($process->getErrorOutput() ?: 'exit ' . $process->getExitCode()));
+
+                return null;
+            }
+            $json = json_decode($process->getOutput(), true);
+        } catch (Throwable $e) {
+            $this->warn("  censo não rodou: {$e->getMessage()}");
+
+            return null;
+        }
+
         if (! is_array($json) || ! isset($json['por_escopo'])) {
-            throw new RuntimeException('output do blade-migration-census.mjs não é JSON válido com chave `por_escopo`');
+            $this->warn('  censo rodou mas não devolveu JSON com `por_escopo`.');
+
+            return null;
         }
 
         return $json;
