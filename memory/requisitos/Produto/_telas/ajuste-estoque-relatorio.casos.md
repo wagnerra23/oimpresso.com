@@ -41,7 +41,7 @@ report/product_stock_details.blade.php   ← ÚNICO emissor: <a href> "Fix"
    ▼
 GET /reports/adjust-product-stock            (routes/web.php)
    ▼
-ReportController@adjustProductStock          ← gate: report.stock_details
+ReportController@adjustProductStock          ← gate: stock.adjust_mismatch  (desde 2026-08-08)
    ▼
 ProductUtil::fixVariationStockMisMatch($biz, $variation_id, $location_id, $stock)
    │  UPDATE variation_location_details.qty_available = num_uf($stock)
@@ -62,6 +62,16 @@ git grep -n "adjustProductStock\|adjust-product-stock" -- routes/ resources/
 | 1 | **Escreve saldo dentro de um `GET`** | não passa por CSRF, é pré-carregável por link/prefetch, e não deixa movimentação no kardex (`AR-PROD-064` exige origem + usuário em cada movimento) |
 | 2 | **Os 3 parâmetros vêm da querystring** | quem sabe montar a URL escolhe variação, local e valor — a própria `US-PROD-028` registrou isso no "escopo honesto" |
 | 3 | **Sobrescreve, não movimenta** | é o único ponto do ecossistema que faz `qty_available = X` em vez de `+= delta` |
+
+> **Errata do gate — 2026-08-08 (`US-GOV-059`).** Até esta data o `adjustProductStock` e o
+> `productStockDetails` (leitura) dividiam **`report.stock_details`**, e as três propriedades
+> acima valiam para quem tivesse uma permissão cujo **nome diz "relatório"**. Leitura e mutação
+> foram separadas: a leitura ficou com `report.stock_details` (agora **declarada** na tela de
+> papéis) e a mutação passou a exigir **`stock.adjust_mismatch`**, que fica **deliberadamente não
+> declarada** — o `Gate::before` a resolve como "só admin", preservando a semântica exata de
+> antes (medido em produção: **0 roles** possuíam `report.stock_details`, logo **0 registros
+> afetados**). Enquanto as propriedades 1-3 seguirem de pé, tornar a mutação concedível é
+> decisão [W], não efeito colateral de marcar um checkbox.
 
 ⚖️ **Força do veredito destes UC — `advisory`.** Lane `PHP / Pest (Estoque · MySQL)`, fora do
 [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json):
@@ -107,8 +117,11 @@ git grep -n "adjustProductStock\|adjust-product-stock" -- routes/ resources/
 
 ## UC-PFIX-02 · O Fix não altera saldo de variação de outro business · `must` `[T0]`
 
-- **Persona:** qualquer usuário com `report.stock_details` — que é permissão de **relatório**, não
-  de estoque. Os três parâmetros da escrita estão na URL.
+- **Persona:** qualquer usuário autorizado a chamar o Fix — hoje `stock.adjust_mismatch`, que o
+  `Gate::before` resolve como **só admin** (ver a errata do gate acima; até 2026-08-08 era
+  `report.stock_details`, permissão de **relatório**, não de estoque). Os três parâmetros da
+  escrita continuam vindo da URL, então o guard de tenant segue sendo o que separa este
+  chamador do saldo do vizinho — **o UC não depende de qual é o nome do gate**.
 - **Aceite:** *Dado* que o Fix grava no **meu** par (pré-condição) · *Quando* chamo o Fix com a
   variação e o local de **outro** business · *Então* o saldo daquele tenant permanece exatamente
   o que era.
@@ -178,10 +191,16 @@ git grep -n "adjustProductStock\|adjust-product-stock" -- routes/ resources/
   Vira UC (ou US) quando [W] decidir se reconciliação é **movimento** (e aí precisa de tipo
   próprio, como o `stock_adjustment` que já existe) ou **correção fora do razão**.
 - **[BACKLOG] Nenhum teste cobre o `ReportController@adjustProductStock` em si** — os 3 UC acima
-  exercitam o `ProductUtil` (o serviço), não a rota. O gate de permissão (`report.stock_details`),
-  o `redirect()->back()` e a mensagem de sucesso não têm contrato. Vira UC quando houver fixture
+  exercitam o `ProductUtil` (o serviço), não a rota. O gate de permissão, o `redirect()->back()`
+  e a mensagem de sucesso não têm contrato. Vira UC quando houver fixture
   de usuário **sem** a permissão (hoje o seed de biz=1 é admin, então o caso negativo não é
   exercitável sem montar user novo — mesma pendência do trio do `BulkEdit`).
+  > ⚠️ **A separação de gate de 2026-08-08 entrou SEM teste, e isto é dito de propósito.** O caso
+  > que provaria a decisão — *"quem tem `report.stock_details` NÃO consegue reconciliar saldo"* —
+  > é exatamente o caso negativo que esta pendência descreve, e montá-lo é trabalho novo
+  > (fixture de user não-admin), não parte da decisão. Enquanto ele não existir, o que segura a
+  > separação é o `permission-drift` reportando `stock.adjust_mismatch` como órfã **com razão
+  > escrita** — o que é sinal, não gate. Quem for fechar esta pendência fecha as duas juntas.
 
 ---
 
