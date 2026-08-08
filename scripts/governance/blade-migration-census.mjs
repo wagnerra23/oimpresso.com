@@ -39,20 +39,49 @@ import path from 'node:path'
 const ROOT = process.cwd()
 
 // ── 1. Descoberta dos arquivos de rota ──────────────────────────────────────
+/**
+ * ⚠️ DEDUP OBRIGATÓRIO — o mesmo arquivo entrava DUAS vezes no Windows.
+ *
+ * Os módulos nWidart usam `Routes/web.php` (R maiúsculo). O NTFS é
+ * case-INSENSITIVE, então `existsSync('routes/web.php')` também dá true e o
+ * arquivo era contado 2×; em Linux (ext4, case-sensitive) não. Medido em
+ * 2026-08-08 contra produção: 60 "arquivos" no Windows × 33 reais — **27
+ * duplicados**, inflando o censo de 471 para 683 (+45%).
+ *
+ * Isso não era só um número feio: o baseline foi gerado no Windows e a catraca
+ * roda no CI em **Linux**, então ela media 471 contra baseline 683, via
+ * "progresso" e NUNCA morderia. O bite-test que a aprovou rodou no Windows, com
+ * os dois lados igualmente inflados — por isso passou.
+ *
+ * `realpathSync.native` resolve o case REAL gravado no disco (Windows) e é
+ * no-op onde o case já é o real (Linux), então dois arquivos legitimamente
+ * distintos continuam distintos.
+ */
 export function rotaFiles(root = ROOT) {
-  const out = []
-  const web = path.join(root, 'routes', 'web.php')
-  if (fs.existsSync(web)) out.push(web)
+  const vistos = new Map() // chave canônica -> path original
+  const add = (p) => {
+    if (!fs.existsSync(p)) return
+    let chave
+    try {
+      chave = fs.realpathSync.native(p)
+    } catch {
+      chave = p
+    }
+    // no Windows o realpath já normaliza o case; o lower é o cinto de segurança
+    const k = process.platform === 'win32' ? chave.toLowerCase() : chave
+    if (!vistos.has(k)) vistos.set(k, p)
+  }
+
+  add(path.join(root, 'routes', 'web.php'))
   const mods = path.join(root, 'Modules')
   if (fs.existsSync(mods)) {
     for (const m of fs.readdirSync(mods)) {
       for (const cand of ['Http/routes.php', 'Routes/web.php', 'routes/web.php']) {
-        const p = path.join(mods, m, cand)
-        if (fs.existsSync(p)) out.push(p)
+        add(path.join(mods, m, cand))
       }
     }
   }
-  return out
+  return [...vistos.values()]
 }
 
 // ── 2. Resolver `use` → FQCN ────────────────────────────────────────────────
@@ -372,6 +401,22 @@ Route::get('/b', [BController::class, 'x'])->only('nada');
   t('NEG: json puro continua outro', classificarComIndirecao(indir, 'nada') === 'outro')
   t('NEG: ciclo nao trava nem mente', ['outro', 'indeterminado'].includes(classificarComIndirecao(indir, 'ciclo')))
   t('NEG: metodo inexistente = indeterminado', classificarComIndirecao(indir, 'naoExiste') === 'indeterminado')
+
+  // ── dedup de rotaFiles (bug do case-insensitive, 2026-08-08) ──────────────
+  // Invariante que vale nos DOIS sistemas de arquivos: nenhum arquivo real pode
+  // aparecer 2× na lista. Antes do fix eram 60 entradas para 33 arquivos no
+  // Windows (27 duplicados), inflando o censo em +45% e cegando a catraca no CI.
+  {
+    const fl = rotaFiles()
+    const canon = fl.map((p) => {
+      let r
+      try { r = fs.realpathSync.native(p) } catch { r = p }
+      return process.platform === 'win32' ? r.toLowerCase() : r
+    })
+    t(`BITE: rotaFiles sem duplicata (${fl.length} entradas / ${new Set(canon).size} reais)`,
+      new Set(canon).size === fl.length)
+    t('NEG: rotaFiles nao ficou vazio ao dedupar', fl.length > 0)
+  }
 
   // ── catraca (peça 3) ──────────────────────────────────────────────────────
   const base = { total_blade: 100, por_escopo: { core: { blade: 60 }, Crm: { blade: 40 } } }
