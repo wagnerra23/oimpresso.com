@@ -121,12 +121,24 @@ class ForjaAprovacoesService
             ],
         ];
 
+        // Itera os RÓTULOS filtrando pelo FSM (e não o contrário). O efeito é o
+        // mesmo — só sai o que o FSM permite —, mas sem `?? []` nem `isset()` sobre
+        // offset que o PHPStan prova existir (os dois viravam código morto, e ele
+        // reprova no ratchet, com razão).
+        //
+        // A proteção contra "destino novo no FSM sem rótulo aqui" NÃO se perdeu:
+        // ela deixou de ser um `continue` silencioso e passou a ser o UC-APROV-05,
+        // que exige o conjunto oferecido IGUAL a `TRANSITIONS`. Se alguém acrescentar
+        // uma saída no FSM e esquecer o rótulo, o teste falha e diz o que falta —
+        // em vez da UI simplesmente não mostrar o botão e ninguém perceber.
+        $permitidos = McpTask::TRANSITIONS[McpTask::AWAITING_HUMAN];
+
         $out = [];
-        foreach (McpTask::TRANSITIONS[McpTask::AWAITING_HUMAN] ?? [] as $destino) {
-            if (! isset($rotulos[$destino])) {
-                continue; // destino novo no FSM sem rótulo aqui: some da UI em vez de aparecer sem nome
+        foreach ($rotulos as $destino => $meta) {
+            if (! in_array($destino, $permitidos, true)) {
+                continue;
             }
-            $out[] = ['status' => $destino] + $rotulos[$destino];
+            $out[] = ['status' => $destino] + $meta;
         }
 
         return $out;

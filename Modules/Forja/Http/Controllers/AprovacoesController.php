@@ -95,7 +95,9 @@ class AprovacoesController extends Controller
         }
 
         $destino = trim((string) $request->input('destino', ''));
-        $permitidos = McpTask::TRANSITIONS[McpTask::AWAITING_HUMAN] ?? [];
+        // Sem `?? []`: a chave é constante e sempre existe — o PHPStan prova, e o
+        // fallback vira código morto que o ratchet reprova.
+        $permitidos = McpTask::TRANSITIONS[McpTask::AWAITING_HUMAN];
         if (! in_array($destino, $permitidos, true)) {
             return response()->json([
                 'error' => 'Destino inválido. Permitidos: ' . implode(', ', $permitidos),
