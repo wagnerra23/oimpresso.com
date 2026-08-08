@@ -388,23 +388,31 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // GT-G7 (ADR 0275 §1) — snapshot diário do scorecard SDD em
-        // mcp_sdd_scorecard_history (composta v1 + alertas) via agregador node
-        // determinístico. 1 row/dia, re-run substitui. 07:10 BRT — 10min após
-        // governance:scorecard-snapshot (07:00) pra evitar disputa DB (mesmo
-        // precedente do stagger 06:05 do module:grade-snapshot). O brief das
-        // 07h pega o snapshot de ontem; o das 11h pega o de hoje (GT-G8).
-        $schedule->command('governance:sdd-scorecard-snapshot')
-            ->dailyAt('07:10')
-            ->timezone('America/Sao_Paulo')
-            ->onOneServer()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule governance:sdd-scorecard-snapshot FALHOU — histórico SDD defasado (GT-G7)'
-                );
-            });
+        // GT-G7 (ADR 0275 §1) — snapshot diário do scorecard SDD.
+        //
+        // ⛔ NÃO re-agendar aqui. O dono do cron é o **CT 100** (decisão [W] 2026-07-01,
+        // RUNBOOK-ct100-sdd-scorecard-snapshot.md): `10 7 * * *` chamando
+        // `/opt/oimpresso-governance/ct100-sdd-scorecard-snapshot.sh`, que passa o
+        // artefato VERSIONADO via `--input` e grava na mesma prod DB.
+        //
+        // Havia aqui um `$schedule->command('governance:sdd-scorecard-snapshot')` às
+        // 07:10 `['live']` — removido em 2026-08-08 por dois motivos MEDIDOS em prod:
+        //
+        //  1. Nunca funcionou. O comando roda `new Process(['node', ...])` e no
+        //     Hostinger o node existe SÓ em `~/.nvm/versions/node/v24.15.0/bin/`
+        //     (não há `/usr/bin/node` nem `/usr/local/bin/node`) — PATH que o cron
+        //     não herda. Reproduzido: `sh: line 1: exec: node: not found`, rc=1.
+        //     25 falhas registradas no laravel.log.
+        //  2. Se um dia funcionasse seria PIOR: re-medir no Hostinger (sem GH_TOKEN,
+        //     sem a órfã `governance/nightly-floor`) produz **composta fantasma
+        //     não-reproduzível**, e o insert é delete+insert por `snapshot_date` —
+        //     sobrescreveria a row correta do CT 100. É exatamente a lápide de
+        //     2026-07-13 ("UMA composta": 64,1 do host vs 41,0 do artefato).
+        //
+        // Estado da série em prod (medido 2026-08-08): rows diárias contínuas até
+        // 08-08 (composta 55,1) — o CT 100 entrega; o duplicado só fazia ruído.
+        // O premissa antiga do RUNBOOK ("schedule:run não roda no Hostinger") era
+        // FALSA: roda, e é por isso que o duplicado falhava visivelmente.
 
         // Wave 28 Agent 1 (2026-05-17) — Initiatives Cortex-style.
         // Sync diário Initiatives ↔ scorecards: abre breach (rule abaixo target),
