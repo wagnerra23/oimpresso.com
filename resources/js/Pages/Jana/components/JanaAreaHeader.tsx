@@ -125,6 +125,17 @@ export function JanaAreaHeader({
       // não traz isso por default, então preservamos via className pra não
       // regredir o comportamento de scroll das 3 telas.
       className="sticky top-0 z-10 bg-card/95 backdrop-blur"
+      // Dot da área (hue 220 = SIDEBAR_GROUP_HUE.ia). Estava no header antigo,
+      // sumiu na 1ª versão desta onda porque o PageHeader canon não tinha slot
+      // — [W] pediu de volta ao ver a tela em prod (2026-08-08). Voltou pelo
+      // slot `leading` opt-in, não por header hand-rolado fora do padrão.
+      leading={
+        <span
+          aria-hidden
+          className="mr-2 inline-block size-2 shrink-0 rounded-full align-middle"
+          style={{ background: 'oklch(0.62 0.13 220)' }}
+        />
+      }
       title="Jana"
       suffix=" · Analista IA"
       subtitle={
