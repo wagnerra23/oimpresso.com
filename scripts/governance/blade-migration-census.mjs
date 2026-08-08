@@ -354,7 +354,19 @@ const argv = process.argv.slice(2)
 if (argv.includes('--selftest')) selftest()
 else {
   const linhas = censo()
-  if (argv.includes('--json')) {
+  if (argv.includes('--resumo-json')) {
+    // Mesmo shape do governance/blade-migration-baseline.json — consumido pelo
+    // sentinela (BladeMigrationSentinelCommand) e usado pra regravar o baseline.
+    const ag = agregar(linhas)
+    const porEscopo = {}
+    let totalBlade = 0
+    for (const [esc, a] of [...ag.entries()].sort()) {
+      if (a.blade === 0 && a.hibrido === 0) continue
+      porEscopo[esc] = { blade: a.blade, hibrido: a.hibrido }
+      totalBlade += a.blade
+    }
+    console.log(JSON.stringify({ total_blade: totalBlade, por_escopo: porEscopo }, null, 2))
+  } else if (argv.includes('--json')) {
     console.log(JSON.stringify({ total: linhas.length, linhas }, null, 2))
   } else {
     const ag = agregar(linhas)
