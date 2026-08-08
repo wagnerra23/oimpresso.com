@@ -10,7 +10,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { isTrigger, isInfraPath, extractInlineBody, hasEvidence, findOverride, evaluate, advisoryMessage, isAlvoPath, hasAlvoEvidence, findAlvoPendente, evaluateAlvo, advisoryAlvoMessage } from './block-claim-without-evidence.mjs';
+import { isTrigger, isInfraPath, extractInlineBody, hasEvidence, findOverride, evaluate, advisoryMessage, isAlvoPath, hasAlvoEvidence, findAlvoPendente, evaluateAlvo, advisoryAlvoMessage, faltasCompletude, evaluateCompletude, advisoryCompletudeMessage, COMPLETUDE_CHECKS } from './block-claim-without-evidence.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-claim-without-evidence.mjs');
 let fails = 0;
@@ -87,6 +87,71 @@ check('mensagem alvo cita tag + timestamp/host + origem P15', (() => {
   return /alvo-pendente/.test(m) && /timestamp \+ host/.test(m) && /P15/.test(m) && /ADVISORY/.test(m);
 })());
 check('infra evaluate NÃO dispara pra path-alvo (dimensões separadas)', evaluate({ ...baseAlvo, hasRecentEvidenceFile: false }) === 'silent');
+
+// ── heredoc no --body: BUG MEDIDO no PR #5068 (30/jul/2026) ──────────────────────
+// O agente abre PR com `--body "$(cat <<'EOF' … EOF)"`. A aspa simples do <<'EOF'
+// fechava o grupo da regex antiga → body virava "$(cat <<" (8 chars) e hasEvidence
+// dava FALSE com o corpo cheio de evidência. Hook cego pro corpo de TODO PR assim.
+const Q = String.fromCharCode(39);
+const CORPO_EVID = '## Infra Contract\ncurl -sv https://oimpresso.com/login\n< HTTP/1.1 200';
+const cmdHeredocQuoted = `gh pr create --body "$(cat <<${Q}EOF${Q}\n${CORPO_EVID}\nEOF\n)"`;
+const cmdHeredocPlain = `gh pr create --body "$(cat <<EOF\n${CORPO_EVID}\nEOF\n)"`;
+check('heredoc <<\'EOF\' (padrão real do agente): extrai o corpo INTEIRO', extractInlineBody(cmdHeredocQuoted) === CORPO_EVID);
+check('heredoc <<\'EOF\': hasEvidence agora vê a evidência (era o falso negativo)', hasEvidence(extractInlineBody(cmdHeredocQuoted)));
+check('heredoc <<EOF sem aspas: também extrai', extractInlineBody(cmdHeredocPlain) === CORPO_EVID);
+check('quoted simples NÃO regrediu', extractInlineBody('gh pr create --body "## Infra Contract"') === '## Infra Contract');
+check('sem --body: string vazia', extractInlineBody('gh pr create --title x') === '');
+check('heredoc: override dentro do corpo é encontrado (antes ficava invisível)', findOverride(extractInlineBody(`gh pr create --body "$(cat <<${Q}EOF${Q}\n<!-- evidence-override: hotfix prod -->\nEOF\n)"`)) !== null);
+
+// ── completude do corpo de PR — FIXTURES REAIS (PR #5068 e #5040) ────────────────
+// Cada corpo abaixo é texto que EXISTIU num PR de verdade. Corpo inventado prova que a
+// regex casa com o inventado; corpo que ESCAPOU prova que o buraco fechou.
+// F1 = #5068 como eu abri (passou ~25 gates verdes e [M] cobrou 3× o que faltava).
+const F1_INCOMPLETO = `## O que é
+Skill Tier B auto-trigger que força esgotar git/canon antes de gastar turno humano.
+## O que NÃO muda
+Não afrouxa R10: deploy e mudança Tier 0 seguem exigindo aprovação humana.
+## Por que não é duplicata
+pre-adr-introspect é escopada a ADR; wagner-request-refiner estrutura o pedido na entrada.
+## Validação
+- 1 arquivo, 140 linhas, só documentação — zero código, zero runtime
+- Os 9 links internos foram verificados um a um contra origin/main via git ls-tree
+## Nota de honestidade
+A skill nasceu de uma falha real desta sessão.`;
+// F2 = #5068 reescrito depois da cobrança (trechos verbatim das 4 dimensões).
+const F2_COMPLETO = `## Risco pra quem usa a tela — se ligar hoje, o que a Larissa deixa de conseguir fazer?
+Nada. Zero linhas em qualquer código que renderiza tela.
+## Blast radius — medido
+git diff --stat origin/main...HEAD → 2 files changed, 143 insertions(+), 2 deletions(-)
+## Evidência
+✓ bloco CLAUDE.md + _SKILLS-INDEX.md em dia (76 skills) — job exit=0
+## Backlog
+não existe US pra isso: tasks-list module:Governance, 30 tasks ativas, nenhuma sobre isto.`;
+
+check('F1 (#5068 como abri): acusa as 4 dimensões', (() => {
+  const f = faltasCompletude(F1_INCOMPLETO);
+  return ['BLAST', 'CLIENTE', 'VALIDACAO', 'BACKLOG'].every((id) => f.includes(id));
+})());
+check('F1: "1 arquivo, 140 linhas" em prosa NÃO conta como BLAST medido', faltasCompletude(F1_INCOMPLETO).includes('BLAST'));
+check('F2 (#5068 reescrito): passa limpo', faltasCompletude(F2_COMPLETO).length === 0);
+check('corpo vazio/ilegível (--body-file): fail-open silencioso, não acusa', faltasCompletude('').length === 0);
+// Anti-vocabulário: citar a REGRA não pode satisfazer a regra (calibração 2026-07-30 —
+// o #5040 passava CLIENTE/VALIDACAO casando com "biz=4"/"biz=1" que ele só MENCIONA).
+check('anti-vocabulário: mencionar "biz=4"/"biz=1" NÃO satisfaz CLIENTE nem VALIDACAO', (() => {
+  const soVocab = 'Tabela de regras: TENANT aponta biz=1/biz=4 como alvo de teste.';
+  const f = faltasCompletude(soVocab);
+  return f.includes('CLIENTE') && f.includes('VALIDACAO');
+})());
+check('evaluateCompletude: corpo completo → ok', evaluateCompletude({ command: `gh pr create --body "$(cat <<${Q}EOF${Q}\n${F2_COMPLETO}\nEOF\n)"` }) === 'ok');
+check('evaluateCompletude: corpo incompleto → advisory', evaluateCompletude({ command: `gh pr create --body "$(cat <<${Q}EOF${Q}\n${F1_INCOMPLETO}\nEOF\n)"` }) === 'advisory');
+check('evaluateCompletude: não-trigger → silent', evaluateCompletude({ command: 'git push origin main' }) === 'silent');
+check('evaluateCompletude: env override → override', evaluateCompletude({ command: 'gh pr create --body "vazio"', envOverride: true }) === 'override');
+check('evaluateCompletude: override no corpo → override', evaluateCompletude({ command: `gh pr create --body "<!-- evidence-override: doc trivial -->"` }) === 'override');
+check('mensagem de completude cita a pendência + template + origem #5068', (() => {
+  const m = advisoryCompletudeMessage(['BLAST', 'CLIENTE']);
+  return /BLAST/.test(m) && /CLIENTE/.test(m) && /PULL_REQUEST_TEMPLATE/.test(m) && /5068/.test(m) && /ADVISORY/.test(m);
+})());
+check('as 4 dimensões estão declaradas (contrato explícito)', COMPLETUDE_CHECKS.map((c) => c.id).join(',') === 'BLAST,CLIENTE,VALIDACAO,BACKLOG');
 
 // ── E2E: stdin JSON → exit code. Contrato ADR 0224: exit 0 SEMPRE ────────────────
 function runHook(stdin, env = {}) {

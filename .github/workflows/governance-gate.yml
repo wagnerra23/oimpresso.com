@@ -496,3 +496,28 @@ jobs:
 
           echo "Scanning ${#arquivos[@]} arquivos…"
           .github/scripts/merge-marker-scan.sh -v "${arquivos[@]}"
+
+  # ── Catraca da migração Blade→React (peça 3/3 · ADR 0277) ──────────────────
+  # A 0277 decidiu em 2026-06-13 que "migrado = route Blade morto ou 302" e previu
+  # um contador de routes Blade vivos. Ele nunca existiu; o censo A-L era digitado
+  # à mão e a rota parou (56 dias). Peça 1 (#5424) deu o medidor derivado; peça 2
+  # (#5425) a cobrança por cron; esta é a trava PRÉ-MERGE: rota Blade nova avermelha
+  # antes de entrar, em vez de virar dívida que alguém descobre meses depois.
+  #
+  # ADVISORY nesta fase (ADR 0275: nasce advisory, promove com mordida provada —
+  # ADR 0336). NÃO bloqueia merge; fica vermelho e visível.
+  #
+  # FP medido antes de ligar (regra "LIGUE A MÁQUINA" #4): árvore limpa → exit 0.
+  # Mordida provada por injeção real de rota Blade → exit 1 apontando `Jana 8 → 9`.
+  # Só reprova SUBIDA: descer, ficar igual, ou escopo sumir do censo passam.
+  blade-migration-ratchet:
+    name: Migração Blade→React · catraca só-desce (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Censo vs baseline — nenhum escopo pode subir
+        run: node scripts/governance/blade-migration-census.mjs --ratchet

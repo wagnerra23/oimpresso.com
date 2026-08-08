@@ -277,7 +277,35 @@ export function agregar(linhas) {
   return porEscopo
 }
 
-// ── 8. Selftest ─────────────────────────────────────────────────────────────
+// ── 8. Catraca (peça 3) ─────────────────────────────────────────────────────
+/**
+ * A regra da catraca: NENHUM escopo pode subir vs baseline. Só desce.
+ *
+ * ⚠️ FRONTEIRA DECLARADA — esta regra existe em DOIS lugares, de propósito:
+ *   · AQUI (JS)  → roda no PR, sem PHP nem DB. Pega a regressão ANTES do merge.
+ *   · BladeMigrationSentinelCommand::avaliar (PHP) → roda por cron, com DB.
+ *     Pega também ESTAGNAÇÃO (temporal) e escala pro brief.
+ *
+ * Não é duplicação de régua (proibicoes §5): são MOMENTOS diferentes (pré-merge ×
+ * pós-merge) e efeitos diferentes (vermelho no PR × task no brief), e o eixo
+ * temporal não é computável no PR. O que É compartilhado — e por isso não pode
+ * divergir — é o BASELINE: um arquivo só, `governance/blade-migration-baseline.json`.
+ * Os dois lados têm teste da mesma regra; se um dia divergirem, o baseline único
+ * faz a divergência aparecer como veredito contraditório no mesmo dado.
+ */
+export function ratchet(atual, baseline) {
+  const regressoes = []
+  for (const [escopo, dados] of Object.entries(atual.por_escopo || {})) {
+    const antes = Number(baseline.por_escopo?.[escopo]?.blade ?? 0)
+    const agora = Number(dados.blade ?? 0)
+    if (agora > antes) regressoes.push({ escopo, de: antes, para: agora, delta: agora - antes })
+  }
+  const totalAtual = Number(atual.total_blade ?? 0)
+  const totalBase = Number(baseline.total_blade ?? 0)
+  return { ok: regressoes.length === 0, regressoes, delta: totalAtual - totalBase, totalAtual, totalBase }
+}
+
+// ── 9. Selftest ─────────────────────────────────────────────────────────────
 function selftest() {
   let ok = 0, fail = 0
   const t = (nome, cond) => { if (cond) { ok++; console.log(`  [PASS] ${nome}`) } else { fail++; console.log(`  [FAIL] ${nome}`) } }
@@ -345,14 +373,72 @@ Route::get('/b', [BController::class, 'x'])->only('nada');
   t('NEG: ciclo nao trava nem mente', ['outro', 'indeterminado'].includes(classificarComIndirecao(indir, 'ciclo')))
   t('NEG: metodo inexistente = indeterminado', classificarComIndirecao(indir, 'naoExiste') === 'indeterminado')
 
+  // ── catraca (peça 3) ──────────────────────────────────────────────────────
+  const base = { total_blade: 100, por_escopo: { core: { blade: 60 }, Crm: { blade: 40 } } }
+  t('BITE: escopo que sobe reprova a catraca',
+    ratchet({ total_blade: 102, por_escopo: { core: { blade: 60 }, Crm: { blade: 42 } } }, base).ok === false)
+  t('BITE: escopo NOVO (ausente do baseline) reprova',
+    ratchet({ total_blade: 103, por_escopo: { core: { blade: 60 }, Crm: { blade: 40 }, Novo: { blade: 3 } } }, base).ok === false)
+  t('NEG: igual ao baseline passa',
+    ratchet({ total_blade: 100, por_escopo: { core: { blade: 60 }, Crm: { blade: 40 } } }, base).ok === true)
+  t('NEG: descer passa (a catraca so impede SUBIR)',
+    ratchet({ total_blade: 90, por_escopo: { core: { blade: 55 }, Crm: { blade: 35 } } }, base).ok === true)
+  t('NEG: escopo que SOME do censo nao reprova',
+    ratchet({ total_blade: 60, por_escopo: { core: { blade: 60 } } }, base).ok === true)
+  // o que a catraca NÃO faz: julgar tempo. Estagnação é do sentinela (PHP, cron).
+  t('NEG: catraca ignora tempo (baseline antigo com numeros iguais passa)',
+    ratchet({ total_blade: 100, por_escopo: { core: { blade: 60 }, Crm: { blade: 40 } } },
+      { ...base, gerado_em: '2020-01-01' }).ok === true)
+
   console.log(`\n  ${ok} passou · ${fail} falhou`)
   process.exit(fail === 0 ? 0 : 1)
 }
 
 // ── main ────────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2)
+const optVal = (nome) => {
+  const p = argv.find((a) => a.startsWith(`${nome}=`))
+  return p ? p.slice(nome.length + 1) : null
+}
+
 if (argv.includes('--selftest')) selftest()
-else {
+else if (argv.includes('--ratchet')) {
+  const bPath = optVal('--baseline') || path.join(ROOT, 'governance', 'blade-migration-baseline.json')
+  if (!fs.existsSync(bPath)) {
+    console.error(`baseline não encontrado: ${bPath}`)
+    process.exit(2)
+  }
+  const baseline = JSON.parse(fs.readFileSync(bPath, 'utf8'))
+  const inPath = optVal('--input')
+  let atual
+  if (inPath) {
+    atual = JSON.parse(fs.readFileSync(inPath, 'utf8'))
+  } else {
+    const ag = agregar(censo())
+    const porEscopo = {}
+    let t = 0
+    for (const [esc, a] of [...ag.entries()].sort()) {
+      if (a.blade === 0 && a.hibrido === 0) continue
+      porEscopo[esc] = { blade: a.blade, hibrido: a.hibrido }
+      t += a.blade
+    }
+    atual = { total_blade: t, por_escopo: porEscopo }
+  }
+
+  const r = ratchet(atual, baseline)
+  if (r.ok) {
+    const nota = r.delta < 0 ? ` (−${-r.delta} desde o baseline — regrave quando quiser)` : ''
+    console.log(`✅ catraca Blade→React OK — nenhum escopo subiu. ${r.totalAtual} endpoints em Blade${nota}`)
+    process.exit(0)
+  }
+  console.error('⛔ CATRACA Blade→React: rota Blade NOVA (a migração só pode descer)\n')
+  for (const g of r.regressoes) console.error(`   ${g.escopo.padEnd(20)} ${g.de} → ${g.para}   (+${g.delta})`)
+  console.error(`\n   total: ${r.totalBase} → ${r.totalAtual}`)
+  console.error('\n   Se a subida foi CONSCIENTE, regrave o baseline no MESMO PR, com o motivo:')
+  console.error('     node scripts/governance/blade-migration-census.mjs --resumo-json  (e atualize governance/blade-migration-baseline.json)')
+  console.error('   ADR 0277 §1: enquanto os dois caminhos coexistem, a função NÃO conta como migrada.')
+  process.exit(1)
+} else {
   const linhas = censo()
   if (argv.includes('--resumo-json')) {
     // Mesmo shape do governance/blade-migration-baseline.json — consumido pelo
