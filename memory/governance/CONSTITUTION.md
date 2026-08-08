@@ -4,12 +4,18 @@ title: "Constituição do Oimpresso ERP"
 type: constitution
 authority: supreme
 lifecycle: ativo
-version: 1.1.0
+version: 1.2.0
 ratified_by: [W]
 ratified_at: 2026-05-05
-charter_adr: 0079
-last_amendment: 2026-05-05
+charter_adr: 0094
+last_amendment: 2026-08-08
 amendments:
+  - version: 1.2.0
+    at: 2026-08-08
+    by: [W]
+    type: minor
+    description: "Artigo 4 passa a enumerar LGPD Art. 20 — decisão automatizada que afeta titular exige registro auditável, identificação como automatizada e canal de revisão humana. É o princípio 9 da Constituição v2, ratificado na ADR 0372. Junto, reconciliação de metadados: charter_adr de 0079 para 0094 (a 0094 superseded a 0079 em 2026-05-06) e as três linhas de versão que contradiziam o frontmatter."
+    adr: 0372
   - version: 1.1.0
     at: 2026-05-05
     by: [W]
@@ -17,6 +23,8 @@ amendments:
     description: "Adicionada §10.4 — Cascade Review obrigatória. Toda mudança em camada superior exige auditoria documentada das camadas abaixo."
     adr: 0079
 related:
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0372-audit-card-decisao-automatizada-titular-emenda-0094
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0070-jira-style-task-management-current-md-removed
@@ -30,9 +38,9 @@ review_triggers:
 
 # Constituição do Oimpresso ERP
 
-> **Versão 1.0.0 — ratificada em 2026-05-05 por Wagner Rocha**
+> **Versão 1.2.0** — ratificação inicial em 2026-05-05 por Wagner Rocha; último amendment em 2026-08-08
 > **Status:** ativo / supremo
-> **ADR de origem:** [0079](../decisions/0079-constituicao-oimpresso-7-camadas-governanca.md)
+> **ADR de origem:** [0079](../decisions/0079-constituicao-oimpresso-7-camadas-governanca.md) · **charter vigente:** [0094](../decisions/0094-constituicao-v2-7-camadas-8-principios.md) (Constituição v2, que superseded a 0079 em 2026-05-06)
 > **Mudanças:** somente via Wagner + ADR formal + version bump (semver). Ver §10.
 
 ---
@@ -129,6 +137,7 @@ Não há cláusula pétrea explícita — qualquer artigo pode evoluir. Mas a so
 **Implementação obrigatória.**
 - **LGPD Art. 7º:** consentimento, finalidade, transparência. Toda coleta de PII exige declaração de finalidade.
 - **LGPD Art. 18:** titular pode acessar/corrigir/apagar seus dados. Implementado via `/copiloto/memoria` opt-out + endpoint LGPD.
+- **LGPD Art. 20 (decisão automatizada) — Tier 0:** toda decisão tomada por processo automatizado que **afete um titular** deve, **antes de produzir efeito sobre ele**: (1) ser **registrada** de forma auditável (quem/quando/sob qual regra/a partir de qual dado); (2) ser **identificável como automatizada** para o titular; (3) oferecer **canal de revisão humana** acessível a ele. Vale para qualquer módulo, com ou sem IA no caminho — a obrigação é da **decisão**, não da tecnologia. É o **princípio 9** da Constituição v2, ratificado na [ADR 0372](../decisions/0372-audit-card-decisao-automatizada-titular-emenda-0094.md) (base legal: LGPD Art. 20 + ANPD NT 12/2025). Exposição hoje é **zero e prospectiva**: nenhuma decisão automatizada chega a titular, e o dever se cumpre **junto** com a primeira que chegar — nunca depois dela.
 - **Portaria 671/2021:** marcações de ponto append-only com hash SHA256 (artigo 3 reforça).
 - **NF-e:** emissão via `eduardokum/sped-nfe` com retenção de 5 anos.
 - **PII redactor BR:** regex CPF/CNPJ/email/tel ativo em logs e prompts de IA (US-COPI-043).
@@ -137,6 +146,7 @@ Não há cláusula pétrea explícita — qualquer artigo pode evoluir. Mas a so
 - Skill `multi-tenant-patterns` referencia compliance.
 - ADRs taggeados `lgpd`, `portaria-671`, `nfe`, `nfse` listam cobertura por verticais.
 - Audit pode disparar relatório LGPD por business_id sob demanda do titular.
+- O Art. 20 **não tem gate mecânico** hoje, e isso é deliberado: o corpus é vazio, e gate sobre corpus vazio nasce parado (o padrão `foundation-ratchet`). A defesa é a [ADR 0372](../decisions/0372-audit-card-decisao-automatizada-titular-emenda-0094.md) + o `review_trigger` da [ADR 0363](../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md).
 
 **Quem viola = como.** Log com PII raw. Endpoint que retorna dados de business sem consentimento. Marcação de ponto editada. NF-e sem retenção.
 
@@ -404,11 +414,12 @@ Ação executada (ou bloqueada com motivo registrado)
 
 ## Histórico de versões
 
+- **v1.2.0** (2026-08-08) — Artigo 4 ganha **LGPD Art. 20** (princípio 9 da Constituição v2, [ADR 0372](../decisions/0372-audit-card-decisao-automatizada-titular-emenda-0094.md)) + reconciliação de metadados: `charter_adr` 0079→0094 e as três linhas de versão que contradiziam o frontmatter. Cascade audit em `audit-2026-08-08-v1.2.md`.
 - **v1.1.0** (2026-05-05) — Adicionada §10.4 Cascade Review. Wagner ratificou; audit cascata aplicada e documentada em `memory/governance/audit-2026-05-05-v1.1.md`.
 - **v1.0.0** (2026-05-05) — Ratificação inicial. 10 artigos. Wagner ratificou via ADR 0079.
 
 ---
 
 > **Mantida por:** Wagner Rocha
-> **Versão atual:** 1.0.0
-> **Próxima revisão programada:** 2026-08-05 (review trimestral) ou antes se review_trigger disparar
+> **Versão atual:** 1.2.0
+> **Próxima revisão programada:** 2026-11-08 (review trimestral) ou antes se review_trigger disparar
