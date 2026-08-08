@@ -53,7 +53,7 @@ beforeEach(function () {
     $this->actingAs($user);
 });
 
-it('estoque inicial (opening) ENTRA a quantidade informada no local', function () {
+it('UC-EST-07 · estoque inicial (opening) ENTRA a quantidade informada no local', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $handle = EstoqueFixture::singleProduct($this->biz);
     // produto sem VLD ainda — opening cria o saldo.

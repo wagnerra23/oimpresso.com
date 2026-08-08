@@ -1,3 +1,7 @@
+---
+authority: generated
+---
+
 <!-- GERADO por scripts/governance/requisitos-status.mjs — NÃO editar à mão.
      Status é DERIVADO da cadeia US→CU→UC→teste. Editar aqui não muda nada:
      mude o SPEC/SDD/casos/teste e re-rode. (ADR 0256: derivado sobrevive.) -->
@@ -12,12 +16,12 @@
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 7 |
+| US no SPEC | 8 |
 | CU no SDD | 10 |
 | Telas (.tsx) | 3 |
 | Telas com `casos.md` | 3 |
-| UC declarados | 27 |
-| UC com teste que os cita | 23 |
+| UC declarados | 29 |
+| UC com teste que os cita | 24 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -40,6 +44,7 @@
 | US-KB-004 | `desconhecido` | — Trilha de aprendizado Larissa (ONDA 3+5) |
 | US-KB-005 | `desconhecido` | — Troubleshooter Q→Sim/Não→Fix (ONDA 3) |
 | US-KB-007 | `desconhecido` | — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou** |
+| US-KB-008 | `desconhecido` | — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — |
 
 ## UC por status
 
@@ -52,6 +57,7 @@
 | UC-09 | Index.v2 | 🧪 aguarda veredito da lane |
 | UC-10 | Index.v2 | 📝 sem_teste |
 | UC-13 | Index.v2 | 📝 sem_teste |
+| UC-14 | Index.v2 | 📝 sem_teste |
 | UC-KB-01 | Index | 🧪 aguarda veredito da lane |
 | UC-KB-02 | Index | 🧪 aguarda veredito da lane |
 | UC-KB-03 | Index | 🧪 aguarda veredito da lane |
@@ -72,6 +78,7 @@
 | UC-KBV2-09 | Index.v2 | 📝 sem_teste |
 | UC-KBV2-10 | Index.v2 | 📝 sem_teste |
 | UC-KBV2-13 | Index.v2 | 🧪 aguarda veredito da lane |
+| UC-KBV2-14 | Index.v2 | 🧪 aguarda veredito da lane |
 
 ---
 

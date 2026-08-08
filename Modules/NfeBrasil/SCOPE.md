@@ -1,6 +1,7 @@
 ---
 module: NfeBrasil
-purpose: "NFC-e + NF-e + SPED brasileiro. Spec-ready."
+purpose: "Motor headless de comunicação com a SEFAZ: emite NF-e/NFC-e/NFS-e, guarda e opera o certificado A1, aplica eventos (cancelamento, CC-e, inutilização, manifestação DF-e) e calcula tributos. Não tem tela própria no sidebar — a UI é do Modules/Fiscal."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "DataController"
   - "InstallController"
@@ -24,7 +25,7 @@ db_tables_owned:
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
-  - "MCP server admin → Modules/TeamMcp"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: nfebrasil.*

@@ -192,12 +192,29 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
             Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php
 
+
+      # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
+      # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
+      # o FP do --check-assertions ANTES de arma-lo. Aqui so REPORTA (if: always()).
+      - name: Sumario JUnit por arquivo (junit-summary.mjs — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-nfebrasil-junit.xml --out test-results/pest-nfebrasil-junit-summary.json || true
+
+      - name: Upload sumario JUnit (pest-nfebrasil-junit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-nfebrasil-junit-summary
+          path: test-results/pest-nfebrasil-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
         uses: actions/upload-artifact@v4

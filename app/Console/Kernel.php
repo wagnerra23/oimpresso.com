@@ -388,21 +388,63 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // GT-G7 (ADR 0275 §1) — snapshot diário do scorecard SDD em
-        // mcp_sdd_scorecard_history (composta v1 + alertas) via agregador node
-        // determinístico. 1 row/dia, re-run substitui. 07:10 BRT — 10min após
-        // governance:scorecard-snapshot (07:00) pra evitar disputa DB (mesmo
-        // precedente do stagger 06:05 do module:grade-snapshot). O brief das
-        // 07h pega o snapshot de ontem; o das 11h pega o de hoje (GT-G8).
-        $schedule->command('governance:sdd-scorecard-snapshot')
-            ->dailyAt('07:10')
+        // GT-G7 (ADR 0275 §1) — snapshot diário do scorecard SDD.
+        //
+        // ⛔ NÃO re-agendar aqui. O dono do cron é o **CT 100** (decisão [W] 2026-07-01,
+        // RUNBOOK-ct100-sdd-scorecard-snapshot.md): `10 7 * * *` chamando
+        // `/opt/oimpresso-governance/ct100-sdd-scorecard-snapshot.sh`, que passa o
+        // artefato VERSIONADO via `--input` e grava na mesma prod DB.
+        //
+        // Havia aqui um `$schedule->command('governance:sdd-scorecard-snapshot')` às
+        // 07:10 `['live']` — removido em 2026-08-08 por dois motivos MEDIDOS em prod:
+        //
+        //  1. Nunca funcionou. O comando roda `new Process(['node', ...])` e no
+        //     Hostinger o node existe SÓ em `~/.nvm/versions/node/v24.15.0/bin/`
+        //     (não há `/usr/bin/node` nem `/usr/local/bin/node`) — PATH que o cron
+        //     não herda. Reproduzido: `sh: line 1: exec: node: not found`, rc=1.
+        //     25 falhas registradas no laravel.log.
+        //  2. Se um dia funcionasse seria PIOR: re-medir no Hostinger (sem GH_TOKEN,
+        //     sem a órfã `governance/nightly-floor`) produz **composta fantasma
+        //     não-reproduzível**, e o insert é delete+insert por `snapshot_date` —
+        //     sobrescreveria a row correta do CT 100. É exatamente a lápide de
+        //     2026-07-13 ("UMA composta": 64,1 do host vs 41,0 do artefato).
+        //
+        // Estado da série em prod (medido 2026-08-08): rows diárias contínuas até
+        // 08-08 (composta 55,1) — o CT 100 entrega; o duplicado só fazia ruído.
+        // O premissa antiga do RUNBOOK ("schedule:run não roda no Hostinger") era
+        // FALSA: roda, e é por isso que o duplicado falhava visivelmente.
+
+        // ADR 0277 peça 3/3 — a COBRANÇA da rota de migração Blade→React.
+        //
+        // SEMANAL (dom 07:45 BRT), não diário: estagnação se mede em dias e o
+        // default de `--dias-estagnacao` é 30 — rodar todo dia só multiplicaria a
+        // mesma linha. Domingo 07:45 fica fora do cluster 06:00-07:00 (drift-sentinel,
+        // recall-eval, scorecard-snapshot) pra não disputar DB.
+        //
+        // ⚠️ ONDE A COBRANÇA APARECE: numa task `blocked`/`wagner` em `mcp_tasks`
+        // (via HitlEscalationService, `task_id` determinístico) que o brief lê. NÃO
+        // é no `onFailure` abaixo — medido em prod 2026-08-08, o pile de
+        // "Schedule ... FALHOU" tem ~10 schedules com falha repetida e
+        // `whatsapp:channels-reconcile` sozinho com 8996 linhas. Log de falha aqui é
+        // rastro pra quem já está investigando, nunca o canal de cobrança.
+        //
+        // Sem `--dry-run` de propósito: escalar quando regride/estagna É o trabalho.
+        //
+        // O comando não morre sem `node` (o cron do Hostinger não alcança o nvm —
+        // mesma causa da remoção acima): ele degrada pro estado `cego`, que segue
+        // cobrando ESTAGNAÇÃO (sai do baseline versionado, não precisa de node) e
+        // NOMEIA que a regressão não foi conferida — eixo que já tem dono na catraca
+        // `blade-migration-census.mjs --ratchet` do governance-gate, a cada PR.
+        $schedule->command('governance:blade-migration-sentinel')
+            ->weeklyOn(0, '07:45')
             ->timezone('America/Sao_Paulo')
             ->onOneServer()
             ->withoutOverlapping()
             ->environments(['live'])
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule governance:sdd-scorecard-snapshot FALHOU — histórico SDD defasado (GT-G7)'
+                    'Schedule governance:blade-migration-sentinel FALHOU — baseline ausente/inválido ' .
+                    '(governance/blade-migration-baseline.json). Censo sem node NÃO falha: sai `cego`.'
                 );
             });
 
@@ -462,7 +504,10 @@ class Kernel extends ConsoleKernel
         //
         // Skip-guard honesto (2026-06-20): SEM OPENAI_API_KEY o canary NÃO falha o
         // cron toda semana (era ruído / falso "DRIFT 100%") — sai DORMANT (exit 0,
-        // status=dormant), visível como ⊘ no agregador governance-audit.mjs. O
+        // status=dormant). ⚠️ 2026-08-04: a redação anterior dizia que isso era "visível
+        // como ⊘ no agregador governance-audit.mjs" — o agregador NUNCA teve invocador
+        // (medido; declarado morto no cabeçalho dele), então o dormant não era visível em
+        // lugar nenhum além do log deste schedule. Fica o fato, sem a visibilidade falsa. O
         // onFailure abaixo só dispara em drift REAL acima do threshold. Domingo cedo
         // pra não disputar DB com os health-checks diários (06:00-06:30).
         $schedule->command('jana:drift-sentinel')
@@ -619,11 +664,46 @@ class Kernel extends ConsoleKernel
         //
         // Slot 06:45: 06:15 disputado (4), 06:20/06:30/06:35 ocupados — canon em
         // memory/reference/feedback-cron-slot-06h15-brt-disputado.md (verificado hoje).
+        //
+        // ── 2026-08-04 — REMOVIDO o ->onOneServer(). CAUSA NÃO ESTABELECIDA. ────────
+        // Medido em prod (Hostinger), `grep "mcp:tasks:unassigned" storage/logs/laravel.log
+        // | grep -o "2026-..-.. [0-9:]*" | sort | uniq -c`, 8 dias 07-28..08-04: a série
+        // tem 2 buracos — 07-29 e 08-04 — sem NENHUM registro.
+        //
+        // O comando loga INCONDICIONALMENTE no fim do handle(), então "sem linha" = não
+        // completou. E `grep -c "mcp:tasks:unassigned FALHOU"` = 0: o onFailure abaixo
+        // nunca disparou, porque ele só cobre exit != 0 e é CEGO a "nunca começou" —
+        // inclusive ao caso em que o próprio schedule:run morre (o comando roda in-process,
+        // sem runInBackground).
+        //
+        // Descartado com evidência: deploy (`schedule:list` em prod, 2026-08-04, lista
+        // `45 6 * * *`; e `gh run list --workflow=deploy.yml` não tem run na janela dos
+        // 2 dias) · disco (`df -h`: 75% usado, 5,4T livres) · OOM (nenhum fatal/memory no
+        // log em 06:40-06:55 dos 2 dias; memory_limit CLI = 3072M pra ~672 linhas).
+        //
+        // NÃO descartado — e é por isso que este ->onOneServer() sai: comparando os
+        // DOIS únicos comandos com log incondicional, o vizinho mcp:tasks:health-check
+        // (06:20) fez 12/12 dias e este fez 6/8, e a ÚNICA diferença estrutural entre
+        // eles era o ->onOneServer(). Não é prova (Fisher 1-cauda = 0,1474 com n=8), mas
+        // ele é uma via de SKIP SILENCIOSO dependente de cache (CACHE_DRIVER=file) e não
+        // tem função aqui: um único host roda schedule:run com APP_ENV=live (o cron do
+        // hPanel — memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md; no CT 100 o
+        // schedule:run é 0, medido 2026-07-17 em memory/requisitos/Jana/SPEC.md).
+        // Mesmo que um 2º host surgisse, rodar 2× é inócuo: o comando é SELECT + log.
+        //
+        // Isto é uma MITIGAÇÃO QUE DISCRIMINA, não um conserto de causa conhecida: se os
+        // buracos persistirem sem o onOneServer, a causa está noutro lugar e o dado passa
+        // a valer. NÃO fecha a visibilidade — nada hoje ALARMA quando o cron falta, e o
+        // cron-watchdog.mjs põe os schedules Laravel fora do eixo 1 (sem API de liveness).
+        // Heartbeat em DB é a opção que fecharia, e é decisão [W].
+        // Ver memory/sessions/2026-08-04-cron-unassigned-buraco-na-serie.md.
+        //
+        // Diverge de propósito do passo 2 do canon do slot (que prescreve "sempre"
+        // onOneServer) — desvio declarado lá, no mesmo PR.
         $schedule->command('mcp:tasks:unassigned')
             ->dailyAt('06:45')
             ->timezone('America/Sao_Paulo')
             ->environments(['live'])
-            ->onOneServer()
             ->withoutOverlapping(60)
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
@@ -770,47 +850,27 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // ADS Reviewer (T11 G-Eval) — review automático cada 15min de decisions sem score.
-        $schedule->command('ads:review-decisions --limit=10')
-            ->everyFifteenMinutes()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule ADS Reviewer (ads:review-decisions) FALHOU'
-                );
-            });
-
-        // ADS Pattern Learning (T15 Wilson Score) — diário 02:00.
-        $schedule->command('ads:learn-patterns --business=all --detect-drift')
-            ->dailyAt('02:00')
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Auto Task Generator (T7 Self-Instruct) — horário de 9h às 18h.
-        $schedule->command('ads:auto-generate-tasks')
-            ->cron('0 9-18 * * 1-5')
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Planner (T9 PlannerAgent) — decompõe decisions complexas a cada 10min.
-        $schedule->command('ads:plan-decisions --limit=3')
-            ->everyTenMinutes()
-            ->withoutOverlapping()
-            ->environments(['live']);
-
-        // ADS Brain B — processa decisions com destination=brain_b a cada 5 min.
-        // Custo estimado ~$0.05/dia em prod com prompt caching Sonnet. Limit=5
-        // por execução evita gastos descontrolados; ajustar via Policy se necessário.
-        $schedule->command('ads:process-brain-b --limit=5')
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule ADS Brain B (ads:process-brain-b) FALHOU'
-                );
-            });
+        // ── ADS · 5 schedules REMOVIDOS em 2026-07-31 (decisão [W]) ──────────────
+        // Eram: ads:review-decisions (15min) · ads:learn-patterns (02:00) ·
+        // ads:auto-generate-tasks (9-18h úteis) · ads:plan-decisions (10min) ·
+        // ads:process-brain-b (5min). Os cinco alimentavam `mcp_dual_brain_decisions`.
+        //
+        // POR QUE SAÍRAM, medido em prod 2026-07-30/31 (não estimado):
+        //   - 36.862 linhas acumuladas, `resolved_by` em 41 (0,11%);
+        //   - `pr_url NOT NULL` = 0 e `commit_sha NOT NULL` = 0 — nenhuma decisão
+        //     virou PR ou commit em ~3 meses;
+        //   - `outcome` em 100% no DEFAULT da coluna ('cancelled'), que o próprio
+        //     DecisionPresenter exibe como "Aguardando você decidir": a fila nunca
+        //     saiu do estado inicial, e sem outcome o PatternLearning não aprende.
+        //   - cadência medida: +204 linhas em ~24h.
+        //
+        // O produtor externo (daemon systemd `ads-brain-a` no CT 100, que fazia poll
+        // de /api/ads/*) foi desligado no mesmo movimento — desligar só os crons
+        // deixaria a escrita em vôo pela outra ponta.
+        //
+        // O Governance incorpora a POLÍTICA do ADS (PolicyEngine + GovernanceRules
+        // + mcp_governance_rules); o núcleo dual-brain não tem receptor e acaba.
+        // Ver ADR de deprecação (supersedes 0145) + memory/requisitos/ADS/DEPRECATION-PLAN.md.
 
         // G1 P0 AUDIT-SENIOR-2026-05-25 §6 — D7.d LGPD purge job daily 03:00 BRT.
         // Aplica Modules/Jana/Config/retention.php sobre 7 entidades PII-relevantes

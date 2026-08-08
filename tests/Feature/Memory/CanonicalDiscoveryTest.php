@@ -49,7 +49,8 @@ it('Test 9: ADR 0064 e 0065 descobríveis via grep por palavras-chave', function
 
 it('Test 10: redirects 301 funcionam para URLs antigas', function () {
     // ADR 0064: /copiloto/admin/memoria → /kb, /copiloto/admin/team → /team-mcp/team.
-    // /ads/admin/kb foi DELETADO sem redirect explícito (ver Modules/ADS/Routes/web.php).
+    // /ads/admin/kb tem os 2 redirects 301 pra /kb — hoje em Modules/Forja/Http/routes.php,
+    // pra onde vieram na parte 6 (ADR 0363) quando o Modules/ADS foi removido.
     // Aceita 301/302 desde que destino contenha o esperado, ou 404/login se auth middleware
     // preceder o redirect.
     $cases = [

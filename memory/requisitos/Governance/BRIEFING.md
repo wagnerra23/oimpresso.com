@@ -1,15 +1,19 @@
 ---
 id: requisitos-governance-briefing
-distilled_at: "2026-07-27"
-distilled_by: "delta [C] — NÃO é redistilação completa: a releitura de fundo é a de 2026-07-17 (abaixo, intacta). Este refresh só re-mede os números que mudaram e acrescenta as 3 US do canal HITL. Dizer 'redistilado' aqui seria teatro"
+distilled_at: "2026-08-05"
+distilled_by: "delta [C] 2026-08-05 — refresh so pelos 4 RUNBOOKs novos (audit/policies/drift-alerts/ds-rollout) + a strip de sub-navegacao; a releitura de fundo continua sendo a anterior. Nota anterior: delta [C] — NÃO é redistilação completa: a releitura de fundo é a de 2026-07-17 (abaixo, intacta). Este refresh só re-mede os números que mudaram e acrescenta as 3 US do canal HITL. Dizer 'redistilado' aqui seria teatro"
 module: Governance
 status: producao
-updated_at: "2026-07-27"
+updated_at: "2026-08-05"
 ---
 
 # BRIEFING — Governance (verdade destilada)
 
 ## Estado atual
+
+> **2026-08-05 — sub-navegação própria + 4 RUNBOOKs.** A entry de sidebar do módulo voltou (estava desligada desde 2026-05-25 por um `return;` incondicional no `DataController::modifyAdminMenu`) e as telas ganharam strip via `GovernancaSubNav`, que lê os ghosts declarados lá. Junto vieram os 4 RUNBOOKs que faltavam — `audit`, `policies`, `drift-alerts`, `ds-rollout`; só `module-grades` tinha, e a ausência bloqueava Edit nas Pages pelo hook `block-mwart-violation` (ADR 0104 §F1). Todos nascem `status: rascunho`: são derivados do código, mas **nenhum passo foi executado** (Pest só roda no CT 100, sem smoke em prod).
+>
+> Três achados ficaram **⬜ ABERTO** por serem decisão [W], não conserto silencioso: o `AuditController` **não filtra por `business_id`** apesar do charter afirmar que sim, e a rota não tem `can:` (mexer é Tier 0, ADR 0093); `governance.policies.edit` é declarada mas **não checada** em rota/controller, e o toggle não deixa trilha; e `persistedAlerts()` do drift retorna `[]` **por construção** — falta `module_drift` no enum de `mcp_alertas`, então o card vazio está correto.
 
 Enforcer + dashboard humano da **Constituição v2** ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)): UI Inertia, middleware ActionGate e leitura consolidada das tabelas `mcp_*`. Cross-tenant **intencional** (exceção formal ao Tier 0, justificada pela Constituição Art. 6+8 — governança é L1 transversal, não dado de negócio). Em produção.
 

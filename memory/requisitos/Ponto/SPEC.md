@@ -2,8 +2,8 @@
 id: requisitos-ponto-spec
 module: Ponto
 status: ativo
-version: "1.1.0"
-last_updated: "2026-05-25"
+version: "1.2.0"
+last_updated: "2026-08-03"
 owners: [W, E]
 parent_adr: 0094-constituicao-v2-7-camadas-8-principios
 related_adrs:
@@ -199,6 +199,79 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - Para "corrigir": criar marcacao com `origem=ANULACAO` apontando a original via `marcacao_anulada_id`
 - Pest cobre tentativa UPDATE/DELETE e confirma exception
 - **Status:** done (cobertura adicionada Wave Massive 2026-05-16 — `MultiTenantAppendOnlyTest`)
+
+### US-PONTO-011 · Fechar o append-only do ledger de banco de horas
+
+**Implementado em:** _pendente_ — GAP-PONTO-003: `BancoHorasMovimento` sobrescreve `update()`/`delete()` mas NAO `save()`, e a tabela nao tem trigger MySQL (SDD §9 D-6). Reprovado por `UC-BHSHOW-01` na lane em 2026-08-03.
+
+**Como** auditor de banco de horas,
+**preciso** que movimento gravado nao possa ser alterado por nenhum caminho do ORM,
+**para que** o extrato mantenha valor probatorio em reclamatoria (CLT Art. 59 §5o).
+**Aceitacao:**
+- `$mov->minutos = X; $mov->save()` em movimento existente FALHA (hoje grava — `Model::save()` chama `performUpdate()` sem passar pelo `update()` publico)
+- Caminho: guard no evento `saving` rejeitando `exists === true`, OU trigger MySQL como em `ponto_marcacoes` (defesa em profundidade, que e o que a irma tem)
+- Fix medido como seguro: producao so usa `BancoHorasMovimento::create(...)`; varredura contada = ZERO `save()` em movimento existente
+- **Janela barata:** medido em prod 2026-08-03 — `ponto_banco_horas_movimentos` = 0 e `ponto_banco_horas_saldo` = 0. Impacto em dados e 0→0, o que satisfaz a REGRA MESTRE trivialmente. Depois do modulo entrar em uso, exige auditoria de saldo.
+- DoD: `UC-BHSHOW-01` verde na lane `ponto-pest`
+- **Status:** todo (Tier 0 `[V0]` — exige aprovacao [W] antes de codar)
+
+### US-PONTO-012 · Corrigir os atributos fantasma do modulo (4 instancias)
+
+**Implementado em:** _pendente_ — GAP-PONTO-004: padrao nomeado pelo SDD §9 (D-1/D-8); a varredura de 2026-08-03 fechou a pendencia do §10 Onda 1 e achou 2 instancias novas.
+
+**Como** RH que fecha folha,
+**preciso** que a tela mostre o que esta gravado no banco,
+**para que** eu nao decida sobre numero que a interface inventou.
+**Aceitacao:**
+- `EspelhoController` le `tem_divergencia` — nao e coluna nem accessor (a verdade e `estado === DIVERGENCIA`). O RH fecha folha sem ver violacao de Art. 66/71 → `UC-ESPSHOW-01`
+- `EscalaController@edit` le `entrada`/`saida`/`almoco_inicio`/`almoco_fim` — as colunas sao `hora_*`. A edicao de escala mostra TODOS os horarios vazios, sempre → `UC-ESCF-01`
+- `ImportacaoController` le `linhas_criadas`/`linhas_ignoradas` (reais: `linhas_sucesso`/`linhas_erro`) em `index` E `show` → `UC-IMPIDX-03` e `UC-IMPSHOW-04`
+- `ImportacaoController` le `erro_mensagem` (reais: `log`/`erros_amostra`); o `Show.tsx:82` faz `{i.erro_mensagem && <Alert>}`, logo o alerta de erro NUNCA renderiza → vira `UC-IMPSHOW-05`
+- Os testes assertam COMPORTAMENTO, nao a chave literal — ha mais de uma correcao legitima (renomear a leitura, accessor, ou `$appends`), e assert por chave reprovaria as outras
+- DoD: os 4 UCs verdes na lane `ponto-pest`
+- **Status:** todo
+
+### US-PONTO-013 · Consertar as duas telas que nao persistem
+
+**Implementado em:** _pendente_ — GAP-PONTO-005: dois caminhos de escrita quebrados, causas independentes, ambos provados pela lane em 2026-08-03.
+
+**Como** operador de RH,
+**preciso** que registrar intercorrencia e salvar escala gravem de fato,
+**para que** o que eu digito nao se perca em silencio.
+**Aceitacao:**
+- **Intercorrencia nao grava** (`CU-PONTO-05` · prova `UC-INTCRE-01`): `business_id` nunca e atribuido — o `IntercorrenciaRequest` nao declara a chave, o `Service::criar()` seta so `codigo`/`solicitante_id`/`estado`, o `creating` so gera UUID, o trait `HasBusinessScope` so adiciona scope de LEITURA, ha 0 `observe()` no modulo, e a coluna e NOT NULL + FK sem default. O Service denuncia que sabia: usa `($dados['business_id'] ?? 0)`
+- **Escala nao salva** (prova `UC-ESCF-02`): `EscalaController@update` recebe `Illuminate\Http\Request` e chama `$request->validated()` — metodo que so existe em `FormRequest` (medido: 0 em `Http/Request.php`, 0 macros no projeto). O `store()` funciona, entao so a edicao quebra. O padrao certo esta no mesmo modulo: `IntercorrenciaController` usa `IntercorrenciaRequest`
+- **Alerta de documentacao:** o SDD §5.3 F4 descreve o fluxo de intercorrencia como se funcionasse e US-PONTO-003 estava marcada implementada. Nenhum teste exercitava o `store()` por HTTP. Vale conferir os outros "Implementado em:" do modulo
+- Prioridade baixa porque o modulo NAO tem uso em prod (medido 2026-08-03: 0 marcacoes, 0 intercorrencias, 0 escalas). **Sobe para p0 no dia em que alguem for bater ponto**
+- DoD: `UC-INTCRE-01` e `UC-ESCF-02` verdes na lane `ponto-pest`
+- **Status:** todo
+
+### US-PONTO-014 · Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist)
+
+> owner: — · priority: p0 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — o workflow `.github/workflows/ponto-pest.yml` segue com allowlist inline; `.github/ponto-pest-quarantine.list` nao existe.
+
+- Contexto: a lane `PHP / Pest (Ponto · MySQL)` e **required** (`governance/required-checks-baseline.json`, promovida 2026-08-05 pela ADR 0369, Tier 0 por Portaria MTP 671/2021) e os **5 ultimos runs no `main` estao em `failure`**. O step que falha e `Run Pest (Ponto · MySQL) — ALLOWLIST VERDE (catraca)` — falha de teste, nao de infra (ADR 0369 classificou 5, 0 infra).
+- **A prioridade e do GATE, nao do modulo.** O modulo nao tem uso em prod (medido 2026-08-03: 0 marcacoes / 0 intercorrencias / 0 escalas — ver US-PONTO-013), mas a lane e required e fica vermelha pra qualquer PR que toque os paths de Ponto; e gate permanentemente vermelho nao detecta regressao nova.
+- Medido em `origin/main` 2026-08-07 — o buraco aqui e **maior** que o do Estoque: arvore `Modules/Ponto/Tests/**Test.php` = **38** · nomeados na allowlist inline = **11** · **fora = 27 (71%)**.
+- Entre os 27 ha nomes que, **pelo nome**, cobrem contrato duro: `CrossTenantMarcacaoTest`, `MultiTenantIsolationTest`, `MultiTenantAppendOnlyTest`, `Wave11LgpdComplianceTest`, `Wave18BusinessScopeTest`, `BancoHorasTest`, `EspelhoTest`. O que eles de fato provam **nao foi medido** — o nome e promessa, nao recibo.
+- ⚠️ `Modules/Ponto/Tests/{Feature,Unit}` **estao** no `phpunit.xml` (linhas 36-37), mas **registro nao e execucao** (§5 proibicoes 2026-08-02). Antes de afirmar que os 27 "nao rodam em lugar nenhum", exigir as duas pernas: varredura repo-wide com `rg --hidden` (§5 2026-07-30) **+** consulta ao dono do inventario (§5 2026-07-28).
+- Receita ja provada 2× no repo: `.github/workflows/financeiro-pest.yml` (origem) e `.github/workflows/estoque-pest.yml` ([#5387](https://github.com/wagnerra23/oimpresso.com/pull/5387), mergeado 2026-08-07 — o `main` saiu de 3 `failure` seguidas para `success` em `888db02a6c4`).
+
+**Acceptance:**
+- [ ] `run-set` = tudo em `Modules/Ponto/Tests/**Test.php` **menos** `.github/ponto-pest-quarantine.list` (particao total — arquivo novo entra rodando)
+- [ ] cada linha da quarentena nomeia **qual contrato falha**; sem motivo escrito vira gaveta
+- [ ] step de anti-apodrecimento: falha se path listado nao existir mais
+- [ ] quarentena impressa por extenso em todo run
+- [ ] `merge=union` pro `.list` no `.gitattributes`
+- [ ] status dos 27 medido **um a um** no CT 100, nao presumido
+- [ ] lane verde no `main` — com `assertions > 0` no sumario JUnit, nao so `0 failed` (LC-13)
+
+⛔ **Tier 0 — nao vale silenciar por conveniencia:** `ponto_marcacoes` e append-only por forca de lei (Portaria 671/2021). Teste de imutabilidade, cross-tenant ou LGPD que hoje esta fora da allowlist **nao entra na quarentena so pra fechar a lane** — se ele falhar, a falha **e o achado**, e a correcao e decisao [W].
+
+**Refs:** ADR 0369 · PR #5387 (modelo) · §5 proibicoes 2026-08-04 (isencao que esvazia o gate) · LC-13.
 
 ## Tabelas canon
 

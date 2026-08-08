@@ -173,7 +173,7 @@ function learnServer(server) {
 
 function denyMessage(server, cap) {
   return [
-    '[BLOCKED: Figma não é fonte de design no oimpresso (ADR 0299)]',
+    '[block-figma-without-optin] [BLOCKED: Figma não é fonte de design no oimpresso (ADR 0299)]',
     '',
     `Tool: mcp__${server}__${cap}`,
     '',

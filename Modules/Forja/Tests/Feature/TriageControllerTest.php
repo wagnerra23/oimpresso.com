@@ -114,7 +114,7 @@ afterEach(function () {
     }
 });
 
-it('GET /project-mgmt/triage sem permission retorna 403', function () {
+it('UC-TRIAGE-01 · GET /project-mgmt/triage sem permission retorna 403', function () {
     $user = trgBootstrapUser();
     trgRevokePerm($user);
 
@@ -123,7 +123,7 @@ it('GET /project-mgmt/triage sem permission retorna 403', function () {
     expect($response->status())->toBe(403);
 });
 
-it('GET /project-mgmt/triage com permission retorna Inertia Forja/Triage/Index', function () {
+it('UC-TRIAGE-02 · GET /project-mgmt/triage com permission retorna Inertia Forja/Triage/Index', function () {
     $user = trgBootstrapUser();
     trgGivePerm($user);
     trgEnsureProject();
@@ -148,7 +148,7 @@ it('GET /project-mgmt/triage com permission retorna Inertia Forja/Triage/Index',
     );
 });
 
-it('lista de triage contém task órfã e exclui task já triada (paridade tool triage)', function () {
+it('UC-TRIAGE-03 · lista de triage contém task órfã e exclui task já triada (paridade tool triage)', function () {
     $user = trgBootstrapUser();
     trgGivePerm($user);
     $project = trgEnsureProject();
@@ -172,7 +172,7 @@ it('lista de triage contém task órfã e exclui task já triada (paridade tool 
     });
 });
 
-it('PATCH /triage/{id}/assign sem permission retorna 403', function () {
+it('UC-TRIAGE-01 · PATCH /triage/{id}/assign sem permission retorna 403', function () {
     $user = trgBootstrapUser();
     trgGivePerm($user);
     $project = trgEnsureProject();
@@ -187,7 +187,7 @@ it('PATCH /triage/{id}/assign sem permission retorna 403', function () {
     expect($task->fresh()->owner)->toBeNull(); // não persistiu
 });
 
-it('PATCH assign owner+prio persiste + cria mcp_task_events + still_triage=false', function () {
+it('UC-TRIAGE-04 · PATCH assign owner+prio persiste + cria mcp_task_events + still_triage=false', function () {
     $user = trgBootstrapUser();
     trgGivePerm($user);
     $project = trgEnsureProject();
@@ -219,7 +219,7 @@ it('PATCH assign owner+prio persiste + cria mcp_task_events + still_triage=false
     expect($eventsAfter)->toBeGreaterThan($eventsBefore);
 });
 
-it('PATCH assign mantém still_triage=true se task continua órfã (só prio, sem owner)', function () {
+it('UC-TRIAGE-05 · PATCH assign mantém still_triage=true se task continua órfã (só prio, sem owner)', function () {
     $user = trgBootstrapUser();
     trgGivePerm($user);
     $project = trgEnsureProject();
@@ -239,7 +239,7 @@ it('PATCH assign mantém still_triage=true se task continua órfã (só prio, se
     expect($task->fresh()->owner)->toBeNull();
 });
 
-it('PATCH assign com priority inválida retorna 422', function () {
+it('UC-TRIAGE-06 · PATCH assign com priority inválida retorna 422', function () {
     $user = trgBootstrapUser();
     trgGivePerm($user);
     $project = trgEnsureProject();
@@ -252,7 +252,7 @@ it('PATCH assign com priority inválida retorna 422', function () {
     expect($task->fresh()->priority)->toBeNull(); // não persistiu
 });
 
-it('PATCH assign sem nenhum campo retorna 422', function () {
+it('UC-TRIAGE-06 · PATCH assign sem nenhum campo retorna 422', function () {
     $user = trgBootstrapUser();
     trgGivePerm($user);
     $project = trgEnsureProject();
@@ -264,7 +264,7 @@ it('PATCH assign sem nenhum campo retorna 422', function () {
     expect($response->status())->toBe(422);
 });
 
-it('PATCH assign com taskId inexistente retorna 404', function () {
+it('UC-TRIAGE-06 · PATCH assign com taskId inexistente retorna 404', function () {
     $user = trgBootstrapUser();
     trgGivePerm($user);
 

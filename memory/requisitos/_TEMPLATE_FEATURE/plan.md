@@ -3,7 +3,8 @@ id: requisitos-template-feature-plan
 ---
 
 <!--
-  TEMPLATE — copie pra memory/requisitos/<Mod>/features/<slug>/plan.md e cure os {{...}}.
+  TEMPLATE CANÔNICO — gerado exclusivamente por `npm run sdd:init` (`feature:init` é alias); nunca copie à mão.
+  Depois da geração, cure os {{...}} na pasta criada pela máquina.
   O plan é o COMO técnico. Decisão arquitetural nova = ADR (append-only), aqui só referência.
 -->
 ---
@@ -12,6 +13,16 @@ module: {{PascalCase}}
 ---
 
 # Plan — {{título curto da feature}}
+
+## Status vivo
+
+- **status:** proposto
+- **owner:** {{OWNER}}
+- **criado:** {{YYYY-MM-DD}} · **reviewed_at:** {{YYYY-MM-DD}} · **próxima-revisão:** {{YYYY-MM-DD+30}}
+- **cycle:** off-cycle · **execução:** `parent_plan={{parent-plan}}` — tasks MCP ainda não criadas
+- **gate-de-saída (DoD):** {{quando todos os ACs estarão provados e a US ancorada}}
+- **kill-condition:** {{quando abandonar ou replanejar em vez de manter plano zumbi}}
+- **verdade-viva:** este documento
 
 ## Decisões técnicas
 

@@ -1,6 +1,7 @@
 ---
 module: Woocommerce
-purpose: "Integração POS ↔ WooCommerce."
+purpose: "Canal de venda WooCommerce: espelha o catálogo do oimpresso na loja WordPress (produtos, variações, categorias, tax rates, mídia) e converte pedido recebido por webhook em venda (transaction) no núcleo. Subordinado ao hub Vendas; não é loja nem gateway."
+migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
 contains:
   - "DataController"
   - "InstallController"
@@ -9,7 +10,7 @@ contains:
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
-  - "MCP server admin → Modules/TeamMcp"
+  - "MCP server admin → Modules/Forja"
 trust_required: L3
 owner: wagner
 permission_prefix: woocommerce.*

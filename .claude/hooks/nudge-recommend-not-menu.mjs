@@ -18,7 +18,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readFileSync, existsSync } from 'node:fs';
 
-export const NUDGE = "[R13] Sua resposta parece terminar com MENU de decisao. Se for calculo tecnico (ROI/prioridade/sequencia/arquitetura), CRAVE uma recomendacao com razao e peca so validacao (Wagner valida, nao calcula). Menu so vale pra gosto/preferencia. Ref: memory/reference/feedback-recomendar-nao-menu.md";
+export const NUDGE = "[nudge-recommend-not-menu] [R13] Sua resposta parece terminar com MENU de decisao. Se for calculo tecnico (ROI/prioridade/sequencia/arquitetura), CRAVE uma recomendacao com razao e peca so validacao (Wagner valida, nao calcula). Menu so vale pra gosto/preferencia. Ref: memory/reference/feedback-recomendar-nao-menu.md";
 
 /** classificador PURO: a resposta termina em menu-de-escolha sem recomendação cravada? */
 export function shouldNudge(text) {

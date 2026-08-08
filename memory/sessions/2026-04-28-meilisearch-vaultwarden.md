@@ -162,7 +162,7 @@ SPRINT 11 → trigger condicional (Mem0/Zep):
 ## Vaultwarden — estado da conta
 
 - **URL:** `https://vault.oimpresso.com`
-- **Conta criada:** `wagnerra@gmail.com` / senha Wscrct*2312 (Wagner criou nesta sessão)
+- **Conta criada:** `wagnerra@gmail.com` / senha [REDIGIDA 2026-08-02 — estava em claro num repo PÚBLICO; rotacionar] (Wagner criou nesta sessão)
 - **Signups:** `VAULTWARDEN_SIGNUPS_ALLOWED=false` (desabilitado após criação)
 - **Admin token:** salvo em auto-memória `reference_vaultwarden_credenciais.md`
 

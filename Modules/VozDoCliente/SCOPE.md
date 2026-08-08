@@ -1,6 +1,7 @@
 ---
 module: VozDoCliente
-purpose: "Voz do Cliente — canal de sinal dentro do sistema. Quem usa o ERP relata a dor na tela em que ela acontece; o sinal é gravado com contexto, roteado ao módulo dono e triado até virar melhoria rastreável. Implementa ADR 0105 'cliente como sinal qualificado'."
+purpose: "Recebe e guarda o relato de quem opera o ERP, dentro do login: texto literal (nunca reescrito), a URL da tela onde a dor aconteceu, severidade auto-declarada e autor, deduplicado por texto e escopado ao business. Hoje entrega só isso — a caixa é leitura sem ação de triagem, o roteamento por módulo não está ligado, e ainda não existe chamador do endpoint de gravação no frontend."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
 contains:
   - "SinalController — grava o sinal (store) e mostra a caixa de triagem (index)"
   - "DataController — 3 hooks UltimatePOS (pacote superadmin, permissões, sidebar)"

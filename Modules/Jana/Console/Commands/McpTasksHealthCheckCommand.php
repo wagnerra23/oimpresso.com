@@ -56,6 +56,10 @@ class McpTasksHealthCheckCommand extends Command
         'blocked' => 30,
         'doing'   => 7,   // sem commit linkado em mcp_git_links
         'review'  => 5,
+        // ADR 0368 §3: espera por DECISÃO de [W]. Prazo mais curto que `blocked` de propósito —
+        // trava técnica pode legitimamente durar semanas; decisão parada há duas é sintoma de
+        // que a candidata não chegou a quem decide.
+        'pending_approval' => 14,
     ];
 
     public function handle(): int
@@ -106,7 +110,7 @@ class McpTasksHealthCheckCommand extends Command
     {
         $now = now();
         $query = McpTask::query()
-            ->whereIn('status', ['todo', 'blocked', 'doing', 'review']);
+            ->whereIn('status', ['todo', 'blocked', 'doing', 'review', McpTask::AWAITING_HUMAN]);
 
         if ($owner) {
             $query->where('owner', $owner);
@@ -154,6 +158,9 @@ class McpTasksHealthCheckCommand extends Command
 
             case 'blocked':
                 return $daysSinceUpdate > self::THRESHOLDS['blocked'] ? 'stale_blocked' : null;
+
+            case McpTask::AWAITING_HUMAN:
+                return $daysSinceUpdate > self::THRESHOLDS[McpTask::AWAITING_HUMAN] ? 'stale_pending_approval' : null;
 
             case 'review':
                 return $daysSinceUpdate > self::THRESHOLDS['review'] ? 'stale_review' : null;

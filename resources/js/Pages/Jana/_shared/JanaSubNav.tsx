@@ -20,7 +20,7 @@ import PageHeaderTabs, {
  * Uso canon:
  *
  *   <JanaSubNav active="copiloto" hidePrimary extraOverflowItems={[...]}/>
- *   <JanaPrimaryButton onClick={...}>Conversar</JanaPrimaryButton>
+ *   <PageHeaderPrimary label="Conversar" onClick={...} />
  */
 interface JanaSubNavProps {
   active: string;

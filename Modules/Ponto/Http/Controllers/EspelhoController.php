@@ -109,7 +109,13 @@ class EspelhoController extends Controller
             'adicional_not' => (int) $apuracoes->sum('adicional_noturno_minutos'),
             'bh_credito'    => (int) $apuracoes->sum('banco_horas_credito_minutos'),
             'bh_debito'     => (int) $apuracoes->sum('banco_horas_debito_minutos'),
-            'divergencias'  => $apuracoes->where('tem_divergencia', true)->count(),
+            // US-PONTO-012 (SDD §9 D-1): era `where('tem_divergencia', true)` — atributo
+            // que NÃO existe (nem coluna, nem accessor, nem $appends), então resolvia
+            // null e o contador dava 0 SEMPRE. Quem grava a verdade é o ApuracaoService:
+            // `count($apuracao->divergencias) > 0` → `estado = DIVERGENCIA`. A Blade
+            // legada contava exatamente assim; a migração para React perdeu a feature em
+            // silêncio, e com ela o aviso de violação de Art. 66 e Art. 71 §4º.
+            'divergencias'  => $apuracoes->where('estado', ApuracaoDia::ESTADO_DIVERGENCIA)->count(),
         ];
     }
 
@@ -134,7 +140,19 @@ class EspelhoController extends Controller
             ->get();
 
         $marcacoesPorDia = $marcacoes->groupBy(fn ($m) => $m->momento->toDateString());
-        $apuracoesPorData = $apuracoes->keyBy(fn ($a) => (string) $a->data);
+        // US-PONTO-012 — 6º achado, e o mais caro da tela: `ApuracaoDia::$casts` tem
+        // `'data' => 'date'`, então `$a->data` é Carbon e `(string) $carbon` produz
+        // "2019-03-11 00:00:00" (Carbon::__toString usa Y-m-d H:i:s). O lookup abaixo
+        // usa `$cursor->toDateString()` → "2019-03-11". As chaves NUNCA casavam, então
+        // `$a` era null em TODA linha: `trabalhado`, `atraso`, `falta`, `he` e
+        // `divergencia` saíam zerados no mês inteiro — a apuração era invisível na
+        // tabela dia-a-dia, que é o coração do espelho.
+        //
+        // A linha logo acima já fazia certo para marcações (`->toDateString()`); só
+        // esta divergia. Isso é o que fazia o UC-ESPSHOW-01 seguir vermelho mesmo
+        // depois de corrigir o `tem_divergencia` dos totais: eram DOIS defeitos
+        // empilhados no mesmo caso, e o de cima escondia o de baixo.
+        $apuracoesPorData = $apuracoes->keyBy(fn ($a) => optional($a->data)->toDateString());
 
         $inicio = Carbon::createFromDate($ano, $mesNum, 1)->startOfMonth();
         $fim = $inicio->copy()->endOfMonth();
@@ -155,7 +173,9 @@ class EspelhoController extends Controller
                 'atraso'    => $a ? (int) $a->atraso_minutos : 0,
                 'falta'     => $a ? (int) $a->falta_minutos : 0,
                 'he'        => $a ? ((int) $a->he_diurna_minutos + (int) $a->he_noturna_minutos) : 0,
-                'divergencia' => $a ? (bool) $a->tem_divergencia : false,
+                // US-PONTO-012 (SDD §9 D-1): idem — `tem_divergencia` não existe, então
+                // o realce da linha era `false` sempre. Fonte da verdade: `estado`.
+                'divergencia' => $a ? $a->estado === ApuracaoDia::ESTADO_DIVERGENCIA : false,
                 'marcacoes' => $mgs->map(fn ($m) => [
                     'hora'   => $m->momento->format('H:i'),
                     'tipo'   => $m->tipo,

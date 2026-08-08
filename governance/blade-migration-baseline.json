@@ -1,0 +1,89 @@
+{
+  "_meta": {
+    "baseline": "Censo de migração Blade→React — catraca só-desce por escopo (ADR 0277 contrato de completude)",
+    "adr": "memory/decisions/0277-rota-migracao-blade-ondas-completude.md",
+    "capturado_de": "medição REAL de scripts/governance/blade-migration-census.mjs em origin/main (b8e27e82c45) — nunca copiado de plano/ADR (regra anti-stale)",
+    "regra_piora": "subir qualquer contador = SÓ via PR editando este arquivo (diff visível) citando ADR 0277. Rota Blade NOVA é regressão da migração, não neutralidade.",
+    "limite_honesto": "análise estática: mede \"endpoint resolve para método que renderiza Blade\", NÃO \"esta rota responde\". Herança/trait caem em indeterminado e ficam FORA deste baseline.",
+    "consumidores": [
+      "Modules/Governance/Console/Commands/BladeMigrationSentinelCommand.php (escala pro brief via HitlEscalationService)",
+      "scripts/governance/blade-migration-census.mjs --report"
+    ]
+  },
+  "gerado_em": "2026-08-08",
+  "total_blade": 471,
+  "por_escopo": {
+    "AssetManagement": {
+      "blade": 21,
+      "hibrido": 0
+    },
+    "Cms": {
+      "blade": 12,
+      "hibrido": 0
+    },
+    "Connector": {
+      "blade": 5,
+      "hibrido": 0
+    },
+    "Crm": {
+      "blade": 47,
+      "hibrido": 0
+    },
+    "Essentials": {
+      "blade": 38,
+      "hibrido": 0
+    },
+    "Jana": {
+      "blade": 8,
+      "hibrido": 0
+    },
+    "Manufacturing": {
+      "blade": 13,
+      "hibrido": 0
+    },
+    "NfeBrasil": {
+      "blade": 4,
+      "hibrido": 0
+    },
+    "Officeimpresso": {
+      "blade": 16,
+      "hibrido": 0
+    },
+    "OficinaAuto": {
+      "blade": 1,
+      "hibrido": 0
+    },
+    "Ponto": {
+      "blade": 1,
+      "hibrido": 0
+    },
+    "ProductCatalogue": {
+      "blade": 3,
+      "hibrido": 0
+    },
+    "Repair": {
+      "blade": 18,
+      "hibrido": 10
+    },
+    "Spreadsheet": {
+      "blade": 4,
+      "hibrido": 0
+    },
+    "Superadmin": {
+      "blade": 25,
+      "hibrido": 0
+    },
+    "VozDoCliente": {
+      "blade": 1,
+      "hibrido": 0
+    },
+    "Woocommerce": {
+      "blade": 4,
+      "hibrido": 0
+    },
+    "core": {
+      "blade": 250,
+      "hibrido": 22
+    }
+  }
+}

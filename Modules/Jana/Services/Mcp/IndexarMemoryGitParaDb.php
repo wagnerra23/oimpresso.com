@@ -26,14 +26,19 @@ use Symfony\Component\Yaml\Yaml;
  */
 class IndexarMemoryGitParaDb
 {
-    /** Padrões para PII (regex BR — herda lógica de LaravelAiSdkDriver) */
+    /**
+     * Padrões para PII (regex BR — herda lógica de LaravelAiSdkDriver).
+     *
+     * Shape: regex => [tipo, substituição]. O TIPO existe pra `deveRedigir()`
+     * desempatar número cru — ver o docblock de lá.
+     */
     protected const PII_PATTERNS = [
         // CPF: 000.000.000-00 ou 00000000000  (pii-allowlist: exemplo de FORMATO do próprio redator, não é PII real)
-        '/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/' => 'XXX.XXX.XXX-NN',
+        '/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/' => ['CPF', 'XXX.XXX.XXX-NN'],
         // CNPJ: 00.000.000/0000-00 ou 00000000000000  (pii-allowlist: exemplo de FORMATO do próprio redator, não é PII real)
-        '/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/' => 'XX.XXX.XXX/XXXX-NN',
+        '/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/' => ['CNPJ', 'XX.XXX.XXX/XXXX-NN'],
         // Cartão de crédito (16 dígitos)
-        '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '****-****-****-****',
+        '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => ['CARD', '****-****-****-****'],
     ];
 
     public function __construct(
@@ -243,6 +248,76 @@ class IndexarMemoryGitParaDb
                 'path'   => "memory/requisitos/$module/BRIEFING.md",
                 'full'   => $file,
             ];
+        }
+
+        // TRIO DE FEATURE (proposal feature-trio-requirements-plan-tasks, 2026-07-09) —
+        // `memory/requisitos/<Mod>/features/<slug>/{requirements,plan,tasks}.md`: o degrau
+        // "spec por feature" entre a US do SPEC e a task do MCP.
+        //
+        // Estava fora do acervo por PROFUNDIDADE, não por pasta: `glob()` do PHP não
+        // atravessa `/` (proibicoes §5 2026-07-28), e os 12 globs anteriores paravam em
+        // `memory/requisitos/*/*.md`. O trio vive um nível abaixo — casava com NENHUM
+        // deles. Medido em 2026-08-04 rodando `coletarArquivos()` no próprio PHP:
+        // 9 arquivos no disco, 0 coletados.
+        //
+        // Slug `feature-<modulo>-<feature>-<doc>`: só `[a-z0-9-]`, porque a rota
+        // `/documentacao/{slug}` restringe o parâmetro a `[A-Za-z0-9._-]+` — slug com
+        // `:` ou `/` (como o do trio de TELA abaixo) entra no índice mas nunca abre.
+        foreach (glob("$base/memory/requisitos/*/features/*/*.md") as $file) {
+            $doc       = basename($file, '.md');            // requirements | plan | tasks
+            $featureId = basename(dirname($file));          // <slug> da feature
+            $moduleDir = basename(dirname(dirname(dirname($file))));
+
+            // `_*` e README seguem a convenção do resto do coletor (template/índice).
+            if (str_starts_with($doc, '_') || $doc === 'README') continue;
+            if (str_starts_with($featureId, '_') || str_starts_with($moduleDir, '_')) continue;
+
+            $module = strtolower($moduleDir);
+            $slug   = 'feature-' . $this->slugificar("$module-$featureId-$doc");
+
+            $arquivos[] = [
+                'slug'   => $slug,
+                'type'   => 'feature',
+                'module' => $module,
+                'path'   => "memory/requisitos/$moduleDir/features/$featureId/$doc.md",
+                'full'   => $file,
+            ];
+        }
+
+        // TRIO DE TELA colado ao .tsx (B3 do Plano B, 2026-08-01) — `<Tela>.charter.md`
+        // (a lei) e `<Tela>.casos.md` (o contrato UC) vivem em `resources/js/Pages/`,
+        // FORA de `memory/`, e por isso estavam invisíveis pro RAG. A ADR 0364 queria
+        // resolver isso MOVENDO o trio; a reversão ([F]: "eu quero como no fonte")
+        // mantém colado e resolve indexando in-place — glob ADITIVO, nada sai do lugar.
+        //
+        // `glob()` do PHP NÃO recursa (`*` não atravessa `/` — proibicoes §5 2026-07-28),
+        // e a profundidade aqui varia (`Pages/Sells/Create` × `Pages/Financeiro/Dre/Index`),
+        // então a varredura é por iterador. Slug canônico `charter:<Mod>/<Tela>`, que
+        // preserva o caminho e não colide entre telas homônimas de módulos diferentes
+        // (há 438 `.tsx` em Pages, muitos chamados `Index`).
+        $pages = "$base/resources/js/Pages";
+        if (is_dir($pages)) {
+            $it = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($pages, \FilesystemIterator::SKIP_DOTS)
+            );
+            foreach ($it as $file) {
+                $nome = $file->getFilename();
+                if (! preg_match('/^(.+)\.(charter|casos)\.md$/', $nome, $m)) {
+                    continue;
+                }
+                $rel = str_replace('\\', '/', substr($file->getPathname(), strlen($base) + 1));
+                $dentro = substr($rel, strlen('resources/js/Pages/'));           // Mod/Sub/Tela.charter.md
+                $tela   = substr($dentro, 0, -strlen(".{$m[2]}.md"));            // Mod/Sub/Tela
+                $module = strtolower(explode('/', $dentro)[0]);
+
+                $arquivos[] = [
+                    'slug'   => "{$m[2]}:{$tela}",
+                    'type'   => $m[2],                                            // charter | casos
+                    'module' => $module,
+                    'path'   => $rel,
+                    'full'   => $file->getPathname(),
+                ];
+            }
         }
 
         // Arquivos raiz canônicos
@@ -474,9 +549,7 @@ class IndexarMemoryGitParaDb
             $relSemExt = preg_replace('/\.md$/i', '', $rel);
 
             // Slug determinístico: prefixo + caminho-relativo slugificado.
-            $slugTail = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $relSemExt));
-            $slugTail = trim((string) $slugTail, '-');
-            $slug = "$slugPrefix-$slugTail";
+            $slug = "$slugPrefix-" . $this->slugificar($relSemExt);
 
             // git_path POSIX relativo ao repo (consistente com glob branches acima).
             $gitPath = ltrim(str_replace('\\', '/', substr($full, strlen($base))), '/');
@@ -491,6 +564,18 @@ class IndexarMemoryGitParaDb
         }
 
         return $arquivos;
+    }
+
+    /**
+     * Slug seguro pra URL: minúsculas, `[a-z0-9-]`, sem hífen nas pontas.
+     *
+     * A rota `/documentacao/{slug}` restringe o parâmetro a `[A-Za-z0-9._-]+` — slug
+     * fora disso é indexado mas nunca abre. Extraído de `coletarRecursivo()` (mesma
+     * regra, agora numa fonte só) e reusado pelo trio de feature.
+     */
+    protected function slugificar(string $texto): string
+    {
+        return trim((string) strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $texto)), '-');
     }
 
     /**
@@ -703,14 +788,114 @@ class IndexarMemoryGitParaDb
         $count = 0;
         $redacted = $texto;
 
-        foreach (self::PII_PATTERNS as $pattern => $replacement) {
-            $redacted = preg_replace_callback($pattern, function () use (&$count, $replacement) {
+        foreach (self::PII_PATTERNS as $pattern => [$tipo, $replacement]) {
+            $redacted = preg_replace_callback($pattern, function (array $m) use (&$count, $tipo, $replacement) {
+                if (! $this->deveRedigir($tipo, $m[0])) {
+                    return $m[0];
+                }
                 $count++;
                 return $replacement;
             }, $redacted);
         }
 
         return ['redacted' => $redacted, 'count' => $count];
+    }
+
+    /**
+     * Desempata número CRU — `\d{11}` colide com QUALQUER número de 11 dígitos.
+     *
+     * Porta pro indexador a regra já ratificada em `PiiRedactor` (#5169). O fix de
+     * lá NÃO alcançava aqui: este serviço tem cópia PRÓPRIA de `PII_PATTERNS` +
+     * `redactarPii()` e nunca chamou `PiiRedactor` — então o `mcp:sync-memory`
+     * seguia redigindo run id do GitHub Actions como se fosse CPF.
+     *
+     * Medido em produção 2026-08-02: 32 "PII" em 8 `casos.md` do Produto eram
+     * **run id** (`run 30366164436`). Não era vazamento — era o oposto: apagava do
+     * índice o recibo de CI que a regra de evidência do projeto exige.
+     *
+     * O CPF tem dígito verificador; run id não. Validá-lo separa os dois sem
+     * afrouxar nada — CPF real cru (`11144477735`) continua redigido.
+     *
+     * **CPF PONTUADO segue redigido SEMPRE**, com DV válido ou não: quem escreve
+     * CPF pontuado está declarando o que é, e formato explícito não pede prova
+     * (CPF digitado errado ainda é tentativa de PII).
+     *
+     * CNPJ e cartão caem em `default => true` — igual ao `PiiRedactor`, de
+     * propósito: divergir aqui criaria um TERCEIRO comportamento de redação.
+     */
+    protected function deveRedigir(string $tipo, string $match): bool
+    {
+        // Formatação é DECLARAÇÃO: pontuado/hifenizado é PII assumida.
+        if (preg_match('/[.\-()\s\/+]/', $match)) {
+            return true;
+        }
+
+        return match ($tipo) {
+            'CPF'   => $this->cpfTemDvValido($match),
+            'CNPJ'  => $this->cnpjTemDvValido($match),
+            default => true,
+        };
+    }
+
+    /**
+     * Dígito verificador do CNPJ (módulo 11) — espelha `PiiRedactor::cnpjTemDvValido()`.
+     *
+     * Mantido em paridade DELIBERADA com o `PiiRedactor`: as duas cópias existem
+     * (LC-18) e divergir criaria um terceiro comportamento de redação. Se um lado
+     * mudar, o outro muda no MESMO PR.
+     *
+     * Medido no corpus real 2026-08-03: dos 197 matches de CNPJ, os 67 crus com DV
+     * inválido eram todos falso-positivo (LID do WhatsApp, id de artigo em URL,
+     * placeholder de exemplo); os 38 crus com DV válido — inclui CNPJ real de
+     * cliente — seguem redigidos.
+     */
+    protected function cnpjTemDvValido(string $digitos): bool
+    {
+        if (strlen($digitos) !== 14 || preg_match('/^(\d)\1{13}$/', $digitos)) {
+            return false;
+        }
+
+        foreach ([12, 13] as $posicao) {
+            $peso = $posicao - 7;
+            $soma = 0;
+            for ($i = 0; $i < $posicao; $i++) {
+                $soma += (int) $digitos[$i] * $peso--;
+                if ($peso < 2) {
+                    $peso = 9;
+                }
+            }
+            $resto = $soma % 11;
+            $dv = $resto < 2 ? 0 : 11 - $resto;
+            if ($dv !== (int) $digitos[$posicao]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Dígito verificador do CPF (módulo 11). Repetidos (111...) são inválidos por definição. */
+    protected function cpfTemDvValido(string $digitos): bool
+    {
+        if (strlen($digitos) !== 11 || preg_match('/^(\d)\1{10}$/', $digitos)) {
+            return false;
+        }
+
+        foreach ([9, 10] as $posicao) {
+            $soma = 0;
+            for ($i = 0; $i < $posicao; $i++) {
+                $soma += (int) $digitos[$i] * (($posicao + 1) - $i);
+            }
+            $dv = ($soma * 10) % 11;
+            if ($dv === 10) {
+                $dv = 0;
+            }
+            if ($dv !== (int) $digitos[$posicao]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

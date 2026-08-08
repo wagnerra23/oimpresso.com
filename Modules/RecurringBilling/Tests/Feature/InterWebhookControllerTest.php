@@ -103,7 +103,7 @@ function pixPayload(string $endToEndId = 'E182361202026050709abc', ?string $txid
     ];
 }
 
-it('rejeita 404 quando business não tem credencial Inter ativa', function () {
+it('UC-RBCFG-08 · rejeita 404 quando business não tem credencial Inter ativa', function () {
     Queue::fake();
 
     $response = $this->postJson('/webhooks/inter/pix/1', pixPayload());
@@ -112,7 +112,7 @@ it('rejeita 404 quando business não tem credencial Inter ativa', function () {
     Queue::assertNothingPushed();
 });
 
-it('rejeita 401 sem header X-Inter-Webhook-Secret', function () {
+it('UC-RBCFG-08 · rejeita 401 sem header X-Inter-Webhook-Secret', function () {
     Queue::fake();
     seedInterCredential(businessId: 1);
 
@@ -122,7 +122,7 @@ it('rejeita 401 sem header X-Inter-Webhook-Secret', function () {
     Queue::assertNothingPushed();
 });
 
-it('rejeita 401 com secret errado', function () {
+it('UC-RBCFG-08 · rejeita 401 com secret errado', function () {
     Queue::fake();
     seedInterCredential(businessId: 1, secret: 'right-secret');
 
@@ -133,7 +133,7 @@ it('rejeita 401 com secret errado', function () {
     Queue::assertNothingPushed();
 });
 
-it('aceita PIX com secret válido, grava em pg_webhook_events e dispatcha job', function () {
+it('UC-RBCFG-08 · aceita PIX com secret válido, grava em pg_webhook_events e dispatcha job', function () {
     Queue::fake();
     seedInterCredential(businessId: 1, secret: 'sek-ok');
 
@@ -152,7 +152,7 @@ it('aceita PIX com secret válido, grava em pg_webhook_events e dispatcha job', 
     Queue::assertPushed(ProcessInterWebhookJob::class, 1);
 });
 
-it('idempotência: 2× mesmo endToEndId → 1 row, 1 dispatch (segunda skipa)', function () {
+it('UC-RBCFG-08 · idempotência: 2× mesmo endToEndId → 1 row, 1 dispatch (segunda skipa)', function () {
     Queue::fake();
     seedInterCredential(businessId: 1, secret: 'sek-ok');
 
@@ -167,7 +167,7 @@ it('idempotência: 2× mesmo endToEndId → 1 row, 1 dispatch (segunda skipa)', 
     Queue::assertPushed(ProcessInterWebhookJob::class, 1);
 });
 
-it('múltiplos PIX no mesmo request → 1 dispatch por endToEndId', function () {
+it('UC-RBCFG-08 · múltiplos PIX no mesmo request → 1 dispatch por endToEndId', function () {
     Queue::fake();
     seedInterCredential(businessId: 1, secret: 'sek-ok');
 
@@ -184,7 +184,7 @@ it('múltiplos PIX no mesmo request → 1 dispatch por endToEndId', function () 
     Queue::assertPushed(ProcessInterWebhookJob::class, 3);
 });
 
-it('PIX sem endToEndId é skipado (sem dispatch)', function () {
+it('UC-RBCFG-08 · PIX sem endToEndId é skipado (sem dispatch)', function () {
     Queue::fake();
     seedInterCredential(businessId: 1, secret: 'sek-ok');
 
@@ -199,7 +199,7 @@ it('PIX sem endToEndId é skipado (sem dispatch)', function () {
     Queue::assertNothingPushed();
 });
 
-it('multi-tenant Tier 0: secret de business 1 não funciona pra business 2', function () {
+it('UC-RBCFG-08 · multi-tenant Tier 0: secret de business 1 não funciona pra business 2', function () {
     Queue::fake();
     seedInterCredential(businessId: 1, secret: 'sek-biz-1');
     seedInterCredential(businessId: 2, secret: 'sek-biz-2');

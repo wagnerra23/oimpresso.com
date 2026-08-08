@@ -1,38 +1,39 @@
 ---
 name: cliente-drawer-integrar
-description: Implementador especializado da integração legacy WR Comercial/Delphi → drawer Cliente 760px (ADR 0179). Domina os 5 tabs (Identificação/Contato/Endereço/Comercial/Classificação + Auditoria), os 7 endpoints PATCH em `Modules/Crm/Http/Controllers/ClienteAutosaveController`, o payload `ContactController::buildClienteIndexCustomers`, e o mapping canon dos ~14 cols Bucket A + ~7-10 cols Bucket B (ADR 0195/0197) que JÁ EXISTEM em `contacts` via migrations 2026_05_27_120000 + 2026_05_27_140000 mas ainda NÃO TÊM UI nem API PATCH cobrindo.
+description: |
+  Implementador especializado da integração legacy WR Comercial/Delphi → drawer Cliente 760px (ADR 0179). Domina os 5 tabs (Identificação/Contato/Endereço/Comercial/Classificação + Auditoria), os 7 endpoints PATCH em `Modules/Crm/Http/Controllers/ClienteAutosaveController`, o payload `ContactController::buildClienteIndexCustomers`, e o mapping canon dos ~14 cols Bucket A + ~7-10 cols Bucket B (ADR 0195/0197) que JÁ EXISTEM em `contacts` via migrations 2026_05_27_120000 + 2026_05_27_140000 mas ainda NÃO TÊM UI nem API PATCH cobrindo.
 
-Ativar quando Wagner pedir:
-- "implementar campo X no drawer" (ex: bloqueado, limite_desconto, prioridade_producao, parent_contact, sales_rep, complemento, aniversario_mmdd)
-- "implementar Bucket A inteiro" / "implementar Bucket B inteiro" / "implementar coluna Y"
-- "drawer não mostra campo Z" → bug payload/UI cache
-- "campo W não persiste" → bug validator órfão
-- "expor legacy_raw / cliente desde X" → Bucket B na Auditoria
-- "/cliente-drawer-integrar <campo|bucket>"
+  Ativar quando Wagner pedir:
+  - "implementar campo X no drawer" (ex: bloqueado, limite_desconto, prioridade_producao, parent_contact, sales_rep, complemento, aniversario_mmdd)
+  - "implementar Bucket A inteiro" / "implementar Bucket B inteiro" / "implementar coluna Y"
+  - "drawer não mostra campo Z" → bug payload/UI cache
+  - "campo W não persiste" → bug validator órfão
+  - "expor legacy_raw / cliente desde X" → Bucket B na Auditoria
+  - "/cliente-drawer-integrar <campo|bucket>"
 
-<example>
-Context: Wagner pediu pra exibir `bloqueado` (Bucket A migrado, sem UI) no drawer pra biz=4 Larissa controlar cobrança.
-user: "cliente-drawer-integrar bloqueado"
-assistant: "Spawn cliente-drawer-integrar — vai (1) estender validator PATCH `/cliente/{id}/classificacao` aceitar bloqueado bool, (2) adicionar ao `shapeContactResponse` + `buildClienteIndexCustomers`, (3) adicionar toggle 'Bloquear cobrança/venda' no ClassificacaoTab.tsx, (4) Pest GUARD, (5) abre PR isolado ≤200 linhas."
-</example>
+  <example>
+  Context: Wagner pediu pra exibir `bloqueado` (Bucket A migrado, sem UI) no drawer pra biz=4 Larissa controlar cobrança.
+  user: "cliente-drawer-integrar bloqueado"
+  assistant: "Spawn cliente-drawer-integrar — vai (1) estender validator PATCH `/cliente/{id}/classificacao` aceitar bloqueado bool, (2) adicionar ao `shapeContactResponse` + `buildClienteIndexCustomers`, (3) adicionar toggle 'Bloquear cobrança/venda' no ClassificacaoTab.tsx, (4) Pest GUARD, (5) abre PR isolado ≤200 linhas."
+  </example>
 
-<example>
-Context: Wagner quer integrar Bucket B completo (header `cliente desde 2003` + Auditoria mostrando legacy_raw + emails extras Delphi).
-user: "integrar Bucket B no drawer"
-assistant: "Spawn cliente-drawer-integrar com escopo Bucket B — vai dividir em 3 PRs incrementais: PR1 (header `cliente desde` via accessor existente Contact.php:106), PR2 (AuditoriaTab mostrando timeline migração + legacy_usuario_*), PR3 (legacy_emails_extras como chips na ContatoTab + legacy_observacoes accordion)."
-</example>
+  <example>
+  Context: Wagner quer integrar Bucket B completo (header `cliente desde 2003` + Auditoria mostrando legacy_raw + emails extras Delphi).
+  user: "integrar Bucket B no drawer"
+  assistant: "Spawn cliente-drawer-integrar com escopo Bucket B — vai dividir em 3 PRs incrementais: PR1 (header `cliente desde` via accessor existente Contact.php:106), PR2 (AuditoriaTab mostrando timeline migração + legacy_usuario_*), PR3 (legacy_emails_extras como chips na ContatoTab + legacy_observacoes accordion)."
+  </example>
 
-<example>
-Context: Bug `contato` (Nome do responsável) órfão — input no drawer sem coluna destino. Wagner pediu fix.
-user: "fixar contato órfão drawer"
-assistant: "Spawn cliente-drawer-integrar — analisa as 3 opções (criar coluna `contato` migration vs remover field UI vs mapear `custom_field1`), recomenda baseado em uso real (se Larissa/Daniela usam), implementa decisão Wagner aprovada."
-</example>
+  <example>
+  Context: Bug `contato` (Nome do responsável) órfão — input no drawer sem coluna destino. Wagner pediu fix.
+  user: "fixar contato órfão drawer"
+  assistant: "Spawn cliente-drawer-integrar — analisa as 3 opções (criar coluna `contato` migration vs remover field UI vs mapear `custom_field1`), recomenda baseado em uso real (se Larissa/Daniela usam), implementa decisão Wagner aprovada."
+  </example>
 
-Não usar pra:
-- Refator visual de tab existente sem novo campo backend (use `design-arte` ou `tela-venda-arte`)
-- Bug isolado em 1 input (use Edit direto)
-- Pesquisa fora do projeto (use `estado-da-arte`)
-- Criar tab nova do zero (use `cowork-to-inertia` + MWART)
+  Não usar pra:
+  - Refator visual de tab existente sem novo campo backend (use `design-arte` ou `tela-venda-arte`)
+  - Bug isolado em 1 input (use Edit direto)
+  - Pesquisa fora do projeto (use `estado-da-arte`)
+  - Criar tab nova do zero (use `cowork-to-inertia` + MWART)
 model: opus
 color: cyan
 tools: Read, Glob, Grep, Bash, Write, Edit, WebFetch

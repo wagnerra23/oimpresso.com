@@ -35,6 +35,7 @@
      'purchase_n_sell_report.view' => 'Visualizar relatório de compra e venda',
      'contacts_report.view' => 'Visualizar relatório de fornecedor e cliente',
      'stock_report.view' => 'Exibir relatório de estoque, relatório de ajuste de estoque e relatório de vencimento de estoque',
+     'report.stock_details' => 'Exibir os detalhes de estoque de um produto por local (somente leitura — não permite reconciliar saldo)',
      'tax_report.view' => 'Visualizar relatório fiscal',
      'trending_product_report.view' => 'Visualizar o relatório de tendências do produto',
      'register_report.view' => 'Exibir relatório de log',
@@ -70,4 +71,8 @@
      'dashboard.data' => 'Visualizar dados de início',
      'profit_loss_report.view' => 'Visualizar relatório de lucros / perdas',
      'direct_sell.access' => 'Acesso à venda',
+     // US-GOV-059 classe D — permissões que o código já exigia e ninguém podia conceder.
+     'send_notification' => 'Modelos de notificação (ver, editar e enviar ao cliente)',
+     'configure_dashboard' => 'Configurar os cartões da tela de início',
+     'sale.history.view' => 'Visualizar o histórico e a linha do tempo da venda',
  ];

@@ -7,9 +7,11 @@ namespace Modules\Governance\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Services\GovernancaService;
 
 /**
  * Dashboard consolidado de governança (Constituição Art. 8 + Art. 9 UI).
@@ -22,12 +24,30 @@ use Inertia\Response;
  * adiciona 3 fontes de saúde do ecossistema (failed_jobs Horizon, custo IA
  * Brain B 24h, narrativas Brain A horárias). Cada fonte degrada graciosamente
  * via Schema::hasTable — funciona com OR sem migrations dependentes mergeadas.
+ *
+ * Seção Governança MCP (2026-08-05, ADR 0366 §D-B/§D-C item 1): absorve a tela
+ * `Jana/Admin/Governanca/Index` (`/ia/admin/governanca`) — a sobreposição #4 da
+ * matriz da ADR. A pergunta que ela responde ("a regra está sendo cumprida?") é
+ * a do Governance. O `Modules\Jana\Services\GovernancaService` NÃO se move: o
+ * item 4 da ADR (mover as 30 `Mcp*` + 59 migrations) não está autorizado, e o
+ * destino declarado delas é o Forja — não este módulo. Muda só o consumidor.
+ * Precedente de consumo cross-módulo: `Modules/Forja/.../RoadmapController` já
+ * usa `Modules\Jana\Entities\Mcp\McpTask`.
  */
 class DashboardController extends Controller
 {
     private const PRICING_USD_PER_1M_TOKENS_IN = 0.15;
     private const PRICING_USD_PER_1M_TOKENS_OUT = 0.60;
     private const USD_TO_BRL = 5.0;
+
+    /**
+     * Presets aceitos no filtro de período da seção MCP — espelha o `match` de
+     * `GovernancaService::resolverPeriodo()`. Whitelist server-side: valor fora
+     * daqui degrada pro default, nunca 500.
+     */
+    private const MCP_PRESETS = ['hoje', 'ontem', '7d', '30d', 'mes_anterior', 'custom'];
+
+    private const MCP_PRESET_DEFAULT = '30d';
 
     public function __construct()
     {
@@ -48,7 +68,20 @@ class DashboardController extends Controller
         // Pages frontend não foram atualizadas com <Deferred> wrapper — kpis undefined crashava.
         // Restaurado eager até Pages serem refatoradas (issue follow-up Wave W7).
         $health = $this->saudeEcosistema();
-        return Inertia::render('governance/Dashboard', [
+
+        // ADR 0366 §D-B — a seção MCP herda EXATAMENTE o gate que a tela original
+        // tinha (`middleware('can:jana.mcp.usage.all')` no Jana\Admin\GovernancaController).
+        // Não somamos `governance.dashboard.view` aqui de propósito: a permission
+        // hoje gateia só a ENTRY de sidebar (DataController::modifyAdminMenu) — a
+        // rota `/governance/dashboard` é gateada apenas por `auth`. Exigir as duas
+        // seria ESTRITAMENTE mais restritivo que o estado anterior e poderia esconder
+        // a seção de quem a enxergava ontem. Preservar o gate original = zero
+        // regressão de acesso, nos dois sentidos. Gatear a ROTA inteira por
+        // `can:governance.dashboard.view` é decisão [W] à parte (mexe em routes.php).
+        $mcpVisivel = Gate::allows('jana.mcp.usage.all');
+        $mcpFilters = $this->resolverFiltrosMcp($request);
+
+        $props = [
             'kpis'              => $this->buildKpisPayload(),
             'pending_adrs'      => $this->buildPendingAdrsPayload(),
             'audit_highlights'  => $this->buildAuditHighlightsPayload(),
@@ -61,7 +94,107 @@ class DashboardController extends Controller
             'actiongate_mode'   => config('governance.actiongate_mode', 'warn'),
             'next_review_at'    => config('governance.next_review_at'),
             'compliance_pct'    => $compliancePct,
-        ]);
+            // Seção MCP: flag + filtros são EAGER (bool + query string, zero I/O —
+            // exceção documentada no RUNBOOK-inertia-defer-pattern: filters de UI
+            // state e escalares nunca deferem, senão o seletor nasce sem valor).
+            'mcp_enabled'       => $mcpVisivel,
+            'mcp_filters'       => $mcpFilters,
+        ];
+
+        if ($mcpVisivel) {
+            // DEFERRED: `painel()` faz ~7 agregações em `mcp_audit_log` (COUNT/SUM/
+            // GROUP BY + 4 percentis por OFFSET). Prop cara ⇒ defer é o default
+            // (RUNBOOK-inertia-defer-pattern, Tier 0 desde 2026-05-15).
+            //
+            // ⚠️ O rollback de 2026-05-25 na tela ORIGINAL (que removeu o defer por
+            // `TypeError undefined.find` em prod) NÃO se repete aqui: naquele caso o
+            // `Governanca/Index.tsx` desestruturava as 7 props direto, sem wrapper.
+            // Aqui o `Dashboard.tsx` consome `mcp` DENTRO de <Deferred> + null-guard.
+            // Trocar isso por consumo direto reabre exatamente aquele incidente.
+            //
+            // O Service é resolvido DENTRO do closure (não por injeção na assinatura
+            // do `index`): assim o painel inteiro não depende de `Modules\Jana` estar
+            // resolvível a cada request — só quem tem a permissão E realmente pede a
+            // prop paga o custo. Injetar na assinatura resolveria o binding em TODO
+            // acesso ao dashboard, inclusive de quem nem vê a seção.
+            $props['mcp'] = Inertia::defer(
+                fn () => $this->buildMcpPayload(app(GovernancaService::class), $mcpFilters)
+            );
+        }
+
+        return Inertia::render('governance/Dashboard', $props);
+    }
+
+    /**
+     * Filtros da seção MCP. Prefixo `mcp_` na query pra não colidir com filtro de
+     * outra seção do painel consolidado (o painel é multi-seção por natureza).
+     *
+     * Degrada em vez de explodir: preset fora da whitelist, ou `custom` sem as duas
+     * pontas em `YYYY-MM-DD`, cai no default — `Carbon::parse()` de lixo lançaria 500.
+     *
+     * @return array{preset: string, de: string|null, ate: string|null}
+     */
+    private function resolverFiltrosMcp(Request $request): array
+    {
+        $preset = $this->queryString($request, 'mcp_preset') ?? self::MCP_PRESET_DEFAULT;
+        if (! in_array($preset, self::MCP_PRESETS, true)) {
+            $preset = self::MCP_PRESET_DEFAULT;
+        }
+
+        $de  = $this->queryData($request, 'mcp_de');
+        $ate = $this->queryData($request, 'mcp_ate');
+
+        if ($preset === 'custom' && ($de === null || $ate === null)) {
+            $preset = self::MCP_PRESET_DEFAULT;
+            $de = null;
+            $ate = null;
+        }
+
+        return ['preset' => $preset, 'de' => $de, 'ate' => $ate];
+    }
+
+    /** Query param como string não-vazia — array/int/ausente viram null. */
+    private function queryString(Request $request, string $chave): ?string
+    {
+        $valor = $request->query($chave);
+        if (! is_string($valor)) {
+            return null;
+        }
+        $valor = trim($valor);
+
+        return $valor === '' ? null : $valor;
+    }
+
+    /** Query param de data — só `YYYY-MM-DD` passa (o resto viraria 500 no Carbon). */
+    private function queryData(Request $request, string $chave): ?string
+    {
+        $valor = $this->queryString($request, $chave);
+
+        return ($valor !== null && preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor) === 1) ? $valor : null;
+    }
+
+    /**
+     * Seção Governança MCP — consumo cross-team do MCP server (ADR 0053).
+     *
+     * Multi-tenant: `mcp_audit_log` é REPO-WIDE por design (não tem `business_id`) —
+     * exceção formal ao Tier 0 justificada pela Constituição Art. 6+8 e coberta pelo
+     * `CrossTenantPolicyTest`. Não inventar escopo onde a tabela não tem coluna.
+     *
+     * Degrada graciosamente (mesmo padrão de `buildSddPayload`/`saudeEcosistema`):
+     * sem a tabela → null → a Page mostra empty-state em vez de estourar.
+     *
+     * @param  array{preset: string, de: string|null, ate: string|null}  $filtros
+     * @return array<string, mixed>|null
+     */
+    private function buildMcpPayload(GovernancaService $service, array $filtros): ?array
+    {
+        if (! Schema::hasTable('mcp_audit_log')) {
+            return null;
+        }
+
+        $range = $service->resolverPeriodo($filtros['preset'], $filtros['de'], $filtros['ate']);
+
+        return $service->painel($range['inicio'], $range['fim']);
     }
 
     /**

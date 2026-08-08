@@ -18,9 +18,11 @@
  * Colunas de estado são COMPUTADAS na geração — nunca prosa em tempo presente (lápide §5
  * 2026-07-16: artefato não declara o próprio enforcement; aqui a coluna é derivada e
  * regenerável, e o --check acusa quando o manifesto laga a realidade):
- *   - sinal de bloqueio: heurística estática sobre o CONTEÚDO do arquivo (`deny` quoted ·
+ *   - sinal de bloqueio: heurística estática sobre o RAMO DE EVENTO da linha (`deny` quoted ·
  *     exit-2/return 2) — o critério da ADR 0224 ("mecanismo real, não o nome"). É sinal de
  *     CAPACIDADE detectada no código (deny condicional/strict conta), NÃO afirmação de runtime.
+ *     Fatiado por ramo desde 2026-08-04: escanear o arquivo inteiro fazia o corte de um evento
+ *     vazar pra linha de outro (ver fatiarPorEvento).
  *   - ponto-de-corte: derivado de evento+matcher (sessão/prompt/geração/comando/leitura/
  *     pós-ação) e, pros gates CI, da presença no baseline (merge).
  *   - órfão (arquivo sem wiring) e fantasma (wiring sem arquivo): computados por diff.
@@ -77,12 +79,102 @@ function pontoDeCorte(evento, matcher) {
   return `evento ${evento}`;
 }
 
+// ── fatiamento por RAMO DE EVENTO ────────────────────────────────────────────────────
+// Cada linha do manifesto é (evento × matcher × hook), então o sinal tem que ser do RAMO
+// daquele evento. Hook multi-evento concentra o corte num ramo só: o block-figma/-design-sync
+// GRAVA a flag de opt-in no ramo UserPromptSubmit e só BLOQUEIA no ramo PreToolUse. Escanear
+// o arquivo inteiro vazava o exit(2) do ramo que morde pra linha do evento que não morde.
+// (Medido 2026-08-04: os 2 saíam `exit-2` no UserPromptSubmit; bite-test com payload real —
+// 0 de 6 hooks desse evento bloqueiam, os dois saem exit=0/stdout=0B.)
+// Conservador por desenho: se o guard não for reconhecido ou o bloco não fechar, cai no
+// arquivo inteiro (comportamento anterior) — falha preservando sinal, nunca escondendo.
+const EVENTOS_CONHECIDOS = ['PreToolUse', 'PostToolUse', 'UserPromptSubmit', 'SessionStart', 'Stop', 'SubagentStop', 'PreCompact', 'Notification'];
+const GUARD_EVENTO = new RegExp(
+  `(?:hook_event_name|event|evento)\\s*(===?|!==?)\\s*['"](${EVENTOS_CONHECIDOS.join('|')})['"]`,
+  'g',
+);
+
+// Índice do '}' que fecha a '{' em `abre`, pulando string/template/comentário/regex-literal
+// (os hooks têm regex com aspas — ex. /['"]deny['"]/ — que enganaria um contador ingênuo).
+// Devolve -1 quando não fecha: o chamador então NÃO fatia.
+function fimDoBloco(txt, abre) {
+  let prof = 0;
+  const modos = []; // pilha: 'tmpl' quando dentro de `...` com ${} aninhado
+  for (let i = abre; i < txt.length; i++) {
+    const c = txt[i];
+    const prox = txt[i + 1];
+    if (c === '/' && prox === '/') { i = txt.indexOf('\n', i); if (i < 0) return -1; continue; }
+    if (c === '/' && prox === '*') { const f = txt.indexOf('*/', i + 2); if (f < 0) return -1; i = f + 1; continue; }
+    if (c === "'" || c === '"') { const f = fimDaString(txt, i, c); if (f < 0) return -1; i = f; continue; }
+    if (c === '`') { modos.push('tmpl'); const f = pulaTemplate(txt, i); if (f < 0) return -1; i = f; modos.pop(); continue; }
+    if (c === '/' && ehInicioDeRegex(txt, i)) { const f = fimDaString(txt, i, '/'); if (f < 0) return -1; i = f; continue; }
+    if (c === '{') prof++;
+    else if (c === '}') { prof--; if (prof === 0) return i; }
+  }
+  return -1;
+}
+function fimDaString(txt, ini, delim) {
+  for (let i = ini + 1; i < txt.length; i++) {
+    if (txt[i] === '\\') { i++; continue; }
+    if (txt[i] === delim) return i;
+    if (delim !== '/' && txt[i] === '\n') return -1; // string simples não cruza linha
+    if (delim === '/' && txt[i] === '\n') return -1; // regex-literal idem
+    if (delim === '/' && txt[i] === '[') { // classe de char: ] e / dentro não fecham
+      while (i < txt.length && txt[i] !== ']') { if (txt[i] === '\\') i++; i++; }
+    }
+  }
+  return -1;
+}
+function pulaTemplate(txt, ini) {
+  for (let i = ini + 1; i < txt.length; i++) {
+    if (txt[i] === '\\') { i++; continue; }
+    if (txt[i] === '`') return i;
+    if (txt[i] === '$' && txt[i + 1] === '{') { const f = fimDoBloco(txt, i + 1); if (f < 0) return -1; i = f; }
+  }
+  return -1;
+}
+// Heurística clássica: '/' abre regex quando o último token significativo permite operando.
+function ehInicioDeRegex(txt, i) {
+  let j = i - 1;
+  while (j >= 0 && /\s/.test(txt[j])) j--;
+  if (j < 0) return true;
+  return /[(,=:[!&|?{};+\-*%~^<>]/.test(txt[j]) || /\b(return|typeof|case|in|of|do|else)$/.test(txt.slice(Math.max(0, j - 8), j + 1));
+}
+
+// Texto do arquivo REDUZIDO ao que roda no `evento`: remove os blocos `=== 'OUTRO_EVENTO'`
+// e devolve '' quando um guard de saída-cedo (`!== 'X'`, X ≠ evento) prova que o hook nem
+// chega a agir nesse evento. Código comum (helpers de topo) é sempre preservado.
+function fatiarPorEvento(txt, evento) {
+  GUARD_EVENTO.lastIndex = 0;
+  const guards = [...txt.matchAll(GUARD_EVENTO)];
+  if (!guards.length) return txt; // hook mono-evento: nada a fatiar
+  const cortes = [];
+  for (const g of guards) {
+    const [, op, ev] = g;
+    const negado = op.startsWith('!');
+    if (ev === evento) continue; // guard do PRÓPRIO evento: o bloco fica (é o ramo que interessa)
+    if (negado) return ''; // `!== 'X'` com X ≠ evento → sai cedo, não age aqui
+    const abre = txt.indexOf('{', g.index + g[0].length);
+    if (abre < 0) continue;
+    const fecha = fimDoBloco(txt, abre);
+    if (fecha < 0) return txt; // não deu pra delimitar → conservador: arquivo inteiro
+    cortes.push([abre, fecha]);
+  }
+  if (!cortes.length) return txt;
+  cortes.sort((a, b) => a[0] - b[0]);
+  let out = '', cur = 0;
+  for (const [a, b] of cortes) { if (a < cur) continue; out += txt.slice(cur, a); cur = b + 1; }
+  return out + txt.slice(cur);
+}
+
 // Heurística estática (critério ADR 0224 — mecanismo real, não o nome). Sinal de CAPACIDADE
 // no código; deny condicional (ex.: modo strict do bom-encoding/charter-validate) conta.
-function sinaisBloqueio(nomeArquivo, txt) {
+// `evento` restringe a varredura ao ramo daquele evento (ver fatiarPorEvento acima).
+function sinaisBloqueio(nomeArquivo, txtCompleto, evento) {
+  const js = /\.(mjs|js|cjs)$/.test(nomeArquivo);
+  const txt = js && evento ? fatiarPorEvento(txtCompleto, evento) : txtCompleto;
   const s = [];
   if (/['"]deny['"]/.test(txt)) s.push('deny');
-  const js = /\.(mjs|js|cjs)$/.test(nomeArquivo);
   if (js ? /process\.exit\(2\)|exitCode\s*=\s*2|return 2\b/.test(txt) : /^\s*exit\s+2\b/m.test(txt)) s.push('exit-2');
   return s;
 }
@@ -107,10 +199,10 @@ for (const [evento, grupos] of Object.entries(eventos)) {
       if (file) {
         wiredFiles.add(file);
         const p = join(ROOT, HOOKS_DIR, file);
-        if (existsSync(p)) sinais = sinaisBloqueio(file, readFileSync(p, 'utf8'));
+        if (existsSync(p)) sinais = sinaisBloqueio(file, readFileSync(p, 'utf8'), evento);
         else fantasmas.push({ evento, matcher, file });
       } else {
-        sinais = sinaisBloqueio('inline.ps1', cmd); // comando inline: escaneia o próprio texto
+        sinais = sinaisBloqueio('inline.ps1', cmd, evento); // comando inline: escaneia o próprio texto
       }
       rows.push({ evento, matcher, file: file || '(inline no settings.json)', runtime: runtimeDe(cmd), corte: pontoDeCorte(evento, matcher), sinais });
     }
@@ -144,7 +236,7 @@ const manifest = `# Hooks Manifest — GERADO (não editar à mão)
 > Regenerar: \`node scripts/governance/hooks-manifest-generate.mjs --write\` · drift acusado por \`--check\`.
 >
 > **Como ler as colunas computadas** (nada aqui é declarado à mão):
-> - **Sinal de bloqueio** = heurística estática sobre o conteúdo do arquivo na geração (\`deny\` quoted · \`exit-2\`/\`return 2\`) — critério da [ADR 0224](../../memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md) ("mecanismo real, não o nome"). É CAPACIDADE detectada no código (deny condicional/strict conta); ausência de sinal ≠ classificação advisory, e presença ≠ afirmação de runtime.
+> - **Sinal de bloqueio** = heurística estática sobre o **ramo de evento daquela linha** (\`deny\` quoted · \`exit-2\`/\`return 2\`) — critério da [ADR 0224](../../memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md) ("mecanismo real, não o nome"). Hook multi-evento é fatiado: o \`exit(2)\` que só existe dentro de \`if (event === 'PreToolUse')\` **não** conta na linha do \`UserPromptSubmit\` do mesmo arquivo (2026-08-04 — antes contava; bite-test com payload real mostrou 0 de 6 hooks do \`UserPromptSubmit\` bloqueando). É CAPACIDADE detectada no código (deny condicional/strict conta); ausência de sinal ≠ classificação advisory, e presença ≠ afirmação de runtime.
 > - **Ponto-de-corte** = derivado de evento+matcher (hooks) ou da presença no baseline (gates CI → merge).
 > - O dono de "o que é required no merge" é \`governance/required-checks-baseline.json\` (vigiado por \`protection-drift.mjs\`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada \`--write\` e conferida pelo \`--check\`.
 

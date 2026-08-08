@@ -8,7 +8,7 @@ last_validated: "2026-05-08"
 parent_module: Forja
 related_adrs: [110, 70, 100, 39]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /project-mgmt/board
@@ -29,11 +29,18 @@ Kanban board Jira-style pra gerenciar tarefas/épicos do oimpresso por ciclos: n
 - `<PageHeader>` shared (h1 + subtitle + ações)
 - `<KpiGrid>` + `<KpiCard>` shared 5 contadores (Total / Doing / Review / Blocked / P0)
 - Filtros: cycle dropdown + epic + owner + texto busca (persistidos em localStorage)
-- Atalhos teclado:
+- Atalhos teclado (lógica em `_components/useBoardShortcuts.ts`; defendidos por
+  [tests/forjaBoardShortcuts.spec.tsx](../../../../../tests/forjaBoardShortcuts.spec.tsx)
+  na lane `forja-shortcuts-gate`):
   - **J / K** — navegar cards (próximo/anterior)
   - **E** — avançar status (todo→doing→review→done)
   - **A** — voltar status
   - **/** — focar busca da lista
+  - **Enter** — abrir o Detail Sheet do card selecionado (PMG-008)
+  - **?** — abrir/fechar o overlay de atalhos (PMG-008)
+  - **Esc** — fechar o overlay (PMG-008)
+- Nenhum atalho de letra dispara com campo de texto em foco (digitar na busca não
+  move card nem muda status)
 - Click card abre `<DetailSheet>` lateral direito (pattern fonte do SaleSheet)
 - DetailSheet com 5 tabs state-driven: Description / Comments / Activity / Subtasks / Watchers
 - @mentions input rico em Comments (PMG-005)

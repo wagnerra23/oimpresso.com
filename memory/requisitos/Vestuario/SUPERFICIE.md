@@ -12,9 +12,9 @@ module: Vestuario
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Vestuario --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Vestuario/**` + `resources/js/Pages/Vestuario/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** o inventário completo das raízes `Modules/Vestuario/**` + `resources/js/Pages/Vestuario/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Vestuario/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 39 arquivos em 15 papéis.
+**Total mapeado:** 42 arquivos em 16 papéis.
 
 ## Controllers — 3
 
@@ -84,3 +84,9 @@ module: Vestuario
 ## Testes (Pest) — 16
 
 - 16 arquivos em [Modules/Vestuario/Tests/Feature/](../../../Modules/Vestuario/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+
+## Demais arquivos (manifestos, docs, assets e misc) — 3
+
+- [CHANGELOG.md](../../../Modules/Vestuario/CHANGELOG.md)
+- [SCOPE.md](../../../Modules/Vestuario/SCOPE.md)
+- [module.json](../../../Modules/Vestuario/module.json)

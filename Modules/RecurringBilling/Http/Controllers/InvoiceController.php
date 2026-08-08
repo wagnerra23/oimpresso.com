@@ -19,7 +19,7 @@ use Spatie\Activitylog\Facades\Activity;
  * Controller thin de operações sobre rb_invoices (foundation US-RB-043).
  *
  * US-RB-042: endpoint cancel() delega pra AssinaturaCobrancaService (SoC brutal)
- * + audit via Spatie Activity Log + permissão `recurringbilling.invoice.cancel`.
+ * + audit via Spatie Activity Log + permissão `recurringbilling.invoices.cancel`.
  *
  * Wave J 2026-05-16: lógica de gateway/transaction movida pro Service —
  * controller fica HTTP-only (auth/session/audit/response shape).
@@ -112,10 +112,17 @@ class InvoiceController extends Controller
      */
     public function cancel(Request $request, int $invoiceId): JsonResponse
     {
-        if (! auth()->user()?->can('recurringbilling.invoice.cancel')) {
+        // `invoices.cancel` no PLURAL, como as irmãs do módulo (`invoices.view`,
+        // `invoices.charge`, `subscriptions.cancel`). Era `invoice.cancel` no
+        // singular, que não é declarada em lugar nenhum: ninguém podia recebê-la
+        // e cancelar fatura só funcionava pra admin via Gate::before. Diferente
+        // do caso irmão em AssinaturaController, aqui NÃO havia permissão
+        // existente que cobrisse — `view` e `charge` não são cancelamento — então
+        // a permissão foi declarada no DataController. US-GOV-059 classe C.
+        if (! auth()->user()?->can('recurringbilling.invoices.cancel')) {
             return response()->json([
                 'ok' => false,
-                'error' => 'Sem permissão recurringbilling.invoice.cancel',
+                'error' => 'Sem permissão recurringbilling.invoices.cancel',
             ], 403);
         }
 

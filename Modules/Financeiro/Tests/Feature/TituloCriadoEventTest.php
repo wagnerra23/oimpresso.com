@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Modules\Financeiro\Events\TituloCriado;
 use Modules\Financeiro\Models\Titulo;
@@ -82,12 +83,21 @@ it('store dispatch TituloCriado com Titulo do business correto', function () {
             && (float) $event->titulo->valor_total === 12.34;
     });
 
-    // Cleanup título criado
-    Titulo::where('business_id', $business->id)
+    // Cleanup do título criado PELO TESTE. Vai pelo query builder de propósito:
+    // fin_titulos é append-only por domínio — Titulo::delete() lança
+    // DomainException desde a Sub-Onda 1A (Titulo.php:121), e forceDelete() do
+    // SoftDeletes chama delete() internamente, então a forma Eloquent SEMPRE
+    // estourou aqui. Mesmo padrão do irmão BaixaConservacaoValorContratoTest.
+    $ids = DB::table('fin_titulos')
+        ->where('business_id', $business->id)
         ->where('cliente_descricao', 'PR F event test')
-        ->get()
-        ->each
-        ->forceDelete();
+        ->pluck('id')
+        ->all();
+
+    if ($ids !== []) {
+        DB::table('fin_titulo_baixas')->whereIn('titulo_id', $ids)->delete();
+        DB::table('fin_titulos')->whereIn('id', $ids)->delete();
+    }
 });
 
 it('update NÃO dispatch TituloCriado (event é apenas pra novo título)', function () {
@@ -97,8 +107,30 @@ it('update NÃO dispatch TituloCriado (event é apenas pra novo título)', funct
         ->where('status', 'aberto')
         ->first();
 
+    // Não depender de estado ambiente. Num banco FRESCO (o do CI) e com
+    // executionOrder="random", pode não existir título aberto quando este caso
+    // roda — e aí ele SKIPava, virando verde por não-execução (§5 LC-13).
+    // Medido no run da lane em #5192: foi exatamente isso que aconteceu ("- it
+    // update NÃO dispatch"). Aqui o pré-requisito é criado pelo MESMO caminho de
+    // produto que o caso anterior exercita (POST /financeiro/unificado, cujo
+    // status nasce 'aberto' por default de schema).
     if (! $titulo) {
-        test()->markTestSkipped('Sem título aberto pra editar.');
+        $this->actingAs($user)->post('/financeiro/unificado', [
+            'tipo'              => 'receber',
+            'valor_total'       => 55.66,
+            'vencimento'        => now()->addDays(20)->toDateString(),
+            'cliente_descricao' => 'PR F event test update-fixture',
+        ]);
+
+        $titulo = Titulo::where('business_id', $business->id)
+            ->where('status', 'aberto')
+            ->first();
+    }
+
+    // Guarda residual honesta: se nem pelo caminho de produto deu pra ter um
+    // título aberto (module gate desligado neste env), o caso não tem como rodar.
+    if (! $titulo) {
+        test()->markTestSkipped('Sem título aberto pra editar e o store não criou um (module gate?).');
     }
 
     Event::fake([TituloCriado::class]);
@@ -115,4 +147,17 @@ it('update NÃO dispatch TituloCriado (event é apenas pra novo título)', funct
     }
 
     Event::assertNotDispatched(TituloCriado::class);
+
+    // Limpa só o título que ESTE caso eventualmente criou (query builder — ver
+    // comentário do cleanup do caso anterior sobre o append-only de fin_titulos).
+    $ids = DB::table('fin_titulos')
+        ->where('business_id', $business->id)
+        ->where('cliente_descricao', 'PR F event test update-fixture')
+        ->pluck('id')
+        ->all();
+
+    if ($ids !== []) {
+        DB::table('fin_titulo_baixas')->whereIn('titulo_id', $ids)->delete();
+        DB::table('fin_titulos')->whereIn('id', $ids)->delete();
+    }
 });

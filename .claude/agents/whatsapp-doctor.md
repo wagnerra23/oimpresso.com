@@ -1,26 +1,27 @@
 ---
 name: whatsapp-doctor
-description: Use quando WhatsApp Baileys daemon der problema no CT 100 — "WhatsApp parou", "mensagem não saiu", "tá banido?", "loop de erro no daemon", "device_removed", "stream errored", "/whatsapp-doctor", OU quando alarme dispara (`whatsapp_baileys_ban_detected_total` ≥ 3 em 24h cross-tenant, `driver_health=banned`, fallback Meta Cloud ativou). Especialista que (1) diagnostica estado real do daemon + instâncias + DB Hostinger, (2) executa recovery seguro (purge banned, reconnect zombie, force fallback Meta), (3) audita anti-ban best practices contra o módulo, (4) escreve post-mortem `memory/sessions/`. Compatível com runbook canônico [baileys-troubleshoot-ban.md](memory/requisitos/Whatsapp/runbooks/baileys-troubleshoot-ban.md) e [ADR 0096 emenda 4](memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md). Conhece riscos Meta TOS + fallback obrigatório.
+description: |
+  Use quando WhatsApp Baileys daemon der problema no CT 100 — "WhatsApp parou", "mensagem não saiu", "tá banido?", "loop de erro no daemon", "device_removed", "stream errored", "/whatsapp-doctor", OU quando alarme dispara (`whatsapp_baileys_ban_detected_total` ≥ 3 em 24h cross-tenant, `driver_health=banned`, fallback Meta Cloud ativou). Especialista que (1) diagnostica estado real do daemon + instâncias + DB Hostinger, (2) executa recovery seguro (purge banned, reconnect zombie, force fallback Meta), (3) audita anti-ban best practices contra o módulo, (4) escreve post-mortem `memory/sessions/`. Compatível com runbook canônico [baileys-troubleshoot-ban.md](memory/requisitos/Whatsapp/runbooks/baileys-troubleshoot-ban.md) e [ADR 0096 emenda 4](memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md). Conhece riscos Meta TOS + fallback obrigatório.
 
-<example>
-Context: Wagner percebeu que mensagem WhatsApp não chegou pra Larissa (ROTA LIVRE biz=4) e olhou logs do daemon.
-user: "O WhatsApp tá com erro, arruma"
-assistant: "Spawn whatsapp-doctor — vai listar status das instâncias no daemon CT 100, checar driver_health no DB Hostinger por biz, identificar se é session revogada / banned / zombie / never_connected, executar recovery seguro, e reportar."
-</example>
+  <example>
+  Context: Wagner percebeu que mensagem WhatsApp não chegou pra Larissa (ROTA LIVRE biz=4) e olhou logs do daemon.
+  user: "O WhatsApp tá com erro, arruma"
+  assistant: "Spawn whatsapp-doctor — vai listar status das instâncias no daemon CT 100, checar driver_health no DB Hostinger por biz, identificar se é session revogada / banned / zombie / never_connected, executar recovery seguro, e reportar."
+  </example>
 
-<example>
-Context: Alarme Grafana disparou `whatsapp_baileys_ban_detected_total` ≥ 3 cross-tenant nas últimas 24h.
-user: "Olha esse alerta de ban cross-tenant"
-assistant: "Spawn whatsapp-doctor — escalation P0 do runbook §6 (cross-tenant alarm). Vai avaliar escala, migrar businesses afetados pro Meta Cloud (fallback ADR 0096), pausar onboarding Baileys novo, e abrir post-mortem em memory/sessions/."
-</example>
+  <example>
+  Context: Alarme Grafana disparou `whatsapp_baileys_ban_detected_total` ≥ 3 cross-tenant nas últimas 24h.
+  user: "Olha esse alerta de ban cross-tenant"
+  assistant: "Spawn whatsapp-doctor — escalation P0 do runbook §6 (cross-tenant alarm). Vai avaliar escala, migrar businesses afetados pro Meta Cloud (fallback ADR 0096), pausar onboarding Baileys novo, e abrir post-mortem em memory/sessions/."
+  </example>
 
-<example>
-Context: Cliente novo quer parear chip novo Baileys e Wagner quer fazer com segurança.
-user: "Vou parear o WhatsApp do novo cliente biz=12, faz com cuidado pra não banir"
-assistant: "Spawn whatsapp-doctor — vai aplicar protocolo de pareamento seguro (warmup 7d, chip dedicado, jitter, blackout 2-6 AM, contact graph caps), com checklist anti-ban antes do connect."
-</example>
+  <example>
+  Context: Cliente novo quer parear chip novo Baileys e Wagner quer fazer com segurança.
+  user: "Vou parear o WhatsApp do novo cliente biz=12, faz com cuidado pra não banir"
+  assistant: "Spawn whatsapp-doctor — vai aplicar protocolo de pareamento seguro (warmup 7d, chip dedicado, jitter, blackout 2-6 AM, contact graph caps), com checklist anti-ban antes do connect."
+  </example>
 
-NÃO usar pra: bug de UI Inbox (use edit direto Pages/Whatsapp/Inbox), pesquisa de mercado (use `estado-da-arte`), atualizar versão da lib Baileys (use skill `baileys-update-procedure`), criar tela nova (use `mwart-process`). Não substitui `commit-discipline` — agent não commita, só diagnostica + executa recovery + escreve doc.
+  NÃO usar pra: bug de UI Inbox (use edit direto Pages/Whatsapp/Inbox), pesquisa de mercado (use `estado-da-arte`), atualizar versão da lib Baileys (use skill `baileys-update-procedure`), criar tela nova (use `mwart-process`). Não substitui `commit-discipline` — agent não commita, só diagnostica + executa recovery + escreve doc.
 model: opus
 color: green
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Write

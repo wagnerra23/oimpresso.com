@@ -38,7 +38,10 @@ class ImportacaoController extends Controller
             'tamanho_bytes'    => (int) $i->tamanho_bytes,
             'estado'           => $i->estado,
             'linhas_processadas' => (int) ($i->linhas_processadas ?? 0),
-            'linhas_criadas'   => (int) ($i->linhas_criadas ?? 0),
+            // US-PONTO-012 (SDD §9 D-8) — mesma correção do `show()`: a coluna real é
+            // `linhas_sucesso`. O `Index.tsx:118` renderiza `{linhas_criadas}/{processadas}`,
+            // então a lista mostrava `0/N` para toda importação.
+            'linhas_criadas'   => (int) ($i->linhas_sucesso ?? 0),
             'created_at'       => optional($i->created_at)->format('Y-m-d H:i'),
             'created_at_human' => optional($i->created_at)->diffForHumans(),
             'usuario'          => optional($i->usuario)->first_name,
@@ -104,9 +107,17 @@ class ImportacaoController extends Controller
                 'tamanho_bytes'      => (int) $i->tamanho_bytes,
                 'estado'             => $i->estado,
                 'linhas_processadas' => (int) ($i->linhas_processadas ?? 0),
-                'linhas_criadas'     => (int) ($i->linhas_criadas ?? 0),
-                'linhas_ignoradas'   => (int) ($i->linhas_ignoradas ?? 0),
-                'erro_mensagem'      => $i->erro_mensagem,
+                // US-PONTO-012 (SDD §9 D-8): as chaves do payload seguem as MESMAS (o
+                // `.tsx` as consome), mas a LEITURA passa a ser das colunas que existem.
+                // `linhas_criadas`/`linhas_ignoradas`/`erro_mensagem` não são coluna nem
+                // accessor — a migration tem `linhas_sucesso`/`linhas_erro`/`log`, e o
+                // `?? 0` escondia a ausência. Resultado: "0 marcações criadas" em TODA
+                // importação, inclusive as 100% bem-sucedidas.
+                'linhas_criadas'     => (int) ($i->linhas_sucesso ?? 0),
+                'linhas_ignoradas'   => (int) ($i->linhas_erro ?? 0),
+                // Idem: `erro_mensagem` sempre null fazia o `{i.erro_mensagem && <Alert>}`
+                // do Show.tsx NUNCA renderizar — importação que falhou não dizia por quê.
+                'erro_mensagem'      => $i->log,
                 'created_at'         => optional($i->created_at)->format('Y-m-d H:i'),
                 'updated_at'         => optional($i->updated_at)->format('Y-m-d H:i'),
                 'usuario'            => optional($i->usuario)->first_name,

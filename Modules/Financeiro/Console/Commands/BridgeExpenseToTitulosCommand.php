@@ -100,10 +100,14 @@ class BridgeExpenseToTitulosCommand extends Command
         }
 
         // (2) Query transactions expense ainda não bridged.
+        // `transactions` NÃO tem soft delete no core UltimatePOS: a coluna
+        // `deleted_at` não existe (medido 2026-08-05 em 3 fontes — schema baseline,
+        // CT 100 staging e PRODUÇÃO) e App\Transaction não usa o trait SoftDeletes.
+        // O `whereNull('t.deleted_at')` que ficava aqui quebrava o comando inteiro
+        // com SQLSTATE[42S22] em toda execução. Ver US-FIN-068.
         $query = DB::table('transactions as t')
             ->where('t.business_id', $businessId)
             ->where('t.type', 'expense')
-            ->whereNull('t.deleted_at')
             ->leftJoin('fin_titulos as ft', function ($join) {
                 $join->on('ft.origem_id', '=', 't.id')
                     ->where('ft.origem', '=', 'despesa')

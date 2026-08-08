@@ -8,6 +8,7 @@ import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import PageHeader from '@/Components/shared/PageHeader'
+import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
@@ -74,6 +75,7 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
 
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
+      <GovernancaSubNav active="audit" />
       <PageHeader
         icon="search"
         title="Audit Log"

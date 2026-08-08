@@ -53,7 +53,7 @@ Invariante anti-atrofia ([ADR 0334](memory/decisions/0334-modelo-3-camadas-invar
 | Módulo | Função |
 |---|---|
 | `Modules/Jana/` | Copiloto de IA + memória persistente + agents ([ADR 0035](memory/decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)) |
-| `Modules/TeamMcp/` | Servidor MCP + Forja + Identity Mesh + audit log ([ADR 0053](memory/decisions/0053-mcp-server-governanca-como-produto.md)) |
+| `Modules/Forja/` | Servidor MCP + Forja + Identity Mesh + audit log ([ADR 0053](memory/decisions/0053-mcp-server-governanca-como-produto.md)) |
 | `Modules/Financeiro/` | Contas a pagar e receber, boleto, conciliação — integração Asaas/Inter |
 | `Modules/NfeBrasil/` · `Modules/NFSe/` | Emissão fiscal — NFC-e/NF-e e NFS-e |
 | `Modules/Repair/` | Ordens de serviço + Kanban FSM — infraestrutura compartilhada entre verticais |
@@ -92,7 +92,7 @@ O que distingue este repositório é a camada C ser **real e operante**, não um
 - **Constituição v2** ([ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)) — 7 camadas (MCP Core → ADS → Skills → Playbooks → ADRs → Charters → Daily Brief) e **8 princípios duros**: (1) contexto como produto · (2) custo em tiers · (3) charter > spec · (4) loop fechado por métrica · (5) separação de responsabilidades brutal · (6) multi-tenant Tier 0 irrevogável · (7) transparência · (8) confiabilidade com fallback. ADRs são **append-only** — mudar uma decisão exige uma nova que a supersede. O estado real das camadas vive num retrato datado à parte ([ADR 0330](memory/decisions/0330-mapa-dos-niveis-estado-real-2026-07-constituicao.md)).
 - **Servidor MCP canônico** — `mcp.oimpresso.com` no CT 100 ([ADR 0053](memory/decisions/0053-mcp-server-governanca-como-produto.md)). Autentica por tokens Sanctum, sincroniza `memory/*` do git para `mcp_memory_documents` via webhook (PII redigida no caminho), e serve o estado vivo (`brief-fetch`, `tasks-*`, `cycles-*`, `decisions-search`). Toda ação vai para um **audit log imutável** (`mcp_audit_log`, trigger MySQL).
 - **Identity Mesh** ([ADR 0081](memory/decisions/0081-identity-mesh-mcp-actors.md)) — cada ator (humano ou IA) tem manifest com trust level L0–L4 e cadeia de delegação (a IA herda o contexto do humano que a pareia). Sem manifest, sem ação: default-deny.
-- **Forja — cockpit do cowork loop** (`Modules/TeamMcp`) — seis abas: Triagem → Backlog → Quadro (fases F0 Brief → F1 Design → F3 Code → F4 Merged) → Changelog → MCP → Saúde. O contrato é a linha vermelha: agentes têm **`read` + `propose`**; **`git.merge` e `constituicao.edit` são negados por token** — a decisão final é sempre humana ([ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) · [0282](memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)).
+- **Forja — cockpit do cowork loop** (`Modules/Forja`) — seis abas: Triagem → Backlog → Quadro (fases F0 Brief → F1 Design → F3 Code → F4 Merged) → Changelog → MCP → Saúde. O contrato é a linha vermelha: agentes têm **`read` + `propose`**; **`git.merge` e `constituicao.edit` são negados por token** — a decisão final é sempre humana ([ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) · [0282](memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)).
 - **Enforcement que morde** — hooks PreToolUse bloqueiam em runtime (auto-memória privada, teste fora do CT 100, claim sem evidência, PII em commit); gates de CI required cobrem append-only, cobertura de tela, âncoras e regressão visual; e um `gate-selftest` prova, contra fixtures, que cada catraca realmente reprova.
 - **Doutrina de sobrevivência do conhecimento** ([ADR 0256](memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)) — *derivado e enforçado sobrevive; escrito e lembrado apodrece*. Por isso mapas e contagens são recalculados de comandos vivos, nunca mantidos à mão.
 
@@ -168,6 +168,7 @@ Este `README.md` é a **única porta global**. Escolhida a camada, o resto é de
 
 | Quero... | Vá para |
 |---|---|
+| **Entender o sistema inteiro** — o que é, por que foi construído assim, como funciona | [Documentação do sistema](https://claude.ai/code/artifact/18086cd7-5e33-434f-b369-bbf0db555017) — vista navegável, derivada deste README + [GUIA](memory/GUIA-DO-SISTEMA.md) + [ARCHITECTURE](memory/governance/ARCHITECTURE.md) + [PAINEL](memory/reference/PAINEL-SISTEMA.md) |
 | Mapa técnico (arc42, trust levels, runtime C4) | [`ARCHITECTURE.md`](memory/governance/ARCHITECTURE.md) |
 | Decisões arquiteturais | [`memory/decisions/`](memory/decisions/) — ADRs Nygard ([índice vivo](memory/decisions/_INDEX-GENERATED.md)) |
 | Alterar um módulo | `memory/requisitos/<Modulo>/BRIEFING.md` → `SPEC.md` → `RUNBOOK` |

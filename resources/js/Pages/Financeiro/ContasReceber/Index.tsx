@@ -7,8 +7,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Receipt, AlertTriangle, CheckCircle2, Circle, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
-import { PageHeader } from '@/Components/PageHeader';
-import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 
 interface BoletoInfo {
   id: number;
@@ -100,9 +99,10 @@ function Index({ titulos, filtros }: Props) {
         >
           <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
             <FinanceiroSubNav active="contas-receber" hidePrimary />
-            <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo?kind=receivable')}>
-              Novo recebimento
-            </FinanceiroPrimaryButton>
+            <PageHeaderPrimary
+              label="Novo recebimento"
+              onClick={() => router.visit('/financeiro/unificado/novo?kind=receivable')}
+            />
           </div>
         </PageHeader>
 

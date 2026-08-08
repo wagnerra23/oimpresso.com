@@ -232,5 +232,22 @@ Ver [BRIEFING.md §"Plano em 6 ondas"](BRIEFING.md).
 - [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — Benchmark mercado
 - [IA-MATURITY-FICHA.md](IA-MATURITY-FICHA.md) — Maturity IA
 
+
+### US-KB-008 — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — ⬜ **não começou**
+
+**Implementado em:** _pendente_
+
+Achado da sessão 2026-08-05, ao investigar um apontamento do `perf-static-guard`.
+
+`Modules/KB/Http/Controllers/KbController.php:102` faz `->paginate(2000)`. O comentário no próprio código explica a intenção: *"1 página com todos os nós do business (a tela filtra no cliente)"*.
+
+**Por que registrar:** 2000 registros num único payload Inertia é o sinal forte — independente de eager loading. O acervo medido em 2026-07-17 tinha ~1.408 nós; a folga até 2000 é pequena, e quando estourar a tela degrada de uma vez, não gradualmente.
+
+**O que NÃO é:** não é pedido para adicionar `->with([...])`. O `perf-static-guard` aponta esta linha como `paginate_sem_eager`, mas o critério é heurístico (regex `paginate(` sem `->with(`/`withCount(`/`select(` numa janela de 40 linhas) e o header do script admite falsos-positivos catalogados. `KbNode` tem relações (`category`, `subcategory`, `comments`, `favorites`) mas **sem `$with` automático**, e o controller não as acessa — o N+1 não é automático. Adicionar eager loading só para calar o contador seria pessimização.
+
+**O que revisar:** (a) a premissa "a tela filtra no cliente" ainda se sustenta com o acervo atual? (b) há guarda para quando os 2000 estourarem? (c) se `category`/`subcategory` forem de fato consumidos no `kb/Index.v2.tsx`, aí cabe eager loading — medido, não presumido.
+
+**Aceite:** decisão registrada sobre o teto (manter com guarda, paginar de verdade, ou mover o filtro pro servidor). Refs: sessão 2026-08-05.
+
 ---
 **Última atualização:** 2026-05-17 — Wave 26 saturação (D1.a markers + Smoke/Scaffold tests + SPEC canônico + retention mirror).

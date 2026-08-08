@@ -60,6 +60,37 @@ const din = coletarUsadas(['d.php'], reader({ 'd.php': "\$u->can(\$perm); \$u->c
 check('FP-2: alvo dinâmico vai pra quarentena, não vira permissão',
   din.usadas.size === 0 && din.dinamicas === 2);
 
+// FP-4 — COMENTÁRIO NÃO É USO (medido 2026-08-06, ao triar a US-GOV-059).
+// A forma `middleware` casa `can:`/`permission:` em QUALQUER texto, e o corpus
+// tem 36 linhas de comentário citando isso. 5 das 43 "órfãs" eram prosa; as 3
+// abaixo são os casos literais que estavam no relatório do CI.
+const com = coletarUsadas(['c.php'], reader({
+  'c.php': [
+    "// pra não quebrar por formatação do gate (`can:x` vs `can:x,arg`) — o contrato",
+    " *   - permissions/roles/model_has_* (Spatie — pra middleware can:kb.*)",
+    "        // Permissão fina via middleware can:financeiro.{contas_pagar|contas_receber}.baixar",
+    "        // if (!\$user->can('api.access')) {",
+  ].join('\n'),
+})).usadas;
+check('FP-4: `can:x` em comentário de linha NÃO conta como uso', !com.has('x'));
+check('FP-4: `can:kb.*` em docblock NÃO conta (o `*` cortava, sobrando `kb.`)', !com.has('kb.'));
+check('FP-4: `can:financeiro.{a|b}` em comentário NÃO conta (parava no `{`)', !com.has('financeiro.'));
+check('FP-4: `can(\'api.access\')` COMENTADO NÃO conta como uso', !com.has('api.access'));
+check('FP-4: comentário puro não gera uso nenhum', com.size === 0);
+
+// Controles negativos do FP-4 — o strip é conservador e NÃO pode comer código.
+const vivo = coletarUsadas(['v.php'], reader({
+  'v.php': [
+    "\$this->middleware('can:a.viva'); // nota no fim da linha",      // código + comentário
+    "#[Route('/x')]",                                                  // atributo PHP 8, não comentário
+    "\$u->can('b.viva'); # comentário estilo shell no fim",
+    "\$cfg = ['url' => 'https://exemplo.com', 'can' => 'c.viva'];",    // `//` dentro de string
+  ].join('\n'),
+})).usadas;
+check('FP-4 controle: código COM comentário no fim da linha segue contando',
+  vivo.has('a.viva') && vivo.has('b.viva'));
+check('FP-4 controle: `//` dentro de string (URL) não come a linha', vivo.has('c.viva'));
+
 // ── MORDE: o drift real que motivou o script ────────────────────────────────
 // Caso literal do repo: código checa `copiloto.superadmin`, registry declara
 // `jana.superadmin`. Ninguém consegue conceder → gate efetivamente só-admin.
@@ -81,5 +112,5 @@ check('controle: declarada E usada → limpa nas duas direções',
   [...u3.keys()].filter((p) => !d3.has(p)).length === 0
   && [...d3.keys()].filter((p) => !u3.has(p)).length === 0);
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — extrai as 5 formas de declaração, 7 de uso, e os 3 controles de FP medidos no corpus real.');
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — extrai as 5 formas de declaração, 7 de uso, e as 4 classes de FP medidas no corpus real (FP-1 Policy · FP-2 alvo dinâmico · FP-3 Gate::before · FP-4 comentário).');
 process.exit(fails ? 1 : 0);

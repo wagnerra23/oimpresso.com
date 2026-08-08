@@ -38,9 +38,21 @@ class KitchenController extends Controller
      */
     public function index()
     {
-        // if (!auth()->user()->can('sell.view')) {
-        //     abort(403, 'Unauthorized action.');
-        // }
+        // Gate reativado (US-GOV-059, 2026-08-07). Estava comentado: a tela filtrava
+        // por business_id mas servia os PEDIDOS da cozinha a qualquer usuário
+        // autenticado do business. `sell.view` é o nome que o próprio gate comentado
+        // já trazia, é declarada no PermissionsTableSeeder e aparece na tela de papéis.
+        // O link no sidebar (AdminSidebarMenu, menu Cozinha) carrega o MESMO predicado
+        // — se um lado mudar, o outro muda junto, senão vira 403 pra quem vê o link
+        // (classe A da US-GOV-059).
+        //
+        // ATENÇÃO: isto NÃO veda o dado. refreshOrdersList/refreshLineOrdersList (mesmo
+        // arquivo) servem os mesmos pedidos sem gate, e markAsCooked é mutação por GET,
+        // também aberta. Ver o resíduo declarado na US-GOV-059 antes de assumir que a
+        // Cozinha está fechada.
+        if (! auth()->user()->can('sell.view')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $business_id = request()->session()->get('user.business_id');
         

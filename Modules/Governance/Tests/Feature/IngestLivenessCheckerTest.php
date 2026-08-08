@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Modules\Governance\Services\Checkers\IngestLivenessChecker;
-use Modules\TeamMcp\Entities\McpIngestHeartbeat;
+use Modules\Forja\Entities\McpIngestHeartbeat;
 
 uses(Tests\TestCase::class);
 

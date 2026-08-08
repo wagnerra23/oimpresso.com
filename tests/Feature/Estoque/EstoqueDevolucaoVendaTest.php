@@ -38,7 +38,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('devolução de venda REINTEGRA qty_available pela quantidade devolvida', function () {
+it('UC-EST-03 · devolução de venda REINTEGRA qty_available pela quantidade devolvida', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     // Saldo pós-venda = 8 (a venda já baixou); devolver 2 deve voltar pra 10.
@@ -62,7 +62,7 @@ it('devolução de venda REINTEGRA qty_available pela quantidade devolvida', fun
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(10.0);
 });
 
-it('devolução parcial reintegra só o que foi devolvido (não a venda inteira)', function () {
+it('UC-EST-03 · devolução parcial reintegra só o que foi devolvido (não a venda inteira)', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 5.0); // vendeu 5, devolve só 1

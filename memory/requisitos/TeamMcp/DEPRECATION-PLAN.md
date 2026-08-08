@@ -27,6 +27,16 @@ id: requisitos-teammcp-deprecation-plan
 **Consequência da #3 na ordem:** o TeamMcp deixa de depender da morte de ADS/Governance. Ele sai
 **primeiro**, e leva junto o trabalho de repontar quem o consome.
 
+> ⚰️ **EXECUTADO — `Modules/TeamMcp` foi APAGADO em 2026-07-31.** As 7 etapas fecharam com
+> PR e CI verde; **89 → 0 arquivos**. Nada foi perdido: o destino de cada peça está na
+> lápide [`SUPERFICIE.md`](SUPERFICIE.md). URLs `/api/mcp/*`, `/api/cc/ingest`,
+> `/team-mcp/*`, `/forja/*` e `/ads/admin/*` seguem **idênticas**; as 4 tabelas
+> **não foram tocadas** (CT 100 e Hostinger leem o mesmo banco — a migração foi troca
+> de dono no código, nunca DDL).
+>
+> **Fica pendente e NÃO bloqueia nada:** as 4 abas do `/forja` sobrepõem telas da Forja.
+> Foram **movidas, não fundidas** — fundir deleta uma implementação, e isso é decisão [W].
+
 ## Fase 1 — Inventário
 
 **Gerado:** [`SUPERFICIE.md`](SUPERFICIE.md) — **105 arquivos em 15 papéis** (`module-surface.mjs TeamMcp --write`). Frescor 2026-07-30: `--check` **exit 0**.
@@ -129,7 +139,7 @@ gh api repos/wagnerra23/oimpresso.com/branches/main/protection --jq '.required_s
 |---|---|---|
 | **E1** | ✅ **FEITO 2026-07-30** — CT 100, banco, tokens, heartbeat e semântica de migration medidos (§E1) | — |
 | **E2** | ✅ **ESCRITA** — [ADR 0361](../../decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md) (`proposto`) | ✋ [W] ratifica — **não bloqueia a E4** |
-| **E2b** | ✅ **[PR #5083](https://github.com/wagnerra23/oimpresso.com/pull/5083)** moveu `SyncMemoryWebhook` + `Health` pra Jana e **provou o R6 em prod** (webhook `last_response 200`; ADR 0361 chegou em `mcp_memory_documents`). **Corrigido no mesmo dia:** com a decisão #5, os 2 controllers **+ o route group `/api/mcp`** foram pra `Modules/Forja`. URLs e names inalterados. | ✋ [W] — R6 já provado |
+| **E2b** | ✅ **FEITO E PROVADO EM PROD.** [#5083](https://github.com/wagnerra23/oimpresso.com/pull/5083) tirou `SyncMemoryWebhook` + `Health` do TeamMcp; [#5101](https://github.com/wagnerra23/oimpresso.com/pull/5101) corrigiu o receptor pra **Forja** (decisão #5), levando junto o **route group `/api/mcp`** — deixar a rota na Jana apontando pra controller da Forja recriaria o drift que a Fase 3.7 causou. URLs e names `jana.mcp.*` inalterados. **Prova do R6 abaixo.** | ✅ R6 provado |
 | **E3** | MIGRATE `mcp_tokens` + `mcp_actors` pro receptor · smoke com token real do time (R1) | ✋ [W] confere |
 | **E4** | Migrar as 4 tools MCP + patch nos 4 acopladores do Jana | ✋ [W] aprova |
 | **E5** | Remover `Modules/TeamMcp/` + telas `/forja` + permissions + `modules_statuses.json` | ✋ [W] aprova |
@@ -237,7 +247,8 @@ declarado:** `Admin/ToolsController` e `Admin/TeamScopesController` (consumidos 
 `DataController`, `InstallController`, `Mcp/HealthController`, os 4 `Console/Commands`, os 2 seeders e
 `Config/retention.php`. Sem isso a **E5 não é executável** — registro como buraco em vez de inventar dono.
 
-*(`Mcp/HealthController` já resolvido na E2b: mesmo route group do webhook, dependências 100% Jana.)*
+*(`Mcp/HealthController` resolvido na E2b: mesmo route group do webhook. As dependências são entidades `Mcp\*`
+— que a decisão #5 move pra Forja junto com o resto do MCP, na fase F4 da proposal.)*
 
 ---
 
@@ -250,10 +261,23 @@ declarado:** `Admin/ToolsController` e `Admin/TeamScopesController` (consumidos 
   produção** — rodar suite nele está fora de cogitação. O `oimpresso-staging` serve, mas seu checkout está
   em 2026-07-23 com alterações não-commitadas de outra sessão. **A verificação real da E2b é o CI.** O que
   rodou local: `php -l` nos 6 arquivos PHP tocados (lint, não teste — permitido) + os gates de memória.
-- **O smoke do webhook (R6) não foi feito e não pode ser feito antes do merge.** O webhook do GitHub aponta
-  pra `https://oimpresso.com/api/mcp/sync-memory` (Hostinger, prod). Só dá pra provar depois do deploy:
-  commit de teste em `memory/` → conferir linha nova em `mcp_memory_documents`. **Enquanto isso não rodar, a
-  E2b não está provada** — CI verde não prova webhook (R1 do PROTOCOLO).
+- **O smoke do R6 FOI FEITO — recibo abaixo (medido 2026-07-31, prod em `e2f861e69`).**
+  | Prova | Resultado |
+  |---|---|
+  | Filesystem Hostinger | `Modules/Forja/Http/Controllers/Mcp/` com os 2 · `Modules/Jana/.../Mcp/` **vazio** · `TeamMcp/.../Mcp/` só `CcIngest` |
+  | `GET /api/mcp/health` | `200` + `{"status":"ok","service":"oimpresso-mcp",...}` |
+  | `POST /api/mcp/sync-memory` token errado | `401` |
+  | `GET /api/mcp/health/auth` sem Bearer | `401` |
+  | `GET /api/mcp/version` | `500` + `{"error":"Misconfigured"}` — resposta **do próprio controller**, por desenho (`MCP_DRIFT_TOKEN` só existe no CT 100) |
+  | **Webhook GitHub (o que fecha o R6)** | re-entrega real de `push` às **01:31:43Z → `200`**, já com o deploy concluído |
+  
+  ⚠️ **Lição do próprio smoke (LC-08):** a 1ª rodada deu `500` em 4 rotas e eu declarei *"regressão em produção"*.
+  Era **deploy em curso** — o `/login`, meu controle, estava `503` junto e eu não olhei antes de concluir. Com o site
+  de pé, tudo respondeu certo. **Smoke durante deploy não é medição**: confira um controle fora do escopo primeiro.
+- **504 no webhook é PRÉ-EXISTENTE, não regressão.** Medido antes×depois do #5083: **25% → 18%** de `504` nas entregas
+  de `push`. O handler faz `git fetch` + `reset --hard` + reindex **síncrono** e estoura os 10s do GitHub; o próprio
+  código confessa (*"vira queue se ficar lento"*, auditoria 2026-05-14). O cron de 5min cobre, mas ~1 em 4 pushes
+  cai no fallback. **Não é desta deprecação** — fica nomeado pra não virar surpresa de quem tocar o webhook.
 - **`§Destino por função` cobre ~metade do módulo** — a E5 não é executável até [W] decidir o destino dos
   papéis listados no buraco da §E1.
 - **A ordem do conjunto mudou na prática.** O plano assume ADS/Governance já mortos; estão vivos. Ou os 6

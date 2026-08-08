@@ -1,10 +1,18 @@
-name: Jana lógica pura Pest (event-time + histórico + audit-chain)
+name: Lógica pura Pest (event-time · histórico · audit-chain · migração Blade)
 
 # Funde jana-bitemporal-pest.yml + jana-bitemporal-slice2-pest.yml + jana-audit-chain-pest.yml
 # (poda Movimento 1 — consolidação de irmãos). Os três eram lanes de LÓGICA PURA idênticas
 # (SQLite :memory:, mesmo setup PHP 8.4 + composer + .env), só mudavam os arquivos de teste.
-# Agora 1 job faz composer install UMA vez e roda as 4 suites Unit num único Pest invoke
-# -> 1 runner + 1 composer install em vez de 3. Cobertura preservada (4 testes, ADR 0294/0295).
+# Agora 1 job faz composer install UMA vez e roda as suites Unit num único Pest invoke
+# -> 1 runner + 1 composer install em vez de 3. Cobertura preservada (ADR 0294/0295).
+#
+# 2026-08-02 — 5 → 10 alvos. Auditoria dos Modules/*/Tests/Unit achou 5 arquivos de
+# lógica pura (55 casos) que existiam no repo e NENHUMA lane executava: DesignDossieAssembler,
+# DesignIngestPlanner, DistillerFreshnessStats, ModuleTruthEventCollector e — o mais grave —
+# PiiRedactorTest (19 casos, LGPD), cuja classe o #5169 alterou em +98 linhas no mesmo dia
+# ligando só o teste do caso NOVO, deixando o de regressão fora. Verde que não roda é pior
+# que vermelho: se algum destes falhar ao ser ligado, é dívida aparecendo, não regressão de
+# quem ligou.
 #
 # jana-pest.yml (MySQL real, skip-as-pass, required-ready ADR 0271) fica SEPARADO de propósito:
 # tem service container MySQL e always-run — natureza diferente, não funde aqui.
@@ -25,6 +33,43 @@ on:
       - 'Modules/Jana/Tests/Unit/SupersedeDetectorTest.php'
       - 'Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php'
       - 'Modules/Jana/Tests/Unit/AuditChainServiceTest.php'
+      - 'Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php'
+      - 'Modules/Jana/Services/Privacy/PiiRedactor.php'
+      # 2026-08-08 — 1º alvo FORA da Jana: o veredito do sentinela de migração
+      # Blade→React (ADR 0277 peça 2). Entrou aqui, e não em `modules-pest`, porque
+      # `Governance` NÃO está na matriz daquela lane (medido) e ligá-la rodaria os
+      # 56 Feature do módulo de uma vez — dívida acumulada aparecendo como se fosse
+      # regressão de quem ligou. `avaliar()` é pura (sem DB/node/fs), então é lógica
+      # pura por natureza e cabe nesta lane. O `name:` do workflow foi corrigido no
+      # mesmo PR: ele dizia só "Jana" e passou a mentir no minuto em que isto entrou.
+      - 'Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php'
+      - 'Modules/Governance/Console/Commands/BladeMigrationSentinelCommand.php'
+      # 2026-08-08 — 2º alvo do Governance: o registro do path de migrations. O SP
+      # não chamava `loadMigrationsFrom`, então o `migrate --force` do deploy pulava
+      # as 5 migrations do módulo e 4 tabelas nunca existiram em prod (medido). Só o
+      # container é usado (`app('migrator')->paths()`), sem DB — cabe nesta lane.
+      # O `Providers/` entra ao lado do teste: sem isso, mexer no SP não dispara o
+      # teste dele e o gatilho fica cego justamente à regressão que ele guarda.
+      - 'Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php'
+      - 'Modules/Governance/Providers/GovernanceServiceProvider.php'
+      - 'Modules/Governance/Database/Migrations/**'
+      # Adotados 2026-08-02: os 5 Tests/Unit que existiam no repo e NENHUMA lane
+      # executava. Cada um entra com o arquivo SOB TESTE ao lado — sem isso, mexer
+      # na classe não dispara o teste dela (o gatilho fica cego à regressão).
+      - 'Modules/Jana/Tests/Unit/DesignDossieAssemblerTest.php'
+      - 'Modules/Jana/Services/Memoria/DesignDossieAssembler.php'
+      - 'Modules/Jana/Tests/Unit/DesignIngestPlannerTest.php'
+      - 'Modules/Jana/Services/Memoria/DesignIngestPlanner.php'
+      - 'Modules/Jana/Tests/Unit/DistillerFreshnessStatsTest.php'
+      - 'Modules/Jana/Console/Commands/HealthCheckCommand.php'
+      - 'Modules/Jana/Tests/Unit/ModuleTruthEventCollectorTest.php'
+      - 'Modules/Jana/Services/Memoria/ModuleTruthEventCollector.php'
+      - 'Modules/Jana/Tests/Unit/PiiRedactorTest.php'
+      # 2º redactor: o indexador do RAG tem cópia PRÓPRIA de PII_PATTERNS e NÃO
+      # usa PiiRedactor — por isso o fix #5169 não chegou nele. Sem estes dois
+      # paths o teste do fix nasceria mudo (o serviço não dispara a lane dele).
+      - 'Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php'
+      - 'Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
@@ -39,7 +84,7 @@ permissions:
 
 jobs:
   pest:
-    name: Pest Jana lógica pura (event-time + histórico + audit-chain)
+    name: Pest lógica pura (event-time · histórico · audit-chain · migração Blade)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -86,7 +131,9 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (Jana lógica pura — 4 suites Unit)
+      # Sem contagem no nome: ele dizia "11 suites" com 12 na lista — número em nome
+      # de step apodrece no 1º alvo novo (LC-10). A lista abaixo é o dono do número.
+      - name: Run Pest (lógica pura — suites Unit)
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
@@ -94,11 +141,23 @@ jobs:
           CACHE_DRIVER: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
+        # A lista abaixo é o que DECIDE o que roda — registrar em phpunit.xml não
+        # alcança o CI (nenhuma lane deste repo usa --testsuite; todas passam alvos
+        # explícitos). Teste novo em Tests/Unit precisa entrar AQUI e no paths: acima.
         run: |
           vendor/bin/pest \
             Modules/Jana/Tests/Unit/BiTemporalResolverTest.php \
             Modules/Jana/Tests/Unit/SupersedeDetectorTest.php \
             Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php \
             Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
+            Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php \
+            Modules/Jana/Tests/Unit/DesignDossieAssemblerTest.php \
+            Modules/Jana/Tests/Unit/DesignIngestPlannerTest.php \
+            Modules/Jana/Tests/Unit/DistillerFreshnessStatsTest.php \
+            Modules/Jana/Tests/Unit/ModuleTruthEventCollectorTest.php \
+            Modules/Jana/Tests/Unit/PiiRedactorTest.php \
+            Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
+            Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php \
+            Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php \
             --no-coverage \
             --colors=always

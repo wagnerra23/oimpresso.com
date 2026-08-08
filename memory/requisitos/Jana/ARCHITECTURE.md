@@ -9,7 +9,7 @@ lifecycle: ativo
 
 # Arquitetura viva da Jana
 
-> ⚙️ **Gerado por `scripts/governance/system-map.mjs` em 2026-07-29.** NÃO edite à mão.
+> ⚙️ **Gerado por `scripts/governance/system-map.mjs` em 2026-08-08.** NÃO edite à mão.
 > Esta página deriva o que o repositório consegue provar. Saúde de máquina é verificada por probe — compose existente não significa container vivo.
 > Resumo do sistema inteiro: [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md). Decisões donas: [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md) e [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md).
 
@@ -55,7 +55,7 @@ O desenho mostra **quem chama quem**. Ele não multiplica um serviço compartilh
 ```mermaid
 flowchart TB
   subgraph B["B · agentes do projeto"]
-    AG["22 agentes PHP"]
+    AG["19 agentes PHP"]
     DATA["5 tools SQL do Brief Diário"]
     DATA --> AG
   end
@@ -147,7 +147,7 @@ A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de te
 
 | Medida | Valor derivado | Fonte dona |
 |---|---:|---|
-| Agentes PHP de produto | **22** | `Modules/*/Ai/Agents/*Agent.php` + contrato `implements Agent` |
+| Agentes PHP de produto | **19** | `Modules/*/Ai/Agents/*Agent.php` + contrato `implements Agent` |
 | Módulos com agentes PHP | **4** | árvore `Modules/` |
 | Agentes sem referência de produção | **0** | referências PHP fora de `Tests/` |
 | Tools registradas no MCP | **44** | [`OimpressoMcpServer.php`](../../../Modules/Jana/Mcp/OimpressoMcpServer.php) |
@@ -155,16 +155,16 @@ A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de te
 | Provedores declarados | **15** · default `openai` | `config/ai.php` — declaração, não credencial viva |
 | Implementações de `MemoriaContrato` | **4** | contrato PHP, fora de `Tests/` |
 | Implementações de `Reranker` | **4** | contrato PHP, fora de `Tests/` |
-| Agentes de engenharia | **24** | `.claude/agents/*.md` — outra camada, não runtime PHP |
-| Serviços em compose versionado | **14** | `docker/**/docker-compose.yml` — declaração, não uptime |
-| Checks no baseline versionado de merge | **35** | `governance/required-checks-baseline.json` — o probe vivo é `protection-drift.mjs` |
+| Agentes de engenharia | **27** | `.claude/agents/*.md` — outra camada, não runtime PHP |
+| Serviços em compose versionado | **15** | `docker/**/docker-compose.yml` — declaração, não uptime |
+| Checks no baseline versionado de merge | **41** | `governance/required-checks-baseline.json` — o probe vivo é `protection-drift.mjs` |
 
 ## Agentes PHP por módulo
 
 | Módulo | Qtd. | Classes |
 |---|---:|---|
-| ADS | 4 | [BrainBAgent](../../../Modules/ADS/Ai/Agents/BrainBAgent.php) · [PlannerAgent](../../../Modules/ADS/Ai/Agents/PlannerAgent.php) · [ProjectDecomposerAgent](../../../Modules/ADS/Ai/Agents/ProjectDecomposerAgent.php) · [ReviewerAgent](../../../Modules/ADS/Ai/Agents/ReviewerAgent.php) |
 | Crm | 3 | [ClienteProximaAcaoAgent](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php) · [ClienteResumoAgent](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php) · [ClienteSegmentoAgent](../../../Modules/Crm/Ai/Agents/ClienteSegmentoAgent.php) |
+| Forja | 1 | [ProjectDecomposerAgent](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php) |
 | Jana | 14 | [BriefDiarioAgent](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php) · [BriefingAgent](../../../Modules/Jana/Ai/Agents/BriefingAgent.php) · [ChatCopilotoAgent](../../../Modules/Jana/Ai/Agents/ChatCopilotoAgent.php) · [ClarificadorAgent](../../../Modules/Jana/Ai/Agents/ClarificadorAgent.php) · [DetectarSupersedeAgent](../../../Modules/Jana/Ai/Agents/DetectarSupersedeAgent.php) · [ExtrairFatosAgent](../../../Modules/Jana/Ai/Agents/ExtrairFatosAgent.php) · [HealthNarratorAgent](../../../Modules/Jana/Ai/Agents/HealthNarratorAgent.php) · [KbAnswerAgent](../../../Modules/Jana/Ai/Agents/KbAnswerAgent.php) · [ProximaPerguntaAgent](../../../Modules/Jana/Ai/Agents/ProximaPerguntaAgent.php) · [PrUiJudgeAgent](../../../Modules/Jana/Ai/Agents/PrUiJudgeAgent.php) · [SaleInsightAgent](../../../Modules/Jana/Ai/Agents/SaleInsightAgent.php) · [SinteseSemanalAgent](../../../Modules/Jana/Ai/Agents/SinteseSemanalAgent.php) · [SugestoesMetasAgent](../../../Modules/Jana/Ai/Agents/SugestoesMetasAgent.php) · [WeeklyDigestAgent](../../../Modules/Jana/Ai/Agents/WeeklyDigestAgent.php) |
 | Whatsapp | 1 | [InboxAssistAgent](../../../Modules/Whatsapp/Ai/Agents/InboxAssistAgent.php) |
 
@@ -185,9 +185,8 @@ A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de te
 
 | Módulo dono | Qtd. | Registro |
 |---|---:|---|
-| Brief | 1 | BriefFetchTool |
+| Forja | 5 | BriefFetchTool · HandoffPendingTool · HandoffAckTool · HandoffSubmitTool · HandoffLeverTool |
 | Jana | 39 | CyclesActiveTool · MyWorkTool · MyInboxTool · TriageTool · CycleGoalsTrackTool · CyclesCloseTool · CyclesCreateTool · TasksListTool · TasksDetailTool · TasksUpdateTool · TasksCommentTool · TasksCreateTool · TasksCurrentTool · DecisionsSearchTool · DecisionsFetchTool · SessionsRecentTool · ClaudeCodeUsageSelfTool · MemoriaSearchTool · MemoriaHistoricaTool · CcSearchTool · WhatsActiveTool · TasksClaimTool · TasksHeartbeatTool · WhatsLockedTool · SystemHealthAuditTool · TasksHealthTool · KbAnswerTool · HandoffFetchSummarizedTool · HandoffDiffTool · WeeklyDigestFetchTool · CharterFetchTool · HandoffDraftTool · FlagListTool · FlagGetTool · FlagSetTool · FlagEnvToggleTool · FlagCacheClearTool · LgpdEsquecerTitularTool · AutomationsListTool |
-| TeamMcp | 4 | HandoffPendingTool · HandoffAckTool · HandoffSubmitTool · HandoffLeverTool |
 
 As **44** entradas acima são classes efetivamente registradas no array `$tools`. Uma classe `*Tool.php` solta não entra na contagem.
 
@@ -198,7 +197,7 @@ As **44** entradas acima são classes efetivamente registradas no array `$tools`
 | Compose | Serviços declarados | Qtd. |
 |---|---|---:|
 | [`docker/langfuse/docker-compose.yml`](../../../docker/langfuse/docker-compose.yml) | postgres-langfuse · clickhouse-langfuse · minio-langfuse · redis-langfuse · langfuse-web · langfuse-worker | 6 |
-| [`docker/oimpresso-mcp/docker-compose.yml`](../../../docker/oimpresso-mcp/docker-compose.yml) | mcp | 1 |
+| [`docker/oimpresso-mcp/docker-compose.yml`](../../../docker/oimpresso-mcp/docker-compose.yml) | mcp · jana-online-eval-worker | 2 |
 | [`docker/oimpresso-staging/docker-compose.yml`](../../../docker/oimpresso-staging/docker-compose.yml) | staging | 1 |
 | [`docker/oimpresso-workers/docker-compose.yml`](../../../docker/oimpresso-workers/docker-compose.yml) | oimpresso-workers · oimpresso-workers-horizon · oimpresso-workers-scheduler · oimpresso-workers-redis | 4 |
 | [`docker/ollama-embedder/docker-compose.yml`](../../../docker/ollama-embedder/docker-compose.yml) | ollama-embedder | 1 |
@@ -234,4 +233,4 @@ A página **não grava “verde”** no Markdown: esse estado venceria no minuto
 - interpretar falha de probe e impacto no negócio.
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-29 · arquitetura derivada das fontes canônicas._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-08 · arquitetura derivada das fontes canônicas._

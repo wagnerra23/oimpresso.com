@@ -1,7 +1,7 @@
 ---
 id: requisitos-sells-briefing
-distilled_at: "2026-07-27"
-distilled_by: "manual [C] — redestilação PARCIAL: o módulo ganhou SDD + contratos de tela no chip do passo 5 (PR #4868). O resto do corpo NÃO foi re-lido; só a seção Contrato de tela é nova."
+distilled_at: "2026-08-07"
+distilled_by: "manual [L+C] — redestilação PARCIAL: registra a tela de preview /sells/create-v3 (PR #5356), que nasceu paralela porque /pos/create não pode mudar. Só a seção 'Tela de preview' é nova; o resto do corpo NÃO foi re-lido. Carimbo anterior: 2026-07-27 ([C], SDD + contratos de tela, PR #4868)."
 module: Sells
 status: producao
 updated_at: "2026-07-17"
@@ -12,6 +12,29 @@ updated_at: "2026-07-17"
 ## Estado atual
 
 **Sells é feature CORE do UltimatePOS, não um módulo nWidart próprio** — não há dir físico dela em `Modules/`; as telas vivem em `resources/js/Pages/Sells/*.tsx` (servidas por `SellController` + `SellPosController`), a Model é `app/Models/Transaction.php` (`type='sell'`), e o pipeline FSM em `app/Domain/Fsm/` ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)). A migração MWART (Blade→Inertia/React) da tela de venda está **em produção para ROTA LIVRE (biz=4, 99% do volume)**.
+
+### Tela de preview `/sells/create-v3` (desde 2026-08-07, dono [L] Luiz)
+
+O cadastro de venda tem **duas** telas, e a distinção importa antes de qualquer edição:
+
+| | tela viva | preview |
+|---|---|---|
+| rota | `/pos/create` | `/sells/create-v3` |
+| componente | `Sells/Create.tsx` | `Sells/CreateV3.tsx` |
+| controller | `SellPosController@create` | `SellsV3Controller@create` (GET-only) |
+| dados | reais (~24 props) | **cena estática, já formatada** |
+| escreve? | sim | **não** — sem `store()`, sem POST, botão `disabled` |
+
+A preview nasceu **paralela, não como branch de flag**, porque a flag não protege:
+`FeatureFlagService::$fallbackDefaults['useV2SellsCreate'] = true` desde 2026-05-27 — a V2 React
+está ligada por padrão pra todos, então editar `Create.tsx` e deployar atinge a ROTA LIVRE direto.
+Restrição de negócio declarada por [L]: *"Tela do Guilherme e da Larissa não pode ser alterada de
+forma alguma, se não eles quebram contrato e perdemos dinheiro."*
+
+⚠️ **Não há cutover previsto** — a preview não substitui `/pos/create`. Contrato:
+[`CreateV3.charter.md`](../../../resources/js/Pages/Sells/CreateV3.charter.md) ·
+[`CreateV3.casos.md`](../../../resources/js/Pages/Sells/CreateV3.casos.md) ·
+[`RUNBOOK-create-v3.md`](RUNBOOK-create-v3.md).
 
 > **Sells não tem module-grade canônico** — sem dir físico em `Modules/`, o grader não varre. No baseline está em `deprecated_pending_decision` (score_v3:58 congelado, *"decisão Wagner pende: criar wrapper OU deprecar entry"*). As notas vivas de Sells são de **eixos diferentes, não somáveis**: **capacidade 60/100** ([CAPTERRA-FICHA.md](CAPTERRA-FICHA.md), mede cálculo/fiscal/offline) e **design 88-90** (screen-grade, *cega a cálculo/fiscal* — não confundir com "o módulo está 90%").
 

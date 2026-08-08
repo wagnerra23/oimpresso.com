@@ -104,7 +104,9 @@ async function main() {
   let p;
   try { p = JSON.parse(raw); } catch { process.exit(0); }
   const d = decidir(p.tool_name || '', p.tool_input || {});
-  if (d) { console.error(d.msg); process.exit(2); }
+  // prefixo no ponto ÚNICO de emissão: a msg é montada em vários ramos, e a tag
+  // `[block-ancora-no-olho]` precisa sair em TODOS pro hook-bites enxergar.
+  if (d) { console.error('[block-ancora-no-olho] ' + d.msg); process.exit(2); }
   process.exit(0);
 }
 

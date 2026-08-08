@@ -68,7 +68,7 @@ vaultwarden       vaultwarden/server:1.35.8-alpine   Up 7 days (healthy)
 
 | Container | Função | Skill/ADR relacionada |
 |---|---|---|
-| `oimpresso-mcp` | MCP server (Laravel 13 + `laravel/mcp` ^0.7) | ADR 0053 |
+| `oimpresso-mcp` | MCP server (Laravel 13 + `laravel/mcp` ^0.9) | ADR 0053 |
 | `meilisearch` | Hybrid retrieval (embedder OpenAI text-embedding-3-small) | ADR 0036 |
 | `ollama-embedder` | Embeddings local (futuro, não em uso prod ainda) | — |
 | `mysql-workers` | DB local pros workers (separado do Hostinger) | — |
@@ -189,7 +189,7 @@ tailscale ssh root@ct100-mcp 'docker exec -it oimpresso-mcp bash'
 cd /var/www/html
 git pull origin main
 
-# 3. Editar config/mcp.php (laravel/mcp ^0.7) — ver runbook específico do Sprint
+# 3. Editar config/mcp.php (laravel/mcp ^0.9) — ver runbook específico do Sprint
 # Ex: memory/requisitos/Infra/RUNBOOK-mcp-tool-brief-fetch.md
 
 # 4. Restart container pra recarregar config

@@ -37,7 +37,7 @@ beforeEach(function () {
     session(['user.business_id' => $this->biz]);
 });
 
-it('compra recebida ENTRA: qty_available soma a quantidade recebida', function () {
+it('UC-EST-02 · compra recebida ENTRA: qty_available soma a quantidade recebida', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);
@@ -48,7 +48,7 @@ it('compra recebida ENTRA: qty_available soma a quantidade recebida', function (
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(15.0);
 });
 
-it('recebimento ACUMULA sobre o saldo existente (não sobrescreve)', function () {
+it('UC-EST-02 · recebimento ACUMULA sobre o saldo existente (não sobrescreve)', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($produto, 0, $loc, 15.0);
@@ -58,7 +58,7 @@ it('recebimento ACUMULA sobre o saldo existente (não sobrescreve)', function ()
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(20.0);
 });
 
-it('recebimento de produto novo (sem VLD prévia) CRIA a linha de saldo', function () {
+it('UC-EST-02 · recebimento de produto novo (sem VLD prévia) CRIA a linha de saldo', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::singleProduct($this->biz);
     // Sem setStock: não há VLD ainda. O mutador deve criar a linha em 0 e somar.
@@ -68,7 +68,7 @@ it('recebimento de produto novo (sem VLD prévia) CRIA a linha de saldo', functi
     expect(EstoqueFixture::currentStock($produto, 0, $loc))->toBe(8.0);
 });
 
-it('recebimento de VARIÁVEL entra só na variação recebida', function () {
+it('UC-EST-02 · recebimento de VARIÁVEL entra só na variação recebida', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $produto = EstoqueFixture::variableProduct($this->biz, 2);
     EstoqueFixture::setStock($produto, 0, $loc, 10.0);

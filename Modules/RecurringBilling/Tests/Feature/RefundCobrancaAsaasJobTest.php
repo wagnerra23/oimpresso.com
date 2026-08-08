@@ -236,7 +236,7 @@ it('1. refund Asaas paid charge via POST /payments/{id}/refund (mock Http)', fun
     });
 });
 
-it('2. idempotência: charge Asaas já REFUNDED → no-op (POST refund NÃO chamado)', function () {
+it('UC-RBFAT-13 · 2. idempotência: charge Asaas já REFUNDED → no-op (POST refund NÃO chamado)', function () {
     Config::set('services.asaas.refund_enabled', true);
     rcajCriarCredencialAsaas(1);
     $charge = rcajCriarCharge(1, 'pay_already_refunded', 'paid');
@@ -274,7 +274,7 @@ it('2. idempotência: charge Asaas já REFUNDED → no-op (POST refund NÃO cham
         ->once();
 });
 
-it('3. flag ASAAS_REFUND_ENABLED=false → NÃO chama API, só loga TODO', function () {
+it('UC-RBFAT-12 · 3. flag ASAAS_REFUND_ENABLED=false → NÃO chama API, só loga TODO', function () {
     Config::set('services.asaas.refund_enabled', false);
     rcajCriarCredencialAsaas(1);
     $charge = rcajCriarCharge(1, 'pay_flag_off', 'paid');
@@ -309,7 +309,7 @@ it('3. flag ASAAS_REFUND_ENABLED=false → NÃO chama API, só loga TODO', funct
         ->once();
 });
 
-it('4. cross-tenant: businessId != doc.business_id → RuntimeException', function () {
+it('UC-RBFAT-13 · 4. cross-tenant: businessId != doc.business_id → RuntimeException', function () {
     Config::set('services.asaas.refund_enabled', true);
     rcajCriarCredencialAsaas(1);
     $charge = rcajCriarCharge(99, 'pay_other_tenant', 'paid');
@@ -332,7 +332,7 @@ it('4. cross-tenant: businessId != doc.business_id → RuntimeException', functi
     Http::assertNothingSent();
 });
 
-it('5. doc_type != boleto_asaas → RuntimeException', function () {
+it('UC-RBFAT-13 · 5. doc_type != boleto_asaas → RuntimeException', function () {
     Config::set('services.asaas.refund_enabled', true);
     rcajCriarCredencialAsaas(1);
     $charge = rcajCriarCharge(1, 'pay_wrong_type', 'paid');

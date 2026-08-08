@@ -31,7 +31,7 @@ Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
 Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
-Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
+Modules/Forja/Tests/Feature/IngestHeartbeatTest.php
 # KB drift-detector persiste veredito doc↔código em kb_nodes.code_drift_state (Fase A1) — sqlite-safe (kbBootstrapSchema, coluna json, sem FK/ENUM MySQL-only).
 Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
 # KB code-scan (Fase B, ADR 0350) — gera KbNode reference a partir de AST PHP. sqlite-safe (kbBootstrapSchema, DB::table; php-parser das dev deps).
@@ -42,24 +42,24 @@ Modules/KB/Tests/Feature/KbCodeGraphTest.php
 # Suas asserções de contagem por-business + multi-tenant divergem no sqlite :memory:
 # da lane compartilhada (o comando enxerga resíduo que a re-query do teste não vê;
 # artefato de conexão, mesmo motivo de estoque-pest/essentials-pest). Passa em MySQL.
-Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
+Modules/Forja/Tests/Feature/IngestLivenessTest.php
 # Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
 # dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.
 Modules/Governance/Tests/Feature/IngestLivenessCheckerTest.php
 # Regressão do validate-strip no /api/cc/ingest (MEM-CC-1, fix 2026-07-17): prova
 # content_text/tokens persistindo (pré-fix gravava skeletons NULL). Sintética em
 # beforeEach → sqlite-safe.
-Modules/TeamMcp/Tests/Feature/CcIngestPersistsFieldsTest.php
+Modules/Forja/Tests/Feature/CcIngestPersistsFieldsTest.php
 # Loop de Handoff Zero-Paste (ADR 0283): PR-6a submit (novo) + PR-1 ingest
 # (regressão do refactor que extraiu HandoffIngestService) + PR-7 levers
 # (re-disparar/devolver/supersede). Sintéticas em beforeEach → sqlite-safe.
-Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php
-Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php
-Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php
+Modules/Forja/Tests/Feature/HandoffSubmitToolTest.php
+Modules/Forja/Tests/Feature/HandoffIngestTest.php
+Modules/Forja/Tests/Feature/HandoffLeverToolTest.php
 # Forja aba MCP: projeção de cowork_handoffs + gate CONFLITO (ack verde × required
 # checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
 # sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
-Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php
+Modules/Forja/Tests/Feature/ForjaMcpServiceTest.php
 tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
@@ -129,7 +129,11 @@ Modules/Whatsapp/Tests/Feature/MetricsSnapshotBuilderTest.php
 Modules/Whatsapp/Tests/Feature/ObservabilityTest.php
 Modules/Whatsapp/Tests/Feature/OfficeimpressoEnrichServiceTest.php
 Modules/Whatsapp/Tests/Feature/PropagateTraceparentTest.php
-Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php
+# RegisterWhatsappPermissionsCommandTest SAIU daqui em 2026-08-07: foi convertido do
+# schema sintético pro schema REAL (1º do burn-down da quarentena era-sqlite) e agora
+# roda em .github/workflows/whatsapp-pest.yml (MySQL). Nesta lane ele falharia — o
+# sqlite :memory: do ci.yml não tem migrations, e era só por montar o próprio schema
+# que ele rodava aqui.
 Modules/Whatsapp/Tests/Feature/SidebarCountsTest.php
 Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php
@@ -248,32 +252,26 @@ Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
 #      que mede contaminação cruzada de conexão/resíduo — o motivo pelo qual o
 #      KbHealthSnapshotTest ficou de fora lá em cima. Zero falha vinda do TeamMcp.
 #
-# FORA DE PROPÓSITO: Modules/TeamMcp/Tests/Feature/CicloAtivoEndpointTest.php —
+# FORA DE PROPÓSITO: Modules/Forja/Tests/Feature/CicloAtivoEndpointTest.php —
 # 2 QueryException em sqlite ("cycle null quando nenhum ativo" / "retorna o cycle
 # ATIVO com token"). Entrar vermelho aqui travaria merge de TODO mundo (lane
 # required). Fica como dívida honesta: ou vira sqlite-safe, ou vai pra lane MySQL.
-Modules/TeamMcp/Tests/Feature/ActorPermissionMatrixTest.php
-Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php
-Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php
-Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php
-Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php
+Modules/Forja/Tests/Feature/ActorPermissionMatrixTest.php
+Modules/Forja/Tests/Feature/CoworkHandoffCrossTenantTest.php
+Modules/Forja/Tests/Feature/ForjaBacklogServiceTest.php
+Modules/Forja/Tests/Feature/ForjaChangelogServiceTest.php
+Modules/Forja/Tests/Feature/ForjaQuadroServiceTest.php
 # Skip-as-pass em sqlite (stack UltimatePOS exige MySQL) — mas o VALOR aqui é outro:
 # o `DatasetArgumentsMismatch` que manteve este arquivo quebrado desde que nasceu é
 # erro de BINDING, lançado antes do guard de driver. Esta lane o teria pego. A
-# execução real do happy-path (UC-FORJA-01) mora na lane MySQL teammcp-pest.yml.
-Modules/TeamMcp/Tests/Feature/ForjaRoutesSmokeTest.php
-Modules/TeamMcp/Tests/Feature/HandoffStaleAlertTest.php
-Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php
-Modules/TeamMcp/Tests/Feature/LgpdComplianceTest.php
-Modules/TeamMcp/Tests/Feature/McpActorsSeederTest.php
-Modules/TeamMcp/Tests/Feature/MultiTenantTokenIsolationTest.php
-Modules/TeamMcp/Tests/Feature/ScaffoldTest.php
-Modules/TeamMcp/Tests/Feature/SmokeRoutesTest.php
-Modules/TeamMcp/Tests/Feature/TokensListAndRevokeTest.php
-Modules/TeamMcp/Tests/Feature/Wave18RetryTeamMcpSaturationTest.php
-Modules/TeamMcp/Tests/Feature/Wave18ServicesExtractionTest.php
-Modules/TeamMcp/Tests/Feature/Wave23ScorecardRotateTest.php
-Modules/TeamMcp/Tests/Feature/Wave28PolishTest.php
+# execução real do happy-path (UC-FORJA-01) mora na lane MySQL forja-pest.yml.
+Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
+Modules/Forja/Tests/Feature/HandoffStaleAlertTest.php
+Modules/Forja/Tests/Feature/HandoffToolsTest.php
+Modules/Forja/Tests/Feature/McpActorsSeederTest.php
+Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php
+Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php
+Modules/Forja/Tests/Feature/Wave23ScorecardRotateTest.php
 # US-INFRA-043 acceptance #2 (flag de US nao atribuida no Daily Brief): exercita so os
 # nucleos PUROS formatar()/injetarEm() + kill-switch (early-return antes de consultar).
 # ZERO acesso a DB de proposito — mcp_tasks e compartilhada e no CT 100 os testes rodam
@@ -285,3 +283,136 @@ Modules/Jana/Tests/Feature/TaskRegistry/TasksSemDonoBriefLineServiceTest.php
 # RefreshDatabase, e nao usa sintaxe MySQL-only (o CASE do controller substitui
 # FIELD() justamente pra rodar nas duas lanes).
 Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
+
+# RecurringBilling — O INVOCADOR dos 29 UC (UC-RBFAT/RBCFG/RBSUB dos 3 casos.md).
+#
+# POR QUE ENTRAM AQUI: o modulo tinha ZERO linhas nesta lista e nao aparece em
+# NENHUMA das 10 lanes que o casos-results-publish.yml colhe. `phpunit.xml` inclui
+# Modules/RecurringBilling/Tests/Feature, mas so a nightly CT100 le aquilo — e a
+# nightly nao emite artifact que o coletor enxergue. Consequencia medida: com o
+# UC-id ja no titulo do it(), os 29 UC continuariam 🧪 pra sempre, porque nenhum
+# JUnit colhido jamais conteria o `name`. Titulo sem lane e chokepoint fantasma:
+# o mecanismo existe e nada no caminho real o invoca.
+#
+# SQLITE-SAFE POR DESENHO, NAO POR SORTE: os 12 arquivos tem RefreshDatabase=0 e
+# o beforeEach de cada um EXIGE sqlite+:memory: (`config('database.default') !==
+# 'sqlite' || ! str_contains(...':memory:')` -> markTestSkipped). Ou seja, esta
+# lane e o unico lugar onde eles de fato EXECUTAM; na lane MySQL viram skip.
+# Schema sintetico montado no beforeEach, sem migration MySQL-only.
+#
+# FICA DE FORA — 1 arquivo (era 4 ate 2026-08-03; os outros 3 foram consertados,
+# ver abaixo):
+#
+# PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST por
+# desenho: denuncia a assinatura com valor negociado que nunca fatura, e o remedio
+# e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o vermelho que e
+# o ACHADO travaria todo merge em main.
+#
+# ── OS 3 QUE VOLTARAM (2026-08-03) ───────────────────────────────────────────
+# Reprovaram no run 30778559754, quando a lane os rodou pela PRIMEIRA vez. Divida
+# pre-existente, invisivel ate a lane ligar (proibicoes §5 2026-07-28). Diagnostico
+# feito, defeito era do TESTE nos tres casos — zero mudanca em codigo de produto:
+#
+#  Wave21NewSubscriptionTest + Wave23EditarAssinaturaTest (UC-RBSUB-01..04)
+#    Ambos declaravam "auth bypassado via Gate::before" e NUNCA autenticavam. Duas
+#    causas somadas: (a) `authorize()` devolve `$this->user() !== null` — exige
+#    USUARIO, nao permissao; (b) `Gate::before(fn () => true)` tem ZERO parametros
+#    e o Laravel so invoca before-callback pra visitante anonimo se o callback
+#    aceitar null no 1o parametro (Gate::callbackAllowsGuests) — sem usuario logado
+#    o callback nem dispara. Fix: actingAs(user biz=1) no beforeEach, padrao vivo
+#    do RefundCobrancaAsaasJobTest.
+#
+#  InvoiceGeneratorServiceTest (UC-RBFAT-08..11)
+#    NAO era o contador do servico. O teste simulava a re-execucao com
+#    `$sub->update([...])` sobre instancia STALE: o run 1 gravara 2026-08-15, o
+#    modelo em memoria ainda achava 2026-07-15, entao `getDirty()` vinha vazio e o
+#    Eloquent NAO emitia UPDATE. A linha ficava em agosto, o run 2 nao achava
+#    candidato, e `generated==0` passava por AUSENCIA DE TRABALHO — verde por
+#    nao-execucao (LC-13) dentro do teste que afirma provar idempotencia. O
+#    `skipped==1` era o unico assert que denunciava isso. Fix: UPDATE de
+#    query-builder + pre-condicao anti-vacuo provando que a assinatura voltou a ser
+#    candidata. O servico esta correto e nao foi tocado.
+Modules/RecurringBilling/Tests/Feature/AsaasWebhookAuthTest.php
+Modules/RecurringBilling/Tests/Feature/AsaasWebhookIdempotencyTest.php
+Modules/RecurringBilling/Tests/Feature/AssinaturaCobrancaServiceTest.php
+Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php
+Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php
+Modules/RecurringBilling/Tests/Feature/Wave23EditarAssinaturaTest.php
+Modules/RecurringBilling/Tests/Feature/CustomerJourneyTest.php
+Modules/RecurringBilling/Tests/Feature/InterWebhookControllerTest.php
+Modules/RecurringBilling/Tests/Feature/RefundCobrancaAsaasJobTest.php
+Modules/RecurringBilling/Tests/Feature/Wave4PresenterIndexTest.php
+Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php
+Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php
+
+# ─── IndexarMemoryGitParaDb — regressao da classe que o #5193 alterou
+# (redactor apagava run id). O #5193 poe so o teste NOVO dele numa lane; os de
+# REGRESSAO ficaram de fora. Mesmo padrao do PiiRedactor (#5169). Achados pelo
+# medidor test-lane-coverage.mjs (#5203) na 1a corrida contra codigo vivo.
+#
+# Por que ESTA lane (e nao jana-pest MySQL): os testes com DB tem guard
+# `markTestSkipped` exigindo `DB_CONNECTION=sqlite` + `:memory:` — em MySQL
+# viram skip, isto e, VERDE POR NAO-EXECUCAO (LC-13). O ci.yml semeia
+# exatamente sqlite/:memory:. Schema e sintetico (Schema::create manual, sem
+# RefreshDatabase/migrate) = criterio sqlite-safe do cabecalho deste arquivo.
+# O comentario do proprio SoftDeleteRestore ja dizia "na lane sqlite (per-PR)" —
+# a intencao existia, o registro nunca foi feito.
+#
+# Higiene de schema conferida: ForjaChangelogServiceTest e SoftDeleteRestore
+# dropam mcp_memory_documents em afterEach, entao o `Schema::create` cru nao
+# colide. Coletar e DB-less.
+#
+# +14 casos, execucao REAL provada na corrida 30783000852 (junit-summary por
+# arquivo, nao "0 failed"): Coletar 12 passed/0 skipped · SoftDelete 2 passed/0
+# skipped.
+Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitParaDbColetarTest.php
+Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitSoftDeleteRestoreTest.php
+
+# Religado apos o conserto da fixture (follow-up do #5213, autorizado [W]).
+# Historico: ao ser ligado no #5213 deu 7 ERRORS (corrida 30783000852), todos
+# `table mcp_memory_documents has no column named business_id` — a fixture
+# sintetica estava 3 migrations atras do schema (faltavam business_id + os 11
+# tipados + os 3 contextual). Fixture agora e DERIVADA das migrations, com os
+# arquivos-fonte citados no proprio beforeEach.
+#
+# +8 casos (os 7 originais + 1 Tier 0 NOVO). O Tier 0 existe porque sem a coluna
+# `business_id` era IMPOSSIVEL escrever isolamento: os 7 originais nunca tocaram
+# multi-tenant. Ancorado no docblock de McpMemoryDocument::scopeDoBusiness +
+# ADR 0093 — nao no que o service faz hoje.
+tests/Feature/Modules/Copiloto/Mcp/IndexarMemoryGitParaDbTest.php
+tests/Feature/SecretsGovernanceTest.php
+
+# PlanDriftChecker — o INVOCADOR do `jana:plan-drift` (2026-08-04). O comando existia
+# desde a ADR 0294 Onda 2, com teste próprio JÁ nesta lane (PlanDriftCommandTest, acima),
+# e mesmo assim NUNCA rodava: `php artisan schedule:list` em PROD lista 98 comandos e
+# nenhum é plan-drift; o único "invocador" no repo era uma linha do governance-audit.mjs,
+# agregador que ele próprio nunca teve invocador. O checker o põe dentro do
+# `governance:audit --all --notify` (cron diário 06:35, prod).
+# Entra AQUI e não em modules-pest.yml porque Modules/Governance NÃO está naquela matrix
+# (Arquivos/ComunicacaoVisual/Fiscal/NfeBrasil/Repair/Vestuario) — teste fora de lane é o
+# "guard que nenhum workflow executa = mentira", que é exatamente a doença que esta PR trata.
+# Sqlite-safe por desenho: zero DB (mapeamento PURO + facade Artisan mockada), sem
+# RefreshDatabase. Mesmo idioma do IngestLivenessCheckerTest, já nesta lista.
+Modules/Governance/Tests/Feature/PlanDriftCheckerTest.php
+
+# /documentacao — contrato das rotas do acervo. Estava FORA de toda lane desde que
+# nasceu: nenhum workflow o citava e ele não estava aqui. Consequência medida no CT100
+# em 2026-08-04 rodando o arquivo de origin/main (72c9424f0a4): `1 failed, 10 passed`
+# — o caso do enum passava a mensagem como 2º NEEDLE do `toContain` variádico e falhava
+# desde sempre, sem ninguém ver. Corrigido no mesmo PR; entra aqui pra não repetir.
+# Sqlite-safe: os 11 casos que sempre rodam são DB-less (rota, markdown, CSS, reflexão);
+# o 12º pula por `Schema::hasTable('users')`, declarado no cabeçalho do arquivo.
+tests/Feature/DocumentacaoRouteTest.php
+# Health-check de tasks: ele PULA em MySQL (corruptor de schema — dropIfExists) e não
+# estava aqui, então não rodava em lugar NENHUM. Entra com o estado `pending_approval`
+# (ADR 0368 §3) pra que o caso novo possa de fato reprovar. Schema manual sqlite-safe.
+Modules/Jana/Tests/Feature/Mcp/McpTasksHealthCheckCommandTest.php
+# Gate de sidebar da Governanca (reativacao 2026-08-05). Os 4 casos de string deste
+# arquivo passaram VERDES os ~2 meses em que um `return;` incondicional no topo de
+# modifyAdminMenu() tornava os 2 gates (pacote da subscription + permission Spatie)
+# INALCANCAVEIS — presence-gate, classe LC-11. Somei 2 casos que medem a forma do
+# `return;` e o caminho real (guest -> menu publicado), e ai medi que o arquivo NAO
+# estava em lane nenhuma: escrever teste que nao roda em lugar nenhum e LC-13. Entra
+# aqui pra que os casos novos possam de fato reprovar. Sqlite-safe: file_get_contents,
+# Menu em memoria via Menu::create, e LegacyMenuAdapter->build() sobre menu vazio — DB-less.
+Modules/Governance/Tests/Feature/GovernanceModuleSubscriptionGateTest.php

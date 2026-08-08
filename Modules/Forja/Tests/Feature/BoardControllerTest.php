@@ -107,7 +107,7 @@ afterEach(function () {
     }
 });
 
-it('GET /project-mgmt/board sem permission retorna 403', function () {
+it('UC-BOARD-01 · GET /project-mgmt/board sem permission retorna 403', function () {
     $user = pmgBootstrapUser();
     pmgRevokePerm($user);
 
@@ -116,7 +116,7 @@ it('GET /project-mgmt/board sem permission retorna 403', function () {
     expect($response->status())->toBe(403);
 });
 
-it('GET /project-mgmt/board com permission retorna Inertia Forja/Board/Index', function () {
+it('UC-BOARD-02 · GET /project-mgmt/board com permission retorna Inertia Forja/Board/Index', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     pmgEnsureProject();
@@ -142,7 +142,7 @@ it('GET /project-mgmt/board com permission retorna Inertia Forja/Board/Index', f
     );
 });
 
-it('PATCH /project-mgmt/board/{taskId}/status sem permission retorna 403', function () {
+it('UC-BOARD-01 · PATCH /project-mgmt/board/{taskId}/status sem permission retorna 403', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -157,7 +157,7 @@ it('PATCH /project-mgmt/board/{taskId}/status sem permission retorna 403', funct
     expect($task->fresh()->status)->toBe('todo'); // não persistiu
 });
 
-it('PATCH happy path muda status + cria mcp_task_events row', function () {
+it('UC-BOARD-03 · PATCH happy path muda status + cria mcp_task_events row', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -189,7 +189,7 @@ it('PATCH happy path muda status + cria mcp_task_events row', function () {
     expect($eventsAfter)->toBeGreaterThan($eventsBefore);
 });
 
-it('PATCH com status inválido retorna 422', function () {
+it('UC-BOARD-04 · PATCH com status inválido retorna 422', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -202,7 +202,7 @@ it('PATCH com status inválido retorna 422', function () {
     expect($task->fresh()->status)->toBe('todo'); // não persistiu
 });
 
-it('PATCH com taskId inexistente retorna 404', function () {
+it('UC-BOARD-04 · PATCH com taskId inexistente retorna 404', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
 
@@ -212,7 +212,7 @@ it('PATCH com taskId inexistente retorna 404', function () {
     expect($response->status())->toBe(404);
 });
 
-it('R-PMG-005: PATCH com expected_updated_at obsoleto retorna 409 + estado intacto', function () {
+it('UC-BOARD-05 · R-PMG-005: PATCH com expected_updated_at obsoleto retorna 409 + estado intacto', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -242,7 +242,7 @@ it('R-PMG-005: PATCH com expected_updated_at obsoleto retorna 409 + estado intac
     expect($task->fresh()->status)->toBe('doing');
 });
 
-it('PATCH com expected_updated_at correto retorna 200 + novo updated_at', function () {
+it('UC-BOARD-05 · PATCH com expected_updated_at correto retorna 200 + novo updated_at', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -270,7 +270,7 @@ it('PATCH com expected_updated_at correto retorna 200 + novo updated_at', functi
 // PMG-004 (ADR 0100) — Detail Sheet endpoint GET /board/{taskId}/detail
 // ============================================================================
 
-it('GET /board/{taskId}/detail sem permission retorna 403', function () {
+it('UC-BOARD-01 · GET /board/{taskId}/detail sem permission retorna 403', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -284,7 +284,7 @@ it('GET /board/{taskId}/detail sem permission retorna 403', function () {
     expect($response->status())->toBe(403);
 });
 
-it('GET /board/{taskId}/detail com taskId inexistente retorna 404', function () {
+it('UC-BOARD-06 · GET /board/{taskId}/detail com taskId inexistente retorna 404', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
 
@@ -294,7 +294,7 @@ it('GET /board/{taskId}/detail com taskId inexistente retorna 404', function () 
     expect($response->status())->toBe(404);
 });
 
-it('GET /board/{taskId}/detail happy path retorna shape canônico', function () {
+it('UC-BOARD-06 · GET /board/{taskId}/detail happy path retorna shape canônico', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -334,7 +334,7 @@ it('GET /board/{taskId}/detail happy path retorna shape canônico', function () 
 // PMG-005 (ADR 0100) — Comments + @mentions
 // ============================================================================
 
-it('POST /board/{taskId}/comment sem permission retorna 403', function () {
+it('UC-BOARD-01 · POST /board/{taskId}/comment sem permission retorna 403', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -348,7 +348,7 @@ it('POST /board/{taskId}/comment sem permission retorna 403', function () {
     expect($response->status())->toBe(403);
 });
 
-it('POST comment happy path cria mcp_task_comment + retorna 201', function () {
+it('UC-BOARD-07 · POST comment happy path cria mcp_task_comment + retorna 201', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -373,7 +373,7 @@ it('POST comment happy path cria mcp_task_comment + retorna 201', function () {
     expect($persisted)->toBe(1);
 });
 
-it('POST comment vazio retorna 422', function () {
+it('UC-BOARD-07 · POST comment vazio retorna 422', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -385,7 +385,7 @@ it('POST comment vazio retorna 422', function () {
     expect($response->status())->toBe(422);
 });
 
-it('GET /board/users/suggest sem query retorna lista vazia', function () {
+it('UC-BOARD-07 · GET /board/users/suggest sem query retorna lista vazia', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
 
@@ -400,7 +400,7 @@ it('GET /board/users/suggest sem query retorna lista vazia', function () {
     $response->assertJson(['users' => []]);
 });
 
-it('GET /board/users/suggest sem permission retorna 403', function () {
+it('UC-BOARD-01 · GET /board/users/suggest sem permission retorna 403', function () {
     $user = pmgBootstrapUser();
     pmgRevokePerm($user);
 
@@ -414,7 +414,7 @@ it('GET /board/users/suggest sem permission retorna 403', function () {
 // PMG-006 (ADR 0100) — Watchers (Follow/Unfollow)
 // ============================================================================
 
-it('POST /board/{taskId}/watch happy path cria watcher idempotente', function () {
+it('UC-BOARD-08 · POST /board/{taskId}/watch happy path cria watcher idempotente', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -447,7 +447,7 @@ it('POST /board/{taskId}/watch happy path cria watcher idempotente', function ()
     expect($countAfter)->toBe(1);
 });
 
-it('DELETE /board/{taskId}/watch remove watcher idempotente', function () {
+it('UC-BOARD-08 · DELETE /board/{taskId}/watch remove watcher idempotente', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -477,7 +477,7 @@ it('DELETE /board/{taskId}/watch remove watcher idempotente', function () {
     expect($second->status())->toBe(200);
 });
 
-it('POST /board/{taskId}/watch sem permission retorna 403', function () {
+it('UC-BOARD-01 · POST /board/{taskId}/watch sem permission retorna 403', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -491,7 +491,7 @@ it('POST /board/{taskId}/watch sem permission retorna 403', function () {
     expect($response->status())->toBe(403);
 });
 
-it('POST /board/{taskId}/watch com taskId inexistente retorna 404', function () {
+it('UC-BOARD-08 · POST /board/{taskId}/watch com taskId inexistente retorna 404', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
 
@@ -501,7 +501,7 @@ it('POST /board/{taskId}/watch com taskId inexistente retorna 404', function () 
     expect($response->status())->toBe(404);
 });
 
-it('GET /board/{taskId}/detail inclui watchers + is_watching', function () {
+it('UC-BOARD-08 · GET /board/{taskId}/detail inclui watchers + is_watching', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -535,7 +535,7 @@ it('GET /board/{taskId}/detail inclui watchers + is_watching', function () {
 // PMG-007 (ADR 0100) — Subtasks UI (create + toggle status)
 // ============================================================================
 
-it('POST /board/{taskId}/subtask happy path cria subtask com parent_task_id', function () {
+it('UC-BOARD-09 · POST /board/{taskId}/subtask happy path cria subtask com parent_task_id', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -565,7 +565,7 @@ it('POST /board/{taskId}/subtask happy path cria subtask com parent_task_id', fu
     expect($child->status)->toBe('todo');
 });
 
-it('POST subtask sem permission retorna 403', function () {
+it('UC-BOARD-01 · POST subtask sem permission retorna 403', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -581,7 +581,7 @@ it('POST subtask sem permission retorna 403', function () {
     expect($response->status())->toBe(403);
 });
 
-it('POST subtask com title vazio retorna 422', function () {
+it('UC-BOARD-09 · POST subtask com title vazio retorna 422', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
     $project = pmgEnsureProject();
@@ -593,7 +593,7 @@ it('POST subtask com title vazio retorna 422', function () {
     expect($response->status())->toBe(422);
 });
 
-it('POST subtask com taskId inexistente retorna 404', function () {
+it('UC-BOARD-09 · POST subtask com taskId inexistente retorna 404', function () {
     $user = pmgBootstrapUser();
     pmgGivePerm($user);
 

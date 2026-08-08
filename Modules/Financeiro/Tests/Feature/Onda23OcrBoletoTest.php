@@ -4,6 +4,7 @@ namespace Modules\Financeiro\Tests\Feature;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Storage;
 use Modules\Financeiro\Models\AiUsageLog;
 use Modules\Financeiro\Services\BoletoOcrService;
@@ -61,26 +62,57 @@ class Onda23OcrBoletoTest extends FinanceiroTestCase
     {
         $this->actAsAdmin();
 
-        // Garante sem key configurada.
+        // Garante sem key configurada — de forma DETERMINÍSTICA.
+        //
+        // `putenv()` sozinho NÃO basta: o helper env() do Laravel lê pelos adapters
+        // ServerConst/EnvConst ($_SERVER/$_ENV), que putenv() não toca. Em QUALQUER
+        // ambiente que tenha OPENAI_API_KEY de verdade no processo, o guard de chave
+        // ausente do BoletoOcrService era pulado, o teste fazia uma chamada REAL pra
+        // api.openai.com e caía no branch genérico de erro HTTP ("OCR falhou...") —
+        // por isso a asserção de 'OpenAI' falhava. Em CI passava só por acidente
+        // (o runner não tem a variável).
+        //
+        // Env::getRepository()->clear() TAMBÉM não resolve — o repositório do Laravel
+        // é immutable(), então delete de variável já setada é no-op (medido). O que
+        // funciona é limpar as fontes que os adapters leem: $_SERVER, $_ENV e putenv.
+        // Restauramos no finally: a lane roda TODOS os arquivos num processo só,
+        // então vazar essa mutação global envenenaria os demais.
+        $serverAntes = $_SERVER['OPENAI_API_KEY'] ?? null;
+        $envAntes = $_ENV['OPENAI_API_KEY'] ?? null;
+        $getenvAntes = getenv('OPENAI_API_KEY');
+
+        unset($_SERVER['OPENAI_API_KEY'], $_ENV['OPENAI_API_KEY']);
+        putenv('OPENAI_API_KEY');
         config(['services.openai.key' => null]);
-        putenv('OPENAI_API_KEY=');
 
-        $file = UploadedFile::fake()->image('boleto.jpg')->size(100);
+        try {
+            $file = UploadedFile::fake()->image('boleto.jpg')->size(100);
 
-        $response = $this->postJson('/financeiro/unificado/ocr-boleto', [
-            'arquivo' => $file,
-        ]);
+            $response = $this->postJson('/financeiro/unificado/ocr-boleto', [
+                'arquivo' => $file,
+            ]);
 
-        $response->assertStatus(422);
-        $response->assertJson(['success' => false]);
-        $this->assertStringContainsString('OpenAI', $response->json('error') ?? '');
+            $response->assertStatus(422);
+            $response->assertJson(['success' => false]);
+            $this->assertStringContainsString('OpenAI', $response->json('error') ?? '');
 
-        // ai_usage_log gravou tentativa com status error.
-        $this->assertDatabaseHas('ai_usage_log', [
-            'business_id' => $this->business->id,
-            'feature' => 'financeiro.ocr_boleto',
-            'status' => 'error',
-        ]);
+            // ai_usage_log gravou tentativa com status error.
+            $this->assertDatabaseHas('ai_usage_log', [
+                'business_id' => $this->business->id,
+                'feature' => 'financeiro.ocr_boleto',
+                'status' => 'error',
+            ]);
+        } finally {
+            if ($serverAntes !== null) {
+                $_SERVER['OPENAI_API_KEY'] = $serverAntes;
+            }
+            if ($envAntes !== null) {
+                $_ENV['OPENAI_API_KEY'] = $envAntes;
+            }
+            if ($getenvAntes !== false) {
+                putenv('OPENAI_API_KEY='.$getenvAntes);
+            }
+        }
     }
 
     public function test_extract_success_via_openai_mock(): void

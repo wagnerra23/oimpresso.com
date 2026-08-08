@@ -5,7 +5,7 @@
 # config errada, time/SSL). Se isto falhar, descobrimos o erro.
 #
 # Uso:
-#   bin/test-delphi-auth.sh WR23 "Wscrct*2312"          # username + senha como args
+#   bin/test-delphi-auth.sh WR23 "<senha>"          # username + senha como args
 #   DELPHI_USER=WR23 DELPHI_PASS='xxx' bin/test-delphi-auth.sh
 #
 # Pre-req: conseguir ssh no servidor pra pegar client_secret. Se ja tiver,

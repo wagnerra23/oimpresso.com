@@ -2,10 +2,10 @@
 // Self-test feature-lint — prova o contrato do trio (requirements/plan/tasks) contra fixtures
 // em memória + fixtures de disco (tmp). Os dois buracos-alvo: (1) acceptance sem task,
 // (2) blocked_by irresolvível/cíclico. Roda: node scripts/governance/feature-lint.test.mjs
-import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, mkdirSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { parseFrontmatter, parseAcs, parseTaskMeta, parseTasks, detectCycle, lintFeature } from './feature-lint.mjs';
+import { parseFrontmatter, parseAcs, parseTaskMeta, parseTasks, detectCycle, lintFeature, scaffoldFeature, featureTutorialText } from './feature-lint.mjs';
 
 let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
@@ -15,6 +15,8 @@ const codes = (r) => r.issues.map((i) => i.code);
 const FM = '<!-- comentário -->\n---\nfeature: x-y\nmodule: Mod\nus: ["US-RB-052", "US-RB-055"]\n---\n# corpo';
 check('frontmatter extrai us[]', JSON.stringify(parseFrontmatter(FM).us) === '["US-RB-052","US-RB-055"]');
 check('frontmatter sem us → []', parseFrontmatter('---\nfeature: x\n---\n').us.length === 0);
+const LINKS = parseFrontmatter('---\nfeature: x\nmodule: Mod\nus: ["US-MOD-001"]\nsdd: ["memory/requisitos/Mod/SDD-x.md"]\nrelated_cus: ["CU-MOD-01"]\nscreens: ["resources/js/Pages/Mod/Index.tsx"]\n---\n');
+check('frontmatter extrai SDD/CU/telas', LINKS.sdd.length === 1 && LINKS.relatedCus[0] === 'CU-MOD-01' && LINKS.screens.length === 1);
 
 // 2. parseAcs — só linhas de definição `- **AC-N**`; referência no texto não conta.
 const REQ = '- **AC-1** — QUANDO x, O SISTEMA DEVE y.\n- **AC-2** — SE z. (ver AC-9)\ntexto AC-3 solto\n- **AC-1** — duplicada';
@@ -74,6 +76,55 @@ check('plan.md ausente → erro trio-incompleto', codes(trioIncompleto).includes
 
 const coversFalso = lintFeature(mkFeature('covers-falso', { req: REQ_OK, tasks: TASKS_OK.replace('covers: AC-2', 'covers: AC-9') }));
 check('covers→AC-9 inexistente → erro covers-ac-inexistente', codes(coversFalso).includes('covers-ac-inexistente'));
+
+const placeholder = lintFeature(mkFeature('placeholder', { req: REQ_OK.replace('QUANDO x', 'QUANDO {{gatilho}}'), tasks: TASKS_OK }));
+check('placeholder de template nao curado vira erro', codes(placeholder).includes('placeholder-nao-curado'));
+
+// 6. scaffold: usa os templates do dono, valida a US, nao copia BRIEFING e nao sobrescreve.
+const scaffoldRoot = join(tmp, 'scaffold');
+const scaffoldModule = join(scaffoldRoot, 'memory', 'requisitos', 'Mod');
+mkdirSync(scaffoldModule, { recursive: true });
+writeFileSync(join(scaffoldModule, 'SPEC.md'), '### US-MOD-001 - existe\n', 'utf8');
+writeFileSync(join(scaffoldModule, 'SDD-dominio-v1.md'), '---\ntype: sdd\nmodule: Mod\n---\n#### CU-MOD-01 - contrato\n', 'utf8');
+const templateDir = join(process.cwd(), 'memory', 'requisitos', '_TEMPLATE_FEATURE');
+const scaffold = scaffoldFeature({
+  root: scaffoldRoot,
+  target: 'Mod/minha-feature',
+  us: 'US-MOD-001',
+  date: '2026-08-03',
+  owner: 'W/F',
+  sdds: ['auto'],
+  screens: ['Mod/Index'],
+  relatedCus: ['CU-MOD-01'],
+  templateDir,
+});
+check('scaffold cria exatamente o trio', scaffold.files.length === 3 && scaffold.files.every((f) => existsSync(f.path)));
+check('scaffold nao copia BRIEFING', !existsSync(join(scaffold.dir, 'BRIEFING.md')));
+const scaffoldReq = readFileSync(join(scaffold.dir, 'requirements.md'), 'utf8');
+check('scaffold carimba identidade e US', scaffoldReq.includes('feature: minha-feature') && scaffoldReq.includes('module: Mod') && scaffoldReq.includes('us: ["US-MOD-001"]'));
+check('scaffold liga SDD, CU e tela sem inventar path', scaffoldReq.includes('sdd: ["memory/requisitos/Mod/SDD-dominio-v1.md"]') && scaffoldReq.includes('related_cus: ["CU-MOD-01"]') && scaffoldReq.includes('screens: ["resources/js/Pages/Mod/Index.tsx"]'));
+check('scaffold remove id do template', !scaffoldReq.includes('requisitos-template-feature-requirements'));
+const scaffoldPlan = readFileSync(join(scaffold.dir, 'plan.md'), 'utf8');
+check('scaffold nasce como plano vivo', scaffoldPlan.includes('## Status vivo') && scaffoldPlan.includes('parent_plan=mod-minha-feature') && scaffoldPlan.includes('2026-09-02'));
+let overwriteRefused = false;
+try { scaffoldFeature({ root: scaffoldRoot, target: 'Mod/minha-feature', us: 'US-MOD-001', date: '2026-08-03', templateDir }); } catch { overwriteRefused = true; }
+check('scaffold recusa sobrescrever destino', overwriteRefused);
+let missingUsRefused = false;
+try { scaffoldFeature({ root: scaffoldRoot, target: 'Mod/outra-feature', us: 'US-MOD-999', date: '2026-08-03', templateDir }); } catch { missingUsRefused = true; }
+check('scaffold recusa US ausente no SPEC', missingUsRefused && !existsSync(join(scaffoldModule, 'features', 'outra-feature')));
+const dry = scaffoldFeature({ root: scaffoldRoot, target: 'Mod/dry-run', us: 'US-MOD-001', date: '2026-08-03', dryRun: true, templateDir });
+check('dry-run nao escreve', dry.dryRun && !existsSync(dry.dir));
+writeFileSync(join(scaffoldModule, 'SPEC.md'), '### US-MOD-0010 - prefixo diferente\n', 'utf8');
+let prefixRefused = false;
+try { scaffoldFeature({ root: scaffoldRoot, target: 'Mod/prefixo', us: 'US-MOD-001', date: '2026-08-03', templateDir }); } catch { prefixRefused = true; }
+check('US valida ID exato, nao substring', prefixRefused && !existsSync(join(scaffoldModule, 'features', 'prefixo')));
+
+// 7. tutorial da própria máquina: caminho completo, exemplo real e fronteira de uso.
+const tutorial = featureTutorialText();
+check('tutorial ensina dry-run antes de escrever', tutorial.includes('--dry-run') && tutorial.indexOf('--dry-run') < tutorial.indexOf('Passo 2'));
+check('tutorial ensina lint antes de implementar', tutorial.includes('feature-lint.mjs <Modulo>/<slug> --check'));
+check('tutorial aponta exemplo real', tutorial.includes('Connector/features/openapi-connector'));
+check('tutorial separa feature complexa de fix pequeno', tutorial.includes('Fix pequeno de uma tarefa não usa trio'));
 
 rmSync(tmp, { recursive: true, force: true });
 

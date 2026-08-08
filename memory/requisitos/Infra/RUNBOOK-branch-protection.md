@@ -128,6 +128,57 @@ Pré-requisitos: aprovação explícita Wagner (R10) + PRs abertos catalogados (
    Conferir também `enforce_admins`, `required_linear_history` e `allow_force_pushes: false` de volta (diff do GET vs snapshot do passo 1).
 6. **Registrar** (Regra Primária "mexeu, registra"): session log com janela aberta/fechada + SHAs velho→novo + PRs que precisam rebase.
 
+## Promoção de check a required — os PRs JÁ ABERTOS
+
+> **Origem: incidente 2026-08-05 → 08-08 (2 dias de deadlock).** O commit `9199a82a12f`
+> ([#5318](https://github.com/wagnerra23/oimpresso.com/pull/5318), ADR 0370) removeu o `paths:`
+> de `module-surface.yml`/`catalog-graph.yml` **e** promoveu 3 jobs deles a required **no mesmo
+> commit**. PRs abertos antes tiveram os check-runs computados quando ainda havia filtro de path —
+> os jobs **não nasceram naquele SHA** — e passaram a ser exigidos. Resultado: `Expected — waiting
+> for status` permanente em 4 PRs (o mais velho havia 8 dias). Lápide em
+> [`proibicoes.md` §5](../../proibicoes.md).
+
+**A regra:** promover check a required **mexendo no `name:` do job ou no gatilho** (`paths:`,
+`branches:`, `on:`) deixa órfão todo PR aberto cuja branch ainda carrega o workflow antigo. O
+vetor não é o `paths:` — é a **divergência entre o workflow que a branch carrega e o context que
+a proteção exige**.
+
+**No MESMO PR da promoção**, atualize os PRs abertos:
+
+```bash
+for p in $(gh pr list --state open --limit 100 --json number --jq '.[].number'); do gh pr update-branch "$p"; done
+```
+
+`gh pr update-branch` traz o base para a branch, e só então o workflow novo roda e o check nasce
+com o nome novo. **`workflow_dispatch` NÃO resolve** — o dispatch usa o arquivo da *branch*, então
+o check nasce com o nome *antigo* (medido: `catalog.json == SCOPEs + Classes B (advisory)` em vez
+de `catalog.json == SCOPEs + Classes B`). PR em conflito (`mergeable_state: dirty`) não aceita
+`update-branch`: resolver o conflito primeiro.
+
+**Diagnóstico (o sintoma engana):** PR `BLOCKED` com **0 falhas e 0 pendentes** é a assinatura de
+required que nunca nasce — não é fila e não é teste vermelho.
+
+```bash
+# quais required faltam no head de um PR (união classic + rulesets — são 41, não 40)
+gh api repos/:owner/:repo/branches/main/protection --jq '.required_status_checks.contexts[]' > /tmp/req.txt
+for r in $(gh api repos/:owner/:repo/rulesets --jq '.[].id'); do
+  gh api "repos/:owner/:repo/rulesets/$r" --jq '.rules[]?|select(.type=="required_status_checks")|.parameters.required_status_checks[]?.context'
+done >> /tmp/req.txt
+S=$(gh api repos/:owner/:repo/pulls/<N> --jq '.head.sha')
+gh api --paginate "repos/:owner/:repo/commits/$S/check-runs?per_page=100" --jq '.check_runs[].name' | sort -u > /tmp/have.txt
+comm -23 <(sort -u /tmp/req.txt) /tmp/have.txt   # <- o que falta e nunca vai nascer
+```
+
+⚠️ **O `Governance Gate` vive em ruleset, não na proteção clássica.** Ler só
+`branches/main/protection` devolve **40** contexts e esconde o 41º — quem inventariar por ali
+conclui "não é required" e mergeia num deadlock. A fonte única segue sendo
+[`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json),
+que tem as **duas** chaves (`classic_protection.contexts` **e** `rulesets.contexts`).
+
+**O que `required-always-run.mjs` cobre — e o que não:** ele valida o **main** (*"todo required
+nasce em PR novo?"*) e dava **verde** durante todo o incidente, corretamente. Ele **não** verifica
+se PRs já abertos conseguem satisfazer um check recém-promovido. Esse eixo é humano, por ora.
+
 ## Risco / rollback
 
 - **Risco:** PRs em andamento ficam bloqueadas até ADR-lint workflow rodar com sucesso

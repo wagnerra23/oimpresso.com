@@ -52,6 +52,7 @@ return [
     'purchase_n_sell_report.view' => 'View purchase & sell report',
     'contacts_report.view' => 'View Supplier & Customer report',
     'stock_report.view' => 'View stock report, stock adjustment report & stock expiry report',
+    'report.stock_details' => 'View a product\'s stock details per location (read-only — does not allow reconciling the balance)',
     'tax_report.view' => 'View Tax report',
     'trending_product_report.view' => 'View trending product report',
     'register_report.view' => 'View register report',
@@ -92,4 +93,8 @@ return [
     'dashboard.data' => 'View Home data',
     'profit_loss_report.view' => 'View profit/loss report',
     'direct_sell.access' => 'Access sell',
+    // US-GOV-059 class D — permissions the code already required and nobody could grant.
+    'send_notification' => 'Notification templates (view, edit and send to customer)',
+    'configure_dashboard' => 'Configure home screen cards',
+    'sale.history.view' => 'View sale history and timeline',
 ];

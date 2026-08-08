@@ -56,7 +56,7 @@ Detectadas nos lotes de `related_us`; cada uma precisa de decisão: criar US no 
 | `Pages/Jana/Pro.charter.md` | `[US-COPI-118, US-COPI-119]` | smoke ou prod-flags `Jana/Pro` |
 | `Pages/Jana/Memoria.charter.md` | `[US-COPI-MEM-005, US-COPI-MEM-008, US-COPI-MEM-012]` (⚠️ MEM-* vivem fora do SPEC — ver §3) | smoke ou prod-flags `Jana/Memoria` |
 | `Pages/Jana/Admin/Roadmap.charter.md` | `[US-COPI-111]` | smoke ou prod-flags `Jana/Admin/Roadmap` |
-| `Pages/Jana/Painel.charter.md` | `[US-JANA-PAINEL-001, US-COPI-106]` (106 MOVIDA do Chat — correção do refutador) | smoke ou prod-flags `Jana/Painel` |
+| ~~`Pages/Jana/Painel.charter.md`~~ | **RESOLVIDO 2026-08-06 [W]** — charter e tela apagados (onda 1 da fusão das telas da Jana). `US-COPI-106` foi **reancorada** em `Pages/Jana/Dashboard.tsx` (SPEC L953), que serve a mesma capacidade com dado real. `US-JANA-PAINEL-001` **nunca existiu no SPEC** — era id fantasma, vivo só no charter, no teste e no SCOPE.md. | — |
 | `Pages/Whatsapp/Settings.charter.md` | `[US-WA-001, US-WA-014]` (PR #3547 fechado por isso) | smoke ou prod-flags `Whatsapp/Settings` |
 | `Pages/OficinaAuto/ServiceOrders/Create.charter.md` | `[US-OFICINA-001, US-OFICINA-038, US-OFICINA-039]` | smoke ou prod-flags `OficinaAuto/ServiceOrders/Create` |
 | `Pages/OficinaAuto/ServiceOrders/Edit.charter.md` | `[US-OFICINA-001]` (005 REMOVIDA — refutador: '005-bis'≠005) | smoke ou prod-flags `OficinaAuto/ServiceOrders/Edit` |

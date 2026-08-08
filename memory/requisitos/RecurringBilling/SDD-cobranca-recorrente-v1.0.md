@@ -6,8 +6,8 @@ type: sdd
 module: RecurringBilling
 status: ativo
 owner: W
-version: 1.0.0
-last_updated: "2026-07-28"
+version: 1.0.1
+last_updated: "2026-08-05"
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -36,6 +36,7 @@ related_us:
   - US-RB-046
   - US-RB-047
   - US-RB-051
+  - US-RB-052
   - US-RB-056
 ---
 
@@ -532,6 +533,19 @@ de cobrança de cada cliente e os números que resumem a saúde da carteira.
    pinada, blocos fiscais) — o drawer é a 3ª coluna sempre visível, não modal.
 5. `[must]` `subscriptions` e `kpis` são **deferidos** (props caras).
 
+#### CU-RB-15 — Ativar gateway em assinaturas de cobrança dormente `[must]` `[V0]` `[T0]` 🧪
+*Dado* um conjunto de assinaturas `active|trialing` sem `conta_bancaria_id`; *quando* o operador
+executa o backfill; *então* cada assinatura resolvível recebe a conta do próprio business e volta
+ao fluxo normal de emissão, sem atribuição por palpite.
+1. `[V0]` dry-run é o padrão e apresenta impacto antes→depois sem escrever uma linha.
+2. `[T0]` a conta candidata pertence ao mesmo `business_id`; zero ou múltiplas candidatas fazem a
+   assinatura ser pulada com motivo explícito.
+3. `[must]` `--apply` só toca assinatura ainda sem conta e grava evento auditável `gateway_atribuido`;
+   repetir o comando produz zero alterações.
+4. `[V0]` a aplicação em produção exige aprovação humana do dry-run e smoke canário de uma
+   assinatura antes do lote completo.
+5. `[must]` a próxima fatura do canário herda `conta_bancaria_id`/gateway e confirma emissão real.
+
 ### 6.2 Non-goals explícitos — 🖐 **SÓ [W] PREENCHE**
 
 > ⚠️ **Deixado VAZIO de propósito.** O agente é **proibido de inferir** Non-Goal
@@ -722,4 +736,5 @@ merge de quem for atendê-lo — G-2).
 
 | Versão | Data | O quê |
 |---|---|---|
+| 1.0.1 | 2026-08-05 | `CU-RB-15` tornou explícito o contrato da US-RB-052 já diagnosticado no §9.1 e ligou o trio `gateway-ativacao` ao SDD; sem tela por desenho (comando operacional). |
 | 1.0.0 | 2026-07-28 | Nascimento. §5.3 com F1–F9 · §6 com CU-RB-01..13 · §9.1 achado `[V0]` da assinatura sem plano · fontes 3 (Blade) e 4 (Delphi) declaradas **ausentes**, não inventadas · §6.2 Non-Goals deixado vazio pra [W]. |

@@ -54,7 +54,7 @@ use Modules\Jana\Entities\Mcp\McpTaskEvent;
  * por aqui. O `descricao` vem do sentinela: quem chamar é responsável por não
  * colar PII nem valor BRL (proibicoes §Memória/governança).
  *
- * @see Modules\TeamMcp\Console\Commands\HandoffStaleAlertCommand  1º consumidor
+ * @see Modules\Forja\Console\Commands\HandoffStaleAlertCommand  1º consumidor
  * @see database/migrations/2026_05_06_172445_fix_brief_procedure_real_schema.php
  * @see memory/decisions/0070-jira-style-task-management-current-md-removed.md
  */
