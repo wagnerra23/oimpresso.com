@@ -133,6 +133,71 @@ it('limite de estagnação é configurável e o default não é hardcoded no ver
         ->and(BladeMigrationSentinelCommand::avaliar(...[...$args, 10])['veredito'])->toBe('estagnado'); // 15d > 10
 });
 
+// ── CENSO AUSENTE (`null`): não pode virar verde nem virar progresso ────────
+// No cron do Hostinger o node NÃO é alcançável (medido em prod 2026-08-08: PATH
+// herdado `/usr/local/bin:/usr/bin`, node só no nvm). Então `$atual === null` é
+// estado de ROTINA, não exceção — e o instrumento não pode afirmar o que não mediu
+// (§5 2026-07-29 "instrumento afirmar verde quando não conseguiu MEDIR").
+
+it('MORDE: sem censo e sem estagnação NÃO diz ok — diz cego e nomeia o que não conferiu', function () {
+    $v = BladeMigrationSentinelCommand::avaliar(
+        null,
+        baselineFake(['core' => 250], 250, '2026-07-01'),
+        '2026-07-10', // 9 dias < 30 → não há estagnação a cobrar
+    );
+
+    expect($v['veredito'])->toBe('cego')
+        ->and($v['resumo'])->toContain('CEGO')
+        ->and($v['resumo'])->toContain('regressão')   // nomeia o eixo sem medida
+        ->and($v['resumo'])->toContain('--ratchet')   // e diz quem cobre esse eixo
+        ->and($v['resumo'])->not->toContain('sem regressão'); // nunca a frase do "ok"
+});
+
+it('MORDE: sem censo, ESTAGNAÇÃO ainda é cobrada — ela sai do baseline, não do node', function () {
+    $v = BladeMigrationSentinelCommand::avaliar(
+        null,
+        baselineFake(['core' => 471], 471, '2026-06-01'),
+        '2026-07-10', // 39 dias > 30
+    );
+
+    // É o valor ÚNICO do sentinela: a catraca do CI ignora tempo de propósito.
+    expect($v['veredito'])->toBe('estagnado')
+        ->and($v['dias'])->toBe(39)
+        ->and($v['total'])->toBe(471)               // total vem do baseline
+        ->and($v['resumo'])->toContain('censo não medido'); // declarado, não escondido
+});
+
+it('NEG: sem censo NÃO fabrica progresso (delta 0 por ignorância ≠ queda medida)', function () {
+    $v = BladeMigrationSentinelCommand::avaliar(
+        null,
+        baselineFake(['core' => 0], 0, '2026-07-01'),
+        '2026-07-10',
+    );
+
+    expect($v['veredito'])->not->toBe('progresso')
+        ->and($v['delta'])->toBe(0);
+});
+
+it('NEG: censo presente e saudável segue dando ok — o cego não virou carimbo', function () {
+    $v = BladeMigrationSentinelCommand::avaliar(
+        censoFake(['core' => 250], 250),
+        baselineFake(['core' => 250], 250, '2026-07-01'),
+        '2026-07-10',
+    );
+
+    expect($v['veredito'])->toBe('ok')->and($v['total'])->toBe(250);
+});
+
+it('NEG: sem censo, regressão fica sem medida — não inventa escopo culpado', function () {
+    $v = BladeMigrationSentinelCommand::avaliar(
+        null,
+        baselineFake(['core' => 250, 'Crm' => 94], 344, '2026-07-01'),
+        '2026-07-10',
+    );
+
+    expect($v['regressoes'])->toBe([]);
+});
+
 // ── REGISTRO: o comando existe pro artisan, não só no disco ─────────────────
 // Mede `Artisan::all()` (o registry vivo), NUNCA `app(Classe::class)` — o container
 // resolve qualquer classe concreta do disco, então aquele assert daria VERDE com o
