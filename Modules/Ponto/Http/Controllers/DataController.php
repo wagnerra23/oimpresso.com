@@ -74,6 +74,16 @@ class DataController extends Controller
                 'label'   => __('pontowr2::ponto.permissao_configuracoes'),
                 'default' => false,
             ],
+            // US-GOV-059 classe C: o ImportacaoAfdRequest já exigia permissão pra
+            // importar AFD, mas com o nome `ponto.importacoes.criar`, que não
+            // existia em código nem na tabela `permissions` (verificado em prod).
+            // Declarada no padrão `.manage` dos irmãos acima; o consumidor foi
+            // alinhado no mesmo PR.
+            [
+                'value'   => 'ponto.importacoes.manage',
+                'label'   => __('pontowr2::ponto.permissao_importacoes'),
+                'default' => false,
+            ],
         ];
     }
 
