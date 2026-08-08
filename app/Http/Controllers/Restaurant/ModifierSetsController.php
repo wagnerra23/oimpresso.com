@@ -34,6 +34,18 @@ class ModifierSetsController extends Controller
      */
     public function index()
     {
+        // Mesmo predicado do `ProductController::index()` e do link no sidebar
+        // (`AdminSidebarMenu` L906) — modificador É linha de `products` (`type = 'modifier'`),
+        // e a lista principal desse mesmo dado já exige isto. Só `product.view` seria
+        // MAIS ESTREITO que os dois: `product.view` e `product.create` são checkboxes
+        // independentes na tela de papéis, e quem tem só `product.create` recebe o link
+        // no menu, cria modificador (`create()`/`store()` L91/L107) e o botão Adicionar —
+        // ficaria sem enxergar a lista que acabou de alimentar. É a classe A do `kb.ai`
+        // (US-GOV-059): esconder de quem TEM a permissão o que o endpoint libera.
+        if (! auth()->user()->can('product.view') && ! auth()->user()->can('product.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
