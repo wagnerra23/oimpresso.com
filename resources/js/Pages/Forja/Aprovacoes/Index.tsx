@@ -40,6 +40,9 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { PRIORITY_BADGE, type Priority } from '@/Components/board/badges';
 import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
+// Layout é COMPOSIÇÃO destes primitivos, nunca `<div className="flex gap-4">` solto
+// (ADR 0253 — enforçado pelo `layout-primitives-guard`).
+import { Grid, Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 import { CheckCircle2, PauseCircle, Undo2, XCircle } from 'lucide-react';
 
@@ -227,21 +230,23 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
 
         {pendente && (
           <Card data-testid="mesa-desfazer">
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <p className="text-sm text-foreground">
-                <strong>{pendente.decisao.verbo}</strong>{' '}
-                {pendente.item.identifier ?? pendente.item.task_id} — {pendente.item.title}
-              </p>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground tabular-nums" aria-live="polite">
-                  vale em {pendente.restam}s
-                </span>
-                <Button variant="outline" size="sm" onClick={desfazer} data-testid="mesa-desfazer-btn">
-                  <Undo2 className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                  Desfazer
-                </Button>
-              </div>
-            </CardContent>
+            <Inline asChild gap={3} align="center" justify="between" wrap>
+              <CardContent className="py-3">
+                <p className="text-sm text-foreground">
+                  <strong>{pendente.decisao.verbo}</strong>{' '}
+                  {pendente.item.identifier ?? pendente.item.task_id} — {pendente.item.title}
+                </p>
+                <Inline gap={3} align="center">
+                  <span className="text-xs text-muted-foreground tabular-nums" aria-live="polite">
+                    vale em {pendente.restam}s
+                  </span>
+                  <Button variant="outline" size="sm" onClick={desfazer} data-testid="mesa-desfazer-btn">
+                    <Undo2 className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                    Desfazer
+                  </Button>
+                </Inline>
+              </CardContent>
+            </Inline>
           </Card>
         )}
 
@@ -264,11 +269,13 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
         )}
 
         {atual && (
-          <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
+          {/* 1fr + coluna fixa de decisões: `cols` do primitivo é uniforme, então a
+              proporção vai em className — o `Grid` segue dono do display e do gap. */}
+          <Grid gap={4} className="lg:grid-cols-[1fr_18rem]">
             {/* O artefato no centro — é o que se decide, não a linha da lista. */}
             <Card data-testid="mesa-artefato">
               <CardContent className="space-y-4 py-5">
-                <div className="flex flex-wrap items-center gap-2">
+                <Inline gap={2} align="center" wrap>
                   <span className="font-mono text-xs text-muted-foreground">
                     {atual.identifier ?? atual.task_id}
                   </span>
@@ -293,7 +300,7 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
                   >
                     espera {atual.created_at_human ?? `${atual.espera_min} min`}
                   </span>
-                </div>
+                </Inline>
 
                 <h2 className="text-lg font-semibold leading-snug text-foreground">{atual.title}</h2>
 
@@ -313,7 +320,7 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
               </CardContent>
             </Card>
 
-            <div className="space-y-3">
+            <Stack gap={3}>
               {decisoes.map((d) => {
                 const Icone = ICONE_DECISAO[d.status] ?? CheckCircle2;
                 return (
@@ -344,8 +351,8 @@ export default function Aprovacoes({ titulo, subtitle, decisoes, fila = [], cont
                   {fila.length} na fila
                 </p>
               )}
-            </div>
-          </div>
+            </Stack>
+          </Grid>
         )}
       </div>
     </AppShellV2>
