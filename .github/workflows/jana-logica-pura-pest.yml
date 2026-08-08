@@ -44,6 +44,15 @@ on:
       # mesmo PR: ele dizia só "Jana" e passou a mentir no minuto em que isto entrou.
       - 'Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php'
       - 'Modules/Governance/Console/Commands/BladeMigrationSentinelCommand.php'
+      # 2026-08-08 — 2º alvo do Governance: o registro do path de migrations. O SP
+      # não chamava `loadMigrationsFrom`, então o `migrate --force` do deploy pulava
+      # as 5 migrations do módulo e 4 tabelas nunca existiram em prod (medido). Só o
+      # container é usado (`app('migrator')->paths()`), sem DB — cabe nesta lane.
+      # O `Providers/` entra ao lado do teste: sem isso, mexer no SP não dispara o
+      # teste dele e o gatilho fica cego justamente à regressão que ele guarda.
+      - 'Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php'
+      - 'Modules/Governance/Providers/GovernanceServiceProvider.php'
+      - 'Modules/Governance/Database/Migrations/**'
       # Adotados 2026-08-02: os 5 Tests/Unit que existiam no repo e NENHUMA lane
       # executava. Cada um entra com o arquivo SOB TESTE ao lado — sem isso, mexer
       # na classe não dispara o teste dela (o gatilho fica cego à regressão).
@@ -122,7 +131,9 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (lógica pura — 11 suites Unit)
+      # Sem contagem no nome: ele dizia "11 suites" com 12 na lista — número em nome
+      # de step apodrece no 1º alvo novo (LC-10). A lista abaixo é o dono do número.
+      - name: Run Pest (lógica pura — suites Unit)
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
@@ -147,5 +158,6 @@ jobs:
             Modules/Jana/Tests/Unit/PiiRedactorTest.php \
             Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
             Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php \
+            Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php \
             --no-coverage \
             --colors=always
