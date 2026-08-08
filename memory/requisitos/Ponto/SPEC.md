@@ -246,6 +246,33 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - DoD: `UC-INTCRE-01` e `UC-ESCF-02` verdes na lane `ponto-pest`
 - **Status:** todo
 
+### US-PONTO-014 · Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist)
+
+> owner: — · priority: p0 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — o workflow `.github/workflows/ponto-pest.yml` segue com allowlist inline; `.github/ponto-pest-quarantine.list` nao existe.
+
+- Contexto: a lane `PHP / Pest (Ponto · MySQL)` e **required** (`governance/required-checks-baseline.json`, promovida 2026-08-05 pela ADR 0369, Tier 0 por Portaria MTP 671/2021) e os **5 ultimos runs no `main` estao em `failure`**. O step que falha e `Run Pest (Ponto · MySQL) — ALLOWLIST VERDE (catraca)` — falha de teste, nao de infra (ADR 0369 classificou 5, 0 infra).
+- **A prioridade e do GATE, nao do modulo.** O modulo nao tem uso em prod (medido 2026-08-03: 0 marcacoes / 0 intercorrencias / 0 escalas — ver US-PONTO-013), mas a lane e required e fica vermelha pra qualquer PR que toque os paths de Ponto; e gate permanentemente vermelho nao detecta regressao nova.
+- Medido em `origin/main` 2026-08-07 — o buraco aqui e **maior** que o do Estoque: arvore `Modules/Ponto/Tests/**Test.php` = **38** · nomeados na allowlist inline = **11** · **fora = 27 (71%)**.
+- Entre os 27 ha nomes que, **pelo nome**, cobrem contrato duro: `CrossTenantMarcacaoTest`, `MultiTenantIsolationTest`, `MultiTenantAppendOnlyTest`, `Wave11LgpdComplianceTest`, `Wave18BusinessScopeTest`, `BancoHorasTest`, `EspelhoTest`. O que eles de fato provam **nao foi medido** — o nome e promessa, nao recibo.
+- ⚠️ `Modules/Ponto/Tests/{Feature,Unit}` **estao** no `phpunit.xml` (linhas 36-37), mas **registro nao e execucao** (§5 proibicoes 2026-08-02). Antes de afirmar que os 27 "nao rodam em lugar nenhum", exigir as duas pernas: varredura repo-wide com `rg --hidden` (§5 2026-07-30) **+** consulta ao dono do inventario (§5 2026-07-28).
+- Receita ja provada 2× no repo: `.github/workflows/financeiro-pest.yml` (origem) e `.github/workflows/estoque-pest.yml` ([#5387](https://github.com/wagnerra23/oimpresso.com/pull/5387), mergeado 2026-08-07 — o `main` saiu de 3 `failure` seguidas para `success` em `888db02a6c4`).
+
+**Acceptance:**
+- [ ] `run-set` = tudo em `Modules/Ponto/Tests/**Test.php` **menos** `.github/ponto-pest-quarantine.list` (particao total — arquivo novo entra rodando)
+- [ ] cada linha da quarentena nomeia **qual contrato falha**; sem motivo escrito vira gaveta
+- [ ] step de anti-apodrecimento: falha se path listado nao existir mais
+- [ ] quarentena impressa por extenso em todo run
+- [ ] `merge=union` pro `.list` no `.gitattributes`
+- [ ] status dos 27 medido **um a um** no CT 100, nao presumido
+- [ ] lane verde no `main` — com `assertions > 0` no sumario JUnit, nao so `0 failed` (LC-13)
+
+⛔ **Tier 0 — nao vale silenciar por conveniencia:** `ponto_marcacoes` e append-only por forca de lei (Portaria 671/2021). Teste de imutabilidade, cross-tenant ou LGPD que hoje esta fora da allowlist **nao entra na quarentena so pra fechar a lane** — se ele falhar, a falha **e o achado**, e a correcao e decisao [W].
+
+**Refs:** ADR 0369 · PR #5387 (modelo) · §5 proibicoes 2026-08-04 (isencao que esvazia o gate) · LC-13.
+
 ## Tabelas canon
 
 | Tabela | Append-only? | business_id scope | Imutabilidade |

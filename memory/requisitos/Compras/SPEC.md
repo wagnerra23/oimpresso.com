@@ -473,6 +473,30 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 **Refs:** medição re-trabalho visual sessão 2026-07-10 · NÃO re-adicionar sem prova de reprodutibilidade (a poda no charter é decisão consciente).
 
+### US-COM-022 · Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs)
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — o workflow `.github/workflows/compras-pest.yml` segue com allowlist inline; `.github/compras-pest-quarantine.list` não existe.
+
+- Contexto: a lane `PHP / Pest (Compras · MySQL)` é **required** (`governance/required-checks-baseline.json`, promovida 2026-08-05 pela ADR 0369) e os **5 últimos runs no `main` estão em `failure`**. O step que falha é `Run Pest (Compras · MySQL) — ALLOWLIST VERDE (catraca)` — falha de teste, não de infra (a própria ADR 0369 classificou na promoção: compras 6, 0 infra).
+- Por que é p0 mesmo sem dor de cliente: gate permanentemente vermelho **não detecta regressão nova** (ela entra escondida no meio das falhas), e como a lane é skip-as-pass o vermelho só cai sobre quem tocar os paths de Compras — dívida de terceiros bloqueando o PR de quem chegou. Foi exatamente o que travou o [#5378](https://github.com/wagnerra23/oimpresso.com/pull/5378) no Estoque.
+- Medido em `origin/main` 2026-08-07: árvore `Modules/Compras/Tests/**Test.php` = **10** · nomeados na allowlist inline = **7** · fora = **3** (`ComprasScaffoldTest`, `ComprasSmokeRoutesTest`, `PurchaseCalculoValorEstoqueE2ETest`).
+- ⚠️ `Modules/Compras/Tests` **está** no `phpunit.xml`, mas **registro não é execução** (§5 proibicoes 2026-08-02): se outra lane executa os 3 de fora, isso é **dado a medir**, não a supor.
+- Receita já provada 2× no repo: `.github/workflows/financeiro-pest.yml` (origem) e `.github/workflows/estoque-pest.yml` ([#5387](https://github.com/wagnerra23/oimpresso.com/pull/5387), mergeado 2026-08-07 — o `main` saiu de 3 `failure` seguidas para `success` em `888db02a6c4`).
+
+**Acceptance:**
+- [ ] `run-set` = tudo em `Modules/Compras/Tests/**Test.php` **menos** `.github/compras-pest-quarantine.list` (partição total — arquivo novo entra rodando, sem terceiro estado escuro)
+- [ ] cada linha da quarentena nomeia **qual contrato falha** (UC + eixo); sem motivo escrito vira gaveta
+- [ ] step de anti-apodrecimento: falha se path listado não existir mais
+- [ ] quarentena impressa por extenso em todo run (quarentena silenciosa reconstrói o ponto cego)
+- [ ] `merge=union` pro `.list` no `.gitattributes`
+- [ ] status dos 3 de fora **medido** (rodados), não presumido, antes de entrar ou ficar de fora
+- [ ] lane verde no `main` — com `assertions > 0` no sumário JUnit, não só `0 failed` (LC-13)
+
+**Refs:** ADR 0369 · PR #5387 (modelo) · §5 proibicoes 2026-08-04 (isenção que esvazia o gate) · LC-13 (verde por não-execução).
+
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:

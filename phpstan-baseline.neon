@@ -6521,55 +6521,55 @@ parameters:
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$data_fim\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$data_ini\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$data_ref\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$trajetoria\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$valor_alvo\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$valor_realizado\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
-			message: '#^Anonymous function should return array\{id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, apuracoes_recentes\: Illuminate\\Support\\Collection\<int, array\{data_ref\: mixed, valor_realizado\: float\}\>\} but returns array\{id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, apuracoes_recentes\: Illuminate\\Support\\Collection\<int, array\{data_ref\: mixed, valor_realizado\: float\}\>\}\.$#'
+			message: '#^Anonymous function should return array\{farol\: string, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, \.\.\.\} but returns array\{farol\: string, id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, \.\.\.\}\.$#'
 			identifier: return.type
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Meta\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
-			path: Modules/Jana/Http/Controllers/DashboardController.php
+			path: Modules/Jana/Http/Controllers/IndexController.php
 
 		-
 			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:destroy\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'

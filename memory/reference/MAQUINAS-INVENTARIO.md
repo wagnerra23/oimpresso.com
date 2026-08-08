@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 119 (40 contexts required)
+## 1. Workflows / Gates de CI — 121 (40 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -85,6 +85,7 @@ lifecycle: ativo
 | `handoff-scope-guard.yml` | Handoff Scope Guard (files_json · escopo duro do handoff de design, ADR 0283 Fase 0) |
 | `handoff-sign-submit.yml` | Handoff Sign & Submit (on-push · assina HMAC + POST handoff-submit → pending; advisory · PR-6b ADR 0283) |
 | `infra-contract-required.yml` | Infra Contract Required |
+| `jana-conversas-gate.yml` | Jana Conversas — histórico do chat (filtro real · J/K · ⌘⇧H · aria-live) |
 | `jana-logica-pura-pest.yml` | Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295) |
 | `jana-pest.yml` | Jana · Pest (MySQL) |
 | `jana-ragas-canary.yml` | Jana RAGAS Canary (daily 06:00 UTC) |
@@ -140,6 +141,7 @@ lifecycle: ativo
 | `tier0-guards-advisory.yml` | Tier-0 guards (WithoutGlobalScopes + BusinessId) |
 | `ui-architecture-gate.yml` | UI architecture gate |
 | `visual-regression.yml` | Visual Regression (Pest 4 Browser) |
+| `whatsapp-pest.yml` | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
 
 ## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — 49 arquivos
@@ -198,7 +200,7 @@ lifecycle: ativo
 | `vista-publicada-padrao.mjs` | PreToolUse:Artifact. ADVISORY (nunca bloqueia). |
 | `warn-red-first.mjs` | PreToolUse:Write|Edit|MultiEdit (PORTE cross-plataforma do .ps1). |
 
-## 3. Skills — 73
+## 3. Skills — 74
 
 > Fonte viva com Tier/auto_trigger: **`.claude/skills/_SKILLS-INDEX.md`** (auto-gerado do frontmatter).
 
@@ -260,6 +262,7 @@ lifecycle: ativo
 | `personas-resolve` | B | BLOQUEADOR Tier A — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em arquivos de `resources/js/Pages/**/*.tsx` ou criação de tela nova. |
 | `pr-ui-judge-manual` | C | Use quando Wagner pedir "avaliar PR <número> contra Constituição UI v2", "rodar judge no PR X", "review semântico do PR Y", "/pr-ui-judge <PR#>", "sco… |
 | `pre-adr-introspect` | B | ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR nova) OU antes de propor schema novo (`database/migrations/*.php` que adiciona col… |
+| `pre-decisao-git-first` | B | ATIVAR ANTES de interromper o Wagner com uma dúvida durante o desenvolvimento — sempre que for usar AskUserQuestion, escrever "não sei se...", "qual v… |
 | `precisao-literal` | B | ATIVAR quando user pedir "compare com o protótipo", "avalie precisão", "que % literal", "ficou idêntico?", "compare lado a lado", "nota da paridade", … |
 | `preflight-modulo` | B | BLOQUEADOR — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em Modules/<X>/. |
 | `proxmox-docker-host` | C | Use ao mexer com infra Proxmox/CT 100/containers Docker do oimpresso. |

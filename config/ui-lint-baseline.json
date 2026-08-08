@@ -506,11 +506,7 @@
     "resources/js/Pages/Jana/Chat.tsx": {
       "R1": 12
     },
-    "resources/js/Pages/Jana/Cockpit.tsx": {
-      "R1": 45,
-      "R3": 10
-    },
-    "resources/js/Pages/Jana/Dashboard.tsx": {
+    "resources/js/Pages/Jana/Index.tsx": {
       "R1": 19
     },
     "resources/js/Pages/Jana/Memoria.tsx": {

@@ -845,7 +845,7 @@ class SellController extends Controller
     }
 
     // buildCoworkAggregates() extraído para App\Services\Sells\SellsCockpitAggregator
-    // (reuso em Modules\Jana\Http\Controllers\DashboardController — /ia/dashboard
+    // (reuso em Modules\Jana\Http\Controllers\IndexController — /ia
     // Jana V2). Lógica preservada verbatim — Pest cobertura paridade.
 
     /**

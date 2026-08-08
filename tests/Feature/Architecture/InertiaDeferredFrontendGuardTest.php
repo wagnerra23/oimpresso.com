@@ -52,7 +52,7 @@ declare(strict_types=1);
  */
 const DEFER_GUARD_ONLY_ALLOWLIST = [
     'Financeiro/Extrato/Index'      => 'guarda via `lancamentos = []` default + `totais?.` (sessão 2026-07-06 sweep)',
-    'Jana/Dashboard'                => 'passa coworkAggregates inteiro pro filho JanaCockpitV2, que guarda `?.`/`?? []`',
+    'Jana/Index'                => 'passa coworkAggregates inteiro pro filho JanaCockpitV2, que guarda `?.`/`?? []`',
     'Forja/Backlog/Index'     => 'default-destructure `{ tasks = [], kpis = EMPTY_KPIS, ... }`',
     'Forja/Board/Index'       => 'default-destructure `{ epics = [], cycles = [], owners = [] }`',
     'Forja/Burndown/Index'    => 'early-return `if (!cycle)` gate + defer group atômico',

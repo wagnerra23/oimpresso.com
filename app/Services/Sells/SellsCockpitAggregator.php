@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
  *
  * Consumido por:
  *  - App\Http\Controllers\SellController@index  (Sells/Index — payload sellKpis + coworkAggregates)
- *  - Modules\Jana\Http\Controllers\DashboardController@index  (/ia/dashboard — payload completo do cockpit)
+ *  - Modules\Jana\Http\Controllers\IndexController@index  (/ia — payload completo do Painel)
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): todo where() recebe ->where('business_id', $businessId)
  * explícito além do global scope (defesa em profundidade).
