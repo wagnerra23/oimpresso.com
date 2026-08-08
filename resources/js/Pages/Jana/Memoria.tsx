@@ -17,6 +17,7 @@ import { Badge } from '@/Components/ui/badge'
 import { Brain, Trash2, Pencil, Save, Search, X } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from '@/Pages/Jana/components/JanaAreaHeader'
+import { Inline } from '@/Components/layout'
 
 interface MemoriaFato {
   id: number
@@ -128,7 +129,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
           </div>
           <div className="flex gap-1">
             {!editando && confirmandoApagar ? (
-              <div className="flex items-center gap-2">
+              <Inline gap={2} align="center">
                 <span className="text-xs text-destructive">Apagar é irreversível.</span>
                 <Button size="sm" variant="destructive" onClick={onEsquecer}>
                   Apagar
@@ -136,7 +137,7 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
                 <Button size="sm" variant="ghost" onClick={() => setConfirmandoApagar(false)}>
                   Manter
                 </Button>
-              </div>
+              </Inline>
             ) : !editando ? (
               <>
                 <Button size="sm" variant="ghost" onClick={() => setEditando(true)} title="Editar">
@@ -268,7 +269,7 @@ function Memoria({ memorias }: Props) {
         </Alert>
 
         {!semNada && (
-          <div className="flex flex-wrap items-center gap-3">
+          <Inline gap={3} align="center" wrap>
             <label className="relative flex-1 min-w-[220px]">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <input
@@ -280,7 +281,7 @@ function Memoria({ memorias }: Props) {
               />
             </label>
 
-            <div className="flex flex-wrap gap-1" role="group" aria-label="Filtrar por categoria">
+            <Inline gap={1} align="center" wrap role="group" aria-label="Filtrar por categoria">
               <Button
                 size="sm"
                 variant={categoria === TODAS ? 'secondary' : 'ghost'}
@@ -300,12 +301,12 @@ function Memoria({ memorias }: Props) {
                   {CATEGORIA_LABELS[cat]?.label || cat}
                 </Button>
               ))}
-            </div>
+            </Inline>
 
             <span className="text-sm text-muted-foreground">
               {lista.length} de {memorias.length} {memorias.length === 1 ? 'fato' : 'fatos'}
             </span>
-          </div>
+          </Inline>
         )}
 
         {semNada || filtradoAZero ? (
