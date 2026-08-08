@@ -253,10 +253,15 @@ function Memoria({ memorias }: Props) {
       <JanaAreaHeader active="memoria" />
 
       <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Brain className="size-7 text-primary" />
-          <h1 className="text-2xl font-semibold">O Copiloto lembra de você</h1>
-        </div>
+        {/* Título próprio REMOVIDO na onda de fusão (2026-08-08, US-COPI-148).
+            Três motivos independentes, cada um suficiente:
+            (a) era o SEGUNDO `<h1>` da página — o `<PageHeader>` canon já provê
+                o dele ("Jana · Analista IA") logo acima, e dois h1 quebram a
+                estrutura de heading que o leitor de tela usa pra navegar;
+            (b) dizia "O Copiloto", nome que o #5401 padronizou pra "Jana";
+            (c) o protótipo (`JmMemoria`, jana-merge.jsx) abre direto no alerta
+                LGPD — não tem título de tela.
+            O ícone `Brain` continua em uso no empty state abaixo. */}
 
         {/* Copy literal do protótipo (JmMemoria, prototipo-ui/cowork/jana-merge.jsx) —
             §1.5 do pacote exige copy literal, não paráfrase. */}
@@ -345,7 +350,7 @@ function Memoria({ memorias }: Props) {
 }
 
 Memoria.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="O Copiloto lembra de você" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Memória' }]}>
+  <AppShellV2 title="Jana — Memória" breadcrumbItems={[{ label: 'Jana' }, { label: 'Memória' }]}>
     {page}
   </AppShellV2>
 )
