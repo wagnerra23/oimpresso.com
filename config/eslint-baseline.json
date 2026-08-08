@@ -201,7 +201,6 @@
     "resources/js/Pages/Financeiro/Unificado/_components/TituloEditSheet.tsx|@typescript-eslint/no-explicit-any": 1,
     "resources/js/Pages/Financeiro/Unificado/_components/TituloEditSheet.tsx|no-restricted-syntax": 15,
     "resources/js/Pages/Financeiro/Unificado/_components/useFinFavs.tsx|react-refresh/only-export-components": 1,
-    "resources/js/Pages/Financeiro/_shared/FinanceiroPrimaryButton.tsx|no-restricted-syntax": 3,
     "resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx|@typescript-eslint/no-explicit-any": 1,
     "resources/js/Pages/Fiscal/Cockpit.tsx|jsx-a11y/anchor-is-valid": 1,
     "resources/js/Pages/Fiscal/Cockpit.tsx|jsx-a11y/click-events-have-key-events": 2,

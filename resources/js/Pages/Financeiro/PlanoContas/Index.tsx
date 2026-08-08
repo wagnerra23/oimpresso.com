@@ -12,8 +12,7 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { Lock, FileText, Search, BookOpen } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
-import { PageHeader } from '@/Components/PageHeader';
-import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import FinStatStrip, { FinStat } from '@/Pages/Financeiro/_shared/FinStatStrip';
 
 interface PlanoConta {
@@ -78,9 +77,10 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
       >
         <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
           <FinanceiroSubNav active="plano-contas" hidePrimary />
-          <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/plano-contas/create')}>
-            Nova conta
-          </FinanceiroPrimaryButton>
+          <PageHeaderPrimary
+            label="Nova conta"
+            onClick={() => router.visit('/financeiro/plano-contas/create')}
+          />
         </div>
       </PageHeader>
 

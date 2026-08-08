@@ -9,8 +9,7 @@ import { Tag, Plus, Pencil, Trash2, Power, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { CategoriaSheet } from './components/CategoriaSheet';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
-import { PageHeader } from '@/Components/PageHeader';
-import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 
 interface Categoria {
   id: number;
@@ -82,9 +81,7 @@ function Index({ categorias, planos_conta }: Props) {
         >
           <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
             <FinanceiroSubNav active="categorias" hidePrimary />
-            <FinanceiroPrimaryButton onClick={() => setCreating(true)}>
-              Nova categoria
-            </FinanceiroPrimaryButton>
+            <PageHeaderPrimary label="Nova categoria" onClick={() => setCreating(true)} />
           </div>
         </PageHeader>
 
