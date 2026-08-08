@@ -331,6 +331,21 @@ Route::group(
         Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
         // Saúde foi fundida no Scorecard real (/team-mcp/scorecard) — sem rota própria.
 
+        // Mesa de Aprovações — superfície do funil de admissão (ADR 0368).
+        // A ADR fechou a política em 2026-08-04 e deixou o código pra "PR próprio";
+        // o estado `pending_approval` + FSM + trava de recusa-sem-motivo já vieram
+        // em #5283/#5288. Isto aqui é a TELA que faltava — sem ela a fila existe no
+        // banco e o [W] não tem onde olhar (o brief anuncia a contagem sem destino).
+        //
+        // 1 e 3 segmentos → não colidem com /{taskId}/* (2 segmentos), e `aprovacoes`
+        // é literal, então casa antes de qualquer wildcard.
+        // FQCN obrigatório em rota nova (.claude/rules/routes.md) — as strings acima
+        // são grandfather, não modelo a copiar.
+        Route::get('/aprovacoes', [\Modules\Forja\Http\Controllers\AprovacoesController::class, 'index'])
+            ->name('forja.aprovacoes.index');
+        Route::post('/aprovacoes/{taskId}/decidir', [\Modules\Forja\Http\Controllers\AprovacoesController::class, 'decidir'])
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.aprovacoes.decidir');
+
         // Roadmap Gantt — recebido do Modules/Jana em 2026-08-05.
         // ADR 0366 §D-B: "usa TaskCrudService/McpTask — é tasks, e tasks é Forja;
         // mandar pro Governance criaria a 3ª tela de roadmap". ADR 0367 D4 crava

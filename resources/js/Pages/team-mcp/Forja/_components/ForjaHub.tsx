@@ -7,7 +7,7 @@
 // reuso nas telas TeamMcp absorvidas (Equipe/Tarefas/CC Sessions/Saúde).
 
 import { Link } from '@inertiajs/react';
-import { Activity, Bell, CalendarRange, Code2, Columns3, History, Inbox, LayoutGrid, List, Plug, Search, Users } from 'lucide-react';
+import { Activity, Bell, CalendarRange, Code2, Columns3, Gavel, History, Inbox, LayoutGrid, List, Plug, Search, Users } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
 import { cn } from '@/Lib/utils';
@@ -16,6 +16,11 @@ const COCKPIT_SUBTITLE =
   'Cockpit do cowork loop — backlog, quadro F0→F4, changelog e atores (humano vs agente).';
 
 export const FORJA_TABS = [
+  // Aprovações — 2026-08-08. Superfície do funil de admissão (ADR 0368): o que
+  // espera por decisão de [W], mais antigo primeiro. Vem PRIMEIRO de propósito —
+  // é a fila que custa dinheiro parada. O 301 de `/forja` pra cá e a absorção da
+  // Triagem como tipo "Proposta" são o reagrupamento (PR seguinte), não isto.
+  { key: 'aprovacoes', label: 'Aprovações', href: '/forja/aprovacoes',    icon: Gavel },
   { key: 'triagem',   label: 'Triagem',     href: '/forja',                icon: Inbox },
   { key: 'backlog',   label: 'Backlog',     href: '/forja/backlog',        icon: List },
   { key: 'quadro',    label: 'Quadro',      href: '/forja/quadro',         icon: LayoutGrid },
