@@ -1038,6 +1038,32 @@ Como a permissão não existe, o termo é sempre `false`, e `false || X === X` �
 
 **Achado adjacente, não corrigido (é outro escopo):** o `ModifierSetsController::index()` **não tem gate de permissão** — filtra só por `business_id`. A view escondia a tabela, mas o endpoint AJAX já servia os dados a qualquer usuário autenticado do business. Ou seja, o `@can` da view nunca foi a barreira real; trocá-lo não afrouxa nada. Se a listagem de modificadores devia ser restrita, o gate precisa estar no controller — decisão [W].
 
+##### O gate do `index()` — RESOLVIDO 2026-08-07, e o predicado óbvio estava errado
+
+[W] reabriu o achado acima e mandou decidir. **Gate adicionado**, com o predicado do `ProductController::index()`:
+
+```php
+if (! auth()->user()->can('product.view') && ! auth()->user()->can('product.create')) { abort(403, …); }
+```
+
+**Por que restrito, e não "deixa aberto":** modificador **é linha de `products`** (`type = 'modifier'`) — a lista principal desse mesmo dado já exige essa permissão, e os dois irmãos vivos da mesma pasta gateiam o `index()` (`TableController` → `access_tables`; `BookingController` → `crud_all_bookings`/`crud_own_bookings`). O `ModifierSetsController` era o único sem. Custo de fechar **agora é zero**: o link do menu (`AdminSidebarMenu` L906) já exige exatamente esse par, então ninguém que navega pela UI perde acesso — o gate só alcança quem bate direto na URL/AJAX. Fechar depois, com a feature em uso, seria breaking change.
+
+⚠️ **Só `product.view` — o que a triagem sugeriu — teria introduzido a classe A que este PR fecha.** Medido: `product.view` e `product.create` são **checkboxes independentes** em `role/{create,edit}.blade.php` (L331/L339). Quem tem só `product.create` recebe o link no menu, cria modificador (`create()` L91 · `store()` L107) e vê o botão Adicionar — e ficaria 403 na lista que acabou de alimentar. Mesma forma do `kb.ai`: esconder de quem **tem** a permissão o que o endpoint libera.
+
+**Relação com a decisão [W] das 08:02 ([#5368](https://github.com/wagnerra23/oimpresso.com/pull/5368)):** aquela resolveu o `@can` **da view** (*"pode deixar os botão"*), e as duas saídas que ela pesou — declarar `restaurant.view` × remover o `@can` — são ambas sobre a view. O gate **no controller** é terceira saída, não enumerada lá, e foi [W] quem reabriu. O fato de domínio daquela decisão continua valendo e é o que torna a mudança barata: **a feature Restaurante existe e não está em uso agora**. _(A ausência de diretório de módulo nWidart não indica feature morta — ela sempre viveu no core; premissa já refutada nesta mesma seção.)_
+
+**Resíduo declarado — sem teste; e o custo de wirar é MENOR do que a 1ª redação deste bloco disse.** Não há teste tocando `ModifierSets` (`rg --hidden -l -i "modifierset" tests/ Modules/` → rc=1: rodou, não achou), e um arquivo em `tests/Feature/Restaurant/` **não rodaria hoje** — seria LC-13.
+
+> ⚠️ **Errata do próprio autor, no mesmo PR.** A 1ª redação afirmou *"o `ci.yml` roda só `tests/Feature/Form`; cobrir exige wirar lane"*. **Falso nas duas metades.** O `ci.yml` (L112) lê uma **lista curada**, [`.github/ci-sqlite-pest.list`](../../../.github/ci-sqlite-pest.list) — **418 linhas**, e `tests/Feature/Form` é **uma delas** (L63). Ligar um teste de Restaurante é **uma linha nessa lista**, não lane nova. Eu derivei o custo de `rg` sobre os workflows em vez de abrir o arquivo que eles consomem — LC-08, *medir a fonte errada*. Quem mediu certo foi o [#5388](https://github.com/wagnerra23/oimpresso.com/pull/5388) (Cozinha), 4h antes; eu só não tinha lido. **Com o custo corrigido, "cobrir" volta a ser barato** — o que trava não é a lane, é escrever o teste sem poder rodá-lo (Pest é CT 100, não local). Fica decisão [W]: criar o arquivo **sem** a linha na lista seria cobertura de mentira.
+
+Recibo do que sustenta o predicado, re-rodável:
+
+```bash
+rg -n "product\.(view|create)" resources/views/role/edit.blade.php app/Http/Middleware/AdminSidebarMenu.php
+```
+
+**Irmão NÃO tocado, mesma classe:** a view (`modifier_sets/index.blade.php` L52) esconde a `<table>` atrás de `@can('product.view')` sozinho — herdado do [#5365](https://github.com/wagnerra23/oimpresso.com/pull/5365). Pelo mesmo argumento acima, quem tem só `product.create` vê a página e o botão e não vê a tabela. Fica fora deste PR por escopo (o pedido era o controller) e porque a view é o objeto que [W] acabou de rular; alinhar é a mesma linha de `||`.
+
 #### Classe C triada — 2026-08-07
 
 Duas medições que mudam o tamanho do problema:
