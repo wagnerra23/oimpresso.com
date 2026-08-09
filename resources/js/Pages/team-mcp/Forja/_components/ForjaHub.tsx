@@ -152,12 +152,27 @@ export default function ForjaHub({ active, triagemCount }: { active: string; tri
                 <span className="mx-1.5 h-4 w-px shrink-0 bg-border" aria-hidden />
               )}
 
-              {/* Rótulo do grupo: `aria-hidden` porque é ornamento de agrupamento
-                  visual — quem navega por leitor de tela já recebe o destino pelo
-                  texto do link, e um "TRABALHO" solto no meio da nav só atrapalha. */}
+              {/* Rótulo do grupo — PROGRESSIVE ENHANCEMENT, e o motivo é medido.
+                  A faixa é horizontal e já vinha apertada: com 11 itens o conteúdo
+                  dá 1140px, e o nav dispõe de (viewport − sidebar 272 − padding 48).
+                  Medido em produção logo após o merge:
+
+                    viewport 1280 → scroll +180px  (JÁ existia antes dos grupos)
+                    viewport 1440 → scroll  +20px  (idem)
+                    viewport 1512 → CABIA, e os rótulos quebraram (+132px)
+
+                  Os rótulos custam 158px e os divisores 26px. Então o texto só
+                  entra a partir de `2xl` (1536px), onde sobra espaço de verdade;
+                  abaixo disso o DIVISOR sozinho já agrupa visualmente por 26px, e
+                  a barra volta a caber exatamente como antes deste PR.
+
+                  `aria-hidden` porque é ornamento: quem usa leitor de tela recebe o
+                  destino pelo texto do link, e um "TRABALHO" solto na nav atrapalha.
+                  Como é aria-hidden, escondê-lo por breakpoint não tira informação
+                  de ninguém — só de quem tem pixels sobrando. */}
               <span
                 aria-hidden
-                className="shrink-0 select-none pr-0.5 text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground/70"
+                className="hidden shrink-0 select-none text-[9.5px] font-semibold uppercase tracking-tight text-muted-foreground/70 2xl:inline"
                 data-testid={`forja-grupo-${grupo.key}`}
               >
                 {grupo.label}
