@@ -68,6 +68,20 @@ class TrabalhoService
     public const SORTS = ['rank', 'recent', 'due', 'title', 'id', 'execucao'];
 
     /**
+     * Filtros que o atalho "Gantt" carrega de `/forja/trabalho` para
+     * `/forja/roadmap-gantt` — os que o DESTINO de fato lê da query string
+     * (`RoadmapGanttController::index`, `$request->get(...)`).
+     *
+     * ⚠️ Não confunda com o payload de SAÍDA do Gantt: ele serializa `status`,
+     * `type`, `due_date` e mais uma dúzia de campos, mas **não** os aceita como
+     * filtro de entrada. Mandar `status=` no link seria parâmetro que o destino
+     * ignora em silêncio — o usuário veria a lista "não filtrar" e não saberia
+     * por quê. Por isso o `UC-TRAB-10` cruza esta constante com o controller de
+     * lá: se o Gantt parar de ler um destes, o caso cai.
+     */
+    public const FILTROS_ATALHO_GANTT = ['cycle', 'owner', 'priority', 'module'];
+
+    /**
      * Filtros default — o que a tela usa quando o [W] não pediu nada.
      *
      * @return array<string,mixed>

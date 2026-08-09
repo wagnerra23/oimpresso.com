@@ -62,12 +62,17 @@ Status: 🧪 (1 teste cita este UC — mesma instância de Collection nas duas v
 Lista e Quadro são a **mesma** consulta olhada de dois jeitos. Se `visao`/`eixo` entrarem na chave do cache, cada toggle paga uma query inteira — em silêncio, porque o resultado é idêntico.
 **Pronto quando:** `build()` com `visao=lista` e com `visao=quadro` devolve a mesma Collection.
 
+## UC-TRAB-10 — Os filtros do atalho Gantt são de fato LIDOS pelo destino
+Status: 🧪 (1 teste cita este UC — cruza `TrabalhoService::FILTROS_ATALHO_GANTT` × `RoadmapGanttController`, com guarda de lista-vazia **e** controle negativo em `status`.)
+O botão "Gantt" leva os filtros pra `/forja/roadmap-gantt`. Se o destino parar de ler um deles, o link **continua funcionando** e o parâmetro é ignorado **em silêncio** — a pessoa vê a lista "não filtrar" e não tem como saber por quê. Não dá erro, não dá 500: só mente.
+⚠️ `status` fica fora de propósito — o Gantt o **serializa na saída** mas não o **aceita como filtro**. Confundir os dois é exatamente o que esta trava impede, por isso ela tem assert negativo.
+**Pronto quando:** todo filtro da constante aparece como `$request->get('<f>')` no controller do Gantt, e `status` **não** está na constante.
+
 ---
 
 ## [BACKLOG] — declarado no charter, ainda sem teste que o defenda
 
 - [BACKLOG] Agrupamento visual por Frente na tela (o service devolve `frente_id` + o mapa; quem agrupa é o `.tsx`, e isso é comportamento de UI sem E2E ainda).
 - [BACKLOG] Eixo de ordenação `execucao` (o que está andando primeiro) — existe no service, sem caso que o exercite.
-- [BACKLOG] Gantt como 3ª sub-visão — onda 7.
 - [BACKLOG] Arrastar card no Quadro pra mudar status — exige endpoint de mutação pelo `TaskCrudService` (FSM validado); sem ele seria um 2º caminho de escrita.
 - [BACKLOG] Rank híbrido com pin persistido — depende de user-pref gravada; fora desta onda por decisão de escopo.

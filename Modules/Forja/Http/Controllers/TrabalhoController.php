@@ -57,6 +57,11 @@ class TrabalhoController extends Controller
             'filtros'  => $filtros,
             // Eager: são constantes, e a UI monta os selects no 1º paint.
             'sorts'    => TrabalhoService::SORTS,
+            // Quais filtros o atalho "Gantt" pode carregar. Vem do BACKEND de
+            // propósito: se o front espelhasse a lista, viraria uma segunda
+            // declaração que diverge na 1ª mudança — foi o custo que o espelho
+            // das fases cobrou no `UC-TRAB-07`. Aqui não há o que divergir.
+            'filtrosGantt' => TrabalhoService::FILTROS_ATALHO_GANTT,
             'statuses' => McpTask::STATUSES,
             'tasks'    => Inertia::defer(fn () => $svc->build($filtros)['tasks']),
             'kpis'     => Inertia::defer(fn () => $svc->build($filtros)['kpis']),

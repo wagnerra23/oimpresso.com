@@ -32,7 +32,7 @@ import { PRIORITY_BADGE, STATUS_BADGE, COLUMN_LABEL_PT, type Priority, type Stat
 import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
-import { Lock, Clock, List as ListIcon, LayoutGrid } from 'lucide-react';
+import { Lock, Clock, List as ListIcon, LayoutGrid, GanttChartSquare, ArrowUpRight } from 'lucide-react';
 import TrabalhoQuadro, { type EixoQuadro } from './_components/TrabalhoQuadro';
 
 interface Task {
@@ -79,6 +79,12 @@ interface Props {
   filtros: Record<string, unknown>;
   sorts: string[];
   statuses: string[];
+  /**
+   * Filtros que o atalho "Gantt" carrega — vem do backend
+   * (`TrabalhoService::FILTROS_ATALHO_GANTT`) porque só ele sabe o que o
+   * DESTINO lê. Espelhar a lista aqui criaria uma 2ª declaração pra divergir.
+   */
+  filtrosGantt?: string[];
   // Deferidas → `undefined` no 1º paint. Default no destructuring pra não
   // crashar antes do partial reload chegar (o sintoma sem isso é tela branca —
   // PR #1940).
@@ -98,6 +104,7 @@ const ORDEM_LABEL: Record<string, string> = {
 
 export default function Trabalho({
   titulo, subtitle, filtros, sorts, tasks = [], kpis = KPIS_VAZIO, frentes = {},
+  filtrosGantt = [],
 }: Props) {
   const [busca, setBusca] = useState(String(filtros.q ?? ''));
   const ordem = String(filtros.sort ?? 'rank');
@@ -112,6 +119,33 @@ export default function Trabalho({
       only: ['tasks', 'kpis', 'filtros'],
     });
   }, [filtros]);
+
+  /**
+   * O Gantt é a 3ª vista do mesmo trabalho, mas mora em `/forja/roadmap-gantt` —
+   * e continua morando lá de propósito. Ele tem trio próprio (charter · casos ·
+   * RUNBOOK-gantt), payload EAGER por HOTFIX DE PRODUÇÃO (closures, não defer:
+   * com defer os dropdowns chegavam `undefined` no 1º paint e o `.map()`
+   * estourava em prod — PR #1550/#1552) e um PATCH próprio de mutação. Trazer
+   * as 681 linhas pra cá colidiria com o contrato defer-first desta tela e com
+   * a prop `tasks`, que os dois serializam com shapes diferentes.
+   *
+   * Então isto é ATALHO, não fusão de payload — e o botão diz isso (seta de
+   * saída + `title`), porque a URL vai mudar e esconder esse fato seria mentir
+   * sobre onde o usuário está.
+   *
+   * Carrega SÓ os filtros que o destino lê. Mandar os outros seria parâmetro
+   * ignorado em silêncio: a pessoa veria "não filtrou" sem saber por quê.
+   */
+  const irParaGantt = useCallback(() => {
+    const carrega: Record<string, string> = {};
+    for (const chave of filtrosGantt) {
+      const valor = filtros[chave];
+      if (valor !== null && valor !== undefined && valor !== '') {
+        carrega[chave] = String(valor);
+      }
+    }
+    router.get('/forja/roadmap-gantt', carrega);
+  }, [filtros, filtrosGantt]);
 
   const submeterBusca = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -164,6 +198,19 @@ export default function Trabalho({
                                    : 'border-border text-muted-foreground hover:text-foreground')}
             >
               <LayoutGrid className="h-3 w-3" aria-hidden /> Quadro
+            </button>
+            {/* SEM `aria-pressed`: não é estado desta tela, é navegação. A seta
+                e o `title` avisam que a URL muda — o pedido chama de "3ª
+                sub-visão", e ela é, do ponto de vista de quem procura trabalho;
+                mas fingir que fica na mesma página seria mentir sobre onde a
+                pessoa está. */}
+            <button
+              type="button" onClick={irParaGantt} data-testid="trabalho-visao-gantt"
+              title="Abre a linha do tempo levando os filtros compatíveis (outra tela)"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <GanttChartSquare className="h-3 w-3" aria-hidden /> Gantt
+              <ArrowUpRight className="h-3 w-3 opacity-60" aria-hidden />
             </button>
           </Inline>
 
