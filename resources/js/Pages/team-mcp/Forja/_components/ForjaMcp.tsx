@@ -18,14 +18,7 @@
 //
 // Tier 0 (ADR 0081): NUNCA exibir/logar token raw — só o nome lógico do token.
 
-import {
-  AlertTriangle,
-  KeyRound,
-  Lock,
-  type LucideIcon,
-  ScrollText,
-  ShieldCheck,
-} from 'lucide-react';
+import { AlertTriangle, KeyRound, ScrollText, ShieldCheck } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 
 // Os tipos seguem morando aqui? NÃO — foram com a seção pro ForjaHandoffs, que é
@@ -111,13 +104,12 @@ const RESULTADO_TONE: Record<Resultado, string> = {
   negado: 'text-destructive-fg',
 };
 
-interface Props {
-  // Sem props: contrato/tokens/auditoria são MOCKADOS por design (vitrine —
-  // o enforce real é do servidor). Os handoffs, que eram o único dado VIVO
-  // daqui, viraram tela própria em /forja/handoffs (2026-08-08).
-}
-
-export default function ForjaMcp(_: Props) {
+// Sem `Props`: este componente não recebe nada. Contrato/tokens/auditoria são
+// MOCKADOS por design (vitrine — o enforce real é do servidor), e os handoffs,
+// que eram o único dado VIVO daqui, viraram tela própria em /forja/handoffs
+// (2026-08-08). Um tipo de prop vazio só existiria pra ser tipo de nada — e o
+// ESLint reprova (`no-empty-object-type`), com razão.
+export default function ForjaMcp() {
   return (
     <div data-testid="forja-mcp" className="inline-flex w-full flex-col gap-6">
       {/* 2. CONTRATO / TOKENS / AUDITORIA — MOCKADO por design (vitrine do contrato). */}
