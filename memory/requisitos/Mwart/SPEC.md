@@ -64,6 +64,24 @@ related_adrs:
 - [ ] Tentativa de Edit em `Pages/Sells/Create.tsx` sem RUNBOOK existir → hook bloqueia com mensagem clara
 - [ ] PR que adiciona Page Inertia sem RUNBOOK falha CI com link pro processo
 - [ ] PR com `/mwart-override` registrado por Wagner passa CI + cria ADR per-tela
+  - ⚠️ **AC ABERTO, mas o hook já ANUNCIA como se estivesse fechado** (medido 2026-08-08): a mensagem
+    de veto do [`block-mwart-violation.mjs`](../../../.claude/hooks/block-mwart-violation.mjs) oferece
+    textual «*Override: comentar `/mwart-override <razão>` em PR*» — e o escape **não existe no
+    código**: 194 linhas, **zero `process.env`, zero bypass, zero leitura de marcador**; as duas
+    ocorrências de "override" são a própria mensagem (L12 comentário, L156 string), e a única saída
+    do veto é `process.exit(2)`. Como a Camada 3 (CI `mwart-gate.yml`) foi **deletada** pela
+    [ADR 0271](../../decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) onda 2,
+    não há onde o `/mwart-override` em PR seja lido — o AC ficou sem executor.
+  - **Custo real observado:** [W] escolheu "usar o override" entre 4 caminhos numa sessão de fix
+    ([#5441](https://github.com/wagnerra23/oimpresso.com/pull/5441)) **acreditando na mensagem** —
+    decisão tomada sobre afordância inexistente. Aplicado por script Node (o matcher é
+    `Write|Edit|MultiEdit`) e declarado no PR.
+  - **Decisão [W] pendente — 2 saídas legítimas:** (a) **implementar** o escape com bite-test no
+    chokepoint (molde `knowledge-drift-prosa` do `gate-selftest.mjs`, que exercita o CLI de fora), ou
+    (b) **remover a promessa** da mensagem — mais barato e honesto se o escape não deve existir.
+    ⚠️ **Não** detectar por vocabulário (grep de `override` em mensagem de hook): é guard sintático da
+    família morta 5× no [§5](../../proibicoes.md), com FP não medido.
+  - Lápide: [`proibicoes.md` §5 2026-08-08](../../proibicoes.md) (LC-15 nº 3 — 2ª que chega em produção).
 - [ ] Pest test `MwartGateWorkflowTest` valida o pipeline completo (mock PR)
 
 **Refs:** [ADR 0104 §Enforcement (3 camadas)](../../decisions/0104-processo-mwart-canonico-unico-caminho.md), [skill update-config](../../../.claude/skills/update-config/SKILL.md)
