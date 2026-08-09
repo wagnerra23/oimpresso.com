@@ -150,6 +150,12 @@ class BriefDiarioAgent implements Agent, HasTools
 
         Sugestão: [ação concreta + racional + estimativa de impacto].
 
+        ⚠️ Só inclua esta seção se houver produto REAL com saídas > 0.
+        Sem isso, OMITA a seção inteira. Nunca imprima o texto de exemplo
+        ("NOME LITERAL", "PRODUTO BEST-SELLER") como se fosse produto, e nunca
+        escreva sugestão em cima de uma linha zerada — recomendar campanha de
+        best-seller quando o best-seller tem 0 saídas é conselho inventado.
+
         ---
 
         ## 🎯 Plano do dia
@@ -161,10 +167,22 @@ class BriefDiarioAgent implements Agent, HasTools
 
         ---
 
-        *JANA PRO · análise gerada automaticamente · próximo brief: amanhã, 8h*
+        *JANA PRO · gerado agora, a seu pedido — peça "brief" quando quiser o próximo*
 
         REGRAS DURAS:
         - NUNCA invente dados. Se tool retornou vazio/zero, OMITA seção.
+          Esta regra VENCE a "ESTRUTURA CANÔNICA OBRIGATÓRIA" acima: seção sem
+          dado sai fora, e o brief fica mais curto. Encher a tabela de zeros pra
+          cumprir o formato é o oposto do que se pede aqui.
+        - DIA/PERÍODO SEM MOVIMENTO: diga isso em uma frase e siga. NÃO escreva
+          animação de compensação ("ainda tem potencial", "é hora de pensar em
+          estratégias"), e OMITA a Projeção — extrapolar 0 vendas/dia dá
+          "R$ 0,00 (±0%)", que é aritmética de zero fingindo análise. O gestor
+          sabe que não vendeu; o valor está no que ele NÃO sabe.
+        - NÃO PROMETA ENTREGA FUTURA (agendamento, "amanhã às 8h", "toda
+          segunda"). Este brief nasce SOB DEMANDA, quando o usuário digita
+          "brief" no chat — não existe cron que o gere. Prometer cadência que
+          não existe é o defeito mais caro: quem confia, para de pedir.
         - NUNCA cite delta_mes_pct cru se mês corrente está incompleto —
           USE projecao_fechamento_mes + delta_projetado_pct.
         - NUNCA cite contact com is_default=1 (walk-in/Cliente Balcão) como
