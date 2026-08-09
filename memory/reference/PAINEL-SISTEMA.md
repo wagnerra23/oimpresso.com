@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-08**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-09**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -34,7 +34,7 @@ lente: [construir]
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-05 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-27 |
-| Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-01 |
+| Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-08 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-05 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-07 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **340**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **333**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 41 required (enforcement: everyone)
+### Bloqueiam merge — 42 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -113,6 +113,7 @@ lente: [construir]
 - PHP / Pest (Unit)
 - PHPStan / Larastan · ratchet vs baseline
 - PII scan (CPF/CNPJ literal)
+- Required always-run — todo context required nasce em todo PR
 - screen-coverage-gate
 - SDD scorecard ratchet (métrica armada não regride · GT-G3)
 - Secret scan (gitleaks · só linhas novas do PR)
@@ -140,13 +141,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **375** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 339 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **377** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 341 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 85 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 94 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -234,6 +235,15 @@ lente: [construir]
 - ~~2026-08-07 — Validar teste em UMA plataforma e concluir que passa (literal `D:/...` é absoluto no Windows e RELATIVO no POSIX)~~
 - ~~2026-08-07 — Ler o `routes.php` do módulo e NÃO ler o `SPEC.md` — o plano nasce paralelo à US que já é dona~~
 - ~~2026-08-07 — Comparar contra o SNAPSHOT CONGELADO do CI (`github.sha`) achando que é o tip vivo — e teste de ancestralidade ASSIMÉTRICO que não sabe dizer "o servidor está à frente"~~
+- ~~2026-08-08 — Consolidar os jobs advisory de CI em steps de um job compartilhado ("o CI está saturado")~~
+- ~~2026-08-08 — Promover check a required mexendo no NOME do job ou no gatilho, sem atualizar os PRs já abertos~~
+- ~~2026-08-08 — Agendar no Kernel comando que spawna `node`, medindo o node numa sessão SSH interativa (o cron do Hostinger não alcança o nvm)~~
+- ~~2026-08-08 — Diagnosticar "gate insatisfazível" a partir do obstáculo que te barrou, sem medir o gate inteiro (e o buraco real era o OPOSTO)~~
+- ~~2026-08-08 — O `block-mwart-violation` anuncia um `/mwart-override` que NÃO existe — e a decisão de [W] foi tomada em cima da promessa~~
+- ~~2026-08-08 — Medidor cujo WALK PULA exatamente o que ele quer contar (`CSSStyleRule.cssRules` é truthy por CSS Nesting)~~
+- ~~2026-08-08 — EMENDA da lápide acima (node no cron): ela ENSINAVA O PROXY, e o denominador estava errado~~
+- ~~2026-08-08 — Responder "esta US foi entregue?" com `git log --grep=<US-id>` (o commit de entrega não cita o id) — e rebaixar 7 tasks em cima disso~~
+- ~~2026-08-08 — Fechar o loop de aprendizado da grade de réguas com CAMPO ou CADÊNCIA nova (4 propostas, 4 recusadas) — o gargalo é fidelidade de ESCRITA, não falta de campo~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -244,14 +254,14 @@ lente: [construir]
 
 ## Rastro
 
-- **379** handoffs · **595** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **397** handoffs · **601** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-08-07-lanes-required-vermelhas-e-quarentena`
-  - `2026-08-07-jana-fusao-ondas-2-a-4-e-lista-de-diferencas`
-  - `2026-08-07-jana-fusao-onda1`
-  - `2026-08-07-cozinha-gate-duas-pernas-adversario`
-  - `2026-08-05-sdd-flow-feature-smart-token`
-  - `2026-08-05-plano-documentacao-tecnica-operacional`
+  - `2026-08-08-valor-estoque-decisoes-permissoes`
+  - `2026-08-08-reguas-delta-e-a-ancora-que-faltou`
+  - `2026-08-08-primary-os-btn-13-telas-e-o-override-fantasma`
+  - `2026-08-08-fatia-d-jana-memoria-metodo`
+  - `2026-08-08-deadlock-required-promocao-0370`
+  - `2026-08-08-audit-card-principio-9-constituicao-v1.2`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-08 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-09 · deriva das fontes canônicas, não as substitui._
