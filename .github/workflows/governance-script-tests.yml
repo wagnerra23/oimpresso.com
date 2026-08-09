@@ -50,7 +50,10 @@ jobs:
       # vivo, e o censo A-L do roadmap era digitado a mao. Este selftest defende o MEDIDOR;
       # o censo em si e relato (--report), nao gate. Ligado aqui porque script sem invocador
       # e bug (proibicoes.md §Sempre-fazer #2), nao neutralidade.
-      - name: Censo Blade->React (bite: resource-string, namespace de grupo, indirecao $this-> · NEG: json/ciclo/mailable)
+      # ⚠️ name CITADO: o texto tem `: ` (em "bite: " e "NEG: ") e escalar YAML puro nao
+      # aceita dois-pontos-espaco — vira chave de mapa e o workflow inteiro para de subir
+      # (startup_failure, ZERO jobs). Foi o que aconteceu em 2026-08-08 (#5424).
+      - name: 'Censo Blade->React (bite: resource-string, namespace de grupo, indirecao $this-> · NEG: json/ciclo/mailable)'
         run: node scripts/governance/blade-migration-census.mjs --selftest
       # A lista de lanes que alimentam o manifesto por-UC (G-7) e DERIVADA desde 2026-08-04
       # (a lista a mao apodreceu: 4 lanes emitiam JUnit e ninguem lia). Sem este bite-test,

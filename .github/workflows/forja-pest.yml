@@ -125,6 +125,14 @@ jobs:
         # em sqlite — 2 QueryException — e precisa de conserto antes de entrar).
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — eles dropam o
         # schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
+        #
+        # 2026-08-08 — AprovacoesMesaTest entra FAILING-FIRST, e o desvio é
+        # declarado: a catraca acima pede "verde provado antes de entrar", mas
+        # rodar Pest local é proibido (Tier 0 ADR 0062 — CT 100/CI só), então o
+        # primeiro verde SÓ pode acontecer aqui. Mesmo desenho já assumido em
+        # compras-pest.yml ("entra na allowlist SEM ser verde — é FAILING-FIRST
+        # por desenho"). Se vermelho, conserta-se antes do merge — o que não se
+        # faz é remover da lista pra ficar verde.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -136,7 +144,8 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-forja-junit.xml \
-            Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php
+            Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php \
+            Modules/Forja/Tests/Feature/AprovacoesMesaTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

@@ -36,6 +36,7 @@ Cockpit de trabalho do **time interno oimpresso** (Wagner + Felipe + Maiara + El
   - `Modules/TeamMcp` **deletado** (89 → 0 arquivos, PR #5122); suas capacidades **movidas** (não fundidas) pra cá: identidade MCP + emissão de token (PR #5111), loop de handoff zero-paste (PR #5114), CC ingest (PR #5116), Admin do MCP (PR #5117), hub Equipe (PR #5118), cockpit `/forja` 6 abas (PR #5120).
   - Núcleo de registro do ADS — `ToolRegistry` + `UserScopeService` + `ProjectDecomposerService`/Agent (PRs #5131/#5132/#5134); URLs `/ads/admin/*` e permissions `ads.*` mantidas (ADR 0087).
 - **Tela nova desde a porta:** Triage (`TriageController` + `Triage/Index.tsx` + `TriageDossier.tsx`) — tasks órfãs com fluxo assign/aprovar/rejeitar/fundir; paridade da tool MCP `triage` (rotas em `Http/routes.php`).
+- **Mesa de Aprovações (2026-08-08):** `/forja/aprovacoes` (`AprovacoesController` + `ForjaAprovacoesService` + `Forja/Aprovacoes/Index.tsx`) — fila de `mcp_tasks` em `pending_approval` por ordem de espera, com admitir/parquear/recusar. É a **superfície** que a [ADR 0368](../../decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md) deixou pendente ao fechar a política ("o código vai em PR próprio"); estado, FSM e trava de recusa-sem-motivo já existiam (#5283/#5288). Escrita 100% via `TaskCrudService` — sem 2º caminho. US-FORJA-010.
 - **⚠️ Sobreposição conhecida (não resolvida):** as abas do cockpit `/forja` (triagem/backlog/quadro/changelog) sobrepõem Triage/Backlog/Board/Activity deste módulo — MOVIDO, não fundido; fundir = deletar uma implementação = decisão [W] (SCOPE §cockpit).
 
 ## Portas canônicas
@@ -59,6 +60,8 @@ Cockpit de trabalho do **time interno oimpresso** (Wagner + Felipe + Maiara + El
 ## Próxima ação verificável
 
 - **Decisão [W] pendente:** resolver a sobreposição cockpit `/forja` × telas nativas (Triage/Backlog/Board/Activity) — fundir = deletar uma implementação. Evidência de conclusão: uma das duas implementações removida + SCOPE §cockpit atualizado.
+  - ⚠️ **Medido 2026-08-08 — são TRÊS implementações, não duas.** Backlog existe em `Pages/Forja/Backlog/Index.tsx` (416 ln), `_components/ForjaBacklog.tsx` (207 ln) **e** `Pages/team-mcp/Tasks/Index.tsx` (647 ln); Quadro em `Board/Index.tsx` (529 ln, com casos) × `ForjaQuadro.tsx` (130 ln); Triagem em `Triage/Index.tsx` (471 ln, com casos) × `ForjaTriage.tsx` (210 ln). **As nativas são as ricas** — o cockpit é a versão enxuta, o que inverte a intuição de que fundir seria "levar tudo pro cockpit". Números via `wc -l`; re-conte em vez de confiar neste retrato.
+- **Dívida vizinha (PR próprio):** a procedure do Daily Brief calcula `hitl_pending` como `status='blocked' AND owner='wagner'` — o proxy que a [ADR 0368 §3](../../decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md) aposentou ao criar `pending_approval`. Logo o número do brief **não** é a fila da Mesa. Reconciliar exige migration de procedure + `ProcedureDriftSnapshotTest`.
 - **Rename Project (Fase 3.9, ADR 0079):** bloqueado por Fase 3.8 (delete `Modules/Project` legado). Evidência: `Modules/Project` removido + `git mv` executado.
 
 ## Regra de manutenção

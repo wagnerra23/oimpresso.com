@@ -687,6 +687,8 @@ return [
     'allow_selected_contacts' => 'Allow Selected Contacts',
     'allow_selected_contacts_tooltip' => 'Only allow access to selected contacts in sells/purchase customer/supplier search box',
     'allowed_contacts' => 'Allowed Contacts',
+    'edit_purchase_price' => 'Edit Purchase Price',
+    'edit_purchase_price_tooltip' => 'Permission to edit the purchase price in the purchase, stock transfer and stock adjustment screens. Controls the field on screen only — it is not a server-side barrier.',
     'view_purchase_price' => 'View Purchase Price',
     'view_purchase_price_tooltip' => 'Permission to view purchase price in product details, stock transfer and stock adjustment',    'created' => 'Created',
     'updated' => 'Updated',

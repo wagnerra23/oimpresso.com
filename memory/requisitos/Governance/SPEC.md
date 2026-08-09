@@ -1184,44 +1184,89 @@ Declaradas no `resources/views/role/{create,edit}.blade.php` — que é a fonte 
 
 **Confirmado que nenhuma virou "teatro"**: o detector segue reportando as três como *usadas* — declarar sem uso só trocaria um problema pelo outro.
 
-##### ⛔ NÃO aplicadas — 2 sob a regra-mestre VALOR/ESTOQUE, aguardando decisão [W]
+##### Sob a regra-mestre VALOR/ESTOQUE — 2 casos medidos e apresentados
 
-A regra manda **apresentar o impacto e só aplicar após confirmação**. Estão medidas e apresentadas; **nenhuma linha foi tocada**.
+A regra manda **apresentar o impacto e só aplicar após confirmação**. Foram medidos e apresentados sem tocar uma linha; **[W] delegou a escolha em 2026-08-08** (*"pode fazer escolha"*). O desfecho de cada um está abaixo, datado.
 
-**1. `edit_purchase_price`** — `PurchaseController` (2×), `StockAdjustmentController`, `StockTransferController`, sempre na forma `'edit_price' => $user->can('edit_purchase_price')`.
+> **Dupla confirmação exigida pela regra — os dois caminhos independentes** (2026-08-08):
+> **(A) código** — varredura contada dos consumidores e leitura dos gates; **(B) banco de PRODUÇÃO** — consulta direta com **controle positivo** (`total_permissions = 495`, que bate com a medição da classe D). Os dois concordam: **0 registros afetados** por qualquer das duas decisões.
+>
+> | permissão | existe em prod? | roles que a têm |
+> |---|---|---|
+> | `view_purchase_price` | ✅ sim | **9** |
+> | `stock_report.view` | ✅ sim | **9** |
+> | `edit_purchase_price` | ❌ **não** | 0 |
+> | `report.stock_details` | ❌ **não** | 0 |
+>
+> Declarar um checkbox **não concede** a ninguém (`default => false`; quem cria a linha em `permissions` é o `RoleController::__createPermissionIfNotExists`, a partir do checkbox marcado). Logo o antes→depois por registro afetado é o **conjunto vazio** — nenhum usuário muda de capacidade no deploy.
 
-| | hoje | se declarada |
+**1. `edit_purchase_price` — DECLARADA em 2026-08-08.** Consumidores: `PurchaseController` (2×), `StockAdjustmentController`, `StockTransferController`, sempre na forma `'edit_price' => $user->can('edit_purchase_price')`.
+
+| | antes | depois |
 |---|---|---|
 | Admin | campo de preço de compra **editável** (via `Gate::before`) | igual |
 | Não-admin **sem** a permissão | campo **readonly** | igual |
 | Não-admin **com** a permissão | não existe — ninguém pode receber | campo **editável** |
 
-É **flag de UI pura**: viaja como prop Inertia `permissions.edit_price` e só decide o `readonly` do input. **Não há enforcement server-side** — o `store()`/`update()` não re-checa a permissão, então o valor postado é aceito independentemente dela. Recomendo **declarar** (restaura a capacidade que o nome promete a um comprador não-admin) **e** registrar que o flag não é barreira de segurança — se a intenção é barrar de verdade, o gate precisa ir para o servidor, o que é decisão de desenho separada.
+É **flag de UI pura**: viaja como prop Inertia `permissions.edit_price` (4 telas React) e só decide o `readonly` do input. **Não há enforcement server-side** — `store()`/`update()` não re-checam a permissão, então o valor postado é aceito independentemente dela.
+
+**O fato que decidiu:** a irmã **`view_purchase_price` É declarada** — tem migration própria (`2019_05_25_104922_add_view_purchase_price_permission`), checkbox e tooltip nos dois blades, e **9 roles em produção**. O par ver/editar existe no desenho do upstream e **só a metade "ver" foi declarada** — é omissão acidental, não desenho. Declarar restaura a simetria.
+
+**Não amplia a superfície real de escrita de valor:** como o servidor já aceita qualquer preço postado, quem quisesse burlar já podia. O que muda é a superfície **legítima** na UI.
+
+**Registrado que não é barreira de segurança** (a outra metade da decisão), em dois lugares: comentário nos 4 consumidores e o próprio tooltip do checkbox (*"Controla apenas o campo na tela — não é barreira de servidor"*). Se a intenção for barrar de verdade, o gate precisa ir para o servidor — **decisão de desenho separada, não feita aqui**.
 
 **2. `report.stock_details`** — `ReportController::productStockDetails` (leitura) **e** `ReportController::adjustProductStock`, que chama `productUtil->fixVariationStockMisMatch(...)` — **escrita de estoque**.
 
 Uma permissão gateia os dois. Reaproveitar a irmã declarada `stock_report.view` seria **errado**: é permissão de leitura e passaria a autorizar ajuste de estoque — exatamente o "`access_*` é leitura, não autoriza deletar" que o método proíbe. Mas declarar `report.stock_details` como está tem o problema espelhado: o **nome diz relatório e o efeito inclui mutação de estoque** — vira armadilha para quem marcar o checkbox achando que concedeu leitura.
 
-As duas saídas, e nenhuma é minha para escolher:
+As duas saídas eram:
 
 - **(i)** declarar `report.stock_details` como está — 1 linha, preserva a semântica atual exata, e a armadilha do nome fica registrada;
 - **(ii)** separar: `report.stock_details` para a leitura e um nome explícito de mutação (ex.: `stock.adjust_mismatch`) para o `adjustProductStock`.
 
-Recomendo **(ii)** por ser o desenho correto, com a ressalva honesta de que ela mexe em quem pode mutar estoque e por isso pede o ciclo completo da regra-mestre (dupla confirmação + antes→depois por registro afetado). **Decisão [W].**
+**RESOLVIDO em 2026-08-08 — escolhida a (ii), com uma emenda que a torna delta-zero.**
+
+A (ii) crua ainda tinha um custo que a redação original não tinha isolado: **declarar `stock.adjust_mismatch` como checkbox tornaria concedível uma escrita de estoque** que (a) roda em **GET sem CSRF**, (b) **sobrescreve** o saldo em vez de movimentar e (c) **não deixa rastro no kardex** (`AR-PROD-064` exige origem + usuário em cada movimento) — os três já registrados como backlog em [`ajuste-estoque-relatorio.casos.md`](../Produto/_telas/ajuste-estoque-relatorio.casos.md). Ampliar quem pode chamar isso é exatamente o que a regra-mestre existe para impedir.
+
+**A emenda:** separar os nomes **sem declarar o de mutação**.
+
+| | antes | depois |
+|---|---|---|
+| `productStockDetails` (leitura) | gate `report.stock_details` — **não declarada** ⇒ só admin | gate `report.stock_details` — **declarada** ⇒ concedível a não-admin |
+| `adjustProductStock` (**escrita de estoque**) | gate `report.stock_details` ⇒ só admin | gate **`stock.adjust_mismatch`** — deliberadamente **não declarada** ⇒ **segue só admin** |
+
+**Antes → depois por registro afetado: conjunto vazio.** Medido em produção: **0 roles** possuíam `report.stock_details`, logo ninguém perde nem ganha nada no deploy. A mutação preserva a semântica **exata** de hoje (só admin, via `Gate::before`); o que muda é que a **leitura** deixa de ser refém do nome e pode ser concedida.
+
+**Onde `stock.adjust_mismatch` fica:** no grupo **"idioma `Gate::before`"** — o mesmo precedente que esta US já estabeleceu para `admin`/`only_admin`/`edit_essentials_settings`/`subscribe`: nome não declarado **de propósito**, com razão escrita, que o detector reporta por enxergar metade do mecanismo. A razão está no docblock do próprio método.
+
+**O que NÃO foi feito, e é dito de propósito:** a separação entrou **sem teste**. O caso que a provaria — *"quem tem `report.stock_details` não consegue reconciliar saldo"* — é o caso negativo que o `casos.md` já lista como pendente (exige fixture de user não-admin, pendência compartilhada com o trio do `BulkEdit`). Montá-la é trabalho novo, não parte da decisão. Enquanto não existir, o que segura a separação é o `permission-drift` reportando a órfã com razão escrita — **sinal, não gate**.
 
 ##### Contador e o que sobra
 
-**24 → 17** nesta rodada (−4 trocas, −3 declarações). A composição das 17:
+**24 → 17** na rodada de 2026-08-08 (−4 trocas, −3 declarações).
+
+**Re-medido em 2026-08-08** com o mesmo comando nas duas pontas da árvore desta sessão (`node scripts/governance/permission-drift.mjs`):
+
+| ponta | declaradas | órfãs |
+|---|---:|---:|
+| `origin/main` (base) | 367 | **16** |
+| base + `edit_purchase_price` declarada | 368 | **15** |
+| + separação `report.stock_details` / `stock.adjust_mismatch` | 369 | **15** |
+
+> A 3ª linha **não move o contador de propósito, e isso é o desenho, não um empate**: `report.stock_details` sai da lista (foi declarada) e `stock.adjust_mismatch` entra (não declarada de propósito). Conferido no detector que a leitura **não virou "teatro"** — ela segue *usada* pelo `productStockDetails`, então declarar não trocou um problema pelo outro.
+
+> O `17` acima é o **retrato de ontem** e fica como está (é história, não afirmação em presente). A base de hoje mede **16**: o `ponto.importacoes.criar` já não aparece na lista. **Não investiguei qual PR o tirou** — registro o fato medido, não a causa.
+
+Composição das **15**, conferida item a item contra a saída do detector:
 
 | grupo | n | estado |
 |---|---:|---|
-| scaffolding classe C (endpoint não ligado) | 7 | resíduo declarado, razão acima |
-| idioma `Gate::before` (`admin`, `only_admin`, `edit_essentials_settings`, `subscribe`) | 4 | resíduo declarado — declarar seria nocivo |
+| scaffolding classe C (endpoint não ligado) | 7 | `arquivos.restore` · `auditoria.{export,note.write,revert}` · `brief.{history.view,purge}` · `crm.proposal.delete` — resíduo declarado, razão acima |
+| idioma `Gate::before` | 5 | `admin` · `only_admin` · `edit_essentials_settings` · `subscribe` · **`stock.adjust_mismatch`** — resíduo declarado, declarar seria nocivo |
 | scaffolding classe D (`visit.*`) | 3 | resíduo declarado + achado de fail-open anexado |
-| `ponto.importacoes.criar` | 1 | PR separado, travado na lane vermelha do Ponto |
-| **VALOR/ESTOQUE aguardando [W]** | **2** | `edit_purchase_price` · `report.stock_details` |
 
-Ou seja: das 17, **15 têm razão escrita para ficar** e **2 aguardam decisão**. A classe D está triada.
+Ou seja: das 15, **as 15 têm razão escrita para ficar**. A classe D está triada e **as 2 pendências de [W] estão resolvidas** — não sobra órfã sem razão.
 
 ##### Achados adjacentes — registrados, não corrigidos (outro escopo)
 

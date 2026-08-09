@@ -259,7 +259,7 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
 > sairia de *"rota inexistente"* para *"algo deu errado"*: ganho funcional **zero**.
 > E fechar sozinho **custa caro**: o `visual-regression` (required) cobra contrato visreg porque
 > Page raiz tocada isolada vira `scope: targeted` (`reason: page-inertia`); a tela é **`POST`-only**
-> (1 rota, `web.php:442 (verificado@d4afe95)`, **zero** GET) e o harness navega por GET — o baseline seria um redirect,
+> (1 rota, `web.php:445 (verificado@9cddd08)`, **zero** GET) e o harness navega por GET — o baseline seria um redirect,
 > o *verde vazio* que o próprio canário existe pra impedir.
 > **Decisão: a linha viaja junto com o `UC-PBULK-05`.** Corrigir o payload toca
 > `ProductController@bulkUpdate` → o diff vira `scope: global` → o gate **deixa de cobrar contrato**

@@ -169,6 +169,37 @@ gh api --paginate "repos/:owner/:repo/commits/$S/check-runs?per_page=100" --jq '
 comm -23 <(sort -u /tmp/req.txt) /tmp/have.txt   # <- o que falta e nunca vai nascer
 ```
 
+### Depois do flip: regenerar os ÍNDICES DERIVADOS do baseline
+
+> **Origem: 2026-08-08, o flip de `Required always-run`.** Segui esta receita à risca —
+> snapshot → PUT aditivo → `protection-drift` **🟢** — e mesmo assim havia drift, **em outro
+> arquivo**: o `governance script tests` saiu vermelho no próprio PR do flip, no step
+> `Hooks manifest em dia`. O `protection-drift` compara **baseline ↔ vivo**; ele não sabe que
+> outros artefatos **derivam** do baseline.
+
+Alterar `governance/required-checks-baseline.json` deixa stale, no mesmo instante, todo índice
+gerado que **embute a contagem/lista de required**. Medido caso a caso após o flip 40→41:
+
+| artefato | derivado? | precisa ação manual? |
+|---|---|---|
+| `.claude/hooks/_HOOKS-INDEX.md` | **sim** — embute `Gates CI no baseline: **N** classic` + a lista | **SIM** — `node scripts/governance/hooks-manifest-generate.mjs --write` |
+| `PAINEL-SISTEMA.md` · `Jana/ARCHITECTURE.md` · `ONBOARDING-AGENTE-GERADO.md` | sim (`system-map.mjs`) | **não** — o job `schedule` regenera diário (medido `schedule/success`); ficar stale entre refreshes é o desenho |
+| `memory/reference/MAQUINAS-INVENTARIO.md` | não depende do baseline | não (medido `--check` rc=0 após o flip) |
+
+**No MESMO PR que reconcilia o baseline:**
+
+```bash
+node scripts/governance/hooks-manifest-generate.mjs --write
+node scripts/governance/hooks-manifest-generate.mjs --check   # rc=0 obrigatório
+```
+
+⚠️ **Armadilha de diagnóstico — o controle não pode conter o tratamento.** Ao investigar esse
+vermelho, rodei o `--check` em `origin/main` e concluí *"pré-existente, não é meu"*. **Errado:**
+o `main` já continha o merge do flip. O controle correto é o commit **anterior ao flip**
+(`<sha-do-flip>~1`), e aí o veredito inverte — `rc=0` antes, `rc=1` depois. Vale pra qualquer
+"isso já era assim?" logo após mergear: se o seu commit já está no `main`, `main` **não** é
+controle (família **LC-08**).
+
 ⚠️ **O `Governance Gate` vive em ruleset, não na proteção clássica.** Ler só
 `branches/main/protection` devolve **40** contexts e esconde o 41º — quem inventariar por ali
 conclui "não é required" e mergeia num deadlock. A fonte única segue sendo

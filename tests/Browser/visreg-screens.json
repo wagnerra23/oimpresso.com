@@ -102,5 +102,13 @@
     "route": "/products/unificado",
     "anchor": "Catálogo",
     "baseline": "it_Produto_Unificado_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Jana/Memoria",
+    "source": "Jana/Memoria",
+    "component": "Jana/Memoria",
+    "route": "/ia/memoria",
+    "anchor": "Memória da Jana",
+    "baseline": "it_Jana_Memoria_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
