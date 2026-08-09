@@ -228,8 +228,11 @@ it('UC-TRAB-10 — os filtros do atalho Gantt são de fato LIDOS pelo destino', 
     );
 
     foreach (TrabalhoService::FILTROS_ATALHO_GANTT as $filtro) {
-        expect($ganttSrc)->toContain(
-            "\$request->get('{$filtro}')",
+        // ⚠️ `toContain` é VARIÁDICO no Pest — passar a mensagem como 2º
+        // argumento faz ele procurar a FRASE no haystack, e o assert falha
+        // sempre (§5 proibicoes, 2026-07-28). Por isso a mensagem vai no
+        // `toBeTrue`, que a aceita de verdade.
+        expect(str_contains($ganttSrc, "\$request->get('{$filtro}')"))->toBeTrue(
             "O atalho manda `{$filtro}` mas o RoadmapGanttController não lê esse parâmetro — ".
             'o link levaria filtro que o destino ignora em silêncio. Tire da constante ou leia no destino.'
         );
