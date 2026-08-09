@@ -14,8 +14,8 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * Forja · smoke das 5 rotas GET de aba do cockpit (/forja, /backlog, /quadro,
- * /changelog, /mcp).
+ * Forja · smoke das 6 rotas GET de aba do cockpit (/forja, /backlog, /quadro,
+ * /changelog, /mcp, /handoffs).
  *
  * Cobertura:
  *   - UC-FORJA-01 — cada rota autenticada responde 200 e renderiza o componente
@@ -80,6 +80,8 @@ function forjaRotasAbas(): array
         '/forja/quadro'    => ['forja.quadro',    'quadro'],
         '/forja/changelog' => ['forja.changelog', 'changelog'],
         '/forja/mcp'       => ['forja.mcp',       'mcp'],
+        // 6ª aba desde 2026-08-08: handoffs saiu de DENTRO da aba MCP e virou tela.
+        '/forja/handoffs'  => ['forja.handoffs',  'handoffs'],
     ];
 }
 
@@ -265,11 +267,11 @@ it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado
 // meses apontando pra uma rota que nunca existiu (#4887). Testar o config contra
 // ele mesmo é que seria tautologia (§5 proibicoes.md, 2026-06-05).
 
-it('UC-FORJA-02 · topnav do hub tem 11 itens (7 Forja + 4 TeamMcp absorvidos)', function () {
+it('UC-FORJA-02 · topnav do hub tem 12 itens (8 Forja + 4 TeamMcp absorvidos)', function () {
     $items = config('core_topnavs.Forja.items');
 
     expect($items)->toBeArray();
-    expect($items)->toHaveCount(11,
+    expect($items)->toHaveCount(12,
         'Fusão de 2026-06-16: `config/core_topnavs.php[Forja]` é o ÚNICO grupo que casa '.
         '/team-mcp/* no useAutoModuleNav, então carrega as abas próprias MAIS as 4 telas '.
         'absorvidas (Tarefas · Equipe · CC Sessions · Saúde). Mudou a conta? O hub ganhou ou '.

@@ -134,6 +134,8 @@ return [
             ['label' => 'Tarefas',     'href' => '/team-mcp/tasks',       'icon' => 'ClipboardList', 'can' => 'jana.mcp.usage.all'],
 
             // — Esteira: a operação da máquina —
+            // Handoffs antes do MCP: dado vivo antes da vitrine do contrato.
+            ['label' => 'Handoffs',    'href' => '/forja/handoffs',       'icon' => 'Workflow',      'can' => 'jana.mcp.usage.all'],
             ['label' => 'MCP',         'href' => '/forja/mcp',            'icon' => 'ShieldCheck',   'can' => 'jana.mcp.usage.all'],
             ['label' => 'Equipe',      'href' => '/team-mcp/team',        'icon' => 'Users',         'can' => 'jana.mcp.usage.all'],
             ['label' => 'Saúde',       'href' => '/team-mcp/scorecard',   'icon' => 'Activity',      'can' => 'jana.mcp.usage.all'],

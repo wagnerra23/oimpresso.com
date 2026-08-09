@@ -341,6 +341,13 @@ Route::group(
         // é literal, então casa antes de qualquer wildcard.
         // FQCN obrigatório em rota nova (.claude/rules/routes.md) — as strings acima
         // são grandfather, não modelo a copiar.
+        // Handoffs — o loop de design Cowork→Code (F1→F3) como TELA, não mais como
+        // seção enterrada dentro da aba MCP (2026-08-08). Handoff é dado VIVO (com
+        // `stale` e conflito de gate); a aba MCP é vitrine MOCKADA do contrato.
+        // A projeção é a MESMA (ForjaMcpService) — nada de comportamento mudou.
+        Route::get('/handoffs', [\Modules\Forja\Http\Controllers\ForjaController::class, 'handoffs'])
+            ->name('forja.handoffs');
+
         Route::get('/aprovacoes', [\Modules\Forja\Http\Controllers\AprovacoesController::class, 'index'])
             ->name('forja.aprovacoes.index');
         Route::post('/aprovacoes/{taskId}/decidir', [\Modules\Forja\Http\Controllers\AprovacoesController::class, 'decidir'])
