@@ -122,6 +122,9 @@ return [
             // parado esperando decisão. SEM badge estático: contagem é prop deferida.
             ['label' => 'Aprovações',  'href' => '/forja/aprovacoes',     'icon' => 'Gavel',         'can' => 'jana.mcp.usage.all'],
             ['label' => 'Triagem',     'href' => '/forja',                'icon' => 'Inbox',         'can' => 'jana.mcp.usage.all', 'badge' => 3],
+            // Trabalho: a lista única que funde os 3 backlogs (US-FORJA-006).
+            // Convive com Backlog/Tarefas — nada deletado nesta onda.
+            ['label' => 'Trabalho',    'href' => '/forja/trabalho',       'icon' => 'ListChecks',    'can' => 'jana.mcp.usage.all'],
             ['label' => 'Backlog',     'href' => '/forja/backlog',        'icon' => 'List',          'can' => 'jana.mcp.usage.all'],
             ['label' => 'Quadro',      'href' => '/forja/quadro',         'icon' => 'KanbanSquare',  'can' => 'jana.mcp.usage.all'],
             // Roadmap (Gantt) — aba adicionada 2026-08-06 ([W]: "quero que registre").

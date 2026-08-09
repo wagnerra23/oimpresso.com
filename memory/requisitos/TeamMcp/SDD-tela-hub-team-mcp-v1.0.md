@@ -108,7 +108,7 @@ ingest de sessões Claude Code, e o cockpit do cowork loop (Forja).
 **Fusão 2026-06-16 (fato que explica a topologia):** o topnav próprio do TeamMcp
 (`Resources/menus/topnav.php`) foi **deletado**; `config/core_topnavs.php['Forja']` virou o
 **único** grupo que casa `/team-mcp/*` no `useAutoModuleNav`. Por isso `/forja` e `/team-mcp`
-são prefixos distintos com **navegação idêntica** — 12 itens (8 próprios + 4 absorvidos).
+são prefixos distintos com **navegação idêntica** — 13 itens (9 próprios + 4 absorvidos).
 
 **Vertical:** nenhuma. É módulo **interno do time** (`na_justified.D5` do SPEC): Wagner,
 Felipe, Maiara, Luiz, Eliana. O cliente piloto biz=4 (ROTA LIVRE) **não usa por design**.
@@ -372,7 +372,7 @@ required check vermelho/pendente; *então* aparece **`conflito ack×checks`**.
 #### CU-TEAM-12 — A navegação do hub é única e não tem item fantasma `[should]` 🧪
 *Dado* qualquer tela do hub; *quando* o topnav renderiza; *então* são **9** itens e **todo**
 `href` resolve pra uma rota registrada.
-1. `[should]` 12 itens: 8 próprios da Forja + 4 do TeamMcp absorvido
+1. `[should]` 13 itens: 9 próprios da Forja + 4 do TeamMcp absorvido
    (6º próprio = `Roadmap (Gantt)`, adicionado 2026-08-06 — ver UC-FORJA-02 no `Cockpit.casos.md`)
 2. `[must]` nenhum item aponta pra rota inexistente — é exatamente a classe do
    `forja.saude` fantasma → `UC-FORJA-02`
