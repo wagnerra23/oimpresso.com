@@ -29,7 +29,16 @@ O topnav vem de `config/core_topnavs.php['Forja']` via `useAutoModuleNav`. São 
 
 > **10 → 11 em 2026-08-08.** Entrou `Aprovações` (`/forja/aprovacoes`), a superfície do funil de admissão da [ADR 0368](../../../../memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md) — a fila de `mcp_tasks` em `pending_approval`. Vem **primeiro** na faixa de propósito: é o que está parado esperando decisão. Diferente do caso do Gantt acima, as **duas** superfícies foram preenchidas no mesmo PR (`core_topnavs.php` alimenta o shell; `FORJA_TABS` alimenta a faixa do hub, que é a que esta tela renderiza) e a Page monta `<ForjaHub>` — então não repetiu o "abriu sem faixa". `can` = `jana.mcp.usage.all`, igual às vizinhas, porque a ADR 0368 §4 proíbe permission de aprovação enquanto houver um único aprovador. Sem `badge` estático: a contagem é prop deferida viva.
 
-**Pronto quando:** os 11 itens aparecem no header, navegam e destacam o ativo por URL.
+> **11 chapados → 3 grupos em 2026-08-08.** A faixa passou a agrupar em **Trabalho** (Aprovações · Triagem · Backlog · Quadro · Roadmap · Tarefas) · **Esteira** (MCP · Equipe · Saúde) · **Histórico** (Changelog · CC Sessions). É **só apresentação**: nenhuma rota mudou, nenhum item saiu, e o `core_topnavs.php` segue chapado (o shell não desenha grupo) — só reordenado pra bater com a faixa. Cada item ganhou `hint` (tooltip); no par **Backlog × Tarefas** ele faz o mínimo enquanto a `US-FORJA-006` não decide: diz que um é *"issues do projeto FORJA"* e o outro *"todas as tasks do time"* — dois nomes parecidos com escopos diferentes, sem rótulo, é o que confunde.
+
+**Pronto quando:** os 11 itens aparecem no header sob os 3 rótulos, navegam e destacam o ativo por URL.
+
+## UC-FORJA-14 — As duas superfícies de navegação servem os mesmos destinos
+Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC. **Não é tautológico**: cruza `config/core_topnavs.php` — que alimenta o SHELL (`AppShellV2`) — contra `FORJA_TABS` do `ForjaHub.tsx` — que alimenta a FAIXA do hub, a que as telas sob `/forja/*` de fato renderizam. Arquivos distintos, linguagens distintas, mantidos à mão. Tem **guarda anti-falso-verde**: se o parse do `.tsx` não extrair href nenhum, o teste falha em vez de comparar duas listas vazias e passar.)
+
+Existe por um defeito **real**: em 2026-08-06 o Roadmap (Gantt) foi registrado só no config e abriu **sem faixa nenhuma** em produção — 10 itens em `shell.topnavs.Forja__core` e **zero** `.topnav-chip` no DOM. Foram 8 diagnósticos errados antes de alguém perguntar ao runtime (lápide §5 *"Navegação tem CINCO superfícies na Forja"*). Nada impedia que voltasse a divergir; agora impede.
+
+**Pronto quando:** as duas listas de `href` são iguais **e na mesma ordem**; item registrado em um só dos lados reprova, com a mensagem dizendo qual lado está faltando.
 
 ## UC-FORJA-03 — Entry "Forja" na sidebar
 Status: ⬜ (manual/visual)
