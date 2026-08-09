@@ -10,7 +10,7 @@
                 @forelse($metasPlataforma as $m)
                     <tr><td>{{ $m->nome }}</td><td>{{ $m->unidade }}</td><td>{{ $m->origem }}</td></tr>
                 @empty
-                    <tr><td colspan="3"><em>Nenhuma meta da plataforma ainda. Rode o seeder pra materializar R$ [redacted Tier 0]mi/ano.</em></td></tr>
+                    <tr><td colspan="3"><em>Nenhuma meta da plataforma cadastrada.</em></td></tr>
                 @endforelse
             </tbody></table>
         </div>

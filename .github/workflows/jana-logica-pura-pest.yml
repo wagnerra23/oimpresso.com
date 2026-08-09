@@ -70,6 +70,12 @@ on:
       # paths o teste do fix nasceria mudo (o serviço não dispara a lane dele).
       - 'Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php'
       - 'Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php'
+      # 2026-08-09 — onda 5 do pedido [CC] "verdade nos botões": as views de tela
+      # de /ia/* mostravam "STUB spec-ready" PRO CLIENTE. O teste varre o diretório
+      # (puro filesystem, sem DB) e falha se a string voltar. O `Resources/views/**`
+      # entra ao lado do teste — sem ele, mexer numa view não dispara o guarda dela.
+      - 'Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php'
+      - 'Modules/Jana/Resources/views/**'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
       - '.github/workflows/jana-logica-pura-pest.yml'
@@ -157,6 +163,7 @@ jobs:
             Modules/Jana/Tests/Unit/ModuleTruthEventCollectorTest.php \
             Modules/Jana/Tests/Unit/PiiRedactorTest.php \
             Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
+            Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php \
             Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php \
             Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php \
             --no-coverage \
