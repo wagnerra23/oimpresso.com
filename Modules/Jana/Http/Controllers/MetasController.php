@@ -8,6 +8,7 @@ use Modules\Jana\Entities\Meta;
 use Modules\Jana\Entities\MetaApuracao;
 use Modules\Jana\Http\Requests\StoreMetaRequest;
 use Modules\Jana\Http\Requests\UpdateMetaRequest;
+use Modules\Jana\Jobs\ApurarMetaJob;
 
 /**
  * STUB spec-ready: resource CRUD de metas. Lógica de filtros, permissões
@@ -73,13 +74,32 @@ class MetasController extends Controller
     }
 
     /**
-     * Força reapuração do range — apaga MetaApuracao do período e reexecuta driver.
-     * STUB: implementação real dispara ApurarMetaJob.
+     * Enfileira a reapuração da meta na data de hoje (US-COPI-031).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): quem garante o isolamento aqui é o
+     * `Meta::findOrFail` — `MetaApuracao` NÃO tem coluna `business_id` (o scope é
+     * indireto, via `meta_id`), então tocar apuração a partir do `$id` cru da URL
+     * vazaria entre tenants. Carregue a Meta pelo global scope ANTES de tudo.
+     *
+     * ⚠️ A outra metade do DoD da US-COPI-031 — "apaga MetaApuracao do range" —
+     * segue ABERTA, e não é esquecimento: a rota `POST /ia/metas/{id}/reapurar`
+     * não tem parâmetro de range. Apagar todas as apurações pra reexecutar só
+     * `now()` destruiria as 12 janelas que a US-COPI-011 exige na tela de detalhe.
+     * Como `ApuracaoService::apurar()` é idempotente por
+     * (`meta_id`, `data_ref`, `fonte_query_hash`), o dispatch abaixo já sobrescreve
+     * a apuração do dia — que é o caso de uso real (correção retroativa de venda).
+     * Reapurar um intervalo exige contrato de rota novo: decisão [W].
      */
     public function reapurar(Request $request, $id)
     {
-        // TODO: dispatch(new ApurarMetaJob(Meta::find($id), now()));
-        return redirect()->route('jana.metas.show', $id)
-            ->with('status', 'Reapuração agendada.');
+        $meta = Meta::findOrFail($id);
+
+        // businessId explícito: o worker da fila (CT 100) não tem `session()`, e o
+        // docblock do próprio Job pede que callers novos passem — defesa em
+        // profundidade contra scope drift entre o dispatch e a execução.
+        ApurarMetaJob::dispatch($meta, now(), (int) $meta->business_id);
+
+        return redirect()->route('jana.metas.show', $meta->id)
+            ->with('status', 'Reapuração enfileirada para hoje. O valor atualiza quando a fila processar.');
     }
 }

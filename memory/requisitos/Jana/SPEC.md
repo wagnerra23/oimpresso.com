@@ -125,7 +125,7 @@ related_adrs:
 - **DoD extra:** idempotente (mesma `data_ref` + `fonte_query_hash` não duplica); erro loga e alerta superadmin.
 
 #### US-COPI-031 · Forçar reapuração manual
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/MetasController.php` · verificado@dd3ed7c (2026-07-01) — rota viva POST /ia/metas/{id}/reapurar + método reapurar() existem, mas o dispatch do ApurarMetaJob está comentado (// TODO) — só redireciona com flash; apagar MetaApuracao do range + reexecutar driver ainda não plugado
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/MetasController.php` · `Modules/Jana/Jobs/ApurarMetaJob.php` (2026-08-09) — o `reapurar()` **despacha** o `ApurarMetaJob` com `businessId` explícito, carregando a Meta pelo global scope antes (é o `findOrFail` que isola: `MetaApuracao` não tem `business_id`, o scope é indireto via `meta_id`). Segue `_parcial_` pela metade "apaga MetaApuracao do range", que **não tem contrato**: a rota POST /ia/metas/{id}/reapurar não recebe range, e apagar tudo pra reexecutar só `now()` destruiria as 12 janelas que a US-COPI-011 exige no detalhe. Como `ApuracaoService::apurar()` é idempotente por (`meta_id`,`data_ref`,`fonte_query_hash`), o dispatch já sobrescreve a apuração do dia — que é o caso de uso real (correção retroativa de venda). Fechar o range exige rota nova: decisão [W]
 - **Rota:** `POST /copiloto/metas/{id}/reapurar`
 - **Controller:** `MetasController@reapurar`
 - **Como** gestor **quero** reapurar meta **para** casos de correção retroativa de venda.
@@ -155,7 +155,7 @@ related_adrs:
 - **DoD extra:** filtro por severidade, status (novo/visto/resolvido).
 
 #### US-COPI-061 · Configurar thresholds
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/AlertasController.php` · `Modules/Jana/Resources/views/alertas/config.blade.php` · verificado@dd3ed7c (2026-07-01) — config()/updateConfig() (via UpdateAlertasConfigRequest) + rotas vivas GET+PATCH em /ia/alertas/config; campos canal (email/in-app/WhatsApp) + frequência não confirmados como persistidos
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/AlertasController.php` · `Modules/Jana/Resources/views/alertas/config.blade.php` (2026-08-09) — `config()`/`updateConfig()` (via `UpdateAlertasConfigRequest`) + rotas vivas GET+PATCH em /ia/alertas/config. **A persistência NÃO existe** — e desde 2026-08-09 a tela também não finge que existe: o formulário está `disabled` com o motivo ao lado e a rota devolve *"nada foi alterado"* em vez de *"Configuração salva."* (onda 5 "verdade nos botões"). O FormRequest segue validando a whitelist de propósito, pro contrato de entrada não regredir. Gravar em `essentials_settings` + ligar no `AlertaService` é o que falta pra fechar esta US
 - **Rota:** `GET /copiloto/alertas/config` + `PATCH`
 - **Campos:** desvio % aceitável, canal (email, in-app, WhatsApp futuro), frequência.
 
