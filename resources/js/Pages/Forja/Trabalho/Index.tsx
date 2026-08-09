@@ -32,7 +32,8 @@ import { PRIORITY_BADGE, STATUS_BADGE, COLUMN_LABEL_PT, type Priority, type Stat
 import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
-import { Lock, Clock } from 'lucide-react';
+import { Lock, Clock, List as ListIcon, LayoutGrid } from 'lucide-react';
+import TrabalhoQuadro, { type EixoQuadro } from './_components/TrabalhoQuadro';
 
 interface Task {
   task_id: string;
@@ -74,6 +75,7 @@ const KPIS_VAZIO: Kpis = {
 interface Props {
   titulo: string;
   subtitle: string;
+  /** `visao` e `eixo` moram nos filtros — assim a URL carrega a vista inteira. */
   filtros: Record<string, unknown>;
   sorts: string[];
   statuses: string[];
@@ -99,6 +101,8 @@ export default function Trabalho({
 }: Props) {
   const [busca, setBusca] = useState(String(filtros.q ?? ''));
   const ordem = String(filtros.sort ?? 'rank');
+  const visao = String(filtros.visao ?? 'lista');
+  const eixo = String(filtros.eixo ?? 'execucao') as EixoQuadro;
 
   /** Recarrega só o que muda — o cabeçalho e os filtros ficam. */
   const aplicar = useCallback((patch: Record<string, string>) => {
@@ -140,6 +144,48 @@ export default function Trabalho({
         </KpiGrid>
 
         <Inline gap={2} align="center" wrap>
+          {/* Sub-visões da MESMA lista — não são telas diferentes: o pool, os
+              filtros e a busca são os mesmos; só muda como se olha. */}
+          <Inline gap={1} align="center">
+            <button
+              type="button" onClick={() => aplicar({ visao: 'lista' })}
+              aria-pressed={visao === 'lista'} data-testid="trabalho-visao-lista"
+              className={cn('inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors',
+                visao === 'lista' ? 'border-primary bg-primary/10 text-primary'
+                                  : 'border-border text-muted-foreground hover:text-foreground')}
+            >
+              <ListIcon className="h-3 w-3" aria-hidden /> Lista
+            </button>
+            <button
+              type="button" onClick={() => aplicar({ visao: 'quadro' })}
+              aria-pressed={visao === 'quadro'} data-testid="trabalho-visao-quadro"
+              className={cn('inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors',
+                visao === 'quadro' ? 'border-primary bg-primary/10 text-primary'
+                                   : 'border-border text-muted-foreground hover:text-foreground')}
+            >
+              <LayoutGrid className="h-3 w-3" aria-hidden /> Quadro
+            </button>
+          </Inline>
+
+          {visao === 'quadro' && (
+            <Inline gap={1} align="center">
+              {(['execucao', 'pipeline'] as EixoQuadro[]).map((e) => (
+                <button
+                  key={e} type="button" onClick={() => aplicar({ eixo: e })}
+                  aria-pressed={eixo === e} data-testid={`trabalho-eixo-${e}`}
+                  title={e === 'execucao'
+                    ? 'O que está andando — vale pra toda task'
+                    : 'Em que ponto do protocolo de tela — só trabalho de tela tem fase'}
+                  className={cn('rounded-md border px-2 py-1 text-xs transition-colors',
+                    eixo === e ? 'border-primary bg-primary/10 text-primary'
+                               : 'border-border text-muted-foreground hover:text-foreground')}
+                >
+                  {e === 'execucao' ? 'Execução' : 'Pipeline F0→F3.5'}
+                </button>
+              ))}
+            </Inline>
+          )}
+
           <form onSubmit={submeterBusca}>
             <Input
               value={busca}
@@ -150,7 +196,9 @@ export default function Trabalho({
             />
           </form>
 
-          {/* Ordenação como segmentos, não <select> nativo (ds/no-native-select). */}
+          {/* Ordenação como segmentos, não <select> nativo (ds/no-native-select).
+              Só na Lista: no Quadro quem ordena é a coluna. */}
+          {visao === 'lista' && (
           <Inline gap={1} align="center">
             {sorts.map((s) => (
               <button
@@ -170,12 +218,17 @@ export default function Trabalho({
               </button>
             ))}
           </Inline>
+          )}
 
           <span className="ml-auto text-xs text-muted-foreground tabular-nums" data-testid="trabalho-total">
             {kpis.total} task{kpis.total === 1 ? '' : 's'}
             {kpis.sem_dono > 0 && ` · ${kpis.sem_dono} sem dono`}
           </span>
         </Inline>
+
+        {visao === 'quadro' && tasks.length > 0 && (
+          <TrabalhoQuadro tasks={tasks} eixo={eixo} />
+        )}
 
         {tasks.length === 0 && (
           <Card data-testid="trabalho-vazio">
@@ -188,7 +241,7 @@ export default function Trabalho({
           </Card>
         )}
 
-        {grupos.map(([frente, itens]) => (
+        {visao === 'lista' && grupos.map(([frente, itens]) => (
           <Stack gap={2} key={frente}>
             <Inline gap={2} align="baseline">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

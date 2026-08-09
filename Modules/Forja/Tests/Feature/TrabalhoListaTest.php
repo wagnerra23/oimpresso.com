@@ -159,3 +159,53 @@ it('UC-TRAB-06 — a task carrega os campos das TRÊS origens que foram fundidas
     // do TEAM-MCP (a lista mistura projetos, então a frente importa)
     expect($item)->toHaveKey('frente_id');
 });
+
+it('UC-TRAB-07 — as fases do quadro batem com o dono do pipeline (backend)', function () {
+    // O `TrabalhoQuadro.tsx` ESPELHA as fases do `ForjaQuadroService` — é a única
+    // forma de o front desenhar as colunas sem um roundtrip só pra isso. Espelho
+    // sem trava vira duas declarações do pipeline que divergem na 1ª mudança.
+    // Este caso cruza as DUAS fontes (PHP × TSX), como o UC-FORJA-14 faz com a nav.
+    $php = file_get_contents(base_path('Modules/Forja/Services/ForjaQuadroService.php'));
+    preg_match_all("/'key'\s*=>\s*'([^']+)'/", $php, $mPhp);
+
+    $tsx = file_get_contents(base_path('resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx'));
+    $ini = strpos($tsx, 'const FASES');
+    expect($ini)->not->toBeFalse('FASES sumiu do TrabalhoQuadro — o espelho mudou de forma.');
+    $bloco = substr($tsx, $ini, strpos($tsx, '];', $ini) - $ini);
+    preg_match_all("/key:\s*'([^']+)'/", $bloco, $mTsx);
+
+    // Guarda anti-falso-verde: dois vazios seriam "iguais".
+    expect(count($mPhp[1] ?? []))->toBeGreaterThan(0, 'Nenhuma fase extraída do ForjaQuadroService.');
+    expect(count($mTsx[1] ?? []))->toBeGreaterThan(0, 'Nenhuma fase extraída do TrabalhoQuadro.');
+
+    expect($mTsx[1])->toBe($mPhp[1],
+        "As fases do pipeline divergiram.
+".
+        '  backend (ForjaQuadroService): '.implode(' · ', $mPhp[1])."
+".
+        '  front   (TrabalhoQuadro)    : '.implode(' · ', $mTsx[1])."
+".
+        'Mudou a fase num lado? Mude no outro — senão o board desenha coluna que o dado não preenche.'
+    );
+});
+
+it('UC-TRAB-08 — visao e eixo têm default e allowlist', function () {
+    // Mesma razão do `sort`: valor livre viraria estado desconhecido no front,
+    // que renderiza vazio SEM erro. O default é o que a tela abre.
+    $f = TrabalhoService::filtrosPadrao();
+    expect($f['visao'])->toBe('lista');
+    expect($f['eixo'])->toBe('execucao');
+});
+
+it('UC-TRAB-09 — trocar de visão NÃO refaz a query (mesma chave de cache)', function () {
+    trabalhoExigeSchema();
+    trabalhoTask('VISAO', null);
+
+    $svc = app(TrabalhoService::class);
+    $lista  = $svc->build(array_merge(TrabalhoService::filtrosPadrao(), ['visao' => 'lista']));
+    $quadro = $svc->build(array_merge(TrabalhoService::filtrosPadrao(), ['visao' => 'quadro', 'eixo' => 'pipeline']));
+
+    // Mesma instância de Collection = veio do cache. Se `visao`/`eixo` entrarem na
+    // chave, alternar a vista refaz a consulta inteira por nada.
+    expect($lista['tasks'])->toBe($quadro['tasks']);
+});

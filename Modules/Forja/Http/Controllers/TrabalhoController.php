@@ -75,8 +75,16 @@ class TrabalhoController extends Controller
     private function filtrosDaRequest(Request $request): array
     {
         $sort = (string) $request->get('sort', 'rank');
+        // `visao`/`eixo` viajam nos filtros pra que a URL carregue a vista inteira
+        // (compartilhar link leva a mesma coisa que se está vendo). Ambos com
+        // allowlist pela mesma razão do `sort`: valor livre viraria estado
+        // desconhecido no front, que renderiza vazio sem erro.
+        $visao = (string) $request->get('visao', 'lista');
+        $eixo  = (string) $request->get('eixo', 'execucao');
 
         return array_merge(TrabalhoService::filtrosPadrao(), [
+            'visao'    => in_array($visao, ['lista', 'quadro'], true) ? $visao : 'lista',
+            'eixo'     => in_array($eixo, ['execucao', 'pipeline'], true) ? $eixo : 'execucao',
             'status'   => $request->get('status'),
             'priority' => $request->get('priority'),
             'owner'    => $request->get('owner'),
