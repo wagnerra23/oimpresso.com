@@ -12,7 +12,7 @@ module: Essentials
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Essentials --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Essentials/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Essentials/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 275 arquivos em 15 papéis.
 
@@ -143,7 +143,29 @@ module: Essentials
 
 ## Views (Blade) — 87
 
-- 87 arquivos em [Modules/Essentials/Resources/views/allowance_deduction/](../../../Modules/Essentials/Resources/views/allowance_deduction) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 1 em [Modules/Essentials/Resources/views/](../../../Modules/Essentials/Resources/views)
+- 2 em [Modules/Essentials/Resources/views/allowance_deduction/](../../../Modules/Essentials/Resources/views/allowance_deduction)
+- 14 em [Modules/Essentials/Resources/views/attendance/](../../../Modules/Essentials/Resources/views/attendance)
+- 3 em [Modules/Essentials/Resources/views/dashboard/](../../../Modules/Essentials/Resources/views/dashboard)
+- 2 em [Modules/Essentials/Resources/views/document/](../../../Modules/Essentials/Resources/views/document)
+- 1 em [Modules/Essentials/Resources/views/document_share/](../../../Modules/Essentials/Resources/views/document_share)
+- 3 em [Modules/Essentials/Resources/views/holiday/](../../../Modules/Essentials/Resources/views/holiday)
+- 5 em [Modules/Essentials/Resources/views/knowledge_base/](../../../Modules/Essentials/Resources/views/knowledge_base)
+- 3 em [Modules/Essentials/Resources/views/layouts/](../../../Modules/Essentials/Resources/views/layouts)
+- 4 em [Modules/Essentials/Resources/views/layouts/partials/](../../../Modules/Essentials/Resources/views/layouts/partials)
+- 5 em [Modules/Essentials/Resources/views/leave/](../../../Modules/Essentials/Resources/views/leave)
+- 3 em [Modules/Essentials/Resources/views/leave_type/](../../../Modules/Essentials/Resources/views/leave_type)
+- 1 em [Modules/Essentials/Resources/views/memos/](../../../Modules/Essentials/Resources/views/memos)
+- 3 em [Modules/Essentials/Resources/views/messages/](../../../Modules/Essentials/Resources/views/messages)
+- 2 em [Modules/Essentials/Resources/views/partials/](../../../Modules/Essentials/Resources/views/partials)
+- 12 em [Modules/Essentials/Resources/views/payroll/](../../../Modules/Essentials/Resources/views/payroll)
+- 2 em [Modules/Essentials/Resources/views/payroll/partials/](../../../Modules/Essentials/Resources/views/payroll/partials)
+- 3 em [Modules/Essentials/Resources/views/reminder/](../../../Modules/Essentials/Resources/views/reminder)
+- 2 em [Modules/Essentials/Resources/views/sales_targets/](../../../Modules/Essentials/Resources/views/sales_targets)
+- 1 em [Modules/Essentials/Resources/views/settings/](../../../Modules/Essentials/Resources/views/settings)
+- 6 em [Modules/Essentials/Resources/views/settings/partials/](../../../Modules/Essentials/Resources/views/settings/partials)
+- 9 em [Modules/Essentials/Resources/views/todo/](../../../Modules/Essentials/Resources/views/todo)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Telas (Inertia/React) — 13
 
@@ -179,7 +201,8 @@ module: Essentials
 
 ## Testes (Pest) — 15
 
-- 15 arquivos em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 15 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 52
 

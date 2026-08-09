@@ -12,7 +12,7 @@ module: Officeimpresso
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Officeimpresso --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Officeimpresso/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Officeimpresso/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 108 arquivos em 15 papéis.
 
@@ -95,11 +95,21 @@ module: Officeimpresso
 
 ## Views (Blade) — 18
 
-- 18 arquivos em [Modules/Officeimpresso/Resources/views/catalogue/](../../../Modules/Officeimpresso/Resources/views/catalogue) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 1 em [Modules/Officeimpresso/Resources/views/](../../../Modules/Officeimpresso/Resources/views)
+- 3 em [Modules/Officeimpresso/Resources/views/catalogue/](../../../Modules/Officeimpresso/Resources/views/catalogue)
+- 3 em [Modules/Officeimpresso/Resources/views/catalogue/partials/](../../../Modules/Officeimpresso/Resources/views/catalogue/partials)
+- 1 em [Modules/Officeimpresso/Resources/views/clients/](../../../Modules/Officeimpresso/Resources/views/clients)
+- 2 em [Modules/Officeimpresso/Resources/views/layouts/](../../../Modules/Officeimpresso/Resources/views/layouts)
+- 1 em [Modules/Officeimpresso/Resources/views/layouts/partials/](../../../Modules/Officeimpresso/Resources/views/layouts/partials)
+- 4 em [Modules/Officeimpresso/Resources/views/licenca_computador/](../../../Modules/Officeimpresso/Resources/views/licenca_computador)
+- 2 em [Modules/Officeimpresso/Resources/views/licenca_log/](../../../Modules/Officeimpresso/Resources/views/licenca_log)
+- 1 em [Modules/Officeimpresso/Resources/views/licencas_log/](../../../Modules/Officeimpresso/Resources/views/licencas_log)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Testes (Pest) — 14
 
-- 14 arquivos em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 14 em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 35
 

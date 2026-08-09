@@ -12,7 +12,7 @@ module: RecurringBilling
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs RecurringBilling --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/RecurringBilling/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/RecurringBilling/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 174 arquivos em 20 papéis.
 
@@ -125,7 +125,9 @@ module: RecurringBilling
 
 ## Views (Blade) — 2
 
-- 2 arquivos em [Modules/RecurringBilling/Resources/views/](../../../Modules/RecurringBilling/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 1 em [Modules/RecurringBilling/Resources/views/](../../../Modules/RecurringBilling/Resources/views)
+- 1 em [Modules/RecurringBilling/Resources/views/layouts/](../../../Modules/RecurringBilling/Resources/views/layouts)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Telas (Inertia/React) — 6
 
@@ -166,7 +168,8 @@ module: RecurringBilling
 
 ## Testes (Pest) — 40
 
-- 40 arquivos em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 40 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 39
 

@@ -12,7 +12,7 @@ module: ProductCatalogue
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs ProductCatalogue --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/ProductCatalogue/**` + `resources/js/Pages/ProductCatalogue/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ProductCatalogue/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/ProductCatalogue/**` + `resources/js/Pages/ProductCatalogue/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ProductCatalogue/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 59 arquivos em 12 papéis.
 
@@ -64,11 +64,16 @@ module: ProductCatalogue
 
 ## Views (Blade) — 8
 
-- 8 arquivos em [Modules/ProductCatalogue/Resources/views/catalogue/](../../../Modules/ProductCatalogue/Resources/views/catalogue) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 1 em [Modules/ProductCatalogue/Resources/views/](../../../Modules/ProductCatalogue/Resources/views)
+- 3 em [Modules/ProductCatalogue/Resources/views/catalogue/](../../../Modules/ProductCatalogue/Resources/views/catalogue)
+- 3 em [Modules/ProductCatalogue/Resources/views/catalogue/partials/](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials)
+- 1 em [Modules/ProductCatalogue/Resources/views/layouts/](../../../Modules/ProductCatalogue/Resources/views/layouts)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Testes (Pest) — 7
 
-- 7 arquivos em [Modules/ProductCatalogue/Tests/Feature/](../../../Modules/ProductCatalogue/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 7 em [Modules/ProductCatalogue/Tests/Feature/](../../../Modules/ProductCatalogue/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 25
 

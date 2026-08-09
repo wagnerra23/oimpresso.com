@@ -12,7 +12,7 @@ module: Cms
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Cms --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Cms/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Cms/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 139 arquivos em 13 papéis.
 
@@ -83,11 +83,26 @@ module: Cms
 
 ## Views (Blade) — 45
 
-- 45 arquivos em [Modules/Cms/Resources/views/components/chat_widget/](../../../Modules/Cms/Resources/views/components/chat_widget) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 1 em [Modules/Cms/Resources/views/components/chat_widget/](../../../Modules/Cms/Resources/views/components/chat_widget)
+- 8 em [Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors)
+- 1 em [Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-style/](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-style)
+- 1 em [Modules/Cms/Resources/views/components/chat_widget/js/](../../../Modules/Cms/Resources/views/components/chat_widget/js)
+- 2 em [Modules/Cms/Resources/views/frontend/blogs/](../../../Modules/Cms/Resources/views/frontend/blogs)
+- 5 em [Modules/Cms/Resources/views/frontend/layouts/](../../../Modules/Cms/Resources/views/frontend/layouts)
+- 3 em [Modules/Cms/Resources/views/frontend/pages/](../../../Modules/Cms/Resources/views/frontend/pages)
+- 6 em [Modules/Cms/Resources/views/frontend/pages/partials/](../../../Modules/Cms/Resources/views/frontend/pages/partials)
+- 1 em [Modules/Cms/Resources/views/layouts/](../../../Modules/Cms/Resources/views/layouts)
+- 4 em [Modules/Cms/Resources/views/page/](../../../Modules/Cms/Resources/views/page)
+- 2 em [Modules/Cms/Resources/views/page/partials/](../../../Modules/Cms/Resources/views/page/partials)
+- 2 em [Modules/Cms/Resources/views/page/seo/](../../../Modules/Cms/Resources/views/page/seo)
+- 1 em [Modules/Cms/Resources/views/settings/](../../../Modules/Cms/Resources/views/settings)
+- 8 em [Modules/Cms/Resources/views/settings/partials/](../../../Modules/Cms/Resources/views/settings/partials)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Testes (Pest) — 17
 
-- 17 arquivos em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 17 em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 42
 
