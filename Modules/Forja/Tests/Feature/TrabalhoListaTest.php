@@ -209,3 +209,33 @@ it('UC-TRAB-09 — trocar de visão NÃO refaz a query (mesma chave de cache)', 
     // chave, alternar a vista refaz a consulta inteira por nada.
     expect($lista['tasks'])->toBe($quadro['tasks']);
 });
+
+it('UC-TRAB-10 — os filtros do atalho Gantt são de fato LIDOS pelo destino', function () {
+    // O botão "Gantt" leva os filtros de `/forja/trabalho` para
+    // `/forja/roadmap-gantt`. Se o destino parar de ler um deles, o link segue
+    // funcionando e o parâmetro é IGNORADO EM SILÊNCIO — a pessoa vê a lista
+    // "não filtrar" e não tem como saber por quê. É o pior tipo de defeito:
+    // não dá erro, não dá 500, só mente.
+    //
+    // Este caso cruza a constante com o controller de lá. Note o que ele NÃO
+    // aceita: `status` aparece no PAYLOAD DE SAÍDA do Gantt (ele serializa o
+    // campo), mas não é filtro de ENTRADA — confundir os dois foi o erro que
+    // esta trava existe pra impedir.
+    $ganttSrc = file_get_contents(base_path('Modules/Forja/Http/Controllers/RoadmapGanttController.php'));
+
+    expect(TrabalhoService::FILTROS_ATALHO_GANTT)->not->toBeEmpty(
+        'Lista vazia passaria neste caso sem provar nada.'
+    );
+
+    foreach (TrabalhoService::FILTROS_ATALHO_GANTT as $filtro) {
+        expect($ganttSrc)->toContain(
+            "\$request->get('{$filtro}')",
+            "O atalho manda `{$filtro}` mas o RoadmapGanttController não lê esse parâmetro — ".
+            'o link levaria filtro que o destino ignora em silêncio. Tire da constante ou leia no destino.'
+        );
+    }
+
+    // Controle negativo: `status` NÃO pode entrar na lista enquanto o Gantt não
+    // o ler. Sem este assert, alguém adicionaria "porque o Gantt tem status".
+    expect(TrabalhoService::FILTROS_ATALHO_GANTT)->not->toContain('status');
+});
