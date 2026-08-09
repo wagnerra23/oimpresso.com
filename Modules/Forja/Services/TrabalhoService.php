@@ -85,6 +85,10 @@ class TrabalhoService
             'sprint'   => null,
             'q'        => '',
             'sort'     => 'rank',
+            // Sub-visão da MESMA lista (não são telas distintas — mesmo pool,
+            // mesmos filtros). Ficam nos filtros pra viajar na URL.
+            'visao'    => 'lista',
+            'eixo'     => 'execucao',
         ];
     }
 
@@ -100,7 +104,12 @@ class TrabalhoService
     {
         $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — mcp_tasks é repo-wide (ADR 0070/0093), sem tenant por design
 
-        $chave = md5(serialize($filtros));
+        // A chave IGNORA `visao`/`eixo`: eles mudam como se OLHA, não o que se
+        // consulta. Sem isto, alternar Lista↔Quadro refaria a query inteira por
+        // nada — o pool é o mesmo, e é justamente esse o ponto da fusão.
+        $paraChave = $filtros;
+        unset($paraChave['visao'], $paraChave['eixo']);
+        $chave = md5(serialize($paraChave));
         if (isset($this->cache[$chave])) {
             return $this->cache[$chave];
         }

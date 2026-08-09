@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Forja/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 210 arquivos em 15 papéis.
+**Total mapeado:** 211 arquivos em 15 papéis.
 
 ## Controllers — 26
 
@@ -158,9 +158,10 @@ module: Forja
 - [Index.tsx](../../../resources/js/Pages/Forja/Trabalho/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Forja/Triage/Index.tsx)
 
-## Componentes / apoio de tela — 2
+## Componentes / apoio de tela — 3
 
 - [ShortcutsOverlay.tsx](../../../resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx)
+- [TrabalhoQuadro.tsx](../../../resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx)
 - [TriageDossier.tsx](../../../resources/js/Pages/Forja/Triage/_components/TriageDossier.tsx)
 
 ## Charters (lei da tela) — 12

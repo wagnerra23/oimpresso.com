@@ -47,12 +47,27 @@ Status: 🧪 (1 teste cita este UC — confere um campo de cada origem no mesmo 
 A fusão só é fusão se o payload for a união: os campos da nativa (`display_id`/`priority`/`is_overdue`…), a projeção `forja_*` do cockpit, e `frente_id` do team-mcp (que só faz sentido quando a lista mistura projetos).
 **Pronto quando:** o mesmo item traz `display_id` (nativa), `forja_fase` (cockpit) e `frente_id` (team-mcp).
 
+## UC-TRAB-07 — As fases do Quadro batem com o dono do pipeline (backend)
+Status: 🧪 (1 teste cita este UC — cruza `ForjaQuadroService.php` × `TrabalhoQuadro.tsx`, com guarda anti-falso-verde: dois vazios seriam "iguais".)
+O front **espelha** as fases porque desenhar colunas não vale um roundtrip. Espelho sem trava vira duas declarações do pipeline que divergem na 1ª mudança — e o board passa a desenhar coluna que o dado não preenche. Mesma forma do `UC-FORJA-14`, que trava as duas superfícies de navegação.
+**Pronto quando:** as chaves de fase dos dois arquivos são idênticas, na mesma ordem.
+
+## UC-TRAB-08 — `visao` e `eixo` têm default e allowlist
+Status: 🧪 (1 teste cita este UC — trava os defaults.)
+Mesma razão do `sort`: valor livre viraria estado desconhecido no front, que renderiza **vazio sem erro**. A tela abre em Lista/Execução.
+**Pronto quando:** `visao=lista` e `eixo=execucao` são os defaults, e valor fora da lista cai neles.
+
+## UC-TRAB-09 — Trocar de visão NÃO refaz a query
+Status: 🧪 (1 teste cita este UC — mesma instância de Collection nas duas visões.)
+Lista e Quadro são a **mesma** consulta olhada de dois jeitos. Se `visao`/`eixo` entrarem na chave do cache, cada toggle paga uma query inteira — em silêncio, porque o resultado é idêntico.
+**Pronto quando:** `build()` com `visao=lista` e com `visao=quadro` devolve a mesma Collection.
+
 ---
 
 ## [BACKLOG] — declarado no charter, ainda sem teste que o defenda
 
 - [BACKLOG] Agrupamento visual por Frente na tela (o service devolve `frente_id` + o mapa; quem agrupa é o `.tsx`, e isso é comportamento de UI sem E2E ainda).
 - [BACKLOG] Eixo de ordenação `execucao` (o que está andando primeiro) — existe no service, sem caso que o exercite.
-- [BACKLOG] Quadro unificado com os 2 eixos (Pipeline F0→F3.5 × Execução) — onda 6c.
 - [BACKLOG] Gantt como 3ª sub-visão — onda 7.
+- [BACKLOG] Arrastar card no Quadro pra mudar status — exige endpoint de mutação pelo `TaskCrudService` (FSM validado); sem ele seria um 2º caminho de escrita.
 - [BACKLOG] Rank híbrido com pin persistido — depende de user-pref gravada; fora desta onda por decisão de escopo.
