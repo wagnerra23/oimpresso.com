@@ -733,6 +733,16 @@ export function renderBriefMd(r, idadeDias) {
     L.push('> ⚠️ **FONTE TRUNCADA** — o fetch bateu no cap de PRs; o universo não cobre a janela inteira, então o resíduo abaixo está inflado por artefato (PR ausente = sessão sem dono).');
     L.push('');
   }
+  // 2026-08-08: este aviso existia SÓ no renderHuman (terminal). O brief — o artefato que
+  // alguém de fato lê — mostrava a data dos preços mas NÃO nomeava o modelo sem preço, então
+  // um modelo ausente da tabela deixava o dinheiro a zero em silêncio pra quem lê o relatório.
+  // Foi assim que `claude-opus-5` (o modelo que faz o trabalho) ficou 21 dias sem preço com a
+  // fila de indexação já nomeando o conserto. O sinal existia e não chegava ao leitor.
+  // Vai ACIMA da tabela pelo mesmo motivo que a FONTE TRUNCADA (alerta em rodapé não é lido).
+  if (r.join.modelos_desconhecidos && r.join.modelos_desconhecidos.length) {
+    L.push(`> ⚠️ **MODELO SEM PREÇO** — \`${r.join.modelos_desconhecidos.join('`, `')}\` não está em \`PRECOS_USD_MTOK\`, então os tokens dele contam mas o USD sai **incompleto** (nunca inventado). Os valores abaixo estão SUBESTIMADOS. Conserto: somar o modelo à tabela em \`scripts/governance/agent-cost-per-pr.mjs\`.`);
+    L.push('');
+  }
   L.push('| Métrica | Valor | Leitura |');
   L.push('|---|---|---|');
   L.push(`| **Cobertura de alocação** | **${r.custo.cobertura_alocacao_pct ?? 'n/d'}%** | ${usd(r.custo.total_usd_atribuido)} de ${usd(r.custo.total_usd_escaneado)} tem dono (FinOps: crawl=50%) |`);

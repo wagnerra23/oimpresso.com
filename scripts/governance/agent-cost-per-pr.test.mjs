@@ -105,6 +105,23 @@ check('DECLARA: #11 sem sinal → sem match (não inventa custo)', pr11 && pr11.
 check('sem_match_pct = 25% publicado', r.join.sem_match === 1 && r.join.sem_match_pct === 25);
 check('join separa sinais: 1 por branch, 2 por citação', r.join.matched_por_branch === 1 && r.join.matched_por_citacao === 2);
 check('modelo desconhecido listado', r.join.modelos_desconhecidos.includes('claude-foo-9'));
+// O DADO já trazia modelos_desconhecidos e o renderHuman (terminal) já avisava — mas o BRIEF,
+// que é o artefato que alguém lê, só mostrava a DATA dos preços, nunca QUAL modelo faltava.
+// Foi por essa fresta que `claude-opus-5` passou 21 dias sem preço zerando toda medição de
+// dinheiro, com a fila de indexação já nomeando o conserto. Sinal que não chega ao leitor não
+// é sinal. Os 3 asserts cobrem os 3 eixos: morde, posiciona, e LIBERA.
+check('BITE: brief nomeia o modelo sem preço (não só a data da tabela)', (() => {
+  const md = renderBriefMd(r, 0);
+  return md.includes('MODELO SEM PREÇO') && md.includes('claude-foo-9') && md.includes('SUBESTIMADOS');
+})());
+check('BITE: o aviso de modelo sem preço vem ACIMA da tabela (rodapé não é lido)', (() => {
+  const md = renderBriefMd(r, 0);
+  return md.indexOf('MODELO SEM PREÇO') > -1 && md.indexOf('MODELO SEM PREÇO') < md.indexOf('| Métrica |');
+})());
+check('CONTROLE NEGATIVO: todo modelo com preço => brief SEM o aviso (não vira ruído fixo)', (() => {
+  const limpo = buildReport({ prs: PRS, sessions: [], generated: '2026-07-12' });
+  return limpo.join.modelos_desconhecidos.length === 0 && !renderBriefMd(limpo, 0).includes('MODELO SEM PREÇO');
+})());
 check('LIBERA: sessão sem sinal vira resíduo ($1.00)', r.residuo.usd === 1);
 check('msgs sem branch contadas, não atribuídas', r.join.msgs_sem_branch === 1);
 check('total atribuído = 14+2+2 = $18.00', r.custo.total_usd_atribuido === 18);
