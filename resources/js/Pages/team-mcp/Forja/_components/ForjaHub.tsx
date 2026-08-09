@@ -8,7 +8,7 @@
 
 import { Fragment } from 'react';
 import { Link } from '@inertiajs/react';
-import { Activity, Bell, CalendarRange, Code2, Columns3, Gavel, History, Inbox, LayoutGrid, List, Plug, Search, Users, Workflow } from 'lucide-react';
+import { Activity, Bell, CalendarRange, Code2, Columns3, Gavel, History, Inbox, LayoutGrid, List, ListChecks, Plug, Search, Users, Workflow } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
 import { cn } from '@/Lib/utils';
@@ -44,6 +44,11 @@ export const FORJA_TABS = [
     hint: 'O que espera por uma decisão sua' },
   { key: 'triagem',   grupo: 'trabalho', label: 'Triagem',     href: '/forja',                icon: Inbox,
     hint: 'Propostas sem dono ou sem prioridade' },
+  // Trabalho — a lista ÚNICA (US-FORJA-006), 2026-08-09. Funde os três backlogs.
+  // Convive com Backlog/Tarefas por enquanto: nada foi deletado, e é de propósito —
+  // a comparação lado a lado é o que permite [W] decidir qual sobrevive.
+  { key: 'trabalho',  grupo: 'trabalho', label: 'Trabalho',     href: '/forja/trabalho',       icon: ListChecks,
+    hint: 'Todas as tasks do time, agrupadas por frente' },
   // O par Backlog × Tarefas é a sobreposição conhecida (US-FORJA-006). Enquanto a
   // decisão de qual implementação sobrevive não sai, o `hint` faz o mínimo: diz em
   // voz alta que um é o recorte do projeto FORJA e o outro é o universo. Dois itens

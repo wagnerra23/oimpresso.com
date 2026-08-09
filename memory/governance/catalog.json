@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 569,
-    "edges": 840,
+    "nodes": 570,
+    "edges": 841,
     "by_node_type": {
       "module": 41,
       "table": 73,
       "adr": 25,
-      "component": 387,
+      "component": 388,
       "api": 43
     },
     "by_edge_type": {
@@ -39,7 +39,7 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 387,
+      "hasComponent": 388,
       "dependsOn": 115,
       "delegatesTo": 109,
       "migratesTo": 1
@@ -1867,6 +1867,13 @@
       "module": "Forja",
       "name": "TeamController",
       "desc": "time + tokens MCP + quota + export CSV"
+    },
+    {
+      "id": "component:Forja/TrabalhoController + TrabalhoService",
+      "type": "component",
+      "module": "Forja",
+      "name": "TrabalhoController + TrabalhoService",
+      "desc": "lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006; a remoção da implementação perdedora é decisão [W] e NÃO aconteceu nesta onda — as três convivem"
     },
     {
       "id": "component:Forja/TriageController",
@@ -6628,6 +6635,12 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/TeamController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/TrabalhoController + TrabalhoService",
       "type": "hasComponent",
       "source": "contains"
     },

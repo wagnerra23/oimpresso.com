@@ -341,6 +341,17 @@ Route::group(
         // é literal, então casa antes de qualquer wildcard.
         // FQCN obrigatório em rota nova (.claude/rules/routes.md) — as strings acima
         // são grandfather, não modelo a copiar.
+        // Trabalho — a lista ÚNICA (US-FORJA-006). Funde os três backlogs que
+        // respondiam a mesma pergunta com escopos diferentes: Pages/Forja/Backlog
+        // (project=FORJA, rica), _components/ForjaBacklog (project=FORJA, enxuta) e
+        // team-mcp/Tasks (todas as tasks).
+        //
+        // ⚠️ CONVIVE com as três por enquanto — nada foi deletado nem redirecionado.
+        // Remover implementação em uso é irreversível na prática, e a US-FORJA-006
+        // exige que [W] veja qual sobrevive. Os 301 vêm na onda seguinte, com smoke.
+        Route::get('/trabalho', [\Modules\Forja\Http\Controllers\TrabalhoController::class, 'index'])
+            ->name('forja.trabalho');
+
         // Handoffs — o loop de design Cowork→Code (F1→F3) como TELA, não mais como
         // seção enterrada dentro da aba MCP (2026-08-08). Handoff é dado VIVO (com
         // `stale` e conflito de gate); a aba MCP é vitrine MOCKADA do contrato.
