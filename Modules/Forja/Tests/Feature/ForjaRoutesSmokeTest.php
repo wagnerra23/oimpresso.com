@@ -265,11 +265,11 @@ it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado
 // meses apontando pra uma rota que nunca existiu (#4887). Testar o config contra
 // ele mesmo é que seria tautologia (§5 proibicoes.md, 2026-06-05).
 
-it('UC-FORJA-02 · topnav do hub tem 10 itens (6 Forja + 4 TeamMcp absorvidos)', function () {
+it('UC-FORJA-02 · topnav do hub tem 11 itens (7 Forja + 4 TeamMcp absorvidos)', function () {
     $items = config('core_topnavs.Forja.items');
 
     expect($items)->toBeArray();
-    expect($items)->toHaveCount(10,
+    expect($items)->toHaveCount(11,
         'Fusão de 2026-06-16: `config/core_topnavs.php[Forja]` é o ÚNICO grupo que casa '.
         '/team-mcp/* no useAutoModuleNav, então carrega as abas próprias MAIS as 4 telas '.
         'absorvidas (Tarefas · Equipe · CC Sessions · Saúde). Mudou a conta? O hub ganhou ou '.
