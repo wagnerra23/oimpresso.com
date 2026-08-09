@@ -17,7 +17,10 @@ import ForjaTriage, { type ForjaTicket } from './_components/ForjaTriage';
 import ForjaBacklog, { type BacklogTask } from './_components/ForjaBacklog';
 import ForjaQuadro, { type QuadroData } from './_components/ForjaQuadro';
 import ForjaChangelog, { type ChangelogEntry } from './_components/ForjaChangelog';
-import ForjaMcp, { type HandoffItem, type HeartbeatInfo } from './_components/ForjaMcp';
+import ForjaMcp from './_components/ForjaMcp';
+// Handoffs virou tela própria (/forja/handoffs) em 2026-08-08 — dado vivo não
+// mora dentro da vitrine mockada do contrato. Os tipos foram junto.
+import ForjaHandoffs, { type HandoffItem, type HeartbeatInfo } from './_components/ForjaHandoffs';
 
 interface Meta {
   generated_at: string;
@@ -85,7 +88,8 @@ function ForjaCockpit({
             <ForjaChangelog changelog={changelog} />
           </Deferred>
         )}
-        {tab === 'mcp' && <ForjaMcp handoffs={handoffs} heartbeat={heartbeat} />}
+        {tab === 'mcp' && <ForjaMcp />}
+        {tab === 'handoffs' && <ForjaHandoffs handoffs={handoffs} heartbeat={heartbeat} />}
       </section>
     </>
   );

@@ -8,7 +8,7 @@
 
 import { Fragment } from 'react';
 import { Link } from '@inertiajs/react';
-import { Activity, Bell, CalendarRange, Code2, Columns3, Gavel, History, Inbox, LayoutGrid, List, Plug, Search, Users } from 'lucide-react';
+import { Activity, Bell, CalendarRange, Code2, Columns3, Gavel, History, Inbox, LayoutGrid, List, Plug, Search, Users, Workflow } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
 import { cn } from '@/Lib/utils';
@@ -65,8 +65,12 @@ export const FORJA_TABS = [
   { key: 'tarefas',   grupo: 'trabalho', label: 'Tarefas',     href: '/team-mcp/tasks',       icon: Columns3,
     hint: 'Todas as tasks do time, sem recorte de projeto' },
 
+  // Handoffs vem ANTES do MCP no grupo: é o dado vivo da esteira (o loop rodando
+  // agora); o MCP ao lado é a vitrine do contrato. Saiu de dentro dele em 2026-08-08.
+  { key: 'handoffs',  grupo: 'esteira',  label: 'Handoffs',    href: '/forja/handoffs',       icon: Workflow,
+    hint: 'Loop de design Cowork → Code: pendente, travado no gate, envelhecido' },
   { key: 'mcp',       grupo: 'esteira',  label: 'MCP',         href: '/forja/mcp',            icon: Plug,
-    hint: 'Contrato de ferramentas, tokens e handoffs' },
+    hint: 'Contrato de ferramentas, tokens e auditoria' },
   { key: 'equipe',    grupo: 'esteira',  label: 'Equipe',      href: '/team-mcp/team',        icon: Users,
     hint: 'Quem é quem, tokens e quota' },
   { key: 'saude',     grupo: 'esteira',  label: 'Saúde',       href: '/team-mcp/scorecard',   icon: Activity,

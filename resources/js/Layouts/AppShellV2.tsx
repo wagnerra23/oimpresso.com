@@ -41,6 +41,7 @@ import {
   TrendingUp,
   Undo2,
   Users,
+  Workflow,
   Wrench,
   X,
   Zap,
@@ -77,6 +78,7 @@ const TOPNAV_ICON_MAP: Record<string, LucideIcon> = {
   TrendingDown,
   TrendingUp,
   Users,
+  Workflow,
   Wrench,
   Zap,
 };
