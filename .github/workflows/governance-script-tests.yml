@@ -300,8 +300,13 @@ jobs:
       # o prompt (presence-gate sobre texto) e por construção não vê o arquivo.
       - name: Ledger de réguas — o selftest morde os 2 defeitos reais
         run: node scripts/governance/reguas-ledger-check.mjs --selftest
-      - name: Ledger de réguas — coerência do arquivo (advisory · exit 0)
-        run: node scripts/governance/reguas-ledger-check.mjs
+      # 2026-08-08: este step rodava SEM `--check` — imprimia as 3 violações e saía 0.
+      # Gate mudo é pior que gate ausente (parece cobertura). Não dava pra ligar o
+      # `--check` antes porque as 3 eram IRRECUPERÁVEIS (#4820) e o job nasceria
+      # vermelho-permanente; agora elas são DADO em config.json `residuos_irrecuperaveis`
+      # — o conhecido é reportado sem derrubar, e drift NOVO derruba. Segue advisory.
+      - name: Ledger de réguas — coerência do arquivo (advisory · morde drift NOVO)
+        run: node scripts/governance/reguas-ledger-check.mjs --check
       - name: Registro do guard de schema em settings.json (matcher Write E Edit)
         run: node scripts/governance/settings-memory-schema-registration.test.mjs
       - name: Baseline armado Figma-não-é-fonte (camada L5 · vetores de ataque)
