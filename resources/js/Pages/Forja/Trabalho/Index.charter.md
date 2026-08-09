@@ -88,6 +88,6 @@ O filtro `frente` existe no service para quem chegar por URL, mas a UI não o of
 
 - Todos os UC nascem 🧪 — o ✅ vem do manifesto derivado do JUnit, nunca escrito à mão.
 - **Não verificado localmente:** `route:list`, `tsc` e Pest (worktree sem `vendor/`/`node_modules`;
-  Pest local é proibido — [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
+  Pest local é proibido — [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 - **Sem smoke visual ainda** — obrigatório antes de declarar pronto (R1).
 - **A decisão da US-FORJA-006 continua aberta.** Esta tela é a candidata; qual das outras sai é [W].

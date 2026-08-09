@@ -46,6 +46,24 @@ class TrabalhoService
     /** Teto da lista — herdado da nativa, que já operava com ele. */
     private const LIMIT = 500;
 
+    /**
+     * Memoização por filtros — POR INSTÂNCIA, nunca `static`.
+     *
+     * O `BacklogController` usa `static $cache` e ali passa despercebido porque
+     * controller nasce e morre no request. Num SERVICE o mesmo truque vaza: o
+     * processo PHP é reusado entre testes (o Pest rodou UC-TRAB-04 primeiro, ele
+     * cacheou `filtrosPadrao()`, e os casos seguintes receberam o resultado velho
+     * — sem as fixtures que tinham acabado de criar). Fora do teste o vetor é o
+     * mesmo: worker de fila é processo longo.
+     *
+     * Instância basta pro ganho real — quem chama `app(TrabalhoService::class)`
+     * uma vez e defere duas props reusa a mesma instância, que é o caso do
+     * controller.
+     *
+     * @var array<string,array{tasks: Collection<int,array<string,mixed>>, kpis: array<string,int>}>
+     */
+    private array $cache = [];
+
     /** Ordenações aceitas. `rank` é o default e mora em {@see self::aplicarOrdem}. */
     public const SORTS = ['rank', 'recent', 'due', 'title', 'id', 'execucao'];
 
@@ -82,13 +100,12 @@ class TrabalhoService
     {
         $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — mcp_tasks é repo-wide (ADR 0070/0093), sem tenant por design
 
-        static $cache = [];
         $chave = md5(serialize($filtros));
-        if (isset($cache[$chave])) {
-            return $cache[$chave];
+        if (isset($this->cache[$chave])) {
+            return $this->cache[$chave];
         }
 
-        return $cache[$chave] = OtelHelper::span('forja.trabalho.build', [], function () use ($filtros): array {
+        return $this->cache[$chave] = OtelHelper::span('forja.trabalho.build', [], function () use ($filtros): array {
             $q = McpTask::query()
                 ->when($filtros['frente']   ?? null, fn ($qq, $v) => $qq->where('project_id', $v))
                 ->when($filtros['priority'] ?? null, fn ($qq, $v) => $qq->where('priority', $v))
