@@ -24,6 +24,21 @@ name: PR critic — coerência diff × contrato (advisory)
 # nenhuma: coleta+selftest rodam (grátis) e o passe agente é pulado com
 # ::notice explícito (sem teatro de verde).
 #
+# ┌─ ACHADO ≠ MECANISMO (correção 2026-08-08, medida em 1010 runs) ───────────────┐
+# │ O que este job NÃO pode fazer é ficar VERDE quando o mecanismo quebrou.       │
+# │ Medido: de 2026-07-10 a 2026-08-09 o passe crítico produziu ZERO comentário   │
+# │ (0 em 60 PRs varridos; 0 na busca do repo) porque o provider devolvia         │
+# │ `403 model_not_found` — e o job saía SUCCESS, porque o shell default do       │
+# │ Actions é `bash -e {0}`, SEM pipefail: em `node critica.mjs | tee`, o exit    │
+# │ que vale é o do `tee`. O erro só existia no log cru (stderr não entrava nem   │
+# │ no job summary). Regra a partir daqui:                                        │
+# │   • ACHADO do critic  → nunca derruba (o critic reporta, humano decide)       │
+# │   • MECANISMO quebrado (provider 4xx/5xx, script lançando) → DERRUBA o job,   │
+# │     com ::error nomeando a causa e o stderr visível no summary.               │
+# │ Quem responde "isto bloqueia merge?" é governance/required-checks-baseline.   │
+# │ json (dono único), nunca este comentário.                                     │
+# └───────────────────────────────────────────────────────────────────────────────┘
+#
 # Custo: só arquivos do diff, contratos truncados, ≤8 grupos/PR.
 # Modelo: vars PR_CRITIC_PROVIDER/PR_CRITIC_MODEL (defaults: claude-opus-4-8 · gpt-4o).
 
@@ -65,9 +80,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
         run: |
+          # `bash -e {0}` (default do Actions) NÃO tem pipefail: sem esta linha o
+          # `| tee` engole o exit do node e a coleta quebrada passa por verde.
+          set -o pipefail
           gh pr diff "$PR" --name-only > /tmp/files.txt
           gh pr diff "$PR" > /tmp/pr.diff
-          node scripts/pr-critic/coleta.mjs --files-from /tmp/files.txt --out /tmp/manifesto.json | tee /tmp/coleta.log
+          node scripts/pr-critic/coleta.mjs --files-from /tmp/files.txt --out /tmp/manifesto.json 2>&1 | tee /tmp/coleta.log
           GRUPOS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('/tmp/manifesto.json','utf8')).grupos.length)")
           echo "grupos=$GRUPOS" >> "$GITHUB_OUTPUT"
           { echo '## pr-critic · coleta'; echo '```'; cat /tmp/coleta.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
@@ -80,13 +98,23 @@ jobs:
           PR_CRITIC_PROVIDER: ${{ vars.PR_CRITIC_PROVIDER }}
           PR_CRITIC_MODEL: ${{ vars.PR_CRITIC_MODEL }}
         run: |
+          set -o pipefail
           if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENAI_API_KEY" ]; then
             echo "::notice title=pr-critic pulado::nenhuma chave (ANTHROPIC_API_KEY/OPENAI_API_KEY) nos secrets — o passe crítico agente não rodou (advisory)."
             echo '## pr-critic · agente NÃO rodou (sem chave de provider)' >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          node scripts/pr-critic/critica.mjs --manifesto /tmp/manifesto.json --diff /tmp/pr.diff --out-dir storage/pr-critic | tee /tmp/critica.log
+          # `2>&1` põe a CAUSA no summary (antes o erro do provider só existia no log cru).
+          # O rc é capturado pra que o summary seja escrito ANTES de derrubar o job —
+          # falhar calado seria trocar um mascaramento por outro.
+          rc=0
+          node scripts/pr-critic/critica.mjs --manifesto /tmp/manifesto.json --diff /tmp/pr.diff --out-dir storage/pr-critic 2>&1 | tee /tmp/critica.log || rc=$?
           { echo '## pr-critic · crítica'; echo '```'; cat /tmp/critica.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$rc" -ne 0 ]; then
+            echo "::error title=pr-critic NÃO produziu crítica::o passe agente saiu $rc — ZERO achado foi gerado neste PR. Causa no summary/log acima (provider inacessível, modelo sem permissão, ou bug no critica.mjs). Vermelho aqui = o critic não rodou, NÃO = o PR tem defeito."
+            echo '> ⚠️ o passe agente FALHOU — este PR não foi criticado.' >> "$GITHUB_STEP_SUMMARY"
+            exit "$rc"
+          fi
 
       - name: Sem grupos com contrato — nada a criticar (honesto no summary)
         if: steps.coleta.outputs.grupos == '0'
