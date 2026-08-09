@@ -139,7 +139,7 @@ Resto do dia segue normal.
 
 ---
 
-*JANA PRO · análise gerada automaticamente · próximo brief: amanhã, 8h*
+*JANA PRO · gerado agora, a seu pedido — peça "brief" quando quiser o próximo*
 ```
 
 ## Regras duras (anti-fabricação)
