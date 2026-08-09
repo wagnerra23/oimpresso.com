@@ -99,9 +99,15 @@ import { isAgentPR, DEFAULT_MARKER, median, changeFailure, failedPRNumbers, CFR_
 // adivinhar — é (a) datar a fonte num só lugar e (b) declarar modelo sem preço em vez
 // de inventar USD (ver custoUSD → null). A data abaixo é surfada no relatório pra a
 // idade dos PREÇOS também ficar visível, não só a idade da medição.
-export const PRECOS_ATUALIZADOS_EM = '2026-07-12';
+export const PRECOS_ATUALIZADOS_EM = '2026-08-08';
 export const PRECOS_USD_MTOK = {
   'claude-fable-5': { input: 10, output: 50 },
+  // 2026-08-08: `claude-opus-5` FALTAVA — e é o modelo que faz o trabalho. O match é por
+  // prefixo (`resolvePreco`), e `claude-opus-4-8` não cobre `claude-opus-5`, então TODA
+  // medição de dinheiro deste modelo saía `custoUSD: null`. O script estava honesto (declara
+  // null em vez de inventar USD, ver cabeçalho) — a tabela é que estava incompleta. A fila
+  // de indexação da grade de réguas nomeava este conserto desde 2026-07-18, invisível.
+  'claude-opus-5': { input: 5, output: 25 },
   'claude-opus-4-8': { input: 5, output: 25 },
   'claude-opus-4-7': { input: 5, output: 25 },
   'claude-opus-4-6': { input: 5, output: 25 },
