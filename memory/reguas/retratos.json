@@ -1,20 +1,110 @@
 [
   {
+    "data": "2026-08-08",
+    "modo": "delta",
+    "base_sha": "353487e48ec",
+    "regra_nota": "media-deterministica-v1",
+    "notas": {
+      "spec-governanca": 7.5,
+      "design-to-code": 7.2,
+      "memoria-conhecimento": 7.7,
+      "catalogo-modulo-opiniao-codigo": 7.5,
+      "orquestracao-adversarial": 6.7,
+      "evals-outcome": 6,
+      "erp-ia-produto": 4.5,
+      "observabilidade-agente": 7.8,
+      "qualidade-drift-ia-producao": 5.5,
+      "seguranca-do-agente": 6,
+      "custo-eficiencia": 5.3,
+      "inteligencia-de-negocio": 4.5
+    },
+    "proveniencia_notas": {
+      "spec-governanca": "re-medida (3 fraquezas, media deterministica)",
+      "design-to-code": "re-medida (3 fraquezas, media deterministica)",
+      "memoria-conhecimento": "re-medida (3 fraquezas, media deterministica)",
+      "catalogo-modulo-opiniao-codigo": "herdada (sem delta material de commits)",
+      "orquestracao-adversarial": "re-medida (3 fraquezas, media deterministica)",
+      "evals-outcome": "herdada (sem delta material de commits)",
+      "erp-ia-produto": "re-medida (2 fraquezas, media deterministica)",
+      "observabilidade-agente": "re-medida (2 fraquezas, media deterministica) [ATENCAO] DENOMINADOR MUDOU: obs-p50-p95 saiu de nota:null para numero — o delta vs 2026-07-26 NAO e mudanca de capacidade (regra 12)",
+      "qualidade-drift-ia-producao": "re-medida (3 fraquezas, media deterministica) [ATENCAO] DENOMINADOR MUDOU: drift-juiz-calibracao+drift-sentinel-tautologico saiu de nota:null para numero — o delta vs 2026-07-26 NAO e mudanca de capacidade (regra 12)",
+      "seguranca-do-agente": "re-medida (3 fraquezas, media deterministica) [ATENCAO] DENOMINADOR MUDOU: seg-egresso-unguarded saiu de nota:null para numero — o delta vs 2026-07-26 NAO e mudanca de capacidade (regra 12)",
+      "custo-eficiencia": "re-medida (2 fraquezas, media deterministica) [ATENCAO] DENOMINADOR MUDOU: custo-forecast-cap saiu de nota:null para numero — o delta vs 2026-07-26 NAO e mudanca de capacidade (regra 12)",
+      "inteligencia-de-negocio": "herdada (sem delta material de commits)"
+    },
+    "cobertura": {
+      "completo": false,
+      "motivo_parcial": "3 das 12 dimensoes sem delta material de commits (evals-outcome 2, inteligencia-de-negocio 1, catalogo-modulo-opiniao-codigo 0) — herdadas, nao medidas",
+      "etapas": {
+        "verificar": "24/24",
+        "refutar": "15/15"
+      },
+      "selecao": "completa",
+      "dimensoes_re_medidas": [
+        "spec-governanca",
+        "design-to-code",
+        "memoria-conhecimento",
+        "orquestracao-adversarial",
+        "erp-ia-produto",
+        "observabilidade-agente",
+        "qualidade-drift-ia-producao",
+        "seguranca-do-agente",
+        "custo-eficiencia"
+      ],
+      "dimensoes_herdadas": [
+        "catalogo-modulo-opiniao-codigo",
+        "evals-outcome",
+        "inteligencia-de-negocio"
+      ],
+      "dimensoes_sem_nota": [],
+      "eixos_medidos": [
+        "construir-e-governar",
+        "rodar-e-observar"
+      ],
+      "eixos_nao_medidos": [
+        "servir-o-negocio"
+      ],
+      "dims_ativas": [
+        "spec-governanca",
+        "design-to-code",
+        "memoria-conhecimento",
+        "orquestracao-adversarial",
+        "observabilidade-agente",
+        "qualidade-drift-ia-producao",
+        "seguranca-do-agente",
+        "custo-eficiencia",
+        "erp-ia-produto"
+      ],
+      "integracao_nao_rodada": true,
+      "assinatura": "delta|2026-08-08|verificar:24/24,refutar:15/15"
+    },
+    "integ_hist": {
+      "vereditos_acumulados": 104,
+      "refutado_tb_acumulado": 1,
+      "runs": 9,
+      "recontagem": "2026-07-26: 81 anteriores (ledger 07-18) + 23 desta rodada. O 1o REFUTADO_TB do historico entra aqui.",
+      "errata": "CORRIGIDO 2026-07-26 por passe adversarial. O retrato nasceu com integ_hist copiado VERBATIM do 07-18 (81/0/8) porque a rodada usou o script pre-conserto, cuja instrucao era 'copie do anterior' — entao o acumulado nunca crescia. Sem esta correcao o disclosure da regra 17 seguiria imprimindo '0 REFUTADO_TB em 81 vereditos' apesar de o placar desta MESMA rodada registrar refutado_tb=1, e o codigo novo (que ja soma) acumularia a partir do valor errado. Os valores sao derivaveis do campo `placar` deste mesmo retrato — auditavel sem confiar nesta nota."
+    },
+    "links": [],
+    "errata": "RECOMPOSTO A MAO em 2026-08-08, apos defeito MEDIDO no run wf_32c91912-fca. O agente delta-scan omitiu ultimo_retrato (campo OPCIONAL no schema SCAN); a composicao determinista itera Object.keys(ultimo_retrato.notas) e rodou ZERO vezes, entao o retrato foi gravado com notas:{} e eixos_medidos:[] DEPOIS de 39 agentes e 10,9M tokens. As 24 re-verificacoes e 15 re-refutacoes NAO se perderam (estao em fraquezas.json/claims.json com data 2026-08-08); so a composicao falhou. Estas notas sao a MESMA formula do script (media 1-decimal das fraquezas re-verificadas por dimensao) aplicada ao ledger, e a entrada foi conferida por DOIS caminhos: o multiset das 24 notas e dos 24 vereditos e identico entre o journal do run e fraquezas.json. Causa-raiz consertada no mesmo PR (schema required + guard de ancora que ABORTA antes de gastar agentes), com bite-test em scripts/governance/reguas-workflow.test.mjs bloco [8] — mutacao que remove o guard derruba 6 assercoes.",
+    "errata_notas": "[ATENCAO] O delta vs 2026-07-26 NAO se le como capacidade em 4 dimensoes (observabilidade-agente, qualidade-drift-ia-producao, seguranca-do-agente, custo-eficiencia): 5 fraquezas passaram de nota:null para numero nesta rodada, entao a MEDIA mudou de denominador. Caso extremo: custo-eficiencia 8->5,3, que e quase inteiramente a entrada de custo-forecast-cap (3,5) na media, nao regressao. Alem disso as entradas re-medidas tinham data anterior 2026-07-18/19 (nao 07-26), entao parte do delta e correcao de ledger stale — regra 12 da skill."
+  },
+  {
     "data": "2026-07-26",
     "modo": "full",
     "regra_nota": "media-deterministica-v1",
     "notas": {
       "spec-governanca": 7.5,
-      "design-to-code": 7.0,
+      "design-to-code": 7,
       "memoria-conhecimento": 6.8,
       "catalogo-modulo-opiniao-codigo": 7.5,
       "orquestracao-adversarial": 6.5,
-      "evals-outcome": 6.0,
-      "erp-ia-produto": 5.0,
+      "evals-outcome": 6,
+      "erp-ia-produto": 5,
       "observabilidade-agente": 6.3,
-      "qualidade-drift-ia-producao": 6.0,
-      "seguranca-do-agente": 6.0,
-      "custo-eficiencia": 8.0,
+      "qualidade-drift-ia-producao": 6,
+      "seguranca-do-agente": 6,
+      "custo-eficiencia": 8,
       "inteligencia-de-negocio": 4.5
     },
     "placar": {
@@ -56,11 +146,11 @@
       "orquestracao-adversarial": 6.5,
       "evals-outcome": 5.4,
       "observabilidade-agente": 6.5,
-      "qualidade-drift-ia-producao": 4.0,
-      "seguranca-do-agente": 5.0,
-      "custo-eficiencia": 5.0,
+      "qualidade-drift-ia-producao": 4,
+      "seguranca-do-agente": 5,
+      "custo-eficiencia": 5,
       "erp-ia-produto": 5.2,
-      "inteligencia-de-negocio": 5.0
+      "inteligencia-de-negocio": 5
     },
     "proveniencia_notas": {
       "medidas_por_fraqueza_full": [

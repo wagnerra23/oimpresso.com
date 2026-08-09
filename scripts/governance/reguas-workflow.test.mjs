@@ -134,7 +134,11 @@ console.log('\n[6] delta: mesmos checkpoints, heartbeat intacto')
   ok(ordem(r.labels, 'cp-retrato-delta', 'prosa-delta'), 'delta grava o retrato ANTES da prosa')
   ok(r.out.notas['spec-governanca'] === 6 && r.out.notas['custo-eficiencia'] === 5, 'nota re-medida vs herdada preservadas')
   ok((r.out.cobertura || {}).integracao_nao_rodada === true, 'delta declara que NAO rodou Integracao (integ_hist herdado)')
-  const vazio = await rodar({ base: '/base', modo: 'delta' }, { scan: { ultimo_retrato: { data: '2026-07-18', notas: {}, integ_hist: {} }, dims_delta: { 'spec-governanca': { commits: 0 } }, claims_vencidas: [], fraquezas: [], delta_min_commits: 3 } })
+  // O que este caso testa e "0 commits + 0 claims => heartbeat". A ancora (`notas`) precisa ser
+  // VALIDA aqui: com notas:{} quem dispara e o guard de ancora do bloco [8], por outro motivo, e
+  // a assercao passaria medindo a coisa errada. (Ate 2026-08-08 o fixture tinha notas:{} por
+  // acidente — o guard novo expos isso.)
+  const vazio = await rodar({ base: '/base', modo: 'delta' }, { scan: { ultimo_retrato: { data: '2026-07-18', notas: { 'spec-governanca': 6.5 }, integ_hist: {} }, dims_delta: { 'spec-governanca': { commits: 0 } }, claims_vencidas: [], fraquezas: [], delta_min_commits: 3 } })
   ok(vazio.out.nada_a_medir === true && !vazio.labels.some((l) => l.startsWith('cp-')), 'nada a medir => 0 persistencia (heartbeat barato)')
 }
 
@@ -147,6 +151,44 @@ console.log('\n[7] nao-regressao do que ja existia')
   ok(r.chamadas.filter((c) => c.label.startsWith('v:')).length === 24, 'cap estratificado (24) da fase Verificar intacto')
   ok(r.logs.some((l) => l.includes('CORTE Verificar')), 'corte segue logado (No silent caps)')
   ok(r.prompt('dossie').includes('/base/memory/decisions/'), 'args.base continua chegando aos prompts')
+}
+
+// Defeito MEDIDO (run wf_32c91912-fca, 2026-08-08): `ultimo_retrato` era OPCIONAL no schema
+// SCAN. O scanner o omitiu, a validacao passou, e a composicao — que itera as chaves de
+// `ultimo_retrato.notas` — rodou ZERO vezes. Resultado: `notas:{}` gravado no topo do ledger
+// DEPOIS de 39 agentes e 10,9M tokens. O caso `vazio` do bloco [6] NAO pegava isso: ele tem
+// notas:{} mas tambem 0 commits e 0 claims, entao sai antes pelo `nada_a_medir`, por outro
+// motivo. Aqui HA trabalho a fazer — e o abort tem que vir ANTES de gastar.
+console.log('\n[8] delta sem ANCORA aborta antes de gastar — e nao grava retrato vazio')
+{
+  const comTrabalho = {
+    dims_delta: { 'spec-governanca': { commits: 9 } },
+    claims_vencidas: [{ id: 'c1', titulo: 'claim velha', dimensao: 'spec-governanca', refutador: 'EMPATADO' }],
+    fraquezas: [{ id: 'f1', dimensao: 'spec-governanca', titulo: 'buraco', veredito: 'PARCIAL', nota: 4 }],
+    delta_min_commits: 3,
+  }
+  // BITE 1 — a forma exata que aconteceu: o campo simplesmente nao veio.
+  const ausente = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...comTrabalho } })
+  ok(/ncora ausente/.test(ausente.out.erro || ''), `ultimo_retrato ausente => aborta com erro nomeado (${ausente.out.erro})`)
+  ok(ausente.out.acao === 'rodar full', 'diz o proximo passo (rodar full), nao so falha')
+  ok(!ausente.labels.some((l) => l.startsWith('v:') || l.startsWith('r:')), 'ZERO agentes de Verificar/Refutar — aborta ANTES de gastar')
+  ok(!ausente.labels.some((l) => l.startsWith('cp-') || l.startsWith('re-')), 'ZERO persistencia — retrato vazio nunca chega ao ledger')
+  ok(!('notas' in ausente.out) || !Object.keys(ausente.out.notas || {}).length, 'nao devolve notas fabricadas')
+  ok(ausente.logs.some((l) => l.includes('ABORTADO') && l.includes('SIL')), 'o log NOMEIA o silencio evitado (nao aborta mudo)')
+  // BITE 2 — o caso que o `required` do schema NAO pega: presente porem vazio.
+  const vazioComTrabalho = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...comTrabalho, ultimo_retrato: { data: '2026-07-26', notas: {}, integ_hist: {} } } })
+  ok(/ncora ausente/.test(vazioComTrabalho.out.erro || ''), 'notas:{} presente-porem-vazio tambem aborta (o schema sozinho nao pegaria)')
+  // CONTROLE NEGATIVO 1 — ancora boa segue rodando (o guard nao virou bloqueio geral).
+  const bom = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...comTrabalho, ultimo_retrato: { data: '2026-07-26', notas: { 'spec-governanca': 6.5 }, integ_hist: { runs: 9 } } } })
+  ok(!bom.out.erro && bom.out.notas['spec-governanca'] === 6, 'ancora presente => compoe normal (media determinista)')
+  ok(bom.labels.some((l) => l === 'cp-retrato-delta'), 'ancora presente => o checkpoint do retrato roda')
+  // CONTROLE NEGATIVO 2 — o heartbeat barato do bloco [6] nao virou erro.
+  const nada = await rodar({ base: '/base', modo: 'delta' }, { scan: { ultimo_retrato: { data: '2026-07-26', notas: { 'spec-governanca': 6.5 } }, dims_delta: { 'spec-governanca': { commits: 0 } }, claims_vencidas: [], fraquezas: [], delta_min_commits: 3 } })
+  ok(nada.out.nada_a_medir === true && !nada.out.erro, 'sem delta material segue heartbeat (nada_a_medir), nao erro')
+  // O schema tem que EXIGIR a ancora — senao a proxima rodada repete o mesmo silencio.
+  const src = fs.readFileSync(ALVO, 'utf8')
+  ok(/required: \['dims_delta', 'claims_vencidas', 'fraquezas', 'ultimo_retrato'\]/.test(src), 'schema SCAN exige ultimo_retrato')
+  ok(/required: \['data', 'notas'\]/.test(src), 'schema SCAN exige ultimo_retrato.notas')
 }
 
 fs.rmSync(TMP, { recursive: true, force: true })
