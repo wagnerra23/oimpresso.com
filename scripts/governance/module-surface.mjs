@@ -240,7 +240,13 @@ const PAPEIS = [
   { rot: 'Migrations (schema)', re: /^Modules\/[^/]+\/Database\/Migrations\/.*\.php$/, listar: true },
   { rot: 'Seeders', re: /^Modules\/[^/]+\/Database\/Seeders\/.*\.php$/, listar: true },
   { rot: 'Config', re: /^Modules\/[^/]+\/Config\/.*\.php$/, listar: true },
-  { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: false },
+  // listar:true desde 2026-08-09. Era `false`, e o motivo do `false` NÃO se aplicava aqui:
+  // a regra do papel volumoso (ver acima) é "o dono da cobertura é outro" — verdade pra
+  // `Testes (Pest)` (screen-coverage/casos-gate), FALSA pra Blade, que não tem dono nenhum
+  // listando por arquivo. Resultado: o índice imprimia "## Views (Blade) — 9" logo acima de
+  // "## Telas (Inertia/React) — 4" e ninguém via QUAIS eram os 9. Volume não é objeção: este
+  // mesmo doc já lista `Services` (91 na Jana) e `Console / Commands` (46).
+  { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: true },
   { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
   { rot: 'Componentes / apoio de tela', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
   { rot: 'Charters (lei da tela)', re: /^resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },

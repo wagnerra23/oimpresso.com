@@ -110,7 +110,32 @@ module: Ponto
 
 ## Views (Blade) — 26
 
-- 26 arquivos em [Modules/Ponto/Resources/views/aprovacoes/](../../../Modules/Ponto/Resources/views/aprovacoes) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [_tabela.blade.php](../../../Modules/Ponto/Resources/views/aprovacoes/_tabela.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/aprovacoes/index.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/banco-horas/index.blade.php)
+- [show.blade.php](../../../Modules/Ponto/Resources/views/banco-horas/show.blade.php)
+- [edit.blade.php](../../../Modules/Ponto/Resources/views/colaboradores/edit.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/colaboradores/index.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/configuracoes/index.blade.php)
+- [reps.blade.php](../../../Modules/Ponto/Resources/views/configuracoes/reps.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/dashboard/index.blade.php)
+- [_form.blade.php](../../../Modules/Ponto/Resources/views/escalas/_form.blade.php)
+- [create.blade.php](../../../Modules/Ponto/Resources/views/escalas/create.blade.php)
+- [edit.blade.php](../../../Modules/Ponto/Resources/views/escalas/edit.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/escalas/index.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/espelho/index.blade.php)
+- [show.blade.php](../../../Modules/Ponto/Resources/views/espelho/show.blade.php)
+- [create.blade.php](../../../Modules/Ponto/Resources/views/importacoes/create.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/importacoes/index.blade.php)
+- [show.blade.php](../../../Modules/Ponto/Resources/views/importacoes/show.blade.php)
+- [_form.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/_form.blade.php)
+- [create.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/create.blade.php)
+- [edit.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/edit.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/index.blade.php)
+- [show.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/show.blade.php)
+- [module.blade.php](../../../Modules/Ponto/Resources/views/layouts/module.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/relatorios/index.blade.php)
+- [espelho-pdf.blade.php](../../../Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php)
 
 ## Telas (Inertia/React) — 20
 
