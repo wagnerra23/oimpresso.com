@@ -26,6 +26,7 @@
  *   node scripts/governance/module-surface.mjs <Mod> --write    (grava memory/requisitos/<Mod>/SUPERFICIE.md)
  *   node scripts/governance/module-surface.mjs <Mod> --check    (CI: exit 1 se o gerado ≠ commitado = drift)
  *   node scripts/governance/module-surface.mjs --all [--write|--check]   (todos os Modules/*)
+ *   node scripts/governance/module-surface.mjs --migracao       (fila Blade→Inertia; npm run migracao:report)
  *
  * Refs: ADR 0256 (survival, fonte única gerada) · dor estado-da-arte 2026-07-21
  *       (memory/sessions/2026-07-21-arte-contexto-vivo-descoberta.md, Gap 2).
@@ -39,6 +40,7 @@ const ROOT = process.cwd();
 const args = process.argv.slice(2);
 const MODE = args.includes('--write') ? 'write' : args.includes('--check') ? 'check' : 'dry';
 const ALL = args.includes('--all');
+const MIGRACAO = args.includes('--migracao');
 const POS = args.filter((a) => !a.startsWith('--'));
 const CONTEXTO_GERAL = '_Geral';
 const RAIZES_GERAIS = [
@@ -423,9 +425,129 @@ function processar(mod) {
   return { mod, total, drift: false };
 }
 
+// ── modo --migracao: fila Blade→Inertia (ADITIVO — não toca write/check) ──────
+/**
+ * Responde "quanto falta migrar, por módulo", juntando três donos SEM remedir nenhum:
+ *
+ *   servido  ← `blade-migration-census.mjs` (dono do eixo ENDPOINT, ADR 0277)
+ *   blade/telas ← `coletar()` daqui        (dono do eixo ARQUIVO)
+ *   decisão  ← campo curado `migracao_ui:` do SCOPE.md (só LÊ, nunca escreve)
+ *
+ * ⚠️ HISTÓRIA — este modo já existiu e foi DELETADO por acidente. Nasceu no #5246
+ * (a0ad38d9472, 2026-08-03) e sumiu no #5327 (2738cd84a3c, 2026-08-06), um rebase do
+ * #5069 sobre o main que trouxe junto a versão anterior deste arquivo. O `package.json`
+ * NÃO foi tocado, então `npm run migracao:report` ficou órfão apontando pro vazio — e
+ * 17 SCOPE.md seguiram declarando `migracao_ui: "… fila em module-surface --migracao"`.
+ * Ficou 3 dias morto saindo `exit 2` com a mensagem de "Uso:". O refutador daquele PR
+ * chegou a pegar o campo `migracao_ui` sumido de um SCOPE.md e restaurou; o MODO inteiro
+ * passou despercebido porque nada o exercitava.
+ *
+ * ⚠️ POR QUE O CONTADOR PRÓPRIO NÃO VOLTOU: a versão de 08-03 contava `return view(`
+ * por CALL-SITE em qualquer `.php` do módulo e reportava 263. O census conta ENDPOINT de
+ * rota e reporta 231 nos mesmos módulos. Restaurar o contador antigo devolveria um
+ * segundo medidor do mesmo eixo, discordando do dono (§5 proibicoes 2026-07-09). E o
+ * eixo certo é o do census: a ADR 0277 define "migrado" como *route* Blade morta ou 302,
+ * não como ausência de call-site. Híbrido soma em `servido` porque, enquanto os dois
+ * caminhos coexistem, a ADR 0277 §1 não conta a função como migrada.
+ */
+function decisaoMigracao(mod) {
+  const f = join(ROOT, 'Modules', mod, 'SCOPE.md');
+  if (!existsSync(f)) return '—';
+  const m = readFileSync(f, 'utf8').match(/^migracao_ui:\s*(.+)$/m);
+  return m ? m[1].trim().replace(/^["']|["']$/g, '') : '—';
+}
+
+/**
+ * Endpoints que ainda servem Blade, por escopo — via a porta que o census DECLARA para
+ * consumo (`--resumo-json`, a mesma que o `BladeMigrationSentinelCommand` usa).
+ * Chamado por processo, não por import: o census roda no top-level SEM main guard, então
+ * importá-lo dispararia o CLI inteiro (a armadilha de §5 2026-08-07).
+ * Devolve `null` quando NÃO conseguiu medir — o chamador é proibido de ler isso como zero.
+ */
+function servidoPorEscopo() {
+  try {
+    const raw = execFileSync(
+      process.execPath,
+      [join(ROOT, 'scripts/governance/blade-migration-census.mjs'), '--resumo-json'],
+      { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+    const data = JSON.parse(raw);
+    const porEscopo = new Map();
+    for (const [esc, a] of Object.entries(data.por_escopo || {})) {
+      porEscopo.set(esc, (a.blade || 0) + (a.hibrido || 0));
+    }
+    return porEscopo;
+  } catch (error) {
+    console.error(`[module-surface] censo indisponível: ${error instanceof Error ? error.message : String(error)}`);
+    return null;
+  }
+}
+
+function relatorioMigracao() {
+  const servido = servidoPorEscopo();
+  if (!servido) {
+    // Cegueira total: sem o dono do eixo `servido` não há fila a ordenar, e um relatório
+    // que imprimisse 0 estaria AFIRMANDO "nada serve Blade" sem ter medido (§5 2026-07-29).
+    console.error('\n[module-surface] ⛔ NADA foi medido — o censo de endpoints não respondeu.');
+    console.error('  Rode `node scripts/governance/blade-migration-census.mjs --report` para ver o erro real.');
+    console.error('  Este relatório NÃO afirma "0 Blade servido" quando não conseguiu perguntar.\n');
+    process.exit(1);
+  }
+  const mods = (ALL || !POS.length) ? listarModulos() : POS;
+  const linhas = [];
+  const semDirModular = [];
+  for (const mod of mods) {
+    if (!existsSync(join(ROOT, 'Modules', mod))) {
+      if (mod !== CONTEXTO_GERAL) semDirModular.push(mod);
+      continue;
+    }
+    const { grupos } = coletar(mod);
+    const conta = (re) => grupos.filter((g) => re.test(g.rot)).reduce((n, g) => n + g.files.length, 0);
+    const blade = conta(/Blade/i);
+    const telas = conta(/Telas \(Inertia/i);
+    const srv = servido.get(mod) ?? 0;
+    let estado;
+    if (srv === 0 && telas > 0) estado = 'migrado';
+    else if (srv === 0 && telas === 0) estado = 'sem-ui';
+    else if (telas === 0) estado = 'nao-comecou';
+    else estado = 'parcial';
+    linhas.push({ mod, blade, telas, srv, estado, decisao: decisaoMigracao(mod) });
+  }
+  // Ordena por trabalho REAL (endpoint servido), não por nº de arquivos.
+  linhas.sort((a, b) => b.srv - a.srv || b.blade - a.blade);
+  console.log('\n=== Migração Blade → Inertia · fila derivada ===\n');
+  console.log('  servido = ENDPOINTS que entregam Blade (+híbridos) — `blade-migration-census`, dono do eixo');
+  console.log('  blade   = ARQUIVOS .blade.php — superestima (partial/resíduo não é rota)');
+  console.log('  telas   = ARQUIVOS de tela Inertia/React');
+  console.log('  decisão = campo curado `migracao_ui:` do SCOPE.md (— = não declarado)\n');
+  console.log('  MÓDULO                 servido  blade  telas  estado        decisão');
+  console.log('  ' + '─'.repeat(76));
+  for (const l of linhas) {
+    console.log(
+      '  ' + l.mod.padEnd(22) + String(l.srv).padStart(7) + String(l.blade).padStart(7) +
+      String(l.telas).padStart(7) + '  ' + l.estado.padEnd(13) + l.decisao,
+    );
+  }
+  const tot = linhas.reduce((a, l) => a + l.srv, 0);
+  const porEstado = linhas.reduce((a, l) => { a[l.estado] = (a[l.estado] || 0) + 1; return a; }, {});
+  console.log(`\n  TOTAL endpoints Blade nos módulos: ${tot}`);
+  console.log('  Módulos por estado: ' + Object.entries(porEstado).map(([k, v]) => `${k}=${v}`).join(' · '));
+  const semDecisao = linhas.filter((l) => l.decisao === '—').length;
+  if (semDecisao) console.log(`  ⚠️  ${semDecisao} módulo(s) sem \`migracao_ui:\` declarado no SCOPE.md`);
+  // §5 "no silent caps": Classe B (Sells/Cliente/Produto) não tem Modules/<Mod> e o censo
+  // os contabiliza dentro de `core`. Some da fila — mas NUNCA em silêncio.
+  if (semDirModular.length) {
+    console.log(`  ⚠️  fora da fila (Classe B, sem Modules/<Mod> — o censo os conta em \`core\`): ${semDirModular.join(', ')}`);
+  }
+  const core = servido.get('core') ?? 0;
+  console.log(`\n  ⚠️  O NÚCLEO não entra nesta fila e é a maior fatia: ${core} endpoints Blade em core`);
+  console.log('      (contra os ' + tot + ' dos módulos). Ver: node scripts/governance/blade-migration-census.mjs --report\n');
+}
+
 // ── main (só quando executado direto, não em import de teste) ───────────────────
 import { pathToFileURL } from 'node:url';
 function main() {
+  if (MIGRACAO) { relatorioMigracao(); return; }
   const alvos = ALL ? listarModulos() : POS;
   if (!alvos.length) {
     console.error('Uso: node scripts/governance/module-surface.mjs <Mod> [--write|--check]  |  --all [--write|--check]');
