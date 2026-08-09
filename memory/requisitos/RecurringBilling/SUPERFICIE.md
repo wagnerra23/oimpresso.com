@@ -125,9 +125,8 @@ module: RecurringBilling
 
 ## Views (Blade) — 2
 
-- 1 em [Modules/RecurringBilling/Resources/views/](../../../Modules/RecurringBilling/Resources/views)
-- 1 em [Modules/RecurringBilling/Resources/views/layouts/](../../../Modules/RecurringBilling/Resources/views/layouts)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [index.blade.php](../../../Modules/RecurringBilling/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/RecurringBilling/Resources/views/layouts/master.blade.php)
 
 ## Telas (Inertia/React) — 6
 

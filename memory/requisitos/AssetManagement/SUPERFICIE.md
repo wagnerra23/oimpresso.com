@@ -83,14 +83,23 @@ module: AssetManagement
 
 ## Views (Blade) — 17
 
-- 1 em [Modules/AssetManagement/Resources/views/](../../../Modules/AssetManagement/Resources/views)
-- 4 em [Modules/AssetManagement/Resources/views/asset/](../../../Modules/AssetManagement/Resources/views/asset)
-- 3 em [Modules/AssetManagement/Resources/views/asset_allocation/](../../../Modules/AssetManagement/Resources/views/asset_allocation)
-- 3 em [Modules/AssetManagement/Resources/views/asset_maintenance/](../../../Modules/AssetManagement/Resources/views/asset_maintenance)
-- 2 em [Modules/AssetManagement/Resources/views/asset_revocation/](../../../Modules/AssetManagement/Resources/views/asset_revocation)
-- 1 em [Modules/AssetManagement/Resources/views/layouts/](../../../Modules/AssetManagement/Resources/views/layouts)
-- 3 em [Modules/AssetManagement/Resources/views/settings/](../../../Modules/AssetManagement/Resources/views/settings)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset/create.blade.php)
+- [dashboard.blade.php](../../../Modules/AssetManagement/Resources/views/asset/dashboard.blade.php)
+- [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset/edit.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset/index.blade.php)
+- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/create.blade.php)
+- [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/edit.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/index.blade.php)
+- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/create.blade.php)
+- [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/edit.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/index.blade.php)
+- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_revocation/create.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_revocation/index.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/index.blade.php)
+- [nav.blade.php](../../../Modules/AssetManagement/Resources/views/layouts/nav.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/settings/index.blade.php)
+- [notification_settings.blade.php](../../../Modules/AssetManagement/Resources/views/settings/notification_settings.blade.php)
+- [prefix_settings.blade.php](../../../Modules/AssetManagement/Resources/views/settings/prefix_settings.blade.php)
 
 ## Testes (Pest) — 9
 

@@ -82,11 +82,19 @@ module: Woocommerce
 
 ## Views (Blade) — 13
 
-- 2 em [Modules/Woocommerce/Resources/views/layouts/](../../../Modules/Woocommerce/Resources/views/layouts)
-- 1 em [Modules/Woocommerce/Resources/views/layouts/partials/](../../../Modules/Woocommerce/Resources/views/layouts/partials)
-- 3 em [Modules/Woocommerce/Resources/views/woocommerce/](../../../Modules/Woocommerce/Resources/views/woocommerce)
-- 7 em [Modules/Woocommerce/Resources/views/woocommerce/partials/](../../../Modules/Woocommerce/Resources/views/woocommerce/partials)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [master.blade.php](../../../Modules/Woocommerce/Resources/views/layouts/master.blade.php)
+- [nav.blade.php](../../../Modules/Woocommerce/Resources/views/layouts/nav.blade.php)
+- [sidebar.blade.php](../../../Modules/Woocommerce/Resources/views/layouts/partials/sidebar.blade.php)
+- [api_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/api_settings.blade.php)
+- [index.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/index.blade.php)
+- [api_instructions.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/api_instructions.blade.php)
+- [api_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/api_settings.blade.php)
+- [log_details.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/log_details.blade.php)
+- [order_sync_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/order_sync_settings.blade.php)
+- [product_form_part.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/product_form_part.blade.php)
+- [product_sync_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/product_sync_settings.blade.php)
+- [webhook_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/webhook_settings.blade.php)
+- [sync_log.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/sync_log.blade.php)
 
 ## Testes (Pest) — 8
 

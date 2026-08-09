@@ -72,11 +72,13 @@ module: Spreadsheet
 
 ## Views (Blade) — 7
 
-- 1 em [Modules/Spreadsheet/Resources/views/](../../../Modules/Spreadsheet/Resources/views)
-- 2 em [Modules/Spreadsheet/Resources/views/layouts/](../../../Modules/Spreadsheet/Resources/views/layouts)
-- 3 em [Modules/Spreadsheet/Resources/views/sheet/](../../../Modules/Spreadsheet/Resources/views/sheet)
-- 1 em [Modules/Spreadsheet/Resources/views/sheet/partials/](../../../Modules/Spreadsheet/Resources/views/sheet/partials)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [index.blade.php](../../../Modules/Spreadsheet/Resources/views/index.blade.php)
+- [app.blade.php](../../../Modules/Spreadsheet/Resources/views/layouts/app.blade.php)
+- [nav.blade.php](../../../Modules/Spreadsheet/Resources/views/layouts/nav.blade.php)
+- [create.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/create.blade.php)
+- [index.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/index.blade.php)
+- [share_sheet.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/partials/share_sheet.blade.php)
+- [show.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/show.blade.php)
 
 ## Testes (Pest) — 9
 

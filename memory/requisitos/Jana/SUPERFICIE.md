@@ -352,12 +352,15 @@ module: Jana
 
 ## Views (Blade) — 9
 
-- 2 em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas)
-- 1 em [Modules/Jana/Resources/views/emails/](../../../Modules/Jana/Resources/views/emails)
-- 1 em [Modules/Jana/Resources/views/fontes/](../../../Modules/Jana/Resources/views/fontes)
-- 4 em [Modules/Jana/Resources/views/metas/](../../../Modules/Jana/Resources/views/metas)
-- 1 em [Modules/Jana/Resources/views/superadmin/](../../../Modules/Jana/Resources/views/superadmin)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [config.blade.php](../../../Modules/Jana/Resources/views/alertas/config.blade.php)
+- [index.blade.php](../../../Modules/Jana/Resources/views/alertas/index.blade.php)
+- [weekly-digest.blade.php](../../../Modules/Jana/Resources/views/emails/weekly-digest.blade.php)
+- [show.blade.php](../../../Modules/Jana/Resources/views/fontes/show.blade.php)
+- [create.blade.php](../../../Modules/Jana/Resources/views/metas/create.blade.php)
+- [edit.blade.php](../../../Modules/Jana/Resources/views/metas/edit.blade.php)
+- [index.blade.php](../../../Modules/Jana/Resources/views/metas/index.blade.php)
+- [show.blade.php](../../../Modules/Jana/Resources/views/metas/show.blade.php)
+- [metas.blade.php](../../../Modules/Jana/Resources/views/superadmin/metas.blade.php)
 
 ## Telas (Inertia/React) — 4
 

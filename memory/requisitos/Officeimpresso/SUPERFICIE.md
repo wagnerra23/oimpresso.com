@@ -95,16 +95,24 @@ module: Officeimpresso
 
 ## Views (Blade) — 18
 
-- 1 em [Modules/Officeimpresso/Resources/views/](../../../Modules/Officeimpresso/Resources/views)
-- 3 em [Modules/Officeimpresso/Resources/views/catalogue/](../../../Modules/Officeimpresso/Resources/views/catalogue)
-- 3 em [Modules/Officeimpresso/Resources/views/catalogue/partials/](../../../Modules/Officeimpresso/Resources/views/catalogue/partials)
-- 1 em [Modules/Officeimpresso/Resources/views/clients/](../../../Modules/Officeimpresso/Resources/views/clients)
-- 2 em [Modules/Officeimpresso/Resources/views/layouts/](../../../Modules/Officeimpresso/Resources/views/layouts)
-- 1 em [Modules/Officeimpresso/Resources/views/layouts/partials/](../../../Modules/Officeimpresso/Resources/views/layouts/partials)
-- 4 em [Modules/Officeimpresso/Resources/views/licenca_computador/](../../../Modules/Officeimpresso/Resources/views/licenca_computador)
-- 2 em [Modules/Officeimpresso/Resources/views/licenca_log/](../../../Modules/Officeimpresso/Resources/views/licenca_log)
-- 1 em [Modules/Officeimpresso/Resources/views/licencas_log/](../../../Modules/Officeimpresso/Resources/views/licencas_log)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [generate_qr.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/generate_qr.blade.php)
+- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/index.blade.php)
+- [combo_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/combo_product_details.blade.php)
+- [single_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/single_product_details.blade.php)
+- [variable_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/variable_product_details.blade.php)
+- [show.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/show.blade.php)
+- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/clients/index.blade.php)
+- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/master.blade.php)
+- [nav.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/nav.blade.php)
+- [design-system.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/partials/design-system.blade.php)
+- [businessall.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_computador/businessall.blade.php)
+- [computadores.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_computador/computadores.blade.php)
+- [create.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_computador/create.blade.php)
+- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_computador/index.blade.php)
+- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_log/index.blade.php)
+- [timeline.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_log/timeline.blade.php)
+- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/licencas_log/index.blade.php)
 
 ## Testes (Pest) — 14
 

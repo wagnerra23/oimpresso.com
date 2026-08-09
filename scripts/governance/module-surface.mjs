@@ -246,7 +246,13 @@ const PAPEIS = [
   { rot: 'Migrations (schema)', re: /^Modules\/[^/]+\/Database\/Migrations\/.*\.php$/, listar: true },
   { rot: 'Seeders', re: /^Modules\/[^/]+\/Database\/Seeders\/.*\.php$/, listar: true },
   { rot: 'Config', re: /^Modules\/[^/]+\/Config\/.*\.php$/, listar: true },
-  { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: false },
+  // listar:true desde 2026-08-09. Era `false`, e o motivo do `false` NÃO se aplicava aqui:
+  // a regra do papel volumoso (ver acima) é "o dono da cobertura é outro" — verdade pra
+  // `Testes (Pest)` (screen-coverage/casos-gate), FALSA pra Blade, que não tem dono nenhum
+  // listando por arquivo. Resultado: o índice imprimia "## Views (Blade) — 9" logo acima de
+  // "## Telas (Inertia/React) — 4" e ninguém via QUAIS eram os 9. Volume não é objeção: este
+  // mesmo doc já lista `Services` (91 na Jana) e `Console / Commands` (46).
+  { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: true },
   { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
   { rot: 'Componentes / apoio de tela', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
   { rot: 'Charters (lei da tela)', re: /^resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
@@ -381,14 +387,18 @@ function montar(mod, grupos, outros) {
       // Role volumoso: um item por DIRETÓRIO, com a contagem daquele diretório.
       //
       // ⚠️ Antes isto era `g.files[0]` — o dir do PRIMEIRO arquivo, com a contagem de TODOS.
-      // O ponteiro mentia sempre que o papel abrangia mais de um diretório: a Jana lia
-      // "9 arquivos em Resources/views/alertas/" quando alertas/ tem 2 dos 9 (os outros
-      // vivem em metas/, fontes/, emails/, superadmin/), e o Cliente mandava para
-      // Modules/Crm/Resources/views/booking/ uma contagem que incluía as 23 blades de
-      // resources/views/contact. Medido em 2026-08-09: afetava os ~37 SUPERFICIE.md, nos
-      // dois papéis volumosos. Continua sem listar arquivo a arquivo (o motivo do
-      // `listar:false` é não despejar 87 blades nem 77 testes), mas cada linha agora
-      // aponta para onde os arquivos que ela conta realmente estão.
+      // O ponteiro mentia sempre que o papel abrangia mais de um diretório. Medido em
+      // 2026-08-09, quando o defeito ainda alcançava também `Views (Blade)`: a Jana lia
+      // "9 arquivos em Resources/views/alertas/" com alertas/ contendo 2 dos 9, e o
+      // Cliente mandava para Modules/Crm/Resources/views/booking/ uma contagem que
+      // incluía as 23 blades de resources/views/contact.
+      //
+      // Hoje o único papel que passa por aqui é `Testes (Pest)` — o `Views (Blade)` virou
+      // `listar:true` no #5502, e por um motivo que NÃO vale para os testes: Blade não
+      // tinha dono nenhum listando por arquivo, enquanto a cobertura dos testes é do
+      // `screen-coverage`/`casos-gate`. Então o agrupamento por dir continua sendo a forma
+      // certa aqui: não despeja 77 arquivos de teste e, ao contrário do `files[0]`, cada
+      // linha aponta para onde os arquivos que ela conta realmente estão.
       const porDir = new Map();
       for (const f of g.files) {
         const dir = f.split('/').slice(0, -1).join('/');

@@ -64,11 +64,14 @@ module: ProductCatalogue
 
 ## Views (Blade) — 8
 
-- 1 em [Modules/ProductCatalogue/Resources/views/](../../../Modules/ProductCatalogue/Resources/views)
-- 3 em [Modules/ProductCatalogue/Resources/views/catalogue/](../../../Modules/ProductCatalogue/Resources/views/catalogue)
-- 3 em [Modules/ProductCatalogue/Resources/views/catalogue/partials/](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials)
-- 1 em [Modules/ProductCatalogue/Resources/views/layouts/](../../../Modules/ProductCatalogue/Resources/views/layouts)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [generate_qr.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/generate_qr.blade.php)
+- [index.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/index.blade.php)
+- [combo_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/combo_product_details.blade.php)
+- [single_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/single_product_details.blade.php)
+- [variable_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/variable_product_details.blade.php)
+- [show.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/show.blade.php)
+- [index.blade.php](../../../Modules/ProductCatalogue/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/ProductCatalogue/Resources/views/layouts/master.blade.php)
 
 ## Testes (Pest) — 7
 

@@ -285,8 +285,7 @@ module: Whatsapp
 
 ## Views (Blade) — 1
 
-- 1 em [Modules/Whatsapp/Resources/views/](../../../Modules/Whatsapp/Resources/views)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [placeholder.blade.php](../../../Modules/Whatsapp/Resources/views/placeholder.blade.php)
 
 ## Telas (Inertia/React) — 3
 

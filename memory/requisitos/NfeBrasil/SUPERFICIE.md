@@ -140,10 +140,10 @@ module: NfeBrasil
 
 ## Views (Blade) — 4
 
-- 1 em [Modules/NfeBrasil/Resources/views/](../../../Modules/NfeBrasil/Resources/views)
-- 1 em [Modules/NfeBrasil/Resources/views/layouts/](../../../Modules/NfeBrasil/Resources/views/layouts)
-- 2 em [Modules/NfeBrasil/Resources/views/mail/](../../../Modules/NfeBrasil/Resources/views/mail)
-- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
+- [index.blade.php](../../../Modules/NfeBrasil/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/NfeBrasil/Resources/views/layouts/master.blade.php)
+- [danfe-html.blade.php](../../../Modules/NfeBrasil/Resources/views/mail/danfe-html.blade.php)
+- [danfe-text.blade.php](../../../Modules/NfeBrasil/Resources/views/mail/danfe-text.blade.php)
 
 ## Telas (Inertia/React) — 6
 
