@@ -168,14 +168,21 @@ it('MORDE: sem censo, ESTAGNAÇÃO ainda é cobrada — ela sai do baseline, nã
 });
 
 it('NEG: sem censo NÃO fabrica progresso (delta 0 por ignorância ≠ queda medida)', function () {
+    // ⚠️ O total do baseline tem de ser NÃO-ZERO. A 1ª versão deste caso usava
+    // `baselineFake(['core' => 0], 0)` e era DEGENERADA: com total 0 o `delta` dá 0
+    // sob qualquer mutação, então o caso passava mesmo com a proteção removida —
+    // nome prometendo mais do que verifica (§5 2026-07-28). Achado por mutação
+    // adversarial. Com 471, quebrar as DUAS pernas (o `$totalAtual = $mediu ? …`
+    // e a guarda `$mediu &&` do ramo) produz `progresso delta=-471` e o caso morde.
     $v = BladeMigrationSentinelCommand::avaliar(
         null,
-        baselineFake(['core' => 0], 0, '2026-07-01'),
+        baselineFake(['core' => 471], 471, '2026-07-01'),
         '2026-07-10',
     );
 
     expect($v['veredito'])->not->toBe('progresso')
-        ->and($v['delta'])->toBe(0);
+        ->and($v['delta'])->toBe(0)
+        ->and($v['total'])->toBe(471); // total conhecido vem do baseline, não de medida
 });
 
 it('NEG: censo presente e saudável segue dando ok — o cego não virou carimbo', function () {

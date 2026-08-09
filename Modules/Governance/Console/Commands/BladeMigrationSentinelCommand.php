@@ -54,15 +54,38 @@ use Throwable;
  *     §5 2026-07-29 ("instrumento afirmar verde quando não conseguiu MEDIR").
  *
  * A saída certa vem de qual eixo depende de quê:
- *   - REGRESSÃO exige o censo (node) — e JÁ TEM DONO: a catraca
+ *   - REGRESSÃO exige o censo (node) — e tem cobertura em outro lugar: a catraca
  *     `blade-migration-census.mjs --ratchet` roda no `governance-gate.yml` a cada
- *     PR, em Linux, contra o MESMO baseline único.
+ *     PR, em Linux, contra o MESMO baseline único. ⚠️ Cobertura ADVISORY, não
+ *     "dono": o job é `continue-on-error: true` e não está entre os required —
+ *     vermelho lá não bloqueia merge (pela convenção da ADR 0344, advisory conta
+ *     como SEM defesa mecânica). Logo, enquanto prod fica `cego`, regressão fica
+ *     com luz vermelha que pode ser legalmente ignorada. Achado adversarial.
  *   - ESTAGNAÇÃO não precisa de node: sai de `gerado_em` + `total_blade` do
  *     baseline VERSIONADO. E é exatamente o eixo que a catraca do CI ignora DE
  *     PROPÓSITO (selftest: "catraca ignora tempo").
  *
  * Logo: sem censo, o sentinela ainda cobra estagnação (seu valor único) e, quando
  * não há o que cobrar, diz `cego` NOMEANDO o que não mediu — nunca "ok".
+ *
+ * ── O QUE `estagnado` MEDE DE FATO (limitação declarada) ────────────────────
+ * Ele mede **"ninguém regravou o baseline há N dias"**, não "a migração parou".
+ * `gerado_em` é campo ESCRITO À MÃO por quem edita o JSON — o censo NÃO tem
+ * `--write-baseline` que o carimbe. Consequência honesta: regravar o baseline com
+ * os MESMOS 471 zera o alarme por 30 dias sem nenhum progresso, e o `--ratchet`
+ * aceita (ele só reprova SUBIDA). Isto NÃO é heartbeat de máquina — a distinção da
+ * §5 2026-07-29 (`shipped-log-gate`) é *quem escreve*: lá é a máquina cuja vida se
+ * mede, e parar de escrever É o defeito; aqui é o humano cujo progresso se mede.
+ * A mitigação hoje é CULTURAL: o diff do baseline aparece no PR. Não invente
+ * oráculo novo aqui sem decisão [W].
+ *
+ * ── E `cego` É INVISÍVEL (custo aceito, janela limitada) ────────────────────
+ * `cego` sai `exit 0`, logo `onFailure` não dispara e a única saída é o stdout do
+ * `schedule:run` — destino não-mensurável, porque o cron é do hPanel. As duas
+ * alternativas são PIORES: `exit != 0` joga no pile de `Schedule … FALHOU`
+ * (medido em prod: ~10,3k linhas; `laravel.log` 976 MB) e escalar `cego` é nag
+ * semanal sobre buraco que já tem dono. Correção de raiz = node alcançável no
+ * cron, que é decisão [W], não conserto deste comando.
  *
  * @see memory/decisions/0277-rota-migracao-blade-ondas-completude.md
  * @see memory/decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md
@@ -184,8 +207,13 @@ class BladeMigrationSentinelCommand extends Command
             ];
         }
 
-        // `$mediu` guarda o ramo: sem censo o delta é 0 por ignorância, então sem
-        // esta perna um baseline com total 0 viraria "progresso" fabricado.
+        // `$mediu` guarda o ramo por DEFESA EM PROFUNDIDADE, não por necessidade:
+        // dado o `$totalAtual = $mediu ? … : $totalBase` acima, `$delta` já nunca
+        // fica negativo sem censo. As duas pernas juntas garantem que quebrar UMA
+        // não fabrica "progresso: 471 saíram do Blade" a partir de ignorância.
+        // (A redação anterior afirmava que sem esta perna "um baseline com total 0
+        // viraria progresso" — medido por mutação adversarial: FALSO. Fica o motivo
+        // real; §5 2026-07-30 sobre comentário que promete proteção que não dá.)
         if ($mediu && $delta < 0) {
             return [
                 'veredito' => 'progresso',
@@ -224,7 +252,9 @@ class BladeMigrationSentinelCommand extends Command
                 'resumo' => sprintf(
                     '⚠️ CEGO — não consegui rodar o censo (node ausente?), então NADA de regressão foi conferido aqui. '
                     . 'Sem estagnação a cobrar (baseline de %dd atrás, %d endpoints). '
-                    . 'Esse eixo tem dono: `blade-migration-census.mjs --ratchet` no governance-gate, a cada PR.',
+                    . 'Esse eixo é coberto SÓ por catraca ADVISORY (`blade-migration-census.mjs --ratchet` no '
+                    . 'governance-gate, `continue-on-error: true`, fora dos required): roda em todo PR, mas '
+                    . 'vermelho lá NÃO bloqueia merge.',
                     $dias,
                     $totalAtual,
                 ),
