@@ -71,12 +71,39 @@ Então "IA que faz por mim" **não está na mesa hoje**. O que está: *IA que re
 
 Ordenadas por **justiça do teste hoje** — as 3 primeiras não dependem de B2.
 
-### Cat. 1 — Brief diário (proativo) · ✅ justo hoje
+### Cat. 1 — Brief do negócio · ✅ testável — **e já foi testado, ver §5.2**
 
-- **O que é:** todo dia a Jana monta o retrato do negócio sem ninguém pedir. `BriefDiarioAgent` + cron.
-- **Teste:** ler 5 briefs seguidos de `biz=1`. Para cada, marcar: *o número está certo?* · *eu já sabia?* · *mudaria alguma decisão minha?*
-- **Esperado pra valer a pena:** ≥4 de 5 corretos **e** ≥1 que te contou algo que você não sabia.
-- **Falha significa:** agregador errado ou brief genérico — conserto barato, é SQL.
+> ⚠️ **Duas correções à 1ª redação, provadas pelo teste de 2026-08-09.** Ela dizia *"todo dia a Jana monta o retrato do negócio sem ninguém pedir — `BriefDiarioAgent` + cron"* e mandava *"ler 5 briefs seguidos"*. **As duas estão erradas.**
+
+- **O que é de fato:** **não há cron e não há histórico.** O brief do negócio é **sob demanda** — nasce quando alguém digita `brief` no chat `/ia/conversa` (`BriefDiarioChatTrigger`). Não persiste em tabela nenhuma: *"gera na hora"*. Confirmado pela proposal [`brief-se-divide-em-dois`](2026-07-30-brief-se-divide-em-dois.md) (2026-07-30), que já era dona desta distinção, e por varredura de invocadores (`BriefDiarioService`, `BriefDiarioChatTrigger`, `ChatController`, `JanaProController` — **nenhum schedule**).
+- ⛔ **Não confundir com o `brief-fetch` do MCP.** Aquele é o brief de **governança** (`Modules/Brief`, tabela `mcp_briefs`, sem `business_id`) — é a categoria 6, não esta.
+- **Teste:** digitar `brief` no chat e conferir cada número contra a fonte. Repetir em dias diferentes pra ter n>1.
+- **Esperado pra valer a pena:** ≥4 de 5 blocos corretos **e** ≥1 achado que você não sabia.
+- **Ressalva que a 1ª redação não tinha:** os dados vêm de 5 tools SQL (imune a **B2**), mas **quem narra é o LLM** — logo **B1 se aplica**. A separação "brief = SQL, justo de testar" era limpa demais.
+
+### 5.2 · Resultado do 1º teste real (2026-08-09, chat `/ia/conversa`, biz=1)
+
+**✅ O que funcionou — e é exatamente a doutrina do produto:**
+
+> **ANTONELLA ALVES ARAUJO** — LTV histórico · última compra 22/06/2025 · **412 dias ausente**, com mensagem de WhatsApp pronta pra copiar.
+
+Verificado na tela `/cliente`: **a cliente existe** (MAGAZINE LUIZA, FRANCA/SP, 25 OS) e o selo de frescor diz *"distante · há 1a"*, **coerente** com os 412 dias. É proposta acionável, não gráfico. O LTV exato **não** foi conferido — o `Saldo` da tela é outra métrica, cruzar exige o histórico de compras.
+
+**❌ Três defeitos reais:**
+
+| # | Defeito | Por quê importa |
+|---|---|---|
+| 1 | **Linha fabricada** — a "Ideia da semana" trouxe `PRODUTO BEST-SELLER · Saídas em 90d: 0` (nome de placeholder, valor zero) e o LLM escreveu conselho por cima: *"criar campanha focada nos best-sellers"* | recomendação construída sobre linha vazia |
+| 2 | **Promessa falsa** — o rodapé diz *"próximo brief: amanhã, 8h"*, e **não existe cron** | é a classe **LC-15** (mecanismo anuncia o que não implementa), desta vez **na cara do cliente** |
+| 3 | **Entusiasmo sobre zeros** — *"ainda tem potencial para ser amplamente produtivo!"*, projeção `0 vendas/dia → ±0%` | aritmética de zero vestida de análise |
+
+**⚠️ O problema estrutural do teste (achado maior que os 3 defeitos):**
+
+`biz=1` **não tem vendas** — toda a seção "Operação" veio zerada porque não há o que reportar. O único bloco com dado real (o cliente ausente) foi o único que funcionou. Testar o brief aqui é testá-lo numa **empresa vazia**.
+
+Quem tem dado é **`biz=4` ROTA LIVRE** (~21 mil vendas) — e a [R6](../../proibicoes.md) proíbe usar o tenant do cliente em teste. **O tenant que dá pra testar não tem dado; o que tem dado não dá pra tocar.** Sair disso é decisão [W]: ele pode olhar o brief da Larissa como dono e relatar, o que nenhum agente pode fazer por ele.
+
+**Veredito honesto com n=1:** a máquina funciona; a **curadoria do texto não está pronta pra cliente**. Não dá pra fechar o corte (≥4 de 5) com uma amostra num tenant vazio.
 
 ### Cat. 2 — Metas: apuração e desvio · 🔨 justo, mas é **construção**, não observação
 
@@ -134,13 +161,17 @@ Isso também limitou o smoke: `/ia/metas/{id}/fonte` e o botão de reapuração 
 
 > Reordenada após o smoke de §5.1 — a 1ª versão punha 1, 2 e 3 no mesmo degrau, e só a 1 e a 3 são observação pura.
 
-1. **Começar pela categoria 1 (brief diário).** É a única que funciona **sem você cadastrar nada**, e é a única com prova de vida hoje (Brief #489, gerado nesta sessão). Custo: ler 5 briefs.
+1. ~~**Começar pela categoria 1.**~~ **FEITA em 2026-08-09** — resultado em §5.2. (O texto original citava o "Brief #489 gerado nesta sessão" como prova de vida: era o brief de **governança**, categoria 6, não este. Correção registrada.)
 2. **Se o brief servir, ir pra 3 (resumo semanal)** — também observação, cadência de 2 semanas.
 3. **Só então a 2 (metas)**, que exige cadastrar as primeiras metas do sistema. Vale porque dá resposta binária (a apuração bate ou não), mas é trabalho seu, não só leitura.
 4. **Decidir.** Se 1 e 3 não te servirem, o problema é de produto e não vale destravar B1/B2 nem cadastrar meta nenhuma.
 5. **Só se servirem**, atacar B1 e B2 e então testar a categoria 5.
 
 **Regra de parada:** se a categoria 1 falhar, pare aí. Todo o resto da Jana do negócio se apoia no mesmo agregador de dados — se o retrato diário estiver errado ou for genérico, nada acima dele conserta.
+
+**Próximo passo concreto, pós-§5.2:** a categoria 1 **não falhou nem passou** — ficou indeterminada por falta de dado no tenant testável. Destravá-la não custa código: [W] abre o chat em `biz=4`, digita `brief`, e relata o que viu. É o único caminho que dá amostra com dado real, e nenhum agente pode percorrê-lo por ele (R6).
+
+Independente disso, **os 3 defeitos de §5.2 são consertáveis já** e não dependem de amostra nova: a linha fabricada, a promessa *"próximo brief: amanhã, 8h"* e o entusiasmo sobre zeros. Os três são de **curadoria de texto**, não de dado.
 
 Isto **antecede** a decisão de migrar ou aposentar as telas Blade: não faz sentido escolher a forma de telas antes de saber se a capacidade por trás vale.
 
