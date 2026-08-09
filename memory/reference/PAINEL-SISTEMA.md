@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **333**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **338**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -254,7 +254,7 @@ lente: [construir]
 
 ## Rastro
 
-- **397** handoffs · **601** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **400** handoffs · **601** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-08-08-valor-estoque-decisoes-permissoes`
   - `2026-08-08-reguas-delta-e-a-ancora-que-faltou`

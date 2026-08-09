@@ -182,7 +182,9 @@ module: Financeiro
 
 ## Views (Blade) — 3
 
-- 3 arquivos em [Modules/Financeiro/Resources/views/](../../../Modules/Financeiro/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [index.blade.php](../../../Modules/Financeiro/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/Financeiro/Resources/views/layouts/master.blade.php)
+- [dre.blade.php](../../../Modules/Financeiro/Resources/views/pdf/dre.blade.php)
 
 ## Telas (Inertia/React) — 21
 

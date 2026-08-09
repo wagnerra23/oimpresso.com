@@ -53,7 +53,7 @@ module: VozDoCliente
 
 ## Views (Blade) — 1
 
-- 1 arquivos em [Modules/VozDoCliente/Resources/views/](../../../Modules/VozDoCliente/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [caixa.blade.php](../../../Modules/VozDoCliente/Resources/views/caixa.blade.php)
 
 ## Testes (Pest) — 1
 

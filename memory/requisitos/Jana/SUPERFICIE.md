@@ -352,7 +352,15 @@ module: Jana
 
 ## Views (Blade) — 9
 
-- 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [config.blade.php](../../../Modules/Jana/Resources/views/alertas/config.blade.php)
+- [index.blade.php](../../../Modules/Jana/Resources/views/alertas/index.blade.php)
+- [weekly-digest.blade.php](../../../Modules/Jana/Resources/views/emails/weekly-digest.blade.php)
+- [show.blade.php](../../../Modules/Jana/Resources/views/fontes/show.blade.php)
+- [create.blade.php](../../../Modules/Jana/Resources/views/metas/create.blade.php)
+- [edit.blade.php](../../../Modules/Jana/Resources/views/metas/edit.blade.php)
+- [index.blade.php](../../../Modules/Jana/Resources/views/metas/index.blade.php)
+- [show.blade.php](../../../Modules/Jana/Resources/views/metas/show.blade.php)
+- [metas.blade.php](../../../Modules/Jana/Resources/views/superadmin/metas.blade.php)
 
 ## Telas (Inertia/React) — 4
 

@@ -87,7 +87,26 @@ module: Manufacturing
 
 ## Views (Blade) — 20
 
-- 20 arquivos em [Modules/Manufacturing/Resources/views/](../../../Modules/Manufacturing/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [index.blade.php](../../../Modules/Manufacturing/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/master.blade.php)
+- [nav.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/nav.blade.php)
+- [common_script.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/partials/common_script.blade.php)
+- [sidebar.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/partials/sidebar.blade.php)
+- [create.blade.php](../../../Modules/Manufacturing/Resources/views/production/create.blade.php)
+- [edit.blade.php](../../../Modules/Manufacturing/Resources/views/production/edit.blade.php)
+- [index.blade.php](../../../Modules/Manufacturing/Resources/views/production/index.blade.php)
+- [production_script.blade.php](../../../Modules/Manufacturing/Resources/views/production/production_script.blade.php)
+- [report.blade.php](../../../Modules/Manufacturing/Resources/views/production/report.blade.php)
+- [show.blade.php](../../../Modules/Manufacturing/Resources/views/production/show.blade.php)
+- [add_ingredients.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/add_ingredients.blade.php)
+- [create.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/create.blade.php)
+- [index.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/index.blade.php)
+- [ingredient_group.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_group.blade.php)
+- [ingredient_row.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_row.blade.php)
+- [ingredient_row_for_production.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_row_for_production.blade.php)
+- [ingredients_for_production.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredients_for_production.blade.php)
+- [show.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/show.blade.php)
+- [index.blade.php](../../../Modules/Manufacturing/Resources/views/settings/index.blade.php)
 
 ## Telas (Inertia/React) — 1
 
