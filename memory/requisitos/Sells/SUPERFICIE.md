@@ -13,7 +13,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Sells --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
+> **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
 **Total mapeado:** 172 arquivos em 9 papéis.
 
@@ -70,7 +70,13 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 
 ## Views (Blade) — 70
 
-- 70 arquivos em [resources/views/sale_pos/](../../../resources/views/sale_pos) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 10 em [resources/views/sale_pos/](../../../resources/views/sale_pos)
+- 41 em [resources/views/sale_pos/partials/](../../../resources/views/sale_pos/partials)
+- 9 em [resources/views/sale_pos/receipts/](../../../resources/views/sale_pos/receipts)
+- 1 em [resources/views/sale_pos/receipts/partial/](../../../resources/views/sale_pos/receipts/partial)
+- 5 em [resources/views/sell/](../../../resources/views/sell)
+- 4 em [resources/views/sell/partials/](../../../resources/views/sell/partials)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Telas (Inertia/React) — 9
 

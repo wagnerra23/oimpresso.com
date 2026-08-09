@@ -12,7 +12,7 @@ module: Crm
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Crm --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Crm/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Crm/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 234 arquivos em 14 papéis.
 
@@ -155,11 +155,38 @@ module: Crm
 
 ## Views (Blade) — 68
 
-- 68 arquivos em [Modules/Crm/Resources/views/booking/](../../../Modules/Crm/Resources/views/booking) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 1 em [Modules/Crm/Resources/views/](../../../Modules/Crm/Resources/views)
+- 2 em [Modules/Crm/Resources/views/booking/](../../../Modules/Crm/Resources/views/booking)
+- 1 em [Modules/Crm/Resources/views/call_logs/](../../../Modules/Crm/Resources/views/call_logs)
+- 4 em [Modules/Crm/Resources/views/campaign/](../../../Modules/Crm/Resources/views/campaign)
+- 6 em [Modules/Crm/Resources/views/contact_login/](../../../Modules/Crm/Resources/views/contact_login)
+- 4 em [Modules/Crm/Resources/views/contact_login/partial/](../../../Modules/Crm/Resources/views/contact_login/partial)
+- 1 em [Modules/Crm/Resources/views/crm_dashboard/](../../../Modules/Crm/Resources/views/crm_dashboard)
+- 1 em [Modules/Crm/Resources/views/dashboard/](../../../Modules/Crm/Resources/views/dashboard)
+- 5 em [Modules/Crm/Resources/views/layouts/](../../../Modules/Crm/Resources/views/layouts)
+- 2 em [Modules/Crm/Resources/views/lead/](../../../Modules/Crm/Resources/views/lead)
+- 2 em [Modules/Crm/Resources/views/lead/partial/](../../../Modules/Crm/Resources/views/lead/partial)
+- 1 em [Modules/Crm/Resources/views/ledger/](../../../Modules/Crm/Resources/views/ledger)
+- 1 em [Modules/Crm/Resources/views/marketplace/](../../../Modules/Crm/Resources/views/marketplace)
+- 4 em [Modules/Crm/Resources/views/order_request/](../../../Modules/Crm/Resources/views/order_request)
+- 1 em [Modules/Crm/Resources/views/profile/](../../../Modules/Crm/Resources/views/profile)
+- 2 em [Modules/Crm/Resources/views/proposal/](../../../Modules/Crm/Resources/views/proposal)
+- 5 em [Modules/Crm/Resources/views/proposal_template/](../../../Modules/Crm/Resources/views/proposal_template)
+- 2 em [Modules/Crm/Resources/views/proposal_template/partials/](../../../Modules/Crm/Resources/views/proposal_template/partials)
+- 1 em [Modules/Crm/Resources/views/purchase/](../../../Modules/Crm/Resources/views/purchase)
+- 3 em [Modules/Crm/Resources/views/reports/](../../../Modules/Crm/Resources/views/reports)
+- 6 em [Modules/Crm/Resources/views/schedule/](../../../Modules/Crm/Resources/views/schedule)
+- 6 em [Modules/Crm/Resources/views/schedule/partial/](../../../Modules/Crm/Resources/views/schedule/partial)
+- 4 em [Modules/Crm/Resources/views/schedule_log/](../../../Modules/Crm/Resources/views/schedule_log)
+- 1 em [Modules/Crm/Resources/views/schedule_log/partial/](../../../Modules/Crm/Resources/views/schedule_log/partial)
+- 1 em [Modules/Crm/Resources/views/sell/](../../../Modules/Crm/Resources/views/sell)
+- 1 em [Modules/Crm/Resources/views/settings/](../../../Modules/Crm/Resources/views/settings)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Testes (Pest) — 13
 
-- 13 arquivos em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 13 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 49
 

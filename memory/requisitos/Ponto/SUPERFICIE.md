@@ -12,7 +12,7 @@ module: Ponto
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Ponto --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Ponto/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Ponto/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 200 arquivos em 18 papéis.
 
@@ -110,7 +110,19 @@ module: Ponto
 
 ## Views (Blade) — 26
 
-- 26 arquivos em [Modules/Ponto/Resources/views/aprovacoes/](../../../Modules/Ponto/Resources/views/aprovacoes) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 2 em [Modules/Ponto/Resources/views/aprovacoes/](../../../Modules/Ponto/Resources/views/aprovacoes)
+- 2 em [Modules/Ponto/Resources/views/banco-horas/](../../../Modules/Ponto/Resources/views/banco-horas)
+- 2 em [Modules/Ponto/Resources/views/colaboradores/](../../../Modules/Ponto/Resources/views/colaboradores)
+- 2 em [Modules/Ponto/Resources/views/configuracoes/](../../../Modules/Ponto/Resources/views/configuracoes)
+- 1 em [Modules/Ponto/Resources/views/dashboard/](../../../Modules/Ponto/Resources/views/dashboard)
+- 4 em [Modules/Ponto/Resources/views/escalas/](../../../Modules/Ponto/Resources/views/escalas)
+- 2 em [Modules/Ponto/Resources/views/espelho/](../../../Modules/Ponto/Resources/views/espelho)
+- 3 em [Modules/Ponto/Resources/views/importacoes/](../../../Modules/Ponto/Resources/views/importacoes)
+- 5 em [Modules/Ponto/Resources/views/intercorrencias/](../../../Modules/Ponto/Resources/views/intercorrencias)
+- 1 em [Modules/Ponto/Resources/views/layouts/](../../../Modules/Ponto/Resources/views/layouts)
+- 1 em [Modules/Ponto/Resources/views/relatorios/](../../../Modules/Ponto/Resources/views/relatorios)
+- 1 em [Modules/Ponto/Resources/views/reports/](../../../Modules/Ponto/Resources/views/reports)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Telas (Inertia/React) — 20
 
@@ -184,7 +196,9 @@ module: Ponto
 
 ## Testes (Pest) — 39
 
-- 39 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 37 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 18
 

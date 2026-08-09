@@ -12,7 +12,7 @@ module: Whatsapp
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Whatsapp --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Whatsapp/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Whatsapp/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 385 arquivos em 20 papéis.
 
@@ -285,7 +285,8 @@ module: Whatsapp
 
 ## Views (Blade) — 1
 
-- 1 arquivos em [Modules/Whatsapp/Resources/views/](../../../Modules/Whatsapp/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 1 em [Modules/Whatsapp/Resources/views/](../../../Modules/Whatsapp/Resources/views)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Telas (Inertia/React) — 3
 
@@ -320,7 +321,8 @@ module: Whatsapp
 
 ## Testes (Pest) — 121
 
-- 121 arquivos em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 121 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 16
 

@@ -198,8 +198,45 @@ test('papel volumoso (listar:false) mostra contagem + dir, NÃO lista arquivos',
   const grupos = [{ rot: 'Testes (Pest)', listar: false, files: ['Modules/X/Tests/Feature/AT.php', 'Modules/X/Tests/Feature/BT.php'] }];
   const md = montar('X', grupos, []);
   assert.match(md, /## Testes \(Pest\) — 2/);
-  assert.match(md, /2 arquivos em \[Modules\/X\/Tests\/Feature\/\]/);
+  assert.match(md, /- 2 em \[Modules\/X\/Tests\/Feature\/\]/);
   assert.doesNotMatch(md, /\[AT\.php\]/); // não lista os arquivos individuais
+});
+
+/**
+ * BITE-TEST do ponteiro colapsado (consertado 2026-08-09).
+ *
+ * O montar() derivava o link de `files[0]` e imprimia a contagem de TODOS os arquivos —
+ * então, sempre que o papel abrangia mais de um diretório, o ponteiro mentia. Na Jana lia-se
+ * "9 arquivos em Resources/views/alertas/" com alertas/ contendo 2 dos 9; no Cliente, a
+ * contagem incluía as 23 blades de resources/views/contact e o link ia para
+ * Modules/Crm/Resources/views/booking/. Atingia os ~37 SUPERFICIE.md.
+ *
+ * O teste anterior não pegava porque a fixture tinha UM único diretório — o caso em que o
+ * bug some por construção. Este exercita o caso multi-dir, que é onde ele vivia.
+ */
+test('papel volumoso com VÁRIOS dirs: cada linha aponta pro seu dir e a soma bate com o header', () => {
+  const grupos = [{
+    rot: 'Views (Blade)',
+    listar: false,
+    files: [
+      'Modules/X/Resources/views/alertas/a.blade.php',
+      'Modules/X/Resources/views/alertas/b.blade.php',
+      'Modules/X/Resources/views/metas/c.blade.php',
+      'resources/views/contact/d.blade.php',
+    ],
+  }];
+  const md = montar('X', grupos, []);
+  assert.match(md, /## Views \(Blade\) — 4/);
+  // Cada diretório aparece com a contagem DELE — não com o total do papel.
+  assert.match(md, /- 2 em \[Modules\/X\/Resources\/views\/alertas\/\]/);
+  assert.match(md, /- 1 em \[Modules\/X\/Resources\/views\/metas\/\]/);
+  assert.match(md, /- 1 em \[resources\/views\/contact\/\]/);
+  // A regressão exata: o total do papel colado no dir do primeiro arquivo.
+  assert.doesNotMatch(md, /- 4 em \[Modules\/X\/Resources\/views\/alertas\/\]/);
+  // E o header continua sendo a soma das linhas (invariante que o gerado deve manter).
+  const soma = [...md.matchAll(/^- (\d+) em \[/gm)].reduce((n, m) => n + Number(m[1]), 0);
+  assert.equal(soma, 4);
+  assert.doesNotMatch(md, /\[a\.blade\.php\]/); // segue sem listar arquivo a arquivo
 });
 
 test('PAGES_NS mapeia módulos cujo namespace Inertia difere do nome do módulo (só divergências)', () => {

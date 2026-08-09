@@ -12,7 +12,7 @@ module: Superadmin
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Superadmin --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Superadmin/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Superadmin/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 166 arquivos em 17 papéis.
 
@@ -106,7 +106,20 @@ module: Superadmin
 
 ## Views (Blade) — 46
 
-- 46 arquivos em [Modules/Superadmin/Resources/views/business/](../../../Modules/Superadmin/Resources/views/business) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 4 em [Modules/Superadmin/Resources/views/business/](../../../Modules/Superadmin/Resources/views/business)
+- 1 em [Modules/Superadmin/Resources/views/communicator/](../../../Modules/Superadmin/Resources/views/communicator)
+- 1 em [Modules/Superadmin/Resources/views/layouts/](../../../Modules/Superadmin/Resources/views/layouts)
+- 4 em [Modules/Superadmin/Resources/views/layouts/partials/](../../../Modules/Superadmin/Resources/views/layouts/partials)
+- 3 em [Modules/Superadmin/Resources/views/packages/](../../../Modules/Superadmin/Resources/views/packages)
+- 4 em [Modules/Superadmin/Resources/views/pages/](../../../Modules/Superadmin/Resources/views/pages)
+- 1 em [Modules/Superadmin/Resources/views/pricing/](../../../Modules/Superadmin/Resources/views/pricing)
+- 5 em [Modules/Superadmin/Resources/views/subscription/](../../../Modules/Superadmin/Resources/views/subscription)
+- 9 em [Modules/Superadmin/Resources/views/subscription/partials/](../../../Modules/Superadmin/Resources/views/subscription/partials)
+- 1 em [Modules/Superadmin/Resources/views/superadmin/](../../../Modules/Superadmin/Resources/views/superadmin)
+- 1 em [Modules/Superadmin/Resources/views/superadmin_settings/](../../../Modules/Superadmin/Resources/views/superadmin_settings)
+- 8 em [Modules/Superadmin/Resources/views/superadmin_settings/partials/](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials)
+- 4 em [Modules/Superadmin/Resources/views/superadmin_subscription/](../../../Modules/Superadmin/Resources/views/superadmin_subscription)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Telas (Inertia/React) — 2
 
@@ -120,7 +133,9 @@ module: Superadmin
 
 ## Testes (Pest) — 15
 
-- 15 arquivos em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 14 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
+- 1 em [Modules/Superadmin/Tests/Feature/Lgpd/](../../../Modules/Superadmin/Tests/Feature/Lgpd)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 49
 
