@@ -70,12 +70,10 @@
       "anchor": "sinal de custo: ADR 0164 §9.4 (pendência nunca feita — a skill tela-smoke-pos-merge referenciava ESTE workflow inexistente, então o smoke visual dependia de um humano-no-loop) + gap PR #3945 (item de menu 'Suporte' não é uma tela → mudança de navegação não disparava smoke) + feedback-deploy-smoke-browser-obrigatorio §6 INCONDICIONAL (Wagner 2026-07-08: 'nemme pergunte mais isso é sempre sim automatize isso'). Mecanismo Playwright + OpenAI vision em runner ubuntu (Wagner 2026-07-08 'use o openai') — supersede o browser-MCP-CT100 da 1ª versão (ADR 0164 §3, emenda append-only follow-up); ADR 0062 intacto (runner efêmero ≠ daemon no host errado). NUNCA required (roda pós-deploy, não valida PR); nunca cria task/merge sem HITL (único HITL = merge R10)."
     },
     "screen-grades-ratchet.yml": {
-      "nome": "Screen grades ratchet (nota 16-dim de tela não desce vs origin/main · advisory · robusto contra burla do baseline_anterior)",
+      "nome": "Screen grades ratchet (nota 16-dim de tela não desce vs origin/main · cobre 2 vetores: baixar o valor e apagar o item)",
       "classe": "gate",
-      "terminal": "advisory",
-      "promote_by": "2026-09-05",
-      "anchor": "sinal de custo: adversário de arquitetura 2026-07-06 achado V4·alta — o script scripts/qa/screen-grades-ratchet.mjs existia mas NENHUM workflow o rodava; nota podia descer/inflar em silêncio enquanto vital-signs.mjs:30 e os 224 YAMLs afirmavam que a catraca defendia (mentira estrutural). A fila do metabolismo MV prioriza por essa nota. Advisory por lei (ADR 0314 — nota de tela é quality, não Tier-0); promote_by força a decisão de promoção em 14d em vez de advisory eterno.",
-      "promote_by_razao": "apenas 28 runs (medido 2026-08-05) — amostra insuficiente; decidir no escuro seria pior que esperar. (prazo anterior: 2026-07-20; decisão [W] 2026-08-05, ADR 0369 §Decisão)"
+      "terminal": "required",
+      "anchor": "sinal de custo: adversário de arquitetura 2026-07-06 achado V4·alta — o script scripts/qa/screen-grades-ratchet.mjs existia mas NENHUM workflow o rodava; nota podia descer/inflar em silêncio enquanto vital-signs.mjs:30 e os 224 YAMLs afirmavam que a catraca defendia (mentira estrutural). A fila do metabolismo MV prioriza por essa nota. Nasceu advisory por lei (ADR 0314 — nota de tela é quality, não Tier-0). PROMOVIDO a required em 2026-08-10 pela ADR 0373 (emenda à 0314/0336/0369), exceção soberana [W]: a DR-2 da 0336 foi DISPENSADA com 0 mordidas medidas em 241 modificações e 0 fugas em 258 deleções, e o promote_by de 2026-09-05 da 0369 foi antecipado. O agente recomendou NÃO promover; [W] reafirmou. Gate de reversão na 0373 (FP que bloqueie PR legítimo · 90d sem mordida · fila de CI)."
     },
     "mv-metabolismo.yml": {
       "nome": "MV metabolismo (batimento nightly do Módulo Vivo · stream MV · sinais vitais + proposta de batch via auto-PR SEM auto-merge — merge Wagner = aprova batch)",
