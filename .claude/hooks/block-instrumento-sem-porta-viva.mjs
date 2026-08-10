@@ -316,7 +316,7 @@ function selftest() {
     ['ler UM charter literal', { pattern: 'resources/js/Pages/Produto/Edit.charter.md' }, null],
     ['glob de tsx comum', { pattern: 'resources/js/Pages/**/*.tsx' }, null],
     ['grep de negocio no Kernel', { pattern: 'PiiRedactor', path: 'app/Console/Kernel.php' }, null],
-    ['grep schedule fora do Kernel', { pattern: 'schedule', path: 'Modules/Jana/README.md' }, null],
+    ['grep schedule fora do Kernel', { pattern: 'schedule', path: 'memory/requisitos/Jana/README.md' }, null],
     ['glob de migrations', { pattern: '**/Database/Migrations/*.php' }, null],
     ['charter literal em Grep', { pattern: 'Non-Goals', path: 'Produto/Edit.charter.md' }, null],
     // busca de CONTEUDO dentro de charters e legitima (foi como medi "quais citam Odoo")

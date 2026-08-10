@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * Roda offline (não bate em rede real Meta/Baileys). Multi-tenant Tier 0:
  * usa biz=1 (ADR 0101 — nunca cliente real).
  *
- * @see Modules/Whatsapp/README.md
+ * @see memory/requisitos/Whatsapp/README.md
  * @see Modules/Whatsapp/Services/Webhook/WebhookSignatureChecker.php
  * @see Modules/Whatsapp/Services/Metrics/MetricsSnapshotBuilder.php
  */

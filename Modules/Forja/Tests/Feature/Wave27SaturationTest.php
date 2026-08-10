@@ -22,7 +22,7 @@ uses(Tests\TestCase::class);
  *   - Multi-tenant ADR 0093: ProjectService recebe $businessId no constructor
  *   - Kanban free-flow (NÃO FSM tabular): module.json fsm_n_a:true preservado
  *
- * @see Modules/Forja/CHANGELOG.md Wave 27 POLISH
+ * @see memory/requisitos/Forja/CHANGELOG.md Wave 27 POLISH
  */
 describe('Wave 27 Forja POLISH', function () {
 

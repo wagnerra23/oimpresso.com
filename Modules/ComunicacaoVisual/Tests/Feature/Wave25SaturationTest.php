@@ -114,7 +114,7 @@ describe('Wave 25 ComVis — D5 cliente real (CustomerJourney expandido)', funct
     });
 
     it('README.md cobre jornada completa (atender→aprovar→produzir→faturar→entregar)', function () {
-        $readme = (string) file_get_contents(comvisW25Path('Modules/ComunicacaoVisual/README.md'));
+        $readme = (string) file_get_contents(comvisW25Path('memory/requisitos/ComunicacaoVisual/README.md'));
         expect($readme)->toContain('Atender pedido novo');
         expect($readme)->toContain('Aprovação → produção');
         expect($readme)->toContain('Faturamento + entrega');

@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  *   - Multi-tenant ADR 0093: $businessId:int primeiro param em todo Service method
  *   - Integração unidirecional POS → WooCommerce externo (fsm_n_a:true)
  *
- * @see Modules/Woocommerce/CHANGELOG.md Wave 27 POLISH
+ * @see memory/requisitos/Woocommerce/CHANGELOG.md Wave 27 POLISH
  */
 describe('Wave 27 Woocommerce POLISH', function () {
 

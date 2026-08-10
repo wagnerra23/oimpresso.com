@@ -77,7 +77,7 @@ it('cenario 6: Services nao usam OtelHelper de namespace errado (lock-in canon)'
 });
 
 it('cenario 7: README do modulo Officeimpresso existe e cita ADR 0159', function () {
-    $path = base_path('Modules/Officeimpresso/README.md');
+    $path = base_path('memory/requisitos/Officeimpresso/README.md');
     expect(file_exists($path))->toBeTrue('README.md deveria existir após Wave 18 D5');
 
     $src = file_get_contents($path);

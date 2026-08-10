@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  *   - D7: Config retention.php declara 5y CONFAZ + LogsActivity append-only
  *   - D7: NfseEmissao usa LogsActivity (Spatie Activitylog) — audit trail LGPD
  *
- * @see Modules/NFSe/CHANGELOG.md Wave 25 POLISH
+ * @see memory/requisitos/NFSe/CHANGELOG.md Wave 25 POLISH
  * @see Modules/NFSe/Config/retention.php (D7 LGPD)
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
