@@ -100,14 +100,41 @@ class SellsV3Controller extends Controller
                 ],
             ],
 
-            // Catálogo da busca do Passo 2 — `estoque: null` marca serviço.
+            /*
+             * Catálogo do Passo 2. `tipo` é EXPLÍCITO e não inferido de
+             * `estoque: null` — serviço é uma característica do cadastro, e o
+             * handoff usa `tipo === 'servico'` pra decidir o que a tela mostra
+             * (funcionário vinculado) e o que ela NÃO diz (movimento de estoque).
+             * Deixar isso implícito num null faria a UI mentir no dia em que
+             * existir produto sem controle de estoque.
+             */
             'catalogo' => [
-                ['sku' => 'LON-440-BR', 'nome' => 'Lona 440g branca fosca', 'un' => 'm²', 'preco' => 68.90, 'estoque' => 320.0],
-                ['sku' => 'ADE-VIN-BR', 'nome' => 'Adesivo vinílico branco brilho', 'un' => 'm²', 'preco' => 82.00, 'estoque' => 46.5],
-                ['sku' => 'BAN-ACAB-IL', 'nome' => 'Acabamento com ilhós', 'un' => 'un', 'preco' => 3.50, 'estoque' => 1500.0],
-                ['sku' => 'PLA-PS-2MM', 'nome' => 'Placa PS 2mm branca', 'un' => 'm²', 'preco' => 119.00, 'estoque' => 88.0],
-                ['sku' => 'SRV-INST', 'nome' => 'Instalação em fachada', 'un' => 'h', 'preco' => 145.00, 'estoque' => null],
-                ['sku' => 'SRV-PROJ', 'nome' => 'Projeto e arte-final', 'un' => 'h', 'preco' => 180.00, 'estoque' => null],
+                ['sku' => 'LON-440-BR', 'nome' => 'Lona 440g branca fosca', 'un' => 'm²', 'preco' => 68.90, 'estoque' => 320.0, 'tipo' => 'produto', 'ean' => '7891234000017', 'fabrica' => 'LN440BR', 'categoria' => 'Impressão digital'],
+                ['sku' => 'ADE-VIN-BR', 'nome' => 'Adesivo vinílico branco brilho', 'un' => 'm²', 'preco' => 82.00, 'estoque' => 46.5, 'tipo' => 'produto', 'ean' => '7891234000024', 'fabrica' => 'AD-VNL-BB', 'categoria' => 'Impressão digital'],
+                ['sku' => 'BAN-ACAB-IL', 'nome' => 'Acabamento com ilhós', 'un' => 'un', 'preco' => 3.50, 'estoque' => 1500.0, 'tipo' => 'produto', 'ean' => null, 'fabrica' => 'ILH-10', 'categoria' => 'Acabamento'],
+                ['sku' => 'PLA-PS-2MM', 'nome' => 'Placa PS 2mm branca', 'un' => 'm²', 'preco' => 119.00, 'estoque' => 88.0, 'tipo' => 'produto', 'ean' => '7891234000048', 'fabrica' => 'PS2-BR', 'categoria' => 'Rígidos'],
+                ['sku' => 'SRV-INST', 'nome' => 'Instalação em fachada', 'un' => 'h', 'preco' => 145.00, 'estoque' => null, 'tipo' => 'servico', 'ean' => null, 'fabrica' => null, 'categoria' => 'Serviço'],
+                ['sku' => 'SRV-PROJ', 'nome' => 'Projeto e arte-final', 'un' => 'h', 'preco' => 180.00, 'estoque' => null, 'tipo' => 'servico', 'ean' => null, 'fabrica' => null, 'categoria' => 'Serviço'],
+            ],
+
+            /*
+             * Quem pode EXECUTAR o serviço — funcionário ou técnico do cadastro
+             * único. O campo só aparece quando `tipo === 'servico'`, porque é
+             * ele que entra na apuração de comissão e na ordem de produção.
+             */
+            'executantes' => [
+                ['id' => 'fun-01', 'nome' => 'Marcos Vinícius', 'papel' => 'funcionario'],
+                ['id' => 'fun-02', 'nome' => 'Patrícia Lemos', 'papel' => 'funcionario'],
+                ['id' => 'tec-01', 'nome' => 'Rogério Alves', 'papel' => 'tecnico'],
+            ],
+
+            /*
+             * Alçada de PREÇO por perfil. Vem do servidor de propósito: quem
+             * decide se este usuário altera valor é o backend, não o front —
+             * `readOnly` no input é conforto de UI, nunca a trava.
+             */
+            'permissoes' => [
+                'editarPrecoItem' => true,
             ],
 
             'tabelas' => [

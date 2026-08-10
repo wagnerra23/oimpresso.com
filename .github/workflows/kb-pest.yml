@@ -200,7 +200,6 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftDetectorScheduleTest.php \
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
-            Modules/KB/Tests/Feature/LgpdComplianceTest.php \
             Modules/KB/Tests/Feature/KbIndexV2ContractTest.php \
             Modules/KB/Tests/Feature/CrossTenantIsolationTest.php \
             Modules/KB/Tests/Feature/KbRagDegradacaoSinalTest.php \

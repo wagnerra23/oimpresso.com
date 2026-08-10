@@ -40,6 +40,8 @@ contains:
   # Aprendizado com erro / Reflexion runtime
   - "LICOES-OPERACAO.md — ledger append-only dos erros de OPERAÇÃO da Jana (≠ saída, que golden/RAGAS cobrem); cada lição gradua MEC→check no jana:health-check ou JULG→regra sempre-lida. Proposta §10.4 (aguarda [W])"
   - "Console/Commands/HealthCheckCommand — check jana_lesson_ledger_graduation valida o loop de graduação do ledger (advisory)"
+  # Recebido do Modules/ADS em 2026-07-31 (ADR 0363 — o módulo deixou de existir; skills→Jana, #5129).
+  - "Services/SkillsService — LÊ o catálogo de skills (mcp_skills + fallback filesystem .claude/skills/<slug>/SKILL.md, ADR 0076). Só leitura: EDITAR skill é ato de arquivo+git, não deste módulo"
 not_contains:
   - "Mcp/SyncMemoryWebhookController → Modules/Forja (MCP é plataforma, [W] 2026-07-30)"
   - "Mcp/HealthController → Modules/Forja (idem)"
@@ -47,8 +49,12 @@ not_contains:
   - "FontesController (knowledge sources) → Modules/KB"
   - "Mcp/CcIngestController → Modules/Forja"
   - "Admin/GovernancaController → Modules/Governance (NOVO Fase 5)"
-  - "Skills governance → Modules/ADS"
-  - "Decision flow → Modules/ADS"
+  # A linha "Skills governance → Modules/ADS" saiu em 2026-08-10: o ADS foi REMOVIDO
+  # em 2026-07-31 (ADR 0363) e a capacidade veio PRA CÁ — `Services/SkillsService.php`
+  # (#5129), agora declarado em `contains`. Excluir skills daqui apontando pra um módulo
+  # que não existe mentia DUAS vezes (destino morto + nega o que o módulo contém).
+  # Destino era o ADS até a remoção dele em 2026-07-31 (ADR 0363); a política foi pro Governance (#5128).
+  - "Decision flow (Risk/Confidence/Policy Engine) → Modules/Governance (Services/PolicyEngine.php, #5128)"
 trust_required: L2
 owner: wagner
 permission_prefix: jana.*
@@ -127,7 +133,7 @@ Renomeada de **Copiloto → Jana** em Fase 3.7 PR-2 (2026-05-06). Rename PHP-onl
 
 - ❌ Browse de ADRs/sessions/specs canônicos → use Modules/KB
 - ❌ Admin de tokens MCP → use Modules/Forja
-- ❌ Editar skill → use Modules/ADS
+- ❌ Editar skill → arquivo `.claude/skills/<slug>/SKILL.md` + git (este módulo só **LÊ**, via `SkillsService`)
 - ❌ Triagem de tasks Jira-style → use Modules/Forja
 
 ## Skills auto-load relevantes

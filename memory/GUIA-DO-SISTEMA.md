@@ -4,9 +4,9 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.4.0"
+version: "1.5.0"
 maintained_by: wagner
-last_updated: "2026-08-05"
+last_updated: "2026-08-10"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -579,6 +579,95 @@ obrigatórios.
 - [ ] o lint final terminou com zero erros.
 
 ---
+
+### B8. Quem pode alterar o quê, quando cada trava age, e como um arquivo sobrevive
+
+> **Por que esta seção existe.** [W] 2026-08-10, depois de uma auditoria que devolveu 56 gaps:
+> *"não tenho estrutura para gerenciar isso? os módulos não têm contexto restrito? não sei a
+> hierarquia de comandos dos donos? quem pode alterar os arquivos?"*. O B6 responde *quem cuida
+> da documentação*; esta responde *quem pode ESCREVER, quando cada camada age, e por que um
+> arquivo apodrece*. Números medidos em 2026-08-10 — **o comando está ao lado, re-rode em vez de
+> confiar no número** (LC-08).
+
+#### B8.1 Quem pode alterar — a resposta é uma linha: `.github/CODEOWNERS`
+
+`require_code_owner_reviews = true` na proteção da `main`, `enforcement_level: everyone`
+(**vale para o [W] também**). Conferir: `gh api repos/<owner>/<repo>/branches/main/protection`.
+
+| Caminho | Aprova |
+|---|---|
+| `Modules/{Financeiro,NfeBrasil,RecurringBilling}` + `memory/requisitos/` deles | **[W]** — dinheiro/fiscal |
+| `Modules/{Jana,Ponto,SRS}` + `memory/requisitos/` deles | **[W]** — LGPD/dado pessoal |
+| `.github/` · `INFRA.md` · `docker-compose*` · `memory/decisions/` · `CLAUDE.md` · `TEAM.md` | **[W]** — infra/governança |
+| **todo o resto** (`resources/js/`, demais `Modules/`, `memory/sessions/`, `memory/handoffs/`) | **ninguém** — PR verde mergeia sem [W] |
+
+Isso é **decisão deliberada de 2026-06-03**: *"não existe mais catch-all `*`"*. O que não é dinheiro,
+dado pessoal ou infra foi delegado. ⚠️ O time ainda **não é colaborador do repo** — o GitHub ignora
+code owner sem acesso de escrita, então hoje todo `# TODO: + @<handle>` do arquivo é inerte.
+
+#### B8.2 As 4 camadas — cada uma age num momento diferente
+
+```
+[1] HOOK           antes de o agente escrever    91 hooks · bloqueia na hora
+     ↓                                            git ls-files '.claude/hooks/*.mjs' | wc -l
+[2] SCOPE + rules  o que LER antes de mexer       32 SCOPE.md (32 de 32 módulos)
+     ↓                                            git ls-files 'Modules/*/SCOPE.md' | wc -l
+[3] CI             depois do push                 121 workflows · 42 travam merge
+     ↓                                            governance/required-checks-baseline.json
+[4] CODEOWNERS     antes do merge                 [W], nos caminhos Tier 0
+```
+
+**Contexto restrito por módulo = o `SCOPE.md`** (é a FONTE PRIMÁRIA da rule `.claude/rules/modules.md`,
+que manda abri-lo **antes** de `Glob`/`Grep`): `contains` · `not_contains` · `db_tables_owned` ·
+`url_prefixes` · `permission_prefix` · `trust_required`.
+
+**Hierarquia de comandos — uma pergunta, um dono.** *Nunca responda no olho o que uma porta responde.*
+
+| Pergunta | Porta viva |
+|---|---|
+| Que artefatos esta tela tem? | `npm run screen:files` |
+| Que testes rodam em que lane? | `node scripts/governance/test-lane-coverage.mjs` |
+| …e a lane deixa rodar? | `node scripts/governance/test-lane-coverage.mjs --mudos` |
+| Que link está morto? | `node scripts/governance/deadlink-gate.mjs --check` |
+| Doc cita módulo que morreu? | `node scripts/governance/knowledge-drift.mjs --check` |
+| O que este módulo tem? | `node scripts/governance/module-surface.mjs <Mod> --check` |
+| Que gate trava merge? | `governance/required-checks-baseline.json` |
+| Qual módulo migrar primeiro? | `npm run migracao:report` |
+| Censo de TODAS as máquinas | [reference/MAQUINAS-INVENTARIO.md](reference/MAQUINAS-INVENTARIO.md) (derivado) |
+
+#### B8.3 Passo a passo pra mexer num arquivo
+
+1. **LER** — `Modules/<X>/SCOPE.md` (é deste módulo?) · `memory/requisitos/<X>/SPEC.md` (já tem US?) · o charter, se for tela.
+2. **MEXER** — commit por passo lógico; push a cada ~30min; nunca `git checkout` sem commit.
+3. **PROVAR** — rodar **TODOS** os modos que o job roda, não um ([§5 2026-07-28](proibicoes.md)). Teste/PHPStan: **CT 100**, nunca local.
+4. **PR** — CI verde **antes** de propor merge. Se toca caminho do CODEOWNERS, [W] aprova.
+
+#### B8.4 Como um arquivo SOBREVIVE no tempo
+
+A doutrina é a [ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md):
+**derivado+enforçado sobrevive; escrito+lembrado apodrece.** Os 6 princípios — fonte única ·
+catraca · sentinela de frescor · gate na porta · self-healing · cadência.
+
+**O diagnóstico que a auditoria de 2026-08-10 acrescenta** (56 gaps em `Modules/Jana`, mas a classe
+é repo-wide): nenhum gate estava quebrado. **Cada um faz exatamente o que foi construído pra fazer.**
+O que faltava era perguntar *"e o que ele NÃO olha?"*. Três exemplos medidos:
+
+| O que apodreceu | Por que nenhuma máquina viu |
+|---|---|
+| Charter apontando pra charter apagado | o `deadlink-gate` varre `memory/` — **`Pages/**/*.charter.md` está fora do corpus** |
+| 4 `SCOPE.md` citando módulo deletado | o `knowledge-drift` varre `memory/` — **`Modules/*/SCOPE.md` está fora** |
+| 40 testes que a lane alcança e o driver faz pular | o `test-lane-coverage` media *"alcança?"* — **não media *"deixa rodar?"*** |
+
+**A regra prática que sai disso**, e é a mais barata de aplicar: **um fato só sobrevive se algum
+comando o RECALCULA.** Fato escrito à mão apodrece no primeiro dia em que o mundo muda, e ninguém
+percebe — porque o gate que existia nunca olhou aquele eixo. Antes de escrever um número num doc:
+*existe porta que o derive?* Se existe, **aponte pra ela em vez de copiar o número**
+([§5 2026-07-17](proibicoes.md)).
+
+⚠️ **Não crie índice novo pra resolver isso.** Já foi medido e reprovado 2× ([§5 2026-07-23](proibicoes.md)
+e [07-25](proibicoes.md)) — inclusive com a prova dura de que um índice **existia 4 dias antes** de um
+erro que ele deveria ter evitado, e não evitou. O caminho é **estender o dono do eixo**, com FP
+medido antes, advisory primeiro.
 
 ## Backbone operacional — como tudo se conecta
 
