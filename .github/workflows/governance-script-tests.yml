@@ -94,6 +94,15 @@ jobs:
       - name: Test-lane coverage — relatorio (ADVISORY, nao bloqueia)
         run: node scripts/governance/test-lane-coverage.mjs || true
 
+      # EIXO 2 (2026-08-10): o eixo acima mede "a lane ALCANCA o arquivo?".
+      # Este mede o nivel seguinte: "a lane que o alcanca deixa ele RODAR?".
+      # Caso de origem: BriefDiarioAgentTest listado na allowlist de uma lane MySQL
+      # com guard sqlite-only => pula sempre, e skip sai exit 0 (verde). Um dos seus
+      # casos e trava multi-tenant Tier 0 (ADR 0093). ADVISORY: relato, nao veredito
+      # — ligar qualquer um deles numa lane exige rodar no CT 100 antes.
+      - name: Test-lane MUDOS — alcancado x deixado rodar (ADVISORY, nao bloqueia)
+        run: node scripts/governance/test-lane-coverage.mjs --mudos || true
+
       # FORWARD-ONLY: nao cobra a divida historica (957 arquivos, nao e deste PR).
       # Aponta so o que ESTE PR esta prestes a deixar sem rede — o padrao exato do
       # incidente PiiRedactor: fonte alterada, teste dela existindo, nenhuma lane de
