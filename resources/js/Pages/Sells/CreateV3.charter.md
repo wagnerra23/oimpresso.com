@@ -3,12 +3,12 @@ page: /sells/create-v3
 component: resources/js/Pages/Sells/CreateV3.tsx
 owner: luiz
 status: draft
-last_validated: "2026-08-07"
+last_validated: "2026-08-10"
 parent_module: Sells
 related_us: [US-SELL-058]
 related_adrs: [253, 104, 93, 62]
 tier: C
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /sells/create-v3
@@ -32,12 +32,16 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
 
 ## Goals — o que a tela faz
 
+> Atualizado em 2026-08-10 com o porte do handoff `design_handoff_cadastro_venda`
+> (a v1 descrevia o scaffold de 280 linhas que shipou no [#5356](https://github.com/wagnerra23/oimpresso.com/pull/5356)).
+
 - `AppShellV2` como layout persistente (mesma convenção de `Sells/Create.tsx`).
 - Faixa âmbar permanente no topo: quem abrir por engano sabe em 1 segundo que não é produção.
-- 3 passos numerados — **1 Cliente · 2 Itens · 3 Fechamento** — espelhando a âncora de design.
-- Coluna de fechamento com *plate* escuro para o total (único bloco de peso visual da tela).
-- Grid de itens **somente leitura**.
-- Botão "Finalizar venda" renderizado **`disabled`** por construção.
+- **4 passos numerados na coluna esquerda** — 1 Cliente · 2 Itens · 3 Entrega e frete · 4 Observações e produção — espelhando a âncora de design.
+- **Coluna direita de fechamento**: Tabela de preço · Fechamento (plate escuro com o total, único bloco de peso visual) · Pagamento · Comissão · Situação (FSM) · finalizador *sticky*.
+- Grid de itens **editável** (quantidade, valor, desconto %, acréscimo %) com alerta de linha inválida e coluna de Ações fixa.
+- Situação FSM **fail-secure**: papel ausente NEGA a ação e a tela **diz qual papel falta**; os efeitos colaterais da transição são declarados ANTES de executá-la.
+- Recurso ainda não portado aparece como gatilho que **diz o que falta** (`AindaNao`) — botão que promete e não entrega é pior que botão ausente.
 - Layout composto por primitivos (`Stack`/`Inline`/`Grid` de `@/Components/layout`) — [ADR 0253](../../../../memory/decisions/0253-primitivos-layout.md).
 
 ---
@@ -47,7 +51,24 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
 > ⚠️ Os dois primeiros são **declaração literal de [L]**, não inferência minha. O restante desta seção fica **pendente de [W]/[L]** — a skill `charter-write` é proibida de inferir Non-Goal, e anti-padrão inventado no charter é pior que ausente porque parece canon.
 
 - ❌ **Não calcula.** Subtotal, desconto, imposto, acréscimo, frete e total chegam prontos do controller como dados de cena. Cálculo de valor/estoque é território `[V0]` (REGRA MESTRE, `memory/proibicoes.md`) e não entra em tela de preview — foi assim que nasceu o incidente `num_uf` de 2026-06-05 (`final_total` inflado ~×100.000 em 16 vendas do `biz=4`).
-- ❌ **Não grava.** Sem `store()`, sem POST, sem rota de escrita, sem migration.
+
+  > 🔴 **CONFLITO ABERTO — decisão de [L], não minha (2026-08-10).**
+  > O porte do handoff **contradiz este Non-Goal**: a tela agora calcula subtotal,
+  > desconto, imposto, frete e total no front, porque é o que a fonte de design
+  > descreve (§9 — o número muda enquanto se digita, senão não há o que avaliar
+  > no preview). **Não reescrevi o Non-Goal**: ele é declaração literal de [L], e
+  > `charter-write` é proibida de inferir esta seção.
+  >
+  > O que foi feito para não repetir o `num_uf` enquanto o conflito não é decidido:
+  > a tela **não é autoridade** (não grava, não tem `store()`, não tem POST), e o
+  > parse pt-BR (`parseBR`) + arredondamento a 2 casas no submit (`submitSafe`)
+  > vieram **literais** do handoff — são exatamente o guard daquele incidente.
+  >
+  > **[L] decide entre:** (a) manter o cálculo no preview e reescrever este
+  > Non-Goal, ou (b) voltar aos valores prontos do controller e perder o feedback
+  > ao digitar. Enquanto não decidir, o charter fica com os dois registrados.
+
+- ❌ **Não grava.** Sem `store()`, sem POST, sem rota de escrita, sem migration. _(Este segue intacto e é o que sustenta o item acima.)_
 - ❌ **Não substitui `/pos/create`.** Não há cutover previsto (RUNBOOK §F5).
 - _pendente [W]/[L]_ — demais Non-Goals.
 
@@ -61,7 +82,7 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
 | Editar `SellPosController@create` | serve a tela deles |
 | Editar componente compartilhado que `Create.tsx` importa | a alteração vaza pra tela deles pelo import |
 
-Precisando de variação de um componente existente, **nasce cópia local** em `Pages/Sells/_components/` — nunca edição do original.
+Precisando de variação de um componente existente, **nasce cópia local** em `Pages/Sells/_components/v3/` — nunca edição do original. A subpasta `v3/` é deliberada: deixa óbvio, no path, que aquele arquivo nasceu para esta tela e **não** é consumido por `Create.tsx`.
 
 ---
 
@@ -81,4 +102,6 @@ Precisando de variação de um componente existente, **nasce cópia local** em `
 
 ## Pest GUARD
 
-> Nenhum teste declarado. **Esta seção não promete teste que não existe** — charter que promete GUARD inexistente é revogável (`how-trabalhar.md`, regra dura da perna Charter).
+`tests/Feature/Sells/SellsCreateV3ContratoTest.php` — UC-V301 (rota registrada) · UC-V302 (nenhuma rota de escrita) · UC-V303 (fronteira: o preview não encosta em `Create.tsx`/`SellPosController`/`_components` da tela viva).
+
+Só isto está declarado porque só isto existe. **Esta seção não promete teste que não existe** — charter que promete GUARD inexistente é revogável (`how-trabalhar.md`, regra dura da perna Charter). O que ainda não tem prova está em `[BACKLOG]` no [`CreateV3.casos.md`](CreateV3.casos.md).
