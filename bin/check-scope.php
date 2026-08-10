@@ -105,24 +105,15 @@ function parseFrontmatter(string $path): ?array {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Índice basename→paths de todo .php sob Modules/, app/ e database/ (sem vendor/node_modules).
- *
- * `database/` entrou em 2026-08-10: sem ele o índice tinha PONTO CEGO nos seeders
- * canônicos de FSM, que moram na raiz por convenção — os 3 `FsmProcesso*Seeder`
- * (ComunicacaoVisual, OsReparoPadrao, VendaComProducao) estão TODOS em
- * `database/seeders/`, nenhum dentro de `Modules/`. Consequência: o
- * `FsmProcessoComunicacaoVisualSeeder`, que EXISTE e é declarado pelo SCOPE do
- * ComunicacaoVisual, era acusado de 👻 FANTASMA ("não existe em lugar NENHUM").
- *
- * Isso invertia o veredito no caso mais caro: acusar de inexistente algo que existe
- * empurra o dono a APAGAR uma declaração verdadeira pra calar o gate. Com o root
- * novo o item cai em ↗ FORA — que é exatamente o que ele é (existe, mas não sob o
- * módulo) e é informativo, não acusação.
- *
- * Seeders DE módulo (`Modules/X/Database/Seeders/`, como o `McpActorsSeeder` da
- * Forja e o `RepairSettingsSeeder` do Vestuario) já resolviam por `Modules/` e
- * seguem resolvendo como `ok` — este root não os afeta.
+ * Roots do índice de símbolos — FONTE ÚNICA (o `--declared` e o `--selftest` leem daqui).
+ * Estavam duplicados; divergir fazia o selftest testar uma cobertura e o gate usar outra,
+ * que é exatamente como o FP do FsmProcessoComunicacaoVisualSeeder passou verde.
  */
+function scopeIndexRoots(): array {
+    return ['Modules', 'app', 'database', 'routes', 'config'];
+}
+
+/** Índice basename→paths de todo .php sob os roots (sem vendor/node_modules). */
 function indexPhpSymbols(array $roots): array {
     static $cache = null;
     if ($cache !== null) return $cache;
@@ -250,8 +241,20 @@ if ($selftest) {
     $ok('BITE: arquivo .md que NÃO existe segue fantasma (o fix não cega o detector)',
         classifyContainsItem('NAO-EXISTE-XYZ.md — ledger', 'Modules/Jana', $idx)['status'] === 'fantasma');
 
+    // ── COBERTURA DO ÍNDICE — o eixo que o FP real explorou ────────────────────────
+    // Os asserts de classificação INJETAM o índice, então nenhum deles exercita
+    // indexPhpSymbols(). Mutação medida: cegar o índice (tirar `app`, ou tirar tudo
+    // menos `app`) passava 12/12 VERDE. É por esse buraco que o gate acusou o
+    // FsmProcessoComunicacaoVisualSeeder, que existe em database/seeders/.
+    $real = indexPhpSymbols(scopeIndexRoots());
+    $ok('COBERTURA: índice alcança database/ (âncora: FsmProcessoComunicacaoVisualSeeder existe lá)',
+        !empty($real['FsmProcessoComunicacaoVisualSeeder']));
+    $ok('COBERTURA: índice alcança Modules/ (mutação que cega Modules não passa)',
+        !empty($real['SkillsService']));
+    $ok('COBERTURA: índice alcança app/ (mutação que tira app não passa)',
+        !empty($real['ServiceOrderFsmActionController']));
+
     // ÂNCORAS DE CONTRATO — as premissas têm que ser verdade no repo AGORA.
-    $real = indexPhpSymbols(['Modules', 'app', 'database']);
     $ok('contrato: Modules/Jana/Services/SkillsService.php existe (âncora do CN "ok")',
         is_file('Modules/Jana/Services/SkillsService.php'));
     $ok('contrato: nenhum ConversationsController no repo (âncora do achado real Whatsapp)',
@@ -298,7 +301,14 @@ if ($declaredOnly) {
     echo color("└─────────────────────────────────────────────────────────────┘\n", 'blue');
     echo "\n";
 
-    $symbolIndex = indexPhpSymbols(['Modules', 'app', 'database']);
+    // ROOTS: `Modules` + `app` NÃO bastam. Ativo legítimo de módulo mora fora deles —
+    // seeder de FSM canon vive em `database/seeders/` por convenção (4 lá hoje). Com o
+    // índice cego, ele era classificado `fantasma` em vez de `fora`, e o gate acusava
+    // código REAL: aconteceu com FsmProcessoComunicacaoVisualSeeder (294 linhas, criado
+    // em #676, exercitado por 6 pontos do Tier0GuardTest) e um PR chegou a apagar a
+    // declaração correta por obedecer ao veredito. Medido ao ampliar: flipa exatamente
+    // 1 item, `fantasma → fora`, zero FP novo.
+    $symbolIndex = indexPhpSymbols(scopeIndexRoots());
     $fantasmas = [];
     $fora = [];
     $tally = ['ok' => 0, 'dir' => 0, 'glob' => 0, 'prosa' => 0, 'fora' => 0, 'fantasma' => 0];

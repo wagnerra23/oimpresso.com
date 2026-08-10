@@ -34,6 +34,11 @@ on:
       - 'Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php'
       - 'Modules/Jana/Tests/Unit/AuditChainServiceTest.php'
       - 'Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php'
+      # GUARD LC-15: varre o fonte das tools MCP atrás de `php artisan` inexistente.
+      # O sujeito do teste é o DIRETÓRIO de tools — sem esta linha, mexer numa tool
+      # não dispararia o guard dela (gate mudo com cara de cobertura · §5 2026-08-02).
+      - 'Modules/Jana/Mcp/Tools/**'
+      - 'Modules/Jana/Tests/Unit/McpToolsNaoCitamComandoInexistenteTest.php'
       - 'Modules/Jana/Services/Privacy/PiiRedactor.php'
       # 2026-08-08 — 1º alvo FORA da Jana: o veredito do sentinela de migração
       # Blade→React (ADR 0277 peça 2). Entrou aqui, e não em `modules-pest`, porque
@@ -164,6 +169,7 @@ jobs:
             Modules/Jana/Tests/Unit/PiiRedactorTest.php \
             Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
             Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php \
+            Modules/Jana/Tests/Unit/McpToolsNaoCitamComandoInexistenteTest.php \
             Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php \
             Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php \
             --no-coverage \

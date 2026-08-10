@@ -8,16 +8,11 @@ contains:
   - "DataController — 3 hooks UltimatePOS (user_permissions/modifyAdminMenu/superadmin_package)"
   # Admin Inertia (US-WA-001/012/013/057)
   - "Admin/SettingsController — wizard 2 passos Z-API+Meta + gating LGPD (BusinessSettingsRequest)"
-  # "Admin/ConversationsController — Inbox Cockpit + send manual + Centrifugo subscribe":
-  #   removido do contains[] em 2026-08-10. O controller foi APAGADO por ordem do [W]
-  #   em 2026-05-11 (US-WA-091: "deve ser removido, isso é uma ordem"), junto das rotas
-  #   `whatsapp.conversations.*`. O caminho único passou a ser `/atendimento/inbox`
-  #   (ADR 0135, schema polimórfico) — já declarado abaixo em Admin/InboxController +
-  #   Admin/CaixaUnificadaController. A remoção tem 5 GUARDs anti-reintrodução em
-  #   Modules/Whatsapp/Tests/Feature/LegacyConversationsRemovedTest.php, e o próprio
-  #   `bin/check-scope.php --selftest` usa "nenhum ConversationsController no repo"
-  #   como âncora de fixture. Ou seja: o contains[] afirmava o presente sobre algo
-  #   deliberadamente removido e vigiado por teste — ficou 3 meses mentindo.
+  # Admin/ConversationsController foi REMOVIDO em US-WA-091 (#590, "remover legacy
+  # /whatsapp/conversations") e ficou listado aqui depois de deixar de existir — o
+  # mesmo padrão do BriefController do Jana. A capacidade que esta linha descrevia
+  # (Inbox Cockpit + send manual + Centrifugo) vive em Admin/InboxController e
+  # Admin/CaixaUnificadaController, ambos já declarados abaixo.
   - "Admin/CsatController — dashboard pesquisa pós-atendimento (CSAT) PR-6 CYCLE-07"
   - "Admin/MacrosController — CRUD respostas prontas (macros) inbox"
   - "Admin/MacroVariantsController — variants A/B/n por macro pra teste"
