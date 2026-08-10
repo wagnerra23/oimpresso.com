@@ -54,3 +54,23 @@ export const fmtBR = (n: number): string => formatDecimalPtBR(n, 2);
 /** `brl` é local: o fallback `—` para vazio é decisão desta tela, não do canon. */
 export const brl = (n: number | null | undefined): string =>
   n || n === 0 ? `R$ ${fmtBR(Number(n))}` : '—';
+
+/**
+ * Formata QUANTIDADE — 2 casas, exceto quando 2 casas mentiriam.
+ *
+ * Dinheiro tem 2 casas sempre; medida não. Uma tira de 0,50 × 0,004 m dá
+ * 0,002 m², e `fmtBR` exibe isso como `0,00` — a tela ficaria mostrando
+ * "0,00 m² × R$ 119,00 = R$ 0,24", que é aritmética visivelmente falsa pra
+ * quem opera, e o tipo de coisa que vira chamado de "a venda está errada".
+ * Medido no harness antes de existir esta função.
+ *
+ * Regra: 2 casas por padrão (não mexe em nada do caso normal — 0,05 segue
+ * `0,05`, 12,5 segue `12,50`); expande até 4 SÓ quando o valor não é zero mas
+ * arredondaria pra zero. Exibir mais casas é decisão de LEITURA — o cálculo
+ * continua sendo `quantidadeFaturada`, e não muda por causa disto.
+ */
+export const fmtQtd = (n: number): string => {
+  const v = Number(n);
+  if (v !== 0 && Math.abs(v) < 0.005) return formatDecimalPtBR(v, 4);
+  return fmtBR(v);
+};

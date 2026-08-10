@@ -40,6 +40,7 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
 - **4 passos numerados na coluna esquerda** — 1 Cliente · 2 Itens · 3 Entrega e frete · 4 Observações e produção — espelhando a âncora de design.
 - **Coluna direita de fechamento**: Tabela de preço · Fechamento (plate escuro com o total, único bloco de peso visual) · Pagamento · Comissão · Situação (FSM) · finalizador *sticky*.
 - Grid de itens **editável** (quantidade, valor, desconto %, acréscimo %) com alerta de linha inválida e coluna de Ações fixa.
+- **Lançamento do item por modal** (`_components/v3/LancarItem.tsx`, onda 1): escolher o produto na busca abre o lançamento, onde a **unidade do cadastro** decide o modo — `m²` pede peças+altura+largura, `m³` acrescenta espessura, `m` usa só a largura, e o resto pede a quantidade direto. A quantidade faturada é **derivada** (`peças × área`), nunca digitada, e o preview do total muda enquanto se digita. Alerta de preço abaixo da alçada (85% da tabela) e de saldo negativo de estoque — o segundo **avisa, não bloqueia**.
 - Situação FSM **fail-secure**: papel ausente NEGA a ação e a tela **diz qual papel falta**; os efeitos colaterais da transição são declarados ANTES de executá-la.
 - Recurso ainda não portado aparece como gatilho que **diz o que falta** (`AindaNao`) — botão que promete e não entrega é pior que botão ausente.
 - Layout composto por primitivos (`Stack`/`Inline`/`Grid` de `@/Components/layout`) — [ADR 0253](../../../../memory/decisions/0253-primitivos-layout.md).
@@ -67,6 +68,18 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
   > **[L] decide entre:** (a) manter o cálculo no preview e reescrever este
   > Non-Goal, ou (b) voltar aos valores prontos do controller e perder o feedback
   > ao digitar. Enquanto não decidir, o charter fica com os dois registrados.
+  >
+  > **Atualização 2026-08-10 (onda 1) — o conflito CRESCEU, e é honesto dizer.**
+  > O lançamento do item calcula área, quantidade faturada, unitário líquido e
+  > total (`_components/v3/calculo-item.ts`). Segue valendo que a tela **não é
+  > autoridade** (não grava), e o guard do `num_uf` está **intacto** onde é dele:
+  > preço unitário e total do item passam por `submitSafe`.
+  > **Uma divergência consciente do handoff, com prova:** `submitSafe` é o guard de
+  > **dinheiro** (2 casas) e o handoff o aplicava também na **medida** — o que
+  > zerava item fino (tira de `0,50 × 0,004 m` → quantidade `0,00`, total
+  > `R$ 0,00`, botão desabilitado, item fora da venda). Área não arredonda;
+  > quantidade arredonda a 4 casas. Provado por dois caminhos e com controle de
+  > que o caso normal não se move — detalhe em [`CreateV3.casos.md`](CreateV3.casos.md).
 
 - ❌ **Não grava.** Sem `store()`, sem POST, sem rota de escrita, sem migration. _(Este segue intacto e é o que sustenta o item acima.)_
 - ❌ **Não substitui `/pos/create`.** Não há cutover previsto (RUNBOOK §F5).
