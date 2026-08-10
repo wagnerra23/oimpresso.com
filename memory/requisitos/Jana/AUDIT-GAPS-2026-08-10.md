@@ -43,8 +43,10 @@ Dois adversários read-only independentes (backend / frontend+rotas) + verifica�
 |---|---:|---|
 | Código de produção | **305** | ✅ **sim** — 291 classes uma a uma + 14 não-classe (9 blades, 3 configs, `permissions.php`, `topnav.php`) |
 | `Tests/` | **159** | ✅ **sim** — ver Cluster H (157 arquivos de teste, 1.274 casos) |
-| `Database/` (81 migrations + 4 seeders) | **85** | ❌ **NÃO** |
-| Raiz (`SCOPE.md`, `CHANGELOG.md`, `LICOES-OPERACAO.md`, `module.json`, `composer.json`, `start.php`) | **6** | ❌ **NÃO** (exceto `SCOPE.md`, coberto depois — ver #30) |
+| `Database/` (81 migrations + 4 seeders) | **85** | ✅ **sim** — ver Cluster I (59 tabelas, 16 órfãs) |
+| Raiz (`SCOPE.md`, `CHANGELOG.md`, `LICOES-OPERACAO.md`, `module.json`, `composer.json`, `start.php`) | **6** | ✅ **sim** — ver Clusters E-bis e E-ter |
+
+> ✅ **555 de 555 — o módulo inteiro foi lido** ([W] 2026-08-10: *"leia o modulo inteiro"*).
 
 **Por que as duas primeiras lacunas importam mais do que o número sugere:**
 
@@ -277,6 +279,88 @@ foi apagado, com controle negativo explícito. Correto, não é gap.
 - **Há quanto tempo** os 29 estão mudos — não medido.
 - **Deadness transitiva exaustiva** — o script transitivo teve falso-negativo conhecido; os 5
   comandos e os 2 zero-consumidor estão provados, **pode haver mais**.
+
+---
+
+## CLUSTER I — `Database/` (81 migrations + 4 seeders) — auditado 2026-08-10
+
+> ⚠️⚠️ **LEIA ANTES DE COGITAR QUALQUER `DROP`.** "Sem escritor" aqui significa, em vários casos,
+> **feature não construída** — não *feature morta*. Cinco das órfãs são **reivindicadas pelo
+> `Modules/Forja/SCOPE.md`** (`mcp_views`, `mcp_issue_templates`, `mcp_task_attachments`,
+> `mcp_task_memory_links`, `mcp_epics`) + `mcp_components`: são **schema à frente do código com
+> dono declarado**. E a **`US-COPI-147` já decidiu ❌ NÃO dropar 4 delas**, por serem pré-condição
+> de roadmap ativo da Forja (`PMG-012` pressupõe `mcp_views`; `mcp_task_memory_links` é o
+> diferencial D1 do TaskRegistry). **Esta auditoria não contradiz aquela decisão — a confirma pelo
+> eixo código.** A distinção *não-construída × morta* é decisão [W], não de varredura.
+
+**Contado:** 81 migrations, das quais **59 fazem `Schema::create`** → **59 tabelas**
+(13 `jana_*` renomeadas + 2 `jana_*` diretas + **44 `mcp_*`**) + **13 views legacy `copiloto_*`**.
+**16 de 59 órfãs (27%)**.
+
+### 🔴 8 órfãs TOTAIS — sem escritor E sem leitor
+
+| # | Tabela | Prova |
+|---|---|---|
+| 36 | `jana_negative_cache` | 🔶 **Zero** ocorrências do nome em qualquer `.php`. Sem Entity. O `NegativeCacheService` (vivo) implementou com a facade `Cache::` |
+| 37 | `mcp_issue_templates` | 🔶 Zero ocorrências fora da migration |
+| 38 | `mcp_views` | 🔶 Zero fora da migration — ⚠️ **reivindicada pela Forja** |
+| 39 | `mcp_task_attachments` | 🔶 Zero fora da migration — ⚠️ **reivindicada pela Forja** |
+| 40 | `mcp_task_memory_links` | 🔶 Zero fora da migration — ⚠️ **reivindicada pela Forja** |
+| 41 | `mcp_skill_approvals` | 🔶 Confirma o gap #20 pelo eixo schema |
+| 42 | `mcp_automation_runs` | 🔶 Confirma o gap #7 pelo eixo schema |
+| 43 | `mcp_skill_test_runs` | 🔶 Escritor **existe mas é inalcançável** (`SkillTestRunnerService`, gap #16). Zero leitores |
+
+**As 3 do briefing confirmadas — e apareceram MAIS 5.**
+
+### 🔴 5 órfãs DE ESCRITA — a tabela é lida, nada a preenche
+
+| # | Tabela | Problema |
+|---|---|---|
+| 44 | `jana_sugestoes` | ✅ **A única com fachada de USUÁRIO.** O `ChatController` **lista** (`:120`), **aceita** (`:590`) e **rejeita** (`:630`) sugestões — e `Sugestao::create` / `new Sugestao` / `sugestoes()->create()` dá **rc=1 no repo inteiro** (controle positivo: `Conversa::create` → 4 arquivos). O `StoreSugestaoRequest` (gap #19) é o FormRequest morto desse fluxo |
+| 45 | `mcp_usage_diaria` | ✅ **O escritor tem NOME e nunca foi construído.** `mcp:agregacao-diaria` aparece em **4 lugares, todos citando, nenhum implementando** — e o `SystemAuditCommand:281` admite por escrito: *"referenciado nas migrations mas não implementado"*. Consequência: o check `cost_dashboard_aggregation` é **estruturalmente incapaz de ficar verde**, e o `Governance/SCOPE.md` afirma um "cron 23:55" que não existe (o das 23:55 no `Kernel` é outro comando, gravando outra tabela) |
+| 46 | `mcp_user_scopes` | 🔶 Lida por `Usuario360Controller:180` e `UserLockoutService:207`; zero escrita, nenhum seeder a preenche |
+| 47 | `mcp_epics` | 🔶 Lida por **5 controllers da Forja** + validação `exists:mcp_epics,id`. `McpEpic::create` só em teste — ⚠️ **reivindicada pela Forja** |
+| 48 | `mcp_components` | 🔶 Lida por `TaskParserService:652`. **Zero escritas em lugar nenhum, nem em teste** |
+
+### 🟠 3 SÓ-ESCRITA — grava e ninguém lê
+
+| # | Tabela | Problema |
+|---|---|---|
+| 49 | `mcp_alertas` | 🔶 2 escritores. O único `SELECT` do repo está **comentado** (`Governance/DriftAlertService.php:131`). Os alertas gravados **nunca chegam a lugar nenhum** |
+| 50 | `mcp_scorecard_ai_suggestions` | 🔶 Escrito pelo `AiScorecardJudge` — que é **código morto** (gap #13). Nenhuma leitura em produção |
+| 51 | `mcp_handoff_drafts` | 🔶 A `US-COPI-147` criou a tabela pra fechar um `insert` fantasma; fechou a escrita, **o custo gravado não é consumido** |
+
+### Drift de declaração
+
+| # | Item | Problema |
+|---|---|---|
+| 52 | `Modules/Jana/SCOPE.md` → `db_tables_owned` | 🔶 Declara **13** tabelas; as migrations criam **59**. As 44 `mcp_*` aparecem só em **prosa** no `purpose`, não no campo estruturado (que alimenta o `catalog.json`). E **`jana_ui_judge_runs`** + **`jana_health_write_canary`** estão ausentes **do campo E da prosa** — duas `jana_*` sem dono declarado em lugar nenhum |
+| 53 | `mcp_workflows` | 🔶 **Sem dono declarado** — `git grep mcp_workflows -- 'Modules/*/SCOPE.md'` vazio. A `US-COPI-147` o atribuía a `TeamMcp`, módulo que **não existe mais** |
+| 54 | 13 views `copiloto_*` | 🔶 Ainda criadas por `2026_05_06_120000`. O `SCOPE.md` diz *"Drop planejado: **2026-06-05** (ADR 0092)"* — hoje é 2026-08-10 e **não existe migration de drop**. Zero código lê os nomes `copiloto_*`: superfície morta viva no schema |
+| 55 | `Modules/Jana/Console/Commands/BackfillTasksFromMarkdownCommand.php:53` | 🔶 Manda rodar `db:seed --class=Modules\Copiloto\Database\Seeders\McpDefaultsSeeder` — **namespace pré-rename**, classe que não existe. Mesma família do gap #6 (instrução que não roda) |
+
+### INCERTO — a contradição que não consegui resolver
+
+| # | Item | Por que INCERTO |
+|---|---|---|
+| 56 | 9 migrations com DDL cru MySQL-only sem gate de driver | 🔶 `MODIFY COLUMN` / `CREATE TRIGGER … SIGNAL SQLSTATE` não existem em SQLite, e nenhuma das 9 tem `getDriverName`. Isso **contradiz** o docblock de `2026_06_15_140000:25`, que afirma *"a lane per-PR roda **todas as migrations** contra SQLite `:memory:`"*. Outras 3 migrations do mesmo módulo **sabem disso e se protegem** — o padrão existe e não foi aplicado nestas 9. **As duas afirmações não podem ser verdadeiras ao mesmo tempo**, e sem rodar migration não sei qual cai |
+
+### ✅ Sem defeito nestes eixos (verificado)
+
+**Zero duplicatas** — nenhuma das 59 tabelas é criada duas vezes (`Schema::create` fora do módulo → rc=1).
+**Todas as 81 têm `down()`**, e todo `drop*` está no `down()`, nenhum no `up()`.
+**A cadeia de 4 migrations que alarga o ENUM de `mcp_memory_documents.type` é cumulativa e correta** — nenhum valor se perde.
+**`business_id` (Tier 0 · ADR 0093): nenhuma violação encontrada.** 17 das 59 têm a coluna; as ausências estão documentadas uma a uma no próprio código como *repo-wide by-design* (ADR 0280), e o grupo que depende de escopo por parent é coberto pelo `ScopeByBusinessViaParent`.
+
+### O que NÃO foi provado
+
+- **Nada sobre linhas em produção** — sem banco. Tudo aqui é sobre **código alcançável**.
+  Quem decidir DROP tem que cruzar com `COUNT(*)` em prod.
+- **Se as 9 migrations do #56 quebram a lane SQLite** — não é possível rodar migration aqui.
+- **Se os seeders manuais já rodaram em prod.** Nenhum dos 4 está em `DatabaseSeeder` nem no
+  `deploy.yml` — só `db:seed --class=` manual. Se nunca rodaram, `mcp_scopes`, `mcp_workflows` e
+  `jana_memoria_gabarito` também estão vazias na prática.
+- **Consumidores fora do repositório** (cliente externo lendo a tabela direto no banco).
 
 ---
 
