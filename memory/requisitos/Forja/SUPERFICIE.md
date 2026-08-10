@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Forja/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 215 arquivos em 15 papéis.
+**Total mapeado:** 214 arquivos em 15 papéis.
 
 ## Controllers — 26
 
@@ -123,14 +123,13 @@ module: Forja
 
 - [ForjaServiceProvider.php](../../../Modules/Forja/Providers/ForjaServiceProvider.php)
 
-## Migrations (schema) — 6
+## Migrations (schema) — 5
 
 - [2026_05_05_240001_create_mcp_actors_and_link_tokens.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240001_create_mcp_actors_and_link_tokens.php)
 - [2026_05_05_240002_seed_initial_actors.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240002_seed_initial_actors.php)
 - [2026_05_07_140000_update_actor_display_name_maiara.php](../../../Modules/Forja/Database/Migrations/2026_05_07_140000_update_actor_display_name_maiara.php)
 - [2026_06_15_100000_create_mcp_ingest_heartbeat_table.php](../../../Modules/Forja/Database/Migrations/2026_06_15_100000_create_mcp_ingest_heartbeat_table.php)
 - [2026_06_17_120000_create_cowork_handoffs_table.php](../../../Modules/Forja/Database/Migrations/2026_06_17_120000_create_cowork_handoffs_table.php)
-- [2026_08_10_120000_seed_actor_claude_slug_de_owner.php](../../../Modules/Forja/Database/Migrations/2026_08_10_120000_seed_actor_claude_slug_de_owner.php)
 
 ## Seeders — 2
 

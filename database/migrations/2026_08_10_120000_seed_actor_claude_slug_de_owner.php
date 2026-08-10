@@ -38,6 +38,18 @@ use Illuminate\Support\Facades\DB;
  * IDEMPOTENTE: `INSERT` só se o slug não existir — mesma disciplina do seed
  * inicial (`2026_05_05_240002_seed_initial_actors`).
  *
+ * ⚠️ POR QUE ESTÁ EM `database/migrations/` E NÃO EM `Modules/Forja/`:
+ * o `ForjaServiceProvider` NÃO tem `loadMigrationsFrom` (outros módulos têm),
+ * então NADA sob `Modules/Forja/Database/Migrations/` roda no `migrate --force`
+ * — nem no CI, nem no deploy. Medido em 2026-08-10: das 6 migrations do módulo,
+ * 3 seguem PENDENTES e nunca executaram
+ * (`create_mcp_ingest_heartbeat_table`, `create_cowork_handoffs_table` e esta).
+ *
+ * Ligar o `loadMigrationsFrom` do Forja dispararia as 3 de uma vez — inclusive
+ * dois `create table` de junho cujo estado em prod não medi. É conserto de
+ * infra com raio próprio, e decisão do [W]; não se resolve de carona num PR de
+ * selo de UI. Aqui se escolhe o caminho que COMPROVADAMENTE executa.
+ *
  * IMPACTO: 1 linha nova em `mcp_actors`. 8 tasks passam a exibir selo de
  * AGENTE em vez de humano. Nenhuma permissão criada, nenhum dado de task
  * alterado, nenhuma tabela de negócio tocada.
