@@ -602,9 +602,15 @@ export default function SellsCreateV3({ cena }: Props) {
           <div className="p-3">
             <b className="mb-2 block text-[12.5px] font-semibold leading-[1.4]">{tabelaAtiva}</b>
             <Lbl>Tabela aplicada nesta venda</Lbl>
-            {/* SafeSelectItem, não SelectItem: as opções vêm de DADO. Item com
-                value vazio derruba o render inteiro do Radix — tela branca, não
-                degradação (proibicoes §5 2026-06-29 · PR #3405/#3411). */}
+            {/*
+             * SafeSelectItem, não SelectItem: as opções vêm de DADO. Item com
+             * value vazio derruba o render INTEIRO do Radix — tela branca, não
+             * degradação (proibicoes §5 2026-06-29 · PRs 3405 e 3411).
+             *
+             * O número do PR vai SEM `#` de propósito: o R1 do `ui:lint` casa
+             * `#` + 3-8 dígitos hex, e `#3405` é hex válido. Ele só pula linha
+             * que COMEÇA com `//`, `*` ou `/*` — daí o bloco estrelado aqui.
+             */}
             <Select value={tabelaAtiva} onValueChange={setTabela}>
               <SelectTrigger className="h-9 w-full text-[13px]">
                 <SelectValue />
