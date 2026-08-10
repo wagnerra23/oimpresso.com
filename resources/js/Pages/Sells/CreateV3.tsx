@@ -44,6 +44,12 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import { cn } from '@/Lib/utils';
+import {
+  LancarItem,
+  type Executante,
+  type ItemLancado,
+  type ProdutoCatalogo,
+} from './_components/v3/LancarItem';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
 import {
   Aviso,
@@ -93,7 +99,9 @@ type Item = {
   estoque: number | null;
 };
 
-type Produto = { sku: string; nome: string; un: string; preco: number; estoque: number | null };
+/* O contrato do catálogo mora em `_components/v3/LancarItem.tsx` — quem consome
+   o produto por inteiro é o lançamento, não esta Page. */
+type Produto = ProdutoCatalogo;
 
 type Estagio = {
   key: string;
@@ -126,6 +134,8 @@ type Props = {
     tabelas: string[];
     fsm: Estagio[];
     papeisDoUsuario: string[];
+    executantes: Executante[];
+    permissoes: { editarPrecoItem: boolean };
   };
 };
 
@@ -164,10 +174,11 @@ function AindaNao({ children, o_que }: { children: ReactNode; o_que: string }) {
 }
 
 export default function SellsCreateV3({ cena }: Props) {
-  const { cliente: cli, catalogo, tabelas, fsm, papeisDoUsuario } = cena;
+  const { cliente: cli, catalogo, tabelas, fsm, papeisDoUsuario, executantes, permissoes } = cena;
 
   const [itens, setItens] = useState<Item[]>(cena.itens);
   const [busca, setBusca] = useState('');
+  const [lancando, setLancando] = useState<ProdutoCatalogo | null>(null);
   const [destAberto, setDestAberto] = useState(false);
   const [entregaAberta, setEntregaAberta] = useState(false);
   const [obsAberta, setObsAberta] = useState(false);
@@ -230,6 +241,35 @@ export default function SellsCreateV3({ cena }: Props) {
           c.splice(pos, 0, l);
           return c;
         }),
+    });
+  };
+
+  /* O lançamento é o passo entre ESCOLHER e ENTRAR na venda (handoff, onda 1).
+     A busca não adiciona direto porque em item dimensional a quantidade é
+     DERIVADA das medidas — deixar o operador calcular a área de cabeça é onde
+     nasce quantidade errada, e quantidade errada é estoque e valor errados. */
+  const adicionarLancado = (item: ItemLancado) => {
+    const k = Date.now();
+    setItens((s) => [
+      ...s,
+      {
+        k,
+        sku: item.sku,
+        nome: item.nome,
+        un: item.un,
+        medidas: item.medidas,
+        qtd: item.qtd,
+        preco: item.preco,
+        desc: item.desc,
+        acr: item.acr,
+        estoque: item.estoque,
+      },
+    ]);
+    setLancando(null);
+    setBusca('');
+    setUndo({
+      msg: `Item adicionado — ${item.nome}`,
+      desfazer: () => setItens((s) => s.filter((x) => x.k !== k)),
     });
   };
 
@@ -372,7 +412,7 @@ export default function SellsCreateV3({ cena }: Props) {
                   <button
                     key={p.sku}
                     type="button"
-                    onClick={() => setBusca('')}
+                    onClick={() => setLancando(p)}
                     className="inline-flex w-full cursor-pointer items-center gap-3 border-b border-border/60 px-3 py-2 text-left text-[13.5px] leading-[1.3] last:border-b-0 hover:bg-muted"
                   >
                     <b className="font-semibold">{p.nome}</b>
@@ -390,8 +430,8 @@ export default function SellsCreateV3({ cena }: Props) {
                   </button>
                 ))}
                 <p className="border-t border-border bg-muted px-3 py-2 text-[11.5px] leading-[1.4] text-muted-foreground">
-                  Escolher <b>não adiciona direto</b> — abre o lançamento (medidas, valores, piso e estoque). Esse
-                  modal é o próximo passo do porte.
+                  Escolher <b>não adiciona direto</b> — abre o lançamento, onde a quantidade de item dimensional vem
+                  das medidas e o preço passa pelo piso da tabela.
                 </p>
               </div>
             )}
@@ -924,6 +964,14 @@ export default function SellsCreateV3({ cena }: Props) {
         {esquerda}
         {direita}
       </Grid>
+
+      <LancarItem
+        produto={lancando}
+        executantes={executantes}
+        podeEditarPreco={permissoes.editarPrecoItem}
+        onFechar={() => setLancando(null)}
+        onConfirmar={adicionarLancado}
+      />
 
       {undo && (
         <div

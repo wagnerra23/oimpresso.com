@@ -170,6 +170,37 @@ jobs:
         #
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
         # limpam o seed biz=1/biz=2, envenenando os demais.
+        #
+        # RATCHET UP (2026-08-10 · eixo 2 do test-lane-coverage, `--mudos`): +7 arquivos.
+        #   Eles têm guard `if sqlite → markTestSkipped` e a ÚNICA lane que os alcançava
+        #   era o modules-pest.yml (matriz sqlite :memory:) ⇒ pulavam 100% das vezes, e
+        #   skip sai exit 0, então o eixo 1 os dava por COBERTOS. Esta lane já é o lar dos
+        #   dois módulos (roda Fiscal/*CockpitMultiTenantTest desde antes).
+        #
+        #   ERAM 20 CANDIDATOS (11 NfeBrasil + 9 Fiscal). Rodados de verdade pela 1ª vez
+        #   (run 31412629508 · 34 failed, 8 skipped, 241 passed), só 7 vieram verdes —
+        #   e a catraca é "allowlist VERDE". Veredito por arquivo lido do SUMÁRIO JUnit
+        #   (junit-summary.mjs), não do console: `passed=0` também sai verde.
+        #
+        #   ENTRAM (65 passed reais): CertificadoController(10) · DanfeService(11, +4 skip
+        #     legítimo dos casos synthetic-business que pulam em MySQL por desenho) ·
+        #     ImportRegrasCsvService(12) · MotorTributarioService(16) · TributacaoController(7)
+        #     · Fiscal/ConfigController(2) · Fiscal/PaletteSearchController(7)
+        #
+        #   FICAM DE FORA — 12 com dívida real, agora VISÍVEL e datada:
+        #     PermissionDoesNotExist (o seed da lane não cria as permissions que o teste
+        #       exige): Fiscal/CockpitController · Fiscal/SimplesOnlyGate ·
+        #       Fiscal/HabilitarBusinessCommand · Fiscal/GatesPermissaoFiscal · DataController
+        #     QueryException: NfeEventoMultiTenantIsolation · DanfeServicePrefersArquivos
+        #     BadMethodCallException: Fiscal/CertHealthCheckCommand
+        #     asserção: NfeStatusContrato · Observability · Wave26Saturation · Fiscal/DfeController
+        #
+        #   FICA DE FORA por OUTRO motivo — Fiscal/NfseCockpitControllerTest: passed=0,
+        #     skipped=4. Tem um SEGUNDO guard que o faz pular mesmo em MySQL, então
+        #     adicioná-lo aqui não o tiraria do mudo — seria fantasma de 2ª ordem.
+        #
+        #   ⚠️ NÃO pré-provados: o CT 100 não tem as tabelas do NfeBrasil (já registrado
+        #   acima) e Pest local é bloqueado por hook — esta lane foi o 1º lugar onde rodaram.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -197,7 +228,14 @@ jobs:
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php \
-            Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php
+            Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/DanfeServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
+            Modules/Fiscal/Tests/Feature/ConfigControllerTest.php \
+            Modules/Fiscal/Tests/Feature/PaletteSearchControllerTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
