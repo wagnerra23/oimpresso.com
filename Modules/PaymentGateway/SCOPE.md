@@ -3,7 +3,10 @@ module: PaymentGateway
 purpose: "Camada técnica de cobrança BR — drivers de API bancária (Inter, C6, Asaas, Pagar.me, Sicoob, Pix Automático BCB) e 11 drivers CNAB, webhooks assinados e cofre de credenciais, atrás do PaymentGatewayContract. Consumida hoje por Financeiro, Sell (core) e Superadmin."
 migracao_ui: "concluido — 0 Blade servido"
 contains:
-  - "PaymentGatewayController"
+  # "PaymentGatewayController": removido 2026-08-10 — declarado desde o scaffold e NUNCA
+  #   existiu (nenhum arquivo, nenhuma ref no repo). Os controllers reais do módulo são
+  #   os declarados abaixo (Settings/*, Webhooks/*, Data, Install); este era nome
+  #   genérico de plano que a implementação nunca usou. `contains[]` afirma o presente.
   - "CobrancaController"
   - "Settings/PaymentGatewaysController — F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
   - "Settings/PaymentGatewaysCnabRetornoController — POST /settings/payment-gateways/{credential}/cnab-retorno (upload arquivo retorno + histórico processamento, Onda 4f.0)"
@@ -24,9 +27,19 @@ contains:
   - "Services/Drivers/PagarmeDriver — Pagar.me v5 REST (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4e. HTTP Basic Auth via secret_key, sandbox via prefixo sk_test_*"
   - "Services/Drivers/SicoobApiDriver — Sicoob API Cobrança Bancária v3 REST OAuth2+mTLS (boleto + cancelar + consultar + healthCheck + processWebhook); Onda 4f.sicoob_api · US-FIN-044 + US-FIN-046. Convênio + carteira (1 Simples / 3 Caucionada) + modalidade. Cache token Redis-safe por business_id. mTLS REUSA NfeCertificado canon via CertificadoService::carregarParaSefaz (single source of truth — mesmo cert A1 usado pra NFe SEFAZ)"
   - "BoletoService (Onda 4d alto-nível)"
-  - "RemessaCnabService (Onda 4d)"
-  - "RetornoCnabService (Onda 4d)"
-  - "PaymentGatewayCredentialResolver (Onda 4d se realmente precisar)"
+  # CNAB — a capacidade FOI entregue, com arquitetura diferente da planejada.
+  #   Saíram em 2026-08-10 (nunca existiram, em nenhum módulo):
+  #     "RemessaCnabService (Onda 4d)" · "RetornoCnabService (Onda 4d)"
+  #     "PaymentGatewayCredentialResolver (Onda 4d se realmente precisar)"
+  #   O par Remessa/Retorno-Service era o desenho da Onda 4d; o que se construiu foi
+  #   adapter + 1 driver por banco. O `purpose` já falava dos "11 drivers CNAB" e o
+  #   `contains[]` não declarava NENHUM deles — as 3 linhas de plano ocupavam o lugar
+  #   dos 12 arquivos reais. O resolver de credencial nem chegou a ser decidido
+  #   ("se realmente precisar"): plano especulativo não pertence a `contains[]`.
+  - "Services/Cnab/CnabBoletoAdapter — adapta boleto → layout CNAB (ponte pro contrato do módulo)"
+  - "Services/Cnab/Drivers/* — 11 drivers CNAB por banco (Ailos · BB · Banrisul · Bradesco · BTG · Caixa · Cresol · Itaú · Santander · Sicoob · Sicredi)"
+  - "Jobs/CnabRetornoProcessor — processa o arquivo de retorno enviado via Settings/PaymentGatewaysCnabRetornoController"
+  - "Models/CnabRetornoUpload — histórico dos uploads de retorno (tabela cnab_retorno_uploads)"
   - "Drivers planejados: PesaPalDriver (deprecated Onda 5/6)"
 not_contains:
   - "Plan / Assinatura / Invoice recorrente → Modules/RecurringBilling (consome este módulo)"

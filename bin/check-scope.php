@@ -104,7 +104,25 @@ function parseFrontmatter(string $path): ?array {
 //     evita fabricar conflito entre os dois sentidos do mesmo gate.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Índice basename→paths de todo .php sob Modules/ e app/ (sem vendor/node_modules). */
+/**
+ * Índice basename→paths de todo .php sob Modules/, app/ e database/ (sem vendor/node_modules).
+ *
+ * `database/` entrou em 2026-08-10: sem ele o índice tinha PONTO CEGO nos seeders
+ * canônicos de FSM, que moram na raiz por convenção — os 3 `FsmProcesso*Seeder`
+ * (ComunicacaoVisual, OsReparoPadrao, VendaComProducao) estão TODOS em
+ * `database/seeders/`, nenhum dentro de `Modules/`. Consequência: o
+ * `FsmProcessoComunicacaoVisualSeeder`, que EXISTE e é declarado pelo SCOPE do
+ * ComunicacaoVisual, era acusado de 👻 FANTASMA ("não existe em lugar NENHUM").
+ *
+ * Isso invertia o veredito no caso mais caro: acusar de inexistente algo que existe
+ * empurra o dono a APAGAR uma declaração verdadeira pra calar o gate. Com o root
+ * novo o item cai em ↗ FORA — que é exatamente o que ele é (existe, mas não sob o
+ * módulo) e é informativo, não acusação.
+ *
+ * Seeders DE módulo (`Modules/X/Database/Seeders/`, como o `McpActorsSeeder` da
+ * Forja e o `RepairSettingsSeeder` do Vestuario) já resolviam por `Modules/` e
+ * seguem resolvendo como `ok` — este root não os afeta.
+ */
 function indexPhpSymbols(array $roots): array {
     static $cache = null;
     if ($cache !== null) return $cache;
@@ -233,7 +251,7 @@ if ($selftest) {
         classifyContainsItem('NAO-EXISTE-XYZ.md — ledger', 'Modules/Jana', $idx)['status'] === 'fantasma');
 
     // ÂNCORAS DE CONTRATO — as premissas têm que ser verdade no repo AGORA.
-    $real = indexPhpSymbols(['Modules', 'app']);
+    $real = indexPhpSymbols(['Modules', 'app', 'database']);
     $ok('contrato: Modules/Jana/Services/SkillsService.php existe (âncora do CN "ok")',
         is_file('Modules/Jana/Services/SkillsService.php'));
     $ok('contrato: nenhum ConversationsController no repo (âncora do achado real Whatsapp)',
@@ -280,7 +298,7 @@ if ($declaredOnly) {
     echo color("└─────────────────────────────────────────────────────────────┘\n", 'blue');
     echo "\n";
 
-    $symbolIndex = indexPhpSymbols(['Modules', 'app']);
+    $symbolIndex = indexPhpSymbols(['Modules', 'app', 'database']);
     $fantasmas = [];
     $fora = [];
     $tally = ['ok' => 0, 'dir' => 0, 'glob' => 0, 'prosa' => 0, 'fora' => 0, 'fantasma' => 0];
