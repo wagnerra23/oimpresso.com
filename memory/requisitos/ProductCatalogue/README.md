@@ -23,7 +23,7 @@
 - **Schema-aware fail-soft** — colunas opcionais (`product_catalogue_version`) ausentes não quebram página pública
 - **Telemetria observável** — `OtelHelper::spanBiz` em `buildIndexPayload` + `buildShowPayload` (D9 hot-path catálogo)
 
-## Observabilidade D9.a ([ADR 0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md))
+## Observabilidade D9.a ([ADR 0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md))
 
 Spans canon (zero-cost se `otel.enabled=false`):
 
@@ -83,7 +83,7 @@ Razão: catálogo é **projeção read-only** de dados que já vivem no core —
 ## Referências
 
 - ADR multi-tenant: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
-- ADR observabilidade: [0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md)
+- ADR observabilidade: [0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md)
 - ADR padrão módulo: [0011](../../decisions/0011-alinhamento-padrao-jana.md)
 - CHANGELOG (append-only): [`CHANGELOG.md`](CHANGELOG.md)
 - SCOPE técnico: [`SCOPE.md`](../../../Modules/ProductCatalogue/SCOPE.md)

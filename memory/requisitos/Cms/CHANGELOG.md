@@ -118,7 +118,7 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../../../Modules/
 
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
-- [ADR 0155](../../memory/decisions/0155-module-grade-v3.md) — Module grade v3 (D6–D9)
-- [ADR 0156](../../memory/decisions/0156-module-grade-v3-errata-1.md) — Errata regex D9.a OtelHelper
+- [ADR 0155](../../decisions/0155-module-grade-v3.md) — Module grade v3 (D6–D9)
+- [ADR 0156](../../decisions/0156-module-grade-v3-errata-1.md) — Errata regex D9.a OtelHelper
 - [App\Util\OtelHelper](../../../app/Util/OtelHelper.php) — facade canônica zero-cost
 - [memory/requisitos/Cms/SPEC.md](SPEC.md) — SPEC Cms

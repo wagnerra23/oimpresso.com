@@ -59,7 +59,7 @@ Total: **3 Services, 13 spans OTel canônicos** (D9.a saturated — Wave 18 base
 - **Retenção declarativa** — `Config/retention.php` é fonte da verdade auditorial; `arquivos:retention-cleanup` consome
 - **Dedupe ZERO leak cross-tenant** — lookup MD5 sempre filtra `business_id` (Agent E security review §dedupe leak)
 
-## Observabilidade D9.a ([ADR 0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md))
+## Observabilidade D9.a ([ADR 0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md))
 
 Spans canon (zero-cost se `otel.enabled=false`):
 
@@ -192,8 +192,8 @@ Ver [SCOPE.md](../../../Modules/Arquivos/SCOPE.md) pra matriz US-ARQ-001..US-ARQ
 
 - ADR mãe: [0123](../../decisions/0123-modules-arquivos-backbone.md) (Sprint 1+2 ratificadas)
 - ADR multi-tenant: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
-- ADR observabilidade: [0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md)
-- ADR retention chunked encryption: [0126](../../memory/decisions/0126-arquivos-chunked-encryption-sprint2.md)
+- ADR observabilidade: [0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md)
+- ADR retention chunked encryption: [0126](../../decisions/0126-arquivos-chunked-encryption-sprint2.md)
 - LGPD Art. 15-16 (eliminação tempestiva) + Art. 18 §VI (direito eliminação)
 - SPEC: `memory/requisitos/Arquivos/SPEC.md`
 - CHANGELOG (append-only): [`CHANGELOG.md`](CHANGELOG.md)

@@ -2,7 +2,7 @@
 
 > Jira-style Project Management interno do oimpresso. Board (Kanban) + Backlog + MyWork + Roadmap + Activity feed + Burndown sobre tabelas canônicas `mcp_projects` / `mcp_tasks` / `mcp_task_*` (entities canônicas em `Modules/Jana/Entities/Mcp/`).
 >
-> Promovido a módulo próprio em 2026-05-04 ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). UI redesign PMG-001..007 ([ADR 0100](../../memory/decisions/0100-project-mgmt-ui-redesign-roadmap.md)).
+> Promovido a módulo próprio em 2026-05-04 ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). UI redesign PMG-001..007 ([ADR 0100](../../decisions/0100-project-mgmt-ui-redesign-roadmap.md)).
 
 ## Status
 - **Versão:** 0.1 (em construção)
@@ -108,7 +108,7 @@ private function makeService(Request $request): ProjectService
 - Todo `ProjectService::*` exige `businessId > 0` no constructor (lança `InvalidArgumentException`)
 - Toda query DB usa `where('business_id', $this->businessId)` explícito (defense-in-depth — não confia em global scope)
 - Smoke biz=1 vs biz=99 cruzado em [`Tests/Feature/MultiTenantProjectTest.php`](../../../Modules/Forja/Tests/Feature/MultiTenantProjectTest.php) + [`Tests/Feature/CustomerJourneyTest.php`](../../../Modules/Forja/Tests/Feature/CustomerJourneyTest.php)
-- NUNCA usar biz=4 em test ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md) — ROTA LIVRE é cliente prod Larissa)
+- NUNCA usar biz=4 em test ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — ROTA LIVRE é cliente prod Larissa)
 
 ## Testes
 
@@ -129,8 +129,8 @@ Tests envolvendo `mcp_*` tables são automaticamente skipped em SQLite (env mini
 - [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) — Jira-style tasks (origem do módulo)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (§5 SoC brutal informa o refactor D4)
-- [ADR 0100](../../memory/decisions/0100-project-mgmt-ui-redesign-roadmap.md) — UI redesign PMG-001..007
-- [ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests usam biz=1, NUNCA biz=cliente real
+- [ADR 0100](../../decisions/0100-project-mgmt-ui-redesign-roadmap.md) — UI redesign PMG-001..007
+- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests usam biz=1, NUNCA biz=cliente real
 
 ## Histórico
 - 2026-05-04: scaffold inicial (promoção de TeamMcp)

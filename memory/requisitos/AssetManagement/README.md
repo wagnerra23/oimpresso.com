@@ -85,9 +85,9 @@ php artisan assetmanagement:health --detail  # expande JSON após tabela
 ## ADRs centrais
 
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) Multi-tenant Tier 0
-- [ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md) Tests biz=1
-- [ADR 0155](../../memory/decisions/0155-module-grade-rubrica-v3.md) Module Grade v3 (D9.a/c)
-- [ADR 0159](../../memory/decisions/0159-wave-25-polish-modulos-saturated.md) Wave 25 polish
+- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) Tests biz=1
+- [ADR 0155](../../decisions/0155-module-grade-rubrica-v3.md) Module Grade v3 (D9.a/c)
+- [ADR 0159](../../decisions/0159-wave-25-polish-modulos-saturated.md) Wave 25 polish
 
 ## SCOPE / não fazer aqui
 

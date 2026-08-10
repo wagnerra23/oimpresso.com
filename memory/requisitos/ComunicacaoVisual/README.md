@@ -97,7 +97,7 @@ php artisan test --filter ComunicacaoVisual
 php artisan test Modules/ComunicacaoVisual/Tests/Feature/CustomerJourneyTest.php
 ```
 
-**Sempre biz=99** ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)) — NUNCA biz=4 (ROTA LIVRE) ou biz real.
+**Sempre biz=99** ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) — NUNCA biz=4 (ROTA LIVRE) ou biz real.
 
 ## 7. Concorrentes (referência)
 

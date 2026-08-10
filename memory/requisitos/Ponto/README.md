@@ -151,7 +151,7 @@ Eloquent — `Marcacao::all()` em sessão biz=4 retorna SÓ marcações biz=4. T
 
 ## Jornada completa biz=1 (Wave 27 — fluxo end-to-end Wagner/RH)
 
-Cenário canônico testado em prod biz=1 (clientes legacy WR2 Eliana via ROTA LIVRE pattern, NUNCA biz=4 prod cliente em testes — [ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)).
+Cenário canônico testado em prod biz=1 (clientes legacy WR2 Eliana via ROTA LIVRE pattern, NUNCA biz=4 prod cliente em testes — [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
 
 ### Fase A — Setup empresa (Admin Wagner)
 

@@ -176,7 +176,7 @@ Como a sua empresa usa o RecurringBilling no dia-a-dia:
 5. **Cliente paga** → webhook do banco → invoice `paid` → MRR atualiza
 6. **Cliente quer pausar?** Botão "Pausar" em `/recurring-billing/assinaturas/{id}` → suspende geração próximas
 7. **Cliente quer cancelar?** Botão "Cancelar" com motivo (churn_reason) → status `canceled` + Asaas refund/cancel automático (se enabled)
-8. **NFe-de-boleto-pago automática** ([US-RB-044](../../memory/requisitos/RecurringBilling/SPEC-US-044-nfe-boleto-pago.md)): quando boleto compensa, sistema emite NFSe correspondente automaticamente (canônico irrevogável — não tocar)
+8. **NFe-de-boleto-pago automática** ([US-RB-044](../../requisitos/RecurringBilling/SPEC-US-044-nfe-boleto-pago.md)): quando boleto compensa, sistema emite NFSe correspondente automaticamente (canônico irrevogável — não tocar)
 
 ## Lifecycle Subscription canônico
 
@@ -232,7 +232,7 @@ Cobertura: AssinaturaService (D2/D4 lifecycle), BoletoService (3 drivers), Webho
 
 - [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM pattern (inspiração)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
-- [ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests biz=1
+- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests biz=1
 - US-RB-044 — NFe-de-boleto-pago (canônico irrevogável)
 - US-RB-055 — Schema aditivo v9.75 (notes/favorites/events + cached cols)
 
