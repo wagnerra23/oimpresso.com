@@ -14,7 +14,7 @@ module: KB
 >
 > **O que isto é:** o inventário completo das raízes `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/KB/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 175 arquivos em 18 papéis.
+**Total mapeado:** 176 arquivos em 18 papéis.
 
 ## Controllers — 14
 
@@ -169,7 +169,7 @@ module: KB
 
 - 41 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 33
+## Demais arquivos (manifestos, docs, assets e misc) — 34
 
 - [KbCategoryFactory.php](../../../Modules/KB/Database/Factories/KbCategoryFactory.php)
 - [KbCommentFactory.php](../../../Modules/KB/Database/Factories/KbCommentFactory.php)
@@ -183,6 +183,7 @@ module: KB
 - [KbPathStepFactory.php](../../../Modules/KB/Database/Factories/KbPathStepFactory.php)
 - [KbSubcategoryFactory.php](../../../Modules/KB/Database/Factories/KbSubcategoryFactory.php)
 - [routes.php](../../../Modules/KB/Http/routes.php)
+- [README.md](../../../Modules/KB/README.md)
 - [kb.php](../../../Modules/KB/Resources/lang/en/kb.php)
 - [kb.php](../../../Modules/KB/Resources/lang/pt-BR/kb.php)
 - [kb.php](../../../Modules/KB/Resources/lang/pt/kb.php)

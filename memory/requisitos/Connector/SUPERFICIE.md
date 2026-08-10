@@ -14,7 +14,7 @@ module: Connector
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Connector/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 118 arquivos em 13 papéis.
+**Total mapeado:** 120 arquivos em 13 papéis.
 
 ## Controllers — 30
 
@@ -112,8 +112,9 @@ module: Connector
 
 - 9 arquivos em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 50
+## Demais arquivos (manifestos, docs, assets e misc) — 52
 
+- [CHANGELOG.md](../../../Modules/Connector/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Connector/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Connector/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Connector/Database/Migrations/.gitkeep)
@@ -125,6 +126,7 @@ module: Connector
 - [.gitkeep](../../../Modules/Connector/Http/Requests/.gitkeep)
 - [NewPassword.php](../../../Modules/Connector/Notifications/NewPassword.php)
 - [.gitkeep](../../../Modules/Connector/Providers/.gitkeep)
+- [README.md](../../../Modules/Connector/README.md)
 - [.gitkeep](../../../Modules/Connector/Resources/assets/.gitkeep)
 - [app.js](../../../Modules/Connector/Resources/assets/js/app.js)
 - [app.scss](../../../Modules/Connector/Resources/assets/sass/app.scss)

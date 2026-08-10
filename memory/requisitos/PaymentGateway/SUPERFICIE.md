@@ -14,7 +14,7 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/PaymentGateway/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 138 arquivos em 12 papéis.
+**Total mapeado:** 140 arquivos em 12 papéis.
 
 ## Controllers — 12
 
@@ -121,8 +121,9 @@ module: PaymentGateway
 
 - 47 arquivos em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 20
+## Demais arquivos (manifestos, docs, assets e misc) — 22
 
+- [CONTRACTS.md](../../../Modules/PaymentGateway/CONTRACTS.md)
 - [PaymentDriverContract.php](../../../Modules/PaymentGateway/Contracts/PaymentDriverContract.php)
 - [PaymentGatewayContract.php](../../../Modules/PaymentGateway/Contracts/PaymentGatewayContract.php)
 - [CardToken.php](../../../Modules/PaymentGateway/Dto/CardToken.php)
@@ -138,6 +139,7 @@ module: PaymentGateway
 - [InvalidPayerException.php](../../../Modules/PaymentGateway/Exceptions/InvalidPayerException.php)
 - [PaymentGatewayException.php](../../../Modules/PaymentGateway/Exceptions/PaymentGatewayException.php)
 - [WebhookSignatureInvalidException.php](../../../Modules/PaymentGateway/Exceptions/WebhookSignatureInvalidException.php)
+- [README.md](../../../Modules/PaymentGateway/README.md)
 - [CobrancaQuery.php](../../../Modules/PaymentGateway/Repositories/CobrancaQuery.php)
 - [paymentgateway.php](../../../Modules/PaymentGateway/Resources/lang/pt-BR/paymentgateway.php)
 - [SCOPE.md](../../../Modules/PaymentGateway/SCOPE.md)

@@ -14,7 +14,7 @@ module: NFSe
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NFSe/**` + `resources/js/Pages/Nfse/**` (namespace Inertia `Nfse`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `NFSe`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/NFSe/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 61 arquivos em 16 papéis.
+**Total mapeado:** 63 arquivos em 16 papéis.
 
 ## Controllers — 3
 
@@ -95,9 +95,10 @@ module: NFSe
 
 - 10 arquivos em [Modules/NFSe/Tests/Feature/](../../../Modules/NFSe/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 18
+## Demais arquivos (manifestos, docs, assets e misc) — 20
 
 - [SnNfseAdapter.php](../../../Modules/NFSe/Adapters/SnNfseAdapter.php)
+- [CHANGELOG.md](../../../Modules/NFSe/CHANGELOG.md)
 - [NfseProviderInterface.php](../../../Modules/NFSe/Contracts/NfseProviderInterface.php)
 - [NfseEmissaoPayload.php](../../../Modules/NFSe/DTO/NfseEmissaoPayload.php)
 - [NfseResultado.php](../../../Modules/NFSe/DTO/NfseResultado.php)
@@ -110,6 +111,7 @@ module: NFSe
 - [ProviderTimeoutException.php](../../../Modules/NFSe/Exceptions/ProviderTimeoutException.php)
 - [RpsDuplicadoException.php](../../../Modules/NFSe/Exceptions/RpsDuplicadoException.php)
 - [TomadorInvalidoException.php](../../../Modules/NFSe/Exceptions/TomadorInvalidoException.php)
+- [README.md](../../../Modules/NFSe/README.md)
 - [topnav.php](../../../Modules/NFSe/Resources/menus/topnav.php)
 - [permissions.php](../../../Modules/NFSe/Resources/permissions.php)
 - [SCOPE.md](../../../Modules/NFSe/SCOPE.md)
