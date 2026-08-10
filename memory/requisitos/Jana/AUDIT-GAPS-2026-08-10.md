@@ -42,7 +42,7 @@ Dois adversários read-only independentes (backend / frontend+rotas) + verifica�
 | Área | Arquivos | Auditado? |
 |---|---:|---|
 | Código de produção | **305** | ✅ **sim** — 291 classes uma a uma + 14 não-classe (9 blades, 3 configs, `permissions.php`, `topnav.php`) |
-| `Tests/` | **159** | ❌ **NÃO** |
+| `Tests/` | **159** | ✅ **sim** — ver Cluster H (157 arquivos de teste, 1.274 casos) |
 | `Database/` (81 migrations + 4 seeders) | **85** | ❌ **NÃO** |
 | Raiz (`SCOPE.md`, `CHANGELOG.md`, `LICOES-OPERACAO.md`, `module.json`, `composer.json`, `start.php`) | **6** | ❌ **NÃO** (exceto `SCOPE.md`, coberto depois — ver #30) |
 
@@ -219,6 +219,64 @@ por desenho próprio.
 > `copiloto.access` e `copiloto.memoria.manage`. Isso é **exatamente o que o `module.json`
 > afirma**. A descrição stale é a origem plausível das permissões fantasma — mesmo padrão do
 > `JanaCockpitV2`, onde cada doc herdou do anterior sem reabrir a fonte.
+
+---
+
+## CLUSTER H — `Tests/` (157 arquivos, 1.274 casos) — auditado 2026-08-10
+
+> ⚠️ **Correção de premissa, antes dos números.** A versão anterior deste doc tratava
+> "teste fora da lane de PR" como **vermelho invisível**. **Está errado neste repo**, e quem
+> corrigiu foi o adversário, indo à porta viva
+> [`test-lane-coverage.mjs`](../../../scripts/governance/test-lane-coverage.mjs), cujo cabeçalho
+> crava: *"FORA DO CI DE PR ≠ NUNCA RODA"*. A nightly `ct100-fullsuite.sh` roda
+> `--roots tests,Modules` shardado. Fora-do-PR mede **latência de feedback**, não ausência.
+> Contexto que desinfla: **64,9% do repo inteiro** está fora do PR; a Jana (64,3%) é a norma.
+
+| Superfície | Arquivos | Casos |
+|---|---:|---:|
+| Roda no **PR** | **56** | 422 |
+| └ `ci.yml:112` (sqlite, lê `.github/ci-sqlite-pest.list`) | 30 | — |
+| └ `jana-pest.yml:123-136` (MySQL, allowlist literal) | 14 | — |
+| └ `jana-logica-pura-pest.yml:155-166` (sqlite, path-scoped) | 12 | — |
+| Só na **nightly** (latência, não ausência) | 101 | 852 |
+
+### 🔴 O achado — 29 arquivos / 211 casos que NUNCA executam, em lugar nenhum
+
+Não é "fora do PR". É **ausência absoluta**, e sai do cruzamento **guard × driver**:
+o arquivo tem `if (DB::connection()->getDriverName() !== 'sqlite') markTestSkipped(...)` em
+`beforeEach` top-level · a nightly é **MySQL** (`scripts/tests/ct100-fullsuite.sh:122` grava
+`DB_CONNECTION=mysql`) ⇒ pula lá · e o arquivo **não está** na única superfície sqlite.
+Resultado: **0 assertions, sempre.** Inclui LGPD (`DsrServiceTest`,
+`LgpdEsquecerTitularToolTest`), `Memoria/Freshness/StalenessDetectorTest` (16 casos) e
+`Mcp/AutomationRegistrySyncTest` (12 — teste do serviço morto do Cluster B).
+
+### 🔴🔴 O pior caso, verificado por mim linha a linha
+
+| # | Arquivo | Problema |
+|---|---|---|
+| 33 | `Modules/Jana/Tests/Feature/Ai/BriefDiarioAgentTest.php` | ✅ Está em `jana-pest.yml:136`, **última linha do bloco rotulado `ALLOWLIST VERDE (catraca)`** — lane que roda `DB_CONNECTION: mysql` (`:113`). Mas o arquivo faz `markTestSkipped` quando o driver **não é sqlite** (`:32-33`). **Não está** em `.github/ci-sqlite-pest.list` (arquivo existe, 29KB; grep rc=1). A nightly também é MySQL. ⇒ **nunca roda, em nenhuma superfície, e sai verde.** Seus **6 casos** incluem `R-COPI-202-003 — Tier 0 cross-tenant: 5 Tools(biz=1) NUNCA expoem dados de biz=99` — **trava multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md), IRREVOGÁVEL) que nunca correu**, dentro de um bloco que se chama "catraca" |
+
+### Outros achados do eixo
+
+| # | Item | Problema |
+|---|---|---|
+| 34 | `phpunit.xml:20,26` | 🔶 Registra `Jana/Tests/Feature` **e** `Unit`, com comentário celebrando o fim da "falsa cobertura". Mas **nenhuma lane usa `--testsuite`** (zero no repo; o único hit é um comentário dizendo isso) — o registro **não alcança o CI**, e o comentário faz o problema parecer resolvido |
+| 35 | `Modules/Jana/Tests/Unit/.../BiTemporalResolverTest` | 🔶 **Roda** (`jana-logica-pura`) sobre classe com **zero consumidores** (gap #17). É a catraca **travando o cadáver** |
+
+**Zero defeitos** no eixo "teste apontando pra arquivo inexistente": todos são fixtures de runtime
+ou **contrato de ausência deliberado** — o `CockpitMockRemovidoTest` asserta que o `Cockpit.tsx`
+foi apagado, com controle negativo explícito. Correto, não é gap.
+
+### O que o adversário NÃO conseguiu provar (e eu também não)
+
+- **Se os 101 da nightly passam.** Pest é proibido fora do CT 100; sabemos que são *alcançados*,
+  não o veredito.
+- **Assertions por caso.** O discriminador honesto de LC-13 é `assertions`, não `0 failed`. Os
+  sumários JUnit existem mas são artefatos de CI, inacessíveis daqui. **A prova dos 29 é estática**
+  (guard + driver), não observada.
+- **Há quanto tempo** os 29 estão mudos — não medido.
+- **Deadness transitiva exaustiva** — o script transitivo teve falso-negativo conhecido; os 5
+  comandos e os 2 zero-consumidor estão provados, **pode haver mais**.
 
 ---
 
