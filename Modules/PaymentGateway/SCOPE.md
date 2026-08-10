@@ -3,9 +3,11 @@ module: PaymentGateway
 purpose: "Camada técnica de cobrança BR — drivers de API bancária (Inter, C6, Asaas, Pagar.me, Sicoob, Pix Automático BCB) e 11 drivers CNAB, webhooks assinados e cofre de credenciais, atrás do PaymentGatewayContract. Consumida hoje por Financeiro, Sell (core) e Superadmin."
 migracao_ui: "concluido — 0 Blade servido"
 contains:
-  # PaymentGatewayController saiu em 2026-08-10: NUNCA foi construído
-  # (`git log --all --diff-filter=A` não acha o arquivo em commit nenhum). As rotas
-  # deste módulo são servidas pelos Settings/* e Webhooks/* declarados abaixo.
+  # PaymentGatewayController saiu em 2026-08-10: NUNCA foi construído (0 arquivos em
+  # 16.238 rastreados). Nenhuma rota o referencia — `Routes/web.php` registra
+  # install/uninstall/update no InstallController, e o resto em Settings/* e Webhooks/*.
+  # ⚠️ Resíduo NÃO tocado aqui: CONTRACTS.md:362-366 ainda declara 5 endpoints
+  # `→ PaymentGatewayController@*` que não existem em rota nenhuma.
   - "CobrancaController"
   - "Settings/PaymentGatewaysController — F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
   - "Settings/PaymentGatewaysCnabRetornoController — POST /settings/payment-gateways/{credential}/cnab-retorno (upload arquivo retorno + histórico processamento, Onda 4f.0)"
@@ -26,12 +28,14 @@ contains:
   - "Services/Drivers/PagarmeDriver — Pagar.me v5 REST (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4e. HTTP Basic Auth via secret_key, sandbox via prefixo sk_test_*"
   - "Services/Drivers/SicoobApiDriver — Sicoob API Cobrança Bancária v3 REST OAuth2+mTLS (boleto + cancelar + consultar + healthCheck + processWebhook); Onda 4f.sicoob_api · US-FIN-044 + US-FIN-046. Convênio + carteira (1 Simples / 3 Caucionada) + modalidade. Cache token Redis-safe por business_id. mTLS REUSA NfeCertificado canon via CertificadoService::carregarParaSefaz (single source of truth — mesmo cert A1 usado pra NFe SEFAZ)"
   - "BoletoService (Onda 4d alto-nível)"
-  # PLANEJADOS da Onda 4d — saíram de `contains` em 2026-08-10 porque o campo afirma o
-  # PRESENTE e nenhum deles existe (`git log --all --diff-filter=A`: zero commits).
-  # Ficam registrados aqui como intenção, não como conteúdo:
-  #   · RemessaCnabService               (Onda 4d)
-  #   · RetornoCnabService               (Onda 4d)
-  #   · PaymentGatewayCredentialResolver (Onda 4d, se realmente precisar)
+  # Saíram de `contains` em 2026-08-10 — estes NOMES nunca existiram (0 arquivos em
+  # 16.238). ⚠️ Mas a CAPACIDADE CNAB não é planejada: está entregue sob outros nomes,
+  # já declarados acima ou vivos no repo — `Services/Cnab/CnabBoletoAdapter`,
+  # `Jobs/CnabRetornoProcessor`, `Models/CnabRetornoUpload` e 11 `*CnabDriver`.
+  # Ler estes 3 como "a fazer" descreveria o módulo como menos pronto do que é:
+  #   · RemessaCnabService               (nome nunca usado; remessa = CnabBoletoAdapter + drivers)
+  #   · RetornoCnabService               (nome nunca usado; retorno = CnabRetornoProcessor)
+  #   · PaymentGatewayCredentialResolver (Onda 4d, "se realmente precisar" — este sim, só intenção)
   - "Drivers planejados: PesaPalDriver (deprecated Onda 5/6)"
 not_contains:
   - "Plan / Assinatura / Invoice recorrente → Modules/RecurringBilling (consome este módulo)"

@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 565,
-    "edges": 833,
+    "nodes": 566,
+    "edges": 834,
     "by_node_type": {
       "module": 40,
       "table": 73,
       "adr": 25,
-      "component": 384,
+      "component": 385,
       "api": 43
     },
     "by_edge_type": {
@@ -39,7 +39,7 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 384,
+      "hasComponent": 385,
       "dependsOn": 113,
       "delegatesTo": 107,
       "migratesTo": 1
@@ -795,6 +795,13 @@
       "type": "component",
       "module": "ComunicacaoVisual",
       "name": "Entities/Substrato",
+      "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/FsmProcessoComunicacaoVisualSeeder",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "FsmProcessoComunicacaoVisualSeeder",
       "desc": ""
     },
     {
@@ -5172,6 +5179,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Entities/Substrato",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/FsmProcessoComunicacaoVisualSeeder",
       "type": "hasComponent",
       "source": "contains"
     },

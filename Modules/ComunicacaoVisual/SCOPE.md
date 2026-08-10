@@ -12,11 +12,11 @@ contains:
   - "Entities/InstalacaoCatalogo (cv_instalacoes_catalogo)"
   - "Entities/OrdemProducao (cv_ordens_producao + FSM canon ADR 0143)"
   - "Entities/Instalacao (cv_instalacoes)"
-  # FsmProcessoComunicacaoVisualSeeder é PLANEJADO — nunca foi construído
-  # (`git log --all --diff-filter=A` não acha o arquivo em commit nenhum). Saiu de
-  # `contains`, que afirma o PRESENTE, e é coerente com o `purpose` deste módulo:
-  # "PCP/FSM ... existem como schema e contrato, não como fluxo navegável".
-  # O plano segue nos Próximos passos abaixo e no SPEC.
+  # Mora em `database/seeders/` (convenção do projeto pros seeders de FSM canon), NÃO sob
+  # Modules/ComunicacaoVisual/ — o SDD §5.4.5 já registra isso. Path anotado em 2026-08-10
+  # porque a ausência sob o módulo já foi lida como "nunca construído": é código real,
+  # criado em #676 (2026-05-12) e exercitado por 6 pontos do Tier0GuardTest.
+  - "FsmProcessoComunicacaoVisualSeeder (16 stages + 10 roles per-business)"
 not_contains:
   - "Kanban shared infra → Modules/Repair (consumido via repair_settings)"
   - "Núcleo transactions/contacts → UltimatePOS core"
@@ -44,12 +44,7 @@ drift_alerts: []
 
 ## Estado Fase 1 V0 scaffold (2026-05-12)
 
-Scaffold nWidart **completo** + 5 migrations canon `cv_*` SPEC §12.1 + 5 Entities com BusinessIdScope.
-
-> O `FsmProcessoComunicacaoVisualSeeder` (16 stages × 30+ actions × 10 roles per-business) era
-> listado aqui como entregue **e nunca foi construído** — verificado em 2026-08-10 com
-> `git log --all --diff-filter=A`, que não acha o arquivo em commit nenhum. Segue **previsto**,
-> não feito; os seeders reais do módulo hoje são `MaterialSeeder` e `RepairSettingsSeeder`.
+Scaffold nWidart **completo** + 5 migrations canon `cv_*` SPEC §12.1 + 5 Entities com BusinessIdScope + FsmProcessoComunicacaoVisualSeeder (16 stages × 30+ actions × 10 roles per-business).
 
 Coexiste com legacy Sprint 1 (`comvis_*` tables — Material/Orcamento/Os/Apontamento) — Migration Factory US-COMVIS-NEW-014 (Sprint 2+) decide caminho de unificação.
 
