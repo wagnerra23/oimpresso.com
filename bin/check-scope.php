@@ -5,11 +5,17 @@
  *
  * Constituição Art. 7 — Module Charter: controller fora de scope = drift bloqueado.
  *
+ * DUAS DIREÇÕES, donos separados (a segunda nasceu em 2026-08-10):
+ *   árvore → contains  (default/--strict) : controller REAL não declarado
+ *   contains → árvore  (--declared)       : declarado mas AUSENTE — advisory
+ *
  * Uso:
  *   php bin/check-scope.php                          # checa todos módulos
  *   php bin/check-scope.php --strict                 # exit 1 em qualquer warning
  *   php bin/check-scope.php --staged                 # só arquivos staged em git
  *   php bin/check-scope.php Modules/Copiloto         # checa módulo específico
+ *   php bin/check-scope.php --declared               # contains[] sem lastro (advisory)
+ *   php bin/check-scope.php --selftest               # prova que --declared morde/solta
  *
  * Exit codes:
  *   0 = OK (nenhum drift detectado)
@@ -22,6 +28,8 @@ declare(strict_types=1);
 $args = array_slice($argv, 1);
 $strict = in_array('--strict', $args, true);
 $stagedOnly = in_array('--staged', $args, true);
+$declaredOnly = in_array('--declared', $args, true);
+$selftest = in_array('--selftest', $args, true);
 $args = array_values(array_filter($args, fn($a) => !str_starts_with($a, '--')));
 $specificModule = $args[0] ?? null;
 
@@ -69,6 +77,90 @@ function parseFrontmatter(string $path): ?array {
     return $fm;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DIREÇÃO INVERSA (`--declared`) — o `contains[]` declara algo que NÃO existe?
+//
+// O check acima (e o `--strict` que o scope-guard.yml roda) mede ÁRVORE → contains:
+// "controller real não declarado". A direção oposta — contains → ÁRVORE, "declarado
+// mas ausente" — não tinha dono, e é por onde o SCOPE apodrece calado. Caso-âncora
+// confessado pelo próprio Modules/Jana/SCOPE.md sobre o `BriefController`:
+//   "Ficou listado aqui por ~7 semanas depois de deixar de existir — nenhuma máquina
+//    compara `contains` com a árvore, então o SCOPE apodreceu calado."
+//
+// ADVISORY POR CONSTRUÇÃO: roda só sob `--declared`, com exit próprio, e NÃO toca o
+// fluxo do `--strict`. Gate novo nasce fora dos required (ADR 0275/0314/0336).
+//
+// EXCLUSÕES ESTRUTURAIS (nunca textuais — critério sintático sobre prosa é a família
+// já reprovada 5× em proibicoes.md §5). Um item só é avaliado se o token inicial for
+// identificador; fora isso o item é `prosa` ou `glob` e NÃO é acusado:
+//   · glob   → token com `*` (`Services/Memoria/*`): não resolve 1:1 por construção
+//   · prosa  → não casa /^[A-Za-z][\w\/.*-]*$/ (frase livre, tabela, nota)
+//   · dir    → resolve a diretório real
+//
+// DOIS VEREDITOS, porque o custo de agir é diferente:
+//   · FANTASMA  — não existe em lugar NENHUM do repo. É o BriefController. Acionável.
+//   · FORA      — existe, mas sob outro módulo/app. Informativo: "está no módulo certo?"
+//     é a pergunta do `--strict` (direção oposta), não desta. Reportar sem acusar
+//     evita fabricar conflito entre os dois sentidos do mesmo gate.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Índice basename→paths de todo .php sob Modules/ e app/ (sem vendor/node_modules). */
+function indexPhpSymbols(array $roots): array {
+    static $cache = null;
+    if ($cache !== null) return $cache;
+    $idx = [];
+    foreach ($roots as $root) {
+        if (!is_dir($root)) continue;
+        $it = new RecursiveIteratorIterator(
+            new RecursiveCallbackFilterIterator(
+                new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+                fn($cur) => !in_array($cur->getFilename(), ['vendor', 'node_modules', '.git'], true)
+            )
+        );
+        foreach ($it as $f) {
+            if ($f->isFile() && $f->getExtension() === 'php') {
+                $idx[$f->getBasename('.php')][] = str_replace('\\', '/', $f->getPathname());
+            }
+        }
+    }
+    return $cache = $idx;
+}
+
+/**
+ * Classifica UM item de `contains[]`. PURO — o `--selftest` exercita isto, nunca o console.
+ * @return array{status:string,token:string,achado?:string}
+ *   status ∈ ok | dir | glob | prosa | fora | fantasma
+ */
+function classifyContainsItem(string $item, string $moduleDir, array $symbolIndex): array {
+    // token = até o primeiro separador de prosa (travessão, parêntese, vírgula)
+    $parts = preg_split('/\s+[—–]\s+|\s+\(|,\s/u', $item);
+    $token = trim(str_replace('`', '', $parts[0] ?? ''));
+
+    if ($token === '' || !preg_match('#^[A-Za-z][A-Za-z0-9_/.*-]*$#', $token)) {
+        return ['status' => 'prosa', 'token' => $token];
+    }
+    if (str_contains($token, '*')) {
+        return ['status' => 'glob', 'token' => $token];
+    }
+
+    $base = rtrim($token, '/');
+    // 1) resolve dentro do próprio módulo (arquivo ou diretório)?
+    if (is_dir($moduleDir . '/' . $base))            return ['status' => 'dir',  'token' => $token];
+    if (is_file($moduleDir . '/' . $base . '.php'))  return ['status' => 'ok',   'token' => $token];
+    $leaf = basename($base);
+    foreach ($symbolIndex[$leaf] ?? [] as $p) {
+        if (str_starts_with($p, str_replace('\\', '/', $moduleDir) . '/')) {
+            return ['status' => 'ok', 'token' => $token];
+        }
+    }
+    // 2) existe em outro lugar do repo? informativo, não acusação
+    if (!empty($symbolIndex[$leaf])) {
+        return ['status' => 'fora', 'token' => $token, 'achado' => $symbolIndex[$leaf][0]];
+    }
+    // 3) não existe em lugar nenhum → fantasma
+    return ['status' => 'fantasma', 'token' => $token];
+}
+
 function listControllers(string $moduleDir): array {
     $ctrlDir = $moduleDir . '/Http/Controllers';
     if (!is_dir($ctrlDir)) return [];
@@ -89,6 +181,50 @@ function getStagedControllers(): array {
         exec('git diff --cached --name-only --diff-filter=ACMR 2>/dev/null', $out, $code);
     }
     return array_filter($out, fn($f) => preg_match('#^Modules/[^/]+/Http/Controllers/.+Controller\.php$#', $f));
+}
+
+if ($selftest) {
+    $fails = 0;
+    $ok = function (string $name, bool $cond) use (&$fails) {
+        echo '  ' . ($cond ? '[OK]' : '[FAIL]') . " $name\n";
+        if (!$cond) $fails++;
+    };
+    // Índice INJETADO — o contrato é a função pura, não a árvore do dia.
+    $idx = [
+        'SkillsService'  => ['Modules/Jana/Services/SkillsService.php'],
+        'CobrancaController' => ['Modules/Financeiro/Http/Controllers/CobrancaController.php'],
+    ];
+    $M = 'Modules/Jana';
+
+    // BITE — declarado e ausente em TODO o repo => fantasma (é o caso BriefController).
+    $ok('BITE: classe declarada que não existe em lugar nenhum → fantasma',
+        classifyContainsItem('BriefController — stub do brief', $M, $idx)['status'] === 'fantasma');
+    $ok('BITE: fantasma vale mesmo com prosa explicativa ao lado (prosa não desarma)',
+        classifyContainsItem('BriefController — removido, mantido por compat', $M, $idx)['status'] === 'fantasma');
+
+    // CONTROLE NEGATIVO — o que é legítimo NÃO pode ser acusado.
+    $ok('CN: classe real do próprio módulo → ok',
+        classifyContainsItem('Services/SkillsService — lê catálogo', $M, $idx)['status'] === 'ok');
+    $ok('CN: glob (`Services/Memoria/*`) → glob, nunca fantasma',
+        classifyContainsItem('Services/Memoria/* — recall hybrid', $M, $idx)['status'] === 'glob');
+    $ok('CN: prosa livre (não-identificador) → prosa, nunca fantasma',
+        classifyContainsItem('⚠️ MOVIDO, NÃO FUNDIDO: as abas sobrepõem', $M, $idx)['status'] === 'prosa');
+    $ok('CN: item que resolve a DIRETÓRIO real → dir, nunca fantasma',
+        classifyContainsItem('Database/Migrations — tabela x', 'Modules/Jana', $idx)['status'] === 'dir');
+    $ok('CN: classe que existe sob OUTRO módulo → fora (informativo), nunca fantasma',
+        classifyContainsItem('CobrancaController', 'Modules/PaymentGateway', $idx)['status'] === 'fora');
+
+    // ÂNCORAS DE CONTRATO — as premissas têm que ser verdade no repo AGORA.
+    $real = indexPhpSymbols(['Modules', 'app']);
+    $ok('contrato: Modules/Jana/Services/SkillsService.php existe (âncora do CN "ok")',
+        is_file('Modules/Jana/Services/SkillsService.php'));
+    $ok('contrato: nenhum ConversationsController no repo (âncora do achado real Whatsapp)',
+        empty($real['ConversationsController']));
+
+    echo $fails
+        ? "\n  $fails FALHA(S) — a direção contains→árvore não está honesta.\n"
+        : "\n  SELFTEST OK — morde (fantasma) e solta (ok/dir/glob/prosa/fora).\n";
+    exit($fails ? 1 : 0);
 }
 
 // Boilerplate ignorado (todo módulo tem ou pode ter — base classes/scaffolding)
@@ -116,6 +252,65 @@ if ($specificModule !== null) {
     foreach (glob('Modules/*', GLOB_ONLYDIR) as $dir) {
         $modules[] = $dir;
     }
+}
+
+if ($declaredOnly) {
+    echo color("┌─────────────────────────────────────────────────────────────┐\n", 'blue');
+    echo color("│  contains[] → ÁRVORE — declarado mas ausente (advisory)     │\n", 'blue');
+    echo color("└─────────────────────────────────────────────────────────────┘\n", 'blue');
+    echo "\n";
+
+    $symbolIndex = indexPhpSymbols(['Modules', 'app']);
+    $fantasmas = [];
+    $fora = [];
+    $tally = ['ok' => 0, 'dir' => 0, 'glob' => 0, 'prosa' => 0, 'fora' => 0, 'fantasma' => 0];
+    $itens = 0;
+    $mods = 0;
+
+    foreach ($modules as $moduleDir) {
+        $scopePath = $moduleDir . '/SCOPE.md';
+        if (!file_exists($scopePath)) continue;
+        $fm = parseFrontmatter($scopePath);
+        if ($fm === null) continue;
+        $mods++;
+        foreach (($fm['contains'] ?? []) as $item) {
+            $itens++;
+            $r = classifyContainsItem($item, $moduleDir, $symbolIndex);
+            $tally[$r['status']]++;
+            if ($r['status'] === 'fantasma') $fantasmas[] = [basename($moduleDir), $r['token'], $item];
+            if ($r['status'] === 'fora')     $fora[]      = [basename($moduleDir), $r['token'], $r['achado']];
+        }
+    }
+
+    foreach ($fantasmas as [$mod, $tok, $item]) {
+        echo color("  👻 $mod", 'yellow') . " — declara \"$tok\" que NÃO existe em Modules/ nem app/\n";
+        echo "       " . color(substr($item, 0, 96), 'gray') . "\n";
+    }
+    if (!empty($fora)) {
+        echo "\n";
+        foreach ($fora as [$mod, $tok, $achado]) {
+            echo color("  ↗ $mod", 'gray') . " — declara \"$tok\", que existe em $achado\n";
+        }
+        echo "    " . color("(informativo: \"está no módulo certo?\" é a direção do --strict, não desta)", 'gray') . "\n";
+    }
+
+    echo "\n";
+    echo color("─────────────────────────────────────────────────────────────\n", 'blue');
+    echo "Módulos: $mods · itens de contains[]: $itens\n";
+    echo "  resolvem: {$tally['ok']} arquivo · {$tally['dir']} diretório\n";
+    echo "  não avaliados (estrutural): {$tally['glob']} glob · {$tally['prosa']} prosa livre\n";
+    echo "  " . color("FANTASMA: {$tally['fantasma']}", $tally['fantasma'] ? 'yellow' : 'green')
+        . " · fora do módulo: {$tally['fora']}\n";
+
+    if ($tally['fantasma'] > 0) {
+        echo color("\n⚠ {$tally['fantasma']} item(ns) declarado(s) sem lastro na árvore.\n", 'yellow');
+        echo color("  Conserte o SCOPE (remova ou aponte pro nome real). Se for capacidade PLANEJADA,\n", 'gray');
+        echo color("  ela não pertence a contains[] (que afirma o presente) — leve pro roadmap do módulo.\n", 'gray');
+        echo color("  ADVISORY: não bloqueia merge (ADR 0275/0314 — gate novo nasce fora dos required).\n", 'gray');
+        exit(1);
+    }
+    echo color("\n✓ Nenhum item de contains[] sem lastro na árvore.\n", 'green');
+    exit(0);
 }
 
 if ($stagedOnly) {

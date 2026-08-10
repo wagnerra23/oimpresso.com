@@ -11,11 +11,17 @@ on:
     paths:
       - 'Modules/**/Http/Controllers/**.php'
       - 'Modules/**/SCOPE.md'
+      # A direcao contains -> arvore (job declared-check) fica MUDA se so disparar
+      # em SCOPE.md: o vetor principal e DELETAR/renomear o arquivo sem tocar o
+      # SCOPE (foi assim que o BriefController ficou 7 semanas listado). Por isso
+      # o gatilho precisa alcancar qualquer .php do modulo, nao so Controllers.
+      - 'Modules/**/*.php'
   push:
     branches: [main]
     paths:
       - 'Modules/**/Http/Controllers/**.php'
       - 'Modules/**/SCOPE.md'
+      - 'Modules/**/*.php'
 
 jobs:
   check-scope:
@@ -51,3 +57,33 @@ jobs:
               repo: context.repo.repo,
               body: `## ⚠️ Scope Guard detectou drift\n\nUm ou mais controllers neste PR não estão declarados em \`Modules/<X>/SCOPE.md\`.\n\n**Pra resolver:**\n1. Adicione o controller em \`SCOPE.md.contains[]\` do módulo correto\n2. **OU** mova o controller pro módulo correto\n3. **OU** declare em \`drift_alerts[]\` (transitório, com ADR justificando)\n\nDetalhes nos logs do job.\n\n_Constituição Art. 7 — Module Charter (ADR 0079)_`
             })
+
+  # ── contains[] -> ARVORE (direcao inversa) ─────────────────────────────────
+  # ADVISORY, job SEPARADO de proposito: o check-scope acima mede arvore -> contains
+  # ("controller real nao declarado") e roda --strict; este mede o sentido oposto
+  # ("declarado mas ausente"), que nao tinha dono. Separar mantem o veredito de cada
+  # sentido legivel — vermelho de um nao contamina o outro.
+  #
+  # Sem mascara de erro (mesmo precedente do knowledge-ghost-gate): fica vermelho
+  # VISIVEL, advisory porque NAO esta nos required, nao porque se esconde.
+  declared-check:
+    name: contains[] sem lastro na arvore (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      # Prova que a catraca morde (fantasma) e solta (ok/dir/glob/prosa/fora) ANTES
+      # de rodar contra a arvore viva — sem isso, verde nao distingue "nada a acusar"
+      # de "o classificador parou de acusar".
+      - name: Selftest (bite + 5 controles negativos)
+        run: php bin/check-scope.php --selftest
+
+      - name: contains[] -> arvore
+        run: php bin/check-scope.php --declared
