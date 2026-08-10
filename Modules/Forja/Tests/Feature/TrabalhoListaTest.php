@@ -288,3 +288,23 @@ it('UC-TRAB-11 — agentes() lista SÓ ator ai_agent ativo, em lowercase', funct
     // (a) humano nunca entra — se entrasse, o selo chamaria pessoa de robô.
     expect($lista)->not->toContain($humano->slug);
 });
+
+it('UC-TRAB-12 — o slug `claude` está no Mesh como AGENTE (o selo lê dado, não palpite)', function () {
+    trabalhoExigeSchema();
+    if (! Schema::hasTable('mcp_actors')) {
+        test()->markTestSkipped('Schema ausente (mcp_actors).');
+    }
+
+    // Medido em produção 2026-08-10: `mcp_tasks.owner` usa `claude`, mas o Mesh
+    // só tinha `claude-code-wagner-laptop` (o ator-com-token). Resultado: as 8
+    // tasks do claude apareciam como HUMANO, em /forja/trabalho e em
+    // /team-mcp/tasks (383 selos, 100% human). O selo nunca distinguiu nada.
+    //
+    // A migration 2026_08_10_120000 registra o fato. Este caso trava a volta:
+    // se alguém remover o ator, o selo passa a mentir de novo — em silêncio,
+    // porque `ActorSeal` cai em "humano" por default e não dá erro nenhum.
+    //
+    // ⚠️ O que NÃO se testa aqui: `startsWith('claude')`. A regra é allowlist de
+    // dado; heurística de nome erra e mente com confiança (Non-Goal do charter).
+    expect(app(TrabalhoService::class)->agentes())->toContain('claude');
+});
