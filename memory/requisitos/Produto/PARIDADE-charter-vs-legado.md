@@ -246,6 +246,49 @@ com 4 UCs rodando em MySQL real).
 
 ---
 
+## 2.1 Tela de CONSULTA do legado × `/products/unificado` (novo — 2026-08-07)
+
+**A tela nova existe e está no ar.** `/products/unificado` (`Pages/Produto/Unificado/Index.tsx`) abriu
+pela 1ª vez em 2026-08-07 — o 500 que a derrubava desde o commit de origem foi corrigido nos
+[#5383](https://github.com/wagnerra23/oimpresso.com/pull/5383)/[#5387](https://github.com/wagnerra23/oimpresso.com/pull/5387),
+e ela entrou no contrato visual (13ª tela) no [#5413](https://github.com/wagnerra23/oimpresso.com/pull/5413).
+É ela, e **não** o `Produto/Index.tsx` (lista lite, coberta no §2 acima), a contraparte da
+**"Todos Produtos"** do Delphi.
+
+Cruzamento dos 14 itens de [`ANTI-REGRESSAO §L`](ANTI-REGRESSAO-cadastro-produto-legacy.md)
+(`AR-PROD-190..203`) contra o estado medido da tela em 2026-08-07:
+
+| Capacidade legada | Item | Estado em `/products/unificado` |
+|---|---|---|
+| **Estoque real por linha, incl. negativo** | `AR-PROD-198` `[V0]` | 🔴 **ausente** — `stockQty` é `null` **fixo** no `ProdutoUnificadoController:127` (a soma de `variation_location_details.qty_available` nunca foi escrita); a coluna mostra `—`. É o mesmo gap **CU-PROD-12 / G-03** do §2 ("relatório de estoque"), agora com o legado provando que a informação é **central** na consulta, não acessória |
+| **Segmentação por tipo de produto** (8 botões) | `AR-PROD-190` | 🔴 **eixo diferente** — as 5 sub-telas do React são `produtos/categorias/insumos/tabelas/historico` (por **entidade**), não por **tipo de produto**. Não é "falta um botão": são taxonomias distintas, e a escolha entre elas é decisão de produto |
+| **Seletor de colunas** (~40 disponíveis) | `AR-PROD-194/195` | 🔴 **ausente** — 7 colunas fixas (SKU · Produto · Categoria · Preço · Custo·Margem · Estoque · 30D) |
+| **Agrupar arrastando coluna + contagem no grupo** | `AR-PROD-196/197` | 🔴 **ausente** |
+| **Migrar Tipo** | `AR-PROD-193` `[?]` | 🔴 **ausente, e sem casa em doc nenhum** — não aparece em SPEC, charter, SDD nem CAPTERRA. Precisa de decisão antes de virar US: o que acontece com estoque, preço por tabela e composição na conversão |
+| **Duplicar a partir da lista** | `AR-PROD-192` | 🟡 existe no módulo (`?d=N`, `CU-PROD-07` ✅) mas **não é alcançável desta tela** |
+| **Novo** | `AR-PROD-191` | 🟡 idem — a rota existe (`/products/create`), o botão não está aqui |
+| **Painel de tabelas de preço do item selecionado** | `AR-PROD-203` | 🟡 **outra topologia** — no React as tabelas são uma **sub-tela** (`?tela=tabelas`), não um painel do item selecionado. Pareia com a decisão [W] de 2026-07-15 registrada no §2 (a tabela nasce fora do produto) |
+| **Seleção múltipla (checkbox por linha)** | `AR-PROD-202` | 🔴 **ausente** — e sem ela nenhuma ação em massa é alcançável desta tela |
+| **Ordenar por coluna** | `AR-PROD-199` | 🔴 **ausente** |
+| **Busca textual** | `AR-PROD-200` | ✅ existe (`filters.busca`, server-side em `name`/`sku`) |
+| **Filtro de conjunto** (`TODOS` · `Mostrar Todos`) | `AR-PROD-201` `[?]` | 🟡 **parcial** — o React tem `tab ∈ {all, active, inactive, lowstock}`, mas `lowstock` é **TODO no controller** (não filtra nada) |
+
+**Leitura honesta do quadro:** a tela nova não é uma versão reduzida da legada — é **outra tela**,
+construída sobre um eixo de navegação diferente (entidade × tipo de produto). Tratar os 🔴 como
+"backlog de paridade" pressupõe que o eixo do legado é o certo, **e isso não está decidido**. O que
+é paridade dura, sem depender do eixo, é o `AR-PROD-198`: uma consulta de produto que não mostra
+estoque não substitui a que mostra.
+
+⚠️ **Nada nesta seção autoriza copiar o visual do Delphi** — [M] 2026-08-07: *"não tome o delphi
+como exemplo de melhoria e usabilidade"*. Estes 14 itens são **o que a tela precisa fazer**; a forma
+sai do protótipo Cowork + Design System + charter ([ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md) §0.1).
+
+**Fora de escopo desta seção** (medido, não resolvido): as 3 pendências que o print 6 não responde
+(persistência do seletor/agrupamento por usuário · paginação · ações em massa na lista) estão
+listadas no fim da §L do ANTI-REGRESSAO.
+
+---
+
 ## 3. Legado SEM CASA em nenhum charter ⚠️ (o backlog real do cutover · ~100 itens)
 
 Nenhuma página/charter atual contempla estas áreas — cada uma precisa virar charter + US:
@@ -327,6 +370,7 @@ UC órfão (caso no papel sem teste). As 7 telas de Produto estão no baseline d
 | Data | O que mudou |
 |---|---|
 | 2026-07-26 (2ª entrada do dia) | **§2 — a LISTA (`Index`) entra no cruzamento** (3ª corrida do agent [`sdd-from-source`](../../decisions/0351-sdd-from-source.md)). 4 linhas novas: **`AR-PROD-023`** (Consultar) vira 🔴 **regressão dupla** — corte silencioso em `limit(200)` sem paginação enquanto o KPI anuncia o total, e busca client-side que **não** enxerga `sub_sku` (o Blade procura explicitamente em `variations.sub_sku`); **`AR-PROD-015` reaparece 🔴 agora em LOTE** — a **própria lista Blade** gateia custo e preço com `@can` (`index.blade.php:287,294`) e o branch Inertia manda `price`/`cost`/`margin` do catálogo inteiro sem permissão; **ações por linha** 10→1 registrado como 🔶 decisão [W] (5 das 10 não têm Non-Goal no charter); **relatório de estoque** da 2ª aba do Blade sem cobertura. ⚠️ **Correção de método específica deste alvo:** aqui a "Blade legada" **não é arquivo irmão — é o outro branch do MESMO método `index()`** (DataTables · Inertia · Blade saem de `ProductController@index:73/342/361`), então a paridade é comparação interna do controller. Contrato executável: [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md) (UC-PIDX-01..06) + `ProdutoIndexContratoTest` failing-first, na lane. Nada afirmado como verde: testes rodam no CT 100. [CC] |
+| 2026-08-07 | **§2.1 nova — a tela de CONSULTA entra no cruzamento** (print 6 do legado, `2026.1.1.43`, enviado por [M]). Até aqui o doc cruzava só o **detalhe** e a lista lite (`Produto/Index`); a **"Todos Produtos"** do Delphi × **`/products/unificado`** nunca tinha sido comparada — a tela nova só abriu em 2026-08-07 (500 corrigido nos #5383/#5387, contrato visual no #5413). Os 14 itens novos do catálogo (`AR-PROD-190..203`, [§L](ANTI-REGRESSAO-cadastro-produto-legacy.md)) cruzados: **1 ✅ · 4 🟡 · 7 🔴**. O 🔴 que é paridade dura independente de eixo é o **`AR-PROD-198`** (`[V0]`): o legado mostra estoque por linha, inclusive negativo, e o React tem `stockQty = null` fixo no controller (**CU-PROD-12 / G-03**). Os outros 🔴 (seletor de ~40 colunas, agrupar arrastando, `Migrar Tipo`, seleção múltipla, ordenar) pressupõem o **eixo de navegação do legado** (por tipo de produto), que o React trocou por eixo de entidade — registrado como **decisão de produto em aberto**, não como dívida. `Migrar Tipo` não tem casa em doc nenhum do módulo. Nada aqui autoriza copiar o visual do Delphi ([M]: *"não tome o delphi como exemplo de melhoria e usabilidade"*). [M+C] |
 | 2026-07-26 | **§2 — a FICHA (`Show`) entra no cruzamento** (run do agent [`sdd-from-source`](../../decisions/0351-sdd-from-source.md)). 3 linhas novas/ajustadas: **`AR-PROD-015` vira 🔴 regressão** — o gate de permissão de custo (Blade `@can('view_purchase_price')`, 47 ocorrências em 15 views; Delphi faz o campo **sumir**) **não existe** na ficha React, que entrega `defaultPurchasePrice` a qualquer um com `product.view`; **`AR-PROD-050..057/144..145`** ganha `Show` como dono parcial (o **local do rack** e o **saldo** não chegam — `getRackDetails` devolve `name`, a página lê `location_name`); **`AR-PROD-053`** registrado como prop morta (`alertQuantity` enviado, nunca renderizado). ⚠️ Correção de método que vale pro doc todo: **a ficha legada de referência é a modal `/products/view/{id}`** (`view-modal.blade.php`, 184 linhas + 3 partials), **não** o `view('product.show')` (36 linhas, só rack) — comparar contra o arquivo raso daria paridade ✅ falsa. Contrato executável: [`Show.casos.md`](../../../resources/js/Pages/Produto/Show.casos.md) (UC-PSHOW-01..07) + `ProdutoShowContratoTest` failing-first. Nada afirmado como verde: testes rodam no CT 100. [CC] |
 | 2026-07-13 | Cruzamento criado a partir do `Create.charter.md` × lista anti-regressão (~140 itens). Conclusão: charter atual cobre ~15%; Composição e Variação (núcleo das verticais) estão como Non-Goal adiado. [CC] |
 | 2026-07-17 | **§1.1 nova — como o oimpresso trata os 14 campos** (pergunta [F]). Varredura de todas as migrations de `products` + Blade + `product.js`: os 3 campos de dinheiro **existem** (em `variations`, `decimal(22,4)`), o Blade os exige (`required`), e o binding do `product.js` é **algebricamente idêntico** ao do Delphi (`__add_percent` ≡ `PercAdd`; `__get_rate` ≡ `PercAplicado`) — convergência a preservar, não divergência a corrigir. Diferença de topologia registrada: dinheiro na **variação** (oimpresso) vs no **produto** (legado). **Corrigida imprecisão** do §1 de ontem ("ausentes do charter E do código" generalizava de `Create.tsx` pro sistema). Diagnóstico refinado: o `Create.tsx` é **subconjunto do Blade** que deveria substituir — não consegue substituí-lo por falta de função (US-PROD-023). [CC] |

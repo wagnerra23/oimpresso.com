@@ -2,8 +2,8 @@
 id: requisitos-produto-anti-regressao-cadastro-produto-legacy
 titulo: "Lista anti-regressão — Cadastro de Produto (legado Office Comercial 2026)"
 tipo: anti-regressao
-origem: "Office Comercial 2026 · Versão 2026.1.1.38 · tela 'Todos Produtos'"
-parte: "1+2+3+4 — 8 abas (incl. Composição/Kit) + ícones + diálogos + planilha de composição"
+origem: "Office Comercial 2026 · Versões 2026.1.1.38 (prints 1-5, cadastro) e 2026.1.1.43 (print 6, lista) · tela 'Todos Produtos'"
+parte: "1+2+3+4 — 8 abas (incl. Composição/Kit) + ícones + diálogos + planilha de composição · 5 — tela de LISTA/Consulta (§L, AR-PROD-190..203)"
 gerado: 2026-07-13
 observacao: "Contrato de paridade — a tela nova (Inertia/React) NÃO pode perder nenhum comportamento marcado ✅ sem decisão explícita de Non-Goal."
 ---
@@ -468,9 +468,59 @@ virar contrato de não-regressão (cada `[reg]`/`[V0]` → teste Pest failing-fi
 
 ---
 
+## L. Tela de CONSULTA — "Todos Produtos" (a LISTA, não o cadastro) · `AR-PROD-190..203`
+
+> **Por que esta seção nasce só agora (2026-08-07).** As seções A-K catalogam o **detalhe** — o
+> formulário e suas 8 abas, dos prints 1-5. A **lista** nunca foi catalogada: o único item que a
+> menciona é `AR-PROD-023` ("Consultar — abre busca/listagem"), que descreve o **botão**, não a tela
+> que ele abre. O print 6 é a primeira fonte dela.
+>
+> **Fonte:** print 6 — `Office Impresso 2026 · Versão 2026.1.1.43`, enviado por [M] em 2026-08-07.
+> ⚠️ Versão **mais nova** que a do frontmatter (`2026.1.1.38`, prints 1-5): item que divergir dos
+> anteriores pode ser evolução do legado, não erro de catalogação.
+>
+> **Numeração começa em 190** (o topo das seções A-K é `AR-PROD-187`): gap deliberado de 2 pra não
+> colidir com item em voo noutra branch.
+>
+> **Contraparte no oimpresso:** `/products/unificado` (`Pages/Produto/Unificado/Index.tsx`), a tela
+> de consulta do React — **não** o `Pages/Produto/Index.tsx`, que é a lista lite. O cruzamento
+> item-a-item vive no [PARIDADE-charter-vs-legado.md §2.1](PARIDADE-charter-vs-legado.md).
+>
+> ⚠️ **Estes itens descrevem o que a tela FAZ, nunca como ela deve PARECER.** [M] 2026-08-07,
+> textual: *"não tome o delphi como exemplo de melhoria e usabilidade. Pretendemos melhorar isso
+> no oimpresso"*. O grid DevExpress denso, o ribbon e a coluna arrastável são do desktop de 2026;
+> a forma da tela nova sai do protótipo Cowork + Design System + charter.
+
+| ID | Comportamento | Fonte |
+|---|---|---|
+| AR-PROD-190 | **Segmentação por TIPO DE PRODUTO** como botões de topo, à direita: `Produto` · `Matéria-Prima` · `Serviço` · `Patrimônio` · `Uso e Consumo` · `Composição` · `Variação` · `Venda`. É o eixo primário de navegação da lista | print 6 |
+| AR-PROD-191 | **Novo** — inicia cadastro a partir da lista (mesmo destino do `AR-PROD-020`) | print 6 |
+| AR-PROD-192 | **Duplicar** — cria a partir do registro selecionado (pareia com `CU-PROD-07`, já ✅ no React via `?d=N`) | print 6 |
+| AR-PROD-193 `[?]` | **Migrar Tipo** — converte o produto de um tipo pra outro (ex. Produto → Matéria-Prima). **Não existe em nenhum outro doc do módulo** (`git grep -i "migrar tipo"` em `memory/requisitos/Produto` = 0). Confirmar com [W]/[M]: o que acontece com estoque, preço por tabela e composição na conversão | print 6 |
+| AR-PROD-194 | **Seletor de colunas** — painel que liga/desliga cada coluna do grid. O print mostra ~40 opções, entre elas: Tipo do Produto · Marca · Código · Cod.Fábrica · Grupo do Produto · R$ Valor · Descrição · NCM · UN · Estoque · Estoque Mín./Max. · Categoria · Última Alteração · R$ Custo · Código EAN · Dt.Compra · Local de armazenagem · Fornecedor padrão · Cor · Local de Aplicação · Classificação · Referência · R$ Valor Compra · Observação · Manter Margem na Importação · Margem · Equipe · Prioridade Produção · Centro Custo · Pode ser Vendido? · DT_CADASTRO · Controla estoque (+ `Controla estoque negativo`) | print 6 |
+| AR-PROD-195 `[?]` | O painel do seletor tem **(All)** e **(Sorted)** no topo — marcar tudo / ordenar a lista de colunas. Comportamento exato do `(Sorted)` não é legível no print | print 6 |
+| AR-PROD-196 | **Agrupamento por arrastar coluna** — faixa "Arraste uma coluna para fazer o agrupamento" acima do cabeçalho. Mesmo mecanismo já catalogado nos grids de kardex (`AR-PROD-062`) e de compras (`AR-PROD-080`), agora na lista principal | print 6 |
+| AR-PROD-197 | **Contagem por grupo** — a linha de grupo mostra o total (print: `MATÉRIA-PRIMA · 690`) | print 6 |
+| AR-PROD-198 `[V0]` | **Estoque real por linha, inclusive NEGATIVO** — o grid exibe saldos como `-1.042`, `-2.907`, `-103,3`, `-18,4414`, `-7,1034`, `-1,64`, `-21,421`, `-61,9902`, `-93,00`, `-39,3475`, `-2.025`, `-1,00`. Decimal com 4 casas em vários. O legado **não esconde** saldo negativo na consulta | print 6 |
+| AR-PROD-199 | **Ordenação por coluna** — o print mostra `Descrição` com indicador de ordem crescente | print 6 |
+| AR-PROD-200 | **Busca textual** no canto superior direito do grid, separada dos filtros | print 6 |
+| AR-PROD-201 `[?]` | **Filtro de conjunto** — combo `TODOS` + combo `Mostrar Todos` + rótulo `Registros`. Os valores possíveis de cada um não são legíveis no print; `AR-PROD-022` indica que ao menos um deles alterna excluídos/inativos | print 6 |
+| AR-PROD-202 | **Seleção múltipla** — coluna de checkbox à esquerda do grid | print 6 |
+| AR-PROD-203 | **Painel de detalhe embaixo** — grid `Tabela \| Valor` com as tabelas de preço do produto selecionado (print: `<Não possui registro>`). Consulta e cadastro convivem na mesma janela | print 6 |
+
+**O que este print NÃO resolve** (não inferir; perguntar antes de virar contrato):
+
+- se as ações em massa da lista Blade (`AR-PROD-022` e as 5 do `UC-PBULK`) aparecem aqui e onde
+- se o seletor de colunas e o agrupamento **persistem por usuário** entre sessões
+- o comportamento de paginação (o rodapé mostra `192`, sem contexto legível)
+- o que `Migrar Tipo` faz com estoque/preço/composição (`AR-PROD-193`)
+
+---
+
 ## Trilha do tempo
 
 | Data | O que mudou |
 |---|---|
 | 2026-07-13 | Documento criado — ~120 itens `AR-PROD-*` catalogados dos prints das 8 abas + ícones + diálogos + planilha de composição ([PR #4260](https://github.com/wagnerra23/oimpresso.com/pull/4260)). Dúvidas das Partes 1-4 resolvidas com Wagner no mesmo dia. |
 | 2026-07-15 | **Cabeçalho: `[?]` do AR-PROD-008 fechado.** Apuração por leitura de fonte (motor de cálculo Delphi + frame do cabeçalho) cruzada com consulta read-only a 2 bases (demo do instalador + base real de cliente de oficina, 4.342 produtos). Atualizados **AR-PROD-006** (Custo é âncora, não propaga; coluna é DOUBLE, não decimal) · **AR-PROD-007** (fórmula confirmada por 5 caminhos, 97,3% em base real) · **AR-PROD-008** (`[?]`→✅: binding bidirecional Valor↔Margem pivotando no Custo). Novo **AR-PROD-015** (Custo/Margem gated por permissão — somem da tela). Achados de valor 1/2/7 marcados RESOLVIDOS. Nova §"Confirmado empiricamente" com **A-1** (flag `TEM_MARGEM_FIXA_CONTIBUICAO` — 84% `N` em base real; capacidade que o oimpresso não tem e perderia na migração) e **A-2** (custo zero → preço zero, sem guarda nos dois sistemas; 53,4% em base real). Sem teste Pest — evidência, não contrato. |
+| 2026-08-07 | **Nova §L — a tela de LISTA entra no catálogo** (`AR-PROD-190..203`, 14 itens). Fonte: print 6 (`2026.1.1.43`) enviado por [M]. Até aqui o doc cobria só o **detalhe**; a lista tinha 1 item (`AR-PROD-023`, o botão que a abre). 4 itens marcados `[?]` (Migrar Tipo · `(Sorted)` · filtro de conjunto · e o que o print não resolve) + 1 `[V0]` (estoque negativo exibido). Frontmatter passa a declarar as **duas** versões do legado. Cruzamento com `/products/unificado` em [PARIDADE §2.1](PARIDADE-charter-vs-legado.md). |
