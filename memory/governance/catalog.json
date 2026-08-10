@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 570,
-    "edges": 841,
+    "nodes": 571,
+    "edges": 839,
     "by_node_type": {
-      "module": 41,
+      "module": 40,
       "table": 73,
       "adr": 25,
-      "component": 388,
+      "component": 390,
       "api": 43
     },
     "by_edge_type": {
@@ -39,9 +39,9 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 388,
-      "dependsOn": 115,
-      "delegatesTo": 109,
+      "hasComponent": 390,
+      "dependsOn": 113,
+      "delegatesTo": 107,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1960,6 +1960,13 @@
       "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual module-grades e drift)"
     },
     {
+      "id": "component:Governance/Services/PolicyEngine",
+      "type": "component",
+      "module": "Governance",
+      "name": "Services/PolicyEngine",
+      "desc": "decision flow (Risk/Confidence/Policy) que o ActionGate consulta em runtime"
+    },
+    {
       "id": "component:Jana/Admin/JanaProController",
       "type": "component",
       "module": "Jana",
@@ -2049,6 +2056,13 @@
       "module": "Jana",
       "name": "Services/Memoria/*",
       "desc": "recall hybrid (Hyde, Reranker, Meilisearch)"
+    },
+    {
+      "id": "component:Jana/Services/SkillsService",
+      "type": "component",
+      "module": "Jana",
+      "name": "Services/SkillsService",
+      "desc": "LÊ o catálogo de skills (mcp_skills + fallback filesystem .claude/skills/<slug>/SKILL.md, ADR 0076). Só leitura: EDITAR skill é ato de arquivo+git, não deste módulo"
     },
     {
       "id": "component:Jana/SuperadminController",
@@ -3299,19 +3313,6 @@
       "id": "module:Admin",
       "type": "module",
       "module": "Admin",
-      "purpose": "",
-      "trust": "",
-      "owner": "",
-      "permission_prefix": "",
-      "charter_adr": "",
-      "path": null,
-      "catalog_kind": "referenced-only",
-      "catalog_status": "referenced-only"
-    },
-    {
-      "id": "module:ADS",
-      "type": "module",
-      "module": "ADS",
       "purpose": "",
       "trust": "",
       "owner": "",
@@ -6368,17 +6369,17 @@
     },
     {
       "from": "module:Forja",
-      "to": "module:ADS",
+      "to": "module:Jana",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Skills governance"
+      "note": "Chat IA"
     },
     {
       "from": "module:Forja",
       "to": "module:Jana",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Chat IA"
+      "note": "Skills governance"
     },
     {
       "from": "module:Forja",
@@ -6396,17 +6397,17 @@
     },
     {
       "from": "module:Forja",
-      "to": "module:ADS",
+      "to": "module:Jana",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Skills governance"
+      "note": "Chat IA"
     },
     {
       "from": "module:Forja",
       "to": "module:Jana",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Chat IA"
+      "note": "Skills governance"
     },
     {
       "from": "module:Forja",
@@ -6845,20 +6846,6 @@
     },
     {
       "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Decision flow (Risk/Confidence/Policy Engine)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills governance"
-    },
-    {
-      "from": "module:Governance",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -6873,6 +6860,13 @@
     },
     {
       "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Skills governance"
+    },
+    {
+      "from": "module:Governance",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -6884,20 +6878,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Module Grade v4 Tri-pane (era /admin/governance/v4 no Modules/Admin)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Decision flow (Risk/Confidence/Policy Engine)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills governance"
     },
     {
       "from": "module:Governance",
@@ -6933,6 +6913,13 @@
       "type": "dependsOn",
       "source": "db_tables_consumed→db_tables_owned",
       "note": "jana_mensagens"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
     },
     {
       "from": "module:Governance",
@@ -7033,6 +7020,12 @@
     },
     {
       "from": "module:Governance",
+      "to": "component:Governance/Services/PolicyEngine",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
       "to": "table:mcp_governance_rules",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -7048,20 +7041,6 @@
       "to": "adr:0080",
       "type": "charteredByAdr",
       "source": "charter_adr"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Decision flow"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills governance"
     },
     {
       "from": "module:Jana",
@@ -7093,6 +7072,13 @@
     },
     {
       "from": "module:Jana",
+      "to": "module:Governance",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Decision flow (Risk/Confidence/Policy Engine)"
+    },
+    {
+      "from": "module:Jana",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -7104,20 +7090,6 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "MemoriaController (browser KB)"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Decision flow"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills governance"
     },
     {
       "from": "module:Jana",
@@ -7152,6 +7124,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Admin/GovernancaController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Governance",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Decision flow (Risk/Confidence/Policy Engine)"
     },
     {
       "from": "module:Jana",
@@ -7272,6 +7251,12 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/Services/Memoria/*",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Jana",
+      "to": "component:Jana/Services/SkillsService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7457,13 +7442,6 @@
     },
     {
       "from": "module:KB",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills governance"
-    },
-    {
-      "from": "module:KB",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -7496,6 +7474,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Chat IA (Jana)"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Skills governance"
     },
     {
       "from": "module:KB",
@@ -7506,13 +7491,6 @@
     },
     {
       "from": "module:KB",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills governance"
-    },
-    {
-      "from": "module:KB",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7545,6 +7523,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Chat IA (Jana)"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
     },
     {
       "from": "module:KB",
@@ -9904,10 +9889,6 @@
       },
       {
         "module": "Admin",
-        "reason": "referenciado por SCOPE, sem descritor próprio"
-      },
-      {
-        "module": "ADS",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
