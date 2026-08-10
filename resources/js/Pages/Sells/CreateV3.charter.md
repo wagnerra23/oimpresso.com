@@ -126,9 +126,12 @@ Precisando de variação de um componente existente, **nasce cópia local** em `
 > dentro de `prototipo-ui/cowork/`; uma âncora fora daí vira `MISSING` e derruba o gate).
 >
 > **O `launch.json` segue sem entrada, de propósito:** a camada 0 do Design System não veio no
-> handoff (`_ds/colors_and_type.css`, `styles.css`, `_ds_bundle.js` — ausentes, medido), então
-> um preview local carregaria sem token de cor e sem ícone. Config que promete preview que não
-> renderiza é afordância anunciada e não implementada. O README do bundle declara o estado.
+> handoff (`_ds/colors_and_type.css`, `styles.css`, `_ds_bundle.js` — ausentes, medido). Servido
+> em `127.0.0.1:5599` e aberto no browser, o entry **não renderiza — tela em branco**: `#root`
+> com 0 caracteres, `window.I` undefined, `TypeError: … reading 'Button'` e `reading 'Provider'`
+> no `<App>`. Config que promete preview que não renderiza é afordância anunciada e não
+> implementada. O estado está declarado em
+> [`prototipo-ui/FONTE-DESIGN-venda-v3.md`](../../../../prototipo-ui/FONTE-DESIGN-venda-v3.md).
 
 ---
 

@@ -17,7 +17,14 @@
          _ds/…/styles.css            (componentes do DS)
          _ds/…/_ds_bundle.js         (primitivos JS + ícones — `window.I`)
 
-     Sem elas, os `.jsx` carregam mas ficam sem token de cor e sem ícone.
+     MEDIDO NO BROWSER (não inferido), servindo este diretório em 127.0.0.1:5599:
+     esta página NÃO RENDERIZA — tela em branco. O `#root` fica com 0 caracteres,
+     `window.I` é undefined, e o console dá
+         TypeError: Cannot read properties of undefined (reading 'Button')
+         TypeError: Cannot read properties of undefined (reading 'Provider')  <App>
+     O `_ds_bundle.js` fornece os primitivos que os `.jsx` montam — sem ele o
+     React quebra na montagem, não é degradação cosmética.
+
      O valor destes arquivos aqui é serem a FONTE DE DESIGN VERSIONADA de onde
      as ondas 2-6 derivam (e a âncora que `CreateV3.charter.md` declara) —
      não um preview executável. Para rodar o cockpit completo, use o projeto

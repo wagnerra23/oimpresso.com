@@ -23,8 +23,19 @@ no repo nem no disco**, confirmado por quatro oráculos independentes (`ancora.m
 Line endings normalizados para LF no import (o zip vinha CRLF).
 
 ⚠️ **A camada 0 (Design System) NÃO veio no handoff.** Medido sobre o zip: `_ds/colors_and_type.css`,
-`_ds/styles.css` e `_ds/_ds_bundle.js` não existem em arquivo nenhum do bundle. Consequência:
-[`cowork/venda-v3/index.html`](cowork/venda-v3/index.html) carrega, mas sem token de cor e sem ícone (`window.I`).
+`_ds/styles.css` e `_ds/_ds_bundle.js` não existem em arquivo nenhum do bundle.
+
+**Consequência, medida no browser (não inferida):** [`cowork/venda-v3/index.html`](cowork/venda-v3/index.html)
+**não renderiza — tela em branco.** Servido em `127.0.0.1:5599`, o `#root` fica com **0 caracteres**,
+`window.I` é `undefined`, e o console cospe `TypeError: Cannot read properties of undefined (reading 'Button')`
+seguido de `reading 'Provider'` dentro do `<App>`. O `_ds_bundle.js` não é enfeite: ele fornece os
+primitivos que os `.jsx` montam.
+
+> 📌 **Errata da primeira redação deste doc (2026-08-10), registrada e não apagada.**
+> Eu havia escrito que o entry *"carrega, mas sem token de cor e sem ícone"* — afirmação
+> derivada de **ler** quais arquivos faltavam, não de rodar. Ao medir, o resultado é
+> estritamente pior: não carrega nada. A ausência dos arquivos eu tinha medido; a
+> **consequência** eu inferi, e a inferência estava errada e otimista.
 
 **Isto não é defeito do import — é o recorte do handoff.** Estes arquivos servem como
 **fonte de design de onde as ondas 2–6 derivam**, não como preview executável. Para ver o
