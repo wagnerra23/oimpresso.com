@@ -38,7 +38,7 @@ uses(Tests\TestCase::class);
  *   - Multi-tenant Tier 0 (ADR 0093): Controller filtra IDs antes bulk
  *   - LGPD Art. 6º IX (PiiRedactor em LicencaAuditService)
  *
- * @see Modules/Officeimpresso/CHANGELOG.md Wave 27
+ * @see memory/requisitos/Officeimpresso/CHANGELOG.md Wave 27
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md §5 SoC
  */

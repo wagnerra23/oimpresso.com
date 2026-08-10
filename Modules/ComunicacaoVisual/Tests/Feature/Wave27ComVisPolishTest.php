@@ -128,12 +128,12 @@ describe('Wave 27 ComVis — D5 README expandido (jornada + LGPD + multi-tenant 
 describe('Wave 27 ComVis — V5 CHANGELOG entry', function () {
 
     it('CHANGELOG.md tem entry Wave 27', function () {
-        $changelog = (string) file_get_contents(comvisW27Path('Modules/ComunicacaoVisual/CHANGELOG.md'));
+        $changelog = (string) file_get_contents(comvisW27Path('memory/requisitos/ComunicacaoVisual/CHANGELOG.md'));
         expect($changelog)->toContain('Wave 27');
     });
 
     it('CHANGELOG W27 cita D7 forensic fix confirmado + polish ≥92', function () {
-        $changelog = (string) file_get_contents(comvisW27Path('Modules/ComunicacaoVisual/CHANGELOG.md'));
+        $changelog = (string) file_get_contents(comvisW27Path('memory/requisitos/ComunicacaoVisual/CHANGELOG.md'));
         expect($changelog)->toContain('D7');
         $temContext = str_contains($changelog, 'forensic') || str_contains($changelog, 'forense')
                       || str_contains($changelog, 'POLISH') || str_contains($changelog, 'polish');

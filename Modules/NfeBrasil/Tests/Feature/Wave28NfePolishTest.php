@@ -27,7 +27,7 @@ uses(Tests\TestCase::class);
  *   - LogsActivity append-only (LGPD Art. 37)
  *   - business_id NOT NULL todas tabelas fiscais
  *
- * @see Modules/NfeBrasil/CHANGELOG.md Wave 28
+ * @see memory/requisitos/NfeBrasil/CHANGELOG.md Wave 28
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 describe('Wave 28 NfeBrasil POLISH', function () {
