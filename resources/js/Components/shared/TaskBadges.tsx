@@ -1,10 +1,19 @@
-// Forja PR-1 — componentes visuais da tela Tasks (lista + quadro + drawer).
+// Selos de task — COMPARTILHADOS entre módulos (team-mcp/Tasks e Forja/Trabalho).
+//
+// Promovidos de `Pages/team-mcp/Tasks/_components/` em 2026-08-09: a rule
+// `components.md` diz que composto consumido por ≥2 módulos mora em `shared/`.
+// O gatilho foi o Quadro da Forja, que reimplementou `owner` em texto cinza e
+// prioridade em badge de texto — tendo o `ActorSeal` e o `PriorityDot` prontos
+// a um import de distância. Reuso é o caminho; hand-roll ao lado é a regressão.
+//
+// Tokens/helpers puros vivem em `@/Lib/taskTokens` (separação p/ react-refresh:
+// arquivo que exporta componente NÃO pode exportar não-componente).
 // Tokens/helpers puros vivem em ./taskTokens (separação p/ react-refresh).
 // DS v6: SEM cor crua. Status estilo Stripe (dot + texto), nunca bg-fill (PT-01).
 
 import { Bot, User } from 'lucide-react';
 import { cn } from '@/Lib/utils';
-import { PRIO_DOT, PRIO_LABEL, statusMeta, type Priority } from './taskTokens';
+import { PRIO_DOT, PRIO_LABEL, statusMeta, type Priority } from '@/Lib/taskTokens';
 
 export function PriorityDot({ priority, className }: { priority: Priority; className?: string }) {
   const p = PRIO_DOT[priority] ? priority : 'p2';

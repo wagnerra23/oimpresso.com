@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Forja\Entities\McpActor;
 use Modules\Forja\Services\TrabalhoService;
 use Modules\Jana\Entities\Mcp\McpTask;
 
@@ -241,4 +242,33 @@ it('UC-TRAB-10 — os filtros do atalho Gantt são de fato LIDOS pelo destino', 
     // Controle negativo: `status` NÃO pode entrar na lista enquanto o Gantt não
     // o ler. Sem este assert, alguém adicionaria "porque o Gantt tem status".
     expect(TrabalhoService::FILTROS_ATALHO_GANTT)->not->toContain('status');
+});
+
+it('UC-TRAB-11 — agentes() lista SÓ ator ai_agent ativo, em lowercase', function () {
+    trabalhoExigeSchema();
+    if (! Schema::hasTable('mcp_actors')) {
+        test()->markTestSkipped('Schema ausente (mcp_actors).');
+    }
+
+    // Esta lista alimenta o <ActorSeal>, que decide AGENTE vs HUMANO no card.
+    // É allowlist, não heurística de nome: quem não está aqui é humano. Logo os
+    // três erros possíveis são (a) deixar humano entrar, (b) deixar revogado
+    // entrar, (c) errar o case e o front nunca casar o owner.
+    $ativo    = McpActor::create(['slug' => 'AgenteFixtura', 'type' => 'ai_agent', 'trust_level' => 'L0']);
+    $revogado = McpActor::create(['slug' => 'agente-revogado-fixtura', 'type' => 'ai_agent', 'trust_level' => 'L0', 'revoked_at' => now()]);
+    $humano   = McpActor::create(['slug' => 'humano-fixtura', 'type' => 'human', 'trust_level' => 'L0']);
+
+    $lista = app(TrabalhoService::class)->agentes();
+
+    // (c) lowercase — o front compara `agents.includes(owner.toLowerCase())`;
+    //     sem normalizar aqui, "AgenteFixtura" nunca casaria e o selo mentiria
+    //     dizendo "humano" pra um agente.
+    expect($lista)->toContain('agentefixtura');
+    expect($lista)->not->toContain('AgenteFixtura');
+
+    // (b) revogado fica fora — ator desligado não deve seguir carimbando cards.
+    expect($lista)->not->toContain($revogado->slug);
+
+    // (a) humano nunca entra — se entrasse, o selo chamaria pessoa de robô.
+    expect($lista)->not->toContain($humano->slug);
 });
