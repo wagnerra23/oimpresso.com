@@ -83,8 +83,8 @@ Fecha os 3 gaps urgentes da auditoria estado-da-arte FSM screen ([memory/session
 ## [2026-06-09] Erradicação de "locação" — reparo é o único domínio (ADR 0265)
 
 ### 🪦 Lápide — order_type=locacao é resíduo, não fluxo (append, não reescreve história · L-22)
-- Veredito de Wagner (soberano do domínio) 2026-06-09: locação de caçamba **não é processo que ele usa** — é alucinação herdada do legado WR Sistemas. A [ADR 0265](../../memory/decisions/0265-oficina-reparo-erradica-locacao.md) (errata que **fecha o resíduo** que a [ADR 0194](../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) deixou) decide: **Oficina = reparo, ponto.** `order_type ∈ {manutencao, mecanica}`. "Caçambas" sobrevive **só como nome comercial** do cliente Martinho.
-- **Anti-retorno (D-4) LANDADO + GATED:** linha em [`memory/proibicoes.md`](../../memory/proibicoes.md) + gate `dominio:check` ([ADR 0264](../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-4) que **falha o CI** se `locacao` reaparecer num enum. A alucinação que nenhuma spec de tela pegava agora falha mecanicamente.
+- Veredito de Wagner (soberano do domínio) 2026-06-09: locação de caçamba **não é processo que ele usa** — é alucinação herdada do legado WR Sistemas. A [ADR 0265](../../decisions/0265-oficina-reparo-erradica-locacao.md) (errata que **fecha o resíduo** que a [ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) deixou) decide: **Oficina = reparo, ponto.** `order_type ∈ {manutencao, mecanica}`. "Caçambas" sobrevive **só como nome comercial** do cliente Martinho.
+- **Anti-retorno (D-4) LANDADO + GATED:** linha em [`memory/proibicoes.md`](../../proibicoes.md) + gate `dominio:check` ([ADR 0264](../../decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-4) que **falha o CI** se `locacao` reaparecer num enum. A alucinação que nenhuma spec de tela pegava agora falha mecanicamente.
 - **Erradicação de schema/código LANDADA (CI-Pest verificado):**
   - **Enum** `order_type` → `{manutencao, mecanica}` via migration `2026_06_09_000001` (data-fix `locacao`→`manutencao` ANTES de estreitar · idempotente · MySQL-guard · SHOW COLUMNS). **Prova de máquina:** `dominio:check` divergência `order_type:locacao` caiu **1→0**.
   - **Importer** `normalizeOrderType` — removido o ramo `locacao` (cai no default `manutencao`).
@@ -109,7 +109,7 @@ Fecha os 3 gaps urgentes da auditoria estado-da-arte FSM screen ([memory/session
 - `scripts/firebird/export-martinho-os.py` — export local (Windows + firebird-driver) com `--dump-schema` pra mapear os nomes reais do FDB.
 
 ### 🪦 Lápide de domínio (ADR 0194 · 2026-05-26 — append, não reescreve história · L-22)
-- Entradas anteriores deste changelog citam **"Martinho Caçambas"** / **"Journey Martinho Caçambas"**: "Caçambas" é o **nome comercial** da empresa, preservado. O **domínio operacional**, porém, foi reclassificado de "locação de caçamba container" → **mecânica pesada de caminhão basculante (CNAE 4520-0/01)** pela [ADR 0194](../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md). Onde o texto legado sugerir "locação de caçamba" como *fluxo de negócio*, leia "mecânica de caminhão".
+- Entradas anteriores deste changelog citam **"Martinho Caçambas"** / **"Journey Martinho Caçambas"**: "Caçambas" é o **nome comercial** da empresa, preservado. O **domínio operacional**, porém, foi reclassificado de "locação de caçamba container" → **mecânica pesada de caminhão basculante (CNAE 4520-0/01)** pela [ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md). Onde o texto legado sugerir "locação de caçamba" como *fluxo de negócio*, leia "mecânica de caminhão".
 
 ## [Wave 27 POLISH — 2026-05-17] Polish final 77-88 → ≥90
 
