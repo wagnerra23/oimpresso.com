@@ -147,6 +147,17 @@ function classifyContainsItem(string $item, string $moduleDir, array $symbolInde
     // 1) resolve dentro do próprio módulo (arquivo ou diretório)?
     if (is_dir($moduleDir . '/' . $base))            return ['status' => 'dir',  'token' => $token];
     if (is_file($moduleDir . '/' . $base . '.php'))  return ['status' => 'ok',   'token' => $token];
+
+    // Token com EXTENSÃO explícita (`LICOES-OPERACAO.md`, `foo.json`) resolve como
+    // arquivo literal — nunca pelo índice, que só contém .php. Sem isto, TODO item
+    // não-php declarado vira fantasma mesmo existindo: falso-positivo pego pelo CI
+    // em 2026-08-10 (Jana/LICOES-OPERACAO.md existe e foi acusado).
+    if (preg_match('/\.[A-Za-z0-9]+$/', $base) && !str_ends_with($base, '.php')) {
+        if (is_file($moduleDir . '/' . $base)) return ['status' => 'ok', 'token' => $token];
+        foreach (glob($moduleDir . '/*/' . $base) ?: [] as $_) return ['status' => 'ok', 'token' => $token];
+        return ['status' => 'fantasma', 'token' => $token];
+    }
+
     $leaf = basename($base);
     foreach ($symbolIndex[$leaf] ?? [] as $p) {
         if (str_starts_with($p, str_replace('\\', '/', $moduleDir) . '/')) {
@@ -214,12 +225,21 @@ if ($selftest) {
     $ok('CN: classe que existe sob OUTRO módulo → fora (informativo), nunca fantasma',
         classifyContainsItem('CobrancaController', 'Modules/PaymentGateway', $idx)['status'] === 'fora');
 
+    // CN + BITE do vetor não-php (FP real, pego pelo CI em 2026-08-10): o índice só
+    // tem .php, então sem tratamento próprio TODO item .md/.json vira fantasma.
+    $ok('CN: arquivo .md que EXISTE no módulo → ok (não fantasma)',
+        classifyContainsItem('LICOES-OPERACAO.md — ledger append-only', 'Modules/Jana', $idx)['status'] === 'ok');
+    $ok('BITE: arquivo .md que NÃO existe segue fantasma (o fix não cega o detector)',
+        classifyContainsItem('NAO-EXISTE-XYZ.md — ledger', 'Modules/Jana', $idx)['status'] === 'fantasma');
+
     // ÂNCORAS DE CONTRATO — as premissas têm que ser verdade no repo AGORA.
     $real = indexPhpSymbols(['Modules', 'app']);
     $ok('contrato: Modules/Jana/Services/SkillsService.php existe (âncora do CN "ok")',
         is_file('Modules/Jana/Services/SkillsService.php'));
     $ok('contrato: nenhum ConversationsController no repo (âncora do achado real Whatsapp)',
         empty($real['ConversationsController']));
+    $ok('contrato: Modules/Jana/LICOES-OPERACAO.md existe (âncora do CN não-php)',
+        is_file('Modules/Jana/LICOES-OPERACAO.md'));
 
     echo $fails
         ? "\n  $fails FALHA(S) — a direção contains→árvore não está honesta.\n"
