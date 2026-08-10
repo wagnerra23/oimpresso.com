@@ -142,8 +142,22 @@ async function modoCI(schemaPath, pattern, deps) {
   if (!existsSync(schemaPath)) { console.error(`[SKIP] schema não existe: ${schemaPath}`); return 0; }
   const { globSync } = await import('glob');
   const validate = compilar(schemaPath, deps);
-  const changedRaw = existsSync('changed-files.txt')
-    ? readFileSync('changed-files.txt', 'utf8').trim().split('\n').filter(Boolean) : [];
+  // CEGO ≠ LIMPO. O modo CI é diff-aware POR CONSTRUÇÃO: sem `changed-files.txt`
+  // não existe conjunto a interseccionar, então "0 arquivos" não significa "nada a
+  // corrigir" — significa que NADA FOI MEDIDO. Antes isto caía no `[OK]` de baixo e
+  // saía 0: verde indistinguível de "perguntei e não há violação" (§5 2026-07-29,
+  // "instrumento afirmar verde quando não conseguiu MEDIR"). No CI o arquivo sempre
+  // existe (o step `Compute changed files` roda sempre, sem `if:`), então este ramo
+  // só alcança quem roda à mão — que era justamente quem era enganado.
+  if (!existsSync('changed-files.txt')) {
+    console.error(`⛔ NÃO MEDIDO — 'changed-files.txt' ausente: NADA foi validado contra ${pattern}.`);
+    console.error(`   Este modo (--schema/--glob) é o do CI e depende do diff. Local, use:`);
+    console.error(`     node scripts/memory-schemas/validate.mjs <arquivo...>   # valida o que você passar`);
+    console.error(`   ou gere o diff antes:`);
+    console.error(`     git diff --name-only origin/main...HEAD > changed-files.txt`);
+    return 2;  // contrato do cabeçalho: 2 = erro de uso/ambiente (≠ 1 = violação)
+  }
+  const changedRaw = readFileSync('changed-files.txt', 'utf8').trim().split('\n').filter(Boolean);
   // posix() é obrigatório: no Windows o globSync devolve `memory\sessions\x.md`
   // enquanto o `git diff --name-only` (changed-files.txt) devolve `memory/sessions/x.md`
   // — a interseção dava VAZIO e o validador reportava "[OK] nenhum arquivo" sobre
@@ -155,7 +169,9 @@ async function modoCI(schemaPath, pattern, deps) {
 
   if (files.length === 0) {
     console.log(`[OK] nenhum arquivo NOVO/MODIFICADO bate ${pattern}`);
-    console.log(`(${changedRaw.length} no diff, ${allMatching.length} bateriam o glob, sem interseção)`);
+    // `.size`, não `.length`: allMatching é um Set — `.length` dava `undefined` e a
+    // linha saía "undefined bateriam o glob", que lê como bug do glob e não é.
+    console.log(`(${changedRaw.length} no diff, ${allMatching.size} bateriam o glob, sem interseção)`);
     writeFileSync('violations.json', '[]');
     return 0;
   }
@@ -210,6 +226,49 @@ async function selftest() {
   // YAML quebrado vira violação do arquivo, não crash do processo
   ok(validarConteudo('---\na: [unclosed\n b: "x\n---\n', vh, deps.matter)?.level === 'error',
     'YAML malformado vira violação por-arquivo (não derruba o processo)');
+
+  // ── bite-test do MODO CI, pelo CLI de FORA ────────────────────────────────
+  // Os asserts acima exercitam helpers puros (`schemaPara`/`validarConteudo`) — eles
+  // não alcançam o `modoCI`, que é onde vive o contrato de pipeline. Foi por esse vão
+  // que o "verde sem medir" passou. Aqui roda-se o próprio script como processo, em
+  // cwd temporário, conferindo os TRÊS estados (§5 2026-07-30).
+  const { spawnSync } = await import('node:child_process');
+  const { mkdtempSync, mkdirSync, writeFileSync: escrever, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join, resolve } = await import('node:path');
+
+  const box = mkdtempSync(join(tmpdir(), 'validate-modoci-'));
+  const eu = resolve('scripts/memory-schemas/validate.mjs');
+  const schemaAbs = resolve('scripts/memory-schemas/handoff.schema.json');
+  const GLOB = 'memory/handoffs/*.md';
+  const rodar = () => spawnSync(process.execPath, [eu, '--schema', schemaAbs, '--glob', GLOB],
+    { cwd: box, encoding: 'utf8' });
+
+  try {
+    // (a) MORDE — sem changed-files.txt: cego, e cego não pode sair verde.
+    const cego = rodar();
+    ok(cego.status === 2, 'MORDE: modo CI sem changed-files.txt = exit 2 (NÃO MEDIDO), nunca 0');
+    ok(/NÃO MEDIDO/.test(cego.stderr), 'CEGO declara explicitamente que nada foi validado');
+
+    // Um arquivo que BATE o glob, pra a contagem do glob ser não-trivial.
+    mkdirSync(join(box, 'memory/handoffs'), { recursive: true });
+    escrever(join(box, 'memory/handoffs/2026-01-01-1200-x.md'),
+      '---\ntitle: "sem slug nem tldr"\ntype: handoff\n---\n\n# corpo\n');
+
+    // (b) CONTROLE NEGATIVO — arquivo presente e diff vazio: verde LEGÍTIMO.
+    escrever(join(box, 'changed-files.txt'), '');
+    const vazio = rodar();
+    ok(vazio.status === 0, 'LIBERA: changed-files.txt presente + sem interseção = verde legítimo');
+    ok(/1 bateriam o glob/.test(vazio.stdout), 'conta o glob com Set.size (não imprime `undefined`)');
+    ok(!/undefined/.test(vazio.stdout), 'nenhum `undefined` na mensagem do modo CI');
+
+    // (c) MORDE — o arquivo ruim ENTRA no diff: tem de virar violação (exit 1, não 2).
+    escrever(join(box, 'changed-files.txt'), 'memory/handoffs/2026-01-01-1200-x.md\n');
+    const ruimCI = rodar();
+    ok(ruimCI.status === 1, 'MORDE: arquivo no diff fora do schema = exit 1 (violação, ≠ 2 de ambiente)');
+  } finally {
+    rmSync(box, { recursive: true, force: true });
+  }
 
   console.log(falhas ? `\n✗ selftest: ${falhas} falha(s)` : '\n✓ selftest: valida, morde e libera certo');
   process.exit(falhas ? 1 : 0);
