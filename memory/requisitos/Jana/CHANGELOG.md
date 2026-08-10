@@ -58,7 +58,7 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 
 > Histórico semver de features publicadas. Append-only. Versionamento alinha com features mergeadas em main, não com tags git (que cobrem o ERP inteiro).
 >
-> **Política governance:** entradas só são adicionadas após PR mergeado em main. Toda US/feature significativa que tocar `Modules/Jana/` ganha entry aqui. ADRs canon ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), [ADR 0094](../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md), [ADR 0070](../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)) são referenciadas inline.
+> **Política governance:** entradas só são adicionadas após PR mergeado em main. Toda US/feature significativa que tocar `Modules/Jana/` ganha entry aqui. ADRs canon ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md), [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md), [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)) são referenciadas inline.
 
 ## [Unreleased]
 
@@ -102,18 +102,18 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 - `ImportarSkillsDoGitService` sync `.claude/skills/<nome>/SKILL.md` → DB cada hora
 - `PublicarSkillNoGitService` aprovação Wagner via UI `/copiloto/admin/skills`
 
-## [v1.4.0] — Jira-style task management (2026-05-04) — [ADR 0070](../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
+## [v1.4.0] — Jira-style task management (2026-05-04) — [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)
 - Tabelas `mcp_jira_projects` + `mcp_epics` + `mcp_cycles` + `mcp_cycle_goals` + `mcp_components` + `mcp_tasks` (estendida)
 - Tools MCP: `cycles-active`, `cycles-create`, `cycle-goals-track`, `tasks-list`, `tasks-detail`, `tasks-create`, `tasks-update`, `triage`, `my-work`, `my-inbox`, `dashboard-velocity`, `dashboard-burndown`
 - CURRENT.md/TASKS.md REMOVIDOS — estado vivo só via MCP (proibições.md Tier 0)
 - ROTA LIVRE: cycle 2 semanas, 1 ativo por projeto, retro JSON em `mcp_cycles.retro` ao fechar
 
-## [v1.3.0] — Daily Brief — [ADR 0091](../../memory/decisions/0091-daily-brief.md) (2026-05-06)
+## [v1.3.0] — Daily Brief — [ADR 0091](../../decisions/0091-daily-brief.md) (2026-05-06)
 - Tool MCP `brief-fetch` Tier A always-on via hook `SessionStart`
 - Cron `brief:generate` daily 06:00 BRT alimenta `mcp_briefs` (consolida cycle + my-work + decisions-recent)
 - Cache 5min na tool — economiza ~27k tokens/sessão de exploração filesystem
 
-## [v1.2.0] — MCP server canon `mcp.oimpresso.com` — [ADR 0053](../../memory/decisions/0053-mcp-server-governanca-como-produto.md) (2026-04-30)
+## [v1.2.0] — MCP server canon `mcp.oimpresso.com` — [ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) (2026-04-30)
 - `mcp_memory_documents` table com índice FULLTEXT + Meilisearch hybrid embedder (Ollama nomic-embed-text)
 - Webhook GitHub sincroniza 352+ docs de `memory/*` automático em push
 - `mcp_tokens` table com SHA256 + revocation tracking

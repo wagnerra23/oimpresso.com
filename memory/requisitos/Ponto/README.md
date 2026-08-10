@@ -163,8 +163,8 @@ Cenário canônico testado em prod biz=1 (clientes legacy WR2 Eliana via ROTA LI
 ### Fase B — Operação diária (Funcionário)
 
 4. **Bater 4 marcações**: ENTRADA / ALMOCO_INICIO / ALMOCO_FIM / SAIDA via `/ponto/marcacoes` → `StoreMarcacaoRequest` (Wave 18 D8) valida `before_or_equal:now + after:-24 hours` (limite offline REP-P).
-5. **Hash + NSR encadeado**: cada marcação calcula `hash = sha256(hash_anterior || payload)` via `MarcacaoService` ([app/Domain/Fsm/Support](../../app/Domain/Fsm/Support/) helpers OTel `ponto.marcar`).
-6. **Consultar espelho**: `/ponto/espelho` → `Inertia::defer()` props heavy (Wave 25 D6 — switch 300ms→50ms validado em [RUNBOOK-inertia-defer-pattern.md](../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)).
+5. **Hash + NSR encadeado**: cada marcação calcula `hash = sha256(hash_anterior || payload)` via `MarcacaoService` ([app/Domain/Fsm/Support](../../../app/Domain/Fsm/Support/) helpers OTel `ponto.marcar`).
+6. **Consultar espelho**: `/ponto/espelho` → `Inertia::defer()` props heavy (Wave 25 D6 — switch 300ms→50ms validado em [RUNBOOK-inertia-defer-pattern.md](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)).
 
 ### Fase C — Anomalias (Funcionário + Gestor)
 

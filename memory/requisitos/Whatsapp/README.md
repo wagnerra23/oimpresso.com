@@ -165,11 +165,11 @@ Whatsapp não tem take rate direto. **Valor é destravar take rate dos outros m�
 
 > Omnichannel WhatsApp transacional + atendimento (Caixa Unificada V4) com 3 drivers (Z-API default, Meta Cloud fallback, Baileys 7.x).
 > **Status:** Em produção biz=1 (Wagner) + ROTA LIVRE — `biz_1_wagner_active`.
-> **Tier 0:** Multi-tenant `business_id` global scope + canal/fila isolation ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+> **Tier 0:** Multi-tenant `business_id` global scope + canal/fila isolation ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
 
 ## Por que existe
 
-Comunicação cliente (Status OS, boleto/NFe, lembrete, dunning, bot Jana HITL) onde WhatsApp é o **único canal real BR**. Drivers múltiplos pra fallback obrigatório ([ADR 0096](../../memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) emenda 4).
+Comunicação cliente (Status OS, boleto/NFe, lembrete, dunning, bot Jana HITL) onde WhatsApp é o **único canal real BR**. Drivers múltiplos pra fallback obrigatório ([ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) emenda 4).
 
 ## Cliente piloto
 
@@ -231,7 +231,7 @@ Modules/Whatsapp/
 |--------|--------|-------------|
 | **Meta Cloud API** | default fallback obrigatório | Transacional crítico (NFe, boleto) |
 | **Z-API** | default operacional | Inbox/atendimento diário |
-| **Baileys 7.x** | irreversível ([ADR 0096](../../memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)) | Self-hosted CT 100 + warmup anti-ban |
+| **Baileys 7.x** | irreversível ([ADR 0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)) | Self-hosted CT 100 + warmup anti-ban |
 
 ⛔ **NUNCA** sugerir Baileys 6.7.9 ou esperar 7.0.0 final — decisão Wagner 3× confirmada.
 
@@ -263,4 +263,4 @@ Atributos sempre `business_id` + `module=Whatsapp`. PII redacted via `Modules\Ja
 - PII-REDACTION: `memory/requisitos/Whatsapp/PII-REDACTION.md`
 - Runbook Inbox V4: `memory/requisitos/Whatsapp/RUNBOOK-inbox-caixa-unificada-v4.md`
 - Runbook Baileys ban: `memory/requisitos/Whatsapp/runbooks/baileys-troubleshoot-ban.md`
-- ADRs: [0058](../../memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md), [0096](../../memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)
+- ADRs: [0058](../../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md), [0096](../../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md)

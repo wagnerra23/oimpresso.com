@@ -2,7 +2,7 @@
 
 Painel admin self-hosted pra criar packages comerciais + vender subscription a múltiplos businesses. Herdado de UltimatePOS v6.
 
-⚠️ **Cross-tenant intencional** ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) §exceções) — Superadmin é Wagner-only, opera com `withoutGlobalScopes` consciente. Auditoria via Spatie `LogsActivity` (D7.b LGPD) é append-only e cobre drift.
+⚠️ **Cross-tenant intencional** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) §exceções) — Superadmin é Wagner-only, opera com `withoutGlobalScopes` consciente. Auditoria via Spatie `LogsActivity` (D7.b LGPD) é append-only e cobre drift.
 
 ## Estado atual
 
@@ -16,10 +16,10 @@ Painel admin self-hosted pra criar packages comerciais + vender subscription a m
 
 ## Docs canônicas
 
-- [BRIEFING](../../memory/requisitos/Superadmin/BRIEFING.md) — estado consolidado + score ~85-90/100 (rubrica v3 ADR 0155)
-- [SPEC](../../memory/requisitos/Superadmin/SPEC.md) — user stories + `na_justified` declarados
+- [BRIEFING](BRIEFING.md) — estado consolidado + score ~85-90/100 (rubrica v3 ADR 0155)
+- [SPEC](SPEC.md) — user stories + `na_justified` declarados
 - [CHANGELOG](CHANGELOG.md) — append-only por PR
-- [ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 (exceções Superadmin)
+- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 (exceções Superadmin)
 
 ## Permissions
 
@@ -27,7 +27,7 @@ Spatie middleware `superadmin` gate — checagem em `BaseController`.
 
 ## Pré-flight obrigatório antes de editar
 
-1. Ler [BRIEFING](../../memory/requisitos/Superadmin/BRIEFING.md)
+1. Ler [BRIEFING](BRIEFING.md)
 2. Confirmar com Wagner se mudança comercial (package novo, gateway novo) tem ADR
 3. ⛔ NUNCA editar audit logs `superadmin_communicator_logs` direto — append-only LGPD
 4. Pest cross-tenant: docs comentam que biz=99 lookup retorna `403/404` mas Superadmin pode `withoutGlobalScopes` ler — comentar `// SUPERADMIN: <razão>` sempre

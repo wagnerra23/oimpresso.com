@@ -2,7 +2,7 @@
 
 > Vertical gráfica rápida BR — CNAE 1813-0/01 (impressão de material para uso publicitário).
 > Status: 🟡 em construção · Piloto previsto Q3/2026.
-> ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7.
+> ADR mãe: [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7.
 
 ## 1. Objetivo
 
@@ -73,7 +73,7 @@ Modules/ComunicacaoVisual/
 - Kanban PCP: vê tudo em produção (consome shared `Modules/Repair` Kanban)
 - IA Jana: "Quanto faturei essa semana em lona 440?" → resposta com dados reais
 
-## 4. Multi-tenant Tier 0 (IRREVOGÁVEL — [ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+## 4. Multi-tenant Tier 0 (IRREVOGÁVEL — [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 
 - Toda Entity tem `business_id` global scope
 - Job assíncrono SEMPRE recebe `$businessId` no constructor
@@ -120,6 +120,6 @@ php artisan migrate --path=Modules/ComunicacaoVisual/Database/Migrations
 
 ## 10. Links relacionados
 
-- SPEC completa: [memory/requisitos/ComunicacaoVisual/SPEC.md](../../memory/requisitos/ComunicacaoVisual/SPEC.md)
-- Capterra ficha: [memory/requisitos/ComunicacaoVisual/CAPTERRA-FICHA.md](../../memory/requisitos/ComunicacaoVisual/CAPTERRA-FICHA.md) (se existir)
+- SPEC completa: [memory/requisitos/ComunicacaoVisual/SPEC.md](SPEC.md)
+- Capterra ficha: [memory/requisitos/ComunicacaoVisual/CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (se existir)
 - ADR 0121 modular vertical · ADR 0143 FSM canon · ADR 0093 multi-tenant

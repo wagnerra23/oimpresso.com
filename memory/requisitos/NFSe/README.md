@@ -97,8 +97,8 @@ cp /caminho/para/oimpresso.pfx storage/certs/oimpresso.pfx
 | C — UI React | US-008 · US-009 · US-010 | Pendente |
 | D — Validação + prod | US-011 · US-012 · US-013 · US-014 | Pendente |
 
-Ver SPEC completa: [`memory/requisitos/NFSe/SPEC.md`](../../memory/requisitos/NFSe/SPEC.md)
+Ver SPEC completa: [`memory/requisitos/NFSe/SPEC.md`](SPEC.md)
 
 ## Pesquisa fiscal
 
-Resultado US-001: [`memory/requisitos/NFSe/PESQUISA_TUBARAO.md`](../../memory/requisitos/NFSe/PESQUISA_TUBARAO.md)
+Resultado US-001: [`memory/requisitos/NFSe/PESQUISA_TUBARAO.md`](PESQUISA_TUBARAO.md)

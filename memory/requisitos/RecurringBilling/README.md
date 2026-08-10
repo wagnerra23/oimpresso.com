@@ -186,7 +186,7 @@ Como a sua empresa usa o RecurringBilling no dia-a-dia:
               overdue (invoice atrasada) → active (pagamento) ou canceled (cobrança falhou)
 ```
 
-States gerenciados pelo `AssinaturaService` ([ADR 0143 FSM pipeline pattern](../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) inspirado mas não FSM tabular).
+States gerenciados pelo `AssinaturaService` ([ADR 0143 FSM pipeline pattern](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) inspirado mas não FSM tabular).
 
 ## Drivers boleto suportados
 
@@ -200,7 +200,7 @@ Resolução via `BoletoCredentialResolver` (Wave 23 D2 reuse cross-module Financ
 
 ## Multi-tenant Tier 0
 
-Toda Subscription/Invoice/Plan tem `business_id` global scope ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)). Jobs `SyncBankBalancesJob`, `ProcessAsaasWebhookJob`, `ProcessInterWebhookJob`, `CancelarCobrancaAsaasJob`, `RefundCobrancaAsaasJob` recebem `businessId` no constructor.
+Toda Subscription/Invoice/Plan tem `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)). Jobs `SyncBankBalancesJob`, `ProcessAsaasWebhookJob`, `ProcessInterWebhookJob`, `CancelarCobrancaAsaasJob`, `RefundCobrancaAsaasJob` recebem `businessId` no constructor.
 
 ## OTel observability (D9 Wave 17+)
 
@@ -230,8 +230,8 @@ Cobertura: AssinaturaService (D2/D4 lifecycle), BoletoService (3 drivers), Webho
 
 ## ADRs referência
 
-- [ADR 0143](../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM pattern (inspiração)
-- [ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
+- [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM pattern (inspiração)
+- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
 - [ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests biz=1
 - US-RB-044 — NFe-de-boleto-pago (canônico irrevogável)
 - US-RB-055 — Schema aditivo v9.75 (notes/favorites/events + cached cols)

@@ -2,7 +2,7 @@
 
 > Vertical oficinas automotivas BR (CNAEs 4520-0/01 Manutenção/Reparação de Veículos, 2212-9/00 Recapagem, 4581-4/00 Locação de Caçambas).
 > **Status:** V0 em construção — sinal qualificado **Martinho Caçambas** (ADR 0137).
-> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
 
 ## Por que existe
 
@@ -73,7 +73,7 @@ Spans canon (zero-cost se `otel.enabled=false`):
 
 Atributos sempre `business_id` Tier 0 + `module=OficinaAuto`. Sem PII em attributes.
 
-## LGPD ([ADR 0094](../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4)
+## LGPD ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4)
 
 - `pii_fields_tracked`: plate, secondary_plate, chassis, renavam, contact_id
 - `pii_redactor_enabled`: true (defense in depth — `Modules\Jana\Services\Privacy\PiiRedactor`)
@@ -87,5 +87,5 @@ Atributos sempre `business_id` Tier 0 + `module=OficinaAuto`. Sem PII em attribu
 - ROADMAP: `memory/requisitos/OficinaAuto/ROADMAP.md`
 - Charter: `memory/requisitos/OficinaAuto/OficinaAuto.charter.md`
 - Mockup demo: `memory/requisitos/OficinaAuto/demo-martinho-2026-05-13/`
-- ADR mãe: [0137](../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
-- FSM: [0143](../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
+- ADR mãe: [0137](../../decisions/0137-modules-oficinaauto-qualificada.md)
+- FSM: [0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
