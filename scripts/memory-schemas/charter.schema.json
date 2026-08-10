@@ -4,7 +4,11 @@
   "title": "Page Charter frontmatter — oimpresso (ONDA 5 S1)",
   "description": "Schema canônico do bloco YAML em resources/js/Pages/<Mod>/<Tela>.charter.md. ADR 0114 charter-first Tier A. ONDA-5-DOSSIER §5 S1.",
   "type": "object",
-  "required": ["page", "component", "status"],
+  "required": [
+    "page",
+    "component",
+    "status"
+  ],
   "additionalProperties": true,
   "properties": {
     "page": {
@@ -17,6 +21,11 @@
       "pattern": "^resources/js/Pages/.+\\.tsx$",
       "description": "Path do arquivo Inertia React (relative ao repo root)"
     },
+    "related_prototype": {
+      "type": "string",
+      "pattern": "^(n/a\\b.*|prototipo-ui/.+)$",
+      "description": "Onde mora o DESENHO desta tela — o campo que o `ancora.mjs` resolve como âncora de design. DUAS formas válidas, nada mais: (a) `n/a (herda PT-0X <nome>; segue o Padrão de Tela)` quando a tela nasce do DS e não tem protótipo — sufixo livre depois é permitido; (b) caminho sob `prototipo-ui/` do arquivo real. PROSA É PROIBIDA: `design-handoff \"Fulano.html\"` ou `prototipo Cowork \"x\" aprovado [W]` descrevem um protótipo que a máquina não consegue abrir, então a tela some do `anchor-content-check` (required) sem ninguém notar — medido 2026-08-10: 3 telas nesse estado, todas com protótipo REAL existindo no repo. OPCIONAL de propósito: 52 charters não têm o campo e exigi-lo acordaria legado de uma vez (lápide §5 2026-07-12); o formato trava agora, a obrigatoriedade é decisão [W] com plano. ⚠️ O gate que lê isto pergunta se a âncora SUMIU ou é CASCA — nunca se ela é a TELA CERTA: em 2026-08-10 o Painel da Jana apontava pro cockpit do Martinho (biz=164) e passava verde."
+    },
     "page_id": {
       "type": "string",
       "pattern": "^[a-z0-9-]+$",
@@ -24,11 +33,21 @@
     },
     "owner": {
       "type": "string",
-      "enum": ["wagner", "felipe", "maiara", "luiz", "eliana"]
+      "enum": [
+        "wagner",
+        "felipe",
+        "maiara",
+        "luiz",
+        "eliana"
+      ]
     },
     "status": {
       "type": "string",
-      "enum": ["draft", "live", "deprecated"]
+      "enum": [
+        "draft",
+        "live",
+        "deprecated"
+      ]
     },
     "last_validated": {
       "type": "string",
@@ -44,8 +63,15 @@
       "type": "array",
       "items": {
         "oneOf": [
-          { "type": "integer", "minimum": 1, "maximum": 9999 },
-          { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" }
+          {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9999
+          },
+          {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[a-z0-9-]+$"
+          }
         ]
       },
       "uniqueItems": true,
@@ -75,7 +101,11 @@
     },
     "tier": {
       "type": "string",
-      "enum": ["A", "B", "C"]
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ]
     },
     "charter_version": {
       "type": "integer",
@@ -87,27 +117,37 @@
     },
     "goals": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "default": []
     },
     "non_goals": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "default": []
     },
     "ux_targets": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "default": []
     },
     "automation_hooks": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "default": []
     },
     "anti_hooks": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "default": []
     }
   }

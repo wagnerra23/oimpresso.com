@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 566,
-    "edges": 834,
+    "nodes": 570,
+    "edges": 838,
     "by_node_type": {
       "module": 40,
       "table": 73,
       "adr": 25,
-      "component": 385,
+      "component": 389,
       "api": 43
     },
     "by_edge_type": {
@@ -39,7 +39,7 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 385,
+      "hasComponent": 389,
       "dependsOn": 113,
       "delegatesTo": 107,
       "migratesTo": 1
@@ -2455,6 +2455,34 @@
       "module": "PaymentGateway",
       "name": "InstallController",
       "desc": "extends BaseModuleInstallController (Onda 1)"
+    },
+    {
+      "id": "component:PaymentGateway/Jobs/CnabRetornoProcessor",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Jobs/CnabRetornoProcessor",
+      "desc": "processa o arquivo de retorno enviado via Settings/PaymentGatewaysCnabRetornoController"
+    },
+    {
+      "id": "component:PaymentGateway/Models/CnabRetornoUpload",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Models/CnabRetornoUpload",
+      "desc": "histórico dos uploads de retorno (tabela cnab_retorno_uploads)"
+    },
+    {
+      "id": "component:PaymentGateway/Services/Cnab/CnabBoletoAdapter",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Services/Cnab/CnabBoletoAdapter",
+      "desc": "adapta boleto → layout CNAB (ponte pro contrato do módulo)"
+    },
+    {
+      "id": "component:PaymentGateway/Services/Cnab/Drivers/*",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Services/Cnab/Drivers/*",
+      "desc": "11 drivers CNAB por banco (Ailos · BB · Banrisul · Bradesco · BTG · Caixa · Cresol · Itaú · Santander · Sicoob · Sicredi)"
     },
     {
       "id": "component:PaymentGateway/Services/Drivers/AsaasDriver",
@@ -8414,6 +8442,30 @@
     {
       "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Jobs/CnabRetornoProcessor",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Models/CnabRetornoUpload",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Services/Cnab/CnabBoletoAdapter",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Services/Cnab/Drivers/*",
       "type": "hasComponent",
       "source": "contains"
     },

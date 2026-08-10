@@ -349,8 +349,15 @@ it('file ausente conta missing_file mas faz DB hard-delete e insere audit log (o
     $exitCode = Artisan::call('arquivos:retention-cleanup', ['--limit' => 500]);
 
     expect($exitCode)->toBe(0);
-    expect(Artisan::output())->toContain('File ausente (orphan): 1');
-    expect(Artisan::output())->toContain('Hard-deleted: 1');
+
+    // Artisan::output() é DESTRUTIVO: por baixo é BufferedOutput::fetch(), que retorna E
+    // ESVAZIA o buffer. Chamar 2× fazia a 2ª asserção receber string vazia — o erro saía
+    // como `Expected: <vazio> To contain: Hard-deleted: 1`, apontando pro comando quando o
+    // defeito era do teste. Capturar UMA vez e reusar. (Único teste deste arquivo com o
+    // padrão; os outros chamam 1×.)
+    $output = Artisan::output();
+    expect($output)->toContain('File ausente (orphan): 1');
+    expect($output)->toContain('Hard-deleted: 1');
 
     // DB DEVE ter sido hard-deleted mesmo com file ausente (orphan cleanup)
     $row = DB::table('arquivos')->where('id', $id)->first();
