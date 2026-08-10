@@ -50,6 +50,8 @@ import {
   type ItemLancado,
   type ProdutoCatalogo,
 } from './_components/v3/LancarItem';
+import EntregaFrete from './_components/v3/EntregaFrete';
+import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
 import {
   Aviso,
@@ -136,6 +138,9 @@ type Props = {
     papeisDoUsuario: string[];
     executantes: Executante[];
     permissoes: { editarPrecoItem: boolean };
+    /* onda 2 · CU-SELL-11 — opcional porque a cena é servida por um controller que
+       pode estar numa versão anterior; o componente trata `[]` sem quebrar. */
+    transportadoras?: Transportadora[];
   };
 };
 
@@ -558,23 +563,14 @@ export default function SellsCreateV3({ cena }: Props) {
         onToggle={() => setEntregaAberta(!entregaAberta)}
         resumo="retirada no balcão · endereço do cadastro"
       >
-        <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <Lbl>Modalidade do frete</Lbl>
-            <span className="block text-[12.5px] leading-[1.4]">Sem frete — retirada no balcão</span>
-          </div>
-          <div>
-            <Lbl>Endereço de entrega</Lbl>
-            <span className="block text-[12.5px] leading-[1.4]">
-              {cli.endereco} · {cli.cidade}/{cli.uf}
-            </span>
-          </div>
-          <MoneyInput label="Valor do frete" value={frete} onChange={setFrete} />
-        </Grid>
-        <p className="mt-3 text-[11.5px] leading-[1.45] text-muted-foreground">
-          Vazio, usa o endereço do cadastro. Transportadora, volumes, peso bruto/líquido e endereço alternativo
-          completo fazem parte do porte da gaveta — próximo passo.
-        </p>
+        <EntregaFrete
+          itens={itens}
+          clienteNome={cli.nome}
+          enderecoDoCadastro={`${cli.endereco} · ${cli.cidade}/${cli.uf}`}
+          frete={frete}
+          onFreteChange={setFrete}
+          transportadoras={cena.transportadoras ?? []}
+        />
       </Sec>
 
       {/* ─── Passo 4 · Observações e produção (gaveta) ───────────────────── */}

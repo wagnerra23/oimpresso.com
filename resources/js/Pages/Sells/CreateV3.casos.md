@@ -112,6 +112,45 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
 
+### Entrega e frete (onda 2 — `EntregaFrete` · CU-SELL-11)
+
+> ⚠️ **Leia isto antes de mexer nesta onda.** Ela é a dívida **D-6** do
+> [`SDD-tela-venda-v1.0.md`](../../../../memory/requisitos/Sells/SDD-tela-venda-v1.0.md):
+> `CU-SELL-11` está `[must]` e 🟡 **parcial** porque a tentativa anterior — **PR #2104** —
+> foi **revertida** (#2107) por regressão reportada por cliente ~30 min após o merge
+> ([incidente](../../../../memory/sessions/2026-06-02-incidente-revert-pr2-sells-endereco.md)).
+>
+> As três causas-raiz suspeitas daquele incidente **não alcançam o preview**, e a razão é
+> estrutural, não otimismo: (1) o `ContactController@getCustomers` quebrou porque passou a
+> fazer `->with(['addresses'])` num endpoint **compartilhado com o Blade** — aqui a cena é
+> estática e não há fetch; (2) o `shipping_address` não persistia — aqui **não há
+> persistência**; (3) o cliente não achava o frete na tela viva — esta **não é** a tela viva.
+> A lição registrada foi *"refazer só após smoke real"*, e um preview que não grava é
+> exatamente onde esse ensaio cabe.
+
+- **[BACKLOG]** `9 — Sem ocorrência de transporte` **apaga o grupo inteiro** de transporte: sem transportadora, sem veículo, sem volumes. É o `modFrete` da NF-e, não uma escolha de UI.
+- **[BACKLOG]** Escolher a transportadora na consulta **traz placa, ANTT, UF e modalidade** do cadastro — e os campos seguem ajustáveis nesta venda.
+- **[BACKLOG]** O peso bruto é **somado dos itens** (peso cadastrado × quantidade) e **item sem peso entra como zero** — somar zero é honesto; inventar massa, não.
+- **[BACKLOG]** Ligar "informar peso manualmente" faz o digitado **ignorar** o somado; desligar volta a somar. O texto de ajuda diz qual dos dois está valendo.
+- **[BACKLOG]** Peso **não é valor nem estoque**: mudar peso não move subtotal, imposto, frete nem total.
+- **[BACKLOG]** O valor do frete continua entrando no total pela cadeia da Page (`vFrete`) — a onda 2 **não altera** a aritmética do fechamento.
+- **[BACKLOG]** Sem "entregar em outro endereço", vale o **endereço do cadastro** do cliente, e a tela diz de onde veio.
+- **[BACKLOG]** A consulta de transportadoras filtra por **código, razão social, CNPJ ou cidade**, e a linha inteira é alcançável por **teclado** (é `<button>`, não `<div onClick>`).
+
+> **Divergência consciente do handoff, e é de arquitetura.** A fonte declara as
+> transportadoras **dentro** do `sells-entrega.jsx`, contradizendo a própria regra do bundle
+> (*"nenhuma lista de domínio nasce em arquivo de UI"* — README do `venda-v3`). Aqui a lista
+> volta pro lugar certo: `SellsV3Controller`, como **dado de cena**. Isso não é preciosismo —
+> é a distinção que separa esta onda do #2104, que quebrou justamente ao transformar uma
+> lista de UI em consulta a banco num endpoint compartilhado.
+>
+> **Fora do escopo desta onda, de propósito:** o bloco *"Fiscal do pedido"* (natureza da
+> operação, esquema de numeração, nº da fatura, imposto do pedido, informações complementares
+> da NF-e) existe no `sells-entrega.jsx`, mas é **`CU-SELL-10`**, que o SDD já marca ✅.
+> Portá-lo aqui misturaria dois CUs num PR só.
+
+---
+
 > **Duas divergências CONSCIENTES do handoff, e as duas são de arredondamento.**
 > O handoff aplica `submitSafe` (2 casas — o guard de **dinheiro**) na área da peça
 > e na quantidade faturada. Medido no harness: uma tira de `0,50 × 0,004 m` dá
