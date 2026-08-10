@@ -1,26 +1,26 @@
 {
   "_meta": {
-    "generated_at": "2026-08-07T15:36:46.409Z",
+    "generated_at": "2026-08-10T12:41:46.156Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
-      "pages": 205,
-      "casos_files": 87,
-      "ucs_declared": 445,
+      "pages": 206,
+      "casos_files": 90,
+      "ucs_declared": 472,
       "missing_charter": 0,
-      "missing_casos": 119,
+      "missing_casos": 117,
       "orphan_ucs": 12,
       "metadata_issues": 0,
-      "stale_cases": 0,
+      "stale_cases": 1,
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
-      "exec_backed_ucs": 166,
-      "exec_backed_declared": 445,
-      "exec_backed_pct": 37,
-      "teto_no_titulo": 329,
-      "teto_so_docblock": 104,
-      "teto_distintos": 445,
+      "exec_backed_ucs": 169,
+      "exec_backed_declared": 468,
+      "exec_backed_pct": 36,
+      "teto_no_titulo": 356,
+      "teto_so_docblock": 100,
+      "teto_distintos": 468,
       "teto_presos_por_modulo": [
         {
           "modulo": "Cliente",
@@ -80,21 +80,6 @@
           ]
         },
         {
-          "modulo": "Ponto",
-          "ucs": [
-            "UC-APROV-01",
-            "UC-APROV-02",
-            "UC-APROV-03",
-            "UC-APROV-04",
-            "UC-BHSHOW-01",
-            "UC-BHSHOW-02",
-            "UC-BHSHOW-03",
-            "UC-ESPIDX-01",
-            "UC-ESPIDX-02",
-            "UC-ESPIDX-03"
-          ]
-        },
-        {
           "modulo": "kb",
           "ucs": [
             "UC-KBV2-01",
@@ -138,6 +123,17 @@
             "UC-PRO-04",
             "UC-PRO-05",
             "UC-PRO-06"
+          ]
+        },
+        {
+          "modulo": "Ponto",
+          "ucs": [
+            "UC-BHSHOW-01",
+            "UC-BHSHOW-02",
+            "UC-BHSHOW-03",
+            "UC-ESPIDX-01",
+            "UC-ESPIDX-02",
+            "UC-ESPIDX-03"
           ]
         },
         {
@@ -206,6 +202,7 @@
     ]
   },
   "violations": [
+    "stale:resources/js/Pages/Sells/CreateV3.casos.md",
     "trio:missing-casos:resources/js/Pages/ads/Admin/Graph.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/Projects.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/ProjectShow.tsx",
@@ -266,7 +263,6 @@
     "trio:missing-casos:resources/js/Pages/Home/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Jana/Chat.tsx",
     "trio:missing-casos:resources/js/Pages/Jana/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Jana/Memoria.tsx",
     "trio:missing-casos:resources/js/Pages/Manufacturing/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Modules/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Nfse/Emitir.tsx",

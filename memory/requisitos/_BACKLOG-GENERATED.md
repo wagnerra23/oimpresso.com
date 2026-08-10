@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **879 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **881 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,7 +11,7 @@
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 52 | 0 | 0 | 0 | 52 |
-| [`Governance`](#governance) | 46 | 0 | 0 | 3 | 43 |
+| [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
 | [`Infra`](#infra) | 46 | 0 | 0 | 0 | 46 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
@@ -26,7 +26,7 @@
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
-| [`Forja`](#forja) | 17 | 0 | 1 | 0 | 7 |
+| [`Forja`](#forja) | 18 | 0 | 1 | 0 | 7 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
@@ -305,6 +305,7 @@
 - **US-GOV-049** — Ratificar ADR 0329 (doutrina documentação de processo) — flip proposto→aceito _(`p1` · @wagner)_
 - **US-GOV-050** — Ratificar 0314 (por-item) + 0299 e mover 0320 aceita presa em proposals/ _(`p1` · @wagner)_
 - **US-GOV-051** — Review + merge PRs #4009 (tombstones P16) e #4010 (ref-integrity P10) _(`p1` · @wagner)_
+- **US-GOV-060** — 5 testes dropam tabela CORE sem skip — risco sobre o `oimpresso-staging` persistente _(`p1`)_
 - **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
 - **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
 - **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_
@@ -830,6 +831,7 @@
 - **US-FORJA-002** — Política de expurgo (usar o `cancelled` que já existe) _(`p0` · @[W])_
 - **US-FORJA-005** — Rito de cycle — reativar ou aposentar (decisão [W], 0h de código) _(`p0` · @[W])_
 - **US-FORJA-009** — Pôr os testes da Forja numa lane de CI (41+ nunca executam) _(`p0` · @[W])_
+- **US-FORJA-010** — Mesa de Aprovações — a superfície do funil de admissão _(`p0` · @[W])_
 - **US-FORJA-003** — Estender `mcp:tasks:unassigned` (idade + delta semanal) _(`p1` · @[W])_
 - **US-FORJA-004** — Ligar a superfície do alarme de `review` parado (o detector já existe) _(`p1` · @[W])_
 - **US-FORJA-006** — Sobreposição cockpit `/forja` × telas nativas (decisão [W] + código) _(`p1` · @[W])_

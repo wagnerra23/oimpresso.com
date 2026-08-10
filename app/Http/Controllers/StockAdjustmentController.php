@@ -275,6 +275,8 @@ class StockAdjustmentController extends Controller
             'default_datetime' => now()->format('Y-m-d H:i:s'),
             'permissions' => [
                 'view_purchase_price' => $user->can('view_purchase_price'),
+                // UI-only: decide apenas o `readonly` do campo na tela — o servidor não re-checa
+                // esta permissão no save (US-GOV-059).
                 'edit_price' => $user->can('edit_purchase_price'),
             ],
         ]);

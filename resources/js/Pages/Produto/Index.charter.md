@@ -103,10 +103,10 @@ Catálogo simples de produtos em grid view com tabs de categoria, busca e cards 
 > correção traz a evidência ao lado. Intenção (Goals/Non-Goals/Anti-hooks) segue sendo do [W].
 
 - Endpoint `GET /products` — `ProductController@index` (`:64-374`) serve **três** consumidores no mesmo método: `request()->ajax()` → DataTables server-side (`:73-312`), header `X-Inertia` → `Produto/Index` (`:342-359`), nenhum dos dois → `view('product.index')` (`:361`).
-  _(era `GET /produto` — rota inexistente; a rota real é `/products`, `routes/web.php:460 (verificado@d4afe95)` `Route::resource`.)_
+  _(era `GET /produto` — rota inexistente; a rota real é `/products`, `routes/web.php:463 (verificado@9cddd08)` `Route::resource`.)_
 - Props deferidas (`Inertia::defer`): `kpis` (`:349`) · `rows` (`:350`) · `categorias` (`:351`). **A lista React não pagina** — `buildProdutoIndexRows` corta em `limit(200)` (`:447`).
   _(era "retorna lista paginada" — não retorna; ver `UC-PIDX-01`.)_
-- ~~Endpoint `GET /produto/{id}/sheet-data`~~ — **não existe.** Varredura contada em `routes/`+`app/`: `sheet-data` só existe para `/sells/{id}` (`routes/web.php:485 (verificado@d4afe95)`); **0** ocorrências para produto. O card navega pra ficha (`Index.tsx:423 (verificado@d4afe95)`), não abre drawer.
+- ~~Endpoint `GET /produto/{id}/sheet-data`~~ — **não existe.** Varredura contada em `routes/`+`app/`: `sheet-data` só existe para `/sells/{id}` (`routes/web.php:488 (verificado@9cddd08)`); **0** ocorrências para produto. O card navega pra ficha (`Index.tsx:423 (verificado@d4afe95)`), não abre drawer.
 - Multi-tenant: `where('business_id', …)` **explícito** nos 3 builders (`:382`, `:427`, `:479`).
   _(era "global scope `business_id` em `App\Product`" — **não há global scope**: `addGlobalScope` = **0** ocorrências em `app/Product.php`. A contenção é manual e repetida; ver `UC-PIDX-04`.)_
 - Permission gate: `can('product.view')` **OU** `can('product.create')` (`:66-68`, 403).

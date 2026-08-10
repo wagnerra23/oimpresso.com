@@ -94,5 +94,21 @@
     "route": "/governance/ds-rollout",
     "anchor": "Rollout do Design System",
     "baseline": "it_Governance_DsRollout_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Produto/Unificado",
+    "source": "Produto/Unificado",
+    "component": "Produto/Unificado/Index",
+    "route": "/products/unificado",
+    "anchor": "Catálogo",
+    "baseline": "it_Produto_Unificado_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Jana/Memoria",
+    "source": "Jana/Memoria",
+    "component": "Jana/Memoria",
+    "route": "/ia/memoria",
+    "anchor": "Memória da Jana",
+    "baseline": "it_Jana_Memoria_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

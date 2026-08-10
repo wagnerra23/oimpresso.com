@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-06"
+last_run: "2026-08-08"
 ---
 
 # Casos de Uso & Aceite — Contas a Receber
@@ -55,6 +55,12 @@ last_run: "2026-07-06"
   COMO as props carregam; comportamento/cálculo intocados. `last_run` bumpado (G-6) — UCs em
   débito seguem sem teste (sem `Status: ✅`, nada a revalidar via manifesto).
 
+- 2026-08-08 · [CC] revalidado (bump `last_run`): migração do primary "Novo recebimento" do shim
+  DEPRECATED `FinanceiroPrimaryButton` pro canon `<PageHeaderPrimary>` (ADR 0190). O shim emitia
+  `.os-btn primary`, cuja única família de regras no CSS servido é escopada `.sells-cowork` → nenhuma
+  casava e o botão rendia nu (medido em prod: padding 0, radius 0, texto em 2 linhas). Só o chrome do
+  header mudou — `label` e `onClick` idênticos; comportamento/cálculo intocados. UCs em débito seguem
+  sem teste (sem `Status: ✅`, nada a revalidar via manifesto).
 [ADR 0320]: ../../../../../memory/decisions/0320-programa-ondas-regua-correcao.md
 [ADR 0264]: ../../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0062]: ../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md

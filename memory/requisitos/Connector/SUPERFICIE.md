@@ -105,7 +105,8 @@ module: Connector
 
 ## Views (Blade) — 2
 
-- 2 arquivos em [Modules/Connector/Resources/views/clients/](../../../Modules/Connector/Resources/views/clients) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [index.blade.php](../../../Modules/Connector/Resources/views/clients/index.blade.php)
+- [master.blade.php](../../../Modules/Connector/Resources/views/layouts/master.blade.php)
 
 ## Testes (Pest) — 9
 

@@ -13,8 +13,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { CreditCard, AlertTriangle, CheckCircle2, Circle, Hourglass } from 'lucide-react';
 import { toast } from 'sonner';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
-import { PageHeader } from '@/Components/PageHeader';
-import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 
 interface Titulo {
   id: number;
@@ -179,9 +178,10 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
         >
           <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
             <FinanceiroSubNav active="contas-pagar" hidePrimary />
-            <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo?kind=payable')}>
-              Novo pagamento
-            </FinanceiroPrimaryButton>
+            <PageHeaderPrimary
+              label="Novo pagamento"
+              onClick={() => router.visit('/financeiro/unificado/novo?kind=payable')}
+            />
           </div>
         </PageHeader>
 

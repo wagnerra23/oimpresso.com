@@ -372,6 +372,15 @@
               @show_tooltip(__('lang_v1.view_purchase_price_tooltip'))
             </div>
           </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'edit_purchase_price', in_array('edit_purchase_price', $role_permissions),['class' => 'input-icheck']); !!}
+                {{ __('lang_v1.edit_purchase_price') }}
+              </label>
+              @show_tooltip(__('lang_v1.edit_purchase_price_tooltip'))
+            </div>
+          </div>
         </div>
         </div>
         <hr>
@@ -1389,8 +1398,16 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
-                {!! Form::checkbox('permissions[]', 'stock_report.view', in_array('stock_report.view', $role_permissions), 
+                {!! Form::checkbox('permissions[]', 'stock_report.view', in_array('stock_report.view', $role_permissions),
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.stock_report.view' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'report.stock_details', in_array('report.stock_details', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.report.stock_details' ) }}
               </label>
             </div>
           </div>

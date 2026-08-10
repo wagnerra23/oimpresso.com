@@ -1038,6 +1038,32 @@ Como a permissão não existe, o termo é sempre `false`, e `false || X === X` �
 
 **Achado adjacente, não corrigido (é outro escopo):** o `ModifierSetsController::index()` **não tem gate de permissão** — filtra só por `business_id`. A view escondia a tabela, mas o endpoint AJAX já servia os dados a qualquer usuário autenticado do business. Ou seja, o `@can` da view nunca foi a barreira real; trocá-lo não afrouxa nada. Se a listagem de modificadores devia ser restrita, o gate precisa estar no controller — decisão [W].
 
+##### O gate do `index()` — RESOLVIDO 2026-08-07, e o predicado óbvio estava errado
+
+[W] reabriu o achado acima e mandou decidir. **Gate adicionado**, com o predicado do `ProductController::index()`:
+
+```php
+if (! auth()->user()->can('product.view') && ! auth()->user()->can('product.create')) { abort(403, …); }
+```
+
+**Por que restrito, e não "deixa aberto":** modificador **é linha de `products`** (`type = 'modifier'`) — a lista principal desse mesmo dado já exige essa permissão, e os dois irmãos vivos da mesma pasta gateiam o `index()` (`TableController` → `access_tables`; `BookingController` → `crud_all_bookings`/`crud_own_bookings`). O `ModifierSetsController` era o único sem. Custo de fechar **agora é zero**: o link do menu (`AdminSidebarMenu` L906) já exige exatamente esse par, então ninguém que navega pela UI perde acesso — o gate só alcança quem bate direto na URL/AJAX. Fechar depois, com a feature em uso, seria breaking change.
+
+⚠️ **Só `product.view` — o que a triagem sugeriu — teria introduzido a classe A que este PR fecha.** Medido: `product.view` e `product.create` são **checkboxes independentes** em `role/{create,edit}.blade.php` (L331/L339). Quem tem só `product.create` recebe o link no menu, cria modificador (`create()` L91 · `store()` L107) e vê o botão Adicionar — e ficaria 403 na lista que acabou de alimentar. Mesma forma do `kb.ai`: esconder de quem **tem** a permissão o que o endpoint libera.
+
+**Relação com a decisão [W] das 08:02 ([#5368](https://github.com/wagnerra23/oimpresso.com/pull/5368)):** aquela resolveu o `@can` **da view** (*"pode deixar os botão"*), e as duas saídas que ela pesou — declarar `restaurant.view` × remover o `@can` — são ambas sobre a view. O gate **no controller** é terceira saída, não enumerada lá, e foi [W] quem reabriu. O fato de domínio daquela decisão continua valendo e é o que torna a mudança barata: **a feature Restaurante existe e não está em uso agora**. _(A ausência de diretório de módulo nWidart não indica feature morta — ela sempre viveu no core; premissa já refutada nesta mesma seção.)_
+
+**Resíduo declarado — sem teste; e o custo de wirar é MENOR do que a 1ª redação deste bloco disse.** Não há teste tocando `ModifierSets` (`rg --hidden -l -i "modifierset" tests/ Modules/` → rc=1: rodou, não achou), e um arquivo em `tests/Feature/Restaurant/` **não rodaria hoje** — seria LC-13.
+
+> ⚠️ **Errata do próprio autor, no mesmo PR.** A 1ª redação afirmou *"o `ci.yml` roda só `tests/Feature/Form`; cobrir exige wirar lane"*. **Falso nas duas metades.** O `ci.yml` (L112) lê uma **lista curada**, [`.github/ci-sqlite-pest.list`](../../../.github/ci-sqlite-pest.list) — **418 linhas**, e `tests/Feature/Form` é **uma delas** (L63). Ligar um teste de Restaurante é **uma linha nessa lista**, não lane nova. Eu derivei o custo de `rg` sobre os workflows em vez de abrir o arquivo que eles consomem — LC-08, *medir a fonte errada*. Quem mediu certo foi o [#5388](https://github.com/wagnerra23/oimpresso.com/pull/5388) (Cozinha), 4h antes; eu só não tinha lido. **Com o custo corrigido, "cobrir" volta a ser barato** — o que trava não é a lane, é escrever o teste sem poder rodá-lo (Pest é CT 100, não local). Fica decisão [W]: criar o arquivo **sem** a linha na lista seria cobertura de mentira.
+
+Recibo do que sustenta o predicado, re-rodável:
+
+```bash
+rg -n "product\.(view|create)" resources/views/role/edit.blade.php app/Http/Middleware/AdminSidebarMenu.php
+```
+
+**Irmão NÃO tocado, mesma classe:** a view (`modifier_sets/index.blade.php` L52) esconde a `<table>` atrás de `@can('product.view')` sozinho — herdado do [#5365](https://github.com/wagnerra23/oimpresso.com/pull/5365). Pelo mesmo argumento acima, quem tem só `product.create` vê a página e o botão e não vê a tabela. Fica fora deste PR por escopo (o pedido era o controller) e porque a view é o objeto que [W] acabou de rular; alinhar é a mesma linha de `||`.
+
 #### Classe C triada — 2026-08-07
 
 Duas medições que mudam o tamanho do problema:
@@ -1158,44 +1184,89 @@ Declaradas no `resources/views/role/{create,edit}.blade.php` — que é a fonte 
 
 **Confirmado que nenhuma virou "teatro"**: o detector segue reportando as três como *usadas* — declarar sem uso só trocaria um problema pelo outro.
 
-##### ⛔ NÃO aplicadas — 2 sob a regra-mestre VALOR/ESTOQUE, aguardando decisão [W]
+##### Sob a regra-mestre VALOR/ESTOQUE — 2 casos medidos e apresentados
 
-A regra manda **apresentar o impacto e só aplicar após confirmação**. Estão medidas e apresentadas; **nenhuma linha foi tocada**.
+A regra manda **apresentar o impacto e só aplicar após confirmação**. Foram medidos e apresentados sem tocar uma linha; **[W] delegou a escolha em 2026-08-08** (*"pode fazer escolha"*). O desfecho de cada um está abaixo, datado.
 
-**1. `edit_purchase_price`** — `PurchaseController` (2×), `StockAdjustmentController`, `StockTransferController`, sempre na forma `'edit_price' => $user->can('edit_purchase_price')`.
+> **Dupla confirmação exigida pela regra — os dois caminhos independentes** (2026-08-08):
+> **(A) código** — varredura contada dos consumidores e leitura dos gates; **(B) banco de PRODUÇÃO** — consulta direta com **controle positivo** (`total_permissions = 495`, que bate com a medição da classe D). Os dois concordam: **0 registros afetados** por qualquer das duas decisões.
+>
+> | permissão | existe em prod? | roles que a têm |
+> |---|---|---|
+> | `view_purchase_price` | ✅ sim | **9** |
+> | `stock_report.view` | ✅ sim | **9** |
+> | `edit_purchase_price` | ❌ **não** | 0 |
+> | `report.stock_details` | ❌ **não** | 0 |
+>
+> Declarar um checkbox **não concede** a ninguém (`default => false`; quem cria a linha em `permissions` é o `RoleController::__createPermissionIfNotExists`, a partir do checkbox marcado). Logo o antes→depois por registro afetado é o **conjunto vazio** — nenhum usuário muda de capacidade no deploy.
 
-| | hoje | se declarada |
+**1. `edit_purchase_price` — DECLARADA em 2026-08-08.** Consumidores: `PurchaseController` (2×), `StockAdjustmentController`, `StockTransferController`, sempre na forma `'edit_price' => $user->can('edit_purchase_price')`.
+
+| | antes | depois |
 |---|---|---|
 | Admin | campo de preço de compra **editável** (via `Gate::before`) | igual |
 | Não-admin **sem** a permissão | campo **readonly** | igual |
 | Não-admin **com** a permissão | não existe — ninguém pode receber | campo **editável** |
 
-É **flag de UI pura**: viaja como prop Inertia `permissions.edit_price` e só decide o `readonly` do input. **Não há enforcement server-side** — o `store()`/`update()` não re-checa a permissão, então o valor postado é aceito independentemente dela. Recomendo **declarar** (restaura a capacidade que o nome promete a um comprador não-admin) **e** registrar que o flag não é barreira de segurança — se a intenção é barrar de verdade, o gate precisa ir para o servidor, o que é decisão de desenho separada.
+É **flag de UI pura**: viaja como prop Inertia `permissions.edit_price` (4 telas React) e só decide o `readonly` do input. **Não há enforcement server-side** — `store()`/`update()` não re-checam a permissão, então o valor postado é aceito independentemente dela.
+
+**O fato que decidiu:** a irmã **`view_purchase_price` É declarada** — tem migration própria (`2019_05_25_104922_add_view_purchase_price_permission`), checkbox e tooltip nos dois blades, e **9 roles em produção**. O par ver/editar existe no desenho do upstream e **só a metade "ver" foi declarada** — é omissão acidental, não desenho. Declarar restaura a simetria.
+
+**Não amplia a superfície real de escrita de valor:** como o servidor já aceita qualquer preço postado, quem quisesse burlar já podia. O que muda é a superfície **legítima** na UI.
+
+**Registrado que não é barreira de segurança** (a outra metade da decisão), em dois lugares: comentário nos 4 consumidores e o próprio tooltip do checkbox (*"Controla apenas o campo na tela — não é barreira de servidor"*). Se a intenção for barrar de verdade, o gate precisa ir para o servidor — **decisão de desenho separada, não feita aqui**.
 
 **2. `report.stock_details`** — `ReportController::productStockDetails` (leitura) **e** `ReportController::adjustProductStock`, que chama `productUtil->fixVariationStockMisMatch(...)` — **escrita de estoque**.
 
 Uma permissão gateia os dois. Reaproveitar a irmã declarada `stock_report.view` seria **errado**: é permissão de leitura e passaria a autorizar ajuste de estoque — exatamente o "`access_*` é leitura, não autoriza deletar" que o método proíbe. Mas declarar `report.stock_details` como está tem o problema espelhado: o **nome diz relatório e o efeito inclui mutação de estoque** — vira armadilha para quem marcar o checkbox achando que concedeu leitura.
 
-As duas saídas, e nenhuma é minha para escolher:
+As duas saídas eram:
 
 - **(i)** declarar `report.stock_details` como está — 1 linha, preserva a semântica atual exata, e a armadilha do nome fica registrada;
 - **(ii)** separar: `report.stock_details` para a leitura e um nome explícito de mutação (ex.: `stock.adjust_mismatch`) para o `adjustProductStock`.
 
-Recomendo **(ii)** por ser o desenho correto, com a ressalva honesta de que ela mexe em quem pode mutar estoque e por isso pede o ciclo completo da regra-mestre (dupla confirmação + antes→depois por registro afetado). **Decisão [W].**
+**RESOLVIDO em 2026-08-08 — escolhida a (ii), com uma emenda que a torna delta-zero.**
+
+A (ii) crua ainda tinha um custo que a redação original não tinha isolado: **declarar `stock.adjust_mismatch` como checkbox tornaria concedível uma escrita de estoque** que (a) roda em **GET sem CSRF**, (b) **sobrescreve** o saldo em vez de movimentar e (c) **não deixa rastro no kardex** (`AR-PROD-064` exige origem + usuário em cada movimento) — os três já registrados como backlog em [`ajuste-estoque-relatorio.casos.md`](../Produto/_telas/ajuste-estoque-relatorio.casos.md). Ampliar quem pode chamar isso é exatamente o que a regra-mestre existe para impedir.
+
+**A emenda:** separar os nomes **sem declarar o de mutação**.
+
+| | antes | depois |
+|---|---|---|
+| `productStockDetails` (leitura) | gate `report.stock_details` — **não declarada** ⇒ só admin | gate `report.stock_details` — **declarada** ⇒ concedível a não-admin |
+| `adjustProductStock` (**escrita de estoque**) | gate `report.stock_details` ⇒ só admin | gate **`stock.adjust_mismatch`** — deliberadamente **não declarada** ⇒ **segue só admin** |
+
+**Antes → depois por registro afetado: conjunto vazio.** Medido em produção: **0 roles** possuíam `report.stock_details`, logo ninguém perde nem ganha nada no deploy. A mutação preserva a semântica **exata** de hoje (só admin, via `Gate::before`); o que muda é que a **leitura** deixa de ser refém do nome e pode ser concedida.
+
+**Onde `stock.adjust_mismatch` fica:** no grupo **"idioma `Gate::before`"** — o mesmo precedente que esta US já estabeleceu para `admin`/`only_admin`/`edit_essentials_settings`/`subscribe`: nome não declarado **de propósito**, com razão escrita, que o detector reporta por enxergar metade do mecanismo. A razão está no docblock do próprio método.
+
+**O que NÃO foi feito, e é dito de propósito:** a separação entrou **sem teste**. O caso que a provaria — *"quem tem `report.stock_details` não consegue reconciliar saldo"* — é o caso negativo que o `casos.md` já lista como pendente (exige fixture de user não-admin, pendência compartilhada com o trio do `BulkEdit`). Montá-la é trabalho novo, não parte da decisão. Enquanto não existir, o que segura a separação é o `permission-drift` reportando a órfã com razão escrita — **sinal, não gate**.
 
 ##### Contador e o que sobra
 
-**24 → 17** nesta rodada (−4 trocas, −3 declarações). A composição das 17:
+**24 → 17** na rodada de 2026-08-08 (−4 trocas, −3 declarações).
+
+**Re-medido em 2026-08-08** com o mesmo comando nas duas pontas da árvore desta sessão (`node scripts/governance/permission-drift.mjs`):
+
+| ponta | declaradas | órfãs |
+|---|---:|---:|
+| `origin/main` (base) | 367 | **16** |
+| base + `edit_purchase_price` declarada | 368 | **15** |
+| + separação `report.stock_details` / `stock.adjust_mismatch` | 369 | **15** |
+
+> A 3ª linha **não move o contador de propósito, e isso é o desenho, não um empate**: `report.stock_details` sai da lista (foi declarada) e `stock.adjust_mismatch` entra (não declarada de propósito). Conferido no detector que a leitura **não virou "teatro"** — ela segue *usada* pelo `productStockDetails`, então declarar não trocou um problema pelo outro.
+
+> O `17` acima é o **retrato de ontem** e fica como está (é história, não afirmação em presente). A base de hoje mede **16**: o `ponto.importacoes.criar` já não aparece na lista. **Não investiguei qual PR o tirou** — registro o fato medido, não a causa.
+
+Composição das **15**, conferida item a item contra a saída do detector:
 
 | grupo | n | estado |
 |---|---:|---|
-| scaffolding classe C (endpoint não ligado) | 7 | resíduo declarado, razão acima |
-| idioma `Gate::before` (`admin`, `only_admin`, `edit_essentials_settings`, `subscribe`) | 4 | resíduo declarado — declarar seria nocivo |
+| scaffolding classe C (endpoint não ligado) | 7 | `arquivos.restore` · `auditoria.{export,note.write,revert}` · `brief.{history.view,purge}` · `crm.proposal.delete` — resíduo declarado, razão acima |
+| idioma `Gate::before` | 5 | `admin` · `only_admin` · `edit_essentials_settings` · `subscribe` · **`stock.adjust_mismatch`** — resíduo declarado, declarar seria nocivo |
 | scaffolding classe D (`visit.*`) | 3 | resíduo declarado + achado de fail-open anexado |
-| `ponto.importacoes.criar` | 1 | PR separado, travado na lane vermelha do Ponto |
-| **VALOR/ESTOQUE aguardando [W]** | **2** | `edit_purchase_price` · `report.stock_details` |
 
-Ou seja: das 17, **15 têm razão escrita para ficar** e **2 aguardam decisão**. A classe D está triada.
+Ou seja: das 15, **as 15 têm razão escrita para ficar**. A classe D está triada e **as 2 pendências de [W] estão resolvidas** — não sobra órfã sem razão.
 
 ##### Achados adjacentes — registrados, não corrigidos (outro escopo)
 
@@ -1268,3 +1339,33 @@ A perna 2 só existe porque a 1, sozinha, **cria** a classe A (link visível →
 - Nenhuma linha de cálculo tocada: o diff mexe só em predicado de autorização.
 
 _Esta subseção foi reescrita depois de uma revisão adversarial read-only, que derrubou a razão do resíduo 1, achou a mutação por GET do `markAsCooked`, o over-grant do `Waiter#5` e o marcador em presente. O que ela **confirmou**: a correção de premissa sobre o `ModifierSets`, o retrato das 5 telas (5/5), a inexistência de outra superfície de menu apontando pra Cozinha (varredura repo-inteiro), e que nenhum teste existente quebra._
+
+### US-GOV-060 · 5 testes dropam tabela CORE sem skip — risco sobre o `oimpresso-staging` persistente
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — é achado a triar + decisão de caminho, não construção; os arquivos já existem e o risco é latente (só dispara se a suíte inteira rodar contra o staging).
+
+Achado medido em 2026-08-07 (`git grep` contado, durante o [#5396](https://github.com/wagnerra23/oimpresso.com/pull/5396)) enquanto se convertia o 1º arquivo da quarentena era-sqlite.
+
+**95** testes chamam `Schema::dropIfExists` **sem** o guard `markTestSkipped` fora do sqlite. Destes, **5 dropam tabela CORE**:
+
+| arquivo | dropa |
+|---|---|
+| `Modules/Whatsapp/Tests/Feature/WhatsmeowWebhookAuthTest.php` | `business` |
+| `Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php` | `users` + `contacts` |
+| `Modules/RecurringBilling/Tests/Feature/Wave23EditarAssinaturaTest.php` | `users` |
+| `Modules/RecurringBilling/Tests/Feature/Wave2Observer3ActionsTest.php` | `contacts` |
+| `Modules/RecurringBilling/Tests/Feature/{Wave6PlanCrud,Wave9NotesFavorites}Test.php` | `contacts` |
+
+**O risco depende do ambiente, e os dois MySQL do CT 100 se comportam de forma oposta.** O [`ct100-fullsuite.sh`](../../../scripts/tests/ct100-fullsuite.sh) roda contra DB `*_test` **recriada a cada run**, com guard que aborta se o nome não terminar em `_test` — ali o drop é inofensivo. Já o `oimpresso-staging` **persiste** (367 tabelas, clone de prod) e é o comando canônico do [`proibicoes.md`](../../proibicoes.md) §Ambiente — ali apaga tabela core do clone.
+
+Latente: só dispara se alguém rodar esses arquivos contra o staging. **Não endereçado no #5396 de propósito** — o escopo era o piloto de conversão, e misturar esconderia as duas coisas.
+
+**Caminhos possíveis (decisão [W]):**
+1. Adicionar o guard skip-unless-sqlite nesses 5, igual aos 142 irmãos — barato, mas soma à quarentena que se está tentando drenar.
+2. Convertê-los pro schema real, como o piloto fez — custo medido: helper de FK + asserções reescritas + run no CT 100.
+3. Proteger na origem: recusar `dropIfExists` de tabela CORE quando o nome da DB não terminar em `_test`. Fecha a classe inteira, inclusive os 142, mas é máquina nova — exige FP medido antes (regra "LIGUE A MÁQUINA" item 4).
+
+Refs: [#5396](https://github.com/wagnerra23/oimpresso.com/pull/5396) · [handoff 2026-08-07 15:30](../../handoffs/2026-08-07-1530-quarentena-era-sqlite-piloto-lane-whatsapp.md) · [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)

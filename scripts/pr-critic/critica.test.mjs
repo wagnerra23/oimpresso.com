@@ -21,6 +21,11 @@ import {
   resolverProvider,
   separarDiffPorArquivo,
 } from './critica.mjs';
+import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
+import { analisaWorkflow, ondeRoda } from '../governance/fluxo-morde.mjs';
 
 let passou = 0;
 function t(nome, fn) { fn(); passou++; console.log(`  ok - ${nome}`); }
@@ -167,6 +172,88 @@ t('comentário com voto mostra placar + conta descartes por voto/não-verificado
   assert.ok(md.includes('3 achado(s) descartado(s) pelas lentes'), 'descarte por voto no rodapé (no silent caps)');
   assert.ok(md.includes('1 achado(s) exibido(s) SEM verificação'), 'não-verificados no rodapé');
   assert.ok(md.includes(MARCADOR_DADOS), 'bloco machine-readable presente no comentário');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// [B] O CI TRANSMITE O EXIT? — bite-test COMPORTAMENTAL do step do workflow
+//
+// NÃO confere se o YAML "tem pipefail" — isso seria presence-gate (presença de
+// texto ≠ comportamento). Aqui o bloco `run:` REAL do step é EXECUTADO pelo mesmo
+// shell do Actions (`bash -e`), com um stub no lugar do critica.mjs, e o que se
+// mede é o EXIT CODE.
+//
+// Origem (medido 2026-08-08 sobre 1010 runs, janela 2026-07-10→2026-08-09): o passe
+// crítico saía exit 1 (provider devolvia `403 model_not_found`), o job saía SUCCESS
+// e ZERO comentário foi produzido em toda a janela — porque o shell default do
+// Actions é `bash -e {0}`, SEM pipefail, e num `node ... | tee` o exit que vale é
+// o do tee. O parser de workflow é importado do dono do elo [B] (fluxo-morde.mjs),
+// não reimplementado aqui.
+// ─────────────────────────────────────────────────────────────────────────────
+const WF_CRITIC = '.github/workflows/pr-critic.yml';
+
+function stepDaCritica() {
+  const jobs = analisaWorkflow(readFileSync(WF_CRITIC, 'utf8'));
+  const hits = ondeRoda(jobs, 'critica.mjs').filter((h) => !/\.test\.mjs/.test(h.step.run));
+  assert.equal(hits.length, 1, `esperado exatamente 1 step do CI rodando critica.mjs (achei ${hits.length})`);
+  return hits[0].step;
+}
+
+/** Executa o `run:` real do step, trocando SÓ a invocação do critica.mjs por um stub. */
+function rodarStepCritica({ stub, env }) {
+  const base = mkdtempSync(join(tmpdir(), 'prcritic-bite-'));
+  const sh = (p) => p.split('\\').join('/');
+  const stubPath = join(base, 'stub.mjs');
+  writeFileSync(stubPath, stub);
+  const resumo = join(base, 'summary.md');
+  writeFileSync(resumo, '');
+
+  const original = stepDaCritica().run;
+  const ALVO = 'node scripts/pr-critic/critica.mjs';
+  assert.ok(original.includes(ALVO), 'o step ainda invoca o critica.mjs pelo caminho esperado');
+  const scriptPath = join(base, 'step.sh');
+  writeFileSync(scriptPath, original.split(ALVO).join(`node "${sh(stubPath)}"`));
+
+  const limpo = { ...process.env };
+  delete limpo.ANTHROPIC_API_KEY;
+  delete limpo.OPENAI_API_KEY;
+  const r = spawnSync('bash', ['-e', sh(scriptPath)], {
+    encoding: 'utf8',
+    cwd: process.cwd(),
+    env: { ...limpo, GITHUB_STEP_SUMMARY: sh(resumo), ...env },
+  });
+  // não-medição não pode virar verde (lição cron-watchdog 2026-07-29)
+  if (r.error) throw new Error(`CEGO: não consegui executar bash (${r.error.code}) — sem isso NADA foi medido, e passar seria mentira`);
+  return { status: r.status, resumo: readFileSync(resumo, 'utf8') };
+}
+
+const STUB_QUEBRA = [
+  "console.log('[critica] grupo — finder openai:gpt-4o (24KB de prompt)');",
+  "console.error('[critica] ERRO: OpenAI API 403: model_not_found');",
+  'process.exit(1);',
+  '',
+].join('\n');
+const STUB_COMPLETA = "console.log('[critica] 2 achado(s) sobrevivente(s)');\n";
+
+t('BITE: passe crítico quebrado (exit≠0 no meio do pipe) DERRUBA o step', () => {
+  const r = rodarStepCritica({ stub: STUB_QUEBRA, env: { OPENAI_API_KEY: 'sk-stub' } });
+  assert.notEqual(r.status, 0, `o step tinha que falhar quando o critic quebra (exit=${r.status})`);
+});
+
+t('BITE: a CAUSA da falha chega ao job summary (não fica só no log cru)', () => {
+  const r = rodarStepCritica({ stub: STUB_QUEBRA, env: { OPENAI_API_KEY: 'sk-stub' } });
+  assert.ok(r.resumo.includes('403'), 'o erro do provider tem que aparecer no summary');
+  assert.ok(/FALHOU|não foi criticado/.test(r.resumo), 'o summary tem que dizer que o PR não foi criticado');
+});
+
+t('CONTROLE NEGATIVO: critic que COMPLETA segue verde (achado nunca derruba o job)', () => {
+  const r = rodarStepCritica({ stub: STUB_COMPLETA, env: { OPENAI_API_KEY: 'sk-stub' } });
+  assert.equal(r.status, 0, `achado do critic NUNCA derruba o job (exit=${r.status})`);
+});
+
+t('CONTROLE NEGATIVO: sem nenhuma chave de provider, o skip deliberado segue verde', () => {
+  const r = rodarStepCritica({ stub: STUB_QUEBRA, env: {} });
+  assert.equal(r.status, 0, 'sem chave o passe é pulado com ::notice — exit 0 é o desenho');
+  assert.ok(r.resumo.includes('sem chave de provider'), 'o skip tem que ser honesto no summary');
 });
 
 console.log(`\ncritica.test.mjs: ${passou} teste(s) OK`);

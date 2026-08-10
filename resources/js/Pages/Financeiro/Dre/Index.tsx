@@ -21,8 +21,7 @@ import { Download } from 'lucide-react';
 import { BalancoView, type BalancoData } from './_components/BalancoView';
 import { BalanceteView, type BalanceteData } from './_components/BalanceteView';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
-import { PageHeader } from '@/Components/PageHeader';
-import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 
 // ---------- Tipos das linhas (espelha DRE_LINES canon TelaDRE) ----------
 
@@ -217,9 +216,10 @@ function FinanceiroDre({
               },
             ]}
           />
-          <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo')}>
-            Novo lançamento
-          </FinanceiroPrimaryButton>
+          <PageHeaderPrimary
+            label="Novo lançamento"
+            onClick={() => router.visit('/financeiro/unificado/novo')}
+          />
         </div>
       </PageHeader>
 

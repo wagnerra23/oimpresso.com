@@ -52,9 +52,22 @@ export function isInfraPath(p) {
   );
 }
 
-/** extrai o --body inline de um gh pr create (se houver). */
+/** extrai o --body inline de um gh pr create (se houver).
+ *
+ *  BUG MEDIDO 2026-07-30 (PR #5068): a versão anterior era só /--body[\s=]+["']…["']/ e
+ *  o padrão real de invocação do agente é `--body "$(cat <<'EOF' … EOF)"`. A aspa simples
+ *  do `<<'EOF'` fechava o grupo → devolvia 8 chars ("$(cat <<") e hasEvidence dava FALSE
+ *  mesmo com o corpo cheio de evidência. Resultado: o hook ficou cego pro corpo de TODO
+ *  PR aberto por heredoc — falso negativo silencioso desde o porte .ps1→.mjs.
+ *  Ordem importa: heredoc PRIMEIRO (o caso quoted casaria errado nele).
+ */
 export function extractInlineBody(cmd) {
-  const m = /--body[\s=]+["']([\s\S]+?)["']/.exec(cmd);
+  const s = String(cmd || '');
+  // 1) heredoc: --body "$(cat <<'MARK' … MARK)"  — com ou sem aspas no marcador
+  const here = /--body[\s=]+["']?\$\(\s*cat\s*<<-?\s*['"]?([A-Za-z_][A-Za-z0-9_]*)['"]?\s*\r?\n([\s\S]*?)\r?\n\1/.exec(s);
+  if (here) return here[2];
+  // 2) quoted simples: --body "…" / --body '…'
+  const m = /--body[\s=]+["']([\s\S]+?)["']/.exec(s);
   return m ? m[1] : '';
 }
 
@@ -139,6 +152,89 @@ Antes de propor merge, providencie UM dos seguintes:
   [4] Emergencia Tier 0 Wagner: OIMPRESSO_EVIDENCE_OVERRIDE=1
 
 Origem: P15-done-comportamento-evidencia-alvo.md entrega 2 (placar 3/8 TESTADO_REAL).
+================================================================================`;
+}
+
+// ── 3ª dimensão — COMPLETUDE DO CORPO DE PR (2026-07-30) ─────────────────────────
+// ORIGEM MEDIDA: PR #5068 desta sessão. O corpo passou por ~25 gates VERDES e ficou
+// incompleto do ponto de vista HUMANO. [M] cobrou 3× exatamente o que nenhum gate cobra:
+//   (1) "se eu ligar isso hoje, o que a Larissa deixaria de conseguir fazer?"
+//   (2) "o que exatamente muda no Blade?" → diff medido, não "não deve afetar"
+//   (3) "em que empresa foi validada a informação?"
+// As duas dimensões acima só acordam se o diff toca path específico (infra web / CT100).
+// PR de doc/skill/governança passa batido — foi o caso do #5068. Esta acorda em QUALQUER
+// `gh pr create` cujo corpo seja legível.
+//
+// Regras espelham nudge-auditoria-resposta.mjs (BLAST/TENANT/BACKLOG) — aquele só inspeciona
+// resposta de chat; corpo de PR ficava sem dono. Não reimplementa: mesma âncora, outro alvo.
+// Mesma natureza ADVISORY (ADR 0224): exit 0 sempre, fail-open.
+
+export const COMPLETUDE_CHECKS = [
+  {
+    id: 'BLAST',
+    // Antídoto: diff MEDIDO (saída real do git), não alegação em prosa.
+    tem: /git diff --stat|\d+ files? changed|\d+ insertions?|zero linhas|ZERO linhas|nenhum arquivo (tocad|alterad)/i,
+    falta: 'BLAST: sem diff MEDIDO. Cole a saida de `git diff --stat origin/main...HEAD` (ou enumere o que entra e o que NAO entra). "1 arquivo, N linhas" em prosa nao e medicao.',
+  },
+  {
+    id: 'CLIENTE',
+    // Antídoto: respondeu o impacto em quem USA a tela.
+    // CALIBRAÇÃO 2026-07-30: `biz=4` foi REMOVIDO daqui. O PR #5040 passava casando com
+    // `biz=4` que aparece no corpo dele só porque ele DESCREVE a regra TENANT do hook —
+    // vocabulário, não resposta. Token que passa por citar a regra não mede nada.
+    tem: /larissa|cliente|quem usa a tela|rota livre|usu[aá]ri/i,
+    falta: 'CLIENTE: nao respondeu "se ligar hoje, o que a pessoa que usa a tela deixaria de conseguir fazer?". Se a resposta e "nada", diga E mostre por que (zero linhas em Blade/rota/tsx).',
+  },
+  {
+    id: 'VALIDACAO',
+    // Antídoto: onde/como validou — lane nomeada, contagem, exit code, saída literal.
+    // CALIBRAÇÃO 2026-07-30: `biz=\d`, `staging` e `ct100` REMOVIDOS (mesmo motivo do
+    // CLIENTE: citar o nome do ambiente ≠ colar o que ele devolveu). Ficaram só marcadores
+    // que exigem SAÍDA: lane nomeada, contagem N/N, exit=0, ✓, assertions.
+    tem: /\blane\b|gh pr checks|exit ?= ?0|exit 0|TODOS OS TESTES|\d+\/\d+|assertion|SEEDED_TENANT_ID|✓/i,
+    falta: 'VALIDACAO: nao disse ONDE validou. Nomeie a lane/gate + cole a saida literal (contagem, exit=0, ✓). "rodei e passou" nao e prova (LC-13: teste que pula sai exit 0).',
+  },
+  {
+    id: 'BACKLOG',
+    // Antídoto: citou US/task — ou disse explicitamente que nao existe.
+    tem: /US-[A-Z]{2,6}-\d{3}|tasks-list|Refs:|n[aã]o existe US|nenhuma task|sem US/i,
+    falta: 'BACKLOG: nao citou US/task nem disse que NAO existe. Consulte `tasks-list` e declare — em branco nao distingue "nao tem" de "nao olhei".',
+  },
+];
+
+/** classificador PURO: ids de completude ausentes no corpo ([] = corpo completo). */
+export function faltasCompletude(body) {
+  const t = String(body || '');
+  if (!t.trim()) return [];               // corpo ilegível (--body-file etc) → fail-open silencioso
+  return COMPLETUDE_CHECKS.filter((c) => !c.tem.test(t)).map((c) => c.id);
+}
+
+/** veredito puro da dimensão completude.
+ *  Retorna: 'silent' | 'ok' | 'override' | 'advisory'. */
+export function evaluateCompletude({ command, envOverride }) {
+  if (!command) return 'silent';
+  if (envOverride) return 'override';
+  if (!isTrigger(command)) return 'silent';
+  const body = extractInlineBody(command);
+  if (!String(body || '').trim()) return 'silent';   // não dá pra julgar o que não se lê
+  if (findOverride(body)) return 'override';
+  return faltasCompletude(body).length === 0 ? 'ok' : 'advisory';
+}
+
+export function advisoryCompletudeMessage(faltas) {
+  const linhas = COMPLETUDE_CHECKS.filter((c) => faltas.includes(c.id)).map((c) => `  - ${c.falta}`);
+  return `
+================================================================================
+[ADVISORY — completude do corpo de PR] ${faltas.length} pendencia(s): ${faltas.join(', ')}
+================================================================================
+${linhas.join('\n')}
+
+Por que isso existe: PR #5068 (30/jul/2026) passou ~25 gates VERDES e ficou incompleto
+pra quem le. [M] cobrou 3x o que nenhum gate cobra. Gate verde != PR completo.
+
+Referencia de corpo bom: PR #5040. Template canonico: .github/PULL_REQUEST_TEMPLATE.md
+(atencao: \`gh pr create --body\` SUBSTITUI o template silenciosamente).
+Escape valve: "<!-- evidence-override: razao -->" no corpo.
 ================================================================================`;
 }
 
@@ -241,6 +337,9 @@ async function main() {
   const alvoVerdict = evaluateAlvo({ command: cmd, envOverride, diffFiles, commitsText });
   if (alvoVerdict === 'declared') process.stderr.write('[block-claim-without-evidence] alvo-pendente declarado — pendência rastreável (P15), Wagner audita no checkpoint quinzenal.\n');
   if (alvoVerdict === 'advisory') process.stderr.write(advisoryAlvoMessage(diffFiles.filter(isAlvoPath)) + '\n');
+  // 3ª dimensão: completude do corpo de PR — NÃO depende de path (advisory, exit 0 sempre)
+  const compVerdict = evaluateCompletude({ command: cmd, envOverride });
+  if (compVerdict === 'advisory') process.stderr.write(advisoryCompletudeMessage(faltasCompletude(extractInlineBody(cmd))) + '\n');
   process.exit(0);
 }
 

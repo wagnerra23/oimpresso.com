@@ -102,12 +102,23 @@ on:
     branches: [main]
   push:
     branches: [main]
+    # 2026-08-07 — este bloco tem que ser IDÊNTICO ao paths-filter interno do job.
+    # No irmão financeiro-pest.yml eles já eram iguais; aqui divergiam em 2 entradas
+    # (`tests/Feature/Produto/**` e `ProductController.php`), resíduo de 2026-07-15,
+    # quando o escopo da lane cresceu pra Produto e só o filtro interno foi estendido.
+    # Efeito medido: merge que tocasse SÓ Produto não disparava a lane no main — e é
+    # exatamente onde mora 100% da dívida em quarentena. Não afetava o merge (no PR o
+    # gatilho é always-run e o filtro interno já incluía), só o sinal pós-merge.
     paths:
       - 'tests/Feature/Estoque/**'
+      - 'tests/Feature/Produto/**'
       - 'tests/Support/EstoqueFixture.php'
       - 'tests/Support/EstoqueProduto.php'
       - 'app/Utils/ProductUtil.php'
       - 'app/Utils/TransactionUtil.php'
+      - 'app/Http/Controllers/ProductController.php'
+      - 'app/Http/Controllers/ProdutoUnificadoController.php'
+      - 'app/Category.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/estoque-pest.yml'
       - '.github/estoque-pest-quarantine.list'

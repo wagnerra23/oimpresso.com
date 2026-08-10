@@ -46,7 +46,7 @@ import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { auditDocumentAuthority, CANONICAL_ENTRYPOINT } from './document-authority.mjs';
-import { factAnchorScan, factAnchorTabelas } from './fact-anchor.mjs';
+import { factAnchorScan, factAnchorTabelas, factAnchorPaths } from './fact-anchor.mjs';
 import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
@@ -357,6 +357,18 @@ function checkFactAnchor() {
   if (hits.length) {
     fails.push({ check: 'T', kind: 'fato-ancora-drift', count: hits.length, sample: hits.slice(0, 12),
       msg: `${hits.length} FATO(s) na camada de entrada CONTRADIZ(em) a fonte-de-verdade (package.json/composer.json/Modules/). Corrigir o doc — não é idade, é erro. 🔴 required (ADR 0349 — promovido a fail: determinístico major-only, zero contradição viva na promoção). Reversível: FP → volta a warns + PR de demoção.` });
+  }
+
+  // Âncora de PATH/COMANDO — o doc de instrução afirma "use isto"; se o alvo sumiu, a
+  // porta que ele ensina não existe mais. Corpus = os MESMOS CURRENT_STATE_DOCS (não
+  // inventa corpus novo) — e é por isso que `proibicoes.md` fica de fora: lápide cita
+  // o que morreu de propósito. Medido 2026-08-03: alvo 28 afirmações · 0 hits.
+  let npmScripts = new Set();
+  try { npmScripts = new Set(Object.keys(JSON.parse(read('package.json')).scripts || {})); } catch {}
+  const hitsPath = factAnchorPaths({ docs, existe: (p) => existsSync(join(ROOT, p)), npmScripts });
+  if (hitsPath.length) {
+    warns.push({ check: 'T', kind: 'fato-ancora-path', count: hitsPath.length, sample: hitsPath.slice(0, 12),
+      msg: `${hitsPath.length} path(s)/comando(s) citado(s) num doc de instrução NÃO existe(m) na árvore. O doc ensina uma porta que sumiu — corrigir o ponteiro. 🟡 sentinela.` });
   }
 
   // Âncora de TABELA — a fonte "dado" que faltava ao Check T (proibicoes §5 2026-07-17:

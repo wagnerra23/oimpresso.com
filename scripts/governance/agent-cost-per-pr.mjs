@@ -99,9 +99,15 @@ import { isAgentPR, DEFAULT_MARKER, median, changeFailure, failedPRNumbers, CFR_
 // adivinhar — é (a) datar a fonte num só lugar e (b) declarar modelo sem preço em vez
 // de inventar USD (ver custoUSD → null). A data abaixo é surfada no relatório pra a
 // idade dos PREÇOS também ficar visível, não só a idade da medição.
-export const PRECOS_ATUALIZADOS_EM = '2026-07-12';
+export const PRECOS_ATUALIZADOS_EM = '2026-08-08';
 export const PRECOS_USD_MTOK = {
   'claude-fable-5': { input: 10, output: 50 },
+  // 2026-08-08: `claude-opus-5` FALTAVA — e é o modelo que faz o trabalho. O match é por
+  // prefixo (`resolvePreco`), e `claude-opus-4-8` não cobre `claude-opus-5`, então TODA
+  // medição de dinheiro deste modelo saía `custoUSD: null`. O script estava honesto (declara
+  // null em vez de inventar USD, ver cabeçalho) — a tabela é que estava incompleta. A fila
+  // de indexação da grade de réguas nomeava este conserto desde 2026-07-18, invisível.
+  'claude-opus-5': { input: 5, output: 25 },
   'claude-opus-4-8': { input: 5, output: 25 },
   'claude-opus-4-7': { input: 5, output: 25 },
   'claude-opus-4-6': { input: 5, output: 25 },
@@ -725,6 +731,16 @@ export function renderBriefMd(r, idadeDias) {
   L.push('');
   if (r.janela.fonte_truncada) {
     L.push('> ⚠️ **FONTE TRUNCADA** — o fetch bateu no cap de PRs; o universo não cobre a janela inteira, então o resíduo abaixo está inflado por artefato (PR ausente = sessão sem dono).');
+    L.push('');
+  }
+  // 2026-08-08: este aviso existia SÓ no renderHuman (terminal). O brief — o artefato que
+  // alguém de fato lê — mostrava a data dos preços mas NÃO nomeava o modelo sem preço, então
+  // um modelo ausente da tabela deixava o dinheiro a zero em silêncio pra quem lê o relatório.
+  // Foi assim que `claude-opus-5` (o modelo que faz o trabalho) ficou 21 dias sem preço com a
+  // fila de indexação já nomeando o conserto. O sinal existia e não chegava ao leitor.
+  // Vai ACIMA da tabela pelo mesmo motivo que a FONTE TRUNCADA (alerta em rodapé não é lido).
+  if (r.join.modelos_desconhecidos && r.join.modelos_desconhecidos.length) {
+    L.push(`> ⚠️ **MODELO SEM PREÇO** — \`${r.join.modelos_desconhecidos.join('`, `')}\` não está em \`PRECOS_USD_MTOK\`, então os tokens dele contam mas o USD sai **incompleto** (nunca inventado). Os valores abaixo estão SUBESTIMADOS. Conserto: somar o modelo à tabela em \`scripts/governance/agent-cost-per-pr.mjs\`.`);
     L.push('');
   }
   L.push('| Métrica | Valor | Leitura |');

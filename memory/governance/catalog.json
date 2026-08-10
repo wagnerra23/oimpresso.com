@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 568,
-    "edges": 839,
+    "nodes": 570,
+    "edges": 841,
     "by_node_type": {
       "module": 41,
       "table": 73,
       "adr": 25,
-      "component": 386,
+      "component": 388,
       "api": 43
     },
     "by_edge_type": {
@@ -39,7 +39,7 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 386,
+      "hasComponent": 388,
       "dependsOn": 115,
       "delegatesTo": 109,
       "migratesTo": 1
@@ -1673,6 +1673,13 @@
       "desc": "registry de tools MCP; URL /ads/admin/tools mantida"
     },
     {
+      "id": "component:Forja/AprovacoesController + ForjaAprovacoesService",
+      "type": "component",
+      "module": "Forja",
+      "name": "AprovacoesController + ForjaAprovacoesService",
+      "desc": "mesa de aprovações (/forja/aprovacoes): fila de mcp_tasks em `pending_approval` (o que espera decisão de [W]) em ordem de espera, e a decisão admitir/parquear/recusar. Superfície da ADR 0368, que fechou a política e deixou o código pra PR próprio; estado+FSM+trava de recusa-sem-motivo já vieram em #5283/#5288. Escrita 100% via TaskCrudService — mesmo chokepoint da tool MCP `tasks-update`, sem 2º caminho"
+    },
+    {
       "id": "component:Forja/As páginas React seguem em resources/js/Pages/team-mcp/*",
       "type": "component",
       "module": "Forja",
@@ -1860,6 +1867,13 @@
       "module": "Forja",
       "name": "TeamController",
       "desc": "time + tokens MCP + quota + export CSV"
+    },
+    {
+      "id": "component:Forja/TrabalhoController + TrabalhoService",
+      "type": "component",
+      "module": "Forja",
+      "name": "TrabalhoController + TrabalhoService",
+      "desc": "lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006; a remoção da implementação perdedora é decisão [W] e NÃO aconteceu nesta onda — as três convivem"
     },
     {
       "id": "component:Forja/TriageController",
@@ -6458,6 +6472,12 @@
     },
     {
       "from": "module:Forja",
+      "to": "component:Forja/AprovacoesController + ForjaAprovacoesService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
       "to": "component:Forja/As páginas React seguem em resources/js/Pages/team-mcp/*",
       "type": "hasComponent",
       "source": "contains"
@@ -6615,6 +6635,12 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/TeamController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/TrabalhoController + TrabalhoService",
       "type": "hasComponent",
       "source": "contains"
     },

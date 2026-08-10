@@ -462,6 +462,9 @@ class PurchaseController extends Controller
             'permissions' => [
                 'create_supplier' => $user->can('supplier.create'),
                 'create_customer' => $user->can('customer.create'),
+                // UI-only: decide apenas o `readonly` do campo na tela. store()/update() NÃO
+                // re-checam esta permissão — o preço postado é aceito de qualquer forma.
+                // Barrar de verdade exige gate no servidor (decisão de desenho separada, US-GOV-059).
                 'edit_price' => $user->can('edit_purchase_price'),
                 'view_purchase_price' => $user->can('view_purchase_price'),
             ],
@@ -1033,6 +1036,9 @@ class PurchaseController extends Controller
                 'decimal' => $currency_details->decimal ?? 2,
             ],
             'permissions' => [
+                // UI-only: decide apenas o `readonly` do campo na tela. store()/update() NÃO
+                // re-checam esta permissão — o preço postado é aceito de qualquer forma.
+                // Barrar de verdade exige gate no servidor (decisão de desenho separada, US-GOV-059).
                 'edit_price' => $user->can('edit_purchase_price'),
                 'view_purchase_price' => $user->can('view_purchase_price'),
             ],

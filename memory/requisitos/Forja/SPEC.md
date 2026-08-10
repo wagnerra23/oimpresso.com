@@ -460,6 +460,37 @@ bloqueando o merge de quem for atender a US. O caminho é **oportunístico**:
 
 **Implementado em:** _pendente_
 
+#### US-FORJA-010 · Mesa de Aprovações — a superfície do funil de admissão
+
+> owner: [W] · priority: p0 · estimate: _pendente_ · status: proposto · type: feature
+> blocked_by: —
+
+⛔ **É SUPERFÍCIE DE MECANISMO EXISTENTE — proibido criar um 2º funil.**
+A [ADR 0368](../../decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md) (aceita
+2026-08-04) fechou a política e escreveu, textual, que *"o código vai em PR próprio, com evidência"*.
+O que já existe e **não se reimplementa**: o estado
+([`McpTask::AWAITING_HUMAN`](../../../Modules/Jana/Entities/Mcp/McpTask.php) = `pending_approval`),
+o FSM (`TRANSITIONS['pending_approval']` → `todo`/`backlog`/`cancelled`) e a trava de
+recusa-sem-motivo ([`TaskCrudService`](../../../Modules/Jana/Services/TaskRegistry/TaskCrudService.php),
+ADR 0368 §5) — tudo entregue em [#5283](https://github.com/wagnerra23/oimpresso.com/pull/5283) /
+[#5288](https://github.com/wagnerra23/oimpresso.com/pull/5288).
+
+**O gap é só a TELA.** Verificado 2026-08-08: a fila existe no banco e não tem superfície nenhuma —
+o Daily Brief chega a anunciar a contagem sem que haja onde clicar.
+
+- [ ] Tela `/forja/aprovacoes` listando `pending_approval` em ordem de espera (mais antigo primeiro)
+- [ ] Decisão pela rota, delegando 100% ao `TaskCrudService` — **sem** segundo caminho de escrita
+- [ ] Botões derivados de `McpTask::TRANSITIONS` — **proibido** hardcodar a lista de saídas
+- [ ] Vocabulário da ADR 0368 §6 (`admitida`/`recusada`), **nunca** "aprovado" (colide com o `✅ APROVADO` do INVENTARIO)
+- [ ] Sem permission nova (ADR 0368 §4 — um só aprovador não justifica cerimônia)
+- [ ] Pest citando cada UC do `Aprovacoes/Index.casos.md`, na allowlist do `forja-pest.yml`
+
+⚠️ **Fica FORA desta US** (dívida vizinha, medida no mesmo dia, PR próprio): a procedure do Daily
+Brief calcula `hitl_pending` como `status='blocked' AND owner='wagner'` — exatamente o proxy que a
+ADR 0368 §3 aposentou. Reconciliar exige migration de procedure + `ProcedureDriftSnapshotTest`.
+
+**Implementado em:** _pendente_
+
 ---
 
 ## Onda 2 — Triage + Inbox (US-TR-301..308 · SPEC-UI-FASE7)

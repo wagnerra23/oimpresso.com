@@ -37,9 +37,11 @@
  *
  * Advisory ao nascer (ADR 0275). Node puro, sem deps.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const DIR = 'memory/reguas';
 
@@ -52,10 +54,18 @@ const arr = (x) => (Array.isArray(x) ? x : Object.values(x || {}));
  * NÚCLEO PURO (testável, sem I/O). Recebe claims e retratos já parseados.
  * Devolve as violações — cada uma com o que esperava, o que achou, e por quê importa.
  */
-export function conferir(claims, retratos) {
+export function conferir(claims, retratos, residuos = []) {
   const v = [];
   const cs = arr(claims);
   const rs = arr(retratos);
+  // Resíduo DECLARADO (config.json `residuos_irrecuperaveis`): violação conhecida, com causa
+  // escrita e fonte que a resolveria ausente do repo. Ela continua sendo REPORTADA — some do
+  // relatório seria varrer pra baixo do tapete — mas não conta pro exit do `--check`, senão o
+  // gate nasce vermelho-permanente (o anti-padrão "verde que não pode ficar vermelho" ao
+  // contrário: vermelho que não pode ficar verde, §5 2026-08-04). O NOVO segue mordendo.
+  const declarado = (regra, rodada, campo) => (residuos || []).some(
+    (r) => r && r.rodada === rodada && r.campo === campo && (regra === 'V1'),
+  );
 
   // ── V1: o placar do retrato bate com as claims da mesma rodada? ────────────
   for (const r of rs) {
@@ -74,6 +84,8 @@ export function conferir(claims, retratos) {
           regra: 'V1',
           gravidade: 'alta',
           rodada: data,
+          campo,
+          declarado: declarado('V1', data, campo),
           msg: `placar diz ${campo}=${esperado}, mas claims.json tem ${achado} com integracao=${campo.toUpperCase()}`,
           porque: 'os dois artefatos do MESMO ledger discordam sobre a MESMA rodada — um dos dois está errado, e o delta-scan lê claims.json pra decidir TTL (o erro se propaga)',
         });
@@ -132,21 +144,42 @@ function main() {
     process.exit(2);
   }
 
-  const v = conferir(claims, retratos);
+  const config = carregar('config') || {};
+  const residuos = Array.isArray(config.residuos_irrecuperaveis) ? config.residuos_irrecuperaveis : [];
+
+  const v = conferir(claims, retratos, residuos);
   const nClaims = arr(claims).length, nRetratos = arr(retratos).length;
+  const novas = v.filter((x) => !x.declarado);
+  const conhecidas = v.filter((x) => x.declarado);
+  // Anti-allowlist-que-só-cresce: resíduo declarado que PAROU de ocorrer é dívida paga —
+  // deixá-lo na lista transforma a exceção em tapete. O checker cobra a remoção.
+  const orfaos = residuos.filter((r) => !v.some((x) => x.declarado && x.rodada === r.rodada && x.campo === r.campo));
 
   if (args.has('--json')) {
-    console.log(JSON.stringify({ gate: 'reguas-ledger', claims: nClaims, retratos: nRetratos, violacoes: v }, null, 2));
+    console.log(JSON.stringify({ gate: 'reguas-ledger', claims: nClaims, retratos: nRetratos, violacoes: v, novas: novas.length, declaradas: conhecidas.length, residuos_orfaos: orfaos }, null, 2));
     process.exit(0);
   }
 
-  console.log(`\n  LEDGER DE RÉGUAS — coerência interna · ${nClaims} claims · ${nRetratos} retratos · ${v.length} violação(ões)\n`);
-  for (const x of v) {
+  console.log(`\n  LEDGER DE RÉGUAS — coerência interna · ${nClaims} claims · ${nRetratos} retratos · ${novas.length} violação(ões) NOVA(s) · ${conhecidas.length} declarada(s)\n`);
+  for (const x of novas) {
     const alvo = x.claim ? `claim ${x.claim}` : `rodada ${x.rodada}`;
     console.error(`  🔴 [${x.regra}] ${alvo}: ${x.msg}`);
     console.error(`         └ ${x.porque}`);
   }
-  if (!v.length) { console.log('  ✓ claims × placar coerentes; nenhum veredito impossível.\n'); process.exit(0); }
+  for (const x of conhecidas) {
+    const r = residuos.find((y) => y.rodada === x.rodada && y.campo === x.campo) || {};
+    console.log(`  ⚪ [${x.regra}] rodada ${x.rodada}: ${x.msg}`);
+    console.log(`         └ IRRECUPERÁVEL, declarado em ${r.declarado_em} (${r.declarado_por}): ${r.motivo}`);
+    console.log(`         └ só ${r.fonte_que_resolveria} resolveria — não está no repo.`);
+  }
+  for (const r of orfaos) {
+    console.log(`  🟢 resíduo declarado ${r.rodada}/${r.campo} NÃO ocorre mais — remova de config.json \`residuos_irrecuperaveis\` (exceção paga vira tapete se ficar).`);
+  }
+
+  if (!novas.length) {
+    console.log(`\n  ✓ nenhuma violação NOVA.${conhecidas.length ? ` As ${conhecidas.length} declaradas acima são conhecidas e não bloqueiam — o que morde é drift novo.` : ' Claims × placar coerentes.'}\n`);
+    process.exit(0);
+  }
 
   console.error(`\n  O ledger é escrito por LLM (\`persistir()\` → \`agent(...)\`) porque o runtime de`);
   console.error(`  Workflow não expõe filesystem. Logo a fidelidade não pode ser garantida na escrita —`);
@@ -191,7 +224,49 @@ function selftest() {
   ok(!conferir([], [{ data: '2026-07-18', placar: { claims: 0, diferencial_sistema: 0, refutado_tb: 0 } }])
     .some((x) => x.regra === 'V1'), 'LIBERA: rodada com placar zerado não gera V1 falso');
 
-  console.log(f ? `\n✗ selftest: ${f} falha(s)` : '\n✓ selftest: morde os 2 defeitos reais e libera o coerente');
+  // ── Resíduo DECLARADO (config.json) — o conhecido não morde, o NOVO morde ──────────
+  const RES = [{ rodada: '2026-07-26', campo: 'refutado_tb', motivo: 'm', fonte_que_resolveria: 'f', declarado_em: '2026-07-26', declarado_por: '#4820' }];
+  const comResiduo = conferir(
+    [{ id: 'a', data_veredito: '2026-07-26', refutador: 'REFUTADO', integracao: 'DIFERENCIAL_SISTEMA' }],
+    [{ data: '2026-07-26', placar: { claims: 1, diferencial_sistema: 1, refutado_tb: 1 } }], RES);
+  ok(comResiduo.length === 1 && comResiduo[0].declarado === true, 'DECLARADO: a violação conhecida é REPORTADA, mas marcada (não some do relatório)');
+  ok(conferir(
+    [{ id: 'a', data_veredito: '2026-07-26', refutador: 'REFUTADO', integracao: 'DIFERENCIAL_SISTEMA' }],
+    [{ data: '2026-07-26', placar: { claims: 1, diferencial_sistema: 1, refutado_tb: 1 } }], [])
+    .every((x) => !x.declarado), 'CONTROLE NEGATIVO: sem o config, a MESMA violação não é declarada');
+  ok(conferir(
+    [{ id: 'a', data_veredito: '2026-07-18', refutador: 'REFUTADO', integracao: 'DIFERENCIAL_SISTEMA' }],
+    [{ data: '2026-07-18', placar: { claims: 1, diferencial_sistema: 1, refutado_tb: 1 } }], RES)
+    .every((x) => !x.declarado), 'CONTROLE NEGATIVO: resíduo de OUTRA rodada não cobre esta (não é allowlist coringa)');
+
+  // ── E2E do CLI — o exit code é contrato de PIPELINE, não de helper puro (§5 2026-07-30) ──
+  const sandbox = (claims, retratos, config) => {
+    const dir = mkdtempSync(join(tmpdir(), 'ledger-check-'));
+    mkdirSync(join(dir, 'memory/reguas'), { recursive: true });
+    for (const [n, o] of [['claims', claims], ['retratos', retratos], ['config', config]]) {
+      writeFileSync(join(dir, 'memory/reguas', `${n}.json`), JSON.stringify(o, null, 2));
+    }
+    const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--check'], { cwd: dir, encoding: 'utf8' });
+    return { status: r.status, out: (r.stdout || '') + (r.stderr || '') };
+  };
+  const CLAIMS_OK = [{ id: 'a', data_veredito: '2026-07-26', refutador: 'REFUTADO', integracao: 'DIFERENCIAL_SISTEMA' }];
+  const RETRATO_RUIM = [{ data: '2026-07-26', placar: { claims: 1, diferencial_sistema: 1, refutado_tb: 1 } }];
+
+  const e2eDeclarado = sandbox(CLAIMS_OK, RETRATO_RUIM, { residuos_irrecuperaveis: RES });
+  ok(e2eDeclarado.status === 0, `E2E LIBERA: só resíduo declarado => --check sai 0 (saiu ${e2eDeclarado.status})`);
+  ok(/declarada/.test(e2eDeclarado.out), 'E2E: o relatório ainda MOSTRA a declarada (transparente, não varrida)');
+
+  const e2eNova = sandbox(CLAIMS_OK, RETRATO_RUIM, { residuos_irrecuperaveis: [] });
+  ok(e2eNova.status === 1, `E2E BITE: violação NÃO declarada => --check sai 1 (saiu ${e2eNova.status})`);
+
+  const e2eOrfao = sandbox(
+    [{ id: 'a', data_veredito: '2026-07-26', refutador: 'REFUTADO', integracao: 'DIFERENCIAL_SISTEMA' },
+     { id: 'b', data_veredito: '2026-07-26', refutador: 'EMPATADO', integracao: 'REFUTADO_TB' }],
+    [{ data: '2026-07-26', placar: { claims: 2, diferencial_sistema: 1, refutado_tb: 1 } }],
+    { residuos_irrecuperaveis: RES });
+  ok(e2eOrfao.status === 0 && /NÃO ocorre mais/.test(e2eOrfao.out), 'E2E ANTI-TAPETE: resíduo que parou de ocorrer é cobrado pra remoção');
+
+  console.log(f ? `\n✗ selftest: ${f} falha(s)` : '\n✓ selftest: morde os 2 defeitos reais, libera o coerente, e o declarado não vira tapete');
   process.exit(f ? 1 : 0);
 }
 

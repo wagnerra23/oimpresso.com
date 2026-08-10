@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 568 arquivos em 19 papéis.
+**Total mapeado:** 572 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -352,7 +352,15 @@ module: Jana
 
 ## Views (Blade) — 9
 
-- 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [config.blade.php](../../../Modules/Jana/Resources/views/alertas/config.blade.php)
+- [index.blade.php](../../../Modules/Jana/Resources/views/alertas/index.blade.php)
+- [weekly-digest.blade.php](../../../Modules/Jana/Resources/views/emails/weekly-digest.blade.php)
+- [show.blade.php](../../../Modules/Jana/Resources/views/fontes/show.blade.php)
+- [create.blade.php](../../../Modules/Jana/Resources/views/metas/create.blade.php)
+- [edit.blade.php](../../../Modules/Jana/Resources/views/metas/edit.blade.php)
+- [index.blade.php](../../../Modules/Jana/Resources/views/metas/index.blade.php)
+- [show.blade.php](../../../Modules/Jana/Resources/views/metas/show.blade.php)
+- [metas.blade.php](../../../Modules/Jana/Resources/views/superadmin/metas.blade.php)
 
 ## Telas (Inertia/React) — 4
 
@@ -365,7 +373,7 @@ module: Jana
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
-- [JanaPrimaryButton.tsx](../../../resources/js/Pages/Jana/_shared/JanaPrimaryButton.tsx)
+- [JanaDrillDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
 - [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
@@ -378,13 +386,14 @@ module: Jana
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
+- [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 154
+## Testes (Pest) — 157
 
-- 154 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 157 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 91
 

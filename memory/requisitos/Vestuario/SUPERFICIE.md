@@ -67,7 +67,7 @@ module: Vestuario
 
 ## Views (Blade) — 1
 
-- 1 arquivos em [Modules/Vestuario/Resources/views/etiquetas/](../../../Modules/Vestuario/Resources/views/etiquetas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [pdf.blade.php](../../../Modules/Vestuario/Resources/views/etiquetas/pdf.blade.php)
 
 ## Telas (Inertia/React) — 1
 

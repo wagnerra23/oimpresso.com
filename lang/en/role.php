@@ -52,6 +52,7 @@ return [
     'purchase_n_sell_report.view' => 'View purchase & sell report',
     'contacts_report.view' => 'View Supplier & Customer report',
     'stock_report.view' => 'View stock report, stock adjustment report & stock expiry report',
+    'report.stock_details' => 'View a product\'s stock details per location (read-only — does not allow reconciling the balance)',
     'tax_report.view' => 'View Tax report',
     'trending_product_report.view' => 'View trending product report',
     'register_report.view' => 'View register report',
