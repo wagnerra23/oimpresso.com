@@ -73,6 +73,12 @@ Status: 🧪 (1 teste cita este UC — cobre os **três** erros possíveis, com 
 Esta lista alimenta o `<ActorSeal>`, que decide **agente vs humano** no card. É **allowlist, não heurística de nome**: quem não está nela é humano. Daí os três erros que o caso trava — deixar **humano** entrar (o selo chamaria pessoa de robô), deixar **revogado** entrar (ator desligado seguiria carimbando), e errar o **case** (o front compara `agents.includes(owner.toLowerCase())`; sem normalizar, `AgenteFixtura` nunca casa e o selo mente dizendo "humano").
 **Pronto quando:** só `ai_agent` não-revogado aparece, e sempre em minúsculas.
 
+## UC-TRAB-12 — O slug `claude` está no Mesh como AGENTE (o selo lê dado, não palpite)
+Status: 🧪 (1 teste cita este UC.)
+Medido em produção 2026-08-10: `mcp_tasks.owner` usa `claude`, mas o Identity Mesh só tinha `claude-code-wagner-laptop` (o ator-**com-token**). As 8 tasks do claude apareciam como **humano** — em `/forja/trabalho` **e** em `/team-mcp/tasks` (383 selos, **100% human**). O selo existia desde que nasceu e **nunca distinguiu nada**.
+A migration `2026_08_10_120000` registra o fato (ator sem token, zero capability, `L4`). Este caso trava a volta: removido o ator, o selo mente **em silêncio** — `ActorSeal` cai em "humano" por default e não dá erro.
+**Pronto quando:** `agentes()` contém `claude`. ⚠️ Nunca por `startsWith` — allowlist de dado, não heurística de nome.
+
 ---
 
 ## [BACKLOG] — declarado no charter, ainda sem teste que o defenda
