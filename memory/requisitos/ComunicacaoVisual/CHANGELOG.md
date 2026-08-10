@@ -215,6 +215,6 @@ Score normalizado estimado ≥ **85** (target bucket vertical_client_facing.yaml
 ## Convenções
 
 - **business_id** Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- **Pest biz=99** sempre — nunca biz=4 cliente real ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md))
+- **Pest biz=99** sempre — nunca biz=4 cliente real ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
 - **PT-BR** em commits, docs, comentários
 - **FSM canon** consumido via `app/Domain/Fsm/` ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md))
