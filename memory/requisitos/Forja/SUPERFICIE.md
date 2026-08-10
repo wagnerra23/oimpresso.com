@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Forja/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 211 arquivos em 15 papéis.
+**Total mapeado:** 212 arquivos em 15 papéis.
 
 ## Controllers — 26
 
@@ -188,9 +188,9 @@ module: Forja
 - [Index.casos.md](../../../resources/js/Pages/Forja/Trabalho/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Forja/Triage/Index.casos.md)
 
-## Testes (Pest) — 54
+## Testes (Pest) — 55
 
-- 54 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 55 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 24
 

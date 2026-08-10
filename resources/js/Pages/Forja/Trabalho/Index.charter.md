@@ -2,6 +2,7 @@
 page_id: forja-trabalho
 page: /forja/trabalho
 component: resources/js/Pages/Forja/Trabalho/Index.tsx
+related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-08-09"
