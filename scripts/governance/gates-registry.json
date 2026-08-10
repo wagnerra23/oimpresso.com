@@ -627,6 +627,14 @@
       "terminal": "advisory",
       "anchor": "Deadlock de required-readiness — proibicoes.md §Ambiente (2026-07-02: main BLOCKED com 54/54 verdes) + ADR 0271 onda 2 (item 4). O buraco medido: um context required cujo workflow tem paths:/paths-ignore: no pull_request NAO fica vermelho, ele NAO NASCE — o PR trava em \"Expected — waiting for status\" e a trava e do BRANCH, logo pega o repo inteiro. O protection-drift.mjs cobre nome/baseline/mojibake e NAO confere alcancabilidade do workflow dono do context. Bite-test no incidente REAL (2026-08-05): a branch do PR #5069 promove module-surface a required mantendo paths: no gatilho → 2 contexts filtrados, exit 1; contra main → 40 contexts, 40 always-run, 0 filtrados. FP medido ANTES de armar: 0 em 40 contexts required do corpus real (0 nao-resolvidos apos resolver name literal + job id + expansao de matrix). Selftest 12 asserts, incl. o par CRLF que pegou o lint cego (o $ do JS em /m nao casa antes de \r\n; sem esse par o selftest ficava 100% verde com o bloco on: vindo vazio).",
       "promote_by": "2026-09-05"
+    },
+    "verticais-pest.yml": {
+      "nome": "Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "sinal de custo: ligar esta MESMA classe de teste mudo no Modules/Arquivos (#5526 -> #5546 -> #5553) expos DOIS bugs de producao escondidos atras de skip — (a) \"Undefined variable $businessId\" derrubava arquivos:retention-cleanup com dado real, sem rollback, depois de ja ter apagado um lote; (b) o valor \"exported\" nunca esteve no enum de arquivos_audit_log.action, entao o INSERT falhava em MySQL strict e o try/catch engolia => arquivos:export-zip gravava ZERO trilha de auditoria, violando ADR 0123 §8 / LGPD Art. 18. Estes 3 verticais nao tinham lane MySQL alguma e carregam 3 guards Tier 0 (ADR 0093) que nunca correram. Skip-as-pass ja e required-ready (ADR 0271 onda 2).",
+      "promote_by": "2026-11-10",
+      "promote_by_razao": "Nasce advisory porque os 13 arquivos NUNCA rodaram — nas lanes irmas essa classe deu 40-60% de divida acumulada na 1a execucao. Promover antes de ter historico armaria alarme sem mordida provada. Reavaliar com >=100 runs (ADR 0275 / 0336 DR-2)."
     }
   }
 }

@@ -339,23 +339,49 @@ foi apagado, com controle negativo explícito. Correto, não é gap.
 >
 > **O que a auditoria não tinha, e muda a decisão:**
 >
-> - **O produtor nunca existiu.** `git log -S` nas 3 formas → **0 commits em 6383** (clone completo,
->   `--is-shallow-repository=false`). Não é regressão — é elo nunca construído.
-> - **A cadeia está completa menos UM elo, e ele tem dono.** `SugestoesMetasAgent` (structured output,
->   7 campos × 3 cenários) e `LaravelAiSdkDriver::sugerirMetas()` (valida shape campo-a-campo) são reais;
->   `SuggestionEngine::sugerir()` **se autodeclara STUB** no docblock, devolve o array e não grava; o
->   `ChatController` **injeta** o engine e nunca o chama (`$this->suggestions` → rc=1). Task existente:
->   **`COP-010 SuggestionEngine parsear JSON → Sugestao rows`** (backlog · p2).
-> - **`US-COPI-004` (escolher) está COMPLETA** e é a **única porta de entrada de Meta** — cria
->   Meta+MetaPeriodo+MetaFonte e dispara `ApurarMetaJob`. Remover as rotas mataria capacidade testada.
-> - **Prod 2026-08-10:** `jana_sugestoes = 0` · `jana_metas = 0` · `jana_meta_periodos = 0`, com controle
->   positivo `jana_conversas = 18` · `jana_mensagens = 121` (a Jana **é** usada; Metas não).
+> - **O produtor nunca existiu.** `git log -S "Sugestao::create" -- '*.php'` → **0 commits**.
+>   ⚠️ **O pathspec é obrigatório** — sem ele o comando devolve 2, que são *estes próprios documentos*
+>   citando a string (recibo auto-poluído). A 1ª redação desta errata dizia "0 commits em 6383" sem o
+>   pathspec, e o total de commits muda todo dia — número de universo não entra em canon.
+> - **A cadeia está completa menos UM elo, e ele NÃO tem dono.** `SugestoesMetasAgent` (structured
+>   output, 7 campos × 3 cenários) e `LaravelAiSdkDriver::sugerirMetas()` (valida shape campo-a-campo)
+>   são reais; o **docblock da CLASSE** `SuggestionEngine` (`:9-15`) diz *"STUB spec-ready"* — o método
+>   `sugerir()` não tem essa marca, apenas delega e devolve o array sem gravar; o `ChatController`
+>   **injeta** o engine e nunca o chama.
+>   ⚠️ **A 1ª redação dizia "ele tem dono", e era falso.** Existe só o **título hardcoded**
+>   `'COP-010 SuggestionEngine parsear JSON → Sugestao rows'` numa string de
+>   `BackfillTasksFromMarkdownCommand.php:237` (backfill 1× da ADR 0070), `status: backlog`,
+>   **sem campo owner**. `COP-` é prefixo do `TASKS.md` legado; o MCP usa `COPI-NNN`. Não é id
+>   consultável — e era essa frase que convertia *"nunca construído"* em *"já encaminhado"*.
+> - **`US-COPI-004` (escolher) NÃO está completa** — a 1ª redação afirmou que estava, derivando da
+>   âncora do SPEC **três parágrafos depois de provar que a âncora vizinha mentia**, e a US-004
+>   carregava o mesmo `verificado@dd3ed7c` desacreditado. Re-medida em 2026-08-10: a mecânica confere
+>   (cria Meta+MetaPeriodo+MetaFonte, dispara `ApurarMetaJob`, guarda multi-tenant via
+>   `BelongsToBusinessViaParent`), mas é **inalcançável** (o funil de entrada não existe), tem
+>   **zero teste do fluxo** (`rg "sugestoes/|->escolher\(" --iglob '*Test*.php'` → 0; controle
+>   positivo `rg -l "jana\."` → 63) e o **DoD falha em 2 de 3** (Horizon está em `dont-discover`;
+>   o redirect vai pra `metas.show`, não pro dashboard). Portanto *"remover mataria capacidade
+>   testada"* era falso nas duas metades: não é testada e não é alcançável.
+> - **Estado do dado EM 2026-08-10** (medição datada, não afirmação atemporal — re-rode antes de citar,
+>   não edite o número): via `php artisan tinker --execute="DB::table('<tabela>')->count()"` no
+>   Hostinger — `jana_sugestoes = 0` · `jana_metas = 0` · `jana_meta_periodos = 0`, com controle
+>   positivo `jana_conversas = 18` · `jana_mensagens = 121` (a Jana **era** usada; Metas não).
 > - **A âncora de `US-COPI-003` mentia** — afirmava que a *"persistência `Sugestao`"* existe. Model
 >   existir ≠ persistir. Corrigida no `SPEC.md` na mesma leva.
 >
-> **Por isso NÃO construir e NÃO dropar:** construir é o funil de entrada de um recurso com **0 adoção**
-> (§5 2026-08-09 — reabrir Metas exige sinal medido, *"nunca inferência de agente"*; [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md));
-> dropar mataria a `US-COPI-004`. Estado declarado em `Modules/Jana/SCOPE.md` → `db_tables_owned`.
+> **Por isso NÃO construir e NÃO dropar:** construir é o funil de entrada de um recurso que, na medição
+> de 2026-08-10, tinha **0 adoção** (§5 2026-08-09 — reabrir Metas exige sinal medido, *"nunca inferência
+> de agente"*; [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)); dropar exige
+> decisão [W], e a tabela é pré-condição declarada (precedente `US-COPI-147`) — **não** porque a
+> `US-COPI-004` esteja completa, que é falso (acima). Estado declarado em `Modules/Jana/SCOPE.md` →
+> `db_tables_owned`.
+>
+> ⚠️ **Ressalva que enfraquece o argumento de adoção, registrada de propósito:** `jana_metas = 0` **não
+> isola** o funil de sugestões. Existem 2 outras vias de criação (`MetasController@store`, `origem:
+> 'manual'`, rota viva; e o seeder do módulo), então o zero significa também que **o seeder nunca rodou
+> em prod**. E Metas é **Blade legado sem Page Inertia** — "0 adoção" é compatível com *"tela nunca
+> encontrada"* tanto quanto com *"recurso não desejado"*. O `route-hits.json` que corrobora estava
+> ~15 dias stale na data desta medição.
 > Precedente: `US-COPI-147` (não dropar tabela que é pré-condição de roadmap ativo).
 
 ### 🟠 3 SÓ-ESCRITA — grava e ninguém lê
