@@ -5,7 +5,7 @@ id: requisitos-superadmin-briefing
 # BRIEFING — Modules/Superadmin
 
 > **Estado:** ✅ legado UltimatePOS v6 em uso interno Wagner | **Atualizado:** 2026-08-01 (refresh — 76d de código desde 05-16; 2 commits Superadmin-próprios: health-check registrado #2647 + `// SUPERADMIN` scope audit #2707) | **Owner:** [W]
-> Canon: [SPEC.md](SPEC.md) · [SCOPE.md](../../../Modules/Superadmin/SCOPE.md) · [CHANGELOG](../../../Modules/Superadmin/CHANGELOG.md) · Rubrica v3: [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)
+> Canon: [SPEC.md](SPEC.md) · [SCOPE.md](../../../Modules/Superadmin/SCOPE.md) · [CHANGELOG](CHANGELOG.md) · Rubrica v3: [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)
 
 ## O que é
 
