@@ -12,7 +12,7 @@ related_adrs:
   - 0144-tasks-db-canonico-spec-template
   - 0170-bancos-nativos-top5-drivers-separados
 related_us: [US-PG-F3-SETTINGS, US-FIN-044]
-related_prototype: prototipo Cowork "payment-gateway-ui" F1+F1.5 aprovado [W] 2026-05-19
+related_prototype: prototipo-ui/cowork/pg-payment-gateways-page.jsx (Cowork "payment-gateway-ui" F1+F1.5, aprovado [W] 2026-05-19)
 related_decisions: COWORK_HANDOFF.paymentgateway-ui.md (F1 score 93/100)
 tier: A
 charter_version: 1
