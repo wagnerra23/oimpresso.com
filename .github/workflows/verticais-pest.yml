@@ -1,0 +1,171 @@
+name: Verticais · Pest (MySQL)
+
+# Lane MySQL pros 3 módulos verticais que NÃO tinham nenhuma:
+# ComunicacaoVisual, Repair e Vestuario.
+#
+# ── O BURACO QUE ISTO FECHA ──────────────────────────────────────────────────
+# Eixo 2 do test-lane-coverage (`--mudos`): 13 testes desses módulos têm guard
+# `if sqlite → markTestSkipped` (exigem schema MySQL UltimatePOS por causa dos
+# models com BusinessScope) e a ÚNICA lane que os alcançava era o
+# modules-pest.yml, cuja matriz roda `DB_CONNECTION=sqlite :memory:`. Pulavam
+# 100% das vezes — e skip sai exit 0, então o eixo 1 os dava por COBERTOS.
+#
+# Há Tier 0 nesse lote que nunca correu (ADR 0093):
+#   ComunicacaoVisual/MultiTenantTest · ComunicacaoVisual/Tier0GuardTest ·
+#   Vestuario/GradeAvancadaMultiTenantTest
+#
+# ── POR QUE ARQUIVO NOVO, e não um job no modules-pest.yml ───────────────────
+# A primeira tentativa FOI estender o modules-pest (que já é o dono da matriz
+# desses 3 módulos). Não funciona: `driverDaLane()` do test-lane-coverage faz UM
+# regex no arquivo inteiro e devolve o PRIMEIRO `DB_CONNECTION:` — o modelo dele
+# é UM DRIVER POR WORKFLOW. Como o modules-pest abre com sqlite, um job MySQL ali
+# seria ignorado pelo medidor: os testes rodariam e o `--mudos` continuaria
+# chamando-os de mudos. Ponto cego no instrumento é pior que o status quo, e
+# ajustar o regex pra contornar faria a medição mentir. Arquivo separado é o que
+# o medidor modela corretamente. (Medido com controle: 27 mudos com o job
+# embutido, 27 sem — o extrator não via diferença.)
+#
+# ── TETO DE GOVERNANÇA (ADR 0298) ────────────────────────────────────────────
+# Workflow novo só nasce com classe terminal + âncora de custo + promote_by, e
+# nunca "advisory em PR pra sempre". Os três estão declarados no
+# scripts/governance/gates-registry.json. A ÂNCORA é concreta e datada: ligar
+# esta MESMA classe de teste mudo no Modules/Arquivos (PR #5526 → #5546 → #5553)
+# expôs (a) um `Undefined variable` que derrubava o comando de retenção com dado
+# real, sem rollback, e (b) o valor `exported` ausente do enum de
+# arquivos_audit_log ⇒ `arquivos:export-zip` gravava ZERO trilha de auditoria,
+# violando ADR 0123 §8 / LGPD Art. 18. Os dois estavam escondidos atrás de skip.
+#
+# Reusa .github/actions/pest-mysql-setup (mesma de arquivos-pest / jana-pest /
+# nfebrasil-pest): PHP 8.4 + deps + .env MySQL + migrate + seed biz=1/biz=2.
+
+on:
+  workflow_dispatch: {}
+  # ADR 0271 onda 2 (required-readiness): pull_request SEM paths (always-run) pra
+  # ser promovível a required sem deadlock "Expected — waiting". O custo pesado é
+  # evitado por skip-as-pass interno (dorny/paths-filter). push segue
+  # path-filtered (contém custo no main).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/ComunicacaoVisual/**'
+      - 'Modules/Repair/**'
+      - 'Modules/Vestuario/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/verticais-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: verticais-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Verticais · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças dos verticais (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            vert:
+              - 'Modules/ComunicacaoVisual/**'
+              - 'Modules/Repair/**'
+              - 'Modules/Vestuario/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/verticais-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada dos verticais mudou)
+        if: steps.changes.outputs.vert == 'false'
+        run: echo "✅ Sem mudanças em ComunicacaoVisual/Repair/Vestuario — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      # Setup canônico reusável (composite action). O service container MySQL fica
+      # DECLARADO ACIMA no job — composite action não pode declarar services.
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.vert == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.vert == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Verticais · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.vert == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: — sem sobrescrever aqui, os
+        # 13 arquivos SKIPam de novo e a lane vira teatro. Exportar faz rodar no
+        # MySQL real semeado.
+        #
+        # CATRACA: allowlist VERDE, igual às lanes irmãs. Arquivo que avermelhar SAI
+        # e vira dívida declarada neste comentário — ligar vermelho permanente numa
+        # lane advisory só ensina o time a ignorá-la.
+        #
+        # ⚠️ Ao ler o resultado: conferir a CONTAGEM de passed no sumário JUnit, não
+        # só o check verde. Arquivo com passed=0 (guard secundário, ex "tabela
+        # missing") também sai verde no console — foi o caso do
+        # Fiscal/NfseCockpitControllerTest na lane do NfeBrasil.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-verticais-junit.xml \
+            Modules/ComunicacaoVisual/Tests/Feature/ContratoTelaOrcamentoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/CustomerJourneyTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/MaterialSeederTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/MigrationsTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/MultiTenantTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoControllerTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
+            Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
+            Modules/Repair/Tests/Feature/JobSheetObserverTest.php \
+            Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
+            Modules/Vestuario/Tests/Feature/GradeAvancadaMultiTenantTest.php \
+            Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
+            Modules/Vestuario/Tests/Feature/VestuarioSettingsCommandTest.php
+
+      # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
+      # "passou" de "pulou" (LC-13). Aqui só REPORTA.
+      - name: Sumario JUnit por arquivo (junit-summary.mjs)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-verticais-junit.xml --out test-results/pest-verticais-junit-summary.json || true
+
+      - name: Upload JUnit (Verticais · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.vert == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-verticais-junit
+          path: test-results/pest-verticais-junit*.*
+          retention-days: 14
+          if-no-files-found: ignore
