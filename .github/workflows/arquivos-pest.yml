@@ -130,9 +130,20 @@ jobs:
         #     por isso passava despercebido, e o teste que provaria saía verde por skip).
         #     Fix = capturar $businessId no `use`. É o teste que agora defende isso.
         #
-        #   ExportZipCommandTest (4 falhas) — saída do comando veio VAZIA onde o teste
-        #     espera o path do .zip (ExportZipCommandTest.php:163). Ainda NÃO
-        #     diagnosticado; pode ser o ambiente da lane (tmp/Storage) ou bug real.
+        #   ExportZipCommandTest — ✅ RESOLVIDO em 2026-08-10, entrou na allowlist acima.
+        #     As 4 falhas eram DUAS causas distintas:
+        #     (a) 3 delas: `Artisan::output()` chamado 2× no mesmo teste. Ele é
+        #         BufferedOutput::fetch() por baixo — retorna E ESVAZIA o buffer, então a
+        #         2ª asserção recebia string vazia. Defeito de teste; capturar 1× em
+        #         $output. O sintoma (`Expected: <vazio>`) apontava pro COMANDO — quem não
+        #         medisse investigaria o lugar errado.
+        #     (b) 1 delas: BUG DE PRODUÇÃO, mesma classe do `signed_url_consumed` que o
+        #         PR #3658 consertou. `exported` nunca esteve no enum de
+        #         arquivos_audit_log.action; o ExportZipCommand insere esse valor dentro de
+        #         try/catch(\Throwable) ⇒ em MySQL strict o INSERT falha, o catch engole, o
+        #         comando retorna 0 e a trilha LGPD Art. 18 NÃO é gravada. Fix: migration
+        #         2026_08_10_000001 amplia o enum (append-only; down() recusa estreitar com
+        #         linhas gravadas).
         #
         # Os dois seguem mudos até serem tratados — dívida agora VISÍVEL e datada, em
         # vez de verde-fantasma.
@@ -154,7 +165,8 @@ jobs:
             Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
             Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
             Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
-            Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php
+            Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php \
+            Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

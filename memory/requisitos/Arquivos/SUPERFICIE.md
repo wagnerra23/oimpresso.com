@@ -14,7 +14,7 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Arquivos/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 62 arquivos em 11 papéis.
+**Total mapeado:** 63 arquivos em 11 papéis.
 
 ## Controllers — 3
 
@@ -62,7 +62,7 @@ module: Arquivos
 
 - [web.php](../../../Modules/Arquivos/Routes/web.php)
 
-## Migrations (schema) — 7
+## Migrations (schema) — 8
 
 - [2026_05_10_000001_create_arquivos_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000001_create_arquivos_table.php)
 - [2026_05_10_000002_create_arquivos_audit_log_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000002_create_arquivos_audit_log_table.php)
@@ -71,6 +71,7 @@ module: Arquivos
 - [2026_05_10_000020_backfill_consumers_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000020_backfill_consumers_arquivos.php)
 - [2026_05_10_000030_add_metadata_recalculated_at_to_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000030_add_metadata_recalculated_at_to_arquivos.php)
 - [2026_07_02_000001_widen_arquivos_audit_log_action_enum.php](../../../Modules/Arquivos/Database/Migrations/2026_07_02_000001_widen_arquivos_audit_log_action_enum.php)
+- [2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php](../../../Modules/Arquivos/Database/Migrations/2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php)
 
 ## Config — 2
 
