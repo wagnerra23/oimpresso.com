@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-08-07"
+last_run: "2026-08-10"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -79,16 +79,39 @@ O acoplamento é medido no que o **parser** vê (tokens PHP sem comentário; esp
 `import`), não no texto cru — o docblock do V3 **cita** `SellPosController@create` para explicar
 por que a tela existe, e um `toContain` no arquivo inteiro reprovaria a própria documentação.
 
+**Endurecido em 2026-08-10 (mesmo UC, assert mais forte).** A redação anterior comparava o
+especificador **cru** contra `"Sells/_components"`, então um import **relativo**
+(`./_components/…`) passava sem conter o prefixo — mesmo apontando para dentro da pasta
+vigiada. Passava por *forma*, não por estar certo. Agora o especificador é **normalizado**
+(relativo → caminho do repo) antes de comparar, com controle positivo de que a normalização
+de fato aconteceu, e a exceção é explícita: `_components/v3/` é a casa dos primitivos nascidos
+para o preview — a cópia local que a Fronteira do charter manda criar em vez de editar o
+original. O que dá **substância** à exceção é o assert do outro lado: a tela **viva** não
+importa nada de `_components/v3/`. No dia em que importar, a pasta deixa de ser exclusiva e
+editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC existe pra impedir.
+
 ---
 
 ## Backlog de contrato
 
 - **[BACKLOG]** A rota `/sells/create-v3` responde **403** a usuário autenticado sem `sell.create` e sem `superadmin` — mesma alçada da tela de venda real, o preview não afrouxa permissão.
 - **[BACKLOG]** A rota responde **302** (login) a usuário não autenticado.
-- **[BACKLOG]** A resposta Inertia renderiza o componente `Sells/CreateV3` e traz a prop `cena` com as três chaves `cliente`, `itens`, `fechamento`.
+- **[BACKLOG]** A resposta Inertia renderiza o componente `Sells/CreateV3` e traz a prop `cena` com as chaves `cliente`, `itens`, `catalogo`, `tabelas`, `fsm` e `papeisDoUsuario`.
 - **[BACKLOG]** A tela renderiza a **faixa de preview** — quem abre por engano precisa saber em 1 segundo que não é produção.
-- **[BACKLOG]** O botão "Finalizar venda" renderiza **`disabled`**. _(A metade "não existe rota de escrita" deste item virou [UC-V302](#uc-v302--a-tela-não-grava--nenhuma-rota-de-escrita-aponta-pro-controller-do-preview); o `disabled` do botão continua sem teste.)_
-- **[BACKLOG]** Nenhum número exibido é calculado no front nem no controller: os valores de `fechamento` são strings já formatadas em pt-BR, vindas de `SellsV3Controller::dadosDeCena()`.
+- **[BACKLOG]** O finalizador exibe a **ação nomeada do estágio atual** (não um select de estágio), e fica **desabilitado** quando o papel exigido falta — mostrando **qual** papel falta.
+- **[BACKLOG]** A cena omite `sell.approve` de `papeisDoUsuario` de propósito: o preview precisa exercitar o caminho negado, não só o feliz.
+- **[BACKLOG]** Os efeitos colaterais de uma transição (`ReservarEstoque`, `ConsumirEstoque`…) são exibidos **antes** de executá-la.
+- **[BACKLOG]** `parseBR('204.99605')` devolve `204.99605` e **não** `20499605` — o guard do incidente `num_uf` (separador de milhar tem sempre 3 dígitos), e `submitSafe` arredonda a 2 casas antes de qualquer submit.
+
+> ⚠️ **Item retirado em 2026-08-10, e a razão importa mais que o item.**
+> Havia aqui um `[BACKLOG]` dizendo *"nenhum número exibido é calculado no front
+> nem no controller: os valores de `fechamento` são strings já formatadas"*. Ele
+> descrevia o scaffold ([#5356](https://github.com/wagnerra23/oimpresso.com/pull/5356)),
+> e o porte do handoff o tornou **falso**: a tela calcula, e a chave `fechamento`
+> nem existe mais na cena. Contrato que afirma o contrário do código é instrução
+> ativa pra regressão — então ele sai daqui e o conflito fica registrado **onde a
+> decisão mora**: o Non-Goal *"não calcula"* do [`CreateV3.charter.md`](CreateV3.charter.md),
+> que é declaração literal de [L] e **só [L] reescreve**.
 
 ---
 

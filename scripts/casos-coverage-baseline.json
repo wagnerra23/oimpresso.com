@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-08-10T12:41:46.156Z",
+    "generated_at": "2026-08-10T12:54:23.058Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
@@ -11,7 +11,7 @@
       "missing_casos": 117,
       "orphan_ucs": 12,
       "metadata_issues": 0,
-      "stale_cases": 1,
+      "stale_cases": 0,
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
@@ -202,7 +202,6 @@
     ]
   },
   "violations": [
-    "stale:resources/js/Pages/Sells/CreateV3.casos.md",
     "trio:missing-casos:resources/js/Pages/ads/Admin/Graph.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/Projects.tsx",
     "trio:missing-casos:resources/js/Pages/ads/Admin/ProjectShow.tsx",
