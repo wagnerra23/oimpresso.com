@@ -256,7 +256,7 @@
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
         "modules": 75,
-        "hops_worst": 13
+        "hops_worst": 14
       },
       "stream": "MEM"
     },
