@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Forja\Entities\McpActor;
 use Modules\Forja\Services\TrabalhoService;
 use Modules\Jana\Entities\Mcp\McpTask;
 
@@ -241,4 +242,49 @@ it('UC-TRAB-10 — os filtros do atalho Gantt são de fato LIDOS pelo destino', 
     // Controle negativo: `status` NÃO pode entrar na lista enquanto o Gantt não
     // o ler. Sem este assert, alguém adicionaria "porque o Gantt tem status".
     expect(TrabalhoService::FILTROS_ATALHO_GANTT)->not->toContain('status');
+});
+
+it('UC-TRAB-11 — agentes() lista SÓ ator ai_agent ativo, em lowercase', function () {
+    trabalhoExigeSchema();
+    if (! Schema::hasTable('mcp_actors')) {
+        test()->markTestSkipped('Schema ausente (mcp_actors).');
+    }
+
+    // Esta lista alimenta o <ActorSeal>, que decide AGENTE vs HUMANO no card.
+    // É allowlist, não heurística de nome: quem não está aqui é humano. Logo os
+    // três erros possíveis são (a) deixar humano entrar, (b) deixar revogado
+    // entrar, (c) errar o case e o front nunca casar o owner.
+    // `mcp_actors` exige os 5 JSON de capability + display_name (NOT NULL sem
+    // default) — coluna JSON no MySQL 8 carrega CHECK implícito `json_valid`,
+    // então omitir não dá "null", dá violação de constraint.
+    $ator = fn (string $slug, string $type, ?string $revogadoEm = null) => McpActor::create([
+        'slug'            => $slug,
+        'type'            => $type,
+        'trust_level'     => 'L0',
+        'display_name'    => $slug,
+        'modules_write'   => [],
+        'modules_read'    => [],
+        'modules_blocked' => [],
+        'skills_required' => [],
+        'actions_blocked' => [],
+        'revoked_at'      => $revogadoEm,
+    ]);
+
+    $ativo    = $ator('AgenteFixtura', 'ai_agent');
+    $revogado = $ator('agente-revogado-fixtura', 'ai_agent', now()->toDateTimeString());
+    $humano   = $ator('humano-fixtura', 'human');
+
+    $lista = app(TrabalhoService::class)->agentes();
+
+    // (c) lowercase — o front compara `agents.includes(owner.toLowerCase())`;
+    //     sem normalizar aqui, "AgenteFixtura" nunca casaria e o selo mentiria
+    //     dizendo "humano" pra um agente.
+    expect($lista)->toContain('agentefixtura');
+    expect($lista)->not->toContain('AgenteFixtura');
+
+    // (b) revogado fica fora — ator desligado não deve seguir carimbando cards.
+    expect($lista)->not->toContain($revogado->slug);
+
+    // (a) humano nunca entra — se entrasse, o selo chamaria pessoa de robô.
+    expect($lista)->not->toContain($humano->slug);
 });

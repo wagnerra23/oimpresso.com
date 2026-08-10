@@ -4,7 +4,7 @@ casos: Forja · lista única de trabalho · /forja/trabalho
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-09"
+last_run: "2026-08-10"
 ---
 
 # Casos de uso — /forja/trabalho
@@ -67,6 +67,11 @@ Status: 🧪 (1 teste cita este UC — cruza `TrabalhoService::FILTROS_ATALHO_GA
 O botão "Gantt" leva os filtros pra `/forja/roadmap-gantt`. Se o destino parar de ler um deles, o link **continua funcionando** e o parâmetro é ignorado **em silêncio** — a pessoa vê a lista "não filtrar" e não tem como saber por quê. Não dá erro, não dá 500: só mente.
 ⚠️ `status` fica fora de propósito — o Gantt o **serializa na saída** mas não o **aceita como filtro**. Confundir os dois é exatamente o que esta trava impede, por isso ela tem assert negativo.
 **Pronto quando:** todo filtro da constante aparece como `$request->get('<f>')` no controller do Gantt, e `status` **não** está na constante.
+
+## UC-TRAB-11 — `agentes()` lista SÓ ator `ai_agent` ativo, em lowercase
+Status: 🧪 (1 teste cita este UC — cobre os **três** erros possíveis, com fixture pra cada.)
+Esta lista alimenta o `<ActorSeal>`, que decide **agente vs humano** no card. É **allowlist, não heurística de nome**: quem não está nela é humano. Daí os três erros que o caso trava — deixar **humano** entrar (o selo chamaria pessoa de robô), deixar **revogado** entrar (ator desligado seguiria carimbando), e errar o **case** (o front compara `agents.includes(owner.toLowerCase())`; sem normalizar, `AgenteFixtura` nunca casa e o selo mente dizendo "humano").
+**Pronto quando:** só `ai_agent` não-revogado aparece, e sempre em minúsculas.
 
 ---
 

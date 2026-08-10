@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Forja/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 212 arquivos em 15 papéis.
+**Total mapeado:** 214 arquivos em 15 papéis.
 
 ## Controllers — 26
 
@@ -192,7 +192,7 @@ module: Forja
 
 - 55 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 24
+## Demais arquivos (manifestos, docs, assets e misc) — 26
 
 - [ProjectDecomposerAgent.php](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php)
 - [CHANGELOG.md](../../../Modules/Forja/CHANGELOG.md)
@@ -218,3 +218,5 @@ module: Forja
 - [module.json](../../../Modules/Forja/module.json)
 - [start.php](../../../Modules/Forja/start.php)
 - [useBoardShortcuts.ts](../../../resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts)
+- [Index.design-spec.json](../../../resources/js/Pages/Forja/Trabalho/Index.design-spec.json)
+- [TrabalhoQuadro.design-spec.json](../../../resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.design-spec.json)

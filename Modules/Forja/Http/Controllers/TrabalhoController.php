@@ -66,6 +66,10 @@ class TrabalhoController extends Controller
             'tasks'    => Inertia::defer(fn () => $svc->build($filtros)['tasks']),
             'kpis'     => Inertia::defer(fn () => $svc->build($filtros)['kpis']),
             'frentes'  => Inertia::defer(fn () => $svc->frentes()),
+            // Alimenta o <ActorSeal> (agente vs humano) — deferido igual ao irmão
+            // em TasksAdminController: é lista pequena, mas sai de outra tabela e
+            // não vale segurar o 1º paint por ela.
+            'agents'   => Inertia::defer(fn () => $svc->agentes()),
         ]);
     }
 
