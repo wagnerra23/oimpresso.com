@@ -8,7 +8,7 @@ parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [0253-primitivos-layout, 0013-constituicao-ui-v2-camadas, 0093-multi-tenant-isolation-tier-0]
 related_us: []
-related_prototype: prototipo-ui/cowork/Financeiro - Prova Viva (primitivos).html (design-handoff Cowork chat46, 2026-06-07)
+related_prototype: design-handoff "Financeiro - Prova Viva (primitivos).html" (Cowork chat46, 2026-06-07)
 related_decisions: memory/decisions/0253-primitivos-layout.md (critério de pronto = tela 100% primitivos)
 tier: A
 charter_version: 1
