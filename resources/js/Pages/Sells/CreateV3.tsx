@@ -131,6 +131,16 @@ type Props = {
 
 const METODOS_RAPIDOS = ['Dinheiro', 'PIX', 'Cartão de crédito', 'Boleto'];
 
+/**
+ * Sombra que separa a coluna fixa de Ações do conteúdo que rola por baixo dela.
+ *
+ * `color-mix` sobre `var(--color-foreground)` em vez de `rgba(0,0,0,…)`: cor crua
+ * não acompanha o tema (no escuro, preto sobre escuro não sombreia nada) e é
+ * exatamente o que o R1 do `ui:lint` barra. É o mesmo padrão que o `Sec` já usa
+ * para o `hue` — o DS manda cor por token ou color-mix SOBRE token, nunca hex.
+ */
+const SOMBRA_COLUNA_FIXA = '-4px 0 6px -4px color-mix(in oklch, var(--color-foreground) 18%, transparent)';
+
 /** Total da linha — mesma fórmula do handoff, com o parse pt-BR em cada fator. */
 function linhaTotal(l: Item): number {
   return submitSafe(
@@ -403,7 +413,14 @@ export default function SellsCreateV3({ cena }: Props) {
                     {h}
                   </th>
                 ))}
-                <th className="sticky right-0 whitespace-nowrap border-b border-border bg-card px-3 py-2 text-center text-[10.5px] font-semibold uppercase leading-none tracking-[.05em] text-muted-foreground shadow-[-4px_0_6px_-4px_rgba(0,0,0,.18)]">
+                {/* A sombra à esquerda não é adorno: é o que avisa que há coluna
+                    rolando POR BAIXO da coluna fixa. Vai em `style` com color-mix
+                    sobre token (nunca `rgba()` cru — R1 do ui:lint, e cor crua não
+                    acompanha o tema escuro). */}
+                <th
+                  style={{ boxShadow: SOMBRA_COLUNA_FIXA }}
+                  className="sticky right-0 whitespace-nowrap border-b border-border bg-card px-3 py-2 text-center text-[10.5px] font-semibold uppercase leading-none tracking-[.05em] text-muted-foreground"
+                >
                   Ações
                 </th>
               </tr>
@@ -438,7 +455,10 @@ export default function SellsCreateV3({ cena }: Props) {
                     <td className="border-b border-border/60 px-3 py-2 text-right font-mono font-semibold tabular-nums">
                       {fmtBR(linhaTotal(l))}
                     </td>
-                    <td className="sticky right-0 whitespace-nowrap border-b border-border/60 bg-card px-2 py-2 text-center shadow-[-4px_0_6px_-4px_rgba(0,0,0,.18)]">
+                    <td
+                      style={{ boxShadow: SOMBRA_COLUNA_FIXA }}
+                      className="sticky right-0 whitespace-nowrap border-b border-border/60 bg-card px-2 py-2 text-center"
+                    >
                       <Inline gap={1} align="center" justify="center">
                         <AindaNao o_que="Drawer de detalhe do item (7 abas · tributação · DIFAL)">Impostos</AindaNao>
                         {!travada && !cancelada && (

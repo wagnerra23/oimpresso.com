@@ -33,11 +33,24 @@ export const parseBR = (s: string | number): number => {
 export const submitSafe = (n: number): number =>
   Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-export const fmtBR = (n: number): string =>
-  Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/* ── FORMATAÇÃO: delega ao canon, não recria ───────────────────────────────
+   A primeira versão daqui reimplementava `toLocaleString('pt-BR', …)`, e o
+   `reuse:duplicates` acusou com razão: `formatDecimalPtBR` já é o formatador
+   canônico do projeto. Reusar é seguro porque formatação é SAÍDA — ela não
+   decide valor.
 
+   O que NÃO delega, e é deliberado: `parseBR` e `submitSafe` acima. Eles são a
+   ENTRADA (texto do usuário → número) e vieram literais do handoff §9 como o
+   guard do incidente `num_uf`. Trocar parser de valor é território `[V0]`
+   (REGRA MESTRE, `memory/proibicoes.md`) — exige provar equivalência por dois
+   caminhos e aprovação, não é higiene de duplicata. */
+export { formatDecimalPtBR as num } from '@/Lib/numberPtBR';
+
+import { formatDecimalPtBR } from '@/Lib/numberPtBR';
+
+/** Atalho de 2 casas — a precisão default do canon, nomeada aqui por leitura. */
+export const fmtBR = (n: number): string => formatDecimalPtBR(n, 2);
+
+/** `brl` é local: o fallback `—` para vazio é decisão desta tela, não do canon. */
 export const brl = (n: number | null | undefined): string =>
   n || n === 0 ? `R$ ${fmtBR(Number(n))}` : '—';
-
-export const num = (n: number, d = 2): string =>
-  Number(n).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
