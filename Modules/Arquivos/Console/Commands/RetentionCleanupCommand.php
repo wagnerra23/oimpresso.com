@@ -121,7 +121,13 @@ class RetentionCleanupCommand extends Command
 
         $query->orderBy('id')
             ->limit($limit)
-            ->chunk(100, function ($rows) use ($dryRun, $retentionDays, &$stats) {
+            // $businessId ENTRA no `use` (2026-08-10): a closure já o consumia na linha do
+            // Log::info abaixo, mas ele nunca tinha sido capturado — `Undefined variable
+            // $businessId`, que o Laravel promove a ErrorException. O crash só acontece
+            // quando HÁ linha a purgar: com 0 candidatas o `chunk` nem chama a closure, e
+            // o comando "passa". Ele é `null` de propósito no MODO ADMIN (sem --business),
+            // e o log registra o FILTRO usado — null = todos os businesses.
+            ->chunk(100, function ($rows) use ($dryRun, $retentionDays, $businessId, &$stats) {
                 foreach ($rows as $row) {
                     if ($dryRun) {
                         // Dry-run: apenas imprime o que faria

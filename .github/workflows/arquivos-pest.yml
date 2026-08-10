@@ -121,13 +121,14 @@ jobs:
         # VERMELHOS e por isso NÃO entram — a catraca é "allowlist VERDE", e ligar um
         # vermelho permanente numa lane advisory só ensina o time a ignorá-la:
         #
-        #   RetentionCleanupCommandTest (5 falhas) — NÃO é defeito do teste: é BUG DE
-        #     PRODUÇÃO. RetentionCleanupCommand.php:124 abre a closure com
-        #     `use ($dryRun, $retentionDays, &$stats)` e usa `$businessId` na :194, que
-        #     nunca foi capturado ⇒ `Undefined variable $businessId`. O comando crasha
-        #     sempre que HÁ linha a limpar (com 0 linhas o chunk nem chama a closure —
-        #     por isso passava despercebido). Não está agendado no Kernel, então o raio
-        #     é invocação manual. Fix é 1 linha, mas é outra intent: PR próprio.
+        #   RetentionCleanupCommandTest — ✅ RESOLVIDO em 2026-08-10, entrou na allowlist
+        #     acima. As 5 falhas NÃO eram defeito do teste: eram BUG DE PRODUÇÃO.
+        #     RetentionCleanupCommand.php:124 abria a closure com
+        #     `use ($dryRun, $retentionDays, &$stats)` e usava `$businessId` na :194, que
+        #     nunca foi capturado ⇒ `Undefined variable $businessId`. O comando crashava
+        #     sempre que HAVIA linha a limpar (com 0 linhas o chunk nem chama a closure —
+        #     por isso passava despercebido, e o teste que provaria saía verde por skip).
+        #     Fix = capturar $businessId no `use`. É o teste que agora defende isso.
         #
         #   ExportZipCommandTest (4 falhas) — saída do comando veio VAZIA onde o teste
         #     espera o path do .zip (ExportZipCommandTest.php:163). Ainda NÃO
@@ -152,7 +153,8 @@ jobs:
             Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
             Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
             Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
-            Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php
+            Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
+            Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
