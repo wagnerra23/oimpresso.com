@@ -1,0 +1,41 @@
+{
+  "screen": "Forja/Trabalho/_components/TrabalhoQuadro",
+  "path": "resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx",
+  "measured_against_sha": "b414fd3c163",
+  "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
+  "shell": [],
+  "components": {
+    "ui": [
+      "Card",
+      "CardContent"
+    ],
+    "shared": [
+      "ActorSeal",
+      "COLUMN_BORDER",
+      "COLUMN_LABEL_PT",
+      "PriorityDot",
+      "type Status"
+    ],
+    "layout": [
+      "Grid",
+      "Inline",
+      "Stack"
+    ],
+    "local": []
+  },
+  "hooks": [],
+  "violations": {
+    "raw_oklch": 0,
+    "raw_hex": 0,
+    "hardcoded_px": 2,
+    "inline_style": 0,
+    "native_select": 0,
+    "native_input": 0
+  },
+  "totals": {
+    "canon_components": 10,
+    "local_components": 0,
+    "uses_layout_primitives": true,
+    "structural_violations": 2
+  }
+}
