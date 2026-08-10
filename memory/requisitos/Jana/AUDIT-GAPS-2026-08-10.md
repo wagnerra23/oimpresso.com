@@ -151,7 +151,7 @@ lado do provedor.
 | 16 | `Modules/Jana/Services/Skills/SkillTestRunnerService.php` | 184 | 🔶 MORTO — 0 refs de código |
 | 17 | `Modules/Jana/Services/Memoria/BiTemporalResolver.php` | 58 | 🔶 MORTO em prod — 3 refs, todas comentário em `HistoricoMemoriaService`, que se autodenuncia: *"aqui ele vira SQL"*. **A lógica migrou pra SQL, o objeto ficou** — e tem Unit test rodando em lane própria |
 | 18 | `Modules/Jana/Http/Requests/StoreMensagemRequest.php` | 58 | 🔶 MORTO — `ChatController` type-hinta `SendChatMessageRequest`, não este |
-| 19 | `Modules/Jana/Http/Requests/StoreSugestaoRequest.php` | 55 | 🔶 MORTO — `escolher`/`rejeitar` usam `Request` cru |
+| 19 | ~~`Modules/Jana/Http/Requests/StoreSugestaoRequest.php`~~ | 55 | ✅ **RESOLVIDO 2026-08-10 — deletado.** Era MORTO (`escolher`/`rejeitar` usam `Request` cru); varredura contada confirmou **zero consumidores de código** (controle positivo: `SendChatMessageRequest` → aparece no `ChatController`). Nasceu na `Wave 18 MEGA` perseguindo nota — ver errata do gap #44 |
 | 20 | `Modules/Jana/Entities/Mcp/McpSkillApproval.php` | 47 | 🔶 MORTO — tabela `mcp_skill_approvals` sem leitor nem escritor de produção |
 | 21 | `Modules/Jana/Entities/Mcp/McpSkillTestRun.php` | 51 | 🔶 MORTO transitivo — 4 refs, todas dentro do `SkillTestRunnerService` morto |
 
@@ -316,11 +316,47 @@ foi apagado, com controle negativo explícito. Correto, não é gap.
 
 | # | Tabela | Problema |
 |---|---|---|
-| 44 | `jana_sugestoes` | ✅ **A única com fachada de USUÁRIO.** O `ChatController` **lista** (`:120`), **aceita** (`:590`) e **rejeita** (`:630`) sugestões — e `Sugestao::create` / `new Sugestao` / `sugestoes()->create()` dá **rc=1 no repo inteiro** (controle positivo: `Conversa::create` → 4 arquivos). O `StoreSugestaoRequest` (gap #19) é o FormRequest morto desse fluxo |
+| 44 | `jana_sugestoes` | ⚠️ **ERRATA 2026-08-10 (mesmo dia) — ver nota abaixo da tabela.** ~~A única com fachada de USUÁRIO.~~ O `ChatController` **lista** (`:120`), **aceita** (`:590`) e **rejeita** (`:630`) sugestões — e `Sugestao::create` / `new Sugestao` / `sugestoes()->create()` dá **rc=1 no repo inteiro** (controle positivo: `Conversa::create` → 4 arquivos). O `StoreSugestaoRequest` (gap #19) é o FormRequest morto desse fluxo |
 | 45 | `mcp_usage_diaria` | ✅ **O escritor tem NOME e nunca foi construído.** `mcp:agregacao-diaria` aparece em **4 lugares, todos citando, nenhum implementando** — e o `SystemAuditCommand:281` admite por escrito: *"referenciado nas migrations mas não implementado"*. Consequência: o check `cost_dashboard_aggregation` é **estruturalmente incapaz de ficar verde**, e o `Governance/SCOPE.md` afirma um "cron 23:55" que não existe (o das 23:55 no `Kernel` é outro comando, gravando outra tabela) |
 | 46 | `mcp_user_scopes` | 🔶 Lida por `Usuario360Controller:180` e `UserLockoutService:207`; zero escrita, nenhum seeder a preenche |
 | 47 | `mcp_epics` | 🔶 Lida por **5 controllers da Forja** + validação `exists:mcp_epics,id`. `McpEpic::create` só em teste — ⚠️ **reivindicada pela Forja** |
 | 48 | `mcp_components` | 🔶 Lida por `TaskParserService:652`. **Zero escritas em lugar nenhum, nem em teste** |
+
+> ### ⚠️ ERRATA do gap #44 — 2026-08-10, mesmo dia (decisão [W]: **manter declarado**)
+>
+> A parte medida do #44 **procede**: zero escritores, confirmado com controle positivo. Duas
+> inferências em volta dela **não procedem**, e a segunda foi a que criou urgência falsa:
+>
+> 1. **NÃO existe fachada de usuário.** [`Chat.tsx:352`](../../../resources/js/Pages/Jana/Chat.tsx) é
+>    `belowThread={ sugestoesPendentes.length > 0 ? (...) : null }` — os botões vivem **dentro** do
+>    `PropostaCard`, instanciado só pelo `.map` sobre a lista. Lista vazia → `null` → **zero pixels**.
+>    Ninguém vê botão sobre lista vazia; a seção inteira não renderiza. A tela é honesta por construção.
+> 2. **O `StoreSugestaoRequest` NÃO é evidência de que "o caminho chegou a ser desenhado".** Nasceu em
+>    `f46a6864082 feat(governance-v3): Wave 18 MEGA — 21 agents Opus rumo meta 97.75`, e o docblock se
+>    identificava: *"D8.c (Wave 18 SATURATION)"*. Artefato de wave perseguindo **nota**, validando um
+>    fluxo manual (*"cliente B2B importa sugestões pré-cadastradas"*) que ninguém pediu e nenhuma rota
+>    expunha. **Deletado** nesta mesma leva — ver gap #19.
+>
+> **O que a auditoria não tinha, e muda a decisão:**
+>
+> - **O produtor nunca existiu.** `git log -S` nas 3 formas → **0 commits em 6383** (clone completo,
+>   `--is-shallow-repository=false`). Não é regressão — é elo nunca construído.
+> - **A cadeia está completa menos UM elo, e ele tem dono.** `SugestoesMetasAgent` (structured output,
+>   7 campos × 3 cenários) e `LaravelAiSdkDriver::sugerirMetas()` (valida shape campo-a-campo) são reais;
+>   `SuggestionEngine::sugerir()` **se autodeclara STUB** no docblock, devolve o array e não grava; o
+>   `ChatController` **injeta** o engine e nunca o chama (`$this->suggestions` → rc=1). Task existente:
+>   **`COP-010 SuggestionEngine parsear JSON → Sugestao rows`** (backlog · p2).
+> - **`US-COPI-004` (escolher) está COMPLETA** e é a **única porta de entrada de Meta** — cria
+>   Meta+MetaPeriodo+MetaFonte e dispara `ApurarMetaJob`. Remover as rotas mataria capacidade testada.
+> - **Prod 2026-08-10:** `jana_sugestoes = 0` · `jana_metas = 0` · `jana_meta_periodos = 0`, com controle
+>   positivo `jana_conversas = 18` · `jana_mensagens = 121` (a Jana **é** usada; Metas não).
+> - **A âncora de `US-COPI-003` mentia** — afirmava que a *"persistência `Sugestao`"* existe. Model
+>   existir ≠ persistir. Corrigida no `SPEC.md` na mesma leva.
+>
+> **Por isso NÃO construir e NÃO dropar:** construir é o funil de entrada de um recurso com **0 adoção**
+> (§5 2026-08-09 — reabrir Metas exige sinal medido, *"nunca inferência de agente"*; [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md));
+> dropar mataria a `US-COPI-004`. Estado declarado em `Modules/Jana/SCOPE.md` → `db_tables_owned`.
+> Precedente: `US-COPI-147` (não dropar tabela que é pré-condição de roadmap ativo).
 
 ### 🟠 3 SÓ-ESCRITA — grava e ninguém lê
 

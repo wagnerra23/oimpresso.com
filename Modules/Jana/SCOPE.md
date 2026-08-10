@@ -71,6 +71,18 @@ db_tables_owned:
   - jana_meta_apuracoes
   - jana_conversas
   - jana_mensagens
+  # jana_sugestoes — SCHEMA-À-FRENTE-DO-CÓDIGO (decisão [W] 2026-08-10: "manter declarado").
+  #   É LIDA (ChatController lista :120 · aceita :590 · rejeita :630 + RetentionPurgeService:85)
+  #   e NUNCA escrita. Medido 2026-08-10: `Sugestao::create`/`new Sugestao`/`sugestoes()->create()`
+  #   → rc=1 no repo (controle positivo `Conversa::create` → 17 arquivos); `git log -S` nas 3
+  #   formas → 0 commits em 6383 (o produtor NUNCA existiu — não é regressão); prod `= 0` linhas.
+  #   NÃO é órfã sem dono: o elo faltante é a task `COP-010 SuggestionEngine parsear JSON →
+  #   Sugestao rows` (backlog · p2). `SuggestionEngine::sugerir()` se autodeclara STUB no
+  #   docblock, devolve o array e não grava; o ChatController injeta o engine e nunca o chama.
+  #   ⛔ NÃO dropar: `US-COPI-004` (escolher) está COMPLETA e é a ÚNICA porta de entrada de Meta
+  #      — cria Meta+MetaPeriodo+MetaFonte e dispara ApurarMetaJob. Precedente: US-COPI-147.
+  #   ⛔ NÃO construir o produtor sem sinal [W]: prod tem `jana_metas = 0` (§5 2026-08-09 —
+  #      reabrir Metas exige sinal medido, "nunca inferência de agente"; ADR 0105).
   - jana_sugestoes
   - jana_cache_semantico
   - jana_business_profile
