@@ -24,7 +24,22 @@
 //    case kb/×KB" — proibicoes.md §5 2026-07-17).
 //
 // ESCOPO:
-//  - VIVO (enforça): memory/** exceto dirs de história + *.md da raiz do repo.
+//  - VIVO (enforça): memory/** exceto dirs de história + *.md da raiz do repo
+//    + resources/js/Pages/**/*.charter.md (charters de tela).
+//  - CHARTERS entraram em 2026-08-10. Motivo: charter é ARTEFATO DE CONTRATO e estava
+//    fora de qualquer checker. FP MEDIDO ANTES de ligar (disciplina §5 — 5 lápides de
+//    guard sintático que reprovava o legítimo): 209 charters, +501 links varridos,
+//    +2 mortos, e os 2 são dívida REAL (Atendimento/JanaTemplates: path relativo mal
+//    formado que renderiza 404 no GitHub; Produto/SellingPrices: irmão declarado
+//    "parkeado na branch" pelo próprio autor). Zero falso-positivo. Os 2 entraram no
+//    baseline como grandfathered — forward-only, a catraca só-desce cobra o conserto.
+//  - ⚠️ LIMITE MEDIDO — o gate lê o CORPO markdown, NÃO o frontmatter YAML. O LINK_RE
+//    casa `[texto](alvo)`; uma lista `related_charters:\n  - path.md` NÃO casa (provado
+//    com controle positivo em 2026-08-10). Logo o caso que motivou a ampliação
+//    (Jana/Index.charter.md apontando pra Cockpit.charter.md APAGADO via frontmatter)
+//    segue INVISÍVEL a este gate. Validar `related_charters` é OUTRO eixo — exigiria
+//    parser de frontmatter, e o dono natural seria o memory-schema-gate (que já lê o
+//    frontmatter dos charters), NÃO este. Travado por check no .test.mjs (seção 9).
 //  - HISTÓRIA (só reporta, nunca enforça): memory/{handoffs,sessions,sprints,
 //    audits,research,reguas}/ — são fósseis datados append-only; link morto lá é
 //    registro histórico, não regressão.
@@ -99,6 +114,16 @@ function corpus() {
   try { rootEntries = readdirSync(ROOT, { withFileTypes: true }); } catch { /* noop */ }
   for (const e of rootEntries) {
     if (!e.isDirectory() && /\.md$/i.test(e.name)) files.push(join(ROOT, e.name));
+  }
+  // charters de tela (resources/js/Pages/**/*.charter.md) — ARTEFATO DE CONTRATO, vivo.
+  // Entraram no corpus em 2026-08-10 (FP medido: ver docblock do topo). ATENÇÃO: só o
+  // CORPO markdown é varrido; o frontmatter YAML (`related_charters:`) NÃO é lido por
+  // este gate — o LINK_RE casa `[texto](alvo)`, não lista YAML. Ver §Escopo no topo.
+  const pagesDir = join(ROOT, 'resources', 'js', 'Pages');
+  if (existsSync(pagesDir)) {
+    const all = [];
+    walkMd(pagesDir, all);
+    for (const p of all) if (/\.charter\.md$/i.test(p)) files.push(p);
   }
   return files;
 }
