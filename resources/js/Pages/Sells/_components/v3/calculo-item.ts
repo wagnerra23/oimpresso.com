@@ -69,7 +69,7 @@ function arredondarMedida(n: number): number {
  *
  * ⚠️ Arredonda por MEDIDA, não por dinheiro — o handoff usava `submitSafe`
  * aqui e zerava item fino (medido no harness: placa de 2 mm ficava com
- * `0,00 m²`, total `R$ 0,00` e o botão "Adicionar à venda" desabilitado).
+ * `0,00 m²`, total zerado e o botão "Adicionar à venda" desabilitado).
  */
 export function quantidadeFaturada(
   ehDimensional: boolean,

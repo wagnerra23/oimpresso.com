@@ -107,7 +107,7 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 
 - **[BACKLOG]** A **unidade do cadastro** decide se a quantidade é derivada ou digitada — não um checkbox: `m²` pede peças+altura+largura, `m³` acrescenta espessura, `m` usa só a largura, e qualquer outra unidade pede a quantidade direto.
 - **[BACKLOG]** Quantidade faturada de item dimensional é `peças × área da peça`, **nunca digitada** — o campo não existe nesse modo.
-- **[BACKLOG]** Desconto e acréscimo incidem sobre o **preço unitário**, nunca sobre o total: `119,00 − 10% = 107,10`, e `12,50 m² × 107,10 = R$ 1.338,75`.
+- **[BACKLOG]** Desconto e acréscimo incidem sobre o **preço unitário**, nunca sobre o total — aplicar sobre o total daria outro número quando a quantidade é fracionada, que é o caso normal em item dimensional.
 - **[BACKLOG]** Preço abaixo de **85% da tabela** sai da alçada do vendedor e é sinalizado; no empate exato o erro é pedir liberação a mais, nunca deixar passar preço baixo demais.
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
@@ -115,7 +115,7 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 > **Duas divergências CONSCIENTES do handoff, e as duas são de arredondamento.**
 > O handoff aplica `submitSafe` (2 casas — o guard de **dinheiro**) na área da peça
 > e na quantidade faturada. Medido no harness: uma tira de `0,50 × 0,004 m` dá
-> `0,002 m²`, que com 2 casas vira **zero** — quantidade zero, total `R$ 0,00`, e o
+> `0,002 m²`, que com 2 casas vira **zero** — quantidade zero, total zerado, e o
 > botão "Adicionar à venda" desabilitado, isto é, **o item não entra na venda**.
 > Medida não é dinheiro: a área não arredonda e a quantidade arredonda a 4 casas
 > (`CASAS_DE_MEDIDA`). O guard do `num_uf` continua **intacto** onde é dele — preço

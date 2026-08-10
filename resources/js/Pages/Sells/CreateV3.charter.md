@@ -77,7 +77,7 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
   > **Uma divergência consciente do handoff, com prova:** `submitSafe` é o guard de
   > **dinheiro** (2 casas) e o handoff o aplicava também na **medida** — o que
   > zerava item fino (tira de `0,50 × 0,004 m` → quantidade `0,00`, total
-  > `R$ 0,00`, botão desabilitado, item fora da venda). Área não arredonda;
+  > zerado, botão desabilitado, item fora da venda). Área não arredonda;
   > quantidade arredonda a 4 casas. Provado por dois caminhos e com controle de
   > que o caso normal não se move — detalhe em [`CreateV3.casos.md`](CreateV3.casos.md).
 

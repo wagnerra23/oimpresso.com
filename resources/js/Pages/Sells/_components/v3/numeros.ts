@@ -59,10 +59,10 @@ export const brl = (n: number | null | undefined): string =>
  * Formata QUANTIDADE — 2 casas, exceto quando 2 casas mentiriam.
  *
  * Dinheiro tem 2 casas sempre; medida não. Uma tira de 0,50 × 0,004 m dá
- * 0,002 m², e `fmtBR` exibe isso como `0,00` — a tela ficaria mostrando
- * "0,00 m² × R$ 119,00 = R$ 0,24", que é aritmética visivelmente falsa pra
- * quem opera, e o tipo de coisa que vira chamado de "a venda está errada".
- * Medido no harness antes de existir esta função.
+ * 0,002 m², e `fmtBR` exibe isso como `0,00` — a tela ficaria mostrando uma
+ * quantidade zerada ao lado de um total cobrado, que é aritmética visivelmente
+ * falsa pra quem opera e o tipo de coisa que vira chamado de "a venda está
+ * errada". Medido no harness antes de existir esta função.
  *
  * Regra: 2 casas por padrão (não mexe em nada do caso normal — 0,05 segue
  * `0,05`, 12,5 segue `12,50`); expande até 4 SÓ quando o valor não é zero mas
