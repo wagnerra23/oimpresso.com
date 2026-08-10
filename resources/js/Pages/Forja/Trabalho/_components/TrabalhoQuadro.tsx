@@ -27,7 +27,8 @@ import { COLUMN_LABEL_PT, COLUMN_BORDER, type Status } from '@/Components/board/
 // Selos canônicos — reuso, não hand-roll. O `ActorSeal` distingue AGENTE de
 // HUMANO, que é o conceito central da Forja (o subtítulo do hub diz "atores
 // humano vs agente"); a 1ª versão deste quadro mostrava `owner` em texto cinza
-// e perdia a distinção inteira. Ver proibicoes §5 2026-08-09.
+// e perdia a distinção inteira. Ver proibicoes §5 2026-08-10 — "Construir tela
+// derivando do CÓDIGO quando existe FONTE DE DESIGN".
 import { ActorSeal, PriorityDot } from '@/Components/shared/TaskBadges';
 import type { Priority } from '@/Lib/taskTokens';
 import { cn } from '@/Lib/utils';
