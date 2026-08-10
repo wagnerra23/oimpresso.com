@@ -119,5 +119,5 @@ Histórico congelado do contrato documental de **Essentials**. Mudanças posteri
 ## Referências
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) Multi-tenant Tier 0 IRREVOGÁVEL
 - [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) FSM Canon (N/A pra Essentials)
-- [ADR 0155](../../memory/decisions/0155-module-grade-v3.md) Module Grade v3
+- [ADR 0155](../../memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) Module Grade v3
 - [ADR 0159](../../decisions/0159-module-grade-v3-errata-meta-97-realismo.md) Errata meta 97
