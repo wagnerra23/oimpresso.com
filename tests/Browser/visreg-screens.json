@@ -110,5 +110,13 @@
     "route": "/ia/memoria",
     "anchor": "Memória da Jana",
     "baseline": "it_Jana_Memoria_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Jana",
+    "source": "Jana",
+    "component": "Jana/Index",
+    "route": "/ia",
+    "anchor": "Jana",
+    "baseline": "it_Jana_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
