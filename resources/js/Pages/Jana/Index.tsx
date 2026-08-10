@@ -94,7 +94,7 @@ function formatValue(value: number, unidade: string) {
 
 function Sparkline({ dados }: { dados: Apuracao[] }) {
   if (dados.length < 2) {
-    return <div data-contract="painel-meta-sem-historico" className="h-8 text-xs text-muted-foreground flex items-center">Sem histórico</div>
+    return <div className="h-8 text-xs text-muted-foreground flex items-center">Sem histórico</div>
   }
 
   const valores = dados.map(d => d.valor_realizado)
@@ -156,7 +156,7 @@ function MetaCard({ meta }: { meta: Meta }) {
             {formatValue(realizado, meta.unidade)}
           </div>
         ) : (
-          <div data-contract="painel-meta-apurando" className="text-sm text-muted-foreground">Aguardando apuração…</div>
+          <div className="text-sm text-muted-foreground">Aguardando apuração…</div>
         )}
 
         {alvo !== null && (
@@ -248,7 +248,7 @@ function ProximaAcaoCard() {
         </p>
         <div className="mt-3">
           <Link href="/ia/conversa">
-            <Button data-contract="painel-cta-conversar" size="sm" variant="outline" className="gap-2">
+            <Button size="sm" variant="outline" className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversar agora
             </Button>
@@ -313,7 +313,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                 <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
                 METAS
               </Badge>
-              <span data-contract="painel-metas-header" className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
+              <span className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
             </div>
             <div>
               <h2 className="text-xl font-semibold tracking-tight">Metas ativas</h2>
@@ -352,7 +352,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                 <Sparkles className="h-10 w-10 text-violet-500" aria-hidden="true" />
               </div>
               <div className="space-y-1">
-                <p data-contract="painel-metas-vazio" className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
+                <p className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
                 <p className="max-w-sm text-sm text-muted-foreground">
                   Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
                 </p>
