@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 571,
-    "edges": 839,
+    "nodes": 570,
+    "edges": 838,
     "by_node_type": {
       "module": 40,
       "table": 73,
       "adr": 25,
-      "component": 390,
+      "component": 389,
       "api": 43
     },
     "by_edge_type": {
@@ -39,7 +39,7 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 390,
+      "hasComponent": 389,
       "dependsOn": 113,
       "delegatesTo": 107,
       "migratesTo": 1
@@ -2457,32 +2457,32 @@
       "desc": "extends BaseModuleInstallController (Onda 1)"
     },
     {
-      "id": "component:PaymentGateway/PaymentGatewayController",
+      "id": "component:PaymentGateway/Jobs/CnabRetornoProcessor",
       "type": "component",
       "module": "PaymentGateway",
-      "name": "PaymentGatewayController",
-      "desc": ""
+      "name": "Jobs/CnabRetornoProcessor",
+      "desc": "processa o arquivo de retorno enviado via Settings/PaymentGatewaysCnabRetornoController"
     },
     {
-      "id": "component:PaymentGateway/PaymentGatewayCredentialResolver",
+      "id": "component:PaymentGateway/Models/CnabRetornoUpload",
       "type": "component",
       "module": "PaymentGateway",
-      "name": "PaymentGatewayCredentialResolver",
-      "desc": ""
+      "name": "Models/CnabRetornoUpload",
+      "desc": "histórico dos uploads de retorno (tabela cnab_retorno_uploads)"
     },
     {
-      "id": "component:PaymentGateway/RemessaCnabService",
+      "id": "component:PaymentGateway/Services/Cnab/CnabBoletoAdapter",
       "type": "component",
       "module": "PaymentGateway",
-      "name": "RemessaCnabService",
-      "desc": ""
+      "name": "Services/Cnab/CnabBoletoAdapter",
+      "desc": "adapta boleto → layout CNAB (ponte pro contrato do módulo)"
     },
     {
-      "id": "component:PaymentGateway/RetornoCnabService",
+      "id": "component:PaymentGateway/Services/Cnab/Drivers/*",
       "type": "component",
       "module": "PaymentGateway",
-      "name": "RetornoCnabService",
-      "desc": ""
+      "name": "Services/Cnab/Drivers/*",
+      "desc": "11 drivers CNAB por banco (Ailos · BB · Banrisul · Bradesco · BTG · Caixa · Cresol · Itaú · Santander · Sicoob · Sicredi)"
     },
     {
       "id": "component:PaymentGateway/Services/Drivers/AsaasDriver",
@@ -3078,13 +3078,6 @@
       "module": "Whatsapp",
       "name": "Admin/ClientFeedbackController",
       "desc": "captura Voice of Customer canon a partir de bubble inbox (PR #1711 2026-05-27); ADR UI-0016 + ADR 0105 cliente-como-sinal"
-    },
-    {
-      "id": "component:Whatsapp/Admin/ConversationsController",
-      "type": "component",
-      "module": "Whatsapp",
-      "name": "Admin/ConversationsController",
-      "desc": "Inbox Cockpit + send manual + Centrifugo subscribe"
     },
     {
       "id": "component:Whatsapp/Admin/CsatController",
@@ -8454,25 +8447,25 @@
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/PaymentGatewayController",
+      "to": "component:PaymentGateway/Jobs/CnabRetornoProcessor",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/PaymentGatewayCredentialResolver",
+      "to": "component:PaymentGateway/Models/CnabRetornoUpload",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/RemessaCnabService",
+      "to": "component:PaymentGateway/Services/Cnab/CnabBoletoAdapter",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/RetornoCnabService",
+      "to": "component:PaymentGateway/Services/Cnab/Drivers/*",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9607,12 +9600,6 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/ClientFeedbackController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Whatsapp",
-      "to": "component:Whatsapp/Admin/ConversationsController",
       "type": "hasComponent",
       "source": "contains"
     },
