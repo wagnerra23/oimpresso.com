@@ -66,6 +66,64 @@ memory/requisitos/<Nome>/
 contrato acima, a entrada em `modules_statuses.json` e as projeções derivadas. Criar
 somente a pasta PHP deixa o módulo em estado parcial e reprova o check.
 
+### `CHANGELOG.md` e `README.md` — fora do padrão, e o mesmo nome cobre DOIS eixos
+
+Nenhum dos dois é peça obrigatória: as fontes são `module.json`, `SCOPE.md`,
+`BRIEFING.md`, `SPEC.md` e os testes. Módulo novo **não precisa** criar nenhum dos
+dois. Eles existem por herança, e quem abre um módulo hoje encontra ambos sem nada
+dizendo o que são — foi o que motivou esta seção ([W] 2026-08-10: *"parece que eles
+deveriam ir para outro lugar, são perdidos, duplicados, lugar errado"*).
+
+**Quando o mesmo nome aparece nos dois lugares, NÃO é duplicata — são temas distintos:**
+
+| arquivo | registra | exemplo de entrada |
+|---|---|---|
+| `Modules/<X>/CHANGELOG.md` | **implementação** — o que shipou | *"entradas só após PR mergeado em main"*; Waves de saturação; hardening |
+| `memory/requisitos/<X>/CHANGELOG.md` | **requisito/decisão** — o que foi decidido, shipado ou não | `[Unreleased] — spec-ready`; *"Decision — 2026-04-26 (proposta, aguarda aval)"* |
+
+⚠️ **Não "remova a duplicidade" apagando um lado** — apagar destrói um eixo inteiro.
+É a mesma armadilha de `memory/dominio/` (singular) × `memory/dominios/` (plural),
+que pareciam pasta duplicada e eram **dois donos** ([proibicoes.md §5 2026-07-22](../../proibicoes.md)).
+
+**Medição de 2026-08-10** (recibo datado — se incomodar, re-rode os comandos, não
+edite os números). Universo: `git ls-files ':(glob)Modules/*/*.md'` e
+`':(glob)memory/requisitos/*/*.md'`:
+
+- **18 pares** com o mesmo `<Modulo>/<arquivo>.md` nos dois lados — 15 `CHANGELOG.md`, 3 `README.md`
+- Cobertura: `SCOPE.md` **32/32**, `CHANGELOG.md` 28/32, `README.md` 16/32
+- Dono por último toque de **conteúdo** (`git log --numstat`, ignorando churn ≤4 linhas):
+  **4 `Modules/` · 9 `memory/requisitos/` · 5 empate** — sem lado vencedor, porque não há disputa
+
+> ⚠️ **Armadilha de medição, registrada porque quase virou veredito:** medir por
+> `git log -1` cru dá **18/18 a favor de `memory/requisitos/`** — e está errado. Os 18
+> foram tocados no mesmo dia pelo carimbo de `id:` físico em 172 docs
+> ([#4729](https://github.com/wagnerra23/oimpresso.com/pull/4729), 2026-07-23), que
+> altera 2 linhas de frontmatter. Frescor de arquivo ≠ frescor de conteúdo.
+
+**Por que os `CHANGELOG.md` de `Modules/` pararam:** eles não vieram do padrão — vieram
+das Waves de saturação (`Modules/Jana/CHANGELOG.md` nasceu em `feat(governance-v3): Wave 17`;
+`Wave28CmsSaturationTest.php` asserta *"CHANGELOG.md tem entrada Wave 28"*, dimensão D3 do
+scorecard). A campanha terminou e o artefato ficou: dos 28, **18 pararam em jun/2026, 10 em
+jul/2026, nenhum tocado em ago/2026**. O de `Modules/Jana/` declara *"toda US que tocar
+`Modules/Jana/` ganha entry aqui"* e, de 2026-06-08 até 2026-08-10, **177 commits tocaram o
+módulo e 0 tocaram o CHANGELOG**.
+
+**Quem enforça o quê** (dono é a branch protection + [`gates-registry.json`](../../../scripts/governance/gates-registry.json), não esta linha):
+`SCOPE.md` tem `scope-guard.yml` + `bin/check-scope.php` e está em 32/32. `CHANGELOG.md`
+e `README.md` de módulo não têm gate próprio. A correlação entre ter gate e sobreviver é
+a [ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)
+(*derivado+enforçado sobrevive; escrito+lembrado apodrece*) se cumprindo — não é acidente.
+
+**Antes de mover qualquer `.md` de dentro de `Modules/<X>/`:** confira se algo o lê em
+runtime. `Modules/Jana/LICOES-OPERACAO.md` é lido por
+`HealthCheckCommand` via `base_path(...)`, e quando o arquivo não está lá o check
+`jana_lesson_ledger_graduation` retorna `'ok' => true` com mensagem *"Skipped"* — mover sem
+atualizar o path **desliga o check e ele fica verde**
+([proibicoes.md §5 2026-07-29](../../proibicoes.md)). A máquina de realocação também não
+cobre este caso: `Modules/` não é área declarada em
+[`document-placement.json`](../../../scripts/governance/document-placement.json), então o
+classificador devolve `review` por construção — ele nunca adivinha.
+
 ## Passos
 
 ### 1. module.json + composer.json
