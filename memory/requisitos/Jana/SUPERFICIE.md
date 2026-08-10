@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 571 arquivos em 19 papéis.
+**Total mapeado:** 570 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -29,13 +29,12 @@ module: Jana
 - [ProController.php](../../../Modules/Jana/Http/Controllers/ProController.php)
 - [SuperadminController.php](../../../Modules/Jana/Http/Controllers/SuperadminController.php)
 
-## Requests (validação) — 8
+## Requests (validação) — 7
 
 - [SendChatMessageRequest.php](../../../Modules/Jana/Http/Requests/SendChatMessageRequest.php)
 - [StoreMensagemRequest.php](../../../Modules/Jana/Http/Requests/StoreMensagemRequest.php)
 - [StoreMetaRequest.php](../../../Modules/Jana/Http/Requests/StoreMetaRequest.php)
 - [StorePeriodoRequest.php](../../../Modules/Jana/Http/Requests/StorePeriodoRequest.php)
-- [StoreSugestaoRequest.php](../../../Modules/Jana/Http/Requests/StoreSugestaoRequest.php)
 - [UpdateAlertasConfigRequest.php](../../../Modules/Jana/Http/Requests/UpdateAlertasConfigRequest.php)
 - [UpdateMetaRequest.php](../../../Modules/Jana/Http/Requests/UpdateMetaRequest.php)
 - [UpdatePeriodoRequest.php](../../../Modules/Jana/Http/Requests/UpdatePeriodoRequest.php)
