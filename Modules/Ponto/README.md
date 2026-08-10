@@ -30,16 +30,16 @@ Módulo de **Ponto Eletrônico** em conformidade com a **Portaria MTP 671/2021**
 composer dump-autoload
 
 # 3. Ativar no nWidart
-php artisan module:enable PontoWr2
+php artisan module:enable Ponto
 
 # 4. Rodar migrações
-php artisan module:migrate PontoWr2
+php artisan module:migrate Ponto
 
 # 5. Publicar assets
-php artisan module:publish PontoWr2
+php artisan module:publish Ponto
 
 # 6. (Opcional) Seeders de demo
-php artisan module:seed PontoWr2
+php artisan module:seed Ponto
 ```
 
 ## Estrutura
