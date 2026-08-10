@@ -1,0 +1,38 @@
+/* ==========================================================================
+   CAMADA 3 · PADRÕES DE TELA — campo com afixo (`.dsfa`)
+   --------------------------------------------------------------------------
+   Campo numérico/monetário com prefixo (R$, %, m, kg, qt) ou sufixo.
+   Existe porque o `Input` do DS não tem slot de afixo nem repassa `onBlur`
+   (necessário para validação fiscal que só dispara ao sair do campo).
+
+   Visual copiado do `Input` do DS: mesma altura, borda, raio, foco.
+   Se o DS ganhar afixo nativo, este arquivo morre e os campos migram.
+   ========================================================================== */
+
+.dsfa { position: relative; }
+
+.dsfa > input {
+  font: 13px/1.4 var(--font-sans);
+  color: var(--text);
+  width: 100%;
+  min-width: 56px;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.dsfa > input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* espaço para o afixo — min-width evita que a coluna colapse abaixo do texto */
+.dsfa.pre > input { padding-left: 30px; min-width: 88px; }
+.dsfa.suf > input { padding-right: 32px; min-width: 74px; }
+
+.dsfa > .afx {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  font: 12.5px/1 var(--font-sans); color: var(--text-dim); pointer-events: none;
+}
+.dsfa > .afx.l { left: 10px; }
+.dsfa > .afx.r { right: 10px; }

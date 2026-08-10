@@ -1,0 +1,40 @@
+/* ==========================================================================
+   CAMADA 2 · SHELL — base do documento e acessibilidade global
+   --------------------------------------------------------------------------
+   Vale para QUALQUER tela do cockpit. Nada específico de módulo entra aqui.
+   ========================================================================== */
+
+/* --- Reset mínimo --------------------------------------------------------- */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); }
+#root { height: 100%; }
+
+/* --- Link ---------------------------------------------------------------- */
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-2); text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- Código inline ------------------------------------------------------- */
+code { font: 12px/1.4 var(--font-mono); background: var(--bg-2); padding: 1px 5px; border-radius: 4px; }
+
+/* --- Barra de rolagem discreta (`.oi-scroll`) ---------------------------- */
+.oi-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+.oi-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--text) 16%, transparent);
+  border-radius: 8px; border: 2px solid transparent; background-clip: padding-box;
+}
+
+/* --- Foco visível: obrigatório, nunca removido -------------------------- */
+main :is(input, select, textarea, button, a):focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+}
+
+/* --- Movimento reduzido: respeita a preferência do sistema -------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

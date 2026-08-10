@@ -1,0 +1,34 @@
+/* ==========================================================================
+   CAMADA 1 · FUNDAÇÕES — tokens que faltam no tema escuro do DS
+   --------------------------------------------------------------------------
+   Escopo: `.cockpit[data-theme="dark"]`. NÃO cria token novo (ADR-0050):
+   apenas dá valor escuro a tokens que o bundle do DS declara só no tema claro.
+
+   Como isto foi descoberto: medição de contraste par-a-par (fg × bg efetivo)
+   nos dois temas. Sem estes overrides, 8 de 29 pares reprovavam WCAG AA no
+   escuro — plates tintados quase brancos e texto de componente em cor clara.
+
+   Proposta de correção na origem: ADR 0322.
+   ========================================================================== */
+
+.cockpit[data-theme="dark"] {
+  /* foreground de componente (Breadcrumb, FsmStepper, DataTable) */
+  --muted-foreground: oklch(0.72 0.005 90);
+  --color-muted-foreground: oklch(0.72 0.005 90);
+  --foreground: oklch(0.94 0.005 90);
+  --color-foreground: oklch(0.94 0.005 90);
+  --fg: oklch(0.94 0.005 90);
+  --card-foreground: oklch(0.94 0.005 90);
+  --color-card-foreground: oklch(0.94 0.005 90);
+
+  /* rampa de foreground do shell */
+  --fg-1: oklch(0.94 0.005 90);
+  --fg-2: oklch(0.72 0.005 90);
+  --fg-3: oklch(0.62 0.005 90);
+
+  /* plates semânticos: o DS só declara `--accent-soft` no escuro.
+     Sem estes três, faixa de saldo/estoque/alerta media 1,02:1. */
+  --pos-soft: oklch(0.30 0.05 150);
+  --neg-soft: oklch(0.30 0.06 25);
+  --warn-soft: oklch(0.30 0.05 75);
+}
