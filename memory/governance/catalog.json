@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 571,
-    "edges": 839,
+    "nodes": 566,
+    "edges": 834,
     "by_node_type": {
       "module": 40,
       "table": 73,
       "adr": 25,
-      "component": 390,
+      "component": 385,
       "api": 43
     },
     "by_edge_type": {
@@ -39,7 +39,7 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 390,
+      "hasComponent": 385,
       "dependsOn": 113,
       "delegatesTo": 107,
       "migratesTo": 1
@@ -2457,34 +2457,6 @@
       "desc": "extends BaseModuleInstallController (Onda 1)"
     },
     {
-      "id": "component:PaymentGateway/PaymentGatewayController",
-      "type": "component",
-      "module": "PaymentGateway",
-      "name": "PaymentGatewayController",
-      "desc": ""
-    },
-    {
-      "id": "component:PaymentGateway/PaymentGatewayCredentialResolver",
-      "type": "component",
-      "module": "PaymentGateway",
-      "name": "PaymentGatewayCredentialResolver",
-      "desc": ""
-    },
-    {
-      "id": "component:PaymentGateway/RemessaCnabService",
-      "type": "component",
-      "module": "PaymentGateway",
-      "name": "RemessaCnabService",
-      "desc": ""
-    },
-    {
-      "id": "component:PaymentGateway/RetornoCnabService",
-      "type": "component",
-      "module": "PaymentGateway",
-      "name": "RetornoCnabService",
-      "desc": ""
-    },
-    {
       "id": "component:PaymentGateway/Services/Drivers/AsaasDriver",
       "type": "component",
       "module": "PaymentGateway",
@@ -3078,13 +3050,6 @@
       "module": "Whatsapp",
       "name": "Admin/ClientFeedbackController",
       "desc": "captura Voice of Customer canon a partir de bubble inbox (PR #1711 2026-05-27); ADR UI-0016 + ADR 0105 cliente-como-sinal"
-    },
-    {
-      "id": "component:Whatsapp/Admin/ConversationsController",
-      "type": "component",
-      "module": "Whatsapp",
-      "name": "Admin/ConversationsController",
-      "desc": "Inbox Cockpit + send manual + Centrifugo subscribe"
     },
     {
       "id": "component:Whatsapp/Admin/CsatController",
@@ -8454,30 +8419,6 @@
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/PaymentGatewayController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/PaymentGatewayCredentialResolver",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/RemessaCnabService",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/RetornoCnabService",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/Services/Drivers/AsaasDriver",
       "type": "hasComponent",
       "source": "contains"
@@ -9607,12 +9548,6 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/ClientFeedbackController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Whatsapp",
-      "to": "component:Whatsapp/Admin/ConversationsController",
       "type": "hasComponent",
       "source": "contains"
     },

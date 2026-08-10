@@ -21,17 +21,7 @@ Tempo total: **2 minutos por dev**.
 
 ## Como Wagner gera o DXT
 
-### Via artisan (recomendado — gera token + DXT num comando)
-```bash
-# SSH no servidor
-ssh hostinger
-cd ~/domains/oimpresso.com/public_html
-php artisan copiloto:mcp:generate-dxt --user-email=eliana@oimpresso.com.br
-# → storage/app/dxt/oimpresso-mcp-eliana.dxt
-# → Token novo gerado e gravado no DB
-```
-
-### Via script local (quando repo está em D:\oimpresso.com)
+### Via script local (recomendado — é o caminho que funciona hoje)
 ```bash
 # 1. Pegue o token em oimpresso.com/copiloto/admin/team
 # 2. Rode:
@@ -44,6 +34,14 @@ cp scripts/tokens.json.example scripts/tokens.json
 node scripts/generate-dxt.js --all
 # → ./dxt/oimpresso-mcp-*.dxt  (1 por membro)
 ```
+
+> ℹ️ **Havia aqui um caminho "via artisan"** (`php artisan copiloto:mcp:generate-dxt`), marcado
+> como *recomendado*. Removido em **2026-08-10**: medido que `McpGenerateDxtCommand` existe no
+> disco mas **nunca esteve** no `commands([...])` do `JanaServiceProvider`, e o `app/Console/Kernel.php`
+> só faz `$this->load()` de `app/Console/Commands` — nunca de `Modules/`. O comando não existe no
+> artisan, em host nenhum. A assinatura ainda carrega o prefixo `copiloto:`, morto desde a
+> [ADR 0088](memory/decisions/0088-module-rename-php-only.md). Reativar exige registrar **e**
+> renomear pra `jana:` — decisão [W], não conserto silencioso.
 
 ### Entregar o arquivo
 - ✅ **Vaultwarden** (`vault.oimpresso.com`) — recomendado

@@ -8,7 +8,11 @@ contains:
   - "DataController — 3 hooks UltimatePOS (user_permissions/modifyAdminMenu/superadmin_package)"
   # Admin Inertia (US-WA-001/012/013/057)
   - "Admin/SettingsController — wizard 2 passos Z-API+Meta + gating LGPD (BusinessSettingsRequest)"
-  - "Admin/ConversationsController — Inbox Cockpit + send manual + Centrifugo subscribe"
+  # Admin/ConversationsController foi REMOVIDO em US-WA-091 (#590, "remover legacy
+  # /whatsapp/conversations") e ficou listado aqui depois de deixar de existir — o
+  # mesmo padrão do BriefController do Jana. A capacidade que esta linha descrevia
+  # (Inbox Cockpit + send manual + Centrifugo) vive em Admin/InboxController e
+  # Admin/CaixaUnificadaController, ambos já declarados abaixo.
   - "Admin/CsatController — dashboard pesquisa pós-atendimento (CSAT) PR-6 CYCLE-07"
   - "Admin/MacrosController — CRUD respostas prontas (macros) inbox"
   - "Admin/MacroVariantsController — variants A/B/n por macro pra teste"

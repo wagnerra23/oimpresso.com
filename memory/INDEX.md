@@ -143,8 +143,19 @@
 
 Mantidos por compatibilidade (PontoWr2 origem do projeto). Para core moderno, ver [why/what/how acima](#comece-aqui-onboarding-7-docs).
 
-- [00-user-profile.md](00-user-profile.md) · [02-technical-stack.md](02-technical-stack.md) · [04-conventions.md](04-conventions.md) · [06-domain-glossary.md](06-domain-glossary.md) · [07-roadmap.md](07-roadmap.md) · [08-handoff.md](08-handoff.md) · [09-modulos-ultimatepos.md](09-modulos-ultimatepos.md) · [11-metas-negocio.md](11-metas-negocio.md)
-- [Guia atual de pedidos para agentes](../HOW_TO_ASK_CLAUDE.md) · [COMPARATIVO_TELAS_BLADE_VS_REACT.md](COMPARATIVO_TELAS_BLADE_VS_REACT.md) · [REQUISITOS_FUNCIONAIS_PONTO.md](REQUISITOS_FUNCIONAIS_PONTO.md) · [OPUS-MISSION-BRIEF.md](OPUS-MISSION-BRIEF.md) · [officeimpresso-spec.md](officeimpresso-spec.md) · [migrations.md](migrations.md)
+> ✅ **Faxina de 2026-08-10 ([W]: *"não quero deixar histórico que nunca vou ler em lugar que eu nunca vou achar"*).**
+> Os numerados sumiram da raiz. **Nada foi perdido** — cada um foi pra casa ou teve o conteúdo absorvido:
+
+| Era | Virou |
+|---|---|
+| `07-roadmap` · `COMPARATIVO_TELAS_BLADE_VS_REACT` · `REQUISITOS_FUNCIONAIS_PONTO` | **movidos** → [`requisitos/Ponto/HISTORICO-*.md`](requisitos/Ponto/) — os 3 eram história do PontoWR2 |
+| `06-domain-glossary` | **movido** → [`requisitos/Ponto/GLOSSARY.md`](requisitos/Ponto/GLOSSARY.md) (era o glossário do Ponto na raiz) |
+| `OPUS-MISSION-BRIEF` | **movido** → [`governance/HISTORICO-mission-brief-constituicao-v2-2026-05.md`](governance/HISTORICO-mission-brief-constituicao-v2-2026-05.md) |
+| `04-conventions` | **absorvido** → o naming PHP/DB (único no canon) foi pra [`.claude/rules/modules.md`](../.claude/rules/modules.md); o stale (Laravel 10, branch `develop`) ficou de fora |
+| `11-metas-negocio` | **ponteiro** em [`NORTE-ROI.md`](NORTE-ROI.md) — os cenários de abr/2026 **divergiam** do norte, então colar poluiria |
+| `00-user-profile` · `02-technical-stack` · `09-modulos-ultimatepos` | **removidos** — o corpo já tinha saído antes; sobrava só a lápide |
+
+- Vivos na raiz: [08-handoff.md](08-handoff.md) (índice de handoffs) · [officeimpresso-spec.md](officeimpresso-spec.md) (API que não pode mudar — Delphi legado) · [migrations.md](migrations.md) (tracking MWART) · [Guia de pedidos para agentes](../HOW_TO_ASK_CLAUDE.md)
 
 ## 🚨 Onde NÃO ir (Tier 0 IRREVOGÁVEL)
 

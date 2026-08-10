@@ -2,6 +2,13 @@
 
 > **Norte único do oimpresso.** Toda decisão (módulo, onda, regra, skill, refactor) passa por aqui antes de virar trabalho. Se não move o ROI rumo à meta, **espera**.
 
+> 📌 **Os cenários de composição de abr/2026 NÃO foram trazidos pra cá, de propósito.** O
+> `memory/11-metas-negocio.md` (snapshot 2026-04-24) trazia 4 cenários (Massa · SMB · Enterprise ·
+> Misto) + 3 trilhas de execução — e o **próprio header dele avisava que os números divergem deste
+> norte**. Colar aqui criaria a duplicação divergente que este arquivo existe pra evitar. Ele foi
+> **removido** em 2026-08-10; se um dia quiser reler os cenários:
+> `git show 13d8d8ac478:memory/11-metas-negocio.md`
+
 ## A meta (fixa)
 
 **R$ [redacted Tier 0] milhões/ano** ([ADR 0022](decisions/0022-meta-5mi-ano-financeira.md)). (R$ [redacted Tier 0]M/24m da meta-skill = a mesma coisa: R$ [redacted Tier 0]M ÷ 2 anos = R$ [redacted Tier 0]M/ano.)
