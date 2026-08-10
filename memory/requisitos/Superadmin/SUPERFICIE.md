@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Superadmin/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 166 arquivos em 17 papéis.
+**Total mapeado:** 164 arquivos em 17 papéis.
 
 ## Controllers — 14
 
@@ -167,9 +167,8 @@ module: Superadmin
 
 - 15 arquivos em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 49
+## Demais arquivos (manifestos, docs, assets e misc) — 47
 
-- [CHANGELOG.md](../../../Modules/Superadmin/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Superadmin/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Superadmin/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Superadmin/Database/Migrations/.gitkeep)
@@ -188,7 +187,6 @@ module: Superadmin
 - [SuperadminCommunicator.php](../../../Modules/Superadmin/Notifications/SuperadminCommunicator.php)
 - [PackagePolicy.php](../../../Modules/Superadmin/Policies/PackagePolicy.php)
 - [.gitkeep](../../../Modules/Superadmin/Providers/.gitkeep)
-- [README.md](../../../Modules/Superadmin/README.md)
 - [.gitkeep](../../../Modules/Superadmin/Resources/assets/.gitkeep)
 - [app.js](../../../Modules/Superadmin/Resources/assets/js/app.js)
 - [app.scss](../../../Modules/Superadmin/Resources/assets/sass/app.scss)

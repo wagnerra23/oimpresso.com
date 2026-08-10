@@ -233,7 +233,7 @@ JsonEnvio.AddPair('hd', SerialDisco);  // <-- NOVO (chave de hardware)
 - **Inputs dark** — `background: #fff !important` nas `.form-control` dentro de `.oi-page`
 - **KPI Bloqueadas menor que outros** — flexbox `.oi-kpi-row` equaliza altura (min-height: 76px)
 - **Link "Documentação"** removido do menu (apontava pra docs comercial, não admin)
-- **Translations não resolviam** (user_win, processador, memoria…) — causa: `Modules/Officeimpresso1/` no servidor era backup 3.7 com mesmo `name: Officeimpresso` no `module.json` causando conflito de namespace nwidart. Movido pra `~/Officeimpresso1-3.7-BACKUP/`
+- **Translations não resolviam** (user_win, processador, memoria…) — causa: um diretório de backup 3.7 (`Officeimpresso1/`, irmão deste módulo no servidor) tinha o mesmo `name: Officeimpresso` no `module.json` causando conflito de namespace nwidart. Movido pra `~/Officeimpresso1-3.7-BACKUP/`
 
 ### Adicionado
 - **Filtro `?business_id=`** no `/licenca_log` — superadmin pode clicar "Ver log da empresa" em businessall
