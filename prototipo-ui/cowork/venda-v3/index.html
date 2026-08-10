@@ -65,11 +65,15 @@
 -->
 
 <!-- Ordem de carga = ordem de dependência (../../FONTE-DESIGN-venda-v3.md).
-     A tag `sells-roteiro.jsx` do HTML original foi REMOVIDA aqui, não esquecida:
-     medido em 2026-08-10, nenhum arquivo do bundle usa `Roteiro` como símbolo
-     (a única ocorrência é texto dentro de um dado em `sells-data.js`), e o
-     `sells-app.jsx:5` declara a intenção — "a tela é só a tela; o roteiro e os
-     CU vivem nos .md do módulo, fora da tela do operador". Era tag órfã. -->
+
+     ⚠️ ERRATA (2026-08-10, mesma sessão): a versão anterior deste comentário
+     dizia que a tag `sells-roteiro.jsx` era ÓRFÃ e a removeu. ESTAVA ERRADO.
+     Ele define `CuDrawer`, usado em `sells-app.jsx:62` — sem ele o React
+     lança `ReferenceError: CuDrawer is not defined` e NADA renderiza.
+     Meu erro foi grepar por "Roteiro" (o nome do ARQUIVO) em vez do símbolo
+     que ele exporta. A tag fica aqui, apontando pro arquivo que falta, porque
+     404 visível é melhor que dependência apagada em silêncio. -->
+<script type="text/babel" src="sells-roteiro.jsx"></script>  <!-- AUSENTE no handoff — define CuDrawer -->
 <script src="sells-data.js"></script>
 <script type="text/babel" src="sells-ui.jsx"></script>
 <script type="text/babel" src="sells-comissao.jsx"></script>

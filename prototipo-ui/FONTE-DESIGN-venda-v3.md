@@ -22,20 +22,46 @@ no repo nem no disco**, confirmado por quatro oráculos independentes (`ancora.m
 ✅ **12 fontes de tela** (`sells-*.jsx` + `sells-data.js`) e **8 CSS** das camadas 1–4.
 Line endings normalizados para LF no import (o zip vinha CRLF).
 
-⚠️ **A camada 0 (Design System) NÃO veio no handoff.** Medido sobre o zip: `_ds/colors_and_type.css`,
-`_ds/styles.css` e `_ds/_ds_bundle.js` não existem em arquivo nenhum do bundle.
+⚠️ **Faltam 4 arquivos, e o entry não renderiza sem eles.** Medido sobre o zip:
 
-**Consequência, medida no browser (não inferida):** [`cowork/venda-v3/index.html`](cowork/venda-v3/index.html)
-**não renderiza — tela em branco.** Servido em `127.0.0.1:5599`, o `#root` fica com **0 caracteres**,
-`window.I` é `undefined`, e o console cospe `TypeError: Cannot read properties of undefined (reading 'Button')`
-seguido de `reading 'Provider'` dentro do `<App>`. O `_ds_bundle.js` não é enfeite: ele fornece os
-primitivos que os `.jsx` montam.
+| ausente | o que é | sem ele |
+|---|---|---|
+| `_ds/_ds_bundle.js` | os 45 componentes do DS (`window.OfficeImpressoDesignSystem_d7f886`) | `TypeError: … reading 'Button'` no destructuring de [`sells-ui.jsx:2`](cowork/venda-v3/sells-ui.jsx) |
+| `_ds/colors_and_type.css` | tokens de cor e tipografia | sem `--accent`/`--surface`, fonte cai pra Times New Roman |
+| `_ds/styles.css` | entry do DS (só um `@import` do anterior) | — |
+| `sells-roteiro.jsx` | define `CuDrawer` (drawer dos CU) | `ReferenceError: CuDrawer is not defined` em [`sells-app.jsx:62`](cowork/venda-v3/sells-app.jsx) |
 
-> 📌 **Errata da primeira redação deste doc (2026-08-10), registrada e não apagada.**
-> Eu havia escrito que o entry *"carrega, mas sem token de cor e sem ícone"* — afirmação
-> derivada de **ler** quais arquivos faltavam, não de rodar. Ao medir, o resultado é
-> estritamente pior: não carrega nada. A ausência dos arquivos eu tinha medido; a
-> **consequência** eu inferi, e a inferência estava errada e otimista.
+**Consequência, medida no browser:** [`cowork/venda-v3/index.html`](cowork/venda-v3/index.html)
+**não renderiza — tela em branco**, `#root` com 0 caracteres.
+
+### Como VER o protótipo assim mesmo (receita reproduzida em 2026-08-10)
+
+O DS vive no projeto **"Office Impresso — Design System"** do `claude.ai/design`
+(`019dd02f-d2d0-7ba6-a57f-24b3ddd073ac`), legível por `DesignSync` — leitura é livre.
+Passos, todos fora do repo (scratchpad):
+
+1. `DesignSync{get_file _ds_bundle.js}` — **atenção: o arquivo tem ~265 KB e a tool corta em
+   256 KiB** (`truncated: true`). O corte leva junto o epílogo que publica os componentes.
+2. Fechar o que o corte deixou aberto: descartar o bloco `try` incompleto do fim, reconstruir
+   o epílogo (`Object.assign(__ds_ns, __ds_scope)` — cada bloco registra em `__ds_scope`) e
+   fechar o IIFE externo aberto na linha 3.
+3. **Alias de namespace:** o handoff foi construído contra `OfficeImpressoDesignSystem_d7f886`;
+   o DS vivo é `OfficeImpressoPontoWR2DesignSystem_019dd0` (sucessor). Os 33 componentes que a
+   tela usa existem nos dois — medido, `faltando: []`.
+4. Tokens: em vez do CSS do DS, servem os do próprio repo —
+   `resources/css/tokens/_generated-{foundations,cockpit}-light.css`. Confere:
+   `--accent` deve dar `oklch(0.55 0.15 295)` (o roxo da ADR 0190) e a fonte, IBM Plex Sans.
+5. `CuDrawer` stubado como `() => null` (é documentação, não a tela).
+
+Resultado: renderiza. A **lista** de vendas abre primeiro; o cadastro é o botão "Nova venda".
+
+> 📌 **Duas erratas desta sessão, registradas e não apagadas.**
+> **(1)** Escrevi que o entry *"carrega, mas sem token de cor e sem ícone"* — inferência a
+> partir de ler quais arquivos faltavam. Medido, é pior: não carrega nada.
+> **(2)** Escrevi que a tag `sells-roteiro.jsx` era **órfã** e a removi do `index.html`,
+> "provado" por um grep de `Roteiro` que só achou texto dentro de um dado. O grep procurava o
+> nome do **arquivo**; o símbolo que ele exporta é **`CuDrawer`**, e sem ele o app não monta.
+> A tag foi restaurada. Nos dois casos o erro é o mesmo: medir a fonte errada e chamar de prova.
 
 **Isto não é defeito do import — é o recorte do handoff.** Estes arquivos servem como
 **fonte de design de onde as ondas 2–6 derivam**, não como preview executável. Para ver o
