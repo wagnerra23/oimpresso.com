@@ -8,6 +8,7 @@ use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
+use Modules\Forja\Entities\McpActor;
 
 /**
  * TrabalhoService — a fonte ÚNICA da tela `/forja/trabalho`, que funde os três
@@ -266,6 +267,31 @@ class TrabalhoService
      *
      * @return array<int,string>
      */
+    /**
+     * Slugs dos atores que são AGENTE (não humano) — alimenta o `<ActorSeal>`.
+     *
+     * MESMO predicado do {@see \Modules\Forja\Http\Controllers\TasksAdminController}
+     * (`type=ai_agent` + não revogado + lowercase, ADR 0081 Identity Mesh). Está
+     * duplicado de propósito NESTA onda: unificar exigiria tocar aquele controller,
+     * que é outro intent. Se um terceiro consumidor aparecer, extraia — dois é o
+     * limite razoável antes de virar dívida.
+     *
+     * O front marca `owner ∈ agents` como agente; o resto cai em humano. Agente
+     * nunca se disfarça de humano — a lista é allowlist, não heurística de nome.
+     *
+     * @return array<int,string>
+     */
+    public function agentes(): array
+    {
+        return McpActor::query()
+            ->where('type', 'ai_agent')
+            ->whereNull('revoked_at')
+            ->pluck('slug')
+            ->map(fn ($s) => strtolower((string) $s))
+            ->values()
+            ->toArray();
+    }
+
     public function frentes(): array
     {
         $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — mcp_projects é repo-wide (ADR 0070/0093)

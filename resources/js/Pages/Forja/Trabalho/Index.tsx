@@ -85,6 +85,8 @@ interface Props {
    * DESTINO lê. Espelhar a lista aqui criaria uma 2ª declaração pra divergir.
    */
   filtrosGantt?: string[];
+  /** Slugs de atores-agente — alimenta o <ActorSeal> do card. Deferida. */
+  agents?: string[];
   // Deferidas → `undefined` no 1º paint. Default no destructuring pra não
   // crashar antes do partial reload chegar (o sintoma sem isso é tela branca —
   // PR #1940).
@@ -104,7 +106,7 @@ const ORDEM_LABEL: Record<string, string> = {
 
 export default function Trabalho({
   titulo, subtitle, filtros, sorts, tasks = [], kpis = KPIS_VAZIO, frentes = {},
-  filtrosGantt = [],
+  filtrosGantt = [], agents = [],
 }: Props) {
   const [busca, setBusca] = useState(String(filtros.q ?? ''));
   const ordem = String(filtros.sort ?? 'rank');
@@ -116,7 +118,7 @@ export default function Trabalho({
     router.get('/forja/trabalho', { ...filtros, ...patch } as Record<string, string>, {
       preserveState: true,
       preserveScroll: true,
-      only: ['tasks', 'kpis', 'filtros'],
+      only: ['tasks', 'kpis', 'filtros', 'agents'],
     });
   }, [filtros]);
 
@@ -274,7 +276,7 @@ export default function Trabalho({
         </Inline>
 
         {visao === 'quadro' && tasks.length > 0 && (
-          <TrabalhoQuadro tasks={tasks} eixo={eixo} />
+          <TrabalhoQuadro tasks={tasks} eixo={eixo} agents={agents} />
         )}
 
         {tasks.length === 0 && (

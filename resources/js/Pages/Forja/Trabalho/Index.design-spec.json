@@ -1,0 +1,50 @@
+{
+  "screen": "Forja/Trabalho/Index",
+  "path": "resources/js/Pages/Forja/Trabalho/Index.tsx",
+  "measured_against_sha": "b414fd3c163",
+  "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
+  "shell": [
+    "AppShellV2"
+  ],
+  "components": {
+    "ui": [
+      "Card",
+      "CardContent",
+      "Input"
+    ],
+    "shared": [
+      "COLUMN_LABEL_PT",
+      "KpiCard",
+      "KpiGrid",
+      "PRIORITY_BADGE",
+      "PageHeader",
+      "STATUS_BADGE",
+      "type Priority",
+      "type Status"
+    ],
+    "layout": [
+      "Grid",
+      "Inline",
+      "Stack"
+    ],
+    "local": [
+      "TrabalhoQuadro (./_components/TrabalhoQuadro)",
+      "type EixoQuadro (./_components/TrabalhoQuadro)"
+    ]
+  },
+  "hooks": [],
+  "violations": {
+    "raw_oklch": 0,
+    "raw_hex": 3,
+    "hardcoded_px": 5,
+    "inline_style": 0,
+    "native_select": 1,
+    "native_input": 0
+  },
+  "totals": {
+    "canon_components": 14,
+    "local_components": 2,
+    "uses_layout_primitives": true,
+    "structural_violations": 9
+  }
+}
