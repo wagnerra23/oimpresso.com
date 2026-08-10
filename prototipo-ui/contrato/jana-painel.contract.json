@@ -1,7 +1,8 @@
 {
   "_nota": "Contrato de tela do Painel da Jana (/ia). Segundo contrato ATIVO do repo — o primeiro é caixa-unificada. Roda no CI advisory via contrato-de-tela.yml. Ver RUNBOOK-contrato-de-tela.md.",
   "tela": "Jana/Index",
-  "fonte": "resources/js/Pages/Jana/Index.tsx (a tela viva — esta tela NÃO tem protótipo)",
+  "fonte": "resources/js/Pages/Jana/Index.tsx",
+  "_nota_campo_fonte": "⚠️ `fonte` aqui aponta pra TELA VIVA, não pra um protótipo — porque esta tela NÃO TEM protótipo. O modelo do `--map` assume que todo contrato nasce de um protótipo Cowork versionado; este nasce da tela em produção, e o campo é o caminho real pra não mentir nem quebrar o check (`fonteOk = !!c.fonte && existsSync(...)`). Lido no mapa, o par Index.tsx → Index.tsx significa exatamente isso: a fonte da copy é a própria tela. Se um dia esta tela ganhar protótipo, este campo passa a apontar pra ele.",
   "_nota_fonte": "A âncora ERA `prototipo-ui/cowork/chat-jana.jsx` e foi REMOVIDA do charter em 2026-08-10 (lápide §5 do mesmo dia). Aberto no navegador, aquele protótipo se identifica como `OFFICEIMPRESSO · biz=164 · v1404 legacy migrado` — biz=164 é o Martinho, da OficinaAuto — e traz o KPI `Frota utilização` mais `caçambas` no texto. Veredito [W] 2026-08-10, textual: 'Frota utilização são alucinação, ninguém usa até a presente data'. Medido: interseção de vocabulário com a tela viva = 1 de 10 termos (10%), contra 80% do par bom `Compras/Index` — e o único termo comum era a string stale 'jana dashboard'. Por isso a copy deste contrato deriva da TELA VIVA, não de protótipo: o charter agora declara `n/a (herda PT-04 Dashboard; segue o Padrão de Tela)`.",
   "alvo": ["resources/js/Pages/Jana/Index.tsx"],
 
