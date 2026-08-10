@@ -121,8 +121,13 @@ it('--business ausente retorna exit 1 com mensagem em PT-BR', function () {
     $exitCode = Artisan::call('arquivos:export-zip');
 
     expect($exitCode)->toBe(1);
-    expect(Artisan::output())->toContain('--business');
-    expect(Artisan::output())->toContain('obrigatório');
+
+    // Artisan::output() é DESTRUTIVO — por baixo é BufferedOutput::fetch(), que retorna
+    // E ESVAZIA o buffer. Chamar 2× fazia a 2ª asserção receber string vazia, e o erro
+    // saía como `Expected: <vazio>`, apontando pro comando quando o defeito era do teste.
+    $output = Artisan::output();
+    expect($output)->toContain('--business');
+    expect($output)->toContain('obrigatório');
 });
 
 // ---------------------------------------------------------------------------
@@ -159,8 +164,11 @@ it('cria ZIP com arquivos do business e manifest JSON correto', function () {
     ]);
 
     expect($exitCode)->toBe(0);
-    expect(Artisan::output())->toContain('ZIP exportado:');
-    expect(Artisan::output())->toContain($outputPath);
+
+    // Artisan::output() esvazia o buffer — capturar 1× (ver nota no 1º teste).
+    $output = Artisan::output();
+    expect($output)->toContain('ZIP exportado:');
+    expect($output)->toContain($outputPath);
 
     // Verifica que o arquivo ZIP foi criado
     expect(file_exists($outputPath))->toBeTrue();
@@ -217,8 +225,11 @@ it('--dry-run não cria arquivo ZIP nem insere audit log', function () {
     ]);
 
     expect($exitCode)->toBe(0);
-    expect(Artisan::output())->toContain('[DRY-RUN]');
-    expect(Artisan::output())->toContain('seriam exportados');
+
+    // Artisan::output() esvazia o buffer — capturar 1× (ver nota no 1º teste).
+    $output = Artisan::output();
+    expect($output)->toContain('[DRY-RUN]');
+    expect($output)->toContain('seriam exportados');
 
     // ZIP NÃO deve ter sido criado
     expect(file_exists($outputPath))->toBeFalse();
