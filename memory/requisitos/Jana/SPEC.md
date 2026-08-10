@@ -58,14 +58,35 @@ related_adrs:
 - **DoD extra:** resposta assíncrona (`202` + polling OU streaming SSE); tokens contados por request.
 
 #### US-COPI-003 · Receber propostas estruturadas
-**Implementado em:** _parcial_ · `Modules/Jana/Ai/Agents/SugestoesMetasAgent.php` · `Modules/Jana/Services/Ai/LaravelAiSdkDriver.php` · `Modules/Jana/Services/SuggestionEngine.php` · `Modules/Jana/Entities/Sugestao.php` · `Modules/Jana/Http/Controllers/ChatController.php` · verificado@dd56f6f (2026-08-10) — ⚠️ **errata da redação anterior** (verificado@dd3ed7c), que afirmava existir a *"persistência `Sugestao`"*: **é falso — model existir ≠ persistir**. Medido: o agente gera as propostas (structured output, 7 campos × 3 cenários) e o driver valida o shape campo-a-campo, mas `SuggestionEngine::sugerir()` **se autodeclara STUB no docblock**, devolve o array e não grava; o `ChatController` **injeta** `SuggestionEngine $suggestions` no construtor e **nunca o chama** (`$this->suggestions` → rc=1). `Sugestao::create` / `new Sugestao` / `sugestoes()->create()` → **rc=1 no repo inteiro** (controle positivo `Conversa::create` → 17 arquivos), e `git log -S` nas 3 formas → **0 commits em 6383** (clone completo): o produtor **nunca existiu**, não é regressão. Prod 2026-08-10: `jana_sugestoes = 0` (controle positivo `jana_conversas = 18` · `jana_mensagens = 121`). O elo faltante tem dono: task **`COP-010 SuggestionEngine parsear JSON → Sugestao rows`** (backlog · p2). O payload `sugestoesPendentes` existe no render mas volta sempre vazio — e a UI **não** exibe fachada (`Chat.tsx:352` → `null` quando a lista é vazia, logo zero botões). Validação zod do shape no frontend não confirmada
+**Implementado em:** _parcial_ · `Modules/Jana/Ai/Agents/SugestoesMetasAgent.php` · `Modules/Jana/Services/Ai/LaravelAiSdkDriver.php` · `Modules/Jana/Services/SuggestionEngine.php` · `Modules/Jana/Entities/Sugestao.php` · `Modules/Jana/Http/Controllers/ChatController.php` · verificado@24708632c (2026-08-10) — ⚠️ **2ª errata no mesmo dia** (a 1ª, `verificado@dd56f6f`, corrigiu o `verificado@dd3ed7c` que afirmava existir a *"persistência `Sugestao`"* — falso, model existir ≠ persistir; esta corrige 4 defeitos da própria 1ª errata, achados por revisão adversarial).
+
+**O que é fato (com o comando ao lado, reproduzível):** o agente gera as propostas (structured output, 7 campos × 3 cenários) e o driver valida o shape campo-a-campo, mas o **docblock da CLASSE** `SuggestionEngine` (`SuggestionEngine.php:9-15`) declara *"STUB spec-ready"* — o método `sugerir()` não tem essa marca, ele apenas delega ao driver e devolve o array sem gravar. O `ChatController` **injeta** `SuggestionEngine $suggestions` no construtor e **nunca o chama** (`rg -F '$this->suggestions'` → só `.md`).
+
+Nenhum escritor de `Sugestao` em código de produção:
+`git grep -l "Sugestao::create\|new Sugestao\|sugestoes()->create" -- '*.php'` → **0**
+`git log -S "Sugestao::create" -- '*.php'` → **0 commits** (⚠️ **o pathspec é obrigatório**: sem ele dá 2, que são estes próprios documentos citando a string — recibo auto-poluído).
+Controle positivo, **as mesmas 3 formas**: `git grep -l "Conversa::create\|new Conversa\|conversas()->create" -- '*.php'` → **17** (⚠️ a 1ª errata publicou "17" citando só `Conversa::create`, que sozinho dá **4** — número de um comando atribuído a outro).
+Limite honesto do instrumento: esses padrões **não casam** `Sugestao::withoutGlobalScopes()->create(`, que existe 3× em `EntitiesFilhasMultiTenantViaParentTest.php`. Se o produtor tivesse sido escrito assim, o grep daria 0 igual — a conclusão está certa, o instrumento não a **provou** sozinho.
+
+**Estado do dado em prod, medido em 2026-08-10** (não é afirmação atemporal): via `php artisan tinker --execute="DB::table('jana_sugestoes')->count()"` no Hostinger — `jana_sugestoes = 0`, com controle positivo `jana_conversas = 18` · `jana_mensagens = 121`. Reproduza antes de citar; não edite o número.
+
+**O elo faltante NÃO tem dono** (a 1ª errata dizia que tinha — falso, e era a frase que convertia *"nunca construído"* em *"já encaminhado"*): existe apenas o **título hardcoded** `'COP-010 SuggestionEngine parsear JSON → Sugestao rows'` numa string de `BackfillTasksFromMarkdownCommand.php:237` (array do backfill 1× da ADR 0070), com `status: backlog` e **sem campo owner**. `COP-` é prefixo do `TASKS.md` legado; o MCP usa `COPI-NNN`. Não é id consultável por `tasks-detail`.
+
+O payload `sugestoesPendentes` existe no render e volta vazio enquanto não houver rows — e a UI **não** exibe fachada: `Chat.tsx:352` passa `null` a `belowThread` quando a lista é vazia, e `AssistantUiChat.tsx:452` o renderiza nu (sem wrapper), logo zero nós no DOM. Validação zod do shape no frontend não confirmada
 - **Controller:** `ChatController@send` (mesmo endpoint, response inclui sugestões)
 - **Como** gestor **quero** ver 3–5 propostas lado a lado **para** comparar cenários.
 - **DoD extra:** schema zod valida shape `{propostas: [{nome, metrica, valor, periodo, racional, dificuldade, dependencias}]}`.
 
 #### US-COPI-004 · Escolher proposta
-**Implementado em:** `Modules/Jana/Http/Controllers/ChatController.php` · `Modules/Jana/Entities/Meta.php` · `Modules/Jana/Entities/MetaPeriodo.php` · `Modules/Jana/Entities/MetaFonte.php` · verificado@dd3ed7c (2026-07-01) — escolher() cria Meta+MetaPeriodo+MetaFonte, dispara ApurarMetaJob e redireciona pra meta (rota viva POST /ia/sugestoes/{id}/escolher)
-- **Rota:** `POST /copiloto/sugestoes/{id}/escolher`
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/ChatController.php` · `Modules/Jana/Entities/Meta.php` · `Modules/Jana/Entities/MetaPeriodo.php` · `Modules/Jana/Entities/MetaFonte.php` · verificado@24708632c (2026-08-10) — ⚠️ **re-medida.** Carregava `verificado@dd3ed7c`, **o mesmo sha** cuja âncora irmã (US-COPI-003, acima) foi provada falsa e corrigida em 2026-08-10; a 003 foi re-medida e esta **não tinha sido**, e ainda assim foi citada como prova de completude num PR do mesmo dia. Re-medido agora:
+
+**A mecânica confere** (`ChatController::escolher()`, `:588-626`): cria `Meta` + `MetaPeriodo` + `MetaFonte`, faz `$sugestao->update(meta_id, escolhida_em)`, dispara `ApurarMetaJob` e redireciona. Guarda multi-tenant existe — `Sugestao` usa `BelongsToBusinessViaParent`, então `findOrFail` dá 404 cross-tenant.
+
+**Mas NÃO está completa, em 3 frentes medidas:**
+1. **Inalcançável.** O único caminho de entrada é uma row em `jana_sugestoes`, e nada a cria (ver US-COPI-003 acima). Código com rota viva e funil inexistente não é entrega.
+2. **Zero teste do fluxo.** `rg "sugestoes/|->escolher\(|->rejeitar\(" --iglob '*Test*.php'` → **0 arquivos** (rc=1). Controle positivo no mesmo instrumento: `rg -l "jana\." --iglob '*Test*.php'` → **63**. A ausência é real, não artefato de busca.
+3. **DoD não cumprido em 2 de 3 itens:** o DoD exige *"agenda `ApurarMetaJob` no **Horizon**"* — `laravel/horizon` está em `extra.laravel.dont-discover` (`composer.json:144-146`), provider não registrado; e exige *"redireciona pro **dashboard**"* — o código vai pra `jana.metas.show`.
+- **Rota:** `POST /ia/sugestoes/{id}/escolher` _(o prefixo real é `ia` — `Modules/Jana/Http/routes.php:51`. A redação anterior dizia `/copiloto` aqui e `/ia` na linha de cima, contradizendo-se em linhas adjacentes.)_
 - **Controller:** `ChatController@escolher`
 - **Como** gestor **quero** aceitar uma proposta **para** criar a meta automaticamente + agendar apuração.
 - **DoD extra:** cria `Meta` + `MetaPeriodo` + `MetaFonte`; agenda `ApurarMetaJob` no Horizon; redireciona pro dashboard.
