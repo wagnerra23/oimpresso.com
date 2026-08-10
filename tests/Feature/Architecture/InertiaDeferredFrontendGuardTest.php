@@ -52,7 +52,7 @@ declare(strict_types=1);
  */
 const DEFER_GUARD_ONLY_ALLOWLIST = [
     'Financeiro/Extrato/Index'      => 'guarda via `lancamentos = []` default + `totais?.` (sessão 2026-07-06 sweep)',
-    'Jana/Index'                => 'passa coworkAggregates inteiro pro filho JanaCockpitV2, que guarda `?.`/`?? []`',
+    'Jana/Index'                => 'passa coworkAggregates inteiro pro filho _components/JanaCockpit, que guarda `?.`/`?? []` (era o JanaCockpitV2, removido 2026-08-10)',
     'Forja/Trabalho/Index'    => 'default-destructure `{ tasks = [], kpis = KPIS_VAZIO, frentes = {} }` — fusão dos 3 backlogs (US-FORJA-006)',
     'Forja/Aprovacoes/Index'  => 'default-destructure `{ fila = [], contagem = 0 }` — mesmo padrão das irmãs Forja/* abaixo',
     'Forja/Backlog/Index'     => 'default-destructure `{ tasks = [], kpis = EMPTY_KPIS, ... }`',

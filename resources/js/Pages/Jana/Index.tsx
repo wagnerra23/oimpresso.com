@@ -283,10 +283,11 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         }
       />
 
-      {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do JanaCockpitV2, US-COPI-146).
+      {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do antigo JanaCockpitV2, US-COPI-146).
           Sem wrapper .sells-cowork: o cockpit agora usa shared KpiGrid/KpiCard + Card +
-          tokens Tailwind (dark herda nativo), zero ilha CSS. A tab Insights de /sells
-          segue no JanaCockpitV2 (.vd-insights-*, tela-dona legítima do bundle).
+          tokens Tailwind (dark herda nativo), zero ilha CSS. Este comentário dizia que a
+          tab Insights de /sells "segue no JanaCockpitV2" — era falso: aquela tab já não
+          existe e o V2 tinha 0 imports; foi removido em 2026-08-10.
           shrink-0: .main-body é flex-column + overflow-y:auto (cockpit.css); sem ele o
           flex encolhia o wrapper e o conteúdo (mais alto) vazava sobre o bloco Metas. */}
       <div className="px-6 pt-6 shrink-0">
