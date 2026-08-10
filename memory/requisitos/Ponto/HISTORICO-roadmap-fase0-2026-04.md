@@ -1,6 +1,6 @@
 # 07 — Roadmap e Status
 
-> **⚠️ ARQUIVADO 2026-06-22 — este NÃO é o roadmap canônico.** O roadmap de **entrega** é o **cycle** ([ADR 0294](decisions/0294-metodo-dual-track-shapeup-catraca.md)) + o **shipped-log** (`memory/governance/shipped/`); o de **descoberta** vive em `memory/decisions/proposals/`. Este arquivo (Fase 0 do PontoWR2, abr/2026) fica como **registro histórico** — não atualizar. Rider **G17** da porta-de-saída do loop (proposta `proposals/2026-06-21-fechar-loop-cycle-shipped-log.md`).
+> **⚠️ ARQUIVADO 2026-06-22 — este NÃO é o roadmap canônico.** O roadmap de **entrega** é o **cycle** ([ADR 0294](../../decisions/0294-metodo-dual-track-shapeup-catraca.md)) + o **shipped-log** (`memory/governance/shipped/`); o de **descoberta** vive em `memory/decisions/proposals/`. Este arquivo (Fase 0 do PontoWR2, abr/2026) fica como **registro histórico** — não atualizar. Rider **G17** da porta-de-saída do loop (proposta `proposals/2026-06-21-fechar-loop-cycle-shipped-log.md`).
 
 ---
 
@@ -214,7 +214,7 @@ Ordem sugerida: Sentry → CI básico → Pest migração → deploy automatizad
 
 ## Fase 15 — Fiscal: Boleto + NFe padronizados + Tributação por prioridade ⏳
 
-Decisão Wagner (2026-04-22): apagar `Modules/Boleto/` custom (93 arquivos próprios) e usar pacotes padrão. Guardado em `~/.claude/projects/.../memory/project_roadmap_fiscal.md`.
+Decisão Wagner (2026-04-22): apagar o módulo **`Boleto`** custom (93 arquivos próprios, então sob `Modules/`) e usar pacotes padrão. _(Token de path removido em 2026-08-10 ao arquivar este doc: o módulo não existe desde abr/2026, e a forma literal fazia o `knowledge-drift` lê-lo como caminho vivo.)_ Guardado em `~/.claude/projects/.../memory/project_roadmap_fiscal.md`.
 
 ### Pacotes
 - [ ] `eduardokum/laravel-boleto` (20+ bancos BR, PIX+QR Code, CNAB 240/400)
