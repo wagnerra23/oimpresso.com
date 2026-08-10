@@ -14,7 +14,7 @@ module: Officeimpresso
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Officeimpresso/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 108 arquivos em 15 papéis.
+**Total mapeado:** 106 arquivos em 15 papéis.
 
 ## Controllers — 7
 
@@ -118,9 +118,8 @@ module: Officeimpresso
 
 - 14 arquivos em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 35
+## Demais arquivos (manifestos, docs, assets e misc) — 33
 
-- [CHANGELOG.md](../../../Modules/Officeimpresso/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Officeimpresso/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Officeimpresso/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Officeimpresso/Database/Migrations/.gitkeep)
@@ -131,7 +130,6 @@ module: Officeimpresso
 - [.gitkeep](../../../Modules/Officeimpresso/Http/Middleware/.gitkeep)
 - [.gitkeep](../../../Modules/Officeimpresso/Http/Requests/.gitkeep)
 - [.gitkeep](../../../Modules/Officeimpresso/Providers/.gitkeep)
-- [README.md](../../../Modules/Officeimpresso/README.md)
 - [.gitkeep](../../../Modules/Officeimpresso/Resources/assets/.gitkeep)
 - [easy.qrcode.min.js](../../../Modules/Officeimpresso/Resources/assets/plugins/easy.qrcode.min.js)
 - [app.scss](../../../Modules/Officeimpresso/Resources/assets/sass/app.scss)

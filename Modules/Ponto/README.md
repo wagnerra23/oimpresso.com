@@ -25,7 +25,7 @@ Módulo de **Ponto Eletrônico** em conformidade com a **Portaria MTP 671/2021**
 ## Instalação
 
 ```bash
-# 1. Copiar módulo para Modules/PontoWr2
+# 1. Copiar módulo para Modules/Ponto
 # 2. Atualizar autoload
 composer dump-autoload
 
@@ -45,7 +45,7 @@ php artisan module:seed PontoWr2
 ## Estrutura
 
 ```
-Modules/PontoWr2/
+Modules/Ponto/
 ├── Config/           # Regras CLT, banco de horas, REP, eSocial
 ├── Console/Commands/ # Artisan: import AFD, fechar período
 ├── Database/
