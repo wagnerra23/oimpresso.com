@@ -76,8 +76,8 @@ Ver `audits/2026-04-25-bugs-integration-test.md` pra repro/root-cause/fix comple
 
 > Movido em 2026-08-10. Os dois changelogs registravam eventos DIFERENTES — acima as
 > decisões/requisitos, aqui o que foi de fato mergeado. Medido antes de fundir:
-> sobreposição de datas entre os dois era 0-2 de 2-7, logo nenhum era cópia do outro
-> e escolher um lado perderia registro. Conteúdo preservado na íntegra.
+> sobreposição de datas era 0-2 (máx. 2, em ComVis e KB), logo nenhum lado era cópia do
+> outro e escolher um deles perderia registro. Conteúdo preservado na íntegra.
 
 # CHANGELOG — Modules/Financeiro
 
