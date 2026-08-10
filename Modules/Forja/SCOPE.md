@@ -61,7 +61,10 @@ contains:
   - "⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W], separada desta deprecação"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
-  - "Skills governance → Modules/ADS"
+  # Destino era o ADS até a remoção dele em 2026-07-31 (ADR 0363); skills foram pra Jana (#5129).
+  # A história fica NESTE comentário: o catalog-graph deriva a aresta de TODO `Modules/X` que
+  # aparecer no VALOR do item, então citar o nome morto ali recriaria a aresta pro módulo morto.
+  - "Skills governance → Modules/Jana (Services/SkillsService.php, #5129)"
   - "Painel/tokens do MCP (TeamMcp) — em deprecação; endpoints /api/mcp JÁ são daqui"
   - "Knowledge browsing → Modules/KB"
   - "Chat IA → Modules/Jana"
@@ -131,7 +134,7 @@ Renomeação Forja → Project prevista pra Fase 3.9 do ADR 0079, **após** dele
 ## Quando NÃO é tocado
 
 - ❌ UltimatePOS Project (clientes + timesheet) → Modules/Project legado (em DELETE Fase 3.8)
-- ❌ Skills governance → Modules/ADS
+- ❌ Skills governance → **Modules/Jana** (`SkillsService`; era `Modules/ADS` até a remoção de 2026-07-31, [ADR 0363](../../memory/decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md))
 - ❌ Tokens / scopes / audit → Modules/Forja
 
 ## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)
