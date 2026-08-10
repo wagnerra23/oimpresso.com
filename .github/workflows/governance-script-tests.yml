@@ -596,6 +596,11 @@ jobs:
         run: node scripts/qa/prototipo-readiness.test.mjs
       - name: Screen-grade-report (contrato de derivação · cobertura/D1/drift)
         run: node scripts/qa/screen-grade-report.test.mjs
+      # Vetor 2 da catraca de nota (deleção de scorecard com a tela viva). O selftest
+      # tem bite E2E pelo CLI, não só assert no helper puro — helper puro não prova
+      # pipeline (§5 2026-07-30). Os 2 mutantes (detector cego / exit 1→0) morrem.
+      - name: 'Screen-grades-ratchet (bite: deletar scorecard não escapa da catraca)'
+        run: node scripts/qa/screen-grades-ratchet.mjs --selftest
       # +2 órfãos surgidos após 13-jul, pegos ao re-rodar o sweep (agora vivo via #4210).
       # Fecha em 0 órfãos. Ambos verdes em node puro.
       - name: Adversário-intenção-fluxo (rota legada crítica · cobertura mínima · contraprova)
