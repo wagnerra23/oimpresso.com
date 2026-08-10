@@ -230,6 +230,57 @@ function writeRenameMap(root, pairs) {
   rmSync(root, { recursive: true, force: true });
 }
 
+// ── 9. Charters de tela no corpus vivo (2026-08-10) ──────────────────────────
+// Charter é ARTEFATO DE CONTRATO e estava FORA do corpus (walkMd só via memory/ +
+// raiz). FP medido antes de ligar: 209 charters, 501 links internos, 2 mortos — e os
+// 2 são dívida real (path relativo mal formado; irmão declarado "parkeado"), zero
+// falso-positivo. Os 2 entraram no baseline como grandfathered (forward-only).
+function makeCharter(root, relDir, name, body) {
+  const dir = join(root, 'resources', 'js', 'Pages', relDir);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, name), body);
+}
+{
+  // BITE: charter com link morto no corpo reprova
+  const root = makeRepo();
+  makeCharter(root, 'Jana', 'Index.charter.md', 'ver [morto](./Sumiu.charter.md)\n');
+  const r = run(root, '--check');
+  check('charter BITE: link morto em charter reprova (exit 1)', r.status === 1);
+  check('charter BITE: output nomeia o charter culpado', /Jana\/Index\.charter\.md/.test(r.stderr + r.stdout));
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // Controle-negativo: charter com link VIVO nao acusa
+  const root = makeRepo();
+  makeCharter(root, 'Jana', 'Chat.charter.md', '# irmao vivo\n');
+  makeCharter(root, 'Jana', 'Index.charter.md', 'ver [vivo](./Chat.charter.md)\n');
+  const r = run(root, '--check');
+  check('charter controle-negativo: link vivo entre charters passa (exit 0)', r.status === 0);
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // Controle-negativo de ESCOPO: .md sob Pages/ que NAO e .charter.md fica fora do
+  // corpus. Impede que o walk vire coringa sobre todo markdown de resources/js/.
+  const root = makeRepo();
+  makeCharter(root, 'Jana', 'NOTAS.md', 'rascunho com [morto](./nada.md)\n');
+  const r = run(root, '--check');
+  check('charter ESCOPO: .md sob Pages/ que nao e .charter.md NAO entra (exit 0)', r.status === 0);
+  rmSync(root, { recursive: true, force: true });
+}
+{
+  // LIMITE MEDIDO (pina o escopo — nao e aspiracao): o gate casa markdown link
+  // `[texto](alvo)`. Lista YAML de frontmatter (`related_charters:`) NAO e lida, logo
+  // charter apontando pra irmao apagado por ali segue INVISIVEL a este gate. Provado
+  // com controle positivo em 2026-08-10. Este check existe pra que ninguem leia
+  // "charters no corpus" como "related_charters validado" — nao esta.
+  const root = makeRepo();
+  makeCharter(root, 'Jana', 'Index.charter.md',
+    '---\nrelated_charters:\n  - resources/js/Pages/Jana/Apagado.charter.md\n---\n\n# corpo sem link markdown\n');
+  const r = run(root, '--check');
+  check('charter LIMITE: frontmatter related_charters NAO e validado por este gate (exit 0)', r.status === 0);
+  rmSync(root, { recursive: true, force: true });
+}
+
 console.log('');
 if (fails > 0) { console.error(`${fails} check(s) falharam`); process.exit(1); }
 console.log('deadlink-gate.test: todos os checks passaram');

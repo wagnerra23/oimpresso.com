@@ -103,6 +103,27 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **[BACKLOG]** Os efeitos colaterais de uma transição (`ReservarEstoque`, `ConsumirEstoque`…) são exibidos **antes** de executá-la.
 - **[BACKLOG]** `parseBR('204.99605')` devolve `204.99605` e **não** `20499605` — o guard do incidente `num_uf` (separador de milhar tem sempre 3 dígitos), e `submitSafe` arredonda a 2 casas antes de qualquer submit.
 
+### Lançamento do item (onda 1 — modal `LancarItem`)
+
+- **[BACKLOG]** A **unidade do cadastro** decide se a quantidade é derivada ou digitada — não um checkbox: `m²` pede peças+altura+largura, `m³` acrescenta espessura, `m` usa só a largura, e qualquer outra unidade pede a quantidade direto.
+- **[BACKLOG]** Quantidade faturada de item dimensional é `peças × área da peça`, **nunca digitada** — o campo não existe nesse modo.
+- **[BACKLOG]** Desconto e acréscimo incidem sobre o **preço unitário**, nunca sobre o total — aplicar sobre o total daria outro número quando a quantidade é fracionada, que é o caso normal em item dimensional.
+- **[BACKLOG]** Preço abaixo de **85% da tabela** sai da alçada do vendedor e é sinalizado; no empate exato o erro é pedir liberação a mais, nunca deixar passar preço baixo demais.
+- **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
+- **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
+
+> **Duas divergências CONSCIENTES do handoff, e as duas são de arredondamento.**
+> O handoff aplica `submitSafe` (2 casas — o guard de **dinheiro**) na área da peça
+> e na quantidade faturada. Medido no harness: uma tira de `0,50 × 0,004 m` dá
+> `0,002 m²`, que com 2 casas vira **zero** — quantidade zero, total zerado, e o
+> botão "Adicionar à venda" desabilitado, isto é, **o item não entra na venda**.
+> Medida não é dinheiro: a área não arredonda e a quantidade arredonda a 4 casas
+> (`CASAS_DE_MEDIDA`). O guard do `num_uf` continua **intacto** onde é dele — preço
+> unitário e total do item seguem em `submitSafe`.
+> Provado por dois caminhos antes de aplicar (REGRA MESTRE valor/estoque): função
+> real × aritmética à mão (19/19) e tabela antes→depois, com controle de que o caso
+> normal não se move — `lona 5× 0,50×5,00m` dá `12,5000` nos dois.
+
 > ⚠️ **Item retirado em 2026-08-10, e a razão importa mais que o item.**
 > Havia aqui um `[BACKLOG]` dizendo *"nenhum número exibido é calculado no front
 > nem no controller: os valores de `fechamento` são strings já formatadas"*. Ele
