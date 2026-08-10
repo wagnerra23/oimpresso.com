@@ -578,5 +578,6 @@
     "memory/requisitos/Officeimpresso/README.md": 3,
     "memory/requisitos/ProductCatalogue/README.md": 2,
     "memory/requisitos/Woocommerce/CHANGELOG.md": 1
-  }
+  },
+  "_marcador": "BASELINE-ABSORB registrado no commit que toca este arquivo (PR #5548)."
 }
