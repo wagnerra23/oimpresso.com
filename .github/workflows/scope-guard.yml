@@ -16,12 +16,22 @@ on:
       # SCOPE (foi assim que o BriefController ficou 7 semanas listado). Por isso
       # o gatilho precisa alcancar qualquer .php do modulo, nao so Controllers.
       - 'Modules/**/*.php'
+      # Sem estas duas, o guard NAO roda no proprio PR que o altera — mudanca no
+      # classificador ou no wiring entraria sem nunca ser exercitada. Mesmo padrao
+      # do knowledge-ghost-gate, que lista o .mjs e o proprio .yml.
+      - 'bin/check-scope.php'
+      - '.github/workflows/scope-guard.yml'
   push:
     branches: [main]
     paths:
       - 'Modules/**/Http/Controllers/**.php'
       - 'Modules/**/SCOPE.md'
       - 'Modules/**/*.php'
+      # Sem estas duas, o guard NAO roda no proprio PR que o altera — mudanca no
+      # classificador ou no wiring entraria sem nunca ser exercitada. Mesmo padrao
+      # do knowledge-ghost-gate, que lista o .mjs e o proprio .yml.
+      - 'bin/check-scope.php'
+      - '.github/workflows/scope-guard.yml'
 
 jobs:
   check-scope:
