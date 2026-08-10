@@ -108,7 +108,19 @@ jobs:
         # Arquivos). Cada novo teste MySQL-only do Arquivos é adicionado AQUI
         # (ratchet up). NÃO incluir arquivos com RefreshDatabase/migrate:fresh —
         # eles dropam o schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
-        # Os 3 aqui usam DB::table()/factory + cleanup no afterEach (sem refresh).
+        # Os daqui usam DB::table()/factory + cleanup no afterEach (sem refresh).
+        #
+        # +5 em 2026-08-10 (eixo 2 do test-lane-coverage · `--mudos`): os 5 abaixo têm
+        # guard `if sqlite → markTestSkipped` e a ÚNICA lane que os alcançava era o
+        # modules-pest.yml, que roda sqlite :memory: ⇒ pulavam 100% das vezes, e skip
+        # sai exit 0 (verde que não prova nada). Entram AQUI, que é o lar declarado do
+        # ratchet MySQL-only do Arquivos. Conferido antes de entrar: nenhum usa
+        # RefreshDatabase/migrate:fresh/dropIfExists; 4 têm afterEach de cleanup e o
+        # ConsumersTraitTest escreve 0 linhas (reflexão sobre models com BusinessScope).
+        # NÃO foram provados verdes antes: o CT 100 está fora do ar e esta lane é o 1º
+        # lugar onde eles rodam — entram DECLARADOS como não-provados, não como verde
+        # herdado. Se avermelharem, é dívida acumulada que estava invisível, não
+        # regressão deste PR.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -123,7 +135,12 @@ jobs:
             Modules/Arquivos/Tests/Feature/AuditLogActionEnumTest.php \
             Modules/Arquivos/Tests/Feature/AuditLogCommandTest.php \
             Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
-            Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php
+            Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
+            Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
+            Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
+            Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php \
+            Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
+            Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
