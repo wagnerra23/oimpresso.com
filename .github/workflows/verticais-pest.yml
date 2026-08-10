@@ -126,10 +126,30 @@ jobs:
         # e vira dívida declarada neste comentário — ligar vermelho permanente numa
         # lane advisory só ensina o time a ignorá-la.
         #
-        # ⚠️ Ao ler o resultado: conferir a CONTAGEM de passed no sumário JUnit, não
-        # só o check verde. Arquivo com passed=0 (guard secundário, ex "tabela
-        # missing") também sai verde no console — foi o caso do
-        # Fiscal/NfseCockpitControllerTest na lane do NfeBrasil.
+        # ERAM 13 CANDIDATOS. Rodados de verdade pela 1ª vez (run 31427231686 ·
+        # 11 failed, 15 skipped, 67 passed), 6 vieram verdes e entram (44 passed):
+        #   ComunicacaoVisual/Tier0GuardTest(13) · MigrationsTest(10) · MultiTenantTest(7)
+        #   Vestuario/SmokeRoutesVestuarioTest(6) · Repair/ProducaoOficinaRefactorTest(5)
+        #   Repair/DeviceModelsInertiaSmokeTest(3)
+        #
+        # ✅ 2 dos 3 guards Tier 0 (ADR 0093) do lote passaram e agora defendem de
+        #    verdade: ComunicacaoVisual/MultiTenantTest e Tier0GuardTest.
+        #
+        # FICAM DE FORA — 6 com dívida real, agora VISÍVEL e datada:
+        #   ComunicacaoVisual: ContratoTelaOrcamento(1 fail+1 erro) · CustomerJourney(2 erros)
+        #     · MaterialSeeder(1 erro) · OrcamentoController(1 fail)
+        #   Vestuario: GradeAvancadaMultiTenant(4 erros — ⚠️ Tier 0, segue mudo) ·
+        #     VestuarioSettingsCommand(1 fail de 14)
+        #
+        # FICA DE FORA por OUTRO motivo — Repair/JobSheetObserverTest: passed=0,
+        #   skipped=9. Guard secundário o faz pular mesmo em MySQL ⇒ incluí-lo não o
+        #   tiraria do mudo (fantasma de 2ª ordem, igual ao
+        #   Fiscal/NfseCockpitControllerTest na lane do NfeBrasil).
+        #
+        # ⚠️ O veredito por arquivo saiu do SUMÁRIO JUnit, não do console — e a
+        # diferença importou: o console marcou os 3 do Repair como WARN, mas 2 deles
+        # estão VERDES (têm casos pulados junto dos que passam). Confiar no console
+        # teria excluído 2 arquivos bons. Arquivo com passed=0 também sai verde lá.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -141,19 +161,12 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit.xml \
-            Modules/ComunicacaoVisual/Tests/Feature/ContratoTelaOrcamentoTest.php \
-            Modules/ComunicacaoVisual/Tests/Feature/CustomerJourneyTest.php \
-            Modules/ComunicacaoVisual/Tests/Feature/MaterialSeederTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/MigrationsTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/MultiTenantTest.php \
-            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoControllerTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
-            Modules/Repair/Tests/Feature/JobSheetObserverTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
-            Modules/Vestuario/Tests/Feature/GradeAvancadaMultiTenantTest.php \
-            Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
-            Modules/Vestuario/Tests/Feature/VestuarioSettingsCommandTest.php
+            Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
