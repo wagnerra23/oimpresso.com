@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Forja/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 211 arquivos em 15 papéis.
+**Total mapeado:** 212 arquivos em 15 papéis.
 
 ## Controllers — 26
 
@@ -188,9 +188,9 @@ module: Forja
 - [Index.casos.md](../../../resources/js/Pages/Forja/Trabalho/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Forja/Triage/Index.casos.md)
 
-## Testes (Pest) — 54
+## Testes (Pest) — 55
 
-- 53 em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature)
+- 54 em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature)
 - 1 em [Modules/Forja/Tests/Feature/Roadmap/](../../../Modules/Forja/Tests/Feature/Roadmap)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

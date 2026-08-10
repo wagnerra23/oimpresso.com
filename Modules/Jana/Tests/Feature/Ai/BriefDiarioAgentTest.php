@@ -234,6 +234,45 @@ it('R-COPI-202-004 — Agent declara 5 tools + instructions contém business_id 
         ->and($instructions)->toContain('NUNCA invente');
 });
 
+/**
+ * Regressão do smoke real de 2026-08-09 (biz=1, chat /ia/conversa).
+ *
+ * O brief entregue ao cliente trazia três defeitos que NASCEM neste prompt:
+ *   1. rodapé prometendo "próximo brief: amanhã, 8h" — NÃO existe cron pro brief
+ *      do negócio. Medido: `brief:generate` no Kernel alimenta `mcp_briefs`
+ *      (ADR 0091, brief de GOVERNANÇA); o `BriefDiarioAgent` só é invocado por
+ *      `BriefDiarioChatTrigger`/`ProController`, sob demanda. Classe LC-15
+ *      (mecanismo anuncia o que não implementa) — e esta estava na cara do cliente.
+ *   2. tabela com o texto de exemplo ("PRODUTO BEST-SELLER", saídas 0) + sugestão
+ *      de campanha escrita POR CIMA da linha zerada.
+ *   3. animação de compensação sobre zeros + projeção "0 vendas/dia → ±0%".
+ *
+ * A raiz do (2) e do (3) era CONTRADIÇÃO no próprio prompt: ele manda
+ * "ESTRUTURA CANÔNICA OBRIGATÓRIA" e, 100 linhas abaixo, "se tool retornou
+ * vazio/zero, OMITA seção". O modelo resolveu a favor da estrutura. O conserto
+ * declara a precedência em vez de repetir a regra.
+ *
+ * O assert FORTE aqui é a AUSÊNCIA da promessa (é o defeito que shipou); os de
+ * presença apenas pinam o conserto e são deliberadamente secundários.
+ */
+it('R-COPI-202-006 — instructions não prometem cadência e mandam omitir seção sem dado', function () {
+    $instructions = (string) (new BriefDiarioAgent(businessId: 42))->instructions();
+
+    // (1) A promessa exata que foi entregue ao cliente não pode voltar.
+    expect($instructions)->not->toContain('próximo brief: amanhã');
+
+    // ...nem variantes de cadência — não existe agendamento deste brief.
+    foreach (['amanhã, 8h', 'toda segunda', 'diariamente às', 'todo dia às'] as $promessa) {
+        expect(str_contains($instructions, $promessa))->toBeFalse();
+    }
+
+    // (2) e (3): a precedência e as duas travas do conserto.
+    expect($instructions)->toContain('VENCE a "ESTRUTURA CANÔNICA OBRIGATÓRIA"')
+        ->and($instructions)->toContain('SEM MOVIMENTO')
+        ->and($instructions)->toContain('NÃO PROMETA ENTREGA FUTURA')
+        ->and($instructions)->toContain('OMITA a seção inteira');
+});
+
 it('R-COPI-202-005 — Agent com fakeAgent retorna response controlada (loop fechado)', function () {
     Ai::fakeAgent(BriefDiarioAgent::class, [
         '## ☀️ Bom dia!'.PHP_EOL.PHP_EOL.'### 📊 Vendas'.PHP_EOL.'Brief gerado em modo fake.',
