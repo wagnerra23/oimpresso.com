@@ -254,9 +254,25 @@ it('UC-TRAB-11 — agentes() lista SÓ ator ai_agent ativo, em lowercase', funct
     // É allowlist, não heurística de nome: quem não está aqui é humano. Logo os
     // três erros possíveis são (a) deixar humano entrar, (b) deixar revogado
     // entrar, (c) errar o case e o front nunca casar o owner.
-    $ativo    = McpActor::create(['slug' => 'AgenteFixtura', 'type' => 'ai_agent', 'trust_level' => 'L0']);
-    $revogado = McpActor::create(['slug' => 'agente-revogado-fixtura', 'type' => 'ai_agent', 'trust_level' => 'L0', 'revoked_at' => now()]);
-    $humano   = McpActor::create(['slug' => 'humano-fixtura', 'type' => 'human', 'trust_level' => 'L0']);
+    // `mcp_actors` exige os 5 JSON de capability + display_name (NOT NULL sem
+    // default) — coluna JSON no MySQL 8 carrega CHECK implícito `json_valid`,
+    // então omitir não dá "null", dá violação de constraint.
+    $ator = fn (string $slug, string $type, ?string $revogadoEm = null) => McpActor::create([
+        'slug'            => $slug,
+        'type'            => $type,
+        'trust_level'     => 'L0',
+        'display_name'    => $slug,
+        'modules_write'   => [],
+        'modules_read'    => [],
+        'modules_blocked' => [],
+        'skills_required' => [],
+        'actions_blocked' => [],
+        'revoked_at'      => $revogadoEm,
+    ]);
+
+    $ativo    = $ator('AgenteFixtura', 'ai_agent');
+    $revogado = $ator('agente-revogado-fixtura', 'ai_agent', now()->toDateTimeString());
+    $humano   = $ator('humano-fixtura', 'human');
 
     $lista = app(TrabalhoService::class)->agentes();
 
