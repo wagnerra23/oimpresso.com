@@ -1,0 +1,49 @@
+{
+  "_nota": "Contrato de tela do Painel da Jana (/ia). Segundo contrato ATIVO do repo — o primeiro é caixa-unificada. Roda no CI advisory via contrato-de-tela.yml. Ver RUNBOOK-contrato-de-tela.md.",
+  "tela": "Jana/Index",
+  "fonte": "resources/js/Pages/Jana/Index.tsx (a tela viva — esta tela NÃO tem protótipo)",
+  "_nota_fonte": "A âncora ERA `prototipo-ui/cowork/chat-jana.jsx` e foi REMOVIDA do charter em 2026-08-10 (lápide §5 do mesmo dia). Aberto no navegador, aquele protótipo se identifica como `OFFICEIMPRESSO · biz=164 · v1404 legacy migrado` — biz=164 é o Martinho, da OficinaAuto — e traz o KPI `Frota utilização` mais `caçambas` no texto. Veredito [W] 2026-08-10, textual: 'Frota utilização são alucinação, ninguém usa até a presente data'. Medido: interseção de vocabulário com a tela viva = 1 de 10 termos (10%), contra 80% do par bom `Compras/Index` — e o único termo comum era a string stale 'jana dashboard'. Por isso a copy deste contrato deriva da TELA VIVA, não de protótipo: o charter agora declara `n/a (herda PT-04 Dashboard; segue o Padrão de Tela)`.",
+  "alvo": ["resources/js/Pages/Jana/Index.tsx"],
+
+  "secoes": [
+    {
+      "id": "painel-cta-conversar",
+      "_papel": "ação primária da tela — o charter diz que a Jana conversa, não que ela decide sozinha",
+      "copy": ["Conversar agora"]
+    },
+    {
+      "id": "painel-metas-header",
+      "_papel": "cabeçalho do bloco de metas",
+      "copy": ["Metas ativas", "Acompanhamento contínuo"]
+    },
+    {
+      "id": "painel-metas-vazio",
+      "_papel": "estado vazio — hoje é o estado REAL de 100% dos tenants (0 metas cadastradas em qualquer business, medido 2026-08-09)",
+      "copy": ["Nenhuma meta cadastrada ainda", "Conversar com a Jana"],
+      "estados": ["vazio", "com-metas", "aguardando-apuracao"]
+    },
+    {
+      "id": "painel-meta-apurando",
+      "_papel": "meta cadastrada mas sem apuração ainda — não pode mostrar zero como se fosse resultado",
+      "copy": ["Aguardando apuração…"]
+    },
+    {
+      "id": "painel-meta-sem-historico",
+      "_papel": "sparkline sem série — mesma regra: ausência de dado se declara, não se desenha como zero",
+      "copy": ["Sem histórico"]
+    }
+  ],
+
+  "ordem": [
+    "painel-cta-conversar",
+    "painel-metas-header",
+    "painel-metas-vazio"
+  ],
+
+  "_pendente_w": [
+    "TÍTULO DA TELA: hoje o AppShellV2 recebe `title=\"Jana — Dashboard\"` e o breadcrumb diz `Dashboard`, mas a aba se chama **Painel** desde a onda 3 da US-COPI-148 (2026-08-07) e a rota virou `/ia`. Sobrou 'Dashboard' em 2 lugares. Qual é a palavra? (Se for 'Painel', entra como seção `painel-titulo` neste contrato.)",
+    "DOIS BOTÕES '(em breve)': `title=\"Configurar Brain B Jana (em breve)\"` e `title=\"Exportar relatório (em breve)\"`. É a MESMA classe do rodapé do brief que prometia 'próximo brief: amanhã, 8h' — promessa sem data que o produto não cumpre. Some, vira `disabled` com o motivo, ou entrega? Enquanto não decidido, NÃO entram no contrato: pinar uma promessa é congelá-la."
+  ],
+
+  "_nota_ancoras": "Nenhuma âncora `data-contract` existe hoje no `Index.tsx` — o gate acusa até serem adicionadas. Adicioná-las é trabalho do agente (é wiring), não de [W]. O que é de [W] é a COPY e a ORDEM acima."
+}
