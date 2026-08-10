@@ -68,7 +68,7 @@ Score D7 estimado: 1/10 → 10/10.
 
 - **CAPTERRA-FICHA.md** canônica — concorrentes (Mubisys, Zênite, Calcgraf, Bling Gráfica), top 5 gaps P0 (US-COMVIS-005..009), score V1-V6 W22→W23 (41.5→≥85) — **gap maior do bucket**.
 - **Wave23ComVisSaturationTest.php** — Pest saturação V1/V4/V5/V6 com 12 assertions cobrindo entities Orcamento/Os/Apontamento, retention 1825d 5y (CCom Art. 195 + Portaria 671), right_to_be_forgotten LGPD Art. 18 VI, governance.bucket=vertical_client_facing + audit_log_entities canon.
-- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md)) com `scoped_score_target: 85`, `wave_23_saturation: true`.
+- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)) com `scoped_score_target: 85`, `wave_23_saturation: true`.
 
 ### Changed
 

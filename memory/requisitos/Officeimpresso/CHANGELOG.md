@@ -12,7 +12,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver]
 
 - **CAPTERRA-FICHA.md** canônica — concorrentes (Mubisys, Sigma Soft, Calcgraf), top 5 gaps P0 (G1 LicencaImporter idempotente, G2 dashboard saúde, G3 retention-purge command, G4 onboarding wizard, G5 API REST/webhooks), score V1-V6 W22→W23 (60→≥85).
 - **Wave23OfficeimpressoSaturationTest.php** — Pest saturação V1/V4/V5/V6 com 12 assertions cobrindo entities LicencaLog/LicencaComputador, ParseLicencaLogCommand idempotência (offset cursor), retention granular por evento (api_call 365d, admin_actions 2555d CC Art. 206), middleware LogDelphiAccess/LogDesktopAccess, governance.bucket=vertical_client_facing + FSM N/A justificado.
-- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md)) com `scoped_score_target: 85`, `wave: 23`, `wave_23_saturation: true`.
+- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)) com `scoped_score_target: 85`, `wave: 23`, `wave_23_saturation: true`.
 
 ### Changed
 

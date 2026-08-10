@@ -52,7 +52,7 @@ Fecha os 3 gaps urgentes da auditoria estado-da-arte FSM screen ([memory/session
 
 - **CAPTERRA-FICHA.md** canônica — concorrentes (Mecânico, Auto Manager, Lokoz, Bling Oficina, GP Soft Auto), top 5 gaps P0 (US-OFICINA-006/008/009/010/011), score V1-V6 W22→W23 (63→≥85).
 - **Wave23OficinaAutoSaturationTest.php** — Pest saturação V1/V4/V5/V6 com 11 assertions cobrindo Vehicle + ServiceOrder + FormRequests Store/Update, LGPD PII fields tracked (plate/chassis/renavam), MATRIZ-ROI presença, governance.bucket=vertical_client_facing + FSM canon `service_order`.
-- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md)) com `scoped_score_target: 85`, `wave: 23`, `wave_23_saturation: true`.
+- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)) com `scoped_score_target: 85`, `wave: 23`, `wave_23_saturation: true`.
 
 ### Changed
 

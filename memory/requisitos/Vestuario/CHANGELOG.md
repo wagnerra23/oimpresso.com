@@ -52,7 +52,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver]
 
 - **CAPTERRA-FICHA.md** canônica — concorrentes (Linx Microvix, ProMoz, Vendizap, Bling Loja, F360), top 5 gaps P0 (US-VEST-020/021/022/023/029), score V1-V6 W22→W23 (67→≥85).
 - **Wave23VestuarioSaturationTest.php** — Pest saturação V1/V4/V5/V6 com 11 assertions cobrindo CAPTERRA-FICHA presença, retention 365d+ anonymize, ADR 0066 format_date shift +3h preservado, governance.bucket=vertical_client_facing.
-- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md)) com `scoped_score_target: 85`, `wave_23_saturation: true`.
+- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)) com `scoped_score_target: 85`, `wave_23_saturation: true`.
 
 ### Changed
 
