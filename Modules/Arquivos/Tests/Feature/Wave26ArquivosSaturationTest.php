@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * + D9 spans count adicional (arquivos.dedupe_lookup novo).
  *
  * @see Modules/Arquivos/README.md
- * @see Modules/Arquivos/CHANGELOG.md
+ * @see memory/requisitos/Arquivos/CHANGELOG.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0123-modules-arquivos-backbone.md
  */
