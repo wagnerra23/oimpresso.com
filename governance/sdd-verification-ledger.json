@@ -1410,6 +1410,24 @@
       "error_rate_pct": 0,
       "veredito": "aprovado",
       "nota": "LOTE DETERMINISTICO, nao geracao por LLM: os 23 SUPERFICIE.md sao artefato DERIVADO, regenerado por module-surface.mjs --all --write a partir da arvore git. A mudanca a mao e 1 linha (papel Views (Blade): listar false -> true) + 6 de comentario. O gate detecta PR-de-lote por CONTAGEM DE ARQUIVOS (>10 em memory/requisitos), nao por proveniencia; o §1 do protocolo escreve o escopo como \"gerado por IA em batch\", que nao e o caso aqui. NAO me auto-isentei: cumpri o protocolo integralmente. DENOMINADOR: 634 = os links blade gerados (populacao anchor-like, §2.5 manda 100% para anchors), todos verificados como resolvendo para arquivo existente. O refutador estruturou o trabalho em 5 eixos adversariais; com 0 erros o error_rate e 0 em qualquer denominador, entao a escolha nao muda o veredito — fica declarada para nao parecer inflada. O QUE O REFUTADOR TENTOU E NAO CONSEGUIU: provar redundancia. Achou que _Geral/SUPERFICIE.md ja lista Blade por arquivo, mas so dos papeis Componentes compartilhados (Blade) e Layouts herdados (Blade), que tem regex proprios e casam antes na ordem do PAPEIS — populacao DISTINTA da do papel Views (Blade). Ressalva registrada, nao derruba. ACHADO NAO-BLOQUEANTE: as 2 linhas do PAINEL-SISTEMA sao staleness do MAIN (system-map --check em origin/main limpo = rc 1), nao efeito da mudanca Blade; o lote absorve e deixa rc 0. COLISAO DECLARADA: PR #5501 (outra sessao, 22:03Z, 24min mais antigo) reescreve AS MESMAS linhas nos mesmos ~23 arquivos. Ordem acordada no Dedup-ack: #5501 primeiro; este rebaseia e regenera depois. O comentario do #5501 (\"nao despejar 87 blades\") contradiz o rationale deste PR e ficara stale — reconciliar no rebase."
+    },
+    {
+      "pr": 5547,
+      "data": "2026-08-10",
+      "tipo": "prosa",
+      "gerador": "claude-opus-5 (Anthropic)",
+      "refutador": "fable-5 (Anthropic) — tier SUPERIOR a opus, §2.3; subagente em sessao fresca, zero contexto do gerador",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/5547 — relatorio do refutador no corpo do PR (6 eixos: perda, invencao, reescrita byte-a-byte, YAML com parser real, ordem/semantica, refs Pest) + scan PII com CONTROLE POSITIVO (5/5 padroes detectados em linha sintetica, entao o zero e medicao, nao cegueira)",
+      "lote_id": "MEM-changelog-fusao-15-5547",
+      "itens_verificados": 42,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "veredito": "aprovado",
+      "nota": "LOTE DE MOVIMENTACAO, nao geracao por LLM: o conteudo nao foi escrito por IA — foi MOVIDO. Os 15 CHANGELOG de Modules/<X>/ foram fundidos nos de memory/requisitos/<X>/ e deletados na origem. O §1 do protocolo escreve o escopo como \"gerado por IA em batch\", que nao e o caso; o gate detecta PR-de-lote por CONTAGEM (>10 em memory/requisitos), nao por proveniencia. NAO me auto-isentei: cumpri o protocolo integralmente (mesmo precedente da entry #5502). AMOSTRA 100% (15/15), acima do minimo de 30% para tipo prosa. DENOMINADOR 42 = 15 fusoes + 21 refs Pest + 4 consumidores de maquina + 1 claim do header + 1 scan PII. A PROVA MAIS FORTE que o refutador construiu: A e B aparecem no destino como substring byte-identica CONTIGUA (nao so \"linhas presentes\"), o que torna reescrita silenciosa de data/numero/US impossivel por construcao; git diff --stat dos 15 destinos = 1604 insercoes, 0 delecoes. O QUE ELE PEGOU (bookkeeping meu, corrigido no mesmo PR): (1) o corpo do PR dizia \"21 refs em 15 arquivos\" — o real e 20 reescritas + 1 REMOVIDA (colapso de 2 it() em 1 no ComVis Wave25, legitimo e comentado no proprio teste) em 16 arquivos; (2) o header de fusao dizia sobreposicao \"0-2 de 2-7\" — o overlap 0-2 confere 15/15 (max 2, em ComVis e KB), mas o denominador por lado varia de 1 a 7, nao 2 a 7. Nenhum dos dois toca o conteudo fundido. HONESTIDADE DO REFUTADOR: ele declarou ter corrigido o proprio instrumento no meio do trabalho (primeiro levantamento usou git diff de 2 pontos com main 7 commits a frente, mostrando 55 arquivos que incluiam trabalho alheio; refez com merge-base = 46 reais) e afirmou que nenhuma conclusao de conteudo saiu do diff errado."
     }
   ]
 }
