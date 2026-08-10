@@ -200,6 +200,28 @@ repo-wide, e o gate está verde em todos.
 
 ---
 
+## CLUSTER E-ter — raiz do módulo (5 arquivos restantes, lidos 2026-08-10)
+
+| # | Arquivo | Problema |
+|---|---|---|
+| 31 | `Modules/Jana/module.json` | ✅ O campo `description` — **o primeiro texto que qualquer pessoa ou agente lê sobre o módulo** — afirma: *"URL/permissions/config keys mantêm prefixo legacy `copiloto.*` por compatibilidade."* **Falso em 2 de 3:** o prefixo de URL é **`ia`** (`Http/routes.php:51`, ADR 0180) · as permissões são **22 keys, todas `jana.*`**, zero `copiloto` (a migration `2026_05_09_140000_rename_copiloto_permissions_to_jana` já renomeou). **Só `config keys` procede** — medido: **201** usos de `config('copiloto.` × **28** de `config('jana.` |
+| 32 | `Modules/Jana/CHANGELOG.md` | ✅ Última entrada de conteúdo é **Wave 25, 2026-05-16**. A política declarada no próprio arquivo diz *"Toda US/feature significativa que tocar `Modules/Jana/` ganha entry aqui"*. Medido (clone completo): **246 commits** tocaram `Modules/Jana` desde 17/05; o CHANGELOG foi tocado **2 vezes**. Ficaram de fora, entre outras, as 4 ondas da `US-COPI-148` (fusão das telas), a onda 5 e a remoção do `JanaCockpitV2` |
+
+**Sem defeito:** `start.php` (15 ln, faz só o `require` das rotas, declarado em `module.json "files"`)
+· `composer.json` · e as declarações **estruturais** do `module.json`, que conferi uma a uma e
+estão **corretas**: `d4_audit.service` → `JanaAuditService` existe; as **18** entities de
+`d1_overrides.cross_tenant_by_design` existem todas.
+
+`LICOES-OPERACAO.md` não é gap — é working doc **proposto** (§10.4), aguardando aprovação [W]
+por desenho próprio.
+
+> **A cadeia causal que o #31 fecha:** os gaps **#23** e **#24** são charters declarando
+> `copiloto.access` e `copiloto.memoria.manage`. Isso é **exatamente o que o `module.json`
+> afirma**. A descrição stale é a origem plausível das permissões fantasma — mesmo padrão do
+> `JanaCockpitV2`, onde cada doc herdou do anterior sem reabrir a fonte.
+
+---
+
 ## CLUSTER F — Já declarado em canon (confirmado, não é achado novo)
 
 | # | Arquivo | Problema |
