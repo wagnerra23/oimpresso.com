@@ -110,17 +110,31 @@ jobs:
         # eles dropam o schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
         # Os daqui usam DB::table()/factory + cleanup no afterEach (sem refresh).
         #
-        # +5 em 2026-08-10 (eixo 2 do test-lane-coverage · `--mudos`): os 5 abaixo têm
+        # +3 em 2026-08-10 (eixo 2 do test-lane-coverage · `--mudos`): os 3 abaixo têm
         # guard `if sqlite → markTestSkipped` e a ÚNICA lane que os alcançava era o
         # modules-pest.yml, que roda sqlite :memory: ⇒ pulavam 100% das vezes, e skip
         # sai exit 0 (verde que não prova nada). Entram AQUI, que é o lar declarado do
-        # ratchet MySQL-only do Arquivos. Conferido antes de entrar: nenhum usa
-        # RefreshDatabase/migrate:fresh/dropIfExists; 4 têm afterEach de cleanup e o
-        # ConsumersTraitTest escreve 0 linhas (reflexão sobre models com BusinessScope).
-        # NÃO foram provados verdes antes: o CT 100 está fora do ar e esta lane é o 1º
-        # lugar onde eles rodam — entram DECLARADOS como não-provados, não como verde
-        # herdado. Se avermelharem, é dívida acumulada que estava invisível, não
-        # regressão deste PR.
+        # ratchet MySQL-only do Arquivos. Nenhum usa RefreshDatabase/migrate:fresh/
+        # dropIfExists; ConsumersTraitTest escreve 0 linhas (reflexão sobre models).
+        #
+        # ERAM 5 CANDIDATOS. Rodados de verdade pela 1ª vez (run 31411208410), 2 ficaram
+        # VERMELHOS e por isso NÃO entram — a catraca é "allowlist VERDE", e ligar um
+        # vermelho permanente numa lane advisory só ensina o time a ignorá-la:
+        #
+        #   RetentionCleanupCommandTest (5 falhas) — NÃO é defeito do teste: é BUG DE
+        #     PRODUÇÃO. RetentionCleanupCommand.php:124 abre a closure com
+        #     `use ($dryRun, $retentionDays, &$stats)` e usa `$businessId` na :194, que
+        #     nunca foi capturado ⇒ `Undefined variable $businessId`. O comando crasha
+        #     sempre que HÁ linha a limpar (com 0 linhas o chunk nem chama a closure —
+        #     por isso passava despercebido). Não está agendado no Kernel, então o raio
+        #     é invocação manual. Fix é 1 linha, mas é outra intent: PR próprio.
+        #
+        #   ExportZipCommandTest (4 falhas) — saída do comando veio VAZIA onde o teste
+        #     espera o path do .zip (ExportZipCommandTest.php:163). Ainda NÃO
+        #     diagnosticado; pode ser o ambiente da lane (tmp/Storage) ou bug real.
+        #
+        # Os dois seguem mudos até serem tratados — dívida agora VISÍVEL e datada, em
+        # vez de verde-fantasma.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -138,9 +152,7 @@ jobs:
             Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
             Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
             Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
-            Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php \
-            Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
-            Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php
+            Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
