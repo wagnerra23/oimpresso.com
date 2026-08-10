@@ -35,8 +35,27 @@ authors: [claude]
 Base: `origin/main` @ `58b177ed790`, clone completo (`--is-shallow-repository=false`).
 Dois adversários read-only independentes (backend / frontend+rotas) + verificação minha por cima.
 
-Universo backend: **555 arquivos** em `Modules/Jana`, dos quais **291 classes de produção**
-medidas uma a uma. Universo frontend: **4 Pages + 6 componentes + rotas + charters/casos**.
+### ⚠️ COBERTURA REAL — 54%, e as lacunas não são rodapé
+
+`git ls-files Modules/Jana` = **555 arquivos**. O que foi auditado:
+
+| Área | Arquivos | Auditado? |
+|---|---:|---|
+| Código de produção | **305** | ✅ **sim** — 291 classes uma a uma + 14 não-classe (9 blades, 3 configs, `permissions.php`, `topnav.php`) |
+| `Tests/` | **159** | ❌ **NÃO** |
+| `Database/` (81 migrations + 4 seeders) | **85** | ❌ **NÃO** |
+| Raiz (`SCOPE.md`, `CHANGELOG.md`, `LICOES-OPERACAO.md`, `module.json`, `composer.json`, `start.php`) | **6** | ❌ **NÃO** (exceto `SCOPE.md`, coberto depois — ver #30) |
+
+**Por que as duas primeiras lacunas importam mais do que o número sugere:**
+
+- **`Tests/` (159)** — este doc prova **código morto com teste verde** (4 casos nomeados). Auditar
+  produção e não auditar teste é medir **metade do laço**: o eixo LC-13 (teste que não roda, ou que
+  cobre código morto) está inteiro aqui dentro, não medido.
+- **`Database/` (85)** — as migrations de `mcp_skill_approvals`, `mcp_automation_runs` e
+  `mcp_skill_test_runs` estão nesse conjunto. São exatamente as tabelas que este doc prova
+  **sem escritor**. A dívida de schema correspondente **não foi levantada**.
+
+Universo frontend: **4 Pages + 6 componentes + rotas + charters/casos** — completo.
 
 **Confiança por linha:**
 - ✅ **verificado por mim**, independente do agente, com controle positivo no instrumento
@@ -155,6 +174,29 @@ ninguém reabriu** — a mesma forma do `JanaCockpitV2`.
 | 25 | `resources/js/Pages/Jana/components/FabJana.tsx` | 🔶 Monta `/ia/conversa?context=<rota>` e **ninguém lê** o parâmetro (`ChatController@index` não toca `query('context')`; zero `URLSearchParams` em `Pages/Jana/**`, com controle positivo de 20 arquivos no resto do JS). Agravante: `Index.tsx` passa `contextRoute="/ia/dashboard"`, URL que virou **301 → /ia** |
 | 26 | `memory/requisitos/Jana/RUNBOOK-governanca-mcp.md` | 🔶 `status: ativo` descrevendo tela que **saiu pro Governance** em 05/08 (rota hoje é 301). Cita `/copiloto/admin/governanca` |
 | 27 | `memory/requisitos/Jana/RUNBOOK-qualidade-admin.md` | 🔶 Idem — `status: ativo`, tela migrada, cita `/copiloto/admin/qualidade`. **Assimetria**: os irmãos `RUNBOOK-cockpit.md` e `RUNBOOK-custos-admin.md` foram corretamente marcados `arquivado` com lápide |
+
+---
+
+## CLUSTER E-bis — a FONTE PRIMÁRIA do módulo aponta pra um módulo deletado
+
+| # | Arquivo | Problema |
+|---|---|---|
+| 30 | `Modules/Jana/SCOPE.md` | ✅ O `not_contains` roteia **duas capacidades** pra um destino que não existe: *"Skills governance → **Modules/ADS**"* e *"Decision flow → **Modules/ADS**"*. `Modules/ADS` foi **removido** pela [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) (§5 2026-08-02) — o núcleo foi pro Governance, partes pra Forja/Jana. O `contains` está **correto** (10 de 10 controllers existem, conferido um a um) |
+
+**Por que ninguém viu — duas cegueiras estruturais sobre o arquivo que a
+[`.claude/rules/modules.md`](../../../.claude/rules/modules.md) chama de FONTE PRIMÁRIA:**
+
+1. **O corpus do `knowledge-drift` é `memory/`** (medido: `REQ = join(ROOT,'memory','requisitos')`,
+   `MEM = join(ROOT,'memory')`). **`Modules/*/SCOPE.md` está fora dele por construção** — o gate
+   anti-ghost não pode ver esta citação, nem em princípio.
+2. **Nenhuma máquina compara `contains` com a árvore.** Isso não é dedução minha — **o próprio
+   `SCOPE.md` confessa**, num comentário sobre o `BriefController`: *"Ficou listado aqui por ~7
+   semanas depois de deixar de existir — nenhuma máquina compara `contains` com a árvore, então o
+   SCOPE apodreceu calado."*
+
+**Escala medida (fora do escopo deste doc, registrado pra não virar "descoberta" futura):**
+**4 SCOPE.md** citam `Modules/ADS` — `Forja`, `Governance`, `Jana`, `KB`. É a mesma classe,
+repo-wide, e o gate está verde em todos.
 
 ---
 
