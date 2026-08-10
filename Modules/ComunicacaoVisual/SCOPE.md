@@ -12,6 +12,10 @@ contains:
   - "Entities/InstalacaoCatalogo (cv_instalacoes_catalogo)"
   - "Entities/OrdemProducao (cv_ordens_producao + FSM canon ADR 0143)"
   - "Entities/Instalacao (cv_instalacoes)"
+  # Mora em `database/seeders/` (convenção do projeto pros seeders de FSM canon), NÃO sob
+  # Modules/ComunicacaoVisual/ — o SDD §5.4.5 já registra isso. Path anotado em 2026-08-10
+  # porque a ausência sob o módulo já foi lida como "nunca construído": é código real,
+  # criado em #676 (2026-05-12) e exercitado por 6 pontos do Tier0GuardTest.
   - "FsmProcessoComunicacaoVisualSeeder (16 stages + 10 roles per-business)"
 not_contains:
   - "Kanban shared infra → Modules/Repair (consumido via repair_settings)"
