@@ -115,7 +115,7 @@ consumido por **≥2 módulos** mora em `shared/`.
 texto cinza e prioridade em badge de texto — **tendo os dois componentes prontos a um import de
 distância**, e citando o `ActorSeal` na tabela comparativa acima. Perder a distinção
 **agente vs humano** apaga o conceito central da Forja (o subtítulo do hub diz *"atores humano vs
-agente"*). Ver proibições §5 2026-08-09.
+agente"*). Ver proibições §5 2026-08-10 (*"Construir tela derivando do CÓDIGO quando existe FONTE DE DESIGN"*).
 
 A lista de agentes vem do backend (`TrabalhoService::agentes()`) — **allowlist** de `ai_agent` não
 revogado, em minúsculas. Nunca heurística de nome.
