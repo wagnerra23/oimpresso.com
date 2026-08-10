@@ -78,17 +78,38 @@ db_tables_owned:
   - jana_conversas
   - jana_mensagens
   # jana_sugestoes — SCHEMA-À-FRENTE-DO-CÓDIGO (decisão [W] 2026-08-10: "manter declarado").
-  #   É LIDA (ChatController lista :120 · aceita :590 · rejeita :630 + RetentionPurgeService:85)
-  #   e NUNCA escrita. Medido 2026-08-10: `Sugestao::create`/`new Sugestao`/`sugestoes()->create()`
-  #   → rc=1 no repo (controle positivo `Conversa::create` → 17 arquivos); `git log -S` nas 3
-  #   formas → 0 commits em 6383 (o produtor NUNCA existiu — não é regressão); prod `= 0` linhas.
-  #   NÃO é órfã sem dono: o elo faltante é a task `COP-010 SuggestionEngine parsear JSON →
-  #   Sugestao rows` (backlog · p2). `SuggestionEngine::sugerir()` se autodeclara STUB no
-  #   docblock, devolve o array e não grava; o ChatController injeta o engine e nunca o chama.
-  #   ⛔ NÃO dropar: `US-COPI-004` (escolher) está COMPLETA e é a ÚNICA porta de entrada de Meta
-  #      — cria Meta+MetaPeriodo+MetaFonte e dispara ApurarMetaJob. Precedente: US-COPI-147.
-  #   ⛔ NÃO construir o produtor sem sinal [W]: prod tem `jana_metas = 0` (§5 2026-08-09 —
-  #      reabrir Metas exige sinal medido, "nunca inferência de agente"; ADR 0105).
+  #   ⚠️ Bloco RE-ESCRITO em 2026-08-10 (2ª versão) — a 1ª tinha 4 defeitos achados por revisão
+  #   adversarial: número atribuído ao comando errado, "tem dono" falso, "COMPLETA" falso e
+  #   trava em presente absoluto. Detalhe e recibos: SPEC.md US-COPI-003/004.
+  #
+  #   É LIDA (ChatController lista :120 · aceita :590 · rejeita :630 + RetentionPurgeService:85).
+  #   EM 2026-08-10 não havia escritor em código de produção — comandos, com o pathspec que é
+  #   obrigatório (sem ele o próprio texto polui o resultado):
+  #     git grep -l "Sugestao::create\|new Sugestao\|sugestoes()->create" -- '*.php'   -> 0
+  #     git log  -S "Sugestao::create"                                   -- '*.php'   -> 0 commits
+  #     controle positivo, MESMAS 3 formas:
+  #     git grep -l "Conversa::create\|new Conversa\|conversas()->create" -- '*.php'   -> 17
+  #   (`Conversa::create` SOZINHO dá 4 — a 1ª versão publicou 17 citando só esse. Limite honesto:
+  #    os padrões não casam `Sugestao::withoutGlobalScopes()->create(`, que existe 3× em teste.)
+  #   Prod EM 2026-08-10 (medição datada, re-rode antes de citar): jana_sugestoes = 0,
+  #   controle positivo jana_conversas = 18 · jana_mensagens = 121.
+  #
+  #   O elo faltante NÃO TEM DONO. Existe só o título hardcoded 'COP-010 SuggestionEngine
+  #   parsear JSON → Sugestao rows' numa string de BackfillTasksFromMarkdownCommand.php:237
+  #   (backfill 1× da ADR 0070), status backlog, SEM owner. `COP-` é prefixo do TASKS.md legado;
+  #   o MCP usa COPI-NNN — não é id consultável. A 1ª versão dizia "tem dono", e era essa frase
+  #   que convertia "nunca construído" em "já encaminhado".
+  #   O docblock da CLASSE SuggestionEngine (:9-15) diz "STUB spec-ready" — o método sugerir()
+  #   não tem essa marca; ele delega ao driver e devolve o array sem gravar. O ChatController
+  #   injeta o engine e nunca o chama.
+  #
+  #   ⛔ NÃO dropar — mas o motivo NÃO é "US-COPI-004 está completa" (a 1ª versão afirmava isso;
+  #      re-medido, é falso: inalcançável, zero teste do fluxo, DoD 2/3 não cumprido). O motivo
+  #      é que dropar exige decisão [W] e a tabela é pré-condição declarada. Precedente: US-COPI-147.
+  #   ⛔ NÃO construir o produtor sem sinal [W] — em 2026-08-10, prod tinha jana_metas = 0
+  #      (§5 2026-08-09: reabrir Metas exige sinal medido, "nunca inferência de agente"; ADR 0105).
+  #      Ressalva registrada: 0 metas NÃO isola o funil de sugestões — há 2 outras vias
+  #      (MetasController@store manual + seeder), e Metas é Blade legado sem Page Inertia.
   - jana_sugestoes
   - jana_cache_semantico
   - jana_business_profile
