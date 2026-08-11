@@ -73,6 +73,30 @@ Os serviços **são** fictícios (zero em PHP — varrido). Mas as únicas menç
 
 E o arquivo citado como "build F1 de referência", `prototipo-ui/cowork/jana-merge.jsx`, **não existe em nenhum dos dois donos** do inventário de design: nem no git, nem no projeto `DesignSync` (listei os dois).
 
+> ## ⚠️ ERRATA — 2026-08-11: o parágrafo acima é FALSO, e custou caro
+>
+> **O `jana-merge.jsx` existia.** Vivia no projeto Cowork `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58`
+> ("Oimpresso ERP Conunicação Visual.") e hoje está versionado em
+> [`prototipo-ui/cowork/jana-merge.jsx`](../../../prototipo-ui/cowork/jana-merge.jsx) (943 ln, `SYNC` com o vivo).
+>
+> **Por que o "listei os dois" não valeu:** o `DesignSync{list_projects}` enumera **só projetos
+> do tipo design-system**. O protótipo do ERP vive num projeto **REGULAR**
+> (`get_project` → `type: PROJECT_TYPE_PROJECT`) e **não aparece** naquela lista. A varredura
+> foi feita — e não cobria o universo.
+>
+> **O agravante:** a proposal de **2026-08-07**, também mergeada, já dizia o contrário e
+> antecipava esta exata confusão: *"ele NÃO ESTÁ NO GIT e ESTÁ NO DESIGNSYNC — as duas coisas
+> são verdade e não conflitam."* Um `git grep jana-merge` devolve **21 sites** no repo (charter,
+> 2 `.tsx` de produção, workflow, `gates-registry`, RUNBOOK, testes). O oráculo custava um comando.
+>
+> **O que esta frase causou:** a lápide §5 de 2026-08-10 foi construída sobre ela e proibiu, por
+> tabela, o protótipo CERTO (regra `biz=NNN`, revogada por emenda em 08-11). Canon negou canon,
+> a lápide herdou a negação, e a sessão seguinte herdou a lápide.
+>
+> **Nenhum gate pega documento contradizendo documento** — por isso esta errata é append, não
+> edição: apagar a frase esconderia como o erro se propagou. Ver §5 `proibicoes.md` 2026-08-11
+> (3 lápides) e `LICOES_CODE.md` LC-08.
+
 ## 5. O achado que responde a decisão §6 #0
 
 A Onda 0 propõe 4 PRs pra construir um "retrato dos 37 módulos" e decidir se a Jana é a prioridade. **O retrato já existe, roda e já ordenou** — `npm run migracao:report`:

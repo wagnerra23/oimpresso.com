@@ -22,6 +22,8 @@ import {
   defaultShellPath,
   ledgerEntry,
   slaVerdict,
+  liveOnly,
+  exportPlan,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
@@ -208,5 +210,37 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   check(`SLA_DAYS = 14`, SLA_DAYS === 14);
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v2 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA)');
+// ── liveOnly + exportPlan (v3 — 2026-08-11) ──────────────────────────────────────
+// Contrato: o manifesto monta o universo do lado do ESPELHO, então arquivo que existe no
+// VIVO e nunca foi exportado era invisível POR CONSTRUÇÃO (o LIVE-ABSENT cobre o inverso).
+// Incidente: `jana-merge.jsx` vivia no Cowork, era citado por 21 sites do repo — charter,
+// 2 .tsx de produção, workflow, testes — e NÃO estava versionado. Nenhuma ferramenta
+// apontou, porque nenhuma olhava para esse lado. Medido no corpus real: 25 de 1310 paths.
+{
+  const man = [{ cowork: 'chat-jana.jsx' }, { cowork: 'app.jsx' }];
+  check('BITE liveOnly: arquivo do vivo NUNCA exportado aparece',
+    JSON.stringify(liveOnly(['chat-jana.jsx', 'jana-merge.jsx', 'app.jsx'], man)) === '["jana-merge.jsx"]');
+  check('CONTROLE liveOnly: espelho completo não acusa',
+    liveOnly(['chat-jana.jsx', 'app.jsx'], man).length === 0);
+  check('CONTROLE liveOnly: _arquivo/ (morto upstream) não acusa',
+    liveOnly(['_arquivo/velho.jsx'], man).length === 0);
+  check('CONTROLE liveOnly: prototipo-ui/ (cópia do espelho dentro do vivo) não acusa',
+    liveOnly(['prototipo-ui/cowork/chat-jana.jsx'], man).length === 0);
+  check('CONTROLE liveOnly: .md não é protótipo', liveOnly(['NOTA.md'], man).length === 0);
+
+  // exportPlan: a transcrição manual causou STALE em 2026-08-11 (923 ln à mão vs 943 reais)
+  // e ainda me levou a "corrigir" um charter que estava CERTO. A escrita sai do JSON.
+  check('exportPlan: prefixa com o path do espelho',
+    exportPlan([{ path: 'jana-merge.jsx', content: 'x\n' }])[0].relPath === 'prototipo-ui/cowork/jana-merge.jsx');
+  check('exportPlan: conteúdo passa INTACTO (sem transcrição)',
+    exportPlan([{ path: 'a.jsx', content: 'l1\nl2\n' }])[0].content === 'l1\nl2\n');
+  // ⚠️ confere a MENSAGEM, não só "lançou": medido por mutação que, com `catch → true`,
+  // remover o guard AINDA passava (Buffer.byteLength(undefined) lança sozinho e mascarava).
+  let msg = '';
+  try { exportPlan([{ path: 'a.jsx' }]); } catch (e) { msg = String(e.message); }
+  check('BITE exportPlan: guard próprio lança citando o path',
+    /export: conteúdo ausente para "a\.jsx"/.test(msg));
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel)');
 process.exit(fails ? 1 : 0);
