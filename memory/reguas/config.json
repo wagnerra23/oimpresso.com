@@ -7,14 +7,6 @@
   "residuos_irrecuperaveis": [
     {
       "rodada": "2026-07-26",
-      "campo": "diferencial_sistema",
-      "motivo": "exatamente UMA das 23 claims deveria ser REFUTADO_TB, e não se sabe qual. Escolher seria inventar — e é justamente o único REFUTADO_TB da história, a evidência que a ADR 0353 discute.",
-      "fonte_que_resolveria": "journal.jsonl do run wf_db242261-298 (não versionado no repo)",
-      "declarado_em": "2026-07-26",
-      "declarado_por": "#4820"
-    },
-    {
-      "rodada": "2026-07-26",
       "campo": "refutado_tb",
       "motivo": "mesma causa da linha acima: o veredito REFUTADO_TB nunca chegou a ser gravado no claims.json (conferido: grep em TODOS os 4 commits do arquivo = 0 ocorrências, em nenhuma versão).",
       "fonte_que_resolveria": "journal.jsonl do run wf_db242261-298 (não versionado no repo)",
