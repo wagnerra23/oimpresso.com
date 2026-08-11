@@ -52,10 +52,12 @@ import {
 } from './_components/v3/LancarItem';
 import EntregaFrete from './_components/v3/EntregaFrete';
 import ComissaoDrawer from './_components/v3/ComissaoDrawer';
+import ColunasModal from './_components/v3/ColunasModal';
 import ItemDetalhe from './_components/v3/ItemDetalhe';
 import ParcelasDrawer from './_components/v3/ParcelasDrawer';
 import { type Parcela } from './_components/v3/parcelas-dominio';
 import { type Beneficiario, type Gatilho } from './_components/v3/comissao-dominio';
+import { carregarColunas, salvarColunas } from './_components/v3/colunas-dominio';
 import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
 import {
@@ -210,6 +212,10 @@ export default function SellsCreateV3({ cena }: Props) {
   const [beneficiarios, setBeneficiarios] = useState<Beneficiario[]>([]);
   const [gatilhoComissao, setGatilhoComissao] = useState<Gatilho>('recebimento');
   const [comissaoAberta, setComissaoAberta] = useState(false);
+  /* onda 6 — colunas do grid. Inicializa do localStorage via lazy initializer:
+     ler storage no corpo do componente rodaria a cada render. */
+  const [colunas, setColunas] = useState<string[]>(() => carregarColunas());
+  const [colunasAberto, setColunasAberto] = useState(false);
   const [estagio, setEstagio] = useState('rascunho');
   const [historico, setHistorico] = useState<{ acao: string; de: string; para: string }[]>([]);
   const [situacaoAberta, setSituacaoAberta] = useState(false);
@@ -417,7 +423,13 @@ export default function SellsCreateV3({ cena }: Props) {
             <Pill tom="neutro" mono>
               {itens.length === 1 ? '1 item' : `${itens.length} itens`}
             </Pill>
-            <AindaNao o_que="Modal de colunas (31 disponíveis, arrastar e ordenar)">Colunas…</AindaNao>
+            <button
+              type="button"
+              onClick={() => setColunasAberto(true)}
+              className="cursor-pointer text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
+            >
+              {`Colunas (${colunas.length})…`}
+            </button>
           </Inline>
         }
       >
@@ -998,6 +1010,16 @@ export default function SellsCreateV3({ cena }: Props) {
         podeEditarPreco={permissoes.editarPrecoItem}
         onFechar={() => setLancando(null)}
         onConfirmar={adicionarLancado}
+      />
+
+      <ColunasModal
+        aberto={colunasAberto}
+        onFechar={() => setColunasAberto(false)}
+        ativas={colunas}
+        onAtivasChange={(c) => {
+          setColunas(c);
+          salvarColunas(c);
+        }}
       />
 
       <ComissaoDrawer
