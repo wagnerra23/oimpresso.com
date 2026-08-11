@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Fiscal/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 79 arquivos em 12 papéis.
+**Total mapeado:** 80 arquivos em 12 papéis.
 
 ## Controllers — 11
 
@@ -102,11 +102,12 @@ module: Fiscal
 
 - 21 arquivos em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 6
+## Demais arquivos (manifestos, docs, assets e misc) — 7
 
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt-BR/fiscal.php)
 - [composer.json](../../../Modules/Fiscal/composer.json)
 - [module.json](../../../Modules/Fiscal/module.json)
+- [SCOPE.md](../../../memory/requisitos/Fiscal/SCOPE.md)
 - [fiscal-helpers.ts](../../../resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts)
 - [sefaz-actions.ts](../../../resources/js/Pages/Fiscal/_lib/sefaz-actions.ts)
 - [sefaz-codes.ts](../../../resources/js/Pages/Fiscal/_lib/sefaz-codes.ts)

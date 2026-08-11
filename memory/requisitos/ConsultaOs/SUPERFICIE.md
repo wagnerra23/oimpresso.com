@@ -14,7 +14,7 @@ module: ConsultaOs
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ConsultaOs/**` + `resources/js/Pages/ConsultaOs/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ConsultaOs/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 34 arquivos em 12 papéis.
+**Total mapeado:** 35 arquivos em 12 papéis.
 
 ## Controllers — 3
 
@@ -69,9 +69,10 @@ module: ConsultaOs
 
 - 11 arquivos em [Modules/ConsultaOs/Tests/Feature/](../../../Modules/ConsultaOs/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 4
+## Demais arquivos (manifestos, docs, assets e misc) — 5
 
 - [ConsultaOsRepositoryInterface.php](../../../Modules/ConsultaOs/Contracts/ConsultaOsRepositoryInterface.php)
 - [MockConsultaOsRepository.php](../../../Modules/ConsultaOs/Repositories/MockConsultaOsRepository.php)
 - [composer.json](../../../Modules/ConsultaOs/composer.json)
 - [module.json](../../../Modules/ConsultaOs/module.json)
+- [SCOPE.md](../../../memory/requisitos/ConsultaOs/SCOPE.md)

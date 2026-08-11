@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 568 arquivos em 19 papéis.
+**Total mapeado:** 569 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -393,7 +393,7 @@ module: Jana
 
 - 158 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 88
+## Demais arquivos (manifestos, docs, assets e misc) — 89
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -483,3 +483,4 @@ module: Jana
 - [composer.json](../../../Modules/Jana/composer.json)
 - [module.json](../../../Modules/Jana/module.json)
 - [start.php](../../../Modules/Jana/start.php)
+- [SCOPE.md](../../../memory/requisitos/Jana/SCOPE.md)

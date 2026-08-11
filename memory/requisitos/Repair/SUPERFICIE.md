@@ -14,7 +14,7 @@ module: Repair
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Repair/**` + `resources/js/Pages/Repair/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Repair/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 189 arquivos em 16 papéis.
+**Total mapeado:** 190 arquivos em 16 papéis.
 
 ## Controllers — 11
 
@@ -188,7 +188,7 @@ module: Repair
 
 - 22 arquivos em [Modules/Repair/Tests/Feature/](../../../Modules/Repair/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 41
+## Demais arquivos (manifestos, docs, assets e misc) — 42
 
 - [LogsWithPiiRedactor.php](../../../Modules/Repair/Concerns/LogsWithPiiRedactor.php)
 - [.gitkeep](../../../Modules/Repair/Config/.gitkeep)
@@ -231,3 +231,4 @@ module: Repair
 - [module.json](../../../Modules/Repair/module.json)
 - [package.json](../../../Modules/Repair/package.json)
 - [webpack.mix.js](../../../Modules/Repair/webpack.mix.js)
+- [SCOPE.md](../../../memory/requisitos/Repair/SCOPE.md)

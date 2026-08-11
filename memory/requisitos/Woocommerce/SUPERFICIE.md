@@ -14,7 +14,7 @@ module: Woocommerce
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Woocommerce/**` + `resources/js/Pages/Woocommerce/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Woocommerce/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 89 arquivos em 13 papéis.
+**Total mapeado:** 90 arquivos em 13 papéis.
 
 ## Controllers — 4
 
@@ -100,7 +100,7 @@ module: Woocommerce
 
 - 8 arquivos em [Modules/Woocommerce/Tests/Feature/](../../../Modules/Woocommerce/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 34
+## Demais arquivos (manifestos, docs, assets e misc) — 35
 
 - [.gitkeep](../../../Modules/Woocommerce/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Woocommerce/Console/.gitkeep)
@@ -136,3 +136,4 @@ module: Woocommerce
 - [module.json](../../../Modules/Woocommerce/module.json)
 - [package.json](../../../Modules/Woocommerce/package.json)
 - [webpack.mix.js](../../../Modules/Woocommerce/webpack.mix.js)
+- [SCOPE.md](../../../memory/requisitos/Woocommerce/SCOPE.md)

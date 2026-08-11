@@ -14,7 +14,7 @@ module: AssetManagement
 >
 > **O que isto é:** o inventário completo das raízes `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/AssetManagement/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 100 arquivos em 13 papéis.
+**Total mapeado:** 101 arquivos em 13 papéis.
 
 ## Controllers — 7
 
@@ -105,7 +105,7 @@ module: AssetManagement
 
 - 9 arquivos em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 39
+## Demais arquivos (manifestos, docs, assets e misc) — 40
 
 - [.gitkeep](../../../Modules/AssetManagement/Config/.gitkeep)
 - [.gitkeep](../../../Modules/AssetManagement/Console/.gitkeep)
@@ -146,3 +146,4 @@ module: AssetManagement
 - [module.json](../../../Modules/AssetManagement/module.json)
 - [package.json](../../../Modules/AssetManagement/package.json)
 - [webpack.mix.js](../../../Modules/AssetManagement/webpack.mix.js)
+- [SCOPE.md](../../../memory/requisitos/AssetManagement/SCOPE.md)

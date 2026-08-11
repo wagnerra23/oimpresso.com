@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Superadmin/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 163 arquivos em 17 papéis.
+**Total mapeado:** 164 arquivos em 17 papéis.
 
 ## Controllers — 14
 
@@ -167,7 +167,7 @@ module: Superadmin
 
 - 15 arquivos em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 46
+## Demais arquivos (manifestos, docs, assets e misc) — 47
 
 - [.gitkeep](../../../Modules/Superadmin/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Superadmin/Console/.gitkeep)
@@ -215,3 +215,4 @@ module: Superadmin
 - [module.json](../../../Modules/Superadmin/module.json)
 - [package.json](../../../Modules/Superadmin/package.json)
 - [webpack.mix.js](../../../Modules/Superadmin/webpack.mix.js)
+- [SCOPE.md](../../../memory/requisitos/Superadmin/SCOPE.md)

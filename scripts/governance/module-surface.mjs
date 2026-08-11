@@ -318,6 +318,11 @@ function coletar(mod) {
     ...(mod === CONTEXTO_GERAL ? RAIZES_GERAIS.flatMap((p) => walk(p)) : walk(`Modules/${mod}`)),
     ...(mod === CONTEXTO_GERAL ? [] : walk(`resources/js/Pages/${pagesNs}`)),
     ...(core ? expandirPrefixos(core.prefixos) : []),
+    // ADR 0374: o SCOPE do modulo saiu de Modules/<X>/ pra memory/requisitos/<X>/.
+    // O inventario segue o contrato onde ele estiver — senao o modulo aparece SEM
+    // seu proprio SCOPE, que e o oposto do que este inventario existe pra mostrar.
+    ...(mod === CONTEXTO_GERAL ? [] : (existsSync(join(ROOT, 'memory', 'requisitos', mod, 'SCOPE.md'))
+      ? [`memory/requisitos/${mod}/SCOPE.md`] : [])),
   ])].sort();
   const grupos = PAPEIS.map((p) => ({ ...p, files: /** @type {string[]} */ ([]) }));
   const outros = [];

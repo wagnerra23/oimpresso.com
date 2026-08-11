@@ -3,7 +3,7 @@ slug: 0374-scope-md-sai-de-modules-para-memory-requisitos
 number: 374
 title: "SCOPE.md e LICOES-OPERACAO.md saem de Modules/ para memory/requisitos/"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

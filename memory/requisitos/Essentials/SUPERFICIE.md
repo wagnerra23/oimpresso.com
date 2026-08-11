@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Essentials/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 273 arquivos em 15 papéis.
+**Total mapeado:** 274 arquivos em 15 papéis.
 
 ## Controllers — 19
 
@@ -267,7 +267,7 @@ module: Essentials
 
 - 15 arquivos em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 50
+## Demais arquivos (manifestos, docs, assets e misc) — 51
 
 - [.gitkeep](../../../Modules/Essentials/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Console/.gitkeep)
@@ -319,3 +319,4 @@ module: Essentials
 - [module.json](../../../Modules/Essentials/module.json)
 - [package.json](../../../Modules/Essentials/package.json)
 - [webpack.mix.js](../../../Modules/Essentials/webpack.mix.js)
+- [SCOPE.md](../../../memory/requisitos/Essentials/SCOPE.md)

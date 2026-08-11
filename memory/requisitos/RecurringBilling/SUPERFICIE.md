@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/RecurringBilling/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 171 arquivos em 20 papéis.
+**Total mapeado:** 172 arquivos em 20 papéis.
 
 ## Controllers — 11
 
@@ -169,7 +169,7 @@ module: RecurringBilling
 
 - 40 arquivos em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 36
+## Demais arquivos (manifestos, docs, assets e misc) — 37
 
 - [.gitkeep](../../../Modules/RecurringBilling/Config/.gitkeep)
 - [.gitkeep](../../../Modules/RecurringBilling/Console/.gitkeep)
@@ -204,6 +204,7 @@ module: RecurringBilling
 - [module.json](../../../Modules/RecurringBilling/module.json)
 - [package.json](../../../Modules/RecurringBilling/package.json)
 - [vite.config.js](../../../Modules/RecurringBilling/vite.config.js)
+- [SCOPE.md](../../../memory/requisitos/RecurringBilling/SCOPE.md)
 - [printExtractStyles.ts](../../../resources/js/Pages/RecurringBilling/_components/printExtractStyles.ts)
 - [troubleshooters-data.ts](../../../resources/js/Pages/RecurringBilling/_components/troubleshooters-data.ts)
 - [useJanaAsk.ts](../../../resources/js/Pages/RecurringBilling/_components/useJanaAsk.ts)

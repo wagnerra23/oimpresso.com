@@ -14,7 +14,7 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Whatsapp/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 382 arquivos em 20 papéis.
+**Total mapeado:** 383 arquivos em 20 papéis.
 
 ## Controllers — 23
 
@@ -322,7 +322,7 @@ module: Whatsapp
 
 - 121 arquivos em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 13
+## Demais arquivos (manifestos, docs, assets e misc) — 14
 
 - [.env.canary.example](../../../Modules/Whatsapp/.env.canary.example)
 - [InboxAssistAgent.php](../../../Modules/Whatsapp/Ai/Agents/InboxAssistAgent.php)
@@ -336,4 +336,5 @@ module: Whatsapp
 - [README.md](../../../Modules/Whatsapp/daemon-go/README.md)
 - [docker-compose.yml](../../../Modules/Whatsapp/daemon-go/docker-compose.yml)
 - [module.json](../../../Modules/Whatsapp/module.json)
+- [SCOPE.md](../../../memory/requisitos/Whatsapp/SCOPE.md)
 - [helpers.ts](../../../resources/js/Pages/Whatsapp/_components/helpers.ts)
