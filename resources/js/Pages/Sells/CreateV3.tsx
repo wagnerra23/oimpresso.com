@@ -51,9 +51,11 @@ import {
   type ProdutoCatalogo,
 } from './_components/v3/LancarItem';
 import EntregaFrete from './_components/v3/EntregaFrete';
+import ComissaoDrawer from './_components/v3/ComissaoDrawer';
 import ItemDetalhe from './_components/v3/ItemDetalhe';
 import ParcelasDrawer from './_components/v3/ParcelasDrawer';
 import { type Parcela } from './_components/v3/parcelas-dominio';
+import { type Beneficiario, type Gatilho } from './_components/v3/comissao-dominio';
 import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
 import {
@@ -203,6 +205,11 @@ export default function SellsCreateV3({ cena }: Props) {
   /* onda 4 — drawer de detalhe do item. Guarda o INDICE (nao a linha) pra
      navegacao Anterior/Proximo continuar valida se a lista mudar. */
   const [itemAberto, setItemAberto] = useState<number | null>(null);
+  /* onda 5 — comissao. Beneficiarios e gatilho vivem na Page porque o resumo
+     do fechamento os mostra junto do total. */
+  const [beneficiarios, setBeneficiarios] = useState<Beneficiario[]>([]);
+  const [gatilhoComissao, setGatilhoComissao] = useState<Gatilho>('recebimento');
+  const [comissaoAberta, setComissaoAberta] = useState(false);
   const [estagio, setEstagio] = useState('rascunho');
   const [historico, setHistorico] = useState<{ acao: string; de: string; para: string }[]>([]);
   const [situacaoAberta, setSituacaoAberta] = useState(false);
@@ -823,7 +830,13 @@ export default function SellsCreateV3({ cena }: Props) {
           <Inline gap={2} align="center" className="mb-2">
             <Lbl className="mb-0">Comissão</Lbl>
             <span className="ml-auto">
-              <AindaNao o_que="Modelo de comissão (beneficiários, base, regra, gatilho)">Configurar…</AindaNao>
+              <button
+                type="button"
+                onClick={() => setComissaoAberta(true)}
+                className="cursor-pointer text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
+              >
+                {beneficiarios.length > 0 ? `Comissão (${beneficiarios.length})…` : 'Configurar…'}
+              </button>
             </span>
           </Inline>
           <Res l="Base líquida" v={fmtBR(baseTrib)} />
@@ -985,6 +998,19 @@ export default function SellsCreateV3({ cena }: Props) {
         podeEditarPreco={permissoes.editarPrecoItem}
         onFechar={() => setLancando(null)}
         onConfirmar={adicionarLancado}
+      />
+
+      <ComissaoDrawer
+        aberto={comissaoAberta}
+        onFechar={() => setComissaoAberta(false)}
+        totais={{ bruto: subtotal, liquido: baseTrib, margem: submitSafe(baseTrib * 0.3) }}
+        beneficiarios={beneficiarios}
+        onBeneficiariosChange={setBeneficiarios}
+        gatilho={gatilhoComissao}
+        onGatilhoChange={setGatilhoComissao}
+        parcelas={parcelas}
+        totalDaVenda={total}
+        pessoas={executantes.map((e) => ({ id: e.id, nome: e.nome, papel: e.papel }))}
       />
 
       <ItemDetalhe

@@ -112,6 +112,25 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
 
+### Comissão (onda 5 — `ComissaoDrawer`)
+
+> **Por que isto não é um campo "Comissionista":** quem **vendeu**, quem **trouxe** o
+> cliente e quem **executou** raramente são a mesma pessoa, e cada um tem regra própria.
+> Um select único não expressa isso — e o resultado é comissão calculada em planilha,
+> fora do sistema. ⚠️ **Tier 0**: comissão é dinheiro devido a alguém. Provado em
+> [`tests/js/comissao-dominio.test.ts`](../../../../tests/js/comissao-dominio.test.ts) — **16/16**.
+
+- **[BACKLOG]** Uma venda aceita **vários beneficiários** de tipos diferentes (funcionário, representante, agência, técnico), cada um com base, regra e valor próprios — e o total é a soma.
+- **[BACKLOG]** A **base** é escolhida por beneficiário, e a escolha é de **incentivo**: sobre o **bruto** a empresa paga o vendedor para dar desconto (o desconto sai do caixa dela, não da comissão dele); sobre a **margem**, alinha.
+- **[BACKLOG]** Regra **fixa** ignora a base — o mesmo valor em qualquer uma delas.
+- **[BACKLOG]** A **faixa é por valor TOTAL, não progressiva por fatia**: quem cai na faixa de 4% recebe 4% sobre tudo, e **não** 2% até 5k + 3% até 20k + 4% no resto. Confundir os dois muda o que a empresa paga.
+- **[BACKLOG]** O **gatilho por recebimento** libera a comissão **proporcional ao que o cliente pagou** — é o que impede pagar comissão de venda inadimplente. Em emissão e faturamento, o direito nasce inteiro no evento.
+- **[BACKLOG]** **Estorno é proporcional** ao devolvido: devolveu metade, estorna metade. Sem isso, devolução vira prejuízo dobrado — a empresa devolve ao cliente e mantém a comissão paga.
+- **[BACKLOG]** A tela **avisa** quando a comissão come mais da metade da margem da venda — e margem zero ou negativa com qualquer comissão já é alerta.
+- **[BACKLOG]** Sem beneficiário, a tela **diz** que a venda não gera comissão, em vez de mostrar zero sem explicação.
+
+---
+
 ### Detalhe do item (onda 4 — `ItemDetalhe` · 7 abas · tributação)
 
 > ⚠️ **Erro fiscal sai desta tela direto para a NF-e.** Rejeição da SEFAZ não é detalhe
