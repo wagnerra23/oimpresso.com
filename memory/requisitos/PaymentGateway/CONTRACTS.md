@@ -395,7 +395,8 @@ POST   /webhooks/inter/{credentialId}                           → Webhooks\Int
 
 > **Reconciliação 2026-08-11 — a §6 inteira.** Este bloco nasceu como *plano* na Onda 0 (o doc
 > é `v0.1 rascunho`, ver cabeçalho) e nunca tinha sido confrontado com o que foi construído.
-> Passou a ser lido de [`Routes/web.php`](Routes/web.php), medido em 2026-08-11. Quatro
+> Passou a ser lido de [`Routes/web.php`](../../../Modules/PaymentGateway/Routes/web.php), medido
+> em 2026-08-11. Quatro
 > divergências corrigidas:
 >
 > 1. **`PaymentGatewayController` nunca foi construído** — `git grep` devolvia 10 hits, todos em

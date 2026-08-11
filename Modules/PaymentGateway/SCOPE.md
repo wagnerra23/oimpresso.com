@@ -7,7 +7,8 @@ contains:
   # 16.238 rastreados). Nenhuma rota o referencia — `Routes/web.php` registra
   # install/uninstall/update no InstallController, e o resto em Settings/* e Webhooks/*.
   # O resíduo que este comentário declarava — os 5 endpoints `→ PaymentGatewayController@*`
-  # na §6 do CONTRACTS.md — foi corrigido em 2026-08-11, junto com a §6 inteira, que era
+  # na §6 do CONTRACTS.md (que saiu daqui pra memory/requisitos/PaymentGateway/ no #5548)
+  # — foi corrigido em 2026-08-11, junto com a §6 inteira, que era
   # plano de Onda 0 nunca confrontado com o código. Os 5 existiam sob outro nome e outro
   # prefixo (`Settings\PaymentGatewaysController`, `/settings/payment-gateways`, método
   # `healthCheck`), entregues na Onda 4d.3. Na mesma passagem: CobrancaController virou
