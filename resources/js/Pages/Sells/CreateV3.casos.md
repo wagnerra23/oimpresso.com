@@ -112,6 +112,29 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
 
+### Detalhe do item (onda 4 — `ItemDetalhe` · 7 abas · tributação)
+
+> ⚠️ **Erro fiscal sai desta tela direto para a NF-e.** Rejeição da SEFAZ não é detalhe
+> de UI: é a venda parada e retrabalho de quem emite. As regras estão provadas em
+> [`tests/js/item-fiscal-dominio.test.ts`](../../../../tests/js/item-fiscal-dominio.test.ts) — **18/18**.
+
+- **[BACKLOG]** **NCM** exige 8 dígitos e a mensagem diz **quantos faltam**, não só "inválido".
+- **[BACKLOG]** **CFOP** tem 4 dígitos e o **primeiro carrega significado**: 1/2/3 são entradas, 5/6/7 saídas — 4, 8 e 9 não existem como primeiro dígito.
+- **[BACKLOG]** **CEST** (7), **GTIN** (8/12/13/14) e **cBenef** (2 letras da UF + 6 dígitos) são opcionais: vazio passa, preenchido é conferido.
+- **[BACKLOG]** Alíquota e redução vivem na faixa **0..100** — negativo e acima de 100 são recusados.
+- **[BACKLOG]** **Coerência CST × alíquota — o erro que a validação campo-a-campo NÃO pega.** CST 40/41/60/04 declara que não há imposto: alíquota > 0 junto é contradição. E CST 00 (tributada integralmente) com alíquota zero é a contradição no sentido oposto. Os dois campos passam sozinhos; o **par** é rejeitado.
+- **[BACKLOG]** **CST 102** (Simples) tem **três** dígitos e não pode ser lido como "10" — não entra em nenhuma das duas regras.
+- **[BACKLOG]** A aba mostra **todos** os erros de uma vez, não um por vez a cada tentativa de salvar; a aba Tributação exibe a contagem no rótulo.
+- **[BACKLOG]** **Confirmar item** fica **desabilitado** enquanto houver pendência fiscal — salvar incoerência seria empurrar à SEFAZ uma rejeição que o sistema já sabia prever.
+- **[BACKLOG]** No fluxo de produção, **responsável é PESSOA e setor é ONDE** — a fonte registra que misturar os dois numa coluna só foi o defeito apontado na revisão do desenho.
+
+> **O que esta onda NÃO faz:** não apura tributo. A tabela de impostos mostra base e
+> alíquota (incluindo **IBS** e **CBS**, os da reforma), mas o valor por imposto é
+> calculado no servidor na emissão. A tela confere **preenchimento**, não valor — e
+> segue sem gravar. Upload de anexo também fica fora: preview não grava arquivo.
+
+---
+
 ### Parcelas (onda 3 — `ParcelasDrawer` · CU-SELL-09)
 
 > ⚠️ **Território Tier 0 — VALOR.** Diferente da onda 2 (que só derivava peso), esta
