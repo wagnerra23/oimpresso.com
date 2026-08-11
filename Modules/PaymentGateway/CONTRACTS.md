@@ -359,26 +359,70 @@ php artisan paymentgateway:migrate-credentials [--dry-run]
 ## 6. Rotas HTTP públicas
 
 ```
-GET    /payment-gateway/credenciais                 → PaymentGatewayController@index
-POST   /payment-gateway/credenciais                 → PaymentGatewayController@store
-PUT    /payment-gateway/credenciais/{id}            → PaymentGatewayController@update
-DELETE /payment-gateway/credenciais/{id}            → PaymentGatewayController@destroy
-POST   /payment-gateway/credenciais/{id}/health     → PaymentGatewayController@runHealthCheck
+# Install — auth UPOS (Onda 1)
+GET    /paymentgateway/install                                  → InstallController@index
+GET    /paymentgateway/install/uninstall                        → InstallController@uninstall
+GET    /paymentgateway/install/update                           → InstallController@update
 
-GET    /cobranca                                    → CobrancaController@index   (lista filtrada)
-GET    /cobranca/{id}                               → CobrancaController@show    (drawer)
-POST   /cobranca                                    → CobrancaController@store   (avulsa)
-POST   /cobranca/{id}/cancelar                      → CobrancaController@cancel
-POST   /cobranca/{id}/segunda-via                   → CobrancaController@resend
-POST   /cobranca/{id}/refund                        → CobrancaController@refund
+# Settings UI — auth UPOS, name prefix `settings.` (Onda 4d.3 · 4e.UI · 4f.0)
+GET    /settings/payment-gateways                               → Settings\PaymentGatewaysController@index
+POST   /settings/payment-gateways                               → Settings\PaymentGatewaysController@store
+PUT    /settings/payment-gateways/{credentialId}                → Settings\PaymentGatewaysController@update
+DELETE /settings/payment-gateways/{credentialId}                → Settings\PaymentGatewaysController@destroy
+POST   /settings/payment-gateways/health-check                  → Settings\PaymentGatewaysController@healthCheck  (todas)
+POST   /settings/payment-gateways/{credentialId}/health-check   → Settings\PaymentGatewaysController@healthCheck
+POST   /settings/payment-gateways/{credentialId}/toggle         → Settings\PaymentGatewaysController@toggle
+GET    /settings/payment-gateways/{credentialId}/history        → Settings\PaymentGatewaysController@history
+GET    /settings/payment-gateways/{credentialId}/webhook-events → Settings\PaymentGatewaysController@webhookEvents
+GET    /settings/payment-gateways/{credentialId}/quota          → Settings\PaymentGatewaysController@quota
+GET    /settings/payment-gateways/{credentialId}/cnab-retorno   → Settings\PaymentGatewaysCnabRetornoController@index
+POST   /settings/payment-gateways/{credentialId}/cnab-retorno   → Settings\PaymentGatewaysCnabRetornoController@store
 
-POST   /webhooks/inter                              → Webhooks\InterWebhookController
-POST   /webhooks/c6                                 → Webhooks\C6WebhookController
-POST   /webhooks/asaas                              → Webhooks\AsaasWebhookController
-POST   /webhooks/bcb-pix                            → Webhooks\BcbPixWebhookController
+# Webhooks — SEM auth (chamados pelo gateway). HMAC validado no controller.
+POST   /paymentgateway/webhooks/inter/{businessId}              → Webhooks\InterWebhookController@handle
+POST   /paymentgateway/webhooks/c6/{businessId}                 → Webhooks\C6WebhookController@handle
+POST   /paymentgateway/webhooks/asaas/{businessId}              → Webhooks\AsaasWebhookController@handle
+POST   /paymentgateway/webhooks/bcb-pix/{businessId}            → Webhooks\BcbPixWebhookController@handle
+POST   /paymentgateway/webhooks/pagarme/{businessId}            → Webhooks\PagarmeWebhookController@handle
+POST   /paymentgateway/webhooks/sicoob-api/{businessId}         → Webhooks\SicoobApiWebhookController@handle
+POST   /webhooks/inter/{credentialId}                           → Webhooks\InterPixWebhookController@handle
 ```
 
-URLs antigas (de quando webhooks moravam em `Modules/RecurringBilling`) viram **301 redirect durante 30 dias** após cutover Onda 3.
+**Cobrança (UI) não é rota deste módulo.** Ela foi planejada aqui na Onda 0, mas entregue em
+`Modules/Financeiro` — prefixo `financeiro`, name prefix `financeiro.`:
+`GET /financeiro/cobranca` (`@index`), `POST /financeiro/cobranca/emitir` (`@store`),
+`POST /financeiro/cobranca/cartao` (`@storeCartao`).
+
+> **Reconciliação 2026-08-11 — a §6 inteira.** Este bloco nasceu como *plano* na Onda 0 (o doc
+> é `v0.1 rascunho`, ver cabeçalho) e nunca tinha sido confrontado com o que foi construído.
+> Passou a ser lido de [`Routes/web.php`](Routes/web.php), medido em 2026-08-11. Quatro
+> divergências corrigidas:
+>
+> 1. **`PaymentGatewayController` nunca foi construído** — `git grep` devolvia 10 hits, todos em
+>    documentação, zero em código. As 5 rotas de credenciais existiam sob
+>    `Settings\PaymentGatewaysController`, com prefixo `/settings/` e método `healthCheck` (não
+>    `runHealthCheck`), entregues na Onda 4d.3.
+> 2. **`CobrancaController` vive em `Modules/Financeiro`**, com outros paths — viraram o
+>    parágrafo-ponteiro acima, fora do bloco de rotas deste módulo.
+> 3. **Webhooks são 7, não 4**, e moram em `/paymentgateway/webhooks/{gateway}/{businessId}`
+>    (mais `/webhooks/inter/{credentialId}`, do InterPix). Faltavam Pagar.me, Sicoob API e
+>    InterPix.
+> 4. **O cutover da Onda 3 não aconteceu.** A frase anterior afirmava que as URLs antigas de
+>    `Modules/RecurringBilling` viravam "301 redirect durante 30 dias" — não existe redirect de
+>    webhook nenhum nos 56 arquivos de rota rastreados. O RecurringBilling **segue servindo**
+>    `POST /webhooks/inter/pix/{businessId}` pelo controller dele
+>    (`RecurringBilling\InterWebhookController`), em paralelo. Bate com o `SCOPE.md`, que
+>    registra os webhooks da Onda 3 como "sem cutover".
+>
+> **Capacidade planejada que não virou rota** (estava no bloco como se existisse; fica aqui pra
+> a intenção não se perder, não como contrato): segunda via, cancelamento e refund de cobrança
+> pela UI — `cobranca/{id}` (show), `/cancelar`, `/segunda-via`, `/refund`. Nenhuma resolve pra
+> rota nos 56 arquivos de rota rastreados. O `refund` existe na camada de serviço
+> (`PaymentGatewayContract`, §1) e nos drivers, mas sem endpoint HTTP.
+>
+> Fonte da verdade é `Routes/web.php` + `php artisan route:list` — não este bloco. Nenhum gate
+> lê este arquivo (`git grep CONTRACTS` em `scripts/`, `.github/` e `bin/` devolvia zero hits em
+> 2026-08-11), então ele só se mantém honesto por revisão.
 
 ---
 
