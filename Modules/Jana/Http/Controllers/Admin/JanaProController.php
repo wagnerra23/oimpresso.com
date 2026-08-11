@@ -20,7 +20,7 @@ use Modules\Jana\Services\BriefDiarioService;
  * jana_pro.preview quando granular permission entrar.
  *
  * @see memory/decisions/0140-jana-pro-produto-comercial-saas.md
- * @see memory/requisitos/Copiloto/JANA-PRO-PRODUCT-PLAN.md
+ * @see memory/requisitos/Jana/JANA-PRO-PRODUCT-PLAN.md
  */
 class JanaProController extends Controller
 {

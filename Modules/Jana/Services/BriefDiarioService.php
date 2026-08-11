@@ -27,7 +27,7 @@ use Throwable;
  * da skill `ticket-triage`).
  *
  * @see memory/decisions/0140-jana-pro-produto-comercial-saas.md
- * @see memory/requisitos/Copiloto/JANA-PRO-PRODUCT-PLAN.md
+ * @see memory/requisitos/Jana/JANA-PRO-PRODUCT-PLAN.md
  */
 class BriefDiarioService
 {
