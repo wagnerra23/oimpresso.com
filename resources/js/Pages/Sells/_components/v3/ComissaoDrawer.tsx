@@ -137,7 +137,7 @@ export default function ComissaoDrawer({
 
   return (
     <Dialog open={aberto} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="max-h-[88vh] sm:max-w-[1000px]">
+      <DialogContent className="venda-v3 max-h-[88vh] sm:max-w-[1000px]">
         <DialogHeader>
           <DialogTitle>Modelo de comissão da venda</DialogTitle>
         </DialogHeader>
