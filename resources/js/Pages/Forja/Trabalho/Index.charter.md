@@ -68,7 +68,7 @@ respondiam perguntas diferentes:
 
 | eixo | pergunta | quem entra |
 |---|---|---|
-| **Pipeline** F0→F3.5 | *"em que ponto do protocolo de tela isto está?"* | só quem **tem** `forja_fase` — o eixo **filtra** |
+| **Pipeline** F0→F4 | *"em que ponto do protocolo de tela isto está?"* | só quem **tem** `forja_fase` — o eixo **filtra** |
 | **Execução** (status canon) | *"o que está andando?"* | toda task ativa; `done`/`cancelled` ficam fora |
 
 O eixo Pipeline **filtra em vez de inventar uma coluna "sem fase"**: task de infra/gate/ADR não

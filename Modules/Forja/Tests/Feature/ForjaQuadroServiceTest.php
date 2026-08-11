@@ -10,12 +10,15 @@ use Modules\Forja\Services\ForjaQuadroService;
 uses(Tests\TestCase::class);
 
 /**
- * Forja · aba Quadro (board F0→F3.5) — ForjaQuadroService::build().
+ * Forja · aba Quadro (board F0→F4) — ForjaQuadroService::build().
  *
  * Cobertura (Onda Forja — código novo sem teste):
- *   1. build($projectId) com FORJA semeado → fases: 6 colunas key/label/cards,
+ *   1. build($projectId) com FORJA semeado → fases: 7 colunas key/label/cards,
  *      cards com display_id/title/tipo/onda.
- *   2. build(null) → 6 colunas com cards vazios (esqueleto do board, sem fantasma).
+ *   2. build(null) → 7 colunas com cards vazios (esqueleto do board, sem fantasma).
+ *
+ * F4 Merge entrou por decisão [W] 2026-08-11 (ver PipelineParidadeTest). A ordem
+ * das chaves aqui é a MESMA da fonte de design — este arquivo não é o dono dela.
  *
  * Padrão era-sqlite (espelha AcceptanceRefTest): schema sintético + activitylog OFF.
  *
@@ -72,21 +75,21 @@ afterEach(function () {
 /** Fases canônicas do board, na ordem do pipeline (espelha o Service). */
 function forjaFasesEsperadas(): array
 {
-    return ['F0', 'F1', 'F1.5', 'F2', 'F3', 'F3.5'];
+    return ['F0', 'F1', 'F1.5', 'F2', 'F3', 'F3.5', 'F4'];
 }
 
 // -------------------------------------------------------------------------
-// 1. build() com FORJA semeado — board com 6 colunas + cards
+// 1. build() com FORJA semeado — board com 7 colunas + cards
 // -------------------------------------------------------------------------
 
-it('build() devolve fases: 6 colunas na ordem canônica com key/label/cards', function () {
+it('build() devolve fases: 7 colunas na ordem canônica com key/label/cards', function () {
     (new ForjaDemoTicketsSeeder())->run();
     $projectId = (int) DB::table('mcp_jira_projects')->where('key', 'FORJA')->value('id');
 
     $out = app(ForjaQuadroService::class)->build($projectId);
 
     expect($out)->toBeArray()->toHaveKey('fases');
-    expect($out['fases'])->toBeArray()->toHaveCount(6);
+    expect($out['fases'])->toBeArray()->toHaveCount(7);
 
     // Ordem + presença das fases.
     expect(array_column($out['fases'], 'key'))->toBe(forjaFasesEsperadas());
@@ -134,14 +137,14 @@ it('build() joga proposta sem fase (forja_fase null) no fallback F0', function (
 });
 
 // -------------------------------------------------------------------------
-// 2. build(null) — board esqueleto (6 colunas, cards vazios)
+// 2. build(null) — board esqueleto (7 colunas, cards vazios)
 // -------------------------------------------------------------------------
 
-it('build(null) → 6 colunas com cards vazios (sem dado fantasma)', function () {
+it('build(null) → 7 colunas com cards vazios (sem dado fantasma)', function () {
     $out = app(ForjaQuadroService::class)->build(null);
 
     expect($out)->toHaveKey('fases');
-    expect($out['fases'])->toHaveCount(6);
+    expect($out['fases'])->toHaveCount(7);
     expect(array_column($out['fases'], 'key'))->toBe(forjaFasesEsperadas());
 
     foreach ($out['fases'] as $col) {
