@@ -171,6 +171,52 @@ it('L3: biz=1 nao le o corpo de um no de biz=99 — nunca conteudo, e le o seu (
     expect($response->getContent())->not->toContain('adr-9003-segredo-biz99');
 });
 
+// ── GUARD do helper — o 403 "intermitente" da lane morreu aqui ─────────────
+//
+// BITE TEST da causa-raiz (medida no job probe-403, run 31519646171): o ramo de
+// CRIAÇÃO de `kbActAsUser` devolvia um modelo PELA METADE — `save()` insere e o
+// MySQL aplica os DEFAULTs (`user_type`='user', `allow_login`=1), mas o Eloquent
+// não recarrega, então a instância em memória ficava com os dois NULL. É essa
+// instância que o `actingAs()` põe no guard, e o `CheckUserLogin` (que roda ANTES
+// do `can:`) lê do MODELO: `user_type != 'user'` → abort(403,'Unauthorized action.').
+//
+// `userId` INÉDITO de propósito: força o ramo de criação em QUALQUER ordem de
+// execução, então este guard morde de forma DETERMINÍSTICA — diferente do sintoma
+// original, que só aparecia quando um teste HTTP sorteava antes de MultiTenantTraitTest
+// (que chama kbActAsUser sem request e consumia o bug em silêncio).
+it('L5 GUARD: usuario recem-criado carrega os defaults do banco (CheckUserLogin)', function () use ($permKb) {
+    $user = kbActAsUser(bizId: 1, userId: 424242, permissions: $permKb);
+
+    // O middleware lê do MODELO, não do banco — então o modelo tem que estar completo.
+    expect($user->user_type)->toBe('user');
+    expect((int) $user->allow_login)->toBe(1);
+
+    // E o PRIMEIRO request desse usuário não pode tomar 403.
+    $seed = kbSeedBridgedNode(1, 'adr-9005-guard-defaults', "# G\n\nCORPO-GUARD-L5\n");
+    $r = $this->getJson("/kb/nodes/{$seed['slug']}");
+    $r->assertOk();
+    expect($r->json('content_md'))->toContain('CORPO-GUARD-L5');
+});
+
+// ── CONTROLE NEGATIVO — o 403 LEGÍTIMO continua 403 ────────────────────────
+//
+// Sem ele, o guard L5 acima poderia ser satisfeito por um conserto que só
+// AFROUXASSE a autorização. Aqui o usuário nasce igual (defaults corretos, então
+// passa o CheckUserLogin) mas SEM a permissão coarse — e o `can:` tem que negar.
+it('L6 CONTROLE NEGATIVO: sem a permissao coarse o 403 continua 403', function () {
+    $user = kbActAsUser(bizId: 1, userId: 424243, permissions: []);
+
+    // Prova que o 403 abaixo NÃO é o do CheckUserLogin (modelo está íntegro).
+    expect($user->user_type)->toBe('user');
+    expect((int) $user->allow_login)->toBe(1);
+
+    $seed = kbSeedBridgedNode(1, 'adr-9006-sem-permissao', "# N\n\nCORPO-L6\n");
+    $r = $this->getJson("/kb/nodes/{$seed['slug']}");
+
+    $r->assertStatus(403);
+    expect($r->getContent())->not->toContain('CORPO-L6');
+});
+
 // ── Piso da rota — anônimo não lê corpo nenhum ─────────────────────────────
 it('L4: GET /kb/nodes/{slug} anonimo nao devolve corpo (auth exigida)', function () {
     $response = $this->get('/kb/nodes/adr-9004-qualquer');
