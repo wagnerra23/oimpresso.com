@@ -54,6 +54,14 @@ export function mockupJsx(text) {
 // Auditoria: frontmatter/walk extraídos pra _lib-charter.mjs (fonte única); a denylist segue no hook.
 export const ehAncoraIlegitima = ehPrintSemantico;
 
+/** `n/a …` em related_prototype é DECLARAÇÃO ("a tela nasce do DS"), não âncora.
+ *  Puro e testável. O `anchor-content-check` (required) já pula esses por desenho —
+ *  135 dos 158 charters declaram n/a legitimamente (medido 2026-08-11), então tratá-los
+ *  como âncora seria falso-positivo em massa. O defeito era só o ✓ no output. */
+export function ehDeclaracaoNa(valor) {
+  return typeof valor === 'string' && /^\s*n\/a\b/i.test(valor);
+}
+
 // normaliza a query da tela → tokens comparáveis
 function norm(s) { return (s || '').toLowerCase().replace(/\\/g, '/').replace(/\.(tsx|charter\.md)$/i, '').replace(/\/index$/i, ''); }
 
@@ -124,7 +132,18 @@ function printResolve(r) {
   console.log(`  charter:    ${r.charter}`);
   console.log(`  tela viva:  ${r.telaViva || '—'}`);
   if (!r.ancoras.length) console.log('  âncora:     ⚠️ charter sem related_prototype nem -page.jsx — registre o protótipo');
-  for (const a of r.ancoras) console.log(`  âncora ✓:   [${a.tipo}] ${a.valor}`);
+  // `✓` só para âncora que RESOLVE em arquivo. `n/a` é uma DECLARAÇÃO ("segue o DS"),
+  // legítima, mas não é âncora — imprimir "âncora ✓: n/a" é sinal de saúde falso e foi
+  // o que fez uma sessão (2026-08-11) ler "tem âncora" onde não havia nenhuma.
+  // Ver LC-10 (artefato afirmando o próprio estado) — aqui no eixo do OUTPUT.
+  for (const a of r.ancoras) {
+    if (ehDeclaracaoNa(a.valor)) {
+      console.log(`  sem âncora: ${a.valor}`);
+      console.log('              (declaração legítima — a tela nasce do DS. NÃO entra no anchor-content-check.)');
+    } else {
+      console.log(`  âncora ✓:   [${a.tipo}] ${a.valor}`);
+    }
+  }
   console.log(`  ⛔ ${r.aviso}`);
   return 0;
 }
@@ -147,6 +166,12 @@ async function selftest() {
   let fails = 0;
   const t = (label, cond) => { const ok = !!cond; if (!ok) fails++; console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label}`); };
   // contrato puro: audit/critique png nunca é âncora; -page.jsx é
+  // n/a é declaração, não âncora — o `✓` aqui era sinal de saúde falso (2026-08-11)
+  t('BITE n/a: "n/a (herda PT-04…)" é DECLARAÇÃO, não âncora', ehDeclaracaoNa('n/a (herda PT-04 Dashboard; segue o Padrão de Tela)') === true);
+  t('BITE n/a: "n/a" cru também', ehDeclaracaoNa('n/a') === true);
+  t('CONTROLE n/a: caminho real NÃO é declaração', ehDeclaracaoNa('prototipo-ui/cowork/jana-merge.jsx') === false);
+  t('CONTROLE n/a: nome que só CONTÉM "na" não casa', ehDeclaracaoNa('prototipo-ui/cowork/nao-a-toa.jsx') === false);
+  t('CONTROLE n/a: undefined não quebra', ehDeclaracaoNa(undefined) === false);
   t('audit-financeiro.png é ÂNCORA ILEGÍTIMA', ehAncoraIlegitima('audit-financeiro.png') === true);
   t('Tribunal-x.png é ilegítima', ehAncoraIlegitima('Tribunal-x.png') === true);
   t('financeiro-page.jsx NÃO é ilegítima', ehAncoraIlegitima('financeiro-page.jsx') === false);

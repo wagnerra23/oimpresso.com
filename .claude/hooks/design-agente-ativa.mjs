@@ -107,12 +107,21 @@ Antes de dizer *"precisa vir do Cowork"*, *"esperar handoff"* ou *"me autorize a
 ⛔ "Design é dependência externa" é anti-padrão v1 morto (incidente 2026-07-15 wizard cartão Financeiro).
 
 **⛔ ANTES de dizer "o protótipo não está no repo" / "não existe fonte visual" / "você tem o arquivo pra subir?" — RODE:**
-    DesignSync{method:"list_projects"}  →  DesignSync{method:"list_files", projectId}
-LEITURA é **livre** e usa o login do [W] — sem senha, sem opt-in (só a ESCRITA é gated, ADR 0315).
-\`prototipo-ui/\` + \`ancora.mjs\` são UM dono do inventário de design; o **DesignSync é o OUTRO**.
-Claim de ausência exige consultar os DOIS (§5 2026-07-28 — repo inteiro **+** dono do inventário).
+    1. git       →  git grep <nome>          (repo INTEIRO — não só prototipo-ui/)
+    2. Cowork    →  DesignSync{method:"list_files", projectId:"019dcfd3-6ef2-7ee6-8512-b1b0e5544e58"}
+    3. espelho   →  node scripts/governance/cowork-mirror-freshness.mjs --manifest --all
 
-_Reincidência 2026-08-07 (fusão das telas da Jana): o agente varreu só o git, declarou "jana-merge.jsx não existe" e pediu ao [W] que subisse o arquivo — enquanto o projeto de design tinha \`TabBar\` (com \`count\`), \`PeriodBar\`, \`KpiCard\`, \`Progress\`, \`Chart\` e o template \`pt-05-dashboard\`: TODAS as peças da tela pedida. [W]: "o que tem que fazer para eu não ficar repetindo?"_`);
+⚠️ **\`list_projects\` NÃO É PROVA DE AUSÊNCIA.** Ele enumera **só design-systems**. O protótipo
+do ERP vive num projeto **REGULAR** (\`type: PROJECT_TYPE_PROJECT\` — medido 2026-08-11 via
+\`DesignSync{get_project}\`) e **não aparece** naquela lista. Vá direto ao \`list_files\` com o
+projectId acima, ou abra \`claude.ai/design\` → aba **Projects**.
+
+LEITURA é **livre** e usa o login do [W] — sem senha, sem opt-in (só a ESCRITA é gated, ADR 0315).
+Claim de ausência exige consultar os TRÊS (§5 2026-07-28 — repo inteiro **+** dono do inventário).
+
+_Reincidência 2026-08-07 (fusão das telas da Jana): o agente varreu só o git, declarou "jana-merge.jsx não existe" e pediu ao [W] que subisse o arquivo._
+_**Reincidiu em 2026-08-11 com este hook JÁ ATIVO** — porque ele mandava rodar \`list_projects\` como PROVA, e aquele tool não enxerga projeto regular: a defesa era parte da causa. Pior: dois documentos MERGEADOS de 3 dias antes já diziam onde o arquivo morava (\`git grep jana-merge\` → 21 sites). Canon negou canon, e o oráculo custava 1 comando._
+_⚠️ O template de Dashboard chama-se \`pt-05-dashboard\` no design-system, mas no repo **Dashboard é PT-04** (PT-05 é Kanban). O dono da numeração é o repo (\`memory/requisitos/_DesignSystem/padroes-tela/\`)._`);
     process.exit(0);
   } catch {
     process.exit(0); // hook nunca quebra o fluxo
