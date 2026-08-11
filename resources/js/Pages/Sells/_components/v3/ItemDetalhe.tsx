@@ -186,7 +186,7 @@ export default function ItemDetalhe({
 
   return (
     <Dialog open={!!linha} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="max-h-[90vh] sm:max-w-[1000px]">
+      <DialogContent className="venda-v3 max-h-[90vh] sm:max-w-[1000px]">
         <DialogHeader>
           <DialogTitle>
             Item {indice + 1} · {linha.nome}
