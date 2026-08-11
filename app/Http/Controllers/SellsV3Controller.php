@@ -186,11 +186,11 @@ class SellsV3Controller extends Controller
              * `->with(['addresses'])` num endpoint compartilhado com o Blade.
              */
             'transportadoras' => [
-                ['cod' => '014', 'nome' => 'Transportadora Sul Ltda', 'doc' => '84.512.330/0001-07', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'QHA5F21', 'antt' => '58412330', 'modal' => 'Rodoviário'],
-                ['cod' => '027', 'nome' => 'Rodoviário Bordignon Transportes ME', 'doc' => '11.204.877/0001-55', 'uf' => 'SC', 'cidade' => 'Blumenau', 'placa' => 'MKL2B88', 'antt' => '41120487', 'modal' => 'Rodoviário'],
-                ['cod' => '031', 'nome' => 'Expresso Norte Catarinense S/A', 'doc' => '02.998.140/0001-92', 'uf' => 'PR', 'cidade' => 'Curitiba', 'placa' => 'BEE7J45', 'antt' => '30299814', 'modal' => 'Rodoviário'],
-                ['cod' => '045', 'nome' => 'Frota própria — Office Impresso', 'doc' => '—', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'RJP1A09', 'antt' => '—', 'modal' => 'Frota própria'],
-                ['cod' => '052', 'nome' => 'Log Fácil Entregas Rápidas Eireli', 'doc' => '38.771.905/0001-13', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'SDA9C77', 'antt' => '73877190', 'modal' => 'Motoboy'],
+                ['cod' => '014', 'nome' => 'Transportadora Sul Ltda', 'doc' => '84.512.330/0001-07', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'QHA5F21', 'antt' => '58412330', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '027', 'nome' => 'Rodoviário Bordignon Transportes ME', 'doc' => '11.204.877/0001-55', 'uf' => 'SC', 'cidade' => 'Blumenau', 'placa' => 'MKL2B88', 'antt' => '41120487', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '031', 'nome' => 'Expresso Norte Catarinense S/A', 'doc' => '02.998.140/0001-92', 'uf' => 'PR', 'cidade' => 'Curitiba', 'placa' => 'BEE7J45', 'antt' => '30299814', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '045', 'nome' => 'Frota própria — Office Impresso', 'doc' => '—', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'RJP1A09', 'antt' => '—', 'modal' => 'Frota própria'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '052', 'nome' => 'Log Fácil Entregas Rápidas Eireli', 'doc' => '38.771.905/0001-13', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'SDA9C77', 'antt' => '73877190', 'modal' => 'Motoboy'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
             ],
         ];
     }
