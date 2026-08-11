@@ -1,6 +1,6 @@
 ---
 date: "2026-08-11"
-time: "12:00 BRT"
+time: "12:00 UTC"
 slug: gate-diff-silencioso-e-a-flag-que-truncava
 tldr: "Fechado o estado 3 do memory-schema-gate: o --depth=50 truncava o repo que o fetch-depth:0 acabara de baixar inteiro, e o || true engolia o rc=128 resultante — 4 contexts required podiam sair verdes tendo validado ZERO arquivos. Bite-test provou handoff inválido passando. Consertado no #5569 (merge [W]) com 4 controles negativos."
 prs: [5569]
