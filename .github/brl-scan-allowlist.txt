@@ -35,3 +35,35 @@ clássico R$ 0,01 perdido
 # As substrings carregam o contexto junto (não só "R$ 0,01" solto) de propósito.
 `R$ 100,00 / 3` daria
 perde R$ 0,01 em
+
+# ── protótipo Cowork `jana-merge.jsx` — mock do Painel da Jana (2026-08-11) ──
+# DECISÃO [W] 2026-08-11: allowlist, não redação. O arquivo é o ESPELHO fiel do
+# protótipo vivo (projeto Cowork 019dcfd3), versionado para que o time trabalhe só
+# com o git — razão do [W]: "vai ter computadores que não vão ter acesso ao design
+# dessa máquina e precisarão trabalhar só com o git" (ADR 0374).
+#
+# POR QUE NÃO REDIGIR: o espelho é comparado por hash contra o vivo
+# (`cowork-mirror-freshness --compare`). Trocar valores aqui deixaria o arquivo
+# permanentemente STALE, convertendo o alarme de frescor em ruído — e ruído
+# constante é como um alarme morre. O conserto pertence à FONTE, não ao espelho.
+#
+# ⚠️ O QUE EU (agente) NÃO PUDE VERIFICAR, e fica declarado:
+# são números de um cenário fictício `biz=164` — não batem com a produção medida
+# hoje (biz=1: R$ 20,00 de inadimplência contra R$ 4,5M do mock). MAS o mock cita
+# clientes REAIS por nome (Martinho, ROTA LIVRE, VARGAS LEANDRO), e eu não tenho
+# como saber se algum número foi derivado do faturamento real do Martinho.
+# Quem sabe isso é [W], e foi ele quem decidiu. Se um dia se descobrir que sim,
+# o caminho é corrigir NA FONTE (Cowork) e re-exportar — nunca editar o espelho.
+vencidos, mas a fila real é curta
+Top 20 clientes = R$
+passaram de 365d — candidatos a baixa
+Oito contas com LTV acima de
+As três maiores somam
+LTV combinado R$
+Abril fechou em
+Terça: 3 cheques
+em aberto desde março. Consigo dividir
+títulos acima de 365 dias
+contacts com LTV >
+régua HITL preparada
+DRE conferido
