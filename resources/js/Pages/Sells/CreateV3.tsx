@@ -50,6 +50,15 @@ import {
   type ItemLancado,
   type ProdutoCatalogo,
 } from './_components/v3/LancarItem';
+import EntregaFrete from './_components/v3/EntregaFrete';
+import ComissaoDrawer from './_components/v3/ComissaoDrawer';
+import ColunasModal from './_components/v3/ColunasModal';
+import ItemDetalhe from './_components/v3/ItemDetalhe';
+import ParcelasDrawer from './_components/v3/ParcelasDrawer';
+import { type Parcela } from './_components/v3/parcelas-dominio';
+import { type Beneficiario, type Gatilho } from './_components/v3/comissao-dominio';
+import { carregarColunas, salvarColunas } from './_components/v3/colunas-dominio';
+import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
 import {
   Aviso,
@@ -136,6 +145,9 @@ type Props = {
     papeisDoUsuario: string[];
     executantes: Executante[];
     permissoes: { editarPrecoItem: boolean };
+    /* onda 2 · CU-SELL-11 — opcional porque a cena é servida por um controller que
+       pode estar numa versão anterior; o componente trata `[]` sem quebrar. */
+    transportadoras?: Transportadora[];
   };
 };
 
@@ -188,6 +200,22 @@ export default function SellsCreateV3({ cena }: Props) {
   const [acr, setAcr] = useState('0,00');
   const [frete, setFrete] = useState('0,00');
   const [pags, setPags] = useState<{ k: number; m: string; v: string }[]>([]);
+  /* onda 3 — parcelas. Ficam em state da Page (e nao do drawer) porque o
+     fechamento a direita precisa mostrar o plano de pagamento junto do total. */
+  const [parcelas, setParcelas] = useState<Parcela[]>([]);
+  const [parcelasAberto, setParcelasAberto] = useState(false);
+  /* onda 4 — drawer de detalhe do item. Guarda o INDICE (nao a linha) pra
+     navegacao Anterior/Proximo continuar valida se a lista mudar. */
+  const [itemAberto, setItemAberto] = useState<number | null>(null);
+  /* onda 5 — comissao. Beneficiarios e gatilho vivem na Page porque o resumo
+     do fechamento os mostra junto do total. */
+  const [beneficiarios, setBeneficiarios] = useState<Beneficiario[]>([]);
+  const [gatilhoComissao, setGatilhoComissao] = useState<Gatilho>('recebimento');
+  const [comissaoAberta, setComissaoAberta] = useState(false);
+  /* onda 6 — colunas do grid. Inicializa do localStorage via lazy initializer:
+     ler storage no corpo do componente rodaria a cada render. */
+  const [colunas, setColunas] = useState<string[]>(() => carregarColunas());
+  const [colunasAberto, setColunasAberto] = useState(false);
   const [estagio, setEstagio] = useState('rascunho');
   const [historico, setHistorico] = useState<{ acao: string; de: string; para: string }[]>([]);
   const [situacaoAberta, setSituacaoAberta] = useState(false);
@@ -395,7 +423,13 @@ export default function SellsCreateV3({ cena }: Props) {
             <Pill tom="neutro" mono>
               {itens.length === 1 ? '1 item' : `${itens.length} itens`}
             </Pill>
-            <AindaNao o_que="Modal de colunas (31 disponíveis, arrastar e ordenar)">Colunas…</AindaNao>
+            <button
+              type="button"
+              onClick={() => setColunasAberto(true)}
+              className="cursor-pointer text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
+            >
+              {`Colunas (${colunas.length})…`}
+            </button>
           </Inline>
         }
       >
@@ -500,7 +534,13 @@ export default function SellsCreateV3({ cena }: Props) {
                       className="sticky right-0 whitespace-nowrap border-b border-border/60 bg-card px-2 py-2 text-center"
                     >
                       <Inline gap={1} align="center" justify="center">
-                        <AindaNao o_que="Drawer de detalhe do item (7 abas · tributação · DIFAL)">Impostos</AindaNao>
+                        <button
+                          type="button"
+                          onClick={() => setItemAberto(itens.findIndex((x) => x.k === l.k))}
+                          className="cursor-pointer text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
+                        >
+                          Impostos
+                        </button>
                         {!travada && !cancelada && (
                           <button
                             type="button"
@@ -558,23 +598,14 @@ export default function SellsCreateV3({ cena }: Props) {
         onToggle={() => setEntregaAberta(!entregaAberta)}
         resumo="retirada no balcão · endereço do cadastro"
       >
-        <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <Lbl>Modalidade do frete</Lbl>
-            <span className="block text-[12.5px] leading-[1.4]">Sem frete — retirada no balcão</span>
-          </div>
-          <div>
-            <Lbl>Endereço de entrega</Lbl>
-            <span className="block text-[12.5px] leading-[1.4]">
-              {cli.endereco} · {cli.cidade}/{cli.uf}
-            </span>
-          </div>
-          <MoneyInput label="Valor do frete" value={frete} onChange={setFrete} />
-        </Grid>
-        <p className="mt-3 text-[11.5px] leading-[1.45] text-muted-foreground">
-          Vazio, usa o endereço do cadastro. Transportadora, volumes, peso bruto/líquido e endereço alternativo
-          completo fazem parte do porte da gaveta — próximo passo.
-        </p>
+        <EntregaFrete
+          itens={itens}
+          clienteNome={cli.nome}
+          enderecoDoCadastro={`${cli.endereco} · ${cli.cidade}/${cli.uf}`}
+          frete={frete}
+          onFreteChange={setFrete}
+          transportadoras={cena.transportadoras ?? []}
+        />
       </Sec>
 
       {/* ─── Passo 4 · Observações e produção (gaveta) ───────────────────── */}
@@ -770,7 +801,9 @@ export default function SellsCreateV3({ cena }: Props) {
                 + {m}
               </Chip>
             ))}
-            <Chip destaque>Parcelar…</Chip>
+            <Chip destaque onClick={() => setParcelasAberto(true)}>
+              {parcelas.length > 0 ? `Parcelas (${parcelas.length})…` : "Parcelar…"}
+            </Chip>
           </Inline>
 
           {pags.length > 0 && (
@@ -809,7 +842,13 @@ export default function SellsCreateV3({ cena }: Props) {
           <Inline gap={2} align="center" className="mb-2">
             <Lbl className="mb-0">Comissão</Lbl>
             <span className="ml-auto">
-              <AindaNao o_que="Modelo de comissão (beneficiários, base, regra, gatilho)">Configurar…</AindaNao>
+              <button
+                type="button"
+                onClick={() => setComissaoAberta(true)}
+                className="cursor-pointer text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
+              >
+                {beneficiarios.length > 0 ? `Comissão (${beneficiarios.length})…` : 'Configurar…'}
+              </button>
             </span>
           </Inline>
           <Res l="Base líquida" v={fmtBR(baseTrib)} />
@@ -971,6 +1010,49 @@ export default function SellsCreateV3({ cena }: Props) {
         podeEditarPreco={permissoes.editarPrecoItem}
         onFechar={() => setLancando(null)}
         onConfirmar={adicionarLancado}
+      />
+
+      <ColunasModal
+        aberto={colunasAberto}
+        onFechar={() => setColunasAberto(false)}
+        ativas={colunas}
+        onAtivasChange={(c) => {
+          setColunas(c);
+          salvarColunas(c);
+        }}
+      />
+
+      <ComissaoDrawer
+        aberto={comissaoAberta}
+        onFechar={() => setComissaoAberta(false)}
+        totais={{ bruto: subtotal, liquido: baseTrib, margem: submitSafe(baseTrib * 0.3) }}
+        beneficiarios={beneficiarios}
+        onBeneficiariosChange={setBeneficiarios}
+        gatilho={gatilhoComissao}
+        onGatilhoChange={setGatilhoComissao}
+        parcelas={parcelas}
+        totalDaVenda={total}
+        pessoas={executantes.map((e) => ({ id: e.id, nome: e.nome, papel: e.papel }))}
+      />
+
+      <ItemDetalhe
+        linha={itemAberto !== null ? (itens[itemAberto] ?? null) : null}
+        indice={itemAberto ?? 0}
+        total={itens.length}
+        onFechar={() => setItemAberto(null)}
+        onNavegar={(delta) =>
+          setItemAberto((i) => (i === null ? null : Math.max(0, Math.min(itens.length - 1, i + delta))))
+        }
+        abaInicial="tributacao"
+      />
+
+      <ParcelasDrawer
+        aberto={parcelasAberto}
+        onFechar={() => setParcelasAberto(false)}
+        total={total}
+        parcelas={parcelas}
+        onParcelasChange={setParcelas}
+        documentoBase="VD-2026"
       />
 
       {undo && (

@@ -112,6 +112,124 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
 
+### Colunas do grid (onda 6 — `ColunasModal`)
+
+> A preferência mora no `localStorage`, que é **entrada não confiável**: o usuário pode
+> editar, uma versão futura pode remover uma coluna, um JSON pode truncar. Uma tela de
+> venda que quebra porque o storage tem lixo é pior que uma tela sem preferência salva.
+> Provado em [`tests/js/colunas-dominio.test.ts`](../../../../tests/js/colunas-dominio.test.ts) — **21/21**.
+
+- **[BACKLOG]** Coluna **fixa** (produto, quantidade, valor, total) **não desliga e não sai do lugar** — a linha não existe sem ela, e um grid sem total não é um grid de venda.
+- **[BACKLOG]** JSON inválido, storage bloqueado (modo anônimo) ou cota cheia **não lançam**: caem no padrão e seguem.
+- **[BACKLOG]** Chave de coluna que **não existe mais** (removida numa versão) é descartada ao carregar, sem quebrar o resto da preferência.
+- **[BACKLOG]** Chave **repetida** mantém só a primeira; lista só com lixo cai no padrão, não em grid vazio.
+- **[BACKLOG]** Coluna fixa **ausente** da preferência salva é **reinserida** ao carregar.
+- **[BACKLOG]** Reordenar é por **botão** (‹ ›), não por arrastar: drag-and-drop sem alternativa de teclado é inacessível. A fonte descreve a **intenção** ("arrastar e ordenar"), não a técnica.
+- **[BACKLOG]** Índice fora da lista ao mover é ignorado, em vez de corromper a ordem.
+
+---
+
+### Comissão (onda 5 — `ComissaoDrawer`)
+
+> **Por que isto não é um campo "Comissionista":** quem **vendeu**, quem **trouxe** o
+> cliente e quem **executou** raramente são a mesma pessoa, e cada um tem regra própria.
+> Um select único não expressa isso — e o resultado é comissão calculada em planilha,
+> fora do sistema. ⚠️ **Tier 0**: comissão é dinheiro devido a alguém. Provado em
+> [`tests/js/comissao-dominio.test.ts`](../../../../tests/js/comissao-dominio.test.ts) — **16/16**.
+
+- **[BACKLOG]** Uma venda aceita **vários beneficiários** de tipos diferentes (funcionário, representante, agência, técnico), cada um com base, regra e valor próprios — e o total é a soma.
+- **[BACKLOG]** A **base** é escolhida por beneficiário, e a escolha é de **incentivo**: sobre o **bruto** a empresa paga o vendedor para dar desconto (o desconto sai do caixa dela, não da comissão dele); sobre a **margem**, alinha.
+- **[BACKLOG]** Regra **fixa** ignora a base — o mesmo valor em qualquer uma delas.
+- **[BACKLOG]** A **faixa é por valor TOTAL, não progressiva por fatia**: quem cai na faixa de 4% recebe 4% sobre tudo, e **não** 2% até 5k + 3% até 20k + 4% no resto. Confundir os dois muda o que a empresa paga.
+- **[BACKLOG]** O **gatilho por recebimento** libera a comissão **proporcional ao que o cliente pagou** — é o que impede pagar comissão de venda inadimplente. Em emissão e faturamento, o direito nasce inteiro no evento.
+- **[BACKLOG]** **Estorno é proporcional** ao devolvido: devolveu metade, estorna metade. Sem isso, devolução vira prejuízo dobrado — a empresa devolve ao cliente e mantém a comissão paga.
+- **[BACKLOG]** A tela **avisa** quando a comissão come mais da metade da margem da venda — e margem zero ou negativa com qualquer comissão já é alerta.
+- **[BACKLOG]** Sem beneficiário, a tela **diz** que a venda não gera comissão, em vez de mostrar zero sem explicação.
+
+---
+
+### Detalhe do item (onda 4 — `ItemDetalhe` · 7 abas · tributação)
+
+> ⚠️ **Erro fiscal sai desta tela direto para a NF-e.** Rejeição da SEFAZ não é detalhe
+> de UI: é a venda parada e retrabalho de quem emite. As regras estão provadas em
+> [`tests/js/item-fiscal-dominio.test.ts`](../../../../tests/js/item-fiscal-dominio.test.ts) — **18/18**.
+
+- **[BACKLOG]** **NCM** exige 8 dígitos e a mensagem diz **quantos faltam**, não só "inválido".
+- **[BACKLOG]** **CFOP** tem 4 dígitos e o **primeiro carrega significado**: 1/2/3 são entradas, 5/6/7 saídas — 4, 8 e 9 não existem como primeiro dígito.
+- **[BACKLOG]** **CEST** (7), **GTIN** (8/12/13/14) e **cBenef** (2 letras da UF + 6 dígitos) são opcionais: vazio passa, preenchido é conferido.
+- **[BACKLOG]** Alíquota e redução vivem na faixa **0..100** — negativo e acima de 100 são recusados.
+- **[BACKLOG]** **Coerência CST × alíquota — o erro que a validação campo-a-campo NÃO pega.** CST 40/41/60/04 declara que não há imposto: alíquota > 0 junto é contradição. E CST 00 (tributada integralmente) com alíquota zero é a contradição no sentido oposto. Os dois campos passam sozinhos; o **par** é rejeitado.
+- **[BACKLOG]** **CST 102** (Simples) tem **três** dígitos e não pode ser lido como "10" — não entra em nenhuma das duas regras.
+- **[BACKLOG]** A aba mostra **todos** os erros de uma vez, não um por vez a cada tentativa de salvar; a aba Tributação exibe a contagem no rótulo.
+- **[BACKLOG]** **Confirmar item** fica **desabilitado** enquanto houver pendência fiscal — salvar incoerência seria empurrar à SEFAZ uma rejeição que o sistema já sabia prever.
+- **[BACKLOG]** No fluxo de produção, **responsável é PESSOA e setor é ONDE** — a fonte registra que misturar os dois numa coluna só foi o defeito apontado na revisão do desenho.
+
+> **O que esta onda NÃO faz:** não apura tributo. A tabela de impostos mostra base e
+> alíquota (incluindo **IBS** e **CBS**, os da reforma), mas o valor por imposto é
+> calculado no servidor na emissão. A tela confere **preenchimento**, não valor — e
+> segue sem gravar. Upload de anexo também fica fora: preview não grava arquivo.
+
+---
+
+### Parcelas (onda 3 — `ParcelasDrawer` · CU-SELL-09)
+
+> ⚠️ **Território Tier 0 — VALOR.** Diferente da onda 2 (que só derivava peso), esta
+> onda divide **dinheiro**. A REGRA MESTRE de [`proibicoes.md`](../../../../memory/proibicoes.md)
+> exige prova por **dois caminhos independentes**, e ela existe:
+> [`tests/js/parcelas-dominio.test.ts`](../../../../tests/js/parcelas-dominio.test.ts) —
+> **15/15 verde**, comparando a função real contra aritmética à mão em centavos inteiros
+> para **11 totais × 48 quantidades**. O que ainda protege: a tela **não grava**.
+
+- **[BACKLOG]** `ratear(total, n)` **não perde nem inventa centavo**: a soma das parcelas é exatamente o total, para qualquer `n` de 1 a 48. A conta roda em centavos inteiros e o resto vai para as **primeiras** parcelas.
+- **[BACKLOG]** `100,00` em 3 dá `33,34 · 33,33 · 33,33` — e **não** `33,33 × 3 = 99,99`, que é o centavo que some do jeito ingênuo e vira diferença de conciliação.
+- **[BACKLOG]** "Vence no mesmo dia de cada mês" **não é somar 30 dias**: dia 31 é grampeado no último dia do mês curto (31/01 → **28/02**), enquanto somar 30 dias vazaria para **02/03** — mês diferente, competência diferente.
+- **[BACKLOG]** Quantidade digitada é saneada: texto lixo, vazio, zero ou negativo caem em **1**; acima de 48 é grampeado no teto.
+- **[BACKLOG]** O botão **Confirmar parcelas** fica **desabilitado** enquanto a soma não fecha no total — plano de pagamento que não paga a venda não sai do drawer como se estivesse pronto.
+- **[BACKLOG]** Quando falta ou sobra, a tela diz **de que lado** ("falta distribuir" × "passou do total") e oferece jogar a diferença na **última** parcela.
+- **[BACKLOG]** Parcela com vencimento anterior a hoje é marcada **vencida** — comparando por **dia**, não por instante (vencimento de hoje às 23h59 **não** está vencido).
+- **[BACKLOG]** O parse pt-BR sobrevive ao separador de milhar: `1.115,40` é mil cento e quinze, não um milhão — é o guard do incidente `num_uf`.
+
+---
+
+### Entrega e frete (onda 2 — `EntregaFrete` · CU-SELL-11)
+
+> ⚠️ **Leia isto antes de mexer nesta onda.** Ela é a dívida **D-6** do
+> [`SDD-tela-venda-v1.0.md`](../../../../memory/requisitos/Sells/SDD-tela-venda-v1.0.md):
+> `CU-SELL-11` está `[must]` e 🟡 **parcial** porque a tentativa anterior — **PR #2104** —
+> foi **revertida** (#2107) por regressão reportada por cliente ~30 min após o merge
+> ([incidente](../../../../memory/sessions/2026-06-02-incidente-revert-pr2-sells-endereco.md)).
+>
+> As três causas-raiz suspeitas daquele incidente **não alcançam o preview**, e a razão é
+> estrutural, não otimismo: (1) o `ContactController@getCustomers` quebrou porque passou a
+> fazer `->with(['addresses'])` num endpoint **compartilhado com o Blade** — aqui a cena é
+> estática e não há fetch; (2) o `shipping_address` não persistia — aqui **não há
+> persistência**; (3) o cliente não achava o frete na tela viva — esta **não é** a tela viva.
+> A lição registrada foi *"refazer só após smoke real"*, e um preview que não grava é
+> exatamente onde esse ensaio cabe.
+
+- **[BACKLOG]** `9 — Sem ocorrência de transporte` **apaga o grupo inteiro** de transporte: sem transportadora, sem veículo, sem volumes. É o `modFrete` da NF-e, não uma escolha de UI.
+- **[BACKLOG]** Escolher a transportadora na consulta **traz placa, ANTT, UF e modalidade** do cadastro — e os campos seguem ajustáveis nesta venda.
+- **[BACKLOG]** O peso bruto é **somado dos itens** (peso cadastrado × quantidade) e **item sem peso entra como zero** — somar zero é honesto; inventar massa, não.
+- **[BACKLOG]** Ligar "informar peso manualmente" faz o digitado **ignorar** o somado; desligar volta a somar. O texto de ajuda diz qual dos dois está valendo.
+- **[BACKLOG]** Peso **não é valor nem estoque**: mudar peso não move subtotal, imposto, frete nem total.
+- **[BACKLOG]** O valor do frete continua entrando no total pela cadeia da Page (`vFrete`) — a onda 2 **não altera** a aritmética do fechamento.
+- **[BACKLOG]** Sem "entregar em outro endereço", vale o **endereço do cadastro** do cliente, e a tela diz de onde veio.
+- **[BACKLOG]** A consulta de transportadoras filtra por **código, razão social, CNPJ ou cidade**, e a linha inteira é alcançável por **teclado** (é `<button>`, não `<div onClick>`).
+
+> **Divergência consciente do handoff, e é de arquitetura.** A fonte declara as
+> transportadoras **dentro** do `sells-entrega.jsx`, contradizendo a própria regra do bundle
+> (*"nenhuma lista de domínio nasce em arquivo de UI"* — README do `venda-v3`). Aqui a lista
+> volta pro lugar certo: `SellsV3Controller`, como **dado de cena**. Isso não é preciosismo —
+> é a distinção que separa esta onda do #2104, que quebrou justamente ao transformar uma
+> lista de UI em consulta a banco num endpoint compartilhado.
+>
+> **Fora do escopo desta onda, de propósito:** o bloco *"Fiscal do pedido"* (natureza da
+> operação, esquema de numeração, nº da fatura, imposto do pedido, informações complementares
+> da NF-e) existe no `sells-entrega.jsx`, mas é **`CU-SELL-10`**, que o SDD já marca ✅.
+> Portá-lo aqui misturaria dois CUs num PR só.
+
+---
+
 > **Duas divergências CONSCIENTES do handoff, e as duas são de arredondamento.**
 > O handoff aplica `submitSafe` (2 casas — o guard de **dinheiro**) na área da peça
 > e na quantidade faturada. Medido no harness: uma tira de `0,50 × 0,004 m` dá

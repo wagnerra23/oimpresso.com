@@ -1,0 +1,28 @@
+/* ==========================================================================
+   CAMADA 2 · SHELL — comportamento responsivo do chrome
+   --------------------------------------------------------------------------
+   Sidebar, header e a área de conteúdo. Abaixo de 640px o rail de navegação
+   sai de cena (a navegação passa a ser a TabBar da tela) e o conteúdo perde
+   as margens largas de desktop.
+
+   Alvo de toque de 44px: WCAG 2.5.5 / HIG. A regra cobre `main`; overlays
+   têm a sua no arquivo de padrão (03-padroes-tela/css/overlays.css).
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  /* rail de navegação fora — 260px é caro demais em tela de balcão */
+  .cockpit > :first-child { display: none !important; }
+
+  main > header { padding: 0 12px !important; }
+  main .oi-scroll > div { padding-left: 12px !important; padding-right: 12px !important; }
+
+  /* alvo de toque */
+  main button,
+  main select,
+  main input,
+  main textarea,
+  main a[role="button"] { min-height: 44px !important; }
+
+  /* dentro de tabela densa, 40px é o piso possível sem quebrar a grade */
+  main table button { min-height: 40px !important; min-width: 40px !important; }
+}
