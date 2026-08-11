@@ -23,7 +23,7 @@ uses(Tests\TestCase::class);
  *  004. gerar() em erro NÃO vaza stack trace — devolve fallback amigável
  *
  * @see memory/decisions/0140-jana-pro-produto-comercial-saas.md
- * @see memory/requisitos/Copiloto/JANA-PRO-PRODUCT-PLAN.md
+ * @see memory/requisitos/Jana/JANA-PRO-PRODUCT-PLAN.md
  */
 beforeEach(function () {
     // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente

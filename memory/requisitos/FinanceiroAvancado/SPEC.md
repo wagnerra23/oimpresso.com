@@ -227,7 +227,7 @@ Tabelas novas (todas `business_id` indexado + FK + global scope):
 
 ## §8 — Referências cruzadas
 
-- `Modules/Financeiro/SCOPE.md` — escopo operacional autoritário
+- `memory/requisitos/Financeiro/SCOPE.md` — escopo operacional autoritário
 - [SPEC.md](../Financeiro/SPEC.md) — US-FIN-001..014 base operacional
 - [COMPARATIVO_CONCORRENCIA.md](../Financeiro/COMPARATIVO_CONCORRENCIA.md) — score Capterra-style 53/80
 - `Modules/RecurringBilling/Services/Boleto/Drivers/` — 3 drivers (Asaas/Inter/C6) prontos

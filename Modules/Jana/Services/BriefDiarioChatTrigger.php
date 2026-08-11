@@ -19,7 +19,7 @@ use Throwable;
  * Pattern simples regex-first (zero custo) — se quiser intent classification
  * via LLM no futuro, troca aqui SEM mexer no controller.
  *
- * @see memory/requisitos/Copiloto/JANA-PRO-PRODUCT-PLAN.md (US-COPI-203)
+ * @see memory/requisitos/Jana/JANA-PRO-PRODUCT-PLAN.md (US-COPI-203)
  * @see memory/decisions/0140-jana-pro-produto-comercial-saas.md
  */
 class BriefDiarioChatTrigger

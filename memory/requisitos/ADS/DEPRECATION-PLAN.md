@@ -41,8 +41,8 @@ no [#5131](https://github.com/wagnerra23/oimpresso.com/pull/5131) e a rota no
 
 É a 4ª e a 5ª instância do padrão que o C5 nomeou, e a regra que ele propôs se confirma: **antes de
 dropar tabela do ADS, procurar o consumidor FORA do ADS**. Registrado também onde o pré-flight procura
-(`db_tables_owned` do [SCOPE da Forja](../../../Modules/Forja/SCOPE.md) e do
-[Governance](../../../Modules/Governance/SCOPE.md)) — sem dono declarado, a próxima varredura acharia
+(`db_tables_owned` do [SCOPE da Forja](../Forja/SCOPE.md) e do
+[Governance](../Governance/SCOPE.md)) — sem dono declarado, a próxima varredura acharia
 as 6 órfãs e repetiria o erro.
 
 ### D2 — lista final do E5

@@ -24,7 +24,7 @@ related_adrs: []
 ## Portas canônicas
 
 - **Herança geral (componentes/layouts/templates compartilhados):** [`../_Geral/BRIEFING.md`](../_Geral/BRIEFING.md)
-- **Fronteira/ownership:** [`SCOPE.md`](../../../Modules/<NomeModulo>/SCOPE.md)
+- **Fronteira/ownership:** [`SCOPE.md`](../../../memory/requisitos/<NomeModulo>/SCOPE.md)
 - **Superfície derivada de código:** [`SUPERFICIE.md`](SUPERFICIE.md)
 - **Requisitos:** [`SPEC.md`](SPEC.md)
 - **Tópicos:** [`topicos/`](topicos/)

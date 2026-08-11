@@ -253,7 +253,12 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
                   const value = (e.target as HTMLInputElement).value;
                   // D-14: partial reload — busca só re-busca o que muda com filtro.
                   router.visit('/compras', {
-                    data: { q: value, stage: localFilter },
+                    // `stage` e filtro de SERVIDOR (core: draft/ordered/pending/...);
+                    // `localFilter` e rotulo de EXIBICAO ('abertas' e predicado de
+                    // PAGAMENTO, 'transito' agrupa DOIS status). Mandar um no lugar do
+                    // outro derrubava a listagem em 302 ao buscar com aba ativa.
+                    // Mesmo padrao das demais chamadas deste arquivo (154/196/211).
+                    data: { q: value, stage: filters.stage },
                     preserveScroll: true,
                     preserveState: true,
                     only: ['rows', 'summary', 'filters'],

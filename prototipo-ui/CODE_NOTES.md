@@ -1295,6 +1295,50 @@ _[W] "design-sync tem o get e o set, leia a documentação". Li os 3 runbooks (d
 
 ---
 
+## 2026-08-11 [CL] → [W] — Método KB-9.75 entra no canon (estava fora do git)
+
+**Branch:** `docs/metodo-kb-975-canon` → **mergeado 2026-08-11** ([#5594](https://github.com/wagnerra23/oimpresso.com/pull/5594), squash `232735f2f`).
+
+### O buraco
+
+O `Método KB-9.75` — o playbook que levou o KB de 8,27 a 9,75 e que o projeto usa como régua —
+**não existia no repositório**. Vivia só num zip de handoff Cowork na máquina do [M], dentro de
+`_arquivo/relatorios/` (arquivo morto).
+
+Enquanto isso, **três documentos do canon o citam como autoridade**:
+
+| Doc no canon | Como cita |
+|---|---|
+| `memory/requisitos/_DesignSystem/RUNBOOK-onda-cowork.md` | *"Aplicar este RUNBOOK em TODA cópia visual KB-9.75"* |
+| `prototipo-ui/audit/GOLDEN-REFERENCE.md` | *"AP1–AP10 … (Camada 4 · KB-9.75)"* |
+| `memory/governance/scorecards/screen-grade-board.html` | título: *"Estado da Arte — 222 telas · Método 9.75"* |
+
+Três ponteiros, zero alvo. Sintoma prático: pedido de *"abre o método 9.75"* me levou a **três documentos
+errados** (o board de 222 telas, a `receita.html` do DS v6, o RUNBOOK de Ondas) antes do [M] mandar o caminho.
+
+### O que o PR faz
+
+- Landa `prototipo-ui/METODO-KB-9.75.html` **verbatim** — corpo não reescrito
+- **Lápide de entrada** no topo (histórico v1 2026-05-15) listando o que o tempo superou
+- **Trilha do tempo** append-only no fim (§7.1 · L-07/L-22)
+- Registra em `INDEX-DESIGN-MEMORIAS.md` §2b
+
+### ⚠️ O que o doc afirma e o canon contradiz (por isso a lápide, não o merge cru)
+
+1. **§1.4-A2 e §3** dizem *"Hoje: mono-tenant — empresa única hardcoded"* e usam `company_id`/`branch_id`/
+   `group_id`. **Falso pro oimpresso**: `business_id` com global scope é Tier 0 IRREVOGÁVEL (ADR 0093), e
+   essa nomenclatura não existe no schema. O trecho descreve o **protótipo Cowork**, não o repo.
+2. O `--accent` do próprio relatório é **azul 240**; o canon é **roxo 295** (ADR 0235) — mas o doc é de
+   15/mai e a ADR de 03/jun, então é anacronismo, não violação.
+3. Os scores **0–10** convivem com duas réguas **0–100** (module grade, screen grade). Não comparáveis.
+
+### Pergunta pra você [W]
+
+O playbook lista *"próximas aplicações: Caixa Unificada · CRM · Vendas · Compras · Financeiro"* — de
+maio. Vale reabrir essa fila hoje? O `Produto/Unificado` não está nela e é a tela em revisão agora.
+
+---
+
 ## 2026-08-11 [CL] → [W] — Fonte canon: 3 documentos, 3 respostas diferentes (1 é a real)
 
 **Branch:** `docs/fonte-canon-ibm-plex` (base `main`). PR aberto — **não mergeei**.

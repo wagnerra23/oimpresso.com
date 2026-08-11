@@ -162,7 +162,7 @@ antes→depois antes de qualquer correção de cálculo.
 
 O módulo foi renomeado `PontoWr2 → Ponto` em 2026-05-06 (**rename PHP-only**). Seguem legacy **de propósito**:
 URLs `/ponto/*` com permissions `pontowr2.*`, namespace de views `pontowr2::`, config `pontowr2.clt.*`.
-Não "corrigir" isso sem ADR — ver [`SCOPE.md`](../../../Modules/Ponto/SCOPE.md).
+Não "corrigir" isso sem ADR — ver [`SCOPE.md`](SCOPE.md).
 
 ---
 
@@ -566,7 +566,7 @@ US sem código vira UC órfão e o `casos-gate` G-2 pune ([proibicoes §5](../..
 ## 11. Referências
 
 - [`SPEC.md`](SPEC.md) · [`BRIEFING.md`](BRIEFING.md) · [`SUPERFICIE.md`](SUPERFICIE.md) · [`AUDIT-SENIOR-2026-05-25.md`](AUDIT-SENIOR-2026-05-25.md)
-- [`Modules/Ponto/SCOPE.md`](../../../Modules/Ponto/SCOPE.md)
+- [`memory/requisitos/Ponto/SCOPE.md`](SCOPE.md)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) · [ADR 0264](../../decisions/0264-governanca-executavel-trio-dominio-e2e.md) · [ADR 0351](../../decisions/0351-sdd-from-source.md)
 - [`passo-5-sdd-por-modulo.md`](../_Governanca/programa-ondas/passo-5-sdd-por-modulo.md)
 - Legislação: CLT Art. 58/59/66/71/73/74 · Portaria MTP 671/2021 (Anexos I e VI) · Portaria MTE 1.510/2009 · LGPD Art. 7º II · CF/88 Art. 7º XVI

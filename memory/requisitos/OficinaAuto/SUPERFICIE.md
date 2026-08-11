@@ -12,7 +12,7 @@ module: OficinaAuto
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs OficinaAuto --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/OficinaAuto/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 175 arquivos em 18 papéis.
 
@@ -188,7 +188,8 @@ module: OficinaAuto
 
 ## Testes (Pest) — 44
 
-- 44 arquivos em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 44 em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 9
 
@@ -196,8 +197,8 @@ module: OficinaAuto
 - [VehiclePolicy.php](../../../Modules/OficinaAuto/Policies/VehiclePolicy.php)
 - [oficina-auto.php](../../../Modules/OficinaAuto/Resources/lang/pt-BR/oficina-auto.php)
 - [topnav.php](../../../Modules/OficinaAuto/Resources/menus/topnav.php)
-- [SCOPE.md](../../../Modules/OficinaAuto/SCOPE.md)
 - [composer.json](../../../Modules/OficinaAuto/composer.json)
 - [module.json](../../../Modules/OficinaAuto/module.json)
+- [SCOPE.md](../../../memory/requisitos/OficinaAuto/SCOPE.md)
 - [kanbanDrag.ts](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/kanbanDrag.ts)
 - [boardTone.ts](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/boardTone.ts)

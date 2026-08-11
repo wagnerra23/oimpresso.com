@@ -284,7 +284,7 @@ Abaixo de 80 → 1 round de refator (charter §F1.5 critério). Abaixo de 70 →
 - [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — loop Cowork ↔ CC
 - [ADR 0094](../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §IA — audit + business_id scope
 - [ADR 0107](../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) — gate F1.5
-- [Modules/Whatsapp/SCOPE.md](../Modules/Whatsapp/SCOPE.md) — atendimento humano (separado de Jana)
+- [memory/requisitos/Whatsapp/SCOPE.md](../memory/requisitos/Whatsapp/SCOPE.md) — atendimento humano (separado de Jana)
 - [Glean Chat — citation + streaming + multi-turn](https://www.glean.com/blog/glean-chat-launch-announcement)
 - [Designing Agentic AI — Smashing 2026](https://www.smashingmagazine.com/2026/02/designing-agentic-ai-practical-ux-patterns/)
 

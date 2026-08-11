@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **379** arquivos · **364** números únicos · máx **0374**
-- **ADRs ATIVOS (lifecycle ativo): 341** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 342 · superseded 16 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 341 · arquivado 22 · substituido 16
+- **380** arquivos · **365** números únicos · máx **0375**
+- **ADRs ATIVOS (lifecycle ativo): 342** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 343 · superseded 16 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 342 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (379)
+## Todas as ADRs (380)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -417,3 +417,4 @@ _(nenhuma)_
 | 0372 | aceito | ativo | decision | Emenda à 0094 — princípio 9 (Audit Card): decisão automatizada que afeta titular |
 | 0373 | aceito | ativo | decision | Emenda à 0314 — screen-grades-ratchet a required: exceção soberana [W] com a DR- |
 | 0374 | proposto | ativo | decision | Emenda à 0315 — espelhar o projeto Cowork para `prototipo-ui/cowork/` é a rota P |
+| 0375 | aceito | ativo | decision | SCOPE.md e LICOES-OPERACAO.md saem de Modules/ para memory/requisitos/ |

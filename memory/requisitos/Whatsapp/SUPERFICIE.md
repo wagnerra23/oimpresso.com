@@ -12,7 +12,7 @@ module: Whatsapp
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Whatsapp --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Whatsapp/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 383 arquivos em 20 papéis.
 
@@ -320,7 +320,8 @@ module: Whatsapp
 
 ## Testes (Pest) — 121
 
-- 121 arquivos em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 121 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 14
 
@@ -329,7 +330,6 @@ module: Whatsapp
 - [whatsapp.php](../../../Modules/Whatsapp/Resources/lang/en/whatsapp.php)
 - [whatsapp.php](../../../Modules/Whatsapp/Resources/lang/pt-BR/whatsapp.php)
 - [topnav.php](../../../Modules/Whatsapp/Resources/menus/topnav.php)
-- [SCOPE.md](../../../Modules/Whatsapp/SCOPE.md)
 - [CancelamentoVendaTemplate.php](../../../Modules/Whatsapp/Templates/CancelamentoVendaTemplate.php)
 - [meta-cloud-inbound-with-bsuid.json](../../../Modules/Whatsapp/Tests/Fixtures/meta-cloud-inbound-with-bsuid.json)
 - [composer.json](../../../Modules/Whatsapp/composer.json)
@@ -337,4 +337,5 @@ module: Whatsapp
 - [README.md](../../../Modules/Whatsapp/daemon-go/README.md)
 - [docker-compose.yml](../../../Modules/Whatsapp/daemon-go/docker-compose.yml)
 - [module.json](../../../Modules/Whatsapp/module.json)
+- [SCOPE.md](../../../memory/requisitos/Whatsapp/SCOPE.md)
 - [helpers.ts](../../../resources/js/Pages/Whatsapp/_components/helpers.ts)

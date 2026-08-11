@@ -41,7 +41,7 @@ const ben = (over: Partial<Beneficiario> = {}): Beneficiario => ({
 });
 
 describe('base de cálculo — a escolha muda quanto se paga', () => {
-  it('caminho A × caminho B: 3% sobre cada base dá números diferentes', () => {
+  it('UC-V351 · caminho A × caminho B: 3% sobre cada base dá números diferentes', () => {
     // caminho A — a função
     const sobreLiquido = comissaoDoBeneficiario(ben({ base: 'liquido' }), tot);
     const sobreBruto = comissaoDoBeneficiario(ben({ base: 'bruto' }), tot);
@@ -56,7 +56,7 @@ describe('base de cálculo — a escolha muda quanto se paga', () => {
     expect(sobreBruto).toBeGreaterThan(sobreLiquido);
   });
 
-  it('regra fixa ignora a base — o mesmo valor em qualquer uma', () => {
+  it('UC-V352 · regra fixa ignora a base — o mesmo valor em qualquer uma', () => {
     for (const base of ['liquido', 'bruto', 'margem'] as const) {
       expect(comissaoDoBeneficiario(ben({ base, regra: 'fixo', valor: '250,00' }), tot)).toBeCloseTo(250, 2);
     }
@@ -64,7 +64,7 @@ describe('base de cálculo — a escolha muda quanto se paga', () => {
 });
 
 describe('faixa progressiva — por VALOR TOTAL, não por fatia', () => {
-  it('cada faixa devolve seu percentual', () => {
+  it('UC-V353 · cada faixa devolve seu percentual', () => {
     expect(percentualDaFaixa(1000)).toBe(2); // até 5k
     expect(percentualDaFaixa(5000)).toBe(2); // limite inclusivo
     expect(percentualDaFaixa(5000.01)).toBe(3);
@@ -73,7 +73,7 @@ describe('faixa progressiva — por VALOR TOTAL, não por fatia', () => {
     expect(percentualDaFaixa(1_000_000)).toBe(4);
   });
 
-  it('quem cai na faixa de 4% recebe 4% sobre TUDO — não 2%+3%+4% por fatia', () => {
+  it('UC-V353 · quem cai na faixa de 4% recebe 4% sobre TUDO — não 2%+3%+4% por fatia', () => {
     const b = ben({ regra: 'faixa', base: 'bruto' });
     const grande: TotaisDaVenda = { bruto: 30000, liquido: 30000, margem: 10000 };
 
@@ -88,7 +88,7 @@ describe('faixa progressiva — por VALOR TOTAL, não por fatia', () => {
 });
 
 describe('vários beneficiários — o motivo de a onda existir', () => {
-  it('soma tipos diferentes com regras diferentes na mesma venda', () => {
+  it('UC-V350 · soma tipos diferentes com regras diferentes na mesma venda', () => {
     const bens = [
       ben({ k: 1, tipo: 'funcionario', base: 'liquido', regra: 'percentual', pct: '3' }), // 270
       ben({ k: 2, tipo: 'representante', base: 'bruto', regra: 'percentual', pct: '1,5' }), // 150
@@ -98,12 +98,12 @@ describe('vários beneficiários — o motivo de a onda existir', () => {
     expect(comissaoTotal(bens, tot)).toBeCloseTo(270 + 150 + 80, 2);
   });
 
-  it('lista vazia é zero, não NaN', () => {
+  it('UC-V350 · lista vazia é zero, não NaN', () => {
     expect(comissaoTotal([], tot)).toBe(0);
     expect(percentualSobreALiquida(0, tot)).toBe(0);
   });
 
-  it('percentual sobre a líquida é o número que dispara o alerta', () => {
+  it('UC-V356 · percentual sobre a líquida é o número que dispara o alerta', () => {
     expect(percentualSobreALiquida(270, tot)).toBeCloseTo(3, 2);
     expect(percentualSobreALiquida(100, { bruto: 0, liquido: 0, margem: 0 })).toBe(0); // sem divisão por zero
   });
@@ -116,49 +116,49 @@ describe('gatilho — o que impede pagar comissão de venda não paga', () => {
     { valor: '3.000,00', lanc: 'A RECEBER' },
   ];
 
-  it('por RECEBIMENTO libera proporcional ao que o cliente pagou', () => {
+  it('UC-V354 · por RECEBIMENTO libera proporcional ao que o cliente pagou', () => {
     // 1 de 3 parcelas recebidas → 1/3 da comissão
     expect(comissaoLiberada(300, 'recebimento', parcelas, 9000)).toBeCloseTo(100, 2);
   });
 
-  it('nada recebido libera zero — mesmo com a venda emitida', () => {
+  it('UC-V354 · nada recebido libera zero — mesmo com a venda emitida', () => {
     const nenhuma = parcelas.map((p) => ({ ...p, lanc: 'A RECEBER' }));
     expect(comissaoLiberada(300, 'recebimento', nenhuma, 9000)).toBe(0);
   });
 
-  it('tudo recebido libera tudo', () => {
+  it('UC-V354 · tudo recebido libera tudo', () => {
     const todas = parcelas.map((p) => ({ ...p, lanc: 'RECEBIDA' }));
     expect(comissaoLiberada(300, 'recebimento', todas, 9000)).toBeCloseTo(300, 2);
   });
 
-  it('faturamento e emissão liberam INTEIRO — o direito nasce no evento', () => {
+  it('UC-V354 · faturamento e emissão liberam INTEIRO — o direito nasce no evento', () => {
     expect(comissaoLiberada(300, 'faturamento', parcelas, 9000)).toBe(300);
     expect(comissaoLiberada(300, 'emissao', parcelas, 9000)).toBe(300);
   });
 });
 
 describe('estorno na devolução — senão a devolução vira prejuízo dobrado', () => {
-  it('devolveu metade, estorna metade', () => {
+  it('UC-V355 · devolveu metade, estorna metade', () => {
     expect(estornoProporcional(300, 4500, 9000)).toBeCloseTo(150, 2);
   });
 
-  it('devolução total estorna tudo; nada devolvido estorna zero', () => {
+  it('UC-V355 · devolução total estorna tudo; nada devolvido estorna zero', () => {
     expect(estornoProporcional(300, 9000, 9000)).toBeCloseTo(300, 2);
     expect(estornoProporcional(300, 0, 9000)).toBe(0);
   });
 
-  it('devolvido acima do total não estorna mais que a comissão', () => {
+  it('UC-V355 · devolvido acima do total não estorna mais que a comissão', () => {
     expect(estornoProporcional(300, 99999, 9000)).toBeCloseTo(300, 2);
   });
 });
 
 describe('alerta de margem — o aviso de negócio que a fonte traz pronto', () => {
-  it('acusa quando a comissão come mais da metade da margem', () => {
+  it('UC-V356 · acusa quando a comissão come mais da metade da margem', () => {
     expect(comeMaisQueMetadeDaMargem(1600, tot)).toBe(true); // 1600/3000 = 53%
     expect(comeMaisQueMetadeDaMargem(1400, tot)).toBe(false); // 46%
   });
 
-  it('margem zero ou negativa: qualquer comissão já é alerta', () => {
+  it('UC-V356 · margem zero ou negativa: qualquer comissão já é alerta', () => {
     expect(comeMaisQueMetadeDaMargem(1, { bruto: 100, liquido: 100, margem: 0 })).toBe(true);
     expect(comeMaisQueMetadeDaMargem(0, { bruto: 100, liquido: 100, margem: 0 })).toBe(false);
   });

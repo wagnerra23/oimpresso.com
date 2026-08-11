@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * @see memory/decisions/0155-module-grade-v3.md D9.c
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see Modules/RecurringBilling/SCOPE.md (US-RB-044 NFe-de-boleto, US-RB-045 sync bank)
+ * @see memory/requisitos/RecurringBilling/SCOPE.md (US-RB-044 NFe-de-boleto, US-RB-045 sync bank)
  */
 class RecurringHealthCommand extends Command
 {

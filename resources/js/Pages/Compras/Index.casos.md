@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — o escopo de quem-vê-o-quê e o contrato de filtro não mudam quando o cockpit ganhar abas novas.
 owner: wagner
-last_run: "2026-07-27"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Compras · MySQL)"
+last_run: "2026-08-11"
+last_run_ci: "UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: 'pague a dívida, e deixe requerido'); veredito segue da lane PHP / Pest (Compras · MySQL)"
 ---
 
 # Casos de Uso & Aceite — Cockpit de Compras (`/compras`)
@@ -173,8 +173,20 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   na OficinaAuto, [proibições §5](../../../../memory/proibicoes.md) 2026-06-09, é o precedente).
   O rótulo visível para a Larissa continua *"A pagar"*/*"Rascunhos"*/*"Em trânsito"*: muda o **valor
   emitido**, não a palavra na tela.
-- 📌 **A correção não cabe neste PR** (escopo: contrato, não mudança de comportamento de tela). Vira
-  trabalho próprio, com o vermelho desta lane como recibo de entrada.
+- 🔧 **Implementado em 2026-08-11** ([W]: *"pague a dívida, e deixe requerido"* — a correção passou a
+  caber). **O caminho literal decidido acima não fecha, e isto foi MEDIDO, não julgado:**
+  duas das quatro abas não têm status core equivalente —
+  **"A pagar"** é `dueAmount = final_total − amount_paid` (grandeza de **pagamento**, calculada de
+  duas colunas de dinheiro — não existe em `transactions.status`), e **"Em trânsito"** agrupa
+  **dois** status (`transito` OU `pedido`) enquanto o Service filtra com `where` de valor único.
+  Fazer a aba "emitir o status core" exigiria inventar semântica de domínio para "A pagar" —
+  decisão de produto, não de implementação.
+  **O que foi feito preserva o princípio que a decisão protegia** (um só vocabulário na fronteira):
+  o defeito real era `Index.tsx:256`, onde a **busca** mandava `stage: localFilter` — rótulo de
+  exibição no lugar do filtro de servidor. Passou a mandar `filters.stage`, alinhando com as outras
+  três chamadas do arquivo (154/196/211). A fronteira carrega só o vocabulário CORE; as abas seguem
+  filtrando client-side, e o rótulo visível para a Larissa não muda.
+  **A whitelist NÃO foi alargada** — o controle-negativo anti-SQLi segue intacto.
 - **Status: 🧪 vermelho esperado** — **predição**, derivada de leitura. Veredito vem da lane.
 
 ---

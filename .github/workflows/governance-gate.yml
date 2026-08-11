@@ -336,7 +336,7 @@ jobs:
             modulo=$(echo "$controller_path" | sed -E 's|Modules/([^/]+)/.*|\1|')
             controller_name=$(basename "$controller_path" .php)
 
-            scope="Modules/${modulo}/SCOPE.md"
+            scope="memory/requisitos/${modulo}/SCOPE.md"   # ADR 0375: SCOPE saiu de Modules/
 
             if [ ! -f "$scope" ]; then
               drifts="${drifts}- ⚠️ \`$controller_path\` — \`$scope\` não existe (módulo sem charter, ADR 0079 Art. 7)\n"
@@ -409,7 +409,7 @@ jobs:
               drifts,
               ``,
               `### Como resolver`,
-              `- Adicione cada Controller em \`Modules/<X>/SCOPE.md.contains[]\` no mesmo PR`,
+              `- Adicione cada Controller em \`memory/requisitos/<X>/SCOPE.md.contains[]\` no mesmo PR`,
               `- OU mova o Controller pro módulo correto`,
               `- OU declare em \`drift_alerts[]\` com ADR justificando (transitório)`,
               ``,
