@@ -191,6 +191,33 @@ console.log('\n[8] delta sem ANCORA aborta antes de gastar — e nao grava retra
   ok(/required: \['data', 'notas'\]/.test(src), 'schema SCAN exige ultimo_retrato.notas')
 }
 
+// Defeito MEDIDO (rodada 2026-08-11, dimensao memoria-conhecimento): o proprio relatorio
+// registrou que 5 das 8 fraquezas levantadas JA tinham maquina viva que a pesquisa nao achou.
+// Nao foi azar — o dossie so lia decisions/ (mapa-dos-niveis curado a mao) + doutrina + §5, e
+// 373 das 466 maquinas do inventario derivado NAO aparecem em nenhuma dessas fontes (80%,
+// medido em 2026-08-11). Exemplo canonico: `hook-replay`/`hook-bites` estao no inventario
+// (linhas ~389-390) e em NENHUMA fonte do dossie — logo os pesquisadores concluiam "o
+// oimpresso nao mede isso" sobre coisa que ele mede. Mesmo padrao do 7/9 de 2026-07-09
+// (SKILL.md regra 4). Sem estes asserts, uma edicao futura remove a fonte e nada avisa.
+console.log('\n[9] o dossie carrega o inventario derivado (lista anti-falso-negativo)')
+{
+  const p = (await rodar({ base: '/base' })).prompt('dossie')
+  ok(p.includes('/base/memory/reference/MAQUINAS-INVENTARIO.md'), 'inventario e FONTE OBRIGATORIA do dossie (com args.base resolvido)')
+  ok(/ANTI-FALSO-NEGATIVO/i.test(p), 'o prompt nomeia PRA QUE serve (procurar antes de declarar ausencia)')
+  ok(/N.O enumere o inventário inteiro/.test(p), "nao manda listar o inventario inteiro (estouraria o teto de 500 palavras)")
+  ok(/ANTES de afirmar que o oimpresso n.o faz X/.test(p), 'o dossie repassa a instrucao aos pesquisadores (o dossie e embutido em COMUM)')
+  // As 3 fontes antigas seguem no prompt — a fonte nova SOMA, nao substitui.
+  ok(p.includes('mapa-dos-niveis') && p.includes('/base/memory/proibicoes.md') && p.includes('doutrina-documentacao'),
+    'as 3 fontes originais continuam obrigatorias (fonte nova soma, nao troca)')
+  // CONTROLE NEGATIVO — a mudanca e do PROMPT, nao da arquitetura: contagem de agentes intacta.
+  // O esperado e DERIVADO do DIMS_DEFAULT vivo (nunca hardcoded — numero escrito a mao apodrece
+  // no dia em que alguem adiciona uma dimensao, e o assert passaria a medir o passado).
+  const nDims = [...fs.readFileSync(ALVO, 'utf8').matchAll(/^ {2}\{ key: '/gm)].length
+  const r = await rodar({ base: '/base' })
+  ok(nDims > 0 && r.chamadas.filter((c) => c.label.startsWith('p:')).length === nDims, `nenhuma fase nova: ${nDims} pesquisadores (1 por dimensao de DIMS_DEFAULT)`)
+  ok(r.chamadas.filter((c) => c.label === 'dossie').length === 1, 'segue UM unico agente de dossie')
+}
+
 fs.rmSync(TMP, { recursive: true, force: true })
 console.log(falhas ? `\nFALHOU: ${falhas} assercao(oes)` : '\nOK: selftest do workflow reguas-do-sistema passou')
 process.exit(falhas ? 1 : 0)

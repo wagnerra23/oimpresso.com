@@ -11,7 +11,8 @@
  * `catalog.json` consultável (nós + arestas tipadas).
  *
  * DOUTRINA (ADR 0256): derivado sobrevive; escrito+lembrado apodrece. O grafo é 100% recalculado
- * dos SCOPE.md e SUPERFICIE.md Classe B — nada à mão. NÃO INVENTA relação que as fontes não declaram:
+ * dos SCOPE.md, SUPERFICIE.md Classe B e do frontmatter de memory/decisions/*.md (linhagem ADR→ADR)
+ * — nada à mão. NÃO INVENTA relação que as fontes não declaram:
  * campos estruturados do frontmatter (`depends_on`, `db_tables_owned`/`db_tables_consumed`/`db_tables_legacy_views`,
  * `related_adrs`/`charter_adr`, `url_prefixes`, `contains`, e os cross-refs `→ Modules/X` que vivem
  * DENTRO de `not_contains` + `drift_alerts.pertence_a`). Prosa do corpo markdown é ignorada de
@@ -21,8 +22,10 @@
  * (committed == regerado), não por timestamp que apodrece (§5 2026-07-17 — recibo é query
  * re-rodável, não afirmação atemporal). Logo o JSON é byte-determinístico.
  *
- * ADVISORY DE NASCENÇA (ADR 0314/0275): required = só Tier-0. Este é um catálogo de conveniência —
- * `--check` pode ficar VERMELHO (drift OU aresta pendurada) sem bloquear merge; é sinal, não catraca.
+ * ENFORCEMENT: o dono é `governance/required-checks-baseline.json` — não este cabeçalho. Fato datado:
+ * nasceu advisory em 2026-07 (ADR 0314/0275, "required = só Tier-0") e o job `catalog.json == SCOPEs
+ * + Classes B` foi PROMOVIDO a required em 2026-08-05 (ADR 0370, 6 mordidas medidas). Logo `--check`
+ * vermelho (drift OU aresta pendurada) hoje BLOQUEIA — consulte o baseline, não a memória.
  *
  * O que ele NÃO faz (delega): superfície de código por papel é do `module-surface.mjs`; cobertura/nota
  * de tela é do `screen-coverage`/`casos-gate`. Aqui é só o GRAFO de fronteiras entre módulos.
@@ -61,6 +64,9 @@ const EDGE_TYPES = [
   'dependsOn',       // module → module       (fronteira declarada OU tabela consumida→dono)
   'delegatesTo',     // module → module       (not_contains "→ Modules/X" — fronteira declarada)
   'migratesTo',      // module → module       (drift_alerts.pertence_a "Modules/X")
+  'supersedes',          // adr → adr         (frontmatter `supersedes` de memory/decisions/*.md)
+  'supersedesPartially', // adr → adr         (`supersedes_partially` — emenda parcial, ADR 0317)
+  'supersededBy',        // adr → adr         (`superseded_by` — declaração do lado sucedido)
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -195,6 +201,84 @@ function migrateTargetsFromRaw(raw) {
   return out;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Relações ADR→ADR (supersedes / supersedes_partially / superseded_by).
+//
+// POR QUE AQUI: a relação já é VALIDADA pelo dono (`adr-index-generate.mjs` pega
+// supersessão dangling, alvo-não-marcado, órfã, double-supersede e "declarada só em
+// prosa", dentro do required `Governance Gate`). O que faltava era ela ser PUBLICADA
+// como dado — o grafo tinha 0 arestas adr→adr. Aqui só se DERIVA e se publica; a
+// integridade continua sendo do dono, e este gerador NÃO re-declara aquelas regras.
+//
+// MEDIDO em 2026-08-11 sobre memory/decisions/ (380 arquivos):
+//   supersedes 15 · supersedes_partially 48 · superseded_by 19 pares.
+//   100% dos itens são declarados por SLUG INTEIRO (0 números crus) — por isso a
+//   resolução aqui é por slug, não por número.
+// FORA de propósito (medido, não presumido):
+//   `related` 1602 pares → +192% de arestas num grafo de 834, semântica vaga e 11
+//   alvos pendurados; inchava o grafo sem responder pergunta nova. `amends` 39 pares
+//   NÃO está no schema de ADR (scripts/memory-schemas/adr.schema.json) — emitir seria
+//   inventar tipo de aresta a partir de campo não-canônico.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Itens CRUS (slug inteiro) de uma lista do frontmatter de ADR. Aceita inline
+ * (`supersedes: [a, b]`) e bloco (`- "a"  # nota`).
+ *
+ * ⚠️ ORDEM DA LIMPEZA: tira o comentário `#` ANTES das aspas. O `rawItemsFrom` do
+ * `adr-index-generate.mjs` faz o INVERSO (aspas → comentário), então um item escrito
+ * `- "0189-slug"   # nota` volta de lá como `0189-slug"` — com a aspa presa. Isso é
+ * artefato do parser, NÃO dado: medido em 2 itens de `superseded_by` (0182), que
+ * parecem slug pendurado e não são. Aqui a ordem correta evita reproduzir o defeito.
+ * (O defeito no dono é latente — hoje só o 0358 usa aquele caminho e é inline, sem
+ * comentário. Corrigi-lo é intent separado, no arquivo dele.)
+ *
+ * @param {string} fm  frontmatter cru
+ * @param {string} key nome do campo
+ * @returns {string[]}
+ */
+function adrRelationItems(fm, key) {
+  const clean = (s) => s.split('#')[0].trim().replace(/^['"]|['"]$/g, '').trim();
+  const inline = fm.match(new RegExp(`^${key}:\\s*\\[([^\\]]*)\\]`, 'mi'));
+  if (inline) return inline[1].split(',').map(clean).filter(Boolean);
+  const block = fm.match(new RegExp(`^${key}:\\s*\\n((?:\\s*-\\s*.+\\n?)+)`, 'mi'));
+  if (block) return block[1].split('\n').map((l) => clean(l.replace(/^\s*-\s*/, ''))).filter(Boolean);
+  return [];
+}
+
+/**
+ * Resolve um slug declarado → identidade de nó, SEM colapsar coisas diferentes.
+ *
+ * A regra de identidade (o ponto delicado): o id `adr:NNNN` só é usado quando o NÚMERO
+ * é inequívoco. 13 números do repo têm 2 ADRs distintas (baseline curado em
+ * `governance/adr-collisions-baseline.json`; o detector é do `adr-index-generate.mjs`,
+ * que segue o dono — aqui NÃO se re-detecta colisão). Medido: 6 arestas têm ponta em
+ * número colidido, e 2 delas apontam pra ADRs DIFERENTES que cairiam no MESMO
+ * `adr:0180`. Emitir por número publicaria fato falso. Nesses casos o id é
+ * `adr:<slug>`, que é preciso por construção (ADR 0274: o slug é quem desambigua).
+ *
+ * TOMBSTONE (ADR 0316): slug fora do disco mas no ledger de esquecimento é morte
+ * LEGÍTIMA, não aresta pendurada — espelha `adr-index-generate.mjs` ("supersede de ADR
+ * esquecida ≠ dangling"). Caso vivo: `0358 supersedes 0101-tests-business-id-1-nunca-cliente`.
+ * Por número isso resolveria pra `0101-sistema-charter-capterra-governanca-escopo`, que
+ * é OUTRA ADR, viva — o fato falso que esta função existe pra impedir.
+ *
+ * @param {string} slug              slug declarado (ex. "0093-multi-tenant-isolation-tier-0")
+ * @param {{ knownSlugs: Set<string>, collidedNums?: Set<string>, tombstonedSlugs?: Set<string> }} idx
+ * @returns {{ id: string, num: string, slug: string, exists: boolean, tombstoned: boolean } | null}
+ */
+export function resolveAdrTarget(slug, idx) {
+  const s = String(slug || '').trim();
+  const num = adrNumFrom(s);
+  if (!num) return null;
+  const known = idx.knownSlugs?.has(s) ?? false;
+  const tombstoned = !known && (idx.tombstonedSlugs?.has(s) ?? false);
+  // Número ambíguo (colidido) OU slug que não é um arquivo vivo → id qualificado pelo slug.
+  const ambiguo = idx.collidedNums?.has(num) ?? false;
+  const id = known && !ambiguo ? `adr:${num}` : `adr:${s}`;
+  return { id, num, slug: s, exists: known, tombstoned };
+}
+
 /** Garante array (o parser devolve string se a lista tinha 1 valor inline, ou [] se vazia). */
 function asList(v) {
   if (Array.isArray(v)) return v;
@@ -241,6 +325,57 @@ function knownAdrNumbers() {
   );
 }
 
+/**
+ * Lê `memory/decisions/NNNN-*.md` → índice de identidade + relações declaradas.
+ * Um passo de IO só; toda a decisão fica nas funções puras acima.
+ * @returns {{ records: {num:string,slug:string,supersedes:string[],supersedes_partially:string[],superseded_by:string[]}[], slugs: Set<string>, collidedNums: Set<string> }}
+ */
+function readAdrIndex() {
+  const dir = join(ROOT, 'memory/decisions');
+  if (!existsSync(dir)) return { records: [], slugs: new Set(), collidedNums: new Set() };
+  const records = [];
+  const slugs = new Set();
+  /** @type {Map<string, number>} */
+  const perNum = new Map();
+  for (const file of readdirSync(dir).sort()) {
+    const m = file.match(/^(\d{4})-(.+)\.md$/);
+    if (!m) continue;
+    const [num, slug] = [m[1], `${m[1]}-${m[2]}`];
+    slugs.add(slug);
+    perNum.set(num, (perNum.get(num) || 0) + 1);
+    const txt = readFileSync(join(dir, file), 'utf8');
+    // Só o frontmatter: prosa do corpo é narrativa, não declaração (mesma doutrina dos SCOPE.md).
+    const end = txt.startsWith('---') ? txt.indexOf('\n---', 3) : -1;
+    const fm = end === -1 ? (txt.startsWith('---') ? txt : '') : txt.slice(0, end);
+    records.push({
+      num, slug,
+      supersedes: adrRelationItems(fm, 'supersedes'),
+      supersedes_partially: adrRelationItems(fm, 'supersedes_partially'),
+      superseded_by: adrRelationItems(fm, 'superseded_by'),
+    });
+  }
+  const collidedNums = new Set([...perNum].filter(([, c]) => c > 1).map(([n]) => n));
+  return { records, slugs, collidedNums };
+}
+
+/**
+ * Slugs de ADR TOMBADA (ADR 0316) — `governance/adr-tombstones.json` é o dono de
+ * "esse número morreu, quando e por qual ADR"; aqui só se LÊ (§5: aponta pro dono,
+ * não restateia). Ledger ausente/ilegível → set vazio, e aí a supersessão de ADR
+ * esquecida volta a aparecer como pendurada (fail-safe idêntico ao do dono).
+ * @returns {Set<string>}
+ */
+function loadAdrTombstoneSlugs() {
+  const abs = join(ROOT, 'governance/adr-tombstones.json');
+  if (!existsSync(abs)) return new Set();
+  try {
+    const j = JSON.parse(readFileSync(abs, 'utf8'));
+    return new Set((j.tombstones ?? []).map((t) => String(t.slug || '').trim()).filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
+
 /** Lê 1 SCOPE.md → registro { module, purpose, ... , contains[], not_contains[], tables }. */
 function readScope(mod) {
   const rel = `memory/requisitos/${mod}/SCOPE.md`;
@@ -275,6 +410,7 @@ function readScope(mod) {
  */
 function buildGraph(records, opts = {}) {
   const knownAdrs = opts.knownAdrs; // undefined = pula check de ADR pendurada
+  const adrRel = opts.adrRelations; // undefined = nenhuma aresta adr→adr (comportamento antigo)
   const moduleSet = new Set(records.map((r) => r.module));
 
   /** @type {Map<string, any>} */
@@ -339,7 +475,16 @@ function buildGraph(records, opts = {}) {
       if (!num) continue;
       const nid = `adr:${num}`;
       const n = ensure(nid, () => ({ id: nid, type: 'adr', num, slug: '', exists: knownAdrs ? knownAdrs.has(num) : true }));
-      if (!n.slug && /\d{4}-[a-z0-9-]+/.test(String(slug))) n.slug = String(slug).trim();
+      // Só carimba o slug se ele for de fato um arquivo VIVO e o número for inequívoco.
+      // Sem essa guarda, um SCOPE que cita ADR tombada/renomeada carimba o slug MORTO no
+      // nó do número — que hoje pertence a OUTRA ADR viva. Era o caso real de `adr:0101`:
+      // Fiscal/SCOPE.md cita `0101-tests-...` (tombada, ADR 0316) e o nó do 0101 vivo
+      // (`0101-sistema-charter-...`) saía rotulado com o slug da morta. Sem índice de ADR
+      // (testes sintéticos), mantém o comportamento antigo.
+      const slugConfiavel = adrRel
+        ? adrRel.slugs.has(String(slug).trim()) && !adrRel.collidedNums.has(num)
+        : true;
+      if (!n.slug && slugConfiavel && /\d{4}-[a-z0-9-]+/.test(String(slug))) n.slug = String(slug).trim();
       addEdge(mid, nid, 'governedByAdr', 'related_adrs');
     }
     // componentes (contains)
@@ -381,6 +526,47 @@ function buildGraph(records, opts = {}) {
     }
   }
 
+  // ── relações ADR→ADR (linhagem de decisão) ────────────────────────────────
+  // Sem `adrRelations` o comportamento é idêntico ao de antes (nenhuma aresta adr→adr),
+  // que é o que mantém os testes sintéticos de módulo válidos sem tocá-los.
+  if (adrRel) {
+    const idx = {
+      knownSlugs: adrRel.slugs,
+      collidedNums: adrRel.collidedNums,
+      tombstonedSlugs: opts.tombstonedAdrSlugs || new Set(),
+    };
+    /** Cria/atualiza o nó de uma ponta. Só carimba `slug` quando o número é inequívoco. */
+    const ensureAdrNode = (t) => {
+      const n = ensure(t.id, () => {
+        const base = { id: t.id, type: 'adr', num: t.num, slug: '', exists: t.exists };
+        // `tombstoned` só aparece quando true: nó de ADR normal fica byte-idêntico ao de antes.
+        if (t.tombstoned) base.tombstoned = true;
+        return base;
+      });
+      if (!n.slug && t.exists && !idx.collidedNums.has(t.num)) n.slug = t.slug;
+      return n;
+    };
+    // campo do frontmatter → tipo de aresta. `source` guarda o campo, igual às demais.
+    const REL = [
+      ['supersedes', 'supersedes'],
+      ['supersedes_partially', 'supersedesPartially'],
+      ['superseded_by', 'supersededBy'],
+    ];
+    for (const a of adrRel.records) {
+      const from = resolveAdrTarget(a.slug, idx);
+      if (!from) continue;
+      for (const [field, edgeType] of REL) {
+        for (const declared of a[field] || []) {
+          const to = resolveAdrTarget(declared, idx);
+          if (!to || to.id === from.id) continue; // self-ref não é aresta (medido: 0, guarda mesmo assim)
+          ensureAdrNode(from);
+          ensureAdrNode(to);
+          addEdge(from.id, to.id, edgeType, field);
+        }
+      }
+    }
+  }
+
   // Relação estilo Backstage/Cortex: fronteira declarada e consumo de tabela viram
   // dependsOn explícito, preservando também a aresta-fonte auditável.
   for (const e of [...edges]) {
@@ -406,11 +592,19 @@ function buildGraph(records, opts = {}) {
       .filter((n) => n.type === 'module' && n.catalog_status === 'referenced-only')
       .map((n) => ({ module: n.module, reason: 'referenciado por SCOPE, sem descritor próprio' })),
     dangling_module_refs: [],
-    dangling_adr_refs: knownAdrs
+    // Com `adrRelations` a existência é decidida por SLUG (definitiva), então o
+    // diagnóstico vale mesmo sem `knownAdrs` — que só cobre o eixo módulo→adr.
+    dangling_adr_refs: (knownAdrs || adrRel)
       ? [...nodes.values()]
-          .filter((n) => n.type === 'adr' && n.exists === false)
+          // ADR TOMBADA (0316) não é pendurada: é morte legítima, com lápide curada em
+          // governance/adr-tombstones.json. Mesma regra do adr-index-generate.mjs.
+          .filter((n) => n.type === 'adr' && n.exists === false && !n.tombstoned)
           .flatMap((n) => edges.filter((e) => e.to === n.id).map((e) => ({ from: e.from, to: n.id, type: e.type, source: e.source })))
       : [],
+    // Informativo (nunca fatal): quem sucede ADR já esquecida fisicamente.
+    adr_supersession_of_tombstoned: [...nodes.values()]
+      .filter((n) => n.type === 'adr' && n.tombstoned === true)
+      .flatMap((n) => edges.filter((e) => e.to === n.id).map((e) => ({ from: e.from, to: n.id, type: e.type, source: e.source }))),
     consumed_tables_without_catalog_owner: [...nodes.values()]
       .filter((n) => n.type === 'table' && n.consumers.length > 0 && n.owners.length === 0 && n.legacy_views.length === 0)
       .map((n) => ({ table: n.name, consumers: [...n.consumers].sort() })),
@@ -461,7 +655,7 @@ function serialize(graph) {
   const catalog = {
     $generator: 'scripts/governance/catalog-graph.mjs',
     $doc: 'Grafo tipado DERIVADO dos memory/requisitos/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write',
-    $advisory: 'Advisory de nascença (ADR 0314/0275) — não é gate required.',
+    $enforcement: 'Quem é required é a branch protection — o dono é governance/required-checks-baseline.json. Nasceu advisory em 2026-07 (ADR 0314/0275) e foi promovido em 2026-08-05 (ADR 0370); este campo NÃO declara o estado atual, aponta pro dono (§5 2026-07-16).',
     node_types: NODE_TYPES,
     edge_types: EDGE_TYPES,
     stats: {
@@ -560,6 +754,10 @@ function reportDiagnostics(graph) {
   if (co.length) {
     console.log(`ℹ️  ${co.length} tabela(s) consumida(s) sem dono no catálogo (pode ser core UltimatePOS): ${co.map((t) => t.table).join(', ')}`);
   }
+  const ts = d.adr_supersession_of_tombstoned || [];
+  if (ts.length) {
+    console.log(`ℹ️  ${ts.length} aresta(s) → ADR TOMBADA (ADR 0316 — morte legítima com lápide curada, NÃO é pendurada): ${ts.map((e) => `${e.from} --${e.type}--> ${e.to}`).join(' · ')}`);
+  }
   if (ro.length) {
     const tomb = loadModuleTombstones();
     if (tomb === null) {
@@ -639,7 +837,11 @@ function main() {
     process.exit(2);
   }
   const records = [...mods.map(readScope), ...listCoreClassBRecords()];
-  const graph = buildGraph(records, { knownAdrs: knownAdrNumbers() });
+  const graph = buildGraph(records, {
+    knownAdrs: knownAdrNumbers(),
+    adrRelations: readAdrIndex(),
+    tombstonedAdrSlugs: loadAdrTombstoneSlugs(),
+  });
   const content = serialize(graph);
   const outAbs = join(ROOT, OUT_REL);
 
@@ -705,6 +907,7 @@ export {
   moduleRefsIn,
   delegationNote,
   migrateTargetsFromRaw,
+  adrRelationItems,
   buildGraph,
   serialize,
   sortGraph,
