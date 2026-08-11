@@ -171,6 +171,27 @@ class SellsV3Controller extends Controller
              * que só mostra o caminho feliz esconde metade do desenho.
              */
             'papeisDoUsuario' => ['sell.create', 'sell.produce', 'sell.invoice', 'sell.deliver'],
+
+            /*
+             * Transportadoras da CENA (onda 2 · CU-SELL-11).
+             *
+             * Mora aqui, e não no .tsx, porque a fonte de design é explícita: "nenhuma
+             * lista de domínio nasce em arquivo de UI" (README do bundle `venda-v3`).
+             * O protótipo contradiz a própria regra e declara a lista dentro do
+             * `sells-entrega.jsx` — aqui ela volta pro lugar certo.
+             *
+             * São dados de cena, NÃO consulta ao banco: o preview não lê `contacts`
+             * nem `contact_addresses`. Essa distinção é o que separa esta onda do
+             * PR #2104, revertido em 2026-06-02 justamente porque passou a fazer
+             * `->with(['addresses'])` num endpoint compartilhado com o Blade.
+             */
+            'transportadoras' => [
+                ['cod' => '014', 'nome' => 'Transportadora Sul Ltda', 'doc' => '84.512.330/0001-07', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'QHA5F21', 'antt' => '58412330', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '027', 'nome' => 'Rodoviário Bordignon Transportes ME', 'doc' => '11.204.877/0001-55', 'uf' => 'SC', 'cidade' => 'Blumenau', 'placa' => 'MKL2B88', 'antt' => '41120487', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '031', 'nome' => 'Expresso Norte Catarinense S/A', 'doc' => '02.998.140/0001-92', 'uf' => 'PR', 'cidade' => 'Curitiba', 'placa' => 'BEE7J45', 'antt' => '30299814', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '045', 'nome' => 'Frota própria — Office Impresso', 'doc' => '—', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'RJP1A09', 'antt' => '—', 'modal' => 'Frota própria'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '052', 'nome' => 'Log Fácil Entregas Rápidas Eireli', 'doc' => '38.771.905/0001-13', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'SDA9C77', 'antt' => '73877190', 'modal' => 'Motoboy'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+            ],
         ];
     }
 }

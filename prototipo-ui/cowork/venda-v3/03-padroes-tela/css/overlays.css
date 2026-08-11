@@ -1,0 +1,53 @@
+/* ==========================================================================
+   CAMADA 3 · PADRÕES DE TELA — overlays (PT-02 Drawer · PT-04 Modal)
+   --------------------------------------------------------------------------
+   O DS entrega Drawer e Modal funcionais, mas com três lacunas que aparecem
+   em qualquer tela de formulário longo. Os seletores miram ATRIBUTO e
+   COMPORTAMENTO (o filho que de fato rola), não posição de filho — índice
+   quebra quando o componente ganha um nó.
+   ========================================================================== */
+
+/* --- 1 · Drawer: corpo branco chapado -----------------------------------
+   Sete seções de formulário empilhadas em branco sobre branco não têm
+   hierarquia. Corpo em `--bg-2`, cada `DrawerSection` como cartão.       */
+[role="dialog"][style*="position: absolute"] > div[style*="overflow-y: auto"] {
+  background: var(--bg-2);
+}
+[role="dialog"][style*="position: absolute"] > div[style*="overflow-y: auto"] > div[style*="border-top"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 10px 12px;
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--text) 5%, transparent);
+}
+[role="dialog"][style*="position: absolute"] > div[style*="overflow-y: auto"] > div[style*="border-top"]:first-of-type {
+  margin-top: 12px;
+}
+
+/* --- 2 · Modal alto demais para a viewport -----------------------------
+   O Modal do DS cresce com o conteúdo e o rodapé de ação sai da tela.
+   Teto de altura + corpo rolável mantêm as ações sempre alcançáveis.    */
+[role="dialog"][style*="position: relative"] {
+  max-height: calc(100vh - 48px) !important;
+  display: flex; flex-direction: column;
+}
+[role="dialog"][style*="position: relative"] > div[style*="margin: 0px 0px 18px"] {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+}
+
+/* --- 3 · Mobile: overlay ocupa a tela inteira -------------------------- */
+@media (max-width: 640px) {
+  [role="dialog"] {
+    width: 100% !important; max-width: 100% !important;
+    height: 100% !important; max-height: 100% !important;
+    border-radius: 0 !important; inset: 0 !important; margin: 0 !important;
+  }
+  [role="dialog"][style*="position: relative"] { max-height: 100% !important; }
+
+  /* alvo de toque dentro do overlay (a regra do shell cobre só `main`) */
+  [role="dialog"] button,
+  [role="dialog"] select,
+  [role="dialog"] input,
+  [role="dialog"] textarea { min-height: 44px !important; }
+  [role="dialog"] table button { min-height: 40px !important; min-width: 40px !important; }
+}
