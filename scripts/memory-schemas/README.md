@@ -3,9 +3,13 @@
 > **ONDA 5 S1 — Schema rígido CI** ([ONDA-5-DOSSIER §5](../../memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md))
 >
 > Schema validation per-type pros .md de `memory/` + Charters em `resources/js/Pages/`.
-> Híbrido **A + C**: AJV via GitHub Actions matrix (gate PR) + `php artisan jana:validate-memory` (gate local + cron daily 06:30 BRT).
+> Híbrido **A + C**: AJV via GitHub Actions matrix (gate PR) + `php artisan jana:validate-memory` (gate local, sob demanda).
+
+> ⚠️ **O "cron daily 06:30 BRT" que este README afirmava NÃO EXISTE** — medido 2026-08-11: 0 schedules em `app/Console/Kernel.php`, 0 lanes de CI rodando o Pest do comando, e o único "invocador" (`scripts/governance/governance-audit.mjs`) está deprecado desde 2026-08-04 sem invocador próprio. O docblock do comando já registrava isso como falso desde a auditoria de sentinelas de 2026-06-20; o README e o workflow seguiam repetindo. Quem morde hoje é o **CI** (`memory-schema-gate.yml`, 4 contexts required: ADR · SPEC · Charter · Tópico) e o **hook** `memory-schema-guard.mjs`. Agendar o comando é decisão [W] pendente.
 
 ## Mapa file glob → schema
+
+> 📌 **Fonte única do roteamento: [`familias.json`](familias.json)** (desde 2026-08-11). `validate.mjs` e `JanaValidateMemoryCommand.php` **derivam** dela; a matriz do `memory-schema-gate.yml` é cópia **conferida** (o `--selftest` do validador falha se divergir). A tabela abaixo é **vista de leitura humana** — se ela discordar do JSON, o JSON manda.
 
 | Glob | Schema | Tipo |
 |---|---|---|
@@ -62,8 +66,8 @@
 
 ## Como manter
 
-1. **Adicionar campo novo:** edite o `*.schema.json`, rode `php artisan jana:validate-memory` local; se passar, PR.
-2. **Adicionar tipo novo:** crie `<tipo>.schema.json` + adicione o glob à matriz de [.github/workflows/memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml) + entrada em `JanaValidateMemoryCommand::$schemaMap`. Não há `.remarkrc.json` neste repositório.
+1. **Adicionar campo novo:** edite o `*.schema.json`, rode `node scripts/memory-schemas/validate.mjs <arquivo...>` local; se passar, PR.
+2. **Adicionar tipo novo (família):** (a) crie `<tipo>.schema.json`; (b) acrescente a entrada em **[`familias.json`](familias.json)** (`key` + `schema` + `glob` + `regex`, e `grace: true` se nasce warn-only — ADR 0314 manda gate novo nascer grace); (c) acrescente o par `schema`+`glob` à matriz de [.github/workflows/memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml); (d) rode `node scripts/memory-schemas/validate.mjs --selftest` — ele **cobra** o passo (c) e falha se a matriz divergir do JSON. ⛔ **NÃO** edite lista de famílias dentro do `validate.mjs` ou do `JanaValidateMemoryCommand.php`: elas não existem mais, os dois derivam do JSON. Não há `.remarkrc.json` neste repositório.
 3. **Mudar required:** lembrar grace period — campo novo deve ser opcional por default até backfill rodar.
 
 ## Decisão arquitetural
