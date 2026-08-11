@@ -250,7 +250,10 @@ test('controllers boilerplate (Data/Install/Superadmin) são ignorados no scan',
 });
 
 test('SCOPE.md com YAML inválido não crasha o command', function () {
-    // YAML quebrado — frontmatter sem fechar
+    // YAML quebrado — frontmatter sem fechar.
+    // ADR 0375: escreve onde o comando LE (memory/requisitos/<X>/), igual ao helper
+    // writeScopeMd. Escrever no path velho fazia discoverModules achar 0 modulos e
+    // sair 0 — o teste ficava vermelho pelo motivo ERRADO (nao pelo YAML quebrado).
     file_put_contents(
         base_path('memory/requisitos/__DriftFixture__/SCOPE.md'),
         "---\ncontains: [foo: bar: baz\n---\nbroken"

@@ -28,7 +28,7 @@ related_adrs:
 O artefato mais desprotegido do conjunto, e o que declara **fronteira de módulo**.
 
 ```bash
-cp Modules/<ModuloVizinho>/SCOPE.md memory/requisitos/<X>/SCOPE.md
+cp memory/requisitos/<ModuloVizinho>/SCOPE.md memory/requisitos/<X>/SCOPE.md
 ```
 
 Depois cure à mão. Não há `--check` que valide o resultado. Confira manualmente que `contains[]` lista os controllers reais e que `db_tables_owned` não está vazio se o módulo tem tabela própria.

@@ -76,7 +76,7 @@ Para cada **feature funcional** (Controller endpoint, Service, Job, Command, Ent
 
 - **Receptor canônico:** módulo que deve absorver
 - **Justificativa:** cita o `purpose`/`contains`/`not_contains` do receptor que justifica
-- **Cross-ref:** se `Modules/<Y>/SCOPE.md` tem `not_contains: "feature Z → Modules/<X>"`, Y JÁ declarou que Z é de X — agora vira reversa: Z volta pra Y
+- **Cross-ref:** se `memory/requisitos/<Y>/SCOPE.md` tem `not_contains: "feature Z → Modules/<X>"`, Y JÁ declarou que Z é de X — agora vira reversa: Z volta pra Y
 - **Esforço estimado:** trivial / médio / grande
 - **Bloqueador:** alguma dependência circular ou tech debt impede?
 
