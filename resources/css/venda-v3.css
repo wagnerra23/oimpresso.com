@@ -1,0 +1,88 @@
+/* ==========================================================================
+   VENDA V3 (`/sells/create-v3`) — caixa de campo do protótipo, escopada
+   --------------------------------------------------------------------------
+   POR QUE ESTE ARQUIVO EXISTE
+
+   A tela V3 é o porte do handoff `design_handoff_cadastro_venda`. No protótipo
+   a caixa do campo mede 34,19px; na prod media 30px. O desvio NÃO era escolha
+   da tela: vem do `.cw-input` (`resources/css/cowork-fields.css`, `height:30px`),
+   que a ADR UI-0015 tornou default de ~120 telas.
+
+   E não dava para corrigir "por uso". MEDIDO no browser, em produção, com
+   controle positivo e negativo:
+
+       .cw-input            -> 30px
+       .cw-input h-8        -> 30px   (utilitária IGNORADA)
+       .cw-input h-9        -> 30px   (utilitária IGNORADA)
+       .cw-input text-[13px]-> 12,5px (utilitária IGNORADA)
+       h-9 sozinho          -> 36px   (controle +: a utilitária funciona)
+
+   A causa está documentada no próprio `cowork-fields.css` (linha ~122):
+   ele é `@import` SEM `@layer`, e no Tailwind v4 estilo UNLAYERED vence
+   LAYERED (as utilitárias vivem em `@layer utilities`), independente de
+   especificidade. Ou seja: os `className="h-8 text-[12.5px]"` espalhados
+   pela V3 já eram LETRA MORTA — trocá-los por `h-9` não moveria um pixel.
+
+   Daí o escopo por wrapper, que é o padrão que o projeto já usa
+   (`.fin-cowork`, `.sells-cowork`): `.venda-v3 .cw-input` tem especificidade
+   0-2-0 contra 0-1-0 do original e, sendo os dois unlayered, vence.
+
+   DECISÃO: [W] em 2026-08-11, entre 4 caminhos medidos (escopar / mudar o DS
+   global / só-uso-puro / só-h1). Escolhido escopar. Reversível apagando este
+   arquivo e o `@import` dele.
+
+   RESSALVA REGISTRADA, não escondida: a camada 4 do protótipo
+   (`prototipo-ui/cowork/venda-v3/css/venda.css`) declara "nenhuma cor, nenhum
+   token, nenhum tamanho de fonte novo: tudo vem das camadas 1–3" — a caixa do
+   campo pertence à camada 3. Este arquivo respeita o canon do REPO e fura a
+   disciplina de camada do PROTÓTIPO. O conserto na origem seria alinhar o
+   `.cw-input` ao DS de onde ele diz ter sido portado (opção 2 do fork),
+   que atinge ~120 telas e é decisão de produto — não foi tomada aqui.
+
+   FONTE DOS NÚMEROS (nenhum inventado): `components/Input/Input.jsx` do
+   projeto de design vivo (DesignSync `019dd02f`, `truncated:false`),
+   função `controlStyle()`:
+       font: '13px/1.4 var(--font-sans)'   padding: '7px 10px'
+       borderRadius: 'var(--radius-md, 6px)'   border: '1px solid …'
+   Os mesmos quatro valores estão em `03-padroes-tela/css/campos.css` do
+   espelho versionado — conferidos entre si, não assumidos.
+   Altura derivada: 13 × 1,4 (18,2) + 7 × 2 + 1 × 2 = 34,2px.
+   ========================================================================== */
+
+/* --- Caixa do campo -------------------------------------------------------
+   Replica a RECEITA (font/line-height/padding), não o resultado: a altura
+   nasce derivada, como no protótipo. `height:auto` é o que solta os 30px
+   fixos do `.cw-input`. Cobre Input, SelectTrigger e Textarea — os três
+   passam por `.cw-input`.                                                  */
+.venda-v3 .cw-input {
+  height: auto;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+
+/* --- Textarea: NÃO herda a caixa de linha única ---------------------------
+   `.cw-input.cw-textarea` (0-2-0) empata com a regra acima e perderia por
+   ordem de arquivo, levando junto o `min-height` e o `line-height` maior.
+   Restaurado aqui com 0-3-0. Valores do mesmo `Input.jsx` do DS vivo, onde
+   Textarea = controlStyle() + `{ minHeight: 64, lineHeight: 1.5 }`.        */
+.venda-v3 .cw-input.cw-textarea {
+  padding: 7px 10px;
+  line-height: 1.5;
+  min-height: 64px;
+}
+
+/* --- Select nativo: preserva o espaço do caret ----------------------------
+   `select.cw-input` (0-1-1) perderia para a regra de cima (0-2-0) e o texto
+   correria por baixo da seta. 28px = `paddingRight` do Select do DS vivo.  */
+.venda-v3 select.cw-input {
+  padding-right: 28px;
+}
+
+/* --- Gatilho do Select (Radix) --------------------------------------------
+   É um <button> com `.cw-input`, então já pega a caixa acima. Só garante que
+   não colapse abaixo da altura derivada quando o valor está vazio.         */
+.venda-v3 [data-slot='select-trigger'].cw-input {
+  min-height: 34.19px;
+}

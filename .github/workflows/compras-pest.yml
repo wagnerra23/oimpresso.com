@@ -27,8 +27,15 @@ name: Compras · Pest (MySQL)
 # (factory user sem user_type='user'/allow_login=1) + 409 era X-Inertia-Version fixo;
 # MultiTenantTest — skip era falta de `uses(Tests\TestCase::class)` (Laravel não
 # bootava) + fixture biz=99 incompleta (roles.business_id + FKs invoice_scheme/layout).
-# Assim a lane fica VERDE e honesta (sem advisory-eterno-vermelho) e executa cobertura
+# Assim a lane ficou VERDE e honesta (sem advisory-eterno-vermelho) e executa cobertura
 # Tier 0 real, não só o full-suite nightly do CT 100 (ADR 0062).
+#
+# ⚠️ Esse "ficou VERDE" descreve 2026-07-03 — é HISTÓRIA, não o estado de hoje, e este
+# bloco NÃO é o oráculo disso. O estado do dia se mede, não se lê:
+#   gh run list --workflow=compras-pest.yml --branch main --event push
+# (Por que o aviso: entre 2026-07-28 e 2026-08-11 a lane passou 5 runs seguidas em
+# failure sem que uma linha daqui mudasse. Snapshot de estado em comentário apodrece —
+# a redação anterior deste bloco levou 14 dias pra ser notada.)
 #
 # Usa o SCHEMA BASELINE (database/schema/mysql-schema.sql, gerado via schema:dump
 # da prod com as migrations registradas). `migrate` carrega o schema final num
@@ -137,10 +144,20 @@ jobs:
         # do SDD §6 CU-COM-04/05 e da Blade legada, NÃO do Index.tsx). O motivo de
         # listá-lo mesmo assim: teste fora da allowlist NÃO RODA — é o "verde
         # impossível" que o anchor-lint denuncia, pior que o vermelho honesto.
-        # Esta lane é ADVISORY (não está em governance/required-checks-baseline.json),
-        # então o vermelho fica VISÍVEL e NÃO bloqueia merge. Se o vermelho vier, ELE
-        # É O ACHADO: a correção é decisão do [W] (proibicoes.md §Precedência), não
-        # conserto silencioso — e aí o arquivo volta pro regime "ratchet up".
+        #
+        # ⛔ Este arquivo NÃO afirma se o job bloqueia merge. O dono único disso é
+        # `governance/required-checks-baseline.json` (baseline↔vivo vigiado por
+        # scripts/governance/protection-drift.mjs) — restatear aqui apodrece no
+        # primeiro flip (LC-10 · proibicoes.md §5 2026-07-16).
+        # Fato datado, em PASSADO: a redação de 2026-07-27 dizia "lane ADVISORY …
+        # NÃO bloqueia merge"; em 2026-08-05 o job foi promovido a required
+        # (#5313 · ADR 0369) e a frase virou falsa. Sobreviveu 6 dias — e no dia
+        # em que foi notada já tinha custado um PR travado (#5568, só docs),
+        # porque este arquivo está no próprio paths-filter acima.
+        #
+        # Se o vermelho vier, ELE É O ACHADO: a correção é decisão do [W]
+        # (proibicoes.md §Precedência), não conserto silencioso — e aí o arquivo
+        # volta pro regime "ratchet up".
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
