@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  *   - D6: total spans cumulativo Wave 18+RETRY+W25+W27 ≥ 14 (preservado)
  *
  * @see Modules/OficinaAuto/Tests/Feature/E2EJourneyMartinhoBiz1Test.php
- * @see Modules/OficinaAuto/README.md (D5 Martinho Caçambas)
+ * @see memory/requisitos/OficinaAuto/README.md (D5 Martinho Caçambas)
  */
 describe('Wave 27 OficinaAuto POLISH', function () {
 

@@ -102,6 +102,6 @@ it('D2 W28: D1 guard preservado — cms_pages.business_id continua AUSENTE (US-C
 // ------------------------------------------------------------------
 
 it('D3 W28: CHANGELOG.md tem entrada Wave 28 (saturation 71-85 → ≥92)', function () {
-    $changelog = file_get_contents(base_path('Modules/Cms/CHANGELOG.md'));
+    $changelog = file_get_contents(base_path('memory/requisitos/Cms/CHANGELOG.md'));
     expect($changelog)->toContain('Wave 28');
 });

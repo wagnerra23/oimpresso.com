@@ -30,7 +30,7 @@ uses(Tests\TestCase::class);
  *
  * Zero hit prod externo (Mock Repository default) — Pest local-runnable sem custo.
  *
- * @see Modules/ConsultaOs/README.md
+ * @see memory/requisitos/ConsultaOs/README.md
  * @see Modules/ConsultaOs/Services/ConsultaOsMockService.php
  * @see Modules/ConsultaOs/Http/Controllers/ConsultaOsController.php
  * @see Modules/ConsultaOs/Tests/Feature/CustomerJourneyTest.php
@@ -42,7 +42,7 @@ uses(Tests\TestCase::class);
 // ============================================================================
 
 it('D5.B README declara fluxo "Como cliente usa" (4 passos canonicos)', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('Como cliente usa');
     expect($readme)->toContain('Vendedor entrega');
@@ -52,7 +52,7 @@ it('D5.B README declara fluxo "Como cliente usa" (4 passos canonicos)', function
 });
 
 it('D5.B README declara LGPD privacy contract (não vaza business_id/total_final)', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('business_id');
     expect($readme)->toContain('total_final');
@@ -61,7 +61,7 @@ it('D5.B README declara LGPD privacy contract (não vaza business_id/total_final
 });
 
 it('D5.B README documenta arquitetura D4 SoC (Routes → Controller → Service → Repository)', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('D4 SoC');
     expect($readme)->toContain('ConsultaOsController');
@@ -70,7 +70,7 @@ it('D5.B README documenta arquitetura D4 SoC (Routes → Controller → Service 
 });
 
 it('D5.B README cita US-CONSULTA-001 (migração mock → transactions real)', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('US-CONSULTA-001');
     expect($readme)->toContain('Mock-only');

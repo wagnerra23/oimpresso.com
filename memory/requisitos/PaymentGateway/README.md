@@ -71,7 +71,7 @@ States gerenciados pelo `CobrancaService` (ADR 0143 FSM pipeline pattern inspira
 
 ## Multi-tenant Tier 0
 
-Toda `Cobranca` e `PaymentGatewayCredential` tem `business_id` global scope ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+Toda `Cobranca` e `PaymentGatewayCredential` tem `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
 
 Jobs (`ProcessInterWebhookJob`, `ProcessAsaasWebhookJob`, `ProcessBcbPixWebhookJob`, `CancelarCobrancaJob`) recebem `businessId` no constructor.
 
@@ -137,10 +137,10 @@ Cobertura prevista (Onda 1+):
 
 ## ADRs referência
 
-- [ADR 0170](../../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md) — charter (este módulo)
-- [ADR 0017](../../memory/decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md) — emendado pela Onda 5 (Superadmin dogfooding)
-- [ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 isolation
-- [ADR 0143](../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM pattern
+- [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md) — charter (este módulo)
+- [ADR 0017](../../decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md) — emendado pela Onda 5 (Superadmin dogfooding)
+- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 isolation
+- [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM pattern
 - US-RB-044 — NFe-de-boleto-pago (vira listener de `CobrancaPaga`, canônico irrevogável)
 - Resolução BCB 380/2024 — PIX Automático (regulamentação do driver `bcb_pix`)
 

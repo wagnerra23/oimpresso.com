@@ -151,7 +151,7 @@ Eloquent — `Marcacao::all()` em sessão biz=4 retorna SÓ marcações biz=4. T
 
 ## Jornada completa biz=1 (Wave 27 — fluxo end-to-end Wagner/RH)
 
-Cenário canônico testado em prod biz=1 (clientes legacy WR2 Eliana via ROTA LIVRE pattern, NUNCA biz=4 prod cliente em testes — [ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)).
+Cenário canônico testado em prod biz=1 (clientes legacy WR2 Eliana via ROTA LIVRE pattern, NUNCA biz=4 prod cliente em testes — [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
 
 ### Fase A — Setup empresa (Admin Wagner)
 
@@ -163,8 +163,8 @@ Cenário canônico testado em prod biz=1 (clientes legacy WR2 Eliana via ROTA LI
 ### Fase B — Operação diária (Funcionário)
 
 4. **Bater 4 marcações**: ENTRADA / ALMOCO_INICIO / ALMOCO_FIM / SAIDA via `/ponto/marcacoes` → `StoreMarcacaoRequest` (Wave 18 D8) valida `before_or_equal:now + after:-24 hours` (limite offline REP-P).
-5. **Hash + NSR encadeado**: cada marcação calcula `hash = sha256(hash_anterior || payload)` via `MarcacaoService` ([app/Domain/Fsm/Support](../../app/Domain/Fsm/Support/) helpers OTel `ponto.marcar`).
-6. **Consultar espelho**: `/ponto/espelho` → `Inertia::defer()` props heavy (Wave 25 D6 — switch 300ms→50ms validado em [RUNBOOK-inertia-defer-pattern.md](../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)).
+5. **Hash + NSR encadeado**: cada marcação calcula `hash = sha256(hash_anterior || payload)` via `MarcacaoService` ([app/Domain/Fsm/Support](../../../app/Domain/Fsm/Support/) helpers OTel `ponto.marcar`).
+6. **Consultar espelho**: `/ponto/espelho` → `Inertia::defer()` props heavy (Wave 25 D6 — switch 300ms→50ms validado em [RUNBOOK-inertia-defer-pattern.md](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)).
 
 ### Fase C — Anomalias (Funcionário + Gestor)
 

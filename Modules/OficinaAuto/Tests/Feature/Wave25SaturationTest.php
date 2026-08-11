@@ -91,7 +91,7 @@ describe('Wave 25 OficinaAuto POLISH', function () {
     });
 
     it('D5: README cita journey Martinho + steps numerados', function () {
-        $readmePath = base_path('Modules/OficinaAuto/README.md');
+        $readmePath = base_path('memory/requisitos/OficinaAuto/README.md');
         expect(file_exists($readmePath))->toBeTrue();
 
         $src = file_get_contents($readmePath);

@@ -237,7 +237,7 @@ it('D4 W26: SpreadsheetService::getForUser fail-secure (nullable retorno)', func
 // ------------------------------------------------------------------
 
 it('D3 W26: CHANGELOG.md tem entrada Wave 26', function () {
-    $changelog = file_get_contents(base_path('Modules/Spreadsheet/CHANGELOG.md'));
+    $changelog = file_get_contents(base_path('memory/requisitos/Spreadsheet/CHANGELOG.md'));
     expect($changelog)->toContain('Wave 26');
 });
 
