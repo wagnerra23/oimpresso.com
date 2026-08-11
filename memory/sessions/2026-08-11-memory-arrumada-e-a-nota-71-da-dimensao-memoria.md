@@ -71,7 +71,26 @@ Três "não" assertados no selftest: sem `score`/`nota`/`indice` no retorno (lá
 
 `adr-proposto-parado` A:1·B:0·C:2 · `lapide-recheck` 104 lápides, 3 `revisar` · `selftest-registry-check` 🟢 zero órfãos · `reguas-ledger-check --check` rc=0.
 
-## 7. Pendências que são ato [W]
+## 7. Os 6 chips abertos — e o mapa de isolamento
+
+[W] pediu paralelização em sessões frescas. O pré-requisito 1 do [protocolo de paralelização](../how-trabalhar.md) é **áreas isoladas sem overlap** — segue o mapa que sustenta isso:
+
+| # | Chip | Área tocada | Premissa medida antes de abrir |
+|---|---|---|---|
+| 1 | arestas ADR→ADR no catálogo | `scripts/governance/catalog-graph.mjs` + `memory/governance/catalog.json` | 569 nós · 834 arestas · **ADR→ADR = 0** · 25 nós `adr` |
+| 2 | `hook-replay` 1 → N contratos | `scripts/governance/hook-replay.mjs` | `CONTRATOS` tem **1** entrada (`modulo-preflight-warning`) para 49 hooks wired |
+| 3 | dossiê lê `MAQUINAS-INVENTARIO` | `.claude/workflows/reguas-do-sistema.js` (~L470) | o prompt cita `decisions/` + doutrina + §5; **não** cita o inventário |
+| 4 | medir o vão do gate de refutação | **read-only** + `proposals/` | comentário L116 do `governance-gate-umbrella.yml`: *"só dispara em PR com >10 arquivos em `memory/requisitos/`"* |
+| 5 | triar as 3 lápides `revisar` | **read-only** + possível emenda §5 | `lapide-recheck`: 104 lápides · **3 `revisar`** |
+| 6 | remover resíduo pago do ledger | `memory/reguas/config.json` | o próprio `--check` pede: *"resíduo 2026-07-26/diferencial_sistema NÃO ocorre mais"* |
+
+**Zero interseção de path entre os seis.** Os chips 4 e 5 são de medição/triagem e não escrevem em código.
+
+Cada prompt carrega: o comando que reproduz a premissa, o guardrail do §5 que se aplica, e um DoD com bite-test. Dois deles têm trava explícita de **não executar**: o #4 não pode tocar workflow `required` (precedente de deadlock no §Ambiente) e o #5 não pode editar lápide existente (§5 é append-only Tier 0).
+
+O que **não** virou chip, de propósito: a declaração do #5595 (ato [W] — sem ratificação, o check mediria opinião de agente), o número do `boost-guidelines` (decisão), o teto do §5 (soberania) e os 108 testes sem lane (as lanes foram deletadas *porque* estavam vermelhas — religar é escolha de dono, não faxina).
+
+## 8. Pendências que são ato [W]
 
 1. **Ratificar a declaração do #5595** — o único ato que fecha o incômodo original. Sem ela, o check que a completaria mediria a opinião de um agente.
 2. Número canônico para o `boost-guidelines` `recusado` (único A:1 restante).
