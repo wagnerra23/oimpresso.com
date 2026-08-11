@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Inventory;
 use App\Domain\Inventory\Models\ProductBom;
 use App\Http\Controllers\Controller;
 use App\Product;
+use App\Variation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Jana\Scopes\ScopeByBusiness;
@@ -88,6 +89,32 @@ class ProductBomController extends Controller
             ->where('id', $data['component_id'])
             ->where('business_id', $businessId)
             ->firstOrFail();
+
+        // UC-PBOM-02 (Tier 0 multi-tenant · ADR 0093) — as VARIAÇÕES passavam só por
+        // `nullable|integer` e iam direto pro `ProductBom::create`, enquanto os PRODUTOS
+        // acima já eram validados. Mesma família do UC-PTAB-04 (#4300), UC-PBULK-03 e
+        // UC-PQCK-02: id que chega CRU do request e é gravado sem checar de quem é. O SDD
+        // já avisava — "o próximo model pendurado em Product nasce com o mesmo buraco".
+        //
+        // A checagem é por PRODUTO-DONO, não por business: `variations` não tem coluna
+        // `business_id` (liga por `product_id`), e amarrar a variação ao produto ao qual
+        // ela pertence é ESTRITAMENTE MAIS FORTE — os dois produtos já foram provados do
+        // business acima, então isto fecha o cross-tenant E ainda pega variação de outro
+        // produto do MESMO business (que também corromperia o kit).
+        //
+        // `firstOrFail()` = mesmo idioma dos dois guards Tier 0 acima (404), não 422.
+        if (! empty($data['component_variation_id'])) {
+            Variation::query()
+                ->where('id', $data['component_variation_id'])
+                ->where('product_id', $data['component_id'])
+                ->firstOrFail();
+        }
+        if (! empty($data['parent_variation_id'])) {
+            Variation::query()
+                ->where('id', $data['parent_variation_id'])
+                ->where('product_id', $productId)
+                ->firstOrFail();
+        }
 
         // Guard: produto NÃO pode ser componente de si mesmo (proteção mínima
         // contra circular — BomResolver pega ciclos transitivos em runtime).
