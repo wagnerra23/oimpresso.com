@@ -95,6 +95,11 @@ jobs:
       # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
       # escreve o XML que vira veredito por-UC. Os dois juntos: sem o default, um
       # vermelho aqui só apareceria como XML no log.
+      # ⚠️ Todo `tests/js/*-dominio.test.ts` do preview entra AQUI, explicitamente. O `paths`
+      # acima usa glob, então um spec novo já DISPARA a lane; se ele não estiver nesta lista,
+      # a lane acende, roda os outros e passa — gate aceso num arquivo que ele não testa, que
+      # é pior que gate mudo. Foi o que aconteceu com `cliente-consulta-dominio.test.ts`
+      # (#5579): nasceu com 23 testes e mutação provada, e sem lane nenhuma.
       - name: domínio do preview de venda (vitest/jsdom)
         run: |
           npx vitest run \
@@ -102,6 +107,7 @@ jobs:
             tests/js/item-fiscal-dominio.test.ts \
             tests/js/comissao-dominio.test.ts \
             tests/js/colunas-dominio.test.ts \
+            tests/js/cliente-consulta-dominio.test.ts \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml
