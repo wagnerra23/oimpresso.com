@@ -39,7 +39,7 @@ let falhas = 0
 const ok = (cond, msg) => { console.log(`${cond ? '  ok  ' : '  FALHOU  '}${msg}`); if (!cond) falhas++ }
 
 // Dublê: responde por PREFIXO de label (o contrato que o workflow usa pra rotular cada agente).
-const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan } = {}) => {
+const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan, evidencia = 'arq.mjs:12' } = {}) => {
   const chamadas = []; const logs = []
   let nVerif = 0
   const agent = async (prompt, opts = {}) => {
@@ -54,7 +54,7 @@ const rodar = async (args, { verificarNulo = 0, persistOk = () => true, scan } =
     }
     if (l.startsWith('canary:') || l.startsWith('r:')) return { veredito: 'REFUTADO', razao: 'peer existe', quem_ja_faz: 'PeerCorp' }
     if (l.startsWith('i:')) return { veredito: 'DIFERENCIAL_SISTEMA', incremento: 'a cola', razao: 'r' }
-    if (l.startsWith('v:')) { nVerif++; return nVerif <= verificarNulo ? null : { veredito: 'PARCIAL', evidencia: 'arq.mjs:12', nota_sugerida: 6 } }
+    if (l.startsWith('v:')) { nVerif++; return nVerif <= verificarNulo ? null : { veredito: 'PARCIAL', evidencia, nota_sugerida: 6 } }
     if (l.startsWith('cp-') || l.startsWith('re-')) return { ok: persistOk(l), resumo: 'gravou' }
     return 'prosa qualquer'
   }
@@ -189,6 +189,84 @@ console.log('\n[8] delta sem ANCORA aborta antes de gastar — e nao grava retra
   const src = fs.readFileSync(ALVO, 'utf8')
   ok(/required: \['dims_delta', 'claims_vencidas', 'fraquezas', 'ultimo_retrato'\]/.test(src), 'schema SCAN exige ultimo_retrato')
   ok(/required: \['data', 'notas'\]/.test(src), 'schema SCAN exige ultimo_retrato.notas')
+}
+
+// Defeito MEDIDO (rodada 2026-08-11, modo full-parcial): a `evidencia` — REQUIRED no schema
+// EXISTE, e o que torna a nota AUDITAVEL — era descartada na persistencia por 3 `.slice()` mudos
+// (200 no full, 250 nos 2 sites do delta). As 8 entradas gravadas naquele dia saíram com 202-249
+// chars, TODAS cortadas no meio da palavra. Nenhuma das 8 notas e auditavel pelo ledger.
+console.log('\n[9] evidencia chega INTEGRA ao ledger (nao mais truncada em 200/250)')
+{
+  // 700 chars: acima dos 2 caps antigos (200/250) e abaixo do teto novo (2000) => tem que passar INTEIRA.
+  const longa = 'INICIO-' + 'x'.repeat(680) + '-FIM-DA-PROVA'
+  const r = await rodar({ base: '/base' }, { evidencia: longa })
+  const p = r.prompt('cp-retrato')
+  ok(p.includes(longa), `evidencia de ${longa.length} chars viaja INTEIRA ao persistidor (bite: com o slice(0,200) antigo, cai)`)
+  ok(p.includes('-FIM-DA-PROVA'), 'o FINAL da evidencia sobrevive — era exatamente o que o corte comia')
+  ok(!r.logs.some((l) => l.includes('EVIDÊNCIA CORTADA')), 'evidencia normal NAO dispara log de corte (o teto nao morde no corpus real)')
+  // Delta: os outros 2 sites (250) — mesma prova.
+  const scanD = {
+    ultimo_retrato: { data: '2026-07-26', notas: { 'spec-governanca': 6.5 }, integ_hist: {} },
+    dims_delta: { 'spec-governanca': { commits: 9 } }, claims_vencidas: [],
+    fraquezas: [{ id: 'f1', dimensao: 'spec-governanca', titulo: 'buraco', veredito: 'PARCIAL', nota: 4 }],
+    delta_min_commits: 3,
+  }
+  const d = await rodar({ base: '/base', modo: 'delta' }, { scan: scanD, evidencia: longa })
+  ok(d.prompt('cp-retrato-delta').includes(longa), 'delta tambem persiste a evidencia inteira (site 2/3)')
+  // CONTROLE NEGATIVO: patologica (>2000) e cortada, mas NUNCA em silencio.
+  const gigante = 'y'.repeat(3000)
+  const g = await rodar({ base: '/base' }, { evidencia: gigante })
+  ok(g.logs.some((l) => l.includes('EVIDÊNCIA CORTADA')), 'evidencia patologica (3000) corta COM log (No silent caps)')
+  ok(!g.prompt('cp-retrato').includes(gigante), 'e de fato corta — o teto de seguranca existe pra nao estourar o fit global')
+}
+
+console.log('\n[10] incremento: a justificativa do veredito de integracao chega ao ledger')
+{
+  const r = await rodar({ base: '/base' })
+  const p = r.prompt('cp-claims')
+  ok(/incremento/.test(p), 'o prompt de claims MANDA gravar incremento (medido: 0 de 51 claims tinham o campo)')
+  ok(p.includes('a cola'), 'o valor produzido pela fase Integracao viaja no payload')
+  ok(/OBRIGAT[ÓO]RIO quando vier nos dados/.test(p), 'a instrucao diz que e obrigatorio, nao opcional')
+  ok(/delta n[ãa]o roda Integra/.test(p), 'e ressalva o delta (la o campo nao vem — preservar, nao apagar)')
+}
+
+// A nota e MEDIA sobre um conjunto: mudou o conjunto, o Δ nao mede capacidade (regra 12).
+// Medido: memoria-conhecimento 7,7 (08-08, 2 fraquezas) -> 7,1 (08-11, 8), intersecao de ids VAZIA,
+// e 13 fraquezas no ledger (media das 13 = 7,4). O retrato de 08-08 tinha o caveat em 4 dimensoes,
+// mas escrito A MAO pelo agente; por isso o de 08-11 nao teve nenhum.
+console.log('\n[11] caveat de denominador e DERIVADO (nao escrito a mao)')
+{
+  const r = await rodar({ base: '/base' })
+  const p = r.prompt('cp-retrato')
+  ok(/DENOMINADOR N[ÃA]O COMPAR[ÁA]VEL/.test(p), 'full: declara que o conjunto e re-levantado pela pesquisa do dia')
+  ok(/regra 12/.test(p), 'o caveat cita a regra 12 (o corolario que ele protege)')
+  ok(/"denominador"/.test(p), 'grava QUAIS fraquezas compuseram a nota (forward-only, pra comparacao futura)')
+
+  // DELTA — bite: uma fraqueza que era nota:null ENTRA no denominador => caveat nomeando quem entrou.
+  const base = { ultimo_retrato: { data: '2026-07-26', notas: { 'spec-governanca': 6.5 }, integ_hist: {} },
+    dims_delta: { 'spec-governanca': { commits: 9 } }, claims_vencidas: [], delta_min_commits: 3 }
+  const mudou = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...base, fraquezas: [
+    { id: 'f-antiga', dimensao: 'spec-governanca', titulo: 'ja tinha nota', veredito: 'PARCIAL', nota: 4 },
+    { id: 'f-nova', dimensao: 'spec-governanca', titulo: 'era null', veredito: 'PARCIAL', nota: null },
+  ] } })
+  const pm = mudou.prompt('cp-retrato-delta')
+  ok(/DENOMINADOR MUDOU/.test(pm), 'delta: conjunto diferente => caveat DERIVADO da comparacao de ids')
+  ok(/entraram f-nova/.test(pm), 'o caveat NOMEIA quem entrou (formato do retrato 08-08, agora mecanico)')
+  ok(mudou.logs.some((l) => l.includes('DENOMINADOR MUDOU')), 'e avisa no log da rodada, nao so no ledger')
+
+  // CONTROLE NEGATIVO — conjunto IDENTICO nao pode disparar (senao vira carimbo, o anti-padrao do §5).
+  const igual = await rodar({ base: '/base', modo: 'delta' }, { scan: { ...base, fraquezas: [
+    { id: 'f-antiga', dimensao: 'spec-governanca', titulo: 'ja tinha nota', veredito: 'PARCIAL', nota: 4 },
+  ] } })
+  ok(!/DENOMINADOR MUDOU/.test(igual.prompt('cp-retrato-delta')), 'CONTROLE: mesmo conjunto => SEM caveat (o alarme discrimina, nao carimba)')
+  ok(/re-medida \(1 fraquezas/.test(igual.prompt('cp-retrato-delta')), 'CONTROLE: a proveniencia normal segue intacta')
+}
+
+console.log('\n[12] dossie le o inventario de maquinas (anti-falso-negativo)')
+{
+  const p = (await rodar({ base: '/base' })).prompt('dossie')
+  ok(p.includes('/base/memory/reference/MAQUINAS-INVENTARIO.md'), 'inventario e FONTE OBRIGATORIA do dossie')
+  ok(/falso-negativo/i.test(p), 'e o prompt diz POR QUE (5 das 8 fraquezas de 08-11 ja tinham maquina viva)')
 }
 
 fs.rmSync(TMP, { recursive: true, force: true })
