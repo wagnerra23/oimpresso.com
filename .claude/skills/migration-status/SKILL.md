@@ -53,7 +53,7 @@ artefatos_lidos:
   - "memory/legacy-delphi/SCHEMA-FIREBIRD.md (393 tabelas v1468 + volumes ServidorWR2)"
   - "memory/legacy-delphi/MAPEAMENTO-DELPHI-LARAVEL.md (19 Controllers Delphi → Modules Laravel)"
   - "memory/requisitos/{Modulo}/SPEC.md (US-XXX-NNN status + blocked_by)"
-  - "Modules/{Modulo}/SCOPE.md (contains[] declarado)"
+  - "memory/requisitos/{Modulo}/SCOPE.md (contains[] declarado)"
   - "Modules/{Modulo}/Database/Migrations/ (schema MySQL cobertura)"
   - "resources/js/Pages/{Modulo}/ (UI grades migradas)"
   - "Modules/{Modulo}/Resources/views/ (Blade legacy restante)"
@@ -240,7 +240,7 @@ Cita explicitamente quem bloqueia o quê + por que (US, ADR feature-wish, sinal 
 
 - memory/legacy-delphi/SCHEMA-FIREBIRD.md ({sha})
 - memory/legacy-delphi/MAPEAMENTO-DELPHI-LARAVEL.md ({sha})
-- Modules/{Modulo}/SCOPE.md ({sha})
+- memory/requisitos/{Modulo}/SCOPE.md ({sha})
 - tasks-list module:{Modulo} (snapshot {timestamp})
 ```
 

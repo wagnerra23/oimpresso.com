@@ -23,12 +23,12 @@ related_adrs:
 
 ## Os 8, em ordem de quem tem menos ferramenta
 
-### 1 · `Modules/<X>/SCOPE.md` — sem template, sem schema, sem gerador, sem check required
+### 1 · `memory/requisitos/<X>/SCOPE.md` — sem template, sem schema, sem gerador, sem check required
 
 O artefato mais desprotegido do conjunto, e o que declara **fronteira de módulo**.
 
 ```bash
-cp Modules/<ModuloVizinho>/SCOPE.md Modules/<X>/SCOPE.md
+cp memory/requisitos/<ModuloVizinho>/SCOPE.md memory/requisitos/<X>/SCOPE.md
 ```
 
 Depois cure à mão. Não há `--check` que valide o resultado. Confira manualmente que `contains[]` lista os controllers reais e que `db_tables_owned` não está vazio se o módulo tem tabela própria.

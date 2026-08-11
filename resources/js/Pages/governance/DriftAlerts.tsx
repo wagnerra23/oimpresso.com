@@ -132,7 +132,7 @@ const DriftAlerts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
                     <div className="flex flex-wrap gap-2 mt-2">
                       <Button asChild variant="outline" size="sm">
                         <a
-                          href={`${GH_BLOB}/Modules/${item.module}/SCOPE.md`}
+                          href={`${GH_BLOB}/memory/requisitos/${item.module}/SCOPE.md`}
                           target="_blank"
                           rel="noreferrer"
                         >

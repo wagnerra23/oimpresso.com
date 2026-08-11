@@ -31,7 +31,7 @@
 | Camada (arc42) | Doc canônico |
 |---|---|
 | **Vista geral + escopo + responsabilidade/módulo** | **[governance/ARCHITECTURE.md](governance/ARCHITECTURE.md)** — vista 1-slide · módulos estado/destino · **trust level por módulo** · princípios modulares · fases. |
-| **Building blocks (detalhe por módulo)** | `Modules/<X>/SCOPE.md` (missão/responsabilidade de cada um) + inventário vivo em [reference/PAINEL-SISTEMA.md](reference/PAINEL-SISTEMA.md) §"Módulos & verticais" |
+| **Building blocks (detalhe por módulo)** | `memory/requisitos/<X>/SCOPE.md` (missão/responsabilidade de cada um) + inventário vivo em [reference/PAINEL-SISTEMA.md](reference/PAINEL-SISTEMA.md) §"Módulos & verticais" |
 | **Deployment / onde roda / como acessar** | **[reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md)** (Hostinger · CT100 · MCP · Meilisearch · deploy) |
 | **Crosscutting** | [governance/](governance/) (Constituição · Trust-Tiers · Enforcement · Drift Framework → `governance:audit`) |
 | **Decisões (por quê)** | [decisions/](decisions/) (ADRs Nygard) — via `decisions-search` |

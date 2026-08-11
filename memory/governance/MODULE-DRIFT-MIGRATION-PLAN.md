@@ -133,7 +133,7 @@ Após drift resolvido, mesmo PR (ou PR seguinte) faz renames:
 A cada commit / PR:
 
 1. Lista arquivos staged em `Modules/<X>/Http/Controllers/*.php` (criados ou movidos)
-2. Pra cada um, lê `Modules/<X>/SCOPE.md`
+2. Pra cada um, lê `memory/requisitos/<X>/SCOPE.md`
 3. Verifica se filename está em `contains[]` ou em `drift_alerts[]` (transitório)
 4. Se NÃO está em nenhum:
    - Pre-commit: **WARN** (modo dev — permite commit)

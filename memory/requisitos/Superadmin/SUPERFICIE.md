@@ -12,7 +12,7 @@ module: Superadmin
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Superadmin --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Superadmin/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 164 arquivos em 17 papéis.
 
@@ -211,10 +211,10 @@ module: Superadmin
 - [lang.php](../../../Modules/Superadmin/Resources/lang/vi/lang.php)
 - [topnav.php](../../../Modules/Superadmin/Resources/menus/topnav.php)
 - [.gitkeep](../../../Modules/Superadmin/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/Superadmin/SCOPE.md)
 - [RedactsPiiInLogs.php](../../../Modules/Superadmin/Support/RedactsPiiInLogs.php)
 - [.gitkeep](../../../Modules/Superadmin/Tests/.gitkeep)
 - [composer.json](../../../Modules/Superadmin/composer.json)
 - [module.json](../../../Modules/Superadmin/module.json)
 - [package.json](../../../Modules/Superadmin/package.json)
 - [webpack.mix.js](../../../Modules/Superadmin/webpack.mix.js)
+- [SCOPE.md](../../../memory/requisitos/Superadmin/SCOPE.md)

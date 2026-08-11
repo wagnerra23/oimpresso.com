@@ -611,7 +611,7 @@ code owner sem acesso de escrita, então hoje todo `# TODO: + @<handle>` do arqu
 [1] HOOK           antes de o agente escrever    91 hooks · bloqueia na hora
      ↓                                            git ls-files '.claude/hooks/*.mjs' | wc -l
 [2] SCOPE + rules  o que LER antes de mexer       32 SCOPE.md (32 de 32 módulos)
-     ↓                                            git ls-files 'Modules/*/SCOPE.md' | wc -l
+     ↓                                            git ls-files 'memory/requisitos/*/SCOPE.md' | wc -l
 [3] CI             depois do push                 121 workflows · 42 travam merge
      ↓                                            governance/required-checks-baseline.json
 [4] CODEOWNERS     antes do merge                 [W], nos caminhos Tier 0
@@ -637,7 +637,7 @@ que manda abri-lo **antes** de `Glob`/`Grep`): `contains` · `not_contains` · `
 
 #### B8.3 Passo a passo pra mexer num arquivo
 
-1. **LER** — `Modules/<X>/SCOPE.md` (é deste módulo?) · `memory/requisitos/<X>/SPEC.md` (já tem US?) · o charter, se for tela.
+1. **LER** — `memory/requisitos/<X>/SCOPE.md` (é deste módulo?) · `memory/requisitos/<X>/SPEC.md` (já tem US?) · o charter, se for tela.
 2. **MEXER** — commit por passo lógico; push a cada ~30min; nunca `git checkout` sem commit.
 3. **PROVAR** — rodar **TODOS** os modos que o job roda, não um ([§5 2026-07-28](proibicoes.md)). Teste/PHPStan: **CT 100**, nunca local.
 4. **PR** — CI verde **antes** de propor merge. Se toca caminho do CODEOWNERS, [W] aprova.
@@ -655,7 +655,7 @@ O que faltava era perguntar *"e o que ele NÃO olha?"*. Três exemplos medidos:
 | O que apodreceu | Por que nenhuma máquina viu |
 |---|---|
 | Charter apontando pra charter apagado | o `deadlink-gate` varre `memory/` — **`Pages/**/*.charter.md` está fora do corpus** |
-| 4 `SCOPE.md` citando módulo deletado | o `knowledge-drift` varre `memory/` — **`Modules/*/SCOPE.md` está fora** |
+| 4 `SCOPE.md` citando módulo deletado | o `knowledge-drift` varre `memory/` — **`memory/requisitos/*/SCOPE.md` está fora** |
 | 40 testes que a lane alcança e o driver faz pular | o `test-lane-coverage` media *"alcança?"* — **não media *"deixa rodar?"*** |
 
 **A regra prática que sai disso**, e é a mais barata de aplicar: **um fato só sobrevive se algum
@@ -722,7 +722,7 @@ flowchart LR
 | Regras de sessão / como trabalhar | [how-trabalhar.md](how-trabalhar.md) · [CLAUDE.md](../CLAUDE.md) |
 | Linhas vermelhas | [proibicoes.md](proibicoes.md) |
 | Time e papéis | [regras-time.md](regras-time.md) · [TEAM.md](../TEAM.md) |
-| Responsabilidade de um módulo | `Modules/<X>/SCOPE.md` + `BRIEFING.md` |
+| Responsabilidade de um módulo | `memory/requisitos/<X>/SCOPE.md` + `BRIEFING.md` |
 | Planejar uma feature complexa por SDD | [B7 deste guia](#b7-como-especificar-e-executar-uma-feature-complexa-sdd) · [template do trio](requisitos/_TEMPLATE_FEATURE/BRIEFING.md) |
 | Conectar um dev novo ao MCP | [MEMORY_TEAM_ONBOARDING.md](../MEMORY_TEAM_ONBOARDING.md) |
 

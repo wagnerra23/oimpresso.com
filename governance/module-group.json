@@ -30,7 +30,7 @@
     {
       "papel": "responsabilidade",
       "pergunta": "O que é DESTE módulo e o que é de outro? (fronteira, anti-duplicação)",
-      "onde": ["Modules/{mod}/SCOPE.md"],
+      "onde": ["memory/requisitos/{mod}/SCOPE.md"],
       "cardinalidade": "zero-ou-um",
       "nota": "Só faz sentido pra módulo com backend nWidart. Módulo sem Modules/<X>/ não tem — ausência aqui não é dívida."
     },

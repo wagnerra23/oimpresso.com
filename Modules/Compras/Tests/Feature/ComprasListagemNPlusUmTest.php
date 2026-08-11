@@ -49,7 +49,12 @@ beforeEach(function () {
     // do CI criava `business_locations` justamente para o tenant seedado. Quando o tenant
     // saiu de 1 para 99, o biz=1 ficou sem location, o ramo de insert passou a rodar e
     // estourou a FK `business_locations_invoice_scheme_id_foreign`.
-    $tenantId = \Tests\Support\WithSeededTenant::SEEDED_TENANT_ID;
+    // PHP 8.3+ transforma `Trait::CONST` em Error ("Cannot access trait constant
+    // directly") — constante de trait so e legivel pela classe que a USA. Reflection
+    // resolve mantendo a fonte unica da ADR 0358 (sem hardcode do 98). Padrao canonico
+    // ja documentado em Modules/KB/Tests/Unit/KbActAsUserTenantTest.php:73.
+    $tenantId = (int) (new \ReflectionClass(\Tests\Support\WithSeededTenant::class))
+        ->getConstant('SEEDED_TENANT_ID');
 
     try {
         $this->biz = Business::find($tenantId) ?? Business::forceCreate([

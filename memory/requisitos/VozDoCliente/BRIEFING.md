@@ -66,5 +66,5 @@ precisa lembrar de abrir.
 
 - [ADR 0105 — cliente como sinal](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)
 - [SPEC Infra — US-INFRA-002](../Infra/SPEC.md)
-- [SCOPE do módulo](../../../Modules/VozDoCliente/SCOPE.md)
+- [SCOPE do módulo](SCOPE.md)
 - [SUPERFICIE.md](SUPERFICIE.md) (derivado — `module-surface`)

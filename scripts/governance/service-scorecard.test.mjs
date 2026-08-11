@@ -17,11 +17,11 @@ import { graphSignals, buildDoc } from './service-scorecard.mjs';
 const catalog = {
   stats: { modules: 4 },
   nodes: [
-    { id: 'module:Alpha', type: 'module', module: 'Alpha', trust: 'L1', owner: 'wagner', charter_adr: '0080', path: 'Modules/Alpha/SCOPE.md', purpose: 'Alpha.' },
-    { id: 'module:Beta', type: 'module', module: 'Beta', charter_adr: '0081', path: 'Modules/Beta/SCOPE.md', purpose: 'Beta backend-only.' },
-    { id: 'module:TeamX', type: 'module', module: 'TeamX', charter_adr: null, path: 'Modules/TeamX/SCOPE.md', purpose: 'sem PAGES_NS → cai na normalização.' },
-    { id: 'module:TeamY', type: 'module', module: 'TeamY', charter_adr: '0083', path: 'Modules/TeamY/SCOPE.md', purpose: 'com PAGES_NS → match direto.' },
-    { id: 'module:Solo', type: 'module', module: 'Solo', charter_adr: '0082', path: 'Modules/Solo/SCOPE.md', purpose: 'sem grade, sem aresta.' },
+    { id: 'module:Alpha', type: 'module', module: 'Alpha', trust: 'L1', owner: 'wagner', charter_adr: '0080', path: 'memory/requisitos/Alpha/SCOPE.md', purpose: 'Alpha.' },
+    { id: 'module:Beta', type: 'module', module: 'Beta', charter_adr: '0081', path: 'memory/requisitos/Beta/SCOPE.md', purpose: 'Beta backend-only.' },
+    { id: 'module:TeamX', type: 'module', module: 'TeamX', charter_adr: null, path: 'memory/requisitos/TeamX/SCOPE.md', purpose: 'sem PAGES_NS → cai na normalização.' },
+    { id: 'module:TeamY', type: 'module', module: 'TeamY', charter_adr: '0083', path: 'memory/requisitos/TeamY/SCOPE.md', purpose: 'com PAGES_NS → match direto.' },
+    { id: 'module:Solo', type: 'module', module: 'Solo', charter_adr: '0082', path: 'memory/requisitos/Solo/SCOPE.md', purpose: 'sem grade, sem aresta.' },
     { id: 'table:alpha_t', type: 'table' },
     { id: 'api:/alpha/*', type: 'api' },
   ],

@@ -193,7 +193,7 @@ Colunas de identidade do causer vêm de `2026_05_10_160000_add_causer_kind_and_r
 
 ## §11 — Referências ⚙️ derivado
 
-- [`Modules/Auditoria/SCOPE.md`](../../../Modules/Auditoria/SCOPE.md) v2.0.0 — fronteira emitir × ler
+- [`memory/requisitos/Auditoria/SCOPE.md`](SCOPE.md) v2.0.0 — fronteira emitir × ler
 - [`SUPERFICIE.md`](SUPERFICIE.md) — 36 arquivos em 12 papéis (gerado)
 - [`BRIEFING.md`](BRIEFING.md) · [`SPEC.md`](SPEC.md) · [`UI-CATALOG.md`](UI-CATALOG.md)
 - [lápide §5 `proibicoes.md`](../../proibicoes.md) — não deprecar

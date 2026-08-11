@@ -12,7 +12,7 @@ module: PaymentGateway
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs PaymentGateway --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/PaymentGateway/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 138 arquivos em 12 papéis.
 
@@ -143,6 +143,6 @@ module: PaymentGateway
 - [WebhookSignatureInvalidException.php](../../../Modules/PaymentGateway/Exceptions/WebhookSignatureInvalidException.php)
 - [CobrancaQuery.php](../../../Modules/PaymentGateway/Repositories/CobrancaQuery.php)
 - [paymentgateway.php](../../../Modules/PaymentGateway/Resources/lang/pt-BR/paymentgateway.php)
-- [SCOPE.md](../../../Modules/PaymentGateway/SCOPE.md)
 - [composer.json](../../../Modules/PaymentGateway/composer.json)
 - [module.json](../../../Modules/PaymentGateway/module.json)
+- [SCOPE.md](../../../memory/requisitos/PaymentGateway/SCOPE.md)

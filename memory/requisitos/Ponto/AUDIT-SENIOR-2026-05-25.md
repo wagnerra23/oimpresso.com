@@ -811,7 +811,7 @@ EVOLUIR (paralelo full, 4-7 dev-days)
 ### Documentos canônicos oimpresso (reusados, NÃO duplicados)
 - [memory/requisitos/Ponto/SPEC.md](SPEC.md) — US-PONTO-001..008 (precisa atualizar US-006 — vide Surpresa)
 - [memory/requisitos/Ponto/BRIEFING.md](BRIEFING.md) — Wave 18 RETRY 2026-05-16
-- [Modules/Ponto/SCOPE.md](../../../Modules/Ponto/SCOPE.md) — v1.1.0 (rename Fase 3.7 PR-2)
+- [Modules/Ponto/SCOPE.md](SCOPE.md) — v1.1.0 (rename Fase 3.7 PR-2)
 - [Modules/Ponto/module.json](../../../Modules/Ponto/module.json) — bucket + fsm_n_a + Wave 18 targets
 - [Modules/Ponto/Config/retention.php](../../../Modules/Ponto/Config/retention.php) — Wave 11 D7.c LGPD
 - [memory/reference/clientes-ativos.md](../../reference/clientes-ativos.md) — biz=4 NÃO usa Ponto (Art. 74)

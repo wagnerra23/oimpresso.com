@@ -186,7 +186,7 @@ $url = app(ArquivosService::class)->signedUrl($arquivo, expiresMinutes: 60);
 
 ## Estado das US (Sprint 1+2 concluído)
 
-Ver [SCOPE.md](../../../Modules/Arquivos/SCOPE.md) pra matriz US-ARQ-001..US-ARQ-010 + US-PRE pendentes Wagner.
+Ver [SCOPE.md](SCOPE.md) pra matriz US-ARQ-001..US-ARQ-010 + US-PRE pendentes Wagner.
 
 ## Referências
 

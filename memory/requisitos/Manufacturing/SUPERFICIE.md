@@ -12,7 +12,7 @@ module: Manufacturing
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Manufacturing --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Manufacturing/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 118 arquivos em 15 papéis.
 
@@ -156,10 +156,10 @@ module: Manufacturing
 - [lang.php](../../../Modules/Manufacturing/Resources/lang/tr/lang.php)
 - [lang.php](../../../Modules/Manufacturing/Resources/lang/vi/lang.php)
 - [.gitkeep](../../../Modules/Manufacturing/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/Manufacturing/SCOPE.md)
 - [.gitkeep](../../../Modules/Manufacturing/Tests/.gitkeep)
 - [ManufacturingUtil.php](../../../Modules/Manufacturing/Utils/ManufacturingUtil.php)
 - [composer.json](../../../Modules/Manufacturing/composer.json)
 - [module.json](../../../Modules/Manufacturing/module.json)
 - [package.json](../../../Modules/Manufacturing/package.json)
 - [webpack.mix.js](../../../Modules/Manufacturing/webpack.mix.js)
+- [SCOPE.md](../../../memory/requisitos/Manufacturing/SCOPE.md)

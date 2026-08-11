@@ -434,8 +434,8 @@ php artisan nfebrasil:smoke-sefaz biz=1 ambiente=homolog
 - [ADR ARQ-0002 NfeBrasil](../NfeBrasil/adr/) — lib `eduardokum/sped-nfe`
 - [ADR TECH-0002 NfeBrasil](../NfeBrasil/adr/) — contingência EPEC/FS-DA
 - [ADR UI-0002 NfeBrasil](../NfeBrasil/adr/) — monitor cStat → sugestão
-- [SCOPE.md Fiscal](../../../Modules/Fiscal/SCOPE.md) — cockpit thin agregador
-- [SCOPE.md NfeBrasil](../../../Modules/NfeBrasil/SCOPE.md) — emissão real
+- [SCOPE.md Fiscal](SCOPE.md) — cockpit thin agregador
+- [SCOPE.md NfeBrasil](../NfeBrasil/SCOPE.md) — emissão real
 - [PII-LGPD-FISCAL.md](../NfeBrasil/PII-LGPD-FISCAL.md) — append-only contract
 - [RUNBOOK-smoke-sefaz.md](../NfeBrasil/RUNBOOK-smoke-sefaz.md) — smoke biz=1 ambiente homolog
 
