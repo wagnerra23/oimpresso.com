@@ -23,10 +23,10 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 570,
-    "edges": 838,
+    "nodes": 569,
+    "edges": 834,
     "by_node_type": {
-      "module": 40,
+      "module": 39,
       "table": 73,
       "adr": 25,
       "component": 389,
@@ -40,8 +40,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 389,
-      "dependsOn": 113,
-      "delegatesTo": 107,
+      "dependsOn": 111,
+      "delegatesTo": 105,
       "migratesTo": 1
     },
     "dangling": 0
@@ -3576,19 +3576,6 @@
       "catalog_status": "catalogued"
     },
     {
-      "id": "module:Notas",
-      "type": "module",
-      "module": "Notas",
-      "purpose": "",
-      "trust": "",
-      "owner": "",
-      "permission_prefix": "",
-      "charter_adr": "",
-      "path": null,
-      "catalog_kind": "referenced-only",
-      "catalog_status": "referenced-only"
-    },
-    {
       "id": "module:Officeimpresso",
       "type": "module",
       "module": "Officeimpresso",
@@ -5053,13 +5040,6 @@
     },
     {
       "from": "module:Compras",
-      "to": "module:Sells",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Vendas/saídas"
-    },
-    {
-      "from": "module:Compras",
       "to": "module:AssetManagement",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -5078,13 +5058,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "NF-e de entrada"
-    },
-    {
-      "from": "module:Compras",
-      "to": "module:Sells",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Vendas/saídas"
     },
     {
       "from": "module:Compras",
@@ -5803,20 +5776,6 @@
       "to": "adr:0080",
       "type": "charteredByAdr",
       "source": "charter_adr"
-    },
-    {
-      "from": "module:Essentials",
-      "to": "module:Notas",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Modules/Notas (NEW) — KB pessoal + tarefas + arquivo cliente"
-    },
-    {
-      "from": "module:Essentials",
-      "to": "module:Notas",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Modules/Notas (NEW) — KB pessoal + tarefas + arquivo cliente"
     },
     {
       "from": "module:Essentials",
@@ -9876,10 +9835,6 @@
       },
       {
         "module": "Admin",
-        "reason": "referenciado por SCOPE, sem descritor próprio"
-      },
-      {
-        "module": "Notas",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {

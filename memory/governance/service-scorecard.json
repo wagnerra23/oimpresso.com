@@ -18,7 +18,7 @@
     }
   },
   "stats": {
-    "services": 40,
+    "services": 39,
     "with_grade": 32,
     "unmatched_screen_dirs": [],
     "orphan_screen_ns": [
@@ -40,7 +40,7 @@
     ],
     "maturity_levels": {
       "ouro": 29,
-      "prata": 4,
+      "prata": 3,
       "bronze": 7
     }
   },
@@ -777,7 +777,7 @@
           "idade_max_dias": 19
         },
         "graph": {
-          "depends_on": 4,
+          "depends_on": 3,
           "dependents": 0,
           "provides_api": 0,
           "owns_tables": 0,
@@ -1292,7 +1292,7 @@
           "idade_max_dias": 19
         },
         "graph": {
-          "depends_on": 1,
+          "depends_on": 0,
           "dependents": 0,
           "provides_api": 1,
           "owns_tables": 0,
@@ -2314,102 +2314,6 @@
       }
     },
     {
-      "id": "Notas",
-      "trust": "",
-      "owner": "",
-      "permission_prefix": "",
-      "charter_adr": "",
-      "scope": null,
-      "purpose": "",
-      "signals": {
-        "grade": null,
-        "screens": {
-          "matched": false,
-          "ns": "Notas",
-          "backend_only": true,
-          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
-        },
-        "graph": {
-          "depends_on": 0,
-          "dependents": 1,
-          "provides_api": 0,
-          "owns_tables": 0,
-          "owns_legacy_views": 0,
-          "consumes_tables": 0,
-          "governed_by_adr": 0,
-          "components": 0,
-          "dangling_edges": 0,
-          "connected": true
-        },
-        "briefing": {
-          "present": false,
-          "last_commit": null,
-          "verdict_owner": "briefing-code-staleness.mjs"
-        },
-        "cost": {
-          "module_attributable": false,
-          "owner": "agent-cost-per-pr.mjs",
-          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
-        }
-      },
-      "checks": [
-        {
-          "key": "has_scope",
-          "ok": false,
-          "rot": "SCOPE.md presente"
-        },
-        {
-          "key": "has_charter_adr",
-          "ok": false,
-          "rot": "charter/ADR declarado"
-        },
-        {
-          "key": "graded",
-          "ok": false,
-          "rot": "nota module-grade presente"
-        },
-        {
-          "key": "briefing_present",
-          "ok": false,
-          "rot": "BRIEFING.md presente"
-        },
-        {
-          "key": "graph_connected",
-          "ok": true,
-          "rot": "conectado no grafo (≥1 aresta)"
-        },
-        {
-          "key": "no_dangling_edges",
-          "ok": true,
-          "rot": "sem aresta pendurada"
-        },
-        {
-          "key": "screens_matched",
-          "ok": false,
-          "rot": "telas rastreadas em vital-signs",
-          "na": true
-        },
-        {
-          "key": "charter_full",
-          "ok": false,
-          "rot": "charter 100% nas telas",
-          "na": true
-        },
-        {
-          "key": "no_stale_screens",
-          "ok": false,
-          "rot": "nenhuma tela stale",
-          "na": true
-        }
-      ],
-      "maturity": {
-        "passed": 2,
-        "applicable": 6,
-        "ratio": 0.33,
-        "level": "bronze"
-      }
-    },
-    {
       "id": "Officeimpresso",
       "trust": "L3",
       "owner": "wagner",
@@ -3352,7 +3256,7 @@
         },
         "graph": {
           "depends_on": 0,
-          "dependents": 1,
+          "dependents": 0,
           "provides_api": 0,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -3360,7 +3264,7 @@
           "governed_by_adr": 0,
           "components": 0,
           "dangling_edges": 0,
-          "connected": true
+          "connected": false
         },
         "briefing": {
           "present": true,
@@ -3396,7 +3300,7 @@
         },
         {
           "key": "graph_connected",
-          "ok": true,
+          "ok": false,
           "rot": "conectado no grafo (≥1 aresta)"
         },
         {
@@ -3421,10 +3325,10 @@
         }
       ],
       "maturity": {
-        "passed": 7,
+        "passed": 6,
         "applicable": 9,
-        "ratio": 0.78,
-        "level": "prata"
+        "ratio": 0.67,
+        "level": "bronze"
       }
     },
     {
