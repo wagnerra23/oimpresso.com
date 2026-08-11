@@ -73,8 +73,21 @@ export function parsePagePath(filePath) {
 
 /** lookup case-insensitive: pasta do módulo em memory/requisitos + QUALQUER RUNBOOK-<kebab>.md
  *  dentre os candidatos (kebab da tela E/OU do subdir). Aceita string ou array de kebabs.
- *  Retorna 'ok' | 'sem-pasta' | 'sem-runbook'. fs-fail → 'ok' (fail-open). */
-export function runbookStatus(modulo, kebabCandidatos, root = process.cwd()) {
+ *  Retorna 'ok' | 'sem-pasta' | 'sem-runbook'. fs-fail → 'ok' (fail-open).
+ *
+ *  `primarioKebab` (opcional) habilita a convenção com PREFIXO DO MÓDULO —
+ *  `RUNBOOK-<modulo-kebab>-<primario>.md` — usada de fato no repo (`RUNBOOK-compras-index.md`,
+ *  `RUNBOOK-repair-index.md`, `RUNBOOK-repair-show.md`, os 7 `RUNBOOK-produto-*.md`).
+ *
+ *  POR QUE SÓ O PRIMÁRIO, e não todos os candidatos (medido 2026-08-11, 210 telas do repo):
+ *  aplicar o prefixo a TODOS destravava 8 telas, mas 5 eram FALSO-RESGATE — `Repair/Status/Index`,
+ *  `Repair/JobSheet/Index`, `Repair/Dashboard/Index` e `Repair/ProducaoOficina/Index` casavam
+ *  TODAS o mesmo `RUNBOOK-repair-index.md`, porque `<Mod>/<Sub>/Index.tsx` tem `index` entre os
+ *  candidatos. Isso reintroduziria a ambiguidade que o #4648 tratou e viraria carimbo. Restrito
+ *  ao primário (subdir p/ aninhada, tela p/ flat) destrava 3, todas flat e inequívocas; 120 das
+ *  123 telas seguem bloqueadas. Tela aninhada com nome divergente resolve pelo `runbook:` do
+ *  charter — declaração é autoritativa, adivinhação não. */
+export function runbookStatus(modulo, kebabCandidatos, root = process.cwd(), primarioKebab = null) {
   try {
     const base = join(root, 'memory', 'requisitos');
     const dirs = readdirSync(base, { withFileTypes: true });
@@ -85,6 +98,7 @@ export function runbookStatus(modulo, kebabCandidatos, root = process.cwd()) {
         .filter(Boolean)
         .map((k) => `runbook-${k}.md`.toLowerCase()),
     );
+    if (primarioKebab) alvos.add(`runbook-${toKebab(modulo)}-${primarioKebab}.md`.toLowerCase());
     const files = readdirSync(join(base, modDir.name));
     return files.some((f) => alvos.has(f.toLowerCase())) ? 'ok' : 'sem-runbook';
   } catch {
@@ -137,16 +151,18 @@ export function decide(toolName, filePath, root = process.cwd()) {
   const telaKebab = toKebab(page.tela);
   const subdirKebab = page.subdir ? toKebab(page.subdir) : null;
   const candidatos = subdirKebab ? [telaKebab, subdirKebab] : [telaKebab];
-  const status = runbookStatus(page.modulo, candidatos, root);
+  // canônico da tela aninhada = por rota (subdir); flat = por nome (tela).
+  const primaryKebab = subdirKebab || telaKebab;
+  const status = runbookStatus(page.modulo, candidatos, root, primaryKebab);
   if (status === 'ok') return null;
   // resgate por proveniência: charter irmão declara um runbook: cujo arquivo EXISTE (validado).
   if (charterRunbookExists(filePath, root)) return null;
-  // canônico da tela aninhada = por rota (subdir); flat = por nome (tela).
-  const primaryKebab = subdirKebab || telaKebab;
+  const modKebab = toKebab(page.modulo);
   const runbook = `memory/requisitos/${page.modulo}/RUNBOOK-${primaryKebab}.md`;
+  const comPrefixo = `RUNBOOK-${modKebab}-${primaryKebab}.md (com prefixo do módulo)`;
   const alternativas = subdirKebab
-    ? `RUNBOOK-${subdirKebab}.md (por rota) ou RUNBOOK-${telaKebab}.md (por nome), nem 'runbook:' válido em ${page.tela}.charter.md`
-    : `RUNBOOK-${telaKebab}.md, nem 'runbook:' válido em ${page.tela}.charter.md`;
+    ? `RUNBOOK-${subdirKebab}.md (por rota), ${comPrefixo} ou RUNBOOK-${telaKebab}.md (por nome), nem 'runbook:' válido em ${page.tela}.charter.md`
+    : `RUNBOOK-${telaKebab}.md, ${comPrefixo}, nem 'runbook:' válido em ${page.tela}.charter.md`;
   const causa = status === 'sem-pasta'
     ? `A pasta 'memory/requisitos/${page.modulo}/' nem existe — F1 (PLAN) nunca rolou.`
     : `Nenhum candidato encontrado (${alternativas}).`;
