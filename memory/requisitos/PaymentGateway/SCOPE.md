@@ -96,17 +96,17 @@ Extraído de `Modules/RecurringBilling` (ADR 0170) pra desacoplar **infra de cob
 
 ## Trust level
 
-**L3** — toca dinheiro, dados de pagador (LGPD), credenciais de API bancária (segredos), regulação CMN/BCB. Ver [TRUST-TIERS.md](../../memory/governance/TRUST-TIERS.md).
+**L3** — toca dinheiro, dados de pagador (LGPD), credenciais de API bancária (segredos), regulação CMN/BCB. Ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md).
 
 ## Quando NÃO é tocado
 
-Ver `not_contains[]` no frontmatter. Em dúvida, consulte [ARCHITECTURE.md](../../memory/governance/ARCHITECTURE.md).
+Ver `not_contains[]` no frontmatter. Em dúvida, consulte [ARCHITECTURE.md](../../governance/ARCHITECTURE.md).
 
 Regra de ouro: **se a operação envolve "quando cobrar / com que frequência", é RecurringBilling. Se envolve "como falar com banco pra emitir/cancelar", é PaymentGateway.**
 
 ## Contrato público
 
-Quem consome este módulo (Sell, RecurringBilling, NFSe, Superadmin) **só conhece** [`PaymentGatewayContract`](Contracts/PaymentGatewayContract.php) e os 5 eventos broadcast (`CobrancaEmitida`, `CobrancaPaga`, `CobrancaVencida`, `CobrancaCancelada`, `CobrancaErro`).
+Quem consome este módulo (Sell, RecurringBilling, NFSe, Superadmin) **só conhece** [`PaymentGatewayContract`](../../../Modules/PaymentGateway/Contracts/PaymentGatewayContract.php) e os 5 eventos broadcast (`CobrancaEmitida`, `CobrancaPaga`, `CobrancaVencida`, `CobrancaCancelada`, `CobrancaErro`).
 
 Drivers concretos (`InterDriver`, `AsaasDriver`, etc) **nunca aparecem fora do módulo**.
 

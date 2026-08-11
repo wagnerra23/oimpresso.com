@@ -41,12 +41,12 @@ Pacotes + subscription multi-tenant. Só Wagner toca.
 
 ## Trust level
 
-**L0** — ver [TRUST-TIERS.md](../../memory/governance/TRUST-TIERS.md).
+**L0** — ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md).
 
 ## Quando NÃO é tocado
 
 Ver `not_contains[]` no frontmatter. Em dúvida, consulte
-[ARCHITECTURE.md](../../memory/governance/ARCHITECTURE.md).
+[ARCHITECTURE.md](../../governance/ARCHITECTURE.md).
 
 ---
 

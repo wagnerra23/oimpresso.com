@@ -46,12 +46,12 @@ UltimatePOS HRM herdado. Notas (NEW) extrai gradual em Fase 3.10.
 
 ## Trust level
 
-**L3** — ver [TRUST-TIERS.md](../../memory/governance/TRUST-TIERS.md).
+**L3** — ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md).
 
 ## Quando NÃO é tocado
 
 Ver `not_contains[]` no frontmatter. Em dúvida, consulte
-[ARCHITECTURE.md](../../memory/governance/ARCHITECTURE.md).
+[ARCHITECTURE.md](../../governance/ARCHITECTURE.md).
 
 ---
 

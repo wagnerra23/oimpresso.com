@@ -102,7 +102,7 @@ Onde Wagner opera **5min/dia**: aprova ADRs pendentes, ajusta policies, vê audi
 
 ## Quando NÃO é tocado
 
-- ❌ Skill governance → **Modules/Jana** (`SkillsService`; era `Modules/ADS` até a remoção de 2026-07-31, [ADR 0363](../../memory/decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md))
+- ❌ Skill governance → **Modules/Jana** (`SkillsService`; era `Modules/ADS` até a remoção de 2026-07-31, [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md))
 - ❌ Token / scope CRUD → Modules/Forja
 - ❌ Constitution doc edit → file `memory/governance/CONSTITUTION.md` direto
 

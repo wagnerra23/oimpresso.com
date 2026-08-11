@@ -29,8 +29,8 @@ drift_alerts: []
 
 # Modules/Vestuario — vertical lojas de vestuário/moda BR
 
-> ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
-> SPEC: [memory/requisitos/Vestuario/SPEC.md](../../memory/requisitos/Vestuario/SPEC.md)
+> ADR mãe: [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
+> SPEC: [memory/requisitos/Vestuario/SPEC.md](../../requisitos/Vestuario/SPEC.md)
 > Cliente piloto: ROTA LIVRE biz=4 (Larissa, Termas do Gravatal/SC) em prod desde 2024-Q1
 > CNAE: 4781-4/00
 
@@ -39,7 +39,7 @@ drift_alerts: []
 Scaffold formal nWidart — módulo nasce vazio porque **ROTA LIVRE já usa o produto há 2+ anos** via núcleo UltimatePOS + Modules/{Financeiro, NfeBrasil, Copiloto} com customizações pontuais. Esta pasta:
 
 1. **Habilita revenda** do módulo pra outras lojas vestuário CNAE 4781
-2. **Encapsula customizações ROTA LIVRE** progressivamente (format_date shift +3h [ADR 0066](../../memory/decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md))
+2. **Encapsula customizações ROTA LIVRE** progressivamente (format_date shift +3h [ADR 0066](../../decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md))
 3. **Consome shared Modules/Repair** opcional (kanban fluxo costureira→revisão→finalização) com vocabulário shared via `RepairSettingsSeeder`
 
 ## Sprint 2+ — adoção progressiva

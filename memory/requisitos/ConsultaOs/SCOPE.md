@@ -30,12 +30,12 @@ Portal público de consulta de Ordem de Serviço. Cliente acompanha pipeline pro
 
 ## Trust level
 
-**L4** — ver [TRUST-TIERS.md](../../memory/governance/TRUST-TIERS.md).
+**L4** — ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md).
 
 ## Quando NÃO é tocado
 
 Ver `not_contains[]` no frontmatter. Em dúvida, consulte
-[ARCHITECTURE.md](../../memory/governance/ARCHITECTURE.md).
+[ARCHITECTURE.md](../../governance/ARCHITECTURE.md).
 
 ---
 

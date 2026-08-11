@@ -97,6 +97,6 @@ Erro de operação ≠ feedback de cliente (`feedback-capture` cobre fricção d
 ## Refs
 
 - Origem: sessão [CC] 2026-06-02 — comparação [CC]×Jana×Champion (view `rep-cc-vs-jana` no `metricas.html`); pesquisa Reflexion · Voyager · Letta · Zep/Graphiti.
-- Proposta §10.4: [`memory/decisions/proposals/jana-ledger-licoes-operacao-reflexion.md`](../../memory/decisions/proposals/jana-ledger-licoes-operacao-reflexion.md)
+- Proposta §10.4: [`memory/decisions/proposals/jana-ledger-licoes-operacao-reflexion.md`](../../decisions/proposals/jana-ledger-licoes-operacao-reflexion.md)
 - Mecanismo: `Modules/Jana/Console/Commands/HealthCheckCommand.php` → check `jana_lesson_ledger_graduation`
 - Constituição v2 §4 (loop fechado por métrica) · §8 (confiabilidade com fallback)

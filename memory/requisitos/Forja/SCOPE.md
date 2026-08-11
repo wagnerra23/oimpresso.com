@@ -134,7 +134,7 @@ Renomeação Forja → Project prevista pra Fase 3.9 do ADR 0079, **após** dele
 ## Quando NÃO é tocado
 
 - ❌ UltimatePOS Project (clientes + timesheet) → Modules/Project legado (em DELETE Fase 3.8)
-- ❌ Skills governance → **Modules/Jana** (`SkillsService`; era `Modules/ADS` até a remoção de 2026-07-31, [ADR 0363](../../memory/decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md))
+- ❌ Skills governance → **Modules/Jana** (`SkillsService`; era `Modules/ADS` até a remoção de 2026-07-31, [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md))
 - ❌ Tokens / scopes / audit → Modules/Forja
 
 ## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)

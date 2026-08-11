@@ -40,12 +40,12 @@ Ponto eletrônico Portaria 671/2021. Renomeado de PontoWr2 em Fase 3.7 PR-2 (202
 
 ## Trust level
 
-**L3** — ver [TRUST-TIERS.md](../../memory/governance/TRUST-TIERS.md).
+**L3** — ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md).
 
 ## Quando NÃO é tocado
 
 Ver `not_contains[]` no frontmatter. Em dúvida, consulte
-[ARCHITECTURE.md](../../memory/governance/ARCHITECTURE.md).
+[ARCHITECTURE.md](../../governance/ARCHITECTURE.md).
 
 ---
 

@@ -53,6 +53,7 @@ beforeEach(function () {
     // colisão com módulos reais e fica óbvio que é temp.
     $fixtureBase = base_path('Modules/__DriftFixture__');
     File::ensureDirectoryExists($fixtureBase . '/Http/Controllers');
+    File::ensureDirectoryExists(base_path('memory/requisitos/__DriftFixture__'));
 });
 
 afterEach(function () {
@@ -65,6 +66,11 @@ afterEach(function () {
     $fixtureBase = base_path('Modules/__DriftFixture__');
     if (is_dir($fixtureBase)) {
         File::deleteDirectory($fixtureBase);
+    }
+
+    $fixtureScope = base_path('memory/requisitos/__DriftFixture__');
+    if (is_dir($fixtureScope)) {
+        File::deleteDirectory($fixtureScope);
     }
 });
 
@@ -97,7 +103,11 @@ permission_prefix: drift_fixture.*
 Fixture Pest. NÃO commitar — afterEach limpa.
 MD;
 
-    file_put_contents(base_path("Modules/{$module}/SCOPE.md"), $content);
+    File::ensureDirectoryExists(base_path("memory/requisitos/{$module}"));
+    // ADR 0375: o comando resolve o SCOPE em memory/requisitos/<X>/, nao mais em
+    // Modules/<X>/. A fixture PRECISA escrever onde o codigo LE — senao o teste
+    // recria o mundo antigo e fica verde enquanto o comando real acha 0 modulos.
+    file_put_contents(base_path("memory/requisitos/{$module}/SCOPE.md"), $content);
 }
 
 /**

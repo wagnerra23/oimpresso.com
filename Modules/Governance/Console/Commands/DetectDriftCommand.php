@@ -178,7 +178,10 @@ class DetectDriftCommand extends Command
             if ($filter !== null && $entry !== $filter) {
                 continue;
             }
-            $scopePath = $moduleDir . DIRECTORY_SEPARATOR . 'SCOPE.md';
+            // ADR 0375: o SCOPE saiu de Modules/<X>/ pra memory/requisitos/<X>/. O modulo
+            // continua sendo DESCOBERTO por Modules/ (e la que o codigo observado vive) —
+            // so a resolucao do descritor mudou de lugar. Mesmo padrao do DriftAlertService:65.
+            $scopePath = base_path('memory/requisitos/' . $entry . '/SCOPE.md');
             if (is_file($scopePath)) {
                 $out[$entry] = $scopePath;
             }

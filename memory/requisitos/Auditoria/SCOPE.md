@@ -39,7 +39,7 @@ drift_alerts: []
 
 ## Fronteira — quem EMITE × quem LÊ
 
-Esta é a distinção que a v1 errava, e o erro custou uma tentativa de deleção ([lápide §5](../../memory/proibicoes.md)):
+Esta é a distinção que a v1 errava, e o erro custou uma tentativa de deleção ([lápide §5](../../proibicoes.md)):
 
 | Papel | Onde vive | Exemplo |
 |---|---|---|
@@ -52,7 +52,7 @@ O módulo **não tem tabela própria com dado** — `auditoria_audit_notes` nunc
 
 `RevertService::canRevert()` nega em três eixos, nesta ordem:
 
-1. **Multi-tenant Tier 0** — `activity.business_id ≠ user.business_id` → nega ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)). Sem isso o undo vira vazamento cross-tenant com cara de feature.
+1. **Multi-tenant Tier 0** — `activity.business_id ≠ user.business_id` → nega ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)). Sem isso o undo vira vazamento cross-tenant com cara de feature.
 2. **`unrevertibleRegistry()`** — whitelist do que **nunca** reverte: `Marcacao` (append-only por Portaria MTP 671/2021), `NfeTransaction` (nota autorizada na SEFAZ), `TituloBaixa` (baixa financeira), `OS` do Repair, e `Transaction` sob condição.
 3. **Snapshot ausente** — Activity sem `properties.old` não tem o que restaurar.
 
@@ -60,7 +60,7 @@ O undo **também é auditado**: `revert()` cria uma nova `Activity` registrando 
 
 ## Trust level
 
-**L3** — ver [TRUST-TIERS.md](../../memory/governance/TRUST-TIERS.md).
+**L3** — ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md).
 
 ## Quando NÃO é tocado
 

@@ -37,8 +37,8 @@ drift_alerts: []
 
 # Modules/ComunicacaoVisual — vertical gráfica rápida BR
 
-> ADR mãe: [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
-> SPEC: [memory/requisitos/ComunicacaoVisual/SPEC.md](../../memory/requisitos/ComunicacaoVisual/SPEC.md)
+> ADR mãe: [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
+> SPEC: [memory/requisitos/ComunicacaoVisual/SPEC.md](../../requisitos/ComunicacaoVisual/SPEC.md)
 > Status: 🟡 em construção · Piloto previsto 2026-Q3
 > CNAE: 1813-0/01 · Concorrentes: Mubisys, Zênite, Calcgraf
 

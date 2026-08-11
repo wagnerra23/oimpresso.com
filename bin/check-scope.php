@@ -163,7 +163,7 @@ function classifyContainsItem(string $item, string $moduleDir, array $symbolInde
     // em 2026-08-10 (Jana/LICOES-OPERACAO.md existe e foi acusado).
     if (preg_match('/\.[A-Za-z0-9]+$/', $base) && !str_ends_with($base, '.php')) {
         if (is_file($moduleDir . '/' . $base)) return ['status' => 'ok', 'token' => $token];
-        // ADR 0374: doc do modulo mora em memory/requisitos/<X>/ desde 2026-08-10.
+        // ADR 0375: doc do modulo mora em memory/requisitos/<X>/ desde 2026-08-10.
         // Sem este ramo, todo item .md declarado vira fantasma — o SCOPE saiu junto.
         if (is_file('memory/requisitos/' . basename($moduleDir) . '/' . $base)) {
             return ['status' => 'ok', 'token' => $token];

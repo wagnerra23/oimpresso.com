@@ -24,8 +24,8 @@ drift_alerts: []
 
 # Modules/Arquivos — DMS backbone
 
-> ADR mãe: [0123](../../memory/decisions/0123-modules-arquivos-backbone.md)
-> SPEC: [memory/requisitos/Arquivos/SPEC.md](../../memory/requisitos/Arquivos/SPEC.md)
+> ADR mãe: [0123](../../decisions/0123-modules-arquivos-backbone.md)
+> SPEC: [memory/requisitos/Arquivos/SPEC.md](../../requisitos/Arquivos/SPEC.md)
 > Princípio: **todo arquivo anexado deve cair lá**
 
 ## Status Sprint 1

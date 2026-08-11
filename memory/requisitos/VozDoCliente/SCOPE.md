@@ -22,7 +22,7 @@ status: em construção
 
 ## Por que existe
 
-A [ADR 0105](../../memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) estabelece que
+A [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) estabelece que
 o backlog **só recebe item se cliente paga e reporta, ou se métrica detecta desvio**. A regra
 estava escrita e sem máquina: Larissa (ROTA LIVRE, biz=4) relata dor por WhatsApp, o relato vira
 backlog mental de uma pessoa só, e nada disso é contável, rastreável ou auditável.
@@ -64,7 +64,7 @@ Este módulo é onde o sinal passa a existir como dado.
 
 ## Referências
 
-- [ADR 0105 — cliente como sinal, guiar sem mandar](../../memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)
-- [ADR 0093 — multi-tenant Tier 0](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0024 — instalação 1-clique](../../memory/decisions/0024-instalacao-1-clique-modulos.md)
-- [SPEC Infra — US-INFRA-002](../../memory/requisitos/Infra/SPEC.md)
+- [ADR 0105 — cliente como sinal, guiar sem mandar](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)
+- [ADR 0093 — multi-tenant Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0024 — instalação 1-clique](../../decisions/0024-instalacao-1-clique-modulos.md)
+- [SPEC Infra — US-INFRA-002](../../requisitos/Infra/SPEC.md)

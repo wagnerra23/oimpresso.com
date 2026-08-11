@@ -46,7 +46,7 @@ Cockpit fiscal unificado: agrega visão consolidada de NF-e/NFC-e (modelos 55 + 
 
 ## Trust level
 
-**L3** — ver [TRUST-TIERS.md](../../memory/governance/TRUST-TIERS.md). Persona dupla: Eliana (contadora — leitura, conferência, SPED) + Wagner (operador fiscal — emissão, cancelamento, retransmissão).
+**L3** — ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md). Persona dupla: Eliana (contadora — leitura, conferência, SPED) + Wagner (operador fiscal — emissão, cancelamento, retransmissão).
 
 ## Quando NÃO é tocado
 

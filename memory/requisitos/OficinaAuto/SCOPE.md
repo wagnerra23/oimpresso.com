@@ -33,9 +33,9 @@ drift_alerts: []
 
 # Modules/OficinaAuto — vertical oficinas automotivas BR
 
-> ADR mãe: [0137](../../memory/decisions/0137-modules-oficinaauto-qualificada.md) (amends [0121](../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7)
-> SPEC: [memory/requisitos/OficinaAuto/SPEC.md](../../memory/requisitos/OficinaAuto/SPEC.md)
-> Charter: [memory/requisitos/OficinaAuto/OficinaAuto.charter.md](../../memory/requisitos/OficinaAuto/OficinaAuto.charter.md)
+> ADR mãe: [0137](../../decisions/0137-modules-oficinaauto-qualificada.md) (amends [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7)
+> SPEC: [memory/requisitos/OficinaAuto/SPEC.md](../../requisitos/OficinaAuto/SPEC.md)
+> Charter: [memory/requisitos/OficinaAuto/OficinaAuto.charter.md](../../requisitos/OficinaAuto/OficinaAuto.charter.md)
 > **Status: 🟡 em construção (V0)** — sinal qualificado por Vargas + Martinho (ADR 0137)
 > CNAEs: 4520-0/01 (mecânica geral) · 2212-9/00 (recapagem) · 4581-4/00 (locação caçamba)
 > Concorrentes: Ultracar, Oficina Integrada, Onmotor, Manager Full
