@@ -1,0 +1,119 @@
+name: Sells V3 Domínio Gate — parcelas · fiscal · comissão · colunas (vitest · JUnit)
+
+# Lógica de domínio do preview `/sells/create-v3` (ondas 3 a 6 do pacote
+# design_handoff_cadastro_venda). Os 4 módulos são TypeScript puro, exportados de
+# resources/js/Pages/Sells/_components/v3/*-dominio.ts justamente pra serem provados
+# sem render, sem Inertia e sem banco.
+#
+# POR QUE ESTA LANE EXISTE (medido 2026-08-11, não herdado)
+# Os 4 specs existiam, passavam 70/70 na máquina de quem os escreveu, e rodavam em
+# ZERO lanes: `rg` pelos 4 nomes de arquivo no repo inteiro (--hidden) não devolve
+# nenhum `.github/workflows/*`. É a mesma medição que já criou forja-shortcuts-gate
+# e jana-conversas-gate: NENHUMA lane roda `vitest run` sem argumento — cada spec que
+# morde precisa de workflow próprio apontando pro arquivo. Spec sem lane nunca executa,
+# e verde-por-não-execução (LC-13) é PIOR que teste ausente, porque parece cobertura.
+#
+# O QUE ESTA LANE FAZ DE DIFERENTE das duas irmãs: emite JUnit e o transporta.
+# O manifesto por-UC (scripts/casos-test-results.json), que o G-7 do casos-gate
+# (REQUIRED) lê pra derivar o `Status:` de cada UC, só recebe veredito de lane que
+# publique um artifact com o XML — o publisher (casos-results-publish.yml) itera a
+# lista DERIVADA por scripts/governance/junit-lanes.mjs. Sem o par
+# `--reporter=junit` + upload-artifact, os UCs provados aqui valeriam 0 no painel
+# para sempre: exatamente o bug que a própria junit-lanes.mjs nasceu pra matar
+# (4 lanes Pest emitiam e ninguém lia, medido 2026-08-04).
+#
+# O deriver aprendeu a forma do vitest no mesmo PR desta lane (`--reporter=junit` +
+# `--outputFile=…xml`); antes ele só conhecia o `--log-junit` do Pest. FP medido: a
+# lista derivada ficou BYTE-IDÊNTICA (14 lanes antes e depois) — é adição, não
+# reclassificação. Selftest do deriver: 10/10, com bite (acha a lane vitest) e dois
+# controles negativos (--outputFile sem reporter junit · citação só em comentário).
+#
+# O que ele trava (o contrato de cada onda vive em Sells/CreateV3.casos.md):
+#   onda 3 · parcelas — o invariante do centavo: soma(ratear(total,n)) === total pra
+#     11 totais × 48 quantidades, conferido por DOIS caminhos independentes (a função
+#     real × aritmética à mão em centavos inteiros), como a REGRA MESTRE de
+#     valor/estoque exige; e "mesmo dia do mês" ≠ somar 30 dias (31/01 → 28/02).
+#   onda 4 · fiscal — coerência CST × alíquota, o erro que a validação campo-a-campo
+#     NÃO pega: CST 40 (isenta) com alíquota 18% passa em qualquer checagem isolada e
+#     é rejeitado pela SEFAZ. Rejeição fiscal é venda parada, não detalhe de UI.
+#   onda 5 · comissão — faixa por valor TOTAL (não progressiva por fatia) e gatilho
+#     por recebimento liberando proporcional ao pago. ⚠️ Tier 0: comissão é dinheiro
+#     devido a alguém.
+#   onda 6 · colunas — as 4 defesas contra localStorage podre (entrada NÃO confiável)
+#     e "coluna fixa não desliga": um grid de venda sem total não é um grid de venda.
+#
+# ⚠️ A tela é PREVIEW e NÃO GRAVA (UC-V302). Estes testes provam a lógica de domínio
+# ANTES de ela encostar em persistência — é o ensaio barato. Nada aqui substitui o
+# smoke real nem o Pest de contrato (tests/Feature/Sells/SellsCreateV3ContratoTest.php,
+# lane Pest (Sells · MySQL)).
+#
+# Path-scoped (faz npm ci): roda quando um domínio, um spec ou este workflow mudam.
+# Comando local: npx vitest run tests/js/parcelas-dominio.test.ts tests/js/item-fiscal-dominio.test.ts tests/js/comissao-dominio.test.ts tests/js/colunas-dominio.test.ts
+#
+# Advisory (ADR 0271/0314 — tela de preview que não grava é qualidade, não Tier-0).
+# Promoção a required é flip [W] com mordida real coletada em main (ADR 0336 DR-2);
+# não se auto-promove.
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/Pages/Sells/_components/v3/*-dominio.ts'
+      - 'tests/js/*-dominio.test.ts'
+      - 'tests/js/setup.ts'
+      - '.github/workflows/sells-v3-dominio-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Sells/_components/v3/*-dominio.ts'
+      - 'tests/js/*-dominio.test.ts'
+      - 'tests/js/setup.ts'
+      # o workflow entra no gatilho de push (as lanes irmãs omitem) porque é o run de
+      # `main` que o publisher colhe: mexer na lane sem re-rodar deixaria o artifact
+      # envelhecer até expirar, e lane sem artifact é lane pulada no publisher.
+      - '.github/workflows/sells-v3-dominio-gate.yml'
+
+concurrency:
+  group: sells-v3-dominio-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dominio:
+    name: Sells V3 · domínio (parcelas · fiscal · comissão · colunas)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps
+        run: npm ci
+
+      # `--reporter=default` mantém a saída legível pra humano; `--reporter=junit`
+      # escreve o XML que vira veredito por-UC. Os dois juntos: sem o default, um
+      # vermelho aqui só apareceria como XML no log.
+      - name: domínio do preview de venda (vitest/jsdom)
+        run: |
+          npx vitest run \
+            tests/js/parcelas-dominio.test.ts \
+            tests/js/item-fiscal-dominio.test.ts \
+            tests/js/comissao-dominio.test.ts \
+            tests/js/colunas-dominio.test.ts \
+            --reporter=default \
+            --reporter=junit \
+            --outputFile=test-results/vitest-sells-v3-dominio-junit.xml
+
+      # `!cancelled()` (não `success()`): o veredito de um run VERMELHO é justamente o
+      # que o G-7 precisa registrar — `Status: ✅` com teste vermelho é a mentira que
+      # ele existe pra pegar. O publisher colhe o artifact do run mais recente que o
+      # TENHA, não do último verde (comentário dele, medido 2026-08-04).
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-sells-v3-dominio-junit
+          path: test-results/vitest-sells-v3-dominio-junit.xml
+          retention-days: 14

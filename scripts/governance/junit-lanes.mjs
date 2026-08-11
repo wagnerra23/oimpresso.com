@@ -93,15 +93,41 @@ export function derivarLanes(dir = WF_DIR) {
     const yml = readFileSync(join(dir, arq), 'utf8');
     const blocos = uploadBlocks(yml);
 
-    // (a) XMLs realmente EMITIDOS por --log-junit (ignora menção em comentário: exige o .xml)
-    const xmls = [...new Set(
-      [...yml.matchAll(/--log-junit\s+(\S+\.xml)/g)].map((m) => m[1]),
-    )].filter((x) => {
-      // descarta ocorrência que só aparece dentro de comentário (linha iniciada por #)
-      const re = new RegExp(`^\\s*#.*--log-junit\\s+${x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'm');
-      const todas = yml.split(/\r?\n/).filter((l) => l.includes(`--log-junit ${x}`));
-      return todas.some((l) => !/^\s*#/.test(l)) && !(todas.length === 1 && re.test(yml));
-    });
+    // (a) XMLs realmente EMITIDOS como JUnit (ignora menção em comentário: exige o .xml).
+    //
+    // DUAS formas de emissão, porque a casa tem DOIS runners que produzem JUnit:
+    //   Pest   → `--log-junit <path>.xml`
+    //   vitest → `--reporter=junit` + `--outputFile[=| ]<path>.xml`
+    //
+    // POR QUE A SEGUNDA ENTROU (medido 2026-08-11): o critério só conhecia a flag do Pest,
+    // então uma lane vitest podia emitir JUnit, publicar o artifact e NUNCA ser colhida — o
+    // publisher itera SÓ o que este arquivo deriva. Seria chokepoint fantasma: defesa
+    // acoplada a um caminho que o fluxo real não atravessa (§5 proibicoes, 2026-07-09
+    // `flag:set`). Os 4 testes de domínio do preview `/sells/create-v3` (parcelas · fiscal ·
+    // comissão · colunas) são vitest, e sem isto o veredito deles jamais chegaria ao G-7.
+    //
+    // FP MEDIDO ANTES de entrar: `--reporter=junit` não aparecia em NENHUM workflow, logo a
+    // lista derivada é BYTE-IDÊNTICA antes e depois desta mudança (14 lanes). A perna nova só
+    // passa a casar quando uma lane vitest de fato emitir — é adição, não reclassificação.
+    //
+    // O critério segue sendo o FATO (emite E transporta), nunca o nome do arquivo/pasta — a
+    // família "critério sintático de nome" está morta no §5 (allowlist-de-pasta 2026-06-30,
+    // guard `@scope` 2026-07-09).
+    const linhasVivas = yml.split(/\r?\n/).filter((l) => !/^\s*#/.test(l));
+    const emiteForaDeComentario = (needle) => linhasVivas.some((l) => l.includes(needle));
+    // `--reporter=junit` OU `--reporter junit`. Exigi-lo é o que impede o `--outputFile` de
+    // um reporter QUALQUER (json/coverage) virar lane: sem reporter junit o .xml não é JUnit.
+    const temReporterJunit = linhasVivas.some((l) => /--reporter[=\s]+junit\b/.test(l));
+
+    const xmls = new Set();
+    for (const m of yml.matchAll(/--log-junit\s+(\S+\.xml)/g)) {
+      if (emiteForaDeComentario(`--log-junit ${m[1]}`)) xmls.add(m[1]);
+    }
+    if (temReporterJunit) {
+      for (const m of yml.matchAll(/--outputFile[=\s]+(\S+\.xml)/g)) {
+        if (emiteForaDeComentario(m[1])) xmls.add(m[1]);
+      }
+    }
     for (const xml of xmls) {
       const b = blocos.find((x) => x.paths.some((p) => p.includes(xml)));
       if (b) out.push({ workflow: arq, artifact: b.name, via: 'junit', junit: xml });
@@ -135,16 +161,27 @@ function selftest() {
   escrever('e2e.yml', `jobs:\n  t:\n    steps:\n      - name: up\n        uses: actions/upload-artifact@v4\n        with:\n          name: casos-test-results\n          path: ${MANIFEST_REL}\n`);
   // 5. menção em COMENTÁRIO só → não pode virar lane
   escrever('so-comentario.yml', `jobs:\n  t:\n    steps:\n      # doc: as lanes usam --log-junit test-results/pest-fantasma-junit.xml\n      - run: echo oi\n`);
+  // 6. VITEST: reporter junit + outputFile + artifact → tem que achar (runner != Pest)
+  escrever('boa-vitest.yml', `jobs:\n  t:\n    steps:\n      - run: npx vitest run tests/js/x.test.ts --reporter=junit --outputFile=test-results/vitest-boa-junit.xml\n      - name: up\n        uses: actions/upload-artifact@v4\n        with:\n          name: vitest-boa-junit\n          path: test-results/vitest-boa-junit.xml\n`);
+  // 7. CONTROLE NEGATIVO: --outputFile SEM reporter junit → o .xml não é JUnit, não é lane
+  escrever('outputfile-sem-junit.yml', `jobs:\n  t:\n    steps:\n      - run: npx alguma-coisa --reporter=json --outputFile=test-results/nao-e-junit.xml\n      - name: up\n        uses: actions/upload-artifact@v4\n        with:\n          name: nao-e-junit\n          path: test-results/nao-e-junit.xml\n`);
+  // 8. CONTROLE NEGATIVO: vitest junit citado só em COMENTÁRIO → não vira lane
+  escrever('vitest-so-comentario.yml', `jobs:\n  t:\n    steps:\n      # local: npx vitest run --reporter=junit --outputFile=test-results/vitest-fantasma-junit.xml\n      - run: echo oi\n`);
 
   const r = derivarLanes(dir);
   const achou = (wf) => r.some((x) => x.workflow === wf);
   casos.push(['MORDE: lane com junit + artifact', achou('boa-pest.yml')]);
   casos.push(['MORDE: path em bloco literal |', achou('multi.yml')]);
   casos.push(['MORDE: lane que publica o manifesto', achou('e2e.yml')]);
+  casos.push(['MORDE: lane VITEST (reporter=junit + outputFile)', achou('boa-vitest.yml')]);
   casos.push(['SOLTA: junit sem artifact (sem transporte)', !achou('sem-artifact.yml')]);
   casos.push(['SOLTA: menção só em comentário', !achou('so-comentario.yml')]);
+  casos.push(['SOLTA: --outputFile sem reporter junit', !achou('outputfile-sem-junit.yml')]);
+  casos.push(['SOLTA: vitest junit só em comentário', !achou('vitest-so-comentario.yml')]);
   const b = r.find((x) => x.workflow === 'boa-pest.yml');
   casos.push(['artifact certo (não o -summary)', b && b.artifact === 'pest-boa-junit']);
+  const v = r.find((x) => x.workflow === 'boa-vitest.yml');
+  casos.push(['vitest: artifact + xml certos', v && v.artifact === 'vitest-boa-junit' && v.junit === 'test-results/vitest-boa-junit.xml']);
 
   rmSync(dir, { recursive: true, force: true });
   let ok = true;
