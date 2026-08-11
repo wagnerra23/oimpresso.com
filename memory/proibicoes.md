@@ -305,7 +305,7 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 ### 2026-07-09 — Sentinela anti-"hard-fail fantasma" em job advisory (premissa falsa)
 - **O que foi tentado:** sentinela que varre workflows advisory procurando steps que dão `exit != 0` ("hard-fail escondido num job que não bloqueia") e acusa como bug de configuração.
-- **Por que caiu:** a premissa é falsa — **hard-fail dentro de job advisory é intencional**: o job falha visivelmente (vermelho no check, sinal honesto) sem bloquear o merge; é exatamente o desenho da fase advisory da [ADR 0271](decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md)/[0275](decisions/0275-calendario-promocao-gates-sdd.md) (gate ensaia mordida antes do flip a required). A sentinela "consertaria" transformando sinal em silêncio.
+- **Por que caiu:** a premissa é falsa — **hard-fail dentro de job advisory é intencional**: o job falha visivelmente (vermelho no check, sinal honesto) sem bloquear o merge; é exatamente o desenho da fase advisory da [ADR 0271](decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md)/[0275](decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md) (gate ensaia mordida antes do flip a required). A sentinela "consertaria" transformando sinal em silêncio.
 - **O limite (variante também proibida):** qualquer lint/sentinela que trate `exit != 0` em job advisory como defeito e proponha `continue-on-error`/`|| true` no step — isso reconstrói o gate-de-teatro que a 0271 deletou. Advisory = *não bloqueia o merge*, nunca = *não pode ficar vermelho*. Fontes: handoff + session log 2026-07-09 acima.
 
 ### 2026-07-09 — Guard de bundle Cowork exigindo `@scope`/`@layer` (100% falso-positivo)
