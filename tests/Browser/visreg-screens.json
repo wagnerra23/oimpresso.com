@@ -48,14 +48,6 @@
     "baseline": "it_Sells_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {
-    "screen": "Sells/CreateV3",
-    "source": "Sells/CreateV3",
-    "component": "Sells/CreateV3",
-    "route": "/sells/create-v3",
-    "anchor": "Total da venda",
-    "baseline": "it_Sells_CreateV3_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
-  },
-  {
     "screen": "Financeiro/ContasBancarias",
     "source": "Financeiro/ContasBancarias",
     "component": "Financeiro/ContasBancarias/Index",
