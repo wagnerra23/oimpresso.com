@@ -34,6 +34,19 @@ class ForjaServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
 
+        // Sem isto, NENHUMA migration de Modules/Forja/Database/Migrations é
+        // conhecida pelo migrator — nem no CI, nem no deploy. O dono anterior
+        // TINHA a linha (`TeamMcpServiceProvider.php:32`); o move de 2026-07-31
+        // (#5111/#5122) levou os arquivos e deixou o registro pra trás, e o Forja
+        // virou 1 dos 3 módulos (em 32) sem ela — por acidente, não por decisão.
+        //
+        // Efeito medido antes de religar (2026-08-11):
+        //   prod    → NO-OP. As 5 já constam em `migrations` (batches 85/85/99/
+        //             182/183), e o Laravel pula por BASENAME, não por path.
+        //   baseline→ cria 2 tabelas que o CI nunca teve: `mcp_ingest_heartbeat`
+        //             e `cowork_handoffs` (ausentes de database/schema/mysql-schema.sql).
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
         // Sem isto o comando existe no disco mas NUNCA chega ao Artisan — medido
         // 2026-07-28: `artisan project-mgmt:health` respondia "There are no commands
         // defined in the project-mgmt namespace" desde 2026-05-16 (Wave 17).
