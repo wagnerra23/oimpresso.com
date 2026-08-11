@@ -49,6 +49,7 @@ tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: 
 tests/Feature/Produto/ProdutoBulkEditContratoTest.php      # UC-PBULK-05: writer lê 5 chaves/variação, a tela manda 2; ErrorException engolida por catch genérico reverte o lote — eixo VALOR, regra-mestre: fix é decisão [W]
 tests/Feature/Produto/QuickAddProdutoContratoTest.php      # UC-PQCK-02: quick-add aceita category_id de OUTRO business (request->only + Product::create sem validação de tenant) — Tier 0, mesma família do UC-PTAB-04 (#4300)
 tests/Feature/Produto/ProdutoBomContratoTest.php           # UC-PBOM-02: BOM aceita component_variation_id de OUTRO business (component_id é validado, a variação passa por "nullable|integer") — Tier 0
+tests/Feature/Produto/ProdutoUnificadoContratoTest.php     # UC-PUNI-01/02/03/06: custo, margem, preço de venda e tabelas de preço viajam nas props sem gate (varredura de view_purchase_price|access_default_selling_price em ProdutoUnificadoController: 0) + rota /products/unificado sem middleware de permissão (routes/web.php:449 TODO declarado)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # (B) NUNCA RODARAM — status desconhecido, não "verde".
