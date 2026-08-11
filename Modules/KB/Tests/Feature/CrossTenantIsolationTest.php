@@ -42,6 +42,46 @@ afterEach(function () {
     kbTeardownSchema();
 });
 
+/**
+ * CONTROLE POSITIVO — obrigatório em todo caso cross-tenant deste arquivo.
+ *
+ * POR QUE (medido, não suposto): TODOS os asserts deste arquivo eram negativos
+ * (`toBeIn([403,404])`, `toBeIn([403,404,422])`). Um cenário em que a sessão
+ * devolve 403 pra TUDO satisfaz cada um deles — inclusive o 403 que o docblock
+ * do topo já classifica como "falso-verde Tier 0", porque vem do middleware e
+ * não do global scope. Sem um caso que EXIJA 200, o gate não consegue ficar
+ * vermelho: é verde-que-não-pode-reprovar.
+ *
+ * Não é hipotético. Nos artefatos JUnit da lane, o run 31502400773 fechou VERDE
+ * tendo como PRIMEIRO request autenticado do processo um caso cego deste arquivo
+ * — e é exatamente o primeiro request autenticado que o 403 intermitente atinge
+ * (6/6 nas falhas 31425398494 · 31482695145 · 31491029075 · 31513833674 ·
+ * 31514548359 · 31517070137). Aquele verde é indistinguível de "passou pelo
+ * motivo errado".
+ *
+ * Desenho de risco mínimo: usa `GET /kb/nodes/{slug}` — o MESMO caminho que
+ * L1/L3 do KbNodeBodyReaderTest já provam verde nesta lane — e só a permissão
+ * coarse `jana.mcp.memory.manage`, que os 6 casos já concedem. Não cria comment,
+ * favorite nem edge, então não perturba nenhuma contagem asseverada abaixo.
+ *
+ * Espelha a nota "CONTROLE POSITIVO obrigatório" do L3 (KbNodeBodyReaderTest).
+ */
+function kbControlePositivoBiz1(string $sufixo): void
+{
+    $slug = "controle-positivo-{$sufixo}";
+
+    \DB::table('kb_nodes')->insert([
+        'business_id' => 1, 'type' => 'article', 'slug' => $slug,
+        'title' => 'CONTROLE POSITIVO biz1', 'is_editable' => true,
+        'body_blocks' => json_encode([['kind' => 'para', 'text' => 'visivel-ao-proprio-tenant']]),
+        'status' => 'ok', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    // Se ISTO falhar, o cross-tenant abaixo não prova isolamento nenhum — a sessão
+    // não está funcional e o 403/404 dele viria de graça.
+    test()->getJson("/kb/nodes/{$slug}")->assertOk();
+}
+
 it('blocks kb_node read across businesses (R5)', function () {
     // Cria node em biz=99
     \DB::table('kb_nodes')->insert([
@@ -53,8 +93,10 @@ it('blocks kb_node read across businesses (R5)', function () {
 
     kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view']);
 
-    // Via Eloquent (global scope)
+    // Via Eloquent (global scope) — ANTES do controle positivo, que semeia um nó biz=1.
     expect(KbNode::all())->toHaveCount(0);
+
+    kbControlePositivoBiz1('read');
 
     // Via HTTP — GET detalhe SLUG conhecido NÃO deve retornar conteúdo
     $response = $this->getJson('/kb/nodes/secret-biz99');
@@ -87,6 +129,8 @@ it('blocks kb_edge creation across businesses (R5)', function () {
     // User de biz=1 admin tenta criar edge from=a1 (biz=1) → to=a99 (biz=99)
     kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.write']);
 
+    kbControlePositivoBiz1('edge');
+
     // Via HTTP — espera-se 403 ou 422 (validação de business_id)
     // TODO[CL]: confirmar endpoint com Agent A. Provavelmente POST /kb/edges.
     // Se endpoint não existe ainda, marcar como skip.
@@ -114,6 +158,8 @@ it('blocks kb_comment cross-tenant (user biz=1 nao comenta node biz=99)', functi
 
     kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.comment']);
 
+    kbControlePositivoBiz1('comment');
+
     $response = $this->postJson('/kb/nodes/biz99-comm/comments', [
         'block_idx' => 0,
         'text'      => 'try cross-tenant',
@@ -132,6 +178,8 @@ it('blocks kb_favorite cross-tenant', function () {
     ]);
 
     kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.favorite']);
+
+    kbControlePositivoBiz1('favorite');
 
     $response = $this->postJson('/kb/nodes/biz99-fav/favorite');
 
@@ -188,6 +236,8 @@ it('PUT cross-tenant: user biz=1 NAO pode editar node biz=99 mesmo conhecendo sl
 
     kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.write']);
 
+    kbControlePositivoBiz1('put');
+
     $response = $this->putJson('/kb/nodes/shared-slug', [
         'title'       => 'HACKED biz 1',
         'body_blocks' => [['kind' => 'para', 'text' => 'I overwrote biz 99 content']],
@@ -207,6 +257,8 @@ it('DELETE cross-tenant: user biz=1 NAO pode soft-deletar node biz=99', function
     ]);
 
     kbActAsUser(bizId: 1, permissions: ['jana.mcp.memory.manage', 'kb.view', 'kb.softdelete']);
+
+    kbControlePositivoBiz1('delete');
 
     // destroy() exige confirm=CONFIRMO (safety guard); mandamos pra o 422 de validação NÃO
     // mascarar o teste de isolamento — assim o bloqueio vem do global scope (firstOrFail →
