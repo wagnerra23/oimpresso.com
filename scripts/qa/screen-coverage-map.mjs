@@ -211,6 +211,42 @@ function testCorpusText() {
 }
 
 /**
+ * kebabDoSegmento — PascalCase → kebab (`FeedbackPublico` → `feedback-publico`). PURO.
+ *
+ * DUPLICAÇÃO DELIBERADA (não consolidar com o `toKebab` de
+ * `.claude/hooks/block-mwart-violation.mjs`): o `hook-replay` usa ESTA porta como ORÁCULO
+ * INDEPENDENTE daquele hook. Se as duas compartilhassem a derivação de nome, o contrato
+ * viraria tautológico — concordaria 100% com qualquer implementação, inclusive quebrada
+ * (§5 2026-06-05). É o oposto do caso `ucsFromCasos`, onde duas réguas discordavam sobre
+ * o MESMO fato e a fonte única era a correção; aqui a independência é o mecanismo.
+ */
+export function kebabDoSegmento(seg) {
+  return String(seg).replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+/**
+ * chavesDeNome — as chaves de match por-nome de uma tela. PURO/testável.
+ *
+ * POR QUE O KEBAB (defeito medido 2026-08-11, achado pelo `hook-replay`): a chave era só
+ * `seg.toLowerCase()`, então `FeedbackPublico` virava `feedbackpublico` e o `nameHas`
+ * (`basename.includes(chave)`) NUNCA casava `RUNBOOK-feedback-publico.md`. Falso-negativo
+ * silencioso em 7 das 210 telas migráveis — todas de nome PascalCase multi-palavra
+ * (`ProvaViva`, `CreateV3`, `FeedbackPublico`, `DriftAlerts`, `DsRollout`, `ModuleGrades`).
+ * A porta respondia "✗ ausente" com o arquivo no disco.
+ *
+ * Só ADICIONA chave (a antiga continua), e só muda algo em nome multi-palavra: em nome de
+ * palavra única o kebab é igual ao lowercase e o conjunto não cresce.
+ */
+export function chavesDeNome(segs) {
+  const doSeg = (s) => [s.toLowerCase(), kebabDoSegmento(s)];
+  const ultimo = segs[segs.length - 1];
+  const chaves = segs.length >= 3
+    ? [...doSeg(ultimo), ...doSeg(segs[segs.length - 2])]
+    : doSeg(ultimo);
+  return [...new Set(chaves)];
+}
+
+/**
  * resolveScreenFiles — dado a tela, acha TODOS os arquivos + linkagem. Impuro (lê FS).
  * @param {string} relTsx caminho relativo a Pages/ com ou sem `.tsx` (ex: "Produto/Create")
  */
@@ -218,11 +254,10 @@ export function resolveScreenFiles(relTsx) {
   relTsx = relTsx.replace(/\.tsx$/, '') + '.tsx';
   const segs = relTsx.replace(/\.tsx$/, '').split('/');
   const mod = segs[0];
-  const telaK = segs[segs.length - 1].toLowerCase();
   // Tela aninhada (Mod/Sub/Index): o nome REAL do artefato costuma ser o dir "Sub"
   // (rota/sub-view), não "index". Casar AMBAS as chaves surfa o drift — ex.
   // Financeiro/Unificado/Index: proto-baseline é `unificado.*`, não `index.*`.
-  const nameKeys = segs.length >= 3 ? [telaK, segs[segs.length - 2].toLowerCase()] : [telaK];
+  const nameKeys = chavesDeNome(segs);
   const abs = join(PAGES_DIR, relTsx);
   const charterPath = abs.replace(/\.tsx$/, '.charter.md');
   const casosPath = abs.replace(/\.tsx$/, '.casos.md');
@@ -397,6 +432,26 @@ if (flags.has('--selftest')) {
     ),
     ['e2e'],
   );
+  // --- chavesDeNome: o kebab que faltava (defeito medido 2026-08-11) ---------------
+  // BITE: sem o kebab, `feedbackpublico` nunca casa `RUNBOOK-feedback-publico.md` — era
+  // falso-negativo silencioso em 7 das 210 telas migráveis.
+  assert.equal(kebabDoSegmento('FeedbackPublico'), 'feedback-publico');
+  assert.equal(kebabDoSegmento('CreateV3'), 'create-v3');
+  assert.ok(chavesDeNome(['Whatsapp', 'FeedbackPublico']).includes('feedback-publico'));
+  assert.ok(chavesDeNome(['governance', 'ModuleGrades', 'Index']).includes('module-grades'));
+  // e a chave nova PRECISA casar o basename real (é o `nameHas` que consome isto)
+  assert.ok(chavesDeNome(['Whatsapp', 'FeedbackPublico'])
+    .some((k) => 'runbook-feedback-publico.md'.includes(k)));
+  // CONTROLE-NEGATIVO 1: nome de palavra ÚNICA não ganha chave nova (o conjunto não cresce
+  // — senão o fix estaria afrouxando o match onde não havia defeito nenhum).
+  assert.deepEqual(chavesDeNome(['Sells', 'Create']), ['create']);
+  assert.deepEqual(chavesDeNome(['Compras', 'Index']), ['index']);
+  // CONTROLE-NEGATIVO 2: a chave antiga SOBREVIVE (só adiciona, nunca substitui).
+  assert.ok(chavesDeNome(['Whatsapp', 'FeedbackPublico']).includes('feedbackpublico'));
+  // CONTROLE-NEGATIVO 3: aninhada mantém as DUAS pontas (tela + subdir), agora com kebab.
+  assert.deepEqual(chavesDeNome(['governance', 'ModuleGrades', 'Index']),
+    ['index', 'modulegrades', 'module-grades']);
+
   // --- Resolver por-tela: classifyArtifact é o núcleo que MORDE (detecta ambiguidade) ---
   assert.equal(classifyArtifact([]).status, 'missing');
   assert.equal(classifyArtifact(['a.yaml']).status, 'unique');
