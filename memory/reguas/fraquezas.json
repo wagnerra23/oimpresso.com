@@ -136,12 +136,12 @@
   {
     "id": "mem-bitemporal",
     "dimensao": "memoria-conhecimento",
-    "titulo": "Sem bi-temporal",
+    "titulo": "SEM BI-TEMPORALIDADE E SEM INVALIDAÇÃO AUTOMÁTICA DE FATO",
     "veredito": "PARCIAL",
-    "nota": 7,
-    "evidencia": "DELTA=ZERO desde retrato. DESENHO completo (migration + BiTemporalResolver + HistoricoMemoriaService + MemoriaHistoricaTool registrada) x EXECUCAO zero em prod (Config/memoria.php default false; unico =true em staging.env.example; 0 topicos com valid_until).",
+    "nota": 7.5,
+    "evidencia": "FALSO que \"não há bi-temporalidade\": Modules/Jana/Services/Memoria/BiTemporalResolver.php:27 (vigenteEm(from,until,asOf) = event-time vs system-time + time-travel), migration 2026_06_20_000002_add_eve...",
     "degrau": "decisao [W]: subir flag pra prod ou declarar staging-only",
-    "data": "2026-08-08",
+    "data": "2026-08-11",
     "existia_invisivel": true,
     "onde_indexar": "mapa: bi-temporal shipped (chips C8/C12)",
     "indexado": true
@@ -210,12 +210,12 @@
   {
     "id": "mem-sleep-time",
     "dimensao": "memoria-conhecimento",
-    "titulo": "Sem sleep-time/consolidação autônoma",
+    "titulo": "SEM CONSOLIDAÇÃO/DEFRAG DE BACKGROUND. Letta roda dream em sleep-time",
     "veredito": "PARCIAL",
-    "nota": 6.5,
-    "evidencia": "jana:profile-distill dailyAt 04:50 live; sleep-time de prosa gateado: ADR 0072 arquivada #4071, contrato vivo = ADR 0291 + kill-switch Kernel:261",
+    "nota": 7.5,
+    "evidencia": "JÁ NO LEDGER: memory/reguas/fraquezas.json → id `mem-sleep-time` \"Sem sleep-time/consolidação autônoma\", veredito PARCIAL nota 6.5, onde_indexar=None (re-descoberta, não achado novo).\n\nBACKGROUND EXISTE (parcial): re-medido, elevado de 6.5 para 7.5.",
     "degrau": "—",
-    "data": "2026-07-18",
+    "data": "2026-08-11",
     "existia_invisivel": false
   },
   {
@@ -673,6 +673,72 @@
     "evidencia": "Modules/Jana/Http/Controllers/ChatController.php:533 mockJanaPayload() → Inertia::render('Jana/Cockpit')",
     "degrau": null,
     "data": "2026-07-26",
+    "existia_invisivel": false
+  },
+  {
+    "id": "mem-lapide-recuperacao",
+    "dimensao": "memoria-conhecimento",
+    "titulo": "RECUPERAÇÃO DO §5 NÃO É MEDIDA — 104 lápides só valem se lidas no momento certo",
+    "veredito": "PARCIAL",
+    "nota": 6,
+    "evidencia": "REFUTA \"nenhuma métrica responde 'a lápide certa apareceu?'\" — RODEI as duas, não li sobre elas:\n(1) scripts/governance/hook-replay.mjs — \"testa hook contra TELEMETRIA REAL\"; regra anti-tautologia experimental.",
+    "degrau": null,
+    "data": "2026-08-11",
+    "existia_invisivel": false
+  },
+  {
+    "id": "mem-ttl-contrato-vivo",
+    "dimensao": "memoria-conhecimento",
+    "titulo": "NENHUM CONTRATO DE VALIDADE/TTL VIVO (framing Dosu/Letta) — refutado, bi-temporal + forget existem",
+    "veredito": "JA_EXISTE_TOTAL",
+    "nota": 9,
+    "evidencia": "REFUTADO o núcleo (\"NENHUM contrato de validade/TTL vivo\"). (1) Bi-temporal VIVO no produto — Modules/Jana/Database/Migrations/2026_04_27_000001_create_copiloto_memoria_facts_table.php (valid_from/val...",
+    "degrau": null,
+    "data": "2026-08-11",
+    "existia_invisivel": false
+  },
+  {
+    "id": "mem-write-step-qc",
+    "dimensao": "memoria-conhecimento",
+    "titulo": "O PASSO DE ESCRITA NÃO TEM CONTROLE DE QUALIDADE NEM MEDIDA",
+    "veredito": "PARCIAL",
+    "nota": 5.5,
+    "evidencia": "EXISTE (2 de 3 eixos, com invocador vivo): (1) EIXO RECUPERABILIDADE — scripts/governance/lapide-recheck.mjs resolve as âncoras citadas de cada lápide contra o repo vivo; invocado advisory em .github/...",
+    "degrau": null,
+    "data": "2026-08-11",
+    "existia_invisivel": false
+  },
+  {
+    "id": "mem-provenance-prosa",
+    "dimensao": "memoria-conhecimento",
+    "titulo": "PROVENANCE É PROSA, NÃO GRAFO TIPADO",
+    "veredito": "PARCIAL",
+    "nota": 6,
+    "evidencia": "Base: D:/oimpresso.com/.claude/worktrees/reguas-base-20260811 (git is-shallow=false, 5.7k+ commits — datas sustentam conclusão).\n\n== A PREMISSA \"PROVENANCE É PROSA\" É FALSA EM 3 EIXOS (todos MECÂNICOS...",
+    "degrau": null,
+    "data": "2026-08-11",
+    "existia_invisivel": false
+  },
+  {
+    "id": "mem-fronteira-proposal-canon",
+    "dimensao": "memoria-conhecimento",
+    "titulo": "A FRONTEIRA PROPOSAL→CANON VAZA",
+    "veredito": "PARCIAL",
+    "nota": 8,
+    "evidencia": "JÁ EXISTE (4 camadas, medidas no worktree reguas-base-20260811, clone completo): (1) SENTINELA DEDICADA scripts/governance/adr-proposto-parado.mjs — Check A (decidido preso em proposals/ = lei invisível...",
+    "degrau": null,
+    "data": "2026-08-11",
+    "existia_invisivel": false
+  },
+  {
+    "id": "mem-robustez-adversario",
+    "dimensao": "memoria-conhecimento",
+    "titulo": "O MERCADO MEDE ROBUSTEZ DA MEMÓRIA CONTRA ADVERSÁRIO; O OIMPRESSO NÃO",
+    "veredito": "PARCIAL",
+    "nota": 7.5,
+    "evidencia": "Raiz: D:/oimpresso.com/.claude/worktrees/reguas-base-20260811 (clone completo, is-shallow=false; 43 required na união classic+rulesets).\n\n=== SUB-CLAIM 1 \"não mede robustez contra adversário\" → FALSO...",
+    "degrau": null,
+    "data": "2026-08-11",
     "existia_invisivel": false
   }
 ]
