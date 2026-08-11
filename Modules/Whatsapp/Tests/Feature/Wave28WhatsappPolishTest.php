@@ -26,7 +26,7 @@ uses(Tests\TestCase::class);
  *   - ADR 0117 multi-números: WhatsappBusinessConfig|WhatsappBusinessPhone union
  *   - Multi-tenant Tier 0 (ADR 0093) — drivers não tocam tabela direto
  *
- * @see Modules/Whatsapp/CHANGELOG.md Wave 28
+ * @see memory/requisitos/Whatsapp/CHANGELOG.md Wave 28
  * @see Modules/Whatsapp/Services/Drivers/DriverInterface.php
  */
 describe('Wave 28 Whatsapp POLISH', function () {

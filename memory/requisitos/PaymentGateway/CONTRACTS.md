@@ -2,7 +2,7 @@
 
 > Interfaces PHP, DTOs e eventos que módulos externos podem usar. **Nada fora desta lista é API pública.** Drivers, services internos e helpers são detalhe de implementação.
 
-Vinculado a [ADR 0170](../../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md). Versão deste contrato: **v0.1** (rascunho Onda 0 — pode mudar antes de Onda 1 fechar).
+Vinculado a [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md). Versão deste contrato: **v0.1** (rascunho Onda 0 — pode mudar antes de Onda 1 fechar).
 
 ---
 
@@ -453,4 +453,4 @@ Prefix `paymentgateway.*`:
 
 ---
 
-**Última atualização:** 2026-05-19 · v0.1 rascunho Onda 0 · vinculado a [ADR 0170](../../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md)
+**Última atualização:** 2026-05-19 · v0.1 rascunho Onda 0 · vinculado a [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md)

@@ -61,7 +61,7 @@ it('W27 D9.a: AssetWarrantyService total 5 spanBiz invocations (3 originais + 2 
 });
 
 it('W27 D5: README.md "como cliente usa" criado com cenários canônicos', function () {
-    $readme = base_path('Modules/AssetManagement/README.md');
+    $readme = base_path('memory/requisitos/AssetManagement/README.md');
     expect(file_exists($readme))->toBeTrue('README W27 D5 não criado');
 
     $content = file_get_contents($readme);
@@ -74,7 +74,7 @@ it('W27 D5: README.md "como cliente usa" criado com cenários canônicos', funct
 });
 
 it('W27 D5: README documenta 5 spans AssetWarrantyService', function () {
-    $content = file_get_contents(base_path('Modules/AssetManagement/README.md'));
+    $content = file_get_contents(base_path('memory/requisitos/AssetManagement/README.md'));
     expect($content)->toContain('contagemAtivas');
     expect($content)->toContain('contagemExpiradas');
 });

@@ -32,7 +32,7 @@ uses(Tests\TestCase::class);
  * @see Modules/ConsultaOs/Repositories/MockConsultaOsRepository.php (D9 span Wave 27)
  * @see Modules/ConsultaOs/Http/Requests/ConsultaPorEstagioRequest.php (D8 Wave 27)
  * @see Modules/ConsultaOs/Http/Requests/FeedbackPublicoRequest.php (D8 Wave 27)
- * @see Modules/ConsultaOs/README.md (D5 portal publico completo Wave 27)
+ * @see memory/requisitos/ConsultaOs/README.md (D5 portal publico completo Wave 27)
  */
 
 // ============================================================================
@@ -67,7 +67,7 @@ it('D9.A buscarPorNumero ainda retorna null/array conforme contrato', function (
 // ============================================================================
 
 it('D5.A README declara jornada feliz consulta por numero (4 passos canonicos)', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('Jornada feliz');
     expect($readme)->toContain('Vendedor entrega numero');
@@ -79,7 +79,7 @@ it('D5.A README declara jornada feliz consulta por numero (4 passos canonicos)',
 });
 
 it('D5.A README declara filtro por estagio scaffold US-CONSULTA-002', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('Filtro por estagio');
     expect($readme)->toContain('ConsultaPorEstagioRequest');
@@ -87,7 +87,7 @@ it('D5.A README declara filtro por estagio scaffold US-CONSULTA-002', function (
 });
 
 it('D5.A README declara feedback opcional scaffold US-CONSULTA-002', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('Feedback opcional');
     expect($readme)->toContain('FeedbackPublicoRequest');
@@ -95,7 +95,7 @@ it('D5.A README declara feedback opcional scaffold US-CONSULTA-002', function ()
 });
 
 it('D5.A README declara timeline operacao do cliente (4+ passos)', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('Operacao do portal');
     expect($readme)->toContain('Recebe SMS quando OS muda estagio');
@@ -105,7 +105,7 @@ it('D5.A README declara timeline operacao do cliente (4+ passos)', function () {
 });
 
 it('D5.A README declara observabilidade defesa em profundidade (4 layers)', function () {
-    $readme = file_get_contents(base_path('Modules/ConsultaOs/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/ConsultaOs/README.md'));
 
     expect($readme)->toContain('Observabilidade (Wave 25 + 27 D9');
     expect($readme)->toContain('consultaos.repository.lookup');

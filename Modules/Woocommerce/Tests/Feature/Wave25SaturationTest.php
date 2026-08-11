@@ -28,7 +28,7 @@ uses(Tests\TestCase::class);
  *   - Contract HTTP WooCommerce REST API preservado (Wave 16) — sem mock interno
  *   - Multi-tenant ADR 0093 — $businessId explícito em todo Service method
  *
- * @see Modules/Woocommerce/CHANGELOG.md Wave 25 POLISH
+ * @see memory/requisitos/Woocommerce/CHANGELOG.md Wave 25 POLISH
  * @see .claude/rules/commands.md (--detail NUNCA --verbose)
  */
 describe('Wave 25 Woocommerce POLISH', function () {
