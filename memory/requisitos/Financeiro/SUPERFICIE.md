@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Financeiro/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 334 arquivos em 22 papéis.
+**Total mapeado:** 333 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -289,9 +289,8 @@ module: Financeiro
 
 - 81 arquivos em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 44
+## Demais arquivos (manifestos, docs, assets e misc) — 43
 
-- [CHANGELOG.md](../../../Modules/Financeiro/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Financeiro/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Console/.gitkeep)
 - [BoletoStrategy.php](../../../Modules/Financeiro/Contracts/BoletoStrategy.php)

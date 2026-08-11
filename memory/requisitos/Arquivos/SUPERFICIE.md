@@ -62,7 +62,7 @@ module: Arquivos
 
 - [web.php](../../../Modules/Arquivos/Routes/web.php)
 
-## Migrations (schema) — 7
+## Migrations (schema) — 8
 
 - [2026_05_10_000001_create_arquivos_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000001_create_arquivos_table.php)
 - [2026_05_10_000002_create_arquivos_audit_log_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000002_create_arquivos_audit_log_table.php)
@@ -71,6 +71,7 @@ module: Arquivos
 - [2026_05_10_000020_backfill_consumers_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000020_backfill_consumers_arquivos.php)
 - [2026_05_10_000030_add_metadata_recalculated_at_to_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000030_add_metadata_recalculated_at_to_arquivos.php)
 - [2026_07_02_000001_widen_arquivos_audit_log_action_enum.php](../../../Modules/Arquivos/Database/Migrations/2026_07_02_000001_widen_arquivos_audit_log_action_enum.php)
+- [2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php](../../../Modules/Arquivos/Database/Migrations/2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php)
 
 ## Config — 2
 
@@ -81,9 +82,8 @@ module: Arquivos
 
 - 25 arquivos em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 5
+## Demais arquivos (manifestos, docs, assets e misc) — 4
 
-- [CHANGELOG.md](../../../Modules/Arquivos/CHANGELOG.md)
 - [HasArquivos.php](../../../Modules/Arquivos/Concerns/HasArquivos.php)
 - [README.md](../../../Modules/Arquivos/README.md)
 - [SCOPE.md](../../../Modules/Arquivos/SCOPE.md)

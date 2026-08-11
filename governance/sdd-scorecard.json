@@ -29,21 +29,21 @@
           "sem_campo": 112,
           "placeholder": 1,
           "pendente": 402,
-          "parcial": 112,
-          "anchored_ok": 327,
+          "parcial": 113,
+          "anchored_ok": 326,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
         "fields_total": 849,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 788,
+        "fields_grammar_ok": 786,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 245,
         "req_sem_covering_test_total": 349,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 53,
+        "req_sem_lane_total": 48,
         "behavior_known": false,
         "servido_total": 17,
         "nao_servido_total": 89,
@@ -183,7 +183,7 @@
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 23
+        "citing_modules": 24
       },
       "stream": "KL"
     },

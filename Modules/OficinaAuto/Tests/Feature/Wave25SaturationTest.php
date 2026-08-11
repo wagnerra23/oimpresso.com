@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  *   - D6: spans count >= 14 (Wave 18 + RETRY +5 = 14)
  *   - D6: OtelHelper::spanBiz preserva exception (não engole — fail-loud)
  *
- * @see Modules/OficinaAuto/CHANGELOG.md Wave 25 POLISH
+ * @see memory/requisitos/OficinaAuto/CHANGELOG.md Wave 25 POLISH
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
  */
@@ -132,7 +132,7 @@ describe('Wave 25 OficinaAuto POLISH', function () {
 
     it('D5: Cliente Martinho Caçambas mencionado em SCOPE/CHANGELOG', function () {
         $scopePath = base_path('Modules/OficinaAuto/SCOPE.md');
-        $changePath = base_path('Modules/OficinaAuto/CHANGELOG.md');
+        $changePath = base_path('memory/requisitos/OficinaAuto/CHANGELOG.md');
 
         $found = false;
         foreach ([$scopePath, $changePath] as $p) {

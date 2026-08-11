@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  *   - Multi-tenant Tier 0 (ADR 0093) — businessId 1º param em todos métodos
  *   - Tests biz=1 (ADR 0101) — NUNCA biz=4 ROTA LIVRE prod
  *
- * @see Modules/RecurringBilling/CHANGELOG.md Wave 28
+ * @see memory/requisitos/RecurringBilling/CHANGELOG.md Wave 28
  * @see memory/requisitos/RecurringBilling/SPEC.md US-RB-044
  */
 describe('Wave 28 RecurringBilling POLISH', function () {

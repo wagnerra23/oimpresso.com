@@ -36,6 +36,14 @@ contains:
   #   · RemessaCnabService               (nome nunca usado; remessa = CnabBoletoAdapter + drivers)
   #   · RetornoCnabService               (nome nunca usado; retorno = CnabRetornoProcessor)
   #   · PaymentGatewayCredentialResolver (Onda 4d, "se realmente precisar" — este sim, só intenção)
+  # ↓ E aqui o comentário acima vira DECLARAÇÃO: as 4 linhas abaixo são os arquivos
+  #   reais que a capacidade CNAB usa hoje. Citar em comentário não os põe no
+  #   contains[] — medido por parse YAML (não por grep): sem estas linhas o array
+  #   tem 21 itens e NENHUM CNAB, enquanto o purpose já promete "11 drivers CNAB".
+  - "Services/Cnab/CnabBoletoAdapter — adapta boleto → layout CNAB (ponte pro contrato do módulo)"
+  - "Services/Cnab/Drivers/* — 11 drivers CNAB por banco (Ailos · BB · Banrisul · Bradesco · BTG · Caixa · Cresol · Itaú · Santander · Sicoob · Sicredi)"
+  - "Jobs/CnabRetornoProcessor — processa o arquivo de retorno enviado via Settings/PaymentGatewaysCnabRetornoController"
+  - "Models/CnabRetornoUpload — histórico dos uploads de retorno (tabela cnab_retorno_uploads)"
   - "Drivers planejados: PesaPalDriver (deprecated Onda 5/6)"
 not_contains:
   - "Plan / Assinatura / Invoice recorrente → Modules/RecurringBilling (consome este módulo)"
