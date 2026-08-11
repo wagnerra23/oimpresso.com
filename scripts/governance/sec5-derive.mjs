@@ -32,10 +32,21 @@
  *     pra silenciar alarme (§5 07-01/07-09). Re-deriva da fonte a cada corrida.
  *   • NÃO agrega nota nem conta "cobertura": o §5 não tem métrica de qualidade aqui.
  *
+ * ── O FLUXO NORMAL DE MERGE (leia antes de rodar --write) ───────────────────────────
+ * Quem não souber do split vai escrever a lápide no §5 — o lugar que conhece. O merge
+ * ACEITA sem conflito (os hunks não se tocam) e o `--write` seguinte APAGARIA a lápide
+ * alheia, porque regenera da fonte. Aconteceu no 1º merge real (2026-08-11, #5615).
+ * Por isso o `--check` nomeia as órfãs e PROÍBE o --write direto. Receita:
+ *     --check      → acusa "existe no §5 e não na fonte"
+ *     --absorver   → move as órfãs pra fonte, preservando a posição
+ *     --write      → só então regenera
+ *
  * USO (raiz do repo):
- *   node scripts/governance/sec5-derive.mjs --migrate   # one-shot: extrai a fonte do §5 atual
  *   node scripts/governance/sec5-derive.mjs --check     # CI: derivado == fonte? (exit 1 se drift)
+ *   node scripts/governance/sec5-derive.mjs --absorver  # lápide escrita no §5 → move pra fonte
  *   node scripts/governance/sec5-derive.mjs --write     # regrava o §5 derivado
+ *   node scripts/governance/sec5-derive.mjs --audit     # diagnóstico: bullets de limite != 1
+ *   node scripts/governance/sec5-derive.mjs --migrate   # one-shot: extrai a fonte do §5 atual
  *   node scripts/governance/sec5-derive.mjs --selftest
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -198,6 +209,45 @@ export function auditar(fonteTexto) {
     .filter((x) => x.n !== 1);
 }
 
+/**
+ * Lápides que existem no §5 (derivado) e NÃO na fonte — por cabeçalho.
+ * Caso real e recorrente: um PR paralelo escreve a lápide no §5 (o lugar que ele
+ * conhece) e o `git merge` aceita SEM CONFLITO, porque os hunks não se tocam. Aí o
+ * `--write` seguinte apagaria a lápide alheia. Aconteceu no merge de 2026-08-11 com
+ * o #5615 — e é o motivo de `--absorver` existir em vez de "mova à mão".
+ * @returns {{ head: string, bloco: string[], depoisDe: string | null }[]}
+ */
+export function orfasNoDerivado(sec5Texto, fonteTexto) {
+  const der = partir(sec5Texto.split('\n')).lapides;
+  const heads = new Set(partir(fonteTexto.split('\n')).lapides.map((L) => L.head.trim()));
+  const out = [];
+  for (let i = 0; i < der.length; i++) {
+    if (heads.has(der[i].head.trim())) continue;
+    out.push({
+      head: der[i].head,
+      bloco: [der[i].head, ...der[i].body],
+      depoisDe: i > 0 ? der[i - 1].head.trim() : null, // âncora de posição
+    });
+  }
+  return out;
+}
+
+/** Insere as órfãs na fonte, preservando a posição relativa que tinham no §5. */
+export function absorver(fonteTexto, orfas) {
+  let linhas = fonteTexto.split('\n');
+  for (const o of orfas) {
+    const bloco = [...trimBordas(o.bloco), ''];
+    if (o.depoisDe === null) { linhas = [...bloco, ...linhas]; continue; }
+    // insere logo ANTES da lápide que sucede a âncora (ou no fim, se ela é a última)
+    const iAnc = linhas.findIndex((l) => l.trim() === o.depoisDe);
+    if (iAnc === -1) { linhas = [...linhas, '', ...trimBordas(o.bloco)]; continue; }
+    let iProx = linhas.length;
+    for (let j = iAnc + 1; j < linhas.length; j++) if (H_LAPIDE.test(linhas[j])) { iProx = j; break; }
+    linhas = [...linhas.slice(0, iProx), ...bloco, ...linhas.slice(iProx)];
+  }
+  return linhas.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
+}
+
 /** Recorta o §5 atual de proibicoes.md como texto (usado por --migrate e --check). */
 export function sec5Atual(proibicoesTexto) {
   const linhas = proibicoesTexto.split('\n');
@@ -256,6 +306,15 @@ function selftest() {
   const mutilado = der.replace('não faça C (eixo dois)', 'sumiu');
   t.push(['BITE: não-perda REPROVA derivado sem um dos limites', conferirNaoPerda(FONTE_FIX, mutilado).ok === false]);
   t.push(['CN: não-perda APROVA derivado íntegro', conferirNaoPerda(FONTE_FIX, der).ok === true]);
+  // órfã: PR paralelo escreve lápide no §5, merge não conflita, --write apagaria (caso real #5615)
+  const derComOrfa = der + '\n### 2026-01-09 — Lápide de PR paralelo\n- **O limite (variante também proibida):** não perca a órfã.\n';
+  const orf = orfasNoDerivado(derComOrfa, FONTE_FIX);
+  t.push(['BITE: detecta lápide órfã no §5 (só no derivado)', orf.length === 1 && /PR paralelo/.test(orf[0].head)]);
+  t.push(['CN: derivado fiel não acusa órfã', orfasNoDerivado(der, FONTE_FIX).length === 0]);
+  const fonteAbs = absorver(FONTE_FIX, orf);
+  t.push(['BITE: absorver leva a órfã pra fonte', fonteAbs.includes('### 2026-01-09 — Lápide de PR paralelo') && fonteAbs.includes('não perca a órfã')]);
+  t.push(['BITE: absorver preserva as lápides que já existiam', fonteAbs.includes('### 2026-01-01 — Ideia A') && fonteAbs.includes('arqueologia do eixo 2')]);
+  t.push(['BITE: depois de absorver, o derivado carrega a órfã', derivar(fonteAbs).includes('não perca a órfã')]);
   // aplicar() troca só a região
   const PROIB = ['# Proibições', '', '## Antes', 'x', '', '## Ideias avaliadas e DESCARTADAS — teste', 'velho', '', '## Depois', 'y', ''].join('\n');
   const ap = aplicar(PROIB, derivar(FONTE_FIX));
@@ -287,6 +346,16 @@ function main() {
   const fonteTxt = readFileSync(FONTE, 'utf8');
   const derivado = derivar(fonteTxt);
   const proibTxt = readFileSync(PROIBICOES, 'utf8');
+
+  if (arg.includes('--absorver')) {
+    const orfas = orfasNoDerivado(sec5Atual(proibTxt), fonteTxt);
+    if (!orfas.length) { console.log('  OK — nenhuma lápide órfã no §5 (nada a absorver).'); return 0; }
+    writeFileSync(FONTE, absorver(fonteTxt, orfas), 'utf8');
+    console.log(`✓ ${orfas.length} lápide(s) movida(s) do §5 pra fonte:`);
+    for (const o of orfas) console.log(`    ${o.head.slice(0, 88)}`);
+    console.log('  Agora rode --write pra regenerar o §5.');
+    return 0;
+  }
 
   if (arg.includes('--audit')) {
     const odd = auditar(fonteTxt);
@@ -321,6 +390,18 @@ function main() {
     return 0;
   }
   console.error('  ✗ §5 DRIFOU da fonte (memory/licoes-rejeitadas.md).');
+  const orfas = orfasNoDerivado(atual, fonteTxt);
+  if (orfas.length) {
+    // ⚠️ o caminho PERIGOSO: rodar --write agora APAGA estas lápides.
+    console.error(`\n    ${orfas.length} lápide(s) existem no §5 e NÃO na fonte — `);
+    console.error('    provavelmente um PR paralelo escreveu no §5 e o merge não conflitou:');
+    for (const o of orfas) console.error(`      ${o.head.slice(0, 88)}`);
+    console.error('\n    ⚠️ NÃO rode --write direto: ele REGENERA da fonte e apagaria essas lápides.');
+    console.error('    Absorva primeiro, depois regenere:');
+    console.error('      node scripts/governance/sec5-derive.mjs --absorver');
+    console.error('      node scripts/governance/sec5-derive.mjs --write');
+    return 1;
+  }
   console.error('    A fonte é licoes-rejeitadas.md; o §5 é gerado. Se você editou o §5 à mão,');
   console.error('    a edição vai ser PERDIDA — mova-a pra fonte e regenere:');
   console.error('      node scripts/governance/sec5-derive.mjs --write');
