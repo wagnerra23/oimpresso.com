@@ -329,9 +329,9 @@ class DetectDriftCommand extends Command
                     $controller
                 ),
                 'descricao' => sprintf(
-                    "Controller %s.php existe em filesystem mas não está em Modules/%s/SCOPE.md.contains[].\n\n" .
+                    "Controller %s.php existe em filesystem mas não está em memory/requisitos/%s/SCOPE.md.contains[].\n\n" .
                     "Declarado: %d | Observado: %d.\n\n" .
-                    "Ação: editar Modules/%s/SCOPE.md adicionando o controller em contains[] " .
+                    "Ação: editar memory/requisitos/%s/SCOPE.md adicionando o controller em contains[] " .
                     "OU mover/remover o controller. Ref: memory/governance/ENFORCEMENT.md §2 #5.",
                     $controller,
                     $module,
