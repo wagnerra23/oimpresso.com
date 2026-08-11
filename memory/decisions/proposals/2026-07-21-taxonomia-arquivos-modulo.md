@@ -21,7 +21,7 @@ type: arquitetura-de-conhecimento
 
 Hoje um módulo tem **4-6 docs por módulo com fronteiras difusas** + **um conflito de casa**:
 
-- `Modules/<X>/SCOPE.md` (36/36) — **fronteira/ownership**, ENFORÇADO por `scope-guard.yml` (blocking em PR) + `bin/check-scope.php` ([ADR 0085](../0085-fase-3-4-scope-md-completo-actor-resolver-pii-redactor.md)).
+- `memory/requisitos/<X>/SCOPE.md` (36/36) — **fronteira/ownership**, ENFORÇADO por `scope-guard.yml` (blocking em PR) + `bin/check-scope.php` ([ADR 0085](../0085-fase-3-4-scope-md-completo-actor-resolver-pii-redactor.md)).
 - `memory/requisitos/<X>/BRIEFING.md` (85) — **estado-vivo/resumo**, grace (warn-only) no memory-schema-gate.
 - `memory/requisitos/<X>/SPEC.md` (59) — **requisitos** (US), anchor-lint required.
 - `memory/requisitos/<X>/SUPERFICIE.md` (8, gerado) — **superfície de arquivos derivada** ([módulo-surface](../../../scripts/governance/module-surface.mjs), `--check` advisory, promote_by 2026-08-04).

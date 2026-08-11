@@ -1,6 +1,6 @@
 # Jana ganha um ledger de auto-reflexão de erros de OPERAÇÃO (Reflexion runtime) — 2026-06-02
 
-> **Status:** PROPOSAL §10.4 · **não-canon, não-ADR** · número de ADR **não cunhado** (soberania [W], ADR 0238 — [W] numera se promover).
+> **Status:** ACEITO por [W] em 2026-08-11 · **não-canon, não-ADR** · número de ADR **não cunhado** (soberania [W], ADR 0238 — [W] numera se promover).
 > **Tipo:** evolução de módulo (Modules/Jana) · **Tier 0** (toca governança de módulo) → PR aberto, **espera [W]**.
 > **Autor:** [CL] Claude Code · **Origem:** peer-review (L-17) do pedido [CC] `PROMPT_PARA_CODE_JANA-LICOES-REFLEXION.md` (sessão 2026-06-02, comparação [CC]×Jana×Champion — view `rep-cc-vs-jana` do `metricas.html`).
 > **Natureza:** peer-review, não ordem — [CL] avaliou se procede e onde mora melhor.
@@ -26,14 +26,20 @@ Não é mecanismo novo a construir: a infra de graduação **já existe** (`jana
 | `incident-done-checklist` / `feedback-capture` (skills) | Existem | **Estendi** (Bloco D / nota de fronteira) — não recriei. |
 | Erros já graduados | `mcp_webhook_5xx_2h` (L-OP-001) e `profile_distiller_drift` (L-OP-002) **já são checks** em `main` | Seed do ledger ancora em fatos do `main` → check verde no dia 1. |
 
-**Home canônico escolhido:** `Modules/Jana/LICOES-OPERACAO.md` (vive com o módulo, append-only, irmão runtime do ledger de design do [CC]). Lido pelo `jana:health-check` via `base_path()`.
+**Home canônico escolhido:** `memory/requisitos/Jana/LICOES-OPERACAO.md`
+> ⚠️ **Path atualizado em 2026-08-11 (ADR 0375):** a decisão de ONDE o ledger mora foi
+> tomada aqui quando o doc de módulo vivia em `Modules/<X>/`; o move levou o arquivo para
+> `memory/requisitos/Jana/`. A decisão (*existe um ledger append-only de operação, irmão
+> runtime do de código*) permanece; só o endereço mudou.
+
+**Path original quando esta proposal foi escrita:** `Modules/Jana/LICOES-OPERACAO.md` (vive com o módulo, append-only, irmão runtime do ledger de design do [CC]). Lido pelo `jana:health-check` via `base_path()`.
 
 ## 3. O que entra neste PR (tudo aditivo)
 
-1. **`Modules/Jana/LICOES-OPERACAO.md`** — ledger append-only. Formato `### L-OP-NNN` · Erro · Sintoma · Regra · Ref · **Graduação** (MEC→check / JULG→regra). Seed: 3 lições reais do `main` (webhook 5xx, profile drift, declarar-done-sem-smoke).
+1. **`memory/requisitos/Jana/LICOES-OPERACAO.md`** — ledger append-only. Formato `### L-OP-NNN` · Erro · Sintoma · Regra · Ref · **Graduação** (MEC→check / JULG→regra). Seed: 3 lições reais do `main` (webhook 5xx, profile drift, declarar-done-sem-smoke).
 2. **`jana:health-check` → check `jana_lesson_ledger_graduation`** (advisory) — parser determinístico valida o **loop de graduação**: acende amarelo se alguma lição está malformada ou `status:pendente`. Não derruba cron (drift de processo não pagina à noite). `parseLessonLedger()` é estático/puro → testável.
 3. **Pest** — 4 testes do parser (bem-formado / pendente→overdue / malformado / ledger canônico verde) + presença do check no smoke.
-4. **`Modules/Jana/SCOPE.md`** — registra o ledger + o check no `contains:`.
+4. **`memory/requisitos/Jana/SCOPE.md`** — registra o ledger + o check no `contains:`.
 5. **Skills (estendidas, não recriadas):** `incident-done-checklist` ganha **Bloco D** (gatilho: incidente de operação resolvido → append + graduar); `feedback-capture` ganha nota de fronteira (operação ≠ fricção de cliente).
 
 ## 4. O loop de graduação (a 5ª camada [CC], agora no runtime)
