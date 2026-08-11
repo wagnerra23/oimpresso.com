@@ -71,7 +71,13 @@ function decodeBinaryScalar(val) {
 // ADR gêmea VIVA (0101-sistema-charter-...) e acusa alerta falso. O slug é a referência
 // canônica (0274); aqui ele é preservado pra decidir supersessão de ADR tombada.
 function rawItemsFrom(fm, key) {
-  const clean = (s) => s.trim().replace(/^['"]|['"]$/g, '').split('#')[0].trim();
+  // ORDEM: tira o comentário `#` ANTES das aspas. Invertido, um item escrito
+  // `- "0101-slug"   # nota` sai como `0101-slug"` — com a aspa presa —, e aí o
+  // `tombstonedSlugs.has(r)` abaixo não casa e a isenção de tombstone FALHA.
+  // Isso vira alarme FALSO no gate duro quando o número da tombada segue vivo em
+  // outra ADR (o caso 0101: tombada `0101-tests-...` × viva `0101-sistema-charter-...`).
+  // Latente até agora só porque a única declaração desse tipo é inline e sem comentário.
+  const clean = (s) => s.split('#')[0].trim().replace(/^['"]|['"]$/g, '').trim();
   const inline = fm.match(new RegExp(`^${key}:\\s*\\[([^\\]]*)\\]`, 'mi'));
   if (inline) return inline[1].split(',').map(clean).filter(Boolean);
   const block = fm.match(new RegExp(`^${key}:\\s*\\n((?:\\s*-\\s*.+\\n?)+)`, 'mi'));
