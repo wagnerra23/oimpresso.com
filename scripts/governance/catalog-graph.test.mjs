@@ -21,6 +21,7 @@ import {
   buildGraph,
   serialize,
   queryGraph,
+  classifyReferencedOnly,
   EDGE_TYPES,
 } from './catalog-graph.mjs';
 
@@ -257,4 +258,49 @@ test('serialize: ordem de entrada dos registros NÃO muda o output (independe de
   const a = serialize(buildGraph(recs));
   const b = serialize(buildGraph([...recs].reverse()));
   assert.equal(a, b);
+});
+
+// ── classifyReferencedOnly: módulo MORTO não é "fronteira" ───────────────────
+// Contexto: a linha ℹ️ chamava de "fronteira futura/legada" tanto o módulo que
+// ainda não existe quanto o que foi REMOVIDO por ADR. A verdade já é curada em
+// governance/ghost-rename-map.json (`excluded`); aqui só se lê.
+
+const TOMB = {
+  SRS:        { class: 'C', removed_by_adr: '0357', removed_at: '2026-07-29' },
+  Admin:      { class: 'C', removed_by_adr: '0360', removed_at: '2026-07-29' },
+  Accounting: { class: 'C', removed_by_adr: '0172', removed_at: '2026-06-05' },
+  Project:    { class: 'AMBIGUO', reason: 'fila humana' }, // sem removed_at
+};
+const refOnly = (...ms) => ms.map((m) => ({ module: m }));
+
+test('BITE: removido por ADR sai de "fronteira" e carrega ADR + data', () => {
+  const r = classifyReferencedOnly(refOnly('SRS', 'Admin', 'Accounting'), TOMB);
+  assert.deepEqual(r.futuros, [], 'nenhum morto pode cair no balde de fronteira');
+  assert.deepEqual(r.removidos.map((x) => x.module), ['SRS', 'Admin', 'Accounting']);
+  assert.deepEqual(r.removidos[0], { module: 'SRS', adr: '0357', em: '2026-07-29' });
+});
+
+test('BITE: tombstone SEM removed_at é fila humana, não fato consumado', () => {
+  const r = classifyReferencedOnly(refOnly('Project'), TOMB);
+  assert.deepEqual(r.ambiguos, ['Project']);
+  assert.deepEqual(r.removidos, [], 'AMBIGUO não pode ser afirmado como removido');
+  assert.deepEqual(r.futuros, [], 'AMBIGUO também não é fronteira futura');
+});
+
+test('CN: módulo sem tombstone continua fronteira futura (não vira morto)', () => {
+  const r = classifyReferencedOnly(refOnly('Notas'), TOMB);
+  assert.deepEqual(r.futuros, ['Notas']);
+  assert.deepEqual(r.removidos, []);
+  assert.deepEqual(r.ambiguos, []);
+});
+
+test('CN: mapa vazio → tudo fronteira futura (degrada sem inventar morte)', () => {
+  const r = classifyReferencedOnly(refOnly('SRS', 'Notas'), {});
+  assert.deepEqual(r.futuros, ['SRS', 'Notas']);
+  assert.deepEqual(r.removidos, []);
+});
+
+test('CN: lista vazia/ausente não quebra', () => {
+  assert.deepEqual(classifyReferencedOnly([], TOMB), { removidos: [], ambiguos: [], futuros: [] });
+  assert.deepEqual(classifyReferencedOnly(undefined, TOMB), { removidos: [], ambiguos: [], futuros: [] });
 });
