@@ -429,3 +429,13 @@ Modules/Jana/Tests/Feature/Mcp/McpTasksHealthCheckCommandTest.php
 # aqui pra que os casos novos possam de fato reprovar. Sqlite-safe: file_get_contents,
 # Menu em memoria via Menu::create, e LegacyMenuAdapter->build() sobre menu vazio — DB-less.
 Modules/Governance/Tests/Feature/GovernanceModuleSubscriptionGateTest.php
+# Testes do artisan jana:validate-memory. Estavam FORA de qualquer lane desde que o
+# arquivo nasceu (medido 2026-08-11: nao aparece em jana-pest.yml, jana-logica-pura-pest.yml
+# nem aqui) — teste no repo fora do CI e LC-13, "verde por nao-execucao". O comando tambem
+# nao tem invocador (0 schedules no Kernel; governance-audit.mjs deprecado), entao nada
+# provava que ele sequer bootava. Entra agora porque o PR que unificou o roteamento
+# arquivo->schema (familias.json) mexeu nele: os 2 casos novos derivam o esperado do
+# proprio JSON, entao uma familia sumir do comando reprova aqui. Sqlite-safe: nao usa
+# RefreshDatabase nem toca DB — cria fixtures .md em storage/framework/testing e roda
+# Artisan::call; o unico acesso e filesystem.
+Modules/Jana/Tests/Feature/MemorySchema/JanaValidateMemoryCommandTest.php

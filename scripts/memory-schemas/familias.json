@@ -1,0 +1,75 @@
+{
+  "_doc": "FONTE ÚNICA do roteamento arquivo→schema das famílias de memory/**. NÃO editar à mão sem ler o _como_manter abaixo. Antes deste arquivo (2026-08-11) o roteamento vivia em 3 cópias à mão: FAMILIAS no validate.mjs (9), $schemaMap no JanaValidateMemoryCommand.php (7 — faltavam briefing e reference) e a matriz do memory-schema-gate.yml (9). O SCHEMA sempre foi único (os *.schema.json); o ROTEAMENTO não era.",
+  "_consumidores": [
+    "scripts/memory-schemas/validate.mjs — deriva FAMILIAS (usa `regex`); é o dono da regra e quem o CI chama",
+    "Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php — deriva $schemaMap (usa `glob` + `grace`)",
+    ".github/workflows/memory-schema-gate.yml — matriz NÃO derivada (Actions não lê JSON em `strategy.matrix.include` sem reestruturar o job em outputs+fromJSON, e são 4 contexts REQUIRED). Fica como cópia CONFERIDA: o --selftest do validate.mjs falha se a matriz divergir deste arquivo."
+  ],
+  "_campos": {
+    "key": "identificador curto; é o valor aceito por `php artisan jana:validate-memory --schema=<key>`",
+    "schema": "path do JSON Schema, RELATIVO À RAIZ DO REPO (resolvido contra o cwd por ambos os consumidores — é o que permite o selftest do validate.mjs rodar num cwd temporário com os schemas copiados)",
+    "glob": "padrão usado por quem varre a árvore (matriz do CI + comando PHP). String idêntica à do workflow",
+    "regex": "padrão ancorado usado por quem recebe um path pronto e pergunta 'de que família é?' (validate.mjs::schemaPara + hook memory-schema-guard). Casado contra o path em posix",
+    "grace": "true = warn-only (nunca bloqueia merge), espelhando `grace: true` da matriz. Ausente = strict. Promoção grace→required é decisão [W] + emenda de ADR (0314/0341) — NÃO mexa aqui achando que promove"
+  },
+  "_ordem": "A ORDEM É SIGNIFICATIVA no roteamento por `regex`: validate.mjs::schemaPara usa `find` (primeiro match vence). Caso real: `memory/requisitos/X/topicos/RUNBOOK-y.md` casa runbook E topico — runbook vem antes e vence. Reordenar muda comportamento.",
+  "_como_manter": "Família NOVA = (1) crie <tipo>.schema.json; (2) acrescente a entrada AQUI; (3) acrescente o par schema+glob à matriz do memory-schema-gate.yml (o selftest cobra); (4) rode `node scripts/memory-schemas/validate.mjs --selftest`. Nada de editar as listas do .mjs ou do .php — elas não existem mais.",
+  "familias": [
+    {
+      "key": "adr",
+      "schema": "scripts/memory-schemas/adr.schema.json",
+      "glob": "memory/decisions/[0-9][0-9][0-9][0-9]-*.md",
+      "regex": "^memory/decisions/\\d{4}-.*\\.md$"
+    },
+    {
+      "key": "spec",
+      "schema": "scripts/memory-schemas/spec.schema.json",
+      "glob": "memory/requisitos/*/SPEC.md",
+      "regex": "^memory/requisitos/[^/]+/SPEC\\.md$"
+    },
+    {
+      "key": "runbook",
+      "schema": "scripts/memory-schemas/runbook.schema.json",
+      "glob": "memory/requisitos/**/RUNBOOK*.md",
+      "regex": "^memory/requisitos/.*RUNBOOK[^/]*\\.md$"
+    },
+    {
+      "key": "session",
+      "schema": "scripts/memory-schemas/session.schema.json",
+      "glob": "memory/sessions/[0-9][0-9][0-9][0-9]-*.md",
+      "regex": "^memory/sessions/\\d{4}-.*\\.md$"
+    },
+    {
+      "key": "handoff",
+      "schema": "scripts/memory-schemas/handoff.schema.json",
+      "glob": "memory/handoffs/[0-9][0-9][0-9][0-9]-*.md",
+      "regex": "^memory/handoffs/\\d{4}-.*\\.md$"
+    },
+    {
+      "key": "charter",
+      "schema": "scripts/memory-schemas/charter.schema.json",
+      "glob": "resources/js/Pages/**/*.charter.md",
+      "regex": "^resources/js/Pages/.*\\.charter\\.md$"
+    },
+    {
+      "key": "briefing",
+      "schema": "scripts/memory-schemas/briefing.schema.json",
+      "glob": "memory/requisitos/*/BRIEFING.md",
+      "regex": "^memory/requisitos/[^/]+/BRIEFING\\.md$",
+      "grace": true
+    },
+    {
+      "key": "reference",
+      "schema": "scripts/memory-schemas/reference.schema.json",
+      "glob": "memory/reference/*.md",
+      "regex": "^memory/reference/[^/]+\\.md$",
+      "grace": true
+    },
+    {
+      "key": "topico",
+      "schema": "scripts/memory-schemas/topico.schema.json",
+      "glob": "memory/requisitos/*/topicos/*.md",
+      "regex": "^memory/requisitos/[^/]+/topicos/[^/]+\\.md$"
+    }
+  ]
+}

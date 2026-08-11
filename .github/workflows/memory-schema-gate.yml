@@ -2,10 +2,13 @@ name: Memory schema gate (ONDA 5 S1)
 
 # ONDA 5 S1 — Schema rígido CI híbrido.
 # Workflow A do híbrido (gate PR remark-lint + AJV via npx).
-# Gate C complementar = `php artisan jana:validate-memory` (cron daily 06:30 BRT).
+# Gate C complementar = `php artisan jana:validate-memory` — SOB DEMANDA, não agendado.
+# (O "cron daily 06:30 BRT" que esta linha afirmava era FALSO: 0 schedules no Kernel e
+# 0 lanes de CI; medido 2026-08-11, e já registrado no docblock do comando em 2026-06-20.)
 #
 # Schemas: scripts/memory-schemas/*.schema.json
-# Mapa glob→schema: scripts/memory-schemas/README.md
+# Roteamento (fonte única): scripts/memory-schemas/familias.json — a matriz abaixo é
+# cópia CONFERIDA dela; o job `selftest` falha se as duas divergirem.
 #
 # 2026-05-25 (Wagner "endureça"): mudança de regra — gate valida APENAS
 # arquivos modificados/criados no PR vs base (não toda a árvore memory/).
@@ -83,6 +86,12 @@ jobs:
 
     strategy:
       fail-fast: false
+      # ⚠️ Esta matriz é CÓPIA de scripts/memory-schemas/familias.json — não a fonte.
+      # Não é derivada porque `strategy.matrix.include` não lê arquivo sem reestruturar
+      # o job em outputs+`fromJSON`, e aqui moram 4 contexts REQUIRED (ADR · SPEC ·
+      # Charter · Tópico): risco alto, ganho baixo. Em troca ela é CONFERIDA — o job
+      # `selftest` compara schema+glob+grace com o JSON e falha na divergência.
+      # Mexeu aqui? Mexa no JSON também (e vice-versa), no MESMO PR.
       matrix:
         include:
           - label: ADR (memory/decisions/*.md)
