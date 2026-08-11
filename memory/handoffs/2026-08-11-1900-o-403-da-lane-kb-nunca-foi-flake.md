@@ -2,12 +2,11 @@
 slug: o-403-da-lane-kb-nunca-foi-flake
 date: "2026-08-11"
 time: "19:00"
-tldr: "O 403 'intermitente' da lane KB era 100% determinístico: kbActAsUser entregava um modelo pela metade (save() sem refresh) e o CheckUserLogin, que lê do MODELO e roda antes do can:, abortava 403. Provado por experimento de 2 braços (25/25 falha → 0/25 após o fix). As 3 correções anteriores miravam contaminação Spatie — modelo errado. #5606 + #5604 mergeados."
+tldr: "O 403 'intermitente' da lane KB era 100% determinístico: kbActAsUser entregava um modelo pela metade (save() sem refresh) e o CheckUserLogin, que lê do MODELO e roda antes do can:, abortava 403. Provado por experimento de 2 braços (25/25 falha → 0/25 após o fix). As 3 correções anteriores miravam contaminação Spatie — modelo errado. #5606 + #5604 mergeados; main verde com 108 passed."
 autor: "[CL] Claude Code"
 sessao: eloquent-easley-37d93a
 prs: [5606, 5604]
 next_steps:
-  - "Confirmar a run de kb-pest em main (31523262616) — estava pending no fechamento"
   - "Corrigir header do kb-pest.yml + anchor do gates-registry.json (ainda culpam 'flakiness Spatie order-dependent' — agora falso)"
   - "Decidir descarte da branch claude/kb-flake-403-probe (andaime de diagnóstico, não vazou pra main)"
   - "Avisar a sessão da branch claude/kb-403-arraystore — a hipótese do array store foi refutada por medição"
@@ -127,7 +126,7 @@ Lane no PR do fix: `108 passed (605 assertions)` (era 106/597).
 |---|---|
 | [#5606](https://github.com/wagnerra23/oimpresso.com/pull/5606) conserto + guards | **MERGED** 18:31 (`8f377abccda`) |
 | [#5604](https://github.com/wagnerra23/oimpresso.com/pull/5604) controle positivo | **MERGED** 18:32 (`2487263b1a0`) |
-| lane kb-pest em `main` com os dois | ⏳ `pending` ([31523262616](https://github.com/wagnerra23/oimpresso.com/actions/runs/31523262616)) — **não confirmado** |
+| lane kb-pest em `main` com os dois | ✅ **verde** ([31523262616](https://github.com/wagnerra23/oimpresso.com/actions/runs/31523262616)) — `108 passed (611 assertions)`, guards L5/L6 ✓, executou de verdade (sem skip-as-pass) |
 | andaime `probe-403` / `FlakeProbe403Test` | **ausente de `main`** (verificado com controle positivo) |
 | branch `claude/kb-flake-403-probe` | viva no remoto — descarte é decisão [W] |
 
