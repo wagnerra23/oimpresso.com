@@ -14,7 +14,7 @@ module: Cms
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Cms/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 139 arquivos em 13 papéis.
+**Total mapeado:** 138 arquivos em 13 papéis.
 
 ## Controllers — 5
 
@@ -133,9 +133,8 @@ module: Cms
 
 - 17 arquivos em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 42
+## Demais arquivos (manifestos, docs, assets e misc) — 41
 
-- [CHANGELOG.md](../../../Modules/Cms/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Cms/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Cms/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Cms/Database/Migrations/.gitkeep)

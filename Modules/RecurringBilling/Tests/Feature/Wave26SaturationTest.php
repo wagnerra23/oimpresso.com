@@ -142,7 +142,7 @@ it('AssinaturaService::criar emite log estruturado rb.assinatura.criada (D9.b)',
 // ---------- D5 (+8): README expandido ----------
 
 it('D5 — README cita gateways canon (Inter mTLS + C6 agencia+conta + Asaas api_key)', function () {
-    $readme = file_get_contents(base_path('Modules/RecurringBilling/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/RecurringBilling/README.md'));
 
     expect($readme)->toContain('mTLS');           // Inter — autenticação
     expect($readme)->toContain('codigo_cliente'); // C6 — credencial canon
@@ -151,7 +151,7 @@ it('D5 — README cita gateways canon (Inter mTLS + C6 agencia+conta + Asaas api
 });
 
 it('D5 — README contém 4 estados canon lifecycle Subscription', function () {
-    $readme = file_get_contents(base_path('Modules/RecurringBilling/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/RecurringBilling/README.md'));
 
     foreach (['active', 'paused', 'canceled', 'overdue'] as $state) {
         expect($readme)->toContain($state);
@@ -159,7 +159,7 @@ it('D5 — README contém 4 estados canon lifecycle Subscription', function () {
 });
 
 it('D5 — README declara 10 sinais health command (rb:health saturation)', function () {
-    $readme = file_get_contents(base_path('Modules/RecurringBilling/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/RecurringBilling/README.md'));
 
     // 10 sinais canon Wave 16+
     foreach ([
@@ -173,7 +173,7 @@ it('D5 — README declara 10 sinais health command (rb:health saturation)', func
 });
 
 it('D5 — README cita 4 anti-patterns proibidos Tier 0', function () {
-    $readme = file_get_contents(base_path('Modules/RecurringBilling/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/RecurringBilling/README.md'));
 
     expect($readme)->toContain('Anti-patterns proibidos');
     expect($readme)->toContain('US-RB-044');  // NFe-de-boleto-pago canônico irrevogável
@@ -215,7 +215,7 @@ it('D9 — RecurringHealthCommand registrado em Artisan + signature canon (--bus
 });
 
 it('D9 — recurring:health alias canon documentado no README', function () {
-    $readme = file_get_contents(base_path('Modules/RecurringBilling/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/RecurringBilling/README.md'));
 
     // README cita comando "recurring:health" como alias UX-friendly
     // (rb:health é o nome curto efetivo do command)
@@ -227,7 +227,7 @@ it('D9 — recurring:health alias canon documentado no README', function () {
 // ---------- US-RB-044 sentry IRREVOGÁVEL ----------
 
 it('SENTRY IRREVOGÁVEL — US-RB-044 NFe-de-boleto-pago preservada em README + canon', function () {
-    $readme = file_get_contents(base_path('Modules/RecurringBilling/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/RecurringBilling/README.md'));
 
     // Triple-check redundante deliberado — qualquer drift quebra
     expect($readme)->toContain('US-RB-044');

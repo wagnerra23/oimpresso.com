@@ -17,11 +17,11 @@ Biblioteca compartilhada de ADRs, sessions, runbooks, comparativos. Split do Cop
 
 ## Docs canônicas
 
-- [BRIEFING](../../memory/requisitos/KB/BRIEFING.md) — estado consolidado (atualizar a cada PR de feature)
-- [SPEC](../../memory/requisitos/KB/SCHEMA-DB-V1.md) — contrato técnico migrations/tabelas
-- [CAPTERRA-FICHA](../../memory/requisitos/KB/CAPTERRA-FICHA.md) — benchmark de mercado
+- [BRIEFING](BRIEFING.md) — estado consolidado (atualizar a cada PR de feature)
+- [SPEC](SCHEMA-DB-V1.md) — contrato técnico migrations/tabelas
+- [CAPTERRA-FICHA](CAPTERRA-FICHA.md) — benchmark de mercado
 - [CHANGELOG](CHANGELOG.md) — append-only por PR mergeado
-- [SCOPE](SCOPE.md) — escopo do módulo (pra agents)
+- [SCOPE](../../../Modules/KB/SCOPE.md) — escopo do módulo (pra agents)
 
 ## Permissions
 
@@ -32,8 +32,8 @@ Legacy: middleware `can:jana.mcp.memory.manage` (coarse) ainda em alguns control
 
 ## Pré-flight obrigatório antes de editar
 
-1. Ler [BRIEFING](../../memory/requisitos/KB/BRIEFING.md) atual
-2. Ler [SCHEMA-DB-V1](../../memory/requisitos/KB/SCHEMA-DB-V1.md) se mexer em migration
+1. Ler [BRIEFING](BRIEFING.md) atual
+2. Ler [SCHEMA-DB-V1](SCHEMA-DB-V1.md) se mexer em migration
 3. Skill Tier A `preflight-modulo` auto-trigger via hook
 4. Skill Tier A `multi-tenant-patterns` — toda Eloquent Model usa `BelongsToBusinessTrait`
 5. Tests biz=1 OR biz=99 — NUNCA biz=4 (ROTA LIVRE)

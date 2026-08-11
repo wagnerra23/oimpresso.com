@@ -6,8 +6,16 @@ contains:
   # PaymentGatewayController saiu em 2026-08-10: NUNCA foi construído (0 arquivos em
   # 16.238 rastreados). Nenhuma rota o referencia — `Routes/web.php` registra
   # install/uninstall/update no InstallController, e o resto em Settings/* e Webhooks/*.
-  # ⚠️ Resíduo NÃO tocado aqui: CONTRACTS.md:362-366 ainda declara 5 endpoints
-  # `→ PaymentGatewayController@*` que não existem em rota nenhuma.
+  # O resíduo que este comentário declarava — os 5 endpoints `→ PaymentGatewayController@*`
+  # na §6 do CONTRACTS.md (que saiu daqui pra memory/requisitos/PaymentGateway/ no #5548)
+  # — foi corrigido em 2026-08-11, junto com a §6 inteira, que era
+  # plano de Onda 0 nunca confrontado com o código. Os 5 existiam sob outro nome e outro
+  # prefixo (`Settings\PaymentGatewaysController`, `/settings/payment-gateways`, método
+  # `healthCheck`), entregues na Onda 4d.3. Na mesma passagem: CobrancaController virou
+  # ponteiro pro Financeiro (é lá que ele vive), os webhooks passaram de 4 pra 7 com o
+  # path real, e caiu a frase que afirmava 301 redirect após cutover da Onda 3 — não há
+  # redirect de webhook em nenhum dos 56 arquivos de rota, e o RecurringBilling segue
+  # servindo `/webhooks/inter/pix/{businessId}` em paralelo (coerente com "sem cutover").
   - "CobrancaController"
   - "Settings/PaymentGatewaysController — F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
   - "Settings/PaymentGatewaysCnabRetornoController — POST /settings/payment-gateways/{credential}/cnab-retorno (upload arquivo retorno + histórico processamento, Onda 4f.0)"

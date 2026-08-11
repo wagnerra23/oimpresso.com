@@ -97,7 +97,7 @@
   (integração unidirecional — estado vive no WooCommerce externo).
 
 ## Referências
-- [ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) Multi-tenant Tier 0
-- [ADR 0155](../../memory/decisions/0155-module-grade-v3.md) Module Grade v3 (D4/D9)
-- [ADR 0159](../../memory/decisions/0159-module-grade-v3-errata-meta-97-realismo.md) Errata meta 97
-- [.claude/rules/commands.md](../../.claude/rules/commands.md) `--detail` NUNCA `--verbose`
+- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) Multi-tenant Tier 0
+- [ADR 0155](../../decisions/0155-module-grade-v3.md) Module Grade v3 (D4/D9)
+- [ADR 0159](../../decisions/0159-module-grade-v3-errata-meta-97-realismo.md) Errata meta 97
+- [.claude/rules/commands.md](../../../.claude/rules/commands.md) `--detail` NUNCA `--verbose`

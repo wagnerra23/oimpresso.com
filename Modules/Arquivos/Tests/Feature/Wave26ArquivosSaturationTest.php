@@ -19,7 +19,7 @@ uses(Tests\TestCase::class);
  * canônico; Wave 26 expande D5 README (cliente-facing) + D7 LogsActivity check
  * + D9 spans count adicional (arquivos.dedupe_lookup novo).
  *
- * @see Modules/Arquivos/README.md
+ * @see memory/requisitos/Arquivos/README.md
  * @see memory/requisitos/Arquivos/CHANGELOG.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0123-modules-arquivos-backbone.md
@@ -50,7 +50,7 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
     });
 
     it('D5: README.md existe + cita Wagner/Larissa/Martinho + 7+ casos de uso', function () {
-        $readmePath = base_path('Modules/Arquivos/README.md');
+        $readmePath = base_path('memory/requisitos/Arquivos/README.md');
         expect(file_exists($readmePath))->toBeTrue('README.md cliente-facing obrigatório Wave 26 D5');
 
         $src = file_get_contents($readmePath);
@@ -64,7 +64,7 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
     });
 
     it('D5: README documenta journey real biz=1 (Wagner dev) com 7 passos', function () {
-        $src = file_get_contents(base_path('Modules/Arquivos/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/Arquivos/README.md'));
 
         expect($src)->toContain('Journey real biz=1');
         // 7 passos numerados na tabela
@@ -73,7 +73,7 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
     });
 
     it('D5: README documenta integração de novo Model (HasArquivos trait code sample)', function () {
-        $src = file_get_contents(base_path('Modules/Arquivos/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/Arquivos/README.md'));
 
         expect($src)->toContain('use Modules\\Arquivos\\Concerns\\HasArquivos;');
         expect($src)->toContain('attachArquivo');
@@ -144,7 +144,7 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
     });
 
     it('D5: README cita ADRs canônicas mãe (0093, 0123, 0155)', function () {
-        $src = file_get_contents(base_path('Modules/Arquivos/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/Arquivos/README.md'));
 
         expect($src)->toContain('0093'); // multi-tenant
         expect($src)->toContain('0123'); // backbone

@@ -26,7 +26,7 @@ uses(Tests\TestCase::class);
  *
  * Multi-tenant Tier 0 (ADR 0101 — biz=1 nunca cliente real).
  *
- * @see Modules/OficinaAuto/README.md
+ * @see memory/requisitos/OficinaAuto/README.md
  */
 
 const E2E_OFICINA_BIZ_WAGNER = 1;

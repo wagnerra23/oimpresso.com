@@ -14,7 +14,7 @@ module: Spreadsheet
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Spreadsheet/**` + `resources/js/Pages/Spreadsheet/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Spreadsheet/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 79 arquivos em 13 papéis.
+**Total mapeado:** 78 arquivos em 13 papéis.
 
 ## Controllers — 3
 
@@ -84,9 +84,8 @@ module: Spreadsheet
 
 - 9 arquivos em [Modules/Spreadsheet/Tests/Feature/](../../../Modules/Spreadsheet/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 39
+## Demais arquivos (manifestos, docs, assets e misc) — 38
 
-- [CHANGELOG.md](../../../Modules/Spreadsheet/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Spreadsheet/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Spreadsheet/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Spreadsheet/Database/Migrations/.gitkeep)

@@ -1,7 +1,7 @@
 # Modules/ProductCatalogue
 
 > Catálogo público de produtos via QR code — cliente final escaneia QR na loja/cardápio/vitrine, abre URL pública `/catalogue/{business_id}/{location_id}` SEM auth, navega produtos com fotos+preços+descontos vigentes.
-> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) — defesa em profundidade (rota pública, atacante pode tentar enumerar tenants via QR scan brute-force).
+> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — defesa em profundidade (rota pública, atacante pode tentar enumerar tenants via QR scan brute-force).
 
 ## Como cliente (Wagner/Larissa/Martinho) usa
 
@@ -23,7 +23,7 @@
 - **Schema-aware fail-soft** — colunas opcionais (`product_catalogue_version`) ausentes não quebram página pública
 - **Telemetria observável** — `OtelHelper::spanBiz` em `buildIndexPayload` + `buildShowPayload` (D9 hot-path catálogo)
 
-## Observabilidade D9.a ([ADR 0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md))
+## Observabilidade D9.a ([ADR 0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md))
 
 Spans canon (zero-cost se `otel.enabled=false`):
 
@@ -73,7 +73,7 @@ Modules/ProductCatalogue/
 
 Razão: catálogo é **projeção read-only** de dados que já vivem no core — duplicar Entity violaria SoC. Pattern documentado em ADR 0011 (padrão Jana/Repair: imitar antes de criar).
 
-## LGPD ([ADR 0094](../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4)
+## LGPD ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4)
 
 - `pii_fields_tracked`: nenhum no schema próprio (consumidor escaneia QR anônimo)
 - `pii_redactor_enabled`: n/a (sem PII)
@@ -82,8 +82,8 @@ Razão: catálogo é **projeção read-only** de dados que já vivem no core —
 
 ## Referências
 
-- ADR multi-tenant: [0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- ADR observabilidade: [0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md)
-- ADR padrão módulo: [0011](../../memory/decisions/0011-alinhamento-padrao-jana.md)
+- ADR multi-tenant: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
+- ADR observabilidade: [0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md)
+- ADR padrão módulo: [0011](../../decisions/0011-alinhamento-padrao-jana.md)
 - CHANGELOG (append-only): [`CHANGELOG.md`](CHANGELOG.md)
-- SCOPE técnico: [`SCOPE.md`](SCOPE.md)
+- SCOPE técnico: [`SCOPE.md`](../../../Modules/ProductCatalogue/SCOPE.md)

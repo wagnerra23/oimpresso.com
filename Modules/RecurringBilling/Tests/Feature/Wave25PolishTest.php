@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
  *
  * Smoke: garante que documentação não-vazia + estrutura mínima.
  *
- * @see Modules/RecurringBilling/README.md
+ * @see memory/requisitos/RecurringBilling/README.md
  */
 describe('Wave 25 RecurringBilling Polish', function () {
     it('D5 — README.md presente em Modules/RecurringBilling/', function () {
