@@ -185,7 +185,7 @@ fiação para a UI segue sem prova (ver backlog).
 - **Quando** se pergunta a diferença,
 - **Então** o **sinal** distingue os dois casos: positivo é "falta distribuir", negativo é "passou do total".
 
-Um valor absoluto diria só "não fecha" — e "faltam R$ 0,01" e "sobraram R$ 0,01" pedem ações
+Um valor absoluto diria só "não fecha" — e "falta um centavo" e "sobrou um centavo" pedem ações
 opostas do operador. ⚠️ A ação de **jogar a diferença na última parcela** segue sem prova
 (ver backlog).
 
