@@ -14,7 +14,7 @@ module: ProductCatalogue
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ProductCatalogue/**` + `resources/js/Pages/ProductCatalogue/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ProductCatalogue/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 59 arquivos em 12 papéis.
+**Total mapeado:** 57 arquivos em 12 papéis.
 
 ## Controllers — 3
 
@@ -78,9 +78,8 @@ module: ProductCatalogue
 - 7 em [Modules/ProductCatalogue/Tests/Feature/](../../../Modules/ProductCatalogue/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 25
+## Demais arquivos (manifestos, docs, assets e misc) — 23
 
-- [CHANGELOG.md](../../../Modules/ProductCatalogue/CHANGELOG.md)
 - [.gitkeep](../../../Modules/ProductCatalogue/Config/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Console/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Database/Migrations/.gitkeep)
@@ -91,7 +90,6 @@ module: ProductCatalogue
 - [.gitkeep](../../../Modules/ProductCatalogue/Http/Middleware/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Http/Requests/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Providers/.gitkeep)
-- [README.md](../../../Modules/ProductCatalogue/README.md)
 - [ProductCatalogueRepository.php](../../../Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php)
 - [.gitkeep](../../../Modules/ProductCatalogue/Resources/assets/.gitkeep)
 - [easy.qrcode.min.js](../../../Modules/ProductCatalogue/Resources/assets/plugins/easy.qrcode.min.js)

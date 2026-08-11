@@ -132,8 +132,12 @@ jobs:
             Modules/Jana/Tests/Feature/Console/JanaRagasFailuresNoSilentCapTest.php \
             Modules/Jana/Tests/Feature/Wave14GovernanceV3Test.php \
             Modules/Jana/Tests/Feature/CockpitMockRemovidoTest.php \
-            Modules/Jana/Tests/Feature/FarolServerSideTest.php \
-            Modules/Jana/Tests/Feature/Ai/BriefDiarioAgentTest.php
+            Modules/Jana/Tests/Feature/FarolServerSideTest.php
+          # BriefDiarioAgentTest saiu daqui em 2026-08-10: guard sqlite-only fazia
+          # ele pular 100% das vezes nesta lane MySQL (skip = exit 0 = verde que não
+          # provava nada), e ele monta schema sintético com dropIfExists — o que a
+          # regra desta allowlist proíbe explicitamente. Lar novo: a lane sqlite
+          # (.github/ci-sqlite-pest.list), onde ele de fato RODA.
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

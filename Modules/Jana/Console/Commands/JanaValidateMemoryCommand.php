@@ -21,9 +21,21 @@ use JsonSchema\Validator;
  * Kernel.php não retorna este comando). Drift fora-do-PR (edit manual, SSH) depende
  * de rodar local/CI; agendar com --strict é decisão pendente [W].
  *
+ * ROTEAMENTO (2026-08-11): as famílias vêm de `scripts/memory-schemas/familias.json`,
+ * a mesma fonte que o `scripts/memory-schemas/validate.mjs` consome. Antes disso esta
+ * classe mantinha `$schemaMap` à mão e tinha DIVERGIDO: 7 famílias contra as 9 do .mjs
+ * (faltavam `briefing` e `reference`). Não acrescente família aqui — acrescente no JSON.
+ * Nada de PHP chamando node: cada lado lê o JSON no seu runtime, então este comando
+ * continua PHP-first (nenhuma dependência de node, que no cron do Hostinger nem está
+ * no PATH — proibicoes §5 2026-08-08).
+ *
  * Grace period 14d:
  *   - JANA_VALIDATE_MEMORY_STRICT=false (default) → warning + exit 0
  *   - JANA_VALIDATE_MEMORY_STRICT=true (Wagner sign-off) → exit 1 se violação
+ * Por FAMÍLIA: as marcadas `grace: true` no JSON (hoje `briefing` e `reference`) são
+ * warn-only mesmo com strict — espelha o `grace: true` da matriz do memory-schema-gate.yml.
+ * Sem isso, herdar as 2 famílias novas transformaria `--strict` num bloqueio sobre ~198
+ * arquivos legados que o CI deixa passar de propósito (ADR 0314: gate novo nasce grace).
  *
  * Uso:
  *   php artisan jana:validate-memory
@@ -38,46 +50,63 @@ class JanaValidateMemoryCommand extends Command
 {
     protected $signature = 'jana:validate-memory
                             {--path= : Pasta/arquivo específico (default: memory/ + resources/js/Pages/**/*.charter.md)}
-                            {--schema= : Schema único (adr|spec|runbook|session|handoff|charter|topico); default detecta por path}
+                            {--schema= : Schema único (keys em scripts/memory-schemas/familias.json); default: todos}
                             {--strict : Força exit 1 se violação (ignora ENV grace period)}
                             {--json : Output JSON em vez de tabela}';
 
     protected $description = 'Valida frontmatter YAML em memory/ contra JSON Schemas (ONDA 5 S1 gate C)';
 
+    /** Path (relativo à raiz) da fonte única do roteamento — ver docblock da classe. */
+    protected const FAMILIAS_JSON = 'scripts/memory-schemas/familias.json';
+
+    /** Cache do mapa derivado do JSON. null = ainda não carregado. */
+    protected ?array $schemaMap = null;
+
     /**
-     * Mapa schema-key → arquivo + glob default.
-     * Centralizado pra reuso entre detection + --schema flag.
+     * Mapa schema-key → ['file' => schema, 'glob' => padrão, 'grace' => bool].
+     * DERIVADO de familias.json — não existe lista à mão nesta classe.
+     *
+     * Lança em vez de devolver mapa vazio: sem roteamento, varrer zero arquivo e
+     * reportar "OK — 0 arquivo(s) válido(s)" seria verde por não-execução, que é o
+     * defeito que este comando existe pra pegar.
+     *
+     * @throws \RuntimeException quando o JSON está ausente ou malformado
      */
-    protected array $schemaMap = [
-        'adr' => [
-            'file' => 'scripts/memory-schemas/adr.schema.json',
-            'glob' => 'memory/decisions/[0-9][0-9][0-9][0-9]-*.md',
-        ],
-        'spec' => [
-            'file' => 'scripts/memory-schemas/spec.schema.json',
-            'glob' => 'memory/requisitos/*/SPEC.md',
-        ],
-        'runbook' => [
-            'file' => 'scripts/memory-schemas/runbook.schema.json',
-            'glob' => 'memory/requisitos/**/RUNBOOK*.md',
-        ],
-        'session' => [
-            'file' => 'scripts/memory-schemas/session.schema.json',
-            'glob' => 'memory/sessions/[0-9][0-9][0-9][0-9]-*.md',
-        ],
-        'handoff' => [
-            'file' => 'scripts/memory-schemas/handoff.schema.json',
-            'glob' => 'memory/handoffs/[0-9][0-9][0-9][0-9]-*.md',
-        ],
-        'charter' => [
-            'file' => 'scripts/memory-schemas/charter.schema.json',
-            'glob' => 'resources/js/Pages/**/*.charter.md',
-        ],
-        'topico' => [
-            'file' => 'scripts/memory-schemas/topico.schema.json',
-            'glob' => 'memory/requisitos/*/topicos/*.md',
-        ],
-    ];
+    protected function schemaMap(): array
+    {
+        if ($this->schemaMap !== null) {
+            return $this->schemaMap;
+        }
+
+        $path = base_path(self::FAMILIAS_JSON);
+        if (! File::exists($path)) {
+            throw new \RuntimeException("Roteamento ausente: {$path}. É a fonte única das famílias (compartilhada com scripts/memory-schemas/validate.mjs).");
+        }
+
+        $bruto = json_decode(File::get($path), true);
+        if (! is_array($bruto) || ! is_array($bruto['familias'] ?? null) || $bruto['familias'] === []) {
+            throw new \RuntimeException("Roteamento inválido em {$path}: esperava a chave 'familias' com ao menos uma entrada.");
+        }
+
+        $map = [];
+        foreach ($bruto['familias'] as $i => $f) {
+            foreach (['key', 'schema', 'glob'] as $campo) {
+                if (! isset($f[$campo]) || ! is_string($f[$campo]) || $f[$campo] === '') {
+                    throw new \RuntimeException("Família #{$i} em {$path} sem '{$campo}' string.");
+                }
+            }
+            if (isset($map[$f['key']])) {
+                throw new \RuntimeException("Key duplicada em {$path}: '{$f['key']}'.");
+            }
+            $map[$f['key']] = [
+                'file' => $f['schema'],
+                'glob' => $f['glob'],
+                'grace' => ($f['grace'] ?? false) === true,
+            ];
+        }
+
+        return $this->schemaMap = $map;
+    }
 
     public function handle(): int
     {
@@ -93,24 +122,34 @@ class JanaValidateMemoryCommand extends Command
         $schemaFilter = $this->option('schema');
         $pathFilter = $this->option('path');
 
-        $schemasToRun = $schemaFilter
-            ? [$schemaFilter => $this->schemaMap[$schemaFilter] ?? null]
-            : $this->schemaMap;
-
-        if ($schemaFilter && ! isset($this->schemaMap[$schemaFilter])) {
-            $this->error("Schema desconhecido: {$schemaFilter}. Use: " . implode(', ', array_keys($this->schemaMap)));
+        try {
+            $schemaMap = $this->schemaMap();
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage());
             return 1;
         }
 
+        if ($schemaFilter && ! isset($schemaMap[$schemaFilter])) {
+            $this->error("Schema desconhecido: {$schemaFilter}. Use: " . implode(', ', array_keys($schemaMap)));
+            return 1;
+        }
+
+        $schemasToRun = $schemaFilter ? [$schemaFilter => $schemaMap[$schemaFilter]] : $schemaMap;
+
         $results = [];
         foreach ($schemasToRun as $key => $config) {
-            if (! $config) {
-                continue;
-            }
             $results[$key] = $this->validateBucket($key, $config, $pathFilter);
         }
 
         $totalErrors = array_sum(array_column($results, 'errors_count'));
+        // Só famílias NÃO-grace podem bloquear — espelha `grace: true` da matriz do CI.
+        // Contamos separado (em vez de zerar errors_count) pra a tabela seguir mostrando
+        // a dívida real: silenciar o número seria esconder, não graciar.
+        $blockingErrors = array_sum(array_column(
+            array_filter($results, fn ($r) => ! ($r['grace'] ?? false)),
+            'errors_count'
+        ));
+        $graceErrors = $totalErrors - $blockingErrors;
         $totalWarnings = array_sum(array_column($results, 'warnings_count'));
         $totalFiles = array_sum(array_column($results, 'files_count'));
 
@@ -119,6 +158,8 @@ class JanaValidateMemoryCommand extends Command
                 'strict' => $strict,
                 'total_files' => $totalFiles,
                 'total_errors' => $totalErrors,
+                'blocking_errors' => $blockingErrors,
+                'grace_errors' => $graceErrors,
                 'total_warnings' => $totalWarnings,
                 'buckets' => $results,
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -127,18 +168,21 @@ class JanaValidateMemoryCommand extends Command
         }
 
         // Grace period: warning não bloqueia se strict=false
-        if ($totalErrors > 0 && $strict) {
+        if ($blockingErrors > 0 && $strict) {
             if (! $this->option('json')) {
-                $this->error("BLOQUEIO — {$totalErrors} violação(ões) com strict=true.");
+                $this->error("BLOQUEIO — {$blockingErrors} violação(ões) com strict=true.");
             }
             return 1;
         }
 
         // Mensagens human-friendly só fora do modo JSON (mantém saída JSON parseable)
         if (! $this->option('json')) {
-            if ($totalErrors > 0) {
-                $this->warn("Grace period (strict=false) — {$totalErrors} violação(ões) reportada(s) como warning. Wagner ativa strict via JANA_VALIDATE_MEMORY_STRICT=true.");
-            } else {
+            if ($graceErrors > 0) {
+                $this->warn("Grace por família — {$graceErrors} violação(ões) em famílias `grace` (não bloqueiam nem com strict; mesma regra da matriz do CI).");
+            }
+            if ($blockingErrors > 0) {
+                $this->warn("Grace period (strict=false) — {$blockingErrors} violação(ões) reportada(s) como warning. Wagner ativa strict via JANA_VALIDATE_MEMORY_STRICT=true.");
+            } elseif ($graceErrors === 0) {
                 $this->info("OK — {$totalFiles} arquivo(s) válido(s).");
             }
         }
@@ -155,6 +199,7 @@ class JanaValidateMemoryCommand extends Command
         if (! File::exists($schemaPath)) {
             return [
                 'schema' => $key,
+                'grace' => $config['grace'] ?? false,
                 'files_count' => 0,
                 'errors_count' => 0,
                 'warnings_count' => 0,
@@ -207,6 +252,7 @@ class JanaValidateMemoryCommand extends Command
 
         return [
             'schema' => $key,
+            'grace' => $config['grace'] ?? false,
             'files_count' => count($files),
             'errors_count' => $errorsCount,
             'warnings_count' => $warningsCount,
@@ -360,12 +406,15 @@ class JanaValidateMemoryCommand extends Command
     {
         $rows = [];
         foreach ($results as $key => $r) {
+            $grace = $r['grace'] ?? false;
             $rows[] = [
-                $key,
+                $key . ($grace ? ' [grace]' : ''),
                 $r['files_count'],
                 $r['errors_count'],
                 $r['warnings_count'],
-                $r['errors_count'] === 0 ? 'OK' : 'FAIL',
+                // Família grace nunca bloqueia — dizer FAIL nela seria afirmar um
+                // enforcement que ela não tem (lápide §5 2026-07-16).
+                $r['errors_count'] === 0 ? 'OK' : ($grace ? 'WARN' : 'FAIL'),
             ];
         }
         $this->table(['Schema', 'Files', 'Errors', 'Warnings', 'Status'], $rows);

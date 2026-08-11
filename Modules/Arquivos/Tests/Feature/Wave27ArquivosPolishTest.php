@@ -224,7 +224,7 @@ it('027.a26 ArquivosService preservado (DI ok — sem regressão Wave 27)', func
 // ---------- D5 — README persona Auditor LGPD ----------
 
 it('027.a30 README.md existe e menciona persona Auditor LGPD', function () {
-    $path = base_path('Modules/Arquivos/README.md');
+    $path = base_path('memory/requisitos/Arquivos/README.md');
     expect(file_exists($path))->toBeTrue('README.md ausente — D5 violado');
 
     $src = file_get_contents($path);
@@ -233,7 +233,7 @@ it('027.a30 README.md existe e menciona persona Auditor LGPD', function () {
 });
 
 it('027.a31 README.md cobre 5 garantias canônicas ao Auditor LGPD', function () {
-    $src = file_get_contents(base_path('Modules/Arquivos/README.md'));
+    $src = file_get_contents(base_path('memory/requisitos/Arquivos/README.md'));
 
     // Garantias mínimas exigidas pra D5 Wave 27
     expect($src)->toContain('Política declarada');
@@ -244,7 +244,7 @@ it('027.a31 README.md cobre 5 garantias canônicas ao Auditor LGPD', function ()
 });
 
 it('027.a32 README.md referencia ADR 0123 + 0093 (governance Tier 0)', function () {
-    $src = file_get_contents(base_path('Modules/Arquivos/README.md'));
+    $src = file_get_contents(base_path('memory/requisitos/Arquivos/README.md'));
 
     expect($src)->toContain('0123');
     expect($src)->toContain('0093');

@@ -321,21 +321,21 @@ it('TIER 0 — Subscription entity é cross-tenant intencional (Superadmin conte
 });
 
 it('TIER 0 — README Superadmin documenta cross-tenant intencional + ADR 0093 §exceções', function () {
-    $readme = file_get_contents(base_path('Modules/Superadmin/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/Superadmin/README.md'));
 
     expect($readme)->toContain('Cross-tenant intencional');
     expect($readme)->toContain('ADR 0093');
 });
 
 it('TIER 0 — README Superadmin proíbe DELETE em audit logs (append-only LGPD)', function () {
-    $readme = file_get_contents(base_path('Modules/Superadmin/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/Superadmin/README.md'));
 
     expect($readme)->toContain('append-only');
     expect($readme)->toContain('superadmin_communicator_logs');
 });
 
 it('TIER 0 — README Superadmin proíbe gateway novo sem ADR + RFC + Eliana counsel', function () {
-    $readme = file_get_contents(base_path('Modules/Superadmin/README.md'));
+    $readme = file_get_contents(base_path('memory/requisitos/Superadmin/README.md'));
 
     expect($readme)->toContain('Gateway novo');
     expect($readme)->toContain('Eliana');

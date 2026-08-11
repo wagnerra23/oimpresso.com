@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 572 arquivos em 19 papéis.
+**Total mapeado:** 570 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -29,13 +29,12 @@ module: Jana
 - [ProController.php](../../../Modules/Jana/Http/Controllers/ProController.php)
 - [SuperadminController.php](../../../Modules/Jana/Http/Controllers/SuperadminController.php)
 
-## Requests (validação) — 8
+## Requests (validação) — 7
 
 - [SendChatMessageRequest.php](../../../Modules/Jana/Http/Requests/SendChatMessageRequest.php)
 - [StoreMensagemRequest.php](../../../Modules/Jana/Http/Requests/StoreMensagemRequest.php)
 - [StoreMetaRequest.php](../../../Modules/Jana/Http/Requests/StoreMetaRequest.php)
 - [StorePeriodoRequest.php](../../../Modules/Jana/Http/Requests/StorePeriodoRequest.php)
-- [StoreSugestaoRequest.php](../../../Modules/Jana/Http/Requests/StoreSugestaoRequest.php)
 - [UpdateAlertasConfigRequest.php](../../../Modules/Jana/Http/Requests/UpdateAlertasConfigRequest.php)
 - [UpdateMetaRequest.php](../../../Modules/Jana/Http/Requests/UpdateMetaRequest.php)
 - [UpdatePeriodoRequest.php](../../../Modules/Jana/Http/Requests/UpdatePeriodoRequest.php)
@@ -369,7 +368,7 @@ module: Jana
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
-## Componentes / apoio de tela — 7
+## Componentes / apoio de tela — 6
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
@@ -377,7 +376,6 @@ module: Jana
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
 - [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
-- [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
 ## Charters (lei da tela) — 4
 
@@ -391,7 +389,7 @@ module: Jana
 - [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 157
+## Testes (Pest) — 158
 
 - 30 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
@@ -414,10 +412,10 @@ module: Jana
 - 1 em [Modules/Jana/Tests/Feature/Summarizer/](../../../Modules/Jana/Tests/Feature/Summarizer)
 - 16 em [Modules/Jana/Tests/Feature/TaskRegistry/](../../../Modules/Jana/Tests/Feature/TaskRegistry)
 - 5 em [Modules/Jana/Tests/Feature/Telemetry/](../../../Modules/Jana/Tests/Feature/Telemetry)
-- 12 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
+- 13 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 91
+## Demais arquivos (manifestos, docs, assets e misc) — 90
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -441,7 +439,6 @@ module: Jana
 - [VendasPeriodoTool.php](../../../Modules/Jana/Ai/Tools/BriefDiario/VendasPeriodoTool.php)
 - [UiDeterministicScorer.php](../../../Modules/Jana/Ai/UiDeterministicScorer.php)
 - [UiJudgeConsensus.php](../../../Modules/Jana/Ai/UiJudgeConsensus.php)
-- [CHANGELOG.md](../../../Modules/Jana/CHANGELOG.md)
 - [AiAdapter.php](../../../Modules/Jana/Contracts/AiAdapter.php)
 - [CalculaMeta.php](../../../Modules/Jana/Contracts/CalculaMeta.php)
 - [MemoriaContrato.php](../../../Modules/Jana/Contracts/MemoriaContrato.php)

@@ -21,7 +21,7 @@ declare(strict_types=1);
  *
  * Wave 18 — D5 boost cliente real via smoke jornada.
  *
- * @see Modules/ComunicacaoVisual/README.md §3
+ * @see memory/requisitos/ComunicacaoVisual/README.md §3
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-001..004
  */
 

@@ -72,7 +72,15 @@ class AutomationsListTool extends Tool
         $rows = $q->limit($limit)->get();
 
         if ($rows->isEmpty()) {
-            return Response::text('Nenhuma automação encontrada com esses filtros. (Rode `php artisan jana:automations:sync` se o registry estiver vazio.)');
+            $totalRegistry = McpAutomation::count();
+
+            if ($totalRegistry === 0) {
+                return Response::text($this->mensagemRegistryVazio());
+            }
+
+            return Response::text(
+                "Nenhuma automação encontrada com esses filtros (o registry tem {$totalRegistry} no total)."
+            );
         }
 
         // Resolve drift por automação (checa filesystem real — fonte de verdade).
@@ -126,6 +134,25 @@ class AutomationsListTool extends Tool
         }
 
         return Response::text($output);
+    }
+
+    /**
+     * Registry vazio ≠ filtro que não casou — a mensagem antiga conflatava os dois.
+     *
+     * NÃO manda rodar `jana:automations:sync`: o comando existe no disco mas nunca
+     * esteve no `commands([...])` do JanaServiceProvider (`git log -S` vazio), então
+     * `php artisan` não o conhece — e nada em deploy/CI/Kernel o invoca. Medido
+     * 2026-08-10: registry 0 linhas e 0 chamadas desta tool em 103 dias de audit log.
+     * Anunciar saída que o código não honra é a classe LC-15 (proibicoes §5 2026-07-30);
+     * o certo é apontar o dono VIVO de cada eixo.
+     */
+    private function mensagemRegistryVazio(): string
+    {
+        return "O registry `mcp_automations` está vazio (nenhum escritor o popula hoje).\n\n"
+            . "Inventário vivo, por eixo:\n"
+            . "  • hooks          → `.claude/hooks/_HOOKS-INDEX.md` (gerado, com --check de drift no CI)\n"
+            . "  • crons Laravel  → `php artisan schedule:list`\n"
+            . "  • visão geral    → `memory/governance/AUTOMATIONS.md`";
     }
 
     /**

@@ -123,21 +123,76 @@ it('UC-V303 — o V3 não encosta nos artefatos da tela viva (fronteira)', funct
     expect($codigoSemComentario)->not->toContain('SellPosController');
 
     // A Page do preview não importa a Page viva nem os _components que ela consome.
+    //
     // Asserção sobre o ESPECIFICADOR de import — não sobre o texto do arquivo, senão
     // um comentário citando o próprio caminho (`Pages/Sells/CreateV3.tsx`) casaria com
     // "Pages/Sells/Create" por substring e reprovaria sozinho.
-    preg_match_all(
-        '/^\s*import\s[^;]*?from\s+[\'"]([^\'"]+)[\'"]/m',
-        file_get_contents(base_path(V3_PAGE_PATH)),
-        $matches,
-    );
-    $origens = $matches[1] ?? [];
+    //
+    // E o especificador é NORMALIZADO antes de comparar. A 1ª redação comparava a
+    // string crua contra "Sells/_components": um import RELATIVO (`./_components/…`)
+    // passava por não conter o prefixo, mesmo apontando para dentro da pasta vigiada.
+    // Passaria por acidente de forma, não por estar certo — e assert que só acerta
+    // por forma é o que o §5 chama de verde tautológico.
+    $importsDe = static function (string $pathRelativo): array {
+        preg_match_all(
+            '/^\s*import\s[^;]*?from\s+[\'"]([^\'"]+)[\'"]/m',
+            (string) file_get_contents(base_path($pathRelativo)),
+            $m,
+        );
+        $dir = dirname($pathRelativo);
+
+        return array_map(static function (string $origem) use ($dir): string {
+            // `./x` e `../x` viram caminho do repo; alias e pacote ficam como estão.
+            if (! str_starts_with($origem, '.')) {
+                return $origem;
+            }
+            $bruto = $dir.'/'.$origem;
+            $partes = [];
+            foreach (explode('/', str_replace('\\', '/', $bruto)) as $parte) {
+                if ($parte === '' || $parte === '.') {
+                    continue;
+                }
+                if ($parte === '..') {
+                    array_pop($partes);
+
+                    continue;
+                }
+                $partes[] = $parte;
+            }
+
+            return implode('/', $partes);
+        }, $m[1] ?? []);
+    };
+
+    $origens = $importsDe(V3_PAGE_PATH);
 
     // Controle positivo: a Page importa alguma coisa (regex casou de fato).
     expect($origens)->not->toBeEmpty();
 
+    // Controle positivo da NORMALIZAÇÃO: pelo menos um import relativo virou caminho
+    // do repo. Sem isto, um dia em que a regex parasse de casar relativo deixaria o
+    // laço abaixo verde por não ter o que verificar.
+    expect(array_filter($origens, static fn (string $o): bool => str_starts_with($o, 'resources/js/Pages/Sells/')))
+        ->not->toBeEmpty('nenhum import relativo foi normalizado — a verificação abaixo estaria vazia');
+
     foreach ($origens as $origem) {
         expect(str_ends_with($origem, '/Create'))->toBeFalse("importa a tela viva: {$origem}");
-        expect(str_contains($origem, 'Sells/_components'))->toBeFalse("importa _components da viva: {$origem}");
+
+        // `_components/v3/` é a casa dos primitivos NASCIDOS para o preview: a
+        // cópia local que a Fronteira do charter manda criar em vez de editar o
+        // original. Qualquer outro `_components` de Sells é da tela viva.
+        $ehComponenteDeSells = str_contains($origem, 'Pages/Sells/_components');
+        $ehExclusivoDoPreview = str_contains($origem, 'Pages/Sells/_components/v3/');
+        expect($ehComponenteDeSells && ! $ehExclusivoDoPreview)
+            ->toBeFalse("importa _components da viva: {$origem}");
+    }
+
+    // O outro lado da mesma fronteira, e é ele que dá substância à exceção acima:
+    // a tela VIVA não consome nada de `_components/v3/`. Se um dia consumir, a
+    // pasta deixa de ser exclusiva do preview e editar um arquivo dela passa a
+    // vazar para a ROTA LIVRE — que é exatamente o que este UC existe para impedir.
+    foreach ($importsDe('resources/js/Pages/Sells/Create.tsx') as $origem) {
+        expect(str_contains($origem, '_components/v3/'))
+            ->toBeFalse("a tela viva passou a consumir um primitivo do preview: {$origem}");
     }
 });

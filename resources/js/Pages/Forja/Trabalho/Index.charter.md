@@ -5,12 +5,12 @@ component: resources/js/Pages/Forja/Trabalho/Index.tsx
 related_prototype: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft
-last_validated: "2026-08-09"
+last_validated: "2026-08-10"
 parent_module: Forja
 related_us: [US-FORJA-006]
 related_adrs: [70, 93, 253]
 tier: B
-charter_version: 3
+charter_version: 4
 ---
 
 # Page Charter — /forja/trabalho
@@ -105,6 +105,23 @@ sem saber por quê. `UC-TRAB-10` trava os dois lados disso.
 
 ---
 
+## O card do Quadro usa os selos CANÔNICOS (não hand-roll)
+
+`<PriorityDot>` e `<ActorSeal>` vêm de `@/Components/shared/TaskBadges` — promovidos de
+`Pages/team-mcp/Tasks/_components/` nesta onda, porque a rule `components.md` diz que composto
+consumido por **≥2 módulos** mora em `shared/`.
+
+**Por que isso está no charter e não só no código:** a 1ª versão deste quadro mostrava `owner` em
+texto cinza e prioridade em badge de texto — **tendo os dois componentes prontos a um import de
+distância**, e citando o `ActorSeal` na tabela comparativa acima. Perder a distinção
+**agente vs humano** apaga o conceito central da Forja (o subtítulo do hub diz *"atores humano vs
+agente"*). Ver proibições §5 2026-08-10 (*"Construir tela derivando do CÓDIGO quando existe FONTE DE DESIGN"*).
+
+A lista de agentes vem do backend (`TrabalhoService::agentes()`) — **allowlist** de `ai_agent` não
+revogado, em minúsculas. Nunca heurística de nome.
+
+---
+
 ## Non-Goals
 
 > Derivados do pedido do [W] (2026-08-08) e da `US-FORJA-006`. Não inferidos.
@@ -135,6 +152,10 @@ sem saber por quê. `UC-TRAB-10` trava os dois lados disso.
   erro — não avisa ninguém. A lista de compatíveis é do backend; se crescer, o destino tem que ler.
 - ❌ **Não** dar `aria-pressed` ao botão Gantt. Ele não é estado desta tela, é navegação; marcá-lo
   como toggle diria ao leitor de tela que a pessoa continua onde estava.
+- ❌ **Não** hand-rolar selo de prioridade/ator no card. Existe canon em `shared/TaskBadges`; se
+  faltar variante, estenda o canon — não faça um ao lado.
+- ❌ **Não** decidir "é agente?" por padrão de nome (`claude*`, `*-bot`). A fonte é a tabela
+  `mcp_actors` (`type=ai_agent`, não revogado) — heurística de nome erra e o selo mente.
 - ❌ **Não** criar coluna "sem fase" no eixo Pipeline. Ausência de fase é informação, não buraco.
 - ❌ **Não** pôr `visao`/`eixo` na chave do cache — eles não afetam a consulta; incluí-los faz
   cada toggle refazer a query inteira por nada.

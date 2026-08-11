@@ -94,7 +94,7 @@ function formatValue(value: number, unidade: string) {
 
 function Sparkline({ dados }: { dados: Apuracao[] }) {
   if (dados.length < 2) {
-    return <div className="h-8 text-xs text-muted-foreground flex items-center">Sem histórico</div>
+    return <div data-contract="painel-meta-sem-historico" className="h-8 text-xs text-muted-foreground flex items-center">Sem histórico</div>
   }
 
   const valores = dados.map(d => d.valor_realizado)
@@ -156,7 +156,7 @@ function MetaCard({ meta }: { meta: Meta }) {
             {formatValue(realizado, meta.unidade)}
           </div>
         ) : (
-          <div className="text-sm text-muted-foreground">Aguardando apuração…</div>
+          <div data-contract="painel-meta-apurando" className="text-sm text-muted-foreground">Aguardando apuração…</div>
         )}
 
         {alvo !== null && (
@@ -248,7 +248,7 @@ function ProximaAcaoCard() {
         </p>
         <div className="mt-3">
           <Link href="/ia/conversa">
-            <Button size="sm" variant="outline" className="gap-2">
+            <Button data-contract="painel-cta-conversar" size="sm" variant="outline" className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversar agora
             </Button>
@@ -283,10 +283,11 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
         }
       />
 
-      {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do JanaCockpitV2, US-COPI-146).
+      {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do antigo JanaCockpitV2, US-COPI-146).
           Sem wrapper .sells-cowork: o cockpit agora usa shared KpiGrid/KpiCard + Card +
-          tokens Tailwind (dark herda nativo), zero ilha CSS. A tab Insights de /sells
-          segue no JanaCockpitV2 (.vd-insights-*, tela-dona legítima do bundle).
+          tokens Tailwind (dark herda nativo), zero ilha CSS. Este comentário dizia que a
+          tab Insights de /sells "segue no JanaCockpitV2" — era falso: aquela tab já não
+          existe e o V2 tinha 0 imports; foi removido em 2026-08-10.
           shrink-0: .main-body é flex-column + overflow-y:auto (cockpit.css); sem ele o
           flex encolhia o wrapper e o conteúdo (mais alto) vazava sobre o bloco Metas. */}
       <div className="px-6 pt-6 shrink-0">
@@ -312,7 +313,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                 <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
                 METAS
               </Badge>
-              <span className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
+              <span data-contract="painel-metas-header" className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
             </div>
             <div>
               <h2 className="text-xl font-semibold tracking-tight">Metas ativas</h2>
@@ -351,7 +352,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                 <Sparkles className="h-10 w-10 text-violet-500" aria-hidden="true" />
               </div>
               <div className="space-y-1">
-                <p className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
+                <p data-contract="painel-metas-vazio" className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
                 <p className="max-w-sm text-sm text-muted-foreground">
                   Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
                 </p>

@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  *   - D6: ServiceOrderController magro métodos < 60 linhas
  *
  * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
- * @see Modules/OficinaAuto/README.md
+ * @see memory/requisitos/OficinaAuto/README.md
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
  */
 describe('Wave 26 OficinaAuto POLISH 77→88', function () {
@@ -93,7 +93,7 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
     });
 
     it('D5: README cita Martinho Caçambas + cliente piloto + journey numerada', function () {
-        $readmePath = base_path('Modules/OficinaAuto/README.md');
+        $readmePath = base_path('memory/requisitos/OficinaAuto/README.md');
         expect(file_exists($readmePath))->toBeTrue();
 
         $src = file_get_contents($readmePath);
@@ -107,7 +107,7 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
     });
 
     it('D5: README documenta LGPD pii_fields_tracked completo', function () {
-        $src = file_get_contents(base_path('Modules/OficinaAuto/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/OficinaAuto/README.md'));
 
         expect($src)->toContain('plate')
             ->and($src)->toContain('chassis')
@@ -116,7 +116,7 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
     });
 
     it('D5: README cita 3 CNAEs cobertos (4520 + 2212 + 4581)', function () {
-        $src = file_get_contents(base_path('Modules/OficinaAuto/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/OficinaAuto/README.md'));
 
         expect($src)->toContain('4520'); // Manutenção/Reparação
         expect($src)->toContain('2212'); // Recapagem
@@ -124,14 +124,14 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
     });
 
     it('D5: README documenta FSM canônica ADR 0143 LIVE', function () {
-        $src = file_get_contents(base_path('Modules/OficinaAuto/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/OficinaAuto/README.md'));
 
         expect($src)->toContain('FSM canônica');
         expect($src)->toContain('0143');
     });
 
     it('D5: README documenta WhatsApp aprovação PIN+HMAC (US-OFICINA-006)', function () {
-        $src = file_get_contents(base_path('Modules/OficinaAuto/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/OficinaAuto/README.md'));
 
         expect($src)->toContain('WhatsApp');
         expect($src)->toContain('PIN');
@@ -168,7 +168,7 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
 
     it('D5: Martinho Caçambas em SCOPE ou CHANGELOG (Wave 25 mantido)', function () {
         $scopePath = base_path('Modules/OficinaAuto/SCOPE.md');
-        $changePath = base_path('Modules/OficinaAuto/CHANGELOG.md');
+        $changePath = base_path('memory/requisitos/OficinaAuto/CHANGELOG.md');
 
         $found = false;
         foreach ([$scopePath, $changePath] as $p) {

@@ -114,7 +114,7 @@ describe('Wave 28 Manufacturing POLISH 77-90 → ≥92', function () {
     // ------------------------------------------------------------------
 
     it('D3 W28: CHANGELOG.md tem entrada Wave 28 (saturation 77-90 → ≥92)', function () {
-        $changelog = file_get_contents(base_path('Modules/Manufacturing/CHANGELOG.md'));
+        $changelog = file_get_contents(base_path('memory/requisitos/Manufacturing/CHANGELOG.md'));
         expect($changelog)->toContain('Wave 28');
     });
 });

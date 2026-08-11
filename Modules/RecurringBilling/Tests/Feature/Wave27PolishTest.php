@@ -27,7 +27,7 @@ uses(Tests\TestCase::class);
  *   - Tests biz=1 (ADR 0101) — NUNCA biz=4 ROTA LIVRE prod
  *   - US-RB-044 canônico irrevogável: Event::class shape + autoloader exists()
  *
- * @see Modules/RecurringBilling/CHANGELOG.md Wave 27
+ * @see memory/requisitos/RecurringBilling/CHANGELOG.md Wave 27
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */

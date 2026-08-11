@@ -414,12 +414,39 @@ test('(c) automations-list filtra drift=missing_file (zumbi)', function () {
         ->and($out)->not->toContain('saudavel-list');
 });
 
-test('(c) automations-list vazio retorna mensagem amigável', function () {
+test('(c) automations-list com registry vazio aponta os donos vivos', function () {
     $tool = new AutomationsListTool();
     $out = (string) $tool->handle(new McpRequest([]))->content();
 
-    expect($out)->toContain('Nenhuma automação encontrada');
+    expect($out)->toContain('registry `mcp_automations` está vazio')
+        ->and($out)->toContain('_HOOKS-INDEX.md')
+        // não pode voltar a mandar rodar o sync — ele não está registrado no artisan
+        ->and($out)->not->toContain('jana:automations:sync');
 });
+
+test('(c) registry POPULADO + filtro que não casa NÃO diz "registry vazio"', function () {
+    // controle negativo do teste acima: os dois estados eram conflatados na mesma frase
+    McpAutomation::create([
+        'slug'    => 'existe-um-cron',
+        'tipo'    => 'cron',
+        'gatilho' => 'x',
+        'arquivo' => 'app/Console/Kernel.php',
+        'enabled' => true,
+    ]);
+
+    $tool = new AutomationsListTool();
+    $out = (string) $tool->handle(new McpRequest(['tipo' => 'webhook']))->content();
+
+    expect($out)->toContain('Nenhuma automação encontrada com esses filtros')
+        ->and($out)->toContain('o registry tem 1 no total')
+        ->and($out)->not->toContain('está vazio');
+});
+
+// O guard LC-15 (todo `php artisan X` citado por tool MCP existe no artisan) NÃO mora
+// aqui: este arquivo faz markTestSkipped fora do sqlite e nenhuma lane sqlite o invoca
+// (a `jana-logica-pura` só lista Tests/Unit), então um guard aqui seria verde por
+// não-execução — LC-13. Ele vive, executável, em
+// Modules/Jana/Tests/Unit/McpToolsNaoCitamComandoInexistenteTest.php.
 
 // ───────────────────── multi-tenant: global by-design ─────────────────────
 

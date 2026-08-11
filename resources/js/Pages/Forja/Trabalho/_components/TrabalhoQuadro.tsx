@@ -23,7 +23,14 @@
 
 import { Card, CardContent } from '@/Components/ui/card';
 import { Grid, Inline, Stack } from '@/Components/layout';
-import { PRIORITY_BADGE, COLUMN_LABEL_PT, COLUMN_BORDER, type Priority, type Status } from '@/Components/board/badges';
+import { COLUMN_LABEL_PT, COLUMN_BORDER, type Status } from '@/Components/board/badges';
+// Selos canônicos — reuso, não hand-roll. O `ActorSeal` distingue AGENTE de
+// HUMANO, que é o conceito central da Forja (o subtítulo do hub diz "atores
+// humano vs agente"); a 1ª versão deste quadro mostrava `owner` em texto cinza
+// e perdia a distinção inteira. Ver proibicoes §5 2026-08-10 — "Construir tela
+// derivando do CÓDIGO quando existe FONTE DE DESIGN".
+import { ActorSeal, PriorityDot } from '@/Components/shared/TaskBadges';
+import type { Priority } from '@/Lib/taskTokens';
 import { cn } from '@/Lib/utils';
 import { Lock } from 'lucide-react';
 
@@ -59,7 +66,7 @@ const FASES: { key: string; label: string }[] = [
 /** Colunas do eixo Execução — as ATIVAS. `done`/`cancelled` saem do board. */
 const STATUS_ATIVOS: Status[] = ['todo', 'doing', 'review', 'blocked'];
 
-export default function TrabalhoQuadro({ tasks, eixo }: { tasks: TaskCard[]; eixo: EixoQuadro }) {
+export default function TrabalhoQuadro({ tasks, eixo, agents = [] }: { tasks: TaskCard[]; eixo: EixoQuadro; agents?: string[] }) {
   const colunas = eixo === 'pipeline'
     ? FASES.map((f) => ({
         chave: f.key,
@@ -114,9 +121,7 @@ export default function TrabalhoQuadro({ tasks, eixo }: { tasks: TaskCard[]; eix
                 <CardContent className="p-2.5">
                   <Stack gap={2}>
                     <Inline gap={2} align="center">
-                      <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-medium uppercase', PRIORITY_BADGE[t.priority])}>
-                        {t.priority}
-                      </span>
+                      <PriorityDot priority={t.priority} />
                       <span className="font-mono text-[10px] text-muted-foreground">{t.display_id}</span>
                       {t.is_blocked && <Lock className="ml-auto h-3 w-3 text-destructive" aria-label="bloqueada" />}
                     </Inline>
@@ -129,9 +134,7 @@ export default function TrabalhoQuadro({ tasks, eixo }: { tasks: TaskCard[]; eix
                           {t.module}
                         </span>
                       )}
-                      <span className="ml-auto text-[10px] text-muted-foreground">
-                        {t.owner ?? 'sem dono'}
-                      </span>
+                      <ActorSeal owner={t.owner} agents={agents} className="ml-auto" />
                     </Inline>
                   </Stack>
                 </CardContent>

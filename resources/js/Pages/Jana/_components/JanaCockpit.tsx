@@ -5,9 +5,13 @@
 // tokens semânticos Tailwind (dark herda nativo). Zero ilha CSS — a violação R7 do
 // ui:lint some com este componente (ver US-COPI-146 · PT-04 L80 · ADR UI-0013).
 //
-// A LÓGICA é idêntica ao JanaCockpitV2 (brief, acoes, janaKpis) — só o render mudou.
-// O JanaCockpitV2 (com .vd-insights-*) continua servindo a tab Insights de /sells, onde
-// o bundle .sells-cowork é legítimo (tela-dona). Bifurcação decidida por [W] 2026-07-20.
+// A LÓGICA veio idêntica do JanaCockpitV2 (brief, acoes, janaKpis) — só o render mudou.
+// Bifurcação decidida por [W] 2026-07-20.
+//
+// ⚠️ Este bloco dizia que o JanaCockpitV2 "continua servindo a tab Insights de /sells".
+// Era falso — aquela tab foi removida de /sells e o V2 tinha 0 imports no repo. Ele foi
+// deletado em 2026-08-10, e este componente é o único cockpit da Jana. Provas em
+// memory/requisitos/Jana/RUNBOOK-components.md.
 //
 // Golden de referência: resources/js/Pages/governance/Dashboard.tsx
 // Âncora de design: prototipo-ui/cowork/chat-jana.jsx (.jc-* · "dark herda via token")

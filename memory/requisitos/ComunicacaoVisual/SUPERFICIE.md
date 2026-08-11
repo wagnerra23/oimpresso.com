@@ -14,7 +14,7 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ComunicacaoVisual/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 70 arquivos em 15 papéis.
+**Total mapeado:** 68 arquivos em 15 papéis.
 
 ## Controllers — 4
 
@@ -103,10 +103,8 @@ module: ComunicacaoVisual
 - 21 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 6
+## Demais arquivos (manifestos, docs, assets e misc) — 4
 
-- [CHANGELOG.md](../../../Modules/ComunicacaoVisual/CHANGELOG.md)
-- [README.md](../../../Modules/ComunicacaoVisual/README.md)
 - [comunicacao-visual.php](../../../Modules/ComunicacaoVisual/Resources/lang/pt-BR/comunicacao-visual.php)
 - [SCOPE.md](../../../Modules/ComunicacaoVisual/SCOPE.md)
 - [composer.json](../../../Modules/ComunicacaoVisual/composer.json)

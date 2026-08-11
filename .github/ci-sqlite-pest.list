@@ -25,6 +25,13 @@ Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
 Modules/Jana/Tests/Feature/McpScopesVisiveisNoRoleEditTest.php
 # Poda preventiva de mcp_memory_documents_history (incidente 2026-06-21 — 5 GB → cota → revogou escrita). Schema sintético, sqlite-safe.
 Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
+# BriefDiarioAgent (US-COPI-202, ADR 0141) — vinha listado SÓ na allowlist MySQL do
+# jana-pest.yml, onde o guard sqlite-only o fazia pular sempre (skip = exit 0 = verde
+# fantasma). Um dos 6 casos é R-COPI-202-003, trava cross-tenant Tier 0 (ADR 0093):
+# nunca rodou. Schema sintético próprio, sem RefreshDatabase → sqlite-safe, mesmo
+# padrão do MemoryHistoryPruneCommandTest acima. Medido pelo eixo 2 do
+# test-lane-coverage (--mudos) em 2026-08-10.
+Modules/Jana/Tests/Feature/Ai/BriefDiarioAgentTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
 Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
 Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
@@ -38,6 +45,12 @@ Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
 Modules/KB/Tests/Feature/KbCodeScanTest.php
 # KB code-graph (Fase D) — kb_edges de dependência (classe usa classe) via AST. sqlite-safe (kbBootstrapSchema cria kb_nodes+kb_edges; php-parser das dev deps).
 Modules/KB/Tests/Feature/KbCodeGraphTest.php
+# LGPD/PII do KB — mesmo caso do BriefDiarioAgentTest: guard sqlite-only + listado só
+# na allowlist MySQL do kb-pest.yml ⇒ pulava sempre. Usa kbBootstrapSchema (mesmo
+# padrão dos 3 KB acima), sem RefreshDatabase → sqlite-safe. Cobre PiiRedactor
+# (CPF/CNPJ/email/telefone), LogsActivity em KbNode/KbComment e os buckets de
+# retenção. Medido pelo eixo 2 do test-lane-coverage (--mudos) em 2026-08-10.
+Modules/KB/Tests/Feature/LgpdComplianceTest.php
 # NOTA: KbHealthSnapshotTest NÃO entra aqui — é MySQL-only (roda na lane kb-pest.yml).
 # Suas asserções de contagem por-business + multi-tenant divergem no sqlite :memory:
 # da lane compartilhada (o comando enxerga resíduo que a re-query do teste não vê;
@@ -416,3 +429,13 @@ Modules/Jana/Tests/Feature/Mcp/McpTasksHealthCheckCommandTest.php
 # aqui pra que os casos novos possam de fato reprovar. Sqlite-safe: file_get_contents,
 # Menu em memoria via Menu::create, e LegacyMenuAdapter->build() sobre menu vazio — DB-less.
 Modules/Governance/Tests/Feature/GovernanceModuleSubscriptionGateTest.php
+# Testes do artisan jana:validate-memory. Estavam FORA de qualquer lane desde que o
+# arquivo nasceu (medido 2026-08-11: nao aparece em jana-pest.yml, jana-logica-pura-pest.yml
+# nem aqui) — teste no repo fora do CI e LC-13, "verde por nao-execucao". O comando tambem
+# nao tem invocador (0 schedules no Kernel; governance-audit.mjs deprecado), entao nada
+# provava que ele sequer bootava. Entra agora porque o PR que unificou o roteamento
+# arquivo->schema (familias.json) mexeu nele: os 2 casos novos derivam o esperado do
+# proprio JSON, entao uma familia sumir do comando reprova aqui. Sqlite-safe: nao usa
+# RefreshDatabase nem toca DB — cria fixtures .md em storage/framework/testing e roda
+# Artisan::call; o unico acesso e filesystem.
+Modules/Jana/Tests/Feature/MemorySchema/JanaValidateMemoryCommandTest.php

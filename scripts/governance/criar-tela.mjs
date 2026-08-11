@@ -31,7 +31,7 @@
 //
 // Contrato: UI-0013 (herança de Padrão de Tela) · ADR 0264 (trio-de-tela) · pt-conformance.mjs.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { detectSignals, REQUIRED } from './lib/pt-signatures.mjs';
@@ -200,10 +200,61 @@ export default function ${tela}({ colunas }: Props) {
   return head + bodies[pt];
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROTÓTIPO DO MÓDULO — o buraco que este detector fecha (achado 2026-08-09).
+//
+// Antes: o template escrevia `related_prototype: n/a (herda PT-0X)` SEMPRE, e o
+// `anchor-content-check` (required) só valida âncora DECLARADA — sem âncora, nada
+// a validar, gate verde. Resultado: tela nova nascia sem NINGUÉM perguntar "existe
+// protótipo pra esta família?". Foi assim que o Quadro da Forja nasceu ignorando
+// `forja-page.jsx`, que já desenhava KanbanView/KanbanCard com RoleBadge, TypeChip
+// e FrescorPill.
+//
+// ⚠️ `n/a` CONTINUA legítimo e é a maioria — tela que nasce do DS não tem protótipo
+// e nunca terá (proibicoes §5 2026-07-17). O que este detector muda é só quem
+// DECIDE: hoje o gerador decidia sozinho; agora ele só decide quando não há nada
+// pra achar. Onde HÁ protótipo, a escolha é explícita do autor.
+//
+// Duas fontes, na ordem em que o `ancora.mjs` também olha:
+//   (a) outro charter do mesmo módulo que já declara um protótipo resolvível
+//   (b) a convenção de nome `prototipo-ui/cowork/<modulo>-page.jsx`
+// ─────────────────────────────────────────────────────────────────────────────
+function detectarPrototipoDoModulo(mod, root = ROOT) {
+  const achados = [];
+
+  // (a) herda o vizinho: se uma tela do módulo já tem âncora, a família tem fonte.
+  const dirMod = join(root, 'resources', 'js', 'Pages', mod);
+  const varrer = (dir) => {
+    let entradas;
+    try { entradas = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entradas) {
+      const alvo = join(dir, e.name);
+      if (e.isDirectory()) { varrer(alvo); continue; }
+      if (!e.name.endsWith('.charter.md')) continue;
+      let txt = '';
+      try { txt = readFileSync(alvo, 'utf8'); } catch { continue; }
+      const m = txt.match(/^related_prototype:\s*(.+)$/m);
+      const v = m && m[1].trim();
+      // `n/a …` é decisão consciente do vizinho, não fonte — não conta como achado.
+      if (!v || /^n\/a/i.test(v)) continue;
+      const caminho = v.split(/\s+/)[0];
+      if (existsSync(join(root, caminho))) achados.push(caminho);
+    }
+  };
+  varrer(dirMod);
+
+  // (b) convenção de nome do Cowork.
+  const porConvencao = `prototipo-ui/cowork/${mod.toLowerCase()}-page.jsx`;
+  if (existsSync(join(root, porConvencao))) achados.push(porConvencao);
+
+  return [...new Set(achados)];
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // TEMPLATE do charter (herda o PT — related_prototype "n/a (herda PT-0X…)")
 // ─────────────────────────────────────────────────────────────────────────────
-function charterTemplate(pt, mod, tela, componentRel) {
+function charterTemplate(pt, mod, tela, componentRel, protoDecl) {
   return `---
 page: /TODO-rota
 component: ${componentRel}
@@ -211,7 +262,7 @@ owner: wagner
 status: draft
 last_validated: "${HOJE}"
 parent_module: ${mod}
-related_prototype: n/a (herda ${pt} ${PT_META[pt].nome}; segue o Padrão de Tela)
+related_prototype: ${protoDecl ?? `n/a (herda ${pt} ${PT_META[pt].nome}; segue o Padrão de Tela)`}
 tier: B
 charter_version: 1
 ---
@@ -320,11 +371,11 @@ test.fixme('${uc}: TODO caminho feliz de ${mod}/${tela}', async ({ page }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Motor de geração
 // ─────────────────────────────────────────────────────────────────────────────
-export function renderConjunto(pt, mod, tela) {
+export function renderConjunto(pt, mod, tela, protoDecl) {
   const componentRel = `resources/js/Pages/${mod}/${tela}.tsx`;
   return {
     tsx: tsxTemplate(pt, mod, tela),
-    charter: charterTemplate(pt, mod, tela, componentRel),
+    charter: charterTemplate(pt, mod, tela, componentRel, protoDecl),
     casos: casosTemplate(mod, tela),
     teste: testeTemplate(mod, tela),
   };
@@ -340,9 +391,9 @@ function planPaths(mod, tela, outRoot) {
   };
 }
 
-function gerar({ mod, tela, pt, force, outRoot }) {
+function gerar({ mod, tela, pt, force, outRoot, protoDecl }) {
   const paths = planPaths(mod, tela, outRoot);
-  const conj = renderConjunto(pt, mod, tela);
+  const conj = renderConjunto(pt, mod, tela, protoDecl);
   const existentes = Object.values(paths).filter((p) => existsSync(p));
   if (existentes.length && !force) {
     console.error(`❌ Já existe(m) (use --force pra sobrescrever):`);
@@ -383,6 +434,53 @@ if (process.argv.includes('--selftest')) {
   // cross-check: PT-02 NÃO deve passar como se fosse PT-05 (assinaturas distintas)
   const pt02 = detectSignals(renderConjunto('PT-02', 'X', 'Y').tsx);
   t(!REQUIRED['PT-05'](pt02), 'PT-02 carimbado NÃO satisfaz assinatura de PT-05 (arquétipos distintos)');
+
+  // ── ÂNCORA DE DESIGN (achado 2026-08-09) ───────────────────────────────────
+  // O gerador escrevia `n/a` SEMPRE, e o `anchor-content-check` (required) só
+  // valida âncora DECLARADA — sem âncora, gate verde. Tela nascia ignorando
+  // protótipo existente. Estes casos provam que ele agora PROCURA antes.
+  //
+  // ⚠️ O bite-test roda o CLI DE FORA (spawnSync), não a função pura: o veto vive
+  // no fluxo do CLI, e assert sobre helper exportado não prova contrato de
+  // pipeline (proibicoes §5 2026-07-30).
+  const { spawnSync } = await import('node:child_process');
+  const { mkdtempSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const rodar = (args) => spawnSync(process.execPath, [fileURLToPath(import.meta.url), ...args],
+    { cwd: ROOT, encoding: 'utf8' });
+  const tmp = () => mkdtempSync(join(tmpdir(), 'criar-tela-'));
+
+  // Detector: acha onde HÁ e não inventa onde NÃO há.
+  t(detectarPrototipoDoModulo('Forja').length > 0,
+    'detector ACHA o protótipo do módulo Forja (forja-page.jsx)');
+  t(detectarPrototipoDoModulo('ModuloQueNaoExisteXyz').length === 0,
+    'detector não inventa protótipo em módulo inexistente');
+
+  // BITE: módulo COM protótipo, sem escolha explícita → recusa (exit 2).
+  const bite = rodar(['Forja/FixturaAncora', 'PT-01', '--out', tmp()]);
+  t(bite.status === 2, 'BITE: módulo COM protótipo sem --prototipo/--sem-prototipo → exit 2');
+  t(/TEM protótipo/.test(bite.stderr || ''), 'BITE: a recusa NOMEIA o candidato encontrado');
+
+  // CN-1: módulo SEM protótipo segue exatamente como antes (não virou gate hostil).
+  const cn1 = tmp();
+  const semProto = rodar(['ModuloSemPrototipoXyz/Tela', 'PT-01', '--out', cn1]);
+  t(semProto.status === 0, 'CN-1: módulo SEM protótipo continua gerando (exit 0)');
+  t(/related_prototype:\s*n\/a \(herda PT-01/.test(
+      readFileSync(join(cn1, 'resources/js/Pages/ModuloSemPrototipoXyz/Tela.charter.md'), 'utf8')),
+    'CN-1: sem protótipo no módulo, o default `n/a (herda PT-0X)` é preservado');
+
+  // CN-2/CN-3: as DUAS saídas explícitas funcionam e escrevem o que prometem.
+  const cn2 = tmp();
+  rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn2, '--prototipo', 'prototipo-ui/cowork/forja-page.jsx']);
+  t(/related_prototype:\s*prototipo-ui\/cowork\/forja-page\.jsx/.test(
+      readFileSync(join(cn2, 'resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
+    'CN-2: --prototipo escreve o path declarado');
+
+  const cn3 = tmp();
+  rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn3, '--sem-prototipo', 'motivo de fixtura']);
+  t(/related_prototype:\s*n\/a \(motivo de fixtura\)/.test(
+      readFileSync(join(cn3, 'resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
+    'CN-3: --sem-prototipo escreve n/a COM a razão (decisão fica registrada)');
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — todo arquétipo nasce conforme ao seu PT.');
   process.exit(fails ? 1 : 0);
 }
@@ -415,7 +513,40 @@ if (!PT_META[pt]) {
 }
 
 const [mod, tela] = alvo.split('/');
-const paths = gerar({ mod, tela, pt, force, outRoot });
+
+// ── ÂNCORA DE DESIGN: decisão do AUTOR, não default do gerador ───────────────
+// Falhar AQUI é barato (o autor está no terminal). Deixar nascer `n/a` cego e
+// descobrir depois custa uma tela inteira construída sem olhar a fonte — foi o
+// que aconteceu com o Quadro da Forja em 2026-08-09.
+const protoIdx = process.argv.indexOf('--prototipo');
+const semIdx   = process.argv.indexOf('--sem-prototipo');
+const protoFlag = protoIdx >= 0 ? process.argv[protoIdx + 1] : null;
+const semFlag   = semIdx   >= 0 ? process.argv[semIdx + 1]   : null;
+
+let protoDecl = null;
+if (protoFlag) protoDecl = protoFlag;
+else if (semFlag) protoDecl = `n/a (${semFlag})`;
+else {
+  const candidatos = detectarPrototipoDoModulo(mod);
+  if (candidatos.length) {
+    console.error(`❌ O módulo ${mod} TEM protótipo — a âncora não pode nascer como "n/a" por default.`);
+    console.error('');
+    console.error('   Candidato(s) encontrado(s):');
+    for (const c of candidatos) console.error(`     • ${c}`);
+    console.error('');
+    console.error('   Escolha explicitamente (a decisão é sua, não do gerador):');
+    console.error(`     --prototipo ${candidatos[0]}`);
+    console.error('     --sem-prototipo "<razão pela qual esta tela não herda a fonte>"');
+    console.error('');
+    console.error('   Por quê: anchor-content-check (required) só valida âncora DECLARADA.');
+    console.error('   Sem âncora não há o que validar, o gate fica verde, e a tela nasce');
+    console.error('   ignorando um protótipo que existe. Ver proibicoes §5 2026-08-09.');
+    process.exit(2);
+  }
+  // Módulo sem protótipo: segue como antes — `n/a (herda PT-0X)`.
+}
+
+const paths = gerar({ mod, tela, pt, force, outRoot, protoDecl });
 
 // Aviso GOLDEN-LIVE: se o golden do PT ainda é draft, a tela não FECHA o ciclo (ciclo-completo
 // cobra golden live). Não bloqueia a geração — só avisa (o lado Design precisa terminar o golden).

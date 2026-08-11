@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 121 (40 contexts required)
+## 1. Workflows / Gates de CI — 122 (41 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -140,6 +140,7 @@ lifecycle: ativo
 | `system-map.yml` | system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md, memory/requisitos/Jana/ARCHITECTURE.md e ONBOARDING-AGENTE-GERADO.md das fontes canônicas. Painel de… |
 | `tier0-guards-advisory.yml` | Tier-0 guards (WithoutGlobalScopes + BusinessId) |
 | `ui-architecture-gate.yml` | UI architecture gate |
+| `verticais-pest.yml` | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
 | `visual-regression.yml` | Visual Regression (Pest 4 Browser) |
 | `whatsapp-pest.yml` | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
@@ -340,7 +341,7 @@ lifecycle: ativo
 | `anchor-lint.mjs` | agente, ci, script | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
 | `ancora-codigo-sync.mjs` | ci, script | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
 | `baseline-tamper-guard.mjs` | ci, script | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
-| `blade-migration-census.mjs` | ci | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
+| `blade-migration-census.mjs` | ci, script | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
 | `briefing-code-staleness.mjs` | agente, ci, npm, script | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
 | `brl-scan-diff.mjs` | ci | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
 | `catalog-graph.mjs` | ci, script | GERADOR determinístico do GRAFO TIPADO de módulos. |
@@ -376,7 +377,7 @@ lifecycle: ativo
 | `dup-detector.mjs` | ci | L3 (keystone) da trava anti-duplicação de trabalho entre sessões |
 | `fact-anchor.mjs` | script | lógica PURA do Check T de memory-health.mjs (fact-anchor). |
 | `feature-lint.mjs` | ci, npm, script | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
-| `fluxo-morde.mjs` | ci | EXERCÍCIO DE FOGO DO FLUXO: o método detém um defeito, ou só o comenta? |
+| `fluxo-morde.mjs` | ci, script | EXERCÍCIO DE FOGO DO FLUXO: o método detém um defeito, ou só o comenta? |
 | `funcao-scorecard-calibracao.mjs` | script | calibração NÃO-CIRCULAR do juiz funcao-scorecard. |
 | `funcao-scorecard-humano.mjs` | npm | template                 imprime o JSON cego que [W] preenche |
 | `funcao-scorecard-outcome-probe.mjs` | ci, npm | PROTÓTIPO de validação-por-OUTCOME do funcao-scorecard. |

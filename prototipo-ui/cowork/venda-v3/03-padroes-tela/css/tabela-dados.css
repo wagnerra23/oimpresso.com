@@ -1,0 +1,18 @@
+/* ==========================================================================
+   CAMADA 3 · PADRÕES DE TELA — tabela de dados editável
+   --------------------------------------------------------------------------
+   Complementa o `DataTable` do DS nos casos em que a tabela é de DIGITAÇÃO
+   (linha de itens da venda), não de consulta.
+   ========================================================================== */
+
+/* --- Coluna de ações sempre visível --------------------------------------
+   Com muitas colunas ligadas, a tabela rola na horizontal e as ações
+   (impostos, detalhes, remover) desapareceriam à direita. Grudar a coluna
+   mantém a operação alcançável sem rolar até o fim.
+   Uso: <table class="tabela-acoes-fixa"> + <td class="acoes">.            */
+.tabela-acoes-fixa td.acoes,
+.tabela-acoes-fixa th.acoes {
+  position: sticky; right: 0; z-index: 2;
+  background: var(--surface);
+  box-shadow: -8px 0 12px -8px color-mix(in oklch, var(--text) 26%, transparent);
+}

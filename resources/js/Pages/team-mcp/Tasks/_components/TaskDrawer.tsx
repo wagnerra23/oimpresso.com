@@ -26,8 +26,8 @@ import {
 } from '@/Components/ui/sheet';
 import { Grid, Inline } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
-import { ActorSeal, PriorityDot, TaskStatusPill } from './taskBadges';
-import { type Priority } from './taskTokens';
+import { ActorSeal, PriorityDot, TaskStatusPill } from '@/Components/shared/TaskBadges';
+import { type Priority } from '@/Lib/taskTokens';
 
 interface TaskDetail {
   task_id: string;

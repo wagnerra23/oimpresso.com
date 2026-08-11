@@ -197,7 +197,6 @@ module: Forja
 ## Demais arquivos (manifestos, docs, assets e misc) — 24
 
 - [ProjectDecomposerAgent.php](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php)
-- [CHANGELOG.md](../../../Modules/Forja/CHANGELOG.md)
 - [Tool.php](../../../Modules/Forja/Contracts/Tool.php)
 - [routes.php](../../../Modules/Forja/Http/routes.php)
 - [BriefFetchTool.php](../../../Modules/Forja/Mcp/Tools/BriefFetchTool.php)
@@ -205,7 +204,6 @@ module: Forja
 - [HandoffLeverTool.php](../../../Modules/Forja/Mcp/Tools/HandoffLeverTool.php)
 - [HandoffPendingTool.php](../../../Modules/Forja/Mcp/Tools/HandoffPendingTool.php)
 - [HandoffSubmitTool.php](../../../Modules/Forja/Mcp/Tools/HandoffSubmitTool.php)
-- [README.md](../../../Modules/Forja/README.md)
 - [projectmgmt.php](../../../Modules/Forja/Resources/lang/en/projectmgmt.php)
 - [projectmgmt.php](../../../Modules/Forja/Resources/lang/pt/projectmgmt.php)
 - [topnav.php](../../../Modules/Forja/Resources/menus/topnav.php)
@@ -220,3 +218,5 @@ module: Forja
 - [module.json](../../../Modules/Forja/module.json)
 - [start.php](../../../Modules/Forja/start.php)
 - [useBoardShortcuts.ts](../../../resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts)
+- [Index.design-spec.json](../../../resources/js/Pages/Forja/Trabalho/Index.design-spec.json)
+- [TrabalhoQuadro.design-spec.json](../../../resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.design-spec.json)

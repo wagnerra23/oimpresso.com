@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/RecurringBilling/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 174 arquivos em 20 papéis.
+**Total mapeado:** 172 arquivos em 20 papéis.
 
 ## Controllers — 11
 
@@ -170,9 +170,8 @@ module: RecurringBilling
 - 40 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 39
+## Demais arquivos (manifestos, docs, assets e misc) — 37
 
-- [CHANGELOG.md](../../../Modules/RecurringBilling/CHANGELOG.md)
 - [.gitkeep](../../../Modules/RecurringBilling/Config/.gitkeep)
 - [.gitkeep](../../../Modules/RecurringBilling/Console/.gitkeep)
 - [BankStatementDriverContract.php](../../../Modules/RecurringBilling/Contracts/BankStatementDriverContract.php)
@@ -191,7 +190,6 @@ module: RecurringBilling
 - [.gitkeep](../../../Modules/RecurringBilling/Http/Requests/.gitkeep)
 - [SubscriptionPolicy.php](../../../Modules/RecurringBilling/Policies/SubscriptionPolicy.php)
 - [.gitkeep](../../../Modules/RecurringBilling/Providers/.gitkeep)
-- [README.md](../../../Modules/RecurringBilling/README.md)
 - [InvoiceRepository.php](../../../Modules/RecurringBilling/Repositories/InvoiceRepository.php)
 - [SubscriptionRepository.php](../../../Modules/RecurringBilling/Repositories/SubscriptionRepository.php)
 - [.gitkeep](../../../Modules/RecurringBilling/Resources/assets/.gitkeep)

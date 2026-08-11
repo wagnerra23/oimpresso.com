@@ -14,9 +14,15 @@ contains:
   - "InstallController — install/uninstall hooks (ADR 0024)"
   - "DataController — sidebar/permissions hooks (UltimatePOS pattern)"
   - "ActionGate middleware — runtime gate (modo warn|strict por config)"
+  # Recebido do Modules/ADS em 2026-07-31 (ADR 0363 — o módulo deixou de existir; política→Governance, #5128).
+  - "Services/PolicyEngine — decision flow (Risk/Confidence/Policy) que o ActionGate consulta em runtime"
 not_contains:
-  - "Decision flow (Risk/Confidence/Policy Engine) → Modules/ADS"
-  - "Skills governance → Modules/ADS"
+  # A linha "Decision flow (Risk/Confidence/Policy Engine) → Modules/ADS" saiu em
+  # 2026-08-10: o ADS foi REMOVIDO em 2026-07-31 (ADR 0363) e a política veio PRA CÁ —
+  # `Services/PolicyEngine.php` (#5128), agora declarado em `contains`. Mesmo caso da
+  # linha do MCP usage abaixo: deixar em not_contains passaria a mentir.
+  # Destino era o ADS até a remoção dele em 2026-07-31 (ADR 0363); skills foram pra Jana (#5129).
+  - "Skills governance → Modules/Jana (Services/SkillsService.php, #5129)"
   - "Tokens MCP CRUD → Modules/Forja"
   - "Identity Mesh (mcp_actors) UI → Modules/Forja"
   - "Knowledge browsing (ADRs read-only) → Modules/KB"
@@ -96,8 +102,7 @@ Onde Wagner opera **5min/dia**: aprova ADRs pendentes, ajusta policies, vê audi
 
 ## Quando NÃO é tocado
 
-- ❌ Decision flow ADS (Risk/Confidence/Policy Engine) → Modules/ADS
-- ❌ Skill governance → Modules/ADS
+- ❌ Skill governance → **Modules/Jana** (`SkillsService`; era `Modules/ADS` até a remoção de 2026-07-31, [ADR 0363](../../memory/decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md))
 - ❌ Token / scope CRUD → Modules/Forja
 - ❌ Constitution doc edit → file `memory/governance/CONSTITUTION.md` direto
 

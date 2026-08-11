@@ -31,7 +31,7 @@ use Tests\TestCase;
  * Modules/Governance/Tests/Pest.php — só tests/Pest.php é). Sem uses(), File::exists()
  * estoura por container não bootado.
  *
- * @see Modules/Governance/CHANGELOG.md (entry Wave 27)
+ * @see memory/requisitos/Governance/CHANGELOG.md (entry Wave 27)
  * @see config/retention.governance.php (shim novo)
  * @see Modules/Governance/Console/Commands/GovernanceHealthCommand.php (OtelHelper::span)
  */
@@ -185,7 +185,7 @@ it('memory/governance/buckets/_INDEX.md lista buckets ativos (meta_governance + 
 // ---------------------------------------------------------------------------
 
 it('CHANGELOG.md tem entry Wave 27 (mexeu, registra)', function () {
-    $path = base_path('Modules/Governance/CHANGELOG.md');
+    $path = base_path('memory/requisitos/Governance/CHANGELOG.md');
     $content = file_get_contents($path);
 
     expect($content)->toContain('Wave 27');

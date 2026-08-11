@@ -14,7 +14,7 @@ module: Auditoria
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Auditoria/**` + `resources/js/Pages/Auditoria/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Auditoria/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 40 arquivos em 13 papéis.
+**Total mapeado:** 39 arquivos em 13 papéis.
 
 ## Controllers — 3
 
@@ -80,9 +80,8 @@ module: Auditoria
 - 10 em [Modules/Auditoria/Tests/Feature/](../../../Modules/Auditoria/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 4
+## Demais arquivos (manifestos, docs, assets e misc) — 3
 
-- [CHANGELOG.md](../../../Modules/Auditoria/CHANGELOG.md)
 - [SCOPE.md](../../../Modules/Auditoria/SCOPE.md)
 - [composer.json](../../../Modules/Auditoria/composer.json)
 - [module.json](../../../Modules/Auditoria/module.json)

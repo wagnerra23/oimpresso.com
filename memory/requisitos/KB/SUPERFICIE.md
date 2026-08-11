@@ -14,7 +14,7 @@ module: KB
 >
 > **O que isto é:** o inventário completo das raízes `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/KB/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 177 arquivos em 18 papéis.
+**Total mapeado:** 175 arquivos em 18 papéis.
 
 ## Controllers — 14
 
@@ -173,9 +173,8 @@ module: KB
 - 12 em [Modules/KB/Tests/Unit/](../../../Modules/KB/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 35
+## Demais arquivos (manifestos, docs, assets e misc) — 33
 
-- [CHANGELOG.md](../../../Modules/KB/CHANGELOG.md)
 - [KbCategoryFactory.php](../../../Modules/KB/Database/Factories/KbCategoryFactory.php)
 - [KbCommentFactory.php](../../../Modules/KB/Database/Factories/KbCommentFactory.php)
 - [KbDecisionTreeFactory.php](../../../Modules/KB/Database/Factories/KbDecisionTreeFactory.php)
@@ -188,7 +187,6 @@ module: KB
 - [KbPathStepFactory.php](../../../Modules/KB/Database/Factories/KbPathStepFactory.php)
 - [KbSubcategoryFactory.php](../../../Modules/KB/Database/Factories/KbSubcategoryFactory.php)
 - [routes.php](../../../Modules/KB/Http/routes.php)
-- [README.md](../../../Modules/KB/README.md)
 - [kb.php](../../../Modules/KB/Resources/lang/en/kb.php)
 - [kb.php](../../../Modules/KB/Resources/lang/pt-BR/kb.php)
 - [kb.php](../../../Modules/KB/Resources/lang/pt/kb.php)

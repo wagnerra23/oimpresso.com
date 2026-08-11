@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 172 arquivos em 9 papéis.
+**Total mapeado:** 188 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -153,7 +153,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
 
-## Componentes / apoio de tela — 35
+## Componentes / apoio de tela — 43
 
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
 - [CobrancaDrawer.tsx](../../../resources/js/Pages/Sells/_components/CobrancaDrawer.tsx)
@@ -190,6 +190,14 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [VdNfeEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdNfeEmitModal.tsx)
 - [VdNfseEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdNfseEmitModal.tsx)
 - [VdSource.tsx](../../../resources/js/Pages/Sells/_components/VdSource.tsx)
+- [ColunasModal.tsx](../../../resources/js/Pages/Sells/_components/v3/ColunasModal.tsx)
+- [ComissaoDrawer.tsx](../../../resources/js/Pages/Sells/_components/v3/ComissaoDrawer.tsx)
+- [ConsultaCliente.tsx](../../../resources/js/Pages/Sells/_components/v3/ConsultaCliente.tsx)
+- [EntregaFrete.tsx](../../../resources/js/Pages/Sells/_components/v3/EntregaFrete.tsx)
+- [ItemDetalhe.tsx](../../../resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx)
+- [LancarItem.tsx](../../../resources/js/Pages/Sells/_components/v3/LancarItem.tsx)
+- [ParcelasDrawer.tsx](../../../resources/js/Pages/Sells/_components/v3/ParcelasDrawer.tsx)
+- [primitivos.tsx](../../../resources/js/Pages/Sells/_components/v3/primitivos.tsx)
 
 ## Charters (lei da tela) — 9
 
@@ -210,8 +218,16 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Index.casos.md](../../../resources/js/Pages/Sells/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 3
+## Demais arquivos (manifestos, docs, assets e misc) — 11
 
 - [Create.design-spec.json](../../../resources/js/Pages/Sells/Create.design-spec.json)
 - [PaymentRow.test-pending.md](../../../resources/js/Pages/Sells/_components/PaymentRow.test-pending.md)
 - [dropdownEntries.ts](../../../resources/js/Pages/Sells/_components/dropdownEntries.ts)
+- [calculo-item.ts](../../../resources/js/Pages/Sells/_components/v3/calculo-item.ts)
+- [cliente-consulta-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/cliente-consulta-dominio.ts)
+- [colunas-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/colunas-dominio.ts)
+- [comissao-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/comissao-dominio.ts)
+- [entrega-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/entrega-dominio.ts)
+- [item-fiscal-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/item-fiscal-dominio.ts)
+- [numeros.ts](../../../resources/js/Pages/Sells/_components/v3/numeros.ts)
+- [parcelas-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/parcelas-dominio.ts)

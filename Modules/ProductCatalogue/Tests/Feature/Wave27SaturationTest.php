@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  *   - Rota pública sem auth — Repository filtra business_id em toda query (defesa profundidade)
  *   - PT-BR comments + biz=99 ficticio se necessário (ADR 0101 — biz=1 Wagner)
  *
- * @see Modules/ProductCatalogue/CHANGELOG.md Wave 27 POLISH
+ * @see memory/requisitos/ProductCatalogue/CHANGELOG.md Wave 27 POLISH
  */
 describe('Wave 27 ProductCatalogue POLISH', function () {
 

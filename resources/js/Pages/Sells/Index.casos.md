@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-03"
+last_run: "2026-08-10"
 ---
 
 # Casos de Uso & Aceite — Lista de vendas
@@ -13,6 +13,13 @@ last_run: "2026-07-03"
 > Tela P0 (mandato ONDAS-QUALIDADE Q2). `Status: ✅` só com veredito `pass` no manifesto G-7.
 >
 > **Status:** ✅ passa (com prova no manifesto) · 🧪 em teste/prova parcial · ⬜ não verificado · ❌ quebrou.
+>
+> ℹ️ **`last_run` 2026-07-03 → 2026-08-10 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` foi o **bloco de comentário das linhas 53-60**: ele citava
+> `Pages/Jana/components/JanaCockpitV2.tsx` como consumidor, e 7 docs canon leram aquela citação
+> como prova de consumo — o arquivo tinha 0 imports e foi removido. Zero JSX, zero handler, zero
+> prop alterada; nenhum UC desta tela foi reexecutado nem revalidado. O bump é o que o campo
+> significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run.
 
 ---
 

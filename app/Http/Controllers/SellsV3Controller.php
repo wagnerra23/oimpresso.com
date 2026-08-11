@@ -18,13 +18,17 @@ use Inertia\Inertia;
  * - não monta as ~24 props reais de SellPosController@create (duplicar 200
  *   linhas de orquestração garantiria drift);
  * - não grava nada: não há store(), não há POST;
- * - não calcula valor: os números abaixo são DADOS DE CENA já formatados.
- *   Cálculo de total/desconto/estoque é território [V0] (REGRA MESTRE em
- *   memory/proibicoes.md) e não entra numa tela de preview.
+ * - não consulta tabela de negócio: a cena é estática, então não há query a
+ *   escopar por business_id (ADR 0093 satisfeito por ausência, não por sorte).
  *
- * Ligar dados reais é decisão separada, depois que o desenho assentar.
+ * A CENA ESPELHA O HANDOFF `design_handoff_cadastro_venda/design/sells-data.js`.
+ * Os valores monetários vão como STRING já em pt-BR de propósito: quem formata
+ * é quem tem locale, e mandar float locale-ambíguo pro front foi exatamente o
+ * vetor do incidente `num_uf` de 2026-06-05 (final_total inflado ~×100.000 em
+ * 16 vendas do biz=4). Ligar dados reais é decisão separada — e aí volta a
+ * valer a REGRA MESTRE de valor/estoque.
  *
- * Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0104 (MWART) · ADR 0062 (staging CT 100).
+ * Refs: ADR 0093 (multi-tenant) · ADR 0143 (FSM) · ADR 0104 (MWART).
  */
 class SellsV3Controller extends Controller
 {
@@ -44,56 +48,212 @@ class SellsV3Controller extends Controller
     }
 
     /**
-     * Dados de cena — espelham prototipo-ui/design-oimpresso/.../sells-data.js.
-     * Valores já formatados em pt-BR de propósito: a tela NÃO faz conta.
-     *
      * @return array<string, mixed>
      */
     private function dadosDeCena(): array
     {
         return [
             'cliente' => [
-                'codigo' => '0001',
+                'cod' => '0001',
                 'nome' => 'Consumidor final',
-                'tipo' => 'pf',
+                'padrao' => true,
+                'doc' => '—',
+                'ie' => 'ISENTO',
+                'contrib' => 'nao',
+                'regime' => 'Simples Nacional',
+                'fone' => '—',
+                'email' => '—',
+                'emailNfe' => '—',
+                'contato' => '—',
+                'endereco' => 'Venda no balcão — sem endereço de entrega',
+                'cidade' => 'Termas do Gravatal',
+                'uf' => 'SC',
                 'grupo' => 'Varejo',
                 'prazo' => 'À vista',
-                'tabela' => 'Balcão — preço padrão',
-                'endereco' => 'Venda no balcão — sem endereço de entrega',
+                'tabela' => null, // sem tabela no cadastro → vale o padrão do balcão
             ],
+
+            /*
+             * Clientes da CENA — a consulta de clientes (modal 880px do handoff).
+             *
+             * Mora aqui, e não no .tsx, pela mesma regra das transportadoras: "nenhuma
+             * lista de domínio nasce em arquivo de UI" (README do bundle `venda-v3`).
+             * A primeira linha é o MESMO cadastro de `cliente` acima — é o padrão do
+             * balcão, e a consulta precisa poder voltar pra ele depois de trocar.
+             *
+             * ⚠️ NÃO é consulta ao banco: o preview não lê `contacts`. Por isso não há
+             * query a escopar por `business_id` (ADR 0093 satisfeito por ausência).
+             * A copy do rodapé diz "cadastros ativos no business atual" porque é o que
+             * a tela real fará — aqui a lista é fixa.
+             *
+             * ⚠️ DOCUMENTOS: todos SINTÉTICOS, com dígito verificador **medido inválido**
+             * (validador com controle positivo e negativo, 2026-08-11). O CNPJ que o
+             * protótipo usa no cliente Governo foi MEDIDO VÁLIDO — isto é, é documento
+             * real — e por isso NÃO entrou aqui, nem em comentário: a allowlist do
+             * `pii-scan` é explícita que "CPF/CNPJ real JAMAIS entra". Pelo mesmo motivo
+             * o nome do órgão não é o de uma prefeitura existente, e "Rota Livre" do
+             * protótipo saiu daqui — é o cliente-piloto de verdade (biz=4), não
+             * personagem de cena.
+             */
+            'clientes' => [
+                [
+                    'cod' => '0001', 'nome' => 'Consumidor final', 'padrao' => true,
+                    'doc' => '—', 'ie' => 'ISENTO', 'contrib' => 'nao', 'regime' => 'Simples Nacional',
+                    'fone' => '—', 'email' => '—', 'emailNfe' => '—', 'contato' => '—',
+                    'endereco' => 'Venda no balcão — sem endereço de entrega',
+                    'cidade' => 'Termas do Gravatal', 'uf' => 'SC',
+                    'grupo' => 'Varejo', 'prazo' => 'À vista', 'tabela' => null,
+                ],
+                [
+                    'cod' => '0142', 'nome' => 'Autarquia de Saneamento Serra Verde', 'padrao' => false,
+                    'doc' => '29.417.508/0001-62', // pii-allowlist — CNPJ de CENA, DV inválido (medido 2026-08-11)
+                    'ie' => '255.618.240', 'contrib' => 'isento', 'regime' => 'Órgão público',
+                    'fone' => '(47) 3431-3200', 'email' => 'compras@serraverde.exemplo.br',
+                    'emailNfe' => 'nfe@serraverde.exemplo.br', 'contato' => 'Sandra Küster · compras',
+                    'endereco' => 'Rua XV de Novembro, 1400 — Centro · 89201-601',
+                    'cidade' => 'Joinville', 'uf' => 'SC',
+                    'grupo' => 'Governo', 'prazo' => '30 dias', 'tabela' => 'Governo 2026 — pregão 041/2026',
+                ],
+                [
+                    'cod' => '0288', 'nome' => 'Atacado Vale do Itajaí Ltda', 'padrao' => false,
+                    'doc' => '41.882.507/0001-44', // pii-allowlist — CNPJ de CENA, DV inválido (medido 2026-08-11)
+                    'ie' => '254.099.771', 'contrib' => 'sim', 'regime' => 'Simples Nacional',
+                    'fone' => '(47) 99812-4470', 'email' => 'financeiro@valedoitajai.exemplo.br',
+                    'emailNfe' => 'fiscal@valedoitajai.exemplo.br', 'contato' => 'Rodrigo Bastos · sócio',
+                    'endereco' => 'Rod. BR-470, km 62 — Itoupava · 89066-000',
+                    'cidade' => 'Blumenau', 'uf' => 'SC',
+                    'grupo' => 'Atacado', 'prazo' => '28 dias', 'tabela' => 'Atacado — a partir de 50m²',
+                ],
+                [
+                    'cod' => '0391', 'nome' => 'Marina Bordignon', 'padrao' => false,
+                    'doc' => '045.882.119-30', // pii-allowlist — CPF de CENA, DV inválido (medido 2026-08-11)
+                    'ie' => '—', 'contrib' => 'nao', 'regime' => 'Pessoa física',
+                    'fone' => '(47) 98844-1207', 'email' => 'marina.bordignon@exemplo.br',
+                    'emailNfe' => 'marina.bordignon@exemplo.br', 'contato' => 'Marina Bordignon',
+                    'endereco' => 'Rua Blumenau, 890 — América · 89204-250',
+                    'cidade' => 'Joinville', 'uf' => 'SC',
+                    'grupo' => 'Varejo', 'prazo' => 'À vista', 'tabela' => null,
+                ],
+            ],
+
             'itens' => [
                 [
+                    'k' => 1,
                     'sku' => 'LON-440-BR',
                     'nome' => 'Lona 440g branca fosca',
                     'un' => 'm²',
-                    'medidas' => '5× 0,50×0,60m',
+                    'medidas' => '5× 0,50×5,00m',
                     'qtd' => '12,50',
-                    'valor' => '68,90',
+                    'preco' => '68,90',
                     'desc' => '0',
                     'acr' => '0',
-                    'total' => '861,25',
+                    'estoque' => 320.0,
                 ],
                 [
+                    'k' => 2,
                     'sku' => 'BAN-ACAB-IL',
                     'nome' => 'Acabamento com ilhós',
                     'un' => 'un',
                     'medidas' => null,
                     'qtd' => '24',
-                    'valor' => '3,50',
+                    'preco' => '3,50',
                     'desc' => '0',
                     'acr' => '0',
-                    'total' => '84,00',
+                    'estoque' => 1500.0,
                 ],
             ],
-            'fechamento' => [
-                'subtotal' => '945,25',
-                'desconto' => '0,00',
-                'imposto' => '170,15',
-                'acrescimo' => '0,00',
-                'frete' => '0,00',
-                'total' => '1.115,40',
-                'situacao' => 'A RECEBER',
-                'falta' => '1.115,40',
+
+            /*
+             * Catálogo do Passo 2. `tipo` é EXPLÍCITO e não inferido de
+             * `estoque: null` — serviço é uma característica do cadastro, e o
+             * handoff usa `tipo === 'servico'` pra decidir o que a tela mostra
+             * (funcionário vinculado) e o que ela NÃO diz (movimento de estoque).
+             * Deixar isso implícito num null faria a UI mentir no dia em que
+             * existir produto sem controle de estoque.
+             */
+            'catalogo' => [
+                ['sku' => 'LON-440-BR', 'nome' => 'Lona 440g branca fosca', 'un' => 'm²', 'preco' => 68.90, 'estoque' => 320.0, 'tipo' => 'produto', 'ean' => '7891234000017', 'fabrica' => 'LN440BR', 'categoria' => 'Impressão digital'],
+                ['sku' => 'ADE-VIN-BR', 'nome' => 'Adesivo vinílico branco brilho', 'un' => 'm²', 'preco' => 82.00, 'estoque' => 46.5, 'tipo' => 'produto', 'ean' => '7891234000024', 'fabrica' => 'AD-VNL-BB', 'categoria' => 'Impressão digital'],
+                ['sku' => 'BAN-ACAB-IL', 'nome' => 'Acabamento com ilhós', 'un' => 'un', 'preco' => 3.50, 'estoque' => 1500.0, 'tipo' => 'produto', 'ean' => null, 'fabrica' => 'ILH-10', 'categoria' => 'Acabamento'],
+                ['sku' => 'PLA-PS-2MM', 'nome' => 'Placa PS 2mm branca', 'un' => 'm²', 'preco' => 119.00, 'estoque' => 88.0, 'tipo' => 'produto', 'ean' => '7891234000048', 'fabrica' => 'PS2-BR', 'categoria' => 'Rígidos'],
+                ['sku' => 'SRV-INST', 'nome' => 'Instalação em fachada', 'un' => 'h', 'preco' => 145.00, 'estoque' => null, 'tipo' => 'servico', 'ean' => null, 'fabrica' => null, 'categoria' => 'Serviço'],
+                ['sku' => 'SRV-PROJ', 'nome' => 'Projeto e arte-final', 'un' => 'h', 'preco' => 180.00, 'estoque' => null, 'tipo' => 'servico', 'ean' => null, 'fabrica' => null, 'categoria' => 'Serviço'],
+            ],
+
+            /*
+             * Quem pode EXECUTAR o serviço — funcionário ou técnico do cadastro
+             * único. O campo só aparece quando `tipo === 'servico'`, porque é
+             * ele que entra na apuração de comissão e na ordem de produção.
+             */
+            'executantes' => [
+                ['id' => 'fun-01', 'nome' => 'Marcos Vinícius', 'papel' => 'funcionario'],
+                ['id' => 'fun-02', 'nome' => 'Patrícia Lemos', 'papel' => 'funcionario'],
+                ['id' => 'tec-01', 'nome' => 'Rogério Alves', 'papel' => 'tecnico'],
+            ],
+
+            /*
+             * Alçada de PREÇO por perfil. Vem do servidor de propósito: quem
+             * decide se este usuário altera valor é o backend, não o front —
+             * `readOnly` no input é conforto de UI, nunca a trava.
+             */
+            'permissoes' => [
+                'editarPrecoItem' => true,
+            ],
+
+            'tabelas' => [
+                'Balcão — preço padrão',
+                'Atacado — a partir de 50m²',
+                'Governo 2026 — pregão 041/2026',
+                'Parceiro / agência — 15% off',
+            ],
+
+            /*
+             * Pipeline do handoff §6 — Rascunho → Orçamento → Aprovada →
+             * Em produção → Faturada → Entregue, com Cancelada terminal.
+             *
+             * `acao` é o TEXTO DO BOTÃO do finalizador: não existe select de
+             * estágio, o estágio só muda por ação nomeada. `efeitos` é o que a
+             * transição dispararia — declarado ANTES, nunca depois.
+             * `role` é o papel exigido: faltando, a tela NEGA e diz qual é
+             * (fail-secure, handoff §6 regra 2).
+             */
+            'fsm' => [
+                ['key' => 'rascunho', 'label' => 'Rascunho', 'acao' => 'Salvar como orçamento', 'role' => 'sell.create', 'efeitos' => []],
+                ['key' => 'orcamento', 'label' => 'Orçamento', 'acao' => 'Aprovar orçamento', 'role' => 'sell.approve', 'efeitos' => []],
+                ['key' => 'aprovada', 'label' => 'Aprovada', 'acao' => 'Iniciar produção', 'role' => 'sell.produce', 'efeitos' => ['ReservarEstoque']],
+                ['key' => 'producao', 'label' => 'Em produção', 'acao' => 'Faturar venda', 'role' => 'sell.invoice', 'efeitos' => ['ConsumirEstoque', 'BaixarFinanceiro']],
+                ['key' => 'faturada', 'label' => 'Faturada', 'acao' => 'Registrar entrega', 'role' => 'sell.deliver', 'efeitos' => []],
+                ['key' => 'entregue', 'label' => 'Entregue', 'acao' => null, 'role' => null, 'efeitos' => []],
+                ['key' => 'cancelada', 'label' => 'Cancelada', 'acao' => null, 'role' => null, 'efeitos' => ['CancelarVendaCascade', 'LiberarReserva']],
+            ],
+
+            /*
+             * Papéis do usuário na CENA. Vem propositalmente incompleto: sem
+             * `sell.approve`, a tela exercita o caminho fail-secure (botão
+             * negado + papel faltante dito na tela) já no 2º estágio. Preview
+             * que só mostra o caminho feliz esconde metade do desenho.
+             */
+            'papeisDoUsuario' => ['sell.create', 'sell.produce', 'sell.invoice', 'sell.deliver'],
+
+            /*
+             * Transportadoras da CENA (onda 2 · CU-SELL-11).
+             *
+             * Mora aqui, e não no .tsx, porque a fonte de design é explícita: "nenhuma
+             * lista de domínio nasce em arquivo de UI" (README do bundle `venda-v3`).
+             * O protótipo contradiz a própria regra e declara a lista dentro do
+             * `sells-entrega.jsx` — aqui ela volta pro lugar certo.
+             *
+             * São dados de cena, NÃO consulta ao banco: o preview não lê `contacts`
+             * nem `contact_addresses`. Essa distinção é o que separa esta onda do
+             * PR #2104, revertido em 2026-06-02 justamente porque passou a fazer
+             * `->with(['addresses'])` num endpoint compartilhado com o Blade.
+             */
+            'transportadoras' => [
+                ['cod' => '014', 'nome' => 'Transportadora Sul Ltda', 'doc' => '84.512.330/0001-07', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'QHA5F21', 'antt' => '58412330', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '027', 'nome' => 'Rodoviário Bordignon Transportes ME', 'doc' => '11.204.877/0001-55', 'uf' => 'SC', 'cidade' => 'Blumenau', 'placa' => 'MKL2B88', 'antt' => '41120487', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '031', 'nome' => 'Expresso Norte Catarinense S/A', 'doc' => '02.998.140/0001-92', 'uf' => 'PR', 'cidade' => 'Curitiba', 'placa' => 'BEE7J45', 'antt' => '30299814', 'modal' => 'Rodoviário'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '045', 'nome' => 'Frota própria — Office Impresso', 'doc' => '—', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'RJP1A09', 'antt' => '—', 'modal' => 'Frota própria'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
+                ['cod' => '052', 'nome' => 'Log Fácil Entregas Rápidas Eireli', 'doc' => '38.771.905/0001-13', 'uf' => 'SC', 'cidade' => 'Joinville', 'placa' => 'SDA9C77', 'antt' => '73877190', 'modal' => 'Motoboy'], // pii-allowlist — CNPJ de CENA, DV inválido (medido): não é documento real
             ],
         ];
     }

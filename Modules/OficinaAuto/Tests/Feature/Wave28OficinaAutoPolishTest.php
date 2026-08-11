@@ -23,7 +23,7 @@ uses(Tests\TestCase::class);
  *   - ADR 0143 FSM ServiceOrder pipeline NÃO tocada
  *   - ADR 0093 multi-tenant Tier 0 — global scope preservado
  *
- * @see Modules/OficinaAuto/CHANGELOG.md Wave 28
+ * @see memory/requisitos/OficinaAuto/CHANGELOG.md Wave 28
  * @see Modules/OficinaAuto/Services/ServiceOrderItemService.php (W27 G1)
  */
 describe('Wave 28 OficinaAuto POLISH', function () {

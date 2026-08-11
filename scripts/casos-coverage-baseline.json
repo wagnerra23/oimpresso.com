@@ -1,12 +1,12 @@
 {
   "_meta": {
-    "generated_at": "2026-08-07T19:13:06.134Z",
+    "generated_at": "2026-08-10T13:53:02.444Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "escopo_telas": "ESCOPO (fonte única scripts/qa/page-path.mjs · idêntico ao screen-coverage-map):\n  inclui: resources/js/Pages/**/<Sub>/<Tela>.tsx (Page Inertia executável)\n  exclui: dirs auxiliares (_*, components, partials, hooks, utils, lib, types,\n          constants, schemas, stores, contexts) · .tsx na raiz de Pages/ · *.charter.tsx · *.test.tsx",
     "stats": {
-      "pages": 204,
-      "casos_files": 88,
-      "ucs_declared": 453,
+      "pages": 206,
+      "casos_files": 90,
+      "ucs_declared": 474,
       "missing_charter": 0,
       "missing_casos": 117,
       "orphan_ucs": 12,
@@ -16,11 +16,11 @@
       "status_unverified": 0,
       "status_stale": 0,
       "exec_backed_ucs": 169,
-      "exec_backed_declared": 453,
-      "exec_backed_pct": 37,
-      "teto_no_titulo": 337,
-      "teto_so_docblock": 104,
-      "teto_distintos": 453,
+      "exec_backed_declared": 470,
+      "exec_backed_pct": 36,
+      "teto_no_titulo": 358,
+      "teto_so_docblock": 100,
+      "teto_distintos": 470,
       "teto_presos_por_modulo": [
         {
           "modulo": "Cliente",
@@ -80,21 +80,6 @@
           ]
         },
         {
-          "modulo": "Ponto",
-          "ucs": [
-            "UC-APROV-01",
-            "UC-APROV-02",
-            "UC-APROV-03",
-            "UC-APROV-04",
-            "UC-BHSHOW-01",
-            "UC-BHSHOW-02",
-            "UC-BHSHOW-03",
-            "UC-ESPIDX-01",
-            "UC-ESPIDX-02",
-            "UC-ESPIDX-03"
-          ]
-        },
-        {
           "modulo": "kb",
           "ucs": [
             "UC-KBV2-01",
@@ -138,6 +123,17 @@
             "UC-PRO-04",
             "UC-PRO-05",
             "UC-PRO-06"
+          ]
+        },
+        {
+          "modulo": "Ponto",
+          "ucs": [
+            "UC-BHSHOW-01",
+            "UC-BHSHOW-02",
+            "UC-BHSHOW-03",
+            "UC-ESPIDX-01",
+            "UC-ESPIDX-02",
+            "UC-ESPIDX-03"
           ]
         },
         {
