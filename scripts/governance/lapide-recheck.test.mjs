@@ -10,7 +10,7 @@ import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
-  extractPaths, resolveRef, makeResolverFromIndex, classifyTombstone, sampleDeterministic, recheck,
+  extractPaths, resolveRef, makeResolverFromIndex, classifyTombstone, sampleDeterministic, recheck, medirCorpus,
 } from './lapide-recheck.mjs';
 
 let fails = 0;
@@ -139,6 +139,29 @@ check('recheck: 3 lápides na §5 (para no próximo ## )', r.total_lapides_secao
 check('recheck: 1 revisar (drift)', r.revisar.length === 1 && r.revisar[0].date === '2026-06-01', JSON.stringify(r.revisar));
 check('recheck: 1 intacta + 1 sem-ancora', r.intactas === 1 && r.sem_ancora === 1);
 
+// ── medirCorpus: custo do §5 (F5 da grade 2026-08-11) ─────────────────────────
+// Não é gate e não é nota: prova que a MEDIDA é fiel e que emenda fica fora do
+// denominador de conformidade — sem isso, as 8 emendas do corpus real virariam
+// "não-conformes" (falso-positivo da família guard-sintático, 5 lápides no §5).
+const corpus = [
+  { date: '2026-01-01', title: 'lápide normal completa', body: '**O que foi tentado:** x\n**Por que caiu:** y\n**O limite:** z\n' },
+  { date: '2026-01-03', title: 'lápide normal SEM por-que-caiu', body: '**O que foi tentado:** a b c\n**O limite:** d\n' },
+  { date: '2026-01-05', title: 'EMENDA da lápide 2026-01-01: outra forma', body: 'corpo de emenda, não repete as 3 partes\n' },
+];
+const m = medirCorpus(corpus, { charsArquivo: 1000 });
+check('medirCorpus: separa normais de emenda/meta', m.lapides === 3 && m.normais === 2 && m.emendas_meta === 1, JSON.stringify(m));
+// BITE: a emenda NÃO conta como não-conforme (ela está sem as 3 partes de propósito)
+check('medirCorpus: emenda fora do denominador', m.conformidade_partes.o_limite.ausente_em_normais === 0 && m.conformidade_partes.o_limite.ausente_em_emendas === 1, JSON.stringify(m.conformidade_partes));
+// BITE: a normal incompleta É contada
+check('medirCorpus: normal incompleta é contada', m.conformidade_partes.por_que_caiu.ausente_em_normais === 1, JSON.stringify(m.conformidade_partes));
+// CONTROLE NEGATIVO: nada de nota agregada (lápide C9 2026-07-17) nem teto inventado
+check('medirCorpus: NENHUM score agregado no retorno', !('score' in m) && !('nota' in m) && !('indice' in m), JSON.stringify(Object.keys(m)));
+check('medirCorpus: teto NÃO é inventado pela máquina', m.tamanho.teto_declarado === null);
+check('medirCorpus: ritmo derivado das datas', m.ritmo.primeira === '2026-01-01' && m.ritmo.ultima === '2026-01-05' && m.ritmo.dias === 4, JSON.stringify(m.ritmo));
+// CONTROLE NEGATIVO: métrica é do corpus INTEIRO, nunca da amostra
+const rSample = recheck(proib, { root, linkBase, sample: 1, seed: 0 });
+check('recheck: --sample não encolhe a métrica', rSample.avaliadas === 1 && rSample.metricas.lapides === 3, `avaliadas=${rSample.avaliadas} metricas.lapides=${rSample.metricas.lapides}`);
+
 rmSync(tmp, { recursive: true, force: true });
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — re-check surfaça drift de âncora do §5, ignora URL/template, amostra determinística.');
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — re-check surfaça drift de âncora do §5, ignora URL/template, amostra determinística, e a métrica de custo é fiel (emenda fora do denominador, sem score agregado).');
 process.exit(fails ? 1 : 0);
