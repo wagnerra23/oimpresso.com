@@ -12,7 +12,7 @@
 - **54** wirings em `settings.json` (5 eventos) · **49** arquivos de hook distintos wired
 - **49** arquivos de hook no disco (+42 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **0** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **42** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **43** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -79,7 +79,7 @@ Nenhum.
 Nenhum.
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (42):
+Contexts `classic_protection` (43):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -108,6 +108,7 @@ Contexts `classic_protection` (42):
 - PHP / Pest (Financeiro · MySQL)
 - PHP / Pest (NfeBrasil · MySQL)
 - PHP / Pest (Ponto · MySQL)
+- PHP / Pest (Sells · MySQL)
 - PHP / Pest (Unit)
 - PHPStan / Larastan · ratchet vs baseline
 - PII scan (CPF/CNPJ literal)
