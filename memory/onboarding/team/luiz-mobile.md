@@ -69,7 +69,7 @@ pii: false
 3. ☐ Rodar `brief-fetch` — primeiro comando de toda sessão
 4. ☐ Ler [CLAUDE.md](../../../CLAUDE.md) + [why](../../why-oimpresso.md) + [what](../../what-oimpresso.md) + [how-trabalhar](../../how-trabalhar.md) + [proibicoes](../../proibicoes.md)
 5. ☐ Ler [governance/CONSTITUTION.md](../../governance/CONSTITUTION.md) + [TRUST-TIERS.md](../../governance/TRUST-TIERS.md) — entender seu L3
-6. ☐ Ler `memory/requisitos/Jana/SCOPE.md` + `memory/requisitos/Repair/SCOPE.md` + `Modules/Project/SCOPE.md` — **MÓDULOS REFERÊNCIA pra imitar** ([ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md))
+6. ☐ Ler `memory/requisitos/Jana/SCOPE.md` + `memory/requisitos/Repair/SCOPE.md` + `memory/requisitos/Forja/SCOPE.md` — **MÓDULOS REFERÊNCIA pra imitar** ([ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md))
 7. ☐ Ler `memory/requisitos/Infra/RUNBOOK-criar-modulo.md` — checklist 8 peças quando criar Modules/Mobile
 8. ☐ Felipe te paira primeira semana — abre sessão Claude Code juntos
 9. ☐ Primeiro PR: ≤50 linhas, scaffold inicial Modules/Mobile com 8 peças mínimas

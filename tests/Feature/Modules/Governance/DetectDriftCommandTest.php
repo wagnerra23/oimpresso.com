@@ -252,7 +252,7 @@ test('controllers boilerplate (Data/Install/Superadmin) são ignorados no scan',
 test('SCOPE.md com YAML inválido não crasha o command', function () {
     // YAML quebrado — frontmatter sem fechar
     file_put_contents(
-        base_path('Modules/__DriftFixture__/SCOPE.md'),
+        base_path('memory/requisitos/__DriftFixture__/SCOPE.md'),
         "---\ncontains: [foo: bar: baz\n---\nbroken"
     );
     writeController('AlgumController');

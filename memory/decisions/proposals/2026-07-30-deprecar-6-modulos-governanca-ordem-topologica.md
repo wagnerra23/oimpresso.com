@@ -127,7 +127,7 @@ Duas coisas mudaram depois que este doc foi escrito. Ambas são medição, não 
 
 ### 1. `Auditoria` SAI da fila — [W] reverteu na execução
 
-*"acho que auditoria deve ficar"* · *"ele registra as alterações em cada registro é super importante"* · *"não pode apagar"* ([W], 2026-07-30, com a E3 já começando; nada de código foi removido — o `block-destructive` barrou o `git rm`). O **plano dele foi DELETADO** a pedido de [W] (*"remova o plano"*): plano suspenso ainda é armadilha. O registro do episódio vive na **lápide §5** de [`proibicoes.md`](../../proibicoes.md) (*"Deprecar/apagar Modules/Auditoria"* — não re-propor), e o módulo ganhou [`SCOPE.md`](../../../Modules/Auditoria/SCOPE.md) corrigido + [SDD completo](../../requisitos/Auditoria/SDD-auditoria-v1.0.md).
+*"acho que auditoria deve ficar"* · *"ele registra as alterações em cada registro é super importante"* · *"não pode apagar"* ([W], 2026-07-30, com a E3 já começando; nada de código foi removido — o `block-destructive` barrou o `git rm`). O **plano dele foi DELETADO** a pedido de [W] (*"remova o plano"*): plano suspenso ainda é armadilha. O registro do episódio vive na **lápide §5** de [`proibicoes.md`](../../proibicoes.md) (*"Deprecar/apagar Modules/Auditoria"* — não re-propor), e o módulo ganhou [`SCOPE.md`](../../requisitos/Auditoria/SCOPE.md) corrigido + [SDD completo](../../requisitos/Auditoria/SDD-auditoria-v1.0.md).
 
 O ponto 2 da medição acima (*"`Auditoria` … é o delete mais barato do conjunto"*) **fica refutado**: ele media `auditoria_audit_notes` (0 linhas), que nunca foi o valor do módulo. Ele é o **leitor/revertedor** do `activity_log` — **117.510 linhas, última escrita 2026-07-30 11:22:14**. A ordem passa a ser **5**: Admin → Brief → ADS → TeamMcp → Governance.
 

@@ -75,9 +75,9 @@ Browser canônico de **conhecimento estruturado** do oimpresso: ADRs, sessions, 
 
 ## Quando NÃO é tocado
 
-- ❌ Conversar com IA → **Modules/Jana** (era o modulo `Copiloto`, renomeado — [ADR 0092](../../decisions/0092-tabela-rename-copiloto-para-jana.md))
+- ❌ Conversar com IA → **Modules/Jana** (era o módulo `Copiloto`, renomeado — [ADR 0092](../../decisions/0092-tabela-rename-copiloto-para-jana.md))
 - ❌ Editar SKILL.md → arquivo `.claude/skills/<slug>/SKILL.md` + git (ler o catálogo é **Modules/Jana**, `SkillsService`; era `Modules/ADS` até a remoção de 2026-07-31, [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md))
-- ❌ Editar regra imutável de programação → ~~o modulo MemCofre (SRS)~~ — `MemCofre` virou `SRS` ([ADR 0088](../../decisions/0088-module-rename-php-only.md)) e o `SRS` foi REMOVIDO em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)); fronteira a revisar
+- ❌ Editar regra imutável de programação → ~~o módulo MemCofre (SRS)~~ — `MemCofre` virou `SRS` ([ADR 0088](../../decisions/0088-module-rename-php-only.md)) e o `SRS` foi REMOVIDO em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)); fronteira a revisar
 - ❌ Browse de tarefas → Modules/Forja
 
 ## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)

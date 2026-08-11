@@ -87,7 +87,7 @@ Smoke real em produção (E6, 2026-08-01): **5 tabelas ausentes · 6 de pé · 4
 
 **Nenhuma no ciclo de deprecação** — E1→E7 fechados. Resíduos conhecidos, para quem tocar as áreas:
 
-- `Modules/Governance/SCOPE.md` ainda declara em `not_contains` que *"Decision flow … → Modules/ADS"* e *"Skills governance → Modules/ADS"* (linhas 15-16, repetidas em prosa nas 81-82). A [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) previa a saída da linha 15 na parte 6 e isso não foi feito. Evidência: `grep -n "Modules/ADS" Modules/Governance/SCOPE.md`. **Não corrigido aqui de propósito** — é SCOPE de outro módulo (1 PR = 1 intent) e tocá-lo acorda gates diff-aware sobre dívida pré-existente.
+- `Modules/Governance/SCOPE.md` ainda declara em `not_contains` que *"Decision flow … → Modules/ADS"* e *"Skills governance → Modules/ADS"* (linhas 15-16, repetidas em prosa nas 81-82). A [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) previa a saída da linha 15 na parte 6 e isso não foi feito. Evidência: `grep -n "Modules/ADS" memory/requisitos/Governance/SCOPE.md`. **Não corrigido aqui de propósito** — é SCOPE de outro módulo (1 PR = 1 intent) e tocá-lo acorda gates diff-aware sobre dívida pré-existente.
 - `.claude/hooks/tier-a-banner.mjs` imprime, em **toda** sessão, `DORMENTE: ads-route` — skill removida no #5135. É anúncio de capacidade inexistente. Evidência: `grep -n "ads-route" .claude/hooks/tier-a-banner.mjs`.
 
 ## Regra de manutenção
