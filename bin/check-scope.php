@@ -264,7 +264,7 @@ if ($selftest) {
         is_file('Modules/Jana/Services/SkillsService.php'));
     $ok('contrato: nenhum ConversationsController no repo (âncora do achado real Whatsapp)',
         empty($real['ConversationsController']));
-    $ok('contrato: Modules/Jana/LICOES-OPERACAO.md existe (âncora do CN não-php)',
+    $ok('contrato: memory/requisitos/Jana/LICOES-OPERACAO.md existe (âncora do CN não-php)',
         is_file('memory/requisitos/Jana/LICOES-OPERACAO.md'));
 
     echo $fails

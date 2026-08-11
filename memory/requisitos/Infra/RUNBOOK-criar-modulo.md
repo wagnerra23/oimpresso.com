@@ -115,7 +115,7 @@ a [ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela
 (*derivado+enforçado sobrevive; escrito+lembrado apodrece*) se cumprindo — não é acidente.
 
 **Antes de mover qualquer `.md` de dentro de `Modules/<X>/`:** confira se algo o lê em
-runtime. `Modules/Jana/LICOES-OPERACAO.md` é lido por
+runtime. `memory/requisitos/Jana/LICOES-OPERACAO.md` é lido por
 `HealthCheckCommand` via `base_path(...)`, e quando o arquivo não está lá o check
 `jana_lesson_ledger_graduation` retorna `'ok' => true` com mensagem *"Skipped"* — mover sem
 atualizar o path **desliga o check e ele fica verde**

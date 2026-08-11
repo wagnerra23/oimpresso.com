@@ -30,7 +30,7 @@ use Throwable;
  * Advisory: não numera ADR (soberania [W], ADR 0238) — proposta slug-only até [W].
  *
  * @see Modules/Jana/Console/Commands/HealthCheckCommand.php  (parser + check espelho)
- * @see Modules/Jana/LICOES-OPERACAO.md · memory/LICOES_CC.md  (os dois ledgers)
+ * @see memory/requisitos/Jana/LICOES-OPERACAO.md · memory/LICOES_CC.md  (os dois ledgers)
  */
 class GovernancaScorecardCommand extends Command
 {
