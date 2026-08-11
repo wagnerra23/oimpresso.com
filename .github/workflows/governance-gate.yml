@@ -166,8 +166,34 @@ jobs:
           echo "legacymig_ok=$ok" >> "$GITHUB_OUTPUT"
           if [ "$ok" = "1" ]; then echo "✓ Migração legacy→canônico validada (ADR 0297) — corpo intacto, exceção aplicada."; fi
 
+      - name: Exceção — edição de corpo autorizada pelo dono [W]
+        id: wedit
+        if: steps.detect.outputs.adr_mod_count != '0' || steps.detect.outputs.adr_renamed_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Autorização [W] 2026-08-11 ("remover o append-only para mim"). Diferente das
+          # exceções 0257/0297, esta NÃO restringe QUAIS linhas mudam — libera o CORPO.
+          #
+          # POR QUE LABEL E NÃO AUTOR: medido em 2026-08-11 — TODO PR aberto por agente
+          # sai como `wagnerra23` (o #5568, aberto pelo agente, tem author=wagnerra23).
+          # Isentar por autor removeria o append-only de TODO PR de agente, em silêncio —
+          # o oposto de "para mim". O label é ato consciente e por-PR: quem o aplica
+          # decide, e o `gh pr view --json labels` deixa a decisão auditável depois.
+          labels=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels" --jq '.[].name' 2>/dev/null || echo "")
+          if ! echo "$labels" | grep -qFx "adr-body-edit-W"; then
+            echo "wedit_ok=0" >> "$GITHUB_OUTPUT"
+            echo "Label 'adr-body-edit-W' ausente — append-only normal."
+            exit 0
+          fi
+          echo "wedit_ok=1" >> "$GITHUB_OUTPUT"
+          echo "✓ Edição de corpo de ADR liberada pelo label 'adr-body-edit-W' (autorização [W])."
+          echo "::warning::Append-only SUSPENSO neste PR por autorização [W]. Arquivos:"
+          cat /tmp/adr_mod.txt /tmp/adr_renamed.txt 2>/dev/null || true
+
       - name: Block ADR canon edits (append-only)
-        if: steps.detect.outputs.adr_renamed_count != '0' || (steps.detect.outputs.adr_mod_count != '0' && steps.norm.outputs.norm_ok != '1' && steps.legacymig.outputs.legacymig_ok != '1')
+        if: (steps.detect.outputs.adr_renamed_count != '0' || (steps.detect.outputs.adr_mod_count != '0' && steps.norm.outputs.norm_ok != '1' && steps.legacymig.outputs.legacymig_ok != '1')) && steps.wedit.outputs.wedit_ok != '1'
         run: |
           set -euo pipefail
           echo "::error::ADR CANON é append-only (Constituição Art. 3 + ADR 0095)."
