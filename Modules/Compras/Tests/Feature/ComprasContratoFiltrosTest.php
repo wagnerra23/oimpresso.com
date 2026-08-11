@@ -194,7 +194,7 @@ function comprasContratoCriarCompra(int $businessId, int $locationId, int $userI
  */
 function comprasStagesCore(): array
 {
-    $regras = (new ModulesComprasHttpRequestsListarComprasRequest())->rules();
+    $regras = (new \Modules\Compras\Http\Requests\ListarComprasRequest())->rules();
     $regra = null;
     foreach ((array) ($regras['stage'] ?? []) as $r) {
         if (is_string($r) && str_starts_with($r, 'in:')) { $regra = $r; break; }
