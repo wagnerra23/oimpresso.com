@@ -48,7 +48,7 @@ const GRAPH_EDGE_TYPES = new Set(['dependsOn', 'delegatesTo', 'migratesTo']);
 const MODULE_ACTIVATION_FILES = [
   'module.json',
   'composer.json',
-  'SCOPE.md',
+  // ADR 0374: SCOPE.md saiu de Modules/<X>/ — exigido abaixo, no bloco memory/requisitos.
   'Providers/RouteServiceProvider.php',
   'Http/Controllers/DataController.php',
   'Http/Controllers/InstallController.php',
@@ -320,6 +320,7 @@ export function inspectModuleActivation(mod, {
 } = {}) {
   const required = [
     ...MODULE_ACTIVATION_FILES.map((rel) => `Modules/${mod}/${rel}`),
+    `memory/requisitos/${mod}/SCOPE.md`,
     `memory/requisitos/${mod}/BRIEFING.md`,
     `memory/requisitos/${mod}/SPEC.md`,
     `memory/requisitos/${mod}/SUPERFICIE.md`,
@@ -383,7 +384,7 @@ export function inspectDocumentationFleet({
     .map((file) => file.split('/')[1]))].sort();
   const rows = modules.map((mod) => {
     const required = [
-      `Modules/${mod}/SCOPE.md`,
+      `memory/requisitos/${mod}/SCOPE.md`,   // ADR 0374: saiu de Modules/
       `memory/requisitos/${mod}/BRIEFING.md`,
       `memory/requisitos/${mod}/SPEC.md`,
       `memory/requisitos/${mod}/SUPERFICIE.md`,
@@ -796,7 +797,7 @@ function selftest() {
       providers: [`Modules\\${novo}\\Providers\\${novo}ServiceProvider`],
     }));
     writeFileSync(join(fixture, `Modules/${novo}/composer.json`), '{}\n');
-    writeFileSync(join(fixture, `Modules/${novo}/SCOPE.md`), '---\nmodule: NovoModulo\n---\n');
+    writeFileSync(join(fixture, `memory/requisitos/${novo}/SCOPE.md`), '---\nmodule: NovoModulo\n---\n');
     writeFileSync(join(fixture, `Modules/${novo}/Providers/${novo}ServiceProvider.php`), '<?php\n');
     writeFileSync(join(fixture, `Modules/${novo}/Providers/RouteServiceProvider.php`), '<?php\n');
     writeFileSync(join(fixture, `Modules/${novo}/Http/Controllers/DataController.php`), '<?php\n');
