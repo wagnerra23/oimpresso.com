@@ -42,7 +42,7 @@ Mensagens em PT-BR com instruções de resolução (ver shell script no workflow
 
 ### Job 2 — `scope-md-drift` (WARN — só comment, não falha)
 
-Detecta Controllers novos (`A` em `Modules/<X>/Http/Controllers/*Controller.php`) e verifica se aparecem em `memory/requisitos/<X>/SCOPE.md.contains[]`. Posta comment na PR com lista de drifts e como resolver.
+Detecta Controllers novos (`A` em `Modules/<X>/Http/Controllers/*Controller.php`) e verifica se aparecem em `Modules/<X>/SCOPE.md.contains[]`. Posta comment na PR com lista de drifts e como resolver.
 
 Complementar ao `scope-guard.yml` (que já roda strict pro mesmo cenário) — este job entrega mensagem humana detalhada quando o strict falha.
 
@@ -148,7 +148,7 @@ Improvável (regex simples), mas se acontecer:
 Frontmatter de algum SCOPE.md está mal-formado. Validar:
 
 ```bash
-python3 -c "import yaml; yaml.safe_load(open('memory/requisitos/<X>/SCOPE.md').read().split('---')[1])"
+python3 -c "import yaml; yaml.safe_load(open('Modules/<X>/SCOPE.md').read().split('---')[1])"
 ```
 
 ## §7. Testando localmente antes de PR

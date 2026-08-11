@@ -25,7 +25,7 @@ contains:
   - "ShiftController"
   - "ToDoController"
 not_contains:
-  - "Modules/Notas (NEW) — KB pessoal + tarefas + arquivo cliente"
+  - "modulo `Notas` (PROPOSTO — nao existe em Modules/) — KB pessoal + tarefas + arquivo cliente"
 trust_required: L3
 owner: wagner
 permission_prefix: essentials.*

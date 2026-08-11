@@ -8,7 +8,7 @@ contains:
   - "InstallController"
 not_contains:
   - "Estoque/inventário operacional → Modules/AssetManagement + core UltimatePOS stock"
-  - "Vendas/saídas → core UltimatePOS Sells (futuro Modules/Sells)"
+  - "Vendas/saídas → core UltimatePOS Sells (NAO e modulo: telas legacy em app/ + resources/views — ghost-rename-map excluded classe C)"
   - "Financeiro de Contas a Pagar → Modules/Financeiro"
   - "NF-e de entrada → Modules/NfeBrasil"
 trust_required: L3

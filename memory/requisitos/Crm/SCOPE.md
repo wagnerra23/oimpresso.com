@@ -1,7 +1,7 @@
 ---
 module: Crm
 # ⚠️ Crm É o módulo de CLIENTE / contatos do cliente. UltimatePOS herdou o nome
-# "Crm" — NÃO existe Modules/Cliente. Requisitos canônicos: memory/requisitos/Crm/
+# "Crm" — NAO existe modulo `Cliente` em `Modules/`. Requisitos canônicos: memory/requisitos/Crm/
 # (a antiga memory/requisitos/Cliente/ foi consolidada aqui em 2026-06-01).
 # Ver memory/reference/crm-e-o-modulo-de-cliente.md
 purpose: "Pipeline pré-venda herdado do UltimatePOS (leads, follow-ups, campanhas, propostas, call logs) — EM DEPRECAÇÃO por ADR 0301. Hospeda ainda, por acidente histórico, os endpoints JSON do drawer de Cliente (/cliente/*) e o portal do contato (/contact/*), cujo dono real é o ContactController do core."
