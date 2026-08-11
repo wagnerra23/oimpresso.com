@@ -48,7 +48,7 @@ const GRAPH_EDGE_TYPES = new Set(['dependsOn', 'delegatesTo', 'migratesTo']);
 const MODULE_ACTIVATION_FILES = [
   'module.json',
   'composer.json',
-  // ADR 0374: SCOPE.md saiu de Modules/<X>/ — exigido abaixo, no bloco memory/requisitos.
+  // ADR 0375: SCOPE.md saiu de Modules/<X>/ — exigido abaixo, no bloco memory/requisitos.
   'Providers/RouteServiceProvider.php',
   'Http/Controllers/DataController.php',
   'Http/Controllers/InstallController.php',
@@ -384,7 +384,7 @@ export function inspectDocumentationFleet({
     .map((file) => file.split('/')[1]))].sort();
   const rows = modules.map((mod) => {
     const required = [
-      `memory/requisitos/${mod}/SCOPE.md`,   // ADR 0374: saiu de Modules/
+      `memory/requisitos/${mod}/SCOPE.md`,   // ADR 0375: saiu de Modules/
       `memory/requisitos/${mod}/BRIEFING.md`,
       `memory/requisitos/${mod}/SPEC.md`,
       `memory/requisitos/${mod}/SUPERFICIE.md`,

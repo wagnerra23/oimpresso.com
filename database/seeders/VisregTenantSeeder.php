@@ -25,6 +25,24 @@ use Illuminate\Support\Facades\Hash;
  * Por que role `Admin#1` basta (sem enumerar permissões): o Gate::before em
  * AuthServiceProvider concede TODAS as abilities a quem `hasRole('Admin#'.$business_id)`.
  *
+ * ⚠️ PONTO CEGO DECLARADO (medido 2026-08-11) — o que as baselines NÃO fotografam:
+ * "todas as abilities" vale pra PERMISSÃO (camada 3), e NÃO instala MÓDULO (camada 1).
+ * Este seeder tem ZERO ocorrência de package_details/subscription/enabled_modules, e o
+ * `Gate::before` só concede `superadmin` por USERNAME (config/constants.php →
+ * ADMINISTRATOR_USERNAMES, ausente no workflow) — o `visreg_admin` não é superadmin.
+ * Logo, em 25 módulos o `DataController` cai em `hasThePermissionInSubscription(...)`
+ * = false e NUNCA injeta a entrada no `shell.menu`. Consequência medida:
+ *   - a SUB-NAV de área some (ex.: `JanaSubNav` faz `return null` sem ghosts) —
+ *     10 das 15 telas do manifesto visreg;
+ *   - a SIDEBAR sai sem as entradas desses módulos — 15 de 15.
+ * A página ABRE (permissão comum basta) e o pixel-diff é estável, então isto NÃO é
+ * falso-verde: é BURACO DE COBERTURA. O gate protege o miolo da Page e não vê o chrome
+ * derivado de `shell.menu`. Um PR que quebre as abas passa verde.
+ *
+ * NÃO semeie assinaturas "pra consertar" sem decidir o rebaseline: ligar módulos muda as
+ * 15 baselines DE UMA VEZ, e rebaseline em massa é exatamente quando regressão real entra
+ * sem ser vista. Se for feito, uma tela por PR, com o diff olhado. Decisão [W].
+ *
  * Por que só colunas existentes + as NOT-NULL-sem-default: o gate roda MySQL com
  * `'strict' => false` (config/database.php) → colunas omitidas ganham default implícito.
  *

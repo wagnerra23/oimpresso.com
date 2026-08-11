@@ -183,7 +183,7 @@
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 24
+        "citing_modules": 25
       },
       "stream": "KL"
     },
@@ -233,7 +233,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 0,
+      "value": 5,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -242,7 +242,7 @@
         "portas": 78,
         "carimbadas": 14,
         "sem_carimbo": 64,
-        "stale": 0,
+        "stale": 5,
         "oldest_distilled_at": "2026-07-17"
       },
       "stream": "MEM"
@@ -282,10 +282,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 48,
+        "entries_aprovadas": 50,
         "max_error_rate_pct": 1.82,
-        "last_pr": 5502,
-        "last_lote": "GOV-module-surface-blade-listar-5502"
+        "last_pr": 5548,
+        "last_lote": "MEM-docs-move-30-5548"
       },
       "stream": "GT"
     }

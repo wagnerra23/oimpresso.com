@@ -1,6 +1,6 @@
 ---
-slug: 0374-scope-md-sai-de-modules-para-memory-requisitos
-number: 374
+slug: 0375-scope-md-sai-de-modules-para-memory-requisitos
+number: 375
 title: "SCOPE.md e LICOES-OPERACAO.md saem de Modules/ para memory/requisitos/"
 type: adr
 status: aceito
@@ -22,7 +22,7 @@ related_adrs:
   - 0345-topicos-vivos-aprendizado-por-critica-revisada
 ---
 
-# ADR 0374 — `SCOPE.md` e `LICOES-OPERACAO.md` saem de `Modules/` para `memory/requisitos/`
+# ADR 0375 — `SCOPE.md` e `LICOES-OPERACAO.md` saem de `Modules/` para `memory/requisitos/`
 
 ## Contexto
 

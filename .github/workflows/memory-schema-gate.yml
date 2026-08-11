@@ -190,15 +190,44 @@ jobs:
         run: |
           # PR: diff vs base (origin/main em geral)
           # Push main: diff vs HEAD~1
+          #
+          # 2026-08-11 — SEM `--depth` e COM checagem de rc. Os dois consertos são do
+          # mesmo defeito: o diff podia FALHAR e virar "0 arquivos" em silêncio.
+          #
+          # (1) o `--depth=50` ANULAVA o `fetch-depth: 0` do checkout acima. Medido em
+          #     clone independente: repo completo (6425 commits) + `git fetch --depth=50`
+          #     => shallow=true, 50 alcançáveis. `git fetch --depth` TRUNCA repo completo.
+          #     Com o checkout já trazendo tudo, aquele fetch não buscava nada que
+          #     faltasse — só encurtava. E era MAIS LENTO: mediana 327ms vs 206ms
+          #     (5 amostras, clone fresco + 1º fetch), porque paga o corte de história.
+          #     Com o merge-base fora dos 50, `git diff BASE...HEAD` saía rc=128
+          #     (`fatal: no merge base`) e o `|| true` engolia.
+          # (2) o `|| true` transformava esse erro em string vazia; `echo` criava o
+          #     arquivo SEMPRE, então "diff quebrado" e "nada a validar" ficavam
+          #     indistinguíveis, e o gate saía verde tendo validado ZERO arquivos.
+          #
+          # Bite-test (repo sintético, base divergida antes dos últimos 50, handoff
+          # com `tldr: "TODO"` COMMITADO no PR — a fixture do #4798):
+          #   antes => rc=0, changed-files vazio, handoff INVÁLIDO passa
+          #   depois => rc=1, `::error /tldr must NOT have fewer than 10 characters`
+          # Controle negativo (merge-base dentro dos 50): idêntico antes e depois.
+          #
+          # Em produção o falso-verde não chegou a ocorrer — o `actions/checkout` usa o
+          # merge ref, então o merge-base é o tip da base (3 runs medidos, distância
+          # 0/0/0). Mas isso é propriedade do checkout, não deste step: some se alguém
+          # trocar o modo de checkout, o evento, ou o ref. Não dependa dela em silêncio.
+          #
+          # NADA de `2>/dev/null || true` aqui: diff que falha tem de ficar VERMELHO.
+          # `git diff` sai 0 mesmo sem diferença nenhuma — rc≠0 é falha de verdade.
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE="origin/${{ github.base_ref }}"
-            git fetch origin "${{ github.base_ref }}" --depth=50 2>/dev/null || true
-            CHANGED=$(git diff --name-only --diff-filter=AM "$BASE...HEAD" 2>/dev/null || true)
+            git fetch origin "${{ github.base_ref }}"
+            CHANGED=$(git diff --name-only --diff-filter=AM "$BASE...HEAD")
           else
-            CHANGED=$(git diff --name-only --diff-filter=AM HEAD~1...HEAD 2>/dev/null || true)
+            CHANGED=$(git diff --name-only --diff-filter=AM HEAD~1...HEAD)
           fi
           echo "$CHANGED" > changed-files.txt
-          echo "Total changed: $(wc -l < changed-files.txt)"
+          echo "Total changed: $(grep -c . changed-files.txt || true)"
 
       # 2026-07-26 — o validador SAIU deste heredoc pra scripts/memory-schemas/validate.mjs.
       # POR QUÊ: enquanto ele vivia aqui dentro, era INVOCÁVEL SÓ PELO CI. A skill

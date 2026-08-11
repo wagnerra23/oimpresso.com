@@ -336,7 +336,7 @@ jobs:
             modulo=$(echo "$controller_path" | sed -E 's|Modules/([^/]+)/.*|\1|')
             controller_name=$(basename "$controller_path" .php)
 
-            scope="memory/requisitos/${modulo}/SCOPE.md"   # ADR 0374: SCOPE saiu de Modules/
+            scope="memory/requisitos/${modulo}/SCOPE.md"   # ADR 0375: SCOPE saiu de Modules/
 
             if [ ! -f "$scope" ]; then
               drifts="${drifts}- ⚠️ \`$controller_path\` — \`$scope\` não existe (módulo sem charter, ADR 0079 Art. 7)\n"
