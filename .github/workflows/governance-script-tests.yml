@@ -690,3 +690,25 @@ jobs:
       - name: uc-sem-lane — UC alcançável × nunca alcançado no corpus real (advisory)
         if: ${{ !cancelled() }}
         run: node scripts/governance/uc-sem-lane.mjs
+
+      # ── Órfãos que o selftest-registry-check acusava (2026-08-11) ──────────────────
+      # `node scripts/governance/selftest-registry-check.mjs` listava 5 máquinas que
+      # existem no repo e que NENHUM workflow invocava — 3 arquivos `.test.mjs` e 2
+      # `--selftest` embutidos. Pela regra "LIGUE A MÁQUINA" item 2 (proibicoes §Sempre
+      # fazer), máquina sem invocador é BUG, não neutralidade: a cobertura era narrada,
+      # nunca testada. Precedente do custo em §5 2026-07-24 (`plans-index`: o `--check`
+      # existia, mordia, e o índice drifou +95/−78 sem nenhum sinal).
+      #
+      # Os 5 foram RODADOS antes de entrar (rc=0 cada) e são node-puro — nenhum import
+      # fora de `node:`/relativo. Isso importa porque este job NÃO instala dependência
+      # de propósito: script que precise de gray-matter/ajv não mora aqui.
+      - name: block-ancora-no-olho — morde print de auditoria, libera design legítimo
+        run: node .claude/hooks/block-ancora-no-olho.test.mjs
+      - name: nudge-auditoria-resposta — classificador + E2E fail-open
+        run: node .claude/hooks/nudge-auditoria-resposta.test.mjs
+      - name: nudge-auditoria-resposta — bite-test embutido do classificador
+        run: node .claude/hooks/nudge-auditoria-resposta.mjs --selftest
+      - name: observabilidade-tags — os 15 hooks da leva emitem a tag (com controle negativo)
+        run: node .claude/hooks/observabilidade-tags.test.mjs
+      - name: worktree-janitor — nunca apaga worktree VIVA (13 casos)
+        run: node scripts/governance/worktree-janitor.mjs --selftest
