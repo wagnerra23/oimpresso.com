@@ -27,7 +27,7 @@ charter_adr: 0094
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
-  - 0101-tests-business-id-1-nunca-cliente
+  - 0358-doutrina-de-teste-tenant-98-supersede-0101
   - 0104-processo-mwart-canonico-unico-caminho
   - 0114-prototipo-ui-cowork-loop-formalizado
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12

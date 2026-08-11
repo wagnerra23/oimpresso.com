@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 650,
+    "nodes": 649,
     "edges": 916,
     "by_node_type": {
       "module": 39,
       "table": 73,
-      "adr": 106,
+      "adr": 105,
       "component": 389,
       "api": 43
     },
@@ -155,7 +155,7 @@
       "id": "adr:0052",
       "type": "adr",
       "num": "0052",
-      "slug": "",
+      "slug": "0052-contextonegocio-expor-multiplos-angulos",
       "exists": true
     },
     {
@@ -359,13 +359,6 @@
       "type": "adr",
       "num": "0097",
       "slug": "0097-brief-model-gpt4o-mini-supersede-parcial-0091",
-      "exists": true
-    },
-    {
-      "id": "adr:0101",
-      "type": "adr",
-      "num": "0101",
-      "slug": "",
       "exists": true
     },
     {
@@ -7279,12 +7272,6 @@
     },
     {
       "from": "module:Fiscal",
-      "to": "adr:0101",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:Fiscal",
       "to": "adr:0104",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -7298,6 +7285,12 @@
     {
       "from": "module:Fiscal",
       "to": "adr:0143",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "adr:0358",
       "type": "governedByAdr",
       "source": "related_adrs"
     },

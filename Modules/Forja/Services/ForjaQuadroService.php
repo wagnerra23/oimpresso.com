@@ -7,14 +7,14 @@ namespace Modules\Forja\Services;
 use Modules\Jana\Entities\Mcp\McpTask;
 
 /**
- * Quadro da Forja (board F0→F3.5).
+ * Quadro da Forja (board F0→F4).
  *
  * Projeta `mcp_tasks` project=FORJA num board por fase do protocolo. A fase de
  * cada card vem de `custom_fields['forja_fase']` — projeção sobre JSON existente,
  * SEM schema novo (Tier 0, ADR 0093/0070). Card sem fase reconhecida cai em F0.
  *
  * É só leitura/projeção (espelha ForjaController::buildTriagemPayload): nada de
- * dado fantasma — $projectId null devolve as 6 colunas com cards vazios pro
+ * dado fantasma — $projectId null devolve as 7 colunas com cards vazios pro
  * front renderizar o esqueleto do board.
  */
 class ForjaQuadroService
@@ -32,13 +32,19 @@ class ForjaQuadroService
         ['key' => 'F2',   'label' => 'F2 Screenshot'],
         ['key' => 'F3',   'label' => 'F3 Code'],
         ['key' => 'F3.5', 'label' => 'F3.5 A11y'],
+        // F4 Merge — decisão [W] 2026-08-11, fechando a DIVERGENCIA_DECLARADA do
+        // PipelineParidadeTest. A fonte de design (`prototipo-ui/cowork/forja-data.jsx`)
+        // sempre teve F4 com `owner: W2`, e os charters de Trabalho/Aprovações já
+        // diziam "F0→F4 é constituição" — o backend é que parava em F3.5. Merge é
+        // ESTADO DE TRABALHO com dono humano, não arquivo: por isso é coluna.
+        ['key' => 'F4',   'label' => 'F4 Merge'],
     ];
 
     /** Fase default pra cards sem `forja_fase` (ou com fase desconhecida). */
     private const FASE_FALLBACK = 'F0';
 
     /**
-     * Monta o board: 6 colunas (fases) na ordem canônica, cada uma com seus cards.
+     * Monta o board: 7 colunas (fases) na ordem canônica, cada uma com seus cards.
      *
      * @return array{fases: list<array{key: string, label: string, cards: list<array{display_id: string, title: string, tipo: string|null, onda: string|null}>}>}
      */

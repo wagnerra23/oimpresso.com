@@ -165,6 +165,12 @@ jobs:
               # trigger, mexer no controller não dispara o teste dele (§5 2026-08-02).
               - 'app/Http/Controllers/ProdutoUnificadoController.php'
               - 'app/Category.php'
+              # Arquivos SOB TESTE do ProdutoBomContratoTest, que saiu da quarentena em
+              # 2026-08-11 (UC-PBOM-02 corrigido). Mesma razão escrita 3 linhas acima: sem
+              # eles no trigger, mexer no BOM não dispararia o teste do BOM — gate mudo com
+              # cara de cobertura (§5 2026-08-02). Entram JUNTO com o teste, não depois.
+              - 'app/Http/Controllers/Inventory/ProductBomController.php'
+              - 'app/Domain/Inventory/Services/BomResolver.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'
