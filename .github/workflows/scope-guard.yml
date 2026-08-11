@@ -10,7 +10,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/**/Http/Controllers/**.php'
-      - 'Modules/**/SCOPE.md'
+      - 'memory/requisitos/*/SCOPE.md'
       # A direcao contains -> arvore (job declared-check) fica MUDA se so disparar
       # em SCOPE.md: o vetor principal e DELETAR/renomear o arquivo sem tocar o
       # SCOPE (foi assim que o BriefController ficou 7 semanas listado). Por isso
@@ -25,7 +25,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/**/Http/Controllers/**.php'
-      - 'Modules/**/SCOPE.md'
+      - 'memory/requisitos/*/SCOPE.md'
       - 'Modules/**/*.php'
       # Sem estas duas, o guard NAO roda no proprio PR que o altera — mudanca no
       # classificador ou no wiring entraria sem nunca ser exercitada. Mesmo padrao
