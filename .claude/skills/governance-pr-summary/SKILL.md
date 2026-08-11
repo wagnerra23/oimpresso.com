@@ -183,18 +183,31 @@ marcador cai no `*)` e o passo vira no-op — o resto da skill segue normal.
 
 Mapping rápido quando 1 PR toca múltiplos módulos:
 
+⚠️ **Não use `jq` aqui.** O agente desktop roda em Windows/Git Bash, onde `jq`
+**não existe** — e a redação anterior (`jq -r '.governance.bucket // "unknown"'
+… 2>/dev/null`) falhava do jeito pior possível: o `2>/dev/null` engolia o
+`command not found`, o `// "unknown"` do jq **nunca rodava** (jq nem iniciou),
+e `bucket` saía **VAZIO** — que não casa com a condição de escalonamento logo
+abaixo. Resultado: módulo sem bucket passava em silêncio, e o silêncio era
+indistinguível de "está tudo classificado" (LC-13 · `proibicoes.md` §5 2026-08-11).
+Bite-test em `Modules/Compras`: jq → `''` · node → `process_horizontal` ·
+arquivo inexistente → `unknown`.
+
 ```bash
 git diff --name-only origin/main...HEAD \
   | grep -oE '^Modules/[^/]+' | sort -u \
   | while read p; do
       mod=$(basename "$p")
-      bucket=$(jq -r '.governance.bucket // "unknown"' "$p/module.json" 2>/dev/null)
+      bucket=$(node -e "const fs=require('fs');let b='unknown';try{b=(JSON.parse(fs.readFileSync(process.argv[1],'utf8')).governance||{}).bucket||'unknown'}catch(e){};process.stdout.write(b)" "$p/module.json")
       echo "$mod:$bucket"
     done
 ```
 
 Se bucket = `unknown`, módulo não está classificado → escalar pro
 Wagner ("falta `governance.bucket` em `Modules/<X>/module.json`").
+O `node` degrada pra `unknown` em qualquer falha (arquivo ausente, JSON
+inválido, chave faltando), então a condição acima **sempre** dispara quando
+deve — nunca sai vazio.
 
 ## Anti-patterns proibidos (Tier 0)
 
