@@ -34,7 +34,7 @@ use Stringable;
  * @ $0.80/M input + $4/M output = ~R$ [redacted Tier 0] por brief. JANA Pro plano R$ [redacted Tier 0]
  * comporta brief diário + ~20 conversas chat sem queimar margem.
  *
- * @see memory/requisitos/Copiloto/JANA-PRO-PRODUCT-PLAN.md (Sprint A US-COPI-202)
+ * @see memory/requisitos/Jana/JANA-PRO-PRODUCT-PLAN.md (Sprint A US-COPI-202)
  * @see memory/decisions/0140-jana-pro-produto-comercial-saas.md
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md

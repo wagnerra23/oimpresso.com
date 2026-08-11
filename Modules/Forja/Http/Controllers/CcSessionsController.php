@@ -14,7 +14,7 @@ use Modules\Jana\Entities\Mcp\McpCcMessage;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 
 /**
- * MEM-CC-UI-1 (SPEC memory/requisitos/Copiloto/SPEC-cc-sessions.md) —
+ * MEM-CC-UI-1 (SPEC memory/requisitos/Jana/SPEC-cc-sessions.md) —
  * Tela /team-mcp/cc-sessions — KB sessões Claude Code do time.
  *
  * Schema mcp_cc_* já em prod desde 29-abr (3 tabelas).
