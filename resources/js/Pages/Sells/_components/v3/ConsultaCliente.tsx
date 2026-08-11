@@ -88,7 +88,7 @@ function NovoCliente({
         if (!v) fechar();
       }}
     >
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="venda-v3 sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>Novo cliente — sem sair da venda</DialogTitle>
         </DialogHeader>
@@ -202,7 +202,7 @@ export default function ConsultaCliente({
           if (!v) onFechar();
         }}
       >
-        <DialogContent className="max-h-[80vh] sm:max-w-[880px]">
+        <DialogContent className="venda-v3 max-h-[80vh] sm:max-w-[880px]">
           <DialogHeader>
             <DialogTitle>Consulta de clientes</DialogTitle>
           </DialogHeader>
