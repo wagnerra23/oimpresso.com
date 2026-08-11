@@ -1446,6 +1446,24 @@
       "error_rate_pct": 0.63,
       "veredito": "aprovado",
       "nota": "LOTE DE MOVIMENTACAO, nao geracao por LLM (mesmo caso das entries #5502 e #5547): 30 docs saíram de Modules/<X>/ pra memory/requisitos/<X>/ — 26 move simples, 3 fusao aditiva de README, 1 CONTRACTS. Cumpri o protocolo integralmente em vez de alegar que o §1 (\"gerado por IA em batch\") nao se aplica. DOIS ERROS CONFIRMADOS, ambos MEUS e ambos CORRIGIDOS antes do merge: (E1) Ponto/README.md — eu havia trocado 2 de 6 ocorrencias de PontoWr2 pra Ponto ao aterrar um ghost, deixando a instrucao INCOERENTE (copiava pra Modules/Ponto e habilitava PontoWr2 nas 4 linhas seguintes); pior, isso falseava o recibo \"toda linha dos originais existe no destino, 30/30\" que eu publiquei. Corrigido: as 6 agora sao Ponto, que e o  real do module.json. (E2) Superadmin/BRIEFING.md:8 — link markdown vivo apontando pro CHANGELOG que ESTE PR deletou; meu relink so tratou os arquivos MOVIDOS, nunca os que APONTAM pra eles, e minha varredura de refs orfas cobria .php/.mjs/.yml mas NAO .md. Isso falseava o recibo \"0 referencia orfa (repo inteiro)\". Corrigido pra link relativo local. A CLASSE que o E2 revela vale mais que o erro: mover arquivo exige varrer os DOIS sentidos. RESIDUO DECLARADO E NAO CORRIGIVEL: ADR 0170 (L315/L351) tem 2 links mortos pro README do RecurringBilling — ADR e append-only por lei (ADR 0094 Art.3). O QUE O REFUTADOR CONFIRMOU: fusao aditiva 3/3 com os dois lados intactos (NFSe 29+35 incl. o \"Onboarding Eliana\", RecurringBilling 51+90, Whatsapp 82+91); 91 links relativos resolvidos, 0 novo-quebrado; zero hit de ref orfa em codigo; nenhum artefato  foi movido a mao. HONESTIDADE DO REFUTADOR: declarou que a worktree e COMPARTILHADA e trocou de branch durante a verificacao dele, descartou 100% das leituras de arvore viva e refez tudo por git show contra sha imutavel — e retirou sozinho um falso-positivo de YAML e 8 de 10 toContain que eram heuristica ruim dele, nao defeito do lote."
+    },
+    {
+      "pr": 5501,
+      "data": "2026-08-11",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5 (Anthropic)",
+      "refutador": "fable-5 (Anthropic) — tier SUPERIOR a opus, §2.3; subagente em sessao fresca, zero contexto do gerador",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "https://github.com/wagnerra23/oimpresso.com/pull/5501 — relatorio do refutador no corpo do PR; 100% medido por sha imutavel (head d23fa2a1d013, merge-base 6906dc37100e) e por checkout DETACHED do head, NAO contra a arvore compartilhada",
+      "lote_id": "GOV-superficie-ponteiro-dir-35-5501",
+      "itens_verificados": 220,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "veredito": "aprovado",
+      "nota": "LOTE DERIVADO, nao geracao por LLM (mesma classe das entries #5502/#5547/#5548): 35 SUPERFICIE.md sao artefato GERADO por module-surface.mjs (authority: generated, \"NAO editar\"). Cumpri o protocolo integralmente em vez de alegar que o §1 (\"gerado por IA em batch\") nao se aplica — seguindo o precedente escrito na nota da entry #5548. ZERO ERRO CONFIRMADO em 220 itens. O QUE O REFUTADOR CONFIRMOU: (1) 100% das linhas \"- N em [dir/]\" batem contra git ls-tree do head — todo dir existe, nenhum N excede os filhos diretos, todo link relativo resolve pro dir do label; caso emblematico Jana/SUPERFICIE.md saiu de UMA LINHA MENTIROSA (\"158 arquivos em Tests/Feature/Ai/Advisor/\", dir que tem 2) para 22 linhas cuja soma = 158 = header, ou seja o lote CONSERTA um ponteiro falso real; (2) derivado == gerador: --all --check em checkout DETACHED do head deu rc=0 / 36 modulos, medido com redirect e sem pipe, logo ninguem editou a mao um arquivo que diz NAO editar; (3) nada perdido: as 68 linhas removidas sao todas a nota antiga ou a linha antiga, e nenhum \"Total mapeado\" nem header \"## Papel — N\" mudou; (4) os testes novos MORDEM, provado por MUTACAO e nao por leitura — 3 mutantes (colapso pro files[0], linha-por-dir com total do papel, drop de diretorio) e os 3 morreram, com o comando exato do CI dando 45/45; (5) a maquina alterada TEM invocador (module-surface.yml L43 e L62); (6) zero parser do formato antigo no repo (git grep rc=1 com controle positivo), e os 2 leitores de SUPERFICIE nao leem as linhas de corpo. HONESTIDADE DO REFUTADOR: retirou sozinho um falso-positivo do proprio instrumento (grep -ci \"drift|FAIL\" devolveu 36 porque a string \"sem drift\" contem \"drift\" — o veredito real e o rc=0), e declarou que o --check verde vale para o head medido: se main andar sobre arquivos dos modulos antes do merge, o gate pode exigir regeneracao, que e comportamento normal e nao defeito do lote."
     }
   ]
 }
