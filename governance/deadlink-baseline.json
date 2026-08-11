@@ -1,7 +1,7 @@
 {
   "_doc": "Baseline RATCHET do deadlink-gate (so-desce). Dívida grandfathered de links mortos por arquivo VIVO. NAO editar a mao: regenerar com `node scripts/governance/deadlink-gate.mjs --write-baseline` (idealmente quando a divida DIMINUI). Historia (handoffs/sessions/sprints/audits/research/reguas) fica fora por ser append-only. NAO entram aqui (resolvem, nao sao mortos): referencia a ADR TOMBADA via governance/adr-tombstones.json (ADR 0316) e referencia a PATH RENOMEADO via governance/ghost-rename-map.json classe A (2026-07-30) — os dois evitam que esquecimento/rename inflem o baseline por divida que o append-only proibe corrigir.",
   "generated_at": "2026-08-11",
-  "total_vivo": 1093,
+  "total_vivo": 1092,
   "files": {
     "INFRA.md": 2,
     "memory/08-handoff.md": 10,
@@ -90,7 +90,6 @@
     "memory/decisions/proposals/2026-05-24-sidebar-dark-vs-light.md": 1,
     "memory/decisions/proposals/2026-05-27-baileys-vs-whatsmeow-substituicao-daemon-whatsapp.md": 1,
     "memory/decisions/proposals/2026-07-20-auto-feed-ledger-aprendizado.md": 3,
-    "memory/decisions/proposals/2026-07-30-deprecar-6-modulos-governanca-ordem-topologica.md": 1,
     "memory/decisions/proposals/OIMPRESSO-INSIGHTS-1PAGER.md": 1,
     "memory/decisions/proposals/PRODUTO-OIMPRESSO-INSIGHTS-MASTER-SPEC.md": 4,
     "memory/decisions/proposals/compras-modulo-greenfield-hibrido.md": 1,
