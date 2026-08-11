@@ -82,7 +82,7 @@ function recordsFromSynthetic() {
     const asList = (v) => (Array.isArray(v) ? v : v ? [String(v)] : []);
     return {
       module: typeof fields.module === 'string' ? fields.module : mod,
-      path: `Modules/${mod}/SCOPE.md`,
+      path: `memory/requisitos/${mod}/SCOPE.md`,
       purpose: typeof fields.purpose === 'string' ? fields.purpose : '',
       trust: '', owner: '', permission_prefix: '',
       charter_adr: typeof fields.charter_adr === 'string' ? fields.charter_adr : '',

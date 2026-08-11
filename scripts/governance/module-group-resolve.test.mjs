@@ -63,7 +63,7 @@ const CONTRATO = {
   papeis: [
     { papel: 'contrato', pergunta: 'o que promete', onde: ['memory/requisitos/{mod}/SPEC.md'], cardinalidade: 'zero-ou-um' },
     { papel: 'estado', pergunta: 'em que pe esta', onde: ['memory/requisitos/{mod}/BRIEFING.md'], cardinalidade: 'zero-ou-um' },
-    { papel: 'responsabilidade', pergunta: 'fronteira', onde: ['Modules/{mod}/SCOPE.md'], cardinalidade: 'zero-ou-um' },
+    { papel: 'responsabilidade', pergunta: 'fronteira', onde: ['memory/requisitos/{mod}/SCOPE.md'], cardinalidade: 'zero-ou-um' },
     { papel: 'telas', pergunta: 'que telas tem', onde: ['resources/js/Pages/{mod}/**/*.charter.md', 'resources/js/Pages/{mod}/**/*.casos.md'], cardinalidade: 'zero-ou-muitos' },
     { papel: 'dominio', pergunta: 'palavras de significado fixo', onde: ['memory/dominio/{mod}.md'], cardinalidade: 'zero-ou-um' },
   ],
