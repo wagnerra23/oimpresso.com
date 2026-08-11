@@ -493,6 +493,50 @@ uma implementação que simplesmente **não faz nada**.
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
 
+### Consulta de clientes (extra — `ConsultaCliente`)
+
+> ⚠️ **O que esta onda garante sobre VALOR, e como cada metade foi estabelecida.**
+> Trocar de cliente **não reprecifica a venda**. Isso vale por duas razões, e elas têm
+> forças diferentes — declarar as duas como "provado" seria inflar:
+> **(a) MEDIDO** (`grep` em `CreateV3.tsx`, 2026-08-11): `tabelaCadastro`/`tabelaAtiva`/
+> `tabelaTrocada` aparecem só no cartão "Tabela de preço", nunca em `linhaTotal`,
+> `subtotal` ou `total`; o preço unitário mora em `itens`, que a seleção não toca.
+> **(b) PROVADO** em [`tests/js/cliente-consulta-dominio.test.ts`](../../../../tests/js/cliente-consulta-dominio.test.ts) — **23/23**,
+> com mutação confirmando que os guards mordem: cliente novo nasce com `tabela: null`,
+> e `ClienteConsulta` não carrega campo de preço nenhum (a ausência é a defesa).
+> É deliberadamente o caminho oposto ao da lápide de 2026-07-15, em que o
+> `CustomerSearchAutocomplete` reaplica `selling_price_group_id` no `onSelect`.
+
+- **[BACKLOG]** A consulta abre em modal de **880px** e lista os cadastros do business atual com código, nome/razão social, CNPJ/CPF, situação de ICMS, cidade/UF e grupo de preço.
+- **[BACKLOG]** Clicar na linha **traz o cadastro inteiro** (documento, IE, regime, endereço, grupo, prazo) e abre os **detalhes do destinatário** — quem troca de cliente precisa conferir o que veio junto, não descobrir na NF-e.
+- **[BACKLOG]** A troca de cliente entra no **desfazer**, como qualquer outra ação destrutiva da tela.
+- **[BACKLOG]** Situação de ICMS aparece em **três** estados visualmente distintos (contribuinte · isento · não contribuinte) — isento exibido como contribuinte é erro fiscal, não estético.
+- **[BACKLOG]** A linha do cliente **já selecionado** é destacada na consulta; a seleção marca, não filtra.
+- **[BACKLOG]** Busca sem resultado mostra **estado vazio nomeando o termo**, nunca uma tabela em branco.
+- **[BACKLOG]** A linha inteira é clicável, mas quem recebe o clique é um `<button>` real — alcançável por teclado (`a11y:check`).
+- **[BACKLOG]** **Cadastro mínimo** (só o nome é obrigatório) cria o cliente **em memória** e o devolve já selecionado; o que não foi perguntado entra como `—`, nunca inventado — e o cliente novo **não nasce com tabela de preço**, então cai no padrão do balcão.
+- **[BACKLOG]** O código do cliente novo continua a sequência **preservando a largura** (`0288` → `0289`) e não colide com código existente.
+
+> **Duas divergências CONSCIENTES do protótipo, e as duas fazem a busca cumprir a
+> própria copy.** A fonte compara `(cod + nome + doc + cidade).toLowerCase().includes(termo)`
+> literal, então o placeholder promete *"Buscar por nome, CNPJ/CPF, cidade ou código…"*
+> e mesmo assim **não acha** `29417508` (o operador digita o documento sem máscara, que é
+> como ele vem do papel) nem `itajai` (sem acento). Aqui o documento casa por **dígito** e
+> o texto casa **sem acento**. O que **não** muda: continua `includes` e não fuzzy, termo
+> vazio devolve a lista inteira, e a ordem é preservada. Há controle negativo provando que
+> o eixo numérico não vaza — sem ele, `soDigitos('atacado')` daria `''` e `''.includes('')`
+> casaria toda linha, devolvendo a lista inteira para qualquer termo textual.
+
+> **Os dados de cena divergem do protótipo, e o motivo é Tier 0.** O CNPJ que a fonte usa
+> no cliente Governo foi **medido VÁLIDO** — é documento real, e a allowlist do `pii-scan`
+> é explícita que *"CPF/CNPJ real JAMAIS entra"*. Ele não entrou (nem em comentário, para
+> não deixar o número identificável em prosa), o nome do órgão
+> não é o de uma prefeitura existente, e "Rota Livre" saiu da cena por ser o cliente-piloto de
+> verdade (biz=4), não personagem. Os documentos que ficaram têm DV **medido inválido**, com
+> controle positivo e negativo no validador.
+
+---
+
 ### Colunas do grid (onda 6) — o que a promoção NÃO cobriu
 
 > Os 7 casos desta onda viraram **UC-V360..UC-V366** acima. Sobrou o item de **acessibilidade**,

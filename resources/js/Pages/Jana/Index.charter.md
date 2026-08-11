@@ -2,7 +2,7 @@
 id: resources-js-pages-jana-index-charter
 page: /ia
 component: resources/js/Pages/Jana/Index.tsx
-related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live
 last_validated: "2026-08-07"
@@ -48,7 +48,12 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos 4 KPIs abrem
   (Faturamento mês → Faturamento; Inadimplência total → Inadimplência); Ticket médio e PIX hoje
   não têm análise do mesmo dado e permanecem estáticos. Âncora:
-  `prototipo-ui/cowork/jana-merge.jsx :640` (`JmDrillDrawer`) + `:887` (`JM_KPI_DRILL`).
+  `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` + §`JM_KPI_DRILL` — âncora de SÍMBOLO
+  (ref de linha apodrece no 1º refactor, §5 2026-07-26; re-localize com
+  `grep -n "JmDrillDrawer\|JM_KPI_DRILL" prototipo-ui/cowork/jana-merge.jsx`).
+  _Recibo 2026-08-11: no arquivo versionado (`SYNC` com o vivo, sha256 normalizado
+  `057bd8ae081bfd1c…`) os símbolos caem em `:640` e `:887` — as duas refs que a v3 citava
+  **conferem**. Ficam como símbolo, não linha, porque o número é que é frágil, não a citação._
 
 ## Non-Goals
 
