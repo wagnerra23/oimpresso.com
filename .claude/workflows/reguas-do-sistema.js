@@ -131,10 +131,43 @@ const RESEARCH_SCHEMA = {
 }
 const VERDICT = { type: 'object', additionalProperties: false, required: ['veredito', 'razao'], properties: {
   veredito: { type: 'string', enum: ['ACIMA_CONFIRMADO', 'EMPATADO', 'REFUTADO'] }, razao: { type: 'string' }, quem_ja_faz: { type: 'string' } } }
+// ── RUBRICA DA NOTA ──────────────────────────────────────────────────────────
+// POR QUE EXISTE (defeito MEDIDO, passe adversarial 2026-08-11): `nota_sugerida` era
+// `{ type: 'number' }` — sem bounds, sem rubrica, e o prompt pedia só "a nota 0-10".
+// O determinismo estava na MÉDIA, nunca nas NOTAS. Prova: 4 fraquezas cujo verificador
+// declarou a premissa FALSA receberam 9,0 · 7,5 · 6,0 · 6,0 — spread de 3,5 na MESMA
+// classe de veredito ⇒ ruído inter-verificador ≈ ±0,5, que engole qualquer Δ entre
+// rodadas (o 7,7→7,1 de 08-08→08-11 estava inteiramente dentro dele).
+//
+// A escada NÃO é inventada: é a que o projeto já aplica em prosa espalhada — "LIGUE A
+// MÁQUINA" item 2 (máquina sem invocador é bug), ADR 0275 (nasce advisory), ADR 0336
+// DR-2 (promoção exige mordida provada), LC-11 (presença ≠ comportamento) e LC-13
+// (verde por não-execução). Aqui ela vira ESCALA, que é o que faltava.
+// NÃO exportar: este arquivo é script de workflow, não módulo ESM comum — só o
+// `export const meta` do topo é tratado pelo runtime. Um `export` no meio quebra o
+// carregamento (medido: `SyntaxError: Unexpected token 'export'` no selftest).
+const RUBRICA_NOTA = [
+  '0-2  AUSENTE    — não há mecanismo; a fraqueza É a ausência.',
+  '3-4  ÓRFÃO/MUDO — existe e NINGUÉM invoca (máquina sem invocador é bug), OU roda e não entrega ("roda ≠ entrega"), OU a suíte não executa o que afirma provar (LC-13).',
+  '5-6  REPORTA    — roda e reporta de verdade, mas advisory sem consumidor, OU cobertura de 1 caso, OU oráculo derivado do próprio código (tautológico).',
+  '7-8  MORDE      — morde num chokepoint provado, com bite-test; falta cobertura declarada OU falso-positivo medido antes de armar.',
+  '9-10 CONSUMIDO  — bite-test + controle negativo, FP medido ANTES, cobertura declarada, e o resultado entra numa DECISÃO (não só num relatório).',
+  'DURO: presença NUNCA passa de 4 sozinha (LC-11). Verde que não pode ficar vermelho NUNCA passa de 4 (carimbo).',
+  'DURO: sem evidência file:line verificável ⇒ `nota_sugerida: null` (não pontuável). NUNCA um número de conforto — a célula vazia É o achado.',
+  'DURO: a nota é do MECANISMO naquela fraqueza. Agregar dimensões num índice é proibido (lápide §5 2026-07-17, chip C9).',
+].join('\n')
+
 const EXISTE = { type: 'object', additionalProperties: false, required: ['veredito', 'evidencia', 'nota_sugerida'], properties: {
   veredito: { type: 'string', enum: ['JA_EXISTE_TOTAL', 'PARCIAL', 'NAO_EXISTE'] },
   evidencia: { type: 'string', description: 'arquivo:linha / workflow / required-vs-advisory — ou prova de ausência' },
-  nota_sugerida: { type: 'number' }, onde_indexar: { type: 'string' } } }
+  // `null` é LEGÍTIMO e OBRIGATÓRIO quando a evidência não é verificável — a composição
+  // já filtra por `typeof === 'number'` (:396), então a célula não-pontuável some da média
+  // em vez de virar número inventado, e o caveat de denominador declara a mudança de
+  // conjunto. Precedente que motivou: na rodada de 08-11, 2 de 8 células tiveram a
+  // evidência truncada em ~200 chars e o adversário se RECUSOU a pontuá-las — a recusa
+  // era o achado, e o schema não tinha como registrá-la.
+  nota_sugerida: { type: ['number', 'null'], minimum: 0, maximum: 10, description: RUBRICA_NOTA },
+  onde_indexar: { type: 'string' } } }
 // Teste de integração: o peer refutado monta o TODO integrado, ou só a peça isolada? (anti-falácia-de-composição — Wagner 2026-07-10, proibições §5)
 // EMENDA 2026-07-19 (proibições §5): braço discriminativo real. O campo `incremento` é OBRIGATÓRIO — força
 // nomear o que a integração acrescenta ALÉM da soma das peças; "nenhum além da identidade" é resposta válida e
@@ -424,7 +457,7 @@ if (MODO === 'delta') {
   phase('Verificar')
   const alvo = (scan.fraquezas || []).filter((f) => ativas.includes(f.dimensao))
   const verificadas = alvo.length ? (await parallel(capEstratificado('Verificar', alvo, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
-    `RE-VERIFICAÇÃO delta. Fraqueza CONHECIDA do ledger: "${f.titulo}" (dimensão ${f.dimensao}; nota anterior ${f.nota == null ? 's/nota' : f.nota}; veredito anterior ${f.veredito}; evidência anterior: ${(f.evidencia || '').slice(0, 250)}). A dimensão teve commits novos desde o último retrato — re-meça no repo VIVO (paths ABSOLUTOS a partir de ${BASE}): fechou? avançou? regrediu? Dê o veredito e a nota 0-10 SÓ com evidência NOVA (file:line ou PR — recibo, não memória) e diga onde indexar se existia-mas-invisível.`,
+    `RE-VERIFICAÇÃO delta. Fraqueza CONHECIDA do ledger: "${f.titulo}" (dimensão ${f.dimensao}; nota anterior ${f.nota == null ? 's/nota' : f.nota}; veredito anterior ${f.veredito}; evidência anterior: ${(f.evidencia || '').slice(0, 250)}). A dimensão teve commits novos desde o último retrato — re-meça no repo VIVO (paths ABSOLUTOS a partir de ${BASE}): fechou? avançou? regrediu? Dê o veredito e a nota SÓ com evidência NOVA (file:line ou PR — recibo, não memória) e diga onde indexar se existia-mas-invisível.\n\nRUBRICA DA NOTA (obrigatória — a escala tem degraus definidos, não é impressão):\n${RUBRICA_NOTA}`,
     { label: `v:${f.titulo}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high' },
   ).then((v) => (v ? { ...f, check: v } : null))))).filter(Boolean) : []
   log(`delta-verificação: ${verificadas.length}/${alvo.length} fraquezas re-medidas`)
@@ -627,7 +660,7 @@ log(`checkpoint claims (${refutados.length}): ${okPersist(cpClaims) ? 'gravado n
 phase('Verificar')
 const fraquezas = pesquisas.flatMap((p) => p.oimpresso_atras.map((f) => ({ fraqueza: f, dimensao: p.dimensao })))
 const verificadas = (await parallel(capEstratificado('Verificar', fraquezas, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
-  `A pesquisa marcou o oimpresso como FRACO em: "${f.fraqueza}" (dimensão ${f.dimensao}). ANTES de aceitar: cace no repo VIVO (paths ABSOLUTOS a partir de ${BASE}) mecanismos que JÁ cobrem isso total/parcialmente — .github/workflows (nomes dos checks!), scripts/governance, .claude/{skills,hooks}, prototipo-ui/*.mjs, gates-registry/required-checks-baseline. Precedente: numa rodada anterior 7 de 9 "fraquezas" JÁ existiam, invisíveis por desorganização. Dê a nota 0-10 SÓ com evidência (file:line ou prova de ausência) e diga onde indexar o achado (mapa 0330-corrente) se existia-mas-invisível.`,
+  `A pesquisa marcou o oimpresso como FRACO em: "${f.fraqueza}" (dimensão ${f.dimensao}). ANTES de aceitar: cace no repo VIVO (paths ABSOLUTOS a partir de ${BASE}) mecanismos que JÁ cobrem isso total/parcialmente — .github/workflows (nomes dos checks!), scripts/governance, .claude/{skills,hooks}, prototipo-ui/*.mjs, gates-registry/required-checks-baseline. Precedente: numa rodada anterior 7 de 9 "fraquezas" JÁ existiam, invisíveis por desorganização. Dê a nota SÓ com evidência (file:line ou prova de ausência) e diga onde indexar o achado (mapa 0330-corrente) se existia-mas-invisível.\n\nRUBRICA DA NOTA (obrigatória — a escala tem degraus definidos, não é impressão):\n${RUBRICA_NOTA}`,
   { label: `v:${f.fraqueza}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high' },
 ).then((v) => (v ? { ...f, check: v } : null))))).filter(Boolean)
 // Counter por veredito (achado #24) — denominador honesto pra grade: distingue

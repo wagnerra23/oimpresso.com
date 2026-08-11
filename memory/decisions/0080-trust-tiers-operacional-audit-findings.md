@@ -81,7 +81,7 @@ Esta ADR consolida 4 decisões operacionais derivadas:
 
 Audit detectou 9 controllers em módulo errado (5 em Copiloto, 4 em ADS). Todos documentados como `drift_alerts[]` no SCOPE.md de cada módulo afetado. Migração ocorre em Fase 3.7 (após renames).
 
-[`Modules/ADS/SCOPE.md`](../../Modules/ADS/SCOPE.md) v1.0.0 criado nesta ADR como **seed pattern** pros outros 29 módulos. Inclui:
+`Modules/ADS/SCOPE.md` v1.0.0 criado nesta ADR como **seed pattern** pros outros 29 módulos. Inclui:
 - `purpose` em 1-2 frases
 - `contains[]` (controllers/features dentro do scope)
 - `not_contains[]` (com ponteiro pro módulo correto)
@@ -168,7 +168,7 @@ P0 e P1 listados em [`audit-2026-05-05-v1.1.md`](../governance/audit-2026-05-05-
 - [Audit Cascade v1.1](../governance/audit-2026-05-05-v1.1.md)
 - [Trust Tiers v1.0.0](../governance/TRUST-TIERS.md)
 - [Architecture & Scope v1.0.0](../governance/ARCHITECTURE.md)
-- [SCOPE.md ADS (seed)](../../Modules/ADS/SCOPE.md)
+- `SCOPE.md` ADS (seed) — modulo removido pela [ADR 0363](0363-governance-incorpora-ads-nucleo-sem-receptor.md), sem sucessor
 - [ADR 0079 — Constituição](0079-constituicao-oimpresso-7-camadas-governanca.md)
 - [ADR 0065 — Permission Registry](0065-permission-registry-contract.md)
 - [ADR 0077 — MCP resolver mcp_handle](0077-mcp-resolver-owner-via-mcp-handle.md)
