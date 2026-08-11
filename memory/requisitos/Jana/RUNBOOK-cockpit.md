@@ -27,8 +27,11 @@ last_validated: "2026-08-07"
 > ocorrências no repo inteiro, ambas neste arquivo; `mockJanaPayload()` era chamado
 > **só** por `cockpit()`.
 >
-> ⚠️ **NÃO confundir com o `JanaCockpitV2.tsx`**, que **continua vivo** servindo a
-> tab Insights de `/sells` — ver [`RUNBOOK-components.md`](RUNBOOK-components.md).
+> ⚠️ **Errata 2026-08-10:** este aviso dizia que o `JanaCockpitV2.tsx` *"continua vivo
+> servindo a tab Insights de `/sells`"*. **Falso** — ele tinha **0 imports** no repo e foi
+> removido; a tab Insights já não existe em `/sells` e o `SellsInsightsView` estava
+> deletado. A afirmação nasceu de ler um **comentário** do `Sells/Index.tsx:55` como se
+> fosse consumo. Lápide com as provas em [`RUNBOOK-components.md`](RUNBOOK-components.md).
 >
 > O corpo abaixo é o RUNBOOK da tela como ela existiu. Fica como registro do que
 > foi, não como receita do que fazer.

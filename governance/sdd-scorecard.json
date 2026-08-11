@@ -23,27 +23,27 @@
       "detail": {
         "coverage_pct": 88.1,
         "specs_total": 51,
-        "us_total": 954,
+        "us_total": 955,
         "anchor_coverage_pct": 88.1,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 401,
-          "parcial": 112,
-          "anchored_ok": 327,
+          "pendente": 402,
+          "parcial": 113,
+          "anchored_ok": 326,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 848,
+        "fields_total": 849,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 789,
+        "fields_grammar_ok": 786,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 245,
         "req_sem_covering_test_total": 349,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 53,
+        "req_sem_lane_total": 48,
         "behavior_known": false,
         "servido_total": 17,
         "nao_servido_total": 89,
@@ -68,40 +68,40 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 340,
+      "value": 341,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "0ff8c3d0f2d33dc7",
+        "floor_files_hash": "09b2e3835f10a779",
         "runs": [
           {
-            "sha": "017eac4d",
-            "ts": "20260805-020001",
-            "failed": 660,
-            "errors": 392,
-            "skipped": 2249,
+            "sha": "579fc2cc",
+            "ts": "20260808-020001",
+            "failed": 653,
+            "errors": 372,
+            "skipped": 2343,
             "all_shards_measured": true
           },
           {
-            "sha": "b611860f",
-            "ts": "20260806-020001",
-            "failed": 647,
-            "errors": 408,
-            "skipped": 2242,
+            "sha": "2c9fbc8a",
+            "ts": "20260809-020001",
+            "failed": 687,
+            "errors": 395,
+            "skipped": 2250,
             "all_shards_measured": true
           },
           {
             "sha": null,
-            "ts": "20260807-020001",
-            "failed": 653,
-            "errors": 393,
-            "skipped": 2253,
+            "ts": "20260810-020001",
+            "failed": 672,
+            "errors": 443,
+            "skipped": 2248,
             "all_shards_measured": true
           }
         ],
-        "computed_at": "20260807-020001",
+        "computed_at": "20260810-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -120,38 +120,38 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 19.9,
+      "value": 20.1,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 46714,
-        "total": 234912,
+        "covered": 47274,
+        "total": 235341,
         "runs": [
           {
-            "sha": "017eac4d",
-            "ts": "20260805-020001",
-            "coverage_pct": 19.5,
-            "covered": 45705,
-            "total": 234944
+            "sha": "579fc2cc",
+            "ts": "20260808-020001",
+            "coverage_pct": 19.7,
+            "covered": 46266,
+            "total": 234924
           },
           {
-            "sha": "b611860f",
-            "ts": "20260806-020001",
-            "coverage_pct": 20.3,
-            "covered": 47599,
-            "total": 234984
+            "sha": "2c9fbc8a",
+            "ts": "20260809-020001",
+            "coverage_pct": 19.7,
+            "covered": 46317,
+            "total": 235316
           },
           {
             "sha": null,
-            "ts": "20260807-020001",
-            "coverage_pct": 19.9,
-            "covered": 46714,
-            "total": 234912
+            "ts": "20260810-020001",
+            "coverage_pct": 20.1,
+            "covered": 47274,
+            "total": 235341
           }
         ],
-        "computed_at": "20260807-020001",
+        "computed_at": "20260810-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -183,7 +183,7 @@
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 23
+        "citing_modules": 24
       },
       "stream": "KL"
     },
@@ -211,22 +211,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 60,
+      "value": 66.7,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 5,
-        "weeks_valid": 3,
+        "weeks_expected": 6,
+        "weeks_valid": 4,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-08-02",
+        "last_week": "2026-08-09",
         "latest": {
-          "gate_status": "skipped",
-          "n_evaluated": 0,
-          "faithfulness_avg": null,
-          "relevancy_avg": null,
-          "context_recall_avg": null
+          "gate_status": "fail",
+          "n_evaluated": 50,
+          "faithfulness_avg": 0.303,
+          "relevancy_avg": 0.412,
+          "context_recall_avg": 0.043
         }
       },
       "stream": "MEM"
@@ -256,7 +256,7 @@
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
         "modules": 75,
-        "hops_worst": 13
+        "hops_worst": 14
       },
       "stream": "MEM"
     },
@@ -282,10 +282,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 47,
+        "entries_aprovadas": 48,
         "max_error_rate_pct": 1.82,
-        "last_pr": 5327,
-        "last_lote": "SA-modulos-ativacao-documental-w-override-5327"
+        "last_pr": 5502,
+        "last_lote": "GOV-module-surface-blade-listar-5502"
       },
       "stream": "GT"
     }

@@ -112,9 +112,9 @@ it('placeholder <module> singular (alternativo) também é aceito', function () 
 
 it('detectFileExists usa resolveModulePath corretamente com placeholder <modulo>', function () {
     // CHANGELOG.md de Vestuario existe (sanity check existência do file path)
-    $changelogPath = base_path('Modules/Vestuario/CHANGELOG.md');
+    $changelogPath = base_path('memory/requisitos/Vestuario/CHANGELOG.md');
     if (! file_exists($changelogPath)) {
-        $this->markTestSkipped('Modules/Vestuario/CHANGELOG.md não existe no fixture local');
+        $this->markTestSkipped('memory/requisitos/Vestuario/CHANGELOG.md não existe no fixture local');
     }
 
     $detected = $this->eval->detectFileExists('Vestuario', [

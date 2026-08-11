@@ -14,8 +14,8 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * Forja · smoke das 5 rotas GET de aba do cockpit (/forja, /backlog, /quadro,
- * /changelog, /mcp).
+ * Forja · smoke das 6 rotas GET de aba do cockpit (/forja, /backlog, /quadro,
+ * /changelog, /mcp, /handoffs).
  *
  * Cobertura:
  *   - UC-FORJA-01 — cada rota autenticada responde 200 e renderiza o componente
@@ -80,6 +80,8 @@ function forjaRotasAbas(): array
         '/forja/quadro'    => ['forja.quadro',    'quadro'],
         '/forja/changelog' => ['forja.changelog', 'changelog'],
         '/forja/mcp'       => ['forja.mcp',       'mcp'],
+        // 6ª aba desde 2026-08-08: handoffs saiu de DENTRO da aba MCP e virou tela.
+        '/forja/handoffs'  => ['forja.handoffs',  'handoffs'],
     ];
 }
 
@@ -265,15 +267,66 @@ it('UC-FORJA-05 · rota de aba da Forja é GET-only (o shell não escreve estado
 // meses apontando pra uma rota que nunca existiu (#4887). Testar o config contra
 // ele mesmo é que seria tautologia (§5 proibicoes.md, 2026-06-05).
 
-it('UC-FORJA-02 · topnav do hub tem 10 itens (6 Forja + 4 TeamMcp absorvidos)', function () {
+it('UC-FORJA-02 · topnav do hub tem 13 itens (9 Forja + 4 TeamMcp absorvidos)', function () {
     $items = config('core_topnavs.Forja.items');
 
     expect($items)->toBeArray();
-    expect($items)->toHaveCount(10,
+    expect($items)->toHaveCount(13,
         'Fusão de 2026-06-16: `config/core_topnavs.php[Forja]` é o ÚNICO grupo que casa '.
         '/team-mcp/* no useAutoModuleNav, então carrega as abas próprias MAIS as 4 telas '.
         'absorvidas (Tarefas · Equipe · CC Sessions · Saúde). Mudou a conta? O hub ganhou ou '.
         'perdeu tela — atualize Cockpit.casos.md e o §5.3 F6 do SDD junto.'
+    );
+});
+
+// -------------------------------------------------------------------------
+// UC-FORJA-14 — as DUAS superfícies de navegação servem a mesma coisa
+// -------------------------------------------------------------------------
+//
+// Também NÃO é tautológico: cruza `config/core_topnavs.php` (alimenta o SHELL,
+// `AppShellV2`) contra `FORJA_TABS` do `ForjaHub.tsx` (alimenta a FAIXA do hub —
+// que é a que as telas sob /forja/* de fato renderizam). São arquivos distintos,
+// em linguagens distintas, mantidos à mão.
+//
+// Existe por causa de um defeito REAL: em 2026-08-06 o Roadmap (Gantt) foi
+// registrado só no config e abriu SEM FAIXA em produção — 10 itens no shell, zero
+// `.topnav-chip` no DOM (lápide §5 "Navegação tem CINCO superfícies na Forja",
+// oito diagnósticos errados antes de alguém perguntar ao runtime). Nada impedia
+// que voltasse a divergir; agora impede.
+//
+// Lê o `.tsx` como TEXTO de propósito: o teste é PHP e não executa TypeScript.
+// O parse é frouxo (regex de `href:`) porque o que importa é o CONJUNTO e a ORDEM
+// dos destinos, não a sintaxe — se o formato do arquivo mudar a ponto de o regex
+// não achar nada, o próprio teste falha na asserção de contagem em vez de passar
+// vazio (que seria o falso-verde clássico).
+
+it('UC-FORJA-14 · config do shell e FORJA_TABS do hub listam os MESMOS destinos, na mesma ordem', function () {
+    $doConfig = array_values(array_map(
+        static fn (array $i): string => (string) ($i['href'] ?? ''),
+        config('core_topnavs.Forja.items') ?? []
+    ));
+
+    $tsx = base_path('resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx');
+    expect(is_file($tsx))->toBeTrue("ForjaHub.tsx não encontrado em {$tsx} — o hub mudou de lugar?");
+
+    $src = (string) file_get_contents($tsx);
+    $ini = strpos($src, 'export const FORJA_TABS');
+    expect($ini)->not->toBeFalse('FORJA_TABS sumiu do ForjaHub.tsx — a faixa do hub mudou de fonte.');
+
+    $bloco = substr($src, $ini, strpos($src, '] as const;', $ini) - $ini);
+    preg_match_all("/href:\s*'([^']+)'/", $bloco, $m);
+    $doHub = $m[1] ?? [];
+
+    // Guarda anti-falso-verde: lista vazia significa que o regex não casou nada
+    // (formato mudou), não que as superfícies batem.
+    expect(count($doHub))->toBeGreaterThan(0, 'Nenhum href extraído do FORJA_TABS — o parse quebrou.');
+
+    expect($doHub)->toBe($doConfig,
+        "As duas superfícies de navegação da Forja divergiram.\n".
+        "  shell (config/core_topnavs.php): ".implode(' · ', $doConfig)."\n".
+        "  hub   (ForjaHub.tsx FORJA_TABS): ".implode(' · ', $doHub)."\n".
+        'Registrar a aba em UM só dos dois é o defeito de 2026-08-06 (Gantt abriu sem faixa). '.
+        'Adicionou/removeu/reordenou item? Faça nos DOIS, e monte <ForjaHub> na Page nova.'
     );
 });
 

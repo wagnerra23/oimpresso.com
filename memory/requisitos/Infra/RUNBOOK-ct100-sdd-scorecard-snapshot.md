@@ -30,10 +30,22 @@ diário, a **linha SDD do brief fica stale** (era refrescada à mão — última
 **Decisão Wagner 2026-07-01:** o cron roda no **CT 100**, não no Hostinger — `schedule:run`
 não roda no shared hosting e IA/governança não vive lá ([ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
-O `Kernel.php` (`app/Console/Kernel.php`) agenda o comando às **07:10 BRT** com
-`->environments(['live'])` — esse gate só dispara se um `schedule:run` rodar num env
-`live`, o que **não acontece**. Este RUNBOOK descreve o mecanismo que efetivamente roda
-o comando no CT 100 (direto, sem `schedule:run`, então o gate de env não se aplica).
+Este RUNBOOK descreve o mecanismo que roda o comando no CT 100 (direto, sem
+`schedule:run`, então o gate de env não se aplica).
+
+> ⚠️ **Errata 2026-08-08 — a redação anterior tinha uma premissa FALSA.** Ela dizia que
+> o `Kernel.php` agendava o comando às 07:10 `['live']` mas que *"esse gate só dispara se
+> um `schedule:run` rodar num env `live`, o que **não acontece**"*. **Acontece.** O
+> Hostinger roda `schedule:run` (medido: 73 schedules `['live']`, brief regenerado a cada
+> 4h, e **25 falhas** deste comando no `laravel.log`). O duplicado disparava todo dia e
+> morria em `sh: line 1: exec: node: not found` — o node em prod vive só em
+> `~/.nvm/versions/node/v24.15.0/bin/`, PATH que o cron não herda.
+>
+> O agendamento foi **removido do `Kernel.php`** no mesmo dia. Não é só ruído: se um dia
+> resolvesse o node, o Hostinger re-mediria **sem** `GH_TOKEN` e sem a órfã
+> `governance/nightly-floor` → composta fantasma sobrescrevendo (delete+insert por
+> `snapshot_date`) a row correta do CT 100 — a lápide "UMA composta" abaixo, de novo.
+> **O CT 100 é o dono único deste cron.**
 
 ## Por que o mecanismo é "node no host + artisan no container"
 
@@ -113,6 +125,10 @@ recriar (ou rodar `bash /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/sel
 
 ## Validação histórica
 
+- **2026-08-08** — diagnóstico do RUNBOOK rodado contra a prod DB: série **contínua e
+  fresca**, `snapshot_date` máx = hoje (`2026-08-08` composta 55,1; 08-07 55,0; 08-06
+  54,8; 08-05 55,3; 08-04 55,0). O cron do CT 100 está entregando. No mesmo dia, o
+  agendamento duplicado no `Kernel.php` foi removido (errata no TL;DR acima).
 - **2026-07-12** — mecanismo provado ponta-a-ponta (R1 smoke): `Snapshot SDD OK — 2026-07-12
   · composta 64.1 (k=6) · 7/13 vivas · 1 alertas`; row fresca confirmada na prod DB
   (antes: máx era 2026-07-01, composta 50.0 — 11 dias stale). Cron 07:10 BRT instalado.

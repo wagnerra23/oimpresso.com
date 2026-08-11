@@ -58,14 +58,35 @@ related_adrs:
 - **DoD extra:** resposta assíncrona (`202` + polling OU streaming SSE); tokens contados por request.
 
 #### US-COPI-003 · Receber propostas estruturadas
-**Implementado em:** _parcial_ · `Modules/Jana/Ai/Agents/SugestoesMetasAgent.php` · `Modules/Jana/Entities/Sugestao.php` · `Modules/Jana/Http/Controllers/ChatController.php` · verificado@dd3ed7c (2026-07-01) — agente de sugestões + persistência `Sugestao` + payload `sugestoesPendentes` no render existem; validação zod do shape 3–5 propostas lado a lado no frontend não confirmada
+**Implementado em:** _parcial_ · `Modules/Jana/Ai/Agents/SugestoesMetasAgent.php` · `Modules/Jana/Services/Ai/LaravelAiSdkDriver.php` · `Modules/Jana/Services/SuggestionEngine.php` · `Modules/Jana/Entities/Sugestao.php` · `Modules/Jana/Http/Controllers/ChatController.php` · verificado@24708632c (2026-08-10) — ⚠️ **2ª errata no mesmo dia** (a 1ª, `verificado@dd56f6f`, corrigiu o `verificado@dd3ed7c` que afirmava existir a *"persistência `Sugestao`"* — falso, model existir ≠ persistir; esta corrige 4 defeitos da própria 1ª errata, achados por revisão adversarial).
+
+**O que é fato (com o comando ao lado, reproduzível):** o agente gera as propostas (structured output, 7 campos × 3 cenários) e o driver valida o shape campo-a-campo, mas o **docblock da CLASSE** `SuggestionEngine` (`SuggestionEngine.php:9-15`) declara *"STUB spec-ready"* — o método `sugerir()` não tem essa marca, ele apenas delega ao driver e devolve o array sem gravar. O `ChatController` **injeta** `SuggestionEngine $suggestions` no construtor e **nunca o chama** (`rg -F '$this->suggestions'` → só `.md`).
+
+Nenhum escritor de `Sugestao` em código de produção:
+`git grep -l "Sugestao::create\|new Sugestao\|sugestoes()->create" -- '*.php'` → **0**
+`git log -S "Sugestao::create" -- '*.php'` → **0 commits** (⚠️ **o pathspec é obrigatório**: sem ele dá 2, que são estes próprios documentos citando a string — recibo auto-poluído).
+Controle positivo, **as mesmas 3 formas**: `git grep -l "Conversa::create\|new Conversa\|conversas()->create" -- '*.php'` → **17** (⚠️ a 1ª errata publicou "17" citando só `Conversa::create`, que sozinho dá **4** — número de um comando atribuído a outro).
+Limite honesto do instrumento: esses padrões **não casam** `Sugestao::withoutGlobalScopes()->create(`, que existe 3× em `EntitiesFilhasMultiTenantViaParentTest.php`. Se o produtor tivesse sido escrito assim, o grep daria 0 igual — a conclusão está certa, o instrumento não a **provou** sozinho.
+
+**Estado do dado em prod, medido em 2026-08-10** (não é afirmação atemporal): via `php artisan tinker --execute="DB::table('jana_sugestoes')->count()"` no Hostinger — `jana_sugestoes = 0`, com controle positivo `jana_conversas = 18` · `jana_mensagens = 121`. Reproduza antes de citar; não edite o número.
+
+**O elo faltante NÃO tem dono** (a 1ª errata dizia que tinha — falso, e era a frase que convertia *"nunca construído"* em *"já encaminhado"*): existe apenas o **título hardcoded** `'COP-010 SuggestionEngine parsear JSON → Sugestao rows'` numa string de `BackfillTasksFromMarkdownCommand.php:237` (array do backfill 1× da ADR 0070), com `status: backlog` e **sem campo owner**. `COP-` é prefixo do `TASKS.md` legado; o MCP usa `COPI-NNN`. Não é id consultável por `tasks-detail`.
+
+O payload `sugestoesPendentes` existe no render e volta vazio enquanto não houver rows — e a UI **não** exibe fachada: `Chat.tsx:352` passa `null` a `belowThread` quando a lista é vazia, e `AssistantUiChat.tsx:452` o renderiza nu (sem wrapper), logo zero nós no DOM. Validação zod do shape no frontend não confirmada
 - **Controller:** `ChatController@send` (mesmo endpoint, response inclui sugestões)
 - **Como** gestor **quero** ver 3–5 propostas lado a lado **para** comparar cenários.
 - **DoD extra:** schema zod valida shape `{propostas: [{nome, metrica, valor, periodo, racional, dificuldade, dependencias}]}`.
 
 #### US-COPI-004 · Escolher proposta
-**Implementado em:** `Modules/Jana/Http/Controllers/ChatController.php` · `Modules/Jana/Entities/Meta.php` · `Modules/Jana/Entities/MetaPeriodo.php` · `Modules/Jana/Entities/MetaFonte.php` · verificado@dd3ed7c (2026-07-01) — escolher() cria Meta+MetaPeriodo+MetaFonte, dispara ApurarMetaJob e redireciona pra meta (rota viva POST /ia/sugestoes/{id}/escolher)
-- **Rota:** `POST /copiloto/sugestoes/{id}/escolher`
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/ChatController.php` · `Modules/Jana/Entities/Meta.php` · `Modules/Jana/Entities/MetaPeriodo.php` · `Modules/Jana/Entities/MetaFonte.php` · verificado@24708632c (2026-08-10) — ⚠️ **re-medida.** Carregava `verificado@dd3ed7c`, **o mesmo sha** cuja âncora irmã (US-COPI-003, acima) foi provada falsa e corrigida em 2026-08-10; a 003 foi re-medida e esta **não tinha sido**, e ainda assim foi citada como prova de completude num PR do mesmo dia. Re-medido agora:
+
+**A mecânica confere** (`ChatController::escolher()`, `:588-626`): cria `Meta` + `MetaPeriodo` + `MetaFonte`, faz `$sugestao->update(meta_id, escolhida_em)`, dispara `ApurarMetaJob` e redireciona. Guarda multi-tenant existe — `Sugestao` usa `BelongsToBusinessViaParent`, então `findOrFail` dá 404 cross-tenant.
+
+**Mas NÃO está completa, em 3 frentes medidas:**
+1. **Inalcançável.** O único caminho de entrada é uma row em `jana_sugestoes`, e nada a cria (ver US-COPI-003 acima). Código com rota viva e funil inexistente não é entrega.
+2. **Zero teste do fluxo.** `rg "sugestoes/|->escolher\(|->rejeitar\(" --iglob '*Test*.php'` → **0 arquivos** (rc=1). Controle positivo no mesmo instrumento: `rg -l "jana\." --iglob '*Test*.php'` → **63**. A ausência é real, não artefato de busca.
+3. **DoD não cumprido em 2 de 3 itens:** o DoD exige *"agenda `ApurarMetaJob` no **Horizon**"* — `laravel/horizon` está em `extra.laravel.dont-discover` (`composer.json:144-146`), provider não registrado; e exige *"redireciona pro **dashboard**"* — o código vai pra `jana.metas.show`.
+- **Rota:** `POST /ia/sugestoes/{id}/escolher` _(o prefixo real é `ia` — `Modules/Jana/Http/routes.php:51`. A redação anterior dizia `/copiloto` aqui e `/ia` na linha de cima, contradizendo-se em linhas adjacentes.)_
 - **Controller:** `ChatController@escolher`
 - **Como** gestor **quero** aceitar uma proposta **para** criar a meta automaticamente + agendar apuração.
 - **DoD extra:** cria `Meta` + `MetaPeriodo` + `MetaFonte`; agenda `ApurarMetaJob` no Horizon; redireciona pro dashboard.
@@ -125,7 +146,7 @@ related_adrs:
 - **DoD extra:** idempotente (mesma `data_ref` + `fonte_query_hash` não duplica); erro loga e alerta superadmin.
 
 #### US-COPI-031 · Forçar reapuração manual
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/MetasController.php` · verificado@dd3ed7c (2026-07-01) — rota viva POST /ia/metas/{id}/reapurar + método reapurar() existem, mas o dispatch do ApurarMetaJob está comentado (// TODO) — só redireciona com flash; apagar MetaApuracao do range + reexecutar driver ainda não plugado
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/MetasController.php` · `Modules/Jana/Jobs/ApurarMetaJob.php` (2026-08-09) — o `reapurar()` **despacha** o `ApurarMetaJob` com `businessId` explícito, carregando a Meta pelo global scope antes (é o `findOrFail` que isola: `MetaApuracao` não tem `business_id`, o scope é indireto via `meta_id`). Segue `_parcial_` pela metade "apaga MetaApuracao do range", que **não tem contrato**: a rota POST /ia/metas/{id}/reapurar não recebe range, e apagar tudo pra reexecutar só `now()` destruiria as 12 janelas que a US-COPI-011 exige no detalhe. Como `ApuracaoService::apurar()` é idempotente por (`meta_id`,`data_ref`,`fonte_query_hash`), o dispatch já sobrescreve a apuração do dia — que é o caso de uso real (correção retroativa de venda). Fechar o range exige rota nova: decisão [W]
 - **Rota:** `POST /copiloto/metas/{id}/reapurar`
 - **Controller:** `MetasController@reapurar`
 - **Como** gestor **quero** reapurar meta **para** casos de correção retroativa de venda.
@@ -155,7 +176,7 @@ related_adrs:
 - **DoD extra:** filtro por severidade, status (novo/visto/resolvido).
 
 #### US-COPI-061 · Configurar thresholds
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/AlertasController.php` · `Modules/Jana/Resources/views/alertas/config.blade.php` · verificado@dd3ed7c (2026-07-01) — config()/updateConfig() (via UpdateAlertasConfigRequest) + rotas vivas GET+PATCH em /ia/alertas/config; campos canal (email/in-app/WhatsApp) + frequência não confirmados como persistidos
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/AlertasController.php` · `Modules/Jana/Resources/views/alertas/config.blade.php` (2026-08-09) — `config()`/`updateConfig()` (via `UpdateAlertasConfigRequest`) + rotas vivas GET+PATCH em /ia/alertas/config. **A persistência NÃO existe** — e desde 2026-08-09 a tela também não finge que existe: o formulário está `disabled` com o motivo ao lado e a rota devolve *"nada foi alterado"* em vez de *"Configuração salva."* (onda 5 "verdade nos botões"). O FormRequest segue validando a whitelist de propósito, pro contrato de entrada não regredir. Gravar em `essentials_settings` + ligar no `AlertaService` é o que falta pra fechar esta US
 - **Rota:** `GET /copiloto/alertas/config` + `PATCH`
 - **Campos:** desvio % aceitável, canal (email, in-app, WhatsApp futuro), frequência.
 
@@ -1434,7 +1455,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-COPI-127 · Criar view cliente /copiloto/decisoes/{id}/revisao (LGPD Art.20)
 
-**Implementado em:** _pendente_ — rota + página de revisão de decisão automatizada pro cliente-final (`/copiloto/decisoes/{id}/revisao`) não existe (grep zero nas rotas); só há UI admin do HITL (status todo)
+**Implementado em:** _pendente_ — e **o sujeito da US não existe mais**. Medido em 2026-08-08 (não lido): (a) `mcp_dual_brain_decisions` foi **dropada** pela migration `2026_07_31_235000_drop_ads_dual_brain_core_tables.php` ([ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) E5) — não há `{id}` a revisar; (b) as "ações que a Jana sugere" são um `useMemo` **no frontend** ([`JanaCockpit.tsx:216`](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)), não decisão automatizada calculada no servidor; (c) a "UI admin do HITL" que o §Sinal abaixo cita **também saiu** — `Decisoes.tsx`/`DecisaoShow` foram deletados na E4 ([#5135](https://github.com/wagnerra23/oimpresso.com/pull/5135)); varredura contada: 4 hits no repo, todos em `handoffs/`/`sessions/`, nenhum em código. A US foi recuperada numa triagem de **2026-06-20**, quando o ADS estava vivo com 36.862 decisões — o bookkeeping envelheceu junto com o módulo. Construí-la hoje seria tela sobre corpus vazio (o anti-padrão que o §5 de [`proibicoes.md`](../../proibicoes.md) persegue). ⚠️ **O dever NÃO caduca:** a §Herança da 0363 o define como *"cumprir **antes** do primeiro agente que volte a decidir sobre titular"* — logo o Audit Card nasce **junto** com a primeira decisão automatizada (a fatia D da fase 2 da Jana), não sozinho e antes dela.
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
@@ -1443,12 +1464,18 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
 
-**Sinal (ADR 0105 · LGPD Art.20):** direito de revisão de decisão automatizada — a UI admin do HITL existe, mas falta a view do **cliente-final** em `/copiloto/decisoes/{id}/revisao`.
+**Sinal (ADR 0105 · LGPD Art.20):** direito de revisão de decisão automatizada. ~~a UI admin do HITL existe, mas falta a view do **cliente-final**~~ — redação de 2026-06-20, **falsa desde 2026-07-31**: a UI admin saiu com o ADS (ver §Implementado em). O sinal em si **permanece válido** e é legal, não arquitetural: LGPD Art. 20 + ANPD NT 12/2025 obrigam informar que a decisão é automatizada e oferecer canal de revisão humana. Hoje a exposição é **zero e prospectiva** — nenhuma decisão automatizada chega a titular (a 0363 mediu: `pr_url` e `commit_sha` em 0, 100% do volume em `business_id=1` interno).
 
-**DoD:**
-- Rota + página de revisão da decisão (cliente-final).
-- Permissions adequadas (cliente vê só as próprias).
+**⚠️ Nota de vocabulário (2026-08-08):** existem **dois** "HITL" no projeto e eles não são o mesmo. Esta US é sobre o **Audit Card** — revisão de decisão automatizada pelo *titular de dados*. O que está vivo e não serve aqui é [`HitlEscalationService`](../../../Modules/Jana/Services/TaskRegistry/HitlEscalationService.php), que transporta pendência de sentinela para `mcp_tasks` `blocked`/`wagner` (o que o brief lê). Reusar o nome cria colisão.
+
+**DoD (revisado 2026-08-08 — o original pressupunha o ADS vivo):**
+- ~~Rota + página de revisão da decisão (cliente-final).~~ Só faz sentido com um sujeito: **nasce no mesmo movimento** que a primeira decisão automatizada persistida.
+- A decisão precisa ser **registrada** (quem/quando/por qual regra/qual dado) antes de poder ser revisada — hoje não há onde gravar.
+- Permissions adequadas (cliente vê só as próprias) + `business_id` scopado ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
 - Audit log da revisão.
+- ⛔ **Não recriar o ADS sob outro nome** — `DecisionRouter`/`RiskEngine`/`ConfidenceEngine` e as 5 tabelas estão proibidos nominalmente ([`proibicoes.md`](../../proibicoes.md) §5 2026-08-02). O precedente é duro: `mcp_dual_brain_decisions` teve **36.862** linhas com `outcome='cancelled'` (default de coluna) exibido como *"Aguardando você decidir"* — fila de aprovação cujo passo humano nunca teve dono.
+
+**Bloqueio de lei (achado 2026-08-08):** a [ADR 0145](../../decisions/0145-ia-administradora-pivot-ads-fsm-piloto-cobradora.md) declarou `amends: [0094]` acrescentando o princípio Tier 0 *"Audit Card visível ao cliente final"* à Constituição, e a [0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) diz que ele *"sobrevive à supersessão"*. **Mas a emenda nunca foi escrita** no texto da 0094 nem da [`CONSTITUTION.md`](../../governance/CONSTITUTION.md) — varredura contada: `git grep -l "Audit Card"` devolve **9** arquivos, e o documento-mãe não está entre eles. A lei que obriga esta US existe só por referência nas ADRs que falam dela. Proposta de emenda: [`proposals/2026-08-08-emenda-0094-audit-card-lgpd-art-20.md`](../../decisions/proposals/2026-08-08-emenda-0094-audit-card-lgpd-art-20.md).
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
 
@@ -1929,7 +1956,7 @@ O `/ia` (Pages/Jana/Index.tsx + `_components/JanaCockpit`) viola PT-04-Dashboard
 A catraca já existe (ui:lint R7 · PR #4582 · `UiLintCommand::checkR7`): a dívida está travada no baseline (`Jana/Dashboard` R7:1), ninguém pode piorar, mas a migração é manual.
 
 Escopo:
-- `JanaCockpitV2.tsx`: trocar as 52 classes `.vd-insights-*` pelos shared `@/Components/shared` (KpiGrid, KpiCard, PageHeader, EmptyState) + tokens do DS. Golden = `resources/js/Pages/governance/Dashboard.tsx`.
+- ~~`JanaCockpitV2.tsx`: trocar as 52 classes `.vd-insights-*` pelos shared `@/Components/shared`~~ — **RESOLVIDO POR REMOÇÃO (2026-08-10)**, não por migração: o arquivo tinha **0 imports** no repo e foi deletado. Não há classe a migrar. _(⚠️ resíduo: `resources/css/sells-cowork-insights.css`, 776 ln importadas globalmente, ficou sem consumidor JS — remoção pendente de decisão [W], porque `SellsTabsViewModeTest` guarda sua existência. Ver lápide no [`RUNBOOK-components.md`](RUNBOOK-components.md).)_
 - Remover o wrapper `.sells-cowork` de `Dashboard.tsx:281`.
 - Ancorar no protótipo canônico `prototipo-ui/cowork/chat-jana.jsx` (`.jc-*`, `related_prototype` do charter — re-adicionar a linha ao charter, descartada na sessão 2026-07-20).
 - Preservar o dark herdando via token (princípio já validado no harness `cockpit-dark-harness` da sessão 2026-07-20).
@@ -2001,9 +2028,9 @@ Escopo:
 
 **~~⏳ Onda 3 — rename.~~** (texto original, preservado) `Dashboard.tsx` → `Index.tsx` + `DashboardController` → `IndexController` + redirects 301 de `/cockpit` e `/dashboard` + conserto da âncora do SPEC + `DataController.php:204`, que é o **único** consumidor de código de `jana.dashboard.index`.
 
-**✅ Onda 4 — ENTREGUE (2026-08-07).** `Cockpit.tsx` **apagado** (não substituído em-place, como o charter dele previa — a decisão mudou: quem sobrevive é o Painel). Saíram juntos, por dependência mútua medida: a Page, o `ChatController@cockpit`, o `mockJanaPayload()` (chamado só por ele) e o `saudacaoPorHora()` (chamado só pelo payload) — **188 linhas** do controller. Também: o ghost do menu, o membro `cockpit` do `JanaAreaTab`, o `Cockpit.charter.md` (o schema de charter não tem `historical` — o enum é draft|live|deprecated — e `component` é obrigatório, então charter apontando pra arquivo apagado quebraria o `charter-refs`; nenhum dos 3 charters `deprecated` do repo tem component inexistente, logo não há esse padrão aqui), o scorecard, o proto-baseline e 4 chaves de baseline de lint. O registro do "por quê" ficou no [`RUNBOOK-cockpit.md`](RUNBOOK-cockpit.md), arquivado com lápide. `/ia/cockpit` segue **301 → /ia** (da onda 3). **Fechou a `US-COPI-123` (p0) de graça.** ⚠️ O `JanaCockpitV2.tsx` **NÃO** foi tocado — serve a tab Insights de `/sells`.
+**✅ Onda 4 — ENTREGUE (2026-08-07).** `Cockpit.tsx` **apagado** (não substituído em-place, como o charter dele previa — a decisão mudou: quem sobrevive é o Painel). Saíram juntos, por dependência mútua medida: a Page, o `ChatController@cockpit`, o `mockJanaPayload()` (chamado só por ele) e o `saudacaoPorHora()` (chamado só pelo payload) — **188 linhas** do controller. Também: o ghost do menu, o membro `cockpit` do `JanaAreaTab`, o `Cockpit.charter.md` (o schema de charter não tem `historical` — o enum é draft|live|deprecated — e `component` é obrigatório, então charter apontando pra arquivo apagado quebraria o `charter-refs`; nenhum dos 3 charters `deprecated` do repo tem component inexistente, logo não há esse padrão aqui), o scorecard, o proto-baseline e 4 chaves de baseline de lint. O registro do "por quê" ficou no [`RUNBOOK-cockpit.md`](RUNBOOK-cockpit.md), arquivado com lápide. `/ia/cockpit` segue **301 → /ia** (da onda 3). **Fechou a `US-COPI-123` (p0) de graça.** ⚠️ O `JanaCockpitV2.tsx` **NÃO** foi tocado — ~~serve a tab Insights de `/sells`~~. **Errata 2026-08-10:** o *fato* (não tocado na onda 4) é verdadeiro; a *razão* era falsa. Ele **não** servia `/sells` — tinha **0 imports** no repo, e foi removido em 2026-08-10. Provas na lápide do [`RUNBOOK-components.md`](RUNBOOK-components.md).
 
-**~~⏳ Onda 4 — destino do `Cockpit.tsx`~~** (texto original, preservado) (1022 ln). ⚠️ **Medido, contra o que o pedido afirma:** o cockpit **não** está implementado 2×, são **3** arquivos — e `resources/js/Pages/Jana/components/JanaCockpitV2.tsx` serve a tab Insights de `/sells` (`resources/js/Pages/Sells/Index.tsx:55`), logo **não é duplicata da Jana e não pode ser apagado**. Apagar `Cockpit.tsx` exige remover junto `ChatController@cockpit`, que faz `Inertia::render('Jana/Cockpit')` em `Modules/Jana/Http/Controllers/ChatController.php:666`.
+**~~⏳ Onda 4 — destino do `Cockpit.tsx`~~** (texto original, preservado) (1022 ln). ⚠️ **Medido, contra o que o pedido afirma:** o cockpit **não** está implementado 2×, são **3** arquivos — e `resources/js/Pages/Jana/components/JanaCockpitV2.tsx` serve a tab Insights de `/sells` (`resources/js/Pages/Sells/Index.tsx:55`), logo **não é duplicata da Jana e não pode ser apagado**. **⚠️ Errata 2026-08-10 — a metade "serve `/sells`" deste "Medido" estava ERRADA e é o ponto da lápide:** o `Sells/Index.tsx:55` é **comentário**, não import; medido depois, o V2 tinha **0 imports** e foi removido. O que o texto chama de "medido" foi *lido*. Ver [`RUNBOOK-components.md`](RUNBOOK-components.md). Apagar `Cockpit.tsx` exige remover junto `ChatController@cockpit`, que faz `Inertia::render('Jana/Cockpit')` em `Modules/Jana/Http/Controllers/ChatController.php:666`.
 
 **Fora da fusão** (ficam FOCO, sem abas): `/ia/pro` e `/ia/metas*`. **Superfície não tratada pelo pedido:** `/ia/alertas` · `/ia/alertas/config` · `/ia/superadmin/metas` · `/ia/admin/*`.
 

@@ -160,7 +160,8 @@ class SellsCockpitAggregator
     }
 
     /**
-     * Pré-agregações que o JanaCockpitV2 antes computava no frontend a partir de `rows`.
+     * Pré-agregações que o antigo `JanaCockpitV2` computava no frontend a partir de `rows`
+     * (componente removido em 2026-08-10; hoje quem consome é `_components/JanaCockpit`).
      *
      * Pré-computar server-side elimina dependência do componente ser embutido em uma tela
      * que já tenha os rows filtrados carregados (necessário pra `/ia/dashboard` standalone).

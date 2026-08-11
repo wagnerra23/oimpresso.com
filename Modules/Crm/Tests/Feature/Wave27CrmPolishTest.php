@@ -88,13 +88,13 @@ describe('Wave 27 Crm — D2 Services arquitetura Wave 18 cobertura', function (
 
 describe('Wave 27 Crm — V5 governance CHANGELOG entry', function () {
 
-    it('Modules/Crm/CHANGELOG.md tem entry Wave 27', function () {
-        $changelog = (string) file_get_contents(crmW27Path('Modules/Crm/CHANGELOG.md'));
+    it('memory/requisitos/Crm/CHANGELOG.md tem entry Wave 27', function () {
+        $changelog = (string) file_get_contents(crmW27Path('memory/requisitos/Crm/CHANGELOG.md'));
         expect($changelog)->toContain('Wave 27');
     });
 
     it('CHANGELOG W27 cita polish final ≥95', function () {
-        $changelog = (string) file_get_contents(crmW27Path('Modules/Crm/CHANGELOG.md'));
+        $changelog = (string) file_get_contents(crmW27Path('memory/requisitos/Crm/CHANGELOG.md'));
         $temContext = str_contains($changelog, 'POLISH') || str_contains($changelog, 'polish')
                       || str_contains($changelog, '95');
         expect($temContext)->toBeTrue();

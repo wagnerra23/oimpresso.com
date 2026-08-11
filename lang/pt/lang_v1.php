@@ -692,6 +692,8 @@ return [
     'allow_selected_contacts' => 'Permitir contatos selecionados',
     'allow_selected_contacts_tooltip' => 'Permitir apenas o acesso a contatos selecionados na caixa de pesquisa vender / comprar cliente / fornecedor',
     'allowed_contacts' => 'Contatos permitidos',
+    'edit_purchase_price' => 'Editar preço de compra',
+    'edit_purchase_price_tooltip' => 'Permissão para editar o preço de compra nas telas de compra, transferência de estoque e ajuste de estoque. Controla apenas o campo na tela — não é barreira de servidor.',
     'view_purchase_price' => 'Visualizar preço de compra',
     'view_purchase_price_tooltip' => 'Permissão para visualizar o preço de compra nos detalhes do produto, transferência de estoque e ajuste de estoque',    'created' => 'Criado',
     'updated' => 'Atualizada',

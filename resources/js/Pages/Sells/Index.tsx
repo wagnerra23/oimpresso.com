@@ -50,9 +50,14 @@ import SellsTabelaUnificada, {
   type SaleRow as UnifiedSaleRow,
 } from './_components/SellsTabelaUnificada';
 import SellsCheatSheet, { SELLS_INDEX_SHORTCUTS } from './_components/SellsCheatSheet';
-// Insights Jana movido pra /ia/dashboard (Jana V2 canon). Antes era tab embutida aqui via
-// `viewMode === 'insights'` + SellsInsightsView. Ver Modules/Jana/Http/Controllers/DashboardController
-// + resources/js/Pages/Jana/components/JanaCockpitV2.tsx.
+// Insights Jana SAIU desta tela (Jana V2 canon). Até 2026-05 era tab embutida aqui via
+// `viewMode === 'insights'` + SellsInsightsView — componente hoje deletado. O destino foi
+// /ia/dashboard, que a onda 3 da US-COPI-148 (2026-08-07) tornou 301 → /ia.
+//
+// ⚠️ NÃO reintroduzir referência a `Pages/Jana/components/JanaCockpitV2.tsx` aqui. Esta nota
+// citava aquele arquivo, e 7 docs canon leram ESTE COMENTÁRIO como prova de que o V2 era
+// CONSUMIDO por /sells — afirmando "não pode ser apagado". Era nota histórica, não import:
+// medido em 2026-08-10, o V2 tinha 0 imports no repo inteiro e foi removido.
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS

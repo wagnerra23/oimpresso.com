@@ -14,7 +14,7 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ComunicacaoVisual/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 70 arquivos em 15 papéis.
+**Total mapeado:** 69 arquivos em 15 papéis.
 
 ## Controllers — 4
 
@@ -102,9 +102,8 @@ module: ComunicacaoVisual
 
 - 21 arquivos em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 6
+## Demais arquivos (manifestos, docs, assets e misc) — 5
 
-- [CHANGELOG.md](../../../Modules/ComunicacaoVisual/CHANGELOG.md)
 - [README.md](../../../Modules/ComunicacaoVisual/README.md)
 - [comunicacao-visual.php](../../../Modules/ComunicacaoVisual/Resources/lang/pt-BR/comunicacao-visual.php)
 - [SCOPE.md](../../../Modules/ComunicacaoVisual/SCOPE.md)

@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Essentials/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 275 arquivos em 15 papéis.
+**Total mapeado:** 274 arquivos em 15 papéis.
 
 ## Controllers — 19
 
@@ -143,7 +143,93 @@ module: Essentials
 
 ## Views (Blade) — 87
 
-- 87 arquivos em [Modules/Essentials/Resources/views/allowance_deduction/](../../../Modules/Essentials/Resources/views/allowance_deduction) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [create.blade.php](../../../Modules/Essentials/Resources/views/allowance_deduction/create.blade.php)
+- [edit.blade.php](../../../Modules/Essentials/Resources/views/allowance_deduction/edit.blade.php)
+- [add_shift_users.blade.php](../../../Modules/Essentials/Resources/views/attendance/add_shift_users.blade.php)
+- [attendance_by_date.blade.php](../../../Modules/Essentials/Resources/views/attendance/attendance_by_date.blade.php)
+- [attendance_by_date_data.blade.php](../../../Modules/Essentials/Resources/views/attendance/attendance_by_date_data.blade.php)
+- [attendance_by_shift.blade.php](../../../Modules/Essentials/Resources/views/attendance/attendance_by_shift.blade.php)
+- [attendance_by_shift_data.blade.php](../../../Modules/Essentials/Resources/views/attendance/attendance_by_shift_data.blade.php)
+- [attendance_row.blade.php](../../../Modules/Essentials/Resources/views/attendance/attendance_row.blade.php)
+- [avail_shifts.blade.php](../../../Modules/Essentials/Resources/views/attendance/avail_shifts.blade.php)
+- [clock_in_clock_out_modal.blade.php](../../../Modules/Essentials/Resources/views/attendance/clock_in_clock_out_modal.blade.php)
+- [create.blade.php](../../../Modules/Essentials/Resources/views/attendance/create.blade.php)
+- [current_shift.blade.php](../../../Modules/Essentials/Resources/views/attendance/current_shift.blade.php)
+- [edit.blade.php](../../../Modules/Essentials/Resources/views/attendance/edit.blade.php)
+- [import_attendance.blade.php](../../../Modules/Essentials/Resources/views/attendance/import_attendance.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/attendance/index.blade.php)
+- [shift_modal.blade.php](../../../Modules/Essentials/Resources/views/attendance/shift_modal.blade.php)
+- [essentials_dashboard.blade.php](../../../Modules/Essentials/Resources/views/dashboard/essentials_dashboard.blade.php)
+- [holidays.blade.php](../../../Modules/Essentials/Resources/views/dashboard/holidays.blade.php)
+- [hrm_dashboard.blade.php](../../../Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/document/index.blade.php)
+- [show.blade.php](../../../Modules/Essentials/Resources/views/document/show.blade.php)
+- [edit.blade.php](../../../Modules/Essentials/Resources/views/document_share/edit.blade.php)
+- [create.blade.php](../../../Modules/Essentials/Resources/views/holiday/create.blade.php)
+- [edit.blade.php](../../../Modules/Essentials/Resources/views/holiday/edit.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/holiday/index.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/index.blade.php)
+- [create.blade.php](../../../Modules/Essentials/Resources/views/knowledge_base/create.blade.php)
+- [edit.blade.php](../../../Modules/Essentials/Resources/views/knowledge_base/edit.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/knowledge_base/index.blade.php)
+- [show.blade.php](../../../Modules/Essentials/Resources/views/knowledge_base/show.blade.php)
+- [sidebar.blade.php](../../../Modules/Essentials/Resources/views/knowledge_base/sidebar.blade.php)
+- [master.blade.php](../../../Modules/Essentials/Resources/views/layouts/master.blade.php)
+- [nav_essentials.blade.php](../../../Modules/Essentials/Resources/views/layouts/nav_essentials.blade.php)
+- [nav_hrm.blade.php](../../../Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php)
+- [footer_part.blade.php](../../../Modules/Essentials/Resources/views/layouts/partials/footer_part.blade.php)
+- [header_part.blade.php](../../../Modules/Essentials/Resources/views/layouts/partials/header_part.blade.php)
+- [sidebar.blade.php](../../../Modules/Essentials/Resources/views/layouts/partials/sidebar.blade.php)
+- [sidebar_hrm.blade.php](../../../Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php)
+- [activity_modal.blade.php](../../../Modules/Essentials/Resources/views/leave/activity_modal.blade.php)
+- [change_status_modal.blade.php](../../../Modules/Essentials/Resources/views/leave/change_status_modal.blade.php)
+- [create.blade.php](../../../Modules/Essentials/Resources/views/leave/create.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/leave/index.blade.php)
+- [user_leave_summary.blade.php](../../../Modules/Essentials/Resources/views/leave/user_leave_summary.blade.php)
+- [create.blade.php](../../../Modules/Essentials/Resources/views/leave_type/create.blade.php)
+- [edit.blade.php](../../../Modules/Essentials/Resources/views/leave_type/edit.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/leave_type/index.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/memos/index.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/messages/index.blade.php)
+- [message_div.blade.php](../../../Modules/Essentials/Resources/views/messages/message_div.blade.php)
+- [recent_messages.blade.php](../../../Modules/Essentials/Resources/views/messages/recent_messages.blade.php)
+- [user_details_part.blade.php](../../../Modules/Essentials/Resources/views/partials/user_details_part.blade.php)
+- [user_form_part.blade.php](../../../Modules/Essentials/Resources/views/partials/user_form_part.blade.php)
+- [allowance_and_deduction_row.blade.php](../../../Modules/Essentials/Resources/views/payroll/allowance_and_deduction_row.blade.php)
+- [create.blade.php](../../../Modules/Essentials/Resources/views/payroll/create.blade.php)
+- [edit.blade.php](../../../Modules/Essentials/Resources/views/payroll/edit.blade.php)
+- [edit_allowance_and_deduction_row.blade.php](../../../Modules/Essentials/Resources/views/payroll/edit_allowance_and_deduction_row.blade.php)
+- [edit_form_script.blade.php](../../../Modules/Essentials/Resources/views/payroll/edit_form_script.blade.php)
+- [form_script.blade.php](../../../Modules/Essentials/Resources/views/payroll/form_script.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/payroll/index.blade.php)
+- [employee_dropdown.blade.php](../../../Modules/Essentials/Resources/views/payroll/partials/employee_dropdown.blade.php)
+- [user_payrolls.blade.php](../../../Modules/Essentials/Resources/views/payroll/partials/user_payrolls.blade.php)
+- [pay_payroll_group.blade.php](../../../Modules/Essentials/Resources/views/payroll/pay_payroll_group.blade.php)
+- [payment_row.blade.php](../../../Modules/Essentials/Resources/views/payroll/payment_row.blade.php)
+- [payroll_modal.blade.php](../../../Modules/Essentials/Resources/views/payroll/payroll_modal.blade.php)
+- [show.blade.php](../../../Modules/Essentials/Resources/views/payroll/show.blade.php)
+- [view_payroll_group.blade.php](../../../Modules/Essentials/Resources/views/payroll/view_payroll_group.blade.php)
+- [create.blade.php](../../../Modules/Essentials/Resources/views/reminder/create.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/reminder/index.blade.php)
+- [show.blade.php](../../../Modules/Essentials/Resources/views/reminder/show.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/sales_targets/index.blade.php)
+- [sales_target_modal.blade.php](../../../Modules/Essentials/Resources/views/sales_targets/sales_target_modal.blade.php)
+- [add.blade.php](../../../Modules/Essentials/Resources/views/settings/add.blade.php)
+- [attendance_settings.blade.php](../../../Modules/Essentials/Resources/views/settings/partials/attendance_settings.blade.php)
+- [essentials_settings.blade.php](../../../Modules/Essentials/Resources/views/settings/partials/essentials_settings.blade.php)
+- [leave_settings.blade.php](../../../Modules/Essentials/Resources/views/settings/partials/leave_settings.blade.php)
+- [payroll_settings.blade.php](../../../Modules/Essentials/Resources/views/settings/partials/payroll_settings.blade.php)
+- [sales_target_settings.blade.php](../../../Modules/Essentials/Resources/views/settings/partials/sales_target_settings.blade.php)
+- [settings.blade.php](../../../Modules/Essentials/Resources/views/settings/partials/settings.blade.php)
+- [comment.blade.php](../../../Modules/Essentials/Resources/views/todo/comment.blade.php)
+- [create.blade.php](../../../Modules/Essentials/Resources/views/todo/create.blade.php)
+- [edit.blade.php](../../../Modules/Essentials/Resources/views/todo/edit.blade.php)
+- [index.blade.php](../../../Modules/Essentials/Resources/views/todo/index.blade.php)
+- [show.blade.php](../../../Modules/Essentials/Resources/views/todo/show.blade.php)
+- [todo_javascript.blade.php](../../../Modules/Essentials/Resources/views/todo/todo_javascript.blade.php)
+- [update_task_status_modal.blade.php](../../../Modules/Essentials/Resources/views/todo/update_task_status_modal.blade.php)
+- [view.blade.php](../../../Modules/Essentials/Resources/views/todo/view.blade.php)
+- [view_shared_docs.blade.php](../../../Modules/Essentials/Resources/views/todo/view_shared_docs.blade.php)
 
 ## Telas (Inertia/React) — 13
 
@@ -181,9 +267,8 @@ module: Essentials
 
 - 15 arquivos em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 52
+## Demais arquivos (manifestos, docs, assets e misc) — 51
 
-- [CHANGELOG.md](../../../Modules/Essentials/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Essentials/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Database/Migrations/.gitkeep)

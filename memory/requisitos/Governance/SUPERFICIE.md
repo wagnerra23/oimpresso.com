@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Governance/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 166 arquivos em 15 papéis.
+**Total mapeado:** 169 arquivos em 15 papéis.
 
 ## Controllers — 10
 
@@ -83,9 +83,10 @@ module: Governance
 
 - [Initiative.php](../../../Modules/Governance/Entities/Initiative.php)
 
-## Console / Commands — 18
+## Console / Commands — 19
 
 - [AdrReviewFlushCommand.php](../../../Modules/Governance/Console/Commands/AdrReviewFlushCommand.php)
+- [BladeMigrationSentinelCommand.php](../../../Modules/Governance/Console/Commands/BladeMigrationSentinelCommand.php)
 - [CharterAuditCommand.php](../../../Modules/Governance/Console/Commands/CharterAuditCommand.php)
 - [CharterHealthCommand.php](../../../Modules/Governance/Console/Commands/CharterHealthCommand.php)
 - [CharterMetricsCommand.php](../../../Modules/Governance/Console/Commands/CharterMetricsCommand.php)
@@ -153,9 +154,9 @@ module: Governance
 
 - [DsRollout.casos.md](../../../resources/js/Pages/governance/DsRollout.casos.md)
 
-## Testes (Pest) — 57
+## Testes (Pest) — 59
 
-- 57 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 59 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 11
 

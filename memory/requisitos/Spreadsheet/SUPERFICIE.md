@@ -72,7 +72,13 @@ module: Spreadsheet
 
 ## Views (Blade) — 7
 
-- 7 arquivos em [Modules/Spreadsheet/Resources/views/](../../../Modules/Spreadsheet/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [index.blade.php](../../../Modules/Spreadsheet/Resources/views/index.blade.php)
+- [app.blade.php](../../../Modules/Spreadsheet/Resources/views/layouts/app.blade.php)
+- [nav.blade.php](../../../Modules/Spreadsheet/Resources/views/layouts/nav.blade.php)
+- [create.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/create.blade.php)
+- [index.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/index.blade.php)
+- [share_sheet.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/partials/share_sheet.blade.php)
+- [show.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/show.blade.php)
 
 ## Testes (Pest) — 9
 

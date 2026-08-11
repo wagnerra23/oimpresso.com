@@ -1,0 +1,61 @@
+/* ==========================================================================
+   CAMADA 4 · MÓDULO VENDAS — layout da tela de venda
+   --------------------------------------------------------------------------
+   Só o que é específico desta família de telas. Nenhuma cor, nenhum token,
+   nenhum tamanho de fonte novo: tudo vem das camadas 1–3.
+   ========================================================================== */
+
+/* --- Grade da tela: trabalho à esquerda, fechamento à direita ----------- */
+/* .venda-grid — 2 colunas no desktop, 1 abaixo de 1080px (regra no fim)   */
+
+/* --- Finalizador: total + ação da FSM, SEMPRE visível ------------------
+   Sticky no desktop (acompanha a rolagem da coluna), barra fixa no rodapé
+   quando a grade colapsa. `left: 260px` porque a sidebar segue montada na
+   faixa 641–1080px; abaixo de 640 ela sai e a barra vai a `left: 0`.     */
+.venda-finalizador {
+  position: sticky; bottom: 12px; z-index: 30;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px; border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid color-mix(in oklch, var(--accent) 22%, var(--border));
+  box-shadow: 0 -2px 10px color-mix(in oklch, var(--text) 7%, transparent),
+              0 10px 28px color-mix(in oklch, var(--text) 12%, transparent);
+}
+
+/* --- Par de ações secundárias (rascunho + tipo de documento) ----------- */
+.venda-acoes > div > button,
+.venda-acoes > div > select { width: 100%; }
+
+/* --- Linha de imposto do detalhe do item -------------------------------
+   Grade compartilhada por cabeçalho, linha e total, para as colunas
+   ficarem alinhadas sem tabela. Abaixo de 720px a base de cálculo sai
+   (é derivada e cabe no detalhe expandido).                             */
+.imp-linha {
+  display: grid;
+  grid-template-columns: 1fr 130px 92px 116px 32px;
+  gap: 8px; align-items: center;
+}
+@media (max-width: 720px) {
+  .imp-linha { grid-template-columns: 1fr 84px 104px 28px; }
+  .imp-linha > span:nth-child(2) { display: none; }
+  .imp-linha > span[style*="span 3"] { grid-column: span 2 !important; }
+}
+
+/* --- Colapso da grade -------------------------------------------------- */
+@media (max-width: 1080px) {
+  .venda-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    padding-bottom: 150px; /* espaço da barra fixa */
+  }
+  .venda-grid > aside { position: static !important; }
+  .venda-finalizador {
+    position: fixed; left: 260px; right: 0; bottom: 0;
+    border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 640px) {
+  .venda-acoes { grid-template-columns: 1fr !important; }
+  .venda-finalizador { left: 0 !important; } /* sem sidebar nesta faixa */
+}

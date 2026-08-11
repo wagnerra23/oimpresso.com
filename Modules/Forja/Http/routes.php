@@ -331,6 +331,39 @@ Route::group(
         Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
         // Saúde foi fundida no Scorecard real (/team-mcp/scorecard) — sem rota própria.
 
+        // Mesa de Aprovações — superfície do funil de admissão (ADR 0368).
+        // A ADR fechou a política em 2026-08-04 e deixou o código pra "PR próprio";
+        // o estado `pending_approval` + FSM + trava de recusa-sem-motivo já vieram
+        // em #5283/#5288. Isto aqui é a TELA que faltava — sem ela a fila existe no
+        // banco e o [W] não tem onde olhar (o brief anuncia a contagem sem destino).
+        //
+        // 1 e 3 segmentos → não colidem com /{taskId}/* (2 segmentos), e `aprovacoes`
+        // é literal, então casa antes de qualquer wildcard.
+        // FQCN obrigatório em rota nova (.claude/rules/routes.md) — as strings acima
+        // são grandfather, não modelo a copiar.
+        // Trabalho — a lista ÚNICA (US-FORJA-006). Funde os três backlogs que
+        // respondiam a mesma pergunta com escopos diferentes: Pages/Forja/Backlog
+        // (project=FORJA, rica), _components/ForjaBacklog (project=FORJA, enxuta) e
+        // team-mcp/Tasks (todas as tasks).
+        //
+        // ⚠️ CONVIVE com as três por enquanto — nada foi deletado nem redirecionado.
+        // Remover implementação em uso é irreversível na prática, e a US-FORJA-006
+        // exige que [W] veja qual sobrevive. Os 301 vêm na onda seguinte, com smoke.
+        Route::get('/trabalho', [\Modules\Forja\Http\Controllers\TrabalhoController::class, 'index'])
+            ->name('forja.trabalho');
+
+        // Handoffs — o loop de design Cowork→Code (F1→F3) como TELA, não mais como
+        // seção enterrada dentro da aba MCP (2026-08-08). Handoff é dado VIVO (com
+        // `stale` e conflito de gate); a aba MCP é vitrine MOCKADA do contrato.
+        // A projeção é a MESMA (ForjaMcpService) — nada de comportamento mudou.
+        Route::get('/handoffs', [\Modules\Forja\Http\Controllers\ForjaController::class, 'handoffs'])
+            ->name('forja.handoffs');
+
+        Route::get('/aprovacoes', [\Modules\Forja\Http\Controllers\AprovacoesController::class, 'index'])
+            ->name('forja.aprovacoes.index');
+        Route::post('/aprovacoes/{taskId}/decidir', [\Modules\Forja\Http\Controllers\AprovacoesController::class, 'decidir'])
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.aprovacoes.decidir');
+
         // Roadmap Gantt — recebido do Modules/Jana em 2026-08-05.
         // ADR 0366 §D-B: "usa TaskCrudService/McpTask — é tasks, e tasks é Forja;
         // mandar pro Governance criaria a 3ª tela de roadmap". ADR 0367 D4 crava

@@ -4,7 +4,7 @@ casos: Forja · cockpit do cowork loop · /forja
 irmaos: Cockpit.charter.md (lei) · Cockpit.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-06-17"
+last_run: "2026-08-09"
 ---
 
 # Casos de uso — /forja (cockpit Forja · shell)
@@ -17,17 +17,32 @@ last_run: "2026-06-17"
 
 ## UC-FORJA-01 — As rotas /forja respondem (shell no ar)
 Status: 🧪 (o Pest foi consertado e passou a rodar em lane — [#4887](https://github.com/wagnerra23/oimpresso.com/pull/4887). Segue 🧪 e não ✅ porque o ✅ vem do manifesto `scripts/casos-test-results.json`, derivado do JUnit do CI pelo `casos-results-publish` — não se escreve à mão.)
-`ForjaController` serve **5** rotas GET de aba: `/forja` (Triagem), `/forja/backlog`, `/forja/quadro`, `/forja/changelog`, `/forja/mcp`. Não há `/forja/saude` — Saúde foi fundida no Scorecard real (`/team-mcp/scorecard`), conforme o comentário em `Modules/TeamMcp/Http/routes.php`.
+`ForjaController` serve **6** rotas GET de aba: `/forja` (Triagem), `/forja/backlog`, `/forja/quadro`, `/forja/changelog`, `/forja/mcp` e `/forja/handoffs` (esta desde 2026-08-08). Não há `/forja/saude` — Saúde foi fundida no Scorecard real (`/team-mcp/scorecard`), conforme o comentário em `Modules/TeamMcp/Http/routes.php`.
 Recibo: `docker exec oimpresso-staging php artisan route:list --path=forja --json` (CT 100, 2026-07-27) devolveu 5 GET de aba + os POST de lever/triagem, **sem** `forja.saude`.
-**Pronto quando:** cada uma das 5 rotas renderiza `team-mcp/Forja/Cockpit` com a prop `tab` certa (sem 500 / tela branca).
+**Pronto quando:** cada uma das 6 rotas renderiza `team-mcp/Forja/Cockpit` com a prop `tab` certa (sem 500 / tela branca).
 
 ## UC-FORJA-02 — Topnav do hub aparece e navega
-Status: 🧪 (2 testes de `ForjaRoutesSmokeTest` citam este UC — a contagem de **10** itens e, mais importante, que **todo `href` resolve pra rota registrada**. Este segundo cruza DUAS fontes independentes — `config/core_topnavs.php` × registro de rotas do Laravel — e é exatamente a classe do `forja.saude`, item fantasma que sobreviveu meses. Testar o config contra ele mesmo seria tautologia. Rodam em qualquer driver: leem config e router, sem DB. A perna visual — "aparece no header e destaca o ativo" — segue manual.)
-O topnav vem de `config/core_topnavs.php['Forja']` via `useAutoModuleNav`. São **10** itens: 6 próprios (`Triagem · Backlog · Quadro · Roadmap (Gantt) · Changelog · MCP`) + 4 do hub TeamMcp absorvido (`Tarefas · Equipe · CC Sessions · Saúde→/team-mcp/scorecard`). Desde a fusão de 2026-06-16 este é o ÚNICO topnav que casa `/team-mcp/*` — a nav é a mesma em todo o hub.
+Status: 🧪 (2 testes de `ForjaRoutesSmokeTest` citam este UC — a contagem de **13** itens e, mais importante, que **todo `href` resolve pra rota registrada**. Este segundo cruza DUAS fontes independentes — `config/core_topnavs.php` × registro de rotas do Laravel — e é exatamente a classe do `forja.saude`, item fantasma que sobreviveu meses. Testar o config contra ele mesmo seria tautologia. Rodam em qualquer driver: leem config e router, sem DB. A perna visual — "aparece no header e destaca o ativo" — segue manual.)
+O topnav vem de `config/core_topnavs.php['Forja']` via `useAutoModuleNav`. São **13** itens: 9 próprios (`Aprovações · Triagem · Trabalho · Backlog · Quadro · Roadmap (Gantt) · Handoffs · Changelog · MCP`) + 4 do hub TeamMcp absorvido (`Tarefas · Equipe · CC Sessions · Saúde→/team-mcp/scorecard`). Desde a fusão de 2026-06-16 este é o ÚNICO topnav que casa `/team-mcp/*` — a nav é a mesma em todo o hub.
 
 > **9 → 10 em 2026-08-06** ([W]: *"quero que registre"*). O `Roadmap (Gantt)` chegou da Jana no [#5310](https://github.com/wagnerra23/oimpresso.com/pull/5310) (ADR 0366 §D-C item 3) e abria **sem faixa nenhuma** em produção: o ghost estava no `DataController`, mas a faixa de `/forja/*` sai deste config — duas superfícies distintas, e só uma tinha sido preenchida. O `can` da aba é `jana.mcp.tasks.read` (gate real do `RoadmapGanttController@index`), não o `jana.mcp.usage.all` das vizinhas — aba que aparece e dá 403 é pior que aba ausente. Convive com o quarter view `/project-mgmt/roadmap` por decisão da [ADR 0367 D7](../../../../memory/decisions/0367-cockpit-unico-forja-project-mgmt-morre.md): são leituras incomensuráveis (epic × task), e o quarter só sai "quando o Gantt provar que substitui".
 
-**Pronto quando:** os 10 itens aparecem no header, navegam e destacam o ativo por URL.
+> **10 → 11 em 2026-08-08.** Entrou `Aprovações` (`/forja/aprovacoes`), a superfície do funil de admissão da [ADR 0368](../../../../memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md) — a fila de `mcp_tasks` em `pending_approval`. Vem **primeiro** na faixa de propósito: é o que está parado esperando decisão. Diferente do caso do Gantt acima, as **duas** superfícies foram preenchidas no mesmo PR (`core_topnavs.php` alimenta o shell; `FORJA_TABS` alimenta a faixa do hub, que é a que esta tela renderiza) e a Page monta `<ForjaHub>` — então não repetiu o "abriu sem faixa". `can` = `jana.mcp.usage.all`, igual às vizinhas, porque a ADR 0368 §4 proíbe permission de aprovação enquanto houver um único aprovador. Sem `badge` estático: a contagem é prop deferida viva.
+
+> **11 chapados → 3 grupos em 2026-08-08.** A faixa passou a agrupar em **Trabalho** (Aprovações · Triagem · Backlog · Quadro · Roadmap · Tarefas) · **Esteira** (MCP · Equipe · Saúde) · **Histórico** (Changelog · CC Sessions). É **só apresentação**: nenhuma rota mudou, nenhum item saiu, e o `core_topnavs.php` segue chapado (o shell não desenha grupo) — só reordenado pra bater com a faixa. Cada item ganhou `hint` (tooltip); no par **Backlog × Tarefas** ele faz o mínimo enquanto a `US-FORJA-006` não decide: diz que um é *"issues do projeto FORJA"* e o outro *"todas as tasks do time"* — dois nomes parecidos com escopos diferentes, sem rótulo, é o que confunde.
+
+> **11 → 12 em 2026-08-08.** Entrou `Handoffs` (`/forja/handoffs`) no grupo **Esteira**, antes do MCP. Não é tela nova: é a seção de handoffs que vivia DENTRO da aba MCP e virou tela própria. O motivo é de natureza, não de tamanho — handoff é dado **VIVO** (o loop de design rodando agora, com `stale` e conflito de gate) e a aba MCP é vitrine **MOCKADA** do contrato; operação diária enterrada numa vitrine é operação que ninguém olha. O `ForjaMcp.tsx` saiu de 694 → 263 linhas. Nenhuma regra mudou: as levers seguem POSTando em `/forja/handoff/{slug}/lever` → `HandoffLeverService`, sem auto-merge (ADR 0283).
+
+> **12 → 13 em 2026-08-09.** Entrou `Trabalho` (`/forja/trabalho`), a lista única da `US-FORJA-006` que funde os três backlogs. **Convive** com Backlog e Tarefas de propósito nesta onda: deletar implementação em uso é irreversível, e a US exige que [W] veja qual sobrevive — a comparação é olhando as duas no ar. Quando a perdedora sair, a faixa volta a encolher.
+
+**Pronto quando:** os 13 itens aparecem no header sob os 3 rótulos, navegam e destacam o ativo por URL.
+
+## UC-FORJA-14 — As duas superfícies de navegação servem os mesmos destinos
+Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC. **Não é tautológico**: cruza `config/core_topnavs.php` — que alimenta o SHELL (`AppShellV2`) — contra `FORJA_TABS` do `ForjaHub.tsx` — que alimenta a FAIXA do hub, a que as telas sob `/forja/*` de fato renderizam. Arquivos distintos, linguagens distintas, mantidos à mão. Tem **guarda anti-falso-verde**: se o parse do `.tsx` não extrair href nenhum, o teste falha em vez de comparar duas listas vazias e passar.)
+
+Existe por um defeito **real**: em 2026-08-06 o Roadmap (Gantt) foi registrado só no config e abriu **sem faixa nenhuma** em produção — 10 itens em `shell.topnavs.Forja__core` e **zero** `.topnav-chip` no DOM. Foram 8 diagnósticos errados antes de alguém perguntar ao runtime (lápide §5 *"Navegação tem CINCO superfícies na Forja"*). Nada impedia que voltasse a divergir; agora impede.
+
+**Pronto quando:** as duas listas de `href` são iguais **e na mesma ordem**; item registrado em um só dos lados reprova, com a mensagem dizendo qual lado está faltando.
 
 ## UC-FORJA-03 — Entry "Forja" na sidebar
 Status: ⬜ (manual/visual)
@@ -35,7 +50,7 @@ Status: ⬜ (manual/visual)
 **Pronto quando:** "Forja" aparece na sidebar e leva ao cockpit; os ghosts batem 1:1 com `config/core_topnavs.php['Forja']['items']`.
 
 ## UC-FORJA-05 — Read-only (o shell não muta nada)
-Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC — cada uma das 5 rotas de aba é GET-only, lido do registro de rotas. Roda em qualquer driver, inclusive sqlite, ao contrário dos casos de request que só pulam. Escopo honesto: prova que **a aba** não escreve; as rotas POST dedicadas — lever/aprovar/rejeitar/fundir — existem por design e são cobertas pelo `UC-FORJA-09`/`UC-FORJA-10`.)
+Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC — cada uma das 6 rotas de aba é GET-only, lido do registro de rotas. Roda em qualquer driver, inclusive sqlite, ao contrário dos casos de request que só pulam. Escopo honesto: prova que **a aba** não escreve; as rotas POST dedicadas — lever/aprovar/rejeitar/fundir — existem por design e são cobertas pelo `UC-FORJA-09`/`UC-FORJA-10`.)
 Nenhuma rota desta onda escreve estado; todas são GET de render.
 **Pronto quando:** não há ação na tela que escreva no banco.
 

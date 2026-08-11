@@ -37,6 +37,18 @@ import * as React from 'react';
  *   />
  */
 export interface PageHeaderProps {
+  /**
+   * OPT-IN (2026-08-08): marca de identidade ANTES do título — dot de área,
+   * ícone, avatar. Sem `leading`, nada muda: telas que não declaram renderizam
+   * exatamente como antes. Mesmo padrão dos opt-in `icon`/`badge` do
+   * `PageHeaderTabs`.
+   *
+   * Existe porque o `PT-04-Dashboard` **R6** descreve o header como
+   * "ícone · título · descrição" e o componente não tinha onde pôr o ícone —
+   * o `title` é `string`. A Jana perdeu o dot da área (hue 220) ao migrar pro
+   * canon; em vez de hand-rolar um header fora do padrão, o slot entra aqui.
+   */
+  leading?: React.ReactNode;
   /** Título principal · entidade da página. Ex: "Clientes", "Cobrança". */
   title: string;
   /** Sufixo cinza após o título · contexto. Ex: " · Boletos e PIX". Opcional. */
@@ -56,6 +68,7 @@ export interface PageHeaderProps {
 }
 
 export function PageHeader({
+  leading,
   title,
   suffix,
   subtitle,
@@ -75,6 +88,9 @@ export function PageHeader({
         {/* ZONA L · identidade */}
         <div className="flex-1 min-w-0">
           <h1 className="text-[22px] font-bold tracking-tight text-foreground leading-snug">
+            {/* `leading` vive DENTRO do h1 pra acompanhar a linha de base do
+                título — fora dele, um dot de 8px não alinha com 22px de texto. */}
+            {leading}
             {title}
             {suffix && (
               <span className="font-semibold text-muted-foreground">{suffix}</span>

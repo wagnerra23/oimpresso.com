@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **375** arquivos · **360** números únicos · máx **0371**
-- **ADRs ATIVOS (lifecycle ativo): 337** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 338 · superseded 16 · deprecated 12 · proposto 7 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 337 · arquivado 22 · substituido 16
+- **378** arquivos · **363** números únicos · máx **0373**
+- **ADRs ATIVOS (lifecycle ativo): 340** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 342 · superseded 16 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 340 · arquivado 22 · substituido 16
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (375)
+## Todas as ADRs (378)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -404,6 +404,7 @@ _(nenhuma)_
 | 0359 | aceito | ativo | errata | Errata à 0358 — remover a ADR resolveu a colisão NO DISCO, mas o número 0101 não |
 | 0360 | aceito | ativo | decision | Depreciação do Admin Center (Modules/Admin) — o painel nunca foi alcançável e nã |
 | 0361 | aceito | ativo | errata | Errata à 0354 — a promoção de `teammcp-pest` a required nunca chegou à proteção  |
+| 0362 | aceito | ativo | errata | Errata à 0360 — o Admin Center não respondia 403: o bypass do Tailscale estava L |
 | 0363 | aceito | ativo | decision | Modules/Governance incorpora o Modules/ADS — a política tinha posse partida e o  |
 | 0364 | aceito | ativo | decision | O trio de tela (charter + casos) muda de casa para memory/requisitos/<Modulo>/_t |
 | 0365 | aceito | ativo | decision | O trio de tela (charter + casos) FICA colocado ao lado do .tsx; a doc espelha o  |
@@ -412,4 +413,6 @@ _(nenhuma)_
 | 0368 | aceito | ativo | decision | Funil de admissão de feature — a pesquisa de mercado propõe, [W] admite ou recus |
 | 0369 | aceito | ativo | decision | Emenda à 0314 — Compras, Estoque e Ponto (Pest MySQL) promovidos a REQUIRED (val |
 | 0370 | aceito | ativo | decision | Emenda à 0314 — module-surface e catalog-graph promovidos a REQUIRED (índice der |
-| 0371 | proposto | ativo | decision | Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob raja |
+| 0371 | aceito | ativo | decision | Deploy Hostinger — o `git reset` no servidor não é atômico com o build: sob raja |
+| 0372 | aceito | ativo | decision | Emenda à 0094 — princípio 9 (Audit Card): decisão automatizada que afeta titular |
+| 0373 | aceito | ativo | decision | Emenda à 0314 — screen-grades-ratchet a required: exceção soberana [W] com a DR- |

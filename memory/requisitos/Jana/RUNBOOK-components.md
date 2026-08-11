@@ -7,7 +7,7 @@ module: Jana
 owner: W
 status: ativo
 date: "2026-08-07"
-last_validated: "2026-08-07"
+last_validated: "2026-08-10"
 ---
 
 # RUNBOOK — componentes compartilhados da Jana
@@ -20,7 +20,7 @@ last_validated: "2026-08-07"
 
 O hook [`block-mwart-violation.mjs`](../../../.claude/hooks/block-mwart-violation.mjs) — o **único** enforcement de RUNBOOK desde a ADR 0271 onda 2 — exempta `Pages/<Mod>/_components/**` e qualquer subpasta `_*` ("helpers não são telas migráveis"). A Jana tem `_components/` e `_shared/` exemptos **e** uma pasta `components/` **sem** underscore, que não é exempta: o hook resolve o candidato pelo kebab do subdir e passa a exigir `RUNBOOK-components.md`.
 
-Os três arquivos de lá **não são telas** — são compartilhados entre as telas da Jana, sem rota, sem `store()`, sem charter próprio. Por isso este RUNBOOK não segue as 5 fases do MWART (que descrevem migrar uma tela Blade→Inertia): ele documenta **como mexer neles sem quebrar quem os consome**.
+Os arquivos de lá **não são telas** — são compartilhados entre as telas da Jana, sem rota, sem `store()`, sem charter próprio. _(Eram 3 até 2026-08-10; hoje são **2** — ver a lápide do `JanaCockpitV2` abaixo.)_ Por isso este RUNBOOK não segue as 5 fases do MWART (que descrevem migrar uma tela Blade→Inertia): ele documenta **como mexer neles sem quebrar quem os consome**.
 
 > Medido antes de escrever, com bite-test sobre `decide()` do próprio hook e controle
 > negativo: **sem** este arquivo os 3 bloqueiam e `Memoria.tsx` também; **com** ele os 3
@@ -29,22 +29,55 @@ Os três arquivos de lá **não são telas** — são compartilhados entre as te
 
 ## O que vive aqui, e quem consome
 
-| Arquivo | Consumidores | Cuidado ao mexer |
+| Arquivo | Consumidores (medido 2026-08-10, `git grep` de import real) | Cuidado ao mexer |
 |---|---|---|
-| `JanaAreaHeader.tsx` | `Chat.tsx` · `Index.tsx` · `Memoria.tsx` · `Cockpit.tsx` | header de **todas** as telas Jana — muda 1, muda 4 |
+| `JanaAreaHeader.tsx` | `Chat.tsx` · `Index.tsx` · `Memoria.tsx` | header de **todas** as telas Jana — muda 1, muda 3 |
 | `FabJana.tsx` | `Index.tsx` · `Memoria.tsx` | botão flutuante que leva à Conversa |
-| `JanaCockpitV2.tsx` | **`Sells/Index.tsx`** (tab Insights) | ⛔ não é da Jana na prática — ver abaixo |
 
-### ⛔ `JanaCockpitV2.tsx` — não apague, e não use como base do Painel
+> **Errata 2026-08-10 — `Cockpit.tsx` saiu da coluna do `JanaAreaHeader`.** A onda 4 da
+> `US-COPI-148` apagou aquela Page em 2026-08-07 e esta tabela não acompanhou. São **3**
+> consumidores, não 4.
 
-Mora na Jana por herança, mas quem o consome é o **`Sells/Index.tsx:55`** (tab Insights de vendas). Ele carrega o bundle CSS paralelo `.sells-cowork .vd-insights-*` e é a **tela-dona legítima** desse bundle.
+### 🪦 `JanaCockpitV2.tsx` — REMOVIDO em 2026-08-10 (estava morto; o canon dizia o contrário)
 
-O irmão `_components/JanaCockpit.tsx` é a bifurcação PT-04 (US-COPI-146) criada **justamente para tirar o bundle paralelo de dentro da Jana** — é ele que alimenta o Painel.
+Este arquivo (633 ln) foi deletado. **A seção anterior mandava não apagá-lo, e estava errada** —
+fica registrada aqui a lápide, porque a afirmação falsa custou o arquivo ter sobrevivido à
+onda 4 que o teria limpado.
 
-Duas consequências que já custaram retrabalho (o pedido original da fusão trazia os dois invertidos):
+**O que o canon afirmava** (aqui, no `RUNBOOK-cockpit.md`, no `SPEC.md` 2×, no `SUPERFICIE.md`,
+em 2 session logs e 1 handoff): *"quem o consome é o `Sells/Index.tsx:55` (tab Insights de
+vendas) — apagar quebra a aba Insights de `/sells`"*.
 
-- Apagar o `JanaCockpitV2` **quebra a aba Insights de `/sells`**.
-- Usá-lo como base do Painel **reintroduz** o bundle paralelo que a regra **R7** do `ui:lint` proíbe — há teste de arquitetura dedicado, [`UiLintR7BundleParaleloTest.php`](../../../tests/Feature/Architecture/UiLintR7BundleParaleloTest.php), citando a tela nominalmente.
+**O que foi medido em 2026-08-10:**
+
+| Prova | Resultado |
+|---|---|
+| `git grep` de import real, repo inteiro | **0 imports** — as 3 "referências" eram **comentário** |
+| `Sells/Index.tsx:53-55` | comentário histórico dizendo que a tab **SAIU** dali |
+| `Sells/Index.tsx:486 · 1078 · 1092` | *"tab bar Dashboard \| Insights Jana removida"* |
+| `SellsInsightsView.tsx` (o componente da tab) | **não existe** — deletado |
+| `Inertia::render('Jana/components/...')` em PHP | **nenhum** |
+| `tsc --noEmit` antes × depois da deleção | **372 = 372** — zero erro novo |
+| `npm run build:inertia` | passa · **0** chunks `JanaCockpitV2*` (1 chunk do `_components/JanaCockpit` vivo) |
+
+A raiz é a classe **LC-08** já lapidada em [§5 2026-08-08](../../proibicoes.md): *reportei "16 telas
+usando X" com `git grep -l`, que casou menções em **COMENTÁRIO***. Aqui o mesmo erro nasceu uma
+vez e foi **copiado por 7 documentos**, cada um citando o anterior — nenhum reabriu o `Sells/Index.tsx`
+pra ver que a linha 55 é comentário.
+
+**O que continua verdadeiro e não muda:** o irmão `_components/JanaCockpit.tsx` é a bifurcação
+PT-04 (`US-COPI-146`) que alimenta o Painel, e a regra **R7** do `ui:lint` segue proibindo bundle
+paralelo dentro da Jana. ⚠️ O [`UiLintR7BundleParaleloTest.php`](../../../tests/Feature/Architecture/UiLintR7BundleParaleloTest.php)
+**não citava o V2** — ele usa fixtures sintéticas sobre `Jana/Index.tsx`; a frase *"citando a tela
+nominalmente"* desta seção se referia ao `Index`, não ao V2.
+
+**Resíduo declarado, NÃO resolvido:** `resources/css/sells-cowork-insights.css` (**776 ln**,
+importado globalmente em `inertia.css`) ficou com **zero** consumidor JS — o V2 era o único (83
+ocorrências). Não foi removido junto porque os `it()` **vivos** de
+[`SellsTabsViewModeTest.php`](../../../tests/Feature/Sells/SellsTabsViewModeTest.php) guardam sua
+existência e o escopo das classes, e o prefixo `.vd-*` é partilhado com o bundle do Financeiro
+(138 classes, com teste de contagem). Retirá-lo exige aposentar o guarda — ato de governança,
+decisão [W], não faxina.
 
 ## Antes de editar
 
@@ -56,9 +89,16 @@ Duas consequências que já custaram retrabalho (o pedido original da fusão tra
 
 | Passo | Prova |
 |---|---|
-| Build | `npm run build` passa |
+| Build | **`npm run build:inertia`** passa |
 | Lint DS | `npm run ui:lint` (R1 cor crua · R7 bundle paralelo) |
-| Smoke real | abrir as **4** telas Jana e conferir o header nas 4 (R1 do PROTOCOLO-WAGNER) |
+| Smoke real | abrir as **3** telas com header (`/ia` · `/ia/conversa` · `/ia/memoria`) e conferir nas 3 (R1 do PROTOCOLO-WAGNER) |
+
+> **Errata 2026-08-10 — duas correções de instrumento nesta tabela:**
+> **(a)** era `npm run build`, que aponta pro `vite.config.js` do **Tailwind** — ele transforma
+> **1 módulo** e emite só `tailwind.css`, sem tocar num `.tsx` sequer. Mudança em componente React
+> se prova com **`build:inertia`** (`vite.inertia.config.mjs`), o único que compila as Pages.
+> **(b)** era *"as 4 telas"*: `Pro.tsx` cita o `JanaAreaHeader` **em comentário** (`:43`) e não o
+> importa — mesma armadilha comentário-≠-uso da lápide acima, no mesmo arquivo.
 
 ## Armadilhas catalogadas
 

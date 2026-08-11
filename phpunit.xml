@@ -50,6 +50,13 @@
             <directory>./Modules/Officeimpresso/Tests/Feature</directory>
             <directory>./Modules/AssetManagement/Tests/Feature</directory>
             <directory>./Modules/Governance/Tests/Feature</directory>
+            <!-- Unit do Governance registrado em 2026-08-08 pela MESMA razão da Jana
+                 acima, e seguindo a mesma política forward-only (registra quem toca,
+                 sem big-bang): o PR #5450 pôs 5 casos em Tests/Unit e eles rodavam
+                 SÓ pela lista explícita de arquivos da lane `jana-logica-pura-pest.yml`
+                 — invisíveis a qualquer run guiado por <testsuite> (ex.: o
+                 `scripts/tests/ct100-fullsuite.sh`). Achado por revisão adversarial. -->
+            <directory>./Modules/Governance/Tests/Unit</directory>
             <directory>./Modules/Spreadsheet/Tests/Feature</directory>
             <directory>./Modules/ProductCatalogue/Tests/Feature</directory>
             <directory>./Modules/ConsultaOs/Tests/Feature</directory>

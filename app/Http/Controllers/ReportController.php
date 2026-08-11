@@ -2914,9 +2914,29 @@ class ReportController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    /**
+     * Reconcilia o saldo de UM par variação × local (botão "Fix" do relatório).
+     *
+     * ⚠️ MUTAÇÃO DE ESTOQUE — o gate NÃO é o do relatório de propósito (US-GOV-059).
+     * Até 2026-08-08 este método e o `productStockDetails()` (leitura) dividiam
+     * `report.stock_details`. Um nome que diz "relatório" autorizando escrita de saldo
+     * é armadilha: quem marcasse o checkbox achando que concedeu leitura concederia
+     * mutação junto. Leitura e mutação foram separadas.
+     *
+     * `stock.adjust_mismatch` fica DELIBERADAMENTE NÃO DECLARADA na tela de papéis —
+     * logo o `Gate::before` a resolve como "só admin", que é exatamente a semântica
+     * de hoje (ninguém possui `report.stock_details` em produção: medido, 0 roles).
+     * Declará-la tornaria concedível uma escrita que (a) roda em GET sem CSRF,
+     * (b) SOBRESCREVE o saldo em vez de movimentar e (c) não deixa rastro no kardex
+     * (`AR-PROD-064` exige origem + usuário em cada movimento). Enquanto esses três
+     * backlogs estiverem abertos, ampliar quem pode chamá-la é decisão [W] — não
+     * efeito colateral de declarar um checkbox.
+     *
+     * Backlogs abertos: `memory/requisitos/Produto/_telas/ajuste-estoque-relatorio.casos.md`
+     */
     public function adjustProductStock()
     {
-        if (! auth()->user()->can('report.stock_details')) {
+        if (! auth()->user()->can('stock.adjust_mismatch')) {
             abort(403, 'Unauthorized action.');
         }
 

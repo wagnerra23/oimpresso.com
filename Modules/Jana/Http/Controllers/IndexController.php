@@ -18,10 +18,12 @@ use Modules\Jana\Services\ApuracaoService;
  * então a troca alinha a URL com o que já acontecia, em vez de inverter produto.
  * `/ia/dashboard` e `/ia/cockpit` viraram **301** para `/ia`.
  *
- * ⚠️ O conteúdo primário vem do `_components/JanaCockpit.tsx` (PT-04), NÃO do
- * `components/JanaCockpitV2.tsx` — este último carrega o bundle `.sells-cowork` e
- * serve a tab Insights de `/sells`. Trocar um pelo outro reintroduz o bundle
- * paralelo que a R7 do `ui:lint` proíbe. Ver `RUNBOOK-components.md`.
+ * ⚠️ O conteúdo primário vem do `_components/JanaCockpit.tsx` (PT-04). O antigo
+ * `components/JanaCockpitV2.tsx` foi **removido em 2026-08-10** (0 imports medidos);
+ * até então este bloco afirmava que ele "serve a tab Insights de `/sells`", o que era
+ * falso — a tab saiu de `/sells` e o `SellsInsightsView` já estava deletado. A regra
+ * **R7** do `ui:lint` (sem bundle paralelo na Jana) segue valendo e não depende disso.
+ * Ver `RUNBOOK-components.md`.
  */
 class IndexController extends Controller
 {

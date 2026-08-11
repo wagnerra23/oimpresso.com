@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Família de telas de Venda — guia de produção</title>
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     ESTE ENTRY NÃO RENDERIZA COMPLETO NESTE REPO — e isso está declarado de
+     propósito, em vez de deixar o próximo a descobrir clicando.
+
+     A camada 0 (Design System) do projeto de design NÃO veio no handoff
+     `design_handoff_cadastro_venda`. Medido em 2026-08-10 sobre o zip: as três
+     peças abaixo não existem em arquivo nenhum do bundle.
+
+         _ds/…/colors_and_type.css   (tokens de cor e tipografia)
+         _ds/…/styles.css            (componentes do DS)
+         _ds/…/_ds_bundle.js         (primitivos JS + ícones — `window.I`)
+
+     MEDIDO NO BROWSER (não inferido), servindo este diretório em 127.0.0.1:5599:
+     esta página NÃO RENDERIZA — tela em branco. O `#root` fica com 0 caracteres,
+     `window.I` é undefined, e o console dá
+         TypeError: Cannot read properties of undefined (reading 'Button')
+         TypeError: Cannot read properties of undefined (reading 'Provider')  <App>
+     O `_ds_bundle.js` fornece os primitivos que os `.jsx` montam — sem ele o
+     React quebra na montagem, não é degradação cosmética.
+
+     O valor destes arquivos aqui é serem a FONTE DE DESIGN VERSIONADA de onde
+     as ondas 2-6 derivam (e a âncora que `CreateV3.charter.md` declara) —
+     não um preview executável. Para rodar o cockpit completo, use o projeto
+     de design de origem (Oimpresso `019e2365`).
+
+     Os `<link>` da camada 0 ficam COMENTADOS abaixo: link 404 dá erro de
+     console que parece defeito do bundle, quando é ausência conhecida.
+     ───────────────────────────────────────────────────────────────────────── -->
+
+<!-- camada 0 · DS — AUSENTE neste repo (ver nota acima)
+<link rel="stylesheet" href="_ds/colors_and_type.css">
+<link rel="stylesheet" href="_ds/styles.css">
+-->
+
+<!-- Cascata por camada (../../FONTE-DESIGN-venda-v3.md): 1 fundações → 2 shell →
+     3 padrões → 4 módulo. A ordem É o contrato: camada de cima nunca é
+     sobrescrita por camada de baixo.
+     Paths reescritos de `../../` para relativo: o handoff achatou a árvore
+     (o HTML vivia em `04-modulos/vendas/`), então o original apontava pra fora. -->
+<link rel="stylesheet" href="01-fundacoes/css/tokens-tema-escuro.css">
+<link rel="stylesheet" href="01-fundacoes/css/ds-correcoes.css">
+<link rel="stylesheet" href="02-shell/css/base.css">
+<link rel="stylesheet" href="02-shell/css/shell-responsivo.css">
+<link rel="stylesheet" href="03-padroes-tela/css/campos.css">
+<link rel="stylesheet" href="03-padroes-tela/css/tabela-dados.css">
+<link rel="stylesheet" href="03-padroes-tela/css/overlays.css">
+<link rel="stylesheet" href="css/venda.css">
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.js"></script>
+
+<!-- camada 0 · DS — AUSENTE neste repo (ver nota no <head>)
+<script src="_ds/_ds_bundle.js"></script>
+-->
+
+<!-- Ordem de carga = ordem de dependência (../../FONTE-DESIGN-venda-v3.md).
+
+     ⚠️ ERRATA (2026-08-10, mesma sessão): a versão anterior deste comentário
+     dizia que a tag `sells-roteiro.jsx` era ÓRFÃ e a removeu. ESTAVA ERRADO.
+     Ele define `CuDrawer`, usado em `sells-app.jsx:62` — sem ele o React
+     lança `ReferenceError: CuDrawer is not defined` e NADA renderiza.
+     Meu erro foi grepar por "Roteiro" (o nome do ARQUIVO) em vez do símbolo
+     que ele exporta. A tag fica aqui, apontando pro arquivo que falta, porque
+     404 visível é melhor que dependência apagada em silêncio. -->
+<script type="text/babel" src="sells-roteiro.jsx"></script>  <!-- AUSENTE no handoff — define CuDrawer -->
+<script src="sells-data.js"></script>
+<script type="text/babel" src="sells-ui.jsx"></script>
+<script type="text/babel" src="sells-comissao.jsx"></script>
+<script type="text/babel" src="sells-item-detail.jsx"></script>
+<script type="text/babel" src="sells-parcelas.jsx"></script>
+<script type="text/babel" src="sells-entrega.jsx"></script>
+<script type="text/babel" src="sells-lancamento.jsx"></script>
+<script type="text/babel" src="sells-fsm.jsx"></script>
+<script type="text/babel" src="sells-colunas.jsx"></script>
+<script type="text/babel" src="sells-create.jsx"></script>
+<script type="text/babel" src="sells-telas.jsx"></script>
+<script type="text/babel" src="sells-app.jsx"></script>
+</body>
+</html>

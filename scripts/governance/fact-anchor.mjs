@@ -121,6 +121,52 @@ export function factAnchorTabelas({ docs, tableExists = () => true }) {
   return hits;
 }
 
+/**
+ * PLACEHOLDER — padrão de nome, não afirmação de existência.
+ * `Modules/<Mod>/Http/Controllers/*.php` e `memory/sessions/YYYY-MM-DD-*.md` ensinam
+ * uma FORMA; cobrar existência deles seria falso-positivo por construção. Medido
+ * 2026-08-03 no corpus: 18 dos 41 paths citados são placeholder.
+ */
+export function ehPlaceholderDePath(s) {
+  return /[<>*]|YYYY|NNNN|\bMM\b|\bDD\b|[{}]/.test(String(s || ''));
+}
+
+/**
+ * Ancora PATHS e COMANDOS citados nos docs de instrução na árvore real.
+ *
+ * O doc de instrução afirma *"use isto"* — se o alvo não existe, a instrução é
+ * impossível de seguir e o agente perde a porta. É a classe C8/C6 medida na Fase 0
+ * (2026-08-03): 210 afirmações factuais na cadeia de contexto, das quais 26% já
+ * enforçadas (versão/módulo) e ~38% deriváveis com `fs` puro e sem cobertura.
+ *
+ * ⚠️ **Por que o corpus é `CURRENT_STATE_DOCS` e NÃO inclui `proibicoes.md`:** lápide
+ * FALA do que morreu. Os 5 únicos paths mortos do repo estão lá e são **citação
+ * histórica legítima** (`MAPA-DE-ARTEFATOS.md` e `mapa-artefatos.mjs` foram revertidos
+ * de propósito — §5 2026-07-23). Cobrar existência ali seria a 5ª encarnação do
+ * critério sintático que o §5 já matou 4×. Medido: alvo = 28 afirmações · **0 hits**;
+ * fora do corpus = 5 hits, todos legítimos.
+ *
+ * @param {{ docs: {rel:string,txt:string}[], existe?: (p:string)=>boolean, npmScripts?: Set<string> }} args
+ * @returns {{file:string, afirma:string, verdade:string}[]}
+ */
+export function factAnchorPaths({ docs, existe = () => true, npmScripts = new Set() }) {
+  const RE_PATH = /`((?:app|Modules|resources|scripts|database|\.claude|\.github|memory|prototipo-ui|governance|tests|config|routes)\/[^`\s]+\.[a-z]{2,4})`/g;
+  const RE_CMD = /(?:npm run\s+([a-z][a-z0-9:_-]+)|node\s+((?:scripts|prototipo-ui)\/[^\s`)]+\.mjs))/g;
+  const hits = [];
+  for (const { rel, txt } of docs) {
+    if (!txt) continue;
+    for (const m of txt.matchAll(RE_PATH)) {
+      if (ehPlaceholderDePath(m[1])) continue;
+      if (!existe(m[1])) hits.push({ file: rel, afirma: `path \`${m[1]}\``, verdade: 'não existe na árvore (renomeado/removido?)' });
+    }
+    for (const m of txt.matchAll(RE_CMD)) {
+      if (m[1] && !npmScripts.has(m[1])) hits.push({ file: rel, afirma: `\`npm run ${m[1]}\``, verdade: 'script ausente do package.json' });
+      if (m[2] && !existe(m[2])) hits.push({ file: rel, afirma: `\`node ${m[2]}\``, verdade: 'script não existe na árvore' });
+    }
+  }
+  return hits;
+}
+
 export function factAnchorScan({ docs, pkg = {}, comp = {}, moduleExists = () => true }) {
   const VERSIONS = buildVersions(pkg, comp);
   const hits = [];

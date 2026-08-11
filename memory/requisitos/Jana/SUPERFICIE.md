@@ -29,13 +29,12 @@ module: Jana
 - [ProController.php](../../../Modules/Jana/Http/Controllers/ProController.php)
 - [SuperadminController.php](../../../Modules/Jana/Http/Controllers/SuperadminController.php)
 
-## Requests (validação) — 8
+## Requests (validação) — 7
 
 - [SendChatMessageRequest.php](../../../Modules/Jana/Http/Requests/SendChatMessageRequest.php)
 - [StoreMensagemRequest.php](../../../Modules/Jana/Http/Requests/StoreMensagemRequest.php)
 - [StoreMetaRequest.php](../../../Modules/Jana/Http/Requests/StoreMetaRequest.php)
 - [StorePeriodoRequest.php](../../../Modules/Jana/Http/Requests/StorePeriodoRequest.php)
-- [StoreSugestaoRequest.php](../../../Modules/Jana/Http/Requests/StoreSugestaoRequest.php)
 - [UpdateAlertasConfigRequest.php](../../../Modules/Jana/Http/Requests/UpdateAlertasConfigRequest.php)
 - [UpdateMetaRequest.php](../../../Modules/Jana/Http/Requests/UpdateMetaRequest.php)
 - [UpdatePeriodoRequest.php](../../../Modules/Jana/Http/Requests/UpdatePeriodoRequest.php)
@@ -352,7 +351,15 @@ module: Jana
 
 ## Views (Blade) — 9
 
-- 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [config.blade.php](../../../Modules/Jana/Resources/views/alertas/config.blade.php)
+- [index.blade.php](../../../Modules/Jana/Resources/views/alertas/index.blade.php)
+- [weekly-digest.blade.php](../../../Modules/Jana/Resources/views/emails/weekly-digest.blade.php)
+- [show.blade.php](../../../Modules/Jana/Resources/views/fontes/show.blade.php)
+- [create.blade.php](../../../Modules/Jana/Resources/views/metas/create.blade.php)
+- [edit.blade.php](../../../Modules/Jana/Resources/views/metas/edit.blade.php)
+- [index.blade.php](../../../Modules/Jana/Resources/views/metas/index.blade.php)
+- [show.blade.php](../../../Modules/Jana/Resources/views/metas/show.blade.php)
+- [metas.blade.php](../../../Modules/Jana/Resources/views/superadmin/metas.blade.php)
 
 ## Telas (Inertia/React) — 4
 
@@ -361,16 +368,14 @@ module: Jana
 - [Memoria.tsx](../../../resources/js/Pages/Jana/Memoria.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 
-## Componentes / apoio de tela — 8
+## Componentes / apoio de tela — 6
 
 - [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
 - [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
 - [JanaDrillDrawer.tsx](../../../resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx)
-- [JanaPrimaryButton.tsx](../../../resources/js/Pages/Jana/_shared/JanaPrimaryButton.tsx)
 - [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
 - [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
 - [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
-- [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
 ## Charters (lei da tela) — 4
 
@@ -379,15 +384,16 @@ module: Jana
 - [Memoria.charter.md](../../../resources/js/Pages/Jana/Memoria.charter.md)
 - [Pro.charter.md](../../../resources/js/Pages/Jana/Pro.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
+- [Memoria.casos.md](../../../resources/js/Pages/Jana/Memoria.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 155
+## Testes (Pest) — 158
 
-- 155 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 158 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 91
+## Demais arquivos (manifestos, docs, assets e misc) — 90
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -411,7 +417,6 @@ module: Jana
 - [VendasPeriodoTool.php](../../../Modules/Jana/Ai/Tools/BriefDiario/VendasPeriodoTool.php)
 - [UiDeterministicScorer.php](../../../Modules/Jana/Ai/UiDeterministicScorer.php)
 - [UiJudgeConsensus.php](../../../Modules/Jana/Ai/UiJudgeConsensus.php)
-- [CHANGELOG.md](../../../Modules/Jana/CHANGELOG.md)
 - [AiAdapter.php](../../../Modules/Jana/Contracts/AiAdapter.php)
 - [CalculaMeta.php](../../../Modules/Jana/Contracts/CalculaMeta.php)
 - [MemoriaContrato.php](../../../Modules/Jana/Contracts/MemoriaContrato.php)

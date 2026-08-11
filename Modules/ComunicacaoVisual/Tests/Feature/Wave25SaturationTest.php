@@ -31,12 +31,13 @@ describe('Wave 25 ComVis — D3 docs canon Wave 25 entries', function () {
     // marcador de wave (usa frontmatter updated_at). Assert de conteúdo Wave 25 removida por
     // obsolescência. O CHANGELOG (abaixo) segue cobrindo a trilha de wave.
 
-    it('CHANGELOG.md módulo contém entry Wave 25', function () {
-        $log = (string) file_get_contents(comvisW25Path('Modules/ComunicacaoVisual/CHANGELOG.md'));
-        expect($log)->toContain('Wave 25');
-    });
-
-    it('CHANGELOG.md memory/requisitos contém entry Wave 25', function () {
+    // 2026-08-10: os DOIS changelogs viraram um só. Este teste tinha duas asserções
+    // porque os arquivos eram distintos (o do módulo registrava implementação; o de
+    // memory/requisitos, decisões) — medido antes de fundir: 0 datas em comum. O
+    // conteúdo dos dois foi preservado na íntegra em memory/requisitos/, mesma casa
+    // única que a ADR 0345 já deu ao BRIEFING (ver nota acima). Sobra uma asserção:
+    // duas apontando pro mesmo arquivo seria redundância, não cobertura.
+    it('CHANGELOG.md (casa única em memory/requisitos) contém entry Wave 25', function () {
         $log = (string) file_get_contents(comvisW25Path('memory/requisitos/ComunicacaoVisual/CHANGELOG.md'));
         expect($log)->toContain('Wave 25');
     });

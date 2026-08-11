@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/NfeBrasil/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 204 arquivos em 19 papéis.
+**Total mapeado:** 203 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -140,7 +140,10 @@ module: NfeBrasil
 
 ## Views (Blade) — 4
 
-- 4 arquivos em [Modules/NfeBrasil/Resources/views/](../../../Modules/NfeBrasil/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [index.blade.php](../../../Modules/NfeBrasil/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/NfeBrasil/Resources/views/layouts/master.blade.php)
+- [danfe-html.blade.php](../../../Modules/NfeBrasil/Resources/views/mail/danfe-html.blade.php)
+- [danfe-text.blade.php](../../../Modules/NfeBrasil/Resources/views/mail/danfe-text.blade.php)
 
 ## Telas (Inertia/React) — 6
 
@@ -179,9 +182,8 @@ module: NfeBrasil
 
 - 53 arquivos em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 40
+## Demais arquivos (manifestos, docs, assets e misc) — 39
 
-- [CHANGELOG.md](../../../Modules/NfeBrasil/CHANGELOG.md)
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
 - [NfseCancelDriverInterface.php](../../../Modules/NfeBrasil/Contracts/NfseCancelDriverInterface.php)
