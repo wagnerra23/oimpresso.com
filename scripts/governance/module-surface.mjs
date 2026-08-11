@@ -152,7 +152,13 @@ const CORE_APP_MODULES = {
       'app/Contact.php',                              // ⚠️ SEM global scope (medido: addGlobalScope = 0)
       'app/CustomerGroup.php',
       'Modules/Crm',                                  // o módulo existe, com OUTRO nome
-      'resources/views/contact',                      // 25 Blades VIVAS (dual-render por flag MWART_CLIENTE_*)
+      // Blades do contato. O dual-render por flag existe (`config/mwart.php`, chaves
+      // MWART_CLIENTE_INDEX/CREATE/SHOW/EDIT) — mas QUANTAS ainda são servidas é do
+      // `blade-migration-census` (escopo `core`), não deste comentário. O "25 Blades
+      // VIVAS" que estava aqui era número escrito à mão: medido em 2026-08-09,
+      // `git ls-files -- 'resources/views/contact/**'` devolve 23, e boa parte é
+      // partial (`partials/`, `contact_*_info`), que não é tela servida (§5 2026-07-17).
+      'resources/views/contact',
     ],
     tabelas: ['contacts', 'customer_groups'],
   },
@@ -366,9 +372,9 @@ function montar(mod, grupos, outros) {
   if (mod === CONTEXTO_GERAL) {
     L.push('> **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.');
   } else if (core) {
-    L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
+    L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
-    L.push('> **O que isto é:** o inventário completo das raízes `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/' + mod + '/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).');
+    L.push('> **O que isto é:** o inventário completo das raízes `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/' + mod + '/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).');
   }
   L.push('');
   L.push(`**Total mapeado:** ${total} arquivos em ${totalPapeis} papéis.`);
@@ -383,9 +389,30 @@ function montar(mod, grupos, outros) {
         L.push(`- [${nome}](${linkDe(f)})`);
       }
     } else {
-      // Role volumoso: contagem + link do diretório (não polui com dezenas de arquivos).
-      const dir = g.files[0].split('/').slice(0, -1).join('/');
-      L.push(`- ${g.files.length} arquivos em [${dir}/](${linkDe(dir)}) — cobertura é do \`casos-gate\`/\`screen-coverage\`, não deste índice.`);
+      // Role volumoso: um item por DIRETÓRIO, com a contagem daquele diretório.
+      //
+      // ⚠️ Antes isto era `g.files[0]` — o dir do PRIMEIRO arquivo, com a contagem de TODOS.
+      // O ponteiro mentia sempre que o papel abrangia mais de um diretório. Medido em
+      // 2026-08-09, quando o defeito ainda alcançava também `Views (Blade)`: a Jana lia
+      // "9 arquivos em Resources/views/alertas/" com alertas/ contendo 2 dos 9, e o
+      // Cliente mandava para Modules/Crm/Resources/views/booking/ uma contagem que
+      // incluía as 23 blades de resources/views/contact.
+      //
+      // Hoje o único papel que passa por aqui é `Testes (Pest)` — o `Views (Blade)` virou
+      // `listar:true` no #5502, e por um motivo que NÃO vale para os testes: Blade não
+      // tinha dono nenhum listando por arquivo, enquanto a cobertura dos testes é do
+      // `screen-coverage`/`casos-gate`. Então o agrupamento por dir continua sendo a forma
+      // certa aqui: não despeja 77 arquivos de teste e, ao contrário do `files[0]`, cada
+      // linha aponta para onde os arquivos que ela conta realmente estão.
+      const porDir = new Map();
+      for (const f of g.files) {
+        const dir = f.split('/').slice(0, -1).join('/');
+        porDir.set(dir, (porDir.get(dir) || 0) + 1);
+      }
+      for (const dir of [...porDir.keys()].sort()) {
+        L.push(`- ${porDir.get(dir)} em [${dir}/](${linkDe(dir)})`);
+      }
+      L.push(`- _Cobertura destes arquivos é do \`casos-gate\`/\`screen-coverage\`, não deste índice._`);
     }
     L.push('');
   }
