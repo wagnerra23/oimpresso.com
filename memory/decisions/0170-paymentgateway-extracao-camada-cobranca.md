@@ -349,7 +349,7 @@ Cada onda = PR isolada + ADR per-onda (filha desta) + smoke test biz=1 antes de 
 - [ADR 0114](0114-prototipo-ui-cowork-loop-formalizado.md) — Loop Cowork formal
 - [ADR 0143](0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM pipeline pattern
 - [Modules/RecurringBilling/README.md](../../Modules/RecurringBilling/README.md) — origem da extração
-- [Modules/RecurringBilling/SCOPE.md](../../Modules/RecurringBilling/SCOPE.md)
+- [memory/requisitos/RecurringBilling/SCOPE.md](../requisitos/RecurringBilling/SCOPE.md)
 - [Modules/Superadmin/Entities/Subscription.php](../../Modules/Superadmin/Entities/Subscription.php) — eliminada como source-of-truth
 - Resolução BCB 380/2024 — PIX Automático (regulamentação driver `bcb_pix`)
 
