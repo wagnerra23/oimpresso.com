@@ -84,6 +84,10 @@ const JM_THREADS = [
 
 const JM_FILTROS = ["todas", "minhas", "compartilhadas", "arquivadas"];
 
+// KPI → análise que EXPLICA aquele número. Só mapeia quando o card existe e fala do mesmo dado:
+// ticket médio (trendDown) não tem análise própria, então fica não-clicável em vez de abrir faturamento.
+const JM_KPI_DRILL = { coins: "fat", alert: "inad", truck: "frota" };
+
 // Cada conversa tem thread própria — trocar no histórico troca o conteúdo (P0).
 function jmSeed(id, data, threads) {
   if (id === "t1") return data.seed;
@@ -676,25 +680,27 @@ function JmDrillDrawer({ analise, onClose, onPerguntar }) {
 }
 
 // Carregamento do painel (o real usa Inertia::defer — aqui o mesmo ritmo visual).
-function JmPainelSkeleton() {
+function JmPainelSkeleton({ compacto }) {
   const DS = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
   const { Skeleton } = DS;
-  if (!Skeleton) return <div className="jm-sk-nota">Carregando o painel…</div>;
+  if (!Skeleton) return <div className="jm-sk-nota">Carregando…</div>;
   return (
     <div className="jm-sk">
-      <div className="jm-sk-brief"><Skeleton variant="title" /><Skeleton variant="text" count={4} /></div>
-      <div className="jm-sk-kpis">{[0, 1, 2, 3].map((i) => <div key={i} className="jm-sk-card"><Skeleton variant="caption" /><Skeleton variant="title" /></div>)}</div>
+      {!compacto &&
+      <div className="jm-sk-brief"><Skeleton variant="title" /><Skeleton variant="text" count={4} /></div>}
+      {!compacto &&
+      <div className="jm-sk-kpis">{[0, 1, 2, 3].map((i) => <div key={i} className="jm-sk-card"><Skeleton variant="caption" /><Skeleton variant="title" /></div>)}</div>}
       <div className="jm-sk-grid">{[0, 1, 2, 3].map((i) => <Skeleton key={i} variant="card" />)}</div>
     </div>);
 
 }
 
-function JmTabs({ tab, onGoTab, metasMode }) {
+function JmTabs({ tab, onGoTab, metasMode, nConversas }) {
   const JcIcon = window.JcIcon;
   const tabs = [
   { key: "painel", label: "Painel", icon: "chart" },
-  ...(metasMode === "aba" ? [{ key: "metas", label: "Metas", icon: "target" }] : []),
-  { key: "conversa", label: "Conversa", icon: "sparkles" },
+  ...(metasMode === "aba" ? [{ key: "metas", label: "Metas", icon: "target", n: JM_METAS_BASE.length }] : []),
+  { key: "conversa", label: "Conversa", icon: "sparkles", n: nConversas },
   { key: "memoria", label: "Memória", icon: "database" }];
 
   return (
@@ -706,6 +712,7 @@ function JmTabs({ tab, onGoTab, metasMode }) {
       aria-current={tab === t.key ? "page" : undefined}>
           {JcIcon && <JcIcon name={t.icon} className="jm-tab-ic" />}
           <span>{t.label}</span>
+          {t.n != null && <span className="cli-moduletopnav-n">{t.n}</span>}
         </button>
       )}
     </nav>);
@@ -788,7 +795,8 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
     }, 750);
   };
   const falarComJana = () => {setMeta(null);onGoTab?.("conversa");};
-  const tabs = <JmTabs tab={tab} onGoTab={onGoTab} metasMode={metasMode} />;
+  const tabs = <JmTabs tab={tab} onGoTab={onGoTab} metasMode={metasMode}
+  nConversas={threads.filter((t) => t.escopo !== "arquivadas").length} />;
   const plano = <button className={"jm-plano" + (pro ? " pro" : "")} onClick={() => setConfig(true)} title="Plano atual · abre Configurar">plano {pro ? "Pro" : "Grátis"}</button>;
   const configDrawer = <JmConfigDrawer open={config} onClose={() => setConfig(false)} onGoTab={onGoTab} cfg={cfg} setCfg={setCfg} />;
   const { Toast, DropdownMenu } = DS;
@@ -813,7 +821,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
     return (
       <div className="jc-page jc-page--ia" data-screen-label="Jana — Conversa">
         <JanaHeader company={company} person={data.person} biz={data.biz} updatedAt={hh}
-        isChat onNew={novaConversa} plano={plano} exportar={exportar} />
+        isChat onNew={novaConversa} plano={plano} exportar={exportar} onConfig={() => setConfig(true)} />
         {tabs}
         <JmConversa ConverseComJana={ConverseComJana} threads={threads} ativa={ativa} onAtiva={setAtiva}
         data={{ ...data, seed: jmSeed(ativa, data, threads) }} />
@@ -828,7 +836,7 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
       <div className="jc-page" data-screen-label="Jana — Memória">
         <JanaHeader company={company} person={data.person} biz={data.biz} updatedAt={hh} onConfig={() => setConfig(true)} plano={plano} exportar={exportar} onRefresh={atualizar} />
         {tabs}
-        <JmMemoria estado={estado} />
+        {carregando ? <JmPainelSkeleton compacto /> : <JmMemoria estado={estado} />}
         {configDrawer}
         {toast}
       </div>);
@@ -840,7 +848,8 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
       <div className="jc-page" data-screen-label="Jana — Metas">
         <JanaHeader company={company} person={data.person} biz={data.biz} updatedAt={hh} onConfig={() => setConfig(true)} plano={plano} exportar={exportar} onRefresh={atualizar} />
         {tabs}
-        <JmMetasSecao standalone onOpen={abrirMeta} vazio={vazio || erro} erro={erro} onAviso={avisar} />
+        {carregando ? <JmPainelSkeleton compacto /> :
+        <JmMetasSecao standalone onOpen={abrirMeta} vazio={vazio || erro} erro={erro} onAviso={avisar} />}
         <JmMetaDrawer meta={meta} onClose={() => setMeta(null)} onFalarComJana={falarComJana} onAviso={avisar} />
         {configDrawer}
         {toast}
@@ -868,12 +877,23 @@ function JanaPage({ company, tab = "painel", metasMode = "secao", estado = "dado
 
       <>
           {pro ?
-        cfg.brief && <BriefDiario today={data.today} brief={data.brief} onChip={perguntar} /> :
+        cfg.brief && <BriefDiario today={data.today} brief={data.brief} onChip={perguntar}
+        onAudio={cfg.audio ? () => avisar("Narração do brief (TTS) entra na M2 — fora deste protótipo.") : null} /> :
         upsell({ t: "O brief diário é do plano Pro", icon: "calendar",
           d: "Toda manhã às 06h a Jana escreve o que aconteceu, o que está crítico e o que fazer hoje — com os números da sua empresa. No Grátis, você pergunta; no Pro, ela adianta." })}
 
           <div className="jc-kpis">
-            {data.kpis.map((k, i) => <KPICard key={i} kpi={k} />)}
+            {data.kpis.map((k, i) => {
+            const alvo = pro ? analises.find((a) => a.id === JM_KPI_DRILL[k.icon]) : null;
+            return alvo ?
+            <div key={i} className="jm-an-hit" role="button" tabIndex={0}
+            onClick={() => setDrill(alvo)}
+            onKeyDown={(e) => {if (e.key === "Enter" || e.key === " ") {e.preventDefault();setDrill(alvo);}}}
+            aria-label={"Ver origem de " + k.label}>
+                  <KPICard kpi={k} />
+                </div> :
+            <KPICard key={i} kpi={k} />;
+          })}
           </div>
 
           {metasMode === "secao" && <JmMetasSecao onOpen={abrirMeta} onAviso={avisar} />}
