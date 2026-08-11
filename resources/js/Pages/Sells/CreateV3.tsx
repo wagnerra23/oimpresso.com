@@ -520,7 +520,11 @@ export default function SellsCreateV3({ cena }: Props) {
                           aria-label={`${campo} — ${l.nome}`}
                           onChange={(e) => setLinha(l.k, campo, e.target.value)}
                           className={cn(
-                            'h-8 w-full rounded-md border border-input bg-background px-2 text-right font-mono text-[12.5px] tabular-nums outline-none focus:border-primary',
+                            // Mesma caixa do resto da tela (34,19px derivados). No protótipo
+                            // a célula editável da tabela é `cellNum`, que também usa `.dsfa`
+                            // — a tabela NÃO tem campo menor; o que a compacta é o padding do
+                            // `<td>` (`4px 8px` lá, `px-2 py-1` aqui — já idênticos).
+                            'w-full rounded-md border border-input bg-background px-[10px] py-[7px] text-right font-mono text-[13px] leading-[1.4] tabular-nums outline-none focus:border-primary',
                             (travada || cancelada) && 'cursor-default bg-muted',
                           )}
                         />
@@ -978,8 +982,12 @@ export default function SellsCreateV3({ cena }: Props) {
     </Stack>
   );
 
+  // `venda-v3` é o wrapper de escopo da caixa de campo do protótipo
+  // (resources/css/venda-v3.css). Mesmo padrão de `.fin-cowork`/`.sells-cowork`.
+  // Os drawers renderizam em PORTAL, fora daqui — cada `<DialogContent>` repete
+  // a classe, senão o campo do drawer fica 30px enquanto a página fica 34,19px.
   return (
-    <Stack gap={4} className="mx-auto max-w-[1400px] p-4">
+    <Stack gap={4} className="venda-v3 mx-auto max-w-[1400px] p-4">
       {/* Marcador honesto: quem abrir por engano precisa saber em 1 segundo. */}
       <Inline gap={3} align="center" wrap className="rounded-lg border border-warning/30 bg-warning-soft px-4 py-3">
         <div className="min-w-0 text-sm">
@@ -992,7 +1000,9 @@ export default function SellsCreateV3({ cena }: Props) {
       </Inline>
 
       <Inline gap={3} align="center" wrap>
-        <h1 className="text-xl font-semibold">Nova venda</h1>
+        {/* 22px/1.3 + tracking = o h1 do `PageHeader` do DS vivo (DesignSync
+            019dd02f), que é o que o protótipo renderiza. `text-xl` dava 20px. */}
+        <h1 className="text-[22px] font-semibold leading-[1.3] tracking-[-.015em]">Nova venda</h1>
         <Pill tom="primary" mono>
           V3
         </Pill>

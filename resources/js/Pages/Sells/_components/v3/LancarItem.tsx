@@ -185,7 +185,7 @@ export function LancarItem({
 
   return (
     <Dialog open onOpenChange={(aberto) => !aberto && onFechar()}>
-      <DialogContent className="sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]">
+      <DialogContent className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]">
         <DialogHeader>
           <DialogTitle className="text-[15px] leading-[1.3]">Lançar {produto.nome}</DialogTitle>
           <DialogDescription className="text-[11.5px] leading-[1.35]">

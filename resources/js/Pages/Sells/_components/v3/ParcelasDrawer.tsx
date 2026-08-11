@@ -164,7 +164,7 @@ export default function ParcelasDrawer({
 
   return (
     <Dialog open={aberto} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="max-h-[88vh] sm:max-w-[980px]">
+      <DialogContent className="venda-v3 max-h-[88vh] sm:max-w-[980px]">
         <DialogHeader>
           <DialogTitle>Parcelas da venda</DialogTitle>
         </DialogHeader>

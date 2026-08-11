@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-08-10"
+last_run: "2026-08-11"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
