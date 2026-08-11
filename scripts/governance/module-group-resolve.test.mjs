@@ -40,7 +40,7 @@ function fixture() {
   // módulo "cheio", com o case DIVERGENTE de propósito (a armadilha real)
   escreve('memory/requisitos/KB/SPEC.md');
   escreve('memory/requisitos/KB/BRIEFING.md');
-  escreve('Modules/KB/SCOPE.md');
+  escreve('Modules/KB/module.json');
   escreve('resources/js/Pages/kb/Index.charter.md');   // ← minúsculo
   escreve('resources/js/Pages/kb/Index.casos.md');
   // módulo com separador divergente

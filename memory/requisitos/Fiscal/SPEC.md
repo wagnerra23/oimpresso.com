@@ -445,7 +445,7 @@ Then deve receber 403 Forbidden
 - [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — MWART canônico
 - [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — Cowork loop
 - [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM cancel cascade
-- SCOPE: [`Modules/Fiscal/SCOPE.md`](SCOPE.md)
+- SCOPE: [`memory/requisitos/Fiscal/SCOPE.md`](SCOPE.md)
 - RUNBOOK: [`RUNBOOK-nfe.md`](RUNBOOK-nfe.md)
 - Visual comparison: [`nfe-visual-comparison.md`](nfe-visual-comparison.md)
 

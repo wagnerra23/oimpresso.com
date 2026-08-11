@@ -407,7 +407,7 @@ As duas saídas, sem terceira via:
 
 **A decisão já está registrada e tem dono — não recopio aqui.** Ver
 [`BRIEFING.md`](BRIEFING.md) §*Decisões e riscos* + §*Próxima ação verificável*, e
-[`Modules/Forja/SCOPE.md`](SCOPE.md) §cockpit (dono da proveniência).
+[`memory/requisitos/Forja/SCOPE.md`](SCOPE.md) §cockpit (dono da proveniência).
 Resumo de uma linha: as abas do cockpit `/forja` sobrepõem Triage/Backlog/Board/Activity nativas —
 foram **movidas, não fundidas**, e fundir = deletar uma implementação.
 

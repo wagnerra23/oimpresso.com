@@ -1,6 +1,6 @@
 {
   "$generator": "scripts/governance/catalog-graph.mjs",
-  "$doc": "Grafo tipado DERIVADO dos Modules/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write",
+  "$doc": "Grafo tipado DERIVADO dos memory/requisitos/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write",
   "$advisory": "Advisory de nascença (ADR 0314/0275) — não é gate required.",
   "node_types": [
     "module",

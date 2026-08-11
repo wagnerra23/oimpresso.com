@@ -73,7 +73,7 @@ Não inventamos. Reusamos pattern formal da indústria.
 |---|---|---|
 | `memory/governance/CONSTITUTION.md` | ADR linkado + audit cascata | ❌ block |
 | `memory/governance/srs/*` | ADR linkado | ❌ block |
-| `Modules/<X>/SCOPE.md` | ADR de origem ou patch trivial | ⚠️ warn |
+| `memory/requisitos/<X>/SCOPE.md` | ADR de origem ou patch trivial | ⚠️ warn |
 | `Modules/<X>/Http/Controllers/*` (novo) | controller listado em SCOPE.md.contains[] | ❌ block |
 | `mcp_audit_log` (qualquer mudança) | — | ❌ **always block** (immutable) |
 | `mcp_governance_rules` | ADR linkado + Wagner explícito | ❌ block |
@@ -93,7 +93,7 @@ Não inventamos. Reusamos pattern formal da indústria.
 # Pre-commit checa arquivos staged
 for file in git diff --cached --name-only:
   if file matches Modules/<X>/Http/Controllers/<Y>Controller.php (NOVO):
-    read Modules/<X>/SCOPE.md
+    read memory/requisitos/<X>/SCOPE.md
     if <Y>Controller NÃO está em contains[]:
       WARN "Drift detectado: <Y>Controller não declarado em SCOPE.md"
       WARN "Edite SCOPE.md OU mova pro módulo correto"

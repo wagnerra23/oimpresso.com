@@ -141,7 +141,7 @@ Tipo ADR 0234: `cron`. Todos os schedules são ambientes `live` salvo indicaçã
 | `NarrarSaudeEcosistemaJob` (Job) | `hourlyAt(30)` | Brain A narrador horário do Cockpit Saúde: HealthSnapshotService + HealthNarratorService (gpt-4o-mini). ~R$ [redacted Tier 0]/dia. US-COPI-100. |
 | `charter:health --notify` | `dailyAt('06:30')` | Drift detector daily de Page Charters. Métrica M6 anti-hallucination ratchet. S6 F2. |
 | `arquivos:health-check --alert` | `dailyAt('06:30')` BRT | 5 sinais compliance LGPD + integridade DMS: orphan_files, dedupe_inconsistent, audit_log_lag, retention_overdue, vault_encryption_ratio. ADR 0123. |
-| `governance:detect-drift` | `dailyAt('06:15')` BRT | Compara `Modules/<X>/SCOPE.md.contains[]` × filesystem real de Controllers. Persiste alertas em `mcp_alertas_eventos` (tipo=module_drift). ADR 0094 Art. 7. |
+| `governance:detect-drift` | `dailyAt('06:15')` BRT | Compara `memory/requisitos/<X>/SCOPE.md.contains[]` × filesystem real de Controllers. Persiste alertas em `mcp_alertas_eventos` (tipo=module_drift). ADR 0094 Art. 7. |
 | `SyncBankStatementsJob` (Job) | `dailyAt('07:00')` | Sync extrato bancário Inter D-7 (Banking API v2). Idempotente via UNIQUE. US-RB-046. |
 | `customer-memory:refresh-daily` | `dailyAt('02:00')` BRT | Re-dispatcha `RebuildCustomerMemoryJob` para customers com `last_rebuilt_at > 24h` ou NULL. US-WA-VOZ-001. |
 | `employee-performance:refresh-daily` | `dailyAt('02:30')` BRT | Re-dispatcha rebuild de scorecards de performance. US-WA-VOZ-003. |

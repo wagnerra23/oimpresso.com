@@ -12,7 +12,7 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * Drift detection cron — Mecanismo #5 ENFORCEMENT.md (Constituição Art. 7).
  *
- * Compara estado DECLARADO (Modules/<X>/SCOPE.md.contains[]) × estado OBSERVADO
+ * Compara estado DECLARADO (memory/requisitos/<X>/SCOPE.md.contains[]) × estado OBSERVADO
  * (filesystem Modules/<X>/Http/Controllers/**) e persiste alertas idempotentes
  * em `mcp_alertas_eventos` (tipo=module_drift).
  *
@@ -159,7 +159,7 @@ class DetectDriftCommand extends Command
     }
 
     /**
-     * Descobre todos Modules/<X>/SCOPE.md, opcionalmente filtrando por nome.
+     * Descobre todos memory/requisitos/<X>/SCOPE.md, opcionalmente filtrando por nome.
      *
      * @return array<string, string> map [module_name => scope_path]
      */

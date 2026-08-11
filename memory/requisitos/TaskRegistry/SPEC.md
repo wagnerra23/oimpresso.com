@@ -264,7 +264,7 @@ Wagner 2026-05-07: "acho que não tem nada no project muito simples acho que só
 - `memory/requisitos/Project/SPEC.md` — 15 US documentadas
 - `memory/decisions/0099-project-mwart-migration.md` (status `pivotado`) — discovery pré-deletion
 
-**Refs:** ADR 0079 Fase 3.8 · ADR 0099 (legacy discovery) · [`Modules/Forja/SCOPE.md`](../Forja/SCOPE.md) · [PR #197](https://github.com/wagnerra23/oimpresso.com/pull/197)
+**Refs:** ADR 0079 Fase 3.8 · ADR 0099 (legacy discovery) · [`memory/requisitos/Forja/SCOPE.md`](../Forja/SCOPE.md) · [PR #197](https://github.com/wagnerra23/oimpresso.com/pull/197)
 
 ## Migração e fluxos críticos
 

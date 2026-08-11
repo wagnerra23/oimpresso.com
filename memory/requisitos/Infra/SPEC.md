@@ -74,7 +74,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 > 1. **Canal: dentro do login, não público.** O escopo previa `/feedback?biz=X&token=Y` "sem login, token por biz expira em 30d". Decisão [W] 2026-07-28: o canal vive DENTRO do sistema, autenticado. Consequência: `business_id` volta a vir da sessão (padrão canônico do global scope) e morrem a expiração de 30d, o endpoint anônimo e a superfície de spam.
 > 2. **Tabela `voz_sinais`, não `mcp_client_signals`.** O prefixo `mcp_` é do MCP server (governança interna: `mcp_audit_log`, `mcp_tasks`). Isto virou módulo de produto vendável por business, então segue o padrão de prefixo por módulo (`fin_*` do Financeiro).
 >
-> Decisão [W] 2026-07-28 de que isto é **módulo**, não script de infra: add-on vendável (`default => false` no pacote superadmin). Ver [`Modules/VozDoCliente/SCOPE.md`](../VozDoCliente/SCOPE.md).
+> Decisão [W] 2026-07-28 de que isto é **módulo**, não script de infra: add-on vendável (`default => false` no pacote superadmin). Ver [`memory/requisitos/VozDoCliente/SCOPE.md`](../VozDoCliente/SCOPE.md).
 
 > owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: adr-0105
 > blocked_by: US-INFRA-001
@@ -105,7 +105,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Extraído para US-INFRA-047:** tool MCP `client-signals-*`, contagem no brief diário, triagem automática via ADS, botão de relatar nas telas, **e o smoke real pós-instalação**.
 
-**Refs:** [ADR 0105 §princípio 1](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [skill ads-decision-flow](../../../.claude/skills/ads-decision-flow/SKILL.md), [`Modules/VozDoCliente/SCOPE.md`](../VozDoCliente/SCOPE.md)
+**Refs:** [ADR 0105 §princípio 1](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [skill ads-decision-flow](../../../.claude/skills/ads-decision-flow/SKILL.md), [`memory/requisitos/VozDoCliente/SCOPE.md`](../VozDoCliente/SCOPE.md)
 
 ### US-INFRA-003 · APM full-stack — captura "lento aqui" automaticamente
 
@@ -1030,7 +1030,7 @@ concentra o ganho: não no item isolado, mas no padrão entre eles.
 volume é inventar sinal — e a ADR 0105 já diz que item só entra com cliente reportando ou métrica
 detectando.
 
-**Refs:** [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) · [`Modules/VozDoCliente/SCOPE.md`](../VozDoCliente/SCOPE.md) · US-INFRA-002
+**Refs:** [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) · [`memory/requisitos/VozDoCliente/SCOPE.md`](../VozDoCliente/SCOPE.md) · US-INFRA-002
 
 ### US-INFRA-048 · Ativar a documentação técnica e operacional ponta a ponta
 

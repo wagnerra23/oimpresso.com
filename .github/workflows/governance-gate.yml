@@ -409,7 +409,7 @@ jobs:
               drifts,
               ``,
               `### Como resolver`,
-              `- Adicione cada Controller em \`Modules/<X>/SCOPE.md.contains[]\` no mesmo PR`,
+              `- Adicione cada Controller em \`memory/requisitos/<X>/SCOPE.md.contains[]\` no mesmo PR`,
               `- OU mova o Controller pro módulo correto`,
               `- OU declare em \`drift_alerts[]\` com ADR justificando (transitório)`,
               ``,

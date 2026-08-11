@@ -782,7 +782,7 @@ class Kernel extends ConsoleKernel
             });
 
         // ENFORCEMENT.md §2 #5 (Constituição Art. 7) — Drift detection cron.
-        // Compara Modules/<X>/SCOPE.md.contains[] × filesystem real de
+        // Compara memory/requisitos/<X>/SCOPE.md.contains[] × filesystem real de
         // Modules/<X>/Http/Controllers/*. Persiste alertas idempotentes em
         // mcp_alertas_eventos (tipo=module_drift). UI consome via
         // Modules/Governance/Http/Controllers/DriftAlertsController.

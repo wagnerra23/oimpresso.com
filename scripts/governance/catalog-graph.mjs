@@ -4,7 +4,7 @@
  * catalog-graph.mjs — GERADOR determinístico do GRAFO TIPADO de módulos.
  *
  * A DOR (grade catálogo/IDP 7,0, memory/sessions/2026-07-21-grade-catalogo-aprendizado-vs-mercado.md,
- * chip #2): o `Modules/<X>/SCOPE.md` é o descritor por módulo (estilo Backstage `catalog-info.yaml`),
+ * chip #2): o `memory/requisitos/<X>/SCOPE.md` é o descritor por módulo (estilo Backstage `catalog-info.yaml`),
  * mas hoje é markdown lido por humano/IA — NÃO um grafo tipado consultável. Backstage/Cortex/Port
  * são graph-native (`dependsOn`/`providesApi`/`partOf`), o que deixa perguntar "que módulo quebra se
  * a tabela X (ou o módulo Y) mudar". Este gerador DERIVA as arestas dos SCOPE.md e emite um
@@ -460,7 +460,7 @@ function serialize(graph) {
 
   const catalog = {
     $generator: 'scripts/governance/catalog-graph.mjs',
-    $doc: 'Grafo tipado DERIVADO dos Modules/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write',
+    $doc: 'Grafo tipado DERIVADO dos memory/requisitos/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write',
     $advisory: 'Advisory de nascença (ADR 0314/0275) — não é gate required.',
     node_types: NODE_TYPES,
     edge_types: EDGE_TYPES,
@@ -581,7 +581,7 @@ export function toMermaid(graph, { focus = null } = {}) {
 function main() {
   const mods = listScopeModules();
   if (!mods.length) {
-    console.error('[catalog-graph] nenhum Modules/*/SCOPE.md encontrado — rode da raiz do repo.');
+    console.error('[catalog-graph] nenhum memory/requisitos/*/SCOPE.md encontrado — rode da raiz do repo.');
     process.exit(2);
   }
   const records = [...mods.map(readScope), ...listCoreClassBRecords()];

@@ -180,7 +180,7 @@ Route::group(
         // Permission: jana.mcp.usage.all (Wagner/superadmin).
         // FUNDIDA no /governance/dashboard em 2026-08-05 (ADR 0366 §D-C item 1:
         // "é a mesma tela que governance/Dashboard — sobreposição #4, funde").
-        // Fecha o drift que o próprio Modules/Governance/SCOPE.md declarava desde
+        // Fecha o drift que o próprio memory/requisitos/Governance/SCOPE.md declarava desde
         // 2026-05-17. O GovernancaService FICA no Jana — mudou o dono da tela,
         // não o do dado. Redirect 301 no rodapé deste arquivo.
 

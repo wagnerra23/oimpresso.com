@@ -18,7 +18,7 @@ id: requisitos-project-mgmt-capterra-ficha
 - **Domínio de negócio** (reescrito 2026-08-04 — a redação anterior "só Jira interno" ficou estreita): **cockpit de trabalho do time interno + host da infraestrutura MCP da plataforma**. Duas metades, uma casa:
   1. **Trabalho do time** estilo Jira — Project → Epic → Cycle → Story → Subtask + Inbox + Triage + Roadmap + Burndown + Activity. Cliente alvo: time oimpresso ([W]/[M]/[F]/[L]/[E]). **NÃO** é gestão de projetos de cliente externo.
   2. **Infra MCP** absorvida em jul/2026 sem mudar URL: identidade e emissão de token (`mcp_actors`), endpoints `/api/mcp` e `/api/cc`, **Daily Brief** (ex-`Modules/Brief`, ADR 0091), loop de handoff Cowork↔Code (ADR 0283), ingest de sessões Claude Code, hub Equipe (`/team-mcp/*`), Admin do MCP (`/ads/admin/*`) e o núcleo de registro/decompose do ADS. **`Modules/TeamMcp` foi DELETADO** (PR #5122) — as capacidades vieram MOVIDAS, não fundidas.
-- **Fronteira e proveniência de cada peça**: [`Modules/Forja/SCOPE.md`](SCOPE.md) (dono único — não recopiar aqui).
+- **Fronteira e proveniência de cada peça**: [`memory/requisitos/Forja/SCOPE.md`](SCOPE.md) (dono único — não recopiar aqui).
 - **Superfície de código**: **não fixar contagem nesta ficha** — número solto apodrece. Dono vivo: [`SUPERFICIE.md`](SUPERFICIE.md), regenerável por `node scripts/governance/module-surface.mjs Forja --write` (frescor via `--check`). Estado consolidado: [`BRIEFING.md`](BRIEFING.md).
 - **Status atual**: em prod desde 2026-05-04 (PRs #91/#92, ADR 0070); **uso interno diário**, não cliente-facing. Nota do módulo: rodar `php artisan module:grade Forja --detail` (não fixar aqui).
 - **⚠️ Sobreposição conhecida (aberta)**: as abas do cockpit `/forja` (triagem/backlog/quadro/changelog) sobrepõem Triage/Backlog/Board/Activity nativos. MOVIDO, não fundido — fundir = deletar uma implementação = decisão [W] (SCOPE §cockpit). Enquanto durar, **auditar as duas** ao classificar uma capacidade como ✅/🟡/❌.
@@ -238,7 +238,7 @@ capacidades:
 - **Controllers / Services / Pages / charters / testes**: NÃO enumerar aqui (a lista de 2026-05 já ficou falsa quando o módulo absorveu a infra MCP). Fonte única e regenerável: [`SUPERFICIE.md`](SUPERFICIE.md) — `node scripts/governance/module-surface.mjs Forja --write`.
 - Componentes board: `resources/js/Components/board/{BoardColumn,TaskCard,badges}.tsx`
 - Routes: `Modules/Forja/Http/routes.php` — **6 prefixos**, não 1: `/project-mgmt` (web + `/install`), `/api/mcp`, `/api/cc`, `/team-mcp`, `/forja`, `/ads` (verificado 2026-08-04 por `grep -nE "prefix" Modules/Forja/Http/routes.php`)
-- SCOPE.md: `Modules/Forja/SCOPE.md`
+- SCOPE.md: `memory/requisitos/Forja/SCOPE.md`
 - SPEC funcional histórico: `memory/requisitos/TaskRegistry/SPEC.md` (US-TR-NNN — nome legado, content vivo)
 - Tabelas: `mcp_jira_projects`, `mcp_epics`, `mcp_cycles`, `mcp_cycle_goals`, `mcp_tasks`, `mcp_task_attachments`, `mcp_task_comments`, `mcp_task_dependencies`, `mcp_task_events`, `mcp_task_memory_links`, `mcp_task_watchers`, `mcp_components`, `mcp_views`, `mcp_inbox_notifications`, `mcp_issue_templates`
 - Tools MCP relacionados: `tasks-list`, `tasks-detail`, `tasks-create`, `tasks-update`, `cycles-active`, `cycles-close`, `cycle-goals-track`, `my-work`, `my-inbox`, `triage`

@@ -1,7 +1,7 @@
 <?php
 /**
  * GUARDA anti-drift — verifica se controllers em Modules/<X>/ estão declarados
- * em Modules/<X>/SCOPE.md (frontmatter `contains[]` ou `drift_alerts[]`).
+ * em memory/requisitos/<X>/SCOPE.md (frontmatter `contains[]` ou `drift_alerts[]`).
  *
  * Constituição Art. 7 — Module Charter: controller fora de scope = drift bloqueado.
  *
@@ -83,7 +83,7 @@ function parseFrontmatter(string $path): ?array {
 // O check acima (e o `--strict` que o scope-guard.yml roda) mede ÁRVORE → contains:
 // "controller real não declarado". A direção oposta — contains → ÁRVORE, "declarado
 // mas ausente" — não tinha dono, e é por onde o SCOPE apodrece calado. Caso-âncora
-// confessado pelo próprio Modules/Jana/SCOPE.md sobre o `BriefController`:
+// confessado pelo próprio memory/requisitos/Jana/SCOPE.md sobre o `BriefController`:
 //   "Ficou listado aqui por ~7 semanas depois de deixar de existir — nenhuma máquina
 //    compara `contains` com a árvore, então o SCOPE apodreceu calado."
 //

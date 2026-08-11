@@ -40,7 +40,7 @@ Documento operacional que mapeia (a) os módulos atuais, (b) o estado-alvo após
 │  └───────────────────────────────────────────────────┘                │
 │                                                                       │
 │  L3 Trust Tiers     L4 Identity Mesh     L5 Module Charter            │
-│  (TRUST-TIERS.md)   (mcp_actors)         (Modules/<X>/SCOPE.md)       │
+│  (TRUST-TIERS.md)   (mcp_actors)         (memory/requisitos/<X>/SCOPE.md)       │
 │                                                                       │
 │  L6 Policy Gating (mcp_governance_rules + ActionGate)                 │
 │                                                                       │
@@ -104,7 +104,7 @@ C4Container
 
 ## §2. Módulos — estado e destino
 
-> **Contagem/lista VIVA (não duplicar aqui = não apodrece):** o inventário de módulos vive em [reference/PAINEL-SISTEMA.md](../reference/PAINEL-SISTEMA.md) §"Módulos & verticais", derivado de `Modules/` na branch atual por `scripts/governance/system-map.mjs`. Responsabilidade de cada um: `Modules/<X>/SCOPE.md`. A tabela abaixo é o mapa curado de estado→destino.
+> **Contagem/lista VIVA (não duplicar aqui = não apodrece):** o inventário de módulos vive em [reference/PAINEL-SISTEMA.md](../reference/PAINEL-SISTEMA.md) §"Módulos & verticais", derivado de `Modules/` na branch atual por `scripts/governance/system-map.mjs`. Responsabilidade de cada um: `memory/requisitos/<X>/SCOPE.md`. A tabela abaixo é o mapa curado de estado→destino.
 >
 > **Detalhe por módulo que o PAINEL não tem** (rotas · views · migrations · permissões · hooks · prioridade/risco, **e os 8 módulos perdidos na migração 3.7 → 6.7**): [modulos/INDEX.md](../modulos/INDEX.md), gerado por `php artisan module:specs`. Os "perdidos" são **cross-branch** (`main-wip-2026-04-22`, `origin/3.7-com-nfe`) e por isso **não são deriváveis da árvore atual** — `IndexReconciler.php:45-48` declara isso e se recusa a curar o número.
 >

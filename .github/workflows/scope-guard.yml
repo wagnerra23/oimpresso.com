@@ -65,7 +65,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## ⚠️ Scope Guard detectou drift\n\nUm ou mais controllers neste PR não estão declarados em \`Modules/<X>/SCOPE.md\`.\n\n**Pra resolver:**\n1. Adicione o controller em \`SCOPE.md.contains[]\` do módulo correto\n2. **OU** mova o controller pro módulo correto\n3. **OU** declare em \`drift_alerts[]\` (transitório, com ADR justificando)\n\nDetalhes nos logs do job.\n\n_Constituição Art. 7 — Module Charter (ADR 0079)_`
+              body: `## ⚠️ Scope Guard detectou drift\n\nUm ou mais controllers neste PR não estão declarados em \`memory/requisitos/<X>/SCOPE.md\`.\n\n**Pra resolver:**\n1. Adicione o controller em \`SCOPE.md.contains[]\` do módulo correto\n2. **OU** mova o controller pro módulo correto\n3. **OU** declare em \`drift_alerts[]\` (transitório, com ADR justificando)\n\nDetalhes nos logs do job.\n\n_Constituição Art. 7 — Module Charter (ADR 0079)_`
             })
 
   # ── contains[] -> ARVORE (direcao inversa) ─────────────────────────────────

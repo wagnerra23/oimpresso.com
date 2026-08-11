@@ -23,7 +23,7 @@ Receita pra criar módulo Laravel modular (nWidart v10) no oimpresso garantindo 
 | Após Install, entra em `system` | `SELECT * FROM system WHERE key='<modulesystemkey>_version'` retorna versão |
 | Aparece na sidebar admin (se DataController.modifyAdminMenu populado) | Login admin → menu lateral mostra item |
 | Migrations rodaram | `module:migrate` listado em `migrations` |
-| Fronteira e dependências estão declaradas | `Modules/<Nome>/SCOPE.md` |
+| Fronteira e dependências estão declaradas | `memory/requisitos/<Nome>/SCOPE.md` |
 | Contrato, estado e inventário estão navegáveis | `BRIEFING.md` + `SPEC.md` + `SUPERFICIE.md` |
 | Existe prova executável do comportamento | ao menos um teste em `Modules/<Nome>/Tests/` |
 | Catálogo, painel e índices refletem o módulo | validação de ativação termina com exit 0 |

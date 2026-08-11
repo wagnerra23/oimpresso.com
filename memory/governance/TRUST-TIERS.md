@@ -205,7 +205,7 @@ revoked_at: null | <timestamp>
 | Ação | Tier mínimo | Por quê |
 |---|---|---|
 | `git push origin main` em prod | L1 | publicação afeta cliente |
-| Criar `Modules/X/SCOPE.md` novo | L1 | charter de módulo |
+| Criar `memory/requisitos/<X>/SCOPE.md` novo | L1 | charter de módulo |
 | `php artisan migrate` em prod | L0 | schema |
 | `php artisan skill:scaffold "..."` | L2 | scaffolder operacional |
 | Editar SKILL.md de skill existente | L1 (com aprovação L1 via review queue) | governance de skill |

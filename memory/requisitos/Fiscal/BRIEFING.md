@@ -111,7 +111,7 @@ Fiscal **lê** Models e **chama** Services de NfeBrasil — não duplica backend
 ## Referências
 
 - SPEC: [`memory/requisitos/Fiscal/SPEC.md`](SPEC.md) — US-FISCAL-001 até US-FISCAL-017
-- SCOPE: [`Modules/Fiscal/SCOPE.md`](SCOPE.md)
+- SCOPE: [`memory/requisitos/Fiscal/SCOPE.md`](SCOPE.md)
 - RUNBOOKs: `RUNBOOK-{cockpit,nfe,nfse,dfe,eventos,config,sped}.md`
 - ADRs canônicas: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant), [0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) (Constituição v2), [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) (tests biz=1), [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) (MWART), [0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) (Cowork loop), [0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) (FSM cancel cascade)
 - Layout SPED: CONFAZ Guia Prático EFD-ICMS/IPI v3.1.1 (Ajuste SINIEF 02/2009)

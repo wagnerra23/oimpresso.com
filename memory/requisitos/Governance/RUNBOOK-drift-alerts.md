@@ -74,7 +74,7 @@ Layout: `AppShellV2`, header `@/Components/shared/PageHeader` (congelado — §1
 2. **Controller** (`DriftAlertsController::index`) chama `buildDriftsPayload()` →
    `DriftAlertService::getActiveDrifts(limit: 500)`.
 3. **Service varre `Modules/`**, e por módulo:
-   - lê `Modules/<X>/SCOPE.md` → `declaredControllers()` (frontmatter YAML);
+   - lê `memory/requisitos/<X>/SCOPE.md` → `declaredControllers()` (frontmatter YAML);
    - lista os controllers reais → `actualControllers()`;
    - **descarta boilerplate** (constante `BOILERPLATE` — `DataController`, `InstallController`,
      `SuperadminController`, `Controller`), que não precisa ser declarado;
