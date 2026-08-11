@@ -51,6 +51,8 @@ import {
   type ProdutoCatalogo,
 } from './_components/v3/LancarItem';
 import EntregaFrete from './_components/v3/EntregaFrete';
+import ParcelasDrawer from './_components/v3/ParcelasDrawer';
+import { type Parcela } from './_components/v3/parcelas-dominio';
 import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
 import {
@@ -193,6 +195,10 @@ export default function SellsCreateV3({ cena }: Props) {
   const [acr, setAcr] = useState('0,00');
   const [frete, setFrete] = useState('0,00');
   const [pags, setPags] = useState<{ k: number; m: string; v: string }[]>([]);
+  /* onda 3 — parcelas. Ficam em state da Page (e nao do drawer) porque o
+     fechamento a direita precisa mostrar o plano de pagamento junto do total. */
+  const [parcelas, setParcelas] = useState<Parcela[]>([]);
+  const [parcelasAberto, setParcelasAberto] = useState(false);
   const [estagio, setEstagio] = useState('rascunho');
   const [historico, setHistorico] = useState<{ acao: string; de: string; para: string }[]>([]);
   const [situacaoAberta, setSituacaoAberta] = useState(false);
@@ -766,7 +772,9 @@ export default function SellsCreateV3({ cena }: Props) {
                 + {m}
               </Chip>
             ))}
-            <Chip destaque>Parcelar…</Chip>
+            <Chip destaque onClick={() => setParcelasAberto(true)}>
+              {parcelas.length > 0 ? `Parcelas (${parcelas.length})…` : "Parcelar…"}
+            </Chip>
           </Inline>
 
           {pags.length > 0 && (
@@ -967,6 +975,15 @@ export default function SellsCreateV3({ cena }: Props) {
         podeEditarPreco={permissoes.editarPrecoItem}
         onFechar={() => setLancando(null)}
         onConfirmar={adicionarLancado}
+      />
+
+      <ParcelasDrawer
+        aberto={parcelasAberto}
+        onFechar={() => setParcelasAberto(false)}
+        total={total}
+        parcelas={parcelas}
+        onParcelasChange={setParcelas}
+        documentoBase="VD-2026"
       />
 
       {undo && (

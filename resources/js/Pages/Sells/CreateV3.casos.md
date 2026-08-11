@@ -112,6 +112,26 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
 
+### Parcelas (onda 3 — `ParcelasDrawer` · CU-SELL-09)
+
+> ⚠️ **Território Tier 0 — VALOR.** Diferente da onda 2 (que só derivava peso), esta
+> onda divide **dinheiro**. A REGRA MESTRE de [`proibicoes.md`](../../../../memory/proibicoes.md)
+> exige prova por **dois caminhos independentes**, e ela existe:
+> [`tests/js/parcelas-dominio.test.ts`](../../../../tests/js/parcelas-dominio.test.ts) —
+> **15/15 verde**, comparando a função real contra aritmética à mão em centavos inteiros
+> para **11 totais × 48 quantidades**. O que ainda protege: a tela **não grava**.
+
+- **[BACKLOG]** `ratear(total, n)` **não perde nem inventa centavo**: a soma das parcelas é exatamente o total, para qualquer `n` de 1 a 48. A conta roda em centavos inteiros e o resto vai para as **primeiras** parcelas.
+- **[BACKLOG]** `100,00` em 3 dá `33,34 · 33,33 · 33,33` — e **não** `33,33 × 3 = 99,99`, que é o centavo que some do jeito ingênuo e vira diferença de conciliação.
+- **[BACKLOG]** "Vence no mesmo dia de cada mês" **não é somar 30 dias**: dia 31 é grampeado no último dia do mês curto (31/01 → **28/02**), enquanto somar 30 dias vazaria para **02/03** — mês diferente, competência diferente.
+- **[BACKLOG]** Quantidade digitada é saneada: texto lixo, vazio, zero ou negativo caem em **1**; acima de 48 é grampeado no teto.
+- **[BACKLOG]** O botão **Confirmar parcelas** fica **desabilitado** enquanto a soma não fecha no total — plano de pagamento que não paga a venda não sai do drawer como se estivesse pronto.
+- **[BACKLOG]** Quando falta ou sobra, a tela diz **de que lado** ("falta distribuir" × "passou do total") e oferece jogar a diferença na **última** parcela.
+- **[BACKLOG]** Parcela com vencimento anterior a hoje é marcada **vencida** — comparando por **dia**, não por instante (vencimento de hoje às 23h59 **não** está vencido).
+- **[BACKLOG]** O parse pt-BR sobrevive ao separador de milhar: `1.115,40` é mil cento e quinze, não um milhão — é o guard do incidente `num_uf`.
+
+---
+
 ### Entrega e frete (onda 2 — `EntregaFrete` · CU-SELL-11)
 
 > ⚠️ **Leia isto antes de mexer nesta onda.** Ela é a dívida **D-6** do
