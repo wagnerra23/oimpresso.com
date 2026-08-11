@@ -1,5 +1,6 @@
 ---
 date: "2026-08-11"
+slug: venda-v3-seis-ondas-e-a-ancora-fantasma
 hour: "03:00 BRT"
 topic: "Venda V3 — as 6 ondas do handoff de design portadas, e a âncora que não existia"
 authors: [C, W]
