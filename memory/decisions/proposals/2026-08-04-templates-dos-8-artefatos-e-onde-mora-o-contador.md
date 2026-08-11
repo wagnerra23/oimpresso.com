@@ -1,9 +1,10 @@
 ---
 proposal_id: templates-dos-8-artefatos-e-onde-mora-o-contador
-status: proposto
+status: accepted
 created: 2026-08-04
 proposed_by: claude-code
-decided_by: _pendente — merge [W] = ratificação_
+decided_by: wagner
+decided_at: "2026-08-11"
 parent_adr: 0345 (taxonomia de arquivos-tema — define QUAIS arquivos; esta define COMO cada um nasce)
 related_adrs: [0261, 0264, 0273, 0302, 0336, 0341, 0345]
 type: arquitetura-de-conhecimento
@@ -71,7 +72,7 @@ O gerador **não lê** o `.md`. Os dois convivem porque nenhuma ADR nomeou o don
 | tasks | `…/features/<slug>/tasks.md` | `_TEMPLATE_FEATURE/tasks.md` | **nenhum** ⚠️ | `feature:init` | `feature-lint` — advisory |
 | charter | `resources/js/Pages/**/*.charter.md` | **inline em `criar-tela.mjs`** (o `.md` é fóssil) | `charter.schema.json` | `tela:criar` | `Charter (…)` + `status:live` + `screen-coverage` — **required** |
 | casos | `resources/js/Pages/**/*.casos.md` | **inline em `criar-tela.mjs`** | **nenhum** ⚠️ | `tela:criar` | `Casos-coverage · ratchet` — **required** |
-| SCOPE | `Modules/<X>/SCOPE.md` | **nenhum** ⚠️ | **nenhum** ⚠️ | **nenhum** ⚠️ | **nenhum required** ⚠️ |
+| SCOPE | `memory/requisitos/<X>/SCOPE.md` | **nenhum** ⚠️ | **nenhum** ⚠️ | **nenhum** ⚠️ | **nenhum required** ⚠️ |
 | BRIEFING | `memory/requisitos/<X>/BRIEFING.md` | `_DesignSystem/BRIEFING-TEMPLATE.md` | `briefing.schema.json` | **nenhum** ⚠️ | memory-schema — **grace, warn-only** |
 
 Os **⚠️** são a lacuna, e ficam registrados como fato — não como promessa. O `SCOPE.md` é o pior caso: declara fronteira de módulo e não tem template, nem schema, nem gerador, nem check required.
