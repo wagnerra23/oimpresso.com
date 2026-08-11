@@ -1,7 +1,11 @@
 # pii-scan-allowlist.txt — allowlist EXTERNA do PII scan (governance-gate Job 3)
 #
-# Uso EXCLUSIVO pra CPF/CNPJ SINTÉTICO/fake em arquivo append-only (ADR canon,
-# handoff) onde o marker inline `pii-allowlist` violaria o append-only Job 1.
+# Uso pra CPF/CNPJ SINTÉTICO/fake em DOIS casos onde o marker inline não serve:
+#   (1) arquivo append-only (ADR canon, handoff) — editar a linha pra inserir o
+#       marker violaria o append-only Job 1;
+#   (2) a linha é um EXEMPLO cujo sentido depende de NÃO ter o marker — colar
+#       `pii-allowlist` nela mudaria o que o exemplo demonstra (acrescentado
+#       2026-08-11; ver RUNBOOK-governance-gate-ci.md §4).
 # Em qualquer outro arquivo, use o marker inline na própria linha.
 #
 # Formato: caminho/relativo/do/arquivo.md|literal-fake-exato
@@ -11,3 +15,9 @@
 # — número sintético clássico usado nos fixtures, não corresponde a empresa real.
 memory/decisions/0205-contract-tests-autosave-padrao-canonico.md|11.222.333/0001-44
 memory/decisions/0207-contract-test-obrigatorio-pr-tela-autosave.md|11.222.333/0001-44
+#
+# Catalogado 2026-08-11 (caso 2 — exemplo que depende de NÃO ter o marker):
+# o §7 Opção B do RUNBOOK do próprio gate documenta um PAR de smokes — sem marker
+# (deve dar exit 1) e com marker (deve dar exit 0). Marcar o primeiro inline tornaria
+# os dois idênticos e a doc mentiria sobre o que demonstra. CPF placeholder clássico.
+memory/requisitos/Infra/RUNBOOK-governance-gate-ci.md|123.456.789-00
