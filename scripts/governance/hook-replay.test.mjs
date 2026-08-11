@@ -4,8 +4,12 @@
 // Se ele concordar com as duas, não mede nada — é o teste tautológico do §5 2026-06-05.
 // Rodar: node scripts/governance/hook-replay.test.mjs
 
-import { parseSessao, CONTRATOS, replay, formatar } from './hook-replay.mjs';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { parseSessao, CONTRATOS, replay, formatar, portaVivaRunbook } from './hook-replay.mjs';
 import { hasReadEvidence as IMPL_ATUAL } from '../../.claude/hooks/modulo-preflight-warning.mjs';
+import { decide as MWART_ATUAL, parsePagePath, toKebab, runbookStatus } from '../../.claude/hooks/block-mwart-violation.mjs';
 
 let fails = 0;
 const check = (n, c) => { console.log((c ? '[OK]   ' : '[FAIL] ') + n); if (!c) fails++; };
@@ -85,5 +89,89 @@ check('relatorio mostra a divergencia', /Compras/.test(rel));
 check('relatorio avisa que divergencia != bug do hook', /NAO E AUTOMATICAMENTE BUG/.test(rel));
 check('relatorio declara o oraculo usado', /oraculo:/.test(rel));
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — o harness REPROVA a impl historica e APROVA a atual na MESMA sessao real; com fixture limpa nao discrimina (a licao).');
+// ═════════════════════════════════════════════════════════════════════════════
+// CONTRATO 2 — block-mwart-violation
+// Oráculo = a PORTA VIVA (screen-coverage-map). Aqui ela é INJETADA: o teste tem que
+// ser determinístico, e depender do estado do repo faria o resultado mudar de máquina
+// pra máquina — que é o oposto de um controle-negativo.
+// ═════════════════════════════════════════════════════════════════════════════
+const M = CONTRATOS['block-mwart-violation'];
+
+// sandbox: a raiz viaja NO impl (replay não passa raiz), então cada impl é um closure.
+const SB = mkdtempSync(join(tmpdir(), 'mwart-replay-'));
+mkdirSync(join(SB, 'memory', 'requisitos', 'Governance'), { recursive: true });
+mkdirSync(join(SB, 'memory', 'requisitos', 'Sells'), { recursive: true });
+// tela ANINHADA: o RUNBOOK real se chama pela ROTA (subdir), não pelo filename 'Index'
+writeFileSync(join(SB, 'memory', 'requisitos', 'Governance', 'RUNBOOK-module-grades.md'), '# rb\n');
+// tela FLAT: RUNBOOK pelo nome da tela — os dois impls acham
+writeFileSync(join(SB, 'memory', 'requisitos', 'Sells', 'RUNBOOK-drafts.md'), '# rb\n');
+
+/** impl HISTÓRICA (pré-#4648): só kebab da TELA — sem subdir, sem resgate por charter.
+ *  Reconstruída dos helpers exportados do hook; o que mudou no #4648 foi a COMPOSIÇÃO. */
+const MWART_ANTIGO = (_tool, filePath, root) => {
+  const p = parsePagePath(filePath);
+  if (!p) return null;
+  return runbookStatus(p.modulo, [toKebab(p.tela)], root) === 'ok' ? null : 'BLOQUEADO';
+};
+
+const edit = (fp) => ev('Edit', { file_path: fp });
+const S_ANINHADA = [{ nome: 'aninhada', texto: edit('D:/p/resources/js/Pages/governance/ModuleGrades/Index.tsx') }];
+const S_FLAT = [{ nome: 'flat', texto: edit('D:/p/resources/js/Pages/Sells/Drafts.tsx') }];
+
+// oráculo: a porta viva enxerga o RUNBOOK das duas (walk recursivo + substring)
+const CTX = { runbook: {
+  'governance/ModuleGrades/Index.tsx': { source: 'name', status: 'unique', candidates: ['x'] },
+  'Sells/Drafts.tsx': { source: 'name', status: 'unique', candidates: ['y'] },
+} };
+
+check('casos extrai a tela aninhada como <Mod>/<Sub>/<Tela>.tsx',
+  M.casos(parseSessao(S_ANINHADA[0].texto))[0].tela === 'governance/ModuleGrades/Index.tsx');
+check('casos IGNORA path que nao e' + ' tela (Modules/, _components/)',
+  M.casos(parseSessao([edit('D:/p/Modules/Jana/X.php'),
+    edit('D:/p/resources/js/Pages/Jana/_components/Y.tsx')].join('\n'))).length === 0);
+check('oraculo mwart NAO chama o hook (independencia)', !String(M.esperado).includes('impl'));
+
+const mA = replay({ contrato: M, sessoes: S_ANINHADA, ctx: CTX, impl: (t, p) => MWART_ATUAL(t, p, SB) });
+const mH = replay({ contrato: M, sessoes: S_ANINHADA, ctx: CTX, impl: (t, p) => MWART_ANTIGO(t, p, SB) });
+
+check('BITE: impl HISTORICA diverge na tela aninhada (o FP do #4648)',
+  mH.divergencias.length === 1 && mH.divergencias[0].esperado === 'passa' && mH.divergencias[0].observado === 'bloqueia');
+check('GOOD: impl ATUAL concorda com a porta viva na MESMA tela',
+  mA.divergencias.length === 0 && mA.acordo === 1);
+check('DISCRIMINA: as duas impls dao resultados DIFERENTES', mA.taxa !== mH.taxa);
+
+// CONTROLE-NEGATIVO: numa tela FLAT as duas impls concordam — a fixture sozinha nao
+// discrimina, entao o BITE acima vem da tela ANINHADA, nao do arranjo do sandbox.
+check('CONTROLE: em tela flat as 2 impls CONCORDAM (o bite vem do aninhamento)',
+  replay({ contrato: M, sessoes: S_FLAT, ctx: CTX, impl: (t, p) => MWART_ATUAL(t, p, SB) }).taxa
+  === replay({ contrato: M, sessoes: S_FLAT, ctx: CTX, impl: (t, p) => MWART_ANTIGO(t, p, SB) }).taxa);
+
+// ── indeterminado NAO vira acordo (senao a isencao esvazia o conjunto, §5 2026-08-04) ──
+const semOraculo = replay({ contrato: M, sessoes: S_ANINHADA, ctx: { runbook: {} }, impl: () => null });
+check('oraculo mudo -> INDETERMINADO, fora da conta (nao conta como acordo)',
+  semOraculo.total === 0 && semOraculo.indeterminados === 1 && semOraculo.acordo === 0);
+const declMissing = replay({
+  contrato: M, sessoes: S_ANINHADA, impl: () => null,
+  ctx: { runbook: { 'governance/ModuleGrades/Index.tsx': { status: 'declared-missing', candidates: ['fantasma.md'] } } },
+});
+check('declared-missing (charter aponta fantasma) -> INDETERMINADO, nao fabrica divergencia',
+  declMissing.total === 0 && declMissing.indeterminados === 1);
+check('formatar reporta os indeterminados em vez de escondê-los',
+  /indeterminados \(oraculo nao sabe, FORA da conta\): 1/.test(formatar('mwart', M, semOraculo)));
+
+// ── preparar(): coleta as telas do corpus e delega pra porta viva (injetada) ──
+let pedidas = null;
+const ctxPrep = M.preparar([...S_ANINHADA, ...S_FLAT], {
+  portaViva: (telas) => { pedidas = telas; return { ok: 1 }; },
+});
+check('preparar coleta as telas DISTINTAS e chama a porta viva 1x',
+  pedidas.length === 2 && pedidas.includes('governance/ModuleGrades/Index.tsx') && ctxPrep.runbook.ok === 1);
+
+// ── porta viva indisponivel -> {} (todos indeterminados), NUNCA verde por nao medir ──
+check('portaVivaRunbook fail-open devolve {} quando o subprocesso falha',
+  Object.keys(portaVivaRunbook(['A/B.tsx'], () => { throw new Error('sem node'); })).length === 0);
+check('portaVivaRunbook sem telas nao gasta subprocesso',
+  Object.keys(portaVivaRunbook([], () => { throw new Error('nao devia rodar'); })).length === 0);
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — os 2 contratos REPROVAM a impl historica e APROVAM a atual na MESMA fixture; com fixture que nao discrimina, as impls empatam (a licao). Indeterminado fica FORA da conta.');
 process.exit(fails ? 1 : 0);
