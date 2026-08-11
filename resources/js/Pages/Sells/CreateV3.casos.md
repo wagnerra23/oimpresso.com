@@ -112,6 +112,23 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
 
+### Colunas do grid (onda 6 — `ColunasModal`)
+
+> A preferência mora no `localStorage`, que é **entrada não confiável**: o usuário pode
+> editar, uma versão futura pode remover uma coluna, um JSON pode truncar. Uma tela de
+> venda que quebra porque o storage tem lixo é pior que uma tela sem preferência salva.
+> Provado em [`tests/js/colunas-dominio.test.ts`](../../../../tests/js/colunas-dominio.test.ts) — **21/21**.
+
+- **[BACKLOG]** Coluna **fixa** (produto, quantidade, valor, total) **não desliga e não sai do lugar** — a linha não existe sem ela, e um grid sem total não é um grid de venda.
+- **[BACKLOG]** JSON inválido, storage bloqueado (modo anônimo) ou cota cheia **não lançam**: caem no padrão e seguem.
+- **[BACKLOG]** Chave de coluna que **não existe mais** (removida numa versão) é descartada ao carregar, sem quebrar o resto da preferência.
+- **[BACKLOG]** Chave **repetida** mantém só a primeira; lista só com lixo cai no padrão, não em grid vazio.
+- **[BACKLOG]** Coluna fixa **ausente** da preferência salva é **reinserida** ao carregar.
+- **[BACKLOG]** Reordenar é por **botão** (‹ ›), não por arrastar: drag-and-drop sem alternativa de teclado é inacessível. A fonte descreve a **intenção** ("arrastar e ordenar"), não a técnica.
+- **[BACKLOG]** Índice fora da lista ao mover é ignorado, em vez de corromper a ordem.
+
+---
+
 ### Comissão (onda 5 — `ComissaoDrawer`)
 
 > **Por que isto não é um campo "Comissionista":** quem **vendeu**, quem **trouxe** o
