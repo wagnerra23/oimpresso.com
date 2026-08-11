@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 178 arquivos em 9 papéis.
+**Total mapeado:** 180 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -153,7 +153,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
 
-## Componentes / apoio de tela — 38
+## Componentes / apoio de tela — 39
 
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
 - [CobrancaDrawer.tsx](../../../resources/js/Pages/Sells/_components/CobrancaDrawer.tsx)
@@ -192,6 +192,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [VdSource.tsx](../../../resources/js/Pages/Sells/_components/VdSource.tsx)
 - [EntregaFrete.tsx](../../../resources/js/Pages/Sells/_components/v3/EntregaFrete.tsx)
 - [LancarItem.tsx](../../../resources/js/Pages/Sells/_components/v3/LancarItem.tsx)
+- [ParcelasDrawer.tsx](../../../resources/js/Pages/Sells/_components/v3/ParcelasDrawer.tsx)
 - [primitivos.tsx](../../../resources/js/Pages/Sells/_components/v3/primitivos.tsx)
 
 ## Charters (lei da tela) — 9
@@ -213,7 +214,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Index.casos.md](../../../resources/js/Pages/Sells/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 6
+## Demais arquivos (manifestos, docs, assets e misc) — 7
 
 - [Create.design-spec.json](../../../resources/js/Pages/Sells/Create.design-spec.json)
 - [PaymentRow.test-pending.md](../../../resources/js/Pages/Sells/_components/PaymentRow.test-pending.md)
@@ -221,3 +222,4 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [calculo-item.ts](../../../resources/js/Pages/Sells/_components/v3/calculo-item.ts)
 - [entrega-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/entrega-dominio.ts)
 - [numeros.ts](../../../resources/js/Pages/Sells/_components/v3/numeros.ts)
+- [parcelas-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/parcelas-dominio.ts)
