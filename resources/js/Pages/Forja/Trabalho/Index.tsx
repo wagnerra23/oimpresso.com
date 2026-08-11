@@ -229,7 +229,7 @@ export default function Trabalho({
                     eixo === e ? 'border-primary bg-primary/10 text-primary'
                                : 'border-border text-muted-foreground hover:text-foreground')}
                 >
-                  {e === 'execucao' ? 'Execução' : 'Pipeline F0→F3.5'}
+                  {e === 'execucao' ? 'Execução' : 'Pipeline F0→F4'}
                 </button>
               ))}
             </Inline>

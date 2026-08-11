@@ -18,7 +18,9 @@ use Modules\Jana\Entities\Mcp\McpTask;
  *   (memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
  *   Este seeder garante o project FORJA + o conjunto de tickets do protótipo:
  *     - 3 PROPOSTAS em triagem (sem owner/priority → caem na aba Triagem)
- *     - 11 ISSUES já triadas (onda/fase/papel/prioridade → Backlog + Quadro F0→F3.5)
+ *     - 11 ISSUES já triadas (onda/fase/papel/prioridade → Backlog + Quadro).
+ *       As fases efetivamente semeadas hoje são F0/F1/F3 — o board tem F0→F4, e as
+ *       colunas sem card semeado vêm vazias de propósito (esqueleto, sem fantasma).
  *
  * O que faz (IDEMPOTENTE): updateOrCreate do project + updateOrCreate por task_id.
  * Rodar 2× NÃO duplica (chave estável por key/task_id).
@@ -27,7 +29,7 @@ use Modules\Jana\Entities\Mcp\McpTask;
  *   - forja_tipo : Tela|Bug|Refino|Épico|ADR|Infra|Gate (badge de tipo)
  *   - forja_papel: ator (W=Wagner · CC=Claude Code · CL=Claude loop · CD=Claude Design)
  *   - forja_onda : agrupador de lote (null = ainda em triagem)
- *   - forja_fase : F0|F1|F1.5|F2|F3|F3.5 (coluna do Quadro · null = pré-board)
+ *   - forja_fase : F0|F1|F1.5|F2|F3|F3.5|F4 (coluna do Quadro · null = pré-board)
  *
  * Multi-tenant Tier 0 (ADR 0093 + 0070): mcp_jira_projects / mcp_tasks são
  *   REPO-WIDE cross-tenant POR DESIGN (governança da plataforma) — SEM business_id.
