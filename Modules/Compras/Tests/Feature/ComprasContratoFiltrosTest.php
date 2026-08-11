@@ -187,6 +187,23 @@ function comprasContratoCriarCompra(int $businessId, int $locationId, int $userI
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Vocabulario CORE de `stage`, lido da PROPRIA whitelist do ListarComprasRequest
+ * (fonte unica) — nunca de lista repetida a mao aqui. Se a whitelist crescer, este
+ * teste passa a exercitar o valor novo sozinho.
+ */
+function comprasStagesCore(): array
+{
+    $regras = (new ModulesComprasHttpRequestsListarComprasRequest())->rules();
+    $regra = null;
+    foreach ((array) ($regras['stage'] ?? []) as $r) {
+        if (is_string($r) && str_starts_with($r, 'in:')) { $regra = $r; break; }
+    }
+    $vals = $regra ? explode(',', substr($regra, 3)) : [];
+
+    return array_values(array_filter($vals, fn ($v) => $v !== 'all'));
+}
+
 // UC-CMP-06 — a aba de estágio que a TELA emite não pode derrubar a listagem
 //             (SDD CU-COM-04 item 1 · §5.4.4)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -204,7 +221,15 @@ it('UC-CMP-06 · aba de estágio emitida pela tela não pode derrubar a listagem
     // NÃO é lista lida do .tsx pra assertar chave — é o conjunto de estágios que
     // a tela OFERECE ao operador, declarado no §Goals do charter
     // ("Filtros locais: all / abertas / rascunhos / em trânsito").
-    foreach (['all', 'abertas', 'rascunhos', 'transito'] as $stage) {
+    // RECONCILIADO (2026-08-11): a fronteira carrega so o vocabulario CORE.
+    // A tela NAO emite mais rotulo de exibicao como `stage` — o defeito era
+    // Index.tsx:256 mandando `stage: localFilter` na busca. As abas locais seguem
+    // existindo, mas filtram client-side sobre as linhas ja carregadas:
+    //   'abertas'  = dueAmount > 0            (predicado de PAGAMENTO, nao status)
+    //   'transito' = 'transito' OU 'pedido'  (DOIS status; o service faz `where` unico)
+    // Por isso a correcao NAO foi alargar a whitelist: aceitar esses valores daria
+    // 200 com resultado VAZIO em silencio — pior que o 302 que o UC denunciava.
+    foreach (array_merge(['all'], comprasStagesCore()) as $stage) {
         $r = $this->actingAs($this->user)->withSession($sessao)->get('/compras?stage='.$stage);
 
         expect($r->getStatusCode())->toBe(
