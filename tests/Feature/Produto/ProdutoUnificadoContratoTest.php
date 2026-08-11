@@ -319,8 +319,16 @@ it('UC-PUNI-05 · nenhuma prop do unificado enxerga produto de outro business', 
 // UC-PUNI-06 — a rota não tem middleware de permissão (routes/web.php:449 TODO).
 // =============================================================================
 
-it('UC-PUNI-06 · a tela exige product.view', function () {
+it('UC-PUNI-06 · a tela exige product.view (ou product.create, como a lista irmã)', function () {
+    // A semântica canônica NÃO é middleware: `ProductController@index:66` gateia DENTRO do
+    // controller e aceita `product.view` OU `product.create` — quem pode cadastrar produto
+    // precisa alcançar o catálogo. Revogar só `product.view` deixaria o teste passar/falhar
+    // por motivo errado se o user seedado tiver `product.create`.
+    Permission::findOrCreate('product.create', 'web');
     $this->user->revokePermissionTo('product.view');
+    if ($this->user->can('product.create')) {
+        $this->user->revokePermissionTo('product.create');
+    }
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     $response = $this->withHeaders([
@@ -330,7 +338,8 @@ it('UC-PUNI-06 · a tela exige product.view', function () {
 
     expect($response->getStatusCode())->toBe(
         403,
-        'Usuário SEM product.view recebeu a página do catálogo unificado. A rota '
-        . '(routes/web.php:450) não tem middleware de permissão — o TODO está declarado na linha acima.'
+        'Usuário sem product.view NEM product.create recebeu a página do catálogo unificado. '
+        . 'A lista irmã (/products) aborta 403 em ProductController@index:66; o unificado não gateia '
+        . 'nada — o TODO está em routes/web.php:449.'
     );
 });

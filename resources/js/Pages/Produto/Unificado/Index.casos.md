@@ -30,7 +30,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | Fato | Onde |
 |---|---|
-| A rota **não tem** middleware de permissão — o TODO está no próprio arquivo | `routes/web.php:449-451` |
+| Nada gateia a tela. O TODO pede middleware, mas o padrão canônico do módulo **não é middleware**: a lista irmã aborta 403 **dentro do controller** (`product.view` **ou** `product.create`) | `routes/web.php:449-451` + `ProductController@index:66` |
 | `produtos()` monta `price`, `cost` e `margin` para **toda** linha, sem consultar permissão | `:122-124` |
 | Varredura contada de `view_purchase_price\|access_default_selling_price` no controller | **0 ocorrências** |
 | `historico()` devolve `value` = qty × `unit_price_inc_tax` — preço de venda por linha, sem gate | `:249`, `:260` |
@@ -51,7 +51,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-PUNI-03 | Tabelas de preço seguem o **mesmo** gate do preço de venda | must | decisão 2026-08-11 (abaixo) | `ProdutoUnificadoContratoTest` | ⬜ failing-first — vermelho esperado |
 | UC-PUNI-04 | Composição (BOM) só aparece com módulo Manufacturing **e** `manufacturing.access_recipe` | must | permissões `Modules/Manufacturing` + camada 1/3 ([feedback-habilitar-modulo-por-business](../../../../memory/reference/feedback-habilitar-modulo-por-business.md)) | `ProdutoUnificadoContratoTest` | ⬜ preventivo — BOM ainda não servido |
 | UC-PUNI-05 | Nenhuma prop enxerga outro business | must `[T0]` | `CU-PROD-10.2` + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ProdutoUnificadoContratoTest` | ⬜ guard — verde esperado |
-| UC-PUNI-06 | A tela exige `product.view` | should | `routes/web.php:449` (TODO declarado) | `ProdutoUnificadoContratoTest` | ⬜ failing-first — rota sem middleware |
+| UC-PUNI-06 | A tela exige `product.view` **ou** `product.create` | should | `ProductController@index:66` (a lista irmã) + `routes/web.php:449` (TODO) | `ProdutoUnificadoContratoTest` | ⬜ failing-first — nada gateia |
 
 ---
 
@@ -127,7 +127,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-PUNI-06 · A tela exige `product.view` · `should`
 
-- **Aceite:** Dado um usuário autenticado **sem** `product.view` · Quando pede `/products/unificado` ·
+- **Aceite:** Dado um usuário autenticado **sem** `product.view` **nem** `product.create` · Quando pede `/products/unificado` ·
   Então recebe 403 — não a página.
 - **Estado hoje:** a rota não tem middleware (`routes/web.php:449` traz o TODO declarado). Vermelho
   esperado.
