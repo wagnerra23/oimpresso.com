@@ -2,7 +2,7 @@
 id: resources-js-pages-jana-index-charter
 page: /ia
 component: resources/js/Pages/Jana/Index.tsx
-related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/jana-merge.jsx
 owner: wagner
 status: live
 last_validated: "2026-08-07"
@@ -48,7 +48,12 @@ Audiência primária: **dono/gestor de business** (Wagner, Larissa). Acesso `bus
   do **MESMO dado** — "ticket médio não abre faturamento". Hoje 2 dos 4 KPIs abrem
   (Faturamento mês → Faturamento; Inadimplência total → Inadimplência); Ticket médio e PIX hoje
   não têm análise do mesmo dado e permanecem estáticos. Âncora:
-  `prototipo-ui/cowork/jana-merge.jsx :640` (`JmDrillDrawer`) + `:887` (`JM_KPI_DRILL`).
+  `prototipo-ui/cowork/jana-merge.jsx` §`JmDrillDrawer` (âncora de SÍMBOLO, não de linha —
+  ref de linha apodrece no 1º refactor, §5 2026-07-26; localize com
+  `grep -n "function JmDrillDrawer" prototipo-ui/cowork/jana-merge.jsx`).
+  ⚠️ A v3 deste charter citava `:640` e `:887` (`JM_KPI_DRILL`). Medido no arquivo exportado
+  em 2026-08-11: `JmDrillDrawer` está na **636** (não 640) e **`JM_KPI_DRILL` não existe**
+  (0 ocorrências). As duas refs foram escritas antes do export e nunca puderam ser conferidas.
 
 ## Non-Goals
 
