@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Forja/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 212 arquivos em 15 papéis.
+**Total mapeado:** 211 arquivos em 15 papéis.
 
 ## Controllers — 26
 
@@ -192,7 +192,7 @@ module: Forja
 
 - 55 arquivos em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 24
+## Demais arquivos (manifestos, docs, assets e misc) — 23
 
 - [ProjectDecomposerAgent.php](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php)
 - [Tool.php](../../../Modules/Forja/Contracts/Tool.php)
@@ -205,7 +205,6 @@ module: Forja
 - [projectmgmt.php](../../../Modules/Forja/Resources/lang/en/projectmgmt.php)
 - [projectmgmt.php](../../../Modules/Forja/Resources/lang/pt/projectmgmt.php)
 - [topnav.php](../../../Modules/Forja/Resources/menus/topnav.php)
-- [SCOPE.md](../../../Modules/Forja/SCOPE.md)
 - [BoostToolAdapter.php](../../../Modules/Forja/Tools/BoostToolAdapter.php)
 - [GitCommitWipTool.php](../../../Modules/Forja/Tools/GitCommitWipTool.php)
 - [GitInspectTool.php](../../../Modules/Forja/Tools/GitInspectTool.php)

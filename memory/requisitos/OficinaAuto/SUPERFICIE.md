@@ -14,7 +14,7 @@ module: OficinaAuto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/OficinaAuto/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 175 arquivos em 18 papéis.
+**Total mapeado:** 174 arquivos em 18 papéis.
 
 ## Controllers — 9
 
@@ -190,13 +190,12 @@ module: OficinaAuto
 
 - 44 arquivos em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 9
+## Demais arquivos (manifestos, docs, assets e misc) — 8
 
 - [ServiceOrderPolicy.php](../../../Modules/OficinaAuto/Policies/ServiceOrderPolicy.php)
 - [VehiclePolicy.php](../../../Modules/OficinaAuto/Policies/VehiclePolicy.php)
 - [oficina-auto.php](../../../Modules/OficinaAuto/Resources/lang/pt-BR/oficina-auto.php)
 - [topnav.php](../../../Modules/OficinaAuto/Resources/menus/topnav.php)
-- [SCOPE.md](../../../Modules/OficinaAuto/SCOPE.md)
 - [composer.json](../../../Modules/OficinaAuto/composer.json)
 - [module.json](../../../Modules/OficinaAuto/module.json)
 - [kanbanDrag.ts](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/kanbanDrag.ts)

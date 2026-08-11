@@ -14,7 +14,7 @@ module: Governance
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Governance/**` + `resources/js/Pages/governance/**` (namespace Inertia `governance`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Governance`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Governance/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 168 arquivos em 15 papéis.
+**Total mapeado:** 167 arquivos em 15 papéis.
 
 ## Controllers — 10
 
@@ -158,7 +158,7 @@ module: Governance
 
 - 59 arquivos em [Modules/Governance/Tests/Feature/](../../../Modules/Governance/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 10
+## Demais arquivos (manifestos, docs, assets e misc) — 9
 
 - [DriftChecker.php](../../../Modules/Governance/Contracts/DriftChecker.php)
 - [routes.php](../../../Modules/Governance/Http/routes.php)
@@ -166,7 +166,6 @@ module: Governance
 - [governance.php](../../../Modules/Governance/Resources/lang/pt-BR/governance.php)
 - [governance.php](../../../Modules/Governance/Resources/lang/pt/governance.php)
 - [topnav.php](../../../Modules/Governance/Resources/menus/topnav.php)
-- [SCOPE.md](../../../Modules/Governance/SCOPE.md)
 - [composer.json](../../../Modules/Governance/composer.json)
 - [module.json](../../../Modules/Governance/module.json)
 - [start.php](../../../Modules/Governance/start.php)

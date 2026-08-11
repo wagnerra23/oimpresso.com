@@ -58,7 +58,7 @@ related_us:
 
 | # | Fonte | Resolvida em | Estado |
 |---|---|---|---|
-| 1 | **Documentação canon** | [`SPEC.md`](SPEC.md) §US-VEST-020 · [`RUNBOOK-etiqueta-tag.md`](RUNBOOK-etiqueta-tag.md) · [`Index.charter.md`](../../../resources/js/Pages/Vestuario/Etiquetas/Index.charter.md) · [`BRIEFING.md`](BRIEFING.md) · [`Modules/Vestuario/SCOPE.md`](../../../Modules/Vestuario/SCOPE.md) | ✅ |
+| 1 | **Documentação canon** | [`SPEC.md`](SPEC.md) §US-VEST-020 · [`RUNBOOK-etiqueta-tag.md`](RUNBOOK-etiqueta-tag.md) · [`Index.charter.md`](../../../resources/js/Pages/Vestuario/Etiquetas/Index.charter.md) · [`BRIEFING.md`](BRIEFING.md) · [`Modules/Vestuario/SCOPE.md`](SCOPE.md) | ✅ |
 | 2 | **React/Laravel atual** | `Vestuario/Etiquetas/Index.tsx` → `EtiquetaTagController` → `EtiquetaTagService` → `VestuarioSettingsResolver` → `vestuario_settings` | ✅ |
 | 3 | **Blade legada (a que o OPERADOR abre)** | `/labels/show` → `LabelsController@show` → `resources/views/labels/show.blade.php` (+ 3 partials + `public/js/labels.js`) | ✅ |
 | 4 | **Delphi / Office Comercial** | — | ❌ **ausente** |
@@ -611,7 +611,7 @@ texto de aviso ao cliente e mantém a tela antiga disponível — coexistência,
 - [`SUPERFICIE.md`](SUPERFICIE.md) · [`OBSERVABILITY.md`](OBSERVABILITY.md) · [`PII-LGPD.md`](PII-LGPD.md)
 - [`Index.charter.md`](../../../resources/js/Pages/Vestuario/Etiquetas/Index.charter.md) (lei) ·
   [`Index.casos.md`](../../../resources/js/Pages/Vestuario/Etiquetas/Index.casos.md) (contrato)
-- [`Modules/Vestuario/SCOPE.md`](../../../Modules/Vestuario/SCOPE.md)
+- [`Modules/Vestuario/SCOPE.md`](SCOPE.md)
 - [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) (mãe do vertical) ·
   [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) ·
   [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) ·

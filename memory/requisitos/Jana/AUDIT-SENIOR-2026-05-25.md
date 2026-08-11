@@ -540,7 +540,7 @@ ENTREGÁVEL FINAL: score governance D1-D9 = 96 → 97-98
 
 - [Knowledge Architecture Audit 2026-05-13 (parent artifact)](AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md)
 - [BRIEFING canon Jana](BRIEFING.md) — casa única (o `Modules/Jana/BRIEFING.md` citado na época foi deletado em 2026-07-30)
-- [Modules/Jana/SCOPE.md (Fase 3.7 PR-9)](../../../Modules/Jana/SCOPE.md)
+- [Modules/Jana/SCOPE.md (Fase 3.7 PR-9)](SCOPE.md)
 - [RETRIEVAL-GOTCHAS Sprint 9 — 14 armadilhas](RETRIEVAL-GOTCHAS.md)
 - [RUNBOOK-chat (tela `/copiloto`)](RUNBOOK-chat.md)
 - [Config retention.php canônico](../../../Modules/Jana/Config/retention.php)

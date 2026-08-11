@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 570 arquivos em 19 papéis.
+**Total mapeado:** 568 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -393,7 +393,7 @@ module: Jana
 
 - 158 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 90
+## Demais arquivos (manifestos, docs, assets e misc) — 88
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -424,7 +424,6 @@ module: Jana
 - [Reconciler.php](../../../Modules/Jana/Contracts/Reconciler.php)
 - [SqlDriver.php](../../../Modules/Jana/Drivers/Sql/SqlDriver.php)
 - [routes.php](../../../Modules/Jana/Http/routes.php)
-- [LICOES-OPERACAO.md](../../../Modules/Jana/LICOES-OPERACAO.md)
 - [WeeklyDigestMail.php](../../../Modules/Jana/Mail/WeeklyDigestMail.php)
 - [OimpressoMcpServer.php](../../../Modules/Jana/Mcp/OimpressoMcpServer.php)
 - [BriefingOimpressoPrompt.php](../../../Modules/Jana/Mcp/Prompts/BriefingOimpressoPrompt.php)
@@ -474,7 +473,6 @@ module: Jana
 - [copiloto.php](../../../Modules/Jana/Resources/lang/pt/copiloto.php)
 - [topnav.php](../../../Modules/Jana/Resources/menus/topnav.php)
 - [permissions.php](../../../Modules/Jana/Resources/permissions.php)
-- [SCOPE.md](../../../Modules/Jana/SCOPE.md)
 - [ScopeByBusiness.php](../../../Modules/Jana/Scopes/ScopeByBusiness.php)
 - [ScopeByBusinessViaParent.php](../../../Modules/Jana/Scopes/ScopeByBusinessViaParent.php)
 - [ClarifyResult.php](../../../Modules/Jana/Support/ClarifyResult.php)

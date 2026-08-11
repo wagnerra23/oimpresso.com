@@ -14,7 +14,7 @@ module: Compras
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Compras/**` + `resources/js/Pages/Compras/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Compras/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 28 arquivos em 12 papéis.
+**Total mapeado:** 27 arquivos em 12 papéis.
 
 ## Controllers — 3
 
@@ -65,8 +65,7 @@ module: Compras
 
 - 10 arquivos em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 3
+## Demais arquivos (manifestos, docs, assets e misc) — 2
 
-- [SCOPE.md](../../../Modules/Compras/SCOPE.md)
 - [composer.json](../../../Modules/Compras/composer.json)
 - [module.json](../../../Modules/Compras/module.json)

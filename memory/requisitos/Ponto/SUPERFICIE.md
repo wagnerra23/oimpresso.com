@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Ponto/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 198 arquivos em 18 papéis.
+**Total mapeado:** 197 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -211,7 +211,7 @@ module: Ponto
 
 - 39 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 16
+## Demais arquivos (manifestos, docs, assets e misc) — 15
 
 - [.gitignore](../../../Modules/Ponto/.gitignore)
 - [test_write.tmp](../../../Modules/Ponto/Database/Migrations/test_write.tmp)
@@ -224,7 +224,6 @@ module: Ponto
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt-BR/ponto.php)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt/ponto.php)
 - [topnav.php](../../../Modules/Ponto/Resources/menus/topnav.php)
-- [SCOPE.md](../../../Modules/Ponto/SCOPE.md)
 - [composer.json](../../../Modules/Ponto/composer.json)
 - [module.json](../../../Modules/Ponto/module.json)
 - [package.json](../../../Modules/Ponto/package.json)

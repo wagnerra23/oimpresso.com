@@ -21,7 +21,7 @@ Biblioteca compartilhada de ADRs, sessions, runbooks, comparativos. Split do Cop
 - [SPEC](SCHEMA-DB-V1.md) — contrato técnico migrations/tabelas
 - [CAPTERRA-FICHA](CAPTERRA-FICHA.md) — benchmark de mercado
 - [CHANGELOG](CHANGELOG.md) — append-only por PR mergeado
-- [SCOPE](../../../Modules/KB/SCOPE.md) — escopo do módulo (pra agents)
+- [SCOPE](SCOPE.md) — escopo do módulo (pra agents)
 
 ## Permissions
 

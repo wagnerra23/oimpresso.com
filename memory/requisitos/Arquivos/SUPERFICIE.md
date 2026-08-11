@@ -14,7 +14,7 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Arquivos/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 63 arquivos em 11 papéis.
+**Total mapeado:** 62 arquivos em 11 papéis.
 
 ## Controllers — 3
 
@@ -82,8 +82,7 @@ module: Arquivos
 
 - 25 arquivos em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 3
+## Demais arquivos (manifestos, docs, assets e misc) — 2
 
 - [HasArquivos.php](../../../Modules/Arquivos/Concerns/HasArquivos.php)
-- [SCOPE.md](../../../Modules/Arquivos/SCOPE.md)
 - [module.json](../../../Modules/Arquivos/module.json)

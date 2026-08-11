@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Manufacturing/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 118 arquivos em 15 papéis.
+**Total mapeado:** 117 arquivos em 15 papéis.
 
 ## Controllers — 6
 
@@ -120,7 +120,7 @@ module: Manufacturing
 
 - 17 arquivos em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 40
+## Demais arquivos (manifestos, docs, assets e misc) — 39
 
 - [AssertsBusinessChain.php](../../../Modules/Manufacturing/Concerns/AssertsBusinessChain.php)
 - [HasManufacturingProductChain.php](../../../Modules/Manufacturing/Concerns/HasManufacturingProductChain.php)
@@ -155,7 +155,6 @@ module: Manufacturing
 - [lang.php](../../../Modules/Manufacturing/Resources/lang/tr/lang.php)
 - [lang.php](../../../Modules/Manufacturing/Resources/lang/vi/lang.php)
 - [.gitkeep](../../../Modules/Manufacturing/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/Manufacturing/SCOPE.md)
 - [.gitkeep](../../../Modules/Manufacturing/Tests/.gitkeep)
 - [ManufacturingUtil.php](../../../Modules/Manufacturing/Utils/ManufacturingUtil.php)
 - [composer.json](../../../Modules/Manufacturing/composer.json)

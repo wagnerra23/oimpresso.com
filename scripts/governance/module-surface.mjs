@@ -457,7 +457,7 @@ function processar(mod) {
  * caminhos coexistem, a ADR 0277 §1 não conta a função como migrada.
  */
 function decisaoMigracao(mod) {
-  const f = join(ROOT, 'Modules', mod, 'SCOPE.md');
+  const f = join(ROOT, 'memory', 'requisitos', mod, 'SCOPE.md');
   if (!existsSync(f)) return '—';
   const m = readFileSync(f, 'utf8').match(/^migracao_ui:\s*(.+)$/m);
   return m ? m[1].trim().replace(/^["']|["']$/g, '') : '—';

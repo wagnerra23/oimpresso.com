@@ -14,7 +14,7 @@ module: Vestuario
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Vestuario/**` + `resources/js/Pages/Vestuario/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Vestuario/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 41 arquivos em 16 papéis.
+**Total mapeado:** 40 arquivos em 16 papéis.
 
 ## Controllers — 3
 
@@ -85,7 +85,6 @@ module: Vestuario
 
 - 16 arquivos em [Modules/Vestuario/Tests/Feature/](../../../Modules/Vestuario/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 2
+## Demais arquivos (manifestos, docs, assets e misc) — 1
 
-- [SCOPE.md](../../../Modules/Vestuario/SCOPE.md)
 - [module.json](../../../Modules/Vestuario/module.json)

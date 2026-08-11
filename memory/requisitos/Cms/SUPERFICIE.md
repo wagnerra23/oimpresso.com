@@ -14,7 +14,7 @@ module: Cms
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Cms/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 138 arquivos em 13 papéis.
+**Total mapeado:** 137 arquivos em 13 papéis.
 
 ## Controllers — 5
 
@@ -133,7 +133,7 @@ module: Cms
 
 - 17 arquivos em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 41
+## Demais arquivos (manifestos, docs, assets e misc) — 40
 
 - [.gitkeep](../../../Modules/Cms/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Cms/Console/.gitkeep)
@@ -169,7 +169,6 @@ module: Cms
 - [cp-viber.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-viber.png)
 - [cp-whatsapp.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/cp-whatsapp.png)
 - [main-logo.png](../../../Modules/Cms/Resources/views/components/chat_widget/img/cp-icon/main-logo.png)
-- [SCOPE.md](../../../Modules/Cms/SCOPE.md)
 - [.gitkeep](../../../Modules/Cms/Tests/.gitkeep)
 - [CmsUtil.php](../../../Modules/Cms/Utils/CmsUtil.php)
 - [composer.json](../../../Modules/Cms/composer.json)

@@ -41,9 +41,9 @@ O que a fila produziu está medido na ADR (prod, 2026-07-31): a esmagadora maior
 
 | Capacidade | Destino | Recibo |
 |---|---|---|
-| `PolicyEngine` · `GovernanceRulesService` · `mcp_governance_rules` | **Governance** ([SCOPE](../../../Modules/Governance/SCOPE.md)) | [#5128](https://github.com/wagnerra23/oimpresso.com/pull/5128) |
+| `PolicyEngine` · `GovernanceRulesService` · `mcp_governance_rules` | **Governance** ([SCOPE](../Governance/SCOPE.md)) | [#5128](https://github.com/wagnerra23/oimpresso.com/pull/5128) |
 | `SkillsService` · `ScaffoldSkillFromMissionService` · `skill:scaffold` | **Jana** | [#5129](https://github.com/wagnerra23/oimpresso.com/pull/5129) |
-| `ToolRegistry` · `UserScopeService` · `ProjectDecomposerService` · `DecisionLinksService` | **Forja** ([SCOPE](../../../Modules/Forja/SCOPE.md)) | [#5131](https://github.com/wagnerra23/oimpresso.com/pull/5131) |
+| `ToolRegistry` · `UserScopeService` · `ProjectDecomposerService` · `DecisionLinksService` | **Forja** ([SCOPE](../Forja/SCOPE.md)) | [#5131](https://github.com/wagnerra23/oimpresso.com/pull/5131) |
 | 9 rotas `/ads/admin/*` de controllers de Forja/KB | **Forja**, com URL e route name **congelados** ([ADR 0087](../../decisions/0087-drift-resolution-sem-mover-url.md)) | [#5132](https://github.com/wagnerra23/oimpresso.com/pull/5132) |
 | **Núcleo dual-brain** (`DecisionRouter` · `RiskEngine` · `ConfidenceEngine` · `BrainBService` · `PatternLearning` · `Planner` · `Reviewer` · `DecisionPresenter`) | **ninguém — morreu** | [#5135](https://github.com/wagnerra23/oimpresso.com/pull/5135) |
 

@@ -100,7 +100,7 @@ por módulo é hoje **decorativa em runtime** (`CU-TEAM-05` 🔴 · US-TEAM-005 
 ## Referências canon
 
 - SPEC: [memory/requisitos/TeamMcp/SPEC.md](SPEC.md)
-- SCOPE: [Modules/TeamMcp/SCOPE.md](../../../Modules/Forja/SCOPE.md)
+- SCOPE: [Modules/TeamMcp/SCOPE.md](../Forja/SCOPE.md)
 - ADRs: 0053 (MCP server), 0070 (Jira-style), 0079 (Constituição 7 camadas), 0080 (Trust tiers), **0081 (Identity Mesh — mãe)**, 0086 (ActionGate Fase 5), 0093 (Multi-tenant Tier 0)
 - Testes Pest: `Modules/TeamMcp/Tests/Feature/` — 5 arquivos cobrindo seeder + isolamento + smoke + scaffold + matriz permissões
 

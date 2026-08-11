@@ -511,9 +511,9 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 - [memory/requisitos/SRS/DEPRECATION-PLAN.md](../requisitos/SRS/DEPRECATION-PLAN.md) — este plano
 - [memory/requisitos/SRS/BRIEFING.md](../requisitos/SRS/BRIEFING.md) — declaração 2026-05-16 "substituído na prática"
 - [Modules/SRS/SCOPE.md](../../Modules/SRS/SCOPE.md) — transition_plan Fase 3.7 nunca executado
-- [Modules/KB/SCOPE.md](../../Modules/KB/SCOPE.md) — receptor primário (mcp_memory_documents)
-- [Modules/Jana/SCOPE.md](../../Modules/Jana/SCOPE.md) — receptor chat IA
-- [Modules/Governance/SCOPE.md](../../Modules/Governance/SCOPE.md) — receptor validation/drift
+- [Modules/KB/SCOPE.md](../KB/SCOPE.md) — receptor primário (mcp_memory_documents)
+- [Modules/Jana/SCOPE.md](../Jana/SCOPE.md) — receptor chat IA
+- [Modules/Governance/SCOPE.md](../Governance/SCOPE.md) — receptor validation/drift
 - [Modules/TeamMcp/SCOPE.md](../../Modules/TeamMcp/SCOPE.md) — owns mcp_audit_log + mcp_memory_documents
 - [ADR 0053 MCP server canon](0053-mcp-server-governanca-como-produto.md) — sucessor canônico declarado
 - [ADR 0061 Zero auto-mem](0061-conhecimento-canonico-git-mcp-zero-automem.md) — knowledge canon git→MCP
@@ -544,12 +544,12 @@ ADR 0080 (Trust Tiers operacional audit findings) declarou SRS como L1 charter. 
 - **Module Grade:** [0153-0160 rubrica v1→v4 Scoped Scorecards](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)
 
 ### SCOPE.md de receptores referenciados
-- [Modules/KB/SCOPE.md](../../../Modules/KB/SCOPE.md)
-- [Modules/Jana/SCOPE.md](../../../Modules/Jana/SCOPE.md)
-- [Modules/Governance/SCOPE.md](../../../Modules/Governance/SCOPE.md)
-- [Modules/TeamMcp/SCOPE.md](../../../Modules/Forja/SCOPE.md)
+- [Modules/KB/SCOPE.md](../KB/SCOPE.md)
+- [Modules/Jana/SCOPE.md](../Jana/SCOPE.md)
+- [Modules/Governance/SCOPE.md](../Governance/SCOPE.md)
+- [Modules/TeamMcp/SCOPE.md](../Forja/SCOPE.md)
 - `Modules/Brief/SCOPE.md` (ref — não receptor mas citava SRS no purpose L1) — **link removido em 2026-07-30**: o módulo Brief foi absorvido por `Modules/Forja` e o SCOPE.md dele deixou de existir
-- [Modules/Arquivos/SCOPE.md](../../../Modules/Arquivos/SCOPE.md) (alternativa DMS pra storage de uploads ingest)
+- [Modules/Arquivos/SCOPE.md](../Arquivos/SCOPE.md) (alternativa DMS pra storage de uploads ingest)
 
 ### Skills mencionadas
 - `deprecar-modulo` (este agent — Tier C)

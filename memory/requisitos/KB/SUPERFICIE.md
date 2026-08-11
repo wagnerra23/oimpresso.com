@@ -14,7 +14,7 @@ module: KB
 >
 > **O que isto é:** o inventário completo das raízes `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/KB/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 175 arquivos em 18 papéis.
+**Total mapeado:** 174 arquivos em 18 papéis.
 
 ## Controllers — 14
 
@@ -169,7 +169,7 @@ module: KB
 
 - 41 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 33
+## Demais arquivos (manifestos, docs, assets e misc) — 32
 
 - [KbCategoryFactory.php](../../../Modules/KB/Database/Factories/KbCategoryFactory.php)
 - [KbCommentFactory.php](../../../Modules/KB/Database/Factories/KbCommentFactory.php)
@@ -188,7 +188,6 @@ module: KB
 - [kb.php](../../../Modules/KB/Resources/lang/pt/kb.php)
 - [topnav.php](../../../Modules/KB/Resources/menus/topnav.php)
 - [permissions.php](../../../Modules/KB/Resources/permissions.php)
-- [SCOPE.md](../../../Modules/KB/SCOPE.md)
 - [kb-gold-set.json](../../../Modules/KB/Tests/Feature/fixtures/kb-gold-set.json)
 - [composer.json](../../../Modules/KB/composer.json)
 - [module.json](../../../Modules/KB/module.json)

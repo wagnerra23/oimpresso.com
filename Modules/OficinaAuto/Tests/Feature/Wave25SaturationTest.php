@@ -131,7 +131,7 @@ describe('Wave 25 OficinaAuto POLISH', function () {
     });
 
     it('D5: Cliente Martinho Caçambas mencionado em SCOPE/CHANGELOG', function () {
-        $scopePath = base_path('Modules/OficinaAuto/SCOPE.md');
+        $scopePath = base_path('memory/requisitos/OficinaAuto/SCOPE.md');
         $changePath = base_path('memory/requisitos/OficinaAuto/CHANGELOG.md');
 
         $found = false;

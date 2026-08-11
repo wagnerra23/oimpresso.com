@@ -86,4 +86,4 @@ Razão: catálogo é **projeção read-only** de dados que já vivem no core —
 - ADR observabilidade: [0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md)
 - ADR padrão módulo: [0011](../../decisions/0011-alinhamento-padrao-jana.md)
 - CHANGELOG (append-only): [`CHANGELOG.md`](CHANGELOG.md)
-- SCOPE técnico: [`SCOPE.md`](../../../Modules/ProductCatalogue/SCOPE.md)
+- SCOPE técnico: [`SCOPE.md`](SCOPE.md)

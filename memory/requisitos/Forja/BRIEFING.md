@@ -24,7 +24,7 @@ spec: SPEC.md + SPEC-COMPLEMENTO.md
 
 Cockpit de trabalho do **time interno oimpresso** (Wagner + Felipe + Maiara + Eliana + Luiz) estilo Jira — Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown, Activity — como **interface visual** sobre as tabelas `mcp_jira_*` governadas por tools MCP (ADR 0070). Renomeado `ProjectMgmt → Forja` em 2026-07-30 (module.json + PR-5 Pages; URL/alias/permission legacy por compat).
 
-**Desde a última porta (2026-05-16) o módulo deixou de ser só a UI Jira:** absorveu, sem mudar URLs, a infraestrutura MCP do time (identity/token, endpoints `/api/mcp`, Daily Brief, loop de handoff, ingest de sessões Claude Code, hub Equipe, Admin do MCP e o núcleo de registro/decompose do ADS). Fronteira e proveniência de cada peça em [`SCOPE.md`](../../../Modules/Forja/SCOPE.md).
+**Desde a última porta (2026-05-16) o módulo deixou de ser só a UI Jira:** absorveu, sem mudar URLs, a infraestrutura MCP do time (identity/token, endpoints `/api/mcp`, Daily Brief, loop de handoff, ingest de sessões Claude Code, hub Equipe, Admin do MCP e o núcleo de registro/decompose do ADS). Fronteira e proveniência de cada peça em [`SCOPE.md`](SCOPE.md).
 
 ## Estado atual
 
@@ -42,7 +42,7 @@ Cockpit de trabalho do **time interno oimpresso** (Wagner + Felipe + Maiara + El
 ## Portas canônicas
 
 - **Herança geral (componentes/layouts compartilhados):** [`../_Geral/BRIEFING.md`](../_Geral/BRIEFING.md)
-- **Fronteira/ownership + proveniência das absorções:** [`SCOPE.md`](../../../Modules/Forja/SCOPE.md)
+- **Fronteira/ownership + proveniência das absorções:** [`SCOPE.md`](SCOPE.md)
 - **Superfície derivada de código:** [`SUPERFICIE.md`](SUPERFICIE.md)
 - **Requisitos:** [`SPEC.md`](SPEC.md) + [`SPEC-COMPLEMENTO.md`](SPEC-COMPLEMENTO.md)
 - **Concorrência/mercado:** [`CAPTERRA-FICHA.md`](CAPTERRA-FICHA.md) + [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md)

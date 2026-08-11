@@ -211,7 +211,7 @@ function listScopeModules() {
   const dir = join(ROOT, 'Modules');
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
-    .filter((m) => existsSync(join(dir, m, 'SCOPE.md')))
+    .filter((m) => existsSync(join(ROOT, 'memory', 'requisitos', m, 'SCOPE.md')))
     .sort();
 }
 
@@ -243,7 +243,7 @@ function knownAdrNumbers() {
 
 /** Lê 1 SCOPE.md → registro { module, purpose, ... , contains[], not_contains[], tables }. */
 function readScope(mod) {
-  const rel = `Modules/${mod}/SCOPE.md`;
+  const rel = `memory/requisitos/${mod}/SCOPE.md`;
   const { fields, raw } = parseFrontmatter(readFileSync(join(ROOT, rel), 'utf8'));
   return {
     module: typeof fields.module === 'string' ? fields.module : mod,

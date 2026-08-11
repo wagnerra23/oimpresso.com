@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/NfeBrasil/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 203 arquivos em 19 papéis.
+**Total mapeado:** 202 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -182,7 +182,7 @@ module: NfeBrasil
 
 - 53 arquivos em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 39
+## Demais arquivos (manifestos, docs, assets e misc) — 38
 
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
@@ -216,7 +216,6 @@ module: NfeBrasil
 - [mei-varejo-sp.php](../../../Modules/NfeBrasil/Resources/templates/mei-varejo-sp.php)
 - [.gitkeep](../../../Modules/NfeBrasil/Resources/views/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Routes/.gitkeep)
-- [SCOPE.md](../../../Modules/NfeBrasil/SCOPE.md)
 - [.gitkeep](../../../Modules/NfeBrasil/Tests/Feature/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Tests/Unit/.gitkeep)
 - [composer.json](../../../Modules/NfeBrasil/composer.json)

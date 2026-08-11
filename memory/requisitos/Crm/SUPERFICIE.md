@@ -14,7 +14,7 @@ module: Crm
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Crm/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 233 arquivos em 14 papéis.
+**Total mapeado:** 232 arquivos em 14 papéis.
 
 ## Controllers — 28
 
@@ -228,7 +228,7 @@ module: Crm
 
 - 13 arquivos em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 48
+## Demais arquivos (manifestos, docs, assets e misc) — 47
 
 - [ClienteProximaAcaoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php)
 - [ClienteResumoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php)
@@ -271,7 +271,6 @@ module: Crm
 - [lang.php](../../../Modules/Crm/Resources/lang/tr/lang.php)
 - [lang.php](../../../Modules/Crm/Resources/lang/vi/lang.php)
 - [.gitkeep](../../../Modules/Crm/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/Crm/SCOPE.md)
 - [.gitkeep](../../../Modules/Crm/Tests/.gitkeep)
 - [CrmUtil.php](../../../Modules/Crm/Utils/CrmUtil.php)
 - [composer.json](../../../Modules/Crm/composer.json)

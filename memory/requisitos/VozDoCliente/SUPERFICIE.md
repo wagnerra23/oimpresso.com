@@ -14,7 +14,7 @@ module: VozDoCliente
 >
 > **O que isto é:** o inventário completo das raízes `Modules/VozDoCliente/**` + `resources/js/Pages/VozDoCliente/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/VozDoCliente/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 18 arquivos em 11 papéis.
+**Total mapeado:** 17 arquivos em 11 papéis.
 
 ## Controllers — 3
 
@@ -59,10 +59,9 @@ module: VozDoCliente
 
 - 1 arquivos em [Modules/VozDoCliente/Tests/Feature/](../../../Modules/VozDoCliente/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 5
+## Demais arquivos (manifestos, docs, assets e misc) — 4
 
 - [vozdocliente.php](../../../Modules/VozDoCliente/Resources/lang/en/vozdocliente.php)
 - [vozdocliente.php](../../../Modules/VozDoCliente/Resources/lang/pt/vozdocliente.php)
-- [SCOPE.md](../../../Modules/VozDoCliente/SCOPE.md)
 - [composer.json](../../../Modules/VozDoCliente/composer.json)
 - [module.json](../../../Modules/VozDoCliente/module.json)

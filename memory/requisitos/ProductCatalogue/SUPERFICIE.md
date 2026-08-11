@@ -14,7 +14,7 @@ module: ProductCatalogue
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ProductCatalogue/**` + `resources/js/Pages/ProductCatalogue/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ProductCatalogue/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 57 arquivos em 12 papéis.
+**Total mapeado:** 56 arquivos em 12 papéis.
 
 ## Controllers — 3
 
@@ -77,7 +77,7 @@ module: ProductCatalogue
 
 - 7 arquivos em [Modules/ProductCatalogue/Tests/Feature/](../../../Modules/ProductCatalogue/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 23
+## Demais arquivos (manifestos, docs, assets e misc) — 22
 
 - [.gitkeep](../../../Modules/ProductCatalogue/Config/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Console/.gitkeep)
@@ -96,7 +96,6 @@ module: ProductCatalogue
 - [.gitkeep](../../../Modules/ProductCatalogue/Resources/lang/.gitkeep)
 - [lang.php](../../../Modules/ProductCatalogue/Resources/lang/en/lang.php)
 - [.gitkeep](../../../Modules/ProductCatalogue/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/ProductCatalogue/SCOPE.md)
 - [.gitkeep](../../../Modules/ProductCatalogue/Tests/.gitkeep)
 - [composer.json](../../../Modules/ProductCatalogue/composer.json)
 - [module.json](../../../Modules/ProductCatalogue/module.json)

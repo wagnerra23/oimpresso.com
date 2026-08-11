@@ -14,7 +14,7 @@ module: Connector
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Connector/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 118 arquivos em 13 papéis.
+**Total mapeado:** 117 arquivos em 13 papéis.
 
 ## Controllers — 30
 
@@ -112,7 +112,7 @@ module: Connector
 
 - 9 arquivos em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 50
+## Demais arquivos (manifestos, docs, assets e misc) — 49
 
 - [.gitkeep](../../../Modules/Connector/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Connector/Console/.gitkeep)
@@ -146,7 +146,6 @@ module: Connector
 - [lang.php](../../../Modules/Connector/Resources/lang/tr/lang.php)
 - [lang.php](../../../Modules/Connector/Resources/lang/vi/lang.php)
 - [.gitkeep](../../../Modules/Connector/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/Connector/SCOPE.md)
 - [.gitkeep](../../../Modules/Connector/Tests/.gitkeep)
 - [BusinessLocationResource.php](../../../Modules/Connector/Transformers/BusinessLocationResource.php)
 - [BusinessResource.php](../../../Modules/Connector/Transformers/BusinessResource.php)

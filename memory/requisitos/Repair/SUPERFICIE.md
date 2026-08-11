@@ -14,7 +14,7 @@ module: Repair
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Repair/**` + `resources/js/Pages/Repair/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Repair/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 190 arquivos em 16 papéis.
+**Total mapeado:** 189 arquivos em 16 papéis.
 
 ## Controllers — 11
 
@@ -188,7 +188,7 @@ module: Repair
 
 - 22 arquivos em [Modules/Repair/Tests/Feature/](../../../Modules/Repair/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 42
+## Demais arquivos (manifestos, docs, assets e misc) — 41
 
 - [LogsWithPiiRedactor.php](../../../Modules/Repair/Concerns/LogsWithPiiRedactor.php)
 - [.gitkeep](../../../Modules/Repair/Config/.gitkeep)
@@ -225,7 +225,6 @@ module: Repair
 - [lang.php](../../../Modules/Repair/Resources/lang/vi/lang.php)
 - [topnav.php](../../../Modules/Repair/Resources/menus/topnav.php)
 - [.gitkeep](../../../Modules/Repair/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/Repair/SCOPE.md)
 - [.gitkeep](../../../Modules/Repair/Tests/.gitkeep)
 - [RepairUtil.php](../../../Modules/Repair/Utils/RepairUtil.php)
 - [composer.json](../../../Modules/Repair/composer.json)
