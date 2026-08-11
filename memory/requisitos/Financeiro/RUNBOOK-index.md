@@ -64,7 +64,7 @@ Hook `block-mwart-violation.ps1` matcha pelo nome do arquivo. Pages atuais no m�
 
 ## Refs
 
-- [SCOPE.md](../../../Modules/Financeiro/SCOPE.md) — declaração canônica do módulo + Controllers
+- [SCOPE.md](SCOPE.md) — declaração canônica do módulo + Controllers
 - [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — comparativo de mercado + score
 - [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) — buckets ✅/🟡/❌ por feature
 - [SPEC.md](SPEC.md) — User Stories US-FIN-*

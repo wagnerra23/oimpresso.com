@@ -92,6 +92,387 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 
 ---
 
+## Parcelas — onda 3 (`ParcelasDrawer` · CU-SELL-09)
+
+> ⚠️ **Território Tier 0 — VALOR.** Diferente da onda 2 (que só derivava peso), esta onda
+> divide **dinheiro**. A REGRA MESTRE de [`proibicoes.md`](../../../../memory/proibicoes.md)
+> exige prova por **dois caminhos independentes**, e ela existe:
+> [`tests/js/parcelas-dominio.test.ts`](../../../../tests/js/parcelas-dominio.test.ts) —
+> **15/15**, comparando a função real contra aritmética à mão em centavos inteiros para
+> **11 totais × 48 quantidades**. O que ainda protege: a tela **não grava** (UC-V302).
+>
+> **Por que estes 8 nascem 🧪 e não ✅.** O teste existe, cita o UC no título e passa — mas
+> `✅` não é "o teste passou", é "**o manifesto do G-7 provou**". O manifesto
+> (`scripts/casos-test-results.json`) é alimentado pelo JUnit das lanes e aterrissado pelo
+> `casos-results-publish.yml`; até o primeiro run em `main` da lane
+> [`sells-v3-dominio-gate.yml`](../../../../.github/workflows/sells-v3-dominio-gate.yml)
+> ser colhido, não há entrada — e `✅` sem entrada vira `status:unverified`, que **derruba o
+> casos-gate (required)**. `🧪` é a não-afirmação honesta que o G-7 aceita sem prova.
+>
+> ⚠️ **A lane nasceu neste mesmo PR, e a razão é o achado.** Os 4 specs de domínio do preview
+> passavam 70/70 na máquina de quem os escreveu e rodavam em **ZERO lanes** — medido
+> 2026-08-11 com `rg --hidden` pelos 4 nomes no repo inteiro: nenhum `.github/workflows`.
+> Era verde-por-não-execução (LC-13). Promover UC apoiado num teste que o CI nunca roda
+> teria fabricado cobertura de contrato com o gate verde — exatamente o que o §5 proíbe.
+
+## UC-V330 · O rateio não perde nem inventa centavo
+
+**Status:** 🧪 — 4 testes citam o UC e passam localmente; sem entrada no manifesto até a lane rodar em `main`.
+
+- **Dado** um total de venda e uma quantidade de parcelas de 1 a 48,
+- **Quando** `ratear(total, n)` divide o valor,
+- **Então** a soma das parcelas é **exatamente** o total, a conta roda em centavos inteiros e o resto vai para as **primeiras** parcelas.
+
+Prova por **dois caminhos independentes**, como a REGRA MESTRE exige: caminho A é a função
+real; caminho B parte da **definição** do invariante (soma de inteiros), escrito de forma
+diferente, para não virar tautológico — o §5 tem lápide de 2026-06-05 sobre teste que deriva
+do código. Cobre também os degenerados que viram `NaN` ou lista vazia se ninguém olhar:
+`n = 0`, `n` negativo, `n` fracionado (trunca, não arredonda) e total zero.
+
+## UC-V331 · `100,00` em 3 dá `33,34 · 33,33 · 33,33`
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** o caso que dá nome ao problema,
+- **Quando** se divide `100,00` em 3 parcelas,
+- **Então** o resultado é `33,34 · 33,33 · 33,33` — e **não** `33,33 × 3 = 99,99`.
+
+O teste não se contenta em afirmar o certo: ele **reproduz o erro clássico** (dividir em float
+e arredondar cada parcela) e prova que aquele caminho somaria `99,99`. Sem o contraste, o caso
+provaria só que a implementação faz o que faz. É 1 centavo que vira diferença de conciliação
+que ninguém acha depois.
+
+## UC-V332 · "Mesmo dia de cada mês" não é somar 30 dias
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** um vencimento em **31/01**,
+- **Quando** se gera a parcela do mês seguinte,
+- **Então** ela cai em **28/02** (grampeada no último dia do mês curto), e não em **02/03**.
+
+A escolha do caso é o que dá força ao teste: para 31/05 os dois métodos coincidem em 30/06 e
+o caso **não distinguiria nada**. Fevereiro é onde a diferença aparece — e mês diferente é
+**competência diferente**, com efeito em mês fechado no financeiro.
+
+## UC-V333 · Quantidade de parcelas digitada é saneada, nunca `NaN`
+
+**Status:** 🧪 — 2 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** o campo de quantidade de parcelas, que é texto livre,
+- **Quando** chega vazio, lixo (`abc`), `0` ou negativo,
+- **Então** vale **1**; acima de 48 é grampeado no teto.
+
+Entrada de texto que vira `NaN` num laço de geração de parcelas é laço infinito ou tela em
+branco — o saneamento é o que impede o drawer de travar com o usuário digitando.
+
+## UC-V334 · O plano só fecha quando as parcelas somam o total
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** um conjunto de parcelas editadas à mão,
+- **Quando** a soma delas bate com o total da venda,
+- **Então** `fechaNoTotal` é verdadeiro — é o predicado que libera o **Confirmar parcelas**.
+
+Plano de pagamento que não paga a venda não pode sair do drawer como se estivesse pronto.
+⚠️ O teste prova o **predicado**, não a ligação dele ao atributo `disabled` do botão: a
+fiação para a UI segue sem prova (ver backlog).
+
+## UC-V335 · Quando falta ou sobra, a tela diz de que lado
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** parcelas que não fecham no total,
+- **Quando** se pergunta a diferença,
+- **Então** o **sinal** distingue os dois casos: positivo é "falta distribuir", negativo é "passou do total".
+
+Um valor absoluto diria só "não fecha" — e "falta um centavo" e "sobrou um centavo" pedem ações
+opostas do operador. ⚠️ A ação de **jogar a diferença na última parcela** segue sem prova
+(ver backlog).
+
+## UC-V336 · Vencida é comparação por DIA, não por instante
+
+**Status:** 🧪 — 2 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** uma parcela que vence **hoje**,
+- **Quando** se pergunta se está vencida às 23h59,
+- **Então** **não** está — ontem está, amanhã não.
+
+Comparar por instante marcaria como vencida toda parcela do próprio dia depois do primeiro
+milissegundo, o que encheria a tela de vermelho falso e treinaria o operador a ignorar o sinal.
+
+## UC-V337 · O parse pt-BR sobrevive ao separador de milhar
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** o valor `1.115,40` digitado no padrão brasileiro,
+- **Quando** ele é somado,
+- **Então** vale **mil cento e quinze**, não um milhão.
+
+É o guard do incidente `num_uf` (ROTA LIVRE `biz=4`, 2026-06-05): 16 vendas infladas ~×100k
+porque um parser leu o ponto decimal como separador de milhar. A regra perene está no §5 —
+separador de milhar tem **sempre** 3 dígitos.
+
+---
+
+## Detalhe do item — onda 4 (`ItemDetalhe` · tributação)
+
+> ⚠️ **Erro fiscal sai desta tela direto para a NF-e.** Rejeição da SEFAZ não é detalhe de UI:
+> é a venda parada e retrabalho de quem emite. Provado em
+> [`tests/js/item-fiscal-dominio.test.ts`](../../../../tests/js/item-fiscal-dominio.test.ts) — **18/18**.
+>
+> Todos nascem **🧪** pelo mesmo motivo da onda 3: `✅` exige entrada no manifesto do G-7, e
+> ela só chega quando a lane rodar em `main`.
+
+## UC-V340 · NCM exige 8 dígitos e a mensagem diz **quantos faltam**
+
+**Status:** 🧪 — 2 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** o campo NCM,
+- **Quando** ele chega vazio ou incompleto,
+- **Então** a mensagem diz **quantos dígitos faltam** — não apenas "inválido"; com máscara ou sem, 8 dígitos passam.
+
+"Inválido" obriga o operador a contar dígitos na mão. Verificado em produção: NCM `3919`
+acusa "faltam 4".
+
+## UC-V341 · CFOP tem 4 dígitos e o **primeiro carrega significado**
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** o campo CFOP,
+- **Quando** o primeiro dígito é 1/2/3 (entradas) ou 5/6/7 (saídas),
+- **Então** passa; **4, 8 e 9 não existem** como primeiro dígito e são recusados, assim como comprimento diferente de 4.
+
+Validar só o comprimento aceitaria `9999`, que não existe na tabela — o primeiro dígito é
+domínio, não formato.
+
+## UC-V342 · CEST, GTIN e cBenef são opcionais: vazio passa, preenchido é conferido
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** os campos opcionais,
+- **Quando** ficam vazios,
+- **Então** não acusam; **quando preenchidos**, valem CEST 7 dígitos, GTIN em 8/12/13/14 (os quatro padrões reais de código de barras) e cBenef como 2 letras de UF + 6 dígitos.
+
+Campo opcional que acusa vazio treina o operador a ignorar erro; campo opcional que aceita
+qualquer coisa quando preenchido não é validação.
+
+## UC-V343 · Alíquota e redução vivem na faixa 0..100
+
+**Status:** 🧪 — 2 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** alíquota ou redução de base,
+- **Quando** o valor é negativo ou acima de 100,
+- **Então** é recusado — e o pt-BR (vírgula decimal) é aceito na faixa válida.
+
+## UC-V344 · Coerência CST × alíquota — o erro que a validação campo-a-campo **não** pega
+
+**Status:** 🧪 — 4 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** um CST que declara **não haver imposto** (40 isenta, 41 não tributada, 60 ST cobrado anteriormente, 04),
+- **Quando** vem acompanhado de alíquota **maior que zero**,
+- **Então** o **par** é rejeitado — e no sentido oposto, **CST 00** (tributada integralmente) **com alíquota zero** também é contradição.
+
+**É o caso mais forte desta onda, e o teste prova por quê:** existe um caso dedicado
+mostrando que a validação de **formato** sozinha **aprovaria** o par incoerente — CST 40 é um
+CST válido, 18% é uma alíquota válida, e cada campo passa isolado. Só o cruzamento pega. Sem
+ele, a rejeição só apareceria na SEFAZ, com a venda já emitida. Há também o controle
+positivo: os mesmos CSTs **passam** quando a alíquota é zero, então a regra não é "CST 40
+sempre reprova".
+
+## UC-V345 · CST 102 (Simples) tem **três** dígitos e não pode ser lido como "10"
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** o CST `102` do Simples Nacional,
+- **Quando** a coerência é avaliada,
+- **Então** ele **não** entra em nenhuma das duas regras de UC-V344 — ler os dois primeiros dígitos o confundiria com um CST de 2 dígitos.
+
+Truncar `102` em `10` é o tipo de bug que só aparece no cliente do Simples — que é a maioria
+da base.
+
+## UC-V346 · A aba mostra **todos** os erros de uma vez
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** um item com mais de uma pendência fiscal,
+- **Quando** os erros são apurados,
+- **Então** vêm **todos de uma vez** — não um por vez a cada tentativa de salvar; item correto não acusa nada, e a incoerência de UC-V344 é pega **mesmo com todo o resto correto**.
+
+Erro-a-erro transforma o preenchimento em tentativa e erro. ⚠️ O teste prova a **lista**; a
+contagem no rótulo da aba e o `disabled` do **Confirmar item** são fiação de UI e seguem sem
+prova (ver backlog).
+
+---
+
+## Comissão — onda 5 (`ComissaoDrawer`)
+
+> ⚠️ **Tier 0 — comissão é dinheiro devido a alguém.** Provado em
+> [`tests/js/comissao-dominio.test.ts`](../../../../tests/js/comissao-dominio.test.ts) — **16/16**.
+>
+> **Por que isto não é um campo "Comissionista":** quem **vendeu**, quem **trouxe** o cliente
+> e quem **executou** raramente são a mesma pessoa, e cada um tem regra própria. Um select
+> único não expressa isso — e o resultado é comissão calculada em planilha, fora do sistema.
+
+## UC-V350 · Uma venda aceita **vários** beneficiários, e o total é a soma
+
+**Status:** 🧪 — 2 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** funcionário, representante, agência e técnico na mesma venda,
+- **Quando** cada um tem base, regra e valor próprios,
+- **Então** o total é a **soma** deles; lista vazia é **zero**, nunca `NaN`.
+
+⚠️ O teste prova o número; a **mensagem** "esta venda não gera comissão" (em vez de um zero
+sem explicação) é UI e segue sem prova (ver backlog).
+
+## UC-V351 · A base é escolhida por beneficiário, e a escolha é de **incentivo**
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** o mesmo percentual de 3%,
+- **Quando** incide sobre o **bruto** ou sobre a **margem**,
+- **Então** dá números **diferentes** — e a diferença é a política: sobre o bruto a empresa paga o vendedor para dar desconto (o desconto sai do caixa dela, não da comissão dele); sobre a margem, alinha.
+
+Provado por **dois caminhos** (função real × aritmética à mão), como a REGRA MESTRE exige
+para cálculo que vira dinheiro.
+
+## UC-V352 · Regra **fixa** ignora a base
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** um beneficiário com regra de valor fixo,
+- **Quando** a base muda entre bruto e margem,
+- **Então** o valor é **o mesmo** — fixo é fixo.
+
+## UC-V353 · A faixa é por valor **TOTAL**, não progressiva por fatia
+
+**Status:** 🧪 — 2 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** uma tabela de faixas,
+- **Quando** a venda cai na faixa de 4%,
+- **Então** recebe **4% sobre tudo** — e **não** 2% até 5k + 3% até 20k + 4% no resto.
+
+Confundir os dois muda o que a empresa paga. É o mesmo mal-entendido que existe entre
+alíquota progressiva de imposto e faixa comercial — aqui a regra é comercial.
+
+## UC-V354 · O gatilho por **recebimento** libera proporcional ao que o cliente pagou
+
+**Status:** 🧪 — 4 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** uma venda com comissão por recebimento,
+- **Quando** o cliente pagou parte,
+- **Então** libera **proporcional ao pago**: nada recebido libera zero **mesmo com a venda emitida**, tudo recebido libera tudo; em **emissão** e **faturamento** o direito nasce **inteiro** no evento.
+
+É o que impede pagar comissão de venda inadimplente — o caso "emitida mas não paga" tem
+teste próprio justamente porque é onde o dinheiro escapa.
+
+## UC-V355 · Estorno é **proporcional** ao devolvido
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** uma devolução,
+- **Quando** metade é devolvida,
+- **Então** estorna metade; devolução total estorna tudo, nada devolvido estorna zero, e devolvido **acima** do total não estorna mais que a comissão.
+
+Sem isso a devolução vira **prejuízo dobrado**: a empresa devolve ao cliente e mantém a
+comissão paga. O teto no estorno impede o espelho do bug — cobrar do vendedor mais do que ele
+recebeu.
+
+## UC-V356 · A tela avisa quando a comissão come a margem
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** a margem da venda,
+- **Quando** a comissão passa de **metade** dela,
+- **Então** é alerta — e margem **zero ou negativa** com qualquer comissão já é alerta.
+
+É o número que transforma "vendi" em "vendi com prejuízo" antes de a venda fechar.
+
+---
+
+## Colunas do grid — onda 6 (`ColunasModal`)
+
+> A preferência mora no `localStorage`, que é **entrada não confiável**: o usuário pode
+> editar, uma versão futura pode remover uma coluna, um JSON pode truncar. Uma tela de venda
+> que quebra porque o storage tem lixo é pior que uma tela sem preferência salva. Provado em
+> [`tests/js/colunas-dominio.test.ts`](../../../../tests/js/colunas-dominio.test.ts) — **21/21**.
+
+## UC-V360 · Coluna **fixa** não desliga e não sai do lugar
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** as colunas fixas (produto, quantidade, valor, total),
+- **Quando** se tenta desligá-las ou movê-las,
+- **Então** nada acontece — e coluna comum também não é solta em cima de posição de fixa.
+
+A linha não existe sem elas, e **um grid de venda sem total não é um grid de venda**.
+
+## UC-V361 · `localStorage` podre nunca derruba a tela
+
+**Status:** 🧪 — 4 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** storage vazio, JSON inválido, storage **bloqueado** (modo anônimo) ou **cota cheia**,
+- **Quando** a preferência é carregada ou salva,
+- **Então** **nada lança**: cai no padrão e segue.
+
+Modo anônimo e cota cheia lançam de verdade no browser — não são hipóteses. Preferência de
+coluna não pode derrubar uma venda em andamento.
+
+## UC-V362 · Chave de coluna que **não existe mais** é descartada
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** uma preferência salva numa versão anterior,
+- **Quando** uma coluna foi removida no meio-tempo,
+- **Então** a chave órfã é descartada **sem quebrar o resto** da preferência.
+
+É o custo de manter preferência versionada em cliente: o schema muda, o dado salvo não.
+
+## UC-V363 · Duplicata e lixo não viram grid quebrado
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** uma preferência com chave **repetida**, com um valor que não é lista, ou só com lixo,
+- **Quando** é saneada,
+- **Então** a repetida mantém **só a primeira**, e não-lista ou lixo total caem no **padrão** — nunca em grid **vazio**.
+
+Cair em lista vazia seria pior que ignorar a preferência: a tela abriria sem coluna nenhuma.
+
+## UC-V364 · Coluna fixa **ausente** da preferência é reinserida
+
+**Status:** 🧪 — 1 teste cita o UC e passa localmente; aguardando o manifesto.
+
+- **Dado** uma preferência salva sem uma das fixas,
+- **Quando** é carregada,
+- **Então** a fixa é **reinserida**.
+
+É o par de UC-V360 pelo outro lado: não basta impedir desligar pela UI se um storage editado
+à mão consegue o mesmo resultado.
+
+## UC-V365 · O catálogo é íntegro e o padrão é utilizável
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** o catálogo de colunas,
+- **Quando** é inspecionado,
+- **Então** as chaves são **únicas**, o padrão **inclui todas as fixas** e toda coluna pertence a um **grupo conhecido**.
+
+Duas colunas com a mesma chave se sobrescreveriam silenciosamente — este UC é a defesa contra
+o catálogo crescer torto, e é o único que falha no dia em que alguém adicionar uma coluna
+duplicada.
+
+## UC-V366 · Operação válida funciona; fora-do-catálogo é ignorado
+
+**Status:** 🧪 — 6 testes citam o UC e passam localmente; aguardando o manifesto.
+
+- **Dado** a preferência de colunas,
+- **Quando** se move uma coluna comum, liga uma que estava fora ou desliga uma comum,
+- **Então** funciona; **índice fora da lista** e **chave desconhecida** são **ignorados**, em vez de corromper a ordem.
+
+É o controle positivo do resto da onda: sem estes casos, "nada quebra" seria satisfeito por
+uma implementação que simplesmente **não faz nada**.
+
+---
+
 ## Backlog de contrato
 
 - **[BACKLOG]** A rota `/sells/create-v3` responde **403** a usuário autenticado sem `sell.create` e sem `superadmin` — mesma alçada da tela de venda real, o preview não afrouxa permissão.
@@ -112,56 +493,77 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
 - **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
 
-### Colunas do grid (onda 6 — `ColunasModal`)
+### Consulta de clientes (extra — `ConsultaCliente`)
 
-> A preferência mora no `localStorage`, que é **entrada não confiável**: o usuário pode
-> editar, uma versão futura pode remover uma coluna, um JSON pode truncar. Uma tela de
-> venda que quebra porque o storage tem lixo é pior que uma tela sem preferência salva.
-> Provado em [`tests/js/colunas-dominio.test.ts`](../../../../tests/js/colunas-dominio.test.ts) — **21/21**.
+> ⚠️ **O que esta onda garante sobre VALOR, e como cada metade foi estabelecida.**
+> Trocar de cliente **não reprecifica a venda**. Isso vale por duas razões, e elas têm
+> forças diferentes — declarar as duas como "provado" seria inflar:
+> **(a) MEDIDO** (`grep` em `CreateV3.tsx`, 2026-08-11): `tabelaCadastro`/`tabelaAtiva`/
+> `tabelaTrocada` aparecem só no cartão "Tabela de preço", nunca em `linhaTotal`,
+> `subtotal` ou `total`; o preço unitário mora em `itens`, que a seleção não toca.
+> **(b) PROVADO** em [`tests/js/cliente-consulta-dominio.test.ts`](../../../../tests/js/cliente-consulta-dominio.test.ts) — **23/23**,
+> com mutação confirmando que os guards mordem: cliente novo nasce com `tabela: null`,
+> e `ClienteConsulta` não carrega campo de preço nenhum (a ausência é a defesa).
+> É deliberadamente o caminho oposto ao da lápide de 2026-07-15, em que o
+> `CustomerSearchAutocomplete` reaplica `selling_price_group_id` no `onSelect`.
 
-- **[BACKLOG]** Coluna **fixa** (produto, quantidade, valor, total) **não desliga e não sai do lugar** — a linha não existe sem ela, e um grid sem total não é um grid de venda.
-- **[BACKLOG]** JSON inválido, storage bloqueado (modo anônimo) ou cota cheia **não lançam**: caem no padrão e seguem.
-- **[BACKLOG]** Chave de coluna que **não existe mais** (removida numa versão) é descartada ao carregar, sem quebrar o resto da preferência.
-- **[BACKLOG]** Chave **repetida** mantém só a primeira; lista só com lixo cai no padrão, não em grid vazio.
-- **[BACKLOG]** Coluna fixa **ausente** da preferência salva é **reinserida** ao carregar.
+- **[BACKLOG]** A consulta abre em modal de **880px** e lista os cadastros do business atual com código, nome/razão social, CNPJ/CPF, situação de ICMS, cidade/UF e grupo de preço.
+- **[BACKLOG]** Clicar na linha **traz o cadastro inteiro** (documento, IE, regime, endereço, grupo, prazo) e abre os **detalhes do destinatário** — quem troca de cliente precisa conferir o que veio junto, não descobrir na NF-e.
+- **[BACKLOG]** A troca de cliente entra no **desfazer**, como qualquer outra ação destrutiva da tela.
+- **[BACKLOG]** Situação de ICMS aparece em **três** estados visualmente distintos (contribuinte · isento · não contribuinte) — isento exibido como contribuinte é erro fiscal, não estético.
+- **[BACKLOG]** A linha do cliente **já selecionado** é destacada na consulta; a seleção marca, não filtra.
+- **[BACKLOG]** Busca sem resultado mostra **estado vazio nomeando o termo**, nunca uma tabela em branco.
+- **[BACKLOG]** A linha inteira é clicável, mas quem recebe o clique é um `<button>` real — alcançável por teclado (`a11y:check`).
+- **[BACKLOG]** **Cadastro mínimo** (só o nome é obrigatório) cria o cliente **em memória** e o devolve já selecionado; o que não foi perguntado entra como `—`, nunca inventado — e o cliente novo **não nasce com tabela de preço**, então cai no padrão do balcão.
+- **[BACKLOG]** O código do cliente novo continua a sequência **preservando a largura** (`0288` → `0289`) e não colide com código existente.
+
+> **Duas divergências CONSCIENTES do protótipo, e as duas fazem a busca cumprir a
+> própria copy.** A fonte compara `(cod + nome + doc + cidade).toLowerCase().includes(termo)`
+> literal, então o placeholder promete *"Buscar por nome, CNPJ/CPF, cidade ou código…"*
+> e mesmo assim **não acha** `29417508` (o operador digita o documento sem máscara, que é
+> como ele vem do papel) nem `itajai` (sem acento). Aqui o documento casa por **dígito** e
+> o texto casa **sem acento**. O que **não** muda: continua `includes` e não fuzzy, termo
+> vazio devolve a lista inteira, e a ordem é preservada. Há controle negativo provando que
+> o eixo numérico não vaza — sem ele, `soDigitos('atacado')` daria `''` e `''.includes('')`
+> casaria toda linha, devolvendo a lista inteira para qualquer termo textual.
+
+> **Os dados de cena divergem do protótipo, e o motivo é Tier 0.** O CNPJ que a fonte usa
+> no cliente Governo foi **medido VÁLIDO** — é documento real, e a allowlist do `pii-scan`
+> é explícita que *"CPF/CNPJ real JAMAIS entra"*. Ele não entrou (nem em comentário, para
+> não deixar o número identificável em prosa), o nome do órgão
+> não é o de uma prefeitura existente, e "Rota Livre" saiu da cena por ser o cliente-piloto de
+> verdade (biz=4), não personagem. Os documentos que ficaram têm DV **medido inválido**, com
+> controle positivo e negativo no validador.
+
+---
+
+### Colunas do grid (onda 6) — o que a promoção NÃO cobriu
+
+> Os 7 casos desta onda viraram **UC-V360..UC-V366** acima. Sobrou o item de **acessibilidade**,
+> que é decisão de técnica de UI e não de lógica — o teste de domínio prova que `mover`
+> reordena, nunca **como** o usuário dispara o movimento.
+
 - **[BACKLOG]** Reordenar é por **botão** (‹ ›), não por arrastar: drag-and-drop sem alternativa de teclado é inacessível. A fonte descreve a **intenção** ("arrastar e ordenar"), não a técnica.
-- **[BACKLOG]** Índice fora da lista ao mover é ignorado, em vez de corromper a ordem.
 
 ---
 
-### Comissão (onda 5 — `ComissaoDrawer`)
+### Comissão (onda 5) — o que a promoção NÃO cobriu
 
-> **Por que isto não é um campo "Comissionista":** quem **vendeu**, quem **trouxe** o
-> cliente e quem **executou** raramente são a mesma pessoa, e cada um tem regra própria.
-> Um select único não expressa isso — e o resultado é comissão calculada em planilha,
-> fora do sistema. ⚠️ **Tier 0**: comissão é dinheiro devido a alguém. Provado em
-> [`tests/js/comissao-dominio.test.ts`](../../../../tests/js/comissao-dominio.test.ts) — **16/16**.
+> Os 7 casos de cálculo desta onda viraram **UC-V350..UC-V356** acima. Sobrou o item de
+> **mensagem** — o teste de domínio prova o número, nunca o texto que a tela mostra.
 
-- **[BACKLOG]** Uma venda aceita **vários beneficiários** de tipos diferentes (funcionário, representante, agência, técnico), cada um com base, regra e valor próprios — e o total é a soma.
-- **[BACKLOG]** A **base** é escolhida por beneficiário, e a escolha é de **incentivo**: sobre o **bruto** a empresa paga o vendedor para dar desconto (o desconto sai do caixa dela, não da comissão dele); sobre a **margem**, alinha.
-- **[BACKLOG]** Regra **fixa** ignora a base — o mesmo valor em qualquer uma delas.
-- **[BACKLOG]** A **faixa é por valor TOTAL, não progressiva por fatia**: quem cai na faixa de 4% recebe 4% sobre tudo, e **não** 2% até 5k + 3% até 20k + 4% no resto. Confundir os dois muda o que a empresa paga.
-- **[BACKLOG]** O **gatilho por recebimento** libera a comissão **proporcional ao que o cliente pagou** — é o que impede pagar comissão de venda inadimplente. Em emissão e faturamento, o direito nasce inteiro no evento.
-- **[BACKLOG]** **Estorno é proporcional** ao devolvido: devolveu metade, estorna metade. Sem isso, devolução vira prejuízo dobrado — a empresa devolve ao cliente e mantém a comissão paga.
-- **[BACKLOG]** A tela **avisa** quando a comissão come mais da metade da margem da venda — e margem zero ou negativa com qualquer comissão já é alerta.
-- **[BACKLOG]** Sem beneficiário, a tela **diz** que a venda não gera comissão, em vez de mostrar zero sem explicação.
+- **[BACKLOG]** Sem beneficiário, a tela **diz** que a venda não gera comissão, em vez de mostrar zero sem explicação (UC-V350 prova que o total é zero, não a mensagem).
 
 ---
 
-### Detalhe do item (onda 4 — `ItemDetalhe` · 7 abas · tributação)
+### Detalhe do item (onda 4) — o que a promoção NÃO cobriu
 
-> ⚠️ **Erro fiscal sai desta tela direto para a NF-e.** Rejeição da SEFAZ não é detalhe
-> de UI: é a venda parada e retrabalho de quem emite. As regras estão provadas em
-> [`tests/js/item-fiscal-dominio.test.ts`](../../../../tests/js/item-fiscal-dominio.test.ts) — **18/18**.
+> As 7 regras de validação desta onda viraram **UC-V340..UC-V346** acima. Sobrou o que o
+> teste de domínio **não** alcança: fiação de UI (`disabled`, contagem no rótulo) e um item
+> de produção que não tem prova nenhuma.
 
-- **[BACKLOG]** **NCM** exige 8 dígitos e a mensagem diz **quantos faltam**, não só "inválido".
-- **[BACKLOG]** **CFOP** tem 4 dígitos e o **primeiro carrega significado**: 1/2/3 são entradas, 5/6/7 saídas — 4, 8 e 9 não existem como primeiro dígito.
-- **[BACKLOG]** **CEST** (7), **GTIN** (8/12/13/14) e **cBenef** (2 letras da UF + 6 dígitos) são opcionais: vazio passa, preenchido é conferido.
-- **[BACKLOG]** Alíquota e redução vivem na faixa **0..100** — negativo e acima de 100 são recusados.
-- **[BACKLOG]** **Coerência CST × alíquota — o erro que a validação campo-a-campo NÃO pega.** CST 40/41/60/04 declara que não há imposto: alíquota > 0 junto é contradição. E CST 00 (tributada integralmente) com alíquota zero é a contradição no sentido oposto. Os dois campos passam sozinhos; o **par** é rejeitado.
-- **[BACKLOG]** **CST 102** (Simples) tem **três** dígitos e não pode ser lido como "10" — não entra em nenhuma das duas regras.
-- **[BACKLOG]** A aba mostra **todos** os erros de uma vez, não um por vez a cada tentativa de salvar; a aba Tributação exibe a contagem no rótulo.
-- **[BACKLOG]** **Confirmar item** fica **desabilitado** enquanto houver pendência fiscal — salvar incoerência seria empurrar à SEFAZ uma rejeição que o sistema já sabia prever.
+- **[BACKLOG]** A aba **Tributação exibe a contagem** de erros no rótulo (UC-V346 prova a lista, não o rótulo).
+- **[BACKLOG]** **Confirmar item** fica **desabilitado** enquanto houver pendência fiscal — salvar incoerência seria empurrar à SEFAZ uma rejeição que o sistema já sabia prever. (A lista de pendências é UC-V346; a fiação ao botão, não.)
 - **[BACKLOG]** No fluxo de produção, **responsável é PESSOA e setor é ONDE** — a fonte registra que misturar os dois numa coluna só foi o defeito apontado na revisão do desenho.
 
 > **O que esta onda NÃO faz:** não apura tributo. A tabela de impostos mostra base e
@@ -171,23 +573,15 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 
 ---
 
-### Parcelas (onda 3 — `ParcelasDrawer` · CU-SELL-09)
+### Parcelas (onda 3) — o que a promoção NÃO cobriu
 
-> ⚠️ **Território Tier 0 — VALOR.** Diferente da onda 2 (que só derivava peso), esta
-> onda divide **dinheiro**. A REGRA MESTRE de [`proibicoes.md`](../../../../memory/proibicoes.md)
-> exige prova por **dois caminhos independentes**, e ela existe:
-> [`tests/js/parcelas-dominio.test.ts`](../../../../tests/js/parcelas-dominio.test.ts) —
-> **15/15 verde**, comparando a função real contra aritmética à mão em centavos inteiros
-> para **11 totais × 48 quantidades**. O que ainda protege: a tela **não grava**.
+> Os 8 casos desta onda viraram **UC-V330..UC-V337** acima. Sobrou aqui só o que os testes de
+> domínio genuinamente **não** provam: os dois itens abaixo são de **fiação com a UI**, e o
+> teste é de lógica pura (sem render). Separá-los é o ponto — promover a metade não provada
+> junto teria feito o UC afirmar mais do que a prova sustenta.
 
-- **[BACKLOG]** `ratear(total, n)` **não perde nem inventa centavo**: a soma das parcelas é exatamente o total, para qualquer `n` de 1 a 48. A conta roda em centavos inteiros e o resto vai para as **primeiras** parcelas.
-- **[BACKLOG]** `100,00` em 3 dá `33,34 · 33,33 · 33,33` — e **não** `33,33 × 3 = 99,99`, que é o centavo que some do jeito ingênuo e vira diferença de conciliação.
-- **[BACKLOG]** "Vence no mesmo dia de cada mês" **não é somar 30 dias**: dia 31 é grampeado no último dia do mês curto (31/01 → **28/02**), enquanto somar 30 dias vazaria para **02/03** — mês diferente, competência diferente.
-- **[BACKLOG]** Quantidade digitada é saneada: texto lixo, vazio, zero ou negativo caem em **1**; acima de 48 é grampeado no teto.
-- **[BACKLOG]** O botão **Confirmar parcelas** fica **desabilitado** enquanto a soma não fecha no total — plano de pagamento que não paga a venda não sai do drawer como se estivesse pronto.
-- **[BACKLOG]** Quando falta ou sobra, a tela diz **de que lado** ("falta distribuir" × "passou do total") e oferece jogar a diferença na **última** parcela.
-- **[BACKLOG]** Parcela com vencimento anterior a hoje é marcada **vencida** — comparando por **dia**, não por instante (vencimento de hoje às 23h59 **não** está vencido).
-- **[BACKLOG]** O parse pt-BR sobrevive ao separador de milhar: `1.115,40` é mil cento e quinze, não um milhão — é o guard do incidente `num_uf`.
+- **[BACKLOG]** O predicado de UC-V334 está de fato ligado ao atributo `disabled` do botão **Confirmar parcelas** (a lógica está provada; a fiação, não).
+- **[BACKLOG]** A tela oferece **jogar a diferença na última parcela** quando falta ou sobra (UC-V335 prova o sinal da diferença, não a ação).
 
 ---
 
@@ -265,7 +659,11 @@ pertence a `Sells/Create`, não aqui:
 
 ## Pendências declaradas
 
-- Testes: **1 arquivo** — `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
-- O que os 3 UCs **não** cobrem: nada de auth, permissão, render ou valor. São contrato de roteamento e de fronteira — os itens de `[BACKLOG]` acima seguem sem prova.
+- Testes: **5 arquivos**, em **duas lanes**.
+  - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
+  - `tests/js/{parcelas,item-fiscal,comissao,colunas}-dominio.test.ts` (UC-V330..V366 — 29 UCs, **70 testes**), na lane [`sells-v3-dominio-gate.yml`](../../../../.github/workflows/sells-v3-dominio-gate.yml). **Verde local (70/70); sem run de CI ainda** — a lane nasceu junto com esta promoção.
+- ⚠️ **Os 29 UCs de domínio estão 🧪, não ✅, e isso é literal:** o veredito deles ainda **não** existe no manifesto do G-7. Ele chega quando a lane rodar em `main` e o [`casos-results-publish.yml`](../../../../.github/workflows/casos-results-publish.yml) (cron 07:30 BRT) colher o JUnit. Só **depois** disso alguém pode flipar para ✅ — e o flip é edição consciente deste arquivo, porque o publisher escreve o manifesto, nunca o `casos.md`. Declarar ✅ antes vira `status:unverified` e **derruba o casos-gate (required)**.
+- ⚠️ **Antes desta promoção os 4 specs rodavam em ZERO lanes** (medido 2026-08-11: `rg --hidden` pelos 4 nomes no repo inteiro não devolve nenhum `.github/workflows`). Eram 70 testes verdes que o CI nunca executou — verde-por-não-execução (LC-13). A lane foi criada no mesmo PR justamente porque promover UC apoiado em teste que ninguém roda fabrica cobertura com o gate verde.
+- O que os 32 UCs **não** cobrem: nada de auth, permissão, render, persistência ou fiação de UI (`disabled`, rótulo, mensagem). São contrato de **roteamento/fronteira** (V301..V303) e de **lógica de domínio pura** (V330..V366) — os itens de `[BACKLOG]` acima seguem sem prova, e os resíduos por onda dizem exatamente qual metade ficou de fora.
 - Smoke real de tela: pendente. O RUNBOOK ([`RUNBOOK-create-v3.md`](../../../../memory/requisitos/Sells/RUNBOOK-create-v3.md) §F4) prevê smoke em staging; nada disso rodou.
 - Tenant de teste é o fictício **98** ([ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)) — `biz=4` é proibido em teste, fixture ou smoke.

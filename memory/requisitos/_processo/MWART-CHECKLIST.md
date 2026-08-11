@@ -51,7 +51,7 @@ id: requisitos-processo-mwart-checklist
 **Por quê:** sem isso, user precisa digitar URL na barra. Não é descoberta — é hidden feature.
 
 ### 6. SCOPE.md
-**Path:** `Modules/<Mod>/SCOPE.md` linha `contains:` adicionar `<Tela>Controller`
+**Path:** `memory/requisitos/<Mod>/SCOPE.md` linha `contains:` adicionar `<Tela>Controller`
 **Enforcement:** workflow `check-scope` falha em soft mode se Controller não declarado
 
 ### 7. Pest GUARD

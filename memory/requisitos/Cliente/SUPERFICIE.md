@@ -13,9 +13,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Cliente --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
+> **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 312 arquivos em 18 papéis.
+**Total mapeado:** 311 arquivos em 18 papéis.
 
 ## Controllers — 29
 
@@ -317,9 +317,10 @@ tabelas_dominio: ["contacts", "customer_groups"]
 
 ## Testes (Pest) — 13
 
-- 13 arquivos em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 13 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 49
+## Demais arquivos (manifestos, docs, assets e misc) — 48
 
 - [ClienteProximaAcaoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php)
 - [ClienteResumoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php)
@@ -362,7 +363,6 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [lang.php](../../../Modules/Crm/Resources/lang/tr/lang.php)
 - [lang.php](../../../Modules/Crm/Resources/lang/vi/lang.php)
 - [.gitkeep](../../../Modules/Crm/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/Crm/SCOPE.md)
 - [.gitkeep](../../../Modules/Crm/Tests/.gitkeep)
 - [CrmUtil.php](../../../Modules/Crm/Utils/CrmUtil.php)
 - [composer.json](../../../Modules/Crm/composer.json)

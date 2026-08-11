@@ -1,6 +1,8 @@
 ---
 proposal_id: templates-8-artefatos-anexo
-status: proposto
+status: accepted
+decided_by: wagner
+decided_at: "2026-08-11"
 created: 2026-08-04
 parent_proposal: templates-dos-8-artefatos-e-onde-mora-o-contador
 type: anexo
@@ -417,7 +419,7 @@ O que fica, tudo já computado pelo dono `casos-coverage-guard`, publicado em `n
 
 ---
 
-### 7 · `Modules/<X>/SCOPE.md`
+### 7 · `memory/requisitos/<X>/SCOPE.md`
 
 #### Frontmatter — **tudo citado** (D-T1), e três campos mudam de status
 

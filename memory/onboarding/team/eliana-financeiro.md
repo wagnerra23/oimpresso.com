@@ -119,7 +119,7 @@ Cada vez que mexer em `Modules/<X>/`:
 | **`forceDelete()` em `nfe_emissoes` cancelada** | Tenta "limpar" NFe cancelada → CONFAZ SINIEF 07/2005 Art. 14 PROÍBE | PROIBIDO Tier 0 IRREVOGÁVEL (proibicoes.md). NFe cancelada vira `status=cancelada`, NUNCA hard delete. |
 | **Mexe em `ponto_marcacoes` (Portaria 671)** | Tenta UPDATE/DELETE marcação → trigger MySQL nega | Append-only por lei. Use `Marcacao::anular()`. |
 | **PII em código/log/commit** | CPF cliente vaza em mensagem de erro | CI `pii-scan` bloqueia. Use `[REDACTED]` ou `PiiRedactor`. |
-| **Drift de Module Charter** | Cria Controller fora `Modules/Financeiro/SCOPE.md.contains[]` | Hook `block-module-drift` warn (depois block) + CI gate |
+| **Drift de Module Charter** | Cria Controller fora `memory/requisitos/Financeiro/SCOPE.md.contains[]` | Hook `block-module-drift` warn (depois block) + CI gate |
 | **Refund Asaas sem flag** | `RefundCobrancaAsaasJob` sem `ASAAS_REFUND_ENABLED=true` em prod | Wagner ativa manual `.env` após validação homolog (proibicoes.md) |
 | **DDL direto em prod** (`ALTER TABLE` via phpMyAdmin) | Atalho pra "ajustar coluna fiscal rápido" | PROIBIDO. Sempre migration PHP. Check `procedure_drift` em `jana:health-check` detecta. |
 | **`Mail::raw` sem checar opt-in LGPD** | Notifica cliente sobre boleto sem verificar `Contact::canReceiveEmailNotification()` | LGPD opt-in. NULL=permite (back-compat); FALSE=bloqueia. Mesma regra `canReceiveWhatsappNotification()`. |

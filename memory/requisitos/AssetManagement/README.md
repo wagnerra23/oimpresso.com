@@ -91,7 +91,7 @@ php artisan assetmanagement:health --detail  # expande JSON após tabela
 
 ## SCOPE / não fazer aqui
 
-Ver [SCOPE.md](../../../Modules/AssetManagement/SCOPE.md). Em resumo:
+Ver [SCOPE.md](SCOPE.md). Em resumo:
 - ❌ Conhecimento canônico (ADRs, sessions) → `Modules/KB`
 - ❌ Tasks Jira-style → `Modules/Forja`
 - ❌ MCP server admin → `Modules/TeamMcp`

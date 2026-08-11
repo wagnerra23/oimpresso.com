@@ -62,7 +62,7 @@ class DriftAlertService
 
             foreach ($modules as $module) {
                 $modulePath = $modulesPath . '/' . $module;
-                $scopePath = $modulePath . '/SCOPE.md';
+                $scopePath = base_path('memory/requisitos/' . basename($modulePath) . '/SCOPE.md');
 
                 if (! is_file($scopePath)) {
                     $modulesWithoutScope[] = $module;

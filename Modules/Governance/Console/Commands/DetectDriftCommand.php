@@ -12,7 +12,7 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * Drift detection cron — Mecanismo #5 ENFORCEMENT.md (Constituição Art. 7).
  *
- * Compara estado DECLARADO (Modules/<X>/SCOPE.md.contains[]) × estado OBSERVADO
+ * Compara estado DECLARADO (memory/requisitos/<X>/SCOPE.md.contains[]) × estado OBSERVADO
  * (filesystem Modules/<X>/Http/Controllers/**) e persiste alertas idempotentes
  * em `mcp_alertas_eventos` (tipo=module_drift).
  *
@@ -159,7 +159,7 @@ class DetectDriftCommand extends Command
     }
 
     /**
-     * Descobre todos Modules/<X>/SCOPE.md, opcionalmente filtrando por nome.
+     * Descobre todos memory/requisitos/<X>/SCOPE.md, opcionalmente filtrando por nome.
      *
      * @return array<string, string> map [module_name => scope_path]
      */
@@ -178,7 +178,10 @@ class DetectDriftCommand extends Command
             if ($filter !== null && $entry !== $filter) {
                 continue;
             }
-            $scopePath = $moduleDir . DIRECTORY_SEPARATOR . 'SCOPE.md';
+            // ADR 0375: o SCOPE saiu de Modules/<X>/ pra memory/requisitos/<X>/. O modulo
+            // continua sendo DESCOBERTO por Modules/ (e la que o codigo observado vive) —
+            // so a resolucao do descritor mudou de lugar. Mesmo padrao do DriftAlertService:65.
+            $scopePath = base_path('memory/requisitos/' . $entry . '/SCOPE.md');
             if (is_file($scopePath)) {
                 $out[$entry] = $scopePath;
             }
@@ -326,9 +329,9 @@ class DetectDriftCommand extends Command
                     $controller
                 ),
                 'descricao' => sprintf(
-                    "Controller %s.php existe em filesystem mas não está em Modules/%s/SCOPE.md.contains[].\n\n" .
+                    "Controller %s.php existe em filesystem mas não está em memory/requisitos/%s/SCOPE.md.contains[].\n\n" .
                     "Declarado: %d | Observado: %d.\n\n" .
-                    "Ação: editar Modules/%s/SCOPE.md adicionando o controller em contains[] " .
+                    "Ação: editar memory/requisitos/%s/SCOPE.md adicionando o controller em contains[] " .
                     "OU mover/remover o controller. Ref: memory/governance/ENFORCEMENT.md §2 #5.",
                     $controller,
                     $module,

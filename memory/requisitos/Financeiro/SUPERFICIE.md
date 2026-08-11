@@ -12,7 +12,7 @@ module: Financeiro
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Financeiro --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Financeiro/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 333 arquivos em 22 papéis.
 
@@ -287,7 +287,10 @@ module: Financeiro
 
 ## Testes (Pest) — 81
 
-- 81 arquivos em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 76 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
+- 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 43
 
@@ -313,13 +316,13 @@ module: Financeiro
 - [topnav.php](../../../Modules/Financeiro/Resources/menus/topnav.php)
 - [.gitkeep](../../../Modules/Financeiro/Resources/views/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Routes/.gitkeep)
-- [SCOPE.md](../../../Modules/Financeiro/SCOPE.md)
 - [.gitkeep](../../../Modules/Financeiro/Tests/Feature/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Tests/Unit/.gitkeep)
 - [composer.json](../../../Modules/Financeiro/composer.json)
 - [module.json](../../../Modules/Financeiro/module.json)
 - [package.json](../../../Modules/Financeiro/package.json)
 - [vite.config.js](../../../Modules/Financeiro/vite.config.js)
+- [SCOPE.md](../../../memory/requisitos/Financeiro/SCOPE.md)
 - [cobranca-shared.ts](../../../resources/js/Pages/Financeiro/Cobranca/_lib/cobranca-shared.ts)
 - [forma-pagamento.ts](../../../resources/js/Pages/Financeiro/Unificado/_lib/forma-pagamento.ts)
 - [README.md](../../../resources/js/Pages/Financeiro/_cowork-bundle/README.md)

@@ -4,7 +4,7 @@
  * catalog-graph.mjs — GERADOR determinístico do GRAFO TIPADO de módulos.
  *
  * A DOR (grade catálogo/IDP 7,0, memory/sessions/2026-07-21-grade-catalogo-aprendizado-vs-mercado.md,
- * chip #2): o `Modules/<X>/SCOPE.md` é o descritor por módulo (estilo Backstage `catalog-info.yaml`),
+ * chip #2): o `memory/requisitos/<X>/SCOPE.md` é o descritor por módulo (estilo Backstage `catalog-info.yaml`),
  * mas hoje é markdown lido por humano/IA — NÃO um grafo tipado consultável. Backstage/Cortex/Port
  * são graph-native (`dependsOn`/`providesApi`/`partOf`), o que deixa perguntar "que módulo quebra se
  * a tabela X (ou o módulo Y) mudar". Este gerador DERIVA as arestas dos SCOPE.md e emite um
@@ -211,7 +211,7 @@ function listScopeModules() {
   const dir = join(ROOT, 'Modules');
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
-    .filter((m) => existsSync(join(dir, m, 'SCOPE.md')))
+    .filter((m) => existsSync(join(ROOT, 'memory', 'requisitos', m, 'SCOPE.md')))
     .sort();
 }
 
@@ -243,7 +243,7 @@ function knownAdrNumbers() {
 
 /** Lê 1 SCOPE.md → registro { module, purpose, ... , contains[], not_contains[], tables }. */
 function readScope(mod) {
-  const rel = `Modules/${mod}/SCOPE.md`;
+  const rel = `memory/requisitos/${mod}/SCOPE.md`;
   const { fields, raw } = parseFrontmatter(readFileSync(join(ROOT, rel), 'utf8'));
   return {
     module: typeof fields.module === 'string' ? fields.module : mod,
@@ -460,7 +460,7 @@ function serialize(graph) {
 
   const catalog = {
     $generator: 'scripts/governance/catalog-graph.mjs',
-    $doc: 'Grafo tipado DERIVADO dos Modules/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write',
+    $doc: 'Grafo tipado DERIVADO dos memory/requisitos/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write',
     $advisory: 'Advisory de nascença (ADR 0314/0275) — não é gate required.',
     node_types: NODE_TYPES,
     edge_types: EDGE_TYPES,
@@ -496,6 +496,50 @@ function queryGraph(graph, term) {
 // Relatório de diagnósticos no console (dry/write/check).
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Tombstones de módulo curados em `governance/ghost-rename-map.json` (chave
+ * `excluded`). Este arquivo é o DONO de "esse nome foi removido, quando e por
+ * qual ADR" — aqui só se LÊ, nunca se re-declara (§5: aponta pro dono, não
+ * restateia). Devolve `null` quando não deu pra ler, pra a mensagem poder dizer
+ * que NÃO classificou em vez de chamar módulo morto de "fronteira futura".
+ * @returns {Record<string, any> | null}
+ */
+function loadModuleTombstones() {
+  const abs = join(ROOT, 'governance/ghost-rename-map.json');
+  if (!existsSync(abs)) return null;
+  try {
+    const j = JSON.parse(readFileSync(abs, 'utf8'));
+    const ex = j.excluded;
+    return ex && typeof ex === 'object' && !Array.isArray(ex) ? ex : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Separa os `referenced-only` em três baldes. O rótulo antigo dizia "fronteira
+ * futura/legada" pros dois casos juntos — e a maioria são módulos MORTOS por ADR,
+ * não fronteira. Puro de propósito: recebe a lista e o mapa, não lê disco.
+ *
+ * NÃO mexe em nó, aresta nem no catalog.json — é só como o diagnóstico se
+ * apresenta. A classificação vem do tombstone curado, nunca de heurística de nome.
+ *
+ * @param {{module: string}[]} refOnly
+ * @param {Record<string, any>} tombstones  `excluded` do ghost-rename-map
+ */
+export function classifyReferencedOnly(refOnly, tombstones) {
+  const removidos = [], ambiguos = [], futuros = [];
+  for (const r of refOnly ?? []) {
+    const t = tombstones?.[r.module];
+    if (!t) { futuros.push(r.module); continue; }
+    // `removed_at` é o que QUALIFICA a morte (mesma régua do knowledge-drift):
+    // tombstone sem data é fila humana, não fato consumado.
+    if (t.removed_at) removidos.push({ module: r.module, adr: t.removed_by_adr || '', em: t.removed_at });
+    else ambiguos.push(r.module);
+  }
+  return { removidos, ambiguos, futuros };
+}
+
 function reportDiagnostics(graph) {
   const d = graph.diagnostics;
   const dm = d.dangling_module_refs, da = d.dangling_adr_refs;
@@ -516,7 +560,17 @@ function reportDiagnostics(graph) {
   if (co.length) {
     console.log(`ℹ️  ${co.length} tabela(s) consumida(s) sem dono no catálogo (pode ser core UltimatePOS): ${co.map((t) => t.table).join(', ')}`);
   }
-  if (ro.length) console.log(`ℹ️  ${ro.length} módulo(s) referenced-only (fronteira futura/legada sem SCOPE próprio): ${ro.map((x) => x.module).join(', ')}`);
+  if (ro.length) {
+    const tomb = loadModuleTombstones();
+    if (tomb === null) {
+      console.log(`ℹ️  ${ro.length} módulo(s) referenced-only, NÃO classificados (ghost-rename-map.json ausente ou ilegível): ${ro.map((x) => x.module).join(', ')}`);
+    } else {
+      const { removidos, ambiguos, futuros } = classifyReferencedOnly(ro, tomb);
+      if (removidos.length) console.log(`ℹ️  ${removidos.length} módulo(s) citado(s) mas REMOVIDO(s) — tombstone curado, não é fronteira: ${removidos.map((r) => `${r.module} (ADR ${r.adr || '—'}, ${r.em})`).join(' · ')}`);
+      if (ambiguos.length) console.log(`ℹ️  ${ambiguos.length} módulo(s) citado(s) com tombstone SEM data (fila humana no ghost-rename-map): ${ambiguos.join(', ')}`);
+      if (futuros.length) console.log(`ℹ️  ${futuros.length} módulo(s) referenced-only sem tombstone (fronteira futura, sem SCOPE próprio): ${futuros.join(', ')}`);
+    }
+  }
   if (!dm.length && !da.length && !tm.length) console.log('✅ integridade: nenhuma aresta pendurada nem conflito de ownership.');
   return dm.length + da.length; // "fatais" pro exit do --check
 }
@@ -581,7 +635,7 @@ export function toMermaid(graph, { focus = null } = {}) {
 function main() {
   const mods = listScopeModules();
   if (!mods.length) {
-    console.error('[catalog-graph] nenhum Modules/*/SCOPE.md encontrado — rode da raiz do repo.');
+    console.error('[catalog-graph] nenhum memory/requisitos/*/SCOPE.md encontrado — rode da raiz do repo.');
     process.exit(2);
   }
   const records = [...mods.map(readScope), ...listCoreClassBRecords()];

@@ -6,7 +6,7 @@ id: requisitos-woocommerce-briefing
 
 > **Estado:** 🟡 scaffold preservado, sem cliente ativo hoje, manutenção dormente | **Atualizado:** 2026-08-01 | **Owner:** sem owner ativo
 
-> **Portas canônicas** (existem desde a última revisão): [`SCOPE.md`](../../../Modules/Woocommerce/SCOPE.md) (fronteira/ownership) · [`SUPERFICIE.md`](SUPERFICIE.md) (índice de código gerado por `module-surface.mjs` — 59 arquivos, 13 papéis) · [`SPEC.md`](SPEC.md). Não recopiar a lista de arquivos aqui — consultar a porta.
+> **Portas canônicas** (existem desde a última revisão): [`SCOPE.md`](SCOPE.md) (fronteira/ownership) · [`SUPERFICIE.md`](SUPERFICIE.md) (índice de código gerado por `module-surface.mjs` — 59 arquivos, 13 papéis) · [`SPEC.md`](SPEC.md). Não recopiar a lista de arquivos aqui — consultar a porta.
 
 ## O que é
 

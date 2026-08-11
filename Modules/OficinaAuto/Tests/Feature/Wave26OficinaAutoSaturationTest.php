@@ -167,7 +167,7 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
     });
 
     it('D5: Martinho Caçambas em SCOPE ou CHANGELOG (Wave 25 mantido)', function () {
-        $scopePath = base_path('Modules/OficinaAuto/SCOPE.md');
+        $scopePath = base_path('memory/requisitos/OficinaAuto/SCOPE.md');
         $changePath = base_path('memory/requisitos/OficinaAuto/CHANGELOG.md');
 
         $found = false;

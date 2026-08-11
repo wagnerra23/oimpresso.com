@@ -55,6 +55,11 @@ import ComissaoDrawer from './_components/v3/ComissaoDrawer';
 import ColunasModal from './_components/v3/ColunasModal';
 import ItemDetalhe from './_components/v3/ItemDetalhe';
 import ParcelasDrawer from './_components/v3/ParcelasDrawer';
+import ConsultaCliente from './_components/v3/ConsultaCliente';
+import {
+  rotuloIcmsLongo,
+  type ClienteConsulta,
+} from './_components/v3/cliente-consulta-dominio';
 import { type Parcela } from './_components/v3/parcelas-dominio';
 import { type Beneficiario, type Gatilho } from './_components/v3/comissao-dominio';
 import { carregarColunas, salvarColunas } from './_components/v3/colunas-dominio';
@@ -75,25 +80,10 @@ import {
 
 /* ─── contratos de cena ─────────────────────────────────────────────────── */
 
-type Cliente = {
-  cod: string;
-  nome: string;
-  padrao: boolean;
-  doc: string;
-  ie: string;
-  contrib: 'sim' | 'isento' | 'nao';
-  regime: string;
-  fone: string;
-  email: string;
-  emailNfe: string;
-  contato: string;
-  endereco: string;
-  cidade: string;
-  uf: string;
-  grupo: string;
-  prazo: string;
-  tabela: string | null;
-};
+/* O cadastro do cliente é o MESMO objeto que a consulta devolve — declarar duas
+   vezes garantiria drift no dia em que um campo entrasse só de um lado. A forma
+   canônica mora no domínio da consulta, e aqui é alias. */
+type Cliente = ClienteConsulta;
 
 type Item = {
   k: number;
@@ -148,6 +138,9 @@ type Props = {
     /* onda 2 · CU-SELL-11 — opcional porque a cena é servida por um controller que
        pode estar numa versão anterior; o componente trata `[]` sem quebrar. */
     transportadoras?: Transportadora[];
+    /* onda extra — consulta de clientes. Opcional pelo mesmo motivo: sem a chave,
+       a consulta abre com o cadastro que já está na venda e nada quebra. */
+    clientes?: ClienteConsulta[];
   };
 };
 
@@ -170,23 +163,14 @@ function linhaTotal(l: Item): number {
   );
 }
 
-/** Gatilho de recurso que ainda não existe — diz o que falta em vez de fingir. */
-function AindaNao({ children, o_que }: { children: ReactNode; o_que: string }) {
-  return (
-    <button
-      type="button"
-      title={`${o_que} — não faz parte deste passo do porte`}
-      aria-disabled
-      onClick={(e) => e.preventDefault()}
-      className="cursor-not-allowed text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2"
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function SellsCreateV3({ cena }: Props) {
-  const { cliente: cli, catalogo, tabelas, fsm, papeisDoUsuario, executantes, permissoes } = cena;
+  const { catalogo, tabelas, fsm, papeisDoUsuario, executantes, permissoes } = cena;
+
+  /* O cliente virou ESTADO na onda extra (consulta de clientes). Antes era const
+     vinda da cena, porque nada podia trocá-lo. `cena.cliente` segue sendo o valor
+     inicial — o padrão do balcão — e é a primeira linha de `cena.clientes`. */
+  const [cli, setCli] = useState<Cliente>(cena.cliente);
+  const [consultaAberta, setConsultaAberta] = useState(false);
 
   const [itens, setItens] = useState<Item[]>(cena.itens);
   const [busca, setBusca] = useState('');
@@ -338,7 +322,11 @@ export default function SellsCreateV3({ cena }: Props) {
         }
         hue="primary"
         pad={12}
-        right={<AindaNao o_que="Consulta de clientes (modal 880px)">Consultar cadastro… F2</AindaNao>}
+        right={
+          <Button type="button" variant="outline" size="sm" onClick={() => setConsultaAberta(true)}>
+            Consultar cadastro… F2
+          </Button>
+        }
       >
         <Inline gap={3} align="end" className="flex-wrap">
           <div className="w-[104px] flex-none">
@@ -381,7 +369,7 @@ export default function SellsCreateV3({ cena }: Props) {
               ['CNPJ / CPF', cli.doc],
               ['Inscrição estadual', cli.ie],
               ['Regime tributário', cli.regime],
-              ['Situação de ICMS', cli.contrib === 'sim' ? 'Contribuinte' : cli.contrib === 'isento' ? 'Isento' : 'Não contribuinte'],
+              ['Situação de ICMS', rotuloIcmsLongo(cli.contrib)],
               ['Telefone', cli.fone],
               ['E-mail', cli.email],
               ['E-mail da NF-e', cli.emailNfe],
@@ -1063,6 +1051,27 @@ export default function SellsCreateV3({ cena }: Props) {
         parcelas={parcelas}
         onParcelasChange={setParcelas}
         documentoBase="VD-2026"
+      />
+
+      {/* Onda extra — consulta de clientes. `cena.clientes ?? [cli]` mantém a tela
+          honesta se o controller vier de uma versão sem a chave: a consulta abre
+          mostrando o cadastro que já está na venda, em vez de uma lista vazia. */}
+      <ConsultaCliente
+        aberta={consultaAberta}
+        onFechar={() => setConsultaAberta(false)}
+        clientes={cena.clientes ?? [cli]}
+        selecionado={cli.cod}
+        onEscolher={(c) => {
+          setCli(c);
+          /* Abre os detalhes do destinatário — quem acabou de trocar de cliente
+             precisa CONFERIR o que veio junto (documento, ICMS, endereço). É o
+             que a fonte faz no `onRowClick`, e a razão é boa. */
+          setDestAberto(true);
+          setUndo({
+            msg: `Cliente trocado — ${c.nome}`,
+            desfazer: () => setCli(cli),
+          });
+        }}
       />
 
       {undo && (

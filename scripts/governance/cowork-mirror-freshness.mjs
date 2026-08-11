@@ -98,6 +98,45 @@ export function shouldFail(verdicts) {
   return verdicts.some((v) => v === 'STALE');
 }
 
+// ── LIVE-ONLY: o ponto cego que deixou `jana-merge.jsx` fora do git por dias ──────
+// O manifesto monta o universo do lado do ESPELHO (readdir de prototipo-ui/cowork/).
+// Consequência estrutural: arquivo que existe no VIVO e nunca foi exportado é invisível
+// POR CONSTRUÇÃO — o LIVE-ABSENT cobre o inverso (está no espelho, sumiu do vivo).
+// É a mesma forma do §5 2026-08-10 (catraca que itera o lado mutável).
+// Incidente 2026-08-11: `jana-merge.jsx` vivia no Cowork, era citado por 21 sites do repo
+// (charter, 2 .tsx de produção, workflow, testes) e NÃO estava versionado. Nenhuma
+// ferramenta apontou — porque nenhuma olhava para esse lado.
+/** Paths que existem no VIVO e não têm contraparte no espelho (puro, testável).
+ *  `livePaths`: lista de paths do projeto vivo (DesignSync.list_files).
+ *  `manifest`: saída de buildManifest (cada item tem `.cowork`).
+ *  Só considera extensões que o espelho versiona — o vivo tem .md/.png/_arquivo que
+ *  não são protótipo e acusá-los seria ruído (falso-positivo por construção). */
+export function liveOnly(livePaths, manifest, { exts = ['.jsx', '.html', '.css', '.js'] } = {}) {
+  const noEspelho = new Set(manifest.map((f) => f.cowork));
+  return livePaths
+    .filter((p) => exts.some((e) => p.toLowerCase().endsWith(e)))
+    .filter((p) => !p.startsWith('_arquivo/'))     // arquivo morto declarado upstream
+    .filter((p) => !p.startsWith('prototipo-ui/')) // cópia do próprio espelho dentro do vivo
+    .filter((p) => !noEspelho.has(p))
+    .sort();
+}
+
+// ── EXPORT FIEL: o erro que transcrição manual causa, eliminado na raiz ───────────
+// Incidente 2026-08-11: exportei 923 linhas transcrevendo à mão e saiu STALE. Pior — a
+// versão errada tinha 20 linhas a menos e me levou a "corrigir" um charter que estava
+// CERTO. A escrita tem que sair do JSON do get_file, nunca do olho do agente.
+/** Plano de export a partir dos JSONs que o agente salvou do DesignSync.get_file.
+ *  Puro: recebe [{path, content}] e devolve [{relPath, content, bytes}].
+ *  `path` é o path NO VIVO; o espelho grava em prototipo-ui/cowork/<path>. */
+export function exportPlan(arquivosVivos, { prefixo = 'prototipo-ui/cowork/' } = {}) {
+  return arquivosVivos.map(({ path: p, content }) => {
+    if (typeof content !== 'string') {
+      throw new Error(`export: conteúdo ausente para "${p}" — o JSON do get_file precisa ter .content`);
+    }
+    return { relPath: prefixo + p, content, bytes: Buffer.byteLength(content, 'utf8') };
+  });
+}
+
 // ── LEDGER + SLA (a metade que o CI headless PODE checar com honestidade) ─────
 // O CI não lê o Cowork vivo (auth interativa). Então o CI NÃO mede frescor — mede se a
 // ROTINA de dispatch rodou dentro do SLA e qual foi o último resultado. Ledger datado,
@@ -231,6 +270,75 @@ function main() {
   const argv = process.argv.slice(2);
   const all = argv.includes('--all');
   const cmpIdx = argv.indexOf('--compare');
+
+  // Teste deste script vive no IRMÃO `cowork-mirror-freshness.test.mjs` (wirado em
+  // design-memory-gate.yml:239) — que já cobria 9 funções puras. Em 2026-08-11 eu cheguei a
+  // escrever um `--selftest` embutido aqui e o REMOVI: seria um 2º dono do mesmo teste, que é
+  // o anti-padrão que este repo cataloga (§5 "duplica régua consolidada" · LC-19). As funções
+  // novas (liveOnly · exportPlan) foram para o irmão.
+
+  // --live-only <lista.json>: o LADO CEGO. Recebe a saída do DesignSync.list_files
+  // ({paths:[…]} ou array cru) e mostra o que existe no VIVO e nunca desceu pro espelho.
+  // Advisory por desenho: decidir o que merece versionar é do [W]; a máquina só deixa de
+  // esconder. Medido 2026-08-11 no corpus real: 25 de 1310 paths, 14 deles protótipo de tela.
+  const loIdx = argv.indexOf('--live-only');
+  if (loIdx !== -1) {
+    const lp = argv[loIdx + 1];
+    if (!lp || !existsSync(lp)) {
+      console.error('✗ --live-only exige o JSON do DesignSync.list_files.');
+      process.exit(2);
+    }
+    const raw = JSON.parse(readFileSync(lp, 'utf8'));
+    const paths = Array.isArray(raw) ? raw : (raw.paths || []);
+    const manifest = buildManifest(ROOT, { all: true, shellHtml: defaultShellPath() });
+    const faltando = liveOnly(paths, manifest);
+    // Classifica pra o humano decidir sem ler 25 linhas iguais. NÃO é filtro — tudo é
+    // listado; filtro escondido aqui recriaria o ponto cego que este modo existe pra abrir.
+    const ehTela = (p) => !p.includes('/') && /\.(jsx|css)$/.test(p);
+    const telas = faltando.filter(ehTela);
+    const outros = faltando.filter((p) => !ehTela(p));
+    console.log(`\n  LIVE-ONLY — existe no Cowork vivo e NÃO está no espelho (${faltando.length} de ${paths.length} paths)\n`);
+    console.log(`  ── protótipo de tela (${telas.length}) — candidatos reais a versionar:`);
+    for (const p of telas) console.log(`     + ${p}`);
+    console.log(`\n  ── outros (${outros.length}) — shell, uploads, bundle de DS, docs:`);
+    for (const p of outros) console.log(`     · ${p}`);
+    console.log('\n  Para versionar: DesignSync.get_file de cada → salve os JSON num dir → --export-from <dir>.');
+    console.log('  ⚠️ advisory por desenho: o que merece descer é decisão [W], não da máquina.\n');
+    return;
+  }
+
+  // --export-from <dir>: escreve o espelho a partir dos JSONs do DesignSync.get_file.
+  // O agente busca (só ele tem o MCP) e o SCRIPT escreve — nunca o agente transcrevendo.
+  const expIdx = argv.indexOf('--export-from');
+  if (expIdx !== -1) {
+    const dir = argv[expIdx + 1];
+    if (!dir || !existsSync(dir)) {
+      console.error('✗ --export-from exige um diretório com os JSONs do get_file.');
+      process.exit(2);
+    }
+    const jsons = readdirSync(dir).filter((f) => f.endsWith('.json') || f.endsWith('.txt'));
+    const vivos = [];
+    for (const j of jsons) {
+      const raw = JSON.parse(readFileSync(join(dir, j), 'utf8'));
+      if (!raw.path || typeof raw.content !== 'string') {
+        console.error(`✗ ${j}: JSON do get_file precisa ter .path e .content — pulado.`);
+        process.exit(2);
+      }
+      vivos.push({ path: raw.path, content: raw.content });
+    }
+    const plano = exportPlan(vivos);
+    for (const { relPath, content, bytes } of plano) {
+      const abs = join(ROOT, relPath);
+      const antes = existsSync(abs) ? contentHash(readFileSync(abs, 'utf8')) : null;
+      writeFileSync(abs, content, 'utf8');
+      const depois = contentHash(content);
+      const nota = antes === null ? 'NOVO' : antes === depois ? 'inalterado' : 'ATUALIZADO';
+      console.log(`  ${nota.padEnd(11)} ${relPath}  (${bytes} bytes · ${depois.slice(0, 12)})`);
+    }
+    console.log(`\n✓ ${plano.length} arquivo(s) escritos do JSON — fiel por construção, sem transcrição.`);
+    console.log('  Confira com: --manifest --all → get_file → --compare snap.json --check');
+    return;
+  }
 
   // --sla: modo headless-safe (lê SÓ o ledger — nada de rede/auth). Mede CADÊNCIA da rotina
   // + último resultado; NÃO mede frescor (isso só o dispatch logado mede).

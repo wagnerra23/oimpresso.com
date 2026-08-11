@@ -271,5 +271,5 @@ Documentado no top do `Board/Index.tsx` mas NÃO implementado:
 - Skill `cockpit-runbook` — gerar RUNBOOK desta tela após redesign Fase 1 estabilizar
 - [Linear method](https://linear.app/method) — benchmark de fluidez UX
 - [Atlassian Design System — Board](https://atlassian.design/components/board)
-- [SCOPE.md Forja](../../../Modules/Forja/SCOPE.md)
+- [SCOPE.md Forja](SCOPE.md)
 - SPEC funcional histórico US-TR-NNN: [`memory/requisitos/TaskRegistry/SPEC.md`](../TaskRegistry/SPEC.md)

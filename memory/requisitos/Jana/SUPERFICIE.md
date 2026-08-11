@@ -12,9 +12,9 @@ module: Jana
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Jana --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Jana/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 570 arquivos em 19 papéis.
+**Total mapeado:** 569 arquivos em 19 papéis.
 
 ## Controllers — 10
 
@@ -391,9 +391,31 @@ module: Jana
 
 ## Testes (Pest) — 158
 
-- 158 arquivos em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 30 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
+- 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
+- 2 em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor)
+- 2 em [Modules/Jana/Tests/Feature/Ai/Clarify/](../../../Modules/Jana/Tests/Feature/Ai/Clarify)
+- 2 em [Modules/Jana/Tests/Feature/Backlinks/](../../../Modules/Jana/Tests/Feature/Backlinks)
+- 1 em [Modules/Jana/Tests/Feature/Chat/](../../../Modules/Jana/Tests/Feature/Chat)
+- 3 em [Modules/Jana/Tests/Feature/Console/](../../../Modules/Jana/Tests/Feature/Console)
+- 2 em [Modules/Jana/Tests/Feature/Kb/](../../../Modules/Jana/Tests/Feature/Kb)
+- 33 em [Modules/Jana/Tests/Feature/Mcp/](../../../Modules/Jana/Tests/Feature/Mcp)
+- 14 em [Modules/Jana/Tests/Feature/Memoria/](../../../Modules/Jana/Tests/Feature/Memoria)
+- 1 em [Modules/Jana/Tests/Feature/Memoria/Freshness/](../../../Modules/Jana/Tests/Feature/Memoria/Freshness)
+- 1 em [Modules/Jana/Tests/Feature/Memoria/Telemetry/](../../../Modules/Jana/Tests/Feature/Memoria/Telemetry)
+- 1 em [Modules/Jana/Tests/Feature/MemorySchema/](../../../Modules/Jana/Tests/Feature/MemorySchema)
+- 2 em [Modules/Jana/Tests/Feature/Peso/](../../../Modules/Jana/Tests/Feature/Peso)
+- 1 em [Modules/Jana/Tests/Feature/Ragas/](../../../Modules/Jana/Tests/Feature/Ragas)
+- 7 em [Modules/Jana/Tests/Feature/Reconcile/](../../../Modules/Jana/Tests/Feature/Reconcile)
+- 2 em [Modules/Jana/Tests/Feature/Retrieval/](../../../Modules/Jana/Tests/Feature/Retrieval)
+- 7 em [Modules/Jana/Tests/Feature/Smoke/](../../../Modules/Jana/Tests/Feature/Smoke)
+- 1 em [Modules/Jana/Tests/Feature/Summarizer/](../../../Modules/Jana/Tests/Feature/Summarizer)
+- 16 em [Modules/Jana/Tests/Feature/TaskRegistry/](../../../Modules/Jana/Tests/Feature/TaskRegistry)
+- 5 em [Modules/Jana/Tests/Feature/Telemetry/](../../../Modules/Jana/Tests/Feature/Telemetry)
+- 13 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
+- _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 90
+## Demais arquivos (manifestos, docs, assets e misc) — 89
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -424,7 +446,6 @@ module: Jana
 - [Reconciler.php](../../../Modules/Jana/Contracts/Reconciler.php)
 - [SqlDriver.php](../../../Modules/Jana/Drivers/Sql/SqlDriver.php)
 - [routes.php](../../../Modules/Jana/Http/routes.php)
-- [LICOES-OPERACAO.md](../../../Modules/Jana/LICOES-OPERACAO.md)
 - [WeeklyDigestMail.php](../../../Modules/Jana/Mail/WeeklyDigestMail.php)
 - [OimpressoMcpServer.php](../../../Modules/Jana/Mcp/OimpressoMcpServer.php)
 - [BriefingOimpressoPrompt.php](../../../Modules/Jana/Mcp/Prompts/BriefingOimpressoPrompt.php)
@@ -474,7 +495,6 @@ module: Jana
 - [copiloto.php](../../../Modules/Jana/Resources/lang/pt/copiloto.php)
 - [topnav.php](../../../Modules/Jana/Resources/menus/topnav.php)
 - [permissions.php](../../../Modules/Jana/Resources/permissions.php)
-- [SCOPE.md](../../../Modules/Jana/SCOPE.md)
 - [ScopeByBusiness.php](../../../Modules/Jana/Scopes/ScopeByBusiness.php)
 - [ScopeByBusinessViaParent.php](../../../Modules/Jana/Scopes/ScopeByBusinessViaParent.php)
 - [ClarifyResult.php](../../../Modules/Jana/Support/ClarifyResult.php)
@@ -485,3 +505,4 @@ module: Jana
 - [composer.json](../../../Modules/Jana/composer.json)
 - [module.json](../../../Modules/Jana/module.json)
 - [start.php](../../../Modules/Jana/start.php)
+- [SCOPE.md](../../../memory/requisitos/Jana/SCOPE.md)

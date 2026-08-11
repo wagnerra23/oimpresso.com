@@ -191,15 +191,58 @@ test('Total mapeado inclui Demais arquivos tanto nos arquivos quanto nos papéis
 test('BITE real: manifesto e SCOPE do módulo não somem do inventário completo', () => {
   const { outros } = coletar('Financeiro');
   assert.ok(outros.includes('Modules/Financeiro/module.json'));
-  assert.ok(outros.includes('Modules/Financeiro/SCOPE.md'));
+  // ADR 0375: o SCOPE saiu de Modules/ pra memory/requisitos/ em 2026-08-10.
+  // O BITE continua o mesmo — o SCOPE do modulo nao pode sumir do inventario —
+  // so o endereco mudou. Manter o path antigo aqui seria o teste guardando um
+  // lugar que nao existe mais (verde impossivel, nao cobertura).
+  assert.ok(outros.includes('memory/requisitos/Financeiro/SCOPE.md'));
 });
 
 test('papel volumoso (listar:false) mostra contagem + dir, NÃO lista arquivos', () => {
   const grupos = [{ rot: 'Testes (Pest)', listar: false, files: ['Modules/X/Tests/Feature/AT.php', 'Modules/X/Tests/Feature/BT.php'] }];
   const md = montar('X', grupos, []);
   assert.match(md, /## Testes \(Pest\) — 2/);
-  assert.match(md, /2 arquivos em \[Modules\/X\/Tests\/Feature\/\]/);
+  assert.match(md, /- 2 em \[Modules\/X\/Tests\/Feature\/\]/);
   assert.doesNotMatch(md, /\[AT\.php\]/); // não lista os arquivos individuais
+});
+
+/**
+ * BITE-TEST do ponteiro colapsado (consertado 2026-08-09).
+ *
+ * O montar() derivava o link de `files[0]` e imprimia a contagem de TODOS os arquivos —
+ * então, sempre que o papel abrangia mais de um diretório, o ponteiro mentia. Quando isto
+ * foi medido o defeito ainda alcançava `Views (Blade)`: a Jana lia "9 arquivos em
+ * Resources/views/alertas/" com alertas/ contendo 2 dos 9, e o Cliente mandava para
+ * Modules/Crm/Resources/views/booking/ uma contagem que incluía as 23 blades de
+ * resources/views/contact. O Blade saiu deste caminho no #5502 (virou `listar:true`);
+ * `Testes (Pest)` continua nele, e é a fixture usada aqui.
+ *
+ * O teste anterior não pegava porque a fixture tinha UM único diretório — o caso em que o
+ * bug some por construção. Este exercita o caso multi-dir, que é onde ele vivia.
+ */
+test('papel volumoso com VÁRIOS dirs: cada linha aponta pro seu dir e a soma bate com o header', () => {
+  const grupos = [{
+    rot: 'Testes (Pest)',
+    listar: false,
+    files: [
+      'Modules/X/Tests/Feature/Ai/AT.php',
+      'Modules/X/Tests/Feature/Ai/BT.php',
+      'Modules/X/Tests/Feature/CT.php',
+      'Modules/X/Tests/Unit/DT.php',
+    ],
+  }];
+  const md = montar('X', grupos, []);
+  assert.match(md, /## Testes \(Pest\) — 4/);
+  // Cada diretório aparece com a contagem DELE — não com o total do papel.
+  assert.match(md, /- 2 em \[Modules\/X\/Tests\/Feature\/Ai\/\]/);
+  assert.match(md, /- 1 em \[Modules\/X\/Tests\/Feature\/\]/);
+  assert.match(md, /- 1 em \[Modules\/X\/Tests\/Unit\/\]/);
+  // A regressão exata: o total do papel colado no dir do primeiro arquivo.
+  assert.doesNotMatch(md, /- 4 em \[Modules\/X\/Tests\/Feature\/Ai\/\]/);
+  // E o header continua sendo a soma das linhas (invariante que o gerado deve manter).
+  const soma = [...md.matchAll(/^- (\d+) em \[/gm)].reduce((n, m) => n + Number(m[1]), 0);
+  assert.equal(soma, 4);
+  assert.doesNotMatch(md, /\[AT\.php\]/); // segue sem listar arquivo a arquivo
 });
 
 test('PAGES_NS mapeia módulos cujo namespace Inertia difere do nome do módulo (só divergências)', () => {

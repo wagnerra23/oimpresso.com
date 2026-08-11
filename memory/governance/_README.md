@@ -51,7 +51,7 @@ Esta governança existe pra suportar 4 restrições reais que o oimpresso já ca
               ▼                   ▼                   ▼
 ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────────────┐
 │ L3 TRUST TIERS   │ │ L4 IDENTITY MESH │ │ L5 MODULE CHARTER         │
-│   L0-L4          │ │   mcp_actors     │ │   Modules/<X>/SCOPE.md    │
+│   L0-L4          │ │   mcp_actors     │ │ memory/requisitos/<X>/    │
 │   default-deny   │ │   per-actor      │ │   fronteira por módulo    │
 │                  │ │   manifest       │ │                           │
 │ TRUST-TIERS.md   │ │ IDENTITY-MESH.md │ │ + cache mcp_modules       │
@@ -85,7 +85,7 @@ Atravessam todas as camadas (cross-cutting):
 | **L2 SRS** | `memory/governance/srs/NNNN-*.md` (append-only) | Wagner via ADR | IAs leem antes de programar; Skills referenciam slugs SRS |
 | **L3 Trust Tiers** | `memory/governance/TRUST-TIERS.md` | Wagner | ActionGate middleware |
 | **L4 Identity Mesh** | `memory/governance/IDENTITY-MESH.md` (pattern) + tabela `mcp_actors` (instâncias) | Wagner cria actor; actor edita seu manifest até seu cap | ActionGate em toda request |
-| **L5 Module Charter** | `Modules/<X>/SCOPE.md` + cache `mcp_modules` | Owner do módulo via PR | Pre-commit hook + UI |
+| **L5 Module Charter** | `memory/requisitos/<X>/SCOPE.md` + cache `mcp_modules` | Owner do módulo via PR | Pre-commit hook + UI |
 | **L6 Policy Gating** | `mcp_governance_rules` (DB editável) | Wagner via UI Governance | Middleware em toda action |
 | **L7 Audit** | `mcp_audit_log` (trigger append-only) | Sistema (auto) | Wagner inspeciona via UI |
 | ADRs | `memory/decisions/NNNN-*.md` | Qualquer L2+ propõe; Wagner aprova | Tudo |
@@ -162,7 +162,7 @@ Atravessam todas as camadas (cross-cutting):
 
 1. **Leia `CONSTITUTION.md` antes de qualquer coisa.** É o nível mais alto.
 2. **Confirme seu trust_level** com Wagner. Define o que pode tocar.
-3. **Antes de mexer em módulo X, leia `Modules/X/SCOPE.md`.** Define fronteira.
+3. **Antes de mexer em módulo X, leia `memory/requisitos/<X>/SCOPE.md`.** Define fronteira.
 4. **Toda dúvida arquitetural — busque ADR antes de propor.** Provavelmente já está decidido.
 5. **Skills auto-load pra você.** Quando uma skill carrega no contexto, é regra que precisa seguir, não sugestão.
 

@@ -686,8 +686,8 @@ Onda 4 (cert/contingência) e Onda 7 (chaos) ficam pra próximas auditorias.
 - [memory/requisitos/Fiscal/SPEC.md](SPEC.md) — US-FISCAL-001..017
 - [memory/requisitos/Fiscal/BRIEFING.md](BRIEFING.md) — capacidades + integrações NfeBrasil
 - [memory/requisitos/Fiscal/PLANO-TESTES-FISCAL.md](PLANO-TESTES-FISCAL.md) — 7 ondas testes (este dossier reusa Onda 3+6)
-- [Modules/Fiscal/SCOPE.md](../../../Modules/Fiscal/SCOPE.md) — frontmatter v1.8.0
-- [Modules/NfeBrasil/SCOPE.md](../../../Modules/NfeBrasil/SCOPE.md) — motor real
+- [Modules/Fiscal/SCOPE.md](SCOPE.md) — frontmatter v1.8.0
+- [Modules/NfeBrasil/SCOPE.md](../NfeBrasil/SCOPE.md) — motor real
 - [memory/reference/clientes-ativos.md](../../reference/clientes-ativos.md) — biz=4 Larissa 99% volume
 
 ### ADRs canônicas relevantes

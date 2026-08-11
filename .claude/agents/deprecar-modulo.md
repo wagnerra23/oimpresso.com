@@ -19,7 +19,7 @@ Sua missão: dado um módulo `Modules/<X>` em estado zumbi/legacy, **planejar de
 Lê tudo em ordem fixa:
 
 1. **Dossier canônico** do módulo a deprecar:
-   - `Modules/<X>/SCOPE.md` (frontmatter completo: `contains`, `not_contains`, `db_tables_owned`, `url_prefixes`, `drift_alerts`, `related_adrs`, `transition_plan`)
+   - `memory/requisitos/<X>/SCOPE.md` (frontmatter completo: `contains`, `not_contains`, `db_tables_owned`, `url_prefixes`, `drift_alerts`, `related_adrs`, `transition_plan`)
    - `memory/requisitos/<X>/BRIEFING.md` (estado prático atual — pode contradizer SCOPE; documente o conflito)
    - `memory/requisitos/<X>/SPEC.md` (US-XXX-NNN catalogadas + `na_justified` dimensions)
    - `memory/requisitos/<X>/RUNBOOK-*.md` se existirem
@@ -39,7 +39,7 @@ Lê tudo em ordem fixa:
    - Service Provider + Config + Lang + Menus
 
 3. **Cross-references externas** (quem cita o módulo):
-   - `Grep "<X>"` em todos `Modules/*/SCOPE.md` (cross-cutting documentado)
+   - `Grep "<X>"` em todos `memory/requisitos/*/SCOPE.md` (cross-cutting documentado)
    - `Grep "Modules\\\\<X>"` em código PHP (uso real cross-módulo)
    - `Grep "<X>"` em `.claude/skills/*/SKILL.md` (skills que mencionam)
    - `Grep "<X>"` em `.claude/agents/*.md` (agents que mencionam)
@@ -76,7 +76,7 @@ Para cada **feature funcional** (Controller endpoint, Service, Job, Command, Ent
 
 - **Receptor canônico:** módulo que deve absorver
 - **Justificativa:** cita o `purpose`/`contains`/`not_contains` do receptor que justifica
-- **Cross-ref:** se `Modules/<Y>/SCOPE.md` tem `not_contains: "feature Z → Modules/<X>"`, Y JÁ declarou que Z é de X — agora vira reversa: Z volta pra Y
+- **Cross-ref:** se `memory/requisitos/<Y>/SCOPE.md` tem `not_contains: "feature Z → Modules/<X>"`, Y JÁ declarou que Z é de X — agora vira reversa: Z volta pra Y
 - **Esforço estimado:** trivial / médio / grande
 - **Bloqueador:** alguma dependência circular ou tech debt impede?
 
@@ -240,7 +240,7 @@ Sequência canônica de PRs (cada etapa = 1 PR ≤300 linhas seguindo commit-dis
 - **Restos:** se ARCHIVE tabelas, mantém storage criptografado per LGPD retention; se PRESERVE views, mantém indefinido até decisão futura
 
 #### E6 — Update docs canônicos confirmando deprecação (PR docs)
-- **Output:** atualiza `Modules/<X>/SCOPE.md` (status `deprecated`, `lifecycle: historical`, link pra ADR de deprecação), `memory/requisitos/<X>/BRIEFING.md` (estado final), `memory/08-handoff.md` (entry nova append-only ADR 0167), `memory/proibicoes.md` (entry nova: "NÃO criar features novas em `Modules/<X>` deprecated em ADR NNNN")
+- **Output:** atualiza `memory/requisitos/<X>/SCOPE.md` (status `deprecated`, `lifecycle: historical`, link pra ADR de deprecação), `memory/requisitos/<X>/BRIEFING.md` (estado final), `memory/08-handoff.md` (entry nova append-only ADR 0167), `memory/proibicoes.md` (entry nova: "NÃO criar features novas em `Modules/<X>` deprecated em ADR NNNN")
 - **Gate Wagner:** review final
 
 **Output Fase 6** — tabela:

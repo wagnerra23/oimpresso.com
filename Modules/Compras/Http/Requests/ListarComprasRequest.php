@@ -35,7 +35,7 @@ class ListarComprasRequest extends FormRequest
         return [
             'q'         => ['nullable', 'string', 'max:100'],
             'stage'     => ['nullable', 'string', 'in:all,received,ordered,pending,draft'],
-            'sort'      => ['nullable', 'string', 'in:transaction_date,ref_no,final_total,contact_name'],
+            'sort'      => ['nullable', 'string', 'in:transaction_date,ref_no,final_total,contact_name,location_name,status,payment_status'],
             'dir'       => ['nullable', 'string', 'in:asc,desc'],
             'per_page'  => ['nullable', 'integer', 'in:10,25,50,100'],
             'compra_id' => ['nullable', 'integer', 'min:1'],

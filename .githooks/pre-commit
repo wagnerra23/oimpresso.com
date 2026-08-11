@@ -7,7 +7,7 @@
 #
 # Funcionalidade:
 #   - Detecta novos controllers staged em Modules/<X>/Http/Controllers/
-#   - Verifica se filename está declarado em Modules/<X>/SCOPE.md.contains[]
+#   - Verifica se filename está declarado em memory/requisitos/<X>/SCOPE.md.contains[]
 #   - Se não está, AVISA (não bloqueia em modo dev)
 #
 # Pra modo strict (bloqueia commit):

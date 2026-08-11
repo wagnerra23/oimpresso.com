@@ -73,6 +73,69 @@ class SellsV3Controller extends Controller
                 'tabela' => null, // sem tabela no cadastro → vale o padrão do balcão
             ],
 
+            /*
+             * Clientes da CENA — a consulta de clientes (modal 880px do handoff).
+             *
+             * Mora aqui, e não no .tsx, pela mesma regra das transportadoras: "nenhuma
+             * lista de domínio nasce em arquivo de UI" (README do bundle `venda-v3`).
+             * A primeira linha é o MESMO cadastro de `cliente` acima — é o padrão do
+             * balcão, e a consulta precisa poder voltar pra ele depois de trocar.
+             *
+             * ⚠️ NÃO é consulta ao banco: o preview não lê `contacts`. Por isso não há
+             * query a escopar por `business_id` (ADR 0093 satisfeito por ausência).
+             * A copy do rodapé diz "cadastros ativos no business atual" porque é o que
+             * a tela real fará — aqui a lista é fixa.
+             *
+             * ⚠️ DOCUMENTOS: todos SINTÉTICOS, com dígito verificador **medido inválido**
+             * (validador com controle positivo e negativo, 2026-08-11). O CNPJ que o
+             * protótipo usa no cliente Governo foi MEDIDO VÁLIDO — isto é, é documento
+             * real — e por isso NÃO entrou aqui, nem em comentário: a allowlist do
+             * `pii-scan` é explícita que "CPF/CNPJ real JAMAIS entra". Pelo mesmo motivo
+             * o nome do órgão não é o de uma prefeitura existente, e "Rota Livre" do
+             * protótipo saiu daqui — é o cliente-piloto de verdade (biz=4), não
+             * personagem de cena.
+             */
+            'clientes' => [
+                [
+                    'cod' => '0001', 'nome' => 'Consumidor final', 'padrao' => true,
+                    'doc' => '—', 'ie' => 'ISENTO', 'contrib' => 'nao', 'regime' => 'Simples Nacional',
+                    'fone' => '—', 'email' => '—', 'emailNfe' => '—', 'contato' => '—',
+                    'endereco' => 'Venda no balcão — sem endereço de entrega',
+                    'cidade' => 'Termas do Gravatal', 'uf' => 'SC',
+                    'grupo' => 'Varejo', 'prazo' => 'À vista', 'tabela' => null,
+                ],
+                [
+                    'cod' => '0142', 'nome' => 'Autarquia de Saneamento Serra Verde', 'padrao' => false,
+                    'doc' => '29.417.508/0001-62', // pii-allowlist — CNPJ de CENA, DV inválido (medido 2026-08-11)
+                    'ie' => '255.618.240', 'contrib' => 'isento', 'regime' => 'Órgão público',
+                    'fone' => '(47) 3431-3200', 'email' => 'compras@serraverde.exemplo.br',
+                    'emailNfe' => 'nfe@serraverde.exemplo.br', 'contato' => 'Sandra Küster · compras',
+                    'endereco' => 'Rua XV de Novembro, 1400 — Centro · 89201-601',
+                    'cidade' => 'Joinville', 'uf' => 'SC',
+                    'grupo' => 'Governo', 'prazo' => '30 dias', 'tabela' => 'Governo 2026 — pregão 041/2026',
+                ],
+                [
+                    'cod' => '0288', 'nome' => 'Atacado Vale do Itajaí Ltda', 'padrao' => false,
+                    'doc' => '41.882.507/0001-44', // pii-allowlist — CNPJ de CENA, DV inválido (medido 2026-08-11)
+                    'ie' => '254.099.771', 'contrib' => 'sim', 'regime' => 'Simples Nacional',
+                    'fone' => '(47) 99812-4470', 'email' => 'financeiro@valedoitajai.exemplo.br',
+                    'emailNfe' => 'fiscal@valedoitajai.exemplo.br', 'contato' => 'Rodrigo Bastos · sócio',
+                    'endereco' => 'Rod. BR-470, km 62 — Itoupava · 89066-000',
+                    'cidade' => 'Blumenau', 'uf' => 'SC',
+                    'grupo' => 'Atacado', 'prazo' => '28 dias', 'tabela' => 'Atacado — a partir de 50m²',
+                ],
+                [
+                    'cod' => '0391', 'nome' => 'Marina Bordignon', 'padrao' => false,
+                    'doc' => '045.882.119-30', // pii-allowlist — CPF de CENA, DV inválido (medido 2026-08-11)
+                    'ie' => '—', 'contrib' => 'nao', 'regime' => 'Pessoa física',
+                    'fone' => '(47) 98844-1207', 'email' => 'marina.bordignon@exemplo.br',
+                    'emailNfe' => 'marina.bordignon@exemplo.br', 'contato' => 'Marina Bordignon',
+                    'endereco' => 'Rua Blumenau, 890 — América · 89204-250',
+                    'cidade' => 'Joinville', 'uf' => 'SC',
+                    'grupo' => 'Varejo', 'prazo' => 'À vista', 'tabela' => null,
+                ],
+            ],
+
             'itens' => [
                 [
                     'k' => 1,

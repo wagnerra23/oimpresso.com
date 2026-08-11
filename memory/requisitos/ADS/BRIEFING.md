@@ -41,9 +41,9 @@ O que a fila produziu está medido na ADR (prod, 2026-07-31): a esmagadora maior
 
 | Capacidade | Destino | Recibo |
 |---|---|---|
-| `PolicyEngine` · `GovernanceRulesService` · `mcp_governance_rules` | **Governance** ([SCOPE](../../../Modules/Governance/SCOPE.md)) | [#5128](https://github.com/wagnerra23/oimpresso.com/pull/5128) |
+| `PolicyEngine` · `GovernanceRulesService` · `mcp_governance_rules` | **Governance** ([SCOPE](../Governance/SCOPE.md)) | [#5128](https://github.com/wagnerra23/oimpresso.com/pull/5128) |
 | `SkillsService` · `ScaffoldSkillFromMissionService` · `skill:scaffold` | **Jana** | [#5129](https://github.com/wagnerra23/oimpresso.com/pull/5129) |
-| `ToolRegistry` · `UserScopeService` · `ProjectDecomposerService` · `DecisionLinksService` | **Forja** ([SCOPE](../../../Modules/Forja/SCOPE.md)) | [#5131](https://github.com/wagnerra23/oimpresso.com/pull/5131) |
+| `ToolRegistry` · `UserScopeService` · `ProjectDecomposerService` · `DecisionLinksService` | **Forja** ([SCOPE](../Forja/SCOPE.md)) | [#5131](https://github.com/wagnerra23/oimpresso.com/pull/5131) |
 | 9 rotas `/ads/admin/*` de controllers de Forja/KB | **Forja**, com URL e route name **congelados** ([ADR 0087](../../decisions/0087-drift-resolution-sem-mover-url.md)) | [#5132](https://github.com/wagnerra23/oimpresso.com/pull/5132) |
 | **Núcleo dual-brain** (`DecisionRouter` · `RiskEngine` · `ConfidenceEngine` · `BrainBService` · `PatternLearning` · `Planner` · `Reviewer` · `DecisionPresenter`) | **ninguém — morreu** | [#5135](https://github.com/wagnerra23/oimpresso.com/pull/5135) |
 
@@ -87,7 +87,7 @@ Smoke real em produção (E6, 2026-08-01): **5 tabelas ausentes · 6 de pé · 4
 
 **Nenhuma no ciclo de deprecação** — E1→E7 fechados. Resíduos conhecidos, para quem tocar as áreas:
 
-- `Modules/Governance/SCOPE.md` ainda declara em `not_contains` que *"Decision flow … → Modules/ADS"* e *"Skills governance → Modules/ADS"* (linhas 15-16, repetidas em prosa nas 81-82). A [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) previa a saída da linha 15 na parte 6 e isso não foi feito. Evidência: `grep -n "Modules/ADS" Modules/Governance/SCOPE.md`. **Não corrigido aqui de propósito** — é SCOPE de outro módulo (1 PR = 1 intent) e tocá-lo acorda gates diff-aware sobre dívida pré-existente.
+- `Modules/Governance/SCOPE.md` ainda declara em `not_contains` que *"Decision flow … → Modules/ADS"* e *"Skills governance → Modules/ADS"* (linhas 15-16, repetidas em prosa nas 81-82). A [ADR 0363](../../decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md) previa a saída da linha 15 na parte 6 e isso não foi feito. Evidência: `grep -n "Modules/ADS" memory/requisitos/Governance/SCOPE.md`. **Não corrigido aqui de propósito** — é SCOPE de outro módulo (1 PR = 1 intent) e tocá-lo acorda gates diff-aware sobre dívida pré-existente.
 - `.claude/hooks/tier-a-banner.mjs` imprime, em **toda** sessão, `DORMENTE: ads-route` — skill removida no #5135. É anúncio de capacidade inexistente. Evidência: `grep -n "ads-route" .claude/hooks/tier-a-banner.mjs`.
 
 ## Regra de manutenção
