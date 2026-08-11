@@ -49,7 +49,14 @@ A ordem é por impacto na "cara" (tipografia + espaço + detalhe definem mais qu
 | `3xl` | 30 | hero (raro) |
 - **Pesos:** 400 corpo · 500 ênfase · 600 títulos/ações. **Sem 700.**
 - **Tracking:** títulos `-0.01em`; uppercase de seção `+0.04em`.
-- **Números: `tabular-nums` SEMPRE** (R$/qtd/data). Fonte: Inter.
+- **Números: `tabular-nums` SEMPRE** (R$/qtd/data).
+- **Fonte: IBM Plex Sans** (corpo/UI) + **IBM Plex Mono** (números, SKU, códigos) — `--font-sans` / `--font-mono`.
+  Self-hosted via `@fontsource/ibm-plex-sans|mono`, importados em [`resources/js/app.tsx`](../../../resources/js/app.tsx);
+  não há CDN externo ([`layouts/inertia.blade.php`](../../../resources/views/layouts/inertia.blade.php) registra o porquê:
+  o `display=swap` do Google tornava a fonte não-determinística no runner do gate visual, que compensava com
+  `font-family: Arial !important` — e esse force cegava o gate pra regressão de fonte).
+  _Correção 2026-08-11: este campo dizia "Inter", verdade só no SCSS legado UltimatePOS
+  ([`_typography.scss`](../../../resources/sass/tailwind/base/_typography.scss)); não acompanhou a virada pro IBM Plex em 2026-07-16._
 
 ### 1.2 Espaço & Densidade — confortável-densa
 Unidade 4px (escala dos primitivos: 1,2,3,4,6,8,12). Linha de lista/tabela **36px** · card pad **16px** · gutter **24px**. Fim de `gap-0.5` cru.
@@ -114,6 +121,7 @@ Grade de identidade DETERMINÍSTICO ([ADR 0254](../../decisions/0254-design-iden
 - [ ] **ADR de motion** — tokens de duração/easing (150/200ms).
 - [ ] **Recraftar componentes-bandeira** (`Button`/`Card`/row) encarnando esta manual (gate visual Wagner).
 - [ ] **North Star aprovado** (print 2026-06-06) → vira o golden de "componente com identidade".
+- [ ] **Fonte no kit DS v6 diverge do repo** — `prototipo-ui/cowork/ds-v6/tokens.css` declara `--sans: "Hanken Grotesk"`, que **nunca entrou no repo** (zero ocorrências fora do próprio kit). O repo roda IBM Plex Sans desde 2026-07-16. Como o kit é **export do Cowork** (read-only no repo — [regra de ouro](../../../prototipo-ui/README.md#regra-de-ouro)), a correção tem que ser refeita no Cowork e re-exportada; registrado em [`CODE_NOTES.md`](../../../prototipo-ui/CODE_NOTES.md) 2026-08-11. Enquanto divergir, quem desenhar a partir do kit especifica fonte que não existe em produção.
 
 ---
 

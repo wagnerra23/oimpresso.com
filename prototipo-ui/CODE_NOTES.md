@@ -1292,3 +1292,55 @@ _[W] "design-sync tem o get e o set, leia a documentação". Li os 3 runbooks (d
 **Push provado ao vivo:** `cockpit_domains.css` no DS vivo `019dd02f` (`get_file` confirmou 62 light + 60 dark, `--origin-CRM-bg` = canon 220). O shell ERP já pode linkar `_ds/…/cockpit_domains.css` → `ds-v6/tokens.css` fica deletável (lado Cowork).
 
 **Protocolo salvo:** `design-sync-push.md` §2/§3/§6 agora documentam o companion (scope map + `--companion` na validação). Proposta #4099 atualizada. Pendente [W]: carimbo README (opt-in) + promover proposta a ADR.
+
+---
+
+## 2026-08-11 [CL] → [W] — Fonte canon: 3 documentos, 3 respostas diferentes (1 é a real)
+
+**Branch:** `docs/fonte-canon-ibm-plex` (base `main`). PR aberto — **não mergeei**.
+
+Origem: revisão de tela do Produto/Unificado no loop com o Claude Design. Ao explicar por que o
+protótipo não "batia" com o design system, achei que os documentos de identidade discordam entre si
+**e** com o código.
+
+### O que roda de verdade
+
+**IBM Plex Sans** (UI) + **IBM Plex Mono** (números/códigos). Prova em 3 camadas:
+
+1. `package.json` → `@fontsource/ibm-plex-sans ^5.2.8` + `@fontsource/ibm-plex-mono ^5.2.7`
+2. `resources/js/app.tsx` → importa 6 pesos (sans 400/500/600/700 · mono 400/500)
+3. `resources/css/tokens/_generated-cockpit-light.css` → `--font-sans: "IBM Plex Sans", …`
+
+Self-hosted desde **2026-07-16**; o motivo está registrado no `layouts/inertia.blade.php` (o
+`display=swap` do CDN tornava a fonte não-determinística no runner do gate visual, que compensava com
+`font-family: Arial !important` — e o force cegava o gate pra regressão de fonte).
+
+### O placar
+
+| Fonte | Onde está escrito | Situação |
+|---|---|---|
+| **IBM Plex Sans/Mono** | `package.json` + `app.tsx` + tokens gerados | ✅ é o que roda |
+| Hanken Grotesk | `prototipo-ui/cowork/ds-v6/tokens.css` (`--sans`) | ❌ **zero** ocorrências fora do kit — nunca entrou no repo |
+| Inter | `MANUAL-IDENTIDADE.md` §1.1 | ❌ sobrevive só no SCSS legado UltimatePOS (`_typography.scss`, `_buttons.scss`) |
+
+(O protótipo do Produto carrega ainda uma quarta, Inter Tight, via Google Fonts.)
+
+### O que este PR faz
+
+- **Corrige** `MANUAL-IDENTIDADE.md` §1.1: `Fonte: Inter` → IBM Plex Sans/Mono, com o porquê e a data.
+- **Registra** a divergência do kit DS v6 em §4 Pendências.
+
+### ⚠️ AÇÃO PRA VOCÊ NO COWORK
+
+**Não editei `prototipo-ui/cowork/ds-v6/tokens.css`** — é export do Cowork, e a regra de ouro do
+`README.md` diz que export não se edita no repo. A correção do `--sans` (Hanken Grotesk → IBM Plex
+Sans) precisa ser feita **no Cowork** e re-exportada. Enquanto não for, quem desenhar tela nova a
+partir do kit vai especificar uma fonte que não existe em produção — foi exatamente o que aconteceu
+na rodada do Produto/Unificado.
+
+### Não mexi (e por quê)
+
+- **Nenhuma linha de código.** Só documentação; o runtime já está correto.
+- **`next_review` do MANUAL** (venceu 2026-07-31, hoje `stale_review` no `DesignDocsFreshnessChecker`)
+  segue vencido de propósito: revalidei **uma** das 10 dimensões, não o documento. Bumpar a data
+  certificaria uma revisão que não fiz. O achado é anterior a este PR.
