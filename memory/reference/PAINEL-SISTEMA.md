@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-10**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-11**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -49,7 +49,7 @@ lente: [construir]
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-08-05 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-08-06 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
-| Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-01 |
+| Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
 | VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-07-28 |
 | Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-23 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **338**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **341**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 42 required (enforcement: everyone)
+### Bloqueiam merge — 43 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -105,6 +105,7 @@ lente: [construir]
 - Modulo backend com BRIEFING (cobertura)
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
+- Nota de tela não desce vs origin/main
 - PHP / Pest (Compras · MySQL)
 - PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)
@@ -126,13 +127,13 @@ lente: [construir]
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 121 workflows por classe
+### Censo — 122 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 89 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 90 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -141,13 +142,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **377** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 341 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **378** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 342 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 94 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 99 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -244,6 +245,11 @@ lente: [construir]
 - ~~2026-08-08 — EMENDA da lápide acima (node no cron): ela ENSINAVA O PROXY, e o denominador estava errado~~
 - ~~2026-08-08 — Responder "esta US foi entregue?" com `git log --grep=<US-id>` (o commit de entrega não cita o id) — e rebaixar 7 tasks em cima disso~~
 - ~~2026-08-08 — Fechar o loop de aprendizado da grade de réguas com CAMPO ou CADÊNCIA nova (4 propostas, 4 recusadas) — o gargalo é fidelidade de ESCRITA, não falta de campo~~
+- ~~2026-08-09 — Reabrir as ondas 6-12 da Jana, ou reconstruir a "Onda 0" que produz o retrato dos módulos~~
+- ~~2026-08-10 — Um comentário lido como import virou "não pode ser apagado" em 7 documentos canon (e blindou 633 ln mortas por 3 meses)~~
+- ~~2026-08-10 — Construir tela derivando do CÓDIGO quando existe FONTE DE DESIGN (e o gerador escrevia `n/a` sozinho)~~
+- ~~2026-08-10 — Catraca que itera o LADO DO PR: deletar o scorecard é fuga silenciosa (a promessa "robusto contra burla" cobre um vetor só)~~
+- ~~2026-08-10 — Usar o `chat-jana.jsx` como âncora de design da Jana (é o cockpit do Martinho, com KPI que ninguém usa)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -254,14 +260,14 @@ lente: [construir]
 
 ## Rastro
 
-- **401** handoffs · **601** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **406** handoffs · **604** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-08-10-scorecard-orfao-e-a-catraca-cega-a-delecao`
+  - `2026-08-10-mudos-eixo2-ligados-e-o-bug-que-o-skip-escondia`
+  - `2026-08-10-jana-modulo-inteiro-e-o-comentario-que-virou-lei`
   - `2026-08-08-valor-estoque-decisoes-permissoes`
   - `2026-08-08-reguas-delta-e-a-ancora-que-faltou`
   - `2026-08-08-primary-os-btn-13-telas-e-o-override-fantasma`
-  - `2026-08-08-fatia-d-jana-memoria-metodo`
-  - `2026-08-08-deadlock-required-promocao-0370`
-  - `2026-08-08-audit-card-principio-9-constituicao-v1.2`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-10 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-11 · deriva das fontes canônicas, não as substitui._
