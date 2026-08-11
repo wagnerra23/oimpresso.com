@@ -22,7 +22,7 @@ import {
 } from '@/Components/ui/select';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
-import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
+import { PageHeaderPrimary } from '@/Components/PageHeader';
 import PageFilters from '@/Components/shared/PageFilters';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -106,9 +106,7 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
           </div>
           <div className="os-page-h-r">
             <PontoSubNav active="intercorrencias" hidePrimary />
-            <PontoPrimaryButton onClick={() => router.visit('/ponto/intercorrencias/create')}>
-              Nova
-            </PontoPrimaryButton>
+            <PageHeaderPrimary label="Nova" onClick={() => router.visit('/ponto/intercorrencias/create')} />
           </div>
         </header>
 

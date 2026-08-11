@@ -30,6 +30,25 @@ Regra Primária [`memory/proibicoes.md`](../../memory/proibicoes.md) §"REGRA PR
 - Job assíncrono SEMPRE recebe `$businessId` no constructor (session() não funciona em fila)
 - Pest test biz=1 obrigatório ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)) — nunca biz=cliente real
 
+## Nomenclatura PHP/DB dentro do módulo
+
+> Absorvido de `memory/04-conventions.md` em 2026-08-10 ([W]: *"se o arquivo tiver destino correto,
+> junte no arquivo correto"*). Aquele arquivo era **FÓSSIL pré-Constituição v2** e misturava isto,
+> que é válido e **não existia em mais lugar nenhum do canon**, com stale já morto (Laravel 10,
+> branch `develop`) — o stale ficou de fora. Escrito com `Ponto` como exemplo; vale pra todo módulo.
+
+| O quê | Convenção |
+|---|---|
+| **Tabelas** | prefixo do módulo (`ponto_marcacoes`) · `snake_case` · plural quando entidade · junção nomeia a dependente (`ponto_escala_turnos`) |
+| **Models** | `PascalCase` **singular** em `Modules\<X>\Entities\` · domínio em **PT** (`Marcacao`, `Intercorrencia`, `BancoHorasSaldo`) · enum como `const` de classe (`Marcacao::TIPO_ENTRADA`) |
+| **Controllers** | `PascalCase` + `Controller` · agrupado por **seção do menu**, não por entidade · REST padrão (`index`/`create`/`store`/`show`/`edit`/`update`/`destroy`) + customizado por **ação em PT** (`aprovar`, `rejeitar`, `submeter`) |
+| **Services** | `PascalCase` + `Service` · **um por domínio** (`ApuracaoService`, `BancoHorasService`) |
+| **Rotas** | prefixo `/<modulo>/` · nome `<modulo>.{secao}.{acao}` (`ponto.aprovacoes.aprovar`) · API `/api/v1/<modulo>/` com nome `api.<modulo>.*` |
+| **Blade** | `Resources/views/{secao}/{acao}.blade.php` · partial com prefixo `_` (`_tabela.blade.php`) |
+
+⚠️ Nomenclatura de **componente React** não está aqui — é [`components.md`](components.md) (árvore
+canônica UI-0013). Este bloco é só PHP/DB.
+
 ## Padrões UltimatePOS herdados
 
 - Stack middlewares rotas web: `['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin']`

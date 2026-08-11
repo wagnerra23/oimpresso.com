@@ -136,7 +136,8 @@ it('008. GovernancaService importa OtelHelper (instrumentado D9.a)', function ()
 //
 // Reescrito pra DEFENDER a decisão em vez de contradizê-la: `metas` é eager de
 // propósito (anti-regressão do hotfix) e o defer segue valendo onde é seguro
-// (`coworkAggregates`, que o JanaCockpitV2 trata como opcional).
+// (`coworkAggregates`, que o cockpit filho trata como opcional — era o `JanaCockpitV2`,
+// removido em 2026-08-10; hoje é o `_components/JanaCockpit`).
 //
 // ⚠️ Asserts separados de propósito: `toContain` é variádico no Pest — passar
 // dois argumentos procura AMBOS como needles, não "isto E aquilo" (§5 2026-07-28).

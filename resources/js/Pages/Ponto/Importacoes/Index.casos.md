@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F7 + §6.4
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é o registro de origem das marcações vindas de REP-A — a rastreabilidade que a fiscalização pede começa aqui.
 owner: wagner
-last_run: "2026-08-02"
+last_run: "2026-08-08"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Ponto · MySQL)"
 ---
 
@@ -107,3 +107,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   criar accessor, ou passar a expor `linhas_sucesso`).
 - **PREDIÇÃO: vermelho.** O veredito real vem da lane, não desta leitura (G-7).
 - **Status: 🧪 vermelho ESPERADO.**
+
+## Trilha do tempo
+- 2026-08-08 · [CC] revalidado (bump `last_run`): migração do primary "Nova importação" do shim
+  DEPRECATED `PontoPrimaryButton` pro canon `<PageHeaderPrimary>` (ADR 0190). O shim emitia
+  `.os-btn primary`, cuja única família de regras no CSS servido é escopada `.sells-cowork` →
+  nenhuma casava e o botão rendia nu (medido em prod: padding 0, radius 0, texto em 2 linhas).
+  Só o chrome do header mudou — `label` e `onClick` idênticos; nenhum UC descreve o botão e
+  nenhum `Status:` foi promovido. O bump afirma "trio reconciliado com a tela nesta data",
+  não "testes rodados" (rodam no CT 100).

@@ -13,7 +13,7 @@ import { Link } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap } from 'lucide-react'
+import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap, Settings, Download } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
 import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
@@ -39,6 +39,13 @@ interface Meta {
   periodo_atual: Periodo | null
   ultima_apuracao: Apuracao | null
   apuracoes_recentes: Apuracao[]
+  /**
+   * Veredito do farol, calculado pelo SERVIDOR (`ApuracaoService::farol`).
+   * Opcional de propósito: durante a janela de deploy o payload antigo ainda
+   * chega sem o campo, e `farolDaMeta()` degrada pra 'cinza' — que já é o
+   * rótulo de "não dá pra dizer" na própria regra.
+   */
+  farol?: 'verde' | 'amarelo' | 'vermelho' | 'cinza'
 }
 
 interface Props {
@@ -54,30 +61,20 @@ interface Props {
   }
 }
 
-function calcularFarol(
-  meta: Meta
-): 'verde' | 'amarelo' | 'vermelho' | 'cinza' {
-  const periodo = meta.periodo_atual
-  const ultima  = meta.ultima_apuracao
+// Onda de fidelidade (2026-08-07): o farol NÃO é mais calculado aqui.
+//
+// O `Index.charter.md` proibia isto em dois lugares — §Goals ("frontend só
+// consome") e §Anti-hooks ("⛔ Cálculo de farol no frontend") — e a regra vivia
+// no frontend mesmo assim. A fonte autoritativa passou a ser
+// `ApuracaoService::farol()`, que chega pronto no payload.
+//
+// Fallback 'cinza' quando o backend não manda: 'cinza' já é o rótulo de "não dá
+// pra dizer" na própria regra, então um payload antigo (deploy a meio) degrada
+// pro estado neutro em vez de inventar um veredito.
+type Farol = 'verde' | 'amarelo' | 'vermelho' | 'cinza'
 
-  if (! periodo || ! ultima) return 'cinza'
-
-  const hoje          = new Date()
-  const ini           = new Date(periodo.data_ini)
-  const fim           = new Date(periodo.data_fim)
-  const totalMs       = fim.getTime() - ini.getTime()
-  const decorridoMs   = hoje.getTime() - ini.getTime()
-  const progresso     = Math.min(1, Math.max(0, decorridoMs / totalMs))
-  const projetado     = periodo.valor_alvo * progresso
-  const realizado     = ultima.valor_realizado
-
-  if (projetado <= 0) return 'cinza'
-
-  const desvioPct = ((realizado - projetado) / projetado) * 100
-
-  if (desvioPct >= -5) return 'verde'
-  if (desvioPct >= -15) return 'amarelo'
-  return 'vermelho'
+function farolDaMeta(meta: Meta): Farol {
+  return meta.farol ?? 'cinza'
 }
 
 const FAROL_CLASSES: Record<string, string> = {
@@ -97,7 +94,7 @@ function formatValue(value: number, unidade: string) {
 
 function Sparkline({ dados }: { dados: Apuracao[] }) {
   if (dados.length < 2) {
-    return <div className="h-8 text-xs text-muted-foreground flex items-center">Sem histórico</div>
+    return <div data-contract="painel-meta-sem-historico" className="h-8 text-xs text-muted-foreground flex items-center">Sem histórico</div>
   }
 
   const valores = dados.map(d => d.valor_realizado)
@@ -136,7 +133,7 @@ function Sparkline({ dados }: { dados: Apuracao[] }) {
 }
 
 function MetaCard({ meta }: { meta: Meta }) {
-  const farol        = calcularFarol(meta)
+  const farol        = farolDaMeta(meta)
   const realizado    = meta.ultima_apuracao?.valor_realizado ?? null
   const alvo         = meta.periodo_atual?.valor_alvo ?? null
   const progresso    = alvo && realizado !== null ? Math.min(100, (realizado / alvo) * 100) : null
@@ -159,7 +156,7 @@ function MetaCard({ meta }: { meta: Meta }) {
             {formatValue(realizado, meta.unidade)}
           </div>
         ) : (
-          <div className="text-sm text-muted-foreground">Aguardando apuração…</div>
+          <div data-contract="painel-meta-apurando" className="text-sm text-muted-foreground">Aguardando apuração…</div>
         )}
 
         {alvo !== null && (
@@ -251,7 +248,7 @@ function ProximaAcaoCard() {
         </p>
         <div className="mt-3">
           <Link href="/ia/conversa">
-            <Button size="sm" variant="outline" className="gap-2">
+            <Button data-contract="painel-cta-conversar" size="sm" variant="outline" className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversar agora
             </Button>
@@ -265,15 +262,32 @@ function ProximaAcaoCard() {
 export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkAggregates, janaContext }: Props) {
   return (
     <>
-      {/* JanaAreaHeader — header sticky com tabs Dashboard | Chat (Wagner
-          2026-05-18). Compartilhado com Chat.tsx. Gate F1.5 em
+      {/* JanaAreaHeader — barra ÚNICA da área Jana (PageHeader canon).
+          Onda de fusão 2026-08-07: identidade (business + biz), "Atualizado" e
+          as ações Configurar/Exportar SUBIRAM do header próprio do JanaCockpit,
+          que era a segunda barra da tela e foi removido. Gate F1.5 em
           memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md */}
-      <JanaAreaHeader active="dashboard" />
+      <JanaAreaHeader
+        active="dashboard"
+        businessName={janaContext.businessName || undefined}
+        businessId={janaContext.businessId ?? undefined}
+        actions={
+          <>
+            <Button variant="outline" size="sm" title="Configurar Brain B Jana (em breve)">
+              <Settings className="h-3.5 w-3.5" /> Configurar
+            </Button>
+            <Button variant="outline" size="sm" title="Exportar relatório (em breve)">
+              <Download className="h-3.5 w-3.5" /> Exportar
+            </Button>
+          </>
+        }
+      />
 
-      {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do JanaCockpitV2, US-COPI-146).
+      {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do antigo JanaCockpitV2, US-COPI-146).
           Sem wrapper .sells-cowork: o cockpit agora usa shared KpiGrid/KpiCard + Card +
-          tokens Tailwind (dark herda nativo), zero ilha CSS. A tab Insights de /sells
-          segue no JanaCockpitV2 (.vd-insights-*, tela-dona legítima do bundle).
+          tokens Tailwind (dark herda nativo), zero ilha CSS. Este comentário dizia que a
+          tab Insights de /sells "segue no JanaCockpitV2" — era falso: aquela tab já não
+          existe e o V2 tinha 0 imports; foi removido em 2026-08-10.
           shrink-0: .main-body é flex-column + overflow-y:auto (cockpit.css); sem ele o
           flex encolhia o wrapper e o conteúdo (mais alto) vazava sobre o bloco Metas. */}
       <div className="px-6 pt-6 shrink-0">
@@ -282,8 +296,6 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           insightsAggregates={insightsAggregates}
           coworkAggregates={coworkAggregates}
           userName={janaContext.userName ?? undefined}
-          businessName={janaContext.businessName || undefined}
-          businessId={janaContext.businessId ?? undefined}
         />
       </div>
 
@@ -301,7 +313,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                 <Sparkles className="mr-1 h-3 w-3" aria-hidden="true" />
                 METAS
               </Badge>
-              <span className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
+              <span data-contract="painel-metas-header" className="text-xs text-muted-foreground">Acompanhamento contínuo</span>
             </div>
             <div>
               <h2 className="text-xl font-semibold tracking-tight">Metas ativas</h2>
@@ -340,7 +352,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
                 <Sparkles className="h-10 w-10 text-violet-500" aria-hidden="true" />
               </div>
               <div className="space-y-1">
-                <p className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
+                <p data-contract="painel-metas-vazio" className="text-base font-medium">Nenhuma meta cadastrada ainda</p>
                 <p className="max-w-sm text-sm text-muted-foreground">
                   Pergunte algo à Jana — ela aprende o que importa pro seu business e cria metas com base no que conversamos.
                 </p>
@@ -368,7 +380,7 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
 }
 
 Dashboard.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="Copiloto — Dashboard" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Dashboard' }]}>
+  <AppShellV2 title="Jana — Dashboard" breadcrumbItems={[{ label: 'Jana' }, { label: 'Dashboard' }]}>
     {page}
   </AppShellV2>
 )

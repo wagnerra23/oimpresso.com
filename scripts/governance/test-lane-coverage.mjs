@@ -198,12 +198,34 @@ function testesExistentes() {
     .sort();
 }
 
+/**
+ * Regra ÚNICA de leitura de `.list` — PARIDADE EXATA com o que as lanes fazem no
+ * shell (o `sed` delas corta do `#` ao fim da linha e apara espaço à direita):
+ * corta do primeiro `#` até o fim da linha, trima, descarta vazio.
+ *
+ * Por que virou helper único (2026-08-07): havia DUAS leituras do mesmo formato
+ * neste arquivo, ambas `trim()` + `startsWith('#')` — que só remove a linha
+ * INTEIRA de comentário e deixa o inline colado no path. Medido em origin/main:
+ * `financeiro-pest-quarantine.list` 24/24 e `estoque-pest-quarantine.list` 21/21
+ * usam comentário inline (o motivo por linha é OBRIGATÓRIO por desenho das duas
+ * listas). Resultado: as 45 entradas viravam strings do tipo
+ * `"caminho/X.php   # motivo"`, que não casam path nenhum — e os 45 arquivos
+ * conscientemente quarentenados eram contados como ÓRFÃOS, apagando justamente
+ * a distinção que este script existe pra mostrar.
+ *
+ * `ci-sqlite-pest.list` não tinha inline nenhum (0/149) — lá o defeito era
+ * latente, não ativo. Uma regra só pros dois evita que ele acorde depois.
+ */
+function entradasDeLista(txt) {
+  return txt
+    .split(/\r?\n/)
+    .map((l) => l.split('#')[0].trim())
+    .filter(Boolean);
+}
+
 function entradasDaListaCurada() {
   if (!existsSync(LISTA_CURADA)) return [];
-  return readFileSync(LISTA_CURADA, 'utf8')
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith('#'));
+  return entradasDeLista(readFileSync(LISTA_CURADA, 'utf8'));
 }
 
 /**
@@ -217,10 +239,7 @@ function emQuarentena() {
   if (!existsSync(dir)) return [];
   const out = new Set();
   for (const f of readdirSync(dir).filter((f) => /quarantine.*\.list$/i.test(f))) {
-    for (const l of readFileSync(join(dir, f), 'utf8').split(/\r?\n/)) {
-      const t = l.trim();
-      if (t && !t.startsWith('#')) out.add(t);
-    }
+    for (const t of entradasDeLista(readFileSync(join(dir, f), 'utf8'))) out.add(t);
   }
   return [...out];
 }
@@ -242,6 +261,87 @@ function coletarAlvos() {
 function moduloDe(teste) {
   const m = teste.match(/^Modules\/([^/]+)\//);
   return m ? m[1] : '(raiz tests/)';
+}
+
+// ══════════════════ EIXO 2: ALCANÇADO × DEIXADO RODAR (2026-08-10) ═══════════
+//
+// O eixo acima responde "a lane ALCANÇA o arquivo?". Este responde o nível
+// seguinte: "a lane que o alcança deixa ele RODAR?".
+//
+// O caso que originou: `Modules/Jana/Tests/Feature/Ai/BriefDiarioAgentTest.php`
+// está na ÚLTIMA linha do bloco `ALLOWLIST VERDE (catraca)` de `jana-pest.yml`
+// — lane que roda `DB_CONNECTION: mysql`. O arquivo faz `markTestSkipped` quando
+// o driver NÃO é sqlite. Não está na lista sqlite. A nightly do CT 100 também é
+// MySQL. Resultado: nunca roda, em superfície nenhuma, e sai VERDE — skip é
+// exit 0. Um dos seus 6 casos é uma trava multi-tenant Tier 0 (ADR 0093).
+//
+// Pro eixo 1 ele conta como COBERTO, e está certo: a lane o alcança. O defeito
+// é que alcançar não é executar.
+//
+// ⚠️ LIMITE: skip por driver é o único cruzamento medido aqui. Skip por env
+// ausente, por `RefreshDatabase`, por feature-flag ou por `todo()` NÃO é visto.
+// "Não aparece aqui" não significa "executa".
+
+/** Driver que a lane oferece. Ausente ⇒ sqlite (phpunit.xml o força). */
+export function driverDaLane(yamlText) {
+  const m = yamlText.match(/DB_CONNECTION:\s*["']?(\w+)/);
+  return m ? m[1] : 'sqlite';
+}
+
+/**
+ * Driver que o arquivo EXIGE, por guard de topo. `null` = não exige nada.
+ *
+ * TOP-LEVEL = o guard aparece ANTES do primeiro `it(`/`test(`, logo vale pro
+ * arquivo inteiro. Guard DEPOIS do primeiro caso pula só aquele caso — contá-lo
+ * seria falso-positivo. Medido no corpus 2026-08-10: descartar os por-caso tira
+ * **15** arquivos que o critério ingênuo acusaria à toa.
+ */
+export function guardDeDriver(phpText) {
+  const primeiroCaso = phpText.search(/^\s*(?:it|test)\s*\(/m);
+  const antes = (re) => {
+    const g = phpText.search(re);
+    return g >= 0 && (primeiroCaso < 0 || g < primeiroCaso);
+  };
+  // `!== 'sqlite'` ⇒ pula quando NÃO é sqlite ⇒ EXIGE sqlite.
+  if (antes(/getDriverName\(\)\s*!==\s*['"]sqlite['"]/)) return 'sqlite';
+  // `=== 'sqlite'` ⇒ pula quando É sqlite ⇒ EXIGE outro (mysql).
+  if (antes(/getDriverName\(\)\s*===\s*['"]sqlite['"]/)) return 'mysql';
+  return null;
+}
+
+/** Alvos agrupados pelo driver da lane que os executa. */
+function alvosPorDriver() {
+  const lista = entradasDaListaCurada();
+  const porDriver = new Map();
+  if (!existsSync(WF_DIR)) return porDriver;
+  for (const f of readdirSync(WF_DIR).filter((f) => /\.ya?ml$/.test(f))) {
+    const txt = readFileSync(join(WF_DIR, f), 'utf8');
+    if (!/vendor\/bin\/pest|ci-sqlite-pest\.list/.test(txt)) continue;
+    const drv = driverDaLane(txt);
+    if (!porDriver.has(drv)) porDriver.set(drv, new Set());
+    for (const a of extrairAlvos(txt, lista)) porDriver.get(drv).add(a);
+  }
+  return porDriver;
+}
+
+/**
+ * MUDOS: o arquivo exige um driver que NENHUMA lane que o alcança oferece.
+ * Pode ser alcançado por várias lanes — basta UMA com o driver certo pra não ser mudo.
+ */
+export function testesMudos(testes, porDriver, lerArquivo) {
+  const mudos = [];
+  for (const t of testes) {
+    let txt = '';
+    try { txt = lerArquivo(t); } catch { continue; }
+    const exige = guardDeDriver(txt);
+    if (!exige) continue;
+    const alvosDoDriver = [...(porDriver.get(exige) || [])];
+    if (estaCoberto(t, alvosDoDriver)) continue; // alguma lane certa o alcança
+    // só é MUDO se alguma lane o alcança (senão é órfão puro, eixo 1)
+    const alcancadoPorAlguem = [...porDriver.values()].some((s) => estaCoberto(t, [...s]));
+    mudos.push({ teste: t, exige, alcancado: alcancadoPorAlguem });
+  }
+  return mudos;
 }
 
 /**
@@ -315,6 +415,35 @@ function selftest() {
   ok('CONTROLE NEGATIVO: módulo fora da matriz não é coberto',
     !estaCoberto('Modules/Gama/Tests/Unit/QualquerTest.php', aMatriz));
 
+  // ── entradasDeLista: paridade com o `sed 's/#.*//'` das lanes ──────────────
+  // BITE do defeito real (2026-08-07): comentário INLINE é obrigatório nas duas
+  // listas de quarentena (motivo por linha), e a regra antiga o colava no path.
+  const listaInline = [
+    '# cabeçalho de bloco — linha inteira, some',
+    'tests/Feature/Produto/AlvoTest.php          # UC-X-01: motivo escrito',
+    '   tests/Feature/Produto/OutroTest.php\t# outro motivo',
+    '',
+    'tests/Feature/Produto/LimpoTest.php',
+    '   # comentário indentado também some',
+  ].join('\n');
+  const eInline = entradasDeLista(listaInline);
+  ok('BITE: comentário inline NÃO gruda no path',
+    eInline.includes('tests/Feature/Produto/AlvoTest.php'));
+  ok('BITE: nenhuma entrada carrega "#" depois do parse',
+    eInline.every((e) => !e.includes('#')));
+  ok('LIBERA: linha sem comentário passa intacta',
+    eInline.includes('tests/Feature/Produto/LimpoTest.php'));
+  ok('trima espaço à esquerda e tab antes do #',
+    eInline.includes('tests/Feature/Produto/OutroTest.php'));
+  ok('CONTROLE NEGATIVO: linha 100% comentário não vira entrada',
+    eInline.length === 3);
+  ok('CONTROLE NEGATIVO: linha vazia não vira entrada',
+    !eInline.includes(''));
+  // Fecha o laço com o consumidor: entrada parseada tem que CASAR o teste real,
+  // senão o arquivo quarentenado volta a ser contado como órfão.
+  ok('BITE (ponta-a-ponta): entrada parseada casa o path do teste',
+    estaCoberto('tests/Feature/Produto/AlvoTest.php', eInline));
+
   // lista curada
   const wfLista = ['jobs:', '  x:', '    steps:', '      - run: |',
     '          mapfile -t T < .github/ci-sqlite-pest.list',
@@ -387,6 +516,57 @@ function selftest() {
     !estaCoberto('Modules/X/Tests/Unit/OutroTest.php.bak',
       ['Modules/X/Tests/Unit/OutroTest.php']));
 
+  // ─────────── EIXO 2: alcançado × deixado rodar (driver × guard) ───────────
+
+  ok('driver: lane com DB_CONNECTION: mysql', driverDaLane('env:\n  DB_CONNECTION: mysql') === 'mysql');
+  ok('driver: lane sem DB_CONNECTION ⇒ sqlite (phpunit.xml força)', driverDaLane('jobs:\n  pest:') === 'sqlite');
+
+  const phpSqliteOnly = [
+    '<?php', "beforeEach(function () {", "    if (DB::connection()->getDriverName() !== 'sqlite') {",
+    "        test()->markTestSkipped('era-sqlite');", '    }', '});',
+    "it('faz algo', function () { expect(1)->toBe(1); });",
+  ].join('\n');
+  ok('guard: exige sqlite quando pula fora de sqlite', guardDeDriver(phpSqliteOnly) === 'sqlite');
+
+  const phpMysqlOnly = [
+    '<?php', 'beforeEach(function () {', "    if (DB::connection()->getDriverName() === 'sqlite') {",
+    "        test()->markTestSkipped('precisa MySQL');", '    }', '});',
+    "it('faz algo', function () {});",
+  ].join('\n');
+  ok('guard: exige mysql quando pula em sqlite', guardDeDriver(phpMysqlOnly) === 'mysql');
+
+  // CONTROLE NEGATIVO — o FP que o critério ingênuo cometeria (15 arquivos medidos
+  // no corpus 2026-08-10): guard DEPOIS do primeiro caso pula só aquele caso.
+  const phpPorCaso = [
+    '<?php', "it('caso um', function () { expect(1)->toBe(1); });",
+    "it('caso dois', function () {", "    if (DB::connection()->getDriverName() !== 'sqlite') {",
+    "        test()->markTestSkipped('só este caso');", '    }', '});',
+  ].join('\n');
+  ok('CONTROLE NEGATIVO: guard POR-CASO não vira exigência do arquivo',
+    guardDeDriver(phpPorCaso) === null);
+  ok('CONTROLE NEGATIVO: arquivo sem guard não exige driver',
+    guardDeDriver("<?php\nit('x', function () {});") === null);
+
+  // BITE — o caso real: listado numa lane mysql, exige sqlite, e a lane sqlite não o alcança.
+  const pd = new Map([
+    ['mysql', new Set(['Modules/X/Tests/Feature/AlvoTest.php'])],
+    ['sqlite', new Set(['Modules/X/Tests/Feature/OutroTest.php'])],
+  ]);
+  const mudos = testesMudos(
+    ['Modules/X/Tests/Feature/AlvoTest.php', 'Modules/X/Tests/Feature/OutroTest.php'],
+    pd,
+    (t) => (t.endsWith('AlvoTest.php') ? phpSqliteOnly : "<?php\nit('x', function () {});"),
+  );
+  ok('BITE: exige sqlite, só lane mysql o alcança ⇒ MUDO',
+    mudos.length === 1 && mudos[0].teste === 'Modules/X/Tests/Feature/AlvoTest.php');
+  ok('BITE: o mudo é reportado como ALCANÇADO (o eixo 1 o daria por coberto)',
+    mudos[0]?.alcancado === true);
+
+  // CONTROLE NEGATIVO — a lane certa existe ⇒ não é mudo.
+  const pdOk = new Map([['sqlite', new Set(['Modules/X/Tests/Feature/AlvoTest.php'])]]);
+  ok('CONTROLE NEGATIVO: lane com o driver certo ⇒ não é mudo',
+    testesMudos(['Modules/X/Tests/Feature/AlvoTest.php'], pdOk, () => phpSqliteOnly).length === 0);
+
   const falhas = casos.filter((c) => !c.ok);
   for (const c of casos) console.log(`  ${c.ok ? '✓' : '✗'} ${c.nome}`);
   console.log(`\n  ${casos.length - falhas.length}/${casos.length} — ${falhas.length ? 'FALHOU' : 'a lógica morde (bite + controles negativos)'}`);
@@ -441,6 +621,31 @@ if (args.includes('--diff')) {
   console.log('  (advisory — não bloqueia; o número é relato, não veredito)\n');
   process.exit(0);
 }
+// --mudos: eixo 2 — o arquivo é ALCANÇADO, mas o guard de topo exige um driver
+// que nenhuma lane que o alcança oferece. Skip = exit 0, então sai VERDE.
+if (args.includes('--mudos')) {
+  const todos = testesMudos(testes, alvosPorDriver(), (t) => readFileSync(join(ROOT, t), 'utf8'));
+  // SEPARAR é obrigatório: quem NENHUMA lane alcança já é órfão do eixo 1 — misturar
+  // os dois inflaria o alarme com dívida conhecida. O achado NOVO é só o alcançado.
+  const mudos = todos.filter((m) => m.alcancado);
+  const naoAlcancados = todos.length - mudos.length;
+  console.log('\n=== MUDOS: a lane ALCANÇA o arquivo, e o driver dela o faz pular ===\n');
+  console.log(`  ${mudos.length} arquivo(s) — o eixo 1 os dá por COBERTOS, e eles nunca rodam`);
+  console.log(`  (${naoAlcancados} outros exigem driver e nenhuma lane os alcança:`);
+  console.log(`   isso é órfão do EIXO 1, já contado lá — não somar aqui)\n`);
+  const porMod = {};
+  for (const m of mudos) (porMod[moduloDe(m.teste)] ??= []).push(m);
+  for (const [mod, lista] of Object.entries(porMod).sort((a, b) => b[1].length - a[1].length)) {
+    console.log(`  ${String(lista.length).padStart(3)}  ${mod}`);
+    for (const m of lista.slice(0, 3)) console.log(`         ${m.teste}  (exige ${m.exige})`);
+    if (lista.length > 3) console.log(`         … +${lista.length - 3}`);
+  }
+  console.log('\n  ⚠️  skip sai exit 0 — estes NÃO aparecem como vermelho em lugar nenhum.');
+  console.log('  ⚠️  LIMITE: só skip por DRIVER é medido. Skip por env/flag/todo() não é visto.');
+  console.log('  (advisory — relato, não veredito. Ligar um deles numa lane exige rodar no CT 100.)\n');
+  process.exit(0);
+}
+
 const quarentena = new Set(emQuarentena());
 const orfaos = testes.filter((t) => !estaCoberto(t, alvos) && !quarentena.has(t));
 

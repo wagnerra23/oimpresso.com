@@ -313,9 +313,11 @@ const promptRetrato = ({ modoRetrato, notas, proveniencia, cobertura, placar, in
 // herda com flag. Disclosure do placar sai do ledger (regra 17 mecanizada).
 if (MODO === 'delta') {
   phase('Delta-scan')
-  const SCAN = { type: 'object', required: ['dims_delta', 'claims_vencidas', 'fraquezas'], properties: {
+  // `ultimo_retrato` é REQUIRED desde 2026-08-08 (era opcional; ver o guard de âncora abaixo):
+  // ele é a ÂNCORA da composição determinística, não um enfeite. Sem `notas` a grade sai {}.
+  const SCAN = { type: 'object', required: ['dims_delta', 'claims_vencidas', 'fraquezas', 'ultimo_retrato'], properties: {
     erro: { type: 'string', description: 'preencher SÓ se o ledger estiver ausente/ilegível' },
-    ultimo_retrato: { type: 'object', properties: { data: { type: 'string' }, notas: { type: 'object', additionalProperties: { type: 'number' } }, integ_hist: { type: 'object' } } },
+    ultimo_retrato: { type: 'object', required: ['data', 'notas'], description: 'ÂNCORA da composição — retratos[0]. `notas` NÃO pode vir vazio: a nota de cada dimensão é calculada iterando as chaves dele.', properties: { data: { type: 'string' }, notas: { type: 'object', additionalProperties: { type: 'number' } }, integ_hist: { type: 'object' } } },
     dims_delta: { type: 'object', additionalProperties: { type: 'object', required: ['commits'], properties: { commits: { type: 'number' }, resumo: { type: 'string' } } } },
     claims_vencidas: { type: 'array', items: { type: 'object', required: ['id', 'titulo', 'dimensao'], properties: { id: { type: 'string' }, titulo: { type: 'string' }, dimensao: { type: 'string' }, refutador: { type: 'string' }, peer: { type: 'string' }, correcao_obrigatoria: { type: 'string' } } } },
     fraquezas: { type: 'array', items: { type: 'object', required: ['id', 'dimensao', 'titulo'], properties: { id: { type: 'string' }, dimensao: { type: 'string' }, titulo: { type: 'string' }, veredito: { type: 'string' }, nota: { type: ['number', 'null'] }, evidencia: { type: 'string' }, degrau: { type: 'string' } } } },
@@ -334,6 +336,21 @@ if (MODO === 'delta') {
   if (!scan || scan.erro) {
     log(`⚠️ delta abortado: ${(scan && scan.erro) || 'scan falhou'} — rode o modo full pra semear o ledger`)
     return { modo: 'delta', erro: (scan && scan.erro) || 'scan falhou', acao: 'rodar full' }
+  }
+  // ── GUARD DE ÂNCORA (defeito MEDIDO 2026-08-08, run wf_32c91912-fca) ────────────────────
+  // A composição determinística itera `Object.keys(notasAntigas)`, e `notasAntigas` vem de
+  // `scan.ultimo_retrato.notas`. O campo era OPCIONAL no schema: o scanner o omitiu, a validação
+  // passou, e o laço rodou ZERO vezes — `notas:{}`, `eixos_medidos:[]`. Só que isso aconteceu
+  // DEPOIS de 39 agentes (24 verificações + 15 refutações, 10,9M tokens): a rodada gastou tudo e
+  // gravou um retrato que não mede nada, em silêncio, no topo de um ledger append-only.
+  // Duas travas, porque uma não bastava: o `required` do schema (acima) força o campo a VIR, e
+  // este guard cobre o caso que o schema não pega — vir PRESENTE e VAZIO (`notas:{}`).
+  // Aborta ANTES da fase Verificar: instrumento sem âncora não mede, e o que não mede não grava
+  // (§5 2026-07-29 — "instrumento AFIRMAR verde quando não conseguiu MEDIR").
+  const notasAncora = (scan.ultimo_retrato && scan.ultimo_retrato.notas) || {}
+  if (!Object.keys(notasAncora).length) {
+    log(`⚠️ delta ABORTADO antes de gastar agentes: o scan não trouxe \`ultimo_retrato.notas\` — sem essa âncora a composição sairia {} em SILÊNCIO. Chaves recebidas: [${Object.keys(scan).join(', ')}]. Rode o full, ou conserte o scanner.`)
+    return { modo: 'delta', erro: 'âncora ausente: ultimo_retrato.notas vazio ou ausente', acao: 'rodar full', scan_retornou: Object.keys(scan) }
   }
   const minC = scan.delta_min_commits || 3
   // Seleção explícita (args.dimensoes OU args.eixo) força re-medida mesmo sem Δ de commits.
@@ -372,7 +389,7 @@ if (MODO === 'delta') {
   phase('Grade')
   // Regra 16 mecanizada: números fechados AQUI (JS), prosa depois — o agente não altera nota.
   const media1 = (xs) => Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 10) / 10
-  const notasAntigas = (scan.ultimo_retrato && scan.ultimo_retrato.notas) || {}
+  const notasAntigas = notasAncora // já provado não-vazio pelo guard de âncora acima
   const notasNovas = {}
   const proveniencia = {}
   for (const k of Object.keys(notasAntigas)) {

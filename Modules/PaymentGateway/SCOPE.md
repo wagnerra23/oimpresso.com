@@ -3,7 +3,19 @@ module: PaymentGateway
 purpose: "Camada técnica de cobrança BR — drivers de API bancária (Inter, C6, Asaas, Pagar.me, Sicoob, Pix Automático BCB) e 11 drivers CNAB, webhooks assinados e cofre de credenciais, atrás do PaymentGatewayContract. Consumida hoje por Financeiro, Sell (core) e Superadmin."
 migracao_ui: "concluido — 0 Blade servido"
 contains:
-  - "PaymentGatewayController"
+  # PaymentGatewayController saiu em 2026-08-10: NUNCA foi construído (0 arquivos em
+  # 16.238 rastreados). Nenhuma rota o referencia — `Routes/web.php` registra
+  # install/uninstall/update no InstallController, e o resto em Settings/* e Webhooks/*.
+  # O resíduo que este comentário declarava — os 5 endpoints `→ PaymentGatewayController@*`
+  # na §6 do CONTRACTS.md (que saiu daqui pra memory/requisitos/PaymentGateway/ no #5548)
+  # — foi corrigido em 2026-08-11, junto com a §6 inteira, que era
+  # plano de Onda 0 nunca confrontado com o código. Os 5 existiam sob outro nome e outro
+  # prefixo (`Settings\PaymentGatewaysController`, `/settings/payment-gateways`, método
+  # `healthCheck`), entregues na Onda 4d.3. Na mesma passagem: CobrancaController virou
+  # ponteiro pro Financeiro (é lá que ele vive), os webhooks passaram de 4 pra 7 com o
+  # path real, e caiu a frase que afirmava 301 redirect após cutover da Onda 3 — não há
+  # redirect de webhook em nenhum dos 56 arquivos de rota, e o RecurringBilling segue
+  # servindo `/webhooks/inter/pix/{businessId}` em paralelo (coerente com "sem cutover").
   - "CobrancaController"
   - "Settings/PaymentGatewaysController — F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
   - "Settings/PaymentGatewaysCnabRetornoController — POST /settings/payment-gateways/{credential}/cnab-retorno (upload arquivo retorno + histórico processamento, Onda 4f.0)"
@@ -24,9 +36,22 @@ contains:
   - "Services/Drivers/PagarmeDriver — Pagar.me v5 REST (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4e. HTTP Basic Auth via secret_key, sandbox via prefixo sk_test_*"
   - "Services/Drivers/SicoobApiDriver — Sicoob API Cobrança Bancária v3 REST OAuth2+mTLS (boleto + cancelar + consultar + healthCheck + processWebhook); Onda 4f.sicoob_api · US-FIN-044 + US-FIN-046. Convênio + carteira (1 Simples / 3 Caucionada) + modalidade. Cache token Redis-safe por business_id. mTLS REUSA NfeCertificado canon via CertificadoService::carregarParaSefaz (single source of truth — mesmo cert A1 usado pra NFe SEFAZ)"
   - "BoletoService (Onda 4d alto-nível)"
-  - "RemessaCnabService (Onda 4d)"
-  - "RetornoCnabService (Onda 4d)"
-  - "PaymentGatewayCredentialResolver (Onda 4d se realmente precisar)"
+  # Saíram de `contains` em 2026-08-10 — estes NOMES nunca existiram (0 arquivos em
+  # 16.238). ⚠️ Mas a CAPACIDADE CNAB não é planejada: está entregue sob outros nomes,
+  # já declarados acima ou vivos no repo — `Services/Cnab/CnabBoletoAdapter`,
+  # `Jobs/CnabRetornoProcessor`, `Models/CnabRetornoUpload` e 11 `*CnabDriver`.
+  # Ler estes 3 como "a fazer" descreveria o módulo como menos pronto do que é:
+  #   · RemessaCnabService               (nome nunca usado; remessa = CnabBoletoAdapter + drivers)
+  #   · RetornoCnabService               (nome nunca usado; retorno = CnabRetornoProcessor)
+  #   · PaymentGatewayCredentialResolver (Onda 4d, "se realmente precisar" — este sim, só intenção)
+  # ↓ E aqui o comentário acima vira DECLARAÇÃO: as 4 linhas abaixo são os arquivos
+  #   reais que a capacidade CNAB usa hoje. Citar em comentário não os põe no
+  #   contains[] — medido por parse YAML (não por grep): sem estas linhas o array
+  #   tem 21 itens e NENHUM CNAB, enquanto o purpose já promete "11 drivers CNAB".
+  - "Services/Cnab/CnabBoletoAdapter — adapta boleto → layout CNAB (ponte pro contrato do módulo)"
+  - "Services/Cnab/Drivers/* — 11 drivers CNAB por banco (Ailos · BB · Banrisul · Bradesco · BTG · Caixa · Cresol · Itaú · Santander · Sicoob · Sicredi)"
+  - "Jobs/CnabRetornoProcessor — processa o arquivo de retorno enviado via Settings/PaymentGatewaysCnabRetornoController"
+  - "Models/CnabRetornoUpload — histórico dos uploads de retorno (tabela cnab_retorno_uploads)"
   - "Drivers planejados: PesaPalDriver (deprecated Onda 5/6)"
 not_contains:
   - "Plan / Assinatura / Invoice recorrente → Modules/RecurringBilling (consome este módulo)"

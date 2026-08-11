@@ -23,13 +23,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 568,
-    "edges": 839,
+    "nodes": 570,
+    "edges": 838,
     "by_node_type": {
-      "module": 41,
+      "module": 40,
       "table": 73,
       "adr": 25,
-      "component": 386,
+      "component": 389,
       "api": 43
     },
     "by_edge_type": {
@@ -39,9 +39,9 @@
       "providesApi": 43,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 386,
-      "dependsOn": 115,
-      "delegatesTo": 109,
+      "hasComponent": 389,
+      "dependsOn": 113,
+      "delegatesTo": 107,
       "migratesTo": 1
     },
     "dangling": 0
@@ -1673,6 +1673,13 @@
       "desc": "registry de tools MCP; URL /ads/admin/tools mantida"
     },
     {
+      "id": "component:Forja/AprovacoesController + ForjaAprovacoesService",
+      "type": "component",
+      "module": "Forja",
+      "name": "AprovacoesController + ForjaAprovacoesService",
+      "desc": "mesa de aprovações (/forja/aprovacoes): fila de mcp_tasks em `pending_approval` (o que espera decisão de [W]) em ordem de espera, e a decisão admitir/parquear/recusar. Superfície da ADR 0368, que fechou a política e deixou o código pra PR próprio; estado+FSM+trava de recusa-sem-motivo já vieram em #5283/#5288. Escrita 100% via TaskCrudService — mesmo chokepoint da tool MCP `tasks-update`, sem 2º caminho"
+    },
+    {
       "id": "component:Forja/As páginas React seguem em resources/js/Pages/team-mcp/*",
       "type": "component",
       "module": "Forja",
@@ -1862,6 +1869,13 @@
       "desc": "time + tokens MCP + quota + export CSV"
     },
     {
+      "id": "component:Forja/TrabalhoController + TrabalhoService",
+      "type": "component",
+      "module": "Forja",
+      "name": "TrabalhoController + TrabalhoService",
+      "desc": "lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006; a remoção da implementação perdedora é decisão [W] e NÃO aconteceu nesta onda — as três convivem"
+    },
+    {
       "id": "component:Forja/TriageController",
       "type": "component",
       "module": "Forja",
@@ -1944,6 +1958,13 @@
       "module": "Governance",
       "name": "QualidadeIaController",
       "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual module-grades e drift)"
+    },
+    {
+      "id": "component:Governance/Services/PolicyEngine",
+      "type": "component",
+      "module": "Governance",
+      "name": "Services/PolicyEngine",
+      "desc": "decision flow (Risk/Confidence/Policy) que o ActionGate consulta em runtime"
     },
     {
       "id": "component:Jana/Admin/JanaProController",
@@ -2035,6 +2056,13 @@
       "module": "Jana",
       "name": "Services/Memoria/*",
       "desc": "recall hybrid (Hyde, Reranker, Meilisearch)"
+    },
+    {
+      "id": "component:Jana/Services/SkillsService",
+      "type": "component",
+      "module": "Jana",
+      "name": "Services/SkillsService",
+      "desc": "LÊ o catálogo de skills (mcp_skills + fallback filesystem .claude/skills/<slug>/SKILL.md, ADR 0076). Só leitura: EDITAR skill é ato de arquivo+git, não deste módulo"
     },
     {
       "id": "component:Jana/SuperadminController",
@@ -2429,32 +2457,32 @@
       "desc": "extends BaseModuleInstallController (Onda 1)"
     },
     {
-      "id": "component:PaymentGateway/PaymentGatewayController",
+      "id": "component:PaymentGateway/Jobs/CnabRetornoProcessor",
       "type": "component",
       "module": "PaymentGateway",
-      "name": "PaymentGatewayController",
-      "desc": ""
+      "name": "Jobs/CnabRetornoProcessor",
+      "desc": "processa o arquivo de retorno enviado via Settings/PaymentGatewaysCnabRetornoController"
     },
     {
-      "id": "component:PaymentGateway/PaymentGatewayCredentialResolver",
+      "id": "component:PaymentGateway/Models/CnabRetornoUpload",
       "type": "component",
       "module": "PaymentGateway",
-      "name": "PaymentGatewayCredentialResolver",
-      "desc": ""
+      "name": "Models/CnabRetornoUpload",
+      "desc": "histórico dos uploads de retorno (tabela cnab_retorno_uploads)"
     },
     {
-      "id": "component:PaymentGateway/RemessaCnabService",
+      "id": "component:PaymentGateway/Services/Cnab/CnabBoletoAdapter",
       "type": "component",
       "module": "PaymentGateway",
-      "name": "RemessaCnabService",
-      "desc": ""
+      "name": "Services/Cnab/CnabBoletoAdapter",
+      "desc": "adapta boleto → layout CNAB (ponte pro contrato do módulo)"
     },
     {
-      "id": "component:PaymentGateway/RetornoCnabService",
+      "id": "component:PaymentGateway/Services/Cnab/Drivers/*",
       "type": "component",
       "module": "PaymentGateway",
-      "name": "RetornoCnabService",
-      "desc": ""
+      "name": "Services/Cnab/Drivers/*",
+      "desc": "11 drivers CNAB por banco (Ailos · BB · Banrisul · Bradesco · BTG · Caixa · Cresol · Itaú · Santander · Sicoob · Sicredi)"
     },
     {
       "id": "component:PaymentGateway/Services/Drivers/AsaasDriver",
@@ -3052,13 +3080,6 @@
       "desc": "captura Voice of Customer canon a partir de bubble inbox (PR #1711 2026-05-27); ADR UI-0016 + ADR 0105 cliente-como-sinal"
     },
     {
-      "id": "component:Whatsapp/Admin/ConversationsController",
-      "type": "component",
-      "module": "Whatsapp",
-      "name": "Admin/ConversationsController",
-      "desc": "Inbox Cockpit + send manual + Centrifugo subscribe"
-    },
-    {
       "id": "component:Whatsapp/Admin/CsatController",
       "type": "component",
       "module": "Whatsapp",
@@ -3285,19 +3306,6 @@
       "id": "module:Admin",
       "type": "module",
       "module": "Admin",
-      "purpose": "",
-      "trust": "",
-      "owner": "",
-      "permission_prefix": "",
-      "charter_adr": "",
-      "path": null,
-      "catalog_kind": "referenced-only",
-      "catalog_status": "referenced-only"
-    },
-    {
-      "id": "module:ADS",
-      "type": "module",
-      "module": "ADS",
       "purpose": "",
       "trust": "",
       "owner": "",
@@ -6354,17 +6362,17 @@
     },
     {
       "from": "module:Forja",
-      "to": "module:ADS",
+      "to": "module:Jana",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Skills governance"
+      "note": "Chat IA"
     },
     {
       "from": "module:Forja",
       "to": "module:Jana",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Chat IA"
+      "note": "Skills governance"
     },
     {
       "from": "module:Forja",
@@ -6382,17 +6390,17 @@
     },
     {
       "from": "module:Forja",
-      "to": "module:ADS",
+      "to": "module:Jana",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Skills governance"
+      "note": "Chat IA"
     },
     {
       "from": "module:Forja",
       "to": "module:Jana",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Chat IA"
+      "note": "Skills governance"
     },
     {
       "from": "module:Forja",
@@ -6453,6 +6461,12 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/Admin/ToolsController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/AprovacoesController + ForjaAprovacoesService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -6615,6 +6629,12 @@
     {
       "from": "module:Forja",
       "to": "component:Forja/TeamController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Forja",
+      "to": "component:Forja/TrabalhoController + TrabalhoService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -6819,20 +6839,6 @@
     },
     {
       "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Decision flow (Risk/Confidence/Policy Engine)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills governance"
-    },
-    {
-      "from": "module:Governance",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -6847,6 +6853,13 @@
     },
     {
       "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Skills governance"
+    },
+    {
+      "from": "module:Governance",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -6858,20 +6871,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Module Grade v4 Tri-pane (era /admin/governance/v4 no Modules/Admin)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Decision flow (Risk/Confidence/Policy Engine)"
-    },
-    {
-      "from": "module:Governance",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills governance"
     },
     {
       "from": "module:Governance",
@@ -6907,6 +6906,13 @@
       "type": "dependsOn",
       "source": "db_tables_consumed→db_tables_owned",
       "note": "jana_mensagens"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
     },
     {
       "from": "module:Governance",
@@ -7007,6 +7013,12 @@
     },
     {
       "from": "module:Governance",
+      "to": "component:Governance/Services/PolicyEngine",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
       "to": "table:mcp_governance_rules",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -7022,20 +7034,6 @@
       "to": "adr:0080",
       "type": "charteredByAdr",
       "source": "charter_adr"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Decision flow"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills governance"
     },
     {
       "from": "module:Jana",
@@ -7067,6 +7065,13 @@
     },
     {
       "from": "module:Jana",
+      "to": "module:Governance",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Decision flow (Risk/Confidence/Policy Engine)"
+    },
+    {
+      "from": "module:Jana",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -7078,20 +7083,6 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "MemoriaController (browser KB)"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Decision flow"
-    },
-    {
-      "from": "module:Jana",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills governance"
     },
     {
       "from": "module:Jana",
@@ -7126,6 +7117,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Admin/GovernancaController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Governance",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Decision flow (Risk/Confidence/Policy Engine)"
     },
     {
       "from": "module:Jana",
@@ -7246,6 +7244,12 @@
     {
       "from": "module:Jana",
       "to": "component:Jana/Services/Memoria/*",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Jana",
+      "to": "component:Jana/Services/SkillsService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7431,13 +7435,6 @@
     },
     {
       "from": "module:KB",
-      "to": "module:ADS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Skills governance"
-    },
-    {
-      "from": "module:KB",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -7470,6 +7467,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Chat IA (Jana)"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Skills governance"
     },
     {
       "from": "module:KB",
@@ -7480,13 +7484,6 @@
     },
     {
       "from": "module:KB",
-      "to": "module:ADS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Skills governance"
-    },
-    {
-      "from": "module:KB",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7519,6 +7516,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Chat IA (Jana)"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
     },
     {
       "from": "module:KB",
@@ -8443,25 +8447,25 @@
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/PaymentGatewayController",
+      "to": "component:PaymentGateway/Jobs/CnabRetornoProcessor",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/PaymentGatewayCredentialResolver",
+      "to": "component:PaymentGateway/Models/CnabRetornoUpload",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/RemessaCnabService",
+      "to": "component:PaymentGateway/Services/Cnab/CnabBoletoAdapter",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/RetornoCnabService",
+      "to": "component:PaymentGateway/Services/Cnab/Drivers/*",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9601,12 +9605,6 @@
     },
     {
       "from": "module:Whatsapp",
-      "to": "component:Whatsapp/Admin/ConversationsController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/CsatController",
       "type": "hasComponent",
       "source": "contains"
@@ -9878,10 +9876,6 @@
       },
       {
         "module": "Admin",
-        "reason": "referenciado por SCOPE, sem descritor próprio"
-      },
-      {
-        "module": "ADS",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {

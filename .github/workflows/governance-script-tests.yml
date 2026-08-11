@@ -45,6 +45,16 @@ jobs:
         run: node scripts/governance/ancora-codigo-sync.mjs --selftest
       - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
         run: node scripts/governance/maquinas-inventario.test.mjs
+      # O contrato de completude da ADR 0277 ("migrado = route Blade morto") foi decidido em
+      # 2026-06-13 e NUNCA ganhou maquina — medido: 0 scripts, 0 workflows contavam route Blade
+      # vivo, e o censo A-L do roadmap era digitado a mao. Este selftest defende o MEDIDOR;
+      # o censo em si e relato (--report), nao gate. Ligado aqui porque script sem invocador
+      # e bug (proibicoes.md §Sempre-fazer #2), nao neutralidade.
+      # ⚠️ name CITADO: o texto tem `: ` (em "bite: " e "NEG: ") e escalar YAML puro nao
+      # aceita dois-pontos-espaco — vira chave de mapa e o workflow inteiro para de subir
+      # (startup_failure, ZERO jobs). Foi o que aconteceu em 2026-08-08 (#5424).
+      - name: 'Censo Blade->React (bite: resource-string, namespace de grupo, indirecao $this-> · NEG: json/ciclo/mailable)'
+        run: node scripts/governance/blade-migration-census.mjs --selftest
       # A lista de lanes que alimentam o manifesto por-UC (G-7) e DERIVADA desde 2026-08-04
       # (a lista a mao apodreceu: 4 lanes emitiam JUnit e ninguem lia). Sem este bite-test,
       # quebrar a derivacao volta a congelar a colheita EM SILENCIO -- que foi o defeito.
@@ -83,6 +93,15 @@ jobs:
         run: node scripts/governance/test-lane-coverage.mjs --selftest
       - name: Test-lane coverage — relatorio (ADVISORY, nao bloqueia)
         run: node scripts/governance/test-lane-coverage.mjs || true
+
+      # EIXO 2 (2026-08-10): o eixo acima mede "a lane ALCANCA o arquivo?".
+      # Este mede o nivel seguinte: "a lane que o alcanca deixa ele RODAR?".
+      # Caso de origem: BriefDiarioAgentTest listado na allowlist de uma lane MySQL
+      # com guard sqlite-only => pula sempre, e skip sai exit 0 (verde). Um dos seus
+      # casos e trava multi-tenant Tier 0 (ADR 0093). ADVISORY: relato, nao veredito
+      # — ligar qualquer um deles numa lane exige rodar no CT 100 antes.
+      - name: Test-lane MUDOS — alcancado x deixado rodar (ADVISORY, nao bloqueia)
+        run: node scripts/governance/test-lane-coverage.mjs --mudos || true
 
       # FORWARD-ONLY: nao cobra a divida historica (957 arquivos, nao e deste PR).
       # Aponta so o que ESTE PR esta prestes a deixar sem rede — o padrao exato do
@@ -290,8 +309,13 @@ jobs:
       # o prompt (presence-gate sobre texto) e por construção não vê o arquivo.
       - name: Ledger de réguas — o selftest morde os 2 defeitos reais
         run: node scripts/governance/reguas-ledger-check.mjs --selftest
-      - name: Ledger de réguas — coerência do arquivo (advisory · exit 0)
-        run: node scripts/governance/reguas-ledger-check.mjs
+      # 2026-08-08: este step rodava SEM `--check` — imprimia as 3 violações e saía 0.
+      # Gate mudo é pior que gate ausente (parece cobertura). Não dava pra ligar o
+      # `--check` antes porque as 3 eram IRRECUPERÁVEIS (#4820) e o job nasceria
+      # vermelho-permanente; agora elas são DADO em config.json `residuos_irrecuperaveis`
+      # — o conhecido é reportado sem derrubar, e drift NOVO derruba. Segue advisory.
+      - name: Ledger de réguas — coerência do arquivo (advisory · morde drift NOVO)
+        run: node scripts/governance/reguas-ledger-check.mjs --check
       - name: Registro do guard de schema em settings.json (matcher Write E Edit)
         run: node scripts/governance/settings-memory-schema-registration.test.mjs
       - name: Baseline armado Figma-não-é-fonte (camada L5 · vetores de ataque)
@@ -572,6 +596,11 @@ jobs:
         run: node scripts/qa/prototipo-readiness.test.mjs
       - name: Screen-grade-report (contrato de derivação · cobertura/D1/drift)
         run: node scripts/qa/screen-grade-report.test.mjs
+      # Vetor 2 da catraca de nota (deleção de scorecard com a tela viva). O selftest
+      # tem bite E2E pelo CLI, não só assert no helper puro — helper puro não prova
+      # pipeline (§5 2026-07-30). Os 2 mutantes (detector cego / exit 1→0) morrem.
+      - name: 'Screen-grades-ratchet (bite: deletar scorecard não escapa da catraca)'
+        run: node scripts/qa/screen-grades-ratchet.mjs --selftest
       # +2 órfãos surgidos após 13-jul, pegos ao re-rodar o sweep (agora vivo via #4210).
       # Fecha em 0 órfãos. Ambos verdes em node puro.
       - name: Adversário-intenção-fluxo (rota legada crítica · cobertura mínima · contraprova)

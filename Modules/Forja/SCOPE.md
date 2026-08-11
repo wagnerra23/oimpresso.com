@@ -10,6 +10,8 @@ contains:
   - "RoadmapGanttController — roadmap Gantt (/forja/roadmap-gantt): tasks no tempo via mcp_cycles+mcp_tasks, com reschedule de due_date por drag-drop. Recebido do Modules/Jana em 2026-08-05 (ADR 0366 §D-B + 0367 D4). CONVIVE com o quarter view acima — são duas leituras do mesmo backlog e nenhuma responde a pergunta da outra (o quarter não tem due_date/blocked_by, o Gantt não tem epic_id); a 0367 D7 diz que o quarter só sai quando o Gantt provar que substitui"
   - "MyWorkController — tasks do owner logado"
   - "TriageController — tasks órfãs (sem owner/priority/backlog); paridade tool MCP `triage`"
+  - "TrabalhoController + TrabalhoService — lista única (/forja/trabalho): funde os TRÊS backlogs que respondiam a mesma pergunta com escopos diferentes (Pages/Forja/Backlog rica project=FORJA · _components/ForjaBacklog enxuta · team-mcp/Tasks todas). Base é a NATIVA (filtros/KPIs/memoização) + a projeção forja_* do cockpit + escopo sem recorte de projeto. US-FORJA-006; a remoção da implementação perdedora é decisão [W] e NÃO aconteceu nesta onda — as três convivem"
+  - "AprovacoesController + ForjaAprovacoesService — mesa de aprovações (/forja/aprovacoes): fila de mcp_tasks em `pending_approval` (o que espera decisão de [W]) em ordem de espera, e a decisão admitir/parquear/recusar. Superfície da ADR 0368, que fechou a política e deixou o código pra PR próprio; estado+FSM+trava de recusa-sem-motivo já vieram em #5283/#5288. Escrita 100% via TaskCrudService — mesmo chokepoint da tool MCP `tasks-update`, sem 2º caminho"
   - "InboxController — caixa de entrada per-user (mcp_inbox_notifications); paridade tool MCP `my-inbox`"
   - "BurndownController — burndown chart por cycle"
   - "ActivityController — atividade recente"
@@ -59,7 +61,10 @@ contains:
   - "⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W], separada desta deprecação"
 not_contains:
   - "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects) → Modules/Project (DELETE em Fase 3.8)"
-  - "Skills governance → Modules/ADS"
+  # Destino era o ADS até a remoção dele em 2026-07-31 (ADR 0363); skills foram pra Jana (#5129).
+  # A história fica NESTE comentário: o catalog-graph deriva a aresta de TODO `Modules/X` que
+  # aparecer no VALOR do item, então citar o nome morto ali recriaria a aresta pro módulo morto.
+  - "Skills governance → Modules/Jana (Services/SkillsService.php, #5129)"
   - "Painel/tokens do MCP (TeamMcp) — em deprecação; endpoints /api/mcp JÁ são daqui"
   - "Knowledge browsing → Modules/KB"
   - "Chat IA → Modules/Jana"
@@ -129,7 +134,7 @@ Renomeação Forja → Project prevista pra Fase 3.9 do ADR 0079, **após** dele
 ## Quando NÃO é tocado
 
 - ❌ UltimatePOS Project (clientes + timesheet) → Modules/Project legado (em DELETE Fase 3.8)
-- ❌ Skills governance → Modules/ADS
+- ❌ Skills governance → **Modules/Jana** (`SkillsService`; era `Modules/ADS` até a remoção de 2026-07-31, [ADR 0363](../../memory/decisions/0363-governance-incorpora-ads-nucleo-sem-receptor.md))
 - ❌ Tokens / scopes / audit → Modules/Forja
 
 ## Drift resolvido (Fase 3.7 PR-1, 2026-05-06)

@@ -14,7 +14,7 @@ module: Repair
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Repair/**` + `resources/js/Pages/Repair/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Repair/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 191 arquivos em 16 papéis.
+**Total mapeado:** 190 arquivos em 16 papéis.
 
 ## Controllers — 11
 
@@ -99,7 +99,58 @@ module: Repair
 
 ## Views (Blade) — 52
 
-- 52 arquivos em [Modules/Repair/Resources/views/customer_repair/](../../../Modules/Repair/Resources/views/customer_repair) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [index.blade.php](../../../Modules/Repair/Resources/views/customer_repair/index.blade.php)
+- [repair_activities.blade.php](../../../Modules/Repair/Resources/views/customer_repair/repair_activities.blade.php)
+- [repair_details.blade.php](../../../Modules/Repair/Resources/views/customer_repair/repair_details.blade.php)
+- [index.blade.php](../../../Modules/Repair/Resources/views/dashboard/index.blade.php)
+- [create.blade.php](../../../Modules/Repair/Resources/views/device_model/create.blade.php)
+- [edit.blade.php](../../../Modules/Repair/Resources/views/device_model/edit.blade.php)
+- [index.blade.php](../../../Modules/Repair/Resources/views/device_model/index.blade.php)
+- [device_model_drodown.blade.php](../../../Modules/Repair/Resources/views/device_model/partials/device_model_drodown.blade.php)
+- [list_product_filters.blade.php](../../../Modules/Repair/Resources/views/device_model/partials/list_product_filters.blade.php)
+- [repair_product_screen.blade.php](../../../Modules/Repair/Resources/views/device_model/partials/repair_product_screen.blade.php)
+- [index.blade.php](../../../Modules/Repair/Resources/views/index.blade.php)
+- [add_parts.blade.php](../../../Modules/Repair/Resources/views/job_sheet/add_parts.blade.php)
+- [create.blade.php](../../../Modules/Repair/Resources/views/job_sheet/create.blade.php)
+- [edit.blade.php](../../../Modules/Repair/Resources/views/job_sheet/edit.blade.php)
+- [index.blade.php](../../../Modules/Repair/Resources/views/job_sheet/index.blade.php)
+- [document_table_view.blade.php](../../../Modules/Repair/Resources/views/job_sheet/partials/document_table_view.blade.php)
+- [edit_status.blade.php](../../../Modules/Repair/Resources/views/job_sheet/partials/edit_status.blade.php)
+- [edit_status_form.blade.php](../../../Modules/Repair/Resources/views/job_sheet/partials/edit_status_form.blade.php)
+- [job_sheet_part_row.blade.php](../../../Modules/Repair/Resources/views/job_sheet/partials/job_sheet_part_row.blade.php)
+- [scurity_modal.blade.php](../../../Modules/Repair/Resources/views/job_sheet/partials/scurity_modal.blade.php)
+- [print_label.blade.php](../../../Modules/Repair/Resources/views/job_sheet/print_label.blade.php)
+- [print_pdf.blade.php](../../../Modules/Repair/Resources/views/job_sheet/print_pdf.blade.php)
+- [show.blade.php](../../../Modules/Repair/Resources/views/job_sheet/show.blade.php)
+- [tagify_css.blade.php](../../../Modules/Repair/Resources/views/job_sheet/tagify_css.blade.php)
+- [upload_doc.blade.php](../../../Modules/Repair/Resources/views/job_sheet/upload_doc.blade.php)
+- [master.blade.php](../../../Modules/Repair/Resources/views/layouts/master.blade.php)
+- [nav.blade.php](../../../Modules/Repair/Resources/views/layouts/nav.blade.php)
+- [header.blade.php](../../../Modules/Repair/Resources/views/layouts/partials/header.blade.php)
+- [invoice_layout_settings.blade.php](../../../Modules/Repair/Resources/views/layouts/partials/invoice_layout_settings.blade.php)
+- [javascripts.blade.php](../../../Modules/Repair/Resources/views/layouts/partials/javascripts.blade.php)
+- [pos_header.blade.php](../../../Modules/Repair/Resources/views/layouts/partials/pos_header.blade.php)
+- [plain.blade.php](../../../Modules/Repair/Resources/views/layouts/plain.blade.php)
+- [repair_status.blade.php](../../../Modules/Repair/Resources/views/layouts/repair_status.blade.php)
+- [create.blade.php](../../../Modules/Repair/Resources/views/repair/create.blade.php)
+- [edit.blade.php](../../../Modules/Repair/Resources/views/repair/edit.blade.php)
+- [index.blade.php](../../../Modules/Repair/Resources/views/repair/index.blade.php)
+- [activities.blade.php](../../../Modules/Repair/Resources/views/repair/partials/activities.blade.php)
+- [checklist_modal.blade.php](../../../Modules/Repair/Resources/views/repair/partials/checklist_modal.blade.php)
+- [checklists.blade.php](../../../Modules/Repair/Resources/views/repair/partials/checklists.blade.php)
+- [edit_repair_status_modal.blade.php](../../../Modules/Repair/Resources/views/repair/partials/edit_repair_status_modal.blade.php)
+- [preview_label.blade.php](../../../Modules/Repair/Resources/views/repair/partials/preview_label.blade.php)
+- [repair_pos.blade.php](../../../Modules/Repair/Resources/views/repair/partials/repair_pos.blade.php)
+- [repair_status.blade.php](../../../Modules/Repair/Resources/views/repair/partials/repair_status.blade.php)
+- [security_modal.blade.php](../../../Modules/Repair/Resources/views/repair/partials/security_modal.blade.php)
+- [classic.blade.php](../../../Modules/Repair/Resources/views/repair/receipts/classic.blade.php)
+- [show.blade.php](../../../Modules/Repair/Resources/views/repair/show.blade.php)
+- [index.blade.php](../../../Modules/Repair/Resources/views/settings/index.blade.php)
+- [jobsheet_settings_tab.blade.php](../../../Modules/Repair/Resources/views/settings/partials/jobsheet_settings_tab.blade.php)
+- [repair_settings_tab.blade.php](../../../Modules/Repair/Resources/views/settings/partials/repair_settings_tab.blade.php)
+- [create.blade.php](../../../Modules/Repair/Resources/views/status/create.blade.php)
+- [edit.blade.php](../../../Modules/Repair/Resources/views/status/edit.blade.php)
+- [index.blade.php](../../../Modules/Repair/Resources/views/status/index.blade.php)
 
 ## Telas (Inertia/React) — 13
 
@@ -137,9 +188,8 @@ module: Repair
 
 - 22 arquivos em [Modules/Repair/Tests/Feature/](../../../Modules/Repair/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 43
+## Demais arquivos (manifestos, docs, assets e misc) — 42
 
-- [CHANGELOG.md](../../../Modules/Repair/CHANGELOG.md)
 - [LogsWithPiiRedactor.php](../../../Modules/Repair/Concerns/LogsWithPiiRedactor.php)
 - [.gitkeep](../../../Modules/Repair/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Repair/Console/.gitkeep)

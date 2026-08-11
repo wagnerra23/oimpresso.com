@@ -49,6 +49,7 @@
 import { readFileSync, readdirSync, existsSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 
@@ -149,6 +150,101 @@ export function contextsDoWorkflow(srcCru) {
   return out;
 }
 
+// ── `name:` que quebra o parser do GitHub — o caso EXTREMO deste mesmo lint ──
+// Este script pergunta "o context required NASCE?". Um workflow que **não parseia**
+// é a forma mais severa de não-nascer: o run sai `startup_failure` com ZERO jobs,
+// nenhum step reporta nada porque nenhum step chega a existir, e a lane inteira
+// morre em silêncio — em toda branch, inclusive `main`.
+//
+// Aconteceu em 2026-08-08 (#5424): `- name: Censo Blade->React (bite: resource-string
+// … NEG: json/ciclo/mailable)`. Escalar YAML **puro** (não citado) não aceita
+// dois-pontos-espaço: o `bite: ` vira chave de mapa e o arquivo todo deixa de
+// parsear (`bad indentation of a mapping entry (53:39)`). 46 `success` no dia
+// anterior → 47 `failure` no dia. E a lane morta escondeu 2 outras dívidas do
+// próprio PR, porque era ela que as vigiava.
+//
+// POR QUE TEXTUAL, e não `js-yaml`: o `js-yaml` **não é dependência declarada**
+// (nem `dependencies` nem `devDependencies` — resolve só transitivamente) e o
+// `governance-script-tests.yml` não roda `npm ci`. Vale aqui a mesma razão do
+// cabeçalho: um lint que só roda onde há `npm ci` é um lint que não roda.
+//
+// FP MEDIDO ANTES DE ARMAR (2026-08-08, 121 workflows): escopo `name:` → **0 hits**.
+// O escopo largo (qualquer chave) daria 17, TODOS legítimos — comentário depois do
+// valor (`true   # advisory: …`) e flow mapping (`{ fetch-depth: 0 }`) —, por isso
+// o escopo é `name:`, que é onde mora prosa livre. Comentário é removido antes de
+// medir (em escalar puro, ` #` inicia comentário, então o `: ` de dentro dele não conta).
+//
+// LIMITE HONESTO: pega esta família (dois-pontos-espaço em `name:` não citado), não
+// "todo YAML inválido" — indentação torta, tab, aspas não fechadas passam. E se o
+// workflow QUEBRADO for o que hospeda este lint, ele não roda pra se denunciar.
+export function nomesQueQuebramOParser(src, arquivo = '') {
+  const achados = [];
+  src.split('\n').forEach((linha, i) => {
+    const m = linha.replace(/\r$/, '').match(/^(\s*-?\s*)name:\s+(.+)$/);
+    if (!m) return;
+    const valor = m[2].replace(/\s+#.*$/, '').trim();     // ` #` = comentário em escalar puro
+    if (!valor || /^["'|>&*]/.test(valor)) return;        // citado, block scalar ou âncora = seguro
+    if (!/: /.test(valor)) return;
+    achados.push({ arquivo, linha: i + 1, valor });
+  });
+  return achados;
+}
+
+// ── `if:` de JOB — o 3º jeito de um required NÃO nascer ─────────────────────
+// Este lint media 2 vetores (`paths:` filtrado · sem gatilho de PR) e era CEGO ao
+// terceiro: um job com `if:` que é FALSO em contexto de pull_request nunca produz
+// check-run, e o PR fica em `Expected — waiting for status` pra sempre — mesmo com o
+// workflow always-run. Achado por revisão adversarial em 2026-08-10, logo após o flip
+// da ADR 0373: `grep -c "if:"` no próprio script dava **0**.
+//
+// NÃO confundir com `if:` de STEP (indentação de 6+): step que não roda não impede o
+// check-run do job de existir. Só o `if:` de JOB (indentação de 4) mata o check-run.
+//
+// FP MEDIDO ANTES DE ARMAR (2026-08-10, 121 workflows): **13** `if:` de job no repo.
+// Destes, **2 são required** e os DOIS são seguros — `DS gate` (`!cancelled()`) e
+// `ADR 0216 PR scan` (`== 'pull_request'`). O balde perigoso EXISTE (4 jobs: o
+// `refresh` do system-map, o `submit` do handoff-sign, e 2 do governance-drift) mas
+// **nenhum é required hoje** ⇒ 0 falso-positivo, e valor preventivo real: o dia em que
+// alguém promover um desses, o lint morde antes do deadlock.
+//
+// TRÊS baldes, e o do meio é o único que reprova — INDECIDÍVEL nunca derruba, porque
+// um lint que chuta no que não sabe é a família de guard sintático que o §5 já matou 5×.
+export function classificaIfEmPR(expr) {
+  const e = String(expr).replace(/\$\{\{|\}\}/g, ' ').replace(/\s+/g, ' ').trim();
+  // depende de runtime (needs/outputs/env) → não dá pra decidir estaticamente
+  if (/\bneeds\./.test(e) || /\benv\./.test(e) || /\binputs\./.test(e)) return 'INDECIDIVEL';
+  const citaPR = /event_name\s*==\s*'pull_request'/.test(e);
+  const negaPR = /event_name\s*!=\s*'pull_request'/.test(e);
+  const outroEvento = /event_name\s*==\s*'(?:push|schedule|workflow_dispatch|release|issues|issue_comment)'/.test(e);
+  if (negaPR) return 'PERIGOSO';                       // literalmente falso em PR
+  if (outroEvento && !citaPR) return 'PERIGOSO';       // só casa outro evento
+  if (citaPR) return 'SEGURO';                         // verdadeiro em PR
+  if (/^!?\s*(cancelled|always|success)\(\)$/.test(e)) return 'SEGURO';
+  return 'INDECIDIVEL';
+}
+
+/** Extrai `if:` de JOB (indentação 4) por job, com o `name:` quando houver. */
+export function ifsDeJob(srcCru) {
+  const src = nl(srcCru);
+  const out = [];
+  const jobsBloco = src.match(/^jobs:[ \t]*$\n([\s\S]*)/m);
+  if (!jobsBloco) return out;
+  const partes = jobsBloco[1].split(/^  (?=[A-Za-z0-9_-]+:[ \t]*$)/m).filter(Boolean);
+  for (const parte of partes) {
+    const idm = parte.match(/^([A-Za-z0-9_-]+):[ \t]*$/m);
+    if (!idm) continue;
+    const mIf = parte.match(/^[ \t]{4}if:[ \t]*(.+)$/m);
+    if (!mIf) continue;
+    const nm = parte.match(/^[ \t]{4}name:[ \t]*(.+)$/m);
+    out.push({
+      jobId: idm[1],
+      context: nm ? nm[1].trim().replace(/^["']|["']$/g, '') : idm[1],
+      ifExpr: mIf[1].trim(),
+    });
+  }
+  return out;
+}
+
 function auditar(root = ROOT) {
   const baseP = join(root, 'governance', 'required-checks-baseline.json');
   // O baseline guarda o required em DUAS chaves — `classic_protection` (branch protection
@@ -164,22 +260,34 @@ function auditar(root = ROOT) {
   ])];
   const dir = join(root, '.github', 'workflows');
   const mapa = new Map();                                   // context → {arquivo, gatilho, via}
+  const parserQuebrado = [];                                // `name:` que mata o workflow inteiro
+  const ifPorContext = new Map();                           // context → {arquivo, ifExpr, veredito}
   for (const f of readdirSync(dir).filter((x) => /\.ya?ml$/.test(x))) {
     const src = readFileSync(join(dir, f), 'utf8');
+    parserQuebrado.push(...nomesQueQuebramOParser(src, f));
     const g = gatilhoPR(src);
     for (const c of contextsDoWorkflow(src)) {
       if (!mapa.has(c.context)) mapa.set(c.context, { arquivo: f, gatilho: g, via: c.via });
     }
+    for (const j of ifsDeJob(src)) {
+      if (!ifPorContext.has(j.context)) {
+        ifPorContext.set(j.context, { arquivo: f, ifExpr: j.ifExpr, veredito: classificaIfEmPR(j.ifExpr) });
+      }
+    }
   }
   const filtrados = [], semPR = [], naoResolvidos = [], ok = [];
+  const ifPerigoso = [], ifIndecidivel = [];
   for (const ctx of required) {
+    const j = ifPorContext.get(ctx);
+    if (j?.veredito === 'PERIGOSO') ifPerigoso.push({ ctx, ...j });
+    else if (j?.veredito === 'INDECIDIVEL') ifIndecidivel.push({ ctx, ...j });
     const m = mapa.get(ctx);
     if (!m) { naoResolvidos.push(ctx); continue; }
     if (m.gatilho.filtrado) filtrados.push({ ctx, ...m });
     else if (!m.gatilho.temPR) semPR.push({ ctx, ...m });
     else ok.push({ ctx, ...m });
   }
-  return { required, filtrados, semPR, naoResolvidos, ok };
+  return { required, filtrados, semPR, naoResolvidos, ok, parserQuebrado, ifPerigoso, ifIndecidivel };
 }
 
 // ── selftest: fixtures herméticas, com controle negativo ────────────────────
@@ -248,10 +356,83 @@ function selftest() {
     writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
       JSON.stringify({ classic_protection: { contexts: ['Job A'] }, rulesets: { contexts: ['Job A'] } }));
     ok(auditar(dir).required.length === 1, 'context repetido nas 2 chaves conta 1× (união, não concatenação)');
+    // ── `name:` que quebra o parser (2026-08-08 · #5424) ────────────────────
+    // A linha REAL que matou a lane, verbatim. Se este assert cair, o lint parou
+    // de pegar o incidente que o originou.
+    const quebra = '      - name: Censo Blade->React (bite: resource-string, namespace de grupo, indirecao $this-> · NEG: json/ciclo/mailable)';
+    ok(nomesQueQuebramOParser(quebra).length === 1,
+      'MORDE: `name:` não citado com `: ` (a linha real do #5424)');
+    ok(nomesQueQuebramOParser(quebra.replace(/\r?$/, '\r')).length === 1,
+      'MORDE em CRLF também (o repo é Windows)');
+    // controles negativos — cada um é uma forma LEGÍTIMA que não pode acusar
+    ok(nomesQueQuebramOParser("      - name: 'Censo (bite: x · NEG: y)'").length === 0,
+      'LIBERA: o mesmo texto CITADO (é o conserto — não pode seguir vermelho)');
+    ok(nomesQueQuebramOParser('      - name: Roda o guard   # advisory: não derruba').length === 0,
+      'LIBERA: `: ` dentro de COMENTÁRIO (em escalar puro ` #` inicia comentário)');
+    ok(nomesQueQuebramOParser('      - name: ${{ matrix.label }}').length === 0,
+      'LIBERA: expressão de matrix (sem dois-pontos-espaço)');
+    ok(nomesQueQuebramOParser('      - name: Passo simples\n  name: Workflow X').length === 0,
+      'LIBERA: `name:` comum, no step e no topo do workflow');
+    ok(nomesQueQuebramOParser('        run: node x.mjs --a b: c').length === 0,
+      'LIBERA: outra chave que não `name:` (escopo medido — 17 hits legítimos fora dele)');
+    // E2E: o arquivo quebrado derruba o auditar() inteiro, não só a função pura
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'),
+      semPaths.replace('name: Job A', 'name: Job A (bite: x)'));
+    ok(auditar(dir).parserQuebrado.length === 1,
+      'BITE E2E: auditar() acusa o workflow que não parsearia');
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), semPaths);
+    ok(auditar(dir).parserQuebrado.length === 0, 'LIBERA E2E: árvore limpa não acusa');
+
     // controle: baseline sem a chave `rulesets` segue funcionando (retrocompat)
     writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
       JSON.stringify({ classic_protection: { contexts: ['Job A'] } }));
     ok(auditar(dir).filtrados.length === 0, 'baseline sem `rulesets` não quebra (retrocompat)');
+    // ── eixo 3: `if:` de JOB (achado adversarial 2026-08-10, pós-flip ADR 0373) ──
+    // classificador puro — os 3 baldes, com as expressões REAIS medidas no repo
+    ok(classificaIfEmPR("github.event_name != 'pull_request'") === 'PERIGOSO',
+      'BITE: `!= pull_request` é falso em PR → PERIGOSO');
+    ok(classificaIfEmPR("github.event_name == 'push' || github.event_name == 'workflow_dispatch'") === 'PERIGOSO',
+      'BITE: só casa push/dispatch → PERIGOSO');
+    ok(classificaIfEmPR("github.event_name == 'pull_request'") === 'SEGURO',
+      'CN: `== pull_request` é verdadeiro em PR → SEGURO');
+    ok(classificaIfEmPR('${{ !cancelled() }}') === 'SEGURO',
+      'CN: `!cancelled()` (o DS gate real) → SEGURO');
+    ok(classificaIfEmPR("github.event_name == 'push' || github.event_name == 'pull_request'") === 'SEGURO',
+      'CN: cobre push E pull_request → SEGURO (o `||` não pode virar PERIGOSO)');
+    ok(classificaIfEmPR("needs.detect.outputs.should_smoke == 'true'") === 'INDECIDIVEL',
+      'CN: depende de `needs` → INDECIDÍVEL, nunca reprova');
+
+    // extrator: `if:` de JOB (4 espaços) conta; `if:` de STEP (6+) NÃO
+    const comIfJob = ['name: W', 'on:', '  pull_request:', 'jobs:', '  a:', '    name: Job A',
+      "    if: github.event_name != 'pull_request'", '    steps:', '      - run: x'].join('\n');
+    ok(ifsDeJob(comIfJob).length === 1 && ifsDeJob(comIfJob)[0].context === 'Job A',
+      'extrator: pega `if:` de JOB com o name: do job');
+    const comIfStep = ['name: W', 'on:', '  pull_request:', 'jobs:', '  a:', '    name: Job A',
+      '    steps:', '      - run: x', '        if: failure()'].join('\n');
+    ok(ifsDeJob(comIfStep).length === 0,
+      'CN: `if:` de STEP (6 espaços) NÃO conta — step pulado ainda reporta o job');
+
+    // E2E pelo auditar(): required com if: perigoso entra em ifPerigoso
+    writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
+      JSON.stringify({ classic_protection: { contexts: ['Job A'] }, rulesets: { contexts: [] } }));
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), comIfJob);
+    ok(auditar(dir).ifPerigoso.length === 1, 'BITE: required com `if:` falso em PR → ifPerigoso');
+
+    // ⚠️ Assert de DADO não prova FIAÇÃO. Medido por mutação nesta própria sessão:
+    // tirar o `process.exit(1)` do ramo `ifPerigoso` deixava o lint de morder e o
+    // selftest seguia VERDE (o `.length===1` acima continua verdadeiro). É o
+    // sub-padrão do LC-11 ("bite-test cego à fiação"). Estes 2 rodam o CLI DE FORA
+    // e olham o exit code — o mutante morre neles.
+    const rodarCli = () => {
+      try {
+        execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { cwd: dir, stdio: 'ignore' });
+        return 0;
+      } catch (e) { return e.status ?? 1; }
+    };
+    ok(rodarCli() === 1, 'BITE E2E (CLI): `if:` perigoso em required → exit 1');
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), comIfJob.replace("!= 'pull_request'", "== 'pull_request'"));
+    ok(auditar(dir).ifPerigoso.length === 0, 'LIBERA: `if: == pull_request` não acusa');
+    ok(rodarCli() === 0, 'LIBERA E2E (CLI): `if:` seguro → exit 0');
   } finally { rmSync(dir, { recursive: true, force: true }); }
 
   console.log(falhas ? `\n✗ ${falhas} falha(s)` : '\n✅ required-always-run: acusa filtrado, libera always-run, avisa o não-resolvido.');
@@ -283,7 +464,17 @@ function main() {
 const r = auditar();
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify(r, null, 2));
-  process.exit(r.filtrados.length ? 1 : 0);
+  process.exit(r.filtrados.length || r.parserQuebrado.length ? 1 : 0);
+}
+
+if (r.parserQuebrado.length) {
+  console.log(`\n  ❌ ${r.parserQuebrado.length} \`name:\` NÃO CITADO com dois-pontos-espaço — o workflow inteiro deixa de parsear:\n`);
+  for (const p of r.parserQuebrado) console.log(`     ${p.arquivo}:${p.linha}\n       name: ${p.valor}`);
+  console.log(`\n  Escalar YAML puro não aceita \`: \` — vira chave de mapa e o run sai \`startup_failure\``);
+  console.log(`  com ZERO jobs: nenhum step reporta nada porque nenhum step chega a existir, em toda`);
+  console.log(`  branch inclusive \`main\` (incidente 2026-08-08 · #5424).`);
+  console.log(`  CONSERTO: cite o valor — \`- name: 'Texto (com: dois-pontos)'\`.\n`);
+  process.exit(1);
 }
 
 console.log(`\n  REQUIRED ALWAYS-RUN — ${r.required.length} contexts required · ${r.ok.length} always-run · ${r.filtrados.length} FILTRADO(s) · ${r.naoResolvidos.length} não-resolvido(s)\n`);
@@ -292,6 +483,20 @@ for (const s of r.semPR) console.log(`  ❌ ${s.ctx}\n       ${s.arquivo} — ${
 if (r.naoResolvidos.length) {
   console.log(`\n  ⚠️  não casei com job nenhum (AVISO — limite conhecido, não veredito):`);
   for (const n of r.naoResolvidos) console.log(`     ${n}`);
+}
+if (r.ifIndecidivel.length) {
+  console.log(`\n  ⚠️  \`if:\` de job que não dá pra decidir estaticamente (AVISO — não derruba):`);
+  for (const j of r.ifIndecidivel) console.log(`     ${j.ctx}\n       ${j.arquivo} — if: ${j.ifExpr}`);
+}
+if (r.ifPerigoso.length) {
+  console.log(`\n  ❌ ${r.ifPerigoso.length} required com \`if:\` de JOB que é FALSO em pull_request:\n`);
+  for (const j of r.ifPerigoso) console.log(`     ${j.ctx}\n       ${j.arquivo} — if: ${j.ifExpr}`);
+  console.log(`\n  Job com \`if:\` falso não produz check-run — mesmo com o workflow always-run. É o`);
+  console.log(`  3º jeito de um required não nascer (os outros 2: \`paths:\` filtrado · sem gatilho de PR),`);
+  console.log(`  e o efeito é idêntico: "Expected — waiting for status" pra sempre.`);
+  console.log(`  CONSERTO: tire o \`if:\` do JOB (o de STEP é inofensivo — step pulado ainda reporta o job),`);
+  console.log(`  ou não promova este context a required.\n`);
+  process.exit(1);
 }
 if (r.filtrados.length || r.semPR.length) {
   console.log(`\n  Um context required cujo workflow é filtrado NÃO fica vermelho — ele NÃO NASCE.`);

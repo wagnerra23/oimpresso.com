@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **876 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **881 tarefas abertas** em **50 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,8 +10,8 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 51 | 0 | 0 | 0 | 51 |
-| [`Governance`](#governance) | 46 | 0 | 0 | 3 | 43 |
+| [`Sells`](#sells) | 52 | 0 | 0 | 0 | 52 |
+| [`Governance`](#governance) | 47 | 0 | 0 | 3 | 44 |
 | [`Infra`](#infra) | 46 | 0 | 0 | 0 | 46 |
 | [`Financeiro`](#financeiro) | 45 | 0 | 0 | 0 | 45 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
@@ -24,16 +24,16 @@
 | [`Fiscal`](#fiscal) | 23 | 0 | 0 | 0 | 23 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
+| [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
-| [`Compras`](#compras) | 17 | 0 | 0 | 0 | 16 |
-| [`Forja`](#forja) | 17 | 0 | 1 | 0 | 7 |
+| [`Forja`](#forja) | 18 | 0 | 1 | 0 | 7 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
+| [`Ponto`](#ponto) | 14 | 0 | 0 | 0 | 14 |
 | [`Connector`](#connector) | 13 | 0 | 0 | 0 | 13 |
 | [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
-| [`Ponto`](#ponto) | 13 | 0 | 0 | 0 | 13 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Essentials`](#essentials) | 11 | 0 | 0 | 0 | 11 |
@@ -281,6 +281,7 @@
 - **US-SELL-051** — Migrar dados históricos transaction_date (timezone/format) — afeta ROTA LIVRE
 - **US-SELL-052** — Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado)
 - **US-SELL-053** — FieldError por campo + auto-open details em erro
+- **US-SELL-058** — Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar na tela que a ROTA LIVRE opera
 
 ## Governance
 
@@ -304,6 +305,7 @@
 - **US-GOV-049** — Ratificar ADR 0329 (doutrina documentação de processo) — flip proposto→aceito _(`p1` · @wagner)_
 - **US-GOV-050** — Ratificar 0314 (por-item) + 0299 e mover 0320 aceita presa em proposals/ _(`p1` · @wagner)_
 - **US-GOV-051** — Review + merge PRs #4009 (tombstones P16) e #4010 (ref-integrity P10) _(`p1` · @wagner)_
+- **US-GOV-060** — 5 testes dropam tabela CORE sem skip — risco sobre o `oimpresso-staging` persistente _(`p1`)_
 - **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
 - **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
 - **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_
@@ -755,6 +757,33 @@
 - **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
 - **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
 
+## Compras
+
+
+### todo
+
+- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
+- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
+- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
+- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
+- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
+- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
+- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
+- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
+- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
+- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
+- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
+- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
+- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
+- **US-COM-002** — Criar compra manual
+- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
+- **US-COM-004** — Deprecar `/purchases` legacy
+- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
+
+### retirada
+
+- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
+
 ## ComunicacaoVisual
 
 
@@ -779,32 +808,6 @@
 - **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
 - **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
 
-## Compras
-
-
-### todo
-
-- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
-- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
-- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
-- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
-- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
-- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
-- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
-- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
-- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
-- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
-- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
-- **US-COM-002** — Criar compra manual
-- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
-- **US-COM-004** — Deprecar `/purchases` legacy
-- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
-
-### retirada
-
-- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
-
 ## Forja
 
 
@@ -828,6 +831,7 @@
 - **US-FORJA-002** — Política de expurgo (usar o `cancelled` que já existe) _(`p0` · @[W])_
 - **US-FORJA-005** — Rito de cycle — reativar ou aposentar (decisão [W], 0h de código) _(`p0` · @[W])_
 - **US-FORJA-009** — Pôr os testes da Forja numa lane de CI (41+ nunca executam) _(`p0` · @[W])_
+- **US-FORJA-010** — Mesa de Aprovações — a superfície do funil de admissão _(`p0` · @[W])_
 - **US-FORJA-003** — Estender `mcp:tasks:unassigned` (idade + delta semanal) _(`p1` · @[W])_
 - **US-FORJA-004** — Ligar a superfície do alarme de `review` parado (o detector já existe) _(`p1` · @[W])_
 - **US-FORJA-006** — Sobreposição cockpit `/forja` × telas nativas (decisão [W] + código) _(`p1` · @[W])_
@@ -897,6 +901,26 @@
 - **US-COMM-013** — Mobile self-service vendedor — **P2**
 - **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
 
+## Ponto
+
+
+### todo
+
+- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
+- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
+- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
+- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
+- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
+- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
+- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
+- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
+- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
+- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
+- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
+- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
+- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
+- **US-PONTO-013** — Consertar as duas telas que nao persistem
+
 ## Connector
 
 
@@ -953,25 +977,6 @@
 - **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
-
-## Ponto
-
-
-### todo
-
-- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
-- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
-- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
-- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
-- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
-- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
-- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
-- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
-- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
-- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
-- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
-- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
-- **US-PONTO-013** — Consertar as duas telas que nao persistem
 
 ## NFSe
 

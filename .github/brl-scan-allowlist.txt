@@ -19,3 +19,19 @@
 # Nasce VAZIO de propósito: o gate é diff-only (só linhas novas), então o passivo
 # de 84 tokens não dispara nada. Entrada aqui só quando um PR real acusar algo que
 # seja comprovadamente fixture — com o motivo escrito ao lado.
+# ── venda-v3 · fonte de design (2026-08-10) ──────────────────────────────────
+# O "R$ 0,01" abaixo é o CENTAVO DE ARREDONDAMENTO — o exemplo canônico do erro
+# de ratear parcela por float. É texto explicativo do protótipo sobre um defeito,
+# não valor de cliente, faturamento ou meta. Encaixa no "mock/protótipo com valor
+# ilustrativo" que o cabeçalho deste arquivo prevê.
+# Substring escolhida com o número junto de propósito: isentar só "R$ 0,01" solto
+# abriria a porta pra qualquer linha com esse valor em qualquer arquivo.
+clássico R$ 0,01 perdido
+
+# ── venda-v3 onda 3 · parcelas (2026-08-10) ──────────────────────────────────
+# Os dois valores abaixo EXPLICAM o defeito que o código existe pra evitar: dividir
+# R$ 100,00 em 3 pelo jeito ingênuo perde R$ 0,01. São exemplo pedagógico em docblock
+# e em teste, não valor de cliente/faturamento/meta. Mesmo caso da entrada acima.
+# As substrings carregam o contexto junto (não só "R$ 0,01" solto) de propósito.
+`R$ 100,00 / 3` daria
+perde R$ 0,01 em

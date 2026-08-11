@@ -190,11 +190,17 @@ class ChatController extends Controller
             ->orderByDesc('iniciada_em')
             ->get(['id', 'titulo', 'status', 'iniciada_em']);
 
+        // `status` alimenta o filtro Todas|Arquivadas do ConvSidePanel (Chat.tsx).
+        // A coluna já existia e já vinha no get() acima — só não trafegava pro
+        // frontend, o que deixava a barra de filtro decorativa. Vocabulário:
+        // 'ativa' (default de criarConversa) | 'arquivada' (via PATCH
+        // jana.conversas.update, que já aceita o campo).
         $recentes = collect($conversasReais)->map(fn ($c) => [
             'id'     => (string) $c->id,
             'titulo' => $c->titulo,
             'unread' => 0,
             'origem' => 'COPI',
+            'status' => $c->status,
             'ativa'  => $conversaFoco && (int) $c->id === (int) $conversaFoco->id,
         ])->values()->all();
 

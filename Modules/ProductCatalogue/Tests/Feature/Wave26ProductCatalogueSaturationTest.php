@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
  * Service contract; Wave 26 expande D5 README (cliente-facing) + D7 retention
  * confirmar canon + D1 documentação ausência intencional Entities.
  *
- * @see Modules/ProductCatalogue/README.md
+ * @see memory/requisitos/ProductCatalogue/README.md
  * @see Modules/ProductCatalogue/Config/retention.php
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
@@ -31,13 +31,13 @@ describe('Wave 26 ProductCatalogue POLISH 75→85', function () {
         expect(is_dir($entitiesDir))->toBeTrue();
 
         // README deve documentar a razão da Entities/ vazia
-        $readme = file_get_contents(base_path('Modules/ProductCatalogue/README.md'));
+        $readme = file_get_contents(base_path('memory/requisitos/ProductCatalogue/README.md'));
         expect($readme)->toContain('Entities/');
         expect($readme)->toContain('read-only');
     });
 
     it('D5: README.md existe + cita Wagner/Larissa + 7+ casos de uso cliente', function () {
-        $readmePath = base_path('Modules/ProductCatalogue/README.md');
+        $readmePath = base_path('memory/requisitos/ProductCatalogue/README.md');
         expect(file_exists($readmePath))->toBeTrue('README.md cliente-facing obrigatório Wave 26 D5');
 
         $src = file_get_contents($readmePath);
@@ -50,7 +50,7 @@ describe('Wave 26 ProductCatalogue POLISH 75→85', function () {
     });
 
     it('D5: README documenta journey real Larissa biz=4 ROTA LIVRE (caso piloto)', function () {
-        $src = file_get_contents(base_path('Modules/ProductCatalogue/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/ProductCatalogue/README.md'));
 
         expect($src)->toContain('Larissa');
         expect($src)->toContain('ROTA LIVRE');
@@ -62,7 +62,7 @@ describe('Wave 26 ProductCatalogue POLISH 75→85', function () {
     });
 
     it('D5: README documenta multi-tenant Tier 0 defesa em profundidade (rota pública)', function () {
-        $src = file_get_contents(base_path('Modules/ProductCatalogue/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/ProductCatalogue/README.md'));
 
         expect($src)->toContain('Multi-tenant Tier 0');
         expect($src)->toContain('defesa em profundidade');
@@ -95,7 +95,7 @@ describe('Wave 26 ProductCatalogue POLISH 75→85', function () {
     });
 
     it('D5: README cita ADRs canônicas (0093 multi-tenant, 0155 observability, 0011 padrão)', function () {
-        $src = file_get_contents(base_path('Modules/ProductCatalogue/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/ProductCatalogue/README.md'));
 
         expect($src)->toContain('0093');
         expect($src)->toContain('0155');
@@ -103,7 +103,7 @@ describe('Wave 26 ProductCatalogue POLISH 75→85', function () {
     });
 
     it('D5: README cita garantias canônicas (Tier 0 + sem PII + read-only + telemetria)', function () {
-        $src = file_get_contents(base_path('Modules/ProductCatalogue/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/ProductCatalogue/README.md'));
 
         expect($src)->toContain('Multi-tenant Tier 0');
         expect($src)->toContain('Sem PII');
@@ -113,7 +113,7 @@ describe('Wave 26 ProductCatalogue POLISH 75→85', function () {
     });
 
     it('D5: README documenta spans canon D9 (build_index_payload + build_show_payload)', function () {
-        $src = file_get_contents(base_path('Modules/ProductCatalogue/README.md'));
+        $src = file_get_contents(base_path('memory/requisitos/ProductCatalogue/README.md'));
 
         expect($src)->toContain('product_catalogue.build_index_payload');
         expect($src)->toContain('product_catalogue.build_show_payload');

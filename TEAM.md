@@ -88,8 +88,8 @@
 | Tipo de task | W | M | F | L | E |
 |---|---|---|---|---|---|
 | **Decisão / ADR** | ✅ | 🟡 | 🟢 (propõe) | ❌ | ❌ |
-| **Copiloto sprints 7-9 (LGPD, eval, judge)** | 🟢 | 🟡 (acompanha) | ✅ | ❌ | ❌ |
-| **Copiloto features comum (drivers, jobs)** | 🟢 | 🟡 | ✅ | 🟡 (pair) | ❌ |
+| **Módulo Jana — LGPD, eval, judge** _(era "Copiloto sprints 7-9")_ | 🟢 | 🟡 (acompanha) | ✅ | ❌ | ❌ |
+| **Módulo Jana — features comum (drivers, jobs)** _(era "Copiloto features comum")_ | 🟢 | 🟡 | ✅ | 🟡 (pair) | ❌ |
 | **PII redactor BR (LGPD)** | 🟢 | ❌ | ✅ | ❌ | ❌ |
 | **Frontend Inertia (Page nova)** | 🟢 | ✅ | ✅ | 🟢 (pair) | 🟡 (UX feedback) |
 | **Frontend Inertia (refactor existente)** | 🟢 | ✅ | 🟢 | ✅ (pair) | 🟡 |
@@ -217,9 +217,28 @@ não commita por ninguém.
 ## 3.3 Dono por MÓDULO — o buraco medido
 
 A §3 nomeia módulo em **5 das 24 linhas**: Financeiro, NfeBrasil/NFSe, RecurringBilling, PontoWr2 e
-MemCofre (hoje SRS). Os outros **29 módulos vivos não têm dono declarado em lugar nenhum** — nem na
-matriz, nem no `module.json` (que guarda `governance.bucket`, LGPD e retenção, mas **não** tem campo
-de dono), nem no frontmatter dos SPEC (ver §3.1).
+MemCofre (hoje SRS). Os outros módulos vivos não têm dono na matriz, nem no `module.json` (que guarda
+`governance.bucket`, LGPD e retenção, mas **não** tem campo de dono), nem no frontmatter dos SPEC
+(ver §3.1).
+
+> ⚠️ **Errata 2026-08-10 — este parágrafo dizia "não têm dono declarado EM LUGAR NENHUM", e era
+> falso.** A enumeração pulava o único lugar que **enforça**: [`.github/CODEOWNERS`](.github/CODEOWNERS),
+> com `require_code_owner_reviews=true` na proteção da `main` (medido pela API do GitHub em
+> 2026-08-10). Lá o dono não é rótulo — o **GitHub bloqueia o merge** sem a review dele.
+>
+> **6 módulos têm dono mecânico**, e um deles a matriz **não** nomeia:
+>
+> | Path | Dono | Está na matriz §3? |
+> |---|---|---|
+> | `Modules/Financeiro/` · `Modules/NfeBrasil/` · `Modules/RecurringBilling/` | `@wagnerra23` | ✅ sim |
+> | `Modules/Ponto/` (ex-PontoWr2) · `Modules/SRS/` (ex-MemCofre) | `@wagnerra23` | ✅ sim |
+> | **`Modules/Jana/`** + `memory/requisitos/Jana/` | **`@wagnerra23`** | ❌ era **não** — a matriz só tinha as 2 linhas com o nome morto **"Copiloto"** (`Modules/Copiloto` **nunca existiu**; o módulo é `Modules/Jana`, com 182 `US-COPI-*` no SPEC). **Renomeadas nesta errata** — só o rótulo; os ✅/🟡 de cada pessoa ficaram intactos, porque redistribuir carga é decisão [W] |
+>
+> Corolário que vale além desta seção: **claim de ausência exige o dono do inventário, não só os
+> lugares que você lembrou** (`proibicoes.md` §5 2026-07-28). Aqui a lista de 3 lugares parecia
+> exaustiva e não era — e o que faltava era justamente o mais forte. O buraco REAL que sobra é
+> menor e mais preciso: os módulos **fora** desses 6 seguem sem dono em lugar nenhum, e a matriz §3
+> segue defasada vs o CODEOWNERS.
 
 **Tentei derivar do git e não dá.** Varredura de autoria por módulo em 180 dias, excluindo a
 identidade dominante e os bots, devolve sinal humano real em **um** módulo:

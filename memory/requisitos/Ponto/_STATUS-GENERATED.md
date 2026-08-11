@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 13 |
+| US no SPEC | 14 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 20 |
 | Telas com `casos.md` | 13 |
@@ -55,6 +55,7 @@ authority: generated
 | US-PONTO-011 | `todo` | Fechar o append-only do ledger de banco de horas |
 | US-PONTO-012 | `todo` | Corrigir os atributos fantasma do modulo (4 instancias) |
 | US-PONTO-013 | `todo` | Consertar as duas telas que nao persistem |
+| US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
 
 ## UC por status
 

@@ -41,6 +41,23 @@ jobs:
       - name: Selftest — todas as catracas × fixtures boa/ruim (+ tabela no job summary)
         run: node scripts/governance/gate-selftest.mjs
 
+      # A catraca de nota de tela virou REQUIRED em 2026-08-10 (ADR 0373) e o
+      # bite-test dela vivia só no `governance-script-tests.yml`, que é ADVISORY —
+      # gate required cujo teste-de-mordida não bloqueava nada. Achado por revisão
+      # adversarial no mesmo dia do flip.
+      #
+      # Invocado aqui em vez de virar fixture `good/bad`: o `--selftest` dela já roda
+      # um E2E contra repo git REAL (monta sandbox, deleta o scorecard, confere o exit),
+      # e a fixture do gate-selftest é DADO em git — não teria como carregar o histórico
+      # git que a catraca precisa (`git show <ref>:<path>` resolve da raiz do repo, não
+      # do cwd, então fixture em subdir compararia contra os scorecards REAIS).
+      # Duplicar a lógica de bite numa fixture seria 2 donos do mesmo contrato.
+      #
+      # ⚠️ `name:` CITADO — o texto tem `: ` e escalar YAML puro não aceita
+      # dois-pontos-espaço (vira chave de mapa, `startup_failure`, ZERO jobs · #5424).
+      - name: 'Catraca de nota de tela morde (bite: deletar scorecard não escapa)'
+        run: node scripts/qa/screen-grades-ratchet.mjs --selftest
+
   # GT-G6 (cont.) — os ~50 hooks Claude Code (camada que bloqueia o agente em
   # tempo real) só rodavam LOCAL. Em mai/2026 isso deixou 4 hooks quebrarem em
   # prod sem CI pegar. US-GOV-052 portou TODOS os .ps1 -> .mjs cross-platform e

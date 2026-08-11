@@ -180,7 +180,7 @@ test('montar() carimba frontmatter gerado + título + papéis', () => {
 
 test('Total mapeado inclui Demais arquivos tanto nos arquivos quanto nos papéis', () => {
   const grupos = [{ rot: 'Controllers', listar: true, files: ['Modules/X/Http/Controllers/AController.php'] }];
-  const outros = ['Modules/X/module.json', 'Modules/X/README.md'];
+  const outros = ['Modules/X/module.json', 'memory/requisitos/X/README.md'];
   const md = montar('X', grupos, outros);
   assert.match(md, /\*\*Total mapeado:\*\* 3 arquivos em 2 papéis\./);
   assert.match(md, /## Demais arquivos \(manifestos, docs, assets e misc\) — 2/);

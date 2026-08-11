@@ -3,6 +3,33 @@
   "ttl_mercado_dias": 90,
   "ttl_acima_dias": 30,
   "delta_min_commits": 3,
+  "_doc_residuos": "Violações V1 que o #4820 (2026-07-26) declarou IRRECUPERÁVEIS ao reconciliar o ledger de 6 para 3. Viviam só na mensagem daquele commit — invisíveis pro checker e pra quem lê o README, e por isso o `--check` não podia ser ligado (3 vermelhos permanentes). Aqui elas viram DADO: o conhecido não morde, o NOVO morde. Não é allowlist de conveniência — cada entrada diz por que é irrecuperável e qual fonte a resolveria; o checker AVISA quando uma para de ocorrer, pra a lista não apodrecer crescendo.",
+  "residuos_irrecuperaveis": [
+    {
+      "rodada": "2026-07-26",
+      "campo": "diferencial_sistema",
+      "motivo": "exatamente UMA das 23 claims deveria ser REFUTADO_TB, e não se sabe qual. Escolher seria inventar — e é justamente o único REFUTADO_TB da história, a evidência que a ADR 0353 discute.",
+      "fonte_que_resolveria": "journal.jsonl do run wf_db242261-298 (não versionado no repo)",
+      "declarado_em": "2026-07-26",
+      "declarado_por": "#4820"
+    },
+    {
+      "rodada": "2026-07-26",
+      "campo": "refutado_tb",
+      "motivo": "mesma causa da linha acima: o veredito REFUTADO_TB nunca chegou a ser gravado no claims.json (conferido: grep em TODOS os 4 commits do arquivo = 0 ocorrências, em nenhuma versão).",
+      "fonte_que_resolveria": "journal.jsonl do run wf_db242261-298 (não versionado no repo)",
+      "declarado_em": "2026-07-26",
+      "declarado_por": "#4820"
+    },
+    {
+      "rodada": "2026-07-18",
+      "campo": "diferencial_sistema",
+      "motivo": "o placar diz 27 claims (25 com integração) e o ledger tem 21 — 4 a 6 claims perdidas na transcrição por LLM. Não há de onde recuperar.",
+      "fonte_que_resolveria": "journal.jsonl do run daquela rodada (não versionado no repo)",
+      "declarado_em": "2026-07-26",
+      "declarado_por": "#4820"
+    }
+  ],
   "paths_por_dimensao": {
     "spec-governanca": ["scripts/governance/", ".github/workflows/", "governance/", ".claude/hooks/", ".claude/rules/"],
     "design-to-code": ["prototipo-ui/", "resources/css/", "resources/js/Components/", "memory/requisitos/_DesignSystem/"],

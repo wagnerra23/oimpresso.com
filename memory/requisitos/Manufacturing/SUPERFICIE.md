@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Manufacturing/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 119 arquivos em 15 papéis.
+**Total mapeado:** 118 arquivos em 15 papéis.
 
 ## Controllers — 6
 
@@ -87,7 +87,26 @@ module: Manufacturing
 
 ## Views (Blade) — 20
 
-- 20 arquivos em [Modules/Manufacturing/Resources/views/](../../../Modules/Manufacturing/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [index.blade.php](../../../Modules/Manufacturing/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/master.blade.php)
+- [nav.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/nav.blade.php)
+- [common_script.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/partials/common_script.blade.php)
+- [sidebar.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/partials/sidebar.blade.php)
+- [create.blade.php](../../../Modules/Manufacturing/Resources/views/production/create.blade.php)
+- [edit.blade.php](../../../Modules/Manufacturing/Resources/views/production/edit.blade.php)
+- [index.blade.php](../../../Modules/Manufacturing/Resources/views/production/index.blade.php)
+- [production_script.blade.php](../../../Modules/Manufacturing/Resources/views/production/production_script.blade.php)
+- [report.blade.php](../../../Modules/Manufacturing/Resources/views/production/report.blade.php)
+- [show.blade.php](../../../Modules/Manufacturing/Resources/views/production/show.blade.php)
+- [add_ingredients.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/add_ingredients.blade.php)
+- [create.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/create.blade.php)
+- [index.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/index.blade.php)
+- [ingredient_group.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_group.blade.php)
+- [ingredient_row.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_row.blade.php)
+- [ingredient_row_for_production.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_row_for_production.blade.php)
+- [ingredients_for_production.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredients_for_production.blade.php)
+- [show.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/show.blade.php)
+- [index.blade.php](../../../Modules/Manufacturing/Resources/views/settings/index.blade.php)
 
 ## Telas (Inertia/React) — 1
 
@@ -101,9 +120,8 @@ module: Manufacturing
 
 - 17 arquivos em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 41
+## Demais arquivos (manifestos, docs, assets e misc) — 40
 
-- [CHANGELOG.md](../../../Modules/Manufacturing/CHANGELOG.md)
 - [AssertsBusinessChain.php](../../../Modules/Manufacturing/Concerns/AssertsBusinessChain.php)
 - [HasManufacturingProductChain.php](../../../Modules/Manufacturing/Concerns/HasManufacturingProductChain.php)
 - [LogsWithPiiRedactor.php](../../../Modules/Manufacturing/Concerns/LogsWithPiiRedactor.php)

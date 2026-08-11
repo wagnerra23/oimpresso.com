@@ -35,6 +35,7 @@
      'purchase_n_sell_report.view' => 'Visualizar relatório de compra e venda',
      'contacts_report.view' => 'Visualizar relatório de fornecedor e cliente',
      'stock_report.view' => 'Exibir relatório de estoque, relatório de ajuste de estoque e relatório de vencimento de estoque',
+     'report.stock_details' => 'Exibir os detalhes de estoque de um produto por local (somente leitura — não permite reconciliar saldo)',
      'tax_report.view' => 'Visualizar relatório fiscal',
      'trending_product_report.view' => 'Visualizar o relatório de tendências do produto',
      'register_report.view' => 'Exibir relatório de log',

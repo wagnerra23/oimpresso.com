@@ -20,6 +20,10 @@
 
 <!-- LINHA-DAGUA-HANDOFF · acima = ATIVO (o gate vigia) · abaixo = processado/histórico (ignorado) · regra em PROCESSO_MEMORIA_CC.md §16 -->
 
+## 📦 Processados / arquivados — abaixo da linha (histórico)
+
+- **2026-08-08 · os 3 handoffs de 2026-07-10** ([#4096](https://github.com/wagnerra23/oimpresso.com/pull/4096)/[#4099](https://github.com/wagnerra23/oimpresso.com/pull/4099)) foram **arquivados** em [`_arquivo/handoffs-processados/`](_arquivo/handoffs-processados/INDEX.md) — nunca chegaram a ser citados nesta fila, e por isso mantiveram o IT8 vermelho por **29 dias** (última run verde 2026-07-03, depois 75 `failure` seguidas). Dois **pousaram** (retorno em [`CODE_NOTES.md`](CODE_NOTES.md) 2026-07-10: *espelhar-domínio* = PATH 2 curadoria; *estrutura-Cowork* = recusa fundamentada). O terceiro (*retirar-ds-v6*) ficou **stale**: os tokens que ele pedia **já estão** no `semantic.tokens.json` e os valores dele regrediriam o canon (`origin CRM bg` canon `oklch(0.92 0.06 220)` × prompt `oklch(0.93 0.07 245)`). Lápide com o veredito de cada um no INDEX.
+
 ---
 
 ## 2026-05-09 — Setup inicial: 3 perguntas pra Claude Design responder

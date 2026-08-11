@@ -14,7 +14,7 @@ module: AssetManagement
 >
 > **O que isto é:** o inventário completo das raízes `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/AssetManagement/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 103 arquivos em 13 papéis.
+**Total mapeado:** 101 arquivos em 13 papéis.
 
 ## Controllers — 7
 
@@ -83,15 +83,30 @@ module: AssetManagement
 
 ## Views (Blade) — 17
 
-- 17 arquivos em [Modules/AssetManagement/Resources/views/asset/](../../../Modules/AssetManagement/Resources/views/asset) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset/create.blade.php)
+- [dashboard.blade.php](../../../Modules/AssetManagement/Resources/views/asset/dashboard.blade.php)
+- [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset/edit.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset/index.blade.php)
+- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/create.blade.php)
+- [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/edit.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/index.blade.php)
+- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/create.blade.php)
+- [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/edit.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/index.blade.php)
+- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_revocation/create.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_revocation/index.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/index.blade.php)
+- [nav.blade.php](../../../Modules/AssetManagement/Resources/views/layouts/nav.blade.php)
+- [index.blade.php](../../../Modules/AssetManagement/Resources/views/settings/index.blade.php)
+- [notification_settings.blade.php](../../../Modules/AssetManagement/Resources/views/settings/notification_settings.blade.php)
+- [prefix_settings.blade.php](../../../Modules/AssetManagement/Resources/views/settings/prefix_settings.blade.php)
 
 ## Testes (Pest) — 9
 
 - 9 arquivos em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 42
+## Demais arquivos (manifestos, docs, assets e misc) — 40
 
-- [CHANGELOG.md](../../../Modules/AssetManagement/CHANGELOG.md)
 - [.gitkeep](../../../Modules/AssetManagement/Config/.gitkeep)
 - [.gitkeep](../../../Modules/AssetManagement/Console/.gitkeep)
 - [.gitkeep](../../../Modules/AssetManagement/Database/Migrations/.gitkeep)
@@ -104,7 +119,6 @@ module: AssetManagement
 - [AssetAssignedForMaintenance.php](../../../Modules/AssetManagement/Notifications/AssetAssignedForMaintenance.php)
 - [AssetSentForMaintenance.php](../../../Modules/AssetManagement/Notifications/AssetSentForMaintenance.php)
 - [.gitkeep](../../../Modules/AssetManagement/Providers/.gitkeep)
-- [README.md](../../../Modules/AssetManagement/README.md)
 - [.gitkeep](../../../Modules/AssetManagement/Resources/assets/.gitkeep)
 - [assetmanagement.js](../../../Modules/AssetManagement/Resources/assets/js/assetmanagement.js)
 - [assetmanagement.css](../../../Modules/AssetManagement/Resources/assets/sass/assetmanagement.css)

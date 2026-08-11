@@ -22,8 +22,7 @@ import {
 } from 'lucide-react';
 import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard} from './_components/atoms';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
-import { PageHeader } from '@/Components/PageHeader';
-import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
@@ -192,7 +191,9 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       {/* BLOCO 1 — Header canon v3.8 via <PageHeader> componente compartilhado.
           Wave 2 (2026-05-25): refactor pra usar `<PageHeader>` de @/Components/PageHeader.
           Antes era inline JSX duplicado · agora 1 componente serve 13+ telas Financeiro.
-          FinanceiroSubNav + FinanceiroPrimaryButton mantidos (Wave 3 vai unificar). */}
+          FinanceiroSubNav mantido; o primary migrou pro canon <PageHeaderPrimary>
+          (ADR 0190) — o shim FinanceiroPrimaryButton emitia `.os-btn primary`, cuja
+          única regra no CSS servido é escopada `.sells-cowork` → nunca casava. */}
       <div className="fin-curadoria vendas-aplus">
         <PageHeader
           title="Cobrança"
@@ -210,10 +211,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
                 { key: 'remessa',  label: 'Remessa/Retorno', icon: <Upload size={13} />,   onClick: () => setRemessaOpen(true) },
               ]}
             />
-            {/* FinanceiroPrimaryButton ja eh shim DEPRECATED -> roxo 295 universal (ADR 0190 + PR #1462) */}
-            <FinanceiroPrimaryButton onClick={() => setNovaOpen(true)}>
-              Nova cobrança
-            </FinanceiroPrimaryButton>
+            <PageHeaderPrimary label="Nova cobrança" onClick={() => setNovaOpen(true)} />
           </div>
         </PageHeader>
       </div>

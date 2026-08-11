@@ -14,7 +14,7 @@ module: Woocommerce
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Woocommerce/**` + `resources/js/Pages/Woocommerce/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Woocommerce/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 91 arquivos em 13 papéis.
+**Total mapeado:** 90 arquivos em 13 papéis.
 
 ## Controllers — 4
 
@@ -82,15 +82,26 @@ module: Woocommerce
 
 ## Views (Blade) — 13
 
-- 13 arquivos em [Modules/Woocommerce/Resources/views/layouts/](../../../Modules/Woocommerce/Resources/views/layouts) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [master.blade.php](../../../Modules/Woocommerce/Resources/views/layouts/master.blade.php)
+- [nav.blade.php](../../../Modules/Woocommerce/Resources/views/layouts/nav.blade.php)
+- [sidebar.blade.php](../../../Modules/Woocommerce/Resources/views/layouts/partials/sidebar.blade.php)
+- [api_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/api_settings.blade.php)
+- [index.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/index.blade.php)
+- [api_instructions.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/api_instructions.blade.php)
+- [api_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/api_settings.blade.php)
+- [log_details.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/log_details.blade.php)
+- [order_sync_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/order_sync_settings.blade.php)
+- [product_form_part.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/product_form_part.blade.php)
+- [product_sync_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/product_sync_settings.blade.php)
+- [webhook_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/webhook_settings.blade.php)
+- [sync_log.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/sync_log.blade.php)
 
 ## Testes (Pest) — 8
 
 - 8 arquivos em [Modules/Woocommerce/Tests/Feature/](../../../Modules/Woocommerce/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 36
+## Demais arquivos (manifestos, docs, assets e misc) — 35
 
-- [CHANGELOG.md](../../../Modules/Woocommerce/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Woocommerce/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Woocommerce/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Woocommerce/Database/Migrations/.gitkeep)

@@ -23,7 +23,7 @@ uses(Tests\TestCase::class);
  * Multi-tenant Tier 0 (ADR 0093): NÃO toca DB real. Reflection-only.
  * Tests biz=1 quando aplicável (ADR 0101) — NUNCA biz=4 ROTA LIVRE.
  *
- * @see Modules/Essentials/CHANGELOG.md (Wave 27)
+ * @see memory/requisitos/Essentials/CHANGELOG.md (Wave 27)
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 

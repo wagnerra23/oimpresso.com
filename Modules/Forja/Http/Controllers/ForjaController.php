@@ -62,6 +62,11 @@ class ForjaController extends Controller
         'quadro'    => ['label' => 'Quadro',    'subtitle' => 'Fluxo do cowork loop por fase: F0 Brief → F1 Design → F1.5 Critique → F2 Screenshot → F3 Code → F3.5 A11y.'],
         'changelog' => ['label' => 'Changelog', 'subtitle' => 'O que shippou — PRs, ADRs, sessões e ondas.'],
         'mcp'       => ['label' => 'MCP',       'subtitle' => 'Contrato de ferramentas, tokens e auditoria — design; o enforce real é do servidor TeamMcp.'],
+        // Handoffs saiu de DENTRO da aba MCP em 2026-08-08. Handoff é dado VIVO
+        // (o loop de design rodando agora, com `stale` e conflito de gate); a aba
+        // MCP é vitrine MOCKADA do contrato. Operação diária enterrada numa
+        // vitrine é operação que ninguém olha.
+        'handoffs'  => ['label' => 'Handoffs',  'subtitle' => 'O loop de design Cowork → Code (F1 → F3): o que está pendente, o que travou no gate e o que envelheceu.'],
     ];
 
     public function __construct()
@@ -121,10 +126,26 @@ class ForjaController extends Controller
         // espelhando triagem()/quadro(). Contrato/tokens/auditoria seguem MOCKADO
         // (vitrine de design); só a seção Handoffs é dado vivo. Sem auto-merge: as
         // levers roteiam pelas tools MCP e o merge é o 1-clique do [W] (ADR 0283).
+        // Sem prop: contrato/tokens/auditoria são estáticos (vitrine). Os handoffs,
+        // que eram o único dado vivo desta aba, foram pra handoffs() abaixo.
+        return Inertia::render('team-mcp/Forja/Cockpit', $this->tabPayload('mcp'));
+    }
+
+    /**
+     * GET /forja/handoffs — o loop de design Cowork→Code em primeiro plano.
+     *
+     * Mesma projeção de sempre ({@see ForjaMcpService}), só que como TELA em vez de
+     * seção enterrada na aba MCP. Nada de comportamento mudou: as levers seguem
+     * POSTando em /forja/handoff/{slug}/lever → HandoffLeverService (a mesma
+     * mutação governada do tool MCP `handoff-lever`), e continua SEM auto-merge —
+     * o merge é o 1-clique do [W] no GitHub (Tier 0 · ADR 0283).
+     */
+    public function handoffs(): Response
+    {
         $svc = app(ForjaMcpService::class);
 
         return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
-            $this->tabPayload('mcp'),
+            $this->tabPayload('handoffs'),
             [
                 'handoffs'  => Inertia::defer(fn () => $svc->handoffs()),
                 'heartbeat' => Inertia::defer(fn () => $svc->heartbeat()),

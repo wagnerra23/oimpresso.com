@@ -14,7 +14,7 @@ module: Crm
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Crm/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 234 arquivos em 14 papéis.
+**Total mapeado:** 233 arquivos em 14 papéis.
 
 ## Controllers — 28
 
@@ -155,18 +155,84 @@ module: Crm
 
 ## Views (Blade) — 68
 
-- 68 arquivos em [Modules/Crm/Resources/views/booking/](../../../Modules/Crm/Resources/views/booking) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [create.blade.php](../../../Modules/Crm/Resources/views/booking/create.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/booking/index.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/call_logs/index.blade.php)
+- [create.blade.php](../../../Modules/Crm/Resources/views/campaign/create.blade.php)
+- [edit.blade.php](../../../Modules/Crm/Resources/views/campaign/edit.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/campaign/index.blade.php)
+- [show.blade.php](../../../Modules/Crm/Resources/views/campaign/show.blade.php)
+- [all_contacts_login.blade.php](../../../Modules/Crm/Resources/views/contact_login/all_contacts_login.blade.php)
+- [commissions.blade.php](../../../Modules/Crm/Resources/views/contact_login/commissions.blade.php)
+- [contact_login_js.blade.php](../../../Modules/Crm/Resources/views/contact_login/contact_login_js.blade.php)
+- [create.blade.php](../../../Modules/Crm/Resources/views/contact_login/create.blade.php)
+- [edit.blade.php](../../../Modules/Crm/Resources/views/contact_login/edit.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/contact_login/index.blade.php)
+- [contact_form_part.blade.php](../../../Modules/Crm/Resources/views/contact_login/partial/contact_form_part.blade.php)
+- [contact_login_from.blade.php](../../../Modules/Crm/Resources/views/contact_login/partial/contact_login_from.blade.php)
+- [tab_content.blade.php](../../../Modules/Crm/Resources/views/contact_login/partial/tab_content.blade.php)
+- [tab_menu.blade.php](../../../Modules/Crm/Resources/views/contact_login/partial/tab_menu.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/crm_dashboard/index.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/dashboard/index.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/index.blade.php)
+- [app.blade.php](../../../Modules/Crm/Resources/views/layouts/app.blade.php)
+- [header.blade.php](../../../Modules/Crm/Resources/views/layouts/header.blade.php)
+- [master.blade.php](../../../Modules/Crm/Resources/views/layouts/master.blade.php)
+- [nav.blade.php](../../../Modules/Crm/Resources/views/layouts/nav.blade.php)
+- [sidebar.blade.php](../../../Modules/Crm/Resources/views/layouts/sidebar.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/lead/index.blade.php)
+- [lead_info.blade.php](../../../Modules/Crm/Resources/views/lead/partial/lead_info.blade.php)
+- [lead_schedule.blade.php](../../../Modules/Crm/Resources/views/lead/partial/lead_schedule.blade.php)
+- [show.blade.php](../../../Modules/Crm/Resources/views/lead/show.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/ledger/index.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/marketplace/index.blade.php)
+- [all_list.blade.php](../../../Modules/Crm/Resources/views/order_request/all_list.blade.php)
+- [create.blade.php](../../../Modules/Crm/Resources/views/order_request/create.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/order_request/index.blade.php)
+- [product_row.blade.php](../../../Modules/Crm/Resources/views/order_request/product_row.blade.php)
+- [edit.blade.php](../../../Modules/Crm/Resources/views/profile/edit.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/proposal/index.blade.php)
+- [show.blade.php](../../../Modules/Crm/Resources/views/proposal/show.blade.php)
+- [create.blade.php](../../../Modules/Crm/Resources/views/proposal_template/create.blade.php)
+- [edit.blade.php](../../../Modules/Crm/Resources/views/proposal_template/edit.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/proposal_template/index.blade.php)
+- [attachment.blade.php](../../../Modules/Crm/Resources/views/proposal_template/partials/attachment.blade.php)
+- [template_form.blade.php](../../../Modules/Crm/Resources/views/proposal_template/partials/template_form.blade.php)
+- [send.blade.php](../../../Modules/Crm/Resources/views/proposal_template/send.blade.php)
+- [view.blade.php](../../../Modules/Crm/Resources/views/proposal_template/view.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/purchase/index.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/reports/index.blade.php)
+- [leads_to_customer_details.blade.php](../../../Modules/Crm/Resources/views/reports/leads_to_customer_details.blade.php)
+- [report_javascripts.blade.php](../../../Modules/Crm/Resources/views/reports/report_javascripts.blade.php)
+- [create.blade.php](../../../Modules/Crm/Resources/views/schedule/create.blade.php)
+- [create_advance_follow_up.blade.php](../../../Modules/Crm/Resources/views/schedule/create_advance_follow_up.blade.php)
+- [create_recursive_follow_up.blade.php](../../../Modules/Crm/Resources/views/schedule/create_recursive_follow_up.blade.php)
+- [edit.blade.php](../../../Modules/Crm/Resources/views/schedule/edit.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/schedule/index.blade.php)
+- [advance_followup_modal.blade.php](../../../Modules/Crm/Resources/views/schedule/partial/advance_followup_modal.blade.php)
+- [group_customers.blade.php](../../../Modules/Crm/Resources/views/schedule/partial/group_customers.blade.php)
+- [group_invoices_by_customer.blade.php](../../../Modules/Crm/Resources/views/schedule/partial/group_invoices_by_customer.blade.php)
+- [schedule_info.blade.php](../../../Modules/Crm/Resources/views/schedule/partial/schedule_info.blade.php)
+- [schedule_info_invoices.blade.php](../../../Modules/Crm/Resources/views/schedule/partial/schedule_info_invoices.blade.php)
+- [today_schedule.blade.php](../../../Modules/Crm/Resources/views/schedule/partial/today_schedule.blade.php)
+- [show.blade.php](../../../Modules/Crm/Resources/views/schedule/show.blade.php)
+- [create.blade.php](../../../Modules/Crm/Resources/views/schedule_log/create.blade.php)
+- [edit.blade.php](../../../Modules/Crm/Resources/views/schedule_log/edit.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/schedule_log/index.blade.php)
+- [log.blade.php](../../../Modules/Crm/Resources/views/schedule_log/partial/log.blade.php)
+- [show.blade.php](../../../Modules/Crm/Resources/views/schedule_log/show.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/sell/index.blade.php)
+- [index.blade.php](../../../Modules/Crm/Resources/views/settings/index.blade.php)
 
 ## Testes (Pest) — 13
 
 - 13 arquivos em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 49
+## Demais arquivos (manifestos, docs, assets e misc) — 48
 
 - [ClienteProximaAcaoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php)
 - [ClienteResumoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php)
 - [ClienteSegmentoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteSegmentoAgent.php)
-- [CHANGELOG.md](../../../Modules/Crm/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Crm/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Crm/Console/.gitkeep)
 - [CrmLeadRepositoryInterface.php](../../../Modules/Crm/Contracts/CrmLeadRepositoryInterface.php)

@@ -14,7 +14,7 @@ module: Cms
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Cms/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 139 arquivos em 13 papéis.
+**Total mapeado:** 138 arquivos em 13 papéis.
 
 ## Controllers — 5
 
@@ -83,15 +83,58 @@ module: Cms
 
 ## Views (Blade) — 45
 
-- 45 arquivos em [Modules/Cms/Resources/views/components/chat_widget/](../../../Modules/Cms/Resources/views/components/chat_widget) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [chat_widget.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/chat_widget.blade.php)
+- [color-black.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/color-black.blade.php)
+- [color-blue.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/color-blue.blade.php)
+- [color-green.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/color-green.blade.php)
+- [color-orange.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/color-orange.blade.php)
+- [color-pink.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/color-pink.blade.php)
+- [color-purple.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/color-purple.blade.php)
+- [color-red.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/color-red.blade.php)
+- [color-yellow.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-colors/color-yellow.blade.php)
+- [chat_widget-style1.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/css/chat-widget-style/chat_widget-style1.blade.php)
+- [chat_widget-style1.blade.php](../../../Modules/Cms/Resources/views/components/chat_widget/js/chat_widget-style1.blade.php)
+- [index.blade.php](../../../Modules/Cms/Resources/views/frontend/blogs/index.blade.php)
+- [show.blade.php](../../../Modules/Cms/Resources/views/frontend/blogs/show.blade.php)
+- [app.blade.php](../../../Modules/Cms/Resources/views/frontend/layouts/app.blade.php)
+- [footer.blade.php](../../../Modules/Cms/Resources/views/frontend/layouts/footer.blade.php)
+- [header.blade.php](../../../Modules/Cms/Resources/views/frontend/layouts/header.blade.php)
+- [home_header.blade.php](../../../Modules/Cms/Resources/views/frontend/layouts/home_header.blade.php)
+- [navbar.blade.php](../../../Modules/Cms/Resources/views/frontend/layouts/navbar.blade.php)
+- [contact_us.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/contact_us.blade.php)
+- [custom_view.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/custom_view.blade.php)
+- [home.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/home.blade.php)
+- [cta.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/partials/cta.blade.php)
+- [faq.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/partials/faq.blade.php)
+- [features.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/partials/features.blade.php)
+- [industries.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/partials/industries.blade.php)
+- [statistics.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/partials/statistics.blade.php)
+- [testimonial.blade.php](../../../Modules/Cms/Resources/views/frontend/pages/partials/testimonial.blade.php)
+- [nav.blade.php](../../../Modules/Cms/Resources/views/layouts/nav.blade.php)
+- [create.blade.php](../../../Modules/Cms/Resources/views/page/create.blade.php)
+- [edit.blade.php](../../../Modules/Cms/Resources/views/page/edit.blade.php)
+- [index.blade.php](../../../Modules/Cms/Resources/views/page/index.blade.php)
+- [features.blade.php](../../../Modules/Cms/Resources/views/page/partials/features.blade.php)
+- [industries.blade.php](../../../Modules/Cms/Resources/views/page/partials/industries.blade.php)
+- [add.blade.php](../../../Modules/Cms/Resources/views/page/seo/add.blade.php)
+- [edit.blade.php](../../../Modules/Cms/Resources/views/page/seo/edit.blade.php)
+- [show.blade.php](../../../Modules/Cms/Resources/views/page/show.blade.php)
+- [index.blade.php](../../../Modules/Cms/Resources/views/settings/index.blade.php)
+- [application.blade.php](../../../Modules/Cms/Resources/views/settings/partials/application.blade.php)
+- [buttons.blade.php](../../../Modules/Cms/Resources/views/settings/partials/buttons.blade.php)
+- [chat_widget.blade.php](../../../Modules/Cms/Resources/views/settings/partials/chat_widget.blade.php)
+- [contact_us.blade.php](../../../Modules/Cms/Resources/views/settings/partials/contact_us.blade.php)
+- [faqs.blade.php](../../../Modules/Cms/Resources/views/settings/partials/faqs.blade.php)
+- [follow_us_on_social_media.blade.php](../../../Modules/Cms/Resources/views/settings/partials/follow_us_on_social_media.blade.php)
+- [integration.blade.php](../../../Modules/Cms/Resources/views/settings/partials/integration.blade.php)
+- [statistics.blade.php](../../../Modules/Cms/Resources/views/settings/partials/statistics.blade.php)
 
 ## Testes (Pest) — 17
 
 - 17 arquivos em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 42
+## Demais arquivos (manifestos, docs, assets e misc) — 41
 
-- [CHANGELOG.md](../../../Modules/Cms/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Cms/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Cms/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Cms/Database/Migrations/.gitkeep)

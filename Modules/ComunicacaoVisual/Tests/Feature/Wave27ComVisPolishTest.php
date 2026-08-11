@@ -89,7 +89,7 @@ describe('Wave 27 ComVis — D9 spans OrcamentoCalculator + ApontamentoTracker',
 describe('Wave 27 ComVis — D5 README expandido (jornada + LGPD + multi-tenant + comandos)', function () {
 
     it('README.md cita 10 seções canônicas', function () {
-        $readme = (string) file_get_contents(comvisW27Path('Modules/ComunicacaoVisual/README.md'));
+        $readme = (string) file_get_contents(comvisW27Path('memory/requisitos/ComunicacaoVisual/README.md'));
         // Seções obrigatórias pra cliente-final entender módulo
         $secoes = [
             '## 1. Objetivo',
@@ -110,14 +110,14 @@ describe('Wave 27 ComVis — D5 README expandido (jornada + LGPD + multi-tenant 
     });
 
     it('README cita persona Larissa-equivalente + ROI dashboard + drift m²', function () {
-        $readme = (string) file_get_contents(comvisW27Path('Modules/ComunicacaoVisual/README.md'));
+        $readme = (string) file_get_contents(comvisW27Path('memory/requisitos/ComunicacaoVisual/README.md'));
         expect($readme)->toContain('Larissa-equivalente');
         expect($readme)->toContain('drift');
         expect($readme)->toContain('m²');
     });
 
     it('README cita 3 concorrentes + NFe-de-boleto-pago diferencial', function () {
-        $readme = (string) file_get_contents(comvisW27Path('Modules/ComunicacaoVisual/README.md'));
+        $readme = (string) file_get_contents(comvisW27Path('memory/requisitos/ComunicacaoVisual/README.md'));
         expect($readme)->toContain('Mubisys');
         expect($readme)->toContain('Zênite');
         expect($readme)->toContain('Calcgraf');
@@ -128,12 +128,12 @@ describe('Wave 27 ComVis — D5 README expandido (jornada + LGPD + multi-tenant 
 describe('Wave 27 ComVis — V5 CHANGELOG entry', function () {
 
     it('CHANGELOG.md tem entry Wave 27', function () {
-        $changelog = (string) file_get_contents(comvisW27Path('Modules/ComunicacaoVisual/CHANGELOG.md'));
+        $changelog = (string) file_get_contents(comvisW27Path('memory/requisitos/ComunicacaoVisual/CHANGELOG.md'));
         expect($changelog)->toContain('Wave 27');
     });
 
     it('CHANGELOG W27 cita D7 forensic fix confirmado + polish ≥92', function () {
-        $changelog = (string) file_get_contents(comvisW27Path('Modules/ComunicacaoVisual/CHANGELOG.md'));
+        $changelog = (string) file_get_contents(comvisW27Path('memory/requisitos/ComunicacaoVisual/CHANGELOG.md'));
         expect($changelog)->toContain('D7');
         $temContext = str_contains($changelog, 'forensic') || str_contains($changelog, 'forense')
                       || str_contains($changelog, 'POLISH') || str_contains($changelog, 'polish');

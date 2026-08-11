@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { usePageProps, useBusiness } from '@/Hooks/usePageProps';
 import { useState, useCallback } from 'react';
 import type { ReactNode, KeyboardEvent } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
@@ -83,6 +84,26 @@ const fmtBRL = (n: number) =>
 const fmtPct = (n: number) => Math.round(n * 100) + '%';
 
 function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insumos, tabelas, historico }: Props) {
+  // Nome da empresa: MESMA fonte que o AppShellV2 usa na sidebar
+  // (`shell.cockpit.businessNome`, AppShellV2.tsx:273), que sai de uma query em
+  // `App\Business` — robusta. O `business.name` do shared prop vem da SESSÃO e
+  // chega VAZIO em ambiente de teste, então serve só de fallback: a 1ª versão
+  // deste fix usava só ele e o cabeçalho ficou sem nome nenhum na baseline de
+  // 2026-08-07, enquanto a sidebar ao lado mostrava o tenant certo.
+  // Sem default inventado — `AppShellV2` cai em 'Oimpresso' quando não sabe, e
+  // imprimir isso aqui seria afirmar um tenant que não é o do usuário. Se as duas
+  // fontes falharem, o sufixo some.
+  // Até 2026-08-07 esta linha era "ROTA LIVRE" ESCRITO FIXO: toda empresa via o
+  // nome de uma cliente real no cabeçalho (Tier 0, ADR 0093).
+  // Os DOIS hooks são chamados incondicionalmente de propósito: `a ?? b` não avalia
+  // `b` quando `a` tem valor, e hook em avaliação condicional quebra as Rules of Hooks.
+  // `ShellProps` (types/index.ts:59) ainda não declara `cockpit` — o próprio
+  // AppShellV2 (:244) contorna com tipo local. Mesmo contorno aqui, escopado, em
+  // vez de mexer no tipo compartilhado dentro de um PR de tela.
+  const shell = usePageProps().shell as ({ cockpit?: { businessNome?: string } } | undefined);
+  const nomeDoShell = shell?.cockpit?.businessNome ?? null;
+  const nomeDaSessao = useBusiness()?.name ?? null;
+  const businessName = nomeDoShell ?? nomeDaSessao;
   // Tweaks persistidos (densidade, view, mostrar custo).
   const [tweaks, setTweaksState] = useState<Tweaks>(() => {
     try {
@@ -122,7 +143,8 @@ function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insu
           <div className="px-6 pt-4 pb-3 flex items-baseline gap-3">
             <h1 className="text-[24px] font-semibold tracking-tight">Catálogo</h1>
             <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
-              {kpis.catalogo_ativo} produtos · ROTA LIVRE
+              {kpis.catalogo_ativo} {kpis.catalogo_ativo === 1 ? 'produto' : 'produtos'}
+              {businessName ? ` · ${businessName}` : ''}
             </span>
           </div>
 
@@ -250,7 +272,15 @@ function TabelaProdutos({ rows, tweaks, onOpen }: { rows: ProdutoRow[]; tweaks: 
                 </td>
               )}
               <td className="pr-3 text-[12.5px] text-right text-foreground tabular-nums">
-                {r.stockKind === 'estoque' ? `${r.stockQty} ${r.unit}` : 'sob demanda'}
+                {/* `stockQty` é `null` fixo no ProdutoUnificadoController (TODO: somar
+                    variation_location_details.qty_available). Até existir a soma, a coluna
+                    mostra "—" (desconhecido) — NUNCA 0, que seria afirmar estoque zerado.
+                    Antes de 2026-08-07 o template imprimia o próprio null: "null UNID". */}
+                {r.stockKind !== 'estoque'
+                  ? 'sob demanda'
+                  : r.stockQty === null
+                    ? <span title="Quantidade em estoque ainda não calculada nesta tela">—</span>
+                    : `${r.stockQty} ${r.unit}`}
               </td>
               <td className="pr-6 text-[12.5px] text-right tabular-nums">{r.uses30}</td>
             </tr>
@@ -267,7 +297,9 @@ function ListaCategorias({ rows }: { rows: CategoriaRow[] }) {
       {rows.map((c) => (
         <div key={c.id} className="p-4 rounded-md bg-card border border-border">
           <div className="text-[14px] font-semibold">{c.label}</div>
-          <div className="mt-1 text-[12px] text-muted-foreground">{c.count} produtos</div>
+          <div className="mt-1 text-[12px] text-muted-foreground">
+            {c.count} {c.count === 1 ? 'produto' : 'produtos'}
+          </div>
         </div>
       ))}
     </div>

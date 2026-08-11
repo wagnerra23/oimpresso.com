@@ -52,7 +52,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver]
 
 - **CAPTERRA-FICHA.md** canônica — concorrentes (Linx Microvix, ProMoz, Vendizap, Bling Loja, F360), top 5 gaps P0 (US-VEST-020/021/022/023/029), score V1-V6 W22→W23 (67→≥85).
 - **Wave23VestuarioSaturationTest.php** — Pest saturação V1/V4/V5/V6 com 11 assertions cobrindo CAPTERRA-FICHA presença, retention 365d+ anonymize, ADR 0066 format_date shift +3h preservado, governance.bucket=vertical_client_facing.
-- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md)) com `scoped_score_target: 85`, `wave_23_saturation: true`.
+- **module.json governance.bucket=vertical_client_facing** ([ADR 0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)) com `scoped_score_target: 85`, `wave_23_saturation: true`.
 
 ### Changed
 
@@ -71,3 +71,31 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver]
 - Vertical em produção via ROTA LIVRE biz=4 (Larissa Termas do Gravatal/SC).
 - Customizações: `format_date` shift +3h ([ADR 0066](../../decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md)).
 - Volume: 17.251+ vendas / ~99% do oimpresso novo Laravel.
+
+---
+
+## Implementação (histórico movido de `Modules/Vestuario/CHANGELOG.md`)
+
+> Movido em 2026-08-10. Os dois changelogs registravam eventos DIFERENTES — acima as
+> decisões/requisitos, aqui o que foi de fato mergeado. Medido antes de fundir:
+> sobreposição de datas era 0-2 (máx. 2, em ComVis e KB), logo nenhum lado era cópia do
+> outro e escolher um deles perderia registro. Conteúdo preservado na íntegra.
+
+# Modules/Vestuario — CHANGELOG
+
+Convenção: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
+
+## [Wave 28] - 2026-05-17
+
+### Test (D2 — Pest +2 sentry EtiquetaTag W27)
+- `Tests/Feature/Wave28PolishTest.php` — +2 testes sentry Wave 28:
+  - Scorecard YAML Vestuario preserva `D7_lgpd: weight=10 target=10 current=10`
+    (regression guard W25 forense — caso crítico documentado de regressão
+    Wave 17→18→23, sentry permanente).
+  - EtiquetaTag W27 (POS vestuário) artifacts sentry tolerante + core
+    `VestuarioSettingsResolver` regression guard.
+- Tier 0 IRREVOGÁVEL: ROTA LIVRE biz=4 NUNCA tocado (ADR 0101), `format_date +3h`
+  preservado (ADR 0066), multi-tenant ADR 0093, PT-BR + zero git ops.
+
+### Governance
+- Saturação 77-95 → 96 (polish final excelência).

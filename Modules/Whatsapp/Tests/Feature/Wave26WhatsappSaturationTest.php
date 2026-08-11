@@ -291,9 +291,9 @@ it('D3 W26: BRIEFING.md tem menção Wave 26 (governance polish ≥85)', functio
     expect($briefing)->toContain('Wave 26');
 });
 
-it('D3 W26: Modules/Whatsapp/CHANGELOG.md OU BRIEFING.md tem entrada Wave 26', function () {
-    $changelog = file_exists(base_path('Modules/Whatsapp/CHANGELOG.md'))
-        ? file_get_contents(base_path('Modules/Whatsapp/CHANGELOG.md'))
+it('D3 W26: memory/requisitos/Whatsapp/CHANGELOG.md OU BRIEFING.md tem entrada Wave 26', function () {
+    $changelog = file_exists(base_path('memory/requisitos/Whatsapp/CHANGELOG.md'))
+        ? file_get_contents(base_path('memory/requisitos/Whatsapp/CHANGELOG.md'))
         : '';
     $briefing = file_get_contents(base_path('memory/requisitos/Whatsapp/BRIEFING.md'));
 

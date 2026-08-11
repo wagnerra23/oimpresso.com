@@ -14,7 +14,7 @@ module: Spreadsheet
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Spreadsheet/**` + `resources/js/Pages/Spreadsheet/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Spreadsheet/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 79 arquivos em 13 papéis.
+**Total mapeado:** 78 arquivos em 13 papéis.
 
 ## Controllers — 3
 
@@ -72,15 +72,20 @@ module: Spreadsheet
 
 ## Views (Blade) — 7
 
-- 7 arquivos em [Modules/Spreadsheet/Resources/views/](../../../Modules/Spreadsheet/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [index.blade.php](../../../Modules/Spreadsheet/Resources/views/index.blade.php)
+- [app.blade.php](../../../Modules/Spreadsheet/Resources/views/layouts/app.blade.php)
+- [nav.blade.php](../../../Modules/Spreadsheet/Resources/views/layouts/nav.blade.php)
+- [create.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/create.blade.php)
+- [index.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/index.blade.php)
+- [share_sheet.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/partials/share_sheet.blade.php)
+- [show.blade.php](../../../Modules/Spreadsheet/Resources/views/sheet/show.blade.php)
 
 ## Testes (Pest) — 9
 
 - 9 arquivos em [Modules/Spreadsheet/Tests/Feature/](../../../Modules/Spreadsheet/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 39
+## Demais arquivos (manifestos, docs, assets e misc) — 38
 
-- [CHANGELOG.md](../../../Modules/Spreadsheet/CHANGELOG.md)
 - [.gitkeep](../../../Modules/Spreadsheet/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Spreadsheet/Console/.gitkeep)
 - [.gitkeep](../../../Modules/Spreadsheet/Database/Migrations/.gitkeep)

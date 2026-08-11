@@ -126,7 +126,7 @@ describe('Wave 26 ComVis — D8 security FormRequests + D3 docs canon', function
     // obsolescência. O CHANGELOG (abaixo) segue cobrindo a trilha de wave.
 
     it('CHANGELOG.md módulo contém entry Wave 26', function () {
-        $log = (string) file_get_contents(comvisW26Path('Modules/ComunicacaoVisual/CHANGELOG.md'));
+        $log = (string) file_get_contents(comvisW26Path('memory/requisitos/ComunicacaoVisual/CHANGELOG.md'));
         expect($log)->toContain('Wave 26');
     });
 

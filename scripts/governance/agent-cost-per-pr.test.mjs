@@ -15,7 +15,7 @@ import {
   PR_FETCH_LIMIT, DEFAULT_DAYS, renderHuman, renderBriefMd, renderPrBlockMd,
   linhaIdade, avisoSnapshot, IDADE_SUSPEITA_DIAS,
   derivaLimiarIdade, TOLERANCIA_STALENESS, isFonteTruncada, costPerSurvivingPR,
-  extractUsMentions, aggregatePorUs,
+  extractUsMentions, aggregatePorUs, PRECOS_ATUALIZADOS_EM,
 } from './agent-cost-per-pr.mjs';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -105,6 +105,23 @@ check('DECLARA: #11 sem sinal → sem match (não inventa custo)', pr11 && pr11.
 check('sem_match_pct = 25% publicado', r.join.sem_match === 1 && r.join.sem_match_pct === 25);
 check('join separa sinais: 1 por branch, 2 por citação', r.join.matched_por_branch === 1 && r.join.matched_por_citacao === 2);
 check('modelo desconhecido listado', r.join.modelos_desconhecidos.includes('claude-foo-9'));
+// O DADO já trazia modelos_desconhecidos e o renderHuman (terminal) já avisava — mas o BRIEF,
+// que é o artefato que alguém lê, só mostrava a DATA dos preços, nunca QUAL modelo faltava.
+// Foi por essa fresta que `claude-opus-5` passou 21 dias sem preço zerando toda medição de
+// dinheiro, com a fila de indexação já nomeando o conserto. Sinal que não chega ao leitor não
+// é sinal. Os 3 asserts cobrem os 3 eixos: morde, posiciona, e LIBERA.
+check('BITE: brief nomeia o modelo sem preço (não só a data da tabela)', (() => {
+  const md = renderBriefMd(r, 0);
+  return md.includes('MODELO SEM PREÇO') && md.includes('claude-foo-9') && md.includes('SUBESTIMADOS');
+})());
+check('BITE: o aviso de modelo sem preço vem ACIMA da tabela (rodapé não é lido)', (() => {
+  const md = renderBriefMd(r, 0);
+  return md.indexOf('MODELO SEM PREÇO') > -1 && md.indexOf('MODELO SEM PREÇO') < md.indexOf('| Métrica |');
+})());
+check('CONTROLE NEGATIVO: todo modelo com preço => brief SEM o aviso (não vira ruído fixo)', (() => {
+  const limpo = buildReport({ prs: PRS, sessions: [], generated: '2026-07-12' });
+  return limpo.join.modelos_desconhecidos.length === 0 && !renderBriefMd(limpo, 0).includes('MODELO SEM PREÇO');
+})());
 check('LIBERA: sessão sem sinal vira resíduo ($1.00)', r.residuo.usd === 1);
 check('msgs sem branch contadas, não atribuídas', r.join.msgs_sem_branch === 1);
 check('total atribuído = 14+2+2 = $18.00', r.custo.total_usd_atribuido === 18);
@@ -204,9 +221,14 @@ const PRS_VEL = [
 ];
 const rv = buildReport({ prs: PRS_VEL, sessions: [], days: 6, generated: '2026-07-14' });
 check('velocidade DERIVADA do dado: 3 PRs / 6d = 0.5/dia', rv.calibracao.velocidade_prs_dia === 0.5);
-check('calibração publica limiar derivado + tolerância + data dos preços', rv.calibracao.limiar_idade_dias === derivaLimiarIdade(6) && rv.calibracao.tolerancia_staleness === 0.2 && rv.calibracao.precos_atualizados_em === '2026-07-12');
+// A data dos preços era pinada no LITERAL '2026-07-12', então toda atualização de tabela
+// (fato externo, muda quando a Anthropic publica preço novo) quebrava o teste sem que nada
+// estivesse errado. O contrato que importa é "a calibração PUBLICA a data", não qual data é —
+// então asserta contra a constante exportada + o formato ISO. Continua mordendo se o campo
+// sumir do relatório ou vier vazio/torto. (2026-08-08, ao somar claude-opus-5 à tabela.)
+check('calibração publica limiar derivado + tolerância + data dos preços', rv.calibracao.limiar_idade_dias === derivaLimiarIdade(6) && rv.calibracao.tolerancia_staleness === 0.2 && rv.calibracao.precos_atualizados_em === PRECOS_ATUALIZADOS_EM && /^\d{4}-\d{2}-\d{2}$/.test(PRECOS_ATUALIZADOS_EM));
 check('calibração aparece no texto humano (velocidade + rotação à vista)', renderHuman(rv, 0).includes('PRs/dia') && renderHuman(rv, 0).includes('rotação'));
-check('preços datados no brief (idade dos preços também visível, não só a da medição)', renderBriefMd(r, 0).includes('preços de 2026-07-12'));
+check('preços datados no brief (idade dos preços também visível, não só a da medição)', renderBriefMd(r, 0).includes(`preços de ${PRECOS_ATUALIZADOS_EM}`));
 check('brief de 4d carrega o alerta ACIMA da tabela (não em rodapé)', (() => {
   const md = renderBriefMd(r, 4);
   return md.indexOf('MEDIDO HÁ 4d') < md.indexOf('| Métrica |');

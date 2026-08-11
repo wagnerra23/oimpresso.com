@@ -14,7 +14,7 @@ module: ProductCatalogue
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ProductCatalogue/**` + `resources/js/Pages/ProductCatalogue/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/ProductCatalogue/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 59 arquivos em 12 papéis.
+**Total mapeado:** 57 arquivos em 12 papéis.
 
 ## Controllers — 3
 
@@ -64,15 +64,21 @@ module: ProductCatalogue
 
 ## Views (Blade) — 8
 
-- 8 arquivos em [Modules/ProductCatalogue/Resources/views/catalogue/](../../../Modules/ProductCatalogue/Resources/views/catalogue) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [generate_qr.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/generate_qr.blade.php)
+- [index.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/index.blade.php)
+- [combo_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/combo_product_details.blade.php)
+- [single_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/single_product_details.blade.php)
+- [variable_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/variable_product_details.blade.php)
+- [show.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/show.blade.php)
+- [index.blade.php](../../../Modules/ProductCatalogue/Resources/views/index.blade.php)
+- [master.blade.php](../../../Modules/ProductCatalogue/Resources/views/layouts/master.blade.php)
 
 ## Testes (Pest) — 7
 
 - 7 arquivos em [Modules/ProductCatalogue/Tests/Feature/](../../../Modules/ProductCatalogue/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 25
+## Demais arquivos (manifestos, docs, assets e misc) — 23
 
-- [CHANGELOG.md](../../../Modules/ProductCatalogue/CHANGELOG.md)
 - [.gitkeep](../../../Modules/ProductCatalogue/Config/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Console/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Database/Migrations/.gitkeep)
@@ -83,7 +89,6 @@ module: ProductCatalogue
 - [.gitkeep](../../../Modules/ProductCatalogue/Http/Middleware/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Http/Requests/.gitkeep)
 - [.gitkeep](../../../Modules/ProductCatalogue/Providers/.gitkeep)
-- [README.md](../../../Modules/ProductCatalogue/README.md)
 - [ProductCatalogueRepository.php](../../../Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php)
 - [.gitkeep](../../../Modules/ProductCatalogue/Resources/assets/.gitkeep)
 - [easy.qrcode.min.js](../../../Modules/ProductCatalogue/Resources/assets/plugins/easy.qrcode.min.js)

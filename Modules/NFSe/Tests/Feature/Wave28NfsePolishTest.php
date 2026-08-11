@@ -28,7 +28,7 @@ uses(Tests\TestCase::class);
  *   - ADR 0093 multi-tenant Tier 0 (NfseBusinessScope)
  *   - LGPD Art. 6º IX — PiiRedactor em erro_mensagem
  *
- * @see Modules/NFSe/CHANGELOG.md Wave 28
+ * @see memory/requisitos/NFSe/CHANGELOG.md Wave 28
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 describe('Wave 28 NFSe POLISH', function () {

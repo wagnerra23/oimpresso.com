@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Ponto/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 201 arquivos em 18 papéis.
+**Total mapeado:** 198 arquivos em 18 papéis.
 
 ## Controllers — 13
 
@@ -110,7 +110,32 @@ module: Ponto
 
 ## Views (Blade) — 26
 
-- 26 arquivos em [Modules/Ponto/Resources/views/aprovacoes/](../../../Modules/Ponto/Resources/views/aprovacoes) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [_tabela.blade.php](../../../Modules/Ponto/Resources/views/aprovacoes/_tabela.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/aprovacoes/index.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/banco-horas/index.blade.php)
+- [show.blade.php](../../../Modules/Ponto/Resources/views/banco-horas/show.blade.php)
+- [edit.blade.php](../../../Modules/Ponto/Resources/views/colaboradores/edit.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/colaboradores/index.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/configuracoes/index.blade.php)
+- [reps.blade.php](../../../Modules/Ponto/Resources/views/configuracoes/reps.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/dashboard/index.blade.php)
+- [_form.blade.php](../../../Modules/Ponto/Resources/views/escalas/_form.blade.php)
+- [create.blade.php](../../../Modules/Ponto/Resources/views/escalas/create.blade.php)
+- [edit.blade.php](../../../Modules/Ponto/Resources/views/escalas/edit.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/escalas/index.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/espelho/index.blade.php)
+- [show.blade.php](../../../Modules/Ponto/Resources/views/espelho/show.blade.php)
+- [create.blade.php](../../../Modules/Ponto/Resources/views/importacoes/create.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/importacoes/index.blade.php)
+- [show.blade.php](../../../Modules/Ponto/Resources/views/importacoes/show.blade.php)
+- [_form.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/_form.blade.php)
+- [create.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/create.blade.php)
+- [edit.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/edit.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/index.blade.php)
+- [show.blade.php](../../../Modules/Ponto/Resources/views/intercorrencias/show.blade.php)
+- [module.blade.php](../../../Modules/Ponto/Resources/views/layouts/module.blade.php)
+- [index.blade.php](../../../Modules/Ponto/Resources/views/relatorios/index.blade.php)
+- [espelho-pdf.blade.php](../../../Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php)
 
 ## Telas (Inertia/React) — 20
 
@@ -135,13 +160,12 @@ module: Ponto
 - [Index.tsx](../../../resources/js/Pages/Ponto/Relatorios/Index.tsx)
 - [Welcome.tsx](../../../resources/js/Pages/Ponto/Welcome.tsx)
 
-## Componentes / apoio de tela — 6
+## Componentes / apoio de tela — 5
 
 - [ActivityFeed.tsx](../../../resources/js/Pages/Ponto/_components/ActivityFeed.tsx)
 - [AlertInbox.tsx](../../../resources/js/Pages/Ponto/_components/AlertInbox.tsx)
 - [MonthHeatmap.tsx](../../../resources/js/Pages/Ponto/_components/MonthHeatmap.tsx)
 - [PresenceStrip.tsx](../../../resources/js/Pages/Ponto/_components/PresenceStrip.tsx)
-- [PontoPrimaryButton.tsx](../../../resources/js/Pages/Ponto/_shared/PontoPrimaryButton.tsx)
 - [PontoSubNav.tsx](../../../resources/js/Pages/Ponto/_shared/PontoSubNav.tsx)
 
 ## Charters (lei da tela) — 20
@@ -187,10 +211,9 @@ module: Ponto
 
 - 39 arquivos em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 18
+## Demais arquivos (manifestos, docs, assets e misc) — 16
 
 - [.gitignore](../../../Modules/Ponto/.gitignore)
-- [CHANGELOG.md](../../../Modules/Ponto/CHANGELOG.md)
 - [test_write.tmp](../../../Modules/Ponto/Database/Migrations/test_write.tmp)
 - [ColaboradorFactory.php](../../../Modules/Ponto/Database/factories/ColaboradorFactory.php)
 - [EscalaFactory.php](../../../Modules/Ponto/Database/factories/EscalaFactory.php)
@@ -198,7 +221,6 @@ module: Ponto
 - [IntercorrenciaFactory.php](../../../Modules/Ponto/Database/factories/IntercorrenciaFactory.php)
 - [MarcacaoFactory.php](../../../Modules/Ponto/Database/factories/MarcacaoFactory.php)
 - [routes.php](../../../Modules/Ponto/Http/routes.php)
-- [README.md](../../../Modules/Ponto/README.md)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt-BR/ponto.php)
 - [ponto.php](../../../Modules/Ponto/Resources/lang/pt/ponto.php)
 - [topnav.php](../../../Modules/Ponto/Resources/menus/topnav.php)

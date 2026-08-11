@@ -16,7 +16,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { formatMinutes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
-import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
+import { PageHeaderPrimary } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 
 interface Escala {
@@ -52,9 +52,7 @@ export default function EscalasIndex({ escalas }: Props) {
           </div>
           <div className="os-page-h-r">
             <PontoSubNav active="escalas" hidePrimary />
-            <PontoPrimaryButton onClick={() => router.visit('/ponto/escalas/create')}>
-              Nova escala
-            </PontoPrimaryButton>
+            <PageHeaderPrimary label="Nova escala" onClick={() => router.visit('/ponto/escalas/create')} />
           </div>
         </header>
 

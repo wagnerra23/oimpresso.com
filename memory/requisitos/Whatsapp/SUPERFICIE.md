@@ -14,7 +14,7 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Whatsapp/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 385 arquivos em 20 papéis.
+**Total mapeado:** 383 arquivos em 20 papéis.
 
 ## Controllers — 23
 
@@ -285,7 +285,7 @@ module: Whatsapp
 
 ## Views (Blade) — 1
 
-- 1 arquivos em [Modules/Whatsapp/Resources/views/](../../../Modules/Whatsapp/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- [placeholder.blade.php](../../../Modules/Whatsapp/Resources/views/placeholder.blade.php)
 
 ## Telas (Inertia/React) — 3
 
@@ -322,12 +322,10 @@ module: Whatsapp
 
 - 121 arquivos em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Demais arquivos (manifestos, docs, assets e misc) — 16
+## Demais arquivos (manifestos, docs, assets e misc) — 14
 
 - [.env.canary.example](../../../Modules/Whatsapp/.env.canary.example)
 - [InboxAssistAgent.php](../../../Modules/Whatsapp/Ai/Agents/InboxAssistAgent.php)
-- [CHANGELOG.md](../../../Modules/Whatsapp/CHANGELOG.md)
-- [README.md](../../../Modules/Whatsapp/README.md)
 - [whatsapp.php](../../../Modules/Whatsapp/Resources/lang/en/whatsapp.php)
 - [whatsapp.php](../../../Modules/Whatsapp/Resources/lang/pt-BR/whatsapp.php)
 - [topnav.php](../../../Modules/Whatsapp/Resources/menus/topnav.php)

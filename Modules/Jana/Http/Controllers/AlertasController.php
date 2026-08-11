@@ -18,11 +18,18 @@ class AlertasController extends Controller
         return view('copiloto::alertas.config');
     }
 
+    /**
+     * A gravação NÃO está implementada — e a mensagem de retorno não pode dizer que
+     * está. Persistir (em `business.essentials_settings` ou tabela dedicada) e ligar
+     * no `AlertaService` é a US-COPI-061; até lá o formulário fica desabilitado na
+     * view e esta rota devolve o que de fato aconteceu: nada.
+     *
+     * O FormRequest continua validando a whitelist (D8.c Wave 17) de propósito —
+     * o contrato de entrada não deve regredir enquanto a persistência não chega.
+     */
     public function updateConfig(UpdateAlertasConfigRequest $request)
     {
-        // TODO: persistir $request->validated() em business.essentials_settings
-        // ou tabela dedicada. FormRequest endurece whitelist (D8.c Wave 17).
         return redirect()->route('jana.alertas.config')
-            ->with('status', 'Configuração salva.');
+            ->with('status', 'Ainda não é possível salvar a configuração de alertas — nada foi alterado.');
     }
 }
