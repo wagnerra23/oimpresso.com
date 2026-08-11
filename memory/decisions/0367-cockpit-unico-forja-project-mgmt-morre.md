@@ -47,7 +47,7 @@ Dois fatos explicam a confusão:
 1. **As 4 URLs de `/forja/*` são uma tela só** — mesmo componente, muda a aba. É desenho, não bug.
 2. **Todas as 5 telas leem `mcp_jira_tasks` (`McpTask`).** É o mesmo backlog em cinco vitrines; o que difere é o recorte (FORJA fixo × projeto configurável) e a forma (kanban × abas × Gantt).
 
-**Causa histórica:** em 2026-07-31 o `Modules/TeamMcp` foi deletado e suas capacidades **movidas** pra Forja (PR #5120 trouxe o cockpit `/forja` de 6 abas). O módulo já tinha as telas nativas herdadas do ex-`ProjectMgmt`. O [`SCOPE.md`](../../Modules/Forja/SCOPE.md) registrou a dívida no ato, textual: *"⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W]"*. O `BRIEFING.md` repetiu como "próxima ação verificável". Esta ADR é essa decisão.
+**Causa histórica:** em 2026-07-31 o `Modules/TeamMcp` foi deletado e suas capacidades **movidas** pra Forja (PR #5120 trouxe o cockpit `/forja` de 6 abas). O módulo já tinha as telas nativas herdadas do ex-`ProjectMgmt`. O [`SCOPE.md`](../requisitos/Forja/SCOPE.md) registrou a dívida no ato, textual: *"⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W]"*. O `BRIEFING.md` repetiu como "próxima ação verificável". Esta ADR é essa decisão.
 
 **Nomenclatura:** o módulo passou a se chamar Forja em 2026-07-30 (data registrada no [BRIEFING](../requisitos/Forja/BRIEFING.md); o rename seguiu o padrão PHP-only da [ADR 0088](0088-module-rename-php-only.md), que preserva a fachada legacy) mas a URL nativa continua `/project-mgmt/*` por compatibilidade ([ADR 0087](0087-drift-resolution-sem-mover-url.md)). Convivem hoje: módulo `Forja`, URL nativa `/project-mgmt`, e uma segunda UI em `/forja` vinda de outro módulo.
 
@@ -119,7 +119,7 @@ Cada etapa é PR próprio, com gate [W] entre elas. Ordem é topológica — nad
 
 ## Referências
 
-- [`Modules/Forja/SCOPE.md`](../../Modules/Forja/SCOPE.md) §cockpit — a dívida declarada no ato da absorção
+- [`memory/requisitos/Forja/SCOPE.md`](../requisitos/Forja/SCOPE.md) §cockpit — a dívida declarada no ato da absorção
 - [`memory/requisitos/Forja/BRIEFING.md`](../requisitos/Forja/BRIEFING.md) — "próxima ação verificável"
 - [ADR 0087](0087-drift-resolution-sem-mover-url.md) — URLs congeladas / permissions por id
 - [ADR 0363](0363-governance-incorpora-ads-nucleo-sem-receptor.md) — precedente de perda consciente sem receptor

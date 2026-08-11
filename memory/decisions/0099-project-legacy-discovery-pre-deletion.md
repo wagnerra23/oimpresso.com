@@ -29,7 +29,7 @@ Esta ADR foi originalmente escrita como "Project MWART Migration: Blade legacy �
 
 **Decisão pós-pivot:** manter os 5 artefatos (CAPTERRA-FICHA, CHARTER-board, SPEC.md preenchido, session log, esta ADR) **mas re-enquadrados** como "discovery do legacy `Modules/Project` queue-for-delete". Razão:
 
-- `Modules/Project` será **deletado em Fase 3.8** ([SCOPE.md ProjectMgmt](../../Modules/ProjectMgmt/SCOPE.md) explicita: "Fase 3.8 — DELETE Project legado UltimatePOS")
+- `Modules/Project` será **deletado em Fase 3.8** ([SCOPE.md ProjectMgmt — hoje Forja](../requisitos/Forja/SCOPE.md) explicita: "Fase 3.8 — DELETE Project legado UltimatePOS")
 - Este discovery (24 capacidades inventariadas + 15 US documentadas + Charter da tela board) **vira insumo pra Fase 3.8**: ajuda decidir o que extrair antes do `git rm -rf Modules/Project/` (Invoice from TimeLogs, ClientProjects, timesheet) e onde recolocar (Modules/Financeiro? virar feature do ProjectMgmt?).
 - **NÃO se executa nenhuma das "4 Fases" originalmente propostas.** Migração Blade→MWART do legacy foi cancelada.
 - **Substituído por:** ADR 0100 (a criar) — "ProjectMgmt UI Redesign — Capterra-driven Jira-like" mirando o módulo certo.

@@ -254,14 +254,20 @@ export function MoneyInput({
   return (
     <div>
       {label && <Lbl className={invalido ? 'text-destructive-fg' : undefined}>{label}</Lbl>}
+      {/* Caixa igual à do `.dsfa` do protótipo (= `controlStyle()` do Input do DS):
+          padding 7px/10px + 13px/1.4 + 1px de borda → 34,19px DERIVADOS.
+          Era `h-9` (36px fixos), 1,81px mais alto que o protótipo. Não uso
+          `.cw-input` aqui porque este é um primitivo local — o wrapper flex
+          precisa hospedar o afixo, que o `<Input>` do DS não tem slot para. */}
       <div
         className={cn(
-          'inline-flex h-9 w-full items-center gap-1 rounded-md border px-2',
+          'inline-flex w-full items-center gap-1 rounded-md border px-[10px] py-[7px]',
           invalido ? 'border-destructive ring-[3px] ring-destructive/20' : 'border-input',
           readOnly ? 'bg-muted' : 'bg-background',
         )}
       >
-        <span className="flex-none font-mono text-[11.5px] text-muted-foreground">{prefix}</span>
+        {/* 12,5px = `.afx` da camada 3 do protótipo (era 11,5px) */}
+        <span className="flex-none font-mono text-[12.5px] leading-[1.4] text-muted-foreground">{prefix}</span>
         <input
           value={value}
           readOnly={readOnly}
@@ -270,7 +276,10 @@ export function MoneyInput({
           aria-invalid={invalido || undefined}
           onChange={(e) => onChange?.(e.target.value)}
           className={cn(
-            'min-w-0 flex-1 bg-transparent text-right font-mono text-[13px] tabular-nums outline-none',
+            // leading-[1.4] é o que fecha a conta: 13 × 1,4 = 18,2 + 14 de padding
+            // + 2 de borda = 34,19px. Sem ele o line-height cai no `normal` do
+            // input (~15px) e a caixa fica ~3px baixa.
+            'min-w-0 flex-1 bg-transparent text-right font-mono text-[13px] leading-[1.4] tabular-nums outline-none',
             readOnly && 'cursor-default font-semibold',
           )}
         />

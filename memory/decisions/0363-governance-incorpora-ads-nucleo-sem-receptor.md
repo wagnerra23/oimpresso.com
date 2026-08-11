@@ -236,7 +236,7 @@ volte a decidir sobre titular. O `review_trigger` correspondente está no frontm
 A [ADR 0086](0086-fase-5-mvp-governance-actiongate-warn.md) criou o `Modules/Governance` justificando
 *"Modules/Governance dedicado — separação semântica vs ADS (decision flow ≠ governance UI)"*. Essa
 fronteira vive hoje no `not_contains` do
-[`Modules/Governance/SCOPE.md:15`](../../Modules/Governance/SCOPE.md) — *"Decision flow
+[`memory/requisitos/Governance/SCOPE.md:15`](../requisitos/Governance/SCOPE.md) — *"Decision flow
 (Risk/Confidence/Policy Engine) → Modules/ADS"*.
 
 **Ela foi relida e mantida em 2026-07-31**, e isso é fato de git, não impressão: o commit `c9da3549d55d`
