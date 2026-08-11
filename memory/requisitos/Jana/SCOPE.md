@@ -60,10 +60,10 @@ owner: wagner
 permission_prefix: jana.*
 charter_adr: 0080
 related_adrs:
-  - 0035-laravel-ai-canonical-no-vizra
-  - 0036-meilisearch-hybrid-driver
-  - 0048-vizra-rejected-laravel-ai-canonical
-  - 0052-contexto-negocio-3-angulos
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - 0036-replanejamento-meilisearch-first
+  - 0048-framework-agentes-laravel-ai-vizra-rejeitada
+  - 0052-contextonegocio-expor-multiplos-angulos
   - 0053-mcp-server-governanca-como-produto
 url_prefixes:
   - /jana/* (canônico Fase 2b 2026-05-09 — /copiloto/* mantido via 301 redirect generic)
