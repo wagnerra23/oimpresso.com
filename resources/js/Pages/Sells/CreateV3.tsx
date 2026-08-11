@@ -51,6 +51,7 @@ import {
   type ProdutoCatalogo,
 } from './_components/v3/LancarItem';
 import EntregaFrete from './_components/v3/EntregaFrete';
+import ItemDetalhe from './_components/v3/ItemDetalhe';
 import ParcelasDrawer from './_components/v3/ParcelasDrawer';
 import { type Parcela } from './_components/v3/parcelas-dominio';
 import { type Transportadora } from './_components/v3/entrega-dominio';
@@ -199,6 +200,9 @@ export default function SellsCreateV3({ cena }: Props) {
      fechamento a direita precisa mostrar o plano de pagamento junto do total. */
   const [parcelas, setParcelas] = useState<Parcela[]>([]);
   const [parcelasAberto, setParcelasAberto] = useState(false);
+  /* onda 4 — drawer de detalhe do item. Guarda o INDICE (nao a linha) pra
+     navegacao Anterior/Proximo continuar valida se a lista mudar. */
+  const [itemAberto, setItemAberto] = useState<number | null>(null);
   const [estagio, setEstagio] = useState('rascunho');
   const [historico, setHistorico] = useState<{ acao: string; de: string; para: string }[]>([]);
   const [situacaoAberta, setSituacaoAberta] = useState(false);
@@ -511,7 +515,13 @@ export default function SellsCreateV3({ cena }: Props) {
                       className="sticky right-0 whitespace-nowrap border-b border-border/60 bg-card px-2 py-2 text-center"
                     >
                       <Inline gap={1} align="center" justify="center">
-                        <AindaNao o_que="Drawer de detalhe do item (7 abas · tributação · DIFAL)">Impostos</AindaNao>
+                        <button
+                          type="button"
+                          onClick={() => setItemAberto(itens.findIndex((x) => x.k === l.k))}
+                          className="cursor-pointer text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
+                        >
+                          Impostos
+                        </button>
                         {!travada && !cancelada && (
                           <button
                             type="button"
@@ -975,6 +985,17 @@ export default function SellsCreateV3({ cena }: Props) {
         podeEditarPreco={permissoes.editarPrecoItem}
         onFechar={() => setLancando(null)}
         onConfirmar={adicionarLancado}
+      />
+
+      <ItemDetalhe
+        linha={itemAberto !== null ? (itens[itemAberto] ?? null) : null}
+        indice={itemAberto ?? 0}
+        total={itens.length}
+        onFechar={() => setItemAberto(null)}
+        onNavegar={(delta) =>
+          setItemAberto((i) => (i === null ? null : Math.max(0, Math.min(itens.length - 1, i + delta))))
+        }
+        abaInicial="tributacao"
       />
 
       <ParcelasDrawer
