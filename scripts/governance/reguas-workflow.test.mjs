@@ -218,6 +218,36 @@ console.log('\n[9] o dossie carrega o inventario derivado (lista anti-falso-nega
   ok(r.chamadas.filter((c) => c.label === 'dossie').length === 1, 'segue UM unico agente de dossie')
 }
 
+// Defeito MEDIDO (passe adversarial 2026-08-11): `nota_sugerida` era `{ type: 'number' }`
+// — sem bounds e sem rubrica — e o prompt pedia so "a nota 0-10". Consequencia medida:
+// 4 fraquezas cujo verificador declarou a premissa FALSA receberam 9,0/7,5/6,0/6,0
+// (spread 3,5 na MESMA classe de veredito) => ruido inter-verificador ~±0,5, que engole
+// qualquer delta entre rodadas. Sem estes asserts, uma edicao futura tira a rubrica do
+// prompt e a escala volta a ser impressao — sem nada avisar.
+console.log('\n[13] a nota tem RUBRICA (a escala tem degraus, nao e impressao)')
+{
+  const src = fs.readFileSync(ALVO, 'utf8')
+  // schema: bounds + `null` legitimo (a celula nao-pontuavel some da media em vez de virar numero de conforto)
+  ok(/minimum: 0, maximum: 10/.test(src), 'o schema da nota tem BOUNDS (0-10), nao numero livre')
+  ok(/type: \['number', 'null'\]/.test(src), "o schema aceita `null` — 'nao pontuavel' e resposta valida, nao um 6 de conforto")
+  ok(/description: RUBRICA_NOTA/.test(src), 'a rubrica esta no description do campo (chega ao modelo pelo schema)')
+
+  const r = await rodar({ base: '/base' })
+  const verificadores = r.chamadas.filter((c) => c.label.startsWith('v:'))
+  ok(verificadores.length > 0, 'ha agente verificador na corrida (senao o assert abaixo mede o vazio)')
+  const todosComRubrica = verificadores.every((c) => /RUBRICA DA NOTA/.test(c.prompt))
+  ok(todosComRubrica, `os ${verificadores.length} verificadores recebem a rubrica no prompt`)
+  // os 3 DUROs que impedem a escala de virar carimbo — cada um ancorado numa licao ja paga
+  const pv = verificadores[0].prompt
+  ok(/presen.a NUNCA passa de 4/i.test(pv), 'DURO: presenca nao vira nota alta sozinha (LC-11)')
+  ok(/n.o pode ficar vermelho NUNCA passa de 4/i.test(pv), 'DURO: verde-que-nao-avermelha e carimbo, nao mordida')
+  ok(/nota_sugerida: null/.test(pv), 'DURO: sem evidencia verificavel => null, nunca numero de conforto')
+  ok(/Agregar dimens.es num .ndice . proibido/i.test(pv), 'DURO: a rubrica reafirma o C9 (nada de indice agregado)')
+  // CONTROLE NEGATIVO: a rubrica e do PROMPT/schema — nao inventou fase nem agente novo.
+  const nDims2 = [...src.matchAll(/^ {2}\{ key: '/gm)].length
+  ok(r.chamadas.filter((c) => c.label.startsWith('p:')).length === nDims2, `nenhuma fase nova: ${nDims2} pesquisadores intactos`)
+}
+
 fs.rmSync(TMP, { recursive: true, force: true })
 console.log(falhas ? `\nFALHOU: ${falhas} assercao(oes)` : '\nOK: selftest do workflow reguas-do-sistema passou')
 process.exit(falhas ? 1 : 0)
