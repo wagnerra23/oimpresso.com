@@ -274,6 +274,147 @@ it('verificarVencimento() retorna ≤30 quando próximo de vencer', function () 
     expect($svc->verificarVencimento(1))->toBeLessThanOrEqual(30);
 });
 
+/**
+ * Cria a linha de cert direto no banco, com `valido_ate` a N dias de hoje
+ * (N negativo = já vencido).
+ *
+ * NÃO usa `salvar()` de propósito: o `generateFakeX509` faz `max($days, 1)`,
+ * então é incapaz de produzir um cert já vencido. E o cenário real é
+ * exatamente este — o cert subiu VÁLIDO e venceu com a passagem do tempo,
+ * sem ninguém tocar na linha (foi o que aconteceu em prod: biz=1, cert
+ * cadastrado em 03/05, `valido_ate` 06/08).
+ *
+ * `valido_ate` é cast `date` e `diasAteVencimento()` compara contra
+ * `now()->startOfDay()` — os dois zeram a hora, então o resultado é inteiro
+ * exato, sem depender da hora em que a suíte roda.
+ */
+function certComVencimentoEmDias(int $businessId, int $dias): NfeCertificado
+{
+    return NfeCertificado::create([
+        'business_id'        => $businessId,
+        'uuid'               => (string) \Illuminate\Support\Str::uuid(),
+        'cnpj_titular'       => '12345678000199',
+        'valido_ate'         => now()->startOfDay()->addDays($dias)->format('Y-m-d'),
+        'encrypted_password' => Crypt::encryptString('p'),
+        'ativo'              => true,
+    ]);
+}
+
+/**
+ * GUARD US-NFE-001 — o aviso de cert VENCIDO na Sidebar.
+ *
+ * Os 4 testes abaixo travam o SINAL de `diasAteVencimento()`, que é o que
+ * transforma um cert expirado no aviso "Certificado vencido — há N dias"
+ * (`NfeCertBadge`). A cadeia é:
+ *
+ *   NfeCertificado::diasAteVencimento()  ← negativo quando vencido
+ *     → CertificadoService::verificarVencimento()
+ *       → HandleInertiaRequests::nfeCertStatus()  ← `$dias < 0` ⇒ 'vencido'
+ *         → shell.nfe_cert_status → <NfeCertBadge/>
+ *
+ * O `nfeCertStatus()` só classifica como `vencido` quando `$dias < 0`. Perdido
+ * o sinal, um cert expirado é lido como `ok`/`vencendo` e o badge some CALADO
+ * — o pior desfecho possível, porque o aviso desaparece justamente quando o
+ * problema existe, e ninguém fica sabendo.
+ *
+ * Vetores de regressão MEDIDOS (Carbon 3.11.4, a versão fixada no
+ * composer.lock — sonda com cert vencido há 5 dias):
+ *
+ *   hoje->diffInDays(venc, false)  =  -5   ← canon, o que o model faz hoje
+ *   hoje->diffInDays(venc, true)   =  +5   ← QUEBRA: absolute mata o sinal
+ *   venc->diffInDays(hoje, false)  =  +5   ← QUEBRA: operandos invertidos
+ *   hoje->diffInDays(venc)         =  -5   ← NÃO quebra (ver abaixo)
+ *
+ * ⚠️ Omitir o `false` NÃO é vetor no Carbon 3: ali o `$absolute` já é `false`
+ * por default. Era `true` no Carbon 2, e é fácil (eu mesmo caí nisso ao
+ * escrever este teste) supor a semântica antiga e "consertar" o model tirando
+ * ou trocando o argumento. Os dois números que importam estão medidos acima —
+ * confira contra a versão instalada antes de mexer, não contra a memória.
+ *
+ * Estes testes NÃO mudam comportamento — apenas fixam o que já funciona
+ * corretamente em produção (Wagner confirmou o aviso em 11/08/2026).
+ */
+it('GUARD: cert vencido devolve dias NEGATIVOS (sinal preservado)', function () {
+    certComVencimentoEmDias(1, -5);
+
+    // Direto no model — sem service no meio, isola a aritmética.
+    $cert = NfeCertificado::where('business_id', 1)->where('ativo', true)->first();
+
+    expect($cert->diasAteVencimento())
+        ->toBe(-5, 'cert vencido há 5 dias tem que devolver -5; +5 significa que o sinal se perdeu (diffInDays sem o `false`) e o badge vai silenciar');
+});
+
+it('GUARD: verificarVencimento() propaga o negativo até o service', function () {
+    certComVencimentoEmDias(1, -5);
+
+    $svc = new CertificadoService();
+
+    // É este valor que o `nfeCertStatus()` compara com `< 0` pra decidir 'vencido'.
+    expect($svc->verificarVencimento(1))->toBe(-5);
+});
+
+it('GUARD: fronteira — cert que vence HOJE é 0, ainda não é vencido', function () {
+    certComVencimentoEmDias(1, 0);
+
+    $svc = new CertificadoService();
+
+    // 0 cai no ramo `<= 30` ⇒ 'vencendo' (avisa com antecedência), não em
+    // `< 0` ⇒ 'vencido'. Trava a fronteira exata entre os dois avisos.
+    expect($svc->verificarVencimento(1))->toBe(0);
+});
+
+it('GUARD: controle negativo — cert válido segue POSITIVO (sinal não invertido)', function () {
+    certComVencimentoEmDias(1, 10);
+
+    $svc = new CertificadoService();
+
+    // Sem este controle, "negar o resultado" passaria nos 3 testes acima.
+    expect($svc->verificarVencimento(1))->toBe(10);
+});
+
+/**
+ * GUARD — o resto da cadeia até a Sidebar.
+ *
+ * Os 4 testes acima travam a aritmética. Estes 2 travam os dois elos que
+ * faltavam, e que hoje NÃO são exercidos por lane nenhuma de CI:
+ *
+ *   - `tests/Unit/NfeCertStatusSharedPropTest.php` cobre o `nfeCertStatus()`
+ *     com Service MOCKADA, mas não aparece no `.github/ci-sqlite-pest.list`,
+ *     nem no `tier0-guards-advisory.yml`, nem na allowlist desta lane —
+ *     ou seja, os 6 testes dele nunca rodam. Aqui roda, e sem mock.
+ *   - a FIAÇÃO da shared prop não tinha teste algum: apagar a linha
+ *     `'nfe_cert_status' => ...` do `HandleInertiaRequests::share()` derruba
+ *     o badge em produção e deixa TODOS os outros testes verdes.
+ */
+it('GUARD: share() publica a chave nfe_cert_status no shell (fiação do badge)', function () {
+    $request = \Illuminate\Http\Request::create('/');
+    $request->setLaravelSession(app('session.store'));
+
+    $shared = (new \App\Http\Middleware\HandleInertiaRequests())->share($request);
+
+    // `toHaveKey` é o assert CERTO aqui: o mecanismo sob teste É a presença
+    // da chave no contrato do shell (o `<NfeCertBadge/>` lê exatamente
+    // `usePage().props.shell.nfe_cert_status`). Sem a chave, o badge nunca
+    // renderiza — e é isso que este teste impede de acontecer calado.
+    expect($shared)->toHaveKey('shell')
+        ->and($shared['shell'])->toHaveKey('nfe_cert_status');
+});
+
+it('GUARD: nfeCertStatus() classifica cert REAL vencido como "vencido" (sem mock)', function () {
+    certComVencimentoEmDias(1, -5);
+
+    // Service REAL resolvida do container + linha REAL no banco — prova a
+    // cadeia inteira do backend, não a concordância entre dois mocks.
+    $middleware = new \App\Http\Middleware\HandleInertiaRequests();
+    $metodo = (new ReflectionClass($middleware))->getMethod('nfeCertStatus');
+    $metodo->setAccessible(true);
+
+    expect($metodo->invoke($middleware, 1))->toBe([
+        'status'         => 'vencido',
+        'dias_restantes' => -5,
+    ]);
+});
+
 it('senha NUNCA aparece em toArray() do model (defesa em profundidade)', function () {
     $svc = fakeService('12345678000199', '+1 year');
     $cert = $svc->salvar(1, base64_encode('x'), 'super-secret-password');
