@@ -1,9 +1,9 @@
 # Modules/Arquivos — DMS backbone do oimpresso
 
 > DMS backbone (Document Management System) oimpresso — armazena, classifica, deduplica e protege qualquer arquivo (XML NFe, foto OS, contrato, anexo ticket) com encryption-at-rest opcional, audit trail LGPD e retenção declarativa.
-> **ADR mãe:** [0123](../../memory/decisions/0123-modules-arquivos-backbone.md)
-> **SPEC:** [memory/requisitos/Arquivos/SPEC.md](../../memory/requisitos/Arquivos/SPEC.md)
-> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+> **ADR mãe:** [0123](../../decisions/0123-modules-arquivos-backbone.md)
+> **SPEC:** [memory/requisitos/Arquivos/SPEC.md](SPEC.md)
+> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
 > **Princípio:** *todo arquivo anexado do oimpresso deve cair aqui*.
 
 ## Por que existe
@@ -59,7 +59,7 @@ Total: **3 Services, 13 spans OTel canônicos** (D9.a saturated — Wave 18 base
 - **Retenção declarativa** — `Config/retention.php` é fonte da verdade auditorial; `arquivos:retention-cleanup` consome
 - **Dedupe ZERO leak cross-tenant** — lookup MD5 sempre filtra `business_id` (Agent E security review §dedupe leak)
 
-## Observabilidade D9.a ([ADR 0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md))
+## Observabilidade D9.a ([ADR 0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md))
 
 Spans canon (zero-cost se `otel.enabled=false`):
 
@@ -101,7 +101,7 @@ Pessoa externa (DPO, advogado LGPD, auditor regulador ANPD), ou interna senior (
 
 ## Tier 0 IRREVOGÁVEL
 
-- **Multi-tenant** ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)): toda query de `Arquivo` usa `business_id` global scope; jobs recebem `$businessId` no constructor; cross-tenant dedupe NUNCA vaza.
+- **Multi-tenant** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)): toda query de `Arquivo` usa `business_id` global scope; jobs recebem `$businessId` no constructor; cross-tenant dedupe NUNCA vaza.
 - **LGPD Art. 16:** retenção declarada em `Config/retention.php`. Mudança REAL altera AMBOS arquivos (`retention.php` + shim D7.c) — acoplamento explícito.
 - **Audit append-only:** `arquivos_audit_log` NÃO permite UPDATE/DELETE. Adição de coluna via migration; mudança de row = nova linha.
 
@@ -138,7 +138,7 @@ Modules/Arquivos/
 └── README.md (este arquivo)
 ```
 
-## LGPD ([ADR 0094](../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4)
+## LGPD ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §4)
 
 - `pii_fields_tracked`: original_name (filename pode conter CPF/CNPJ), storage_path, md5 (apenas em `arquivos_audit_log` dedicado — NUNCA em `activity_log` Spatie)
 - `pii_redactor_enabled`: true (defesa em profundidade — `PiiRedactor::redactArray` em audit payload + erro de log)
@@ -186,14 +186,14 @@ $url = app(ArquivosService::class)->signedUrl($arquivo, expiresMinutes: 60);
 
 ## Estado das US (Sprint 1+2 concluído)
 
-Ver [SCOPE.md](SCOPE.md) pra matriz US-ARQ-001..US-ARQ-010 + US-PRE pendentes Wagner.
+Ver [SCOPE.md](../../../Modules/Arquivos/SCOPE.md) pra matriz US-ARQ-001..US-ARQ-010 + US-PRE pendentes Wagner.
 
 ## Referências
 
-- ADR mãe: [0123](../../memory/decisions/0123-modules-arquivos-backbone.md) (Sprint 1+2 ratificadas)
-- ADR multi-tenant: [0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- ADR observabilidade: [0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md)
-- ADR retention chunked encryption: [0126](../../memory/decisions/0126-arquivos-chunked-encryption-sprint2.md)
+- ADR mãe: [0123](../../decisions/0123-modules-arquivos-backbone.md) (Sprint 1+2 ratificadas)
+- ADR multi-tenant: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
+- ADR observabilidade: [0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md)
+- ADR retention chunked encryption: [0126](../../decisions/0126-arquivos-chunked-encryption-sprint2.md)
 - LGPD Art. 15-16 (eliminação tempestiva) + Art. 18 §VI (direito eliminação)
 - SPEC: `memory/requisitos/Arquivos/SPEC.md`
 - CHANGELOG (append-only): [`CHANGELOG.md`](CHANGELOG.md)

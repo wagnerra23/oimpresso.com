@@ -118,6 +118,6 @@ it('D2 W28: shareWithUser cross-tenant — Spreadsheet biz=1 NÃO ganha share vi
 // ------------------------------------------------------------------
 
 it('D3 W28: CHANGELOG.md tem entrada Wave 28 (saturation 74-88 → ≥92)', function () {
-    $changelog = file_get_contents(base_path('Modules/Spreadsheet/CHANGELOG.md'));
+    $changelog = file_get_contents(base_path('memory/requisitos/Spreadsheet/CHANGELOG.md'));
     expect($changelog)->toContain('Wave 28');
 });

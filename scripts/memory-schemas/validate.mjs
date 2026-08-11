@@ -24,14 +24,20 @@
  * mergeados no main porque os jobs Session log/Handoff são ADVISORY e o
  * auto-merge só espera os required.
  *
- * FONTE ÚNICA — com um limite MEDIDO, não absoluto (errata 2026-08-10). O que é
- * de fato único é o SCHEMA: os `*.schema.json` são o dono da regra, e o workflow
- * chama este arquivo em vez de reimplementar validação. O que NÃO é único é o
- * ROTEAMENTO arquivo→schema: `Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php`
- * mantém a própria lista, com 7 famílias contra as 9 daqui (faltam `briefing` e
- * `reference`). Afirmar "não há segunda cópia da regra" era falso nesse eixo.
- * Enquanto as duas listas existirem, mudar família aqui exige olhar lá — unificar
- * é trabalho aberto, não fato consumado.
+ * FONTE ÚNICA — o eixo do SCHEMA sempre foi único (os `*.schema.json`, e o workflow
+ * chama este arquivo em vez de reimplementar validação). O eixo do ROTEAMENTO passou
+ * a ser em 2026-08-11: as famílias vêm de `familias.json`, e a lista à mão que vivia
+ * aqui deixou de existir.
+ *
+ * O que a errata de 2026-08-10 dizia (e era verdade): havia cópia à mão do roteamento
+ * em `JanaValidateMemoryCommand.php`, com 7 famílias contra 9 daqui. Medindo pra
+ * consertar, apareceu uma TERCEIRA: a matriz do `memory-schema-gate.yml` (9), que o
+ * cabeçalho antigo do bloco FAMILIAS descrevia como "espelhando" — espelho mantido à
+ * mão é cópia. Hoje: .mjs e .php DERIVAM do JSON; a matriz do workflow segue cópia,
+ * porque `strategy.matrix.include` não lê arquivo sem reestruturar o job em
+ * outputs+`fromJSON` e ali moram 4 contexts REQUIRED (ADR · SPEC · Charter · Tópico)
+ * — risco alto, ganho baixo. Em troca ela virou cópia CONFERIDA: o `--selftest` abaixo
+ * falha se matriz e JSON divergirem. Cópia checada ≠ fonte única; está declarado.
  *
  * USO:
  *   node scripts/memory-schemas/validate.mjs <arquivo...>        # valida arquivos dados
@@ -42,24 +48,67 @@
  * Deps: gray-matter, glob, ajv, ajv-formats (o CI instala; local usa node_modules).
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { basename, dirname, join } from 'node:path';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const ARGS = process.argv.slice(2);
 const flag = (n) => { const i = ARGS.indexOf(n); return i >= 0 ? ARGS[i + 1] : null; };
 
-/** Mapa glob→schema espelhando a matriz do memory-schema-gate.yml. */
-export const FAMILIAS = [
-  { schema: 'scripts/memory-schemas/adr.schema.json', teste: (f) => /^memory\/decisions\/\d{4}-.*\.md$/.test(f) },
-  { schema: 'scripts/memory-schemas/spec.schema.json', teste: (f) => /^memory\/requisitos\/[^/]+\/SPEC\.md$/.test(f) },
-  { schema: 'scripts/memory-schemas/runbook.schema.json', teste: (f) => /^memory\/requisitos\/.*RUNBOOK[^/]*\.md$/.test(f) },
-  { schema: 'scripts/memory-schemas/session.schema.json', teste: (f) => /^memory\/sessions\/\d{4}-.*\.md$/.test(f) },
-  { schema: 'scripts/memory-schemas/handoff.schema.json', teste: (f) => /^memory\/handoffs\/\d{4}-.*\.md$/.test(f) },
-  { schema: 'scripts/memory-schemas/charter.schema.json', teste: (f) => /^resources\/js\/Pages\/.*\.charter\.md$/.test(f) },
-  { schema: 'scripts/memory-schemas/briefing.schema.json', teste: (f) => /^memory\/requisitos\/[^/]+\/BRIEFING\.md$/.test(f) },
-  { schema: 'scripts/memory-schemas/reference.schema.json', teste: (f) => /^memory\/reference\/[^/]+\.md$/.test(f) },
-  { schema: 'scripts/memory-schemas/topico.schema.json', teste: (f) => /^memory\/requisitos\/[^/]+\/topicos\/[^/]+\.md$/.test(f) },
-];
+// Resolvido contra a LOCALIZAÇÃO DO SCRIPT, nunca contra o cwd: o `--selftest` roda o
+// próprio CLI num diretório temporário (spawnSync com `cwd: box`), e ali `familias.json`
+// não existe. Já os paths DENTRO do JSON seguem relativos ao cwd — é isso que deixa o
+// box funcionar copiando os `*.schema.json` pra `box/scripts/memory-schemas/`.
+export const FAMILIAS_JSON = join(dirname(fileURLToPath(import.meta.url)), 'familias.json');
+
+/**
+ * Carrega o roteamento de `familias.json` e o compila pra forma que o resto consome
+ * (`{schema, teste}`) — a mesma de antes, pra não mexer no contrato do hook.
+ *
+ * LANÇA em vez de degradar. Sem roteamento não há como dizer de que família é um
+ * arquivo, e a alternativa (lista vazia) faria `schemaPara` devolver null pra tudo:
+ * o hook falharia aberto em silêncio e o modoArquivos diria "nada avaliado" — as duas
+ * formas de "verde sem ter medido" que este arquivo passou o ano consertando.
+ * Custo declarado: `modoCI` não usa o roteamento (recebe schema+glob por flag), então
+ * um JSON quebrado derruba junto os 4 contexts required que só passam por lá. É
+ * deliberado — validador que não consegue carregar a própria régua não deve certificar
+ * nada. O arquivo é versionado ao lado deste; sumir os dois separadamente não é cenário.
+ */
+export function carregarFamilias(caminho = FAMILIAS_JSON) {
+  let bruto;
+  try {
+    bruto = JSON.parse(readFileSync(caminho, 'utf8'));
+  } catch (e) {
+    throw new Error(
+      `[memory-schema] não consegui carregar o roteamento em ${caminho}: ${e && e.message}\n` +
+      `  Este arquivo é a fonte única das famílias (validate.mjs + JanaValidateMemoryCommand.php).`,
+    );
+  }
+  const lista = bruto && bruto.familias;
+  if (!Array.isArray(lista) || lista.length === 0) {
+    throw new Error(`[memory-schema] ${caminho} sem a chave 'familias' (ou vazia).`);
+  }
+  const vistos = new Set();
+  return lista.map((f, i) => {
+    for (const campo of ['key', 'schema', 'glob', 'regex']) {
+      if (typeof f?.[campo] !== 'string' || !f[campo]) {
+        throw new Error(`[memory-schema] família #${i} em ${caminho} sem '${campo}' string.`);
+      }
+    }
+    if (vistos.has(f.key)) throw new Error(`[memory-schema] key duplicada em ${caminho}: '${f.key}'.`);
+    vistos.add(f.key);
+    let re;
+    try { re = new RegExp(f.regex); } catch (e) {
+      throw new Error(`[memory-schema] regex inválida na família '${f.key}': ${e && e.message}`);
+    }
+    return { key: f.key, schema: f.schema, glob: f.glob, grace: f.grace === true, teste: (p) => re.test(p) };
+  });
+}
+
+/**
+ * Mapa arquivo→schema. Derivado de `familias.json` — NÃO acrescente família aqui.
+ * A ordem do JSON é significativa: `schemaPara` usa `find` (primeiro match vence).
+ */
+export const FAMILIAS = carregarFamilias();
 
 /** Ignorados na matriz do CI — índices e READMEs não carregam frontmatter de família. */
 const IGNORADO = (f) => /(^|\/)_[^/]*\.md$|(^|\/)(README|INDEX)\.md$/.test(f);
@@ -270,6 +319,77 @@ async function selftest() {
   ok(schemaPara('memory/requisitos/Jana/OUTRO.md') === null, 'não rotula .md avulso de requisitos como SPEC');
   ok(schemaPara('memory/handoffs/_INDEX.md') === null, 'ignora _prefixados (índices)');
   ok(schemaPara('README.md') === null, 'ignora arquivo fora de família');
+
+  // ── o roteamento é UM só: familias.json ⇄ matriz do CI ⇄ comando PHP ───────
+  // (2026-08-11) Antes disto o roteamento vivia em 3 cópias à mão e elas JÁ tinham
+  // divergido: o .php ficou em 7 famílias contra 9. Os asserts abaixo existem pra a
+  // divergência voltar a ser barulho, não descoberta de meses depois.
+  // ⚠️ Estes asserts rodam no job `selftest` do memory-schema-gate.yml, que é
+  // ADVISORY (não está em governance/required-checks-baseline.json) — falham VISÍVEL,
+  // não bloqueiam merge. Não os descreva como se travassem o PR.
+  const familiasCru = JSON.parse(readFileSync(FAMILIAS_JSON, 'utf8')).familias;
+  ok(familiasCru.length === FAMILIAS.length && FAMILIAS.length === 9,
+    `familias.json tem 9 famílias e todas compilam (json=${familiasCru.length} compiladas=${FAMILIAS.length})`);
+
+  // (A) matriz do workflow — cópia CONFERIDA (ver cabeçalho: não dá pra derivar sem
+  // reestruturar um job que serve 4 required). Compara o trio semântico schema+glob+grace
+  // como CONJUNTO: a ordem da matriz difere da do JSON de propósito (aqui a ordem é
+  // roteamento, lá é só apresentação dos jobs).
+  const WF = '.github/workflows/memory-schema-gate.yml';
+  let matrizInclude = null, erroMatriz = '';
+  try {
+    // js-yaml é dependência DURA do gray-matter, que este script já exige pra funcionar
+    // (sem ele o carregarDeps sai 2). Logo está disponível sempre que o validador está —
+    // não é dep nova, é subconjunto de uma que já era obrigatória.
+    const yaml = (await import('js-yaml')).default;
+    matrizInclude = yaml.load(readFileSync(WF, 'utf8'))?.jobs?.validate?.strategy?.matrix?.include;
+  } catch (e) { erroMatriz = String(e && e.message).split('\n')[0]; }
+  // Sem conseguir ler a matriz, FALHA (não pula): "não consegui medir" nunca é verde.
+  ok(Array.isArray(matrizInclude) && matrizInclude.length > 0,
+    `matriz do ${WF} legível (rode da RAIZ do repo)${erroMatriz ? ' — ' + erroMatriz : ''}`);
+  if (Array.isArray(matrizInclude)) {
+    const chave = (x) => `${x.schema}|${x.glob}|${x.grace === true}`;
+    const doJson = new Set(familiasCru.map(chave));
+    const daMatriz = new Set(matrizInclude.map(chave));
+    const soNoJson = [...doJson].filter((k) => !daMatriz.has(k));
+    const soNaMatriz = [...daMatriz].filter((k) => !doJson.has(k));
+    ok(soNoJson.length === 0 && soNaMatriz.length === 0,
+      'familias.json ⇄ matriz do CI batem em schema+glob+grace' +
+      (soNoJson.length ? `\n         só no JSON:   ${soNoJson.join('\n                       ')}` : '') +
+      (soNaMatriz.length ? `\n         só na matriz: ${soNaMatriz.join('\n                       ')}` : ''));
+  }
+
+  // (B) o comando PHP não pode ter voltado a manter lista própria.
+  // HONESTIDADE: isto prova AUSÊNCIA DE CÓPIA, não que o comando funcione — ele não tem
+  // invocador (0 schedules no Kernel, 0 lanes de CI rodando o Pest dele) e o PHP não roda
+  // aqui. Comportamento do .php só é provável no CT 100 (ADR 0062).
+  const PHP = 'Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php';
+  if (existsSync(PHP)) {
+    const src = readFileSync(PHP, 'utf8');
+    const hardcoded = src.match(/memory-schemas\/[a-z-]+\.schema\.json/g) || [];
+    ok(hardcoded.length === 0,
+      `PHP não hardcoda schema (achei ${hardcoded.length}: ${[...new Set(hardcoded)].join(', ')})`);
+    ok(src.includes('familias.json'), 'PHP deriva o roteamento de familias.json');
+  }
+
+  // (C) o carregador morde: JSON inválido não vira lista vazia silenciosa.
+  const { mkdtempSync: mkbox, writeFileSync: esc } = await import('node:fs');
+  const { tmpdir: tdir } = await import('node:os');
+  const { join: pjoin } = await import('node:path');
+  const boxFam = mkbox(pjoin(tdir(), 'familias-'));
+  const tenta = (conteudo) => {
+    const p = pjoin(boxFam, 'f.json');
+    esc(p, conteudo);
+    try { carregarFamilias(p); return null; } catch (e) { return e.message; }
+  };
+  ok(tenta('{"familias":[]}') !== null, 'MORDE: familias vazio lança (nunca roteia pra nada em silêncio)');
+  ok(tenta('{ nao é json') !== null, 'MORDE: JSON quebrado lança');
+  ok(tenta('{"familias":[{"key":"a","schema":"s","glob":"g"}]}') !== null, 'MORDE: família sem regex lança');
+  ok(tenta('{"familias":[{"key":"a","schema":"s","glob":"g","regex":"["}]}') !== null, 'MORDE: regex inválida lança');
+  ok(tenta('{"familias":[{"key":"a","schema":"s","glob":"g","regex":"^a$"},' +
+    '{"key":"a","schema":"s2","glob":"g2","regex":"^b$"}]}') !== null, 'MORDE: key duplicada lança');
+  ok(tenta('{"familias":[{"key":"a","schema":"s","glob":"g","regex":"^a$"}]}') === null,
+    'LIBERA: família bem formada carrega');
 
   const vh = compilar('scripts/memory-schemas/handoff.schema.json', deps);
   // MORDE: o frontmatter exato que passou batido no #4798 (title/type em vez de slug/tldr)

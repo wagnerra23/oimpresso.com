@@ -21,7 +21,7 @@ uses(Tests\TestCase::class);
  *
  * Multi-tenant Tier 0 (ADR 0101 — biz=1 nunca cliente real).
  *
- * @see Modules/Officeimpresso/README.md
+ * @see memory/requisitos/Officeimpresso/README.md
  * @see Modules/Officeimpresso/Services/LicencaAuditService.php
  */
 

@@ -49,6 +49,7 @@
 import { readFileSync, readdirSync, existsSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 
@@ -189,6 +190,61 @@ export function nomesQueQuebramOParser(src, arquivo = '') {
   return achados;
 }
 
+// ── `if:` de JOB — o 3º jeito de um required NÃO nascer ─────────────────────
+// Este lint media 2 vetores (`paths:` filtrado · sem gatilho de PR) e era CEGO ao
+// terceiro: um job com `if:` que é FALSO em contexto de pull_request nunca produz
+// check-run, e o PR fica em `Expected — waiting for status` pra sempre — mesmo com o
+// workflow always-run. Achado por revisão adversarial em 2026-08-10, logo após o flip
+// da ADR 0373: `grep -c "if:"` no próprio script dava **0**.
+//
+// NÃO confundir com `if:` de STEP (indentação de 6+): step que não roda não impede o
+// check-run do job de existir. Só o `if:` de JOB (indentação de 4) mata o check-run.
+//
+// FP MEDIDO ANTES DE ARMAR (2026-08-10, 121 workflows): **13** `if:` de job no repo.
+// Destes, **2 são required** e os DOIS são seguros — `DS gate` (`!cancelled()`) e
+// `ADR 0216 PR scan` (`== 'pull_request'`). O balde perigoso EXISTE (4 jobs: o
+// `refresh` do system-map, o `submit` do handoff-sign, e 2 do governance-drift) mas
+// **nenhum é required hoje** ⇒ 0 falso-positivo, e valor preventivo real: o dia em que
+// alguém promover um desses, o lint morde antes do deadlock.
+//
+// TRÊS baldes, e o do meio é o único que reprova — INDECIDÍVEL nunca derruba, porque
+// um lint que chuta no que não sabe é a família de guard sintático que o §5 já matou 5×.
+export function classificaIfEmPR(expr) {
+  const e = String(expr).replace(/\$\{\{|\}\}/g, ' ').replace(/\s+/g, ' ').trim();
+  // depende de runtime (needs/outputs/env) → não dá pra decidir estaticamente
+  if (/\bneeds\./.test(e) || /\benv\./.test(e) || /\binputs\./.test(e)) return 'INDECIDIVEL';
+  const citaPR = /event_name\s*==\s*'pull_request'/.test(e);
+  const negaPR = /event_name\s*!=\s*'pull_request'/.test(e);
+  const outroEvento = /event_name\s*==\s*'(?:push|schedule|workflow_dispatch|release|issues|issue_comment)'/.test(e);
+  if (negaPR) return 'PERIGOSO';                       // literalmente falso em PR
+  if (outroEvento && !citaPR) return 'PERIGOSO';       // só casa outro evento
+  if (citaPR) return 'SEGURO';                         // verdadeiro em PR
+  if (/^!?\s*(cancelled|always|success)\(\)$/.test(e)) return 'SEGURO';
+  return 'INDECIDIVEL';
+}
+
+/** Extrai `if:` de JOB (indentação 4) por job, com o `name:` quando houver. */
+export function ifsDeJob(srcCru) {
+  const src = nl(srcCru);
+  const out = [];
+  const jobsBloco = src.match(/^jobs:[ \t]*$\n([\s\S]*)/m);
+  if (!jobsBloco) return out;
+  const partes = jobsBloco[1].split(/^  (?=[A-Za-z0-9_-]+:[ \t]*$)/m).filter(Boolean);
+  for (const parte of partes) {
+    const idm = parte.match(/^([A-Za-z0-9_-]+):[ \t]*$/m);
+    if (!idm) continue;
+    const mIf = parte.match(/^[ \t]{4}if:[ \t]*(.+)$/m);
+    if (!mIf) continue;
+    const nm = parte.match(/^[ \t]{4}name:[ \t]*(.+)$/m);
+    out.push({
+      jobId: idm[1],
+      context: nm ? nm[1].trim().replace(/^["']|["']$/g, '') : idm[1],
+      ifExpr: mIf[1].trim(),
+    });
+  }
+  return out;
+}
+
 function auditar(root = ROOT) {
   const baseP = join(root, 'governance', 'required-checks-baseline.json');
   // O baseline guarda o required em DUAS chaves — `classic_protection` (branch protection
@@ -205,6 +261,7 @@ function auditar(root = ROOT) {
   const dir = join(root, '.github', 'workflows');
   const mapa = new Map();                                   // context → {arquivo, gatilho, via}
   const parserQuebrado = [];                                // `name:` que mata o workflow inteiro
+  const ifPorContext = new Map();                           // context → {arquivo, ifExpr, veredito}
   for (const f of readdirSync(dir).filter((x) => /\.ya?ml$/.test(x))) {
     const src = readFileSync(join(dir, f), 'utf8');
     parserQuebrado.push(...nomesQueQuebramOParser(src, f));
@@ -212,16 +269,25 @@ function auditar(root = ROOT) {
     for (const c of contextsDoWorkflow(src)) {
       if (!mapa.has(c.context)) mapa.set(c.context, { arquivo: f, gatilho: g, via: c.via });
     }
+    for (const j of ifsDeJob(src)) {
+      if (!ifPorContext.has(j.context)) {
+        ifPorContext.set(j.context, { arquivo: f, ifExpr: j.ifExpr, veredito: classificaIfEmPR(j.ifExpr) });
+      }
+    }
   }
   const filtrados = [], semPR = [], naoResolvidos = [], ok = [];
+  const ifPerigoso = [], ifIndecidivel = [];
   for (const ctx of required) {
+    const j = ifPorContext.get(ctx);
+    if (j?.veredito === 'PERIGOSO') ifPerigoso.push({ ctx, ...j });
+    else if (j?.veredito === 'INDECIDIVEL') ifIndecidivel.push({ ctx, ...j });
     const m = mapa.get(ctx);
     if (!m) { naoResolvidos.push(ctx); continue; }
     if (m.gatilho.filtrado) filtrados.push({ ctx, ...m });
     else if (!m.gatilho.temPR) semPR.push({ ctx, ...m });
     else ok.push({ ctx, ...m });
   }
-  return { required, filtrados, semPR, naoResolvidos, ok, parserQuebrado };
+  return { required, filtrados, semPR, naoResolvidos, ok, parserQuebrado, ifPerigoso, ifIndecidivel };
 }
 
 // ── selftest: fixtures herméticas, com controle negativo ────────────────────
@@ -321,6 +387,52 @@ function selftest() {
     writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
       JSON.stringify({ classic_protection: { contexts: ['Job A'] } }));
     ok(auditar(dir).filtrados.length === 0, 'baseline sem `rulesets` não quebra (retrocompat)');
+    // ── eixo 3: `if:` de JOB (achado adversarial 2026-08-10, pós-flip ADR 0373) ──
+    // classificador puro — os 3 baldes, com as expressões REAIS medidas no repo
+    ok(classificaIfEmPR("github.event_name != 'pull_request'") === 'PERIGOSO',
+      'BITE: `!= pull_request` é falso em PR → PERIGOSO');
+    ok(classificaIfEmPR("github.event_name == 'push' || github.event_name == 'workflow_dispatch'") === 'PERIGOSO',
+      'BITE: só casa push/dispatch → PERIGOSO');
+    ok(classificaIfEmPR("github.event_name == 'pull_request'") === 'SEGURO',
+      'CN: `== pull_request` é verdadeiro em PR → SEGURO');
+    ok(classificaIfEmPR('${{ !cancelled() }}') === 'SEGURO',
+      'CN: `!cancelled()` (o DS gate real) → SEGURO');
+    ok(classificaIfEmPR("github.event_name == 'push' || github.event_name == 'pull_request'") === 'SEGURO',
+      'CN: cobre push E pull_request → SEGURO (o `||` não pode virar PERIGOSO)');
+    ok(classificaIfEmPR("needs.detect.outputs.should_smoke == 'true'") === 'INDECIDIVEL',
+      'CN: depende de `needs` → INDECIDÍVEL, nunca reprova');
+
+    // extrator: `if:` de JOB (4 espaços) conta; `if:` de STEP (6+) NÃO
+    const comIfJob = ['name: W', 'on:', '  pull_request:', 'jobs:', '  a:', '    name: Job A',
+      "    if: github.event_name != 'pull_request'", '    steps:', '      - run: x'].join('\n');
+    ok(ifsDeJob(comIfJob).length === 1 && ifsDeJob(comIfJob)[0].context === 'Job A',
+      'extrator: pega `if:` de JOB com o name: do job');
+    const comIfStep = ['name: W', 'on:', '  pull_request:', 'jobs:', '  a:', '    name: Job A',
+      '    steps:', '      - run: x', '        if: failure()'].join('\n');
+    ok(ifsDeJob(comIfStep).length === 0,
+      'CN: `if:` de STEP (6 espaços) NÃO conta — step pulado ainda reporta o job');
+
+    // E2E pelo auditar(): required com if: perigoso entra em ifPerigoso
+    writeFileSync(join(dir, 'governance', 'required-checks-baseline.json'),
+      JSON.stringify({ classic_protection: { contexts: ['Job A'] }, rulesets: { contexts: [] } }));
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), comIfJob);
+    ok(auditar(dir).ifPerigoso.length === 1, 'BITE: required com `if:` falso em PR → ifPerigoso');
+
+    // ⚠️ Assert de DADO não prova FIAÇÃO. Medido por mutação nesta própria sessão:
+    // tirar o `process.exit(1)` do ramo `ifPerigoso` deixava o lint de morder e o
+    // selftest seguia VERDE (o `.length===1` acima continua verdadeiro). É o
+    // sub-padrão do LC-11 ("bite-test cego à fiação"). Estes 2 rodam o CLI DE FORA
+    // e olham o exit code — o mutante morre neles.
+    const rodarCli = () => {
+      try {
+        execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { cwd: dir, stdio: 'ignore' });
+        return 0;
+      } catch (e) { return e.status ?? 1; }
+    };
+    ok(rodarCli() === 1, 'BITE E2E (CLI): `if:` perigoso em required → exit 1');
+    writeFileSync(join(dir, '.github', 'workflows', 'w.yml'), comIfJob.replace("!= 'pull_request'", "== 'pull_request'"));
+    ok(auditar(dir).ifPerigoso.length === 0, 'LIBERA: `if: == pull_request` não acusa');
+    ok(rodarCli() === 0, 'LIBERA E2E (CLI): `if:` seguro → exit 0');
   } finally { rmSync(dir, { recursive: true, force: true }); }
 
   console.log(falhas ? `\n✗ ${falhas} falha(s)` : '\n✅ required-always-run: acusa filtrado, libera always-run, avisa o não-resolvido.');
@@ -371,6 +483,20 @@ for (const s of r.semPR) console.log(`  ❌ ${s.ctx}\n       ${s.arquivo} — ${
 if (r.naoResolvidos.length) {
   console.log(`\n  ⚠️  não casei com job nenhum (AVISO — limite conhecido, não veredito):`);
   for (const n of r.naoResolvidos) console.log(`     ${n}`);
+}
+if (r.ifIndecidivel.length) {
+  console.log(`\n  ⚠️  \`if:\` de job que não dá pra decidir estaticamente (AVISO — não derruba):`);
+  for (const j of r.ifIndecidivel) console.log(`     ${j.ctx}\n       ${j.arquivo} — if: ${j.ifExpr}`);
+}
+if (r.ifPerigoso.length) {
+  console.log(`\n  ❌ ${r.ifPerigoso.length} required com \`if:\` de JOB que é FALSO em pull_request:\n`);
+  for (const j of r.ifPerigoso) console.log(`     ${j.ctx}\n       ${j.arquivo} — if: ${j.ifExpr}`);
+  console.log(`\n  Job com \`if:\` falso não produz check-run — mesmo com o workflow always-run. É o`);
+  console.log(`  3º jeito de um required não nascer (os outros 2: \`paths:\` filtrado · sem gatilho de PR),`);
+  console.log(`  e o efeito é idêntico: "Expected — waiting for status" pra sempre.`);
+  console.log(`  CONSERTO: tire o \`if:\` do JOB (o de STEP é inofensivo — step pulado ainda reporta o job),`);
+  console.log(`  ou não promova este context a required.\n`);
+  process.exit(1);
 }
 if (r.filtrados.length || r.semPR.length) {
   console.log(`\n  Um context required cujo workflow é filtrado NÃO fica vermelho — ele NÃO NASCE.`);

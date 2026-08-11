@@ -47,7 +47,7 @@ function fixture() {
   escreve('memory/requisitos/TeamMcp/BRIEFING.md');
   escreve('resources/js/Pages/team-mcp/forja.charter.md'); // ← hífen
   // módulo vazio (só existe a pasta do backend)
-  escreve('Modules/Vazio/README.md');
+  escreve('memory/requisitos/Vazio/README.md');
   // vizinho de nome parecido — controle negativo de colisão
   escreve('memory/requisitos/KBX/SPEC.md');
   // {mod} DENTRO do nome do arquivo (não segmento inteiro) — o caso que a v1 errou:

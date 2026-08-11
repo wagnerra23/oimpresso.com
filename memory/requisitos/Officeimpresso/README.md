@@ -8,7 +8,7 @@
 
 26 anos de Office Impresso legacy Delphi → ~15+ clientes ativos sincronizam pra Hostinger. Sem este módulo, o ERP novo (oimpresso 6.7) não enxergaria essas empresas e bloquearia migração gradual.
 
-Drift detection + audit trail ([ADR 0021](../../memory/decisions/0021-officeimpresso-connector-endpoints-restaurados.md)) é hoje a infraestrutura crítica que sustenta o piloto de migração Delphi → React.
+Drift detection + audit trail ([ADR 0021](../../decisions/0021-officeimpresso-connector-endpoints-restaurados.md)) é hoje a infraestrutura crítica que sustenta o piloto de migração Delphi → React.
 
 ## Cliente piloto
 
@@ -72,4 +72,4 @@ Zero-cost quando `otel.enabled=false` (D9.a — ADR 0155).
 - Recuperação on-prem: `memory/requisitos/Officeimpresso/RUNBOOK-recuperacao-on-prem.md`
 - Migração React: `memory/requisitos/Officeimpresso/RUNBOOK-migracao-react.md`
 - Schema Firebird legacy: `memory/requisitos/Officeimpresso/OFFICEIMPRESSO-FIREBIRD-SCHEMA.md`
-- ADRs: [0021](../../memory/decisions/0021-officeimpresso-connector-endpoints-restaurados.md), [0159](../../memory/decisions/0159-modules-internal-governance-active.md)
+- ADRs: [0021](../../decisions/0021-officeimpresso-connector-endpoints-restaurados.md), [0159](../../decisions/0159-modules-internal-governance-active.md)

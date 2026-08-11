@@ -225,7 +225,7 @@ it('D6 W26: CmsPageController preserva showPageLegacy /old (Blade rollback path)
 // ------------------------------------------------------------------
 
 it('D3 W26: CHANGELOG.md tem entrada Wave 26 (governance polish ≥85)', function () {
-    $changelog = file_get_contents(base_path('Modules/Cms/CHANGELOG.md'));
+    $changelog = file_get_contents(base_path('memory/requisitos/Cms/CHANGELOG.md'));
 
     // Confirma seção W26 (polish 71→≥85 +14pp)
     expect($changelog)->toContain('Wave 26');

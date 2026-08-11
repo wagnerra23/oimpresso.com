@@ -214,8 +214,12 @@ it('roda sem throwar quando schema desconhecido é solicitado', function () {
     expect($exitCode)->toBe(1); // erro controlado, não exception
 });
 
-it('detecta automaticamente todos os 6 buckets quando rodado sem --schema', function () {
-    // Smoke — só checa que command não throwa e devolve 6 buckets na saída JSON.
+it('expõe exatamente as famílias declaradas em familias.json quando rodado sem --schema', function () {
+    // O nome antigo ("todos os 6 buckets") já mentia antes de 2026-08-11: a classe tinha
+    // 7 famílias e o assert listava 6 — `toHaveKeys` é presença, não exaustividade, então
+    // a 7ª sumir passaria batido. Agora o esperado é DERIVADO de familias.json (a fonte
+    // única compartilhada com scripts/memory-schemas/validate.mjs): se o comando parar de
+    // enxergar uma família — ou ganhar uma que o JSON não declara — este teste cai.
     // Path filter pra não varrer repo inteiro (caro em CI).
     $exitCode = Artisan::call('jana:validate-memory', [
         '--path' => 'storage/framework/testing/memory-schema-stage', // pasta vazia → 0 files todos buckets
@@ -225,6 +229,36 @@ it('detecta automaticamente todos os 6 buckets quando rodado sem --schema', func
     $output = Artisan::output();
     $result = json_decode($output, true);
 
+    $esperadas = array_column(
+        json_decode(file_get_contents(base_path('scripts/memory-schemas/familias.json')), true)['familias'],
+        'key'
+    );
+    sort($esperadas);
+    $obtidas = array_keys($result['buckets']);
+    sort($obtidas);
+
     expect($exitCode)->toBe(0)
-        ->and($result['buckets'])->toHaveKeys(['adr', 'spec', 'runbook', 'session', 'handoff', 'charter']);
+        ->and($esperadas)->not->toBeEmpty()
+        ->and($obtidas)->toBe($esperadas);
+});
+
+it('marca como grace exatamente as famílias com grace:true em familias.json', function () {
+    // Espelha o `grace: true` da matriz do memory-schema-gate.yml (hoje briefing +
+    // reference). Sem isto, herdar as 2 famílias novas faria `--strict` bloquear sobre
+    // legado que o CI deixa passar de propósito (ADR 0314).
+    Artisan::call('jana:validate-memory', [
+        '--path' => 'storage/framework/testing/memory-schema-stage',
+        '--json' => true,
+    ]);
+
+    $result = json_decode(Artisan::output(), true);
+
+    $familias = json_decode(file_get_contents(base_path('scripts/memory-schemas/familias.json')), true)['familias'];
+    $esperadas = array_column(array_filter($familias, fn ($f) => ($f['grace'] ?? false) === true), 'key');
+    sort($esperadas);
+
+    $obtidas = array_keys(array_filter($result['buckets'], fn ($b) => ($b['grace'] ?? false) === true));
+    sort($obtidas);
+
+    expect($obtidas)->toBe($esperadas);
 });

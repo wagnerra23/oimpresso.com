@@ -77,6 +77,6 @@ Cobre acesso portal + busca OS conhecida + filtro estagio + 404 limpo + brute-fo
 ## Refs
 
 - `memory/requisitos/ConsultaOs/SPEC.md` (US-CONSULTA-001 — migrar mock → real)
-- [ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0
-- [ADR 0155](../../memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) — rubrica D1-D9
+- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0
+- [ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) — rubrica D1-D9
 - `Modules/Repair/Routes/web.php` — padrao a imitar (`/repair-status`, `/post-repair-status`)
