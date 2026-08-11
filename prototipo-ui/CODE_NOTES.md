@@ -1344,3 +1344,21 @@ na rodada do Produto/Unificado.
 - **`next_review` do MANUAL** (venceu 2026-07-31, hoje `stale_review` no `DesignDocsFreshnessChecker`)
   segue vencido de propósito: revalidei **uma** das 10 dimensões, não o documento. Bumpar a data
   certificaria uma revisão que não fiz. O achado é anterior a este PR.
+
+### Emenda 2026-08-11 (mesma sessão) — a afirmação anterior era ampla demais
+
+Pergunta de verificação do [M] ("tem certeza sobre a fonte?") forçou fechar a cadeia até o pixel.
+A entrada acima provava que o IBM Plex está **instalado e importado** — não que ele **pinta**. São
+coisas diferentes em Tailwind 4. Cadeia real:
+
+`app.tsx` (@font-face) → `AppShellV2.tsx:94` importa `cockpit.css` → `cockpit.css:11` importa
+`_generated-cockpit-light.css` (`--font-sans: "IBM Plex Sans"` **escopado em `.cockpit`**) →
+`cockpit.css:30` aplica `.cockpit { font-family: var(--font-sans) }`.
+
+**Dentro do shell: IBM Plex ✓.** Mas o mesmo bundle importa `_generated-inertia-theme.css`, cujo
+`@theme` declara `--font-sans: ui-sans-serif, system-ui, …` **sem IBM Plex** — e o `body` do
+`inertia.css` não seta `font-family`. Logo **toda tela Inertia fora do AppShellV2 (login, público)
+renderiza na fonte do sistema operacional**.
+
+Os dois arquivos de token gerados discordam entre si. Registrado como pendência nova no MANUAL §4.
+Correção, se for o caso, é no `.tokens.json` — os dois CSS são **saída** do Style Dictionary.

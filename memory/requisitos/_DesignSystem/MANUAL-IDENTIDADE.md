@@ -55,6 +55,12 @@ A ordem é por impacto na "cara" (tipografia + espaço + detalhe definem mais qu
   não há CDN externo ([`layouts/inertia.blade.php`](../../../resources/views/layouts/inertia.blade.php) registra o porquê:
   o `display=swap` do Google tornava a fonte não-determinística no runner do gate visual, que compensava com
   `font-family: Arial !important` — e esse force cegava o gate pra regressão de fonte).
+  **Escopo — leia antes de assumir:** o IBM Plex vale **dentro do shell**. Quem aplica é
+  [`cockpit.css`](../../../resources/css/cockpit.css) (`.cockpit { font-family: var(--font-sans) }`), com o token
+  definido escopado em `.cockpit` por `tokens/_generated-cockpit-light.css`. **Fora do `.cockpit`** (tela Inertia
+  sem AppShellV2 — login, público) o `@theme` de `tokens/_generated-inertia-theme.css` declara
+  `--font-sans: ui-sans-serif, system-ui, …` **sem IBM Plex**, e o `body` do `inertia.css` não seta `font-family`
+  → cai na fonte do sistema operacional. Os dois arquivos gerados discordam; ver §4 Pendências.
   _Correção 2026-08-11: este campo dizia "Inter", verdade só no SCSS legado UltimatePOS
   ([`_typography.scss`](../../../resources/sass/tailwind/base/_typography.scss)); não acompanhou a virada pro IBM Plex em 2026-07-16._
 
@@ -121,6 +127,7 @@ Grade de identidade DETERMINÍSTICO ([ADR 0254](../../decisions/0254-design-iden
 - [ ] **ADR de motion** — tokens de duração/easing (150/200ms).
 - [ ] **Recraftar componentes-bandeira** (`Button`/`Card`/row) encarnando esta manual (gate visual Wagner).
 - [ ] **North Star aprovado** (print 2026-06-06) → vira o golden de "componente com identidade".
+- [ ] **Fonte fora do shell cai no sistema** — `tokens/_generated-inertia-theme.css` (`@theme`, aplicado ao bundle Inertia inteiro) declara `--font-sans: ui-sans-serif, system-ui, …`, enquanto `tokens/_generated-cockpit-light.css` declara IBM Plex escopado em `.cockpit`. Como o `body` do `inertia.css` não seta `font-family`, **toda tela Inertia sem AppShellV2 renderiza na fonte do SO**. Decisão pendente: alinhar o `@theme` ao IBM Plex (fonte única) ou declarar explicitamente que fora-do-shell é sistema. Os dois arquivos são **saída** do Style Dictionary — a correção é no `.tokens.json`, não no CSS gerado.
 - [ ] **Fonte no kit DS v6 diverge do repo** — `prototipo-ui/cowork/ds-v6/tokens.css` declara `--sans: "Hanken Grotesk"`, que **nunca entrou no repo** (zero ocorrências fora do próprio kit). O repo roda IBM Plex Sans desde 2026-07-16. Como o kit é **export do Cowork** (read-only no repo — [regra de ouro](../../../prototipo-ui/README.md#regra-de-ouro)), a correção tem que ser refeita no Cowork e re-exportada; registrado em [`CODE_NOTES.md`](../../../prototipo-ui/CODE_NOTES.md) 2026-08-11. Enquanto divergir, quem desenhar a partir do kit especifica fonte que não existe em produção.
 
 ---
