@@ -13,11 +13,31 @@ tier: B
 
 ## O fluxo obrigatório (nenhum passo é opcional)
 
+0. **A fonte EXISTE no git?** (passo novo — 2026-08-11, e é o que faltava)
+   `node scripts/governance/cowork-mirror-freshness.mjs --live-only <list_files.json>`
+   O `--compare` prova que **o que está no espelho** acompanha o vivo; **nunca** que o espelho
+   **cobre** o vivo. São perguntas diferentes e só esta responde *"o time no git tem a fonte?"*.
+   Medido no dia em que nasceu: **25 de 1310 paths fora do espelho, 14 deles protótipo de tela**
+   — incluindo o `jana-merge.jsx`, citado por 21 sites do repo e não versionado.
+   ⚠️ Faltando a fonte, **NÃO compare** — exporte antes (passo 1b).
+
 1. **Fonte provada primeiro.** `node scripts/governance/cowork-mirror-freshness.mjs --manifest`
    (v3: âncoras **+ deps de render** do shell) → pull via `DesignSync.get_file` (projeto vivo
-   `019dcfd3…`) das âncoras + deps globais (`app.jsx` · `styles.css` · `ds-v6/tokens.css`) + css
-   do módulo → `--compare --check`. `STALE` ⇒ re-exportar ANTES de comparar. Só âncora = cego
-   pra infra (LC-07: o PageHeader roxo do [W] driftou no `app.jsx` e a rodada ficou verde).
+   `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58`) das âncoras + deps globais (`app.jsx` · `styles.css` ·
+   `ds-v6/tokens.css`) + css do módulo → `--compare --check`. `STALE` ⇒ re-exportar ANTES de
+   comparar. Só âncora = cego pra infra (LC-07: o PageHeader roxo do [W] driftou no `app.jsx`
+   e a rodada ficou verde).
+   ⚠️ **Há arquivos HOMÔNIMOS no projeto vivo** (ex.: `jana-merge.jsx` na raiz **e** em
+   `prototipo-ui/cowork/`, com conteúdo DIFERENTE — 943 × 923 linhas). O path canônico é o que
+   o **`cowork` do manifesto** declara, não o que parece mais organizado. Baixar do errado dá
+   `STALE` — e, se você medir um charter contra ele, "corrige" refs que estavam certas
+   (aconteceu em 2026-08-11).
+
+1b. **Exportar é `--export-from`, NUNCA transcrever.**
+   `DesignSync.get_file` de cada path → salve os JSON num diretório → 
+   `node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir>`
+   O script escreve `raw.content` direto: fiel por construção. Transcrever à mão produziu um
+   arquivo com 20 linhas a menos que passou despercebido até o `--compare`.
 2. **Mesmo tema nos dois lados.** O tema é o que o Wagner usa (hoje: dark). Comparar light×dark
    invalida D6 inteira.
 3. **Mesma sonda, medida:** `node prototipo-ui/design-diff.mjs --probe` → injetar a sonda IGUAL
@@ -35,6 +55,15 @@ tier: B
 
 - ⛔ Declarar "igual/aplicado/fiel" a partir de screenshot — print não distingue center×left.
 - ⛔ Comparar contra `prototipo-ui/cowork/` sem provar `SYNC` naquele arquivo.
+- ⛔ **Ler `--compare` verde como "o espelho está completo".** Ele mede o que ESTÁ lá; o que
+  nunca desceu é invisível por construção (o universo vem do `readdir` do espelho). Use o
+  `--live-only`. Régua cujo universo vem do lado que você controla mede a sua diligência,
+  não a realidade.
+- ⛔ **Declarar que um protótipo não existe** a partir de `DesignSync{list_projects}` — ele
+  enumera **só design-systems**, e o protótipo do ERP vive em projeto REGULAR
+  (`type: PROJECT_TYPE_PROJECT`). Vá direto ao `list_files` com o projectId.
+- ⛔ **Transcrever conteúdo** de arquivo entre sistemas — nem "com cuidado", nem "conferindo
+  depois". Quando o conteúdo chega como dado (JSON do `get_file`), a escrita sai do dado.
 - ⛔ Sondas diferentes em cada lado (a régua tem que ser idêntica).
 - ⛔ Pular D1 (rede): "print igual" esconde full-reload (o pior anti-padrão, D-14).
 - ⛔ **Medir contraste pelo AGREGADO de um elemento composto** (range min↔max do card/bloco) —
