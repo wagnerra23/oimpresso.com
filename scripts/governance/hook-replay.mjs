@@ -19,6 +19,38 @@
 // hook. Se o esperado fosse derivado do que o hook faz, o teste concordaria 100% com
 // qualquer implementação, inclusive a quebrada — o erro §5 2026-06-05 (teste tautológico).
 //
+// ── HOOKS AVALIADOS E **REJEITADOS** (medido 2026-08-11 — NÃO re-propor sem refutar) ──
+// Escalar de 1 pra N contratos esbarra numa restrição dura: nem todo hook admite oráculo
+// independente. Onde ele não existe, o contrato seria tautológico — concordaria 100% com
+// qualquer implementação, inclusive a quebrada (§5 2026-06-05). Os 4 abaixo foram MEDIDOS
+// contra o corpus real e reprovados; a medição está aqui pra ninguém refazer o trabalho.
+//
+//  ✗ block-ancora-no-olho — SEM POPULAÇÃO + SEM ORÁCULO.
+//    Corpus (374 sessões): 42 Read de imagem, **0 print-semântico**. O ramo que discrimina
+//    (bloquear) tem ZERO casos, então o contrato jamais separaria hook vivo de hook morto.
+//    E "é print de estado velho?" não tem sinal independente além do nome do arquivo — que
+//    é o critério do próprio hook. A metade que TEM dono externo (`ancora.mjs`, âncora
+//    declarada por charter) não diz nada sobre esses 42 (nenhum é âncora declarada).
+//
+//  ✗ block-instrumento-sem-porta-viva — ORÁCULO MEDIDO E REPROVADO.
+//    P1 tem 7 casos com tool_result pareado. Oráculo candidato = o RESULTADO (quantas telas
+//    distintas voltaram), que É independente da sintaxe do pattern. Medido: **5 de 7
+//    divergem, e as 5 são artefato do oráculo** — 3 tiveram resultado VAZIO ("instrumento
+//    errado" não depende de a busca ter achado algo) e 2 são `content`/`count`, que o hook
+//    passa por decisão DOCUMENTADA e correta. Corrigir exige encodar modo+pattern = o
+//    critério do hook. P3 (repo raso) e P4 (rodar as 2 formas do glob) são tautológicos por
+//    construção: o critério do hook JÁ É a medição, então o oráculo seria a mesma medição.
+//
+//  ✗ doc-fora-do-rag — DONO JÁ EXISTE (§5 2026-07-09 "duplica régua consolidada").
+//    O que um contrato aqui faria — comparar a allowlist do hook com a do indexador PHP —
+//    já é feito por `doc-fora-do-rag.test.mjs` ("fica VERMELHO no dia da divergência"), e o
+//    FP já foi medido contra o oráculo de RUNTIME (`mcp_memory_documents`): 0 FP / 0 FN.
+//
+//  ✗ block-brl-values-in-memory — TAUTOLÓGICO POR IMPORT.
+//    O candidato a oráculo independente (`scripts/governance/brl-scan-diff.mjs`, o gate de
+//    CI) **importa `scanBrlLeak` do próprio hook** — "FONTE ÚNICA DO PREDICADO: hook e gate
+//    NUNCA divergem" (cabeçalho dele). O oráculo seria literalmente a mesma função.
+//
 // Uso: node scripts/governance/hook-replay.mjs [--hook <nome>] [--json] [--selftest]
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -56,14 +88,48 @@ export function parseSessao(texto) {
   return { edits, leituras };
 }
 
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+/** roda a PORTA VIVA (screen-coverage-map --screen) em SUBPROCESSO e devolve o runbook por tela.
+ *
+ * SUBPROCESSO, não import: `scripts/qa/screen-coverage-map.mjs` NÃO tem guard de entrypoint —
+ * importá-lo executa o scan agregado no corpo top-level e, com `--check`, chama process.exit(2).
+ * Um harness advisory não pode herdar o exit de outro script (§5 2026-08-08, mesmo residual).
+ * O subprocesso isola isso e ainda devolve dado ESTRUTURADO (o `--screen` só imprime texto).
+ */
+export function portaVivaRunbook(telas, run = spawnSync, raiz = RAIZ) {
+  if (!telas.length) return {};
+  const alvo = pathToFileURL(join(raiz, 'scripts', 'qa', 'screen-coverage-map.mjs')).href;
+  const snippet = `import { resolveScreenFiles } from ${JSON.stringify(alvo)};\n`
+    + 'const o = {}; for (const s of process.argv.slice(1)) { try { o[s] = resolveScreenFiles(s).runbook; } catch { o[s] = null; } }\n'
+    + "process.stdout.write('@@' + JSON.stringify(o) + '@@');";
+  try {
+    const r = run(process.execPath, ['--input-type=module', '-e', snippet, '--', ...telas],
+      { cwd: raiz, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    const m = /@@([\s\S]*)@@/.exec(String(r?.stdout || ''));
+    return m ? JSON.parse(m[1]) : {};
+  } catch {
+    return {}; // porta viva indisponível → todos indeterminados (nunca "verde por não medir")
+  }
+}
+
+const PAGE_TSX = /resources\/js\/Pages\/([^/_][^/]*)\/(?:([^/_][^/]*)\/)?([A-Za-z][A-Za-z0-9]*)\.tsx$/;
+// a porta viva resolveu ALGUM runbook pra tela? `declared-missing` = charter aponta pra arquivo
+// fantasma: o oráculo NÃO sabe se existe outro por nome (resolveArtifact retorna cedo e descarta
+// os candidatos), então é INDETERMINADO — excluir é honesto, assumir fabricaria divergência.
+const RUNBOOK_EXISTE = new Set(['declared', 'unique', 'ambiguous']);
+
 // ── CONTRATOS DE REPLAY ─────────────────────────────────────────────────────
 // 1 entrada por hook. `esperado` NUNCA chama o hook — é o oráculo independente.
+// `impl` seleciona o export do hook que o harness injeta como observador.
+// `preparar(sessoes)` (opcional) roda 1× e devolve o contexto do oráculo.
 export const CONTRATOS = {
   'modulo-preflight-warning': {
     contrato: 'proibicoes.md REGRA PRIMARIA FASE 1: avisar ao Editar Modules/<X>/ '
       + 'sem ter LIDO o briefing do modulo nesta sessao.',
     oraculo: 'evento estruturado Read/Glob/Grep apontando pra memory/requisitos/<Mod>/, '
       + 'README do modulo ou charter dele — independente do criterio interno do hook.',
+    impl: (mod) => mod.hasReadEvidence,
     casos({ edits, leituras }) {
       const mods = new Set();
       for (const p of edits) { const m = /\/Modules\/([A-Z][A-Za-z0-9]*)\//.exec(p); if (m) mods.add(m[1]); }
@@ -75,23 +141,64 @@ export const CONTRATOS = {
     esperado(caso) { return caso.leuBriefing ? 'cala' : 'avisa'; },
     observado(caso, texto, impl) { return impl(texto, caso.modulo) ? 'cala' : 'avisa'; },
   },
+
+  'block-mwart-violation': {
+    contrato: 'ADR 0104 §F1 PLAN + proibicoes.md §MWART: Edit/Write em '
+      + 'Pages/<Mod>/<Tela>.tsx exige o RUNBOOK da tela ANTES de F3 FRONTEND.',
+    oraculo: 'a PORTA VIVA `screen-coverage-map.mjs --screen` resolve o RUNBOOK da tela — '
+      + 'DONO e IMPLEMENTACAO diferentes do hook (walk RECURSIVO + match por SUBSTRING + so a '
+      + 'chave `related_runbook`, contra readdir FLAT + nome kebab EXATO + as duas chaves). '
+      + 'Responde a MESMA pergunta do contrato ("existe RUNBOOK desta tela?") por outro caminho.',
+    impl: (mod) => mod.decide,
+    preparar(sessoes, deps = {}) {
+      const telas = new Set();
+      for (const { texto } of sessoes) {
+        for (const p of parseSessao(texto).edits) {
+          const m = PAGE_TSX.exec(p);
+          if (m) telas.add(`${m[1]}/${m[2] ? m[2] + '/' : ''}${m[3]}.tsx`);
+        }
+      }
+      return { runbook: (deps.portaViva || portaVivaRunbook)([...telas]) };
+    },
+    casos({ edits }) {
+      const telas = new Set();
+      for (const p of edits) {
+        const m = PAGE_TSX.exec(p);
+        if (m) telas.add(`${m[1]}/${m[2] ? m[2] + '/' : ''}${m[3]}.tsx`);
+      }
+      return [...telas].map((tela) => ({ modulo: tela, tela }));
+    },
+    esperado(caso, ctx) {
+      const o = (ctx && ctx.runbook) ? ctx.runbook[caso.tela] : null;
+      if (!o || !o.status || o.status === 'declared-missing') return null; // indeterminado
+      return RUNBOOK_EXISTE.has(o.status) ? 'passa' : 'bloqueia';
+    },
+    observado(caso, texto, impl, raiz = RAIZ) {
+      return impl('Edit', `resources/js/Pages/${caso.tela}`, raiz) ? 'bloqueia' : 'passa';
+    },
+  },
 };
 
-/** roda um contrato sobre um corpus. `impl` injetável = o harness é testável. */
-export function replay({ contrato, sessoes, impl }) {
-  let total = 0, acordo = 0;
+/** roda um contrato sobre um corpus. `impl` e `ctx` injetáveis = o harness é testável.
+ *
+ * Caso cujo oráculo devolve `null` é INDETERMINADO (o oráculo não sabe responder) e sai da
+ * conta — nunca entra como acordo. Contar indeterminado a favor seria a isenção que esvazia o
+ * conjunto (§5 2026-08-04); por isso ele é reportado à parte, não engolido. */
+export function replay({ contrato, sessoes, impl, ctx = null }) {
+  let total = 0, acordo = 0, indeterminados = 0;
   const divergencias = [];
   for (const { nome, texto } of sessoes) {
     const ev = parseSessao(texto);
     for (const caso of contrato.casos(ev)) {
+      const esp = contrato.esperado(caso, ctx);
+      if (esp === null || esp === undefined) { indeterminados++; continue; }
       total++;
-      const esp = contrato.esperado(caso);
       const obs = contrato.observado(caso, texto, impl);
       if (esp === obs) acordo++;
       else divergencias.push({ sessao: nome, modulo: caso.modulo, esperado: esp, observado: obs });
     }
   }
-  return { total, acordo, divergencias, taxa: total ? acordo / total : null };
+  return { total, acordo, indeterminados, divergencias, taxa: total ? acordo / total : null };
 }
 
 export function formatar(hook, c, r) {
@@ -99,8 +206,14 @@ export function formatar(hook, c, r) {
   L.push(`  contrato: ${c.contrato}`);
   L.push(`  oraculo:  ${c.oraculo}`);
   L.push('');
-  if (!r.total) { L.push('  nenhum caso no corpus — sem gatilho, sem veredito.'); L.push(''); return L.join('\n'); }
-  L.push(`  casos reais: ${r.total} · acordo: ${r.acordo} (${(r.taxa * 100).toFixed(1)}%) · divergencias: ${r.divergencias.length}`);
+  const indet = r.indeterminados
+    ? ` · indeterminados (oraculo nao sabe, FORA da conta): ${r.indeterminados}` : '';
+  if (!r.total) {
+    L.push(`  nenhum caso no corpus — sem gatilho, sem veredito.${indet}`);
+    L.push('');
+    return L.join('\n');
+  }
+  L.push(`  casos reais: ${r.total} · acordo: ${r.acordo} (${(r.taxa * 100).toFixed(1)}%) · divergencias: ${r.divergencias.length}${indet}`);
   if (r.divergencias.length) {
     L.push('');
     const porTipo = new Map();
@@ -143,8 +256,9 @@ async function main() {
   const saida = {};
   for (const [hook, c] of Object.entries(CONTRATOS)) {
     if (alvo && hook !== alvo) continue;
-    const mod = await import(pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), '..', '..', '.claude', 'hooks', hook + '.mjs')).href);
-    const r = replay({ contrato: c, sessoes, impl: mod.hasReadEvidence });
+    const mod = await import(pathToFileURL(join(RAIZ, '.claude', 'hooks', hook + '.mjs')).href);
+    const ctx = c.preparar ? c.preparar(sessoes) : null;
+    const r = replay({ contrato: c, sessoes, impl: c.impl(mod), ctx });
     saida[hook] = r;
     if (!argv.includes('--json')) console.log(formatar(hook, c, r));
   }

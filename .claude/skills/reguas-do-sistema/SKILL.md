@@ -76,7 +76,13 @@ Selftest da propriedade: `node scripts/governance/reguas-workflow.test.mjs` (zer
 ## As 7 regras duras do método (violou = grade rejeitada)
 
 1. **Dossiê do mapa VIVO, nunca de memória** — a Fase 0 lê o `mapa-dos-niveis` corrente
-   (0330 ou sucessora) + proibições §5. Dossiê de cabeça = falso-negativo garantido.
+   (0330 ou sucessora) + proibições §5 + o **inventário derivado** `MAQUINAS-INVENTARIO.md`.
+   Dossiê de cabeça = falso-negativo garantido. O inventário entrou em 2026-08-11 porque as
+   outras fontes são **curadas à mão e incompletas por construção**: 373 das 466 máquinas não
+   aparecem em nenhuma delas (80%, medido), e a rodada daquele dia registrou 5 de 8 fraquezas
+   com máquina viva que a pesquisa não achou — mesmo padrão do 7/9 da regra 4. A lista de
+   fontes vive no prompt (dono: `reguas-do-sistema.js`, fase Dossiê), travada pelo bloco `[9]`
+   do selftest — esta linha diz POR QUÊ, não repete o quê.
 2. **Só dimensão grade-ável entra** — critério objetivo (número, artefato verificável ou
    gate on/off). "Qualidade" não é régua; *change-failure-rate* e *% cross-platform* são.
 3. **Toda claim "estou acima" passa pelo REFUTADOR** (contexto zero, default derrubar).
