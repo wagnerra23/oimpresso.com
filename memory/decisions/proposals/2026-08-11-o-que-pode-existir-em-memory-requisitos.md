@@ -111,10 +111,14 @@ Sobram **4 que exigem ato, não classe**:
 
 | pasta | ato proposto |
 |---|---|
-| `Copiloto` | consolidar em `Jana/` (rename da ADR 0088) |
-| `PontoWr2` | consolidar em `Ponto/` (rename da ADR 0088) |
-| `LaravelAI` | consolidar em `Jana/` ou `reference/` — **decisão [W]** |
+| ~~`Copiloto`~~ | ~~consolidar em `Jana/`~~ → **ERRATA: já consolidado em 2026-07-01.** É lápide-redirect deliberada |
+| ~~`PontoWr2`~~ | ~~consolidar em `Ponto/`~~ → **ERRATA: já fundido em 2026-06-15** (E1 · frente KL). O que resta é *proveniência congelada* |
+| ~~`LaravelAI`~~ | ~~consolidar em `Jana/`~~ → **ERRATA: já fundido em 2026-06-15.** HISTORICAL por decisão |
 | `Modules` | `UI-CATALOG.md` "auto-gerado bulk W31-10" — artefato gerado em lugar errado; investigar origem antes de mover |
+
+> **ERRATA (mesmo dia, antes do merge):** as 3 primeiras linhas eram minhas e estavam **erradas**. Ao abrir os arquivos, os `BRIEFING.md` dessas pastas se declaram fundidos — *"⚠️ Pare aqui — esta pasta foi FUNDIDA em `Jana`/`Ponto` (decisão E1 · frente KL · 2026-06-15)"* — e as lápides existem, textualmente, *"só pra não quebrar links históricos (ADR 0140 + handoffs append-only, `@see` no código)"*. **Consolidar de novo desfaria decisão registrada.**
+>
+> **Elas não podem ser removidas** enquanto houver referrer append-only: medidos **49 referrers**, dos quais **9** vivem em `memory/{decisions,handoffs,sessions}` — Tier 0, não editáveis. O que *era* legitimamente reapontável (6 `@see` em código PHP apontando pro stub em vez da verdade viva) foi feito no [#5596](https://github.com/wagnerra23/oimpresso.com/pull/5596), incluindo uma que apontava pra arquivo inexistente.
 
 **Regra que passa a valer:** pasta nova em `memory/requisitos/` nasce com classe declarada. Sem classe = órfã, e aparece.
 
@@ -168,7 +172,8 @@ O problema não é a existência dos dois — é que **`memory/modulos/` é fós
 
 ### 8.5 O ato proposto (decisão [W])
 
-1. **Os 31 soltos na raiz de `requisitos/`** — ou viram `requisitos/<X>/BRIEFING.md` (quando há pasta), ou saem. Hoje são a camada mais gratuita das três.
+1. ~~**Os 31 soltos na raiz de `requisitos/`** — ou viram `requisitos/<X>/BRIEFING.md`, ou saem. Hoje são a camada mais gratuita das três.~~
+   **ERRATA (mesmo dia, antes do merge — medido ao abrir os arquivos):** a afirmação é **FALSA** e é minha. Dos 31, **22 já são lápide/redirect deliberada** (21 com exatamente 18 linhas — lote gerado, documentado em [`_TRIAGEM-IDENTIDADE-2026-06.md`](../../requisitos/_TRIAGEM-IDENTIDADE-2026-06.md)), **8 são docs de área** corretamente prefixados com `_` (`INDEX`, `_BACKLOG-GENERATED`, `_Roadmap_Faturamento`, 3 templates, `_ANCHOR-REVIEW-QUEUE`, `_COMPARATIVOS_INDEX`) e **1** é oddball (`Officeimpresso1.md`, já com `status: deprecated` no frontmatter). **Nada aqui é gratuito.** Eu contei arquivos sem ler o conteúdo — LC-08 na própria auditoria que cataloga LC-08. Fica registrado, não apagado.
 2. **`memory/modulos/`** — o `rule: never` continua valendo pro *path*, mas as **51 folhas não herdam o banner de fóssil do `INDEX.md`**: quem abre `memory/modulos/TeamMcp.md` direto não tem sinal nenhum. Banner por folha, forward-only (nunca em lote — [§5 2026-07-12](../../proibicoes.md)).
 3. **`memory/feedback/`** (vazia) e **`memory/scorecards/`** — declarar no registro ou remover.
 
