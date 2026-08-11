@@ -1362,3 +1362,22 @@ renderiza na fonte do sistema operacional**.
 
 Os dois arquivos de token gerados discordam entre si. Registrado como pendência nova no MANUAL §4.
 Correção, se for o caso, é no `.tokens.json` — os dois CSS são **saída** do Style Dictionary.
+
+### Emenda 2 · 2026-08-11 — o kit DS v6 NÃO especifica Hanken; é uma linha morta
+
+Ao abrir o kit pra mostrar a `receita.html` ao [M], conferi a fonte dentro dele. A entrada anterior
+("kit declara Hanken Grotesk") é **verdade literal e impressão errada**:
+
+| Arquivo do kit | Fonte |
+|---|---|
+| `receita.html` · `showcase.html` · `gabarito-vendas.html` | **IBM Plex Sans + IBM Plex Mono** (Google Fonts) |
+| `ds-v6/README.md` | *"Tipo: IBM Plex Sans (UI) + IBM Plex Mono (números/ids/datas)"* |
+| `tokens.css:98-99` | `--sans: "Hanken Grotesk"` · `--mono: "JetBrains Mono"` ← **resíduo** |
+| `tokens.css:245-246` | `--sans: var(--font-sans)` · `--mono: var(--font-mono)` ← re-aponta no MESMO arquivo |
+
+Ou seja: o kit inteiro usa IBM Plex; **uma linha** do `tokens.css` contradiz o próprio HTML do kit,
+o próprio README e outra linha do próprio arquivo. Gravidade cai de "kit aponta pra fonte errada"
+pra "limpar linha morta". A ação no Cowork continua de pé — só é menor do que eu disse.
+
+Lição registrada: `git grep` acha a string, não a intenção. Antes de escalar divergência com base em
+uma ocorrência, ler os vizinhos do mesmo arquivo e os irmãos da mesma pasta.
