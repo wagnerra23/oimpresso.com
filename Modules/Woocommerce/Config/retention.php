@@ -17,7 +17,7 @@ declare(strict_types=1);
  * `activity_log` (Spatie) é AUDITORIA — NUNCA purgada, mesmo que dado-fonte seja.
  * Retention abaixo é pro dado vivo na tabela origem, não pro audit trail.
  *
- * **PiiRedactor integrado** ([App\Support\Privacy\PiiRedactor](../../Jana/Services/Privacy/PiiRedactor.php)):
+ * **PiiRedactor integrado** ([App\Support\Privacy\PiiRedactor](../../../app/Support/Privacy/PiiRedactor.php)):
  * WoocommerceWebhookController redacta payloads (billing.email/phone/address) antes
  * de gravar em `storage/logs/laravel.log` — defesa em profundidade D7.a.
  *

@@ -33,7 +33,7 @@ use App\Support\Privacy\PiiRedactor;
  * ```php
  * app(FinanceiroAuditLogger::class)->info(
  *     'titulo_baixa.skip_no_conta',
- *     ['business_id' => 4, 'titulo_id' => 123, 'observacoes' => 'CPF 123.456.789-00']
+ *     ['business_id' => 4, 'titulo_id' => 123, 'observacoes' => 'CPF 123.456.789-00'] # pii-allowlist
  * );
  * // Log final: ['observacoes' => 'CPF [REDACTED:CPF]', business_id intacto]
  * ```

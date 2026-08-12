@@ -15,7 +15,7 @@ Modules/ComunicacaoVisual é **vertical especializado fino** sobre núcleo Ultim
 Portanto:
 - **PII direto no módulo:** ZERO colunas `email`, `cpf`, `cnpj`, `telefone` em entities ComVis
 - **PII free-text potencial:** apenas `observacoes` (texto livre vendedor) — anonimizável via `right_to_be_forgotten` (retention.php §`anonymize_fields`)
-- **Redactor canônico:** delega `App\Support\Privacy\PiiRedactor` (canon ADR 0094 §Princípio 6 — Jana é módulo IA mas exporta utilitário de privacidade pra todo o monolito)
+- **Redactor canônico:** delega `App\Support\Privacy\PiiRedactor` (canon ADR 0094 §Princípio 6 — utilitário de privacidade do NÚCLEO, disponível a todo o monolito. Morou em `Modules/Jana/Services/Privacy/` até 2026-08-12, quando saiu do módulo justamente porque 23 módulos dependiam da Jana só pra cumprir LGPD)
 
 ## 2. Onde PiiRedactor é usado
 

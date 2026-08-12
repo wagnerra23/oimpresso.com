@@ -248,7 +248,7 @@ class ArquivosService
     {
         try {
             // D7 LGPD (Wave 10): payload redactado antes de persistir.
-            // Filename pode conter CPF/CNPJ (ex: "contrato-cliente-123.456.789-00.pdf");
+            // Filename pode conter CPF/CNPJ (ex: "contrato-cliente-123.456.789-00.pdf"); # pii-allowlist
             // payload de classificação pode conter sub_destination com PII.
             // Audit log em si NÃO precisa armazenar PII bruta — só metadados.
             $redacted = $this->redactPayload($payload);
@@ -274,7 +274,7 @@ class ArquivosService
     /**
      * D7 LGPD — redactor PII em payload de audit log antes de persistir.
      *
-     * Filename pode trazer CPF/CNPJ embutido (ex: "rg-123.456.789-00.pdf",
+     * Filename pode trazer CPF/CNPJ embutido (ex: "rg-123.456.789-00.pdf", # pii-allowlist
      * "contrato-12.345.678-0001-90.pdf"). Email/telefone podem aparecer em
      * sub_destination ou metadados livres. PiiRedactor (Modules\Jana) cobre
      * todos padrões BR canônicos (CPF, CNPJ, email, phone, CEP).

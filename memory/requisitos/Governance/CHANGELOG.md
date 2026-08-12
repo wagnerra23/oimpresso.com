@@ -70,7 +70,7 @@ Versionamento atrelado a Waves do projeto (ver `memory/decisions/0155-module-gra
 
 ### Changed (D6 Performance + D7 LGPD + D8 Security)
 - `Modules/Governance/Http/Middleware/ActionGate.php` — `logViolation()` agora roda
-  `App\Support\Privacy\PiiRedactor` sobre payload string ANTES de
+  `Modules\Jana\Services\Privacy\PiiRedactor` sobre payload string ANTES de
   `Log::warning`, fail-open se PiiRedactor indisponível (Jana opcional em alguns ambientes).
   Tier 0 IRREVOGÁVEL — `memory/proibicoes.md` §"PII reais NUNCA em log".
 - `Modules/Governance/Http/routes.php` — adiciona `->middleware('throttle:N,1')` em

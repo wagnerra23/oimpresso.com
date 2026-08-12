@@ -28,7 +28,7 @@ test('redaciona CPF sintético em observacoes mantendo business_id intacto', fun
     $this->logger->info('titulo_baixa.test', [
         'business_id' => 99,
         'titulo_id' => 1234,
-        'observacoes' => 'Cliente sintético CPF 000.000.000-00 ligou pra negociar',
+        'observacoes' => 'Cliente sintético CPF 000.000.000-00 ligou pra negociar', # pii-allowlist
     ]);
 
     Log::shouldHaveReceived('info')
@@ -37,7 +37,7 @@ test('redaciona CPF sintético em observacoes mantendo business_id intacto', fun
                 && ($ctx['business_id'] ?? null) === 99
                 && ($ctx['titulo_id'] ?? null) === 1234
                 && str_contains($ctx['observacoes'] ?? '', '[REDACTED:CPF]')
-                && ! str_contains($ctx['observacoes'] ?? '', '000.000.000-00');
+                && ! str_contains($ctx['observacoes'] ?? '', '000.000.000-00'); # pii-allowlist
         })
         ->once();
 
@@ -48,7 +48,7 @@ test('redaciona CPF sintético em observacoes mantendo business_id intacto', fun
 test('redaciona CNPJ sintético + email sintético + telefone sintético em payload aninhado', function () {
     $this->logger->warning('cobranca.fail', [
         'business_id' => 99,
-        'note' => 'Falha CNPJ 00.000.000/0000-00',
+        'note' => 'Falha CNPJ 00.000.000/0000-00', # pii-allowlist
         'metadata' => [
             'email' => 'teste@example.com',
             'telefone' => '(11) 99999-9999',

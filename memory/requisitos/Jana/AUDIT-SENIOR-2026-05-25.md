@@ -552,7 +552,7 @@ ENTREGÁVEL FINAL: score governance D1-D9 = 96 → 97-98
 - `Modules/Jana/Http/Controllers/ChatController.php` (~750 linhas inspecionadas 1-500)
 - `Modules/Jana/Ai/Agents/ChatCopilotoAgent.php` (265 linhas) — prompt cache + cache_control marker
 - `Modules/Jana/Services/ContextSnapshotService.php` (197 linhas) — 3 ângulos faturamento
-- `app/Support/Privacy/PiiRedactor.php` (125 linhas) — 5 tipos PII BR
+- `Modules/Jana/Services/Privacy/PiiRedactor.php` (125 linhas) — 5 tipos PII BR
 - `Modules/Jana/Services/Memoria/MeilisearchDriver.php` (~400 linhas) — hybrid + LlmReranker
 - `Modules/Jana/Services/BriefDiarioService.php` (80 linhas inspecionadas)
 - `Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php` (80 linhas inspecionadas)

@@ -139,9 +139,6 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 | CSS/SCSS | 1 |
 | Imagens | 3 |
 
-- Build: **Laravel Mix** (webpack.mix.js presente)
-- `package.json` presente
-- **Deps JS:** `cross-env`, `laravel-mix`, `laravel-mix-merge-manifest`
 
 **Arquivos JS** (primeiros 1):
 

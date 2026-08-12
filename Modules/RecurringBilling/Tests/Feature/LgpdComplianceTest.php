@@ -66,13 +66,13 @@ it('Model %s retorna LogOptions válido (D7.b nominal)', function (string $model
 it('PiiRedactor existe e redaciona CPF/CNPJ brasileiro', function () {
     $redactor = app(PiiRedactor::class);
 
-    $input = 'pagador CPF 123.456.789-09 emitiu pix';
+    $input = 'pagador CPF 123.456.789-09 emitiu pix'; # pii-allowlist
     $output = $redactor->redact($input);
 
     expect($output)
         ->toContain('[REDACTED:CPF]')
         ->and($output)
-        ->not->toContain('123.456.789-09');
+        ->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
 it('PiiRedactor redaciona email + telefone BR juntos (webhook payload típico)', function () {

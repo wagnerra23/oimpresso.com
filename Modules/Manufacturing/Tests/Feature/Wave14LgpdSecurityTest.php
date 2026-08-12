@@ -49,12 +49,12 @@ it('cenario 2: ProductionService::logProductionEvent redacta CPF na mensagem', f
 
     Log::spy();
 
-    $service->logProductionEvent('warning', 'Producao bloqueada para CPF 123.456.789-09 sem cobertura.');
+    $service->logProductionEvent('warning', 'Producao bloqueada para CPF 123.456.789-09 sem cobertura.'); # pii-allowlist
 
     Log::shouldHaveReceived('log')->withArgs(function ($level, $message, $context) {
         return $level === 'warning'
             && str_contains($message, '[REDACTED:CPF]')
-            && ! str_contains($message, '123.456.789-09');
+            && ! str_contains($message, '123.456.789-09'); # pii-allowlist
     })->once();
 });
 

@@ -71,11 +71,11 @@ it('D7.a: 5 Controllers standalone usam trait (não estendem BaseController)', f
 it('D7.a: PiiRedactor redacta email + CPF + CNPJ + telefone em exception message', function () {
     $redactor = app(PiiRedactor::class);
 
-    $msg = 'SQLSTATE[23000]: duplicate entry larissa@rota-livre.com.br para CPF 123.456.789-00 telefone (48) 99999-1234';
+    $msg = 'SQLSTATE[23000]: duplicate entry larissa@rota-livre.com.br para CPF 123.456.789-00 telefone (48) 99999-1234'; # pii-allowlist
     $redacted = $redactor->redact($msg);
 
     expect($redacted)->not->toContain('larissa@rota-livre.com.br');
-    expect($redacted)->not->toContain('123.456.789-00');
+    expect($redacted)->not->toContain('123.456.789-00'); # pii-allowlist
     expect($redacted)->not->toContain('99999-1234');
     expect($redacted)->toContain('[REDACTED:EMAIL]');
     expect($redacted)->toContain('[REDACTED:CPF]');

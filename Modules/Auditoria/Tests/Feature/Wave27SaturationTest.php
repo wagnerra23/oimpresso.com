@@ -256,12 +256,12 @@ it('W27 PiiRedactor lida com input vazio sem fatal', function () {
 
 it('W27 PiiRedactor lida com input longo (1000 chars sem fatal)', function () {
     $redactor = app(PiiRedactor::class);
-    $long = str_repeat('CPF 111.222.333-44 ', 50);
+    $long = str_repeat('CPF 111.222.333-44 ', 50); # pii-allowlist
 
     expect(fn () => $redactor->redact($long, 'placeholder'))->not->toThrow(\Throwable::class);
 
     $output = $redactor->redact($long, 'placeholder');
-    expect($output)->not->toContain('111.222.333-44');
+    expect($output)->not->toContain('111.222.333-44'); # pii-allowlist
 });
 
 it('W27 RevertService::revert reason flow NUNCA persiste antes de redact (source code proof)', function () {

@@ -103,7 +103,7 @@ it('config governance.pii_redaction_enabled tem default true (ADR 0094 §PII)', 
 
 it('PiiRedactor placeholder mode preserva legibilidade — substitui mas NÃO mascara tudo', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'Cliente CPF 123.456.789-09 ligou às 10h.';
+    $input = 'Cliente CPF 123.456.789-09 ligou às 10h.'; # pii-allowlist
 
     $output = $redactor->redact($input, 'placeholder');
 
@@ -111,22 +111,22 @@ it('PiiRedactor placeholder mode preserva legibilidade — substitui mas NÃO ma
     expect($output)->toContain('Cliente');
     expect($output)->toContain('ligou');
     // Mas CPF formatado deve sumir
-    expect($output)->not->toContain('123.456.789-09');
+    expect($output)->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
 it('PiiRedactor lida com CNPJ formatado BR (xx.xxx.xxx/yyyy-zz)', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'Empresa CNPJ 12.345.678/0001-99 enviou nota.';
+    $input = 'Empresa CNPJ 12.345.678/0001-99 enviou nota.'; # pii-allowlist
 
     $output = $redactor->redact($input, 'placeholder');
 
-    expect($output)->not->toContain('12.345.678/0001-99');
+    expect($output)->not->toContain('12.345.678/0001-99'); # pii-allowlist
     expect($output)->toContain('Empresa');
 });
 
 it('PiiRedactor é idempotente — redact(redact(x)) == redact(x)', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'CPF 111.222.333-44 e email teste@gmail.com';
+    $input = 'CPF 111.222.333-44 e email teste@gmail.com'; # pii-allowlist
 
     $pass1 = $redactor->redact($input, 'placeholder');
     $pass2 = $redactor->redact($pass1, 'placeholder');
