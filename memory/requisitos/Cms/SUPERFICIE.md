@@ -14,7 +14,7 @@ module: Cms
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Cms/**` + `resources/js/Pages/Cms/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 138 arquivos em 13 papéis.
+**Total mapeado:** 136 arquivos em 13 papéis.
 
 ## Controllers — 5
 
@@ -134,7 +134,7 @@ module: Cms
 - 17 em [Modules/Cms/Tests/Feature/](../../../Modules/Cms/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 41
+## Demais arquivos (manifestos, docs, assets e misc) — 39
 
 - [.gitkeep](../../../Modules/Cms/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Cms/Console/.gitkeep)
@@ -174,6 +174,4 @@ module: Cms
 - [CmsUtil.php](../../../Modules/Cms/Utils/CmsUtil.php)
 - [composer.json](../../../Modules/Cms/composer.json)
 - [module.json](../../../Modules/Cms/module.json)
-- [package.json](../../../Modules/Cms/package.json)
-- [webpack.mix.js](../../../Modules/Cms/webpack.mix.js)
 - [SCOPE.md](../../../memory/requisitos/Cms/SCOPE.md)

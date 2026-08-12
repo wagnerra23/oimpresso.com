@@ -87,6 +87,45 @@ Origem: refutação GT-G5 rodada 2 do PR #5069 — o lote do Codex ficou preso p
 de mecanismo, não por defeito do lote. A emenda **não** aprova aquele lote (ele segue
 `reprovado` por 3 erros próprios); só devolve ao gate um caminho honesto de abertura.
 
+### 4.2 Teto de política — "máximo disponível" é o que o projeto USA (emenda 2026-08-12)
+
+O §2.3 sempre disse *"igualdade só quando o gerador já é o tier máximo **disponível**"*. O
+`ledger-check` lia "disponível" como o `Math.max` da tabela — **fable**. Só que fable não
+está disponível na prática: [W] o vetou por custo (2026-08-12, PR #5680). Com quase todo
+lote nascendo de opus (23 das 87 entries deste ledger), a regra virava **insatisfazível**.
+
+É o mesmo defeito de mecanismo que a §4.1 consertou pro gerador externo — gate sem
+caminho honesto de abertura, cujo único "jeito prático" é falsear o campo `gerador`. E
+vale repetir o que aquela emenda cravou: **regra que fabrica incentivo pra mentir no
+registro é pior que regra ausente.**
+
+Portanto o teto passa a ser **`opus`**: gerador opus + refutador opus é aceito.
+
+**O que isto NÃO afrouxa** — e há controle negativo pra cada um em
+[`ledger-check-external.test.mjs`](../../../scripts/governance/ledger-check-external.test.mjs)
+(17 casos, todos verdes):
+
+| caso | veredito |
+|---|---|
+| opus gera + opus refuta | **passa** (teto de política) |
+| sonnet gera + sonnet refuta | reprova — igualdade abaixo do teto não vale |
+| haiku gera + haiku refuta | reprova |
+| opus gera + sonnet refuta | reprova — refutador abaixo do gerador |
+| `sessao_fresca: false` | reprova — vale para opus×opus também |
+| `veredito: reprovado` / `error_rate >= 2` | reprovam, como antes |
+
+A linha que sustenta a emenda é a da própria §4.1: **o que a regra protege é
+DECORRELAÇÃO, não hierarquia por si.** O tier é uma das metades; a outra é
+`sessao_fresca` — refutador em contexto próprio, sem herdar nada do gerador — e essa
+continua exigida e enforçada. Quando fable voltar a ser viável para uso rotineiro, o teto
+sobe de volta com uma linha (`MAX_RANK`).
+
+**Origem:** PR #5680. A refutação opus×opus rodada lá **encontrou defeito real** — 6
+fósseis de `memory/modulos/` que o `guardaPerdaDeBranch()` protege e que um script de
+remoção havia apagado. O lote foi reprovado, corrigido, e reaprovado numa segunda rodada
+que ainda achou um conflito de merge em índice derivado. Ou seja: a decorrelação por
+sessão fresca **funcionou na prática** no exato caso que motivou a emenda.
+
 ## 5. Enforcement — ledger-check.mjs
 
 `node scripts/governance/ledger-check.mjs --pr <N> [--base origin/main] [--head HEAD] [--enforce] [--json]`
