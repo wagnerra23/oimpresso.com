@@ -519,6 +519,7 @@ lifecycle: ativo
 | `governance/module-coupling-baseline.json` | (baseline/estado) |
 | `governance/module-grades-baseline.json` | (baseline/estado) |
 | `governance/module-group.json` | (baseline/estado) |
+| `governance/module-table-coupling-baseline.json` | (baseline/estado) |
 | `governance/multi-tenant-scope-baseline.json` | (baseline/estado) |
 | `governance/prod-flags.json` | (baseline/estado) |
 | `governance/required-checks-baseline.json` | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
@@ -544,4 +545,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 44 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 45 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
