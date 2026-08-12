@@ -1,0 +1,33 @@
+{
+  "_doc": "Baseline FORWARD-ONLY da catraca de acoplamento módulo→módulo (catalog-graph --acoplamento --catraca). CONGELA a dívida: par NOVO reprova; a lista só DESCE.",
+  "_regra": "Declaração serve pra NORMA (o que PODE), não pra FATO (o que É) — por isso a catraca, e não `depends_on` preenchido a partir do derivado. A norma por par é decisão [W].",
+  "_medicao": "node scripts/governance/catalog-graph.mjs --acoplamento (seção de import, pares NÃO declarados)",
+  "_regenerar": "node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline. Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.",
+  "grandfathered": [
+    "Cms>Arquivos",
+    "Connector>Crm",
+    "Connector>Officeimpresso",
+    "Connector>Superadmin",
+    "Crm>NfeBrasil",
+    "Crm>OficinaAuto",
+    "Financeiro>Arquivos",
+    "Financeiro>PaymentGateway",
+    "Financeiro>RecurringBilling",
+    "Forja>Governance",
+    "Governance>Whatsapp",
+    "NFSe>NfeBrasil",
+    "NfeBrasil>Arquivos",
+    "NfeBrasil>RecurringBilling",
+    "Officeimpresso>Superadmin",
+    "OficinaAuto>Arquivos",
+    "OficinaAuto>Whatsapp",
+    "PaymentGateway>Superadmin",
+    "RecurringBilling>Financeiro",
+    "Repair>Arquivos",
+    "Superadmin>PaymentGateway",
+    "VozDoCliente>Superadmin",
+    "Whatsapp>Arquivos"
+  ],
+  "allowlist": [],
+  "allowlist_razoes": {}
+}

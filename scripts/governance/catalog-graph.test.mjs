@@ -28,6 +28,8 @@ import {
   parseImportsCruzados,
   simbolosCrossCutting,
   compararFronteira,
+  catracaAcoplamento,
+  chaveDoPar,
   pesoDaCamada,
   derivarDonoDeTabela,
   parseQueriesCruas,
@@ -696,4 +698,36 @@ test('serialize: os 3 tipos novos entram no by_edge_type e o JSON segue determin
   assert.equal(cat.stats.by_edge_type.supersededBy, 1);
   assert.deepEqual(Object.keys(cat.stats.by_edge_type).sort(), [...EDGE_TYPES].sort());
   assert.equal(serialize(buildWithAdrs()), serialize(buildWithAdrs()));
+});
+
+// ── catraca de acoplamento módulo→módulo (forward-only) ──────────────────────
+const P = (src, dst) => ({ src, dst });
+
+test('catraca: par NOVO (fora da baseline) é acusado', () => {
+  const r = catracaAcoplamento([P('Alpha', 'Beta'), P('Gama', 'Beta')],
+    { grandfathered: ['Alpha>Beta'], allowlist: [] });
+  assert.deepEqual(r.novos, ['Gama>Beta'], 'MORDE: o que não está congelado reprova');
+});
+
+test('CN: par JÁ na baseline não vira achado', () => {
+  const r = catracaAcoplamento([P('Alpha', 'Beta')],
+    { grandfathered: ['Alpha>Beta'], allowlist: [] });
+  assert.deepEqual(r.novos, [], 'dívida congelada não reprova — é forward-only, não big-bang');
+});
+
+test('CN: allowlist isenta igual ao grandfathered (dívida consciente)', () => {
+  const r = catracaAcoplamento([P('Alpha', 'Beta')],
+    { grandfathered: [], allowlist: ['Alpha>Beta'] });
+  assert.deepEqual(r.novos, []);
+});
+
+test('catraca aponta par CURADO pra baseline encolher (só desce)', () => {
+  const r = catracaAcoplamento([], { grandfathered: ['Alpha>Beta'], allowlist: [] });
+  assert.deepEqual(r.curados, ['Alpha>Beta']);
+  assert.deepEqual(r.novos, [], 'curar não pode reprovar — o objetivo É curar');
+});
+
+test('chaveDoPar é estável e direcional (A→B ≠ B→A)', () => {
+  assert.equal(chaveDoPar(P('Alpha', 'Beta')), 'Alpha>Beta');
+  assert.notEqual(chaveDoPar(P('Alpha', 'Beta')), chaveDoPar(P('Beta', 'Alpha')));
 });
