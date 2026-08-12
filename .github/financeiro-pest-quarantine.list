@@ -38,7 +38,7 @@
 #        decisão aceita.
 #    ENCAMINHAMENTO: reescrever como teste de COMPORTAMENTO ou deletar.
 #    Consertar a string só reinicia o relógio do apodrecimento. Decisão [W].
-Modules/Financeiro/Tests/Feature/CoworkBundleIntegralTest.php  # 9 failed, 8 passed (27 assertions)
+Modules/Financeiro/Tests/Feature/CoworkBundleIntegralTest.php  # 9 failed, 6 passed (2026-08-12: os 2 UCs do glob do Inertia sairam daqui p/ InertiaPagesGlobContratoTest.php — eram vitima colateral desta quarentena e nunca rodavam no CI)
 Modules/Financeiro/Tests/Feature/DrawerCoworkV2Test.php  # 12 skipped (0 assertions)
 Modules/Financeiro/Tests/Feature/Onda5CuradoriaR1Test.php  # 12 skipped (0 assertions)
 Modules/Financeiro/Tests/Feature/Onda6IaR2Test.php  # 3 failed, 6 passed (38 assertions)

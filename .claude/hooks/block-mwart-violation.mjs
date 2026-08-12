@@ -9,8 +9,16 @@
 // proibicoes.md §MWART: Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM
 // `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` é PROIBIDO. Desde a ADR 0271 onda 2
 // (mwart-gate.yml de CI deletado — era teatro continue-on-error) este hook runtime é o
-// ÚNICO enforcement de RUNBOOK. Override: comentar '/mwart-override <razão>' em PR
-// (vira ADR per-tela lifecycle:historical).
+// ÚNICO enforcement de RUNBOOK.
+//
+// ⚠️ NÃO TEM ESCAPE — e até 2026-08-12 esta linha e a mensagem OFERECIAM um ('/mwart-override
+// <razão>' em PR). Não havia handler (zero process.env, exit 2 é o único veto) e não poderia
+// haver: o '/mwart-override' é registro HUMANO no PR — exceção de PROCESSO que vira ADR
+// per-tela (ex. 0112 Whatsapp/Settings, 0177 Cliente/Show) — nunca comando de máquina, porque
+// nenhum workflow processa `issue_comment` (mwart-process/SKILL.md §131, caso PR #2544) e este
+// hook é PreToolUse: dispara ANTES de existir PR pra comentar. Mesma correção que o
+// visual-regression.yml fez em 2026-06-11 ("removida a oferta — nunca houve handler que a
+// processasse"). O único caminho aqui é fazer a F1: criar o RUNBOOK.
 //
 // Exempções (derivadas da regra — _components/helpers não são telas migráveis):
 //   - Pages/_Showcase|_components|_internal/** (módulo utilitário, não vertical)
@@ -168,8 +176,9 @@ export function decide(toolName, filePath, root = process.cwd()) {
     : `Nenhum candidato encontrado (${alternativas}).`;
   return `[mwart-process] ${toolName} em '${filePath}' BLOQUEADO.
 ADR 0104 §F1 PLAN exige RUNBOOK '${runbook}' antes de F3 FRONTEND (codar a Page). ${causa}
-Rode '/cockpit-runbook /<rota>' pra gerar RUNBOOK + SPEC (~12min com IA-pair).
-Override: comentar '/mwart-override <razão>' em PR (vira ADR per-tela lifecycle:historical).
+Rode '/cockpit-runbook /<rota>' pra gerar RUNBOOK + SPEC (~12min com IA-pair) — é o caminho.
+Este bloqueio NÃO tem escape: '/mwart-override' é registro HUMANO no PR (exceção de processo,
+vira ADR per-tela) e não destrava este Edit — o hook roda ANTES de existir PR pra comentar.
 Desde a ADR 0271 onda 2 este hook runtime é o ÚNICO enforcement de RUNBOOK (mwart-gate CI foi deletado).`;
 }
 
