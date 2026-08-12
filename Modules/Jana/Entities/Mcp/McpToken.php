@@ -109,7 +109,10 @@ class McpToken extends Model
 
         if (is_array($atributos)) {
             // newFromBuilder hidrata SEM query e sem marcar o model como dirty.
-            $token = (new static())->newFromBuilder($atributos);
+            // `new self()` e não `new static()`: o método já devolve `?self`, e
+            // o larastan barra `new static()` em classe não-final (subclasse
+            // poderia ter outro construtor).
+            $token = (new self())->newFromBuilder($atributos);
 
             // Revalida localmente: um token que expirou durante a janela do
             // cache não pode passar só porque a chave ainda existe.
