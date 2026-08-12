@@ -159,9 +159,6 @@ _Referências a outros módulos encontradas no código PHP._
 | CSS/SCSS | 1 |
 | Imagens | 0 |
 
-- Build: **Vite** (vite.config.js/ts presente)
-- `package.json` presente
-- **Deps JS:** `axios`, `laravel-vite-plugin`, `sass`, `postcss`, `vite`
 
 **Arquivos JS** (primeiros 1):
 

@@ -14,7 +14,7 @@ module: Woocommerce
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Woocommerce/**` + `resources/js/Pages/Woocommerce/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 90 arquivos em 13 papéis.
+**Total mapeado:** 88 arquivos em 13 papéis.
 
 ## Controllers — 4
 
@@ -101,7 +101,7 @@ module: Woocommerce
 - 8 em [Modules/Woocommerce/Tests/Feature/](../../../Modules/Woocommerce/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 35
+## Demais arquivos (manifestos, docs, assets e misc) — 33
 
 - [.gitkeep](../../../Modules/Woocommerce/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Woocommerce/Console/.gitkeep)
@@ -135,6 +135,4 @@ module: Woocommerce
 - [WoocommerceUtil.php](../../../Modules/Woocommerce/Utils/WoocommerceUtil.php)
 - [composer.json](../../../Modules/Woocommerce/composer.json)
 - [module.json](../../../Modules/Woocommerce/module.json)
-- [package.json](../../../Modules/Woocommerce/package.json)
-- [webpack.mix.js](../../../Modules/Woocommerce/webpack.mix.js)
 - [SCOPE.md](../../../memory/requisitos/Woocommerce/SCOPE.md)

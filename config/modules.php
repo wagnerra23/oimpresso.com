@@ -35,15 +35,14 @@ return [
             'views/master' => 'Resources/views/layouts/master.blade.php',
             'scaffold/config' => 'Config/config.php',
             'composer' => 'composer.json',
-            'assets/js/app' => 'Resources/assets/js/app.js',
-            'assets/sass/app' => 'Resources/assets/sass/app.scss',
-            'vite' => 'vite.config.js',
-            'package' => 'package.json',
+            // Módulo novo NÃO nasce com build próprio. O bundle do app é da raiz
+            // (vite.config.js + vite.inertia.config.mjs); Laravel Mix não existe mais
+            // no projeto. `Resources/assets/` continua sendo gerado — via paths.assets
+            // abaixo — porque é a fonte de `php artisan module:publish`, não de build.
         ],
         'replacements' => [
             'routes/web' => ['LOWER_NAME', 'STUDLY_NAME'],
             'routes/api' => ['LOWER_NAME'],
-            'vite' => ['LOWER_NAME'],
             'json' => ['LOWER_NAME', 'STUDLY_NAME', 'MODULE_NAMESPACE', 'PROVIDER_NAMESPACE'],
             'views/index' => ['LOWER_NAME'],
             'views/master' => ['LOWER_NAME', 'STUDLY_NAME'],
