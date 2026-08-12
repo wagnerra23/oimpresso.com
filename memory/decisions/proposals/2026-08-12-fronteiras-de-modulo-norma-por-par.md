@@ -4,320 +4,227 @@ status: proposta
 date: "2026-08-12"
 owners: [W]
 parent_module: null
-related_adrs: [93, 121, 123, 170, 256, 258, 275, 336]
+related_adrs: [93, 105, 121, 123, 137, 179, 186, 201, 214, 256, 258, 275, 280, 301, 336, 358]
 related_specs:
   - memory/sessions/2026-08-12-arte-shared-kernel-laravel.md (gap #4 do parecer)
+  - memory/reference/contrato-delphi-inviolavel.md (Tier 0 — sustenta o par Connector→Officeimpresso)
 related_charters: []
 ---
 
 # Fronteiras de módulo — a norma por par
 
-> **Por que este doc existe.** As catracas dos 3 eixos estão armadas e congelam a dívida
-> ([PR #5670](https://github.com/wagnerra23/oimpresso.com/pull/5670) · [#5675](https://github.com/wagnerra23/oimpresso.com/pull/5675) · [#5702](https://github.com/wagnerra23/oimpresso.com/pull/5702)).
-> O que elas **não** fazem — de propósito — é dizer se cada fronteira **deveria** existir.
-> A regra escrita na própria baseline: *"declaração serve pra NORMA (o que PODE), não pra
-> FATO (o que É). A norma por par é decisão [W]."* Esta é a mesa dessa decisão.
+> ## ⚠️ ERRATA — a v1 deste doc propunha o instrumento ERRADO
 >
-> **O que eu proponho e o que NÃO proponho.** Onde existe ADR ou padrão da casa que já
-> responde, eu proponho e digo qual é a âncora. Onde não existe, está escrito
-> **PERGUNTAR** — anti-padrão inventado num charter é pior que ausente, porque parece
-> canon (§5 2026-07-16). Não inventei norma pra fechar linha.
-
-## 0. Como ler — e o que cada decisão CUSTA
-
-Declarar `depends_on: [X]` no `SCOPE.md` do módulo de origem é dizer **"esta seta é
-legítima"**. Não muda uma linha de código: muda o que a catraca considera dívida. O par
-declarado sai da lista de não-declarados e o `catalog-graph` para de reportá-lo como
-fronteira em aberto.
-
-Não declarar também é decisão: o par **fica congelado** na baseline e vira fila de
-desacoplamento. Nenhuma das duas opções quebra nada hoje.
-
-**Os números, e de onde vêm** (todos re-rodáveis, nenhum escrito à mão):
-
-```bash
-node scripts/governance/catalog-graph.mjs --acoplamento      # os dois eixos
-```
-
-| | |
-|---|---|
-| arestas distintas (união dos 2 eixos) | **48** |
-| eixo `use`: pares vivos | 37 · **14 declarados** · **23 não** |
-| eixo `DB::table`: pares vivos | **20** — dos quais **8 ESCREVEM** na tabela alheia |
-| ciclos (dependência mútua A↔B) | **10** |
-| não resolvido (piso, não teto) | 17 `DB::table($var)` dinâmico · 105 sem migration localizada |
-
-⚠️ **`Connector → FieldForce` não entra em conta nenhuma**: `Modules/FieldForce` **não
-existe** no repo (embora `modules_statuses.json:15` diga `true`), e o `catalog-graph`
-filtra alvo não-vivo. É `use Modules\FieldForce\Entities\FieldForce` em
-`Modules/Connector/Http/Controllers/Api/FieldForce/FieldForceController.php:12` —
-class-not-found esperando alguém chamar a rota. **Item separado, não é norma de fronteira.**
+> A primeira versão (commit `02b2b0a86a4`) recomendava declarar `depends_on: [X]` no
+> `SCOPE.md` para 18 pares. **Sete auditorias adversariais independentes derrubaram isso**,
+> duas delas convergindo no mesmo ponto por caminhos diferentes. A refutação foi então
+> **verificada por experimento**, não por leitura:
+>
+> ```
+> $ # depends_on: [Arquivos] adicionado a memory/requisitos/Cms/SCOPE.md
+> $ node scripts/governance/catalog-graph.mjs --acoplamento --catraca
+> ℹ️  catraca import (`use`): 1 par(es) da baseline JÁ FORAM CURADOS — remova do JSON: Cms>Arquivos
+> ```
+>
+> **Nada foi curado.** O import continua idêntico. Declarar faz um acoplamento vivo
+> **parecer dívida resolvida** e instrui o próximo a apagar a linha da baseline. Aplicar a
+> v1 teria convertido 18 acoplamentos reais em "curados", removido-os da dívida congelada,
+> e deixado a razão de cada um só num `.md` que máquina nenhuma lê. É o vetor
+> **"apagar o item"** ([§5 2026-08-10](../../proibicoes.md)), em escala, dentro do PR que
+> existia pra endurecer a fronteira.
+>
+> A v1 fica registrada aqui, não apagada — errata apagada não ensina.
 
 ---
 
-## 1. As que tocam DINHEIRO — decidir primeiro
+## §0 · O instrumento certo (a correção-mãe)
 
-### D-1 · `Officeimpresso → Financeiro` — INSERT direto em `fin_titulos`
+A própria catraca **já imprime** as opções quando reprova
+([`catalog-graph.mjs:1315-1319`](../../../scripts/governance/catalog-graph.mjs)) — e
+`depends_on` **não está entre elas**:
 
-| | |
-|---|---|
-| forma | `DB::table('fin_titulos')->insert([...])` — [OfficeimpressoImporterService.php:565](../../../Modules/Officeimpresso/Services/FirebirdImporter/OfficeimpressoImporterService.php) |
-| e também | `->exists()` na linha 515 (idempotência do importer) |
-| Tier 0? | **não** — `business_id` vai explícito na linha 566 |
-| o que se perde | observers, `LogsActivity`, casts e as invariantes do dono (ex.: a regra "`fin_titulos` não permite delete") |
+> `(a)` declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM
+> `(b)` inverter via contrato/evento
+> `(c)` se for dívida consciente, entrar em `<baseline> > allowlist` **COM razão declarada**
 
-O docblock da linha 27 do **próprio arquivo** já declara que mapeia para
-`Modules\Financeiro\Models\Titulo` — e o código não usa o Model.
+**A distinção que decide qual usar** — e ela é semântica, não de gosto:
 
-**Proposta: NÃO declarar como norma; virar tarefa de desacoplamento** — trocar o
-`DB::table` pelo `Titulo::create()`. Âncora: é importação de dado de cliente legado
-(WR Comercial/Delphi) entrando como título financeiro; se o importer diverge das
-invariantes do Financeiro, os títulos importados são de segunda classe e ninguém percebe.
-
-⚠️ **Isto cai na REGRA MESTRE de valor** (`proibicoes.md`): mexer aqui exige dupla
-confirmação do cálculo + tabela antes→depois dos títulos afetados **antes** de aplicar.
-Não é refactor de rotina.
-
-### D-2 · `Financeiro ↔ RecurringBilling` — ciclo, nos dois eixos
-
-| direção | forma |
-|---|---|
-| `RecurringBilling → Financeiro` | `use ContaBancaria` (8 arq) + `use ExtratoLancamento` (1) · lê `fin_contas_bancarias` |
-| `Financeiro → RecurringBilling` | `use Subscription`, `BoletoCredential`, `AssinaturaCobrancaService` (2 arq) · **UPDATE** em `rb_subscriptions` ([ProcessAsaasPixWebhookListener.php:186](../../../Modules/Financeiro/Listeners/ProcessAsaasPixWebhookListener.php)) |
-
-Os consumidores do lado RecurringBilling são webhooks e jobs bancários
-(`AsaasWebhookController`, `ProcessInterWebhookJob`, `SyncBankStatementsJob`) — precisam
-mesmo saber em **que conta** o dinheiro caiu.
-
-**Proposta: declarar `RecurringBilling → Financeiro` (a leitura de conta bancária é
-legítima) e PERGUNTAR sobre a volta.** O `UPDATE` em `rb_subscriptions` de dentro de um
-listener do Financeiro é a metade que me incomoda: quem manda no ciclo de vida da
-assinatura é o RecurringBilling. Se a intenção é "pagou o Pix → ativa a assinatura", o
-caminho é evento (`CobrancaPaga`, que **já existe** e o Superadmin já consome), não
-`DB::table('rb_subscriptions')->update`.
-
-**A pergunta pra você:** o Financeiro pode mudar o estado de uma assinatura, ou isso é
-sempre do RecurringBilling reagindo a um evento?
-
-### D-3 · `PaymentGateway → Financeiro` — UPDATE em `fin_contas_bancarias`
-
-| | |
-|---|---|
-| forma | `use ContaBancaria` (3 arq) + `use Titulo` + `use TituloBaixa` · **UPDATE** em `fin_contas_bancarias` ([MigrateCredentialsCommand.php:115](../../../Modules/PaymentGateway/Console/Commands/MigrateCredentialsCommand.php)) |
-| contexto | o `UPDATE` vincula a FK `payment_gateway_credential_id`, criada por **migration do próprio PaymentGateway** ([2026_05_19_130000](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_130000_add_payment_gateway_credential_id_to_fin_contas_bancarias.php)) |
-
-⚠️ **O eixo `use` deste par JÁ É DECLARADO** — `PaymentGateway>Financeiro` está entre os 14
-com norma, não entre os 23 em aberto. **O que está em aberto aqui é só o eixo tabela**: o
-`UPDATE` cru. Confundir os dois seria propor decisão que já foi tomada.
-
-**Proposta: manter a norma do import e trocar o `UPDATE` cru pelo Model.** A seta é
-legítima ([ADR 0170-extração](../0170-paymentgateway-extracao-camada-cobranca.md): o
-PaymentGateway foi **extraído** de RecurringBilling e é a camada de cobrança
-que o Financeiro consome; baixar título quando o gateway confirma é o propósito do
-módulo); o que não é legítimo é escrever na tabela sem passar pelo `ContaBancaria`, que o
-mesmo comando **já importa**.
-
-⚠️ **Mas registro a anomalia**: um módulo que adiciona coluna por migration na tabela de
-outro e depois a preenche por `DB::table` é ownership difuso. A migration é honesta
-(tem guarda `Schema::hasTable`). Vale saber se você quer isso como padrão.
-
-### D-4 · `NfeBrasil → RecurringBilling` — emitir NFe ao receber pagamento
-
-| | |
-|---|---|
-| forma | `use InvoicePaid` (evento, 2 arq) + `use Invoice` (Model, 3 arq) |
-
-A metade por evento é exatamente a seta certa. A metade por Model é o acoplamento.
-
-**Proposta: declarar.** Âncora: é a US-RB-044 (NFe-de-boleto-pago automática) citada em
-[`why-oimpresso.md`](../../why-oimpresso.md) como **diferencial de produto** do vertical
-ComunicacaoVisual. Fronteira deliberada, não acidente.
-
-### D-5 · `Financeiro → PaymentGateway` — 14 símbolos, 12 de contrato
-
-Exceptions, DTOs e `PaymentGatewayContract` (12 de 14) + `Cobranca` e
-`PaymentGatewayCredential` (os 2 de `dado`).
-
-**Proposta: declarar.** É a forma que a casa quer: consumir **contrato**, não interno.
-Os 2 símbolos de `dado` ficam anotados como o resíduo a inverter algum dia — não vale
-tarefa hoje.
-
-### D-6 · `Financeiro → Superadmin` e `Fiscal → Superadmin` — UPDATE em `packages`/`subscriptions`
-
-| | |
-|---|---|
-| onde | `Financeiro/Console/Commands/InstallCommand.php:153` · `ProvisionSmokeTenantCommand.php:116` · `Fiscal/Console/Commands/HabilitarBusinessCommand.php:152` |
-
-Os três são **comandos de instalação/habilitação** — escrevem no pacote do Superadmin pra
-ligar o módulo no tenant.
-
-**Proposta: declarar os dois.** Âncora: `proibicoes.md` §Multi-tenant Camada 1 — habilitar
-módulo por business é **sempre** via pacote do Superadmin, nunca hardcode. Estes comandos
-são o caminho canônico fazendo o que o canon manda.
-
----
-
-## 2. Backbone declarado — 1 decisão, não 7
-
-`Cms` · `Financeiro` · `NfeBrasil` · `OficinaAuto` · `Repair` · `Whatsapp` **→ `Arquivos`**
-(6 pares de import; símbolos `HasArquivos`, `Arquivo`, `ArquivosService`,
-`VaultEncryptionService`), mais `NfeBrasil → arquivos` no eixo tabela.
-
-**Proposta: declarar os 6.** Âncora: [ADR 0123 §4](../0123-modules-arquivos-backbone.md) já
-nomeia `Modules/Arquivos` como *"backbone transversal que todo módulo passa a usar"*. O
-projeto **já tem** o conceito; só nunca preencheu o campo que o declara. Isto é ratificar
-ADR existente, não norma nova.
-
-**Item separado (não é norma, é conserto):** `NfeBrasil` faz **INSERT direto** em
-`arquivos` ([DanfeService.php:253](../../../Modules/NfeBrasil/Services/DanfeService.php),
-[NfeService.php:1700](../../../Modules/NfeBrasil/Services/NfeService.php)) **enquanto
-importa o `ArquivosService`** nos mesmos arquivos. Ter o serviço e escrever na tabela
-direto é o smell — o conserto é usar o serviço.
-
----
-
-## 3. Assinatura do tenant — 1 decisão, 4 pares
-
-`Connector` · `Officeimpresso` · `PaymentGateway` · `VozDoCliente` **→ `Superadmin`**
-(`Subscription`, `Package`; 1 arquivo cada).
-
-Todos perguntam a mesma coisa: *"que plano este tenant assinou?"*
-
-**Proposta: declarar os 4.** Ler a assinatura da plataforma é pergunta que qualquer módulo
-pode fazer — é o mesmo dado que o `ModuleUtil::hasThePermissionInSubscription` já expõe.
-
-⚠️ **Não mexer no nome da classe.** `Superadmin\Subscription` usa `LogsActivity`, que grava
-`subject_type` = FQCN **em linha de banco**, lido pelo `Modules/Auditoria`; sem
-`enforceMorphMap` (0 ocorrências no repo), renomear **cega o histórico de auditoria**.
-Registrado no parecer de 2026-08-12 e vale repetir aqui.
-
----
-
-## 4. Infra fiscal — certificado digital
-
-| par | forma |
-|---|---|
-| `NFSe → NfeBrasil` | `use CertificadoService`, `use NfeCertificado` |
-| `Crm → NfeBrasil` | `use SefazConsultaCadastroService` (lookup de cadastro na SEFAZ) |
-| `Fiscal → NfeBrasil` | lê `nfe_business_configs` (já declarado) |
-
-**Proposta: declarar os dois não-declarados.** Certificado A1/A3 e consulta SEFAZ são infra
-fiscal de instância, não domínio de um módulo só.
-
-⚠️ **Mas há um ownership DISPUTADO que a máquina acusa e ninguém resolveu** — e este é
-decisão sua, não minha:
-
-```
-ownership DISPUTADO: `nfe_certificados` criada por migration de NFSe E NfeBrasil
-ownership DISPUTADO: `nfse_emissoes`    criada por migration de NFSe E NfeBrasil
-```
-
-O `catalog-graph` atribui ao NFSe por ordem alfabética e **reporta em vez de resolver em
-silêncio**. Duas migrations criando a mesma tabela é dívida real. **PERGUNTAR: de quem é
-o certificado?**
-
----
-
-## 5. Governança / IA — o cluster Forja·Jana·Governance·KB
-
-| par | forma |
-|---|---|
-| `Forja → Governance` | 8 services de linha de brief (1 arquivo, todos `servico`) |
-| `Governance → Whatsapp` | `use CentrifugoPublisher` (1) |
-| `Governance → Jana` | **INSERT** em `mcp_alertas` ([ScorecardSnapshotCommand.php:258](../../../Modules/Governance/Console/Commands/ScorecardSnapshotCommand.php), [InitiativeService.php:286](../../../Modules/Governance/Services/InitiativeService.php)) |
-| `Jana → Whatsapp` · `Governance → Forja` · `Jana → Forja` | leitura (`mcp_actors`, `channels`, `failed_jobs`) |
-
-**Proposta: declarar `Forja → Governance` e `Governance → Whatsapp`.** O primeiro é
-composição de brief (a Forja monta, cada módulo fornece a linha); o segundo é publicar em
-canal realtime, que é infra.
-
-**PERGUNTAR sobre o INSERT em `mcp_alertas`**: alerta é da Jana ou é infra de governança
-que todo mundo emite? Se for infra, o certo é um serviço emissor, não `DB::table`.
-
----
-
-## 6. Os 4 pares que sobram — sem âncora, PERGUNTAR
-
-| par | o que atravessa | por que eu não proponho |
-|---|---|---|
-| `Connector → Crm` | `use CrmUtil` | Connector é API pública; usar util interno do CRM pode ser certo (fachada) ou vazamento. Sem ADR que decida |
-| `Connector → Officeimpresso` | `use Licenca_Computador` + lê `licenca_computador` | licenciamento de instalação legada — não sei se é para durar |
-| `Crm → OficinaAuto` | `use Vehicle` ([ClienteVeiculosController](../../../Modules/Crm/Http/Controllers/ClienteVeiculosController.php)) | "veículos do cliente" na ficha do CRM é feature real do Martinho. Mas é o CRM (núcleo) dependendo de um **vertical** — inverte a direção do [ADR 0121](../0121-oimpresso-modular-especializado-por-vertical.md) |
-| `OficinaAuto → Whatsapp` | `use SendWhatsappMessageJob`, `WhatsappBusinessPhone` | avisar cliente por WhatsApp é legítimo; despachar o **Job** de outro módulo é acoplamento a implementação |
-| `OficinaAuto → Ponto` | lê `ponto_marcacoes` | ⚠️ tabela **append-only por força de lei** (Portaria MTP 671/2021). Leitura não viola nada, mas quero seu aval antes de carimbar como norma |
-
-O `Crm → OficinaAuto` é o que mais merece sua atenção: se o núcleo pode depender de
-vertical, a tese modular do 0121 fica mais frouxa do que está escrita.
-
----
-
-## 7. Calibração da máquina (não é norma de domínio)
-
-**`Forja → Jana` tem 5 `UPDATE` em `mcp_tokens` — todos dentro de UMA migration**
-([2026_05_05_240002_seed_initial_actors.php](../../../Modules/Forja/Database/Migrations/2026_05_05_240002_seed_initial_actors.php)).
-
-Usar `DB::table` em migration é **prática canônica do Laravel** (o Model pode não existir
-ou ter mudado na data da migration). Então:
-
-**PERGUNTAR: o eixo tabela deve ignorar `Database/Migrations/`?**
-
-- **A favor de ignorar:** migration com `DB::table` é o padrão certo; contá-la como
-  fronteira produz ruído em cima de código que não pode ser escrito de outro jeito.
-- **Contra:** uma migration de um módulo **escrevendo na tabela de outro** é uma pergunta
-  de ownership legítima, e ignorar apagaria o sinal.
-
-Minha inclinação é **não ignorar, mas marcar** — a fronteira existe; o que muda é o
-remédio. Sem sua decisão eu não mexo: hoje conta, e a baseline já congelou com ela dentro.
-
----
-
-## 8. Os 10 ciclos
-
-Derivados da união dos dois eixos. Nenhum é erro por si — mas ciclo é o que impede um
-módulo de ser extraído, e vale saber quais existem antes de prometer que algum sai.
-
-```
-Financeiro <-> PaymentGateway      Financeiro -> PG: use  |  PG -> Financeiro: use + tabela/ESCREVE
-Financeiro <-> RecurringBilling    F -> RB: use + tabela/ESCREVE  |  RB -> F: use + tabela/lê
-Forja      <-> Jana                Forja -> Jana: use + tabela/ESCREVE  |  Jana -> Forja: tabela/lê
-Governance <-> Jana                Gov -> Jana: use + tabela/ESCREVE  |  Jana -> Gov: use
-Forja      <-> Governance          Forja -> Gov: use  |  Gov -> Forja: use + tabela/lê
-Forja      <-> KB                  use nos dois sentidos
-Jana       <-> Whatsapp            Jana -> Wa: tabela/lê  |  Wa -> Jana: use
-PaymentGateway <-> Superadmin      use nos dois sentidos (eventos de um lado)
-Arquivos   <-> Cms                 Arquivos -> Cms: tabela/lê  |  Cms -> Arquivos: use
-Arquivos   <-> Financeiro          Arquivos -> Financeiro: tabela/lê  |  Financeiro -> Arquivos: use
-```
-
-⚠️ Os dois ciclos com **`Arquivos`** merecem nota: o backbone transversal **lê tabela dos
-módulos que o consomem** (`cms_pages`, `fin_boleto_remessas`). Um backbone que conhece
-seus consumidores deixa de ser leaf — é a mesma doença que fez o `HasArquivos` **não** ser
-promovido ao núcleo no parecer de 2026-08-12.
-
----
-
-## 9. Resumo da mesa
-
-Contagem sobre os **23 pares de import em aberto** (as decisões de tabela viajam junto,
-mas não entram nesta conta — a baseline delas é outra):
-
-| # | decisão | pares de import | minha proposta |
+| slot | o que AFIRMA | efeito na catraca | adoção medida |
 |---|---|---|---|
-| §2 | backbone `Arquivos` | 6 | **declarar** (ratifica ADR 0123) |
-| §3 | assinatura do tenant | 4 | **declarar** |
-| §1 | dinheiro | 4 | **declarar** (`RecurringBilling→Financeiro`, `Financeiro→PaymentGateway`, `NfeBrasil→RecurringBilling`, `Superadmin→PaymentGateway`) |
-| §4 | infra fiscal | 2 | **declarar** + resolver ownership disputado |
-| §5 | governança/IA | 2 | **declarar** |
-| §1 | `Financeiro→RecurringBilling` (a volta do ciclo) | 1 | **PERGUNTAR** |
-| §6 | sem âncora | 4 | **PERGUNTAR** |
-| | **total** | **23** | **18 declarar · 5 perguntar** |
+| `not_contains` | *"esta responsabilidade **não é minha**, é do módulo X"* — delegação | par **sai** da dívida rastreada | **30 de 32** SCOPE.md |
+| `depends_on` | *"eu dependo de X"* | par **sai** da dívida rastreada | **1 de 32** (só `Financeiro`, e declara `Sells`/`Compras`, que não são seus imports reais) |
+| `allowlist` + `allowlist_razoes` | *"este acoplamento é **deliberado**, e a razão é esta"* | par **fica visível**, isento de morder | **0 de 0**, nos dois eixos |
 
-Fora dessa conta, no eixo tabela: `Officeimpresso→fin_titulos` (**desacoplar**, §1 D-1),
-`NfeBrasil→arquivos` e `PaymentGateway→fin_contas_bancarias` (**trocar `DB::table` pelo
-Model/serviço que o próprio arquivo já importa**), `mcp_alertas` e a calibração de
-migrations (**PERGUNTAR**, §5 e §7).
+⚠️ **O sumiço não é exclusivo do `depends_on`.** `compararFronteira` conta `dependsOn`
+**e** `delegatesTo` como declarado — então declarar por `not_contains` **também** faz o par
+desaparecer da dívida. A diferença é o que a frase afirma: `not_contains` diz *"não faço
+isso, quem faz é X"*; usá-lo para dizer *"importo X e tudo bem"* seria mentir no slot certo.
 
-Se você aprovar as 18, elas caem numa passada e sobram 5 pra conversa.
+**Logo, para "este acoplamento existe, é legítimo, e quero a razão registrada", o slot é
+`allowlist_razoes`** — o único que preserva a visibilidade. Ele está vazio nos dois eixos:
+nenhum par jamais foi declarado legítimo-por-norma neste projeto. Esta mesa é a primeira vez.
 
-**Nada disto muda código.** O PR que implementa esta mesa mexe só em `SCOPE.md` —
-`depends_on` — e nas baselines, que encolhem na direção permitida pela catraca.
+---
+
+## §1 · Os quatro desfechos possíveis
+
+1. **REGISTRAR** em `allowlist_razoes` — a seta é legítima e a razão vai escrita ao lado.
+2. **DESACOPLAR** — existe caminho canônico melhor (contrato, evento, Model do dono, fachada).
+3. **PERGUNTAR** — falta decisão de produto ou dado empírico que eu não tenho.
+4. **ARQUIVAR** — não é fronteira de negócio; é artefato do detector.
+
+Nenhum deles é `depends_on`.
+
+---
+
+## §2 · REGISTRAR — a razão já existe em canon (10 pares)
+
+Aqui não há decisão nova: cada linha **transcreve** norma já escrita e datada para o slot
+que a máquina lê.
+
+| par | razão a escrever no `allowlist_razoes` | âncora |
+|---|---|---|
+| `Connector → Officeimpresso` (import **e** tabela) | Handshake de licenciamento/registro dos ~6 builds Delphi vivos em prod; contrato **não pode mudar** porque os Delphi não serão recompilados | [`contrato-delphi-inviolavel.md`](../../reference/contrato-delphi-inviolavel.md) `trust_required: tier-0` · ADR 0170-onda5 §70 · `Connector/SCOPE.md:3` |
+| `Cms → Arquivos` · `Financeiro → Arquivos` · `OficinaAuto → Arquivos` | Backbone DMS transversal, adoção **opt-in** por módulo | ADR 0123 (aceita pela **0214**) — a cláusula que autoriza é o Não-goal *"migram opt-in, não compulsório"*, **não** *"todo módulo passa a usar"* |
+| `Repair → Arquivos` · `Whatsapp → Arquivos` | Importam **só** `HasArquivos` — o próprio detector os classifica como *primitiva cross-cutting: alojamento, não fronteira* | `catalog-graph --acoplamento` (*"1 decisão, não 2"*) |
+| `Officeimpresso → Superadmin` | Leitura pura de plano (`active_subscription()` + `Package::find()` → view) | — |
+| `Superadmin → PaymentGateway` | **Só eventos** (`CobrancaPaga`/`CobrancaVencida`) via `Event::listen`; todo `save()` em entidade própria. A mais limpa do lote | `SuperadminServiceProvider.php:128-129` |
+| `Financeiro → PaymentGateway` | Consome **contrato** (12 dos 14 símbolos são Exception/DTO/Contract) | ADR 0170-extração |
+| `NfeBrasil → RecurringBilling` | Emitir NFe ao receber pagamento — diferencial de produto | `RecurringBilling/SPEC.md:588` **US-RB-044 `status: done`** com `**Implementado em:**` |
+| `NFSe → NfeBrasil` | NfeBrasil é **dono do cofre de certificado**; NFSe **herda** (`NfseCertificado extends NfeCertificado`) e delega ao `CertificadoService` | `NfeBrasil/SCOPE.md:22` (`db_tables_owned`) · ADR 0186 |
+| `Crm → NfeBrasil` | Toda tela de cadastro fiscal BR **deve** oferecer Buscar CNPJ | **ADR 0186** (IRREVOGÁVEL) · **ADR 0201** |
+| `RecurringBilling → Financeiro` | Webhooks e jobs bancários operam sobre a conta do Financeiro | ⚠️ ver ressalva |
+
+**Ressalvas que precisam ir escritas junto, não escondidas:**
+
+- **`RecurringBilling → Financeiro` não é leitura.** Três dos consumidores **escrevem**:
+  `increment('saldo_cached')`, `update` em massa e `ExtratoLancamento::updateOrCreate`
+  (cria linha na tabela do Financeiro). A v1 dizia *"só precisam saber em que conta o
+  dinheiro caiu"* — descrevia leitura enquanto o código escreve dinheiro. **O problema Tier 0
+  desse par virou item próprio** (chip aberto 2026-08-12): o sync bancário agendado itera
+  contas de **todos os tenants** sem filtro.
+- **`Financeiro → PaymentGateway`:** as 2 leituras usam `withoutGlobalScopes()` — com o
+  comentário `// SUPERADMIN:` presente, como o canon exige.
+- **`NfeBrasil → RecurringBilling`:** a capacidade está atrás de **2 flags default `false`**.
+  A seta é legítima; **está apagada em prod**. E `RecurringBilling/CAPTERRA-INVENTARIO-v2.md:84`
+  afirma *"nenhum listener em Modules/NfeBrasil"* — **stale**, corrigir junto.
+
+---
+
+## §3 · DESACOPLAR — existe caminho canônico melhor (6 itens)
+
+| item | por que não registrar | o caminho certo |
+|---|---|---|
+| `Connector → Superadmin` | Faz `Package::create()` + `Subscription::create()`, e o bloco é **cópia** do `BaseController` do próprio Superadmin | usar o `BaseController` do dono, não duplicar o ciclo de vida de assinatura |
+| `Crm → OficinaAuto` | **Defeito ativo** — ver §5 | aplicar o gate canon do núcleo + corrigir a rota que mente |
+| `OficinaAuto → Whatsapp` | Reimplementou `withoutGlobalScope` à mão num job multi-tenant, existindo fachada | `WhatsappBusinessPhone::resolveForEvent()` + evento próprio. **Prova por controle negativo:** `Repair` notifica por WhatsApp com **aresta zero** |
+| `Governance → Whatsapp` | O `CentrifugoPublisher` tem docblock que **confessa**: *"dívida arquitetural — mora em Whatsapp; refator futuro"*. Registrar viraria confissão em norma | mover o publisher pro núcleo (ADR 0058:102 já planejou `app/Broadcasting/`, que **não existe**). ⚠️ `app/Console/Commands/SecretsAuditCommand.php:293` também o consome — e `app/` não tem SCOPE, então essa seta é **indeclarável por construção** |
+| `Financeiro → RecurringBilling` | **Código morto**: a coluna `last_payment_at` não existe em `rb_subscriptions`, o evento não existe, `shouldDiscoverEvents()` é `false`. Nunca rodou | deletar ou consertar o listener órfão |
+| `Officeimpresso → fin_titulos` (tabela) | INSERT cru grava título `quitado` com `valor_aberto` cheio | **chip aberto** — cai na REGRA MESTRE de valor |
+
+⚠️ **`NfeBrasil → arquivos` (tabela) NÃO entra aqui.** A v1 chamou de smell alegando que ele
+*"importa `ArquivosService` nos mesmos arquivos onde insere"* — **falso, medido**: `DanfeService`
+tem zero ocorrências de `ArquivosService`; `NfeService` tem zero imports de `Modules\Arquivos`.
+Os INSERTs são **double-write transicional** (US-ARQ-021), guardados por `Schema::hasTable`,
+idempotentes, em `try/catch` cujo docblock diz *"NUNCA propaga — fluxo fiscal NÃO pode quebrar
+por falha em arquivos table"*. Usar `ArquivosService::attach()` exigiria um `UploadedFile` e
+acoplaria a emissão fiscal à saúde do backbone. **Vai pra §4 (PERGUNTAR).**
+
+---
+
+## §4 · PERGUNTAR — decisão sua, com a pergunta fechada
+
+| # | pergunta | por que eu não decido |
+|---|---|---|
+| P1 | O endpoint `/connector/api/crm/follow-ups` ainda é chamado por cliente externo nos últimos 90d — **manter `Connector→Crm` vivo, ou executar o E4 e devolver 410 Gone**? | É empírico e o instrumento existe (middleware `log.delphi` grava todo hit). O CRM está em depreciação (ADR 0301) com **BLOQUEIO E4** aberto no plano |
+| P2 | `PaymentGateway → Superadmin` é **faturar o produto** (query cross-tenant por `status='waiting'` + `trial_end_date`), não consultar plano. Registrar carimba um **ciclo** com a volta já declarada. Registrar ou inverter? | é decisão de desenho de cobrança |
+| P3 | `Forja → Governance`: são **10 injetores de 3 módulos** (8 Governance + 1 Jana + 1 Forja), sem contrato — `BriefLineContract` **não existe**. Registrar congela acoplamento a 10 classes concretas. Extrair contrato + tag no container, ou registrar como está? | o conserto barato some do radar no dia em que a seta vira norma |
+| P4 | `VozDoCliente → Superadmin` **escreve** `package_details` — é o mesmo ato dos install commands do Financeiro/Fiscal. É habilitação de módulo (Camada 1) fazendo o caminho certo, ou deveria passar por um serviço único? | 3 módulos fazem o mesmo ato de 2 formas |
+| P5 | `ClienteVeiculosController` **fica em `Modules/Crm`** (e a fronteira é `Crm→OficinaAuto`) **ou migra pro `app/`** no DEPRECATION-PLAN (e a fronteira vira `núcleo→OficinaAuto`, junto com **13 refs de `app/` que já existem e ninguém declarou**)? | ADR 0301 diz que o dono real é o `ContactController` do core |
+| P6 | Os INSERTs em `mcp_alertas` gravam `kind`/`canal` **fora do enum** — com `strict => false`, o MySQL trunca para `''` em silêncio. Consertar os valores, ampliar o enum, ou migrar pro Model `McpAlerta` (que existe, com `HasBusinessScope`, e tem **zero consumidores de produção**)? | migrar aplicaria o global scope pela 1ª vez = mudança de comportamento |
+| P7 | O `NfeBrasil` mantém um **segundo emissor NFSe inteiro** escrevendo em `nfse_emissoes` com colunas que não existem no baseline. Dívida a remover, ou caminho vivo? | decisão de produto |
+| P8 | `NfeBrasil → arquivos`: manter o double-write transicional (e registrar a razão) ou fechar a transição da US-ARQ-021? | é fim de transição, não fronteira |
+
+---
+
+## §5 · Defeito ativo achado no caminho (não é fronteira)
+
+**`Modules/Crm/Routes/web.php:159-161` afirma em tempo presente** que a rota
+*"retorna [] se Vehicle model inexistente em ambiente sem modulo"*. **Não retorna** —
+`ClienteVeiculosController:90` chama `Vehicle::where(...)` direto, e o arquivo inteiro tem
+**zero** `class_exists`, `isModuleInstalled` ou `Module::has`.
+
+O núcleo escreveu o gate correto e o Crm copiou o *helper* sem o *guarda*:
+
+- `ContactController.php:2174-2179` — gate duplo (`oficinaauto_enabled` + `Inertia::defer` condicional)
+- `SellController.php:950-961` — variante com `hasThePermissionInSubscription` **e** `class_exists`
+
+**Só não quebra hoje por acidente de infra:** PSR-4 na raiz torna a classe autoloadable com o
+módulo desligado, e `vehicles` viaja no `mysql-schema.sql`. Segurança por acidente, não por
+desenho. É **LC-10 em código de produção** — o artefato afirma o enforcement que não tem.
+
+Bônus stale no mesmo arquivo: o `@see` aponta `_drawer/oss/PlacasSubTab.tsx`, que **não existe**
+(o consumidor real é `_drawer/PlacasMainTab.tsx:81`).
+
+---
+
+## §6 · ARQUIVAR — o detector capturou o que não é fronteira
+
+**`OficinaAuto → Ponto`** — único site: `OficinaAutoSanityCheckCommand.php:154-181`. É
+`COUNT(*)` agregado, escopado por `business_id`, guardado por `Schema::hasTable`, **sem
+`select` de coluna alguma** — o módulo **assertando a invariante da Portaria MTP 671/2021**
+(*"append-only `ponto_marcacoes` — assert sem rows DELETE"*). Sem PII, sem risco de finalidade.
+
+Registrar inventaria norma de negócio onde há sonda; desacoplar **removeria uma verificação
+de conformidade legal**. O slot, se incomodar no report, é `allowlist_razoes` com a razão
+*"sonda de conformidade, não dependência"*.
+
+**`Governance → Whatsapp` no eixo TABELA** — é **100% falso-positivo**: as 2 queries são
+`failed_jobs`, tabela de infra do Laravel criada por uma migration do Whatsapp. A mitigação
+"≥3 módulos = infra compartilhada" não dispara porque só Jana e Governance a leem: **um
+módulo abaixo do limiar**. O par só sobrevive porque também existe no eixo `use`.
+
+---
+
+## §7 · Calibração da máquina — trabalho meu, não decisão sua
+
+Registrado aqui para não se perder; sai em PR próprio.
+
+1. **Terceiro sub-eixo invisível: `Schema::table()`** (ALTER em tabela alheia). O dono só sai
+   de `Schema::create` e a query só de `DB::table` — adicionar coluna na casa do outro não é
+   visto por nenhum dos dois. Medido: **3 pares cross-module por ALTER**, e
+   **`NfeBrasil → NFSe` não está em eixo nenhum nem em baseline nenhuma**. Mais **61 ALTERs
+   em tabela core** sem radar. Adicionar coluna é sinal de ownership **mais forte** que
+   escrever linha — a catraca vê o fraco e não vê o forte.
+2. **Migrations contam?** Medido: só **2 de 20** pares são só-migration (10%), **7 de 60**
+   queries (11,7%) — a condição de auto-refutação não disparou. Forma proposta: imprimir
+   **`mig=N runtime=M`** na linha do par (uma regex de path na função que já filtra `/Tests/`).
+   Não ignorar: migration é append-only por construção, então escrita cross-module que entra
+   por lá **nunca sai**.
+3. **O FP do `failed_jobs`** (§6) — o limiar de infra erra por 1 módulo.
+4. **`Modules/FieldForce` não existe** e o `Connector` importa dele. **Correção da v1:** o
+   runtime é **403 fail-secure**, não class-not-found — os 3 métodos guardam com
+   `isModuleInstalled` **antes** de tocar a classe. `modules_statuses.json` governa
+   enabled/disabled, **não existência**. E o módulo **nunca existiu neste repo** (história
+   completa, `git log --all` vazio): é herança do fork UltimatePOS. Remover controller + rotas
+   ⚠️ **junto com** `AuthApiTest.php:75-89`, que asserta 401/422 naquela rota e viraria 404.
+
+---
+
+## §8 · Resumo
+
+| desfecho | pares | precisa de você? |
+|---|---|---|
+| **REGISTRAR** em `allowlist_razoes` | 10 | ratificar as razões (todas transcrevem canon existente) |
+| **DESACOPLAR** | 6 | 2 já viraram chip; 4 são trabalho de código |
+| **PERGUNTAR** | 8 perguntas | **sim — é aqui que a mesa precisa de você** |
+| **ARQUIVAR** | 2 | ratificar |
+| calibração da máquina | 4 itens | não |
+
+**Método desta versão.** Sete auditorias adversariais independentes, cada uma com mandato de
+**refutar** e instrução explícita de que "REFUTA" é sucesso. **Sete de sete voltaram com
+correção material.** Os achados que eu mesmo re-verifiquei antes de escrever: o experimento do
+`depends_on` (§0), a adoção 30/32 do `not_contains`, o job sem filtro de tenant, o
+`valor_aberto` do importer, e o par `Governance → Jana` (onde **um dos auditores errou** — ele
+é par de import, 6 arquivos, declarado via `not_contains`). O resto é relato dos pareceres,
+com arquivo:linha, não re-medido linha a linha por mim.
