@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Essentials\Entities\EssentialsAttendance;
 use Modules\Essentials\Entities\Shift;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 uses(Tests\TestCase::class);
 

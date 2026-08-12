@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Whatsapp\Console\Commands;
 
 use Illuminate\Console\Command;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Jobs\WhatsappDriverHealthCheckJob;
 

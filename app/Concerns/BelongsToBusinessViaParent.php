@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Concerns;
 
-use Modules\Jana\Scopes\ScopeByBusinessViaParent;
+use App\Scopes\ScopeByBusinessViaParent;
 
 /**
  * Trait BelongsToBusinessViaParent — multi-tenant Tier 0 via FK chain (ADR 0093).
@@ -34,7 +34,7 @@ use Modules\Jana\Scopes\ScopeByBusinessViaParent;
  * mas é fix REAL pra cross-tenant em query direta sem tocar schema.
  *
  * @see App\Concerns\HasBusinessScope                trait para Models com biz direto
- * @see Modules\Jana\Scopes\ScopeByBusinessViaParent scope aplicado
+ * @see App\Scopes\ScopeByBusinessViaParent scope aplicado
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 trait BelongsToBusinessViaParent

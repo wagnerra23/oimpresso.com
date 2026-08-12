@@ -63,7 +63,7 @@ US-COPI-010, US-COPI-011, US-COPI-012 (mesmas que cobrem [Dashboard](RUNBOOK-ind
 
 - [`Meta`](../../../Modules/Jana/Entities/Meta.php) usa `HasBusinessScope` (linha 18) — aplica `ScopeByBusiness` automaticamente
 - [`HasBusinessScope`](../../../app/Concerns/HasBusinessScope.php) chama `bootHasBusinessScope()` que adiciona o global scope no boot do Model
-- [`ScopeByBusiness`](../../../Modules/Jana/Scopes/ScopeByBusiness.php) filtra por `session('user.business_id')` automaticamente; superadmin vê próprio + NULL (plataforma)
+- [`ScopeByBusiness`](../../../app/Scopes/ScopeByBusiness.php) filtra por `session('user.business_id')` automaticamente; superadmin vê próprio + NULL (plataforma)
 
 Logo `Meta::orderByDesc('ativo')->get()`, `Meta::findOrFail($id)` etc são **seguros** — global scope cobre. Não há vazamento.
 

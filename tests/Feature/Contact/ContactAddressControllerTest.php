@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Modules\Crm\Http\Controllers\ContactAddressController;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 

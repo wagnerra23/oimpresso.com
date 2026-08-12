@@ -8,7 +8,7 @@ use App\Business;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Symfony\Component\HttpFoundation\Response;
 

@@ -7,7 +7,7 @@ namespace Modules\Whatsapp\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Auditor de conflitos em `channel_user_access` — ACL atendente↔canal (US-WA-068, ADR 0135).
