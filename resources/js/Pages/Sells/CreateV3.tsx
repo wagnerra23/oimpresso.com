@@ -61,7 +61,7 @@ import {
   rotuloIcmsLongo,
   type ClienteConsulta,
 } from './_components/v3/cliente-consulta-dominio';
-import { type Aba } from './_components/v3/item-fiscal-dominio';
+import { abaDaAcao, type Aba } from './_components/v3/item-fiscal-dominio';
 import { type Parcela } from './_components/v3/parcelas-dominio';
 import { type Beneficiario, type Gatilho } from './_components/v3/comissao-dominio';
 import { carregarColunas, salvarColunas } from './_components/v3/colunas-dominio';
@@ -545,7 +545,7 @@ export default function SellsCreateV3({ cena }: Props) {
                         <button
                           type="button"
                           title="Impostos deste item — NCM, CFOP, CST e alíquotas"
-                          onClick={() => abrirItem(l, 'tributacao')}
+                          onClick={() => abrirItem(l, abaDaAcao('impostos'))}
                           className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-2 text-[11.5px] font-semibold leading-none text-muted-foreground hover:text-foreground"
                         >
                           <Settings className="size-3.5" aria-hidden />
@@ -554,7 +554,7 @@ export default function SellsCreateV3({ cena }: Props) {
                         <button
                           type="button"
                           title="Detalhes do item — produção, tributação, anexos, observação"
-                          onClick={() => abrirItem(l)}
+                          onClick={() => abrirItem(l, abaDaAcao('detalhe'))}
                           className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md border border-border bg-card text-primary hover:bg-accent"
                         >
                           <Search className="size-3.5" aria-hidden />
