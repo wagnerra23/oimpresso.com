@@ -22,8 +22,8 @@ import { useState } from 'react';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import useBoardShortcuts, {
   type ShortcutTask,
-} from '@/Pages/Forja/Board/_components/useBoardShortcuts';
-import ShortcutsOverlay from '@/Pages/Forja/Board/_components/ShortcutsOverlay';
+} from '../Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts';
+import ShortcutsOverlay from '../Modules/Forja/Resources/js/Pages/Forja/Board/_components/ShortcutsOverlay';
 
 const TASKS: ShortcutTask[] = [
   { task_id: 'COPI-1', status: 'todo' },
