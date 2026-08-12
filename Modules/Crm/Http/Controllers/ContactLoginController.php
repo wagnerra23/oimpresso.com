@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\CrmContactPersonCommission;
 use Modules\Crm\Utils\CrmUtil;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class ContactLoginController extends Controller

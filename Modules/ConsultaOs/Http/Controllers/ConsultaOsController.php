@@ -9,7 +9,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest;
 use Modules\ConsultaOs\Services\ConsultaOsMockService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * ConsultaOsController — Portal publico de consulta de OS (mock-only).

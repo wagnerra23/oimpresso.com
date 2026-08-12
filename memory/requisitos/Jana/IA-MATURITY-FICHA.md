@@ -78,7 +78,7 @@ Escala 0-10 (10 = best-in-class 2026). Ponderações P0/P1/P2 alinhadas a [ADR 0
 
 ## 4. Onde Jana já é líder ou empata com top-mercado (6 dimensões)
 
-1. **PII redaction pré-LLM** (9,5) — `PiiRedactor` BR-specific (CPF/CNPJ/email/tel/CEP) com modo hash determinístico ([Modules/Jana/Services/Privacy/PiiRedactor.php](../../../Modules/Jana/Services/Privacy/PiiRedactor.php)); concorrentes globais não tratam PII BR
+1. **PII redaction pré-LLM** (9,5) — `PiiRedactor` BR-specific (CPF/CNPJ/email/tel/CEP) com modo hash determinístico (`Modules/Jana/Services/Privacy/PiiRedactor.php` — path desta data; o arquivo saiu do módulo em 2026-08-12 e hoje vive em `app/Support/Privacy/`); concorrentes globais não tratam PII BR
 2. **MCP integration** (9,5) — único ERP BR com MCP exposto (`mcp.oimpresso.com` CT 100, 352+ docs sync git→Meilisearch+FULLTEXT) ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md))
 3. **Multi-tenant isolation Tier 0** (10,0) — `business_id` global scope obrigatório irrevogável ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)); `pii_leak_in_assistant_responses` check daily; concorrentes SaaS não têm isolation formal
 4. **Custo total ownership** (9,5) — self-host stack: gpt-4o-mini (~R$ [redacted Tier 0]/dia/biz brief), Meilisearch dedicated CT 100, Ollama embedder local — vs OpenAI Custom GPT ~98% mais barato em escala >5k queries/mês

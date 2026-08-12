@@ -1534,6 +1534,24 @@
       "erros_confirmados": 1,
       "error_rate_pct": 1.54,
       "veredito": "aprovado"
+    },
+    {
+      "pr": 5675,
+      "lote_id": "ARQ-piiredactor-app-support-5675-r3",
+      "data": "2026-08-12",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5 (Anthropic)",
+      "refutador": "fable-5 (Anthropic) — tier SUPERIOR a opus (§2.3); subagente em sessao fresca, rodada 3, lote INTEIRO re-verificado (§2.6)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 22,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "memory/sessions/2026-08-12-refutacao-lote-pr5675.md (rodadas 1, 2 e 3 em append) — medido por sha imutavel: base origin/main e95da27ece3, head 743e2965f17, merge-base 124ca527233, sempre diff tres-pontos por causa do merge 0b848cbb76d",
+      "veredito": "aprovado",
+      "nota": "APROVADO na 3a rodada — 0 erros em 22 itens (100% das 43 linhas nos 15 arquivos de memory/requisitos). O LOTE: move de `PiiRedactor` de Modules/Jana/Services/Privacy para app/Support/Privacy (23 modulos dependiam da Jana so pra cumprir LGPD). AS DUAS REPROVACOES ANTERIORES E O QUE ENSINARAM, porque o valor desta entry esta ai: rodada 1 (error_rate 12,5%) achou que o codemod tinha reescrito REGISTRO DATADO — CHANGELOG de wave datada e um doc de auditoria passaram a afirmar que usavam um FQCN que so nasce neste PR; rodada 2 (8,7%) achou mais um snapshot datado (IA-MATURITY-FICHA, gerado_em 2026-05-16) E derrubou uma refutacao MINHA: eu tinha alegado que 2 dos achados da rodada 1 eram falsos porque os arquivos teriam 0 linhas no diff — a alegacao veio de `git diff | grep -v \"^[+-][+-]\"`, filtro que em arquivo de BULLETS markdown descarta a linha alterada (`+- texto`) e devolve zero por construcao. `--numstat` provou 1/1 em cada. Uma das reescritas atingiu `memory/licoes-rejeitadas.md` — lapide APPEND-ONLY Tier 0 — falsificando a historia do proprio incidente #5169 que ela cataloga. CLASSES DE REFERENCIA QUE O CODEMOD NAO PREVIU (4, todas achadas por gate ou refutador, nenhuma por mim): (1) FQCN em STRING ESCAPADA (`\\\\Modules\\\\...`) — 16 sites; num deles, `LangfuseClient::piiRedactor()`, o `class_exists` com FAIL-OPEN desligou a redacao e um CPF vazou pra telemetria (pego pelo ChatStreamObservabilityTest, nao chegou em prod); (2) nome CURTO no MESMO namespace (RetentionPurgeService ficou no diretorio de origem e referenciava o vizinho sem `use` — pego pelo PHPStan); (3) link markdown MEIO-atualizado, rotulo novo e alvo morto (pego pelo deadlink-gate); (4) registro DATADO vs doc VIVO (pego pelo refutador). RESOLUCAO DA TENSAO historia-vs-link: registro datado cita o path historico como TEXTO com nota de data, nao como link — o texto da claim fica identico ao que era verdade na data e o leitor de hoje sabe pra onde foi. O QUE O REFUTADOR CONFIRMOU POR ORACULO, nao por leitura: module-surface --check rc 0 (568, sem drift); \"23 modulos\" medido (24 com o `use` antigo em origin/main incl. Jana = 23); deadlink-gate rc 0 com a catraca DESCENDO (1084->1082); test-lane-coverage --selftest 35/35; gold-sets parseiam; zero referencia viva ao FQCN antigo em 3 formas de grep, cada uma com controle positivo. PENDENCIA NAO-BLOQUEANTE que ele reportou e eu NAO corrigi (fora de escopo, pre-existente ao lote): a citacao \"ADR 0094 §Principio 6\" no PII-LGPD §1 e imprecisa (P6 = multi-tenant). NOTA DE HONESTIDADE do proprio refutador: um grep de varredura vazou 3 linhas do artefato antes da leitura autorizada; ele re-provou cada item independentemente com comando colado, sem herdar veredito."
     }
   ]
 }

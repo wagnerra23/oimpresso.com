@@ -13,7 +13,7 @@ use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\CrmMarketplace;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Utils\CrmUtil;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 class CrmMarketplaceController extends Controller
 {

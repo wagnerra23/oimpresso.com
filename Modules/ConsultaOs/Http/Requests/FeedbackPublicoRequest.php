@@ -29,7 +29,7 @@ namespace Modules\ConsultaOs\Http\Requests;
  *
  * @see Modules/ConsultaOs/Http/Requests/ConsultaPublicaRequest (busca por numero)
  * @see Modules/ConsultaOs/Http/Controllers/ConsultaOsController (auditarConsulta pattern)
- * @see Modules/Jana/Services/Privacy/PiiRedactor (canon redactor)
+ * @see app/Support/Privacy/PiiRedactor (canon redactor)
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 class FeedbackPublicoRequest extends \Illuminate\Foundation\Http\FormRequest

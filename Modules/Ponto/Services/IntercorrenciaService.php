@@ -5,7 +5,7 @@ namespace Modules\Ponto\Services;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Ponto\Entities\Intercorrencia;
 
 class IntercorrenciaService

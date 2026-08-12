@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Escala;
 use Modules\Ponto\Entities\Intercorrencia;
@@ -48,11 +48,11 @@ it('D7.a — mascara CPF email telefone via PiiRedactor canonico', function () {
         }
     };
 
-    $input = 'Wagner CPF 123.456.789-00 email wagner@exemplo.com tel (11) 91234-5678';
+    $input = 'Wagner CPF 123.456.789-00 email wagner@exemplo.com tel (11) 91234-5678'; # pii-allowlist
     $output = $expose->exposeMascarar($input);
 
     expect($output)
-        ->not->toContain('123.456.789-00')
+        ->not->toContain('123.456.789-00') # pii-allowlist
         ->and($output)->not->toContain('wagner@exemplo.com')
         ->and($output)->not->toContain('91234-5678');
 

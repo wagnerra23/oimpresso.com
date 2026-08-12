@@ -25,7 +25,7 @@ declare(strict_types=1);
  *
  * @see memory/decisions/0081-identity-mesh.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  */
 
 return [

@@ -33,7 +33,7 @@ declare(strict_types=1);
  *
  * @see Modules/Arquivos/Config/config.php (chave retention_days_policy — operacional)
  * @see Modules/Arquivos/Console/Commands/RetentionCleanupCommand.php
- * @see Modules/Jana/Services/Privacy/PiiRedactor (varredura best-effort em export)
+ * @see app/Support/Privacy/PiiRedactor (varredura best-effort em export)
  * @see memory/decisions/0123-modules-arquivos-backbone.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */

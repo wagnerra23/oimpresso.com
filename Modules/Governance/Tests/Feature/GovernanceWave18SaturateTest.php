@@ -93,7 +93,7 @@ it('cenario 6: GovernanceHealthCommand registrado e tem signature correta', func
 it('cenario 7: ActionGate middleware importa PiiRedactor (D7 LGPD)', function () {
     $source = file_get_contents(base_path('Modules/Governance/Http/Middleware/ActionGate.php'));
 
-    expect($source)->toContain('use Modules\Jana\Services\Privacy\PiiRedactor;');
+    expect($source)->toContain('use App\Support\Privacy\PiiRedactor;');
     expect($source)->toContain('pii_redaction_enabled');
 });
 

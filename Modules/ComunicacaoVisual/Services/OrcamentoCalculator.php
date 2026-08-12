@@ -3,7 +3,7 @@
 namespace Modules\ComunicacaoVisual\Services;
 
 use App\Util\OtelHelper;
-use Modules\Jana\Services\Privacy\PiiRedactor; // Wave 26 D7.a — redacta texto livre observacoes antes de log/span (PII-LGPD.md §2)
+use App\Support\Privacy\PiiRedactor; // Wave 26 D7.a — redacta texto livre observacoes antes de log/span (PII-LGPD.md §2)
 use InvalidArgumentException;
 use Modules\ComunicacaoVisual\Entities\Material;
 

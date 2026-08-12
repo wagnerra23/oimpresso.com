@@ -92,7 +92,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Quando true (default prod), ActionGate::logViolation roda PiiRedactor
-    | (Modules\Jana\Services\Privacy\PiiRedactor) sobre strings do payload
+    | (App\Support\Privacy\PiiRedactor) sobre strings do payload
     | ANTES de Log::warning. Garante CPF/CNPJ/email/phone redacted em
     | storage/logs/laravel.log + audit downstream.
     |
