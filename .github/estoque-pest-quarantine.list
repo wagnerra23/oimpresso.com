@@ -47,8 +47,6 @@ tests/Feature/Produto/ProdutoShowContratoTest.php          # UC-PSHOW-01: custo 
 tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/03/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor + custo vaza na linha
 tests/Feature/Produto/ProdutoEditPayloadContratoTest.php   # UC-PEDIT-05/06/07: writer trata ausência de chave como zero (enable_stock, not_for_selling) e a edição não persiste — eixo ESTOQUE, regra-mestre: fix é decisão [W]
 tests/Feature/Produto/ProdutoBulkEditContratoTest.php      # UC-PBULK-05: writer lê 5 chaves/variação, a tela manda 2; ErrorException engolida por catch genérico reverte o lote — eixo VALOR, regra-mestre: fix é decisão [W]
-tests/Feature/Produto/QuickAddProdutoContratoTest.php      # UC-PQCK-02: quick-add aceita category_id de OUTRO business (request->only + Product::create sem validação de tenant) — Tier 0, mesma família do UC-PTAB-04 (#4300)
-tests/Feature/Produto/ProdutoBomContratoTest.php           # UC-PBOM-02: BOM aceita component_variation_id de OUTRO business (component_id é validado, a variação passa por "nullable|integer") — Tier 0
 tests/Feature/Produto/ProdutoUnificadoContratoTest.php     # UC-PUNI-01/02/03/06: custo, margem, preço de venda e tabelas de preço viajam nas props sem gate (varredura de view_purchase_price|access_default_selling_price em ProdutoUnificadoController: 0) + rota /products/unificado sem middleware de permissão (routes/web.php:449 TODO declarado)
 # SAÍRAM 2026-08-11 (o movimento desejado — a lista encolheu de 6 para 4 no bloco A):
 #   QuickAddProdutoContratoTest — UC-PQCK-02 CORRIGIDO (guard de FK por tenant no
