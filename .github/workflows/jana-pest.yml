@@ -144,7 +144,8 @@ jobs:
             Modules/Jana/Tests/Feature/FarolServerSideTest.php \
             Modules/Jana/Tests/Feature/Mcp/IndexarMemoryGitShaPreservaTest.php \
             Modules/Jana/Tests/Feature/Mcp/McpTokenUsoThrottleTest.php \
-            Modules/Jana/Tests/Feature/Mcp/QuotaEnforcerFastPathTest.php
+            Modules/Jana/Tests/Feature/Mcp/QuotaEnforcerFastPathTest.php \
+            Modules/Jana/Tests/Feature/Mcp/McpTokenMemoTest.php
           # BriefDiarioAgentTest saiu daqui em 2026-08-10: guard sqlite-only fazia
           # ele pular 100% das vezes nesta lane MySQL (skip = exit 0 = verde que não
           # provava nada), e ele monta schema sintético com dropIfExists — o que a

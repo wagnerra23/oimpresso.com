@@ -34,6 +34,14 @@ jobs:
         run: node scripts/governance/adr-index-generate.test.mjs
       - name: Fact-anchor Check T (versoes derivaveis · fixtures boa/ruim · proposal fatos-derivaveis)
         run: node scripts/governance/fact-anchor.test.mjs
+
+      # Bridge DXT (incidente 2026-08-12): o Desktop pede tools/list várias vezes
+      # por handshake e cada ida custava ~2,2s. O cache tem um modo de falha
+      # silencioso — devolver a resposta com o id ERRADO faz o cliente descartá-la
+      # sem erro visível. Este teste sobe o bridge de verdade contra um servidor
+      # que CONTA requisições, e traz o controle negativo (TTL=0 desliga).
+      - name: Bridge DXT · cache de tools/list (+ controle negativo)
+        run: node scripts/generate-dxt.test.mjs
       # Fecha o gap "scripts/** + agents sem indice-dono": o MAQUINAS-INVENTARIO.md e derivado
       # e agora ENFORCADO. --check e por COBERTURA (morde so quando maquina e add/removida sem
       # regenerar, nao byte-exact que viraria ruido). Advisory (ADR 0314/0275: required = so Tier-0).
