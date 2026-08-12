@@ -19,7 +19,7 @@ import {
   Plus, Shield, ArrowLeft, RefreshCw, Settings, MoreHorizontal,
   AlertCircle, Webhook, Receipt,
 } from 'lucide-react';
-import { Btn, KpiCard, PageHeader } from '../../Financeiro/Cobranca/_components/atoms';
+import { Btn, KpiCard, PageHeader } from '@/Pages/Financeiro/Cobranca/_components/atoms';
 import { DriverChip, HealthBadge, Toggle } from './_components/atoms-settings';
 import DrawerGateway from './_components/DrawerGateway';
 import SheetNovoGateway from './_components/SheetNovoGateway';

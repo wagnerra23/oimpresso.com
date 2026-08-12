@@ -1,6 +1,6 @@
 // CheatSheetSettings.tsx — overlay atalhos teclado Settings
 import { useEffect } from 'react';
-import { Btn } from '../../../Financeiro/Cobranca/_components/atoms';
+import { Btn } from '@/Pages/Financeiro/Cobranca/_components/atoms';
 
 const ATALHOS = [
   { k: 'N',     d: 'Novo gateway' },

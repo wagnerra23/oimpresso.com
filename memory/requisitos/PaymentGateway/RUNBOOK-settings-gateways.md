@@ -48,14 +48,14 @@ Wagner gerencia credenciais dos 5 drivers (Inter + C6 + Asaas + BCB Pix + PesaPa
 ## Frontend canônico
 
 ### Arquivos
-- `resources/js/Pages/Settings/PaymentGateways/Index.tsx` (root)
-- `resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
-- `resources/js/Pages/Settings/PaymentGateways/_lib/gateway-shared.ts`
-- `resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx` (DriverChip + HealthBadge + Toggle + FileField)
-- `resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx` (4 tabs: Identificação · Credenciais · Webhook · Health)
-- `resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx` (wizard 3 steps: Driver · Credenciais · Vínculo)
-- `resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx` (Trust L3 modal — N cobranças afetadas)
-- `resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx`
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx` (root)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_lib/gateway-shared.ts`
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx` (DriverChip + HealthBadge + Toggle + FileField)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx` (4 tabs: Identificação · Credenciais · Webhook · Health)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx` (wizard 3 steps: Driver · Credenciais · Vínculo)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx` (Trust L3 modal — N cobranças afetadas)
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx`
 
 Reusa: atoms canon (`Btn`, `KpiCard`, `PageHeader`, `Field`) via `@/Pages/Financeiro/Cobranca/_components/atoms`.
 
@@ -92,6 +92,6 @@ Reusa: atoms canon (`Btn`, `KpiCard`, `PageHeader`, `Field`) via `@/Pages/Financ
 ## Refs
 
 - ADR 0144 + ADR 0170 PaymentGateway
-- Charter live: `resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
+- Charter live: `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md`
 - Cowork F1: `prototipo-ui/prototipos/payment-gateway-ui/components/pg-payment-gateways-page.jsx`
 - LICOES_F3 + KB-9.75

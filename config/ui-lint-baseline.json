@@ -827,26 +827,26 @@
     "resources/js/Pages/Sells/_components/VdNextActionPanel.tsx": {
       "R3": 5
     },
-    "resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx": {
       "R1": 38
     },
-    "resources/js/Pages/Settings/PaymentGateways/Index.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx": {
       "R1": 41
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx": {
       "R1": 8
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx": {
       "R1": 20
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx": {
       "R1": 113
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx": {
       "R1": 121,
       "R3": 1
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx": {
       "R1": 16
     },
     "resources/js/Pages/Site/Pricing.tsx": {

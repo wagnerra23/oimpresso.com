@@ -1,7 +1,7 @@
 // ConfirmToggleModal.tsx — Trust L3 fail-fast confirm modal
 import { useEffect } from 'react';
 import { Check, AlertCircle } from 'lucide-react';
-import { Btn } from '../../../Financeiro/Cobranca/_components/atoms';
+import { Btn } from '@/Pages/Financeiro/Cobranca/_components/atoms';
 import { DRIVERS, cn, type GatewayKey } from '../_lib/gateway-shared';
 import type { SettingsGateway } from '../_lib/gateway-shared';
 

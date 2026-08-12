@@ -201,4 +201,22 @@ describe('Cowork Bundle — discovery Inertia NÃO pega .jsx (underscore prefix)
                     . 'senão trocar o glob dá skip-as-pass (verde sem rodar este arquivo).');
         }
     });
+
+    // UC-4 — O SEGUNDO GLOB DE CADA PONTA. Desde 2026-08-12 uma tela pode morar dentro do
+    // módulo dono (`Modules/<X>/Resources/js/Pages/**`), e o resolver mescla esse glob com o do
+    // núcleo. Sem este assert, remover o glob de módulos passaria VERDE — medido no dia com
+    // controle negativo: build exit 0 nos DOIS casos, e a tela do módulo simplesmente some do
+    // bundle (0 chunks contra 1). Build verde não prova descoberta; por isso o contrato é aqui.
+    //
+    // `Resources` MAIÚSCULO de propósito: é a convenção nWidart deste repo (711 arquivos contra
+    // 12) e o glob do Vite é case-SENSITIVE — com o casing errado o mapa sai vazio em silêncio.
+    it('UC-4 · app.tsx e ssr.tsx descobrem telas dentro de Modules/<X>/Resources/js/Pages', function () {
+        foreach (['app.tsx', 'ssr.tsx'] as $ponta) {
+            $src = file_get_contents(__DIR__ . '/../../../../resources/js/' . $ponta);
+            expect($src)->toContain("import.meta.glob('../../Modules/*/Resources/js/Pages/**/*.tsx')");
+            // A normalização é o que faz o namespace NÃO depender de onde o arquivo mora —
+            // sem ela o glob acha os arquivos mas nenhum `Inertia::render(...)` os resolve.
+            expect($src)->toContain('[Rr]esources');
+        }
+    });
 });

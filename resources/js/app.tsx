@@ -96,13 +96,47 @@ function makeQueryClient(): QueryClient {
     });
 }
 
+// ── Descoberta de páginas: núcleo + módulos ───────────────────────────────────
+// Onde as Pages vivem é CONVENÇÃO NOSSA, não imposição do Inertia (`.claude/rules/pages.md`,
+// errata de 2026-08-12). Aproveitamos isso: um módulo pode hospedar as próprias telas em
+// `Modules/<X>/Resources/js/Pages/**`, ficando dono do seu código de ponta a ponta.
+//
+// O namespace NÃO muda com o local do arquivo. A chave do glob de módulo é normalizada para
+// o mesmo `./Pages/<Namespace>/...` do núcleo, então `Inertia::render('Settings/PaymentGateways/Index')`
+// resolve igual esteja a tela no núcleo ou dentro do módulo — nenhum dos 232 call-sites muda.
+//
+// ⚠️ Este bloco é ESPELHADO em `ssr.tsx` e os dois são sincronizados À MÃO. Mexeu num, mexa no
+// outro — `CoworkBundleIntegralTest` (UC-2/UC-4) crava as duas pontas, e o `.jsx` segue fora de
+// propósito (é o que mantém `Pages/Financeiro/_cowork-bundle/` inerte).
+const paginasDoNucleo = import.meta.glob('./Pages/**/*.tsx');
+const paginasDeModulos = import.meta.glob('../../Modules/*/Resources/js/Pages/**/*.tsx');
+
+/** Normaliza a chave do módulo para o namespace do núcleo (o local do arquivo não vaza pro nome). */
+function montarPaginas(): Record<string, () => Promise<unknown>> {
+  const mapa: Record<string, () => Promise<unknown>> = { ...paginasDoNucleo };
+  for (const [caminho, carregar] of Object.entries(paginasDeModulos)) {
+    // `[Rr]esources` de propósito: a convenção nWidart deste repo é `Resources/` (711 arquivos
+    // contra 12), e o glob acima é case-SENSITIVE. Aceitar as duas grafias aqui evita que uma
+    // pasta criada com o casing errado produza mapa vazio em silêncio — o gate `pages-colisao`
+    // é quem acusa a divergência de casing, com mensagem, em vez de a tela sumir sem aviso.
+    const m = caminho.match(/^\.\.\/\.\.\/Modules\/[^/]+\/[Rr]esources\/js\/(Pages\/.+)$/);
+    if (!m) continue;
+    const chave = `./${m[1]}`;
+    // Colisão é SILENCIOSA por construção: sem este aviso, um módulo sobrescreve a tela de
+    // outro e ela some sem erro nenhum. O gate `pages-colisao` barra isso no CI; aqui fica o
+    // sinal em runtime pra quem estiver em dev.
+    if (mapa[chave] && import.meta.env.DEV) {
+      console.error(`[inertia] COLISÃO de página: "${chave}" declarada em mais de um lugar (${caminho})`);
+    }
+    mapa[chave] = carregar;
+  }
+  return mapa;
+}
+const paginas = montarPaginas();
+
 createInertiaApp({
   title: (title) => (title ? `${title} · ${appName}` : appName),
-  resolve: (name) =>
-    resolvePageComponent(
-      `./Pages/${name}.tsx`,
-      import.meta.glob('./Pages/**/*.tsx'),
-    ),
+  resolve: (name) => resolvePageComponent(`./Pages/${name}.tsx`, paginas),
   setup({ el, App, props }) {
     const queryClient = makeQueryClient();
     const tree = (

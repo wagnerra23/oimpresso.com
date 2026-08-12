@@ -87,7 +87,7 @@
     "resources/js/Pages/Repair/JobSheet/Show.tsx",
     "resources/js/Pages/Repair/Show.tsx",
     "resources/js/Pages/Repair/Status/Index.tsx",
-    "resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx",
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx",
     "resources/js/Pages/StockAdjustment/Create.tsx",
     "resources/js/Pages/StockAdjustment/Index.tsx",
     "resources/js/Pages/StockTransfer/Create.tsx",

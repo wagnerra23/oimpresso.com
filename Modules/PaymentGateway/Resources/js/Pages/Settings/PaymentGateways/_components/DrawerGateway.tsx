@@ -5,7 +5,7 @@ import { router } from '@inertiajs/react';
 import {
   X, Copy, Shield, RefreshCw, Zap, Check, Trash2, History, Plus, Minus, ExternalLink,
 } from 'lucide-react';
-import { Btn, KpiCard } from '../../../Financeiro/Cobranca/_components/atoms';
+import { Btn, KpiCard } from '@/Pages/Financeiro/Cobranca/_components/atoms';
 import {
   DriverChip, HealthBadge, Toggle, FileField, Field,
 } from './atoms-settings';

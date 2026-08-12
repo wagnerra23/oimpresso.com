@@ -2,10 +2,10 @@
 // Reusa DRIVERS/Account/GatewayKey de Financeiro/Cobranca/_lib/cobranca-shared.
 export {
   DRIVERS, TIPOS, brl, fmtDate, fmtDateRel, cn, lsGet, lsSet,
-} from '../../../Financeiro/Cobranca/_lib/cobranca-shared';
+} from '@/Pages/Financeiro/Cobranca/_lib/cobranca-shared';
 export type {
   Account, DriverToken, GatewayKey, Gateway as CobrancaGateway,
-} from '../../../Financeiro/Cobranca/_lib/cobranca-shared';
+} from '@/Pages/Financeiro/Cobranca/_lib/cobranca-shared';
 
 export type HealthStatus = 'ok' | 'degraded' | 'down';
 

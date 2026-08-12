@@ -14,7 +14,7 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 150 arquivos em 16 papéis.
+**Total mapeado:** 150 arquivos em 12 papéis.
 
 ## Controllers — 12
 
@@ -117,29 +117,6 @@ module: PaymentGateway
 
 - [config.php](../../../Modules/PaymentGateway/Config/config.php)
 
-## Telas (Inertia/React) — 2
-
-- [CnabRetorno.tsx](../../../resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx)
-- [Index.tsx](../../../resources/js/Pages/Settings/PaymentGateways/Index.tsx)
-
-## Componentes / apoio de tela — 5
-
-- [CheatSheetSettings.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx)
-- [ConfirmToggleModal.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx)
-- [DrawerGateway.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx)
-- [SheetNovoGateway.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx)
-- [atoms-settings.tsx](../../../resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx)
-
-## Charters (lei da tela) — 2
-
-- [CnabRetorno.charter.md](../../../resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Settings/PaymentGateways/Index.charter.md)
-
-## Casos (contrato UC) — 2
-
-- [CnabRetorno.casos.md](../../../resources/js/Pages/Settings/PaymentGateways/CnabRetorno.casos.md)
-- [Index.casos.md](../../../resources/js/Pages/Settings/PaymentGateways/Index.casos.md)
-
 ## Testes (Pest) — 47
 
 - 41 em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature)
@@ -147,7 +124,7 @@ module: PaymentGateway
 - 5 em [Modules/PaymentGateway/Tests/Feature/Settings/](../../../Modules/PaymentGateway/Tests/Feature/Settings)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 21
+## Demais arquivos (manifestos, docs, assets e misc) — 32
 
 - [PaymentDriverContract.php](../../../Modules/PaymentGateway/Contracts/PaymentDriverContract.php)
 - [PaymentGatewayContract.php](../../../Modules/PaymentGateway/Contracts/PaymentGatewayContract.php)
@@ -165,8 +142,19 @@ module: PaymentGateway
 - [PaymentGatewayException.php](../../../Modules/PaymentGateway/Exceptions/PaymentGatewayException.php)
 - [WebhookSignatureInvalidException.php](../../../Modules/PaymentGateway/Exceptions/WebhookSignatureInvalidException.php)
 - [CobrancaQuery.php](../../../Modules/PaymentGateway/Repositories/CobrancaQuery.php)
+- [CnabRetorno.casos.md](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.casos.md)
+- [CnabRetorno.charter.md](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md)
+- [CnabRetorno.tsx](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx)
+- [Index.casos.md](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.casos.md)
+- [Index.charter.md](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md)
+- [Index.tsx](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx)
+- [CheatSheetSettings.tsx](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx)
+- [ConfirmToggleModal.tsx](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx)
+- [DrawerGateway.tsx](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx)
+- [SheetNovoGateway.tsx](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx)
+- [atoms-settings.tsx](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx)
+- [gateway-shared.ts](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_lib/gateway-shared.ts)
 - [paymentgateway.php](../../../Modules/PaymentGateway/Resources/lang/pt-BR/paymentgateway.php)
 - [composer.json](../../../Modules/PaymentGateway/composer.json)
 - [module.json](../../../Modules/PaymentGateway/module.json)
 - [SCOPE.md](../../../memory/requisitos/PaymentGateway/SCOPE.md)
-- [gateway-shared.ts](../../../resources/js/Pages/Settings/PaymentGateways/_lib/gateway-shared.ts)

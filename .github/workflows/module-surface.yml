@@ -118,6 +118,25 @@ jobs:
           echo "         linha pronta. Declare em scripts/governance/module-surface.mjs::PAGES_NS"
           echo "         e regenere: node scripts/governance/module-surface.mjs <Mod> --write"
 
+  # Uma tela pode morar no núcleo OU dentro do módulo dono (migração iniciada 2026-08-12). O
+  # resolver mescla os dois globs e normaliza a chave — o preço é que DUAS fontes declarando a
+  # mesma página colidem em SILÊNCIO: medido em POC no dia, o build sai exit 0, uma vence e a
+  # outra some sem erro nenhum. Nenhum gate anterior pegava (o `--all --check` compara índice
+  # com árvore — os dois arquivos existem, nada drifta).
+  colisao:
+    name: Uma tela por chave (núcleo × módulos)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Bite-test do próprio detector
+        run: node scripts/governance/pages-colisao.mjs --selftest
+      - name: node scripts/governance/pages-colisao.mjs --check
+        run: node scripts/governance/pages-colisao.mjs --check
+
   # Transação de módulo novo: o diff em module.json só fica ativável quando
   # runtime, contrato, teste, catálogo, superfície e painel fecham juntos.
   activation:

@@ -17,7 +17,7 @@ TARGETS = {
         ('/superadmin/usuarios', 'Superadmin', 'wagner'),
     'resources/js/Pages/superadmin/Usuario360/Show.charter.md':
         ('/superadmin/usuarios/{id}/360', 'Superadmin', 'wagner'),
-    'resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md':
+    'Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md':
         ('/settings/payment-gateways/{id}/cnab-retorno', 'PaymentGateway', 'wagner'),
     'resources/js/Pages/Financeiro/Advisor/Login.charter.md':
         ('/advisor/login', 'Financeiro', 'eliana'),

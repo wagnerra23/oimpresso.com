@@ -5,7 +5,7 @@ import { router } from '@inertiajs/react';
 import {
   X, ChevronRight, ChevronLeft, Plus, Check, Shield, ExternalLink,
 } from 'lucide-react';
-import { Btn } from '../../../Financeiro/Cobranca/_components/atoms';
+import { Btn } from '@/Pages/Financeiro/Cobranca/_components/atoms';
 import { DriverChip, FileField, Field } from './atoms-settings';
 import { DRIVERS, TIPOS, cn, type GatewayKey } from '../_lib/gateway-shared';
 import type { Account } from '../_lib/gateway-shared';

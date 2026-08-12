@@ -274,7 +274,7 @@ capacidades:
 - Commands: `Modules/PaymentGateway/Console/Commands/*.php` (8 — reconcile/rewrap/register-permissions/retry-orphan/register-webhook)
 - Models: `Modules/PaymentGateway/Models/{Cobranca,PaymentGatewayCredential,GatewayWebhookEvent,CnabRetornoUpload,InterWebhookLog}.php`
 - Tabelas: `payment_gateway_credentials`, `cobrancas`, `gateway_webhook_events`
-- UI: `resources/js/Pages/Settings/PaymentGateways/{Index,CnabRetorno}.tsx` (+ `.charter.md`)
+- UI: `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/{Index,CnabRetorno}.tsx` (+ `.charter.md`)
 - Tests: `Modules/PaymentGateway/Tests/Feature/*.php` (**43 arquivos**)
 
 **Critérios de classificação:**

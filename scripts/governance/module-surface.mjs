@@ -285,10 +285,14 @@ const PAPEIS = [
   // "## Telas (Inertia/React) — 4" e ninguém via QUAIS eram os 9. Volume não é objeção: este
   // mesmo doc já lista `Services` (91 na Jana) e `Console / Commands` (46).
   { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: true },
-  { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
-  { rot: 'Componentes / apoio de tela', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
-  { rot: 'Charters (lei da tela)', re: /^resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
-  { rot: 'Casos (contrato UC)', re: /^resources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
+  // A raiz aceita o prefixo OPCIONAL `Modules/<X>/` — a tela pode morar no núcleo ou dentro do
+  // módulo dono (migração iniciada 2026-08-12). Sem isso, tela migrada cairia em "Demais
+  // arquivos": presente no total, invisível como tela. Quem decide se é tela segue sendo o
+  // `isPageScreenPath` (`scripts/qa/page-path.mjs`), que descasca as duas raízes.
+  { rot: 'Telas (Inertia/React)', re: /^(?:Modules\/[^/]+\/)?resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
+  { rot: 'Componentes / apoio de tela', re: /^(?:Modules\/[^/]+\/)?resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
+  { rot: 'Charters (lei da tela)', re: /^(?:Modules\/[^/]+\/)?resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
+  { rot: 'Casos (contrato UC)', re: /^(?:Modules\/[^/]+\/)?resources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
   { rot: 'Testes (Pest)', re: /^Modules\/[^/]+\/Tests\/.*\.php$/, listar: false },
 ];
 
@@ -352,6 +356,11 @@ function isSurfaceRequired(mod) {
 function coletar(mod) {
   const core = CORE_APP_MODULES[mod];
   const pagesNs = nsDoModulo(mod); // namespaces Inertia reais (≠ nome do módulo em alguns)
+  // As telas do módulo podem morar em DOIS lugares durante a migração para `Modules/<X>/`
+  // (2026-08-12): ainda no núcleo (`resources/js/Pages/<ns>`) ou já dentro do módulo. O
+  // `walk('Modules/<Mod>')` acima já pega as internas; este segundo walk pega as que ainda
+  // não migraram. Enquanto a migração é faseada, os dois casos coexistem — e o inventário
+  // precisa mostrar o módulo INTEIRO nos dois estados, senão fica cego no meio do caminho.
   const files = [...new Set([
     ...(mod === CONTEXTO_GERAL ? RAIZES_GERAIS.flatMap((p) => walk(p)) : walk(`Modules/${mod}`)),
     ...(mod === CONTEXTO_GERAL ? [] : pagesNs.flatMap((ns) => walk(`resources/js/Pages/${ns}`))),
