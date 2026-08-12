@@ -73,7 +73,7 @@ it('controller %s importa PiiRedactor (D7.a aplicação em logs exception)', fun
     $contents = file_get_contents($absolutePath);
 
     expect($contents)
-        ->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        ->toContain('use App\\Support\\Privacy\\PiiRedactor;')
         ->and($contents)
         ->toContain('PiiRedactor::class');
 })->with('repair_controllers_with_pii_redactor');

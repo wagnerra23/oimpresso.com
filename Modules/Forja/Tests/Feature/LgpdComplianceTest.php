@@ -158,7 +158,7 @@ it('ForjaAuditService importa PiiRedactor (D7.a contrato)', function () {
     $contents = file_get_contents(base_path('Modules/Forja/Services/ForjaAuditService.php'));
 
     expect($contents)
-        ->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        ->toContain('use App\\Support\\Privacy\\PiiRedactor;')
         ->and($contents)
         ->toContain('PiiRedactor');
 });
