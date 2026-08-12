@@ -70,7 +70,7 @@ function Escolha({
   return (
     <Campo label={label}>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-8 w-full text-[12.5px]">
+        <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -180,7 +180,6 @@ export default function ParcelasDrawer({
             />
             <Campo label="Parcelas">
               <Input
-                className="h-8 text-[12.5px]"
                 value={quantidade}
                 onChange={(e) => setQuantidade(e.target.value)}
                 inputMode="numeric"
@@ -188,7 +187,6 @@ export default function ParcelasDrawer({
             </Campo>
             <Campo label="Intervalo (dias)">
               <Input
-                className="h-8 text-[12.5px]"
                 value={intervalo}
                 onChange={(e) => setIntervalo(e.target.value)}
                 inputMode="numeric"
@@ -198,7 +196,6 @@ export default function ParcelasDrawer({
             <Campo label="1º vencimento">
               <Input
                 type="date"
-                className="h-8 text-[12.5px]"
                 value={primeiroVenc}
                 onChange={(e) => setPrimeiroVenc(e.target.value)}
               />
