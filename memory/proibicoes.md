@@ -715,6 +715,10 @@ Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evide
 
 - **O limite (variante também proibida):** escrever receita, hook, monitor ou script de sessão que dependa de binário **não garantido no ambiente onde ele roda** — e, pior, silenciar o erro dele. Vale pra `jq`, `crontab`, `php`, `systemctl`, `fd`, `rg`. Duas regras que caem juntas: **(a)** `2>/dev/null` num comando cujo resultado **alimenta uma decisão** apaga a diferença entre *"rodou e deu vazio"* e *"nem rodou"* — é a mesma família do `cmd || echo "(não tem X)"` (§5 2026-07-17) e do `|| true` que fabricava "0 arquivos" (§5 2026-08-11); **(b)** fallback embutido na sintaxe da ferramenta (`// "default"` do jq, `?? x`, `-o pipefail`) **só protege se a ferramenta iniciar** — ele não é rede contra a ausência dela. Quando o ambiente-alvo pode não ter o binário, use o que o repo já garante (aqui, `node`) ou teste a existência antes.
 
+### 2026-08-12 — Construir mecanismo sem procurar PRIOR ART EXTERNA (a técnica tinha nome desde 1995 e ferramenta madura no ecossistema)
+
+- **O limite (variante também proibida):** antes de autorar mecanismo não-trivial — medidor, gerador, analisador, catraca, orquestrador — responder e **registrar no corpo do PR** duas perguntas: **(a) essa técnica tem NOME?** (literatura/termo de arte) e **(b) existe ferramenta madura no ecossistema desta stack?**. Vale mesmo quando o pré-flight interno passou limpo: *achar que não há dono no repo não é evidência de que o problema é novo* — é evidência de que ninguém aqui resolveu ainda. Decidir construir **depois** de responder as duas é legítimo e agora defensável; construir **sem** responder é o que fica proibido. Corolário barato: se a resposta de (a) existir, **adote o vocabulário dela** — "convergence/divergence/absence" comunica melhor que "confirmadas/não-declaradas/só-declaradas", e o leitor de fora entende sem tradução.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
