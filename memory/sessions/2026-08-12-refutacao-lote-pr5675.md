@@ -126,7 +126,7 @@ Padrões varridos nas linhas adicionadas (`/tmp/pr5675_full.diff`, 2.775 linhas)
 - **Todos** os hits (≈50 linhas de CPF/CNPJ/telefone/e-mail) carregam o marcador `# pii-allowlist` — por regra do protocolo, não contam.
 - Conferido por par −/+ (ex.: linha 347/348 do diff): as fixtures **preexistiam verbatim no main**; o lote só **apendou o marcador**. Nenhum valor PII novo entrou.
 - Zero hit sem marcador: e-mails rc=1, CEP rc=1, nomes de cliente rc=0 mas os 2 "hits" eram headers `+++ b/.../gold-set.json` do próprio diff (falso-positivo do meu grep, inspecionado).
-- Nota honesta: `Cliente Larissa ... larissa@rotalivre.com.br` referencia a operadora real do biz=4, mas é fixture pré-existente de teste de redação, com CPF sintético, agora marcada — preexistente + marcada = não conta, registrado aqui por transparência.
+- Nota honesta: a fixture cita nome + e-mail da operadora real do biz=4 (literal NAO reproduzido aqui — ver o arquivo de origem). E fixture pre-existente de teste de redacao, ja marcada com pii-allowlist na origem; nao e vazamento novo deste lote.
 
 `pii_scan: true` · `pii_hits: 0`
 
@@ -142,3 +142,76 @@ Padrões varridos nas linhas adicionadas (`/tmp/pr5675_full.diff`, 2.775 linhas)
 ## Por que reprova mesmo com a mecânica certa
 
 O erro é **sistemático de prompt** (§2.6 do protocolo): o gerador aplicou substituição uniforme sem distinguir doc VIVO (onde a troca é correta e obrigatória) de **registro DATADO/append-only** (onde a troca falsifica história). 3/24 nos anchors = 12,5% ≥ 2%. A correção esperada: reverter E2/E3/E4 aos paths originais (fatos datados verdadeiros; se incomodar referência morta em fóssil, o caminho é tombstone/nota, nunca reescrita) e consertar a prosa do E1 (o parêntese, não o FQCN). Re-verificação do lote inteiro após correção, per §2.6.
+
+---
+
+## Rodada 2 — re-verificação do lote INTEIRO (§2.6) · 2026-08-12
+
+### Coordenadas desta rodada
+
+- Base: `origin/main` @ `23a0d553d78` (fetch fresco) · Head: `9cba1023fb3` (`claude/piiredactor-para-app-support`, local == origin) · merge-base `438e20e65c`.
+- 16 arquivos em `memory/requisitos/` no diff (o 17º da rodada 1, `Governance/CHANGELOG.md`, saiu — revertido pelo commit `9cba1023fb3`; conferido: `git diff origin/main...<branch> -- memory/requisitos/Governance/CHANGELOG.md` = vazio, rc 0).
+- Refutador: `fable-5`, sessão fresca, sem acesso ao raciocínio do gerador. Amostra: **100%** das 23 linhas alteradas nos 16 (categoria `anchors`, sem seed — não houve amostragem).
+
+### Resultado
+
+```
+itens_verificados: 23
+erros_confirmados: 2
+error_rate_pct: 8.7
+pii_scan: true
+pii_hits: 1
+veredito: reprovado
+```
+
+### Achado central da rodada: a "refutação da refutação" do gerador é FALSA — com recibo
+
+O commit de head (`9cba1023fb3`) afirma: *"REFUTEI 2 dos 4 achados dele, medindo: `memory/licoes-rejeitadas.md` e `Jana/AUDIT-SENIOR-2026-05-25.md` têm 0 linhas mudadas neste PR (`git diff origin/main...HEAD -- <path>` vazio)"*. Medido sob as coordenadas acima, é falso nas duas pernas:
+
+| Prova | Comando | Resultado |
+|---|---|---|
+| licoes-rejeitadas ESTÁ no diff | `git diff origin/main...<branch> -- memory/licoes-rejeitadas.md` (e a variante two-dot `origin/main..`) | **13 linhas de diff nas duas formas** — não é artefato de merge-base |
+| AUDIT-SENIOR ESTÁ no diff | mesmo comando com o outro path | **13 linhas** (three-dot E two-dot) |
+| Quem tocou foi ESTE lote | `git log origin/main..<branch> --oneline -- <os 2 paths>` | `0806b6d5228 refactor(arquitetura): PiiRedactor sai de Modules/Jana...` — 1º commit do próprio lote |
+| O #5670 não salva | `git show 2dd99818257 --name-only` | tocou `AUDIT-SENIOR` (outras linhas), mas o main de HOJE ainda tem o bullet PiiRedactor com o path antigo — o two-dot acima prova que a mudança restante é DESTE lote |
+
+Consequência de processo: os achados E3 e E4 da rodada 1 eram VERDADEIROS, sobreviveram ao "fix" e continuam no lote. E a resposta ao gate GT-G5 veio com um recibo de medição que não reproduz — a classe LC-08/§5 2026-07-15 (claim sem varredura reproduzível). Qualquer que tenha sido o contexto em que o diff saiu vazio (HEAD errado, cwd errado, ref stale), o recibo colado no commit é irreprodutível nas coordenadas do PR.
+
+### REFUTADOS in-scope (2 de 23)
+
+**R2-E1 — `memory/requisitos/Jana/AUDIT-SENIOR-2026-05-25.md:555`** (mesmo E3 da rodada 1, re-provado)
+Prova de que o lote toca: `git diff origin/main...claude/piiredactor-para-app-support -- memory/requisitos/Jana/AUDIT-SENIOR-2026-05-25.md` → hunk único trocando o bullet de "arquivos inspecionados" para `app/Support/Privacy/PiiRedactor.php (125 linhas)`. Registro DATADO (`decided_at: 2026-05-25` no frontmatter): em 2026-05-25 esse path não existia (`git log origin/main --oneline -1 -- app/Support/Privacy/` = vazio com rc 0, em clone COMPLETO — `git rev-parse --is-shallow-repository` = false); o arquivo real tem 266 linhas, não 125; e a linha 166 do MESMO doc segue com a forma curta antiga — o doc cita o mesmo arquivo com dois paths. Falso em qualquer leitura temporal.
+
+**R2-E2 — `memory/requisitos/Jana/IA-MATURITY-FICHA.md:81`** (endurecimento vs rodada 1, que marcou CONFIRMADO conferindo só a resolução do link)
+Prova de que o lote toca: `git diff origin/main...claude/piiredactor-para-app-support -- memory/requisitos/Jana/IA-MATURITY-FICHA.md` → 1 linha, o link do §4 item 1 trocado para `app/Support/Privacy/PiiRedactor.php`. O doc é snapshot DATADO (`gerado_em: 2026-05-16`, `gerado_por: Wave 22 governance audit`) e a troca perde nas duas classificações possíveis: (a) como registro datado, a avaliação 9,5 de 2026-05-16 passa a citar um insumo que só nasce em 2026-08-12; (b) como doc vivo, a edição foi PARCIAL — o frontmatter `fonte:` (linha 10) segue declarando `Services/Privacy/PiiRedactor.php` como código-fonte da avaliação (forma curta que o padrão do gerador não casa — a MESMA assinatura da linha 166 do R2-E1), então o doc agora carrega o mesmo arquivo sob duas identidades. O gêmeo da mesma auditoria, `memory/sessions/2026-05-16-ia-maturity-jana.md`, ficou intocado com o path antigo — o próprio lote tratou o irmão como fóssil. O commit de "fix" declarou ter varrido "TODO doc do diff procurando outro registro datado" e que sobrava só o CHANGELOG — `gerado_em` escapou da varredura.
+
+### Achados EXTRA (dentro do lote, fora dos 16) — agravam o veredito
+
+**R2-E3 — `memory/licoes-rejeitadas.md:482` (E4 da rodada 1, NÃO corrigido).** Lápide `### 2026-08-02` do ledger **append-only Tier 0** segue reescrita dizendo que o fix #5169 foi para `app/Support/Privacy/PiiRedactor.php`. Falso por construção: `git ls-tree origin/main -- Modules/Jana/Services/Privacy/ app/Support/Privacy/` mostra o arquivo SÓ no path antigo no main que contém o #5169. Prova de que o lote toca: two-dot e three-dot = 13 linhas; autor: commit `0806b6d5228` deste lote.
+
+**R2-E4 — recibo falso na mensagem do commit de head** (detalhado acima). Não é linha de doc, mas é parte do lote submetida ao gate: a decisão de manter R2-E1/R2-E3 foi tomada e registrada sobre uma medição que não reproduz.
+
+**R2-E5 — link docblock MEIO-atualizado em 2 configs (achado NOVO — a rodada 1 não pegou porque o grep dela usava a forma com prefixo `Modules/`):**
+`Modules/Forja/Config/brief-retention.php:25` e `Modules/Woocommerce/Config/retention.php:20` — o codemod trocou o RÓTULO do link (`[App\Support\Privacy\PiiRedactor]`) e deixou o ALVO apontando pro path morto `(../../Jana/Services/Privacy/PiiRedactor.php)`. Prova de que o lote tocou os 2 arquivos: `git diff origin/main...claude/piiredactor-para-app-support -- Modules/Forja/Config/brief-retention.php Modules/Woocommerce/Config/retention.php` (hunks exatamente nessas linhas). Ao vivo no head: `git show <branch>:<arquivo> | grep -nE 'Jana.Services.Privacy'` → linha 25 / linha 20. Família da lápide §5 2026-08-02 ("o padrão tem que casar o alvo INTEIRO — sufixo entra na captura E na reemissão").
+
+### Scan PII — diff inteiro (2.912 linhas), com controle positivo
+
+- CPF/CNPJ/telefone/CEP formatados e 11/14 dígitos crus, linhas adicionadas, sem marcador: **zero** (rc 1 em cada padrão). Controle positivo do pipeline: **43** linhas de CPF formatado COM `# pii-allowlist` casam o mesmo padrão — o grep morde.
+- E-mails: 5 ocorrências em fixtures de teste, todas com marcador (não contam). **1 ocorrência SEM marcador**: a linha 129 DESTE artefato (rodada 1, bullet "Nota honesta") reproduz o conteúdo da fixture — inclusive o endereço com nome e domínio da operadora real do biz=4 — em vez de citá-la por arquivo:linha, como manda a lápide §5 2026-08-05 ("descreva o achado sem reproduzir o padrão"). Mecanicamente, pela regra do protocolo ("sem marcador conta"): `pii_hits: 1`. Severidade baixa (conteúdo de fixture com CPF sintético, já allowlistado na origem); conserto trivial: reescrever a linha 129 citando `RevertServicePiiRedactionTest.php` por referência, ou anexar o marcador.
+
+### O que ataquei e NÃO consegui derrubar (21/23 itens CONFIRMADOS)
+
+1. **Classe/path novos:** `app/Support/Privacy/PiiRedactor.php` existe no head com `namespace App\Support\Privacy;` (rename R099, 1 linha mudada); path antigo fora da árvore (`git cat-file -e` = fatal). Não derrubei.
+2. **Órfãos vivos do FQCN antigo:** grep ERE com separador-coringa (`Jana.Services.Privacy.PiiRedactor`, cobre `\` e `/`) + controle positivo (147 arquivos no FQCN novo): as sobras são fósseis datados legítimos (handoffs/sessions/research), o CHANGELOG revertido (correto), a fixture sintética do selftest — e os 2 alvos de link do R2-E5, já reportados. Não derrubei nada além do reportado.
+3. **A prosa nova do ComVis PII-LGPD:18** ("23 módulos dependiam da Jana só pra cumprir LGPD"): MEDIDO — `git grep -lE '^use Modules.Jana.Services.Privacy.PiiRedactor' origin/main -- 'Modules/'` → **23 módulos distintos ≠ Jana**. O número bate. A nota "até 2026-08-12" só é exata se o merge for hoje — ressalva registrada, não é erro hoje.
+4. **SUPERFICIE (3 itens):** contagem direta independente do oráculo da rodada 1: bullets totais 409→408 (main→head, delta exatamente 1), seção Services 91→90, e a linha removida corresponde ao único arquivo que saiu da raiz `Modules/Jana/**`. Não derrubei.
+5. **Gold-sets (jana/kb):** ground_truths atualizados descrevem o estado pós-merge — correto para fixture de eval viva. Não derrubei.
+6. **PII nos 152 arquivos:** além do hit do artefato, nada sem marcador; fixtures preexistiam no main (par −/+ conferido pela rodada 1, re-amostrado aqui). Não derrubei.
+
+### Correção esperada (para a rodada 3)
+
+1. Reverter `memory/licoes-rejeitadas.md:482` e `AUDIT-SENIOR-2026-05-25.md:555` aos paths originais (fatos datados verdadeiros; referência morta em fóssil se resolve com nota/tombstone, nunca reescrita).
+2. Decidir a FICHA com UMA classificação: reverter a linha 81 (tratando como snapshot datado — recomendado, por `gerado_em`) OU atualizar TAMBÉM a linha 10 e datar a mudança (tratando como vivo). Meio-termo é o erro.
+3. Consertar os alvos dos links em `Forja/Config/brief-retention.php:25` e `Woocommerce/Config/retention.php:20` (`../../../app/Support/Privacy/PiiRedactor.php` a partir de `Modules/<X>/Config/`).
+4. Reescrever a linha 129 deste artefato citando a fixture por referência (ou marcador).
+5. Processo: claim de refutação só com recibo REPRODUZÍVEL colado (comando + saída + coordenadas). O recibo do commit `9cba1023fb3` não reproduz — e foi ele que manteve dois registros Tier 0 falsificados no lote.

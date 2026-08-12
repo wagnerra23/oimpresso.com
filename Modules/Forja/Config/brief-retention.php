@@ -22,7 +22,7 @@ declare(strict_types=1);
  * **Zero auto-mem privada** ([ADR 0061](memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)):
  * Esta config É a fonte canônica via git — visível pro time MCP.
  *
- * **PiiRedactor integrado** ([App\Support\Privacy\PiiRedactor](../../Jana/Services/Privacy/PiiRedactor.php)):
+ * **PiiRedactor integrado** ([App\Support\Privacy\PiiRedactor](../../../app/Support/Privacy/PiiRedactor.php)):
  * BriefGeneratorService redacta o payload JSON ANTES de mandar pra OpenAI
  * (provedor externo BR) — defesa em profundidade pra D7 LGPD.
  *
