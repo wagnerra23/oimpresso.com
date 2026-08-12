@@ -193,6 +193,14 @@ return [
         // SEM user/RBAC: se vazar, só revela o SHA. Setar em .env: MCP_DRIFT_TOKEN=...
         'drift_token' => env('MCP_DRIFT_TOKEN'),
 
+        // === Memo do gate `jana.mcp.use` (incidente 2026-08-12) ===
+        // Segundos que o veredito de permissão do McpAuthMiddleware fica em cache.
+        // `$user->can()` do Spatie custa 3 queries e o MySQL é remoto (~360ms por
+        // roundtrip): eram ~1102ms por requisição relendo permissão que quase nunca
+        // muda. O TTL é a janela em que uma permissão revogada segue valendo — por
+        // isso curto. `0` desliga o memo; `esquecerPermissao($userId)` invalida na hora.
+        'auth_cache_ttl' => env('MCP_AUTH_CACHE_TTL', 60),
+
         // === Audit log governança ===
         // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
         'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),

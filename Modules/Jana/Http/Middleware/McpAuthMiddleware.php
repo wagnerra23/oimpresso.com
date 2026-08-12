@@ -57,7 +57,7 @@ class McpAuthMiddleware
         // statement do handle() de cada tool mutadora. Tools de leitura só
         // exigem este gate básico (e filtram resultado por scope quando aplicável,
         // ex: CcSearchTool com jana.cc.read.all).
-        if (method_exists($user, 'can') && ! $user->can('jana.mcp.use')) {
+        if (method_exists($user, 'can') && ! $this->podeUsarMcp($user)) {
             return $this->denied(
                 $request,
                 $startedAt,
@@ -141,6 +141,58 @@ class McpAuthMiddleware
         }
 
         return $response;
+    }
+
+    /**
+     * Gate grosso `jana.mcp.use`, memoizado por user.
+     *
+     * POR QUE (incidente 2026-08-12): `$user->can()` do Spatie custa TRÊS queries
+     * (`model_has_permissions` + `model_has_roles` + `role_has_permissions`) e o
+     * MCP server roda no CT 100 contra o MySQL do Hostinger, onde cada roundtrip
+     * mede ~360ms. Eram ~1102ms por requisição — o maior item isolado de um
+     * request de ~3,65s — pagos para reler uma permissão que quase nunca muda.
+     * O handshake do cliente faz 4 chamadas (initialize + 3× tools/list), então
+     * o desperdício era ~4,4s de um handshake de ~15s.
+     *
+     * O cache nativo do Spatie NÃO cobre isto: ele memoiza o CATÁLOGO global de
+     * permissões, não as relações por usuário — medido, 5 queries caíram só pra 4
+     * depois de o cache passar a funcionar.
+     *
+     * TTL curto DE PROPÓSITO: a janela em que uma permissão revogada continua
+     * valendo é o custo desta otimização, e 60s a mantém desprezível sem perder o
+     * ganho (as 4 chamadas do handshake acontecem em ~15s, todas em cache hit).
+     * Quem precisar de revogação imediata chama `esquecerPermissao($userId)`.
+     */
+    protected function podeUsarMcp($user): bool
+    {
+        $ttl = (int) config('copiloto.mcp.auth_cache_ttl', 60);
+
+        // TTL <= 0 desliga o cache (escape para depuração e para ambientes que
+        // exijam revogação instantânea) — sem isso, "desligar" exigiria deploy.
+        if ($ttl <= 0) {
+            return (bool) $user->can('jana.mcp.use');
+        }
+
+        return (bool) \Illuminate\Support\Facades\Cache::remember(
+            self::chavePermissao((int) $user->id),
+            $ttl,
+            fn () => (bool) $user->can('jana.mcp.use')
+        );
+    }
+
+    /** Chave do gate memoizado — pública para o invalidador não a redigitar. */
+    public static function chavePermissao(int $userId): string
+    {
+        return "mcp:auth:can-use:{$userId}";
+    }
+
+    /**
+     * Invalida o gate memoizado de um user. Chame ao conceder/revogar
+     * `jana.mcp.use` (ou o role que a carrega) para não esperar o TTL.
+     */
+    public static function esquecerPermissao(int $userId): void
+    {
+        \Illuminate\Support\Facades\Cache::forget(self::chavePermissao($userId));
     }
 
     /**
