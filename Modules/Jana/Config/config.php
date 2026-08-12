@@ -213,6 +213,13 @@ return [
         // `QuotaEnforcer::esquecerQuotas($userId)` invalida ao criar a 1ª quota.
         'quota_cache_ttl' => env('MCP_QUOTA_CACHE_TTL', 60),
 
+        // === Memo da resolução do token (mesmo incidente) ===
+        // Segundos que os atributos do token ficam em cache. A VALIDADE não é
+        // cacheada como veredito: revogar/apagar invalida na hora (evento do
+        // Model) e `expires_at` é reavaliado a cada hit. O TTL cobre só o caso
+        // de revogação por fora do Model (SQL direto). `0` desliga.
+        'token_cache_ttl' => env('MCP_TOKEN_CACHE_TTL', 60),
+
         // === Audit log governança ===
         // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
         'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),

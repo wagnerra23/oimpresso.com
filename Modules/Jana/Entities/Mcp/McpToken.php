@@ -4,6 +4,7 @@ namespace Modules\Jana\Entities\Mcp;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -74,17 +75,87 @@ class McpToken extends Model
 
     /**
      * Encontra token pelo raw enviado no header Authorization.
+     *
+     * MEMOIZADO (incidente 2026-08-12) — o middleware fazia DUAS consultas em
+     * série por requisição (esta + `User::find`), e o MCP roda no CT 100 contra
+     * o MySQL do Hostinger: 755ms medidos para as duas, ~362ms para uma. Servir
+     * o token do cache deixa a resolução em UMA consulta (a do user).
+     *
+     * SEGURANÇA — a validade NÃO é cacheada como veredito:
+     *   - `revogar()` e `delete()` invalidam a chave na hora (ver boot());
+     *   - `expires_at` é reavaliado a cada hit por `isAtivo()`, com o valor que
+     *     veio junto — expiração não depende do TTL do cache;
+     *   - o TTL é curto e existe só para o caso de alguém revogar por fora do
+     *     Model (SQL direto), onde nenhum código nosso é notificado.
+     *
+     * `MCP_TOKEN_CACHE_TTL=0` desliga.
      */
     public static function encontrarPorRaw(string $raw): ?self
     {
         $hash = hash('sha256', $raw);
+        $ttl  = (int) config('copiloto.mcp.token_cache_ttl', 60);
 
+        if ($ttl <= 0) {
+            return static::consultarPorHash($hash);
+        }
+
+        $atributos = Cache::get(self::chaveToken($hash));
+
+        if (is_array($atributos)) {
+            // newFromBuilder hidrata SEM query e sem marcar o model como dirty.
+            $token = (new static())->newFromBuilder($atributos);
+
+            // Revalida localmente: um token que expirou durante a janela do
+            // cache não pode passar só porque a chave ainda existe.
+            if ($token->isAtivo()) {
+                return $token;
+            }
+
+            Cache::forget(self::chaveToken($hash));
+
+            return null;
+        }
+
+        $token = static::consultarPorHash($hash);
+
+        if ($token !== null) {
+            Cache::put(self::chaveToken($hash), $token->getAttributes(), $ttl);
+        }
+
+        return $token;
+    }
+
+    /** Consulta ao vivo, sem cache — o caminho canônico da validade. */
+    protected static function consultarPorHash(string $hash): ?self
+    {
         return static::where('sha256_token', $hash)
             ->whereNull('revoked_at')
             ->where(function ($q) {
                 $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
             ->first();
+    }
+
+    /** Chave do memo — pública para o invalidador não redigitar a string. */
+    public static function chaveToken(string $sha256): string
+    {
+        return "mcp:token:{$sha256}";
+    }
+
+    /**
+     * Invalida o memo ao revogar/apagar — sem isto, revogar um token só valeria
+     * após o TTL, que é exatamente o tipo de janela que não se aceita em auth.
+     */
+    protected static function booted(): void
+    {
+        $esquecer = static function (self $token): void {
+            if (! empty($token->sha256_token)) {
+                Cache::forget(self::chaveToken($token->sha256_token));
+            }
+        };
+
+        static::updated($esquecer);
+        static::deleted($esquecer);
     }
 
     public function isAtivo(): bool
