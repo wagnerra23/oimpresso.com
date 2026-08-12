@@ -327,7 +327,7 @@ lifecycle: ativo
 > design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,
 > e nada a executa. A matriz reporta o fato; a triagem é humana.
 
-### 5.1 `scripts/governance/` — 109
+### 5.1 `scripts/governance/` — 110
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
@@ -405,6 +405,7 @@ lifecycle: ativo
 | `normalize-adr-frontmatter.mjs` | npm | normaliza status/lifecycle de ADR pro enum canônico. |
 | `onboarding-paths-check.mjs` | agente, script | a CAMADA DETERMINÍSTICA do canário de onboarding. |
 | `outcome-metrics.mjs` | agente, ci, script | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
+| `pages-colisao.mjs` | agente, ci | barra DUAS fontes declarando a mesma página Inertia. |
 | `palette-generate.mjs` | ci | GERADOR determinístico da página de paleta de cor. |
 | `permissao-renomeada-lint.mjs` | ci | barra o nome VELHO de permissão renomeada em linha NOVA. |
 | `permission-drift.mjs` | ci | mede o drift entre permissão DECLARADA e permissão APLICADA. |
@@ -464,7 +465,7 @@ lifecycle: ativo
 | `bundle-lint.mjs` | ci, npm | esteira ≠ armazém (régua 6 da memória de proveniência). |
 | `casos-coverage-guard.mjs` | agente, ci, npm, script | scripts/casos-coverage-guard.mjs — Gate G-1 (trio-de-tela) + G-2 (rastreabilidade caso↔teste) |
 | `casos-results-collect.mjs` | ci, npm, script | scripts/casos-results-collect.mjs — Coletor de test-results → manifesto por-UC (Salto #2, |
-| `components-tree-guard.mjs` | ci, npm, script | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
+| `components-tree-guard.mjs` | agente, ci, npm, script | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
 | `conformance-gate.mjs` | ci, npm, script | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
 | `contrato-de-tela.mjs` | ci, npm, script | Gate "Contrato de Tela" (a perna de fidelidade visual do trio-de-tela). |
 | `css-size-baseline.mjs` | ci, npm, script | scripts/css-size-baseline.mjs — ratchet de TAMANHO do CSS (anti-regrowth). |

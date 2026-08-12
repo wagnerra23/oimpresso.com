@@ -4,7 +4,7 @@ casos: Forja · mesa de aprovações · /forja/aprovacoes
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-08"
+last_run: "2026-08-12"
 ---
 
 # Casos de uso — /forja/aprovacoes

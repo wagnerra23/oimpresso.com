@@ -4,7 +4,7 @@ casos: Forja · Kanban board Jira-style · /project-mgmt/board
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-08-04"
+last_run: "2026-08-12"
 ---
 
 # Casos de uso — /project-mgmt/board

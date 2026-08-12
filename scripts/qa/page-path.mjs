@@ -1,4 +1,6 @@
 // @ts-check
+import { existsSync, readdirSync } from 'node:fs';
+
 /**
  * Fonte única para distinguir uma Page Inertia executável de arquivos auxiliares
  * co-localizados em resources/js/Pages/**.
@@ -43,4 +45,33 @@ export function isPageScreenPath(rawPath) {
 export function isAuxiliaryPagePath(rawPath) {
   const path = pageNamespacePath(rawPath);
   return path.split('/').slice(0, -1).some((part) => PAGE_AUX_DIR.test(part));
+}
+
+/**
+ * Raízes onde uma Page pode morar, relativas ao repo.
+ *
+ * Este módulo já era a fonte única de "isto é uma tela?"; a partir de 2026-08-12 é também a de
+ * "ONDE procurar telas". O motivo é medido: 39 scripts enumeravam `resources/js/Pages` cada um por
+ * conta própria, então mover uma tela para o módulo dono a fazia sumir do denominador de todos eles
+ * de uma vez — catracas de cobertura reprovando não por regressão, mas por cegueira.
+ *
+ * @param {string} root raiz do repositório
+ * @returns {string[]} caminhos ABSOLUTOS das raízes existentes (a do núcleo + uma por módulo)
+ */
+export function raizesDePages(root) {
+  const sep = root.endsWith('/') || root.endsWith('\\') ? '' : '/';
+  const nucleo = `${root}${sep}resources/js/Pages`;
+  const raizes = existsSync(nucleo) ? [nucleo] : [];
+  const modulesDir = `${root}${sep}Modules`;
+  if (!existsSync(modulesDir)) return raizes;
+  for (const mod of readdirSync(modulesDir, { withFileTypes: true })) {
+    if (!mod.isDirectory()) continue;
+    // `Resources` é a convenção nWidart deste repo; `resources` aparece no núcleo. Aceitar as
+    // duas evita que um casing errado tire a tela do denominador em silêncio.
+    for (const r of ['Resources', 'resources']) {
+      const dir = `${modulesDir}/${mod.name}/${r}/js/Pages`;
+      if (existsSync(dir)) { raizes.push(dir); break; }
+    }
+  }
+  return raizes;
 }

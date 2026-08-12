@@ -5,7 +5,7 @@ irmaos: Gantt.charter.md (lei) · memory/requisitos/Forja/RUNBOOK-gantt.md (oper
 tecnica: Caso de uso = narrativa de quem usa + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — "quem enxerga o roadmap" e "quem pode mexer no prazo" não mudam no refactor; o Gantt em si pode virar outra lib.
 owner: wagner
-last_run: "2026-08-06"
+last_run: "2026-08-12"
 ---
 
 # Casos de Uso & Aceite — Roadmap Gantt (Forja)

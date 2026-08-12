@@ -4,7 +4,7 @@ casos: Saúde do MCP · Scorecard Facts+Checks · /team-mcp/scorecard
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-06-16"
+last_run: "2026-08-12"
 ---
 
 # Casos de uso — /team-mcp/scorecard
