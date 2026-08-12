@@ -1,7 +1,7 @@
 <?php
 /**
  * GUARDA anti-drift — verifica se controllers em Modules/<X>/ estão declarados
- * em Modules/<X>/SCOPE.md (frontmatter `contains[]` ou `drift_alerts[]`).
+ * em memory/requisitos/<X>/SCOPE.md (frontmatter `contains[]` ou `drift_alerts[]`).
  *
  * Constituição Art. 7 — Module Charter: controller fora de scope = drift bloqueado.
  *
@@ -83,7 +83,7 @@ function parseFrontmatter(string $path): ?array {
 // O check acima (e o `--strict` que o scope-guard.yml roda) mede ÁRVORE → contains:
 // "controller real não declarado". A direção oposta — contains → ÁRVORE, "declarado
 // mas ausente" — não tinha dono, e é por onde o SCOPE apodrece calado. Caso-âncora
-// confessado pelo próprio Modules/Jana/SCOPE.md sobre o `BriefController`:
+// confessado pelo próprio memory/requisitos/Jana/SCOPE.md sobre o `BriefController`:
 //   "Ficou listado aqui por ~7 semanas depois de deixar de existir — nenhuma máquina
 //    compara `contains` com a árvore, então o SCOPE apodreceu calado."
 //
@@ -163,6 +163,11 @@ function classifyContainsItem(string $item, string $moduleDir, array $symbolInde
     // em 2026-08-10 (Jana/LICOES-OPERACAO.md existe e foi acusado).
     if (preg_match('/\.[A-Za-z0-9]+$/', $base) && !str_ends_with($base, '.php')) {
         if (is_file($moduleDir . '/' . $base)) return ['status' => 'ok', 'token' => $token];
+        // ADR 0375: doc do modulo mora em memory/requisitos/<X>/ desde 2026-08-10.
+        // Sem este ramo, todo item .md declarado vira fantasma — o SCOPE saiu junto.
+        if (is_file('memory/requisitos/' . basename($moduleDir) . '/' . $base)) {
+            return ['status' => 'ok', 'token' => $token];
+        }
         foreach (glob($moduleDir . '/*/' . $base) ?: [] as $_) return ['status' => 'ok', 'token' => $token];
         return ['status' => 'fantasma', 'token' => $token];
     }
@@ -237,9 +242,9 @@ if ($selftest) {
     // CN + BITE do vetor não-php (FP real, pego pelo CI em 2026-08-10): o índice só
     // tem .php, então sem tratamento próprio TODO item .md/.json vira fantasma.
     $ok('CN: arquivo .md que EXISTE no módulo → ok (não fantasma)',
-        classifyContainsItem('LICOES-OPERACAO.md — ledger append-only', 'Modules/Jana', $idx)['status'] === 'ok');
+        classifyContainsItem('LICOES-OPERACAO.md — ledger append-only', 'memory/requisitos/Jana', $idx)['status'] === 'ok');
     $ok('BITE: arquivo .md que NÃO existe segue fantasma (o fix não cega o detector)',
-        classifyContainsItem('NAO-EXISTE-XYZ.md — ledger', 'Modules/Jana', $idx)['status'] === 'fantasma');
+        classifyContainsItem('NAO-EXISTE-XYZ.md — ledger', 'memory/requisitos/Jana', $idx)['status'] === 'fantasma');
 
     // ── COBERTURA DO ÍNDICE — o eixo que o FP real explorou ────────────────────────
     // Os asserts de classificação INJETAM o índice, então nenhum deles exercita
@@ -259,8 +264,8 @@ if ($selftest) {
         is_file('Modules/Jana/Services/SkillsService.php'));
     $ok('contrato: nenhum ConversationsController no repo (âncora do achado real Whatsapp)',
         empty($real['ConversationsController']));
-    $ok('contrato: Modules/Jana/LICOES-OPERACAO.md existe (âncora do CN não-php)',
-        is_file('Modules/Jana/LICOES-OPERACAO.md'));
+    $ok('contrato: memory/requisitos/Jana/LICOES-OPERACAO.md existe (âncora do CN não-php)',
+        is_file('memory/requisitos/Jana/LICOES-OPERACAO.md'));
 
     echo $fails
         ? "\n  $fails FALHA(S) — a direção contains→árvore não está honesta.\n"
@@ -316,7 +321,7 @@ if ($declaredOnly) {
     $mods = 0;
 
     foreach ($modules as $moduleDir) {
-        $scopePath = $moduleDir . '/SCOPE.md';
+        $scopePath = 'memory/requisitos/' . basename($moduleDir) . '/SCOPE.md';
         if (!file_exists($scopePath)) continue;
         $fm = parseFrontmatter($scopePath);
         if ($fm === null) continue;
@@ -390,7 +395,7 @@ $modulesWithoutScope = [];
 
 foreach ($modules as $moduleDir) {
     $moduleName = basename($moduleDir);
-    $scopePath = $moduleDir . '/SCOPE.md';
+    $scopePath = 'memory/requisitos/' . basename($moduleDir) . '/SCOPE.md';
 
     if (!file_exists($scopePath)) {
         $modulesWithoutScope[] = $moduleName;

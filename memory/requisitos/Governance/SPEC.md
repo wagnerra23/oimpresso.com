@@ -1369,3 +1369,25 @@ Latente: só dispara se alguém rodar esses arquivos contra o staging. **Não en
 3. Proteger na origem: recusar `dropIfExists` de tabela CORE quando o nome da DB não terminar em `_test`. Fecha a classe inteira, inclusive os 142, mas é máquina nova — exige FP medido antes (regra "LIGUE A MÁQUINA" item 4).
 
 Refs: [#5396](https://github.com/wagnerra23/oimpresso.com/pull/5396) · [handoff 2026-08-07 15:30](../../handoffs/2026-08-07-1530-quarentena-era-sqlite-piloto-lane-whatsapp.md) · [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)
+
+### US-GOV-061 · `memory/modulos/` drifado: 15 specs editadas à mão assinam data de geração antiga
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — é dívida a pagar rodando o gerador, não construção; o código do gerador já está correto em `main`.
+
+**Sintoma:** os 15 `memory/modulos/<Mod>.md` de módulos vivos foram editados **cirurgicamente** no [#5680](https://github.com/wagnerra23/oimpresso.com/pull/5680) — removidas as 3 linhas que o `ModuleSpecGenerator` deixou de emitir (`Build: **Laravel Mix**`, `` `package.json` presente ``, `**Deps JS:**`) — e seguem assinando `**Gerado automaticamente por ModuleSpecGenerator em 2026-05-29 08:06.**`. O arquivo afirma sobre si algo que deixou de ser verdade (família LC-10).
+
+**Por que não foi feito no PR:** o worktree não tinha `vendor/` (o gerador é PHP), e criar a junction arma a armadilha do `git worktree remove` — proibição Tier 0 com 2 incidentes catalogados (`vendor/` 318 MB → 0 em 2026-05-11; `node_modules/` em 2026-07-14).
+
+**O que fazer:** numa máquina com `vendor/` instalado, `php artisan module:specs`.
+
+⚠️ **Duas armadilhas, ambas medidas:**
+
+1. **Nem todo o diff é deste PR.** `memory/modulos/Ponto.md` já não tinha seção `## Assets` embora o módulo tivesse `package.json` — drift anterior, independente. Não trate o diff inteiro como regressão a reverter.
+2. **O comando tem um guard que pode abortar, e ele está certo.** `GenerateModuleSpecsCommand::guardaPerdaDeBranch()` bloqueia quando uma branch histórica sumiu e existe arquivo que a registra — hoje 6 fósseis (`Accounting`, `AiAssistance`, `Grow`, `IProduction`, `Officeimpresso1`, `Writebot`), cujo único registro é `memory/modulos/` porque `main-wip-2026-04-22` não existe mais no repo nem no remoto. Regenerar trocaria o `✅` deles por `n/d` e **o fato datado se perde sem volta**. O `--aceito-perda-de-branch` existe, mas usá-lo é decisão [W], não conveniência de quem roda.
+
+**Impacto se não fizer:** baixo e silencioso — nenhum gate cobre `memory/modulos/`. O custo aparece na próxima pessoa que rodar `module:specs` "pra conferir" e receber um diff grande sem saber o que é drift real e o que é este PR.
+
+Refs: [#5680](https://github.com/wagnerra23/oimpresso.com/pull/5680) · [handoff 2026-08-12 17:24](../../handoffs/2026-08-12-1724-build-por-modulo-morto-e-o-teto-do-gt-g5.md) · guard em `app/Console/Commands/GenerateModuleSpecsCommand.php:98-112`

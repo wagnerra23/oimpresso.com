@@ -307,6 +307,42 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->password = bcrypt('test');
         $user->business_id = $bizId;
         $user->save();
+
+        // CAUSA-RAIZ do "403 intermitente" da lane (medida 2026-08-11, run 31519646171).
+        // NÃO era flake, NÃO era Spatie, NÃO era ordem de execução: era ESTE ramo.
+        //
+        // `save()` faz o INSERT e o MySQL aplica os DEFAULTs das colunas que não
+        // enumeramos (`users.user_type` DEFAULT 'user', `users.allow_login` DEFAULT 1) —
+        // mas o Eloquent NÃO recarrega o modelo. A instância em memória fica com
+        // user_type=null e allow_login=null, e é ELA que o `actingAs()` abaixo põe no
+        // guard. O middleware `CheckUserLogin` (app/Http/Middleware/CheckUserLogin.php:18,
+        // roda ANTES do `can:` na stack) lê do MODELO, não do banco:
+        //     if ($request->user()->user_type != 'user' || $request->user()->allow_login != 1)
+        //         abort(403, 'Unauthorized action.');
+        // → null != 'user' → 403 no PRIMEIRO request autenticado desse usuário.
+        //
+        // O ramo `find()` acima nunca sofria (traz a linha inteira do banco), então o bug
+        // dispara UMA vez por banco — e o banco da lane é efêmero por run. A aparência de
+        // flake vinha de QUEM leva o golpe: `MultiTenantTraitTest` chama kbActAsUser SEM
+        // fazer request, então quando ele sorteia primeiro o user nasce aqui e o bug é
+        // consumido em silêncio (run verde); quando quem sorteia primeiro é um teste HTTP,
+        // ele toma o 403 (6/6 das falhas 31425398494 · 31482695145 · 31491029075 ·
+        // 31513833674 · 31514548359 · 31517070137).
+        //
+        // Recibo do probe (job probe-403, 25 processos por braço):
+        //   braço A (usuário já existia) ...... 0/25 != 200
+        //   braço B (usuário recriado a cada) . 25/25 != 200
+        // Diagnóstico capturado: exception "HttpException: Unauthorized action." (mensagem
+        // do CheckUserLogin), com a linha do banco JÁ correta (user_type='user',
+        // allow_login=1) — a divergência era só banco × memória.
+        //
+        // `refresh()` em vez de setar as 2 colunas à mão: imune a QUALQUER coluna futura
+        // com DEFAULT que outro middleware venha a ler (mesmo raciocínio "robusto a drift
+        // de schema" que kbCreateBusinessRow já usa ao clonar a row-modelo).
+        //
+        // NÃO é bug de produção: em prod o guard resolve o usuário do banco, com a linha
+        // inteira. É defeito de test-infra — o helper entregava um modelo pela metade.
+        $user->refresh();
     } elseif ((int) $user->business_id !== $bizId) {
         // BLOQUEADOR 3 (flaky 403 da lane KB, catalogado 2026-07-29): o `business_id` só era
         // setado no ramo de CRIAÇÃO. Reutilizando o MESMO $userId em outro $bizId, o usuário

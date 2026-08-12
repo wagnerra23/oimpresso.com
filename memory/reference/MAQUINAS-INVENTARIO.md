@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 123 (42 contexts required)
+## 1. Workflows / Gates de CI — 123 (44 contexts required)
 
 | Workflow | Descrição |
 |---|---|
@@ -327,7 +327,7 @@ lifecycle: ativo
 > design**. O que é dívida é **medidor** órfão — a máquina existe, o teste prova que ela morde,
 > e nada a executa. A matriz reporta o fato; a triagem é humana.
 
-### 5.1 `scripts/governance/` — 108
+### 5.1 `scripts/governance/` — 109
 
 | Script | Invocador | Descrição (cabeçalho) |
 |---|---|---|
@@ -344,8 +344,8 @@ lifecycle: ativo
 | `baseline-tamper-guard.mjs` | ci, script | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
 | `blade-migration-census.mjs` | ci, script | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
 | `briefing-code-staleness.mjs` | agente, ci, npm, script | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
-| `brl-scan-diff.mjs` | ci | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
-| `catalog-graph.mjs` | ci, script | GERADOR determinístico do GRAFO TIPADO de módulos. |
+| `brl-scan-diff.mjs` | ci, script | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
+| `catalog-graph.mjs` | agente, ci, script | GERADOR determinístico do GRAFO TIPADO de módulos. |
 | `charter-blueprint-pointers.mjs` | ci, script | auditoria de PONTEIROS DE PROTÓTIPO dos Page Charters. |
 | `charter-live-signal.mjs` | ci, script | gate de SINAL pra charter `status: live` (proposta SDD 2026-06-24). |
 | `charter-promote-signal.mjs` | script | passe REPETÍVEL de promoção draft→live guiado por SINAL de prod. |
@@ -392,7 +392,7 @@ lifecycle: ativo
 | `hue-canon-check.mjs` | agente, ci | verificador da fonte única do hue primário (US-GOV-052 P32). |
 | `junit-lanes.mjs` | ci | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
 | `knowledge-drift.mjs` | agente, ci, script | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
-| `lapide-recheck.mjs` | agente, ci | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
+| `lapide-recheck.mjs` | agente, ci, script | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | agente, ci, script | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
 | `ledger-hash-chain.mjs` | ci | transparency-log (Rekor/Sigstore-style) sobre o |
 | `maquinas-inventario.mjs` | agente, ci | DERIVA um índice único e legível de TODAS as "máquinas" |
@@ -404,7 +404,7 @@ lifecycle: ativo
 | `next-id.mjs` | agente, script | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
 | `normalize-adr-frontmatter.mjs` | npm | normaliza status/lifecycle de ADR pro enum canônico. |
 | `onboarding-paths-check.mjs` | agente, script | a CAMADA DETERMINÍSTICA do canário de onboarding. |
-| `outcome-metrics.mjs` | ci, script | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
+| `outcome-metrics.mjs` | agente, ci, script | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
 | `palette-generate.mjs` | ci | GERADOR determinístico da página de paleta de cor. |
 | `permissao-renomeada-lint.mjs` | ci | barra o nome VELHO de permissão renomeada em linha NOVA. |
 | `permission-drift.mjs` | ci | mede o drift entre permissão DECLARADA e permissão APLICADA. |
@@ -425,6 +425,7 @@ lifecycle: ativo
 | `sdd-flow.mjs` | npm | recibo estrutural da cadeia: |
 | `sdd-output-lint.mjs` | ci, npm | mede a QUALIDADE do artefato que o agent `sdd-from-source` (ADR 0351) produz. |
 | `sdd-scorecard.mjs` | agente, ci, script | agregador do scorecard SDD (GT-G2, Semana 0 do plano |
+| `sec5-derive.mjs` | ci | o §5 do `memory/proibicoes.md` passa a ser DERIVADO. |
 | `seed-tela.mjs` | script | EMPACOTADOR DE SEED (G1 do padrão "1 clique → sessão limpa por tela"). |
 | `selftest-registry-check.mjs` | agente, ci, script | P15 entrega 3: teste .mjs órfão de workflow (advisory). |
 | `service-scorecard.mjs` | ci | SCORECARD de SINAIS-VIVOS por serviço/módulo (estilo Cortex). |
@@ -438,7 +439,7 @@ lifecycle: ativo
 | `uc-sem-lane.mjs` | ci | UC com o id no TÍTULO de um teste que LANE NENHUMA executa. |
 | `ui-impact.mjs` | ci | Fonte única do skip-as-pass do visual-regression. |
 | `visual-comparison-staleness.mjs` | ci, script | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |
-| `worktree-janitor.mjs` | npm | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
+| `worktree-janitor.mjs` | ci, npm | Faxineiro de worktrees — classifica worktree MORTO vs VIVO por ORÁCULO, nunca por heurística. |
 
 ### 5.2 `scripts/tests/` — 8
 
@@ -463,7 +464,7 @@ lifecycle: ativo
 | `bundle-lint.mjs` | ci, npm | esteira ≠ armazém (régua 6 da memória de proveniência). |
 | `casos-coverage-guard.mjs` | agente, ci, npm, script | scripts/casos-coverage-guard.mjs — Gate G-1 (trio-de-tela) + G-2 (rastreabilidade caso↔teste) |
 | `casos-results-collect.mjs` | ci, npm, script | scripts/casos-results-collect.mjs — Coletor de test-results → manifesto por-UC (Salto #2, |
-| `components-tree-guard.mjs` | ci, npm, script | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
+| `components-tree-guard.mjs` | agente, ci, npm, script | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
 | `conformance-gate.mjs` | ci, npm, script | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
 | `contrato-de-tela.mjs` | ci, npm, script | Gate "Contrato de Tela" (a perna de fidelidade visual do trio-de-tela). |
 | `css-size-baseline.mjs` | ci, npm, script | scripts/css-size-baseline.mjs — ratchet de TAMANHO do CSS (anti-regrowth). |
@@ -504,6 +505,7 @@ lifecycle: ativo
 | `governance/blade-migration-baseline.json` | Censo de migração Blade→React — catraca só-desce por escopo (ADR 0277 contrato de completude) |
 | `governance/charter-refs-baseline.json` | (baseline/estado) |
 | `governance/deadlink-baseline.json` | (baseline/estado) |
+| `governance/dependency-direction-baseline.json` | (baseline/estado) |
 | `governance/doc-id-index.json` | (baseline/estado) |
 | `governance/doneness-baseline.json` | doneness GRANDFATHER — conflitos status×âncora legados isentos (ratchet só-desce · ADR 0302/0275 advisory→required por calendário) |
 | `governance/ds-ledger.json` | (baseline/estado) |
@@ -513,8 +515,10 @@ lifecycle: ativo
 | `governance/jana-ragas-baseline.json` | Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispat… |
 | `governance/jana-ragas-real-baseline.json` | (baseline/estado) |
 | `governance/ledger-checkpoints.json` | (baseline/estado) |
+| `governance/module-coupling-baseline.json` | (baseline/estado) |
 | `governance/module-grades-baseline.json` | (baseline/estado) |
 | `governance/module-group.json` | (baseline/estado) |
+| `governance/module-table-coupling-baseline.json` | (baseline/estado) |
 | `governance/multi-tenant-scope-baseline.json` | (baseline/estado) |
 | `governance/prod-flags.json` | (baseline/estado) |
 | `governance/required-checks-baseline.json` | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
@@ -540,4 +544,4 @@ lifecycle: ativo
 | `scripts/perf-static-baseline.json` | perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory) |
 | `scripts/reuse-duplicates-baseline.json` | (baseline/estado) |
 
-> Total baselines JSON em governance/+config/+scripts: 42 · (mais ~5 dot-baselines na raiz + fixtures em tests/).
+> Total baselines JSON em governance/+config/+scripts: 45 · (mais ~5 dot-baselines na raiz + fixtures em tests/).

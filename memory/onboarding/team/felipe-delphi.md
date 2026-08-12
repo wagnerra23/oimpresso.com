@@ -99,7 +99,7 @@ Cada vez que mexer em `Modules/<X>/`:
 | **Descoberta Delphi não vira git** | Você lê `.pas` ou Firebird, anota local, esquece PR | Template `memory/legacy-delphi/<descoberta>.md` obrigatório; PR template com checklist "anotou descoberta nova?" |
 | **Edit em prod via SSH** | "ajuste rápido" no Hostinger | PROIBIDO. Via git pull do canônico apenas. Hook `block-destructive` bloqueia comandos perigosos. |
 | **Tinker em prod sem commit** | `php artisan tinker` direto → `Cache::put`/`User::update` | PROIBIDO. Use seeder OR comando artisan idempotente + commit |
-| **Drift de Module Charter** | Cria Controller fora de `Modules/<X>/SCOPE.md.contains[]` | Hook `block-module-drift.ps1` (warn 4 semanas, depois block) + CI gate |
+| **Drift de Module Charter** | Cria Controller fora de `memory/requisitos/<X>/SCOPE.md.contains[]` | Hook `block-module-drift.ps1` (warn 4 semanas, depois block) + CI gate |
 | **PII em commit/log** | CPF/CNPJ cliente vaza | CI `pii-scan` bloqueia merge; use `[REDACTED]` ou `PiiRedactor` |
 
 ## Quando escalar pro Wagner

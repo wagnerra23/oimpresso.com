@@ -14,7 +14,7 @@ last_validated: "2026-06-08"
 Quando Claude tenta `Write`/`Edit`/`MultiEdit` em `Modules/<X>/Http/Controllers/**/*Controller.php`:
 
 1. Extrai nome do módulo `<X>` (PascalCase) + nome do Controller (basename sem `.php`).
-2. Lê `Modules/<X>/SCOPE.md`.
+2. Lê `memory/requisitos/<X>/SCOPE.md`.
 3. Parseia o frontmatter YAML (parser pragmático sem dependência — só regex) e extrai `contains[]`.
 4. Verifica se o nome do Controller aparece como substring em qualquer item de `contains[]`. Match aceita formatos:
    - `"ChatController"` (nome puro)
@@ -75,7 +75,7 @@ $env:OIMPRESSO_DRIFT_OVERRIDE = '1'
 
 Quando precisar criar Controller NOVO no módulo:
 
-1. **Antes** de rodar `Write`/`Edit` no arquivo `.php` do Controller, EDITE `Modules/<X>/SCOPE.md` adicionando entrada em `contains[]`:
+1. **Antes** de rodar `Write`/`Edit` no arquivo `.php` do Controller, EDITE `memory/requisitos/<X>/SCOPE.md` adicionando entrada em `contains[]`:
 
    ```yaml
    contains:
@@ -129,7 +129,7 @@ Verifique:
 
 ### `SCOPE.md` ausente
 
-Se `Modules/<X>/SCOPE.md` não existir:
+Se `memory/requisitos/<X>/SCOPE.md` não existir:
 - `warn` → emite "AVISO: SCOPE.md ausente, não foi possível validar drift" em stderr.
 - `strict` → bloqueia com mensagem instruindo criar SCOPE.md (copiar template de outro módulo).
 

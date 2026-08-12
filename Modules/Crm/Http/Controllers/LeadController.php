@@ -15,7 +15,7 @@ use Modules\Crm\Http\Requests\StoreLeadRequest;
 use Modules\Crm\Http\Requests\UpdateLeadRequest;
 use Modules\Crm\Services\LeadAssignmentService;
 use Modules\Crm\Utils\CrmUtil;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class LeadController extends Controller

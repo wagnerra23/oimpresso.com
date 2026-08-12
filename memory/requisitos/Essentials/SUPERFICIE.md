@@ -12,9 +12,9 @@ module: Essentials
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Essentials --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Essentials/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 274 arquivos em 15 papéis.
+**Total mapeado:** 272 arquivos em 15 papéis.
 
 ## Controllers — 19
 
@@ -268,7 +268,7 @@ module: Essentials
 - 15 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 51
+## Demais arquivos (manifestos, docs, assets e misc) — 49
 
 - [.gitkeep](../../../Modules/Essentials/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Essentials/Console/.gitkeep)
@@ -314,10 +314,8 @@ module: Essentials
 - [lang.php](../../../Modules/Essentials/Resources/lang/vi/lang.php)
 - [topnav.php](../../../Modules/Essentials/Resources/menus/topnav.php)
 - [.gitkeep](../../../Modules/Essentials/Resources/views/.gitkeep)
-- [SCOPE.md](../../../Modules/Essentials/SCOPE.md)
 - [.gitkeep](../../../Modules/Essentials/Tests/.gitkeep)
 - [EssentialsUtil.php](../../../Modules/Essentials/Utils/EssentialsUtil.php)
 - [composer.json](../../../Modules/Essentials/composer.json)
 - [module.json](../../../Modules/Essentials/module.json)
-- [package.json](../../../Modules/Essentials/package.json)
-- [webpack.mix.js](../../../Modules/Essentials/webpack.mix.js)
+- [SCOPE.md](../../../memory/requisitos/Essentials/SCOPE.md)

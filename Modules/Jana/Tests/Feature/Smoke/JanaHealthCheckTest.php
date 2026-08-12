@@ -95,7 +95,7 @@ test('comando nao crasha mesmo se tabelas degraded', function () {
  * Parser determinístico — testável sem tocar o filesystem real.
  *
  * @see Modules/Jana/Console/Commands/HealthCheckCommand::parseLessonLedger
- * @see Modules/Jana/LICOES-OPERACAO.md
+ * @see memory/requisitos/Jana/LICOES-OPERACAO.md
  */
 use Modules\Jana\Console\Commands\HealthCheckCommand;
 
@@ -166,8 +166,8 @@ test('parser do ledger: MEC sem check e bloco sem graduação são malformados',
     expect($r['overdue'])->toBe([]);
 });
 
-test('ledger canônico Modules/Jana/LICOES-OPERACAO.md está todo graduado', function () {
-    $path = base_path('Modules/Jana/LICOES-OPERACAO.md');
+test('ledger canônico memory/requisitos/Jana/LICOES-OPERACAO.md está todo graduado', function () {
+    $path = base_path('memory/requisitos/Jana/LICOES-OPERACAO.md');
     expect(is_file($path))->toBeTrue('Ledger canônico ausente');
 
     $r = HealthCheckCommand::parseLessonLedger((string) file_get_contents($path));

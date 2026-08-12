@@ -45,6 +45,16 @@ jobs:
         run: node scripts/governance/ancora-codigo-sync.mjs --selftest
       - name: Maquinas-inventario bite-test (--check morde missing+ghost, libera fiel · fixture temp)
         run: node scripts/governance/maquinas-inventario.test.mjs
+      # §5 derivado: a FONTE e memory/licoes-rejeitadas.md (corpos integros, append-only);
+      # o §5 de proibicoes.md carrega SO os limites e e GERADO. Duas pernas independentes:
+      # (1) NAO-PERDA -- todo bullet "- **O limite" da fonte chegou ao derivado (o que
+      #     importa; sem isso o check seria tautologico -- §5 2026-06-05);
+      # (2) SINCRONIA -- o §5 no disco e byte-identico ao que o gerador produz (anti-drift
+      #     de quem editar o derivado a mao em vez da fonte).
+      - name: §5 derivado == fonte (nao-perda de limite + anti-drift)
+        run: node scripts/governance/sec5-derive.mjs --check
+      - name: §5 derive bite-test (corta arqueologia, NUNCA come limite · lapide de 2 eixos)
+        run: node scripts/governance/sec5-derive.mjs --selftest
       # O contrato de completude da ADR 0277 ("migrado = route Blade morto") foi decidido em
       # 2026-06-13 e NUNCA ganhou maquina — medido: 0 scripts, 0 workflows contavam route Blade
       # vivo, e o censo A-L do roadmap era digitado a mao. Este selftest defende o MEDIDOR;
@@ -139,12 +149,20 @@ jobs:
       # (CONCORDA). NUNCA chama modelo/rede aqui — a chamada cross-vendor é técnica de PROCESSO, fora do CI.
       - name: Reguas cross-model (direção do controle-negativo · blind sem vazar peer · same-vendor barrado)
         run: node scripts/governance/reguas-cross-model.test.mjs
-      # Grafo tipado DERIVADO dos Modules/*/SCOPE.md (chip #2 grade catálogo/IDP 2026-07-21).
+      # Grafo tipado DERIVADO dos memory/requisitos/*/SCOPE.md (chip #2 grade catálogo/IDP 2026-07-21).
       # Testa a lógica PURA (parse frontmatter + extratores + buildGraph + serialização
       # determinística + detecção de aresta pendurada) com SCOPE sintéticos — não a árvore viva.
       # Advisory por desenho (ADR 0314/0275: required = só Tier-0).
       - name: Catalog graph (arestas tipadas do SCOPE · aresta pendurada morde · determinismo)
         run: node scripts/governance/catalog-graph.test.mjs
+      # CATRACA de acoplamento módulo→módulo (forward-only). Roda contra a ÁRVORE VIVA,
+      # não fixture: reprova par NOVO que não esteja congelado em
+      # governance/module-coupling-baseline.json. Fica AQUI, e não no catalog-graph.yml,
+      # de propósito: aquele job é REQUIRED e a catraca nasce advisory (ADR 0275/0336 —
+      # promoção é flip [W] com mordida provada). Espelha a DependencyDirectionTest
+      # (app/ ↛ Modules/) um nível abaixo.
+      - name: Catraca de acoplamento módulo→módulo (advisory · forward-only)
+        run: node scripts/governance/catalog-graph.mjs --acoplamento --catraca
       # Scorecard de sinais-vivos por serviço (grade Catálogo/IDP 7,5 · "scorecard de sinais-vivos"
       # + UI consultável, 2026-07-21). AGREGADOR advisory que junta grade+telas+grafo+briefing por
       # serviço — testa a LÓGICA PURA (buildDoc/graphSignals) com fixtures sintéticas: join grade

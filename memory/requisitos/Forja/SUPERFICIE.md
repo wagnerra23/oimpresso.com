@@ -12,7 +12,7 @@ module: Forja
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Forja --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/Forja/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 212 arquivos em 15 papéis.
 
@@ -207,7 +207,6 @@ module: Forja
 - [projectmgmt.php](../../../Modules/Forja/Resources/lang/en/projectmgmt.php)
 - [projectmgmt.php](../../../Modules/Forja/Resources/lang/pt/projectmgmt.php)
 - [topnav.php](../../../Modules/Forja/Resources/menus/topnav.php)
-- [SCOPE.md](../../../Modules/Forja/SCOPE.md)
 - [BoostToolAdapter.php](../../../Modules/Forja/Tools/BoostToolAdapter.php)
 - [GitCommitWipTool.php](../../../Modules/Forja/Tools/GitCommitWipTool.php)
 - [GitInspectTool.php](../../../Modules/Forja/Tools/GitInspectTool.php)
@@ -217,6 +216,7 @@ module: Forja
 - [composer.json](../../../Modules/Forja/composer.json)
 - [module.json](../../../Modules/Forja/module.json)
 - [start.php](../../../Modules/Forja/start.php)
+- [SCOPE.md](../../../memory/requisitos/Forja/SCOPE.md)
 - [useBoardShortcuts.ts](../../../resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts)
 - [Index.design-spec.json](../../../resources/js/Pages/Forja/Trabalho/Index.design-spec.json)
 - [TrabalhoQuadro.design-spec.json](../../../resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.design-spec.json)

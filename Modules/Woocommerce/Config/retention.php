@@ -17,7 +17,7 @@ declare(strict_types=1);
  * `activity_log` (Spatie) é AUDITORIA — NUNCA purgada, mesmo que dado-fonte seja.
  * Retention abaixo é pro dado vivo na tabela origem, não pro audit trail.
  *
- * **PiiRedactor integrado** ([Modules\Jana\Services\Privacy\PiiRedactor](../../Jana/Services/Privacy/PiiRedactor.php)):
+ * **PiiRedactor integrado** ([App\Support\Privacy\PiiRedactor](../../../app/Support/Privacy/PiiRedactor.php)):
  * WoocommerceWebhookController redacta payloads (billing.email/phone/address) antes
  * de gravar em `storage/logs/laravel.log` — defesa em profundidade D7.a.
  *
@@ -30,7 +30,7 @@ declare(strict_types=1);
  * (prescrição comercial 5 anos) + Lei Complementar 123/2006 (fiscal MEI 5 anos).
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  * @see Modules\Woocommerce\Http\Controllers\WoocommerceWebhookController
  */
 

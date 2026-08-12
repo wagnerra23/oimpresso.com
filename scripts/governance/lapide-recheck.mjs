@@ -38,7 +38,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { resolve, dirname, join } from 'node:path';
+import { resolve, dirname, join, basename } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO_ROOT = (() => {
@@ -46,7 +46,15 @@ const REPO_ROOT = (() => {
   if (process.env.OIMPRESSO_REPO_ROOT) return process.env.OIMPRESSO_REPO_ROOT;
   return dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 })();
-const PROIBICOES_DEFAULT = join(REPO_ROOT, 'memory', 'proibicoes.md');
+// FONTE das lápides = memory/licoes-rejeitadas.md (corpos ÍNTEGROS, append-only).
+// O §5 de proibicoes.md virou DERIVADO (só os limites) — as ÂNCORAS que este script
+// resolve vivem nos corpos, então ler o derivado devolveria "sem âncora" em massa
+// (medido no split de 2026-08-11: 76 intactas → 27, e 16 "sem âncora" → 77).
+// Fallback pro proibicoes.md preserva o comportamento em checkout anterior ao split.
+const FONTE_LAPIDES = join(REPO_ROOT, 'memory', 'licoes-rejeitadas.md');
+const PROIBICOES_DEFAULT = existsSync(FONTE_LAPIDES)
+  ? FONTE_LAPIDES
+  : join(REPO_ROOT, 'memory', 'proibicoes.md');
 
 // ── parsing do §5 (mantém o CORPO — diferente do parseTombstones do hook, que descarta) ──
 /** região §5 = de "## Ideias avaliadas e DESCARTADAS" até o próximo "## " (não-###). */
@@ -204,10 +212,63 @@ export function sampleDeterministic(items, n, seed = 0) {
 
 /** roda o re-check. `resolver` injetável (teste); default = resolver robusto do repo vivo
  *  (git ls-files + suffix + ADR-por-número). Sem I/O de arquivo de saída. */
+// ── MÉTRICA DE CORPUS (F5 da grade 2026-08-11 — o passo de ESCRITA) ────────────
+// POR QUE EXISTE: o §5 protege, e ninguém mede o que ele CUSTA. Medido em 2026-08-11:
+// ~106k tokens carregados em TODA sessão (CLAUDE.md importa proibicoes.md inteiro),
+// 475 palavras por lápide, ~1,6 lápide/dia. Sem número, "a memória que protege vai
+// começar a sufocar" é palpite; com número é acompanhável.
+//
+// O QUE ISTO NÃO É (as 3 lápides que ele poderia virar, e não vira):
+//   • NÃO é nota agregada. A lápide C9 (2026-07-17) proíbe colapsar vereditos
+//     incomensuráveis num índice — aqui saem NÚMEROS SEPARADOS, nunca um score.
+//   • NÃO é presence-gate. Reporta CONTAGEM de partes ausentes pra leitura humana;
+//     não reprova nada, não entra em required, o script segue exit 0 SEMPRE
+//     (lápides §5 07-01/07-09/07-16 mataram "seção presente = ok" como GATE — medir
+//     e publicar é outra coisa, e é o que a régua F5 pediu).
+//   • NÃO declara teto. `teto_declarado: null` é honesto: ninguém declarou orçamento
+//     de contexto pro §5, e inventar um seria régua nascida de agente. Ato [W].
+//
+// EMENDA/META fora do denominador de conformidade — MEDIDO, não presumido: as 8
+// entradas cujo título começa com "EMENDA"/"Claims de superioridade" emendam uma
+// lápide existente e por construção não repetem as 3 partes (7 das 8 não têm "O que
+// foi tentado"). Contá-las como não-conformes seria falso-positivo — a doença dos 5
+// guards sintáticos do §5. Entre as 96 NORMAIS, "O limite" tem 100% de conformidade.
+export function medirCorpus(tombs, { charsArquivo = 0 } = {}) {
+  const EMENDA = /^EMENDA\b|EMENDA da l[áa]pide|^Claims de superioridade/i;
+  const emendas = tombs.filter((t) => EMENDA.test(t.title));
+  const normais = tombs.filter((t) => !EMENDA.test(t.title));
+  const palavras = tombs.map((t) => String(t.body).trim().split(/\s+/).filter(Boolean).length);
+  const ord = [...palavras].sort((a, b) => a - b);
+  const soma = palavras.reduce((a, b) => a + b, 0);
+  const maiorIdx = palavras.indexOf(Math.max(...palavras, 0));
+  const charsCorpos = tombs.reduce((a, t) => a + String(t.body).length, 0);
+  const PARTES = { o_que_foi_tentado: /O que foi tentado/i, por_que_caiu: /Por que caiu/i, o_limite: /O limite/i };
+  const conformidade = {};
+  for (const [k, re] of Object.entries(PARTES)) {
+    conformidade[k] = { ausente_em_normais: normais.filter((t) => !re.test(t.body)).length, ausente_em_emendas: emendas.filter((t) => !re.test(t.body)).length };
+  }
+  const datas = tombs.map((t) => t.date).filter(Boolean).sort();
+  let ritmo = null;
+  if (datas.length >= 2) {
+    const dias = Math.round((Date.parse(datas[datas.length - 1] + 'T00:00:00Z') - Date.parse(datas[0] + 'T00:00:00Z')) / 86400000);
+    ritmo = { primeira: datas[0], ultima: datas[datas.length - 1], dias, por_dia: dias > 0 ? Number((tombs.length / dias).toFixed(2)) : null };
+  }
+  return {
+    lapides: tombs.length, normais: normais.length, emendas_meta: emendas.length,
+    palavras: { total: soma, media: palavras.length ? Math.round(soma / palavras.length) : 0, mediana: ord.length ? ord[Math.floor(ord.length / 2)] : 0, maior: palavras.length ? { palavras: palavras[maiorIdx], date: tombs[maiorIdx].date, title: tombs[maiorIdx].title } : null },
+    tamanho: { chars_corpos: charsCorpos, chars_arquivo: charsArquivo, pct_do_arquivo: charsArquivo ? Number((100 * charsCorpos / charsArquivo).toFixed(1)) : null, teto_declarado: null },
+    conformidade_partes: conformidade, ritmo,
+  };
+}
+
 export function recheck(proibicoesText, { root, linkBase, sample = 0, seed = 0, resolver } = {}) {
-  let tombs = parseTombstones(proibicoesText);
+  const todos = parseTombstones(proibicoesText);
+  let tombs = todos;
   const totalTombs = tombs.length;
   if (sample) tombs = sampleDeterministic(tombs, sample, seed);
+  // métrica SEMPRE sobre o corpus INTEIRO (`todos`), nunca sobre a amostra — senão
+  // `--sample 5` reportaria "5 lápides, 2 sem parte" como se fosse o §5.
+  const metricas = medirCorpus(todos, { charsArquivo: String(proibicoesText || '').length });
   const resolve1 = resolver || makeRepoResolver({ root, linkBase });
   const results = tombs.map((t) => classifyTombstone(t, resolve1));
   const revisar = results.filter((r) => r.veredito === 'revisar-drift-de-ancora');
@@ -221,7 +282,7 @@ export function recheck(proibicoesText, { root, linkBase, sample = 0, seed = 0, 
   return {
     total_lapides_secao5: totalTombs, avaliadas: results.length,
     revisar, intactas: intactas.length, sem_ancora: semAncora.length,
-    citacao_nao_resolvida: citacoes.length, resultados: results,
+    citacao_nao_resolvida: citacoes.length, resultados: results, metricas,
   };
 }
 
@@ -241,9 +302,22 @@ if (isMain && !process.argv.includes('--selftest')) {
   const r = recheck(text, { root: REPO_ROOT, linkBase: dirname(path), sample, seed });
 
   if (json) { console.log(JSON.stringify(r, null, 2)); process.exit(0); }
-  console.log('\n  LÁPIDE-RECHECK — frescor do registro de rejeição §5 (proibicoes.md)\n');
+  console.log(`\n  LÁPIDE-RECHECK — frescor do registro de rejeição §5 (${basename(PROIBICOES_DEFAULT)})\n`);
   console.log(`  §5 tem ${r.total_lapides_secao5} lápide(s)${sample ? ` · amostra determinística de ${r.avaliadas} (seed ${seed})` : ` · avaliadas todas`}`);
   console.log(`  âncoras intactas: ${r.intactas} · sem âncora de arquivo: ${r.sem_ancora} · citação não resolvida: ${r.citacao_nao_resolvida} · REVISAR (drift de âncora): ${r.revisar.length}\n`);
+  {
+    const m = r.metricas;
+    const c = m.conformidade_partes;
+    console.log('  CUSTO DO CORPUS (medida, não veredito — nenhuma nota agregada, nada bloqueia)');
+    // ⚠️ o % é do arquivo LIDO (a fonte), não do proibicoes.md — desde o split de
+    // 2026-08-11 os corpos NÃO entram mais em toda sessão; só os limites do §5 derivado.
+    console.log(`    tamanho  : ${m.tamanho.chars_corpos.toLocaleString('pt-BR')} chars nos corpos = ${m.tamanho.pct_do_arquivo}% de ${basename(PROIBICOES_DEFAULT)} · teto declarado: ${m.tamanho.teto_declarado ?? 'NENHUM'}`);
+    console.log(`    por lápide: média ${m.palavras.media} palavras · mediana ${m.palavras.mediana} · maior ${m.palavras.maior?.palavras} (${m.palavras.maior?.date})`);
+    if (m.ritmo) console.log(`    ritmo    : ${m.lapides} lápides em ${m.ritmo.dias} dias = ${m.ritmo.por_dia}/dia (${m.ritmo.primeira} → ${m.ritmo.ultima})`);
+    console.log(`    estrutura: ${m.normais} normais + ${m.emendas_meta} emenda/meta (emenda não repete as 3 partes — fora do denominador, medido)`);
+    console.log(`               entre as normais, sem "O que foi tentado": ${c.o_que_foi_tentado.ausente_em_normais} · sem "Por que caiu": ${c.por_que_caiu.ausente_em_normais} · sem "O limite": ${c.o_limite.ausente_em_normais}`);
+    console.log('    (o §5 é importado inteiro pelo CLAUDE.md → este custo entra em TODA sessão.)\n');
+  }
   if (r.citacao_nao_resolvida > 0) {
     console.log(`  (as ${r.citacao_nao_resolvida} "citação não resolvida" NÃO são chamado: a lápide não reivindica`);
     console.log('   defesa mecânica, e nesses casos a ausência do arquivo costuma ser o desfecho que ela registra.)\n');

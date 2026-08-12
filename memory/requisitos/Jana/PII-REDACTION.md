@@ -10,7 +10,7 @@ id: requisitos-jana-pii-redaction
 
 PII de prompts/responses/telemetria Jana é redactada via:
 
-- **Serviço:** `Modules\Jana\Services\Privacy\PiiRedactor`
+- **Serviço:** `App\Support\Privacy\PiiRedactor`
 - **Cobertura:** logs estruturados, traces OTel/Langfuse, snapshots de contexto
 
 ## Pontos de uso atuais

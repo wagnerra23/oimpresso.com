@@ -82,7 +82,7 @@ entregues pela existência deste módulo:
 
 ## Referências
 
-- [SCOPE do módulo](../../../Modules/VozDoCliente/SCOPE.md)
+- [SCOPE do módulo](SCOPE.md)
 - [ADR 0105 — cliente como sinal](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)
 - [ADR 0093 — isolamento multi-tenant Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 - [RUNBOOK — criar módulo](../Infra/RUNBOOK-criar-modulo.md)

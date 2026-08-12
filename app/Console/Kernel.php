@@ -125,8 +125,25 @@ class Kernel extends ConsoleKernel
         // H5 Onda 3 (Gap #5 COMPARATIVO-MCP-2026-05-13) — auto-fechamento cycles
         // expirados (Linear-style desde 2019). Daily 23:55 BRT detecta cycles com
         // end_date < today + status != closed, chama cycles-close --rollover auto.
-        // Se não tem próximo cycle, cria CYCLE-N+1 (auto-created) em status=planning.
-        $schedule->command('jana:cycles:auto-close-expired')
+        //
+        // ── 2026-08-11 — `--no-auto-create-next` LIGADO. Abrir cycle volta a ser ato humano.
+        // O passo "cria CYCLE-N+1 (auto-created) em status=planning" era a última coisa
+        // ainda em movimento no rito de cycle — e quem o movia era este cron, não gente.
+        //
+        // Medido em prod: 17 cycles · ZERO ativos (2 planning + 15 closed). Os 2 em
+        // planning são `Auto-created (após rollover de …)`, nascidos aqui em 2026-08-01
+        // e 2026-08-05 às 23:55:04, com created_at == updated_at — NUNCA abertos. O
+        // último cycle nomeado por humano é o #14. Adoção: 31 de 1154 tasks (2,7%).
+        //
+        // Fabricar casca vazia que ninguém abre não é higiene, é ruído que finge
+        // atividade. O AUTO-FECHAMENTO de cycle expirado CONTINUA (isso é higiene
+        // legítima: cycle vencido não deve ficar aberto) — só a criação do próximo sai.
+        // A flag já existia no comando desde sempre; o schedule é que não a usava.
+        //
+        // Vale nos DOIS lados da US-FORJA-005 (reativar × aposentar), por isso não
+        // espera a decisão [W]: se reativar, [W] abre cycle com nome e escopo; se
+        // aposentar, o rito sai e este cron perde o resto do propósito.
+        $schedule->command('jana:cycles:auto-close-expired --no-auto-create-next')
             ->dailyAt('23:55')
             ->timezone('America/Sao_Paulo')
             ->withoutOverlapping()
@@ -782,7 +799,7 @@ class Kernel extends ConsoleKernel
             });
 
         // ENFORCEMENT.md §2 #5 (Constituição Art. 7) — Drift detection cron.
-        // Compara Modules/<X>/SCOPE.md.contains[] × filesystem real de
+        // Compara memory/requisitos/<X>/SCOPE.md.contains[] × filesystem real de
         // Modules/<X>/Http/Controllers/*. Persiste alertas idempotentes em
         // mcp_alertas_eventos (tipo=module_drift). UI consome via
         // Modules/Governance/Http/Controllers/DriftAlertsController.

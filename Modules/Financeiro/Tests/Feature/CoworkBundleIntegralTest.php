@@ -158,11 +158,9 @@ describe('Cowork Bundle Integral — JSX files reference (_cowork-bundle/)', fun
     });
 });
 
-describe('Cowork Bundle — discovery Inertia NÃO pega .jsx (underscore prefix)', function () {
-    it('Inertia app.tsx usa glob ./Pages/**/*.tsx (não .jsx)', function () {
-        $src = file_get_contents(__DIR__ . '/../../../../resources/js/app.tsx');
-        expect($src)->toContain("import.meta.glob('./Pages/**/*.tsx')");
-        // NÃO deve haver glob de .jsx (que importaria o bundle por engano)
-        expect($src)->not->toContain('./Pages/**/*.jsx');
-    });
-});
+// O describe 'discovery Inertia NÃO pega .jsx' MUDOU-SE DAQUI em 2026-08-12, para
+// `InertiaPagesGlobContratoTest.php`. Motivo: este arquivo está na quarentena da
+// lane por causa dos 4 describes acima (bundle CSS, quebrados desde o #2127), e a
+// quarentena exclui o arquivo INTEIRO — então o contrato do glob, que não tem
+// relação nenhuma com o bundle CSS, nunca rodava no CI apesar de verde localmente.
+// Não mova nada de volta pra cá sem antes tirar este arquivo da quarentena.

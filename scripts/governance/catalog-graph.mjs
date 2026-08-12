@@ -4,14 +4,15 @@
  * catalog-graph.mjs — GERADOR determinístico do GRAFO TIPADO de módulos.
  *
  * A DOR (grade catálogo/IDP 7,0, memory/sessions/2026-07-21-grade-catalogo-aprendizado-vs-mercado.md,
- * chip #2): o `Modules/<X>/SCOPE.md` é o descritor por módulo (estilo Backstage `catalog-info.yaml`),
+ * chip #2): o `memory/requisitos/<X>/SCOPE.md` é o descritor por módulo (estilo Backstage `catalog-info.yaml`),
  * mas hoje é markdown lido por humano/IA — NÃO um grafo tipado consultável. Backstage/Cortex/Port
  * são graph-native (`dependsOn`/`providesApi`/`partOf`), o que deixa perguntar "que módulo quebra se
  * a tabela X (ou o módulo Y) mudar". Este gerador DERIVA as arestas dos SCOPE.md e emite um
  * `catalog.json` consultável (nós + arestas tipadas).
  *
  * DOUTRINA (ADR 0256): derivado sobrevive; escrito+lembrado apodrece. O grafo é 100% recalculado
- * dos SCOPE.md e SUPERFICIE.md Classe B — nada à mão. NÃO INVENTA relação que as fontes não declaram:
+ * dos SCOPE.md, SUPERFICIE.md Classe B e do frontmatter de memory/decisions/*.md (linhagem ADR→ADR)
+ * — nada à mão. NÃO INVENTA relação que as fontes não declaram:
  * campos estruturados do frontmatter (`depends_on`, `db_tables_owned`/`db_tables_consumed`/`db_tables_legacy_views`,
  * `related_adrs`/`charter_adr`, `url_prefixes`, `contains`, e os cross-refs `→ Modules/X` que vivem
  * DENTRO de `not_contains` + `drift_alerts.pertence_a`). Prosa do corpo markdown é ignorada de
@@ -21,8 +22,10 @@
  * (committed == regerado), não por timestamp que apodrece (§5 2026-07-17 — recibo é query
  * re-rodável, não afirmação atemporal). Logo o JSON é byte-determinístico.
  *
- * ADVISORY DE NASCENÇA (ADR 0314/0275): required = só Tier-0. Este é um catálogo de conveniência —
- * `--check` pode ficar VERMELHO (drift OU aresta pendurada) sem bloquear merge; é sinal, não catraca.
+ * ENFORCEMENT: o dono é `governance/required-checks-baseline.json` — não este cabeçalho. Fato datado:
+ * nasceu advisory em 2026-07 (ADR 0314/0275, "required = só Tier-0") e o job `catalog.json == SCOPEs
+ * + Classes B` foi PROMOVIDO a required em 2026-08-05 (ADR 0370, 6 mordidas medidas). Logo `--check`
+ * vermelho (drift OU aresta pendurada) hoje BLOQUEIA — consulte o baseline, não a memória.
  *
  * O que ele NÃO faz (delega): superfície de código por papel é do `module-surface.mjs`; cobertura/nota
  * de tela é do `screen-coverage`/`casos-gate`. Aqui é só o GRAFO de fronteiras entre módulos.
@@ -34,6 +37,7 @@
  *   node scripts/governance/catalog-graph.mjs --json      (imprime o catalog.json no stdout, não grava)
  *   node scripts/governance/catalog-graph.mjs --mermaid   (VISTA: diagrama de fluxo entre módulos, stdout)
  *   node scripts/governance/catalog-graph.mjs --mermaid --focus=Financeiro   (vizinhança de 1 salto)
+ *   node scripts/governance/catalog-graph.mjs --acoplamento  (ADVISORY: fronteira REAL (import) vs DECLARADA; exit 0 sempre)
  *
  * Refs: ADR 0256 (survival, fonte única gerada) · ADR 0314/0275 (advisory-primeiro) ·
  *       grade 2026-07-21 (chip #2 "arestas tipadas no catálogo") · irmão `module-surface.mjs`.
@@ -41,6 +45,7 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
@@ -61,6 +66,9 @@ const EDGE_TYPES = [
   'dependsOn',       // module → module       (fronteira declarada OU tabela consumida→dono)
   'delegatesTo',     // module → module       (not_contains "→ Modules/X" — fronteira declarada)
   'migratesTo',      // module → module       (drift_alerts.pertence_a "Modules/X")
+  'supersedes',          // adr → adr         (frontmatter `supersedes` de memory/decisions/*.md)
+  'supersedesPartially', // adr → adr         (`supersedes_partially` — emenda parcial, ADR 0317)
+  'supersededBy',        // adr → adr         (`superseded_by` — declaração do lado sucedido)
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -195,6 +203,84 @@ function migrateTargetsFromRaw(raw) {
   return out;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Relações ADR→ADR (supersedes / supersedes_partially / superseded_by).
+//
+// POR QUE AQUI: a relação já é VALIDADA pelo dono (`adr-index-generate.mjs` pega
+// supersessão dangling, alvo-não-marcado, órfã, double-supersede e "declarada só em
+// prosa", dentro do required `Governance Gate`). O que faltava era ela ser PUBLICADA
+// como dado — o grafo tinha 0 arestas adr→adr. Aqui só se DERIVA e se publica; a
+// integridade continua sendo do dono, e este gerador NÃO re-declara aquelas regras.
+//
+// MEDIDO em 2026-08-11 sobre memory/decisions/ (380 arquivos):
+//   supersedes 15 · supersedes_partially 48 · superseded_by 19 pares.
+//   100% dos itens são declarados por SLUG INTEIRO (0 números crus) — por isso a
+//   resolução aqui é por slug, não por número.
+// FORA de propósito (medido, não presumido):
+//   `related` 1602 pares → +192% de arestas num grafo de 834, semântica vaga e 11
+//   alvos pendurados; inchava o grafo sem responder pergunta nova. `amends` 39 pares
+//   NÃO está no schema de ADR (scripts/memory-schemas/adr.schema.json) — emitir seria
+//   inventar tipo de aresta a partir de campo não-canônico.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Itens CRUS (slug inteiro) de uma lista do frontmatter de ADR. Aceita inline
+ * (`supersedes: [a, b]`) e bloco (`- "a"  # nota`).
+ *
+ * ⚠️ ORDEM DA LIMPEZA: tira o comentário `#` ANTES das aspas. O `rawItemsFrom` do
+ * `adr-index-generate.mjs` faz o INVERSO (aspas → comentário), então um item escrito
+ * `- "0189-slug"   # nota` volta de lá como `0189-slug"` — com a aspa presa. Isso é
+ * artefato do parser, NÃO dado: medido em 2 itens de `superseded_by` (0182), que
+ * parecem slug pendurado e não são. Aqui a ordem correta evita reproduzir o defeito.
+ * (O defeito no dono é latente — hoje só o 0358 usa aquele caminho e é inline, sem
+ * comentário. Corrigi-lo é intent separado, no arquivo dele.)
+ *
+ * @param {string} fm  frontmatter cru
+ * @param {string} key nome do campo
+ * @returns {string[]}
+ */
+function adrRelationItems(fm, key) {
+  const clean = (s) => s.split('#')[0].trim().replace(/^['"]|['"]$/g, '').trim();
+  const inline = fm.match(new RegExp(`^${key}:\\s*\\[([^\\]]*)\\]`, 'mi'));
+  if (inline) return inline[1].split(',').map(clean).filter(Boolean);
+  const block = fm.match(new RegExp(`^${key}:\\s*\\n((?:\\s*-\\s*.+\\n?)+)`, 'mi'));
+  if (block) return block[1].split('\n').map((l) => clean(l.replace(/^\s*-\s*/, ''))).filter(Boolean);
+  return [];
+}
+
+/**
+ * Resolve um slug declarado → identidade de nó, SEM colapsar coisas diferentes.
+ *
+ * A regra de identidade (o ponto delicado): o id `adr:NNNN` só é usado quando o NÚMERO
+ * é inequívoco. 13 números do repo têm 2 ADRs distintas (baseline curado em
+ * `governance/adr-collisions-baseline.json`; o detector é do `adr-index-generate.mjs`,
+ * que segue o dono — aqui NÃO se re-detecta colisão). Medido: 6 arestas têm ponta em
+ * número colidido, e 2 delas apontam pra ADRs DIFERENTES que cairiam no MESMO
+ * `adr:0180`. Emitir por número publicaria fato falso. Nesses casos o id é
+ * `adr:<slug>`, que é preciso por construção (ADR 0274: o slug é quem desambigua).
+ *
+ * TOMBSTONE (ADR 0316): slug fora do disco mas no ledger de esquecimento é morte
+ * LEGÍTIMA, não aresta pendurada — espelha `adr-index-generate.mjs` ("supersede de ADR
+ * esquecida ≠ dangling"). Caso vivo: `0358 supersedes 0101-tests-business-id-1-nunca-cliente`.
+ * Por número isso resolveria pra `0101-sistema-charter-capterra-governanca-escopo`, que
+ * é OUTRA ADR, viva — o fato falso que esta função existe pra impedir.
+ *
+ * @param {string} slug              slug declarado (ex. "0093-multi-tenant-isolation-tier-0")
+ * @param {{ knownSlugs: Set<string>, collidedNums?: Set<string>, tombstonedSlugs?: Set<string> }} idx
+ * @returns {{ id: string, num: string, slug: string, exists: boolean, tombstoned: boolean } | null}
+ */
+export function resolveAdrTarget(slug, idx) {
+  const s = String(slug || '').trim();
+  const num = adrNumFrom(s);
+  if (!num) return null;
+  const known = idx.knownSlugs?.has(s) ?? false;
+  const tombstoned = !known && (idx.tombstonedSlugs?.has(s) ?? false);
+  // Número ambíguo (colidido) OU slug que não é um arquivo vivo → id qualificado pelo slug.
+  const ambiguo = idx.collidedNums?.has(num) ?? false;
+  const id = known && !ambiguo ? `adr:${num}` : `adr:${s}`;
+  return { id, num, slug: s, exists: known, tombstoned };
+}
+
 /** Garante array (o parser devolve string se a lista tinha 1 valor inline, ou [] se vazia). */
 function asList(v) {
   if (Array.isArray(v)) return v;
@@ -211,7 +297,7 @@ function listScopeModules() {
   const dir = join(ROOT, 'Modules');
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
-    .filter((m) => existsSync(join(dir, m, 'SCOPE.md')))
+    .filter((m) => existsSync(join(ROOT, 'memory', 'requisitos', m, 'SCOPE.md')))
     .sort();
 }
 
@@ -241,9 +327,60 @@ function knownAdrNumbers() {
   );
 }
 
+/**
+ * Lê `memory/decisions/NNNN-*.md` → índice de identidade + relações declaradas.
+ * Um passo de IO só; toda a decisão fica nas funções puras acima.
+ * @returns {{ records: {num:string,slug:string,supersedes:string[],supersedes_partially:string[],superseded_by:string[]}[], slugs: Set<string>, collidedNums: Set<string> }}
+ */
+function readAdrIndex() {
+  const dir = join(ROOT, 'memory/decisions');
+  if (!existsSync(dir)) return { records: [], slugs: new Set(), collidedNums: new Set() };
+  const records = [];
+  const slugs = new Set();
+  /** @type {Map<string, number>} */
+  const perNum = new Map();
+  for (const file of readdirSync(dir).sort()) {
+    const m = file.match(/^(\d{4})-(.+)\.md$/);
+    if (!m) continue;
+    const [num, slug] = [m[1], `${m[1]}-${m[2]}`];
+    slugs.add(slug);
+    perNum.set(num, (perNum.get(num) || 0) + 1);
+    const txt = readFileSync(join(dir, file), 'utf8');
+    // Só o frontmatter: prosa do corpo é narrativa, não declaração (mesma doutrina dos SCOPE.md).
+    const end = txt.startsWith('---') ? txt.indexOf('\n---', 3) : -1;
+    const fm = end === -1 ? (txt.startsWith('---') ? txt : '') : txt.slice(0, end);
+    records.push({
+      num, slug,
+      supersedes: adrRelationItems(fm, 'supersedes'),
+      supersedes_partially: adrRelationItems(fm, 'supersedes_partially'),
+      superseded_by: adrRelationItems(fm, 'superseded_by'),
+    });
+  }
+  const collidedNums = new Set([...perNum].filter(([, c]) => c > 1).map(([n]) => n));
+  return { records, slugs, collidedNums };
+}
+
+/**
+ * Slugs de ADR TOMBADA (ADR 0316) — `governance/adr-tombstones.json` é o dono de
+ * "esse número morreu, quando e por qual ADR"; aqui só se LÊ (§5: aponta pro dono,
+ * não restateia). Ledger ausente/ilegível → set vazio, e aí a supersessão de ADR
+ * esquecida volta a aparecer como pendurada (fail-safe idêntico ao do dono).
+ * @returns {Set<string>}
+ */
+function loadAdrTombstoneSlugs() {
+  const abs = join(ROOT, 'governance/adr-tombstones.json');
+  if (!existsSync(abs)) return new Set();
+  try {
+    const j = JSON.parse(readFileSync(abs, 'utf8'));
+    return new Set((j.tombstones ?? []).map((t) => String(t.slug || '').trim()).filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
+
 /** Lê 1 SCOPE.md → registro { module, purpose, ... , contains[], not_contains[], tables }. */
 function readScope(mod) {
-  const rel = `Modules/${mod}/SCOPE.md`;
+  const rel = `memory/requisitos/${mod}/SCOPE.md`;
   const { fields, raw } = parseFrontmatter(readFileSync(join(ROOT, rel), 'utf8'));
   return {
     module: typeof fields.module === 'string' ? fields.module : mod,
@@ -275,6 +412,7 @@ function readScope(mod) {
  */
 function buildGraph(records, opts = {}) {
   const knownAdrs = opts.knownAdrs; // undefined = pula check de ADR pendurada
+  const adrRel = opts.adrRelations; // undefined = nenhuma aresta adr→adr (comportamento antigo)
   const moduleSet = new Set(records.map((r) => r.module));
 
   /** @type {Map<string, any>} */
@@ -339,7 +477,16 @@ function buildGraph(records, opts = {}) {
       if (!num) continue;
       const nid = `adr:${num}`;
       const n = ensure(nid, () => ({ id: nid, type: 'adr', num, slug: '', exists: knownAdrs ? knownAdrs.has(num) : true }));
-      if (!n.slug && /\d{4}-[a-z0-9-]+/.test(String(slug))) n.slug = String(slug).trim();
+      // Só carimba o slug se ele for de fato um arquivo VIVO e o número for inequívoco.
+      // Sem essa guarda, um SCOPE que cita ADR tombada/renomeada carimba o slug MORTO no
+      // nó do número — que hoje pertence a OUTRA ADR viva. Era o caso real de `adr:0101`:
+      // Fiscal/SCOPE.md cita `0101-tests-...` (tombada, ADR 0316) e o nó do 0101 vivo
+      // (`0101-sistema-charter-...`) saía rotulado com o slug da morta. Sem índice de ADR
+      // (testes sintéticos), mantém o comportamento antigo.
+      const slugConfiavel = adrRel
+        ? adrRel.slugs.has(String(slug).trim()) && !adrRel.collidedNums.has(num)
+        : true;
+      if (!n.slug && slugConfiavel && /\d{4}-[a-z0-9-]+/.test(String(slug))) n.slug = String(slug).trim();
       addEdge(mid, nid, 'governedByAdr', 'related_adrs');
     }
     // componentes (contains)
@@ -381,6 +528,47 @@ function buildGraph(records, opts = {}) {
     }
   }
 
+  // ── relações ADR→ADR (linhagem de decisão) ────────────────────────────────
+  // Sem `adrRelations` o comportamento é idêntico ao de antes (nenhuma aresta adr→adr),
+  // que é o que mantém os testes sintéticos de módulo válidos sem tocá-los.
+  if (adrRel) {
+    const idx = {
+      knownSlugs: adrRel.slugs,
+      collidedNums: adrRel.collidedNums,
+      tombstonedSlugs: opts.tombstonedAdrSlugs || new Set(),
+    };
+    /** Cria/atualiza o nó de uma ponta. Só carimba `slug` quando o número é inequívoco. */
+    const ensureAdrNode = (t) => {
+      const n = ensure(t.id, () => {
+        const base = { id: t.id, type: 'adr', num: t.num, slug: '', exists: t.exists };
+        // `tombstoned` só aparece quando true: nó de ADR normal fica byte-idêntico ao de antes.
+        if (t.tombstoned) base.tombstoned = true;
+        return base;
+      });
+      if (!n.slug && t.exists && !idx.collidedNums.has(t.num)) n.slug = t.slug;
+      return n;
+    };
+    // campo do frontmatter → tipo de aresta. `source` guarda o campo, igual às demais.
+    const REL = [
+      ['supersedes', 'supersedes'],
+      ['supersedes_partially', 'supersedesPartially'],
+      ['superseded_by', 'supersededBy'],
+    ];
+    for (const a of adrRel.records) {
+      const from = resolveAdrTarget(a.slug, idx);
+      if (!from) continue;
+      for (const [field, edgeType] of REL) {
+        for (const declared of a[field] || []) {
+          const to = resolveAdrTarget(declared, idx);
+          if (!to || to.id === from.id) continue; // self-ref não é aresta (medido: 0, guarda mesmo assim)
+          ensureAdrNode(from);
+          ensureAdrNode(to);
+          addEdge(from.id, to.id, edgeType, field);
+        }
+      }
+    }
+  }
+
   // Relação estilo Backstage/Cortex: fronteira declarada e consumo de tabela viram
   // dependsOn explícito, preservando também a aresta-fonte auditável.
   for (const e of [...edges]) {
@@ -406,11 +594,19 @@ function buildGraph(records, opts = {}) {
       .filter((n) => n.type === 'module' && n.catalog_status === 'referenced-only')
       .map((n) => ({ module: n.module, reason: 'referenciado por SCOPE, sem descritor próprio' })),
     dangling_module_refs: [],
-    dangling_adr_refs: knownAdrs
+    // Com `adrRelations` a existência é decidida por SLUG (definitiva), então o
+    // diagnóstico vale mesmo sem `knownAdrs` — que só cobre o eixo módulo→adr.
+    dangling_adr_refs: (knownAdrs || adrRel)
       ? [...nodes.values()]
-          .filter((n) => n.type === 'adr' && n.exists === false)
+          // ADR TOMBADA (0316) não é pendurada: é morte legítima, com lápide curada em
+          // governance/adr-tombstones.json. Mesma regra do adr-index-generate.mjs.
+          .filter((n) => n.type === 'adr' && n.exists === false && !n.tombstoned)
           .flatMap((n) => edges.filter((e) => e.to === n.id).map((e) => ({ from: e.from, to: n.id, type: e.type, source: e.source })))
       : [],
+    // Informativo (nunca fatal): quem sucede ADR já esquecida fisicamente.
+    adr_supersession_of_tombstoned: [...nodes.values()]
+      .filter((n) => n.type === 'adr' && n.tombstoned === true)
+      .flatMap((n) => edges.filter((e) => e.to === n.id).map((e) => ({ from: e.from, to: n.id, type: e.type, source: e.source }))),
     consumed_tables_without_catalog_owner: [...nodes.values()]
       .filter((n) => n.type === 'table' && n.consumers.length > 0 && n.owners.length === 0 && n.legacy_views.length === 0)
       .map((n) => ({ table: n.name, consumers: [...n.consumers].sort() })),
@@ -460,8 +656,8 @@ function serialize(graph) {
 
   const catalog = {
     $generator: 'scripts/governance/catalog-graph.mjs',
-    $doc: 'Grafo tipado DERIVADO dos Modules/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write',
-    $advisory: 'Advisory de nascença (ADR 0314/0275) — não é gate required.',
+    $doc: 'Grafo tipado DERIVADO dos memory/requisitos/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write',
+    $enforcement: 'Quem é required é a branch protection — o dono é governance/required-checks-baseline.json. Nasceu advisory em 2026-07 (ADR 0314/0275) e foi promovido em 2026-08-05 (ADR 0370); este campo NÃO declara o estado atual, aponta pro dono (§5 2026-07-16).',
     node_types: NODE_TYPES,
     edge_types: EDGE_TYPES,
     stats: {
@@ -560,6 +756,10 @@ function reportDiagnostics(graph) {
   if (co.length) {
     console.log(`ℹ️  ${co.length} tabela(s) consumida(s) sem dono no catálogo (pode ser core UltimatePOS): ${co.map((t) => t.table).join(', ')}`);
   }
+  const ts = d.adr_supersession_of_tombstoned || [];
+  if (ts.length) {
+    console.log(`ℹ️  ${ts.length} aresta(s) → ADR TOMBADA (ADR 0316 — morte legítima com lápide curada, NÃO é pendurada): ${ts.map((e) => `${e.from} --${e.type}--> ${e.to}`).join(' · ')}`);
+  }
   if (ro.length) {
     const tomb = loadModuleTombstones();
     if (tomb === null) {
@@ -632,14 +832,390 @@ export function toMermaid(graph, { focus = null } = {}) {
   return { mermaid: linhas.join('\n'), modulos: usados.size, arestas: vistas.size, ilhas };
 }
 
+// ── ACOPLAMENTO DERIVADO (advisory) ─────────────────────────────────────────
+// O grafo acima mede a fronteira DECLARADA (frontmatter escrito à mão). Este bloco
+// mede a REAL (import no código) e reporta o delta. Medição 2026-08-12: dos 57 pares
+// vivos em produção, só 16 estavam declarados (28%) — logo `depends_on` sozinho NÃO
+// serve de inventário de fronteira, e um mutirão de backfill à mão só reinicia o
+// relógio do apodrecimento (§5 2026-07-12). Aqui o fato é DERIVADO; o SCOPE segue
+// dono da NORMA (`not_contains` = delegação declarada), que é decisão humana.
+//
+// CRITÉRIO e seu FP (medido antes de instalar, §5): só `use Modules\X\…` em linha de
+// código. Docblock/comentário/string NÃO entram — 0 linhas de comentário casaram o
+// padrão no corpus (o grep solto contava 116 pares; por import real são 41). O preço
+// é ser PISO, não teto: container/facade/string, query crua em tabela alheia e
+// `resources/js` ficam invisíveis. Advisory por desenho — exit 0 SEMPRE, nunca
+// bloqueia merge (promoção a required é flip [W] com mordida provada, ADR 0336/0275).
+const CAMADA_DADO = new Set(['Entities', 'Models']);
+const CAMADA_COMPORTAMENTO = new Set(['Concerns', 'Scopes', 'Traits', 'Utils']);
+const CAMADA_CONTRATO = new Set(['Contracts', 'Contract', 'Dto', 'DTO', 'Events', 'Exceptions', 'Repositories']);
+/** Quantos módulos-origem distintos tornam um símbolo "cross-cutting" (derivado, não lista à mão). */
+const LIMIAR_CROSS_CUTTING = 5;
+
+/** Classifica o peso do acoplamento pela camada importada (pior camada vence). */
+function pesoDaCamada(camada) {
+  if (CAMADA_DADO.has(camada)) return 'dado';
+  if (CAMADA_COMPORTAMENTO.has(camada)) return 'comportamento';
+  if (CAMADA_CONTRATO.has(camada)) return 'contrato';
+  return 'servico';
+}
+const ORDEM_PESO = { dado: 3, comportamento: 2, servico: 1, contrato: 0 };
+
+/**
+ * Extrai arestas REAIS de linhas `path:código` do git grep.
+ * @param {string[]} linhas
+ * @param {{modulosVivos:Set<string>, incluirTestes?:boolean}} opts
+ */
+function parseImportsCruzados(linhas, { modulosVivos, incluirTestes = false }) {
+  const out = [];
+  for (const linha of linhas) {
+    const corte = linha.indexOf(':');
+    if (corte < 0) continue;
+    const path = linha.slice(0, corte);
+    const code = linha.slice(corte + 1);
+    if (!incluirTestes && /\/Tests?\//i.test(path)) continue;
+    const src = (path.match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    const m = code.match(/^\s*use\s+Modules[\\/]([A-Z][A-Za-z]+)[\\/](.+?);/);
+    if (!src || !m) continue;
+    const dst = m[1];
+    if (dst === src || !modulosVivos.has(dst) || !modulosVivos.has(src)) continue;
+    const partes = m[2].split(/[\\/]/);
+    // `use Modules\X\Y\Sym as Alias;` — sem tirar o alias, o MESMO símbolo importado com
+    // 2 apelidos vira 2 símbolos e o limiar cross-cutting conta errado (5 casos no corpus).
+    const simbolo = partes[partes.length - 1].replace(/\s+as\s+\w+$/i, '').trim();
+    // FQCN é a IDENTIDADE do símbolo (ver `simbolosCrossCutting`). O basename não serve:
+    // dois módulos podem ter classes homônimas, e agrupá-las funde símbolos distintos.
+    const fqcn = `Modules\\${dst}\\${[...partes.slice(0, -1), simbolo].join('\\')}`;
+    out.push({ src, dst, camada: partes[0] || '?', simbolo, fqcn });
+  }
+  return out;
+}
+
+/**
+ * Símbolos importados por ≥ limiar módulos distintos = primitiva cross-cutting (derivado).
+ *
+ * Agrupa por FQCN, NUNCA por nome curto: classes homônimas de módulos diferentes são
+ * símbolos DIFERENTES, e somá-las infla o limiar. Defeito medido 2026-08-12 —
+ * `Subscription` existe em `Modules\Superadmin\Entities` (4 importadores) E em
+ * `Modules\RecurringBilling\Models` (1): somados por basename davam 5, cruzavam o corte
+ * e eram eleitos "primitiva", sem nenhuma qualificar sozinha.
+ */
+function identidadeDoSimbolo(ref) {
+  return ref.fqcn || `Modules\\${ref.dst}\\${ref.simbolo}`;
+}
+
+function simbolosCrossCutting(refs, limiar = LIMIAR_CROSS_CUTTING) {
+  const porSimbolo = new Map();
+  for (const r of refs) {
+    const id = identidadeDoSimbolo(r);
+    if (!porSimbolo.has(id)) porSimbolo.set(id, new Set());
+    porSimbolo.get(id).add(r.src);
+  }
+  return new Set([...porSimbolo].filter(([, srcs]) => srcs.size >= limiar).map(([s]) => s));
+}
+
+/** Agrega refs em pares e confronta com as arestas declaradas do grafo. */
+function compararFronteira(refs, graph, { limiar = LIMIAR_CROSS_CUTTING, modulosVivos = null } = {}) {
+  const cross = simbolosCrossCutting(refs, limiar);
+  const declaradas = new Map();
+  for (const e of graph.edges) {
+    if (e.type !== 'dependsOn' && e.type !== 'delegatesTo') continue;
+    const f = e.from.replace(/^module:/, '');
+    const t = e.to.replace(/^module:/, '');
+    // Alvo REMOVIDO não é "fronteira sem import" — é tombstone, e já tem diagnóstica
+    // curada própria (referenced-only). Contar aqui inflaria o número com ruído.
+    if (modulosVivos && !modulosVivos.has(t)) continue;
+    if (!declaradas.has(f)) declaradas.set(f, new Set());
+    declaradas.get(f).add(t);
+  }
+  const pares = new Map();
+  for (const r of refs) {
+    const k = `${r.src}>${r.dst}`;
+    let p = pares.get(k);
+    if (!p) {
+      p = { src: r.src, dst: r.dst, imports: 0, peso: 'contrato', simbolos: new Set(), soPrimitiva: true };
+      pares.set(k, p);
+    }
+    p.imports++;
+    p.simbolos.add(r.simbolo);
+    if (!cross.has(identidadeDoSimbolo(r))) p.soPrimitiva = false;
+    const w = pesoDaCamada(r.camada);
+    if (ORDEM_PESO[w] > ORDEM_PESO[p.peso]) p.peso = w;
+  }
+  const lista = [...pares.values()].map((p) => ({
+    ...p,
+    simbolos: [...p.simbolos].sort(),
+    declarado: Boolean(declaradas.get(p.src)?.has(p.dst)),
+  }));
+  const naoDeclaradas = lista.filter((p) => !p.declarado);
+  const reais = new Set(lista.map((p) => `${p.src}>${p.dst}`));
+  const soDeclaradas = [];
+  for (const [f, alvos] of declaradas) {
+    for (const t of alvos) if (!reais.has(`${f}>${t}`)) soDeclaradas.push({ src: f, dst: t });
+  }
+  return {
+    pares: lista.sort((a, b) => b.imports - a.imports || a.src.localeCompare(b.src)),
+    confirmadas: lista.length - naoDeclaradas.length,
+    naoDeclaradas,
+    soDeclaradas,
+    crossCutting: [...cross].sort(),
+  };
+}
+
+// ── FRONTEIRA POR TABELA (advisory) ─────────────────────────────────────────
+// Eixo que o import NÃO enxerga: `DB::table('x')` cru numa tabela de outro módulo.
+// O dono é DERIVADO de quem faz `Schema::create('x')` na migration — não do
+// `db_tables_owned` escrito à mão (que 1 módulo declara). Medição 2026-08-12: 340
+// tabelas com dono derivado; 27 pares cross-module por query crua.
+//
+// AMBIGUIDADE ASSUMIDA: "quem criou a migration" ≠ "de quem é o conceito". O caso real
+// é `failed_jobs` — tabela de INFRA do Laravel criada por uma migration do Whatsapp, o
+// que faria Jana/Governance parecerem acoplados a Whatsapp. Resolvido pelo MESMO truque
+// derivado dos símbolos (nunca lista à mão, §5 2026-06-30): tabela consultada por
+// ≥ LIMIAR módulos distintos é INFRA COMPARTILHADA, não fronteira.
+const LIMIAR_TABELA_COMPARTILHADA = 3;
+const CORE = '(core)';
+
+/**
+ * Dono derivado da tabela: quem a cria na migration. Core (database/migrations) marcado.
+ * DISPUTA é reportada, não resolvida em silêncio: quando 2+ módulos criam a MESMA tabela,
+ * "first-wins" calado esconderia um conflito de ownership real (medido: 2 no corpus —
+ * nfe_certificados e nfse_emissoes, NFSe vs NfeBrasil). A diagnóstica do grafo DECLARADO
+ * diz "0 conflito"; ela olha o `db_tables_owned`, não a árvore.
+ */
+function derivarDonoDeTabela(linhasModulo, linhasCore = []) {
+  const criadores = new Map();
+  for (const l of linhasModulo) {
+    const i = l.indexOf(':');
+    const mod = (l.slice(0, i).match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    const t = (l.slice(i + 1).match(/Schema::create\('([a-z0-9_]+)'/) || [])[1];
+    if (!mod || !t) continue;
+    if (!criadores.has(t)) criadores.set(t, new Set());
+    criadores.get(t).add(mod);
+  }
+  const dono = new Map();
+  const conflitos = [];
+  for (const [t, mods] of criadores) {
+    const lista = [...mods].sort();
+    dono.set(t, lista[0]);
+    if (lista.length > 1) conflitos.push({ tabela: t, modulos: lista });
+  }
+  for (const l of linhasCore) {
+    const t = (l.match(/Schema::create\('([a-z0-9_]+)'/) || [])[1];
+    if (t && !dono.has(t)) dono.set(t, CORE);
+  }
+  return { dono, conflitos: conflitos.sort((a, b) => a.tabela.localeCompare(b.tabela)) };
+}
+
+/**
+ * Extrai leituras cruas cross-module. Só literal — `DB::table($var)` é contado à parte
+ * como NÃO RESOLVÍVEL (não vira zero silencioso: "não medi" ≠ "não há", §5 2026-07-29).
+ */
+function parseQueriesCruas(linhas, { donoDe, modulosVivos }) {
+  const refs = [];
+  let dinamico = 0, semDono = 0;
+  for (const l of linhas) {
+    const i = l.indexOf(':');
+    if (i < 0) continue;
+    const path = l.slice(0, i), code = l.slice(i + 1);
+    if (/\/Tests?\//i.test(path)) continue;
+    const src = (path.match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    if (!src || !modulosVivos.has(src)) continue;
+    const m = code.match(/DB::table\('([a-z0-9_]+)'/);
+    if (!m) { if (/DB::table\(\s*\$/.test(code)) dinamico++; continue; }
+    const tabela = m[1];
+    const dono = donoDe.get(tabela);
+    if (!dono) { semDono++; continue; }
+    if (dono === src || dono === CORE) continue; // própria tabela ou core UltimatePOS
+    refs.push({ src, dono, tabela });
+  }
+  return { refs, dinamico, semDono };
+}
+
+/** Tabelas lidas por ≥ limiar módulos distintos = infra compartilhada (derivado). */
+function tabelasCompartilhadas(refs, limiar = LIMIAR_TABELA_COMPARTILHADA) {
+  const porTabela = new Map();
+  for (const r of refs) {
+    if (!porTabela.has(r.tabela)) porTabela.set(r.tabela, new Set());
+    porTabela.get(r.tabela).add(r.src);
+  }
+  return new Set([...porTabela].filter(([, s]) => s.size >= limiar).map(([t]) => t));
+}
+
+/** Agrega em pares src→dono, separando o que é infra compartilhada. */
+function agruparFronteiraDeTabela(refs, { limiar = LIMIAR_TABELA_COMPARTILHADA } = {}) {
+  const infra = tabelasCompartilhadas(refs, limiar);
+  const pares = new Map();
+  for (const r of refs) {
+    if (infra.has(r.tabela)) continue;
+    const k = `${r.src}>${r.dono}`;
+    if (!pares.has(k)) pares.set(k, { src: r.src, dono: r.dono, n: 0, tabelas: new Set() });
+    const o = pares.get(k);
+    o.n++; o.tabelas.add(r.tabela);
+  }
+  return {
+    pares: [...pares.values()]
+      .map((o) => ({ ...o, tabelas: [...o.tabelas].sort() }))
+      .sort((a, b) => b.n - a.n || a.src.localeCompare(b.src)),
+    infra: [...infra].sort(),
+  };
+}
+
+function reportFronteiraDeTabela(modulosVivos) {
+  const { dono: donoDe, conflitos } = derivarDonoDeTabela(
+    grepArvore(["Schema::create\\('"], 'Modules/*/Database/Migrations/*.php'),
+    grepArvore(["Schema::create\\('"], 'database/migrations/*.php').map((l) => l.slice(l.indexOf(':') + 1)),
+  );
+  const { refs, dinamico, semDono } = parseQueriesCruas(
+    grepArvore(['DB::table\\('], 'Modules/*.php'),
+    { donoDe, modulosVivos },
+  );
+  const r = agruparFronteiraDeTabela(refs);
+  console.log('');
+  console.log(
+    `[catalog-graph] fronteira por TABELA (query crua): ${donoDe.size} tabelas com dono derivado · ` +
+    `${r.pares.length} pares cross-module`,
+  );
+  if (r.infra.length) {
+    console.log(`ℹ️  infra compartilhada (≥${LIMIAR_TABELA_COMPARTILHADA} módulos leem — não é fronteira): ${r.infra.join(', ')}`);
+  }
+  for (const c of conflitos) {
+    console.log(`⚠️  ownership DISPUTADO: \`${c.tabela}\` criada por migration de ${c.modulos.join(' E ')} — dono atribuído: ${c.modulos[0]}`);
+  }
+  for (const p of r.pares) {
+    console.log(`  ${p.src} → ${p.dono}  (${p.n} queries) ${p.tabelas.slice(0, 4).join(', ')}`);
+  }
+  console.log(
+    `ℹ️  não resolvido (NÃO é zero): ${dinamico} \`DB::table($var)\` dinâmico · ` +
+    `${semDono} em tabela sem migration localizada.`,
+  );
+  return r;
+}
+
+/**
+ * Lê a árvore viva. Distingue "sem match" (rc=1, legítimo) de FALHA REAL (rc≠0/1) —
+ * saída vazia de comando que quebrou não é evidência de ausência (§5 2026-07-31/08-01).
+ */
+function grepArvore(padroes, pathspec) {
+  // `-e` explícito: padrão que comece com `-` seria lido como switch e o git sai rc=129
+  // (visto na revisão com `->table\('`). Sem isso, o erro viraria exceção fora de hora.
+  const args = ['grep', '-I', '-E', ...padroes.flatMap((p) => ['-e', p]), '--', pathspec];
+  try {
+    return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      .split('\n').filter(Boolean);
+  } catch (err) {
+    if (err && err.status === 1) return []; // sem ocorrência: legítimo
+    throw new Error(`git grep falhou (status=${err && err.status}): ${err && err.message}`);
+  }
+}
+
+function lerImportsDaArvore() {
+  return grepArvore(['^\\s*use\\s+Modules.[A-Z][A-Za-z]+'], 'Modules/*.php');
+}
+
+function reportAcoplamento(graph) {
+  const modulosVivos = new Set(readdirSync(join(ROOT, 'Modules')));
+  const refs = parseImportsCruzados(lerImportsDaArvore(), { modulosVivos });
+  const r = compararFronteira(refs, graph, { modulosVivos });
+  const cobertura = r.pares.length ? ((r.confirmadas / r.pares.length) * 100).toFixed(1) : '—';
+  console.log(
+    `[catalog-graph] acoplamento REAL: ${r.pares.length} pares em produção · ` +
+    `${r.confirmadas} declarados (${cobertura}%) · ${r.naoDeclaradas.length} NÃO declarados · ` +
+    `${r.soDeclaradas.length} declarados sem import`,
+  );
+  if (r.crossCutting.length) {
+    console.log(
+      `ℹ️  primitiva cross-cutting (≥${LIMIAR_CROSS_CUTTING} módulos importam — não é fronteira, é alojamento): ` +
+      r.crossCutting.join(', '),
+    );
+  }
+  const negocio = r.naoDeclaradas.filter((p) => !p.soPrimitiva);
+  const primitiva = r.naoDeclaradas.filter((p) => p.soPrimitiva);
+  if (primitiva.length) {
+    console.log(`ℹ️  ${primitiva.length} par(es) não-declarados são SÓ primitiva cross-cutting — 1 decisão, não ${primitiva.length}.`);
+  }
+  for (const p of negocio) {
+    const selo = p.peso === 'dado' ? '⚠️ ' : '  ';
+    console.log(`${selo}${p.src} → ${p.dst}  (${p.imports} imports · ${p.peso}) ${p.simbolos.slice(0, 3).join(', ')}`);
+  }
+  const t = reportFronteiraDeTabela(modulosVivos);
+  console.log('');
+  console.log(
+    `[catalog-graph] advisory — PISO, não teto: import (\`use\`) + query crua (\`DB::table\`) em ` +
+    `Modules/**.php. Container/facade/Eloquent via Model alheio/resources/js ficam de fora.`,
+  );
+  return { ...r, tabela: t };
+}
+
+// ── CATRACA de acoplamento módulo→módulo (forward-only) ─────────────────────
+// Espelha a `DependencyDirectionTest` (app/ ↛ Modules/), um nível abaixo: lá o eixo é
+// núcleo→módulo, aqui é módulo→módulo. Mesma doutrina — a dívida de hoje é CONGELADA e
+// a catraca morde só quem PIORA (ADR 0275 forward-only; backfill em massa de legado é
+// anti-padrão registrado, §5 2026-07-12).
+//
+// POR QUE CATRACA E NÃO `depends_on` PREENCHIDO: o campo existe no SCOPE.md e é lido,
+// mas só 1 de 32 módulos o declara. Preenchê-lo a partir do dado DERIVADO seria escrever
+// à mão o fato que a máquina calcula — a doença que esta medição diagnosticou (28,1% de
+// cobertura). Declaração serve pra NORMA (o que PODE), não pra FATO (o que É). A norma
+// por par é decisão [W], e esta catraca não a antecipa: ela só impede dívida NOVA entrar
+// calada enquanto a decisão não vem.
+const COUPLING_BASELINE_REL = 'governance/module-coupling-baseline.json';
+
+// EIXO 2 da mesma catraca: `DB::table('tabela_alheia')`. Ficou 1 dia sem catraca depois que
+// o eixo `use` ganhou a dele, e é por aqui que passa o acoplamento mais caro medido —
+// `Officeimpresso → Financeiro` faz INSERT direto em `fin_titulos` sem passar pelo `Titulo`
+// (o business_id é setado à mão, então NÃO é vazamento de tenant; o que se perde são
+// observers/LogsActivity/invariantes do dono). Baseline SEPARADA de propósito: são dívidas
+// de natureza diferente e curar uma não pode mexer no congelamento da outra.
+const TABLE_COUPLING_BASELINE_REL = 'governance/module-table-coupling-baseline.json';
+
+/** Chave estável de um par. */
+function chaveDoPar(p) {
+  return `${p.src}>${p.dst}`;
+}
+
+/**
+ * Normaliza par de TABELA (`{src, dono}`) na forma de par de IMPORT (`{src, dst}`).
+ *
+ * Existe pra os dois eixos compartilharem UMA comparação (`catracaAcoplamento`) em vez de
+ * duas cópias que divergem no primeiro conserto — a régua da casa é estender o dono, não
+ * abrir paralelo. Os testes da catraca cobrem os dois eixos por construção.
+ */
+function paresDeTabelaComoPares(paresTabela) {
+  return (paresTabela || []).map((p) => ({ src: p.src, dst: p.dono, tabelas: p.tabelas, n: p.n }));
+}
+
+/**
+ * Confronta os pares não-declarados com a baseline congelada.
+ * @returns {{novos: string[], curados: string[], baseline: string[]}}
+ */
+function catracaAcoplamento(naoDeclaradas, baselineJson) {
+  const isentos = new Set([...(baselineJson.grandfathered || []), ...(baselineJson.allowlist || [])]);
+  const atuais = naoDeclaradas.map(chaveDoPar);
+  const novos = atuais.filter((k) => !isentos.has(k)).sort();
+  const vivos = new Set(atuais);
+  const curados = (baselineJson.grandfathered || []).filter((k) => !vivos.has(k)).sort();
+  return { novos, curados, baseline: baselineJson.grandfathered || [] };
+}
+
+function lerBaselineAcoplamento(rel = COUPLING_BASELINE_REL) {
+  const abs = join(ROOT, rel);
+  if (!existsSync(abs)) return null;
+  return JSON.parse(readFileSync(abs, 'utf8'));
+}
+
 function main() {
   const mods = listScopeModules();
   if (!mods.length) {
-    console.error('[catalog-graph] nenhum Modules/*/SCOPE.md encontrado — rode da raiz do repo.');
+    console.error('[catalog-graph] nenhum memory/requisitos/*/SCOPE.md encontrado — rode da raiz do repo.');
     process.exit(2);
   }
   const records = [...mods.map(readScope), ...listCoreClassBRecords()];
-  const graph = buildGraph(records, { knownAdrs: knownAdrNumbers() });
+  const graph = buildGraph(records, {
+    knownAdrs: knownAdrNumbers(),
+    adrRelations: readAdrIndex(),
+    tombstonedAdrSlugs: loadAdrTombstoneSlugs(),
+  });
   const content = serialize(graph);
   const outAbs = join(ROOT, OUT_REL);
 
@@ -662,6 +1238,92 @@ function main() {
     const result = queryGraph(graph, args[qi + 1]);
     if (!result) { console.error(`[catalog-graph] nó não encontrado: ${args[qi + 1] || '(vazio)'}`); process.exit(1); }
     console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  // Advisory: NÃO altera --check (required). Sai sempre 0, mesmo com fronteira não declarada.
+  // Roda DENTRO de um job required, então não pode avermelhá-lo — mas também não pode
+  // fingir verde quando não conseguiu medir: "não medi" ≠ "não há acoplamento" (§5 2026-07-29).
+  if (args.includes('--acoplamento')) {
+    let r = null;
+    try {
+      r = reportAcoplamento(graph);
+    } catch (err) {
+      console.log(`⚠️  [catalog-graph] acoplamento NÃO MEDIDO (${err && err.message}) — nenhum veredito sobre fronteira.`);
+      // Não medi ≠ não há. Se pediram a catraca, ela FALHA em vez de passar calada
+      // (§5 2026-07-29: instrumento não afirma verde quando não conseguiu medir).
+      if (args.includes('--catraca')) {
+        console.error('[catalog-graph] catraca: SEM VEREDITO — a medição falhou, não trate como verde.');
+        process.exit(2);
+      }
+      return;
+    }
+
+    if (args.includes('--write-baseline')) {
+      const conteudo = JSON.stringify({
+        _doc: 'Baseline FORWARD-ONLY da catraca de acoplamento módulo→módulo (catalog-graph --acoplamento --catraca). CONGELA a dívida: par NOVO reprova; a lista só DESCE.',
+        _regra: 'Declaração serve pra NORMA (o que PODE), não pra FATO (o que É) — por isso a catraca, e não `depends_on` preenchido a partir do derivado. A norma por par é decisão [W].',
+        _medicao: 'node scripts/governance/catalog-graph.mjs --acoplamento (seção de import, pares NÃO declarados)',
+        _regenerar: 'node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline. Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.',
+        grandfathered: r.naoDeclaradas.map(chaveDoPar).sort(),
+        allowlist: [],
+        allowlist_razoes: {},
+      }, null, 2) + '\n';
+      writeFileSync(join(ROOT, COUPLING_BASELINE_REL), conteudo, 'utf8');
+      console.log(`[catalog-graph] baseline de acoplamento gravada → ${COUPLING_BASELINE_REL} (${r.naoDeclaradas.length} pares)`);
+
+      const paresTabela = paresDeTabelaComoPares(r.tabela && r.tabela.pares);
+      const conteudoTabela = JSON.stringify({
+        _doc: 'Baseline FORWARD-ONLY da catraca de acoplamento por TABELA (`DB::table` cru em tabela de outro módulo). Mesmo desenho da module-coupling-baseline: par NOVO reprova; a lista só DESCE.',
+        _regra: 'Este eixo é o que o `use` NÃO enxerga. Dono da tabela é DERIVADO de quem faz `Schema::create` na migration, nunca do `db_tables_owned` escrito à mão. Tabela lida por ≥3 módulos é infra compartilhada e não conta como fronteira.',
+        _medicao: 'node scripts/governance/catalog-graph.mjs --acoplamento (seção "fronteira por TABELA")',
+        _regenerar: 'node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline (grava os DOIS eixos). Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.',
+        _piso: 'PISO, não teto: só `DB::table(\'literal\')`. `DB::table($var)`, Eloquent via Model alheio e SQL cru em string ficam invisíveis — o report diz quantos não resolveu.',
+        grandfathered: paresTabela.map(chaveDoPar).sort(),
+        allowlist: [],
+        allowlist_razoes: {},
+      }, null, 2) + '\n';
+      writeFileSync(join(ROOT, TABLE_COUPLING_BASELINE_REL), conteudoTabela, 'utf8');
+      console.log(`[catalog-graph] baseline de tabela gravada → ${TABLE_COUPLING_BASELINE_REL} (${paresTabela.length} pares)`);
+      return;
+    }
+
+    if (args.includes('--catraca')) {
+      // Os DOIS eixos são avaliados sempre, e o veredito é a UNIÃO: sair no primeiro que
+      // reprova esconderia o outro até alguém consertar este. Cada mensagem NOMEIA o eixo —
+      // catraca que só diz "reprovou" manda o autor caçar em qual das duas dívidas ele entrou.
+      const eixos = [
+        { nome: 'import (`use`)', rel: COUPLING_BASELINE_REL, pares: r.naoDeclaradas },
+        { nome: 'tabela (`DB::table`)', rel: TABLE_COUPLING_BASELINE_REL, pares: paresDeTabelaComoPares(r.tabela && r.tabela.pares) },
+      ];
+      let reprovou = 0;
+      for (const eixo of eixos) {
+        const base = lerBaselineAcoplamento(eixo.rel);
+        if (!base) {
+          console.error(`[catalog-graph] catraca ${eixo.nome}: ${eixo.rel} não existe — rode --write-baseline.`);
+          process.exit(2);
+        }
+        const { novos, curados } = catracaAcoplamento(eixo.pares, base);
+        if (curados.length) {
+          console.log(`ℹ️  catraca ${eixo.nome}: ${curados.length} par(es) da baseline JÁ FORAM CURADOS — remova do JSON: ${curados.join(', ')}`);
+        }
+        if (novos.length) {
+          reprovou++;
+          console.error(
+            `[catalog-graph] catraca REPROVA no eixo ${eixo.nome}: ${novos.length} par(es) NOVOS módulo→módulo:\n  - ` +
+            novos.join('\n  - ') +
+            '\n  Opções: (a) declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM;' +
+            '\n          (b) inverter via contrato/evento — no eixo tabela, usar o Model do DONO' +
+            '\n              em vez de `DB::table` preserva observers/scope/invariantes dele;' +
+            '\n          (c) se for dívida consciente, entrar em' +
+            `\n              ${eixo.rel} > allowlist COM razão declarada.`,
+          );
+        } else {
+          console.log(`[catalog-graph] catraca ${eixo.nome}: OK — nenhum par novo (baseline: ${(base.grandfathered || []).length}).`);
+        }
+      }
+      if (reprovou) process.exit(1);
+    }
     return;
   }
 
@@ -705,11 +1367,23 @@ export {
   moduleRefsIn,
   delegationNote,
   migrateTargetsFromRaw,
+  adrRelationItems,
   buildGraph,
   serialize,
   sortGraph,
   queryGraph,
   listCoreClassBRecords,
+  parseImportsCruzados,
+  simbolosCrossCutting,
+  compararFronteira,
+  catracaAcoplamento,
+  chaveDoPar,
+  paresDeTabelaComoPares,
+  pesoDaCamada,
+  derivarDonoDeTabela,
+  parseQueriesCruas,
+  tabelasCompartilhadas,
+  agruparFronteiraDeTabela,
   NODE_TYPES,
   EDGE_TYPES,
 };

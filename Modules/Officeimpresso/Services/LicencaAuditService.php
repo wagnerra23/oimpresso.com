@@ -4,7 +4,7 @@ namespace Modules\Officeimpresso\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Str;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\LicencaLog;
 
 /**

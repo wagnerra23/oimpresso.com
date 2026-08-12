@@ -12,7 +12,7 @@ module: NFSe
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs NFSe --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/NFSe/**` + `resources/js/Pages/Nfse/**` (namespace Inertia `Nfse`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `NFSe`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/NFSe/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/NFSe/**` + `resources/js/Pages/Nfse/**` (namespace Inertia `Nfse`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `NFSe`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
 **Total mapeado:** 61 arquivos em 16 papéis.
 
@@ -113,6 +113,6 @@ module: NFSe
 - [TomadorInvalidoException.php](../../../Modules/NFSe/Exceptions/TomadorInvalidoException.php)
 - [topnav.php](../../../Modules/NFSe/Resources/menus/topnav.php)
 - [permissions.php](../../../Modules/NFSe/Resources/permissions.php)
-- [SCOPE.md](../../../Modules/NFSe/SCOPE.md)
 - [composer.json](../../../Modules/NFSe/composer.json)
 - [module.json](../../../Modules/NFSe/module.json)
+- [SCOPE.md](../../../memory/requisitos/NFSe/SCOPE.md)

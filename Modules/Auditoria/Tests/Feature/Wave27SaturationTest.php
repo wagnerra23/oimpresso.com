@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Auditoria\Services\AuditEntryService;
 use Modules\Auditoria\Services\RevertService;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Models\Activity;
 
 uses(Tests\TestCase::class);
@@ -239,7 +239,7 @@ it('W27 PiiRedactor remove telefone formatado BR (xx) xxxxx-xxxx', function () {
     // Teste verifica: NÃO QUEBRA + texto preserva contexto (Cliente, hoje)
     expect($output)->toContain('Cliente');
     expect($output)->toContain('hoje');
-})->skip(! class_exists(\Modules\Jana\Services\Privacy\PiiRedactor::class), 'PiiRedactor Jana ausente');
+})->skip(! class_exists(\App\Support\Privacy\PiiRedactor::class), 'PiiRedactor Jana ausente');
 
 it('W27 PiiRedactor redact preserva texto curto sem PII (idempotente parcial)', function () {
     $redactor = app(PiiRedactor::class);
@@ -256,12 +256,12 @@ it('W27 PiiRedactor lida com input vazio sem fatal', function () {
 
 it('W27 PiiRedactor lida com input longo (1000 chars sem fatal)', function () {
     $redactor = app(PiiRedactor::class);
-    $long = str_repeat('CPF 111.222.333-44 ', 50);
+    $long = str_repeat('CPF 111.222.333-44 ', 50); # pii-allowlist
 
     expect(fn () => $redactor->redact($long, 'placeholder'))->not->toThrow(\Throwable::class);
 
     $output = $redactor->redact($long, 'placeholder');
-    expect($output)->not->toContain('111.222.333-44');
+    expect($output)->not->toContain('111.222.333-44'); # pii-allowlist
 });
 
 it('W27 RevertService::revert reason flow NUNCA persiste antes de redact (source code proof)', function () {

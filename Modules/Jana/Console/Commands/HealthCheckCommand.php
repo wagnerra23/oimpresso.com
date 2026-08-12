@@ -1763,7 +1763,7 @@ class HealthCheckCommand extends Command
     /**
      * Check 11 — Ledger de lições de operação (Reflexion runtime · advisory).
      *
-     * Lê Modules/Jana/LICOES-OPERACAO.md e valida o LOOP DE GRADUAÇÃO: toda lição
+     * Lê memory/requisitos/Jana/LICOES-OPERACAO.md e valida o LOOP DE GRADUAÇÃO: toda lição
      * de operação registrada precisa nascer graduada (MEC → vira check · JULG → vira
      * regra sempre-lida). Acende amarelo (advisory, não derruba cron) se alguma entrada
      * está malformada ou ainda `status:pendente` — fechando o loop por métrica
@@ -1774,13 +1774,13 @@ class HealthCheckCommand extends Command
      *
      * Skip silencioso se o ledger ainda não existe (ambiente sem o doc / pré-merge).
      *
-     * @see Modules/Jana/LICOES-OPERACAO.md
+     * @see memory/requisitos/Jana/LICOES-OPERACAO.md
      * @see memory/decisions/proposals/jana-ledger-licoes-operacao-reflexion.md
      */
     protected function checkLessonLedgerGraduation(): array
     {
         $name = 'jana_lesson_ledger_graduation';
-        $path = base_path('Modules/Jana/LICOES-OPERACAO.md');
+        $path = base_path('memory/requisitos/Jana/LICOES-OPERACAO.md');
 
         if (! is_file($path)) {
             return [
@@ -1820,7 +1820,7 @@ class HealthCheckCommand extends Command
      * @var array<string, array{path:string, header:string}>
      */
     public const GOVERNANCA_LEDGERS = [
-        'operacao' => ['path' => 'Modules/Jana/LICOES-OPERACAO.md', 'header' => '/^###\s+(L-OP-\d+)\b/m'],
+        'operacao' => ['path' => 'memory/requisitos/Jana/LICOES-OPERACAO.md', 'header' => '/^###\s+(L-OP-\d+)\b/m'],
         'cc'       => ['path' => 'memory/LICOES_CC.md',             'header' => '/^##\s+(L-\d+)\b/m'],
     ];
 
@@ -2057,7 +2057,7 @@ class HealthCheckCommand extends Command
     /**
      * Parser determinístico do ledger de lições de operação.
      *
-     * Contrato (ver Modules/Jana/LICOES-OPERACAO.md → "Formato canônico"):
+     * Contrato (ver memory/requisitos/Jana/LICOES-OPERACAO.md → "Formato canônico"):
      *   - cada lição = bloco iniciado por `### L-OP-NNN`
      *   - linha `- **Graduação:** <MEC|JULG> · <check:`x`|regra:`y`> · status:<done|pendente>`
      *

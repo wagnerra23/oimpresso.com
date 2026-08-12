@@ -7,7 +7,7 @@ namespace Modules\Whatsapp\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
 

@@ -1,0 +1,42 @@
+---
+module: ConsultaOs
+purpose: "Casca de portal público de consulta de OS — backend completo (rota sem auth, anti-enumeration, auditoria LGPD, throttle, OTel, Repository trocável) rodando sobre dataset FAKE de 4 OS. Não lê banco: existe para validar UX e segurança antes de US-CONSULTA-001 ligar a query real."
+migracao_ui: "concluido — 0 Blade servido"
+contains:
+  - "ConsultaOsController"
+  - "DataController"
+  - "InstallController"
+not_contains:
+  - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
+  - "Tasks Jira-style → Modules/Forja"
+  - "MCP server admin → Modules/Forja"
+trust_required: L4
+owner: wagner
+permission_prefix: consultaos.*
+charter_adr: 0080
+related_adrs:
+  - 0079-constituicao-oimpresso-7-camadas-governanca
+  - 0080-trust-tiers-operacional-audit-findings
+url_prefixes:
+  - /consultaos/*
+drift_alerts: []
+---
+
+# Modules/ConsultaOs
+
+## Missão
+
+Portal público de consulta de Ordem de Serviço. Cliente acompanha pipeline produção.
+
+## Trust level
+
+**L4** — ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md).
+
+## Quando NÃO é tocado
+
+Ver `not_contains[]` no frontmatter. Em dúvida, consulte
+[ARCHITECTURE.md](../../governance/ARCHITECTURE.md).
+
+---
+
+- **v1.0.0** (2026-05-05) — SCOPE.md inicial. Gerado em batch via Fase 3.4 do ADR 0079.

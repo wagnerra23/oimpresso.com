@@ -1,7 +1,7 @@
 {
   "$generator": "scripts/governance/catalog-graph.mjs",
-  "$doc": "Grafo tipado DERIVADO dos Modules/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write",
-  "$advisory": "Advisory de nascença (ADR 0314/0275) — não é gate required.",
+  "$doc": "Grafo tipado DERIVADO dos memory/requisitos/*/SCOPE.md (ADR 0256). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/catalog-graph.mjs --write",
+  "$enforcement": "Quem é required é a branch protection — o dono é governance/required-checks-baseline.json. Nasceu advisory em 2026-07 (ADR 0314/0275) e foi promovido em 2026-08-05 (ADR 0370); este campo NÃO declara o estado atual, aponta pro dono (§5 2026-07-16).",
   "node_types": [
     "module",
     "table",
@@ -19,16 +19,19 @@
     "hasComponent",
     "dependsOn",
     "delegatesTo",
-    "migratesTo"
+    "migratesTo",
+    "supersedes",
+    "supersedesPartially",
+    "supersededBy"
   ],
   "stats": {
     "modules": 35,
-    "nodes": 570,
-    "edges": 838,
+    "nodes": 649,
+    "edges": 916,
     "by_node_type": {
-      "module": 40,
+      "module": 39,
       "table": 73,
-      "adr": 25,
+      "adr": 105,
       "component": 389,
       "api": 43
     },
@@ -40,39 +43,119 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 389,
-      "dependsOn": 113,
-      "delegatesTo": 107,
-      "migratesTo": 1
+      "dependsOn": 111,
+      "delegatesTo": 105,
+      "migratesTo": 1,
+      "supersedes": 15,
+      "supersedesPartially": 48,
+      "supersededBy": 19
     },
     "dangling": 0
   },
   "nodes": [
     {
+      "id": "adr:0002",
+      "type": "adr",
+      "num": "0002",
+      "slug": "0002-nwidart-laravel-modules",
+      "exists": true
+    },
+    {
+      "id": "adr:0008",
+      "type": "adr",
+      "num": "0008",
+      "slug": "0008-sidebar-unica-tabs-horizontais",
+      "exists": true
+    },
+    {
+      "id": "adr:0010",
+      "type": "adr",
+      "num": "0010",
+      "slug": "0010-sistema-memoria-projeto",
+      "exists": true
+    },
+    {
+      "id": "adr:0011",
+      "type": "adr",
+      "num": "0011",
+      "slug": "0011-alinhamento-padrao-jana",
+      "exists": true
+    },
+    {
+      "id": "adr:0027",
+      "type": "adr",
+      "num": "0027",
+      "slug": "0027-gestao-memoria-roles-claros",
+      "exists": true
+    },
+    {
+      "id": "adr:0028",
+      "type": "adr",
+      "num": "0028",
+      "slug": "0028-adrs-numeracao-monotonica",
+      "exists": true
+    },
+    {
+      "id": "adr:0031",
+      "type": "adr",
+      "num": "0031",
+      "slug": "0031-memoriacontrato-mem0-default",
+      "exists": true
+    },
+    {
+      "id": "adr:0032",
+      "type": "adr",
+      "num": "0032",
+      "slug": "0032-vizra-adk-prism-php-orquestracao",
+      "exists": true
+    },
+    {
+      "id": "adr:0033",
+      "type": "adr",
+      "num": "0033",
+      "slug": "0033-vector-store-meilisearch-pgvector-mem0",
+      "exists": true
+    },
+    {
       "id": "adr:0035",
       "type": "adr",
       "num": "0035",
-      "slug": "0035-laravel-ai-canonical-no-vizra",
+      "slug": "0035-stack-ai-canonica-wagner-2026-04-26",
       "exists": true
     },
     {
       "id": "adr:0036",
       "type": "adr",
       "num": "0036",
-      "slug": "0036-meilisearch-hybrid-driver",
+      "slug": "0036-replanejamento-meilisearch-first",
+      "exists": true
+    },
+    {
+      "id": "adr:0039",
+      "type": "adr",
+      "num": "0039",
+      "slug": "0039-ui-chat-cockpit-padrao",
+      "exists": true
+    },
+    {
+      "id": "adr:0042",
+      "type": "adr",
+      "num": "0042",
+      "slug": "0042-reverb-substitui-pusher-cloud",
       "exists": true
     },
     {
       "id": "adr:0048",
       "type": "adr",
       "num": "0048",
-      "slug": "0048-vizra-rejected-laravel-ai-canonical",
+      "slug": "0048-framework-agentes-laravel-ai-vizra-rejeitada",
       "exists": true
     },
     {
       "id": "adr:0052",
       "type": "adr",
       "num": "0052",
-      "slug": "0052-contexto-negocio-3-angulos",
+      "slug": "0052-contextonegocio-expor-multiplos-angulos",
       "exists": true
     },
     {
@@ -83,10 +166,59 @@
       "exists": true
     },
     {
+      "id": "adr:0054",
+      "type": "adr",
+      "num": "0054",
+      "slug": "0054-pacote-enterprise-busca-memoria-evolucao",
+      "exists": true
+    },
+    {
+      "id": "adr:0055",
+      "type": "adr",
+      "num": "0055",
+      "slug": "0055-self-host-team-plan-equivalente-anthropic",
+      "exists": true
+    },
+    {
+      "id": "adr:0057",
+      "type": "adr",
+      "num": "0057",
+      "slug": "0057-tela-team-admin-regras-governanca-tokens-mcp",
+      "exists": true
+    },
+    {
+      "id": "adr:0058",
+      "type": "adr",
+      "num": "0058",
+      "slug": "0058-reverb-substituido-por-centrifugo-frankenphp",
+      "exists": true
+    },
+    {
+      "id": "adr:0059",
+      "type": "adr",
+      "num": "0059",
+      "slug": "0059-governanca-memoria-estilo-anthropic-team",
+      "exists": true
+    },
+    {
+      "id": "adr:0060",
+      "type": "adr",
+      "num": "0060",
+      "slug": "0060-tudo-rede-interna-proxmox-bye-hostinger",
+      "exists": true
+    },
+    {
       "id": "adr:0061",
       "type": "adr",
       "num": "0061",
       "slug": "0061-conhecimento-canonico-git-mcp-zero-automem",
+      "exists": true
+    },
+    {
+      "id": "adr:0064",
+      "type": "adr",
+      "num": "0064",
+      "slug": "0064-modularizacao-split-teammcp-kb-superadmin360",
       "exists": true
     },
     {
@@ -97,10 +229,52 @@
       "exists": true
     },
     {
+      "id": "adr:0069",
+      "type": "adr",
+      "num": "0069",
+      "slug": "0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated",
+      "exists": true
+    },
+    {
       "id": "adr:0070",
       "type": "adr",
       "num": "0070",
       "slug": "0070-jira-style-task-management-current-md-removed",
+      "exists": true
+    },
+    {
+      "id": "adr:0073",
+      "type": "adr",
+      "num": "0073",
+      "slug": "0073-team-mcp-skills-policies-entidades-governadas",
+      "exists": true
+    },
+    {
+      "id": "adr:0075",
+      "type": "adr",
+      "num": "0075",
+      "slug": "0075-team-mcp-skills-ui-prompt-management-style",
+      "exists": true
+    },
+    {
+      "id": "adr:0076",
+      "type": "adr",
+      "num": "0076",
+      "slug": "0076-skills-db-primary-git-destino-drift-alert",
+      "exists": true
+    },
+    {
+      "id": "adr:0077",
+      "type": "adr",
+      "num": "0077",
+      "slug": "0077-mcp-resolver-owner-via-mcp-handle",
+      "exists": true
+    },
+    {
+      "id": "adr:0078",
+      "type": "adr",
+      "num": "0078",
+      "slug": "0078-constituicao-uma-frase-skill-unidade-evolucao",
       "exists": true
     },
     {
@@ -118,10 +292,38 @@
       "exists": true
     },
     {
+      "id": "adr:0081",
+      "type": "adr",
+      "num": "0081",
+      "slug": "0081-identity-mesh-mcp-actors",
+      "exists": true
+    },
+    {
       "id": "adr:0086",
       "type": "adr",
       "num": "0086",
       "slug": "0086-fase-5-mvp-governance-actiongate-warn",
+      "exists": true
+    },
+    {
+      "id": "adr:0088",
+      "type": "adr",
+      "num": "0088",
+      "slug": "0088-module-rename-php-only",
+      "exists": true
+    },
+    {
+      "id": "adr:0091",
+      "type": "adr",
+      "num": "0091",
+      "slug": "0091-daily-brief",
+      "exists": true
+    },
+    {
+      "id": "adr:0092",
+      "type": "adr",
+      "num": "0092",
+      "slug": "0092-tabela-rename-copiloto-para-jana",
       "exists": true
     },
     {
@@ -139,11 +341,33 @@
       "exists": true
     },
     {
-      "id": "adr:0101",
+      "id": "adr:0095",
+      "type": "adr",
+      "num": "0095",
+      "slug": "0095-skills-tiers-convencao-interna",
+      "exists": true
+    },
+    {
+      "id": "adr:0096",
+      "type": "adr",
+      "num": "0096",
+      "slug": "0096-modulo-whatsapp-meta-cloud-api-direto",
+      "exists": true
+    },
+    {
+      "id": "adr:0097",
+      "type": "adr",
+      "num": "0097",
+      "slug": "0097-brief-model-gpt4o-mini-supersede-parcial-0091",
+      "exists": true
+    },
+    {
+      "id": "adr:0101-tests-business-id-1-nunca-cliente",
       "type": "adr",
       "num": "0101",
-      "slug": "0101-tests-business-id-1-nunca-cliente",
-      "exists": true
+      "slug": "",
+      "exists": false,
+      "tombstoned": true
     },
     {
       "id": "adr:0104",
@@ -164,6 +388,13 @@
       "type": "adr",
       "num": "0114",
       "slug": "0114-prototipo-ui-cowork-loop-formalizado",
+      "exists": true
+    },
+    {
+      "id": "adr:0117",
+      "type": "adr",
+      "num": "0117",
+      "slug": "0117-multiplos-numeros-whatsapp-por-business",
       "exists": true
     },
     {
@@ -195,6 +426,13 @@
       "exists": true
     },
     {
+      "id": "adr:0136",
+      "type": "adr",
+      "num": "0136",
+      "slug": "0136-sells-grade-avancada-modo-toggle",
+      "exists": true
+    },
+    {
       "id": "adr:0137",
       "type": "adr",
       "num": "0137",
@@ -209,6 +447,90 @@
       "exists": true
     },
     {
+      "id": "adr:0144",
+      "type": "adr",
+      "num": "0144",
+      "slug": "0144-tasks-db-canonico-spec-template",
+      "exists": true
+    },
+    {
+      "id": "adr:0145",
+      "type": "adr",
+      "num": "0145",
+      "slug": "0145-ia-administradora-pivot-ads-fsm-piloto-cobradora",
+      "exists": true
+    },
+    {
+      "id": "adr:0153",
+      "type": "adr",
+      "num": "0153",
+      "slug": "0153-module-grade-rubrica-v1",
+      "exists": true
+    },
+    {
+      "id": "adr:0154",
+      "type": "adr",
+      "num": "0154",
+      "slug": "0154-module-grade-v2-na-justificado",
+      "exists": true
+    },
+    {
+      "id": "adr:0155",
+      "type": "adr",
+      "num": "0155",
+      "slug": "0155-module-grade-v3-sub-dimensoes-gate-ci",
+      "exists": true
+    },
+    {
+      "id": "adr:0156",
+      "type": "adr",
+      "num": "0156",
+      "slug": "0156-module-grade-v3-errata-otel-helper-na-justified",
+      "exists": true
+    },
+    {
+      "id": "adr:0157",
+      "type": "adr",
+      "num": "0157",
+      "slug": "0157-module-grade-v3-d2-detection-hardening",
+      "exists": true
+    },
+    {
+      "id": "adr:0158",
+      "type": "adr",
+      "num": "0158",
+      "slug": "0158-module-grade-v3-d1-heuristica-hardening",
+      "exists": true
+    },
+    {
+      "id": "adr:0159",
+      "type": "adr",
+      "num": "0159",
+      "slug": "0159-module-grade-v3-errata-meta-97-realismo",
+      "exists": true
+    },
+    {
+      "id": "adr:0160",
+      "type": "adr",
+      "num": "0160",
+      "slug": "0160-governance-v4-scoped-scorecards-buckets",
+      "exists": true
+    },
+    {
+      "id": "adr:0161",
+      "type": "adr",
+      "num": "0161",
+      "slug": "0161-governance-v4-aposentar-hacks-0159-redundantes",
+      "exists": true
+    },
+    {
+      "id": "adr:0168",
+      "type": "adr",
+      "num": "0168",
+      "slug": "0168-protocolo-wagner-sempre-tier-A-irrevogavel",
+      "exists": true
+    },
+    {
       "id": "adr:0170",
       "type": "adr",
       "num": "0170",
@@ -216,10 +538,255 @@
       "exists": true
     },
     {
+      "id": "adr:0178-sells-unified-tabs-visao-supersede-0136",
+      "type": "adr",
+      "num": "0178",
+      "slug": "",
+      "exists": true
+    },
+    {
+      "id": "adr:0179",
+      "type": "adr",
+      "num": "0179",
+      "slug": "0179-cliente-drawer-760px-substitui-show-fullpage",
+      "exists": true
+    },
+    {
       "id": "adr:0180",
       "type": "adr",
       "num": "0180",
-      "slug": "0180-sidebar-v3-5-grupos-ghosts-header",
+      "slug": "",
+      "exists": true
+    },
+    {
+      "id": "adr:0180-drift-numero-adr-0178-conflito-paralelo",
+      "type": "adr",
+      "num": "0180",
+      "slug": "",
+      "exists": true
+    },
+    {
+      "id": "adr:0180-sidebar-v3-5-grupos-ghosts-header",
+      "type": "adr",
+      "num": "0180",
+      "slug": "",
+      "exists": true
+    },
+    {
+      "id": "adr:0182",
+      "type": "adr",
+      "num": "0182",
+      "slug": "0182-pageheadertabs-canon-pattern-telas",
+      "exists": true
+    },
+    {
+      "id": "adr:0185",
+      "type": "adr",
+      "num": "0185",
+      "slug": "0185-drawer-760-canon-entidades-cadastrais",
+      "exists": true
+    },
+    {
+      "id": "adr:0189",
+      "type": "adr",
+      "num": "0189",
+      "slug": "0189-pageheader-canon-v3-1-cadastro-roxo",
+      "exists": true
+    },
+    {
+      "id": "adr:0190",
+      "type": "adr",
+      "num": "0190",
+      "slug": "0190-primary-button-roxo-universal-295",
+      "exists": true
+    },
+    {
+      "id": "adr:0194",
+      "type": "adr",
+      "num": "0194",
+      "slug": "0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada",
+      "exists": true
+    },
+    {
+      "id": "adr:0202",
+      "type": "adr",
+      "num": "0202",
+      "slug": "0202-whatsapp-profissionalizacao-baileys-out",
+      "exists": true
+    },
+    {
+      "id": "adr:0204",
+      "type": "adr",
+      "num": "0204",
+      "slug": "0204-whatsmeow-driver-substituto-baileys",
+      "exists": true
+    },
+    {
+      "id": "adr:0225",
+      "type": "adr",
+      "num": "0225",
+      "slug": "0225-skills-tier-a-recalibracao-claude-4.8",
+      "exists": true
+    },
+    {
+      "id": "adr:0226",
+      "type": "adr",
+      "num": "0226",
+      "slug": "0226-brief-v2-1m-aware-rico",
+      "exists": true
+    },
+    {
+      "id": "adr:0235-ds-v4-accent-roxo-universal",
+      "type": "adr",
+      "num": "0235",
+      "slug": "",
+      "exists": true
+    },
+    {
+      "id": "adr:0256",
+      "type": "adr",
+      "num": "0256",
+      "slug": "0256-knowledge-survival-meia-vida-catraca-sentinela",
+      "exists": true
+    },
+    {
+      "id": "adr:0258",
+      "type": "adr",
+      "num": "0258",
+      "slug": "0258-processo-adr-estado-arte-indice-gerado-supersede-atomico",
+      "exists": true
+    },
+    {
+      "id": "adr:0264",
+      "type": "adr",
+      "num": "0264",
+      "slug": "0264-governanca-executavel-trio-dominio-e2e",
+      "exists": true
+    },
+    {
+      "id": "adr:0265",
+      "type": "adr",
+      "num": "0265",
+      "slug": "0265-oficina-reparo-erradica-locacao",
+      "exists": true
+    },
+    {
+      "id": "adr:0302",
+      "type": "adr",
+      "num": "0302",
+      "slug": "0302-fonte-unica-doneness-anchor-aposenta-status-spec",
+      "exists": true
+    },
+    {
+      "id": "adr:0312",
+      "type": "adr",
+      "num": "0312",
+      "slug": "0312-decisions-search-fulltext-hybrid-docs-off",
+      "exists": true
+    },
+    {
+      "id": "adr:0313",
+      "type": "adr",
+      "num": "0313",
+      "slug": "0313-financeiro-subnav-unificada-fidelidade-prototipo",
+      "exists": true
+    },
+    {
+      "id": "adr:0320",
+      "type": "adr",
+      "num": "0320",
+      "slug": "0320-programa-ondas-regua-correcao",
+      "exists": true
+    },
+    {
+      "id": "adr:0322",
+      "type": "adr",
+      "num": "0322",
+      "slug": "0322-reabre-hybrid-docs-instruction-prefix-qwen3",
+      "exists": true
+    },
+    {
+      "id": "adr:0330",
+      "type": "adr",
+      "num": "0330",
+      "slug": "0330-mapa-dos-niveis-estado-real-2026-07-constituicao",
+      "exists": true
+    },
+    {
+      "id": "adr:0333",
+      "type": "adr",
+      "num": "0333",
+      "slug": "0333-emenda-0330-eixo-rodar-e-observar-submedido",
+      "exists": true
+    },
+    {
+      "id": "adr:0337",
+      "type": "adr",
+      "num": "0337",
+      "slug": "0337-emenda-0144-forward-close-por-ancora-verificada",
+      "exists": true
+    },
+    {
+      "id": "adr:0341",
+      "type": "adr",
+      "num": "0341",
+      "slug": "0341-memory-schema-charter-spec-required-emenda-0314",
+      "exists": true
+    },
+    {
+      "id": "adr:0343",
+      "type": "adr",
+      "num": "0343",
+      "slug": "0343-promove-adr-gate-required-emenda-0341",
+      "exists": true
+    },
+    {
+      "id": "adr:0355",
+      "type": "adr",
+      "num": "0355",
+      "slug": "0355-doneness-consolidada-ancora-fecha-dod-veta",
+      "exists": true
+    },
+    {
+      "id": "adr:0356",
+      "type": "adr",
+      "num": "0356",
+      "slug": "0356-errata-0355-limiar-de-reversao-derivado-nao-escolhido",
+      "exists": true
+    },
+    {
+      "id": "adr:0358",
+      "type": "adr",
+      "num": "0358",
+      "slug": "0358-doutrina-de-teste-tenant-98-supersede-0101",
+      "exists": true
+    },
+    {
+      "id": "adr:0360",
+      "type": "adr",
+      "num": "0360",
+      "slug": "0360-deprecacao-admin-center-supersede-0122",
+      "exists": true
+    },
+    {
+      "id": "adr:0363",
+      "type": "adr",
+      "num": "0363",
+      "slug": "0363-governance-incorpora-ads-nucleo-sem-receptor",
+      "exists": true
+    },
+    {
+      "id": "adr:0364",
+      "type": "adr",
+      "num": "0364",
+      "slug": "0364-trio-de-tela-mora-em-memory-emenda-0264",
+      "exists": true
+    },
+    {
+      "id": "adr:0365",
+      "type": "adr",
+      "num": "0365",
+      "slug": "0365-trio-de-tela-fica-colocado-reverte-eixo-0364",
       "exists": true
     },
     {
@@ -3324,7 +3891,7 @@
       "owner": "wagner",
       "permission_prefix": "arquivos.*",
       "charter_adr": "0123",
-      "path": "Modules/Arquivos/SCOPE.md",
+      "path": "memory/requisitos/Arquivos/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3337,7 +3904,7 @@
       "owner": "wagner",
       "permission_prefix": "assetmanagement.*",
       "charter_adr": "0080",
-      "path": "Modules/AssetManagement/SCOPE.md",
+      "path": "memory/requisitos/AssetManagement/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3350,7 +3917,7 @@
       "owner": "wagner",
       "permission_prefix": "auditoria.*",
       "charter_adr": "0094",
-      "path": "Modules/Auditoria/SCOPE.md",
+      "path": "memory/requisitos/Auditoria/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3376,7 +3943,7 @@
       "owner": "wagner",
       "permission_prefix": "cms.*",
       "charter_adr": "0080",
-      "path": "Modules/Cms/SCOPE.md",
+      "path": "memory/requisitos/Cms/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3389,7 +3956,7 @@
       "owner": "wagner",
       "permission_prefix": "compras.*",
       "charter_adr": "0079",
-      "path": "Modules/Compras/SCOPE.md",
+      "path": "memory/requisitos/Compras/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3402,7 +3969,7 @@
       "owner": "wagner",
       "permission_prefix": "com_visual.*",
       "charter_adr": "0121",
-      "path": "Modules/ComunicacaoVisual/SCOPE.md",
+      "path": "memory/requisitos/ComunicacaoVisual/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3415,7 +3982,7 @@
       "owner": "wagner",
       "permission_prefix": "connector.*",
       "charter_adr": "0080",
-      "path": "Modules/Connector/SCOPE.md",
+      "path": "memory/requisitos/Connector/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3428,7 +3995,7 @@
       "owner": "wagner",
       "permission_prefix": "consultaos.*",
       "charter_adr": "0080",
-      "path": "Modules/ConsultaOs/SCOPE.md",
+      "path": "memory/requisitos/ConsultaOs/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3441,7 +4008,7 @@
       "owner": "wagner",
       "permission_prefix": "crm.*",
       "charter_adr": "0080",
-      "path": "Modules/Crm/SCOPE.md",
+      "path": "memory/requisitos/Crm/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3454,7 +4021,7 @@
       "owner": "wagner",
       "permission_prefix": "essentials.*",
       "charter_adr": "0080",
-      "path": "Modules/Essentials/SCOPE.md",
+      "path": "memory/requisitos/Essentials/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3467,7 +4034,7 @@
       "owner": "wagner",
       "permission_prefix": "financeiro.*",
       "charter_adr": "0080",
-      "path": "Modules/Financeiro/SCOPE.md",
+      "path": "memory/requisitos/Financeiro/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3480,7 +4047,7 @@
       "owner": "wagner",
       "permission_prefix": "fiscal.*",
       "charter_adr": "0094",
-      "path": "Modules/Fiscal/SCOPE.md",
+      "path": "memory/requisitos/Fiscal/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3493,7 +4060,7 @@
       "owner": "wagner",
       "permission_prefix": "projectmgmt.*",
       "charter_adr": "0080",
-      "path": "Modules/Forja/SCOPE.md",
+      "path": "memory/requisitos/Forja/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3506,7 +4073,7 @@
       "owner": "wagner",
       "permission_prefix": "governance.*",
       "charter_adr": "0086",
-      "path": "Modules/Governance/SCOPE.md",
+      "path": "memory/requisitos/Governance/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3519,7 +4086,7 @@
       "owner": "wagner",
       "permission_prefix": "jana.*",
       "charter_adr": "0080",
-      "path": "Modules/Jana/SCOPE.md",
+      "path": "memory/requisitos/Jana/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3532,7 +4099,7 @@
       "owner": "wagner",
       "permission_prefix": "kb.*",
       "charter_adr": "0080",
-      "path": "Modules/KB/SCOPE.md",
+      "path": "memory/requisitos/KB/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3545,7 +4112,7 @@
       "owner": "wagner",
       "permission_prefix": "manufacturing.*",
       "charter_adr": "0080",
-      "path": "Modules/Manufacturing/SCOPE.md",
+      "path": "memory/requisitos/Manufacturing/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3558,7 +4125,7 @@
       "owner": "wagner",
       "permission_prefix": "nfebrasil.*",
       "charter_adr": "0080",
-      "path": "Modules/NfeBrasil/SCOPE.md",
+      "path": "memory/requisitos/NfeBrasil/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3571,22 +4138,9 @@
       "owner": "wagner",
       "permission_prefix": "nfse.*",
       "charter_adr": "0080",
-      "path": "Modules/NFSe/SCOPE.md",
+      "path": "memory/requisitos/NFSe/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
-    },
-    {
-      "id": "module:Notas",
-      "type": "module",
-      "module": "Notas",
-      "purpose": "",
-      "trust": "",
-      "owner": "",
-      "permission_prefix": "",
-      "charter_adr": "",
-      "path": null,
-      "catalog_kind": "referenced-only",
-      "catalog_status": "referenced-only"
     },
     {
       "id": "module:Officeimpresso",
@@ -3597,7 +4151,7 @@
       "owner": "wagner",
       "permission_prefix": "officeimpresso.*",
       "charter_adr": "0080",
-      "path": "Modules/Officeimpresso/SCOPE.md",
+      "path": "memory/requisitos/Officeimpresso/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3610,7 +4164,7 @@
       "owner": "wagner",
       "permission_prefix": "oficina_auto.*",
       "charter_adr": "0137",
-      "path": "Modules/OficinaAuto/SCOPE.md",
+      "path": "memory/requisitos/OficinaAuto/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3623,7 +4177,7 @@
       "owner": "wagner",
       "permission_prefix": "paymentgateway.*",
       "charter_adr": "0170",
-      "path": "Modules/PaymentGateway/SCOPE.md",
+      "path": "memory/requisitos/PaymentGateway/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3636,7 +4190,7 @@
       "owner": "wagner",
       "permission_prefix": "pontowr2.*",
       "charter_adr": "0080",
-      "path": "Modules/Ponto/SCOPE.md",
+      "path": "memory/requisitos/Ponto/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3649,7 +4203,7 @@
       "owner": "wagner",
       "permission_prefix": "productcatalogue.*",
       "charter_adr": "0080",
-      "path": "Modules/ProductCatalogue/SCOPE.md",
+      "path": "memory/requisitos/ProductCatalogue/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3688,7 +4242,7 @@
       "owner": "wagner",
       "permission_prefix": "recurringbilling.*",
       "charter_adr": "0080",
-      "path": "Modules/RecurringBilling/SCOPE.md",
+      "path": "memory/requisitos/RecurringBilling/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3701,7 +4255,7 @@
       "owner": "wagner",
       "permission_prefix": "repair.*",
       "charter_adr": "0080",
-      "path": "Modules/Repair/SCOPE.md",
+      "path": "memory/requisitos/Repair/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3727,7 +4281,7 @@
       "owner": "wagner",
       "permission_prefix": "spreadsheet.*",
       "charter_adr": "0080",
-      "path": "Modules/Spreadsheet/SCOPE.md",
+      "path": "memory/requisitos/Spreadsheet/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3753,7 +4307,7 @@
       "owner": "wagner",
       "permission_prefix": "superadmin.*",
       "charter_adr": "0080",
-      "path": "Modules/Superadmin/SCOPE.md",
+      "path": "memory/requisitos/Superadmin/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3766,7 +4320,7 @@
       "owner": "wagner",
       "permission_prefix": "vestuario.*",
       "charter_adr": "0121",
-      "path": "Modules/Vestuario/SCOPE.md",
+      "path": "memory/requisitos/Vestuario/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3779,7 +4333,7 @@
       "owner": "wagner",
       "permission_prefix": "",
       "charter_adr": "",
-      "path": "Modules/VozDoCliente/SCOPE.md",
+      "path": "memory/requisitos/VozDoCliente/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3792,7 +4346,7 @@
       "owner": "wagner",
       "permission_prefix": "whatsapp.*",
       "charter_adr": "",
-      "path": "Modules/Whatsapp/SCOPE.md",
+      "path": "memory/requisitos/Whatsapp/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -3805,7 +4359,7 @@
       "owner": "wagner",
       "permission_prefix": "woocommerce.*",
       "charter_adr": "0080",
-      "path": "Modules/Woocommerce/SCOPE.md",
+      "path": "memory/requisitos/Woocommerce/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -4623,6 +5177,498 @@
   ],
   "edges": [
     {
+      "from": "adr:0008",
+      "to": "adr:0039",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0010",
+      "to": "adr:0027",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0010",
+      "to": "adr:0053",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0011",
+      "to": "adr:0002",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0028",
+      "to": "adr:0258",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0032",
+      "to": "adr:0048",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0036",
+      "to": "adr:0031",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0036",
+      "to": "adr:0033",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0036",
+      "to": "adr:0035",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0042",
+      "to": "adr:0058",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0048",
+      "to": "adr:0032",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0053",
+      "to": "adr:0036",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0055",
+      "to": "adr:0054",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0060",
+      "to": "adr:0042",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0064",
+      "to": "adr:0055",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0064",
+      "to": "adr:0057",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0064",
+      "to": "adr:0059",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0064",
+      "to": "adr:0061",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0069",
+      "to": "adr:0070",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0070",
+      "to": "adr:0069",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0073",
+      "to": "adr:0075",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0075",
+      "to": "adr:0076",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0075",
+      "to": "adr:0073",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0076",
+      "to": "adr:0075",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0077",
+      "to": "adr:0081",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0079",
+      "to": "adr:0094",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0079",
+      "to": "adr:0078",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0081",
+      "to": "adr:0077",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0092",
+      "to": "adr:0088",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0094",
+      "to": "adr:0079",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0094",
+      "to": "adr:0078",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0097",
+      "to": "adr:0091",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0117",
+      "to": "adr:0096",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0122",
+      "to": "adr:0360",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0136",
+      "to": "adr:0178-sells-unified-tabs-visao-supersede-0136",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0144",
+      "to": "adr:0070",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0145",
+      "to": "adr:0363",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0154",
+      "to": "adr:0153",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0155",
+      "to": "adr:0153",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0155",
+      "to": "adr:0154",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0156",
+      "to": "adr:0155",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0157",
+      "to": "adr:0155",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0158",
+      "to": "adr:0155",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0159",
+      "to": "adr:0155",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0159",
+      "to": "adr:0156",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0160",
+      "to": "adr:0155",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0160",
+      "to": "adr:0159",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0161",
+      "to": "adr:0159",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0178-sells-unified-tabs-visao-supersede-0136",
+      "to": "adr:0136",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0182",
+      "to": "adr:0189",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0182",
+      "to": "adr:0190",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0185",
+      "to": "adr:0179",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0189",
+      "to": "adr:0180-drift-numero-adr-0178-conflito-paralelo",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0189",
+      "to": "adr:0182",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0190",
+      "to": "adr:0235-ds-v4-accent-roxo-universal",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0190",
+      "to": "adr:0182",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0190",
+      "to": "adr:0189",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0202",
+      "to": "adr:0096",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0204",
+      "to": "adr:0202",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0225",
+      "to": "adr:0095",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0225",
+      "to": "adr:0168",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0226",
+      "to": "adr:0091",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0226",
+      "to": "adr:0097",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0235-ds-v4-accent-roxo-universal",
+      "to": "adr:0190",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0258",
+      "to": "adr:0028",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0265",
+      "to": "adr:0194",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0302",
+      "to": "adr:0355",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0313",
+      "to": "adr:0180-sidebar-v3-5-grupos-ghosts-header",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0320",
+      "to": "adr:0256",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0320",
+      "to": "adr:0264",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0322",
+      "to": "adr:0312",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0333",
+      "to": "adr:0330",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0337",
+      "to": "adr:0355",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0343",
+      "to": "adr:0341",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0355",
+      "to": "adr:0302",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0355",
+      "to": "adr:0337",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0356",
+      "to": "adr:0355",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0358",
+      "to": "adr:0101-tests-business-id-1-nunca-cliente",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0360",
+      "to": "adr:0122",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0363",
+      "to": "adr:0145",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0364",
+      "to": "adr:0264",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0365",
+      "to": "adr:0364",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -5053,13 +6099,6 @@
     },
     {
       "from": "module:Compras",
-      "to": "module:Sells",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Vendas/saídas"
-    },
-    {
-      "from": "module:Compras",
       "to": "module:AssetManagement",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -5078,13 +6117,6 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "NF-e de entrada"
-    },
-    {
-      "from": "module:Compras",
-      "to": "module:Sells",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Vendas/saídas"
     },
     {
       "from": "module:Compras",
@@ -5806,20 +6838,6 @@
     },
     {
       "from": "module:Essentials",
-      "to": "module:Notas",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Modules/Notas (NEW) — KB pessoal + tarefas + arquivo cliente"
-    },
-    {
-      "from": "module:Essentials",
-      "to": "module:Notas",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Modules/Notas (NEW) — KB pessoal + tarefas + arquivo cliente"
-    },
-    {
-      "from": "module:Essentials",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -6254,12 +7272,6 @@
     },
     {
       "from": "module:Fiscal",
-      "to": "adr:0101",
-      "type": "governedByAdr",
-      "source": "related_adrs"
-    },
-    {
-      "from": "module:Fiscal",
       "to": "adr:0104",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -6273,6 +7285,12 @@
     {
       "from": "module:Fiscal",
       "to": "adr:0143",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "adr:0358",
       "type": "governedByAdr",
       "source": "related_adrs"
     },
@@ -9879,10 +10897,6 @@
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
-        "module": "Notas",
-        "reason": "referenciado por SCOPE, sem descritor próprio"
-      },
-      {
         "module": "Project",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
@@ -9893,6 +10907,14 @@
     ],
     "dangling_module_refs": [],
     "dangling_adr_refs": [],
+    "adr_supersession_of_tombstoned": [
+      {
+        "from": "adr:0358",
+        "to": "adr:0101-tests-business-id-1-nunca-cliente",
+        "type": "supersedes",
+        "source": "supersedes"
+      }
+    ],
     "consumed_tables_without_catalog_owner": [
       {
         "table": "mcp_audit_log",

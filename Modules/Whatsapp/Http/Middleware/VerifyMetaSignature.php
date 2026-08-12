@@ -6,7 +6,7 @@ namespace Modules\Whatsapp\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
 use Symfony\Component\HttpFoundation\Response;

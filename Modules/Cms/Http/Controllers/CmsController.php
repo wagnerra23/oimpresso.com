@@ -14,7 +14,7 @@ use Modules\Cms\Http\Requests\SubmitContactFormRequest;
 use Modules\Cms\Notifications\NewLeadGeneratedNotification;
 use Modules\Cms\Services\SiteContentService;
 use Modules\Cms\Utils\CmsUtil;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Notification;
 
 class CmsController extends Controller

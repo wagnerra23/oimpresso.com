@@ -28,7 +28,7 @@ declare(strict_types=1);
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see Modules\NfeBrasil\Config\config.php  (espelho NFe — mesma regra CONFAZ)
  * @see Modules\Crm\Config\retention.php     (espelho Crm — mesma estrutura)
- * @see Modules\Jana\Services\Privacy\PiiRedactor
+ * @see App\Support\Privacy\PiiRedactor
  */
 
 return [

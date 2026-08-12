@@ -66,7 +66,7 @@ it('028. CmsLeadService recebe PiiRedactor por DI (constructor)', function () {
     $params = (new ReflectionMethod(CmsLeadService::class, '__construct'))->getParameters();
     $types = collect($params)->map(fn ($p) => $p->getType()?->getName())->toArray();
 
-    expect($types)->toContain('Modules\Jana\Services\Privacy\PiiRedactor');
+    expect($types)->toContain('App\Support\Privacy\PiiRedactor');
 });
 
 it('029. SiteContentService preservado e resolve via container', function () {

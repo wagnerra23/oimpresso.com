@@ -7,7 +7,7 @@ namespace Modules\Whatsapp\Services\Contacts;
 use App\Contact;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Conversation;
 
 /**

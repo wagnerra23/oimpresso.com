@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-11**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-08-12**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -33,8 +33,8 @@ lente: [construir]
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-30 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-23 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-08-05 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-27 |
-| Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-08 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-08-11 |
+| Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-08-11 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-08-05 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-08-07 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
@@ -51,9 +51,9 @@ lente: [construir]
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
-| VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-07-28 |
+| VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-08-11 |
 | Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-23 |
-| Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-08-01 |
+| Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-08-11 |
 
 ## Camada de IA
 
@@ -80,7 +80,7 @@ lente: [construir]
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 43 required (enforcement: everyone)
+### Bloqueiam merge — 45 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR (memory/decisions/*.md)
@@ -109,8 +109,10 @@ lente: [construir]
 - PHP / Pest (Compras · MySQL)
 - PHP / Pest (Estoque · MySQL)
 - PHP / Pest (Financeiro · MySQL)
+- PHP / Pest (KB · MySQL)
 - PHP / Pest (NfeBrasil · MySQL)
 - PHP / Pest (Ponto · MySQL)
+- PHP / Pest (Sells · MySQL)
 - PHP / Pest (Unit)
 - PHPStan / Larastan · ratchet vs baseline
 - PII scan (CPF/CNPJ literal)
@@ -127,13 +129,13 @@ lente: [construir]
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 122 workflows por classe
+### Censo — 123 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 90 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 91 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 21 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -142,13 +144,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **378** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 342 · superseded: 16 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **382** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 345 · superseded: 16 · deprecated: 12 · proposto: 7 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 99 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 106 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -250,6 +252,13 @@ lente: [construir]
 - ~~2026-08-10 — Construir tela derivando do CÓDIGO quando existe FONTE DE DESIGN (e o gerador escrevia `n/a` sozinho)~~
 - ~~2026-08-10 — Catraca que itera o LADO DO PR: deletar o scorecard é fuga silenciosa (a promessa "robusto contra burla" cobre um vetor só)~~
 - ~~2026-08-10 — Usar o `chat-jana.jsx` como âncora de design da Jana (é o cockpit do Martinho, com KPI que ninguém usa)~~
+- ~~2026-08-11 — EMENDA da lápide de 2026-08-10 (`chat-jana.jsx`): a regra `biz=NNN` REVOGADA, e a razão pela qual ela bania o protótipo CERTO~~
+- ~~2026-08-11 — `DesignSync{list_projects}` como PROVA DE AUSÊNCIA de protótipo (o tool não enxerga projeto regular — e o hook mandava usá-lo assim)~~
+- ~~2026-08-11 — Exportar protótipo TRANSCREVENDO o conteúdo (e depois medir o charter contra a versão errada)~~
+- ~~2026-08-11 — Confiar que o espelho Cowork está completo: o manifesto é CEGO pro que nunca desceu (LIVE-ONLY)~~
+- ~~2026-08-11 — `git fetch --depth` num repo COMPLETO (trunca), e o `|| true` que transformava o erro disso em "0 arquivos" — 4 required saindo verdes sem validar nada~~
+- ~~2026-08-11 — Comentário de workflow AFIRMANDO "esta lane é ADVISORY, não bloqueia merge" 11 dias depois da lápide que baniu isso (LC-10, e a defesa é cultural POR MEDIÇÃO)~~
+- ~~2026-08-11 — Instrumento cuja DEPENDÊNCIA não existe: `jq` ausente no Windows faz o silêncio virar "nada a reportar" (e o fallback do próprio jq nunca roda)~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -260,14 +269,14 @@ lente: [construir]
 
 ## Rastro
 
-- **406** handoffs · **604** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **427** handoffs · **610** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-08-10-scorecard-orfao-e-a-catraca-cega-a-delecao`
-  - `2026-08-10-mudos-eixo2-ligados-e-o-bug-que-o-skip-escondia`
-  - `2026-08-10-jana-modulo-inteiro-e-o-comentario-que-virou-lei`
-  - `2026-08-08-valor-estoque-decisoes-permissoes`
-  - `2026-08-08-reguas-delta-e-a-ancora-que-faltou`
-  - `2026-08-08-primary-os-btn-13-telas-e-o-override-fantasma`
+  - `2026-08-11-triagem-tres-lapides-revisar`
+  - `2026-08-11-prototipo-jana-no-git-e-a-defesa-que-era-a-causa`
+  - `2026-08-11-memory-arrumada-e-a-nota-71-da-dimensao-memoria`
+  - `2026-08-11-gap44-decidido-e-a-errata-da-errata`
+  - `2026-08-11-contrato-fantasma-e-a-fronteira-de-modulo-morto`
+  - `2026-08-11-consulta-clientes-v3-dv-medido-e-smoke`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-08-11 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-08-12 · deriva das fontes canônicas, não as substitui._

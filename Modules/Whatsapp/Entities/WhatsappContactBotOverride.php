@@ -7,7 +7,7 @@ namespace Modules\Whatsapp\Entities;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * WhatsappContactBotOverride — override per-contato do `bot_enabled` global

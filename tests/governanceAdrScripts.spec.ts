@@ -93,6 +93,47 @@ describe('GAP 1 — supersede-integrity como GATE DURO (--check, ADR 0258)', () 
   });
 });
 
+describe('isenção de TOMBSTONE (ADR 0316) — o caminho que não tinha teste nenhum', () => {
+  // O cenário é o do 0101 REAL: slug TOMBADO cujo NÚMERO segue vivo em OUTRA ADR.
+  // Só aí a isenção por slug (a que usa rawItemsFrom) importa — quando o número some
+  // do disco, a 2a isenção (por número) cobre e mascara qualquer defeito de parse.
+  const gemeaVivaMaisTombada = () => {
+    adr(tmp, '0901-gemea-viva.md', 'slug: 0901-gemea-viva\nnumber: 901\ntitle: "Gêmea viva do 901"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    mkdirSync(join(tmp, 'governance'), { recursive: true });
+    writeFileSync(join(tmp, 'governance/adr-tombstones.json'), JSON.stringify({
+      tombstones: [{ number: '0901', slug: '0901-slug-tombado', superseded_by: '0902-sucessora' }],
+    }));
+  };
+  const check = () => {
+    run(`node "${GEN}" --write`);
+    try { run(`node "${GEN}" --check`); return { falhou: false, msg: '' }; }
+    catch (e: any) { return { falhou: true, msg: (e.stdout || '') + (e.stderr || '') }; }
+  };
+
+  it('BITE: item em BLOCO com aspas + comentário não quebra a isenção (a aspa não pode vazar)', () => {
+    // Regressão real: rawItemsFrom tirava as aspas ANTES do `#`, devolvia `0901-slug-tombado"`
+    // e o `tombstonedSlugs.has()` não casava → alarme FALSO num gate DURO.
+    gemeaVivaMaisTombada();
+    adr(tmp, '0902-sucessora.md', 'slug: 0902-sucessora\nnumber: 902\ntitle: "Sucessora"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes:\n  - "0901-slug-tombado"   # esquecida em 2026-08-11');
+    const r = check();
+    expect(r.falhou, `isenção de tombstone falhou: ${r.msg}`).toBe(false);
+  });
+
+  it('CN: a MESMA declaração inline (sem comentário) também passa — não regrediu o caminho que já funcionava', () => {
+    gemeaVivaMaisTombada();
+    adr(tmp, '0902-sucessora.md', 'slug: 0902-sucessora\nnumber: 902\ntitle: "Sucessora"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes: [0901-slug-tombado]');
+    expect(check().falhou).toBe(false);
+  });
+
+  it('CN: sem o ledger de tombstone a MESMA aresta volta a acusar (o perdão é do ledger, não do parser)', () => {
+    adr(tmp, '0901-gemea-viva.md', 'slug: 0901-gemea-viva\nnumber: 901\ntitle: "Gêmea viva do 901"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0902-sucessora.md', 'slug: 0902-sucessora\nnumber: 902\ntitle: "Sucessora"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes:\n  - "0901-slug-tombado"   # sem ledger');
+    const r = check();
+    expect(r.falhou).toBe(true);
+    expect(r.msg).toMatch(/0901/);
+  });
+});
+
 describe('GAP 3 — invariante anti-ressurreição (memory-health Check F, ADR 0258/0061)', () => {
   it('FALHA se memory/claude/ reaparece', () => {
     mkdirSync(join(tmp, 'memory/claude'), { recursive: true });

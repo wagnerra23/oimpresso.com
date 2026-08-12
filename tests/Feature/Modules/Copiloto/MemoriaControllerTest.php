@@ -3,7 +3,7 @@
 use Modules\Jana\Contracts\MemoriaContrato;
 use Modules\KB\Http\Controllers\MemoriaController;
 use Modules\Jana\Services\Memoria\NullMemoriaDriver;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 
 /**
  * Sprint 6 — MemoriaController. Tela /ia/memoria.

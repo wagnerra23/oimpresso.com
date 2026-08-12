@@ -19,7 +19,7 @@ use Modules\Crm\Http\Requests\StoreScheduleRequest;
 use Modules\Crm\Http\Requests\UpdateScheduleRequest;
 use Modules\Crm\Services\ScheduleService;
 use Modules\Crm\Utils\CrmUtil;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class ScheduleController extends Controller

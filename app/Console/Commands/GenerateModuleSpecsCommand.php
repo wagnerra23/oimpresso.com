@@ -188,7 +188,7 @@ class GenerateModuleSpecsCommand extends Command
         $md .= "|---|---|---|---|---|\n";
         foreach ($index as $row) {
             $name = $row['name'];
-            $md .= "| {$name} | [module.json](../../Modules/{$name}/module.json) | [SCOPE](../../Modules/{$name}/SCOPE.md) | [SUPERFICIE](../requisitos/{$name}/SUPERFICIE.md) | [SPEC](../requisitos/{$name}/SPEC.md) |\n";
+            $md .= "| {$name} | [module.json](../../Modules/{$name}/module.json) | [SCOPE](../requisitos/{$name}/SCOPE.md) | [SUPERFICIE](../requisitos/{$name}/SUPERFICIE.md) | [SPEC](../requisitos/{$name}/SPEC.md) |\n";
         }
 
         File::put($dir . DIRECTORY_SEPARATOR . 'INDEX.md', $md);

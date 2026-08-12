@@ -13,7 +13,7 @@ use Modules\Crm\Entities\ProposalTemplate;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Entities\ScheduleLog;
 use Modules\Crm\Entities\ScheduleUser;
-use Modules\Jana\Services\Privacy\PiiRedactor;
+use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 uses(Tests\TestCase::class);
@@ -79,13 +79,13 @@ it('Model PII tem useLogName configurado ou logFillable definido (D7.b nominal)'
 it('PiiRedactor existe e redaciona CPF brasileiro', function () {
     $redactor = app(PiiRedactor::class);
 
-    $input = 'erro processando contato CPF 123.456.789-09 inválido';
+    $input = 'erro processando contato CPF 123.456.789-09 inválido'; # pii-allowlist
     $output = $redactor->redact($input);
 
     expect($output)
         ->toContain('[REDACTED:CPF]')
         ->and($output)
-        ->not->toContain('123.456.789-09');
+        ->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
 it('PiiRedactor redaciona email + telefone BR juntos', function () {
@@ -135,7 +135,7 @@ it('arquivo %s importa PiiRedactor (D7.a aplicação em logs)', function (string
     $contents = file_get_contents($absolutePath);
 
     expect($contents)
-        ->toContain('use Modules\\Jana\\Services\\Privacy\\PiiRedactor;')
+        ->toContain('use App\\Support\\Privacy\\PiiRedactor;')
         ->and($contents)
         ->toContain('PiiRedactor::class');
 })->with('crm_files_with_pii_redactor');

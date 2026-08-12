@@ -191,7 +191,11 @@ test('Total mapeado inclui Demais arquivos tanto nos arquivos quanto nos papéis
 test('BITE real: manifesto e SCOPE do módulo não somem do inventário completo', () => {
   const { outros } = coletar('Financeiro');
   assert.ok(outros.includes('Modules/Financeiro/module.json'));
-  assert.ok(outros.includes('Modules/Financeiro/SCOPE.md'));
+  // ADR 0375: o SCOPE saiu de Modules/ pra memory/requisitos/ em 2026-08-10.
+  // O BITE continua o mesmo — o SCOPE do modulo nao pode sumir do inventario —
+  // so o endereco mudou. Manter o path antigo aqui seria o teste guardando um
+  // lugar que nao existe mais (verde impossivel, nao cobertura).
+  assert.ok(outros.includes('memory/requisitos/Financeiro/SCOPE.md'));
 });
 
 test('papel volumoso (listar:false) mostra contagem + dir, NÃO lista arquivos', () => {

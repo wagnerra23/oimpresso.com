@@ -45,7 +45,7 @@ Time MCP entra em breve. Sem CI gate, drift escapa quando hook local foi pulado/
 | §1 Job 4 | `merge-marker-scan.sh -v` em arquivo limpo | exit 0 | ✅ exit 0 |
 | §1 Job 4 | idem em fixture com `<<<<<<<`/`>>>>>>>` (bite-test) | exit 1 | ✅ exit 1 · 2 linhas (o `=======` nu **não** conta, por desenho) |
 | §1 Job 5 | `blade-migration-census.mjs --ratchet` | exit 0 em árvore limpa | ✅ exit 0 · `471 endpoints em Blade` |
-| §6 | parse YAML de `Modules/Vestuario/SCOPE.md` | parseia | ✅ com `python` (ver pegadinha em §6) |
+| §6 | parse YAML de `memory/requisitos/Vestuario/SCOPE.md` | parseia | ✅ com `python` (ver pegadinha em §6) |
 | §11 | `git diff origin/main...HEAD -- 'Modules/*/module.json'` | vazio | ✅ vazio |
 
 **NÃO validado nesta passada** (declarado, não escondido):
@@ -78,7 +78,7 @@ Mensagens em PT-BR com instruções de resolução (ver shell script no workflow
 
 ### Job 2 — `scope-md-drift` (WARN — só comment, não falha)
 
-Detecta Controllers novos (`A` em `Modules/<X>/Http/Controllers/*Controller.php`) e verifica se aparecem em `Modules/<X>/SCOPE.md.contains[]`. Posta comment na PR com lista de drifts e como resolver.
+Detecta Controllers novos (`A` em `Modules/<X>/Http/Controllers/*Controller.php`) e verifica se aparecem em `memory/requisitos/<X>/SCOPE.md.contains[]`. Posta comment na PR com lista de drifts e como resolver.
 
 Complementar ao `scope-guard.yml` (que já roda strict pro mesmo cenário) — este job entrega mensagem humana detalhada quando o strict falha.
 
@@ -242,7 +242,7 @@ Improvável (regex simples), mas se acontecer:
 Frontmatter de algum SCOPE.md está mal-formado. Validar:
 
 ```bash
-python3 -c "import yaml; yaml.safe_load(open('Modules/<X>/SCOPE.md', encoding='utf-8').read().split('---')[1])"
+python3 -c "import yaml; yaml.safe_load(open('memory/requisitos/<X>/SCOPE.md', encoding='utf-8').read().split('---')[1])"
 ```
 
 > ⚠️ **Windows:** `python3` costuma resolver pro *stub* da Microsoft Store — ele imprime

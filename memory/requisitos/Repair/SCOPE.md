@@ -1,0 +1,50 @@
+---
+module: Repair
+purpose: "Ciclo de vida da ordem de serviço (recepção, diagnóstico, execução, entrega) sobre transactions.sub_type=repair e job_sheets, com FSM, Kanban de produção e faturamento derivado. Infraestrutura de OS compartilhada entre verticais."
+migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
+contains:
+  - "CustomerRepairStatusController"
+  - "DashboardController"
+  - "DataController"
+  - "DeviceModelController"
+  - "InstallController"
+  - "JobSheetController"
+  - "ProducaoOficinaController"
+  - "RepairController"
+  - "RepairFsmActionController"
+  - "RepairSettingsController"
+  - "RepairStatusController"
+not_contains:
+  - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
+  - "Tasks Jira-style → Modules/Forja"
+  - "MCP server admin → Modules/Forja"
+trust_required: L3
+owner: wagner
+permission_prefix: repair.*
+charter_adr: 0080
+related_adrs:
+  - 0079-constituicao-oimpresso-7-camadas-governanca
+  - 0080-trust-tiers-operacional-audit-findings
+url_prefixes:
+  - /repair/*
+drift_alerts: []
+---
+
+# Modules/Repair
+
+## Missão
+
+UltimatePOS repair shops.
+
+## Trust level
+
+**L3** — ver [TRUST-TIERS.md](../../governance/TRUST-TIERS.md).
+
+## Quando NÃO é tocado
+
+Ver `not_contains[]` no frontmatter. Em dúvida, consulte
+[ARCHITECTURE.md](../../governance/ARCHITECTURE.md).
+
+---
+
+- **v1.0.0** (2026-05-05) — SCOPE.md inicial. Gerado em batch via Fase 3.4 do ADR 0079.

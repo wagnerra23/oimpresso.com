@@ -129,6 +129,61 @@ export function blockMessage(p) {
   return `[block-destructive] Bash BLOQUEADO (${p.key}). Motivo: ${p.razao}. Sugestão: ${p.sugestao}. Se for intencional e Wagner autorizou explicitamente, use abordagem alternativa OU peça Wagner pra rodar manualmente. NUNCA forçar bypass deste hook sem ADR justificando.`;
 }
 
+// ── AVISO (advisory, NUNCA bloqueia): `git stash pop` consumindo entry alheia ──
+//
+// CLASSE: §5 2026-07-27 ("consumir estado GLOBAL do repo por posição"). 2ª
+// ocorrência em 2026-08-11 — pela ADR 0344 two-strikes, vira defesa. O par
+// candidato já vinha MEDIDO na própria lápide; isto o arma.
+//
+// O VETOR, que é contraintuitivo: `git stash -u` numa árvore LIMPA **não cria
+// entry**. Então o `pop` seguinte consome `stash@{0}`, que é de quem empilhou por
+// último — em repo com worktrees paralelos, quase sempre outra sessão. Nas duas
+// ocorrências o que salvou foi o CONFLITO (o git preserva a entry); aplicando
+// limpo, trabalho alheio entra na árvore em silêncio.
+//
+// POR QUE ADVISORY E NÃO BLOQUEIO (a lápide mediu e recusou a forma dura):
+// `stash push` na branch A → `checkout` B → `pop` é fluxo LEGÍTIMO e comum, e
+// nele o topo é sempre de outra branch. Bloquear puniria o uso correto — a
+// doença dos guards sintáticos que o §5 já matou 5×. Então: informa de quem é o
+// topo e deixa o humano decidir.
+//
+// POPULAÇÃO MEDIDA (653 transcripts, só `tool_use` de Bash/PowerShell — nunca
+// prosa): 84 `pop|apply` executados, 79 (94%) sem entry explícita. O filtro
+// "topo de outra branch" estreita isso, mas NÃO é medível retroativamente:
+// depende do estado da pilha no instante do comando. Declarado, não estimado.
+
+/** o comando consome o topo por POSIÇÃO (sem `stash@{N}` explícito)? */
+export function consomeTopoPorPosicao(cmd) {
+  const c = normalizeCmd(cmd);
+  if (!/git\s+stash\s+(pop|apply)\b/i.test(c)) return false;
+  return !/stash@\{\d+\}/.test(c); // com entry explícita, o autor sabe o que pega
+}
+
+/**
+ * Função PURA (o estado do git entra por parâmetro, pra ser testável sem repo).
+ * @param {string} cmd
+ * @param {{branchAtual: string, topo: string|null}} ctx  topo = 1ª linha de `git stash list`
+ * @returns {string|null} aviso, ou null quando não há o que avisar
+ */
+export function avisoStashPop(cmd, ctx) {
+  if (!consomeTopoPorPosicao(cmd)) return null;
+  const { branchAtual, topo } = ctx || {};
+  if (!topo) {
+    // pilha vazia: o pop vai falhar sozinho — nada a avisar (e nada a perder)
+    return null;
+  }
+  // `git stash list` → "stash@{0}: On <branch>: msg" ou "... WIP on <branch>: sha msg"
+  const m = /^stash@\{\d+\}:\s+(?:WIP on|On)\s+([^:]+):/i.exec(topo);
+  const dono = m ? m[1].trim() : null;
+  if (!dono || !branchAtual) return null;      // não sei dizer de quem é → calo
+  if (dono === branchAtual) return null;       // topo é seu → silêncio (o caso comum e correto)
+  return `[block-destructive] AVISO (nao bloqueia): "${normalizeCmd(cmd)}" consome o TOPO por posicao, e o topo NAO e desta branch.
+  topo da pilha : ${topo.trim()}
+  sua branch    : ${branchAtual}
+Se a arvore estava LIMPA, o seu "git stash" nao criou entry — entao este pop pega trabalho de OUTRA sessao (§5 2026-07-27, 2 ocorrencias).
+Confira com "git stash list" antes. Para consumir o SEU, empilhe com nome ("git stash push -m <marcador>") e passe a entry explicita.`;
+}
+
 // ── stdin wrapper (fail-open em TUDO) ────────────────────────────────────────────
 
 async function readStdin() {
@@ -150,6 +205,24 @@ async function main() {
   if (!cmd) process.exit(0);
   const p = matchDestructive(cmd);
   if (p) { process.stderr.write(blockMessage(p) + '\n'); process.exit(2); }
+
+  // advisory do stash — depois do bloqueio, e SEMPRE exit 0. O estado do git é
+  // lido aqui (impuro) e passado pra função pura, que é quem o selftest exercita.
+  if (consomeTopoPorPosicao(cmd)) {
+    try {
+      const git = (args) => spawnSync('git', args, { encoding: 'utf8', timeout: 4000 });
+      const b = git(['branch', '--show-current']);
+      const s = git(['stash', 'list']);
+      // rc != 0 (fora de repo, git ausente) → não invento estado, apenas calo
+      if (b.status === 0 && s.status === 0) {
+        const aviso = avisoStashPop(cmd, {
+          branchAtual: String(b.stdout || '').trim(),
+          topo: String(s.stdout || '').split('\n')[0] || null,
+        });
+        if (aviso) process.stderr.write(aviso + '\n');
+      }
+    } catch { /* fail-open: aviso nunca trava sessão */ }
+  }
   process.exit(0);
 }
 

@@ -46,7 +46,7 @@ use Modules\Jana\Services\Memoria\ProfileDistiller;
  *
  * @see Modules\Jana\Services\Memoria\ProfileDistiller
  * @see Modules\Jana\Console\Commands\HealthCheckCommand::checkProfileDrift (check 5)
- * @see Modules/Jana/LICOES-OPERACAO.md L-OP-002
+ * @see memory/requisitos/Jana/LICOES-OPERACAO.md L-OP-002
  */
 class ProfileDistillCommand extends Command
 {

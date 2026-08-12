@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Drivers\Sql\SqlDriver;
 use Modules\Jana\Entities\MetaApuracao;
-use Modules\Jana\Scopes\ScopeByBusiness;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Testa idempotência da apuração (adr/tech/0001).

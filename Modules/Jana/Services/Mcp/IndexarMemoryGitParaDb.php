@@ -640,12 +640,23 @@ class IndexarMemoryGitParaDb
             json_encode($doc->superseded_by ?? null) !== json_encode($tipadas['superseded_by'] ?? null)
         );
 
+        // LEITURA INDISPONÍVEL ≠ MUDANÇA (incidente 2026-08-12). `lerGitSha()` é
+        // best-effort e devolve null onde `shell_exec`/git não existem — é o caso do
+        // webhook rodando no Hostinger (shared hosting, ver docblock de lerGitSha).
+        // Comparar `$doc->git_sha !== null` marcava TODO doc como alterado e, no
+        // UPSERT abaixo, ainda gravava null por cima do SHA válido que o CT 100
+        // tinha acabado de escrever. Os dois ambientes se desfaziam mutuamente:
+        // 2485 de 2488 docs "atualizados" a cada run, 99% com git_sha vazio, e cada
+        // run reenviando o índice inteiro ao Meilisearch (100% de CPU contínuo).
+        // Só conta como mudança quando a leitura FUNCIONOU e o valor de fato diferiu.
+        $shaMudou = $gitSha !== null && $doc->git_sha !== $gitSha;
+
         // `type` na detecção de mudança: quando o type gravado diverge do coletado
         // (ex: BRIEFING gravado como '' antes do enum ganhar 'briefing' — retro-fix
         // 2026-07-22), o próximo sync re-grava mesmo com body idêntico. Sem isto o
         // UPSERT só tocaria indexed_at e o type corrompido persistiria pra sempre.
         $contentMudou = $doc->content_md !== $contentRedacted
-            || $doc->git_sha !== $gitSha
+            || $shaMudou
             || $doc->type !== $info['type']
             || $metadataMudou;
 
@@ -658,11 +669,18 @@ class IndexarMemoryGitParaDb
             'scope_required'       => $scopeRequired,
             'admin_only'           => $adminOnly,
             'metadata'             => $frontmatter,
-            'git_sha'              => $gitSha,
             'git_path'             => $info['path'],
             'pii_redactions_count' => $piiCount,
             'indexed_at'           => now(),
         ], $tipadas);
+
+        // git_sha só entra no UPSERT quando a leitura FUNCIONOU (par do $shaMudou
+        // acima). Onde git/shell_exec não existem, preservar o SHA já gravado é o
+        // comportamento correto — zerá-lo destruía o único campo que permite ao
+        // próximo run reconhecer "nada mudou aqui".
+        if ($gitSha !== null) {
+            $atributos['git_sha'] = $gitSha;
+        }
 
         // GAP D3 #1 — Adiciona colunas Contextual Retrieval (se schema migrado).
         // Idempotente: schema legado sem essas colunas ignora gracefully.

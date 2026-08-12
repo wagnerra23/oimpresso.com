@@ -29,7 +29,7 @@ on:
     paths:
       - 'Modules/Ponto/**'
       - 'app/Concerns/HasBusinessScope.php'
-      - 'Modules/Jana/Scopes/ScopeByBusiness.php'
+      - 'app/Scopes/ScopeByBusiness.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/ponto-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -68,7 +68,7 @@ jobs:
             ponto:
               - 'Modules/Ponto/**'
               - 'app/Concerns/HasBusinessScope.php'
-              - 'Modules/Jana/Scopes/ScopeByBusiness.php'
+              - 'app/Scopes/ScopeByBusiness.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/ponto-pest.yml'
               - '.github/actions/pest-mysql-setup/**'

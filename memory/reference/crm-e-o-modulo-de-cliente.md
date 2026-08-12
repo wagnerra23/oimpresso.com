@@ -32,4 +32,4 @@
 
 ## Refs
 
-- `Modules/Crm/SCOPE.md` · [`memory/requisitos/Cliente/SPEC.md`](../requisitos/Cliente/SPEC.md) · [relatório de alinhamento](../requisitos/Cliente/audits/ALINHAMENTO-cliente-2026-06-22.md) · ADR 0179 (drawer 760px) · ADR 0273 (âncoras) · [cliente-rotalivre.md](cliente-rotalivre.md)
+- `memory/requisitos/Crm/SCOPE.md` · [`memory/requisitos/Cliente/SPEC.md`](../requisitos/Cliente/SPEC.md) · [relatório de alinhamento](../requisitos/Cliente/audits/ALINHAMENTO-cliente-2026-06-22.md) · ADR 0179 (drawer 760px) · ADR 0273 (âncoras) · [cliente-rotalivre.md](cliente-rotalivre.md)

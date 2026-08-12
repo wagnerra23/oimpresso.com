@@ -213,7 +213,7 @@ const CLASS_A_RENAMES = loadClassARenames();
 /**
  * true se `absPath` (inexistente) passa a existir ao trocar um SEGMENTO de path
  * `<Antigo>` por `<Novo>` segundo o rename-map classe A.
- * Casa segmento inteiro — `Modules/ProjectMgmt/SCOPE.md` resolve, mas um arquivo
+ * Casa segmento inteiro — `memory/requisitos/Forja/SCOPE.md` resolve, mas um arquivo
  * chamado `ProjectMgmtLegado.md` não (evita match por substring).
  */
 function resolvesViaRename(absPath) {

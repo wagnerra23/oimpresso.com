@@ -324,6 +324,11 @@ function coletar(mod) {
     ...(mod === CONTEXTO_GERAL ? RAIZES_GERAIS.flatMap((p) => walk(p)) : walk(`Modules/${mod}`)),
     ...(mod === CONTEXTO_GERAL ? [] : walk(`resources/js/Pages/${pagesNs}`)),
     ...(core ? expandirPrefixos(core.prefixos) : []),
+    // ADR 0375: o SCOPE do modulo saiu de Modules/<X>/ pra memory/requisitos/<X>/.
+    // O inventario segue o contrato onde ele estiver — senao o modulo aparece SEM
+    // seu proprio SCOPE, que e o oposto do que este inventario existe pra mostrar.
+    ...(mod === CONTEXTO_GERAL ? [] : (existsSync(join(ROOT, 'memory', 'requisitos', mod, 'SCOPE.md'))
+      ? [`memory/requisitos/${mod}/SCOPE.md`] : [])),
   ])].sort();
   const grupos = PAPEIS.map((p) => ({ ...p, files: /** @type {string[]} */ ([]) }));
   const outros = [];
@@ -369,7 +374,7 @@ function montar(mod, grupos, outros) {
   } else if (core) {
     L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
-    L.push('> **O que isto é:** o inventário completo das raízes `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](../../../Modules/' + mod + '/SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).');
+    L.push('> **O que isto é:** o inventário completo das raízes `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).');
   }
   L.push('');
   L.push(`**Total mapeado:** ${total} arquivos em ${totalPapeis} papéis.`);
@@ -484,7 +489,7 @@ function processar(mod) {
  * caminhos coexistem, a ADR 0277 §1 não conta a função como migrada.
  */
 function decisaoMigracao(mod) {
-  const f = join(ROOT, 'Modules', mod, 'SCOPE.md');
+  const f = join(ROOT, 'memory', 'requisitos', mod, 'SCOPE.md');
   if (!existsSync(f)) return '—';
   const m = readFileSync(f, 'utf8').match(/^migracao_ui:\s*(.+)$/m);
   return m ? m[1].trim().replace(/^["']|["']$/g, '') : '—';
