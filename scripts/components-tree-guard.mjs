@@ -29,7 +29,14 @@
 // CHECK 2 · convenção `_components` (com underscore) sob Pages/
 //   Pasta nova chamada `components` (sem underscore) sob Pages/ falha — o underscore
 //   diferencia "componentes locais da tela" de sub-rotas/páginas no import.meta.glob.
-//   As 4 pré-existentes estão grandfathered (migram quando a tela for tocada — catraca).
+//   As 4 pré-existentes estão grandfathered — e ficam. Este script só barra pasta `components`
+//   NOVA; ele não mede, não conta e não força migração das existentes.
+//   ⚠️ Este comentário prometia "migram quando a tela for tocada — catraca". Não existia catraca
+//   nenhuma. Medido em 2026-08-12 (desde ac5e46e0d4b, 2026-06-11): as próprias pastas foram
+//   editadas em 10 commits (Compras 3 · Jana 7 · Financeiro 0) e as telas irmãs em 24 — nenhuma
+//   das 4 migrou. Afordância anunciada e não implementada = LC-15 (memory/LICOES_CODE.md).
+//   Migrar é refactor de imports em N sites; forçá-lo dentro de PR alheio seria gate hostil.
+//   Quando/se migrar, é decisão [W] — não consequência automática de tocar a tela.
 //
 // Sem baseline file: a allowlist É o estado canônico (vive no diff, não em JSON).
 // Comando local: npm run components:check
