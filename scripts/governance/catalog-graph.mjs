@@ -37,6 +37,7 @@
  *   node scripts/governance/catalog-graph.mjs --json      (imprime o catalog.json no stdout, não grava)
  *   node scripts/governance/catalog-graph.mjs --mermaid   (VISTA: diagrama de fluxo entre módulos, stdout)
  *   node scripts/governance/catalog-graph.mjs --mermaid --focus=Financeiro   (vizinhança de 1 salto)
+ *   node scripts/governance/catalog-graph.mjs --acoplamento  (ADVISORY: fronteira REAL (import) vs DECLARADA; exit 0 sempre)
  *
  * Refs: ADR 0256 (survival, fonte única gerada) · ADR 0314/0275 (advisory-primeiro) ·
  *       grade 2026-07-21 (chip #2 "arestas tipadas no catálogo") · irmão `module-surface.mjs`.
@@ -44,6 +45,7 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
@@ -830,6 +832,305 @@ export function toMermaid(graph, { focus = null } = {}) {
   return { mermaid: linhas.join('\n'), modulos: usados.size, arestas: vistas.size, ilhas };
 }
 
+// ── ACOPLAMENTO DERIVADO (advisory) ─────────────────────────────────────────
+// O grafo acima mede a fronteira DECLARADA (frontmatter escrito à mão). Este bloco
+// mede a REAL (import no código) e reporta o delta. Medição 2026-08-12: dos 57 pares
+// vivos em produção, só 16 estavam declarados (28%) — logo `depends_on` sozinho NÃO
+// serve de inventário de fronteira, e um mutirão de backfill à mão só reinicia o
+// relógio do apodrecimento (§5 2026-07-12). Aqui o fato é DERIVADO; o SCOPE segue
+// dono da NORMA (`not_contains` = delegação declarada), que é decisão humana.
+//
+// CRITÉRIO e seu FP (medido antes de instalar, §5): só `use Modules\X\…` em linha de
+// código. Docblock/comentário/string NÃO entram — 0 linhas de comentário casaram o
+// padrão no corpus (o grep solto contava 116 pares; por import real são 41). O preço
+// é ser PISO, não teto: container/facade/string, query crua em tabela alheia e
+// `resources/js` ficam invisíveis. Advisory por desenho — exit 0 SEMPRE, nunca
+// bloqueia merge (promoção a required é flip [W] com mordida provada, ADR 0336/0275).
+const CAMADA_DADO = new Set(['Entities', 'Models']);
+const CAMADA_COMPORTAMENTO = new Set(['Concerns', 'Scopes', 'Traits', 'Utils']);
+const CAMADA_CONTRATO = new Set(['Contracts', 'Contract', 'Dto', 'DTO', 'Events', 'Exceptions', 'Repositories']);
+/** Quantos módulos-origem distintos tornam um símbolo "cross-cutting" (derivado, não lista à mão). */
+const LIMIAR_CROSS_CUTTING = 5;
+
+/** Classifica o peso do acoplamento pela camada importada (pior camada vence). */
+function pesoDaCamada(camada) {
+  if (CAMADA_DADO.has(camada)) return 'dado';
+  if (CAMADA_COMPORTAMENTO.has(camada)) return 'comportamento';
+  if (CAMADA_CONTRATO.has(camada)) return 'contrato';
+  return 'servico';
+}
+const ORDEM_PESO = { dado: 3, comportamento: 2, servico: 1, contrato: 0 };
+
+/**
+ * Extrai arestas REAIS de linhas `path:código` do git grep.
+ * @param {string[]} linhas
+ * @param {{modulosVivos:Set<string>, incluirTestes?:boolean}} opts
+ */
+function parseImportsCruzados(linhas, { modulosVivos, incluirTestes = false }) {
+  const out = [];
+  for (const linha of linhas) {
+    const corte = linha.indexOf(':');
+    if (corte < 0) continue;
+    const path = linha.slice(0, corte);
+    const code = linha.slice(corte + 1);
+    if (!incluirTestes && /\/Tests?\//i.test(path)) continue;
+    const src = (path.match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    const m = code.match(/^\s*use\s+Modules[\\/]([A-Z][A-Za-z]+)[\\/](.+?);/);
+    if (!src || !m) continue;
+    const dst = m[1];
+    if (dst === src || !modulosVivos.has(dst) || !modulosVivos.has(src)) continue;
+    const partes = m[2].split(/[\\/]/);
+    // `use Modules\X\Y\Sym as Alias;` — sem tirar o alias, o MESMO símbolo importado com
+    // 2 apelidos vira 2 símbolos e o limiar cross-cutting conta errado (5 casos no corpus).
+    const simbolo = partes[partes.length - 1].replace(/\s+as\s+\w+$/i, '').trim();
+    out.push({ src, dst, camada: partes[0] || '?', simbolo });
+  }
+  return out;
+}
+
+/** Símbolos importados por ≥ limiar módulos distintos = primitiva cross-cutting (derivado). */
+function simbolosCrossCutting(refs, limiar = LIMIAR_CROSS_CUTTING) {
+  const porSimbolo = new Map();
+  for (const r of refs) {
+    if (!porSimbolo.has(r.simbolo)) porSimbolo.set(r.simbolo, new Set());
+    porSimbolo.get(r.simbolo).add(r.src);
+  }
+  return new Set([...porSimbolo].filter(([, srcs]) => srcs.size >= limiar).map(([s]) => s));
+}
+
+/** Agrega refs em pares e confronta com as arestas declaradas do grafo. */
+function compararFronteira(refs, graph, { limiar = LIMIAR_CROSS_CUTTING, modulosVivos = null } = {}) {
+  const cross = simbolosCrossCutting(refs, limiar);
+  const declaradas = new Map();
+  for (const e of graph.edges) {
+    if (e.type !== 'dependsOn' && e.type !== 'delegatesTo') continue;
+    const f = e.from.replace(/^module:/, '');
+    const t = e.to.replace(/^module:/, '');
+    // Alvo REMOVIDO não é "fronteira sem import" — é tombstone, e já tem diagnóstica
+    // curada própria (referenced-only). Contar aqui inflaria o número com ruído.
+    if (modulosVivos && !modulosVivos.has(t)) continue;
+    if (!declaradas.has(f)) declaradas.set(f, new Set());
+    declaradas.get(f).add(t);
+  }
+  const pares = new Map();
+  for (const r of refs) {
+    const k = `${r.src}>${r.dst}`;
+    let p = pares.get(k);
+    if (!p) {
+      p = { src: r.src, dst: r.dst, imports: 0, peso: 'contrato', simbolos: new Set(), soPrimitiva: true };
+      pares.set(k, p);
+    }
+    p.imports++;
+    p.simbolos.add(r.simbolo);
+    if (!cross.has(r.simbolo)) p.soPrimitiva = false;
+    const w = pesoDaCamada(r.camada);
+    if (ORDEM_PESO[w] > ORDEM_PESO[p.peso]) p.peso = w;
+  }
+  const lista = [...pares.values()].map((p) => ({
+    ...p,
+    simbolos: [...p.simbolos].sort(),
+    declarado: Boolean(declaradas.get(p.src)?.has(p.dst)),
+  }));
+  const naoDeclaradas = lista.filter((p) => !p.declarado);
+  const reais = new Set(lista.map((p) => `${p.src}>${p.dst}`));
+  const soDeclaradas = [];
+  for (const [f, alvos] of declaradas) {
+    for (const t of alvos) if (!reais.has(`${f}>${t}`)) soDeclaradas.push({ src: f, dst: t });
+  }
+  return {
+    pares: lista.sort((a, b) => b.imports - a.imports || a.src.localeCompare(b.src)),
+    confirmadas: lista.length - naoDeclaradas.length,
+    naoDeclaradas,
+    soDeclaradas,
+    crossCutting: [...cross].sort(),
+  };
+}
+
+// ── FRONTEIRA POR TABELA (advisory) ─────────────────────────────────────────
+// Eixo que o import NÃO enxerga: `DB::table('x')` cru numa tabela de outro módulo.
+// O dono é DERIVADO de quem faz `Schema::create('x')` na migration — não do
+// `db_tables_owned` escrito à mão (que 1 módulo declara). Medição 2026-08-12: 340
+// tabelas com dono derivado; 27 pares cross-module por query crua.
+//
+// AMBIGUIDADE ASSUMIDA: "quem criou a migration" ≠ "de quem é o conceito". O caso real
+// é `failed_jobs` — tabela de INFRA do Laravel criada por uma migration do Whatsapp, o
+// que faria Jana/Governance parecerem acoplados a Whatsapp. Resolvido pelo MESMO truque
+// derivado dos símbolos (nunca lista à mão, §5 2026-06-30): tabela consultada por
+// ≥ LIMIAR módulos distintos é INFRA COMPARTILHADA, não fronteira.
+const LIMIAR_TABELA_COMPARTILHADA = 3;
+const CORE = '(core)';
+
+/**
+ * Dono derivado da tabela: quem a cria na migration. Core (database/migrations) marcado.
+ * DISPUTA é reportada, não resolvida em silêncio: quando 2+ módulos criam a MESMA tabela,
+ * "first-wins" calado esconderia um conflito de ownership real (medido: 2 no corpus —
+ * nfe_certificados e nfse_emissoes, NFSe vs NfeBrasil). A diagnóstica do grafo DECLARADO
+ * diz "0 conflito"; ela olha o `db_tables_owned`, não a árvore.
+ */
+function derivarDonoDeTabela(linhasModulo, linhasCore = []) {
+  const criadores = new Map();
+  for (const l of linhasModulo) {
+    const i = l.indexOf(':');
+    const mod = (l.slice(0, i).match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    const t = (l.slice(i + 1).match(/Schema::create\('([a-z0-9_]+)'/) || [])[1];
+    if (!mod || !t) continue;
+    if (!criadores.has(t)) criadores.set(t, new Set());
+    criadores.get(t).add(mod);
+  }
+  const dono = new Map();
+  const conflitos = [];
+  for (const [t, mods] of criadores) {
+    const lista = [...mods].sort();
+    dono.set(t, lista[0]);
+    if (lista.length > 1) conflitos.push({ tabela: t, modulos: lista });
+  }
+  for (const l of linhasCore) {
+    const t = (l.match(/Schema::create\('([a-z0-9_]+)'/) || [])[1];
+    if (t && !dono.has(t)) dono.set(t, CORE);
+  }
+  return { dono, conflitos: conflitos.sort((a, b) => a.tabela.localeCompare(b.tabela)) };
+}
+
+/**
+ * Extrai leituras cruas cross-module. Só literal — `DB::table($var)` é contado à parte
+ * como NÃO RESOLVÍVEL (não vira zero silencioso: "não medi" ≠ "não há", §5 2026-07-29).
+ */
+function parseQueriesCruas(linhas, { donoDe, modulosVivos }) {
+  const refs = [];
+  let dinamico = 0, semDono = 0;
+  for (const l of linhas) {
+    const i = l.indexOf(':');
+    if (i < 0) continue;
+    const path = l.slice(0, i), code = l.slice(i + 1);
+    if (/\/Tests?\//i.test(path)) continue;
+    const src = (path.match(/^Modules\/([A-Za-z]+)\//) || [])[1];
+    if (!src || !modulosVivos.has(src)) continue;
+    const m = code.match(/DB::table\('([a-z0-9_]+)'/);
+    if (!m) { if (/DB::table\(\s*\$/.test(code)) dinamico++; continue; }
+    const tabela = m[1];
+    const dono = donoDe.get(tabela);
+    if (!dono) { semDono++; continue; }
+    if (dono === src || dono === CORE) continue; // própria tabela ou core UltimatePOS
+    refs.push({ src, dono, tabela });
+  }
+  return { refs, dinamico, semDono };
+}
+
+/** Tabelas lidas por ≥ limiar módulos distintos = infra compartilhada (derivado). */
+function tabelasCompartilhadas(refs, limiar = LIMIAR_TABELA_COMPARTILHADA) {
+  const porTabela = new Map();
+  for (const r of refs) {
+    if (!porTabela.has(r.tabela)) porTabela.set(r.tabela, new Set());
+    porTabela.get(r.tabela).add(r.src);
+  }
+  return new Set([...porTabela].filter(([, s]) => s.size >= limiar).map(([t]) => t));
+}
+
+/** Agrega em pares src→dono, separando o que é infra compartilhada. */
+function agruparFronteiraDeTabela(refs, { limiar = LIMIAR_TABELA_COMPARTILHADA } = {}) {
+  const infra = tabelasCompartilhadas(refs, limiar);
+  const pares = new Map();
+  for (const r of refs) {
+    if (infra.has(r.tabela)) continue;
+    const k = `${r.src}>${r.dono}`;
+    if (!pares.has(k)) pares.set(k, { src: r.src, dono: r.dono, n: 0, tabelas: new Set() });
+    const o = pares.get(k);
+    o.n++; o.tabelas.add(r.tabela);
+  }
+  return {
+    pares: [...pares.values()]
+      .map((o) => ({ ...o, tabelas: [...o.tabelas].sort() }))
+      .sort((a, b) => b.n - a.n || a.src.localeCompare(b.src)),
+    infra: [...infra].sort(),
+  };
+}
+
+function reportFronteiraDeTabela(modulosVivos) {
+  const { dono: donoDe, conflitos } = derivarDonoDeTabela(
+    grepArvore(["Schema::create\\('"], 'Modules/*/Database/Migrations/*.php'),
+    grepArvore(["Schema::create\\('"], 'database/migrations/*.php').map((l) => l.slice(l.indexOf(':') + 1)),
+  );
+  const { refs, dinamico, semDono } = parseQueriesCruas(
+    grepArvore(['DB::table\\('], 'Modules/*.php'),
+    { donoDe, modulosVivos },
+  );
+  const r = agruparFronteiraDeTabela(refs);
+  console.log('');
+  console.log(
+    `[catalog-graph] fronteira por TABELA (query crua): ${donoDe.size} tabelas com dono derivado · ` +
+    `${r.pares.length} pares cross-module`,
+  );
+  if (r.infra.length) {
+    console.log(`ℹ️  infra compartilhada (≥${LIMIAR_TABELA_COMPARTILHADA} módulos leem — não é fronteira): ${r.infra.join(', ')}`);
+  }
+  for (const c of conflitos) {
+    console.log(`⚠️  ownership DISPUTADO: \`${c.tabela}\` criada por migration de ${c.modulos.join(' E ')} — dono atribuído: ${c.modulos[0]}`);
+  }
+  for (const p of r.pares) {
+    console.log(`  ${p.src} → ${p.dono}  (${p.n} queries) ${p.tabelas.slice(0, 4).join(', ')}`);
+  }
+  console.log(
+    `ℹ️  não resolvido (NÃO é zero): ${dinamico} \`DB::table($var)\` dinâmico · ` +
+    `${semDono} em tabela sem migration localizada.`,
+  );
+  return r;
+}
+
+/**
+ * Lê a árvore viva. Distingue "sem match" (rc=1, legítimo) de FALHA REAL (rc≠0/1) —
+ * saída vazia de comando que quebrou não é evidência de ausência (§5 2026-07-31/08-01).
+ */
+function grepArvore(padroes, pathspec) {
+  // `-e` explícito: padrão que comece com `-` seria lido como switch e o git sai rc=129
+  // (visto na revisão com `->table\('`). Sem isso, o erro viraria exceção fora de hora.
+  const args = ['grep', '-I', '-E', ...padroes.flatMap((p) => ['-e', p]), '--', pathspec];
+  try {
+    return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      .split('\n').filter(Boolean);
+  } catch (err) {
+    if (err && err.status === 1) return []; // sem ocorrência: legítimo
+    throw new Error(`git grep falhou (status=${err && err.status}): ${err && err.message}`);
+  }
+}
+
+function lerImportsDaArvore() {
+  return grepArvore(['^\\s*use\\s+Modules.[A-Z][A-Za-z]+'], 'Modules/*.php');
+}
+
+function reportAcoplamento(graph) {
+  const modulosVivos = new Set(readdirSync(join(ROOT, 'Modules')));
+  const refs = parseImportsCruzados(lerImportsDaArvore(), { modulosVivos });
+  const r = compararFronteira(refs, graph, { modulosVivos });
+  const cobertura = r.pares.length ? ((r.confirmadas / r.pares.length) * 100).toFixed(1) : '—';
+  console.log(
+    `[catalog-graph] acoplamento REAL: ${r.pares.length} pares em produção · ` +
+    `${r.confirmadas} declarados (${cobertura}%) · ${r.naoDeclaradas.length} NÃO declarados · ` +
+    `${r.soDeclaradas.length} declarados sem import`,
+  );
+  if (r.crossCutting.length) {
+    console.log(
+      `ℹ️  primitiva cross-cutting (≥${LIMIAR_CROSS_CUTTING} módulos importam — não é fronteira, é alojamento): ` +
+      r.crossCutting.join(', '),
+    );
+  }
+  const negocio = r.naoDeclaradas.filter((p) => !p.soPrimitiva);
+  const primitiva = r.naoDeclaradas.filter((p) => p.soPrimitiva);
+  if (primitiva.length) {
+    console.log(`ℹ️  ${primitiva.length} par(es) não-declarados são SÓ primitiva cross-cutting — 1 decisão, não ${primitiva.length}.`);
+  }
+  for (const p of negocio) {
+    const selo = p.peso === 'dado' ? '⚠️ ' : '  ';
+    console.log(`${selo}${p.src} → ${p.dst}  (${p.imports} imports · ${p.peso}) ${p.simbolos.slice(0, 3).join(', ')}`);
+  }
+  const t = reportFronteiraDeTabela(modulosVivos);
+  console.log('');
+  console.log(
+    `[catalog-graph] advisory — PISO, não teto: import (\`use\`) + query crua (\`DB::table\`) em ` +
+    `Modules/**.php. Container/facade/Eloquent via Model alheio/resources/js ficam de fora.`,
+  );
+  return { ...r, tabela: t };
+}
+
 function main() {
   const mods = listScopeModules();
   if (!mods.length) {
@@ -864,6 +1165,18 @@ function main() {
     const result = queryGraph(graph, args[qi + 1]);
     if (!result) { console.error(`[catalog-graph] nó não encontrado: ${args[qi + 1] || '(vazio)'}`); process.exit(1); }
     console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  // Advisory: NÃO altera --check (required). Sai sempre 0, mesmo com fronteira não declarada.
+  // Roda DENTRO de um job required, então não pode avermelhá-lo — mas também não pode
+  // fingir verde quando não conseguiu medir: "não medi" ≠ "não há acoplamento" (§5 2026-07-29).
+  if (args.includes('--acoplamento')) {
+    try {
+      reportAcoplamento(graph);
+    } catch (err) {
+      console.log(`⚠️  [catalog-graph] acoplamento NÃO MEDIDO (${err && err.message}) — nenhum veredito sobre fronteira.`);
+    }
     return;
   }
 
@@ -913,6 +1226,14 @@ export {
   sortGraph,
   queryGraph,
   listCoreClassBRecords,
+  parseImportsCruzados,
+  simbolosCrossCutting,
+  compararFronteira,
+  pesoDaCamada,
+  derivarDonoDeTabela,
+  parseQueriesCruas,
+  tabelasCompartilhadas,
+  agruparFronteiraDeTabela,
   NODE_TYPES,
   EDGE_TYPES,
 };

@@ -8,6 +8,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   parseFrontmatter,
   componentNameFromContains,
@@ -24,6 +25,13 @@ import {
   serialize,
   queryGraph,
   classifyReferencedOnly,
+  parseImportsCruzados,
+  simbolosCrossCutting,
+  compararFronteira,
+  pesoDaCamada,
+  derivarDonoDeTabela,
+  parseQueriesCruas,
+  agruparFronteiraDeTabela,
   EDGE_TYPES,
 } from './catalog-graph.mjs';
 
@@ -438,6 +446,209 @@ test('BITE: SCOPE que cita ADR tombada NÃO carimba o slug morto no nó do núme
   const g = buildGraph(recs, { adrRelations, tombstonedAdrSlugs: ADR_IDX.tombstonedSlugs });
   assert.equal(g.nodes.find((n) => n.id === 'adr:0101').slug, '', 'slug morto não pode rotular ADR viva');
   assert.equal(g.nodes.find((n) => n.id === 'adr:0093').slug, '0093-multi-tenant', 'slug legítimo continua carimbado');
+});
+
+// ── acoplamento derivado (advisory) ─────────────────────────────────────────
+const VIVOS = new Set(['Alpha', 'Beta', 'Gama']);
+const L = (path, code) => `${path}:${code}`;
+
+test('parseImportsCruzados: extrai src/dst/camada/símbolo e ignora self-ref', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/Services/X.php', 'use Modules\\Beta\\Entities\\Nota;'),
+    L('Modules/Alpha/Services/X.php', 'use Modules\\Alpha\\Services\\Proprio;'),
+  ], { modulosVivos: VIVOS });
+  assert.equal(refs.length, 1, 'self-ref não é fronteira');
+  assert.deepEqual(refs[0], { src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota' });
+});
+
+test('FP: comentário/docblock que MENCIONA o import NÃO conta (o erro que inflou 41→116)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', ' * use Modules\\Beta\\Entities\\Nota; (morava aqui até 2026-07)'),
+    L('Modules/Alpha/S.php', '// use Modules\\Beta\\Services\\Velho;'),
+    L('Modules/Alpha/S.php', '# use Modules\\Beta\\Models\\Y;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs, [], 'prosa não é acoplamento');
+});
+
+test('módulo REMOVIDO citado em import não vira fronteira (tombstone ≠ aresta)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Fantasma\\Entities\\Z;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs, []);
+});
+
+test('Tests/ fica fora por padrão e entra com incluirTestes', () => {
+  const linhas = [L('Modules/Alpha/Tests/Feature/AT.php', 'use Modules\\Beta\\Services\\S;')];
+  assert.equal(parseImportsCruzados(linhas, { modulosVivos: VIVOS }).length, 0);
+  assert.equal(parseImportsCruzados(linhas, { modulosVivos: VIVOS, incluirTestes: true }).length, 1);
+});
+
+test('simbolosCrossCutting: primitiva é DERIVADA do nº de módulos, não de lista à mão', () => {
+  const refs = ['Alpha', 'Beta', 'Gama'].map((src) =>
+    ({ src, dst: 'Jana', camada: 'Scopes', simbolo: 'ScopeByBusiness' }));
+  refs.push({ src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota' });
+  assert.deepEqual([...simbolosCrossCutting(refs, 3)], ['ScopeByBusiness']);
+  assert.deepEqual([...simbolosCrossCutting(refs, 4)], [], 'limiar acima do uso real não elege ninguém');
+});
+
+test('pesoDaCamada: model/entity é o pior; contrato é o mais fraco', () => {
+  assert.equal(pesoDaCamada('Entities'), 'dado');
+  assert.equal(pesoDaCamada('Models'), 'dado');
+  assert.equal(pesoDaCamada('Scopes'), 'comportamento');
+  assert.equal(pesoDaCamada('Events'), 'contrato');
+  assert.equal(pesoDaCamada('Services'), 'servico');
+});
+
+test('BITE: fronteira REAL não declarada no SCOPE é detectada (e a declarada não vira ruído)', () => {
+  // Alpha declara depender de Beta (SCOPE_ALPHA: not_contains → Modules/Beta).
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Services\\Legit;'),  // declarada
+    L('Modules/Alpha/S.php', 'use Modules\\Gama\\Entities\\Escondida;'), // NÃO declarada
+  ], { modulosVivos: VIVOS });
+  const r = compararFronteira(refs, g);
+  const nd = r.naoDeclaradas.map((p) => `${p.src}>${p.dst}`);
+  assert.ok(nd.includes('Alpha>Gama'), 'MORDE: import sem declaração tem que aparecer');
+  assert.ok(!nd.includes('Alpha>Beta'), 'CONTROLE NEGATIVO: declarada não pode virar achado');
+  assert.equal(r.naoDeclaradas.find((p) => p.dst === 'Gama').peso, 'dado');
+});
+
+test('par cujo acoplamento é SÓ primitiva é marcado soPrimitiva (1 decisão, não N)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const refs = ['Alpha', 'Beta', 'Gama'].map((src) =>
+    ({ src, dst: 'Jana', camada: 'Services', simbolo: 'PiiRedactor' }));
+  const r = compararFronteira(refs, g, { limiar: 3 });
+  assert.ok(r.naoDeclaradas.every((p) => p.soPrimitiva));
+});
+
+test('soDeclaradas: aresta no SCOPE sem NENHUM import é reportada (boilerplate)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const r = compararFronteira([], g);
+  assert.ok(r.soDeclaradas.some((p) => p.src === 'Alpha' && p.dst === 'Beta'));
+});
+
+test('soDeclaradas NÃO conta alvo REMOVIDO (tombstone já tem diagnóstica própria)', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const semFiltro = compararFronteira([], g);
+  const comFiltro = compararFronteira([], g, { modulosVivos: VIVOS });
+  assert.ok(semFiltro.soDeclaradas.some((p) => !VIVOS.has(p.dst)), 'fixture tem alvo fora dos vivos');
+  assert.ok(comFiltro.soDeclaradas.every((p) => VIVOS.has(p.dst)), 'com modulosVivos, só vivo entra');
+});
+
+// ── fronteira por TABELA (query crua) ───────────────────────────────────────
+const MIG = (mod, tabela) => `Modules/${mod}/Database/Migrations/2026_01_01_x.php:        Schema::create('${tabela}', function (Blueprint $t) {`;
+const QRY = (mod, code) => `Modules/${mod}/Services/S.php:        ${code}`;
+
+test('derivarDonoDeTabela: dono é quem CRIA na migration; core não sobrescreve módulo', () => {
+  const { dono } = derivarDonoDeTabela(
+    [MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
+    ["database/migrations/x.php:        Schema::create('contacts', function (Blueprint $t) {"],
+  );
+  assert.equal(dono.get('alpha_notas'), 'Alpha');
+  assert.equal(dono.get('beta_itens'), 'Beta');
+  assert.equal(dono.get('contacts'), '(core)');
+});
+
+test('REVISÃO: 2 módulos criando a MESMA tabela é conflito REPORTADO, não first-wins calado', () => {
+  // Caso real medido: nfe_certificados e nfse_emissoes (NFSe vs NfeBrasil). A diagnóstica
+  // do grafo DECLARADO diz "0 conflito de ownership" — ela olha db_tables_owned, não a árvore.
+  const { dono, conflitos } = derivarDonoDeTabela([MIG('Beta', 'disputada'), MIG('Alpha', 'disputada')]);
+  assert.deepEqual(conflitos, [{ tabela: 'disputada', modulos: ['Alpha', 'Beta'] }]);
+  assert.equal(dono.get('disputada'), 'Alpha', 'atribuição determinística (ordem alfabética), não ordem de leitura');
+});
+
+test('CN: tabela criada por 1 módulo só NÃO entra em conflitos', () => {
+  const { conflitos } = derivarDonoDeTabela([MIG('Alpha', 'so_dela'), MIG('Alpha', 'so_dela')]);
+  assert.deepEqual(conflitos, [], 'mesmo módulo 2x não é disputa');
+});
+
+test('REVISÃO: `use X as Alias` não polui o símbolo (senão o limiar cross-cutting conta errado)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Http\\Controllers\\DataController as BetaData;'),
+    L('Modules/Gama/S.php', 'use Modules\\Beta\\Http\\Controllers\\DataController;'),
+  ], { modulosVivos: VIVOS });
+  assert.deepEqual(refs.map((r) => r.simbolo), ['DataController', 'DataController'],
+    'o mesmo símbolo com 2 apelidos tem que contar como 1');
+});
+
+test('parseQueriesCruas: tabela alheia vira ref; própria e core NÃO', () => {
+  const { dono } = derivarDonoDeTabela([MIG('Alpha', 'alpha_notas'), MIG('Beta', 'beta_itens')],
+    ["database/migrations/x.php:Schema::create('contacts', function (Blueprint $t) {"]);
+  const { refs } = parseQueriesCruas([
+    QRY('Alpha', "DB::table('beta_itens')->get();"),   // alheia → conta
+    QRY('Alpha', "DB::table('alpha_notas')->get();"),  // própria → não
+    QRY('Alpha', "DB::table('contacts')->get();"),     // core → não
+  ], { donoDe: dono, modulosVivos: VIVOS });
+  assert.deepEqual(refs, [{ src: 'Alpha', dono: 'Beta', tabela: 'beta_itens' }]);
+});
+
+test('DB::table($var) dinâmico é NÃO RESOLVIDO — nunca some como zero (§5 2026-07-29)', () => {
+  const { refs, dinamico } = parseQueriesCruas([
+    QRY('Alpha', 'DB::table($tabela)->get();'),
+    QRY('Alpha', 'DB::table( $this->tbl )->get();'),
+  ], { donoDe: new Map(), modulosVivos: VIVOS });
+  assert.equal(refs.length, 0);
+  assert.equal(dinamico, 2, 'o que não deu pra resolver tem que ser CONTADO, não engolido');
+});
+
+test('tabela sem migration localizada conta em semDono, não vira fronteira inventada', () => {
+  const { refs, semDono } = parseQueriesCruas(
+    [QRY('Alpha', "DB::table('tabela_fantasma')->get();")],
+    { donoDe: new Map(), modulosVivos: VIVOS },
+  );
+  assert.equal(refs.length, 0);
+  assert.equal(semDono, 1);
+});
+
+test('infra compartilhada é DERIVADA por limiar (o caso failed_jobs), não por lista à mão', () => {
+  const refs = ['Alpha', 'Beta', 'Gama'].map((src) => ({ src, dono: 'Delta', tabela: 'failed_jobs' }));
+  refs.push({ src: 'Alpha', dono: 'Beta', tabela: 'beta_itens' });
+  const r = agruparFronteiraDeTabela(refs, { limiar: 3 });
+  assert.deepEqual(r.infra, ['failed_jobs']);
+  assert.deepEqual(r.pares.map((p) => `${p.src}>${p.dono}`), ['Alpha>Beta'], 'infra sai; fronteira real fica');
+});
+
+test('CN: abaixo do limiar a tabela NÃO é rebaixada a infra (limiar não é lista disfarçada)', () => {
+  const refs = ['Alpha', 'Beta'].map((src) => ({ src, dono: 'Delta', tabela: 'failed_jobs' }));
+  const r = agruparFronteiraDeTabela(refs, { limiar: 3 });
+  assert.deepEqual(r.infra, []);
+  assert.equal(r.pares.length, 2);
+});
+
+test('Tests/ não conta como acoplamento de produção também no eixo tabela', () => {
+  const { dono } = derivarDonoDeTabela([MIG('Beta', 'beta_itens')]);
+  const { refs } = parseQueriesCruas(
+    ["Modules/Alpha/Tests/Feature/T.php:        DB::table('beta_itens')->get();"],
+    { donoDe: dono, modulosVivos: VIVOS },
+  );
+  assert.deepEqual(refs, []);
+});
+
+// ── INVOCAÇÃO: a máquina roda no MOMENTO CERTO? ─────────────────────────────
+// Estes não testam o cálculo — testam que alguém CHAMA o cálculo. Sem eles, uma edição
+// futura pode deixar o medidor perfeito e órfão ("máquina que ninguém invoca é bug",
+// proibicoes.md §Sempre fazer; meta-padrão 'correção-do-mecanismo ≠ invocação', §5 2026-07-09).
+const WORKFLOW = readFileSync(new URL('../../.github/workflows/catalog-graph.yml', import.meta.url), 'utf8');
+
+test('INVOCAÇÃO: o workflow chama --acoplamento (senão o medidor nasce órfão)', () => {
+  assert.match(WORKFLOW, /catalog-graph\.mjs --acoplamento/, 'nenhum step invoca o medidor');
+});
+
+test('INVOCAÇÃO: roda em TODO PR — `on: pull_request` SEM `paths:`', () => {
+  // O momento certo é "todo PR", não "PR que toca Modules/". Acoplamento entra por PR que
+  // nem encosta em SCOPE.md; com path-filter o medidor ficaria mudo justamente aí.
+  const on = WORKFLOW.slice(WORKFLOW.indexOf('\non:'), WORKFLOW.indexOf('\npermissions:'));
+  assert.match(on, /pull_request/, 'tem que disparar em pull_request');
+  assert.doesNotMatch(on, /paths:/, 'path-filter faria o medidor calar no PR que mais importa');
+});
+
+test('INVOCAÇÃO: o step do medidor NÃO tem continue-on-error nem `|| true`', () => {
+  // Ele já sai 0 por desenho; um `continue-on-error` aqui seria teatro (§5 2026-07-09)
+  // e mascararia uma falha REAL de execução (ex.: o script quebrar ao ser editado).
+  const linha = WORKFLOW.split('\n').find((l) => l.includes('--acoplamento'));
+  assert.ok(linha, 'step não encontrado');
+  assert.doesNotMatch(linha, /\|\| true/);
+  assert.doesNotMatch(WORKFLOW, /--acoplamento[\s\S]{0,120}continue-on-error/);
 });
 
 test('serialize: os 3 tipos novos entram no by_edge_type e o JSON segue determinístico', () => {
