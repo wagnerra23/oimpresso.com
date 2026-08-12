@@ -120,10 +120,13 @@ it('aceita SELECT com comentários leading ignorados', function () use ($driver)
 it('mascara CPF no contexto antes de enviar à IA', function () {
     $driver2 = new OpenAiDirectDriver();
 
-    $texto   = 'Cliente CPF 123.456.789-00 solicitou serviço';
+    // CPF sintético sequencial (não é titular real) — a fixture PRECISA ter forma de
+    // CPF, senão o teste não prova que `mascararDocumentos()` mascara. Mesmo padrão já
+    // usado em Modules/Whatsapp/Tests/Feature/DispatchToJanaBotPiiRedactionTest.php.
+    $texto   = 'Cliente CPF 123.456.789-00 solicitou serviço'; # pii-allowlist
     $mascarado = $driver2->mascararDocumentos($texto);
 
-    expect($mascarado)->not->toContain('123.456.789-00')
+    expect($mascarado)->not->toContain('123.456.789-00') # pii-allowlist
         ->toContain('XXX.XXX.XXX-NN');
 });
 
