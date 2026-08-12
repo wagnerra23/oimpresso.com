@@ -598,7 +598,7 @@ function selftest() {
   // pega por controle-negativo no repo real. Trava os 2 lados: casa o equivalente, NÃO casa o alheio.
   const BLS2 = ['memory/requisitos/KB/kb.proto-baseline.json', 'memory/requisitos/TeamMcp/forja-cockpit.proto-baseline.json'];
   t('nudge: Pages/kb casa requisitos/KB (case difere)', telasAfetadas(['resources/js/Pages/kb/Index.tsx'], BLS2).length === 1);
-  t('nudge: Pages/team-mcp casa requisitos/TeamMcp (separador difere)', telasAfetadas(['Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx'], BLS2).length === 1);
+  t('nudge: Pages/team-mcp casa requisitos/TeamMcp (separador difere)', telasAfetadas(['resources/js/Pages/team-mcp/Forja/Cockpit.tsx'], BLS2).length === 1);
   t('nudge: módulo alheio NÃO casa (normalização não vira coringa)', telasAfetadas(['resources/js/Pages/Produto/Index.tsx'], BLS2).length === 0);
   t('normModulo: kb/KB e team-mcp/TeamMcp colapsam; Produto não vira KB', normModulo('KB') === normModulo('kb') && normModulo('team-mcp') === normModulo('TeamMcp') && normModulo('Produto') !== normModulo('KB'));
   t('nudge: _components do módulo também dispara (re-renderiza a tela)',

@@ -473,13 +473,13 @@ if (process.argv.includes('--selftest')) {
   const cn2 = tmp();
   rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn2, '--prototipo', 'prototipo-ui/cowork/forja-page.jsx']);
   t(/related_prototype:\s*prototipo-ui\/cowork\/forja-page\.jsx/.test(
-      readFileSync(join(cn2, 'Modules/Forja/Resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
+      readFileSync(join(cn2, 'resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
     'CN-2: --prototipo escreve o path declarado');
 
   const cn3 = tmp();
   rodar(['Forja/FixturaAncora', 'PT-01', '--out', cn3, '--sem-prototipo', 'motivo de fixtura']);
   t(/related_prototype:\s*n\/a \(motivo de fixtura\)/.test(
-      readFileSync(join(cn3, 'Modules/Forja/Resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
+      readFileSync(join(cn3, 'resources/js/Pages/Forja/FixturaAncora.charter.md'), 'utf8')),
     'CN-3: --sem-prototipo escreve n/a COM a razão (decisão fica registrada)');
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — todo arquétipo nasce conforme ao seu PT.');
   process.exit(fails ? 1 : 0);
