@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-08-11"
+last_run: "2026-08-12"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -114,6 +114,24 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 > 2026-08-11 com `rg --hidden` pelos 4 nomes no repo inteiro: nenhum `.github/workflows`.
 > Era verde-por-não-execução (LC-13). Promover UC apoiado num teste que o CI nunca roda
 > teria fabricado cobertura de contrato com o gate verde — exatamente o que o §5 proíbe.
+
+## UC-V320 · Cada ação da linha do item abre o drawer numa aba própria
+
+**Status:** 🧪 — 3 testes citam o UC e passam localmente (`tests/js/item-acoes-dominio.test.ts`); sem entrada no manifesto até a lane rodar em `main`.
+
+- **Dado** uma linha de item com as ações da âncora — lupa "Detalhes do item" e "Impostos",
+- **Quando** o operador escolhe uma delas,
+- **Então** o drawer abre na aba **daquela** ação: a lupa em *Geral*, o Impostos direto em *Tributação*.
+
+Derivado da âncora (`prototipo-ui/cowork/venda-v3/sells-create.jsx:63-65`), onde a aba viaja
+no próprio `abrirItem(i, aba)` — não do `.tsx`. O defeito que isto guarda é concreto: a aba
+inicial estava **fixa** no render, então os dois botões caíam em Tributação e o de detalhe
+não tinha o que fazer de diferente.
+
+O invariante é escrito como **propriedade** (ações distintas ⇒ abas distintas), não como
+"detalhe devolve `geral`" — repetir o literal do mapa passaria verde mesmo se o mapa inteiro
+apontasse pro mesmo lugar, que é a lápide §5 2026-06-05 sobre teste tautológico. Provado por
+mordida: revertendo o mapa pro defeito original, 2 dos 3 testes ficam vermelhos.
 
 ## UC-V330 · O rateio não perde nem inventa centavo
 
