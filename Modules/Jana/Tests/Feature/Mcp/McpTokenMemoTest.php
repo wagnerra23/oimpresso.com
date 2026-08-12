@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Tests\Feature\Mcp;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Jana\Entities\Mcp\McpToken;
 
@@ -70,16 +71,41 @@ it('resolve o token sem ir ao banco na segunda vez', function () {
         ->and($queries)->toHaveCount(0);
 });
 
-it('recusa token EXPIRADO mesmo com a chave quente', function () {
+it('recusa token que expirou durante a janela do cache', function () {
+    [, $raw] = criarToken(now()->addSeconds(30));
+
+    expect(McpToken::encontrarPorRaw($raw))->not->toBeNull();
+
+    // Avança o relógio além do expires_at que foi cacheado junto.
+    Carbon::setTestNow(now()->addMinutes(2));
+
+    try {
+        // isAtivo() reavalia a cada hit: a expiração NÃO espera o TTL do cache.
+        expect(McpToken::encontrarPorRaw($raw))->toBeNull();
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
+it('DOCUMENTA a janela: alterar expires_at por SQL direto só vale após o TTL', function () {
     [$token, $raw] = criarToken(now()->addMinutes(5));
 
     expect(McpToken::encontrarPorRaw($raw))->not->toBeNull();
 
-    // Expira sem passar pelo Model (update direto), o pior caso para o memo.
+    // UPDATE direto não dispara evento do Model, então o memo mantém o
+    // expires_at antigo — e o token segue valendo até o TTL expirar.
     DB::table('mcp_tokens')->where('id', $token->id)->update(['expires_at' => now()->subMinute()]);
 
-    // Passa porque isAtivo() reavalia expires_at a cada hit — a validade não é
-    // um veredito cacheado.
+    // Este assert registra o LIMITE REAL do desenho, não uma proteção.
+    // A 1ª versão deste teste afirmava o contrário e o CI derrubou — o memo
+    // reavalia com o valor que CACHEOU, não relê o banco (releitura anularia
+    // a otimização inteira). Quem mexer em token por SQL deve rodar
+    // `Cache::forget(McpToken::chaveToken($sha))` ou aceitar a janela do TTL.
+    expect(McpToken::encontrarPorRaw($raw))->not->toBeNull();
+
+    // E com o memo desligado o banco volta a mandar — prova que a janela vem
+    // do cache e não de um bug na validação.
+    config(['copiloto.mcp.token_cache_ttl' => 0]);
     expect(McpToken::encontrarPorRaw($raw))->toBeNull();
 });
 

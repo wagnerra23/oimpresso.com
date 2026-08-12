@@ -81,12 +81,18 @@ class McpToken extends Model
      * o MySQL do Hostinger: 755ms medidos para as duas, ~362ms para uma. Servir
      * o token do cache deixa a resolução em UMA consulta (a do user).
      *
-     * SEGURANÇA — a validade NÃO é cacheada como veredito:
-     *   - `revogar()` e `delete()` invalidam a chave na hora (ver boot());
-     *   - `expires_at` é reavaliado a cada hit por `isAtivo()`, com o valor que
-     *     veio junto — expiração não depende do TTL do cache;
-     *   - o TTL é curto e existe só para o caso de alguém revogar por fora do
-     *     Model (SQL direto), onde nenhum código nosso é notificado.
+     * SEGURANÇA — o que É garantido:
+     *   - `revogar()` e `delete()` invalidam a chave na hora (ver booted());
+     *   - `expires_at` é reavaliado a cada hit por `isAtivo()`, então um token
+     *     que vence DURANTE a janela é recusado sem esperar o TTL.
+     *
+     * O LIMITE, dito na cara: a reavaliação usa o valor que foi CACHEADO. Mexer
+     * em `revoked_at`/`expires_at` por SQL direto não dispara evento de Model, e
+     * o token segue valendo até o TTL — reler o banco para checar anularia a
+     * otimização inteira. Quem alterar token fora do Model deve chamar
+     * `Cache::forget(McpToken::chaveToken($sha256))` ou aceitar essa janela.
+     * (A 1ª versão do teste afirmava proteção aqui e o CI derrubou; hoje o caso
+     * está no arquivo de teste DOCUMENTANDO o limite, não escondendo.)
      *
      * `MCP_TOKEN_CACHE_TTL=0` desliga.
      */

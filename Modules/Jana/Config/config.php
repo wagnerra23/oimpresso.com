@@ -214,10 +214,10 @@ return [
         'quota_cache_ttl' => env('MCP_QUOTA_CACHE_TTL', 60),
 
         // === Memo da resolução do token (mesmo incidente) ===
-        // Segundos que os atributos do token ficam em cache. A VALIDADE não é
-        // cacheada como veredito: revogar/apagar invalida na hora (evento do
-        // Model) e `expires_at` é reavaliado a cada hit. O TTL cobre só o caso
-        // de revogação por fora do Model (SQL direto). `0` desliga.
+        // Segundos que os atributos do token ficam em cache. Revogar/apagar pelo
+        // Model invalida na hora, e `expires_at` é reavaliado a cada hit — mas
+        // com o valor CACHEADO: mexer no token por SQL direto só vale após o TTL
+        // (limite documentado em McpToken::encontrarPorRaw). `0` desliga.
         'token_cache_ttl' => env('MCP_TOKEN_CACHE_TTL', 60),
 
         // === Audit log governança ===
