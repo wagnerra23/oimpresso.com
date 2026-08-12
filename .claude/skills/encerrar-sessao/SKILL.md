@@ -83,6 +83,41 @@ Estrutura obrigatória:
 - Linha NO TOPO da lista "Últimos handoffs"
 - Formato: `[YYYY-MM-DD HH:MM — Título curto (chave: PRs/ADRs/métricas)](handoffs/...)` + parêntese denso
 
+#### ⚠️ Passo 3.1 — ANTI-COLISÃO do índice (sempre conferir — Wagner 2026-08-12)
+
+**O índice é o ÚNICO arquivo do encerramento que colide.** Handoff e session log têm nome único
+(`HHMM` + slug) e nunca conflitam; o `08-handoff.md` recebe append **no topo** de toda sessão que
+fecha — e várias fecham no mesmo dia. Medido em 2026-08-11: **8 commits** tocaram esse arquivo em
+um único dia. Não é risco teórico: na sessão de 2026-08-12 o [#5647](https://github.com/wagnerra23/oimpresso.com/pull/5647)
+apendou enquanto o PR do handoff estava aberto e o conflito **aconteceu**, depois de [W] ter
+avisado — *"cuidado para não conflitar o handoff, outra sessão salvando também"*.
+
+**Ordem obrigatória (não é sugestão — é o que encurta a janela):**
+1. Escreva **handoff + session log primeiro** e valide o schema. Eles não colidem: trabalhe neles à vontade.
+2. **Só então** toque o índice, e com `git fetch` **imediatamente antes** — se estiver atrás, sincronize ANTES de inserir a linha.
+3. **Commit + push na sequência**, sem etapa cara no meio. Cada minuto entre o fetch e o push é janela de colisão.
+
+**Se colidir mesmo assim** (vai acontecer — é append concorrente, não erro de ninguém):
+- **Resolva APPEND-ONLY: ninguém perde linha.** As duas entradas ficam, ordenadas por data (mais
+  recente no topo). Descartar a linha alheia apaga o handoff de outra sessão do índice — o arquivo
+  continua no disco, mas fica **inacessível pela porta que o time usa pra achar handoff**.
+  ⚠️ **Ordene pela DATA das linhas, não por "a minha é a nova".** Errei exatamente isso em
+  2026-08-12: o script punha a minha entrada sempre no topo, e o [#5649](https://github.com/wagnerra23/oimpresso.com/pull/5649)
+  era das 10:43 contra as 07:49 da minha — ficou invertido. A sua sessão pode ter começado antes
+  e terminado depois; quem chega por último no índice não é necessariamente o mais recente.
+  Confira o `HH:MM` das duas linhas antes de commitar.
+- **Use `git merge`, NUNCA `git rebase`.** Rebase exige `--force-with-lease`, que o hook
+  `block-destructive` barra com razão (sobrescreve histórico remoto). Merge resolve igual e aceita
+  push normal. Descoberto na marra em 2026-08-12: o hook bloqueou o comando composto INTEIRO,
+  então nem a resolução do conflito rodou.
+- **Recibo antes de commitar:** `grep -c '^<<<<<<<\|^>>>>>>>' memory/08-handoff.md` → **0**, e
+  conte as linhas preservadas (`N minha(s) + M dela(s)`). Resolver conflito sem conferir o
+  resultado é como declarar verde sem contar asserção.
+
+**Não vire gate:** o `Merge-marker scan (conflito commitado)` já pega marcador que escapou pro
+commit — segunda régua pro mesmo tema seria duplicar dono (§5 2026-07-09). O que falta aqui é
+**ordem de execução**, que é receita, não CI.
+
 ### Passo 4 — Commit + push (worktree filha OK)
 1 commit com handoff + índice. Webhook GitHub→MCP propaga em ~2min.
 
@@ -124,6 +159,9 @@ Hook `force-r12-closing-signal.mjs` (Node.js **cross-platform** — Windows/macO
 | Handoff de 300+ linhas duplicando session log | Handoff 30-80 linhas com pointers |
 | Aceitar ADR sozinho sem Wagner confirmar | Espera "aceito" textual + sed batch |
 | Webhook sync não-confirmado | Aguarda 2min + valida via `tasks-list` |
+| Editar o índice cedo e só depois escrever o handoff | Índice **por último**, com `fetch` imediatamente antes (passo 3.1) |
+| Resolver conflito do índice ficando com "a minha linha" | **Append-only**: as duas ficam, ordenadas por data — descartar apaga o handoff alheio do índice |
+| `git rebase` + `--force-with-lease` pra resolver o índice | `git merge` — rebase exige force-push, que o `block-destructive` barra |
 
 ## Origem (rastreabilidade canon)
 
