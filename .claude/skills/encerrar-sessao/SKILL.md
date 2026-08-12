@@ -101,6 +101,11 @@ avisado — *"cuidado para não conflitar o handoff, outra sessão salvando tamb
 - **Resolva APPEND-ONLY: ninguém perde linha.** As duas entradas ficam, ordenadas por data (mais
   recente no topo). Descartar a linha alheia apaga o handoff de outra sessão do índice — o arquivo
   continua no disco, mas fica **inacessível pela porta que o time usa pra achar handoff**.
+  ⚠️ **Ordene pela DATA das linhas, não por "a minha é a nova".** Errei exatamente isso em
+  2026-08-12: o script punha a minha entrada sempre no topo, e o [#5649](https://github.com/wagnerra23/oimpresso.com/pull/5649)
+  era das 10:43 contra as 07:49 da minha — ficou invertido. A sua sessão pode ter começado antes
+  e terminado depois; quem chega por último no índice não é necessariamente o mais recente.
+  Confira o `HH:MM` das duas linhas antes de commitar.
 - **Use `git merge`, NUNCA `git rebase`.** Rebase exige `--force-with-lease`, que o hook
   `block-destructive` barra com razão (sobrescreve histórico remoto). Merge resolve igual e aceita
   push normal. Descoberto na marra em 2026-08-12: o hook bloqueou o comando composto INTEIRO,
