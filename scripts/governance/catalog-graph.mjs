@@ -883,17 +883,31 @@ function parseImportsCruzados(linhas, { modulosVivos, incluirTestes = false }) {
     // `use Modules\X\Y\Sym as Alias;` — sem tirar o alias, o MESMO símbolo importado com
     // 2 apelidos vira 2 símbolos e o limiar cross-cutting conta errado (5 casos no corpus).
     const simbolo = partes[partes.length - 1].replace(/\s+as\s+\w+$/i, '').trim();
-    out.push({ src, dst, camada: partes[0] || '?', simbolo });
+    // FQCN é a IDENTIDADE do símbolo. Agrupar por nome CURTO funde classes homônimas de
+    // módulos diferentes e infla o limiar cross-cutting — foi o que elegeu `Subscription`
+    // errado: `Superadmin\Entities\Subscription` (4 importadores) + `RecurringBilling\
+    // Models\Subscription` (1) somaram 5 e cruzaram o corte, sem nenhuma qualificar sozinha.
+    const fqcn = `Modules\\${dst}\\${[...partes.slice(0, -1), simbolo].join('\\')}`;
+    out.push({ src, dst, camada: partes[0] || '?', simbolo, fqcn });
   }
   return out;
 }
 
-/** Símbolos importados por ≥ limiar módulos distintos = primitiva cross-cutting (derivado). */
+/**
+ * Símbolos importados por ≥ limiar módulos distintos = primitiva cross-cutting (derivado).
+ * Agrupa por FQCN, nunca por nome curto: classes homônimas de módulos diferentes são
+ * símbolos DIFERENTES e somá-las infla o limiar (defeito medido — ver `identidade`).
+ */
+function identidadeDoSimbolo(ref) {
+  return ref.fqcn || `Modules\\${ref.dst}\\${ref.simbolo}`;
+}
+
 function simbolosCrossCutting(refs, limiar = LIMIAR_CROSS_CUTTING) {
   const porSimbolo = new Map();
   for (const r of refs) {
-    if (!porSimbolo.has(r.simbolo)) porSimbolo.set(r.simbolo, new Set());
-    porSimbolo.get(r.simbolo).add(r.src);
+    const id = identidadeDoSimbolo(r);
+    if (!porSimbolo.has(id)) porSimbolo.set(id, new Set());
+    porSimbolo.get(id).add(r.src);
   }
   return new Set([...porSimbolo].filter(([, srcs]) => srcs.size >= limiar).map(([s]) => s));
 }
@@ -922,7 +936,7 @@ function compararFronteira(refs, graph, { limiar = LIMIAR_CROSS_CUTTING, modulos
     }
     p.imports++;
     p.simbolos.add(r.simbolo);
-    if (!cross.has(r.simbolo)) p.soPrimitiva = false;
+    if (!cross.has(identidadeDoSimbolo(r))) p.soPrimitiva = false;
     const w = pesoDaCamada(r.camada);
     if (ORDEM_PESO[w] > ORDEM_PESO[p.peso]) p.peso = w;
   }

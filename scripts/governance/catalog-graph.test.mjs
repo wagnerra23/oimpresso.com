@@ -458,7 +458,10 @@ test('parseImportsCruzados: extrai src/dst/camada/símbolo e ignora self-ref', (
     L('Modules/Alpha/Services/X.php', 'use Modules\\Alpha\\Services\\Proprio;'),
   ], { modulosVivos: VIVOS });
   assert.equal(refs.length, 1, 'self-ref não é fronteira');
-  assert.deepEqual(refs[0], { src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota' });
+  assert.deepEqual(refs[0], {
+    src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota',
+    fqcn: 'Modules\\Beta\\Entities\\Nota',
+  });
 });
 
 test('FP: comentário/docblock que MENCIONA o import NÃO conta (o erro que inflou 41→116)', () => {
@@ -487,8 +490,43 @@ test('simbolosCrossCutting: primitiva é DERIVADA do nº de módulos, não de li
   const refs = ['Alpha', 'Beta', 'Gama'].map((src) =>
     ({ src, dst: 'Jana', camada: 'Scopes', simbolo: 'ScopeByBusiness' }));
   refs.push({ src: 'Alpha', dst: 'Beta', camada: 'Entities', simbolo: 'Nota' });
-  assert.deepEqual([...simbolosCrossCutting(refs, 3)], ['ScopeByBusiness']);
+  // sem `fqcn` nos refs sintéticos, a identidade cai no fallback `Modules\<dst>\<simbolo>`
+  assert.deepEqual([...simbolosCrossCutting(refs, 3)], ['Modules\\Jana\\ScopeByBusiness']);
   assert.deepEqual([...simbolosCrossCutting(refs, 4)], [], 'limiar acima do uso real não elege ninguém');
+});
+
+test('BITE: classes HOMÔNIMAS de módulos diferentes NÃO somam no limiar cross-cutting', () => {
+  // Defeito real, achado pelo especialista revisando esta medição: `Subscription` existe em
+  // Superadmin\Entities (4 importadores) E em RecurringBilling\Models (1). Agrupado por nome
+  // CURTO somavam 5, cruzavam o corte e eram eleitos "primitiva cross-cutting" — sem nenhuma
+  // qualificar sozinha. A identidade do símbolo é o FQCN, não o basename.
+  const refs = [
+    ...['Connector', 'Officeimpresso', 'PaymentGateway', 'VozDoCliente'].map((src) => ({
+      src, dst: 'Superadmin', camada: 'Entities', simbolo: 'Subscription',
+      fqcn: 'Modules\\Superadmin\\Entities\\Subscription',
+    })),
+    {
+      src: 'Financeiro', dst: 'RecurringBilling', camada: 'Models', simbolo: 'Subscription',
+      fqcn: 'Modules\\RecurringBilling\\Models\\Subscription',
+    },
+  ];
+  assert.equal(refs.length, 5, 'somados por nome curto dariam exatamente o limiar');
+  assert.deepEqual([...simbolosCrossCutting(refs, 5)], [], 'nenhuma qualifica: 4 e 1, não 5');
+});
+
+test('CN: símbolo REALMENTE cross-cutting segue eleito (o fix não cega o detector)', () => {
+  const refs = ['A', 'B', 'C', 'D', 'E'].map((src) => ({
+    src, dst: 'Jana', camada: 'Scopes', simbolo: 'ScopeByBusiness',
+    fqcn: 'Modules\\Jana\\Scopes\\ScopeByBusiness',
+  }));
+  assert.deepEqual([...simbolosCrossCutting(refs, 5)], ['Modules\\Jana\\Scopes\\ScopeByBusiness']);
+});
+
+test('parseImportsCruzados carimba fqcn (a identidade que o limiar usa)', () => {
+  const refs = parseImportsCruzados([
+    L('Modules/Alpha/S.php', 'use Modules\\Beta\\Entities\\Nota as N;'),
+  ], { modulosVivos: VIVOS });
+  assert.equal(refs[0].fqcn, 'Modules\\Beta\\Entities\\Nota', 'alias não entra no fqcn');
 });
 
 test('pesoDaCamada: model/entity é o pior; contrato é o mais fraco', () => {
