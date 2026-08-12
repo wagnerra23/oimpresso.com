@@ -28,19 +28,25 @@ uses(Tests\TestCase::class);
  */
 
 /**
- * DIVERGÊNCIA CONHECIDA, declarada com data e dono — não é allowlist de conveniência.
+ * DIVERGÊNCIA CONHECIDA — hoje VAZIA, e o vazio é o estado saudável.
  *
- * `F4 Merge` existe no protótipo (com `owner: W2`) e NÃO existe no backend. A
- * pergunta "F4 é coluna do quadro ou é a saída dele?" é decisão de produto do [W],
- * não conserto silencioso de agente — por isso ela entra aqui como exceção datada
- * em vez de eu escolher um lado e escrever no charter como se fosse lei (que foi o
- * erro original: o charter afirmava "F4 NÃO é coluna" sem consultar a fonte).
+ * Histórico (não apagar: é o que explica por que esta constante existe). De
+ * 2026-08-09 a 2026-08-11 esta lista continha `['F4']`. `F4 Merge` existia no
+ * protótipo com `owner: W2` e NÃO existia no backend, porque o agente derivou o
+ * quadro do CÓDIGO em vez da fonte de design e escreveu "F4 NÃO é coluna" como se
+ * fosse lei (proibicoes §5 2026-08-10). A pergunta "F4 é coluna do quadro ou é a
+ * saída dele?" era decisão de produto, então virou exceção datada em vez de eu
+ * escolher um lado sozinho.
  *
- * Enquanto [W] não decide, o teste garante que NENHUMA OUTRA divergência apareça.
- * Quando decidir: ou o backend ganha F4 e esta lista fica vazia, ou o protótipo é
- * atualizado — e aí a lista fica vazia do mesmo jeito. Os dois caminhos esvaziam.
+ * **[W] decidiu em 2026-08-11: F4 Merge É coluna** — merge é estado de trabalho
+ * com dono humano, não arquivo. O backend ganhou a fase e a lista esvaziou, que
+ * era um dos dois caminhos previstos aqui.
+ *
+ * A partir de agora QUALQUER divergência entre a fonte de design e o backend
+ * reprova. Se alguém precisar reabrir uma exceção, ela vem com data e dono, como
+ * esta veio — nunca como allowlist de conveniência pra fazer o teste passar.
  */
-const DIVERGENCIA_DECLARADA = ['F4'];   // [W] pendente desde 2026-08-09
+const DIVERGENCIA_DECLARADA = [];   // fechada por [W] em 2026-08-11
 
 /** Extrai as fases do protótipo Cowork (a FONTE de design). */
 function fasesDoPrototipo(): array
@@ -93,7 +99,7 @@ it('UC-PIPE-02 — as fases COMUNS aparecem na mesma ORDEM nos dois', function (
     );
 });
 
-it('UC-PIPE-03 — nenhuma divergência NOVA além da que [W] ainda não decidiu', function () {
+it('UC-PIPE-03 — nenhuma divergência entre a fonte de design e o backend', function () {
     $proto = fasesDoPrototipo();
     $back  = fasesDoBackend();
 
@@ -115,8 +121,10 @@ it('UC-PIPE-03 — nenhuma divergência NOVA além da que [W] ainda não decidiu
     expect($soNoProto)->toBe($esperado,
         "A fonte de design tem fase(s) que o backend ignora, além da já declarada.\n".
         '  no protótipo e não no backend: '.(implode(', ', $soNoProto) ?: '(nenhuma)')."\n".
-        '  declarada (aguarda [W])      : '.implode(', ', $esperado)."\n".
-        'Se F4 foi decidido, esvazie DIVERGENCIA_DECLARADA e alinhe os dois lados.'
+        '  declarada (exceção datada)   : '.(implode(', ', $esperado) ?: '(nenhuma)')."\n".
+        'O backend deve ganhar a fase nova (ForjaQuadroService::FASES + o espelho em '.
+        'TrabalhoQuadro.tsx). Só declare exceção aqui se for decisão [W], COM data e '.
+        'motivo — nunca pra fazer o teste passar.'
     );
 });
 

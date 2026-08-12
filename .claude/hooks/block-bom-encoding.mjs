@@ -18,6 +18,21 @@
 // Delta consciente do porte: modo strict bloqueia via exit 2 + stderr (mecanismo
 // canônico dos blockers .mjs deste repo) em vez do JSON deny do .ps1 — mesma semântica.
 //
+// ── O CONTRATO ESTÁ VALENDO? (consequência MEDIDA em 2026-08-11, `main`) ─────
+// Nenhum gate de CI varre BOM no repo — este hook é a única defesa, e roda em `warn`.
+// Então a pergunta honesta não é "o hook dispara?", é "entrou BOM?". Varridos os 10.026
+// arquivos de código rastreados (as CODE_EXTS, menos as fixtures):
+//
+//   27 com BOM  =  24 .tsx (nossos) + 1 .js e 2 .css (vendor: doc/assets, AdminLTE, jquery.steps)
+//    0 .php  ← a classe do incidente #984 (BOM antes de <?php derruba prod) está LIMPA
+//
+// Os 24 .tsx são tolerados pelo Vite (o build passa), então isto é drift, não risco de
+// prod. NÃO limpar em massa: tocar 24 arquivos legados só pra normalizar encoding é o
+// big-bang que morre no CI (§5 2026-07-12 + emenda 07-27 — o toque acorda gate diff-aware
+// em eixo que ninguém mediu). Forward-only: o hook impede os novos; os velhos saem quando
+// o arquivo for tocado por trabalho real.
+// Reproduzir: ler os 3 primeiros bytes de cada `git ls-files` das CODE_EXTS e contar EF BB BF.
+//
 // Modos (env OIMPRESSO_BOM_HOOK_MODE): warn (DEFAULT) | strict | off.
 // Override emergencial Tier 0 Wagner: OIMPRESSO_BOM_OVERRIDE=1.
 // Fail-open: qualquer erro/parse-fail → exit 0 (NUNCA trava sessão).

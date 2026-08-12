@@ -250,7 +250,7 @@ class TrabalhoService
                 && ! in_array($t->status, ['done', 'cancelled'], true),
 
             // — do cockpit (ForjaBacklogService): projeção sobre custom_fields —
-            // `fase` só existe pra trabalho do pipeline de TELA (F0→F3.5). Task de
+            // `fase` só existe pra trabalho do pipeline de TELA (F0→F4). Task de
             // infra/gate/ADR não tem, e isso é correto — não é dado faltando.
             'forja_tipo'  => isset($cf['forja_tipo'])  ? (string) $cf['forja_tipo']  : null,
             'forja_fase'  => isset($cf['forja_fase'])  ? (string) $cf['forja_fase']  : null,
