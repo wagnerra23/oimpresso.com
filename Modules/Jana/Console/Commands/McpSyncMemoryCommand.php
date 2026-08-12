@@ -29,8 +29,21 @@ use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
  */
 class McpSyncMemoryCommand extends Command
 {
-    /** TTL do lock em segundos — sync completo leva minutos, não horas. */
-    protected const LOCK_TTL = 900;
+    /**
+     * TTL do lock em segundos.
+     *
+     * Era 900 (15min) sob a premissa "sync completo leva minutos, não horas".
+     * A premissa era falsa: medido 2026-08-12 no CT 100, o run completo dos 2488
+     * docs levou 1h40 — o lock expirava no meio e deixava de proteger justamente
+     * a janela mais longa. 2h cobre a duração real com folga.
+     *
+     * ⚠️ Medido na mesma data: o CT 100 rodava com `cache.default = array`, um
+     * driver por-processo — nesse cenário `Cache::lock()` não barra ninguém, e a
+     * proteção descrita abaixo não existia de fato. Quem mexer aqui confira o
+     * driver antes de confiar no lock (o campo git_sha tem defesa própria em
+     * IndexarMemoryGitParaDb, independente deste lock).
+     */
+    protected const LOCK_TTL = 7200;
 
     protected $signature = 'mcp:sync-memory
                             {--reason=manual   : Origem da sincronização (manual|webhook|cron|fallback)}
