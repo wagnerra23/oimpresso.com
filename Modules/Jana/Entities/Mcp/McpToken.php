@@ -106,8 +106,34 @@ class McpToken extends Model
         ]);
     }
 
-    public function registrarUso(?string $ip, ?string $userAgent): void
+    /**
+     * Carimba o uso do token — com throttle (incidente 2026-08-12).
+     *
+     * POR QUE: era um UPDATE por requisição. O MCP server roda no CT 100 contra
+     * o MySQL do Hostinger, onde cada roundtrip mede ~360ms, e o handshake do
+     * cliente faz 4 chamadas seguidas — ou seja, 4 escritas para carimbar o
+     * mesmo minuto. `last_used_at` é telemetria de "quando foi usado por
+     * último"; granularidade de minuto responde isso igual.
+     *
+     * O IP e o user-agent seguem a mesma janela DE PROPÓSITO: gravá-los fora
+     * dela exigiria comparar com o valor atual, o que devolveria a leitura que
+     * o throttle está evitando. Numa troca de IP o registro atrasa até o fim da
+     * janela — aceitável para telemetria, e é o custo declarado desta escolha.
+     *
+     * `$throttleSegundos = 0` desliga (usado pelo teste e por quem precisar do
+     * carimbo exato).
+     */
+    public function registrarUso(?string $ip, ?string $userAgent, ?int $throttleSegundos = null): void
     {
+        $janela = $throttleSegundos ?? (int) config('copiloto.mcp.uso_throttle_segundos', 60);
+
+        if ($janela > 0
+            && $this->last_used_at !== null
+            && $this->last_used_at->diffInSeconds(now()) < $janela
+        ) {
+            return;
+        }
+
         $this->update([
             'last_used_at' => now(),
             'last_used_ip' => $ip,
