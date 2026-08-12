@@ -162,7 +162,7 @@ Pare sem mover se ocorrer qualquer um destes casos:
 - a worktree contém mudanças não relacionadas;
 - `CONFLICTING_REWRITE` (residual): um `literal-path` (replace do caminho **cru**) coexiste com
   uma reescrita **estruturada** (`markdown-link`/`code-span`) do mesmo literal no mesmo arquivo —
-  o replace cru sobrepõe as ocorrências `](from)`/`` `from` ``. O classificador nunca gera esse par
+  o replace cru sobrepõe as ocorrências estruturadas do literal `from`. O classificador nunca gera esse par
   (o extrator pula o que já é estruturado); é backstop para plano hand-crafted. Resolva à mão.
   > O relink é **contexto-consciente** (`searchReplaceFor`): o mesmo literal como `[x](arq.md)`
   > (markdown-link → `./rel`) **e** `` `arq.md` `` (code-span → `root/path`) recebe destinos
