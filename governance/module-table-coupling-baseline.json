@@ -1,0 +1,33 @@
+{
+  "_doc": "Baseline FORWARD-ONLY da catraca de acoplamento por TABELA (`DB::table` cru em tabela de outro módulo). Mesmo desenho da module-coupling-baseline: par NOVO reprova; a lista só DESCE.",
+  "_regra": "Este eixo é o que o `use` NÃO enxerga. Dono da tabela é DERIVADO de quem faz `Schema::create` na migration, nunca do `db_tables_owned` escrito à mão. Tabela lida por ≥3 módulos é infra compartilhada e não conta como fronteira.",
+  "_medicao": "node scripts/governance/catalog-graph.mjs --acoplamento (seção \"fronteira por TABELA\")",
+  "_regenerar": "node scripts/governance/catalog-graph.mjs --acoplamento --write-baseline (grava os DOIS eixos). Ao CURAR um par, remova a linha no MESMO PR — a catraca avisa (não reprova) quando há entrada já curada.",
+  "_piso": "PISO, não teto: só `DB::table('literal')`. `DB::table($var)`, Eloquent via Model alheio e SQL cru em string ficam invisíveis — o report diz quantos não resolveu.",
+  "grandfathered": [
+    "Arquivos>Cms",
+    "Arquivos>Financeiro",
+    "Connector>Officeimpresso",
+    "Financeiro>RecurringBilling",
+    "Financeiro>Superadmin",
+    "Fiscal>NfeBrasil",
+    "Fiscal>Superadmin",
+    "Forja>Jana",
+    "Governance>Forja",
+    "Governance>Jana",
+    "Governance>Whatsapp",
+    "Jana>Forja",
+    "Jana>Whatsapp",
+    "NfeBrasil>Arquivos",
+    "Officeimpresso>Financeiro",
+    "OficinaAuto>Ponto",
+    "PaymentGateway>Financeiro",
+    "PaymentGateway>RecurringBilling",
+    "RecurringBilling>Financeiro",
+    "Superadmin>Jana"
+  ],
+  "allowlist": [
+    "Vestuario>Financeiro"
+  ],
+  "allowlist_razoes": {}
+}
