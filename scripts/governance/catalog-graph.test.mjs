@@ -29,6 +29,7 @@ import {
   simbolosCrossCutting,
   compararFronteira,
   catracaAcoplamento,
+  paresDeTabelaComoPares,
   chaveDoPar,
   pesoDaCamada,
   derivarDonoDeTabela,
@@ -730,4 +731,41 @@ test('catraca aponta par CURADO pra baseline encolher (só desce)', () => {
 test('chaveDoPar é estável e direcional (A→B ≠ B→A)', () => {
   assert.equal(chaveDoPar(P('Alpha', 'Beta')), 'Alpha>Beta');
   assert.notEqual(chaveDoPar(P('Alpha', 'Beta')), chaveDoPar(P('Beta', 'Alpha')));
+});
+
+// ── eixo TABELA na MESMA catraca (`DB::table` cru) ───────────────────────────
+// O eixo tabela não tem comparação própria de propósito: ele normaliza `{src,dono}` na
+// forma `{src,dst}` e reusa `catracaAcoplamento`. Estes testes provam que a normalização
+// preserva o que a chave precisa — sem isso, `chaveDoPar` produziria `Alpha>undefined` e
+// TODO par de tabela viraria "novo" (falso vermelho) ou entraria na baseline como lixo.
+const PT = (src, dono) => ({ src, dono, n: 1, tabelas: ['x'] });
+
+test('paresDeTabelaComoPares: `dono` vira `dst` e a chave sai correta', () => {
+  const [p] = paresDeTabelaComoPares([PT('Officeimpresso', 'Financeiro')]);
+  assert.equal(p.dst, 'Financeiro');
+  assert.equal(chaveDoPar(p), 'Officeimpresso>Financeiro', 'MORDE: sem o mapa a chave sairia `>undefined`');
+});
+
+test('eixo tabela: par NOVO é acusado pela MESMA catraca', () => {
+  const r = catracaAcoplamento(
+    paresDeTabelaComoPares([PT('Officeimpresso', 'Financeiro'), PT('Vestuario', 'Financeiro')]),
+    { grandfathered: ['Officeimpresso>Financeiro'], allowlist: [] },
+  );
+  assert.deepEqual(r.novos, ['Vestuario>Financeiro'], 'MORDE: query crua em tabela alheia NOVA reprova');
+});
+
+test('CN eixo tabela: par congelado não reprova, e curado só encolhe a baseline', () => {
+  const congelado = catracaAcoplamento(
+    paresDeTabelaComoPares([PT('Officeimpresso', 'Financeiro')]),
+    { grandfathered: ['Officeimpresso>Financeiro'], allowlist: [] },
+  );
+  assert.deepEqual(congelado.novos, [], 'forward-only: a dívida de hoje não reprova hoje');
+  const curado = catracaAcoplamento([], { grandfathered: ['Officeimpresso>Financeiro'], allowlist: [] });
+  assert.deepEqual(curado.curados, ['Officeimpresso>Financeiro']);
+  assert.deepEqual(curado.novos, []);
+});
+
+test('paresDeTabelaComoPares: entrada vazia/ausente não explode (medição pode falhar antes)', () => {
+  assert.deepEqual(paresDeTabelaComoPares(undefined), []);
+  assert.deepEqual(paresDeTabelaComoPares([]), []);
 });

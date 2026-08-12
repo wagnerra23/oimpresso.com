@@ -69,11 +69,15 @@ const ALLOWED_FILES = new Set([
   'CommandPalette.tsx', // ⌘K global (Shell)
   'Icon.tsx', // wrapper lucide canon (UI-0003)
   'MentionInput.tsx', // cross-módulo (chat/comentários)
-  'ThemeToggle.tsx', // dark mode por usuário (UI-0004)
+  // 'ThemeToggle.tsx' saiu em 2026-08-12: 0 consumidores no repo. O toggle vivo é o
+  // ThemeSubpanel do cockpit/Sidebar.tsx (UI-0011, subpainel Aparência) — a UI-0004
+  // (dark mode por usuário via classe html) segue valendo, só não mora mais aqui.
 ]);
 
 // ── CHECK 2 · pastas `components` sem underscore pré-existentes (grandfathered) ──
-// Migram pra `_components` quando a tela for tocada — lista NÃO cresce.
+// A lista NÃO cresce (é isso que o CHECK 2 abaixo enforça). O que ela NÃO faz é
+// migrar as 4 existentes — ver a nota medida no cabeçalho (§CHECK 2): esta linha
+// prometia "migram quando a tela for tocada" e não havia mecanismo nenhum.
 const GRANDFATHERED_NO_UNDERSCORE = new Set([
   'resources/js/Pages/Compras/components',
   'resources/js/Pages/Financeiro/Categorias/components',

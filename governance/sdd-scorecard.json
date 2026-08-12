@@ -23,20 +23,20 @@
       "detail": {
         "coverage_pct": 88.1,
         "specs_total": 51,
-        "us_total": 955,
+        "us_total": 956,
         "anchor_coverage_pct": 88.1,
         "by_state": {
           "sem_campo": 112,
           "placeholder": 1,
-          "pendente": 402,
+          "pendente": 403,
           "parcial": 113,
           "anchored_ok": 326,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 849,
+        "fields_total": 850,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 786,
+        "fields_grammar_ok": 787,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -284,10 +284,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 52,
+        "entries_aprovadas": 54,
         "max_error_rate_pct": 1.82,
-        "last_pr": 5568,
-        "last_lote": "MEM-scope-licoes-move-33-5568-r4"
+        "last_pr": 5675,
+        "last_lote": "ARQ-piiredactor-app-support-5675-r3"
       },
       "stream": "GT"
     }
