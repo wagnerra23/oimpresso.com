@@ -26,8 +26,6 @@
     "RecurringBilling>Financeiro",
     "Superadmin>Jana"
   ],
-  "allowlist": [
-    "Vestuario>Financeiro"
-  ],
+  "allowlist": [],
   "allowlist_razoes": {}
 }
