@@ -56,7 +56,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * o cenário. Sem o rollback, o teste deixaria resíduo de RBAC no banco da lane.
  *
  * @see Modules\Forja\Http\Controllers\ForjaController
- * @see resources/js/Pages/team-mcp/Forja/Cockpit.casos.md
+ * @see Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
@@ -306,7 +306,7 @@ it('UC-FORJA-14 · config do shell e FORJA_TABS do hub listam os MESMOS destinos
         config('core_topnavs.Forja.items') ?? []
     ));
 
-    $tsx = base_path('resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx');
+    $tsx = base_path('Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx');
     expect(is_file($tsx))->toBeTrue("ForjaHub.tsx não encontrado em {$tsx} — o hub mudou de lugar?");
 
     $src = (string) file_get_contents($tsx);

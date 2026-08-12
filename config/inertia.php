@@ -106,6 +106,22 @@ return [
 
         'ensure_pages_exist' => true,
 
+        /*
+         * DUAS raízes desde 2026-08-12: a tela pode morar no núcleo OU dentro do módulo dono
+         * (`Modules/<X>/Resources/js/Pages/**`), e o resolver do Inertia mescla os dois globs
+         * em `resources/js/app.tsx` + `ssr.tsx`.
+         *
+         * Sem declarar aqui, o `page_paths` cai no default do pacote (só `resource_path('js/Pages')`)
+         * e o `AssertableInertia::component()` reprova tela que resolve PERFEITAMENTE em runtime —
+         * foi o que derrubou 3 asserts do `ForjaRoutesSmokeTest` no PR da migração.
+         *
+         * O glob é avaliado uma vez no boot da config; módulo novo entra sem editar este arquivo.
+         */
+        'page_paths' => array_merge(
+            [resource_path('js/Pages')],
+            glob(base_path('Modules/*/Resources/js/Pages')) ?: [],
+        ),
+
     ],
 
     /*
