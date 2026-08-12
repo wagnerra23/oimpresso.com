@@ -31,7 +31,7 @@ use Spatie\Activitylog\Models\Activity;
  *
  * Origem: Cowork F1+F1.5 (score 93/100) aprovado [W] 2026-05-19.
  * ADR 0144 + ADR 0170. Charter:
- * resources/js/Pages/Settings/PaymentGateways/Index.charter.md.
+ * Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md.
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL — `PaymentGatewayCredential` herda
  * business_id global scope via HasBusinessScope.

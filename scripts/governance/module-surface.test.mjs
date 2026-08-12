@@ -13,6 +13,7 @@ import {
   montar,
   CORE_APP_MODULES,
   PAGES_NS,
+  nsDoModulo,
   RAIZES_GERAIS,
   isSurfaceRequired,
   manifestExigeSuperficie,
@@ -246,17 +247,50 @@ test('papel volumoso com VÁRIOS dirs: cada linha aponta pro seu dir e a soma ba
 });
 
 test('PAGES_NS mapeia módulos cujo namespace Inertia difere do nome do módulo (só divergências)', () => {
-  // Os 5 verificados 2026-07-21 nos Inertia::render(...): módulo PascalCase, namespace minúsculo.
+  // Módulo PascalCase, namespace minúsculo.
   assert.equal(PAGES_NS.ADS, 'ads');
   assert.equal(PAGES_NS.Governance, 'governance');
   assert.equal(PAGES_NS.KB, 'kb');
   assert.equal(PAGES_NS.NFSe, 'Nfse');
   assert.equal(PAGES_NS.Superadmin, 'superadmin');
   // Só entra quem REALMENTE diverge — nunca a identidade óbvia (Financeiro→Financeiro).
-  for (const [mod, ns] of Object.entries(PAGES_NS)) assert.notEqual(mod, ns);
+  //
+  // ⚠️ Este assert já foi `assert.notEqual(mod, ns)` direto sobre o valor. Quando PAGES_NS passou
+  // a aceitar ARRAY, aquilo virou VERDE TRIVIAL: uma string nunca é igual a um array, então
+  // `Whatsapp: ['Whatsapp','Atendimento']` passava sem que ninguém checasse a intenção
+  // ("não repetir a identidade"). Normalizar ANTES de comparar é o que faz o assert medir de novo.
+  for (const mod of Object.keys(PAGES_NS)) {
+    const ns = nsDoModulo(mod);
+    assert.ok(ns.length >= 1, `${mod}: namespace vazio`);
+    assert.notDeepEqual(ns, [mod], `${mod}: identidade óbvia não entra no mapa`);
+  }
   // Não invade módulos de casing igual (Sells/Financeiro/Produto NÃO estão no mapa).
   assert.equal(PAGES_NS.Financeiro, undefined);
   assert.equal(PAGES_NS.Sells, undefined);
+});
+
+test('nsDoModulo normaliza string e array; homônimo é o default', () => {
+  assert.deepEqual(nsDoModulo('Financeiro'), ['Financeiro']); // não declarado → homônimo
+  assert.deepEqual(nsDoModulo('KB'), ['kb']);                 // string → 1 namespace
+  assert.deepEqual(nsDoModulo('Whatsapp'), ['Whatsapp', 'Atendimento']); // array → N
+  assert.deepEqual(nsDoModulo('Forja'), ['Forja', 'team-mcp']);
+  assert.deepEqual(nsDoModulo('PaymentGateway'), ['PaymentGateway', 'Settings']);
+});
+
+test('BITE real: módulo multi-namespace enxerga as telas dos DOIS namespaces', () => {
+  // Regressão de 2026-08-12: o Whatsapp rende 9× sob `Atendimento` e 3× sob `Whatsapp`, mas o mapa
+  // era 1:1 — o SUPERFICIE saía com 3 telas em vez de 29 e o `--all --check` ficava VERDE, porque
+  // gerado e commitado tinham o MESMO ponto cego. Um gate que não pode ficar vermelho é carimbo.
+  const { grupos } = coletar('Whatsapp');
+  const telas = grupos.filter((g) => /Telas \(Inertia/.test(g.rot)).flatMap((g) => g.files);
+  assert.ok(
+    telas.some((f) => f.startsWith('Modules/Whatsapp/Resources/js/Pages/Atendimento/')),
+    'nenhuma tela de Pages/Atendimento entrou na superfície do Whatsapp',
+  );
+  assert.ok(
+    telas.some((f) => f.startsWith('resources/js/Pages/Whatsapp/')),
+    'o namespace homônimo não pode sumir quando um segundo é declarado',
+  );
 });
 
 test('montar() Classe A com namespace divergente declara o namespace real no corpo', () => {

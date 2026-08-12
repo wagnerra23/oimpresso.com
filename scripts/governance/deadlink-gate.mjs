@@ -61,6 +61,7 @@
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname, resolve, relative, sep } from 'node:path';
+import { raizesDePages } from '../qa/page-path.mjs';
 import { fileURLToPath } from 'node:url';
 
 // ── raiz do repo ─────────────────────────────────────────────────────────────
@@ -230,6 +231,50 @@ function resolvesViaRename(absPath) {
   return false;
 }
 
+/**
+ * true se `absPath` (inexistente) é um link para tela que MIGROU para dentro do módulo dono.
+ *
+ * Desde 2026-08-12 uma Page pode morar no núcleo (`resources/js/Pages/<ns>/…`) OU em
+ * `Modules/<X>/Resources/js/Pages/<ns>/…` — o resolver do Inertia mescla os dois globs
+ * (`resources/js/app.tsx` + `ssr.tsx`). Um doc que aponta para o caminho do núcleo NÃO tem
+ * link morto: o arquivo existe, mudou de raiz. Sem isto, migrar uma tela quebraria todo doc
+ * que a cita — inclusive ADR, que é append-only e não pode ser corrigida sem decisão [W].
+ *
+ * As duas travas do `resolvesViaRename` valem igual aqui:
+ *   1. só reescreve o PREFIXO exato `resources/js/Pages/` (não casa por substring);
+ *   2. só resolve se o destino EXISTIR de fato no disco — apontar pra lugar nenhum
+ *      continua morto, que é o caso que o gate deve pegar.
+ */
+function resolvesViaRaizDeModulo(absPath) {
+  const rel = relative(ROOT, absPath).split(sep).join('/');
+  const PREFIXO = 'resources/js/Pages/';
+  if (!rel.startsWith(PREFIXO)) return false;
+  const namespaceEmDiante = rel.slice(PREFIXO.length);
+
+  // As duas resoluções COMPÕEM. O link da ADR 0110 aponta pra `Pages/ProjectMgmt/Board/…`:
+  // no main ele resolvia porque o rename-map classe A troca `ProjectMgmt`→`Forja` e o alvo
+  // existia no núcleo. Com a tela migrada, resolver exige as DUAS etapas — rename do
+  // segmento E a raiz do módulo. Tratar só uma delas deixaria o link morto sem que nada
+  // tivesse de fato sumido, e a ADR é append-only (não dá pra "consertar" o texto).
+  const candidatos = [namespaceEmDiante];
+  const segs = namespaceEmDiante.split('/');
+  for (const [from, to] of CLASS_A_RENAMES) {
+    for (let i = 0; i < segs.length; i++) {
+      if (segs[i] !== from) continue;
+      const alt = [...segs];
+      alt[i] = to;
+      candidatos.push(alt.join('/'));
+    }
+  }
+
+  for (const raiz of raizesDePages(ROOT)) {
+    // `raizesDePages` devolve o núcleo também; ele já foi testado por `existsCaseSensitive`.
+    if (!raiz.replace(/\\/g, '/').includes('/Modules/')) continue;
+    for (const cand of candidatos) if (existsSync(join(raiz, cand))) return true;
+  }
+  return false;
+}
+
 // ── extração de links ────────────────────────────────────────────────────────
 const LINK_RE = /\[[^\]]*\]\(([^)]+)\)/g;
 function extractTargets(mdText) {
@@ -255,7 +300,8 @@ function scan() {
   const hist = new Map();
   let totalLinks = 0;
   let tombstoned = 0;       // alvos ausentes que RESOLVEM via ledger (ADR 0316) — não são mortos
-  let renamed = 0;          // alvos ausentes que RESOLVEM via rename-map classe A — idem
+  let renamed = 0;
+  let migradas = 0;      // alvos que RESOLVEM na raiz do modulo dono (migracao 2026-08-12)          // alvos ausentes que RESOLVEM via rename-map classe A — idem
   for (const f of corpus()) {
     const rel = relative(ROOT, f).split(sep).join('/');
     const isHist = HISTORY_RE.test(relative(ROOT, f));
@@ -266,13 +312,14 @@ function scan() {
       if (!existsCaseSensitive(abs)) {
         if (resolvesViaTombstone(abs)) { tombstoned++; continue; }
         if (resolvesViaRename(abs)) { renamed++; continue; }
+        if (resolvesViaRaizDeModulo(abs)) { migradas++; continue; }
         const bucket = isHist ? hist : vivo;
         if (!bucket.has(rel)) bucket.set(rel, []);
         bucket.get(rel).push(target);
       }
     }
   }
-  return { vivo, hist, totalLinks, tombstoned, renamed };
+  return { vivo, hist, totalLinks, tombstoned, renamed, migradas };
 }
 
 const count = (map) => [...map.values()].reduce((a, v) => a + v.length, 0);
@@ -284,7 +331,7 @@ function loadBaseline() {
 
 // ── modos ────────────────────────────────────────────────────────────────────
 const mode = argv.find((a) => ['--scan', '--check', '--write-baseline', '--triage'].includes(a)) || '--scan';
-const { vivo, hist, totalLinks, tombstoned, renamed } = scan();
+const { vivo, hist, totalLinks, tombstoned, renamed, migradas } = scan();
 // Visível SEMPRE que houver: mecanismo que absorve caso em silêncio vira cobertura falsa
 // (§5 presence-gate / verde-por-não-execução). Aqui o número aparece em todo modo.
 const tombLine = tombstoned > 0

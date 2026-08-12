@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  *
  * @see prototipo-ui/cowork/forja-data.jsx        (FONTE de design — ADR 0299/0282)
  * @see Modules/Forja/Services/ForjaQuadroService.php
- * @see resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx
+ * @see Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx
  */
 
 /**

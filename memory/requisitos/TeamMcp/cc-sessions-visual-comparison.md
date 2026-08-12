@@ -10,7 +10,7 @@ approved_at: 2026-06-16
 date: 2026-06-16
 canon_reference: forja-cowork (forja-page.jsx — view .fj-changelog/.fj-feed)
 blade_source: "N/A — tela já é Inertia (re-skin DS v6)"
-inertia_target: resources/js/Pages/team-mcp/CcSessions/Index.tsx
+inertia_target: Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx
 pr_branch: feat/forja-pr2-ccsessions
 ---
 

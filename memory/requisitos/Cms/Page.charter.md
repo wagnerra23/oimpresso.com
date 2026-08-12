@@ -3,7 +3,7 @@ id: requisitos-cms-page-charter
 page_id: cms.site.page
 route: GET /c/page/{slug}
 controller: Modules\Cms\Http\Controllers\CmsPageController@showPage
-component: resources/js/Pages/Site/Page.tsx
+component: Modules/Cms/Resources/js/Pages/Site/Page.tsx
 status: draft
 owner: "[W]"
 created: 2026-05-16
@@ -59,6 +59,6 @@ Renderizar páginas estáticas (sobre, contato, termos, privacidade, política L
 - SPEC: `memory/requisitos/Cms/SPEC.md`
 - BRIEFING: `memory/requisitos/Cms/BRIEFING.md`
 - Controller: `Modules/Cms/Http/Controllers/CmsPageController.php@showPage`
-- Component: `resources/js/Pages/Site/Page.tsx` (a criar — atualmente só Blade legacy `cms::frontend.pages.custom_view` em `/c/page/{slug}/old`)
+- Component: `Modules/Cms/Resources/js/Pages/Site/Page.tsx` (a criar — atualmente só Blade legacy `cms::frontend.pages.custom_view` em `/c/page/{slug}/old`)
 - Tests: `Modules/Cms/Tests/Feature/SitePageTest.php`, `MultiTenantSlugIsolationTest.php`
 - ADRs: 0093 (multi-tenant slug isolation), 0094 (§5 SoC), 0104 (MWART)

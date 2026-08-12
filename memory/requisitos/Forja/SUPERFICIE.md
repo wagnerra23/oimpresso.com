@@ -12,9 +12,9 @@ module: Forja
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Forja --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**` + `resources/js/Pages/team-mcp/**` (namespaces Inertia `Forja`, `team-mcp`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Forja` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 212 arquivos em 15 papéis.
+**Total mapeado:** 243 arquivos em 15 papéis.
 
 ## Controllers — 26
 
@@ -143,50 +143,80 @@ module: Forja
 - [retention-mcp.php](../../../Modules/Forja/Config/retention-mcp.php)
 - [retention.php](../../../Modules/Forja/Config/retention.php)
 
-## Telas (Inertia/React) — 12
+## Telas (Inertia/React) — 21
 
-- [Index.tsx](../../../resources/js/Pages/Forja/Activity/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/Aprovacoes/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/Backlog/Index.tsx)
-- [DetailSheet.tsx](../../../resources/js/Pages/Forja/Board/DetailSheet.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/Board/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/Burndown/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/Inbox/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/MyWork/Index.tsx)
-- [Gantt.tsx](../../../resources/js/Pages/Forja/Roadmap/Gantt.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/Roadmap/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/Trabalho/Index.tsx)
-- [Index.tsx](../../../resources/js/Pages/Forja/Triage/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Activity/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Backlog/Index.tsx)
+- [DetailSheet.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx)
+- [Gantt.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx)
+- [ProjectShow.tsx](../../../Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx)
+- [Projects.tsx](../../../Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx)
+- [TeamScopes.tsx](../../../Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.tsx)
+- [Tools.tsx](../../../Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx)
+- [Cockpit.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx)
+- [Index.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx)
 
-## Componentes / apoio de tela — 3
+## Componentes / apoio de tela — 13
 
-- [ShortcutsOverlay.tsx](../../../resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx)
-- [TrabalhoQuadro.tsx](../../../resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx)
-- [TriageDossier.tsx](../../../resources/js/Pages/Forja/Triage/_components/TriageDossier.tsx)
+- [ShortcutsOverlay.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Board/_components/ShortcutsOverlay.tsx)
+- [TrabalhoQuadro.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx)
+- [TriageDossier.tsx](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/_components/TriageDossier.tsx)
+- [SessionDrawer.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/_components/SessionDrawer.tsx)
+- [ForjaBacklog.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaBacklog.tsx)
+- [ForjaChangelog.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx)
+- [ForjaDossier.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaDossier.tsx)
+- [ForjaHandoffs.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx)
+- [ForjaHub.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx)
+- [ForjaMcp.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx)
+- [ForjaQuadro.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaQuadro.tsx)
+- [ForjaTriage.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaTriage.tsx)
+- [TaskDrawer.tsx](../../../Modules/Forja/Resources/js/Pages/team-mcp/Tasks/_components/TaskDrawer.tsx)
 
-## Charters (lei da tela) — 12
+## Charters (lei da tela) — 21
 
-- [Index.charter.md](../../../resources/js/Pages/Forja/Activity/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/Aprovacoes/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/Backlog/Index.charter.md)
-- [DetailSheet.charter.md](../../../resources/js/Pages/Forja/Board/DetailSheet.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/Board/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/Burndown/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/Inbox/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/MyWork/Index.charter.md)
-- [Gantt.charter.md](../../../resources/js/Pages/Forja/Roadmap/Gantt.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/Roadmap/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/Trabalho/Index.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Forja/Triage/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Activity/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Backlog/Index.charter.md)
+- [DetailSheet.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Board/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.charter.md)
+- [Gantt.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/Index.charter.md)
+- [ProjectShow.charter.md](../../../Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.charter.md)
+- [Projects.charter.md](../../../Modules/Forja/Resources/js/Pages/ads/Admin/Projects.charter.md)
+- [TeamScopes.charter.md](../../../Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.charter.md)
+- [Tools.charter.md](../../../Modules/Forja/Resources/js/Pages/ads/Admin/Tools.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.charter.md)
+- [Cockpit.charter.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.charter.md)
+- [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.charter.md)
 
-## Casos (contrato UC) — 6
+## Casos (contrato UC) — 8
 
-- [Index.casos.md](../../../resources/js/Pages/Forja/Aprovacoes/Index.casos.md)
-- [Index.casos.md](../../../resources/js/Pages/Forja/Board/Index.casos.md)
-- [Index.casos.md](../../../resources/js/Pages/Forja/Inbox/Index.casos.md)
-- [Gantt.casos.md](../../../resources/js/Pages/Forja/Roadmap/Gantt.casos.md)
-- [Index.casos.md](../../../resources/js/Pages/Forja/Trabalho/Index.casos.md)
-- [Index.casos.md](../../../resources/js/Pages/Forja/Triage/Index.casos.md)
+- [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.casos.md)
+- [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Board/Index.casos.md)
+- [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.casos.md)
+- [Gantt.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.casos.md)
+- [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.casos.md)
+- [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/Index.casos.md)
+- [Cockpit.casos.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md)
+- [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
 
 ## Testes (Pest) — 55
 
@@ -194,7 +224,7 @@ module: Forja
 - 1 em [Modules/Forja/Tests/Feature/Roadmap/](../../../Modules/Forja/Tests/Feature/Roadmap)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 24
+## Demais arquivos (manifestos, docs, assets e misc) — 25
 
 - [ProjectDecomposerAgent.php](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php)
 - [Tool.php](../../../Modules/Forja/Contracts/Tool.php)
@@ -204,6 +234,10 @@ module: Forja
 - [HandoffLeverTool.php](../../../Modules/Forja/Mcp/Tools/HandoffLeverTool.php)
 - [HandoffPendingTool.php](../../../Modules/Forja/Mcp/Tools/HandoffPendingTool.php)
 - [HandoffSubmitTool.php](../../../Modules/Forja/Mcp/Tools/HandoffSubmitTool.php)
+- [useBoardShortcuts.ts](../../../Modules/Forja/Resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts)
+- [Index.design-spec.json](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.design-spec.json)
+- [TrabalhoQuadro.design-spec.json](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.design-spec.json)
+- [sessionTokens.ts](../../../Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/_components/sessionTokens.ts)
 - [projectmgmt.php](../../../Modules/Forja/Resources/lang/en/projectmgmt.php)
 - [projectmgmt.php](../../../Modules/Forja/Resources/lang/pt/projectmgmt.php)
 - [topnav.php](../../../Modules/Forja/Resources/menus/topnav.php)
@@ -217,6 +251,3 @@ module: Forja
 - [module.json](../../../Modules/Forja/module.json)
 - [start.php](../../../Modules/Forja/start.php)
 - [SCOPE.md](../../../memory/requisitos/Forja/SCOPE.md)
-- [useBoardShortcuts.ts](../../../resources/js/Pages/Forja/Board/_components/useBoardShortcuts.ts)
-- [Index.design-spec.json](../../../resources/js/Pages/Forja/Trabalho/Index.design-spec.json)
-- [TrabalhoQuadro.design-spec.json](../../../resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.design-spec.json)

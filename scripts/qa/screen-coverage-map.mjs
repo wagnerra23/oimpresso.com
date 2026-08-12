@@ -32,7 +32,7 @@
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, sep, basename } from 'node:path';
 import assert from 'node:assert/strict';
-import { isAuxiliaryPagePath, isPageScreenPath } from './page-path.mjs';
+import { isAuxiliaryPagePath, isPageScreenPath, raizesDePages, pageNamespacePath } from './page-path.mjs';
 import { ucsDeclaredInCasos } from '../lib/uc-regex.mjs';
 // Fonte ÚNICA da regra "o charter tem sinal de prod?" — a MESMA que o gate
 // `charter-live-signal` (pune live sem sinal) e o `charter-promote-signal`
@@ -67,8 +67,11 @@ export function isAuxiliaryScreenPath(relTsx) {
 }
 
 // 1. Universo de telas: Pages/**/*.tsx, exceto diretórios auxiliares e testes.
-const isScreen = (f) => isPageScreenPath(relative(PAGES_DIR, f));
-const screens = walk(PAGES_DIR, isScreen);
+// DUAS raízes desde 2026-08-12: a tela pode morar no núcleo OU dentro do módulo dono. O slug dela
+// é o NAMESPACE (`pageNamespacePath`), que independe de onde o arquivo está — sem isso, migrar uma
+// tela a tiraria do denominador e a catraca reprovaria por cegueira, não por regressão.
+const isScreen = (f) => isPageScreenPath(relative(ROOT, f).split(sep).join('/'));
+const screens = raizesDePages(ROOT).flatMap((raiz) => walk(raiz, isScreen));
 
 // Declaração de escopo impressa junto do total: o número sozinho é ambíguo (qual denominador?).
 // MESMO conjunto que o casos-coverage-guard enumera desde a reconciliação 2026-07-27 — as duas
@@ -258,7 +261,11 @@ export function resolveScreenFiles(relTsx) {
   // (rota/sub-view), não "index". Casar AMBAS as chaves surfa o drift — ex.
   // Financeiro/Unificado/Index: proto-baseline é `unificado.*`, não `index.*`.
   const nameKeys = chavesDeNome(segs);
-  const abs = join(PAGES_DIR, relTsx);
+  // O namespace não diz em QUAL raiz o arquivo está (núcleo ou módulo dono) — procura-se.
+  // Cai no núcleo quando não existe em lugar nenhum, preservando o comportamento anterior
+  // para tela ausente (o chamador trata o `false` dos `existsSync` abaixo).
+  const abs = raizesDePages(ROOT).map((r) => join(r, relTsx)).find(existsSync)
+    ?? join(PAGES_DIR, relTsx);
   const charterPath = abs.replace(/\.tsx$/, '.charter.md');
   const casosPath = abs.replace(/\.tsx$/, '.casos.md');
 
@@ -504,7 +511,8 @@ if (flags.has('--selftest')) {
 }
 
 const rows = screens.map((abs) => {
-  const relTsx = relative(PAGES_DIR, abs).split(sep).join('/');
+  // Slug = NAMESPACE (independe da raiz), senão a mesma tela teria 2 identidades ao migrar.
+  const relTsx = pageNamespacePath(relative(ROOT, abs).split(sep).join('/'));
   const mod = relTsx.split('/')[0];
   const charter = existsSync(abs.replace(/\.tsx$/, '.charter.md'));
   const e2e = e2eFor(relTsx);

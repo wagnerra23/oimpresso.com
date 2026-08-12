@@ -255,7 +255,7 @@ Quick-check resumido:
 ## 16. Cockpit Pattern V2 — list+detail consolidado (ADR 0110)
 
 > **Pra páginas tipo "lista de entidades transacionais"** (vendas, compras, OSes, despesas, contas, clientes, produtos). Espelha `os-page.jsx` da §6 + adiciona spec concreto de tipografia, cores semânticas e endpoints REST.
-> Fonte da verdade: [ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md). Pages canon vivos: [Sells/Index.tsx](resources/js/Pages/Sells/Index.tsx), [Sells/Create.tsx](resources/js/Pages/Sells/Create.tsx), [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx), [governance/Dashboard.tsx](resources/js/Pages/governance/Dashboard.tsx), [Forja/Board/Index.tsx](resources/js/Pages/Forja/Board/Index.tsx).
+> Fonte da verdade: [ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md). Pages canon vivos: [Sells/Index.tsx](resources/js/Pages/Sells/Index.tsx), [Sells/Create.tsx](resources/js/Pages/Sells/Create.tsx), [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx), [governance/Dashboard.tsx](resources/js/Pages/governance/Dashboard.tsx), [Forja/Board/Index.tsx](Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx).
 
 ### 16.1. Anatomia (5 partes obrigatórias)
 

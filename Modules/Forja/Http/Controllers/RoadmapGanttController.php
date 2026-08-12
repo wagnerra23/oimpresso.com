@@ -43,7 +43,7 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  *
  * Ver:
  *  - memory/requisitos/Forja/RUNBOOK-gantt.md
- *  - resources/js/Pages/Forja/Roadmap/Gantt.charter.md
+ *  - Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.charter.md
  *  - ADR 0070 (Jira-style tasks) · 0087 (URL/permission congeladas) · 0093 · 0366 · 0367
  */
 class RoadmapGanttController extends Controller

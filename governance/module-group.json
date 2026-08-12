@@ -66,11 +66,13 @@
       "pergunta": "Que telas o módulo tem, e qual o contrato de cada uma?",
       "onde": [
         "resources/js/Pages/{mod}/**/*.charter.md",
-        "resources/js/Pages/{mod}/**/*.casos.md"
+        "resources/js/Pages/{mod}/**/*.casos.md",
+        "Modules/*/Resources/js/Pages/{mod}/**/*.charter.md",
+        "Modules/*/Resources/js/Pages/{mod}/**/*.casos.md"
       ],
       "cardinalidade": "zero-ou-muitos",
       "schema_do_tipo": "charter.schema.json",
-      "nota": "É AQUI que o case morde: Pages/kb ↔ requisitos/KB, Pages/team-mcp ↔ requisitos/TeamMcp. Resolver case-insensitive + separador normalizado é obrigatório (§5 2026-07-17)."
+      "nota": "É AQUI que o case morde: Pages/kb ↔ requisitos/KB, Pages/team-mcp ↔ requisitos/TeamMcp. Resolver case-insensitive + separador normalizado é obrigatório (§5 2026-07-17). DUAS RAÍZES desde 2026-08-12: a tela pode morar no núcleo ou dentro do módulo dono (Modules/<X>/Resources/js/Pages/<ns>) — o `Modules/*` é curinga de propósito, porque o namespace nem sempre é o nome do módulo que hospeda (ex.: team-mcp mora em Modules/Forja). Sem as duas, módulo migrado resolve ZERO telas e o grupo de memória fica cego sem erro."
     },
     {
       "papel": "topicos",

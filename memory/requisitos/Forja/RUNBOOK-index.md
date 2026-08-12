@@ -33,7 +33,7 @@ related_adrs:
 # RUNBOOK — Forja Triage + Inbox
 
 > Rotas: `/project-mgmt/triage` (Triage) · `/project-mgmt/inbox` (Inbox)
-> Componentes: `resources/js/Pages/Forja/Triage/Index.tsx` + `resources/js/Pages/Forja/Inbox/Index.tsx`
+> Componentes: `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` + `Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx`
 > Controllers: `Modules/Forja/Http/Controllers/TriageController@index` + `InboxController@index`
 > Charters: `Triage/Index.charter.md` + `Inbox/Index.charter.md` (ambos `status: draft` — pendente gate visual)
 > Última atualização: 2026-05-29 (PR #1940 — code-complete, DRAFT aguardando gate visual ADR 0107/0114)
@@ -96,8 +96,8 @@ Ambas substituem a necessidade de operar via CLI/MCP pra membros não-técnicos 
 
 ## 5. Sub-componentes
 
-- `resources/js/Pages/Forja/Triage/Index.tsx` — page Triage (otimismo + J/K + assign inline)
-- `resources/js/Pages/Forja/Inbox/Index.tsx` — page Inbox (agrupamento + J/K/R + markRead)
+- `Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx` — page Triage (otimismo + J/K + assign inline)
+- `Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx` — page Inbox (agrupamento + J/K/R + markRead)
 - Shared: `@/Components/shared/PageHeader`, `@/Components/shared/KpiGrid`, `@/Components/shared/KpiCard`
 - `@/Components/board/badges` — `PRIORITY_BADGE` / `Priority` (tokens de prioridade canon, reuso do Board)
 - `@/Components/ui/{select,card,button,badge}` — shadcn primitives
@@ -230,7 +230,7 @@ curl -sv 'https://oimpresso.com/project-mgmt/triage' -H 'X-Inertia: true' -H 'X-
 - [ADR 0058 — Centrifugo realtime](../../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md)
 - [SPEC.md](SPEC.md) — US-TR-301..308 (apêndice Onda 2 / SPEC-UI-FASE7)
 - [SPEC funcional histórico — TaskRegistry/SPEC-UI-FASE7.md](../TaskRegistry/SPEC-UI-FASE7.md) — origem das US-TR-301..308
-- Charters: [`Triage/Index.charter.md`](../../../resources/js/Pages/Forja/Triage/Index.charter.md) · [`Inbox/Index.charter.md`](../../../resources/js/Pages/Forja/Inbox/Index.charter.md)
+- Charters: [`Triage/Index.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Triage/Index.charter.md) · [`Inbox/Index.charter.md`](../../../Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.charter.md)
 - Visual comparison: [`projectmgmt-index-visual-comparison.md`](projectmgmt-index-visual-comparison.md) (status: draft — aguardando SCREENSHOT Wagner)
 - Telas irmãs (em prod): [CHARTER-board.md](CHARTER-board.md), Backlog/MyWork/Activity/Burndown/Roadmap
 - PR #1940 — code-complete Triage+Inbox (segue DRAFT)

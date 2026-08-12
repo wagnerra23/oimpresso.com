@@ -5,7 +5,7 @@ id: requisitos-project-mgmt-charter-board
 # Charter — `/project-mgmt/board` (Kanban Jira-like — em prod)
 
 > **Charter > Spec** ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3).
-> Contrato vivo da página **que JÁ EXISTE** em `resources/js/Pages/Forja/Board/Index.tsx` (441 LoC, em prod desde 2026-05-04 PR #91).
+> Contrato vivo da página **que JÁ EXISTE** em `Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx` (441 LoC, em prod desde 2026-05-04 PR #91).
 > Quando entregue Fase S4 charter-fetch tool, este arquivo migra como `Board.charter.md` ao lado do `.tsx`.
 > ADR mãe redesign: [0100](../../decisions/0100-projectmgmt-ui-redesign.md).
 > Capacidades cobertas: ver [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — itens P0 #1, #2, #5, #6 + P1 #7-#15.
@@ -16,7 +16,7 @@ id: requisitos-project-mgmt-charter-board
 ## 1. Identidade
 
 - **URL canônica**: `/project-mgmt/board` (rename pra `/project/board` em Fase 3.9)
-- **Page React**: [`resources/js/Pages/Forja/Board/Index.tsx`](../../../resources/js/Pages/Forja/Board/Index.tsx) (441 LoC, em prod)
+- **Page React**: [`Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx`](../../../Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx) (441 LoC, em prod)
 - **Controller**: [`Modules/Forja/Http/Controllers/BoardController.php`](../../../Modules/Forja/Http/Controllers/BoardController.php) — métodos `index()` + `updateStatus(PATCH)`
 - **Layout persistente**: `AppShellV2` via `Page.layout` pattern (preferência preservada do CLAUDE.md)
 - **Escopo deste Charter**: redesign **incremental** das gaps. NÃO substitui Page existente — refina.

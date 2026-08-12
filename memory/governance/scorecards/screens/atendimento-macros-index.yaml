@@ -3,7 +3,7 @@
 # A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
 # Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
 screen: Atendimento/Macros/Index
-path: resources/js/Pages/Atendimento/Macros/Index.tsx
+path: Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Index.tsx
 archetype: list
 persona: misto
 nota: 81

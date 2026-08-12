@@ -115,7 +115,7 @@ Webhook scopes (PR4+): `webhooks_inclusao webhooks_consulta`.
 
 ## Frontend canônico (PR5)
 
-- `resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx`
+- `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx`
   - Step 2 Sicoob form: 7 campos (client_id, client_secret, numero_cliente, codigo_modalidade select 1/3, numero_conta, .pfx upload, pfx_password, webhook_secret)
 - `resources/js/Pages/Financeiro/Cobranca/_lib/cobranca-shared.ts`
   - `'sicoob_api'` em `GatewayKey` type

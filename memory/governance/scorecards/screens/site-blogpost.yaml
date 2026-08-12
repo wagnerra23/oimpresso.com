@@ -3,7 +3,7 @@
 # A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
 # Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
 screen: Site/BlogPost
-path: resources/js/Pages/Site/BlogPost.tsx
+path: Modules/Cms/Resources/js/Pages/Site/BlogPost.tsx
 archetype: detail
 persona: misto
 nota: 72

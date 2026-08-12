@@ -27,6 +27,7 @@
  *   node scripts/governance/module-surface.mjs <Mod> --check    (CI: exit 1 se o gerado ≠ commitado = drift)
  *   node scripts/governance/module-surface.mjs --all [--write|--check]   (todos os Modules/*)
  *   node scripts/governance/module-surface.mjs --migracao       (fila Blade→Inertia; npm run migracao:report)
+ *   node scripts/governance/module-surface.mjs --namespaces [--check]  (mapa módulo↔Pages DERIVADO dos renders)
  *
  * Refs: ADR 0256 (survival, fonte única gerada) · dor estado-da-arte 2026-07-21
  *       (memory/sessions/2026-07-21-arte-contexto-vivo-descoberta.md, Gap 2).
@@ -41,6 +42,7 @@ const args = process.argv.slice(2);
 const MODE = args.includes('--write') ? 'write' : args.includes('--check') ? 'check' : 'dry';
 const ALL = args.includes('--all');
 const MIGRACAO = args.includes('--migracao');
+const NAMESPACES = args.includes('--namespaces');
 const POS = args.filter((a) => !a.startsWith('--'));
 const CONTEXTO_GERAL = '_Geral';
 const RAIZES_GERAIS = [
@@ -206,17 +208,47 @@ const CORE_APP_MODULES = {
  * Sem este mapa, `walk('resources/js/Pages/ADS')` daria [] no Linux (case-sensitive) e
  * varreria o dir minúsculo no Windows (case-insensitive) → DRIFT cross-plataforma + telas
  * órfãs do índice. O mapa dá o dir REAL → determinístico nos dois SO + telas incluídas.
- * Verificado 2026-07-21 nos `Inertia::render(...)` de cada módulo. Só entra aqui quando o
- * namespace REALMENTE difere do nome do módulo (não repetir o óbvio Financeiro→Financeiro).
+ * Só entra aqui quando o namespace REALMENTE difere do nome do módulo (não repetir o óbvio
+ * Financeiro→Financeiro). O valor aceita STRING (1 namespace) ou ARRAY (o módulo rende em
+ * mais de um — ex. Whatsapp, que rende 9× sob `Atendimento` e 3× sob `Whatsapp`).
+ *
+ * ⚠️ Este mapa NÃO se confere por leitura nem por data. A frase que estava aqui —
+ * "Verificado 2026-07-21 nos Inertia::render(...)" — é afirmação atemporal que apodrece no
+ * primeiro render novo (§5 proibicoes 2026-07-17: recibo é query re-rodável, não data escrita).
+ * O recibo agora é comando: `node scripts/governance/module-surface.mjs --namespaces [--check]`
+ * DERIVA os namespaces dos renders reais e acusa o que este mapa não cobre.
  */
 const PAGES_NS = {
+  // ⚰️ ADS e TeamMcp: chaves INERTES — os módulos foram removidos (ADR 0363, 2026-07-31), então
+  // `listarModulos()` não os enumera e estas linhas nunca são consultadas. Preservadas como
+  // registro de que o namespace existe e é de outro dono hoje (`ads` → ver aviso do --namespaces;
+  // `team-mcp` → Forja, abaixo). Apagar aqui não muda comportamento; muda a legibilidade do porquê.
   ADS: 'ads',
+  TeamMcp: 'team-mcp',
   Governance: 'governance',
   KB: 'kb',
   NFSe: 'Nfse',
   Superadmin: 'superadmin',
-  TeamMcp: 'team-mcp',   // faltava — o requisitos-status via 0 telas em 5 e 14 UC orfaos (achado do chip TeamMcp, 2026-07-28)
+  // Forja herdou o namespace `team-mcp` — não por semelhança, por decisão [W] registrada em
+  // 2026-07-31 ("MCP vai para forja"): a lápide `memory/requisitos/TeamMcp/SUPERFICIE.md` manda
+  // ler `Forja/SUPERFICIE.md`, que até 2026-08-12 não listava NENHUMA das 23 telas — a lápide
+  // apontava pra um destino que não entregava. 10 renders, dono único.
+  Forja: ['Forja', 'team-mcp'],
+  // PaymentGateway rende as telas de gateway sob `Settings/PaymentGateways/**`. A pasta
+  // `Pages/Settings/` inteira contém SÓ esse subdir (12 arquivos, listagem completa conferida
+  // em 2026-08-12) — atribuição sem over-inclusão.
+  PaymentGateway: ['PaymentGateway', 'Settings'],
+  // Whatsapp — o descasamento mais caro medido (2026-08-12): 9 dos 12 renders do módulo
+  // apontam pra `Atendimento`, e o SUPERFICIE saía com 3 telas em vez de 29. O `--all --check`
+  // ficava VERDE porque gerado e commitado compartilhavam o mesmo ponto cego.
+  Whatsapp: ['Whatsapp', 'Atendimento'],
 };
+
+/** Namespaces de Pages que este módulo reivindica (sempre array; homônimo é o default). */
+function nsDoModulo(mod) {
+  const decl = PAGES_NS[mod] ?? mod;
+  return [...new Set(Array.isArray(decl) ? decl : [decl])];
+}
 
 /**
  * Papéis, na ordem de exibição. `listar:false` = role volumoso → mostra contagem + link do dir
@@ -253,10 +285,18 @@ const PAPEIS = [
   // "## Telas (Inertia/React) — 4" e ninguém via QUAIS eram os 9. Volume não é objeção: este
   // mesmo doc já lista `Services` (91 na Jana) e `Console / Commands` (46).
   { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: true },
-  { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
-  { rot: 'Componentes / apoio de tela', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
-  { rot: 'Charters (lei da tela)', re: /^resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
-  { rot: 'Casos (contrato UC)', re: /^resources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
+  // A raiz aceita o prefixo OPCIONAL `Modules/<X>/` — a tela pode morar no núcleo ou dentro do
+  // módulo dono (migração iniciada 2026-08-12). Sem isso, tela migrada cairia em "Demais
+  // arquivos": presente no total, invisível como tela. Quem decide se é tela segue sendo o
+  // `isPageScreenPath` (`scripts/qa/page-path.mjs`), que descasca as duas raízes.
+  // `[Rr]esources`: o núcleo usa `resources/` minúsculo e a convenção nWidart dos módulos é
+  // `Resources/` MAIÚSCULO. Escrever só minúsculo aqui fazia a tela migrada cair em "Demais
+  // arquivos" — presente no total, invisível como tela — e o `--all --check` NÃO acusava,
+  // porque gerado e commitado compartilhavam o mesmo defeito. Quem pegou foi o BITE real.
+  { rot: 'Telas (Inertia/React)', re: /^(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
+  { rot: 'Componentes / apoio de tela', re: /^(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
+  { rot: 'Charters (lei da tela)', re: /^(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
+  { rot: 'Casos (contrato UC)', re: /^(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
   { rot: 'Testes (Pest)', re: /^Modules\/[^/]+\/Tests\/.*\.php$/, listar: false },
 ];
 
@@ -319,10 +359,15 @@ function isSurfaceRequired(mod) {
 /** Coleta os arquivos do módulo (código + telas) e agrupa por papel. */
 function coletar(mod) {
   const core = CORE_APP_MODULES[mod];
-  const pagesNs = PAGES_NS[mod] || mod; // namespace Inertia real (≠ nome do módulo em alguns)
+  const pagesNs = nsDoModulo(mod); // namespaces Inertia reais (≠ nome do módulo em alguns)
+  // As telas do módulo podem morar em DOIS lugares durante a migração para `Modules/<X>/`
+  // (2026-08-12): ainda no núcleo (`resources/js/Pages/<ns>`) ou já dentro do módulo. O
+  // `walk('Modules/<Mod>')` acima já pega as internas; este segundo walk pega as que ainda
+  // não migraram. Enquanto a migração é faseada, os dois casos coexistem — e o inventário
+  // precisa mostrar o módulo INTEIRO nos dois estados, senão fica cego no meio do caminho.
   const files = [...new Set([
     ...(mod === CONTEXTO_GERAL ? RAIZES_GERAIS.flatMap((p) => walk(p)) : walk(`Modules/${mod}`)),
-    ...(mod === CONTEXTO_GERAL ? [] : walk(`resources/js/Pages/${pagesNs}`)),
+    ...(mod === CONTEXTO_GERAL ? [] : pagesNs.flatMap((ns) => walk(`resources/js/Pages/${ns}`))),
     ...(core ? expandirPrefixos(core.prefixos) : []),
     // ADR 0375: o SCOPE do modulo saiu de Modules/<X>/ pra memory/requisitos/<X>/.
     // O inventario segue o contrato onde ele estiver — senao o modulo aparece SEM
@@ -350,7 +395,9 @@ function linkDe(f) {
 /** Monta o markdown determinístico da SUPERFICIE.md. */
 function montar(mod, grupos, outros) {
   const core = CORE_APP_MODULES[mod];
-  const pagesNs = PAGES_NS[mod] || mod; // namespace Inertia real (pode diferir do nome do módulo)
+  const pagesNs = nsDoModulo(mod); // namespaces Inertia reais (podem diferir do nome do módulo)
+  const nsDiverge = pagesNs.length > 1 || pagesNs[0] !== mod;
+  const nsRaizes = pagesNs.map((ns) => '`resources/js/Pages/' + ns + '/**`').join(' + ');
   const total = grupos.reduce((n, g) => n + g.files.length, 0) + outros.length;
   const totalPapeis = grupos.filter((g) => g.files.length).length + (outros.length ? 1 : 0);
   const L = [];
@@ -374,7 +421,7 @@ function montar(mod, grupos, outros) {
   } else if (core) {
     L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
-    L.push('> **O que isto é:** o inventário completo das raízes `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).');
+    L.push('> **O que isto é:** o inventário completo das raízes `Modules/' + mod + '/**` + ' + nsRaizes + (nsDiverge ? ' (namespace' + (pagesNs.length > 1 ? 's' : '') + ' Inertia `' + pagesNs.join('`, `') + '`, declarado' + (pagesNs.length > 1 ? 's' : '') + ' em `module-surface.mjs::PAGES_NS` porque difere' + (pagesNs.length > 1 ? 'm' : '') + ' do nome do módulo `' + mod + '` — confira com `--namespaces`)' : '') + ', separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).');
   }
   L.push('');
   L.push(`**Total mapeado:** ${total} arquivos em ${totalPapeis} papéis.`);
@@ -582,10 +629,107 @@ function relatorioMigracao() {
   console.log('      (contra os ' + tot + ' dos módulos). Ver: node scripts/governance/blade-migration-census.mjs --report\n');
 }
 
+/**
+ * DERIVA o mapa `módulo → namespace de Pages` dos renders REAIS do código PHP.
+ *
+ * Por que derivar em vez de manter a lista à mão: `PAGES_NS` é declaração curada, e declaração
+ * curada apodrece calada — o `Whatsapp → Atendimento` ficou fora dela e o `--all --check` seguiu
+ * VERDE, porque gerado e commitado compartilhavam o mesmo ponto cego (medido 2026-08-12).
+ * Um mapa que se confere sozinho é derivado; um que se confere por data escrita é lembrado
+ * (ADR 0256). Aqui a fonte são os literais que o Vite de fato resolve.
+ *
+ * As DUAS formas de render contam — `Inertia::render('X/…')` (232 hoje) e o helper `inertia('X/…')`
+ * (2 hoje, em `routes/web.php`). Medir só a primeira daria `Tarefas`/`_Showcase` como órfãs, que é
+ * conclusão falsa tirada de detector incompleto.
+ *
+ * Ignora `Tests/` — e o filtro é NECESSÁRIO, não cosmético: medido em 2026-08-12, os arquivos de
+ * teste rendem 6 namespaces sintéticos que não existem (`__Synthetic`, `SelftestAnchor`,
+ * `RhFixture`, `Comp`, `Mod`, `X`) e que entrariam no relatório como se fossem telas.
+ * Controle positivo ao mexer nisto: rodar a varredura com e sem o filtro e conferir que a
+ * diferença é SÓ fixture — nenhum namespace REAL pode sair (em 2026-08-12 os 12 namespaces reais
+ * citados em teste apareciam todos também em código de produção, então o filtro não perdeu nada).
+ */
+function derivarNamespaces() {
+  const RE_RENDER = /Inertia::render\(\s*'([^']+)'/g;
+  const RE_HELPER = /(?<![\w:>$])inertia\(\s*'([^']+)'/g;
+  const phps = inventarioRepo().filter(
+    (p) => p.endsWith('.php')
+      && /^(?:Modules\/|app\/|routes\/)/.test(p)
+      && !/(?:^|\/)[Tt]ests\//.test(p),
+  );
+  /** @type {Map<string, Map<string, number>>} ns → (dono → contagem) */
+  const porNs = new Map();
+  for (const p of phps) {
+    const dono = p.match(/^Modules\/([^/]+)\//)?.[1] ?? 'core';
+    let src;
+    try { src = readFileSync(join(ROOT, p), 'utf8'); } catch { continue; }
+    for (const re of [RE_RENDER, RE_HELPER]) {
+      re.lastIndex = 0;
+      for (const m of src.matchAll(re)) {
+        const ns = m[1].split('/')[0];
+        if (!ns) continue;
+        const donos = porNs.get(ns) ?? new Map();
+        donos.set(dono, (donos.get(dono) ?? 0) + 1);
+        porNs.set(ns, donos);
+      }
+    }
+  }
+  return porNs;
+}
+
+/**
+ * Relata a tabela derivada e confronta com `PAGES_NS`.
+ * FALHA (exit 1 com --check) só no caso INEQUÍVOCO: namespace com dono ÚNICO, não reivindicado
+ * por nenhum outro módulo, ausente do mapa daquele módulo — ali a atribuição é mecânica.
+ * Namespace com mais de um dono vira AVISO: a quem ele pertence é decisão [W], não do script
+ * (atribuir no olho seria escolher a dedo, a família de guard que o §5 já matou 4×).
+ */
+function relatorioNamespaces() {
+  const porNs = derivarNamespaces();
+  const modulos = new Set(listarModulos());
+  const reivindicado = new Map(); // ns → módulo que o declara em PAGES_NS
+  for (const mod of modulos) for (const ns of nsDoModulo(mod)) if (!reivindicado.has(ns)) reivindicado.set(ns, mod);
+
+  const faltando = [];
+  const ambiguos = [];
+  console.log('\n  namespace            renderizado por (contagem)                  mapa');
+  console.log('  ' + '─'.repeat(84));
+  for (const ns of [...porNs.keys()].sort()) {
+    const donos = [...porNs.get(ns)].sort((a, b) => b[1] - a[1]);
+    const donosTxt = donos.map(([d, n]) => `${d}×${n}`).join(' ');
+    const cobertoPor = [...modulos].filter((m) => nsDoModulo(m).includes(ns));
+    const donosMod = donos.filter(([d]) => d !== 'core').map(([d]) => d);
+    let estado;
+    if (cobertoPor.length) estado = `✓ ${cobertoPor.join(', ')}`;
+    else if (donosMod.length === 1 && !reivindicado.has(ns)) { estado = '✗ FALTA'; faltando.push([ns, donosMod[0], donosTxt]); }
+    else if (donosMod.length) { estado = '⚠ multi/reivindicado'; ambiguos.push([ns, donosTxt]); }
+    else estado = '· core (sem módulo)';
+    console.log(`  ${ns.padEnd(20)} ${donosTxt.padEnd(44)} ${estado}`);
+  }
+  // §5 "no silent caps": pasta de Pages que ninguém renderiza NÃO some do relatório.
+  const semRender = pathsSobRaiz(inventarioRepo(), 'resources/js/Pages')
+    .map((p) => p.split('/')[3]).filter(Boolean);
+  const orfas = [...new Set(semRender)].filter((d) => !porNs.has(d)).sort();
+  if (orfas.length) console.log(`\n  ⚠️  pasta(s) em Pages/ sem NENHUM render apontando: ${orfas.join(', ')}`);
+  if (ambiguos.length) {
+    console.log('\n  ⚠️  namespace com mais de um renderizador — a quem pertence é decisão [W], não deste script:');
+    for (const [ns, d] of ambiguos) console.log(`      ${ns}: ${d}`);
+  }
+  if (faltando.length) {
+    console.error('\n  ✗ namespace(s) com dono ÚNICO fora do PAGES_NS — o módulo não enxerga as próprias telas:');
+    for (const [ns, mod, d] of faltando) console.error(`      ${ns} (${d}) → declare em PAGES_NS: ${mod}: ['${mod}', '${ns}']`);
+    console.error('');
+    return 1;
+  }
+  console.log('\n  ✓ todo namespace com dono único está coberto pelo PAGES_NS.\n');
+  return 0;
+}
+
 // ── main (só quando executado direto, não em import de teste) ───────────────────
 import { pathToFileURL } from 'node:url';
 function main() {
   if (MIGRACAO) { relatorioMigracao(); return; }
+  if (NAMESPACES) { const rc = relatorioNamespaces(); if (MODE === 'check' && rc) process.exit(1); return; }
   const alvos = ALL ? listarModulos() : POS;
   if (!alvos.length) {
     console.error('Uso: node scripts/governance/module-surface.mjs <Mod> [--write|--check]  |  --all [--write|--check]');
@@ -613,6 +757,7 @@ export {
   montar,
   CORE_APP_MODULES,
   PAGES_NS,
+  nsDoModulo,
   RAIZES_GERAIS,
   CONTEXTO_GERAL,
   isSurfaceRequired,

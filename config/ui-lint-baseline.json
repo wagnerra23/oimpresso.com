@@ -153,36 +153,36 @@
     "resources/js/Pages/Admin/_components/WidgetVaultwarden.tsx": {
       "R1": 10
     },
-    "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx": {
       "R1": 1
     },
-    "resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx": {
       "R1": 6
     },
-    "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx": {
       "R1": 5,
       "R3": 2
     },
-    "resources/js/Pages/Atendimento/Channels/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx": {
       "R1": 21,
       "R3": 1
     },
-    "resources/js/Pages/Atendimento/Channels/Show.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Show.tsx": {
       "R1": 8
     },
-    "resources/js/Pages/Atendimento/Csat/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Csat/Index.tsx": {
       "R1": 5
     },
-    "resources/js/Pages/Atendimento/Inbox/_components/ChannelSelector.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/_components/ChannelSelector.tsx": {
       "R1": 8
     },
-    "resources/js/Pages/Atendimento/Macros/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Index.tsx": {
       "R1": 3
     },
-    "resources/js/Pages/Atendimento/Macros/Variants.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Variants.tsx": {
       "R1": 5
     },
-    "resources/js/Pages/Atendimento/Metricas/Index.tsx": {
+    "Modules/Whatsapp/Resources/js/Pages/Atendimento/Metricas/Index.tsx": {
       "R1": 4
     },
     "resources/js/Pages/Auditoria/Detail.tsx": {
@@ -461,36 +461,36 @@
     "resources/js/Pages/Fiscal/_components/NotaDrawer.tsx": {
       "R1": 1
     },
-    "resources/js/Pages/Forja/Activity/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Activity/Index.tsx": {
       "R1": 4
     },
-    "resources/js/Pages/Forja/Backlog/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Backlog/Index.tsx": {
       "R1": 7
     },
-    "resources/js/Pages/Forja/Board/DetailSheet.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx": {
       "R1": 61
     },
-    "resources/js/Pages/Forja/Board/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx": {
       "R1": 6
     },
-    "resources/js/Pages/Forja/Burndown/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.tsx": {
       "R1": 3
     },
-    "resources/js/Pages/Forja/Inbox/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx": {
       "R1": 7,
       "R3": 1
     },
-    "resources/js/Pages/Forja/MyWork/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx": {
       "R1": 4,
       "R3": 1
     },
-    "resources/js/Pages/Forja/Roadmap/Gantt.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx": {
       "R1": 9
     },
-    "resources/js/Pages/Forja/Roadmap/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx": {
       "R1": 18
     },
-    "resources/js/Pages/Forja/Triage/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx": {
       "R1": 21,
       "R3": 1
     },
@@ -827,29 +827,29 @@
     "resources/js/Pages/Sells/_components/VdNextActionPanel.tsx": {
       "R3": 5
     },
-    "resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx": {
       "R1": 38
     },
-    "resources/js/Pages/Settings/PaymentGateways/Index.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx": {
       "R1": 41
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/CheatSheetSettings.tsx": {
       "R1": 8
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/ConfirmToggleModal.tsx": {
       "R1": 20
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/DrawerGateway.tsx": {
       "R1": 113
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx": {
       "R1": 121,
       "R3": 1
     },
-    "resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx": {
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/_components/atoms-settings.tsx": {
       "R1": 16
     },
-    "resources/js/Pages/Site/Pricing.tsx": {
+    "Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx": {
       "R1": 2,
       "R3": 3
     },
@@ -928,7 +928,7 @@
     "resources/js/Pages/ads/Admin/Decisoes.tsx": {
       "R1": 10
     },
-    "resources/js/Pages/ads/Admin/Graph.tsx": {
+    "Modules/KB/Resources/js/Pages/ads/Admin/Graph.tsx": {
       "R1": 28,
       "R3": 6
     },
@@ -947,11 +947,11 @@
     "resources/js/Pages/ads/Admin/Policy.tsx": {
       "R1": 9
     },
-    "resources/js/Pages/ads/Admin/ProjectShow.tsx": {
+    "Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.tsx": {
       "R1": 28,
       "R3": 1
     },
-    "resources/js/Pages/ads/Admin/Projects.tsx": {
+    "Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx": {
       "R1": 11
     },
     "resources/js/Pages/ads/Admin/Skills/Edit.tsx": {
@@ -969,10 +969,10 @@
     "resources/js/Pages/ads/Admin/Skills/Test.tsx": {
       "R1": 5
     },
-    "resources/js/Pages/ads/Admin/TeamScopes.tsx": {
+    "Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.tsx": {
       "R1": 4
     },
-    "resources/js/Pages/ads/Admin/Tools.tsx": {
+    "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx": {
       "R1": 13
     },
     "resources/js/Pages/governance/Audit.tsx": {
@@ -1037,14 +1037,14 @@
       "R1": 20,
       "R3": 9
     },
-    "resources/js/Pages/team-mcp/CcSessions/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx": {
       "R1": 52,
       "R3": 2
     },
-    "resources/js/Pages/team-mcp/Tasks/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx": {
       "R1": 34
     },
-    "resources/js/Pages/team-mcp/Team/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx": {
       "R1": 19,
       "R3": 5
     },

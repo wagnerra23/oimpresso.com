@@ -2,7 +2,7 @@
 id: requisitos-atendimento-caixa-unificada-gap
 tela: /atendimento/caixa-unificada
 prototipo: prototipo-ui/cowork/inbox-page.jsx + inbox-page.css + inbox-cur.jsx + inbox-ai.jsx + inbox-extras.jsx # path corrigido 2026-07-10 — espelho consolidado em cowork/ (visual_source do charter); lista = arquivos ancorados pelo map.json
-tela_viva: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx (+ _components ComposerV4/ConversationListV4/ConversationThreadV4/ContextSidebarV4/ChannelsDrawer/QueuesSheet/BroadcastSheet/ChannelHealthBanner/ReconnectModal/...)
+tela_viva: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx (+ _components ComposerV4/ConversationListV4/ConversationThreadV4/ContextSidebarV4/ChannelsDrawer/QueuesSheet/BroadcastSheet/ChannelHealthBanner/ReconnectModal/...)
 paridade_atual: "100%+ (tela viva ULTRAPASSOU o protótipo)"
 gerado_em: "2026-06-23"
 governanca:
@@ -11,7 +11,7 @@ governanca:
   - "Tier 0 multi-tenant ADR 0093 IRREVOGÁVEL — qualquer payload novo escopa por business_id."
   - "ADR 0114 (Cowork loop) · 0107 (visual gate F3) · 0135 (omnichannel) · 0267 (filas DB) · 0268 (broadcast)."
   - "anti M-AP-2 (LICOES_F3): não dar tom de completude em WIP; placeholders honestos."
-related_charter: resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md (v19, status live, cutover 2026-05-15)
+related_charter: Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md (v19, status live, cutover 2026-05-15)
 ---
 
 # GAP-SPEC — Caixa Unificada (protótipo Cowork vs tela viva V4)

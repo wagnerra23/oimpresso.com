@@ -68,6 +68,6 @@ Não recriado nada da Fase 0.
 ### Arquivos
 - `Modules/TeamMcp/Services/Forja/ForjaMcpService.php` (novo)
 - `Modules/TeamMcp/Http/Controllers/ForjaController.php` (mcp() + import; removido renderTab órfão)
-- `resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx` (seção Handoffs + props + PR-C)
-- `resources/js/Pages/team-mcp/Forja/Cockpit.tsx` (props deferidas + repasse)
+- `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx` (seção Handoffs + props + PR-C)
+- `Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.tsx` (props deferidas + repasse)
 - `Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php` (novo)
