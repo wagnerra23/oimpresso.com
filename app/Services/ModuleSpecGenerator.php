@@ -422,7 +422,7 @@ class ModuleSpecGenerator
 
         // Assets (JS, CSS, frameworks)
         $assets = $spec['assets'] ?? [];
-        if (!empty($assets['js_files']) || !empty($assets['css_files']) || !empty($assets['frameworks']) || $assets['has_package']) {
+        if (!empty($assets['js_files']) || !empty($assets['css_files']) || !empty($assets['frameworks']) || ($assets['has_package'] ?? false)) {
             $md .= "## Assets (JS / CSS)\n\n";
             $md .= "| Tipo | Qtde |\n|---|---:|\n";
             $md .= "| JavaScript (.js/.mjs) | " . ($assets['js'] ?? 0) . " |\n";
@@ -434,7 +434,7 @@ class ModuleSpecGenerator
             // Build por módulo não existe: o bundle do app é da RAIZ (vite.config.js +
             // vite.inertia.config.mjs) e Laravel Mix saiu do projeto. Reportar
             // "Build: Laravel Mix" aqui era fóssil — afirmava um pipeline que ninguém roda.
-            if ($assets['has_package']) $md .= "- `package.json` presente\n";
+            if ($assets['has_package'] ?? false) $md .= "- `package.json` presente\n";
             if (!empty($assets['package_deps'])) {
                 $md .= "- **Deps JS:** `" . implode('`, `', array_slice($assets['package_deps'], 0, 15)) . "`";
                 if (count($assets['package_deps']) > 15) $md .= " +" . (count($assets['package_deps']) - 15);

@@ -288,6 +288,9 @@ _Referências a outros módulos encontradas no código PHP._
 | CSS/SCSS | 9 |
 | Imagens | 4 |
 
+- Build: **Laravel Mix** (webpack.mix.js presente)
+- `package.json` presente
+- **Deps JS:** `cross-env`, `laravel-mix`, `laravel-mix-merge-manifest`
 
 **Frameworks/libs detectados no JS:** jQuery, Bootstrap, DataTables, Select2, SweetAlert, Toastr, Moment
 
