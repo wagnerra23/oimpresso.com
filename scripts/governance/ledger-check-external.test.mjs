@@ -108,6 +108,35 @@ deve('REGRESSÃO: fable gera + fable refuta segue PASSANDO (igualdade no tier m�
   naoInclui(out, 'tier SUPERIOR');
   naoInclui(out, 'do MESMO tier');
 });
+
+// ── TETO DE POLÍTICA (emenda 2026-08-12): "máximo" = o mais alto que o projeto USA ──
+// Fable está vetado por custo, então opus é o topo na prática. Sem isto, lote gerado
+// por opus era irrefutável — gate insatisfazível, o defeito que a §4.1 já consertou
+// pro gerador externo.
+deve('BITE: opus gera + opus refuta PASSA (opus é o teto de política)', () => {
+  const out = roda({ gerador: 'claude-opus-5', refutador: 'claude-opus-5' });
+  naoInclui(out, 'tier SUPERIOR');
+  naoInclui(out, 'do MESMO tier');
+});
+// CONTROLES NEGATIVOS — o teto não pode ter virado "vale tudo".
+deve('BITE: sonnet gera + sonnet refuta REPROVA (abaixo do teto, igualdade não vale)', () => {
+  inclui(roda({ gerador: 'sonnet-5', refutador: 'sonnet-5' }), 'do MESMO tier');
+});
+deve('BITE: opus gera + sonnet refuta REPROVA (refutador abaixo do gerador)', () => {
+  inclui(roda({ gerador: 'claude-opus-5', refutador: 'sonnet-5' }), 'exigido tier SUPERIOR');
+});
+deve('BITE: haiku gera + haiku refuta REPROVA (igualdade longe do teto)', () => {
+  inclui(roda({ gerador: 'haiku-4.5', refutador: 'haiku-4.5' }), 'do MESMO tier');
+});
+deve('REGRESSÃO: sessao_fresca=false segue barrando — o teto NÃO afrouxa a outra metade da decorrelação', () => {
+  inclui(roda({ gerador: 'claude-opus-5', refutador: 'claude-opus-5', sessao_fresca: false }), 'sessao_fresca');
+});
+deve('REGRESSÃO: veredito reprovado segue barrando com opus×opus', () => {
+  inclui(roda({ gerador: 'claude-opus-5', refutador: 'claude-opus-5', veredito: 'reprovado' }), 'exigido: aprovado');
+});
+deve('REGRESSÃO: error_rate >= 2 segue barrando com opus×opus', () => {
+  inclui(roda({ gerador: 'claude-opus-5', refutador: 'claude-opus-5', error_rate_pct: 5.08 }), 'aceite: < 2');
+});
 deve('REGRESSÃO: veredito reprovado segue barrando, mesmo com gerador externo', () => {
   inclui(roda({ gerador: 'codex (GPT-5.x)', refutador: 'opus-5', veredito: 'reprovado' }), 'exigido: aprovado');
 });

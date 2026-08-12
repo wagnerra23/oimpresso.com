@@ -74,7 +74,26 @@ const JUIZ_TIPO = 'juiz';
 // modelo IDÊNTICO ao gerador tem correlação de erros — os dois alucinam igual.
 // Igualdade só é aceita no tier MÁXIMO (não existe superior disponível).
 const MODEL_RANK = { haiku: 1, sonnet: 2, opus: 3, fable: 4, mythos: 4 };
-const MAX_RANK = Math.max(...Object.values(MODEL_RANK));
+
+// TETO DE POLÍTICA (emenda 2026-08-12, decisão [W]) — o "máximo" é o mais alto que o
+// projeto usa ROTINEIRAMENTE, não o mais alto da tabela.
+//
+// O §2.3 diz "igualdade só quando o gerador JÁ É o tier máximo DISPONÍVEL". Disponível
+// era lido como `Math.max` da tabela — fable. Só que fable não está disponível na
+// prática: [W] o vetou por custo. Com quase todo lote nascendo de opus (23 das 87
+// entries deste ledger), a regra ficava insatisfazível — mesmo defeito de mecanismo que
+// a emenda §4.1 (2026-07-30) consertou pro gerador externo: gate sem caminho honesto de
+// abertura, cujo único "jeito prático" é falsear o campo `gerador`. Regra que fabrica
+// incentivo pra mentir no registro é pior que regra ausente.
+//
+// O que a regra protege é DECORRELAÇÃO (§4.1 diz isso com todas as letras), e ela NÃO
+// vem só do tier: `sessao_fresca` — contexto próprio, zero herança do gerador — é a outra
+// metade, e continua exigida (`sessao_fresca !== true` reprova, logo abaixo).
+//
+// O que NÃO afrouxa: gerador de tier BAIXO segue exigindo refutador superior. sonnet
+// gera ⇒ sonnet refuta REPROVA; opus gera ⇒ sonnet refuta REPROVA. Só a igualdade
+// no topo-de-política passa. Controles negativos em `ledger-check-external.test.mjs`.
+const MAX_RANK = MODEL_RANK.opus;
 const rank = (s) => {
   const m = String(s || '').toLowerCase().match(/haiku|sonnet|opus|fable|mythos/);
   return m ? MODEL_RANK[m[0]] : 0;
