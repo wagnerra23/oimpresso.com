@@ -6,7 +6,7 @@ id: requisitos-team-mcp-capterra-design-ficha
 
 > **Cruzamento gerado:** 2026-05-25
 > **Skill aplicada:** `design-arte` (input pra CAPTERRA-DESIGN-INVENTARIO.md futuro)
-> **Alvo:** `resources/js/Pages/team-mcp/Team/Index.tsx` (~521 LOC, live em prod, biz=1 superadmin Wagner — único cliente real desta tela)
+> **Alvo:** `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx` (~521 LOC, live em prod, biz=1 superadmin Wagner — único cliente real desta tela)
 > **Controller:** `Modules/Forja/Http/Controllers/TeamController.php` (Inertia::defer 2 props pesadas, OTel spans em token.issue/revoke)
 > **Persona:** Wagner [W] @ biz=1 (superadmin, dev sênior, monitor 1920px, **técnico**, opera várias vezes/dia onboarding de Felipe/Maiara/Eliana/Luiz no MCP server). **NÃO é Larissa** — esta tela é superadmin-only com `can: jana.mcp.usage.all`.
 > **Charter:** ❌ ausente (`Team/Index.charter.md` não existe — gerar quando entrar em ciclo de refactor)
@@ -211,7 +211,7 @@ Gap pro topo: -23 pts. Causa principal:
    - else → verde "Ativo"
 
 **Diff aproximado:**
-- `resources/js/Pages/team-mcp/Team/Index.tsx`: +180 linhas (novo Dialog + helper + integração no `<td>` tokens_ativos)
+- `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx`: +180 linhas (novo Dialog + helper + integração no `<td>` tokens_ativos)
 - `Modules/Forja/Http/Controllers/TeamController.php`: +60 linhas (`buildTokensListPayload` + ajuste retorno em revoke)
 - `Modules/TeamMcp/Routes/web.php` ou similar: +2 linhas (nova route `GET /team-mcp/team/{user}/tokens`)
 - `resources/js/Components/shared/DestructiveConfirmDialog.tsx` (novo): +50 linhas

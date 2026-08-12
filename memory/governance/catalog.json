@@ -2247,10 +2247,10 @@
       "desc": "mesa de aprovações (/forja/aprovacoes): fila de mcp_tasks em `pending_approval` (o que espera decisão de [W]) em ordem de espera, e a decisão admitir/parquear/recusar. Superfície da ADR 0368, que fechou a política e deixou o código pra PR próprio; estado+FSM+trava de recusa-sem-motivo já vieram em #5283/#5288. Escrita 100% via TaskCrudService — mesmo chokepoint da tool MCP `tasks-update`, sem 2º caminho"
     },
     {
-      "id": "component:Forja/As páginas React seguem em resources/js/Pages/team-mcp/*",
+      "id": "component:Forja/As páginas React seguem em Modules/Forja/Resources/js/Pages/team-mcp/*",
       "type": "component",
       "module": "Forja",
-      "name": "As páginas React seguem em resources/js/Pages/team-mcp/*",
+      "name": "As páginas React seguem em Modules/Forja/Resources/js/Pages/team-mcp/*",
       "desc": "não migram; renomear URL é decisão separada"
     },
     {
@@ -7490,7 +7490,7 @@
     },
     {
       "from": "module:Forja",
-      "to": "component:Forja/As páginas React seguem em resources/js/Pages/team-mcp/*",
+      "to": "component:Forja/As páginas React seguem em Modules/Forja/Resources/js/Pages/team-mcp/*",
       "type": "hasComponent",
       "source": "contains"
     },

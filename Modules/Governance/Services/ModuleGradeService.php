@@ -1928,7 +1928,25 @@ class ModuleGradeService
      */
     private function resolveCaseInsensitivePagesPath(string $moduleName): ?string
     {
-        return $this->resolveCaseInsensitiveDir($this->pagesPath, $moduleName);
+        $noNucleo = $this->resolveCaseInsensitiveDir($this->pagesPath, $moduleName);
+        if ($noNucleo !== null) {
+            return $noNucleo;
+        }
+
+        // DUAS raízes desde 2026-08-12: a tela pode ter migrado para dentro do módulo dono
+        // (`Modules/<X>/Resources/js/Pages/<Ns>`). Sem este fallback o Service via "0 telas /
+        // 0 charters" para módulo migrado e a nota DESPENCAVA sem nada ter piorado — medido no
+        // PR da migração: Forja 85 → 81 só por ter mudado o arquivo de lugar.
+        // `Resources` maiúsculo é a convenção nWidart; o helper abaixo já é case-insensitive.
+        foreach (['Resources', 'resources'] as $res) {
+            $raizDoModulo = base_path("Modules/{$moduleName}/{$res}/js/Pages");
+            $noModulo = $this->resolveCaseInsensitiveDir($raizDoModulo, $moduleName);
+            if ($noModulo !== null) {
+                return $noModulo;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -115,7 +115,7 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 ### US-PG-004 · Doc mínimo: BRIEFING + CAPTERRA-FICHA + RUNBOOK-integrar-provider
 
-**Implementado em:** _parcial_ · `memory/requisitos/PaymentGateway/BRIEFING.md` · `resources/js/Pages/Settings/PaymentGateways/Index.charter.md` · `resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md` · verificado@176f9bc (2026-07-01) — falta `CAPTERRA-FICHA.md` e `RUNBOOK-integrar-provider.md` (só existem RUNBOOK-settings-gateways.md + RUNBOOK-sicoob-api.md)
+**Implementado em:** _parcial_ · `memory/requisitos/PaymentGateway/BRIEFING.md` · `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md` · `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md` · verificado@176f9bc (2026-07-01) — falta `CAPTERRA-FICHA.md` e `RUNBOOK-integrar-provider.md` (só existem RUNBOOK-settings-gateways.md + RUNBOOK-sicoob-api.md)
 
 > owner: — · priority: p1 · estimate: 12h · type: story
 > blocked_by: —

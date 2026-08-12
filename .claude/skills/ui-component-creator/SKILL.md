@@ -46,7 +46,7 @@ Em ordem:
    - List+detail: [Sells/Index.tsx](resources/js/Pages/Sells/Index.tsx) + [SaleSheet.tsx](resources/js/Pages/Sells/_components/SaleSheet.tsx)
    - Form: [Sells/Create.tsx](resources/js/Pages/Sells/Create.tsx)
    - Dashboard: [governance/Dashboard.tsx](resources/js/Pages/governance/Dashboard.tsx)
-   - Kanban: [Forja/Board/Index.tsx](resources/js/Pages/Forja/Board/Index.tsx)
+   - Kanban: [Forja/Board/Index.tsx](Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx)
 
 ### 2. Verificação de existência (REUSE primeiro)
 

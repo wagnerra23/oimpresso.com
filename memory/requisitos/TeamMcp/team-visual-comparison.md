@@ -10,13 +10,13 @@ approved_at: 2026-06-16
 date: 2026-06-16
 canon_reference: forja-cowork (forja-mcp.jsx — painel MCP; ref expirada, ver nota)
 blade_source: "N/A — tela já é Inertia (re-skin DS v6 conservador)"
-inertia_target: resources/js/Pages/team-mcp/Team/Index.tsx
+inertia_target: Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx
 pr_branch: feat/forja-pr4-team
 ---
 
 # TeamMcp — Comparativo visual · tela **Team** (painel MCP)
 
-> **F1.5 do MWART V4** · PR-4 da onda **Forja**. Pré-aprovado pelo padrão Forja ([W] "pode seguir" 2026-06-16). **Tela Tier 0** (governança de tokens MCP — ADR 0081/0057/0093). Já tem [charter vivo](../../../../resources/js/Pages/team-mcp/Team/Index.charter.md).
+> **F1.5 do MWART V4** · PR-4 da onda **Forja**. Pré-aprovado pelo padrão Forja ([W] "pode seguir" 2026-06-16). **Tela Tier 0** (governança de tokens MCP — ADR 0081/0057/0093). Já tem [charter vivo](../../../../Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.charter.md).
 
 ## Escopo escolhido (e o que ficou pra PR-4b)
 

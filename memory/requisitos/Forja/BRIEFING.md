@@ -46,7 +46,7 @@ Cockpit de trabalho do **time interno oimpresso** (Wagner + Felipe + Maiara + El
 - **Superfície derivada de código:** [`SUPERFICIE.md`](SUPERFICIE.md)
 - **Requisitos:** [`SPEC.md`](SPEC.md) + [`SPEC-COMPLEMENTO.md`](SPEC-COMPLEMENTO.md)
 - **Concorrência/mercado:** [`CAPTERRA-FICHA.md`](CAPTERRA-FICHA.md) + [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md)
-- **Telas:** `resources/js/Pages/Forja/**` + charters/casos ao lado das Pages
+- **Telas:** `Modules/Forja/Resources/js/Pages/Forja/**` + charters/casos ao lado das Pages
 - **Tabelas de dados (donas):** `mcp_jira_*` + 5 herdadas do ADS extinto (`mcp_projects`/`mcp_project_parts`/`mcp_decision_links`/`mcp_tool_executions`/`mcp_user_module_access`) — lista em SCOPE `db_tables_owned`.
 
 ## Decisões e riscos que exigem atenção

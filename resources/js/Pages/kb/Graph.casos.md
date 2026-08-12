@@ -4,7 +4,7 @@ casos: "KB — visualização-grafo · /kb/graph"
 irmaos: "Graph.charter.md (lei · v1.0 · status draft) · Index.casos.md · SDD-tela-kb-unificado-v1.0.md (§6.2 CU-KB-09)"
 tecnica: "Caso de uso = narrativa + critério de aceite verificável, derivado do §6 do SDD (nunca do .tsx)"
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-08-12"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (KB · MySQL)"
 status_tela: "viva-em-MOCK — a rota existe e responde, mas NENHUM Controller a serve: closure Inertia::render sem props + /kb/graph/data hardcoded vazio → a tela cai em _lib/mockGraphData.ts"
 ---

@@ -153,11 +153,11 @@ Hoje permission é binária (`jana.mcp.usage.all`). Time MCP entra em breve
 Charter já existe pra Board ([CHARTER-board.md](CHARTER-board.md)). Falta pras
 outras 5 telas — pré-req pra editar `.tsx` correspondente (skill `charter-first`).
 
-- [ ] `resources/js/Pages/Forja/Backlog/Index.charter.md` — Mission, Goals, Non-Goals, UX targets, Anti-hooks
-- [ ] `resources/js/Pages/Forja/Roadmap/Index.charter.md`
-- [ ] `resources/js/Pages/Forja/MyWork/Index.charter.md`
-- [ ] `resources/js/Pages/Forja/Activity/Index.charter.md`
-- [ ] `resources/js/Pages/Forja/Burndown/Index.charter.md`
+- [ ] `Modules/Forja/Resources/js/Pages/Forja/Backlog/Index.charter.md` — Mission, Goals, Non-Goals, UX targets, Anti-hooks
+- [ ] `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.charter.md`
+- [ ] `Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.charter.md`
+- [ ] `Modules/Forja/Resources/js/Pages/Forja/Activity/Index.charter.md`
+- [ ] `Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.charter.md`
 - [ ] Skill `charter-write` (Tier B) gera draft → Wagner revisa Non-Goals + Anti-hooks
 
 **Refs**: ADR 0099 (Charter > Spec — Constituição v2 princípio 3) · skill `charter-first` (S4+)

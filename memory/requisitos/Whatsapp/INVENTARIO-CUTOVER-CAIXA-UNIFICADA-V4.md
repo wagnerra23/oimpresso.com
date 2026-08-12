@@ -11,8 +11,8 @@ id: requisitos-whatsapp-inventario-cutover-caixa-unificada-v4
 > Atualiza/complementa:
 > - [RUNBOOK-inbox-caixa-unificada-v4.md](RUNBOOK-inbox-caixa-unificada-v4.md) (escopo original era reskin in-place; foi pivotado pra rota nova)
 > - [CaixaUnificadaV4-visual-comparison.md](CaixaUnificadaV4-visual-comparison.md) (gate F3 visual)
-> - [Index.charter.md (Inbox legacy)](../../../resources/js/Pages/Atendimento/Inbox/Index.charter.md)
-> - [Index.charter.md (Caixa Unificada V4)](../../../resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md)
+> - [Index.charter.md (Inbox legacy)](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.charter.md)
+> - [Index.charter.md (Caixa Unificada V4)](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md)
 
 ---
 
@@ -178,12 +178,12 @@ Wagner copia (ou usuário Felipe) os items P0 da §2.1 + §2.2 + §2.3 pra V4:
 ALTERAR:
   Modules/Whatsapp/Resources/menus/topnav.php:26      (F4: add entry V4 · F5: substitui)
   Modules/Whatsapp/Routes/web.php:86-95               (F5: redirect 301 · F6: remover)
-  resources/js/Pages/Atendimento/Inbox/Index.charter.md (F5: status historical)
+  Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.charter.md (F5: status historical)
 
 REMOVER em F6 (não antes):
-  resources/js/Pages/Atendimento/Inbox/Index.tsx
-  resources/js/Pages/Atendimento/Inbox/Index.charter.md
-  resources/js/Pages/Atendimento/Inbox/_components/ChannelSelector.tsx
+  Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.tsx
+  Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.charter.md
+  Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/_components/ChannelSelector.tsx
   Modules/Whatsapp/Tests/Feature/InboxFiltersTest.php          ← OU migrar pra CaixaUnif*
   Modules/Whatsapp/Tests/Feature/InboxMultiPhoneFilterTest.php
   Modules/Whatsapp/Tests/Feature/InboxSendInteractiveTest.php

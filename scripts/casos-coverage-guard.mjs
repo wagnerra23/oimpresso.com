@@ -50,7 +50,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, dirname, basename, relative } from 'node:path';
 import { execSync } from 'node:child_process';
 import { ucsDeclaredInCasos, ucBlocksInCasos } from './lib/uc-regex.mjs';
-import { isPageScreenPath } from './qa/page-path.mjs';
+import { isPageScreenPath, raizesDePages, pageNamespacePath } from './qa/page-path.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = resolve(ROOT, 'resources/js/Pages');
@@ -103,7 +103,7 @@ function walk(dir, filter, acc = []) {
 // na RAIZ de Pages/ não é tela) e ignora `*.charter.tsx` / `*.test.tsx`. Hoje isso não muda
 // nada (zero arquivos assim), e é a regra que o `screen-coverage-gate` (required) já aplica.
 function listPages() {
-  return walk(PAGES_DIR, (full, name) => name.endsWith('.tsx') && !name.endsWith('.d.ts'))
+  return raizesDePages(ROOT).flatMap((raiz) => walk(raiz, (full, name) => name.endsWith('.tsx') && !name.endsWith('.d.ts')))
     .map((f) => norm(f))
     .filter((rel) => isPageScreenPath(rel))
     .sort((a, b) => a.localeCompare(b));
@@ -147,7 +147,7 @@ function trioViolations(pages) {
 //   ucBlocksInCasos()    → {uc, block} pra quem precisa do corpo (G-5 Status:, G-7 verdict)
 
 function listCasosFiles() {
-  return walk(PAGES_DIR, (full, name) => name.endsWith('.casos.md')).map(norm).sort();
+  return raizesDePages(ROOT).flatMap((raiz) => walk(raiz, (full, name) => name.endsWith('.casos.md'))).map(norm).sort();
 }
 
 function ucsInCasos(casosFiles) {
@@ -237,7 +237,8 @@ function tetoDeProva(ucDecls, testCorpus) {
   // POR QUE AGRUPAR (2026-08-04): o contador sozinho não é acionável — pra descobrir ONDE
   // estão os presos foi preciso escrever script ad-hoc replicando esta função. O dono do
   // tema já sabia a resposta e não a publicava. Agrupa pelo módulo do casos.md que declara.
-  const moduloDo = (f) => (String(f).replace(/\\/g, '/').split('resources/js/Pages/')[1] || '?').split('/')[0];
+  // O módulo vem do NAMESPACE, não da raiz — a tela pode morar no núcleo ou no módulo dono.
+  const moduloDo = (f) => (pageNamespacePath(String(f).replace(/\\/g, '/')) || '?').split('/')[0];
   const presos = new Set(soDocblock);
   const porModulo = {};
   for (const { uc, file } of ucDecls) {

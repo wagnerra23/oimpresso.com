@@ -506,7 +506,7 @@ pra [W] ou pra corrida que tratar o Scorecard.
 - [ADR 0283](../../decisions/0283-handoff-loop-zero-paste.md) — loop de handoff
 - [ADR 0351](../../decisions/0351-sdd-from-source.md) — este método
 - [SPEC.md](SPEC.md) · [BRIEFING.md](BRIEFING.md) · [SUPERFICIE.md](SUPERFICIE.md)
-- Contratos: [`Forja/Cockpit.casos.md`](../../../resources/js/Pages/team-mcp/Forja/Cockpit.casos.md) · [`Scorecard/Index.casos.md`](../../../resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
+- Contratos: [`Forja/Cockpit.casos.md`](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md) · [`Scorecard/Index.casos.md`](../../../Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
 
 ---
 

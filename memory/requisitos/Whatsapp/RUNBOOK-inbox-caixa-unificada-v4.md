@@ -4,7 +4,7 @@
 > **Status:** ⏳ aguardando sign-off Wagner
 > **Escopo:** APENAS redesign frontend. Zero migrations, zero backend novo.
 > **Refs:** ADR 0104 (MWART), ADR 0135 (omnichannel já live), ADR 0093 (Tier 0), ADR 0110 (Cockpit V2), handoff Claude Design 2026-05-15 (`inbox-page.jsx`)
-> **Tela:** `resources/js/Pages/Atendimento/Inbox/Index.tsx` + `_components/`
+> **Tela:** `Modules/Whatsapp/Resources/js/Pages/Atendimento/Inbox/Index.tsx` + `_components/`
 > **Backend:** `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php` — props shape PRESERVED, só adiciona 2 props derivadas
 
 ---

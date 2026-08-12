@@ -10,13 +10,13 @@ approved_at: 2026-06-16
 date: 2026-06-16
 canon_reference: forja-cowork (forja-page.jsx + forja-data.jsx + forja-page.css)
 blade_source: "N/A — tela já é Inertia (re-skin DS v6, não Blade→Inertia)"
-inertia_target: resources/js/Pages/team-mcp/Tasks/Index.tsx
+inertia_target: Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx
 pr_branch: feat/forja-pr1-tasks-reskin
 ---
 
 # TeamMcp — Comparativo visual · tela **Tasks** (Backlog + Quadro)
 
-> **F1.5 do MWART V4** ([skill `mwart-comparative`](../../../../.claude/skills/mwart-comparative/SKILL.md)). PR-1 da onda **Forja** — *re-skin DS v6* de uma tela que **já é Inertia** (não é migração Blade→React). Gate: Wagner aprova **screenshot** (o protótipo Forja Cowork) **antes** de qualquer Edit em [`Index.tsx`](../../../../resources/js/Pages/team-mcp/Tasks/Index.tsx).
+> **F1.5 do MWART V4** ([skill `mwart-comparative`](../../../../.claude/skills/mwart-comparative/SKILL.md)). PR-1 da onda **Forja** — *re-skin DS v6* de uma tela que **já é Inertia** (não é migração Blade→React). Gate: Wagner aprova **screenshot** (o protótipo Forja Cowork) **antes** de qualquer Edit em [`Index.tsx`](../../../../Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx).
 
 ## Contexto
 
