@@ -33,7 +33,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import SubNav from '@/Components/shared/SubNav';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { cn } from '@/Lib/utils';
-import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
+import ForjaHub from '../Forja/_components/ForjaHub';
 import TaskDrawer from './_components/TaskDrawer';
 import { ActorSeal, PriorityDot, TaskStatusPill } from '@/Components/shared/TaskBadges';
 import { PRIO_LABEL, STATUS_ORDER, statusMeta, type Priority } from '@/Lib/taskTokens';

@@ -15,7 +15,7 @@ import { useEffect, type ReactNode } from 'react';
 import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { PageHeader } from '@/Components/PageHeader';
-import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
+import ForjaHub from '../Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { cn } from '@/Lib/utils';

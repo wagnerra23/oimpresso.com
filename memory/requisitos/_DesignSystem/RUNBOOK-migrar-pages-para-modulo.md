@@ -62,9 +62,27 @@ git ls-files "Modules/$MOD/*esources/js/Pages/**" | head -3
 
 Rename só de casing exige dois passos (`git mv X __tmp && git mv __tmp Y`).
 
-### 2. Reescrever os imports que sobraram
+### 2. Reescrever os imports — nas DUAS direções
 
-Rode o resolvedor por existência (passo 0) **de novo**, agora sobre a área já movida.
+**(a) De dentro para fora** — o que foi movido importando o que ficou: rode o resolvedor por
+existência (passo 0) de novo, agora sobre a área já movida.
+
+**(b) De fora para dentro** — ⚠️ **o que ficou importando o que saiu.** Esta é a direção que passa
+despercebida, porque esses arquivos **não estão no seu diff**. Pior: se o import usa o alias `@/`
+(e não `../`), o resolvedor do passo 0 nem olha para ele — o alias aponta para `resources/js`, e o
+arquivo simplesmente deixou de existir lá.
+
+```bash
+rg --hidden -n "from '@/Pages/$NS/" -g '*.tsx' -g '*.ts' resources Modules
+```
+
+Se houver resultados, alguma coisa está errada no **recorte**: um componente compartilhado ficou
+do lado errado da fronteira. Na onda `team-mcp` foram 7 imports do mesmo `ForjaHub` — 3 de telas
+que ficaram no núcleo e **4 de dentro do próprio módulo**. A causa raiz era o recorte:
+`Pages/Forja/**` também é do Forja e tinha ficado para trás. Migrar os dois juntos resolveu, e os
+imports viraram relativos dentro do módulo.
+
+Regra: **se o namespace A importa de B e ambos são do mesmo módulo, migre A e B na mesma onda.**
 
 ### 3. Re-keyar os baselines path-keyed
 
@@ -135,7 +153,8 @@ Colisão só existe quando **o mesmo arquivo** é declarado duas vezes — é o 
 | `Atendimento` | Whatsapp | ✅ 38 arquivos |
 | `ads` | Forja (4 telas) + KB (1) | ✅ dividido por dono |
 | `Site` | Cms (4) + Superadmin (1) | ✅ dividido; **auth fica no núcleo** |
-| `team-mcp` | Forja | ⏳ 23 arquivos |
-| demais | homônimos | ⏳ o namespace já bate com o módulo |
+| `team-mcp` + `Forja` | Forja | ✅ migrados **juntos** — `Pages/Forja` importava `ForjaHub` de `team-mcp` |
+| demais | homônimos | ⏳ o namespace já bate com o módulo; migram quando alguém tocar |
 
-Um módulo por PR, sempre com o total do `pages-colisao` conferido antes e depois.
+**73 de 445 páginas** já moram no módulo dono (2026-08-12). Um módulo por PR, sempre com o total
+do `pages-colisao` conferido antes e depois — ele é o canário.

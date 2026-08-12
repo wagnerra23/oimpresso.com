@@ -45,7 +45,7 @@ function fixture() {
   escreve('resources/js/Pages/kb/Index.casos.md');
   // módulo com separador divergente
   escreve('memory/requisitos/TeamMcp/BRIEFING.md');
-  escreve('resources/js/Pages/team-mcp/forja.charter.md'); // ← hífen
+  escreve('Modules/Forja/Resources/js/Pages/team-mcp/forja.charter.md'); // ← hífen
   // módulo vazio (só existe a pasta do backend)
   escreve('memory/requisitos/Vazio/README.md');
   // vizinho de nome parecido — controle negativo de colisão

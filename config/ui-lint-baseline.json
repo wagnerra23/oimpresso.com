@@ -461,36 +461,36 @@
     "resources/js/Pages/Fiscal/_components/NotaDrawer.tsx": {
       "R1": 1
     },
-    "resources/js/Pages/Forja/Activity/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Activity/Index.tsx": {
       "R1": 4
     },
-    "resources/js/Pages/Forja/Backlog/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Backlog/Index.tsx": {
       "R1": 7
     },
-    "resources/js/Pages/Forja/Board/DetailSheet.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Board/DetailSheet.tsx": {
       "R1": 61
     },
-    "resources/js/Pages/Forja/Board/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Board/Index.tsx": {
       "R1": 6
     },
-    "resources/js/Pages/Forja/Burndown/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Burndown/Index.tsx": {
       "R1": 3
     },
-    "resources/js/Pages/Forja/Inbox/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Inbox/Index.tsx": {
       "R1": 7,
       "R3": 1
     },
-    "resources/js/Pages/Forja/MyWork/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/MyWork/Index.tsx": {
       "R1": 4,
       "R3": 1
     },
-    "resources/js/Pages/Forja/Roadmap/Gantt.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx": {
       "R1": 9
     },
-    "resources/js/Pages/Forja/Roadmap/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx": {
       "R1": 18
     },
-    "resources/js/Pages/Forja/Triage/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/Forja/Triage/Index.tsx": {
       "R1": 21,
       "R3": 1
     },
@@ -1037,14 +1037,14 @@
       "R1": 20,
       "R3": 9
     },
-    "resources/js/Pages/team-mcp/CcSessions/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx": {
       "R1": 52,
       "R3": 2
     },
-    "resources/js/Pages/team-mcp/Tasks/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx": {
       "R1": 34
     },
-    "resources/js/Pages/team-mcp/Team/Index.tsx": {
+    "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx": {
       "R1": 19,
       "R3": 5
     },

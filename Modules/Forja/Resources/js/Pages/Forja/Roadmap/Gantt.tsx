@@ -20,7 +20,7 @@
 // memory/sessions/2026-08-05-duplicacao-roadmap-forja.md.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
+import ForjaHub from '../../team-mcp/Forja/_components/ForjaHub';
 import { router } from '@inertiajs/react';
 import { useMemo, useState, useCallback } from 'react';
 import { PageHeader } from '@/Components/PageHeader';

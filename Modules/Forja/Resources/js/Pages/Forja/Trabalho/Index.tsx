@@ -29,7 +29,7 @@ import KpiCard from '@/Components/shared/KpiCard';
 // Reuso do DS em vez de recriar (rule reuse-check): os mapas de cor de
 // prioridade/status são canônicos e já usados por Board/Backlog/Triage.
 import { PRIORITY_BADGE, STATUS_BADGE, COLUMN_LABEL_PT, type Priority, type Status } from '@/Components/board/badges';
-import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
+import ForjaHub from '../../team-mcp/Forja/_components/ForjaHub';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 import { Lock, Clock, List as ListIcon, LayoutGrid, GanttChartSquare, ArrowUpRight } from 'lucide-react';

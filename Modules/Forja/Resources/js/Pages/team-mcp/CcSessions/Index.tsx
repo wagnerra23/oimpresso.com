@@ -20,7 +20,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import PageHeader from '@/Components/shared/PageHeader';
-import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
+import ForjaHub from '../Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';

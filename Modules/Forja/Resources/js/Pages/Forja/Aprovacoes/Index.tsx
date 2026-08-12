@@ -39,7 +39,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { PRIORITY_BADGE, type Priority } from '@/Components/board/badges';
-import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
+import ForjaHub from '../../team-mcp/Forja/_components/ForjaHub';
 // Layout é COMPOSIÇÃO destes primitivos, nunca `<div className="flex gap-4">` solto
 // (ADR 0253 — enforçado pelo `layout-primitives-guard`).
 import { Grid, Inline, Stack } from '@/Components/layout';
