@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-produto-unificado-index-charter
-page: /produto/unificado
+page: /products/unificado
 component: resources/js/Pages/Produto/Unificado/Index.tsx
 related_prototype: prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/produto-app.jsx (formalizado 2026-08-10 — o corpo do charter já declarava "criado a partir de produto-app.jsx"; o frontmatter dizia n/a e deixava ancora.mjs sem âncora. Segue PT-01 Lista nos 6 slots.)
 owner: wagner
@@ -13,7 +13,7 @@ tier: A
 charter_version: 1
 ---
 
-# Page Charter — /produto/unificado (DRAFT)
+# Page Charter — /products/unificado (DRAFT)
 
 > **Status:** draft criado em batch 2026-05-09 a partir de `produto-app.jsx` (60 KB — material mais robusto do canon). Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
@@ -94,7 +94,7 @@ Catálogo unificado: numa tela única alterna entre 5 sub-views (Produtos / Cate
 
 ## Automation Hooks
 
-- Endpoint `GET /produto/unificado?tela=<sub>` — `ProdutoUnificadoController::index()` agrega:
+- Endpoint `GET /products/unificado?tela=<sub>` — `ProdutoUnificadoController::index()` agrega:
   - `Product::where('business_id', $bid)->active()->count()` (KPI catálogo ativo)
   - `TransactionSellLine` join `transactions` últimos 30d sum quantity (KPI saídas)
   - Sub-view específica conforme `tela`

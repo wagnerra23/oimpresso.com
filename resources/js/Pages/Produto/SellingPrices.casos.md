@@ -16,7 +16,7 @@ last_run: "2026-07-15"
 > tautológico e trava o desvio em vez de pegá-lo (`proibicoes.md` §5, entrada 2026-06-05).
 >
 > **Fluxo de negócio** (Wagner 2026-07-15): a tabela nasce **fora** do produto
-> (`/produto/unificado?tela=tabelas`); aqui o operador **seleciona** a tabela e define o preço que o
+> (`/products/unificado?tela=tabelas`); aqui o operador **seleciona** a tabela e define o preço que o
 > produto assume quando ela for aplicada; **depois** a tabela é vinculada ao cadastro do cliente ou a
 > um tipo de venda. O produto **nunca** é vinculado direto ao cliente.
 >
