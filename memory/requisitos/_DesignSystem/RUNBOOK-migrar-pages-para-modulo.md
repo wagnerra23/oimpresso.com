@@ -25,7 +25,11 @@ Cada ponta (`app.tsx` client, `ssr.tsx` SSR) declara **dois** globs e normaliza 
 para o namespace do núcleo.
 
 **Consequência que define o desenho:** o namespace **não** muda com o local do arquivo, logo
-**nenhum dos 232 `Inertia::render(...)` muda ao migrar**. Mover é operação de arquivo + baseline,
+**nenhum `Inertia::render(...)` muda ao migrar** — são **218** em Controllers hoje, e o número não
+sustenta a afirmação: ela vale para qualquer quantidade, porque o namespace independe da raiz.
+Reproduza: `git grep -c "Inertia::render" -- ':(glob)Modules/*/Http/Controllers/**' ':(glob)app/Http/Controllers/**'`
+(o `:(glob)` importa — `*` no pathspec do git **não** atravessa `/`, §5 2026-07-28).
+Mover é operação de arquivo + baseline,
 não de call-site.
 
 ## Receita (ordem importa)
@@ -43,7 +47,9 @@ batido, e só o build acusou.
 O critério correto é **existência do alvo**, não prefixo de string: `../../Financeiro/...` a partir
 de `Pages/Settings/PaymentGateways/` resolve para um path que *começa* com a raiz movida e mesmo
 assim não existe lá. Resolva cada import e, se o alvo real está no núcleo, troque por `@/Pages/...`
-(alias absoluto — imune ao move; 1.785 imports do repo já usam isso).
+(alias absoluto — imune ao move; **1.791** imports sob `Pages/` já usam isso, contra **85** relativos).
+Reproduza: `git grep -c "from '@/" -- ':(glob)resources/js/Pages/**' ':(glob)Modules/*/Resources/js/Pages/**'`
+(troque por `from '\.\./` para os relativos).
 
 ### 1. Mover, respeitando o casing
 
